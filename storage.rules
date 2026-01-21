@@ -1,0 +1,31 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn() && (request.auth.token.admin == true);
+    }
+    function isCoach() {
+      return isSignedIn() && (request.auth.token.coach == true || isAdmin());
+    }
+
+    // Waiver PDFs written by the parent page (unauth) should use
+    // a signed upload URL or go through a callable. By default, block public writes.
+    match /waivers/{year}/{month}/{fileName} {
+      // Read: only coaches/admins (parents get a time-bound signed URL from your function/UI)
+      allow read: if isCoach();
+
+      // Write: only via rules if you later attach auth;
+      // for now force all writes through Functions (signed URL) → deny here.
+      allow write: if false;
+    }
+
+    // Everything else: deny by default
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

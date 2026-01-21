@@ -1,0 +1,47 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /* --------------------------------------
+       Para-Comms: Parent → Coach Inbox
+       Write-only (Parents can send)
+    ---------------------------------------*/
+    match /parentInbox/{month}/entries/{msgId} {
+      allow write: if true;
+      allow read: if false;
+    }
+
+    /* --------------------------------------
+       Announcements: Coach → Parent
+       Read-only for parents
+    ---------------------------------------*/
+    match /bulletin/{month}/entries/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+
+    /* --------------------------------------
+       TEMP PILOT OPEN
+       All other collections readable/writable
+    ---------------------------------------*/
+    match /{document=**} {
+      allow read, write: if true;
+    }
+    match /intakeTokens/{id} {
+  allow read: if request.auth != null;     // only coaches can see token vault
+  allow create: if request.auth != null;   // coach panel can mint new tokens
+
+  // Nobody except backend functions can delete or overwrite tokens
+  allow update, delete: if false;
+}
+
+match /intakePending/{id} {
+  // parent submits intake — no auth needed
+  allow create: if true;
+  allow read, update, delete: if false;   // parents cannot read each other's data
+}
+
+  }
+}

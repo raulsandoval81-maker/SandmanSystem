@@ -1,0 +1,32 @@
+{
+  "functions": {
+    "source": "functions",
+    "runtime": "nodejs20"
+  },
+
+  "hosting": {
+    "public": "public",
+    "cleanUrls": true,
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ]
+  },
+
+  "firestore": {
+    "rules": "firestore.rules"
+  },
+
+  "storage": {
+    "rules": "storage.rules"
+  },
+
+  "emulators": {
+    "functions": { "host": "0.0.0.0", "port": 5001 },
+    "firestore": { "host": "0.0.0.0", "port": 8081 },
+    "auth": { "host": "0.0.0.0", "port": 9099 },
+    "hosting": { "host": "0.0.0.0", "port": 5000 },
+    "ui": { "enabled": true, "host": "0.0.0.0", "port": 4000 }
+  }
+}
