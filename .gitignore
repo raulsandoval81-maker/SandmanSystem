@@ -7,6 +7,12 @@ yarn-error.log*
 firebase-debug.log*
 firebase-debug.*.log*
 
+# Firebase emulators
+emulator-data/
+.emu/
+*.log
+emu-debug.txt
+
 # Firebase cache
 .firebase/
 
