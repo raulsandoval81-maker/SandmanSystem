@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete Personal Tracker | Sandman System™</title>
+
+  <!-- We are inside /public/coaches/, step back to shared assets -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:1rem}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}}
+
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .panel h2{color:#ffd633;margin:.2rem 0 1rem}
+
+    .muted{color:var(--muted)}
+    .field{margin:.65rem 0}
+    label{display:block;margin-bottom:.25rem;color:#cfe2ff;font-weight:700}
+    input[type="number"], input[type="text"], textarea, select{
+      width:100%;padding:.6rem .7rem;border-radius:10px;border:1px solid #394a61;background:#121821;color:#f3f4f6
+    }
+    textarea{min-height:130px;resize:vertical}
+
+    .skills-list{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem}
+    .chip{background:#121821;border:1px solid #3a4b61;border-radius:999px;padding:.25rem .6rem;font-weight:700}
+    .chip button{background:none;border:0;color:#ff9999;margin-left:.35rem;cursor:pointer}
+
+    .btn{display:inline-block;padding:.65rem 1rem;border-radius:999px;background:var(--pill-bg);color:var(--pill-fg);border:2px solid var(--pill-br);font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    .btn-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+
+    .history{list-style:none;padding:0;margin:.5rem 0 0}
+    .history li{border-top:1px solid #2c3a4e;padding:.6rem 0}
+    .history small{color:var(--muted)}
+    .badge{border:1px solid #3a4b61;border-radius:7px;padding:.15rem .4rem;margin-right:.25rem}
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <div class="layout">
+
+      <!-- LEFT: Form -->
+      <section class="panel">
+        <h2>Athlete Personal Tracker</h2>
+        <p class="muted">Private coach log — record focus, effort, attitude, respect, and skills per athlete.</p>
+
+        <div class="field">
+          <label for="athlete">Athlete</label>
+          <input id="athlete" type="text" placeholder="e.g., sandoval" />
+        </div>
+
+        <div class="field">
+          <label for="focus">Focus (0–5)</label>
+          <input id="focus" type="number" min="0" max="5" step="1" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="effort">Effort (0–5)</label>
+          <input id="effort" type="number" min="0" max="5" step="1" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="attitude">Attitude (0–5)</label>
+          <input id="attitude" type="number" min="0" max="5" step="1" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="respect">Respect (0–5)</label>
+          <input id="respect" type="number" min="0" max="5" step="1" value="0" />
+        </div>
+
+        <div class="field">
+          <label for="skillInput">Skills</label>
+          <div style="display:flex;gap:.5rem">
+            <input id="skillInput" type="text" placeholder="Add a skill (e.g., sprawl)" />
+            <button id="addSkill" class="btn" type="button">+ Add Skill</button>
+          </div>
+          <div id="skills" class="skills-list"></div>
+        </div>
+
+        <div class="field">
+          <label for="notes">Coach Notes</label>
+          <textarea id="notes" placeholder="Observations, strengths, weaknesses, reminders…"></textarea>
+        </div>
+
+        <div class="btn-row">
+          <button id="save" class="btn" type="button">Save Log</button>
+          <button id="clear" class="btn secondary" type="button">Clear</button>
+          <a class="btn secondary" href="hub.html">← Back to Portal</a>
+        </div>
+      </section>
+
+      <!-- RIGHT: History -->
+      <section class="panel">
+        <h2>Log History</h2>
+        <p class="muted">Local demo only. Firestore wiring will replace this.</p>
+        <ul id="history" class="history" aria-live="polite"></ul>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Shared footer -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Local demo logic (no modules, no Firebase) -->
+  <script>
+    (function(){
+      const $ = s => document.querySelector(s);
+
+      const athlete  = $("#athlete");
+      const focus    = $("#focus");
+      const effort   = $("#effort");
+      const attitude = $("#attitude");
+      const respect  = $("#respect");
+      const notes    = $("#notes");
+
+      const skillInput = $("#skillInput");
+      const addSkillBtn = $("#addSkill");
+      const skillsWrap = $("#skills");
+
+      const saveBtn  = $("#save");
+      const clearBtn = $("#clear");
+      const history  = $("#history");
+
+      let skills = [];
+
+      function renderSkills(){
+        skillsWrap.innerHTML = skills.map((s, i) =>
+          `<span class="chip">${escapeHtml(s)} <button data-i="${i}" title="remove">×</button></span>`
+        ).join("");
+        skillsWrap.querySelectorAll("button").forEach(btn=>{
+          btn.addEventListener("click", () => {
+            skills.splice(parseInt(btn.dataset.i,10),1);
+            renderSkills();
+          });
+        });
+      }
+
+      function addSkill(){
+        const v = (skillInput.value || "").trim();
+        if(!v) return;
+        skills.push(v);
+        skillInput.value = "";
+        renderSkills();
+      }
+
+      function saveLog(){
+        const entry = {
+          ts: Date.now(),
+          athlete: (athlete.value||"").trim(),
+          focus: clampInt(focus.value,0,5),
+          effort: clampInt(effort.value,0,5),
+          attitude: clampInt(attitude.value,0,5),
+          respect: clampInt(respect.value,0,5),
+          skills: [...skills],
+          notes: (notes.value||"").trim()
+        };
+        if(!entry.athlete){
+          alert("Enter an athlete name before saving.");
+          return;
+        }
+        const key = "coachPersonalLogs";
+        const all = JSON.parse(localStorage.getItem(key) || "[]");
+        all.unshift(entry);
+        localStorage.setItem(key, JSON.stringify(all));
+        renderHistory();
+        clearForm(true);
+        alert("Saved locally. (Will wire to Firestore later.)");
+      }
+
+      function renderHistory(){
+        const key = "coachPersonalLogs";
+        const all = JSON.parse(localStorage.getItem(key) || "[]");
+        if(!all.length){
+          history.innerHTML = `<li class="muted">No logs yet.</li>`;
+          return;
+        }
+        history.innerHTML = all.map(e => {
+          const when = new Date(e.ts).toLocaleString();
+          const tags = (e.skills || []).map(s=>`<span class="badge">${escapeHtml(s)}</span>`).join("");
+          return `<li>
+            <div><strong>${escapeHtml(e.athlete)}</strong> • <small>${when}</small></div>
+            <div class="muted">F:${e.focus} E:${e.effort} A:${e.attitude} R:${e.respect}</div>
+            ${tags ? `<div style="margin:.25rem 0">${tags}</div>` : ""}
+            ${e.notes ? `<div>${escapeHtml(e.notes)}</div>` : ""}
+          </li>`;
+        }).join("");
+      }
+
+      function clearForm(keepAthlete=false){
+        if(!keepAthlete) athlete.value = "";
+        focus.value = effort.value = attitude.value = respect.value = 0;
+        notes.value = "";
+        skills = [];
+        renderSkills();
+      }
+
+      function clampInt(v,min,max){
+        v = parseInt(v,10); if(isNaN(v)) v=min; return Math.max(min, Math.min(max, v));
+      }
+      function escapeHtml(s){
+        return (s+"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      }
+
+      // Events
+      addSkillBtn.addEventListener("click", addSkill);
+      skillInput.addEventListener("keydown", e => { if(e.key==="Enter"){ e.preventDefault(); addSkill(); }});
+      saveBtn.addEventListener("click", saveLog);
+      clearBtn.addEventListener("click", () => clearForm(false));
+
+      renderSkills();
+      renderHistory();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach · Roster (v2)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+
+<style>
+  :root { color-scheme: dark; }
+
+  body{
+    background:#0a0a0a;
+    color:#f5f5f5;
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    margin:0;
+  }
+
+  .wrap{ max-width:1100px; margin:0 auto; padding:24px; }
+  h1{ margin:0 0 8px; }
+  .muted{ color:#9fb3c8; }
+
+  table{ width:100%; border-collapse:collapse; margin-top:14px; }
+  th,td{
+    padding:10px 6px;
+    border-bottom:1px solid #1c2533;
+    font-size:.9rem;
+    vertical-align:top;
+  }
+  th{ text-align:left; color:#c9d6e5; }
+  tr:hover{ background:rgba(255,255,255,.03); }
+
+  .pill{
+    display:inline-block;
+    background:#263142;
+    border:1px solid #3a4a60;
+    border-radius:999px;
+    padding:.25rem .65rem;
+    color:#dbeafe;
+    text-decoration:none;
+    font-size:.75rem;
+    white-space:nowrap;
+  }
+
+  .name-col{ display:flex; align-items:flex-start; gap:8px; }
+  .sub{ display:block; font-size:.7rem; color:#7a8aa1; }
+  .name-line{ font-weight:700; }
+
+  .bonsai-chip{
+    width:20px;height:20px;border-radius:999px;
+    border:1px solid #ffd63333;
+    background:radial-gradient(circle,#ffd63344 0%,#0a0a0a 90%);
+    display:inline-block;
+    flex:0 0 auto;
+    margin-top:2px;
+  }
+
+  /* ---- belt cell stack ---- */
+  td .belt-stack{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    min-width:180px;
+  }
+
+  /* stripe counter line */
+  td .xp-sub{
+    font-size:12px;
+    opacity:.75;
+    letter-spacing:.2px;
+    line-height:1.1;
+  }
+
+  /* ===== xp-bar-lite.js (cluster-left stripe cuts) ===== */
+
+  .xp-lite{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+
+  .xp-lite-track{
+    position:relative;
+    height:14px;
+    border-radius:999px;
+    overflow:hidden;
+
+    background:rgba(255,255,255,.14);
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.06),
+      inset 0 -2px 6px rgba(0,0,0,.18);
+  }
+
+  .xp-lite-fill{
+    position:absolute;
+    left:0; top:0; bottom:0;
+    width:0%;
+    border-radius:inherit;
+    z-index:1;
+  }
+
+  .xp-lite-stripes{
+    position:absolute;
+    inset:0;
+    z-index:3;
+    pointer-events:none;
+  }
+
+  /* each stripe is a full-height cut, clustered LEFT */
+  .xp-lite-stripe{
+    position:absolute;
+    top:0;
+    bottom:0;
+    width: var(--sw, 10px);
+    left: calc(var(--sl, 8px) + (var(--i, 0) * (var(--sw, 10px) + var(--sg, 6px))));
+    border-radius:0;
+    transform:none;
+  }
+
+  .xp-lite-stripe.off{ display:none; }
+
+  .xp-lite-stripe.on{
+    display:block;
+    background: var(--stripe, #fff);
+    box-shadow: 0 0 10px rgba(255,255,255,.18);
+  }
+
+  .xp-lite-meta{
+    font-size:12px;
+    opacity:.8;
+    line-height:1.1;
+  }
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    <a class="pill" href="/coaches/coaches-daily-clipboard.html">Coach’s Clipboard</a>
+    <a class="pill" href="/coaches/daily-grind.html">Daily Grind XP</a>
+  </nav>
+
+  <h1>Team Roster</h1>
+  <p class="muted">Live athletes from Firestore <code>athletes</code> collection</p>
+
+  <div class="controls-row">
+    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+      <input id="canonicalOnly" type="checkbox" checked />
+      <span class="muted" style="font-size:.85rem;">
+        Canonical Only (hide stubs / auth noise)
+      </span>
+    </label>
+    <span id="countMeta" class="muted" style="font-size:.8rem;"></span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:38%">Athlete</th>
+        <th style="width:22%">Tier / Rank</th>
+        <th style="width:25%">XP Belt Tracker</th>
+        <th style="width:15%"></th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+      <tr><td colspan="4" class="muted">Loading…</td></tr>
+    </tbody>
+  </table>
+
+</main>
+
+<script type="module">
+  import { db, collection, getDocs, query, limit } from "/assets/js/firebase-init.js";
+  import { renderLiteXpBar } from "/assets/js/xp-bar-lite.js";
+  import { getStripeInfo } from "/assets/js/ladder.service.js";
+
+  const $ = (id) => document.getElementById(id);
+
+  function isCanonicalDocId(docId) {
+    return typeof docId === "string" && /^F4_\\d{4}$/.test(docId);
+  }
+
+  function isRealSeededAthlete(docId, a = {}) {
+    const hasF4Id = isCanonicalDocId(docId);
+    const mint = a.mintTag || a.mintPreview || a.virtTag || a.mintVirtueTag || "";
+    const hasMint = typeof mint === "string" && mint.startsWith("F4_CB");
+    const hasName = typeof a.fullName === "string" && a.fullName.trim().length > 0;
+    const notTest = (a.fullName || "").toUpperCase() !== "TEST";
+    return notTest && (hasF4Id || hasMint || hasName);
+  }
+
+  function fallbackEarnedFromXp(xp, cap = 1200, total = 4){
+    const safeCap = Number(cap) > 0 ? Number(cap) : 1200;
+    const pct = (Number(xp) || 0) / safeCap;
+    return Math.max(0, Math.min(total, Math.floor(pct * total)));
+  }
+
+  async function loadRoster() {
+    const rowsEl = $("rows");
+    const toggle = $("canonicalOnly");
+    const countMeta = $("countMeta");
+
+    rowsEl.innerHTML = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
+
+    const snap = await getDocs(query(collection(db, "athletes"), limit(300)));
+    if (snap.empty) {
+      rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes found.</td></tr>`;
+      if (countMeta) countMeta.textContent = "";
+      return;
+    }
+
+    const canonicalOnly = !!toggle?.checked;
+
+    const all = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+    const filtered = all
+      .filter(({ id, data }) => isRealSeededAthlete(id, data))
+      .filter(({ id }) => (canonicalOnly ? isCanonicalDocId(id) : true));
+
+    const canonCount = all.filter(x => isCanonicalDocId(x.id)).length;
+    if (countMeta) {
+      countMeta.textContent = canonicalOnly
+        ? `Showing ${filtered.length} canonical`
+        : `Showing ${filtered.length} (all: ${all.length}, canonical: ${canonCount})`;
+    }
+
+    let html = "";
+    for (const { id: uid, data: a } of filtered) {
+      let team = a.team || "";
+      const loc = [a.city, a.state].filter(Boolean).join(", ");
+      if (/lompoc|strong/i.test(team)) team = "Lompoc Academy of Wrestling";
+
+      const tierLeft  = a.tier || "T0";
+      const tierRight = a.rankName || "Apprentice";
+
+      html += `
+        <tr>
+          <td>
+            <div class="name-col">
+              <span class="bonsai-chip" title="Path 2 Legend"></span>
+              <div>
+                <div class="name-line">${a.publicName || a.fullName || "—"}</div>
+                <div class="sub">${a.virtue || "—"} · ${uid}</div>
+                <div class="sub">${team}${loc ? " · " + loc : ""}</div>
+                <div class="sub small-track">${a.track || a.trackCode || "—"}</div>
+              </div>
+            </div>
+          </td>
+
+          <td class="rank-col">
+            ${tierLeft} / ${tierRight}
+          </td>
+
+          <td class="xp-col">
+            <div id="belt-${uid}" class="belt-stack"></div>
+          </td>
+
+          <td>
+            <a class="pill" href="/athletes/athlete-profile.html?id=${encodeURIComponent(uid)}">
+              Profile
+            </a>
+          </td>
+        </tr>
+      `;
+    }
+
+    rowsEl.innerHTML = html || `<tr><td colspan="4" class="muted">No matching athletes.</td></tr>`;
+
+    // paint belts + stripe counter (single pass)
+    for (const { id: uid, data: a } of filtered) {
+      const holder = document.getElementById(`belt-${uid}`);
+      if (!holder) continue;
+
+      holder.innerHTML = "";
+
+      const xp  = Number(a.xp ?? 0);
+      const cap = Number(a.xpCap ?? 1200);
+
+      const isWhiteBelt =
+        String(a.rankName || "").toLowerCase() === "apprentice" ||
+        String(a.tier || "").toUpperCase() === "T0";
+
+      const stripeTone = isWhiteBelt ? "black" : "white";
+
+      let earned = 0;
+      let total = 4;
+
+      // Try stripe service; if it fails or returns 0 on nonzero xp, fallback
+      try {
+        const info = getStripeInfo("f4", xp);
+        if (info && typeof info === "object") {
+          earned = Number(info.stripesEarned ?? 0);
+          total  = Number(info.stripesTotal  ?? 4);
+        }
+      } catch (e) {}
+
+      if (!Number.isFinite(total) || total <= 0) total = 4;
+      if (!Number.isFinite(earned) || earned < 0) earned = 0;
+
+      if (earned === 0 && xp > 0) {
+        earned = fallbackEarnedFromXp(xp, cap, total);
+      }
+
+      renderLiteXpBar({
+        container: holder,
+        xp,
+        cap,
+        baseColor: "rgba(255,255,255,.08)",
+        fillColor: "#ffffff",
+        stripesTotal: total,
+        stripesEarned: earned,
+        stripeTone,
+      });
+
+      const sub = document.createElement("div");
+      sub.className = "xp-sub";
+      sub.textContent = `Stripes: ${earned}/${total}`;
+      holder.appendChild(sub);
+    }
+  }
+
+  loadRoster();
+  document.getElementById("canonicalOnly")?.addEventListener("change", loadRoster);
+</script>
+</body>
+</html>

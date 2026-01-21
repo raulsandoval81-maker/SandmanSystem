@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Coaches › Coach Notes</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../assets/css/site.css" />
+  <style>
+    .wrap { max-width:1100px; margin:0 auto; padding:18px; display:grid; grid-template-columns:260px 1fr; gap:16px; }
+    @media(max-width:900px){ .wrap{ grid-template-columns:1fr; } }
+    .rail { background:#12161d; border:1px solid #252b36; border-radius:14px; padding:12px; }
+    .rail h3 { margin:.2rem 0 .6rem; color:#ffd33d; }
+    .rail a { display:block; color:#cfd7e6; text-decoration:none; padding:.4rem .5rem; border-radius:8px; }
+    .rail a.active, .rail a:hover { background:#1a1f28; }
+    .card { background: linear-gradient(180deg,#1b1f28,#0f1218); border-radius:16px; padding:16px 18px; box-shadow:0 12px 28px rgba(0,0,0,.35); color:#e9eef7; }
+    .card h2 { margin:0 0 .6rem; color:#ffd33d; }
+    .row { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .input, select, textarea { background:#151922; color:#e9eef7; border:1px solid #2a2f3a; border-radius:10px; padding:.55rem .65rem; outline:none; }
+    .btn { background:#2a2f3a; color:#fff; border:0; border-radius:10px; padding:.5rem .75rem; cursor:pointer; }
+    .btn:hover { filter:brightness(1.05); }
+    ul.clean{ list-style:none; margin:0; padding:0; }
+    ul.clean li{ padding:.65rem .75rem; border-radius:12px; background:#171b23; border:1px solid #242a36; margin-bottom:.5rem; }
+    .timestamp{ color:#9fb0c8; font-size:.9rem; }
+    .crumbs{ color:#9fb0c8; font-size:.9rem; margin-bottom:.5rem; }
+  </style>
+</head>
+<body>
+  <header class="system-header" style="background:#0f0f0f;border-bottom:2px solid #FFD700;padding:16px 20px;">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+      <span style="color:#FFD700;font-weight:800;letter-spacing:1.2px;font-size:1.2rem;text-transform:uppercase;">Sandman Combat System™</span>
+      <span style="color:#bbb;font-weight:600;">Coaches</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <aside class="rail">
+      <h3>Coach Notes</h3>
+      <a class="active" href="/coaches/notes/index.html">Composer</a>
+      <a href="/coaches/notes/templates.html">Templates</a>
+      <a href="/coaches/notes/history.html">History & Search</a>
+      <a href="/coaches/notes/signals.html">Signals</a>
+    </aside>
+
+    <section>
+      <div class="crumbs">Coaches › Coach Notes › Composer</div>
+      <section class="card">
+        <h2>Compose Note</h2>
+        <div class="row" style="margin-bottom:.5rem;">
+          <input id="nAthlete" class="input" placeholder="Athlete name (e.g., Max)" style="min-width:220px;">
+          <input id="nBy" class="input" placeholder="Coach (e.g., Coach S)" style="max-width:200px;">
+          <input id="nTags" class="input" placeholder="Tags (comma separated: focus, stance)" style="flex:1;">
+        </div>
+        <textarea id="nText" class="input" rows="4" placeholder="Short note (max ~200 chars)…"></textarea>
+        <div class="row" style="margin-top:.5rem;">
+          <button id="postNote" class="btn">Post note</button>
+          <span id="nStatus" class="muted" style="margin-left:auto;">Local mode. Online later.</span>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Recent Notes</h2>
+        <ul id="nList" class="clean"></ul>
+      </section>
+    </section>
+  </main>
+
+  <script src="../../assets/js/coach-notes.js"></script>
+</body>
+</html>

@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach Tools — Intake | Sandman System™</title>
+
+  <!-- NOTE: we are inside /public/coaches/, so shared assets use ../ -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg)}
+    .wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:1rem}
+    @media (max-width:1000px){.layout{grid-template-columns:1fr}}
+
+    .side,.main{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .side{padding:1rem}
+    .main{padding:1rem}
+
+    h1,h2{color:#ffd633;margin:.25rem 0 1rem}
+    .muted{color:var(--muted)}
+
+    .pill{display:inline-block;padding:.35rem .8rem;border-radius:999px;background:#1b2533;border:1px solid #384a62;color:#cfe2ff;font-weight:800}
+    .pill.ok{background:#15331b;border-color:#2a6e3a;color:#bff3c8}
+    .pill.beta{background:#33281b;border-color:#c77d24;color:#ffd9a6}
+    .pill.placeholder{background:#2b2b2b;border-color:#555;color:#ddd}
+
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    .btn.block{display:block;width:100%}
+    .btnbar{display:flex;gap:.5rem;flex-wrap:wrap}
+
+    .control{width:100%;padding:.6rem .7rem;background:#121821;color:#f3f4f6;border:1px solid #394a61;border-radius:10px}
+    label{display:block;font-weight:800;color:#d8e0ea;margin:.45rem 0 .3rem}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+    @media(max-width:560px){.grid2{grid-template-columns:1fr}}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:.55rem .5rem;border-bottom:1px solid #2c3a4e;text-align:left;color:#d8e0ea}
+    th{color:#9fb3c8;font-weight:800}
+    .empty{padding:1rem;text-align:center;color:#9fb3c8}
+
+    .panel-stack{display:flex;flex-direction:column;gap:.75rem}
+    .cta{display:flex;flex-direction:column;gap:.6rem}
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Coach Tools</h1>
+    <p class="muted" style="margin-top:-.4rem">Tap a tool to open it. Status pills reflect the current phase.</p>
+
+    <div class="layout">
+      <!-- LEFT: tool list / legend -->
+      <aside class="side" aria-label="Tool launcher">
+        <div class="panel-stack">
+          <a class="btn secondary" href="../index.html">← Back to Portal</a>
+
+          <div class="cardish">
+            <h2 style="margin:.4rem 0">Legend</h2>
+            <div class="btnbar">
+              <span class="pill ok">READY</span>
+              <span class="pill beta">BETA</span>
+              <span class="pill placeholder">PLACEHOLDER</span>
+            </div>
+          </div>
+
+          <div class="cardish">
+            <h2 style="margin:.4rem 0">Tools</h2>
+            <div class="cta">
+              <a class="btn block" href="hub.html">Coach Hub</a>
+              <a class="btn block" href="coach-weekly.html">Weekly Brief</a>
+              <a class="btn block" href="qa.html">QA Notes</a>
+              <a class="btn block" href="padlock.html">Padlock Admin</a>
+            </div>
+          </div>
+
+          <div class="muted">Ready.</div>
+        </div>
+      </aside>
+
+      <!-- RIGHT: intake form + list -->
+      <section class="main" aria-label="Intake">
+        <h2>New Athlete Intake</h2>
+
+        <div class="grid2">
+          <div>
+            <label for="name">Athlete name</label>
+            <input id="name" class="control" placeholder="e.g., Max Rivera" />
+          </div>
+          <div>
+            <label for="guardian">Parent / Guardian</label>
+            <input id="guardian" class="control" placeholder="e.g., Ana Rivera" />
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="track">Track</label>
+            <select id="track" class="control">
+              <option value="f8">Foundry 8 — Youth</option>
+              <option value="f4">Foundry 4 — Teen/Adult</option>
+            </select>
+          </div>
+          <div>
+            <label for="discipline">Discipline</label>
+            <select id="discipline" class="control">
+              <option value="wrestling">Wrestling</option>
+              <option value="boxing">Boxing</option>
+              <option value="kickboxing">Kickboxing</option>
+              <option value="muaythai">Muay Thai</option>
+              <option value="grappling">Submission Grappling</option>
+              <option value="mma">MMA</option>
+              <option value="leadership">Leadership</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="rank">Start Tier / Rank</label>
+            <select id="rank" class="control">
+              <option value="apprentice">Apprentice / Shadow</option>
+              <option value="warrior">Warrior / Recruit</option>
+              <option value="champion">Champion / Combatant</option>
+              <option value="veteran">Veteran / Commander</option>
+              <option value="legend">Legend / Hero</option>
+            </select>
+          </div>
+          <div>
+            <label for="program">Program (optional)</label>
+            <input id="program" class="control" placeholder="e.g., After-school BJJ alt, Club team, etc." />
+          </div>
+        </div>
+
+        <div class="grid2">
+          <div>
+            <label for="contact">Contact (email or phone)</label>
+            <input id="contact" class="control" placeholder="e.g., max@email.com" />
+          </div>
+          <div>
+            <label for="notes">Notes</label>
+            <input id="notes" class="control" placeholder="Allergies, schedule, prior exp…" />
+          </div>
+        </div>
+
+        <div class="btnbar" style="margin-top:.8rem">
+          <button class="btn" id="btnSave">Save Intake</button>
+          <button class="btn secondary" id="btnClear">Clear</button>
+          <span id="saveStatus" class="muted"></span>
+        </div>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:1rem 0" />
+
+        <h2>Recent Intakes (local demo)</h2>
+        <table aria-label="Recent intakes">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Track</th>
+              <th>Discipline</th>
+              <th>Rank</th>
+              <th>Program</th>
+              <th>Contact</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="intakeTable">
+            <tr class="empty"><td colspan="7">No intakes yet.</td></tr>
+          </tbody>
+        </table>
+
+        <div class="btnbar" style="margin-top:1rem">
+          <a class="btn secondary" href="../index.html">← Home</a>
+          <a class="btn" href="hub.html">Coach Hub</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Shared footer -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Local-only script (no Firebase; safe during sweep) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const $ = id => document.getElementById(id);
+      const tbody = $("intakeTable");
+      const state = { items: [] };
+
+      const esc = s => (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      const label = (v, map) => map[v] || v;
+      const TRACK = { f8:"Foundry 8 — Youth", f4:"Foundry 4 — Teen/Adult" };
+      const RANK  = { apprentice:"Apprentice / Shadow", warrior:"Warrior / Recruit", champion:"Champion / Combatant", veteran:"Veteran / Commander", legend:"Legend / Hero" };
+      const DISC  = { wrestling:"Wrestling", boxing:"Boxing", kickboxing:"Kickboxing", muaythai:"Muay Thai", grappling:"Submission Grappling", mma:"MMA", leadership:"Leadership" };
+
+      function render(){
+        if (!state.items.length){
+          tbody.innerHTML = '<tr class="empty"><td colspan="7">No intakes yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = state.items
+          .sort((a,b)=>b.ts-a.ts)
+          .map(it => `<tr>
+            <td>${esc(it.name)}</td>
+            <td>${esc(label(it.track, TRACK))}</td>
+            <td>${esc(label(it.discipline, DISC))}</td>
+            <td>${esc(label(it.rank, RANK))}</td>
+            <td>${esc(it.program||"—")}</td>
+            <td>${esc(it.contact||"—")}</td>
+            <td>${new Date(it.ts).toLocaleString()}</td>
+          </tr>`).join("");
+      }
+
+      $("btnSave")?.addEventListener("click", () => {
+        const item = {
+          name: $("name").value.trim(),
+          guardian: $("guardian").value.trim(),
+          track: $("track").value,
+          discipline: $("discipline").value,
+          rank: $("rank").value,
+          program: $("program").value.trim(),
+          contact: $("contact").value.trim(),
+          notes: $("notes").value.trim(),
+          ts: Date.now()
+        };
+        if (!item.name){ $("saveStatus").textContent = "Name required."; return; }
+        state.items.push(item);
+        render();
+        ["name","guardian","program","contact","notes"].forEach(id=>$(id).value="");
+        $("saveStatus").textContent = "Saved (local demo).";
+      });
+
+      $("btnClear")?.addEventListener("click", ()=>{
+        ["name","guardian","program","contact","notes"].forEach(id=>$(id).value="");
+        $("saveStatus").textContent = "";
+      });
+
+      render();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coaches • Tools</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --fg:#e9eef7; --muted:#aeb9c9;
+      --card:#ffffff; --text:#111;
+      --brand:#ffd21f; --cta:#ef4444; --line:#253244;
+    }
+    html,body{height:100%}
+    body{
+      margin:0; background:radial-gradient(900px 520px at 50% -10%, rgba(255,210,31,.12), transparent), var(--bg);
+      color:var(--fg); font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+    main{max-width:1100px; margin:36px auto 72px; padding:0 16px}
+    .topbar{display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:10px}
+    h1{margin:0; font-size:clamp(28px,4vw,40px); color:var(--brand)}
+    .sub{margin:6px 0 18px; color:var(--muted); font-weight:600}
+    .grid{display:grid; gap:14px; grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+    .card{
+      background:var(--card); color:var(--text); border-radius:16px; padding:16px 16px 18px;
+      box-shadow:0 8px 24px rgba(0,0,0,.18); border:1px solid rgba(255,255,255,.65);
+    }
+    .card h3{margin:2px 0 6px; font-size:1.05rem}
+    .card p{margin:0 0 12px; color:#444; min-height:40px}
+    .btn{display:inline-block; padding:10px 16px; border-radius:12px; background:var(--cta); color:#fff; text-decoration:none; font-weight:800; box-shadow:0 6px 18px rgba(239,68,68,.35)}
+    .section{margin-top:22px}
+    .section h2{margin:16px 0 10px; color:var(--brand); font-size:1.15rem}
+    .back{color:var(--muted); text-decoration:none; font-weight:800; border:1px solid rgba(255,255,255,.18); padding:8px 12px; border-radius:10px}
+    .back:hover{background:rgba(255,255,255,.06)}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="topbar">
+      <h1>Coach Tools</h1>
+      <a class="back" href="./index.html">← Back to Landing</a>
+    </div>
+    <p class="sub">Sandman Combat System</p>
+
+    <!-- CORE -->
+    <section class="section" aria-labelledby="core">
+      <h2 id="core">Core</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Athlete Intake</h3>
+          <p>First step. Bring athletes into the system with structure and clarity.</p>
+          <a class="btn" href="./intake.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Coach Calendar</h3>
+          <p>Stay aligned. Training schedules, events, and team commitments.</p>
+          <a class="btn" href="./calendar.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Curriculum</h3>
+          <p>Your roadmap. Lessons, drills, and progress plans in one place.</p>
+          <a class="btn" href="./curriculum.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Practice Plans</h3>
+          <p>Session outlines and drill lists you can run today.</p>
+          <a class="btn" href="./practice-plans.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Ceremonies</h3>
+          <p>Recognition matters. Scripts & tools for powerful badge moments.</p>
+          <a class="btn" href="./ceremonies.html">Open</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOLS -->
+    <section class="section" aria-labelledby="tools">
+      <h2 id="tools">Tools</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>Weekly Plan</h3>
+          <p>Coach focus for the week: themes, priorities, and points of emphasis.</p>
+          <a class="btn" href="./coach-weekly.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Weekly Archive</h3>
+          <p>Past lessons, future insight. Find and reuse your best work.</p>
+          <a class="btn" href="./coach-weekly-archive.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Tournament Prep</h3>
+          <p>Competition readiness. Brackets, weigh-ins, checklists, logistics.</p>
+          <a class="btn" href="./tournament.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Q &amp; A</h3>
+          <p>Your playbook for answers. Quick checks and standards for consistency.</p>
+          <a class="btn" href="./qa.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Video Notes</h3>
+          <p>Teach with vision. Record time-stamped notes for film review.</p>
+          <a class="btn" href="./video-notes.html">Open</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- EXTRAS -->
+    <section class="section" aria-labelledby="extras">
+      <h2 id="extras">Extras</h2>
+      <div class="grid">
+        <div class="card">
+          <h3>XP Reports</h3>
+          <p>Data at work. Track XP growth, attendance, and timelines.</p>
+          <a class="btn" href="./xp.reports.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Athlete Live Log</h3>
+          <p>In-the-moment notes. Focus, effort, attitude, respect.</p>
+          <a class="btn" href="./athlete-live-log.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Athlete Manager</h3>
+          <p>Search & manage athlete profiles from one place.</p>
+          <a class="btn" href="./athlete.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Coach Profile</h3>
+          <p>Your info & preferences. Standards that you lead with.</p>
+          <a class="btn" href="./coach.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Tools Index</h3>
+          <p>Misc. utilities and quick actions for coaches.</p>
+          <a class="btn" href="./tools.html">Open</a>
+        </div>
+        <div class="card">
+          <h3>Resources</h3>
+          <p>Guides, templates, references to level up sessions.</p>
+          <a class="btn" href="./resources.html">Open</a>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

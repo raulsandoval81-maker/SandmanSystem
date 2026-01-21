@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Tournament Prep • Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <style>
+    .panel{max-width:1100px;margin:0 auto;padding:1rem}
+    .card{background:#0e141c;border:1px solid #243041;border-radius:12px;padding:1rem;margin:.9rem 0;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    .muted{color:#9fb3c8}
+    .input{width:100%;padding:.6rem .7rem;background:#121821;color:#f3f4f6;border:1px solid #394a61;border-radius:10px}
+    .subtle{font-size:.9rem;color:#9fb3c8}
+    .nav{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.5rem}
+    .nav a{background:#1b2330;border:1px solid #2c3a4f;color:#e6e8eb;text-decoration:none;
+           padding:.45rem .8rem;border-radius:999px;font-weight:700}
+  </style>
+</head>
+<body>
+  <main class="panel stack">
+    <nav class="nav">
+      <a href="./hub.html">← Back to Portal</a>
+      <a href="./roster.html">Roster</a>
+      <a href="./coach-daily.html">Daily Log</a>
+      <a href="./tournament.html">Arena Log</a>
+    </nav>
+
+    <section class="card stack">
+      <div class="row">
+        <h1 style="margin-right:auto">Tournament Prep</h1>
+    </section>
+
+    <section class="card stack">
+      <h2>Arena Points — Quick XP</h2>
+      <p class="muted" style="margin-top:-.35rem">Tournament cap rules enforced server-side. Style ≤ 1 per tournament.</p>
+      <div class="row">
+        <input id="uid" class="input" placeholder="Athlete UID (e.g., X1234)" />
+        <input id="note" class="input" placeholder="Optional note (bracket/mat/opponent)" />
+      </div>
+      <div class="row" style="margin-top:.5rem">
+        <button class="btn"           id="btn-show">Arena — Show (+10)</button>
+        <button class="btn secondary" id="btn-place">Arena — Place (+5)</button>
+        <button class="btn secondary" id="btn-style">Style / Tenacity (+5)</button>
+      </div>
+      <p class="subtle">Posts as <code>TOURNAMENT</code> (10 show, 5 place, 5 style).</p>
+    </section>
+
+    <section class="card stack">
+      <h2>Prestige — Lion · Tiger · Bear</h2>
+      <p class="muted" style="margin-top:-.35rem">Outside monthly tournament caps. Yearly maxes enforced.</p>
+      <div class="row">
+        <input id="p_uid" class="input"  placeholder="Athlete UID (e.g., X1234)" />
+        <input id="p_note" class="input" placeholder="Optional note (event title, date, proof link)" />
+      </div>
+      <div class="row" style="margin-top:.5rem">
+        <button class="btn"           id="btn-lion">Lion — State (+25)</button>
+        <button class="btn secondary" id="btn-tiger">Tiger — Regional (+50)</button>
+        <button class="btn secondary" id="btn-bear">Bear — National (+75)</button>
+      </div>
+      <p class="subtle">Config: State max 3/yr; Regional 1/yr; National 1/yr.</p>
+    </section>
+
+    <!-- Ops sections (placeholders, wire later) -->
+    <section class="card stack">
+      <h2>Pre-Event Checklist</h2>
+      <ul class="bulleted">
+        <li>Confirm roster & eligibility</li>
+        <li>Collect waivers / forms</li>
+        <li>Enter weights & divisions</li>
+        <li>Travel plan & arrival time</li>
+        <li>Coach assignments / corners</li>
+      </ul>
+    </section>
+
+    <section class="card stack">
+      <h2>Weigh-ins & Divisions</h2>
+      <div class="row">
+        <input class="input" placeholder="Search athlete…" />
+        <a class="btn secondary" href="./roster.html">Open Roster</a>
+      </div>
+      <div class="muted" style="margin-top:.5rem">No data (placeholder). Wire to Firestore later.</div>
+    </section>
+
+    <section class="card stack">
+      <h2>Brackets</h2>
+      <div class="row">
+        <input id="bracketUrl" class="input" placeholder="Bracket URL (optional)" />
+        <button class="btn secondary" id="saveBracket">Save Link</button>
+      </div>
+      <div id="bracketList" class="muted" style="margin-top:.5rem">None yet.</div>
+    </section>
+
+    <section class="card stack">
+      <h2>Post-Event Notes</h2>
+      <textarea id="postNotes" rows="5" class="input" placeholder="Highlights, injuries, follow-ups…"></textarea>
+      <div class="row" style="margin-top:.5rem">
+        <button class="btn" id="saveNotes">Save</button>
+        <button class="btn secondary" id="dlNotes">Download (.txt)</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Wire to XP API + toast -->
+<script type="module">
+  const el = (id) => document.getElementById(id);
+
+import { XP_URL } from "/assets/js/coach-endpoints.js";
+
+  async function sendXp(body, okMsg = "Saved.") {
+    try {
+      const res = await fetch(XP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: body })
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        alert(data.error || "XP not saved");
+        return;
+      }
+      console.log(data);
+      // light success
+      console.log(okMsg);
+    } catch (err) {
+      console.error(err);
+      alert("XP save failed (see console)");
+    }
+  }
+
+  // --- ARENA / TOURNAMENT buttons ---
+
+  // +10 show / battle
+  el("btn-show")?.addEventListener("click", () => {
+    const uid = el("uid").value.trim();
+    const note = el("note").value.trim() || "Tournament show";
+    if (!uid) return alert("UID required");
+    sendXp(
+      {
+        uid,
+        event: "ARENA/BATTLE",          // your weekend/event lane
+        amount: 10,
+        note,
+        meta: {
+          source: "tournament-prep",
+          result: "SHOW"
+        }
+      },
+      "Arena — Show +10"
+    );
+  });
+
+  // +5 place / podium
+  el("btn-place")?.addEventListener("click", () => {
+    const uid = el("uid").value.trim();
+    const note = el("note").value.trim() || "Tournament place";
+    if (!uid) return alert("UID required");
+    sendXp(
+      {
+        uid,
+        event: "ARENA/PODIUM",
+        amount: 5,
+        note,
+        meta: {
+          source: "tournament-prep",
+          result: "PLACE"
+        }
+      },
+      "Arena — Place +5"
+    );
+  });
+
+  // +5 style / IQ (only once per event is enforced in backend)
+  el("btn-style")?.addEventListener("click", () => {
+    const uid = el("uid").value.trim();
+    const note = el("note").value.trim() || "Style / Tenacity";
+    if (!uid) return alert("UID required");
+    sendXp(
+      {
+        uid,
+        event: "ARENA/STYLEIQ",
+        amount: 5,
+        note,
+        meta: {
+          source: "tournament-prep"
+          // add tournamentId here if you have a field for it
+          // tournamentId: el("eventId")?.value || null
+        }
+      },
+      "Style / IQ +5"
+    );
+  });
+
+  // --- PRESTIGE buttons (on top of 10/5/5) ---
+
+  el("btn-lion")?.addEventListener("click", () => {
+    const uid = el("p_uid").value.trim();
+    const note = el("p_note").value.trim() || "State prestige";
+    if (!uid) return alert("UID required");
+    sendXp(
+      {
+        uid,
+        event: "PRESTIGE",
+        amount: 25,
+        note,
+        meta: {
+          source: "prestige-clipboard",
+          level: "state",
+          year: new Date().getFullYear()
+        }
+      },
+      "State prestige +25"
+    );
+  });
+
+  el("btn-tiger")?.addEventListener("click", () => {
+    const uid = el("p_uid").value.trim();
+    const note = el("p_note").value.trim() || "Regional prestige";
+    if (!uid) return alert("UID required");
+    sendXp(
+      {
+        uid,
+        event: "PRESTIGE",
+        amount: 50,
+        note,
+        meta: {
+          source: "prestige-clipboard",
+          level: "regional",
+          year: new Date().getFullYear()
+        }
+      },
+      "Regional prestige +50"
+    );
+  });
+
+  el("btn-bear")?.addEventListener("click", () => {
+    const uid = el("p_uid").value.trim();
+    const note = el("p_note").value.trim() || "National prestige";
+    if (!uid) return alert("UID required");
+    sendXp(
+      {
+        uid,
+        event: "PRESTIGE",
+        amount: 75,
+        note,
+        meta: {
+          source: "prestige-clipboard",
+          level: "national",
+          year: new Date().getFullYear()
+        }
+      },
+      "National prestige +75"
+    );
+  });
+
+  // --- your local placeholder stuff can stay ---
+
+  const bracket = document.getElementById("saveBracket");
+  if (bracket) {
+    bracket.addEventListener("click", () => {
+      const url = document.getElementById("bracketUrl").value.trim();
+      if (!url) return;
+      const d = document.createElement("div");
+      d.innerHTML = `<a href="${url}" target="_blank" rel="noopener">Bracket link</a>`;
+      document.getElementById("bracketList").prepend(d);
+      document.getElementById("bracketUrl").value = "";
+    });
+  }
+
+  const saveNotes = document.getElementById("saveNotes");
+  if (saveNotes) {
+    saveNotes.addEventListener("click", () => {
+      console.log("Post-event notes saved (local only)");
+    });
+  }
+  const dlNotes = document.getElementById("dlNotes");
+  if (dlNotes) {
+    dlNotes.addEventListener("click", () => {
+      const t = document.getElementById("postNotes").value || "";
+      const blob = new Blob([t], { type: "text/plain" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "post-event-notes.txt";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    });
+  }
+</script>
+</body>
+</html>
