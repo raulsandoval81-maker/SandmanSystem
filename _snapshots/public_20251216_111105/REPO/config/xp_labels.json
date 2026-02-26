@@ -1,0 +1,23 @@
+// config/xp_labels.json
+{
+  "attendance": {
+    "points": 10,
+    "label": "Shark Work",
+    "description": "Full-effort practice. Athlete showed discipline, respect, and hustle."
+  },
+  "fish": {
+    "points": -5,
+    "label": "Fish Work",
+    "description": "Half-effort practice. Athlete drifted, lacked focus or respect."
+  },
+  "tournament_show": {
+    "points": 15,
+    "label": "Tournament Participation",
+    "description": "Athlete showed up, weighed in, and competed with honor."
+  },
+  "tournament_style": {
+    "points": 5,
+    "label": "Style Bonus",
+    "description": "Exemplary effort in one of the 6 style categories."
+  }
+}

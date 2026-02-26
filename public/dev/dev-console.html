@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Dev Console • Sandman System</title>
+
+  <!-- Use your normal theme files if you want; keep it simple for now -->
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/css/theme.css" />
+
+  <style>
+    :root { color-scheme: dark; }
+    body { background:#0a0a0a; color:#e6e8eb; font-family: system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0; }
+    .wrap{ max-width:1100px; margin:0 auto; padding:18px; }
+    h1{ margin:0 0 8px; color:#ffd633; }
+    .muted{ color:#9fb3c8; }
+    .card{ background:#121722; border:1px solid #263142; border-radius:14px; padding:16px; margin-top:14px; }
+    .row{ display:flex; flex-wrap:wrap; gap:12px; margin-top:12px; }
+    .col{ flex:1 1 280px; }
+    label{ display:block; font-size:.75rem; color:#9fb3c8; margin:10px 0 6px; text-transform:uppercase; letter-spacing:.04em; }
+    input, select, textarea{
+      width:100%; box-sizing:border-box;
+      background:#0e1420; color:#e6e8eb;
+      border:1px solid #223047; border-radius:10px;
+      padding:10px;
+      outline:none;
+    }
+    textarea{ min-height:84px; resize:vertical; }
+    button{
+      background:#263142; color:#cfe2ff;
+      border:1px solid #3a4a60;
+      padding:10px 12px; border-radius:12px;
+      cursor:pointer;
+    }
+    button:hover{ filter:brightness(1.1); }
+    .btns{ display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+    .pill{ display:inline-block; padding:.2rem .6rem; border-radius:999px; border:1px solid #3a4a60; background:#0e1420; color:#cfe2ff; font-size:.85rem; }
+    .ok{ color:#8ff0b3; }
+    .bad{ color:#ff8b8b; }
+    pre{
+      margin:0; padding:12px; border-radius:12px;
+      background:#0e1420; border:1px solid #223047;
+      overflow:auto; max-height:340px;
+      font-size:.85rem;
+    }
+    .grid2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:900px){ .grid2{ grid-template-columns:1fr; } }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Dev Console</h1>
+    <div class="muted">Coach-only lab tool. Don’t put these controls on athlete pages.</div>
+
+    <div class="card">
+      <div class="grid2">
+        <div>
+          <label>Athlete UID (doc id)</label>
+          <input id="uid" placeholder="F4_0001 or A00001 etc" />
+
+          <div class="row">
+            <div class="col">
+              <label>Lane</label>
+              <select id="teenAdult">
+                <option value="teen">teen</option>
+                <option value="adult">adult</option>
+                <option value="youth">youth</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>tierNum</label>
+              <input id="tierNum" type="number" min="0" value="0" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>xp</label>
+              <input id="xp" type="number" min="0" value="0" />
+            </div>
+            <div class="col">
+              <label>cooldownUntil (ISO)</label>
+              <input id="cooldownUntil" placeholder="2026-01-19T18:30:00Z (or leave blank)" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
+              <label>active</label>
+              <select id="active">
+                <option value="true">true</option>
+                <option value="false">false</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>frozen</label>
+              <select id="frozen">
+                <option value="false">false</option>
+                <option value="true">true</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="btns">
+            <button id="btnLoad">Load Athlete</button>
+            <button id="btnSave">Save Fields</button>
+            <button id="btnClear">Clear</button>
+          </div>
+
+          <div style="margin-top:12px">
+            <span class="pill">Doc: <span id="docStatus" class="muted">not loaded</span></span>
+          </div>
+        </div>
+
+        <div>
+          <label>XP Event</label>
+          <div class="row">
+            <div class="col">
+              <label>kind</label>
+              <select id="kind">
+                <option value="ATTENDANCE">ATTENDANCE</option>
+                <option value="ARENA/BATTLE">ARENA/BATTLE</option>
+                <option value="ARENA/PODIUM">ARENA/PODIUM</option>
+                <option value="ARENA/STYLEIQ">ARENA/STYLEIQ</option>
+              </select>
+            </div>
+            <div class="col">
+              <label>amount</label>
+              <input id="amount" type="number" value="10" />
+              <input id="tournamentId" placeholder="tournamentId (optional for ARENA/*)" />
+
+            </div>
+          </div>
+
+          <label>note</label>
+          <textarea id="note" placeholder="Optional note..."></textarea>
+
+          <div class="btns">
+            <button id="btnFire">Fire XP (callable)</button>
+            <button id="btnPreset0">Preset: 0%</button>
+            <button id="btnPreset49">Preset: 49%</button>
+            <button id="btnPreset50">Preset: 50%</button>
+            <button id="btnPreset99">Preset: 99%</button>
+          </div>
+
+          <label>Output</label>
+          <pre id="out">{ }</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">
+        Note: This tool assumes you already have your Firebase init available on the page.
+        If your init file is somewhere else, adjust the script includes in <code>dev-console.js</code>.
+      </div>
+    </div>
+  </div>
+
+  <!-- Your project likely already has a firebase init script. -->
+  <!-- If you have one, add it here BEFORE dev-console.js (example path): -->
+  <!-- <script src="/assets/js/firebase-init.js"></script> -->
+<script type="module" src="./dev-actions.js"></script>
+
+</body>
+</html>

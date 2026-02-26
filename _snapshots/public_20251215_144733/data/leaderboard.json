@@ -1,0 +1,12 @@
+[
+  { "rank": 1, "name": "Ava S.", "xp": 4320, "tier": "Champion" },
+  { "rank": 2, "name": "Luca M.", "xp": 4180, "tier": "Warrior" },
+  { "rank": 3, "name": "Kai R.",  "xp": 4010, "tier": "Competitor" },
+  { "rank": 4, "name": "Maya T.", "xp": 3890, "tier": "Sandman" },
+  { "rank": 5, "name": "Noah J.", "xp": 3775, "tier": "Warrior" },
+  { "rank": 6, "name": "Ivy K.",  "xp": 3650, "tier": "Combatant" },
+  { "rank": 7, "name": "Ezra P.", "xp": 3540, "tier": "Champion" },
+  { "rank": 8, "name": "Zoe L.",  "xp": 3490, "tier": "Competitor" },
+  { "rank": 9, "name": "Aria D.", "xp": 3440, "tier": "Recruit" },
+  { "rank": 10,"name": "Jett C.", "xp": 3385, "tier": "Striker" }
+]

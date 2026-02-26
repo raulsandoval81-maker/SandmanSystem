@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sandman • Master Dev Dashboard</title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <style>
+    :root{
+      --bg:#0e141c;
+      --panel:#121821;
+      --deep:#0c1119;
+      --line:#2f3a4e;
+      --brand:#ffdd48;
+      --text:#e4e7eb;
+      --muted:#9fb3c8;
+      --hover:#1b2331;
+      --danger:#ff4d4d;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:28px 18px 60px;
+    }
+
+    /* HEADER */
+    .top{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:4px;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.55rem;
+      font-weight:700;
+      color:var(--brand);
+      text-shadow:0 0 12px rgba(255,221,72,0.18);
+      letter-spacing:.02em;
+    }
+
+    .badge{
+      padding:4px 12px;
+      border-radius:999px;
+      background:var(--brand);
+      color:#111;
+      font-size:.7rem;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+
+    .badge.danger{
+      background:transparent;
+      border:1px solid var(--danger);
+      color:var(--danger);
+    }
+
+    p.lead{
+      color:var(--muted);
+      margin:.35rem 0 1.2rem;
+      font-size:.92rem;
+      max-width:860px;
+      line-height:1.45;
+    }
+
+    code{ color:var(--brand); }
+
+    /* GUARD */
+    .guard{
+      display:none;
+      background:#160b0b;
+      border:1px solid #a33;
+      border-radius:14px;
+      padding:12px 12px;
+      margin:14px 0 6px;
+      color:#ffd6d6;
+    }
+    .guard b{ color:#fff; }
+
+    /* SECTION */
+    .section{
+      margin-top:32px;
+    }
+
+    .section h2{
+      color:var(--brand);
+      margin:0 0 12px;
+      font-size:1.08rem;
+      letter-spacing:.03em;
+      text-shadow:0 0 8px rgba(255,221,72,0.12);
+    }
+
+    /* GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:16px;
+    }
+
+    /* TILES */
+    a.tile{
+      display:block;
+      text-decoration:none;
+      cursor:pointer;
+      background:var(--panel);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:16px 15px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.30);
+      transition:all .22s ease;
+    }
+
+    a.tile:hover{
+      background:var(--hover);
+      border-color:var(--brand);
+      transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(0,0,0,.40);
+    }
+
+    .cat{
+      font-size:.63rem;
+      font-weight:700;
+      color:var(--brand);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:.45rem;
+      opacity:.92;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .chip{
+      font-size:.62rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      padding:2px 8px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+      background:rgba(0,0,0,.12);
+    }
+
+    .title{
+      font-size:.97rem;
+      font-weight:700;
+    }
+
+    .sub{
+      margin-top:.28rem;
+      color:#cbd5e1;
+      font-size:.82rem;
+      line-height:1.45;
+    }
+
+    /* DEAD TILE (future/locked) */
+    .dead{
+      opacity:.55;
+      border-style:dashed;
+      pointer-events:none;
+    }
+
+    /* FOOTER */
+    footer{
+      margin-top:48px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.85rem;
+      opacity:.8;
+    }
+  </style>
+
+  <script>
+    // Base for relative links.
+    // This file lives at /dev/master-dev-dashboard.html
+    // If you later move it deeper, this keeps it stable.
+    document.addEventListener("DOMContentLoaded", () => {
+      const isEmu = new URLSearchParams(location.search).get("emu") === "1";
+
+      const guard = document.getElementById("emuGuard");
+      if (!isEmu){
+        guard.style.display = "block";
+        // disable every tile to prevent accidental prod clicking
+        document.querySelectorAll("a.tile").forEach(a => a.classList.add("dead"));
+      }
+
+      // If the file is under /dev/, base should be "../" for top-level pages.
+      // Otherwise base "./".
+      const base = window.location.pathname.includes("/dev/") ? "../" : "./";
+
+      document.querySelectorAll("a[data-link]").forEach(a => {
+        const link = a.getAttribute("data-link") || "";
+        a.href = base + link.replace(/^\/+/, ""); // force relative
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <!-- HEADER -->
+    <div class="top">
+      <h1>Sandman System — Master Dev Dashboard</h1>
+      <span class="badge">DEV HUB</span>
+      <span class="badge">LOCAL EMU ONLY</span>
+      <span class="badge danger">DO NOT SHARE</span>
+    </div>
+
+    <p class="lead">
+      This is the internal routing panel for your sandbox build. Use it to jump into pages while running
+      <code>firebase emulators:start</code>. Open with <code>?emu=1</code> to enable links.
+    </p>
+
+    <div id="emuGuard" class="guard">
+      <b>Blocked.</b> This dashboard is locked unless you add <code>?emu=1</code>.<br/>
+      Open: <code>/dev/master-dev-dashboard.html?emu=1</code>
+    </div>
+
+
+    <!-- ========================================================= -->
+    <!-- PUBLIC PREVIEW (keep minimal) -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Public Preview (Minimal)</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="index.html">
+          <div class="cat">Public <span class="chip">PREVIEW</span></div>
+          <div class="title">Home / Landing</div>
+          <div class="sub">Entry for parents & athletes.</div>
+        </a>
+
+        <a class="tile" data-link="overview.html">
+          <div class="cat">Public <span class="chip">PREVIEW</span></div>
+          <div class="title">Overview</div>
+          <div class="sub">What Sandman is · Why it works.</div>
+        </a>
+
+        <a class="tile" data-link="programs.html">
+          <div class="cat">Public <span class="chip">PREVIEW</span></div>
+          <div class="title">Programs</div>
+          <div class="sub">Foundry 8 Youth · Foundry 4 Older.</div>
+        </a>
+
+        <a class="tile" data-link="schedule/index.html">
+          <div class="cat">Public <span class="chip">PREVIEW</span></div>
+          <div class="title">Schedule</div>
+          <div class="sub">Practice & event rhythm.</div>
+        </a>
+
+        <a class="tile" data-link="leaderboards.html">
+          <div class="cat">Public <span class="chip">DEMO</span></div>
+          <div class="title">Leaderboards (Demo)</div>
+          <div class="sub">XP preview for families.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- CORE COACH -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Core Coach Tools (Active Build)</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="intake-coach/index.html">
+          <div class="cat">Intake <span class="chip">ACTIVE</span></div>
+          <div class="title">Coach Intake Console</div>
+          <div class="sub">Load pending → approve → mint athlete.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/roster.html">
+          <div class="cat">Coach <span class="chip">ACTIVE</span></div>
+          <div class="title">Team Roster</div>
+          <div class="sub">Profiles · XP · badges.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/coach-console.html">
+          <div class="cat">Coach <span class="chip">ACTIVE</span></div>
+          <div class="title">Coach Console</div>
+          <div class="sub">Arena XP + practice ops.</div>
+        </a>
+
+        <a class="tile dead" data-link="coaches/daily-grind.html">
+          <div class="cat">Coach <span class="chip">PARKED</span></div>
+          <div class="title">Daily Grind XP</div>
+          <div class="sub">Parked until intake is locked.</div>
+        </a>
+
+        <a class="tile dead" data-link="coaches/coach-notes.html">
+          <div class="cat">Coach <span class="chip">PARKED</span></div>
+          <div class="title">Coach Notes</div>
+          <div class="sub">Parked until intake is locked.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- ATHLETE -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Athlete Portal (Preview)</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="athletes/profile.html">
+          <div class="cat">Athlete <span class="chip">PREVIEW</span></div>
+          <div class="title">Athlete Profile</div>
+          <div class="sub">Tier identity · XP bar · stripes.</div>
+        </a>
+
+        <a class="tile dead" data-link="athlete-log-history.html">
+          <div class="cat">Athlete <span class="chip">PARKED</span></div>
+          <div class="title">XP Log History</div>
+          <div class="sub">Re-enable after intake + XP pipeline is stable.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- PARENT / PARA COMMS (LOCKED FOR NOW) -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Parent Tools & Para-Comms (Locked)</h2>
+      <div class="grid">
+
+        <a class="tile dead" data-link="coach/para/index.html">
+          <div class="cat">Para-Comms <span class="chip">OFF</span></div>
+          <div class="title">Parent Portal</div>
+          <div class="sub">Stays off until Intake is complete.</div>
+        </a>
+
+        <a class="tile dead" data-link="coach/para/parent/announcements.html">
+          <div class="cat">Announcements <span class="chip">OFF</span></div>
+          <div class="title">Parent Bulletin</div>
+          <div class="sub">Parents read coach announcements.</div>
+        </a>
+
+        <a class="tile dead" data-link="coach/para/inbox-send.html">
+          <div class="cat">Para-Comms <span class="chip">OFF</span></div>
+          <div class="title">Message Coach</div>
+          <div class="sub">Parent → Coach messages.</div>
+        </a>
+
+        <a class="tile dead" data-link="coach/para/volunteer.html">
+          <div class="cat">Volunteer <span class="chip">OFF</span></div>
+          <div class="title">Volunteer Signup</div>
+          <div class="sub">Parents sign up for duties.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- TOURNAMENT ENGINE -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Tournament Engine (Lab)</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="tournament-engine/index.html">
+          <div class="cat">Tournament <span class="chip">LAB</span></div>
+          <div class="title">Master Panel</div>
+          <div class="sub">Central meet control.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/mats/mat-console.html">
+          <div class="cat">Tournament <span class="chip">LAB</span></div>
+          <div class="title">Mat Console (Pro)</div>
+          <div class="sub">Timers · penalties · control.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/bout-sheets/boutsheet.html">
+          <div class="cat">Tournament <span class="chip">LAB</span></div>
+          <div class="title">Bout Sheets</div>
+          <div class="sub">Printable match sheets.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- DEV TOOLS -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Dev Tools</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="dev/dev-dashboard.html">
+          <div class="cat">Dev <span class="chip">INTERNAL</span></div>
+          <div class="title">Dev Dashboard</div>
+          <div class="sub">Internal tool index.</div>
+        </a>
+
+        <a class="tile" data-link="dev/firebase-lab.html">
+          <div class="cat">Dev <span class="chip">INTERNAL</span></div>
+          <div class="title">Firebase Lab</div>
+          <div class="sub">Auth · Firestore · Functions.</div>
+        </a>
+
+        <a class="tile" data-link="dev/xp-tests.html">
+          <div class="cat">Dev <span class="chip">INTERNAL</span></div>
+          <div class="title">XP Tests</div>
+          <div class="sub">Test XP calls once intake is stable.</div>
+        </a>
+
+        <a class="tile" data-link="dev/seed-athletes-f4-v4.html">
+          <div class="cat">Dev <span class="chip">INTERNAL</span></div>
+          <div class="title">Seed & Mint Athletes (F4)</div>
+          <div class="sub">Deterministic IDs + Mint Virtue Tags.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- ARCHIVE -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Archive (Read-Only)</h2>
+      <div class="grid">
+
+        <a class="tile dead" data-link="archive/v1-para-comms.html">
+          <div class="cat">Archive <span class="chip">READ-ONLY</span></div>
+          <div class="title">Para-Comms (v1)</div>
+          <div class="sub">Legacy bilingual builder.</div>
+        </a>
+
+        <a class="tile dead" data-link="archive/v1-leaderboards.html">
+          <div class="cat">Archive <span class="chip">READ-ONLY</span></div>
+          <div class="title">Leaderboards (v1)</div>
+          <div class="sub">Early XP prototype.</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>&copy; 2025 Sandman System™ — All Rights Reserved</p>
+      <p>Master Dev Dashboard · dev-only · emu-gated</p>
+    </footer>
+
+  </main>
+</body>
+</html>

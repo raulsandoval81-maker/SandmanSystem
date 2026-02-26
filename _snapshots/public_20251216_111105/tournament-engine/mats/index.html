@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sandman Tournament Engine</title>
+
+  <style>
+    :root{
+      --bg:#0a0f15;
+      --panel:#131a22;
+      --line:#1f2937;
+      --text:#e5e7eb;
+      --brand:#ffdd48;
+      --muted:#94a3b8;
+      --hover:#1d2432;
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:26px 14px 40px;
+    }
+    header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:22px;
+    }
+    h1{
+      color:var(--brand);
+      font-size:1.45rem;
+      margin:0;
+      text-shadow:0 0 8px rgba(255,221,72,.2);
+    }
+    .back{
+      color:var(--muted);
+      background:transparent;
+      border:1px solid var(--line);
+      padding:6px 12px;
+      font-size:.85rem;
+      border-radius:8px;
+      text-decoration:none;
+    }
+    .back:hover{
+      background:var(--hover);
+      color:#fff;
+    }
+
+    h2{
+      color:var(--brand);
+      margin:32px 0 10px;
+      font-size:1rem;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(250px,1fr));
+      gap:12px;
+    }
+
+    a.tile{
+      display:block;
+      background:var(--panel);
+      border:1px solid var(--line);
+      padding:14px;
+      border-radius:12px;
+      text-decoration:none;
+      color:var(--text);
+      transition:.2s;
+      box-shadow:0 4px 12px rgba(0,0,0,.35);
+    }
+    a.tile:hover{
+      background:var(--hover);
+      transform:translateY(-2px);
+      border-color:var(--brand);
+    }
+
+    .sub{
+      margin-top:4px;
+      font-size:.84rem;
+      color:var(--muted);
+      line-height:1.35;
+    }
+
+    footer{
+      margin-top:40px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.85rem;
+    }
+  </style>
+
+  <script>
+    /* auto-fix base paths no matter where opened */
+    const base = window.location.pathname.includes("/dev/") ? "../" : "./";
+    document.addEventListener("DOMContentLoaded",()=>{
+      document.querySelectorAll("[data-link]").forEach(a=>{
+        a.href = base + a.getAttribute("data-link");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <header>
+      <a class="back" href="../dev-dashboard.html">← Back to Dev Dashboard</a>
+      <h1>Sandman Tournament Engine</h1>
+      <div></div>
+    </header>
+
+    <!-- ─────────────────────────────────────────────
+         🟥 BRACKETS (MODERN)
+    ───────────────────────────────────────────── -->
+    <h2>Brackets (Modern)</h2>
+    <div class="grid">
+
+      <a class="tile" data-link="brackets/bracket-8.html">
+        <strong>8-Man Bracket (Modern)</strong>
+        <div class="sub">Upper + Consolation · tournament standard.</div>
+      </a>
+
+      <a class="tile" data-link="brackets/bracket.html">
+        <strong>Bracket Template</strong>
+        <div class="sub">Earlier format · still useful for small meets.</div>
+      </a>
+
+      <a class="tile" data-link="brackets/round-robin.html">
+        <strong>Round Robin (Team Style)</strong>
+        <div class="sub">Auto layout for team pools.</div>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/roundrobin-3.html">
+        <strong>3-Person Round Robin</strong>
+        <div class="sub">Clean printable layout.</div>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/roundrobin-4.html">
+        <strong>4-Person Round Robin</strong>
+        <div class="sub">Clean printable layout.</div>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/roundrobin-5.html">
+        <strong>5-Person Round Robin</strong>
+        <div class="sub">Clean printable layout.</div>
+      </a>
+
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         🟦 MATS & CONSOLES
+    ───────────────────────────────────────────── -->
+    <h2>Mats & Consoles</h2>
+    <div class="grid">
+
+      <a class="tile" data-link="mats/mat-console.html">
+        <strong>Mat Console (Pro)</strong>
+        <div class="sub">Timer · T3/E1/R2/N2 · blood/injury/ref time.</div>
+      </a>
+
+      <a class="tile" data-link="mats/scoreboard-index.html">
+        <strong>Scoreboard Index</strong>
+        <div class="sub">Load any mat scoreboard.</div>
+      </a>
+
+      <a class="tile" data-link="mats/scoreboard-view.html">
+        <strong>Scoreboard View</strong>
+        <div class="sub">Spectator-facing scoreboard.</div>
+      </a>
+
+      <!-- Mats 1–6 -->
+      <a class="tile" data-link="mats/mat1.html"><strong>Mat 1</strong></a>
+      <a class="tile" data-link="mats/mat2.html"><strong>Mat 2</strong></a>
+      <a class="tile" data-link="mats/mat3.html"><strong>Mat 3</strong></a>
+      <a class="tile" data-link="mats/mat4.html"><strong>Mat 4</strong></a>
+      <a class="tile" data-link="mats/mat5.html"><strong>Mat 5</strong></a>
+      <a class="tile" data-link="mats/mat6.html"><strong>Mat 6</strong></a>
+
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         🟨 BIG SCREEN
+    ───────────────────────────────────────────── -->
+    <h2>Big Screen</h2>
+    <div class="grid">
+
+      <a class="tile" data-link="big-screen/big-screen.html">
+        <strong>Big Screen Scoreboard</strong>
+        <div class="sub">Full-screen mat display.</div>
+      </a>
+
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         🟪 WEIGH-INS & BOUT SHEETS
+    ───────────────────────────────────────────── -->
+    <h2>Weigh-Ins & Bout Sheets</h2>
+    <div class="grid">
+
+      <a class="tile" data-link="../tournament-files/boys-weigh-in-sheet.html">
+        <strong>Boys Weigh-In Sheet</strong>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/girls-weigh-in-sheet.html">
+        <strong>Girls Weigh-In Sheet</strong>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/match-sheet-digital.html">
+        <strong>Match Sheet (Digital)</strong>
+        <div class="sub">Ref’s digital scoring sheet.</div>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/match-sheet-print.html">
+        <strong>Match Sheet (Print)</strong>
+        <div class="sub">Ink-safe version.</div>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/lompoc-bout-sheet.html">
+        <strong>Bout Sheet</strong>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/match-score-sheet.html">
+        <strong>Match Score Sheet</strong>
+      </a>
+
+    </div>
+
+    <!-- ─────────────────────────────────────────────
+         🟩 CHALLENGE PACKS & CUSTOM
+    ───────────────────────────────────────────── -->
+    <h2>Challenge Packs & Custom</h2>
+    <div class="grid">
+
+      <a class="tile" data-link="brackets/brave-challenge-pack.js">
+        <strong>Brave Challenge Pack</strong>
+        <div class="sub">Challenge ladder tool (JS driven).</div>
+      </a>
+
+      <a class="tile" data-link="../tournament-files/forms-team-roundrobin.html">
+        <strong>Team Round Robin Form</strong>
+        <div class="sub">Printable & digital.</div>
+      </a>
+
+    </div>
+
+    <footer>
+      Sandman Tournament Engine • v1.0 • Local Dev
+    </footer>
+  </main>
+</body>
+</html>

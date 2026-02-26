@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coach • Message Thread</title>
+
+  <link rel="stylesheet" href="/coach/shared/comms.css"/>
+  <style>
+    .thread-wrap{margin-top:20px;}
+    .reply-box{
+      background:#152449;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid #27304a;
+      margin-top:20px;
+    }
+    textarea{
+      width:100%;background:#111c35;color:#fff;
+      border:1px solid #27304a;border-radius:10px;
+      padding:10px;font-size:1rem;
+    }
+    .btn-send{
+      display:block;width:100%;margin-top:10px;
+      background:#ffdd48;color:#111;padding:10px;
+      border-radius:10px;font-weight:bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="pc-header">
+  <a class="pc-back" href="/coach/para/coach/inbox.html">← Back</a>
+  <h1>Coach Inbox</h1>
+  <a class="pc-home" href="/coach/para/coach/index.html">🏠</a>
+</header>
+
+<div class="wrap">
+
+  <div id="thread" class="thread-wrap"></div>
+
+  <!-- Reply Box -->
+  <div class="reply-box">
+    <textarea id="reply-text" rows="4" placeholder="Write a reply to parent…"></textarea>
+    <button id="reply-send" class="btn-send">Send Reply</button>
+
+    <p id="reply-success" style="display:none;color:#ffdd48;margin-top:10px;">
+      ✓ Reply sent!
+    </p>
+  </div>
+
+</div>
+
+<script type="module" src="/coach/para/coach/coach-thread.js"></script>
+
+</body>
+</html>

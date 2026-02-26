@@ -1,0 +1,158 @@
+/* ============================================================
+   PARENT LIVE FEED — 2026 STYLE
+   Sandman System™ Arena / Phone / Projector Optimized
+   ============================================================ */
+
+:root {
+  --red: #ff4444;
+  --green: #33ff99;
+  --bg: #05070c;
+  --card: #0b1017;
+  --border: #1c2533;
+  --text: #e7ebf0;
+  --muted: #7d8792;
+  --accent: #ffdd48;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  user-select: none;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
+.live-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: center;
+}
+
+/* TITLE / EVENT HEADER */
+.live-header {
+  margin-bottom: 15px;
+}
+
+.live-header h1 {
+  margin: 0;
+  font-size: 1.6rem;
+  color: var(--accent);
+  text-shadow: 0 0 10px rgba(255,221,72,0.25);
+}
+
+#parentEvent {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* BOUT INFO */
+#parentBout {
+  margin-top: 4px;
+  font-size: 1rem;
+  color: var(--text);
+  letter-spacing: .03em;
+}
+
+/* ============================================================
+   SCORECARD
+   ============================================================ */
+
+.scorecard {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* each side */
+.score-side {
+  flex: 1;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 12px;
+}
+
+.score-name {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  letter-spacing: .03em;
+}
+
+.score-value {
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin-top: 4px;
+  margin-bottom: 2px;
+}
+
+/* COLORS */
+.red .score-name {
+  color: var(--red);
+}
+.green .score-name {
+  color: var(--green);
+}
+
+/* ============================================================
+   CLOCK
+   ============================================================ */
+
+.parent-clock {
+  margin-top: 18px;
+  font-size: 3rem;
+  font-weight: 700;
+  padding: 10px 0;
+  color: var(--accent);
+  text-shadow: 0 0 14px rgba(255, 221, 72, 0.25);
+}
+
+/* ============================================================
+   FIGHT NIGHT (future-proof containers)
+   ============================================================ */
+
+.fight-night {
+  margin-top: 25px;
+  background: #0a0f18;
+  border: 1px solid #1f2a3b;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.fight-night .fn-title {
+  color: var(--accent);
+  font-size: 1rem;
+  margin-bottom: 8px;
+}
+
+.fight-night .fn-row {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: .9rem;
+}
+
+/* ============================================================
+   MOBILE OPTIMIZATION
+   ============================================================ */
+
+@media (max-width: 600px) {
+  .scorecard {
+    flex-direction: column;
+  }
+
+  .score-value {
+    font-size: 2.7rem;
+  }
+
+  .parent-clock {
+    font-size: 2.4rem;
+  }
+}

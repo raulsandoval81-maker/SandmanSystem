@@ -1,0 +1,10 @@
+[
+  { "date": "Week 1", "xp": 150 },
+  { "date": "Week 2", "xp": 280 },
+  { "date": "Week 3", "xp": 420 },
+  { "date": "Week 4", "xp": 620 },
+  { "date": "Week 5", "xp": 800 },
+  { "date": "Week 6", "xp": 960 },
+  { "date": "Week 7", "xp": 1120 },
+  { "date": "Week 8", "xp": 1280 }
+]

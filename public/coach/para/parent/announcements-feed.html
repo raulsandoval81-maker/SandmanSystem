@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Announcements • Athlete</title>
+
+  <!-- keep your shared file -->
+  <link rel="stylesheet" href="/coach/shared/comms.css">
+  <link rel="icon" href="data:,"> 
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0b1120;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+
+      /* broadcast-ish tuning */
+      --card:#0f172a;
+      --cardLine:#334155;
+    }
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{max-width:900px;margin:0 auto;padding:18px 14px 40px;}
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    h1{margin:0 0 12px;color:var(--gold);font-size:1.2rem;}
+
+    /* ✅ match broadcast “heavier framed” card look */
+    .card{
+      background:var(--card);
+      border:1px solid var(--cardLine);
+      border-radius:16px;
+      padding:18px 20px;
+      margin:16px 0;
+      box-shadow:0 6px 20px rgba(0,0,0,.35);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 10px 26px rgba(0,0,0,.45);
+    }
+
+    /* optional pill style if your JS uses .pill */
+    .pill{
+      display:inline-block;
+      padding:3px 10px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:800;
+      background:#1e293b;
+      color:var(--gold);
+      margin-left:8px;
+    }
+
+    .empty{opacity:.75;text-align:center;padding:18px;}
+    .card {
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 18px;
+  padding: 20px 22px;
+  margin: 18px 0;
+  box-shadow: 0 6px 20px rgba(0,0,0,.35);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(0,0,0,.45);
+}
+
+.card-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:10px;
+}
+
+.title {
+  font-weight:900;
+  font-size:1.15rem;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+
+.icon {
+  font-size:1.2rem;
+  opacity:.9;
+}
+
+.meta-right {
+  font-size:.75rem;
+  font-weight:700;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  opacity:.6;
+}
+
+.card-body {
+  margin-bottom:10px;
+  white-space:pre-wrap;
+}
+
+.card-date {
+  font-size:.8rem;
+  opacity:.55;
+}/* HYBRID BROADCAST CARD (Parent/Athlete/Admin compatible) */
+.feed-card{
+  background:#0f172a;
+  border:1px solid #334155;
+  border-radius:18px;
+  padding:18px 20px;
+  margin:16px 0;
+  box-shadow:0 6px 20px rgba(0,0,0,.35);
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.feed-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(255,221,72,.55);
+  box-shadow:0 10px 26px rgba(0,0,0,.45);
+}
+
+.feed-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+  margin-bottom:10px;
+}
+.feed-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight:900;
+  font-size:1.1rem;
+  line-height:1.2;
+}
+.feed-icon{
+  font-size:1.2rem;
+  opacity:.95;
+}
+
+.feed-tag{
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  opacity:.7;
+  padding:3px 10px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.04);
+}
+
+.feed-body{
+  white-space:pre-wrap;
+  margin:10px 0 12px;
+  opacity:.95;
+}
+
+.feed-foot{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  font-size:.82rem;
+  opacity:.6;
+}
+.feed-team{
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h1>Announcements</h1>
+      <div id="empty" class="empty" style="display:none;">No announcements yet.</div>
+      <div id="feed"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/coach/para/parent/announcements-feed.js"></script>
+</body>
+</html>

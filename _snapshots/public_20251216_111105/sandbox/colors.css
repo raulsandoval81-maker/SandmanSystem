@@ -1,0 +1,54 @@
+:root {
+  --bg: #000000;      /* black / dark */
+  --panel: #ffffff;   /* white / background */
+  --ink: #d4af37;     /* gold */
+  --accent: #c23a2b;  /* red */
+  --grey: #6e6e6e;    /* grey */
+  --teal: #009688;    /* teal */
+}
+
+body {
+  font-family: Arial, sans-serif;
+  background-color: var(--panel);
+  color: var(--bg);
+  margin: 2rem;
+}
+
+h1, h2, h3 {
+  color: var(--ink);
+}
+
+a {
+  color: var(--teal);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent);
+}
+
+.button {
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--grey);
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.button-primary {
+  background: var(--teal);
+  color: var(--panel);
+  border: none;
+}
+
+.button-alert {
+  background: var(--accent);
+  color: var(--panel);
+  border: none;
+}
+
+.card {
+  border: 1px solid var(--grey);
+  padding: 1rem;
+  margin-top: 1rem;
+  background: var(--panel);
+}

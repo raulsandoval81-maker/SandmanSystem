@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Welcome to Sandman • Athlete Setup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../intake-athlete/athlete.welcome.css">
+</head>
+
+<body>
+  <main class="wrap">
+
+    <h1>Welcome, Athlete</h1>
+    <p class="muted">
+      Your coach created your Sandman profile. Review & claim it below.
+    </p>
+
+    <!-- ===================== LOADING ===================== -->
+    <div id="loading" class="panel">
+      <p>Loading your profile…</p>
+    </div>
+
+    <!-- ===================== PROFILE ===================== -->
+    <section id="profile" class="panel" style="display:none">
+
+      <h2>Your Identity</h2>
+
+      <div class="row">
+        <div class="stat">
+          <div class="label">Name</div>
+          <div class="value" id="ath-name">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">UID</div>
+          <div class="value small" id="ath-uid">—</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="stat">
+          <div class="label">Track</div>
+          <div class="value" id="ath-track">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Tier</div>
+          <div class="value" id="ath-tier">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Rank</div>
+          <div class="value" id="ath-rank">—</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="stat">
+          <div class="label">Journey</div>
+          <div class="value" id="ath-journey">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Academy</div>
+          <div class="value" id="ath-team">—</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Location</div>
+          <div class="value" id="ath-citystate">—</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="stat">
+          <div class="label">Mint Tag</div>
+          <div class="value small" id="ath-tag">—</div>
+        </div>
+      </div>
+
+      <p class="muted small" style="margin-top:6px;">
+        This mint tag is your Sandman identity. Keep it safe.
+      </p>
+
+      <button id="btn-claim" class="solid-blue" style="margin-top:18px">
+        Claim My Profile
+      </button>
+
+      <p id="claim-status" class="muted small"></p>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="athlete.welcome.js"></script>
+</body>
+</html>

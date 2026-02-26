@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FilmRoom · Video Console</title>
+
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      margin:0;background:#05070c;color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+    .wrap{max-width:1300px;margin:0 auto;padding:22px 16px 40px;}
+
+    h1{margin:0 0 6px;color:#ffdd48;text-shadow:0 0 8px rgba(255,221,72,.25);}
+    .muted{color:#9ca3af;font-size:.78rem;margin-bottom:16px;}
+
+    .top-nav{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;
+    }
+    .pill{
+      background:#1a1d23;border:1px solid #2d3648;
+      padding:6px 16px;border-radius:999px;
+      color:#fff;font-weight:700;text-decoration:none;
+      cursor:pointer;transition:.15s;
+    }
+    .pill:hover{background:#e63946;border-color:#e63946}
+
+    /* layout */
+    .console-layout{
+      display:grid;
+      grid-template-columns:1fr 320px;
+      gap:20px;
+    }
+
+    /* player box */
+    .player-box{
+      background:#0e1218;border:1px solid #1f2937;
+      border-radius:14px;padding:12px;
+    }
+    video{
+      width:100%;border-radius:10px;
+      background:#000;
+    }
+
+    /* controls */
+    .controls{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+    }
+    .ctrl-btn{
+      padding:6px 12px;border-radius:8px;font-size:.82rem;
+      background:#1a1d23;border:1px solid #2d3648;color:#fff;
+      cursor:pointer;transition:.15s;
+    }
+    .ctrl-btn:hover{background:#ffdd48;color:#000;border-color:#ffdd48;}
+    .red:hover{background:#e63946!important;border-color:#e63946!important;color:#fff!important;}
+
+    /* tags panel */
+    .tags-panel{
+      background:#0b1017;border:1px solid #1f2937;
+      border-radius:14px;padding:14px;
+      height:100%;overflow-y:auto;
+    }
+    .panel-title{
+      font-size:.9rem;font-weight:700;color:#ffdd48;
+      margin-bottom:10px;
+    }
+    .tag-btn{
+      display:block;width:100%;
+      background:#1a1d23;border:1px solid #2d3648;
+      padding:6px 12px;border-radius:8px;
+      text-align:left;color:#fff;font-size:.8rem;
+      margin-bottom:8px;cursor:pointer;transition:.15s;
+    }
+    .tag-btn:hover{
+      background:#121824;border-color:#ffdd48;
+    }
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="top-nav">
+    <a class="pill" href="/athletes/filmroom/index.html">← FilmRoom</a>
+    <a class="pill" href="../video-vault/index.html">Video Vault</a>
+    <a class="pill" href="../video-highlights/index.html">Highlights</a>
+  </div>
+
+  <h1>Video Console</h1>
+  <p class="muted">Play · Slow-mo · Tag · Markers · Build Highlights</p>
+
+  <div class="console-layout">
+
+    <!-- LEFT: PLAYER -->
+    <div class="player-box">
+      <video id="player" controls playsinline>
+        <!-- JS loads src=?id=xxxx from Firestore -->
+      </video>
+
+      <div class="controls">
+        <button class="ctrl-btn" onclick="skip(-5)">⏪ -5s</button>
+        <button class="ctrl-btn" onclick="skip(5)">⏩ +5s</button>
+        <button class="ctrl-btn" onclick="setSpeed(.5)">0.5×</button>
+        <button class="ctrl-btn" onclick="setSpeed(1)">1×</button>
+        <button class="ctrl-btn" onclick="setSpeed(1.5)">1.5×</button>
+        <button class="ctrl-btn red" onclick="mark()">+ Marker</button>
+      </div>
+
+      <div id="marker-list" style="margin-top:16px;font-size:.8rem;color:#9ca3af;"></div>
+    </div>
+
+    <!-- RIGHT: TAGS -->
+    <aside class="tags-panel">
+      <div class="panel-title">Tags</div>
+
+      <button class="tag-btn" onclick="tag('Score Chance')">Score Chance</button>
+      <button class="tag-btn" onclick="tag('Finish Attempt')">Finish Attempt</button>
+      <button class="tag-btn" onclick="tag('Scramble')">Scramble</button>
+      <button class="tag-btn" onclick="tag('Danger')">Danger</button>
+      <button class="tag-btn" onclick="tag('Bad Position')">Bad Position</button>
+      <button class="tag-btn" onclick="tag('Great Position')">Great Position</button>
+
+      <div style="height:12px"></div>
+
+      <button class="tag-btn gray" onclick="tag('Chain 1')">Chain 1</button>
+      <button class="tag-btn gray" onclick="tag('Chain 2')">Chain 2</button>
+
+      <div style="height:12px"></div>
+
+      <button class="tag-btn red" onclick="tag('Mistake')">Mistake</button>
+
+      <div style="height:12px"></div>
+
+      <button class="tag-btn gold" onclick="saveHighlights()">Build Highlights Reel</button>
+    </aside>
+
+  </div>
+
+</main>
+
+<script type="module">
+  /* JS crumbs — safe */
+  const player = document.getElementById("player");
+  const markerList = document.getElementById("marker-list");
+
+  function skip(sec){ player.currentTime += sec; }
+  function setSpeed(v){ player.playbackRate = v; }
+
+  function mark(){
+    const t = player.currentTime.toFixed(1);
+    const div = document.createElement("div");
+    div.textContent = `• Marker @ ${t}s`;
+    markerList.appendChild(div);
+  }
+
+  function tag(label){
+    console.log("TAG:", label, "at", player.currentTime);
+  }
+
+  function saveHighlights(){
+    alert("Highlights saved (placeholder).");
+  }
+</script>
+
+</body>
+</html>

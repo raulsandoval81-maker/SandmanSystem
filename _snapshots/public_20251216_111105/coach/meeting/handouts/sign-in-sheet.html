@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Volunteer Sign-Up</title>
+
+  <!-- Shared toolbar styles -->
+  <link rel="stylesheet" href="/coach/shared/toolbar.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833;--panel:#111c35;--line:#27304a;
+      --brand:#ffdd48;--text:#f0f4f8;--muted:#9aa4b1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    header.page-head{
+      text-align:center;
+      margin-bottom:16px;
+      border-bottom:1px solid var(--line);
+      padding-bottom:10px;
+    }
+    h1{margin:0 0 4px;font-size:1.4rem;color:var(--brand)}
+    h2{margin:0 0 4px;font-size:1.02rem;color:#cbd5e1}
+    p{margin:0 0 8px;line-height:1.45}
+    .small{font-size:.86rem;color:var(--muted)}
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px 10px;
+      margin-top:12px;
+    }
+    h3{margin:0 0 6px;font-size:1.05rem;color:var(--brand)}
+    ul{margin:0 0 4px 18px;padding:0;font-size:.94rem}
+    li{margin-bottom:4px;line-height:1.4}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:8px;
+      font-size:.9rem;
+      background:#0b152e;
+    }
+    th,td{
+      border:1px solid #1f2937;
+      padding:6px 4px;
+      text-align:left;
+    }
+    th{
+      background:#111c35;
+      color:#e5e7eb;
+      font-weight:600;
+      font-size:.8rem;
+    }
+    tr:nth-child(even) td{
+      background:#0c1428;
+    }
+
+    footer.page-foot{
+      margin-top:18px;
+      padding-top:10px;
+      border-top:1px solid var(--line);
+      font-size:.82rem;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    @media print{
+      body{background:#fff;color:#000}
+      header.page-head{border-bottom:1px solid #999}
+      h1{color:#000}
+      h2{color:#333}
+      .card{
+        background:#fff;
+        border:1px solid #999;
+        border-radius:0;
+      }
+      table{
+        background:#fff;
+      }
+      th{
+        background:#f3f4f6;
+        color:#111;
+      }
+      tr:nth-child(even) td{
+        background:#f9fafb;
+      }
+      footer.page-foot{
+        border-top:1px solid #999;
+        color:#555;
+      }
+    }footer-hard{
+    margin-top:40px;
+    padding:26px 10px 34px;
+    background:transparent;
+    text-align:center;
+  }
+  .footer-inner{
+    max-width:900px;
+    margin:0 auto;
+  }
+  .footer-brand{
+    color:#94a3b8;
+    font-size:.82rem;
+    margin-bottom:12px;
+  }
+  .footer-links{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:14px 18px;
+    font-size:.88rem;
+  }
+  .footer-links a{
+    color:#ffdd48;
+    text-decoration:none;
+  }
+  .footer-links a:hover{
+    text-decoration:underline;
+  } .parent-header {
+    background:#04173a;
+    color:#ffdd48;
+    padding:10px 14px;
+    border-bottom:1px solid rgba(15,23,42,.9);
+  }
+  .parent-header-inner{
+    max-width:920px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .parent-brand{
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-size:.95rem;
+  }
+  .parent-lang-wrap{
+    display:flex;
+    gap:6px;
+  }
+  .parent-lang-btn{
+    border:none;
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:.8rem;
+    font-weight:600;
+    cursor:pointer;
+    background:rgba(15,23,42,.9);
+    color:#e5e7eb;
+  }
+  .parent-lang-btn.active{
+    background:#ffdd48;
+    color:#111827;
+  }
+
+  @media (max-width:640px){
+    .parent-header-inner{
+      padding-inline:2px;
+    }
+    .parent-brand{
+      font-size:.85rem;
+    }
+  }.back-btn{
+  border-radius:999px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:.78rem;
+  padding:4px 12px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.back-btn:hover{
+  background:#0b1120;
+}
+
+  </style>
+
+  <!-- NAV pills configuration -->
+  <script>
+    window.NAV = [
+      ["/coach/meeting/index.html","Meeting"],
+      ["/coach/meeting/meeting-summary.html","Summary"],
+      ["/coach/meeting/policy.html","Policy"],
+      ["/coach/para/index.html","Para-Comms"]
+    ];
+  </script>
+</head>
+<body>
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand">Lompoc HS Wrestling</div>
+
+    <div class="parent-lang-wrap">
+      <button class="parent-lang-btn active" data-lang="en">EN</button>
+      <button class="parent-lang-btn" data-lang="es">SP</button>
+    </div>
+  </div>
+</header>
+<button class="back-btn" onclick="history.back()">
+  ← Back
+</button>
+
+<!-- Shared toolbar -->
+
+<main class="wrap">
+
+  <header class="page-head">
+    <h1>Lompoc High School Wrestling</h1>
+    <h2>Parent Volunteer Sign-Up / Lista de Voluntarios</h2>
+    <p class="small">
+      Thank you for supporting our athletes. Please write clearly so we can contact you.
+      <br/>Gracias por apoyar a nuestros atletas. Por favor escriba claramente para poder contactarle.
+    </p>
+  </header>
+
+  <!-- Quick explanation (bilingual) -->
+  <section class="card">
+    <h3>How You Can Help / Cómo Puede Ayudar</h3>
+    <ul>
+      <li><strong>Snacks &amp; Meals:</strong> Provide snacks, water, or meals for home events.<br/>
+          <strong>Comida y Refrigerios:</strong> Ayudar con agua, bocadillos o comidas para eventos locales.</li>
+      <li><strong>Transportation Support:</strong> Coordinate safe rides when needed (within school rules).<br/>
+          <strong>Apoyo de Transporte:</strong> Ayudar a coordinar transporte seguro cuando sea necesario (dentro de las reglas escolares).</li>
+      <li><strong>Event Help:</strong> Score table, set-up/clean-up, tournament support.<br/>
+          <strong>Ayuda en Eventos:</strong> Mesa de anotación, montaje/limpieza, apoyo en torneos.</li>
+      <li><strong>Fundraising:</strong> Help with fundraisers or community outreach.<br/>
+          <strong>Recaudación de Fondos:</strong> Ayudar con actividades para recaudar fondos o contacto comunitario.</li>
+    </ul>
+    <p class="small">
+      Check with coaches before planning any independent events. All activities must follow school policy.
+      <br/>Consulte con los entrenadores antes de planear actividades independientes. Todas las actividades deben seguir la política escolar.
+    </p>
+  </section>
+
+  <!-- Sign-up table -->
+  <section class="card">
+    <h3>Volunteer List / Lista de Voluntarios</h3>
+    <p class="small">
+      One line per adult. You may note specific events or “anytime” in the last column.
+      <br/>Una línea por adulto. Puede indicar eventos específicos o “cuando se necesite” en la última columna.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Parent / Guardian Name<br/>Nombre del Padre/Tutor</th>
+          <th>Best Contact<br/>Mejor Contacto</th>
+          <th>Student Name(s)<br/>Nombre(s) del Estudiante</th>
+          <th>How I Can Help / Cómo Puedo Ayudar</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 16 blank rows -->
+        <tr><td>1</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>2</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>3</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>4</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>5</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>6</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>7</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>8</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>9</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>10</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>11</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>12</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>13</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>14</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>15</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>16</td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="page-foot">
+    Lompoc High School Wrestling • Parent Volunteer Sign-Up • Thank you for your support.
+  </footer>
+
+  <!-- Shared footer slot if you want to inject global footer -->
+  <div id="footer-slot"></div>
+</main>
+<footer class="footer-hard">
+  <div class="footer-inner">
+
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/index.html">Para-Comms</a>
+      <a href="/coach/meeting/index.html">Meeting Portal</a>
+    </nav>
+
+  </div>
+</footer>
+<!-- Shared footer injector -->
+<script type="module" src="/coach/shared/footer.js"></script>
+
+</body>
+</html>

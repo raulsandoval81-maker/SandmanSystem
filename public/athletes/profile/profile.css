@@ -1,0 +1,577 @@
+/* ============================================================
+   Sandman Athlete Profile — CSS (AUTHORITATIVE, SINGLE OWNER)
+   File: /athletes/profile/profile.css
+   Goal: stop fights, stop duplicates, keep layout stable.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   1) TOKENS
+   ------------------------------------------------------------ */
+:root{
+  /* Core */
+  --bg:#0a0a0a;
+  --panel:#121722;
+  --panel2:#0e1420;
+  --line:#263142;
+  --ink:#e6e8eb;
+  --muted:#9fb3c8;
+
+  /* Brand */
+  --gold:#ffd633;
+  --sandman-gold:#f5c86a;
+
+  /* Stripe tuning */
+  --stripeLeft: 18px;
+  --stripeGap: 2px;
+  --stripeW: 12px;
+
+  /* Belt height */
+  --beltH: 52px;
+
+  /* Badge tuning */
+  --badgeBright: 1;
+  --badgeOpacity: 1;
+
+  /* Lane layout sizing */
+  --laneIcon: 48px;        /* strength unit */
+  --laneFeatherW: 58px;    /* honor unit */
+  --laneFeatherH: 48px;
+  --laneGap: 10px;
+
+  /* Premium decal sizing */
+  --decalSize: 95px;
+
+  /* Forge palette (Strength / “metal”) */
+  --pow-yellow: rgba(255,210,60,1);
+  --pow-orange: rgba(255,150,40,1);
+  --pow-red:    rgba(255,60,60,1);
+  --pow-steel:  rgba(180,200,220,1);
+
+  /* Wood → bone palette (Honor) */
+  --wis-wood1: rgba(90,60,30,1);
+  --wis-wood2: rgba(140,95,55,1);
+  --wis-tan:   rgba(205,170,120,1);
+  --wis-bone:  rgba(235,225,205,1);
+
+  /* Strength stroke (JS stage will swap via class) */
+  --powStroke: rgba(255,210,60,1);
+}
+
+/* ------------------------------------------------------------
+   2) BASE LAYOUT
+   ------------------------------------------------------------ */
+body{
+  background: var(--bg);
+  color: var(--ink);
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+.wrap{max-width:1000px;margin:0 auto;padding:18px;}
+
+.card{
+  background: var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  margin-top:14px;
+}
+
+.row{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0;}
+
+.stat{
+  flex:1 1 220px;
+  background: var(--panel2);
+  border:1px solid #223047;
+  border-radius:10px;
+  padding:10px;
+}
+.label{
+  font-size:.7rem;
+  color: var(--muted);
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+.value{font-weight:700;color: var(--ink);}
+.muted{color: var(--muted);}
+
+.pill{
+  display:inline-block;
+  background:#263142;
+  border:1px solid #3a4a60;
+  color:#cfe2ff;
+  padding:.16rem .5rem;
+  border-radius:999px;
+  text-decoration:none;
+}
+
+#out-citystate:empty::before{content:"—";opacity:.7;}
+
+/* ------------------------------------------------------------
+   3) HEADER + LOGO
+   ------------------------------------------------------------ */
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.nav-left{display:flex;gap:10px;flex-wrap:wrap;}
+
+.sandman-logo{
+  width:140px;
+  max-width:22vw;
+  height:auto;
+  border-radius:10px;
+  display:block;
+  opacity:.90;
+  margin-top:4px;
+  filter:drop-shadow(0 0 8px rgba(255,214,51,.25));
+  transition:opacity .25s ease, filter .2s ease;
+}
+.sandman-logo:hover{filter:drop-shadow(0 0 12px rgba(255,214,51,.45));}
+
+/* ------------------------------------------------------------
+   4) AVATAR + BADGE
+   ------------------------------------------------------------ */
+.identity-box{display:flex;align-items:center;}
+.avatar-badge{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:16px;
+  width:fit-content;
+}
+.avatar-box{
+  width:72px;
+  height:72px;
+  border-radius:14px;
+  background:#0a0f17;
+  border:1px solid rgba(255,255,255,.04);
+  overflow:hidden;
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  font-weight:700;
+}
+.tier-badge{
+  width:64px;
+  height:64px;
+  object-fit:contain;
+  border-radius:12px;
+  background:#0e1420;
+  border:1px solid #223047;
+  filter: brightness(var(--badgeBright, 1)) saturate(1);
+  opacity: var(--badgeOpacity, 1);
+  display:block;
+}
+
+/* ------------------------------------------------------------
+   5) COMBAT BELT BAR (BIG + CLEAN)
+   ------------------------------------------------------------ */
+.belt-bar{
+  position:relative;
+  width:100%;
+  height: var(--beltH);
+  border-radius:999px;
+  background:rgba(0, 0, 0, 0.25);
+  border:1px solid rgba(255,255,255,.06);
+  overflow:hidden;
+}
+
+/* fill lives UNDER stripes */
+.belt-bar .belt-fill{
+  position:absolute;
+  left:0; top:0; bottom:0;
+  width:0%;
+  border-radius:inherit;
+  transition:width .35s ease;
+  filter:saturate(.9);
+  z-index:1;
+}
+
+/* stripes always above fill */
+.belt-bar .stripe-boxes,
+.belt-bar .stripes,
+.belt-bar .stripe-wrap{
+  position:absolute;
+  top:-2px;
+  bottom:-2px;
+  left: var(--stripeLeft);
+  display:flex;
+  gap: var(--stripeGap);
+  align-items:stretch;
+  pointer-events:none;
+  z-index:10;
+}
+
+/* stripe segments */
+.belt-bar .stripe-box,
+.belt-bar .stripes > *,
+.belt-bar .stripe-wrap > *{
+  display:block;
+  width: var(--stripeW);
+  min-height:100%;
+  height:100%;
+  border-radius:0;
+  background:transparent;
+  opacity:.25;
+  border-left:1px solid rgba(255,255,255,.22);
+  border-right:1px solid rgba(255,255,255,.22);
+}
+.belt-bar .stripe-box.filled{
+  background: var(--stripe, #fff);
+  border-left-color: var(--stripe, #fff);
+  border-right-color: var(--stripe, #fff);
+  opacity: 1;
+}
+
+/* belt glow (optional) */
+.belt-bar.glow{box-shadow:0 0 14px rgba(255,214,51,.5);}
+
+#ath-belt .belt-bar{height: var(--beltH);}
+#rankBar{height: var(--beltH); position:relative; overflow:hidden;}
+#rankFill{height:100%;}
+
+/* Kill belt meta if you’re using your own text elsewhere */
+#ath-belt-meta{ display:none !important; }
+
+/* ------------------------------------------------------------
+   6) DROPS
+   ------------------------------------------------------------ */
+.drop{margin-top:14px; position:relative;}
+
+.drop-head{
+  background:transparent;
+  border:0;
+  color:#fff;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+  cursor:pointer;
+  padding:0;
+  margin-bottom:10px;
+}
+
+.drop-body.collapsed{display:none;}
+.chev{font-size:.8rem;color:var(--muted);}
+
+/* Locked behavior (single truth) */
+.drop.locked{opacity:.42;}
+.drop.locked .drop-head{cursor:not-allowed;}
+.drop.locked .drop-head .chev{display:none;}
+
+/* Lock icon inside header (requires <span class="lock-icon">🔒</span> in HTML button) */
+.drop-head .lock-icon{
+  display:none;
+  margin-left:6px;
+  font-size:.9rem;
+  opacity:.9;
+}
+.card.drop.locked .drop-head .lock-icon{display:inline;}
+
+/* Lane headings (gold) */
+.lane-title,
+.section-title{
+  color: var(--sandman-gold);
+  font-weight:600;
+  letter-spacing:.02em;
+}
+
+/* Drop header line text */
+#strengthLane .drop-head,
+#honorLane .drop-head,
+#combatLane .drop-head{
+  color: var(--sandman-gold);
+  font-weight:600;
+  letter-spacing:.02em;
+}
+
+/* Combat: centered title while keeping chevron right (only applies if combat uses drop-head button) */
+#combatLane.drop .drop-head{
+  position:relative;
+  justify-content:flex-end;
+}
+#combatLane.drop .drop-head > span:first-child{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  color: var(--gold);
+  font-weight:800;
+  letter-spacing:.02em;
+  text-align:center;
+  white-space:nowrap;
+}
+#combatLane.drop .drop-head .chev{ color: var(--muted); }
+
+/* Performance header stays white */
+#performanceLane.drop .drop-head > span:first-child{
+  color: var(--ink);
+  font-weight:700;
+}
+
+/* ------------------------------------------------------------
+   7) LANES — STRUCTURE (LEFT 6 UNITS + RIGHT PREMIUM CARD)
+   ------------------------------------------------------------ */
+.lane-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+}
+
+.lane-left{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:0;
+  padding-top:10px;
+}
+
+/* Nudge the left unit rows down a touch */
+#strengthRings,
+#honorRings{
+  margin-top:10px;
+}
+
+/* Left unit rows */
+.rings-row,
+.wisdom-row{
+  display:flex;
+  gap: var(--laneGap);
+  align-items:center;
+  flex-wrap:wrap;
+  padding:6px 0;
+}
+
+/* Left unit slots */
+.lane-slot{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: var(--laneIcon);
+  height: var(--laneIcon);
+  opacity:.35;
+}
+.lane-slot.feather{
+  width: var(--laneFeatherW);
+  height: var(--laneFeatherH);
+}
+.lane-slot.earned{ opacity: 1; }
+.lane-slot.active{ opacity: .95; }
+
+.lane-svg{
+  width:100%;
+  height:100%;
+  display:block;
+}
+
+/* RIGHT cluster (premium card area) */
+.lane-right{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:14px;
+  padding-left:14px;
+  border-left:1px solid rgba(255,255,255,.08);
+  min-width:260px;
+}
+
+/* If any old progress bar / image placeholder exists, kill it */
+.lane-right .active-meter,
+.lane-right .active-fill,
+.lane-right img,
+.lane-right .lane-img,
+.lane-right .lane-image,
+.lane-right .lane-thumb{
+  display:none !important;
+}
+
+/* Premium card wrapper (your right box) */
+.active-slot{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding-left:14px;
+  border-left:1px solid rgba(255,255,255,.10);
+  min-width:210px;
+  justify-content:flex-end;
+
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:16px;
+  background: rgba(255,255,255,.05);
+  padding:14px 12px 12px;
+}
+
+/* Decal holder (SVG injected here) */
+.lane-decal{
+  width: var(--decalSize);
+  height: var(--decalSize);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  /* glow variables (default off) */
+  --glow: rgba(255,255,255,0);
+  --glow2: rgba(255,255,255,0);
+}
+.lane-decal .decal-svg{
+  width:100%;
+  height:100%;
+  display:block;
+  filter: drop-shadow(0 0 6px rgba(255,255,255,.10));
+}
+
+/* Right text */
+.lane-pct{
+  font-weight:800;
+  font-size:1.05rem;
+  color:rgba(255,255,255,.90);
+  min-width:46px;
+  text-align:center;
+}
+.lane-unit{
+  font-weight:800;
+  font-size:1.10rem;
+  color:rgba(255,255,255,.90);
+  min-width:22px;
+  text-align:right;
+}
+
+/* Optional near-complete pulse */
+.lane-decal.almost .decal-svg{
+  animation: smDecalPulse 1.2s ease-in-out infinite;
+}
+@keyframes smDecalPulse{
+  0%,100%{ opacity:.75; }
+  50%{ opacity:1; }
+}
+
+/* ------------------------------------------------------------
+   8) PREMIUM SVG PROGRESS HOOK (IMPORTANT)
+   JS sets real dasharray/dashoffset using circumference.
+   CSS MUST NOT override dash math.
+   ------------------------------------------------------------ */
+.decal-svg .prog,
+.decal-svg .prog-fg,
+.decal-svg .prog-bg{
+  transform-origin: 50% 50%;
+}
+
+/* Only transitions here — no dasharray/dashoffset math */
+.decal-svg .prog-fg{
+  transition: stroke-dashoffset .6s ease, filter .4s ease, stroke .4s ease;
+}
+
+/* APPLY GLOW ONLY TO THE PROGRESS STROKE (NOT THE CENTER DISC) */
+.lane-decal .decal-svg .prog-fg{
+  filter:
+    drop-shadow(0 0 6px var(--glow))
+    drop-shadow(0 0 14px var(--glow2));
+}
+
+/* ------------------------------------------------------------
+   9) GLOW STAGING (FORGE + WOOD/BONE)
+   JS adds .power/.wisdom + .stage-0..3 on the container
+   ------------------------------------------------------------ */
+
+/* Strength / “metal forge” stages: yellow -> orange -> red -> steel */
+.lane-decal.power.stage-0{ --glow: rgba(255,210,60,.35);  --glow2: rgba(255,210,60,.18); }
+.lane-decal.power.stage-1{ --glow: rgba(255,150,40,.42);  --glow2: rgba(255,150,40,.22); }
+.lane-decal.power.stage-2{ --glow: rgba(255,60,60,.45);   --glow2: rgba(255,60,60,.24);  }
+.lane-decal.power.stage-3{ --glow: rgba(180,200,220,.35); --glow2: rgba(180,200,220,.18); }
+
+/* Honor / “wood -> bone” stages */
+.lane-decal.wisdom.stage-0{ --glow: rgba(90,60,30,.40);     --glow2: rgba(90,60,30,.18);  }
+.lane-decal.wisdom.stage-1{ --glow: rgba(140,95,55,.42);    --glow2: rgba(140,95,55,.20); }
+.lane-decal.wisdom.stage-2{ --glow: rgba(205,170,120,.40);  --glow2: rgba(205,170,120,.18);}
+.lane-decal.wisdom.stage-3{ --glow: rgba(235,225,205,.34);  --glow2: rgba(235,225,205,.16);}
+
+/* Strength material by stage (each 100 XP) */
+.lane-decal.power.stage-0{ --powStroke:#fbbf24; } /* gold */
+.lane-decal.power.stage-1{ --powStroke:#f97316; } /* orange */
+.lane-decal.power.stage-2{ --powStroke:#ef4444; } /* red */
+.lane-decal.power.stage-3{ --powStroke:#b8c7d6; } /* steel */
+
+/* ------------------------------------------------------------
+   10) ONYX RULE (CENTER STAYS DARK)
+   If your SVG center/lens uses these classes, hard-lock it.
+   ------------------------------------------------------------ */
+.decal-svg .center-disc,
+.decal-svg .lens,
+.decal-svg .inner{
+  filter:none !important;
+}
+
+/* ------------------------------------------------------------
+   11) OPTIONAL: LANE PANEL GLOWS (subtle)
+   ------------------------------------------------------------ */
+#strengthLane.lane-glow-mild-strength{
+  box-shadow:0 0 0 1px rgba(249,115,22,.10), 0 0 24px rgba(249,115,22,.08);
+}
+#strengthLane.lane-glow-strong-strength{
+  box-shadow:0 0 0 1px rgba(249,115,22,.16), 0 0 34px rgba(249,115,22,.14);
+}
+#strengthLane.lane-glow-complete-strength{
+  box-shadow:0 0 0 1px rgba(249,115,22,.20), 0 0 42px rgba(249,115,22,.20);
+}
+
+#honorLane.lane-glow-mild-honor{
+  box-shadow:0 0 0 1px rgba(194,164,118,.10), 0 0 24px rgba(194,164,118,.08);
+}
+#honorLane.lane-glow-strong-honor{
+  box-shadow:0 0 0 1px rgba(194,164,118,.16), 0 0 34px rgba(194,164,118,.14);
+}
+#honorLane.lane-glow-complete-honor{
+  box-shadow:0 0 0 1px rgba(194,164,118,.20), 0 0 42px rgba(194,164,118,.20);
+}
+
+/* Small semantic color hooks (safe) */
+.lane-decal.power { color: var(--sandman-gold); }
+.lane-decal.wisdom { color: var(--wis-tan); }
+/* ---------- Locked card polish ---------- */
+.card.drop.locked {
+  opacity: 0.78;
+}
+
+.card.drop.locked .drop-body {
+  filter: blur(0.6px);
+  opacity: 0.65;
+  pointer-events: none; /* body shouldn’t be interactive while locked */
+}
+
+.card.drop.locked .drop-head {
+  opacity: 1;          /* keep header readable */
+  filter: none;
+}
+
+.lock-icon {
+  margin-left: 10px;
+  opacity: 0.9;
+}
+
+.unlock-hint {
+  margin-left: 10px;
+  font-size: 0.78rem;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+/* optional: tighten header spacing */
+.drop-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* optional: keep chevron to the far right */
+.drop-head .chev {
+  margin-left: auto;
+  opacity: 0.85;
+}

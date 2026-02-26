@@ -1,0 +1,51 @@
+/* ===================================================== */
+/*  SANDMAN SYSTEM — DAY MODE (Clarity / Film / Admin)   */
+/* ===================================================== */
+:root[data-theme="day"] {
+  --bg: #fdfcf7;          /* warm, prestige ivory */
+  --panel: #f7f4ec;       /* soft parchment */
+  --panel-dark: #ece7df;
+  --text: #0c0d10;        /* black navy */
+  --muted: #6f6f6f;
+  --accent: #caa84a;      /* warm gold */
+  --accent-soft: #d9c27b;
+  --line: #ded8ce;
+}
+
+/* ===================================================== */
+/*  SANDMAN SYSTEM — NIGHT MODE (Combat / Performance)   */
+/* ===================================================== */
+:root[data-theme="night"] {
+  --bg: #06070c;          /* Sandman midnight */
+  --panel: #0b1017;       /* navy shadow */
+  --panel-dark: #101622;
+  --text: #f8fafc;        /* ivory-white text */
+  --muted: #94a3b8;
+  --accent: #ffdd48;      /* cold gold */
+  --accent-soft: #e7cf6c;
+  --line: #1d2430;
+}
+
+/* ===================================================== */
+/*  Globals (auto-inherit from theme)                    */
+/* ===================================================== */
+body {
+  background: var(--bg);
+  color: var(--text);
+  transition: background .25s ease, color .25s ease;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.btn-accent {
+  background: var(--accent);
+  color: #000;
+}
+
+.border-line {
+  border-color: var(--line);
+}

@@ -1,0 +1,52 @@
+body{
+  background:#0f172a;
+  color:#e5e7eb;
+  font-family:system-ui;
+}
+
+.title{
+  text-align:center;
+  padding:20px;
+  font-size:1.6rem;
+  color:#ffdd48;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+  padding:20px;
+}
+
+.mat-card{
+  background:#1e293b;
+  padding:14px;
+  border-radius:8px;
+  text-align:center;
+}
+
+.mat-head{
+  font-size:1.2rem;
+  margin-bottom:8px;
+  color:#ffdd48;
+}
+
+.score-row{
+  display:flex;
+  justify-content:space-between;
+  font-size:2rem;
+  margin-bottom:8px;
+}
+
+.red{color:#dc2626;}
+.green{color:#16a34a;}
+.time{color:#e5e7eb;}
+
+.period{
+  color:#9ca3af;
+  margin-bottom:4px;
+}
+
+.winner{
+  color:#ffdd48;
+}

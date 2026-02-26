@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete Onboarding — Step 2</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="./onboarding.css"/>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <header class="header">
+      <h1 id="welcome-name">Welcome, Athlete</h1>
+      <p class="sub">Choose your first weapon.</p>
+    </header>
+
+    <!-- Virtue tag card -->
+    <section class="card">
+      <h2>Your Virtue Tag</h2>
+      <div id="virtue-tag" class="tag-box">—</div>
+      <p class="muted small">This tag stays with you for life. It’s your mark.</p>
+    </section>
+
+    <!-- Weapon Select -->
+    <section class="card">
+      <h2>Your Weapon</h2>
+      <p class="muted small">Pick the identity tool you want to start with.</p>
+
+      <div class="weapon-grid">
+        <button class="weapon" data-weapon="COMBAT">
+          <h3>⚔️ Combat</h3>
+          <p class="muted small">Shadow Trainer • Fight IQ basics</p>
+        </button>
+
+        <button class="weapon" data-weapon="STRENGTH">
+          <h3>💍 Strength</h3>
+          <p class="muted small">Strength Primer • Power habits</p>
+        </button>
+
+        <button class="weapon" data-weapon="HONOR">
+          <h3>🪵 Honor</h3>
+          <p class="muted small">Honor Primer • FEAR discipline</p>
+        </button>
+      </div>
+
+      <p id="weapon-status" class="status small muted"></p>
+    </section>
+
+    <section class="card hidden" id="continue-card">
+      <button id="btn-next" class="btn solid-gold">Continue → Tools</button>
+    </section>
+
+  </main>
+
+  <script type="module" src="./step-2.js"></script>
+</body>
+</html>

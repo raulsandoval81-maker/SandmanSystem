@@ -1,0 +1,67 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: #05070c;
+  color: #e8ecf4;
+}
+
+.ts-header {
+  text-align: center;
+  padding: 20px 0 10px;
+}
+
+#teamBoard {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 26px;
+  margin: 20px auto;
+}
+
+.team-card {
+  background: #101620;
+  padding: 22px 32px;
+  border-radius: 14px;
+  text-align: center;
+  min-width: 160px;
+  border: 1px solid #1c2738;
+  box-shadow: 0 0 14px #0008;
+}
+
+.team-card.red {
+  border-color: #ff3a3a;
+}
+
+.team-card.green {
+  border-color: #39ff6f;
+}
+
+.team-name {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.team-score {
+  font-size: 3.4rem;
+  font-weight: 700;
+}
+
+.vs {
+  font-size: 2.2rem;
+  color: #ffdd48;
+  text-shadow: 0 0 10px #ffdd4860;
+}
+
+#boutHistory {
+  width: 90%;
+  max-width: 700px;
+  margin: 30px auto;
+}
+
+#boutFeed > div {
+  background: #0c111a;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  border: 1px solid #1a2233;
+}

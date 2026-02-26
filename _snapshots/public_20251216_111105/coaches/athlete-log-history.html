@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete Log — History | Sandman System™</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    :root{--bg:#0a0f15;--panel:#0f141b;--line:#243041;--muted:#9fb3c8;--pill:#ff3333;--pillbr:#ffd633;--pillfg:#ffd633}
+    body{background:var(--bg);color:#f3f4f6}.wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+    h1{color:#ffd633;margin:.2rem 0 1rem}.muted{color:var(--muted)}
+    .panel{background:#0f141b;border:1px solid #243041;border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:space-between;margin-bottom:.75rem}
+    input,select{padding:.55rem .7rem;border-radius:10px;border:1px solid #394a61;background:#121821;color:#f3f4f6}
+    .btn{display:inline-block;padding:.55rem 1rem;border-radius:999px;background:var(--pill);color:var(--pillfg);border:2px solid var(--pillbr);font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:.6rem;border-top:1px solid #2c3a4e;vertical-align:top}
+    th{color:#cfe2ff;text-align:left}
+    tr:hover{background:#0e141c}
+    .badge{border:1px solid #3a4b61;border-radius:7px;padding:.1rem .4rem;margin-right:.25rem}
+    .empty{color:var(--muted);padding:.6rem 0}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Athlete Log — History</h1>
+    <p class="muted" style="margin-top:-.4rem">Read-only stream. Add entries on <a href="athlete-live-log.html">Input</a>.</p>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <input id="q" type="search" placeholder="Search athlete / coach / topic / text…" style="min-width:260px" />
+          <select id="type"><option value="">All types</option><option>note</option><option>assignment</option><option>praise</option><option>correction</option></select>
+          <select id="program"><option value="">All programs</option><option value="foundry8">Foundry 8</option><option value="foundry4">Foundry 4</option><option value="leadership">Leadership</option></select>
+          <select id="discipline"><option value="">All disciplines</option><option>wrestling</option><option>striking</option><option>kickboxing</option><option>muay-thai</option><option>submission-grappling</option><option>mma</option></select>
+          <select id="range">
+            <option value="30">Last 30 days</option>
+            <option value="7">Last 7 days</option>
+            <option value="1">Today</option>
+            <option value="365">All</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          <button class="btn secondary" id="export">Export JSON</button>
+          <a class="btn secondary" href="athlete-live-log.html">← Input</a>
+        </div>
+      </div>
+
+      <table aria-live="polite">
+        <thead>
+          <tr>
+            <th style="width:160px">When</th>
+            <th style="width:160px">Athlete</th>
+            <th style="width:140px">Coach</th>
+            <th style="width:120px">Type</th>
+            <th>Topic / Notes</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td class="empty" colspan="5">No entries.</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    (function(){
+      const $=s=>document.querySelector(s), $$=s=>Array.from(document.querySelectorAll(s));
+      const KEY="athleteLogs";
+      const q=$("#q"), type=$("#type"), program=$("#program"), discipline=$("#discipline"), range=$("#range"), rows=$("#rows"), exportBtn=$("#export");
+
+      function load(){ return JSON.parse(localStorage.getItem(KEY)||"[]"); }
+      function withinRange(ts, days){
+        if(days==365) return true;
+        const start = Date.now() - days*24*60*60*1000;
+        return ts >= start;
+      }
+      function render(){
+        const term=(q.value||"").toLowerCase(), t=(type.value||""), p=(program.value||""), d=(discipline.value||"");
+        const days=parseInt(range.value,10);
+        const list = load().filter(e=>{
+          if(!withinRange(e.ts||0, days)) return false;
+          if(t && e.type!==t) return false;
+          if(p && e.program!==p) return false;
+          if(d && e.discipline!==d) return false;
+          const hay=((e.athlete||"")+" "+(e.coach||"")+" "+(e.topic||"")+" "+(e.text||"")).toLowerCase();
+          return !term || hay.includes(term);
+        });
+        if(!list.length){ rows.innerHTML=`<tr><td class="empty" colspan="5">No entries match.</td></tr>`; return; }
+        rows.innerHTML = list.map(e=>{
+          const when=new Date(e.ts).toLocaleString();
+          const topic=e.topic?`<span class="badge">${esc(e.topic)}</span>`:"";
+          const link=`athlete-log-details.html?id=${encodeURIComponent(e.ts)}`; // ts used as simple id in demo
+          return `<tr>
+            <td><a href="${link}">${when}</a></td>
+            <td>${esc(e.athlete||"")}</td>
+            <td>${esc(e.coach||"")}</td>
+            <td>${esc(e.type||"")}</td>
+            <td>${topic}${e.text?`<div>${esc(e.text)}</div>`:""}</td>
+          </tr>`;
+        }).join("");
+      }
+      function esc(s){return (s+"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+      function exportJson(){
+        const blob=new Blob([localStorage.getItem(KEY)||"[]"],{type:"application/json"});
+        const url=URL.createObjectURL(blob); const a=document.createElement("a");
+        a.href=url; a.download="athlete-log-history.json"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+      }
+      [q,type,program,discipline,range].forEach(el=>el.addEventListener("input", debounce(render,250)));
+      exportBtn.addEventListener("click", exportJson);
+      function debounce(fn,ms){let t; return (...a)=>{clearTimeout(t); t=setTimeout(()=>fn(...a),ms);};}
+      render();
+    })();
+  </script>
+</body>
+</html>

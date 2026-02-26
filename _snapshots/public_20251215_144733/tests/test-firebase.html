@@ -1,0 +1,2631 @@
+<!-- ====== BEGIN DROP 1 (CLEANED — lines 1–509) ====== -->
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Sandman FireTest v2 — Coach • Athlete • Parent</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+:root{
+  --bg:#0b1020; --panel:#0f172a; --ink:#e5e7eb; --muted:#9ca3af; --line:#1f2937;
+  --blue:#2563eb; --blue-ol:#60a5fa; --green:#22c55e; --red:#ef4444; --gold:#f59e0b; --purple:#8b5cf6;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg); color:var(--ink); font-family:system-ui,-apple-system,Segoe UI,Inter,Roboto,Arial,sans-serif; margin:0}
+.wrap{max-width:1180px; margin:24px auto; padding:0 16px}
+h1{font-size:24px; margin:0 0 12px}
+h2{font-size:20px; margin:16px 0 8px}
+h3{font-size:16px; margin:12px 0 8px}
+h4{font-size:14px; margin:10px 0 6px}
+small{font-size:12px}
+.panel{background:var(--panel); border-radius:14px; box-shadow:0 0 0 1px var(--line) inset; margin:14px 0}
+.section-hdr{width:100%; text-align:left; padding:12px 14px; font-weight:800; border:none; background:#1f2937; color:var(--ink); border-radius:14px 14px 0 0; cursor:pointer}
+.section-hdr.open{background:#243042}
+.section-body{display:none; padding:14px}
+.section-body.open{display:block}
+.row{display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap}
+.btn-row{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0}
+.card{background:#0a1224; border-radius:12px; box-shadow:0 0 0 1px var(--line) inset; padding:12px; margin:10px 0}
+.muted{color:var(--muted)}
+.feed{list-style:none; padding:0; margin:8px 0 0}
+.feed li{padding:6px 8px; border-bottom:1px solid var(--line)}
+.meter{flex:1; height:10px; background:var(--line); border-radius:999px; overflow:hidden}
+.meter-fill{height:100%; background:var(--blue)}
+.stat{min-width:150px; background:#0d1530; border-radius:10px; box-shadow:0 0 0 1px var(--line) inset; padding:8px 10px}
+.stat .label{font-size:12px; color:var(--muted)}
+.stat .value{font-weight:800}
+.chip{display:inline-block; padding:4px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); margin-right:6px}
+.outline-green{border:1px solid var(--green); color:var(--green); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-red{border:1px solid var(--red); color:var(--red); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-gold{border:1px solid var(--gold); color:var(--gold); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-blue{border:1px solid var(--blue-ol); color:var(--blue-ol); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-purple{border:1px solid var(--purple); color:var(--purple); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.solid-blue{background:var(--blue); color:white; border:none; padding:6px 10px; border-radius:10px; cursor:pointer}
+input, select, textarea{background:#0a1224; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 8px}
+textarea{width:100%}
+.pill{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border:1px dashed var(--line); border-radius:999px; font-size:12px}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.kbd{border:1px solid var(--line); border-bottom-width:2px; padding:1px 4px; border-radius:4px; font-size:11px}
+.drag-arrows button{border:1px solid var(--line); background:transparent; color:var(--ink); border-radius:8px; padding:2px 6px; cursor:pointer}
+.yt{display:inline-block; border:1px solid var(--line); border-radius:6px; padding:2px 6px; font-size:12px}
+.warn{color:#fbbf24}
+.ok{color:#34d399}
+ /* Treat .section-hdr like .acc-h */
+  .section-hdr { cursor:pointer; user-select:none; }
+  .section-hdr.open { background:#152223; } /* optional “open” tint, match your theme */
+
+  /* Treat .section-body like .acc-b */
+  .section-body {
+    overflow:hidden;
+    max-height:0;
+    transition:max-height .25s ease;
+    border-left:2px solid #1e2b44;
+    border-right:2px solid #1e2b44;
+    border-bottom:2px solid #1e2b44;
+    border-radius:0 0 10px 10px;
+    padding:0 12px;              /* collapsed padding stays 0 top/bottom */
+  }
+  .section-body.open { padding:12px; }  /* when opened, add interior padding */
+/* Inline accordion (for sub-sections) */
+.acc-h {
+  display:flex; align-items:center; justify-content:space-between;
+  width:100%; padding:12px 16px; border-radius:10px;
+  background:#0f1a2b; color:#cfe3ff; font-weight:600; cursor:pointer;
+  border:1px solid #1e2b44; margin:8px 0;
+}
+.acc-h.open { background:#15223a; }
+
+.acc-b {
+  overflow:hidden;
+  max-height:0;
+  transition:max-height .25s ease;
+  border-left:2px solid #1e2b44;
+  border-right:2px solid #1e2b44;
+  border-bottom:2px solid #1e2b44;
+  border-radius:0 0 10px 10px;
+  padding:0 12px;
+}
+.acc-b.open { padding:12px; }
+ .tab { cursor:pointer; user-select:none; }
+  .tab.active { border-color: var(--blue-ol); color: var(--blue-ol); }
+  [data-panel] { display:none; } /* hidden by default; JS will reveal the active one */
+  [data-panel].active { display:block; }
+</style>
+<link rel="stylesheet" href="../assets/css/site.css">
+</head>
+<body>
+<div class="wrap">
+  <h1>🔥 Sandman FireTest v2</h1>
+  <div class="chip">Coach</div><div class="chip">Athlete</div><div class="chip">Parent</div>
+
+<!-- ================== COACH INTAKE / ONBOARDING ================== -->
+<section class="panel" id="coach-intake">
+  <button class="section-hdr" data-acc="coach-intake-body">Coach — Intake</button>
+  <div class="section-body" id="coach-intake-body">
+
+    <!-- ===== Parent Invite (tokenized) ===== -->
+    <div class="card" id="parent-invite">
+      <h3>Parent Invite</h3>
+      <div class="row">
+        <button class="solid-blue" id="pi-make">Generate 3-day Token</button>
+        <input id="pi-link" type="text" class="mono" placeholder="Invite link appears here…" readonly style="flex:1;min-width:320px">
+        <button class="outline-blue" id="pi-copy">Copy</button>
+      </div>
+      <small class="muted">Parents start with a token. UID is minted on submit. Token expires in 72 hours.</small>
+    </div>
+
+    <!-- ===== Intake → Actions (local helpers / mock) ===== -->
+    <section style="border:1px solid #ddd;padding:12px;border-radius:8px;margin:12px 0">
+      <h3>Intake → Actions (Local)</h3>
+
+      <label>Intake UID
+        <input id="intake-uid-input" placeholder="test-intake-1" />
+      </label>
+      &nbsp;&nbsp;
+      <label>Track
+        <select id="intake-track-select">
+          <option value="F8">F8</option>
+          <option value="F4">F4</option>
+        </select>
+      </label>
+      &nbsp;&nbsp;
+      <label>Coach ID
+        <input id="intake-coachId" placeholder="coach-001" />
+      </label>
+
+      <div style="margin:10px 0">
+        <!-- Keep local helper button but avoid colliding with canonical #btnApprove -->
+        <button id="btnApproveLocal">Approve & Activate</button>
+        <button id="btn-assignCoachId" type="button">Assign Coach</button>
+        <button id="btn-lookupAthlete" type="button">Lookup Athlete</button>
+        <button id="btn-saveIntake"   type="button">Save Intake</button>
+        <button id="btn-seed-intake"  type="button" onclick="seedIntake()">Seed Intake</button>
+      </div>
+
+      <!-- outputs / results -->
+      <pre id="intake-save-result" style="background:#111;color:#9f9;padding:6px;min-height:40px"></pre>
+      <pre id="intake-lookup-result" style="background:#111;color:#9df;padding:6px;min-height:40px"></pre>
+      <div id="ca-status-local" class="muted"></div>
+      <!-- local area output; canonical approveOut is in the Approve card below -->
+      <pre id="approveOutLocal" style="background:#111;color:#9f9;padding:6px;min-height:40px"></pre>
+    </section>
+
+    <!-- Hidden fields (uniquely named) -->
+    <input id="ca-uid-hidden" type="hidden">
+    <input id="ca-padlock-hidden" type="hidden">
+    <input id="intake-initial-hidden" type="hidden">
+    <input id="intake-public-last-hidden" type="hidden">
+
+    <!-- ===== Identity & Privacy ===== -->
+    <div class="card" id="identity-privacy">
+      <h3>Identity & Privacy</h3>
+      <div class="row">
+        <button class="outline-blue" id="intake-next">Assign Next</button>
+        <small class="muted">Internal only.</small>
+      </div>
+
+      <div class="row">
+        <label>First (private)</label>
+        <input id="intake-first" type="text" placeholder="First">
+
+        <label>Last (private)</label>
+        <input id="intake-last" type="text" placeholder="Last">
+      </div>
+
+      <div class="row">
+        <label>Public Initial</label>
+        <input id="intake-initial" type="text" placeholder="e.g., J.">
+
+        <label>Public Last</label>
+        <input id="intake-public-last" type="text" placeholder="e.g., Sandoval">
+      </div>
+
+      <div class="row">
+        <label>
+          <input id="intake-lock" type="checkbox" checked>
+          Use public name on external views
+        </label>
+      </div>
+    </div>
+
+    <!-- ===== Program & Role ===== -->
+    <div class="card" id="program-role">
+      <label>Role</label>
+      <select id="intake-role">
+        <option value="athlete">Athlete</option>
+        <option value="coach">Coach</option>
+        <option value="manager">Manager</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <label>Tier & Rank</label>
+      <select id="intake-tier"></select>
+
+      <small class="muted">
+        CompGate baseline 800 XP. Veterans may be fast-tracked (F4 only) with head-coach approval.
+      </small>
+    </div>
+
+    <!-- ===== Approve & Activate (CALLABLE) ===== -->
+    <div class="card" id="approve-activate">
+      <h3>Approve & Activate (Callable)</h3>
+
+      <!-- Find pending (optional) -->
+      <button id="ca-find" class="outline-blue">Find Submitted Intakes</button>
+      <div id="ca-list"></div>
+      <small id="ca-status" class="muted small"></small>
+
+      <!-- Canonical IDs used by harness JS -->
+      <label>Intake ID</label>
+      <input id="intakeId" type="text" placeholder="e.g., test-intake-1" class="mono">
+
+      <label>Track</label>
+      <select id="track">
+        <option value="F8">F8</option>
+        <option value="F4">F4</option>
+      </select>
+
+      <div class="row" style="margin-top:8px">
+        <button id="ca-mint-f8" class="outline-blue">Mint F8</button>
+        <button id="ca-mint-f4" class="outline-blue">Mint F4</button>
+        <!-- canonical approve button (this is the one wired by JS) -->
+        <button id="btnApprove" class="solid-blue">Approve & Activate</button>
+      </div>
+
+      <!-- single canonical output -->
+      <pre id="approveOut" style="background:#111;color:#0f0;padding:6px;min-height:48px;margin-top:8px;white-space:pre-wrap;"></pre>
+    </div>
+
+    <!-- Exception — Dual Progression (F8) -->
+    <div class="card" id="dual-exception-card" style="display:none">
+      <h3>Exception — Dual Progression (F8)</h3>
+      <div class="row">
+        <label>
+          <input id="intake-dual" type="checkbox">
+          Start athlete at a higher Tier (max: Warrior). Athlete must backfill all prior levels.
+        </label>
+      </div>
+
+      <div id="dual-fields" style="display:none">
+        <div class="row">
+          <label>Starting Tier (max Warrior)</label>
+          <select id="dual-start-tier">
+            <option value="T1">T1 · Recruit</option>
+            <option value="T2">T2 · Combatant</option>
+            <option value="T3">T3 · Competitor</option>
+            <option value="T4">T4 · Warrior</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label>Parent acknowledgement (required)</label>
+          <label><input id="dual-parent-ok" type="checkbox"> Parent understands no ceremonies until backfilled.</label>
+        </div>
+
+        <div class="row">
+          <label>Coach note to file (required)</label>
+          <input id="dual-note" type="text" placeholder="Context / why exception applies">
+        </div>
+
+        <small class="muted">
+          Dual Progression = class merit only (no quarterly/walk celebrations) until ALL earlier levels are completed.
+        </small>
+      </div>
+    </div>
+
+    <!-- Approvals & Veteran / Fast-Track -->
+    <div class="card">
+      <h3>Approvals & Veteran / Fast-Track</h3>
+      <div class="row">
+        <label><input id="intake-veteran" type="checkbox"> Veteran claim (2+ yrs prior training)</label>
+        <input id="intake-years" type="number" min="0" step="1" placeholder="Years (e.g., 2)" style="width:110px">
+        <label><input id="intake-proof-comp" type="checkbox"> Competition proof on file</label>
+      </div>
+      <div class="row">
+        <label><input id="intake-fasttrack" type="checkbox"> Fast-track (Head Coach + Mgmt)</label>
+        <input id="intake-proof" type="text" placeholder="Proof / context (link or note)" style="flex:1; min-width:240px">
+      </div>
+      <small class="muted">
+        Fast-track allowed only for Foundry 4. Veterans must meet: ≥2 years training + competition history.
+        Head-coach approval required. Youth (F8) cannot be fast-tracked.
+      </small>
+    </div>
+
+    <!-- Attach Existing Athlete (link) -->
+    <div class="card">
+      <h3>Attach Athlete (link existing record)</h3>
+      <div class="row">
+        <label>Athlete UID</label>
+        <input id="attach-uid" type="text" placeholder="e.g., F8-00007" class="mono">
+        <button class="outline-blue" id="attach-lookup">Lookup</button>
+        <span id="attach-lookup-result" class="muted"></span>
+      </div>
+      <div class="row">
+        <button class="solid-blue" id="attach-save">Save / Update Athlete</button>
+        <span id="attach-save-result" class="muted"></span>
+      </div>
+    </div>
+
+    <!-- Athlete Lookup (read) -->
+    <div class="card" id="coach-ath-lookup">
+      <h3>Athlete Lookup</h3>
+      <div class="row">
+        <input id="al-search" placeholder="Search name or UID…">
+        <button class="outline-blue" id="al-search-btn">Search</button>
+      </div>
+      <div id="al-results" class="muted" style="margin-top:8px;">Type and search.</div>
+    </div>
+
+  </div>
+</section>
+
+
+ <!-- ================== ATHLETE SNAPSHOT (linked from lookup) ================== -->
+  <section class="panel" id="al-detail" style="display:none">
+    <button class="section-hdr open" data-acc="al-detail-body">Athlete Snapshot</button>
+    <div class="section-body open" id="al-detail-body">
+      <div class="card">
+        <h3>Athlete</h3>
+        <div class="row">
+          <div class="stat"><div class="label">UID</div><div class="value" id="al-uid">—</div></div>
+          <div class="stat"><div class="label">Track</div><div class="value" id="al-track">—</div></div>
+          <div class="stat"><div class="label">Tier</div><div class="value" id="al-tier">—</div></div>
+          <div class="stat"><div class="label">Rank</div><div class="value" id="al-rank">—</div></div>
+          <div class="stat"><div class="label">XP</div><div class="value"><span id="al-xp">—</span>/<span id="al-cap">—</span></div></div>
+        </div>
+        <div class="row">
+          <div class="meter" style="max-width:420px"><div id="al-meter" class="meter-fill" style="width:0%"></div></div>
+        </div>
+
+
+        <!-- Add Skill (coach-only) -->
+        <div class="row" id="al-skill-add" style="margin-top:6px">
+          <input id="al-skill-text" type="text" placeholder="Add a skill (e.g., Crackdown to backdoor)" style="flex:1">
+          <select id="al-skill-tag">
+            <option value="technique">Technique</option>
+            <option value="setup">Setup</option>
+            <option value="finish">Finish</option>
+            <option value="escape">Escape</option>
+            <option value="ride">Ride/Top</option>
+            <option value="bottom">Bottom</option>
+            <option value="pace">Pace/Conditioning</option>
+            <option value="mindset">Mindset</option>
+          </select>
+          <button class="solid-blue" onclick="alAddSkill()">Add Skill</button>
+        </div>
+        <small class="muted">Coach adds skills; athlete sees them in Athlete Corner.</small>
+
+        <h4>Quick Actions</h4>
+        <div class="btn-row">
+          <button class="outline-green" onclick="safeCallInc('character','gym','Coach shout-out')">+5 Character</button>
+          <button class="outline-gold" onclick="safeCallInc('tournament_show')">+15 Tournament Show</button>
+          <button class="outline-blue" onclick="openPlannerForAth()">Start Plan with this athlete</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+    <!-- ================== COACH — DAILY TOOLS ================== -->
+
+  <section class="panel" id="coach-daily">
+    <button class="section-hdr" data-acc="coach-daily-body">Coach —  Tool Box </button>
+    <div class="section-body" id="coach-daily-body">
+
+      <div class="card">
+        <h3>Attendance</h3>
+        <div class="row muted">Full effort +10. Half effort  Fish Day –5 (cap 4/mo). Attendance XP cap 120/mo.</div>
+        <div class="btn-row">
+          <button class="outline-green" onclick="safeCallInc('attendance')">Full Effort (+10)</button>
+          <button class="outline-green" onclick="safeCallInc('attendance_half')">Half Effort (+5)</button>
+          <button class="outline-red"   onclick="safeCallInc('fish')">Fish (–5)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Character (Daily Quick Picks)</h3>
+        <div class="row muted">
+          Athletes cap 4/mo; Leaders 10/mo. Daily quick-picks for practice; full menu under Monthly.
+        </div>
+        <div class="btn-row">
+          <button class="outline-blue" onclick="safeCallInc('character','gym','Extra rounds')">Gym: Extra rounds (+5)</button>
+          <button class="outline-blue" onclick="safeCallInc('character','classroom','Homework done')">Classroom: Homework (+5)</button>
+          <button class="outline-blue" onclick="safeCallInc('character','community','Volunteered')">Community: Volunteered (+5)</button>
+          <button class="outline-blue" onclick="safeCallInc('character','leadership','Led warmups')">Leadership: Led warmups (+5)</button>
+        </div>
+      </div>
+
+
+      <!-- Coach Weight Planner -->
+      <section class="card" id="coach-weight-planner">
+        <h3>Weight Planner</h3>
+        <div class="row">
+          <select id="wp-uid"></select>
+          <input id="wp-current" type="number" step="0.1" placeholder="Current (lb)">
+          <input id="wp-target"  type="number" step="0.1" placeholder="Target (lb)">
+          <input id="wp-date" type="date">
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <button class="solid-blue" onclick="planCut()">Plan Cut</button>
+          <button class="solid-blue" onclick="planGain()">Plan Gain</button>
+        </div>
+        <div id="wp-preview" class="muted" style="margin-top:8px;"></div>
+      </section>
+
+
+      <!-- Parent Q&A Quick Replies -->
+      <section class="card" id="coach-quick-replies">
+        <h3>Parent Q&A – Quick Reply</h3>
+        <div class="row">
+          <select id="qr-topic">
+            <option>Eligibility / CompGate</option>
+            <option>Character Counts</option>
+            <option>Fish Rule</option>
+            <option>Ceremony / Stripes</option>
+            <option>Style points</option>
+          </select>
+          <select id="qr-ath"></select>
+        </div>
+        <textarea id="qr-msg" rows="3" placeholder="Type or click a template…"></textarea>
+        <div class="row" style="margin-top:8px;">
+          <button class="solid-blue" onclick="qrSend()">Send</button>
+        </div>
+        <div id="qr-log" class="muted" style="margin-top:8px;"></div>
+      </section>
+ 
+
+      <!-- Coach Calendar -->
+      <section class="card" id="coach-cal">
+        <h3>Coach Calendar</h3>
+        <div class="row">
+          <input id="coach-ev-title" placeholder="Event (e.g., Dual @ Cabrillo)">
+          <input id="coach-ev-when" type="datetime-local">
+          <select id="coach-ev-vis">
+            <option value="team">Team (athletes+parents)</option>
+            <option value="athletes">Athletes only</option>
+            <option value="parents">Parents only</option>
+          </select>
+          <button class="solid-blue" onclick="calAddCoach()">Add</button>
+        </div>
+        <ul id="coach-cal-list" class="small mono" style="margin-top:8px;"></ul>
+      </section>
+
+
+      <!-- Coach Daily Log -->
+      <div class="card">
+        <h3>Coach Daily Log</h3>
+        <div class="row">
+          <label>Athletes</label>
+          <select id="coach-daily-athletes" multiple>
+            <option value="demo08A">demo08A</option>
+            <option value="demo08B">demo08B</option>
+            <option value="demo08C">demo08C</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Note</label>
+          <textarea id="coach-daily-note" rows="3" placeholder="Focus, shout-outs, issues…"></textarea>
+        </div>
+        <div class="row">
+          <button class="solid-blue" onclick="mockSave('daily')">Save Daily Log</button>
+          <button class="outline-blue" onclick="mockSend('daily')">Send to Athlete/Parents (stub)</button>
+        </div>
+        <h4>Today’s Logs</h4>
+        <ul id="coach-daily-feed" class="feed"></ul>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ================== COACH — DAILY PRACTICE PLANNER ================== -->
+
+
+  <section class="panel" id="coach-planner">
+    <button class="section-hdr" data-acc="coach-planner-body">Coach — Daily Practice Planner</button>
+    <div class="section-body" id="coach-planner-body">
+      <div class="card">
+        <div class="row">
+          <h3 style="margin-right:auto">Plan Template</h3>
+          <span class="pill">Blocks 3–5 are flexible — mix/match.</span>
+        </div>
+        <div class="btn-row">
+          <button class="outline-purple" id="dp-quick-tech">Technique Day</button>
+          <button class="outline-purple" id="dp-quick-live">Live Day</button>
+          <button class="outline-purple" id="dp-quick-drill">Drill Day</button>
+          <button class="outline-purple" onclick="quickTemplate('cond')">Conditioning Day</button>
+        </div>
+        <div class="row">
+          <label>Practice Title</label>
+          <input id="dp-title" type="text" placeholder="Level-1 Finishes • Tue AM" style="min-width:320px">
+          <label>Tags</label>
+          <input id="dp-tags" type="text" placeholder="Finish, Defense, Chain">
+          <span class="muted">Total: <span id="dp-total">0</span> min</span>
+        </div>
+        <div id="dp-blocks"></div>
+        <div class="row">
+          <button class="solid-blue" id="dp-save">Save Plan</button>
+          <button class="outline-blue" id="dp-start">Start Session</button>
+          <button class="outline-gold" id="dp-finish">Finish + Log</button>
+        </div>
+        <small class="muted">YouTube & basic HTML allowed in notes (sanitized).</small>
+      </div>
+    </div>
+  </section>
+<!-- ====== END DROP 1 (CLEANED) ====== -->
+
+<!-- ✅ START: Coach — Weekly -->
+  <!-- ================== COACH — WEEKLY ================== -->
+  <section class="panel" id="coach-weekly">
+    <button class="section-hdr" data-acc="coach-weekly-body">Coach — Weekly & Tournament</button>
+    <div class="section-body" id="coach-weekly-body">
+
+      <div class="card">
+        <h3>Weekly Goal</h3>
+        <div class="row">
+          <label>Week</label><input id="wk-range" type="text" value="" readonly class="mono">
+          <label>Theme</label><input id="wk-theme" type="text" placeholder="Chain wrestling off double">
+        </div>
+        <div class="row" style="width:100%">
+          <input id="wk-obj1" type="text" placeholder="Objective 1 (≤140)" style="flex:1">
+          <input id="wk-obj2" type="text" placeholder="Objective 2 (≤140)" style="flex:1">
+          <input id="wk-obj3" type="text" placeholder="Objective 3 (≤140)" style="flex:1">
+        </div>
+        <div class="row" style="width:100%">
+          <input id="wk-res1" type="url" placeholder="Resource URL (YouTube/docs)" style="flex:1">
+          <input id="wk-res2" type="url" placeholder="Resource URL (optional)" style="flex:1">
+          <input id="wk-res3" type="url" placeholder="Resource URL (optional)" style="flex:1">
+        </div>
+        <div class="row">
+          <button class="solid-blue" onclick="weeklySave()">Save Weekly Goal</button>
+          <span id="wk-save" class="muted"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Weekend Warrior (Tournament Attendance)</h3>
+        <div class="row muted">Base cap 2/mo; Champion+ may allow 3 (policy toggle later).</div>
+        <div class="btn-row">
+          <button class="outline-gold" onclick="safeCallInc('tournament_show')">Tournament Show (+15)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Style Bonuses (cap 2/mo)</h3>
+        <div class="btn-row">
+          <button class="outline-red" onclick="safeCallInc('style','shark')">Shark (+5)</button>
+          <button class="outline-red" onclick="safeCallInc('style','bull')">Bull (+5)</button>
+          <button class="outline-red" onclick="safeCallInc('style','matador')">Matador (+5)</button>
+          <button class="outline-red" onclick="safeCallInc('style','snake')">Snake (+5)</button>
+          <button class="outline-red" onclick="safeCallInc('style','mongoose')">Mongoose (+5)</button>
+          <button class="outline-red" onclick="safeCallInc('style','gorilla')">Gorilla (+5)</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Tournament / Weekly Note</h3>
+        <div class="row">
+          <label>Event</label><input id="coach-weekly-event" type="text" placeholder="e.g., Lompoc Open 10/12">
+          <label>Athletes</label>
+          <select id="coach-weekly-athletes" multiple>
+            <option value="demo08A">demo08A</option>
+            <option value="demo08B">demo08B</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Note</label>
+          <textarea id="coach-weekly-note" rows="3" placeholder="Shout-outs, lessons…"></textarea>
+        </div>
+        <div class="row">
+          <button class="solid-blue" onclick="mockSave('weekly')">Save Weekly Log</button>
+          <button class="outline-blue" onclick="mockSend('weekly')">Send (stub)</button>
+        </div>
+        <ul id="coach-weekly-feed" class="feed"></ul>
+      </div>
+
+    </div>
+  </section>
+<!-- ✅ END: Coach — Weekly -->
+
+
+
+
+<!-- ✅ START: Coach — Monthly -->
+<!-- ================== COACH — MONTHLY ================== -->
+<section class="panel" id="coach-monthly">
+  <button class="section-hdr" data-acc="coach-monthly-body">
+    Coach — Monthly Plan
+  </button>
+
+  <div class="section-body" id="coach-monthly-body">
+    
+    <!-- Leadership Console -->
+    <div class="card">
+      <h3>Leadership Console (separate from Combat)</h3>
+      <div class="row">
+        <label>UID</label>
+        <input id="lead-uid" type="text" placeholder="uid…" class="mono">
+        <button class="outline-blue" onclick="mockLeadAdd()">Add Candidate</button>
+        <button class="outline-blue" onclick="mockLeadApprove()">Approve</button>
+        <button class="outline-red" onclick="mockLeadRemove()">Remove</button>
+      </div>
+      <div class="row">
+        <button class="outline-gold" onclick="safeCallInc('leadership_allowance')">
+          Grant Monthly Allowance (+100)
+        </button>
+      </div>
+      <div class="row muted" id="lead-status">No selection.</div>
+    </div>
+
+
+      <!-- Leadership Intake -->
+      <section class="card" id="coach-lead-intake">
+        <h3>Leadership Intake (Foundry 4 – Leadership)</h3>
+        <div class="row">
+          <select id="lead-uid-select"></select>
+          <select id="lead-tier">
+            <option value="T0">T0 – Apprentice</option>
+            <option value="T1">T1 – Mentor</option>
+            <option value="T2">T2 – Scholar</option>
+            <option value="T3">T3 – Advisor</option>
+            <option value="T4">T4 – Mastery</option>
+          </select>
+          <button class="solid-blue" onclick="leadEnroll()">Enroll</button>
+          <button class="outline-blue" onclick="leadUnenroll()">Unenroll</button>
+        </div>
+        <small class="muted">Leadership track is separate from Combat ranks; this keeps caps/policy clean.</small>
+        <div id="lead-intake-log" class="muted" style="margin-top:8px;"></div>
+      </section>
+
+
+      <!-- Prestige Awards -->
+      <div class="card">
+        <h3>Prestige Awards (once/year per badge)</h3>
+        <div class="btn-row">
+          <button class="outline-gold" onclick="safeCallInc('prestige','lion')">Lion (+15) — State</button>
+          <button class="outline-gold" onclick="safeCallInc('prestige','tiger')">Tiger (+50) — Regionals</button>
+          <button class="outline-gold" onclick="safeCallInc('prestige','bear')">Bear (+100) — Nationals</button>
+        </div>
+      </div>
+
+
+
+      <!-- Character Counts (full) -->
+      <div class="card">
+        <h3>Character Counts (Full: Gym • Classroom • Community • Leadership)</h3>
+        <div class="btn-row">
+          <button class="outline-blue" onclick="safeCallInc('character','gym','Monthly coach pick')">Gym +5</button>
+          <button class="outline-blue" onclick="safeCallInc('character','classroom','Monthly coach pick')">Classroom +5</button>
+          <button class="outline-blue" onclick="safeCallInc('character','community','Monthly coach pick')">Community +5</button>
+          <button class="outline-blue" onclick="safeCallInc('character','leadership','Monthly coach pick')">Leadership +5</button>
+        </div>
+        <small class="muted">Athletes: cap 4/mo (20 XP). Leaders: cap 10/mo (50 XP). Leadership assignments credit handled separately.</small>
+      </div>
+
+
+
+      <!-- Monthly Reflection / Parent Update -->
+      <div class="card">
+        <h3>Monthly Reflection / Parent Update</h3>
+        <div class="row">
+          <label>Team or Athlete(s)</label>
+          <select id="coach-monthly-athletes" multiple>
+            <option value="demo08A">demo08A</option>
+            <option value="demo08B">demo08B</option>
+          </select>
+        </div>
+        <div class="row">
+          <label>Title</label>
+          <input id="coach-monthly-title" type="text" placeholder="September Progress & Next Steps">
+        </div>
+        <div class="row">
+          <label>Body</label>
+          <textarea id="coach-monthly-note" rows="4" placeholder="Long-form update, values, goals…"></textarea>
+        </div>
+        <div class="row">
+          <button class="solid-blue" onclick="mockSave('monthly')">Save Monthly Log</button>
+          <button class="outline-blue" onclick="mockSend('monthly')">Send (stub)</button>
+        </div>
+        <ul id="coach-monthly-feed" class="feed"></ul>
+      </div>
+
+    </div>
+  </section>
+<!-- ✅ END: Coach — Monthly -->
+
+
+
+
+<!-- ✅ START: Coach — AIM -->
+<!-- ================== COACH — AI AIM ================== -->
+<section class="panel" id="coach-aim">
+  <button class="section-hdr" data-acc="coach-aim-body">
+    Coach — AIM <span class="muted">Artificial Intelligence Manual</span>
+  </button>
+
+  <div class="section-body" id="coach-aim-body">
+    <div class="card">
+      <h3>Practice Ideas / Drills <span class="pill">Powered by AIM</span></h3>
+      <div class="row">
+        <input id="ca-need" type="text" placeholder="e.g., 60-min session for single-leg finishes (youth T1)" style="flex:1">
+        <button class="solid-blue" onclick="caPlan()">Suggest Plan</button>
+      </div>
+      <ul id="ca-feed" class="feed"></ul>
+    </div>
+  
+
+
+    <div class="card">
+      <div class="row">
+        <label>Goal (30 days)</label>
+        <input id="sk-goal" type="text" placeholder="e.g., Finish singles within 20s, improve bottom escapes">
+        <button class="outline-blue" onclick="skPlan()">Build Nudge Plan</button>
+      </div>
+      <div class="row">
+        <label>Nudge Rhythm</label>
+        <select id="sk-rhythm">
+          <option value="daily">Daily</option>
+          <option value="3x">3x / week</option>
+          <option value="2x">2x / week</option>
+        </select>
+        <label>Time</label>
+        <input id="sk-time" type="time" value="18:00">
+        <button class="outline-gold" onclick="skSchedule()">Schedule Reminders</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Parent Update Drafts <span class="pill">AIM Assist</span></h3>
+      <div class="row">
+        <input id="ca-parent-topic" type="text" placeholder="e.g., Explaining character counts to new parents" style="flex:1">
+        <button class="outline-blue" onclick="caParent()">Draft Note</button>
+      </div>
+      <ul id="ca-parent-feed" class="feed"></ul>
+    </div>
+
+  </div>
+</section>
+<!-- ✅ END: Coach — AIM -->
+
+
+
+<!-- ✅ START: Leadership — Sidekick -->
+  <!-- ================== LEADERSHIP — SIDEKICK ================== -->
+  <section class="panel" id="leadership-sidekick">
+    <button class="section-hdr" data-acc="leadership-sidekick-body">Leadership — Sidekick</button>
+    <div class="section-body" id="leadership-sidekick-body">
+
+      <div class="card">
+        <h3>Coach — Push Assignment</h3>
+        <div class="row">
+          <label>Audience</label>
+          <select id="ls-audience">
+            <option value="leaders">All Leaders</option>
+            <option value="team">Whole Team</option>
+            <option value="one">Specific UID</option>
+          </select>
+          <input id="ls-uid" class="mono" type="text" placeholder="uid (if Specific)">
+        </div>
+        <div class="row" style="width:100%">
+          <select id="ls-template">
+            <option value="reflect">Reflect: What leadership looked like today</option>
+            <option value="mentorlog">Mentor Log: Who you helped + how</option>
+            <option value="study">Study: Watch a clip & write 3 cues</option>
+            <option value="plan">Plan: Outline warmups you can lead</option>
+          </select>
+          <input id="ls-title" type="text" style="flex:1" placeholder="Title (optional)">
+        </div>
+        <div class="row" style="width:100%">
+          <textarea id="ls-instructions" rows="3" style="width:100%" placeholder="Instructions to leaders…"></textarea>
+        </div>
+        <div class="row">
+          <label>Due</label><input id="ls-due" type="date">
+          <button class="solid-blue" onclick="lsPush()">Push Assignment</button>
+          <span id="ls-push-msg" class="muted"></span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Leader — Submit Entry</h3>
+        <div class="row">
+          <label>UID</label><input id="ls-leader-uid" class="mono" type="text" placeholder="your uid">
+          <label>Type</label>
+          <select id="ls-type">
+            <option value="reflection">Reflection</option>
+            <option value="mentee_log">Mentee Log</option>
+            <option value="study_notes">Study Notes</option>
+            <option value="plan_notes">Warmup/Plan Notes</option>
+          </select>
+        </div>
+        <div class="row" id="ls-mentee-row" style="display:none">
+          <label>Mentee UIDs</label><input id="ls-mentees" class="mono" type="text" placeholder="uid1, uid2 (optional)">
+        </div>
+        <div class="row" style="width:100%">
+          <textarea id="ls-body" rows="4" style="width:100%" placeholder="Your entry… (3–6 lines is fine)"></textarea>
+        </div>
+        <div class="row">
+          <button class="solid-blue" onclick="lsSubmit()">Submit Entry</button>
+          <span id="ls-submit-msg" class="muted"></span>
+        </div>
+        <div class="row">
+          <div class="stat"><div class="label">This Month Entries</div><div class="value"><span id="ls-count">0</span> / 12</div></div>
+          <div class="meter" style="max-width:360px"><div id="ls-meter" class="meter-fill" style="width:0%"></div></div>
+          <small class="muted">12 required for assignments credit (50–60 XP, all-or-nothing). Weekly practice required for credit.</small>
+        </div>
+        <div class="row"><small id="ls-attn-warning" class="warn"></small></div>
+      </div>
+
+      <div class="card">
+        <h3>Coach — Review & Approve</h3>
+        <div class="row muted">Approving counts toward 12/12 only if the leader attended practice this week.</div>
+        <ul id="ls-review" class="feed"></ul>
+      </div>
+
+      <div class="card">
+        <h3>Leadership Feed</h3>
+        <ul id="ls-feed" class="feed"></ul>
+      </div>
+
+    </div>
+  </section>
+<!-- ✅ END: Leadership — Sidekick -->
+
+
+
+<!-- ✅ START: Athlete Corner -->
+  <!-- ================== ATHLETE CORNER ================== -->
+    <section class="panel" id="athlete-panel">
+    <button class="section-hdr" data-acc="athlete-acc">Athlete Corner</button>
+    <div class="section-body" id="athlete-acc">
+
+      <!-- Progress -->
+      <div class="card">
+        <h3>My Progress</h3>
+        <div class="row">
+          <div class="stat"><div class="label">Tier</div><div class="value" id="ath-tier">T0 · Apprentice</div></div>
+          <div class="stat"><div class="label">XP</div><div class="value"><span id="ath-xp">120</span> / <span id="ath-cap">800</span></div></div>
+          <div class="stat"><div class="label">CompGate</div><div class="value" id="ath-compgate">800</div></div>
+        </div>
+        <div class="row"><div class="meter"><div id="ath-meter" class="meter-fill" style="width:15%"></div></div></div>
+      </div>
+
+
+
+      <!-- Badges / Streaks (Final choice = C) -->
+      
+      <div class="card" id="ath-streaks">
+        <h3>Badges &amp; Streaks</h3>
+        <div class="row chips">
+          <div class="chip"><strong>Reflections</strong>: <span id="streak-reflect">0</span> day streak</div>
+          <div class="chip"><strong>Strength</strong>: <span id="streak-strength">0</span> sessions this week</div>
+          <div class="chip"><strong>Hydration</strong>: <span id="streak-hydration">0</span> day streak</div>
+        </div>
+        <small class="muted">Motivators only. No XP is awarded for these streaks.</small>
+      </div>
+
+
+
+      <!-- Skills (read-only) -->
+      <div class="card">
+        <h3>My Skills</h3>
+        <ul id="ath-skills" class="feed"><li class="muted">No skills yet.</li></ul>
+        <h4 style="margin-top:8px">Today’s Assignments</h4>
+        <div id="ath-skill-chips" class="row"></div>
+        <small class="muted">Skills are assigned by coaches. Parents can see titles only.</small>
+      </div>
+
+
+
+      <!-- Live Log -->
+      <div class="card">
+        <h3>My Live Log (last 10)</h3>
+        <ul id="ath-feed" class="feed"></ul>
+      </div>
+
+      <!-- Athlete Calendar -->
+      <section class="card" id="ath-cal">
+        <h3>Athlete Calendar</h3>
+        <div class="row">
+          <input id="ath-ev-title" placeholder="Personal (e.g., extra drill)">
+          <input id="ath-ev-when" type="datetime-local">
+          <button class="solid-blue" id="ath-ev-add">Add</button>
+        </div>
+        <ul id="ath-cal-list" class="small mono" style="margin-top:8px;"></ul>
+      </section>
+
+      <!-- Weight Management (logs only, no XP) -->
+      <section class="card" id="ath-weight">
+        <h3>Weight Management</h3>
+        <div class="row">
+          <input id="aw-today" type="number" step="0.1" placeholder="Today (lb)">
+          <input id="aw-target" type="number" step="0.1" placeholder="Target (lb)">
+          <input id="aw-compdate" type="date">
+          <button class="solid-blue" id="aw-log-btn">Log</button>
+        </div>
+        <div id="aw-log" class="muted small" style="margin-top:8px;"></div>
+        <small class="muted">Logging only. This does not grant XP.</small>
+      </section>
+
+      <!-- Honor / Mindset (AFNI: coach+athlete only) -->
+      <section class="card" id="ath-honor">
+        <h3>Honor Corner</h3>
+        <div class="row">
+          <input id="honor-prompt" placeholder="Prompt (set by coach or library)">
+          <button class="solid-blue" id="honor-set">Set Prompt</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <textarea id="honor-reflect" rows="3" placeholder="Today’s reflection…"></textarea>
+          <button class="outline-blue" id="honor-save">Save</button>
+        </div>
+        <div class="small muted">Reflections are private to you and your coach. Parents see counts only.</div>
+        <div class="small muted" id="honor-streak">Streak: 0 days</div>
+        <ul id="honor-history" class="small mono" style="margin-top:8px;"></ul>
+      </section>
+
+      <!-- Motivation (personal) -->
+      <section class="card" id="ath-motivation">
+        <h3>Motivation</h3>
+        <div class="row">
+          <input id="mot-link" placeholder="YouTube/URL or quote…">
+          <button class="solid-blue" id="mot-add">Add</button>
+        </div>
+        <ul id="mot-list" class="small" style="margin-top:8px;"></ul>
+      </section>
+
+      <!-- Match Day Planner (Warrior+ gate) -->
+      <section class="card warrior-gated" id="ath-matchday" data-gate="warrior_or_veteran">
+        <h3>Match Day Planner <span class="tag muted">Weekend Warrior </span></h3>
+
+        <div class="muted">Pre</div>
+        <div class="row">
+          <input id="md-weightin" placeholder="Target weigh-in (lb)">
+          <input id="md-fuel" placeholder="Pre-match fuel plan">
+          <input id="md-cues" placeholder="Mental cues (3 bullets)">
+        </div>
+        <div class="row" style="margin-top:6px;">
+          <button id="md-pre-btn" class="solid-blue">Save Pre</button>
+        </div>
+
+        <div class="muted" style="margin-top:12px;">During</div>
+        <div class="row">
+          <input id="md-notes" placeholder="Live notes (coach/athlete)">
+          <button id="md-note-btn" class="outline-blue">Add Note</button>
+        </div>
+
+        <div class="muted" style="margin-top:12px;">Post</div>
+        <div class="row">
+          <select id="md-feel">
+            <option value="">Feeling…</option>
+            <option>Calm</option><option>Locked-in</option><option>Rushed</option>
+            <option>Fatigued</option><option>Frustrated</option>
+          </select>
+          <input id="md-post-fuel" placeholder="Post fuel (what/when)">
+          <select id="md-selfrate">
+            <option value="">Self-rating</option>
+            <option>1</option><option>2</option><option>3</option>
+            <option>4</option><option>5</option>
+          </select>
+          <button id="md-post-btn" class="solid-blue">Save Post</button>
+        </div>
+
+        <ul id="md-log" class="small mono" style="margin-top:8px;"></ul>
+        <small class="muted">These notes are part of full effort; they do not add XP.</small>
+      </section>
+
+      <!-- Tournament Tracker (athlete view) -->
+      <section class="card" id="ath-tournament">
+        <h3>Tournament Tracker</h3>
+        <div class="row chips">
+          <div class="chip"><strong>Matches Today</strong>: <span id="tour-count">0</span></div>
+          <div class="chip"><strong>Next Up</strong>: <span id="tour-next">—</span></div>
+        </div>
+        <ul id="tour-recaps" class="small mono" style="margin-top:8px;"></ul>
+        <small class="muted">Athlete view shows match count and brief recaps. Full W/L records live on the coach side.</small>
+      </section>
+
+      <!-- Strength Builder (logs only, no XP) -->
+      <section class="card" id="ath-strength">
+        <h3>Strength Builder</h3>
+        <div class="row">
+          <label>Move</label><input id="st-move" placeholder="e.g., Back squat">
+          <label>Sets</label><input id="st-sets" type="number" min="1" step="1">
+          <label>Reps</label><input id="st-reps" type="number" min="1" step="1">
+          <label>Load</label><input id="st-load" type="number" min="0" step="1">
+          <button id="st-log-btn" class="solid-blue">Log Set</button>
+        </div>
+        <ul id="st-list" class="feed" style="margin-top:10px"></ul>
+        <small class="muted">Logging only. Optional micro-XP may be enabled later; currently off.</small>
+      </section>
+
+      <!-- Nutrition & Hydration (logs only, no XP) -->
+      <section class="card" id="ath-nutrition">
+        <h3>Nutrition &amp; Hydration</h3>
+        <div class="row">
+          <select id="nut-meal">
+            <option>Breakfast</option><option>Lunch</option>
+            <option>Dinner</option><option>Snack</option>
+          </select>
+          <input id="nut-what" placeholder="What did you eat?">
+          <input id="nut-cals" type="number" placeholder="~kcal">
+          <button id="nut-log-btn" class="solid-blue">Log Meal</button>
+        </div>
+        <div class="row" style="margin-top:8px;">
+          <input id="nut-water" type="number" placeholder="Water (oz)">
+          <button id="nut-water-btn" class="outline-blue">Add Water</button>
+          <div id="nut-water-total" class="muted small">Water today: 0 oz</div>
+        </div>
+        <ul id="nut-list" class="small mono" style="margin-top:8px;"></ul>
+        <small class="muted">Lifestyle tools. No XP for eating or drinking.</small>
+      </section>
+    </div>
+  </section>
+<!-- ✅ END: Athlete Corner -->
+
+      <!-- Submit Clip for Coach Review (athlete upload) -->
+      <section class="card" id="ath-video">
+        <h3>Submit Clip for Coach Review</h3>
+        <div class="row">
+          <input id="vid-url" type="url" placeholder="https://youtu.be/... or match link" style="min-width:360px">
+          <select id="vid-tag">
+            <option value="practice">Practice</option>
+            <option value="tournament">Tournament</option>
+            <option value="drill">Drill</option>
+          </select>
+          <button class="solid-blue" id="vid-send">Send to Coach</button>
+        </div>
+        <small class="muted">Coach reviews and may attach feedback to your lessons. AI drafts are coach-approved only.</small>
+      </section>
+
+      <!-- My _Sidekick (no Honor AI) -->
+      <div class="card" id="sidekick">
+        <h3>My _Sidekick</h3>
+        <div class="row">
+          <label>Focus</label>
+          <select id="sk-focus">
+            <option value="finishes">Finishes</option>
+            <option value="escapes">Escapes</option>
+            <option value="setups">Setups</option>
+            <option value="pace">Pace/Conditioning</option>
+            <option value="mat-awareness">Mat Awareness</option>
+          </select>
+          <label>Video (optional)</label>
+          <input id="sk-url" type="url" placeholder="https://youtu.be/... (optional)" style="min-width:320px">
+          <button class="solid-blue" id="sk-analyze">Get Feedback</button>
+        </div>
+        <div class="card" style="margin-top:10px">
+          <h4>Sidekick Output</h4>
+          <ul id="sk-feed" class="feed"></ul>
+        </div>
+        <small class="muted">_Sidekick never teaches Honor/Mindset. It redirects to your assigned lessons and skills.</small>
+      </div>
+
+    </div>
+  </section>
+
+<!-- ================== PARENT CORNER ================== -->
+<section class="panel" id="parent-panel">
+  <button class="section-hdr" data-acc="parent-acc">Parent Corner</button>
+  <div class="section-body" id="parent-acc">
+
+    <div class="card">
+      <h3>Progress Summary</h3>
+      <div class="row">
+        <div class="stat"><div class="label">Tier</div><div class="value" id="par-tier">T0</div></div>
+        <div class="stat"><div class="label">XP</div><div class="value" id="par-xp">0</div></div>
+        <div class="stat"><div class="label">To Next Stripe</div><div class="value" id="par-next">0</div></div>
+        <div class="stat"><div class="label">CompGate</div><div class="value" id="par-gate">800</div></div>
+      </div>
+      <div class="row"><div class="meter"><div id="par-meter" class="meter-fill" style="width:0%"></div></div></div>
+    </div>
+
+    <div class="card">
+      <h3>Announcements</h3>
+      <ul id="par-ann" class="feed"></ul>
+    </div>
+
+    <section class="card" id="parent-notify">
+      <h3>Notifications</h3>
+      <div id="pn-list" class="muted small">No notifications yet.</div>
+    </section>
+
+    <section class="card" id="parent-cal">
+      <h3>Parent Calendar</h3>
+      <div class="row">
+        <input id="par-ev-title" placeholder="Ride / reminder">
+        <input id="par-ev-when" type="datetime-local">
+        <button class="solid-blue" onclick="calAddPar()">Add</button>
+      </div>
+      <ul id="par-cal-list" class="small mono" style="margin-top:8px;"></ul>
+    </section>
+
+    <section class="card" id="parent-qa">
+      <h3>Quick Question</h3>
+      <div class="row">
+        <select id="pq-ath"></select>
+        <input id="pq-question" placeholder="Your question…">
+        <button class="solid-blue" onclick="pqAsk()">Ask</button>
+      </div>
+      <ul id="pq-thread" class="muted small" style="margin-top:8px;"></ul>
+    </section>
+
+    <section class="card" id="parent-intake">
+      <h3>Parent Intake</h3>
+
+      <!-- Athlete basics -->
+      <div class="row">
+        <input id="pi-first" placeholder="Athlete First">
+        <input id="pi-last"  placeholder="Athlete Last">
+        <label for="athlete-birth">Birthday</label>
+        <input id="athlete-birth" type="date" placeholder="mm/dd/yyyy">
+      </div>
+
+      <!-- Parent contact -->
+      <div class="row">
+        <input id="pi-parent-email" placeholder="Parent Email">
+        <input id="pi-parent-phone" placeholder="Parent Phone">
+      </div>
+
+      <!-- Emergency contact -->
+      <div class="row">
+        <input id="pi-emer-name"  placeholder="Emergency Name">
+        <input id="pi-emer-phone" placeholder="Emergency Phone">
+      </div>
+
+      <!-- Medical -->
+      <textarea id="pi-med" rows="2" placeholder="Medical notes (allergies/injuries)"></textarea>
+
+      <!-- Waiver & signature -->
+      <div class="row" style="margin-top:8px">
+        <label class="small">
+          <input id="pi-waiver" type="checkbox" required>
+          I have read and agree to the Sandman Way waiver (risk, medical, media, transport).
+        </label>
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="pi-sign"      placeholder="Parent/Guardian full name (signature)" required>
+        <input id="pi-sign-date" type="date" value="">
+      </div>
+
+      <!-- Submit -->
+      <div class="row" style="margin-top:8px">
+        <button class="solid-blue" onclick="piSubmit()">Submit Intake</button>
+      </div>
+      <div id="pi-status" class="muted small"></div>
+    </section>
+
+    <section class="card" id="parent-faq">
+      <h3>Guides</h3>
+      <ul class="muted small">
+        <li>What is <strong>Fish</strong>? → -5 XP cap 4/mo when focus/respect slip.</li>
+        <li>What are <strong>Character Counts</strong>? → +5 XP; monthly caps by role.</li>
+        <li>When are <strong>ceremonies</strong>? → Quarterly; stripes at set XP marks.</li>
+        <li>What is <strong>CompGate</strong>? → Min 800 XP before competing.</li>
+      </ul>
+    </section>
+
+    <div class="card">
+      <h3> coach _MANUEL knows: Ask a question</h3>
+      <div class="row">
+        <input id="pa-ask" type="text" placeholder="e.g., Half effort? Full effort? Style points? Character counts?" style="flex:1">
+        <button class="solid-blue" onclick="paAsk()">Ask AI</button>
+      </div>
+      <ul id="pa-feed" class="feed"></ul>
+      <small class="muted">Helper for quick answers. Use Ask Coach for personal matters.</small>
+    </div>
+
+    <div class="card">
+      <h3>Ask Coach (details)</h3>
+      <div class="row">
+        <label>Topic</label>
+        <select id="pqa-topic">
+          <option value="athlete">About my athlete</option>
+          <option value="general">General</option>
+          <option value="logistics">Logistics</option>
+          <option value="billing">Billing</option>
+        </select>
+        <label>Athlete</label>
+        <select id="pqa-athlete"></select>
+      </div>
+      <div class="row">
+        <label>Question</label>
+        <input id="pqa-body" type="text" maxlength="500" placeholder="Keep it clear (max 500)">
+        <button id="pqa-send" class="solid-blue">Send</button>
+      </div>
+      <h4>Your Questions</h4>
+      <ul id="pqa-threads" class="feed"></ul>
+    </div>
+
+    <!-- Top chips -->
+    <div class="chip tab" data-tab="coach">Coach</div>
+    <div class="chip tab" data-tab="athlete">Athlete</div>
+    <div class="chip tab" data-tab="parent">Parent</div>
+
+  </div>
+</section>
+
+<!-- ================== LOGGER ================== -->
+<section class="panel" id="logger">
+  <button class="section-hdr" data-acc="logger-body">Logger</button>
+  <div class="section-body" id="logger-body">
+    <ul class="feed" id="global-feed"><li class="muted">No entries yet.</li></ul>
+  </div>
+</section>
+
+<!-- ===== Intake → Approve (test harness) ===== -->
+<section class="panel" id="approve-card" style="margin:16px 0;">
+  <h3>Intake → Approve (callable)</h3>
+
+  <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+    <label style="display:flex;flex-direction:column;min-width:220px">
+      <span>Intake ID</span>
+      <input id="intakeId" placeholder="test-intake-1" />
+    </label>
+
+    <label style="display:flex;flex-direction:column;min-width:140px">
+      <span>Track</span>
+      <select id="track">
+        <option value="F8">F8</option>
+        <option value="F4">F4</option>
+      </select>
+    </label>
+
+    <button id="btnApprove">Approve &amp; Activate</button>
+  </div>
+
+  <pre id="approveOut"
+       style="background:#111;color:#0f0;padding:8px;margin-top:12px;min-height:60px;white-space:pre-wrap">
+  </pre>
+</section>
+<script type="module">
+  
+/* ===== Minimal DB shim (dev only; replace with Firestore later) ===== */
+if (!window.DB) {
+  const stores = { athletes:new Map(), events:new Map(), logs:new Map(), intakes:new Map(), messages_threads:new Map(), messages_items:new Map() };
+  const gen = (p)=>p + "_" + Math.random().toString(36).slice(2,8);
+  window.DB = {
+    
+    async add(col, obj){const id = obj.id && obj.id!==""? obj.id: gen(col); const rec = {...obj, id};if (!stores[col]) stores[col] = new Map();
+ stores[col].set(id, rec); return rec;},
+    async set(col, id, patch){const cur = stores[col].get(id)||{id}; const nxt = {...cur, ...patch}; stores[col].set(id, nxt); return nxt;},
+    async get(col, id){return stores[col].get(id) || null;},
+    async query(col, fn){const all = Array.from(stores[col].values()); return typeof fn==="function"? all.filter(fn): all;}
+  };
+}
+
+/* ===== Session (stub) & Coach settings ===== */
+window.SESSION = { parentId:'parent_demo', linkedAthletes:['demo08A','demo08B'], coachId:'coach_mgr' };
+const CoachSettings = { officeHours:{ start:'12:00', end:'14:00', days:[1,2,3,4,5] }, meetMode:false, staffOnDuty:['coach_mgr'] };
+// Coach panel helpers
+window.findSubmittedIntakes = async function () {
+  const all = await DB.query('intakes', () => true);          // dev shim returns array
+  const list = all.filter(x => x.status === 'submitted');
+  const log = document.getElementById('intake-lookup-result');
+  log.textContent = list.length ? list.map(i => `${i.first} ${i.last} • ${new Date(i.createdAt).toLocaleString()}`).join(' | ')
+                                : 'No pending intakes.';
+  // keep last one handy
+  window._lastIntake = list.at(-1);
+};
+
+window.caApprove = async function () {
+  const s = id => document.getElementById(id);
+  const uid = (s('ca-uid').value || (window.mintUid ? mintUid(s('ca-track').value==='foundry8'?'F8':'F4') : 'F8-' + Math.random().toString(36).slice(2,6))).toUpperCase();
+  const pad = s('ca-padlock').value.trim();
+  const pub = s('ca-public').value.trim();
+  if (!window._lastIntake) return s('ca-status').textContent = 'No intake selected.';
+  if (!pad || !pub)       return s('ca-status').textContent = 'Missing Padlock or Public Name.';
+  // create athlete doc
+  await DB.set('athletes', uid, {
+    uid, padlock: pad, publicName: pub,
+    track: s('ca-track').value, tier: s('ca-tier').value || 'T0',
+    xp: 0, cap: 800, createdAt: Date.now(),
+    profile: window._lastIntake
+  });
+  // mark intake as processed
+  await DB.update('intakes', uid, { status:'approved', approvedAt: Date.now() });
+  s('ca-status').textContent = `Approved ${pub} (${uid}). Seeded starter skills.`;
+};
+
+/* ===== Helpers ===== */
+const hmToMinutes = (hm)=>{ const [h,m]=hm.split(':').map(Number); return h*60+m; };
+const inOfficeHours = (now=new Date())=>{
+  const day = now.getDay();
+  if (!CoachSettings.officeHours.days.includes(day)) return false;
+  const mins = now.getHours()*60 + now.getMinutes();
+  return mins>=hmToMinutes(CoachSettings.officeHours.start) && mins<=hmToMinutes(CoachSettings.officeHours.end);
+};
+const isThisWeek = (ts)=>{
+  const d = new Date(ts), n = new Date();
+  const start = new Date(n); start.setDate(n.getDate() - ((n.getDay()+6)%7)); start.setHours(0,0,0,0);
+  const end = new Date(start); end.setDate(start.getDate()+7);
+  return d>=start && d<end;
+};
+const audAll = ()=>({coach:true, parent:true, athlete:true});
+
+/* ===== Threads (Ask Coach) ===== */
+async function openThread({topic, priority='normal', from, to, aboutUid}){
+  const participants = Array.from(new Set([from, ...to]));
+  return DB.add('messages_threads', {
+    topic, priority, participants, status:'open',
+    slaHint: inOfficeHours()? 'reply during current window' : 'auto-reply: next office hours',
+    lastMessageAt: Date.now(), createdBy: from, createdAt: Date.now(), aboutUid
+  });
+}
+async function postMessage({threadId, text, by}){
+  const msg = await DB.add('messages_items', { threadId, text, by, ts: Date.now() });
+  await DB.set('messages_threads', threadId, { lastMessageAt: msg.ts });
+  if (!inOfficeHours()){
+    await DB.add('messages_items', { threadId, text:'Auto: Thanks for reaching out — we’ll reply during office hours.', by:'system', ts: Date.now() });
+  }
+  if (CoachSettings.meetMode && /\burgent\b/i.test(text)){
+    await DB.add('messages_items', { threadId, text:'Rerouted to staff-on-duty while coaches are matside.', by:'system', ts: Date.now() });
+  }
+  return msg;
+}
+
+/* ===== Parent Calendar ===== */
+async function calAddPar(){
+  const title = document.getElementById('par-ev-title')?.value?.trim() || 'Reminder';
+  const when = document.getElementById('par-ev-when')?.value || '';
+  if (!when) return alert('Choose a date/time.');
+  const child = window.SESSION.linkedAthletes[0];
+  const ev = await DB.add('events', {
+    scope:'daily', title, body:'', dates:{date: when.slice(0,10), time: when.slice(11,16)},
+    audience: audAll(), athletes:[child], createdBy: window.SESSION.parentId, createdAt: Date.now()
+  });
+  const list = document.getElementById('par-cal-list');
+  if (list){ const li = document.createElement('li'); li.textContent = `${when} — ${title}`; list.prepend(li); }
+  return ev;
+}
+window.calAddPar = calAddPar;
+
+/* ===== Parent Intake ===== */
+async function piSubmit(){
+  const first = document.getElementById('pi-first').value.trim();
+  const last  = document.getElementById('pi-last').value.trim();
+  const dob   = document.getElementById('pi-dob').value || null;
+  const email = document.getElementById('pi-parent-email').value.trim() || null;
+  const phone = document.getElementById('pi-parent-phone').value.trim() || null;
+  const emerN = document.getElementById('pi-emer-name').value.trim() || null;
+  const emerP = document.getElementById('pi-emer-phone').value.trim() || null;
+  const med   = document.getElementById('pi-med').value.trim() || null;
+DB.query('intakes', x=>true).then(rows => console.table(rows))
+
+  // Mint UID if you didn’t pre-assign one
+  const uid = (window.mintUid ? mintUid('F8') : `F8-${Math.random().toString(36).slice(2,6)}`); 
+  const token = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
+
+  const intake = {
+    id: token,
+    uid,
+    track: 'F8',
+    snapshot: { first, last, dob, email, phone, emerN, emerP, med },
+    status: 'submitted',
+    createdAt: Date.now()
+  };
+  await DB.set('intakes', token, intake);
+  document.getElementById('pi-status').textContent = 'Submitted. Coach will review.';
+  console.log('[intake] submitted', intake);
+}
+// Parent Intake -> intakes collection
+window.piSubmit = async function () {
+  const get = id => document.getElementById(id)?.value.trim() || "";
+  const intake = {
+    first:get('pi-first'), last:get('pi-last'), dob:get('pi-dob'),
+    parentEmail:get('pi-parent-email'), parentPhone:get('pi-parent-phone'),
+    emerName:get('pi-emer-name'), emerPhone:get('pi-emer-phone'),
+    med:get('pi-med'),
+    waiver: document.getElementById('pi-waiver')?.checked || false,
+    sign:get('pi-sign'), signDate:get('pi-sign-date'),
+    status:'submitted', createdAt: Date.now()
+  };
+  if (!intake.waiver || !intake.sign) {
+    return document.getElementById('pi-status').textContent = 'Please accept waiver and sign.';
+  }
+  const id = (window.mintUid ? mintUid('F8') : ('F8-' + Math.random().toString(36).slice(2,6))).toUpperCase();
+  intake.token = Math.random().toString(36).slice(2,10);
+  await DB.set('intakes', id, intake);         // uses your dev DB shim
+  document.getElementById('pi-status').textContent = 'Submitted. Coach will review.';
+};
+
+/* ===== Quick Ask ===== */
+async function pqAsk(){
+  const child = document.getElementById('pq-ath')?.value || window.SESSION.linkedAthletes[0];
+  const text  = document.getElementById('pq-question')?.value?.trim();
+  if (!text) return;
+  const thread = await openThread({
+    topic: 'about_athlete', priority:'normal',
+    from: window.SESSION.parentId, to:[window.SESSION.coachId], aboutUid: child
+  });
+  await postMessage({threadId: thread.id, text, by: window.SESSION.parentId});
+  const feed = document.getElementById('pq-thread');
+  if (feed){ const li = document.createElement('li'); li.textContent = `#${thread.id} — ${text}`; feed.prepend(li); }
+  document.getElementById('pq-question').value = '';
+}
+window.pqAsk = pqAsk;
+
+/* ===== Ask Coach (details) ===== */
+document.getElementById('pqa-send')?.addEventListener('click', async ()=>{
+  const topicSel = document.getElementById('pqa-topic');
+  const athleteSel = document.getElementById('pqa-athlete');
+  const bodyEl = document.getElementById('pqa-body');
+  const choice = topicSel?.value || 'general';
+  const topic = choice==='athlete' ? 'about_athlete' : (['logistics','billing'].includes(choice)? choice : 'other');
+  const aboutUid = athleteSel?.value || window.SESSION.linkedAthletes[0];
+  const text = bodyEl?.value?.trim();
+  if (!text) return;
+  const th = await openThread({ topic, priority:'normal', from: window.SESSION.parentId, to:[window.SESSION.coachId], aboutUid });
+  await postMessage({ threadId: th.id, text, by: window.SESSION.parentId });
+  const list = document.getElementById('pqa-threads');
+  if (list){ const li = document.createElement('li'); li.textContent = `#${th.id} (${topic}) — ${text}`; list.prepend(li); }
+  bodyEl.value = '';
+});
+// List last submitted intakes and load into Approve form
+async function refreshSubmittedIntakes() {
+  const listEl = document.getElementById('ca-intakes');
+  if (!listEl) return;
+  listEl.textContent = '…';
+  const items = (await DB.query('intakes'))   // your stub returns all; filter below
+    .filter(x => x.status === 'submitted')
+    .sort((a,b) => (b.snapshot?.createdAt||0) - (a.snapshot?.createdAt||0))
+    .slice(0,10);
+
+  if (!items.length) { listEl.textContent = 'No submitted intakes.'; return; }
+
+  listEl.innerHTML = '';
+  for (const it of items) {
+    const li = document.createElement('li');
+    const uid = it.uid || '(pending uid)';
+    li.innerHTML = `[${new Date(it.snapshot?.createdAt||Date.now()).toLocaleString()}] token:${it.id} → UID:${uid} ` +
+                   `<button class="chip" data-uid="${uid}" data-pad="0001">Load</button>`;
+    listEl.appendChild(li);
+  }
+  listEl.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    const uid = b.dataset.uid;
+    if (!uid || uid === '(pending uid)') { alert('No UID yet on this intake.'); return; }
+    // Fill Approve & Activate inputs
+    const $ = s => document.querySelector(s);
+    $('#ca-uid').value = uid;
+    $('#ca-padlock').value = b.dataset.pad;
+    $('#ca-track').value = 'foundry8'; // or infer from intake.track
+    $('#ca-tier').value = 'T0';
+    document.getElementById('ca-status').textContent = `Loaded ${uid} from intake.`;
+  }, { once:true });
+}
+document.getElementById('ca-refresh')?.addEventListener('click', refreshSubmittedIntakes);
+
+/* ===== Announcements & Notifications ===== */
+async function loadAnnouncements(){
+  const kids = new Set(window.SESSION.linkedAthletes);
+  const events = await DB.query('events', e => e.audience?.parent && (!e.athletes || e.athletes.some(id=>kids.has(id))));
+  const logs = await DB.query('logs', l => l.audience?.parent && l.athlete && kids.has(l.athlete));
+
+  const items = [
+    ...events.map(e=>({ kind:'event', ts:e.createdAt||Date.now(), title:e.title, body:e.body, tag:e.scope })),
+    ...logs.map(l=>({ kind:'log',   ts:l.ts||Date.now(),       title:l.kind,   body:l.text,  tag:l.scope }))
+  ].sort((a,b)=>b.ts - a.ts);
+
+  const ul = document.getElementById('par-ann');
+  if (ul){
+    ul.innerHTML = items.length ? '' : '<li class="muted">No announcements yet.</li>';
+    for (const it of items){
+      const li = document.createElement('li');
+      li.innerHTML = `<strong>[${it.tag}]</strong> ${it.title} <span class="muted small">— ${new Date(it.ts).toLocaleString()}</span><br>${it.body||''}`;
+      ul.appendChild(li);
+    }
+  }
+
+  // Notifications (actionables + reflections count)
+  const notif = [];
+  for (const l of logs){ if (l.kind==='attendance') notif.push({label:'Attendance ✔', ts:l.ts}); }
+  for (const e of events){
+    if (e.scope==='weekly') notif.push({label:'Weekly Theme posted', ts:e.createdAt});
+    if (e.scope==='tournament') notif.push({label:'Tournament logistics posted', ts:e.createdAt});
+    if (e.scope==='daily' && e.title) notif.push({label:'Daily note shared', ts:e.createdAt});
+  }
+  const myThreads = await DB.query('messages_threads', th => th.participants?.includes(window.SESSION.parentId));
+  for (const th of myThreads){
+    const replies = await DB.query('messages_items', m => m.threadId===th.id && m.by!==window.SESSION.parentId);
+    for (const r of replies){ notif.push({label:'Coach replied', ts:r.ts}); }
+  }
+  const honorLogs = await DB.query('logs', l => l.kind==='honor' && l.athlete && kids.has(l.athlete) && isThisWeek(l.ts||0));
+  const counts = {};
+  for (const l of honorLogs){ counts[l.athlete] = (counts[l.athlete]||0)+1; }
+  Object.entries(counts).forEach(([uid,c])=> notif.push({label:`Reflections this week (${uid}): ${c}`, ts: Date.now()-1000}));
+
+  notif.sort((a,b)=>b.ts-a.ts);
+  const box = document.getElementById('pn-list');
+  if (box){ box.innerHTML = notif.length ? notif.slice(0,8).map(n=>`• ${n.label}`).join('<br>') : 'No notifications yet.'; }
+}
+
+
+
+
+/* ===== Progress Summary (combat-only) ===== */
+async function loadProgress(){
+  const child = window.SESSION.linkedAthletes[0];
+  const a = await DB.get('athletes', child);
+  if (!a) return;
+  const capF8 = { T0:600,T1:800,T2:1200,T3:1600,T4:2000,T5:2400 };
+  const capF4 = { T0:800,T1:1400,T2:2000,T3:2400 };
+  const caps = (a.track==='F4')? capF4 : capF8;
+  const combat = (a.xpByLane?.combat) || (a.xp_by_lane?.combat) || 0; // tolerates old key
+  const cap = caps[a.tier] || Math.max(1, combat);
+  const pct = Math.min(100, Math.round((combat / cap) * 100));
+  document.getElementById('par-tier').textContent = a.tier || 'T0';
+  document.getElementById('par-xp').textContent = combat.toString();
+  document.getElementById('par-next').textContent = Math.max(0, cap - combat).toString();
+  document.getElementById('par-gate').textContent = (a.compGate ?? 800).toString();
+  const meter = document.getElementById('par-meter'); if (meter) meter.style.width = pct + '%';
+}
+
+
+
+/* ===== Ask AI First (stub) ===== */
+async function paAsk(){
+  const q = document.getElementById('pa-ask')?.value?.trim();
+  if (!q) return;
+  const a = q.toLowerCase().includes('fish') ? "Fish = -5 XP (cap 4/mo) when Focus/Respect slip."
+        : q.toLowerCase().includes('stripe') ? "Stripes mark progress within a tier; XP resets at promotion."
+        : q.toLowerCase().includes('compgate') ? "CompGate is 800 XP before competing."
+        : "I'll pass this to Coach if you need specifics about your athlete.";
+  const feed = document.getElementById('pa-feed');
+  if (feed){ const li = document.createElement('li'); li.innerHTML = `<strong>Q:</strong> ${q}<br><strong>A:</strong> ${a}`; feed.prepend(li); }
+  document.getElementById('pa-ask').value = '';
+}
+window.paAsk = paAsk;
+
+
+
+
+/* ===== Init ===== */
+function populateParentSelects(){
+  const selQuick = document.getElementById('pq-ath');
+  const selFull  = document.getElementById('pqa-athlete');
+  for (const uid of window.SESSION.linkedAthletes){
+    const o1 = document.createElement('option'); o1.value = uid; o1.textContent = uid; selQuick?.appendChild(o1);
+    const o2 = document.createElement('option'); o2.value = uid; o2.textContent = uid; selFull?.appendChild(o2);
+  }
+}
+async function loadParentCorner(){
+  populateParentSelects();
+  await loadProgress();
+  await loadAnnouncements();
+}
+document.addEventListener('DOMContentLoaded', loadParentCorner);
+</script>
+  <!-- ================== LOGGER ================== -->
+  <section class="panel" id="logger">
+    <button class="section-hdr" data-acc="logger-body">Logger</button>
+    <div class="section-body" id="logger-body">
+      <ul class="feed" id="global-feed"><li class="muted">No entries yet.</li></ul>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap" style="margin-top:2rem; text-align:center; font-size:0.8rem; color:#9ca3af;">
+  <p>&copy; 2025 Sandman System™ Pilot Console. All rights reserved.</p>
+</footer>
+
+
+
+<!-- ✅ DROP 3 — SCRIPT SECTION (start) -->
+<!-- ================== SCRIPT SECTION START ================== -->
+
+/* 
+============================================================
+= Sandman Test Firebase v2 (spec build, cleaned)           =
+= Coach + Athlete + Parent unified console                 =
+= Duplicates trimmed, saturated variants kept              =
+============================================================
+*/
+/* ===== Global Helpers ===== */
+<script type="module">
+
+function $(id){ return document.getElementById(id); }
+function addGlobal(msg){
+  const ul = $('global-feed'); if(!ul) return;
+  const li = document.createElement('li');
+  li.textContent = new Date().toLocaleTimeString() + ' — ' + msg;
+  ul.prepend(li);
+  console.log(msg);
+}
+function monthKey(d=new Date()){ return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}`; }
+
+/* ===== Athlete Lookup ===== */
+let rec = { skills:[] };
+export function coachSearchAth(){
+  const uid = ($('coach-lookup')?.value||'').trim();
+  if (!uid){ addGlobal('Enter UID'); return; }
+  rec = { uid, skills:[] };
+  $('coach-lookup-result').textContent = `Found athlete ${uid} (mock).`;
+  _alCurrentUid = uid;
+  renderAthleteSkills(uid);
+  addGlobal(`Lookup: ${uid}`);
+}
+export function alAddSkill(tag){
+  const txt = ($('coach-skill')?.value||'').trim();
+  if (!txt) return;
+  rec.skills.push({ label:txt, tag });
+  alAddSkillMirror(_alCurrentUid, txt, tag);
+  addGlobal(`Skill added: ${txt} (${tag})`);
+  $('coach-skill').value='';
+}
+
+/* ===== Athlete Corner Rendering ===== */
+let _alCurrentUid = null;
+function normalizeSkills(raw){ return (raw||[]).map(x => typeof x==='string'?({label:x,tag:'technique'}):x); }
+export function renderAthleteSkills(uid){
+  const ul=$('ath-skills'); const chips=$('ath-skill-chips'); if(!ul||!chips) return;
+  const skills = normalizeSkills(rec.skills);
+  ul.innerHTML='';
+  if(skills.length===0){
+    const li=document.createElement('li'); li.className='muted'; li.textContent='No skills yet.'; ul.appendChild(li);
+  } else {
+    skills.forEach(s=>{ const li=document.createElement('li'); li.textContent=`${s.label} (${s.tag})`; ul.appendChild(li); });
+  }
+  chips.innerHTML='';
+  window._assignedToday=window._assignedToday||{};
+  const today=(window._assignedToday[uid]||[]).slice(-6);
+  today.forEach(s=>{ const chip=document.createElement('span'); chip.className='pill'; chip.textContent=s.label; chips.appendChild(chip); });
+}
+export function alAddSkillMirror(uid,label,tag){
+  window._assignedToday=window._assignedToday||{};
+  window._assignedToday[uid]=window._assignedToday[uid]||[];
+  window._assignedToday[uid].push({label,tag,ts:Date.now()});
+  if(uid===_alCurrentUid) renderAthleteSkills(uid);
+}
+
+/* ===== Planner (Daily Blocks) ===== */
+const BLOCKS_ROOT = $('dp-blocks');
+const BLOCK_TPL = (key,label)=>`
+  <div class="card" data-key="${key}">
+    <div class="row" style="justify-content:space-between">
+      <strong>${label}</strong>
+      <span class="drag-arrows">
+        <button title="Up" data-blk="${key}" data-dir="-1">↑</button>
+        <button title="Down" data-blk="${key}" data-dir="1">↓</button>
+        <button title="Delete" data-blk="${key}" data-del="1">✕</button>
+      </span>
+    </div>
+    <div class="row">
+      <label>Duration</label>
+      <input type="number" min="0" step="1" value="10" data-for="${key}-dur" style="width:88px">
+      <label>Notes / HTML</label>
+      <textarea rows="2" data-for="${key}-notes" placeholder="Short plan, cues… (links ok)"></textarea>
+    </div>
+    <div class="row" id="${key}-links"></div>
+  </div>
+`;
+const DEFAULT_ORDER = [
+  ['onmat','On the Mat (talk)'],
+  ['warm','Warm-up / Format'],
+  ['tech','Technique / Drill'],
+  ['sit','Situational Live'],
+  ['live','Live'],
+  ['cond','Conditioning + Cool-down'],
+  ['offmat','Off the Mat (talk)'],
+];
+function htmlSanitize(s){
+  const div=document.createElement('div'); div.innerHTML=s;
+  const allowed=['B','I','U','STRONG','EM','UL','OL','LI','A'];
+  (function walk(node){
+    [...node.children].forEach(ch=>{
+      if(!allowed.includes(ch.tagName)){
+        const span=document.createElement('span'); span.textContent=ch.textContent; ch.replaceWith(span);
+      } else if(ch.tagName==='A'){
+        const href=ch.getAttribute('href')||'';
+        if(!href.startsWith('http')) ch.replaceWith(document.createTextNode(ch.textContent));
+        else { ch.setAttribute('target','_blank'); ch.setAttribute('rel','noopener'); }
+      }
+      walk(ch);
+    });
+  })(div);
+  return div.innerHTML;
+}
+const linkChipsFrom=(text)=> (text.match(/https?:\/\/\S+/g)||[]).slice(0,3)
+  .map(u=>`<a class="yt" href="${u}" target="_blank" rel="noopener">${/youtu\.?be/.test(u)?'YouTube':'Link'}</a>`).join(' ');
+function renderBlocks(order=DEFAULT_ORDER){
+  if(!BLOCKS_ROOT) return;
+  BLOCKS_ROOT.innerHTML='';
+  order.forEach(([k,l])=>{ BLOCKS_ROOT.insertAdjacentHTML('beforeend',BLOCK_TPL(k,l)); });
+  recalcTotal();
+}
+function recalcTotal(){
+  if(!BLOCKS_ROOT) return;
+  let total=0;
+  BLOCKS_ROOT.querySelectorAll('input[type="number"][data-for$="-dur"]').forEach(inp=> total+=parseInt(inp.value||'0',10));
+  $('dp-total') && ($('dp-total').textContent=String(total));
+  BLOCKS_ROOT.querySelectorAll('textarea[data-for$="-notes"]').forEach(ta=>{
+    const key=ta.getAttribute('data-for').replace('-notes','');
+    const target=$(`${key}-links`);
+    if(target) target.innerHTML=linkChipsFrom((ta.value||'').trim());
+  });
+}
+function blkMove(key,dir){
+  const list=[...BLOCKS_ROOT.children]; const idx=list.findIndex(x=>x.getAttribute('data-key')===key);
+  const tgt=idx+dir;
+  if(idx<0||tgt<0||tgt>=list.length) return;
+  if((key==='onmat'||key==='offmat')&&((dir<0&&idx===0)||(dir>0&&idx===list.length-1))) return;
+  if(key==='onmat'&&tgt!==0) return;
+  if(key==='offmat'&&tgt!==list.length-1) return;
+  const node=list[idx];
+  if(dir<0) BLOCKS_ROOT.insertBefore(node,list[tgt]); else BLOCKS_ROOT.insertBefore(list[tgt].nextSibling?list[tgt].nextSibling:node,node);
+  recalcTotal();
+}
+function blkDel(key){
+  const el=BLOCKS_ROOT?.querySelector(`[data-key="${key}"]`); if(!el) return;
+  if(key==='onmat'||key==='offmat'){ alert('On/Off the Mat cannot be removed.'); return; }
+  el.remove(); recalcTotal();
+}
+function quickTemplate(kind){
+  renderBlocks([
+    ['onmat','On the Mat (talk)'],['warm','Warm-up / Format'],
+    [kind==='tech'?'tech':kind==='live'?'live':kind==='drill'?'tech':'cond',
+     kind==='tech'?'Technique / Drill':kind==='live'?'Live':kind==='drill'?'Drill (detail reps)':'Conditioning'],
+    ['offmat','Off the Mat (talk)']
+  ]);
+}
+function collectPlan(){
+  const title=$('dp-title')?.value?.trim()||'';
+  const tags=(($('dp-tags')?.value)||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const blocksEls=[...(BLOCKS_ROOT?.querySelectorAll('[data-key]')||[])];
+  let total=0;
+  const blocks=blocksEls.map(el=>{
+    const key=el.getAttribute('data-key'); const lab=el.querySelector('strong').textContent;
+    const dur=parseInt(el.querySelector('input[type="number"]').value||'0',10); total+=dur;
+    const notes=el.querySelector('textarea').value||'';
+    return { key,label:lab,dur,notes:htmlSanitize(notes) };
+  });
+  return { title,tags,blocks,total };
+}
+function plannerSave(){ const p=collectPlan(); console.log('[planner save]',p); addGlobal(`Saved plan: ${p.title||'(untitled)'} • ${p.total} min`); }
+function plannerStart(){ const p=collectPlan(); addGlobal(`Started plan: ${p.title||'(untitled)'} • ${p.total} min • Tags: ${p.tags.join(', ')||'—'}`); }
+function plannerFinish(){ const p=collectPlan(); addGlobal(`Finished plan: ${p.title||'(untitled)'} • Blocks: ${p.blocks.length} • ${p.total} min`); }
+
+/* ===== Weekly Goals ===== */
+(function initWeek(){
+  const d=new Date(); const day=d.getDay(); const diffToMon=(day+6)%7;
+  const mon=new Date(d); mon.setDate(d.getDate()-diffToMon);
+  const sun=new Date(mon); sun.setDate(mon.getDate()+6);
+  const fmt=(x)=>x.toISOString().slice(0,10);
+  $('wk-range') && ($('wk-range').value=`${fmt(mon)} .. ${fmt(sun)}`);
+})();
+function weeklySave(){
+  const payload={
+    range:$('wk-range')?.value,
+    theme:$('wk-theme')?.value?.trim()||'',
+    objectives:['wk-obj1','wk-obj2','wk-obj3'].map(id=>$(id)?.value?.trim()).filter(Boolean).slice(0,3),
+    resources:['wk-res1','wk-res2','wk-res3'].map(id=>$(id)?.value?.trim()).filter(Boolean).slice(0,3),
+  };
+  console.log('[weekly save]',payload);
+  const el=$('wk-save'); if(el){ el.textContent='Saved (mock).'; setTimeout(()=>el.textContent='',1200); }
+  addGlobal(`Weekly goal saved: ${payload.theme||'—'}`);
+}
+/* ===== Attendance Handling ===== */
+const ORIG_callInc = window.callInc;
+window.callInc = function(type,badge,note){
+  if(ORIG_callInc){
+    if(type==='attendance_half' && !ORIG_callInc.__acceptsHalf){
+      console.warn('[attendance_half] backend may not support half; using attendance (+10).');
+      trackAttendanceForSelected(); return ORIG_callInc('attendance',badge,note);
+    }
+    if(type==='attendance'||type==='attendance_half') trackAttendanceForSelected();
+    return ORIG_callInc(type,badge,note);
+  } else {
+    if(type==='attendance'||type==='attendance_half') trackAttendanceForSelected();
+    console.warn('[stub] callInc',{type,badge,note});
+    addGlobal(`[stub] ${type}${badge?':'+badge:''} ${note?'- '+note:''}`);
+  }
+};
+function safeCallInc(type,badge=null,note=null){ return window.callInc(type,badge,note); }
+window._attend=window._attend||{}; // uid -> [timestamps]
+function trackAttendanceForSelected(){
+  const idsSel=$('coach-daily-athletes');
+  const ids=idsSel?Array.from(idsSel.selectedOptions).map(o=>o.value):['demo08A'];
+  const now=Date.now();
+  ids.forEach(uid=>{
+    window._attend[uid]=window._attend[uid]||[];
+    window._attend[uid].push(now);
+  });
+}
+function attendedThisWeek(uid){
+  const weekMs=7*24*3600*1000; const now=Date.now();
+  const arr=window._attend[uid]||[];
+  return arr.some(ts=>(now-ts)<=weekMs);
+}
+
+/* ===== Leadership Console ===== */
+let LEAD_LAST_UID='';
+function mockLeadAdd(){ LEAD_LAST_UID=($('lead-uid')?.value||'').trim(); if(!LEAD_LAST_UID) return $('lead-status') && ($('lead-status').textContent='Enter UID.'); $('lead-status').textContent=`Candidate added (mock): ${LEAD_LAST_UID}`; }
+function mockLeadApprove(){ if(!LEAD_LAST_UID) return; $('lead-status') && ($('lead-status').textContent=`Approved (mock): ${LEAD_LAST_UID}`); }
+function mockLeadRemove(){ if(!LEAD_LAST_UID) return; $('lead-status') && ($('lead-status').textContent=`Removed from leadership (mock): ${LEAD_LAST_UID}`); }
+
+window._ls=window._ls||{ monthKey:new Date().toISOString().slice(0,7), pushed:[], entries:[], review:[], approved:[], counts:{} };
+const lsFeed=$('ls-feed'); const lsReview=$('ls-review'); const lsCountEl=$('ls-count'); const lsMeterEl=$('ls-meter'); const lsAttnWarn=$('ls-attn-warning');
+
+(function(){ const sel=$('ls-type'); const row=$('ls-mentee-row'); sel?.addEventListener('change',()=>{ if(row) row.style.display=sel.value==='mentee_log'?'flex':'none'; }); })();
+
+function lsPush(){
+  const aud=$('ls-audience')?.value;
+  const uid=($('ls-uid')?.value||'').trim();
+  const tmpl=$('ls-template')?.value;
+  const title=$('ls-title')?.value?.trim()||'';
+  const inst=$('ls-instructions')?.value?.trim()||'';
+  const due=$('ls-due')?.value||'';
+  if(aud==='one'&&!uid){ return msg('ls-push-msg','Enter UID'); }
+  const itm={ id:crypto.randomUUID(), aud, uid, tmpl, title, inst, due, mk:_ls.monthKey, ts:Date.now() };
+  _ls.pushed.push(itm); addLsFeed(`Coach pushed assignment (${tmpl}) to ${aud==='leaders'?'all leaders':aud==='team'?'team':uid}${due?` • due ${due}`:''}`);
+  msg('ls-push-msg','Pushed.'); setTimeout(()=>msg('ls-push-msg',''),1200);
+}
+function lsSubmit(){
+  const uid=($('ls-leader-uid')?.value||'').trim();
+  const type=$('ls-type')?.value;
+  const mentees=($('ls-mentees')?.value||'').split(',').map(s=>s.trim()).filter(Boolean);
+  const body=($('ls-body')?.value||'').trim();
+  if(!uid) return msg('ls-submit-msg','UID required');
+  if(!body) return msg('ls-submit-msg','Write something');
+
+  const attended=attendedThisWeek(uid);
+  if(lsAttnWarn) lsAttnWarn.textContent=attended?'':'No practice logged this week — entry will be tagged NO CREDIT until attendance is recorded.';
+
+  const entry={ id:crypto.randomUUID(), uid, type, mentees, body, mk:_ls.monthKey, ts:Date.now(), status:'pending', nocredit:!attended };
+  _ls.entries.push(entry); _ls.review.push(entry);
+  addLsFeed(`Leader ${uid} submitted ${type}${mentees.length?` (mentees: ${mentees.join(', ')})`:''}${entry.nocredit?' • NO CREDIT (no attendance this week)':''}`);
+  msg('ls-submit-msg','Submitted. Awaiting coach review.'); setTimeout(()=>msg('ls-submit-msg',''),1200);
+  renderReview();
+}
+function lsApprove(id,merit=false){
+  const idx=_ls.review.findIndex(x=>x.id===id); if(idx<0) return;
+  const item=_ls.review.splice(idx,1)[0]; item.status='approved'; _ls.approved.push(item);
+
+  if(!attendedThisWeek(item.uid)){
+    addLsFeed(`Coach approved entry for ${item.uid} • <span class="warn">NO CREDIT (needs practice this week)</span>`);
+    return renderReview();
+  }
+
+  const mk=_ls.monthKey;
+  _ls.counts[item.uid]=_ls.counts[item.uid]||{};
+  _ls.counts[item.uid][mk]=(_ls.counts[item.uid][mk]||0)+1;
+
+  if(merit&&window.callInc){ window.callInc('character','leadership','Coach-approved leadership entry (+5)'); }
+
+  const cnt=_ls.counts[item.uid][mk]; const pct=Math.min(100,Math.round((cnt/12)*100));
+  if(lsCountEl) lsCountEl.textContent=String(cnt);
+  if(lsMeterEl) lsMeterEl.style.width=pct+'%';
+  addLsFeed(`Coach approved entry for ${item.uid} • ${cnt}/12 this month${merit?' • (+5 Character stub)':''}`);
+  if(cnt===12){ addLsFeed(`🎯 ${item.uid} hit 12/12 leadership entries this month (award 50–60 XP via assignments when wired).`); }
+  renderReview();
+}
+function renderReview(){
+  if(!lsReview) return;
+  lsReview.innerHTML='';
+  if(_ls.review.length===0){
+    const li=document.createElement('li'); li.className='muted'; li.textContent='No pending entries.'; lsReview.appendChild(li); return;
+  }
+  _ls.review.slice().reverse().forEach(it=>{
+    const li=document.createElement('li'); const when=new Date(it.ts).toLocaleString();
+    li.innerHTML=`
+      <div><strong>${it.uid}</strong> • ${it.type} • <span class="muted">${when}</span>${it.nocredit?` • <span class="warn">NO CREDIT (needs practice)</span>`:''}</div>
+      ${it.mentees?.length?`<div class="muted">Mentees: ${it.mentees.join(', ')}</div>`:''}
+      <div>${escapeHtml(it.body)}</div>
+      <div class="btn-row" style="margin-top:6px">
+        <button class="solid-blue" data-approve="${it.id}" data-merit="0">Approve</button>
+        <button class="outline-blue" data-approve="${it.id}" data-merit="1">Approve + Merit +5</button>
+      </div>`;
+    lsReview.prepend(li);
+  });
+}
+function addLsFeed(text){ if(!lsFeed) return; const li=document.createElement('li'); li.innerHTML=new Date().toLocaleTimeString()+' — '+text; lsFeed.prepend(li); }
+function msg(id,t){ const el=$(id); if(!el) return; el.textContent=t; }
+
+/* ===== Parent Q&A ===== */
+function renderParentThreads(){
+  const ul=$('pqa-threads'); if(!ul) return; ul.innerHTML='';
+  window._pqa=window._pqa||[];
+  if(window._pqa.length===0){ const li=document.createElement('li'); li.className='muted'; li.textContent='No questions yet.'; ul.appendChild(li); return; }
+  window._pqa.slice().reverse().forEach(t=>{
+    const li=document.createElement('li');
+    li.innerHTML=`<div><strong>${t.topic==='athlete'?'Athlete':'General'}</strong> • ${t.athlete||'—'}</div><div>${t.q}</div><div class="muted">Status: ${t.status}</div>`;
+    ul.appendChild(li);
+  });
+}
+
+/* ===== Athlete Sidekick ===== */
+const skUl=$('sk-feed');
+function skPush(msg){ if(!skUl) return; const li=document.createElement('li'); li.innerHTML=msg; skUl.prepend(li); }
+function skAnalyze(){
+  const url=($('sk-url')?.value||'').trim();
+  const focus=$('sk-focus')?.value;
+  if(!url){ skPush('<span class="muted">Add a video URL.</span>'); return; }
+  const cues={
+    finishes:['Win hand-fight early','Tripod sooner','Cover hips after finish'],
+    escapes:['Build base first','Fight hands before stand-up','Cut corner off edge'],
+    setups:['Double up fakes','Deeper level change','Split step before shot'],
+    pace:['Shorten exchanges','Breathing cadence 4/4','Win reset speed'],
+    'mat-awareness':['Circle off boundary','Back to center after scramble','Track clock at :30'],
+    mindset:['Reset after mistake','Next-point focus','Aggressive opener'],
+  }[focus]||[];
+  skPush(`<strong>Video analyzed</strong> • Focus: <b>${focus}</b><br><small class="muted">${url}</small>`);
+  if(cues.length) skPush(`Drill cues: ${cues.join(' • ')}`);
+  addFeed('ath-feed',`Sidekick feedback on ${focus} from video`);
+}
+function skPlan(){
+  const goal=($('sk-goal')?.value||'').trim();
+  if(!goal){ skPush('<span class="muted">Add a 30-day goal first.</span>'); return; }
+  const plan=[
+    `Micro #1: 5 min priming — shadow reps for goal`,
+    `Micro #2: 3× drill block — 2 min each, 1 min rest`,
+    `Micro #3: Post-practice check — 1 note on progress`,
+  ];
+  skPush(`<strong>30-day plan created</strong><br>Goal: ${escapeHtml(goal)}<br>${plan.map(p=>'• '+p).join('<br>')}`);
+  addFeed('ath-feed',`Sidekick plan set for: ${goal}`);
+}
+function skSchedule(){
+  const rhythm=$('sk-rhythm')?.value;
+  const time=$('sk-time')?.value||'18:00';
+  window._skSched={ rhythm,time,createdAt:Date.now() };
+  skPush(`<strong>Reminders scheduled</strong> — ${rhythm} at ${time}`);
+}
+// ------- helpers you already have -------
+
+
+
+// Final init
+document.addEventListener('DOMContentLoaded', ()=>{
+  addGlobal('All panels and stubs initialized.');
+});
+  
+
+
+/* ---------- Tabs ---------- */
+function setActiveTab(name, {fromHash=false} = {}) {
+  // Chips
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === name);
+  });
+  // Panels
+  document.querySelectorAll('[data-panel]').forEach(p => {
+    p.classList.toggle('active', p.dataset.panel === name);
+  });
+
+  // Expand the first panel header inside the active area (nice UX)
+  const firstHdr = document.querySelector(`[data-panel="${name}"] .section-hdr`);
+  if (firstHdr && !firstHdr.classList.contains('open')) {
+    firstHdr.click(); // uses your existing accordion wiring
+  }
+
+  // Persist + URL
+  try { localStorage.setItem('sandman.activeTab', name); } catch {}
+  if (!fromHash) {
+    const url = new URL(window.location.href);
+    url.hash = name;
+    history.replaceState(null, '', url);
+  }
+}
+
+function initTabs() {
+  // Clicks
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => setActiveTab(t.dataset.tab));
+  });
+
+  // Pick start tab: URL hash > localStorage > coach
+  const hash = (location.hash || '').replace('#','').toLowerCase();
+  const saved = (localStorage.getItem('sandman.activeTab') || '').toLowerCase();
+  const start = ['coach','athlete','parent'].includes(hash) ? hash
+              : ['coach','athlete','parent'].includes(saved) ? saved
+              : 'coach';
+
+  setActiveTab(start, {fromHash:true});
+
+  // React to hash changes (if you type #athlete)
+  window.addEventListener('hashchange', () => {
+    const h = (location.hash || '').replace('#','').toLowerCase();
+    if (['coach','athlete','parent'].includes(h)) setActiveTab(h, {fromHash:true});
+  });
+}
+function setOpenHeight(el, on) {
+    if (!el) return;
+    el.classList.toggle('open', !!on);
+    el.style.maxHeight = on ? (el.scrollHeight + 'px') : '0';
+  }
+<!-- ✅ DROP 3 — SCRIPT SECTION (end) -->
+
+<!-- ✅ DROP 4 — INTAKE / ACCORDION + COACH INTAKE (start) -->
+  document.addEventListener('click', (e)=>{
+    // Big accordion headers
+    if (e.target.matches('.section-hdr')) {
+      const hdr  = e.target;
+      const id   = hdr.getAttribute('data-acc');       // e.g. coach-planner-body
+      const body = id ? document.getElementById(id) : hdr.nextElementSibling;
+      const willOpen = !hdr.classList.contains('open');
+      hdr.classList.toggle('open', willOpen);
+      setOpenHeight(body, willOpen);
+    }
+  });
+
+  // On load: initialize any headers already marked .open
+  document.addEventListener('DOMContentLoaded', ()=>{
+    document.querySelectorAll('.section-hdr.open').forEach(hdr=>{
+      const id = hdr.getAttribute('data-acc');
+      const body = id ? document.getElementById(id) : hdr.nextElementSibling;
+      setOpenHeight(body, true);
+    });
+    console.log('Accordions ready.');
+  });
+/* call this after your other DOMContentLoaded work finishes */
+document.addEventListener('DOMContentLoaded', initTabs);
+// ===== [INTAKE MODULE BEGIN] ======================================
+
+
+  const $ = (id)=>document.getElementById(id);
+  const log = (m)=>{ try{ window.addGlobal?.(m); }catch(_){} console.log('[intake]',m); };
+
+  // ---- Local storage helpers ----
+  const LS = {
+    get(k, d){ try{ return JSON.parse(localStorage.getItem(k)??'null') ?? d; }catch(_){ return d; } },
+    set(k, v){ localStorage.setItem(k, JSON.stringify(v)); }
+  };
+
+  // ---- UID minting (F8-xxxx / F4-xxxx) ----
+  function nextCounter(key){
+    const n = (LS.get(key, 0) || 0) + 1;
+    LS.set(key, n); return n;
+  }
+  function pad4(n){ return String(n).padStart(4,'0'); }
+  function intakeMintUid(kind){ // 'F8' or 'F4'
+    const counterKey = kind === 'F8' ? 'uidCounterF8' : 'uidCounterF4';
+    const n = nextCounter(counterKey);
+    return `${kind}-${pad4(n)}`;
+  }
+
+  // ---- Parent Invite token (3 days) ----
+  function makeInvite(){
+    const tok = crypto.randomUUID();
+    const exp = Date.now() + 72*3600*1000;
+    const link = `${location.origin}${location.pathname}?invite=${tok}`;
+    // store token (mock)
+    const bank = LS.get('inviteBank', {});
+    bank[tok] = { exp, createdAt: Date.now() };
+    LS.set('inviteBank', bank);
+    const el = $('pi-link'); if (el) el.value = link;
+    log(`Invite token created (3d).`);
+  }
+  function copyInvite(){
+    const el = $('pi-link'); if (!el || !el.value) return;
+    el.select(); document.execCommand?.('copy');
+    log('Invite link copied.');
+  }
+// coaches-intake.js (or your coach page <script type="module">)
+async function loadPendingIntakes(){
+  const list = await DB.query('intakes', d => d.status === 'submitted'); // your DB.query(fn) shim
+  const tgt = document.getElementById('intake-lookup-result') || document.getElementById('ca-status');
+  if(!tgt) return console.warn('No target element for pending list.');
+  if(!list.length){ tgt.textContent = 'No pending intakes.'; return; }
+  tgt.innerHTML = 'Pending: ' + list
+    .slice(0,10)
+    .map(d => `<code>${d.id}</code> • ${d.snapshot?.first||''} ${d.snapshot?.last||''}`)
+    .join(' · ');
+  console.log('Coach sees PENDING INTAKES →', list);
+}
+document.addEventListener('DOMContentLoaded', loadPendingIntakes);
+
+  // ---- Intake identity helpers ----
+  function mockAssignCoachId(){
+    const el = $('intake-coachId');
+    const next = String((parseInt(el?.value||'0',10)+1)||1).padStart(4,'0');
+    if (el) el.value = next;
+  }
+  function mockLookupAthlete(){
+    const uid = ($('intake-uid')?.value||'').trim();
+    const out = $('intake-lookup-result');
+    if (!uid){ if(out) out.textContent='Enter a UID.'; return; }
+    const rec = (window._athDir||{})[uid] || (window._athletes_public||{})[uid];
+    if (out) out.textContent = rec ? `Found record for ${uid} (mock).` : `No record for ${uid} (mock).`;
+  }
+  function mockSaveIntake(){
+    const payload = {
+      uid: ($('intake-uid')?.value||'').trim(),
+      coachId: $('intake-coachId')?.value,
+      track: $('intake-track')?.value,
+      klass: $('intake-class')?.value,
+      role: $('intake-role')?.value,
+      tier: $('intake-tier')?.value,
+      veteran: $('intake-veteran')?.checked||false,
+      years: parseInt($('intake-years')?.value||'0',10)||0,
+      compProof: $('intake-proof-comp')?.checked||false,
+      fasttrack: $('intake-fasttrack')?.checked||false,
+      proof: $('intake-proof')?.value?.trim()||'',
+      name: {
+        private: { first: $('intake-first')?.value?.trim()||'', last: $('intake-last')?.value?.trim()||'' },
+        public:  { initial: $('intake-initial')?.value?.trim()||'', last: $('intake-public-last')?.value?.trim()||'' },
+        lockPublic: !!$('intake-lock')?.checked
+      }
+    };
+    if (!payload.uid){ $('intake-save-result') && ($('intake-save-result').textContent='UID required.'); return; }
+    // mock persistence
+    const drafts = LS.get('intakeDrafts', {}); drafts[payload.uid] = payload; LS.set('intakeDrafts', drafts);
+    $('intake-save-result') && ($('intake-save-result').textContent = 'Saved (mock).');
+    setTimeout(()=>{ $('intake-save-result') && ($('intake-save-result').textContent=''); }, 1200);
+    log(`Intake saved for ${payload.uid} (${payload.track}/${payload.klass}, ${payload.role})`);
+  }
+
+  // ---- Approval rules ----
+  function isFastTrackAllowed(track, veteran, years, compProof){
+    if (track !== 'foundry4') return false;          // F4 only
+    if (!veteran) return false;                      // must be veteran
+    if (years < 2) return false;                     // ≥2 years
+    if (!compProof) return false;                    // competition proof
+    return true;
+  }
+
+  // ---- Welcome seed & skill scaffold (mock) ----
+  function welcomeSeed(uid){
+    window._athDir = window._athDir || {};
+    const rec = window._athDir[uid] || (window._athDir[uid]={ uid, track:'foundry8', tier:'T0', xp:0, cap:600, name:uid, role:'athlete', skills:[] });
+    rec.skills = rec.skills || [];
+    // seed two starter skills if not present
+    const starters = ['Stance & Motion — 3 cues','Single-leg to Shelf — 3 reps x 3'];
+    starters.forEach(s=>{ if (!rec.skills.find(x=> (x.label||x)===s)){ rec.skills.push({label:s, tag:'technique'}); } });
+    try{ window.addGlobal?.(`Welcome seed for ${uid}: starter kit added.`); }catch(_){}
+  }
+
+  // ---- Emergency access (12h) — stub timer keyed by uid ----
+  window._emergencyAccess = window._emergencyAccess || {}; // { uid: expiryTs }
+  function grantEmergencyFor(uids){
+    const now = Date.now(), exp = now + 12*3600*1000;
+    (uids||[]).forEach(uid=>{ window._emergencyAccess[uid]=exp; });
+    log(`Emergency access granted for ${uids.length} athlete(s) (12h).`);
+  }
+  // Expose for attendance module to call on “attendance add”
+  window.intakeGrantEmergencyFor = grantEmergencyFor;
+
+
+
+
+
+// ---------- Tier/Rank options ----------
+const TIERS = {
+  foundry8: [
+    ['t0','T0 · Shadow'],
+    ['t1','T1 · Recruit'],
+    ['t2','T2 · Combatant'],
+    ['t3','T3 · Competitor'],
+    ['t4','T4 · Warrior'],
+    ['t5','T5 · Champion'],
+    ['t6','T6 · Commander'],
+    ['t7','T7 · Sandman'],
+    ['t8','T8 · Hero'],
+  ],
+  foundry4: [
+    ['t0','T0 · Apprentice'],
+    ['t1','T1 · Warrior'],
+    ['t2','T2 · Champion'],
+    ['t3','T3 · Veteran'],
+    ['t4','T4 · Legend'],
+  ]
+};
+
+function fillTierOptions(track) {
+  const sel = document.getElementById('intake-tier');
+  sel.innerHTML = ''; // clear
+  (TIERS[track] || TIERS.foundry8).forEach(([val, label]) => {
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = label;
+    sel.appendChild(opt);
+  });
+}
+
+// ---------- Wire Track + Mint buttons ----------
+const trackSel = document.getElementById('intake-track');
+const mintF8   = document.getElementById('ca-mint-f8');
+const mintF4   = document.getElementById('ca-mint-f4');
+
+trackSel.addEventListener('change', () => {
+  const track = trackSel.value;           // 'foundry8' | 'foundry4'
+  fillTierOptions(track);
+});
+
+// Clicking Mint also sets track (so dropdown updates even if user didn’t change track first)
+mintF8?.addEventListener('click', () => {
+  trackSel.value = 'foundry8';
+  fillTierOptions('foundry8');
+  // (your UID minting goes here)
+});
+
+mintF4?.addEventListener('click', () => {
+  trackSel.value = 'foundry4';
+  fillTierOptions('foundry4');
+  // (your UID minting goes here)
+});
+
+// ---------- First load ----------
+fillTierOptions(trackSel.value || 'foundry8');
+
+  function caActivate(){
+    const payload = {
+      uid: ($('ca-uid')?.value||'').trim() || intakeMintUid(($('ca-track')?.value==='foundry4')?'F4':'F8'),
+      padlockId: $('ca-padlock')?.value?.trim()||'',
+      track: $('ca-track')?.value,
+      klass: $('ca-class')?.value,
+      tier: $('ca-tier')?.value,
+      publicName: $('ca-public')?.value?.trim()||'',
+      // mirror some approvals
+      veteran: $('intake-veteran')?.checked||false,
+      years: parseInt($('intake-years')?.value||'0',10)||0,
+      compProof: $('intake-proof-comp')?.checked||false,
+      fasttrack: $('intake-fasttrack')?.checked||false,
+    };
+
+    // Validation
+    if (!payload.padlockId || !payload.publicName){
+      $('ca-status') && ($('ca-status').textContent = 'Missing Padlock or Public Name.');
+      return;
+    }
+    // Fast-track rule gate
+    if (payload.fasttrack && !isFastTrackAllowed(payload.track, payload.veteran, payload.years, payload.compProof)){
+      $('ca-status') && ($('ca-status').textContent = 'Fast-track denied by policy (F4 + veteran 2y + comp proof required).');
+      return;
+    }
+    // Youth cannot fast-track
+    if (payload.track==='foundry8' && payload.fasttrack){
+      $('ca-status') && ($('ca-status').textContent = 'Youth (F8) cannot be fast-tracked.');
+      return;
+    }
+
+    // mock “DB” structures
+    window._athletes_public  = window._athletes_public  || {};
+    window._athletes_private = window._athletes_private || {};
+    window._athletes_public[payload.uid] = {
+      uid: payload.uid, displayName: payload.publicName, track: payload.track,
+      class: payload.klass, tier: payload.tier, status: "active", compGate: 800
+    };
+    window._athletes_private[payload.uid] = {
+      padlockId: payload.padlockId,
+      emergency: LS.get(`emg_${payload.uid}`, { contacts:[], lastUpdate:null })
+    };
+
+    // Welcome seed on first activation
+    if (!window._athDir || !window._athDir[payload.uid]) welcomeSeed(payload.uid);
+
+    $('ca-status') && ($('ca-status').textContent = 'Activated (mock).');
+    log(`Activated ${payload.uid} → ${payload.publicName} (${payload.track}/${payload.klass}/${payload.tier})`);
+  }
+// buttons
+$('intake-next')?.addEventListener('click', mockAssignCoachId);
+$('intake-lookup')?.addEventListener('click', mockLookupAthlete);
+$('intake-save')?.addEventListener('click', mockSaveIntake);
+
+$('pi-make')?.addEventListener('click', makeInvite);
+$('pi-copy')?.addEventListener('click', copyInvite);
+
+$('al-search-btn')?.addEventListener('click', coachSearchAth);
+$('open-planner-only')?.addEventListener('click', () => { try{ window.openPlannerForAth?.(); }catch{}; });
+
+// --- Approve & Activate wiring ---
+(() => {
+  const btn      = document.getElementById('btnApprove');
+  const out      = document.getElementById('approveOut');
+  const intakeEl = document.getElementById('intakeId');
+  const trackEl  = document.getElementById('track');
+
+  if (!btn || !out || !intakeEl || !trackEl) return;
+
+  const functions = getFunctions(app);
+  try { connectFunctionsEmulator(functions, '127.0.0.1', 5001); } catch {}
+
+  const callApprove = httpsCallable(functions, 'approveIntake');
+
+  btn.addEventListener('click', async () => {
+    out.textContent = 'Calling approveIntake…';
+    try {
+      const res = await callApprove({
+        intakeId: intakeEl.value.trim(),
+        track: trackEl.value.trim(),
+        sessionId: 'ui-harness',
+        clientTs: new Date().toISOString(),
+      });
+      out.textContent = JSON.stringify(res.data, null, 2);
+    } catch (err) {
+      out.textContent = `ERROR: ${err.message || err}`;
+    }
+  });
+})();
+
+log('Intake module ready.');
+
+  // ---- Lookup UI (simple mirror) ----
+  function coachSearchAth(){
+    const q = ($('al-search')?.value||'').trim().toLowerCase();
+    const box = $('al-results'); if (!box) return;
+    box.innerHTML='';
+    if (!q){ box.textContent = 'Type and search.'; return; }
+    const all = Object.values(window._athDir||{}).concat(Object.values(window._athletes_public||{}));
+    const seen = new Set(); const out=[];
+    all.forEach(a=>{
+      const uid=a.uid||a?.uid; if(!uid || seen.has(uid)) return;
+      const name=(a.name?.private?.first?'':(a.displayName||a.name||'')) || '';
+      const label = `${a.displayName||a.name||uid}`;
+      if (uid.toLowerCase().includes(q) || label.toLowerCase().includes(q)) { out.push({uid,label,track:a.track,tier:a.tier}); seen.add(uid); }
+    });
+    if (out.length===0){ box.textContent = 'No matches.'; return; }
+    const ul = document.createElement('ul'); ul.className='feed';
+    out.forEach(r=>{
+      const li=document.createElement('li');
+      li.innerHTML = `<strong>${r.label}</strong> • <span class="muted">${r.uid}</span> • ${(r.track||'').toUpperCase()} • ${r.tier||'—'}`;
+      li.style.cursor='pointer';
+      li.onclick = ()=>{ try{ window.athShow?.(r.uid); }catch(_){} };
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+<!-- ✅ DROP 4 — INTAKE / ACCORDION + COACH INTAKE (end) -->
+
+log('Intake module ready.');
+
+  // ---- Lookup UI (simple mirror) ----
+  function coachSearchAth(){
+    const q = ($('al-search')?.value||'').trim().toLowerCase();
+    const box = $('al-results'); if (!box) return;
+    box.innerHTML='';
+    if (!q){ box.textContent = 'Type and search.'; return; }
+    const all = Object.values(window._athDir||{}).concat(Object.values(window._athletes_public||{}));
+    const seen = new Set(); const out=[];
+    all.forEach(a=>{
+      const uid=a.uid||a?.uid; if(!uid || seen.has(uid)) return;
+      const name=(a.name?.private?.first?'':(a.displayName||a.name||'')) || '';
+      const label = `${a.displayName||a.name||uid}`;
+      if (uid.toLowerCase().includes(q) || label.toLowerCase().includes(q)) { out.push({uid,label,track:a.track,tier:a.tier}); seen.add(uid); }
+    });
+    if (out.length===0){ box.textContent = 'No matches.'; return; }
+    const ul = document.createElement('ul'); ul.className='feed';
+    out.forEach(r=>{
+      const li=document.createElement('li');
+      li.innerHTML = `<strong>${r.label}</strong> • <span class="muted">${r.uid}</span> • ${(r.track||'').toUpperCase()} • ${r.tier||'—'}`;
+      li.style.cursor='pointer';
+      li.onclick = ()=>{ try{ window.athShow?.(r.uid); }catch(_){} };
+      ul.appendChild(li);
+    });
+    box.appendChild(ul);
+  }
+
+  // ---- Wire up events ----
+  document.addEventListener('DOMContentLoaded', ()=>{
+    // identity autofill (initial/last)
+    ['intake-first','intake-last'].forEach(id=>{
+      const el = $(id);
+      el?.addEventListener('blur', ()=>{
+        const f = $('intake-first')?.value?.trim();
+        const l = $('intake-last')?.value?.trim();
+        const initEl = $('intake-initial');
+        const pubLEl = $('intake-public-last');
+        if (f && initEl && !initEl.value) initEl.value = f[0].toUpperCase()+'.';
+        if (l && pubLEl && !pubLEl.value) pubLEl.value = l;
+      });
+    });
+
+// ===== [INTAKE MODULE END] ========================================
+const TIERS = {
+  foundry8: [
+    ['T0','T0 · Shadow'],
+    ['T1','T1 · Recruit'],
+    ['T2','T2 · Combatant'],
+    ['T3','T3 · Competitor'],
+    ['T4','T4 · Warrior'],
+    ['T5','T5 · Champion'],
+    ['T6','T6 · Commander'],
+    ['T7','T7 · Sandman'],
+    ['T8','T8 · Hero'],
+  ],
+  foundry4: [
+    ['T0','T0 · Apprentice'],
+    ['T1','T1 · Warrior'],
+    ['T2','T2 · Champion'],
+    ['T3','T3 · Veteran'],
+    ['T4','T4 · Legend'],
+  ]
+};
+
+const trackSel2 = document.getElementById('intake-track');
+const tierSel   = document.getElementById('intake-tier');
+
+function populateTiers(track, keepValue=null){
+  const list = TIERS[track] || [];
+  tierSel.innerHTML = '';
+  for (const [val,label] of list){
+    const opt = document.createElement('option');
+    opt.value = val; opt.textContent = label;
+    tierSel.appendChild(opt);
+  }
+  if (keepValue && list.some(([v])=>v===keepValue)) tierSel.value = keepValue;
+}
+
+trackSel2?.addEventListener('change', ()=>{
+  populateTiers(trackSel2.value, tierSel.value);
+});
+populateTiers(trackSel2.value || 'foundry8');
+
+// ==============================
+// Sandman Systems • Coach AIM
+// File: coach-aim.js
+// AIM = Artificial Intelligence Manual
+// Purpose: Coach-facing AI assistant (practice, nudges, parent drafts)
+// Notes: Replaces coach-ai.js
+// Archive: old coach-ai.js moved to /assets/js/_archive/
+// ==============================
+
+(() => {
+  console.log("%c[Sandman AIM] Online", "color: gold; font-weight: bold;");
+
+  // ===== Utility =====
+  function aimLog(msg) {
+    console.log(`[AIM] ${msg}`);
+  }
+
+  function aimStub(feature) {
+    aimLog(`${feature} is not fully wired yet.`);
+    alert(`⚡ AIM: ${feature} is coming soon. Stay tuned, Coach!`);
+  }
+
+  // ===== Core Functions =====
+  window.caPlan = function () {
+    aimLog("Practice plan suggestion requested.");
+    aimStub("Practice Planner");
+    // TODO: connect to backend/AI endpoint
+  };
+
+  window.skPlan = function () {
+    aimLog("Nudge plan build requested.");
+    aimStub("Nudge Plan");
+    // TODO: logic for 30-day goal nudges
+  };
+
+  window.skSchedule = function () {
+    aimLog("Reminder scheduler triggered.");
+    aimStub("Schedule Reminders");
+    // TODO: hook into notification system
+  };
+
+  window.caParent = function () {
+    aimLog("Parent note draft requested.");
+    aimStub("Parent Update Draft");
+    // TODO: integrate with comms.service.js
+  };
+
+  // ===== Easter Egg =====
+  aimLog("Every hero needs a sidekick… and every coach AIMs higher.");
+})();
+
+</script>
+
+<!-- ===== Core (module first) ===== -->
+<script type="module" src="../assets/js/firebase-init.js"></script>
+
+<!-- ===== Shared (plain scripts) ===== -->
+<script type="module" src="../assets/js/firebase-init.js"></script>
+<script type="module" src="../assets/js/shared/dom.util.js"></script>
+<script type="module" src="../assets/js/shared/service.js"></script>
+<script type="module" src="../assets/js/shared/events-service.js"></script>
+<script type="module" src="../assets/js/shared/comms-service.js"></script>
+
+<!-- new services + coach glue -->
+<script type="module" src="../assets/js/shared/intake-service.js"></script>
+<script type="module" src="../assets/js/shared/ids.service.js"></script>
+<script type="module" src="../assets/js/coach/coach-activate.js"></script>
+<script type="module">
+  import { loadSubmittedIntakes } from '../assets/js/coaches-intake.js';
+
+  // Wire up the Find button → calls Firestore query
+  document.getElementById('ca-find')?.addEventListener('click', loadSubmittedIntakes);
+</script>
+<script type="module">
+  import { db, collection, addDoc, serverTimestamp } from "../assets/js/firebase-init.js";
+// Wire up the Seed button → calls seedIntake() to add Sampson Sandoval
+document.getElementById('ca-seed')?.addEventListener('click', async () => {
+  try {
+    const id = await seedIntake();
+    console.log(`[seed] Added intake for Sampson Sandoval, id: ${id}`);
+  } catch (err) {
+    console.error('[seed] Failed:', err);
+  }
+});
+
+  // --- Seeder for Sampson Sandoval ---
+  window.seedIntake = async () => {
+    try {
+      const r = await addDoc(collection(db, "intakes"), {
+        first: "Sampson",
+        last: "Sandoval",
+        token: "demo-123",
+        status: "submitted",
+        createdAt: serverTimestamp(),
+      });
+      console.log("[seed] added intake for Sampson Sandoval, id:", r.id);
+    } catch (e) {
+      console.error("[seed error]", e);
+    }
+  };
+</script>
+<script type="module">
+  // ---- Firebase v9 (CDN) ----
+  import { getApps, initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFunctions, httpsCallable, connectFunctionsEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+  import { getAuth, signInAnonymously, connectAuthEmulator } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import { getFirestore, connectFirestoreEmulator, collection, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  // --- Init (emulator-only config is fine) ---
+  const app = (getApps()[0] ?? initializeApp({
+    apiKey: "demo-key",
+    authDomain: "demo.firebaseapp.com",
+    projectId: "demo",
+    appId: "demo"
+  }));
+
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  const functions = getFunctions(app);
+
+  connectAuthEmulator(auth, "http://127.0.0.1:9099");
+  connectFirestoreEmulator(db, "127.0.0.1", 8081);
+  connectFunctionsEmulator(functions, "127.0.0.1", 5001);
+
+  await signInAnonymously(auth).catch(() => {});
+
+  // ---- tiny DOM helper ----
+  const $ = (id) => document.getElementById(id);
+  const bind = (id, evt, fn) => {
+    const el = $(id);
+    if (!el) { console.warn(`[bind] missing #${id}`); return; }
+    el.addEventListener(evt, fn);
+  };
+
+  // ---- Pending intakes (Firestore) ----
+  async function loadPendingIntakes(){
+    const snap = await getDocs(collection(db, "intakes"));
+    const list = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(d => d.status === "submitted");
+    console.log("[coach-intake] Loaded", list.length, "intake(s).", list);
+
+    const tgt = $("intake-lookup-result") || $("ca-status");
+    if (!tgt) return;
+    tgt.innerHTML = list.length
+      ? "Pending: " + list.slice(0,10).map(d => `<code>${d.id}</code>`).join(" · ")
+      : "No pending intakes.";
+  }
+
+  // ---- Approve button -> callable ----
+  const callApprove = httpsCallable(functions, "approveIntake");
+  async function onApprove(){
+    const out = $("approveOut"); if (!out) return;
+    const intakeId = $("intakeId")?.value || "test-intake-1";
+    const track    = $("track")?.value  || "F8";
+
+    out.textContent = "Calling approveIntake…";
+    try {
+      const res = await callApprove({
+        intakeId, track,
+        sessionId: "ui-harness",
+        clientTs: new Date().toISOString()
+      });
+      out.textContent = JSON.stringify(res.data, null, 2);
+      await loadPendingIntakes();
+      console.log("[approveIntake] response:", res.data);
+    } catch (e) {
+      console.error(e);
+      out.textContent = `ERROR: ${e.message || e}`;
+    }
+  }
+
+  // ---- Mock helpers ----
+  const LS = {
+    get(key, fallback) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch { return fallback; } },
+    set(key, val) { localStorage.setItem(key, JSON.stringify(val)); }
+  };
+
+  function mockAssignCoachId(){
+    const el = $('intake-coachId');
+    const next = String((parseInt(el?.value || '0', 10) + 1)).padStart(4, '0');
+    if (el) el.value = next;
+  }
+
+  function mockLookupAthlete(){
+    const uid = $('intake-uid')?.value?.trim() || '';
+    const out = $('intake-lookup-result');
+    if (!out) return;
+    if (!uid) { out.textContent = 'Enter a UID.'; return; }
+    const rec = (window._athDir || {})[uid] || (window._athletes_public || {})[uid];
+    out.textContent = rec ? `Found record for ${uid} (mock).` : `No record for ${uid}.`;
+  }
+
+  function mockSaveIntake(){
+    const uid = $('intake-uid')?.value?.trim() || '';
+    const track = $('intake-track')?.value || '';
+    const out = $('intake-save-result');
+    if (!uid) { if (out) out.textContent = 'UID required.'; return; }
+
+    const payload = { uid, track, status: 'submitted' };
+    const drafts = LS.get('intakeDrafts', {}); drafts[uid] = payload; LS.set('intakeDrafts', drafts);
+    if (out) { out.textContent = 'Saved (mock).'; setTimeout(() => out.textContent = '', 1200); }
+    loadPendingIntakes();
+  }
+
+  // optional Firestore seeder
+  window.seedIntake = async () => {
+    const r = await addDoc(collection(db, "intakes"), { status: "submitted", createdAt: serverTimestamp() });
+    console.log("[seed] added:", r.id);
+    await loadPendingIntakes();
+  };
+
+  // ---- Wire after DOM ready ----
+  document.addEventListener("DOMContentLoaded", async () => {
+    await loadPendingIntakes();
+    bind("btnApprove", "click", onApprove);
+    bind("btn-assignCoachId", "click", mockAssignCoachId);
+    bind("btn-lookupAthlete", "click", mockLookupAthlete);
+    bind("btn-saveIntake", "click", mockSaveIntake);
+    console.log("[intake] module ready");
+  });
+</script>
+
+</body>
+</html>

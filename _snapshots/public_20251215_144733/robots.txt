@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /tests/
+Disallow: /sandbox/
+Disallow: /dev/
+Disallow: /dashboard/
+Disallow: /data/
+Allow: /

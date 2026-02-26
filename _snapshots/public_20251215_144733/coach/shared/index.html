@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach Portal — File Index</title>
+
+  <style>
+    :root{
+      --bg:#061325;
+      --panel:#0d1a33;
+      --border:#1e2a45;
+      --brand:#ffdd48;
+      --text:#eef2f7;
+      --muted:#9aa4b1;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:960px;
+      margin:0 auto;
+      padding:28px 18px 60px;
+    }
+
+    h1{
+      margin:0 0 6px;
+      font-size:1.6rem;
+      color:var(--brand);
+      text-align:center;
+      letter-spacing:.03em;
+    }
+
+    h2{
+      margin:32px 0 14px;
+      font-size:1.12rem;
+      color:#cbd5e1;
+      border-bottom:1px solid var(--border);
+      padding-bottom:6px;
+      letter-spacing:.03em;
+    }
+
+    /* GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:14px;
+      margin-top:12px;
+    }
+
+    /* CARD */
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:12px 14px 14px;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+    }
+
+    .card a{
+      text-decoration:none;
+      color:var(--brand);
+      font-weight:600;
+      font-size:.95rem;
+    }
+
+    .card p{
+      margin:6px 0 0;
+      font-size:.83rem;
+      color:var(--muted);
+      line-height:1.38;
+    }
+
+    /* ROLE TAGS */
+    .chip{
+      display:inline-block;
+      padding:2px 8px;
+      font-size:.68rem;
+      font-weight:700;
+      border-radius:999px;
+      margin-left:8px;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .chip-coach{
+      background:#ffdd48;
+      color:#111827;
+      border:1px solid #c6ac28;
+    }
+
+    .chip-parent{
+      background:#cfe8ff;
+      color:#0a0d14;
+      border:1px solid #9cc9ff;
+    }
+
+    .chip-dev{
+      background:#e2c4ff;
+      color:#2b0f3a;
+      border:1px solid #b588dd;
+    }
+
+    /* BADGE BUBBLE */
+    .badge-bubble{
+      display:inline-block;
+      min-width:20px;
+      padding:2px 6px;
+      font-size:.75rem;
+      font-weight:700;
+      border-radius:999px;
+      background:var(--brand);
+      color:#111;
+      margin-left:8px;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <h1>Coach Portal • File Index</h1>
+
+  <!-- ===================================================== -->
+  <!-- 1. PARENT SYSTEM                                     -->
+  <!-- ===================================================== -->
+  <h2>Parent System</h2>
+  <div class="grid">
+
+    <div class="card">
+      <a href="/coach/parent-landing.html">
+        Parent Landing
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Main parent hub page.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/para/index.html">
+        Para-Comms
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Bilingual EN/SP messaging hub.</p>
+    </div>
+
+    <!-- PARENT INBOX (COACH VIEW) -->
+    <div class="card">
+      <a href="/coach/para/inbox-coach.html">
+        Parent Inbox
+        <span id="inbox-badge" class="badge-bubble"></span>
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Private messages sent by parents.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/para/announcements.html">
+        Announcements Page
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Live bulletin feed. Monthly buckets.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/para/post.html">
+        Post Announcement
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Create EN/SP bulletin posts (A→B system).</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/forms/parent-handbook-2025.html">
+        Parent Handbook 2025
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Rules, expectations, and policies for families.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/forms/team-operations.html">
+        Team Operations
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Wrestle-offs, varsity letters, team rules.</p>
+    </div>
+
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- 2. VOLUNTEER SYSTEM                                  -->
+  <!-- ===================================================== -->
+  <h2>Volunteer System</h2>
+  <div class="grid">
+
+    <div class="card">
+      <a href="/coach/forms/volunteer-form.html">
+        Volunteer Form (Digital)
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Coach input → feeds print/digital pages.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/forms/volunteer-print.html">
+        Volunteer Print Sheet
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Printable 20-line duty organizer.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/forms/volunteer-signup.html">
+        Volunteer Sign-Up (Digital)
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Digital roster sign-ups. Future integration.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/handouts/volunteer.html">
+        Volunteer Handout
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Bilingual meeting handout.</p>
+    </div>
+
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- 3. MEETING PORTAL                                    -->
+  <!-- ===================================================== -->
+  <h2>Meeting Portal</h2>
+  <div class="grid">
+
+    <div class="card">
+      <a href="/coach/meeting/index.html">
+        Meeting Hub
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Central meeting tools + documents.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/policy.html">
+        Meeting Policy
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Classroom rules and expectations.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/meeting-summary.html">
+        Meeting Summary
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Record after every parent meeting.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/sign-in.html">
+        Sign-In Sheet
+        <span class="chip chip-coach">Coach</span>
+      </a>
+      <p>Meeting attendance tracker.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/handouts/faq.html">
+        FAQ Handout
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>General program info for families.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/handouts/wrestling-101.html">
+        Wrestling 101
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Beginner education for families.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/handouts/tournament-guide.html">
+        Tournament Guide
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Event day rules + expectations.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/meeting/handouts/weight-hydration.html">
+        Hydration Sheet
+        <span class="chip chip-parent">Parent</span>
+      </a>
+      <p>Weekly hydration requirements.</p>
+    </div>
+
+  </div>
+
+  <!-- ===================================================== -->
+  <!-- 4. SHARED / INTERNAL                                  -->
+  <!-- ===================================================== -->
+  <h2>Shared / Internal</h2>
+  <div class="grid">
+
+    <div class="card">
+      <a href="/coach/shared/footer.html">
+        Shared Footer
+        <span class="chip chip-dev">Dev</span>
+      </a>
+      <p>Injected into all parent pages.</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/shared/toolbar.js">
+        Toolbar JS
+        <span class="chip chip-dev">Dev</span>
+      </a>
+      <p>Legacy toolbar logic (old pages).</p>
+    </div>
+
+    <div class="card">
+      <a href="/coach/shared/toolbar.css">
+        Toolbar CSS
+        <span class="chip chip-dev">Dev</span>
+      </a>
+      <p>Legacy styling.</p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- INBOX BADGE SCRIPT -->
+<script type="module" src="/coach/para/inbox-badge.js"></script>
+
+</body>
+</html>

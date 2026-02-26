@@ -1,0 +1,47 @@
+<script>
+const VOLUNTEER_ENDPOINT = "/__/functions/submitVolunteer";
+
+  document.getElementById("btn-submit").addEventListener("click", async () => {
+    // Collect fields
+    const parentName  = document.getElementById("parentName").value.trim();
+    const athleteName = document.getElementById("athleteName").value.trim();
+    const phone       = document.getElementById("phone").value.trim();
+    const email       = document.getElementById("email").value.trim();
+    const language    = document.getElementById("language").value;
+    const notes       = document.getElementById("notes").value.trim();
+
+    const helps = Array.from(document.querySelectorAll(".helpBox:checked"))
+      .map(cb => cb.value);
+
+    // Build payload
+    const payload = {
+      parentName,
+      athleteName,
+      phone,
+      email,
+      language,
+      helps,
+      notes,
+      timestamp: Date.now(),
+      season: "2025-26"
+    };
+
+    try {
+      const res = await fetch(VOLUNTEER_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        alert("Error submitting form. Please try again.");
+        return;
+      }
+
+      alert("Thank you! Your volunteer form has been submitted.");
+    } catch (err) {
+      console.error("Volunteer submit error:", err);
+      alert("Network error. Please try again.");
+    }
+  });
+</script>

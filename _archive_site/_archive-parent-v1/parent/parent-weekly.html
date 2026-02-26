@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Parent Weekly</title>
+  <style>
+    body{margin:0;background:#0b0f14;color:#eef3fb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    main{max-width:880px;margin:32px auto;padding:20px}
+    .panel{background:#0f141b;border:1px solid #283241;border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.35);padding:18px}
+    h1{color:#ffd633;margin:6px 0 10px}
+    label{display:block;margin-top:12px;margin-bottom:6px;font-weight:700}
+    input,select,textarea{width:100%;padding:10px;border-radius:8px;border:1px solid #2b3646;background:#121a24;color:#eef3fb}
+    textarea{min-height:110px}
+    .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+    .actions{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn{padding:10px 14px;border-radius:10px;border:0;font-weight:800;cursor:pointer}
+    .save{background:#e53935;color:#fff}
+    .clear{background:#2b3646;color:#fff}
+    .export{background:#1f6feb;color:#fff}
+    .muted{color:#aeb9c9;margin-left:auto}
+    .back{display:inline-block;margin-top:12px;color:#aeb9c9;text-decoration:underline}
+  </style>
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <h1>Parent Weekly</h1>
+      <p class="muted">Capture this week’s notes, wins, and focuses. Saves locally for now.</p>
+
+      <form id="parentWeeklyForm">
+        <div class="row">
+          <div>
+            <label for="weekStart">Week of</label>
+            <input id="weekStart" name="weekStart" type="date"/>
+          </div>
+          <div>
+            <label for="athleteName">Athlete</label>
+            <input id="athleteName" name="athleteName" placeholder="First Last"/>
+          </div>
+          <div>
+            <label for="group">Group / Team</label>
+            <input id="group" name="group" placeholder="Youth / Teen / Adult"/>
+          </div>
+        </div>
+
+        <label for="wins">Wins (what went well)</label>
+        <textarea id="wins" name="wins" placeholder="List highlights, improvements, good habits…"></textarea>
+
+        <label for="focus">Focus (what to work on)</label>
+        <textarea id="focus" name="focus" placeholder="1–3 items to emphasize next week…"></textarea>
+
+        <div class="row">
+          <div>
+            <label for="attendance">Attendance (sessions)</label>
+            <input id="attendance" name="attendance" type="number" min="0" placeholder="e.g., 3"/>
+          </div>
+          <div>
+            <label for="mood">Mood / Energy</label>
+            <select id="mood" name="mood">
+              <option value="">Select…</option>
+              <option>Great</option><option>Good</option><option>Okay</option><option>Tired</option><option>Low</option>
+            </select>
+          </div>
+          <div>
+            <label for="notes">Parent Notes</label>
+            <input id="notes" name="notes" placeholder="Anything else to share…"/>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="saveWeekly" class="btn save">Save</button>
+          <button id="clearWeekly" class="btn clear">Clear</button>
+          <button id="exportWeekly" class="btn export" type="button">Export CSV</button>
+          <span id="status" class="muted">Ready.</span>
+        </div>
+      </form>
+
+      <a class="back" href="./parent.html">← Back to Parent Hub</a>
+    </section>
+  </main>
+
+  <script type="module" src="../assets/js/parent-weekly.js"></script>
+</body>
+</html>

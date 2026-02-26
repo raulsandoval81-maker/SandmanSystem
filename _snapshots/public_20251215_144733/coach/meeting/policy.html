@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Lompoc Wrestling • Policy & Acknowledgement</title>
+
+<style>
+  :root{
+    --bg:#0a1833;
+    --panel:#111c35;
+    --line:#27304a;
+    --brand:#ffdd48;
+    --text:#f0f4f8;
+    --muted:#9aa4b1;
+    --hover:#1d2a4a;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+  .wrap{
+    max-width:900px;
+    margin:0 auto;
+    padding:20px 14px 40px;
+  }
+
+  /* parent header (simple, with local EN/SP toggle) */
+  .parent-header {
+    background:#04173a;
+    color:#ffdd48;
+    padding:10px 14px;
+    border-bottom:1px solid rgba(15,23,42,.9);
+  }
+  .parent-header-inner{
+    max-width:920px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .parent-brand{
+    font-weight:700;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    font-size:.95rem;
+  }
+  .parent-lang-wrap{
+    display:flex;
+    gap:6px;
+  }
+  .parent-lang-btn{
+    border:none;
+    padding:6px 14px;
+    border-radius:999px;
+    font-size:.8rem;
+    font-weight:600;
+    cursor:pointer;
+    background:rgba(15,23,42,.9);
+    color:#e5e7eb;
+  }
+  .parent-lang-btn.active{
+    background:#ffdd48;
+    color:#111827;
+  }
+
+  /* hero */
+  .hero{
+    background:linear-gradient(160deg,#0a1833 0%,#111c35 100%);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:24px 16px;
+    text-align:center;
+    box-shadow:0 6px 18px rgba(0,0,0,.45);
+    margin:12px 0 16px;
+  }
+  .hero h1{
+    margin:0 0 6px;
+    color:var(--brand);
+    font-size:1.45rem;
+    text-transform:uppercase;
+    letter-spacing:.03em;
+  }
+  .hero .sub{
+    color:#fff;
+    opacity:.95;
+    font-size:1rem;
+    margin:4px 0 10px;
+  }
+  .hero .sub em{color:var(--muted)}
+
+  .school-link {
+    margin-top:6px;
+    margin-bottom:18px;
+    font-size:0.9rem;
+    color:#cdd4e0;
+  }
+  .school-link a {
+    color:#ffdd48;
+    text-decoration:none;
+    border-bottom:1px solid rgba(255,221,72,0.4);
+    padding-bottom:1px;
+    transition:0.2s ease;
+  }
+  .school-link a:hover {
+    color:#fff;
+    border-bottom-color:#fff;
+    text-shadow:0 0 6px rgba(255,255,255,0.45);
+  }
+
+  /* sections */
+  .section{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    margin-top:12px;
+  }
+  .section h2{
+    margin:0 0 8px;
+    color:var(--brand);
+    font-size:1rem;
+  }
+  ul{
+    margin:6px 0 0 18px;
+    padding:0;
+  }
+  li{
+    margin:6px 0;
+    color:#dbe2ea;
+  }
+
+  /* acknowledgement block */
+  .input{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:6px;
+  }
+  .input input{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#0c1428;
+    color:#e5e7eb;
+  }
+  .checkbox{
+    display:flex;
+    gap:10px;
+    align-items:flex-start;
+    margin-top:10px;
+  }
+  .checkbox input{
+    margin-top:4px;
+  }
+  .btnbar{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .btn{
+    border:1px solid var(--line);
+    background:#0c1428;
+    color:#fff;
+    padding:10px 14px;
+    border-radius:10px;
+    font-weight:800;
+    cursor:pointer;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+  }
+  .btn.brand{
+    background:var(--brand);
+    color:#111;
+    border-color:var(--brand);
+  }
+  .small{
+    color:var(--muted);
+    font-size:.9rem;
+    margin-top:6px;
+  }
+  hr.sep{
+    border:none;
+    border-top:1px dashed var(--line);
+    margin:10px 0;
+  }
+
+  /* hard footer */
+  .footer-hard{
+    margin-top:40px;
+    padding:26px 10px 34px;
+    background:transparent;
+    text-align:center;
+  }
+  .footer-inner{
+    max-width:900px;
+    margin:0 auto;
+  }
+  .footer-brand{
+    color:#94a3b8;
+    font-size:.82rem;
+    margin-bottom:12px;
+  }
+  .footer-links{
+    display:flex;
+    flex-wrap:wrap;
+    justify-content:center;
+    gap:14px 18px;
+    font-size:.88rem;
+  }
+  .footer-links a{
+    color:#ffdd48;
+    text-decoration:none;
+  }
+  .footer-links a:hover{
+    text-decoration:underline;
+  }
+
+  @media (max-width:640px){
+    .parent-header-inner{
+      padding-inline:2px;
+    }
+    .parent-brand{
+      font-size:.85rem;
+    }
+  }
+
+  @media print{
+    body{
+      background:#fff;
+      color:#000;
+    }
+    .wrap{
+      padding:0;
+    }
+    .section{
+      border:1px solid #999;
+    }
+    .hero{
+      border:1px solid #999;
+      background:#fff;
+      color:#000;
+      box-shadow:none;
+    }
+    .btnbar,
+    .small,
+    .parent-header,
+    .footer-hard{
+      display:none !important;
+    }
+    input{
+      border:1px solid #000 !important;
+      background:#fff !important;
+      color:#000 !important;
+    }
+  }.back-btn{
+  border-radius:999px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:.78rem;
+  padding:4px 12px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.back-btn:hover{
+  background:#0b1120;
+}
+
+</style>
+</head>
+<body>
+  <header class="parent-header">
+    <div class="parent-header-inner">
+      <div class="parent-brand">Lompoc HS Wrestling</div>
+
+      <div class="parent-lang-wrap">
+        <button class="parent-lang-btn active" data-lang="en">EN</button>
+        <button class="parent-lang-btn" data-lang="es">SP</button>
+      </div>
+    </div>
+  </header>
+<button class="back-btn" onclick="history.back()">
+  ← Back
+</button>
+</button>
+
+<main class="wrap">
+  <header class="hero">
+    <h1 data-i18n="title">Team Policy &amp; Acknowledgement</h1>
+    <p class="sub" data-i18n="subtitle">
+      Team expectations &amp; standards • Bilingual • Phone/Print Ready
+    </p>
+    <p class="school-link" data-i18n="schoolLink">
+      For the full Lompoc High School <em>Standard Athletic Agreement</em>,
+      <a href="./handouts/policy.html" target="_blank">open the official school policy</a>.
+    </p>
+  </header>
+
+  <!-- A) Team Expectations & Standards -->
+  <section class="section">
+    <h2 data-i18n="hPolicy">A) Team Expectations &amp; Standards</h2>
+    <ul>
+      <li data-i18n="p1">
+        Attendance &amp; effort are required at every practice and event.
+      </li>
+      <li data-i18n="p2">
+        Athletes arrive on time, in proper gear, and ready to work when practice begins.
+      </li>
+      <li data-i18n="p3">
+        Respect teammates, coaches, opponents, and officials at all times.
+      </li>
+      <li data-i18n="p4">
+        No profanity, bullying, harassment, or unsafe behavior in or around the program.
+      </li>
+      <li data-i18n="p5">
+        Phones stay put away during practice, weigh-ins, and team events unless a coach approves otherwise.
+      </li>
+      <li data-i18n="p6">
+        Injuries, sickness, or family absences are reported directly to a coach before practice or competition.
+      </li>
+      <li data-i18n="p7">
+        Maintain grades and classroom behavior that meet school and district eligibility standards.
+      </li>
+      <li data-i18n="p8">
+        Follow travel expectations on buses, in hotels, and at venues — curfews and supervision rules are non-negotiable.
+      </li>
+      <li data-i18n="p9">
+        Social media posts should reflect school pride — no posts that embarrass teammates, staff, or the program.
+      </li>
+      <li data-i18n="p10">
+        Represent Lompoc Wrestling with class on and off campus; the uniform and warm-ups are earned and must be worn with respect.
+      </li>
+    </ul>
+  </section>
+
+  <!-- B) Coach Standards Pledge -->
+  <section class="section">
+    <h2 data-i18n="hPledge">B) Coach Standards Pledge</h2>
+    <ul>
+      <li data-i18n="c1">
+        Prepared &amp; On-Time — coaches arrive ready with a practice plan and keep the room structured and safe.
+      </li>
+      <li data-i18n="c2">
+        Respect &amp; Sportsmanship — coaches model calm, respectful behavior toward athletes, officials, and other programs.
+      </li>
+      <li data-i18n="c3">
+        Communication — coaches provide clear information on schedules, expectations, and concerns, and respond as promptly as possible.
+      </li>
+    </ul>
+    <p class="small" data-i18n="pledgeNote">
+      These standards protect our room and our kids: calm, consistent, united.
+    </p>
+  </section>
+
+  <!-- C) Acknowledgement & Sign-Off -->
+  <section class="section">
+    <h2 data-i18n="hAcknowledge">C) Acknowledgement &amp; Sign-Off</h2>
+
+    <div class="input">
+      <input id="athlete" placeholder="Athlete Name / Nombre del Atleta"/>
+      <input id="parent"  placeholder="Parent/Guardian / Padre/Madre/Tutor"/>
+    </div>
+    <div class="input">
+      <input id="phone" placeholder="Phone / Teléfono"/>
+      <input id="email" placeholder="Email / Correo"/>
+    </div>
+
+    <hr class="sep"/>
+
+    <div class="checkbox">
+      <input type="checkbox" id="agree"/>
+      <label for="agree" data-i18n="agree">
+        Participation on this team is a privilege. I/We have read and understand the expectations above and agree to uphold these standards for my/our athlete and for ourselves as parents/guardians throughout the season.
+        <br/>
+        La participación en este equipo es un privilegio. Yo/Nosotros hemos leído y entendemos las expectativas y aceptamos mantener estos estándares para nuestro atleta y para nosotros como padres/tutores durante la temporada.
+      </label>
+    </div>
+
+    <div class="btnbar">
+      <button id="print" class="btn">
+        🖨️ <span data-i18n="btnPrint">Print</span>
+      </button>
+      <button id="save" class="btn brand">
+        ⤓ <span data-i18n="btnSave">Save Receipt (PNG)</span>
+      </button>
+      <a class="btn" href="./handouts/index.html" data-i18n="btnBack">Back to Meeting Guide</a>
+    </div>
+
+    <p class="small" data-i18n="privacy">
+      Privacy: This page does not upload data. Use paper copy or your school system to submit signatures.
+    </p>
+  </section>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/para/parent/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/parent/index.html">Para-Comms</a>
+      <a href="/coach/meeting/meeting-summary.html">Meeting Portal</a>
+    </nav>
+
+  </div>
+</footer>
+</main>
+
+<!-- html2canvas for PNG receipt -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+  const dict = {
+    en:{
+      title:"Team Policy & Acknowledgement",
+      subtitle:"Team expectations & standards • Bilingual • Phone/Print Ready",
+      schoolLink:"For the full Lompoc High School <em>Standard Athletic Agreement</em>, <a href=\"./handouts/policy.html\" target=\"_blank\">open the official school policy</a>.",
+      hPolicy:"A) Team Expectations & Standards",
+      p1:"Attendance & effort are required at every practice and event.",
+      p2:"Athletes arrive on time, in proper gear, and ready to work when practice begins.",
+      p3:"Respect teammates, coaches, opponents, and officials at all times.",
+      p4:"No profanity, bullying, harassment, or unsafe behavior in or around the program.",
+      p5:"Phones stay put away during practice, weigh-ins, and team events unless a coach approves otherwise.",
+      p6:"Injuries, sickness, or family absences are reported directly to a coach before practice or competition.",
+      p7:"Maintain grades and classroom behavior that meet school and district eligibility standards.",
+      p8:"Follow travel expectations on buses, in hotels, and at venues — curfews and supervision rules are non-negotiable.",
+      p9:"Social media posts should reflect school pride — no posts that embarrass teammates, staff, or the program.",
+      p10:"Represent Lompoc Wrestling with class on and off campus; the uniform and warm-ups are earned and must be worn with respect.",
+      hPledge:"B) Coach Standards Pledge",
+      c1:"Prepared & On-Time — coaches arrive ready with a practice plan and keep the room structured and safe.",
+      c2:"Respect & Sportsmanship — coaches model calm, respectful behavior toward athletes, officials, and other programs.",
+      c3:"Communication — coaches provide clear information on schedules, expectations, and concerns, and respond as promptly as possible.",
+      pledgeNote:"These standards protect our room and our kids: calm, consistent, united.",
+      hAcknowledge:"C) Acknowledgement & Sign-Off",
+      agree:"Participation on this team is a privilege. I/We have read and understand the expectations above and agree to uphold these standards for my/our athlete and for ourselves as parents/guardians throughout the season.<br/>La participación en este equipo es un privilegio. Yo/Nosotros hemos leído y entendemos las expectativas y aceptamos mantener estos estándares para nuestro atleta y para nosotros como padres/tutores durante la temporada.",
+      btnPrint:"Print",
+      btnSave:"Save Receipt (PNG)",
+      btnBack:"Back to Meeting Guide",
+      privacy:"Privacy: This page does not upload data. Use paper copy or your school system to submit signatures.",
+      footer:"Lompoc High School Wrestling • Policy & Acknowledgement (Bilingual)"
+    },
+    es:{
+      title:"Política del Equipo y Acuse de Recibo",
+      subtitle:"Expectativas y estándares del equipo • Bilingüe • Listo para teléfono/impresión",
+      schoolLink:"Para ver el <em>Acuerdo Atlético Estándar</em> de Lompoc High School, <a href=\"./handouts/policy.html\" target=\"_blank\">abra la política oficial de la escuela</a>.",
+      hPolicy:"A) Expectativas y Estándares del Equipo",
+      p1:"La asistencia y el esfuerzo son requeridos en cada práctica y evento.",
+      p2:"Los atletas llegan puntuales, con el uniforme adecuado y listos para trabajar cuando inicia la práctica.",
+      p3:"Respeto a compañeros, entrenadores, oponentes y oficiales en todo momento.",
+      p4:"No se permite el uso de groserías, acoso, maltrato o conductas inseguras dentro o alrededor del programa.",
+      p5:"Los teléfonos permanecen guardados durante prácticas, pesajes y eventos del equipo, a menos que el entrenador lo apruebe.",
+      p6:"Lesiones, enfermedades o ausencias familiares se reportan directamente a un entrenador antes de la práctica o competencia.",
+      p7:"Mantener calificaciones y conducta en el salón que cumplan con los estándares de la escuela y el distrito.",
+      p8:"Seguir las expectativas de viaje en autobuses, hoteles y sedes — los toques de queda y reglas de supervisión no son negociables.",
+      p9:"Las publicaciones en redes sociales deben reflejar orgullo escolar — no se permiten publicaciones que avergüencen a compañeros, personal o al programa.",
+      p10:"Representar a Lompoc Wrestling con clase dentro y fuera del plantel; el uniforme y el calentador se ganan y deben usarse con respeto.",
+      hPledge:"B) Compromiso de Estándares del Entrenador",
+      c1:"Preparado y Puntual — los entrenadores llegan listos con plan de práctica y mantienen el salón estructurado y seguro.",
+      c2:"Respeto y Deportividad — los entrenadores modelan comportamiento calmado y respetuoso hacia atletas, oficiales y otros programas.",
+      c3:"Comunicación — los entrenadores dan información clara sobre horarios, expectativas y preocupaciones, y responden lo antes posible.",
+      pledgeNote:"Estos estándares protegen nuestro salón y a nuestros hijos: calmado, constante y unido.",
+      hAcknowledge:"C) Acuse de Recibo y Firma",
+      agree:"La participación en este equipo es un privilegio. Yo/Nosotros hemos leído y entendemos las expectativas y aceptamos mantener estos estándares para nuestro atleta y para nosotros como padres/tutores durante la temporada.<br/>Participation on this team is a privilege. I/We have read and understand the expectations above and agree to uphold these standards for my/our athlete and for ourselves as parents/guardians throughout the season.",
+      btnPrint:"Imprimir",
+      btnSave:"Guardar Comprobante (PNG)",
+      btnBack:"Regresar a la Guía",
+      privacy:"Privacidad: Esta página no sube datos. Use copia en papel o el sistema escolar para enviar firmas.",
+      footer:"Lompoc High School Wrestling • Política y Acuse (Bilingüe)"
+    }
+  };
+
+  function paint(langOverride){
+    const L = langOverride || localStorage.getItem('lang') || 'en';
+    const pack = dict[L] || dict.en;
+    document.querySelectorAll('[data-i18n]').forEach(el=>{
+      const key = el.getAttribute('data-i18n');
+      if (pack[key] !== undefined){
+        el.innerHTML = pack[key];
+      }
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    // language buttons
+    const langButtons = document.querySelectorAll('.parent-lang-btn');
+    function setLang(lang){
+      localStorage.setItem('lang', lang);
+      langButtons.forEach(btn=>{
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+      paint(lang);
+    }
+
+    const saved = localStorage.getItem('lang') || 'en';
+    setLang(saved);
+
+    langButtons.forEach(btn=>{
+      btn.addEventListener('click', ()=> setLang(btn.dataset.lang));
+    });
+
+    // print button
+    const printBtn = document.getElementById('print');
+    if (printBtn){
+      printBtn.addEventListener('click', ()=> window.print());
+    }
+
+    // PNG receipt button
+    const saveBtn = document.getElementById('save');
+    if (saveBtn){
+      saveBtn.addEventListener('click', async ()=>{
+        if (typeof html2canvas !== 'function'){
+          alert("Screenshot tool not loaded. Check your connection.");
+          return;
+        }
+        const area = document.querySelector('main');
+        const canvas = await html2canvas(area,{
+          scale:2,
+          backgroundColor:"#ffffff"
+        });
+        const a = document.createElement('a');
+        const ts = new Date().toISOString().slice(0,10);
+        a.href = canvas.toDataURL('image/png');
+        a.download = `lompoc-wrestling-policy-receipt-${ts}.png`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      });
+    }
+  });
+</script>
+
+</body>
+</html>

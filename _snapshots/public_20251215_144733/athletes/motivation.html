@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Motivation • Athletes Corner</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    main { max-width: 980px; margin: 28px auto; padding: 0 18px; }
+    .panel { background:#0f141b; color:#eef3fb; border-radius:16px; padding:18px; border:1px solid #283241; box-shadow:0 16px 36px rgba(0,0,0,.35); }
+    h1 { color:#ffd633; margin:6px 0 16px; }
+    .sub { color:#aeb9c9; margin-bottom:14px; }
+    .row { display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); }
+    .card { background:#121a24; border:1px solid #253246; border-radius:12px; padding:14px; }
+    .card h3 { color:#ffd633; margin:4px 0 8px; }
+    .btn { display:inline-block; margin-top:10px; padding:10px 14px; border-radius:10px; background:#e53935; color:#fff; text-decoration:none; font-weight:700; }
+    .back { display:inline-block; margin:14px 0; color:#aeb9c9; text-decoration:underline; }
+  </style>
+</head>
+<body>
+  <main>
+    <a class="back" href="./athletes-corner.html">← Back to Athletes Corner</a>
+
+    <section class="panel">
+      <h1>Motivation</h1>
+      <p class="sub">Save music, speeches, and podcasts that get you locked in.</p>
+
+      <div class="row">
+        <div class="card" id="playlists">
+          <h3>Music Playlists</h3>
+          <p>Quick links to your hype playlists. (Shell)</p>
+          <a class="btn" href="#playlists">Add Playlist</a>
+        </div>
+
+        <div class="card">
+          <h3>Speeches & Podcasts</h3>
+          <p>Bookmark favorite clips for training or meet day. (Shell)</p>
+          <a class="btn" href="#clips">Add Clip</a>
+        </div>
+      </div>
+
+      <p id="status" class="sub" style="margin-top:14px;">Ready.</p>
+    </section>
+  </main>
+
+  <script type="module" src="../assets/js/athletes-motivation.js"></script>
+</body>
+</html>

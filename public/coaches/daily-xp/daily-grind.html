@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coach · XP Daily Grind</title>
+
+  <!-- Canon console styles -->
+  <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
+  <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css" />
+  <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
+
+  <!-- Mini belt bar -->
+  <link rel="stylesheet" href="/assets/css/xp-bar-mini.css" />
+</head>
+
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/roster.html">Team Roster</a>
+  </nav>
+
+  <h1>XP Daily Grind</h1>
+  <div class="creed">Combat · Strength · Honor. One flow. No guessing.</div>
+
+  <section class="card">
+
+    <!-- STEP 1 HEADER (DEV + Track + Refresh) -->
+    <div class="step-head">
+      <div class="step-title">
+        <span class="step-num">1</span> Setup
+      </div>
+
+      <div class="step-controls">
+        <div class="dev-pill">
+          <input id="devModeToggle" type="checkbox" />
+          <label for="devModeToggle">
+            <span class="dev-label">DEV</span>
+            <span class="dev-slider"></span>
+          </label>
+        </div>
+
+        <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only">
+          <input id="trackF8Only" type="checkbox" />
+          <span class="muted">Foundry 8 only</span>
+        </label>
+
+        <button id="refreshBtn" class="btn btn-ghost" type="button">Refresh</button>
+      </div>
+    </div>
+
+    <div class="steps">
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">2</span> Select</div>
+        </div>
+
+        <div class="row">
+          <input id="search" type="text" class="input" placeholder="Search by name or UID…" />
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="pickAll" class="btn btn-ghost" type="button">Select all</button>
+          <button id="clearAll" class="btn btn-ghost" type="button">Clear</button>
+        </div>
+
+        <div class="hint">
+          Filter roster, pick athletes, then award.
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">3</span> Award</div>
+        </div>
+
+        <!-- Lane + Mode controls (required by daily-grind.js) -->
+        <div class="row" style="margin-bottom:10px; gap:10px;">
+          <select id="xpLane" class="input" style="max-width:240px;">
+            <option value="combat">Combat (Daily Grind)</option>
+            <option value="strength">Strength</option>
+            <option value="honor">Honor</option>
+          </select>
+
+          <select id="xpMode" class="input" style="max-width:220px;">
+            <option value="auto">Auto (recommended)</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button id="btnGrind10" class="btn btn-full" type="button" data-award="GRIND_10">
+            +10 Full-Time Grind
+          </button>
+          <button id="btnGrind5" class="btn btn-part" type="button" data-award="GRIND_5">
+            +5 Half-Time Grind
+          </button>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="btnStr10" class="btn btn-full" type="button" data-award="STR_10">
+            +10 Strength
+          </button>
+          <button id="btnStr5" class="btn btn-part" type="button" data-award="STR_5">
+            +5 Strength
+          </button>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="btnHon10" class="btn btn-full" type="button" data-award="HON_10">
+            +10 Honor
+          </button>
+          <button id="btnHon5" class="btn btn-part" type="button" data-award="HON_5">
+            +5 Honor
+          </button>
+        </div>
+
+        <div class="hint" id="awardHint" style="margin-top:10px;">
+          Pick an award. The Lane will auto-limit what’s valid.
+        </div>
+      </div>
+    </div>
+
+    <div id="sessionBar" class="session-bar" style="display:none">
+      <span class="session-pill" id="sb-loaded">Loaded: 0</span>
+      <span class="session-pill" id="sb-awarded">Awarded this session: 0</span>
+      <span class="session-pill" id="sb-xp">XP issued: 0</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:6%">Pick</th>
+            <th style="width:36%">Athlete</th>
+            <th style="width:24%">Tier / Track</th>
+            <th style="width:34%">XP</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="4" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p id="pageStatus" class="muted">Ready.</p>
+  </section>
+</main>
+
+<script type="module" src="/coaches/daily-xp/daily-grind.js"></script>
+<script type="module" src="/coaches/daily-xp/daily-grind.stamps.js"></script>
+</body>
+</html>

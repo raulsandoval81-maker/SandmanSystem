@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sandman Strength™ | Profile</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body class="night">
+  <main class="wrap" style="max-width:1100px;margin:0 auto;padding:16px;">
+    
+    <!-- Header -->
+    <header class="card" style="padding:14px 16px;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div class="muted" style="font-size:.9rem;">Sandman Strength™</div>
+          <h1 id="out-name" style="margin:.2rem 0 0;">—</h1>
+          <div id="out-uid" class="muted" style="margin-top:6px;">—</div>
+          <div class="muted" style="margin-top:6px;">
+            <span id="out-team">—</span> • <span id="out-citystate">—</span>
+          </div>
+        </div>
+        <div id="ath-avatar" class="avatar" style="width:54px;height:54px;border-radius:999px;display:grid;place-items:center;background:#111;color:#ffd633;font-weight:800;">
+          ?
+        </div>
+      </div>
+    </header>
+
+    <!-- Strength Lane -->
+    <section id="strengthLane" class="card drop" style="padding:14px 16px;">
+      
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h2 style="margin:0;">🏋️ Rings of Power</h2>
+          <p class="muted" style="margin:4px 0 0;font-style:italic;">
+            “No person has the right to be an amateur in the matter of physical training.” — Socrates
+          </p>
+        </div>
+        <div class="muted">
+          <span id="strengthUnitsLeft">0/6</span>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:16px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px;">
+        <div id="strengthRings" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div id="strengthDecal" style="width:120px;height:120px;"></div>
+          <div class="muted" id="strengthMetaRight">0/400 XP</div>
+        </div>
+      </div>
+
+      <hr style="opacity:.15;margin:14px 0;" />
+
+      <h3 style="margin:0 0 8px;">Recent Logs</h3>
+      <ul id="feed" class="muted" style="margin:0;padding-left:18px;">
+        <li class="muted">Loading…</li>
+      </ul>
+
+    </section>
+
+  </main>
+
+  <script type="module" src="/sandman-strength/profile/profile.js"></script>
+</body>
+</html>

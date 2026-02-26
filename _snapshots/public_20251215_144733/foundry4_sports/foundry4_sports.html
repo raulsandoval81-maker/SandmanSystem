@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Foundry 4 • Sports</title>
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <link rel="stylesheet" href="../assets/css/foundry4.css">
+</head>
+<body class="f4">
+  <main class="wrap">
+    <a class="back" href="./hub.html">← Back to Foundry4 Hub</a>
+    <span class="chip sports">FOUNDRY4 • SPORTS</span>
+    <h1>Learn the Rules, Own the Game.</h1>
+    <p class="lead">Foundations that make sport fun—and make progress stick.</p>
+
+    <section class="card" data-wave="1">
+      <h2>Basketball</h2>
+      <p>Footwork, coordination, passing & finishing.</p>
+      <a class="btn green" href="./foundry4_basketball.html">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>Football</h2>
+      <p>Teamwork, grit, agility — safe tagging & movement.</p>
+      <a class="btn green" href="./foundry4_football.html">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>Soccer</h2>
+      <p>Touches, dribbling, spacing & teamwork — the world’s game.</p>
+      <a class="btn green" href="./foundry4_soccer.html">Open</a>
+    </section>
+  </main>
+
+  <script>
+    const ACTIVE_WAVE = 1;
+    document.querySelectorAll('[data-wave]').forEach(n=>{
+      if (+n.dataset.wave > ACTIVE_WAVE) n.style.display='none';
+    });
+  </script>
+</body>
+</html>

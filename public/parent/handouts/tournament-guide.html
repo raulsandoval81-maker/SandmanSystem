@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Tournament Weekend Guide</title>
+
+  <style>
+    /* --- Gold + Navy Theme (Sandman) --- */
+
+    .page-title,
+    h1,
+    h2.page-title {
+      color: #ffdd48 !important;
+      text-shadow: 0 0 6px rgba(255,221,72,.25);
+      font-weight: 800;
+    }
+
+    .lang-btn {
+      border: 1px solid #ffdd48 !important;
+      color: #ffdd48 !important;
+      background: transparent;
+    }
+
+    .lang-btn:hover {
+      background: #ffdd48 !important;
+      color: #111 !important;
+    }
+
+    .lang-btn.active {
+      background: #ffdd48 !important;
+      color: #111 !important;
+      border-color: #ffdd48 !important;
+    }
+
+    :root{
+      --navy:#041231;
+      --gray:#9aa0a8;
+      --panel:#ffffff;
+      --text:#0f1114;
+      --muted:#4b5563;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      background:var(--navy);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+    }
+
+    .topbar{
+      background:var(--navy);
+      padding:10px 14px;
+      border-bottom:2px solid var(--gray);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#fff;
+    }
+
+    .back-btn{
+      color:#fff;
+      text-decoration:none;
+      font-size:.85rem;
+      padding:4px 10px;
+      border:1px solid var(--gray);
+      border-radius:999px;
+    }
+
+    .lang-wrap button{
+      padding:6px 14px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:.8rem;
+      font-weight:600;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 60px;
+    }
+
+    h1{
+      color:#fff;
+      margin:20px 0 10px;
+      text-align:center;
+      font-size:1.7rem;
+      font-weight:700;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border-radius:12px;
+      padding:18px 20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+      margin-bottom:20px;
+    }
+
+    .panel h2{
+      margin:0 0 14px;
+      color:var(--navy);
+      font-size:1.2rem;
+    }
+
+    .bullet{
+      margin-bottom:18px;
+    }
+
+    .bullet strong{
+      color:var(--navy);
+      font-weight:700;
+    }
+
+    .es{
+      color:var(--muted);
+      margin-top:4px;
+      font-size:.9rem;
+    }
+
+    footer{
+      margin-top:40px;
+      text-align:center;
+      color:#e5e7eb;
+      font-size:.8rem;
+      opacity:.75;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <h1 data-i18n="title">Tournament Weekend Guide</h1>
+
+  <!-- ========================= -->
+  <!-- SECTION A — BEFORE YOU ARRIVE -->
+  <!-- ========================= -->
+  <section class="section panel">
+    <h2 data-i18n="secA">8 Things to Know Before You Arrive</h2>
+
+    <div class="bullet">
+      <strong data-i18n="a1_en">Arrive early — lines move fast, and weigh-ins don’t wait.</strong>
+      <div class="es" data-i18n="a1_sp">Llegue temprano — las filas avanzan rápido y el pesaje no espera.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a2_en">Doors usually open around 6:30–7:00 AM — be ready.</strong>
+      <div class="es" data-i18n="a2_sp">Las puertas suelen abrir entre 6:30–7:00 AM — esté listo.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a3_en">Missing weigh-ins means NO wrestling — no exceptions.</strong>
+      <div class="es" data-i18n="a3_sp">Perder el pesaje significa NO luchar — sin excepciones.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a4_en">Athletes should eat light and hydrate properly before weighing in.</strong>
+      <div class="es" data-i18n="a4_sp">Los atletas deben comer ligero e hidratarse adecuadamente antes de pesarse.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a5_en">Bring all gear: shoes, headgear, singlet, warm-ups, water, towel.</strong>
+      <div class="es" data-i18n="a5_sp">Traiga todo el equipo: zapatos, careta, uniforme, calentadores, agua y toalla.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a6_en">Parents cannot coach matside — only certified coaches allowed.</strong>
+      <div class="es" data-i18n="a6_sp">Los padres no pueden entrenar — solo entrenadores certificados.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a7_en">Athletes must stay with the team — not in the stands.</strong>
+      <div class="es" data-i18n="a7_sp">Los atletas deben permanecer con el equipo — no en las gradas.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a8_en">Expect a full-day event — bring snacks, water, and patience.</strong>
+      <div class="es" data-i18n="a8_sp">Espere un evento de todo el día — traiga bocadillos, agua y paciencia.</div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- SECTION B — DURING THE TOURNAMENT -->
+  <!-- ========================= -->
+  <section class="section panel">
+    <h2 data-i18n="secB">8 Things to Expect During the Tournament</h2>
+
+    <div class="bullet">
+      <strong data-i18n="b1_en">Matches run on rolling mats — no fixed times.</strong>
+      <div class="es" data-i18n="b1_sp">Las luchas corren continuamente — sin horarios fijos.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b2_en">Athletes warm up more than once — they must stay loose.</strong>
+      <div class="es" data-i18n="b2_sp">Los atletas calientan varias veces — deben mantenerse sueltos.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b3_en">Coaches corner the match — parents cheer from the stands.</strong>
+      <div class="es" data-i18n="b3_sp">Los entrenadores acompañan la lucha — los padres animan desde las gradas.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b4_en">Long gaps between matches are normal — be ready for downtime.</strong>
+      <div class="es" data-i18n="b4_sp">Los descansos largos entre luchas son normales — prepárese para esperar.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b5_en">Athletes must monitor their mat number and be alert.</strong>
+      <div class="es" data-i18n="b5_sp">Los atletas deben monitorear su número de tapiz y estar atentos.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b6_en">Wrestlers should eat small snacks between rounds — not full meals.</strong>
+      <div class="es" data-i18n="b6_sp">Los atletas deben comer bocadillos ligeros entre rondas — no comidas completas.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b7_en">Coaches may direct athletes to rest, hydrate, or reset mentally.</strong>
+      <div class="es" data-i18n="b7_sp">Los entrenadores indicarán cuándo descansar, hidratarse o concentrarse.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b8_en">Stay nearby — matches can be called with little warning.</strong>
+      <div class="es" data-i18n="b8_sp">Manténgase cerca — las luchas pueden llamarse con poca anticipación.</div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- SECTION C — AFTER THE TOURNAMENT -->
+  <!-- ========================= -->
+  <section class="section panel">
+    <h2 data-i18n="secC">8 Things That Happen After Wrestling</h2>
+
+    <div class="bullet">
+      <strong data-i18n="c1_en">Athletes shake hands with opponents and officials.</strong>
+      <div class="es" data-i18n="c1_sp">Los atletas saludan al oponente y a los oficiales.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c2_en">Coaches debrief each match privately with the athlete.</strong>
+      <div class="es" data-i18n="c2_sp">Los entrenadores analizan cada lucha en privado con el atleta.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c3_en">Wrestlers must cool down and stretch before leaving.</strong>
+      <div class="es" data-i18n="c3_sp">Los atletas deben enfriarse y estirar antes de irse.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c4_en">Skin checks may happen again after the event.</strong>
+      <div class="es" data-i18n="c4_sp">Puede haber otra revisión de piel después del evento.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c5_en">Some tournaments award medals once brackets are complete.</strong>
+      <div class="es" data-i18n="c5_sp">Algunos torneos entregan medallas al finalizar cada llave.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c6_en">Parents may take photos — but not matside.</strong>
+      <div class="es" data-i18n="c6_sp">Los padres pueden tomar fotos — pero no al borde del tapiz.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c7_en">Team stays until all athletes are finished unless coach approves.</strong>
+      <div class="es" data-i18n="c7_sp">El equipo se queda hasta que todos los atletas terminen, a menos que el entrenador lo autorice.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c8_en">Post-event recovery matters — rest, food, hydration.</strong>
+      <div class="es" data-i18n="c8_sp">La recuperación es importante — descanso, comida e hidratación.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Lompoc HS Wrestling • Tournament Information Page
+</footer>
+
+<script>
+  const dict={
+    en:{
+      title:"Tournament Weekend Guide",
+      secA:"8 Things to Know Before You Arrive",
+      secB:"8 Things to Expect During the Tournament",
+      secC:"8 Things That Happen After Wrestling"
+    },
+    sp:{
+      title:"Guía del Fin de Semana del Torneo",
+      secA:"8 Cosas que Debe Saber Antes de Llegar",
+      secB:"8 Cosas que Esperar Durante el Torneo",
+      secC:"8 Cosas que Pasan Después de la Lucha"
+    }
+  };
+
+  const btns=document.querySelectorAll(".lang-btn");
+
+  function setLang(lang){
+    btns.forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+    const pack=dict[lang]||dict.en;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key=el.getAttribute("data-i18n");
+      if (pack[key]) el.textContent=pack[key];
+    });
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener("click",()=>setLang(btn.dataset.lang));
+  });
+
+  setLang("en");
+</script>
+
+</body>
+</html>

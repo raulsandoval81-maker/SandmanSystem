@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach Tools | Weekly & Monthly View</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#0f141b; color:#f3f4f6; margin:0; padding:0; }
+    header { background:#121821; padding:1rem; border-bottom:2px solid #ffd633; }
+    header h1 { margin:0; font-size:1.5rem; color:#ffd633; }
+    nav { margin-top:.5rem; }
+    nav button { background:#263142; border:1px solid #3a4a60; color:#e6e8eb; padding:.5rem 1rem; margin-right:.5rem; border-radius:6px; cursor:pointer; }
+    nav button.active { background:#ffd633; color:#111; font-weight:bold; }
+
+    main { padding:1rem; }
+    .calendar { display:grid; grid-template-columns: repeat(7, 1fr); gap:.5rem; margin-top:1rem; }
+    .day { background:#1a1f29; padding:.5rem; border-radius:8px; min-height:100px; }
+    .day h3 { margin-top:0; font-size:.9rem; color:#ffd633; }
+    .event { background:#243041; padding:.25rem .5rem; border-radius:4px; margin:.25rem 0; font-size:.85rem; cursor:pointer; }
+    .event.practice { border-left:3px solid #4caf50; }
+    .event.tournament { border-left:3px solid #ff4d4d; }
+    .event.volunteer { border-left:3px solid #ffd633; }
+
+    .drawer { position:fixed; right:0; top:0; bottom:0; width:320px; background:#121821; box-shadow:-2px 0 10px rgba(0,0,0,0.5); padding:1rem; display:none; flex-direction:column; }
+    .drawer h2 { margin-top:0; color:#ffd633; }
+    .drawer label { display:block; margin-top:.5rem; }
+    .drawer input, .drawer select, .drawer textarea { width:100%; padding:.25rem; margin-top:.25rem; border-radius:4px; border:1px solid #3a4a60; background:#1a1f29; color:#f3f4f6; }
+    .drawer button { margin-top:1rem; background:#ffd633; border:none; padding:.5rem; font-weight:bold; cursor:pointer; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Coach Tools</h1>
+    <nav>
+      <button id="weeklyBtn" class="active">Weekly</button>
+      <button id="monthlyBtn">Monthly</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="weeklyView">
+      <h2>Weekly View (Next 6 Weeks)</h2>
+      <div class="calendar">
+        <!-- Example week days -->
+        <div class="day">
+          <h3>Mon</h3>
+          <div class="event practice" onclick="openDrawer('practice')">Practice – Team A</div>
+        </div>
+        <div class="day">
+          <h3>Sat</h3>
+          <div class="event tournament" onclick="openDrawer('tournament')">Tournament – City Open</div>
+        </div>
+        <div class="day">
+          <h3>Sun</h3>
+          <div class="event volunteer" onclick="openDrawer('volunteer')">Volunteer – Fundraiser</div>
+        </div>
+        <!-- WEEKLY -->
+<section class="coach-week">
+  <div class="week-header">
+    <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+  </div>
+
+  <!-- Repeat .week-grid 6x to show six weeks forward -->
+  <div class="week-grid">
+    <!-- 7 day cells -->
+    <div class="day"><span class="date">Nov 3</span><div class="tag practice">Practice 5–6p</div></div>
+    <div class="day"><span class="date">Nov 4</span></div>
+    <div class="day"><span class="date">Nov 5</span></div>
+    <div class="day"><span class="date">Nov 6</span></div>
+    <div class="day"><span class="date">Nov 7</span></div>
+    <div class="day"><span class="date">Nov 8</span><div class="tag tourney">Tourney</div></div>
+    <div class="day"><span class="date">Nov 9</span></div>
+  </div>
+  <!-- …repeat 5 more .week-grid blocks … -->
+</section>
+
+      </div>
+    </section>
+
+    <section id="monthlyView" style="display:none;">
+      <h2>Monthly View (3 Months)</h2>
+      <div class="calendar">
+        <!-- Simplified example grid -->
+        <div class="day"><h3>1</h3></div>
+        <div class="day"><h3>2</h3><div class="event practice" onclick="openDrawer('practice')">Practice</div></div>
+        <div class="day"><h3>3</h3><div class="event tournament" onclick="openDrawer('tournament')">Tournament</div></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Drawers -->
+  <div id="practiceDrawer" class="drawer">
+    <h2>Practice Attendance</h2>
+    <label>Team Roster</label>
+    <textarea placeholder="Mark attendance here..."></textarea>
+    <button onclick="closeDrawer('practiceDrawer')">Save Attendance</button>
+  </div>
+
+  <div id="tournamentDrawer" class="drawer">
+    <h2>Tournament Log</h2>
+    <label>Athlete</label>
+    <input type="text" placeholder="Name" />
+    <label>Result</label>
+    <select><option>Show</option><option>Place</option><option>Style IQ</option></select>
+    <button onclick="closeDrawer('tournamentDrawer')">Save Tournament XP</button>
+  </div>
+
+  <div id="volunteerDrawer" class="drawer">
+    <h2>Volunteer Signups</h2>
+    <p>Approve parent/community volunteers here.</p>
+    <button onclick="closeDrawer('volunteerDrawer')">Close</button>
+  </div>
+
+  <script>
+    const weeklyBtn = document.getElementById('weeklyBtn');
+    const monthlyBtn = document.getElementById('monthlyBtn');
+    const weeklyView = document.getElementById('weeklyView');
+    const monthlyView = document.getElementById('monthlyView');
+
+    weeklyBtn.onclick = () => {
+      weeklyBtn.classList.add('active');
+      monthlyBtn.classList.remove('active');
+      weeklyView.style.display = 'block';
+      monthlyView.style.display = 'none';
+    };
+    monthlyBtn.onclick = () => {
+      monthlyBtn.classList.add('active');
+      weeklyBtn.classList.remove('active');
+      monthlyView.style.display = 'block';
+      weeklyView.style.display = 'none';
+    };
+
+    function openDrawer(type) {
+      document.getElementById(type+'Drawer').style.display = 'flex';
+    }
+    function closeDrawer(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+  </script>
+</body>
+</html>

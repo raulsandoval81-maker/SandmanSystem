@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Live Match Viewer</title>
+  <link rel="stylesheet" href="match.css">
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="match-header">
+  <h1 id="eventTitle">Live Match</h1>
+  <div class="bout-info">
+    Bout <span id="boutNum">—</span> · Mat <span id="matNum">—</span>
+  </div>
+</div>
+
+<!-- ================= NAMES + SCORES ================= -->
+<div class="ath-row">
+
+  <div class="ath-card red-card">
+    <div class="ath-name" id="redName">Red Wrestler</div>
+    <div class="ath-score" id="redScore">0</div>
+  </div>
+
+  <div class="ath-card green-card">
+    <div class="ath-name" id="greenName">Green Wrestler</div>
+    <div class="ath-score" id="greenScore">0</div>
+  </div>
+
+</div>
+
+<!-- ================= CLOCK / PERIOD ================= -->
+<div class="period-clock">
+  <div class="period-box">Period <span id="periodNum">1</span></div>
+  <div class="clock-box" id="clock">2:00</div>
+</div>
+<!-- =========== VIDEO PLAYER =========== -->
+<div id="videoWrap">
+  <video id="liveVideo" playsinline controls></video>
+</div>
+
+<!-- ================= MOMENTUM ================= -->
+<div id="momentumWrap">
+  <div id="momentumRed"></div>
+  <div id="momentumGreen"></div>
+</div>
+
+<!-- ================= ACTION FEED ================= -->
+<div class="feed-title">Action Feed</div>
+
+<div id="actionFeed"></div>
+
+<!-- SCRIPT -->
+<script type="module" src="match.js"></script>
+
+</body>
+</html>

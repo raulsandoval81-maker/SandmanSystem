@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>XP ID Write Test</title>
+  <style>
+    body{font:16px/1.45 system-ui,sans-serif;padding:20px;max-width:800px;margin:auto}
+    input,select,button{padding:8px;margin:4px}
+    code{background:#f6f8fa;padding:2px 4px;border:1px solid #e1e4e8;border-radius:4px}
+    #log{white-space:pre-wrap;background:#f7f7f7;border:1px solid #ddd;padding:12px;margin-top:12px}
+  </style>
+</head>
+<body>
+  <h1>XP ID Write Test</h1>
+  <p>This writes an XP log with <code>athleteId</code> (zero-padded) and <code>displayName</code>, then reads the last 3 logs for that athlete.</p>
+
+  <div>
+    <label>Name</label>
+    <input id="athleteName" placeholder="e.g., Sandoval" />
+
+    <label>ID (optional)</label>
+    <input id="athleteId" placeholder="digits or A000123 (auto-pads if digits)" />
+
+    <label>Sport</label>
+    <input id="sport" placeholder="e.g., wrestling" />
+
+    <label>Category</label>
+    <select id="category">
+      <option>Technique</option>
+      <option>Conditioning</option>
+      <option>Application</option>
+      <option>Discipline</option>
+    </select>
+
+    <label>+XP</label>
+    <input id="xp" type="number" placeholder="e.g., 50" />
+
+    <button id="addXpBtn">Add XP</button>
+    <button id="loadTotalBtn">Load Total</button>
+  </div>
+
+  <div id="status" style="margin-top:8px;color:#0a0"></div>
+  <div><strong>Total XP:</strong> <span id="totalXp">0</span></div>
+  <div id="log">Logs will appear here…</div>
+
+  <!-- If this file lives in /public/tests/, this path is correct. If it's in /public/, change to "./assets/js/firebase-init.js" -->
+  <script type="module">
+    import "../assets/js/firebase-init.js";
+    import {
+      db, collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp
+    } from "../assets/js/firebase-init.js";
+
+    const DEV_KEY = "SANDBOX123";
+    const $ = (id)=>document.getElementById(id);
+    const nameEl=$("athleteName"), idEl=$("athleteId"), sportEl=$("sport"),
+          catEl=$("category"), xpEl=$("xp"),
+          addBtn=$("addXpBtn"), loadBtn=$("loadTotalBtn"),
+          statusEl=$("status"), totalEl=$("totalXp"), logEl=$("log");
+
+    function toAthleteId(input){
+      const s = String(input||"").trim();
+      if (/^A\d{6,7}$/.test(s)) return s;           // already A000123 format
+      const num = s.replace(/\D/g,"");
+      return "A" + num.padStart(6,"0");             // A000001 .. A9999999
+    }
+    const ok = (m)=> statusEl.textContent = m;
+
+    // --- WRITE ---
+    addBtn.addEventListener("click", async ()=>{
+      const displayName = (nameEl.value||"").trim();
+      const rawId = (idEl.value||displayName);
+      const athleteId = toAthleteId(rawId);
+      const sport = (sportEl.value||"").trim().toLowerCase();
+      const category = (catEl.value||"").trim();
+      const pts = parseInt(xpEl.value||"0",10);
+
+      if (!displayName || !pts){ ok("⚠️ Name and +XP required."); return; }
+
+      try{
+        await addDoc(collection(db,"athletes", athleteId, "xp_logs"),{
+          athleteId,            // ✅ stored
+          displayName,          // ✅ stored
+          sport, category,
+          xp: pts,
+          createdAt: serverTimestamp(),
+          devKey: DEV_KEY
+        });
+        ok(`✅ Saved for ${displayName} (${athleteId}).`);
+        xpEl.value = "";
+        await loadTotal();      // refresh after write
+        await showRecent(athleteId);
+      }catch(e){
+        console.warn(e);
+        ok("❌ Save failed (see console).");
+      }
+    });
+
+    // --- READ TOTAL ---
+    async function loadTotal(){
+      const displayName = (nameEl.value||"").trim();
+      const rawId = (idEl.value||displayName);
+      const athleteId = toAthleteId(rawId);
+      if (!athleteId){ ok("⚠️ Enter name/ID first."); return; }
+
+      let total=0;
+      try{
+        const snap = await getDocs(query(
+          collection(db,"athletes",athleteId,"xp_logs"),
+          orderBy("createdAt","desc")
+        ));
+        snap.forEach(d=> total += +(d.data().xp||0));
+      }catch(e){
+        console.warn(e);
+        ok("❌ Load failed.");
+      }
+      totalEl.textContent = String(total);
+      ok("📊 Total loaded.");
+    }
+    loadBtn.addEventListener("click", loadTotal);
+
+    // --- SHOW LAST 3 DOCS FOR VERIFICATION ---
+    async function showRecent(athleteId){
+      const snap = await getDocs(query(
+        collection(db,"athletes",athleteId,"xp_logs"),
+        orderBy("createdAt","desc"),
+        limit(3)
+      ));
+      const rows=[];
+      snap.forEach(d=> rows.push(d.data()));
+      logEl.textContent = JSON.stringify(rows, null, 2);
+    }
+  </script>
+</body>
+</html>

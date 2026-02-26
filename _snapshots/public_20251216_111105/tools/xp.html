@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XP Tracker — Sandman System</title>
+  <style>
+    :root { --bg:#111; --panel:#1b1b1b; --panel2:#222; --text:#eee; --muted:#a9a9a9; --accent:#ffd700; }
+    * { box-sizing: border-box; }
+    body { margin:0; padding:24px; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    h1 { margin:0 0 12px; }
+    .wrap { max-width: 980px; margin: 0 auto; }
+    .grid { display:grid; grid-template-columns: 1fr 1fr; gap:16px; }
+    @media (max-width: 900px){ .grid{ grid-template-columns: 1fr; } }
+    .card { background:var(--panel); border:1px solid #2a2a2a; border-radius:12px; padding:16px; }
+    label { display:block; font-weight:700; margin:10px 0 6px; }
+    input, select, button { width:100%; padding:10px 12px; border-radius:10px; border:1px solid #333; background:#0f0f0f; color:var(--text); }
+    button { cursor:pointer; font-weight:800; letter-spacing:.2px; }
+    button.primary { background:var(--accent); color:#222; border-color:#6d5f00; }
+    button:disabled{ opacity:.6; cursor:not-allowed; }
+    .row { display:flex; gap:10px; flex-wrap:wrap; }
+    .row > * { flex:1 1 220px; }
+    .stack { display:flex; gap:8px; flex-wrap:wrap; }
+    .pill { display:inline-block; padding:6px 10px; border:1px solid #333; border-radius:999px; background:#121212; color:var(--muted); font-size:.85rem; }
+    .muted { color:var(--muted); }
+    #xpFeed, #totalsFeed { display:grid; gap:10px; }
+    .xp-row, .total-row { background:var(--panel2); border:1px solid #2a2a2a; border-radius:10px; padding:10px 12px; line-height:1.3; }
+    .micro { font-size:.8rem; color:var(--muted); }
+    .date-divider{margin:6px 0 2px;color:#a9a9a9;font-size:.85rem;border-top:1px solid #2a2a2a;padding-top:6px}
+    .chip{display:inline-block;padding:2px 8px;border:1px solid #333;border-radius:999px;background:#121212;font-size:.8rem;margin-left:6px}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Sandman Combat XP Tracker</h1>
+    <p class="muted">Writes to Firestore collection <code>xpLogs</code>. Keep link private while rules are open.</p>
+
+    <div class="grid">
+      <!-- LEFT: Controls & Recent -->
+      <div class="card">
+        <div class="row">
+          <div>
+            <label for="athleteName">Athlete</label>
+            <input id="athleteName" placeholder="e.g., Maximus" />
+          </div>
+          <div>
+            <label for="category">Category</label>
+            <select id="category">
+              <option value="Stance">Stance</option>
+              <option value="Striking">Striking</option>
+              <option value="Grappling">Grappling</option>
+              <option value="Conditioning">Conditioning</option>
+              <option value="Discipline">Discipline</option>
+              <option value="Character">Character</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Quick-pick names -->
+        <label>Quick pick</label>
+        <div id="quickNames" class="stack">
+          <button class="pill" data-name="Maximus">Maximus</button>
+          <button class="pill" data-name="Sandoval">Sandoval</button>
+          <button class="pill" data-name="Ava">Ava</button>
+          <button class="pill" data-name="Kai">Kai</button>
+          <button class="pill" data-name="Maya">Maya</button>
+        </div>
+
+        <!-- Actions -->
+        <div class="row" style="margin-top:12px">
+          <button id="addXPBtn" class="primary">+10 XP</button>
+          <button id="loadLatestBtn">Load Latest (10)</button>
+        </div>
+
+        <!-- Recent logs -->
+        <div style="margin-top:14px">
+          <div class="pill">Recent (10)</div>
+          <div id="xpFeed" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Totals -->
+      <div class="card">
+        <div class="row" style="align-items:center">
+          <h2 style="margin:0; font-size:1.1rem">Totals (last 200 logs)</h2>
+          <span class="pill">read-only</span>
+        </div>
+        <div id="totalsFeed" style="margin-top:10px"></div>
+      </div>
+    </div>
+
+    <!-- XP HISTORY (Timeline) — SINGLE BLOCK -->
+    <div class="card" id="historyCard" style="margin-top:16px">
+      <div class="row" style="align-items:center">
+        <h2 style="margin:0; font-size:1.1rem">XP History (Timeline)</h2>
+        <span class="pill">live</span>
+      </div>
+
+      <div class="row" style="margin-top:10px">
+        <div>
+          <label for="histAthlete">Filter by athlete (optional)</label>
+          <input id="histAthlete" placeholder="e.g., Maximus" />
+        </div>
+        <div>
+          <label for="histLimit">How many entries</label>
+          <select id="histLimit">
+            <option value="25">25</option>
+            <option value="50" selected>50</option>
+            <option value="100">100</option>
+          </select>
+        </div>
+        <div style="display:flex;align-items:flex-end">
+          <button id="histLoadBtn">Load History</button>
+        </div>
+      </div>
+
+      <div id="historyFeed" style="margin-top:12px; display:grid; gap:10px"></div>
+    </div>
+  </div>
+
+  <!-- Firebase + XP logic (single module) -->
+  <script type="module">
+    // -------- Firebase ESM imports --------
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, addDoc, serverTimestamp,
+      query, orderBy, limit, where, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    // -------- Config --------
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "sandmandashboard.firebaseapp.com",
+      projectId: "sandmandashboard",
+      storageBucket: "sandmandashboard.appspot.com",
+      messagingSenderId: "889326401061",
+      appId: "1:889326401061:web:xxxxxxxxxxxxxxxx"
+    };
+
+    // -------- Initialize --------
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // -------- UI refs --------
+    const nameInput = document.querySelector('#athleteName');
+    const catSelect = document.querySelector('#category');
+    const addBtn    = document.querySelector('#addXPBtn');
+    const loadBtn   = document.querySelector('#loadLatestBtn');
+    const feed      = document.querySelector('#xpFeed');
+    const totals    = document.querySelector('#totalsFeed');
+
+    // History refs (single set)
+    const histAthlete = document.querySelector('#histAthlete');
+    const histLimit   = document.querySelector('#histLimit');
+    const histBtn     = document.querySelector('#histLoadBtn');
+    const histFeed    = document.querySelector('#historyFeed');
+
+    // Quick-pick names
+    document.querySelectorAll('#quickNames [data-name]').forEach(b=>{
+      b.addEventListener('click', ()=>{
+        nameInput.value = b.getAttribute('data-name');
+        nameInput.focus();
+      });
+    });
+
+    const QUICK_XP = 10;
+    const MAX_XP   = 50;
+
+    function rowHTML({ athlete, category, xp, createdAt }) {
+      const when = createdAt?.toDate ? createdAt.toDate().toLocaleString() : '—';
+      const sign = xp > 0 ? `+${xp}` : xp;
+      return `<div class="xp-row"><strong>${athlete}</strong> — ${category} • ${sign} XP<div class="micro">${when}</div></div>`;
+    }
+
+    // ADD XP (single write — duplication fixed)
+    async function addXP() {
+      const athlete = (nameInput.value || '').trim();
+      const category = catSelect.value;
+      if (!athlete) { alert('Enter an athlete name'); nameInput.focus(); return; }
+      if (Math.abs(QUICK_XP) > MAX_XP) { alert('XP too large for quick add'); return; }
+
+      addBtn.disabled = true;
+      const old = addBtn.textContent;
+      try {
+        await addDoc(collection(db, 'xpLogs'), {
+          athlete,
+          athleteLower: athlete.toLowerCase(),
+          category,
+          xp: QUICK_XP,
+          createdAt: serverTimestamp()
+        });
+
+        addBtn.textContent = 'Saved!';
+        setTimeout(()=> addBtn.textContent = old, 800);
+        nameInput.value = '';
+        await loadLatest();
+        await loadTotals();
+      } catch (err) {
+        console.error('Add XP failed:', err);
+        alert('Could not save XP (see console).');
+      } finally {
+        addBtn.disabled = false;
+      }
+    }
+
+    // LATEST (10)
+    async function loadLatest() {
+      feed.innerHTML = '<div class="micro">Loading…</div>';
+      try {
+        const q = query(collection(db, 'xpLogs'), orderBy('createdAt','desc'), limit(10));
+        const snap = await getDocs(q);
+        const items = [];
+        snap.forEach(doc => items.push(doc.data()));
+        feed.innerHTML = items.length ? items.map(rowHTML).join('') : '<div class="micro">No logs yet.</div>';
+      } catch (err) {
+        console.error('Load latest failed:', err);
+        feed.innerHTML = '<div class="micro">Error loading logs.</div>';
+      }
+    }
+
+    // TOTALS (simple summary of last 200)
+    async function loadTotals() {
+      totals.innerHTML = '<div class="micro">Loading…</div>';
+      try {
+        const q = query(collection(db, 'xpLogs'), orderBy('createdAt','desc'), limit(200));
+        const snap = await getDocs(q);
+        const map = new Map(); // athlete -> total XP
+        snap.forEach(d => {
+          const x = d.data();
+          const key = x.athlete || 'Unknown';
+          map.set(key, (map.get(key) || 0) + (x.xp || 0));
+        });
+        const list = [...map.entries()]
+          .sort((a,b) => b[1]-a[1])
+          .map(([name,total]) => `<div class="total-row"><strong>${name}</strong> — ${total} XP</div>`)
+          .join('');
+        totals.innerHTML = list || "<div class='micro'>No data</div>";
+      } catch (err) {
+        console.error('Load totals failed:', err);
+        totals.innerHTML = "<div class='micro'>Error loading</div>";
+      }
+    }
+
+    // HISTORY (filterable)
+    function dayKey(ts){
+      const d = ts?.toDate ? ts.toDate() : new Date();
+      return d.toISOString().slice(0,10); // yyyy-mm-dd
+    }
+    function formatWhen(ts){
+      return ts?.toDate ? ts.toDate().toLocaleString() : '—';
+    }
+    function renderHistory(docs){
+      if (!docs.length) { histFeed.innerHTML = '<div class="micro">No history for this athlete.</div>'; return; }
+      const byDay = new Map();
+      docs.forEach(d => {
+        const data = d.data();
+        const key = dayKey(data.createdAt);
+        if (!byDay.has(key)) byDay.set(key, []);
+        byDay.get(key).push(data);
+      });
+      const html = [...byDay.entries()]
+        .sort((a,b) => a[0] < b[0] ? 1 : -1)
+        .map(([day, rows]) => {
+          const rowsHtml = rows
+            .sort((a,b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0))
+            .map(r => `
+              <div class="xp-row">
+                <strong>${r.athlete}</strong> — ${r.category} • +${r.xp} XP
+                <div class="micro">${formatWhen(r.createdAt)}</div>
+              </div>
+            `).join('');
+          return `<div class="total-row"><strong>${day}</strong></div>${rowsHtml}`;
+        }).join('');
+      histFeed.innerHTML = html;
+    }
+    async function loadHistory() {
+      const name = (histAthlete.value || '').trim().toLowerCase();
+      const lim  = parseInt(histLimit.value, 10) || 25;
+      if (!name) { histFeed.innerHTML = '<div class="micro">Enter an athlete name.</div>'; return; }
+      try {
+        histFeed.innerHTML = '<div class="micro">Loading…</div>';
+        const base = collection(db, 'xpLogs');
+        const qy = query(base, where('athleteLower','==', name), orderBy('createdAt','desc'), limit(lim));
+        const snap = await getDocs(qy);
+        renderHistory(snap.docs);
+      } catch (err) {
+        console.error('History load failed:', err);
+        histFeed.innerHTML = '<div class="micro">Error loading history.</div>';
+      }
+    }
+
+    // Hooks
+    addBtn.addEventListener('click', addXP);
+    loadBtn.addEventListener('click', loadLatest);
+    histBtn.addEventListener('click', loadHistory);
+
+    // Auto-load on open
+    await loadLatest();
+    await loadTotals();
+  </script>
+
+  <!-- App bootstrap (keep last) -->
+<!-- Footer include -->
+<!-- Footer include -->
+<div data-include="../assets/includes/footer.html"></div>
+
+<!-- Scripts -->
+<script defer src="../assets/js/site.js"></script>
+<script type="module" src="../assets/js/firebase-init.js"></script>
+
+</body>
+</html>

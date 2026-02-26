@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Match Scoring Sheet</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="./tournament.css" />
+  <style>
+    body {
+      background:#020617;
+      color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap {
+      max-width:900px;
+      margin:0 auto;
+      padding:18px 14px 40px;
+    }
+    .sheet-card{
+      border:2px solid var(--lompoc-gray,#4b5563);
+      border-radius:14px;
+      background:#020617;
+      padding:12px 14px 16px;
+    }
+    .sheet-title{
+      font-size:.9rem;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      margin-bottom:8px;
+      color:#e5e7eb;
+    }
+    .meta-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      font-size:.78rem;
+      margin-bottom:6px;
+    }
+    .meta-field{
+      flex:1;
+      min-width:150px;
+    }
+    .meta-label{
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#9ca3af;
+      margin-bottom:2px;
+    }
+    .meta-line{
+      border-bottom:1px solid #4b5563;
+      min-height:16px;
+    }
+    .vs-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin:6px 0 10px;
+      font-size:.85rem;
+    }
+    .vs-team{
+      flex:1;
+    }
+    .vs-team span.label{
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#9ca3af;
+      display:block;
+      margin-bottom:2px;
+    }
+    .vs-team .line{
+      border-bottom:1px solid #4b5563;
+      min-height:18px;
+    }
+    .vs-center{
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#9ca3af;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-width:60px;
+    }
+
+    table.period-table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.75rem;
+      margin-bottom:10px;
+    }
+    table.period-table th,
+    table.period-table td{
+      border:1px solid #1f2937;
+      padding:3px 4px;
+      vertical-align:top;
+    }
+    table.period-table th{
+      background:#020617;
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#9ca3af;
+    }
+    .col-period{
+      width:70px;
+      text-align:center;
+    }
+    .col-choice{
+      width:130px;
+    }
+    .choice-block{
+      font-size:.7rem;
+      line-height:1.3;
+    }
+    .choice-row{
+      display:flex;
+      justify-content:space-between;
+    }
+    .choice-row span{
+      white-space:nowrap;
+    }
+    .notes-box{
+      min-height:40px;
+      font-size:.72rem;
+    }
+    .score-box{
+      min-height:40px;
+      font-size:.72rem;
+    }
+    .legend{
+      font-size:.7rem;
+      color:#9ca3af;
+      margin-bottom:8px;
+    }
+    .legend strong{
+      color:#e5e7eb;
+    }
+
+    .ot-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:8px;
+      font-size:.75rem;
+      margin-bottom:8px;
+    }
+    .ot-card{
+      border:1px solid #1f2937;
+      border-radius:8px;
+      padding:6px;
+    }
+    .ot-title{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:#9ca3af;
+      margin-bottom:4px;
+    }
+    .ot-line{
+      border-bottom:1px solid #374151;
+      min-height:18px;
+      margin-bottom:4px;
+    }
+    .ot-choice{
+      font-size:.7rem;
+      color:#9ca3af;
+      margin-bottom:4px;
+    }
+
+    .footer-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      font-size:.72rem;
+      margin-top:6px;
+    }
+    .footer-field{
+      flex:1;
+      min-width:160px;
+    }
+    @media print{
+      body{background:#fff;color:#000;}
+      .sheet-card{border-color:#000;background:#fff;}
+      table.period-table th{background:#f9fafb;color:#111827;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="sheet-card">
+      <div class="sheet-title">Match Scoring Sheet</div>
+
+      <!-- META -->
+      <div class="meta-row">
+        <div class="meta-field">
+          <div class="meta-label">Event</div>
+          <div class="meta-line"></div>
+        </div>
+        <div class="meta-field" style="max-width:120px;">
+          <div class="meta-label">Bout #</div>
+          <div class="meta-line"></div>
+        </div>
+        <div class="meta-field" style="max-width:120px;">
+          <div class="meta-label">Mat</div>
+          <div class="meta-line"></div>
+        </div>
+        <div class="meta-field" style="max-width:120px;">
+          <div class="meta-label">Weight</div>
+          <div class="meta-line"></div>
+        </div>
+      </div>
+
+      <div class="vs-row">
+        <div class="vs-team">
+          <span class="label">Red / Home Wrestler</span>
+          <div class="line"></div>
+          <div style="margin-top:2px;font-size:.7rem;color:#9ca3af;">
+            Team: __________________________________
+          </div>
+        </div>
+        <div class="vs-center">vs</div>
+        <div class="vs-team">
+          <span class="label">Green / Away Wrestler</span>
+          <div class="line"></div>
+          <div style="margin-top:2px;font-size:.7rem;color:#9ca3af;">
+            Team: __________________________________
+          </div>
+        </div>
+      </div>
+
+      <!-- LEGEND -->
+      <div class="legend">
+        <strong>Legend:</strong> T2 = Takedown, E1 = Escape, R2 = Reversal, N2/N3/N4 = Nearfall,
+        P1 = Penalty, C = Caution. Record running score by period.
+      </div>
+
+      <!-- PERIODS -->
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th class="col-period">Period</th>
+            <th class="col-choice">Choice / Start Position</th>
+            <th>Scoring Notes (time & action)</th>
+            <th>Running Score (Red / Green)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-period">1st</td>
+            <td class="col-choice">
+              <div class="choice-block">
+                <div class="choice-row">
+                  <span>Start:</span>
+                  <span>Neutral ☐</span>
+                </div>
+                <div class="choice-row">
+                  <span>Red:</span>
+                  <span>Top ☐ Bottom ☐</span>
+                </div>
+                <div class="choice-row">
+                  <span>Green:</span>
+                  <span>Top ☐ Bottom ☐</span>
+                </div>
+              </div>
+            </td>
+            <td class="notes-box"></td>
+            <td class="score-box"></td>
+          </tr>
+          <tr>
+            <td class="col-period">2nd</td>
+            <td class="col-choice">
+              <div class="choice-block">
+                <div style="margin-bottom:2px;">Choice: Red ☐ Green ☐ Defer ☐</div>
+                <div class="choice-row">
+                  <span>Selected:</span>
+                  <span>Top ☐ Bottom ☐ Neutral ☐</span>
+                </div>
+              </div>
+            </td>
+            <td class="notes-box"></td>
+            <td class="score-box"></td>
+          </tr>
+          <tr>
+            <td class="col-period">3rd</td>
+            <td class="col-choice">
+              <div class="choice-block">
+                <div style="margin-bottom:2px;">Choice: Red ☐ Green ☐</div>
+                <div class="choice-row">
+                  <span>Selected:</span>
+                  <span>Top ☐ Bottom ☐ Neutral ☐</span>
+                </div>
+              </div>
+            </td>
+            <td class="notes-box"></td>
+            <td class="score-box"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <!-- OVERTIME BLOCKS -->
+      <div class="legend">
+        <strong>Overtime:</strong> Use as needed for tied matches.
+      </div>
+      <div class="ot-grid">
+        <div class="ot-card">
+          <div class="ot-title">Sudden Victory (SV)</div>
+          <div class="ot-choice">
+            Start: Neutral ☐ &nbsp;&nbsp; Red ☐ &nbsp; Green ☐
+          </div>
+          <div class="ot-line"></div>
+          <div class="ot-line"></div>
+        </div>
+        <div class="ot-card">
+          <div class="ot-title">TB1 (Red on bottom)</div>
+          <div class="ot-choice">
+            Start: Red ☐ Top ☐ Bottom ☐ &nbsp; Green ☐ Top ☐ Bottom ☐
+          </div>
+          <div class="ot-line"></div>
+          <div class="ot-line"></div>
+        </div>
+        <div class="ot-card">
+          <div class="ot-title">TB2 (Green on bottom)</div>
+          <div class="ot-choice">
+            Start: Red ☐ Top ☐ Bottom ☐ &nbsp; Green ☐ Top ☐ Bottom ☐
+          </div>
+          <div class="ot-line"></div>
+          <div class="ot-line"></div>
+        </div>
+        <div class="ot-card">
+          <div class="ot-title">Ultimate Tiebreaker</div>
+          <div class="ot-choice">
+            Choice: Red ☐ Top ☐ Bottom ☐ &nbsp; Green ☐ Top ☐ Bottom ☐
+          </div>
+          <div class="ot-line"></div>
+          <div class="ot-line"></div>
+        </div>
+      </div>
+
+      <!-- FINAL SCORE + SIGNATURES -->
+      <div class="footer-row">
+        <div class="footer-field">
+          Final Score Red: ____________ &nbsp;&nbsp; Green: ____________
+        </div>
+        <div class="footer-field">
+          Winner: ______________________________________
+        </div>
+      </div>
+      <div class="footer-row" style="margin-top:4px;">
+        <div class="footer-field">
+          Referee: _____________________________________
+        </div>
+        <div class="footer-field">
+          Timekeeper / Scorer: _________________________
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

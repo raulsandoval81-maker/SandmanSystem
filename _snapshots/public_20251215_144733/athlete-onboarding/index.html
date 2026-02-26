@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete Onboarding — Sandman Systems</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <link rel="stylesheet" href="./onboarding.css"/>
+  <link rel="stylesheet" href="../intake-shared/shared.css"/>
+
+  <style>
+    body{
+      background:#07080a;
+      color:#f2f2f2;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    }
+    .wrap{
+      max-width:480px;
+      margin:0 auto;
+      padding:40px 20px;
+    }
+    h1{
+      margin-top:0;
+      font-size:1.9rem;
+      color:#ffe380;
+      text-align:center;
+    }
+    .card{
+      background:#111318;
+      padding:24px;
+      border-radius:12px;
+      border:1px solid #222;
+      margin-bottom:24px;
+    }
+    .btn{
+      display:block;
+      width:100%;
+      padding:14px;
+      font-size:1.1rem;
+      margin-top:20px;
+      border-radius:10px;
+      text-align:center;
+      cursor:pointer;
+      font-weight:600;
+    }
+    .solid-gold{
+      background:#ffdd48;
+      color:#000;
+      border:none;
+    }
+    .muted{
+      opacity:.75;
+      font-size:.9rem;
+      text-align:center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main class="wrap">
+
+    <!-- Logo / Header -->
+    <h1>Welcome to Sandman</h1>
+    <p class="muted">Your journey begins here.</p>
+
+    <!-- Confirmation Card -->
+    <div class="card">
+      <h2 style="margin-top:0">You're All Set</h2>
+      <p>
+        Coach has approved your profile.  
+        Tap below to begin athlete onboarding and unlock your tools.
+      </p>
+
+      <button id="btn-start" class="btn solid-gold">Begin Onboarding</button>
+    </div>
+
+    <p class="muted">Built in the Shadows. Staged in the Light.</p>
+
+  </main>
+
+  <script type="module">
+    import { db, doc, getDoc } from "../assets/js/firebase-init.js";
+
+    // Parse ?uid=XXXX
+    const params = new URLSearchParams(window.location.search);
+    const uid = params.get("uid");
+
+    if (!uid) {
+      alert("Missing athlete ID. Please ask your coach for a new link.");
+    }
+
+    document.getElementById("btn-start").addEventListener("click", () => {
+      // Later this becomes: redirect to athlete's personalized onboarding steps
+      window.location.href = `./step-1.html?uid=${uid}`;
+    });
+  </script>
+
+</body>
+</html>

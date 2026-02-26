@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Para-Comms • Schedule / Horario</title>
+
+  <!-- Shared parent/coach toolbar -->
+  <link rel="stylesheet" href="/coach/para/shared/comms.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:22px 14px 40px;
+    }
+
+    /* Sticky top bar */
+    .parent-header{
+      position:sticky;
+      top:0;
+      z-index:40;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      padding:10px 14px;
+      background:#04173a;
+      color:#ffdd48;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      width:100%;
+    }
+
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+
+    .back-btn{
+      border-radius:999px;
+      border:1px solid #1f2937;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:.78rem;
+      padding:4px 12px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-block;
+    }
+    .back-btn:hover{ background:#0b1120; }
+
+    .page-title{
+      margin:0;
+      font-size:.95rem;
+      font-weight:700;
+      color:var(--brand);
+      text-align:center;
+      flex:1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    /* HERO */
+    .hero{
+      margin-top:12px;
+      padding:18px 16px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(150deg,#0a1833 0%,#111c35 45%,#050814 100%);
+      box-shadow:0 8px 22px rgba(0,0,0,.45);
+    }
+    .hero-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .hero-title{
+      margin:0;
+      color:var(--brand);
+      font-size:1.15rem;
+      text-shadow:0 0 6px rgba(255,221,72,.2);
+    }
+    .hero-sub{
+      margin:4px 0 0;
+      font-size:.9rem;
+      color:#e2e8f0;
+    }
+
+    /* Panels */
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin-top:12px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+    h2{
+      margin:.3rem 0 .6rem;
+      color:var(--brand);
+      font-size:1rem;
+    }
+    .small{ color:var(--muted); font-size:.9rem; }
+
+    /* Schedule Table */
+    table.sched{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:8px;
+      font-size:.9rem;
+    }
+    table.sched th,
+    table.sched td{
+      border:1px solid var(--line);
+      padding:6px 8px;
+      text-align:left;
+      vertical-align:middle;
+    }
+    table.sched th{
+      background:#0f1c3a;
+      color:var(--brand);
+    }
+
+    /* Accordion */
+    details.acc{
+      margin-top:8px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#0b162f;
+      padding:6px 10px;
+    }
+    details.acc summary{
+      cursor:pointer;
+      font-weight:700;
+      color:var(--brand);
+      list-style:none;
+    }
+    details.acc summary::-webkit-details-marker{display:none;}
+
+    @media (max-width:640px){
+      .wrap{padding:18px 12px 28px}
+      .hero-title{font-size:1.05rem}
+      .page-title{font-size:.9rem}
+      table.sched{font-size:.82rem;}
+    }
+
+    /* Footer */
+    .footer-hard{
+      margin-top:40px;
+      padding:26px 10px 34px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{
+      max-width:900px;
+      margin:0 auto;
+    }
+    .footer-brand{
+      color:#94a3b8;
+      font-size:.82rem;
+      margin-bottom:12px;
+    }
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px 18px;
+      font-size:.88rem;
+    }
+    .footer-links a{
+      color:#ffdd48;
+      text-decoration:none;
+    }
+    .footer-links a:hover{text-decoration:underline;}
+  </style>
+</head>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="pc-lang" aria-label="Language toggle">
+      <button class="pc-lang-btn active" data-lang="en">EN</button>
+      <button class="pc-lang-btn" data-lang="es">SP</button>
+    </div>
+    <a href="/parent/hub.html" class="pc-home" title="Home">🏠</a>
+  </div>
+
+<body>
+
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand">Lompoc HS Wrestling 2025–26</div>
+    <button class="back-btn" onclick="history.back()">← Back</button>
+  </div>
+</header>
+
+<h1 class="page-title">
+  <span class="en">Braves • Schedule</span>
+  <span class="es">Braves • Horario</span>
+</h1>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-row">
+      <h2 class="hero-title">
+        <span class="en">Schedule / Season Overview</span>
+        <span class="es">Horario / Resumen de Temporada</span>
+      </h2>
+    </div>
+    <p class="hero-sub">
+      <span class="en">Practice times and season dates for Lompoc Wrestling.</span>
+      <span class="es">Horarios de práctica y fechas de temporada para Lompoc Wrestling.</span>
+    </p>
+  </section>
+
+  <!-- Practice Basics -->
+  <section class="panel">
+    <h2>
+      <span class="en">Daily Practice Schedule</span>
+      <span class="es">Horario Diario de Práctica</span>
+    </h2>
+
+    <ul class="en">
+      <li>Practice runs <strong>Monday–Friday</strong> from <strong>3:45 PM to 5:45 PM</strong>.</li>
+      <li>Athletes must arrive <strong>15 minutes early</strong>.</li>
+      <li>Practices are <strong>closed</strong> to parents and spectators.</li>
+    </ul>
+
+    <ul class="es">
+      <li>Las prácticas son de <strong>lunes a viernes</strong> de <strong>3:45 PM a 5:45 PM</strong>.</li>
+      <li>Los atletas deben llegar <strong>15 minutos antes</strong>.</li>
+      <li>Prácticas están <strong>cerradas</strong> para padres y espectadores.</li>
+    </ul>
+
+    <p class="small">
+      <span class="en">Report absences directly to a coach.</span>
+      <span class="es">Reporte ausencias directamente a un entrenador.</span>
+    </p>
+  </section>
+
+  <!-- SEASON SCHEDULE -->
+  <section class="panel">
+    <h2>
+      <span class="en">Season Schedule (Varsity & JV)</span>
+      <span class="es">Calendario de Temporada (Varsity y JV)</span>
+    </h2>
+
+    <p class="small">
+      <span class="en">Dates/times may shift; updates posted here.</span>
+      <span class="es">Fechas/horarios pueden cambiar.</span>
+    </p>
+
+    <div style="padding:12px 14px">
+      <h2 style="margin:0 0 6px;color:#ffdd48;font-size:1.05rem">
+        Season Schedule / Calendario de la Temporada
+      </h2>
+      <p class="small">Tap a team to expand. / Toque un equipo para desplegar.</p>
+    </div>
+
+    <!-- BOYS VARSITY -->
+    <details class="acc" open>
+      <summary>Boys Varsity — 2025–26 / Varsity Varonil</summary>
+      <div class="content">
+        <table class="sched">
+          <thead>
+            <tr>
+              <th>Date</th><th>Day</th><th>Opponent</th>
+              <th>Location</th><th>Team Departure</th><th>Start-Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>11/ 26/25</td><td>Wed</td><td>Turkey Duals</td><td>Santa Maria</td><td>6:00 AM</td><td>8:00 AM</td></tr>
+            <tr><td>12/ 06/25</td><td>Sat</td><td>Old Dutch Classic</td><td>Righetti</td><td>6:30 AM</td><td>9:00 AM</td></tr>
+            <tr><td>12/ 12–13/25</td><td>Fri–Sat</td><td>Camarillo Duals</td><td>Camarillo</td><td>9:30 AM </td><td>2:00 PM / 9:00 AM</td></tr>
+            <tr><td>12/ 17/25</td><td>Wed</td><td>Cabrillo*</td><td>Cabrillo</td><td>3:30</td><td>7:00 PM</td></tr>
+            <tr><td>01/ 2–3/26</td><td>Fri–Sat</td><td>TBA</td><td>TBA</td><td>TBA</td><td>TBA</td></tr>
+            <tr><td><b>01 / 7 /26</b></td><td><b>Wed</b></td><td><b>Nipomo*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>7:00 PM</b></td></tr>
+            <tr><td><b>01/ 9–10/26</b></td><td><b>Fri–Sat</b></td><td><b>Battle by the Sea</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>1:30 PM / 9:00 AM</b></td></tr>
+            <tr><td><b>01/ 14/26</b></td><td><b>Wed</b></td><td><b>Santa Ynez*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>7:00 PM</b></td></tr>
+            <tr><td>01/ 21/26</td><td>Wed</td><td>SLO*</td><td>SLO</td><td>TBA</td><td>7:00 PM</td></tr>
+            <tr><td>01/ 23–24/26</td><td>Fri–Sat</td><td>CIT Morro Bay</td><td>Morro Bay</td><td>TBA</td><td>10:00 AM / 9:00 AM</td></tr>
+            <tr><td><b>01/ 28/26</b></td><td><b>Wed</b></td><td><b>St. Joseph*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>7:00 PM</b></td></tr>
+            <tr><td>02/ 13/26</td><td>Fri</td><td>Central Section Championships</td><td>TBA</td><td>TBA</td><td>9:00 AM</td></tr>
+            <tr><td>02/ 20–21/26</td><td>Fri–Sat</td><td>Grand Masters Championships</td><td>TBA</td><td>TBA</td><td>9:00 AM / 9:00 AM</td></tr>
+            <tr><td>02/ 25–28/26</td><td>Wed–Sat</td><td>CIF State</td><td>Bakersfield</td><td>TBA</td><td>TBA</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <!-- GIRLS VARSITY -->
+    <details class="acc" open>
+      <summary>Girls Varsity — 2025–26 / Varsity Femenil</summary>
+      <div class="content">
+        <table class="sched">
+          <thead>
+            <tr>
+              <th>Date</th><th>Day</th><th>Opponent</th>
+              <th>Location</th><th>Team Departure</th><th>Start-Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><b>11/ 22/25</b></td><td><b>Sat</b></td><td><b>Queen of the Ring</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>9:00 AM</b></td></tr>
+            <tr><td>11/ 25/25</td><td>Tue</td><td>Santa Maria Novice</td><td>Santa Maria</td><td>TBA</td><td>9:00 AM</td></tr>
+            <tr><td>12/ 6/25</td><td>Sat</td><td>Lady Jaguar Classic</td><td>Del Sol</td><td>TBA</td><td>10:00 AM</td></tr>
+            <tr><td>12/ 17/25</td><td>Wed</td><td>Cabrillo*</td><td>Cabrillo</td><td>TBA</td><td>6:00 PM</td></tr>
+            <tr><td>01/ 3/26</td><td>Sat</td><td>North Bakersfield</td><td>North Bakersfield</td><td>TBA</td><td>9:00 AM</td></tr>
+            <tr><td><b>01/ 7/26</b></td><td><b>Wed</b></td><td><b>Nipomo*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>6:00 PM</b></td></tr>
+            <tr><td><b>01/ 14/26</b></td><td><b>Wed</b></td><td><b>Santa Ynez*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>6:00 PM</b></td></tr>
+            <tr><td>01/ 17/26</td><td>Sat</td><td>Santa Maria Invite</td><td>Santa Maria</td><td>TBA</td><td>9:00 AM</td></tr>
+            <tr><td><b>01/ 21/26</b></td><td><b>Wed</b></td><td><b>SLO</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>6:00 PM</b></td></tr>
+            <tr><td>01/ 23–24/26</td><td>Fri–Sat</td><td>Queen of the Land</td><td>TBA</td><td>TBA</td><td>TBA PM</td></tr>
+            <tr><td>02/ 7/26</td><td>Sat</td><td>CCAA Tournament</td><td>TBA</td><td>TBA</td><td>TBA PM</td></tr>
+            <tr><td>02/ 13/26</td><td>Fri</td><td>Central Section Championships</td><td>TBA</td><td>TBA</td><td>TBA PM</td></tr>
+            <tr><td>02/ 20–21/26</td><td>Fri–Sat</td><td>Grand Masters Championships</td><td>TBA</td><td>TBA</td><td>TBA PM</td></tr>
+            <tr><td>02/ 25–28/26</td><td>Fri–Sat</td><td>State</td><td>Bakersfield</td><td>TBA</td><td>TBA PM</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <!-- BOYS JV -->
+    <details class="acc" open>
+      <summary>Boys JV — 2025–26 / JV Varonil</summary>
+      <div class="content">
+        <table class="sched">
+          <thead>
+            <tr>
+              <th>Date</th><th>Day</th><th>Opponent</th>
+              <th>Location</th><th>Team Departure</th><th>Start-Time</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><b>11/ 21/25</b></td><td><b>Fri</b></td><td><b>Brave Challenge</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>1:30 PM</b></td></tr>
+            <tr><td><b>11/ 25/25</b></td><td><b>Tue</b></td><td><b>Novice Invite</b></td><td><b>Santa Maria</b></td><td><b>TBA</b></td><td><b>9:00 AM</b></td></tr>
+            <tr><td>12/ 5/25</td><td>Fri</td><td>JV Duals</td><td>Righetti</td><td>TBA</td><td>3:00 PM</td></tr>
+            <tr><td>12/ 17/25</td><td>Wed</td><td>Cabrillo*</td><td>Cabrillo</td><td>TBA</td><td>4:00 PM</td></tr>
+            <tr><td>12/ 20/25</td><td>Sat</td><td>Righetti JV Duals</td><td>Righetti</td><td>TBA</td><td>9:00 AM</td></tr>
+            <tr><td><b> 01/ 7/26</b></td><td><b>Wed</b></td><td><b>Nipomo*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>5:00 PM</b></td></tr>
+            <tr><td><b>01/ 14/26</b></td><td><b>Wed</b></td><td><b>Santa Ynez*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>5:00 PM</b></td></tr>
+            <tr><td>1/ 17/26</td><td>Sat</td><td>Santa Maria JV</td><td>Santa Maria</td><td>TBA</td><td>9:00 AM</td></tr>
+            <tr><td><b> 1/ 21/26</b></td><td><b>Wed</b></td><td><b>SLO</b></td><td><b>SLO</b></td><td><b>TBA</b></td><td><b>5:00 PM</b></td></tr>
+            <tr><td><b>01/28/26</b></td><td><b>Wed</b></td><td><b>St. Joseph*</b></td><td><b>Lompoc</b></td><td><b>TBA</b></td><td><b>5:00 PM</b></td></tr>
+            <tr><td>02/ 7/26</td><td>Sat</td><td>CCAA Tourney</td><td>TBA</td><td>TBA</td><td>TBA</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </details>
+
+    <p class="small" style="padding:0 14px 12px;color:#9aa4b1">
+      Home matches are bold. Dates and times subject to change.
+    </p>
+  </section>
+
+  <p class="small" style="margin-top:10px">
+    <span class="en">Check back for updates throughout the season.</span>
+    <span class="es">Revise aquí para actualizaciones durante la temporada.</span>
+  </p>
+
+</main>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+    <nav class="footer-links">
+      <a href="/coach/para/parent/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/parent/index.html">Para-Comms</a>
+      <a href="/coach/meeting/handouts/index.html">Meeting Portal</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // language painter (ties into your existing EN/ES system)
+  function paintSchedule(langOverride){
+    const L = langOverride || window.__lang || localStorage.getItem('lang') || 'en';
+    const showEN = (L === 'en');
+    document.querySelectorAll('.en').forEach(el=>el.style.display = showEN ? '' : 'none');
+    document.querySelectorAll('.es').forEach(el=>el.style.display = showEN ? 'none' : '');
+  }
+  window.onToolbarLang = paintSchedule;
+  document.addEventListener('DOMContentLoaded', ()=>paintSchedule());
+</script>
+
+</body>
+</html>

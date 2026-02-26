@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ping Test</title>
+</head>
+<body>
+  <h1>Ping Test Page</h1>
+  <button id="btn-ping">Send Ping</button>
+
+  <script type="module">
+    import { functions } from "../assets/js/firebase-init.js";
+    import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+    // Test Ping
+    async function sendPing() {
+      try {
+        const ping = httpsCallable(functions, "ping");
+        const res = await ping({ msg: "Coach online" });
+        console.log("[Ping result]", res.data);
+        alert("Ping Success: " + JSON.stringify(res.data));
+      } catch (err) {
+        console.error("[Ping failed]", err);
+        alert("Ping failed — check console for details.");
+      }
+    }
+
+    document.getElementById("btn-ping").addEventListener("click", sendPing);
+  </script>
+</body>
+</html>

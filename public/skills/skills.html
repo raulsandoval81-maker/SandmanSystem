@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Skills | Sandman System™</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    /* layout */
+    .wrap{max-width:1100px;margin:0 auto;padding:2rem 1.25rem;}
+    .hero{background:#121821;border:1px solid #243041;border-radius:16px;padding:1.25rem 1.25rem 1rem;text-align:left;box-shadow:0 0 14px rgba(0,0,0,.35);margin-bottom:1.25rem}
+    .meta{color:#9fb3c8;font-size:.95rem;margin-top:.25rem}
+    .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.75rem 0 0}
+
+    /* table */
+    .skills-table{width:100%;border-collapse:separate;border-spacing:0 10px}
+    .skills-table th{color:#ffd633;text-align:left;font-weight:800;padding:.25rem .5rem}
+    .skills-table td{background:#0f141b;border:1px solid #243041;padding:.65rem .75rem;vertical-align:middle}
+    .skills-table tr td:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    .skills-table tr td:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+    .skill-name{font-weight:800;color:#f3f4f6}
+
+    /* emoji buttons */
+    .emoji-bar{display:flex;gap:.35rem;flex-wrap:wrap}
+    .emoji-btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      width:42px;height:36px;border-radius:8px;
+      background:#121821;border:1px solid #2a3647;color:#e5e7eb;
+      font-size:18px;cursor:pointer;transition:transform .08s ease, box-shadow .12s ease, border-color .12s ease;
+      user-select:none;
+    }
+    .emoji-btn:hover{transform:translateY(-1px);box-shadow:0 0 0 2px rgba(255,214,51,.15)}
+    .emoji-btn.active{
+      background:#ff3333;color:#ffd633;border-color:#ffd633;box-shadow:0 0 0 2px rgba(255,214,51,.25), inset 0 0 0 1px rgba(0,0,0,.35)
+    }
+    .emoji-label{display:none} /* a11y-only label is in aria-label */
+
+    /* add row */
+    .add-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.5rem}
+    .add-row input{
+      flex:1 1 260px;background:#0f141b;border:1px solid #243041;border-radius:8px;
+      color:#e5e7eb;padding:.6rem .75rem
+    }
+    .empty-hint{color:#9fb3c8;margin:.5rem 0 0}
+
+    /* top-nav/footer (kept identical to your other pages) */
+    .top-nav{background:#0f141b;border-bottom:2px solid #ffd633;padding:.75rem 1.5rem;position:sticky;top:0;z-index:1000}
+    .nav-container{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.5rem}
+    .nav-logo{font-size:1.25rem;font-weight:700;color:#ffd633;text-transform:uppercase;letter-spacing:1px}
+    .nav-links{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+    .footer{background:#0f141b;border-top:2px solid #ffd633;padding:1rem 1.5rem;margin-top:2rem}
+    .footer-container{max-width:1200px;margin:0 auto;display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap}
+    .footer-title{font-weight:700;color:#ffd633}
+    .footer-links{display:flex;gap:1.25rem;flex-wrap:wrap}
+    .footer-links a{color:#f3f4f6;text-decoration:none;font-weight:500}
+    .footer-links a:hover{color:#ff4d4d}
+    .footer-lock-note{background:#1a1f29;border-top:1px solid #333;padding:.5rem;margin-top:.75rem;text-align:center;color:#ffd633;font-weight:600;font-size:.95rem}
+
+    /* superman pill buttons (global look) */
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;text-decoration:none}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.secondary{background:transparent;color:#ffd633}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div class="nav-logo">Sandman System</div>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="../overview.html">Overview</a>
+        <a href="../programs.html">Programs</a>
+        <a href="../contact.html">Contact</a>
+        <a href="../about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1>Skills</h1>
+
+    <!-- Intro / Controls -->
+    <section class="hero" role="region" aria-labelledby="skillsIntro">
+      <div id="skillsIntro" class="meta">
+        Tap one status per skill. Saved locally (no login required). We’ll wire to Firebase later.
+      </div>
+
+      <div class="toolbar">
+        <a class="btn" href="./hub.html">Back to Skills Hub</a>
+        <a class="btn secondary" href="../index.html">Home</a>
+      </div>
+
+      <div class="add-row" style="margin-top:1rem">
+        <input id="newSkill" type="text" placeholder="Add a new skill (e.g., Snap-Down to Go-Behind)" />
+        <button class="btn" id="addBtn" type="button">Add Skill</button>
+        <button class="btn secondary" id="clearAll" type="button" title="Clears statuses only">Clear Statuses</button>
+      </div>
+      <div class="empty-hint">Starter rows included below. You can add/remove freely.</div>
+    </section>
+
+    <!-- Skills table -->
+    <section aria-label="Skills List">
+      <table class="skills-table" id="skillsTable">
+        <thead>
+          <tr>
+            <th style="width:40%">Skill</th>
+            <th colspan="5">Status</th>
+          </tr>
+        </thead>
+        <tbody id="skillsBody">
+          <!-- rows injected by JS -->
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Footer (Coach Zone 🔒) -->
+  <footer class="footer">
+    <div class="footer-container">
+      <span class="footer-title">Coach Zone 🔒</span>
+      <nav class="footer-links" aria-label="Coach Zone">
+        <a href="../coaches.html">Coach Hub</a>
+        <a href="../ceremonies.html">Ceremonies</a>
+        <a href="../leaderboards.html">Leaderboards</a>
+        <a href="../tools.html">Tools</a>
+      </nav>
+    </div>
+    <div class="footer-lock-note">
+      🔒 Coaches Only — Login required for full access
+    </div>
+  </footer>
+
+  <script>
+    // --- meanings for your emojis (tooltips + a11y) ---
+    const STATUS = [
+      { key:"risk",     icon:"💀", label:"Risk flag / needs supervision" },
+      { key:"review",   icon:"✋", label:"Needs review / pause here" },
+      { key:"confident",icon:"😎", label:"Athlete confident" },
+      { key:"fire",     icon:"🔥", label:"On fire / excellent" },
+      { key:"pending",  icon:"⏳", label:"Pending / revisit later" }
+    ];
+
+    const STORAGE_KEY = "sandman.skills.v1";
+
+    const starterSkills = [
+      "Double Leg Takedown",
+      "Sprawl Defense"
+    ];
+
+    // --- state ---
+    let skills = [];
+    // state format: [{name:"...", status:"confident" | null}, ...]
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if(!raw){
+          skills = starterSkills.map(n => ({name:n, status:null}));
+          saveState();
+        } else {
+          skills = JSON.parse(raw);
+        }
+      }catch(e){
+        skills = starterSkills.map(n => ({name:n, status:null}));
+      }
+    }
+    function saveState(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(skills));
+    }
+
+    function render(){
+      const tbody = document.getElementById("skillsBody");
+      tbody.innerHTML = "";
+      if(!skills.length) return;
+
+      skills.forEach((row, idx) => {
+        const tr = document.createElement("tr");
+
+        // skill name cell
+        const tdName = document.createElement("td");
+        tdName.className = "skill-name";
+        tdName.textContent = row.name;
+        tr.appendChild(tdName);
+
+        // status buttons (one active at a time)
+        STATUS.forEach(s => {
+          const td = document.createElement("td");
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "emoji-btn" + (row.status === s.key ? " active" : "");
+          btn.setAttribute("aria-label", `${s.label} for ${row.name}`);
+          btn.title = s.label;
+          btn.textContent = s.icon;
+          btn.addEventListener("click", () => {
+            // toggle: if clicking the active one, clear; else set new
+            row.status = (row.status === s.key) ? null : s.key;
+            saveState();
+            render();
+          });
+          td.appendChild(btn);
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    // add skill
+    function addSkillFromInput(){
+      const input = document.getElementById("newSkill");
+      const name = (input.value || "").trim();
+      if(!name) return;
+      skills.push({name, status:null});
+      input.value = "";
+      saveState();
+      render();
+    }
+
+    // clear statuses only (keep rows)
+    function clearStatuses(){
+      skills = skills.map(s => ({...s, status:null}));
+      saveState();
+      render();
+    }
+
+    // boot
+    document.getElementById("addBtn").addEventListener("click", addSkillFromInput);
+    document.getElementById("newSkill").addEventListener("keydown", (e)=>{ if(e.key==="Enter") addSkillFromInput(); });
+    document.getElementById("clearAll").addEventListener("click", clearStatuses);
+
+    loadState();
+    render();
+  </script>
+</body>
+</html>

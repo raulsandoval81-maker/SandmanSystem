@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>XP HTTP Test</title>
+    <style>
+      body { background:#111; color:#fff; font-family:system-ui; padding:20px; }
+      button { background:#facc15; border:0; padding:8px 14px; border-radius:8px; font-weight:600; }
+      pre { background:#222; padding:10px; border-radius:8px; white-space:pre-wrap; }
+    </style>
+  </head>
+  <body>
+<h1>incrementXpHttp — Test</h1>
+<button id="btn">Send +10 XP to F4_0027</button>
+<pre id="out"></pre>
+
+<script>
+  const btn = document.getElementById("btn");
+  const out = document.getElementById("out");
+
+  btn.addEventListener("click", async () => {
+    out.textContent = "Sending...";
+    try {
+      const res = await fetch(
+        "http://127.0.0.1:8088/sandmandashboard/us-central1/incrementXpHttp",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            uid: "F4_0027",
+            event: "attendance",
+          }),
+        }
+      );
+
+      const data = await res.json();
+      out.textContent = JSON.stringify(data, null, 2);
+    } catch (err) {
+      out.textContent = "Fetch error: " + err;
+    }
+  });
+</script>
+  </body>
+</html>

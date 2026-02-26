@@ -1,0 +1,691 @@
+<!-- Foundry 4 · Teen/Adult Destiny -->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Destiny · Foundry 4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+
+  <style>
+    body{
+      margin:0;
+      background:#08090b;
+      color:#e5e5e5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* Funnel header (no wandering) */
+    .system-header{
+      background:#0f0f0f;
+      border-bottom:2px solid #FFD700;
+      padding:12px 16px;
+      position:sticky;top:0;z-index:1000;
+    }
+    .system-header__brand{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .system-header__brand .brand{
+      color:#FFD700;font-weight:950;font-size:1.05rem;letter-spacing:1px;
+    }
+    .system-header__brand .tag{
+      color:#bbb;font-weight:800;
+    }
+    .system-header__actions{margin-top:8px;display:flex;gap:10px;flex-wrap:wrap}
+    .btn-ghost{
+      background:transparent;
+      color:#e5e7eb;
+      border:1px solid #4b5563;
+      border-radius:12px;
+      padding:8px 12px;
+      font-weight:800;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-block;
+    }
+    .btn-ghost:hover{background:#111827;}
+
+    .wrap{
+      max-width:960px;
+      margin:0 auto;
+      padding:24px 18px 50px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg,#151822,#10121a,#08090b);
+      border-radius:18px;
+      border:1px solid #262b38;
+      padding:18px 16px 16px;
+      box-shadow:0 10px 26px rgba(0,0,0,.35);
+    }
+    .hero-title{
+      font-size:1.85rem;
+      margin:0 0 6px;
+      color:#FFD700;
+      letter-spacing:.5px;
+      font-weight:950;
+      text-shadow:0 0 10px rgba(255,214,0,.18);
+    }
+    .hero-sub{
+      margin:0;
+      color:#b5c0d3;
+      font-size:1rem;
+      line-height:1.35;
+    }
+    .meta{
+      display:flex;gap:10px;flex-wrap:wrap;
+      margin-top:10px;
+      color:#9fa9bb;
+      font-size:.85rem;
+    }
+    .pill{
+      border:1px solid #263042;
+      background:#0d1015;
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:800;
+    }
+
+    .card{
+      background:#111418;
+      border-radius:16px;
+      border:1px solid #1f2531;
+      padding:18px 16px 16px;
+      box-shadow:0 8px 22px rgba(0,0,0,.4);
+    }
+
+    .step{display:none;}
+    .step.active{display:block;}
+
+    .progress{
+      font-size:.78rem;
+      color:#9fa9bb;
+      margin-bottom:10px;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+    }
+    .step-title{
+      margin:0 0 6px;
+      font-size:1.45rem;
+      font-weight:950;
+      color:#fefce8;
+    }
+    .step-sub{
+      margin:0 0 14px;
+      color:#a6b0c0;
+      font-size:1rem;
+      line-height:1.35;
+    }
+
+    /* sliders */
+    .slider-block{
+      background:#0d1015;
+      border-radius:14px;
+      padding:12px 12px 10px;
+      border:1px solid #1e2430;
+      margin-bottom:14px;
+    }
+    .slider-label{
+      font-size:.95rem;
+      color:#e7edf7;
+      margin-bottom:8px;
+      font-weight:900;
+    }
+    .slider-row{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    input[type="range"]{
+      flex:1;
+      accent-color:#FFD700;
+    }
+    .slider-value{
+      min-width:34px;
+      text-align:right;
+      font-weight:950;
+      font-size:1rem;
+      color:#fefce8;
+    }
+    .slider-hints{
+      display:flex;
+      justify-content:space-between;
+      font-size:.78rem;
+      color:#7b8798;
+      margin-top:6px;
+      font-weight:800;
+    }
+
+    /* option chips */
+    .option-block{margin-top:12px;}
+    .option-label{
+      font-size:.95rem;
+      color:#cbd5f5;
+      margin-bottom:8px;
+      font-weight:950;
+    }
+    .option-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+    .opt-chip{
+      border-radius:999px;
+      padding:10px 14px;
+      border:1px solid #374151;
+      font-size:.95rem;
+      cursor:pointer;
+      color:#e5e7eb;
+      background:#111827;
+      font-weight:900;
+    }
+    .opt-chip.selected{
+      border-color:#FFD700;
+      background:#1f2937;
+      box-shadow:0 0 0 1px rgba(255,214,0,.45);
+      color:#fefce8;
+    }
+
+    /* text */
+    .field{margin-top:12px;}
+    .field label{
+      display:block;
+      font-size:.95rem;
+      color:#cbd5f5;
+      margin-bottom:6px;
+      font-weight:950;
+    }
+    .field input{
+      width:100%;
+      border-radius:12px;
+      border:1px solid #374151;
+      padding:10px 12px;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:1rem;
+      font-weight:800;
+    }
+    .field input:focus{
+      outline:2px solid #FFD700;
+      outline-offset:1px;
+    }
+
+    .step-actions{
+      margin-top:18px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .btn-primary{
+      background:#FFD700;
+      color:#000;
+      border:none;
+      border-radius:12px;
+      padding:10px 18px;
+      font-weight:950;
+      letter-spacing:.3px;
+      cursor:pointer;
+      box-shadow:0 6px 18px rgba(255,214,0,.35);
+    }
+    .btn-primary:hover{filter:brightness(1.05);}
+
+    .hint-small{
+      margin-top:10px;
+      font-size:.9rem;
+      color:#9ca3af;
+      line-height:1.35;
+    }
+
+    .final-copy{
+      font-size:1rem;
+      color:#e5e7eb;
+      margin:10px 0 0;
+      line-height:1.4;
+    }
+    .final-highlight{
+      color:#FFD700;
+      font-weight:950;
+    }
+  </style>
+</head>
+
+<body>
+<header class="system-header">
+  <div class="system-header__brand">
+    <span class="brand">Sandman Combat System™</span>
+    <span class="tag">Destiny · Foundry 4</span>
+  </div>
+  <div class="system-header__actions">
+    <a class="btn-ghost" href="javascript:alert('Stop here and tell Coach.');">Exit</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h1 class="hero-title">Destiny</h1>
+    <p class="hero-sub">
+      Action first. Then direction. Answer honestly — this is a snapshot that we can revisit later.
+    </p>
+    <div class="meta">
+      <span class="pill" id="pill-name">Athlete</span>
+      <span class="pill" id="pill-rank">Apprentice</span>
+      <span class="pill" id="pill-track">Foundry 4</span>
+    </div>
+  </section>
+
+  <section class="card" id="quiz-card">
+
+    <!-- STEP 1: ACTION (same core mirror as youth) -->
+    <div class="step active" data-step="0">
+      <div class="progress">Step 1 of 6 · Action Mirror</div>
+      <h2 class="step-title">Where are you right now?</h2>
+      <p class="step-sub">Rate yourself 1–10. 1 = just starting. 10 = very strong.</p>
+
+      <div class="slider-block">
+        <div class="slider-label">How strong are you right now?</div>
+        <div class="slider-row">
+          <input id="q-strong" type="range" min="1" max="10" value="5">
+          <div class="slider-value" id="v-strong">5</div>
+        </div>
+        <div class="slider-hints"><span>Just starting</span><span>Very strong</span></div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-label">How fast are you right now?</div>
+        <div class="slider-row">
+          <input id="q-fast" type="range" min="1" max="10" value="5">
+          <div class="slider-value" id="v-fast">5</div>
+        </div>
+        <div class="slider-hints"><span>Need work</span><span>Lightning</span></div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-label">How smart are you on the mat?</div>
+        <div class="slider-row">
+          <input id="q-smart" type="range" min="1" max="10" value="5">
+          <div class="slider-value" id="v-smart">5</div>
+        </div>
+        <div class="slider-hints"><span>Still learning</span><span>Very sharp</span></div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-label">How ready are you to work?</div>
+        <div class="slider-row">
+          <input id="q-ready" type="range" min="1" max="10" value="5">
+          <div class="slider-value" id="v-ready">5</div>
+        </div>
+        <div class="slider-hints"><span>Not ready</span><span>All in</span></div>
+      </div>
+
+      <div class="slider-block">
+        <div class="slider-label">How disciplined are you?</div>
+        <div class="slider-row">
+          <input id="q-discipline" type="range" min="1" max="10" value="5">
+          <div class="slider-value" id="v-discipline">5</div>
+        </div>
+        <div class="slider-hints"><span>Inconsistent</span><span>Every day</span></div>
+      </div>
+
+      <div class="step-actions">
+        <span></span>
+        <button class="btn-primary" data-next>Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 2: FEAR (kept simple, no acronym) -->
+    <div class="step" data-step="1">
+      <div class="progress">Step 2 of 6</div>
+      <h2 class="step-title">Do you have fear?</h2>
+      <p class="step-sub">Pick the one that fits you best right now.</p>
+
+      <div class="option-row" data-group="fear">
+        <button class="opt-chip" data-value="yes">Yes</button>
+        <button class="opt-chip" data-value="sometimes">Sometimes</button>
+        <button class="opt-chip" data-value="no">No</button>
+      </div>
+
+      <div class="hint-small">
+        Fear is normal. This stays private until a ceremony moment.
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-ghost" data-prev>Back</button>
+        <button class="btn-primary" data-next>Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 3: WHERE YOU ARE (combat/strength/honor snapshot) -->
+    <div class="step" data-step="2">
+      <div class="progress">Step 3 of 6 · Where You Are</div>
+      <h2 class="step-title">How do you see yourself?</h2>
+      <p class="step-sub">Pick one in each row. Honest snapshot.</p>
+
+      <div class="option-block">
+        <div class="option-label">Combat (wrestling / striking)</div>
+        <div class="option-row" data-group="combatLevel">
+          <button class="opt-chip" data-value="just-starting">Just starting</button>
+          <button class="opt-chip" data-value="learning">Learning and growing</button>
+          <button class="opt-chip" data-value="confident">Confident in the basics</button>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <div class="option-label">Strength</div>
+        <div class="option-row" data-group="strengthLevel">
+          <button class="opt-chip" data-value="behind">Behind where I want to be</button>
+          <button class="opt-chip" data-value="on-track">On track</button>
+          <button class="opt-chip" data-value="ahead">Ahead and hungry</button>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <div class="option-label">Honor (character & attitude)</div>
+        <div class="option-row" data-group="honorLevel">
+          <button class="opt-chip" data-value="work-in-progress">Work in progress</button>
+          <button class="opt-chip" data-value="steady">Mostly steady</button>
+          <button class="opt-chip" data-value="example">Trying to be an example</button>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-ghost" data-prev>Back</button>
+        <button class="btn-primary" data-next>Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 4: WHERE YOU'RE GOING -->
+    <div class="step" data-step="3">
+      <div class="progress">Step 4 of 6 · Where You’re Going</div>
+      <h2 class="step-title">What do you want most?</h2>
+      <p class="step-sub">Pick what fits right now.</p>
+
+      <div class="option-block">
+        <div class="option-label">Right now, my biggest goal is…</div>
+        <div class="option-row" data-group="goalMain">
+          <button class="opt-chip" data-value="learn-basics">Sharpen the basics</button>
+          <button class="opt-chip" data-value="win-more">Win more matches</button>
+          <button class="opt-chip" data-value="be-leader">Become a leader</button>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <div class="option-label">How hard are you willing to work?</div>
+        <div class="option-row" data-group="workLevel">
+          <button class="opt-chip" data-value="steady">Steady</button>
+          <button class="opt-chip" data-value="push">Push most days</button>
+          <button class="opt-chip" data-value="all-in">All in</button>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <div class="option-label">A year from now, I want people to say…</div>
+        <div class="option-row" data-group="reputation">
+          <button class="opt-chip" data-value="disciplined">“Disciplined.”</button>
+          <button class="opt-chip" data-value="relentless">“Relentless.”</button>
+          <button class="opt-chip" data-value="leader">“Leader.”</button>
+          <button class="opt-chip" data-value="technical">“Technical.”</button>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-ghost" data-prev>Back</button>
+        <button class="btn-primary" data-next>Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 5: HOW YOU'LL GET THERE + FIX FIRST -->
+    <div class="step" data-step="4">
+      <div class="progress">Step 5 of 6 · How You’ll Get There</div>
+      <h2 class="step-title">What will you do?</h2>
+      <p class="step-sub">Pick what you can actually commit to.</p>
+
+      <div class="option-block">
+        <div class="option-label">Each week, I’m willing to…</div>
+        <div class="option-row" data-group="weeklyAction">
+          <button class="opt-chip" data-value="show-up">Show up and give honest effort</button>
+          <button class="opt-chip" data-value="extra">Do extra work outside practice</button>
+          <button class="opt-chip" data-value="lead">Lead by example</button>
+        </div>
+      </div>
+
+      <div class="option-block">
+        <div class="option-label">The hardest thing I will fix first is…</div>
+        <div class="option-row" data-group="hardestFix">
+          <button class="opt-chip" data-value="focus">Focus</button>
+          <button class="opt-chip" data-value="attitude">Attitude under pressure</button>
+          <button class="opt-chip" data-value="effort">Effort on tired days</button>
+          <button class="opt-chip" data-value="conditioning">Conditioning</button>
+          <button class="opt-chip" data-value="technique">Technique gaps</button>
+        </div>
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-ghost" data-prev>Back</button>
+        <button class="btn-primary" data-next>Next</button>
+      </div>
+    </div>
+
+    <!-- STEP 6: LEGENDS -->
+    <div class="step" data-step="5">
+      <div class="progress">Step 6 of 6 · Legends</div>
+      <h2 class="step-title">Name two legends.</h2>
+      <p class="step-sub">Two people you aspire to become like. Saved for a ceremony moment.</p>
+
+      <div class="field">
+        <label for="legend1">Legend #1</label>
+        <input id="legend1" type="text" maxlength="80" placeholder="First legend…">
+      </div>
+
+      <div class="field">
+        <label for="legend2">Legend #2</label>
+        <input id="legend2" type="text" maxlength="80" placeholder="Second legend…">
+      </div>
+
+      <div class="step-actions">
+        <button class="btn-ghost" data-prev>Back</button>
+        <button class="btn-primary" data-finish>Seal & Continue</button>
+      </div>
+
+      <div class="hint-small">
+        This will come back when you stand in front of the room.
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div class="step" data-step="6">
+      <div class="progress">Saved</div>
+      <h2 class="step-title">Your path begins.</h2>
+      <p class="final-copy">
+        Your answers have been sealed into your <span class="final-highlight">Sandman Destiny file</span>.
+      </p>
+      <p class="final-copy">
+        Now you go to work.
+      </p>
+
+      <div class="step-actions">
+<button class="btn-ghost"
+  onclick="location.href='/athletes/profile/mini-profile.html' + location.search">
+  Back to Identity
+</button>
+        <button class="btn-primary" id="go-tools">Enter Athlete Tools →</button>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<script type="module">
+  import { db, doc, getDoc, setDoc } from "/assets/js/firebase-init.js";
+  import { serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js";
+
+  // INPUT: ?uid=ATHLETE_ID
+  const params = new URLSearchParams(location.search);
+  const uid = params.get("uid") || params.get("id") || "unknown";
+
+  const steps = Array.from(document.querySelectorAll(".step"));
+  let currentStep = 0;
+
+  const answers = {
+    strong: 5,
+    fast: 5,
+    smart: 5,
+    ready: 5,
+    discipline: 5,
+    fear: null,
+    combatLevel: null,
+    strengthLevel: null,
+    honorLevel: null,
+    goalMain: null,
+    workLevel: null,
+    reputation: null,
+    weeklyAction: null,
+    hardestFix: null,
+    legend1: "",
+    legend2: ""
+  };
+
+  // ---- Load identity (best effort) ----
+  async function loadIdentity(){
+    if(uid === "unknown") return;
+    try{
+      const aRef = doc(db, "athletes", uid);
+      const snap = await getDoc(aRef);
+      if(!snap.exists()) return;
+      const a = snap.data() || {};
+      document.getElementById("pill-name").textContent = a.displayName || a.name || "Athlete";
+      document.getElementById("pill-rank").textContent = a.rankName || a.rank || a.tierName || "Apprentice";
+      document.getElementById("pill-track").textContent = a.trackName || a.track || "Foundry 4";
+    }catch(e){
+      console.warn("Identity load failed:", e);
+    }
+  }
+  loadIdentity();
+
+  function showStep(i){
+    steps.forEach((s,idx)=>s.classList.toggle("active", idx===i));
+    currentStep = i;
+  }
+
+  // ---- Slider wiring ----
+  function bindSlider(id, outId, key){
+    const input = document.getElementById(id);
+    const out = document.getElementById(outId);
+    input.addEventListener("input", ()=>{
+      out.textContent = input.value;
+      answers[key] = Number(input.value);
+    });
+  }
+  bindSlider("q-strong","v-strong","strong");
+  bindSlider("q-fast","v-fast","fast");
+  bindSlider("q-smart","v-smart","smart");
+  bindSlider("q-ready","v-ready","ready");
+  bindSlider("q-discipline","v-discipline","discipline");
+
+  // ---- Option chips (handles all rows) ----
+  document.querySelectorAll(".option-row").forEach(row=>{
+    row.addEventListener("click", e=>{
+      const btn = e.target.closest(".opt-chip");
+      if(!btn) return;
+      const group = row.getAttribute("data-group");
+      if(!group) return;
+
+      row.querySelectorAll(".opt-chip").forEach(b=>b.classList.remove("selected"));
+      btn.classList.add("selected");
+      answers[group] = btn.getAttribute("data-value");
+    });
+  });
+
+  function validateStep(idx){
+    if(idx === 1){
+      return !!answers.fear;
+    }
+    if(idx === 2){
+      return answers.combatLevel && answers.strengthLevel && answers.honorLevel;
+    }
+    if(idx === 3){
+      return answers.goalMain && answers.workLevel && answers.reputation;
+    }
+    if(idx === 4){
+      return answers.weeklyAction && answers.hardestFix;
+    }
+    if(idx === 5){
+      const l1 = (document.getElementById("legend1").value || "").trim();
+      const l2 = (document.getElementById("legend2").value || "").trim();
+      if(!l1 || !l2) return false;
+      answers.legend1 = l1;
+      answers.legend2 = l2;
+      return true;
+    }
+    return true;
+  }
+
+  async function saveDestiny(){
+    const payload = {
+      uid,
+      track: "F4",
+      kind: "destiny_onboarding",
+      createdAt: serverTimestamp(),
+      createdAtISO: new Date().toISOString(),
+      answers
+    };
+
+    // Always mirror locally
+    try{
+      localStorage.setItem(`destinyF4:${uid}`, JSON.stringify({ ...payload, createdAt:"serverTimestamp" }));
+    }catch(_){}
+
+    // Best-effort Firestore write
+    try{
+      if(uid !== "unknown"){
+        const ref = doc(db, "destinySnapshots", uid);
+        await setDoc(ref, payload, { merge:true });
+      }
+    }catch(e){
+      console.warn("Firestore save failed. Local mirror kept.", e);
+    }
+  }
+
+  document.querySelectorAll("[data-next]").forEach(btn=>{
+    btn.addEventListener("click", async ()=>{
+      if(!validateStep(currentStep)){
+        alert("Finish this page before moving on.");
+        return;
+      }
+      // If moving from Legends (step 5) to Final, save first
+      if(currentStep === 5){
+        await saveDestiny();
+        showStep(6);
+      }else{
+        showStep(Math.min(currentStep + 1, steps.length - 1));
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-prev]").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      showStep(Math.max(currentStep - 1, 0));
+    });
+  });
+
+  document.querySelector("[data-finish]").addEventListener("click", async ()=>{
+    if(!validateStep(currentStep)){
+      alert("Enter both legends before sealing.");
+      return;
+    }
+    await saveDestiny();
+    showStep(6);
+  });
+
+  document.getElementById("go-tools").addEventListener("click", ()=>{
+    // Adjust to your actual tools landing page
+location.href = "/athletes/arsenal/hub/index.html" + location.search;
+  });
+</script>
+
+</body>
+</html>

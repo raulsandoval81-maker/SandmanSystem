@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Team Scoreboard — Sandman</title>
+  <link rel="stylesheet" href="parent-team-score.css" />
+</head>
+
+<body>
+  <header class="ts-header">
+    <h1 id="dualTitle">Dual Meet — Live Scoreboard</h1>
+    <div id="dualSub">NFHS Scoring · Live Updates</div>
+  </header>
+
+  <section id="teamBoard">
+    <div class="team-card red">
+      <div class="team-name" id="redTeamName">Home</div>
+      <div class="team-score" id="redTeamScore">0</div>
+    </div>
+
+    <div class="vs">VS</div>
+
+    <div class="team-card green">
+      <div class="team-name" id="greenTeamName">Away</div>
+      <div class="team-score" id="greenTeamScore">0</div>
+    </div>
+  </section>
+
+  <section id="boutHistory">
+    <h2>Bout Results</h2>
+    <div id="boutFeed"></div>
+  </section>
+
+  <script type="module" src="parent-team-score.js"></script>
+</body>
+</html>

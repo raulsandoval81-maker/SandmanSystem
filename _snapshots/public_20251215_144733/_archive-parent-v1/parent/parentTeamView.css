@@ -1,0 +1,117 @@
+:root {
+  --bg:#05070c;
+  --panel:#0b0f16;
+  --border:#1a2234;
+  --text:#eef2f8;
+  --gold:#ffdd48;
+  --red:#f44336;
+  --green:#00e676;
+  --muted:#8c96a8;
+  color-scheme:dark;
+}
+
+body {
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+
+.head {
+  text-align:center;
+  padding:20px 10px;
+}
+
+h1 { margin:0; color:var(--gold); font-size:1.6rem; }
+
+.sub { color:var(--muted); font-size:.85rem; margin-top:4px; }
+
+/* LIST */
+.team-list {
+  max-width:620px;
+  margin:0 auto;
+  padding:20px 14px 80px;
+}
+
+.team-row {
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:14px;
+  margin-bottom:12px;
+  cursor:pointer;
+  transition:.2s ease;
+}
+
+.team-row:hover {
+  border-color:var(--gold);
+}
+
+/* TOP LINE */
+.row-top {
+  display:flex;
+  justify-content:space-between;
+  font-size:1.2rem;
+  font-weight:600;
+}
+
+/* SCORE */
+.score {
+  color:var(--gold);
+  font-size:1.4rem;
+  font-weight:700;
+}
+
+/* MOMENTUM BAR */
+.momentum {
+  height:6px;
+  border-radius:6px;
+  margin:8px 0 12px;
+}
+
+/* BUBBLE BAR */
+.bubble-row {
+  display:flex;
+  gap:6px;
+}
+
+.bubble {
+  width:18px;
+  height:18px;
+  border-radius:50%;
+  background:var(--border);
+}
+
+.win { background:var(--green); }
+.loss { background:var(--red); }
+
+/* MODAL */
+.modal {
+  position:fixed;
+  top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,.65);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.hidden { display:none; }
+
+.modal-content {
+  background:#0c1019;
+  border-radius:14px;
+  border:1px solid var(--border);
+  padding:18px;
+  width:90%;
+  max-width:450px;
+}
+
+.close-btn {
+  margin-top:16px;
+  width:100%;
+  background:var(--gold);
+  border:none;
+  padding:10px;
+  font-size:1.1rem;
+  border-radius:10px;
+}

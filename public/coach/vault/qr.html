@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Parent QR • Lompoc Wrestling</title>
+
+  <!-- Parent Header Style -->
+  <style>
+    :root{
+      --bg:#02112e;
+      --panel:#0b255f;
+      --line:#1e3a8a;
+      --brand:#ffcc33;
+      --text:#f9fafb;
+      --muted:#cbd5e1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    /* Parent Header */
+    .parent-header{
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{
+      display:flex;
+      gap:6px;
+    }
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    /* Main Content */
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 40px;
+      text-align:center;
+    }
+    h1{
+      margin:0 0 6px;
+      font-size:1.4rem;
+      color:var(--brand);
+    }
+    p.lead{
+      color:var(--muted);
+      font-size:.95rem;
+      margin-bottom:18px;
+    }
+    .card{
+      margin:0 auto;
+      max-width:420px;
+      background:var(--panel);
+      border-radius:16px;
+      border:1px solid var(--line);
+      padding:18px 16px 20px;
+      box-shadow:0 10px 25px rgba(0,0,0,.45);
+    }
+    .qrwrap{
+      margin:10px auto 12px;
+      background:#fff;
+      border-radius:16px;
+      padding:14px;
+      display:inline-block;
+    }
+    .url{
+      font-family:ui-monospace,Menlo,Consolas,monospace;
+      font-size:.8rem;
+      color:var(--muted);
+      word-break:break-all;
+    }
+  </style>
+
+  <!-- QR Library -->
+  <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="parent-header">
+    <div class="parent-header-inner">
+      <div class="parent-brand">Lompoc HS Wrestling</div>
+      <div class="parent-lang-wrap">
+        <button class="parent-lang-btn active" data-lang="en">EN</button>
+        <button class="parent-lang-btn" data-lang="sp">SP</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <h1 data-i18n="title">Parent QR Code / Código QR para Padres</h1>
+    <p class="lead" data-i18n="subtitle">
+      Scan to open the Lompoc Wrestling parent landing page.<br/>
+      Escanee para abrir la página principal para padres.
+    </p>
+
+    <div class="card">
+      <div class="qrwrap">
+        <canvas id="qrBig" width="300" height="300"></canvas>
+      </div>
+      <p class="url" id="urlText"></p>
+    </div>
+  </main>
+
+<script>
+  // Production domain
+  const origin = "https://sandmandashboard.web.app";
+
+  // Match your real filename exactly:
+  const parentLanding = origin + "/coach/parent-landing.html";
+  // If yours is parent-landing.html, switch the line above.
+
+  const canvas = document.getElementById("qrBig");
+
+  const qr = new QRious({
+    element: canvas,
+    value: parentLanding,
+    size: 300,
+    level: "H"
+  });
+
+  document.getElementById("urlText").textContent = parentLanding;
+</script>
+
+<!-- Language logic -->
+<script>
+  const dict = {
+    en:{
+      title:"Parent QR Code",
+      subtitle:"Scan to open the Lompoc Wrestling parent landing page."
+    },
+    sp:{
+      title:"Código QR para Padres",
+      subtitle:"Escanee para abrir la página principal para padres."
+    }
+  };
+
+  const btns = document.querySelectorAll(".parent-lang-btn");
+
+  function setLang(lang){
+    localStorage.setItem("lang", lang);
+    btns.forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+    const L = dict[lang];
+
+    document.querySelector("[data-i18n='title']").textContent = L.title;
+    document.querySelector("[data-i18n='subtitle']").innerHTML = 
+      L.subtitle + (lang==="en" ? "<br/>Escanee para abrir la página principal para padres." : "<br/>Scan to open the parent landing page.");
+  }
+
+  const saved = localStorage.getItem("lang") || "en";
+  setLang(saved);
+
+  btns.forEach(btn=>{
+    btn.addEventListener("click", ()=> setLang(btn.dataset.lang));
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+body {
+  margin: 0;
+  background: #05070c;
+  color: #f8fafc;
+  font-family: system-ui, sans-serif;
+}
+
+.match-header {
+  text-align: center;
+  padding: 18px;
+  background: #0b1017;
+  border-bottom: 1px solid #1d2733;
+}
+.bout-info {
+  color: #9aa6b8;
+  font-size: .9rem;
+}
+
+/* ATHLETE CARDS */
+.ath-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px;
+}
+
+.ath-card {
+  flex: 1;
+  padding: 16px;
+  border-radius: 14px;
+}
+
+.red-card {
+  background: #2a1212;
+  border: 1px solid #992525;
+}
+.green-card {
+  background: #122a12;
+  border: 1px solid #2b802b;
+}
+
+.ath-name {
+  font-size: 1.4rem;
+  margin-bottom: 6px;
+}
+.ath-score {
+  font-size: 3rem;
+  text-align: right;
+}
+
+/* CLOCK + PERIOD */
+.period-clock {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  padding: 12px;
+}
+
+.period-box, .clock-box {
+  background: #0d121a;
+  padding: 12px 18px;
+  border-radius: 10px;
+  border: 1px solid #1d2735;
+  font-size: 1.3rem;
+}
+
+/* MOMENTUM BAR */
+#momentumWrap {
+  margin: 0 18px;
+  height: 10px;
+  background: #1b2330;
+  border-radius: 6px;
+  overflow: hidden;
+}
+#momentumRed {
+  background: #ff3a3a;
+  width: 50%;
+  transition: width .25s;
+}
+#momentumGreen {
+  background: #39ff6f;
+  width: 50%;
+  transition: width .25s;
+}
+
+/* ACTION FEED */
+.feed-title {
+  margin: 16px 18px 6px;
+  color: #c4cbd4;
+}
+
+#actionFeed {
+  margin: 0 18px 24px;
+  padding: 12px;
+  background: #0a0f16;
+  border: 1px solid #1a2433;
+  border-radius: 12px;
+}
+
+.feed-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #253042;
+  font-size: .85rem;
+}
+.feed-item:last-child {
+  border-bottom: none;
+}
+#videoWrap {
+  margin: 16px 18px;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #1a2533;
+}
+
+#liveVideo {
+  width: 100%;
+  max-height: 260px;
+  background: #000;
+}

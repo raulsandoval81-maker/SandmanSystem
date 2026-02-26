@@ -1,0 +1,38 @@
+/* Minimal external CSS to match your current look without changing layout */
+:root{
+  --bg:#0b1020; --panel:#0f172a; --ink:#e5e7eb; --muted:#9ca3af; --line:#1f2937;
+  --belt-color:#0ea5e9;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0}
+.wrap{max-width:1180px;margin:24px auto;padding:0 16px}
+h1{font-size:24px;margin:0 0 12px}
+h3{font-size:16px;margin:10px 0}
+.panel{background:var(--panel);border-radius:14px;box-shadow:0 0 0 1px var(--line) inset;margin:14px 0}
+.section-hdr{width:100%;text-align:left;padding:12px 14px;font-weight:800;border:none;background:#1f2937;color:var(--ink);border-radius:14px 14px 0 0;cursor:pointer}
+.section-body{overflow:hidden;max-height:0;transition:max-height .25s ease;border-left:2px solid #1e2b44;border-right:2px solid #1e2b44;border-bottom:2px solid #1e2b44;border-radius:0 0 10px 10px;padding:0 12px}
+.section-hdr.open + .section-body{max-height:2000px;padding:12px}
+.row{display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap}
+.card{background:#0a1224;border-radius:12px;box-shadow:0 0 0 1px var(--line) inset;padding:12px;margin:10px 0}
+.chip{display:inline-block;padding:4px 8px;border:1px solid var(--line);border-radius:999px;font-size:12px;color:var(--muted);margin-right:6px;cursor:pointer}
+.chip.active{border-color:#60a5fa;color:#60a5fa}
+input,select,textarea{background:#0a1224;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:6px 8px}
+.solid-blue{background:#2563eb;color:#fff;border:none;padding:6px 10px;border-radius:10px;cursor:pointer}
+.outline-blue{border:1px solid #60a5fa;color:#60a5fa;background:transparent;padding:6px 10px;border-radius:10px;cursor:pointer}
+.outline-gold{border:1px solid #f59e0b;color:#f59e0b;background:transparent;padding:6px 10px;border-radius:10px;cursor:pointer}
+.stat{min-width:150px;background:#0d1530;border-radius:10px;box-shadow:0 0 0 1px var(--line) inset;padding:8px 10px}
+.label{font-size:12px;color:var(--muted)}
+.value{font-weight:800}
+.small{font-size:12px}
+.muted{color:var(--muted)}
+.ok{color:#34d399}
+.warn{color:#fbbf24}
+.footer{margin-top:24px;text-align:center;color:#9ca3af;font-size:.85rem}
+
+/* Belt meter */
+.meter.belt{position:relative;height:18px;border-radius:8px;overflow:hidden;box-shadow:inset 0 0 0 1px #1f2937;background:transparent}
+#belt-dim{position:absolute;inset:0;width:100%;border-radius:8px;z-index:1;background:var(--belt-color);filter:brightness(.75)}
+#ath-meter{position:absolute;inset:0;width:0%;border-radius:8px;z-index:2;background:var(--belt-color);filter:brightness(1.08);background-image:linear-gradient(to bottom, rgba(255,255,255,.08), rgba(0,0,0,.12))}
+.stripe-boxes{position:absolute;right:8px;top:50%;transform:translateY(-50%);display:flex;gap:6px;z-index:3;pointer-events:none}
+.stripe-box{width:12px;height:10px;border-radius:2px;background:transparent;box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+.stripe-box.white.filled{background:#fff;box-shadow:none}

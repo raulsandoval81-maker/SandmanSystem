@@ -1,0 +1,365 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>Weight & Hydration Guide</title>
+
+  <style>
+    /* --- Gold Title + Gold Nav Buttons (Minimal) --- */
+
+.page-title,
+h1,
+h2.page-title {
+  color:#ffdd48 !important;
+  text-shadow:0 0 6px rgba(255,221,72,.25);
+  font-weight:800;
+}
+
+.lang-btn {
+  border:1px solid #ffdd48 !important;
+  color:#ffdd48 !important;
+  background:transparent;
+}
+.lang-btn:hover {
+  background:#ffdd48 !important;
+  color:#111 !important;
+}
+.lang-btn.active {
+  background:#ffdd48 !important;
+  color:#111 !important;
+  border-color:#ffdd48 !important;
+}
+
+/* ---------- COLORS ---------- */
+:root{
+  --navy:#041231;
+  --gray:#9aa0a8;
+  --panel:#ffffff;
+  --text:#0f1114;
+  --muted:#4b5563;
+}
+
+body{
+  margin:0;
+  background:var(--navy);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:var(--text);
+}
+
+/* Top Bar */
+.topbar{
+  background:var(--navy);
+  padding:10px 14px;
+  border-bottom:2px solid var(--gray);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  color:#fff;
+}
+
+.back-btn{
+  color:#fff;
+  text-decoration:none;
+  font-size:.85rem;
+  padding:4px 10px;
+  border:1px solid var(--gray);
+  border-radius:999px;
+}
+
+.lang-wrap button{
+  padding:6px 14px;
+  border-radius:999px;
+  border:none;
+  cursor:pointer;
+  font-size:.8rem;
+  font-weight:600;
+}
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:20px 14px 60px;
+}
+
+h1{
+  color:#fff;
+  margin:20px 0 10px;
+  text-align:center;
+  font-size:1.6rem;
+  font-weight:700;
+}
+
+/* Panels */
+.section{ margin-top:28px; }
+
+.panel{
+  background:var(--panel);
+  border-radius:12px;
+  padding:18px 20px;
+  box-shadow:0 4px 14px rgba(0,0,0,.25);
+  margin-bottom:20px;
+}
+
+.panel h2{
+  margin:0 0 14px;
+  color:var(--navy);
+  font-size:1.2rem;
+}
+
+.bullet{
+  margin-bottom:18px;
+}
+
+.bullet strong{
+  color:var(--navy);
+  font-weight:700;
+}
+
+.es{
+  color:var(--muted);
+  margin-top:4px;
+  font-size:.9rem;
+}
+
+footer{
+  margin-top:40px;
+  text-align:center;
+  color:#e5e7eb;
+  font-size:.8rem;
+  opacity:.75;
+}
+  </style>
+</head>
+
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+<h1 data-i18n="title">Weight & Hydration Guide</h1>
+
+<!-- ========================================================= -->
+<!-- ======================= SECTION A ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="secA">8 Weight-Cutting Myths & The Real Science</h2>
+
+  <div class="bullet">
+    <strong data-i18n="b1_en">Old-school weight cutting is outdated and unsafe.</strong>
+    <div class="es" data-i18n="b1_sp">Las bajadas de peso antiguas están obsoletas y son inseguras.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b2_en">Strength beats size — modern wrestling favors power, not starvation.</strong>
+    <div class="es" data-i18n="b2_sp">La fuerza supera el tamaño — la lucha moderna favorece la potencia, no el hambre.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b3_en">Dehydration causes slower reactions and poor decision-making.</strong>
+    <div class="es" data-i18n="b3_sp">La deshidratación causa reacciones más lentas y malas decisiones.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b4_en">Being “lighter” rarely helps — being strong and fueled does.</strong>
+    <div class="es" data-i18n="b4_sp">Ser “más ligero” rara vez ayuda — estar fuerte y bien alimentado sí.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b5_en">Skipping meals lowers performance by up to 30%.</strong>
+    <div class="es" data-i18n="b5_sp">Saltarse comidas reduce el rendimiento hasta un 30%.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b6_en">Rapid weight loss increases injury risk.</strong>
+    <div class="es" data-i18n="b6_sp">La pérdida rápida de peso aumenta el riesgo de lesiones.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b7_en">Most high school wrestlers do NOT cut weight — that stereotype is dying.</strong>
+    <div class="es" data-i18n="b7_sp">La mayoría de los luchadores escolares NO bajan de peso — ese estereotipo está desapareciendo.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b8_en">Healthy athletes win more matches than dehydrated athletes.</strong>
+    <div class="es" data-i18n="b8_sp">Los atletas saludables ganan más luchas que los deshidratados.</div>
+  </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ======================= SECTION C ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="secC">8 Rules for Before Weigh-Ins & Competitions</h2>
+
+  <div class="bullet">
+    <strong data-i18n="b9_en">No last-minute cutting — ever.</strong>
+    <div class="es" data-i18n="b9_sp">No se permite bajar de peso a último minuto — nunca.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b10_en">No sauna suits, trash bags, or sweat tricks.</strong>
+    <div class="es" data-i18n="b10_sp">No trajes de sauna, bolsas o métodos peligrosos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b11_en">Night before: normal balanced dinner + water.</strong>
+    <div class="es" data-i18n="b11_sp">La noche antes: cena normal y balanceada + agua.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b12_en">Morning of: light breakfast + slow hydration.</strong>
+    <div class="es" data-i18n="b12_sp">La mañana del pesaje: desayuno ligero + hidratación lenta.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b13_en">CIF hydration testing prevents unsafe weight loss.</strong>
+    <div class="es" data-i18n="b13_sp">La prueba de hidratación de CIF evita bajadas de peso peligrosas.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b14_en">Wrestlers should weigh roughly the same all week.</strong>
+    <div class="es" data-i18n="b14_sp">Los atletas deben mantener un peso estable toda la semana.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b15_en">Parents should NOT recommend skipping meals.</strong>
+    <div class="es" data-i18n="b15_sp">Los padres NO deben sugerir saltarse comidas.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b16_en">Strong, fueled athletes perform best — trust the system.</strong>
+    <div class="es" data-i18n="b16_sp">Los atletas fuertes y alimentados rinden mejor — confíe en el sistema.</div>
+  </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ======================= SECTION B ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="secB">8 Tips for During & After Events (Parent Protocol)</h2>
+
+  <div class="bullet">
+    <strong data-i18n="b17_en">Pack water — not sugary drinks.</strong>
+    <div class="es" data-i18n="b17_sp">Empaque agua — no bebidas azucaradas.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b18_en">Best snacks: fruit, rice bars, pretzels, lean protein.</strong>
+    <div class="es" data-i18n="b18_sp">Mejores meriendas: fruta, barras de arroz, pretzels, proteína magra.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b19_en">Avoid sugar crashes — no energy drinks.</strong>
+    <div class="es" data-i18n="b19_sp">Evite caídas de azúcar — nada de bebidas energéticas.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b20_en">Refuel within 30 minutes after weigh-ins.</strong>
+    <div class="es" data-i18n="b20_sp">Recargar dentro de los 30 minutos después del pesaje.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b21_en">Long tournaments require steady eating, not big meals.</strong>
+    <div class="es" data-i18n="b21_sp">Los torneos largos requieren comer poco y frecuente, no comidas grandes.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b22_en">Post-match recovery: water + carbs + protein.</strong>
+    <div class="es" data-i18n="b22_sp">Después de la lucha: agua + carbohidratos + proteína.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b23_en">After the tournament: stretch, eat, sleep.</strong>
+    <div class="es" data-i18n="b23_sp">Después del torneo: estirar, comer y dormir.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b24_en">Healthy habits create confident athletes — every week counts.</strong>
+    <div class="es" data-i18n="b24_sp">Los hábitos saludables crean atletas seguros — cada semana cuenta.</div>
+  </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ======================= LEARN MORE ======================= -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="learn_title">Learn More About Weight & Hydration</h2>
+
+  <div class="bullet">
+    <strong data-i18n="learn1_en">NFHS provides official information on hydration safety.</strong>
+    <div class="es" data-i18n="learn1_sp">La NFHS ofrece información oficial sobre seguridad de hidratación.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="learn2_en">YouTube has excellent breakdowns on sports nutrition for wrestlers.</strong>
+    <div class="es" data-i18n="learn2_sp">YouTube tiene excelentes explicaciones sobre nutrición deportiva para luchadores.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="learn3_en">Look up “Wrestling Hydration Guide” or “Safe Weight Management for Athletes.”</strong>
+    <div class="es" data-i18n="learn3_sp">Busque “Guía de Hidratación para Luchadores” o “Manejo de Peso Seguro para Atletas.”</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Lompoc HS Wrestling • Parent Information Page
+</footer>
+
+<script>
+const dict={
+  en:{
+    title:"Weight & Hydration Guide",
+    secA:"8 Weight-Cutting Myths & The Real Science",
+    secC:"8 Rules for Before Weigh-Ins & Competitions",
+    secB:"8 Tips for During & After Events (Parent Protocol)",
+    learn_title:"Learn More About Weight & Hydration",
+  },
+  sp:{
+    title:"Guía de Peso e Hidratación",
+    secA:"8 Mitos Sobre Bajar de Peso y la Ciencia Real",
+    secC:"8 Reglas Antes de los Pesajes y Competencias",
+    secB:"8 Consejos Para Durante y Después de los Eventos",
+    learn_title:"Aprenda Más Sobre Peso e Hidratación",
+  }
+};
+
+const btns=document.querySelectorAll(".lang-btn");
+
+function setLang(lang){
+  btns.forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+  const pack=dict[lang]||dict.en;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key=el.getAttribute("data-i18n");
+    if(pack[key]) el.textContent=pack[key];
+  });
+}
+
+btns.forEach(btn=>{
+  btn.addEventListener("click",()=>setLang(btn.dataset.lang));
+});
+
+setLang("en");
+</script>
+
+</body>
+</html>

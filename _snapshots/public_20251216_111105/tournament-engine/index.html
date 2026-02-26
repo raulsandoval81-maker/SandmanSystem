@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Tournament Engine</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --panel:#ffffff;
+      --ink:#111827;
+      --muted:#6b7280;
+      --border:#d1d5db;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+    h1{
+      margin:0 0 4px;
+      font-size:1.2rem;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+    .muted{
+      font-size:.75rem;
+      color:var(--muted);
+      margin-bottom:20px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:14px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px;
+      padding:14px 16px;
+      text-decoration:none;
+      color:var(--ink);
+      transition:background .12s ease;
+    }
+    .card:hover{
+      background:#f9fafb;
+    }
+    .card h2{
+      margin:0 0 6px;
+      font-size:.95rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    .desc{
+      font-size:.78rem;
+      color:var(--muted);
+      line-height:1.28;
+    }
+    @media print{
+      .grid{display:none;}
+      h1{margin-bottom:0;}
+      .muted{font-size:.7rem;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Tournament Engine</h1>
+    <div class="muted">Neutral tools for brackets, bout sheets, and tournament flow. All offline and school-safe.</div>
+
+    <div class="grid">
+
+      <!-- Bracket Manager -->
+      <a class="card" href="./bracket.html">
+        <h2>Bracket Manager</h2>
+        <div class="desc">
+          8-man & 16-man brackets, auto-advancing, bout entry panel, saves in browser.
+        </div>
+      </a>
+
+      <!-- Round Robin -->
+      <a class="card" href="./round-robin.html">
+        <h2>Round Robin</h2>
+        <div class="desc">
+          Build, score, and track round robin pools for 3–6 wrestlers.
+        </div>
+      </a>
+
+      <!-- Paper Bout Sheets -->
+      <a class="card" href="./sheets/lompoc-bout-sheet.html" target="_blank">
+        <h2>Bout Sheet</h2>
+        <div class="desc">
+          Printable neutral bout sheet (3 periods + OT). Two per page.
+        </div>
+      </a>
+
+      <!-- Weigh-In (Boys) -->
+      <a class="card" href="./sheets/weighin-boys.html" target="_blank">
+        <h2>Boys Weigh-In</h2>
+        <div class="desc">
+          CIF-standard boys weights. Printable roster collection sheet.
+        </div>
+      </a>
+
+      <!-- Weigh-In (Girls) -->
+      <a class="card" href="./sheets/weighin-girls.html" target="_blank">
+        <h2>Girls Weigh-In</h2>
+        <div class="desc">
+          CIF-standard girls weights. Printable roster collection sheet.
+        </div>
+      </a>
+
+      <!-- Future Expansion Placeholder -->
+      <a class="card" href="#" onclick="alert('Coming soon'); return false;">
+        <h2>Consolation Brackets</h2>
+        <div class="desc">
+          Full wrestle-back flow (double elimination). Placeholder, coming later.
+        </div>
+      </a>
+
+    </div>
+  </div>
+</body>
+</html>

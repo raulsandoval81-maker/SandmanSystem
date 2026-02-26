@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete Onboarding — Step 1</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <link rel="stylesheet" href="./onboarding.css"/>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <!-- ====================== HEADER ====================== -->
+    <header class="header">
+      <h1>Welcome to Sandman</h1>
+      <p class="sub">Your journey begins now.</p>
+    </header>
+
+    <!-- ====================== TOKEN CHECK ====================== -->
+    <section class="card">
+      <h2>Verify Your Token</h2>
+      <p class="muted small">
+        Your coach or parent sent you a special onboarding link.  
+        Enter your token below to begin.
+      </p>
+
+      <input id="token-input" class="input" placeholder="Enter your token code…"/>
+
+      <button id="btn-verify" class="btn solid-blue">Verify Token</button>
+
+      <p id="token-status" class="status small muted"></p>
+    </section>
+
+    <!-- ====================== ATHLETE NAME ====================== -->
+    <section class="card hidden" id="name-card">
+      <h2>Your Name</h2>
+      <input id="athlete-name" class="input" placeholder="Your full name…">
+      <button id="btn-save-name" class="btn solid-gold">Continue</button>
+    </section>
+
+    <!-- ====================== VIRTUE TAG ====================== -->
+    <section class="card hidden" id="virtue-card">
+      <h2>Your Virtue Tag</h2>
+      <p class="muted small">This tag connects your identity to your discipline.</p>
+
+      <div id="virtue-output" class="tag-box">—</div>
+
+      <button id="btn-finish" class="btn solid-green">Enter Athlete Tools →</button>
+    </section>
+
+  </main>
+
+  <script type="module" src="./onboarding.js"></script>
+</body>
+</html>

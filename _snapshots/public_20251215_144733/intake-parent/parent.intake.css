@@ -1,0 +1,151 @@
+/* ============================
+   PARENT INTAKE — Sandman Style
+   File: parent.intake.css
+=============================== */
+
+:root {
+  --bg: #0a0a0a;
+  --panel: #111821;
+  --border: #1f2a38;
+  --text: #f0f0f0;
+  --muted: #9da5b3;
+  --brand: #ffdd48;   /* Sandman Gold */
+  --brand-dark: #c6ad36;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* ============= WRAP ============= */
+.wrap {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+.page-title {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 6px;
+  color: var(--brand);
+}
+
+.muted {
+  text-align: center;
+  color: var(--muted);
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+}
+
+/* ============= FORM ============= */
+form {
+  background: var(--panel);
+  padding: 28px 26px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+}
+
+label {
+  display: block;
+  font-size: 0.92rem;
+  margin-bottom: 4px;
+  margin-top: 18px;
+  color: var(--text);
+}
+
+input,
+textarea {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  background: #0c121b;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  resize: none;
+  box-sizing: border-box;
+}
+
+textarea {
+  min-height: 90px;
+}
+
+/* ============= BUTTONS ============= */
+
+.btn {
+  width: 100%;
+  padding: 14px;
+  margin-top: 26px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.btn-brand {
+  background: var(--brand);
+  color: #000;
+  transition: background 0.15s ease;
+}
+
+.btn-brand:hover {
+  background: var(--brand-dark);
+}
+
+.btn-waiver {
+  background: #182230;
+  border: 1px solid var(--border);
+  color: var(--brand);
+}
+
+.btn-waiver:hover {
+  background: #1e2938;
+}
+
+/* ============= CHECKBOX ROW ============= */
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+/* ============= WAIVER BLOCK ============= */
+
+.waiver-block {
+  margin-top: 32px;
+  padding: 22px 18px;
+  background: #0d151f;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+
+.waiver-title {
+  margin: 0 0 14px;
+  font-size: 1.25rem;
+  color: var(--brand);
+  text-align: center;
+}
+
+#waiverStatus {
+  text-align: center;
+  margin-top: 10px;
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+
+/* ============= FOOTER ============= */
+
+.footer {
+  margin-top: 40px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--muted);
+  opacity: 0.7;
+}

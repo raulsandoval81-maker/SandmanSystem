@@ -1,0 +1,28 @@
+body {
+  background: #0a0a0a;
+  color: #f0f0f0;
+  font-family: system-ui;
+  margin: 0;
+  padding: 0;
+  text-align: center;
+}
+
+#teamList {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 12px;
+}
+
+.team-row {
+  display: flex;
+  justify-content: space-between;
+  background: #141a22;
+  padding: 12px 16px;
+  margin: 6px 0;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  border: 1px solid #1e2a36;
+}
+
+.team-name { color: #ffdd48; }
+.team-score { color: #9ce1ff; }

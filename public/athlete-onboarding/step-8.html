@@ -1,0 +1,46 @@
+<!-- /athlete-onboarding/step-8.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Onboarding — Step 8</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <link rel="stylesheet" href="./onboarding.css"/>
+</head>
+
+<body>
+  <main class="wrap">
+    <header class="header">
+      <h1>Hero and Legends</h1>
+      <div class="sub">Identity anchor — past and future.</div>
+    </header>
+
+    <section class="card">
+      <h2>Who shaped you?</h2>
+      <p class="muted small">Childhood hero, coach, family member — anyone who inspired you.</p>
+
+      <input id="hero-input" class="input" type="text" maxlength="64"
+             placeholder="Childhood hero (name)"/>
+    </section>
+
+    <section class="card">
+      <h2>Who are you becoming?</h2>
+      <p class="muted small">A future legend, role model, or the person you want to grow into.</p>
+
+      <input id="legend-input" class="input" type="text" maxlength="64"
+             placeholder="Future legend / role model (name)"/>
+
+      <div id="status" class="small muted" style="margin-top:10px;"></div>
+
+<button id="btn-next" class="btn solid-gold" type="button">Continue</button>
+    </section>
+
+    <div class="muted small" style="text-align:center; margin-top:18px;">
+      Built in the Shadows. Staged in the Light.
+    </div>
+  </main>
+
+  <script type="module" src="./step-8.js"></script>
+</body>
+</html>

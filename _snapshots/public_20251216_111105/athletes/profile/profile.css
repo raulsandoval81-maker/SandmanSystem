@@ -1,0 +1,220 @@
+/* ============================
+   Sandman Athlete Profile CSS
+   ============================ */
+
+/* ---------- Root ---------- */
+:root{
+  --bg:#0a0a0a;
+  --panel:#121722;
+  --panel2:#0e1420;
+  --line:#263142;
+  --ink:#e6e8eb;
+  --muted:#9fb3c8;
+  --gold:#ffd633;
+}
+
+/* ---------- Base ---------- */
+body{
+  background:var(--bg);
+  color:var(--ink);
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:1000px;
+  margin:0 auto;
+  padding:18px;
+}
+
+/* ---------- Cards / Layout ---------- */
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:16px;
+  margin-top:14px;
+}
+
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:14px;
+  margin:8px 0;
+}
+
+.stat{
+  flex:1 1 220px;
+  background:var(--panel2);
+  border:1px solid #223047;
+  border-radius:10px;
+  padding:10px;
+}
+
+.label{
+  font-size:.7rem;
+  color:var(--muted);
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.value{
+  font-weight:700;
+  color:var(--ink);
+}
+
+.muted{ color:var(--muted); }
+
+.pill{
+  display:inline-block;
+  background:#263142;
+  border:1px solid #3a4a60;
+  color:#cfe2ff;
+  padding:.16rem .5rem;
+  border-radius:999px;
+  text-decoration:none;
+}
+
+/* ---------- Header ---------- */
+.profile-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+
+.nav-left{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.sandman-logo{
+  width:140px;
+  max-width:22vw;
+  border-radius:10px;
+  opacity:.9;
+  filter:drop-shadow(0 0 8px rgba(255,214,51,.25));
+  transition:.25s ease;
+}
+
+.sandman-logo:hover{
+  filter:drop-shadow(0 0 12px rgba(255,214,51,.45));
+}
+
+/* ---------- Avatar ---------- */
+.avatar-box{
+  width:90px;
+  height:90px;
+  border-radius:14px;
+  background:#0a0f17;
+  border:1px solid rgba(255,255,255,.04);
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  font-weight:700;
+}
+
+/* =========================================================
+   RANK BAR (BELT) — SINGLE SOURCE OF TRUTH
+   ========================================================= */
+
+/* Container */
+#rankBar{
+  position:relative;
+  height:20px;
+  width:100%;
+  border-radius:999px;
+  background:rgba(255,255,255,.08);
+  overflow:hidden;
+  --stripe:#fff; /* JS switches to #000 for white belts */
+}
+
+/* Painted fill */
+#rankFill{
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:0%;
+  border-radius:inherit;
+  z-index:1;
+  transition:width .35s ease;
+}
+
+/* Stripe silhouettes (LEFT side, like original design) */
+#rankBar .stripe-boxes{
+  position:absolute;
+  left:10px;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  gap:6px;
+  z-index:2;
+  pointer-events:none;
+}
+
+/* Ghost stripe */
+#rankBar .stripe-box{
+  width:10px;
+  height:10px;
+  border-radius:3px;
+  background:rgba(255,255,255,.10);
+  border:1px solid rgba(255,255,255,.35);
+  opacity:.35; /* visible before earned */
+}
+
+/* Earned stripe */
+#rankBar .stripe-box.filled{
+  background:var(--stripe);
+  border-color:var(--stripe);
+  opacity:1;
+}
+
+/* ---------- Honor / Strength Bars ---------- */
+.lane-bar{
+  width:100%;
+  height:20px;
+  border-radius:999px;
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(255,255,255,.1);
+  overflow:hidden;
+  margin-top:6px;
+}
+
+.lane-bar span{
+  display:block;
+  height:100%;
+  width:0%;
+  border-radius:inherit;
+  transition:width .3s ease;
+}
+
+/* ---------- Drops ---------- */
+.drop{ margin-top:14px; }
+
+.drop-head{
+  background:transparent;
+  border:0;
+  color:#fff;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+  cursor:pointer;
+  padding:0;
+  margin-bottom:10px;
+}
+
+.drop-body.collapsed{ display:none; }
+
+.chev{
+  font-size:.8rem;
+  color:var(--muted);
+}

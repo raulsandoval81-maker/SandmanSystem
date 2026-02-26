@@ -1,0 +1,1050 @@
+/* ---------------------------------------------------
+   Para-Comms (HS Parent Version)
+   Royal Blue / Gold Theme
+---------------------------------------------------- */
+
+:root{
+  --bg:#0a1833;        /* Deep navy */
+  --panel:#111c35;     /* Steel navy panel */
+  --line:#27304a;      /* Subtle border blue */
+  --brand:#ffdd48;     /* Prestige gold */
+  --text:#f0f4f8;      /* Light gray text */
+  --muted:#9aa4b1;     /* Soft gray */
+  --darkbtn:#162447;   /* Dark navy button */
+  --darkbtn-hover:#1d2d55;
+}
+
+/* ---------------------------------------------------
+   Global Reset
+---------------------------------------------------- */
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+/* ---------------------------------------------------
+   Header
+---------------------------------------------------- */
+
+.pc-header{
+  background:#04173a;
+  color:var(--brand);
+  padding:12px 16px;
+  border-bottom:1px solid rgba(255,221,72,.18);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.pc-back{
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #1f2937;
+  border-radius:999px;
+  padding:6px 14px;
+  font-size:.8rem;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.pc-back:hover{
+  background:#0b1120;
+}
+
+.pc-header h1{
+  font-size:1.25rem;
+  margin:0;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+
+.pc-home{
+  color:var(--brand);
+  font-size:1.3rem;
+  text-decoration:none;
+  transition:.2s;
+  padding:4px;
+}
+
+.pc-home:hover{
+  filter:brightness(1.3);
+}
+
+/* ---------------------------------------------------
+   Layout
+---------------------------------------------------- */
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:22px 14px 40px;
+}
+
+/* Panels */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:18px 18px 22px;
+  margin-top:16px;
+  line-height:1.55;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+}
+
+/* Help section */
+.pc-help ul{
+  padding-left:20px;
+  margin-top:6px;
+}
+.pc-help li{
+  margin-bottom:6px;
+  color:var(--muted);
+}
+
+/* ---------------------------------------------------
+   Form
+---------------------------------------------------- */
+
+.pc-main label{
+  display:block;
+  font-weight:600;
+  margin:10px 0 6px;
+}
+
+.pc-main input,
+.pc-main textarea{
+  width:100%;
+  padding:10px;
+  background:#0b142d;
+  border:1px solid var(--line);
+  border-radius:10px;
+  color:var(--text);
+  font-size:.95rem;
+}
+
+.pc-main textarea{
+  resize:vertical;
+}
+
+/* ---------------------------------------------------
+   Buttons
+---------------------------------------------------- */
+
+.btn{
+  display:inline-block;
+  background:var(--darkbtn);
+  color:var(--text);
+  border:none;
+  border-radius:10px;
+  padding:10px 16px;
+  margin-top:12px;
+  cursor:pointer;
+  font-size:.9rem;
+  font-weight:600;
+  transition:.2s;
+}
+
+.btn:hover{
+  background:var(--darkbtn-hover);
+}
+
+.btn-brand{
+  background:var(--brand);
+  color:#111;
+  font-weight:700;
+}
+
+.btn-brand:hover{
+  filter:brightness(1.06);
+}
+
+.small{
+  padding:8px 12px;
+  font-size:.82rem;
+}
+
+/* 3-button copy row */
+.pc-copy-grid{
+  margin-top:14px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+/* ---------------------------------------------------
+   Translation Preview Modal
+---------------------------------------------------- */
+
+.pc-modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  z-index:9000;
+}
+
+.pc-modal-box{
+  background:var(--panel);
+  border:1px solid var(--line);
+  padding:22px;
+  border-radius:14px;
+  max-width:480px;
+  width:100%;
+  box-shadow:0 4px 20px rgba(0,0,0,.35);
+}
+
+.pc-modal-box h2{
+  margin:0 0 12px;
+  color:var(--brand);
+  font-size:1.2rem;
+}
+
+.pc-modal-box pre{
+  white-space:pre-wrap;
+  background:#0b142d;
+  padding:12px;
+  border-radius:10px;
+  min-height:80px;
+  font-size:.9rem;
+}
+
+.confidence{
+  margin:8px 0 16px;
+  font-size:.85rem;
+  color:var(--muted);
+}
+
+.pc-modal-actions{
+  display:flex;
+  gap:12px;
+  justify-content:flex-end;
+}
+
+/* ---------------------------------------------------
+   Mobile Polish
+---------------------------------------------------- */
+@media (max-width:640px){
+  .wrap{
+    padding:18px 12px 28px;
+  }
+
+  .pc-header h1{
+    font-size:1.15rem;
+  }
+
+  .pc-main input,
+  .pc-main textarea{
+    font-size:1rem;
+  }
+
+  .btn{
+    width:100%;
+    font-size:1rem;
+  }
+}
+.badge-bubble{
+  background:#ffdd48;
+  color:#111;
+  border-radius:999px;
+  padding:2px 8px;
+  font-size:.7rem;
+  font-weight:700;
+  margin-left:8px;
+}
+
+/* ============================================================
+   Cartoon Initials Avatar (Sandman Theme)
+   ============================================================ */
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:800;
+  font-size:.85rem;
+
+  border:3px solid rgba(255,221,72,0.7); /* gold ring */
+  box-shadow:
+    0 0 0 3px rgba(0,0,0,.35),
+    0 4px 8px rgba(0,0,0,.45);
+
+  user-select:none;
+}
+.tile .cat {
+  background:#ffffff;
+  color:#0a1833;
+  padding:4px 10px;
+  border-radius:8px;
+  font-size:.75rem;
+  font-weight:700;
+  display:inline-block;
+  border:1px solid #cfd3d9;
+}
+
+.tile .title {
+  margin-top:14px;
+  font-size:1.05rem;
+  color:#f0f4f8;
+}
+
+.tile .sub {
+  margin-top:6px;
+  color:#cfd3d9;
+  font-size:.9rem;
+}
+.pinned-pill {
+  display:inline-block;
+  padding:2px 6px;
+  margin-left:6px;
+  font-size:.7rem;
+  border-radius:6px;
+  background:#ffdd48;
+  color:#0a1833;
+  font-weight:700;
+}
+/* ===== THREAD STYLE ===== */
+.pc-thread {
+  background:#0d1a33;
+  border:1px solid #27304a;
+  border-radius:12px;
+  padding:14px;
+  height:60vh;
+  overflow-y:auto;
+  margin-bottom:90px;
+}
+
+/* MSG BUBBLES */
+.pc-msg {
+  max-width:85%;
+  padding:10px 14px;
+  border-radius:12px;
+  margin-bottom:12px;
+  line-height:1.35;
+  color:#fff;
+}
+
+.pc-msg.parent {
+  background:#1b2a47;
+  align-self:flex-start;
+}
+
+.pc-msg.coach {
+  background:#003f9e;
+  margin-left:auto;
+  align-self:flex-end;
+}
+
+.pc-msg-time {
+  font-size:.7rem;
+  opacity:.6;
+  margin-top:4px;
+}
+
+/* REPLY BOX */
+.pc-reply-box {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:12px;
+  background:#0a1833;
+  border-top:1px solid #27304a;
+  display:flex;
+  gap:10px;
+}
+
+.pc-reply-box textarea {
+  flex:1;
+  border-radius:10px;
+  background:#0d1425;
+  border:1px solid #27304a;
+  padding:10px;
+  color:white;
+}
+
+/* TOAST */
+.pc-toast {
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#00c853;
+  color:#000;
+  padding:10px 16px;
+  border-radius:10px;
+  font-weight:700;
+  opacity:0;
+  transition:.4s ease;
+  pointer-events:none;
+}
+
+.pc-toast.show {
+  opacity:1;
+  bottom:100px;
+}
+/* ===== THREAD STYLE ===== */
+.pc-thread {
+  background:#0d1a33;
+  border:1px solid #27304a;
+  border-radius:12px;
+  padding:14px;
+  height:60vh;
+  overflow-y:auto;
+  margin-bottom:90px;
+}
+
+/* MSG BUBBLES */
+.pc-msg {
+  max-width:85%;
+  padding:10px 14px;
+  border-radius:12px;
+  margin-bottom:12px;
+  line-height:1.35;
+  color:#fff;
+}
+
+.pc-msg.parent {
+  background:#1b2a47;
+  align-self:flex-start;
+}
+
+.pc-msg.coach {
+  background:#003f9e;
+  margin-left:auto;
+  align-self:flex-end;
+}
+
+.pc-msg-time {
+  font-size:.7rem;
+  opacity:.6;
+  margin-top:4px;
+}
+
+/* REPLY BOX */
+.pc-reply-box {
+  position:fixed;
+  bottom:0;
+  left:0;
+  right:0;
+  padding:12px;
+  background:#0a1833;
+  border-top:1px solid #27304a;
+  display:flex;
+  gap:10px;
+}
+
+.pc-reply-box textarea {
+  flex:1;
+  border-radius:10px;
+  background:#0d1425;
+  border:1px solid #27304a;
+  padding:10px;
+  color:white;
+}
+
+/* TOAST */
+.pc-toast {
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  background:#00c853;
+  color:#000;
+  padding:10px 16px;
+  border-radius:10px;
+  font-weight:700;
+  opacity:0;
+  transition:.4s ease;
+  pointer-events:none;
+}
+
+.pc-toast.show {
+  opacity:1;
+  bottom:100px;
+}
+.thread-block {
+  background:#12203a;
+  border:1px solid #1e2f4b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:12px;
+}
+
+.thread-block .sender {
+  font-weight:700;
+  margin-bottom:6px;
+  color:#ffdd48;
+  text-transform:uppercase;
+  font-size:0.8rem;
+}
+
+.thread-block.parent {
+  border-left:4px solid #4da3ff;
+}
+
+.thread-block.coach {
+  border-left:4px solid #ff9966;
+}
+
+.thread-block .body {
+  white-space:pre-wrap;
+  line-height:1.5;
+}
+/* Bubble differentiation */
+.msg-parent {
+  background: #111c35;
+  border: 1px solid #27304a;
+}
+
+.msg-coach {
+  background: #1b1422;
+  border: 1px solid #3a2a45;
+}
+
+.msg-parent .msg-body {
+  color: #d8e1ee;
+}
+
+.msg-coach .msg-body {
+  color: #f5e8ff;
+}
+/* ------------------------------
+   THREAD CONTAINER
+------------------------------- */
+.wrap {
+  max-width: 780px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* ------------------------------
+   MESSAGE BLOCK
+------------------------------- */
+.msg-block {
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  backdrop-filter: blur(3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.msg-parent {
+  background: #0f1a33;
+  border: 1px solid #27304a;
+  text-align: left;
+}
+
+.msg-coach {
+  background: #142442;
+  border: 1px solid #3a4b63;
+  text-align: left;
+}
+
+/* ------------------------------
+   MESSAGE HEADER (From + Time)
+------------------------------- */
+.msg-from {
+  font-weight: 700;
+  color: #ffdd48;
+  margin-bottom: 4px;
+  font-size: 0.9rem;
+}
+
+.msg-timestamp {
+  color: #9aa4b1;
+  font-size: 0.75rem;
+  margin-bottom: 10px;
+}
+
+/* ------------------------------
+   MESSAGE BODY
+------------------------------- */
+.msg-body {
+  font-size: 1rem;
+  line-height: 1.45;
+  color: #f0f4f8;
+  white-space: pre-wrap;
+}
+
+/* ------------------------------
+   REPLY BOX
+------------------------------- */
+.reply-box {
+  background: #0f1a33;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid #27304a;
+  margin-top: 24px;
+}
+
+textarea {
+  width: 100%;
+  background: #111c35;
+  color: #fff;
+  border: 1px solid #27304a;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 1rem;
+}
+
+.btn-send {
+  display: block;
+  width: 100%;
+  margin-top: 14px;
+  background: #ffdd48;
+  color: #111;
+  padding: 12px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-size: 1rem;
+}
+
+/* Fade-in effect */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* ============================
+   THREAD MESSAGE BUBBLES v2
+   ============================ */
+
+.thread-wrap {
+  margin-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.msg-block {
+  max-width: 82%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+  animation: fadeIn .25s ease-out;
+}
+
+.msg-parent {
+  background: #111c35;
+  border: 1px solid #27304a;
+  align-self: flex-start;
+}
+
+.msg-coach {
+  background: #152449;
+  border: 1px solid #ffdd48;
+  align-self: flex-end;
+}
+
+.msg-from {
+  font-size: .75rem;
+  opacity: .75;
+  margin-bottom: 4px;
+}
+
+.msg-timestamp {
+  font-size: .7rem;
+  color: #9fb3c8;
+  margin-top: 6px;
+}
+
+.msg-body {
+  font-size: 1rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.thread-block {
+  margin: 12px 0;
+  padding: 12px 14px;
+  border-radius: 14px;
+  max-width: 88%;
+  box-shadow: 0 4px 12px rgba(0,0,0,.35);
+  animation: fadeIn .25s ease-out;
+}
+
+.thread-block.parent {
+  background: #1a2540;
+  border: 1px solid #2d3c5c;
+  margin-left: 0;
+}
+
+.thread-block.coach {
+  background: #233256;
+  border: 1px solid #3d4d72;
+  margin-left: auto;
+}
+
+.sender {
+  font-size: .8rem;
+  font-weight: 700;
+  color: #ffdd48;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  opacity: .9;
+}
+
+.body {
+  font-size: .95rem;
+  line-height: 1.45;
+  color: #e2e8f0;
+  padding: 2px 0 6px;
+}
+
+.timestamp {
+  font-size: .72rem;
+  color: #94a3b8;
+  margin-top: 3px;
+  text-align: right;
+}
+
+/* Micro fade */
+.fade-in {
+  opacity: 0;
+  transform: translateY(4px);
+  animation: fadeIn .3s forwards;
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+/* ------------------------------------------------------------
+   THREAD AREA
+------------------------------------------------------------ */
+#thread {
+  margin-top: 20px;
+  padding: 4px 0;
+  max-height: calc(100vh - 260px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #334155 #0f172a;
+}
+
+/* Fade-in animation */
+.fade-in {
+  animation: fade-in 0.25s ease-out;
+}
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ------------------------------------------------------------
+   MESSAGE BLOCKS
+------------------------------------------------------------ */
+.msg-block {
+  margin-bottom: 14px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  max-width: 82%;
+  word-wrap: break-word;
+  box-shadow: 0 3px 10px rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* Parent bubble (left) */
+.msg-parent {
+  background: #0f1a33;
+  margin-right: auto;
+  color: #f8fafc;
+}
+
+/* Coach bubble (right) */
+.msg-coach {
+  background: #1e293b;
+  margin-left: auto;
+  color: #f1f5f9;
+  border-left: 3px solid #ffdd48;
+}
+
+/* Sender label */
+.msg-from {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  margin-bottom: 4px;
+  opacity: 0.9;
+  text-transform: uppercase;
+  color: #ffdd48;
+}
+
+/* Bubble text */
+.msg-body {
+  font-size: 0.95rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+/* Timestamp */
+.msg-timestamp {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  text-align: right;
+  margin-top: 2px;
+}
+
+/* ------------------------------------------------------------
+   REPLY BOX (Parent typing area)
+------------------------------------------------------------ */
+.reply-box {
+  background: #0b1428;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid #27304a;
+  margin-top: 22px;
+  box-shadow: 0 3px 14px rgba(0,0,0,.35);
+}
+
+textarea#reply-text {
+  width: 100%;
+  background: #111c35;
+  color: #f1f5f9;
+  border: 1px solid #27304a;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 1rem;
+  resize: vertical;
+  line-height: 1.4;
+}
+
+.btn-send {
+  margin-top: 10px;
+  width: 100%;
+  background: #ffdd48;
+  color: #0f172a;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  text-align: center;
+  border: none;
+}
+
+.btn-send:hover {
+  filter: brightness(1.05);
+}
+
+/* Success message */
+#reply-success {
+  margin-top: 8px;
+  color: #ffdd48;
+  font-size: 0.85rem;
+}
+
+/* Scrollbar styling */
+#thread::-webkit-scrollbar {
+  width: 8px;
+}
+#thread::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 10px;
+}
+#thread::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+.msg-block {
+  max-width: 80%;
+  padding: 12px 14px;
+  margin: 10px 0;
+  border-radius: 14px;
+  background: #0f1f3d;
+  border: 1px solid #27304a;
+  color: #e2e8f0;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.msg-parent {
+  margin-left: auto;
+  background: #13284d;
+  border-color: #38507a;
+}
+
+.msg-coach {
+  margin-right: auto;
+  background: #1b2338;
+  border-color: #ffdd48;
+}
+
+.msg-header {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+
+.msg-sender {
+  font-weight: bold;
+  color: #ffdd48;
+}
+
+.msg-time {
+  color: #aab7cf;
+}
+
+.msg-body {
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Smooth fade */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.msg-group {
+  margin-bottom: 18px;
+  padding: 6px 10px;
+}
+
+.msg-group.parent {
+  text-align: left;
+}
+
+.msg-group.coach {
+  text-align: right;
+}
+
+.group-from {
+  font-size: .75rem;
+  color: #9fb3c8;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  opacity: .8;
+}
+
+.msg-bubble {
+  display: inline-block;
+  max-width: 80%;
+  padding: 10px 14px;
+  margin: 4px 0;
+  border-radius: 12px;
+  line-height: 1.4;
+  background: #182a48;
+  color: #fff;
+}
+
+.msg-group.coach .msg-bubble {
+  background: #0e265c;
+}
+/* ============================================================
+   Sandman Para-Comms • Grouped Message Bubbles (Coach + Parent)
+   Level 3.5 Aesthetic Pack — iMessage / WhatsApp Hybrid
+   ============================================================ */
+
+/* Thread container */
+#thread {
+  padding: 18px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* GROUP WRAPPER */
+.msg-group {
+  display: flex;
+  flex-direction: column;
+  max-width: 88%;
+}
+
+.msg-group.coach {
+  align-self: flex-start;
+}
+
+.msg-group.parent {
+  align-self: flex-end;
+}
+
+/* SENDER LABEL */
+.group-from {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  margin-bottom: 4px;
+  opacity: 0.75;
+}
+
+.msg-group.coach .group-from {
+  color: #7ab8ff;   /* soft blue */
+}
+
+.msg-group.parent .group-from {
+  color: #ffdd48;   /* your Sandman gold */
+}
+
+/* INDIVIDUAL BUBBLE WRAPPER */
+.bubble-wrap {
+  margin-bottom: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+/* MESSAGE BUBBLE */
+.msg-bubble {
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  max-width: 100%;
+  word-wrap: break-word;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.35);
+  animation: fadeInBubble 0.25s ease-out;
+}
+
+/* COACH bubble color */
+.msg-group.coach .msg-bubble {
+  background: #1a2c4a;      /* deep navy */
+  color: #e2e8f0;
+  border: 1px solid #2d3a50;
+}
+
+/* PARENT bubble color */
+.msg-group.parent .msg-bubble {
+  background: #ffdd48;
+  color: #111;
+  border: 1px solid #d4b840;
+}
+
+/* TIMESTAMP */
+.msg-stamp {
+  font-size: 0.70rem;
+  opacity: 0.55;
+  margin-left: 4px;
+}
+
+/* ALIGN STAMPS CORRECTLY */
+.msg-group.coach .msg-stamp {
+  text-align: left;
+}
+
+.msg-group.parent .msg-stamp {
+  text-align: right;
+}
+
+/* SMALL BUBBLE ENTRY ANIMATION */
+@keyframes fadeInBubble {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+

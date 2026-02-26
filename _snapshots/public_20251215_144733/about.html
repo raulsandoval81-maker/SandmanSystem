@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Programs | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    /* ---------- Top Nav (shared) ---------- */
+    .top-nav {
+      background: #0f141b;
+      border-bottom: 2px solid #ffd633;
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: .5rem;
+    }
+    .nav-logo a {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffd633;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 500;
+      color: #f3f4f6;
+      transition: color .2s ease-in-out;
+    }
+    .nav-links a[aria-current="page"] {
+      color: #ffd633;
+      font-weight: 700;
+    }
+    .nav-links a:hover { color: #ff4d4d; }
+    @media (min-width:900px){
+      .nav-container{ flex-direction:row; justify-content:space-between; }
+    }
+
+    /* Layout helpers */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .section { margin: 2rem 0; }
+    .section h2 { color: #ffd633; margin-bottom: .5rem; }
+    .lead { color: #cfd3d9; line-height: 1.6; }
+
+    /* Cards / grids */
+    .grid-3 { display:grid; gap:1rem; grid-template-columns:1fr; }
+    .grid-2 { display:grid; gap:1rem; grid-template-columns:1fr; }
+    @media (min-width:900px){
+      .grid-3{ grid-template-columns:repeat(3,1fr); }
+      .grid-2{ grid-template-columns:1fr 1fr; }
+    }
+    .card {
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:14px;
+      padding:1rem;
+      box-shadow:0 0 14px rgba(0,0,0,.35);
+      height:100%;
+    }
+    .card h3 { margin-top:0; color:#f3f4f6; }
+    .kicker {
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#9fb3c8;
+      font-weight:700;
+      margin-bottom:.25rem;
+      font-size:.8rem;
+    }
+
+    /* Image slots */
+    .img-slot {
+      width:100%; max-width:560px; height:160px;
+      border:2px dashed #777; border-radius:12px;
+      display:flex; align-items:center; justify-content:center;
+      color:#ccc; margin:.75rem 0; background:rgba(255,255,255,.02);
+      font-size:.85rem;
+      text-align:center;
+      padding:.4rem;
+    }
+
+    /* Tables (schedule placeholder) */
+    table { width:100%; border-collapse:collapse; }
+    th, td { border:1px solid #263142; padding:.6rem .5rem; color:#e6e8eb; }
+    th { background:#182130; color:#ffd633; text-align:left; }
+    tbody tr:nth-child(odd){ background:#0f141b; }
+    tbody tr:nth-child(even){ background:#121821; }
+
+    /* Buttons */
+    .actions { display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.75rem; }
+    .btn {
+      display:inline-block;
+      padding:.6rem 1.1rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111827;
+      font-weight:800;
+      text-decoration:none;
+      font-size:.9rem;
+    }
+    .btn.secondary {
+      background:#263142;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+    }
+    .btn:hover { filter:brightness(1.05); }
+
+    /* Footer */
+    .footer {
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem 1.5rem;
+      margin-top:2rem;
+    }
+    .footer-container {
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      gap:1rem;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .footer-title { font-weight:700; color:#ffd633; }
+    .footer-links { display:flex; gap:1.25rem; flex-wrap:wrap; }
+    .footer-links a { color:#f3f4f6; text-decoration:none; font-weight:500; }
+    .footer-links a:hover { color:#ff4d4d; }
+    @media (max-width:600px){
+      .footer-container{ justify-content:flex-start; }
+    }/* ===== Shared Top Nav (Shrunk, Unified) ===== */
+.top-nav {
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1.25rem;       /* was .75rem 1.5rem */
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.nav-container {
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:.3rem;                    /* tighter gap */
+}
+
+.nav-logo a,
+.nav-logo {
+  font-size:1.05rem;            /* was 1.25rem */
+  font-weight:700;
+  color:#ffd633;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+
+.nav-links {
+  display:flex;
+  gap:1rem;                     /* slightly tighter */
+  flex-wrap:wrap;
+  justify-content:center;
+  font-size:.85rem;             /* smaller text for mobile */
+}
+
+.nav-links a {
+  text-decoration:none;
+  font-weight:500;
+  color:#f3f4f6;
+  transition:color .2s;
+}
+
+.nav-links a[aria-current="page"] {
+  color:#ffd633;
+  font-weight:700;
+}
+
+.nav-links a:hover { color:#ff4d4d; }
+
+@media (min-width:900px){
+  .nav-container{
+    flex-direction:row;
+    justify-content:space-between;
+  }
+}
+/* ---------------- TOP NAV ---------------- */
+.top-nav{
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1rem;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+.nav-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  max-width:1200px;
+  margin:0 auto;
+}
+.nav-logo{
+  font-size:1rem;
+  font-weight:700;
+  color:#ffd633;
+  text-decoration:none;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.nav-btn{
+  background:none;
+  border:0;
+  font-size:1.4rem;
+  color:#ffd633;
+  cursor:pointer;
+}
+
+/* ---------------- DRAWER ---------------- */
+.nav-drawer{
+  position:fixed;
+  top:0; right:-260px;
+  width:260px;
+  height:100vh;
+  background:#0b1118;
+  border-left:2px solid #ffd633;
+  padding:1.5rem;
+  transition:.25s;
+  z-index:2000;
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+.nav-drawer.open{ right:0; }
+
+.drawer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+  font-size:1rem;
+  padding:.4rem 0;
+  font-weight:500;
+  display:block;
+}
+
+.drawer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* ---------------- BACKDROP ---------------- */
+.nav-backdrop{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none;
+  transition:.25s;
+  z-index:1500;
+}
+.nav-backdrop.show{
+  opacity:1; pointer-events:auto;
+}
+
+/* ---------------- FOOTER ---------------- */
+.footer{
+  background:#0f141b;
+  border-top:2px solid #ffd633;
+  padding:1rem;
+  margin-top:2rem;
+}
+.footer-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+.footer-title{
+  font-weight:700;
+  color:#ffd633;
+}
+.footer-links{
+  display:flex;
+  gap:1rem;
+}
+.footer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+}
+.footer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* Highlight Current Page */
+.drawer-links a[aria-current="page"],
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  font-weight:700;
+}
+</style>
+
+  </style>
+</head>
+
+<body>
+<!-- TOP NAV -->
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn" aria-label="Menu">
+      ☰
+    </button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<aside class="nav-drawer" id="navDrawer">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="leaderboards.html">Leaderboards</a>
+    <a href="tools.html">Tools</a>
+    <a href="ceremonies.html">Ceremonies</a>
+    <a href="coaches.html">Coach Hub</a>
+  </nav>
+</aside>
+
+<!-- BACKDROP -->
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+  <main class="wrap">
+    <!-- Intro -->
+    <section class="section">
+      <h1>Programs</h1>
+      <p class="lead">
+        The Sandman System™ offers structured, XP-driven training for youth, teens, and young adults.
+        <strong>Foundry 8</strong> builds the foundation. <strong>Foundry 4</strong> deepens that journey
+        into advanced combat, leadership, and lifestyle.
+      </p>
+      <p class="lead">
+        Every lane shares the same core: <strong>combat first, character always</strong>. The difference is
+        the age, pace, and responsibility level expected inside each program.
+      </p>
+    </section>
+
+    <!-- Core Tracks -->
+    <section class="section">
+      <h2>Core Training Lanes</h2>
+      <p class="lead">
+        Each Foundry lane carries built-in pillars of <strong>Strength</strong> and <strong>Honor</strong>.
+        These aren’t separate “add-ons” — they’re woven into every Combat practice and XP cycle across
+        <strong>Foundry 8</strong> and <strong>Foundry 4</strong>. Athletes train their body, mind, and habits
+        as part of the same grind.
+      </p>
+
+      <div class="grid-3">
+        <!-- Foundry 8 -->
+        <div class="card">
+          <div class="kicker">Youth · Zero2Hero</div>
+          <h3>Foundry 8 — Youth Combat</h3>
+          <div class="img-slot">[ Youth training image · wrestling / boxing / kickboxing ]</div>
+          <p class="lead" style="font-size:.9rem;">
+            Roughly 2nd–8th grade. A youth combat path that teaches respect, discipline, and confidence —
+            with XP-based progress from Shadow all the way to Hero.
+          </p>
+          <ul style="color:#cfd3d9; margin:.5rem 0 0 1.1rem; font-size:.9rem;">
+            <li>Wrestling foundations</li>
+            <li>Boxing & striking fundamentals</li>
+            <li>Kickboxing movement and control</li>
+            <li>Light competition exposure when athletes are ready</li>
+          </ul>
+          <div class="actions">
+            <a class="btn" href="contact.html">Ask About Youth Training</a>
+            <a class="btn secondary" href="overview.html">How the System Works</a>
+          </div>
+        </div>
+
+        <!-- Foundry 4 Combat -->
+        <div class="card">
+          <div class="kicker">Teens & Young Adults · Path2Legend</div>
+          <h3>Foundry 4 — Combat</h3>
+          <div class="img-slot">[ Teen / young adult combat image ]</div>
+          <p class="lead" style="font-size:.9rem;">
+            High school and older athletes sharpen skill, power, and discipline. This lane is for those
+            ready to be pushed, held accountable, and trusted with example status in the room.
+          </p>
+          <ul style="color:#cfd3d9; margin:.5rem 0 0 1.1rem; font-size:.9rem;">
+            <li>Wrestling and mat control</li>
+            <li>Boxing and striking combinations</li>
+            <li>Kickboxing and pressure drills</li>
+            <li>Competition prep and mindset work</li>
+            <li style="margin-top:.35rem;"><em>Future lanes:</em> advanced grappling & MMA-style foundations</li>
+          </ul>
+          <div class="actions">
+            <a class="btn" href="contact.html">Ask About Teen/Adult Training</a>
+            <a class="btn secondary" href="overview.html">See the Foundry Arcs</a>
+          </div>
+        </div>
+
+        <!-- Foundry 4 Lifestyle & Leadership -->
+        <div class="card">
+          <div class="kicker">Advanced · Lifestyle & Leadership</div>
+          <h3>Foundry 4 — Lifestyle & Leadership</h3>
+          <div class="img-slot">[ Leadership / captain huddle / classroom image ]</div>
+          <p class="lead" style="font-size:.9rem;">
+            For advanced athletes, captains, and coaches in training. This lane extends beyond competition
+            into how athletes live, lead, and serve in their families, schools, and communities.
+          </p>
+          <ul style="color:#cfd3d9; margin:.5rem 0 0 1.1rem; font-size:.9rem;">
+            <li>Lifestyle & wellness habits</li>
+            <li>Leadership, mentoring, and example-setting</li>
+            <li>Coach-path development for future staff</li>
+            <li>Future branches: Seniors, Family, and early youth lanes</li>
+          </ul>
+          <div class="actions">
+            <a class="btn secondary" href="contact.html">Ask About Leadership Track</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Schedules -->
+    <section class="section">
+      <h2>Training Rhythm</h2>
+      <p class="lead">
+        Exact times can shift with seasons and teams, but the rhythm stays the same: consistent training
+        blocks for youth and older athletes. Use the sample layout below as a guide and contact Coach for
+        the current schedule.
+      </p>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3>Youth Weekly (Sample)</h3>
+          <table aria-label="Youth weekly schedule">
+            <thead>
+              <tr><th>Day</th><th>Time</th><th>Focus</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Mon</td><td>5:00–6:00 p</td><td>Wrestling Fundamentals</td></tr>
+              <tr><td>Wed</td><td>5:00–6:00 p</td><td>Boxing & Footwork</td></tr>
+              <tr><td>Fri</td><td>5:00–6:00 p</td><td>Kickboxing & Games</td></tr>
+            </tbody>
+          </table>
+          <p class="lead" style="font-size:.8rem; color:#9fb3c8; margin-top:.5rem;">
+            (Youth schedule shown as a sample. Actual times are confirmed at intake.)
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Teen / Adult Weekly (Sample)</h3>
+          <table aria-label="Teen/Adult weekly schedule">
+            <thead>
+              <tr><th>Day</th><th>Time</th><th>Focus</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Tue</td><td>6:30–8:00 p</td><td>Combat Lab (wrestling / striking)</td></tr>
+              <tr><td>Thu</td><td>6:30–8:00 p</td><td>Drills, conditioning, and film</td></tr>
+              <tr><td>Sat</td><td>10:00–11:30 a</td><td>Mixed Lab / Competition prep</td></tr>
+            </tbody>
+          </table>
+          <p class="lead" style="font-size:.8rem; color:#9fb3c8; margin-top:.5rem;">
+            (Teen/Adult schedule shown as a sample. Final schedule is set by season and team.)
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section">
+      <h2>Ready to Get Started?</h2>
+      <p class="lead">
+        New families begin with a simple intake conversation. From there, Coach places each athlete in the
+        lane and schedule that fits their age, experience, and goals.
+      </p>
+      <div class="actions">
+        <a class="btn" href="contact.html">Start Intake with Coach</a>
+        <a class="btn secondary" href="overview.html">Learn How XP Works</a>
+      </div>
+    </section>
+  </main>
+
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
+<script>
+const btn = document.getElementById("navBtn");
+const drawer = document.getElementById("navDrawer");
+const backdrop = document.getElementById("navBackdrop");
+
+// open
+btn.addEventListener("click",()=>{
+  drawer.classList.add("open");
+  backdrop.classList.add("show");
+  document.body.style.overflow="hidden";
+});
+
+// close
+backdrop.addEventListener("click", closeMenu);
+drawer.querySelectorAll("a").forEach(a=>{
+  a.addEventListener("click", closeMenu);
+});
+
+function closeMenu(){
+  drawer.classList.remove("open");
+  backdrop.classList.remove("show");
+  document.body.style.overflow="";
+}
+
+// highlight current page
+const links=[...document.querySelectorAll(".drawer-links a, .footer-links a")];
+links.forEach(link=>{
+  if(link.href === window.location.href){
+    link.setAttribute("aria-current","page");
+  }
+});
+</script>

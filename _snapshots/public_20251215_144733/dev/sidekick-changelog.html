@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sandman Sidekick™ — Changelog</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      max-width: 800px; 
+      margin: 2rem auto; 
+      line-height: 1.6; 
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+    h1, h2 {
+      border-bottom: 1px solid #ccc;
+      padding-bottom: .3rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sandman Sidekick™ — Changelog</h1>
+  <div id="log"></div>
+
+  <script>
+    async function loadChangelog() {
+      try {
+        const res = await fetch("sidekick-changelog.md");
+        if (!res.ok) throw new Error("File not found");
+        const text = await res.text();
+        document.getElementById("log").innerHTML = 
+          "<pre>" + text.replace(/</g, "&lt;") + "</pre>";
+      } catch (err) {
+        document.getElementById("log").textContent = 
+          "❌ Could not load sidekick-changelog.md";
+      }
+    }
+    loadChangelog();
+  </script>
+</body>
+</html>

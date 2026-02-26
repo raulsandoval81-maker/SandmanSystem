@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FilmRoom · Highlights</title>
+
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      margin:0;background:#05070c;color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+    .wrap{max-width:1000px;margin:0 auto;padding:24px 16px 40px;}
+
+    h1{margin:0 0 8px;color:#ffdd48;text-shadow:0 0 8px rgba(255,221,72,.25);}
+    .muted{color:#9ca3af;font-size:.78rem;margin-bottom:20px;}
+
+    .top-nav{
+      display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;
+    }
+    .pill{
+      background:#1a1d23;border:1px solid #2d3648;
+      padding:6px 14px;border-radius:999px;color:#fff;
+      font-weight:700;text-decoration:none;
+      cursor:pointer;transition:.15s;
+    }
+    .pill:hover{background:#e63946;border-color:#e63946}
+
+    /* grid */
+    .highlight-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:20px;
+    }
+    .hl-card{
+      background:#0b1017;border:1px solid #1f2937;
+      border-radius:14px;padding:14px;cursor:pointer;
+      transition:.2s;
+    }
+    .hl-card:hover{
+      border-color:#ffdd48;background:#121824;
+      box-shadow:0 0 12px rgba(255,221,72,.18);
+    }
+    .thumb{
+      width:100%;height:150px;background:#121212;
+      border-radius:10px;margin-bottom:12px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:.8rem;color:#6b7280;
+    }
+    .title{
+      font-size:.95rem;font-weight:700;color:#ffdd48;margin-bottom:2px;
+    }
+    .meta{font-size:.75rem;color:#9ca3af;}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="top-nav">
+    <a class="pill" href="/athletes/filmroom/index.html">← FilmRoom</a>
+    <a class="pill" href="../video-vault/index.html">Video Vault</a>
+    <a class="pill" href="../video-console/index.html">Video Console</a>
+  </div>
+
+  <h1>Highlights</h1>
+  <p class="muted">Saved reels · Auto builds · Export-ready sequences</p>
+
+  <div id="hl-grid" class="highlight-grid">
+    <!-- Highlight reels populate here -->
+  </div>
+
+</main>
+
+<script type="module">
+  // Placeholder wiring — safe for now
+  const grid = document.getElementById("hl-grid");
+
+  const demo = [
+    { title:"Wrestling Highlights – Nov 2025", created:"Nov 23, 2025" },
+    { title:"Scramble Masterclass", created:"Nov 20, 2025" }
+  ];
+
+  demo.forEach(h=>{
+    const el = document.createElement("div");
+    el.className = "hl-card";
+    el.onclick = ()=> alert("Open highlight reel (placeholder)");
+    el.innerHTML = `
+      <div class="thumb">no thumbnail</div>
+      <div class="title">${h.title}</div>
+      <div class="meta">${h.created}</div>
+    `;
+    grid.appendChild(el);
+  });
+</script>
+
+</body>
+</html>

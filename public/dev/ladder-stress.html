@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Ladder Stress Test</title>
+  <style>
+    :root { color-scheme: dark; }
+    body{background:#0a0a0a;color:#e6e8eb;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{max-width:1000px;margin:0 auto;padding:18px;}
+    h1{color:#ffd633;margin:0 0 10px;}
+    .card{background:#121722;border:1px solid #263142;border-radius:14px;padding:16px;margin-top:12px;}
+    input{width:100%;box-sizing:border-box;background:#0e1420;color:#e6e8eb;border:1px solid #223047;border-radius:10px;padding:10px;}
+    .btns{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+    button{background:#263142;color:#cfe2ff;border:1px solid #3a4a60;padding:10px 12px;border-radius:12px;cursor:pointer;}
+    button:hover{filter:brightness(1.1);}
+    button:disabled{opacity:.4;cursor:not-allowed;}
+    pre{background:#0e1420;border:1px solid #223047;border-radius:12px;padding:12px;overflow:auto;max-height:260px;}
+    textarea{width:100%;box-sizing:border-box;background:#0e1420;color:#e6e8eb;border:1px solid #223047;border-radius:12px;padding:12px;min-height:220px;}
+    .muted{color:#9fb3c8;font-size:.85rem;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:8px;}
+    .pill{display:inline-block;padding:.2rem .6rem;border-radius:999px;border:1px solid #3a4a60;background:#0e1420;color:#cfe2ff;font-size:.85rem;}
+    code{color:#cfe2ff;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Ladder Stress Test</h1>
+    <div class="muted">Coach-only. Uses <code>/assets/js/xp-api.js</code> (ATTENDANCE +10 / +5) — ladder/stripes validation only.</div>
+
+    <div class="card">
+      <div>Athlete UID (athletes doc id)</div>
+      <input id="uid" placeholder="A000001" />
+
+      <div class="row">
+        <span class="pill">Mode: <strong>ATTENDANCE</strong></span>
+        <span class="pill">Loop: <strong>10,5,10,5…</strong></span>
+      </div>
+
+<div class="btns">
+  <button id="btnFull">+10 Full Grind</button>
+  <button id="btnHalf">+5 Half Grind</button>
+
+  <button id="btnStr10">+10 Strength</button>
+  <button id="btnStr5">+5 Strength</button>
+  <button id="btnHon10">+10 Honor</button>
+  <button id="btnHon5">+5 Honor</button>
+
+  <button id="btnRun" style="background:#dc2626;border-color:#ff6b6b;color:#fff;">
+    🔥 Run Ladder Stress (10/5 loop)
+  </button>
+  <button id="btnStop">Stop</button>
+  <button id="btnClear">Clear</button>
+
+  <!-- FIX: one unique id -->
+  <button id="btnPromoteDev">⬆ Promote Tier (DEV)</button>
+</div>
+    </div>
+<div class="card" style="margin-top:12px">
+  <div class="muted" id="barLabel">XP: — / —</div>
+  <div class="belt-bar" style="height:32px; margin-top:8px;">
+    <div id="barFill" class="belt-fill" style="width:0%"></div>
+    <div id="barStripes" class="stripe-boxes"></div>
+    
+  </div>
+</div>
+
+    <div class="card">
+      <div>Log</div>
+      <div id="bar"></div>
+
+      <textarea id="log" readonly></textarea>
+    </div>
+
+    <div class="card">
+      <div>Last Response</div>
+      <pre id="out">{}</pre>
+    </div>
+  </div>
+
+  <script type="module" src="/dev/dev-actions.js"></script>
+</body>
+</html>

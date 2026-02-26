@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin — Hub | Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    .grid {display:grid; gap:16px; grid-template-columns: repeat(auto-fit,minmax(260px,1fr));}
+    .card {background:#12161d; border:1px solid #2a2f3a; border-radius:14px; padding:16px;}
+    .muted{color:#9aa3b2}
+    .pill {display:inline-block; padding:.5rem 1rem; border-radius:999px; background:#d32b2b; color:#ffd633; font-weight:700; text-decoration:none}
+    .pill:focus,.pill:hover{outline:2px solid #ffd633}
+    .list {margin:0; padding-left:1rem}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <p><a class="pill" href="index.html">← Back to Admin</a></p>
+    <h1>Admin Hub</h1>
+    <p class="muted">Central jump-off for operational pages. Public-safe; private features will be gated later with Auth.</p>
+
+    <section class="grid" style="margin-top:1rem">
+      <div class="card">
+        <h3>Ops</h3>
+        <ul class="list">
+          <li><a href="../coaches/coach-weekly.html">Coach Weekly (latest)</a></li>
+          <li><a href="../coaches/coach-weekly-archive.html">Coach Weekly — Archive</a></li>
+          <li><a href="../coaches/ceremonies.html">Ceremonies</a></li>
+          <li><a href="../leaderboards.html">Leaderboard (public)</a></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>XP Tools</h3>
+        <ul class="list">
+          <li><a href="../xp.html">XP Overall (demo)</a></li>
+          <li><a href="../xp-teen.html">XP — Teen (Foundry 4)</a></li>
+          <li><a href="../xp-youth.html">XP — Youth (Foundry 8)</a></li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>Data / Snapshots</h3>
+        <p class="muted">Read-only summaries for meetings.</p>
+        <p><a class="pill" href="snapshot.html">Open Snapshot</a></p>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+</body>
+</html>

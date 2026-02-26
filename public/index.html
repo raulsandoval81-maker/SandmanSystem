@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    /* ---------------- TOP NAV ---------------- */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .nav-logo{
+      font-size:1rem;
+      font-weight:700;
+      color:#ffd633;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:#ffd633;
+      cursor:pointer;
+    }
+
+    /* ---------------- DRAWER ---------------- */
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid #ffd633;
+      padding:1.5rem;
+      transition:.25s;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:500;
+      display:block;
+    }
+    .drawer-links a:hover{ color:#ff4d4d; }
+
+    /* ---------------- BACKDROP ---------------- */
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none;
+      transition:.25s;
+      z-index:1500;
+    }
+    .nav-backdrop.show{
+      opacity:1; pointer-events:auto;
+    }
+
+    /* ---------------- LAYOUT ---------------- */
+    .wrap{ max-width:960px; margin:0 auto; padding:2rem; }
+
+    .hero{
+      background: linear-gradient(to bottom, #6d0101, #1a1a1a);
+      color:#fff;
+      padding:2rem;
+      border-radius:20px;
+      text-align:center;
+      box-shadow:0 0 20px rgba(0,0,0,.7);
+      margin-bottom:2rem;
+    }
+.hero-panel {
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 214, 51, 0.14),
+    0 18px 40px rgba(0,0,0,.45);
+}
+
+    .section-kicker{
+      font-size:1.2rem;
+      font-weight:700;
+      color:#fff;
+      text-transform:uppercase;
+      margin-bottom:1rem;
+      letter-spacing:1px;
+    }
+
+    /* ---------------- BUTTONS ---------------- */
+    .actions{
+      display:flex;
+      gap:.75rem;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top:1.25rem;
+    }
+
+    .btn{
+      display:inline-block;
+      padding:.6rem 1.2rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111827;
+      font-weight:900;
+      text-decoration:none;
+      font-size:.95rem;
+      box-shadow:0 0 14px rgba(255,214,51,.25);
+      transition:filter .15s ease, transform .15s ease;
+    }
+
+    .btn:hover{
+      filter:brightness(1.05);
+      transform:translateY(-1px);
+    }
+
+    .btn.secondary{
+      background:#263142;
+      color:#f3f4f6;
+      border:1px solid #3a4a60;
+      box-shadow:none;
+    }
+
+    /* ---------------- CREST ---------------- */
+    .sandman-crest{
+      width:100%;
+      max-width:280px;
+      height:auto;
+      display:block;
+      margin:20px auto 10px;
+    }/* Footer links: always 4 across on phones */
+/* ===== Footer 5-across mobile dock ===== */
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap:.4rem;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:.4rem;
+  width:100%;
+}
+
+.footer-links a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:.6rem .25rem;
+  border:1px solid #243041;
+  background:#0b1020;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:900;
+  font-size:.8rem;
+  white-space:nowrap;
+  text-align:center;
+  transition: all .2s ease;
+
+  /* DEFAULT = yellow */
+  color:#ffd633;
+}
+
+/* Hover = white */
+.footer-links a:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+
+/* Current page stays yellow by default */
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  border-color:#ffd633;
+}
+
+/* Hover current page = white */
+.footer-links a[aria-current="page"]:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+/* smaller phones */
+@media (max-width:420px){
+  .footer-links a{
+    font-size:.7rem;
+    padding:.55rem .15rem;
+  }
+}
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP NAV -->
+  <header class="top-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Sandman System™</a>
+    </div>
+  </header>
+
+
+
+  <!-- BACKDROP -->
+  <div class="nav-backdrop" id="navBackdrop"></div>
+
+  <main class="wrap">
+    <!-- HERO -->
+<section class="hero">
+  <p class="hq-sub">Structure matters. Discipline earns everything.</p>
+
+  <img 
+    src="assets/images/logos/Sandman-Combat.png"
+    alt="Sandman System Crest"
+    class="sandman-crest"
+  />
+
+  <div class="section-kicker" style="font-size:.95rem; opacity:.9; margin-top:.25rem;">
+    Stronger · Faster · Smarter
+  </div>
+
+</section>
+  </main>
+
+
+  <footer class="footer">
+<div class="footer-links">
+  <a href="index.html">Home</a>
+  <a href="overview.html">Overview</a>
+  <a href="programs.html">Programs</a>
+  <a href="about.html">About</a>
+  <a href="ceremonies.html">Ceremonies</a>
+</div>
+  </footer>
+
+  <script>
+    const btn = document.getElementById("navBtn");
+    const drawer = document.getElementById("navDrawer");
+    const backdrop = document.getElementById("navBackdrop");
+
+    // open
+    btn.addEventListener("click", () => {
+      drawer.classList.add("open");
+      backdrop.classList.add("show");
+      document.body.style.overflow = "hidden";
+    });
+
+    // close
+    function closeMenu() {
+      drawer.classList.remove("open");
+      backdrop.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+
+    backdrop.addEventListener("click", closeMenu);
+    drawer.querySelectorAll("a").forEach(a => {
+      a.addEventListener("click", closeMenu);
+    });
+
+    // highlight current page
+    const links = [...document.querySelectorAll(".drawer-links a, .footer-links a")];
+    links.forEach(link => {
+      if (link.href === window.location.href) {
+        link.setAttribute("aria-current", "page");
+      }
+    });
+  </script>
+
+</body>
+</html>

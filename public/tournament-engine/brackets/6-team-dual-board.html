@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lompoc Wrestling — 6-Team Dual Board</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --navy3:#020617;
+      --yellow:#ffdd48;
+      --border:#cbd5e1;
+      --gray:#94a3b8;
+      --bg:#f8fafc;
+      --card:#ffffff;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--navy);
+      font-size:14px;
+    }
+    .page{
+      max-width:1200px;
+      margin:0 auto;
+      padding:16px 16px 28px;
+    }
+
+    /* HEADER */
+    .header-bar{
+      background:var(--navy3);
+      color:#ffffff;
+      padding:8px 10px;
+      border-radius:10px;
+      margin-bottom:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      font-size:.9rem;
+    }
+    .header-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .header-title{
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+    }
+    .header-sub{
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      color:var(--gray);
+    }
+    .header-meta{
+      text-align:right;
+      font-size:.75rem;
+    }
+    .header-meta-label{
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--yellow);
+    }
+    .meta-line{
+      border-bottom:1px solid #ffffff;
+      min-width:160px;
+      min-height:16px;
+      display:inline-block;
+      margin-left:4px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: minmax(0,0.9fr) minmax(0,1.4fr) minmax(0,1fr);
+      gap:14px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:10px;
+      border:1px solid #e2e8f0;
+      box-shadow:0 1px 2px rgba(15,23,42,0.08);
+      padding:10px 10px 12px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .card-header{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+    }
+    .card-title{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      color:var(--navy2);
+    }
+    .card-tag{
+      font-size:.68rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      padding:2px 6px;
+      border-radius:999px;
+      background:var(--yellow);
+      color:var(--navy3);
+    }
+    .hint{
+      font-size:.7rem;
+      color:var(--gray);
+    }
+
+    /* TEAM LIST */
+    .team-list{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+    .team-row{
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .team-label{
+      width:26px;
+      text-align:right;
+      font-size:.7rem;
+      color:var(--gray);
+    }
+    .team-input{
+      flex:1;
+      border-radius:6px;
+      border:1px solid var(--border);
+      padding:4px 6px;
+      font-size:.78rem;
+    }
+
+    /* DUAL TABLE */
+    table{
+      border-collapse:collapse;
+      width:100%;
+      font-size:.78rem;
+    }
+    thead tr{
+      background:var(--navy);
+      color:#e5e7eb;
+    }
+    th,td{
+      border:1px solid var(--border);
+      padding:3px 4px;
+    }
+    th{
+      text-align:left;
+      font-weight:500;
+      white-space:nowrap;
+    }
+    tbody tr:nth-child(even){
+      background:#f1f5f9;
+    }
+    tbody tr:nth-child(odd){
+      background:#ffffff;
+    }
+    .dual-label{
+      font-weight:500;
+      color:var(--navy2);
+    }
+    .dual-teams{
+      font-size:.74rem;
+      color:var(--gray);
+    }
+    .score-input{
+      width:42px;
+      border-radius:4px;
+      border:1px solid var(--border);
+      padding:2px 4px;
+      text-align:center;
+      font-size:.78rem;
+    }
+    .winner-cell{
+      text-align:center;
+      font-size:.75rem;
+      font-weight:600;
+      color:var(--navy2);
+    }
+
+    /* STANDINGS */
+    .standings-table th{
+      background:var(--navy2);
+      color:#e5e7eb;
+      text-align:center;
+    }
+    .standings-table td{
+      text-align:center;
+    }
+    .standings-table td.team-name{
+      text-align:left;
+      font-weight:500;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:1px 6px;
+      border-radius:999px;
+      border:1px solid var(--navy2);
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--navy2);
+    }
+
+    @media (max-width:960px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media print{
+      body{background:#ffffff;}
+      .page{padding:8px 10px;}
+      .card{
+        box-shadow:none;
+        border-radius:0;
+      }
+      .header-bar{
+        border-radius:0;
+        box-shadow:none;
+      }
+    }.schedule-block {
+    margin: 20px 0 28px;
+  }
+  .schedule-title {
+    font-size: .85rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: #1e293b;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .schedule-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .schedule-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    padding: 10px 12px;
+    border-radius: 8px;
+  }
+  .round-label {
+    font-size: .78rem;
+    font-weight: 600;
+    color: #0f172a;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+  }
+  .line {
+    font-size: .75rem;
+    color: #475569;
+    margin: 2px 0;
+  }
+  @media (max-width: 1020px){
+    .schedule-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px){
+    .schedule-grid {
+      grid-template-columns: 1fr;
+    }
+  }/* FULL WIDTH SCHEDULE */
+.schedule-pane {
+  width: 100%;
+  margin: 0 0 18px 0;
+  background: #0f172a; /* deep navy */
+  border: 2px solid #ffdd48; /* gold frame */
+  border-radius: 12px;
+  padding: 14px 16px 18px;
+}
+
+.schedule-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* rows of 3 rounds */
+.schedule-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+/* round block */
+.round-block {
+  background: #1e293b; /* lighter navy */
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #334155;
+}
+
+/* round title */
+.round-heading {
+  font-size: .78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  color: #ffdd48; /* gold */
+  margin-bottom: 6px;
+}
+
+/* match lines */
+.match-line {
+  font-size: .75rem;
+  color: #e2e8f0; /* soft white/gray */
+  padding: 3px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.match-line:last-child {
+  border-bottom: none;
+}
+
+/* MOBILE */
+@media (max-width: 900px) {
+  .schedule-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header-bar">
+      <div class="header-left">
+        <div class="header-title">Lompoc Wrestling</div>
+        <div class="header-sub">6-Team Dual Round Robin • Brave Challenge</div>
+      </div>
+      <div class="header-meta">
+        <div>
+          <span class="header-meta-label">Event</span>
+          <span class="meta-line"></span>
+        </div>
+        <div style="margin-top:4px;">
+          <span class="header-meta-label">Date</span>
+          <span class="meta-line"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+
+      <!-- TEAMS CARD -->
+<!-- FULL-WIDTH SCHEDULE (ROUNDS 1–5) -->
+<section class="schedule-block">
+  <h2 class="schedule-title">Round Schedule</h2>
+
+  <div class="schedule-grid">
+
+    <!-- Round 1 -->
+    <div class="schedule-card">
+      <div class="round-label">Round 1</div>
+      <div class="line">Mat 1 — (1) Santa Maria vs (6) Lompoc B</div>
+      <div class="line">Mat 2 — (2) Righetti vs (5) Lompoc A</div>
+      <div class="line">Mat 3 — (3) SLO vs (4) Nipomo</div>
+    </div>
+
+    <!-- Round 2 -->
+    <div class="schedule-card">
+      <div class="round-label">Round 2</div>
+      <div class="line">Mat 1 — (1) Santa Maria vs (5) Lompoc A</div>
+      <div class="line">Mat 2 — (6) Lompoc B vs (4) Nipomo</div>
+      <div class="line">Mat 3 — (2) Righetti vs (3) SLO</div>
+    </div>
+
+    <!-- Round 3 -->
+    <div class="schedule-card">
+      <div class="round-label">Round 3</div>
+      <div class="line">Mat 1 — (1) Santa Maria vs (4) Nipomo</div>
+      <div class="line">Mat 2 — (5) Lompoc A vs (3) SLO</div>
+      <div class="line">Mat 3 — (6) Lompoc B vs (2) Righetti</div>
+    </div>
+
+    <!-- Round 4 -->
+    <div class="schedule-card">
+      <div class="round-label">Round 4</div>
+      <div class="line">Mat 1 — (1) Santa Maria vs (3) SLO</div>
+      <div class="line">Mat 2 — (4) Nipomo vs (2) Righetti</div>
+      <div class="line">Mat 3 — (5) Lompoc A vs (6) Lompoc B</div>
+    </div>
+
+    <!-- Round 5 -->
+    <div class="schedule-card">
+      <div class="round-label">Round 5</div>
+      <div class="line">Mat 1 — (1) Santa Maria vs (2) Righetti</div>
+      <div class="line">Mat 2 — (3) SLO vs (6) Lompoc B</div>
+      <div class="line">Mat 3 — (4) Nipomo vs (5) Lompoc A</div>
+    </div>
+
+  </div>
+</section>      <!-- DUALS CARD -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Duals</div>
+          <div class="card-tag">Live Scoring</div>
+        </div>
+        <div class="hint">
+          Each team wrestles every other team once. Enter final dual scores; winner updates automatically.
+        </div>
+
+        <div style="max-height:460px;overflow:auto;border-radius:8px;border:1px solid #e2e8f0;">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:66px;">Mat / Bout</th>
+                <th>Teams</th>
+                <th style="width:60px;text-align:center;">Score A</th>
+                <th style="width:60px;text-align:center;">Score B</th>
+                <th style="width:80px;text-align:center;">Winner</th>
+              </tr>
+            </thead>
+            <tbody id="duals-body">
+              <!-- JS will inject 15 dual rows here -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- STANDINGS CARD -->
+      <section class="card">
+        <div class="card-header">
+          <div class="card-title">Standings</div>
+          <div class="card-tag">Auto</div>
+        </div>
+        <div class="hint">
+          Sorted by wins, then point differential. Leave scores blank until the dual ends.
+        </div>
+        <div style="border-radius:8px;border:1px solid #e2e8f0;overflow:hidden;">
+          <table class="standings-table">
+            <thead>
+              <tr>
+                <th style="width:32px;">#</th>
+                <th>Team</th>
+                <th style="width:40px;">W</th>
+                <th style="width:40px;">L</th>
+                <th style="width:60px;">PF</th>
+                <th style="width:60px;">PA</th>
+                <th style="width:60px;">Diff</th>
+              </tr>
+            </thead>
+            <tbody id="standings-body">
+              <!-- JS will inject 6 rows here -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </div>
+
+  <script>
+    // --- CONFIG ---
+    const teamInputs = Array.from({length:6}, (_,i) => document.getElementById("team-"+i));
+
+    // All pairings for 6-team round robin (A–F)
+    const pairings = [];
+    for (let a=0; a<6; a++){
+      for (let b=a+1; b<6; b++){
+        pairings.push({a,b});
+      }
+    }
+    // optional: label bouts 1–15
+    const dualsBody = document.getElementById("duals-body");
+    const standingsBody = document.getElementById("standings-body");
+
+    const results = {}; // key "a-b" -> {aScore,bScore}
+
+    function teamName(idx){
+      const v = teamInputs[idx].value.trim();
+      if (!v) return "Team "+String.fromCharCode(65+idx);
+      return v;
+    }
+
+    function renderDualRows(){
+      dualsBody.innerHTML = "";
+      pairings.forEach((p,idx) => {
+        const tr = document.createElement("tr");
+        tr.dataset.a = p.a;
+        tr.dataset.b = p.b;
+
+        const bout = document.createElement("td");
+        bout.textContent = "D"+(idx+1);
+        bout.className = "dual-label";
+
+        const label = document.createElement("td");
+        label.innerHTML =
+          `<div class="dual-label">${teamName(p.a)} vs ${teamName(p.b)}</div>` +
+          `<div class="dual-teams">(${String.fromCharCode(65+p.a)} vs ${String.fromCharCode(65+p.b)})</div>`;
+
+        const tdA = document.createElement("td");
+        const inputA = document.createElement("input");
+        inputA.type = "number";
+        inputA.min = "0";
+        inputA.className = "score-input score-a";
+        tdA.appendChild(inputA);
+
+        const tdB = document.createElement("td");
+        const inputB = document.createElement("input");
+        inputB.type = "number";
+        inputB.min = "0";
+        inputB.className = "score-input score-b";
+        tdB.appendChild(inputB);
+
+        const winner = document.createElement("td");
+        winner.className = "winner-cell";
+        winner.textContent = "—";
+
+        tr.appendChild(bout);
+        tr.appendChild(label);
+        tr.appendChild(tdA);
+        tr.appendChild(tdB);
+        tr.appendChild(winner);
+        dualsBody.appendChild(tr);
+
+        function handleChange(){
+          const aScore = inputA.value === "" ? null : Number(inputA.value);
+          const bScore = inputB.value === "" ? null : Number(inputB.value);
+          const key = `${p.a}-${p.b}`;
+          if (aScore===null || bScore===null){
+            delete results[key];
+            winner.textContent = "—";
+          } else {
+            results[key] = {aScore,bScore};
+            if (aScore > bScore) winner.textContent = String.fromCharCode(65+p.a);
+            else if (bScore > aScore) winner.textContent = String.fromCharCode(65+p.b);
+            else winner.textContent = "T";
+          }
+          recomputeStandings();
+        }
+
+        inputA.addEventListener("input", handleChange);
+        inputB.addEventListener("input", handleChange);
+      });
+    }
+
+    function recomputeStandings(){
+      const stats = Array.from({length:6}, () => ({
+        w:0,l:0,pf:0,pa:0,diff:0
+      }));
+
+      Object.entries(results).forEach(([key,val]) => {
+        const [aStr,bStr] = key.split("-");
+        const a = Number(aStr), b = Number(bStr);
+        const {aScore,bScore} = val;
+        stats[a].pf += aScore;
+        stats[a].pa += bScore;
+        stats[b].pf += bScore;
+        stats[b].pa += aScore;
+
+        if (aScore > bScore){
+          stats[a].w++; stats[b].l++;
+        } else if (bScore > aScore){
+          stats[b].w++; stats[a].l++;
+        }
+        // ties: no W/L change
+      });
+
+      stats.forEach(s => { s.diff = s.pf - s.pa; });
+
+      const rows = stats
+        .map((s,idx) => ({idx,...s, name: teamName(idx)}))
+        .sort((a,b) => {
+          if (b.w !== a.w) return b.w - a.w;
+          if (b.diff !== a.diff) return b.diff - a.diff;
+          return b.pf - a.pf;
+        });
+
+      standingsBody.innerHTML = "";
+      rows.forEach((row,pos) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${pos+1}</td>
+          <td class="team-name">${row.name}</td>
+          <td>${row.w}</td>
+          <td>${row.l}</td>
+          <td>${row.pf}</td>
+          <td>${row.pa}</td>
+          <td>${row.diff}</td>
+        `;
+        standingsBody.appendChild(tr);
+      });
+    }
+
+    // When team names change, re-render labels + standings
+    teamInputs.forEach(input => {
+      input.addEventListener("input", () => {
+        renderDualRows();
+        recomputeStandings();
+      });
+    });
+
+    // First render
+    renderDualRows();
+    recomputeStandings();
+  </script>
+</body>
+</html>

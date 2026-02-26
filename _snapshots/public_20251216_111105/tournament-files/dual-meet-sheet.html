@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Dual Meet Score Sheet</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --yellow:#ffdd48;
+      --border:#cbd5e1;
+      --gray:#94a3b8;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#ffffff;
+      color:var(--navy);
+    }
+    .page{
+      max-width:750px;
+      margin:0 auto;
+      padding:16px 20px 24px;
+    }
+
+    /* HEADER */
+    .header-bar{
+      background:var(--navy);
+      color:#ffffff;
+      padding:6px 10px;
+      border-radius:4px;
+      margin-bottom:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      font-size:.85rem;
+    }
+    .header-title{
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+    }
+    .header-meta{
+      text-align:right;
+      font-size:.72rem;
+      color:#ffffff;
+    }
+    .header-meta span{
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--yellow);
+    }
+    .meta-line{
+      border-bottom:1px solid #ffffff;
+      min-width:160px;
+      min-height:14px;
+      display:inline-block;
+      margin-left:4px;
+    }
+
+    /* TABLE */
+    table.dual{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.78rem;
+      margin-bottom:12px;
+    }
+    table.dual th,
+    table.dual td{
+      border:1px solid var(--border);
+      padding:4px 6px;
+      vertical-align:top;
+    }
+    table.dual th{
+      background:var(--yellow);
+      color:var(--navy);
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      font-size:.7rem;
+      text-align:center;
+    }
+
+    .col-wt{width:60px;}
+    .col-red{width:160px;}
+    .col-green{width:160px;}
+    .col-type{width:90px;}
+    .col-teampts{width:60px;text-align:center;}
+
+    .footer-note{
+      font-size:.7rem;
+      color:var(--gray);
+      margin-top:10px;
+    }
+
+    @media print{
+      .page{padding:10px 14px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header-bar">
+      <div class="header-title">Dual Meet Score Sheet</div>
+      <div class="header-meta">
+        <span>Date</span><span class="meta-line"></span><br />
+        <span>Location</span><span class="meta-line"></span>
+      </div>
+    </div>
+
+    <div class="header-bar" style="margin-top:-8px;">
+      <div class="header-title">Home Team</div>
+      <div class="header-meta"><span></span><span class="meta-line"></span></div>
+    </div>
+
+    <div class="header-bar" style="margin-top:-10px;">
+      <div class="header-title">Away Team</div>
+      <div class="header-meta"><span></span><span class="meta-line"></span></div>
+    </div>
+
+    <!-- TABLE -->
+    <table class="dual">
+      <thead>
+        <tr>
+          <th class="col-wt">Wt</th>
+          <th class="col-red">Home Wrestler / Result</th>
+          <th class="col-green">Away Wrestler / Result</th>
+          <th class="col-type">Win Type</th>
+          <th class="col-teampts">Team Pts</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>106</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>106</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>113</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>113</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>120</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>120</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>126</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>126</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>132</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>132</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>138</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>138</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>144</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>144</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>150</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>150</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>157</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>157</td><td></td><td></td><td></td><td></td></tr>
+
+
+        <tr><td>165</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>165</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>175</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>175</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>190</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>190</td><td></td><td></td><td></td><td></td></tr>
+
+        <tr><td>215</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>215</td><td></td><td></td><td></td><td></td></tr>
+
+
+        <tr><td>HWT</td><td></td><td></td><td></td><td></td></tr>
+        <tr><td>HWT</td><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      Turn in completed dual sheet to the head table after the meet.
+    </div>
+  </div>
+</body>
+</html>

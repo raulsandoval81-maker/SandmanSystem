@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mat Console PRO</title>
+  <link rel="stylesheet" href="css/mat-console-pro.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+
+<body>
+
+<!-- ========================================================= -->
+<!-- ======================= TOP BAR ========================== -->
+<!-- ========================================================= -->
+<header class="topbar">
+
+  <div class="title">
+    <h1>MAT CONSOLE PRO</h1>
+    <span class="sub">NFHS / NCAA · Real-Time Scoring · 2026</span>
+  </div>
+
+  <!-- VIEW SWITCHER -->
+  <nav class="view-switch">
+    <button data-panel="panel-bout">Bout Sheet</button>
+    <button data-panel="panel-score">Scoring</button>
+    <button data-panel="panel-times">Special Times</button>
+    <button data-panel="panel-log">Action Log</button>
+    <button data-panel="panel-clock">Clock Only</button>
+  </nav>
+
+  <!-- DAY / NIGHT MODE -->
+  <div class="mode-toggle">
+    <button id="toggle-mode">🌙</button>
+  </div>
+
+</header>
+
+
+
+<!-- ========================================================= -->
+<!-- ======================= PANELS ========================== -->
+<!-- ========================================================= -->
+
+
+<!-- ========================================================= -->
+<!-- ========== PANEL 1 — BOUT SHEET ========================= -->
+<!-- ========================================================= -->
+<section id="panel-bout" class="panel active">
+
+  <h2 class="panel-title">Bout Sheet</h2>
+
+  <div class="bout-wrapper">
+
+    <div class="ath red">Red Athlete Name</div>
+    <div class="round-title" id="roundStage">Round of 16</div>
+    <div class="ath green">Green Athlete Name</div>
+
+    <!-- REGULATION ROUNDS -->
+    <div class="round-row">
+      <div class="round-cell">R1</div>
+
+      <div class="choice-cell">
+        <button data-choose="top">T</button>
+        <button data-choose="bottom">B</button>
+        <button data-choose="neutral">N</button>
+        <button data-choose="defer">D</button>
+      </div>
+
+      <div class="round-cell">R2</div>
+
+      <div class="choice-cell">
+        <button data-choose="top">T</button>
+        <button data-choose="bottom">B</button>
+        <button data-choose="neutral">N</button>
+      </div>
+
+      <div class="round-cell">R3</div>
+    </div>
+
+    <!-- OT ROUNDS -->
+    <div class="round-row ot-row">
+      <div class="round-cell">SV1</div>
+      <div class="round-cell">TB1</div>
+      <div class="round-cell">TB2</div>
+      <div class="round-cell">UTB</div>
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- ========== PANEL 2 — SCORING ============================ -->
+<!-- ========================================================= -->
+<section id="panel-score" class="panel">
+
+  <div class="score-layout">
+
+    <!-- ================= RED SIDE ================= -->
+    <div class="score-side red">
+
+      <div class="score-header">RED</div>
+      <div id="redScore" class="score-value">0</div>
+
+      <div class="cluster">
+        <label>Offense</label>
+        <button data-side="red" data-code="td3">TD 3</button>
+        <button data-side="red" data-code="esc1">ESC 1</button>
+        <button data-side="red" data-code="rev2">REV 2</button>
+      </div>
+
+      <div class="cluster">
+        <label>Nearfall</label>
+        <button data-side="red" data-code="nf2">NF 2</button>
+        <button data-side="red" data-code="nf3">NF 3</button>
+        <button data-side="red" data-code="nf4">NF 4</button>
+      </div>
+
+      <div class="cluster dropdown">
+        <label>Penalties</label>
+        <select class="penalty-select" data-side="red">
+          <option value="">-- Select Penalty --</option>
+          <option value="stall-warn">Stall Warning</option>
+          <option value="stall1">Stall +1</option>
+          <option value="stall2">Stall +2</option>
+          <option value="illegal">Illegal +1</option>
+          <option value="unsport">Unsport +1</option>
+          <option value="tech">Technical +1</option>
+          <option value="dq">Flagrant (DQ)</option>
+        </select>
+      </div>
+
+    </div>
+
+
+
+    <!-- ================= CENTER TIMER ================= -->
+    <div class="score-center">
+      <div id="mainTimer" class="timer-display">2:00</div>
+
+      <div class="timer-controls">
+        <button class="start">START</button>
+        <button class="pause">PAUSE</button>
+        <button class="reset">RESET</button>
+      </div>
+    </div>
+
+
+
+    <!-- ================= GREEN SIDE ================= -->
+    <div class="score-side green">
+
+      <div class="score-header">GREEN</div>
+      <div id="greenScore" class="score-value">0</div>
+
+      <div class="cluster">
+        <label>Offense</label>
+        <button data-side="green" data-code="td3">TD 3</button>
+        <button data-side="green" data-code="esc1">ESC 1</button>
+        <button data-side="green" data-code="rev2">REV 2</button>
+      </div>
+
+      <div class="cluster">
+        <label>Nearfall</label>
+        <button data-side="green" data-code="nf2">NF 2</button>
+        <button data-side="green" data-code="nf3">NF 3</button>
+        <button data-side="green" data-code="nf4">NF 4</button>
+      </div>
+
+      <div class="cluster dropdown">
+        <label>Penalties</label>
+        <select class="penalty-select" data-side="green">
+          <option value="">-- Select Penalty --</option>
+          <option value="stall-warn">Stall Warning</option>
+          <option value="stall1">Stall +1</option>
+          <option value="stall2">Stall +2</option>
+          <option value="illegal">Illegal +1</option>
+          <option value="unsport">Unsport +1</option>
+          <option value="tech">Technical +1</option>
+          <option value="dq">Flagrant (DQ)</option>
+        </select>
+      </div>
+
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- ========== PANEL 3 — SPECIAL TIMES ====================== -->
+<!-- ========================================================= -->
+<section id="panel-times" class="panel">
+
+  <h2 class="panel-title">Special Times</h2>
+
+  <div class="times-grid">
+
+    <!-- RED -->
+    <div class="times-block red">
+      <h3>RED</h3>
+      <div class="t-row"><span>Ref Time</span><div id="redRef" class="t-val">0:00</div></div>
+      <div class="t-row"><span>Blood</span><div id="redBlood" class="t-val">5:00</div></div>
+      <div class="t-row"><span>Injury</span><div id="redInjury" class="t-val">1:30</div></div>
+    </div>
+
+    <!-- GREEN -->
+    <div class="times-block green">
+      <h3>GREEN</h3>
+      <div class="t-row"><span>Ref Time</span><div id="greenRef" class="t-val">0:00</div></div>
+      <div class="t-row"><span>Blood</span><div id="greenBlood" class="t-val">5:00</div></div>
+      <div class="t-row"><span>Injury</span><div id="greenInjury" class="t-val">1:30</div></div>
+    </div>
+
+  </div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- ========== PANEL 4 — ACTION LOG ========================= -->
+<!-- ========================================================= -->
+<section id="panel-log" class="panel">
+
+  <h2 class="panel-title">Action Log</h2>
+
+  <div id="logBox" class="log-container"></div>
+
+</section>
+
+
+
+<!-- ========================================================= -->
+<!-- ========== PANEL 5 — CLOCK ONLY ========================= -->
+<!-- ========================================================= -->
+<section id="panel-clock" class="panel clock-only">
+
+  <div id="giantTimer" class="giant-timer">2:00</div>
+
+  <div class="timer-controls large">
+    <button class="start">START</button>
+    <button class="pause">PAUSE</button>
+    <button class="reset">RESET</button>
+  </div>
+
+  <div class="mini-score">
+    <span id="redMini">RED 0</span>
+    <span id="greenMini">GREEN 0</span>
+  </div>
+
+</section>
+
+
+<!-- SAVE MATCH -->
+<button id="saveMatchBtn" class="save-match-btn">SAVE MATCH</button>
+
+
+<!-- ========================================================= -->
+<!-- ========== SCRIPTS ====================================== -->
+<!-- ========================================================= -->
+<script src="js/mat-console-pro.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Seed & Mint Athletes — v3 (F4 · T0 · Deterministic IDs)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root{color-scheme:dark}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0b0b;color:#eee;margin:0;padding:24px}
+    .wrap{max-width:1100px;margin:0 auto}
+    .card{border:1px solid #222;border-radius:14px;background:#121212;padding:16px}
+    h1{margin:0 0 8px}
+    .muted{color:#9aa}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid #1b1b1b;padding:8px 6px;text-align:left;font-size:.95rem}
+    th{color:#aab}
+    input,select,button{background:#0e0e0e;border:1px solid #333;color:#fff;border-radius:10px;padding:8px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}
+    .log{white-space:pre-wrap;background:#0a0a0a;border:1px dashed #333;border-radius:10px;padding:10px;min-height:140px;margin-top:10px}
+    .pill{font-size:.8rem;padding:2px 8px;border-radius:999px;background:#1b1b1b;border:1px solid #2a2a2a;color:#cfd;margin-right:6px}
+    .right{margin-left:auto}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>Seed & Mint Athletes — <span class="pill">v3</span><span class="pill">F4</span><span class="pill">T0 Apprentice</span></h1>
+    <p class="muted" id="stamp"></p>
+    <p class="muted">
+      Canonical mint: <b>F4_0001VIRTUE</b> · Display: <b>Foundry 4_0001 VIRTUE</b> · Doc ID: <b>F4_0001</b><br/>
+      Public name format: <b>M. Lastname</b> (stored as <code>publicName</code>), full private name in <code>fullName</code>.
+    </p>
+
+    <table id="tbl" aria-label="Roster mint table">
+      <thead>
+      <tr>
+        <th>#</th><th>Full Name</th><th>Tier</th><th>XP</th><th>Virtue</th><th>Mint Preview</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label class="muted">Global XP Cap (optional)</label><br/>
+        <input id="xpCap" type="number" min="0" placeholder="leave blank to skip"/>
+      </div>
+      <div class="right">
+        <button id="run">Mint & Merge (idempotent)</button>
+      </div>
+    </div>
+
+    <div id="log" class="log"></div>
+    <p class="muted">After merge: Roster → <code>/coaches/roster.html?emu=1</code> · Preview → <code>/dev/f4-preview.html?emu=1</code></p>
+  </div>
+</div>
+
+<script type="module">
+  // Version stamp so you KNOW you're on v3
+  document.getElementById("stamp").textContent =
+    "Loaded: " + new Date().toLocaleString() + " · src: seed-athletes-v3.html";
+
+  // Firebase (shared init; honors ?emu=1)
+  import {
+    db, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp
+  } from "/assets/js/firebase-init.js";
+
+  // Virtues (one source of truth)
+  import { virtuesFor, normalizeVirtue, assertVirtue, codeForVirtue, TRACK_F4 } from "/assets/js/virtues.js";
+
+  // ===== CONFIG (Foundry 4 Combat) =====
+  const TRACK = TRACK_F4;     // "foundry4-combat"
+  const TIER  = "T0";         // Apprentice
+  const tierMeta = {
+    T0: { rankColor: "white", rankName: "Apprentice" },
+    T1: { rankColor: "blue",  rankName: "Warrior"    },
+    T2: { rankColor: "purple",rankName: "Champion"   },
+    T3: { rankColor: "brown", rankName: "Veteran"    },
+    T4: { rankColor: "black", rankName: "Legend"     }
+  };
+  const VIRTUES = virtuesFor(TRACK); // F4-only list
+
+  // ===== ROSTER (order = serial 0001..0032) =====
+  // [fullName, xp]
+  const ROSTER = [
+    ["Maximus Sandoval",200],
+    ["David Reveles", 200],
+    ["Kevin Johnson", 170],
+    ["Logan Collins", 120],
+    ["Damien Diaz", 150],
+    ["Fabian Torres", 180],
+    ["Erick Lara", 180],
+    ["Jaden Zaragoza", 180],
+    ["Chris Kuasi", 200],
+    ["Francisco Vargas", 160],
+    ["Jesse Garibay", 180],
+    ["Arturo Garcia", 180],
+    ["Mason Collins", 170],
+    ["Jaciel Araujo", 130],
+    ["Rodrigo Gonzalez", 110],
+    ["Cristian Ascencio", 100],
+    ["Alejandro Vargas", 120],
+    ["Andrew Endy", 180],
+    ["Mitchell Landry", 40],
+    ["Jesus Moreno", 150],
+    ["David McKinney", 190],
+    ["Kaden Kaholi", 170],
+    ["Nicolas Vega", 120],
+    ["Gael Rodriguez", 140],
+    ["Gio Rojas", 0],
+    ["Zario Vineyard", 0],
+    ["A. Delacruz", 20],
+    ["Boston Monclus", 20],
+    ["Roxie Lopez", 100],
+    ["Jerrika Vineyard", 160],
+    ["Keira Dunn", 50],
+    ["Alexys Jones", 90],
+  ];
+
+  // ===== Helpers =====
+  const tbody = document.querySelector("#tbl tbody");
+  const logEl = document.getElementById("log");
+  const runBtn = document.getElementById("run");
+  function log(m){ logEl.textContent += m + "\n"; }
+  function pad4(n){ return String(n).padStart(4,"0"); }
+
+  function toPublicName(fullName){
+    const parts = fullName.trim().split(/\s+/);
+    const first = parts[0] || "";
+    const last  = parts.slice(-1)[0] || "";
+    if(!first || !last) return fullName;
+    return `${first[0].toUpperCase()}. ${last}`;
+  }
+
+  // Build visible table with editable XP + virtue dropdown
+  function buildTable(){
+    tbody.innerHTML = "";
+    ROSTER.forEach(([name, xp], idx) => {
+      const serial = pad4(idx+1);
+      const tr = document.createElement("tr");
+
+      const tdIdx  = document.createElement("td"); tdIdx.textContent  = serial;
+      const tdName = document.createElement("td"); tdName.textContent = name;
+      const tdTier = document.createElement("td"); tdTier.textContent = TIER + " · " + tierMeta[TIER].rankName;
+
+      const tdXp = document.createElement("td");
+      const xpInp = document.createElement("input");
+      xpInp.type = "number"; xpInp.min = "0"; xpInp.value = xp;
+      tdXp.appendChild(xpInp);
+
+      const tdVirtue = document.createElement("td");
+      const sel = document.createElement("select");
+      VIRTUES.forEach(v => {
+        const o = document.createElement("option");
+        o.value = v; o.textContent = v;
+        sel.appendChild(o);
+      });
+      sel.value = VIRTUES[idx % VIRTUES.length]; // rotation
+      tdVirtue.appendChild(sel);
+
+      const tdMint = document.createElement("td");
+      const mintCanon = document.createElement("div");
+      const mintDisplay = document.createElement("div");
+      mintCanon.className="muted"; mintDisplay.className="muted";
+      tdMint.appendChild(mintCanon);
+      tdMint.appendChild(mintDisplay);
+
+      function updateMint(){
+        const vv   = normalizeVirtue(sel.value);      // e.g., "HONOR"
+        const code = codeForVirtue(TRACK, vv) || "??"; // e.g., "HN"
+        mintCanon.textContent   = `F4_${code}${serial}`;          // F4_HN0001
+        mintDisplay.textContent = `Foundry 4_${serial} ${vv}`;    // human-readable
+      }
+      updateMint();
+      sel.addEventListener("change", updateMint);
+
+      // stash refs
+      tr.dataset.name  = name;
+      tr.dataset.serial= serial;
+      tr._xpInp   = xpInp;
+      tr._virtSel = sel;
+
+      tr.appendChild(tdIdx); tr.appendChild(tdName); tr.appendChild(tdTier);
+      tr.appendChild(tdXp);  tr.appendChild(tdVirtue); tr.appendChild(tdMint);
+      tbody.appendChild(tr);
+    });
+  }
+  buildTable();
+
+  // ===== RUN (idempotent) =====
+  runBtn.addEventListener("click", async () => {
+    logEl.textContent = "";
+
+    const xpCapField = document.getElementById("xpCap").value;
+    const xpCap = xpCapField === "" ? null : Number(xpCapField);
+
+    // Context load (not required, just for logs)
+    log("Loading existing Foundry 4 athletes for context…");
+    const snapTrack = await getDocs(query(collection(db,"athletes"), where("track","==",TRACK)));
+    const existing = new Set();
+    snapTrack.forEach(d => existing.add(d.id));
+    log(`Found ${existing.size} existing athletes in track ${TRACK}.`);
+
+    const meta = tierMeta[TIER];
+    let created=0, updated=0, failed=0;
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    for (const tr of rows){
+      try{
+        const fullName = tr.dataset.name;
+        const serial   = tr.dataset.serial;        // 0001..0032
+        const uidCode  = `F4_${serial}`;           // doc id
+        const xp       = Number(tr._xpInp.value || 0);
+
+        const rawVirtue = tr._virtSel.value;
+        const virtue    = normalizeVirtue(rawVirtue);
+        if (!assertVirtue(TRACK, virtue)) throw new Error(`Invalid virtue for F4: ${rawVirtue}`);
+
+        const virtueCode = codeForVirtue(TRACK, virtue);         // e.g., "HN"
+        if (!virtueCode) throw new Error(`No code for virtue: ${virtue}`);
+
+        const mintVirtueTag        = `F4_${virtueCode}${serial}`;     // F4_HN0001
+        const mintVirtueTagDisplay = `Foundry 4_${serial} ${virtue}`; // human display
+        const publicName           = toPublicName(fullName);
+
+        const docRef = doc(db, "athletes", uidCode);
+        const snap   = await getDoc(docRef);
+        const isNew  = !snap.exists();
+
+        const base = {
+          // identity
+          uid: uidCode,                 // ✅ added
+          fullName,
+          publicName,
+          track: TRACK,
+          trackCode: TRACK,             // ✅ added
+          uidCode,
+
+          // location / team (default seed values)
+          team: "Lompoc Strong",        // ✅ added
+          city: "Lompoc",               // ✅ added
+          state: "CA",                  // ✅ added
+
+          // rank/tier
+          tier: TIER,
+          rankColor: meta.rankColor,
+          rankName:  meta.rankName,
+
+          // progress
+          xp,
+          ...(xpCap !== null ? { xpCap } : {}),
+
+          // mint / virtue
+          virtueName: virtue,           // ✅ added
+          virtueCode: virtueCode,       // ✅ added
+          virtue,
+          mintVirtueTag,
+          mintVirtueTagDisplay,
+
+          // stamps
+          updatedAt: serverTimestamp(),
+        };
+
+        const docData = isNew ? { ...base, createdAt: serverTimestamp() } : base;
+
+        await setDoc(docRef, docData, { merge:true });
+
+        if (isNew){
+          created++; log(`✓ Created: ${fullName} (${uidCode}) → ${mintVirtueTag} · XP=${xp}`);
+        }else{
+          updated++; log(`↺ Updated: ${fullName} (${uidCode}) → ${mintVirtueTag} · XP=${xp}`);
+        }
+      }catch(err){
+        failed++; log(`✗ ${tr.dataset.name} — ${err?.message || err}`);
+      }
+    }
+
+    log(`\nDone. Created: ${created}, Updated: ${updated}, Failed: ${failed}`);
+    log(`Open Roster → /coaches/roster.html?emu=1`);
+    log(`Open Preview → /dev/f4-preview.html?emu=1`);
+  });
+</script>
+</body>
+</html>

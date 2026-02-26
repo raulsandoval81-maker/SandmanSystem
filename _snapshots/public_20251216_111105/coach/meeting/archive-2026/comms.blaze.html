@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Para-Comms (Blaze)</title>
+
+  <!-- Navy/Gold Para-Comms CSS -->
+  <link rel="stylesheet" href="./comms.blaze.css" />
+</head>
+
+<body>
+
+  <!-- 🔹 Page Header (No Language Toggle) -->
+  <header class="pc-header">
+    <button class="pc-back" onclick="history.back()">← Back</button>
+    <h1>Para-Comms</h1>
+    <div class="pc-spacer"></div>
+  </header>
+
+  <!-- Wrapper for spacing and alignment -->
+  <div class="wrap">
+
+    <!-- 🔹 Instructions -->
+    <section class="pc-help panel">
+      <p><strong>This page is a bilingual message builder.</strong></p>
+      <p>You type in English or Spanish, translate between languages, review your draft, and then copy the final message to post wherever needed.</p>
+      <ul>
+        <li><strong>Subject</strong> — Short title of the announcement.</li>
+        <li><strong>Message (EN)</strong> — English version.</li>
+        <li><strong>Message (ES)</strong> — Spanish version.</li>
+        <li><strong>Translate Buttons</strong> — Convert EN ↔ ES (manual review required).</li>
+        <li><strong>Copy Buttons</strong> — Copy EN only, ES only, or both formats.</li>
+      </ul>
+    </section>
+
+    <!-- 🔹 Form Panel -->
+    <main class="pc-main panel">
+
+      <label>Subject:</label>
+      <input id="pc-subject" type="text" placeholder="Practice time change…" />
+
+      <label>Message (EN):</label>
+      <textarea id="pc-en" rows="6" placeholder="Type English message…"></textarea>
+
+      <button id="btn-en-to-es" class="btn btn-dark">Translate EN → ES</button>
+
+      <label>Message (ES):</label>
+      <textarea id="pc-es" rows="6" placeholder="Escriba mensaje en español…"></textarea>
+
+      <button id="btn-es-to-en" class="btn btn-dark">Translate ES → EN</button>
+
+      <!-- Copy Buttons -->
+      <div class="pc-copy-grid">
+        <button id="btn-copy-en"   class="btn btn-dark small">Copy EN</button>
+        <button id="btn-copy-es"   class="btn btn-dark small">Copy ES</button>
+        <button id="btn-copy-both" class="btn btn-brand small">Copy Both</button>
+      </div>
+
+      <!-- 🔹 Post to Announcements (A → B) -->
+      <button class="btn btn-brand" id="btn-post-bulletin" style="margin-top:12px;">
+        Post to Announcements
+      </button>
+
+    </main>
+
+  </div> <!-- end wrap -->
+
+
+  <!-- 🔹 Translation Preview Modal -->
+  <div id="preview" class="pc-modal">
+    <div class="pc-modal-box">
+      <h2>Translation Preview</h2>
+      <pre id="preview-text"></pre>
+      <p id="preview-confidence" class="confidence"></p>
+
+      <div class="pc-modal-actions">
+        <button id="preview-apply" class="btn btn-brand">Apply</button>
+        <button id="preview-cancel" class="btn btn-dark">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="./comms.blaze.js"></script>
+
+</body>
+</html>

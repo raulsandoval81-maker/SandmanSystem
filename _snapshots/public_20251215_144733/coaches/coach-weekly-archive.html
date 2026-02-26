@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach Weekly — Archive | Sandman System™</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+    h1,h2{color:#ffd633;margin:.25rem 0 1rem}
+    .muted{color:var(--muted)}
+    .sep{border:0;border-top:1px solid var(--line);margin:1rem 0}
+
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:var(--pill-bg);border:2px solid var(--pill-br);color:var(--pill-fg);font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    .btn.block{display:block;width:100%}
+    .btnbar{display:flex;gap:.5rem;flex-wrap:wrap}
+
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:1rem}
+    @media (max-width:1000px){.layout{grid-template-columns:1fr}}
+
+    .side,.main{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .side{padding:1rem}
+    .main{padding:1rem}
+
+    .card{border:1px solid #2c3a4e;border-radius:12px;background:#0e141c;padding:1rem;margin:.75rem 0}
+    .card h3{margin:.1rem 0 .35rem}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+    @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+    .tag{padding:.2rem .55rem;border:1px solid #384a62;border-radius:999px;background:#121821;color:#cfe2ff;font-weight:700;font-size:.85rem;margin-right:.35rem}
+
+    .archive-list{display:grid;gap:.75rem}
+    .month{margin-top:.75rem}
+    .month h2{margin:.25rem 0 .5rem;font-size:1.1rem}
+    .week{display:flex;flex-direction:column;gap:.35rem}
+    .week .meta{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    .pilllink{padding:.25rem .6rem;border-radius:999px;background:#121821;border:1px solid #384a62;color:#eaeaea;text-decoration:none;font-weight:700}
+    .filters .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    input,select{background:#121821;border:1px solid #394a61;border-radius:10px;color:#f3f4f6;padding:.5rem .7rem}
+    .small{font-size:.85rem;color:var(--muted)}
+    .pagination{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Coach Weekly — Archive</h1>
+    <p class="muted" style="margin-top:-.45rem">Browse past weekly briefs. Private notes/attachments will appear once Firebase Auth is enabled.</p>
+
+    <div class="layout">
+      <!-- LEFT: Nav + Filters -->
+      <aside class="side">
+        <div class="btnbar">
+          <a class="btn block" href="coach-weekly.html">← Latest</a>
+          <a class="btn secondary block" href="hub.html">Coach Hub</a>
+          <a class="btn secondary block" href="../index.html">Home</a>
+        </div>
+
+        <hr class="sep"/>
+
+        <h2>Filter</h2>
+        <div class="filters">
+          <div class="row" style="margin-bottom:.5rem">
+            <input id="q" type="search" placeholder="Search title or notes…" />
+          </div>
+          <div class="row">
+            <label for="track" class="small">Track</label>
+            <select id="track">
+              <option value="">All</option>
+              <option value="f8">Foundry 8 (Youth)</option>
+              <option value="f4">Foundry 4 (Teen+)</option>
+              <option value="lead">Leadership</option>
+            </select>
+
+            <label for="year" class="small">Year</label>
+            <select id="year">
+              <option value="">All</option>
+              <option>2025</option>
+              <option>2024</option>
+            </select>
+          </div>
+
+          <div class="btnbar" style="margin-top:.6rem">
+            <button class="btn" id="apply">Apply</button>
+            <button class="btn secondary" id="clear">Clear</button>
+          </div>
+        </div>
+
+        <hr class="sep"/>
+
+        <p class="small">Tip: This page is static now. When wiring, replace the inline dataset with a Firestore query and render the same markup.</p>
+      </aside>
+
+      <!-- RIGHT: Archive list -->
+      <section class="main">
+        <div id="resultsInfo" class="small muted" style="margin-bottom:.5rem">Showing all entries</div>
+        <div id="archive" class="archive-list" aria-live="polite">
+          <!-- JS will render months and cards here -->
+        </div>
+
+        <nav class="pagination" aria-label="Pagination">
+          <button class="btn secondary" id="prev" disabled>← Newer</button>
+          <button class="btn secondary" id="next" disabled>Older →</button>
+        </nav>
+      </section>
+    </div>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    // --- Static seed data (replace with Firestore later) ---
+    // Each item: { id, title, start, end, year, month, tracks:['f8'|'f4'|'lead'], notes, links:[{href,label}] }
+    const DATA = [
+      {
+        id:"2025-09-08",
+        title:"Testing & Ceremony Prep",
+        start:"2025-09-08", end:"2025-09-12", year:2025, month:9,
+        tracks:["f8","f4"],
+        notes:"At-cap freeze (Attendance/Tournaments). Assignments & Character may continue (bank). Tournament 22 show +5 Shark (max 2/mo).",
+        links:[
+          { href:"coach-weekly.html", label:"Latest summary" },
+          { href:"../overview.html", label:"Overview" }
+        ]
+      },
+      {
+        id:"2025-09-01",
+        title:"New Season Kickoff",
+        start:"2025-09-01", end:"2025-09-05", year:2025, month:9,
+        tracks:["f4"],
+        notes:"Reset tier XP; quarterly cadence reminders. Adults framing: Path to Legend.",
+        links:[
+          { href:"../programs.html", label:"Programs" }
+        ]
+      },
+      {
+        id:"2025-08-25",
+        title:"Badge Finalization & Ladder QA",
+        start:"2025-08-25", end:"2025-08-29", year:2025, month:8,
+        tracks:["f8","f4","lead"],
+        notes:"Foundry 4/8 badge visuals locked; Leadership set daylight no-growth; binder prep.",
+        links:[
+          { href:"../leaderboards.html", label:"Leaderboards" }
+        ]
+      }
+    ];
+
+    // --- Render helpers ---
+    const $ = (s,root=document)=>root.querySelector(s);
+    const archiveEl = $("#archive");
+    const infoEl = $("#resultsInfo");
+
+    function monthKey(y,m){ return `${y}-${String(m).padStart(2,"0")}`; }
+    function fmtRange(s,e){
+      const sd = new Date(s), ed = new Date(e);
+      const mo = sd.toLocaleString(undefined,{month:"short"});
+      return `Week of ${mo} ${sd.getDate()}–${ed.getDate()}`;
+    }
+    function trackTag(t){
+      if(t==="f8") return '<span class="tag">Foundry 8 (Youth)</span>';
+      if(t==="f4") return '<span class="tag">Foundry 4 (Teen+)</span>';
+      return '<span class="tag">Leadership</span>';
+    }
+
+    function render(list){
+      if(!list.length){
+        archiveEl.innerHTML = '<div class="card"><h3>No results</h3><p class="muted">Try clearing filters.</p></div>';
+        infoEl.textContent = "Showing 0 entries";
+        return;
+      }
+      // group by month
+      const groups = {};
+      list.forEach(i=>{
+        const key = monthKey(i.year,i.month);
+        (groups[key] ||= []).push(i);
+      });
+      
+// inside your render loop
+const xp = a.xp ?? 0;
+const cap = a.xpCap ?? 1200;
+const tierName = a.rankName || a.tierName || a.tier || "Apprentice";
+const stripesEarned = Math.floor((xp / cap) * 4); // or your ladder calc
+const el = row.querySelector(".xp-slot");
+renderMiniXpBar({ container: el, xp, cap, tierName, stripesEarned, stripesTotal: 4 });
+      // sort months desc, then items desc by start
+      const months = Object.keys(groups).sort((a,b)=> b.localeCompare(a));
+      archiveEl.innerHTML = months.map(key=>{
+        const [y,m] = key.split("-").map(x=>parseInt(x,10));
+        const title = new Date(y,m-1,1).toLocaleString(undefined,{month:"long", year:"numeric"});
+        const items = groups[key].sort((a,b)=> b.start.localeCompare(a.start));
+        return `
+          <div class="month">
+            <h2>${title}</h2>
+            ${ items.map(i => `
+              <article class="card week" data-id="${i.id}">
+                <h3>${fmtRange(i.start,i.end)} — ${i.title}</h3>
+                <div class="meta">
+                  ${ i.tracks.map(trackTag).join(" ") }
+                </div>
+                <hr class="sep" />
+                <p class="muted">${i.notes}</p>
+                <div class="btnbar" style="margin-top:.4rem">
+                  ${ i.links.map(l=>`<a class="btn secondary" href="${l.href}">${l.label}</a>`).join("") }
+                </div>
+              </article>
+            `).join("") }
+          </div>
+        `;
+      }).join("");
+
+      infoEl.textContent = `Showing ${list.length} entr${list.length===1?"y":"ies"}`;
+    }
+
+    // --- Filters ---
+    function applyFilters(){
+      const q = ($("#q").value || "").trim().toLowerCase();
+      const track = $("#track").value;
+      const year = $("#year").value;
+
+      let list = DATA.slice();
+      if(q){
+        list = list.filter(i =>
+          i.title.toLowerCase().includes(q) ||
+          (i.notes||"").toLowerCase().includes(q)
+        );
+      }
+      if(track){
+        list = list.filter(i => i.tracks.includes(track));
+      }
+      if(year){
+        list = list.filter(i => String(i.year) === year);
+      }
+      render(list);
+    }
+
+    $("#apply").addEventListener("click", applyFilters);
+    $("#clear").addEventListener("click", () => {
+      $("#q").value = ""; $("#track").value = ""; $("#year").value = "";
+      render(DATA);
+    });
+
+    // Initial paint
+    render(DATA);
+
+    // --- Pagination stubs (disabled for static) ---
+    $("#prev").disabled = true;
+    $("#next").disabled = true;
+
+    // --- Wiring note (for later) ---
+    // When ready, replace DATA with Firestore:
+    // db.collection('coachWeekly').orderBy('start','desc').limit(20)...
+    // Map docs to the same shape, then call render(list).
+  </script>
+</body>
+</html>

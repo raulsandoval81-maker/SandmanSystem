@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Team Scoreboard — Sandman System™</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="parentTeamView.css">
+</head>
+
+<body>
+<header class="head">
+  <h1 id="eventTitle">Team Scoreboard</h1>
+  <div class="sub">Live • Sandman System™</div>
+</header>
+
+<div id="teamList" class="team-list"></div>
+
+<!-- Team detail modal -->
+<div id="teamModal" class="modal hidden">
+  <div class="modal-content">
+    <h2 id="modalTeamName"></h2>
+    <div id="modalWeights"></div>
+    <button id="closeModal" class="close-btn">Close</button>
+  </div>
+</div>
+
+<script type="module" src="parentTeamView.js"></script>
+</body>
+</html>

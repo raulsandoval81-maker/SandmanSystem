@@ -1,0 +1,403 @@
+/* ============================================================
+   TABLE CONSOLE — 2026 COMPLETE CSS
+   Dark Tournament Theme (Sandman Blue)
+   Location: /public/mats/css/table-console.css
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   ROOT THEME
+------------------------------------------------------------ */
+:root {
+  --bg: #061325;
+  --panel: #0d1a33;
+  --panel-light: #14203a;
+  --border: #1e2a45;
+  --accent: #3fa7ff;
+  --accent-soft: #7bc4ff;
+  --red: #ff4d4d;
+  --green: #4dff76;
+  --text: #eef4ff;
+  --muted: #9aa4b1;
+  --log-bg: #0b1526;
+}
+
+/* ------------------------------------------------------------
+   GLOBAL
+------------------------------------------------------------ */
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+h1, h2, h3, h4 {
+  margin: 0;
+}
+
+/* ------------------------------------------------------------
+   HEADER BLOCK
+------------------------------------------------------------ */
+.header {
+  background: var(--panel);
+  border-bottom: 2px solid var(--border);
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title-block h1 {
+  font-size: 1.6rem;
+  letter-spacing: .04em;
+  color: var(--accent-soft);
+}
+
+.subtitle {
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+.event-info {
+  font-size: .9rem;
+  color: var(--accent-soft);
+}
+
+/* ------------------------------------------------------------
+   VIEW BUTTONS
+------------------------------------------------------------ */
+#view-toggle-bar {
+  display: flex;
+  gap: 10px;
+}
+
+.view-btn {
+  background: var(--panel-light);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: .85rem;
+}
+.view-btn:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ------------------------------------------------------------
+   LAYOUT SPLIT
+------------------------------------------------------------ */
+.layout-split {
+  display: flex;
+  height: calc(100vh - 120px);
+}
+
+.split-70 {
+  grid-template-columns: 70% 30%;
+}
+
+/* LEFT + RIGHT PANELS */
+#left-panel,
+#right-panel {
+  overflow-y: auto;
+  padding: 14px;
+}
+
+#left-panel {
+  width: 55%;
+  background: var(--panel);
+  border-right: 2px solid var(--border);
+}
+
+#right-panel {
+  width: 45%;
+  background: var(--panel-light);
+}
+
+/* ------------------------------------------------------------
+   BOUTSHEET
+------------------------------------------------------------ */
+.boutsheet {
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.boutsheet-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.ath-label {
+  font-size: 1rem;
+  padding: 6px 10px;
+  border-radius: 6px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.ath-label.red { color: var(--red); }
+.ath-label.green { color: var(--green); }
+
+.round-label {
+  font-size: 1.1rem;
+  color: var(--accent-soft);
+}
+
+/* ------------------------------------------------------------
+   BOUTSHEET — ROUNDS
+------------------------------------------------------------ */
+.boutsheet-row {
+  display: grid;
+  grid-template-columns: 1fr 120px 1fr;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.round-box,
+.ot-box {
+  text-align: center;
+  background: var(--panel);
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  font-size: .9rem;
+}
+
+.choice-block {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+}
+
+.choice-toggle-split {
+  display: flex;
+  justify-content: space-evenly;
+  margin-bottom: 4px;
+}
+
+.toggle-half {
+  flex: 1;
+  margin: 2px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 0;
+  cursor: pointer;
+  color: var(--text);
+}
+
+.toggle-half.active.red { background: var(--red); color:#000; }
+.toggle-half.active.green { background: var(--green); color:#000; }
+
+.choice-icons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.choice-btn {
+  flex: 1;
+  margin: 1px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: .7rem;
+}
+.choice-btn:hover { background: var(--accent); color: #000; }
+
+/* ------------------------------------------------------------
+   SCORING SECTION (Right Panel)
+------------------------------------------------------------ */
+.scoring {
+  padding: 10px;
+  background: var(--panel-light);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.score-column {
+  display: inline-flex;
+  flex-direction: column;
+  width: 33%;
+  vertical-align: top;
+}
+
+.score-header {
+  text-align: center;
+  padding: 6px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  margin-bottom: 6px;
+}
+
+.score-header.red { background: var(--red); color: #000; }
+.score-header.green { background: var(--green); color: #000; }
+
+.score-value {
+  font-size: 2.2rem;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.score-group label {
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+.btn-row {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.score-btn {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 6px;
+  border-radius: 8px;
+  font-size: .75rem;
+  cursor: pointer;
+  color: var(--text);
+}
+.score-btn:hover { background: var(--accent); color: #000; }
+
+/* ------------------------------------------------------------
+   TIMER
+------------------------------------------------------------ */
+.timer-section {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.timer-display {
+  font-size: 2.6rem;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.timer-controls button {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  padding: 6px 14px;
+  margin: 2px;
+  border-radius: 8px;
+  color: var(--text);
+  cursor: pointer;
+}
+.timer-controls button:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ------------------------------------------------------------
+   SPECIAL TIMES
+------------------------------------------------------------ */
+.special-times {
+  margin-top: 16px;
+  background: var(--panel-light);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.times-block h3 {
+  color: var(--accent-soft);
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  margin: 6px 0;
+}
+
+.time-display {
+  margin-left: 8px;
+  margin-right: 8px;
+  padding: 4px 10px;
+  background: var(--panel);
+  border-radius: 6px;
+  border: 1px solid var(--border);
+}
+
+.t-start, .t-stop, .t-reset, .t-plus, .t-minus {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin: 0 2px;
+  cursor: pointer;
+}
+.t-start:hover, .t-stop:hover,
+.t-reset:hover, .t-plus:hover, .t-minus:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ------------------------------------------------------------
+   FILMROOM JUMP BUTTONS
+------------------------------------------------------------ */
+.filmroom-jumps {
+  margin: 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.film-jump-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: .8rem;
+}
+.film-jump-btn:hover {
+  background: var(--accent);
+  color: #000;
+}
+
+/* ------------------------------------------------------------
+   ACTIVE LOG
+------------------------------------------------------------ */
+#log-wrapper.hidden {
+  display: none;
+}
+
+.log-container {
+  background: var(--log-bg);
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 12px;
+  height: 68vh;
+  overflow-y: auto;
+}
+
+.log-row {
+  padding: 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  font-size: .85rem;
+}
+
+/* ------------------------------------------------------------
+   VIDEO
+------------------------------------------------------------ */
+#matchVideo {
+  width: 100%;
+  background: #000;
+  margin-top: 12px;
+  border-radius: 12px;
+}

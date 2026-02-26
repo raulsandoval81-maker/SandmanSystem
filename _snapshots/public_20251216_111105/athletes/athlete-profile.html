@@ -1,0 +1,668 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete · Profile</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="stylesheet" href="/assets/css/site.css">
+<link rel="stylesheet" href="/assets/css/belts.css">
+<link rel="stylesheet" href="/athletes/profile/profile.css">
+  <style>
+    body{background:#0a0a0a;color:#f0f0f0;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1000px;margin:0 auto;padding:18px}
+    .card{background:#121722;border:1px solid #263142;border-radius:14px;padding:16px;margin-top:14px}
+    .row{display:flex;flex-wrap:wrap;gap:14px;margin:8px 0}
+    .stat{flex:1 1 220px;background:#0e1420;border:1px solid #223047;border-radius:10px;padding:10px}
+    .label{font-size:.7rem;color:#9fb3c8;margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+    .value{font-weight:700;color:#e6e8eb}
+    .pill{display:inline-block;background:#263142;border:1px solid #3a4a60;color:#cfe2ff;padding:.16rem .5rem;border-radius:999px;text-decoration:none}
+    .muted{color:#9fb3c8}
+    .drop{margin-top:14px}
+    .drop-head{background:transparent;border:0;color:#fff;width:100%;display:flex;justify-content:space-between;align-items:center;font-weight:600;cursor:pointer;padding:0;margin-bottom:10px}
+    .drop-body.collapsed{display:none}
+    .chev{font-size:.8rem;color:#9fb3c8}
+
+    /* avatar */
+    .avatar-box{
+      width:90px;
+      height:90px;
+      border-radius:14px;
+      background:#0a0f17;
+      border:1px solid rgba(255,255,255,.04);
+      background-size:cover;
+      background-position:center;
+    }
+
+   /* combat belt bar */
+.belt-bar {
+  position:relative;
+  width:100%;
+  height:20px;
+  border-radius:999px;
+  background:rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.05);
+  overflow:hidden;
+}
+.belt-bar .belt-fill {
+  position:absolute;
+  inset:0;
+  height:100%;
+  border-radius:inherit;
+  transition:width .35s ease;
+  filter:saturate(.9);
+}
+.belt-bar .stripe-boxes {
+  position:absolute;
+  right:4px;
+  top:2px;
+  bottom:2px;
+  display:flex;
+  gap:3px;
+  pointer-events:none;
+}
+
+/* make stripes visible by default */
+.belt-bar .stripe-box {
+  width:10px;
+  border-radius:999px;
+  background:rgba(255,255,255,.18);  /* << default so you can see them */
+  opacity:.5;
+}
+
+/* JS can still swap these */
+.belt-bar .stripe-box.white {
+  background:rgba(0,0,0,.8);
+  opacity:1;
+}
+.belt-bar .stripe-box.black {
+  background:rgba(255,255,255,.9);
+  border-color:rgba(0,0,0,.4);
+  opacity:1;
+}
+
+.belt-bar .stripe-box.filled {
+  opacity:1;
+}
+
+.belt-bar.glow {
+  box-shadow:0 0 14px rgba(255,214,51,.5);
+}
+    /* lane bars (honor / strength) */
+.lane-bar {
+  width: 100%;
+  height: 20px; /* doubled thickness */
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05); /* slightly brighter for contrast */
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.lane-bar span {
+  display: block;
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  transition: width .3s ease-out;
+}
+/* make combat belt thicker too */
+#ath-belt .belt-bar {
+  height: 20px;              /* match the lanes */
+}
+
+#ath-belt .belt-bar .belt-fill {
+  height: 100%;
+}
+.profile-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+.nav-left {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.sandman-logo {
+  width:62px;
+  height:auto;
+  filter:drop-shadow(0 0 8px rgba(255,214,51,.25));
+  transition:.2s;
+}
+.sandman-logo:hover { filter:drop-shadow(0 0 12px rgba(255,214,51,.45)); }
+.sandman-logo {
+  width:140px;          /* roughly double your current look */
+  max-width:22vw;       /* prevents overflow on small screens */
+  height:auto;
+  border-radius:10px;
+  display:block;
+  opacity:.90;
+  margin-top:4px;
+  transition:opacity .25s ease;
+}
+.belt-bar .stripe-box {
+  width:10px;
+  border-radius:999px;
+  opacity:.28;            /* light by default */
+  background:transparent; /* we control in JS */
+}
+.belt-bar .stripe-box {
+  width: 10px;
+  border-radius: 999px;
+  background: transparent;       /* JS assigns color */
+  opacity: .25;
+  border: 1px solid rgba(255,255,255,.15);
+  transition: opacity .25s ease;
+}
+
+.belt-bar .stripe-box.filled {
+  opacity: 1;
+}
+
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- top nav -->
+<header class="profile-header">
+  <div class="nav-left">
+<a class="pill" id="back-roster" href="/coaches/roster.html">← Back to Roster</a>
+    <a class="pill" href="/coaches/coaches-practice-log.html?emu=1">Coach Daily Log</a>
+  </div>
+<img class="sandman-logo" src="/assets/images/logos/sandman-combat-shield.png" alt="Sandman Combat Logo"></header>
+</header>
+    <h1 id="ath-title" style="font-size:2.2rem;margin:4px 0 0;color:#ffd633">Athlete Profile</h1>
+
+    <!-- Identity -->
+    <section class="card">
+      <div class="row">
+        <div class="stat" style="flex:0 0 110px;display:flex;align-items:center;justify-content:center">
+          <div id="ath-avatar" class="avatar-box"></div>
+        </div>
+        <div class="stat">
+          <div class="label">Name</div>
+          <div class="value" id="out-name">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Public</div>
+          <div class="value" id="out-public">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Team Sandman Combat </div>
+          <div class="value" id="out-team">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">City / State</div>
+          <div class="value" id="out-citystate">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">UID / Virtue Tag</div>
+          <div class="value" id="out-uid">—</div>
+        </div>
+        <div class="stat">
+          <div class="label">Color / Rank</div>
+          <div class="value" id="out-rank">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Combat lane -->
+    <section class="card drop" data-block="combat">
+      <button class="drop-head" type="button">
+        <span>⚔️ Combat · Path 2 Legend</span><span class="chev">▾</span>
+      </button>
+      <!-- belt always visible -->
+      <div style="margin-bottom:10px">
+        <div id="ath-belt"></div>
+      </div>
+      <!-- details can hide -->
+      <div class="drop-body">
+        <p class="muted" id="ath-belt-meta" style="font-size:.7rem;margin:0 0 8px">—</p>
+        <p class="muted" style="margin-top:4px">Arena Points: <span id="xp-arena">0</span></p>
+        <p class="muted" style="margin-top:4px">Last Style / IQ: <span id="last-style">—</span></p>
+        <h4 class="muted" style="margin:10px 0 4px">Recent Logs</h4>
+        <ul id="feed" class="muted" style="list-style:none;padding:0;margin:0">
+          <li>Loading…</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Honor -->
+    <section class="card drop" data-block="honor">
+      <button class="drop-head" type="button">
+        <span>🪶 Honor · Feathers 2 Flight</span><span class="chev">▾</span>
+      </button>
+      <div class="drop-body collapsed">
+        <div class="lane-bar" style="margin-bottom:6px">
+          <span id="honor-bar" style="background:#38bdf8"></span>
+        </div>
+        <p class="muted">XP: <span id="xp-honor">0</span> / 2400</p>
+        <p class="muted">Feather Progress: <span id="honor-feather">—</span></p>
+      </div>
+    </section>
+
+    <!-- Strength -->
+    <section class="card drop" data-block="strength">
+      <button class="drop-head" type="button">
+        <span>💍 Strength · Rings 2 Power</span><span class="chev">▾</span>
+      </button>
+      <div class="drop-body collapsed">
+        <div class="lane-bar" style="margin-bottom:6px">
+          <span id="strength-bar" style="background:#f97316"></span>
+        </div>
+        <p class="muted">XP: <span id="xp-strength">0</span> / 2400</p>
+        <p class="muted">Ring Progress: <span id="strength-ring">—</span></p>
+      </div>
+    </section>
+    <!-- Season Scorebook -->
+    <section class="card drop" data-block="scorebook">
+      <button class="drop-head" type="button">
+        <span>📒 Season Scorebook</span><span class="chev">▾</span>
+      </button>
+      <div class="drop-body collapsed">
+        <div class="row">
+          <div class="stat">
+            <div class="label">Season Record</div>
+            <div class="value" id="sb-record">0-0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Pins / TF / Maj</div>
+            <div class="value" id="sb-finishes">0 / 0 / 0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Total Matches</div>
+            <div class="value" id="sb-matches">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">Team Points Scored</div>
+            <div class="value" id="sb-teampts">0</div>
+          </div>
+        </div>
+
+        <h4 class="muted" style="margin:10px 0 4px">Scoring Breakdown</h4>
+        <div class="row">
+          <div class="stat">
+            <div class="label">T2</div>
+            <div class="value" id="sb-T2">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">E1</div>
+            <div class="value" id="sb-E1">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">R2</div>
+            <div class="value" id="sb-R2">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">N2</div>
+            <div class="value" id="sb-N2">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">N3</div>
+            <div class="value" id="sb-N3">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">N4</div>
+            <div class="value" id="sb-N4">0</div>
+          </div>
+          <div class="stat">
+            <div class="label">F</div>
+            <div class="value" id="sb-F">0</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tournaments Summary -->
+    <section class="card drop" data-block="tournaments">
+      <button class="drop-head" type="button">
+        <span>🏅 Tournaments · Season Summary</span><span class="chev">▾</span>
+      </button>
+      <div class="drop-body collapsed">
+        <div class="muted" style="font-size:.75rem;margin-bottom:6px">
+          Top recent tournaments (from match / arena logs).
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem">
+          <thead>
+            <tr class="muted">
+              <th style="text-align:left;padding:4px 2px;border-bottom:1px solid #263142">Date</th>
+              <th style="text-align:left;padding:4px 2px;border-bottom:1px solid #263142">Tournament</th>
+              <th style="text-align:center;padding:4px 2px;border-bottom:1px solid #263142">Wt</th>
+              <th style="text-align:center;padding:4px 2px;border-bottom:1px solid #263142">W-L</th>
+              <th style="text-align:center;padding:4px 2px;border-bottom:1px solid #263142">Place</th>
+              <th style="text-align:center;padding:4px 2px;border-bottom:1px solid #263142">Team Pts</th>
+            </tr>
+          </thead>
+          <tbody id="tour-body">
+            <tr>
+              <td colspan="6" class="muted" style="padding:6px 2px;text-align:center">
+                No tournaments logged yet.
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Skills & Notes (moved to bottom) -->
+    <section class="card">
+      <h3 style="margin:0 0 8px">Skills Tracker</h3>
+      <div class="row">
+        <div class="stat"><div class="label">Best Neutral Move</div><div class="value" id="skill-neutral">—</div></div>
+        <div class="stat"><div class="label">Best Top Series</div><div class="value" id="skill-top">—</div></div>
+        <div class="stat"><div class="label">Best Bottom Move</div><div class="value" id="skill-bottom">—</div></div>
+      </div>
+      <div class="row">
+        <div class="stat"><div class="label">Matches</div><div class="value" id="matches-total">0</div></div>
+        <div class="stat"><div class="label">Wins / Losses</div><div class="value" id="record-wl">0-0</div></div>
+      </div>
+      <div class="stat" style="flex:1 1 100%">
+        <div class="label">Coach Notes</div>
+        <div class="value" id="coach-notes" style="white-space:pre-line">—</div>
+      
+      </div>
+
+    </section>
+  </main>
+
+  <script type="module">
+import {
+  db,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  orderBy,
+  limit,
+  getDocs,
+} from "/assets/js/firebase-init.js";
+import { renderBeltBar } from "/assets/js/ui-belt.js";
+
+const $ = (id) => document.getElementById(id);
+
+const params = new URLSearchParams(location.search);
+let id = params.get("athleteId") || params.get("uid");
+
+// fallback if query param missing
+if (!id) {
+  id = localStorage.getItem("currentAthleteId") || null;
+}
+
+// Update the Back to Roster link
+const backRoster = document.getElementById("back-roster");
+if (backRoster && id) {
+  backRoster.href = `/coaches/roster.html?focus=${encodeURIComponent(id)}`;
+}
+
+const mode = params.get("mode") || "coach";
+
+if (!id) {
+  document.body.innerHTML =
+    "<main class='wrap'><p>Missing athlete UID.</p></main>";
+  console.warn("Profile loaded without UID.");
+}
+
+
+    // collapsibles
+    document.querySelectorAll(".drop-head").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        const body = btn.parentElement.querySelector(".drop-body");
+        if (body) body.classList.toggle("collapsed");
+      });
+    });
+
+    // load athlete
+    const ref  = doc(db, "athletes", id);
+    const snap = await getDoc(ref);
+    if (!snap.exists()) {
+      document.body.innerHTML = "<main class='wrap'><p>Unknown athlete.</p></main>";
+      throw new Error("No doc");
+    }
+    const a = snap.data();
+
+    // identity
+const fullName =
+  a.fullName ||
+  [a.firstName, a.lastName].filter(Boolean).join(" ").trim();
+
+const publicName = a.publicName || fullName;
+
+$("ath-title").textContent  = fullName || id;
+$("out-name").textContent   = fullName || "—";
+$("out-public").textContent = publicName || "—";
+    const avatarBox = $("ath-avatar");
+    if (a.photoUrl) {
+      avatarBox.style.backgroundImage = `url(${a.photoUrl})`;
+    } else {
+const avatarLabel = fullName || publicName || "?";
+avatarBox.textContent = avatarLabel.slice(0,1);
+      avatarBox.style.display = "flex";
+      avatarBox.style.alignItems = "center";
+      avatarBox.style.justifyContent = "center";
+      avatarBox.style.fontWeight = "700";
+      avatarBox.style.fontSize = "1.6rem";
+      avatarBox.style.color = "#fff";
+    }
+
+    // team
+    const rawTeam = a.team || "";
+    const city = a.city || "Lompoc";
+    const team = (() => {
+      const n = rawTeam.toLowerCase();
+      if (n === "lompoc strong" || n === "lompoc wrestling" || n === "lompoc") {
+        return "Lompoc Academy of Wrestling";
+      }
+      if (n.startsWith("sandman")) return rawTeam;
+      return `Sandman Combat\n${city} Academy of Wrestling`;
+    })();
+    $("out-team").innerHTML = team.split("\n").map(line=>`<div style="font-size:.85em;color:#fff">${line}</div>`).join("");
+    $("out-citystate").textContent = [a.city, a.state].filter(Boolean).join(", ") || "—";
+
+    const fallbackUid = a.uid || id;
+    $("out-uid").innerHTML = `<div>${a.mintVirtueTagDisplay || a.mintVirtueTag || fallbackUid}</div>`;
+
+    // rank dot
+    const rankName  = a.rankName  || a.tierName || "Apprentice";
+    const rankColor = a.rankColor || "#ffffff";
+    $("out-rank").innerHTML = `
+      <span style="display:inline-block;width:10px;height:10px;border-radius:999px;background:${rankColor};margin-right:6px;vertical-align:middle;"></span>
+      ${rankName}
+    `;
+
+    // combat belt
+    const trackRaw = a.trackCode || a.track || "";
+    const tier     = a.tier || a.rank || "T0";
+    const xp       = a.xp ?? 0;
+ renderBeltBar({
+    container: document.getElementById("ath-belt"),
+    xp,
+    trackCode: trackRaw,
+    tier
+  });
+// --- stripe visual fill ---
+function highlightStripes(count) {
+  const root = document.querySelector("#ath-belt .belt-bar");
+  if (!root) return;
+
+  const stripes = root.querySelectorAll(".stripe-box");
+  stripes.forEach((box, i) => {
+    if (i < count) {
+      box.classList.add("filled");
+      box.style.opacity = 1;
+    } else {
+      box.classList.remove("filled");
+      box.style.opacity = 0.25;
+    }
+  });
+}
+
+// Apply stripes after determining XP
+highlightStripes(stripeCount);
+
+  // ✨ post-style the belt so:
+  // - base is same color but dim
+  // - fill is same color full bright
+  // - stripes transparent, tone based on belt
+  (() => {
+    const beltRoot = document.querySelector("#ath-belt .belt-bar");
+    if (!beltRoot) return;
+
+    const fill = beltRoot.querySelector(".belt-fill");
+    const stripes = beltRoot.querySelectorAll(".stripe-box");
+
+    // read the color renderBeltBar gave to the fill
+    const beltColor = fill?.style.background || "#ffffff";
+
+    // base = same color but faded
+    beltRoot.style.background = beltColor + "33"; // 20% alpha overlay
+
+    // fill = keep the solid color, maybe a tiny filter
+    fill.style.filter = "brightness(1)";
+
+    // stripes: transparent base
+    stripes.forEach(box => {
+      box.style.background = "transparent";
+      box.style.border = "1px solid rgba(0,0,0,0.15)";
+    });
+
+    // if the belt is white → black stripes when they get "filled"
+    const isWhiteBelt = beltColor.toLowerCase() === "#ffffff" || beltColor === "white";
+    stripes.forEach(box => {
+      box.classList.remove("white","black");
+      box.classList.add(isWhiteBelt ? "white" : "black");
+    });
+  })();
+    
+// after updateRankUI(), reuse the same stripe info (single source)
+const info = getStripeInfo(ladder, a.xp ?? 0);
+safeText("ath-belt-meta", `${info.xpInTier}/${info.capXP} · Stripes ${info.stripesEarned}/${info.stripesTotal}`, "");
+
+
+    // honor / strength bars
+    const honorXP = a.xpHonor ?? 0;
+    const strengthXP = a.xpStrength ?? 0;
+    const honorPct = Math.min(100, Math.round((honorXP/2800)*100));
+    const strengthPct = Math.min(100, Math.round((strengthXP/2800)*100));
+    $("honor-bar").style.width = honorPct + "%";
+    $("strength-bar").style.width = strengthPct + "%";
+
+    $("xp-honor").textContent      = honorXP;
+    $("xp-strength").textContent   = strengthXP;
+    $("honor-feather").textContent = Math.floor(honorXP/400)+"/6";
+    $("strength-ring").textContent = Math.floor(strengthXP/400)+"/6";
+
+    // skills
+    $("skill-neutral").textContent = a.skillNeutral || "—";
+    $("skill-top").textContent     = a.skillTop || "—";
+    $("skill-bottom").textContent  = a.skillBottom || "—";
+    $("matches-total").textContent = a.matchesTotal ?? 0;
+    $("record-wl").textContent     = `${a.wins ?? 0}-${a.losses ?? 0}`;
+    $("coach-notes").textContent   = a.coachNotes || "—";
+    // --- Season Scorebook (safe fallbacks) ---
+    const wins        = a.wins ?? 0;
+    const losses      = a.losses ?? 0;
+    const pins        = a.pins ?? 0;          // season falls
+    const techs       = a.techs ?? 0;         // technical falls
+    const majors      = a.majors ?? 0;        // major decisions
+    const matches     = a.matchesTotal ?? (wins + losses);
+    const teamPoints  = a.teamPointsSeason ?? 0;
+
+    $("sb-record").textContent   = `${wins}-${losses}`;
+    $("sb-finishes").textContent = `${pins} / ${techs} / ${majors}`;
+    $("sb-matches").textContent  = matches;
+    $("sb-teampts").textContent  = teamPoints;
+
+    // scoring breakdown (T2, E1, R2, N2, N3, N4, F)
+    $("sb-T2").textContent = a.scoreT2 ?? 0;
+    $("sb-E1").textContent = a.scoreE1 ?? 0;
+    $("sb-R2").textContent = a.scoreR2 ?? 0;
+    $("sb-N2").textContent = a.scoreN2 ?? 0;
+    $("sb-N3").textContent = a.scoreN3 ?? 0;
+    $("sb-N4").textContent = a.scoreN4 ?? 0;
+    $("sb-F").textContent  = a.scoreF  ?? 0;
+
+    // --- Tournaments summary (optional / lightweight stub for now) ---
+    try {
+      const tq = query(
+        collection(db, "tournaments"),
+        where("athleteUid", "==", id),
+        orderBy("date", "desc"),
+        limit(6)
+      );
+      const tSnap = await getDocs(tq);
+      const rows = [];
+
+      tSnap.forEach(docSnap => {
+        const t = docSnap.data();
+        const date = t.dateStr || (t.date && t.date.toDate?.().toLocaleDateString()) || "—";
+        const name = t.name || "Tournament";
+        const wt   = t.weightClass || t.weight || "—";
+        const rec  = `${t.wins ?? 0}-${t.losses ?? 0}`;
+        const plc  = t.place || "—";
+        const pts  = t.teamPoints ?? 0;
+
+        rows.push(`
+          <tr>
+            <td style="padding:4px 2px">${date}</td>
+            <td style="padding:4px 2px">${name}</td>
+            <td style="padding:4px 2px;text-align:center">${wt}</td>
+            <td style="padding:4px 2px;text-align:center">${rec}</td>
+            <td style="padding:4px 2px;text-align:center">${plc}</td>
+            <td style="padding:4px 2px;text-align:center">${pts}</td>
+          </tr>
+        `);
+      });
+
+      if (rows.length) {
+        $("tour-body").innerHTML = rows.join("");
+      }
+    } catch (err) {
+      console.warn("Tournament summary failed", err);
+      $("tour-body").innerHTML = `
+        <tr>
+          <td colspan="6" class="muted" style="padding:6px 2px;text-align:center">
+            Tournament data unavailable.
+          </td>
+        </tr>`;
+    }
+
+    // logs
+    try {
+      const q = query(
+        collection(db, "xpLogs"),
+        where("athleteUid", "==", id),
+        orderBy("ts", "desc"),
+        limit(15)
+      );
+      const logs = await getDocs(q);
+      const items = [];
+      let lastStyle = null;
+      logs.forEach(l=>{
+        const d = l.data();
+        const sign = d.delta > 0 ? "+" : "";
+        items.push(`<li>${sign}${d.delta} <span class="muted">(${d.event || d.kind})</span></li>`);
+        if (!lastStyle && (d.event?.includes("STYLE") || d.meta?.style)) {
+          lastStyle = d.meta?.style;
+        }
+      });
+      $("feed").innerHTML = items.length ? items.join("") : "<li class='muted'>No entries yet.</li>";
+      $("last-style").textContent = lastStyle || "—";
+    } catch (e) {
+      $("feed").innerHTML = "<li class='muted'>Logs unavailable.</li>";
+    }
+
+    // view modes
+    if (mode === "light") {
+      document.querySelector('[data-block="strength"] .drop-body')?.classList.add("collapsed");
+      document.querySelector('[data-block="honor"] .drop-body')?.classList.add("collapsed");
+    }
+    if (mode === "full") {
+      document.querySelectorAll(".drop-body").forEach(d=>d.classList.remove("collapsed"));
+    }
+  </script>
+  <script type="module" src="/athletes/profile.js"></script>
+</body>
+</html>

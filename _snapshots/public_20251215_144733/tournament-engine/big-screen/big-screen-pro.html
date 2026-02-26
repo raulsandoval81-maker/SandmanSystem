@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Big Screen — Pro Mode</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="scoreboard-pro.css" />
+</head>
+
+<body data-event="" data-mat="">
+  <div class="screen">
+
+    <!-- HEADER --------------------------------------------------------- -->
+    <header class="header">
+      <div class="mat-title">
+        MAT <span id="mat-id">–</span>
+      </div>
+      <div class="period-box" id="period">1st</div>
+    </header>
+
+    <!-- MAIN SCORE AREA ------------------------------------------------ -->
+    <div class="score-row">
+
+      <!-- RED --------------------------------------------------------- -->
+      <div class="score-box red-side" id="red-box">
+        <div class="athlete-name" id="red-name">RED ATHLETE</div>
+        <div class="label">RED</div>
+        <div class="points" id="red-score">0</div>
+      </div>
+
+      <!-- TIMER -------------------------------------------------------- -->
+      <div class="timer-box">
+        <div class="timer" id="timer">2:00</div>
+
+        <div class="sub">
+          <span>Ref:</span> <span id="ref-time">0:00</span>
+          &nbsp;•&nbsp;
+          <span>Blood:</span> <span id="blood-time">0:00</span>
+          &nbsp;•&nbsp;
+          <span>Injury:</span> <span id="injury-time">0:00</span>
+        </div>
+
+        <div class="fall-time" id="fall-time"></div>
+      </div>
+
+      <!-- GREEN ------------------------------------------------------- -->
+      <div class="score-box green-side" id="green-box">
+        <div class="athlete-name" id="green-name">GREEN ATHLETE</div>
+        <div class="label">GREEN</div>
+        <div class="points" id="green-score">0</div>
+      </div>
+    </div>
+
+    <!-- WINNER BAR ------------------------------------------------------ -->
+    <div class="winner-bar" id="winner-bar"></div>
+
+  </div>
+
+  <!-- FLASH LAYER (PIN EXPLOSION) -------------------------------------- -->
+  <div id="flash-layer"></div>
+
+  <!-- SCRIPT ----------------------------------------------------------- -->
+  <script src="scoreboard.js" type="module"></script>
+</body>
+</html>

@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>8-Person Championship Bracket — LHS Queen of the Ring</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --silver:#e2e8f0;
+      --line:#cbd5e1;
+    }
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#ffffff;
+      color:var(--navy);
+    }
+
+    .page{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 24px 40px;
+    }
+
+    /* HEADER */
+    .header{
+      background:var(--navy);
+      color:#ffffff;
+      padding:12px 16px;
+      border-radius:6px;
+      text-align:center;
+      margin-bottom:20px;
+    }
+    .header-title{
+      font-size:1.2rem;
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .header-sub{
+      font-size:.85rem;
+      color:var(--silver);
+      margin-top:2px;
+      letter-spacing:.1em;
+    }
+
+    /* GRID LAYOUT */
+    .bracket-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr 1fr;
+      gap:16px;
+    }
+
+    .round-title{
+      text-align:center;
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      margin-bottom:8px;
+      font-weight:600;
+      color:var(--navy2);
+    }
+
+    .match{
+      border:2px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      min-height:52px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      margin-bottom:14px;
+      background:#f8fafc;
+    }
+
+    .match span{
+      display:block;
+      font-size:.78rem;
+      padding:2px 0;
+    }
+
+    .seed{
+      font-weight:700;
+      color:var(--navy2);
+      margin-right:6px;
+    }
+
+    /* CONNECTORS (simple minimalist) */
+    .connector{
+      height:20px;
+      border-left:2px solid var(--line);
+      margin-left:14px;
+      margin-bottom:6px;
+    }
+
+    @media print{
+      .page{ padding:10px 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header">
+      <div class="header-title">LHS — Queen of the Ring</div>
+      <div class="header-sub">8-Person Championship Bracket</div>
+    </div>
+
+    <!-- BRACKET GRID -->
+    <div class="bracket-grid">
+
+      <!-- ROUND 1 -->
+      <div>
+        <div class="round-title">Round 1</div>
+
+        <div class="match">
+          <span><span class="seed">1</span> ______________________________</span>
+          <span><span class="seed">8</span> ______________________________</span>
+        </div>
+
+        <div class="match">
+          <span><span class="seed">4</span> ______________________________</span>
+          <span><span class="seed">5</span> ______________________________</span>
+        </div>
+
+        <div class="match">
+          <span><span class="seed">3</span> ______________________________</span>
+          <span><span class="seed">6</span> ______________________________</span>
+        </div>
+
+        <div class="match">
+          <span><span class="seed">2</span> ______________________________</span>
+          <span><span class="seed">7</span> ______________________________</span>
+        </div>
+      </div>
+
+      <!-- SEMIFINALS -->
+      <div>
+        <div class="round-title">Semifinals</div>
+
+        <div class="match">
+          <span>Winner Match 1</span>
+          <span>Winner Match 2</span>
+        </div>
+
+        <div class="match">
+          <span>Winner Match 3</span>
+          <span>Winner Match 4</span>
+        </div>
+      </div>
+
+      <!-- FINALS -->
+      <div>
+        <div class="round-title">Championship</div>
+
+        <div class="match">
+          <span>Winner Semi 1</span>
+          <span>Winner Semi 2</span>
+        </div>
+
+        <div class="round-title" style="margin-top:26px;">3rd Place Match</div>
+
+        <div class="match">
+          <span>Loser Semi 1</span>
+          <span>Loser Semi 2</span>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+</body>
+</html>

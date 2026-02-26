@@ -1,0 +1,65 @@
+body {
+  margin:0;
+  background:#000;
+  color:#fff;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+}
+
+#fn-container {
+  width:100vw;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  gap:2rem;
+}
+
+/* Event + Bout */
+#fn-top {
+  font-size:2.6rem;
+  letter-spacing:1px;
+  color:#ffdd48;
+}
+
+/* Names */
+#fn-names {
+  display:flex;
+  justify-content:center;
+  gap:4rem;
+  font-size:4rem;
+  font-weight:700;
+}
+
+.red { color:#ff4d4d; }
+.green { color:#4dff6a; }
+
+/* Scores */
+#fn-scores {
+  display:flex;
+  gap:6rem;
+  font-size:12rem;
+  font-weight:800;
+}
+
+#fn-timer {
+  font-size:8rem;
+  color:#ffdd48;
+}
+
+/* Last action flash */
+#fn-last-action {
+  font-size:3rem;
+  opacity:0.8;
+  transition:opacity .3s;
+}
+
+.flash {
+  animation:flash 0.5s ease-out 0s 1;
+}
+
+@keyframes flash {
+  0% { opacity:1; }
+  100% { opacity:0.2; }
+}

@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lompoc Wrestling — 8-Man Bracket</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --yellow:#ffdd48;
+      --border:#cbd5e1;
+      --gray:#94a3b8;
+      --bg:#ffffff;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#ffffff;
+      color:var(--navy);
+      font-size:14px;
+    }
+    .page{
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px 20px 24px;
+    }
+
+    /* HEADER */
+    .header-bar{
+      background:#020617; /* almost black */
+      color:#ffffff;
+      padding:6px 10px;
+      border-radius:4px;
+      margin-bottom:8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      font-size:.85rem;
+    }
+    .header-title{
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+    }
+    .header-meta{
+      text-align:right;
+      font-size:.72rem;
+    }
+    .header-meta span{
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--yellow);
+    }
+    .meta-line{
+      border-bottom:1px solid #ffffff;
+      min-width:140px;
+      min-height:14px;
+      display:inline-block;
+      margin-left:4px;
+    }
+
+    .meta-row{
+      display:flex;
+      gap:20px;
+      margin:8px 0 12px;
+      font-size:.78rem;
+    }
+    .meta-field{flex:1;}
+    .meta-label{
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      font-size:.7rem;
+      color:var(--navy2);
+    }
+    .meta-field-line{
+      border-bottom:1px solid var(--border);
+      min-height:18px;
+    }
+
+    .section-title{
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--navy2);
+      margin:10px 0 4px;
+      text-align:center;
+    }
+    .section-title span{
+      background:var(--yellow);
+      padding:2px 6px;
+      border-radius:3px;
+    }
+
+    hr.divider{
+      border:none;
+      border-top:1px dashed var(--gray);
+      margin:10px 0 14px;
+    }
+
+    /* BRACKET GRID LAYOUTS */
+
+    /* TOP: big-left → small-right */
+    .champ-grid{
+      display:grid;
+      grid-template-columns:1.6fr 1fr 0.6fr;
+      column-gap:22px;
+      align-items:flex-start;
+      margin-bottom:6px;
+    }
+
+    /* BOTTOM: mirrored big-right → small-left */
+    .consi-grid{
+      display:grid;
+      grid-template-columns:0.8fr 1fr 1.6fr;
+      column-gap:18px;
+      align-items:flex-start;
+      margin-bottom:4px;
+    }
+
+    .round-col{
+      display:flex;
+      flex-direction:column;
+      align-items:stretch;
+    }
+
+    .round-label{
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.09em;
+      color:var(--navy2);
+      margin-bottom:4px;
+      text-align:center;
+    }
+
+    /* MATCH BOXES */
+    .match-box{
+      border:1px solid var(--border);
+      border-radius:4px;
+      padding:4px 6px;
+      font-size:.75rem;
+      background:#ffffff;
+      margin-bottom:14px;
+    }
+    .match-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+      font-size:.68rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--navy2);
+    }
+    .match-lines{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .name-row{
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .seed{
+      width:18px;
+      text-align:center;
+      font-size:.7rem;
+      color:var(--gray);
+    }
+    .name-line{
+      border-bottom:1px solid var(--border);
+      flex:1;
+      min-height:18px;
+    }
+    .score-box{
+      width:40px;
+      border:1px solid var(--border);
+      border-radius:3px;
+      min-height:18px;
+      font-size:.7rem;
+      text-align:center;
+    }
+
+    .note{
+      font-size:.7rem;
+      color:var(--gray);
+      margin-top:2px;
+      text-align:center;
+    }
+
+    /* CHAMP spacing – make it a clear pyramid */
+    .champ-col-1 .match-box:nth-child(1){margin-top:0;}
+    .champ-col-1 .match-box:nth-child(2){margin-top:14px;}
+    .champ-col-1 .match-box:nth-child(3){margin-top:28px;}
+    .champ-col-1 .match-box:nth-child(4){margin-top:42px;}
+
+    .champ-col-2{margin-top:36px;}
+    .champ-col-2 .match-box:nth-child(2){margin-top:40px;}
+
+    .champ-col-3{margin-top:70px;}
+
+    /* CONSI spacing – mirrored pyramid */
+    .consi-col-1{margin-top:38px;}  /* 3rd place (smallest) */
+    .consi-col-2{margin-top:18px;}
+    .consi-col-3 .match-box:nth-child(2){margin-top:20px;}
+
+    /* BIG FINALS BOX EXTRAS */
+    .final-extra{
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      margin-top:6px;
+      font-size:.68rem;
+    }
+    .final-field{
+      flex:1 1 120px;
+    }
+    .final-label{
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--navy2);
+      font-size:.65rem;
+    }
+    .final-line{
+      border-bottom:1px solid var(--border);
+      min-height:16px;
+    }
+
+    @media print{
+      .page{padding:10px 14px;}
+      .header-bar{border-radius:0;}
+      .match-box{page-break-inside:avoid;}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <!-- HEADER -->
+    <div class="header-bar">
+      <div class="header-title">Lompoc Wrestling</div>
+      <div class="header-meta">
+        <span>Event</span><span class="meta-line"></span><br />
+        <span>Date</span><span class="meta-line"></span>
+      </div>
+    </div>
+
+    <div class="meta-row">
+      <div class="meta-field">
+        <div class="meta-label">Weight Class</div>
+        <div class="meta-field-line"></div>
+      </div>
+      <div class="meta-field">
+        <div class="meta-label">Division / Notes</div>
+        <div class="meta-field-line"></div>
+      </div>
+    </div>
+
+    <!-- ================== CHAMPIONSHIP (TOP) ================== -->
+    <div class="section-title"><span>Championship Bracket — 8 Man</span></div>
+
+    <div class="champ-grid">
+
+      <!-- LEFT: QUARTERFINALS (BIG) -->
+      <div class="round-col champ-col-1">
+        <div class="round-label">Quarterfinals</div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M1</span>
+            <span>Top</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="seed">1</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="seed">8</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M2</span>
+            <span></span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="seed">4</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="seed">5</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M3</span>
+            <span></span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="seed">2</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="seed">7</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M4</span>
+            <span>Bottom</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="seed">3</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="seed">6</div>
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MIDDLE: SEMIFINALS -->
+      <div class="round-col champ-col-2">
+        <div class="round-label">Semifinals</div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M5</span>
+            <span>Winner M1 vs Winner M2</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M6</span>
+            <span>Winner M3 vs Winner M4</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: BIG CHAMPIONSHIP BOX -->
+      <div class="round-col champ-col-3">
+        <div class="round-label">Finals</div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>M7</span>
+            <span>Championship</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+
+          <!-- Big finals panel -->
+          <div class="final-extra">
+            <div class="final-field">
+              <div class="final-label">Result / Score</div>
+              <div class="final-line"></div>
+            </div>
+            <div class="final-field">
+              <div class="final-label">Fall / Tech Time</div>
+              <div class="final-line"></div>
+            </div>
+            <div class="final-field">
+              <div class="final-label">Winner Team</div>
+              <div class="final-line"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          1st = Winner M7 • 2nd = Loser M7
+        </div>
+      </div>
+    </div>
+
+    <hr class="divider" />
+
+    <!-- ================== CONSOLATION (BOTTOM, MIRRORED) ================== -->
+    <div class="section-title"><span>Consolation — Wrestle Back for 3rd</span></div>
+
+    <div class="consi-grid">
+
+      <!-- LEFT: SMALL SIDE (3rd place) -->
+      <div class="round-col consi-col-1">
+        <div class="round-label">3rd Place</div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>C5</span>
+            <span>3rd Place Match</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          3rd = Winner C5 • 4th = Loser C5
+        </div>
+      </div>
+
+      <!-- MIDDLE: CONSI SEMIS -->
+      <div class="round-col consi-col-2">
+        <div class="round-label">Consolation Semifinals</div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>C3</span>
+            <span>Loser M5 vs Winner C1</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>C4</span>
+            <span>Loser M6 vs Winner C2</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: BIG SIDE (Consi Round 1) -->
+      <div class="round-col consi-col-3">
+        <div class="round-label">Consolation Round 1</div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>C1</span>
+            <span>Loser M1 vs Loser M2</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="match-box">
+          <div class="match-head">
+            <span>C2</span>
+            <span>Loser M3 vs Loser M4</span>
+          </div>
+          <div class="match-lines">
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+            <div class="name-row">
+              <div class="name-line"></div>
+              <div class="score-box"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note">
+          Winners C1/C2 advance to C3/C4.  
+          Optional 5th = losers of C3 and C4.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

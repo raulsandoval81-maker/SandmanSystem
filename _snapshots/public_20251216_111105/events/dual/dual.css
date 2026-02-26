@@ -1,0 +1,144 @@
+body {
+  margin: 0;
+  background: #04070d;
+  color: #f0f4fa;
+  font-family: system-ui, sans-serif;
+}
+
+.dual-header {
+  text-align: center;
+  padding: 12px;
+  background: #0b1017;
+  border-bottom: 1px solid #1d2733;
+}
+
+.full-btn {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  background: #121722;
+  border: 1px solid #2a3446;
+  color: #ffdd48;
+  padding: 6px 14px;
+  border-radius: 10px;
+}
+
+/* TEAM SCORES */
+.team-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 18px;
+  gap: 18px;
+}
+
+.team-card {
+  flex: 1;
+  padding: 18px;
+  border-radius: 14px;
+}
+
+.red-team {
+  background: #260e0e;
+  border: 1px solid #b31b1b;
+}
+
+.green-team {
+  background: #0f2d0f;
+  border: 1px solid #2d8a2d;
+}
+
+.team-name {
+  font-size: 1.4rem;
+  margin-bottom: 8px;
+}
+
+.team-score {
+  font-size: 3rem;
+  text-align: right;
+  font-weight: bold;
+}
+
+/* BOUT CARD */
+.bout-card {
+  margin: 0 18px;
+  margin-bottom: 18px;
+  background: #0c111a;
+  border: 1px solid #202a38;
+  padding: 14px;
+  border-radius: 16px;
+}
+
+.bout-weight {
+  text-align: center;
+  color: #ffdd48;
+  font-size: 1.3rem;
+  margin-bottom: 10px;
+}
+
+.wrestler {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+}
+
+.red-side {
+  background: #1f1212;
+  border: 1px solid #592323;
+}
+
+.green-side {
+  background: #112112;
+  border: 1px solid #214921;
+}
+
+.name {
+  font-size: 1.2rem;
+}
+
+/* MOMENTUM BAR */
+#momentumWrap {
+  display: flex;
+  height: 12px;
+  margin: 0 18px;
+  background: #1b2230;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#momentumRed {
+  background: #ff3333;
+  width: 50%;
+  transition: width .3s;
+}
+
+#momentumGreen {
+  background: #33ff66;
+  width: 50%;
+  transition: width .3s;
+}
+
+/* TIMELINE */
+.timeline-title {
+  margin: 14px 18px 4px;
+  color: #cfd7e4;
+}
+
+#timeline {
+  margin: 0 18px 18px;
+  background: #0c1018;
+  border: 1px solid #202a36;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.timeline-item {
+  padding: 6px 0;
+  border-bottom: 1px solid #283242;
+  font-size: .9rem;
+}
+
+.timeline-item:last-child {
+  border-bottom: none;
+}

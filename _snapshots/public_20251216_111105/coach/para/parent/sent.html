@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Message Sent</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <style>
+    body{
+      margin:0;
+      background:#072550;
+      color:#f2f2f2;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      height:100vh;
+    }
+
+    .card{
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.12);
+      padding:36px 28px;
+      border-radius:18px;
+      text-align:center;
+      width:320px;
+      backdrop-filter:blur(3px);
+    }
+
+    h1{
+      font-size:1.4rem;
+      margin-bottom:8px;
+      color:#ffdd48;
+    }
+
+    p{
+      margin:6px 0 14px;
+      font-size:.95rem;
+      color:#c8d0dc;
+    }
+
+    .subtle{
+      margin-top:18px;
+      font-size:.8rem;
+      color:#8893a3;
+      opacity:.8;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>✓ Message Sent</h1>
+    <p>Your message was delivered successfully.</p>
+    <p>We will reply as soon as possible.</p>
+
+    <div class="subtle">Opening your message thread…</div>
+  </div>
+
+  <script>
+    // Extract the message ID + month from the URL (already passed by your send page)
+    const params = new URLSearchParams(location.search);
+    const id     = params.get("id");
+    const month  = params.get("month");
+
+    // Auto-redirect after 900ms (perfect timing)
+    setTimeout(() => {
+      window.location.href = `/coach/para/parent/receipt.html?id=${id}&month=${month}`;
+    }, 900);
+  </script>
+</body>
+</html>

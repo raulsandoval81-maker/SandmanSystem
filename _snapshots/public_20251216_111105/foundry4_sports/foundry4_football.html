@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Foundry4 • Football</title>
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <style>
+    body{margin:0;background:#0d1117;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto}
+    main{max-width:900px;margin:48px auto;padding:0 16px}
+    .card{position:relative;background:#0f141b;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,.6);padding:22px}
+    .card::before{content:"";position:absolute;top:0;left:0;height:6px;width:100%;
+      border-top-left-radius:12px;border-top-right-radius:12px;
+      background:linear-gradient(90deg,#22c55e,#86efac);box-shadow:0 0 15px rgba(34,197,94,.6)}
+    h1{margin:0 0 8px;font-size:2rem;color:#ffd60a}
+    p.sub{margin:0 0 18px;color:#cbd5e1}
+    a.btn{display:inline-block;background:#22c55e;color:#06240f;text-decoration:none;
+      font-weight:800;padding:12px 16px;border-radius:10px}
+    a.link{display:inline-block;margin-left:12px;color:#9dd6ff;text-decoration:none}
+  </style>
+</head>
+<body data-track="f4_football" data-event="f4_football_enter">
+  <main>
+    <div class="card">
+      <h1>Football</h1>
+      <p class="sub">Teamwork, grit, agility — safe tagging & movement habits.</p>
+      <a id="enterProgram" class="btn" href="#">Enter Program</a>
+      <a class="link" href="./foundry4_sports.html">Sports Hub</a>
+      <a class="link" href="./hub.html">Foundry4 Hub</a>
+    </div>
+  </main>
+  <script type="module" src="../assets/js/foundry4-track.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <title>Sandman Sidekick™ — Placeholder</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+      }
+      .status-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.9em;
+        font-weight: bold;
+        color: #fff;
+        margin-left: 10px;
+      }
+      .on { background: #28a745; }  /* green */
+      .off { background: #dc3545; } /* red */
+      .version {
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        font-size: 0.8em;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="version">Sandman Sidekick™ v0.1.0 (Phase 38)</div>
+
+    <h1>
+      Sandman Sidekick™
+      <span id="statusBadge" class="status-badge">...</span>
+    </h1>
+
+    <p id="sidekickStatus"></p>
+
+    <button onclick="setSidekick(true)">Enable</button>
+    <button onclick="setSidekick(false)">Disable</button>
+
+    <div id="output"></div>
+
+    <script type="module">
+      function setSidekick(on) {
+        const badge = document.getElementById("statusBadge");
+        const status = document.getElementById("sidekickStatus");
+        const output = document.getElementById("output");
+
+        if (on) {
+          badge.textContent = "ON";
+          badge.className = "status-badge on";
+          status.textContent = "Sandman Sidekick™ is ON (placeholder)";
+
+          output.innerHTML = `
+            <p><strong>Sidekick:</strong> Sandman Sidekick™</p>
+            <p><strong>Notes:</strong> ⚠️ Possible duplicate: Attendance 10 on 2025-09-01</p>
+            <p><strong>Summary:</strong> This week: 2 practices, 1 tournament, +120 XP.</p>
+            <p><strong>Insights:</strong><br>
+              🏆 Leader: A000001 (540 XP)<br>
+              🥈 Next: A000002 (520 XP)
+            </p>
+          `;
+        } else {
+          badge.textContent = "OFF";
+          badge.className = "status-badge off";
+          status.textContent = "Sandman Sidekick™ is OFF (placeholder)";
+          output.innerHTML = "";
+        }
+      }
+
+      // 🔥 Load ON by default
+      window.onload = () => setSidekick(true);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Foundry 4 • Combat</title>
+  <link rel="stylesheet" href="../assets/css/site.css">
+  <link rel="stylesheet" href="../assets/css/foundry4.css">
+</head>
+<body class="f4">
+
+  <main>
+<header class="section-header">
+  <h1 class="main-title">Foundry 4 – Combat</h1>
+  <p class="tagline">Martial Arts for All — Strength, Honor, Discipline.</p>
+</header>
+
+    <!-- Combat programs -->
+    <section class="card" data-wave="1">
+      <h2>Wrestling</h2>
+      <p>Brotherhood, grit, and fundamentals for life.</p>
+      <a href="foundry4_wrestling.html" class="btn yellow">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>Boxing</h2>
+      <p>A Gentleman’s Sport — precision and discipline.</p>
+      <a href="foundry4_boxing.html" class="btn red">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>Kickboxing</h2>
+      <p>Fast hands, fast feet — balance and confidence.</p>
+      <a href="foundry4_kickboxing.html" class="btn orange">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>MMA</h2>
+      <p>Controlled Chaos — adapt, overcome, dominate.</p>
+      <a href="foundry4_mma.html" class="btn gray">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>Muay Thai</h2>
+      <p>The Art of 8 Limbs — kicks, elbows, knees, and clinch.</p>
+      <a href="foundry4_muy-thai.html" class="btn teal">Open</a>
+    </section>
+
+    <section class="card" data-wave="1">
+      <h2>Submission Grappling</h2>
+      <p>Position → pressure → finish. Ground mastery.</p>
+      <a href="foundry4_submission-grappling.html" class="btn white">Open</a>
+    </section>
+
+  </main>
+
+  <!-- Wave gating -->
+  <script>
+    const ACTIVE_WAVE = 1; // change to 2 or 3 later to unlock more
+    document.querySelectorAll('[data-wave]').forEach(el=>{
+      if (+el.dataset.wave > ACTIVE_WAVE) el.style.display='none';
+    });
+  </script>
+
+</body>
+</html>

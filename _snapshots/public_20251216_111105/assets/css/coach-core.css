@@ -1,0 +1,184 @@
+/* =========================================================
+   COACH CORE CSS
+   High School Coach Dashboard + Tools
+   ---------------------------------------------------------
+   - Darker navy background
+   - Clean pro dashboard aesthetic
+   - Buttons, panels, forms standardized
+========================================================= */
+
+/* ------------------------------
+   ROOT COLORS (Coach Version)
+-------------------------------- */
+:root {
+  --c-bg:#05070c;          /* Deep black-navy */
+  --c-panel:#0b0f1a;       /* Coach panel */
+  --c-line:#1f2937;        /* Dividers */
+  --c-gold:#ffdd48;        /* Accent gold */
+  --c-text:#e5e7eb;        /* Light grey */
+  --c-muted:#94a3b8;       /* Soft grey */
+  --c-btn:#182334;         /* Button navy */
+  --c-btn-hover:#1f2d46;
+  --c-danger:#dc2626;
+}
+
+/* ------------------------------
+   GLOBAL
+-------------------------------- */
+body.coach {
+  background:var(--c-bg);
+  color:var(--c-text);
+  margin:0;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap-coach {
+  max-width:1200px;
+  margin:0 auto;
+  padding:22px 14px 40px;
+}
+
+/* ------------------------------
+   HEADER / TOPBAR
+-------------------------------- */
+.coach-topbar {
+  background:#08101e;
+  padding:12px 16px;
+  border-bottom:1px solid var(--c-line);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.coach-topbar h1 {
+  font-size:1.3rem;
+  font-weight:700;
+  color:var(--c-gold);
+  margin:0;
+}
+
+.coach-logout {
+  background:var(--c-btn);
+  border:1px solid var(--c-line);
+  padding:6px 12px;
+  border-radius:8px;
+  color:var(--c-text);
+  cursor:pointer;
+}
+.coach-logout:hover{
+  background:var(--c-btn-hover);
+}
+
+/* ------------------------------
+   PANELS
+-------------------------------- */
+.coach-panel {
+  background:var(--c-panel);
+  border:1px solid var(--c-line);
+  border-radius:14px;
+  padding:18px 20px;
+  margin-top:18px;
+  box-shadow:0 4px 14px rgba(0,0,0,.4);
+}
+
+/* ------------------------------
+   BUTTONS
+-------------------------------- */
+.coach-btn {
+  background:var(--c-btn);
+  color:var(--c-text);
+  padding:10px 16px;
+  border:none;
+  border-radius:10px;
+  font-weight:600;
+  cursor:pointer;
+  transition:.2s;
+}
+.coach-btn:hover {
+  background:var(--c-btn-hover);
+}
+
+.coach-btn-brand {
+  background:var(--c-gold);
+  color:#111;
+  font-weight:700;
+}
+.coach-btn-brand:hover {
+  filter:brightness(1.06);
+}
+
+.coach-btn-danger {
+  background:var(--c-danger);
+  color:#fff;
+}
+.coach-btn-danger:hover {
+  filter:brightness(1.1);
+}
+
+/* ------------------------------
+   FORMS
+-------------------------------- */
+.coach-input,
+.coach-textarea {
+  width:100%;
+  padding:10px;
+  background:#0e1624;
+  border:1px solid var(--c-line);
+  border-radius:10px;
+  color:var(--c-text);
+  margin-top:6px;
+  font-size:.95rem;
+}
+.coach-textarea { resize:vertical; }
+
+/* ------------------------------
+   TABLES (logs, athletes, schedule)
+-------------------------------- */
+.coach-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:.9rem;
+  margin-top:12px;
+}
+
+.coach-table th,
+.coach-table td {
+  border:1px solid var(--c-line);
+  padding:6px 8px;
+}
+
+.coach-table thead {
+  background:#0d1624;
+  color:var(--c-gold);
+}
+
+/* ------------------------------
+   TAGS / LABELS
+-------------------------------- */
+.tag {
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:6px;
+  font-size:.7rem;
+  font-weight:700;
+}
+
+.tag-blue { background:#3b82f6; color:#fff; }
+.tag-gold { background:var(--c-gold); color:#111; }
+.tag-red  { background:var(--c-danger); color:#fff; }
+.tag-gray { background:#475569; color:#fff; }
+
+/* ------------------------------
+   MOBILE
+-------------------------------- */
+@media(max-width:640px){
+  .wrap-coach {
+    padding:18px 12px 32px;
+  }
+
+  .coach-btn,
+  .coach-btn-brand {
+    width:100%;
+    font-size:1rem;
+  }
+}

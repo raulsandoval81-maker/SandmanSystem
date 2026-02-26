@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lompoc Wrestling – Bout Sheet</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --ink:#111827;
+      --muted:#6b7280;
+      --border:#d1d5db;
+      --bg:#ffffff;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }
+    .page{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 24px 24px;
+    }
+    .sheet{
+      border:1px solid var(--border);
+      padding:8px 8px 10px;
+      page-break-inside:avoid;
+    }
+    .header-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:8px;
+      margin-bottom:4px;
+      font-size:.78rem;
+    }
+    .brand{
+      text-transform:uppercase;
+      letter-spacing:.14em;
+      font-weight:600;
+    }
+    .meta-small{
+      font-size:.7rem;
+      text-align:right;
+    }
+    .meta-small span{
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      font-size:.65rem;
+    }
+    .meta-line{
+      border-bottom:1px solid var(--border);
+      min-width:80px;
+      min-height:14px;
+      margin-left:6px;
+      display:inline-block;
+    }
+
+    .top-meta{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:6px;
+      font-size:.7rem;
+      margin-bottom:4px;
+    }
+    .field-label{
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      font-size:.65rem;
+      color:var(--muted);
+      margin-bottom:1px;
+    }
+    .field-line{
+      border-bottom:1px solid var(--border);
+      min-height:16px;
+    }
+
+    .name-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:6px;
+      font-size:.72rem;
+      margin-bottom:4px;
+    }
+    .name-block{
+      border:1px solid var(--border);
+      padding:4px 4px 3px;
+    }
+    .name-row{
+      display:flex;
+      align-items:center;
+      margin-bottom:2px;
+    }
+    .name-row span.label{
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      color:var(--muted);
+      min-width:40px;
+    }
+    .name-row .line{
+      border-bottom:1px solid var(--border);
+      flex:1;
+      min-height:14px;
+      margin-left:4px;
+    }
+
+    .period-table{
+      width:100%;
+      border-collapse:collapse;
+      margin:4px 0 6px;
+      font-size:.7rem;
+    }
+    .period-table th,
+    .period-table td{
+      border:1px solid var(--border);
+      padding:4px;
+      vertical-align:top;
+    }
+    .period-table th{
+      text-align:center;
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      font-size:.65rem;
+      color:var(--muted);
+    }
+    .period-table td{
+      height:42px; /* writing space */
+    }
+
+    .total-row{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      margin:4px 0 8px;
+      font-size:.72rem;
+    }
+    .total-box{
+      flex:1;
+      text-align:center;
+    }
+    .total-box .label{
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      font-size:.65rem;
+      color:var(--muted);
+      margin-bottom:2px;
+    }
+    .total-box .line{
+      border:1px solid var(--border);
+      min-height:20px;
+    }
+
+    .footer-strip{
+      border-top:1px solid var(--border);
+      padding-top:4px;
+      margin-top:2px;
+      font-size:.7rem;
+    }
+    .footer-grid{
+      display:grid;
+      grid-template-columns:2fr 2fr 2fr;
+      gap:6px;
+      margin-bottom:4px;
+    }
+    .footer-field{
+      font-size:.7rem;
+    }
+    .footer-label{
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      color:var(--muted);
+      margin-bottom:1px;
+    }
+    .footer-line{
+      border-bottom:1px solid var(--border);
+      min-height:16px;
+    }
+    .winner-strip{
+      font-size:.68rem;
+      margin-bottom:3px;
+    }
+    .winner-strip span{
+      margin-right:12px;
+    }
+
+    .sign-row{
+      display:flex;
+      gap:8px;
+      font-size:.7rem;
+    }
+    .sign-field{
+      flex:1;
+    }
+    .sign-label{
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.11em;
+      color:var(--muted);
+      margin-bottom:1px;
+    }
+    .sign-line{
+      border-bottom:1px solid var(--border);
+      min-height:18px;
+    }
+
+    hr.cut{
+      border:none;
+      border-top:1px dashed #c4c4c4;
+      margin:12px 0;
+    }
+
+    @media print{
+      .page{padding:10px 16px;}
+      .sheet{border-color:#000;}
+      .period-table th{background:#f3f4f6;}
+      hr.cut{border-top:1px dashed #999;}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- ===== TOP HALF ===== -->
+    <section class="sheet">
+      <div class="header-row">
+        <div class="brand">Lompoc Wrestling</div>
+        <div class="meta-small">
+          <span>Mat</span><span class="meta-line"></span><br />
+          <span>Bout</span><span class="meta-line"></span>
+        </div>
+      </div>
+
+      <div class="top-meta">
+        <div>
+          <div class="field-label">Event</div>
+          <div class="field-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Weight Class</div>
+          <div class="field-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Date</div>
+          <div class="field-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Round</div>
+          <div class="field-line"></div>
+        </div>
+      </div>
+
+      <div class="name-grid">
+        <div class="name-block">
+          <div class="name-row">
+            <span class="label">Name</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Team</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Color</span>
+            <div class="line"></div>
+          </div>
+        </div>
+        <div class="name-block">
+          <div class="name-row">
+            <span class="label">Name</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Team</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Color</span>
+            <div class="line"></div>
+          </div>
+        </div>
+      </div>
+
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th>First Period</th>
+            <th>Second Period</th>
+            <th>Third Period</th>
+            <th>Overtime</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="total-row">
+        <div class="total-box">
+          <div class="label">Total Points</div>
+          <div class="line"></div>
+        </div>
+        <div class="total-box">
+          <div class="label">Total Points</div>
+          <div class="line"></div>
+        </div>
+      </div>
+
+      <div class="footer-strip">
+        <div class="footer-grid">
+          <div class="footer-field">
+            <div class="footer-label">Match End Time</div>
+            <div class="footer-line"></div>
+          </div>
+          <div class="footer-field">
+            <div class="footer-label">Result</div>
+            <div class="winner-strip">
+              Circle WINNER'S side / X out LOSER'S side<br />
+              Circle: FALL ☐ &nbsp; TECH ☐ &nbsp; DEC ☐ &nbsp; MAJ ☐ &nbsp; FFT ☐
+            </div>
+          </div>
+          <div class="footer-field">
+            <div class="footer-label">Times</div>
+            <div class="winner-strip">
+              Fall Time: ___________________<br />
+              Tech Time: ___________________
+            </div>
+          </div>
+        </div>
+
+        <div class="sign-row">
+          <div class="sign-field">
+            <div class="sign-label">Winner's Signature</div>
+            <div class="sign-line"></div>
+          </div>
+          <div class="sign-field">
+            <div class="sign-label">Referee's Signature</div>
+            <div class="sign-line"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="cut" />
+
+    <!-- ===== BOTTOM HALF (IDENTICAL) ===== -->
+    <section class="sheet">
+      <div class="header-row">
+        <div class="brand">Lompoc Wrestling</div>
+        <div class="meta-small">
+          <span>Mat</span><span class="meta-line"></span><br />
+          <span>Bout</span><span class="meta-line"></span>
+        </div>
+      </div>
+
+      <div class="top-meta">
+        <div>
+          <div class="field-label">Event</div>
+          <div class="field-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Weight Class</div>
+          <div class="field-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Date</div>
+          <div class="field-line"></div>
+        </div>
+        <div>
+          <div class="field-label">Round</div>
+          <div class="field-line"></div>
+        </div>
+      </div>
+
+      <div class="name-grid">
+        <div class="name-block">
+          <div class="name-row">
+            <span class="label">Name</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Team</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Color</span>
+            <div class="line"></div>
+          </div>
+        </div>
+        <div class="name-block">
+          <div class="name-row">
+            <span class="label">Name</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Team</span>
+            <div class="line"></div>
+          </div>
+          <div class="name-row">
+            <span class="label">Color</span>
+            <div class="line"></div>
+          </div>
+        </div>
+      </div>
+
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th>First Period</th>
+            <th>Second Period</th>
+            <th>Third Period</th>
+            <th>Overtime</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td></td>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="total-row">
+        <div class="total-box">
+          <div class="label">Total Points</div>
+          <div class="line"></div>
+        </div>
+        <div class="total-box">
+          <div class="label">Total Points</div>
+          <div class="line"></div>
+        </div>
+      </div>
+
+      <div class="footer-strip">
+        <div class="footer-grid">
+          <div class="footer-field">
+            <div class="footer-label">Match End Time</div>
+            <div class="footer-line"></div>
+          </div>
+          <div class="footer-field">
+            <div class="footer-label">Result</div>
+            <div class="winner-strip">
+              Circle WINNER'S side / X out LOSER'S side<br />
+              Circle: FALL ☐ &nbsp; TECH ☐ &nbsp; DEC ☐ &nbsp; MAJ ☐ &nbsp; FFT ☐
+            </div>
+          </div>
+          <div class="footer-field">
+            <div class="footer-label">Times</div>
+            <div class="winner-strip">
+              Fall Time: ___________________<br />
+              Tech Time: ___________________
+            </div>
+          </div>
+        </div>
+
+        <div class="sign-row">
+          <div class="sign-field">
+            <div class="sign-label">Winner's Signature</div>
+            <div class="sign-line"></div>
+          </div>
+          <div class="sign-field">
+            <div class="sign-label">Referee's Signature</div>
+            <div class="sign-line"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

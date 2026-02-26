@@ -1,0 +1,205 @@
+:root{
+  --bg:#0a1833;
+  --panel:#111c35;
+  --deep:#0b1120;
+  --line:#27304a;
+  --gold:#ffdd48;
+  --text:#f0f4f8;
+  --muted:#9aa4b1;
+
+  --topbar-h:56px;
+  --reply-h:240px; /* desktop default; JS not needed */
+}
+
+*{ box-sizing:border-box; }
+html, body{ height:100%; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  overflow:hidden; /* important: we control scrolling inside thread-container */
+}
+
+/* ---------------- TOP BAR ---------------- */
+.top-bar{
+  position:fixed;
+  top:0; left:0; right:0;
+  height:var(--topbar-h);
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 12px;
+  background:rgba(15,20,27,.92);
+  border-bottom:2px solid var(--gold);
+  z-index:10;
+}
+
+.back-btn{
+  appearance:none;
+  border:1px solid var(--line);
+  background:#1d2a4a;
+  color:var(--text);
+  padding:8px 10px;
+  border-radius:10px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.top-bar h1{
+  margin:0;
+  font-size:1rem;
+  font-weight:900;
+  letter-spacing:.02em;
+  color:var(--gold);
+}
+
+/* ---------------- THREAD SCROLLER ---------------- */
+.thread-container{
+  position:fixed;
+  top:var(--topbar-h);
+  left:0; right:0;
+  bottom:var(--reply-h);
+  overflow:auto;
+  padding:12px 12px 18px;
+}
+
+/* message bubble blocks that your JS emits */
+.thread-msg{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+  margin:10px 0;
+  box-shadow:0 4px 14px rgba(0,0,0,.18);
+}
+
+.thread-msg .from{
+  font-weight:900;
+  color:var(--gold);
+}
+
+.thread-msg .timestamp{
+  opacity:.65;
+  font-size:.82rem;
+  margin-top:2px;
+}
+
+.thread-msg .body{
+  margin-top:8px;
+  white-space:pre-wrap;
+  line-height:1.35;
+}
+
+/* differentiate coach vs parent */
+.thread-msg.coach{
+  border-color:rgba(255,221,72,.45);
+}
+.thread-msg.parent{
+  border-color:var(--line);
+}
+
+/* ---------------- REPLY BOX (FIXED) ---------------- */
+.reply-box{
+  position:fixed;
+  left:0; right:0;
+  bottom:0;
+  height:var(--reply-h);
+  background:rgba(17,28,53,.96);
+  border-top:2px solid var(--gold);
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+#reply-body{
+  width:100%;
+  flex:1;
+  min-height:90px;
+  resize:none;
+  border-radius:14px;
+  border:1px solid var(--line);
+  background:var(--deep);
+  color:var(--text);
+  padding:10px 12px;
+  outline:none;
+  font-size:.95rem;
+}
+
+#reply-body:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(255,221,72,.18);
+}
+
+/* category select */
+.quick-select-wrap{
+  display:flex;
+  gap:10px;
+}
+#quick-category{
+  width:100%;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:var(--deep);
+  color:var(--text);
+  padding:10px 12px;
+  font-weight:800;
+  outline:none;
+}
+#quick-category:focus{
+  border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(255,221,72,.18);
+}
+
+/* quick replies: single row, scroll if needed */
+.quick-replies{
+  display:flex;
+  gap:8px;
+  overflow-x:auto;
+  padding-bottom:2px;
+}
+.quick-btn{
+  flex:0 0 auto;
+  border:1px solid var(--line);
+  background:#1d2a4a;
+  color:var(--text);
+  padding:9px 10px;
+  border-radius:999px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.quick-btn:hover{
+  border-color:rgba(255,221,72,.6);
+}
+
+/* actions row */
+.reply-actions{
+  display:flex;
+  gap:10px;
+}
+.reply-actions .btn{
+  border:none;
+  border-radius:12px;
+  padding:10px 12px;
+  font-weight:950;
+  cursor:pointer;
+  flex:1;
+}
+
+.btn.yellow{ background:var(--gold); color:#111; }
+.btn.navy{ background:#1d2a4a; color:var(--text); border:1px solid var(--line); }
+.btn.red{ background:#ef4444; color:#111; }
+
+/* ---------------- MOBILE TUNING ---------------- */
+@media (max-width:520px){
+  :root{
+    --topbar-h:52px;
+    --reply-h:260px; /* a little taller for mobile typing */
+  }
+  .top-bar h1{ font-size:.95rem; }
+  .reply-actions{ gap:8px; }
+  .reply-actions .btn{ padding:10px 10px; font-size:.92rem; }
+}

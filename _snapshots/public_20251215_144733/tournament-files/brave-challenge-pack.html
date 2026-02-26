@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Brave Challenge – Tournament Pack</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="./tournament.css" />
+  <style>
+    .pack-wrap {
+      padding-bottom: 28px;
+    }
+
+    /* Top-level accordions */
+    .accordion {
+      border: 2px solid var(--lompoc-gray);
+      border-radius: 14px;
+      margin-bottom: 14px;
+      background: #020617;
+      overflow: hidden;
+    }
+
+    .acc-header {
+      width: 100%;
+      border: none;
+      background: linear-gradient(90deg, #020617, #0b1120);
+      color: var(--lompoc-light);
+      padding: 8px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+    }
+
+    .acc-header-main {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      text-align: left;
+    }
+
+    .acc-header-title {
+      font-weight: 600;
+    }
+
+    .acc-header-sub {
+      font-size: 0.7rem;
+      color: var(--lompoc-muted);
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .acc-chevron {
+      font-size: 0.9rem;
+      transition: transform 0.15s ease-out;
+    }
+
+    .accordion.open .acc-chevron {
+      transform: rotate(90deg);
+    }
+
+    .acc-body {
+      padding: 8px 10px 10px;
+      border-top: 1px solid rgba(15,23,42,0.85);
+      display: none;
+    }
+
+    .accordion.open .acc-body {
+      display: block;
+    }
+
+    /* Sub-accordions (rosters, dual sheets) */
+    .sub-accordion {
+      border: 1px solid #1f2937;
+      border-radius: 10px;
+      margin-bottom: 8px;
+      overflow: hidden;
+      background: #020617;
+    }
+
+    .sub-header {
+      width: 100%;
+      border: none;
+      background: #020617;
+      color: var(--lompoc-light);
+      padding: 6px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.78rem;
+    }
+
+    .sub-title {
+      font-weight: 600;
+    }
+
+    .sub-tag {
+      font-size: 0.7rem;
+      color: var(--lompoc-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .sub-chevron {
+      font-size: 0.85rem;
+      transition: transform 0.15s ease-out;
+    }
+
+    .sub-accordion.open .sub-chevron {
+      transform: rotate(90deg);
+    }
+
+    .sub-body {
+      padding: 6px 8px 8px;
+      border-top: 1px solid #1f2937;
+      display: none;
+    }
+
+    .sub-accordion.open .sub-body {
+      display: block;
+    }
+
+    /* Standings table */
+    table.standings {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.78rem;
+      margin-top: 4px;
+    }
+
+    table.standings th,
+    table.standings td {
+      border: 1px solid #1f2937;
+      padding: 4px 6px;
+      text-align: center;
+    }
+
+    table.standings th.team {
+      text-align: left;
+    }
+
+    /* Roster cards */
+    .roster-card {
+      background: #020617;
+      font-size: 0.78rem;
+    }
+
+    .roster-name {
+      font-weight: 600;
+      margin-bottom: 4px;
+      font-size: 0.8rem;
+    }
+
+    .roster-meta {
+      font-size: 0.7rem;
+      color: var(--lompoc-muted);
+      margin-bottom: 4px;
+    }
+
+    table.roster {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+    }
+
+    table.roster th,
+    table.roster td {
+      border: 1px solid #1f2937;
+      padding: 3px 4px;
+      text-align: left;
+    }
+
+    table.roster th {
+      background: #020617;
+      font-size: 0.7rem;
+    }
+
+    /* Dual sheets */
+    .dual-sheet {
+      border-radius: 10px;
+      background: #020617;
+      font-size: 0.78rem;
+      page-break-before: always;
+    }
+
+    .dual-header-top {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: space-between;
+      margin-bottom: 6px;
+    }
+
+    .dual-title {
+      font-size: 0.88rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+    }
+
+    .dual-meta {
+      font-size: 0.72rem;
+      color: var(--lompoc-muted);
+    }
+
+    .dual-vs {
+      font-size: 0.82rem;
+      margin: 4px 0 6px;
+    }
+
+    .dual-vs span {
+      font-weight: 600;
+    }
+
+    table.dual {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.75rem;
+      margin-top: 4px;
+    }
+
+    table.dual th,
+    table.dual td {
+      border: 1px solid #1f2937;
+      padding: 3px 4px;
+      text-align: left;
+    }
+
+    table.dual th {
+      background: #020617;
+      font-size: 0.7rem;
+    }
+
+    .dual-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      color: var(--lompoc-muted);
+    }
+
+    /* Schedule tiles are defined in JS/CSS earlier (round-block, etc.) */
+
+    @media print {
+      .accordion,
+      .sub-accordion {
+        border-color: #000;
+      }
+      .acc-header,
+      .sub-header {
+        background: #fff;
+        color: #000;
+      }
+      .acc-body,
+      .sub-body {
+        display: block !important;
+      }
+      .dual-sheet {
+        page-break-inside: avoid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div class="bracket-header">
+    <div class="wrap">
+      <div class="header-row">
+        <div class="field">
+          <label for="eventPreset">Event preset</label>
+          <select id="eventPreset">
+            <option value="Brave Challenge">Brave Challenge</option>
+            <option value="Queen of the Ring">Queen of the Ring</option>
+            <option value="Battle by the Sea">Battle by the Sea</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1;min-width:220px;">
+          <label for="eventNameInput">Event name</label>
+          <input id="eventNameInput" type="text" value="Brave Challenge" />
+        </div>
+        <div class="field">
+          <label for="metaInput">Division</label>
+          <input id="metaInput" type="text" value="Varsity • 6-Team Round Robin Duals" />
+        </div>
+      </div>
+      <div class="event-name-display" id="eventNameDisplay">BRAVE CHALLENGE</div>
+      <div class="meta-line" id="metaDisplay">Varsity • 6-Team Round Robin Duals</div>
+    </div>
+  </div>
+
+  <div class="wrap pack-wrap">
+    <!-- MASTER SCHEDULE -->
+    <section class="accordion open" data-accordion="schedule">
+      <button class="acc-header js-accordion-header" type="button">
+        <div class="acc-header-main">
+          <span class="acc-header-title">Master Round Schedule</span>
+          <span class="acc-header-sub">5 rounds · 3 duals per round · assign mats/times as needed.</span>
+        </div>
+        <span class="acc-chevron">▶</span>
+      </button>
+      <div class="acc-body">
+        <div id="bcSchedule"></div>
+      </div>
+    </section>
+
+    <!-- WALL STANDINGS SHEET -->
+    <section class="accordion open" data-accordion="standings">
+      <button class="acc-header js-accordion-header" type="button">
+        <div class="acc-header-main">
+          <span class="acc-header-title">Team Standings – Wall Sheet</span>
+          <span class="acc-header-sub">Update after each round with dual results.</span>
+        </div>
+        <span class="acc-chevron">▶</span>
+      </button>
+      <div class="acc-body">
+        <table class="standings" id="bcStandings">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th class="team">Team (1–6)</th>
+              <th>W</th>
+              <th>L</th>
+              <th>PF</th>
+              <th>PA</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- rows injected by JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- TEAM ROSTERS -->
+    <section class="accordion" data-accordion="rosters">
+      <button class="acc-header js-accordion-header" type="button">
+        <div class="acc-header-main">
+          <span class="acc-header-title">Team Rosters</span>
+          <span class="acc-header-sub">One roster sheet per team (1–6).</span>
+        </div>
+        <span class="acc-chevron">▶</span>
+      </button>
+      <div class="acc-body">
+        <div id="bcRosters"></div>
+      </div>
+    </section>
+
+    <!-- DUAL SCORE SHEETS -->
+    <section class="accordion" data-accordion="duals">
+      <button class="acc-header js-accordion-header" type="button">
+        <div class="acc-header-main">
+          <span class="acc-header-title">Dual Score Sheets</span>
+          <span class="acc-header-sub">15 duals · one sheet per matchup.</span>
+        </div>
+        <span class="acc-chevron">▶</span>
+      </button>
+      <div class="acc-body">
+        <div id="bcDuals"></div>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="./brave-challenge-pack.js"></script>
+</body>
+</html>

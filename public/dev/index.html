@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Para-Comms Hub</title>
+
+  <link rel="stylesheet" href="/coach/para/shared/comms.css">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --hover:#152449;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui, sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:28px 16px 50px;
+    }
+
+    h1{
+      font-size:1.4rem;
+      letter-spacing:.03em;
+      font-weight:700;
+    }
+
+    /* CARD STYLE */
+    .pc-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:18px 20px;
+      margin-bottom:18px;
+      transition:.25s;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+    .pc-card:hover{
+      background:var(--hover);
+      border-color:var(--gold);
+      transform:translateY(-2px);
+    }
+
+    .pc-card h2{
+      margin:0 0 6px;
+      color:var(--gold);
+      font-size:1.15rem;
+      letter-spacing:.02em;
+    }
+
+    .pc-card a{
+      color:#cbd5e1;
+      text-decoration:none;
+      font-weight:600;
+      font-size:.95rem;
+    }
+    .pc-card a:hover{
+      text-decoration:underline;
+    }
+
+    /* HEADER STYLE (from comms.css but reinforced) */
+    .pc-header{
+      background:#04173a;
+      color:var(--gold);
+      border-bottom:1px solid rgba(255,255,255,0.1);
+      padding:14px 16px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .pc-back, .pc-home{
+      color:var(--gold);
+      font-size:.9rem;
+      text-decoration:none;
+      font-weight:600;
+    }
+    .pc-back:hover, .pc-home:hover{
+      text-decoration:underline;
+    }
+
+    @media(max-width:600px){
+      .pc-card{padding:16px}
+      .pc-card h2{font-size:1.05rem}
+      .pc-card a{font-size:.9rem}
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="pc-header">
+  <a class="pc-back" href="/coach/index.html">← Back</a>
+  <h1>Para-Comms Hub</h1>
+  <a class="pc-home" href="/coach/index.html">🏠</a>
+</header>
+
+<div class="wrap">
+
+  <div class="pc-card">
+    <h2>Coach Portal</h2>
+    <a href="/coach/para/coach/index.html">Open Coach Comms →</a>
+  </div>
+
+  <div class="pc-card">
+    <h2>Parent Portal</h2>
+    <a href="/coach/para/parent/index.html">Open Parent Comms →</a>
+  </div>
+
+  <div class="pc-card">
+    <h2>Announcements</h2>
+    <a href="/coach/para/coach/announcements.html">View Announcements →</a>
+  </div>
+
+  <div class="pc-card">
+    <h2>Submit New Announcement</h2>
+    <a href="/coach/para/coach/announcements-post.html">Post Announcement →</a>
+  </div>
+
+</div>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Para-Comms | Coach → Parents</title>
+
+  <!-- Royal Blue Theme -->
+  <link rel="stylesheet" href="coach/para/shared/comms.css" />
+</head>
+
+<body>
+
+  <!-- 🔵 Top Header (Back + Title + Home) -->
+  <header class="pc-header">
+    <button class="pc-back" onclick="history.back()">← Back</button>
+    <h1>Para-Comms</h1>
+    <a href="/parents/index.html" class="pc-home">🏠</a>
+  </header>
+
+  <div class="wrap">
+
+    <!-- Instructions / Overview -->
+    <section class="pc-help panel">
+      <p><strong>Bilingual Message Builder (Coach → Parents).</strong></p>
+      <p>Create English + Spanish messages, copy them, or post directly to the Announcements page.</p>
+      <ul>
+        <li><strong>Subject</strong> — Title of the announcement</li>
+        <li><strong>EN / ES Boxes</strong> — Type your message</li>
+        <li><strong>Translate Buttons</strong> — EN → ES or ES → EN preview</li>
+        <li><strong>Copy</strong> — EN only, ES only, or Both</li>
+        <li><strong>Post to Announcements</strong> — Sends to the Bulletin (HS Pilot)</li>
+      </ul>
+    </section>
+
+    <!-- Main Panel -->
+    <main class="pc-main panel">
+
+      <label>Subject:</label>
+      <input id="pc-subject" type="text" placeholder="Practice time change…" />
+
+      <label>Message (EN):</label>
+      <textarea id="pc-en" rows="6" placeholder="Type English message…"></textarea>
+      <button id="btn-en-to-es" class="btn btn-dark">Translate EN → ES</button>
+
+      <label>Mensaje (ES):</label>
+      <textarea id="pc-es" rows="6" placeholder="Escriba su mensaje en español…"></textarea>
+      <button id="btn-es-to-en" class="btn btn-dark">Translate ES → EN</button>
+
+      <!-- Copy Buttons -->
+      <div class="pc-copy-grid">
+        <button id="btn-copy-en" class="btn btn-dark small">Copy EN</button>
+        <button id="btn-copy-es" class="btn btn-dark small">Copy ES</button>
+        <button id="btn-copy-both" class="btn btn-brand small">Copy Both</button>
+      </div>
+
+      <!-- Post to Announcements -->
+      <button id="btn-post-bulletin" class="btn btn-brand" style="margin-top:16px;">
+        Post to Announcements
+      </button>
+
+    </main>
+
+  </div>
+
+  <!-- Translation Preview Modal -->
+  <div id="preview" class="pc-modal">
+    <div class="pc-modal-box">
+      <h2>Translation Preview</h2>
+      <pre id="preview-text"></pre>
+      <p id="preview-confidence" class="confidence"></p>
+
+      <div class="pc-modal-actions">
+        <button id="preview-apply" class="btn btn-brand">Apply</button>
+        <button id="preview-cancel" class="btn btn-dark">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+  <script type="module" src="./comms.js"></script>
+
+</body>
+</html>

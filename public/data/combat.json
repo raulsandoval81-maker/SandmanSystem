@@ -1,0 +1,11 @@
+{
+  "$schema": "./schemas/combat.schema.json",
+  "tierIndex": 0,
+  "xpCurrent": 0,
+  "xpCap": 600,
+  "status": "active",
+  "characterBank": 0,
+  "tests": { "currentCycleAttempts": 0, "lastResult": "none" },
+  "cooldowns": { "lastTestFail": null, "lastDomination": null },
+  "totals": { "attendance": 0, "assignments": 0, "characters": 0, "tournaments": 0 }
+}

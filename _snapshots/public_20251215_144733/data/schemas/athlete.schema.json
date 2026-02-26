@@ -1,0 +1,13 @@
+{
+  "$id": "athlete.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "uid": { "type": "string" },
+    "displayName": { "type": "string" },
+    "tracks": { "type": "array", "items": { "type": "string" } },
+    "belt": { "type": "string" },
+    "joinedAt": { "type": "string" }
+  },
+  "required": ["uid", "displayName", "tracks", "belt", "joinedAt"]
+}

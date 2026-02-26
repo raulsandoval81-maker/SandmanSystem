@@ -1,0 +1,92 @@
+[
+  {
+    "id": "shadow_slow_slow",
+    "name": "Slow \u2192 Slow",
+    "segments": [
+      {
+        "label": "Controlled Pace",
+        "time": 120
+      }
+    ],
+    "cues": {
+      "intro": "Controlled pace\u2014clean ties.",
+      "final10": "Score once, clean."
+    },
+    "purpose": "Discipline & position control"
+  },
+  {
+    "id": "shadow_slow_fast",
+    "name": "Slow \u2192 Fast",
+    "segments": [
+      {
+        "label": "Slow Control",
+        "time": 60
+      },
+      {
+        "label": "Fast Finish",
+        "time": 60
+      }
+    ],
+    "cues": {
+      "intro": "Calm start.",
+      "switch": "Build\u2026 build\u2026 now go!",
+      "final10": "Furious finish."
+    },
+    "purpose": "Gear change on command"
+  },
+  {
+    "id": "shadow_fast_fast",
+    "name": "Fast \u2192 Fast",
+    "segments": [
+      {
+        "label": "All Gas",
+        "time": 90
+      }
+    ],
+    "cues": {
+      "intro": "Hands always working.",
+      "final10": "Through the whistle."
+    },
+    "purpose": "Sustain chaos & pace"
+  },
+  {
+    "id": "shadow_fast_slow",
+    "name": "Fast \u2192 Slow",
+    "segments": [
+      {
+        "label": "Hot Start",
+        "time": 30
+      },
+      {
+        "label": "Controlled Settle",
+        "time": 90
+      }
+    ],
+    "cues": {
+      "intro": "Explode early.",
+      "switch": "Settle\u2014breathe.",
+      "final10": "Finish composed."
+    },
+    "purpose": "Composure after burst"
+  },
+  {
+    "id": "shadow_reaction_overlay",
+    "name": "Reaction Overlay (Fast feet, slow shot/sprawl)",
+    "segments": [
+      {
+        "label": "Fast Feet",
+        "time": 20
+      },
+      {
+        "label": "Slow Shot/Sprawl",
+        "time": 20
+      }
+    ],
+    "repeat": 5,
+    "cues": {
+      "intro": "Fast feet\u2014slow shot!",
+      "loop": "Reset\u2014same pattern."
+    },
+    "purpose": "Separate movement speed from reaction speed"
+  }
+]

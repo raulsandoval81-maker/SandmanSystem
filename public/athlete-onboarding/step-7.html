@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Onboarding — Finisher</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/athlete-onboarding/onboarding.css"/>
+  <link rel="stylesheet" href="/intake-shared/shared.css"/>
+</head>
+<body>
+  <main class="wrap">
+    <h1> Finisher </h1>
+    <p class="sub">Quick answer. No overthinking.</p>
+    <div class="progress"><span class="pill">Step 7 of 9</span></div>
+
+    <div class="card">
+      <h2>Are you a finisher?</h2>
+      <p class="muted small">Do you finish what you start?</p>
+
+      <div class="row">
+        <button id="btn-yes" class="btn solid-gold" type="button">Yes</button>
+        <button id="btn-no" class="btn solid-dark" type="button">No</button>
+      </div>
+
+      <p id="status" class="status"></p>
+
+      <div class="row">
+        <button id="btn-next" class="btn solid-gold" type="button" disabled>Next</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/athlete-onboarding/step-7.js"></script>
+</body>
+</html>

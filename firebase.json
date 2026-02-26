@@ -3,7 +3,6 @@
     "source": "functions",
     "runtime": "nodejs20"
   },
-
   "hosting": {
     "public": "public",
     "cleanUrls": true,
@@ -11,22 +10,25 @@
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      { "source": "/xp", "function": "xpHttp", "region": "us-central1" },
+      { "source": "/api/approveIntakeCall", "function": "approveIntakeCall", "region": "us-central1" },
+      { "source": "/api/createAthleteFromIntakeCall", "function": "createAthleteFromIntakeCall", "region": "us-central1" }
     ]
   },
-
   "firestore": {
     "rules": "firestore.rules"
   },
-
   "storage": {
     "rules": "storage.rules"
   },
-
   "emulators": {
-    "functions": { "host": "0.0.0.0", "port": 5001 },
-    "firestore": { "host": "0.0.0.0", "port": 8081 },
-    "auth": { "host": "0.0.0.0", "port": 9099 },
-    "hosting": { "host": "0.0.0.0", "port": 5000 },
-    "ui": { "enabled": true, "host": "0.0.0.0", "port": 4000 }
+    "functions": { "host": "127.0.0.1", "port": 5001 },
+    "firestore": { "host": "127.0.0.1", "port": 8081 },
+    "auth": { "host": "127.0.0.1", "port": 9099 },
+    "hosting": { "host": "127.0.0.1", "port": 5002 },
+    "ui": { "enabled": true, "host": "127.0.0.1", "port": 4000 },
+    "singleProjectMode": true
   }
 }

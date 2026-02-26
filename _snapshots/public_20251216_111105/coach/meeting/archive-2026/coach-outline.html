@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Coach Meeting Outline</title>
+
+  <!-- shared toolbar styles -->
+  <link rel="stylesheet" href="/coach/shared/toolbar.css"/>
+
+  <style>
+    :root{
+      --bg:#050815;--panel:#111827;--line:#273549;
+      --brand:#ffdd48;--text:#f9fafb;--muted:#9ca3af;--hover:#1f2937;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    /* top bars */
+    .sitebar{
+      position:sticky;
+      top:0;
+      z-index:60;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 12px;
+      background:rgba(5,8,21,.96);
+      border-bottom:1px solid var(--line);
+      backdrop-filter:saturate(1.1) blur(4px);
+    }
+    .brand{
+      font-weight:900;
+      color:var(--brand);
+      text-decoration:none;
+      font-size:1rem;
+      letter-spacing:.03em;
+    }
+    .tag{
+      font-size:.7rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .coachnav{
+      position:sticky;
+      top:48px;
+      z-index:55;
+      background:#0b1220;
+      border-bottom:1px solid var(--line);
+      padding:8px 12px;
+    }
+    .coachnav a{
+      color:var(--brand);
+      text-decoration:none;
+      font-weight:800;
+      margin-right:14px;
+    }
+    .coachnav a:hover{color:#fff}
+
+    /* hero */
+    .hero{
+      background:linear-gradient(145deg,#050815 0%,#0b1220 45%,#111827 100%);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:20px 16px;
+      box-shadow:0 8px 20px rgba(0,0,0,.6);
+      margin:14px 0 18px;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      color:var(--brand);
+      font-size:1.5rem;
+    }
+    .hero p{
+      margin:0;
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.5;
+    }
+    .hero strong{color:#e5e7eb}
+
+    /* accordion */
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      overflow:hidden;
+    }
+    details.acc{
+      border-top:1px solid var(--line);
+    }
+    details.acc:first-of-type{
+      border-top:none;
+    }
+    details.acc summary{
+      list-style:none;
+      cursor:pointer;
+      padding:12px 14px;
+      font-weight:800;
+      background:#0b1120;
+      color:#e5e7eb;
+    }
+    details.acc summary::-webkit-details-marker{display:none}
+    details.acc summary:hover{background:var(--hover)}
+    .content{
+      padding:12px 14px;
+      color:#d1d5db;
+      font-size:.95rem;
+      line-height:1.6;
+      border-top:1px solid rgba(15,23,42,.8);
+    }
+    .cue{
+      color:var(--brand);
+      font-weight:700;
+      font-size:.9rem;
+    }
+    .note{
+      color:var(--muted);
+      font-size:.85rem;
+      margin-top:6px;
+    }
+    ul{
+      margin:8px 0 0 20px;
+    }
+
+    /* footer */
+    .footer{
+      margin-top:20px;
+      font-size:.8rem;
+      color:var(--muted);
+      text-align:center;
+    }
+    .footer strong{color:#e5e7eb}
+
+    @media(max-width:640px){
+      .wrap{padding:16px 10px 28px}
+    }
+  </style>
+</head>
+<body data-nav="coach">
+  <!-- global toolbar (shared across coach pages) -->
+
+
+  <!-- coach-only quick jump ribbon -->
+  <nav class="coachnav" aria-label="Coach quick links">
+    <a href="/coach/meeting/index.html">Meeting Index</a>
+    <a href="/coach/meeting/meeting-summary.html">Summary</a>
+    <a href="/coach/para/index.html">Para-Comms</a>
+  </nav>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Parent Meeting — Coach Outline</h1>
+      <p><strong>Purpose:</strong> Quiet script for you during the meeting. Parents never see this page. Use it as a calm roadmap while you talk.</p>
+      <p class="note">Tip: Keep this open on your phone or laptop while parents use the public QR page.</p>
+    </section>
+
+    <section class="panel">
+      <details class="acc" open>
+        <summary>Opening — Calm &amp; Confident</summary>
+        <div class="content">
+          <p class="cue">Coach Cue:</p>
+          <p>“Thanks for making time again tonight. Last week was quick — tonight is about clarity and direction. The culture is already in the room; my job is to protect it.”</p>
+          <p>“This meeting is about people — our kids, our families, and our standard.”</p>
+          <p class="note">Pause, look around the room. Slow your breathing. Let the silence work for you.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>1) Team Policy &amp; Conduct</summary>
+        <div class="content">
+          <p class="cue">Key points to hit:</p>
+          <ul>
+            <li>Attendance is mandatory unless cleared directly with Coach.</li>
+            <li>“If you’re early, you’re on time. If you’re on time, you’re late.”</li>
+            <li>Grades = eligibility = trust.</li>
+            <li>Practice discipline: hygiene, effort, focus, teamwork.</li>
+            <li>Adults-only meeting tonight for clear communication.</li>
+          </ul>
+          <p class="note">Optional line: “Your kids are learning grown-up standards in a safe place. We hold them accountable here so life hits softer later.”</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>2) Schedule &amp; Travel</summary>
+        <div class="content">
+          <p class="cue">Key points:</p>
+          <ul>
+            <li>Walk through boys/girls calendars at a high level.</li>
+            <li>January is heavy — mid-season grind. Ask for patience and support.</li>
+            <li>Overnights: clear behavior and supervision standards — no exceptions.</li>
+            <li>Team stays together; parents coordinate with Coach, not independently.</li>
+            <li>Volunteers for snacks, transportation, and chaperoning are appreciated.</li>
+          </ul>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>3) Weight &amp; Hydration</summary>
+        <div class="content">
+          <p class="cue">Key points:</p>
+          <ul>
+            <li>CIF hydration rules — no crash cutting, no extreme dehydration.</li>
+            <li>Focus on long-term health: sleep, real food, and recovery.</li>
+            <li>Let parents know you will not push unsafe cuts, even under pressure.</li>
+          </ul>
+          <p class="note">Optional line: “I’d rather lose a match than risk a kid’s health. We’ll be competitive the right way.”</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>4) Team Parents &amp; Support</summary>
+        <div class="content">
+          <p class="cue">Key points:</p>
+          <ul>
+            <li>Introduce Maya as Boys Team Parent; Girls Team Parent TBD.</li>
+            <li>Clarify: they handle logistics, reminders, sign-ups — not decisions.</li>
+            <li>Ask for unified sideline energy — one voice, one standard.</li>
+          </ul>
+          <p class="note">Optional line: “When kids look into the stands, they should see one united team — not mixed messages.”</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>5) Communication (Para-Comms Loop)</summary>
+        <div class="content">
+          <p class="cue">Key points:</p>
+          <ul>
+            <li>“Fast, clear, direct” — text or call Coach, not through athletes.</li>
+            <li>Team Parents: reminders only, not middlemen for disputes.</li>
+            <li>No sideline coaching, no post-match arguments with officials.</li>
+            <li>Mention simple bilingual portal/QR as backup for updates.</li>
+          </ul>
+          <p class="note">Keep this simple. The system will grow later; tonight is about trust and clarity.</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>6) Culture Message</summary>
+        <div class="content">
+          <p class="cue">Mini story (optional):</p>
+          <p>Share one short example: athlete staying late to clean mats, helping a teammate, or fighting through a tough practice without quitting.</p>
+          <p class="note">Close with: “These are the moments that build champions long before medals. Thank you for backing that up at home.”</p>
+        </div>
+      </details>
+
+      <details class="acc">
+        <summary>7) Closing</summary>
+        <div class="content">
+          <p class="cue">Key lines:</p>
+          <ul>
+            <li>“We’re ahead of schedule. We just keep stacking days.”</li>
+            <li>“Thank you for trusting me with your kids. I don’t take it lightly.”</li>
+            <li>“If you have private concerns, I’ll stay in the hallway after we wrap.”</li>
+          </ul>
+        </div>
+      </details>
+    </section>
+
+    <div class="footer">
+      <strong>Reminder:</strong> This page is for Coach only — do not share QR or URL with parents.<br/>
+      Use the public Parent Meeting link and Para-Comms portal for families.
+    </div>
+  </main>
+</body>
+</html>

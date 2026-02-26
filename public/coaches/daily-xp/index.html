@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Daily Grind</title>
+</head>
+<body>
+
+  <h1>Daily Grind</h1>
+
+  <div id="pageStatus">Loading…</div>
+
+  <table>
+    <tbody id="rows"></tbody>
+  </table>
+
+  <!-- required controls (can be styled later) -->
+  <input id="search" placeholder="Search"/>
+  <button id="pickAll">Pick All</button>
+  <button id="clearAll">Clear</button>
+
+  <input type="checkbox" id="trackF8Only" />
+
+  <select id="xpLane">
+    <option value="combat">Combat</option>
+    <option value="strength">Strength</option>
+    <option value="honor">Honor</option>
+  </select>
+
+  <select id="xpMode">
+    <option value="auto">Auto</option>
+    <option value="manual">Manual</option>
+  </select>
+
+  <!-- pills -->
+  <button id="btnGrind10" data-award="GRIND_10">+10 Grind</button>
+  <button id="btnGrind5" data-award="GRIND_5">+5 Grind</button>
+  <button id="btnStr10" data-award="STR_10">+10 Strength</button>
+  <button id="btnStr5" data-award="STR_5">+5 Strength</button>
+  <button id="btnHon10" data-award="HON_10">+10 Honor</button>
+  <button id="btnHon5" data-award="HON_5">+5 Honor</button>
+
+<script type="module" src="/coaches/daily-xp/daily-grind.js"></script>
+</body>
+</html>
+

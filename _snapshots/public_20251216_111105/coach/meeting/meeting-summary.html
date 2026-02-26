@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Parent Meeting Summary</title>
+
+  <!-- Optional shared styles -->
+  <link rel="stylesheet" href="/coach/shared/toolbar.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:1000px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    /* SIMPLE PARENT HEADER */
+    .parent-header{
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{
+      display:flex;
+      gap:6px;
+    }
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    /* HERO */
+    .hero{
+      background:linear-gradient(160deg,#0a1833 0%,#111c35 100%);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:26px 16px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,.45);
+      margin:12px 0 18px;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      color:var(--brand);
+      font-size:1.4rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .hero .sub{
+      color:#fff;
+      opacity:.96;
+      font-size:.98rem;
+    }
+
+    /* CARDS & GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:12px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 14px 12px;
+    }
+    .card h3{
+      margin:0 0 6px;
+      font-size:1rem;
+      color:var(--brand);
+    }
+    .card ul{
+      margin:0 0 4px 18px;
+      padding:0;
+      color:#dbe2ea;
+      font-size:.92rem;
+    }
+    .card li{
+      margin-bottom:4px;
+      line-height:1.45;
+    }
+    .card p{
+      margin:4px 0 0;
+      font-size:.88rem;
+      color:var(--muted);
+    }
+    .card a{
+      color:var(--brand);
+      text-decoration:none;
+      font-weight:700;
+      font-size:.9rem;
+    }
+    .card a:hover{
+      text-decoration:underline;
+    }
+    .small{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    /* Optional schedule table styling (if used later) */
+    details.acc{
+      background:#111c35;
+      border:1px solid #27304a;
+      border-radius:10px;
+      margin:6px 14px;
+      padding:10px;
+    }
+    details.acc summary{
+      cursor:pointer;
+      color:#ffdd48;
+      font-weight:700;
+      font-size:.95rem;
+    }
+    details.acc[open] summary{
+      color:#fff;
+    }
+    .sched{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+    .sched th,
+    .sched td{
+      border:1px solid #27304a;
+      padding:6px 8px;
+      text-align:left;
+      font-size:.88rem;
+    }
+    .sched th{
+      background:#0b162c;
+      color:#ffdd48;
+    }
+    .sched tr:nth-child(even){background:#0d1a33}
+    .sched tr:nth-child(odd){background:#0a1328}
+
+    @media(max-width:640px){
+      .wrap{padding:18px 12px 30px}
+      .hero h1{font-size:1.25rem}
+      .hero .sub{font-size:.9rem}
+      .parent-header-inner{padding-inline:2px}
+      .parent-brand{font-size:.85rem}
+    }.footer-hard{
+  margin-top:40px;
+  padding:26px 10px 34px;
+  background:transparent;
+  text-align:center;
+}
+
+.footer-inner{
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-brand{
+  color:#94a3b8;
+  font-size:.82rem;
+  margin-bottom:12px;
+}
+
+.footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px 18px;
+  font-size:.88rem;
+}
+
+.footer-links a{
+  color:#ffdd48;
+  text-decoration:none;
+  font-weight:600;
+}
+
+.footer-links a:hover{
+  color:#fff;
+  text-decoration:underline;
+}
+.back-btn{
+  border-radius:999px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:.78rem;
+  padding:4px 12px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.back-btn:hover{
+  background:#0b1120;
+}
+
+  </style>
+</head>
+
+<body>
+
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand">Lompoc HS Wrestling</div>
+    <div class="parent-lang-wrap">
+      <button class="parent-lang-btn active" data-lang="en">EN</button>
+      <button class="parent-lang-btn" data-lang="es">SP</button>
+    </div>
+  </div>
+</header>
+<button class="back-btn" onclick="history.back()">
+  ← Back
+</button>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <header class="hero">
+    <h1 data-i18n="heroTitle">Home of the Braves</h1>
+    <p class="sub" data-i18n="heroSub">
+      Bilingual summary for parents • Resumen bilingüe para padres
+    </p>
+  </header>
+
+  <!-- Handouts -->
+  <section style="margin-bottom:16px">
+    <div class="grid">
+      <div class="card">
+        <h3 data-i18n="handoutsHead">Handouts / Formularios</h3>
+        <ul>
+          <li>
+            <a href="./handouts/policy.html" data-i18n="linkPolicy">
+              Team Policy &amp; Expectations / Política del Equipo
+            </a>
+          </li>
+          <li>
+            <a href="./handouts/sign-in-sheet.html" data-i18n="linkSignIn">
+              Parent Sign-In Sheet / Lista de Asistencia
+            </a>
+          </li>
+        </ul>
+        <p data-i18n="handoutsNote">
+          These links are for quick reference. Paper copies may also be provided.
+        </p>
+      </div>
+
+      <div class="card">
+        <h3 data-i18n="paraHead">Para-Comms Portal</h3>
+        <ul>
+          <li data-i18n="paraItem1">
+            Bilingual page with parent information and future updates.
+          </li>
+          <li data-i18n="paraItem2">
+            Use for general questions and program details.
+          </li>
+        </ul>
+        <p>
+          <a href="../para/parent/index.html" data-i18n="paraLink">
+            Open Para-Comms / Abrir Para-Comms →
+          </a>
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Parent summary cards -->
+  <section class="grid">
+    <div class="card">
+      <h3 data-i18n="policyHead">Team Policy &amp; Conduct</h3>
+      <ul>
+        <li data-i18n="policyItem1">
+          Attendance and effort are expected at every practice and event.
+        </li>
+        <li data-i18n="policyItem2">
+          Athletes arrive prepared, on time, and in proper gear.
+        </li>
+        <li data-i18n="policyItem3">
+          Respect for coaches, teammates, officials, and opponents at all times.
+        </li>
+      </ul>
+      <p data-i18n="policyNote">
+        We are building habits that carry far beyond wrestling.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="scheduleHead">Schedule &amp; Travel</h3>
+      <ul>
+        <li data-i18n="scheduleItem1">
+          Practice and competition schedules are updated as needed.
+        </li>
+        <li data-i18n="scheduleItem2">
+          The team travels together and follows school/district guidelines.
+        </li>
+        <li data-i18n="scheduleItem3">
+          Parent support with rides, food, and supervision is appreciated.
+        </li>
+      </ul>
+      <p data-i18n="scheduleNote">
+        Please check announcements and Para-Comms regularly for changes.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="safetyHead">Safety, Wellness &amp; Hydration</h3>
+      <ul>
+        <li data-i18n="safetyItem1">
+          We follow CIF and school safety guidelines in practice and competition.
+        </li>
+        <li data-i18n="safetyItem2">
+          Healthy sleep, nutrition, and hydration are part of the expectation.
+        </li>
+        <li data-i18n="safetyItem3">
+          Injuries or health concerns should be reported directly to coaches.
+        </li>
+      </ul>
+      <p data-i18n="safetyNote">
+        Health comes first. Let us know early if something is wrong.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="parentsHead">Team Parents &amp; Support Roles</h3>
+      <ul>
+        <li data-i18n="parentsItem1">
+          Team parents help with logistics, fundraising, and event support.
+        </li>
+        <li data-i18n="parentsItem2">
+          They support communication but do not make coaching decisions.
+        </li>
+        <li data-i18n="parentsItem3">
+          Unified sideline behavior sets the tone for our athletes.
+        </li>
+      </ul>
+      <p data-i18n="parentsNote">
+        Thank you for volunteering your time and representing Lompoc with class.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="commHead">Communication with Coaches</h3>
+      <ul>
+        <li data-i18n="commItem1">
+          For questions or concerns, contact coaches directly by text, call, or email.
+        </li>
+        <li data-i18n="commItem2">
+          Please avoid sending messages through athletes or social media threads.
+        </li>
+        <li data-i18n="commItem3">
+          No sideline coaching from the stands during matches or practice.
+        </li>
+      </ul>
+      <p>
+        <a href="../para/index.html" data-i18n="commNote">
+          For general information, please use the Para-Comms Parent Portal.
+        </a>
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="boundariesHead">Practice Boundaries &amp; Contact</h3>
+      <ul>
+        <li data-i18n="boundariesItem1">
+          Wrestling practices are closed to parents and spectators.
+        </li>
+        <li data-i18n="boundariesItem2">
+          Please avoid approaching coaches 30 minutes before or after practice.
+        </li>
+        <li data-i18n="boundariesItem3">
+          Email is preferred to schedule meetings about individual concerns.
+        </li>
+        <li data-i18n="boundariesItem4">
+          Phone calls should be reserved for time-sensitive or urgent needs.
+        </li>
+      </ul>
+      <p data-i18n="boundariesNote">
+        These boundaries protect focus, safety, and clear communication.
+      </p>
+    </div>
+
+    <div class="card">
+      <h3 data-i18n="cultureHead">Program Culture &amp; Values</h3>
+      <ul>
+        <li data-i18n="cultureItem1">
+          We emphasize respect, effort, discipline, and growth every day.
+        </li>
+        <li data-i18n="cultureItem2">
+          Wrestling is a tool to build character, not just wins and losses.
+        </li>
+        <li data-i18n="cultureItem3">
+          A united message at home and on the mat helps athletes thrive.
+        </li>
+      </ul>
+      <p data-i18n="cultureNote">
+        Thank you for supporting the standard and trusting the process.
+      </p>
+    </div>
+  </section>
+
+  <!-- Shared footer slot -->
+  <div id="footer-slot"></div>
+</main>
+
+<!-- I18N + HEADER BUTTON WIRING -->
+<script>
+  const dict = {
+    en: {
+      heroTitle:"Home of the Braves",
+      heroSub:"Bilingual summary for parents • Resumen bilingüe para padres",
+
+      handoutsHead:"Handouts / Forms",
+      linkPolicy:"Team Policy & Expectations / Política del Equipo",
+      linkSignIn:"Parent Sign-In Sheet / Lista de Asistencia",
+      handoutsNote:"These links are for quick reference. Paper copies may also be provided.",
+
+      paraHead:"Para-Comms Parent Portal",
+      paraItem1:"Bilingual parent portal with key information and future updates.",
+      paraItem2:"Use for general questions, reminders, and program details.",
+      paraLink:"Open Para-Comms / Abrir Para-Comms →",
+
+      policyHead:"Team Policy & Conduct",
+      policyItem1:"Attendance and effort are expected at every practice and event.",
+      policyItem2:"Athletes arrive prepared, on time, and in proper gear.",
+      policyItem3:"Respect for coaches, teammates, officials, and opponents at all times.",
+      policyNote:"We are building habits that carry far beyond wrestling.",
+
+      scheduleHead:"Schedule & Travel",
+      scheduleItem1:"Practice and competition schedules are updated as needed.",
+      scheduleItem2:"The team travels together and follows school/district guidelines.",
+      scheduleItem3:"Parent support with rides, meals, and supervision is appreciated.",
+      scheduleNote:"Please check announcements and Para-Comms regularly for changes.",
+
+      safetyHead:"Safety, Wellness & Hydration",
+      safetyItem1:"We follow CIF and school safety guidelines in practice and competition.",
+      safetyItem2:"Healthy sleep, nutrition, and hydration are part of the expectation.",
+      safetyItem3:"Injuries or health concerns should be reported directly to coaches.",
+      safetyNote:"Health comes first. Let us know early if something is wrong.",
+
+      parentsHead:"Team Parents & Support Roles",
+      parentsItem1:"Team parents help with logistics, fundraising, and event support.",
+      parentsItem2:"They support communication but do not make coaching decisions.",
+      parentsItem3:"Unified sideline behavior sets the tone for our athletes.",
+      parentsNote:"Thank you for volunteering your time and representing Lompoc with class.",
+
+      commHead:"Communication with Coaches",
+      commItem1:"For questions or concerns, contact coaches directly by text, call, or email.",
+      commItem2:"Please avoid sending messages through athletes or social media threads.",
+      commItem3:"No sideline coaching from the stands during matches or practice.",
+      commNote:"For general information, please use the Para-Comms Parent Portal.",
+
+      boundariesHead:"Practice Boundaries & Contact",
+      boundariesItem1:"Wrestling practices are closed to parents and spectators.",
+      boundariesItem2:"Please avoid approaching coaches 30 minutes before or after practice.",
+      boundariesItem3:"Email is preferred to schedule meetings about individual concerns.",
+      boundariesItem4:"Phone calls should be reserved for time-sensitive or urgent needs.",
+      boundariesNote:"These boundaries protect focus, safety, and clear communication.",
+
+      cultureHead:"Program Culture & Values",
+      cultureItem1:"We emphasize respect, effort, discipline, and growth every day.",
+      cultureItem2:"Wrestling is a tool to build character, not just wins and losses.",
+      cultureItem3:"A united message at home and on the mat helps athletes thrive.",
+      cultureNote:"Thank you for supporting the standard and trusting the process."
+    },
+    es: {
+      heroTitle:"Hogar de los Braves",
+      heroSub:"Resumen bilingüe para padres • Bilingual summary for parents",
+
+      handoutsHead:"Formularios / Hojas",
+      linkPolicy:"Política y Expectativas del Equipo / Team Policy & Expectations",
+      linkSignIn:"Hoja de Asistencia de Padres / Parent Sign-In Sheet",
+      handoutsNote:"Estos enlaces son para referencia rápida. También se pueden entregar copias en papel.",
+
+      paraHead:"Portal Para-Comms para Padres",
+      paraItem1:"Página bilingüe con información clave para padres y futuras actualizaciones.",
+      paraItem2:"Úselo para preguntas generales, recordatorios y detalles del programa.",
+      paraLink:"Abrir Para-Comms / Open Para-Comms →",
+
+      policyHead:"Política del Equipo y Conducta",
+      policyItem1:"Se espera asistencia y esfuerzo en cada práctica y evento.",
+      policyItem2:"Los atletas llegan preparados, puntuales y con el uniforme adecuado.",
+      policyItem3:"Respeto hacia entrenadores, compañeros, oficiales y oponentes en todo momento.",
+      policyNote:"Formamos hábitos que van mucho más allá de la lucha.",
+
+      scheduleHead:"Calendario y Viajes",
+      scheduleItem1:"Los horarios de práctica y competencia se actualizan cuando es necesario.",
+      scheduleItem2:"El equipo viaja junto y sigue las reglas de la escuela y del distrito.",
+      scheduleItem3:"Se agradece el apoyo de los padres con transporte, comida y supervisión.",
+      scheduleNote:"Revise con frecuencia los avisos y el portal Para-Comms para cambios.",
+
+      safetyHead:"Seguridad, Salud e Hidratación",
+      safetyItem1:"Seguimos las guías de seguridad de CIF y de la escuela en prácticas y competencias.",
+      safetyItem2:"Sueño, nutrición e hidratación saludables forman parte de la expectativa.",
+      safetyItem3:"Lesiones o preocupaciones de salud deben reportarse directamente a los entrenadores.",
+      safetyNote:"La salud va primero. Avísenos temprano si algo no está bien.",
+
+      parentsHead:"Padres de Equipo y Apoyo",
+      parentsItem1:"Los padres de equipo ayudan con logística, recaudación de fondos y apoyo en eventos.",
+      parentsItem2:"Apoyan la comunicación pero no toman decisiones de entrenamiento.",
+      parentsItem3:"Un comportamiento unificado en la grada marca el tono para nuestros atletas.",
+      parentsNote:"Gracias por donar su tiempo y representar a Lompoc con clase.",
+
+      commHead:"Comunicación con Entrenadores",
+      commItem1:"Para preguntas o inquietudes, contacte a los entrenadores por texto, llamada o correo.",
+      commItem2:"Evite mandar mensajes a través de los atletas o cadenas en redes sociales.",
+      commItem3:"No se permite entrenar desde la grada durante luchas o prácticas.",
+      commNote:"Para información general, use el Portal Para-Comms para Padres.",
+
+      boundariesHead:"Límites de Práctica y Contacto",
+      boundariesItem1:"Las prácticas de lucha están cerradas a padres y espectadores.",
+      boundariesItem2:"Evite acercarse a los entrenadores 30 minutos antes o después de la práctica.",
+      boundariesItem3:"Se prefiere el correo electrónico para programar reuniones sobre temas individuales.",
+      boundariesItem4:"Las llamadas telefónicas se reservan para asuntos urgentes o de tiempo limitado.",
+      boundariesNote:"Estos límites protegen el enfoque, la seguridad y la comunicación clara.",
+
+      cultureHead:"Cultura y Valores del Programa",
+      cultureItem1:"Enfatizamos respeto, esfuerzo, disciplina y crecimiento todos los días.",
+      cultureItem2:"La lucha es una herramienta para formar carácter, no solo victorias y derrotas.",
+      cultureItem3:"Un mensaje unido en casa y en el tapiz ayuda a los atletas a prosperar.",
+      cultureNote:"Gracias por apoyar el estándar y confiar en el proceso."
+    }
+  };
+
+  function paintMeetingSummary(lang){
+    const L = lang || window.__lang || localStorage.getItem("lang") || "en";
+    const bundle = dict[L] || dict.en || {};
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key = el.getAttribute("data-i18n");
+      if (bundle[key]){
+        el.innerHTML = bundle[key];
+      }
+    });
+  }
+
+  // Header language pills + initial paint
+  (function(){
+    const buttons = document.querySelectorAll(".parent-lang-btn");
+    if (!buttons.length) return;
+
+    function setLang(lang){
+      localStorage.setItem("lang", lang);
+      buttons.forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+      paintMeetingSummary(lang);
+    }
+
+    const saved = localStorage.getItem("lang") || "en";
+    buttons.forEach(btn=>{
+      btn.addEventListener("click", () => setLang(btn.dataset.lang));
+    });
+
+    setLang(saved);
+  })();
+
+  document.addEventListener("DOMContentLoaded", () => {
+    paintMeetingSummary();
+  });
+</script>
+
+<!-- Shared footer renderer -->
+<footer class="footer-hard">
+  <div class="footer-inner">
+
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/para/parent/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/parent/index.html">Para-Comms</a>
+      <a href="/coach/meeting/meeting-summary.html">Meeting Portal</a>
+    </nav>
+
+  </div>
+</footer>
+
+</body>
+</html>

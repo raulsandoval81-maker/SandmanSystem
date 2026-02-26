@@ -1,0 +1,97 @@
+[
+  {
+    "id": "cond_tabata",
+    "name": "Tabata Burst (8\u00d70:20/0:10)",
+    "segments": [
+      {
+        "label": "Work",
+        "time": 20
+      },
+      {
+        "label": "Rest",
+        "time": 10
+      }
+    ],
+    "repeat": 8,
+    "cues": {
+      "intro": "Max effort\u2014no half reps."
+    },
+    "purpose": "Anaerobic power"
+  },
+  {
+    "id": "cond_sprints",
+    "name": "Sprint Intervals (10\u00d70:20/0:40)",
+    "segments": [
+      {
+        "label": "Sprint",
+        "time": 20
+      },
+      {
+        "label": "Walk",
+        "time": 40
+      }
+    ],
+    "repeat": 10,
+    "cues": {
+      "intro": "Faster than last round."
+    },
+    "purpose": "Speed endurance"
+  },
+  {
+    "id": "cond_burpees",
+    "name": "Burpee Blast (5\u00d71:00/0:30)",
+    "segments": [
+      {
+        "label": "Burpees",
+        "time": 60
+      },
+      {
+        "label": "Rest",
+        "time": 30
+      }
+    ],
+    "repeat": 5,
+    "cues": {
+      "intro": "Chest to mat\u2014snap up!"
+    },
+    "purpose": "Explosive lungs & grit"
+  },
+  {
+    "id": "cond_rope",
+    "name": "Rope Rounds (3\u00d73:00, 1:00 rest)",
+    "segments": [
+      {
+        "label": "Rope",
+        "time": 180
+      },
+      {
+        "label": "Rest",
+        "time": 60
+      }
+    ],
+    "repeat": 3,
+    "cues": {
+      "intro": "Light on toes\u2014rhythm first."
+    },
+    "purpose": "Footwork rhythm + cardio"
+  },
+  {
+    "id": "cond_carry",
+    "name": "Partner Carry (6\u00d70:30/0:30)",
+    "segments": [
+      {
+        "label": "Carry",
+        "time": 30
+      },
+      {
+        "label": "Rest",
+        "time": 30
+      }
+    ],
+    "repeat": 6,
+    "cues": {
+      "intro": "Posture tall, eyes forward."
+    },
+    "purpose": "Strength + toughness"
+  }
+]

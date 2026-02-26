@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coach · Prestige Arena XP</title>
+
+<link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
+<link rel="stylesheet" href="/coaches/arena/weekend-arena.css" />
+<link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
+
+</head>
+
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/index.html">Coach Index</a>
+    <a class="pill" href="/coaches/roster.html">Team Roster</a>
+    <a class="pill" href="/coaches/arena/weekend-arena.html">Weekend Arena XP</a>
+  </nav>
+
+  <h1>XP Prestige Event Arena </h1>
+  <div class="creed">Prestige is separate. Arena is still Battle + Podium + Style/IQ. Receipts. No guessing.</div>
+
+  <section class="card">
+
+
+    <div class="steps">
+      <!-- STEP 1: Setup -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">1</span> Setup</div>
+
+          <div class="dev-pill">
+            <input id="devModeToggle" type="checkbox" />
+            <label for="devModeToggle">
+              <span class="dev-label">DEV</span>
+              <span class="dev-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="row">
+          <input id="tournamentId" class="input" placeholder="Tournament ID (required)" />
+          <input id="eventName" class="input" placeholder="Event / Tournament name (optional note)" />
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <label class="check">
+            <input id="wonEvent" type="checkbox" />
+            <span>Won event</span>
+          </label>
+
+          <input id="winArm" class="input input-win" placeholder="Type WIN to arm prestige…" />
+        </div>
+
+        <div class="hint">
+          Tournament ID unlocks Arena. Prestige requires: Won event + type <b>WIN</b>.
+        </div>
+      </div>
+
+      <!-- STEP 2: Select -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">2</span> Select</div>
+        </div>
+
+        <div class="row">
+          <input id="search" class="input" placeholder="Search by name or UID…" />
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="pickAll" class="btn btn-ghost" type="button">Select all</button>
+          <button id="clearAll" class="btn btn-ghost" type="button">Clear</button>
+        </div>
+
+        <div class="hint">
+          Filter the roster, then pick athletes.
+        </div>
+      </div>
+
+      <!-- STEP 3: Award -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">3</span> Award</div>
+        </div>
+
+        <div class="row">
+          <button id="bulkLion"  class="btn btn-lion"  type="button" disabled>Lion +25</button>
+          <button id="bulkTiger" class="btn btn-tiger" type="button" disabled>Tiger +50</button>
+          <button id="bulkBear"  class="btn btn-bear"  type="button" disabled>Bear +75</button>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="bulkBattle" class="btn btn-full" type="button" disabled>+10 Battle</button>
+          <button id="bulkPodium" class="btn btn-part" type="button" disabled>+5 Podium</button>
+          <button id="bulkStyle"  class="btn btn-style" type="button" disabled>+5 Style</button>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <div class="iq-bar" id="iqBar">
+            <span class="iq-label">Match IQ:</span>
+            <button class="iq-pill" data-style="bull" type="button">Bull</button>
+            <button class="iq-pill" data-style="matador" type="button">Matador</button>
+            <button class="iq-pill" data-style="snake" type="button">Snake</button>
+            <button class="iq-pill" data-style="mongoose" type="button">Mongoose</button>
+            <button class="iq-pill" data-style="gorilla" type="button">Gorilla</button>
+            <button class="iq-pill" data-style="shark" type="button">Shark</button>
+          </div>
+        </div>
+
+        <div class="hint">
+          Battle/Podium need Tournament ID. Style needs Match IQ. Prestige needs Won + WIN.
+        </div>
+
+      </div>
+    </div>
+
+    <div id="sessionBar" class="session-bar" style="display:none">
+      <span class="session-pill" id="sb-loaded">Loaded: 0</span>
+      <span class="session-pill" id="sb-awarded">Awarded this session: 0</span>
+      <span class="session-pill" id="sb-xp">XP issued: 0</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:6%">Pick</th>
+            <th style="width:40%">Athlete</th>
+            <th style="width:22%">Tier / Track</th>
+            <th style="width:32%">XP</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="4" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p id="pageStatus" class="muted">Ready.</p>
+  </section>
+</main>
+
+<script type="module" src="/coaches/arena/prestige-arena.js"></script>
+<script type="module" src="/coaches/arena/prestige-arena.dev.js"></script>
+</body>
+</html>

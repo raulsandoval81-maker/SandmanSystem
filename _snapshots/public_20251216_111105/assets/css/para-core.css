@@ -1,0 +1,367 @@
+/* =========================================================
+   Para-Comms Core Stylesheet
+   High School Parent Version
+   Royal Blue / Gold Theme
+   ---------------------------------------------------------
+   Purpose:
+   - One stylesheet for all parent-facing pages
+   - Phone-friendly, accessible, simple UI
+   - No leaks to Sandman branding
+   ========================================================= */
+
+/* ------------------------------
+   COLOR SYSTEM
+--------------------------------- */
+:root{
+  --bg:#0a1833;          /* Deep navy */
+  --panel:#111c35;       /* Steel navy panel */
+  --line:#27304a;        /* Subtle blue border */
+  --brand:#ffdd48;       /* Prestige gold */
+  --text:#f0f4f8;        /* Light text */
+  --muted:#9aa4b1;       /* Soft grey */
+  --darkbtn:#162447;     /* Dark navy button */
+  --darkbtn-hover:#1d2d55;
+  --sky:#cfe8ff;         /* Tag blue */
+  --sky-border:#9cc9ff;
+}
+
+/* ------------------------------
+   GLOBAL
+--------------------------------- */
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:22px 14px 40px;
+}
+
+/* ------------------------------
+   HEADER
+--------------------------------- */
+.pc-header{
+  background:#04173a;
+  color:var(--brand);
+  padding:12px 16px;
+  border-bottom:1px solid rgba(255,221,72,.18);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.pc-header h1{
+  font-size:1.25rem;
+  margin:0;
+  font-weight:700;
+  letter-spacing:.04em;
+}
+
+.pc-back{
+  background:#020617;
+  color:#e5e7eb;
+  border:1px solid #1f2937;
+  border-radius:999px;
+  padding:6px 14px;
+  font-size:.8rem;
+  cursor:pointer;
+  transition:.2s;
+}
+.pc-back:hover{ background:#0b1120; }
+
+.pc-home{
+  color:var(--brand);
+  font-size:1.3rem;
+  text-decoration:none;
+  padding:4px;
+}
+.pc-home:hover{ filter:brightness(1.3); }
+
+/* ------------------------------
+   PANELS
+--------------------------------- */
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:18px 18px 22px;
+  margin-top:16px;
+  line-height:1.55;
+  box-shadow:0 4px 12px rgba(0,0,0,.35);
+}
+
+/* ------------------------------
+   TEXT + HELP
+--------------------------------- */
+.pc-help ul{
+  padding-left:20px;
+  margin-top:6px;
+}
+
+.pc-help li{
+  margin-bottom:6px;
+  color:var(--muted);
+}
+
+h2{
+  margin:.2rem 0 .6rem;
+  color:var(--brand);
+  font-size:1rem;
+}
+
+h3{
+  margin:.6rem 0 .4rem;
+  color:var(--brand);
+  font-size:.95rem;
+}
+
+/* ------------------------------
+   FORMS
+--------------------------------- */
+.pc-main label{
+  display:block;
+  font-weight:600;
+  margin:10px 0 6px;
+}
+
+.pc-main input,
+.pc-main textarea{
+  width:100%;
+  padding:10px;
+  background:#0b142d;
+  border:1px solid var(--line);
+  border-radius:10px;
+  color:var(--text);
+  font-size:.95rem;
+}
+
+.pc-main textarea{
+  resize:vertical;
+}
+
+/* ------------------------------
+   BUTTONS
+--------------------------------- */
+.btn{
+  display:inline-block;
+  background:var(--darkbtn);
+  color:var(--text);
+  border:none;
+  border-radius:10px;
+  padding:10px 16px;
+  margin-top:12px;
+  cursor:pointer;
+  font-size:.9rem;
+  font-weight:600;
+  transition:.2s;
+}
+
+.btn:hover{ background:var(--darkbtn-hover); }
+
+.btn-brand{
+  background:var(--brand);
+  color:#111;
+  font-weight:700;
+}
+.btn-brand:hover{
+  filter:brightness(1.06);
+}
+
+.small{
+  padding:8px 12px;
+  font-size:.82rem;
+}
+
+.pc-copy-grid{
+  margin-top:14px;
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+/* ------------------------------
+   TILES (A–D)
+--------------------------------- */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+  gap:10px;
+  margin-top:10px;
+}
+
+.tile{
+  display:block;
+  background:#0e1935;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px;
+  text-decoration:none;
+  color:#fff;
+  transition:.2s;
+}
+
+.tile:hover{
+  background:var(--hover);
+  border-color:var(--brand);
+  transform:translateY(-2px);
+}
+
+.cat{
+  font-size:.62rem;
+  background:var(--sky);
+  color:#0a0d14;
+  padding:3px 8px;
+  border-radius:6px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  margin-bottom:.35rem;
+  font-weight:700;
+  display:inline-block;
+  border:1px solid var(--sky-border);
+}
+
+.title{ font-weight:800; }
+
+.sub{
+  font-size:.85rem;
+  color:#cbd5e1;
+  margin-top:.25rem;
+  line-height:1.35;
+}
+
+/* ------------------------------
+   ACCORDION
+--------------------------------- */
+details.acc{
+  background:#0b1429;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:10px 14px;
+}
+
+details.acc + details.acc{
+  border-top:none;
+}
+
+details.acc summary{
+  cursor:pointer;
+  list-style:none;
+  font-weight:700;
+  color:var(--brand);
+}
+
+details.acc summary::-webkit-details-marker{
+  display:none;
+}
+
+details.acc summary::before{
+  content:"▸";
+  display:inline-block;
+  margin-right:6px;
+  transform:translateY(-1px);
+  transition:transform .15s;
+  color:var(--brand);
+}
+
+details.acc[open] summary::before{
+  transform:rotate(90deg) translateY(-1px);
+}
+
+details.acc .content{
+  margin-top:8px;
+  font-size:.9rem;
+  color:#e2e8f0;
+}
+
+/* ------------------------------
+   TABLES (Season Schedule)
+--------------------------------- */
+table.sched{
+  width:100%;
+  border-collapse:collapse;
+  font-size:.85rem;
+}
+
+table.sched th,
+table.sched td{
+  border:1px solid var(--line);
+  padding:4px 6px;
+  text-align:left;
+}
+
+table.sched thead{
+  background:#050916;
+}
+
+/* ------------------------------
+   FOOTER
+--------------------------------- */
+.footer-hard{
+  margin-top:40px;
+  padding:26px 10px 34px;
+  text-align:center;
+}
+
+.footer-inner{
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-brand{
+  color:#94a3b8;
+  font-size:.82rem;
+  margin-bottom:12px;
+}
+
+.footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px 18px;
+  font-size:.88rem;
+}
+
+.footer-links a{
+  color:var(--brand);
+  text-decoration:none;
+}
+.footer-links a:hover{
+  text-decoration:underline;
+}
+
+/* ------------------------------
+   MOBILE POLISH
+--------------------------------- */
+@media (max-width:640px){
+  .wrap{
+    padding:18px 12px 28px;
+  }
+
+  .pc-header h1{
+    font-size:1.15rem;
+  }
+
+  .pc-main input,
+  .pc-main textarea{
+    font-size:1rem;
+  }
+
+  .btn{
+    width:100%;
+    font-size:1rem;
+  }
+
+  .grid{
+    grid-template-columns:1fr;
+  }
+
+  table.sched{
+    font-size:.78rem;
+  }
+}

@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Team Stat Sheet</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto;background:#fff;color:#0f172a;}
+    .page{max-width:900px;margin:0 auto;padding:20px;}
+    .header{
+      font-size:.95rem;text-transform:uppercase;letter-spacing:.15em;
+      border-bottom:2px solid #0f172a;padding-bottom:6px;margin-bottom:14px;font-weight:700;
+    }
+    .meta{display:flex;justify-content:space-between;margin-bottom:10px;font-size:.8rem;}
+    .meta span{border-bottom:1px solid #0f172a;min-width:180px;display:inline-block;}
+    table{width:100%;border-collapse:collapse;font-size:.75rem;}
+    th,td{border:1px solid #cbd5e1;padding:5px;}
+    th{text-transform:uppercase;letter-spacing:.1em;background:#f3f4f6;}
+    .legend{margin-top:10px;font-size:.7rem;color:#475569;}
+  </style>
+</head>
+<body>
+  <div class="page">
+
+    <div class="header">Lompoc Braves Challenge — Team Stat Sheet</div>
+
+    <div class="meta">
+      <div>VS: <span></span></div>
+      <div>Date: <span></span></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Wt</th>
+          <th>Wrestler</th>
+          <th>1st</th>
+          <th>2nd</th>
+          <th>3rd</th>
+          <th>Fall / Tech</th>
+          <th>Match Score</th>
+          <th>Team Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 14 rows -->
+        ${Array.from({length:14}).map(()=>`
+          <tr>
+            <td></td><td></td><td></td><td></td><td></td>
+            <td></td><td></td><td></td>
+          </tr>`).join("")}
+      </tbody>
+    </table>
+
+    <div class="legend">
+      Symbols: T2 (takedown), E1 (escape), R2 (reversal), N2/3/4 (nearfall), P1 (penalty), C (caution)
+    </div>
+
+  </div>
+</body>
+</html>

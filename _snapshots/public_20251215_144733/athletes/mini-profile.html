@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Who Are You? · Sandman</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+
+  <style>
+    body{
+      margin:0;
+      background:#08090b;
+      color:#e5e5e5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* header */
+    .system-header{
+      background:#0f0f0f;
+      border-bottom:2px solid #FFD700;
+      padding:12px 16px;
+      position:sticky;top:0;z-index:1000;
+    }
+    .system-header__brand{display:flex;align-items:center;gap:12px}
+    .system-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .system-nav a{
+      color:#eaeaea;background:#1b1f28;border:1px solid #2a2f3a;
+      padding:6px 12px;text-decoration:none;font-weight:600;
+      border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.25);
+    }
+    .system-nav a:hover{background:#232937;color:#fff}
+
+    /* layout */
+    .wrap{
+      max-width:780px;
+      margin:0 auto;
+      padding:32px 20px;
+      display:flex;
+      flex-direction:column;
+      gap:22px;
+    }
+
+    .card{
+      background:#111418;
+      border:1px solid #1c222d;
+      border-radius:16px;
+      padding:22px;
+      box-shadow:0 6px 18px rgba(0,0,0,.35);
+    }
+
+    .title{
+      font-size:2.1rem;
+      font-weight:800;
+      color:#FFD700;
+      text-shadow:0 0 12px rgba(255,214,0,.25);
+      margin:6px 0 14px;
+    }
+
+    .mini-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:16px;
+      margin-top:10px;
+    }
+
+    .mini-stat{
+      flex:1 1 220px;
+      background:#0f1216;
+      padding:14px;
+      border:1px solid #232833;
+      border-radius:12px;
+    }
+    .label{
+      font-size:.75rem;
+      color:#8ea0b5;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:4px;
+    }
+    .value{font-size:1.1rem;font-weight:700;color:#e7eaef}
+
+    .avatar-box{
+      width:86px;height:86px;border-radius:14px;
+      background:#0a0f17;border:1px solid rgba(255,255,255,.06);
+      background-size:cover;background-position:center;
+      display:flex;align-items:center;justify-content:center;
+      font-size:2rem;font-weight:700;color:#fff;
+    }
+
+    .confirm-box{
+      margin-top:20px;
+      display:flex;gap:14px;flex-wrap:wrap;
+    }
+
+    .btn-main{
+      background:#FFD700;color:#000;
+      padding:14px 20px;border-radius:14px;
+      text-decoration:none;font-weight:800;
+      letter-spacing:.3px;font-size:1rem;
+      box-shadow:0 6px 16px rgba(255,214,0,.35);
+      transition:filter .15s;
+    }
+    .btn-main:hover{filter:brightness(1.05)}
+
+    .btn-outline{
+      border:2px solid #39414c;
+      padding:12px 18px;border-radius:14px;
+      color:#c8d0dc;text-decoration:none;font-weight:700;
+    }
+    .btn-outline:hover{background:#1a1e24}
+  </style>
+</head>
+
+<body>
+
+<header class="system-header">
+  <div class="system-header__brand">
+    <span style="color:#FFD700;font-weight:800;font-size:1.2rem;letter-spacing:1px;">
+      Sandman Combat System™
+    </span>
+    <span style="color:#bbb;font-weight:600;">Identity Check</span>
+  </div>
+  <nav class="system-nav">
+    <a href="../index.html">Home</a>
+    <a href="javascript:history.back()">Back</a>
+  </nav>
+</header>
+ 
+<main class="wrap">
+
+  <section class="card">
+    <h1 class="title">Is This You?</h1>
+
+    <div class="mini-row">
+      <div class="avatar-box" id="avatar">A</div>
+
+      <div class="mini-stat">
+        <div class="label">Name</div>
+        <div class="value" id="name">—</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="label">Team</div>
+        <div class="value" id="team">—</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="label">City / State</div>
+        <div class="value" id="citystate">—</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="label">Mint Tag</div>
+        <div class="value" id="tag">—</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="label">Rank / Tier</div>
+        <div class="value" id="rank">—</div>
+      </div>
+
+      <div class="mini-stat">
+        <div class="label">Lane</div>
+        <div class="value" id="lane">—</div>
+      </div>
+    </div>
+
+    <div class="confirm-box">
+      <a class="btn-main" href="./destiny.html">Yes — Begin My Path</a>
+      <a class="btn-outline" href="javascript:alert('Tell Coach immediately — wrong profile!')">Not Me</a>
+    </div>
+  </section>
+
+</main>
+
+<script type="module">
+  const params = new URLSearchParams(location.search);
+
+  const data = {
+    name: params.get("name") || "Athlete",
+    team: params.get("team") || "Sandman Academy",
+    city: params.get("city") || "Lompoc",
+    state: params.get("state") || "CA",
+    tag: params.get("tag") || "F8_CB0001_FOC",
+    rank: params.get("rank") || "Shadow",
+    lane: params.get("lane") || "Combat",
+    avatar: params.get("avatar") || ""
+  };
+
+  document.getElementById("name").textContent = data.name;
+  document.getElementById("team").textContent = data.team;
+  document.getElementById("citystate").textContent = `${data.city}, ${data.state}`;
+  document.getElementById("tag").textContent = data.tag;
+  document.getElementById("rank").textContent = data.rank;
+  document.getElementById("lane").textContent = data.lane;
+
+  const A = document.getElementById("avatar");
+  if (data.avatar) A.style.backgroundImage = `url(${data.avatar})`;
+  else A.textContent = data.name.slice(0,1);
+</script>
+
+</body>
+</html>

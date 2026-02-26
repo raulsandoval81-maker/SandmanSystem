@@ -1,0 +1,70 @@
+<!-- ===== XP BLOCK (Phase 38 essentials) ===== -->
+<section class="panel" id="xp-leaderboard">
+  <h2>Leaderboard</h2>
+
+  <div class="row">
+    <input id="lbSearch" placeholder="Search athlete (e.g., Max)" />
+    <select id="lbSport">
+      <option value="">All sports</option>
+      <option>Wrestling</option>
+      <option>Boxing</option>
+      <option>Kick Boxing</option>
+      <option>Grappling</option>
+    </select>
+    <button id="lbLoadBtn">Load</button>
+    <span class="muted" id="lbMode">Local mode. Online sync later.</span>
+  </div>
+
+  <div id="lbTop3Wrap">
+    <h3>Top 3 &amp; You</h3>
+    <div id="lbTop3" class="muted">No data yet.</div>
+  </div>
+
+  <div id="lbFullWrap">
+    <h3>Full Leaderboard</h3>
+    <button id="lbShowAllBtn">Show all</button>
+    <div id="lbTableHost"></div>
+  </div>
+</section>
+
+<section class="panel" id="xp-your">
+  <h2>Your XP</h2>
+  <p class="muted">Enter your name in Leaderboard search to load.</p>
+
+  <div class="pills">
+    <span class="pill"><span id="xpPct">0%</span> to next</span>
+    <span class="pill"><span id="xpToGo">0 XP</span> to go</span>
+    <span class="pill">Streak: <span id="xpStreak">0</span></span>
+  </div>
+
+  <h3>Recent XP Adds</h3>
+  <ul id="xpRecent" class="list muted"></ul>
+</section>
+
+<section class="panel" id="xp-roadmap">
+  <h2>Ladder Roadmap</h2>
+  <p class="muted">Enter your name above to load.</p>
+  <div id="xpRoadmapContent"></div>
+</section>
+
+<!-- Minimal styles for layout (optional) -->
+<style>
+  .panel{background:#12151a;border-radius:14px;padding:16px;margin:18px 0}
+  .row{display:flex;gap:10px;align-items:center;margin:10px 0}
+  input,select,button{padding:8px 10px;border-radius:10px;border:1px solid #2b2f36;background:#0e1116;color:#e9edf3}
+  button{cursor:pointer}
+  .muted{color:#97a1ad}
+  .pills{display:flex;gap:10px;margin:8px 0}
+  .pill{background:#1a1f26;border:1px solid #2c3440;border-radius:999px;padding:6px 10px;display:inline-flex;gap:6px}
+  h2{margin:0 0 8px}
+  h3{margin:14px 0 8px}
+  #lbTableHost table{width:100%;border-collapse:collapse}
+  #lbTableHost th,#lbTableHost td{border:1px solid #2b2f36;padding:8px}
+  #lbTableHost th{background:#0e1116;text-align:left}
+</style>
+
+<!-- Modules (adjust the ../ as noted above) -->
+<!-- XP BLOCK -->
+<script type="module" src="../assets/js/firebase-init.js"></script>
+<script type="module" src="../assets/js/xp-ui.js"></script>
+<!-- ===== /XP BLOCK ===== -->

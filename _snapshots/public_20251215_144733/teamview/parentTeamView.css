@@ -1,0 +1,68 @@
+:root {
+  --bg: #05070c;
+  --panel: #0b0f16;
+  --border: #1a2234;
+  --text: #eef2f8;
+  --gold: #ffdd48;
+  --muted: #8c96a8;
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+.head {
+  text-align: center;
+  padding: 22px 10px 10px;
+}
+
+h1 {
+  margin: 0;
+  color: var(--gold);
+  font-size: 1.6rem;
+  letter-spacing: 0.04em;
+}
+
+.sub {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.team-list {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 20px 14px 60px;
+}
+
+.team-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 1.1rem;
+}
+
+.team-row span:first-child {
+  font-weight: 600;
+}
+
+.team-row span:last-child {
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 480px) {
+  .team-row {
+    font-size: 1rem;
+  }
+}

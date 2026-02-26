@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sandman Bracket Viewer</title>
+  <link rel="stylesheet" href="bracket.css">
+</head>
+
+<body>
+
+<!-- ======================= HEADER ======================= -->
+<h1 class="page-title">Event Brackets</h1>
+<div id="eventName" class="event-title">Loading…</div>
+
+<!-- ======================= ROUND NAV ==================== -->
+<div id="roundNav" class="round-nav">
+  <button class="round-btn" data-round="r16">Round of 16</button>
+  <button class="round-btn" data-round="qf">Quarterfinals</button>
+  <button class="round-btn" data-round="sf">Semifinals</button>
+  <button class="round-btn" data-round="finals">Finals</button>
+  <button class="round-btn" data-round="c1">Cons. 1</button>
+  <button class="round-btn" data-round="c2">Cons. 2</button>
+  <button class="round-btn" data-round="c3">Cons. 3</button>
+  <button class="round-btn" data-round="c4">Cons. 4</button>
+  <button class="round-btn" data-round="place">Placement</button>
+</div>
+
+<!-- ======================= BRACKET GRID ================= -->
+<div id="bracketGrid" class="bracket-grid">
+  <!-- JS auto-fills bracket sections -->
+</div>
+
+<script type="module" src="roundNav.js"></script>
+<script type="module" src="bracket.js"></script>
+
+</body>
+</html>

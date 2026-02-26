@@ -1,0 +1,135 @@
+:root { 
+  color-scheme: dark; 
+  --black:#05070c;
+  --grey-dark:#1d2430;
+  --grey-mid:#2c3547;
+  --red:#e63946;
+  --gold:#ffdd48;
+}
+
+body{
+  background:var(--black);
+  color:#f8fafc;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  margin:0;
+}
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:20px 16px 60px;
+}
+
+.topnav{
+  padding:16px;
+  background:#0b1017;
+  border-bottom:1px solid var(--grey-dark);
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.topnav h1{
+  color:var(--gold);
+  margin:0;
+  text-shadow:0 0 6px rgba(255,221,72,.2);
+}
+
+/* --- Pills --- */
+.pill{
+  padding:6px 14px;
+  border-radius:999px;
+  text-decoration:none;
+  font-size:.85rem;
+  font-weight:600;
+  transition:.15s;
+  display:inline-block;
+}
+
+/* gold pill */
+.pill-gold{
+  background:var(--gold);
+  color:#111;
+  border:1px solid var(--gold);
+}
+
+.pill-gold:hover{
+  filter:brightness(1.1);
+}
+
+/* grey pill */
+.pill-grey{
+  background:#1a1e27;
+  color:#f8fafc;
+  border:1px solid var(--grey-mid);
+}
+
+.pill-grey:hover{
+  background:var(--gold);
+  color:#111;
+}
+
+/* red pill (for future use) */
+.pill-red{
+  background:var(--red);
+  border:1px solid var(--red);
+  color:#fff;
+}
+
+.pill-red:hover{
+  filter:brightness(1.1);
+}
+
+/* --- Cards / Sections --- */
+.card{
+  background:#0b1017;
+  border:1px solid var(--grey-dark);
+  border-radius:12px;
+  padding:16px;
+  margin-top:18px;
+}
+
+/* section titles */
+.section-title{
+  margin:0 0 6px;
+}
+
+.section-title.gold{
+  color:var(--gold);
+}
+
+.section-title.red{
+  color:var(--red);
+}
+
+/* placeholder box */
+.media-placeholder{
+  margin-top:18px;
+  padding:40px;
+  border:1px dashed var(--grey-mid);
+  border-radius:10px;
+  text-align:center;
+  color:#627089;
+}
+
+.media-placeholder.red-border{
+  border-color:var(--red);
+}
+
+.media-placeholder.grey-border{
+  border-color:var(--grey-mid);
+}
+
+.muted{
+  color:#8896a9;
+  font-size:.85rem;
+}
+
+/* footer */
+.footer{
+  padding:20px;
+  text-align:center;
+  font-size:.75rem;
+  color:#64748b;
+  border-top:1px solid var(--grey-dark);
+}

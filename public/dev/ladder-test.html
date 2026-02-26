@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Ladder Test — Youth & Foundry4</title>
+  <style>
+    body{font:14px/1.45 system-ui,sans-serif;max-width:1024px;margin:24px auto;padding:0 16px}
+    table{border-collapse:collapse;width:100%;margin-top:12px}
+    th,td{border:1px solid #ddd;padding:8px;text-align:left}
+    th{background:#f7f7f7}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .muted{color:#666}
+    .ok{color:#0a0}
+  </style>
+</head>
+<body>
+  <h1>Ladder Test — Youth & Foundry4</h1>
+  <p class="muted">Quick sanity checker for caps/stripes. Uses <code>ladder.service.js</code> only.</p>
+
+  <div class="grid">
+    <section>
+      <h2>Youth</h2>
+      <label>Total XP: <input id="yInput" type="number" value="0" min="0"/></label>
+      <button id="yRun">Test</button>
+      <div id="yLine" class="ok" style="margin-top:6px;"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th><th>Cap</th><th>Stripes</th><th>Stripe Size</th>
+          </tr>
+        </thead>
+        <tbody id="yTable"></tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Foundry4</h2>
+      <label>Total XP: <input id="fInput" type="number" value="0" min="0"/></label>
+      <button id="fRun">Test</button>
+      <div id="fLine" class="ok" style="margin-top:6px;"></div>
+      <table>
+        <thead>
+          <tr>
+            <th>Tier</th><th>Cap</th><th>Stripes</th><th>Stripe Size</th>
+          </tr>
+        </thead>
+        <tbody id="fTable"></tbody>
+      </table>
+    </section>
+  </div>
+
+  <!-- Import service (one source of truth) -->
+  <script type="module" src="../assets/js/ladder-test.js"></script>
+</body>
+</html>

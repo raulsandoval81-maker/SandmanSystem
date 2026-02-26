@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Event Log </title>
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      background:#06080d;
+      color:#f5f5f5;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 38px;}
+    /* nav */
+    .top-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .pill{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:999px;
+      padding:6px 16px;
+      font-weight:700;
+      color:#f5f5f5;
+      text-decoration:none;
+      transition:.15s;
+    }
+    .pill:hover{background:#e63946;border-color:#e63946;box-shadow:0 0 10px rgba(230,57,70,.4);}
+    .pill.active{background:#ffdd48;color:#111;border-color:#ffdd48;}
+    h1{
+      color:#ffdd48;
+      text-shadow:0 0 8px rgba(230,57,70,.35);
+      margin-bottom:4px;
+    }
+    .muted{color:#9ca3af;font-size:.76rem;margin-bottom:14px;}
+    /* section cards */
+    .card{
+      background:#0b1017;
+      border:1px solid #252c3a;
+      border-radius:14px;
+      padding:12px 12px 14px;
+      margin-bottom:12px;
+      box-shadow:0 0 15px rgba(0,0,0,.25);
+    }
+    .card.red{
+      border-color:#e63946;
+      background:rgba(230,57,70,.04);
+    }
+    .card-title{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#e2e8f0;
+      font-weight:700;
+      margin-bottom:6px;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+    .badge-soft{
+      background:rgba(255,221,72,.1);
+      border:1px solid rgba(255,221,72,.2);
+      border-radius:999px;
+      font-size:.6rem;
+      padding:2px 6px;
+      color:#fff;
+    }
+    label{display:block;font-size:.66rem;margin-bottom:3px;color:#d1d5db;}
+    input,textarea,select{
+      width:100%;
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:9px;
+      padding:6px 8px;
+      color:#fff;
+      font-size:.75rem;
+    }
+    textarea{min-height:70px;resize:vertical;}
+    input:focus,textarea:focus,select:focus{
+      outline:none;
+      border-color:#e63946;
+      box-shadow:0 0 10px rgba(230,57,70,.3);
+    }
+    .grid-2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width:720px){
+      .grid-2{grid-template-columns:1fr;}
+    }
+    /* athlete list */
+    .ath-row{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      margin-bottom:4px;
+      background:rgba(255,255,255,.01);
+      border:1px solid rgba(255,255,255,.015);
+      border-radius:8px;
+      padding:4px 6px;
+    }
+    .ath-row input{
+      background:transparent;
+      border:0;
+      border-bottom:1px dotted rgba(255,255,255,.12);
+      border-radius:0;
+      padding:3px 4px;
+    }
+    .ath-row small{color:#94a3b8;font-size:.63rem;}
+    .mini-btn{
+      background:#1f2937;
+      border:1px solid #334155;
+      color:#fff;
+      border-radius:6px;
+      padding:3px 8px;
+      font-size:.63rem;
+      cursor:pointer;
+    }
+    .mini-btn.red{background:#e63946;border-color:#e63946;}
+    /* broadcast */
+    .broadcast-area{
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:10px;
+      padding:8px;
+      min-height:76px;
+    }
+    /* footer actions */
+    .footer-actions{
+      margin-top:14px;
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .primary-btn{
+      background:#e63946;
+      color:#fff;
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 0 10px rgba(230,57,70,.35);
+    }
+    .ghost-btn{
+      background:transparent;
+      border:1px solid rgba(255,221,72,.35);
+      color:#ffdd48;
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:600;
+      cursor:pointer;
+    }
+    #saveStatus{color:#94a3b8;font-size:.68rem;}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- scoped nav: only core coach tools -->
+    <nav class="top-nav">
+      <a class="pill" href="/coaches/index.html">← Coach Index</a>
+      <a class="pill" href="/coaches/roster.html">Team Roster</a>
+      <a class="pill" href="/coaches/coach-notes.html">Coach Notes</a>
+      <a class="pill active" href="/coaches/coaches-weekend-clipboard.html">Weekend Clipboard</a>
+    </nav>
+
+    <h1>Coaches Event Log </h1>
+    <p class="muted">Event-day control panel — call times, weigh-ins, who’s competing, and what to tell parents.</p>
+
+    <!-- event info -->
+    <section class="card red">
+      <div class="card-title">
+        Event Details
+        <span class="badge-soft">Tournament / Dual / Travel</span>
+      </div>
+      <div class="grid-2">
+        <div>
+          <label for="evName">Event name</label>
+          <input id="evName" placeholder="Central Coast Fall Classic"/>
+        </div>
+        <div>
+          <label for="evDate">Event date</label>
+          <input id="evDate" type="date"/>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:8px;">
+        <div>
+          <label for="evLocation">Location / venue</label>
+          <input id="evLocation" placeholder="123 Main Gym, Santa Maria, CA"/>
+        </div>
+        <div>
+          <label for="evCoach">Lead coach on site</label>
+          <input id="evCoach" placeholder="Coach Sandoval"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- call times -->
+    <section class="card">
+      <div class="card-title">Call Times & Weigh-ins</div>
+      <div class="grid-2">
+        <div>
+          <label for="callTime">Team call time</label>
+          <input id="callTime" placeholder="07:30 AM"/>
+        </div>
+        <div>
+          <label for="weighTime">Weigh-ins</label>
+          <input id="weighTime" placeholder="08:00–08:30 AM"/>
+        </div>
+      </div>
+      <div class="grid-2" style="margin-top:8px;">
+        <div>
+          <label for="departTime">Departure / travel</label>
+          <input id="departTime" placeholder="Bus leaves 06:45 AM"/>
+        </div>
+        <div>
+          <label for="staging">Staging / report to mat</label>
+          <input id="staging" placeholder="Report to coach 15 min before bracket"/>
+        </div>
+      </div>
+    </section>
+
+    <!-- roster for this event -->
+    <section class="card">
+      <div class="card-title">Event Roster</div>
+      <p class="muted" style="margin-bottom:6px;">Only athletes for this event. Add mat / division / notes.</p>
+      <div id="athList">
+        <!-- rows go here -->
+      </div>
+      <button class="mini-btn" onclick="addAthRow()">+ Add athlete</button>
+    </section>
+
+    <!-- match notes / live log -->
+    <section class="card">
+      <div class="card-title">Match Notes / Live Log</div>
+      <textarea id="matchLog" placeholder="Round 1: ...&#10;Round 2: ...&#10;Injuries, rematch notes, film to pull..."></textarea>
+    </section>
+
+    <!-- parent broadcast -->
+    <section class="card">
+      <div class="card-title">Parent Broadcast</div>
+      <div class="broadcast-area" contenteditable="true">
+        Parking on east side. Parents in stands only. Team stays together matside. Awards after final round.
+      </div>
+    </section>
+
+    <div class="footer-actions">
+      <button class="primary-btn" onclick="saveWeekend()">Save Weekend Clipboard</button>
+      <button class="ghost-btn" onclick="prepTemplate()">Load base template</button>
+      <span id="saveStatus">Not saved.</span>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db, doc, setDoc, serverTimestamp } from "/assets/js/firebase-init.js";
+
+    const athList = document.getElementById("athList");
+    const saveStatus = document.getElementById("saveStatus");
+
+    function makeAthRow(data={}){
+      const wrap = document.createElement("div");
+      wrap.className = "ath-row";
+      wrap.innerHTML = `
+        <input class="ath-name" placeholder="Athlete name" value="${data.name||""}"/>
+        <input class="ath-div" placeholder="Div / wt" value="${data.div||""}" style="max-width:90px"/>
+        <input class="ath-mat" placeholder="Mat" value="${data.mat||""}" style="max-width:60px"/>
+        <input class="ath-note" placeholder="Note" value="${data.note||""}"/>
+        <button class="mini-btn red" type="button">×</button>
+      `;
+      wrap.querySelector(".mini-btn.red").addEventListener("click", ()=> {
+        wrap.remove();
+      });
+      return wrap;
+    }
+
+    window.addAthRow = function(){
+      athList.appendChild(makeAthRow());
+    };
+
+    window.prepTemplate = function(){
+      // starter rows
+      athList.innerHTML = "";
+      athList.appendChild(makeAthRow({ name:"M. Sandoval", div:"12U / 80", mat:"2" }));
+      athList.appendChild(makeAthRow({ name:"D. Reveles", div:"12U / 90", mat:"3" }));
+      athList.appendChild(makeAthRow({ name:"K. Johnson", div:"10U / 75", mat:"1" }));
+      saveStatus.textContent = "Base template loaded (not saved).";
+    };
+
+    window.saveWeekend = async function(){
+      const roster = [...athList.querySelectorAll(".ath-row")].map(row => ({
+        name: row.querySelector(".ath-name").value.trim(),
+        div: row.querySelector(".ath-div").value.trim(),
+        mat: row.querySelector(".ath-mat").value.trim(),
+        note: row.querySelector(".ath-note").value.trim()
+      })).filter(r => r.name);
+
+      const payload = {
+        eventName: document.getElementById("evName").value.trim(),
+        eventDate: document.getElementById("evDate").value,
+        location: document.getElementById("evLocation").value.trim(),
+        coach: document.getElementById("evCoach").value.trim(),
+        callTime: document.getElementById("callTime").value.trim(),
+        weighTime: document.getElementById("weighTime").value.trim(),
+        departTime: document.getElementById("departTime").value.trim(),
+        staging: document.getElementById("staging").value.trim(),
+        roster,
+        matchLog: document.getElementById("matchLog").value.trim(),
+        parentBroadcast: document.querySelector(".broadcast-area").innerText.trim(),
+        updatedAt: serverTimestamp(),
+        source: "weekend-clipboard"
+      };
+
+      // key by date if available
+      const key = payload.eventDate || new Date().toISOString().slice(0,10);
+      await setDoc(doc(db, "weekendClipboards", key), payload, { merge:true });
+      saveStatus.textContent = "Saved.";
+    };
+
+    // optional: start with 1 blank athlete
+    addAthRow();
+  </script>
+</body>
+</html>
+

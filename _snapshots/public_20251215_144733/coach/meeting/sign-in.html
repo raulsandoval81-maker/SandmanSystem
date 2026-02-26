@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Team Sign-In Sheet</title>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      padding:0 18px 60px;
+    }
+
+    /* Parent header */
+    .parent-header {
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{
+      display:flex;
+      gap:6px;
+    }
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    header.page-header{
+      text-align:center;
+      padding:26px 0 10px;
+      border-bottom:1px solid var(--line);
+    }
+    h1{
+      margin:0;
+      color:var(--brand);
+      font-size:1.6rem;
+    }
+    h2{
+      margin:6px 0 0;
+      color:#cbd5e1;
+      font-weight:400;
+    }
+
+    main{
+      max-width:900px;
+      margin:0 auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:28px;
+      font-size:1rem;
+    }
+    th,td{
+      border:1px solid var(--line);
+      padding:10px;
+    }
+    th{
+      background:#142345;
+      color:var(--brand);
+      font-weight:600;
+    }
+    tr:nth-child(even){
+      background:#111c35;
+    }
+
+    .back-link{
+      display:inline-block;
+      margin-top:18px;
+      color:var(--brand);
+      font-weight:600;
+      text-decoration:none;
+    }
+
+    /* Hard footer */
+    .footer-hard{
+      margin-top:40px;
+      padding:26px 10px 34px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{
+      max-width:900px;
+      margin:0 auto;
+    }
+    .footer-brand{
+      color:#94a3b8;
+      font-size:.82rem;
+      margin-bottom:12px;
+    }
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px 18px;
+      font-size:.88rem;
+    }
+    .footer-links a{
+      color:#ffdd48;
+      text-decoration:none;
+    }
+    .footer-links a:hover{
+      text-decoration:underline;
+    }
+
+    @media (max-width:640px){
+      .parent-header-inner{
+        padding-inline:2px;
+      }
+      .parent-brand{
+        font-size:.85rem;
+      }
+    }
+
+    /* Print-friendly sign-in sheet */
+    @media print{
+      body{
+        background:#fff;
+        color:#000;
+        padding:0 8px 20px;
+      }
+      .parent-header,
+      .footer-hard,
+      .back-link{
+        display:none !important;
+      }
+      header.page-header,
+      table{
+        border-color:#000;
+      }
+      th{
+        background:#f4f4f4;
+        color:#000;
+      }
+      tr:nth-child(even){
+        background:#fff;
+      }
+    }.back-btn{
+  border-radius:999px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:.78rem;
+  padding:4px 12px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.back-btn:hover{
+  background:#0b1120;
+}
+
+  </style>
+</head>
+
+<body>
+  <header class="parent-header">
+    <div class="parent-header-inner">
+      <div class="parent-brand">Lompoc HS Wrestling</div>
+
+      <div class="parent-lang-wrap">
+        <button class="parent-lang-btn active" data-lang="en">EN</button>
+        <button class="parent-lang-btn" data-lang="es">SP</button>
+      </div>
+    </div>
+  </header>
+<button class="back-btn" onclick="history.back()">
+  ← Back
+</button>
+
+  <header class="page-header">
+    <h1 data-i18n="title">Team Sign-In Sheet</h1>
+    <h2 data-i18n="subtitle">Practice • Meetings • Events</h2>
+  </header>
+
+  <main>
+
+    <table>
+      <thead>
+        <tr>
+          <th data-i18n="name">Name</th>
+          <th data-i18n="grade">Grade</th>
+          <th data-i18n="timeIn">Time In</th>
+          <th data-i18n="initials">Initials</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- 25 blank rows for writing -->
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+        <tr><td></td><td></td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <a class="back-link" href="/coach/meeting/index.html" data-i18n="back">
+      ← Back to Meeting Portal
+    </a>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/index.html">Para-Comms</a>
+      <a href="/coach/meeting/handouts/index.html">Meeting Portal</a>
+    </nav>
+
+  </div>
+</footer>
+  </main>
+
+  <!-- i18n dictionary -->
+  <script>
+    const dict = {
+      en:{
+        title:"Team Sign-In Sheet",
+        subtitle:"Practice • Meetings • Events",
+        name:"Name",
+        grade:"Grade",
+        timeIn:"Time In",
+        initials:"Initials",
+        back:"← Back to Meeting Portal"
+      },
+      es:{
+        title:"Hoja de Registro del Equipo",
+        subtitle:"Prácticas • Reuniones • Eventos",
+        name:"Nombre",
+        grade:"Grado",
+        timeIn:"Hora de Entrada",
+        initials:"Iniciales",
+        back:"← Regresar al Portal de Reunión"
+      }
+    };
+
+    function paint(langOverride){
+      const L = langOverride || localStorage.getItem('lang') || 'en';
+      const pack = dict[L] || dict.en;
+      document.querySelectorAll("[data-i18n]").forEach(el=>{
+        const k = el.getAttribute("data-i18n");
+        if (pack[k]) el.innerHTML = pack[k];
+      });
+    }
+
+    const langButtons = document.querySelectorAll(".parent-lang-btn");
+
+    function setLang(lang){
+      localStorage.setItem("lang", lang);
+      langButtons.forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+      paint(lang);
+    }
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const saved = localStorage.getItem("lang") || "en";
+      setLang(saved);
+
+      langButtons.forEach(btn=>{
+        btn.addEventListener("click", ()=> setLang(btn.dataset.lang));
+      });
+    });
+  </script>
+
+</body>
+</html>

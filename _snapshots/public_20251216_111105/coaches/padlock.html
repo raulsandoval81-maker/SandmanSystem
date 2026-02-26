@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach • Padlock | Sandman System™</title>
+
+  <!-- we are inside /public/coaches/, so step back to shared assets -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:900px;margin:0 auto;padding:1.25rem}
+    h1,h2{color:#ffd633;margin:.25rem 0 1rem}
+    .muted{color:var(--muted)}
+    .panel{
+      background:var(--panel); border:1px solid var(--line);
+      border-radius:14px; padding:1.25rem; box-shadow:0 0 14px rgba(0,0,0,.25);
+      margin-bottom:1rem;
+    }
+    .btn{
+      display:inline-block; padding:.6rem 1rem; border-radius:999px;
+      background:var(--pill-bg); color:var(--pill-fg);
+      border:2px solid var(--pill-br); font-weight:900; text-decoration:none; cursor:pointer;
+    }
+    .btn.secondary{background:transparent}
+    .btnbar{display:flex; gap:.5rem; flex-wrap:wrap}
+    .lock{
+      display:flex; flex-direction:column; align-items:center; text-align:center; gap:.75rem;
+      padding:1.25rem;
+    }
+    .lock-emoji{font-size:3rem; line-height:1}
+    .grid{
+      display:grid; grid-template-columns:1fr; gap:.75rem;
+    }
+    .hint{font-size:.95rem; color:#cfd9e2}
+    code.inline{background:#121821;border:1px solid #394a61; padding:.1rem .35rem; border-radius:6px}
+    .sep{border:0; border-top:1px solid var(--line); margin:1rem 0}
+    .list{margin:.4rem 0 0 .9rem}
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <div class="btnbar" style="margin-bottom:.6rem">
+      <a class="btn secondary" href="hub.html">← Coach Hub</a>
+      <a class="btn secondary" href="../index.html">Home</a>
+    </div>
+
+    <h1>Coach Padlock</h1>
+    <p class="muted" style="margin-top:-.5rem">Private tools gated for staff. Public can see this page, but not the content behind the lock.</p>
+
+    <!-- LOCKED STATE -->
+    <section class="panel" id="lockPanel" aria-live="polite">
+      <div class="lock">
+        <div class="lock-emoji">🔒</div>
+        <h2>Area Locked</h2>
+        <p class="hint">Sign in with a coach account to access private tools (adds, edits, ceremony admin, and advanced reports).</p>
+        <div class="btnbar">
+          <!-- Today: a no-op button so the page is clean. Later: hook to Firebase Auth. -->
+          <button id="signInBtn" class="btn" type="button">Sign In (Coaches)</button>
+          <button id="helpBtn" class="btn secondary" type="button">Why am I seeing this?</button>
+        </div>
+      </div>
+
+      <hr class="sep" />
+
+      <div class="grid">
+        <div>
+          <h3 style="margin:.25rem 0">What’s behind the lock</h3>
+          <ul class="list">
+            <li>Coach-only ceremony scheduler & results posting</li>
+            <li>Advanced XP audits & bulk tools</li>
+            <li>Private attachments (PDF binders, rosters)</li>
+          </ul>
+        </div>
+        <div>
+          <h3 style="margin:.25rem 0">Who gets access</h3>
+          <ul class="list">
+            <li>Coach or Admin role attached to the account</li>
+            <li>Signed in with approved email or phone</li>
+            <li>Invited via Firebase Auth (email link or Google SSO)</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- (Optional) UNLOCKED PREVIEW AREA — stays hidden until auth -->
+    <section class="panel" id="privatePanel" style="display:none">
+      <h2>Private Tools</h2>
+      <p class="muted">You’re signed in with coach/admin privileges.</p>
+      <ul class="list">
+        <li><a class="btn secondary" href="ceremonies.html">Open Ceremonies Admin →</a></li>
+        <li><a class="btn secondary" href="leaderboard.html">Open Leaderboard →</a></li>
+        <li><a class="btn secondary" href="coach-weekly.html">Open Weekly →</a></li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Shared footer -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Minimal controller; real logic lives in padlock.service.js -->
+  <script type="module" src="padlock.service.js"></script>
+
+  <script>
+    // Tiny UX helpers so the page feels alive before real auth is wired.
+    document.getElementById("helpBtn").addEventListener("click", () => {
+      alert(
+        "This area is for staff.\n\nTo unlock later:\n• Add Firebase Auth to padlock.service.js\n• Require coach/admin custom claims\n• Then toggle the #privatePanel on successful login."
+      );
+    });
+
+    // Optional: mock unlock for layout testing (REMOVE when real auth is wired)
+    // window.mockUnlock = function(){
+    //   document.getElementById("lockPanel").style.display = "none";
+    //   document.getElementById("privatePanel").style.display = "block";
+    // };
+  </script>
+</body>
+</html>

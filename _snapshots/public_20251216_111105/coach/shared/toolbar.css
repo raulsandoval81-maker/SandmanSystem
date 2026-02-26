@@ -1,0 +1,184 @@
+/* /coach/shared/toolbar.css */
+
+/* Color tokens shared across pages */
+:root{
+  --bg:#0a1833;
+  --panel:#111c35;
+  --line:#27304a;
+  --brand:#ffdd48;
+  --text:#f0f4f8;
+  --muted:#9aa4b1;
+  --hover:#1d2a4a;
+}
+
+/* Main toolbar injected by toolbar.js */
+.coach-toolbar{
+  width:100%;
+  background:#0b255f;
+  border-bottom:1px solid #1e3a8a;
+  padding:10px 14px;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  position:sticky;
+  top:0;
+  z-index:600;
+}
+
+/* Brand text on the left */
+.brand-title{
+  font-weight:700;
+  font-size:1rem;
+  color:#ffcc33;
+  text-transform:uppercase;
+  letter-spacing:.03em;
+}
+
+/* Coach nav links (only on non-parent pages) */
+.toolbar-nav{
+  display:flex;
+  gap:12px;
+  align-items:center;
+}
+
+.toolbar-nav a{
+  color:#fff;
+  text-decoration:none;
+  font-size:.9rem;
+  padding:4px 8px;
+  border-radius:999px;
+  border:1px solid transparent;
+}
+
+.toolbar-nav a:hover{
+  color:#ffcc33;
+  border-color:#ffcc33;
+  background:rgba(0,0,0,.15);
+}
+
+/* Language buttons on the right */
+.lang-wrap{
+  display:flex;
+  gap:6px;
+}
+
+.lang-btn{
+  padding:6px 10px;
+  font-size:.8rem;
+  border-radius:999px;
+  background:#1e3a8a;
+  border:none;
+  color:#fff;
+  cursor:pointer;
+  font-weight:600;
+}
+
+.lang-btn.active{
+  background:#ffcc33;
+  color:#000;
+}
+
+/* General phone sizing */
+@media (max-width:600px){
+  .coach-toolbar{
+    padding:8px 10px;
+    flex-wrap:wrap;
+  }
+}
+
+/* 🔹 Parent pages: shrink to tiny pill, no vertical push */
+.coach-toolbar.parent-toolbar{
+  position:fixed;
+  top:8px;
+  right:8px;
+  left:auto;
+  width:auto;
+  background:rgba(11,37,95,.85);
+  border-radius:999px;
+  padding:4px 6px;
+  border:1px solid #1e3a8a;
+  box-shadow:0 4px 10px rgba(0,0,0,.4);
+  gap:4px;
+}
+
+.coach-toolbar.parent-toolbar .brand-title{
+  display:none;
+}
+
+.coach-toolbar.parent-toolbar .toolbar-nav{
+  display:none;
+}
+
+.coach-toolbar.parent-toolbar .lang-btn{
+  padding:4px 8px;
+  font-size:.75rem;
+}
+/* ===============================
+   SHARED HARD-CODED FOOTER (PARENT/MEETING)
+   =============================== */
+.footer-hard{
+  margin-top:40px;
+  padding:26px 10px 34px;
+  background:transparent;
+  text-align:center;
+}
+
+.footer-inner{
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-brand{
+  color:#94a3b8;
+  font-size:.82rem;
+  margin-bottom:12px;
+}
+
+.footer-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:14px 18px;
+  font-size:.88rem;
+}
+
+.footer-links a{
+  color:#ffdd48;
+  text-decoration:none;
+  font-weight:600;
+}
+
+.footer-links a:hover{
+  text-decoration:underline;
+}
+
+/* Mobile footer adjustments */
+@media (max-width:640px){
+  .footer-links{
+    gap:10px 12px;
+    font-size:.83rem;
+  }
+}
+/* Simple mode */
+.toolbar-simple {
+  justify-content: center;
+}
+.toolbar-simple .toolbar-nav,
+.toolbar-simple .lang-wrap {
+  display:none !important;
+}
+
+/* Parent mode */
+.toolbar-parent {
+  background:#0a1833;
+  border-bottom:2px solid #ffd633;
+}
+
+/* Coach mode */
+.toolbar-coach {
+  background:#06080d;
+  border-bottom:2px solid #e63946;
+}
+

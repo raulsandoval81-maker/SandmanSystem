@@ -1,0 +1,9 @@
+<!doctype html><meta charset="utf-8"><title>Dump Athletes</title>
+<pre id="out">loading…</pre>
+<script type="module">
+  import { db, collection, getDocs } from "/assets/js/firebase-init.js";
+  const snap = await getDocs(collection(db,"athletes"));
+  const rows = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+  document.getElementById("out").textContent =
+    `count: ${rows.length}\n\n` + rows.slice(0,5).map(r=>JSON.stringify(r,null,2)).join("\n\n");
+</script>

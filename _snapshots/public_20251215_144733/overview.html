@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Overview | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    /* ---------- Top Nav (shared) ---------- */
+    .top-nav {
+      background: #0f141b;
+      border-bottom: 2px solid #ffd633;
+      padding: 0.75rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: .5rem;
+    }
+    .nav-logo a {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #ffd633;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      text-decoration: none;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .nav-links a {
+      text-decoration: none;
+      font-weight: 500;
+      color: #f3f4f6;
+      transition: color .2s ease-in-out;
+    }
+    .nav-links a[aria-current="page"] {
+      color: #ffd633;
+      font-weight: 700;
+    }
+    .nav-links a:hover { color: #ff4d4d; }
+    @media (min-width: 900px) {
+      .nav-container { flex-direction: row; justify-content: space-between; }
+    }
+
+    /* ---------- Layout helpers ---------- */
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 2rem 1.25rem; }
+    .section { margin: 2rem 0; }
+    .section h1,
+    .section h2 { margin-bottom: .5rem; }
+    .section h2 { color: #ffd633; }
+    .lead { color: #cfd3d9; line-height: 1.6; }
+
+    /* ---------- Hero ---------- */
+    .hero-box {
+      background: linear-gradient(to bottom, #8b0000, #1a1a1a);
+      border-radius: 20px;
+      padding: 2rem 1.5rem;
+      box-shadow: 0 0 22px rgba(0,0,0,.7);
+    }
+    .hero-kicker {
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      font-size: .8rem;
+      color: #facc15;
+      font-weight: 700;
+      margin-bottom: .3rem;
+    }
+    .hero-box h1 {
+      margin: 0 0 .5rem;
+    }
+    .hero-sub {
+      color: #e5e7eb;
+      font-size: .98rem;
+      margin-bottom: .75rem;
+    }
+    .hero-tag {
+      color: #9ca3af;
+      font-size: .9rem;
+    }
+
+    /* ---------- Image slots ---------- */
+    .img-slot {
+      width: 100%; max-width: 560px; height: 320px;
+      border: 2px dashed #777; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      color: #ccc; margin: 1rem 0;
+      background: rgba(255,255,255,0.02);
+      font-size: .9rem;
+      text-align: center;
+      padding: .5rem;
+    }
+    .img-row { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+    @media (min-width: 900px) { .img-row { grid-template-columns: 1fr 1fr; } }
+
+    /* ---------- Track cards ---------- */
+    .grid-3 { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+    @media (min-width: 900px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+    .card {
+      background: #121821;
+      border: 1px solid #243041;
+      border-radius: 14px;
+      padding: 1rem;
+      box-shadow: 0 0 14px rgba(0,0,0,.35);
+      height: 100%;
+    }
+    .card h3 { margin-top: 0; color: #f3f4f6; }
+    .card .pill-tag {
+      display: inline-block;
+      padding: .25rem .6rem;
+      border-radius: 999px;
+      background: #111827;
+      border: 1px solid #374151;
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #9ca3af;
+      margin-bottom: .35rem;
+    }
+    .card .img-slot { height: 160px; max-width: none; margin-top: .75rem; }
+    .card ul { margin: .5rem 0 0 1.1rem; color: #cfd3d9; font-size: .9rem; }
+
+    .kicker {
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: #9fb3c8;
+      font-weight: 700;
+      font-size: .8rem;
+      margin-bottom: .4rem;
+    }
+
+    /* ---------- XP demo ---------- */
+    .xp-demo {
+      background: #10151d;
+      border: 1px solid #243041;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .progress-shell {
+      background:#1e2633;
+      height: 12px;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-top: .35rem;
+    }
+    .progress-bar {
+      width: 45%; /* placeholder demo */
+      height: 100%;
+      background:#ffd633;
+    }
+
+    /* ---------- Difference list ---------- */
+    .diff-list {
+      list-style: none;
+      padding-left: 0;
+      margin: .75rem 0 0;
+      color: #cfd3d9;
+      font-size: .95rem;
+    }
+    .diff-list li {
+      margin-bottom: .35rem;
+      position: relative;
+      padding-left: 1.1rem;
+    }
+    .diff-list li::before {
+      content: "★";
+      position: absolute;
+      left: 0;
+      top: 0;
+      color: #facc15;
+      font-size: .8rem;
+      transform: translateY(1px);
+    }
+
+    /* ---------- CTA buttons ---------- */
+    .actions {
+      display: flex;
+      gap: .75rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+    .btn {
+      display:inline-block;
+      padding:.6rem 1.2rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111827;
+      font-weight:800;
+      text-decoration:none;
+      font-size:.9rem;
+    }
+    .btn.secondary {
+      background:#263142;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+    }
+    .btn:hover {
+      filter: brightness(1.05);
+    }
+
+    /* ---------- Footer ---------- */
+    .footer {
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem 1.5rem;
+      margin-top:2rem;
+    }
+    .footer-container {
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      gap:1rem;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .footer-title { font-weight:700; color:#ffd633; margin-right:.5rem; }
+    .footer-links { display:flex; gap:1.25rem; flex-wrap:wrap; }
+    .footer-links a { color:#f3f4f6; text-decoration:none; font-weight:500; }
+    .footer-links a:hover { color:#ff4d4d; }
+    @media (max-width:600px){ .footer-container{ justify-content:flex-start; } }
+    /* ===== Shared Top Nav (Shrunk, Unified) ===== */
+.top-nav {
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1.25rem;       /* was .75rem 1.5rem */
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.nav-container {
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:.3rem;                    /* tighter gap */
+}
+
+.nav-logo a,
+.nav-logo {
+  font-size:1.05rem;            /* was 1.25rem */
+  font-weight:700;
+  color:#ffd633;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+
+.nav-links {
+  display:flex;
+  gap:1rem;                     /* slightly tighter */
+  flex-wrap:wrap;
+  justify-content:center;
+  font-size:.85rem;             /* smaller text for mobile */
+}
+
+.nav-links a {
+  text-decoration:none;
+  font-weight:500;
+  color:#f3f4f6;
+  transition:color .2s;
+}
+
+.nav-links a[aria-current="page"] {
+  color:#ffd633;
+  font-weight:700;
+}
+
+.nav-links a:hover { color:#ff4d4d; }
+
+@media (min-width:900px){
+  .nav-container{
+    flex-direction:row;
+    justify-content:space-between;
+  }
+}
+/* ---------------- TOP NAV ---------------- */
+.top-nav{
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1rem;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+.nav-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  max-width:1200px;
+  margin:0 auto;
+}
+.nav-logo{
+  font-size:1rem;
+  font-weight:700;
+  color:#ffd633;
+  text-decoration:none;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.nav-btn{
+  background:none;
+  border:0;
+  font-size:1.4rem;
+  color:#ffd633;
+  cursor:pointer;
+}
+
+/* ---------------- DRAWER ---------------- */
+.nav-drawer{
+  position:fixed;
+  top:0; right:-260px;
+  width:260px;
+  height:100vh;
+  background:#0b1118;
+  border-left:2px solid #ffd633;
+  padding:1.5rem;
+  transition:.25s;
+  z-index:2000;
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+.nav-drawer.open{ right:0; }
+
+.drawer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+  font-size:1rem;
+  padding:.4rem 0;
+  font-weight:500;
+  display:block;
+}
+
+.drawer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* ---------------- BACKDROP ---------------- */
+.nav-backdrop{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none;
+  transition:.25s;
+  z-index:1500;
+}
+.nav-backdrop.show{
+  opacity:1; pointer-events:auto;
+}
+
+/* ---------------- FOOTER ---------------- */
+.footer{
+  background:#0f141b;
+  border-top:2px solid #ffd633;
+  padding:1rem;
+  margin-top:2rem;
+}
+.footer-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+.footer-title{
+  font-weight:700;
+  color:#ffd633;
+}
+.footer-links{
+  display:flex;
+  gap:1rem;
+}
+.footer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+}
+.footer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* Highlight Current Page */
+.drawer-links a[aria-current="page"],
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  font-weight:700;
+}
+</style>
+
+  </style>
+</head>
+
+<body>
+<!-- TOP NAV -->
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn" aria-label="Menu">
+      ☰
+    </button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<aside class="nav-drawer" id="navDrawer">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="leaderboards.html">Leaderboards</a>
+    <a href="tools.html">Tools</a>
+    <a href="ceremonies.html">Ceremonies</a>
+    <a href="coaches.html">Coach Hub</a>
+  </nav>
+</aside>
+
+<!-- BACKDROP -->
+<div class="nav-backdrop" id="navBackdrop"></div>
+  <main class="wrap">
+    <!-- HERO / INTRO -->
+    <section class="section">
+      <div class="hero-box">
+        <div class="hero-kicker">System Overview</div>
+        <h1>What Is the Sandman System™?</h1>
+        <p class="hero-sub">
+          The Sandman System™ is a full-circle combat and leadership pathway for youth, teens,
+          and young adults. It combines real training, real accountability, and a live XP engine
+          that tracks what athletes actually earn — on and off the mat.
+        </p>
+        <p class="hero-tag">
+          The mission is simple: bring honor, structure, and accountability back to combat sports —
+          and build stronger people, not just stronger athletes.
+        </p>
+      </div>
+    </section>
+
+    <!-- THE TWO FOUNDRIES -->
+    <section class="section">
+      <h2>The Two Foundries: One System</h2>
+      <p class="lead">
+        Every athlete in the Sandman System trains inside a long-term arc called a
+        <strong>Foundry</strong>. Each Foundry is age-appropriate, but both run on the same XP backbone.
+      </p>
+
+      <div class="grid-3" style="margin-top:1rem;">
+        <!-- Foundry 8 -->
+        <article class="card">
+          <span class="pill-tag">Youth · Zero2Hero</span>
+          <h3>Foundry 8 — Youth Combat</h3>
+          <p class="lead" style="font-size:.9rem;">
+            Built for elementary and junior-high athletes. This is where young wrestlers and fighters
+            learn respect, responsibility, and the fundamentals of combat.
+          </p>
+          <ul>
+            <li>Arc: <strong>Zero2Hero</strong> (T0–T8)</li>
+            <li>Ages ~8–13</li>
+            <li>Wrestling, boxing, and kickboxing foundations</li>
+            <li>Focus on confidence, discipline, and safe hard work</li>
+          </ul>
+          <div class="img-slot">[ Shadow → Hero ladder / youth journey image ]</div>
+        </article>
+
+        <!-- Foundry 4 -->
+        <article class="card">
+          <span class="pill-tag">Teens · Path2Legend</span>
+          <h3>Foundry 4 — Combat & Leadership</h3>
+          <p class="lead" style="font-size:.9rem;">
+            Designed for high school and young adult athletes who are ready to be pushed, held
+            accountable, and trusted with higher expectations.
+          </p>
+          <ul>
+            <li>Arc: <strong>Path2Legend</strong> (T0–T4)</li>
+            <li>High school & young adults</li>
+            <li>Built for competition, consistency, and example</li>
+            <li>Sets the standard for the room and the younger athletes</li>
+          </ul>
+          <div class="img-slot">[ Apprentice → Legend ladder / teen journey image ]</div>
+        </article>
+
+        <!-- Leadership lane -->
+        <article class="card">
+          <span class="pill-tag">Leaders · Quest2Mastery</span>
+          <h3> Leadership Lane</h3>
+          <p class="lead" style="font-size:.9rem;">
+            A quiet third lane for athletes who rise. Leadership is layered in once they’ve shown
+            maturity, discipline, and respect for the system.
+          </p>
+          <ul>
+            <li>Teaches teaching, service, and team ownership</li>
+            <li>For captains, mentors, and future coaches</li>
+            <li>Reinforces the Rules of Life and long-term growth</li>
+          </ul>
+          <div class="img-slot">[ Leadership / captain & mentor image placeholder ]</div>
+        </article>
+      </div>
+    </section>
+
+    <!-- XP SYSTEM -->
+    <section class="section">
+      <h2>XP: The Engine Behind Everything</h2>
+      <p class="lead">
+        XP — short for <em>experience points</em> or <em>skill points</em> — is the lifeblood of the
+        Sandman System. It turns practice, events, and discipline into a real, trackable journey.
+      </p>
+      <p class="lead">
+        Athletes don’t guess if they’re improving. Parents don’t guess if the work matters.
+        XP makes progress visible.
+      </p>
+
+      <div class="xp-demo">
+        <div class="img-row">
+          <div>
+            <div class="kicker">Current Tier</div>
+            <p class="lead" style="font-size:.9rem; margin-bottom:.35rem;">
+              Every athlete wears a tier that matches where they are in their arc — from youth Shadow
+              and Hero tiers to teen Apprentice and Legend tiers.
+            </p>
+            <div class="img-slot">[ Current badge / shirt tier image placeholder ]</div>
+          </div>
+
+          <div>
+            <div class="kicker">XP Progress Bar</div>
+            <p class="lead" style="font-size:.9rem; margin-bottom:.35rem;">
+              XP fills a progress bar between tiers. When the bar reaches the cap and the coach approves,
+              the athlete is eligible for promotion and ceremony.
+            </p>
+            <div class="progress-shell">
+              <div class="progress-bar"></div>
+            </div>
+            <p class="lead" style="font-size:.8rem; color:#9fb3c8; margin-top:.5rem;">
+              (XP visuals here are placeholders. Live tracking runs inside the athlete dashboard.)
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHAT MAKES IT DIFFERENT -->
+    <section class="section">
+      <h2>What Makes the Sandman System Different</h2>
+      <p class="lead">
+        The Sandman System was built from the ground up — not copied from a belt chart or a camp flyer.
+        Every rule, tier, and ceremony is intentional.
+      </p>
+      <ul class="diff-list">
+        <li><strong>Not belt-chasing.</strong> XP prevents shortcuts and keeps promotions fair.</li>
+        <li><strong>Not “just wrestling.”</strong> Combat is the backbone, but character and leadership are built in.</li>
+        <li><strong>Not temporary.</strong> Athletes can grow from youth to young adult inside one unified path.</li>
+        <li><strong>Not generic.</strong> Names, arcs, badges, and rules are handcrafted, not borrowed.</li>
+        <li><strong>Not passive.</strong> Athletes are challenged to become better humans, not just better fighters.</li>
+      </ul>
+    </section>
+
+    <!-- WHERE THE JOURNEY LEADS -->
+    <section class="section">
+      <h2>Where the Journey Leads</h2>
+      <p class="lead">
+        Athletes who grow inside the Sandman System don’t just leave with wins and memories. They leave
+        with focus, resilience, and a work ethic that follows them into school, work, and life.
+      </p>
+      <p class="lead">
+        The goal is simple: <strong>build young people who can be trusted</strong> — in the room, at home,
+        and in whatever arena they step into next.
+      </p>
+
+      <div class="actions">
+        <a href="programs.html" class="btn">View Programs</a>
+        <a href="contact.html" class="btn secondary">Contact Coach</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
+<script>
+const btn = document.getElementById("navBtn");
+const drawer = document.getElementById("navDrawer");
+const backdrop = document.getElementById("navBackdrop");
+
+// open
+btn.addEventListener("click",()=>{
+  drawer.classList.add("open");
+  backdrop.classList.add("show");
+  document.body.style.overflow="hidden";
+});
+
+// close
+backdrop.addEventListener("click", closeMenu);
+drawer.querySelectorAll("a").forEach(a=>{
+  a.addEventListener("click", closeMenu);
+});
+
+function closeMenu(){
+  drawer.classList.remove("open");
+  backdrop.classList.remove("show");
+  document.body.style.overflow="";
+}
+
+// highlight current page
+const links=[...document.querySelectorAll(".drawer-links a, .footer-links a")];
+links.forEach(link=>{
+  if(link.href === window.location.href){
+    link.setAttribute("aria-current","page");
+  }
+});
+</script>

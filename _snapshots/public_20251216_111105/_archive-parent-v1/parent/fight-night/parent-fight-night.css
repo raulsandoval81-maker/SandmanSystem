@@ -1,0 +1,114 @@
+/* ============================================================
+   Parent Fight Night Mode — CSS (2026)
+   Big. Clean. Arena-Ready.
+   ============================================================ */
+
+:root {
+  --bg: #05070c;
+  --panel: #0b0f17;
+  --red: #ff3b3b;
+  --green: #2ad37d;
+  --gold: #ffdd48;
+  --text: #f8fafc;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, Roboto, Arial, sans-serif;
+  overflow: hidden;
+}
+
+#fn-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* ---------------- Header ---------------- */
+#fn-header {
+  padding: 16px;
+  background: var(--panel);
+  border-bottom: 1px solid #151a25;
+  text-align: center;
+  font-size: 1.3rem;
+  letter-spacing: .04em;
+  color: var(--gold);
+}
+
+#fn-mat {
+  margin-top: 4px;
+  font-size: 1rem;
+  color: #8fa3be;
+}
+
+/* ---------------- Scoreboard ---------------- */
+#fn-scoreboard {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  text-align: center;
+}
+
+.corner {
+  width: 34%;
+  padding: 16px;
+}
+
+.corner .name {
+  font-size: 2rem;
+  margin-bottom: 10px;
+}
+
+.corner .score {
+  font-size: 6rem;
+  font-weight: 700;
+  text-shadow: 0 0 20px rgba(255,255,255,.15);
+}
+
+.red .name { color: var(--red); }
+.green .name { color: var(--green); }
+
+/* ---------------- Timer ---------------- */
+#fn-timer {
+  width: 32%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+#fnPeriod {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  color: var(--gold);
+}
+
+#fnClock {
+  font-size: 4.6rem;
+  letter-spacing: .05em;
+}
+
+/* ---------------- Action Banner ---------------- */
+#fn-last-action {
+  background: var(--panel);
+  padding: 14px;
+  font-size: 1.3rem;
+  text-align: center;
+  color: var(--gold);
+  border-top: 1px solid #1a2231;
+  border-bottom: 1px solid #1a2231;
+}
+
+/* ---------------- Footer ---------------- */
+#fn-footer {
+  padding: 12px;
+  background: #03040a;
+  text-align: center;
+  font-size: .8rem;
+  color: #8c9aaa;
+  letter-spacing: .06em;
+}

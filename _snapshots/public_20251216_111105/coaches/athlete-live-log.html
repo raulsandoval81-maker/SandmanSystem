@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete Live Log — Input | Sandman System™</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    :root{--bg:#0a0f15;--panel:#0f141b;--line:#243041;--muted:#9fb3c8;--pill:#ff3333;--pillbr:#ffd633;--pillfg:#ffd633}
+    body{background:var(--bg);color:#f3f4f6}.wrap{max-width:900px;margin:0 auto;padding:1.25rem}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    h1,h2{color:#ffd633}
+    label{display:block;margin:.4rem 0 .2rem;color:#cfe2ff;font-weight:700}
+    input,select,textarea{width:100%;padding:.6rem .75rem;border-radius:10px;border:1px solid #394a61;background:#121821;color:#f3f4f6}
+    textarea{min-height:120px}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:var(--pill);color:var(--pillfg);border:2px solid var(--pillbr);font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    .muted{color:var(--muted)}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Athlete Live Log — Input</h1>
+    <p class="muted" style="margin-top:-.4rem">Local demo (no Firebase). Use this to add entries. View them on <a href="athlete-log-history.html">History</a>.</p>
+
+    <section class="panel">
+      <label for="athlete">Athlete</label>
+      <input id="athlete" placeholder="e.g., sandoval" />
+
+      <label for="coach">Coach</label>
+      <input id="coach" placeholder="e.g., reyes" />
+
+      <div class="row">
+        <div style="flex:1">
+          <label for="program">Program</label>
+          <select id="program">
+            <option value="foundry8">Foundry 8 (Youth)</option>
+            <option value="foundry4">Foundry 4 (Combat)</option>
+            <option value="leadership">Foundry 4 (Leadership)</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label for="discipline">Discipline</label>
+          <select id="discipline">
+            <option value="wrestling">Wrestling</option>
+            <option value="striking">Striking</option>
+            <option value="kickboxing">Kickboxing</option>
+            <option value="muay-thai">Muay Thai</option>
+            <option value="submission-grappling">Submission Grappling</option>
+            <option value="mma">MMA</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <label for="type">Type</label>
+          <select id="type">
+            <option value="note">Note</option>
+            <option value="assignment">Assignment</option>
+            <option value="praise">Praise</option>
+            <option value="correction">Correction</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label for="topic">Topic / Technique</label>
+          <input id="topic" placeholder="e.g., double leg, sprawl" />
+        </div>
+      </div>
+
+      <label for="text">Details</label>
+      <textarea id="text" placeholder="What did you observe? Next steps?"></textarea>
+
+      <div class="row">
+        <div style="flex:1">
+          <label for="visibility">Visibility</label>
+          <select id="visibility">
+            <option value="team">Team</option>
+            <option value="public">Public</option>
+            <option value="private">Private</option>
+          </select>
+        </div>
+        <div style="flex:1">
+          <label for="tier">Tier (optional)</label>
+          <select id="tier">
+            <option value="">—</option>
+            <option>Apprentice</option><option>Warrior</option><option>Champion</option>
+            <option>Veteran</option><option>Legend</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <button id="save" class="btn" type="button">Save Entry</button>
+        <button id="clear" class="btn secondary" type="button">Clear</button>
+        <a class="btn secondary" href="athlete-log-history.html">Go to History →</a>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    (function(){
+      const $=s=>document.querySelector(s); const KEY="athleteLogs";
+      const f = {
+        athlete:$("#athlete"), coach:$("#coach"), program:$("#program"),
+        discipline:$("#discipline"), type:$("#type"), topic:$("#topic"),
+        text:$("#text"), tier:$("#tier"), visibility:$("#visibility")
+      };
+      $("#save").addEventListener("click", ()=>{
+        const e = Object.fromEntries(Object.entries(f).map(([k,el])=>[k,(el.value||"").trim()]));
+        if(!e.athlete){ alert("Enter athlete."); return; }
+        e.ts = Date.now();
+        const list = JSON.parse(localStorage.getItem(KEY)||"[]");
+        list.unshift(e);
+        localStorage.setItem(KEY, JSON.stringify(list));
+        alert("Saved locally. View on History.");
+        clear(false);
+      });
+      function clear(keep){ if(!keep){ f.athlete.value=""; f.coach.value=""; }
+        ["topic","text"].forEach(k=>f[k].value=""); f.type.value="note";
+      }
+      $("#clear").addEventListener("click", ()=>clear(false));
+      // Prefill from query ?athlete=...
+      const q=new URLSearchParams(location.search); if(q.get("athlete")) f.athlete.value=q.get("athlete");
+    })();
+  </script>
+</body>
+</html>

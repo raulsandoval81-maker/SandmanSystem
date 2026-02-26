@@ -1,0 +1,1063 @@
+// /athletes/profile/profile.js
+// ============================
+// Athlete Profile JS (single owner, polished)
+// - Keeps: ladder pick, locks, drops, badge, belt bar, logs
+// - Fixes: use-before-declare, f8 var typo, Strength/Honor premium decal overwrite,
+//          premium band/ring progress drivers, SVG <defs> collisions (deterministic uniqify)
+// - FIXES (this drop): remove duplicate getStripeInfo calls, move locks BEFORE lane paint,
+//          gate Strength/Honor paint, hide Strength/Honor entirely for F8
+// ============================
+
+import {
+  db, doc, getDoc,
+  collection, query, where, orderBy, limit, getDocs
+} from "/assets/js/firebase-init.js";
+
+import { updateRankUI } from "/assets/js/belt-bar.js";
+import { LADDER_F4, LADDER_F8, getStripeInfo } from "/assets/js/ladder.service.js";
+
+import { withDev } from "/assets/js/dev-mode.js";          // (kept; may be used elsewhere)
+import { guardDocIfLive } from "/assets/js/dev-roster.js"; // (kept; may be used elsewhere)
+import { isDevMode } from "/assets/js/dev-mode.js";
+
+import { paintDevUi, bindDevToggle, patchDevLinks } from "/assets/js/dev-mode.js";
+
+// call once on load
+paintDevUi();
+patchDevLinks();
+bindDevToggle({ onChange: () => location.reload() }); // simplest: refresh page data in new mode
+
+// ---------- helpers ----------
+const $ = (id) => document.getElementById(id);
+
+function safeText(id, val, fallback = "—") {
+  const el = $(id);
+  if (!el) return;
+  el.textContent = (val === undefined || val === null || val === "") ? fallback : String(val);
+}
+
+function safeHTML(id, html) {
+  const el = $(id);
+  if (!el) return;
+  el.innerHTML = html;
+}
+
+function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+
+// ---------- params ----------
+const params = new URLSearchParams(location.search);
+
+function normalizeAthleteId(id) {
+  if (!id) return id;
+  const m = String(id).match(/^A(\d+)$/i);
+  if (!m) return id;
+  return "A" + m[1].padStart(6, "0"); // A000001
+}
+
+const athleteIdRaw =
+  params.get("id") ||
+  params.get("uid") ||
+  params.get("athleteId") ||
+  localStorage.getItem("currentAthleteId");
+
+const athleteId = normalizeAthleteId(athleteIdRaw);
+
+// Keep URL canonical if needed
+if (athleteIdRaw && athleteId && athleteId !== athleteIdRaw) {
+  const u = new URL(location.href);
+  if (u.searchParams.get("id")) u.searchParams.set("id", athleteId);
+  else if (u.searchParams.get("uid")) u.searchParams.set("uid", athleteId);
+  else u.searchParams.set("id", athleteId);
+  history.replaceState({}, "", u.toString());
+}
+
+const mode = (params.get("mode") || "athlete").toLowerCase();
+const viewMode = mode;
+
+// guard
+if (!athleteId) {
+  document.body.innerHTML = "<main class='wrap'><p>Missing athlete id. Use ?id= or ?uid=</p></main>";
+  throw new Error("Missing athlete id");
+}
+
+// ===============================
+// LADDER PICK (F4 vs F8) — single truth
+// ===============================
+function pickLadderFromAthlete(a) {
+  // ✅ UID prefix is the clean truth
+  const uid = String(a?.uid || a?.uidCode || "").toUpperCase();
+  if (uid.startsWith("F8_")) return LADDER_F8;
+  if (uid.startsWith("F4_")) return LADDER_F4;
+
+  // fallback heuristics
+  const foundry = String(a?.foundry || a?.division || a?.program || "").toLowerCase();
+  const track   = String(a?.track || a?.lane || a?.trackCode || "").toLowerCase();
+  const ageHint = String(a?.teenAdult || a?.ageGroup || "").toLowerCase();
+
+  const isF8 =
+    foundry.includes("8") ||
+    foundry.includes("youth") ||
+    track.includes("8") ||
+    track.includes("youth") ||
+    ageHint.includes("youth");
+
+  return isF8 ? LADDER_F8 : LADDER_F4;
+}
+
+// ===============================
+// DROPS + LOCKS (SINGLE OWNER)
+// ===============================
+
+// 1) Review mode (override locks)
+let reviewMode = localStorage.getItem("sm_review_mode") === "1";
+
+// 2) Page order (top to bottom) — MUST match your HTML data-block keys.
+const UNLOCK_ORDER = [
+  "combat",
+  "strength",
+  "honor",
+  "performance",
+];
+
+// 3) Stripe unlock rules (doctrine)
+function unlockRules({ tierName }) {
+  const t = String(tierName || "").toLowerCase();
+  const isTier0 = (t === "apprentice" || t === "shadow" || t === "foundation");
+  return {
+    combat: 0,
+    strength: 2,
+    honor: 3,
+    performance: isTier0 ? 1 : 999,
+  };
+}
+
+// ---------- drop helpers ----------
+function syncDrop(section) {
+  const body = section.querySelector(".drop-body");
+  const btn  = section.querySelector(".drop-head");
+  const chev = section.querySelector(".chev");
+  if (!btn || !body) return;
+  const open = !body.classList.contains("collapsed");
+  btn.setAttribute("aria-expanded", String(open));
+  if (chev) chev.textContent = open ? "▴" : "▾";
+}
+
+function applyLaneLocks({ athlete, tierName, stripesEarned }) {
+  // Coach/full/review ignores locks
+  if (viewMode === "coach" || viewMode === "full" || reviewMode) {
+    setDropLocked("strength", false);
+    setDropLocked("honor", false);
+    return;
+  }
+
+  const base = String(athlete?.trackBase || athlete?.track || "").toUpperCase();
+  const isF8 = base.startsWith("F8") || base.includes("FOUNDRY8");
+
+  if (isF8) {
+    // F8: server truth (unlocks flags)
+    const u = athlete?.unlocks || {};
+    setDropLocked("strength", !(u.strength === true));
+    setDropLocked("honor", !(u.honor === true));
+  } else {
+    // F4: stripe teaser locks
+    const req = unlockRules({ tierName });
+    const s = Number(stripesEarned || 0);
+    setDropLocked("strength", s < (req.strength ?? 999));
+    setDropLocked("honor", s < (req.honor ?? 999));
+  }
+}
+// ---------- badge helpers ----------
+function setTierBadge({ teenAdult = "teen", tierNum = 0 }) {
+  const el = $("ath-badge");
+  if (!el) return;
+
+  const MAP = {
+    teen: [
+      "/assets/images/logos/Apprentice-badge.png",
+      "/assets/images/logos/Blue-badge.png",
+      "/assets/images/logos/Purple-badge.png",
+      "/assets/images/logos/Brown-badge.png",
+      "/assets/images/logos/Legend-badge.png",
+    ],
+    youth: [
+      "/assets/images/logos/Shadow-badge.png",
+      "/assets/images/logos/Recruit-badge.png",
+      "/assets/images/logos/Combatant-badge.png",
+      "/assets/images/logos/Competitor-badge.png",
+      "/assets/images/logos/Warrior-badge.png",
+      "/assets/images/logos/Champion-badge.png",
+      "/assets/images/logos/Commander-badge.png",
+      "/assets/images/logos/Hero-badge.png",
+    ],
+  };
+
+  const list = MAP[teenAdult] || MAP.teen;
+  const idx = clamp(tierNum, 0, list.length - 1);
+  el.src = list[idx];
+
+  if (!el.dataset.bound) {
+    el.dataset.bound = "1";
+    el.onerror = () => {
+      el.onerror = null;
+      el.src = MAP.teen[0];
+      el.style.display = "";
+    };
+  }
+}
+
+// ===============================
+// Strength/Honor visuals (VISUAL ONLY)
+// Doctrine: 6 units, total 2400 (400 per unit)
+// Left row: 6 small icons
+// Right decal: premium SVG shows unit progress
+// ===============================
+
+// ===============================
+// Strength — Rings of Power (SMALL)
+// ===============================
+const POWER_SMALL_SVG = `
+<svg viewBox="0 0 64 64"
+     class="lane-svg power-svg"
+     aria-hidden="true"
+     focusable="false">
+  <defs>
+    <radialGradient id="pr_base" cx="30%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.40)"/>
+      <stop offset="45%" stop-color="rgba(255,255,255,.14)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,.60)"/>
+    </radialGradient>
+
+    <linearGradient id="pr_rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"
+            style="stop-color: var(--pow-steel, rgba(180,200,220,1)); stop-opacity:.55"/>
+      <stop offset="45%"
+            style="stop-color: var(--pow-yellow, rgba(255,210,60,1)); stop-opacity:.30"/>
+      <stop offset="100%"
+            style="stop-color: rgba(0,0,0,1); stop-opacity:.70"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="32" cy="32" r="26"
+          fill="none"
+          stroke="url(#pr_rim)"
+          stroke-width="6"/>
+
+  <circle cx="32" cy="32" r="19"
+          fill="none"
+          stroke="rgba(0,0,0,.45)"
+          stroke-width="2"/>
+
+  <circle cx="26" cy="24" r="10"
+          fill="url(#pr_base)"
+          opacity=".55"/>
+</svg>`;
+
+// ===============================
+// Honor — Rings of Wisdom (SMALL)
+// ===============================
+const WISDOM_SMALL_SVG = `
+<svg viewBox="0 0 64 64"
+     class="lane-svg wisdom-svg"
+     aria-hidden="true"
+     focusable="false">
+
+  <circle cx="32" cy="32" r="26"
+          fill="rgba(0,0,0,.22)"
+          style="stroke: var(--wis-bone, rgba(235,225,205,1)); stroke-opacity:.22"
+          stroke-width="2"/>
+
+  <circle cx="32" cy="32" r="20"
+          fill="none"
+          style="stroke: var(--wis-tan, rgba(205,170,120,1)); stroke-opacity:.45"
+          stroke-width="2"/>
+
+  <circle cx="32" cy="32" r="14"
+          fill="none"
+          style="stroke: var(--wis-wood2, rgba(140,95,55,1)); stroke-opacity:.40"
+          stroke-width="2"/>
+
+  <circle cx="32" cy="32" r="8"
+          fill="none"
+          style="stroke: var(--wis-wood1, rgba(90,60,30,1)); stroke-opacity:.35"
+          stroke-width="2"/>
+
+  <circle cx="30" cy="28" r="6"
+          style="fill: var(--wis-bone, rgba(235,225,205,1)); fill-opacity:.10"
+          opacity=".6"/>
+</svg>`;
+
+// ===============================
+// Strength — Rings of Power (PREMIUM)
+// - ONE continuous ring (0..400)
+// ===============================
+const POWER_PREMIUM_SVG = `
+<svg viewBox="0 0 120 120"
+     class="decal-svg power-premium"
+     aria-hidden="true"
+     focusable="false">
+  <defs>
+    <radialGradient id="pp_base" cx="35%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.22)"/>
+      <stop offset="55%" stop-color="rgba(255,255,255,.08)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,.65)"/>
+    </radialGradient>
+
+    <linearGradient id="pp_rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,.30)"/>
+      <stop offset="50%" stop-color="rgba(255,255,255,.10)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,.72)"/>
+    </linearGradient>
+  </defs>
+
+  <circle cx="60" cy="60" r="46" fill="url(#pp_base)" opacity=".78"/>
+
+  <circle cx="60" cy="60" r="44"
+          fill="none" stroke="url(#pp_rim)"
+          stroke-width="10" opacity=".75"/>
+
+  <circle cx="60" cy="60" r="34"
+          fill="none" stroke="rgba(0,0,0,.45)"
+          stroke-width="2" opacity=".85"/>
+
+  <circle class="prog-bg"
+          cx="60" cy="60" r="44"
+          fill="none"
+          stroke="rgba(255,255,255,.10)"
+          stroke-width="10"/>
+
+  <circle class="prog-fg"
+        cx="60" cy="60" r="44"
+        fill="none"
+        stroke="var(--powStroke, rgba(255,210,60,1))"
+        stroke-width="10"
+        stroke-linecap="round"
+        transform="rotate(-90 60 60)"/>
+
+  <circle cx="60" cy="60" r="20"
+          fill="rgba(0,0,0,.22)"
+          stroke="rgba(255,255,255,.12)"
+          stroke-width="2"/>
+</svg>`;
+
+// ===============================
+// Honor — Rings of Wisdom (PREMIUM)
+// - 4 concentric rings (each = 100 XP)
+// - Each ring fills continuously for its hundred
+// ===============================
+const WISDOM_PREMIUM_SVG = `
+<svg viewBox="0 0 120 120"
+     class="decal-svg wisdom-premium"
+     aria-hidden="true"
+     focusable="false">
+  <defs>
+    <radialGradient id="wp_base" cx="40%" cy="35%" r="85%">
+      <stop offset="0%" stop-color="rgba(255,255,255,.14)"/>
+      <stop offset="55%" stop-color="rgba(255,255,255,.05)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,.72)"/>
+    </radialGradient>
+
+    <linearGradient id="wp_rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="rgba(255,255,255,.22)"/>
+      <stop offset="55%" stop-color="rgba(255,255,255,.06)"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,.78)"/>
+    </linearGradient>
+
+    <filter id="wp_grain" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise"
+        baseFrequency="0.9"
+        numOctaves="2"
+        seed="7"
+        result="noise"/>
+      <feColorMatrix in="noise" type="matrix"
+        values="
+          1 0 0 0 0
+          0 0.45 0 0 0
+          0 0 0.15 0 0
+          0 0 0 0.55 0"
+        result="grain"/>
+      <feGaussianBlur in="grain" stdDeviation="0.35"/>
+    </filter>
+
+    <mask id="wp_bandMask">
+      <rect width="120" height="120" fill="black"/>
+      <circle cx="60" cy="60" r="46" fill="white"/>
+      <circle cx="60" cy="60" r="22" fill="black"/>
+    </mask>
+  </defs>
+
+  <circle cx="60" cy="60" r="46" fill="url(#wp_base)" opacity=".88"/>
+  <circle cx="60" cy="60" r="46" fill="none" stroke="url(#wp_rim)" stroke-width="4" opacity=".85"/>
+
+  <g mask="url(#wp_bandMask)" filter="url(#wp_grain)" opacity=".28">
+    <circle cx="60" cy="60" r="46" style="fill: var(--wis-tan, rgb(205,170,120)); fill-opacity:1"/>
+  </g>
+
+  <g class="tracks" fill="none" stroke-width="6" opacity=".55">
+    <circle class="track t0" cx="60" cy="60" r="46" stroke="rgba(255,255,255,.10)"/>
+    <circle class="track t1" cx="60" cy="60" r="40" stroke="rgba(255,255,255,.10)"/>
+    <circle class="track t2" cx="60" cy="60" r="34" stroke="rgba(255,255,255,.10)"/>
+    <circle class="track t3" cx="60" cy="60" r="28" stroke="rgba(255,255,255,.10)"/>
+  </g>
+
+  <g class="bands" fill="none" stroke-width="6">
+    <circle class="band b0" cx="60" cy="60" r="46" stroke="var(--wis1, #3b2a1a)"/>
+    <circle class="band b1" cx="60" cy="60" r="40" stroke="var(--wis2, #6b4a2a)"/>
+    <circle class="band b2" cx="60" cy="60" r="34" stroke="var(--wis3, #c2a476)"/>
+    <circle class="band b3" cx="60" cy="60" r="28" stroke="var(--wis4, #f3e7cf)"/>
+  </g>
+
+  <circle cx="60" cy="60" r="20"
+          fill="rgba(0,0,0,.22)"
+          stroke="rgba(255,255,255,.12)"
+          stroke-width="2"/>
+  <circle cx="54" cy="52" r="10" fill="rgba(255,255,255,.08)" opacity=".70"/>
+  <circle cx="56" cy="54" r="4" fill="rgba(0,0,0,.25)" opacity=".55"/>
+</svg>`;
+
+// ===============================
+// SVG ID DE-DUPLICATION (REQUIRED)
+// ===============================
+function makeSuffix(kind, idx) {
+  const safeKind = String(kind).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeIdx  = String(idx).replace(/[^a-zA-Z0-9_-]/g, "_");
+  return `${safeKind}-${safeIdx}`;
+}
+
+function uniquifySvg(svg, kind, idx) {
+  const suffix = makeSuffix(kind, idx);
+
+  const ids = [];
+  svg.replace(/\bid="([^"]+)"/g, (_, id) => { ids.push(id); return _; });
+
+  const map = new Map();
+  for (const id of ids) {
+    if (!map.has(id)) map.set(id, `${id}-${suffix}`);
+  }
+
+  let out = svg.replace(/\bid="([^"]+)"/g, (m, id) => `id="${map.get(id) || id}"`);
+
+  out = out.replace(/url\(\s*(['"]?)#([^)'" ]+)\1\s*\)/g, (m, q, id) => {
+    const next = map.get(id);
+    return next ? `url(#${next})` : m;
+  });
+
+  out = out.replace(/\b(href|xlink:href)=["']#([^"']+)["']/g, (m, attr, id) => {
+    const next = map.get(id);
+    return next ? `${attr}="#${next}"` : m;
+  });
+
+  return out;
+}
+
+function smallSvgFor(kind, athleteKey) {
+  const raw = (kind === "strength") ? POWER_SMALL_SVG : WISDOM_SMALL_SVG;
+  return uniquifySvg(raw, `${kind}-small`, athleteKey);
+}
+
+function premiumSvgFor(kind, athleteKey) {
+  const raw = (kind === "strength") ? POWER_PREMIUM_SVG : WISDOM_PREMIUM_SVG;
+  return uniquifySvg(raw, `${kind}-premium`, athleteKey);
+}
+
+// ===============================
+// Progress helpers
+// ===============================
+function setCircleProgress(circleEl, pct01, cx = 60, cy = 60) {
+  if (!circleEl) return;
+  const pct = clamp(Number(pct01 || 0), 0, 1);
+
+  const r = Number(circleEl.getAttribute("r"));
+  const c = 2 * Math.PI * r;
+
+  circleEl.style.strokeDasharray = `${c}`;
+  circleEl.style.strokeDashoffset = `${c * (1 - pct)}`;
+
+  // rotate start to 12 o'clock
+  circleEl.style.transform = "rotate(-90deg)";
+  circleEl.style.transformOrigin = `${cx}px ${cy}px`;
+}
+
+function setRingProgress(svgEl, pct01) {
+  if (!svgEl) return;
+  const fg = svgEl.querySelector(".prog-fg");
+  if (!fg) return;
+  setCircleProgress(fg, pct01, 60, 60);
+}
+// ===============================
+// Lane UI Spec (SEGMENTS + TOTAL)
+// ===============================
+function normTrackCode(a) {
+  return String(a?.trackCode || a?.track || a?.trackBase || "")
+    .trim()
+    .toLowerCase();
+}
+
+function getLaneUiSpec({ trackCode, lane }) {
+  // Integrated inside F4 Combat => Phase I
+  if (trackCode === "foundry4-combat") {
+    if (lane === "strength" || lane === "honor") return { total: 1200, slots: 3 };
+    return { total: null, slots: null }; // combat handled elsewhere
+  }
+
+  // Standalone Strength
+  if (trackCode === "sandman-strength") {
+    if (lane === "strength") return { total: 2400, slots: 6 };
+    return { blocked: true };
+  }
+
+  // Standalone Honor
+  if (trackCode === "sandman-honor") {
+    if (lane === "honor") return { total: 2400, slots: 6 };
+    return { blocked: true };
+  }
+
+  // Default safe behavior (treat as integrated)
+  if (lane === "strength" || lane === "honor") return { total: 1200, slots: 3 };
+  return { total: null, slots: null };
+}
+// ===============================
+// paintLane()
+// LEFT: 6 marks (keep)
+// RIGHT: premium decal shows unit progress (0..400)
+// RIGHT TEXT: "unitXP/400 XP"
+// ===============================
+function paintLane({
+  kind,              // "strength" | "honor"
+  xp = 0,
+  rowEl,
+  unitsLeftEl,       // "earned/6"
+  metaRightEl,       // "0/400 XP"
+  decalEl,
+  athleteId,         // REQUIRED for uniqifySvg (no collisions)
+  total = 2400,
+  slots = 6,
+}) {
+  const athleteKey = String(athleteId || "").replace(/[^a-zA-Z0-9_-]/g, "_");
+
+  const totalXP = Math.max(0, Number(xp || 0));
+  const step = total / slots; // 400
+
+  const capXP = Math.min(totalXP, total);
+  const isMax = capXP >= total;
+
+  // boundary-safe earned calc (prevents exact 400 showing as 0/400)
+  const effective = isMax ? total : Math.max(0, capXP - 1e-6);
+  const earned = Math.min(slots, Math.floor(effective / step)); // 0..6
+
+  const inStep = capXP - earned * step;
+
+  // unit XP (0..400)
+  const unitXP = isMax
+    ? Math.round(step)
+    : Math.max(0, Math.min(Math.round(step), Math.round(inStep)));
+
+  // -----------------------------------
+  // LEFT ROW (6 icons) — per-slot uniq
+  // -----------------------------------
+  if (rowEl) {
+    rowEl.innerHTML = "";
+    for (let i = 0; i < slots; i++) {
+      const slot = document.createElement("span");
+      slot.className = `lane-slot ${kind === "strength" ? "ring" : "feather"}`;
+      if (i < earned) slot.classList.add("earned");
+      if (i === earned && earned < slots) slot.classList.add("active");
+      slot.innerHTML = smallSvgFor(kind, `${athleteKey}-s${i}`);
+      rowEl.appendChild(slot);
+    }
+  }
+
+  if (unitsLeftEl) unitsLeftEl.textContent = `${earned}/${slots}`;
+
+  // -----------------------------------
+  // RIGHT premium decal — render ONCE
+  // -----------------------------------
+  if (decalEl) {
+    decalEl.classList.add("lane-decal");
+    decalEl.classList.toggle("power",  kind === "strength");
+    decalEl.classList.toggle("wisdom", kind !== "strength");
+
+    decalEl.innerHTML = premiumSvgFor(kind, athleteKey);
+
+    if (kind === "strength") {
+      // stage classes based on unitXP (0..400)
+      const stage = unitXP < 100 ? 0 : unitXP < 200 ? 1 : unitXP < 300 ? 2 : 3;
+      decalEl.classList.remove("stage-0","stage-1","stage-2","stage-3");
+      decalEl.classList.add(`stage-${stage}`);
+
+      const svg = decalEl.querySelector("svg");
+      setRingProgress(svg, clamp(unitXP / 400, 0, 1));
+    } else {
+      // Honor: 4 bands, each = 100 XP, each band fills continuously
+      const svg = decalEl.querySelector("svg");
+      const b0 = svg?.querySelector(".band.b0");
+      const b1 = svg?.querySelector(".band.b1");
+      const b2 = svg?.querySelector(".band.b2");
+      const b3 = svg?.querySelector(".band.b3");
+
+      const bandIdx = Math.min(3, Math.floor(unitXP / 100)); // 0..3
+      const bandPct = clamp((unitXP % 100) / 100, 0, 1);     // 0..1
+
+      const p0 = bandIdx > 0 ? 1 : (bandIdx === 0 ? bandPct : 0);
+      const p1 = bandIdx > 1 ? 1 : (bandIdx === 1 ? bandPct : 0);
+      const p2 = bandIdx > 2 ? 1 : (bandIdx === 2 ? bandPct : 0);
+      const p3 = bandIdx > 3 ? 1 : (bandIdx === 3 ? bandPct : 0);
+
+      setCircleProgress(b0, p0, 60, 60);
+      setCircleProgress(b1, p1, 60, 60);
+      setCircleProgress(b2, p2, 60, 60);
+      setCircleProgress(b3, p3, 60, 60);
+    }
+  }
+
+  if (metaRightEl) metaRightEl.textContent = `${unitXP}/${Math.round(step)} XP`;
+}
+// ---------- drop lock helpers ----------
+function setDropLocked(block, locked) {
+  const section = document.querySelector(`.drop[data-block="${block}"]`);
+  if (!section) return;
+
+  section.classList.toggle("locked", !!locked);
+
+  // lock icon + hint (if present in HTML)
+  const icon = section.querySelector(".lock-icon");
+  if (icon) icon.textContent = locked ? "🔒" : "🔓";
+
+  const hint = section.querySelector(".unlock-hint");
+  if (hint) hint.style.display = locked ? "inline" : "none";
+
+  const head = section.querySelector(".drop-head");
+  if (head) head.style.pointerEvents = locked ? "none" : "";
+
+  const body = section.querySelector(".drop-body");
+  if (body) body.classList.toggle("collapsed", !!locked);
+
+  syncDrop(section);
+}
+
+function setAllDrops(open) {
+  document.querySelectorAll(".card.drop").forEach((section) => {
+    const body = section.querySelector(".drop-body");
+    if (!body) return;
+    body.classList.toggle("collapsed", !open);
+    syncDrop(section);
+  });
+}
+
+function bindDrops() {
+  document.querySelectorAll(".card.drop").forEach((section) => {
+    const btn  = section.querySelector(".drop-head");
+    const body = section.querySelector(".drop-body");
+    if (!btn || !body) return;
+
+    syncDrop(section);
+
+    btn.addEventListener("click", () => {
+      const locked = section.classList.contains("locked");
+      if (locked && !reviewMode && viewMode !== "coach" && viewMode !== "full") return;
+      body.classList.toggle("collapsed");
+      syncDrop(section);
+    });
+  });
+}
+
+function bindReviewControls() {
+  const review   = document.getElementById("toggle-review");
+  const openAll  = document.getElementById("btn-open-all");
+  const closeAll = document.getElementById("btn-close-all");
+
+  if (openAll)  openAll.addEventListener("click", () => setAllDrops(true));
+  if (closeAll) closeAll.addEventListener("click", () => setAllDrops(false));
+
+  if (review) {
+    review.checked = reviewMode;
+    if (reviewMode) setAllDrops(true);
+
+    review.addEventListener("change", () => {
+      reviewMode = !!review.checked;
+      localStorage.setItem("sm_review_mode", reviewMode ? "1" : "0");
+      if (reviewMode) setAllDrops(true);
+      // re-run locks based on current athlete/stripes happens after data loads
+      // (so we just open here)
+    });
+  }
+}
+
+// ---------- init bindings (safe before data loads) ----------
+bindDrops();
+bindReviewControls();
+
+if (viewMode === "full") setAllDrops(true);
+if (reviewMode) setAllDrops(true);
+
+// ===============================
+// MAIN
+// ===============================
+(async () => {
+  const ref = doc(db, "athletes", athleteId);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    document.body.innerHTML = "<main class='wrap'><p>Unknown athlete.</p></main>";
+    return;
+  }
+
+  const a = snap.data();
+const trackCode = normTrackCode(a) || "foundry4-combat";
+  // ✅ DEV guard: prevent opening DEV docs in LIVE mode
+  if (!isDevMode() && (a?.devMode === true || a?.isTest === true)) {
+    document.body.innerHTML =
+      "<main class='wrap'><p>This athlete is DEV-only. Turn on DEV mode to view.</p></main>";
+    return;
+  }
+
+  // -----------------------------
+  // Identity
+  // -----------------------------
+  const fullName =
+    a.fullName ||
+    [a.firstName, a.lastName].filter(Boolean).join(" ").trim() ||
+    a.publicName ||
+    athleteId;
+
+  safeText("out-name", fullName);
+  safeText("out-public", a.publicName || fullName);
+
+  const avatar = $("ath-avatar");
+  if (avatar) {
+    if (a.photoUrl) {
+      avatar.style.backgroundImage = `url(${a.photoUrl})`;
+      avatar.textContent = "";
+    } else {
+      avatar.style.backgroundImage = "";
+      avatar.textContent = (fullName || "?").slice(0, 1);
+    }
+  }
+
+  // -----------------------------
+  // Team / location
+  // -----------------------------
+  const rawTeam = (a.team || "").trim();
+  const cityTxt = (a.city || "").trim();
+  const stateTxt = (a.state || "").trim();
+
+  // TEAM: use explicit fields only (do NOT build from athlete city)
+  const academy =
+    (a.academy || "").trim() ||
+    (rawTeam && !rawTeam.toLowerCase().startsWith("sandman") ? rawTeam : "") ||
+    "Academy of Wrestling";
+
+  safeText("out-team", academy);
+
+  // CITY/STATE: athlete location only
+  let cityState = "";
+  if (cityTxt && stateTxt) cityState = `${cityTxt}, ${stateTxt}`;
+  else if (cityTxt || stateTxt) cityState = cityTxt || stateTxt;
+  else {
+    const hint = `${academy} ${rawTeam}`.toLowerCase();
+    if (hint.includes("lompoc")) cityState = "Lompoc, CA";
+  }
+  safeText("out-citystate", cityState);
+
+  // -----------------------------
+  // Mint / UID (display only)
+  // -----------------------------
+  const mintTag =
+    String(a?.mintVirtueTag || a?.mintTag || "").trim() ||
+    "";
+
+  function deriveMintTagFromUid(a, fallbackId) {
+    const uid = String(a?.uid || a?.uidCode || fallbackId || "").trim();
+    const prefix = uid.startsWith("F8_") ? "F8" : uid.startsWith("F4_") ? "F4" : "F4";
+    const num = uid.match(/(\d{4})/)?.[1] || "0000";
+    const lane = "CB"; // combat only for now
+    const virtueRaw = String(a?.virtueName || a?.virtue || a?.virtueCode || "UNK").toUpperCase();
+    return `${prefix}_${lane}${num}_${virtueRaw}`;
+  }
+
+  const displayMintTag = mintTag || deriveMintTagFromUid(a, athleteId);
+  safeHTML("out-uid", `<div>${displayMintTag}</div>`);
+
+  // -----------------------------
+  // Ladder + tierNum
+  // -----------------------------
+  const ladder = pickLadderFromAthlete(a);
+  const isF8 = (ladder === LADDER_F8);
+
+  safeText(
+    "combatArcTitle",
+    isF8 ? "⚔️ Combat · Zero 2 Hero" : "⚔️ Combat · Path 2 Legend"
+  );
+
+  let tierNum = 0;
+  if (typeof a.tier === "number") tierNum = a.tier;
+  else if (typeof a.tier === "string") tierNum = Number(a.tier.replace(/[^\d]/g, "")) || 0;
+  else if (typeof a.rank === "string") tierNum = Number(a.rank.replace(/[^\d]/g, "")) || 0;
+
+  setTierBadge({ teenAdult: isF8 ? "youth" : "teen", tierNum });
+
+  // -----------------------------
+  // Combat XP buckets (coach/full only)
+  // -----------------------------
+  const xpDaily   = Number(a.xpDaily ?? 0);
+  const xpArena   = Number(a.xpArena ?? 0);
+  const xpFightIQ = Number(a.xpFightIQ ?? 0);
+
+  // combatXp is the tier-bar XP (your belt bar input)
+  const combatXp  = Number(
+    a.xp ??
+    a.xpTotal ??
+    a.xpCombat ??
+    (xpDaily + xpArena + xpFightIQ) ??
+    0
+  );
+
+  if (viewMode === "coach" || viewMode === "full") {
+    safeText("xp-daily", xpDaily, "0");
+    safeText("xp-arena", xpArena, "0");
+    safeText("xp-fightiq", xpFightIQ, "0");
+    safeText("xp-total", combatXp, "0");
+  }
+
+  // -----------------------------
+  // Stripe info (SINGLE TRUTH)
+  // -----------------------------
+  const info = getStripeInfo(ladder, combatXp);
+  const stripes = info?.stripesEarned ?? 0;
+  const req = unlockRules({ tierName: info?.tier?.name });
+
+  // -----------------------------
+  // Rank / Color display
+  // -----------------------------
+  const rankName =
+    info?.tier?.rank ||
+    info?.tier?.name ||
+    a.rankName ||
+    a.tierName ||
+    "Apprentice";
+
+  const rankColor =
+    info?.tier?.color ||
+    info?.tier?.rankColor ||
+    a.rankColor ||
+    "#ffffff";
+
+  safeHTML(
+    "out-rank",
+    `
+    <span style="
+      display:inline-block;
+      width:10px;
+      height:10px;
+      border-radius:999px;
+      background:${rankColor};
+      margin-right:6px;
+      vertical-align:middle;
+    "></span>
+    ${rankName}
+    `
+  );
+
+  // -----------------------------
+  // Belt bar UI + Combat % (profile-only)
+  // -----------------------------
+  updateRankUI({
+    ladder,
+    totalXP: combatXp,
+    hideCap: false,
+    el: {
+      barId: "rankBar",
+      fillId: "rankFill",
+      textId: "stripeText",
+      // keep these ONLY if your HTML actually has them
+      curId: "curTier",
+      nextId: "nextTier",
+    },
+  });
+
+
+// -----------------------------
+// LANE LOCKS — single source of truth
+// -----------------------------
+applyLaneLocks({
+  athlete: a,
+  tierName: info?.tier?.name,
+  stripesEarned: stripes,
+});
+  // -----------------------------
+  // F8 UI doctrine: Combat-only.
+  // Hide Strength/Honor entirely.
+  // -----------------------------
+  if (isF8) {
+    const s = $("strengthLane");
+    const h = $("honorLane");
+    if (s) s.style.display = "none";
+    if (h) h.style.display = "none";
+  }
+
+// -----------------------------
+// Strength / Honor (segment switch + gating)
+// -----------------------------
+const strengthXP = Number(a.xpStrength ?? a.strengthXP ?? 0);
+const honorXP    = Number(a.xpHonor ?? a.honorXP ?? 0);
+
+// lane-level visibility rules (standalone blocks the other lane)
+const strengthSpec = getLaneUiSpec({ trackCode, lane: "strength" });
+const honorSpec    = getLaneUiSpec({ trackCode, lane: "honor" });
+
+const strengthBlocked = !!strengthSpec?.blocked;
+const honorBlocked    = !!honorSpec?.blocked;
+
+const canSeeStrength =
+  !isF8 &&
+  !strengthBlocked &&
+  ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
+    (stripes >= (req.strength ?? 999)));
+
+const canSeeHonor =
+  !isF8 &&
+  !honorBlocked &&
+  ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
+    (stripes >= (req.honor ?? 999)));
+
+if (canSeeStrength) {
+  paintLane({
+    kind: "strength",
+    athleteId,
+    xp: strengthXP,
+    rowEl: $("strengthRings"),
+    unitsLeftEl: $("strengthUnitsLeft"),
+    metaRightEl: $("strengthMetaRight"),
+    decalEl: $("strengthDecal"),
+    total: strengthSpec.total,  // ✅ 1200 or 2400
+    slots: strengthSpec.slots,  // ✅ 3 or 6
+  });
+} else {
+  const s = $("strengthLane");
+  if (s) s.style.display = "none";
+}
+
+if (canSeeHonor) {
+  paintLane({
+    kind: "honor",
+    athleteId,
+    xp: honorXP,
+    rowEl: $("honorRings"),
+    unitsLeftEl: $("honorUnitsLeft"),
+    metaRightEl: $("honorMetaRight"),
+    decalEl: $("honorDecal"),
+    total: honorSpec.total,     // ✅ 1200 or 2400
+    slots: honorSpec.slots,     // ✅ 3 or 6
+  });
+} else {
+  const h = $("honorLane");
+  if (h) h.style.display = "none";
+}  // -----------------------------
+  // Skills (best-effort)
+  // -----------------------------
+  safeText("skill-neutral", a.skillNeutral);
+  safeText("skill-top", a.skillTop);
+  safeText("skill-bottom", a.skillBottom);
+  safeText("skill-next", a.skillNext);
+  safeText("coach-notes", a.coachNotes);
+
+  // -----------------------------
+  // XP logs (best-effort)
+  // -----------------------------
+  async function loadLogs() {
+    const candidates = ["xpLogs", "xp_logs"];
+    for (const sub of candidates) {
+      try {
+        const q1 = query(
+          collection(db, "athletes", athleteId, sub),
+          orderBy("ts", "desc"),
+          limit(15)
+        );
+        const logs = await getDocs(q1);
+        if (!logs.empty) return logs;
+      } catch (e) {
+        // try next
+      }
+    }
+    return null;
+  }
+
+  try {
+    const logsSnap = await loadLogs();
+    const items = [];
+    let lastStyle = null;
+
+    if (logsSnap) {
+      logsSnap.forEach(l => {
+        const d = l.data();
+        const delta = Number(d.delta ?? d.amount ?? 0);
+        const sign = delta > 0 ? "+" : "";
+        const label = d.event || d.kind || "log";
+        items.push(`<li>${sign}${delta} <span class="muted">(${label})</span></li>`);
+        if (!lastStyle && (String(label).includes("STYLE") || d.meta?.style)) lastStyle = d.meta?.style;
+      });
+    }
+
+    const feed = $("feed");
+    if (feed) feed.innerHTML = items.length ? items.join("") : "<li class='muted'>No entries yet.</li>";
+    safeText("last-style", lastStyle || "—");
+  } catch (err) {
+    const feed = $("feed");
+    if (feed) feed.innerHTML = "<li class='muted'>Logs unavailable.</li>";
+  }
+
+  // -----------------------------
+  // Season (tournaments table — best-effort)
+  // -----------------------------
+  try {
+    const tq = query(
+      collection(db, "tournaments"),
+      where("athleteUid", "==", athleteId),
+      orderBy("date", "desc"),
+      limit(6)
+    );
+
+    const tSnap = await getDocs(tq);
+    const rows = [];
+
+    tSnap.forEach(docSnap => {
+      const t = docSnap.data();
+      const date =
+        t.dateStr ||
+        (t.date && t.date.toDate?.().toLocaleDateString()) ||
+        "—";
+      const name = t.name || t.eventName || "Event";
+      const wt = t.weightClass || t.weight || "—";
+      const rec = `${t.wins ?? 0}-${t.losses ?? 0}`;
+      const plc = t.place || "—";
+      const pts = t.teamPoints ?? 0;
+
+      rows.push(`
+        <tr>
+          <td style="padding:4px 2px">${date}</td>
+          <td style="padding:4px 2px">${name}</td>
+          <td style="padding:4px 2px;text-align:center">${wt}</td>
+          <td style="padding:4px 2px;text-align:center">${rec}</td>
+          <td style="padding:4px 2px;text-align:center">${plc}</td>
+          <td style="padding:4px 2px;text-align:center">${pts}</td>
+        </tr>
+      `);
+    });
+
+    const tbody = $("tour-body");
+    if (tbody) {
+      tbody.innerHTML = rows.length
+        ? rows.join("")
+        : `<tr><td colspan="6" class="muted" style="padding:6px 2px;text-align:center">No tournaments yet.</td></tr>`;
+    }
+  } catch (err) {
+    const tbody = $("tour-body");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="muted" style="padding:6px 2px;text-align:center">
+            Tournament data unavailable.
+          </td>
+        </tr>`;
+    }
+  }
+})();

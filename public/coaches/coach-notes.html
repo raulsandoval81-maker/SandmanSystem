@@ -4,271 +4,228 @@
   <meta charset="utf-8" />
   <title>Coach · Notes & Daily Log</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- Shared coach console skin (same as Arena / Command Center) -->
+  <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
+
   <style>
-    :root { color-scheme: dark; }
-    body {
-      background:#090b0f;
-      color:#f5f5f5;
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-    .wrap {
-      max-width:1150px;
-      margin:0 auto;
-      padding:20px 16px 40px;
-    }
-    .top-nav {
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-bottom:16px;
-    }
-    .pill {
-      background:#151a22;
-      border:1px solid #252c38;
-      color:#f0f0f0;
-      text-decoration:none;
-      font-weight:600;
-      padding:6px 14px;
-      border-radius:999px;
-      transition:0.2s;
-    }
-    .pill:hover {background:#ffd633;color:#111;border-color:#ffd633;}
-    h1 {
-      margin:6px 0 8px;
-      font-size:1.4rem;
-      font-weight:800;
-      color:#ffd633;
-    }
-    p.lead {
-      color:#9ca3af;
-      font-size:.82rem;
-      margin-bottom:18px;
+    /* Page-only tweaks (keep small; the shell/pills come from steps-shell.css) */
+    :root{ color-scheme:dark; }
+    body{ margin:0; background:#090b0f; color:#f5f5f5; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+
+    .wrap{ max-width:1150px; margin:0 auto; padding:20px 16px 44px; }
+    .top-nav{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center; }
+
+    /* Make top nav use the SAME pill look */
+    .top-nav a.pill{ text-decoration:none; }
+
+    h1{ margin:6px 0 8px; font-size:1.55rem; font-weight:900; color:#facc15; letter-spacing:.2px; }
+    .lead{ color:#94a3b8; font-size:.85rem; margin:0 0 16px; line-height:1.35; }
+
+    .grid{ display:grid; grid-template-columns:380px minmax(0,1fr); gap:18px; align-items:start; }
+    @media (max-width: 920px){ .grid{ grid-template-columns:1fr; } }
+
+    .panel{
+      background:rgba(17,21,29,.92);
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:16px;
+      padding:16px;
+      box-shadow:0 0 16px rgba(0,0,0,.28);
     }
 
-    /* GRID */
-    .grid {
-      display:grid;
-      grid-template-columns:360px minmax(0,1fr);
-      gap:18px;
-      align-items:flex-start;
-    }
-    @media (max-width: 880px){
-      .grid {grid-template-columns:1fr;}
+    .panel-title{
+      margin:0 0 10px;
+      font-size:1.0rem;
+      font-weight:900;
+      color:#facc15;
+      letter-spacing:.2px;
     }
 
-    .panel {
-      background:#11151d;
-      border:1px solid #1e2632;
-      border-radius:14px;
-      padding:16px 16px 20px;
-      box-shadow:0 0 10px rgba(0,0,0,.25);
-    }
-    label {
-      display:block;
-      font-size:.72rem;
-      margin-top:8px;
-      margin-bottom:4px;
-      color:#d1d5db;
-      letter-spacing:.02em;
-    }
-    input,select,textarea {
+    label{ display:block; font-size:.72rem; margin-top:10px; margin-bottom:5px; color:#cbd5e1; letter-spacing:.02em; }
+    input, select, textarea{
       width:100%;
-      background:#0a0d12;
-      border:1px solid #252c38;
-      border-radius:9px;
-      padding:7px 9px;
-      color:#fff;
-      font-size:.8rem;
-      transition:.2s;
+      background:rgba(2,6,23,.55);
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:12px;
+      padding:9px 10px;
+      color:#e5e7eb;
+      font-size:.86rem;
+      transition:.15s;
     }
-    input:focus,select:focus,textarea:focus {
+    input:focus, select:focus, textarea:focus{
       outline:none;
-      border-color:#ffd633;
-      box-shadow:0 0 0 2px rgba(255,214,51,.2);
+      border-color:rgba(250,204,21,.55);
+      box-shadow:0 0 0 2px rgba(250,204,21,.18);
     }
-    textarea {min-height:110px;resize:vertical}
-    .btn {
-      background:#ffd633;
-      color:#0a0a0a;
-      border:0;
-      border-radius:999px;
-      padding:7px 18px;
-      font-weight:800;
-      margin-top:12px;
-      cursor:pointer;
-      transition:.2s;
-    }
-    .btn:hover {transform:translateY(-1px);box-shadow:0 3px 8px rgba(255,214,51,.3);}
-    #status {color:#9ca3af;font-size:.68rem;margin-top:6px}
+    textarea{ min-height:112px; resize:vertical; }
 
-    /* Logs */
-    .log-list {max-height:70vh;overflow-y:auto;}
-    .log-item {
-      padding:10px 4px 12px;
-      border-bottom:1px solid rgba(255,255,255,.05);
-      transition:.2s;
-    }
-    .log-item:hover {background:#10131b;}
-    .log-item small {color:#97a0ad;font-size:.65rem}
-    .badge {
-      display:inline-block;
-      background:#222a36;
-      border:1px solid #2f3745;
-      border-radius:999px;
-      padding:2px 8px;
-      font-size:.6rem;
-      margin-right:4px;
-      text-transform:uppercase;
-      letter-spacing:.03em;
-      color:#9fb3c8;
-    }
-    .badge.practice{background:#263142;color:#ffd633;}
-    .badge.behavior{background:#3a1f1f;color:#f87171;}
-    .badge.athlete{background:#1f3a24;color:#4ade80;}
-    .badge.injury{background:#42222e;color:#fb7185;}
-    .badge.parent{background:#26303a;color:#60a5fa;}
-    .badge.todo{background:#31291b;color:#facc15;}
+    /* Role pills use the shared .pill system */
+    .role-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+    .role-row .pill{ padding:8px 12px; font-size:.78rem; }
 
-    /* role toggle */
-    .role-row{
-      display:flex;
-      gap:6px;
-      margin-top:6px;
-      flex-wrap:wrap;
-    }
-    .role-pill{
-      flex:0 0 auto;
-      background:#0a0d12;
-      border:1px solid #252c38;
-      border-radius:999px;
-      padding:4px 10px 5px;
-      font-size:.68rem;
-      color:#e2e8f0;
-      cursor:pointer;
-      display:flex;
-      gap:4px;
-      align-items:center;
-    }
-    .role-pill.active{
-      border-color:#ffd633;
-      background:rgba(255,214,51,.08);
-      color:#fff;
-    }
-
-    /* pre-brief box */
+    /* Pre-brief block */
     .pre-box{
-      background:rgba(248,250,252,.01);
-      border:1px solid rgba(255,214,51,.06);
-      border-radius:10px;
-      padding:8px 10px 8px;
-      margin-top:8px;
+      margin-top:10px;
+      background:rgba(2,6,23,.35);
+      border:1px solid rgba(250,204,21,.10);
+      border-radius:14px;
+      padding:10px 12px;
     }
     .pre-box-title{
-      font-size:.7rem;
-      font-weight:600;
-      color:#f8fafc;
-      margin-bottom:4px;
+      font-size:.74rem;
+      font-weight:800;
+      color:#e5e7eb;
+      margin:0 0 6px;
     }
     .pre-check{
       display:flex;
-      gap:6px;
+      gap:8px;
       align-items:center;
-      margin-bottom:4px;
-      font-size:.68rem;
-      color:#d1d5db;
+      margin:6px 0;
+      font-size:.78rem;
+      color:#cbd5e1;
     }
-    .pre-check input{
-      width:auto;
-      accent-color:#ffd633;
-    }
+    .pre-check input{ width:auto; accent-color:#facc15; }
 
-    /* post / debrief */
-    #logDebrief{
-      min-height:80px;
+    /* Save button should look like a primary pill */
+    .btn-row{ display:flex; gap:10px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+    #saveBtn{ min-width:160px; }
+    #status{ color:#94a3b8; font-size:.72rem; margin:0; }
+
+    /* Logs */
+    .log-list{ max-height:74vh; overflow:auto; padding-right:6px; }
+    .log-item{
+      padding:12px 6px 14px;
+      border-bottom:1px solid rgba(148,163,184,.14);
+      transition:.12s;
     }
+    .log-item:hover{ background:rgba(2,6,23,.32); border-radius:12px; }
+    .log-item small{ color:#94a3b8; font-size:.7rem; }
+
+    /* Badges (kept) */
+    .badge{
+      display:inline-block;
+      background:rgba(148,163,184,.12);
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:999px;
+      padding:3px 9px;
+      font-size:.62rem;
+      margin-right:6px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      color:#cbd5e1;
+      line-height:1;
+    }
+    .badge.practice{ background:rgba(250,204,21,.10); border-color:rgba(250,204,21,.22); color:#fde68a; }
+    .badge.behavior{ background:rgba(248,113,113,.10); border-color:rgba(248,113,113,.22); color:#fecaca; }
+    .badge.athlete{ background:rgba(74,222,128,.10); border-color:rgba(74,222,128,.22); color:#bbf7d0; }
+    .badge.injury{ background:rgba(251,113,133,.10); border-color:rgba(251,113,133,.22); color:#fecdd3; }
+    .badge.parent{ background:rgba(96,165,250,.10); border-color:rgba(96,165,250,.22); color:#bfdbfe; }
+    .badge.todo{ background:rgba(250,204,21,.08); border-color:rgba(250,204,21,.16); color:#fde68a; }
   </style>
 </head>
-<body>
-<main class="wrap">
-  <nav class="top-nav">
-    <a class="pill" href="/coaches/roster.html">Team Roster</a>
-    <a class="pill" href="/coaches/coaches-daily-clipboard.html">Coach’s Clipboard</a>
-    <a class="pill" href="/coaches/daily-grind.html">Daily Grind XP</a>
-  </nav>
 
-    <h1>Coach Notes & Daily Log</h1>
+<body>
+  <main class="wrap">
+    <!-- Top nav: use shared pill styling -->
+    <nav class="top-nav">
+      <a class="pill pill-ghost" href="/coaches/roster.html">Team Roster</a>
+      <a class="pill pill-ghost" href="/coaches/coaches-daily-clipboard.html">Coach’s Clipboard</a>
+      <a class="pill pill-ghost" href="/coaches/xp/coaches-command-center.html">Daily XP Console</a>
+    </nav>
+
+    <h1>Coach Notes &amp; Daily Log</h1>
     <p class="lead">
-      Brief, run, debrief. Use this to capture prep, issues, and what to fix next practice.<br>
-      <span style="color:#ffd633">XP stays in Daily Grind.</span>
+      Brief → run → debrief. Capture prep, issues, and what to fix next practice.
+      <span style="color:#facc15;font-weight:800;">XP stays in Daily Grind.</span>
     </p>
 
     <section class="grid">
-      <!-- LEFT: add a note -->
+      <!-- LEFT -->
       <div class="panel">
-        <h2 style="margin-top:0;font-size:1rem;color:#ffd633;">New Log Entry</h2>
+        <div class="panel-title">New Log Entry</div>
 
-        <label for="logDate">Date</label>
-        <input id="logDate" type="date" />
+        <!-- STEP 1 -->
+        <div class="step">
+          <div class="step-head">
+            <div class="step-title"><span class="step-num">1</span> Setup</div>
+          </div>
 
-        <label>Logged by</label>
-        <div class="role-row" id="roleRow">
-          <label class="role-pill active" data-role="head">
-            <span>Head Coach</span>
-          </label>
-          <label class="role-pill" data-role="assistant">
-            <span>Assistant Coach</span>
-          </label>
-          <label class="role-pill" data-role="junior">
-            <span>Junior Coach</span>
-          </label>
+          <label for="logDate">Date</label>
+          <input id="logDate" type="date" />
+
+          <label>Logged by</label>
+          <div class="role-row" id="roleRow">
+            <button type="button" class="pill pill-yellow is-active" data-role="head">Head Coach</button>
+            <button type="button" class="pill pill-ghost" data-role="assistant">Assistant Coach</button>
+            <button type="button" class="pill pill-ghost" data-role="junior">Junior Coach</button>
+          </div>
+
+          <div class="pre-box">
+            <div class="pre-box-title">Pre-brief checklist</div>
+            <label class="pre-check">
+              <input type="checkbox" id="prePrepared" />
+              A. Practice prepared / clipboard ready
+            </label>
+            <label class="pre-check">
+              <input type="checkbox" id="preHydrated" />
+              B. Hydrated / physically ready to lead
+            </label>
+            <label class="pre-check">
+              <input type="checkbox" id="preMindset" />
+              C. Mindset on / ready to teach
+            </label>
+          </div>
         </div>
 
-        <!-- PRE-BRIEF -->
-        <div class="pre-box">
-          <div class="pre-box-title">Pre-brief checklist</div>
-          <label class="pre-check">
-            <input type="checkbox" id="prePrepared" />
-            A. Practice prepared / clipboard ready
-          </label>
-          <label class="pre-check">
-            <input type="checkbox" id="preHydrated" />
-            B. Hydrated / physically ready to lead
-          </label>
-          <label class="pre-check">
-            <input type="checkbox" id="preMindset" />
-            C. Mindset on / ready to teach
-          </label>
+        <!-- STEP 2 -->
+        <div class="step" style="margin-top:12px;">
+          <div class="step-head">
+            <div class="step-title"><span class="step-num">2</span> Details</div>
+          </div>
+
+          <label for="logType">Category</label>
+          <select id="logType">
+            <option value="practice">Practice</option>
+            <option value="athlete">Athlete</option>
+            <option value="behavior">Behavior</option>
+            <option value="injury">Injury</option>
+            <option value="parent">Parent</option>
+            <option value="todo">To-Do</option>
+          </select>
+
+          <label for="logAthlete">Athlete Name / ID (optional)</label>
+          <input id="logAthlete" placeholder="F4_0001 or full name" />
+
+          <label for="logText">Note (issues, highlights, actions)</label>
+          <textarea id="logText" placeholder="Wins, issues, corrections, reminders…"></textarea>
+
+          <label for="logDebrief">Post-practice debrief</label>
+          <textarea id="logDebrief" placeholder="What worked, what didn’t, what to change next time…"></textarea>
         </div>
 
-        <label for="logType">Category</label>
-        <select id="logType">
-          <option value="practice">Practice</option>
-          <option value="athlete">Athlete</option>
-          <option value="behavior">Behavior</option>
-          <option value="injury">Injury</option>
-          <option value="parent">Parent</option>
-          <option value="todo">To-Do</option>
-        </select>
+        <!-- STEP 3 -->
+        <div class="step" style="margin-top:12px;">
+          <div class="step-head">
+            <div class="step-title"><span class="step-num">3</span> Save</div>
+          </div>
 
-        <label for="logAthlete">Athlete Name / ID (optional)</label>
-        <input id="logAthlete" placeholder="F4_0001 or full name" />
+          <div class="btn-row">
+            <button id="saveBtn" class="pill pill-yellow" type="button">Save Log</button>
+            <p id="status">Ready.</p>
+          </div>
 
-        <label for="logText">Note (issues, highlights, actions)</label>
-        <textarea id="logText" placeholder="Wins, issues, corrections, reminders…"></textarea>
-
-        <label for="logDebrief">Post-practice debrief (How did practice go?)</label>
-        <textarea id="logDebrief" placeholder="What worked, what didn’t, what to change next time…"></textarea>
-
-        <button id="saveBtn" class="btn">Save Log</button>
-        <p id="status">Ready.</p>
+          <div class="hint" style="margin-top:8px;">
+            Logs are for coaching clarity. XP stays in Daily Grind.
+          </div>
+        </div>
       </div>
 
-      <!-- RIGHT: recent notes -->
+      <!-- RIGHT -->
       <div class="panel">
-        <h2 style="margin-top:0;font-size:1rem;color:#ffd633;">Recent Entries</h2>
+        <div class="panel-title">Recent Entries</div>
         <div id="logList" class="log-list">
-          <p style="color:#9ca3af;font-size:.75rem">Loading…</p>
+          <p style="color:#94a3b8;font-size:.85rem;margin:0;">Loading…</p>
         </div>
       </div>
     </section>
@@ -278,17 +235,17 @@
   import {
     db,
     collection,
-    addDoc,
     getDocs,
     query,
     orderBy,
-    limit,
-    serverTimestamp
+    limit
   } from "/assets/js/firebase-init.js";
+
+  import { ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
 
   // DOM
   const logDateEl    = document.getElementById("logDate");
-  const logTypeEl    = document.getElementById("logType");     // athlete | parent | injury | coachPrivate | conduct | goal | eventSummary
+  const logTypeEl    = document.getElementById("logType");
   const logAthleteEl = document.getElementById("logAthlete");
   const logTextEl    = document.getElementById("logText");
   const logDebriefEl = document.getElementById("logDebrief");
@@ -302,74 +259,92 @@
   const preHydratedEl = document.getElementById("preHydrated");
   const preMindsetEl  = document.getElementById("preMindset");
 
-  // current coach role (for display only)
   let currentRole = "head";
 
-  // function endpoint (emulator)
-import { ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
-
-  // role pill clicks
+  // Role pill clicks (use .is-active to match other consoles)
   roleRow.addEventListener("click", (e)=>{
-    const pill = e.target.closest(".role-pill");
-    if(!pill) return;
-    currentRole = pill.dataset.role;
-    roleRow.querySelectorAll(".role-pill").forEach(p=>p.classList.remove("active"));
-    pill.classList.add("active");
+    const btn = e.target.closest("button[data-role]");
+    if(!btn) return;
+    currentRole = btn.dataset.role;
+
+    roleRow.querySelectorAll("button[data-role]").forEach(b=>{
+      b.classList.remove("is-active","pill-yellow");
+      b.classList.add("pill-ghost");
+    });
+
+    btn.classList.add("is-active","pill-yellow");
+    btn.classList.remove("pill-ghost");
   });
 
   // default date = today
-  const today = new Date();
-  logDateEl.value = today.toISOString().slice(0,10);
+  logDateEl.value = new Date().toISOString().slice(0,10);
 
-  // load recent logs (still straight from firestore so you can list them)
+  function escapeHtml(s){
+    return (s || "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
   async function loadLogs(){
-    const base = collection(db, "coachNotes");  // use the same collection the function writes to
+    const base = collection(db, "coachNotes");
     const qy   = query(base, orderBy("createdAt","desc"), limit(40));
     const snap = await getDocs(qy);
+
     if (snap.empty){
-      logListEl.innerHTML = `<p style="color:#9ca3af;font-size:.75rem">No entries yet.</p>`;
+      logListEl.innerHTML = `<p style="color:#94a3b8;font-size:.85rem;margin:0;">No entries yet.</p>`;
       return;
     }
+
     const rows = [];
     snap.forEach(docSnap => {
       const d = docSnap.data();
-      const type = d.type || "athlete";
+      const type = d.type || "practice";
 
-      // role badge is optional now – we kept your display
       let roleBadge = "";
       const role = d.meta?.role || d.role || "head";
       if (role === "head") {
-        roleBadge = `<span class="badge" style="background:#4a3a11;color:#ffe28a;">Head Coach</span>`;
+        roleBadge = `<span class="badge" style="background:rgba(250,204,21,.10);border-color:rgba(250,204,21,.22);color:#fde68a;">Head</span>`;
       } else if (role === "assistant") {
-        roleBadge = `<span class="badge" style="background:#1f2e45;color:#bfdbfe;">Assistant</span>`;
+        roleBadge = `<span class="badge" style="background:rgba(96,165,250,.10);border-color:rgba(96,165,250,.22);color:#bfdbfe;">Assistant</span>`;
       } else if (role === "junior") {
-        roleBadge = `<span class="badge" style="background:#203524;color:#bbf7d0;">Junior</span>`;
+        roleBadge = `<span class="badge" style="background:rgba(74,222,128,.10);border-color:rgba(74,222,128,.22);color:#bbf7d0;">Junior</span>`;
       }
 
       const visBits = [];
-      if (d.visibility?.parent) visBits.push("Parent");
+      if (d.visibility?.parent)  visBits.push("Parent");
       if (d.visibility?.athlete) visBits.push("Athlete");
+
+      const body = escapeHtml(d.body || "").replace(/\n/g,"<br>");
+      const debrief = escapeHtml(d.meta?.debrief || "").replace(/\n/g,"<br>");
 
       rows.push(`
         <div class="log-item">
           <div>
-            <span class="badge ${type}">${type}</span>
+            <span class="badge ${type}">${escapeHtml(type)}</span>
             ${roleBadge}
-            ${d.athleteUid ? `<span class="badge">#${d.athleteUid}</span>` : ""}
-            ${visBits.length ? `<span class="badge" style="background:#24303a;color:#e2e8f0;">${visBits.join(" / ")}</span>` : ""}
-            <small>${d.date || ""}</small>
+            ${d.athleteUid ? `<span class="badge">#${escapeHtml(d.athleteUid)}</span>` : ""}
+            ${visBits.length ? `<span class="badge" style="background:rgba(148,163,184,.10);border-color:rgba(148,163,184,.22);color:#e5e7eb;">${visBits.join(" / ")}</span>` : ""}
+            <small>${escapeHtml(d.date || "")}</small>
           </div>
-          <div style="margin-top:6px;line-height:1.4;">${(d.body || "").replace(/\n/g,"<br>")}</div>
-          ${d.meta?.debrief ? `<div style="margin-top:6px;font-size:.68rem;color:#e2e8f0;"><strong>Debrief:</strong> ${d.meta.debrief.replace(/\n/g,"<br>")}</div>` : ""}
+
+          ${body ? `<div style="margin-top:8px;line-height:1.45;">${body}</div>` : ""}
+
+          ${debrief ? `<div style="margin-top:10px;font-size:.82rem;color:#e5e7eb;">
+              <strong style="color:#fde68a;">Debrief:</strong> ${debrief}
+            </div>` : ""}
         </div>
       `);
     });
+
     logListEl.innerHTML = rows.join("");
   }
 
   async function saveLog(){
     const date    = logDateEl.value;
-    const type    = logTypeEl.value || "athlete";
+    const type    = logTypeEl.value || "practice";
     const athlete = logAthleteEl.value.trim();
     const text    = logTextEl.value.trim();
     const debrief = logDebriefEl.value.trim();
@@ -381,7 +356,6 @@ import { ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
 
     statusEl.textContent = "Saving…";
 
-    // send to cloud function so it can enforce visibility rules
     try {
       const res = await fetch(ADD_NOTE_URL, {
         method: "POST",
@@ -390,13 +364,13 @@ import { ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
           data: {
             athleteUid: athlete || "unassigned",
             type,
-            body: text || debrief,
             title: date,
+            body: text || debrief,          // keep simple; debrief is also stored in meta
             linkedEventId: null,
             meta: {
-              debrief,
               date,
               role: currentRole,
+              debrief,
               prePrepared: !!prePreparedEl.checked,
               preHydrated: !!preHydratedEl.checked,
               preMindset:  !!preMindsetEl.checked,
@@ -406,8 +380,12 @@ import { ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
       });
 
       const json = await res.json();
-      if (!json.ok) {
-        statusEl.textContent = json.error || "Save failed.";
+
+      // normalize possible wrapped function responses
+      const data = json?.result ?? json?.data ?? json;
+
+      if (!res.ok || !data?.ok) {
+        statusEl.textContent = data?.error || `Save failed (HTTP ${res.status})`;
         return;
       }
 

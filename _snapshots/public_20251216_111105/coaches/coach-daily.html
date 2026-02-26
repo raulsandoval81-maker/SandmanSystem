@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach • Daily Log | Sandman System™</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <style>
+    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+    .topbar{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center;margin-bottom:.75rem}
+    .btn{padding:.55rem .9rem;border-radius:999px;background:#ffd633;color:#111;font-weight:800;text-decoration:none;border:0;cursor:pointer}
+    .btn.ghost{background:#263142;color:#e6e8eb;border:1px solid #3a4a60}
+    .btn.ok{background:#22c55e;color:#0b1a12}
+    .btn.warn{background:#eab308;color:#111}
+    .input{background:#121821;border:1px solid #243041;border-radius:10px;color:#e6e8eb;padding:.5rem .7rem}
+    .card{background:#121821;border:1px solid #243041;border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.35);margin:.6rem 0}
+    table{width:100%;border-collapse:collapse;margin-top:.4rem}
+    th,td{border:1px solid #263142;padding:.55rem .5rem;color:#e6e8eb;vertical-align:middle}
+    th{background:#182130;color:#ffd633;text-align:left}
+    tbody tr:nth-child(odd){background:#0f141b}
+    tbody tr:nth-child(even){background:#121821}
+    .muted{color:#9fb3c8}
+    .pill{background:#263142;border:1px solid #3a4a60;border-radius:999px;color:#d7dbe2;padding:.2rem .55rem}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="topbar">
+      <a class="btn ghost" href="./roster.html">← Roster</a>
+      <a class="btn ghost" href="../athletes/athlete-corner.html">Athlete Corner</a>
+      <input id="q" class="input" placeholder="Search roster…"/>
+      <button id="pickAll" class="btn">Select All</button>
+      <button id="clearAll" class="btn ghost">Clear</button>
+      <button id="fullGrind" class="btn ok">Full-time Grind +10</button>
+      <button id="partGrind" class="btn warn">Part-time Grind +5</button>
+    </div>
+<button
+  class="btn gray"
+  onclick="window.open('/coaches/timer.html#live', 'sandmanTimer', 'width=440,height=720')">
+  Open Timer
+</button>
+<button
+  class="btn gold"
+  onclick="window.sandmanRun && window.sandmanRun('Live Timers (Situations)','lv_int_hf_30x6')">
+  Run 3:00 Hand-Fight
+</button>
+
+    <section class="card">
+      <h2 style="margin-top:0">Today’s Roster</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:42px">Pick</th>
+            <th>Athlete</th>
+            <th>Tier</th>
+            <th>XP</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td class="muted" colspan="4">Loading…</td></tr></tbody>
+      </table>
+      <p id="status" class="muted" style="margin-top:.5rem">Ready.</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { db, collection, getDocs } from "../assets/js/firebase-init.js";
+    import { awardXP } from "../assets/js/xp-api.js";
+    import { toast }   from "../assets/js/toast.js";
+
+    const rowsEl   = document.getElementById("rows");
+    const statusEl = document.getElementById("status");
+    const qEl      = document.getElementById("q");
+
+    const pickAllBtn  = document.getElementById("pickAll");
+    const clearAllBtn = document.getElementById("clearAll");
+    const fullBtn     = document.getElementById("fullGrind");
+    const partBtn     = document.getElementById("partGrind");
+
+    let cache = [];
+
+    function pad7(n){ n=Number(n); return Number.isFinite(n)&&n>0? String(n).padStart(7,"0"):""; }
+
+    function render(list){
+      if(!list.length){
+        rowsEl.innerHTML = `<tr><td class="muted" colspan="4">No athletes.</td></tr>`;
+        return;
+      }
+      rowsEl.innerHTML = list.map(a=>{
+        return `
+          <tr>
+            <td><input type="checkbox" class="pick" data-uid="${a.id}"/></td>
+            <td>
+              <strong>${a.fullName||"—"}</strong>
+              <div class="muted">UID: ${a.id} · Dog: ${a.dogTag?("#"+pad7(a.dogTag)):"—"}</div>
+            </td>
+            <td>${a.tierName||"—"}</td>
+            <td><span class="pill">${a.xp||0} / ${a.xpCap||0}</span></td>
+          </tr>`;
+      }).join("");
+    }
+
+    function filter(){
+      const q = (qEl.value||"").toLowerCase();
+      const list = !q ? cache : cache.filter(a=>
+        (a.fullName||"").toLowerCase().includes(q) || String(a.dogTag||"").includes(q)
+      );
+      render(list);
+    }
+
+    function picked(){
+      return [...document.querySelectorAll("input.pick[data-uid]:checked")].map(c=>c.dataset.uid);
+    }
+
+    async function load(){
+      statusEl.textContent = "Loading…";
+      const snap = await getDocs(collection(db,"athletes"));
+      cache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+      filter();
+      statusEl.textContent = `${cache.length} athletes loaded`;
+    }
+
+    async function bulkGrind(amount, label){
+      const ids = picked();
+      if(!ids.length){ toast("No athletes selected"); return; }
+      let ok=0, fail=0;
+      for(const uid of ids){
+        try{
+          await awardXP(uid, { kind:"ATTENDANCE", amount, note:`Daily Grind — ${label}`, meta:{source:"coach-daily"} });
+          ok++;
+        }catch{ fail++; }
+        await new Promise(r=>setTimeout(r,50));
+      }
+      toast(`${label}: ${ok} saved${fail?`, ${fail} failed`:``}`);
+    }
+
+    // bindings
+    qEl.addEventListener("input", filter);
+    pickAllBtn.addEventListener("click", ()=> document.querySelectorAll(".pick").forEach(c=>c.checked=true));
+    clearAllBtn.addEventListener("click", ()=> document.querySelectorAll(".pick").forEach(c=>c.checked=false));
+    fullBtn.addEventListener("click", ()=> bulkGrind(10,"Full-time"));
+    partBtn.addEventListener("click", ()=> bulkGrind(5,"Part-time"));
+
+    load();
+  </script>
+  
+</body>
+</html>

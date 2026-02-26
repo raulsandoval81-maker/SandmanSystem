@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete Onboarding — Sandman</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/athlete-onboarding/onboarding.css"/>
+  <link rel="stylesheet" href="/intake-shared/shared.css"/>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <!-- Panel A: Splash -->
+    <section id="panel-splash">
+      <h1>Welcome to Sandman Combat</h1>
+      <p class="sub">Your journey begins here.</p>
+
+      <div class="card">
+        <h2>You’re All Set</h2>
+        <p class="muted">
+          Coach has approved your profile. Tap below to begin onboarding.
+        </p>
+        <button id="btn-start" class="btn solid-gold" type="button">Begin Onboarding</button>
+      </div>
+
+      <p class="muted small" style="text-align:center;margin-top:18px">
+        Built in the Shadows. 
+      </p>
+    </section>
+
+    <!-- Panel B: Step 1 (Is this you?) -->
+    <section id="panel-verify" class="hidden">
+      <h1>Is this you?</h1>
+      <p class="sub">Confirm your profile.</p>
+      <div class="progress"><span class="pill">Step 1 of 8</span></div>
+
+      <p id="token-status" class="status">Loading…</p>
+
+      <div id="name-card" class="card hidden">
+        <div class="kv">
+          <div class="k">Name</div>
+          <div class="v" id="athlete-name">—</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Mint Virtue Tag</div>
+          <div class="v" id="virtue-output">—</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">UID</div>
+          <div class="v" id="mini-uid">—</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Track</div>
+          <div class="v" id="mini-track">—</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Tier</div>
+          <div class="v" id="mini-tier">—</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">Team</div>
+          <div class="v" id="mini-team">—</div>
+        </div>
+
+        <div class="kv">
+          <div class="k">City / State</div>
+          <div class="v" id="mini-citystate">—</div>
+        </div>
+
+        <div class="row">
+          <button id="btn-verify" class="btn solid-gold" type="button">Yes — This is me</button>
+          <button id="btn-not-me" class="btn solid-dark" type="button">No — Not me</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script type="module" src="/athlete-onboarding/onboarding.js"></script>
+</body>
+</html>

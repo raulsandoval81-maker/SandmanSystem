@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sandman | Parent Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../assets/css/parent.css" />
+<!-- Top Bar -->
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+<div class="page-head">
+  <h1 class="page-title">Parent Hub</h1>
+  <p class="page-sub">
+    Partnering with you to grow strong athletes — and stronger people.
+  </p>
+</div>
+  <main class="main">
+    <section class="grid grid--2">
+      <article class="card">
+        <h3 class="card__title" style="color:var(--p-warn)">Creed</h3>
+        <p class="card__muted"><strong>Strength and honor in the home.</strong> Parents set the tone with respect,
+        integrity, and calm — kids carry that into sport and life.</p>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title" style="color:var(--p-warn)">Code</h3>
+        <p class="card__muted"><strong>Support, encourage, and trust the process.</strong> We value growth over
+        shortcuts: effort, discipline, and respect lead the way.</p>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title" style="color:#ffd33d">Goal</h3>
+        <p class="card__muted"><strong>Grow the spark in our kids.</strong> Help them love the sport and the
+        brotherhood/sisterhood — learning focus, effort, discipline, and respect.</p>
+      </article>
+
+      <article class="card">
+        <h3 class="card__title" style="color:#ffd33d">Mission</h3>
+        <p class="card__muted"><strong>Raising winners for life.</strong> We can’t all be champions, but we can all
+        be-winners — belief first, mindset for the long run.</p>
+      </article>
+    </section>
+
+    <section class="card">
+      <div class="badge">Tips: Review weekly → then open <a class="p-btn p-btn--accent" style="margin-left:.6rem" href="./index.html">Parent Tools</a></div>
+      <p class="note" style="margin-top:.6rem">This page is values-first and intentionally simple. All actions live in the tools hub.</p>
+    </section>
+  </main>
+</body>
+<!-- Shared services -->
+<script src="../js/shared/service.js"></script>
+<script src="../js/shared/events-service.js"></script>
+<script src="../js/shared/comms-service.js"></script>
+
+<!-- Parent app (use the ones you actually have) -->
+<script src="../js/parent/parent-corner.js"></script>
+<script src="../js/parent/parent-calendar.js"></script>
+<script src="../js/parent/parent-ask.js"></script>
+<script src="../js/parent/parent-notifications.js"></script>
+<script>
+  window.SESSION = {
+    role: 'parent',
+    id:   'parent_demo',
+    linkedAthletes: ['demo08A']
+  };
+</script>
+<script>
+  const pqSendBtn = document.getElementById('pqa-send');
+  pqSendBtn?.addEventListener('click', async () => {
+    const topicSel = document.getElementById('pqa-topic');
+    const athSel   = document.getElementById('pqa-athlete');
+    const bodyEl   = document.getElementById('pqa-body');
+
+    const topic = (topicSel?.value || 'athlete');
+    const aboutUid = (athSel?.value || SESSION.linkedAthletes[0]);
+    const text  = (bodyEl?.value || '').trim();
+    if (!text) return;
+
+    const th = await openThread({
+      topic,
+      priority: 'normal',
+      from: SESSION.id,
+      to:   ['coach_mgr'],             // staff always included
+      aboutUid
+    });
+    await postMessage({ threadId: th.id, text, by: SESSION.id });
+    bodyEl.value = '';
+    loadParentThreads();               // refresh list
+  });
+
+  async function loadParentThreads() {
+    const me = SESSION.id;
+    const ul = document.getElementById('pqa-threads');
+    const threads = await DB.query('messages_threads', t => t.participants?.includes(me));
+    ul.innerHTML = threads
+      .sort((a,b)=>b.lastMessageAt-a.lastMessageAt)
+      .map(t => `<li><strong>${t.topic}</strong> – ${new Date(t.lastMessageAt).toLocaleString()}</li>`)
+      .join('') || '<li class="muted">No questions yet.</li>';
+  }
+  document.addEventListener('DOMContentLoaded', loadParentThreads);
+</script>
+
+</html>

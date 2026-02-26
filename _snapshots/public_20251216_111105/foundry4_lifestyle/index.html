@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Foundry — Lifestyle (Public) | Sandman System™</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    .wrap{max-width:1100px;margin:0 auto;padding:2rem 1.25rem}
+    .top-nav{background:#0f141b;border-bottom:2px solid #ffd633;padding:.75rem 1.5rem;position:sticky;top:0;z-index:1000}
+    .nav-container{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:.5rem}
+    .nav-logo{font-size:1.25rem;font-weight:700;color:#ffd633;text-transform:uppercase;letter-spacing:1px}
+    .nav-links{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center}
+
+    .hero{background:#121821;border:1px solid #243041;border-radius:16px;padding:1.25rem;text-align:left;box-shadow:0 0 14px rgba(0,0,0,.35);margin-bottom:1.25rem}
+    .track-chip{display:inline-block;padding:.28rem .7rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;letter-spacing:.02em;font-size:.82rem}
+
+    .kicker{ text-transform:uppercase; letter-spacing:.06em; color:#9fb3c8; font-weight:800; margin:1.25rem 0 .75rem;}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+    @media(max-width:900px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){.grid{grid-template-columns:1fr}}
+    .card{background:#0f141b;border:1px solid #243041;border-radius:14px;padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+    .card h3{margin:.1rem 0;color:#ffd633}
+    .img-slot{height:140px;border:2px dashed #3a4a60;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#9fb3c8;font-weight:700}
+    .list{margin:.25rem 0 0 1rem;color:#d8e0ea}
+    .actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.25rem}
+
+    .btn{display:inline-block;padding:.55rem .95rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;text-decoration:none}
+    .btn:hover{transform:translateY(-1px)}
+    .btn.secondary{background:transparent;color:#ffd633}
+
+    .footer{background:#0f141b;border-top:2px solid #ffd633;padding:1rem 1.5rem;margin-top:2rem}
+    .footer-container{max-width:1200px;margin:0 auto;display:flex;gap:1rem;align-items:center;justify-content:center;flex-wrap:wrap}
+    .footer-title{font-weight:700;color:#ffd633}
+    .footer-links{display:flex;gap:1.25rem;flex-wrap:wrap}
+    .footer-links a{color:#f3f4f6;text-decoration:none;font-weight:500}
+    .footer-links a:hover{color:#ff4d4d}
+    .footer-lock-note{background:#1a1f29;border-top:1px solid #333;padding:.5rem;margin-top:.75rem;text-align:center;color:#ffd633;font-weight:600;font-size:.95rem}
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="top-nav">
+    <div class="nav-container">
+      <div class="nav-logo">Sandman System</div>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="../overview.html">Overview</a>
+        <a href="../programs.html">Programs</a>
+        <a href="../contact.html">Contact</a>
+        <a href="../about.html">About</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Breadcrumb -->
+    <nav aria-label="Breadcrumb" style="margin:.25rem 0 1rem;color:#9fb3c8">
+      <a href="../index.html" style="color:#ffd633;text-decoration:none">Home</a> ›
+      <span>Foundry — Lifestyle (Public)</span>
+    </nav>
+
+    <h1>Foundry — Lifestyle (Public)</h1>
+    <div class="track-chip">Public Lifestyle</div>
+
+    <section class="hero">
+      <p>Lifestyle is the engine behind performance: sleep, nutrition, mindset, recovery, and habits. This area is a public preview; live tracking and coach dashboards stay private.</p>
+      <div class="actions" style="margin-top:.5rem">
+        <a class="btn" href="hub.html">Open Lifestyle Hub</a>
+        <a class="btn secondary" href="../index.html">Home</a>
+      </div>
+    </section>
+
+    <h2 class="kicker">Featured Pillars</h2>
+    <section class="grid" aria-label="Lifestyle Pillars">
+      <article class="card">
+        <h3>Sleep</h3>
+        <div class="img-slot">[ sleep schedule ]</div>
+        <ul class="list">
+          <li>Bedtime routines</li>
+          <li>Screen cutoffs</li>
+          <li>Recovery scores</li>
+        </ul>
+        <div class="actions"><a class="btn" href="hub.html#sleep">Learn More</a></div>
+      </article>
+
+      <article class="card">
+        <h3>Nutrition</h3>
+        <div class="img-slot">[ plate model ]</div>
+        <ul class="list">
+          <li>Simple meal frameworks</li>
+          <li>Hydration habits</li>
+          <li>Competition fueling</li>
+        </ul>
+        <div class="actions"><a class="btn" href="hub.html#nutrition">Learn More</a></div>
+      </article>
+
+      <article class="card">
+        <h3>Mindset</h3>
+        <div class="img-slot">[ journaling ]</div>
+        <ul class="list">
+          <li>Rules of Life</li>
+          <li>Journaling prompts</li>
+          <li>Breath & composure</li>
+        </ul>
+        <div class="actions"><a class="btn" href="hub.html#mindset">Learn More</a></div>
+      </article>
+    </section>
+
+    <p class="actions" style="justify-content:center;margin-top:1rem">
+      <a class="btn" href="hub.html">Go to Lifestyle Hub →</a>
+    </p>
+  </main>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <span class="footer-title">Coach Zone 🔒</span>
+      <nav class="footer-links" aria-label="Coach Zone">
+        <a href="../coaches.html">Coach Hub</a>
+        <a href="../ceremonies.html">Ceremonies</a>
+        <a href="../leaderboards.html">Leaderboards</a>
+        <a href="../tools.html">Tools</a>
+      </nav>
+    </div>
+    <div class="footer-lock-note">
+      🔒 Coaches Only — Login required for full access
+    </div>
+  </footer>
+</body>
+</html>

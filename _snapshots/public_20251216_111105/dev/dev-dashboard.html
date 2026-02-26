@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sandman • Master Dev Dashboard</title>
+
+  <style>
+    :root{
+      --bg:#0e141c;
+      --panel:#121821;
+      --deep:#0c1119;
+      --line:#2f3a4e;
+      --brand:#ffdd48;
+      --text:#e4e7eb;
+      --muted:#9fb3c8;
+      --hover:#1b2331;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:28px 18px 60px;
+    }
+
+    /* HEADER */
+    .top{
+      display:flex;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:4px;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.55rem;
+      font-weight:700;
+      color:var(--brand);
+      text-shadow:0 0 12px rgba(255,221,72,0.18);
+      letter-spacing:.02em;
+    }
+
+    .badge{
+      padding:4px 12px;
+      border-radius:999px;
+      background:var(--brand);
+      color:#111;
+      font-size:.7rem;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+
+    p.lead{
+      color:var(--muted);
+      margin:.35rem 0 1.2rem;
+      font-size:.92rem;
+      max-width:780px;
+      line-height:1.45;
+    }
+
+    /* SECTION */
+    .section{
+      margin-top:32px;
+    }
+
+    .section h2{
+      color:var(--brand);
+      margin:0 0 12px;
+      font-size:1.08rem;
+      letter-spacing:.03em;
+      text-shadow:0 0 8px rgba(255,221,72,0.12);
+    }
+
+    /* GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:16px;
+    }
+
+    /* TILES */
+    a.tile{
+      display:block;
+      text-decoration:none;
+      cursor:pointer;
+      background:var(--panel);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:16px 15px;
+      border-radius:12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.30);
+      transition:all .22s ease;
+    }
+
+    a.tile:hover{
+      background:var(--hover);
+      border-color:var(--brand);
+      transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(0,0,0,.40);
+    }
+
+    .cat{
+      font-size:.63rem;
+      font-weight:700;
+      color:var(--brand);
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:.45rem;
+      opacity:.92;
+    }
+
+    .title{
+      font-size:.97rem;
+      font-weight:700;
+    }
+
+    .sub{
+      margin-top:.28rem;
+      color:#cbd5e1;
+      font-size:.82rem;
+      line-height:1.45;
+    }
+
+    /* DEAD TILE (future/locked) */
+    .tile-dead,
+    .dead{
+      opacity:.55;
+      border-style:dashed;
+      pointer-events:none;
+    }
+
+    /* FOOTER */
+    footer{
+      margin-top:48px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.85rem;
+      opacity:.8;
+    }
+  </style>
+
+  <script>
+    // Auto-fix relative links depending on environment
+    const base = window.location.pathname.includes("/dev/") ? "../" : "./";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("a[data-link]").forEach(a => {
+        a.href = base + a.getAttribute("data-link");
+      });
+    });
+  </script>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <!-- HEADER -->
+    <div class="top">
+      <h1>Sandman System — Master Dev Dashboard</h1>
+      <span class="badge">LOCAL • EMULATOR</span>
+    </div>
+
+    <p class="lead">
+      All Coach, Athlete, Parent, and Tournament tools consolidated into one master panel.
+      Everything mirrors automatically to <code>localhost:5000</code> or production.
+    </p>
+
+
+    <!-- ========================================================= -->
+    <!-- PUBLIC PREVIEW -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Public Preview</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="index.html">
+          <div class="cat">Public</div>
+          <div class="title">Home / Landing</div>
+          <div class="sub">Entry for parents & athletes.</div>
+        </a>
+
+        <a class="tile" data-link="overview.html">
+          <div class="cat">Public</div>
+          <div class="title">Overview</div>
+          <div class="sub">What Sandman is · Why it works.</div>
+        </a>
+
+        <a class="tile" data-link="programs.html">
+          <div class="cat">Public</div>
+          <div class="title">Programs</div>
+          <div class="sub">Foundry 8 Youth · Foundry 4 Older.</div>
+        </a>
+
+        <a class="tile" data-link="schedule/index.html">
+          <div class="cat">Public</div>
+          <div class="title">Schedule</div>
+          <div class="sub">Practice & event rhythm.</div>
+        </a>
+
+        <a class="tile" data-link="tools.html">
+          <div class="cat">Public</div>
+          <div class="title">Coach Tools Preview</div>
+          <div class="sub">Static demo of toolboard.</div>
+        </a>
+
+        <a class="tile" data-link="leaderboards.html">
+          <div class="cat">Public</div>
+          <div class="title">Leaderboards (Demo)</div>
+          <div class="sub">XP preview for families.</div>
+        </a>
+
+
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- CORE COACH -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Core Coach Tools</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="../intake-coach/index.html">
+          <div class="cat">Intake</div>
+          <div class="title">Sandman Silver — Intake</div>
+          <div class="sub">Coach → Parent → Athlete · Waiver flow.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/roster.html">
+          <div class="cat">Coach</div>
+          <div class="title">Team Roster</div>
+          <div class="sub">Profiles · XP · badges.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/coach-console.html">
+          <div class="cat">Coach</div>
+          <div class="title">Coach Console</div>
+          <div class="sub">Arena XP + practice ops.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/daily-grind.html">
+          <div class="cat">Coach</div>
+          <div class="title">Daily Grind XP</div>
+          <div class="sub">Block triggers → incrementXpHttp.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/coach-daily-clipboard.html">
+          <div class="cat">Coach</div>
+          <div class="title">Daily Clipboard</div>
+          <div class="sub">Flow for 60-minute practice.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/coaches-weekend-xp.html">
+          <div class="cat">Coach</div>
+          <div class="title">Weekend XP</div>
+          <div class="sub">Battle · Podium · StyleIQ.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/prestige-awards-xp.html">
+          <div class="cat">Coach</div>
+          <div class="title">Prestige XP</div>
+          <div class="sub">Lion · Tiger · Bear.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/arena-log.html">
+          <div class="cat">Coach</div>
+          <div class="title">Arena Log</div>
+          <div class="sub">Audit trail.</div>
+        </a>
+
+        <a class="tile" data-link="coaches/coach-notes.html">
+          <div class="cat">Coach</div>
+          <div class="title">Coach Notes</div>
+          <div class="sub">Behavior & reflections.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- ATHLETE -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Athlete Portal</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="athlete.html">
+          <div class="cat">Athlete</div>
+          <div class="title">Athlete Dashboard</div>
+          <div class="sub">XP bar · stripes · goals.</div>
+        </a>
+
+        <a class="tile" data-link="athlete-log-history.html">
+          <div class="cat">Athlete</div>
+          <div class="title">XP Log History</div>
+          <div class="sub">Month-by-month breakdown.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- PARENT / PARA COMMS -->
+    <!-- ========================================================= -->
+<section class="section">
+  <h2>Parent Tools & Para-Comms</h2>
+  <div class="grid">
+
+    <!-- Parent Home -->
+    <a class="tile" data-link="/coach/para/parent/parent-landing.html">
+      <div class="cat">Parent</div>
+      <div class="title">Parent Landing</div>
+      <div class="sub">QR start point.</div>
+    </a>
+
+    <!-- Parent Para Index -->
+    <a class="tile" data-link="coach/para/index.html">
+      <div class="cat">Para-Comms</div>
+      <div class="title">Parent Portal</div>
+      <div class="sub">The full parent A–D tools.</div>
+    </a>
+
+    <!-- Parent Announcement Feed -->
+    <a class="tile" data-link="coach/para/parent/announcements.html">
+      <div class="cat">Announcements</div>
+      <div class="title">Parent Bulletin</div>
+      <div class="sub">Parents read coach announcements.</div>
+    </a>
+
+    <!-- Parent Send Message -->
+    <a class="tile" data-link="coach/para/inbox-send.html">
+      <div class="cat">Para-Comms</div>
+      <div class="title">Message Coach</div>
+      <div class="sub">Parent → Coach direct messages.</div>
+    </a>
+
+    <!-- COACH ANNOUNCEMENT POST -->
+    <a class="tile" data-link="coach/para/coach/announcements-post.html">
+      <div class="cat">Coach</div>
+      <div class="title">Post Announcement</div>
+      <div class="sub">Coach creates bulletins.</div>
+    </a>
+
+    <!-- COACH ANNOUNCEMENT FEED -->
+    <a class="tile" data-link="coach/para/coach/announcements.html">
+      <div class="cat">Coach</div>
+      <div class="title">Announcements Feed</div>
+      <div class="sub">Coach sees all bulletins.</div>
+    </a>
+
+    <!-- COACH INBOX -->
+    <a class="tile" data-link="coach/para/coach/inbox.html">
+      <div class="cat">Para-Comms</div>
+      <div class="title">Coach Inbox</div>
+      <div class="sub">Read & reply to parent messages.</div>
+    </a>
+
+    <!-- PARENT VOLUNTEER FORM -->
+    <a class="tile" data-link="coach/para/volunteer.html">
+      <div class="cat">Volunteer</div>
+      <div class="title">Volunteer Signup</div>
+      <div class="sub">Parents sign up for duties.</div>
+    </a>
+
+  </div>
+</section>
+
+<!-- ===================== -->
+<!-- COACH PARA-COMMS TEST -->
+<!-- ===================== -->
+
+<div class="card" onclick="location.href='/coach/para/coach/inbox.html'">
+  <h3>Coach Inbox (Pilot)</h3>
+  <p>Read & reply to parent messages.</p>
+</div>
+
+<div class="card" onclick="location.href='/coach/para/coach/announcements-post.html'">
+  <h3>Coach Announcements Post</h3>
+  <p>Create & send announcement bulletins.</p>
+</div>
+
+<div class="card" onclick="location.href='/coach/para/coach/announcements.html'">
+  <h3>Coach Announcement Feed</h3>
+  <p>View all announcements sent out.</p>
+</div>
+
+                <a class="tile" data-link="coach/para/inbox.html">
+           <div class="cat">Para-Comms</div>
+           <div class="title">Coach Inbox (Pilot)</div>
+           <div class="sub">Read parent messages + reply.</div>
+         </a>
+
+        <a class="tile" data-link="coach/para/index.html">
+         <div class="cat">Para-Comms</div>
+         <div class="title">Parent Message Send (Pilot)</div>
+         <div class="sub">EN/ES message builder → submit to coach.</div>
+      </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- TOURNAMENT ENGINE -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Tournament Engine</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="tournament-engine/index.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Master Panel</div>
+          <div class="sub">Central meet control.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/brackets/bracket-buster.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Bracket Buster</div>
+          <div class="sub">RR · Single · Double.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/bout-sheets/boutsheet.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Bout Sheets</div>
+          <div class="sub">Printable match sheets.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/mats/mat-console.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Mat Console (Pro)</div>
+          <div class="sub">Timers · Penalties · Control.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/mats/mat-console-lite.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Mat Console (Lite)</div>
+          <div class="sub">Simplified timer.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/logs/bout-log.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Bout Log</div>
+          <div class="sub">Timestamped actions.</div>
+        </a>
+
+        <a class="tile" data-link="tournament-engine/exports/export-center.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Export Center</div>
+          <div class="sub">Brackets · logs · PDFs.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- DEV TOOLS -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Dev Tools & Internal Lab</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="dev/dev-dashboard.html">
+          <div class="cat">Dev</div>
+          <div class="title">Dev Dashboard</div>
+          <div class="sub">Internal tool index.</div>
+        </a>
+
+        <a class="tile" data-link="dev/icon-lab.html">
+          <div class="cat">Dev</div>
+          <div class="title">Icon Lab</div>
+          <div class="sub">SVG · icons · theme test.</div>
+        </a>
+
+        <a class="tile" data-link="dev/css-lab.html">
+          <div class="cat">Dev</div>
+          <div class="title">CSS Lab</div>
+          <div class="sub">Try new UI systems.</div>
+        </a>
+
+        <a class="tile" data-link="dev/xp-tests.html">
+          <div class="cat">Dev</div>
+          <div class="title">XP Tests</div>
+          <div class="sub">Test incrementXpHttp.</div>
+        </a>
+
+        <a class="tile" data-link="dev/firebase-lab.html">
+          <div class="cat">Dev</div>
+          <div class="title">Firebase Lab</div>
+          <div class="sub">Auth · Firestore · Functions.</div>
+        </a>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- ARCHIVE -->
+    <!-- ========================================================= -->
+    <section class="section">
+      <h2>Archive (Legacy Builds)</h2>
+      <div class="grid">
+
+        <a class="tile" data-link="/silver.html">
+          <div class="cat">Archive</div>
+          <div class="title">Sandman Silver (v1)</div>
+          <div class="sub">Original intake build.</div>
+        </a>
+
+        <a class="tile" data-link="archive/v1-leaderboards.html">
+          <div class="cat">Archive</div>
+          <div class="title">Leaderboards (v1)</div>
+          <div class="sub">Early XP prototype.</div>
+        </a>
+
+        <a class="tile" data-link="archive/v1-boutsheet.html">
+          <div class="cat">Archive</div>
+          <div class="title">Bout Sheet (v1)</div>
+          <div class="sub">Paper console draft.</div>
+        </a>
+
+        <a class="tile" data-link="archive/v1-para-comms.html">
+          <div class="cat">Archive</div>
+          <div class="title">Para-Comms (v1)</div>
+          <div class="sub">First bilingual builder.</div>
+        </a>
+
+        <a class="tile" data-link="archive/v1-strength-honor.html">
+          <div class="cat">Archive</div>
+          <div class="title">Strength & Honor (v1)</div>
+          <div class="sub">Proto-lane art.</div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <p>&copy; 2025 Sandman System™ — All Rights Reserved</p>
+      <p>Master Dev Dashboard · v3</p>
+    </footer>
+
+  </main>
+
+  <script src="assets/js/dev-portal.js"></script>
+</body>
+</html>

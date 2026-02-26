@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Coaches • Tool Index</title>
+  <title>Coaches • Index</title>
   <link rel="stylesheet" href="../assets/css/site.css">
   <style>
     :root { color-scheme: dark; }
@@ -23,7 +23,7 @@
       background:#0f141b;
       border:1px solid #1d2430;
       border-radius:18px;
-      padding:18px 20px 20px;
+      padding:18px 20px 16px;
       box-shadow:0 10px 26px rgba(0,0,0,.35);
       margin-bottom:18px;
       text-align:center;
@@ -31,13 +31,40 @@
     .hero h1{
       margin:0;
       color:#ffd633;
-      font-size:1.8rem;
+      font-size:1.85rem;
       text-shadow:0 0 12px rgba(255,214,51,.25);
+      letter-spacing:.02em;
     }
     .hero p{
-      margin:6px 0 0;
+      margin:8px 0 0;
       color:#9ca3af;
       font-size:.9rem;
+      line-height:1.45;
+    }
+
+    .navrow{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:14px 0 0;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.45rem .9rem;
+      border-radius:999px;
+      background:#0b1017;
+      border:1px solid #1d2430;
+      color:#eaeaea;
+      text-decoration:none;
+      font-weight:800;
+      font-size:.78rem;
+    }
+    .pill:hover{
+      border-color:#e63946;
+      box-shadow:0 0 10px rgba(230,57,70,.35);
     }
 
     .metrics{
@@ -53,6 +80,7 @@
       margin:0 0 .4rem;
       font-size:1rem;
       color:#ffdd48;
+      letter-spacing:.02em;
     }
     .metrics-row{
       display:flex;
@@ -60,6 +88,7 @@
       justify-content:center;
       flex-wrap:wrap;
       font-size:.9rem;
+      color:#e5e7eb;
     }
     .metrics small{
       display:block;
@@ -70,28 +99,24 @@
 
     .section-kicker{
       font-size:1.05rem;
-      font-weight:700;
+      font-weight:900;
       color:#ffd633;
       margin:2rem 0 1rem;
       text-transform:uppercase;
-      letter-spacing:.04em;
-    }
-    .section-kicker:hover{
-      color:#e63946;
-      text-shadow:0 0 10px rgba(230,57,70,.4);
+      letter-spacing:.06em;
     }
 
     .tools-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-      gap:1.4rem;
+      gap:1.1rem;
     }
 
     .tool-card{
       background:#0b1017;
       border:1px solid #1f2937;
       border-radius:12px;
-      padding:1rem .9rem 1.1rem;
+      padding:1rem .95rem 1.05rem;
       box-shadow:0 10px 18px rgba(0,0,0,.22);
       display:flex;
       flex-direction:column;
@@ -102,11 +127,12 @@
       margin:0;
       color:#ffdd48;
       font-size:1rem;
+      letter-spacing:.01em;
     }
     .tool-card p{
       font-size:.78rem;
       color:#9ca3af;
-      line-height:1.4;
+      line-height:1.45;
       margin:0;
     }
     .tool-card:hover{
@@ -120,18 +146,47 @@
       border:none;
       border-radius:999px;
       padding:.45rem 1rem;
-      font-weight:700;
+      font-weight:900;
       text-decoration:none;
       cursor:pointer;
       font-size:.75rem;
+      width:max-content;
     }
     .btn-red{
       background:#e53935;
       color:#fff;
       box-shadow:0 0 10px rgba(229,57,53,.35);
     }
-    .btn-red:hover{
-      background:#ff4758;
+    .btn-red:hover{ background:#ff4758; }
+
+    .tagrow{display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:.1rem}
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      width:max-content;
+      padding:.22rem .6rem;
+      border-radius:999px;
+      border:1px solid #1d2430;
+      background:#0f141b;
+      color:#cfd7e6;
+      font-size:.66rem;
+      font-weight:900;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+    .tag.live{ border-color:#22c55e55; }
+    .tag.testing{ border-color:#f59e0b55; }
+    .tag.soon{ border-color:#60a5fa55; }
+    .tag.scaffold{ border-color:#64748b55; }
+    .tag.sacred{ border-color:#ffd63380; }
+
+    .fine{
+      color:#94a3b8;
+      font-size:.72rem;
+      margin:.4rem 0 0;
+      text-align:center;
+      line-height:1.35;
     }
 
     @media (max-width:720px){
@@ -142,150 +197,366 @@
 <body>
 <main class="wrap">
 
-  <!-- Coach Quick Metrics (placeholder) -->
+  <!-- Snapshot (placeholder) -->
   <section class="metrics">
-    <h2>Coach Dashboard Snapshot</h2>
+    <h2>Coach Snapshot</h2>
     <div class="metrics-row">
-      <div><strong>Active Athletes:</strong> 42</div>
-      <div><strong>XP Logs Today:</strong> 16</div>
-      <div><strong>Next Event:</strong> Sept 12</div>
+      <div><strong>Active Athletes:</strong> —</div>
+      <div><strong>XP Logs Today:</strong> —</div>
+      <div><strong>Next Event:</strong> —</div>
     </div>
-    <small>* Placeholder values — hook to Firestore later.</small>
+    <small>* Placeholder. Hook later.</small>
   </section>
 
-  <!-- Header / hero -->
+  <!-- Hero -->
   <header class="hero">
-    <h1>Coaches • Index</h1>
-    <p>Core first. Ops second. Prestige extras last. Clean lanes, no clutter.</p>
+    <h1>Coach Console</h1>
+    <p>
+      Test → refine → repeat. <br>
+      Command Center drives the data. Prestige Arena stays sacred.
+    </p>
+
+    <div class="navrow">
+      <a class="pill" href="../index.html">System Home</a>
+      <a class="pill" href="/coaches/index.html">Refresh Console</a>
+    </div>
+
+    <div class="fine">
+      V1 rule: keep “what you use today” clean. Everything else lives in Scaffolding with a label.
+    </div>
   </header>
 
-  <!-- ========== CORE (LIVE) ========== -->
+  <!-- DAILY -->
   <section>
-    <h2 class="section-kicker">Core</h2>
+    <h2 class="section-kicker">Daily</h2>
     <div class="tools-grid">
 
       <article class="tool-card">
-        <h3>Coach Console</h3>
-        <p>Rapid weekend/event inputs, XP calls, and live feed.</p>
-        <a class="btn btn-red" href="coaches/coach-console.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Daily Grind XP</h3>
-        <p>Give +10 / +5 straight to the XP function (daily).</p>
-        <a class="btn btn-red" href="coaches/daily-grind.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Coach’s Daily Clipboard</h3>
-        <p>Plan, time, and track daily practices — your command center.</p>
-        <a class="btn btn-red" href="coaches/coaches-daily-clipboard.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Arena / Event Log</h3>
-        <p>Battle, podium, match IQ, penalty — logs to Firestore + XP.</p>
-        <a class="btn btn-red" href="coaches/arena-log.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Weekend Arena XP</h3>
-        <p>Battle + podium + match IQ + prestige flag for Saturday events.</p>
-        <a class="btn btn-red" href="coaches/coaches-weekend-xp.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Prestige Arena XP</h3>
-        <p>State (3× max), Regional (1×), National (1×) — cap enforced.</p>
-        <a class="btn btn-red" href="coaches/prestige-awards-Xp.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Coach Notes</h3>
-        <p>Injury / parent / athlete feedback in separate lanes.</p>
-        <a class="btn btn-red" href="coaches/coach-notes.html">Open</a>
-      </article>
-
-      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
         <h3>Team Roster</h3>
-        <p>See all athletes, XP bars, open profiles right from coach view.</p>
-        <a class="btn btn-red" href="coaches/roster.html">Open</a>
+        <p>All athletes, bars, tiers, status. Launch point for everything else.</p>
+        <a class="btn btn-red" href="/coaches/roster.html">Open</a>
       </article>
 
       <article class="tool-card">
-        <h3>New Athlete Intake</h3>
-        <p>Onboard athletes with consistent profiles and starting points.</p>
-        <a class="btn btn-red" href="coaches/intake.html">Open</a>
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>XP Daily Grind</h3>
+        <p>Full Grind +10 / Half Grind +5. Clean receipts. Cap enforced.</p>
+        <a class="btn btn-red" href="/coaches/daily-xp/daily-grind.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag testing">TESTING</span></div>
+        <h3>Coach’s Practice Clipboard</h3>
+        <p>Plan, time, and track practice — your daily command board.</p>
+        <a class="btn btn-red" href="/coaches/coaches-daily-clipboard.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag testing">TESTING</span></div>
+        <h3>Coach Notes</h3>
+        <p>Injury / parent / athlete notes. Office lane (separate from XP).</p>
+        <a class="btn btn-red" href="/coaches/coach-notes.html">Open</a>
+      </article>
+
+    </div>
+  </section>
+  <!-- PARA-COMMS -->
+  <section>
+    <h2 class="section-kicker">Para-Comms</h2>
+    <div class="tools-grid">
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Parent Threads (1:1)</h3>
+        <p>Single-thread per parent. Read + reply. Flags & receipts.</p>
+        <a class="btn btn-red" href="/coach/para/admin/hub.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Announcements (Broadcast)</h3>
+        <p>Post updates to all / parents / athletes. Pin, edit, archive.</p>
+        <a class="btn btn-red" href="/coach/para/admin/broadcast.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag testing">TESTING</span></div>
+        <h3>Parent View (Preview)</h3>
+        <p>What parents see. Compose → thread flow.</p>
+        <a class="btn btn-red" href="/coach/para/parent/index.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag testing">TESTING</span></div>
+        <h3>Athlete View (Preview)</h3>
+        <p>What athletes see. Announcements + logs later.</p>
+        <a class="btn btn-red" href="/coach/para/athlete/index.html">Open</a>
+      </article>
+
+    </div>
+  </section>
+  <!-- STRENGTH + HONOR -->
+  <section>
+    <h2 class="section-kicker">Strength & Honor</h2>
+    <div class="tools-grid">
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Strength — Athlete Log</h3>
+        <p>Log sessions. XP lane climbs. Caps enforced.</p>
+        <a class="btn btn-red" href="/coach/strength/athlete-log.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Strength — Coach Feed</h3>
+        <p>Receipts. Review by athlete and date.</p>
+        <a class="btn btn-red" href="/coach/strength/coach-feed.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Honor — Athlete Log</h3>
+        <p>Arena mindset reflections. Short, structured, consistent.</p>
+        <a class="btn btn-red" href="/coach/honor/athlete-log.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Honor — Coach Feed</h3>
+        <p>Review reflections. Track discipline and follow-ups.</p>
+        <a class="btn btn-red" href="/coach/honor/coach-feed.html">Open</a>
       </article>
 
     </div>
   </section>
 
-  <!-- ========== TOOLS ========== -->
+  <!-- COMMS -->
   <section>
-    <h2 class="section-kicker">Tools</h2>
+    <h2 class="section-kicker">Comms</h2>
     <div class="tools-grid">
 
       <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Parent Threads</h3>
+        <p>One-on-one parent ↔ coach threads (single thread per parent).</p>
+        <a class="btn btn-red" href="/coach/para/admin/hub.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Announcements (Broadcast)</h3>
+        <p>Post updates to all / parents / athletes. Pin, edit, archive.</p>
+        <a class="btn btn-red" href="/coach/para/admin/broadcast.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Parent View (Preview)</h3>
+        <p>What parents see. Keep for testing and support.</p>
+        <a class="btn btn-red" href="/coach/para/parent/index.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Athlete View (Preview)</h3>
+        <p>What athletes see. Keep for testing and support.</p>
+        <a class="btn btn-red" href="/coach/para/athlete/index.html">Open</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- WEEKEND -->
+  <section>
+    <h2 class="section-kicker">Weekend</h2>
+    <div class="tools-grid">
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Coach Tournament Note Console</h3>
+        <p>Main ops console. This is where the data-drive happens.</p>
+        <a class="btn btn-red" href="/coaches/tournament.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>XP Weekend Arena</h3>
+        <p>Battle + Podium + Style/Fight IQ. Saturday event flow.</p>
+        <a class="btn btn-red" href="/coaches/arena-xp/weekend-arena.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag sacred">SACRED</span><span class="tag live">LIVE</span></div>
+        <h3>XP Prestige Arena</h3>
+        <p>State / Regional / National prestige awards — cap enforced.</p>
+        <a class="btn btn-red" href="/coaches/arena-xp/championship-arena.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag soon">SOON</span></div>
         <h3>Tournament Prep</h3>
-        <p>Checklists for brackets, weigh-ins, travel, and logistics.</p>
-        <a class="btn btn-red" href="coaches/tournament.html">Open</a>
+        <p>Brackets, weigh-ins, checklists, logistics. (Ops clipboard.)</p>
+        <a class="btn btn-red" href="/coaches/tournament.html">Open</a>
       </article>
 
       <article class="tool-card">
-        <h3>Team Support Hub</h3>
-        <p>Staff and volunteer roles, duties, and sign-ups.</p>
-        <a class="btn btn-red" href="team-support.html">Open</a>
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Arena / Event Log</h3>
+        <p>Event receipts and award history by athlete or tournament.</p>
+        <a class="btn btn-red" href="/coaches/arena-log.html">Open</a>
       </article>
 
       <article class="tool-card">
-        <h3>Athlete Motivation</h3>
-        <p>Video, audio, and story drops to keep kids showing up.</p>
-        <a class="btn btn-red" href="../athletes/motivation.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Conditioning & Stretch</h3>
-        <p>Sport-specific conditioning, mobility, and recovery.</p>
-        <a class="btn btn-red" href="conditioning.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>XP Reports</h3>
-        <p>Track XP growth, attendance, and milestones.</p>
-        <a class="btn btn-red" href="xp.reports.html">Open</a>
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>Declared Championship Event Arena</h3>
+        <p>Declared prestige event flow and receipts.</p>
+        <a class="btn btn-red" href="/coaches/arena-xp/declared-championship.html">Open</a>
       </article>
 
     </div>
   </section>
 
-  <!-- ========== EXTRAS ========== -->
+  <!-- MONTHLY -->
   <section>
-    <h2 class="section-kicker">Extras</h2>
+    <h2 class="section-kicker">Monthly</h2>
     <div class="tools-grid">
 
       <article class="tool-card">
-        <h3>Video Analysis</h3>
-        <p>Break down film with time-stamped notes and teaching points.</p>
-        <a class="btn btn-red" href="video-notes.html">Open</a>
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>XP Logs</h3>
+        <p>Read-only receipts. Your audit trail.</p>
+        <a class="btn btn-red" href="/coaches/xp-logs.html">Open</a>
       </article>
 
       <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>XP Reports</h3>
+        <p>Growth, milestones, summaries. (Keep here until you wire it.)</p>
+        <a class="btn btn-red" href="/coaches/xp.reports.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
         <h3>Recognition & Honors</h3>
-        <p>Badges, shirts, belts, awards — moments done right.</p>
-        <a class="btn btn-red" href="ceremonies.html">Open</a>
+        <p>Ceremony tooling and recognition flows. Not required for V1 engine.</p>
+        <a class="btn btn-red" href="/coaches/ceremonies.html">Open</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- COACH → ATHLETE -->
+  <section>
+    <h2 class="section-kicker">Coach → Athlete</h2>
+    <div class="tools-grid">
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Video Notes</h3>
+        <p>Film breakdown with timestamps, notes, and future AI hooks.</p>
+        <a class="btn btn-red" href="/coaches/video-notes.html">Open</a>
       </article>
 
       <article class="tool-card">
-        <h3>Tools Index</h3>
-        <p>Misc utilities and quick actions for coaches.</p>
-        <a class="btn btn-red" href="tools.html">Open</a>
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Athlete Live Log</h3>
+        <p>In-the-moment notes. Focus, Effort, Attitude, Respect.</p>
+        <a class="btn btn-red" href="/coaches/athlete-live-log.html">Open</a>
       </article>
 
       <article class="tool-card">
-        <h3>Resources Library</h3>
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Curriculum</h3>
+        <p>Your roadmap. Lessons, drills, and progress plans in one place.</p>
+        <a class="btn btn-red" href="/coaches/curriculum.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Practice Plans</h3>
+        <p>Session outlines and drill lists you can run today.</p>
+        <a class="btn btn-red" href="/coaches/practice-plans.html">Open</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- COACH → PARENT -->
+  <section>
+    <h2 class="section-kicker">Coach → Parent</h2>
+    <div class="tools-grid">
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag live">LIVE</span></div>
+        <h3>New Athlete Intake</h3>
+        <p>Bring athletes into the system with consistent profiles and starting points.</p>
+        <a class="btn btn-red" href="/coaches/intake.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Coach Q&A</h3>
+        <p>Quick standards, parent answers, and consistency checks.</p>
+        <a class="btn btn-red" href="/coaches/qa.html">Open</a>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- EXTRAS / SCAFFOLDING -->
+  <section>
+    <h2 class="section-kicker">Extras / Scaffolding</h2>
+    <div class="tools-grid">
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Coach Calendar</h3>
+        <p>Schedules, events, commitments. Keep in sight until it’s real.</p>
+        <a class="btn btn-red" href="/coaches/calendar.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Weekly Plan</h3>
+        <p>Coach emphasis for the week: themes, priorities, points of emphasis.</p>
+        <a class="btn btn-red" href="/coaches/coach-weekly.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Weekly Archive</h3>
+        <p>Past lessons, future insight. Find and reuse your best work.</p>
+        <a class="btn btn-red" href="/coaches/coach-weekly-archive.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Athlete Manager</h3>
+        <p>Search & manage athlete profiles from one place.</p>
+        <a class="btn btn-red" href="/coaches/athlete.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Coach Profile</h3>
+        <p>Your info & preferences. Standards that you lead with.</p>
+        <a class="btn btn-red" href="/coaches/coach.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Resources</h3>
         <p>Guides, templates, references to level up sessions.</p>
-        <a class="btn btn-red" href="resources.html">Open</a>
+        <a class="btn btn-red" href="/coaches/resources.html">Open</a>
+      </article>
+
+      <article class="tool-card">
+        <div class="tagrow"><span class="tag scaffold">SCAFFOLD</span></div>
+        <h3>Tools Index (Legacy)</h3>
+        <p>Older tools page. Keep it until you prune files after Blaze.</p>
+        <a class="btn btn-red" href="/coaches/tools.html">Open</a>
       </article>
 
     </div>

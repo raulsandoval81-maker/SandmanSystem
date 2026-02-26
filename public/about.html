@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>About | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    /* =========================
+       TOP NAV + DRAWER (Unified)
+       ========================= */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .nav-logo{
+      font-size:1rem;
+      font-weight:700;
+      color:#ffd633;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:#ffd633;
+      cursor:pointer;
+    }
+
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid #ffd633;
+      padding:1.5rem;
+      transition:.25s;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:500;
+      display:block;
+    }
+    .drawer-links a:hover{ color:#ff4d4d; }
+
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none;
+      transition:.25s;
+      z-index:1500;
+    }
+    .nav-backdrop.show{
+      opacity:1; pointer-events:auto;
+    }
+
+    /* =========================
+       LAYOUT
+       ========================= */
+    .wrap{ max-width:1100px; margin:0 auto; padding:2rem 1.25rem; }
+    .section{ margin:2rem 0; }
+    .section h1,
+    .section h2{ margin-bottom:.5rem; }
+    .section h2{ color:#ffd633; }
+
+    .lead{ color:#cfd3d9; line-height:1.6; }
+
+    /* =========================
+       HERO
+       ========================= */
+    .hero-box{
+      background:linear-gradient(to bottom, #8b0000, #1a1a1a);
+      border-radius:20px;
+      padding:2rem 1.5rem;
+      box-shadow:0 0 22px rgba(0,0,0,.7);
+    }
+    .hero-kicker{
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:.8rem;
+      color:#facc15;
+      font-weight:700;
+      margin-bottom:.3rem;
+    }
+    .hero-box h1{ margin:0 0 .5rem; }
+    .hero-sub{
+      color:#e5e7eb;
+      font-size:1rem;
+      margin-bottom:.75rem;
+    }
+    .hero-tag{
+      color:#9ca3af;
+      font-size:.92rem;
+    }
+
+    /* =========================
+       CARDS + GRIDS
+       ========================= */
+    .grid-2{ display:grid; gap:1rem; grid-template-columns:1fr; }
+    @media (min-width:900px){ .grid-2{ grid-template-columns:repeat(2,1fr); } }
+
+    .card{
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:14px;
+      padding:1rem;
+      box-shadow:0 0 14px rgba(0,0,0,.35);
+      height:100%;
+    }
+    .card h3{ margin-top:0; color:#f3f4f6; }
+
+    .diff-list{
+      list-style:none;
+      padding-left:0;
+      margin:.75rem 0 0;
+      color:#cfd3d9;
+      font-size:.95rem;
+    }
+    .diff-list li{
+      margin-bottom:.4rem;
+      position:relative;
+      padding-left:1.1rem;
+    }
+    .diff-list li::before{
+      content:"★";
+      position:absolute;
+      left:0;
+      top:0;
+      color:#facc15;
+      font-size:.8rem;
+      transform:translateY(1px);
+    }
+
+    /* =========================
+       CTA BUTTONS
+       ========================= */
+    .actions{
+      display:flex;
+      gap:.75rem;
+      flex-wrap:wrap;
+      margin-top:1rem;
+    }
+    .btn{
+      display:inline-block;
+      padding:.6rem 1.2rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111827;
+      font-weight:800;
+      text-decoration:none;
+      font-size:.9rem;
+    }
+    .btn.secondary{
+      background:#263142;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+    }
+    .btn:hover{ filter:brightness(1.05); }
+
+/* ===== Footer 5-across mobile dock ===== */
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap:.4rem;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:.4rem;
+  width:100%;
+}
+
+.footer-links a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:.6rem .25rem;
+  border:1px solid #243041;
+  background:#0b1020;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:900;
+  font-size:.8rem;
+  white-space:nowrap;
+  text-align:center;
+  transition: all .2s ease;
+
+  /* DEFAULT = yellow */
+  color:#ffd633;
+}
+
+/* Hover = white */
+.footer-links a:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+
+/* Current page stays yellow by default */
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  border-color:#ffd633;
+}
+
+/* Hover current page = white */
+.footer-links a[aria-current="page"]:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+/* smaller phones */
+@media (max-width:420px){
+  .footer-links a{
+    font-size:.7rem;
+    padding:.55rem .15rem;
+  }
+}
+/* smaller phones */
+@media (max-width:420px){
+  .footer-links a{
+    font-size:.7rem;
+    padding:.55rem .15rem;
+  }
+}
+  </style>
+</head>
+
+<body>
+  <!-- TOP NAV -->
+  <header class="top-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Sandman System™</a>
+    </div>
+  </header>
+
+
+  <!-- BACKDROP -->
+  <div class="nav-backdrop" id="navBackdrop"></div>
+
+  <main class="wrap">
+    <!-- HERO -->
+    <section class="section">
+      <div class="hero-box">
+        <div class="hero-kicker">About</div>
+<h1>Our Purpose</h1>
+<p class="hero-sub">
+  Built to develop disciplined athletes through earned progression and clear standards.
+</p>
+
+
+        <p class="lead">
+          Without guidance, growth becomes random.<br>
+          Without testing, confidence becomes fragile.<br>
+          Without accountability, potential stays theoretical.
+        </p>
+
+        <p class="lead">
+          The Sandman System™ was built to make growth intentional — structured, measured, and earned.
+        </p>
+
+        <p class="hero-tag">
+          We build the body. We regulate the mind. We test the character.
+        </p>
+        <p class="hero-tag">
+          Public pages explain why. The gym teaches how. Honor proves who.
+        </p>      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="section">
+      <h2>What We Believe</h2>
+      <div class="grid-2">
+        <article class="card">
+          <h3>Character Is Currency</h3>
+          <p class="lead">
+            What you practice daily becomes who you are when it matters.
+          </p>
+          <p class="lead">
+            <strong>Repetition builds identity.</strong><br>
+            Under pressure, you do not rise to intention — you fall to your habits.
+          </p>
+
+<p class="lead">
+  When recognition comes before proof, entitlement grows.
+  Here, proof comes first. Progress is earned in the open.
+  You don’t inherit rank. You build it.
+</p>
+          <ul class="diff-list">
+            <li>Effort is seen daily</li>
+            <li>Standards stay stable</li>
+            <li>Growth cannot be rushed</li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <h3>Combat Is the Tool</h3>
+          <p class="lead">
+            Combat isn’t the goal — it’s the teacher. It exposes habits, builds restraint, and demands accountability.
+          </p>
+           <p class="lead">Combat reveals what comfort conceals.</p>
+          <ul class="diff-list">
+            <li>Restraint before power</li>
+            <li>Control before dominance</li>
+            <li>Responsibility before freedom</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+
+  </main>
+
+  <footer class="footer">
+<div class="footer-links">
+  <a href="index.html">Home</a>
+  <a href="overview.html">Overview</a>
+  <a href="programs.html">Programs</a>
+  <a href="about.html">About</a>
+  <a href="ceremonies.html">Ceremonies</a>
+</div>
+  </footer>
+  </footer>
+
+
+  <script>
+    const btn = document.getElementById("navBtn");
+    const drawer = document.getElementById("navDrawer");
+    const backdrop = document.getElementById("navBackdrop");
+
+    btn.addEventListener("click", () => {
+      drawer.classList.add("open");
+      backdrop.classList.add("show");
+      document.body.style.overflow = "hidden";
+    });
+
+    function closeMenu() {
+      drawer.classList.remove("open");
+      backdrop.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+
+    backdrop.addEventListener("click", closeMenu);
+    drawer.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+
+    // highlight current page (safety)
+    const links = [...document.querySelectorAll(".drawer-links a, .footer-links a")];
+    links.forEach(link => {
+      if (link.href === window.location.href) link.setAttribute("aria-current","page");
+    });
+  </script>
+</body>
+</html>

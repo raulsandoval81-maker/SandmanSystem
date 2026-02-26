@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Message Coach | Para-Comms</title>
+
+<link rel="stylesheet" href="/coach/shared/comms.css">
+
+  <style>
+    /* Header adjustments */
+    .pc-header h1 {
+      font-size:1.2rem;
+      letter-spacing:.03em;
+    }
+
+    /* Page spacing */
+    .wrap {
+      padding-top:10px;
+    }
+
+    /* Help panel */
+    .pc-help {
+      background:#0e1935;
+      border:1px solid #27304a;
+      border-radius:14px;
+      padding:16px 18px;
+      margin-bottom:20px;
+      box-shadow:0 0 12px rgba(0,0,0,.18);
+    }
+    .pc-help p { font-size:.93rem; margin:.4rem 0; color:#dbe1e8; }
+    .pc-help strong { color:#ffdd48; }
+    .pc-help ul { margin:.4rem 0 0 1.2rem; padding:0; }
+    .pc-help ul li { font-size:.9rem; line-height:1.45; color:#c6ced8; }
+
+    /* Main panel */
+    .pc-main {
+      background:#0e1935;
+      border:1px solid #27304a;
+      border-radius:14px;
+      padding:20px 18px;
+      box-shadow:0 0 12px rgba(0,0,0,.18);
+    }
+
+    /* Labels */
+    .pc-main label {
+      display:block;
+      margin:12px 0 6px;
+      font-size:.88rem;
+      font-weight:600;
+      color:#cfd3d9;
+    }
+
+    /* Inputs */
+    .pc-main input,
+    .pc-main textarea {
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid #27304a;
+      background:#0b1120;
+      color:#e5e7eb;
+      font-size:.92rem;
+      font-family:inherit;
+      outline:none;
+      transition:.15s;
+    }
+    .pc-main input:focus,
+    .pc-main textarea:focus {
+      border-color:#ffdd48;
+      box-shadow:0 0 0 3px rgba(255,221,72,.22);
+    }
+
+    /* Send button */
+    .btn-brand {
+      background:#ffdd48;
+      color:#111;
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      font-size:.95rem;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s;
+      width:100%;
+      margin-top:20px;
+      letter-spacing:.02em;
+    }
+    .btn-brand:hover {
+      background:#fbe46a;
+      box-shadow:0 0 10px rgba(255,221,72,.25);
+    }
+
+    /* Success & Error */
+    #inbox-success { font-size:.9rem; }
+    #inbox-error   { font-size:.9rem; }
+
+    /* Footer nav */
+    .pc-footer {
+      text-align:center;
+      margin:34px 0 40px;
+    }
+    .pc-footer-link {
+      display:inline-block;
+      padding:10px 18px;
+      background:#0e1935;
+      border:1px solid #27304a;
+      border-radius:10px;
+      font-size:.9rem;
+      color:#cfd3d9;
+      text-decoration:none;
+      transition:.2s;
+    }
+    .pc-footer-link:hover {
+      background:#1a2a55;
+      border-color:#ffdd48;
+      color:#ffdd48;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="pc-header">
+  <button class="pc-back" onclick="history.back()">← Back</button>
+  <h1>Message Coach</h1>
+  <a href="coach/para/parent/parent-landing.html" class="pc-home">🏠</a>
+</header>
+
+<div class="wrap">
+
+  <!-- HELP PANEL -->
+  <section class="pc-help panel">
+    <p><strong>Send a private message to the coaching staff.</strong></p>
+    <p>This message goes directly to the coach inbox.</p>
+  </section>
+
+  <!-- MAIN SEND FORM -->
+  <main class="pc-main panel">
+
+    <label>Your Name:</label>
+    <input id="inbox-parent-name" type="text" placeholder="Your full name…"/>
+
+    <label>Your Email (optional):</label>
+    <input id="inbox-parent-email" type="email" placeholder="name@example.com"/>
+
+    <label>Subject:</label>
+    <input id="inbox-subject" type="text" placeholder="Practice question…"/>
+
+    <label>Message:</label>
+    <textarea id="inbox-body" rows="7" placeholder="Type your message…"></textarea>
+
+    <button id="btn-send-inbox" class="btn-brand">
+      Send to Coach
+    </button>
+
+    <p id="inbox-success" style="display:none; margin-top:14px; color:#7af59a; font-weight:600;">
+      Message sent!
+    </p>
+
+    <p id="inbox-error" style="display:none; margin-top:14px; color:#ff6b6b; font-weight:600;">
+      Please fill in name and message.
+    </p>
+
+  </main>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="pc-footer">
+  <a class="pc-footer-link" href="/coach/para/parent/parent-landing.html">← Back to Parent Home</a>
+</footer>
+
+<script type="module" src="/coach/para/parent/inbox-send.js"></script>
+
+</body>
+</html>

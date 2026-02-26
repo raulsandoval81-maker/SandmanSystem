@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Parent Handouts & Forms</title>
+
+  <!-- Shared toolbar styles (colors, base) -->
+  <link rel="stylesheet" href="/coach/shared/toolbar.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    /* SIMPLE PARENT HEADER */
+    .parent-header{
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{
+      display:flex;
+      gap:6px;
+    }
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    /* HERO */
+    .hero{
+      background:linear-gradient(160deg,#0a1833 0%,#111c35 100%);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:24px 16px 20px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,.45);
+      margin:12px 0 18px;
+    }
+    .hero-title{
+      margin:0 0 6px;
+      color:var(--brand);
+      font-size:1.4rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .hero-sub{
+      color:#fff;
+      opacity:.96;
+      font-size:.96rem;
+      line-height:1.4;
+    }
+
+    /* GRID + CARDS */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:12px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 14px 12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+    }
+    .card h2{
+      margin:0 0 6px;
+      font-size:1rem;
+      color:var(--brand);
+    }
+    .card p{
+      margin:4px 0 8px;
+      font-size:.9rem;
+      color:#dbe2ea;
+      line-height:1.45;
+    }
+    .card a{
+      display:inline-block;
+      margin-top:4px;
+      color:var(--brand);
+      text-decoration:none;
+      font-weight:700;
+      font-size:.9rem;
+    }
+    .card a:hover{
+      text-decoration:underline;
+    }
+    .tagline{
+      margin-top:18px;
+      font-size:.85rem;
+      color:var(--muted);
+      text-align:center;
+    }
+
+    /* FOOTER */
+    .footer-hard{
+      margin-top:40px;
+      padding:26px 10px 34px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{
+      max-width:900px;
+      margin:0 auto;
+    }
+    .footer-brand{
+      color:#94a3b8;
+      font-size:.82rem;
+      margin-bottom:12px;
+    }
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px 18px;
+      font-size:.88rem;
+    }
+    .footer-links a{
+      color:#ffdd48;
+      text-decoration:none;
+      font-weight:600;
+    }
+    .footer-links a:hover{
+      color:#fff;
+      text-decoration:underline;
+    }
+
+    @media(max-width:640px){
+      .wrap{padding:18px 12px 30px}
+      .hero-title{font-size:1.25rem}
+      .hero-sub{font-size:.9rem}
+      .parent-header-inner{padding-inline:2px}
+      .parent-brand{font-size:.85rem}
+    }.back-btn{
+  border-radius:999px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:.78rem;
+  padding:4px 12px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.back-btn:hover{
+  background:#0b1120;
+}
+.pill-btn{
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:999px;
+  background:#cfe8ff;
+  color:#0a0d14;
+  font-weight:700;
+  font-size:.82rem;
+  border:1px solid #9cc9ff;
+  cursor:pointer;
+  text-decoration:none;
+  transition:0.25s;
+}
+.pill-btn:hover{
+  background:#e3f1ff;
+}
+
+/* Sky-blue link style (tabs removed) */
+.card a{
+  color:#cfe8ff !important;        /* baby sky blue */
+  font-weight:700;
+  text-decoration:none;
+  padding-bottom:2px;
+  border-bottom:1px solid transparent;
+  transition:0.25s;
+}
+
+.card a:hover{
+  color:#ffffff !important;        /* white on hover */
+  border-bottom-color:#cfe8ff;     /* underline pulse */
+}
+
+  </style>
+</head>
+
+<body>
+
+<!-- SIMPLE HEADER WITH EN/ES TOGGLE -->
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand">Lompoc HS Wrestling</div>
+    <div class="parent-lang-wrap">
+      <button class="parent-lang-btn active" data-lang="en">EN</button>
+      <button class="parent-lang-btn" data-lang="es">SP</button>
+    </div>
+  </div>
+</header>
+<button class="back-btn" onclick="history.back()">
+  ← Back
+</button>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <h1 class="hero-title">
+      <span class="en">Parent Handouts &amp; Forms</span>
+      <span class="es">Formularios y Documentos para Padres</span>
+    </h1>
+    <p class="hero-sub">
+      <span class="en">
+        Quick access to team policy, sign-in sheets, schedule, and learning tools.<br/>
+        Phone-friendly and ready to print.
+      </span>
+      <span class="es">
+        Acceso rápido a la política del equipo, hojas de registro, horario y materiales de apoyo.<br/>
+        Listo para teléfono e impresión.
+      </span>
+    </p>
+  </section>
+
+  <!-- GRID OF HANDOUTS / TOOLS -->
+  <section class="grid">
+
+    <!-- Team Policy & Acknowledgement (digital) -->
+    <article class="card">
+      <h2>
+        <span class="en">Team Policy &amp; Acknowledgement</span>
+        <span class="es">Política del Equipo y Acuse</span>
+      </h2>
+      <p>
+        <span class="en">
+          Bilingual team expectations with signature section. Phone/print ready.
+        </span>
+        <span class="es">
+          Expectativas del equipo en formato bilingüe con sección de firmas. Listo para teléfono o impresión.
+        </span>
+      </p>
+      <a href="/coach/meeting/policy.html">
+        <span class="en">Open Team Policy →</span>
+        <span class="es">Abrir Política del Equipo →</span>
+      </a>
+    </article>
+
+    <!-- School athletic agreement (official) -->
+    <article class="card">
+      <h2>
+        <span class="en">School Athletic Agreement</span>
+        <span class="es">Acuerdo Atlético Escolar</span>
+      </h2>
+      <p>
+        <span class="en">
+          Official Lompoc High School athletic agreement for all sports.
+        </span>
+        <span class="es">
+          Acuerdo atlético oficial de Lompoc High School para todos los deportes.
+        </span>
+      </p>
+      <a href="./policy.html" target="_blank" rel="noopener">
+        <span class="en">Open School Policy →</span>
+        <span class="es">Abrir Política Escolar →</span>
+      </a>
+    </article>
+
+    <!-- Parent Sign-In Sheet -->
+    <article class="card">
+      <h2>
+        <span class="en">Parent Sign-In Sheet</span>
+        <span class="es">Hoja de Registro de Padres</span>
+      </h2>
+      <p>
+        <span class="en">
+          Printable sign-in sheet for meetings, events, and information nights.
+        </span>
+        <span class="es">
+          Hoja de registro imprimible para reuniones, eventos y juntas informativas.
+        </span>
+      </p>
+      <a href="/coach/meeting/handouts/sign-in-sheet.html">
+        <span class="en">Open Sign-In Sheet →</span>
+        <span class="es">Abrir Hoja de Registro →</span>
+      </a>
+    </article>
+
+    <!-- Season Schedule & Calendar -->
+    <article class="card">
+      <h2>
+        <span class="en">Season Schedule &amp; Calendar</span>
+        <span class="es">Calendario y Horario de la Temporada</span>
+      </h2>
+      <p>
+        <span class="en">
+          Live practice and competition schedule. Check often for updates.
+        </span>
+        <span class="es">
+          Horario actualizado de prácticas y competencias. Revíselo con frecuencia.
+        </span>
+      </p>
+      <!-- For now point to Para schedule; later you can add a printable calendar page here too -->
+      <a href="/coach/para/parent/schedule.html">
+        <span class="en">Open Season Schedule →</span>
+        <span class="es">Abrir Horario de la Temporada →</span>
+      </a>
+    </article>
+
+    <!-- Wrestling 101: Rules & Scoring (future content) -->
+    <article class="card">
+      <h2>
+        <span class="en">Wrestling 101: Rules &amp; Scoring</span>
+        <span class="es">Lucha 101: Reglas y Puntuación</span>
+      </h2>
+      <p>
+        <span class="en">
+          Plain-language guide to basic scoring, positions, and what you’re watching on meet day.
+        </span>
+        <span class="es">
+          Guía sencilla sobre cómo se anota, posiciones básicas y qué está pasando durante las luchas.
+        </span>
+      </p>
+      <a href="/coach/meeting/handouts/wrestling-101.html">
+        <span class="en">Open Wrestling 101 </span>
+        <span class="es">Abrir Lucha 101 </span>
+      </a>
+    </article>
+
+    <!-- Tournament Weekend Guide (future content) -->
+    <article class="card">
+      <h2>
+        <span class="en">Tournament Weekend Guide</span>
+        <span class="es">Guía para Fines de Semana de Torneo</span>
+      </h2>
+      <p>
+        <span class="en">
+          What to pack, how weigh-ins work, brackets, and what a full day at a tournament looks like.
+        </span>
+        <span class="es">
+          Qué llevar, cómo funcionan los pesajes, las llaves y cómo se ve un día completo en torneo.
+        </span>
+      </p>
+      <a href="/coach/meeting/handouts/tournament-guide.html">
+        <span class="en">Open Tournament Guide </span>
+        <span class="es">Abrir Guía de Torneos </span>
+      </a>
+    </article>
+
+    <!-- Wrestling FAQ -->
+    <article class="card">
+      <h2>
+        <span class="en">Wrestling FAQ</span>
+        <span class="es">Preguntas Frecuentes de Lucha</span>
+      </h2>
+      <p>
+        <span class="en">
+          Common questions and answers about the sport, season, and expectations.
+        </span>
+        <span class="es">
+          Preguntas y respuestas comunes sobre el deporte, la temporada y las expectativas.
+        </span>
+      </p>
+      <a href="/coach/meeting/handouts/faq.html">
+        <span class="en">Open FAQ </span>
+        <span class="es">Abrir Preguntas Frecuentes </span>
+      </a>
+    </article>
+
+    <!-- Weight Management & Hydration -->
+    <article class="card">
+      <h2>
+        <span class="en">Weight Management &amp; Hydration</span>
+        <span class="es">Peso Saludable e Hidratación</span>
+      </h2>
+      <p>
+        <span class="en">
+          Healthy guidelines for growing athletes: food, sleep, and staying inside safe limits.
+        </span>
+        <span class="es">
+          Guías sanas para atletas en crecimiento: comida, descanso y mantenerse dentro de límites seguros.
+        </span>
+      </p>
+      <a href="/coach/meeting/handouts/weight-hydration.html">
+        <span class="en">Open Weight Guide </span>
+        <span class="es">Abrir Guía de Peso </span>
+      </a>
+    </article>
+
+    <!-- Parent Landing (QR target) -->
+    <article class="card">
+      <h2>
+        <span class="en">Parent Landing Page</span>
+        <span class="es">Página Principal para Padres</span>
+      </h2>
+      <p>
+        <span class="en">
+          Simple landing page used with QR codes and printed flyers.
+        </span>
+        <span class="es">
+          Página sencilla para padres usada con códigos QR y volantes impresos.
+        </span>
+      </p>
+      <a href="/coach/para/parent/parent-landing.html">
+        <span class="en">Open Parent Landing →</span>
+        <span class="es">Abrir Página para Padres →</span>
+      </a>
+    </article>
+
+    <!-- Para-Comms Portal -->
+    <article class="card">
+      <h2>
+        <span class="en">Para-Comms Parent Portal</span>
+        <span class="es">Portal de Comunicación (Para-Comms)</span>
+      </h2>
+      <p>
+        <span class="en">
+          Season communication hub for announcements, questions, and dates.
+        </span>
+        <span class="es">
+          Centro de comunicación de la temporada para avisos, preguntas y fechas.
+        </span>
+      </p>
+      <a href="/coach/para/parent/index.html">
+        <span class="en">Open Para-Comms →</span>
+        <span class="es">Abrir Para-Comms →</span>
+      </a>
+    </article>
+
+  </section>
+
+  <p class="tagline">
+    <span class="en">Bookmark this page. As we add more tools, they’ll appear here.</span>
+    <span class="es">Guarde esta página. A medida que agreguemos más materiales, aparecerán aquí.</span>
+  </p>
+
+</main>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/para/parent/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/parent/index.html">Para-Comms</a>
+      <a href="/coach/meeting/meeting-summary.html">Meeting Portal</a>
+
+    </nav>
+
+  </div>
+</footer>
+
+<!-- Simple EN/SP toggle for this page -->
+<script>
+  (function(){
+    const buttons = document.querySelectorAll(".parent-lang-btn");
+    if (!buttons.length) return;
+
+    let current = localStorage.getItem("lang") || "en";
+
+    function applyLang(lang){
+      current = lang;
+      localStorage.setItem("lang", lang);
+
+      buttons.forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+
+      const showEN = (lang === "en");
+      document.querySelectorAll(".en").forEach(el=>{
+        el.style.display = showEN ? "" : "none";
+      });
+      document.querySelectorAll(".es").forEach(el=>{
+        el.style.display = showEN ? "none" : "";
+      });
+    }
+
+    buttons.forEach(btn=>{
+      btn.addEventListener("click", () => applyLang(btn.dataset.lang));
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+      applyLang(current);
+    });
+  })();
+</script>
+
+</body>
+</html>

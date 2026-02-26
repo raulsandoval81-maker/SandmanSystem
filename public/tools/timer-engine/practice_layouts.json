@@ -1,0 +1,11 @@
+{
+  "daily-default": [
+    { "id": "mat-talk",   "label": "Mat Talk",          "minutes": 3  },
+    { "id": "warmup",     "label": "Warm-up",           "minutes": 10 },
+    { "id": "old-move",   "label": "Old Move / Drill",  "minutes": 15 },
+    { "id": "new-move",   "label": "New Move",          "minutes": 15 },
+    { "id": "water",      "label": "Water Break",       "minutes": 2  },
+    { "id": "live",       "label": "Live / Situations", "minutes": 15 },
+    { "id": "finish",     "label": "Mat Talk / Close",  "minutes": 5  }
+  ]
+}

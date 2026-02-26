@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete Log — Details | Sandman System™</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    :root{--bg:#0a0f15;--panel:#0f141b;--line:#243041;--muted:#9fb3c8}
+    body{background:var(--bg);color:#f3f4f6}.wrap{max-width:900px;margin:0 auto;padding:1.25rem}
+    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    h1{color:#ffd633;margin:.2rem 0 1rem}.muted{color:var(--muted)}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    @media(max-width:800px){.row{grid-template-columns:1fr}}
+    .field{border:1px solid #2c3a4e;border-radius:10px;padding:.75rem}
+    .label{color:#cfe2ff;font-weight:700;margin-bottom:.25rem}
+    .value{white-space:pre-wrap}
+    .btn{display:inline-block;margin-top:1rem;color:#ffd633}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Athlete Log — Details</h1>
+    <div id="card" class="card">
+      <div class="muted">Loading…</div>
+    </div>
+    <a class="btn" href="athlete-log-history.html">← Back to History</a>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    (function(){
+      const KEY="athleteLogs", card=document.getElementById("card");
+      const p=new URLSearchParams(location.search);
+      const id=p.get("id"); // in demo we used timestamp as id
+      const list=JSON.parse(localStorage.getItem(KEY)||"[]");
+      const e=list.find(x=>String(x.ts)===String(id));
+      if(!e){ card.innerHTML='<div class="muted">Record not found.</div>'; return; }
+      const rows = [
+        ["When", new Date(e.ts).toLocaleString()],
+        ["Athlete", safe(e.athlete)], ["Coach", safe(e.coach)],
+        ["Program", safe(e.program)], ["Discipline", safe(e.discipline)],
+        ["Type", safe(e.type)], ["Topic", safe(e.topic)],
+        ["Tier", safe(e.tier||"—")], ["Visibility", safe(e.visibility||"team")],
+      ];
+      card.innerHTML = `
+        <div class="row">
+          ${rows.map(([k,v])=>`
+            <div class="field">
+              <div class="label">${k}</div>
+              <div class="value">${v}</div>
+            </div>`).join("")}
+        </div>
+        <div class="field" style="margin-top:1rem">
+          <div class="label">Details</div>
+          <div class="value">${safe(e.text||"")}</div>
+        </div>`;
+      function safe(s){return (s+"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+    })();
+  </script>
+</body>
+</html>

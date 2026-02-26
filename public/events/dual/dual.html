@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dual Meet Scoreboard</title>
+  <link rel="stylesheet" href="dual.css" />
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="dual-header">
+  <h1 id="eventName">Dual Meet</h1>
+
+  <button id="fullBtn" class="full-btn">Fullscreen</button>
+</div>
+
+<!-- ================ TEAM SCORES =============== -->
+<div class="team-row">
+  <div class="team-card red-team">
+    <div class="team-name" id="redTeamName">RED TEAM</div>
+    <div class="team-score" id="redTeamScore">0</div>
+  </div>
+
+  <div class="team-card green-team">
+    <div class="team-name" id="greenTeamName">GREEN TEAM</div>
+    <div class="team-score" id="greenTeamScore">0</div>
+  </div>
+</div>
+
+<!-- ================= BOUT CARD ================= -->
+<div class="bout-card">
+  <div class="bout-weight" id="weightClass">—</div>
+
+  <div class="wrestler red-side">
+    <div class="name" id="redName">Red Wrestler</div>
+    <div class="bout-score" id="redBoutScore">0</div>
+  </div>
+
+  <div class="wrestler green-side">
+    <div class="name" id="greenName">Green Wrestler</div>
+    <div class="bout-score" id="greenBoutScore">0</div>
+  </div>
+</div>
+
+<!-- ============== MOMENTUM BAR =============== -->
+<div id="momentumWrap">
+  <div id="momentumRed"></div>
+  <div id="momentumGreen"></div>
+</div>
+
+<!-- ============== MATCH TIMELINE ============== -->
+<div class="timeline-title">Match Timeline</div>
+
+<div id="timeline"></div>
+
+<script type="module" src="dual.js"></script>
+
+<!-- FULLSCREEN -->
+<script>
+  document.getElementById("fullBtn").onclick = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+</script>
+
+</body>
+</html>

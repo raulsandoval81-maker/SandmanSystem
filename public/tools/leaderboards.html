@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leaderboards (Demo) | Sandman System™</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+
+  <style>
+    :root{
+      color-scheme: dark;
+
+      --bg0:#03040a;
+      --bg1:#070a12;
+      --card:#070b14;
+      --line:rgba(255,255,255,.06);
+
+      --gold:#ffd633;
+      --gold2:#ffdd48;
+      --hot:#ff4d4d;
+      --ice:#60a5fa;
+
+      --text:#f8fafc;
+      --muted:#9ca3af;
+
+      --glow: 0 0 18px rgba(255,214,51,.22), 0 0 44px rgba(255,214,51,.10);
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:
+        radial-gradient(1200px 700px at 20% -10%, rgba(255,214,51,.10), transparent 60%),
+        radial-gradient(1000px 600px at 90% 10%, rgba(255,77,77,.08), transparent 55%),
+        radial-gradient(900px 700px at 50% 110%, rgba(96,165,250,.06), transparent 55%),
+        linear-gradient(180deg, var(--bg0), var(--bg1));
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:2rem 1.25rem 3rem;
+    }
+
+    h1{
+      margin:0 0 .35rem;
+      font-size:1.6rem;
+      color:var(--gold2);
+      text-shadow:
+        0 0 10px rgba(255,221,72,.32),
+        0 0 26px rgba(255,214,51,.18);
+      letter-spacing:.02em;
+    }
+
+    .lead{
+      color:var(--muted);
+      font-size:.9rem;
+      line-height:1.6;
+      max-width:720px;
+      margin:.25rem 0 0;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      padding:.18rem .55rem;
+      border-radius:999px;
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      border:1px solid rgba(255,214,51,.25);
+      background:linear-gradient(180deg, rgba(255,214,51,.10), rgba(255,214,51,.05));
+      box-shadow: var(--glow);
+      color:#fff;
+      margin-top:.6rem;
+    }
+
+    /* ---------------- TOP NAV + DRAWER ---------------- */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid var(--gold);
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .nav-logo{
+      font-size:1rem;
+      font-weight:800;
+      color:var(--gold);
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:var(--gold);
+      cursor:pointer;
+      line-height:1;
+    }
+
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid var(--gold);
+      padding:1.5rem;
+      transition:right .25s ease;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:600;
+      display:block;
+    }
+    .drawer-links a:hover{ color:var(--hot); }
+    .drawer-links a[aria-current="page"]{ color:var(--gold); font-weight:900; }
+
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0;
+      pointer-events:none;
+      transition:opacity .25s ease;
+      z-index:1500;
+    }
+    .nav-backdrop.show{ opacity:1; pointer-events:auto; }
+
+    /* ---------------- BOARD LAYOUT ---------------- */
+    .board-section{ margin-top:1.75rem; }
+
+    .board-header{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:.6rem;
+      align-items:flex-end;
+      margin-bottom:.75rem;
+
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,214,51,.14);
+      background:linear-gradient(90deg, rgba(255,214,51,.12), rgba(255,77,77,.06), rgba(96,165,250,.06));
+      box-shadow: 0 0 18px rgba(0,0,0,.35);
+    }
+    .board-header h2{
+      margin:0;
+      font-size:1.1rem;
+      color:#e5e7eb;
+      text-shadow: 0 0 14px rgba(255,214,51,.12);
+    }
+    .board-header .sub{
+      margin:.15rem 0 0;
+      font-size:.8rem;
+      color:var(--muted);
+    }
+
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.5rem;
+      font-size:.7rem;
+    }
+    .filter-pill{
+      padding:.25rem .55rem;
+      border-radius:999px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,214,51,.14);
+      color:#e5e7eb;
+      display:inline-flex;
+      gap:.35rem;
+      align-items:center;
+    }
+    .filter-label{
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-size:.68rem;
+    }
+
+    .board-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:10px;
+    }
+
+    /* ---------------- CARDS ---------------- */
+    .card{
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,0)),
+        radial-gradient(800px 300px at 30% 0%, rgba(255,214,51,.06), transparent 55%),
+        radial-gradient(700px 260px at 90% 20%, rgba(255,77,77,.05), transparent 55%),
+        var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:10px 10px 12px;
+      box-shadow:
+        0 0 18px rgba(0,0,0,.55),
+        inset 0 0 0 1px rgba(255,255,255,.02);
+      transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+    .card:hover{
+      transform: translateY(-2px);
+      border-color: rgba(255,214,51,.22);
+      box-shadow:
+        0 0 22px rgba(0,0,0,.70),
+        0 0 30px rgba(255,214,51,.10);
+    }
+
+    .card-head{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:flex-start;
+      margin-bottom:6px;
+    }
+    .name-line{
+      font-weight:700;
+      font-size:.92rem;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+      align-items:center;
+    }
+    .virtue{
+      display:inline-block;
+      background:rgba(255,214,51,.10);
+      border:1px solid rgba(255,214,51,.35);
+      border-radius:999px;
+      padding:2px 8px 3px;
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#e5e7eb;
+      box-shadow: 0 0 14px rgba(255,214,51,.10);
+      white-space:nowrap;
+    }
+    .tag{
+      font-size:.72rem;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+
+    .xp-num{
+      font-weight:900;
+      font-size:1.08rem;
+      color:var(--gold2);
+      text-align:right;
+      text-shadow: 0 0 12px rgba(255,214,51,.22);
+      letter-spacing:.02em;
+      white-space:nowrap;
+    }
+    .xp-num::before{
+      content:"SCORE ";
+      font-size:.62rem;
+      opacity:.55;
+      margin-right:6px;
+      letter-spacing:.12em;
+    }
+
+    /* Rank chips */
+    .rank-badge{
+      display:inline-block;
+      padding:3px 7px 4px;
+      border-radius:999px;
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      margin-top:3px;
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow: 0 0 16px rgba(0,0,0,.25);
+      white-space:nowrap;
+    }
+/* Force the bar area to always take full card width */
+.xp-slot { width: 100%; }
+.xp-bar { width: 100%; display: block; }
+.xp-meta { width: 100%; }
+
+
+    /* Foundry 8 */
+    .rank-shadow{background:#0f172a;color:#e2e8f0;}
+    .rank-recruit{background:#facc15;color:#111827;}
+    .rank-combatant{background:#fb923c;color:#111827;}
+    .rank-competitor{background:#22c55e;color:#05130a;}
+    .rank-warrior{background:#0ea5e9;color:#051218;}
+    .rank-champion{background:#a855f7;color:#f8f5ff;}
+    .rank-commander{background:#92400e;color:#fef3c7;}
+    .rank-hero{
+      background:#020617;color:#f9fafb;border:1px solid #f9fafb;
+      box-shadow: 0 0 18px rgba(255,214,51,.15), inset 0 0 0 1px rgba(255,214,51,.20);
+    }
+
+    /* Foundry 4 Teens (Apprentice → Legend) */
+    .rank-apprentice{background:#e5e7eb;color:#111827;}
+    .rank-f4-warrior{background:#3b82f6;color:#eff6ff;}
+    .rank-f4-champion{background:#a855f7;color:#f8f5ff;}
+    .rank-f4-veteran{background:#92400e;color:#fef3c7;}
+    .rank-legend{
+      background:#020617;color:#f9fafb;border:1px solid #f9fafb;
+      box-shadow: 0 0 18px rgba(255,214,51,.15), inset 0 0 0 1px rgba(255,214,51,.20);
+    }
+
+    /* Foundry 4 Adults (Foundation → Mastery) */
+    .rank-foundation{background:#0b1220;color:#e5e7eb;border:1px solid rgba(255,214,51,.18);}
+    .rank-development{background:#1f2937;color:#f9fafb;}
+    .rank-integration{background:#0ea5e9;color:#051218;}
+    .rank-refinement{background:#a855f7;color:#f8f5ff;}
+    .rank-mastery{
+      background:#020617;color:#f9fafb;border:1px solid #f9fafb;
+      box-shadow: 0 0 18px rgba(255,214,51,.15);
+    }
+
+    /* XP bar */
+    .xp-slot{ margin-top:4px; }
+    .xp-bar{
+      position:relative;
+      background:linear-gradient(180deg, #020617, #060b14);
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.07);
+      height:12px;
+      overflow:hidden;
+      box-shadow: inset 0 0 18px rgba(0,0,0,.45);
+    }
+    .xp-fill{
+      height:100%;
+      border-radius:7px;
+      background: linear-gradient(90deg, rgba(255,214,51,1), rgba(255,146,60,1), rgba(255,77,77,1));
+      box-shadow: 0 0 14px rgba(255,214,51,.18), 0 0 26px rgba(255,77,77,.10);
+      transition:width .35s ease-out;
+    }
+
+    .xp-bar::before,
+    .xp-bar::after{
+      content:"";
+      position:absolute;
+      top:1px;
+      bottom:1px;
+      width:1px;
+      background:#111827;
+      opacity:.8;
+      pointer-events:none;
+    }
+    .xp-bar::before{ left:25%; }
+    .xp-bar::after{ left:50%; }
+    .xp-bar .tick-75{
+      position:absolute;
+      top:1px;
+      bottom:1px;
+      width:1px;
+      left:75%;
+      background:#111827;
+      opacity:.8;
+      pointer-events:none;
+    }
+
+    .xp-meta{
+      margin-top:3px;
+      font-size:.68rem;
+      color:var(--muted);
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+    }
+
+    /* Shadow visibility anchor (white stripe) */
+    .rank-shadow + .xp-slot .xp-bar::after{
+      content:"";
+      position:absolute;
+      left:0;
+      top:50%;
+      transform:translateY(-50%);
+      width:2px;
+      height:70%;
+      background:#fff;
+      opacity:.92;
+      border-radius:2px;
+      pointer-events:none;
+    }
+
+    .demo-note{
+      margin-top:1.75rem;
+      font-size:.7rem;
+      color:#64748b;
+      max-width:720px;
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    .footer{
+      background:#0f141b;
+      border-top:2px solid rgba(255,214,51,.7);
+      padding:1rem;
+      margin-top:2rem;
+      box-shadow: 0 -10px 30px rgba(0,0,0,.45);
+    }
+    .footer-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      justify-content:center;
+      gap:1.5rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .footer-title{ font-weight:800; color:var(--gold); }
+    .footer-links{ display:flex; gap:1rem; flex-wrap:wrap; }
+    .footer-links a{ color:#f3f4f6; text-decoration:none; font-weight:600; }
+    .footer-links a:hover{ color:var(--hot); }
+    .footer-links a[aria-current="page"]{ color:var(--gold); font-weight:900; }
+  </style>
+</head>
+
+<body>
+
+<header class="top-nav">
+  <div class="nav-inner">
+    <a class="nav-logo">Sandman System™</a>
+  </div>
+</header>
+
+
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<main class="wrap">
+  <header>
+    <h1>Demo Leaderboards</h1>
+    <p class="lead">
+      This is a <strong>sample view</strong> of how Sandman leaderboards will look once athletes are wired in.
+      Colors, tiers, and XP bars below are for demonstration only — they’re here to show families what
+      the system feels like when it’s live.
+    </p>
+  </header>
+
+  <!-- Foundry 8 Board -->
+  <section class="board-section" aria-labelledby="f8BoardTitle">
+    <div class="board-header">
+      <div>
+        <h2 id="f8BoardTitle">Youth · Foundry8_Combat</h2>
+        <p class="sub">Sample month · Top youth athletes (Skilled point-based, Zero2_Hero)</p>
+      </div>
+      <div class="filters" aria-hidden="true">
+        <div class="filter-pill"><span class="filter-label">Track</span><span>Foundry 8, Combat</span></div>
+        <div class="filter-pill"><span class="filter-label">Month</span><span>2025-11</span></div>
+        <div class="filter-pill"><span class="filter-label">Top</span><span>8</span></div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1001</span><span class="tag">A. Lopez</span></div>
+            <span class="rank-badge rank-hero">Hero · Tier 7</span>
+          </div>
+          <div class="xp-num">2320</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:96%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>4 stripes · Black</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1013</span><span class="tag">J. Rivera</span></div>
+            <span class="rank-badge rank-commander">Commander · Tier 6</span>
+          </div>
+          <div class="xp-num">1875</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:85%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>3 stripes · Brown</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1042</span><span class="tag">K. Nguyen</span></div>
+            <span class="rank-badge rank-champion">Champion · Tier 5</span>
+          </div>
+          <div class="xp-num">1220</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:76%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP XP</span><span>3 stripes · Purple</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1077</span><span class="tag">L. Martinez</span></div>
+            <span class="rank-badge rank-warrior">Warrior · Tier 4</span>
+          </div>
+          <div class="xp-num">980</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:70%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>2 stripes · Blue</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1090</span><span class="tag">S. King</span></div>
+            <span class="rank-badge rank-competitor">Competitor · Tier 3</span>
+          </div>
+          <div class="xp-num">610</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:51%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567  XP</span><span>2 stripes · Green</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1123</span><span class="tag">D. Patel</span></div>
+            <span class="rank-badge rank-combatant">Combatant · Tier 2</span>
+          </div>
+          <div class="xp-num">420</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:42%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>1 stripe · Orange</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1144</span><span class="tag">M. Chen</span></div>
+            <span class="rank-badge rank-recruit">Recruit · Tier 1</span>
+          </div>
+          <div class="xp-num">640</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:80%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>3 stripes · Yellow</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F8-1188</span><span class="tag">I. Davis</span></div>
+            <span class="rank-badge rank-shadow">Shadow · Tier 0</span>
+          </div>
+          <div class="xp-num">310</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:52%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>2 stripes · White</span></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Foundry 4 Teen Board -->
+  <section class="board-section" aria-labelledby="f4BoardTitle">
+    <div class="board-header">
+      <div>
+        <h2 id="f4BoardTitle">Teen · Foundry4_Combat</h2>
+        <p class="sub">Sample month · Older athletes on the Path2_Legend</p>
+      </div>
+      <div class="filters" aria-hidden="true">
+        <div class="filter-pill"><span class="filter-label">Track</span><span>Foundry 4, Teen Combat</span></div>
+        <div class="filter-pill"><span class="filter-label">Month</span><span>2025-11</span></div>
+        <div class="filter-pill"><span class="filter-label">Top</span><span>5</span></div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F4-2004</span><span class="tag">C. Torres</span></div>
+            <span class="rank-badge rank-legend">Legend · Tier 4</span>
+          </div>
+          <div class="xp-num">2310</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:96%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>4 stripes · Black</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F4-2011</span><span class="tag">R. Kim</span></div>
+            <span class="rank-badge rank-f4-veteran">Veteran · Tier 3</span>
+          </div>
+          <div class="xp-num">1820</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:83%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>3 stripes · Brown</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F4-2038</span><span class="tag">E. Johnson</span></div>
+            <span class="rank-badge rank-f4-champion">Champion · Tier 2</span>
+          </div>
+          <div class="xp-num">1210</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:76%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>3 stripes · Purple</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F4-2052</span><span class="tag">T. Garcia</span></div>
+            <span class="rank-badge rank-f4-warrior">Warrior · Tier 1</span>
+          </div>
+          <div class="xp-num">760</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:54%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>2 stripes · Blue</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">F4-2070</span><span class="tag">J. Ortiz</span></div>
+            <span class="rank-badge rank-apprentice">Apprentice · Tier 0</span>
+          </div>
+          <div class="xp-num">380</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:32%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>1 stripe · White</span></div>
+      </article>
+    </div>
+  </section>
+
+  <!-- Adults Board -->
+  <section class="board-section" aria-labelledby="adultBoardTitle">
+    <div class="board-header">
+      <div>
+        <h2 id="adultBoardTitle">Adults · Foundry4_Combat</h2>
+        <p class="sub">Sample month · Adult mastery ladder (Quest4_Mastery)</p>
+      </div>
+      <div class="filters" aria-hidden="true">
+        <div class="filter-pill"><span class="filter-label">Track</span><span>Foundry 4, Adults</span></div>
+        <div class="filter-pill"><span class="filter-label">Month</span><span>2025-11</span></div>
+        <div class="filter-pill"><span class="filter-label">Top</span><span>5</span></div>
+      </div>
+    </div>
+
+    <div class="board-grid">
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">A-3007</span><span class="tag">M. Stone</span></div>
+            <span class="rank-badge rank-mastery">Mastery · Tier 4</span>
+          </div>
+          <div class="xp-num">2180</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:91%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>4 stripes · Mastery</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">A-3014</span><span class="tag">S. Alvarez</span></div>
+            <span class="rank-badge rank-refinement">Refinement · Tier 3</span>
+          </div>
+          <div class="xp-num">1640</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:82%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>3 stripes · Refinement</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">A-3022</span><span class="tag">K. Chen</span></div>
+            <span class="rank-badge rank-integration">Integration · Tier 2</span>
+          </div>
+          <div class="xp-num">1120</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:70%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>3 stripes · Integration</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">A-3039</span><span class="tag">J. Parker</span></div>
+            <span class="rank-badge rank-development">Development · Tier 1</span>
+          </div>
+          <div class="xp-num">720</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:60%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>2 stripes · Development</span></div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div>
+            <div class="name-line"><span class="virtue">A-3048</span><span class="tag">T. Reed</span></div>
+            <span class="rank-badge rank-foundation">Foundation · Tier 0</span>
+          </div>
+          <div class="xp-num">330</div>
+        </div>
+        <div class="xp-slot">
+          <div class="xp-bar"><div class="xp-fill" style="width:41%;"></div><div class="tick-75"></div></div>
+        </div>
+        <div class="xp-meta"><span>1234 / 4567 XP</span><span>1 stripe · Foundation</span></div>
+      </article>
+    </div>
+  </section>
+
+  <p class="demo-note">
+    This page is a <strong>demo preview</strong>. Real leaderboards for athletes and parents will live
+    inside a secure portal and pull live XP directly from the Sandman System™ — with the same look and
+    feel you see here.
+  </p>
+</main>
+
+
+<script>
+const FOUNDRY4_TIER_COLOR = {
+  0: "white",
+  1: "blue",
+  2: "purple",
+  3: "brown",
+  4: "black",
+};
+
+</script>
+
+</body>
+</html>

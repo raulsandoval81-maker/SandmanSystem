@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Admin • Athlete Inbox (Test)</title>
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <main class="wrap">
+    <h1>Athlete Inbox (Test)</h1>
+
+    <section class="card">
+      <h2>Create / Open Thread</h2>
+
+      <!-- ✅ Form wrapper enables Enter key submit -->
+      <form id="open-form">
+        <label>Athlete UID</label>
+        <input id="ath-uid" placeholder="F4_0001" />
+
+        <label>Athlete Name</label>
+        <input id="ath-name" placeholder="Max" />
+
+        <label>Subject</label>
+        <input id="ath-subject" placeholder="Practice note" />
+
+        <!-- ✅ type=submit so Enter triggers -->
+        <button id="btn-open" class="btn" type="submit">Open Thread</button>
+      </form>
+
+      <p style="opacity:.7;margin-top:.75rem;">
+        This creates a thread if none exists, then routes you to the thread page.
+      </p>
+    </section>
+
+    <section class="card">
+      <h2>Recent Threads (Top 25)</h2>
+      <div id="thread-list">Loading…</div>
+    </section>
+  </main>
+
+  <script type="module" src="/coach/para/athlete/inbox.js"></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete • Live Log | Sandman System™</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    :root {
+      --bg: #0a0f15;
+      --panel: #0f141b;
+      --line: #243041;
+      --muted: #9fb3c8;
+      --pill: #ff3333;
+      --pillbr: #ffd633;
+      --pillfg: #ffd633;
+    }
+    body { background: var(--bg); color: #f3f4f6; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 1.25rem; }
+    h1 { color: #ffd633; margin: 0 0 1rem; }
+    .muted { color: var(--muted); }
+
+    .panel { 
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 1rem;
+      box-shadow: 0 0 14px rgba(0,0,0,.25);
+      margin-bottom: 1.25rem;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: .6rem 1rem;
+      border-radius: 999px;
+      background: var(--pill);
+      color: var(--pillfg);
+      border: 2px solid var(--pillbr);
+      font-weight: 900;
+      text-decoration: none;
+      cursor: pointer;
+      margin-top: .5rem;
+    }
+    .btn.secondary { background: transparent; }
+    .counter { font-size: 1.2rem; font-weight: 700; color: #ffd633; }
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: .6rem .75rem;
+      border-radius: 10px;
+      border: 1px solid #394a61;
+      background: #121821;
+      color: #f3f4f6;
+    }
+    input { 
+      width: 100%; 
+      padding: .5rem .7rem; 
+      border-radius: 8px; 
+      border: 1px solid #394a61; 
+      background: #121821; 
+      color: #f3f4f6; 
+    }
+    .log-entry {
+      border-top: 1px solid #2c3a4e;
+      padding: .5rem 0;
+      font-size: .9rem;
+    }
+    .log-entry time { color: #9fb3c8; margin-right: .5rem; }
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <a href="tools.html" class="btn secondary">← Back to Athlete Tools</a>
+    <h1>Athlete • Live Log</h1>
+
+    <!-- MATCH COUNT -->
+    <section class="panel">
+      <h2>Match Count</h2>
+      <p class="muted">Total official matches logged (all time)</p>
+      <div class="counter" id="matchCount">0</div>
+      <button class="btn" id="addMatch">+ Match</button>
+      <button class="btn secondary" id="resetMatch">↺ Reset</button>
+    </section>
+
+    <!-- SESSION NOTE -->
+    <section class="panel">
+      <h2>Session Note</h2>
+      <label for="note">Log a session note (optional ratings)</label>
+      <textarea id="note" placeholder="Enter session observations..."></textarea>
+      <button class="btn" id="saveNote">+ Save Note</button>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="panel">
+      <h2>Log History</h2>
+      <div id="history">No entries yet.</div>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    (function(){
+      const KEY_MATCH="athleteMatchCount";
+      const KEY_NOTES="athleteNotes";
+      const matchCountEl=document.getElementById("matchCount");
+      const history=document.getElementById("history");
+      const note=document.getElementById("note");
+
+      // Load match count
+      let matches=parseInt(localStorage.getItem(KEY_MATCH)||"0",10);
+      matchCountEl.textContent=matches;
+
+      document.getElementById("addMatch").addEventListener("click",()=>{
+        matches++;
+        localStorage.setItem(KEY_MATCH,matches);
+        matchCountEl.textContent=matches;
+      });
+
+      document.getElementById("resetMatch").addEventListener("click",()=>{
+        if(confirm("Reset match count?")){
+          matches=0;
+          localStorage.setItem(KEY_MATCH,0);
+          matchCountEl.textContent=0;
+        }
+      });
+
+      // Save notes
+      document.getElementById("saveNote").addEventListener("click",()=>{
+        const txt=(note.value||"").trim();
+        if(!txt){ alert("Enter a note first."); return; }
+        const entry={ts:Date.now(), text:txt};
+        const list=JSON.parse(localStorage.getItem(KEY_NOTES)||"[]");
+        list.unshift(entry);
+        localStorage.setItem(KEY_NOTES,JSON.stringify(list));
+        note.value="";
+        render();
+      });
+
+      function render(){
+        const list=JSON.parse(localStorage.getItem(KEY_NOTES)||"[]");
+        if(!list.length){ history.innerHTML="<div class='muted'>No entries yet.</div>"; return; }
+        history.innerHTML=list.map(e=>{
+          const when=new Date(e.ts).toLocaleString();
+          return `<div class="log-entry"><time>${when}</time>${escapeHtml(e.text)}</div>`;
+        }).join("");
+      }
+
+      function escapeHtml(s){
+        return (s+"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m]));
+      }
+
+      render();
+    })();
+  </script>
+</body>
+</html>

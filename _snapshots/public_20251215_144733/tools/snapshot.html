@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Parent Snapshot | Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+</head>
+<body>
+  <div class="wrap">
+    <h1>Parent Snapshot Test</h1>
+    <p>This page is for testing the Firestore connection and snapshot pull.</p>
+
+    <!-- Output box -->
+    <div id="snapshotOutput" style="background:#111; color:#fff; padding:1rem; margin-top:1rem;">
+      Waiting for snapshot data...
+    </div>
+  </div>
+
+  <!-- Firebase Init -->
+  <script type="module" src="../assets/js/firebase-init.js"></script>
+
+  <!-- Snapshot Script -->
+  <script type="module" src="../assets/js/snapshot.js"></script>
+</body>
+</html>

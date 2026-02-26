@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lompoc Brave Challenge — Boys Weigh-Ins</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --yellow:#ffdd48;
+      --border:#cbd5e1;
+      --gray:#94a3b8;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#ffffff;
+      color:var(--navy);
+    }
+
+    .page{
+      max-width:700px;
+      margin:0 auto;
+      padding:16px 20px 24px;
+    }
+
+    /* header */
+    .header-bar{
+      background:var(--navy);
+      color:#ffffff;
+      padding:10px 14px;
+      border-radius:4px;
+      margin-bottom:14px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      font-size:.9rem;
+    }
+    .header-left{
+      font-weight:700;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+    }
+    .header-right{
+      text-align:right;
+      font-size:.75rem;
+    }
+    .header-right span{
+      color:var(--yellow);
+      text-transform:uppercase;
+      letter-spacing:.1em;
+    }
+    .meta-line{
+      border-bottom:1px solid #ffffff;
+      display:inline-block;
+      width:120px;
+      height:12px;
+      margin-left:4px;
+    }
+
+    /* table */
+    table.sheet{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.8rem;
+    }
+    th, td{
+      border:1px solid var(--border);
+      padding:6px 6px;
+    }
+    th{
+      background:var(--yellow);
+      color:var(--navy);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.72rem;
+    }
+
+    .col-wt{width:70px;}
+    .col-name{width:auto;}
+    .col-notes{width:160px;}
+
+    .footer-note{
+      margin-top:10px;
+      font-size:.7rem;
+      color:var(--gray);
+    }
+
+    @media print{
+      .page{padding:10px 14px;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="header-bar">
+      <div class="header-left">
+        Lompoc Brave Challenge — Boys Weigh-Ins
+      </div>
+      <div class="header-right">
+        <span>School</span><span class="meta-line"></span><br>
+        <span>Coach</span><span class="meta-line"></span>
+      </div>
+    </div>
+
+    <table class="sheet">
+      <thead>
+        <tr>
+          <th class="col-wt">Weight</th>
+          <th class="col-name">Wrestlers (4 lines per class)</th>
+          <th class="col-notes">Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>106</td><td></td><td></td></tr>
+        <tr><td>113</td><td></td><td></td></tr>
+        <tr><td>120</td><td></td><td></td></tr>
+        <tr><td>126</td><td></td><td></td></tr>
+        <tr><td>132</td><td></td><td></td></tr>
+        <tr><td>138</td><td></td><td></td></tr>
+        <tr><td>144</td><td></td><td></td></tr>
+        <tr><td>150</td><td></td><td></td></tr>
+        <tr><td>157</td><td></td><td></td></tr>
+        <tr><td>165</td><td></td><td></td></tr>
+        <tr><td>175</td><td></td><td></td></tr>
+        <tr><td>190</td><td></td><td></td></tr>
+        <tr><td>215</td><td></td><td></td></tr>
+        <tr><td>HWT</td><td></td><td></td></tr>
+      </tbody>
+    </table>
+
+    <div class="footer-note">
+      Use one sheet per team. Turn in at head table after weigh-ins.
+    </div>
+
+  </div>
+</body>
+</html>

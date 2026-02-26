@@ -1,47 +1,113 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
     /* --------------------------------------
-       Para-Comms: Parent → Coach Inbox
-       Write-only (Parents can send)
+       Para-Comms V1: Unified Parent ↔ Coach Thread
     ---------------------------------------*/
-    match /parentInbox/{month}/entries/{msgId} {
-      allow write: if true;
-      allow read: if false;
+    match /paraParentInbox/{threadId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          "parentName","parentEmail","parentKey","subject",
+          "lastBody","lastReplyAt",
+          "coachHasUnread","parentHasUnread",
+          "seenByCoach","seenByParent",
+          "coachOpenedAt","parentOpenedAt"
+        ]);
+
+      allow delete: if false;
+
+      match /thread/{messageId} {
+        allow read: if request.auth != null;
+
+        allow create: if request.auth != null
+          && request.resource.data.keys().hasOnly([
+            "from","fromName","body","createdAt",
+            "seenByCoach","seenByParent"
+          ])
+          && request.resource.data.from in ["parent","coach"]
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 2000;
+
+        allow update, delete: if false;
+      }
     }
 
     /* --------------------------------------
-       Announcements: Coach → Parent
-       Read-only for parents
+       Para-Comms V1 Announcements (Broadcast)
+       Collection: paraAnnouncements/{id}
     ---------------------------------------*/
-    match /bulletin/{month}/entries/{id} {
-      allow read: if true;
+    match /paraAnnouncements/{id} {
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+        && request.resource.data.teamId is string
+        && request.resource.data.category is string
+        && request.resource.data.title is string
+        && request.resource.data.message is string
+        && request.resource.data.audienceType is string
+        && request.resource.data.from is string
+        && request.resource.data.fromName is string
+        && request.resource.data.createdAt is timestamp
+        && request.resource.data.message.size() > 0
+        && request.resource.data.message.size() <= 3000;
+
+      allow update: if request.auth != null
+        && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          "pinned","pinnedAt","unpinnedAt",
+          "archived","archivedAt",
+          "deleted","deletedAt",
+          "title","message","editedAt"
+        ]);
+
+      allow delete: if false;
+    }
+
+    /* --------------------------------------
+       Coach Roster: Athletes (READ ONLY)
+       (Roster pages LIST this collection)
+    ---------------------------------------*/
+    match /athletes/{uid} {
+      allow read: if request.auth != null;  // enables LIST + GET
       allow write: if false;
     }
 
+    /* --------------------------------------
+       Legacy pilot collections (keep only if still used)
+    ---------------------------------------*/
+    match /parentInbox/{month}/entries/{msgId} {
+      allow write: if true;   // legacy open write
+      allow read: if false;
+    }
+
+    match /bulletin/{month}/entries/{id} {
+      allow read: if true;    // legacy public read
+      allow write: if false;
+    }
 
     /* --------------------------------------
-       TEMP PILOT OPEN
-       All other collections readable/writable
+       Intake
     ---------------------------------------*/
-    match /{document=**} {
-      allow read, write: if true;
-    }
     match /intakeTokens/{id} {
-  allow read: if request.auth != null;     // only coaches can see token vault
-  allow create: if request.auth != null;   // coach panel can mint new tokens
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
 
-  // Nobody except backend functions can delete or overwrite tokens
-  allow update, delete: if false;
-}
+    match /intakePending/{id} {
+      allow create: if true;
+      allow read, update, delete: if false;
+    }
 
-match /intakePending/{id} {
-  // parent submits intake — no auth needed
-  allow create: if true;
-  allow read, update, delete: if false;   // parents cannot read each other's data
-}
-
+    /* -----------------------------
+       DEFAULT: CLOSED (MUST BE LAST)
+    ------------------------------*/
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }

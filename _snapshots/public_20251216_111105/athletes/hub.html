@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Athletes Hub · Sandman Combat System™</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+
+  <style>
+    body{
+      margin:0;
+      background:#08090b; /* night baseline */
+      color:#e5e5e5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* ===== Header / Nav ===== */
+    .system-header{
+      background:#0f0f0f;
+      border-bottom:2px solid #FFD700;
+      padding:12px 16px;
+      position:sticky;top:0;z-index:1000;
+    }
+    .system-header__brand{display:flex;align-items:center;gap:12px}
+    .system-nav{
+      display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;
+    }
+    .system-nav a{
+      color:#eaeaea;
+      background:#1b1f28;
+      border:1px solid #2a2f3a;
+      padding:6px 12px;
+      text-decoration:none;
+      font-weight:600;
+      font-size:.95rem;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,.25);
+    }
+    .system-nav a:hover{background:#232937;color:#fff}
+
+    /* ===== Page layout ===== */
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:28px 20px;
+      display:grid;
+      gap:36px;
+    }
+
+    /* ===== HERO → DAYLIGHT ===== */
+    .hero{
+      background:linear-gradient(180deg,#f7f4e7,#e7e0c5,#c8bb9a,#8d7f63);
+      border:1px solid #cfc4a6;
+      border-radius:18px;
+      padding:30px 28px;
+      box-shadow:0 10px 26px rgba(0,0,0,.25);
+      color:#1a1a1a;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      font-size:2.4rem;
+      color:#946c00;
+      letter-spacing:.8px;
+      font-weight:900;
+      text-shadow:0 0 10px rgba(148,108,0,.15);
+    }
+    .hero p{
+      margin:4px 0 0;
+      color:#2b2b2b;
+      font-size:1.1rem;
+      max-width:70ch;
+    }
+    .sandman-logo{
+      width:160px;
+      height:auto;
+      display:block;
+      margin-bottom:10px;
+      filter:drop-shadow(0 0 6px rgba(0,0,0,.25));
+    }
+
+    /* ===== PILLARS — SUNSET ===== */
+    .pillars{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:22px;
+    }
+    .pillar{
+      background:linear-gradient(180deg,#d9ccae,#b7a887,#8e7c5e,#5d5040);
+      border:1px solid #c8b99a;
+      border-radius:16px;
+      padding:20px;
+      color:#1a1a1a;
+      box-shadow:0 8px 20px rgba(0,0,0,.22);
+    }
+    .pillar h2{
+      margin:.1rem 0 .35rem;
+      color:#b01919;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+    .pillar p{
+      margin:0;
+      line-height:1.5;
+      color:#2a2a2a;
+    }
+
+    /* ===== CTA — NIGHT ===== */
+    .cta-box{
+      background:linear-gradient(180deg,#141820,#0c0e13);
+      border:1px dashed #293142;
+      border-radius:16px;
+      padding:20px 22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:14px;
+    }
+    .cta-box p{
+      margin:0;
+      color:#b8c2d0;
+      font-size:1rem;
+    }
+    .btn-red{
+      background:#e53935;
+      color:#fff;
+      font-weight:800;
+      border-radius:12px;
+      padding:.75rem 1rem;
+      text-decoration:none;
+      box-shadow:0 6px 16px rgba(0,0,0,.35);
+    }
+    .btn-red:hover{ background:#c62828; }
+  </style>
+</head>
+
+<body>
+
+  <header class="system-header">
+    <div class="system-header__brand">
+      <span class="brand-main" style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat System™</span>
+      <span class="brand-sub" style="color:#bbb;font-weight:600;">Athletes Hub</span>
+    </div>
+
+    <nav class="system-nav">
+      <a href="../index.html">← Public Home</a>
+      <a id="profileLink" href="#">Athlete Profile</a>
+      <a id="arsenalLink" href="#">Enter Athlete Tools</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+
+    <section class="hero">
+      <img class="sandman-logo" src="/assets/images/logos/sandmanbadge-shield.png" alt="Sandman Combat Logo">
+      <h1 id="heroTitle">Athletes Hub</h1>
+    </section>
+
+    <section class="pillars">
+      <article class="pillar">
+        <h2>Creed</h2>
+        <p>Fight hard, fight fair. Honor your sport.</p>
+      </article>
+
+      <article class="pillar">
+        <h2>Code</h2>
+        <p>Win, lose, or draw — carry strength and honor.</p>
+      </article>
+
+      <article class="pillar">
+        <h2>Goal</h2>
+        <p>Win in life, not just in sports.</p>
+      </article>
+
+      <article class="pillar">
+        <h2>Mission</h2>
+        <p>Take what you learn here and use it to shape your world.</p>
+      </article>
+    </section>
+
+    <section class="cta-box">
+      <p id="ctaMessage">Ready to enter the arena and begin your Path 2 Legend?</p>
+      <a id="ctaBtn" class="btn-red" href="#">Enter Athlete Tools →</a>
+    </section>
+
+  </main>
+
+  <!-- ===== FIRESTORE WIRING ===== -->
+  <script type="module">
+    import { db } from "../assets/js/firebase-init.js";
+    import { getDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    async function loadAthlete() {
+      const params = new URLSearchParams(location.search);
+      const uid = params.get("uid");
+
+      if (!uid) return;
+
+      const ref = doc(db, "athletes", uid);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) return;
+
+      const A = snap.data();
+
+      // ----- HERO TEXT -----
+      document.getElementById("heroTitle").textContent =
+        `${A.name}'s Hub`;
+
+      document.getElementById("heroText").textContent =
+        `Welcome back, ${A.name}. Tier ${A.tier} · ${A.trackCode}. Stay disciplined — your journey continues.`;
+
+      document.getElementById("ctaMessage").textContent =
+        `${A.name}, your tools await. Continue your Path 2 Legend.`;
+
+      // ----- NAVIGATION LINKS -----
+      document.getElementById("profileLink").href =
+        `./profile.html?uid=${uid}`;
+
+      document.getElementById("arsenalLink").href =
+        `./arsenal/index.html?uid=${uid}`;
+
+      document.getElementById("ctaBtn").href =
+        `./arsenal/index.html?uid=${uid}`;
+    }
+
+    loadAthlete();
+  </script>
+
+</body>
+</html>

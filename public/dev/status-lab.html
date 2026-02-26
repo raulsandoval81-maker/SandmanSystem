@@ -1,0 +1,344 @@
+<!-- /public/dev/status-lab.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Status Lab (Dev) • Cooldown / Freeze</title>
+
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      background:#0a0a0a;
+      color:#e6e8eb;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{ max-width:1000px; margin:0 auto; padding:18px; }
+    h1{ color:#ffd633; margin:0 0 8px; }
+    .muted{ color:#9fb3c8; font-size:.85rem; line-height:1.35; }
+    .card{
+      background:#121722;
+      border:1px solid #263142;
+      border-radius:14px;
+      padding:16px;
+      margin-top:12px;
+    }
+    input, textarea{
+      width:100%;
+      box-sizing:border-box;
+      background:#0e1420;
+      color:#e6e8eb;
+      border:1px solid #223047;
+      border-radius:10px;
+      padding:10px;
+      font-size:.95rem;
+    }
+    textarea{ min-height:220px; resize:vertical; }
+    .btns{ display:flex; flex-wrap:wrap; gap:10px; margin-top:10px; }
+    button{
+      background:#263142;
+      color:#cfe2ff;
+      border:1px solid #3a4a60;
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:700;
+    }
+    button:hover{ filter:brightness(1.1); }
+    button.good{ background:#0f2a1b; border-color:#1f6f3b; color:#bbf7d0; }
+    button.bad{ background:#2a1010; border-color:#7f1d1d; color:#fecaca; }
+    button.warn{ background:#2a220f; border-color:#a16207; color:#fde68a; }
+    button.hot{ background:#dc2626; border-color:#ff6b6b; color:#fff; }
+    button:disabled{ opacity:.5; cursor:not-allowed; }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:10px; }
+    .pill{
+      padding:.2rem .6rem;
+      border-radius:999px;
+      border:1px solid #3a4a60;
+      background:#0e1420;
+      color:#cfe2ff;
+      font-size:.85rem;
+    }
+    pre{
+      background:#0e1420;
+      border:1px solid #223047;
+      border-radius:12px;
+      padding:12px;
+      overflow:auto;
+      max-height:240px;
+      margin:0;
+    }
+    .split{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media(min-width: 860px){
+      .split{ grid-template-columns: 1fr 1fr; }
+    }
+    .hr{ height:1px; background:#1c2533; margin:12px 0; }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Status Lab (Dev)</h1>
+    <div class="muted">
+      Emulator-only testing for <b>status + lock</b> logic and <b>monthly caps</b>.
+      Uses <code>/assets/js/xp-api.js</code> → exported <code>incrementXp</code>.
+    </div>
+
+    <div class="card">
+      <div class="muted">Athlete UID (use TEST uid for DEV kinds)</div>
+      <input id="uid" placeholder="F4_TEST_GHOST_01" />
+
+      <div class="row">
+        <span class="pill">Status: <b id="statusPill">—</b></span>
+        <span class="pill">Locked Until: <b id="lockedUntilPill">—</b></span>
+        <span class="pill">Runner: <b id="runnerPill">idle</b></span>
+      </div>
+
+      <div class="split">
+        <div>
+          <div class="muted" style="margin-top:10px;">DEV status / locks</div>
+          <div class="btns">
+            <button class="warn" id="btnReady">Set TEST_READY</button>
+            <button class="bad"  id="btnFail10">Fail → FROZEN (10d)</button>
+            <button class="good" id="btnPass5">Pass → COOLDOWN (5d)</button>
+            <button id="btnClear">Clear Lock</button>
+          </div>
+
+          <div class="hr"></div>
+
+          <div class="muted">Probes (single hits)</div>
+          <div class="btns">
+            <button id="btnProbeCombat5">Combat +5 (ATTENDANCE)</button>
+            <button id="btnProbeCombat10">Combat +10 (ATTENDANCE)</button>
+
+            <button id="btnProbeStrength5">Strength +5</button>
+            <button id="btnProbeStrength10">Strength +10</button>
+
+            <button id="btnProbeHonor5">Honor +5</button>
+            <button id="btnProbeHonor10">Honor +10</button>
+          </div>
+        </div>
+
+        <div>
+          <div class="muted" style="margin-top:10px;">Loop runners (cap smash)</div>
+          <div class="btns">
+            <button class="hot" id="btnRunCombat">🔥 Run Combat Loop (10/5)</button>
+            <button class="hot" id="btnRunStrength">🔥 Run Strength Loop</button>
+            <button class="hot" id="btnRunHonor">🔥 Run Honor Loop</button>
+
+            <button id="btnStop">Stop</button>
+            <button id="btnClearLog">Clear Log</button>
+          </div>
+
+          <div class="muted" style="margin-top:10px;">
+            Lane loop behavior:
+            <br/>• UID starts with <code>F8_</code> / <code>F8_TEST_</code> → lanes send <b>+5 only</b>.
+            <br/>• Otherwise (<code>F4_</code> / <code>F4_TEST_</code>) → lanes run <b>10/5 alternating</b>.
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <textarea id="log" readonly></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="muted">Last Response (raw)</div>
+      <pre id="out">{}</pre>
+    </div>
+  </div>
+
+  <script type="module">
+    import { incrementXp } from "/assets/js/xp-api.js";
+
+    const $ = (id) => document.getElementById(id);
+    const logEl = $("log");
+    const outEl = $("out");
+    const statusPill = $("statusPill");
+    const lockedUntilPill = $("lockedUntilPill");
+    const runnerPill = $("runnerPill");
+
+    let runTimer = null;
+    let runStep = 0;
+
+    function now(){ return new Date().toTimeString().slice(0,8); }
+    function log(msg){
+      logEl.value += `[${now()}] ${msg}\n`;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function setOut(obj){
+      outEl.textContent = JSON.stringify(obj, null, 2);
+    }
+    function getUid(){
+      const uid = String($("uid").value || "").trim();
+      if(!uid) throw new Error("Missing uid");
+      return uid;
+    }
+    function isF8Uid(uid){
+      const u = String(uid || "").toUpperCase();
+      return u.startsWith("F8_") || u.startsWith("F8_TEST_") || u.startsWith("F8TEST_");
+    }
+
+    function stopRunner(){
+      if(runTimer){
+        clearInterval(runTimer);
+        runTimer = null;
+      }
+      runStep = 0;
+      runnerPill.textContent = "idle";
+    }
+
+    function paintStatus(res){
+      if(res?.status !== undefined){
+        statusPill.textContent = String(res.status);
+      }
+      if(res?.lockedUntil){
+        const ts = res.lockedUntil;
+        const date =
+          ts?.seconds
+            ? new Date(ts.seconds * 1000)
+            : (typeof ts === "string" || typeof ts === "number")
+              ? new Date(ts)
+              : null;
+
+        lockedUntilPill.textContent = date ? date.toLocaleString() : String(ts);
+      } else {
+        lockedUntilPill.textContent = "—";
+      }
+    }
+
+    // ✅ One send() only. Uses YOUR wrapper signature first; falls back to object-call.
+    async function send({ uid, kind, amount, note = "", meta = {} }){
+      try{
+        let res;
+        try{
+          // your current xp-api.js: incrementXp(uid, kind, amount, note, meta)
+          res = await incrementXp(uid, kind, amount, note, meta);
+        } catch (e1){
+          // fallback builds: incrementXp({uid, kind, amount, note, meta})
+          res = await incrementXp({ uid, kind, amount, note, meta });
+        }
+
+        setOut(res);
+        paintStatus(res);
+
+        if(res?.blocked){
+          log(`BLOCKED kind=${kind} reason=${res.reason || "?"}`);
+        } else {
+          log(`OK kind=${kind} (+${res?.amount ?? amount})`);
+        }
+        return res;
+      } catch(e){
+        const msg = e?.message || String(e);
+        setOut({ error: msg });
+        log(`ERROR kind=${kind} :: ${msg}`);
+        return null;
+      }
+    }
+
+    function setStatus(status, days){
+      const uid = getUid();
+      const meta = { status };
+      if(typeof days === "number") meta.days = days;
+
+      // DEV kinds: amount must be valid; 5 is safe everywhere
+      return send({
+        uid,
+        kind: "DEV/SET_STATUS",
+        amount: 5,
+        note: `DEV set ${status}${days ? ` (${days}d)` : ""}`,
+        meta
+      });
+    }
+
+    function clearLock(){
+      const uid = getUid();
+      return send({
+        uid,
+        kind: "DEV/CLEAR_LOCK",
+        amount: 5,
+        note: "DEV clear lock",
+        meta: {}
+      });
+    }
+
+    function probe(kind, amount){
+      return send({
+        uid: getUid(),
+        kind,
+        amount,
+        note: "probe",
+        meta: {}
+      });
+    }
+
+    function runCombatLoop(){
+      stopRunner();
+      runnerPill.textContent = "combat loop";
+      const uid = getUid();
+
+      runStep = 0;
+      runTimer = setInterval(async () => {
+        const amt = (runStep % 2 === 0) ? 10 : 5; // 10/5 alternating
+        runStep++;
+        await send({ uid, kind: "ATTENDANCE", amount: amt, note: "loop combat", meta: {} });
+      }, 900);
+
+      log("RUN → Combat loop started (10/5 alternating).");
+    }
+
+    function runLaneLoop(laneKind){
+      stopRunner();
+      const uid = getUid();
+      const youth = isF8Uid(uid);
+
+      const label =
+        laneKind === "STRENGTH" ? "strength" :
+        laneKind === "HONOR" ? "honor" : "lane";
+
+      runnerPill.textContent = youth ? `${label} loop (+5)` : `${label} loop (10/5)`;
+
+      runStep = 0;
+      runTimer = setInterval(async () => {
+        const amt = youth ? 5 : ((runStep % 2 === 0) ? 10 : 5);
+        runStep++;
+        await send({ uid, kind: laneKind, amount: amt, note: `loop ${label}`, meta: {} });
+      }, 900);
+
+      log(`RUN → ${label} loop started (${youth ? "+5 only" : "10/5 alternating"}).`);
+    }
+
+    // DEV status buttons
+    $("btnReady").onclick = () => setStatus("TEST_READY");
+    $("btnFail10").onclick = () => setStatus("FROZEN", 10);
+    $("btnPass5").onclick = () => setStatus("COOLDOWN", 5);
+    $("btnClear").onclick = clearLock;
+
+    // Probes
+    $("btnProbeCombat5").onclick = () => probe("ATTENDANCE", 5);
+    $("btnProbeCombat10").onclick = () => probe("ATTENDANCE", 10);
+
+    $("btnProbeStrength5").onclick = () => probe("STRENGTH", 5);
+    $("btnProbeStrength10").onclick = () => probe("STRENGTH", 10);
+
+    $("btnProbeHonor5").onclick = () => probe("HONOR", 5);
+    $("btnProbeHonor10").onclick = () => probe("HONOR", 10);
+
+    // Loop runners
+    $("btnRunCombat").onclick = runCombatLoop;
+    $("btnRunStrength").onclick = () => runLaneLoop("STRENGTH");
+    $("btnRunHonor").onclick = () => runLaneLoop("HONOR");
+    $("btnStop").onclick = () => { stopRunner(); log("STOP → runner stopped."); };
+
+    $("btnClearLog").onclick = () => (logEl.value = "");
+
+    log("READY (Emulator required). DEV kinds require TEST uid. Loops available.");
+  </script>
+</body>
+</html>

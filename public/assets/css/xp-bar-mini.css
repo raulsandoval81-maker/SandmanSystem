@@ -1,0 +1,106 @@
+/* =========================================
+   XP MINI BELT BAR — CANONICAL BUILD
+   Used across: Roster, Daily, Arena, Championship
+========================================= */
+
+/* Container slot inside table cells */
+.xp-slot{
+  min-height:14px;
+  display:block;
+}
+
+/* =========================================
+   BASE BELT BAR
+========================================= */
+
+.mini-xp-bar{
+  position:relative;
+  height:12px;
+  border-radius:999px;
+  background:#0f172a;
+  border:1px solid #223044;
+  overflow:hidden;
+}
+
+/* background tint layer */
+.mini-xp-base{
+  position:absolute;
+  inset:0;
+  opacity:.22;
+}
+
+/* XP fill layer */
+.mini-xp-fill{
+  position:absolute;
+  inset:0;
+  width:0%;
+  opacity:.9;
+}
+
+/* =========================================
+   STRIPE LANE (LEFT BELT SEGMENT)
+========================================= */
+
+.mini-stripes{
+  position:absolute;
+  top:0;
+  bottom:0;
+  left:0;
+  right:auto;
+
+  width:76px;              /* total stripe lane width */
+  display:flex;
+  align-items:stretch;     /* full height */
+  justify-content:flex-start;
+
+  gap:6px;                 /* spacing between stripes */
+  padding:0 8px;           /* no vertical padding = full height */
+  padding-left:14px;       /* dead zone before first stripe */
+
+  box-sizing:border-box;
+  pointer-events:none;
+}
+
+/* =========================================
+   STRIPE STYLE
+========================================= */
+
+.mini-stripe{
+  flex:0 0 8px;            /* thickness */
+  width:8px;
+  height:100%;             /* full height of belt */
+  border-radius:2px;
+
+  background:rgba(0,0,0,.25);   /* darker unfilled */
+  border:1px solid rgba(255,255,255,.18);
+  opacity:.45;
+}
+
+/* filled white stripe */
+.mini-stripe.white.filled{
+  background:rgba(255,255,255,.95);
+  border-color:rgba(255,255,255,.35);
+  opacity:1;
+}
+
+/* filled black stripe */
+.mini-stripe.black.filled{
+  background:rgba(0,0,0,.92);
+  border-color:rgba(255,255,255,.22);
+  opacity:1;
+}
+
+/* =========================================
+   OPTIONAL: SMALL RESPONSIVE SAFETY
+========================================= */
+
+@media (max-width: 600px){
+  .mini-stripes{
+    width:68px;
+    padding-left:12px;
+  }
+  .mini-stripe{
+    flex:0 0 7px;
+    width:7px;
+  }
+}

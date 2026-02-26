@@ -1,0 +1,32 @@
+{
+  "$id": "leaderboard.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "monthKey": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "uid": { "type": "string" },
+          "displayName": { "type": "string" },
+          "totals": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "attendance": { "type": "integer", "minimum": 0 },
+              "assignments": { "type": "integer", "minimum": 0 },
+              "characters": { "type": "integer", "minimum": 0 },
+              "tournaments": { "type": "integer", "minimum": 0 }
+            },
+            "required": ["attendance", "assignments", "characters", "tournaments"]
+          }
+        },
+        "required": ["uid", "displayName", "totals"]
+      }
+    }
+  },
+  "required": ["monthKey", "entries"]
+}

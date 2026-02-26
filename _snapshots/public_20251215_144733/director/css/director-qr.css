@@ -1,0 +1,42 @@
+.qr-btn {
+  background: #ffd447;
+  color: #000;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 6px;
+}
+
+.qr-btn:hover {
+  background: #ffe78d;
+}
+
+#qrOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  z-index: 9999;
+}
+
+#qrBox {
+  padding: 20px;
+  background: #111;
+  border-radius: 14px;
+}
+
+.close-qr {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background: #ffd447;
+  color: #000;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: bold;
+}

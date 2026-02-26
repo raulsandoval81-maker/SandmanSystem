@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Message Thread • Para-Comms</title>
+
+<link rel="stylesheet" href="/coach/para/Shared/comms.css">
+
+  <style>
+    :root{
+      --bg:#081327;
+      --panel:#0e1a33;
+      --coach:#ffdd48;
+      --parent:#4aa3ff;
+      --text:#f1f5f9;
+      --muted:#8fa3c1;
+      --line:#1f2a44;
+    }
+
+    body{ background:var(--bg); color:var(--text); font-family:system-ui; }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 90px;
+    }
+
+    h1{
+      text-align:center;
+      margin:0 0 14px;
+      padding:0;
+      color:var(--coach);
+      font-size:1.35rem;
+      letter-spacing:.03em;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 20px;
+      margin-bottom:20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.3);
+    }
+
+    .original-msg{
+      background:#0a1428;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:14px;
+      color:var(--muted);
+      white-space:pre-wrap;
+    }
+
+    /* Thread Bubbles */
+    .thread-block{
+      margin-top:12px;
+    }
+
+    .bubble{
+      max-width:75%;
+      padding:12px 14px;
+      border-radius:12px;
+      margin-bottom:10px;
+      white-space:pre-wrap;
+      font-size:.93rem;
+      line-height:1.35;
+    }
+    .from-parent{
+      background:var(--parent);
+      color:#0a0e1a;
+      margin-right:auto;
+    }
+    .from-coach{
+      background:var(--coach);
+      color:#111;
+      margin-left:auto;
+      font-weight:600;
+    }
+
+    .ts{
+      font-size:.7rem;
+      color:var(--muted);
+      margin:2px 4px 8px;
+    }
+
+    /* Buttons */
+    .btn-row{ display:flex; gap:10px; margin-top:18px; }
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      border:none;
+      font-size:.92rem;
+    }
+    .btn-reply{
+      background:var(--coach);
+      color:#111;
+      font-weight:700;
+    }
+    .btn-back{
+      background:#1d2a4a;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+    /* Thread container */
+#thread-container {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Base bubble style */
+.thread-msg {
+  max-width: 85%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  line-height: 1.4;
+  position: relative;
+  word-wrap: break-word;
+  box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Parent bubbles — RIGHT aligned (blue) */
+.thread-msg.parent {
+  background: #193B84;
+  color: #f0f4f8;
+  margin-left: auto;
+  border-top-right-radius: 4px;
+}
+
+/* Coach bubbles — LEFT aligned (gold) */
+.thread-msg.coach {
+  background: #ffdd48;
+  color: #111;
+  margin-right: auto;
+  border-top-left-radius: 4px;
+}
+
+/* Name + time inside bubble */
+.thread-msg .from {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.thread-msg .timestamp {
+  font-size: 0.7rem;
+  opacity: 0.65;
+  margin-top: 6px;
+  text-align: right;
+}
+
+/* Body text inside bubble */
+.thread-msg .body {
+  white-space: pre-wrap;
+  font-size: 0.95rem;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile tightening */
+@media (max-width: 600px) {
+  .thread-msg {
+    max-width: 92%;
+    padding: 10px 12px;
+  }
+}
+.thread-msg{
+  padding:12px 14px;
+  border-radius:12px;
+  margin-bottom:12px;
+  max-width:80%;
+  line-height:1.45;
+  white-space:pre-wrap;
+}
+
+.parent-msg{
+  background:#0d1a33;
+  border:1px solid #27304a;
+  color:#fff;
+  margin-right:auto;
+}
+
+.coach-msg{
+  background:#ffdd48;
+  color:#111;
+  border:1px solid #bba333;
+  margin-left:auto;
+}
+
+.msg-meta{
+  font-size:.75rem;
+  opacity:.6;
+  margin-top:4px;
+}
+</style>
+
+  </style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <h1>Message Thread</h1>
+
+  <!-- Original -->
+  <section class="panel">
+    <h2 style="margin:0 0 10px;font-size:1rem;color:var(--coach);">
+      Original Message
+    </h2>
+    <div id="original" class="original-msg">Loading…</div>
+  </section>
+
+  <!-- Thread -->
+  <section class="panel">
+    <h2 style="margin:0 0 10px;font-size:1rem;color:var(--coach);">Conversation</h2>
+
+    <div id="thread-holder" class="thread-block">
+      Loading…
+    </div>
+
+    <div class="btn-row">
+      <button id="btn-reply" class="btn btn-reply">Reply</button>
+      <button id="btn-back" class="btn btn-back">Back</button>
+    </div>
+  </section>
+
+</div>
+<script type="module" src="/coach/para/thread.js"></script>
+</body>
+</html>

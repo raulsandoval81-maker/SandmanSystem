@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sandman • Dev Dashboard</title>
+
+  <!--
+    DEV DASHBOARD (LOCAL ONLY)
+    -------------------------
+    Purpose:
+      One control room for:
+        - Public previews
+        - Coach tools
+        - Athlete portal previews
+        - Para-Comms
+        - Dev utilities (seeding, emulator UI, tests)
+
+    Key behavior:
+      - If URL contains ?emu=1  → we consider "Emulators ON"
+      - We auto-propagate ?emu=1 to all internal dashboard links that use data-link
+      - Emulator UI link is set dynamically to http://<current-host>:4000/ so it works on:
+          - localhost
+          - LAN IP (phone testing)
+          - other local hostnames
+
+    Rules:
+      - Use data-link for every internal link you want auto-propagated.
+      - Avoid raw <a href="..."> inside sections unless you intentionally want NO propagation.
+  -->
+
+  <style>
+    :root{
+      --bg:#0e141c;
+      --panel:#121821;
+      --deep:#0c1119;
+      --line:#2f3a4e;
+      --brand:#ffdd48;
+      --text:#e4e7eb;
+      --muted:#9fb3c8;
+      --hover:#1b2331;
+      --danger:#ff4d4d;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:22px 16px 60px;
+    }
+
+    /* HEADER */
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .top-left{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.45rem;
+      font-weight:800;
+      color:var(--brand);
+      text-shadow:0 0 12px rgba(255,221,72,0.18);
+      letter-spacing:.02em;
+    }
+
+    .meta{
+      color:var(--muted);
+      font-size:.85rem;
+      line-height:1.35;
+      max-width:820px;
+    }
+
+    .badge{
+      padding:6px 12px;
+      border-radius:999px;
+      background:var(--brand);
+      color:#111;
+      font-size:.72rem;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      white-space:nowrap;
+    }
+
+    .toolbar{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      appearance:none;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--text);
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:.78rem;
+      font-weight:800;
+      cursor:pointer;
+      transition:.2s;
+      text-decoration:none;
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+    }
+
+    .btn:hover{
+      background:var(--hover);
+      border-color:var(--brand);
+      transform:translateY(-1px);
+    }
+
+    .btn.warn{
+      border-color:rgba(255,77,77,.35);
+    }
+    .btn.warn:hover{
+      border-color:var(--danger);
+    }
+
+    code{
+      background:rgba(0,0,0,.25);
+      padding:2px 6px;
+      border-radius:6px;
+    }
+
+    /* SECTIONS */
+    .section{
+      margin-top:26px;
+    }
+    .section h2{
+      color:var(--brand);
+      margin:0 0 12px;
+      font-size:1.02rem;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      text-shadow:0 0 8px rgba(255,221,72,0.12);
+    }
+    .hint{
+      margin:-6px 0 14px;
+      color:var(--muted);
+      font-size:.88rem;
+      line-height:1.4;
+    }
+
+    /* QUICK ROW */
+    .quick{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:14px;
+      margin-top:14px;
+    }
+
+    /* GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+      gap:14px;
+    }
+
+    /* TILES */
+    a.tile{
+      display:block;
+      text-decoration:none;
+      cursor:pointer;
+      background:var(--panel);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:14px 14px;
+      border-radius:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,.30);
+      transition:all .20s ease;
+      min-height:88px;
+    }
+
+    a.tile:hover{
+      background:var(--hover);
+      border-color:var(--brand);
+      transform:translateY(-2px);
+      box-shadow:0 6px 16px rgba(0,0,0,.40);
+    }
+
+    .cat{
+      font-size:.62rem;
+      font-weight:900;
+      color:var(--brand);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      margin-bottom:.4rem;
+      opacity:.92;
+    }
+
+    .title{
+      font-size:.98rem;
+      font-weight:800;
+    }
+
+    .sub{
+      margin-top:.28rem;
+      color:#cbd5e1;
+      font-size:.82rem;
+      line-height:1.4;
+    }
+
+    .pillrow{
+      margin-top:.5rem;
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+    }
+
+    .pill{
+      font-size:.62rem;
+      border-radius:999px;
+      padding:3px 8px;
+      border:1px solid var(--line);
+      color:var(--muted);
+    }
+    .pill.public{ color:#bbf7d0; border-color:#34d39955; }
+    .pill.coach{  color:#bfdbfe; border-color:#60a5fa55; }
+    .pill.parent{ color:#fbcfe8; border-color:#f9a8d455; }
+    .pill.dev{    color:#e5e7eb; border-color:#cbd5e155; }
+    .pill.archive{color:#a1a1aa; border-color:#71717a55; }
+
+    /* FOOTER */
+    footer{
+      margin-top:46px;
+      text-align:center;
+      color:var(--muted);
+      font-size:.85rem;
+      opacity:.85;
+      line-height:1.5;
+    }
+
+    .hr{
+      border:0;
+      border-top:1px solid rgba(255,255,255,.08);
+      margin:18px 0;
+    }
+  </style>
+
+  <script>
+    // ------------------------------------------------------------
+    // Emulator flag router
+    // ------------------------------------------------------------
+    function isEmu(){
+      return new URLSearchParams(location.search).get("emu") === "1";
+    }
+    function withEmu(url){
+      if(!isEmu()) return url;
+      return url.includes("?") ? (url + "&emu=1") : (url + "?emu=1");
+    }
+
+    function copyUrl(){
+      navigator.clipboard.writeText(location.href).then(()=>alert("Copied URL."));
+    }
+
+    function toggleEmu(){
+      const u = new URL(location.href);
+      const qs = u.searchParams;
+      if(qs.get("emu") === "1") qs.delete("emu");
+      else qs.set("emu","1");
+      location.href = u.toString();
+    }
+
+    // ------------------------------------------------------------
+    // Boot
+    // ------------------------------------------------------------
+    document.addEventListener("DOMContentLoaded", () => {
+      // ENV labels
+      document.getElementById("envBadge").textContent = isEmu() ? "EMULATORS ON" : "EMULATORS OFF";
+      document.getElementById("emuState").textContent = isEmu() ? "ON" : "OFF";
+
+      // Propagate emu to any link that uses data-link
+      document.querySelectorAll("a[data-link]").forEach(a => {
+        const raw = a.getAttribute("data-link");
+        a.href = withEmu(raw);
+      });
+
+      // Dynamic Emulator UI link (works on localhost + LAN phones)
+      const emuUi = document.getElementById("emuUiLink");
+      if (emuUi) emuUi.href = `http://${location.hostname}:4000/`;
+
+      // Phone hint
+      const ipHint = document.getElementById("ipHint");
+      const suffix = isEmu() ? "?emu=1" : "";
+      ipHint.textContent =
+        `Phone URL: http://<YOUR-LAN-IP>:5000/dev/dev-dashboard.html${suffix}`;
+    });
+  </script>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <!-- HEADER -->
+    <div class="top">
+      <div class="top-left">
+        <h1>Sandman — Dev Dashboard</h1>
+        <div class="meta">
+          One panel to reach public previews + coach tools + para-comms + dev utilities.<br/>
+          Emulator flag: <b id="emuState">OFF</b> (<code>?emu=1</code> auto-propagates to internal links).
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <span class="badge" id="envBadge">EMULATORS OFF</span>
+        <button class="btn" onclick="toggleEmu()">Toggle ?emu=1</button>
+        <button class="btn" onclick="copyUrl()">Copy URL</button>
+        <a class="btn warn" data-link="/dev/phone-panel.html" href="#">Open Phone Panel</a>
+      </div>
+    </div>
+
+    <div class="hint" id="ipHint"></div>
+    <div class="hr"></div>
+
+    <!-- ========================================================= -->
+    <!-- QUICK ACCESS (DAILY DRIVERS) -->
+    <!-- ========================================================= -->
+    <section class="section" id="quick">
+      <h2>Quick Access</h2>
+      <p class="hint">
+        The stuff you hit 20 times a day while validating XP, lanes, caps, and UI behavior.
+      </p>
+
+      <div class="quick">
+        <!-- If your ladder page lives elsewhere, just change these paths. -->
+        <a class="tile" data-link="/dev/ladder-stress.html">
+          <div class="cat">Dev</div>
+          <div class="title">Ladder Stress Test</div>
+          <div class="sub">+10/+5 Attendance + Strength/Honor buttons (coach-only).</div>
+          <div class="pillrow"><span class="pill dev">Dev</span><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/dev/seed-athletes-v3.html">
+          <div class="cat">Dev</div>
+          <div class="title">Seeder (Athletes)</div>
+          <div class="sub">Mint deterministic IDs; fast test data for emu.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+
+        <a class="tile" id="emuUiLink" href="#" target="_blank" rel="noreferrer">
+          <div class="cat">Dev</div>
+          <div class="title">Firebase Emulator UI</div>
+          <div class="sub">Firestore · Functions · Auth (local only).</div>
+          <div class="pillrow"><span class="pill dev">Local</span></div>
+        </a>
+
+        <a class="tile" data-link="/coaches/roster.html">
+          <div class="cat">Coach</div>
+          <div class="title">Roster</div>
+          <div class="sub">Profiles · XP · badges.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PUBLIC PREVIEW (SAFE) -->
+    <!-- ========================================================= -->
+    <section class="section" id="public">
+      <h2>Public Preview</h2>
+      <p class="hint">
+        Public pages should stay clean and honest. No promises, just concept + direction.
+      </p>
+
+      <div class="grid">
+        <a class="tile" data-link="/index.html">
+          <div class="cat">Public</div>
+          <div class="title">Home / Landing</div>
+          <div class="sub">Front door for families.</div>
+          <div class="pillrow"><span class="pill public">Public</span></div>
+        </a>
+
+        <a class="tile" data-link="/overview.html">
+          <div class="cat">Public</div>
+          <div class="title">Overview</div>
+          <div class="sub">What Sandman is · why it works.</div>
+          <div class="pillrow"><span class="pill public">Public</span></div>
+        </a>
+
+        <a class="tile" data-link="/programs.html">
+          <div class="cat">Public</div>
+          <div class="title">Programs</div>
+          <div class="sub">Foundry 8 youth · Foundry 4 teen/adult.</div>
+          <div class="pillrow"><span class="pill public">Public</span></div>
+        </a>
+
+        <a class="tile" data-link="/schedule/index.html">
+          <div class="cat">Public</div>
+          <div class="title">Schedule</div>
+          <div class="sub">Practice rhythm (can stay dummy).</div>
+          <div class="pillrow"><span class="pill public">Public</span></div>
+        </a>
+
+        <a class="tile" data-link="/tools.html">
+          <div class="cat">Public</div>
+          <div class="title">Coach Tools (Preview)</div>
+          <div class="sub">Concept-only preview. Not a delivery promise.</div>
+          <div class="pillrow"><span class="pill public">Public</span></div>
+        </a>
+
+        <a class="tile" data-link="/leaderboards.html">
+          <div class="cat">Public</div>
+          <div class="title">Leaderboards (Demo)</div>
+          <div class="sub">Polished demo view (optional).</div>
+          <div class="pillrow"><span class="pill public">Public</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- CORE COACH -->
+    <!-- ========================================================= -->
+    <section class="section" id="coach">
+      <h2>Core Coach Tools</h2>
+      <p class="hint">
+        Internal tools. Keep reachable locally now; harden auth + rules later.
+      </p>
+
+      <div class="grid">
+        <a class="tile" data-link="/silver.html">
+          <div class="cat">Intake</div>
+          <div class="title">Sandman Silver — Intake</div>
+          <div class="sub">Coach → Parent → Athlete loop.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/coaches/roster.html">
+          <div class="cat">Coach</div>
+          <div class="title">Roster</div>
+          <div class="sub">Profiles · XP · badges.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/coaches/daily-grind.html">
+          <div class="cat">Coach</div>
+          <div class="title">Daily Grind XP</div>
+          <div class="sub">Practice blocks → XP calls.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/coaches/coach-console.html">
+          <div class="cat">Coach</div>
+          <div class="title">Coach Console</div>
+          <div class="sub">Arena XP + ops console.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/coaches/arena-log.html">
+          <div class="cat">Coach</div>
+          <div class="title">Arena Log</div>
+          <div class="sub">Audit trail.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/coaches/coach-notes.html">
+          <div class="cat">Coach</div>
+          <div class="title">Coach Notes</div>
+          <div class="sub">Behavior, reflections, staff notes.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ATHLETE -->
+    <!-- ========================================================= -->
+    <section class="section" id="athlete">
+      <h2>Athlete Portal</h2>
+      <p class="hint">This is what you preview on phone most. Keep it reachable and clean.</p>
+
+      <div class="grid">
+        <a class="tile" data-link="/athlete.html">
+          <div class="cat">Athlete</div>
+          <div class="title">Athlete Dashboard</div>
+          <div class="sub">XP bar · stripes · goals.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+
+        <a class="tile" data-link="/athlete-log-history.html">
+          <div class="cat">Athlete</div>
+          <div class="title">XP Log History</div>
+          <div class="sub">Month-by-month breakdown.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- PARENT / PARA-COMMS -->
+    <!-- ========================================================= -->
+    <section class="section" id="parents">
+      <h2>Parent Tools & Para-Comms</h2>
+      <p class="hint">Keep it realistic: announcements + message coach + volunteer. That’s enough for now.</p>
+
+      <div class="grid">
+        <a class="tile" data-link="/coach/para/index.html">
+          <div class="cat">Para-Comms</div>
+          <div class="title">Parent Portal</div>
+          <div class="sub">EN/ES updates hub.</div>
+          <div class="pillrow"><span class="pill parent">Parent</span></div>
+        </a>
+
+        <a class="tile" data-link="/coach/para/parent/announcements.html">
+          <div class="cat">Announcements</div>
+          <div class="title">Parent Bulletin</div>
+          <div class="sub">Parents read coach announcements.</div>
+          <div class="pillrow"><span class="pill parent">Parent</span></div>
+        </a>
+
+        <a class="tile" data-link="/coach/para/inbox-send.html">
+          <div class="cat">Para-Comms</div>
+          <div class="title">Message Coach</div>
+          <div class="sub">Parent → Coach messages.</div>
+          <div class="pillrow"><span class="pill parent">Parent</span></div>
+        </a>
+
+        <a class="tile" data-link="/coach/para/volunteer.html">
+          <div class="cat">Volunteer</div>
+          <div class="title">Volunteer Signup</div>
+          <div class="sub">Snacks, rides, meet help.</div>
+          <div class="pillrow"><span class="pill parent">Parent</span></div>
+        </a>
+
+        <a class="tile" data-link="/coach/para/coach/inbox.html">
+          <div class="cat">Coach</div>
+          <div class="title">Coach Inbox</div>
+          <div class="sub">Read & reply.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/coach/para/coach/announcements-post.html">
+          <div class="cat">Coach</div>
+          <div class="title">Post Announcement</div>
+          <div class="sub">Coach creates bulletins.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- TOURNAMENT -->
+    <!-- ========================================================= -->
+    <section class="section" id="tournament">
+      <h2>Tournament Engine</h2>
+      <p class="hint">Only keep what you actually use. Everything else can live inside the tournament folder itself.</p>
+
+      <div class="grid">
+        <a class="tile" data-link="/tools/timer-engine/sandman_timer_engine.html">
+          <div class="cat">Timer</div>
+          <div class="title">Practice Timer</div>
+          <div class="sub">Single-screen practice blocks.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+
+        <a class="tile" data-link="/tournament-engine/mats/mat-console.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Mat Console (Pro)</div>
+          <div class="sub">Timers · penalties · control.</div>
+          <div class="pillrow"><span class="pill coach">Coach</span></div>
+        </a>
+
+        <a class="tile" data-link="/tournament-engine/brackets/index.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Bracket Builder</div>
+          <div class="sub">RR / single / double.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+
+        <a class="tile" data-link="/tournament-engine/index.html">
+          <div class="cat">Tournament</div>
+          <div class="title">Tournament Engine (Suite)</div>
+          <div class="sub">Full folder entry point.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- DEV / INTERNAL -->
+    <!-- ========================================================= -->
+    <section class="section" id="dev">
+      <h2>Dev & Internal Lab</h2>
+      <p class="hint">Seeder + emulator UI is the real power. Keep this tight.</p>
+
+      <div class="grid">
+        <a class="tile" data-link="/dev/firebase-lab.html">
+          <div class="cat">Dev</div>
+          <div class="title">Firebase Lab</div>
+          <div class="sub">Auth / Firestore / functions tests.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+
+        <a class="tile" data-link="/dev/xp-tests.html">
+          <div class="cat">Dev</div>
+          <div class="title">XP Tests</div>
+          <div class="sub">Test callable endpoints quickly.</div>
+          <div class="pillrow"><span class="pill dev">Dev</span></div>
+        </a>
+      </div>
+    </section>
+
+    <!-- ========================================================= -->
+    <!-- ARCHIVE -->
+    <!-- ========================================================= -->
+    <section class="section" id="archive">
+      <h2>Archive</h2>
+      <p class="hint">Old builds. Reference only.</p>
+
+      <div class="grid">
+        <a class="tile" data-link="/archive/v1-para-comms.html">
+          <div class="cat">Archive</div>
+          <div class="title">Para-Comms (v1)</div>
+          <div class="sub">Legacy bilingual builder.</div>
+          <div class="pillrow"><span class="pill archive">Archive</span></div>
+        </a>
+
+        <a class="tile" data-link="/archive/v1-leaderboards.html">
+          <div class="cat">Archive</div>
+          <div class="title">Leaderboards (v1)</div>
+          <div class="sub">Early prototype.</div>
+          <div class="pillrow"><span class="pill archive">Archive</span></div>
+        </a>
+
+        <!-- FIXED: this used to be a raw href (no emu propagation). -->
+        <a class="tile" data-link="/tournament-engine/mat-console-pro.CLEAN.html">
+          <div class="cat">Archive</div>
+          <div class="title">Mat Console (Pro) — CLEAN</div>
+          <div class="sub">Reference build. Keeps emu propagation now.</div>
+          <div class="pillrow"><span class="pill archive">Archive</span></div>
+        </a>
+
+        <!-- NOTE:
+          Silver is listed under Coach Tools above because you’re still using it.
+          If you decide Silver is “reference only,” move it here and remove it from Coach Tools.
+        -->
+        <a class="tile" data-link="/silver.html">
+          <div class="cat">Archive</div>
+          <div class="title">Silver (reference)</div>
+          <div class="sub">Keep until new intake fully replaces it.</div>
+          <div class="pillrow"><span class="pill archive">Archive</span></div>
+        </a>
+      </div>
+    </section>
+
+    <footer>
+      <div class="hr"></div>
+      <div>&copy; 2025 Sandman System™ — Dev Dashboard</div>
+      <div>Tip: Phone = <code>http://&lt;LAN-IP&gt;:5000/dev/dev-dashboard.html?emu=1</code></div>
+    </footer>
+
+  </main>
+</body>
+</html>

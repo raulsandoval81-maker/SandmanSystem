@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach Intake • Sandman Systems™</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="stylesheet" href="/intake-coach/coach.intake.css">
+<link rel="stylesheet" href="/intake-shared/shared.css"></head>
+
+<body>
+  <main class="wrap">
+
+    <h1>Coach • Intake Console</h1>
+    <p class="muted">Parent → Coach → Mint → Athlete</p>
+
+    <!-- ========================= -->
+    <!--   INVITE / TOKEN BLOCK    -->
+    <!-- ========================= -->
+    <section class="card">
+      <h3>Parent Invite</h3>
+      <p class="small muted">Generate a 48-hour intake token & share with parents.</p>
+
+      <div class="row">
+        <button id="btn-make-token" class="solid-blue">Generate Token</button>
+        <input id="invite-link" type="text" readonly class="mono small" placeholder="Invite link appears…">
+        <button id="btn-copy-token" class="outline-blue small">Copy</button>
+      </div>
+
+      <div class="row">
+        <button id="btn-open-qr" class="outline-blue small">QR / Open Join Page</button>
+        <span class="small muted">Opens parent intake: /intake-parent/?invite=…</span>
+      </div>
+
+      <div id="invite-status" class="small muted"></div>
+    </section>
+
+    <!-- ========================= -->
+    <!--   PENDING SUBMISSIONS     -->
+    <!-- ========================= -->
+    <section class="card">
+      <h3>Pending Intakes</h3>
+      <p class="muted small">Families who completed intake will show here.</p>
+
+      <div class="row">
+        <button id="btn-find-intakes" class="outline-blue small">Refresh</button>
+        <span id="pending-count" class="small muted">—</span>
+      </div>
+
+      <div id="pending-list" class="small mono muted">No pending intakes.</div>
+    </section>
+
+    <!-- ========================= -->
+    <!--     APPROVAL HISTORY      -->
+    <!-- ========================= -->
+    <section class="card">
+      <h3>Recently Approved</h3>
+      <p class="small muted">Last 10 coach approvals.</p>
+
+      <div id="approved-list" class="small mono muted">—</div>
+    </section>
+
+    <footer class="footer small muted">
+      Sandman Systems™ — Coach Intake Console
+    </footer>
+
+  </main>
+
+<script type="module" src="/intake-coach/coach.intake.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Coaches › XP Award Console</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../../assets/css/site.css" />
+  <style>
+    .wrap { max-width:1100px; margin:0 auto; padding:18px; display:grid; grid-template-columns:260px 1fr; gap:16px; }
+    @media(max-width:900px){ .wrap{ grid-template-columns:1fr; } }
+    .rail { background:#12161d; border:1px solid #252b36; border-radius:14px; padding:12px; }
+    .rail h3 { margin:.2rem 0 .6rem; color:#ffd33d; }
+    .rail a { display:block; color:#cfd7e6; text-decoration:none; padding:.4rem .5rem; border-radius:8px; }
+    .rail a.active, .rail a:hover { background:#1a1f28; }
+    .card { background: linear-gradient(180deg,#1b1f28,#0f1218); border-radius:16px; padding:16px 18px; box-shadow:0 12px 28px rgba(0,0,0,.35); color:#e9eef7; }
+    .card h2 { margin:0 0 .6rem; color:#ffd33d; }
+    .row { display:flex; gap:.5rem; align-items:center; flex-wrap:wrap; }
+    .input, select, textarea { background:#151922; color:#e9eef7; border:1px solid #2a2f3a; border-radius:10px; padding:.55rem .65rem; outline:none; }
+    .btn { background:#2a2f3a; color:#fff; border:0; border-radius:10px; padding:.5rem .75rem; cursor:pointer; }
+    .btn:hover { filter:brightness(1.05); }
+    .btn-pill{ border-radius:999px; }
+    .btn-red{ background:#ad1e2b; }
+    ul.clean{ list-style:none; margin:0; padding:0; }
+    ul.clean li{ padding:.65rem .75rem; border-radius:12px; background:#171b23; border:1px solid #242a36; margin-bottom:.5rem; }
+    .timestamp{ color:#9fb0c8; font-size:.9rem; }
+    .crumbs{ color:#9fb0c8; font-size:.9rem; margin-bottom:.5rem; }
+  </style>
+</head>
+<body>
+  <header class="system-header" style="background:#0f0f0f;border-bottom:2px solid #FFD700;padding:16px 20px;">
+    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
+      <span style="color:#FFD700;font-weight:800;letter-spacing:1.2px;font-size:1.2rem;text-transform:uppercase;">Sandman Combat System™</span>
+      <span style="color:#bbb;font-weight:600;">Coaches</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <aside class="rail">
+      <h3>XP Console</h3>
+      <a class="active" href="/coaches/xp/index.html">Quick Award</a>
+      <a href="/coaches/xp/presets.html">Presets & Scales</a>
+      <a href="/coaches/xp/bulk.html">Bulk Awards</a>
+      <a href="/coaches/xp/audit.html">Audit & Reverts</a>
+      <a href="/coaches/xp/rules.html">Rules & Caps</a>
+    </aside>
+
+    <section>
+      <div class="crumbs">Coaches › XP Console › Quick Award</div>
+      <section class="card">
+        <h2>Quick Award</h2>
+        <div class="row" style="margin-bottom:.5rem;">
+          <input id="athlete" class="input" placeholder="Athlete name (e.g., Max)" style="min-width:220px;">
+          <select id="sport" class="input">
+            <option>Wrestling</option><option>Kickboxing</option><option>Submission Grappling</option><option>Boxing</option>
+          </select>
+          <select id="cat" class="input">
+            <option>Training</option><option>Competition</option><option>Mindset</option>
+          </select>
+          <input id="note" class="input" placeholder="(Optional) short note" style="flex:1;min-width:200px;">
+        </div>
+
+        <div class="row">
+          <button class="btn btn-pill" data-xp="5">+5</button>
+          <button class="btn btn-pill" data-xp="10">+10</button>
+          <button class="btn btn-pill" data-xp="25">+25</button>
+          <button class="btn btn-pill" data-xp="50">+50</button>
+          <span id="status" class="muted" style="margin-left:auto;">Local mode. Online later.</span>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top:16px;">
+        <h2>Today’s awards</h2>
+        <ul id="todayList" class="clean"></ul>
+      </section>
+    </section>
+  </main>
+
+  <script src="../../assets/js/coach-award.js"></script>
+</body>
+</html>

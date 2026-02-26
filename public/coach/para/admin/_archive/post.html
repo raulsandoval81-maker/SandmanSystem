@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach • Post Announcement</title>
+
+<link rel="stylesheet" href="/coach/para/shared/comms.css"/>
+
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#121a2b;
+      --line:#253147;
+      --brand:#ffdd48;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --hover:#1b2539;
+    }
+
+    body{
+      background:var(--bg);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+      color:var(--text);
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 16px 50px;
+    }
+
+    h1{
+      margin:0 0 18px;
+      color:var(--brand);
+      text-shadow:0 0 8px rgba(255,221,72,.2);
+      font-size:1.35rem;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:18px 18px 20px;
+      box-shadow:0 8px 22px rgba(0,0,0,.35);
+      margin-bottom:24px;
+    }
+
+    label{
+      font-size:.9rem;
+      font-weight:600;
+      color:var(--brand);
+      margin-bottom:4px;
+      display:block;
+    }
+    input, textarea{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0f172a;
+      color:var(--text);
+      margin-bottom:14px;
+      font-size:.95rem;
+    }
+    input:focus, textarea:focus{
+      outline:none;
+      border-color:var(--brand);
+      box-shadow:0 0 8px rgba(255,221,72,.2);
+    }
+
+    button{
+      padding:10px 16px;
+      background:var(--brand);
+      border:none;
+      border-radius:999px;
+      color:#111827;
+      font-weight:700;
+      font-size:.9rem;
+      cursor:pointer;
+    }
+    button:hover{
+      background:#ffe46b;
+    }
+
+    .back-btn{
+      margin:14px;
+      padding:6px 14px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#020617;
+      color:#e2e8f0;
+      font-size:.8rem;
+      cursor:pointer;
+    }
+    .back-btn:hover{
+      background:#0b1120;
+    }
+
+    .note{
+      margin-top:12px;
+      font-size:.85rem;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body>
+
+<button class="back-btn" onclick="history.back()">← Back</button>
+
+<main class="wrap">
+  <h1>Post Announcement</h1>
+
+  <section class="panel">
+    <label for="sub">Subject</label>
+    <input id="sub" type="text" placeholder="Subject (required)"/>
+
+    <label for="en">English Message</label>
+    <textarea id="en" rows="5" placeholder="English message (required)"></textarea>
+
+    <label for="es">Spanish Message</label>
+    <textarea id="es" rows="5" placeholder="Spanish message (optional)"></textarea>
+
+    <button id="post-btn">Post to Bulletin</button>
+
+    <p class="note">
+      This sends the announcement to the monthly bulletin bucket.
+      Parents will see it instantly on the Announcements page.
+    </p>
+  </section>
+</main>
+
+<!-- ============================================================
+     FIREBASE POST LOGIC  (corrected)
+     ============================================================ -->
+<script type="module">
+import { 
+  addDoc, 
+  collection, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import { db } from "/__/firebase/init.js";
+
+/* -------- Dynamic Month Key -------- */
+function getMonthKey(){
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  return `${y}-${m}`;
+}
+
+/* ---------- POST BUTTON ---------- */
+document.getElementById("post-btn").onclick = async () => {
+  const subject = document.getElementById("sub").value.trim();
+  const en      = document.getElementById("en").value.trim();
+  const es      = document.getElementById("es").value.trim();
+
+  if (!subject || !en){
+    alert("Subject + English message required.");
+    return;
+  }
+
+  try {
+    await addDoc(
+      collection(db, "para-bulletin", getMonthKey(), "entries"),
+      {
+        subject,
+        en,
+        es,
+        timestamp: serverTimestamp()
+      }
+    );
+
+    alert("Posted!");
+    document.getElementById("sub").value = "";
+    document.getElementById("en").value = "";
+    document.getElementById("es").value = "";
+
+  } catch (err){
+    console.error(err);
+    alert("Error posting message.");
+  }
+};
+</script>
+
+</body>
+</html>

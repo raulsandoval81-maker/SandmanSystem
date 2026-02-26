@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coaches QA | Sandman System™</title>
+
+  <!-- NOTE: we're inside /public/coaches/, so use ../ for shared assets -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    .wrap{max-width:1200px;margin:0 auto;padding:2rem 1.25rem}
+    .grid{display:grid;grid-template-columns:360px 1fr;gap:1.25rem}
+    @media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+    .card{background:#0f141b;border:1px solid #243041;border-radius:14px;padding:1rem 1rem 1.2rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .card h2{margin:.25rem 0 1rem;color:#ffd633}
+
+    .form-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.75rem}
+    .control{width:100%;padding:.6rem .7rem;background:#121821;color:#f3f4f6;border:1px solid #394a61;border-radius:10px}
+    textarea.control{min-height:120px;resize:vertical}
+    label{display:block;font-weight:700;color:#d8e0ea;margin:.4rem 0 .3rem}
+
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent;color:#ffd633}
+    .muted{color:#9fb3c8}
+
+    table{width:100%;border-collapse:collapse;margin-top:.5rem}
+    th,td{padding:.55rem .5rem;border-bottom:1px solid #2c3a4e;text-align:left;color:#d8e0ea}
+    th{color:#9fb3c8;font-weight:800}
+    .empty{padding:1rem;color:#9fb3c8;text-align:center}
+
+    .toolbar{display:flex;gap:.6rem;flex-wrap:wrap;margin:.25rem 0 1rem}
+    .pill{display:inline-block;padding:.35rem .8rem;border-radius:999px;background:#1b2533;border:1px solid #384a62;color:#cfe2ff;font-weight:700}
+  </style>
+</head>
+<body>
+  <!-- Header include (also ../ because we are in /public/coaches/) -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1 style="margin:.25rem 0 1rem;">Coaches QA</h1>
+    <p class="muted">
+      Quick notes & assignments from coach ↔ athlete. Local demo only (no Firebase calls) so you can sweep clean and wire later.
+    </p>
+
+    <div class="grid">
+      <!-- LEFT: Compose -->
+      <section class="card" aria-label="Compose QA">
+        <h2>New QA</h2>
+
+        <div class="form-row">
+          <div style="flex:1 1 220px">
+            <label for="qaAthlete">Athlete</label>
+            <input id="qaAthlete" class="control" type="text" placeholder="e.g., sandoval" />
+          </div>
+          <div style="flex:1 1 180px">
+            <label for="qaCoach">Coach</label>
+            <input id="qaCoach" class="control" type="text" placeholder="e.g., reyes" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1 1 100%">
+            <label for="qaTopic">Topic / Technique</label>
+            <input id="qaTopic" class="control" type="text" placeholder="e.g., Double leg to corner finish" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1 1 100%">
+            <label for="qaNote">Quick note / assignment</label>
+            <textarea id="qaNote" class="control" placeholder="Keep elbows in; 3x5 rounds; video one round."></textarea>
+          </div>
+        </div>
+
+        <div class="form-row" style="align-items:center">
+          <button class="btn" id="btnSave" type="button">Save QA</button>
+          <button class="btn secondary" id="btnClear" type="button">Clear</button>
+          <span class="muted" id="saveStatus" style="margin-left:.5rem;"></span>
+        </div>
+
+        <div class="toolbar" aria-label="Filters">
+          <input id="fAthlete" class="control" type="search" placeholder="Filter: Athlete" style="flex:1 1 160px" />
+          <input id="fCoach"   class="control" type="search" placeholder="Filter: Coach"   style="flex:1 1 160px" />
+          <input id="fTopic"   class="control" type="search" placeholder="Filter: Topic"   style="flex:1 1 180px" />
+          <button class="btn secondary" id="btnReset" type="button">Reset</button>
+        </div>
+
+        <div class="muted">Showing last <span id="limitView" class="pill">20</span></div>
+      </section>
+
+      <!-- RIGHT: Recent -->
+      <section class="card" aria-label="Recent QA">
+        <h2>Recent (last 20)</h2>
+
+        <table aria-label="Recent QA table">
+          <thead>
+            <tr>
+              <th style="width:18%">When</th>
+              <th style="width:18%">Athlete</th>
+              <th style="width:18%">Coach</th>
+              <th style="width:18%">Topic</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="qaTableBody">
+            <tr class="empty"><td colspan="5">No entries yet.</td></tr>
+          </tbody>
+        </table>
+
+        <div style="margin-top: .9rem;">
+          <a class="btn secondary" href="../index.html">← Return Home</a>
+          <a class="btn" href="hub.html">Coach Hub</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer include -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Inline script at end (DOM is ready) -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const $ = id => document.getElementById(id);
+      const qaTableBody = $("qaTableBody");
+      if (!qaTableBody) { console.error("qaTableBody not found"); return; }
+
+      const state = { items: [], limit: 20 };
+      const esc = s => (s||"").replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      const row = it => `
+        <tr>
+          <td>${new Date(it.ts).toLocaleString()}</td>
+          <td>${esc(it.athlete)}</td>
+          <td>${esc(it.coach)}</td>
+          <td>${esc(it.topic)}</td>
+          <td>${esc(it.note)}</td>
+        </tr>`;
+
+      function render(){
+        const fa = ($("fAthlete")?.value || "").toLowerCase();
+        const fc = ($("fCoach")?.value   || "").toLowerCase();
+        const ft = ($("fTopic")?.value   || "").toLowerCase();
+
+        const filtered = state.items.filter(it =>
+          (!fa || it.athlete.toLowerCase().includes(fa)) &&
+          (!fc || it.coach.toLowerCase().includes(fc)) &&
+          (!ft || it.topic.toLowerCase().includes(ft))
+        ).sort((a,b)=>b.ts-a.ts).slice(0,state.limit);
+
+        qaTableBody.innerHTML = filtered.length
+          ? filtered.map(row).join("")
+          : `<tr class="empty"><td colspan="5">No entries yet.</td></tr>`;
+      }
+
+      function clearForm(){
+        ["qaAthlete","qaCoach","qaTopic","qaNote"].forEach(id => { const el=$(id); if(el) el.value=""; });
+        $("saveStatus").textContent = "";
+      }
+
+      $("btnSave")?.addEventListener("click", () => {
+        const athlete = $("qaAthlete").value.trim();
+        const coach   = $("qaCoach").value.trim();
+        const topic   = $("qaTopic").value.trim();
+        const note    = $("qaNote").value.trim();
+        if (!athlete || !coach || !topic || !note) { $("saveStatus").textContent = "Fill all fields."; return; }
+        state.items.push({ athlete, coach, topic, note, ts: Date.now() });
+        render(); clearForm();
+        $("saveStatus").textContent = "Saved (local demo).";
+      });
+
+      $("btnClear")?.addEventListener("click", clearForm);
+      $("btnReset")?.addEventListener("click", () => {
+        ["fAthlete","fCoach","fTopic"].forEach(id => { const el=$(id); if(el) el.value=""; });
+        render();
+      });
+      ["fAthlete","fCoach","fTopic"].forEach(id => $(id)?.addEventListener("input", render));
+
+      // Seed examples
+      state.items = [
+        {athlete:"rivera",  coach:"nguyen", topic:"Boxing: jab feint → cross", note:"3x3 bag + 2x pads; chin tucked.", ts: Date.now()-1000*60*60*2},
+        {athlete:"santana", coach:"reyes",  topic:"Wrestling: sprawl defense", note:"10x entries; hips down fast.",     ts: Date.now()-1000*60*60*28}
+      ];
+      render();
+    });
+  </script>
+</body>
+</html>

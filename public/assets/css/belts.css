@@ -1,0 +1,136 @@
+/* base look */
+.belt{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:.6rem .9rem;margin:.45rem 0;border-radius:12px;
+  border:2px solid var(--outline, #000);
+  color:var(--text, #fff);
+  background:linear-gradient(90deg, var(--start, #222), var(--end, #111));
+}
+
+/* keys (Youth + Teen use the same keys) */
+.belt[data-key="warrior"]        { --text:#FFFFFF; --start:#2196F3; --end:#0047A1; --outline:#000000; }
+.belt[data-key="champion"]       { --text:#FFFFFF; --start:#9C27B0; --end:#4A148C; --outline:#000000; }
+.belt[data-key="veteran"]        { --text:#FFFFFF; --start:#6D2B24; --end:#3E0E0A; --outline:#000000; }
+.belt[data-key="apprentice"]     { --text:#111111; --start:#F4F4F4; --end:#EAEAEA; --outline:#000000; }
+.belt[data-key="legend"]         { --text:#FFFFFF; --start:#000000; --end:#000000; --outline:#FFFFFF; }
+.belt[data-key="hero"]   { --text:#FFFFFF; --start:#000000; --end:#000000; --outline:#FFFFFF; } /* no glow */
+.belt[data-key="sandman"]        { --text:#111111; --start:#FFD700; --end:#FFC107; --outline:#000000; }
+.belt[data-key="commander"]      { --text:#FFFFFF; --start:#D46C41; --end:#8B3E23; --outline:#000000; }
+.belt[data-key="competitor"]     { --text:#FFFFFF; --start:#4CAF50; --end:#1B5E20; --outline:#000000; }
+.belt[data-key="combatant"]      { --text:#FFFFFF; --start:#FFA040; --end:#D2691E; --outline:#000000; }
+.belt[data-key="recruit"]        { --text:#111111; --start:#FFF176; --end:#FBC02D; --outline:#000000; }
+.belt[data-key="shadow"]         { --text:#FFFFFF; --start:#EEEEEE; --end:#E0E0E0; --outline:#000000; }
+.rank-row { display:flex; gap:.5rem; align-items:center; margin:.25rem 0 .5rem }
+.rank-name { font-weight:700; letter-spacing:.3px }
+
+.progress {
+  position: relative; height: 14px; border-radius: 999px;
+  background: #111a20; border: 1px solid #2A2A36; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #FFD000, #FFB700);
+  transition: width .35s ease;
+}
+
+/* =========================
+   Canonical Rank Bar
+   ========================= */
+
+#rankBar {
+  position: relative;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.08);
+  overflow: visible;
+  --stripe: #fff;
+}
+
+#rankFill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  transition: width 420ms ease-in-out;
+}
+
+/* boundary ticks */
+#rankBar .progress-tick {
+  position:absolute;
+  top:-6px;
+  height:32px;
+  width:2px;
+  transform:translateX(-1px);
+  background: var(--stripe);
+  opacity:.22;
+  z-index:2;
+}
+
+#rankBar .progress-tick.earned {
+  opacity:.95;
+}
+
+/* stripe boxes */
+#rankBar .stripe-boxes {
+  position:absolute;
+  right:10px;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  gap:6px;
+  z-index:3;
+}
+
+#rankBar .stripe-box {
+  width:10px;
+  height:10px;
+  border-radius:3px;
+  background: rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.18);
+}
+
+#rankBar .stripe-box.filled {
+  background: var(--stripe);
+  border-color: var(--stripe);
+}
+/* ===============================
+   STRIPE OVERLAY — FORCE VISIBILITY
+   =============================== */
+
+/* Rank bar is the anchor */
+#rankBar {
+  position: relative;
+  overflow: visible;
+}
+
+/* Fill stays underneath */
+#rankFill {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* Stripe container ON TOP */
+#rankBar .stripe-boxes {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+/* Stripe boxes */
+#rankBar .stripe-box {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.35);
+}
+
+/* Earned stripes */
+#rankBar .stripe-box.filled {
+  background: var(--stripe, #ffffff);
+  border-color: var(--stripe, #ffffff);
+}

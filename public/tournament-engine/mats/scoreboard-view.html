@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Scoreboard Display</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body{
+      margin:0;
+      background:#000814;
+      color:#e2e8f0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      overflow:hidden;
+    }
+
+    .wrap{
+      text-align:center;
+      padding:20px;
+    }
+
+    .mat-label{
+      font-size:2rem;
+      color:#38bdf8;
+      margin-bottom:10px;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .period{
+      font-size:2.2rem;
+      margin-bottom:20px;
+      color:#facc15;
+    }
+
+    .timer{
+      font-size:6rem;
+      font-weight:700;
+      margin-bottom:30px;
+      color:#ffffff;
+      text-shadow:0 0 18px rgba(255,255,255,.4);
+    }
+
+    .scores{
+      display:flex;
+      justify-content:center;
+      gap:60px;
+      margin-bottom:30px;
+    }
+
+    .score-box{
+      background:#001d3d;
+      padding:20px 30px;
+      border-radius:18px;
+      font-size:5rem;
+      min-width:180px;
+      border:3px solid #1e293b;
+      color:#ffffff;
+    }
+
+    .label{
+      font-size:1.4rem;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      letter-spacing:.08em;
+      color:#94a3b8;
+    }
+
+    .winner{
+      margin-top:30px;
+      font-size:3rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:#22c55e;
+      font-weight:700;
+      display:none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="mat-label" id="matLabel"></div>
+
+    <div class="period" id="period">Period —</div>
+
+    <div class="timer" id="timer">2:00</div>
+
+    <div class="scores">
+      <div>
+        <div class="label">Red</div>
+        <div class="score-box" id="redScore">0</div>
+      </div>
+
+      <div>
+        <div class="label">Green</div>
+        <div class="score-box" id="greenScore">0</div>
+      </div>
+    </div>
+
+    <div class="winner" id="winnerBanner"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+    import { getFirestore, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR-KEY",
+      authDomain: "YOUR-DOMAIN",
+      projectId: "YOUR-ID"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    // Grab ?mat=mat1
+    const urlParams = new URLSearchParams(window.location.search);
+    const mat = urlParams.get("mat") || "mat1";
+    document.getElementById("matLabel").textContent = mat.toUpperCase();
+
+    const periodEl = document.getElementById("period");
+    const timerEl = document.getElementById("timer");
+    const redEl = document.getElementById("redScore");
+    const greenEl = document.getElementById("greenScore");
+    const winnerBanner = document.getElementById("winnerBanner");
+
+    // Live Firestore listener
+    onSnapshot(doc(db, "tournament", "mats", mat), snap => {
+      if(!snap.exists()) return;
+
+      const d = snap.data();
+
+      periodEl.textContent = `Period ${d.period || "-"}`;
+      timerEl.textContent = d.time || "2:00";
+      redEl.textContent = d.red ?? 0;
+      greenEl.textContent = d.green ?? 0;
+
+      if(d.winner){
+        winnerBanner.style.display = "block";
+        winnerBanner.textContent =
+          d.winner === "RED" ? "RED WINS!" : "GREEN WINS!";
+      } else {
+        winnerBanner.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>

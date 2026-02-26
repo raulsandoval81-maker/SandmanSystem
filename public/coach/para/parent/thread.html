@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conversation • Para-Comms</title>
+
+  <link rel="stylesheet" href="/coach/shared/comms.css" />
+  <link rel="icon" href="data:," />
+</head>
+
+<body>
+<div class="wrap">
+
+  <section class="panel">
+    <h2 class="section-title">Conversation</h2>
+    <div style="opacity:.65;margin-top:-6px;margin-bottom:8px;">
+      Parent ↔ Coach (Read-only)
+    </div>
+
+    <div id="thread-head" class="thread-head"></div>
+  </section>
+
+  <section class="panel">
+    <div id="thread-messages"></div>
+  </section>
+
+  <section class="panel">
+    <label>Reply (read-only)</label>
+    <textarea id="reply-body" rows="3"></textarea>
+
+    <div class="btn-row">
+      <button id="btn-reply" class="btn btn-send">Send</button>
+      <button class="btn btn-cancel" onclick="history.back()">Back</button>
+    </div>
+  </section>
+
+</div>
+  </div>
+
+  <script type="module" src="/coach/para/parent/thread.js"></script>
+</body>
+</html>

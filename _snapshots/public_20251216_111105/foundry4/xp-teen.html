@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>XP — Teen/Adult</title>
+  <style>
+    body { font:16px/1.4 system-ui,sans-serif; padding:20px; max-width:700px; margin:auto; }
+    form input, form select { margin:4px; padding:6px; }
+    button { margin:4px; padding:6px 10px; }
+    #xpStatus { margin-top:6px; color:green; }
+    #tierLine { margin-top:12px; font-weight:600; }
+  </style>
+</head>
+<body>
+  <h1>Teen/Adult XP Tracker</h1>
+
+  <form id="xpForm">
+    <input id="athleteName" placeholder="Athlete name" required />
+    <input id="sport" placeholder="Sport (e.g., Wrestling)" />
+    <select id="category">
+      <option value="Technique">Technique</option>
+      <option value="Conditioning">Conditioning</option>
+      <option value="Application">Application</option>
+      <option value="Discipline">Discipline</option>
+    </select>
+    <input id="points" type="number" placeholder="+XP" required />
+    <button type="submit">Add XP</button>
+  </form>
+  <div id="xpStatus"></div>
+
+  <hr/>
+  <button id="xpLoad">Load Total</button>
+  <p>Total XP: <strong id="xpTotal">0</strong></p>
+  <div id="tierLine"></div>
+
+<!-- Firebase (already working) -->
+<script type="module" src="../assets/js/firebase-init.js"></script>
+<script type="module" src="../assets/js/ladder.service.js"></script>
+<script type="module" src="../assets/js/xp-teen.js"></script>
+
+</body>
+</html>

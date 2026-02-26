@@ -1,0 +1,518 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>Sandman • Silver Console (Intake Loop)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<style>
+:root{
+  --bg:#0b1020; --panel:#0f172a; --ink:#e5e7eb; --muted:#9ca3af; --line:#1f2937;
+  --blue:#2563eb; --blue-ol:#60a5fa; --green:#22c55e; --red:#ef4444; --gold:#f59e0b; --purple:#8b5cf6;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg); color:var(--ink); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0}
+.wrap{max-width:1180px; margin:24px auto; padding:0 16px}
+h1{font-size:24px; margin:0 0 12px}
+h2{font-size:20px; margin:16px 0 8px}
+h3{font-size:16px; margin:12px 0 8px}
+small{font-size:12px}
+.panel{background:var(--panel); border-radius:14px; box-shadow:0 0 0 1px var(--line) inset; margin:14px 0}
+.section-hdr{width:100%; text-align:left; padding:12px 14px; font-weight:800; border:none; background:#1f2937; color:var(--ink); border-radius:14px 14px 0 0; cursor:pointer}
+.section-hdr.open{background:#243042}
+.section-body{overflow:hidden; max-height:0; transition:max-height .25s ease; border-left:2px solid #1e2b44; border-right:2px solid #1e2b44; border-bottom:2px solid #1e2b44; border-radius:0 0 10px 10px; padding:0 12px}
+.section-body.open{padding:12px}
+.row{display:flex; align-items:center; gap:8px; margin:8px 0; flex-wrap:wrap}
+.btn-row{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0}
+.card{background:#0a1224; border-radius:12px; box-shadow:0 0 0 1px var(--line) inset; padding:12px; margin:10px 0}
+.chip{display:inline-block; padding:4px 8px; border:1px solid var(--line); border-radius:999px; font-size:12px; color:var(--muted); margin-right:6px}
+.stat{min-width:150px; background:#0d1530; border-radius:10px; box-shadow:0 0 0 1px var(--line) inset; padding:8px 10px}
+.stat .label{font-size:12px; color:var(--muted)}
+.stat .value{font-weight:800}
+input, select, textarea{background:#0a1224; color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:6px 8px}
+textarea{width:100%}
+.solid-blue{background:var(--blue); color:white; border:none; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-blue{border:1px solid var(--blue-ol); color:var(--blue-ol); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-gold{border:1px solid var(--gold); color:var(--gold); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.outline-green{border:1px solid var(--green); color:var(--green); background:transparent; padding:6px 10px; border-radius:10px; cursor:pointer}
+.warn{color:#fbbf24}
+.ok{color:#34d399}
+.small{font-size:12px}
+.kbd{border:1px solid var(--line); border-bottom-width:2px; padding:1px 4px; border-radius:4px; font-size:11px}
+.tab{cursor:pointer; user-select:none}
+.tab.active{border-color:var(--blue-ol); color:var(--blue-ol)}
+[data-panel]{display:none}
+[data-panel].active{display:block}
+.glow{box-shadow:0 0 0 1px var(--gold) inset, 0 0 10px 0 rgba(245,158,11,.35)}
+/* tiny tint accents */
+.hint{color:#c8d5ff}
+.tag{font-size:11px; padding:2px 6px; border:1px solid var(--line); border-radius:999px}
+.footer{margin-top:2rem; text-align:center; font-size:.8rem; color:#9ca3af}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>🔥 Sandman Silver — Intake Loop</h1>
+  <div class="chip tab" data-tab="coach">Coach</div>
+  <div class="chip tab" data-tab="parent">Parent</div>
+  <div class="chip tab" data-tab="athlete">Athlete</div>
+
+  <!-- ================== COACH ================== -->
+  <main data-panel="coach" class="active">
+    <section class="panel">
+      <button class="section-hdr open" data-acc="coach-invite-body">Coach — Parent Invite</button>
+      <div class="section-body open" id="coach-invite-body">
+        <div class="card">
+          <h3>Invite a Parent <span class="tag">48h token</span></h3>
+          <div class="row">
+            <button id="btn-make-token" class="solid-blue">Generate Token</button>
+            <input id="invite-link" type="text" class="small" placeholder="Invite link appears here…" style="flex:1;min-width:320px" readonly>
+            <button id="btn-copy-token" class="outline-blue">Copy</button>
+          </div>
+          <small class="muted">Brand: <strong>Sandman Systems™</strong> / <strong>Sandman Combat™</strong>. Token expires in 48 hours.</small>
+          <div id="invite-status" class="small" style="margin-top:6px"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <button class="section-hdr" data-acc="coach-approve-body">Coach — Approve & Activate</button>
+      <div class="section-body" id="coach-approve-body">
+        <div class="card">
+          <div class="row">
+            <button id="btn-find-intakes" class="outline-blue">Find Submitted Intakes</button>
+            <span id="pending-count" class="small muted">—</span>
+          </div>
+          <div id="pending-list" class="small mono muted">No pending intakes yet.</div>
+        </div>
+
+        <div class="card">
+          <h3>Identity (public)</h3>
+          <div class="row">
+            <label>Public Initial</label><input id="pub-initial" placeholder="e.g., J.">
+            <label>Public Last</label><input id="pub-last" placeholder="e.g., Sandoval">
+          </div>
+          <small class="muted">Public display name is used on external views.</small>
+        </div>
+
+        <div class="card">
+          <h3>Team / Location</h3>
+          <div class="row">
+            <label>Team</label><input id="team-name" placeholder="e.g., Trojans">
+            <label>City</label><input id="team-city" placeholder="e.g., Santa Maria">
+            <label>State</label><input id="team-state" placeholder="e.g., CA">
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Mint</h3>
+          <div class="row">
+            <button id="mint-f8" class="outline-gold">Mint Foundry 8</button>
+            <button id="mint-f4" class="outline-gold">Mint Foundry 4</button>
+            <input id="minted-uid" class="mono" placeholder="UID appears here (e.g., F8-00001)" readonly style="min-width:180px">
+            <input id="padlock" class="mono" placeholder="Padlock (6 digits)" readonly style="min-width:130px">
+          </div>
+          <small class="muted">Track and Tier are auto-set (T0). Tier/Rank selectors are hidden unless an Exception is opened & approved.</small>
+        </div>
+
+        <div class="card">
+          <h3>Exceptions (collapsed)</h3>
+          <button id="ex-open" class="outline-blue">Open Exceptions</button>
+          <div id="ex-body" class="card" style="display:none">
+            <h4>Fast-Track (F4 only)</h4>
+            <div class="row">
+              <label><input id="ex-fast" type="checkbox"> Request Fast-Track (Apprentice baseline)</label>
+              <input id="ex-years" type="number" min="0" step="1" placeholder="Years trained (≥2)">
+              <label><input id="ex-proof" type="checkbox"> Competition record proof on file</label>
+            </div>
+            <div class="row">
+              <label>Letter of Intent</label><input id="ex-letter" placeholder="URL or brief note">
+            </div>
+            <small class="muted">Fast-Track triggers 48h management review.</small>
+
+            <h4 style="margin-top:12px">Dual Progression (F8 only)</h4>
+            <div class="row">
+              <label><input id="ex-dual" type="checkbox"> Request Dual Progression (max Warrior)</label>
+              <label><input id="ex-parent-ack" type="checkbox"> Parent acknowledges no public ceremonies until backfilled.</label>
+            </div>
+            <div class="row">
+              <label>Coach Note</label><input id="ex-note" placeholder="Context for exception">
+            </div>
+            <small class="muted">Dual = class merit only; athlete must backfill from Shadow; 48h review.</small>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Approve</h3>
+          <div class="row">
+            <button id="btn-approve" class="solid-blue">Approve & Activate</button>
+            <span id="approve-status" class="small"></span>
+          </div>
+          <div class="row">
+            <div class="stat"><div class="label">UID</div><div class="value" id="out-uid">—</div></div>
+            <div class="stat"><div class="label">Track</div><div class="value" id="out-track">—</div></div>
+            <div class="stat"><div class="label">Tier</div><div class="value" id="out-tier">—</div></div>
+            <div class="stat"><div class="label">Team</div><div class="value" id="out-team">—</div></div>
+            <div class="stat"><div class="label">Padlock</div><div class="value" id="out-padlock">—</div></div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <!-- ================== PARENT ================== -->
+  <main data-panel="parent">
+    <section class="panel">
+      <button class="section-hdr open" data-acc="parent-intake-body">Parent — Intake</button>
+      <div class="section-body open" id="parent-intake-body">
+        <div class="card">
+          <div class="row">
+            <div class="stat"><div class="label">Invite Token</div><div class="value" id="token-view">—</div></div>
+            <small id="token-exp" class="muted">Paste ?invite=… in URL to prefill.</small>
+          </div>
+
+          <h3>Athlete</h3>
+          <div class="row">
+            <input id="pi-first" placeholder="First">
+            <input id="pi-last"  placeholder="Last">
+            <input id="pi-dob"   type="date" placeholder="DOB">
+          </div>
+          <div class="row">
+            <input id="pi-team" placeholder="Team (optional)">
+            <input id="pi-city" placeholder="City">
+            <input id="pi-state" placeholder="State">
+          </div>
+
+          <h3>Parent Contact</h3>
+          <div class="row">
+            <input id="pi-parent-email" placeholder="Parent Email">
+            <input id="pi-parent-phone" placeholder="Parent Phone">
+          </div>
+
+          <h3>Emergency</h3>
+          <div class="row">
+            <input id="pi-emer-name"  placeholder="Emergency Name">
+            <input id="pi-emer-phone" placeholder="Emergency Phone">
+          </div>
+
+          <h3>Medical</h3>
+          <textarea id="pi-med" rows="2" placeholder="Allergies / injuries"></textarea>
+
+          <div class="card" style="margin-top:10px">
+            <h3>Waiver (must view to unlock submit)</h3>
+            <small class="muted">Brands: Sandman Systems™ / Sandman Combat™</small>
+            <div class="row">
+              <button id="btn-open-waiver" class="outline-blue">Open Waiver PDF</button>
+              <span id="waiver-seen" class="small warn">Not viewed</span>
+            </div>
+            <div class="row">
+              <label class="small"><input id="pi-waiver" type="checkbox" disabled> I have read and agree to the waiver.</label>
+            </div>
+            <div class="row">
+              <input id="pi-sign" placeholder="Parent/Guardian full name (signature)" disabled>
+              <input id="pi-sign-date" type="date" disabled>
+            </div>
+          </div>
+
+          <div class="row" style="margin-top:8px">
+            <button id="btn-pi-submit" class="solid-blue" disabled>Submit Intake</button>
+            <span id="pi-status" class="small"></span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================== ATHLETE ================== -->
+  <main data-panel="athlete">
+    <section class="panel">
+      <button class="section-hdr open" data-acc="ath-view-body">Athlete — Status</button>
+      <div class="section-body open" id="ath-view-body">
+        <div class="card">
+          <div class="row">
+            <div class="stat"><div class="label">UID</div><div class="value" id="ath-uid">—</div></div>
+            <div class="stat"><div class="label">Track</div><div class="value" id="ath-track">—</div></div>
+            <div class="stat"><div class="label">Tier</div><div class="value" id="ath-tier">—</div></div>
+            <div class="stat"><div class="label">Team</div><div class="value" id="ath-team">—</div></div>
+            <div class="stat"><div class="label">Status</div><div class="value" id="ath-status">Waiting for Coach Approval</div></div>
+          </div>
+          <small class="muted">After coach approves, your initials and roster slot will appear here.</small>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="panel">
+    <button class="section-hdr" data-acc="logger-body">Logger</button>
+    <div class="section-body" id="logger-body">
+      <ul id="global-feed" class="small"><li class="muted">No entries yet.</li></ul>
+    </div>
+  </section>
+
+  <footer class="footer">&copy; 2025 Sandman Systems™ / Sandman Combat™ — Pilot Intake Console</footer>
+</div>
+
+<script type="module">
+/* ====================== DEV SHIM DB (in-memory) ====================== */
+const stores = { intakes:new Map(), athletes:new Map(), inviteBank:new Map(), adminLogs:new Map() };
+const DB = {
+  add(col, obj){ const id = obj.id ?? (Math.random().toString(36).slice(2,10)); const rec={...obj, id}; stores[col].set(id, rec); return rec; },
+  set(col, id, patch){ const cur = stores[col].get(id)||{id}; const nxt={...cur, ...patch}; stores[col].set(id, nxt); return nxt; },
+  get(col, id){ return stores[col].get(id)||null; },
+  query(col, fn){ const all=[...stores[col].values()]; return typeof fn==="function"? all.filter(fn): all; }
+};
+const log = (m)=>{ const ul=document.getElementById('global-feed'); const li=document.createElement('li'); li.textContent = new Date().toLocaleTimeString()+' — '+m; ul.prepend(li); console.log(m); };
+
+/* ====================== TABS ====================== */
+function setActiveTab(name,{fromHash=false}={}){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+  document.querySelectorAll('[data-panel]').forEach(p=>p.classList.toggle('active', p.dataset.panel===name));
+  const firstHdr=document.querySelector(`[data-panel="${name}"] .section-hdr`);
+  if(firstHdr && !firstHdr.classList.contains('open')) firstHdr.click();
+  try{ localStorage.setItem('silver.activeTab',name);}catch{}
+  if(!fromHash){ const url=new URL(location.href); url.hash=name; history.replaceState(null,'',url); }
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setActiveTab(t.dataset.tab)));
+(function initTab(){
+  const hash=(location.hash||'').replace('#','').toLowerCase();
+  const saved=(localStorage.getItem('silver.activeTab')||'coach').toLowerCase();
+  const start = ['coach','parent','athlete'].includes(hash)?hash:(['coach','parent','athlete'].includes(saved)?saved:'coach');
+  setActiveTab(start,{fromHash:true});
+  window.addEventListener('hashchange',()=>{ const h=(location.hash||'').replace('#','').toLowerCase(); if(['coach','parent','athlete'].includes(h)) setActiveTab(h,{fromHash:true}); });
+})();
+
+/* ====================== ACCORDIONS ====================== */
+function setOpenHeight(el,on){ if(!el) return; el.classList.toggle('open',!!on); el.style.maxHeight = on ? (el.scrollHeight+'px') : '0'; }
+document.addEventListener('click',(e)=>{
+  if(e.target.matches('.section-hdr')){
+    const hdr=e.target; const id=hdr.getAttribute('data-acc'); const body=id?document.getElementById(id):hdr.nextElementSibling;
+    const willOpen=!hdr.classList.contains('open'); hdr.classList.toggle('open',willOpen); setOpenHeight(body,willOpen);
+  }
+});
+
+/* ====================== HELPERS ====================== */
+const $ = (id)=>document.getElementById(id);
+const hm = (v)=>String(v??'').trim();
+const now = ()=>Date.now();
+const two = (n)=>String(n).padStart(2,'0');
+/* UID counters (persisted in localStorage) */
+function nextCounter(key){ const n = parseInt(localStorage.getItem(key)||'0',10)+1; localStorage.setItem(key,String(n)); return n; }
+function pad5(n){ return String(n).padStart(5,'0'); }
+function mintUidFor(track){ // 'F8' | 'F4'
+  const key = track==='F8' ? 'uidCounterF8' : 'uidCounterF4';
+  return `${track}-${pad5(nextCounter(key))}`;
+}
+function mintPadlock(){ const n = parseInt(localStorage.getItem('padlockCounter')||'0',10)+1; localStorage.setItem('padlockCounter', String(n)); return String(n).padStart(6,'0'); }
+function fmtExp(ts){ const d=new Date(ts); return `${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())} ${two(d.getHours())}:${two(d.getMinutes())}`; }
+
+/* ====================== TOKEN (48h) ====================== */
+function makeToken(){
+  const tok = crypto.randomUUID();
+  const exp = Date.now()+48*3600*1000;
+  stores.inviteBank.set(tok,{exp,createdAt:Date.now()});
+  const link = `${location.origin}${location.pathname}?invite=${tok}`;
+  $('invite-link').value = link;
+  $('invite-status').textContent = `Token created. Expires ${fmtExp(exp)}`;
+  log(`Invite token ${tok} (48h).`);
+  return {tok, link};
+}
+function tokenFromURL(){
+  const u=new URL(location.href); const tok=u.searchParams.get('invite'); 
+  if(!tok) return null;
+  const rec=stores.inviteBank.get(tok);
+  $('token-view').textContent = tok;
+  if(!rec){ $('token-exp').textContent='Token not found (dev).'; return tok; }
+  $('token-exp').textContent = (rec.exp>now())? `Valid until ${fmtExp(rec.exp)}` : 'Expired';
+  return tok;
+}
+
+/* ====================== WAIVER (must view) ====================== */
+let waiverViewed = false;
+$('btn-open-waiver').addEventListener('click', ()=>{
+  // dev: open a small inline PDF blob
+  const blob = new Blob([`Sandman Systems™ / Sandman Combat™ — Liability & Media Waiver
+Read fully before signing. By proceeding you agree to the terms.`], {type:'application/pdf'});
+  const url = URL.createObjectURL(blob);
+  window.open(url,'_blank','noopener');
+  waiverViewed = true;
+  $('waiver-seen').textContent='Viewed';
+  $('waiver-seen').classList.remove('warn'); $('waiver-seen').classList.add('ok');
+  $('pi-waiver').disabled=false; $('pi-sign').disabled=false; $('pi-sign-date').disabled=false;
+  maybeUnlockSubmit();
+});
+function maybeUnlockSubmit(){
+  const ok = waiverViewed && $('pi-waiver').checked && hm($('pi-sign').value) && hm($('pi-sign-date').value);
+  $('btn-pi-submit').disabled = !ok;
+}
+
+/* ====================== PARENT SUBMIT ====================== */
+$('pi-waiver')?.addEventListener('change', maybeUnlockSubmit);
+['pi-sign','pi-sign-date'].forEach(id=>$(id)?.addEventListener('input', maybeUnlockSubmit));
+
+$('btn-pi-submit').addEventListener('click', ()=>{
+  const token = tokenFromURL();
+  const intake = {
+    token,
+    first: hm($('pi-first').value), last: hm($('pi-last').value), dob: hm($('pi-dob').value),
+    team: hm($('pi-team').value)||hm($('pi-city').value)?`${hm($('pi-team').value)||'Sandman Combat'} (${hm($('pi-city').value)||'—'})`:'',
+    city: hm($('pi-city').value), state: hm($('pi-state').value),
+    parentEmail: hm($('pi-parent-email').value), parentPhone: hm($('pi-parent-phone').value),
+    emerName: hm($('pi-emer-name').value), emerPhone: hm($('pi-emer-phone').value),
+    med: hm($('pi-med').value),
+    waiver:true, sign:hm($('pi-sign').value), signDate:hm($('pi-sign-date').value),
+    status:'submitted', createdAt: now()
+  };
+  if(!intake.first){ $('pi-status').textContent='Add athlete first name.'; return; }
+  const id = token ?? Math.random().toString(36).slice(2,10);
+  DB.set('intakes', id, intake);
+  $('pi-status').textContent = 'Submitted. Waiting for Coach Approval.';
+  log(`Parent intake submitted (${id}) ${intake.first} ${intake.last}`);
+});
+
+/* ====================== COACH — FIND & GLOW ====================== */
+function refreshPending(){
+  const list = DB.query('intakes', x=>x.status==='submitted').sort((a,b)=>b.createdAt-a.createdAt).slice(0,12);
+  $('pending-count').textContent = list.length ? `${list.length} pending` : '—';
+  const btn = $('btn-find-intakes');
+  btn.classList.toggle('glow', !!list.length);
+  const box = $('pending-list');
+  if(!list.length){ box.classList.add('muted'); box.textContent='No pending intakes yet.'; return; }
+  box.classList.remove('muted');
+  box.innerHTML = '';
+  list.forEach(it=>{
+    const div=document.createElement('div');
+    div.innerHTML = `<span class="hint">${new Date(it.createdAt).toLocaleString()}</span> — <strong>${it.first} ${it.last}</strong> • ${it.city||''} ${it.state||''} <button class="outline-blue small" data-load="${it.id}">Load</button>`;
+    box.appendChild(div);
+  });
+  box.addEventListener('click', (e)=>{
+    const b = e.target.closest('button[data-load]'); if(!b) return;
+    const id = b.getAttribute('data-load'); loadIntake(id);
+  }, { once:true });
+}
+$('btn-find-intakes').addEventListener('click', refreshPending);
+
+/* ====================== LOAD INTO APPROVAL FORM ====================== */
+let currentIntakeId = null;
+function loadIntake(id){
+  const it = DB.get('intakes', id); if(!it){ $('pending-list').textContent='Not found'; return;}
+  currentIntakeId = id;
+  // Suggest public display defaults
+  $('pub-initial').value = (it.first?.[0]||'').toUpperCase()+'.';
+  $('pub-last').value = it.last||'';
+  $('team-name').value = it.team || hm($('team-name').value);
+  $('team-city').value = it.city||'';
+  $('team-state').value = it.state||'';
+  $('approve-status').textContent = `Loaded ${it.first} ${it.last}.`;
+  log(`Loaded intake ${id} for approval.`);
+}
+
+/* ====================== EXCEPTIONS UI ====================== */
+$('ex-open').addEventListener('click', ()=>{
+  const body=$('ex-body'); body.style.display = body.style.display==='none'?'block':'none';
+});
+
+/* ====================== MINT (auto track + padlock seize on approve) ====================== */
+function doMint(track){ // 'F8' | 'F4'
+  const uid = mintUidFor(track);
+  $('minted-uid').value = uid;
+  $('padlock').value = ''; // padlock only appears on approve
+  $('out-uid').textContent = uid;
+  $('out-track').textContent = track;
+  $('out-tier').textContent = 'T0';
+  $('out-team').textContent = $('team-name').value || 'Sandman Combat';
+  $('approve-status').textContent = `Minted ${uid} • ${track}`;
+}
+$('mint-f8').addEventListener('click', ()=>doMint('F8'));
+$('mint-f4').addEventListener('click', ()=>doMint('F4'));
+
+/* ====================== APPROVE & ACTIVATE ====================== */
+$('btn-approve').addEventListener('click', ()=>{
+  if(!currentIntakeId){ $('approve-status').textContent='Load an intake first.'; return; }
+  const it = DB.get('intakes', currentIntakeId);
+  if(!it){ $('approve-status').textContent='Intake missing.'; return; }
+  const pubInitial = hm($('pub-initial').value);
+  const pubLast    = hm($('pub-last').value);
+  if(!pubInitial || !pubLast){ $('approve-status').textContent='Public name required.'; return; }
+  const uid = hm($('minted-uid').value);
+  if(!uid){ $('approve-status').textContent='Mint first (F8 or F4).'; return; }
+  // exceptions rules — validate gates (only if toggled)
+  const reqFast = $('ex-fast').checked;
+  const reqDual = $('ex-dual').checked;
+  if(reqFast && !uid.startsWith('F4')){ $('approve-status').textContent='Fast-Track is F4 only.'; return; }
+  if(reqFast){
+    const yrs = parseInt($('ex-years').value||'0',10);
+    if(yrs<2 || !$('ex-proof').checked){ $('approve-status').textContent='Fast-Track requires ≥2yrs + proof.'; return; }
+  }
+  if(reqDual && !uid.startsWith('F8')){ $('approve-status').textContent='Dual Progression is F8 only.'; return; }
+  if(reqDual && !$('ex-parent-ack').checked){ $('approve-status').textContent='Parent acknowledgement required.'; return; }
+
+  const track = uid.startsWith('F8')?'F8':'F4';
+  const pad = mintPadlock(); // seize here
+  $('padlock').value = pad;
+
+  // create athlete
+  const athlete = {
+    uid, publicInitial:pubInitial, publicLast:pubLast,
+    track, tier:'T0', xp:0, team: hm($('team-name').value)||'Sandman Combat',
+    city: hm($('team-city').value), state: hm($('team-state').value),
+    status: (reqFast||reqDual)? 'pending_exception_review':'active',
+    exception: (reqFast?'fasttrack ':'') + (reqDual?'dual ':''),
+    createdAt: now(), padlock: pad
+  };
+  DB.set('athletes', uid, athlete);
+
+  // mark intake processed
+  DB.set('intakes', currentIntakeId, { status:'approved', approvedAt: now(), uid });
+
+  // admin log
+  const logId = Math.random().toString(36).slice(2,10);
+  DB.set('adminLogs', logId, {
+    scope:'intake', action:'approve', intakeId: currentIntakeId, athleteUid: uid,
+    outcome: athlete.status, ts: now()
+  });
+
+  // coach outputs
+  $('out-uid').textContent = uid;
+  $('out-track').textContent = track;
+  $('out-tier').textContent = 'T0';
+  $('out-team').textContent = athlete.team;
+  $('out-padlock').textContent = pad;
+  $('approve-status').textContent = `Approved ${pubInitial} ${pubLast} (${uid}) • Padlock ${pad} seized.`;
+  log(`Approved ${uid}. Padlock ${pad} (status: ${athlete.status}).`);
+
+  // athlete panel preview
+  $('ath-uid').textContent = uid;
+  $('ath-track').textContent = track;
+  $('ath-tier').textContent = 'T0';
+  $('ath-team').textContent = athlete.team;
+  $('ath-status').textContent = athlete.status==='active' ? 'Active (Rostered)' : 'Pending Exception Review (48h)';
+});
+
+/* ====================== COACH INVITE UI ====================== */
+$('btn-make-token').addEventListener('click', ()=>{
+  const {link} = makeToken();
+  $('invite-link').classList.remove('muted');
+});
+$('btn-copy-token').addEventListener('click', ()=>{
+  const el = $('invite-link'); if(!el.value) return;
+  el.select(); document.execCommand?.('copy');
+  $('invite-status').textContent = 'Copied link.';
+});
+
+/* ====================== INIT ====================== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  // parent token prefill
+  const tok = tokenFromURL();
+  if(tok){ $('token-view').textContent = tok; }
+
+  // auto-open the first visible panel bodies
+  document.querySelectorAll('.section-hdr.open').forEach(h=>{
+    const id=h.getAttribute('data-acc'); const body=id?document.getElementById(id):h.nextElementSibling; setOpenHeight(body,true);
+  });
+
+  // soft ping pending list on entry to Coach tab
+  if(document.querySelector('.tab[data-tab="coach"]').classList.contains('active')) refreshPending();
+});
+</script>
+</body>
+</html>

@@ -1,41 +1,125 @@
-// /assets/js/xp.config.js  — single source of truth (CLEAN TOP → BOTTOM)
+// /assets/js/xp.config.js
+// Single Source of Truth — V1 (LOCKED)
+// Clean top → bottom. No logic leaks.
+
+export const STRIPES_PER_TIER = 4;
 
 export const XP_CONFIG = Object.freeze({
+
   // =========================
-  // Foundry 4 (Olders / HS)
+  // Foundry 4 (Teen) — V1
   // =========================
-  // Caps: 1200 → 1600 → 2000 → 2400 → 2800
-  // Arena monthly cap: REMOVED (null = unlimited)
   foundry4: {
-    tierCaps: { T0: 1200, T1: 1600, T2: 2000, T3: 2400, T4: 2800 },
+    tierCaps: {
+      T0: 1200,
+      T1: 1600,
+      T2: 2000,
+      T3: 2400,
+      T4: 2800
+    },
+
     monthly: {
       attendance: 200,
-      attendanceNegFishEventsMax: 4,
-      arena: { T0: null, T1: null, T2: null, T3: null, T4: null }, // ✅ unlimited for HS
-      character: { parentRewardMax: 10, parentDeductMax: 10, netMax: 10 }
+
+      // V1 compat key (tracks.js reads this)
+      attendanceNegFishEventsMax: 2,
+
+      // null = unlimited
+      arena: { T0: null, T1: null, T2: null, T3: null, T4: null }
     },
+
+    // Character rules are NOT monthly-only concepts (moved out for future-proofing)
+    character: {
+      parentRewardMax: 10,
+      parentDeductMax: 10,
+      netMax: 10,
+      domains: ["HOME", "CLASSROOM", "COMMUNITY"]
+    },
+
+    // F4 has independent lanes (V1 rules)
+    lanes: {
+      strength: { deltaFull: 10, deltaMerit: 5, monthlyCap: 120 },
+      honor:    { deltaFull: 10, deltaMerit: 5, monthlyCap: 120 }
+    },
+
     arena: { battle: 10, podium: 5, styleIQ: 5, styleIQMaxPerEvent: 1 },
     prestigeYearly: { state: 3, regional: 1, national: 1 },
-    ranks: { T0:"Apprentice", T1:"Warrior", T2:"Champion", T3:"Veteran", T4:"Legend" }
+
+    ranks: {
+      T0: "Apprentice",
+      T1: "Warrior",
+      T2: "Champion",
+      T3: "Veteran",
+      T4: "Legend"
+    }
   },
 
   // =========================
-  // Foundry 8 (Youth)
+  // Foundry 8 (Youth) — V1
   // =========================
-  // 8 tiers (T0–T7). Start at 800. No Sandman.
-  // Caps: 800 → 1000 → 1200 → 1400 → 1600 → 1800 → 2000 → 2400
-  // Arena monthly cap: KEPT (youth throttles)
   foundry8: {
-    tierCaps: { T0: 800, T1: 1000, T2: 1200, T3: 1400, T4: 1600, T5: 1800, T6: 2000, T7: 2400 },
+    tierCaps: {
+      T0: 800,
+      T1: 1000,
+      T2: 1200,
+      T3: 1400,
+      T4: 1600,
+      T5: 1800,
+      T6: 2000,
+      T7: 2400
+    },
+
     monthly: {
       attendance: 160,
-      attendanceNegFishEventsMax: 4,
-      arena: { T0: 0, T1: 40, T2: 40, T3: 60, T4: 60, T5: 60, T6: 60, T7: 80 },
-      character: { parentRewardMax: 10, parentDeductMax: 10, netMax: 10 }
+
+      // V1 compat key (tracks.js reads this)
+      attendanceNegFishEventsMax: 2,
+
+      arena: {
+        T0: 0,
+        T1: 40,
+        T2: 40,
+        T3: 60,
+        T4: 60,
+        T5: 60,
+        T6: 60,
+        T7: 80
+      }
     },
+
+    // Character rules are NOT monthly-only concepts (moved out for future-proofing)
+    character: {
+      parentRewardMax: 10,
+      parentDeductMax: 10,
+      netMax: 10,
+      domains: ["HOME", "CLASSROOM", "COMMUNITY"]
+    },
+
+    // Youth: contributions feed the single XP bar (not independent lanes)
+    contributions: {
+      strength: { delta: 5, monthlyCap: 40 },
+      honor:    { delta: 5, monthlyCap: 40 }
+    },
+
+    // Youth unlock gates (LOCKED)
+    unlockGates: {
+      strength: { tier: "T0", stripe: 2 },
+      honor:    { tier: "T0", stripe: 3 }
+    },
+
     arena: { battle: 10, podium: 5, styleIQ: 5, styleIQMaxPerEvent: 1 },
     prestigeYearly: { state: 3, regional: 1, national: 1 },
-    ranks: { T0:"Shadow", T1:"Recruit", T2:"Combatant", T3:"Competitor", T4:"Warrior", T5:"Champion", T6:"Commander", T7:"Hero" }
+
+    ranks: {
+      T0: "Shadow",
+      T1: "Recruit",
+      T2: "Combatant",
+      T3: "Competitor",
+      T4: "Warrior",
+      T5: "Champion",
+      T6: "Commander",
+      T7: "Hero"
+    }
   }
 });
 
@@ -45,38 +129,43 @@ export const COMPAT = Object.freeze({
   F8: { caps: XP_CONFIG.foundry8.tierCaps, ranks: XP_CONFIG.foundry8.ranks }
 });
 
-export const STRIPES_PER_TIER = 4;
-
-// Alias for older pages that import baseFromTrackLike
-export function baseFromTrackLike(code = "") {
-  return baseFromTrackCode(code);
-}
-
-// ---- Helpers ----
+// ======================================================
+// HELPERS
+// ======================================================
 export function baseFromTrackCode(code = "") {
   const c = String(code).toUpperCase();
   return (c.startsWith("F8") || c.includes("FOUNDRY8")) ? "F8" : "F4";
 }
 
-export function normalizeBase(b = "F4") {
-  const s = String(b).toLowerCase();
-  if (s.startsWith("f8") || s.includes("foundry8")) return "F8";
-  return "F4";
+export function normalizeBase(base = "F4") {
+  const s = String(base).toLowerCase();
+  return (s.startsWith("f8") || s.includes("foundry8")) ? "F8" : "F4";
+}
+
+export function normalizeTier(tier = "T0") {
+  const t = String(tier).toUpperCase().trim();
+  if (/^T\d+$/.test(t)) return t;
+  const n = Number(tier);
+  return Number.isFinite(n) ? `T${n}` : "T0";
 }
 
 export function getCap(trackBaseOrKey, tier = "T0") {
   const base = normalizeBase(trackBaseOrKey);
-  return (base === "F8"
-    ? XP_CONFIG.foundry8.tierCaps[tier]
-    : XP_CONFIG.foundry4.tierCaps[tier]
+  const t = normalizeTier(tier);
+  return (
+    base === "F8"
+      ? XP_CONFIG.foundry8.tierCaps[t]
+      : XP_CONFIG.foundry4.tierCaps[t]
   ) ?? 800;
 }
 
 export function getRank(trackBaseOrKey, tier = "T0") {
   const base = normalizeBase(trackBaseOrKey);
-  return (base === "F8"
-    ? XP_CONFIG.foundry8.ranks[tier]
-    : XP_CONFIG.foundry4.ranks[tier]
+  const t = normalizeTier(tier);
+  return (
+    base === "F8"
+      ? XP_CONFIG.foundry8.ranks[t]
+      : XP_CONFIG.foundry4.ranks[t]
   ) ?? (base === "F8" ? "Shadow" : "Apprentice");
 }
 
@@ -85,6 +174,18 @@ export function stripeStep(trackBaseOrKey, tier = "T0") {
   return Math.max(1, Math.round(cap / STRIPES_PER_TIER / 10) * 10);
 }
 
-// Convenience
+// ======================================================
+// XP BUCKETS (UI labels only)
+// ======================================================
+export const XP_BUCKETS = Object.freeze({
+  daily:   { key: "xpDaily",   label: "Daily Grind XP" },
+  arena:   { key: "xpArena",   label: "Combat Arena XP" },
+  fightIQ: { key: "xpFightIQ", label: "Fight IQ XP" },
+  total:   { key: "xp",        label: "Total XP" }
+});
+
+// ======================================================
+// TRACK ALIASES
+// ======================================================
 export const TRACKS = Object.freeze({ F4: "foundry4", F8: "foundry8" });
 export const XP_CONFIG_COMPAT = Object.freeze({ F4: COMPAT.F4, F8: COMPAT.F8 });

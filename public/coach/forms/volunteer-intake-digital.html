@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Volunteer Form</title>
+
+  <link rel="stylesheet" href="/coach/shared/toolbar.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{max-width:900px;margin:0 auto;padding:22px 14px 40px}
+
+    .parent-header{
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{display:flex;gap:6px}
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    .hero{
+      margin-top:8px;
+      padding:20px 16px 16px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(150deg,#0a1833 0%,#111c35 45%,#050814 100%);
+      box-shadow:0 8px 22px rgba(0,0,0,.45);
+      text-align:left;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      color:var(--brand);
+      font-size:1.4rem;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+    .hero p{margin:0;color:#e2e8f0;font-size:.95rem}
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      margin-top:14px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    h2{margin:0 0 8px;font-size:1.05rem;color:var(--brand)}
+    label{display:block;margin:8px 0 4px;font-size:.9rem;color:var(--muted);font-weight:600}
+
+    input[type="text"],input[type="tel"],input[type="email"],textarea,select{
+      width:100%;
+      padding:9px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0b1428;
+      color:var(--text);
+      font-size:.92rem;
+    }
+    textarea{min-height:80px;resize:vertical;line-height:1.4}
+
+    .row{display:flex;flex-wrap:wrap;gap:12px}
+    .col{flex:1;min-width:230px}
+
+    .checks{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:6px 16px;
+      margin-top:6px;
+    }
+    .checks label{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-weight:400;
+      margin:0;
+    }
+    .checks input[type="checkbox"]{width:auto}
+
+    .small{margin-top:8px;font-size:.86rem;color:var(--muted)}
+
+    .btn-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--line);
+      padding:9px 14px;
+      font-size:.9rem;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .btn-brand{
+      background:var(--brand);
+      color:#111827;
+      border-color:var(--brand);
+    }
+    .btn-ghost{background:transparent;color:var(--text)}
+    .btn:hover{filter:brightness(1.05)}
+
+    @media (max-width:640px){
+      .wrap{padding:18px 12px 32px}
+      .hero h1{font-size:1.25rem}
+      .parent-header-inner{padding-inline:2px}
+      .parent-brand{font-size:.85rem}
+    }
+
+    .footer-hard{
+      margin-top:28px;
+      padding:22px 10px 30px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{max-width:900px;margin:0 auto}
+    .footer-brand{color:#94a3b8;font-size:.82rem;margin-bottom:12px}
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px 18px;
+      font-size:.88rem;
+    }
+    .footer-links a{color:#ffdd48;text-decoration:none}
+    .footer-links a:hover{text-decoration:underline}
+
+    @media print{
+      body{background:#fff;color:#000}
+      .parent-header,.footer-hard{display:none}
+      .hero{background:#fff;border:1px solid #999;box-shadow:none}
+      .panel{border:1px solid #999;box-shadow:none}
+      input,textarea,select{
+        background:#fff !important;
+        color:#000 !important;
+        border:1px solid #000 !important;
+      }
+      .btn-row{display:none}
+    }
+  </style>
+</head>
+<body>
+
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand" data-i18n="brand">Lompoc HS Wrestling</div>
+    <div class="parent-lang-wrap">
+      <button class="parent-lang-btn active" data-lang="en">EN</button>
+      <button class="parent-lang-btn" data-lang="es">ES</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h1 data-i18n="heroTitle">Volunteer Interest Form</h1>
+    <p data-i18n="heroSub">Help support Lompoc High School Wrestling.</p>
+  </section>
+
+  <section class="panel">
+    <h2 data-i18n="infoHead">Basic Information</h2>
+
+    <div class="row">
+      <div class="col">
+        <label for="parentName" data-i18n="labelParent">Parent/Guardian Name</label>
+        <input id="parentName" type="text"/>
+      </div>
+      <div class="col">
+        <label for="athleteName" data-i18n="labelAthlete">Athlete Name</label>
+        <input id="athleteName" type="text"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for="phone" data-i18n="labelPhone">Phone</label>
+        <input id="phone" type="tel"/>
+      </div>
+      <div class="col">
+        <label for="email" data-i18n="labelEmail">Email</label>
+        <input id="email" type="email"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for="language" data-i18n="labelLanguage">Preferred Language</label>
+        <select id="language">
+          <option value="" data-i18n="optSelect">Select</option>
+          <option value="en" data-i18n="optEnglish">English</option>
+          <option value="es" data-i18n="optSpanish">Español</option>
+          <option value="both" data-i18n="optBoth">Both</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 data-i18n="helpHead">Ways I Can Help</h2>
+    <p class="small" data-i18n="helpIntro">
+      Check any areas where you might be willing to help this season. This is not a contract — it just lets us know who to contact.
+    </p>
+
+    <div class="checks">
+      <label><input type="checkbox" value="Rides / Transportation" class="helpBox"/> <span data-i18n="help1">Rides / Transportation</span></label>
+      <label><input type="checkbox" value="Snacks / Meals" class="helpBox"/> <span data-i18n="help2">Snacks / Meals</span></label>
+      <label><input type="checkbox" value="Scorekeeping / Table" class="helpBox"/> <span data-i18n="help3">Scorekeeping / Table</span></label>
+      <label><input type="checkbox" value="Tournament Help" class="helpBox"/> <span data-i18n="help4">Tournament Help</span></label>
+      <label><input type="checkbox" value="Fundraising / Sponsorships" class="helpBox"/> <span data-i18n="help5">Fundraising / Sponsorships</span></label>
+      <label><input type="checkbox" value="Team Events (banquet, senior night)" class="helpBox"/> <span data-i18n="help6">Team Events (banquet, senior night)</span></label>
+      <label><input type="checkbox" value="Photos / Video" class="helpBox"/> <span data-i18n="help7">Photos / Video</span></label>
+      <label><input type="checkbox" value="Wherever Needed" class="helpBox"/> <span data-i18n="help8">Wherever Needed</span></label>
+    </div>
+
+    <label for="notes" data-i18n="labelNotes" style="margin-top:12px;">Notes (schedule, skills, ideas)</label>
+    <textarea id="notes"></textarea>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-brand" id="btn-submit">
+        🚀 <span data-i18n="btnSubmit">Submit to Coaches</span>
+      </button>
+
+      <button type="button" class="btn btn-brand" id="btn-copy">
+        📋 <span data-i18n="btnCopy">Copy Summary</span>
+      </button>
+
+      <button type="button" class="btn btn-ghost" id="btn-print">
+        🖨️ <span data-i18n="btnPrint">Print</span>
+      </button>
+    </div>
+
+    <p class="small" data-i18n="disclaimer">
+      This form does not submit data online yet. Use “Copy Summary” to paste your info into a text or email to the coaches, or print and return a paper copy.
+    </p>
+  </section>
+
+</main>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+    <p class="footer-brand" data-i18n="footerBrand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/meeting/meeting-summary.html">Meeting Summary</a>
+      <a href="/coach/meeting/policy.html">Policy &amp; Acknowledgement</a>
+      <a href="/coach/para/index.html">Para-Comms Home</a>
+      <a href="/coach/para/announcements.html">Announcements</a>
+      <a href="/coach/meeting/handouts/index.html">Handouts Index</a>
+      <a href="/coach/parent-landing.html">Parent Home</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  const dict = {
+    en:{
+      brand:"Lompoc HS Wrestling",
+      heroTitle:"Volunteer Interest Form",
+      heroSub:"Help support Lompoc High School Wrestling.",
+      infoHead:"Basic Information",
+      labelParent:"Parent/Guardian Name",
+      labelAthlete:"Athlete Name",
+      labelPhone:"Phone",
+      labelEmail:"Email",
+      labelLanguage:"Preferred Language",
+      optSelect:"Select",
+      optEnglish:"English",
+      optSpanish:"Español",
+      optBoth:"Both",
+      helpHead:"Ways I Can Help",
+      helpIntro:"Check any areas where you might be willing to help this season. This is not a contract — it just lets us know who to contact.",
+      help1:"Rides / Transportation",
+      help2:"Snacks / Meals",
+      help3:"Scorekeeping / Table",
+      help4:"Tournament Help",
+      help5:"Fundraising / Sponsorships",
+      help6:"Team Events (banquet, senior night)",
+      help7:"Photos / Video",
+      help8:"Wherever Needed",
+      labelNotes:"Notes (schedule, skills, ideas)",
+      btnSubmit:"Submit to Coaches",
+      btnCopy:"Copy Summary",
+      btnPrint:"Print",
+      disclaimer:"This form does not submit data online yet. Use “Copy Summary” to paste your info into a text or email to the coaches, or print and return a paper copy.",
+      footerBrand:"Braves Wrestling • United. Focused. Relentless.",
+      summaryTitle:"Lompoc HS Wrestling — Volunteer Interest",
+      summaryParent:"Parent/Guardian",
+      summaryAthlete:"Athlete",
+      summaryPhone:"Phone",
+      summaryEmail:"Email",
+      summaryLang:"Preferred Language",
+      summaryHelp:"Ways I can help",
+      summaryNotes:"Notes",
+      notProvided:"(not provided)",
+      notSelected:"(not selected)",
+      none:"(none)",
+      noBoxes:"(no boxes selected)",
+      copied:"Summary copied. Paste into a text or email to the coaches."
+    },
+    es:{
+      brand:"Lompoc HS Wrestling",
+      heroTitle:"Formulario de Interés para Voluntarios",
+      heroSub:"Ayude a apoyar al equipo de lucha de Lompoc High School.",
+      infoHead:"Información básica",
+      labelParent:"Nombre del padre/madre o tutor",
+      labelAthlete:"Nombre del atleta",
+      labelPhone:"Teléfono",
+      labelEmail:"Correo electrónico",
+      labelLanguage:"Idioma preferido",
+      optSelect:"Seleccione",
+      optEnglish:"Inglés",
+      optSpanish:"Español",
+      optBoth:"Ambos",
+      helpHead:"Formas en que puedo ayudar",
+      helpIntro:"Marque las áreas donde podría ayudar esta temporada. Esto no es un contrato; solo nos ayuda a saber a quién contactar.",
+      help1:"Transportación",
+      help2:"Snacks / Comidas",
+      help3:"Mesa / Anotación",
+      help4:"Ayuda en torneos",
+      help5:"Recaudación de fondos / Patrocinios",
+      help6:"Eventos del equipo (banquete, noche de seniors)",
+      help7:"Fotos / Video",
+      help8:"Donde sea necesario",
+      labelNotes:"Notas (horario, habilidades, ideas)",
+      btnSubmit:"Enviar a Entrenadores",
+      btnCopy:"Copiar Resumen",
+      btnPrint:"Imprimir",
+      disclaimer:"Este formulario todavía no envía datos en línea. Use “Copiar Resumen” para pegar su información en un texto o correo para los entrenadores, o imprima y entregue una copia en papel.",
+      footerBrand:"Braves Wrestling • Unidos. Enfocados. Imparables.",
+      summaryTitle:"Lompoc HS Wrestling — Interés de Voluntariado",
+      summaryParent:"Padre/Madre o Tutor",
+      summaryAthlete:"Atleta",
+      summaryPhone:"Teléfono",
+      summaryEmail:"Correo electrónico",
+      summaryLang:"Idioma preferido",
+      summaryHelp:"Formas de ayudar",
+      summaryNotes:"Notas",
+      notProvided:"(no proporcionado)",
+      notSelected:"(no seleccionado)",
+      none:"(ninguna)",
+      noBoxes:"(no marcó opciones)",
+      copied:"Resumen copiado. Péguelo en un texto o correo para los entrenadores."
+    }
+  };
+
+  function currentLang(){
+    return localStorage.getItem("lang") || "en";
+  }
+
+  function paintVolunteer(lang){
+    const L = lang || currentLang();
+    const bundle = dict[L] || dict.en;
+
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key = el.getAttribute("data-i18n");
+      if (!bundle[key]) return;
+
+      // options should use textContent
+      if (el.tagName === "OPTION") el.textContent = bundle[key];
+      else el.textContent = bundle[key];
+    });
+
+    document.querySelectorAll(".parent-lang-btn").forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.lang === L);
+    });
+
+    localStorage.setItem("lang", L);
+  }
+
+  function buildSummary(lang){
+    const L = lang || currentLang();
+    const t = dict[L] || dict.en;
+
+    const parentName  = document.getElementById("parentName").value.trim();
+    const athleteName = document.getElementById("athleteName").value.trim();
+    const phone       = document.getElementById("phone").value.trim();
+    const email       = document.getElementById("email").value.trim();
+    const language    = document.getElementById("language").value;
+    const notes       = document.getElementById("notes").value.trim();
+
+    const helps = Array.from(document.querySelectorAll(".helpBox:checked")).map(cb => cb.value);
+
+    return (
+`${t.summaryTitle}
+
+${t.summaryParent}: ${parentName || t.notProvided}
+${t.summaryAthlete}: ${athleteName || t.notProvided}
+${t.summaryPhone}: ${phone || t.notProvided}
+${t.summaryEmail}: ${email || t.notProvided}
+${t.summaryLang}: ${language || t.notSelected}
+
+${t.summaryHelp}:
+- ${helps.length ? helps.join("\n- ") : t.noBoxes}
+
+${t.summaryNotes}:
+${notes || t.none}
+`
+    );
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".parent-lang-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=> paintVolunteer(btn.dataset.lang));
+    });
+    paintVolunteer();
+
+    const btnCopy  = document.getElementById("btn-copy");
+    const btnPrint = document.getElementById("btn-print");
+    const btnSubmit = document.getElementById("btn-submit");
+
+    if (btnCopy){
+      btnCopy.addEventListener("click", async () => {
+        const L = currentLang();
+        const text = buildSummary(L);
+        try{
+          await navigator.clipboard.writeText(text);
+          alert((dict[L]||dict.en).copied);
+        }catch{
+          alert("Copy failed. You can still select and copy manually.");
+        }
+      });
+    }
+
+    if (btnSubmit){
+      btnSubmit.addEventListener("click", async () => {
+        // TEMP behavior: same as copy (until you wire Firestore/email)
+        const L = currentLang();
+        const text = buildSummary(L);
+        try{
+          await navigator.clipboard.writeText(text);
+          alert((dict[L]||dict.en).copied);
+        }catch{
+          alert("Copy failed. You can still select and copy manually.");
+        }
+      });
+    }
+
+    if (btnPrint){
+      btnPrint.addEventListener("click", () => window.print());
+    }
+  });
+</script>
+
+</body>
+</html>

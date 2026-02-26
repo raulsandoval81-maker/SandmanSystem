@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete · Profile</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="/athletes/profile/profile.css"/>
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+<main class="wrap">
+
+  <header class="profile-header"></header>
+  <div id="debug-build" style="opacity:.4;font-size:12px"></div>
+
+  <!-- ===================== COMBAT (ALWAYS OPEN) ===================== -->
+  <section id="combatLane" class="card">
+
+    <!-- Combat Header -->
+    <div class="row" style="margin-bottom:8px">
+      <div class="stat" style="flex:1 1 100%">
+        <div class="combat-header">
+          <span id="combatArcTitle" class="title">⚔️ Combat</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Avatar / Badge -->
+    <div class="row">
+      <div class="stat identity-box" style="flex:1 1 100%">
+        <div class="avatar-badge">
+          <div id="ath-avatar" class="avatar-box"></div>
+
+          <img
+            id="ath-badge"
+            class="tier-badge"
+            src="/assets/images/logos/Apprentice-badge.png"
+            alt="Current Tier Badge"
+            loading="lazy"
+            decoding="async"
+          />
+        </div>
+      </div>
+
+      <div class="stat" style="flex:1 1 280px">
+        <div class="label">Name</div>
+        <div class="value" id="out-name">—</div>
+      </div>
+
+      <div class="stat" style="flex:1 1 280px">
+        <div class="label">Public</div>
+        <div class="value" id="out-public">—</div>
+      </div>
+    </div>
+
+    <!-- Identity Details -->
+    <div class="row">
+      <div class="stat">
+        <div class="label">Team · Sandman Combat</div>
+        <div class="value" id="out-team">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">City · State</div>
+        <div class="value" id="out-citystate">—</div>
+      </div>
+
+      <div class="stat">
+        <div class="label">Track-Lane-####-Virtue</div>
+        <div class="value" id="out-uid">—</div>
+      </div>
+
+      <!-- Rank + Belt -->
+      <div class="stat rank-box">
+        <div class="label">Color · Rank</div>
+        <div class="value" id="out-rank">—</div>
+
+        <div id="rankBar" class="belt-track"
+             style="position:relative;height:30px;width:100%;
+                    border-radius:999px;background:rgba(255,255,255,.09);
+                    overflow:hidden;margin-top:8px;">
+          <div id="rankFill" class="belt-fill"
+               style="height:100%;width:0;border-radius:inherit;"></div>
+        </div>
+
+        <div id="stripeText" class="muted"
+             style="margin-top:6px;font-size:.85rem;">
+          Stripes: —
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===================== STRENGTH ===================== -->
+  <section id="strengthLane" class="card drop" data-block="strength">
+<button class="drop-head" type="button" aria-expanded="false" aria-controls="strengthBody">
+<span class="drop-title gold center">🏋  Strength Development Track</span>
+<span class="unlock-hint" data-unlock="2">Unlocks at 2 Stripes</span>
+<span class="lock-icon" aria-hidden="true">🔒</span>
+<span class="chev" aria-hidden="true">▾</span>
+</button>
+
+    <div id="strengthBody" class="drop-body collapsed">
+      <div class="lane-row">
+        <div class="lane-left">
+          <div id="strengthRings" class="rings-row"></div>
+          <div class="muted lane-sub">
+            Units: <span id="strengthUnitsLeft">0/6</span>
+          </div>
+        </div>
+
+        <div class="active-slot lane-right">
+          <div class="lane-decal" id="strengthDecal"></div>
+          <div class="muted" style="margin-top:4px;font-size:.75rem;">XP</div>
+          <div class="lane-meta" id="strengthMetaRight">0/400 XP</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ===================== HONOR ===================== -->
+  <section id="honorLane" class="card drop" data-block="honor">
+<button class="drop-head" type="button" aria-expanded="false" aria-controls="honorBody">
+<span class="drop-title gold">🔱  Honor Development Track</span>
+<span class="unlock-hint" data-unlock="3">Unlocks at 3 Stripes</span>
+<span class="lock-icon" aria-hidden="true">🔒</span>
+<span class="chev" aria-hidden="true">▾</span>
+</button>
+
+    <div id="honorBody" class="drop-body collapsed">
+      <div class="lane-row">
+        <div class="lane-left">
+          <div id="honorRings" class="wisdom-row"></div>
+          <div class="muted lane-sub">
+            Units: <span id="honorUnitsLeft">0/6</span>
+          </div>
+        </div>
+
+        <div class="active-slot lane-right">
+          <div class="lane-decal" id="honorDecal"></div>
+          <div class="muted" style="margin-top:4px;font-size:.75rem;">XP</div>
+          <div class="lane-meta" id="honorMetaRight">0/400 XP</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script type="module" src="/athletes/profile/profile.js"></script>
+</body>
+</html>

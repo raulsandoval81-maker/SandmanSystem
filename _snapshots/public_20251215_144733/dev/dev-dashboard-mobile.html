@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>DEV • Phone Panel</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<style>
+/* ----------------------------------------------------
+   THEME ROOTS (Dark + Light)
+---------------------------------------------------- */
+:root{
+  --bg:#0e141c;
+  --panel:#121821;
+  --line:#2f3a4e;
+  --brand:#ffdd48;
+  --text:#e4e7eb;
+  --muted:#9fb3c8;
+  --hover:#1d2432;
+}
+:root.light{
+  --bg:#f5f7fa;
+  --panel:#ffffff;
+  --line:#d2dae4;
+  --brand:#d89c00;
+  --text:#1e293b;
+  --muted:#64748b;
+  --hover:#f0f3f8;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+/* ----------------------------------------------------
+   WRAPPER
+---------------------------------------------------- */
+.wrap{
+  max-width:600px;
+  margin:0 auto;
+  padding:18px 14px 40px;
+}
+
+/* ----------------------------------------------------
+   TOP BAR
+---------------------------------------------------- */
+.top-bar{
+  position:sticky;
+  top:0;
+  z-index:20;
+  background:linear-gradient(to bottom,rgba(0,0,0,.45),rgba(0,0,0,.25));
+  border-bottom:1px solid var(--line);
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+}
+
+.top-left{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+
+.top-title{
+  font-size:1rem;
+  font-weight:700;
+  color:var(--brand);
+}
+.top-sub{
+  font-size:.7rem;
+  color:var(--muted);
+}
+
+/* CLUB SELECTOR */
+.club-select{
+  background:var(--panel);
+  color:var(--text);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:6px 12px;
+  font-size:.75rem;
+}
+
+/* TOGGLE BUTTON */
+.toggle{
+  border-radius:999px;
+  padding:6px 14px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text);
+  font-size:.75rem;
+  cursor:pointer;
+}
+
+/* ----------------------------------------------------
+   QUICK PINS
+---------------------------------------------------- */
+.quick-row{
+  display:flex;
+  gap:8px;
+  margin-top:14px;
+}
+.quick{
+  flex:1;
+  background:var(--panel);
+  padding:10px 8px;
+  text-align:center;
+  border-radius:12px;
+  border:1px solid var(--line);
+  text-decoration:none;
+  color:var(--brand);
+  font-weight:600;
+  font-size:.8rem;
+  box-shadow:0 3px 6px rgba(0,0,0,.25);
+}
+.quick:hover{
+  background:var(--hover);
+}
+
+/* ----------------------------------------------------
+   MINI XP METER WIDGET
+---------------------------------------------------- */
+.xp-box{
+  margin-top:18px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  padding:14px;
+  border-radius:12px;
+}
+.xp-title{
+  font-size:.8rem;
+  color:var(--brand);
+  margin-bottom:6px;
+}
+.xp-bar{
+  height:12px;
+  background:#1f2937;
+  border-radius:999px;
+  overflow:hidden;
+  position:relative;
+}
+.xp-fill{
+  background:var(--brand);
+  width:32%; /* dummy 32% */
+  height:100%;
+}
+.xp-label{
+  margin-top:6px;
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+/* ----------------------------------------------------
+   GROUP SECTIONS
+---------------------------------------------------- */
+.section{
+  margin-top:22px;
+}
+.section-label{
+  font-size:.75rem;
+  letter-spacing:.12em;
+  color:var(--muted);
+  text-transform:uppercase;
+  margin:0 0 4px;
+}
+
+details.group{
+  background:var(--panel);
+  border-radius:12px;
+  border:1px solid var(--line);
+  margin-bottom:12px;
+}
+details[open]{border-color:var(--brand);}
+
+summary.group-head{
+  padding:10px 12px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  cursor:pointer;
+  list-style:none;
+}
+summary::-webkit-details-marker{display:none;}
+
+.group-title{
+  font-size:.9rem;
+  font-weight:600;
+}
+.group-tag{
+  font-size:.65rem;
+  color:var(--muted);
+}
+.chevron{ color:var(--muted); }
+
+/* LINKS */
+.link-list{
+  border-top:1px solid var(--line);
+  padding:6px 0;
+}
+.link-item{
+  padding:8px 12px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+  display:flex;
+  flex-direction:column;
+}
+.link-item:last-child{
+  border-bottom:none;
+}
+.link-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.link-main{
+  text-decoration:none;
+  color:var(--text);
+  font-size:.85rem;
+  font-weight:500;
+}
+.link-sub{
+  font-size:.7rem;
+  color:var(--muted);
+  margin-top:2px;
+}
+
+/* CHIPS */
+.chip{
+  font-size:.6rem;
+  border-radius:999px;
+  padding:2px 7px 2px;
+  border:1px solid var(--line);
+}
+.chip.parent{ color:#fbcfe8; border-color:#f9a8d4; }
+.chip.coach{ color:#bfdbfe; border-color:#60a5fa; }
+.chip.public{ color:#bbf7d0; border-color:#34d399; }
+.chip.dev{ color:#e5e7eb; border-color:#cbd5e1; }
+
+/* NOTE */
+.note{
+  font-size:.75rem;
+  color:var(--muted);
+  margin-top:16px;
+}
+code{
+  background:rgba(0,0,0,.25);
+  padding:2px 6px;
+  border-radius:4px;
+}
+/* ========== FAVORITES v2: Glow Animation ========== */
+
+.favorite-pin.pinned {
+  animation: sandmanPinGlow 0.6s ease-out;
+}
+
+@keyframes sandmanPinGlow {
+  0% { transform: scale(1); box-shadow: 0 0 0px rgba(255,221,72,0); }
+  40%{ transform: scale(1.25); box-shadow: 0 0 12px rgba(255,221,72,.8); }
+  100%{ transform: scale(1); box-shadow: 0 0 0px rgba(255,221,72,0); }
+}
+
+</style>
+
+<script>
+/* ----------------------------------------------------
+   BASE PATH RESOLUTION
+---------------------------------------------------- */
+const base = window.location.pathname.includes("/dev/") ? "../" : "./";
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll("a[data-link]").forEach(a => {
+    a.href = base + a.getAttribute("data-link");
+  });
+});
+
+/* ----------------------------------------------------
+   DARK / LIGHT MODE
+---------------------------------------------------- */
+function toggleTheme(){
+  document.documentElement.classList.toggle("light");
+}
+
+/* ----------------------------------------------------
+   XP METER (dummy for now)
+---------------------------------------------------- */
+function setXp(percent){
+  document.querySelector(".xp-fill").style.width = percent + "%";
+  document.querySelector(".xp-label").textContent = percent + "% · Dummy Data";
+}
+
+/* ----------------------------------------------------
+   CLUB SELECTOR (Default = Lompoc)
+---------------------------------------------------- */
+function setClub(v){
+  localStorage.setItem("club", v);
+}
+</script>
+</head>
+
+<body>
+
+<header class="top-bar">
+  <div class="top-left">
+    <div class="top-title">DEV Phone Panel</div>
+    <div class="top-sub">Localhost Tools · Quick Access</div>
+  </div>
+
+  <select class="club-select" onchange="setClub(this.value)">
+    <option value="Lompoc">Lompoc</option>
+    <option value="SantaMaria">Santa Maria</option>
+    <option value="Fresno">Fresno</option>
+    <option value="CCS">CCS</option>
+  </select>
+
+  <button class="toggle" onclick="toggleTheme()">☀/🌙</button>
+</header>
+
+<main class="wrap">
+
+<!-- QUICK PINS -->
+<div class="quick-row">
+  <a class="quick" data-link="../silver.html">Intake</a>
+  <a class="quick" data-link="coaches/daily-grind.html">Daily</a>
+  <a class="quick" data-link="coach/para/index.html">Comms</a>
+</div>
+
+<!-- XP METER -->
+<div class="xp-box">
+  <div class="xp-title">XP Meter (Preview)</div>
+  <div class="xp-bar"><div class="xp-fill"></div></div>
+  <div class="xp-label">32% · Dummy Data</div>
+</div>
+
+<!-- PUBLIC -->
+<section class="section">
+  <p class="section-label">Public Preview</p>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <div>
+        <div class="group-title">Front Door</div>
+        <div class="group-tag">Overview · Programs · Tools</div>
+      </div>
+      <span class="chevron">▾</span>
+    </summary>
+    <div class="link-list">
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="overview.html">Overview</a>
+          <span class="chip public">Public</span>
+        </div>
+        <div class="link-sub">Front door explanation.</div>
+      </div>
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="programs.html">Programs</a>
+          <span class="chip public">Public</span>
+        </div>
+        <div class="link-sub">Youth + Teen/Adult pathways.</div>
+      </div>
+
+    </div>
+  </details>
+</section>
+
+<!-- COACH -->
+<section class="section" id="coach">
+  <p class="section-label">Coach Tools</p>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <div>
+        <div class="group-title">Intake & Roster</div>
+        <div class="group-tag">Silver loop</div>
+      </div>
+      <span class="chevron">▾</span>
+    </summary>
+    <div class="link-list">
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="../silver.html">Silver Intake</a>
+          <span class="chip coach">Coach</span>
+        </div>
+        <div class="link-sub">Full Coach → Parent → Athlete loop.</div>
+      </div>
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="coaches/roster.html">Roster</a>
+          <span class="chip coach">Coach</span>
+        </div>
+        <div class="link-sub">Athlete profiles & XP totals.</div>
+      </div>
+
+    </div>
+  </details>
+
+  <details class="group">
+    <summary class="group-head">
+      <div>
+        <div class="group-title">Daily XP Ops</div>
+        <div class="group-tag">Practice · Weekend</div>
+      </div>
+      <span class="chevron">▾</span>
+    </summary>
+    <div class="link-list">
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="coaches/daily-grind.html">Daily Grind</a>
+          <span class="chip coach">Coach</span>
+        </div>
+        <div class="link-sub">Practice block triggers + XP calls.</div>
+      </div>
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="coaches/coach-console.html">Coach Console</a>
+          <span class="chip coach">Coach</span>
+        </div>
+        <div class="link-sub">Arena logs & XP live stream.</div>
+      </div>
+
+    </div>
+  </details>
+</section>
+
+<!-- PARENTS / PARA-COMMS -->
+<section class="section" id="parents">
+  <p class="section-label">Para-Comms</p>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <div>
+        <div class="group-title">Parent Tools</div>
+        <div class="group-tag">Landing · Announcements</div>
+      </div>
+      <span class="chevron">▾</span>
+    </summary>
+    <div class="link-list">
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="coach/parent-landing.html">Parent Landing</a>
+          <span class="chip parent">Parent</span>
+        </div>
+        <div class="link-sub">QR start page + links.</div>
+      </div>
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="coach/para/index.html">Para-Comms Home</a>
+          <span class="chip parent">Parent</span>
+        </div>
+        <div class="link-sub">Parents update hub (EN/ES).</div>
+      </div>
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="coach/para/announcements.html">Announcements</a>
+          <span class="chip parent">Parent</span>
+        </div>
+        <div class="link-sub">Bulletin + updates.</div>
+      </div>
+
+    </div>
+  </details>
+
+</section>
+
+<p class="note">
+  Settings persist automatically.  
+  XP meter shows dummy data until linked to Firestore.
+</p>
+
+
+
+    <!-- PUBLIC PREVIEW -->
+    <section class="section" id="public">
+      <p class="section-label">Public Preview (Marketing)</p>
+
+      <details class="group" open>
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Public Site Front Door</div>
+            <div class="group-tag">Overview · Programs · Schedule · Tools · Leaderboards</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="overview.html">Overview</a>
+              <span class="chip public">Public</span>
+            </div>
+            <div class="link-sub">Front door explanation of the Sandman System.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="programs.html">Programs</a>
+              <span class="chip public">Public</span>
+            </div>
+            <div class="link-sub">Foundry 8 &amp; Foundry 4 combat listings.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="schedule/index.html">Schedule</a>
+              <span class="chip public">Public</span>
+            </div>
+            <div class="link-sub">Dummy calendar &amp; communication preview.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="tools.html">Coach Tools (Preview)</a>
+              <span class="chip public">Public</span>
+            </div>
+            <div class="link-sub">Static tool cards with 2–3 line descriptions.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="leaderboards.html">Public Leaderboards (Demo)</a>
+              <span class="chip public">Public</span>
+            </div>
+            <div class="link-sub">Polished dummy leaderboard to wow parents &amp; athletes.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- CORE COACH -->
+    <section class="section" id="coach">
+      <p class="section-label">Core Coach Tools</p>
+
+      <details class="group" open>
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Intake &amp; Roster</div>
+            <div class="group-tag">Silver loop · team view</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="/silver.html">Sandman Silver — Full Intake</a>
+              <span class="chip.coach chip">Coach</span>
+            </div>
+            <div class="link-sub">Coach → Parent → Athlete · Waiver + XP meter (emulator ready).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/roster.html">Team Roster &amp; Profiles</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">XP totals, badges, contact info &amp; Virtur Tags.</div>
+          </div>
+        </div>
+      </details>
+
+      <details class="group">
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Daily Ops &amp; XP Logging</div>
+            <div class="group-tag">Practice · Weekend · Awards</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/coach-console.html">Coach Console</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Arena / Notes / XP feed — linked to emulators.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/daily-grind.html">Daily Grind XP Tracker</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Practice block triggers XP via <code>incrementXpHttp</code>.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/coach-daily-clipboard.html">Coach Daily Clipboard</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Practice flow + timer bridge for 60-min layouts.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/coaches-weekend-xp.html">Tournament Weekend XP</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Battle / Podium / Style IQ logging (40/mo cap).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/prestige-awards-xp.html">Prestige Awards</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Lion / Tiger / Bear — outside normal monthly caps.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/arena-log.html">Arena Log</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Event-by-event audit trail for XP calls.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/coach-notes.html">Coach Notes &amp; Reflections</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Behavior +5 (2/mo) and feedback entries.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ATHLETE PORTAL -->
+    <section class="section">
+      <p class="section-label">Athlete Portal</p>
+
+      <details class="group">
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Athlete View</div>
+            <div class="group-tag">XP bar · History</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="athlete.html">Athlete Dashboard</a>
+              <span class="chip dev">Dev</span>
+            </div>
+            <div class="link-sub">Combat XP bar, stripes, and goals preview.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="athlete-log-history.html">Log History / XP Journey</a>
+              <span class="chip dev">Dev</span>
+            </div>
+            <div class="link-sub">Month-by-month XP entries and milestones.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <!-- PARENT TOOLS + PARA-COMMS -->
+    <section class="section" id="parents">
+      <p class="section-label">Parent Tools &amp; Para-Comms</p>
+
+      <details class="group" open>
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Parent Landing &amp; Comms</div>
+            <div class="group-tag">QR · Para-Comms · Volunteer</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/parent-landing.html">Parent Landing</a>
+              <span class="chip parent">Parents</span>
+            </div>
+            <div class="link-sub">QR start page · EN/ES · links to Para-Comms &amp; meetings.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/para/index.html">Para-Comms Home</a>
+              <span class="chip parent">Parents</span>
+            </div>
+            <div class="link-sub">Coach ↔ Parents updates hub (future Blaze wiring).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/para/announcements.html">Announcements / Bulletin</a>
+              <span class="chip parent">Parents</span>
+            </div>
+            <div class="link-sub">Coach → Parent bulletin (past / present / next 2 weeks).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/para/volunteer.html">Volunteer Sign-Up</a>
+              <span class="chip parent">Parents</span>
+            </div>
+            <div class="link-sub">Parent form for concessions, rides, snacks, and meet help.</div>
+          </div>
+        </div>
+      </details>
+
+      <details class="group">
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Parent Meeting (Tonight)</div>
+            <div class="group-tag">Handouts · Policy · QR</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/meeting/handouts/index.html">Parent Meeting Portal</a>
+              <span class="chip meet">Meeting</span>
+            </div>
+            <div class="link-sub">Public in-room page (EN/ES) with core links.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/meeting/meeting-summary.html">Meeting Summary</a>
+              <span class="chip meet">Meeting</span>
+            </div>
+            <div class="link-sub">Bilingual recap + schedules &amp; reminders.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/meeting/policy.html">Policy &amp; Acknowledgement</a>
+              <span class="chip meet">Meeting</span>
+            </div>
+            <div class="link-sub">Standard Athletic Agreement (EN/ES).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/meeting/qr.html">QR Sheet</a>
+              <span class="chip meet">Meeting</span>
+            </div>
+            <div class="link-sub">Start / during / after QR codes for parents.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/meeting/coach-outline.html">Coach Outline (Private)</a>
+              <span class="chip coach">Coach</span>
+            </div>
+            <div class="link-sub">Quiet script to run the meeting from your phone.</div>
+          </div>
+
+          <!-- Legacy Para pages still reachable -->
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/para/questions.html">Questions (Legacy)</a>
+              <span class="chip dev">Legacy</span>
+            </div>
+            <div class="link-sub">Older parents’ questions page (EN/ES).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coach/para/schedule.html">Schedule (Legacy)</a>
+              <span class="chip dev">Legacy</span>
+            </div>
+            <div class="link-sub">Simple dates while the full calendar evolves.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+<!-- TOURNAMENT ENGINE -->
+<section class="section" id="tournament">
+  <p class="section-label">Tournament Engine</p>
+<!-- ========================================= -->
+<!--        TIMERS & TOURNAMENT TOOLS          -->
+<!-- ========================================= -->
+
+<details class="group" open>
+  <summary class="group-head">
+    <div>
+      <div class="group-title">Timers & Tournament Tools</div>
+      <div class="group-tag">Practice · Tournament · Big Screen</div>
+    </div>
+    <span class="chevron">▾</span>
+  </summary>
+
+  <div class="link-list">
+
+    <!-- Practice Timer -->
+    <div class="link-item" data-id="practice-timer">
+      <div class="favorite-pin" data-pin="practice-timer"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tools/timer-engine/sandman_timer_engine.html">
+          Practice Timer
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">60-min practice layout · sectional countdowns.</div>
+    </div>
+
+    <!-- Tournament Timer -->
+    <div class="link-item" data-id="tournament-timer-pro">
+      <div class="favorite-pin" data-pin="tournament-timer-pro"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="mat/mat-console.html">
+          Tournament Timer (Pro)
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">
+        JV/Varsity presets · Blood · Injury · Referee · Buzzer.
+      </div>
+    </div>
+
+    <!-- Bracket Builder -->
+    <div class="link-item" data-id="bracket-builder">
+      <div class="favorite-pin" data-pin="bracket-builder"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/brackets/index.html">
+          Bracket Builder
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">Single · Double · RR5/6 · Seeding logic.</div>
+    </div>
+
+    <!-- Mat Consoles -->
+    <div class="link-item" data-id="mat-consoles">
+      <div class="favorite-pin" data-pin="mat-consoles"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/mats/mat-console.html">
+          Mat Consoles
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">Mat 1–12 · Hotkeys · Fullscreen · Clock styles.</div>
+    </div>
+
+    <!-- Big Screen Display -->
+    <div class="link-item" data-id="big-screen">
+      <div class="favorite-pin" data-pin="big-screen"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/big-screen/index.html">
+          Big Screen Display
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">Scoreboard · Rotating bouts · Live mat feeds.</div>
+    </div>
+
+    <!-- Digital Weigh-ins -->
+    <div class="link-item" data-id="weigh-ins">
+      <div class="favorite-pin" data-pin="weigh-ins"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/weighins/index.html">
+          Digital Weigh-ins
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">Record weights · Notes · PDF export.</div>
+    </div>
+
+    <!-- Bout Sheets -->
+    <div class="link-item" data-id="bout-sheets">
+      <div class="favorite-pin" data-pin="bout-sheets"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/bouts/boutsheet.html">
+          Bout Sheets
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">Auto numbering · RR logic · Print-ready.</div>
+    </div>
+
+    <!-- Tournament Engine Suite -->
+    <div class="link-item" data-id="tournament-full-suite">
+      <div class="favorite-pin" data-pin="tournament-full-suite"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/index.html">
+          Tournament Engine (Full Suite)
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">
+        Brackets · Mats · Big Screen · Weigh-ins · Bout Sheets.
+      </div>
+    </div>
+
+    <!-- Match Queue -->
+    <div class="link-item" data-id="match-queue">
+      <div class="favorite-pin" data-pin="match-queue"></div>
+      <div class="link-top">
+        <a class="link-main" data-link="mat/match-queue.html">
+          Match Queue (3–5 Out)
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">Load upcoming bouts · tap to send to Console.</div>
+    </div>
+
+  </div>
+</details>
+
+  <details class="group" open>
+    <summary class="group-head">
+      <div>
+        <div class="group-title">Meet-Day Tools</div>
+        <div class="group-tag">Duals · Mats · Brackets</div>
+      </div>
+      <span class="chevron">▾</span>
+    </summary>
+
+    <div class="link-list">
+
+      <!-- Dual Board -->
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/lompoc-dual-board/index.html">
+            6-Team Dual Board (RR)
+          </a>
+          <span class="chip meet">Meet</span>
+        </div>
+        <div class="link-sub">Live dual scoring · auto standings.</div>
+      </div>
+
+      <!-- Match Sheet Digital -->
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/match-sheet-digital.html">
+            Match Sheet (Digital)
+          </a>
+          <span class="chip meet">Meet</span>
+        </div>
+        <div class="link-sub">Ref’s digital scoring sheet (T3/E1/R2/N2).</div>
+      </div>
+
+      <!-- Match Sheet Print -->
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/match-sheet-print.html">
+            Match Sheet (Print)
+          </a>
+          <span class="chip meet">Print</span>
+        </div>
+        <div class="link-sub">Ink-safe black/white version.</div>
+      </div>
+
+      <!-- Mat Consoles -->
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/mats/mat-console.html">
+            Mat Console (Pro)
+          </a>
+          <span class="chip coach">Coach</span>
+        </div>
+        <div class="link-sub">Timer · T3/E1/R2/N2 · Blood/Injury/Ref Time.</div>
+      </div>
+
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/big-screen.html">
+            Big Screen Scoreboard
+          </a>
+          <span class="chip meet">Meet</span>
+        </div>
+        <div class="link-sub">Large mat display following the console.</div>
+      </div>
+
+      <!-- Brackets -->
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/bracket-8.html">
+            8-Man Bracket (Modern)
+          </a>
+          <span class="chip meet">Meet</span>
+        </div>
+        <div class="link-sub">Upper + Consolation · lateral pyramid style.</div>
+      </div>
+<div class="link-item">
+  <div class="link-top">
+    <a class="link-main" data-link="tools/timer-engine/sandman_timer_engine.html">Practice Timer</a>
+    <span class="chip dev">Dev</span>
+  </div>
+  <div class="link-sub">Single-screen countdown for practice blocks.</div>
+</div>
+<div class="link-item">
+  <div class="link-top">
+    <a class="link-main" data-link="mat/mat-console.html">Tournament Timer</a>
+    <span class="chip dev">Dev</span>
+  </div>
+  <div class="link-sub">Varsity/JV periods · Blood · Injury · Referee · Buzzers.</div>
+</div>
+
+
+      <!-- Extra placeholder for future -->
+      <div class="link-item">
+        <div class="link-top">
+          <a class="link-main" data-link="tournament-engine/index.html">
+            Tournament Folder
+          </a>
+          <span class="chip dev">Dev</span>
+        </div>
+        <div class="link-sub">Open folder index for quick path checks.</div>
+      </div>
+
+    </div>
+  </details>
+</section>
+
+    <!-- DEV / TEST -->
+    <section class="section">
+      <p class="section-label">Dev &amp; Testing</p>
+
+      <details class="group">
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Seeder &amp; Timer</div>
+            <div class="group-tag">Reset data · Timer engine</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="dev/seed-athletes-v3.html">Seeder · Reset Athletes (F4/F8)</a>
+              <span class="chip dev">Dev</span>
+            </div>
+            <div class="link-sub">Mint test data; clear and re-seed emulators.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="tools/timer-engine/sandman_timer_engine.html">Timer Engine Prototype</a>
+              <span class="chip dev">Dev</span>
+            </div>
+            <div class="link-sub">Single-screen practice timer (Daily / Weekend layouts).</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" href="http://127.0.0.1:4000/" target="_blank" rel="noreferrer">Firebase Emulator UI</a>
+              <span class="chip dev">Local</span>
+            </div>
+            <div class="link-sub">Firestore / Functions dashboards on your machine.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+   <!-- ========================================= -->
+<!--        TIMERS & TOURNAMENT TOOLS          -->
+<!-- ========================================= -->
+
+<details class="group" open>
+  <summary class="group-head">
+    <div>
+      <div class="group-title">Timers & Tournament Tools</div>
+      <div class="group-tag">Practice · Tournament · Big Screen</div>
+    </div>
+    <span class="chevron">▾</span>
+  </summary>
+
+  <div class="link-list">
+
+    <!-- ================= Practice Timer ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tools/timer-engine/sandman_timer_engine.html">
+          Practice Timer
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">60-min practice layout · sectional countdowns.</div>
+    </div>
+
+    <!-- ================= Tournament Timer ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="mat/mat-console.html">
+          Tournament Timer (Pro)
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">
+        JV/Varsity presets · Blood · Injury · Referee · Buzzer.
+      </div>
+    </div>
+
+    <!-- ================= Bracket Builder ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/brackets/index.html">
+          Bracket Builder
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">Single · Double · RR5/6 · Seeding logic.</div>
+    </div>
+
+    <!-- ================= Mat Consoles ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/mats/mat-console.html">
+          Mat Consoles
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">Mat 1–12 · Hotkeys · Fullscreen · Clock styles.</div>
+    </div>
+
+    <!-- ================= Big Screen Display ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/big-screen/index.html">
+          Big Screen Display
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">Scoreboard · Rotating bouts · Live mat feeds.</div>
+    </div>
+
+    <!-- ================= Weigh-ins ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/weighins/index.html">
+          Digital Weigh-ins
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">Record weights · Notes · PDF export.</div>
+    </div>
+
+    <!-- ================= Bout Sheets ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/bouts/boutsheet.html">
+          Bout Sheets
+        </a>
+        <span class="chip coach">Coach</span>
+      </div>
+      <div class="link-sub">Auto numbering · RR logic · Print-ready.</div>
+    </div>
+
+    <!-- ================= Full Tournament Suite ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="tournament-engine/index.html">
+          Tournament Engine (Full Suite)
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">
+        Brackets · Mats · Big Screen · Weigh-ins · Bout Sheets.
+      </div>
+    </div>
+
+    <!-- ================= Match Queue ================= -->
+    <div class="link-item">
+      <div class="link-top">
+        <a class="link-main" data-link="mat/match-queue.html">
+          Match Queue (3–5 Out)
+        </a>
+        <span class="chip dev">Dev</span>
+      </div>
+      <div class="link-sub">Load upcoming bouts · tap to send to Console.</div>
+    </div>
+
+  </div>
+  
+</details>
+ <!-- ARCHIVE -->
+    <section class="section">
+      <p class="section-label">Legacy / Archive</p>
+
+      <details class="group">
+        <summary class="group-head">
+          <div>
+            <div class="group-title">Old Coach Pages</div>
+            <div class="group-tag">For reference only</div>
+          </div>
+          <span class="chevron">▾</span>
+        </summary>
+        <div class="link-list">
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/hub.html">Legacy Coach Hub</a>
+              <span class="chip dev">Archive</span>
+            </div>
+            <div class="link-sub">Old structure kept for reference.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/daily.html">Daily Log (Legacy)</a>
+              <span class="chip dev">Archive</span>
+            </div>
+            <div class="link-sub">Earlier XP logging flow.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/practice.html">Practice Plan Template (Legacy)</a>
+              <span class="chip dev">Archive</span>
+            </div>
+            <div class="link-sub">First-gen practice layout.</div>
+          </div>
+
+          <div class="link-item">
+            <div class="link-top">
+              <a class="link-main" data-link="coaches/calendar.html">Calendar / Weekly Schedule (Legacy)</a>
+              <span class="chip dev">Archive</span>
+            </div>
+            <div class="link-sub">Older calendar mock.</div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <p class="note">
+      💡 Tip: Pin this URL on your phone. Edit links by changing the
+      <code>data-link="…"</code> attributes — the base-path resolver keeps it working
+      from <code>/public/</code> or <code>/public/dev/</code>.
+    </p>
+  </main>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent Zone – Sandman System</title>
+
+  <!-- If your site.css is inside /public/assets/css/ -->
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <!-- If site.css is in the SAME folder as parent.html, use this instead -->
+  <!-- <link rel="stylesheet" href="site.css" /> -->
+</head>
+
+<body>
+  <section class="section faq">
+  <h2>Parent FAQs</h2>
+
+  <details>
+    <summary>How do stripes and badges work?</summary>
+    <p>Each athlete earns three stripes: <strong>Discipline</strong> (attendance/effort), <strong>Skill</strong> (technique), and <strong>Character</strong> (teamwork/leadership). When all three are earned, they receive the badge for that level.</p>
+  </details>
+
+  <details>
+    <summary>What is XP?</summary>
+    <p>XP is a simple point system for progress. Showing up, trying hard, and nailing skills adds XP. ~250 XP usually equals a stripe.</p>
+  </details>
+
+  <details>
+    <summary>When are ceremonies?</summary>
+    <p>Promotions happen around Week 6 cycles. Check <a href="/ceremonies.html">Ceremonies & Recognition</a> for dates.</p>
+  </details>
+
+  <p style="margin-top:1rem;">
+    See weekly notes: <a class="btn-yellow" href="/parent/weekly.html">Parent Weekly</a>
+  </p>
+</section>
+
+  <!-- Global header (hamburger) -->
+  <div data-include="assets/includes/header.html"></div>
+
+  <!-- Sub‑Hero -->
+  <section class="hero hero--slim">
+    <div class="hero-content">
+      <h1>Parent Zone</h1>
+      <p class="sub-hero-subtitle">See the path. Support the climb.</p>
+      <p class="sub-hero-meta">Youth 0–8 · Teen/Adult 0–4 · Shadow → Legend</p>
+    </div>
+  </section>
+
+  <!-- What parents get -->
+  <section class="section">
+    <div class="container grid-2">
+      <div>
+        <h2 class="h2">Clarity & Confidence</h2>
+        <p class="lead">Everything you need to encourage progress — in one place.</p>
+        <ul class="checklist">
+          <li>XP snapshots: how today’s work adds up</li>
+          <li>Badge & stripe ladder visuals</li>
+          <li>Promotion dates & ceremony info</li>
+          <li>Coach notes: focus of the week</li>
+        </ul>
+        <a href="leaderboard.html" class="btn-primary" style="margin-top:10px;">View Leaderboard</a>
+      </div>
+      <div class="card">
+        <h4 class="h4">How to Help</h4>
+        <p>Ask about the day’s “one win,” praise effort over outcome, and celebrate milestones. Progress loves attention.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick links -->
+  <section class="section section--muted">
+    <div class="container grid-3">
+      <div class="card">
+        <h3 class="h3">Badge Ladder</h3>
+        <p>Shadow → Legend. What each step means.</p>
+        <a href="badge-ladders.html" class="btn-primary">View Ladder</a>
+      </div>
+      <div class="card">
+        <h3 class="h3">Ceremonies</h3>
+        <p>Promotion dates, how to prepare, what to expect.</p>
+        <a href="ceremonies.html" class="btn-primary">Ceremony Calendar</a>
+      </div>
+      <div class="card">
+        <h3 class="h3">Foundry 4</h3>
+        <p>Our mentorship backbone: Captains, Mentors, Marshals.</p>
+        <a href="foundry4.html" class="btn-primary">Explore Foundry 4</a>
+      </div>
+    </div>
+  </section>
+<!-- Live Leaderboard Preview (static JSON for now) -->
+<section class="section">
+  <div class="container">
+    <h2 class="h2">Leaderboard (Preview)</h2>
+    <ul id="lb-list" class="checklist"></ul>
+  </div>
+</section>
+
+<!-- Upcoming Ceremonies (static JSON for now) -->
+<section class="section section--muted">
+  <div class="container">
+    <h2 class="h2">Upcoming Ceremonies</h2>
+    <ul id="ceremony-list" class="checklist"></ul>
+  </div>
+</section>
+<script>
+(async function(){
+  const lbEl = document.getElementById('lb-list');
+  const cerEl = document.getElementById('ceremony-list');
+
+  // Helper: safe text
+  const esc = (s) => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  try {
+    // Leaderboard
+    const lbRes = await fetch('data/leaderboard.json', { cache: 'no-store' });
+    const leaderboard = await lbRes.json();
+    lbEl.innerHTML = leaderboard.slice(0,10).map(row =>
+      `<li><strong>#${esc(row.rank)} ${esc(row.name)}</strong> · ${esc(row.xp)} XP · <span class="muted">${esc(row.tier)}</span></li>`
+    ).join('');
+
+    // Ceremonies
+    const cRes = await fetch('data/ceremonies.json', { cache: 'no-store' });
+    const ceremonies = await cRes.json();
+    cerEl.innerHTML = ceremonies.map(c =>
+      `<li><strong>${esc(c.date)}</strong> · ${esc(c.time)} · ${esc(c.location)} — ${esc(c.groups)} <span class="muted">· ${esc(c.note)}</span></li>`
+    ).join('');
+
+  } catch (e) {
+    if (lbEl) lbEl.innerHTML = '<li class="muted">Leaderboard preview unavailable.</li>';
+    if (cerEl) cerEl.innerHTML = '<li class="muted">Ceremony list unavailable.</li>';
+    console.error('Parent Zone data load error:', e);
+  }
+})();
+</script>
+
+  // Ceremonies
+  fetch('./data/ceremonies.json')
+    .then(res => res.json())
+    .then(data => {
+      const list = document.getElementById('ceremony-list');
+      data.forEach(c => {
+        const li = document.createElement('li');
+        li.textContent = `${c.date} — ${c.time} @ ${c.location}`;
+        list.appendChild(li);
+      });
+    });
+</script>
+
+  <!-- FAQ lite -->
+  <section class="section">
+    <div class="container grid-2">
+      <div class="card">
+        <h4 class="h4">What is XP?</h4>
+        <p>XP = effort points. Training sessions, technical wins, and leadership reps all add up. Stripes every 250 XP.</p>
+      </div>
+      <div class="card">
+        <h4 class="h4">Badges vs. Shirts vs. Belts</h4>
+        <p>Badges = system milestones. Shirts = strength levels. Belts = combat proficiency. All are earned, never bought.</p>
+      </div>
+    </div>
+  </section>
+
+
+<!-- Footer include -->
+<div data-include="assets/includes/footer.html"></div>
+
+<!-- Scripts -->
+<script defer src="assets/js/site.js"></script>
+<script type="module" src="assets/js/firebase-init.js"></script>
+</body>
+</html>

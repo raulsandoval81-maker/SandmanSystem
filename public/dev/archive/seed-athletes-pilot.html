@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Seed & Mint Athletes — v4.1 (F4 · T0 · Pilot-safe · Stripes=300 · Cap=1200)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root{color-scheme:dark}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0b0b;color:#eee;margin:0;padding:24px}
+    .wrap{max-width:1150px;margin:0 auto}
+    .card{border:1px solid #222;border-radius:14px;background:#121212;padding:16px}
+    h1{margin:0 0 8px}
+    .muted{color:#9aa}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid #1b1b1b;padding:8px 6px;text-align:left;font-size:.95rem;vertical-align:top}
+    th{color:#aab}
+    input,select,button{background:#0e0e0e;border:1px solid #333;color:#fff;border-radius:10px;padding:8px}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-top:10px}
+    .log{white-space:pre-wrap;background:#0a0a0a;border:1px dashed #333;border-radius:10px;padding:10px;min-height:160px;margin-top:10px}
+    .pill{font-size:.8rem;padding:2px 8px;border-radius:999px;background:#1b1b1b;border:1px solid #2a2a2a;color:#cfd;margin-right:6px}
+    .right{margin-left:auto;display:flex;gap:10px;align-items:center}
+    code{color:#cfe2ff}
+    .warn{color:#ffd28a}
+    .small{font-size:.9rem}
+    .box{border:1px solid #222;border-radius:12px;padding:10px;background:#0f0f0f}
+    label{user-select:none}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>
+      Seed & Mint Athletes —
+      <span class="pill">v4.1</span><span class="pill">F4</span><span class="pill">T0 Apprentice</span>
+      <span class="pill">Stripes=300</span><span class="pill">Cap=1200</span><span class="pill">Pilot-safe</span>
+      <span class="pill">LegacyHold</span>
+    </h1>
+
+    <p class="muted" id="stamp"></p>
+
+    <div class="box small">
+      <div><b>Hard rule:</b> real athletes are stored under <code>athletes/F4_0001</code>, <code>athletes/F4_0002</code>, ...</div>
+      <div class="warn"><b>DRY RUN defaults ON.</b> Turn it OFF only when you are 100% sure you are on emulator OR ready for production import.</div>
+      <div class="muted">
+        Pilot truth: <code>xpSource="pilot"</code>, <code>pilotReconciled=true</code>, plus one <code>PILOT_IMPORT</code> receipt in <code>xp_logs</code> (best-effort).
+      </div>
+      <div class="muted">
+        Legacy rule: 3 athletes get legacy metadata ONLY (hold). Legacy credit is NOT applied until after T0 graduation.
+      </div>
+    </div>
+
+    <table id="tbl" aria-label="Roster mint table">
+      <thead>
+      <tr>
+        <th>#</th><th>Full Name</th><th>Tier</th><th>XP</th><th>Stripes</th><th>Virtue</th><th>Mint Preview</th>
+      </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="row">
+      <div>
+        <label class="muted">Global XP Cap (optional)</label><br/>
+        <input id="xpCap" type="number" min="0" placeholder="leave blank to skip"/>
+      </div>
+
+      <div class="box">
+        <label class="muted">
+          <input id="dryRun" type="checkbox" style="margin-right:8px" checked/>
+          DRY RUN (no writes)
+        </label>
+        <div class="muted small">When ON: prints what it would write, but does not write.</div>
+      </div>
+
+      <div class="right">
+        <button id="run">Pilot Import & Merge (idempotent)</button>
+      </div>
+    </div>
+
+    <div id="log" class="log"></div>
+  </div>
+</div>
+
+<script type="module">
+  document.getElementById("stamp").textContent =
+    "Loaded: " + new Date().toLocaleString() + " · src: seed-athletes-v4_1-pilot.html (v4.1 + legacyhold)";
+
+  const logEl = document.getElementById("log");
+  function log(m){ logEl.textContent += m + "\n"; }
+
+  // ✅ Path-safe importer (works on 5500, 5000, subfolders, etc.)
+  async function importRel(relPath){
+    const url = new URL(relPath, import.meta.url);
+    return await import(url.href);
+  }
+
+  // Load firebase-init and virtues via path-safe import
+  let fb, virtues;
+  try{
+    try { fb = await importRel("../assets/js/firebase-init.js"); }
+    catch { fb = await importRel("./assets/js/firebase-init.js"); }
+  }catch(e){
+    log("✗ Failed to load firebase-init.js (check /assets/js/firebase-init.js)");
+    log(String(e?.message || e));
+    throw e;
+  }
+
+  try{
+    try { virtues = await importRel("../assets/js/virtues.js"); }
+    catch { virtues = await importRel("./assets/js/virtues.js"); }
+  }catch(e){
+    log("✗ Failed to load virtues.js (check /assets/js/virtues.js)");
+    log(String(e?.message || e));
+    throw e;
+  }
+
+  // Pull what we can from firebase-init
+  const { db, collection, getDocs, query, where, doc, getDoc, setDoc, serverTimestamp } = fb;
+
+  // addDoc is often NOT exported by your firebase-init wrapper.
+  // Fallback to Firestore SDK import if missing.
+  let addDoc = fb.addDoc;
+  if (!addDoc){
+    try{
+      const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      addDoc = fs.addDoc;
+      log("i addDoc fallback loaded from Firestore SDK.");
+    }catch(e){
+      log("! WARN: addDoc not available (no receipts will be written).");
+    }
+  }
+
+  const { virtuesFor, normalizeVirtue, assertVirtue, codeForVirtue, TRACK_F4 } = virtues;
+
+  // ===== CONFIG (Foundry 4 Combat) =====
+  const TRACK = TRACK_F4;      // "foundry4-combat"
+  const TRACK_TAG = "CB";
+  const TIER  = "T0";
+
+  const ATH_COLLECTION = "athletes";
+  const XP_LOGS_COLLECTION = "xp_logs";
+
+  const tierMeta = {
+    T0: { rankColor: "white",  rankName: "Apprentice" },
+    T1: { rankColor: "blue",   rankName: "Warrior"    },
+    T2: { rankColor: "purple", rankName: "Champion"   },
+    T3: { rankColor: "brown",  rankName: "Veteran"    },
+    T4: { rankColor: "black",  rankName: "Legend"     }
+  };
+
+  const VIRTUES = virtuesFor(TRACK);
+
+  // ===== STRIPES (LOCKED) =====
+  const STRIPE_STEP = 300;
+  const T0_CAP = 1200;
+
+  function stripeCountForXp(xp){
+    const n = Math.floor((Number(xp) || 0) / STRIPE_STEP);
+    return Math.max(0, Math.min(4, n));
+  }
+
+  function unlocksForF4(stripes){
+    return { strength: stripes >= 2, honor: stripes >= 3, merit: false };
+  }
+
+  // ===== LEGACY HOLD (locked) =====
+  // IMPORTANT: legacy credit is NOT applied now. It's held.
+  const LEGACY_HOLD = {
+    "F4_0001": { legacyCredit: 600, legacyLabel: "Founders (3+ years pre-system)" },
+    "F4_0019": { legacyCredit: 400, legacyLabel: "Founders (2+ years pre-system)" },
+    "F4_0020": { legacyCredit: 400, legacyLabel: "Founders (2+ years pre-system)" },
+  };
+
+  function legacyHoldPatch(uidCode){
+    const meta = LEGACY_HOLD[uidCode];
+    if (!meta) return null;
+
+    // DO NOT freeze XP here. Hold is metadata only.
+    return {
+      legacy: true,
+      legacyHold: true,
+      legacyCredit: meta.legacyCredit,
+      legacyLabel: meta.legacyLabel,
+      legacyLogged: false,
+    };
+  }
+
+  // ===== ROSTER =====
+  const ROSTER = [
+    ["Maximus Sandoval", 950],
+    ["David Reveles", 655],
+    ["Kevin Johnson", 805],
+    ["Logan Collins", 705],
+    ["Damien Diaz", 505],
+    ["Damian Gonzales", 485],
+    ["Fabian Torres", 795],
+    ["Erick Lara", 780],
+    ["Jayden Zaragoza", 850],
+    ["Cris Kawasi", 985],
+    ["Francisco Vargas", 660],
+    ["Jesse Garibay", 555],
+    ["Arturo Garcia", 540],
+    ["Mason Collins", 730],
+    ["Jaciel Araujo", 610],
+    ["Rodrigo Gonzalez", 285],
+    ["Cristian Ascencio", 415],
+    ["Alejandro Vargas", 620],
+    ["Andrew Endy", 795],
+    ["Mitchell Landvogt", 505],
+    ["Jesus Moreno", 380],
+    ["David McKinney", 845],
+    ["Kayden Kaholi", 850],
+    ["Nicolas Vega", 450],
+    ["Gael Rodriguez", 520],
+
+    ["Zario Vineyard", 605],
+    ["Abel Delacruz", 545],
+    ["Boston Monclus", 590],
+    ["Roxie Lopez", 385],
+    ["Jerrika Vineyard", 850],
+    ["Keira Dunn", 620],
+
+    ["Alexyis Jones", 585],
+    ["Hayden Montgomery", 515],
+    ["Celeste Lemus", 470],
+    ["Zelev Flores", 585],
+    ["Madison Turner", 265],
+    ["Adam Thomas", 590],
+    ["Arman Lemmel", 570],
+    ["Reza Lemmel", 540],
+    ["Carlos Fernandez", 200],
+    ["Dante Deluna", 565],
+    ["Juan Munoz", 545],
+    ["Giovanni Manzanarez", 385],
+    ["Mason Baldaccino", 490],
+    ["Irenio Anguiano", 515],
+    ["Evelyn Hernandez", 275],
+  ];
+
+  // ===== Helpers =====
+  const tbody = document.querySelector("#tbl tbody");
+  const runBtn = document.getElementById("run");
+
+  function pad4(n){ return String(n).padStart(4,"0"); }
+  function athleteDocId(serial4){ return `F4_${serial4}`; }
+
+  function toPublicName(fullName){
+    const parts = fullName.trim().split(/\s+/);
+    const first = parts[0] || "";
+    const last  = parts.slice(-1)[0] || "";
+    if(!first || !last) return fullName;
+    return `${first[0].toUpperCase()}. ${last}`;
+  }
+
+  function mintTagFor(serial4, virtueUpper){
+    return `F4_${TRACK_TAG}${serial4}_${virtueUpper}`;
+  }
+
+  function assertSafeRealDocId(docId){
+    if (!/^F4_\d{4}$/.test(docId)) {
+      throw new Error(`UNSAFE_DOC_ID_BLOCKED: "${docId}" is not a valid real athlete id (F4_0001 format).`);
+    }
+  }
+
+  function buildTable(){
+    tbody.innerHTML = "";
+    ROSTER.forEach(([name, xp], idx) => {
+      const serial = pad4(idx+1);
+      const uidCode = athleteDocId(serial);
+
+      const tr = document.createElement("tr");
+      const tdIdx  = document.createElement("td"); tdIdx.textContent  = serial;
+      const tdName = document.createElement("td"); tdName.textContent = name;
+      const tdTier = document.createElement("td"); tdTier.textContent = TIER + " · " + tierMeta[TIER].rankName;
+
+      const tdXp = document.createElement("td");
+      const xpInp = document.createElement("input");
+      xpInp.type = "number"; xpInp.min = "0"; xpInp.value = xp;
+      tdXp.appendChild(xpInp);
+
+      const tdStr = document.createElement("td");
+      const strSpan = document.createElement("span");
+      strSpan.className = "muted";
+      tdStr.appendChild(strSpan);
+
+      const tdVirtue = document.createElement("td");
+      const sel = document.createElement("select");
+      VIRTUES.forEach(v => {
+        const o = document.createElement("option");
+        o.value = v; o.textContent = v;
+        sel.appendChild(o);
+      });
+      sel.value = VIRTUES[idx % VIRTUES.length];
+      tdVirtue.appendChild(sel);
+
+      const tdMint = document.createElement("td");
+      const mintLine = document.createElement("div");
+      const displayLine = document.createElement("div");
+      mintLine.className="muted"; displayLine.className="muted";
+      tdMint.appendChild(mintLine);
+      tdMint.appendChild(displayLine);
+
+      function updateComputed(){
+        const vv = normalizeVirtue(sel.value);
+        const xpVal = Number(xpInp.value || 0);
+        const stripes = stripeCountForXp(xpVal);
+        strSpan.textContent = `${stripes} (every ${STRIPE_STEP})`;
+
+        mintLine.textContent    = `Doc: ${uidCode} · Tag: ${mintTagFor(serial, vv)}`;
+        displayLine.textContent = `Foundry 4_${serial} ${vv}` + (LEGACY_HOLD[uidCode] ? " · LEGACY HOLD" : "");
+      }
+      updateComputed();
+
+      sel.addEventListener("change", updateComputed);
+      xpInp.addEventListener("input", updateComputed);
+
+      tr.dataset.name   = name;
+      tr.dataset.serial = serial;
+      tr._xpInp   = xpInp;
+      tr._virtSel = sel;
+
+      tr.appendChild(tdIdx);
+      tr.appendChild(tdName);
+      tr.appendChild(tdTier);
+      tr.appendChild(tdXp);
+      tr.appendChild(tdStr);
+      tr.appendChild(tdVirtue);
+      tr.appendChild(tdMint);
+
+      tbody.appendChild(tr);
+    });
+  }
+  buildTable();
+
+  runBtn.addEventListener("click", async () => {
+    logEl.textContent = "";
+
+    const dryRun = document.getElementById("dryRun").checked;
+    const xpCapField = document.getElementById("xpCap").value;
+    const xpCap = xpCapField === "" ? null : Number(xpCapField);
+
+    const firstName = (ROSTER[0]?.[0] || "").toLowerCase();
+    if (!firstName.includes("maximus")) {
+      log("✗ BLOCKED: ROSTER[0] is not Maximus. You are about to misalign F4_0001.");
+      return;
+    }
+
+    log(dryRun ? "DRY RUN: No writes will occur." : "LIVE RUN: Writes enabled.");
+    log("Scanning existing real athletes for context…");
+
+    const snapTrack = await getDocs(query(collection(db, ATH_COLLECTION), where("track","==",TRACK)));
+    const existing = new Set();
+    snapTrack.forEach(d => existing.add(d.id));
+    log(`Found ${existing.size} existing real athletes in ${ATH_COLLECTION} for track ${TRACK}.`);
+
+    const meta = tierMeta[TIER];
+    let created=0, updated=0, failed=0, logged=0;
+
+    const rows = Array.from(tbody.querySelectorAll("tr"));
+    for (const tr of rows){
+      try{
+        const fullName = tr.dataset.name;
+        const serial   = tr.dataset.serial;
+        const uidCode  = athleteDocId(serial);
+        assertSafeRealDocId(uidCode);
+
+        let xp = Number(tr._xpInp.value || 0);
+        if (TIER === "T0" && xp > T0_CAP) {
+          throw new Error(`XP_OVER_T0_CAP: ${xp} > ${T0_CAP}. Fix paper total OR move tier.`);
+        }
+
+        const stripes = stripeCountForXp(xp);
+        const unlocks = unlocksForF4(stripes);
+
+        const rawVirtue = tr._virtSel.value;
+        const virtue    = normalizeVirtue(rawVirtue);
+        if (!assertVirtue(TRACK, virtue)) throw new Error(`Invalid virtue for F4: ${rawVirtue}`);
+
+        const virtueCode = codeForVirtue(TRACK, virtue) || "";
+        const mintVirtueTag        = mintTagFor(serial, virtue);
+        const mintVirtueTagDisplay = `Foundry 4_${serial} ${virtue}`;
+        const publicName = toPublicName(fullName);
+
+        const legacyPatch = legacyHoldPatch(uidCode);
+
+        const docRef = doc(db, ATH_COLLECTION, uidCode);
+        const snap   = await getDoc(docRef);
+        const isNew  = !snap.exists();
+
+        const base = {
+          uid: uidCode,
+          uidCode,
+          fullName,
+          publicName,
+
+          track: TRACK,
+          trackCode: TRACK,
+
+          team: "Lompoc Strong",
+          city: "Lompoc",
+          state: "CA",
+
+          tier: TIER,
+          rankColor: meta.rankColor,
+          rankName:  meta.rankName,
+
+          xp,
+          stripeCount: stripes,
+          unlocks,
+          ...(xpCap !== null ? { xpCap } : {}),
+
+          // canonical roster truth (real athletes)
+          isCanonical: true,
+
+          // pilot truth (Blaze safety)
+          xpSource: "pilot",
+          pilotReconciled: true,
+          pilotImportedAt: serverTimestamp(),
+
+          // mint
+          virtueName: virtue,
+          virtueCode,
+          virtue,
+          mintVirtueTag,
+          mintVirtueTagDisplay,
+
+          isDev: false,
+
+          // legacy (ONLY when applicable; otherwise do not touch legacy fields)
+          ...(legacyPatch ? legacyPatch : {}),
+
+          updatedAt: serverTimestamp(),
+          seedVersion: "v4.1",
+        };
+
+        const docData = isNew ? { ...base, createdAt: serverTimestamp() } : base;
+
+        if (dryRun){
+          log(`• WOULD ${isNew ? "CREATE" : "UPDATE"}: ${fullName} (${uidCode}) XP=${xp} stripes=${stripes} legacyHold=${legacyPatch?1:0} tag=${mintVirtueTag}`);
+        } else {
+          await setDoc(docRef, docData, { merge:true });
+
+          if (isNew){ created++; log(`✓ Created: ${fullName} (${uidCode}) XP=${xp} stripes=${stripes} legacyHold=${legacyPatch?1:0}`); }
+          else      { updated++; log(`↺ Updated: ${fullName} (${uidCode}) XP=${xp} stripes=${stripes} legacyHold=${legacyPatch?1:0}`); }
+
+          // receipt log (best effort)
+          if (addDoc){
+            try{
+              await addDoc(collection(db, XP_LOGS_COLLECTION), {
+                kind: "PILOT_IMPORT",
+                athleteId: uidCode,
+                lane: "combat",
+                totalXp: xp,
+                stripeCount: stripes,
+                unlocks,
+                legacyHold: !!legacyPatch,
+                legacyCredit: legacyPatch?.legacyCredit ?? 0,
+                source: "paper-ledger",
+                bypassedCaps: true,
+                seedVersion: "v4.1",
+                createdAt: serverTimestamp(),
+              });
+              logged++;
+            }catch(e){
+              log(`! WARN: could not write xp_logs receipt for ${uidCode}. ${e?.message || e}`);
+            }
+          }
+        }
+      }catch(err){
+        failed++;
+        log(`✗ ${tr.dataset.name} — ${err?.message || err}`);
+      }
+    }
+
+    log(`\nDone. Created: ${created}, Updated: ${updated}, Failed: ${failed}, Logs: ${logged}${dryRun ? " (dry run)" : ""}`);
+  });
+</script>
+</body>
+</html>

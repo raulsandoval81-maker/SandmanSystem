@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Mint Preview — Sandman v2.0</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <style>
+    body{background:#0b0f14;color:#e9edf4;font-family:system-ui,Inter}
+    .wrap{max-width:1100px;margin:0 auto;padding:20px}
+    h1{color:#ffd633;margin-bottom:6px}
+    .muted{color:#9fb3c8;font-size:.85rem}
+    table{width:100%;border-collapse:collapse;margin:16px 0}
+    th,td{padding:.55rem;border-bottom:1px solid #233041}
+    th{color:#9fb3c8}
+    .mono{font-family:ui-monospace,Menlo,monospace}
+    .btn{background:#ffd633;color:#111;padding:6px 12px;border-radius:10px;font-weight:700;cursor:pointer;border:0}
+    .panel{background:#10161f;border:1px solid #233041;padding:14px;border-radius:14px;margin-bottom:18px}
+    .lane-title{font-size:1.15rem;color:#dfe7ff;margin:0 0 6px}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Mint Preview v2.0</h1>
+    <p class="muted">Format: <span class="mono">TRACK_LANEXXXXCAP</span></p>
+
+    <section id="containers"></section>
+
+    <pre id="csvOut" class="mono muted" style="white-space:pre-wrap;margin-top:20px;"></pre>
+  </main>
+
+  <script type="module">
+    import { ALL_MINTS } from "../assets/js/virtues-data.js";
+    import { exportMintCsv } from "./mint-csv.js";
+
+    const containers = document.getElementById("containers");
+
+    function renderTrack(track) {
+      const lanes = ALL_MINTS[track];
+      Object.entries(lanes).forEach(([lane, items]) => {
+        if (!items.length) return; // skip empty expansions
+
+        const block = document.createElement("div");
+        block.className = "panel";
+
+        block.innerHTML = `
+          <h2 class="lane-title">${track} • ${lane}</h2>
+          <button class="btn" data-track="${track}" data-lane="${lane}" style="margin-bottom:10px">Copy CSV</button>
+
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>Virtue</th><th>CAP</th><th>Tag</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${items.map(v => `
+                <tr>
+                  <td class="mono">${v.num.toString().padStart(4,"0")}</td>
+                  <td>${v.virtue}</td>
+                  <td class="mono">${v.cap}</td>
+                  <td class="mono">${v.tag}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        `;
+
+        containers.appendChild(block);
+      });
+    }
+
+    // Render F8 and F4 lanes
+    renderTrack("F8");
+    renderTrack("F4");
+
+    // Copy CSV handler
+    containers.addEventListener("click", e => {
+      if (!e.target.matches("button[data-track]")) return;
+      const track = e.target.dataset.track;
+      const lane = e.target.dataset.lane;
+      const csv = exportMintCsv(track, lane);
+      document.getElementById("csvOut").textContent = csv;
+    });
+  </script>
+</body>
+</html>

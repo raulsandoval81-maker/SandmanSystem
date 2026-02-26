@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete Tools</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    /* ====== System header / pill nav (matches other pages) ====== */
+    .system-header{background:#0f0f0f;border-bottom:2px solid #FFD700;padding:12px 16px;position:sticky;top:0;z-index:1000}
+    .system-header__brand{display:flex;align-items:center;gap:12px}
+    .system-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .system-nav a{
+      color:#eaeaea;background:#1b1f28;border:1px solid #2a2f3a;
+      text-decoration:none;font-weight:600;font-size:.95rem;
+      padding:6px 12px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.25)
+    }
+    .system-nav a:hover{background:#232937;color:#fff}
+
+    /* ====== Page layout ====== */
+    .wrap{max-width:1100px;margin:0 auto;padding:24px 20px;display:grid;gap:20px}
+    .page-title{font-size:42px;font-weight:800;color:#FFD700;text-shadow:0 0 18px rgba(255,212,0,.25);margin:6px 0 2px}
+    .subtle{color:#b6c0cc;margin-bottom:8px}
+
+    .section-label{color:#FFD700;font-weight:800;margin:18px 0 6px;letter-spacing:.2px}
+
+    /* Cards */
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+    @media (max-width:880px){ .grid{grid-template-columns:1fr} }
+
+    .card{
+      background:#f6f7f9;border-radius:18px;border:1px solid #e6e8ec;
+      box-shadow:0 10px 26px rgba(0,0,0,.25);
+      padding:18px 18px 16px; display:flex; flex-direction:column; gap:10px;
+    }
+    .card h3{margin:0;font-size:20px;color:#111827}
+    .card p{margin:0;color:#4b5563;line-height:1.45}
+
+    /* Buttons */
+    .btn{
+      align-self:flex-start; display:inline-block; text-decoration:none; cursor:pointer;
+      background:#e53935; color:#fff; font-weight:700; border:none; border-radius:12px;
+      padding:10px 16px; transition:background .15s ease;
+    }
+    .btn:hover{ background:#c62828; }
+    .btn:focus-visible{ outline:2px solid #FFD700; outline-offset:2px; }
+
+    /* Back chip (optional, under header) */
+    .back{display:inline-block;margin-top:6px;padding:10px 14px;border-radius:12px;border:1px solid #3a4048;color:#e6eef7;background:#20262e;text-decoration:none}
+    .back:hover{filter:brightness(1.06)}
+  </style>
+</head>
+
+<body>
+  <!-- Header / Nav -->
+  <header class="system-header">
+    <div class="system-header__brand">
+      <span class="brand-main" style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat System™</span>
+      <span class="brand-sub" style="color:#bbb;font-weight:600;">Athlete Tools</span>
+    </div>
+    <nav class="system-nav" aria-label="Primary">
+      <a href="./athletes-corner.html">← Back to Landing</a>
+      <a href="./athletes-corner.html">Athletes Hub</a>
+      <a href="../index.html">Home</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Secondary back chip (kept since you had it; remove if redundant) -->
+
+    <h1 class="page-title">Athlete Tools</h1>
+
+    <!-- Core -->
+    <h2 class="section-label">Core</h2>
+    <section class="grid" aria-label="Core tools">
+      <article class="card">
+        <h3>Live Log</h3>
+        <p>Quick daily notes, wins/losses, and skill reps — keep momentum visible.</p>
+        <a class="btn" href="./athletes-live-log.html" aria-label="Open Live Log">Open</a>
+      </article>
+
+      <article class="card">
+        <h3>XP Tracker</h3>
+        <p>Track effort and progress by session. Youth/Teen views available.</p>
+        <a class="btn" href="./xp.html" aria-label="Open XP Tracker">Open</a>
+      </article>
+
+      <article class="card">
+        <h3>Badge • Shirt • Belt • Honor</h3>
+        <p>Milestones that matter — see requirements and what’s next.</p>
+        <a class="btn" href="./badge-ladder.html" aria-label="Open Badge, Shirt, Belt, Honor">Open</a>
+      </article>
+
+      <article class="card">
+        <h3>Calendar</h3>
+        <p>Training days, events, and reminders — stay ready.</p>
+        <a class="btn" href="./calendar.html" aria-label="Open Calendar">Open</a>
+      </article>
+    </section>
+
+    <!-- Mindset & Fuel -->
+    <h2 class="section-label">Mindset &amp; Fuel</h2>
+    <section class="grid" aria-label="Mindset and Fuel tools">
+      <article class="card">
+        <h3>Mindset Corner</h3>
+        <p>Weekly reflections and self-ratings to sharpen your approach.</p>
+        <a class="btn" href="./mindset.html" aria-label="Open Mindset Corner">Open</a>
+      </article>
+
+      <article class="card">
+        <h3>Music + Motivation</h3>
+        <p>Playlists and speeches — hype, focus, and cool-down sets.</p>
+        <a class="btn" href="./motivation.html" aria-label="Open Music and Motivation">Open</a>
+      </article>
+    </section>
+
+    <!-- Recovery & Prep -->
+    <h2 class="section-label">Recovery &amp; Prep</h2>
+    <section class="grid" aria-label="Recovery and Prep tools">
+      <article class="card">
+        <h3>Weight Management</h3>
+        <p>Simple log with trend checks. Compete smart; stay healthy.</p>
+        <a class="btn" href="./weight.html" aria-label="Open Weight Management">Open</a>
+      </article>
+
+      <article class="card">
+        <h3>Stretch &amp; Recovery</h3>
+        <p>Warm-ups, mobility, and post-practice resets.</p>
+        <a class="btn" href="./recovery.html" aria-label="Open Stretch and Recovery">Open</a>
+      </article>
+    </section>
+
+    <!-- Comms & Film -->
+    <h2 class="section-label">Comms &amp; Film</h2>
+    <section class="grid" aria-label="Comms and Film tools">
+      <article class="card">
+        <h3>Weekly Update</h3>
+        <p>Your quick end-of-week check-in. What went well; what’s next.</p>
+        <a class="btn" href="./athlete-weekly.html" aria-label="Open Weekly Update">Open</a>
+      </article>
+
+      <article class="card">
+        <h3>Video Breakdown Library</h3>
+        <p>Store links and notes for matches and drills to review.</p>
+        <a class="btn" href="./video-library.html" aria-label="Open Video Breakdown Library">Open</a>
+      </article>
+    </section>
+  </main>
+
+  <script defer src="../assets/js/site.js"></script>
+</body>
+</html>

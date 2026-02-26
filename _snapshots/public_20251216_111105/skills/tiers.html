@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sandman System™ — Ladders</title>
+  <style>
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1 { margin-bottom: 5px; }
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 8px 16px;
+      background: #333;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab.active {
+      background: #555;
+    }
+    .panel {
+      display: none;
+    }
+    .panel.active {
+      display: block;
+    }
+    .tier {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 8px;
+      background: #222;
+    }
+    .circle {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+  <h1>Sandman System™ — Ladders</h1>
+  <p>Official ranks & colors for Youth (0–8) and Teen/Adult (0–4)</p>
+
+  <div class="tabs">
+    <div class="tab active" onclick="showPanel('teen')">Teen & Adult</div>
+    <div class="tab" onclick="showPanel('youth')">Youth</div>
+  </div>
+
+  <!-- Teen & Adult Ladder -->
+  <div id="teen" class="panel active">
+    <h2>Teen & Adult Ladder (0–4)</h2>
+    <p>Apprentice → Pathfinder → Warrior → Veteran → Legend</p>
+    <div class="tier"><div class="circle" style="background:white;"></div> Tier 0 — Apprentice (White)</div>
+    <div class="tier"><div class="circle" style="background:gray;"></div> Tier 1 — Pathfinder (Gray)</div>
+    <div class="tier"><div class="circle" style="background:blue;"></div> Tier 2 — Warrior (Blue)</div>
+    <div class="tier"><div class="circle" style="background:brown;"></div> Tier 3 — Veteran (Brown)</div>
+    <div class="tier"><div class="circle" style="background:black;"></div> Tier 4 — Legend (Black)</div>
+  </div>
+
+  <!-- Youth Ladder -->
+  <div id="youth" class="panel">
+    <h2>Youth Ladder (0–8)</h2>
+    <p>Little Shadow → Recruit → Combatant → Competitor → Warrior → Champion → Commander → Sandman → Legend</p>
+    <div class="tier"><div class="circle" style="background:#aaa;"></div> Tier 0 — Little Shadow</div>
+    <div class="tier"><div class="circle" style="background:red;"></div> Tier 1 — Recruit</div>
+    <div class="tier"><div class="circle" style="background:orange;"></div> Tier 2 — Combatant</div>
+    <div class="tier"><div class="circle" style="background:green;"></div> Tier 3 — Competitor</div>
+    <div class="tier"><div class="circle" style="background:blue;"></div> Tier 4 — Warrior</div>
+    <div class="tier"><div class="circle" style="background:gold;"></div> Tier 5 — Champion</div>
+    <div class="tier"><div class="circle" style="background:brown;"></div> Tier 6 — Commander</div>
+    <div class="tier"><div class="circle" style="background:yellow;"></div> Tier 7 — Sandman</div>
+    <div class="tier"><div class="circle" style="background:black;"></div> Tier 8 — Legend</div>
+  </div>
+
+  <script>
+    function showPanel(id) {
+      document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+      event.target.classList.add('active');
+    }
+  </script>
+  <div data-include="../assets/includes/footer.html"></div>
+
+<!-- Scripts -->
+<script defer src="../assets/js/site.js"></script>
+<script type="module" src="../assets/js/firebase-init.js"></script>
+
+</body>
+</html>

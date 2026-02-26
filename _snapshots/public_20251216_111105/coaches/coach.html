@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coaches | Sandman System™</title>
+
+  <!-- We are inside /public/coaches/, so step back to shared assets -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+<!-- Include this just before your page script(s) on ceremonies.html -->
+<script src="ceremonies.service.js"></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+
+    h1,h2{color:#ffd633;margin:.2rem 0 1rem}
+    .muted{color:#9fb3c8}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;margin-bottom:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+
+    .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem;margin-top:.9rem}
+    @media(max-width:800px){.grid{grid-template-columns:1fr}}
+
+    .card{background:#0e141c;border:1px solid #2c3a4e;border-radius:12px;padding:.9rem;display:flex;gap:.8rem}
+    .avatar{width:64px;height:64px;border-radius:50%;background:#151d29;border:2px solid #2c3a4e;display:flex;align-items:center;justify-content:center;font-weight:900;color:#ffd633}
+    .avatar.founder{border-color:#ffd633; box-shadow:0 0 0 2px rgba(255,214,51,.25);}
+    .card h3{margin:.2rem 0}
+    .role{color:#9fb3c8;font-size:.92rem}
+    .links{margin-top:.5rem}
+    .btn{display:inline-block;padding:.5rem 1rem;border-radius:999px;background:#ff3333;border:2px solid #ffd633;color:#ffd633;font-weight:900;text-decoration:none}
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Coaches</h1>
+    <p class="muted" style="margin-top:-.45rem">Sandman System™ coaching team. Profiles will expand after Firebase wiring.</p>
+
+    <section class="panel">
+      <div class="grid">
+
+        <!-- Raul (Founder, Head Coach) -->
+        <article class="card">
+          <div class="avatar founder">RS</div>
+          <div>
+            <h3><a href="raul-sandoval.html">Raul Sandoval</a></h3>
+            <div class="role">Founder, Head Coach</div>
+            <div class="links"><a class="btn" href="raul-sandoval.html">View Profile</a></div>
+          </div>
+        </article>
+
+        <!-- Hector -->
+        <article class="card">
+          <div class="avatar">HS</div>
+          <div>
+            <h3><a href="hector-sandoval.html">Hector Sandoval</a></h3>
+            <div class="role">Coach</div>
+            <div class="links"><a class="btn" href="hector-sandoval.html">View Profile</a></div>
+          </div>
+        </article>
+
+        <!-- Richard -->
+        <article class="card">
+          <div class="avatar">RS</div>
+          <div>
+            <h3><a href="richard-sandoval.html">Richard Sandoval</a></h3>
+            <div class="role">Coach</div>
+            <div class="links"><a class="btn" href="richard-sandoval.html">View Profile</a></div>
+          </div>
+        </article>
+
+        <!-- Chantel -->
+        <article class="card">
+          <div class="avatar">CC</div>
+          <div>
+            <h3><a href="chantel-castellanos.html">Chantel Castellanos</a></h3>
+            <div class="role">Coach</div>
+            <div class="links"><a class="btn" href="chantel-castellanos.html">View Profile</a></div>
+          </div>
+        </article>
+
+        <!-- Lynn -->
+        <article class="card">
+          <div class="avatar">LC</div>
+          <div>
+            <h3><a href="lynn-castellanos.html">Lynn Castellanos</a></h3>
+            <div class="role">Coach</div>
+            <div class="links"><a class="btn" href="lynn-castellanos.html">View Profile</a></div>
+          </div>
+        </article>
+
+      </div>
+    </section>
+
+    <section class="panel">
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+        <a class="btn" href="hub.html">Coach Hub</a>
+        <a class="btn" href="../index.html">← Home</a>
+      </div>
+    </section>
+  </main>
+
+  <!-- Shared footer -->
+  <div data-include="../assets/includes/footer.html"></div>
+</body>
+<!-- Shared services -->
+<script src="../js/shared/service.js"></script>
+<script src="../js/shared/events-service.js"></script>
+<script src="../js/shared/comms-service.js"></script>
+
+<!-- Coach app -->
+<script src="../js/coach/coach-daily.js"></script>     <!-- attendance, character, quick actions -->
+<script src="../js/coach/coach-monthly.js"></script>   <!-- leadership console, monthly logs -->
+<script src="../js/coach/coach-aim.js"></script>        <!-- I.A.M. helpers -->
+<script>
+  window.SESSION = {
+    role: 'coach',
+    id:   'coach_mgr',
+    linkedAthletes: ['demo08A','demo08B','demo08C']
+  };
+</script>
+<script>
+  async function loadCoachThreads() {
+    const me = SESSION.id;
+    const list = document.getElementById('coach-threads') || (() => {
+      const card = document.createElement('div');
+      card.className='card';
+      card.innerHTML = `<h3>Parent/Athlete Threads</h3><ul id="coach-threads" class="feed"></ul>`;
+      document.querySelector('#coach-daily-body')?.prepend(card);
+      return document.getElementById('coach-threads');
+    })();
+
+    const threads = await DB.query('messages_threads', t => t.participants?.includes(me));
+    list.innerHTML = threads
+      .sort((a,b)=>b.lastMessageAt-a.lastMessageAt)
+      .map(t => `<li data-id="${t.id}">
+        <div><strong>${t.topic}</strong> — ${t.status}</div>
+        <div class="small mono">${new Date(t.lastMessageAt).toLocaleString()}</div>
+        <div class="row" style="margin-top:6px">
+          <input placeholder="Reply…" onkeydown="if(event.key==='Enter')coachReply('${t.id}', this)">
+          <button class="outline-blue" onclick="coachReply('${t.id}', this.previousElementSibling)">Send</button>
+        </div>
+      </li>`).join('') || '<li class="muted">No threads.</li>';
+  }
+
+  async function coachReply(threadId, inputEl){
+    const text = (inputEl.value||'').trim(); if(!text) return;
+    await postMessage({ threadId, text, by: SESSION.id });
+    inputEl.value = '';
+    loadCoachThreads();
+  }
+
+  document.addEventListener('DOMContentLoaded', loadCoachThreads);
+</script>
+<script>
+  window.CoachSettings = {
+    officeHours: { start:'12:00', end:'14:00', days:[1,2,3,4,5] },
+    meetMode: false,
+    staffOnDuty: ['coach_mgr']
+  };
+</script>
+
+</html>

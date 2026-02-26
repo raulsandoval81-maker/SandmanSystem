@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Combat • Tools</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    :root{--bg:#0f141b;--card:#f5f7fb;--ink:#0f141b;--muted:#586074;--gold:#ffd633;--red:#e53935}
+    body{margin:0;background:var(--bg);color:#e6eef7;font-family:system-ui,sans-serif}
+    .wrap{max-width:1120px;margin:28px auto;padding:0 18px}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .title{font-size:2rem;font-weight:900;color:#fff;text-shadow:0 8px 28px rgba(255,214,51,.2)}
+    .back{color:#e6eef7;text-decoration:none;border:1px solid rgba(255,255,255,.12);
+      padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.06)}
+    .back:hover{background:rgba(255,255,255,.12)}
+    h2.section{margin:18px 0 12px;color:var(--gold);font-size:.95rem;letter-spacing:.08em;text-transform:uppercase}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+    .card{background:var(--card);color:var(--ink);border-radius:16px;box-shadow:0 12px 26px rgba(0,0,0,.25);padding:16px;display:flex;flex-direction:column}
+    .card h3{margin:0 0 6px}
+    .card p{margin:0 0 12px;color:var(--muted)}
+    .open{align-self:flex-start;background:var(--red);color:#fff;text-decoration:none;border:none;border-radius:10px;padding:9px 14px;font-weight:800}
+    .open:hover{filter:brightness(.95)}
+    .mini{margin-top:8px;font-size:.9rem}
+    .mini a{color:#334155;text-decoration:none}
+    .mini a:hover{text-decoration:underline}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="title">Sandman System</div>
+      <a class="back" href="./hub.html">← Back to Landing</a>
+    </header>
+
+    <h2 class="section">Programs</h2>
+    <section class="grid">
+      <article class="card">
+        <h3>Wrestling</h3>
+        <p>Brotherhood 4 Life.</p>
+        <a class="open" href="./wrestling.html">Open</a>
+        <div class="mini">
+          <a href="/dashboard/index.html?program=wrestling">Dashboard</a> ·
+          <a href="/leaderboard.html?program=wrestling">Leaderboard</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>Boxing</h3>
+        <p>A Gentleman Sport.</p>
+        <a class="open" href="./boxing.html">Open</a>
+        <div class="mini">
+          <a href="/dashboard/index.html?program=boxing">Dashboard</a> ·
+          <a href="/leaderboard.html?program=boxing">Leaderboard</a>
+        </div>
+      </article>
+
+      <article class="card">
+        <h3>Kickboxing</h3>
+        <p>Fast hands, fast feet.</p>
+        <a class="open" href="./kick_boxing.html">Open</a>
+        <div class="mini">
+          <a href="/dashboard/index.html?program=kick_boxing">Dashboard</a> ·
+          <a href="/leaderboard.html?program=kick_boxing">Leaderboard</a>
+        </div>
+      </article>
+
+
+
+      <article class="card">
+        <h3>Submission Grappling</h3>
+        <p>The Deadly Art</p>
+        <a class="open" href="./submission_grappling.html">Open</a>
+        <div class="mini">
+          <a href="/dashboard/index.html?program=submission_grappling">Dashboard</a> ·
+          <a href="/leaderboard.html?program=submission_grappling">Leaderboard</a>
+        </div>
+      </article>
+    </section>
+
+    <h2 class="section">Recognition</h2>
+    <section class="grid">
+      <article class="card">
+        <h3>Badge • Shirt • Belt • Honor</h3>
+        <p>Milestones and moments that matter.</p>
+        <a class="open" href="./badge-ladder.html">Open</a>
+      </article>
+      <article class="card">
+        <h3>Ceremonies</h3>
+        <p>Scripts & tools for recognition.</p>
+        <a class="open" href="./ceremonies.html">Open</a>
+      </article>
+    </section>
+     <section class="card">
+  <h2>Motivation Wall</h2>
+  <div id="motivationWall" class="stack"></div>
+</section>
+ 
+  </main>
+</body>
+</html>

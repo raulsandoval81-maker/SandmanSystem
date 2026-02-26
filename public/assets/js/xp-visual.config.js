@@ -19,11 +19,11 @@ export const XP_VISUAL = Object.freeze({
   foundry4: {
     name: "Foundry 4 (Teen/Adult)",
     tiers: [
-      { tier: "T0", name: "Apprentice", xpCap:  800, stripeXP: 200, badge: "apprentice.png" },
-      { tier: "T1", name: "Warrior",    xpCap: 1400, stripeXP: 300, badge: "warrior.png" },
-      { tier: "T2", name: "Champion",   xpCap: 1600, stripeXP: 400, badge: "champion.png" },
-      { tier: "T3", name: "Veteran",    xpCap: 2200, stripeXP: 500, badge: "veteran.png" }, // fixed from 2000 → 2200
-      { tier: "T4", name: "Legend",     xpCap: 2400, stripeXP: 600, badge: "legend.png" }  // cap, no stripes
+      { tier: "T0", name: "Apprentice", xpCap:  1200, stripeXP: 300, badge: "apprentice.png" },
+      { tier: "T1", name: "Warrior",    xpCap: 1600, stripeXP: 400, badge: "warrior.png" },
+      { tier: "T2", name: "Champion",   xpCap: 2000, stripeXP: 500, badge: "champion.png" },
+      { tier: "T3", name: "Veteran",    xpCap: 2400, stripeXP: 600, badge: "veteran.png" }, // fixed from 2000 → 2200
+      { tier: "T4", name: "Legend",     xpCap: 2800, stripeXP: 700, badge: "legend.png" }  // cap, no stripes
     ]
   },
 
@@ -63,12 +63,6 @@ export function getBadge(track, xp) {
     else break;
   }
 
-  let xpPercent = 0;
-  if (current.stripeXP) {
-    const base = current.xpCap - current.stripeXP;
-    xpPercent = ((xp - base) / current.stripeXP) * 100;
-    xpPercent = Math.max(0, Math.min(100, Math.round(xpPercent)));
-  }
 
   return {
     ...current,

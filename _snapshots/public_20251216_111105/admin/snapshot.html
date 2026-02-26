@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin — Snapshot | Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    .card{background:#12161d; border:1px solid #2a2f3a; border-radius:14px; padding:16px}
+    .grid{display:grid; gap:16px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr));}
+    .muted{color:#9aa3b2}
+    .pill{display:inline-block; padding:.5rem 1rem; border-radius:999px; background:#d32b2b; color:#ffd633; font-weight:700; text-decoration:none}
+    table{width:100%; border-collapse:collapse}
+    th,td{padding:.5rem; border-bottom:1px solid #2a2f3a}
+    th{color:#9aa3b2; text-align:left}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <p><a class="pill" href="index.html">← Back to Admin</a></p>
+    <h1>Program Snapshot</h1>
+    <p class="muted">Read-only export. Replace static content with live data later.</p>
+
+    <section class="grid" style="margin-top:1rem">
+      <div class="card">
+        <h3>Totals</h3>
+        <table>
+          <tr><th>Metric</th><th>Value</th></tr>
+          <tr><td>Athletes</td><td>128</td></tr>
+          <tr><td>XP Entries (30d)</td><td>2,940</td></tr>
+          <tr><td>Ceremonies (YTD)</td><td>22</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>By Track</h3>
+        <table>
+          <tr><th>Track</th><th>Active</th></tr>
+          <tr><td>Foundry 8 — Youth</td><td>81</td></tr>
+          <tr><td>Foundry 4 — Teen</td><td>47</td></tr>
+        </table>
+      </div>
+
+      <div class="card">
+        <h3>Notes</h3>
+        <p class="muted">Drop highlights, risks, or agenda bullets here.</p>
+        <ul>
+          <li>Warrior ceremony slated next Friday.</li>
+          <li>Grappling program at capacity; waitlist opened.</li>
+        </ul>
+      </div>
+    </section>
+
+    <p style="margin-top:1rem"><a class="pill" href="../index.html">Return Home</a></p>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+</body>
+</html>

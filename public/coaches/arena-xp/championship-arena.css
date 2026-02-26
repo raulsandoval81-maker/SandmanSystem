@@ -1,0 +1,31 @@
+/* public/coaches/arena-xp/championship-arena.css */
+/* Championship = Weekend Arena look + Step-Head controls alignment */
+
+.step-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:8px;
+}
+
+.step-controls{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.input-win{ min-width: 220px; }
+
+/* Stamps live under Step 1 */
+.stampbar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin:10px 0 0;
+}
+
+/* Hide IQ bar until +5 pressed (prestige-styleiq.js toggles) */
+.iq-bar{ display:none; }
+.iq-bar.open{ display:flex; }

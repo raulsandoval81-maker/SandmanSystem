@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Choose Your Weapon</title>
+  <link rel="stylesheet" href="weapon.css"/>
+</head>
+<body>
+
+  <div class="wrap">
+
+    <header class="header">
+      <button class="back-btn" onclick="history.back()">← Back</button>
+      <h1 class="title">Choose Your Weapon</h1>
+      <p class="subtitle">Your first identity tool. Unlocks your early path.</p>
+    </header>
+
+    <section class="weapon-grid">
+
+      <div class="weapon-card" data-weapon="combat">
+        <h2>Combat</h2>
+        <p>Shadow Trainer · Footwork · Timing</p>
+      </div>
+
+      <div class="weapon-card" data-weapon="strength">
+        <h2>Strength</h2>
+        <p>Foundation Workouts · Load Patterns</p>
+      </div>
+
+      <div class="weapon-card" data-weapon="honor">
+        <h2>Honor</h2>
+        <p>Focus · Effort · Attitude · Respect</p>
+      </div>
+
+
+    </section>
+
+    <footer class="footer">
+      <button id="saveWeapon" class="save-btn">Confirm Weapon</button>
+    </footer>
+
+  </div>
+
+  <script type="module" src="weapon.app.js"></script>
+</body>
+</html>

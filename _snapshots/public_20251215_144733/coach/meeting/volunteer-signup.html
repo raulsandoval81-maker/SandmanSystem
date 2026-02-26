@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Volunteer Sign-Up</title>
+
+  <style>
+    :root{
+      --bg:#0a1833;--panel:#111c35;--line:#27304a;
+      --brand:#ffdd48;--text:#f0f4f8;--muted:#9aa4b1;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    /* HEADER */
+    header.page-head{
+      text-align:center;
+      margin-bottom:16px;
+      border-bottom:1px solid var(--line);
+      padding-bottom:10px;
+    }
+    h1{margin:0 0 6px;font-size:1.5rem;color:var(--brand)}
+    h2{margin:0 0 8px;font-size:1rem;color:#cbd5e1}
+    p{margin:0 0 8px;line-height:1.45}
+    .small{font-size:.86rem;color:var(--muted)}
+
+    /* CARDS */
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 16px 14px;
+      margin-top:14px;
+    }
+    h3{margin:0 0 8px;font-size:1.05rem;color:var(--brand)}
+    ul{margin:0 0 4px 18px;padding:0;font-size:.94rem}
+    li{margin-bottom:4px;line-height:1.4}
+
+    /* TABLE */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:14px;
+      font-size:.88rem;
+      background:#0b152e;
+    }
+    th,td{
+      border:1px solid #1f2937;
+      padding:6px 4px;
+      text-align:left;
+    }
+    th{
+      background:#111c35;
+      color:#e5e7eb;
+      font-weight:600;
+      font-size:.78rem;
+    }
+    tr:nth-child(even) td{
+      background:#0c1428;
+    }
+
+    /* PRINT MODE */
+    @media print{
+      body{background:#fff;color:#000}
+      header.page-head{border-bottom:1px solid #999}
+      .card{background:#fff;border:1px solid #999}
+      table{background:#fff}
+      th{background:#f3f4f6;color:#111}
+      tr:nth-child(even) td{background:#f9fafb}
+    }
+
+    /* BACK BUTTON */
+    .back-btn{
+      border-radius:999px;
+      border:1px solid #1f2937;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:.78rem;
+      padding:4px 12px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-block;
+      margin:10px 14px 0;
+    }
+    .back-btn:hover{background:#0b1120}
+  </style>
+</head>
+
+<body>
+
+<a class="back-btn" onclick="history.back()">← Back</a>
+
+<main class="wrap">
+
+  <header class="page-head">
+    <h1>Lompoc High School Wrestling</h1>
+    <h2>Parent Volunteer Sign-Up / Lista de Voluntarios</h2>
+    <p class="small">
+      Thank you for supporting our athletes — please write numbers clearly.
+      <br/>Gracias por apoyar a nuestros atletas — por favor escriba los números claramente.
+    </p>
+  </header>
+
+  <!-- DUTY LIST (1–8) -->
+  <section class="card">
+    <h3>Volunteer Duty Codes (1–8) / Códigos de Voluntario</h3>
+    <ul>
+      <li><strong>1 — Snacks & Meals / Bocadillos y Comidas</strong></li>
+      <li><strong>2 — Transportation / Transporte</strong></li>
+      <li><strong>3 — Tournament/Event Help / Ayuda en Torneos</strong></li>
+      <li><strong>4 — Score Table / Mesa de Anotación</strong></li>
+      <li><strong>5 — Fundraising / Recaudación de Fondos</strong></li>
+      <li><strong>6 — Team Travel Support / Apoyo para Viajes</strong></li>
+      <li><strong>7 — Team Events / Eventos del Equipo</strong></li>
+      <li><strong>8 — Wherever Needed / Donde Sea Necesario</strong></li>
+    </ul>
+
+    <p class="small">
+      Parents may write one number or multiple numbers (example: “1, 4, 8”).
+      <br/>Los padres pueden escribir un número o varios números (ejemplo: “1, 4, 8”).
+    </p>
+  </section>
+
+  <!-- EVENT HEADER FIELDS -->
+  <section class="card">
+    <h3>Event Information / Información del Evento</h3>
+
+    <p class="small">• Event Name / Nombre del Evento</p>
+    <input style="width:100%;padding:8px;border-radius:8px;border:1px solid #27304a;background:#0b152e;color:#fff"/>
+
+    <p class="small" style="margin-top:10px;">• Event Date / Fecha del Evento</p>
+    <input style="width:100%;padding:8px;border-radius:8px;border:1px solid #27304a;background:#0b152e;color:#fff"/>
+
+    <p class="small" style="margin-top:10px;">• Point of Contact / Persona Encargada</p>
+    <input style="width:100%;padding:8px;border-radius:8px;border:1px solid #27304a;background:#0b152e;color:#fff"/>
+  </section>
+
+  <!-- SIGN-UP TABLE -->
+  <section class="card">
+    <h3>Volunteer List / Lista de Voluntarios</h3>
+
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Parent/Guardian<br/>Padre/Tutor</th>
+          <th>Best Contact<br/>Mejor Contacto</th>
+          <th>Student Name(s)<br/>Nombre(s) del Estudiante</th>
+          <th>Duty # (1–8)<br/>Código (1–8)</th>
+        </tr>
+      </thead>
+<tbody>
+  <tr><td>1</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>5</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>6</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>7</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>8</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>9</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>10</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>11</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>12</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>13</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>14</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>15</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>16</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>17</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>18</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>19</td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>20</td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+    </table>
+  </section>
+
+  <footer class="page-foot">
+    Lompoc High School Wrestling • Parent Volunteer Support • Thank you for your service.
+  </footer>
+
+</main>
+
+</body>
+</html>

@@ -1,0 +1,83 @@
+body {
+  background: #05070c;
+  color: #f0f4f9;
+  margin: 0;
+  font-family: system-ui, sans-serif;
+}
+
+.page-title {
+  text-align: center;
+  margin: 16px 0 0;
+  color: #ffdd48;
+  font-size: 1.8rem;
+}
+
+.event-title {
+  text-align: center;
+  margin-bottom: 10px;
+  color: #9ea8b8;
+}
+
+/* ROUND NAV */
+.round-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #0b1017;
+  border-bottom: 1px solid #1f2734;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.round-btn {
+  background: #121722;
+  border: 1px solid #2a3547;
+  color: #dbe1ea;
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-size: .9rem;
+}
+
+.round-btn.active {
+  background: #ffdd48;
+  color: #000;
+  border-color: #ffdd48;
+}
+
+/* BRACKET GRID */
+.bracket-grid {
+  padding: 18px;
+  display: grid;
+  gap: 24px;
+}
+
+.bracket-section {
+  background: #0a0f16;
+  border: 1px solid #202a36;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.section-title {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #ffdd48;
+}
+
+.match-card {
+  background: #111722;
+  border: 1px solid #263042;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+.ath-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 3px 0;
+}

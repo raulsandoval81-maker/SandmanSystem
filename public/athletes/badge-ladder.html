@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title> Zero2Hero Quest2Legend</title>
+
+  <style>
+    body{
+      background:#0b1117; color:#e6eefc; font-family:sans-serif;
+      margin:0; padding:2rem;
+    }
+    h2{ text-align:center; margin:0 0 1rem; font-size:1.8rem; color:#ffd33d; }
+
+    ul{ list-style:none; margin:0; padding:0; }
+
+    /* belt row */
+    li{
+      display:flex; justify-content:space-between; align-items:center;
+      padding:.6rem .9rem; margin:.4rem 0;
+      border-radius:12px; letter-spacing:.3px; font-weight:800; font-size:1.1rem;
+      border:2px solid #242a36; box-shadow:0 0 0 rgba(0,0,0,0);
+    }
+    .tier-label{ font-size:1.1rem; }
+
+    /* subtle frame around the stack */
+    .wrap{ max-width:1100px; margin:0 auto; }
+    .card{ background:#12161d; border:1px solid #242a36; border-radius:12px;
+           padding:16px; box-shadow:0 0 0 rgba(255,255,255,0.05) inset; }
+  </style>
+  <section class="card">
+  <div class="toolbar">
+    <button id="goBackBtn" class="btn btn-accent">← Back</button>
+    <a class="btn btn-link" href="../index.html">Home</a>
+    <a class="btn btn-link" href="./xp-youth.html">Youth XP</a>
+    <a class="btn btn-link" href="./xp-teen.html">Teen / Foundry4 XP</a>
+  </div>
+
+  <h1 class="title">The Journey  from _Zero2Hero or  _Quest2Legend</h1>
+  <p class="muted">Full journey across Youth (bottom) → Teen/Adult (top).</p>
+</section>
+
+  <style>
+  /* ...keep your existing styles... */
+
+  .toolbar {
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+    margin:-6px 0 10px 0;
+  }
+  .btn {
+    appearance:none; border:1px solid #394253; border-radius:10px;
+    padding:.5rem .8rem; background:#0e1218; color:#e9eef7; font-weight:700;
+    cursor:pointer; box-shadow:0 0 0 rgba(0,0,0,0);
+    transition:transform .05s ease, box-shadow .12s ease, background .12s ease;
+  }
+  .btn:hover { background:rgba(255,255,255,.06); box-shadow:0 0 0 1px rgba(255,255,255,.08) inset; }
+  .btn-accent { border-color:#FFD700; color:#FFD700; }
+  .btn-link { text-decoration:none; }
+  @media (max-width:720px){ .toolbar { gap:6px; } .btn { padding:.45rem .7rem; } }
+</style>
+
+</head>
+<body>
+  <h2>Xp Rank And Colors</h2>
+  <div class="wrap card">
+    <ul id="ladder"></ul>
+  </div>
+
+  <script>
+    /* Youth 0–8 ladder (Shadow → Legend) */
+    const LADDER_YOUTH = [
+      "Shadow","Recruit","Combatant","Competitor","Warrior","Champion","Commander","Sandman","Junior Legend"
+    ];
+
+    /* Teen / Foundry4 0–4 ladder (Apprentice → Legend) */
+    const LADDER_F4 = [ "Apprentice","Warrior","Champion","Veteran","Legend" ];
+
+    /* Youth color map (white rim / glow on Legend, Shadow is white bar) */
+    const BELT_YOUTH = {
+      Shadow:    { text:"#000000", bandStart:"#FFFFFF", bandEnd:"#FFFFFF", outline:"#CCCCCC" },
+      Recruit:   { text:"#000000", bandStart:"#FFFF99", bandEnd:"#FFFF99", outline:"#CCCC66" },
+      Combatant: { text:"#FFFFFF", bandStart:"#FF9933", bandEnd:"#FF9933", outline:"#CC6600" },
+      Competitor:{ text:"#FFFFFF", bandStart:"#33A653", bandEnd:"#1F803E", outline:"#1F5C1F" },
+      Warrior:   { text:"#FFFFFF", bandStart:"#3366CC", bandEnd:"#1A4FB3", outline:"#001F33" },
+      Champion:  { text:"#FFFFFF", bandStart:"#6D33EE", bandEnd:"#3D06EE", outline:"#2A109F" },
+      Commander: { text:"#FFFFFF", bandStart:"#DE8A22", bandEnd:"#BF6A12", outline:"#993300" },
+      Hero:    { text:"#FFFFFF", bandStart:"#000000", bandEnd:"#000000", outline:"#FFFFFF"}
+    };
+
+    /* Teen/Foundry4 color map (Legend solid black, no rim) */
+    const BELT_F4 = {
+      Apprentice:{ text:"#000000", bandStart:"#FFFFFF", bandEnd:"#F5F5F5", outline:"#CCCCCC" },
+      Warrior:   { text:"#FFFFFF", bandStart:"#0e1a2a", bandEnd:"#0f3f92", outline:"#1E60FF80" },
+      Champion:  { text:"#FFFFFF", bandStart:"#3D06EE", bandEnd:"#1A02E9", outline:"#2A109F" },
+      Veteran:   { text:"#FFFFFF", bandStart:"#663300", bandEnd:"#663300", outline:"#331A00" },
+      Legend:    { text:"#FFFFFF", bandStart:"#000000", bandEnd:"#000000", outline:"#000000" } // solid black, no rim
+    };
+
+    /* Render a single belt row given map + name */
+    function renderRow(tierName, map){
+      const c = map[tierName] || {text:"#fff", bandStart:"#15151F", bandEnd:"#151525", outline:"#242a36"};
+      const glow = c.glow ? "0 0 12px #FFFFFF" : "none";
+      return `
+        <li style="
+            background:linear-gradient(90deg, ${c.bandStart}, ${c.bandEnd});
+            border:2px solid ${c.outline};
+            color:${c.text};
+            box-shadow:${glow};
+        ">
+          <span class="tier-label">${tierName}</span>
+        </li>
+      `;
+    }
+
+    /* Build continuous journey:
+       Youth (Shadow→Sandman) + Teen (Apprentice→Legend),
+       then reverse once so Shadow ends up visually at the bottom and Legend at very top. */
+    (function renderFullLadder(){
+      const journey = [
+        ...LADDER_YOUTH.map(n => ({ name:n, kind:"y" })),
+        ...LADDER_F4.map(n => ({ name:n, kind:"f4" })),
+      ];
+
+      const rows = journey
+        .slice()                // copy
+        .reverse()              // top→bottom: ... Legend … → Shadow
+        .map(({name, kind}) => kind === "y"
+              ? renderRow(name, BELT_YOUTH)
+              : renderRow(name, BELT_F4))
+        .join("");
+
+      document.getElementById("ladder").innerHTML = rows;
+    })();
+  </script>
+  <script>
+  // Back button: prefer history, otherwise default to Teen XP
+  document.getElementById('goBackBtn')?.addEventListener('click', () => {
+    if (history.length > 1) history.back();
+    else location.href = './xp-teen.html';
+  });
+</script>
+
+</body>
+</html>

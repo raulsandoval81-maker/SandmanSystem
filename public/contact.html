@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      background:#0b1020;
+      color:#e5e7eb;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* ---------------- TOP NAV ---------------- */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .nav-logo{
+      font-size:1rem;
+      font-weight:700;
+      color:#ffd633;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:#ffd633;
+      cursor:pointer;
+    }
+
+    /* ---------------- DRAWER ---------------- */
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid #ffd633;
+      padding:1.5rem;
+      transition:.25s;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:500;
+      display:block;
+    }
+    .drawer-links a:hover{ color:#ff4d4d; }
+
+    /* ---------------- BACKDROP ---------------- */
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none;
+      transition:.25s;
+      z-index:1500;
+    }
+    .nav-backdrop.show{
+      opacity:1; pointer-events:auto;
+    }
+
+    /* ---------------- LAYOUT ---------------- */
+    .wrap{ max-width:1100px; margin:0 auto; padding:2rem 1.25rem 3rem; }
+    .section{ margin:2rem 0; }
+    h1{ margin:.25rem 0 .6rem; color:#ffd633; }
+    h2{ color:#ffd633; margin:0 0 .6rem; }
+    .lead{ color:#cfd3d9; line-height:1.65; }
+    .help{ color:#9fb3c8; font-size:.9rem; }
+
+    /* Grid */
+    .grid-2{ display:grid; gap:1rem; grid-template-columns:1fr; }
+    @media (min-width:900px){ .grid-2{ grid-template-columns:1fr 1fr; } }
+
+    /* Cards */
+    .card{
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:14px;
+      padding:1rem;
+      box-shadow:0 0 14px rgba(0,0,0,.35);
+      height:100%;
+    }
+    .card h3{ margin:0 0 .6rem; color:#f3f4f6; }
+
+    .img-slot{
+      width:100%;
+      height:240px;
+      border:2px dashed #777;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#cbd5e1;
+      background:rgba(255,255,255,.02);
+      margin:.75rem 0;
+      text-align:center;
+      padding:.75rem;
+      font-size:.9rem;
+    }
+
+    /* Form */
+    form{ display:grid; gap:.9rem; }
+    label{ color:#e6e8eb; font-weight:650; }
+    input, select, textarea{
+      background:#0f141b;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+      border-radius:10px;
+      padding:.65rem .75rem;
+      font-size:1rem;
+      width:100%;
+      outline:none;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color:#ffd633;
+      box-shadow:0 0 0 2px rgba(255,214,51,.12);
+    }
+    textarea{ min-height:140px; resize:vertical; }
+    .row{ display:grid; gap:.75rem; grid-template-columns:1fr; }
+    @media (min-width:700px){ .row{ grid-template-columns:1fr 1fr; } }
+
+    /* Buttons */
+    .actions{ display:flex; gap:.6rem; flex-wrap:wrap; margin-top:.25rem; }
+    .btn{
+      display:inline-block;
+      padding:.6rem 1.1rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111;
+      font-weight:900;
+      text-decoration:none;
+      border:0;
+      cursor:pointer;
+      font-size:.95rem;
+    }
+    .btn.secondary{
+      background:#263142;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+      font-weight:800;
+    }
+
+    /* Footer */
+    .footer{
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem;
+      margin-top:2rem;
+    }
+    .footer-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      justify-content:center;
+      gap:1.5rem;
+      flex-wrap:wrap;
+    }
+    .footer-title{ font-weight:700; color:#ffd633; }
+    .footer-links{ display:flex; gap:1rem; }
+    .footer-links a{ color:#f3f4f6; text-decoration:none; }
+    .footer-links a:hover{ color:#ff4d4d; }
+
+    .drawer-links a[aria-current="page"],
+    .footer-links a[aria-current="page"]{
+      color:#ffd633;
+      font-weight:800;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn">☰</button>
+  </div>
+</header>
+
+<aside class="nav-drawer" id="navDrawer">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="about.html">About</a>
+    <a href="contact.html" aria-current="page">Contact</a>
+    <a href="ceremonies.html">Ceremonies</a>
+  </nav>
+</aside>
+
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<main class="wrap">
+
+<section class="section">
+  <h1>Contact</h1>
+  <p class="lead">
+    Questions about youth, teen, adult, or lifestyle programs? Send a message and we’ll point you to the right lane.
+  </p>
+  <p class="help">
+    Intake, waivers, and XP setup are handled privately once we connect.
+  </p>
+</section>
+
+<section class="section">
+  <div class="grid-2">
+
+    <article class="card">
+      <h3>Send a Message</h3>
+
+      <form id="contactForm" novalidate>
+
+        <div class="row">
+          <div>
+            <label>First name</label>
+            <input type="text" required />
+          </div>
+          <div>
+            <label>Last name</label>
+            <input type="text" required />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Email</label>
+            <input type="email" required />
+          </div>
+          <div>
+            <label>Topic</label>
+            <select required>
+              <option value="">Select a topic…</option>
+              <option>Foundry 8 · Youth Combat</option>
+              <option>Foundry 4 · Teen Combat</option>
+              <option>Foundry 4 · Adult Combat (Coming Soon)</option>
+              <option>Foundry 4 · Lifestyle (Teen / Adult · Coming Soon)</option>
+              <option>Ceremonies</option>
+              <option>Coach / Volunteer</option>
+              <option>Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label>Message</label>
+          <textarea placeholder="What are you looking for?" required></textarea>
+        </div>
+
+        <div class="actions">
+          <button class="btn" type="submit">Send (Demo)</button>
+          <button class="btn secondary" type="reset">Clear</button>
+        </div>
+      </form>
+    </article>
+
+    <aside class="card">
+      <h3>Location & Info</h3>
+      <div class="img-slot">Map / gym photo coming soon</div>
+      <p class="lead" style="font-size:.95rem;">
+        The Sandman System™ is currently in a controlled pilot based in the Lompoc area.
+        Details are shared directly with enrolled families.
+      </p>
+      <div class="actions">
+        <a class="btn" href="programs.html">See Programs</a>
+        <a class="btn secondary" href="overview.html">Learn the System</a>
+      </div>
+    </aside>
+
+  </div>
+</section>
+
+
+<script>
+  const btn = document.getElementById("navBtn");
+  const drawer = document.getElementById("navDrawer");
+  const backdrop = document.getElementById("navBackdrop");
+
+  btn.addEventListener("click", () => {
+    drawer.classList.add("open");
+    backdrop.classList.add("show");
+    document.body.style.overflow = "hidden";
+  });
+
+  function closeMenu(){
+    drawer.classList.remove("open");
+    backdrop.classList.remove("show");
+    document.body.style.overflow = "";
+  }
+
+  backdrop.addEventListener("click", closeMenu);
+  drawer.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+</script>
+
+</body>
+</html>

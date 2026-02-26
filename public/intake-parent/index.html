@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Parent Intake</title>
+  <link rel="stylesheet" href="/intake-parent/parent.intake.css">
+</head>
+<body>
+  <main class="wrap">
+    <h1 class="page-title">Parent Intake</h1>
+    <p class="muted">Tell us about your athlete. Coach will review and activate your profile.</p>
+
+    <form id="intakeForm">
+      <label>
+        Team / School
+        <input type="text" id="team" placeholder="School or club (optional)">
+      </label>
+
+      <label>Athlete First & Last Name</label>
+      <input type="text" id="athleteName" required placeholder="e.g., Jordan Rivera"/>
+
+      <label>Email</label>
+      <input type="email" id="parentEmail" required placeholder="name@example.com"/>
+
+      <label>Phone</label>
+      <input type="text" id="parentPhone" required placeholder="555-123-4567"/>
+
+      <label>Date of Birth</label>
+      <input type="date" id="dob" required/>
+
+      <label>City</label>
+      <input type="text" id="city" required/>
+
+      <label>State</label>
+      <input type="text" id="state" required/>
+
+      <label>
+        Emergency Contact Name
+        <input type="text" id="emergencyName" placeholder="Full name">
+      </label>
+
+      <label>
+        Emergency Contact Phone
+        <input type="tel" id="emergencyPhone" placeholder="(555) 555-5555">
+      </label>
+
+      <label>Medical Notes</label>
+      <textarea id="medical" placeholder="Allergies, medications, injuries…"></textarea>
+
+      <section class="waiver-block">
+        <h2 class="waiver-title">Waiver & Release</h2>
+
+        <button type="button" id="openWaiverBtn" class="btn btn-waiver">
+          Open Waiver PDF
+        </button>
+
+        <p id="waiverStatus" class="muted">
+          Status: <strong>Not Viewed</strong>
+        </p>
+
+        <label class="checkbox-row">
+          <input type="checkbox" id="waiverCheck" disabled />
+          <span>I have read and agree to the waiver.</span>
+        </label>
+
+        <label>Parent Signature</label>
+        <input id="signatureParent" type="text" disabled placeholder="Type full name…"/>
+
+        <label>Today's Date</label>
+        <input id="signatureDate" type="date" disabled />
+      </section>
+
+      <button type="submit" id="submitBtn" class="btn btn-brand" disabled>
+        Submit to Coach
+      </button>
+    </form>
+
+    <footer class="footer">
+      Built in the Shadows. Made for the Light.<br>
+      Sandman Systems™ — Athlete Intake
+    </footer>
+  </main>
+
+  <script type="module" src="/intake-parent/parent.intake.js"></script>
+</body>
+</html>

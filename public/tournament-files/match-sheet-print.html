@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Match Scoring Sheet — Print</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --ink:#111827;
+      --line:#d1d5db;
+      --muted:#6b7280;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      background:#ffffff;
+      color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      padding:20px;
+    }
+    .page{
+      max-width:900px;
+      margin:0 auto;
+    }
+    .card{
+      border:1px solid var(--ink);
+      padding:14px 16px 20px;
+      page-break-inside:avoid;
+    }
+    .title{
+      font-size:1rem;
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      margin-bottom:10px;
+    }
+    .meta-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:10px;
+      font-size:.82rem;
+    }
+    .meta-field{
+      flex:1;
+      min-width:150px;
+    }
+    .label{
+      color:var(--muted);
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      margin-bottom:2px;
+    }
+    .line{
+      border-bottom:1px solid var(--line);
+      min-height:18px;
+    }
+    .vs-row{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      margin:14px 0;
+    }
+    .legend{
+      font-size:.75rem;
+      color:var(--muted);
+      margin-bottom:8px;
+    }
+    table.period{
+      width:100%;
+      border-collapse:collapse;
+      margin-bottom:12px;
+      font-size:.78rem;
+    }
+    table.period th,
+    table.period td{
+      border:1px solid var(--ink);
+      padding:4px 6px;
+      vertical-align:top;
+    }
+    table.period th{
+      background:#f3f4f6;
+      color:var(--ink);
+      font-size:.7rem;
+      text-transform:uppercase;
+    }
+    .ot-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .ot-card{
+      border:1px solid var(--ink);
+      padding:8px;
+    }
+    .ot-title{
+      font-size:.7rem;
+      color:var(--muted);
+      text-transform:uppercase;
+      margin-bottom:4px;
+    }
+    .footer-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      font-size:.8rem;
+      margin-top:10px;
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+  <div class="card">
+
+    <div class="title">Match Scoring Sheet</div>
+
+    <!-- META -->
+    <div class="meta-row">
+      <div class="meta-field">
+        <div class="label">Event</div>
+        <div class="line"></div>
+      </div>
+      <div class="meta-field" style="max-width:120px;">
+        <div class="label">Bout #</div>
+        <div class="line"></div>
+      </div>
+      <div class="meta-field" style="max-width:120px;">
+        <div class="label">Mat</div>
+        <div class="line"></div>
+      </div>
+      <div class="meta-field" style="max-width:120px;">
+        <div class="label">Weight</div>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <!-- WRESTLERS -->
+    <div class="vs-row">
+      <div style="flex:1;">
+        <div class="label">Red Wrestler</div>
+        <div class="line"></div>
+        <div class="label" style="margin-top:3px;">Team</div>
+        <div class="line"></div>
+      </div>
+      <div style="display:flex;align-items:center;color:var(--muted);">vs</div>
+      <div style="flex:1;">
+        <div class="label">Green Wrestler</div>
+        <div class="line"></div>
+        <div class="label" style="margin-top:3px;">Team</div>
+        <div class="line"></div>
+      </div>
+    </div>
+
+    <!-- LEGEND -->
+    <div class="legend">
+      Legend: T3 = Takedown 3 pts, E1 = Escape 1 pt, R2 = Reversal 2 pts,
+      N2/N3/N4 = Nearfall, P1 = Penalty, C = Caution.
+    </div>
+
+    <!-- PERIODS -->
+    <table class="period">
+      <thead>
+        <tr>
+          <th style="width:70px;">Period</th>
+          <th style="width:140px;">Choice / Start</th>
+          <th>Scoring Notes</th>
+          <th style="width:140px;">Running Score</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1st</td>
+          <td>
+            Start: Neutral ☐<br>
+            Red: Top ☐ Bottom ☐<br>
+            Green: Top ☐ Bottom ☐
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>2nd</td>
+          <td>
+            Choice: Red ☐ Green ☐ Defer ☐<br>
+            Selected: Top ☐ Bottom ☐ Neutral ☐
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>3rd</td>
+          <td>
+            Choice: Red ☐ Green ☐<br>
+            Selected: Top ☐ Bottom ☐ Neutral ☐
+          </td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- OVERTIME -->
+    <div class="legend">Overtime: as needed.</div>
+
+    <div class="ot-grid">
+      <div class="ot-card">
+        <div class="ot-title">Sudden Victory (SV)</div>
+        <div class="line" style="min-height:22px;"></div>
+        <div class="line" style="min-height:22px;"></div>
+      </div>
+      <div class="ot-card">
+        <div class="ot-title">TB1</div>
+        <div class="line" style="min-height:22px;"></div>
+        <div class="line" style="min-height:22px;"></div>
+      </div>
+      <div class="ot-card">
+        <div class="ot-title">TB2</div>
+        <div class="line" style="min-height:22px;"></div>
+        <div class="line" style="min-height:22px;"></div>
+      </div>
+      <div class="ot-card">
+        <div class="ot-title">Ultimate Tiebreaker</div>
+        <div class="line" style="min-height:22px;"></div>
+        <div class="line" style="min-height:22px;"></div>
+      </div>
+    </div>
+
+    <!-- FINAL -->
+    <div class="footer-row">
+      <div style="flex:1;">
+        Final Score Red: ________ &nbsp; Green: ________
+      </div>
+      <div style="flex:1;">
+        Winner: ______________________________
+      </div>
+    </div>
+    <div class="footer-row">
+      <div style="flex:1;">Referee: ____________________________</div>
+      <div style="flex:1;">Timekeeper: __________________________</div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

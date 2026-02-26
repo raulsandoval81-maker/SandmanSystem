@@ -1,0 +1,226 @@
+/* =========================================================
+   BIG SCREEN SCOREBOARD — SANDMAN PRO VERSION
+   FX • Victory Modes • Pin Explosion • Score Pops
+   ========================================================= */
+
+:root{
+  --bg:#000;
+  --red:#d62828;
+  --green:#2ecc71;
+  --accent:#ffdd48;
+  --panel:#0a0e18;
+  --text:#fff;
+  --flash:#ffffff;
+}
+
+*{
+  box-sizing:border-box;
+  user-select:none;
+  -webkit-user-select:none;
+}
+
+html,body{
+  margin:0;
+  padding:0;
+  height:100%;
+  overflow:hidden;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+/* MAIN WRAPPER ------------------------------------------- */
+.screen{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  gap:24px;
+  padding:28px;
+}
+
+/* HEADER -------------------------------------------------- */
+.header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:18px 26px;
+  border-radius:18px;
+  border:2px solid var(--accent);
+  background:var(--panel);
+  font-weight:700;
+  font-size:2.6vw;
+  box-shadow:0 0 20px rgba(255,221,72,.12);
+}
+
+.mat-title{
+  color:var(--accent);
+  font-size:2.2vw;
+  text-shadow:0 0 14px rgba(255,221,72,.25);
+}
+
+.period-box{
+  padding:8px 20px;
+  border-radius:14px;
+  background:rgba(255,255,255,.15);
+  border:1px solid rgba(255,255,255,.25);
+  font-size:2vw;
+  backdrop-filter:blur(3px);
+}
+
+/* SCORE ROW ------------------------------------------------ */
+.score-row{
+  flex:1;
+  display:flex;
+  gap:20px;
+  justify-content:space-between;
+  align-items:center;
+}
+
+/* SCORE BOXES --------------------------------------------- */
+.score-box{
+  flex:1;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  text-align:center;
+  padding:20px;
+  border-radius:20px;
+  box-shadow:inset 0 0 22px rgba(0,0,0,.4);
+}
+
+.red-side{
+  background:linear-gradient(180deg,#8b0d0d,#530000);
+  border:3px solid var(--red);
+}
+.green-side{
+  background:linear-gradient(180deg,#0a5b31,#063a20);
+  border:3px solid var(--green);
+}
+
+/* ATHLETE NAME -------------------------------------------- */
+.athlete-name{
+  font-size:2.2vw;
+  font-weight:600;
+  color:#e2e8f0;
+  margin-bottom:14px;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+  opacity:.9;
+  text-shadow:0 0 10px rgba(0,0,0,.5);
+}
+
+/* LABELS & POINTS ------------------------------------------ */
+.label{
+  font-size:2.4vw;
+  font-weight:900;
+  margin-bottom:12px;
+  text-shadow:0 0 12px rgba(0,0,0,.6);
+}
+
+.points{
+  font-size:14vw;
+  font-weight:900;
+  line-height:1;
+  text-shadow:0 0 30px rgba(0,0,0,.7);
+  transition:transform .15s ease;
+}
+
+/* SCORE POP EFFECT ---------------------------------------- */
+.points.pop{
+  transform:scale(1.12);
+}
+
+/* TIMER BOX ------------------------------------------------ */
+.timer-box{
+  flex:1.3;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:var(--panel);
+  border-radius:22px;
+  border:2px solid rgba(255,255,255,.15);
+  box-shadow:inset 0 0 16px rgba(0,0,0,.45);
+}
+
+.timer{
+  font-size:12vw;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-shadow:0 0 26px rgba(0,0,0,.5);
+}
+
+.sub{
+  margin-top:14px;
+  font-size:1.8vw;
+  opacity:.85;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+/* WINNER BAR ---------------------------------------------- */
+.winner-bar{
+  width:100%;
+  text-align:center;
+  padding:20px 0;
+  border-radius:14px;
+  margin-top:12px;
+  font-size:3.2vw;
+  font-weight:900;
+  letter-spacing:.05em;
+  background:linear-gradient(90deg,#ffd633,#ffb300);
+  color:#111;
+  box-shadow:0 0 30px rgba(255,221,72,.4);
+  display:none;
+}
+
+/* WINNER MODES -------------------------------------------- */
+.win-red{
+  box-shadow:0 0 40px rgba(214,40,40,.55);
+}
+.win-green{
+  box-shadow:0 0 40px rgba(46,204,113,.55);
+}
+
+.win-major{
+  animation:majorPulse 1.4s ease infinite;
+}
+@keyframes majorPulse{
+  0%{transform:scale(1); filter:brightness(1);}
+  50%{transform:scale(1.03); filter:brightness(1.3);}
+  100%{transform:scale(1);}
+}
+
+.win-tech{
+  animation:techShake .2s ease 6;
+}
+@keyframes techShake{
+  0%,100%{transform:translateX(0);}
+  25%{transform:translateX(-10px);}
+  75%{transform:translateX(10px);}
+}
+
+/* PIN EXPLOSION -------------------------------------------- */
+.flash{
+  position:fixed;
+  inset:0;
+  background:var(--flash);
+  opacity:0;
+  pointer-events:none;
+  animation:flashBang .6s ease;
+}
+@keyframes flashBang{
+  0%{opacity:0;}
+  20%{opacity:1;}
+  100%{opacity:0;}
+}
+
+/* FALL TIME ----------------------------------------------- */
+.fall-time{
+  font-size:2vw;
+  margin-top:6px;
+  opacity:.8;
+}

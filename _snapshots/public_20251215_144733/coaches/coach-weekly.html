@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coach Weekly — Latest | Sandman System™</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+    .layout{display:grid;grid-template-columns:320px 1fr;gap:1rem}
+    @media (max-width:1000px){.layout{grid-template-columns:1fr}}
+    .side,.main{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    .side{padding:1rem}
+    .main{padding:1rem}
+    h1,h2{color:#ffd633;margin:.25rem 0 1rem}
+    .muted{color:var(--muted)}
+    .sep{border:0;border-top:1px solid var(--line);margin:1rem 0}
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:999px;background:var(--pill-bg);border:2px solid var(--pill-br);color:var(--pill-fg);font-weight:900;text-decoration:none;cursor:pointer}
+    .btn.secondary{background:transparent}
+    .btn.block{display:block;width:100%}
+    .btnbar{display:flex;gap:.5rem;flex-wrap:wrap}
+    .card{border:1px solid #2c3a4e;border-radius:12px;background:#0e141c;padding:1rem;margin:.75rem 0}
+    .card h3{margin:.1rem 0 .35rem}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+    @media(max-width:720px){.grid2{grid-template-columns:1fr}}
+    .tag{padding:.2rem .55rem;border:1px solid #384a62;border-radius:999px;background:#121821;color:#cfe2ff;font-weight:700;font-size:.85rem;margin-right:.35rem}
+
+    /* Drawer */
+    .drawer{position:fixed;right:0;top:0;bottom:0;width:360px;background:#0f141b;border-left:1px solid #243041;box-shadow:-8px 0 20px rgba(0,0,0,.35);display:none;flex-direction:column;z-index:50}
+    .drawer header{display:flex;align-items:center;justify-content:space-between;padding:1rem;border-bottom:1px solid #243041}
+    .drawer h2{margin:0;color:#ffd633}
+    .drawer .body{padding:1rem;display:flex;flex-direction:column;gap:.6rem}
+    .control{width:100%;padding:.6rem .7rem;background:#121821;color:#f3f4f6;border:1px solid #394a61;border-radius:10px}
+    label{display:block;font-weight:800;color:#d8e0ea;margin:.2rem 0 .2rem}
+    .subtle{font-size:.9rem;color:#9fb3c8;margin:.2rem 0 -.2rem}
+  </style>
+
+  <!-- Firebase callable hook -->
+  <script type="module">
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-functions.js";
+    import { app } from "../assets/js/firebase-app.js";
+
+    const functions = getFunctions(app);
+    const incrementXp = httpsCallable(functions, "incrementXp");
+
+    async function callIncrement(uid, payload){
+      try{
+        await incrementXp({ uid, ...payload });
+        alert(`${payload.kind} logged → ${uid}`);
+        closeDrawer();
+      }catch(e){
+        console.error(e);
+        alert("Error logging XP");
+      }
+    }
+
+    async function logTournamentXP({ uid, result, amount, note }) {
+      return callIncrement(uid, { kind:"TOURNAMENT", amount, meta:{ result, note } });
+    }
+
+    async function logPrestige({ uid, level, xp, note }) {
+      return callIncrement(uid, { kind:"PRESTIGE", amount: xp, meta:{ level, note } });
+    }
+
+    // Drawer wiring
+    const drawer = {};
+    window.openDrawer = (uid="") => {
+      drawer.el = document.getElementById("tourneyDrawer");
+      drawer.el.style.display = "flex";
+      document.getElementById("uid").value = uid;
+    };
+    window.closeDrawer = () => { if (drawer.el) drawer.el.style.display = "none"; };
+
+    // Tournament buttons
+    window.logShow = () => {
+      const uid = document.getElementById("uid").value.trim();
+      const note = document.getElementById("note").value.trim();
+      if (!uid) return alert("Enter UID");
+      logTournamentXP({ uid, result:"SHOW", amount:10, note });
+    };
+    window.logPlace = () => {
+      const uid = document.getElementById("uid").value.trim();
+      const note = document.getElementById("note").value.trim();
+      if (!uid) return alert("Enter UID");
+      logTournamentXP({ uid, result:"PLACE", amount:5, note });
+    };
+    window.logStyle = () => {
+      const uid = document.getElementById("uid").value.trim();
+      const note = document.getElementById("note").value.trim();
+      if (!uid) return alert("Enter UID");
+      logTournamentXP({ uid, result:"STYLE", amount:5, note });
+    };
+
+    // Prestige buttons
+    window.logLion = () => {
+      const uid = document.getElementById("uid").value.trim();
+      const note = document.getElementById("note").value.trim();
+      if (!uid) return alert("Enter UID");
+      logPrestige({ uid, level:"state", xp:25, note });
+    };
+    window.logTiger = () => {
+      const uid = document.getElementById("uid").value.trim();
+      const note = document.getElementById("note").value.trim();
+      if (!uid) return alert("Enter UID");
+      logPrestige({ uid, level:"regional", xp:50, note });
+    };
+    window.logBear = () => {
+      const uid = document.getElementById("uid").value.trim();
+      const note = document.getElementById("note").value.trim();
+      if (!uid) return alert("Enter UID");
+      logPrestige({ uid, level:"national", xp:75, note });
+    };
+  </script>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>Coach Weekly — Latest</h1>
+    <p class="muted" style="margin-top:-.45rem">Public preview of the last two weeks. Private logging uses the drawer.</p>
+
+    <div class="layout">
+      <aside class="side">
+        <div class="btnbar">
+          <a class="btn block" href="coach-weekly-archive.html">Open Archive</a>
+          <a class="btn secondary block" href="hub.html">← Coach Hub</a>
+        </div>
+        <hr class="sep"/>
+        <h2>Quick Log</h2>
+        <div class="btnbar">
+          <button class="btn secondary" onclick="openDrawer('X1234')">Tournament / Prestige (UID)</button>
+        </div>
+        <p class="muted" style="margin-top:.5rem">Tourney caps enforced. Prestige (Lion/Tiger/Bear) sits outside monthly tourney caps.</p>
+      </aside>
+
+      <section class="main">
+        <!-- your week cards remain as before -->
+        <article class="card">
+          <h3>Week of Sep 8–12 — Testing & Ceremony Prep</h3>
+          <div class="grid2">
+            <div>
+              <div class="tag">XP</div>
+              <ul class="muted">
+                <li>At-cap freeze; bank Assignments/Character.</li>
+                <li>Tournament: Show 10, Place 5, Style 5 (style ≤1/tourney).</li>
+                <li>Prestige: Lion 25, Tiger 50, Bear 75 (outside tourney cap).</li>
+              </ul>
+            </div>
+            <div>
+              <div class="tag">Events</div>
+              <ul class="muted"><li>Friday youth ceremony; Teen+ Path to Legend.</li></ul>
+            </div>
+          </div>
+          <div class="btnbar" style="margin-top:.6rem">
+            <button class="btn" onclick="openDrawer()">Open Log Drawer →</button>
+            <a class="btn secondary" href="tournament.html">Tournament Prep</a>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <!-- Drawer -->
+  <aside id="tourneyDrawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="tourneyTitle">
+    <header>
+      <h2 id="tourneyTitle">XP Log — Tournament & Prestige</h2>
+      <button class="btn secondary" onclick="closeDrawer()">Close</button>
+    </header>
+    <div class="body">
+      <label for="uid">Athlete UID</label>
+      <input id="uid" class="control" placeholder="e.g., X1234" />
+      <label for="note">Note (optional)</label>
+      <input id="note" class="control" placeholder="Bracket/mat/opponent or title" />
+
+      <div class="subtle">Tournament</div>
+      <div class="btnbar">
+        <button class="btn" onclick="logShow()">+10 Show</button>
+        <button class="btn secondary" onclick="logPlace()">+5 Place</button>
+        <button class="btn secondary" onclick="logStyle()">+5 Style</button>
+      </div>
+
+      <div class="subtle" style="margin-top:.4rem">Prestige (outside monthly tourney caps)</div>
+      <div class="btnbar">
+        <button class="btn" onclick="logLion()">Lion — State (+25)</button>
+        <button class="btn secondary" onclick="logTiger()">Tiger — Regional (+50)</button>
+        <button class="btn secondary" onclick="logBear()">Bear — National (+75)</button>
+      </div>
+
+      <p class="muted">Server rules: style ≤1 per tournament; Prestige yearly maxes enforced per config.</p>
+    </div>
+  </aside>
+
+  <div data-include="../assets/includes/footer.html"></div>
+</body>
+</html>

@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coach Inbox • Para-Comms</title>
+
+  <link rel="stylesheet" href="/coach/shared/comms.css">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0b1120;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .pc-header{
+      background:var(--panel);
+      border-bottom:1px solid var(--line);
+      box-shadow:0 2px 8px rgba(0,0,0,.35);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding:14px 18px;
+    }
+    .pc-header h1{
+      font-size:1.2rem;
+      color:var(--gold);
+      margin:0;
+      letter-spacing:.04em;
+    }
+    .pc-back, .pc-home{
+      color:var(--text);
+      text-decoration:none;
+      font-size:1rem;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:22px 14px 40px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      margin-bottom:20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    .panel h2{ color:var(--gold); margin:0 0 8px; }
+
+    .month-select label{ color:var(--muted); font-size:.9rem; }
+
+    .month-select select{
+      background:var(--deep);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:6px 10px;
+      border-radius:8px;
+    }
+
+    #inbox-search{
+      width:100%;
+      padding:10px;
+      background:#0b1120;
+      border:1px solid #27304a;
+      color:#fff;
+      border-radius:10px;
+      margin-bottom:14px;
+    }
+
+    .inbox-list{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .inbox-item{
+      background:var(--deep);
+      border:1px solid var(--line);
+      padding:14px 16px;
+      border-radius:12px;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .inbox-item:hover{
+      border-color:var(--gold);
+      background:var(--hover);
+    }
+
+    .inbox-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .inbox-subject{ font-weight:700; }
+    .inbox-meta{ color:var(--muted); font-size:.78rem; }
+
+    .inbox-pill{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:.65rem;
+      font-weight:700;
+    }
+    .pill-unread{ background:var(--gold); color:#111; }
+    .pill-read{ background:#334155; color:var(--text); }
+
+    .badge-unread{
+      display:inline-block;
+      padding:2px 8px;
+      font-size:0.72rem;
+      font-weight:700;
+      border-radius:999px;
+      background:#ff3b3b;
+      color:#fff;
+      margin-left:8px;
+    }
+
+    #reply-box textarea{
+      width:100%;
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:var(--deep);
+      color:var(--text);
+    }
+
+    .pc-footer{
+      text-align:center;
+      margin-top:40px;
+    }
+    .pc-footer-link{
+      padding:10px 18px;
+      background:var(--deep);
+      border:1px solid var(--line);
+      color:var(--muted);
+      border-radius:10px;
+      text-decoration:none;
+    }
+    .pc-footer-link:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="pc-header">
+  <button class="pc-back" onclick="history.back()">← Back</button>
+  <h1>Coach Inbox</h1>
+  <a href="/coach/para/parent/index.html" class="pc-home">🏠</a>
+</header>
+
+<div class="wrap">
+
+  <section class="pc-help panel">
+    <h2>Private Parent Messages</h2>
+    <p>Parents send short questions through the Para-Comms inbox. Click any message to expand it.</p>
+    <ul>
+      <li>Yellow = Unread</li>
+      <li>Gray = Read</li>
+      <li>Archive hides it from the list</li>
+    </ul>
+  </section>
+
+  <div class="month-select panel">
+    <label for="inbox-month">Month:</label>
+    <select id="inbox-month"></select>
+  </div>
+
+  <input id="inbox-search" placeholder="Search messages…">
+
+  <main class="panel">
+    <div id="inbox-list" class="inbox-list"></div>
+  </main>
+
+  <div id="reply-box" class="panel" style="display:none;">
+    <label>Reply:</label>
+    <textarea id="reply-text" rows="4" placeholder="Type reply…"></textarea>
+    <div style="margin-top:12px;display:flex;gap:10px;">
+      <button id="reply-send" class="btn btn-brand">Send Reply</button>
+      <button id="reply-close" class="btn btn-dark">Cancel</button>
+    </div>
+  </div>
+
+  <div id="inbox-empty" class="panel" style="display:none;text-align:center;">
+    No messages yet.
+  </div>
+
+</div>
+
+<footer class="pc-footer">
+  <a class="pc-footer-link" href="/coach/para/coach/index.html">← Back to Coach Portal</a>
+</footer>
+
+<script type="module" src="/coach/para/coach/inbox.js"></script>
+
+</body>
+</html>

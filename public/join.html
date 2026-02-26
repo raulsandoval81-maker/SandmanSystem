@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Join | Sandman System™</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="stylesheet" href="assets/css/site.css" />
+  <style>
+    body {
+      margin: 0;
+      background: #0b1020;
+      color: #e5e7eb;
+      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    }
+
+    /* Top Nav (match other public pages) */
+    .top-nav {
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.75rem 1.5rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-container {
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      gap:.5rem;
+    }
+    .nav-logo {
+      font-size:1.25rem;
+      font-weight:700;
+      color:#ffd633;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .nav-links {
+      display:flex;
+      gap:1.5rem;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .nav-links a {
+      text-decoration:none;
+      font-weight:500;
+      color:#f3f4f6;
+      transition:color .2s;
+    }
+    .nav-links a:hover { color:#ff4d4d; }
+    @media (min-width:900px){
+      .nav-container{ flex-direction:row; justify-content:space-between; }
+    }
+
+    /* Layout */
+    .wrap {
+      max-width: 680px;
+      margin: 2.5rem auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: #0f172a;
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 0 14px rgba(0,0,0,.35);
+    }
+    h1 {
+      font-size: 1.6rem;
+      margin: 0 0 8px;
+    }
+    .muted {
+      color: #9ca3af;
+    }
+    .row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    input {
+      flex: 1;
+      min-width: 260px;
+      background: #0a1224;
+      color: #e5e7eb;
+      border: 1px solid #1f2937;
+      border-radius: 8px;
+      padding: 8px;
+    }
+    button {
+      background: #ffd633;
+      color: #111;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.secondary {
+      background: #263142;
+      color: #e5e7eb;
+      border: 1px solid #3a4a60;
+    }
+    img {
+      display: block;
+      background: #0a1224;
+      border-radius: 12px;
+      border: 1px solid #1f2937;
+    }
+
+    /* Footer (match others) */
+    .footer {
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem 1.5rem;
+      margin-top:2rem;
+    }
+    .footer-container {
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      gap:1rem;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .footer-title { font-weight:700; color:#ffd633; }
+    .footer-links {
+      display:flex;
+      gap:1.25rem;
+      flex-wrap:wrap;
+    }
+    .footer-links a {
+      color:#f3f4f6;
+      text-decoration:none;
+      font-weight:500;
+    }
+    .footer-links a:hover { color:#ff4d4d; }
+    /* ===== Shared Top Nav (Shrunk, Unified) ===== */
+.top-nav {
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1.25rem;       /* was .75rem 1.5rem */
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.nav-container {
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:.3rem;                    /* tighter gap */
+}
+
+.nav-logo a,
+.nav-logo {
+  font-size:1.05rem;            /* was 1.25rem */
+  font-weight:700;
+  color:#ffd633;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+
+.nav-links {
+  display:flex;
+  gap:1rem;                     /* slightly tighter */
+  flex-wrap:wrap;
+  justify-content:center;
+  font-size:.85rem;             /* smaller text for mobile */
+}
+
+.nav-links a {
+  text-decoration:none;
+  font-weight:500;
+  color:#f3f4f6;
+  transition:color .2s;
+}
+
+.nav-links a[aria-current="page"] {
+  color:#ffd633;
+  font-weight:700;
+}
+
+.nav-links a:hover { color:#ff4d4d; }
+
+@media (min-width:900px){
+  .nav-container{
+    flex-direction:row;
+    justify-content:space-between;
+  }
+}
+/* ---------------- TOP NAV ---------------- */
+.top-nav{
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1rem;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+.nav-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  max-width:1200px;
+  margin:0 auto;
+}
+.nav-logo{
+  font-size:1rem;
+  font-weight:700;
+  color:#ffd633;
+  text-decoration:none;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.nav-btn{
+  background:none;
+  border:0;
+  font-size:1.4rem;
+  color:#ffd633;
+  cursor:pointer;
+}
+
+/* ---------------- DRAWER ---------------- */
+.nav-drawer{
+  position:fixed;
+  top:0; right:-260px;
+  width:260px;
+  height:100vh;
+  background:#0b1118;
+  border-left:2px solid #ffd633;
+  padding:1.5rem;
+  transition:.25s;
+  z-index:2000;
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+.nav-drawer.open{ right:0; }
+
+.drawer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+  font-size:1rem;
+  padding:.4rem 0;
+  font-weight:500;
+  display:block;
+}
+
+.drawer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* ---------------- BACKDROP ---------------- */
+.nav-backdrop{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none;
+  transition:.25s;
+  z-index:1500;
+}
+.nav-backdrop.show{
+  opacity:1; pointer-events:auto;
+}
+
+/* ---------------- FOOTER ---------------- */
+.footer{
+  background:#0f141b;
+  border-top:2px solid #ffd633;
+  padding:1rem;
+  margin-top:2rem;
+}
+.footer-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+.footer-title{
+  font-weight:700;
+  color:#ffd633;
+}
+.footer-links{
+  display:flex;
+  gap:1rem;
+}
+.footer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+}
+.footer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* Highlight Current Page */
+.drawer-links a[aria-current="page"],
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  font-weight:700;
+}
+</style>
+
+  </style>
+</head>
+<body>
+<!-- TOP NAV -->
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn" aria-label="Menu">
+      ☰
+    </button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<aside class="nav-drawer" id="navDrawer" aria-label="Site menu">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="ceremonies.html">Ceremonies</a>
+  </nav>
+</aside>
+
+<!-- BACKDROP -->
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+  <main class="wrap">
+    <h1>Parent Invite</h1>
+    <p class="muted" style="margin-bottom:1rem;">
+      Coach sent you a token. Scan or continue to open your intake form.
+    </p>
+    <div class="card">
+      <p class="muted">Scan the QR or click Continue to start the intake.</p>
+      <div class="row">
+        <img id="qr" width="240" height="240" alt="QR code to start intake">
+      </div>
+      <div class="row">
+        <input id="link" readonly>
+        <button id="copy">Copy</button>
+        <button id="go" class="secondary">Continue</button>
+      </div>
+      <div id="msg" class="muted"></div>
+    </div>
+  </main>
+
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+  <script>
+  (function(){
+    const u = new URL(location.href);
+    // accept both ?token= and old ?invite=
+    const tok = u.searchParams.get('token') || u.searchParams.get('invite') || '';
+
+    // new public intake page we split out earlier
+    const intakeUrl = `${location.origin}/parent-intake.html?token=${encodeURIComponent(tok)}`;
+
+    // show link
+    const linkEl = document.getElementById('link');
+    linkEl.value = intakeUrl;
+
+    // QR image (hosted service, fine for now)
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(intakeUrl)}`;
+    document.getElementById('qr').src = qrUrl;
+
+    // copy button
+    document.getElementById('copy').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(intakeUrl);
+        setMsg('Link copied.');
+      } catch (e) {
+        setMsg('Copy failed.');
+      }
+    };
+
+    // continue button
+    document.getElementById('go').onclick = () => {
+      location.href = intakeUrl;
+    };
+
+    function setMsg(t) {
+      document.getElementById('msg').textContent = t;
+    }
+  })();
+  </script>
+</body>
+</html>
+<script>
+const btn = document.getElementById("navBtn");
+const drawer = document.getElementById("navDrawer");
+const backdrop = document.getElementById("navBackdrop");
+
+// open
+btn.addEventListener("click",()=>{
+  drawer.classList.add("open");
+  backdrop.classList.add("show");
+  document.body.style.overflow="hidden";
+});
+
+// close
+backdrop.addEventListener("click", closeMenu);
+drawer.querySelectorAll("a").forEach(a=>{
+  a.addEventListener("click", closeMenu);
+});
+
+function closeMenu(){
+  drawer.classList.remove("open");
+  backdrop.classList.remove("show");
+  document.body.style.overflow="";
+}
+
+// highlight current page
+const links=[...document.querySelectorAll(".drawer-links a, .footer-links a")];
+links.forEach(link=>{
+  if(link.href === window.location.href){
+    link.setAttribute("aria-current","page");
+  }
+});
+</script>

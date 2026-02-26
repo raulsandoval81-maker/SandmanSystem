@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Onboarding — Complete</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link rel="stylesheet" href="/athlete-onboarding/onboarding.css"/>
+  <link rel="stylesheet" href="/intake-shared/shared.css"/>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Complete</h1>
+    <p class="sub">Review your Day 1 snapshot.</p>
+    <div class="progress"><span class="pill">Step 9 of 9</span></div>
+
+    <div class="card">
+      <h2>Snapshot</h2>
+
+      <div class="kv">
+        <div class="k">Name</div>
+        <div class="v" id="sum-name">—</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">UID</div>
+        <div class="v" id="sum-uid">—</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Track / Tier</div>
+        <div class="v" id="sum-tracktier">—</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Team / City, State</div>
+        <div class="v" id="sum-teamloc">—</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Scores</div>
+        <div class="v" id="sum-scores">—</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Finisher</div>
+        <div class="v" id="sum-finisher">—</div>
+      </div>
+
+      <div class="kv">
+        <div class="k">Childhood Hero</div>
+        <div class="v" id="sum-hero">—</div>
+      </div>
+
+      <p id="status" class="status"></p>
+
+      <div class="row">
+        <button id="btn-complete" class="btn solid-gold" type="button">Seal & Enter</button>
+        <button id="btn-back" class="btn solid-dark" type="button">Back</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module" src="/athlete-onboarding/step-9.js"></script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sandbox Testing</title>
+
+  <!-- ✅ Link to main site CSS -->
+<link rel="stylesheet" href="..//style.css">
+
+  <!-- ✅ Sandbox-only test styles -->
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    h1, h2 {
+      margin-bottom: 10px;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+    li {
+      display: flex;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .color_box {
+      /* your custom sandbox test styles here */
+    }
+  </style>
+  <div data-include="../assets/includes/footer.html"></div>
+
+<!-- Scripts -->
+<script defer src="../assets/js/site.js"></script>
+<script type="module" src="../assets/js/firebase-init.js"></script>
+
+</head>

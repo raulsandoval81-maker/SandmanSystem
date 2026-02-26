@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · XP Weekend Arena</title>
+
+  <!-- Canon console styles -->
+  <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
+  <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css" />
+  <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
+
+  <!-- Shared mini belt bar -->
+  <link rel="stylesheet" href="/assets/css/xp-bar-mini.css" />
+</head>
+
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/roster.html">Team Roster</a>
+    <a class="pill" href="/coaches/coach-notes.html">Coach Notes</a>
+  </nav>
+
+  <h1>XP Weekend Event Arena</h1>
+  <div class="creed">Arena = Battle + Podium + Match IQ. Clean receipts. No guessing.</div>
+
+  <section class="card">
+
+    <div class="dev-pill">
+      <input id="devModeToggle" type="checkbox" />
+      <label for="devModeToggle">
+        <span class="dev-label">DEV</span>
+        <span class="dev-slider"></span>
+      </label>
+
+      <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only">
+        <input id="trackF8Only" type="checkbox" />
+        <span class="muted">Foundry 8 only</span>
+      </label>
+    </div>
+
+    <div class="steps">
+      <!-- STEP 1 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">1</span> Setup</div>
+        </div>
+
+        <div class="row">
+          <input id="tournamentId" class="input" placeholder="Tournament ID (required)"/>
+          <button id="refreshBtn" class="btn btn-ghost" title="Reload roster from Firestore" type="button">Refresh</button>
+        </div>
+
+        <div class="hint">
+          Tournament ID first. Refresh only if you need a clean reload.
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">2</span> Select</div>
+        </div>
+
+        <div class="row">
+          <input id="search" class="input" placeholder="Search by name or UID…"/>
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="pickAll" class="btn btn-ghost" type="button">Select all</button>
+          <button id="clearAll" class="btn btn-ghost" type="button">Clear</button>
+        </div>
+
+        <div class="hint">
+          Filter the roster, then pick athletes.
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">3</span> Award</div>
+        </div>
+
+        <div class="row">
+          <button id="fullAll" class="btn btn-full" disabled type="button">+10 Arena — Battle</button>
+          <button id="partAll" class="btn btn-part" disabled type="button">+5 Arena — Podium</button>
+          <button id="styleAll" class="btn btn-style" disabled type="button">+5 Style / IQ</button>
+
+          <!-- placeholder only -->
+          <button id="penaltyBtn" class="btn btn-penalty" disabled type="button" title="Placeholder (not live)">
+            Character −5
+          </button>
+        </div>
+
+        <div class="row" style="margin-top:10px;">
+          <select id="iqSelect" class="select" title="Match IQ (required for IQ awards)">
+            <option value="">Match IQ: (select)</option>
+            <option value="bull">Bull — Pressure</option>
+            <option value="matador">Matador — Precision</option>
+            <option value="snake">Snake — Constriction</option>
+            <option value="mongoose">Mongoose — Scramble</option>
+            <option value="gorilla">Gorilla — Control</option>
+            <option value="shark">Shark — Hunt</option>
+          </select>
+        </div>
+
+        <div class="hint">
+          Battle/Podium only need Tournament ID. Style/IQ requires a Match IQ pick.
+        </div>
+      </div>
+    </div>
+
+    <div id="sessionBar" class="session-bar" style="display:none">
+      <span class="session-pill" id="sb-loaded">Loaded: 0</span>
+      <span class="session-pill" id="sb-awarded">Awarded this session: 0</span>
+      <span class="session-pill" id="sb-xp">XP issued: 0</span>
+      <span id="sb-receipts" class="mono muted"></span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:38px">Pick</th>
+            <th>Athlete</th>
+            <th style="width:160px">Tier / Track</th>
+            <th style="width:220px">XP</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="4" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p id="status" class="muted">Ready.</p>
+  </section>
+</main>
+
+<script type="module" src="/coaches/arena-xp/weekend-arena.js"></script>
+</body>
+</html>

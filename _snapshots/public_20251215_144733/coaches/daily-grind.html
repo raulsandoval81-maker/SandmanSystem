@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Daily Grind XP</title>
+  <style>
+    :root { color-scheme: dark; }
+
+    body {
+      background:#090b0f;
+      color:#f5f5f5;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap {
+      max-width:1150px;
+      margin:0 auto;
+      padding:20px 16px 38px;
+    }
+
+    .top-nav {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .pill {
+      background:#151a22;
+      border:1px solid #252c38;
+      color:#fff;
+      text-decoration:none;
+      font-weight:600;
+      padding:6px 12px;
+      border-radius:999px;
+      transition:.15s;
+    }
+    .pill:hover { background:#ffd633; color:#111; border-color:#ffd633; }
+
+    h1 {
+      margin:4px 0 2px;
+      font-size:1.4rem;
+      font-weight:800;
+      color:#ffd633;
+      letter-spacing:.01em;
+    }
+
+    .muted { color:#94a3b8; }
+
+    .creed{
+      background:linear-gradient(90deg, rgba(255,214,51,.12), rgba(9,11,15,0));
+      border:1px solid rgba(255,214,51,.08);
+      border-radius:10px;
+      padding:6px 10px 7px;
+      margin-bottom:12px;
+      line-height:1.25;
+    }
+    .creed-top{font-weight:600;color:#e2e8f0;font-size:.78rem;}
+
+    .card{
+      background:#0c1017;
+      border:1px solid #1d2430;
+      border-radius:14px;
+      padding:14px 14px 12px;
+      box-shadow:0 20px 35px rgba(0,0,0,.25);
+    }
+
+    .actions-bar{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:8px;
+      background:rgba(3,4,6,.35);
+      border:1px solid rgba(255,255,255,.015);
+      border-radius:10px;
+      padding:6px 8px;
+    }
+
+    .input {
+      background:#0a0d12;
+      border:1px solid #252c38;
+      border-radius:9px;
+      padding:6px 10px;
+      color:#fff;
+      min-width:180px;
+    }
+
+    .btn {
+      border:0;
+      border-radius:999px;
+      padding:6px 13px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s;
+      font-size:.72rem;
+    }
+
+    .btn-ghost {
+      background:transparent;
+      border:1px solid #2a3240;
+      color:#fff;
+    }
+
+    .btn-full{
+      background:#dc2626;
+      color:#fef2f2;
+      box-shadow:0 0 8px rgba(220,38,38,.35);
+    }
+
+    .btn-part{
+      background:#facc15;
+      color:#111;
+      box-shadow:0 0 8px rgba(250,204,21,.3);
+    }
+
+    .session-bar{
+      margin-top:10px;
+      background:rgba(15,19,26,.6);
+      border:1px solid rgba(255,214,51,.03);
+      border-radius:10px;
+      padding:5px 8px;
+      display:flex;
+      gap:16px;
+      flex-wrap:wrap;
+      font-size:.68rem;
+    }
+    .session-pill{color:#e2e8f0;}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:12px;
+      border-radius:10px;
+      overflow:hidden;
+    }
+
+    th, td {
+      padding:6px 6px;
+      border-bottom:1px solid rgba(255,255,255,.02);
+      font-size:.78rem;
+      vertical-align:middle;
+    }
+
+    th{
+      text-align:left;
+      font-size:.65rem;
+      color:#cbd5f5;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+
+    tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
+    tbody tr:hover{background:rgba(255,214,51,.035);}
+
+    .ath-name { font-weight:600; }
+    .sub { font-size:.65rem; color:#94a3b8; }
+
+    /* new tiny xp bar inside the row */
+    .row-xp-track {
+      background:rgba(0,0,0,.2);
+      border:1px solid rgba(255,255,255,.02);
+      border-radius:999px;
+      height:9px;
+      overflow:hidden;
+      position:relative;
+    }
+    .row-xp-fill {
+      height:100%;
+      width:0%;
+      transition:width .25s ease-out;
+    }
+    .row-xp-meta {
+      font-size:.62rem;
+      margin-top:2px;
+      color:#94a3b8;
+    }
+
+    #status { margin-top:6px; font-size:.7rem; }
+
+    @media (max-width:700px){
+      th:nth-child(3), td:nth-child(3){display:none;}
+      .session-bar{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/roster.html">Team Roster</a>
+    <a class="pill" href="/coaches/coaches-daily-clipboard.html">Coach’s Clipboard</a>
+    <a class="pill" href="/coaches/coach-notes.html">Coach Notes</a>
+  </nav>
+
+  <h1>Daily Grind XP</h1>
+  <div class="creed">
+    <div class="creed-top">You can’t do part-time work and expect full-time results. The mat never lies.</div>
+  </div>
+  <p class="muted" style="margin-bottom:10px">
+    +10 = full grind · +5 = limited work · clipboard matches weekend / prestige look.
+  </p>
+
+  <section class="card">
+    <div class="actions-bar">
+      <input id="search" class="input" placeholder="Search by name or UID…"/>
+      <button id="pickAll" class="btn btn-ghost">Select all</button>
+      <button id="clearAll" class="btn btn-ghost">Clear</button>
+      <button id="fullAll" class="btn btn-full">+10 Full-Time Grind</button>
+      <button id="partAll" class="btn btn-part">+5 Part-Time Grind</button>
+    </div>
+
+    <div id="sessionBar" class="session-bar" style="display:none">
+      <span class="session-pill" id="sb-loaded">Loaded: 0</span>
+      <span class="session-pill" id="sb-awarded">Awarded this session: 0</span>
+      <span class="session-pill" id="sb-xp">XP issued: 0</span>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th style="width:38px">Pick</th>
+          <th>Athlete</th>
+          <th style="width:140px">Tier / Track</th>
+          <th style="width:220px">XP</th>
+        </tr>
+      </thead>
+      <tbody id="rows">
+        <tr><td colspan="4" class="muted">Loading…</td></tr>
+      </tbody>
+    </table>
+    <p id="status" class="muted">Ready.</p>
+  </section>
+</main>
+
+<script type="module">
+  import {
+    db,
+    collection,
+    getDocs
+  } from "/assets/js/firebase-init.js";
+
+  // same tier palette we used on the other two pages
+  const TIER_COLORS = {
+    shadow:    "#ffffff",
+    recruit:   "#facc15",
+    combatant: "#fb923c",
+    competitor:"#22c55e",
+    warrior:   "#3b82f6",
+    champion:  "#a855f7",
+    commander: "#92400e",
+    sandman:   "#eab308",
+    hero:      "#000000",
+    apprentice:"#ffffff",   // F4 R0
+    veteran:   "#92400e",
+    legend:    "#000000"
+  };
+
+  function colorForTierName(name=""){
+    const k = name.toLowerCase();
+    return TIER_COLORS[k] || "#ef4444"; // red fallback
+  }
+
+  const rowsEl     = document.getElementById("rows");
+  const statusEl   = document.getElementById("status");
+  const searchEl   = document.getElementById("search");
+  const pickAllEl  = document.getElementById("pickAll");
+  const clearAllEl = document.getElementById("clearAll");
+  const fullAllEl  = document.getElementById("fullAll");
+  const partAllEl  = document.getElementById("partAll");
+
+  const sessionBar = document.getElementById("sessionBar");
+  const sbLoaded   = document.getElementById("sb-loaded");
+  const sbAwarded  = document.getElementById("sb-awarded");
+  const sbXP       = document.getElementById("sb-xp");
+
+  let roster = [];
+  let filtered = [];
+  let awardedCount = 0;
+  let awardedXP = 0;
+
+  function updateSessionBar(){
+    if (!filtered.length){
+      sessionBar.style.display = "none";
+      return;
+    }
+    sessionBar.style.display = "flex";
+    sbLoaded.textContent  = `Loaded: ${filtered.length}`;
+    sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
+    sbXP.textContent      = `XP issued: ${awardedXP}`;
+  }
+
+  function render(list){
+    if (!list.length){
+      rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes match.</td></tr>`;
+      updateSessionBar();
+      return;
+    }
+
+    rowsEl.innerHTML = list.map(a => {
+      const uid   = a.uid || a.id;
+      const name  = a.publicName || a.fullName || uid;
+      const track = a.track || a.trackCode || "—";
+      const tier  = a.tierName || a.rankName || a.tier || "Apprentice";
+      const xp    = a.xp ?? 0;
+      const cap   = a.xpCap ?? 1200;
+      const pct   = Math.min(100, Math.round((xp / cap) * 100));
+      const col   = colorForTierName(tier);
+
+      return `
+        <tr data-id="${a.id}">
+          <td><input type="checkbox" class="pick" data-id="${a.id}"/></td>
+          <td>
+            <div class="ath-name">${name}</div>
+            <div class="sub">${uid}</div>
+          </td>
+          <td>${tier} / ${track}</td>
+          <td>
+            <div class="row-xp-track" aria-label="${xp} of ${cap}">
+              <div class="row-xp-fill" style="width:${pct}%;background:${col}"></div>
+            </div>
+            <div class="row-xp-meta">${xp} / ${cap}</div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+
+    updateSessionBar();
+  }
+
+  async function load(){
+    try {
+      statusEl.textContent = "Loading athletes…";
+      const snap = await getDocs(collection(db, "athletes"));
+      roster = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+      filtered = roster.slice().sort((a,b)=>(a.publicName||a.fullName||"").localeCompare(b.publicName||b.fullName||""));
+      render(filtered);
+      statusEl.textContent = `${filtered.length} athletes loaded.`;
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Failed to load athletes (see console).";
+    }
+  }
+
+  function getSelectedIds(){
+    return Array.from(document.querySelectorAll(".pick:checked")).map(c=>c.dataset.id);
+  }
+
+  async function giveToOne(id, amount){
+    const a = roster.find(x => x.id === id);
+    if (!a) return;
+
+    const uid = a.uid || a.id;
+    statusEl.textContent = "Saving…";
+
+    try {
+      const res = await fetch("http://127.0.0.1:8088/sandmandashboard/us-central1/incrementXpHttp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          data: {
+            uid,
+            event: amount === 10 ? "DAILY/FULL" : "DAILY/PART",
+            amount,
+            note: amount === 10 ? "Full-Time Grind" : "Part-Time Grind",
+            meta: { source: "daily-grind" }
+          }
+        })
+      });
+
+      if (!res.ok) {
+        statusEl.textContent = "Server error " + res.status;
+        return;
+      }
+
+      const data = await res.json();
+      if (!data.ok) {
+        statusEl.textContent = data.error || "No XP added.";
+        return;
+      }
+
+      const delta = Number(data.delta) || amount;
+      const cap   = a.xpCap ?? 1200;
+      const next  = Math.min(cap, (a.xp ?? 0) + delta);
+      a.xp = next;
+
+      // update just that row’s bar
+      const row = rowsEl.querySelector(`tr[data-id="${id}"]`);
+      if (row) {
+        const fill = row.querySelector(".row-xp-fill");
+        const meta = row.querySelector(".row-xp-meta");
+        const pct  = Math.min(100, Math.round((next / cap) * 100));
+        const tier = a.tierName || a.rankName || a.tier || "Apprentice";
+        const col  = colorForTierName(tier);
+        if (fill) {
+          fill.style.width = pct + "%";
+          fill.style.background = col;
+        }
+        if (meta) meta.textContent = `${next} / ${cap}`;
+      }
+
+      awardedCount += 1;
+      awardedXP    += delta;
+      updateSessionBar();
+
+      statusEl.textContent = `+${delta} XP to ${uid}.`;
+      statusEl.style.color = "#bef264";
+      setTimeout(()=>statusEl.style.color="", 1800);
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Save failed for " + uid;
+    }
+  }
+
+  async function bulkGive(amount, label){
+    const ids = getSelectedIds();
+    if (!ids.length){
+      statusEl.textContent = "No athletes selected.";
+      return;
+    }
+    statusEl.textContent = `Saving ${label} for ${ids.length}…`;
+    for (const id of ids){
+      await giveToOne(id, amount);
+    }
+    statusEl.textContent = `Saved ${label} for ${ids.length}.`;
+  }
+
+  // wiring
+  searchEl.addEventListener("input", ()=>{
+    const q = searchEl.value.toLowerCase().trim();
+    filtered = !q ? roster : roster.filter(a=>{
+      return (a.publicName||a.fullName||"").toLowerCase().includes(q)
+          || (a.id||"").toLowerCase().includes(q);
+    });
+    render(filtered);
+  });
+
+  pickAllEl.addEventListener("click", ()=>{
+    document.querySelectorAll(".pick").forEach(c=> c.checked = true);
+    statusEl.textContent = "All visible athletes selected.";
+  });
+
+  clearAllEl.addEventListener("click", ()=>{
+    document.querySelectorAll(".pick").forEach(c=> c.checked = false);
+    statusEl.textContent = "Selection cleared.";
+  });
+
+  fullAllEl.addEventListener("click", ()=> bulkGive(10, "Full-Time Grind"));
+  partAllEl.addEventListener("click", ()=> bulkGive(5, "Part-Time Grind"));
+
+  load();
+</script>
+</body>
+</html>

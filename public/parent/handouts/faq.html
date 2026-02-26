@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>Wrestling FAQ</title>
+
+  <style>
+    /* --- Gold Title + Gold Nav Buttons (Minimal) --- */
+
+    .page-title,
+    h1,
+    h2.page-title {
+      color: #ffdd48 !important;
+      text-shadow: 0 0 6px rgba(255,221,72,.25);
+      font-weight: 800;
+    }
+
+    .lang-btn {
+      border: 1px solid #ffdd48 !important;
+      color: #ffdd48 !important;
+      background: transparent;
+    }
+
+    .lang-btn:hover {
+      background: #ffdd48 !important;
+      color: #111 !important;
+    }
+
+    .lang-btn.active {
+      background: #ffdd48 !important;
+      color: #111 !important;
+      border-color: #ffdd48 !important;
+    }
+
+    :root{
+      --navy:#041231;
+      --gray:#9aa0a8;
+      --panel:#ffffff;
+      --text:#0f1114;
+      --muted:#4b5563;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      background:var(--navy);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+    }
+
+    /* Top Bar */
+    .topbar{
+      background:var(--navy);
+      padding:10px 14px;
+      border-bottom:2px solid var(--gray);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#fff;
+    }
+    .back-btn{
+      color:#fff;
+      text-decoration:none;
+      font-size:.85rem;
+      padding:4px 10px;
+      border:1px solid var(--gray);
+      border-radius:999px;
+    }
+    .lang-wrap button{
+      padding:6px 14px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:.8rem;
+      font-weight:600;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 60px;
+    }
+
+    h1{
+      color:#fff;
+      margin:20px 0 10px;
+      text-align:center;
+      font-size:1.6rem;
+      font-weight:700;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border-radius:12px;
+      padding:18px 20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+      margin-bottom:20px;
+    }
+
+    .panel h2{
+      margin:0 0 14px;
+      color:var(--navy);
+      font-size:1.2rem;
+    }
+
+    .bullet{
+      margin-bottom:18px;
+    }
+
+    .bullet strong{
+      color:var(--navy);
+      font-weight:700;
+    }
+
+    .es{
+      color:var(--muted);
+      margin-top:4px;
+      font-size:.9rem;
+    }
+
+    footer{
+      margin-top:40px;
+      text-align:center;
+      color:#e5e7eb;
+      font-size:.8rem;
+      opacity:.75;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- Top Bar -->
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+<main class="wrap">
+
+  <h1 data-i18n="title">Wrestling FAQ</h1>
+
+  <!-- SECTION A: 8 Things Every Parent Should Know -->
+  <section class="section panel">
+    <h2 data-i18n="secA">8 Things Every Parent Should Know</h2>
+
+    <div class="bullet">
+      <strong data-i18n="a1_en">Practice attendance is the #1 factor in success.</strong>
+      <div class="es" data-i18n="a1_sp">La asistencia a las prácticas es el factor #1 para el éxito.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a2_en">Effort beats talent when talent doesn’t work.</strong>
+      <div class="es" data-i18n="a2_sp">El esfuerzo vence al talento cuando el talento no trabaja.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a3_en">Good grades keep your athlete eligible all season.</strong>
+      <div class="es" data-i18n="a3_sp">Las buenas calificaciones mantienen a su atleta elegible toda la temporada.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a4_en">Wrestling requires daily gear: shoes, headgear, water, hygiene.</strong>
+      <div class="es" data-i18n="a4_sp">La lucha requiere equipo diario: zapatos, careta, agua e higiene.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a5_en">Hygiene prevents skin infections — it’s a safety rule.</strong>
+      <div class="es" data-i18n="a5_sp">La higiene previene infecciones — es una regla de seguridad.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a6_en">Wrestling builds discipline, confidence, and resilience.</strong>
+      <div class="es" data-i18n="a6_sp">La lucha desarrolla disciplina, confianza y resiliencia.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a7_en">Communication is key — check announcements daily.</strong>
+      <div class="es" data-i18n="a7_sp">La comunicación es clave — revise los anuncios diariamente.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a8_en">Every athlete grows at a different pace — trust the process.</strong>
+      <div class="es" data-i18n="a8_sp">Cada atleta progresa a su propio ritmo — confíe en el proceso.</div>
+    </div>
+  </section>
+
+  <!-- SECTION C: 8 Season Realities & Expectations -->
+  <section class="section panel">
+    <h2 data-i18n="secC">8 Season Realities & Expectations</h2>
+
+    <div class="bullet">
+      <strong data-i18n="c1_en">Skin checks happen often and keep everyone safe.</strong>
+      <div class="es" data-i18n="c1_sp">Las revisiones de piel son frecuentes y mantienen a todos seguros.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c2_en">Weigh-ins follow strict timing and clothing rules.</strong>
+      <div class="es" data-i18n="c2_sp">Los pesajes siguen reglas estrictas de tiempo y ropa.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c3_en">Tournament schedules are unpredictable — plan for flexibility.</strong>
+      <div class="es" data-i18n="c3_sp">Los horarios de torneos son impredecibles — planifique con flexibilidad.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c4_en">Dual meets are quick; tournaments can last all day.</strong>
+      <div class="es" data-i18n="c4_sp">Los duelos son rápidos; los torneos pueden durar todo el día.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c5_en">Driving separately is allowed but not recommended during team events.</strong>
+      <div class="es" data-i18n="c5_sp">Manejar por separado está permitido pero no recomendado en eventos del equipo.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c6_en">Athletes experience highs and lows — emotional moments are normal.</strong>
+      <div class="es" data-i18n="c6_sp">Los atletas viven altos y bajos — las emociones son normales.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c7_en">Wrestling is demanding — rest, nutrition, and hydration matter.</strong>
+      <div class="es" data-i18n="c7_sp">La lucha es exigente — el descanso, la nutrición y la hidratación importan.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c8_en">Coaches prioritize safety and development over wins.</strong>
+      <div class="es" data-i18n="c8_sp">Los entrenadores priorizan la seguridad y el desarrollo sobre las victorias.</div>
+    </div>
+  </section>
+
+  <!-- SECTION B: 8 Practical “How-To” Items -->
+  <section class="section panel">
+    <h2 data-i18n="secB">8 Practical “How-To” Items</h2>
+
+    <div class="bullet">
+      <strong data-i18n="b1_en">How to report an absence: message early and be clear.</strong>
+      <div class="es" data-i18n="b1_sp">Cómo reportar una ausencia: comunique temprano y con claridad.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b2_en">How to prepare daily: pack gear, water, hygiene items.</strong>
+      <div class="es" data-i18n="b2_sp">Cómo prepararse a diario: equipo, agua y artículos de higiene.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b3_en">How to fuel your athlete: balanced meals + hydration.</strong>
+      <div class="es" data-i18n="b3_sp">Cómo alimentar a su atleta: comidas balanceadas + hidratación.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b4_en">How to handle competition days: arrive early and stay flexible.</strong>
+      <div class="es" data-i18n="b4_sp">Cómo manejar los días de competencia: llegue temprano y sea flexible.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b5_en">How transportation works: rides must be reliable and on time.</strong>
+      <div class="es" data-i18n="b5_sp">Cómo funciona el transporte: choferes confiables y puntuales.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b6_en">How to support your athlete: positive encouragement always.</strong>
+      <div class="es" data-i18n="b6_sp">Cómo apoyar a su atleta: siempre con ánimo positivo.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b7_en">How to navigate tournaments: stay nearby and follow updates.</strong>
+      <div class="es" data-i18n="b7_sp">Cómo navegar los torneos: manténgase cerca y siga las actualizaciones.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b8_en">How communication works: check Para-Comms daily for updates.</strong>
+      <div class="es" data-i18n="b8_sp">Cómo funciona la comunicación: revise Para-Comms diariamente.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Lompoc HS Wrestling • Parent Information Page
+</footer>
+
+<script>
+  const dict = {
+    en:{
+      title:"Wrestling FAQ",
+      secA:"8 Things Every Parent Should Know",
+      secB:"8 Practical “How-To” Items",
+      secC:"8 Season Realities & Expectations"
+    },
+    sp:{
+      title:"Preguntas Frecuentes de Lucha",
+      secA:"8 Cosas que Todo Padre Debe Saber",
+      secB:"8 Puntos Prácticos «Cómo Hacer»",
+      secC:"8 Realidades y Expectativas de la Temporada"
+    }
+  };
+
+  const btns=document.querySelectorAll(".lang-btn");
+
+  function setLang(lang){
+    btns.forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+    const pack=dict[lang]||dict.en;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key=el.getAttribute("data-i18n");
+      if (pack[key]) el.textContent=pack[key];
+    });
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener("click",()=>setLang(btn.dataset.lang));
+  });
+
+  setLang("en");
+</script>
+
+</body>
+</html>

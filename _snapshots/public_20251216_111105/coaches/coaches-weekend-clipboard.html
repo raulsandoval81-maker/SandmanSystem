@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Weekend Clipboard </title>
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      background:#06080d;
+      color:#f5f5f5;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 38px;}
+
+    /* nav */
+    .top-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+    .pill{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:700;
+      color:#fff;
+      text-decoration:none;
+      transition:.15s;
+    }
+    .pill:hover{background:#e63946;border-color:#e63946}
+    .pill.active{background:#ffdd48;color:#111;border-color:#ffdd48}
+
+    h1{
+      color:#ffdd48;
+      text-shadow:0 0 8px rgba(230,57,70,.35);
+      margin-bottom:4px;
+    }
+    .muted{color:#94a3b8;font-size:.7rem;margin-bottom:10px;}
+
+    /* timer row */
+    .timer-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:14px;
+    }
+    .timer-btn{
+      background:#e63946;
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 0 10px rgba(230,57,70,.4);
+    }
+    #totalTime{
+      margin-left:auto;
+      font-weight:700;
+    }
+    #totalTime.over{color:#e63946;text-shadow:0 0 6px rgba(230,57,70,.4);}
+
+    /* blocks */
+    .plan-block{
+      border:1px solid #252c3a;
+      border-radius:12px;
+      margin-bottom:10px;
+      background:#0b1017;
+      padding:10px 10px 12px;
+      box-shadow:0 0 15px rgba(0,0,0,.3);
+    }
+    .plan-block.red{
+      border-color:#e63946;
+      background:rgba(230,57,70,.04);
+    }
+    .block-head-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .block-title{
+      font-size:.7rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#e2e8f0;
+      font-weight:700;
+    }
+    .block-tools{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .min-input{
+      width:52px;
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:8px;
+      color:#fff;
+      padding:3px 4px;
+      font-size:.66rem;
+      text-align:center;
+    }
+    .mini-play,.mini-stop{
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:6px;
+      width:22px;
+      height:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      cursor:pointer;
+      color:#fff;
+    }
+    .mini-play:hover,
+    .mini-stop:hover{
+      background:#e63946;
+      border-color:#e63946;
+    }
+    .mini-clock{
+      font-size:.65rem;
+      color:#e2e8f0;
+      min-width:44px;
+      text-align:right;
+    }
+    .slot{
+      min-height:50px;
+      border:1px dashed rgba(255,255,255,.05);
+      border-radius:8px;
+      background:rgba(0,0,0,.12);
+      padding:6px 7px;
+      white-space:pre-wrap;
+    }
+    .slot[contenteditable="true"]:focus{
+      outline:none;
+      border-color:rgba(255,221,72,.4);
+    }
+
+    .footer-actions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .footer-actions button{
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .footer-actions button:first-child{
+      background:#ffdd48;
+      color:#111;
+    }
+    .footer-actions button:nth-child(2){
+      background:#e63946;
+      color:#fff;
+    }
+
+    @media (max-width:640px){
+      .block-head-row{flex-wrap:wrap;align-items:flex-start}
+      .timer-row{flex-wrap:wrap}
+      #totalTime{margin-left:0}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+<!-- ========================= -->
+<!-- TOP NAV (all buttons now consistent) -->
+<!-- ========================= -->
+<div class="top-nav">
+  <button class="pill" onclick="location.href='/coaches/index.html'">🏠 Back to Coach Index</button>
+  <button class="pill" onclick="location.href='/coaches/roster.html'">👥 Team Roster</button>
+  <button class="pill" onclick="location.href='/coaches/coach-notes.html'">📝 Coach Notes</button>
+  <button class="pill" onclick="location.href='/coaches/arena-log.html'">🏟️ Arena Log</button>
+   <button class="pill" onclick="location.href='/coaches/coaches-weekend-xp.html'">📅 Weekend Arena XP</button>
+  <button class="pill active" onclick="location.href='/coaches/coach-console.html'">🧭 Coach Console</button>
+</div>
+
+
+
+    </nav>
+
+    <h1>Weekend Arena Clipboard</h1>
+    <p class="muted">Bleacher talk & hydrate are untimed. Warm-up 10. Four 8-min segments with 1-min shadow jump rope between. Finish with hard gos.</p>
+
+    <div class="timer-row">
+      <button class="timer-btn" onclick="openTimerWindow()">Open Timer</button>
+      <button class="timer-btn" onclick="runWeekend()">▶ Run 45-min Flow</button>
+      <span id="totalTime">Total timed: 45:00</span>
+    </div>
+
+    <div id="planBlocks">
+      <!-- 1. Bleacher Talk (untimed) -->
+      <div class="plan-block">
+        <div class="block-head-row">
+          <span class="block-title">Bleacher Talk (Untimed)</span>
+        </div>
+        <div class="slot" contenteditable="true">Set tone, calm nerves, control what you can.</div>
+      </div>
+
+      <!-- 2. Warm-Up 8 -->
+<div class="plan-block" data-slot="warmup" data-minutes="8">
+  <div class="block-head-row">
+    <span class="block-title">Warm-Up — Freestyle 8</span>
+    <div class="block-tools">
+      <input type="number" value="8" readonly class="min-input">
+      <span class="mini-clock">08:00</span>
+    </div>
+  </div>
+  <div class="slot" contenteditable="true">
+    Jog → Mobility → Shadow wrestle → Stance motion
+  </div>
+</div>
+
+      <!-- 3. Neutral 8 + 1 rope -->
+      <div class="plan-block red" data-slot="neutral" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Coach Call-Out — Neutral</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Chain attacks, motion, sprawls.</div>
+      </div>
+      <div class="plan-block" data-slot="rope1" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Light rope tempo. Coach transitions group.</div>
+      </div>
+
+      <!-- 4. Top 8 + 1 rope -->
+      <div class="plan-block red" data-slot="top" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Coach Call-Out — Top</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Breakdowns, rides, turns.</div>
+      </div>
+      <div class="plan-block" data-slot="rope2" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Stay hot.</div>
+      </div>
+
+      <!-- 5. Bottom 8 + 1 rope -->
+      <div class="plan-block red" data-slot="bottom" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Coach Call-Out — Bottom</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">First move, standups, clear.</div>
+      </div>
+      <div class="plan-block" data-slot="rope3" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Breathing check.</div>
+      </div>
+
+      <!-- 6. Play Wrestle 8 -->
+      <div class="plan-block red" data-slot="play" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Play Wrestle / Match IQ</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Flow live, situational, score-to-win.</div>
+      </div>
+
+      <!-- 7. Hard Go / Sprints 6 -->
+      <div class="plan-block" data-slot="hardgo" data-minutes="6">
+        <div class="block-head-row">
+          <span class="block-title">Hard Go / Sprints</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="6" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">06:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">20-sec gos, mat sprints, open lungs.</div>
+      </div>
+
+      <!-- 8. Hydrate / Stretch (untimed) -->
+      <div class="plan-block">
+        <div class="block-head-row">
+          <span class="block-title">Hydrate / Stretch (Untimed)</span>
+        </div>
+        <div class="slot" contenteditable="true">Water, shake out, stay loose.</div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button onclick="loadDefault()">Load 45-min Weekend A</button>
+      <button onclick="savePlan()">Save Clipboard</button>
+      <span id="saveStatus" class="muted">Not saved.</span>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db, doc, setDoc, serverTimestamp } from "/assets/js/firebase-init.js";
+
+    const totalTimeEl = document.getElementById("totalTime");
+    const saveStatusEl = document.getElementById("saveStatus");
+
+    // recalc total timed blocks
+    function recalcTotal(){
+      const mins = [...document.querySelectorAll("[data-minutes]")].reduce((sum,b)=>sum+Number(b.dataset.minutes||0),0);
+      totalTimeEl.textContent = "Total timed: " + String(mins).padStart(2,"0") + ":00";
+      totalTimeEl.classList.toggle("over", mins > 60);
+    }
+
+    // number input change
+    document.addEventListener("input", e=>{
+      const inp = e.target.closest(".min-input");
+      if(!inp) return;
+      const blk = inp.closest(".plan-block");
+      if (inp.readOnly) return;
+      let v = Number(inp.value||0);
+      if (v < 1) v = 1;
+      if (v > 30) v = 30;
+      inp.value = v;
+      blk.dataset.minutes = v;
+      // update its little clock
+      const clock = blk.querySelector(".mini-clock");
+      if (clock){
+        const mm = String(v).padStart(2,"0");
+        clock.textContent = mm + ":00";
+      }
+      recalcTotal();
+    });
+
+    // mini timers
+    const miniTimers = new Map();
+    function toClock(sec){
+      const m = Math.floor(sec/60);
+      const s = sec%60;
+      return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+    }
+
+    document.addEventListener("click", e=>{
+      const play = e.target.closest(".mini-play");
+      const stop = e.target.closest(".mini-stop");
+      if (play){
+        const head = play.closest(".block-head-row");
+        const inp  = head.querySelector(".min-input");
+        const clock= head.querySelector(".mini-clock");
+        const mins = Number(inp.value||0);
+        const totalSecs = mins*60;
+        // clear old
+        if (miniTimers.has(head)){
+          clearInterval(miniTimers.get(head));
+        }
+        let left = totalSecs;
+        clock.textContent = toClock(left);
+        const id = setInterval(()=>{
+          left--;
+          if (left <= 0){
+            left = 0;
+            clearInterval(id);
+          }
+          clock.textContent = toClock(left);
+        },1000);
+        miniTimers.set(head, id);
+      }
+      if (stop){
+        const head = stop.closest(".block-head-row");
+        const inp  = head.querySelector(".min-input");
+        const clock= head.querySelector(".mini-clock");
+        if (miniTimers.has(head)){
+          clearInterval(miniTimers.get(head));
+        }
+        const mins = Number(inp.value||0);
+        clock.textContent = toClock(mins*60);
+      }
+    });
+
+    // default loader
+    window.loadDefault = function(){
+      // fixed ones are already set in HTML
+      saveStatusEl.textContent = "45-min Weekend A loaded (not saved).";
+      recalcTotal();
+    };
+
+    // save to firestore (by date)
+    window.savePlan = async function(){
+      const payload = {
+        bleacher: document.querySelector("#planBlocks .plan-block:nth-child(1) .slot").textContent.trim(),
+        warmup: document.getElementById("planBlocks").querySelector('[data-slot="warmup"] .slot').textContent.trim(),
+        neutral: document.getElementById("planBlocks").querySelector('[data-slot="neutral"] .slot').textContent.trim(),
+        top: document.getElementById("planBlocks").querySelector('[data-slot="top"] .slot').textContent.trim(),
+        bottom: document.getElementById("planBlocks").querySelector('[data-slot="bottom"] .slot').textContent.trim(),
+        play: document.getElementById("planBlocks").querySelector('[data-slot="play"] .slot').textContent.trim(),
+        hardgo: document.getElementById("planBlocks").querySelector('[data-slot="hardgo"] .slot').textContent.trim(),
+        hydrate: document.querySelector("#planBlocks .plan-block:last-child .slot").textContent.trim(),
+        blocks: [...document.querySelectorAll("[data-slot]")].map(b=>({
+          slot: b.dataset.slot,
+          minutes: Number(b.dataset.minutes||0)
+        })),
+        updatedAt: serverTimestamp(),
+        source: "weekend-clipboard-a"
+      };
+      const key = new Date().toISOString().slice(0,10) + "-weekend-a";
+      await setDoc(doc(db,"practicePlans", key), payload, { merge:true });
+      saveStatusEl.textContent = "Saved.";
+    };
+
+    // timer bridge
+// timer bridge → new block-based timer engine
+window.openTimerWindow = function(){
+  const key = new Date().toISOString().slice(0,10) + "-weekend-a";
+  const url = `/tools/timer-engine/sandman_timer_engine.html?plan=${encodeURIComponent(key)}`;
+  const w = window.open(url, "sandmanTimer", "width=520,height=700");
+  if (w) w.focus();
+};
+
+window.runWeekend = function(){
+  const key = new Date().toISOString().slice(0,10) + "-weekend-a";
+  const url = `/tools/timer-engine/sandman_timer_engine.html?plan=${encodeURIComponent(key)}`;
+
+  const w = window.open(url, "sandmanTimer", "width=520,height=700");
+  if (!w) return;
+
+  // hand today’s weekend plan to the engine
+  setTimeout(() => {
+    if (w.startSandmanPlan) {
+      w.startSandmanPlan(key);
+    }
+  }, 700);
+};
+    // init
+    recalcTotal();
+  </script>
+</body>
+</html>

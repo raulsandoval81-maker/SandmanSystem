@@ -1,0 +1,230 @@
+/* ============================================================
+   SANDMAN SYSTEM — QUIZ THEME (v1.0)
+   Day → Sunset → Night Arc
+   Used by: destiny.html · reflection.html
+   ============================================================ */
+
+:root {
+  --gold: #c99700;
+  --deep-gold: #946c00;
+  --sun-cream: #f7f4e7;
+  --sun-warm: #e5ddc1;
+  --sun-deep: #c8bb9a;
+
+  --sunset-top: #d9ccae;
+  --sunset-mid: #b7a887;
+  --sunset-low: #8e7c5e;
+  --sunset-deep: #5d5040;
+
+  --night-top: #12151a;
+  --night-mid: #0c0e13;
+  --night-low: #08090b;
+
+  --text-light: #f0f0f0;
+  --text-dark: #1a1a1a;
+  --muted-dark: #3b3b3b;
+  --muted-light: #adb9c8;
+}
+
+/* GLOBAL RESET */
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--night-low);
+  color: var(--text-light);
+}
+
+/* WRAPPER */
+.quiz-wrap {
+  max-width: 620px;
+  margin: 0 auto;
+  padding: 28px 20px;
+}
+
+/* HEADER (top sandman brand) */
+.quiz-header {
+  text-align: center;
+  margin-bottom: 28px;
+}
+.quiz-header img {
+  width: 120px;
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.18));
+}
+.quiz-header h1 {
+  margin: 8px 0 0;
+  color: var(--gold);
+  font-size: 1.9rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+}
+
+/* FLASH CARD = SLIDE */
+.slide {
+  display: none;
+  padding: 26px 22px;
+  border-radius: 18px;
+  box-shadow: 0 12px 28px rgba(0,0,0,.28);
+  border: 1px solid rgba(0,0,0,.25);
+}
+
+/* ACTIVE slide */
+.slide.active {
+  display: block;
+  animation: fadeIn .4s ease;
+}
+
+/* TRANSITIONS */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* DAY BLOCKS (screens 1–4) */
+.day {
+  background: linear-gradient(180deg,
+    var(--sun-cream),
+    var(--sun-warm),
+    var(--sun-deep)
+  );
+  color: var(--text-dark);
+  border-color: #d4c7a7;
+}
+
+/* SUNSET BLOCKS (screens 5–8) */
+.sunset {
+  background: linear-gradient(180deg,
+    var(--sunset-top),
+    var(--sunset-mid),
+    var(--sunset-low)
+  );
+  color: var(--text-dark);
+  border-color: #c8b99a;
+}
+
+/* NIGHT BLOCKS (screens 9–16) */
+.night {
+  background: linear-gradient(180deg,
+    var(--night-top),
+    var(--night-mid),
+    var(--night-low)
+  );
+  color: var(--text-light);
+  border-color: #293142;
+}
+
+/* SLIDE TITLES */
+.slide h2 {
+  margin: 0 0 10px;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: var(--deep-gold);
+}
+
+/* PROMPT TEXT */
+.slide p {
+  margin: 4px 0 18px;
+  line-height: 1.5;
+  font-size: 1.1rem;
+  color: inherit;
+}
+
+/* SLIDER BLOCK */
+.slider-block {
+  margin: 32px 0 10px;
+}
+
+.slider-value {
+  font-size: 2.2rem;
+  font-weight: 900;
+  color: var(--gold);
+  text-align: center;
+  margin-top: 6px;
+}
+
+/* Range input styling */
+input[type="range"] {
+  width: 100%;
+  appearance: none;
+  height: 6px;
+  background: rgba(255,255,255,0.35);
+  border-radius: 999px;
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  background: var(--gold);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0,0,0,.38);
+  cursor: pointer;
+}
+
+/* CHOICE BUTTONS */
+.choice-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.choice-btn {
+  background: rgba(0,0,0,0.12);
+  border: 1px solid rgba(0,0,0,0.25);
+  padding: 14px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: .2s;
+}
+
+.choice-btn:hover {
+  background: rgba(0,0,0,0.2);
+}
+
+/* NEXT BUTTON */
+.next-btn {
+  display: inline-block;
+  margin-top: 26px;
+  background: #e53935;
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+  box-shadow: 0 6px 14px rgba(0,0,0,.35);
+  transition: .15s;
+}
+.next-btn:hover {
+  background: #c62828;
+}
+
+/* FINAL HERO INPUTS */
+.hero-block input {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid #9099a5;
+  margin-bottom: 14px;
+  font-size: 1rem;
+}
+
+/* DOT NAVIGATION */
+.dot-row {
+  text-align: center;
+  margin-top: 18px;
+}
+.dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  margin: 0 5px;
+}
+.dot.active {
+  background: var(--gold);
+}

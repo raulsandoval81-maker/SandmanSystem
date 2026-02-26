@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Lompoc Wrestling — Bout Sheet</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --navy:#0f172a;
+      --navy2:#1e293b;
+      --yellow:#ffdd48;
+      --gray:#94a3b8;
+      --border:#cbd5e1;
+      --bg:#ffffff;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#ffffff;
+      color:var(--navy);
+    }
+    .page{
+      max-width:900px;
+      margin:0 auto;
+      padding:16px 20px 24px;
+    }
+
+    /* SECTION BLOCK */
+    .sheet{
+      border:1px solid var(--navy2);
+      border-radius:6px;
+      padding:10px 10px 12px;
+      margin-bottom:16px;
+      page-break-inside:avoid;
+      background:#ffffff;
+    }
+
+    /* HEADER BAR */
+    .header-bar{
+      background:var(--navy);
+      color:white;
+      padding:6px 10px;
+      border-radius:4px;
+      margin-bottom:8px;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      font-size:.85rem;
+    }
+    .header-title{
+      font-weight:600;
+      text-transform:uppercase;
+      letter-spacing:.14em;
+    }
+    .header-meta{
+      text-align:right;
+      font-size:.72rem;
+      color:#ffffff;
+    }
+    .header-meta span{
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--yellow);
+    }
+    .meta-line{
+      border-bottom:1px solid white;
+      min-width:70px;
+      min-height:14px;
+      margin-left:4px;
+      display:inline-block;
+    }
+
+    /* TOP META */
+    .top-meta{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:8px;
+      font-size:.75rem;
+      margin-bottom:10px;
+    }
+    .field-label{
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      font-size:.68rem;
+      color:var(--navy2);
+    }
+    .field-line{
+      border-bottom:1px solid var(--border);
+      min-height:16px;
+    }
+
+    /* NAME BLOCKS */
+    .name-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .name-block{
+      border:1px solid var(--border);
+      padding:6px;
+      border-radius:4px;
+    }
+    .name-row{
+      display:flex;
+      margin-bottom:4px;
+      align-items:center;
+    }
+    .name-row:last-child{margin-bottom:0;}
+    .label{
+      min-width:50px;
+      font-size:.68rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--navy2);
+    }
+    .line{
+      border-bottom:1px solid var(--border);
+      flex:1;
+      min-height:16px;
+      margin-left:6px;
+    }
+
+    /* PERIOD TABLE */
+    table.period-table{
+      width:100%;
+      border-collapse:collapse;
+      margin-bottom:10px;
+      font-size:.72rem;
+    }
+    table.period-table th{
+      background:var(--yellow);
+      color:var(--navy);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.68rem;
+      padding:3px 4px;
+      border:1px solid var(--navy2);
+    }
+    table.period-table td{
+      border:1px solid var(--navy2);
+      height:48px;
+      background:white;
+    }
+
+    /* TOTALS */
+    .total-row{
+      display:flex;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .total-box{
+      flex:1;
+      text-align:center;
+    }
+    .total-label{
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      font-size:.68rem;
+      color:var(--navy2);
+      margin-bottom:2px;
+    }
+    .total-line{
+      border:1px solid var(--navy2);
+      min-height:22px;
+      border-radius:4px;
+    }
+
+    /* FOOTER */
+    .footer-grid{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .footer-label{
+      font-size:.68rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--navy2);
+      margin-bottom:2px;
+    }
+    .footer-line{
+      border-bottom:1px solid var(--border);
+      min-height:16px;
+    }
+    .winner-strip{
+      font-size:.7rem;
+      color:var(--navy);
+    }
+    .winner-strip span{
+      color:var(--yellow);
+      font-weight:600;
+    }
+
+    .sign-row{
+      display:flex;
+      gap:10px;
+    }
+    .sign-field{flex:1;}
+    .sign-label{
+      font-size:.68rem;
+      text-transform:uppercase;
+      letter-spacing:.1em;
+      color:var(--navy2);
+      margin-bottom:2px;
+    }
+    .sign-line{
+      border-bottom:1px solid var(--border);
+      min-height:20px;
+    }
+
+    /* PRINT */
+    @media print{
+      .sheet{margin-bottom:8px;}
+      .header-bar{border-radius:0;}
+    }
+
+    hr.cut{
+      border:none;
+      border-top:1px dashed var(--gray);
+      margin:16px 0;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <!-- ====== TOP BOUT SHEET ====== -->
+    <section class="sheet">
+
+      <div class="header-bar">
+        <div class="header-title">Lompoc Wrestling</div>
+        <div class="header-meta">
+          <span>Mat</span><span class="meta-line"></span><br />
+          <span>Bout</span><span class="meta-line"></span>
+        </div>
+      </div>
+
+      <div class="top-meta">
+        <div><div class="field-label">Event</div><div class="field-line"></div></div>
+        <div><div class="field-label">Weight Class</div><div class="field-line"></div></div>
+        <div><div class="field-label">Date</div><div class="field-line"></div></div>
+        <div><div class="field-label">Round</div><div class="field-line"></div></div>
+      </div>
+
+      <div class="name-grid">
+        <div class="name-block">
+          <div class="name-row"><span class="label">Name</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Team</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Color</span><div class="line"></div></div>
+        </div>
+        <div class="name-block">
+          <div class="name-row"><span class="label">Name</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Team</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Color</span><div class="line"></div></div>
+        </div>
+      </div>
+
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th>First Period</th>
+            <th>Second Period</th>
+            <th>Third Period</th>
+            <th>Overtime</th>
+          </tr>
+        </thead>
+        <tbody><tr><td></td><td></td><td></td><td></td></tr></tbody>
+      </table>
+
+      <div class="total-row">
+        <div class="total-box">
+          <div class="total-label">Total Points</div>
+          <div class="total-line"></div>
+        </div>
+        <div class="total-box">
+          <div class="total-label">Total Points</div>
+          <div class="total-line"></div>
+        </div>
+      </div>
+
+      <div class="footer-grid">
+        <div>
+          <div class="footer-label">Match End Time</div>
+          <div class="footer-line"></div>
+        </div>
+        <div>
+          <div class="footer-label">Result</div>
+          <div class="winner-strip">
+            <span>Circle WINNER'S side</span> / X out LOSER'S side<br />
+            FALL ☐ &nbsp; TECH ☐ &nbsp; DEC ☐ &nbsp; MAJ ☐ &nbsp; FFT ☐
+          </div>
+        </div>
+        <div>
+          <div class="footer-label">Times</div>
+          Fall Time: ________<br />
+          Tech Time: ________
+        </div>
+      </div>
+
+      <div class="sign-row">
+        <div class="sign-field">
+          <div class="sign-label">Winner's Signature</div>
+          <div class="sign-line"></div>
+        </div>
+        <div class="sign-field">
+          <div class="sign-label">Referee's Signature</div>
+          <div class="sign-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <hr class="cut" />
+
+    <!-- ====== BOTTOM BOUT SHEET ====== -->
+    <section class="sheet">
+      <!-- identical duplicate -->
+      <div class="header-bar">
+        <div class="header-title">Lompoc Wrestling</div>
+        <div class="header-meta">
+          <span>Mat</span><span class="meta-line"></span><br />
+          <span>Bout</span><span class="meta-line"></span>
+        </div>
+      </div>
+
+      <div class="top-meta">
+        <div><div class="field-label">Event</div><div class="field-line"></div></div>
+        <div><div class="field-label">Weight Class</div><div class="field-line"></div></div>
+        <div><div class="field-label">Date</div><div class="field-line"></div></div>
+        <div><div class="field-label">Round</div><div class="field-line"></div></div>
+      </div>
+
+      <div class="name-grid">
+        <div class="name-block">
+          <div class="name-row"><span class="label">Name</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Team</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Color</span><div class="line"></div></div>
+        </div>
+        <div class="name-block">
+          <div class="name-row"><span class="label">Name</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Team</span><div class="line"></div></div>
+          <div class="name-row"><span class="label">Color</span><div class="line"></div></div>
+        </div>
+      </div>
+
+      <table class="period-table">
+        <thead>
+          <tr>
+            <th>First Period</th>
+            <th>Second Period</th>
+            <th>Third Period</th>
+            <th>Overtime</th>
+          </tr>
+        </thead>
+        <tbody><tr><td></td><td></td><td></td><td></td></tr></tbody>
+      </table>
+
+      <div class="total-row">
+        <div class="total-box">
+          <div class="total-label">Total Points</div>
+          <div class="total-line"></div>
+        </div>
+        <div class="total-box">
+          <div class="total-label">Total Points</div>
+          <div class="total-line"></div>
+        </div>
+      </div>
+
+      <div class="footer-grid">
+        <div>
+          <div class="footer-label">Match End Time</div>
+          <div class="footer-line"></div>
+        </div>
+        <div>
+          <div class="footer-label">Result</div>
+          <div class="winner-strip">
+            <span>Circle WINNER'S side</span> / X out LOSER'S side<br />
+            FALL ☐ &nbsp; TECH ☐ &nbsp; DEC ☐ &nbsp; MAJ ☐ &nbsp; FFT ☐
+          </div>
+        </div>
+        <div>
+          <div class="footer-label">Times</div>
+          Fall Time: ________<br />
+          Tech Time: ________
+        </div>
+      </div>
+
+      <div class="sign-row">
+        <div class="sign-field">
+          <div class="sign-label">Winner's Signature</div>
+          <div class="sign-line"></div>
+        </div>
+        <div class="sign-field">
+          <div class="sign-label">Referee's Signature</div>
+          <div class="sign-line"></div>
+        </div>
+      </div>
+
+    </section>
+  </div>
+</body>
+</html>

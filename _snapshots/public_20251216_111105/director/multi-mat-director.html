@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Director Board — Sandman Tournament</title>
+  <link rel="stylesheet" href="multi-mat-director.css">
+</head>
+
+<body>
+
+<!-- ============================================================
+     QR OVERLAY
+============================================================ -->
+<div id="qrOverlay" class="hidden">
+  <div id="qrBox"></div>
+  <button id="closeQr" class="close-qr">Close</button>
+</div>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<header class="director-header">
+  <h1>SANDMAN — DIRECTOR BOARD</h1>
+  <button id="fullscreenBtn" class="fullscreen-btn">Fullscreen</button>
+</header>
+
+<!-- ============================================================
+     EVENT TABS
+============================================================ -->
+<section id="eventTabs" class="event-tabs">
+  <button class="tab-btn active" data-event="varsity">Varsity</button>
+  <button class="tab-btn" data-event="jv">JV</button>
+  <button class="tab-btn" data-event="youth">Youth</button>
+</section>
+
+<!-- ============================================================
+     DIRECTOR COMMAND BAR
+============================================================ -->
+<section class="mat-controls">
+  <span class="controls-label">Director Controls:</span>
+  <button class="cmd" data-cmd="pause">PAUSE ALL</button>
+  <button class="cmd" data-cmd="resume">RESUME ALL</button>
+  <button class="cmd" data-cmd="reset">RESET CLOCKS</button>
+  <button class="cmd" data-cmd="bump">BUMP BOUT</button>
+</section>
+
+<!-- ============================================================
+     MAIN GRID
+============================================================ -->
+<div id="directorBoard" class="director-grid"></div>
+
+<!-- ============================================================
+     SCRIPTS
+============================================================ -->
+<script src="multi-mat-director.js"></script>
+
+<script>
+  document.getElementById("fullscreenBtn").onclick = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen();
+    } else {
+      document.exitFullscreen();
+    }
+  };
+</script>
+
+</body>
+</html>

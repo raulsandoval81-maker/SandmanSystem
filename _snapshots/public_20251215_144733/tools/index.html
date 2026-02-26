@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coach Command Center | Sandman System™</title>
+
+  <style>
+    :root{
+      --bg:#0a0f16;
+      --panel:#121821;
+      --line:#2a3344;
+      --brand:#ffdd48;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --hover:#1b2230;
+      --radius:14px;
+    }
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      margin:0;
+      padding-bottom:60px;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 18px 60px;
+    }
+
+    .title-block{
+      text-align:center;
+      margin-bottom:1.8rem;
+    }
+
+    h1{
+      margin:0;
+      color:var(--brand);
+      font-size:1.85rem;
+      font-weight:800;
+      letter-spacing:.5px;
+    }
+
+    .subtitle{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    /* SECTION HEADERS */
+    .section-label{
+      margin:2.2rem 0 .65rem;
+      font-size:.95rem;
+      font-weight:700;
+      color:var(--brand);
+      letter-spacing:.07em;
+      text-transform:uppercase;
+    }
+
+    /* BUTTON GRID */
+    .grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:12px;
+    }
+
+    @media(min-width:600px){
+      .grid{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
+    /* BUTTONS */
+    a.tile{
+      display:block;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      text-decoration:none;
+      color:var(--text);
+      padding:14px 18px;
+      box-shadow:0 4px 12px rgba(0,0,0,.35);
+      transition:.25s;
+    }
+
+    a.tile:hover{
+      background:var(--hover);
+      border-color:var(--brand);
+      transform:translateY(-2px);
+    }
+
+    .tile-title{
+      font-weight:700;
+      font-size:1rem;
+      display:flex;
+      align-items:center;
+      gap:.5rem;
+    }
+
+    .tile-sub{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.82rem;
+      line-height:1.4;
+    }
+
+    /* FOOTER */
+    .footer{
+      position:fixed;
+      bottom:0;
+      left:0;
+      width:100%;
+      background:#0d131b;
+      border-top:2px solid var(--brand);
+      padding:10px 0;
+      text-align:center;
+      color:var(--brand);
+      font-weight:700;
+      letter-spacing:.05em;
+      font-size:.85rem;
+    }
+  </style>
+
+  <!-- Dynamic base resolver for /dev/ or /public/ contexts -->
+  <script>
+    const base = window.location.pathname.includes("/dev/") ? "../" : "./";
+    document.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("a[data-link]").forEach(a => {
+        a.href = base + a.getAttribute("data-link");
+      });
+    });
+  </script>
+
+</head>
+
+<body>
+  <main class="wrap">
+
+    <!-- HEADER -->
+    <div class="title-block">
+      <h1>Coach Command Center</h1>
+      <div class="subtitle">Sandman System • Local Dev Tools</div>
+    </div>
+
+    <!-- XP OPERATIONS -->
+    <div class="section-label">XP Operations</div>
+    <div class="grid">
+      <a class="tile" data-link="leaderboards.html">
+        <div class="tile-title">📊 Leaderboard</div>
+        <div class="tile-sub">Monthly XP standings (dev only).</div>
+      </a>
+
+      <a class="tile" data-link="coaches/xp-tracker.html">
+        <div class="tile-title">⚡ XP Tracker</div>
+        <div class="tile-sub">Test XP increments and monthly caps.</div>
+      </a>
+
+      <a class="tile" data-link="coaches/athlete-snapshot.html">
+        <div class="tile-title">🧠 Athlete Snapshot</div>
+        <div class="tile-sub">Tier, badge, stripe count, XP bar.</div>
+      </a>
+
+      <a class="tile" data-link="coaches/ceremonies/index.html">
+        <div class="tile-title">🏅 Ceremony Tools</div>
+        <div class="tile-sub">Promotion lists, readiness flags, visuals.</div>
+      </a>
+    </div>
+
+    <!-- COACH OPS -->
+    <div class="section-label">Coach Operations</div>
+    <div class="grid">
+
+      <a class="tile" data-link="coaches/coach-notes.html">
+        <div class="tile-title">📝 Coach Notes</div>
+        <div class="tile-sub">Behavior +5, focus notes, private logs.</div>
+      </a>
+
+      <a class="tile" data-link="coaches/practice-plans.html">
+        <div class="tile-title">📚 Practice Plans</div>
+        <div class="tile-sub">Drills, warm-ups, flow templates.</div>
+      </a>
+
+      <a class="tile" data-link="coaches/roster.html">
+        <div class="tile-title">👥 Athlete Profiles</div>
+        <div class="tile-sub">XP bars, contact, badges.</div>
+      </a>
+
+      <a class="tile" data-link="coaches/weekend-xp.html">
+        <div class="tile-title">⚔️ Weekend XP</div>
+        <div class="tile-sub">Show, win, style — tournament logging.</div>
+      </a>
+
+    </div>
+
+    <!-- TRAINING TOOLS -->
+    <div class="section-label">Training Tools</div>
+    <div class="grid">
+
+      <a class="tile" data-link="tools/timer-engine/sandman_timer_engine.html">
+        <div class="tile-title">⏱ Sandman Timer Engine</div>
+        <div class="tile-sub">Warm-up → Drills → Live → Finisher.</div>
+      </a>
+
+      <a class="tile" data-link="coaches/daily-grind.html">
+        <div class="tile-title">🔥 Daily Grind XP</div>
+        <div class="tile-sub">Practice block XP triggers.</div>
+      </a>
+
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    Coach Access • Dev Mode
+  </footer>
+
+</body>
+</html>

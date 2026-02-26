@@ -1,0 +1,161 @@
+:root {
+  --bg: #05070c;
+  --panel: #0c111b;
+  --border: #182031;
+  --brand: #ffd447;
+  --text: #e6e9ef;
+  --muted: #8a93a3;
+  --win: #2db951;
+  --loss: #d63939;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, sans-serif;
+}
+
+.top {
+  padding: 16px;
+  text-align: center;
+  background: #0b1017;
+  border-bottom: 1px solid var(--border);
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.6rem;
+  color: var(--brand);
+  text-shadow: 0 0 10px rgba(255,212,71,.2);
+}
+
+.meta {
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+/* ============================ BRACKET LAYOUT ============================ */
+
+#bracketContainer {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* Each match block */
+.match {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+}
+
+/* Names + score */
+.row {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  font-size: 1rem;
+}
+
+.row .winner {
+  color: var(--win);
+  font-weight: 600;
+}
+.row .loser {
+  color: var(--loss);
+  opacity: .8;
+}
+
+.label {
+  font-size: .8rem;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+/* Round separators */
+.round-title {
+  font-size: 1.1rem;
+  margin: 16px 0 4px;
+  color: var(--brand);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px rgba(255,212,71,.2);
+}
+
+/* Fighter row */
+.fighter {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+}
+
+/* Responsive */
+@media (min-width: 700px) {
+  #bracketContainer {
+    max-width: 700px;
+    margin: auto;
+  }
+}
+.rr-title {
+  margin: 20px 0 8px;
+  color: var(--brand);
+  text-align: center;
+  font-size: 1.4rem;
+  text-shadow: 0 0 10px rgba(255,212,71,.25);
+}
+
+#rrStandings {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  max-width: 700px;
+  margin: 0 auto 40px;
+}
+
+.rr-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rr-table th {
+  text-align: left;
+  font-size: .85rem;
+  color: var(--muted);
+  padding-bottom: 6px;
+}
+
+.rr-table td {
+  padding: 6px 0;
+  border-bottom: 1px solid #111722;
+  font-size: .95rem;
+}
+
+.rr-table tr:last-child td {
+  border-bottom: none;
+}
+
+.rr-name {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.rr-win {
+  color: #2db951;
+  font-weight: 600;
+}
+
+.rr-loss {
+  color: #d63939;
+  font-weight: 600;
+}
+
+.rr-pd-pos {
+  color: #2db951;
+}
+
+.rr-pd-neg {
+  color: #d63939;
+}

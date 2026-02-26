@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Recon · Hub</title>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      background:#06080d;
+      color:#e5e7eb;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 42px;
+    }
+
+    /* Heading */
+    h1{
+      color:#ffdd48;
+      margin-bottom:4px;
+      text-shadow:0 0 8px rgba(255,221,72,.28);
+      letter-spacing:.03em;
+    }
+    .muted{
+      color:#9ca3af;
+      font-size:.78rem;
+      margin-bottom:20px;
+    }
+
+    /* Nav Pills */
+    .top-nav{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+    }
+    .pill{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:999px;
+      padding:8px 16px;
+      font-weight:700;
+      color:#fff;
+      text-decoration:none;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .pill:hover{
+      background:#e63946;
+      border-color:#e63946;
+    }
+
+    /* Cards */
+    .card-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:16px;
+    }
+    .card{
+      background:#0b1017;
+      border:1px solid #1f2937;
+      border-radius:14px;
+      padding:16px 18px 20px;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .card:hover{
+      border-color:#ffdd48;
+      background:#121824;
+      box-shadow:0 0 12px rgba(255,221,72,.18);
+    }
+    .card h2{
+      margin:0 0 6px;
+      font-size:1.05rem;
+      color:#ffdd48;
+      letter-spacing:.02em;
+    }
+    .card p{
+      margin:0;
+      color:#9ca3af;
+      font-size:.77rem;
+      line-height:1.4;
+    }
+
+    .red{border-color:#e63946;}
+    .red:hover{border-color:#e63946;background:#1a0f12;box-shadow:0 0 12px rgba(230,57,70,.22);}
+    .gold{border-color:#ffdd48;}
+    .gold:hover{border-color:#ffdd48;background:#181611;box-shadow:0 0 12px rgba(255,221,72,.22);}
+    .gray{border-color:#4b5563;}
+    .gray:hover{border-color:#94a3b8;background:#111417;}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <!-- Top Nav -->
+  <div class="top-nav">
+    <a class="pill" href="/athletes/index.html">← Athlete Hub</a>
+    <a class="pill" href="/athletes/filmroom/index.html">📼 FilmRoom</a>
+    <a class="pill" href="../media/index.html">🎥 Media</a>
+  </div>
+
+  <!-- Title -->
+  <h1>Recon</h1>
+  <p class="muted">Opponent intelligence · Match planning · AI scouting</p>
+
+  <!-- Card Grid -->
+  <div class="card-grid">
+    
+    <div class="card gold" onclick="location.href='./opponent-library.html'">
+      <h2>Opponent Library</h2>
+      <p>Profiles · Strengths · Tendencies · Notes</p>
+    </div>
+
+    <div class="card gray" onclick="location.href='./add-opponent.html'">
+      <h2>Add Opponent</h2>
+      <p>Create new opponent profile for scouting.</p>
+    </div>
+
+    <div class="card red" onclick="location.href='./match-plan.html'">
+      <h2>Match Plan</h2>
+      <p>Keys to win · Danger zones · Early/late strategy</p>
+    </div>
+
+    <div class="card gold" onclick="location.href='./ai-scout.html'">
+      <h2>AI Scout</h2>
+      <p>Paste film link → AI analyzes tendencies & risks</p>
+    </div>
+
+    <div class="card gray" onclick="location.href='../video-vault/index.html'">
+      <h2>Video Vault</h2>
+      <p>Store & review all saved opponent clips.</p>
+    </div>
+
+    <div class="card red" onclick="location.href='../video-console/index.html'">
+      <h2>Video Breakdown Console</h2>
+      <p>Live notation · Tags · Athlete feedback workflows</p>
+    </div>
+
+  </div>
+
+</main>
+</body>
+</html>

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Leaderboards (Demo) | Sandman System™</title>
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      margin:0;
+      background:#05070c;
+      color:#f8fafc;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:2rem 1.25rem 3rem;
+    }
+
+    h1{
+      margin:0 0 .35rem;
+      font-size:1.6rem;
+      color:#ffdd48;
+      text-shadow:0 0 10px rgba(255,221,72,.28);
+    }
+
+    .lead{
+      color:#9ca3af;
+      font-size:.9rem;
+      line-height:1.6;
+      max-width:720px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.4rem;
+      padding:.18rem .55rem;
+      border-radius:999px;
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      background:#0b1017;
+      border:1px solid #1f2937;
+      color:#e5e7eb;
+      margin-top:.35rem;
+    }
+
+    /* Top nav (slim, consistent) */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.75rem 1.5rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      text-align:center;
+      gap:.5rem;
+    }
+    .nav-logo{
+      font-size:1.25rem;
+      font-weight:700;
+      color:#ffd633;
+      text-transform:uppercase;
+      letter-spacing:1px;
+    }
+    .nav-links{
+      display:flex;
+      gap:1.5rem;
+      flex-wrap:wrap;
+      justify-content:center;
+    }
+    .nav-links a{
+      text-decoration:none;
+      font-weight:500;
+      color:#f3f4f6;
+      transition:color .2s;
+    }
+    .nav-links a:hover{ color:#ff4d4d; }
+    @media(min-width:900px){
+      .nav-container{ flex-direction:row; justify-content:space-between; }
+    }
+
+    /* Layout sections */
+    .board-section{
+      margin-top:1.75rem;
+    }
+    .board-header{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:space-between;
+      gap:.5rem;
+      align-items:flex-end;
+      margin-bottom:.75rem;
+    }
+    .board-header h2{
+      margin:0;
+      font-size:1.1rem;
+      color:#e5e7eb;
+    }
+    .board-header .sub{
+      font-size:.8rem;
+      color:#9ca3af;
+    }
+
+    .filters{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.5rem;
+      font-size:.7rem;
+    }
+    .filter-pill{
+      padding:.25rem .55rem;
+      border-radius:999px;
+      background:#0b1017;
+      border:1px solid #1f2937;
+      color:#e5e7eb;
+      display:inline-flex;
+      gap:.35rem;
+      align-items:center;
+    }
+    .filter-label{
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#9ca3af;
+      font-size:.68rem;
+    }
+
+    /* Board grid */
+    .board-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:10px;
+    }
+
+    .card{
+      background:#0b1017;
+      border:1px solid rgba(255,255,255,.04);
+      border-radius:12px;
+      padding:10px 10px 12px;
+      box-shadow:0 0 16px rgba(0,0,0,.35);
+    }
+    .card-head{
+      display:flex;
+      justify-content:space-between;
+      gap:8px;
+      align-items:flex-start;
+      margin-bottom:6px;
+    }
+    .name-line{
+      font-weight:700;
+      font-size:.92rem;
+      display:flex;
+      flex-wrap:wrap;
+      gap:4px;
+      align-items:center;
+    }
+    .virtur{
+      display:inline-block;
+      background:rgba(255,214,51,.08);
+      border:1px solid rgba(255,214,51,.3);
+      border-radius:999px;
+      padding:2px 8px 3px;
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#e5e7eb;
+    }
+    .tag{
+      font-size:.72rem;
+      color:#9ca3af;
+    }
+
+    .xp-num{
+      font-weight:800;
+      font-size:1.1rem;
+      color:#ffdd48;
+      text-align:right;
+    }
+
+    /* Rank chips */
+    .rank-badge{
+      display:inline-block;
+      padding:3px 7px 4px;
+      border-radius:999px;
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      margin-top:3px;
+    }
+    .rank-shadow{background:#0f172a;color:#e2e8f0;}
+    .rank-recruit{background:#facc15;color:#111827;}
+    .rank-combatant{background:#fb923c;color:#111827;}
+    .rank-competitor{background:#22c55e;color:#05130a;}
+    .rank-warrior{background:#0ea5e9;color:#051218;}
+    .rank-champion{background:#a855f7;color:#f8f5ff;}
+    .rank-veteran{background:#6b7280;color:#111827;}
+    .rank-sandman{background:#f59e0b;color:#111827;}
+    .rank-hero{background:#020617;color:#f9fafb;border:1px solid #f9fafb;}
+
+    .rank-apprentice{background:#e5e7eb;color:#111827;}
+    .rank-f4-warrior{background:#3b82f6;color:#eff6ff;}
+    .rank-f4-champion{background:#a855f7;color:#f8f5ff;}
+    .rank-f4-veteran{background:#92400e;color:#fef3c7;}
+    .rank-legend{background:#020617;color:#f9fafb;border:1px solid #f9fafb;}
+
+    /* XP bar */
+    .xp-slot{
+      margin-top:4px;
+    }
+    .xp-bar{
+      position:relative;
+      background:#020617;
+      border-radius:8px;
+      border:1px solid #1e293b;
+      height:12px;
+      overflow:hidden;
+    }
+    .xp-fill{
+      height:100%;
+      border-radius:7px;
+      background:linear-gradient(90deg,#facc15,#fb923c,#f97316);
+      box-shadow:0 0 12px rgba(250,204,21,.4);
+      width:0;
+      transition:width .4s ease-out;
+    }
+    .xp-bar::before,
+    .xp-bar::after{
+      content:"";
+      position:absolute;
+      top:1px;
+      bottom:1px;
+      width:1px;
+      background:#111827;
+      opacity:.8;
+    }
+    .xp-bar::before{ left:25%; }
+    .xp-bar::after{ left:50%; }
+    .xp-bar .tick-75{
+      position:absolute;
+      top:1px;
+      bottom:1px;
+      width:1px;
+      left:75%;
+      background:#111827;
+      opacity:.8;
+    }
+
+    .xp-meta{
+      margin-top:3px;
+      font-size:.68rem;
+      color:#9ca3af;
+      display:flex;
+      justify-content:space-between;
+      gap:6px;
+    }
+
+    /* Footnote */
+    .demo-note{
+      margin-top:1.75rem;
+      font-size:.7rem;
+      color:#64748b;
+      max-width:720px;
+    }
+
+    /* Footer */
+    .footer{
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem 1.5rem;
+      margin-top:0;
+    }
+    .footer-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      gap:1rem;
+      align-items:center;
+      justify-content:center;
+      flex-wrap:wrap;
+    }
+    .footer-title{font-weight:700;color:#ffd633;}
+    .footer-links{
+      display:flex;
+      gap:1.25rem;
+      flex-wrap:wrap;
+    }
+    .footer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-weight:500;
+    }
+    .footer-links a:hover{color:#ff4d4d;}
+    .footer-lock-note{
+      background:#1a1f29;
+      border-top:1px solid #333;
+      padding:.5rem;
+      margin-top:.75rem;
+      text-align:center;
+      color:#ffd633;
+      font-weight:600;
+      font-size:.9rem;
+    }
+    /* ===== Shared Top Nav (Shrunk, Unified) ===== */
+.top-nav {
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1.25rem;       /* was .75rem 1.5rem */
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+
+.nav-container {
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+  gap:.3rem;                    /* tighter gap */
+}
+
+.nav-logo a,
+.nav-logo {
+  font-size:1.05rem;            /* was 1.25rem */
+  font-weight:700;
+  color:#ffd633;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  text-decoration:none;
+}
+
+.nav-links {
+  display:flex;
+  gap:1rem;                     /* slightly tighter */
+  flex-wrap:wrap;
+  justify-content:center;
+  font-size:.85rem;             /* smaller text for mobile */
+}
+
+.nav-links a {
+  text-decoration:none;
+  font-weight:500;
+  color:#f3f4f6;
+  transition:color .2s;
+}
+
+.nav-links a[aria-current="page"] {
+  color:#ffd633;
+  font-weight:700;
+}
+
+.nav-links a:hover { color:#ff4d4d; }
+
+@media (min-width:900px){
+  .nav-container{
+    flex-direction:row;
+    justify-content:space-between;
+  }
+}
+/* ---------------- TOP NAV ---------------- */
+.top-nav{
+  background:#0f141b;
+  border-bottom:2px solid #ffd633;
+  padding:.45rem 1rem;
+  position:sticky;
+  top:0;
+  z-index:1000;
+}
+.nav-inner{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  max-width:1200px;
+  margin:0 auto;
+}
+.nav-logo{
+  font-size:1rem;
+  font-weight:700;
+  color:#ffd633;
+  text-decoration:none;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+.nav-btn{
+  background:none;
+  border:0;
+  font-size:1.4rem;
+  color:#ffd633;
+  cursor:pointer;
+}
+
+/* ---------------- DRAWER ---------------- */
+.nav-drawer{
+  position:fixed;
+  top:0; right:-260px;
+  width:260px;
+  height:100vh;
+  background:#0b1118;
+  border-left:2px solid #ffd633;
+  padding:1.5rem;
+  transition:.25s;
+  z-index:2000;
+  display:flex;
+  flex-direction:column;
+  gap:.75rem;
+}
+.nav-drawer.open{ right:0; }
+
+.drawer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+  font-size:1rem;
+  padding:.4rem 0;
+  font-weight:500;
+  display:block;
+}
+
+.drawer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* ---------------- BACKDROP ---------------- */
+.nav-backdrop{
+  position:fixed;
+  top:0; left:0;
+  width:100%; height:100%;
+  background:rgba(0,0,0,.45);
+  opacity:0; pointer-events:none;
+  transition:.25s;
+  z-index:1500;
+}
+.nav-backdrop.show{
+  opacity:1; pointer-events:auto;
+}
+
+/* ---------------- FOOTER ---------------- */
+.footer{
+  background:#0f141b;
+  border-top:2px solid #ffd633;
+  padding:1rem;
+  margin-top:2rem;
+}
+.footer-container{
+  max-width:1200px;
+  margin:0 auto;
+  display:flex;
+  justify-content:center;
+  gap:1.5rem;
+  flex-wrap:wrap;
+}
+.footer-title{
+  font-weight:700;
+  color:#ffd633;
+}
+.footer-links{
+  display:flex;
+  gap:1rem;
+}
+.footer-links a{
+  color:#f3f4f6;
+  text-decoration:none;
+}
+.footer-links a:hover{
+  color:#ff4d4d;
+}
+
+/* Highlight Current Page */
+.drawer-links a[aria-current="page"],
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  font-weight:700;
+}
+</style>
+
+  </style>
+</head>
+<body>
+<!-- TOP NAV -->
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn" aria-label="Menu">
+      ☰
+    </button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<aside class="nav-drawer" id="navDrawer">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="leaderboards.html">Leaderboards</a>
+    <a href="tools.html">Tools</a>
+    <a href="ceremonies.html">Ceremonies</a>
+    <a href="coaches.html">Coach Hub</a>
+  </nav>
+</aside>
+
+<!-- BACKDROP -->
+<div class="nav-backdrop" id="navBackdrop"></div>
+  <main class="wrap">
+    <header>
+      <h1>Demo Leaderboards</h1>
+      <p class="lead">
+        This is a <strong>sample view</strong> of how Sandman leaderboards will look once athletes are wired in.
+        Colors, tiers, and XP bars below are for demonstration only — they’re here to show families what
+        the system feels like when it’s live.
+      </p>
+      <div class="pill">
+        <span>Demo Only</span>
+        <span>Not Live Data</span>
+      </div>
+    </header>
+
+    <!-- Foundry 8 Board -->
+    <section class="board-section" aria-labelledby="f8BoardTitle">
+      <div class="board-header">
+        <div>
+          <h2 id="f8BoardTitle">Foundry 8 · Youth Combat</h2>
+          <p class="sub">Sample month · Top youth athletes (XP-based, Shadow → Hero)</p>
+        </div>
+        <div class="filters" aria-hidden="true">
+          <div class="filter-pill">
+            <span class="filter-label">Track</span>
+            <span>Foundry 8, Combat</span>
+          </div>
+          <div class="filter-pill">
+            <span class="filter-label">Month</span>
+            <span>2025-11</span>
+          </div>
+          <div class="filter-pill">
+            <span class="filter-label">Top</span>
+            <span>8</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="board-grid">
+        <!-- Card 1 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F8-1001</span>
+                <span class="tag">A. Lopez</span>
+              </div>
+              <span class="rank-badge rank-hero">Hero · Tier 8</span>
+            </div>
+            <div class="xp-num">2320</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:96%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>2320 / 2400 XP</span>
+            <span>4 stripes · Black</span>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F8-1013</span>
+                <span class="tag">J. Rivera</span>
+              </div>
+              <span class="rank-badge rank-sandman">Sandman · Tier 7</span>
+            </div>
+            <div class="xp-num">1875</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:85%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>1875 / 2200 XP</span>
+            <span>3 stripes · Gold</span>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F8-1042</span>
+                <span class="tag">K. Nguyen</span>
+              </div>
+              <span class="rank-badge rank-champion">Champion · Tier 5</span>
+            </div>
+            <div class="xp-num">1220</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:76%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>1220 / 1600 XP</span>
+            <span>3 stripes · Purple</span>
+          </div>
+        </article>
+
+        <!-- Card 4 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F8-1077</span>
+                <span class="tag">L. Martinez</span>
+              </div>
+              <span class="rank-badge rank-warrior">Warrior · Tier 4</span>
+            </div>
+            <div class="xp-num">980</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:70%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>980 / 1400 XP</span>
+            <span>2 stripes · Blue</span>
+          </div>
+        </article>
+
+        <!-- Card 5 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F8-1090</span>
+                <span class="tag">S. King</span>
+              </div>
+              <span class="rank-badge rank-competitor">Competitor · Tier 3</span>
+            </div>
+            <div class="xp-num">610</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:51%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>610 / 1200 XP</span>
+            <span>2 stripes · Green</span>
+          </div>
+        </article>
+
+        <!-- Card 6 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F8-1123</span>
+                <span class="tag">D. Patel</span>
+              </div>
+              <span class="rank-badge rank-combatant">Combatant · Tier 2</span>
+            </div>
+            <div class="xp-num">420</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:42%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>420 / 1000 XP</span>
+            <span>1 stripe · Orange</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- Foundry 4 Board -->
+    <section class="board-section" aria-labelledby="f4BoardTitle">
+      <div class="board-header">
+        <div>
+          <h2 id="f4BoardTitle">Foundry 4 · Teen & Young Adult</h2>
+          <p class="sub">Sample month · Older athletes on the Path2Legend</p>
+        </div>
+        <div class="filters" aria-hidden="true">
+          <div class="filter-pill">
+            <span class="filter-label">Track</span>
+            <span>Foundry 4, Combat</span>
+          </div>
+          <div class="filter-pill">
+            <span class="filter-label">Month</span>
+            <span>2025-11</span>
+          </div>
+          <div class="filter-pill">
+            <span class="filter-label">Top</span>
+            <span>5</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="board-grid">
+        <!-- F4 Card 1 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F4-2004</span>
+                <span class="tag">C. Torres</span>
+              </div>
+              <span class="rank-badge rank-legend">Legend · Tier 4</span>
+            </div>
+            <div class="xp-num">2310</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:96%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>2310 / 2400 XP</span>
+            <span>4 stripes · Black</span>
+          </div>
+        </article>
+
+        <!-- F4 Card 2 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F4-2011</span>
+                <span class="tag">R. Kim</span>
+              </div>
+              <span class="rank-badge rank-f4-veteran">Veteran · Tier 3</span>
+            </div>
+            <div class="xp-num">1820</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:83%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>1820 / 2200 XP</span>
+            <span>3 stripes · Brown</span>
+          </div>
+        </article>
+
+        <!-- F4 Card 3 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F4-2038</span>
+                <span class="tag">E. Johnson</span>
+              </div>
+              <span class="rank-badge rank-f4-champion">Champion · Tier 2</span>
+            </div>
+            <div class="xp-num">1210</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:76%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>1210 / 1600 XP</span>
+            <span>3 stripes · Purple</span>
+          </div>
+        </article>
+
+        <!-- F4 Card 4 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F4-2052</span>
+                <span class="tag">T. Garcia</span>
+              </div>
+              <span class="rank-badge rank-f4-warrior">Warrior · Tier 1</span>
+            </div>
+            <div class="xp-num">760</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:54%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>760 / 1400 XP</span>
+            <span>2 stripes · Blue</span>
+          </div>
+        </article>
+
+        <!-- F4 Card 5 -->
+        <article class="card">
+          <div class="card-head">
+            <div>
+              <div class="name-line">
+                <span class="virtur">F4-2070</span>
+                <span class="tag">J. Ortiz</span>
+              </div>
+              <span class="rank-badge rank-apprentice">Apprentice · Tier 0</span>
+            </div>
+            <div class="xp-num">380</div>
+          </div>
+          <div class="xp-slot">
+            <div class="xp-bar">
+              <div class="xp-fill" style="width:32%;"></div>
+              <div class="tick-75"></div>
+            </div>
+          </div>
+          <div class="xp-meta">
+            <span>380 / 1200 XP</span>
+            <span>1 stripe · White</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <p class="demo-note">
+      This page is a <strong>demo preview</strong>. Real leaderboards for athletes and parents will live
+      inside a secure portal and pull live XP directly from the Sandman System™ — with the same look and
+      feel you see here.
+    </p>
+  </main>
+
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
+<script>
+const btn = document.getElementById("navBtn");
+const drawer = document.getElementById("navDrawer");
+const backdrop = document.getElementById("navBackdrop");
+
+// open
+btn.addEventListener("click",()=>{
+  drawer.classList.add("open");
+  backdrop.classList.add("show");
+  document.body.style.overflow="hidden";
+});
+
+// close
+backdrop.addEventListener("click", closeMenu);
+drawer.querySelectorAll("a").forEach(a=>{
+  a.addEventListener("click", closeMenu);
+});
+
+function closeMenu(){
+  drawer.classList.remove("open");
+  backdrop.classList.remove("show");
+  document.body.style.overflow="";
+}
+
+// highlight current page
+const links=[...document.querySelectorAll(".drawer-links a, .footer-links a")];
+links.forEach(link=>{
+  if(link.href === window.location.href){
+    link.setAttribute("aria-current","page");
+  }
+});
+</script>

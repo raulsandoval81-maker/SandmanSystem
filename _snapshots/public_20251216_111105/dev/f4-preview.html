@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Foundry 4 — All Athletes (Preview)</title>
+
+  <!-- Absolute path so it works anywhere under /public -->
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <style>
+    .wrap{max-width:1100px;margin:0 auto;padding:1rem}
+    .toolbar{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center;margin:.75rem 0}
+    .input,.select{
+      background:#121821;border:1px solid #243041;border-radius:10px;color:#e6e8eb;padding:.5rem .75rem
+    }
+    .list{
+      border:1px solid #243041;border-radius:12px;overflow:auto;max-height:70vh;background:#0f141b
+    }
+    .row{
+      display:grid;grid-template-columns:260px 1fr 240px 220px 240px;gap:12px;
+      padding:.65rem .75rem;border-bottom:1px solid #1f2a3a;align-items:center;color:#e6e8eb
+    }
+    .row:nth-child(odd){background:#101722}
+    .row.header{position:sticky;top:0;background:#182130;color:#ffd633;font-weight:800;border-bottom:2px solid #263142;z-index:2}
+    .pill{display:inline-block;padding:.15rem .5rem;border-radius:999px;background:#263142;border:1px solid #3a4a60;font-size:.8rem;color:#d7dbe2}
+    .bar{background:#1e2633;height:10px;border-radius:6px;overflow:hidden}
+    .bar > span{display:block;height:100%;background:#ffd633;width:0%}
+    .small{color:#9fb3c8;font-size:.85rem}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .label{display:block;font-size:.75rem;color:#9fb3c8;margin:.25rem 0 0}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Foundry 4 — All Athletes (Preview)</h1>
+
+    <div class="toolbar">
+      <input id="search" class="input" placeholder="Search name or tag…" />
+      <select id="sort" class="select">
+        <option value="name">Sort: Name</option>
+        <option value="xp">Sort: XP</option>
+        <option value="tier">Sort: Tier</option>
+        <option value="tag">Sort: UID Virtue Tag</option>
+      </select>
+      <select id="tier" class="select">
+        <option value="">Tier: All</option>
+        <option value="T0">T0 — Apprentice</option>
+        <option value="T1">T1 — Warrior</option>
+        <option value="T2">T2 — Champion</option>
+        <option value="T3">T3 — Veteran</option>
+        <option value="T4">T4 — Legend</option>
+      </select>
+      <span id="status" class="small"></span>
+    </div>
+
+    <div class="list" id="list">
+      <div class="row header">
+        <div>Athlete</div>
+        <div>XP Belt Bar</div>
+        <div>RANK • TRACK</div>
+        <div>TIER • COLOR</div>
+        <div>UID Virtue Tag</div>
+      </div>
+      <!-- rows injected -->
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      db, collection, getDocs, query, where, orderBy
+    } from "/assets/js/firebase-init.js";
+import { XP_CONFIG } from "../../assets/js/xp.config.js";
+    const listEl   = document.getElementById("list");
+    const statusEl = document.getElementById("status");
+    const searchEl = document.getElementById("search");
+    const sortEl   = document.getElementById("sort");
+    const tierEl   = document.getElementById("tier");
+
+    let rows = [];
+
+    // --- Foundry4 mappings (locked) ---
+    function rankName(t){
+      switch(String(t||"")){
+        case "T0": return "Apprentice";
+        case "T1": return "Warrior";
+        case "T2": return "Champion";
+        case "T3": return "Veteran";
+        case "T4": return "Legend";
+        default:   return "—";
+      }
+    }
+    function colorName(t){
+      switch(String(t||"")){
+        case "T0": return "WHITE";
+        case "T1": return "BLUE";
+        case "T2": return "PURPLE";
+        case "T3": return "BROWN";
+        case "T4": return "BLACK";
+        default:   return "—";
+      }
+    }
+    function tierLabel(t){
+      const n = (String(t||"").match(/T(\d)/)||[])[1];
+      return (n!=null) ? `T${n}` : (t||"—");
+    }
+    function xpPct(xp=0, cap=1200){
+      xp = Number(xp)||0; cap = Number(cap)||0;
+      if (cap<=0) return 0;
+      return Math.max(0, Math.min(100, Math.round((xp/cap)*100)));
+    }
+
+    function render(){
+      const q = (searchEl.value||"").trim().toLowerCase();
+      const filterTier = tierEl.value||"";
+
+      let out = rows.slice();
+
+      if (filterTier){
+        out = out.filter(r => (r.tier||"") === filterTier);
+      }
+      if (q){
+        out = out.filter(r => {
+          const name = (r.fullName||"").toLowerCase();
+          const tag  = String(r.virtueTag ?? r.uid ?? "").toLowerCase();
+          return name.includes(q) || tag.includes(q);
+        });
+      }
+
+      const sort = sortEl.value;
+      out.sort((a,b)=>{
+        if (sort==="xp")   return (b.xp||0) - (a.xp||0);
+        if (sort==="tier") return String(a.tier||"").localeCompare(String(b.tier||""));
+        if (sort==="tag")  return String(a.virtueTag||"").localeCompare(String(b.virtueTag||""));
+        return String(a.fullName||"").localeCompare(String(b.fullName||""));
+      });
+
+      // clear existing data rows
+      [...listEl.querySelectorAll(".row.data")].forEach(n=>n.remove());
+
+      const frag = document.createDocumentFragment();
+      out.forEach(r=>{
+        const cap = Number(r.xpCap || r.cap || 1200);
+        const pct = xpPct(r.xp, cap);
+        const trackText = r.track ? (r.track === "foundry4" ? "Foundry 4" : r.track) : "Foundry 4";
+        const rankText  = rankName(r.tier);
+        const tierText  = tierLabel(r.tier);
+        const colorText = colorName(r.tier);
+        const virtue    = r.virtueTag || r.uid || "";
+
+        const row = document.createElement("div");
+        row.className = "row data";
+        row.innerHTML = `
+          <div>
+            <div><strong>${r.fullName || "—"}</strong></div>
+            <div class="small mono">${r.team || ""} ${r.cityState ? "• "+r.cityState : ""}</div>
+          </div>
+
+          <div>
+            <div class="bar" aria-label="XP Belt Bar"><span style="width:${pct}%"></span></div>
+            <div class="small mono">${Number(r.xp||0)} / ${cap} (${pct}%)</div>
+          </div>
+
+          <div>
+            <span class="pill">${rankText}</span>
+            <span class="label">• ${trackText}</span>
+          </div>
+
+          <div>
+            <span class="pill">${tierText}</span>
+            <span class="label">• ${colorText}</span>
+          </div>
+
+          <div class="mono small">${virtue}</div>
+        `;
+        frag.appendChild(row);
+      });
+      listEl.appendChild(frag);
+
+      statusEl.textContent = `Loaded ${out.length} athletes`;
+    }
+
+    async function load(){
+      statusEl.textContent = "Loading…";
+      const qRef = query(
+        collection(db, "athletes"),
+        where("track","==","foundry4"),
+        orderBy("fullName")
+      );
+      const snap = await getDocs(qRef);
+      rows = snap.docs.map(d=>({ id:d.id, uid:d.id, ...d.data() }));
+      render();
+    }
+
+    ["input","change"].forEach(ev=>{
+      searchEl.addEventListener(ev, render);
+      sortEl.addEventListener(ev, render);
+      tierEl.addEventListener(ev, render);
+    });
+
+    load();
+  </script>
+</body>
+</html>

@@ -1,0 +1,403 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Round Robin – Lompoc Wrestling</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root{
+      --lompoc-blue:#1E3A8A;
+      --lompoc-navy:#0F172A;
+      --lompoc-gray:#334155;
+      --lompoc-light:#F8FAFC;
+      --lompoc-muted:#CBD5E1;
+      --accent:#FACC15;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      padding:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:#020617;
+      color:var(--lompoc-light);
+    }
+    .wrap{
+      max-width:1000px;
+      margin:0 auto;
+      padding:16px;
+    }
+
+    /* HEADER */
+    .bracket-header{
+      background:linear-gradient(90deg,var(--lompoc-navy),var(--lompoc-blue));
+      border-bottom:2px solid var(--lompoc-gray);
+      padding:12px 16px 18px;
+      margin-bottom:16px;
+      color:var(--lompoc-light);
+    }
+    .header-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:flex-end;
+      justify-content:space-between;
+    }
+    .field{
+      display:flex;
+      flex-direction:column;
+      min-width:170px;
+    }
+    .field label{
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:var(--lompoc-muted);
+      margin-bottom:4px;
+    }
+    .field select,
+    .field input{
+      padding:6px 8px;
+      border-radius:6px;
+      border:1px solid rgba(15,23,42,.7);
+      background:rgba(15,23,42,.9);
+      color:var(--lompoc-light);
+      font-size:.8rem;
+    }
+    .field select:focus,
+    .field input:focus{
+      outline:2px solid var(--accent);
+      outline-offset:1px;
+    }
+
+    .event-name-display{
+      text-align:center;
+      font-size:1.15rem;
+      font-weight:700;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+      margin-top:8px;
+      text-shadow:0 0 14px rgba(15,23,42,.8);
+    }
+    .meta-line{
+      text-align:center;
+      font-size:.8rem;
+      color:var(--lompoc-muted);
+      margin-top:4px;
+    }
+
+    /* TABLE */
+    .section-title{
+      font-size:.8rem;
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      color:var(--lompoc-muted);
+      margin:6px 0 8px;
+    }
+    .rr-table-wrap{
+      overflow-x:auto;
+    }
+    table.rr{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.8rem;
+      background:#020617;
+      border:1px solid var(--lompoc-gray);
+    }
+    .rr th,
+    .rr td{
+      border:1px solid rgba(51,65,85,.9);
+      padding:4px 6px;
+      text-align:center;
+      min-width:40px;
+    }
+    .rr th{
+      background:rgba(15,23,42,.9);
+      color:var(--lompoc-muted);
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.7rem;
+    }
+    .rr th.sticky{
+      position:sticky;
+      left:0;
+      z-index:2;
+      background:rgba(15,23,42,1);
+    }
+    .rr td.name-cell{
+      text-align:left;
+      position:sticky;
+      left:0;
+      z-index:1;
+      background:#020617;
+    }
+
+    .rr input{
+      width:100%;
+      border:none;
+      background:transparent;
+      color:var(--lompoc-light);
+      text-align:center;
+      font-size:.8rem;
+    }
+    .rr input:focus{
+      outline:1px solid var(--accent);
+      outline-offset:-1px;
+      border-radius:4px;
+    }
+    .name-input{
+      text-align:left;
+    }
+    .diag{
+      color:var(--lompoc-muted);
+      font-size:.7rem;
+    }
+
+    .note{
+      font-size:.7rem;
+      color:var(--lompoc-muted);
+      margin-top:8px;
+    }
+
+    /* PODIUM */
+    .podium{
+      margin-top:18px;
+      border-top:1px solid var(--lompoc-gray);
+      padding-top:10px;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+      font-size:.75rem;
+    }
+    .podium div label{
+      display:block;
+      font-size:.7rem;
+      color:var(--lompoc-muted);
+      margin-bottom:2px;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+    }
+    .podium input{
+      width:100%;
+      padding:4px 6px;
+      border-radius:6px;
+      border:1px solid var(--lompoc-gray);
+      background:#020617;
+      color:var(--lompoc-light);
+      font-size:.8rem;
+    }
+
+    /* PRINT */
+    @media print{
+      body{
+        background:#ffffff;
+        color:#000000;
+      }
+      .bracket-header{
+        background:#ffffff;
+        color:#000000;
+        border:none;
+      }
+      .field{display:none;}
+      .event-name-display{
+        text-shadow:none;
+        font-size:1.1rem;
+        margin-bottom:4px;
+      }
+      .meta-line{
+        color:#111827;
+      }
+      table.rr{
+        background:#ffffff;
+        border-color:#000000;
+      }
+      .rr th,
+      .rr td{
+        border-color:#000000;
+      }
+      .rr td.name-cell{
+        background:#ffffff;
+      }
+      .rr input{
+        color:#000000;
+      }
+      .podium input{
+        background:#ffffff;
+        color:#000000;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bracket-header">
+    <div class="wrap">
+      <div class="header-row">
+        <div class="field">
+          <label for="eventPreset">Saved events</label>
+          <select id="eventPreset">
+            <option value="Brave Challenge">Brave Challenge</option>
+            <option value="Queen of the Ring">Queen of the Ring</option>
+            <option value="Battle by the Sea">Battle by the Sea</option>
+          </select>
+        </div>
+        <div class="field" style="flex:1;min-width:220px;">
+          <label for="eventNameInput">Event name</label>
+          <input id="eventNameInput" type="text" value="Brave Challenge" />
+        </div>
+        <div class="field">
+          <label for="metaInput">Division / Weight</label>
+          <input id="metaInput" type="text" placeholder="12U • 82 lbs • Round Robin Pool" />
+        </div>
+      </div>
+      <div class="event-name-display" id="eventNameDisplay">BRAVE CHALLENGE</div>
+      <div class="meta-line" id="metaDisplay">12U • 82 lbs • Round Robin Pool</div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <h2 class="section-title">Round Robin – Up to 5 Wrestlers</h2>
+
+    <div class="rr-table-wrap">
+      <table class="rr">
+        <thead>
+          <tr>
+            <th class="sticky">Wrestler</th>
+            <th>#1</th>
+            <th>#2</th>
+            <th>#3</th>
+            <th>#4</th>
+            <th>#5</th>
+            <th>W</th>
+            <th>L</th>
+            <th>PF</th>
+            <th>PA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Row 1 -->
+          <tr>
+            <td class="name-cell">
+              <input class="name-input" type="text" placeholder="#1 Name" />
+            </td>
+            <td class="diag">—</td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+          </tr>
+          <!-- Row 2 -->
+          <tr>
+            <td class="name-cell">
+              <input class="name-input" type="text" placeholder="#2 Name" />
+            </td>
+            <td><input type="text" /></td>
+            <td class="diag">—</td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+          </tr>
+          <!-- Row 3 -->
+          <tr>
+            <td class="name-cell">
+              <input class="name-input" type="text" placeholder="#3 Name" />
+            </td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td class="diag">—</td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+          </tr>
+          <!-- Row 4 -->
+          <tr>
+            <td class="name-cell">
+              <input class="name-input" type="text" placeholder="#4 Name" />
+            </td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td class="diag">—</td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+          </tr>
+          <!-- Row 5 -->
+          <tr>
+            <td class="name-cell">
+              <input class="name-input" type="text" placeholder="#5 Name (optional)" />
+            </td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td class="diag">—</td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+            <td><input type="text" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="note">
+      Use grid cells to mark scores or W/L (e.g., “W 6–2”, “L 3–4”). Standings are decided by wins, then point
+      differential, then head-to-head or pins, matching your tournament rules.
+    </p>
+
+    <!-- Podium -->
+    <div class="podium">
+      <div>
+        <label>1st Place</label>
+        <input type="text" />
+      </div>
+      <div>
+        <label>2nd Place</label>
+        <input type="text" />
+      </div>
+      <div>
+        <label>3rd Place</label>
+        <input type="text" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const preset = document.getElementById('eventPreset');
+    const eventInput = document.getElementById('eventNameInput');
+    const eventDisplay = document.getElementById('eventNameDisplay');
+    const metaInput = document.getElementById('metaInput');
+    const metaDisplay = document.getElementById('metaDisplay');
+
+    function updateEventName(){
+      const name = eventInput.value.trim() || 'Event Name';
+      eventDisplay.textContent = name.toUpperCase();
+    }
+    function updateMeta(){
+      metaDisplay.textContent = metaInput.value.trim() || 'Division • Weight • Round Robin Pool';
+    }
+
+    preset.addEventListener('change', () => {
+      eventInput.value = preset.value;
+      updateEventName();
+    });
+    eventInput.addEventListener('input', updateEventName);
+    metaInput.addEventListener('input', updateMeta);
+
+    updateEventName();
+    updateMeta();
+  </script>
+</body>
+</html>

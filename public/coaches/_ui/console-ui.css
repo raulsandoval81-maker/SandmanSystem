@@ -1,0 +1,137 @@
+/* public/coaches/_ui/console-ui.css */
+/* Shared console UI kit — pills, buttons, step cards */
+
+:root{
+  --ui-bg: rgba(9,12,18,.55);
+  --ui-border: rgba(148,163,184,.22);
+  --ui-border-strong: rgba(148,163,184,.33);
+  --ui-text: rgba(226,232,240,.92);
+  --ui-muted: rgba(148,163,184,.85);
+
+  --ui-pill-h: 34px;
+  --ui-pill-r: 999px;
+  --ui-pill-pad: 0 14px;
+
+  --ui-red: #ef4444;
+  --ui-red-b: rgba(239,68,68,.35);
+
+  --ui-yellow: #facc15;
+  --ui-yellow-b: rgba(250,204,21,.35);
+
+  --ui-ink: rgba(15,23,42,.92);
+
+  --ui-slate: rgba(148,163,184,.15);
+  --ui-slate-b: rgba(148,163,184,.22);
+
+  --ui-blue: rgba(59,130,246,.18);
+  --ui-blue-b: rgba(59,130,246,.30);
+
+  --ui-glow: 0 0 0 2px rgba(250,204,21,.18);
+}
+
+.console-card{
+  background: var(--ui-bg);
+  border: 1px solid var(--ui-border);
+  border-radius: 18px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.22);
+}
+
+.console-step{
+  border-top: 1px solid rgba(148,163,184,.10);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+
+.pill-row{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.pill{
+  height: var(--ui-pill-h);
+  padding: var(--ui-pill-pad);
+  border-radius: var(--ui-pill-r);
+  border: 1px solid var(--ui-slate-b);
+  background: var(--ui-slate);
+  color: var(--ui-text);
+  font-weight: 700;
+  letter-spacing: .2px;
+  cursor: pointer;
+  user-select: none;
+  transition: transform .06s ease, box-shadow .15s ease, border-color .15s ease, filter .15s ease;
+}
+
+.pill:hover{ filter: brightness(1.06); }
+.pill:active{ transform: translateY(1px); }
+
+.pill[disabled]{
+  opacity: .45;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+.pill.is-on{
+  box-shadow: var(--ui-glow);
+  border-color: rgba(250,204,21,.35);
+}
+
+.pill-red{
+  background: rgba(239,68,68,.20);
+  border-color: var(--ui-red-b);
+  color: #ffe4e6;
+}
+.pill-red.is-on{
+  background: rgba(239,68,68,.28);
+  border-color: rgba(239,68,68,.55);
+  box-shadow: 0 0 0 2px rgba(239,68,68,.16);
+}
+
+.pill-yellow{
+  background: rgba(250,204,21,.26);
+  border-color: rgba(250,204,21,.38);
+  color: var(--ui-ink);
+}
+.pill-yellow.is-on{
+  background: rgba(250,204,21,.34);
+  border-color: rgba(250,204,21,.62);
+  box-shadow: 0 0 0 2px rgba(250,204,21,.22);
+}
+
+.pill-blue{
+  background: var(--ui-blue);
+  border-color: var(--ui-blue-b);
+}
+
+.pill-ghost{
+  background: transparent;
+  border-color: rgba(148,163,184,.25);
+}
+
+.field{
+  background: rgba(2,6,23,.35);
+  border: 1px solid rgba(148,163,184,.22);
+  color: var(--ui-text);
+  border-radius: 14px;
+  padding: 10px 12px;
+  outline: none;
+}
+.field:focus{
+  border-color: rgba(250,204,21,.40);
+  box-shadow: var(--ui-glow);
+}
+
+.hint{
+  color: var(--ui-muted);
+  font-size: 13px;
+  line-height: 1.3;
+}
+
+.divider{
+  height: 1px;
+  background: rgba(148,163,184,.10);
+  margin: 12px 0;
+}

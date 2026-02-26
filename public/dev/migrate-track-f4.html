@@ -1,0 +1,54 @@
+<!doctype html>
+<meta charset="utf-8"/>
+<title>F4 Track Migration — foundry4-combat → foundry4</title>
+<style>
+  body{font-family:system-ui;background:#0b0b0b;color:#eee;margin:0;padding:24px}
+  .card{max-width:900px;margin:0 auto;background:#121212;border:1px solid #222;border-radius:14px;padding:16px}
+  .muted{color:#9aa}
+  pre{white-space:pre-wrap;background:#0a0a0a;border:1px dashed #333;border-radius:10px;padding:10px}
+  .pill{display:inline-block;padding:2px 8px;border-radius:999px;background:#1b1b1b;border:1px solid #2a2a2a;margin-right:6px}
+  button{background:#ffd633;color:#111;font-weight:800;border:0;border-radius:10px;padding:.55rem .9rem;cursor:pointer}
+</style>
+<div class="card">
+  <h1>F4 Track Migration</h1>
+  <p class="muted">
+    Converts <span class="pill">track: "foundry4-combat"</span> → <span class="pill">"foundry4"</span> (idempotent).
+  </p>
+  <div id="counts" class="muted">Scanning…</div>
+  <div style="margin:12px 0">
+    <button id="run">Run Migration</button>
+  </div>
+  <pre id="log"></pre>
+</div>
+
+<script type="module">
+  import {
+    db, collection, getDocs, query, where, updateDoc, doc
+  } from "/assets/js/firebase-init.js";
+
+  const logEl = document.getElementById("log");
+  const countsEl = document.getElementById("counts");
+  function log(m){ logEl.textContent += m + "\n"; }
+
+  async function scan(){
+    const snapOld = await getDocs(query(collection(db,"athletes"), where("track","==","foundry4-combat")));
+    const snapNew = await getDocs(query(collection(db,"athletes"), where("track","==","foundry4")));
+    countsEl.textContent = `Current: foundry4-combat=${snapOld.size}, foundry4=${snapNew.size}`;
+    return snapOld.docs;
+  }
+
+  document.getElementById("run").addEventListener("click", async ()=>{
+    logEl.textContent = "";
+    const docs = await scan();
+    if (!docs.length){ log("Nothing to migrate."); return; }
+    let n=0;
+    for (const d of docs){
+      await updateDoc(doc(db,"athletes", d.id), { track: "foundry4" });
+      n++; log(`✓ ${d.id} → track="foundry4"`);
+    }
+    log(`\nDone. Updated: ${n}`);
+    await scan();
+  });
+
+  await scan();
+</script>

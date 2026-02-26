@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Dev Hub • Sandman</title>
+  <style>
+    :root{ color-scheme: dark; }
+    body{background:#0a0a0a;color:#e6e8eb;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{max-width:900px;margin:0 auto;padding:22px;}
+    h1{color:#ffd633;margin:0 0 6px;}
+    .muted{color:#9fb3c8;margin:0 0 18px;}
+    .card{background:#121722;border:1px solid #263142;border-radius:14px;padding:16px;margin-top:12px;}
+    .btns{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px;}
+    a.btn{
+      display:inline-flex;align-items:center;justify-content:center;
+      padding:12px 14px;border-radius:12px;text-decoration:none;
+      background:#263142;border:1px solid #3a4a60;color:#cfe2ff;
+      font-weight:700;
+    }
+    a.btn:hover{filter:brightness(1.1);}
+    .danger{background:#dc2626;border-color:#ff6b6b;color:#fff;}
+    code{background:rgba(255,255,255,.06);padding:.1rem .35rem;border-radius:8px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Dev Hub</h1>
+    <p class="muted">Two tools. Two layers. Don’t mix them.</p>
+
+    <div class="card">
+      <div><strong>1) Ladder Math (no Firebase)</strong></div>
+      <div class="muted">Validates <code>ladder.service.js</code>: caps, tier math, stripe math.</div>
+      <div class="btns">
+        <a class="btn" href="/dev/ladder-test.html">Open Ladder Test</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div><strong>2) Callable Stress Test (writes XP)</strong></div>
+      <div class="muted">Calls <code>incrementXp</code> using real +10/+5 Grind.</div>
+      <div class="btns">
+        <a class="btn danger" href="/dev/ladder-stress.html">Open Stress Test</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

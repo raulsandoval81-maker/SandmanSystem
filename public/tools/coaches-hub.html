@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach Hub | Sandman System™</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      margin:0;
+      background:#0b1020;
+      color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* ---------------- TOP NAV ---------------- */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .nav-logo{
+      font-size:1rem;
+      font-weight:800;
+      color:#ffd633;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:#ffd633;
+      cursor:pointer;
+    }
+
+    /* ---------------- DRAWER ---------------- */
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid #ffd633;
+      padding:1.5rem;
+      transition:.25s;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:600;
+      display:block;
+    }
+    .drawer-links a:hover{ color:#ff4d4d; }
+
+    /* ---------------- BACKDROP ---------------- */
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none;
+      transition:.25s;
+      z-index:1500;
+    }
+    .nav-backdrop.show{
+      opacity:1; pointer-events:auto;
+    }
+
+    /* Highlight current page */
+    .drawer-links a[aria-current="page"],
+    .footer-links a[aria-current="page"]{
+      color:#ffd633;
+      font-weight:900;
+    }
+
+    /* ---------------- PAGE LAYOUT ---------------- */
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 2rem 1.25rem; }
+
+    h1{
+      margin:.25rem 0 .6rem;
+      color:#ffd633;
+      text-shadow:0 0 10px rgba(255,214,51,.18);
+      text-align:center;
+    }
+
+    .sub{
+      text-align:center;
+      color:#cbd5e1;
+      margin:0 auto 1.2rem;
+      max-width:780px;
+      line-height:1.6;
+    }
+
+    .center-card{
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:14px;
+      padding:1.25rem;
+      box-shadow:0 0 14px rgba(0,0,0,.35);
+      text-align:center;
+    }
+
+    /* PREVIEW STAMP */
+    .stamp{
+      display:inline-flex;
+      align-items:center;
+      gap:.5rem;
+      padding:.35rem .75rem;
+      border-radius:999px;
+      background:#0f141b;
+      border:1px solid #243041;
+      color:#cbd5e1;
+      font-size:.78rem;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      margin-bottom:.75rem;
+    }
+    .stamp strong{ color:#ffd633; }
+
+    .img-slot{
+      width:100%;
+      max-width:520px;
+      height:220px;
+      border:2px dashed #516074;
+      border-radius:12px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#cbd5e1;
+      background:rgba(255,255,255,.02);
+      margin:1rem auto;
+      text-align:center;
+      padding:.5rem;
+      font-size:.9rem;
+    }
+
+    h2{ margin:1.1rem 0 .5rem; color:#f3f4f6; }
+
+    ul{
+      color:#d7dbe2;
+      text-align:left;
+      max-width:720px;
+      margin:1rem auto;
+      padding-left:1.1rem;
+      line-height:1.55;
+    }
+
+    .kicker{
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      color:#9fb3c8;
+      font-weight:900;
+      margin-top:1.25rem;
+      margin-bottom:.25rem;
+      font-size:.85rem;
+    }
+
+    .btn{
+      display:inline-block;
+      padding:.6rem 1.1rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111;
+      font-weight:900;
+      text-decoration:none;
+      margin:.25rem;
+      border:1px solid rgba(0,0,0,.25);
+    }
+    .btn.secondary{
+      background:#263142;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+      font-weight:800;
+    }
+    .btn:hover{ filter:brightness(1.05); }
+
+    /* ---------------- FOOTER ---------------- */
+    .footer{
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem;
+      margin-top:2rem;
+    }
+    .footer-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      justify-content:center;
+      gap:1.5rem;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .footer-title{ font-weight:800; color:#ffd633; }
+    .footer-links{ display:flex; gap:1rem; flex-wrap:wrap; }
+    .footer-links a{ color:#f3f4f6; text-decoration:none; font-weight:600; }
+    .footer-links a:hover{ color:#ff4d4d; }
+  </style>
+</head>
+
+<body>
+  <!-- TOP NAV -->
+  <header class="top-nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">Sandman System™</a>
+      <button class="nav-btn" id="navBtn" aria-label="Menu">☰</button>
+    </div>
+  </header>
+
+  <!-- DRAWER -->
+  <aside class="nav-drawer" id="navDrawer" aria-label="Site menu">
+    <nav class="drawer-links">
+      <a href="index.html">Home</a>
+      <a href="overview.html">Overview</a>
+      <a href="programs.html">Programs</a>
+      <a href="schedule.html">Schedule</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+      <a href="leaderboards.html">Leaderboards</a>
+      <a href="ceremonies.html">Ceremonies</a>
+      <a href="coaches-hub.html" aria-current="page">Coach Hub</a>
+      <a href="coach-resources.html">Coach Resources</a>
+    </nav>
+  </aside>
+
+  <!-- BACKDROP -->
+  <div class="nav-backdrop" id="navBackdrop"></div>
+
+  <main class="wrap">
+    <h1>Coach Hub</h1>
+    
+<p class="sub">
+  Coach Hub is the operating console for coaches running Sandman Combat™ programs across Foundry 8 and Foundry 4.
+  It becomes live only inside the private coach login.
+</p>
+
+    <div class="center-card">
+      <div class="stamp">Status: <strong>Preview Only</strong> · Coach-First</div>
+
+      <div class="img-slot">[ Coach / badge collage or practice room photo ]</div>
+
+      <h2>What Coach Hub is for</h2>
+      <ul>
+        <li><strong>Roster + athlete status</strong> — Tier, Rank, readiness, notes (Foundry 8 + Foundry 4).</li>
+        <li><strong>Daily ops</strong> — practice plan, checklists, quick tools that keep sessions clean.</li>
+        <li><strong>Ceremony readiness</strong> — eligibility checks, scripts, and printable materials.</li>
+        <li><strong>Staff comms</strong> — standards updates, announcements, and “what changed” guidance.</li>
+      </ul>
+
+      <div class="kicker">What Coach Hub is NOT</div>
+      <p class="sub" style="text-align:left; max-width:720px;">
+        Coach Hub is not the resource library. PDFs, handouts, and system explanations live in
+        <strong>Coach Resources</strong>.
+      </p>
+
+      <div class="kicker">Roadmap</div>
+      <ul>
+        <li><strong>Phase 1:</strong> Public preview (this page) to show intent and structure.</li>
+        <li><strong>Phase 2:</strong> Private coach login + basic shell.</li>
+        <li><strong>Phase 3:</strong> Live roster tools, daily ops, and ceremony planner.</li>
+      </ul>
+
+      <p style="margin-top:1rem;">
+        <a class="btn" href="coach-resources.html">Coach Resources</a>
+        <a class="btn secondary" href="index.html">Return Home</a>
+      </p>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-container">
+      <span class="footer-title">Sandman System™</span>
+      <nav class="footer-links">
+        <a href="overview.html">Overview</a>
+        <a href="about.html">About</a>
+        <a href="contact.html">Contact</a>
+        <a href="coaches-hub.html" aria-current="page">Coach Hub</a>
+        <a href="coach-resources.html">Coach Resources</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script>
+    const btn = document.getElementById("navBtn");
+    const drawer = document.getElementById("navDrawer");
+    const backdrop = document.getElementById("navBackdrop");
+
+    btn.addEventListener("click", () => {
+      drawer.classList.add("open");
+      backdrop.classList.add("show");
+      document.body.style.overflow = "hidden";
+    });
+
+    function closeMenu(){
+      drawer.classList.remove("open");
+      backdrop.classList.remove("show");
+      document.body.style.overflow = "";
+    }
+
+    backdrop.addEventListener("click", closeMenu);
+    drawer.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+
+    // Optional: dynamic highlight (kept, but not relied on)
+    document.querySelectorAll(".drawer-links a, .footer-links a").forEach(link => {
+      if (link.href === window.location.href) link.setAttribute("aria-current","page");
+    });
+  </script>
+</body>
+</html>

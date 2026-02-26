@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach Review — Intake</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="./coach.intake.css"/>
+  <link rel="stylesheet" href="/intake-shared/shared.css"/>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <h1>Coach — Review Submission</h1>
+
+    <!-- ========================= -->
+    <!--     LOADED SUBMISSION    -->
+    <!-- ========================= -->
+    <div class="card">
+      <h3>Submitted Data</h3>
+      <div class="row">
+        <div class="stat"><div class="label">Athlete</div><div class="value" id="s-firstlast">—</div></div>
+        <div class="stat"><div class="label">DOB</div><div class="value" id="s-dob">—</div></div>
+      </div>
+
+      <div class="row">
+        <div class="stat"><div class="label">City</div><div class="value" id="s-city">—</div></div>
+        <div class="stat"><div class="label">State</div><div class="value" id="s-state">—</div></div>
+        <div class="stat"><div class="label">Parent Email</div><div class="value small" id="s-email">—</div></div>
+      </div>
+
+      <div class="row">
+        <div class="stat"><div class="label">Parent Phone</div><div class="value" id="s-phone">—</div></div>
+        <div class="stat"><div class="label">Emergency</div><div class="value" id="s-emer">—</div></div>
+      </div>
+
+      <div class="row">
+        <div class="stat big"><div class="label">Medical</div><div class="value small" id="s-med">—</div></div>
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!--      COACH CONTROLS      -->
+    <!-- ========================= -->
+    <div class="card">
+      <h3>Coach — Edit / Confirm</h3>
+
+      <!-- Public Name -->
+      <div class="row">
+        <label>Public Initial</label>
+        <input id="c-initial" placeholder="e.g., J.">
+        <label>Public Last</label>
+        <input id="c-last" placeholder="e.g., Sandoval">
+      </div>
+
+      <!-- Team / Location -->
+      <div class="row">
+        <label>Team</label>
+        <input id="c-team" placeholder="e.g., Trojans">
+        <label>City</label>
+        <input id="c-city">
+        <label>State</label>
+        <input id="c-state">
+      </div>
+    </div>
+
+    <!-- ========================= -->
+    <!--           MINT           -->
+    <!-- ========================= -->
+    <div class="card">
+      <h3>Mint UID</h3>
+      <div class="row">
+        <button class="outline-gold small" id="btn-mint-f8">Mint Foundry 8</button>
+        <button class="outline-gold small" id="btn-mint-f4">Mint Foundry 4</button>
+
+        <input id="c-uid" class="mono small" placeholder="UID appears…" readonly>
+      </div>
+
+      <!-- THESE are required by Phase 2 intake rules -->
+      <input id="c-track" type="hidden">
+      <input id="c-tier"  type="hidden">
+      <input id="c-rank"  type="hidden">
+    </div>
+
+    <!-- ========================= -->
+    <!--          APPROVE          -->
+    <!-- ========================= -->
+    <div class="card">
+      <h3>Approve & Create Profile</h3>
+
+      <button id="btn-approve" class="solid-blue">Approve & Activate</button>
+      <span id="approve-status" class="small muted"></span>
+
+      <div class="row" style="margin-top:10px">
+        <button class="outline-blue small" id="btn-back">Back to Pending</button>
+      </div>
+    </div>
+
+    <div id="approval-modal" class="modal hidden">
+  <div class="modal-box">
+    <h2>Athlete Approved!</h2>
+    <p>Send this link to the athlete to begin onboarding:</p>
+
+    <input id="onboarding-link" type="text" readonly />
+
+    <button class="pill" id="copy-link">Copy Link</button>
+    <button class="pill" id="open-link">Open</button>
+  </div>
+</div>
+
+<!-- ================== MINT SELECTOR ================== -->
+<section class="card" id="mint-box">
+  <h3>Mint Virtue Tag</h3>
+  <p class="muted small">Select track, lane, and virtue. Auto-builds the official mint tag.</p>
+
+  <div class="row">
+    <label>Track</label>
+    <select id="mint-track">
+      <option value="F8">F8 — Youth</option>
+      <option value="F4">F4 — Teen/Adult</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label>Lane</label>
+    <select id="mint-lane">
+      <option value="CB">Combat</option>
+      <option value="LS">Lifestyle</option>
+      <option value="SP">Sports</option>
+    </select>
+  </div>
+
+  <div class="row">
+    <label>Virtue</label>
+    <select id="mint-virtue"></select>
+  </div>
+
+  <div class="row">
+    <label>Mint Tag</label>
+    <input id="mint-tag-output" readonly />
+  </div>
+</section>
+
+    <footer class="footer small muted">
+      Sandman Systems™ — Coach Intake Review
+    </footer>
+
+  </main>
+
+  <script type="module" src="./coach.intake.js"></script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Sandman Silver — Intake Loop</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <link rel="icon" href="data:,">
+  <!-- Site chrome -->
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+ <link rel="stylesheet" href="./silver.css"/>
+
+</head>
+<body>
+
+  <!-- Shared header -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>🔥 Sandman Silver — Intake Loop</h1>
+    <div class="row" style="margin-bottom:6px">
+      <div class="chip tab active" data-tab="coach">Coach</div>
+      <div class="chip tab" data-tab="parent">Parent</div>
+      <div class="chip tab" data-tab="athlete">Athlete</div>
+    </div>
+
+    <!-- ================== COACH ================== -->
+    <main data-panel="coach" class="active">
+      <!-- Invite -->
+      <section class="panel">
+        <button class="section-hdr open" data-acc="coach-invite-body">Coach — Parent Invite</button>
+        <div class="section-body open" id="coach-invite-body">
+          <div class="card">
+            <h3>Invite a Parent <span class="chip">48h token</span></h3>
+            <div class="row">
+              <button id="btn-make-token" class="solid-blue">Generate Token</button>
+              <input id="invite-link" type="text" class="small" placeholder="Invite link appears here…" style="flex:1;min-width:320px" readonly>
+              <button id="btn-copy-token" class="outline-blue">Copy</button>
+            </div>
+            <div class="row">
+              <button id="btn-open-qr" class="outline-blue">Open QR / Academy Invite</button>
+              <small class="muted">Opens / join.html in a new tab.</small>
+            </div>
+            <small class="muted"><strong>Sandman Systems™</strong> — <strong>Sandman Combat™</strong>.</small>
+            <div id="invite-status" class="small" style="margin-top:6px"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="coach-approve" data-scope="coach"></section>
+
+      <!-- Approve & Activate -->
+      <section class="panel">
+        <button class="section-hdr" data-acc="coach-approve-body">Coach — Approve & Activate</button>
+        <div class="section-body" id="coach-approve-body">
+          <!-- Pending -->
+          <div class="card">
+            <div class="row">
+              <button id="btn-find-intakes" class="outline-blue">Find Submitted Intakes</button>
+              <span id="pending-count" class="small muted">—</span>
+            </div>
+            <div id="pending-list" class="small mono muted">No pending intakes yet.</div>
+          </div>
+
+          <!-- Identity -->
+          <div class="card">
+            <h3>Identity (public)</h3>
+            <div class="row">
+              <label>Public Initial</label><input id="pub-initial" placeholder="e.g., J.">
+              <label>Public Last</label><input id="pub-last" placeholder="e.g., Sandoval">
+            </div>
+            <small class="muted">Public display name is used on external views.</small>
+          </div>
+
+          <!-- Team / Location -->
+          <div class="card">
+            <h3>Team / Location</h3>
+            <div class="row">
+              <label>Team</label><input id="team-name"  placeholder="e.g., Trojans">
+              <label>City</label><input id="team-city"  placeholder="e.g., Santa Maria">
+              <label>State</label><input id="team-state" placeholder="e.g., CA">
+            </div>
+          </div>
+
+          <!-- Mint -->
+          <div class="card">
+            <h3>Mint</h3>
+            <div class="row">
+              <button id="mint-f8" class="outline-gold">Mint Foundry 8</button>
+              <button id="mint-f4" class="outline-gold">Mint Foundry 4</button>
+              <input id="minted-uid" class="mono" placeholder="UID (e.g., F8-TN00001)" readonly style="min-width:200px">
+            </div>
+
+            <!-- Required by silver.js Approve flow -->
+            <input id="final-track" type="hidden">
+            <input id="final-tier"  type="hidden">
+            <input id="final-rank"  type="hidden">
+            <input id="final-uid"   type="hidden">
+            <small class="muted">Tier auto-sets to T0 and Rank auto-sets to Shadow (F8) or Apprentice (F4).</small>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Approve block (kept outside accordion to match your layout) -->
+    <div class="card">
+      <h3>Approve</h3>
+      <div class="row">
+        <button id="btn-approve" class="solid-blue">Approve & Activate</button>
+        <span id="approve-status" class="small"></span>
+      </div>
+      <div class="row">
+        <button id="btn-open-athlete" class="outline-blue">Open Athlete Profile</button>
+        <button id="btn-toggle-approved" class="outline-blue small">Show Last 30</button>
+      </div>
+
+      <!-- Coach-side: Last Approved -->
+      <div class="card" id="coach-last-approved" style="margin-top:8px; display:none">
+        <h4 class="small muted">Last Approved</h4>
+        <div class="row">
+          <div class="stat"><div class="label">Public</div><div class="value" id="coach-last-public">—</div></div>
+          <div class="stat"><div class="label">UID</div><div class="value" id="coach-last-uid">—</div></div>
+          <div class="stat"><div class="label">Track</div><div class="value" id="coach-last-track">—</div></div>
+          <div class="stat"><div class="label">Tier / Rank</div><div class="value" id="coach-last-tierrank">—</div></div>
+          <div class="stat"><div class="label">Team</div><div class="value" id="coach-last-team">—</div></div>
+          <div class="stat"><div class="label">City / State</div><div class="value" id="coach-last-citystate">—</div></div>
+          <div class="stat"><div class="label">Padlock</div><div class="value" id="coach-last-padlock">—</div></div>
+        </div>
+        <small class="muted">This is saved; panel stays on Coach.</small>
+      </div>
+
+      <!-- Preview stats -->
+      <div class="row">
+        <div class="stat"><div class="label">UID</div><div class="value" id="out-uid">—</div></div>
+        <div class="stat"><div class="label">Track</div><div class="value" id="out-track">—</div></div>
+        <div class="stat"><div class="label">Tier / Rank</div><div class="value" id="out-tier">—</div></div>
+        <div class="stat"><div class="label">Team</div><div class="value" id="out-team">—</div></div>
+        <div class="stat"><div class="label">Padlock</div><div class="value" id="out-padlock">—</div></div>
+        <div class="stat"><div class="label">Location</div><div class="value" id="out-location">—</div></div>
+        <div class="stat"><div class="label">City</div><div class="value" id="out-city">—</div></div>
+        <div class="stat"><div class="label">State</div><div class="value" id="out-state">—</div></div>
+      </div>
+      <small class="muted">This is saved; panel stays on Coach.</small>
+    </div>
+
+    <!-- Recent Approvals -->
+    <div class="card" style="margin-top:8px">
+      <h3>Recent Approvals</h3>
+      <div id="approved-list" class="small mono muted" style="margin-top:8px">No approvals yet.</div>
+    </div>
+
+    <!-- ================== PARENT ================== -->
+    <main data-panel="parent">
+      <section class="panel">
+        <button class="section-hdr open">Parent — Intake</button>
+        <div class="section-body">
+          <div class="card">
+            <div class="row">
+              <div class="stat"><div class="label">Invite Token</div><div class="value" id="token-view">—</div></div>
+              <small id="token-exp" class="muted">Paste ?invite=… in URL to prefill.</small>
+            </div>
+
+            <h3>Athlete</h3>
+            <div class="row">
+              <input id="pi-first" placeholder="First">
+              <input id="pi-last"  placeholder="Last">
+              <input id="pi-dob"   type="date" placeholder="DOB">
+            </div>
+            <div class="row">
+              <input id="pi-team" placeholder="Team (optional)">
+              <input id="pi-city" placeholder="City">
+              <input id="pi-state" placeholder="State">
+            </div>
+
+            <h3>Parent Contact</h3>
+            <div class="row">
+              <input id="pi-parent-email" placeholder="Parent Email" type="email" autocomplete="email" required>
+              <input id="pi-parent-phone" placeholder="(555) 123-4567" type="tel" inputmode="numeric" pattern="^\d{10}$" maxlength="10" autocomplete="tel" required>
+            </div>
+
+            <h3>Emergency</h3>
+            <div class="row">
+              <input id="pi-emer-name" placeholder="Emergency Name" type="text" required>
+              <input id="pi-emer-phone" placeholder="(555) 987-6543" type="tel" inputmode="numeric" pattern="^\d{10}$" maxlength="10" autocomplete="tel" required>
+            </div>
+
+            <label>Allergies / Injuries</label>
+            <textarea id="pi-med" placeholder="List allergies and injuries, or type “None”." minlength="2" required></textarea>
+
+            <h3>Waiver (must view to unlock submit)</h3>
+            <div class="row" style="align-items:center;gap:10px">
+              <button id="btn-open-waiver" type="button" class="outline-blue">Open Waiver PDF</button>
+              <small id="waiver-seen" class="small warn">Not viewed</small>
+            </div>
+
+            <div class="row">
+              <label class="small">
+                <input type="checkbox" id="pi-waiver" disabled>
+                I have read and agree to the waiver.
+              </label>
+            </div>
+            <div class="row">
+              <input id="pi-sign" placeholder="Parent/Guardian full name (signature)" disabled>
+              <input id="pi-sign-date" type="date" disabled>
+            </div>
+
+            <div class="row" style="margin-top:8px">
+              <button id="btn-pi-submit" class="solid-blue" disabled>Submit Intake</button>
+              <span id="pi-status" class="small"></span>
+            </div>
+
+            <small class="muted">Brands: Sandman Systems™ — Sandman Combat™</small>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ================== ATHLETE ================== -->
+    <main data-panel="athlete">
+      <section class="panel">
+        <button class="section-hdr open">Athlete — Status</button>
+        <div class="section-body" style="max-height:2000px; padding:12px">
+          <div class="card">
+            <!-- Top identity row -->
+            <div class="row">
+              <div class="stat"><div class="label">Name</div><div class="value" id="ath-name">—</div></div>
+              <div class="stat"><div class="label">Public</div><div class="value" id="ath-name-public">—</div></div>
+            </div>
+
+            <!-- Profile summary -->
+            <div class="row">
+              <div class="stat"><div class="label">UID</div><div class="value" id="ath-uid">—</div></div>
+              <div class="stat"><div class="label">Track</div><div class="value" id="ath-track">—</div></div>
+              <div class="stat">
+                <div class="label">Tier / Rank</div>
+                <div class="value" id="ath-tierrank">—</div>
+              </div>
+              <div class="stat"><div class="label">Team</div><div class="value" id="ath-team">—</div></div>
+              <div class="stat"><div class="label">City / State</div><div class="value" id="ath-citystate">—</div></div>
+              <div class="stat"><div class="label">Status</div><div class="value" id="ath-status">Waiting for Coach Approval</div></div>
+            </div>
+
+            <!-- Hidden mirrors (used by JS) -->
+            <span id="ath-public" hidden></span>
+            <span id="ath-xp" hidden></span>
+            <span id="ath-cap" hidden></span>
+            <div id="ath-xp-bar" hidden></div>
+            <span id="ath-xp-msg" hidden></span>
+
+            <!-- XP -->
+            <h3>XP</h3>
+            <div class="row">
+              <strong id="ath-xp-val">0</strong> / <span id="ath-xp-cap">800</span>
+            </div>
+
+            <!-- Belt meter with stripes -->
+            <div class="meter belt">
+              <div id="belt-dim"></div>
+              <div id="ath-meter"></div>
+              <div class="stripe-boxes" aria-hidden="true">
+                <span class="stripe-box" data-i="1"></span>
+                <span class="stripe-box" data-i="2"></span>
+                <span class="stripe-box" data-i="3"></span>
+                <span class="stripe-box" data-i="4"></span>
+              </div>
+            </div>
+
+            <!-- Stripes + Cooldown -->
+            <div class="row">
+              <div class="stat"><div class="label">Stripes</div><div class="value" id="ath-stripes">0 / 4</div></div>
+              <div class="stat"><div class="label">Cooldown</div><div class="value" id="ath-cooldown">—</div></div>
+            </div>
+
+            <!-- XP / Test actions -->
+            <div class="row" style="margin-top:8px">
+              <button id="btn-xp-10" class="solid-blue">+10 Full Effort</button>
+              <button id="btn-xp-5" class="outline-blue">+5 Half Effort</button>
+              <span id="xp-msg" class="small muted"></span>
+            </div>
+            <div id="test-actions" class="row" style="margin-top:8px; display:none">
+              <button id="btn-test-pass" class="outline-gold">Mark PASS</button>
+              <button id="btn-test-reset" class="outline-blue">Reset (Cooldown)</button>
+              <span id="test-msg" class="small muted"></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <button class="section-hdr">Logger</button>
+        <div class="section-body">
+          <ul id="global-feed" class="small"><li class="muted">No entries yet.</li></ul>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">© 2025 Sandman Systems™ / Sandman Combat™ — Pilot Intake Console</footer>
+  </main>
+
+  <!-- Shared footer -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Include loader (kept last so header/footer paint in) -->
+  <script src="../assets/js/include.js" defer></script>
+
+  <script>
+    // Tab wiring (kept simple; ids/classes preserved)
+    const tabs = document.querySelectorAll('.tab');
+    const panels = document.querySelectorAll('main[data-panel]');
+
+    function coachLockActive(){
+      return window.__stayOnCoach && Date.now() < (window.__coachLockUntil || 0);
+    }
+    function openAndPaintActiveAthlete(){
+      if (coachLockActive()) return;
+      const uid = localStorage.getItem("lastApprovedUid");
+      if (!uid) return;
+      const p = document.querySelector('main[data-panel="athlete"]');
+      if (p) {
+        const hdr  = p.querySelector('.section-hdr');
+        const body = p.querySelector('.section-body');
+        if (hdr && !hdr.classList.contains('open')) hdr.classList.add('open');
+        if (body) { body.style.maxHeight = "2000px"; body.style.padding = "12px"; }
+      }
+      if (typeof paintWhenReady === "function") paintWhenReady(uid);
+    }
+    window.__stayOnCoach = true;
+    window.__coachLockUntil = 0;
+
+    function showTab(name){
+      if (coachLockActive() && name !== 'coach') name = 'coach';
+      tabs.forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+      panels.forEach(p=>{
+        const on = p.getAttribute('data-panel')===name;
+        p.hidden = !on;
+        const firstHdr = p.querySelector('.section-hdr');
+        if (on && firstHdr && !firstHdr.classList.contains('open')) firstHdr.click();
+        if (on && name === "athlete") openAndPaintActiveAthlete();
+      });
+      const u = new URL(location.href); u.hash = name; history.replaceState(null,'',u);
+    }
+    tabs.forEach(t=>t.addEventListener('click',()=>showTab(t.dataset.tab)));
+    const start = (location.hash||'#coach').replace('#','');
+    showTab(['coach','parent','athlete'].includes(start)?start:'coach');
+
+    document.addEventListener('click', (e)=>{
+      if(!e.target.matches('.section-hdr')) return;
+      e.target.classList.toggle('open');
+    });
+  </script>
+
+  <!-- App logic (Firestore, counters, waiver, loop, XP) -->
+  <script type="module" src="./silver.js"></script>
+
+  <!-- Optional waiver modal shell (ids preserved if your JS uses them) -->
+  <div id="waiver-modal" hidden>
+    <div class="wm-backdrop" data-close></div>
+    <div class="wm-box">
+      <div class="wm-head">
+        <strong>Sandman Waiver <small>v1</small></strong>
+        <button class="wm-close" type="button" data-close>✕</button>
+      </div>
+      <div class="wm-body">
+        <iframe id="waiver-frame" title="Waiver PDF" src="" loading="lazy"></iframe>
+      </div>
+      <div class="wm-foot">
+        <a class="wm-link" href="/waiver-template.pdf" target="_blank" rel="noopener">Open in new tab</a>
+        <button id="waiver-accept" class="solid-blue wm-cta" disabled>✔ I Agree / Close</button>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

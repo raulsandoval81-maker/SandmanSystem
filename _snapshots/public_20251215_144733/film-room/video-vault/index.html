@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FilmRoom · Video Vault</title>
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      margin:0;
+      background:#05070c;
+      color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:24px 16px 60px;
+    }
+
+    h1{
+      margin:0 0 10px;
+      color:#ffdd48;
+      text-shadow:0 0 8px rgba(255,221,72,.25);
+    }
+    .muted{color:#9ca3af;font-size:.78rem;}
+
+    /* Nav */
+    .top-nav{
+      display:flex;
+      gap:10px;
+      margin-bottom:18px;
+    }
+    .pill{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      padding:6px 14px;
+      border-radius:999px;
+      font-weight:700;
+      color:#fff;
+      text-decoration:none;
+      transition:.15s;
+    }
+    .pill:hover{
+      background:#e63946;
+      border-color:#e63946;
+      color:#fff;
+    }
+
+    /* Filter bar */
+    .filters{
+      background:#0b1017;
+      border:1px solid #1f2937;
+      border-radius:14px;
+      padding:12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-bottom:20px;
+    }
+    .filter-select{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:8px;
+      padding:8px 10px;
+      color:#fff;
+      font-size:.85rem;
+    }
+
+    /* Vault grid */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+      gap:18px;
+    }
+    .clip{
+      background:#0b1017;
+      border:1px solid #1f2937;
+      border-radius:12px;
+      overflow:hidden;
+      cursor:pointer;
+      transition:.15s;
+    }
+    .clip:hover{
+      border-color:#ffdd48;
+      box-shadow:0 0 8px rgba(255,221,72,.25);
+    }
+    .thumb{
+      width:100%;
+      height:150px;
+      background:#111;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:#666;
+      font-size:.9rem;
+    }
+    .clip-info{
+      padding:10px;
+      font-size:.78rem;
+      color:#cbd5e1;
+    }
+
+    /* Modal */
+    .modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+    }
+    .modal-content{
+      background:#0b1017;
+      border:1px solid #1f2937;
+      border-radius:12px;
+      padding:16px;
+      width:90%;
+      max-width:720px;
+    }
+    .modal video{width:100%;border-radius:10px;}
+    .modal-close{
+      margin-top:10px;
+      background:#e63946;
+      padding:10px 16px;
+      border:none;
+      border-radius:8px;
+      font-weight:700;
+      color:#fff;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="top-nav">
+    <a class="pill" href="../index.html">← FilmRoom</a>
+    <a class="pill" href="../media/index.html">Media</a>
+    <a class="pill" href="../recon/index.html">Recon</a>
+  </div>
+
+  <h1>Video Vault</h1>
+  <p class="muted">All uploaded, recorded, and imported clips appear here.</p>
+
+  <!-- Filters -->
+  <div class="filters">
+    <select id="filterSource" class="filter-select">
+      <option value="">Source: All</option>
+      <option value="upload">Upload</option>
+      <option value="screen">Screen Record</option>
+      <option value="youtube">YouTube</option>
+    </select>
+
+    <select id="filterTag" class="filter-select">
+      <option value="">Tag: All</option>
+      <option value="live">Live</option>
+      <option value="practice">Practice</option>
+      <option value="analysis">Analysis</option>
+    </select>
+
+    <select id="filterSort" class="filter-select">
+      <option value="newest">Newest First</option>
+      <option value="oldest">Oldest First</option>
+    </select>
+  </div>
+
+  <!-- Clips Grid -->
+  <div id="vaultGrid" class="grid">
+    <!-- placeholder tile -->
+    <div class="clip">
+      <div class="thumb">Thumbnail</div>
+      <div class="clip-info">Sample Clip<br><span class="muted">00:00</span></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <video id="modalVideo" controls></video>
+    <button class="modal-close" id="btnClose">Close</button>
+  </div>
+</div>
+
+<script type="module">
+  // Placeholder crumbs
+  const modal = document.getElementById("modal");
+  const modalVideo = document.getElementById("modalVideo");
+  const btnClose = document.getElementById("btnClose");
+
+  document.addEventListener("click", e=>{
+    const clip = e.target.closest(".clip");
+    if (clip){
+      modal.style.display = "flex";
+      modalVideo.src = ""; // later: set clip URL
+    }
+  });
+
+  btnClose.onclick = ()=>{
+    modal.style.display = "none";
+    modalVideo.pause();
+  };
+
+</script>
+
+</body>
+</html>

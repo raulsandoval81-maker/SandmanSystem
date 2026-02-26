@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>XP Reports / Leaderboard • Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill:#121821; --pill-br:#384a62; --brand:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+    h1{color:var(--brand);margin:.2rem 0 .8rem}
+    .grid{display:grid;grid-template-columns:300px 1fr;gap:1rem}
+    @media (max-width:1000px){.grid{grid-template-columns:1fr}}
+    .side,.main{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:0 0 14px rgba(0,0,0,.25);padding:1rem}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+    label{font-weight:800;color:#cfe2ff}
+    select,input[type="month"],input[type="search"]{
+      background:#121821;border:1px solid #394a61;border-radius:10px;color:#f3f4f6;padding:.45rem .6rem
+    }
+    .chip{display:inline-block;padding:.25rem .6rem;border-radius:999px;background:var(--pill);border:1px solid var(--pill-br);cursor:pointer}
+    .chip.active{outline:2px solid var(--brand)}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #2b3a4f;padding:.55rem .5rem}
+    th{background:#182130;color:#ffd633;text-align:left}
+    .pill{display:inline-block;padding:.2rem .5rem;border-radius:999px;background:var(--pill);border:1px solid var(--pill-br)}
+    .pill.practice{border-color:#2e7d32}
+    .pill.tournament{border-color:#e53935}
+    .pill.style{border-color:#fb8c00}
+    .pill.negative{border-color:#8e24aa}
+    .muted{color:var(--muted)}
+    .btn{padding:.45rem .75rem;border-radius:10px;background:#263142;border:1px solid #3a4a60;color:#e6e8eb;cursor:pointer}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <h1>XP Reports / Leaderboard</h1>
+    <div class="grid">
+      <!-- LEFT: Filters / Legend -->
+      <aside class="side">
+        <div class="row" style="margin-bottom:.6rem">
+          <label for="track">Track</label>
+          <select id="track">
+            <option value="foundry8">Foundry 8 (Youth)</option>
+            <option value="foundry4">Foundry 4 (Teen/Adult)</option>
+          </select>
+        </div>
+        <div class="row" style="margin-bottom:.6rem">
+          <label for="month">Month</label>
+          <input id="month" type="month"/>
+        </div>
+        <div class="row" style="margin-bottom:.6rem">
+          <input id="search" type="search" placeholder="Search name / UID / tag" style="flex:1"/>
+        </div>
+
+        <div style="margin:.6rem 0 .35rem;font-weight:800">Filter Type</div>
+        <div class="row" style="margin-bottom:.6rem">
+          <span class="chip active" data-type="all">All</span>
+          <span class="chip" data-type="practice">Practice</span>
+          <span class="chip" data-type="tournament">Tournament</span>
+          <span class="chip" data-type="style">Style</span>
+        </div>
+
+        <div class="row" style="margin-bottom:.6rem">
+          <label for="nameMode">Names</label>
+          <select id="nameMode">
+            <option value="short">F. Last</option>
+            <option value="full">Full Name</option>
+          </select>
+          <label for="dogTags">Dog tags</label>
+          <select id="dogTags">
+            <option value="off">Off</option>
+            <option value="on">On</option>
+          </select>
+        </div>
+
+        <div class="row" style="margin-bottom:.6rem">
+          <label for="topN">Top N</label>
+          <select id="topN">
+            <option value="all">All</option>
+            <option value="3">Top 3</option>
+            <option value="5">Top 5</option>
+            <option value="10">Top 10</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <button id="sort-xp" class="btn">Sort by XP</button>
+          <button id="sort-date" class="btn">Sort by Date</button>
+        </div>
+
+        <hr style="border:0;border-top:1px solid var(--line);margin:1rem 0"/>
+
+        <div id="status" class="muted">Idle…</div>
+      </aside>
+
+      <!-- RIGHT: Totals + Detail -->
+      <section class="main">
+        <h2 style="margin:.2rem 0 .5rem;color:#ffd633">Totals (Month)</h2>
+        <table>
+          <thead><tr><th>Athlete</th><th>XP</th></tr></thead>
+          <tbody id="totals-rows"><tr><td colspan="2" class="muted">No data.</td></tr></tbody>
+        </table>
+
+        <h2 style="margin:1rem 0 .5rem;color:#ffd633">Entries</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Athlete</th>
+              <th>Track</th>
+              <th>Type</th>
+              <th>XP</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="rows"><tr><td colspan="5" class="muted">No data.</td></tr></tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- XP LISTENER -->
+  <script type="module">
+    import { db, monthKey } from "/assets/js/firebase-init.js";
+    import {
+      collection, query, orderBy, onSnapshot, doc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+    // ---- DOM ----
+    const trackEl    = document.getElementById("track");
+    const monthEl    = document.getElementById("month");
+    const searchEl   = document.getElementById("search");
+    const nameModeEl = document.getElementById("nameMode");
+    const dogTagsEl  = document.getElementById("dogTags");
+    const rowsEl     = document.getElementById("rows");
+    const totalsEl   = document.getElementById("totals-rows");
+    const statusEl   = document.getElementById("status");
+    const chips      = [...document.querySelectorAll(".chip")];
+    const topNEl     = document.getElementById("topN");
+    const sortXpEl   = document.getElementById("sort-xp");
+    const sortDtEl   = document.getElementById("sort-date");
+
+    // defaults
+    if (!monthEl.value) monthEl.value = monthKey();
+
+    // state
+    let unsub = null;
+    let cache = [];
+    let sortKey = "xp";         // "xp" | "date"
+    let sortDir = "desc";       // "asc" | "desc"
+    const nameCache = new Map();
+    const dogCache  = new Map();
+
+    // utils
+    const pad7 = n => { n=Number(n); return Number.isFinite(n)&&n>0 ? String(n).padStart(7,"0") : ""; };
+    const initialLast = n => { const a=(n||"").trim().split(/\s+/); const l=a.pop()||""; const f=a.shift()||""; return f?`${f[0].toUpperCase()}. ${l}`:l; };
+    const ts = v => { try{ if(v?.toDate) return v.toDate().toLocaleString(); const d=new Date(v); if(!isNaN(d)) return d.toLocaleString(); }catch{} return "—"; };
+
+    const displayName = r => {
+      const full = r.athleteName || nameCache.get(r.uid) || "";
+      let out = (nameModeEl.value === "full") ? full : initialLast(full);
+      if (dogTagsEl.value === "on"){
+        const tag = r.dogTag ?? dogCache.get(r.uid);
+        const t = pad7(tag);
+        if (t) out = `${t} • ${out}`;
+      }
+      return out || (r.uid || "—");
+    };
+
+    async function backfill(rows){
+      const need = new Set();
+      for (const r of rows){
+        if (!r.uid) continue;
+        if (r.athleteName && !nameCache.has(r.uid)) nameCache.set(r.uid, r.athleteName);
+        if (r.dogTag == null && !dogCache.has(r.uid)) need.add(r.uid);
+      }
+      for (const uid of need){
+        try {
+          const snap = await getDoc(doc(db, "athletes", uid));
+          if (snap.exists()){
+            const d = snap.data() || {};
+            if (d.fullName && !nameCache.has(uid)) nameCache.set(uid, d.fullName);
+            if (d.dogTag != null) dogCache.set(uid, d.dogTag);
+          }
+        } catch {}
+      }
+    }
+
+    // listener
+    function listen(){
+      const track = trackEl.value || "foundry8";
+      const mk    = monthEl.value || monthKey();
+
+      if (unsub) { try{unsub();}catch{} unsub=null; }
+
+      statusEl.textContent = `Listening: leaderboards/${track}/${mk}/entries`;
+
+      // Path: leaderboards/{track}/{YYYY-MM}/entries
+      const qRef = query(
+        collection(db, "leaderboards", track, mk, "entries"),
+        orderBy("createdAt","desc")
+      );
+
+      unsub = onSnapshot(qRef, async snap => {
+        cache = snap.docs.map(d => ({ id:d.id, ...d.data() }));
+        await backfill(cache);
+        render();
+      }, err => statusEl.textContent = `Error: ${err.message}`);
+    }
+
+    // filters + totals
+    function filteredRows(){
+      let rows = [...cache];
+      const q = (searchEl.value || "").trim().toLowerCase();
+      if (q) rows = rows.filter(r => {
+        const nm  = (r.athleteName || nameCache.get(r.uid) || "").toLowerCase();
+        const uid = (r.uid || "").toLowerCase();
+        const tag = String(r.dogTag ?? dogCache.get(r.uid) ?? "").padStart(7,"0");
+        return nm.includes(q) || uid.includes(q) || tag.includes(q);
+      });
+
+      const active = chips.find(c=>c.classList.contains("active"))?.dataset.type || "all";
+      if (active !== "all") rows = rows.filter(r => (r.type||"").toUpperCase().startsWith(active.toUpperCase()));
+      return rows;
+    }
+
+    function totalsByUid(rows){
+      const m = new Map();
+      for (const r of rows){
+        const uid = r.uid || r.athleteName || r.id;
+        const prev = m.get(uid) || { uid, fullName: nameCache.get(uid) || r.athleteName || "", dogTag: r.dogTag ?? dogCache.get(uid), total:0, updatedAt: r.createdAt };
+        prev.total += Number(r.xp || 0);
+        if ((r.createdAt?.seconds||0) > (prev.updatedAt?.seconds||0)) prev.updatedAt = r.createdAt;
+        if (!prev.fullName && r.athleteName) prev.fullName = r.athleteName;
+        if (prev.dogTag == null && r.dogTag != null) prev.dogTag = r.dogTag;
+        m.set(uid, prev);
+      }
+      return [...m.values()].sort((a,b)=>b.total-a.total);
+    }
+
+    function render(){
+      const rows = filteredRows();
+
+      // totals
+      let totals = totalsByUid(rows);
+      if (topNEl && topNEl.value !== "all"){
+        const n = parseInt(topNEl.value, 10);
+        if (!Number.isNaN(n)) totals = totals.slice(0, n);
+      }
+      totalsEl.innerHTML = totals.map(t=>{
+        const nm = (nameModeEl.value==="full") ? (t.fullName||t.uid) : initialLast(t.fullName||t.uid);
+        const tag = (dogTagsEl.value==="on") ? pad7(t.dogTag) : "";
+        const disp = tag ? `${tag} • ${nm}` : nm;
+        return `<tr><td>${disp}</td><td><strong>${t.total}</strong></td></tr>`;
+      }).join("") || `<tr><td colspan="2" class="muted">No data.</td></tr>`;
+
+      // sort
+      rows.sort((a,b)=>{
+        if (sortKey === "xp"){
+          return sortDir==="desc" ? (Number(b.xp)-Number(a.xp)) : (Number(a.xp)-Number(b.xp));
+        } else {
+          const as = a.createdAt?.seconds ?? (Number(a.ts)||0);
+          const bs = b.createdAt?.seconds ?? (Number(b.ts)||0);
+          return sortDir==="desc" ? (bs - as) : (as - bs);
+        }
+      });
+
+      // details
+      rowsEl.innerHTML = rows.map(r=>{
+        let cls=""; if(r.type?.startsWith("practice")) cls="practice";
+        if(r.type?.startsWith("tournament")) cls="tournament";
+        if(r.type?.startsWith("style")) cls="style";
+        if(Number(r.xp)<0) cls="negative";
+        return `<tr>
+          <td>${displayName(r)}</td>
+          <td><span class="pill">${r.track||""}</span></td>
+          <td><span class="pill ${cls}">${r.type||"—"}</span></td>
+          <td>${Number(r.xp)||0}</td>
+          <td class="muted">${ts(r.createdAt)}</td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="5" class="muted">No data.</td></tr>`;
+
+      statusEl.textContent = `Loaded ${rows.length} entr${rows.length===1?"y":"ies"}`;
+    }
+
+    // bindings
+    if (!window.__COACH_LB_BOUND__){
+      window.__COACH_LB_BOUND__ = true;
+      chips.forEach(c=>c.onclick=()=>{ chips.forEach(x=>x.classList.remove("active")); c.classList.add("active"); render(); });
+      [trackEl, monthEl].forEach(el => el.addEventListener("change", listen));
+      [searchEl, nameModeEl, dogTagsEl, topNEl].forEach(el => el && el.addEventListener("input", render));
+      sortXpEl?.addEventListener("click",  ()=>{ sortKey="xp";   sortDir=(sortDir==="desc"?"asc":"desc"); render(); });
+      sortDtEl?.addEventListener("click",  ()=>{ sortKey="date"; sortDir=(sortDir==="desc"?"asc":"desc"); render(); });
+    }
+
+    // init
+    listen();
+  </script>
+</body>
+</html>

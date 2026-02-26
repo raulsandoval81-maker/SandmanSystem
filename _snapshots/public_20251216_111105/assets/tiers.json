@@ -1,0 +1,11 @@
+[
+  { "tier": "Shadow",     "xpMin": 0,    "xpMax": 99  },
+  { "tier": "Recruit",    "xpMin": 100,  "xpMax": 199 },
+  { "tier": "Combatant",  "xpMin": 200,  "xpMax": 299 },
+  { "tier": "Competitor", "xpMin": 300,  "xpMax": 399 },
+  { "tier": "Warrior",    "xpMin": 400,  "xpMax": 599 },
+  { "tier": "Champion",   "xpMin": 600,  "xpMax": 799 },
+  { "tier": "Elite",      "xpMin": 800,  "xpMax": 999 },
+  { "tier": "Master",     "xpMin": 1000, "xpMax": 1199 },
+  { "tier": "Legend",     "xpMin": 1200, "xpMax": 1399 }
+]

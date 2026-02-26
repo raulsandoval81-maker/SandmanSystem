@@ -1,0 +1,222 @@
+/* ============================
+   Sandman Athlete Profile CSS
+   ============================ */
+
+:root {
+  --bg:#0a0a0a;
+  --panel:#121722;
+  --panel2:#0e1420;
+  --line:#263142;
+  --ink:#e6e8eb;
+  --muted:#9fb3c8;
+  --gold:#ffd633;
+}
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.wrap {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 18px;
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 14px;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 8px 0;
+}
+
+.stat {
+  flex: 1 1 220px;
+  background: var(--panel2);
+  border: 1px solid #223047;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.label {
+  font-size: .7rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+.value {
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.pill {
+  display: inline-block;
+  background: #263142;
+  border: 1px solid #3a4a60;
+  color: #cfe2ff;
+  padding: .16rem .5rem;
+  border-radius: 999px;
+  text-decoration: none;
+}
+
+/* -------------------------
+   Header + Logo
+   ------------------------- */
+
+.profile-header {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+  flex-wrap:wrap;
+}
+
+.nav-left {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.sandman-logo {
+  width:140px;
+  max-width:22vw;
+  height:auto;
+  border-radius:10px;
+  display:block;
+  opacity:.90;
+  margin-top:4px;
+  filter:drop-shadow(0 0 8px rgba(255,214,51,.25));
+  transition:.25s ease;
+}
+.sandman-logo:hover {
+  filter:drop-shadow(0 0 12px rgba(255,214,51,.45));
+}
+
+/* -------------------------
+   Avatar
+   ------------------------- */
+
+.avatar-box {
+  width:90px;
+  height:90px;
+  border-radius:14px;
+  background:#0a0f17;
+  border:1px solid rgba(255,255,255,.04);
+  background-size:cover;
+  background-position:center;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.6rem;
+  font-weight:700;
+}
+
+/* -------------------------
+   Combat Belt Bar
+   ------------------------- */
+
+.belt-bar {
+  position:relative;
+  width:100%;
+  height:20px;
+  border-radius:999px;
+  background:rgba(0,0,0,.25);
+  border:1px solid rgba(255,255,255,.05);
+  overflow:hidden;
+}
+
+.belt-bar .belt-fill {
+  position:absolute;
+  inset:0;
+  height:100%;
+  border-radius:inherit;
+  transition:width .35s ease;
+  filter:saturate(.9);
+}
+
+.belt-bar .stripe-boxes {
+  position:absolute;
+  right:4px;
+  top:2px;
+  bottom:2px;
+  display:flex;
+  gap:3px;
+  pointer-events:none;
+}
+
+.belt-bar .stripe-box {
+  width:10px;
+  border-radius:999px;
+  opacity:.28;
+  background:transparent;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.belt-bar.glow {
+  box-shadow:0 0 14px rgba(255,214,51,.5);
+}
+
+/* -------------------------
+   Honor + Strength Lanes
+   ------------------------- */
+
+.lane-bar {
+  width: 100%;
+  height: 20px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+.lane-bar span {
+  display:block;
+  height:100%;
+  width:0%;
+  border-radius:inherit;
+  transition:width .3s ease-out;
+}
+
+/* -------------------------
+   Collapsible drops
+   ------------------------- */
+
+.drop { margin-top:14px; }
+
+.drop-head {
+  background:transparent;
+  border:0;
+  color:#fff;
+  width:100%;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-weight:600;
+  cursor:pointer;
+  padding:0;
+  margin-bottom:10px;
+}
+
+.drop-body.collapsed { display:none; }
+
+.chev {
+  font-size:.8rem;
+  color:var(--muted);
+}

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Sandman System™ overview. Sandman Combat™ is the primary training lane inside a structured progression system built on earned advancement and visible standards." />
+  <title>Overview | Sandman System™</title>
+
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:#0a0a0a;
+      color:#f3f4f6;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* TOP NAV */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.6rem 1rem;
+    }
+    .nav-inner{
+      max-width:1100px;
+      margin:0 auto;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
+    .nav-logo{
+      font-weight:900;
+      color:#ffd633;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    /* LAYOUT */
+    .wrap{ max-width:1100px; margin:0 auto; padding:2rem 1.25rem; }
+    .section{ margin:2rem 0; }
+    .section h2{ color:#ffd633; margin-bottom:.6rem; }
+    .lead{ color:#cfd3d9; line-height:1.65; margin:.6rem 0; }
+
+    /* HERO */
+    .hero-box{
+      background:linear-gradient(to bottom, #8b0000, #151515);
+      border-radius:20px;
+      padding:2rem 1.5rem;
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow:0 0 22px rgba(0,0,0,.7);
+    }
+    .hero-kicker{
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:.8rem;
+      color:#facc15;
+      font-weight:900;
+    }
+    .hero-sub{
+      color:#e5e7eb;
+      line-height:1.6;
+      margin:.5rem 0 1rem;
+    }
+    .hero-tag{
+      color:#9ca3af;
+      font-size:.9rem;
+    }
+
+    /* LIST */
+    .diff-list{
+      list-style:none;
+      padding-left:0;
+      color:#cfd3d9;
+    }
+    .diff-list li{
+      position:relative;
+      padding-left:1.15rem;
+      margin-bottom:.45rem;
+    }
+    .diff-list li::before{
+      content:"★";
+      position:absolute;
+      left:0;
+      color:#facc15;
+      font-size:.8rem;
+    }
+
+    /* GRID */
+    .grid-3{ display:grid; gap:1rem; }
+    @media (min-width:900px){
+      .grid-3{ grid-template-columns:repeat(3,1fr); }
+    }
+
+    .card{
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:14px;
+      padding:1rem;
+    }
+
+    .pill-tag{
+      display:inline-block;
+      font-size:.7rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      padding:.25rem .6rem;
+      border-radius:999px;
+      background:#111827;
+      border:1px solid #374151;
+      color:#9ca3af;
+      font-weight:900;
+      margin-bottom:.5rem;
+    }
+
+    /* CTA */
+    .actions{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem; }
+    .btn{
+      padding:.65rem 1.25rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111827;
+      font-weight:900;
+      text-decoration:none;
+    }
+    .btn.secondary{
+      background:#263142;
+      color:#e6e8eb;
+      border:1px solid #3a4a60;
+    }
+
+/* ===== Footer 5-across mobile dock ===== */
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap:.4rem;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:.4rem;
+  width:100%;
+}
+
+.footer-links a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:.6rem .25rem;
+  border:1px solid #243041;
+  background:#0b1020;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:900;
+  font-size:.8rem;
+  white-space:nowrap;
+  text-align:center;
+  transition: all .2s ease;
+
+  /* DEFAULT = yellow */
+  color:#ffd633;
+}
+
+/* Hover = white */
+.footer-links a:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+
+/* Current page stays yellow by default */
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  border-color:#ffd633;
+}
+
+/* Hover current page = white */
+.footer-links a[aria-current="page"]:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+/* smaller phones */
+@media (max-width:420px){
+  .footer-links a{
+    font-size:.7rem;
+    padding:.55rem .15rem;
+  }
+}
+  </style>
+</head>
+
+<body>
+
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section class="section hero-box">
+  <div class="hero-kicker">Overview</div>
+
+
+    <h2>How It Works</h2>
+
+  <p class="lead">
+    Sandman System™ establishes the structure — tiers, expectations, and accountability.
+  </p>
+
+
+  <p class="lead">
+    Sandman Combat™ is the primary lane where that structure is applied.
+    Training is consistent. Progress is measurable. Advancement is earned.
+  </p>
+      <p class="hero-sub">
+    A structured progression built around earned advancement, visible standards, and long-term development.
+  </p>
+
+
+  <p class="lead">
+    One system. One standard. Different stages of growth.
+  </p>
+
+</section>
+
+
+  <section class="section">
+    <h2>What Makes It Different</h2>
+    <ul class="diff-list">
+      <li>Visible progress</li>
+      <li>Clear standards</li>
+
+      <li>Earned advancement</li>
+      <li>No skipped steps</li>
+    </ul>
+  </section>
+
+<section class="section">
+  <h2>Two Tracks. One Standard.</h2>
+
+  <p class="lead">
+    Sandman System™ operates as one structure. The expectations stay consistent.
+    The pacing changes by age and stage.
+  </p>
+
+  <div class="grid-3">
+
+    <article class="card">
+      <div class="pill-tag">Youth · Foundry 8</div>
+      <h3>Zero to Hero</h3>
+      <p class="lead">
+        A structured foundation for youth athletes. Discipline, effort, and confidence are built
+        through clear standards and earned progression.
+      </p>
+    </article>
+
+    <article class="card">
+      <div class="pill-tag">Teen · Foundry 4</div>
+      <h3>Path to Legend</h3>
+      <p class="lead">
+        Increased accountability under pressure. Identity and composure are forged
+        through measurable advancement and responsibility.
+      </p>
+    </article>
+
+
+  </div>
+</section>
+  <section class="section">
+    <h2>Why Combat</h2>
+    <p class="lead">
+      Combat provides immediate feedback. It exposes habits quickly and honestly.
+    </p>
+    <p class="lead">
+      That is why it is used — to build restraint, composure, and responsibility through real effort.
+    </p>
+  </section>
+
+
+</main>
+
+  <footer class="footer">
+<div class="footer-links">
+  <a href="index.html">Home</a>
+  <a href="overview.html">Overview</a>
+  <a href="programs.html">Programs</a>
+  <a href="about.html">About</a>
+  <a href="ceremonies.html">Ceremonies</a>
+</div>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+<script type="module">
+import {
+  db,
+  collection,
+  query,
+  orderBy,
+  getDocs
+} from "/assets/js/firebase-init.js";
+
+async function loadAnnouncements() {
+  const wrap = document.getElementById("announce-wrap");
+  wrap.innerHTML = "<p>Loading…</p>";
+
+  const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"));
+  const snap = await getDocs(q);
+
+  if (snap.empty) {
+    wrap.innerHTML = "<p>No announcements yet.</p>";
+    return;
+  }
+
+  wrap.innerHTML = "";
+
+  snap.forEach(doc => {
+    const a = doc.data();
+
+    const div = document.createElement("div");
+    div.className = "announce-card";
+    div.innerHTML = `
+      <h3>${a.title || "Announcement"}</h3>
+      <p>${a.body}</p>
+      <div class="ts">${a.createdAt?.toDate().toLocaleString()}</div>
+    `;
+    wrap.appendChild(div);
+  });
+}
+
+loadAnnouncements();
+</script>

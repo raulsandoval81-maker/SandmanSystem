@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>DEV — Mint Virtues (Long)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    body{background:#0c1016;color:#e8edf6}
+    .wrap{max-width:1100px;margin:0 auto;padding:22px 18px}
+    h1{color:#ffd633;margin-bottom:.2rem}
+    .note{color:#93a6bf;margin-bottom:12px}
+    .grid{display:grid;gap:18px;margin-top:12px}
+    @media(min-width:920px){.grid{grid-template-columns:1fr 1fr}}
+    .col{background:#0f1520;border:1px solid #233247;border-radius:14px;padding:14px}
+    .card{background:#0a1018;border:1px solid #26364e;border-radius:12px;padding:12px;margin:10px 0}
+    .title{display:flex;align-items:baseline;gap:8px}
+    .title h3{margin:0;color:#ffdf66}
+    .tag{font-size:.75rem;background:#182233;border:1px solid #2a3b56;color:#cfe2ff;padding:2px 8px;border-radius:999px}
+    small.code{display:inline-block;margin-top:6px;color:#8ea3bf;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,"Liberation Mono","Courier New",monospace}
+    pre{background:#0a0f16;border:1px solid #1f2c3f;border-radius:10px;padding:12px;overflow:auto;color:#dbe7ff}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+    .btn{background:#ffd633;color:#111;border:0;border-radius:10px;padding:.45rem .7rem;font-weight:800;cursor:pointer}
+    .btn.ghost{background:#1a2331;color:#eaf2ff;border:1px solid #32445d}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>DEV — Mint Virtues (Long)</h1>
+    <p class="note">Same content as public, plus a copyable JSON config for seeding, tests, and UI labels. FEAR stays internal-only (not listed on public pages).</p>
+
+    <!-- JSON CONFIG -->
+    <section>
+      <div class="toolbar">
+        <button class="btn" onclick="copyJson()">Copy JSON</button>
+        <button class="btn ghost" onclick="location.href='/system/virtues.html'">View Public Version</button>
+      </div>
+      <pre id="json">
+{
+  "foundry8": {
+    "label": "Warrior Set",
+    "virtues": [
+      { "code": "F8_0001FOCUS",    "name": "FOCUS" },
+      { "code": "F8_0002EFFORT",   "name": "EFFORT" },
+      { "code": "F8_0003ATTITUDE", "name": "ATTITUDE" },
+      { "code": "F8_0004RESPECT",  "name": "RESPECT" },
+      { "code": "F8_0005SPEED",    "name": "SPEED" },
+      { "code": "F8_0006POWER",    "name": "POWER" },
+      { "code": "F8_0007AGILITY",  "name": "AGILITY" },
+      { "code": "F8_0008COMBAT",   "name": "COMBAT" }
+
+    ]
+  },
+  "foundry4": {
+    "label": "Core Set",
+    "virtues": [
+      { "code": "F4_0001HONOR",      "name": "HONOR" },
+      { "code": "F4_0002COURAGE",    "name": "COURAGE" },
+      { "code": "F4_0003DISCIPLINE", "name": "DISCIPLINE" },
+      { "code": "F4_0004INTEGRITY",  "name": "INTEGRITY" },
+      { "code": "F4_0005PATIENCE",   "name": "PATIENCE" },
+      { "code": "F4_0006WISDOM",     "name": "WISDOM" },
+      { "code": "F4_0007STRENGTH",   "name": "STRENGTH" },
+      { "code": "F4_0008TENACITY",   "name": "TENACITY" }
+
+    ]
+  }
+}
+      </pre>
+    </section>
+
+    <!-- SAME LONG CARDS AS PUBLIC -->
+    <section class="grid">
+      <article class="col">
+        <h2>Foundry 8 — Warrior Set (Youth)</h2>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>FOCUS</h3></div>
+          <p>Eyes up, mind on task. Focus is choosing the rep in front of you and finishing it clean. The best never waste attention.</p>
+          <small class="code">Mint: F8_0001FOCUS</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>EFFORT</h3></div>
+          <p>Work is a choice. Full-time grind means you show up with energy, finish with discipline, and leave nothing hanging.</p>
+          <small class="code">Mint: F8_0002EFFORT</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>ATTITUDE</h3></div>
+          <p>Winners protect their mind. Attitude sets the room: calm under pressure, coachable in heat, confident in the dark.</p>
+          <small class="code">Mint: F8_0003ATTITUDE</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>RESPECT</h3></div>
+          <p>Respect is strength controlled—gear up, clean space, listen first, compete hard, shake hands. We leave places better.</p>
+          <small class="code">Mint: F8_0004RESPECT</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>SPEED</h3></div>
+          <p>Speed is timing trained. We build fast feet, fast hands, and faster decisions by drilling details until they’re automatic.</p>
+          <small class="code">Mint: F8_0005SPEED</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>POWER</h3></div>
+          <p>Power is position plus intent. Body alignment, leverage, and breath give technique a backbone that can move walls.</p>
+          <small class="code">Mint: F8_0006POWER</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>AGILITY</h3></div>
+          <p>Agility is control in motion. We cut angles, change levels, and keep balance when the room tilts against us.</p>
+          <small class="code">Mint: F8_0007AGILITY</small>
+        </div>
+
+
+        <div class="card">
+          <div class="title"><span class="tag">F8</span><h3>COMBAT</h3></div>
+          <p>Combat is our craft. Technique first, conditioning second, application third—then repeat under heat.</p>
+          <small class="code">Mint: F8_0008COMBAT</small>
+        </div>
+      </article>
+
+
+
+      <article class="col">
+        <h2>Foundry 4 — Core Set (Teen/Adult)</h2>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>HONOR</h3></div>
+          <p>Honor starts private and ends public. Keep your word, own your actions, and carry the room when it needs you most.</p>
+          <small class="code">Mint: F4_0001HONOR</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>COURAGE</h3></div>
+          <p>Courage is quiet: cross the line, take the shot, stand your ground. We move even when comfort says stay.</p>
+          <small class="code">Mint: F4_0002COURAGE</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>DISCIPLINE</h3></div>
+          <p>Discipline is the promise you keep to your future self. Standards don’t bend—reps, sleep, fuel, film, repeat.</p>
+          <small class="code">Mint: F4_0003DISCIPLINE</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>INTEGRITY</h3></div>
+          <p>We do the right thing when nobody is counting. Integrity is the foundation that makes winning mean something.</p>
+          <small class="code">Mint: F4_0004INTEGRITY</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>PATIENCE</h3></div>
+          <p>Real growth takes time. Patience keeps us steady through plateaus so breakthroughs can find us working.</p>
+          <small class="code">Mint: F4_0005PATIENCE</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>WISDOM</h3></div>
+          <p>We study our craft and our people. Wisdom is the lens—learn fast, choose well, teach clean.</p>
+          <small class="code">Mint: F4_0006WISDOM</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>STRENGTH</h3></div>
+          <p>Strength is earned and shared. We build it to serve others, hold standards, and protect what matters.</p>
+          <small class="code">Mint: F4_0007STRENGTH</small>
+        </div>
+
+        <div class="card">
+          <div class="title"><span class="tag">F4</span><h3>TENACITY</h3></div>
+          <p>When it’s hard, we hold the line. Tenacity is finishing the last rep with the same standard as the first.</p>
+          <small class="code">Mint: F4_0008TENACITY</small>
+        </div>
+      </article>
+    </section>
+  </main>
+
+<script type="module">
+  import { F8_VIRTUES, F4_VIRTUES } from "../assets/js/virtues-data.js";
+
+  // Example: render logic from your old dev page
+  function render(list, id) {
+    const tb = document.getElementById(id);
+    tb.innerHTML = list
+      .map(
+        v => `<tr><td class="mono">${v.tag}</td><td><strong>${v.virtue}</strong></td><td>${v.blurb}</td></tr>`
+      )
+      .join("");
+  }
+
+  render(F8_VIRTUES, "f8");
+  render(F4_VIRTUES, "f4");
+</script>
+</body>
+</html>

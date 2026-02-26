@@ -1,0 +1,14 @@
+{
+  "combat": {
+    "unlocked": true,
+    "chapters": [true, true, true, true, true, true, true, true]
+  },
+  "strength": {
+    "unlocked": false,
+    "chapters": [false, false, false, false, false, false, false, false]
+  },
+  "honor": {
+    "unlocked": false,
+    "chapters": [false, false, false, false, false, false, false, false]
+  }
+}

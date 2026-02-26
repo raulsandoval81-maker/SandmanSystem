@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>XP Master Log • Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      background:#06080d;
+      color:#e5e7eb;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:20px 16px 44px;
+    }
+
+    /* Top nav (matches your coach tools vibe) */
+    .top-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .pill-link{
+      background:#151a22;
+      border:1px solid #252c38;
+      color:#fff;
+      text-decoration:none;
+      font-weight:700;
+      padding:6px 12px;
+      border-radius:999px;
+      transition:.15s;
+    }
+    .pill-link:hover{
+      background:#ffd633;
+      color:#111;
+      border-color:#ffd633;
+    }
+
+    h1{
+      margin:6px 0 4px;
+      color:#ffd33d;
+      font-size:1.45rem;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+    .muted{
+      color:#9ca3af;
+      font-size:.85rem;
+      line-height:1.35;
+      margin:0;
+    }
+
+    .card{
+      margin-top:14px;
+      background:#0b1017;
+      border:1px solid #1d2430;
+      border-radius:16px;
+      padding:14px 14px 12px;
+      box-shadow:0 12px 28px rgba(0,0,0,.35);
+    }
+
+    /* Filters */
+    .filters{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      padding:10px;
+      border-radius:12px;
+      background:rgba(3,4,6,.35);
+      border:1px solid rgba(255,255,255,.04);
+    }
+    .input, .select{
+      background:#0a0d12;
+      border:1px solid #252c38;
+      border-radius:10px;
+      padding:7px 10px;
+      color:#fff;
+      font-size:.78rem;
+      min-width:170px;
+      outline:none;
+    }
+    .input:focus, .select:focus{
+      border-color:#ffd633;
+      box-shadow:0 0 0 2px rgba(255,214,51,.18);
+    }
+    .btn{
+      border:0;
+      border-radius:999px;
+      padding:7px 12px;
+      font-weight:800;
+      cursor:pointer;
+      font-size:.75rem;
+      background:#151a22;
+      border:1px solid #252c38;
+      color:#fff;
+    }
+    .btn:hover{ background:#1b2230; }
+    .btn-gold{
+      background:#ffd633;
+      color:#111;
+      border:1px solid #ffd633;
+    }
+    .btn-gold:hover{ filter:brightness(1.02); }
+
+    .status-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+      font-size:.75rem;
+      color:#9ca3af;
+    }
+    .stamp{
+      display:inline-flex;
+      gap:6px;
+      align-items:center;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.06);
+      background:rgba(255,255,255,.03);
+    }
+    .stamp b{ color:#e5e7eb; font-weight:900; }
+
+    /* Table */
+    .table-wrap{
+      margin-top:12px;
+      border-radius:12px;
+      overflow:auto;
+      border:1px solid rgba(255,255,255,.06);
+      background:#070a10;
+      max-height:68vh;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.82rem;
+      min-width:980px; /* keeps columns readable on desktop */
+    }
+    th, td{
+      padding:8px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      text-align:left;
+      white-space:nowrap;
+      vertical-align:middle;
+    }
+    th{
+      position:sticky;
+      top:0;
+      z-index:2;
+      background:#0b1017;
+      color:#facc15;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.65rem;
+    }
+    tbody tr:nth-child(even){ background:rgba(255,255,255,.015); }
+    tbody tr:hover{ background:rgba(255,214,51,.06); }
+
+    .pill{
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:.68rem;
+      font-weight:900;
+      display:inline-block;
+      border:1px solid rgba(255,255,255,.08);
+    }
+    .combat{   background:#7c2d12; color:#fff; }
+    .strength{ background:#3b2f1b; color:#fff; } /* tan */
+    .honor{    background:#273143; color:#fff; } /* grey/steel */
+
+    .mono{ font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
+
+    @media (max-width:740px){
+      .input, .select{ min-width:140px; }
+      .table-wrap{ max-height:64vh; }
+    }
+    .arena { background:#7c3aed; color:#fff; } /* purple */
+
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill-link" href="/coaches/index.html">← Coach Index</a>
+    <a class="pill-link" href="/coaches/roster.html">Team Roster</a>
+    <a class="pill-link" href="/coaches/daily-grind.html">XP Daily Command Center</a>
+    <a class="pill-link" href="/coaches/arena/weekend-arena.html">XP Weekend Event Arena</a>
+    <a class="pill-link" href="/coaches/arena/prestige-arena.html">XP Prestige Event Arena</a>
+  </nav>
+
+  <header>
+    <h1>XP Master Log</h1>
+    <p class="muted">Immutable system ledger. Admin-only. Read-only. All lanes, all events.</p>
+  </header>
+
+  <section class="card">
+    <div class="filters">
+      <input id="q" class="input" placeholder="Search name / uid / eventId / kind…" />
+      <select id="lane" class="select">
+        <option value="">All lanes</option>
+        <option value="combat">Combat</option>
+        <option value="strength">Strength</option>
+        <option value="honor">Honor</option>
+      </select>
+      <select id="kind" class="select">
+        <option value="">All types</option>
+        <option value="GRIND">GRIND</option>
+        <option value="ARENA">ARENA</option>
+        <option value="PRESTIGE">PRESTIGE</option>
+        <option value="DEV">DEV</option>
+      </select>
+      <input id="from" class="input" type="date" />
+      <input id="to" class="input" type="date" />
+      <button id="btnRefresh" class="btn btn-gold">Refresh</button>
+      <button id="btnClear" class="btn">Clear</button>
+    </div>
+
+    <div class="status-row">
+      <span class="stamp"><b>MODE</b> <span id="modeStamp">ADMIN</span></span>
+      <span class="stamp"><b>ROWS</b> <span id="rowCount">0</span></span>
+      <span class="stamp"><b>STATUS</b> <span id="status">Ready.</span></span>
+    </div>
+
+    <div class="table-wrap">
+      <table id="xpTable">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Athlete</th>
+            <th>Lane</th>
+            <th>Kind</th>
+            <th>Δ XP</th>
+            <th>Source</th>
+            <th>Coach</th>
+            <th>Event ID</th>
+          </tr>
+        </thead>
+        <tbody id="xpRows">
+          <tr><td colspan="8" class="muted">Waiting for service…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!--
+  IMPORTANT:
+  Put the service at one of these (choose ONE and match it):
+    1) /assets/js/xp-master-log.service.js   (recommended)
+    2) ./xp-master-log.service.js           (if it lives beside this html)
+
+  This page is read-only. The service should:
+   - fetch logs (Firestore query or endpoint)
+   - apply filters (q/lane/kind/date range)
+   - render rows into #xpRows and set #rowCount/#status
+-->
+<script type="module" src="/assets/js/xp-master-log.service.js"></script>
+
+<script>
+  // tiny UI-only helpers (safe, no backend)
+  const $ = (id)=>document.getElementById(id);
+
+  $("btnClear")?.addEventListener("click", () => {
+    ["q","lane","kind","from","to"].forEach(k=>{
+      const el = $(k);
+      if (!el) return;
+      if (el.tagName === "SELECT") el.value = "";
+      else el.value = "";
+    });
+    $("status").textContent = "Cleared filters.";
+  });
+
+  // Your service should listen for this click, but we also keep this for UX.
+  $("btnRefresh")?.addEventListener("click", () => {
+    $("status").textContent = "Refreshing…";
+  });
+</script>
+
+</body>
+</html>

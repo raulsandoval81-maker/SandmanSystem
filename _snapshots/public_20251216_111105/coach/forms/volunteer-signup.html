@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach • Volunteer Roster</title>
+
+  <style>
+    :root{
+      --bg:#2660b2;
+      --panel:#111827;
+      --line:#1f2937;
+      --brand:#60a5fa;     /* Lompoc blue */
+      --brand2:#3b82f6;
+      --text:#f8fafc;
+      --muted:#94a3b8;
+    }
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    /* HEADER */
+    header{
+      border-bottom:1px solid var(--line);
+      padding-bottom:14px;
+      margin-bottom:20px;
+      text-align:center;
+    }
+    header h1{
+      margin:0;
+      font-size:1.6rem;
+      color:var(--brand);
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      font-weight:700;
+    }
+    header p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    /* FILTER BAR */
+    .controls{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      margin-bottom:18px;
+      background:var(--panel);
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+    }
+    .controls input,
+    .controls select{
+      padding:8px 10px;
+      border-radius:8px;
+      border:1px solid var(--line);
+      background:#0f1624;
+      color:var(--text);
+      font-size:.9rem;
+      min-width:180px;
+    }
+
+    /* TABLE */
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+      font-size:.9rem;
+    }
+    th,td{
+      border:1px solid var(--line);
+      padding:8px 6px;
+    }
+    th{
+      background:#1e293b;
+      text-transform:uppercase;
+      font-size:.75rem;
+      letter-spacing:.03em;
+      color:#e2e8f0;
+      font-weight:600;
+    }
+    tr:nth-child(even) td{
+      background:#131c2c;
+    }
+
+    /* BADGE / DUTY CHIP */
+    .chip{
+      display:inline-block;
+      padding:2px 6px;
+      background:var(--brand2);
+      color:#0f172a;
+      font-size:.75rem;
+      border-radius:6px;
+      font-weight:700;
+    }
+
+    /* BACK BUTTON */
+    .back-btn{
+      display:inline-block;
+      margin-bottom:16px;
+      color:var(--brand);
+      text-decoration:none;
+      font-size:.9rem;
+    }
+    .back-btn:hover{text-decoration:underline}
+
+    /* PRINT */
+    @media print{
+      .controls,.back-btn{display:none}
+      body{background:#fff;color:#000}
+      th{background:#e5e7eb;color:#000}
+      tr:nth-child(even) td{background:#f9fafb}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+
+    <a href="/coach/index.html" class="back-btn">← Back to Coach Home</a>
+
+    <header>
+      <h1>Volunteer Roster</h1>
+      <p>Season 2025 • Lompoc High School Wrestling</p>
+    </header>
+
+    <!-- FILTER BAR -->
+    <div class="controls">
+      <input id="search" type="text" placeholder="Search parent or athlete...">
+      <select id="filterDuty">
+        <option value="">Filter by Duty</option>
+        <option value="1">1 — Snacks/Meals</option>
+        <option value="2">2 — Transportation</option>
+        <option value="3">3 — Tournament Help</option>
+        <option value="4">4 — Score Table</option>
+        <option value="5">5 — Fundraising</option>
+        <option value="6">6 — Travel Support</option>
+        <option value="7">7 — Team Events</option>
+        <option value="8">8 — Wherever Needed</option>
+      </select>
+    </div>
+
+    <!-- ROSTER TABLE -->
+    <table id="volTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Parent/Guardian</th>
+          <th>Best Contact</th>
+          <th>Athlete(s)</th>
+          <th>Duty #</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <!-- 20 static rows until backend submit is wired in -->
+        <!-- Coaches can write manually or print -->
+<tbody>
+  <tr><td>1</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>2</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>3</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>4</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>5</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>6</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>7</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>8</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>9</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>10</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>11</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>12</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>13</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>14</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>15</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>16</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>17</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>18</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>19</td><td></td><td></td><td></td><td></td><td></td></tr>
+  <tr><td>20</td><td></td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+  </tbody>
+    </table>
+
+  </div>
+
+<script>
+  /* Future-proofing:
+     When backend goes live, this will fetch:
+     GET /volunteers
+     → Fill table dynamically
+  */
+
+  // BASIC FILTERING FOR NOW (manual table)
+  const search = document.getElementById("search");
+  const filterDuty = document.getElementById("filterDuty");
+  const table = document.getElementById("volTable").querySelector("tbody");
+
+  function applyFilters(){
+    const term = search.value.toLowerCase();
+    const duty = filterDuty.value;
+
+    [...table.rows].forEach(row=>{
+      const parent = row.cells[1].textContent.toLowerCase();
+      const athlete= row.cells[3].textContent.toLowerCase();
+      const duties = row.cells[4].textContent;
+
+      const matchText = parent.includes(term) || athlete.includes(term);
+      const matchDuty = duty === "" || duties.includes(duty);
+
+      row.style.display = (matchText && matchDuty) ? "" : "none";
+    });
+  }
+
+  search.addEventListener("input", applyFilters);
+  filterDuty.addEventListener("change", applyFilters);
+</script>
+
+</body>
+</html>

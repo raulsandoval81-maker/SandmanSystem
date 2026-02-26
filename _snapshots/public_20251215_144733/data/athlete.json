@@ -1,0 +1,8 @@
+{
+  "$schema": "./schemas/athlete.schema.json",
+  "uid": "demoUser",
+  "displayName": "Demo Athlete",
+  "tracks": ["youth", "combat"],
+  "belt": "white",
+  "joinedAt": "2025-01-01"
+}

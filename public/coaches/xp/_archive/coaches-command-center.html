@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>XP Command Center</title>
+
+  <!-- Same stylesheet, but you need Step layout styles inside it -->
+<link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
+<link rel="stylesheet" href="/coaches/arena/weekend-arena.css" />
+<link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
+
+</head>
+
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/roster.html">Team Roster</a>
+    <a class="pill" href="/coaches/coach-notes.html">Coach Notes</a>
+
+    <!-- optional: cross-link -->
+  </nav>
+
+  <h1>XP Daily Command Center</h1>
+  <div class="creed"> Combat · Strength · Honor. One flow. No guessing.</div>
+
+  <section class="card">
+
+    <!-- Step grid (matches Weekend Arena structure) -->
+    <div class="steps">
+
+      <!-- STEP 1: Setup -->
+
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">1</span> Setup</div>
+        </div>
+
+        <div class="row">
+          <label class="field" style="min-width:220px">
+            <span class="field-label">Mode</span>
+            <select id="xpMode">
+              <option value="auto">Auto (per athlete)</option>
+              <option value="batch">Batch (same award)</option>
+            </select>
+          </label>
+
+          <label class="field" style="min-width:220px">
+            <span class="field-label">Lane</span>
+            <select id="xpLane">
+              <option value="combat">Combat</option>
+              <option value="strength">Strength</option>
+              <option value="honor">Honor</option>
+            </select>
+          </label>
+
+          <div class="dev-pill">
+            <input id="devModeToggle" type="checkbox" />
+            <label for="devModeToggle">
+              <span class="dev-label">DEV</span>
+              <span class="dev-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div style="margin-top:8px;color:#94a3b8;font-size:.72rem;line-height:1.25;">
+          Mode + Lane first. DEV is a reload toggle.
+        </div>
+      </div>
+
+      <!-- STEP 2: Select -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">2</span> Select</div>
+        </div>
+
+        <div class="row">
+          <input id="search" type="text" class="input" placeholder="Search by name or UID..." />
+        </div>
+
+        <div class="row" style="margin-top:8px;">
+          <button id="pickAll" class="btn btn-ghost" type="button">Select all</button>
+          <button id="clearAll" class="btn btn-ghost" type="button">Clear</button>
+        </div>
+
+        <div style="margin-top:8px;color:#94a3b8;font-size:.72rem;line-height:1.25;">
+          Filter the roster, then pick athletes.
+        </div>
+      </div>
+
+      <!-- STEP 3: Award -->
+      <div class="step">
+        <div class="step-head">
+          <div class="step-title"><span class="step-num">3</span> Award</div>
+        </div>
+
+
+<div class="pill-row" id="awardPills">
+  <button class="pill pill-red pill--wide"    data-award="GRIND_10" id="btnGrind10">+10 Full-Time Grind</button>
+  <button class="pill pill-yellow pill--wide" data-award="GRIND_5"  id="btnGrind5">+5 Half-Time Grind</button>
+
+  <button class="pill pill-tan pill--wide"    data-award="STR_10"   id="btnStr10">+10 Strength</button>
+  <button class="pill pill-tan pill--wide"    data-award="STR_5"    id="btnStr5">+5 Strength</button>
+
+  <button class="pill pill-grey pill--wide"   data-award="HON_10"   id="btnHon10">+10 Honor</button>
+  <button class="pill pill-grey pill--wide"   data-award="HON_5"    id="btnHon5">+5 Honor</button>
+</div>
+
+<div class="hint" id="awardHint" style="margin-top:10px;">
+  Pick an award. The Lane will auto-limit what’s valid.
+</div>
+
+        <div style="margin-top:8px;color:#94a3b8;font-size:.72rem;line-height:1.25;">
+          Award selected athletes. Snapshot will keep you honest.
+        </div>
+      </div>
+
+    </div>
+
+    <div id="sessionBar" class="session-bar" style="display:none">
+      <span class="session-pill" id="sb-loaded">Loaded: 0</span>
+      <span class="session-pill" id="sb-awarded">Awarded this session: 0</span>
+      <span class="session-pill" id="sb-xp">XP issued: 0</span>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:6%">Pick</th>
+            <th style="width:36%">Athlete</th>
+            <th style="width:24%">Tier / Track</th>
+            <th style="width:34%">XP</th>
+          </tr>
+        </thead>
+        <tbody id="rows">
+          <tr><td colspan="4" class="muted">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p id="pageStatus" class="muted">Ready.</p>
+  </section>
+</main>
+<script type="module" src="/coaches/daily-xp/daily-grind.js"></script>
+
+<script type="module" src="/coaches/daily-xp/daily-grind.stamps.js"></script>
+</body>
+</body>
+</html>

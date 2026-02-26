@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Coach · Curriculum Notes</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin:0;
+      background:#0b0b0b url("/assets/img/forest-bg.jpg") center/cover fixed no-repeat;
+      background-color:#0b0b0b;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:#f5f5f5;
+    }
+    .wrap {
+      max-width:1100px;
+      margin:0 auto;
+      padding:16px 16px 32px;
+      backdrop-filter:saturate(1.1);
+    }
+    .top-nav {
+      display:flex;
+      gap:10px;
+      margin-bottom:12px;
+      flex-wrap:wrap;
+    }
+    .pill {
+      background:rgba(0,0,0,.35);
+      border:1px solid rgba(255,214,51,.25);
+      border-radius:999px;
+      padding:5px 13px;
+      color:#fff;
+      text-decoration:none;
+      font-weight:600;
+    }
+    h1 {
+      margin:4px 0 12px;
+      color:#ffd633;
+      font-size:1.8rem;
+      letter-spacing:-.01em;
+    }
+    p.lead {
+      margin:0 0 14px;
+      color:#cbd5f5;
+      font-size:.8rem;
+      max-width:42rem;
+    }
+    .panel {
+      background:rgba(9,11,16,.85);
+      border:1px solid rgba(255,214,51,.06);
+      border-radius:14px;
+      padding:14px 14px 16px;
+      box-shadow:0 12px 50px rgba(0,0,0,.35);
+    }
+    label {
+      display:block;
+      font-size:.75rem;
+      margin-bottom:5px;
+      color:#e5e7eb;
+    }
+    textarea, input {
+      width:100%;
+      background:#0f141c;
+      border:1px solid #252f3d;
+      border-radius:10px;
+      padding:8px 8px;
+      color:#fff;
+      font-size:.8rem;
+    }
+    textarea {
+      min-height:150px;
+      resize:vertical;
+    }
+    .controls {
+      margin-top:8px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .btn {
+      border:0;
+      border-radius:9px;
+      padding:6px 14px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:.78rem;
+    }
+    .btn.save {
+      background:#ff3b30;
+      color:#fff;
+    }
+    .btn.clear {
+      background:#2d333f;
+      color:#fff;
+    }
+    .btn.secondary {
+      background:#e5e7eb;
+      color:#0f172a;
+    }
+    #status {
+      font-size:.7rem;
+      color:#cbd5f5;
+    }
+    h2.sub {
+      margin:16px 0 6px;
+      font-size:1rem;
+      color:#fff;
+    }
+    .saved-list {
+      margin-top:6px;
+      border:1px solid rgba(255,255,255,.03);
+      border-radius:10px;
+      overflow:hidden;
+      background:rgba(0,0,0,.2);
+    }
+    .saved-row {
+      padding:7px 10px 9px;
+      border-bottom:1px solid rgba(255,255,255,.03);
+    }
+    .saved-row:last-child { border-bottom:0; }
+    .saved-row small {
+      display:block;
+      font-size:.65rem;
+      color:#9ca3af;
+    }
+    .saved-row button {
+      float:right;
+      background:transparent;
+      border:0;
+      color:#ffd633;
+      font-size:.7rem;
+      cursor:pointer;
+    }
+    .footer-btns {
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <nav class="top-nav">
+      <a class="pill" href="/coaches/index.html">← Coach Hub</a>
+      <a class="pill" href="/coaches/roster.html">Team Roster</a>
+      <a class="pill" href="/coaches/daily-grind.html">Daily Grind</a>
+      <a class="pill" href="/coaches/practice-plan.html">Practice Plan</a>
+    </nav>
+
+    <h1>Curriculum Notes</h1>
+    <p class="lead">
+      Write and track lesson plans, drills, and adjustments. Save, reload, or export for your records.
+    </p>
+
+    <section class="panel">
+      <label for="noteText">Notes</label>
+      <textarea id="noteText" placeholder="Lesson plans, drills, adjustments…"></textarea>
+
+      <div class="controls">
+        <button id="saveBtn" class="btn save">Save Notes</button>
+        <button id="clearBtn" class="btn clear">Clear</button>
+        <span id="status">Ready.</span>
+      </div>
+
+      <h2 class="sub">Saved Notes</h2>
+      <div id="saved" class="saved-list">
+        <div class="saved-row"><small>No notes yet.</small></div>
+      </div>
+
+      <div class="footer-btns">
+        <button id="reloadBtn" class="btn secondary">Reload</button>
+        <button id="exportBtn" class="btn secondary">Export CSV</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module">
+    import {
+      db,
+      collection,
+      addDoc,
+      getDocs,
+      query,
+      orderBy,
+      limit,
+      serverTimestamp
+    } from "/assets/js/firebase-init.js";
+
+    const noteEl   = document.getElementById("noteText");
+    const statusEl = document.getElementById("status");
+    const savedEl  = document.getElementById("saved");
+
+    async function loadNotes(){
+      const base = collection(db, "coachCurriculumNotes");
+      const qy   = query(base, orderBy("createdAt","desc"), limit(50));
+      const snap = await getDocs(qy);
+
+      if (snap.empty){
+        savedEl.innerHTML = `<div class="saved-row"><small>No notes yet.</small></div>`;
+        return;
+      }
+
+      const rows = [];
+      snap.forEach(docSnap => {
+        const d = docSnap.data();
+        rows.push(`
+          <div class="saved-row">
+            <button data-id="${docSnap.id}">load</button>
+            ${d.title ? `<strong>${d.title}</strong><br>` : ""}
+            <small>${d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : ""}</small>
+            <div style="margin-top:4px;font-size:.75rem;white-space:pre-line">${(d.text||"").slice(0,140)}${(d.text||"").length>140?'…':''}</div>
+          </div>
+        `);
+      });
+      savedEl.innerHTML = rows.join("");
+
+      // attach loaders
+      savedEl.querySelectorAll("button[data-id]").forEach(btn=>{
+        btn.addEventListener("click", async ()=>{
+          const id = btn.dataset.id;
+          // quick read by walking current snap again (fine for 50)
+          const match = snap.docs.find(d=>d.id===id);
+          if (match){
+            noteEl.value = match.data().text || "";
+            statusEl.textContent = "Loaded note.";
+          }
+        });
+      });
+    }
+
+    async function saveNote(){
+      const text = noteEl.value.trim();
+      if (!text){
+        statusEl.textContent = "Write something first.";
+        return;
+      }
+      statusEl.textContent = "Saving…";
+      const base = collection(db, "coachCurriculumNotes");
+      await addDoc(base, {
+        text,
+        title: text.split("\n")[0].slice(0,80),
+        createdAt: serverTimestamp(),
+        source: "coach-curriculum"
+      });
+      statusEl.textContent = "Saved.";
+      await loadNotes();
+    }
+
+    function clearNote(){
+      noteEl.value = "";
+      statusEl.textContent = "Cleared.";
+    }
+
+    async function exportCsv(){
+      const base = collection(db, "coachCurriculumNotes");
+      const qy   = query(base, orderBy("createdAt","desc"), limit(200));
+      const snap = await getDocs(qy);
+      const rows = [["createdAt","title","text"]];
+      snap.forEach(d=>{
+        const data = d.data();
+        const ts = data.createdAt?.toDate ? data.createdAt.toDate().toISOString() : "";
+        rows.push([
+          ts,
+          (data.title||"").replace(/"/g,'""'),
+          (data.text||"").replace(/"/g,'""'),
+        ]);
+      });
+      const csv = rows.map(r=>r.map(c=>`"${c}"`).join(",")).join("\n");
+      const blob = new Blob([csv], {type:"text/csv"});
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url;
+      a.download = "coach-curriculum-notes.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      statusEl.textContent = "CSV exported.";
+    }
+
+    document.getElementById("saveBtn").addEventListener("click", saveNote);
+    document.getElementById("clearBtn").addEventListener("click", clearNote);
+    document.getElementById("reloadBtn").addEventListener("click", loadNotes);
+    document.getElementById("exportBtn").addEventListener("click", exportCsv);
+
+    loadNotes();
+  </script>
+</body>
+</html>

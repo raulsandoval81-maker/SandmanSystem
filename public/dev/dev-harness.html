@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DEV Harness · XP System</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
+  <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
+
+  <style>
+    .dev-banner{
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+      padding:10px 12px; border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.06);
+      margin-bottom:12px;
+    }
+    .dev-badge{
+      font-weight:900; letter-spacing:.4px;
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background:rgba(0,0,0,.25);
+    }
+    .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+    @media (max-width: 980px){ .grid-2{grid-template-columns:1fr;} }
+    .card{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px; padding:12px;
+      background:rgba(255,255,255,.03);
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+    .input, select, textarea{
+      padding:10px 10px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.30); color:inherit;
+    }
+    textarea{width:100%; min-height:140px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;}
+    .btn{
+      padding:10px 12px; border-radius:12px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.07);
+      color:inherit; font-weight:800; cursor:pointer;
+    }
+    .btn:disabled{opacity:.45; cursor:not-allowed;}
+    .muted{opacity:.78;}
+    .pill{
+      padding:6px 10px; border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.05);
+      font-weight:800;
+    }
+    .kinds{
+      max-height:260px; overflow:auto;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:12px; padding:8px;
+      background:rgba(0,0,0,.22);
+    }
+    .kind-row{
+      display:flex; justify-content:space-between; gap:10px; align-items:center;
+      padding:8px 8px; border-radius:10px;
+      border:1px solid transparent;
+    }
+    .kind-row:hover{border-color:rgba(255,255,255,.12); background:rgba(255,255,255,.04);}
+    .kind-key{font-weight:900;}
+    .kind-val{font-family:ui-monospace,monospace; opacity:.85; font-size:.85rem;}
+    .mono{font-family:ui-monospace,monospace;}
+    .warn{color:#fca5a5;}
+    .ok{color:#bef264;}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/index.html">Coach Index</a>
+    <a class="pill" href="/coaches/roster.html">Roster</a>
+  </nav>
+
+  <div class="dev-banner">
+    <div>
+      <div style="font-size:1.1rem;font-weight:900;">DEV Harness</div>
+      <div class="muted" style="font-size:.9rem;">
+        Loads ONLY dev/test athletes and refuses to award anything else. Use this to verify F8 stacking, caps, and receipts.
+      </div>
+    </div>
+    <div class="dev-badge">DEV ONLY</div>
+  </div>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between;">
+      <div class="row">
+        <span class="pill" id="modePill">Mode: DEV</span>
+        <span class="pill" id="trackPill">Track: F4</span>
+        <span class="pill" id="countPill">Athletes: 0</span>
+      </div>
+      <div class="row">
+        <label class="row" title="OFF = Foundry 4 · ON = Foundry 8">
+          <input id="trackF8Only" type="checkbox" />
+          <span class="muted">Foundry 8 only</span>
+        </label>
+        <button class="btn" id="reloadBtn" type="button">Reload</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid-2" style="margin-top:12px;">
+    <section class="card">
+      <div style="font-weight:900;margin-bottom:8px;">1) Pick DEV Athlete</div>
+
+      <div class="row">
+        <input id="search" class="input" placeholder="Search name / uid / id / mintTag…" style="min-width:260px;" />
+        <select id="athleteSelect" class="input" style="min-width:320px;">
+          <option value="">Loading…</option>
+        </select>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button id="refreshSnapBtn" class="btn" type="button">Refresh Snapshot</button>
+        <button id="copyUidBtn" class="btn" type="button" disabled>Copy UID</button>
+      </div>
+
+      <div class="muted" style="margin-top:10px;">Selected athlete snapshot:</div>
+      <pre id="snapOut" class="mono" style="white-space:pre-wrap;margin-top:8px;">—</pre>
+
+      <div id="guardLine" class="muted" style="margin-top:10px;">
+        Guard: <span class="warn">not validated yet</span>
+      </div>
+    </section>
+
+    <section class="card">
+      <div style="font-weight:900;margin-bottom:8px;">2) Issue Awards (real endpoint)</div>
+
+      <div class="row" style="margin-bottom:8px;">
+        <input id="amount" class="input" placeholder="Amount (number). e.g. 5 or 400" />
+
+        <input id="kindFilter" class="input"
+               placeholder="Filter KIND keys (e.g. HONOR, STRENGTH, WEEKEND, BATTLE…)"
+               style="min-width:320px;" />
+        <button id="showKindsBtn" class="btn" type="button">Show KIND</button>
+      </div>
+
+      <div class="kinds" id="kindsBox" aria-label="KIND Browser"></div>
+
+      <div class="muted" style="margin-top:10px;">Selected kind:</div>
+
+      <div class="row" style="margin-top:6px;">
+        <input id="kindKey" class="input"
+               placeholder="KIND key (from list) OR raw kind string"
+               style="min-width:320px;" />
+        <button id="issueBtn" class="btn" type="button" disabled>Issue</button>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <input id="metaJson" class="input"
+               placeholder='Meta JSON (optional) e.g. {"note":"dev test"}'
+               style="min-width:520px; flex:1;" />
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button id="btnF8Strength5" class="btn" type="button" disabled>Quick: +5 Strength (F8 stacking test)</button>
+        <button id="btnF8Honor5" class="btn" type="button" disabled>Quick: +5 Honor (F8 stacking test)</button>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <button id="btnResetMonth" class="btn" type="button" disabled>DEV: Reset Monthly Caps (requires server support)</button>
+        <span class="muted" style="font-size:.85rem;">(button will show error if endpoint not implemented)</span>
+      </div>
+
+      <div class="muted" style="margin-top:12px;">Receipt (server response):</div>
+      <textarea id="receiptOut" readonly></textarea>
+    </section>
+  </div>
+
+  <p id="statusLine" class="muted" style="margin-top:12px;">Loading…</p>
+</main>
+
+<!-- ✅ FIXED PATH -->
+<script type="module" src="/dev/dev-harness.js"></script>
+</body>
+</html>

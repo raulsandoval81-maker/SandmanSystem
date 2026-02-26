@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Table Console</title>
+<link rel="stylesheet" href="css/table-console.css">
+</head>
+
+<body>
+
+<!-- ========================================================= -->
+<!-- ====================== HEADER ============================ -->
+<!-- ========================================================= -->
+<div class="header">
+
+  <div class="title-block">
+    <h1>TABLE CONSOLE</h1>
+    <span class="subtitle">Master Table View · NFHS / NCAA</span>
+  </div>
+
+  <!-- VIEW TOGGLES -->
+  <div id="view-toggle-bar">
+    <button class="view-btn" data-view="sheet">Bout Sheet</button>
+    <button class="view-btn" data-view="split">Split View</button>
+    <button class="view-btn" data-view="log">Active Log</button>
+  </div>
+
+  <!-- EVENT INFO -->
+  <div class="event-info">
+    Event: <span id="eventName">_______________</span> &nbsp;&nbsp;
+    Mat: <span id="matNumber">______</span> &nbsp;&nbsp;
+    Bout: <span id="boutNumber">_______</span>
+  </div>
+</div>
+     <div id="jumpButtons" class="filmroom-jumps"></div>
+
+<!-- ========================================================= -->
+<!-- =================== SPLIT VIEW WRAPPER ================== -->
+<!-- ========================================================= -->
+<div class="layout-split split-70">
+
+  <!-- ========================================================= -->
+  <!-- =============== LEFT PANEL — BOUT SHEET ================= -->
+  <!-- ========================================================= -->
+  <div id="left-panel">
+    <section id="boutsheet-section">
+
+      <section class="boutsheet">
+
+        <!-- HEADER LINE -->
+        <div class="boutsheet-header">
+          <div class="ath-label red">Red Athlete Name</div>
+          <div class="round-label" id="roundLabel">ROUND OF 16</div>
+          <div class="ath-label green">Green Athlete Name</div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- ================ MAIN ROUNDS (R1 → R3) ================== -->
+        <!-- ========================================================= -->
+        <div class="boutsheet-row rounds-main">
+
+          <!-- ROUND 1 -->
+          <div class="round-box" id="r1"><span>ROUND 1</span></div>
+
+          <!-- R1 → R2 choice -->
+          <div class="choice-block">
+            <div class="choice-toggle-split">
+              <button class="toggle-half red" data-color="red">R</button>
+              <button class="toggle-half green" data-color="green">G</button>
+            </div>
+            <div class="choice-icons">
+              <button class="choice-btn" data-choice="top">T ⬆</button>
+              <button class="choice-btn" data-choice="bottom">B ⬇</button>
+              <button class="choice-btn" data-choice="neutral">N ＝</button>
+              <button class="choice-btn" data-choice="defer">D 🔄</button>
+              <button class="choice-btn" data-choice="optional">O ◆</button>
+            </div>
+          </div>
+
+          <!-- ROUND 2 -->
+          <div class="round-box" id="r2"><span>ROUND 2</span></div>
+
+          <!-- R2 → R3 choice -->
+          <div class="choice-block">
+            <div class="choice-toggle-split">
+              <button class="toggle-half red" data-color="red">R</button>
+              <button class="toggle-half green" data-color="green">G</button>
+            </div>
+            <div class="choice-icons">
+              <button class="choice-btn" data-choice="top">T ⬆</button>
+              <button class="choice-btn" data-choice="bottom">B ⬇</button>
+              <button class="choice-btn" data-choice="neutral">N ＝</button>
+              <button class="choice-btn" data-choice="optional">O ◆</button>
+            </div>
+          </div>
+
+          <!-- ROUND 3 -->
+          <div class="round-box" id="r3"><span>ROUND 3</span></div>
+
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- ====================== OT ROUNDS ========================= -->
+        <!-- ========================================================= -->
+        <div class="boutsheet-row rounds-ot">
+
+          <!-- SV1 -->
+          <div class="ot-box" id="sv1"><span>SV1</span></div>
+
+          <div class="choice-block">
+            <div class="choice-toggle-split">
+              <button class="toggle-half red">R</button>
+              <button class="toggle-half green">G</button>
+            </div>
+            <div class="choice-icons">
+              <button class="choice-btn" data-choice="top">T ⬆</button>
+              <button class="choice-btn" data-choice="bottom">B ⬇</button>
+              <button class="choice-btn" data-choice="neutral">N ＝</button>
+              <button class="choice-btn" data-choice="optional">O ◆</button>
+            </div>
+          </div>
+
+          <!-- TB1 -->
+          <div class="ot-box" id="tb1"><span>TB1</span></div>
+
+          <div class="choice-block">
+            <div class="choice-toggle-split">
+              <button class="toggle-half red">R</button>
+              <button class="toggle-half green">G</button>
+            </div>
+            <div class="choice-icons">
+              <button class="choice-btn">T ⬆</button>
+              <button class="choice-btn">B ⬇</button>
+              <button class="choice-btn">N ＝</button>
+              <button class="choice-btn">O ◆</button>
+            </div>
+          </div>
+
+          <!-- TB2 -->
+          <div class="ot-box" id="tb2"><span>TB2</span></div>
+
+          <div class="choice-block">
+            <div class="choice-toggle-split">
+              <button class="toggle-half red">R</button>
+              <button class="toggle-half green">G</button>
+            </div>
+            <div class="choice-icons">
+              <button class="choice-btn">T ⬆</button>
+              <button class="choice-btn">B ⬇</button>
+              <button class="choice-btn">N ＝</button>
+              <button class="choice-btn">O ◆</button>
+            </div>
+          </div>
+
+          <!-- UTB -->
+          <div class="ot-box" id="utb"><span>UTB</span></div>
+
+        </div> <!-- OT END -->
+
+      </section>
+
+    </section>
+  </div> <!-- LEFT PANEL END -->
+
+
+
+  <!-- ========================================================= -->
+  <!-- =============== RIGHT PANEL — CONSOLE + LOG ============= -->
+  <!-- ========================================================= -->
+  <div id="right-panel">
+
+    <!-- CONSOLE WRAPPER (EMPTY SHELL — Mat Console Pro injects here) -->
+    <section id="console-wrapper">
+      <div id="view-match" class="view-panel">
+        <!-- Mat-side scoring UI goes here when synced -->
+      </div>
+    </section>
+
+    <!-- ACTIVE LOG VIEW -->
+    <section id="log-wrapper" class="hidden">
+      <h3>Action Log</h3>
+      <div id="active-log" class="log-container"></div>
+    </section>
+
+  </div> <!-- RIGHT PANEL -->
+
+</div><!-- SPLIT VIEW WRAPPER END -->
+
+
+
+<!-- ========================================================= -->
+<!-- ======================== SCORING ========================= -->
+<!-- ========================================================= -->
+<section class="scoring">
+
+  <!-- RED -->
+  <div class="score-column red-col">
+
+    <div class="score-header red">RED</div>
+    <div class="score-value" id="redScore">0</div>
+
+    <!-- OFFENSE -->
+    <div class="score-group">
+      <label>Offense</label>
+      <div class="btn-row">
+        <button class="score-btn" data-side="red" data-code="td3">TD 3</button>
+        <button class="score-btn" data-side="red" data-code="esc1">ESC 1</button>
+        <button class="score-btn" data-side="red" data-code="rev2">RV 2</button>
+      </div>
+    </div>
+
+    <!-- NEARFALL -->
+    <div class="score-group">
+      <label>Nearfall</label>
+      <div class="btn-row">
+        <button class="score-btn" data-side="red" data-code="nf2">NF 2</button>
+        <button class="score-btn" data-side="red" data-code="nf3">NF 3</button>
+        <button class="score-btn" data-side="red" data-code="nf4">NF 4</button>
+      </div>
+    </div>
+
+    <!-- PENALTIES -->
+    <div class="score-group">
+      <label>Penalties</label>
+
+      <!-- BLOCK 1 -->
+      <div class="btn-row">
+        <button class="score-btn" data-side="red" data-code="stall-warn">STALL ⚠️</button>
+        <button class="score-btn" data-side="red" data-code="stall1">STALL +1</button>
+        <button class="score-btn" data-side="red" data-code="stall2">STALL +2</button>
+        <button class="score-btn" data-side="red" data-code="stall-dq">STALL DQ</button>
+      </div>
+
+      <!-- BLOCK 2 -->
+      <div class="btn-row">
+        <button class="score-btn" data-side="red" data-code="caution">CAUTION ⚠️ 1</button>
+        <button class="score-btn" data-side="red" data-code="caution">CAUTION ⚠️ 2</button>
+        <button class="score-btn" data-side="red" data-code="caution">CAUTION ⚠️ 3 +1</button>
+        <button class="score-btn" data-side="red" data-code="c1">CAUTION ⚠️ 4 +2</button>
+      </div>
+
+      <!-- BLOCK 3 -->
+      <div class="btn-row">
+        <button class="score-btn" data-side="red" data-code="lh1">LH +1</button>
+        <button class="score-btn" data-side="red" data-code="lh1">LH +1</button>
+        <button class="score-btn" data-side="red" data-code="lh2">LH +2</button>
+        <button class="score-btn" data-side="red" data-code="dq">DQ</button>
+      </div>
+
+      <!-- BLOCK 4 -->
+      <div class="btn-row">
+        <button class="score-btn" data-side="red" data-code="illegal">ILLEGAL +1</button>
+        <button class="score-btn" data-side="red" data-code="tech">TECH +1</button>
+        <button class="score-btn" data-side="red" data-code="unsport">UNSPORT +1</button>
+        <button class="score-btn" data-side="red" data-code="flagrant">FLAGRANT (DQ)</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CENTER TIMER -->
+  <div class="score-column center-col">
+    <section class="timer-section">
+      <div class="timer-display" id="mainTimer">2:00</div>
+      <div class="timer-controls centered">
+        <button class="start">START</button>
+        <button class="pause">PAUSE</button>
+        <button class="reset">RESET</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- GREEN -->
+  <div class="score-column green-col">
+
+    <div class="score-header green">GREEN</div>
+    <div class="score-value" id="greenScore">0</div>
+
+    <!-- (mirror of RED buttons, unchanged) -->
+    <div class="score-group">
+      <label>Offense</label>
+      <div class="btn-row">
+        <button class="score-btn" data-side="green" data-code="td3">TD 3</button>
+        <button class="score-btn" data-side="green" data-code="esc1">ESC 1</button>
+        <button class="score-btn" data-side="green" data-code="rev2">RV 2</button>
+      </div>
+    </div>
+
+    <div class="score-group">
+      <label>Nearfall</label>
+      <div class="btn-row">
+        <button class="score-btn" data-side="green" data-code="nf2">NF 2</button>
+        <button class="score-btn" data-side="green" data-code="nf3">NF 3</button>
+        <button class="score-btn" data-side="green" data-code="nf4">NF 4</button>
+      </div>
+    </div>
+
+    <div class="score-group">
+      <label>Penalties</label>
+
+      <div class="btn-row">
+        <button class="score-btn" data-side="green" data-code="stall-warn">STALL ⚠️</button>
+        <button class="score-btn" data-side="green" data-code="stall1">STALL +1</button>
+        <button class="score-btn" data-side="green" data-code="stall2">STALL +2</button>
+        <button class="score-btn" data-side="green" data-code="stall-dq">STALL DQ</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="score-btn" data-side="green" data-code="caution">CAUTION 1 ⚠️</button>
+        <button class="score-btn" data-side="green" data-code="caution">CAUTION 2 ⚠️</button>
+        <button class="score-btn" data-side="green" data-code="c1">CAUTION 3 +1</button>
+        <button class="score-btn" data-side="green" data-code="c1">CAUTION 4 +2</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="score-btn" data-side="green" data-code="lh1">LH +1</button>
+        <button class="score-btn" data-side="green" data-code="lh1">LH +1</button>
+        <button class="score-btn" data-side="green" data-code="lh2">LH +2</button>
+        <button class="score-btn" data-side="green" data-code="dq">DQ </button>
+      </div>
+
+      <div class="btn-row">
+        <button class="score-btn" data-side="green" data-code="illegal">ILLEGAL +1</button>
+        <button class="score-btn" data-side="green" data-code="tech">TECH +1</button>
+        <button class="score-btn" data-side="green" data-code="unsport">UNSPORT +1</button>
+        <button class="score-btn" data-side="green" data-code="flagrant">FLAGRANT (DQ)</button>
+      </div>
+
+    </div>
+  </div>
+
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ====================== SPECIAL TIMES ===================== -->
+<!-- ========================================================= -->
+<section class="special-times">
+
+  <!-- RED SPECIAL -->
+  <div class="times-block red-block">
+    <h3>RED – Ref • Blood • Injury • Concussion</h3>
+
+    <div class="time-row">
+      <span>Ref Time:</span>
+      <div class="time-display" id="redRef">0:00</div>
+      <button class="t-start" data-t="redRef">▶</button>
+      <button class="t-stop" data-t="redRef">⏸</button>
+      <button class="t-reset" data-t="redRef">⟳</button>
+    </div>
+
+    <div class="time-row">
+      <span>Blood Time:</span>
+      <div class="time-display" id="redBlood">5:00</div>
+      <button class="t-start" data-t="redBlood">▶</button>
+      <button class="t-stop" data-t="redBlood">⏸</button>
+      <button class="t-reset" data-t="redBlood">⟳</button>
+      <button class="t-plus" data-t="redBlood">+1</button>
+      <button class="t-minus" data-t="redBlood">-1</button>
+    </div>
+
+    <div class="time-row">
+      <span>Injury Time:</span>
+      <div class="time-display" id="redInjury">2:00</div>
+      <button class="t-start" data-t="redInjury">▶</button>
+      <button class="t-stop" data-t="redInjury">⏸</button>
+      <button class="t-reset" data-t="redInjury">⟳</button>
+      <button class="t-plus" data-t="redInjury">+1</button>
+      <button class="t-minus" data-t="redInjury">-1</button>
+    </div>
+
+    <div class="time-row">
+      <span>Concussion:</span>
+      <div class="time-display" id="redConcussion">5:00</div>
+      <button class="t-start" data-t="redConcussion">▶</button>
+      <button class="t-stop" data-t="redConcussion">⏸</button>
+      <button class="t-reset" data-t="redConcussion">⟳</button>
+      <button class="t-plus" data-t="redConcussion">+1</button>
+      <button class="t-minus" data-t="redConcussion">-1</button>
+    </div>
+
+  </div>
+
+
+  <!-- GREEN SPECIAL -->
+  <div class="times-block green-block">
+    <h3>GREEN – Ref • Blood • Injury • Concussion</h3>
+
+    <div class="time-row">
+      <span>Ref Time:</span>
+      <div class="time-display" id="greenRef">0:00</div>
+      <button class="t-start" data-t="greenRef">▶</button>
+      <button class="t-stop" data-t="greenRef">⏸</button>
+      <button class="t-reset" data-t="greenRef">⟳</button>
+    </div>
+
+    <div class="time-row">
+      <span>Blood Time:</span>
+      <div class="time-display" id="greenBlood">5:00</div>
+      <button class="t-start" data-t="greenBlood">▶</button>
+      <button class="t-stop" data-t="greenBlood">⏸</button>
+      <button class="t-reset" data-t="greenBlood">⟳</button>
+      <button class="t-plus" data-t="greenBlood">+1</button>
+      <button class="t-minus" data-t="greenBlood">-1</button>
+    </div>
+
+    <div class="time-row">
+      <span>Injury Time:</span>
+      <div class="time-display" id="greenInjury">2:00</div>
+      <button class="t-start" data-t="greenInjury">▶</button>
+      <button class="t-stop" data-t="greenInjury">⏸</button>
+      <button class="t-reset" data-t="greenInjury">⟳</button>
+      <button class="t-plus" data-t="greenInjury">+1</button>
+      <button class="t-minus" data-t="greenInjury">-1</button>
+    </div>
+
+    <div class="time-row">
+      <span>Concussion:</span>
+      <div class="time-display" id="greenConcussion">5:00</div>
+      <button class="t-start" data-t="greenConcussion">▶</button>
+      <button class="t-stop" data-t="greenConcussion">⏸</button>
+      <button class="t-reset" data-t="greenConcussion">⟳</button>
+      <button class="t-plus" data-t="greenConcussion">+1</button>
+      <button class="t-minus" data-t="greenConcussion">-1</button>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ======================= VIDEO FEED ======================= -->
+<!-- ========================================================= -->
+<video id="matchVideo" playsinline></video>
+
+<!-- ========================================================= -->
+<!-- ==================== FINISH =============================== -->
+<!-- ========================================================= -->
+<script src="js/mat-console-pro.js"></script>
+<script src="js/tableConsoleMirror.js" type="module"></script>
+<script src="js/filmroomButtons.js" type="module"></script>
+<script src="js/tableConsole.js" type="module"></script>
+
+</body>
+</html>

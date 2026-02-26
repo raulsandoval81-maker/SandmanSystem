@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Athlete Arsenal — Tools Hub</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <link rel="stylesheet" href="hub.css"/>
+</head>
+
+<body>
+
+<header class="topbar">
+  <button class="back" onclick="location.href='../index.html'">← Back</button>
+  <h1>Athlete Arsenal</h1>
+</header>
+
+<main class="wrap">
+
+  <!-- WELCOME -->
+  <section class="welcome-box">
+    <h2 id="ath-name">Athlete</h2>
+    <p class="sub" id="ath-tier">Loading tier...</p>
+  </section>
+
+  <!-- WEAPON -->
+  <section class="panel">
+    <h3>Your Weapon</h3>
+    <p class="muted small">Your identity tool (Combat • Strength • Honor)</p>
+    <button id="btn-weapon" class="tool-btn">Loading…</button>
+  </section>
+
+  <!-- LANES -->
+  <section class="panel">
+    <h3>Core Lanes</h3>
+
+    <div class="lane-box" id="lane-combat">
+      <h4>Combat Lane</h4>
+      <p>Shadow Trainer → Drills → Footwork</p>
+      <button class="lane-btn" onclick="openTool('combat')">Enter Combat Lane</button>
+    </div>
+
+    <div class="lane-box" id="lane-strength">
+      <h4>Strength Lane</h4>
+      <p>Foundation → Load → Power → Peak</p>
+      <button class="lane-btn" onclick="openTool('strength')">Enter Strength Lane</button>
+    </div>
+
+    <div class="lane-box" id="lane-honor">
+      <h4>Honor Lane</h4>
+      <p>Awareness → Respect → Wisdom → Loyalty</p>
+      <button class="lane-btn" onclick="openTool('honor')">Enter Honor Lane</button>
+    </div>
+  </section>
+
+  <!-- UNLOCKS -->
+  <section class="panel" id="unlock-section">
+    <h3>Choose Your Next Weapon</h3>
+    <p class="muted small" id="unlock-msg">Loading…</p>
+
+    <div id="unlock-options"></div>
+  </section>
+
+</main>
+
+<footer class="footer small muted">
+  Sandman Systems™ — Athlete Arsenal
+</footer>
+
+<script type="module" src="hub.js"></script>
+</body>
+</html>

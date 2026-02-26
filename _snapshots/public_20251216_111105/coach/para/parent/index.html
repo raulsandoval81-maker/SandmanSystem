@@ -1,0 +1,514 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Para-Comms • Program Landing</title>
+<link rel="stylesheet" href="/coach/shared/comms.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833; --panel:#111c35; --line:#27304a;
+      --brand:#ffdd48; --text:#f0f4f8; --muted:#9aa4b1; --hover:#1d2a4a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* Parent header */
+    .parent-header {
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{
+      display:flex;
+      gap:6px;
+    }
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    .wrap{max-width:900px;margin:0 auto;padding:22px 14px 40px}
+
+    .panel{
+      background:var(--panel);border:1px solid var(--line);
+      border-radius:14px;padding:14px;margin-top:12px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+    h2{margin:.2rem 0 .6rem;color:var(--brand);font-size:1rem}
+    h3{margin:.6rem 0 .4rem;color:var(--brand);font-size:.95rem}
+    p{color:var(--text);opacity:.95;line-height:1.45;margin:.5rem 0}
+    .small{color:var(--muted);font-size:.9rem}
+    ul{margin:.2rem 0 .6rem 1.2rem;padding:0}
+    li{line-height:1.45;margin-bottom:.25rem}
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:10px;margin-top:10px;
+    }
+    a.tile{
+      display:block;background:#0e1935;border:1px solid var(--line);
+      border-radius:12px;padding:14px;text-decoration:none;color:#fff;
+      transition:.2s;
+    }
+    a.tile:hover{
+      background:var(--hover);border-color:var(--brand);
+      transform:translateY(-2px);
+    }
+    .cat{
+      font-size:.62rem;color:var(--brand);
+      letter-spacing:.08em;text-transform:uppercase;
+      margin-bottom:.25rem;
+    }
+    .title{font-weight:800}
+    .sub{
+      font-size:.85rem;color:#cbd5e1;
+      margin-top:.25rem;line-height:1.35;
+    }
+
+    /* --- HERO HEADER --- */
+    .hero{
+      background:linear-gradient(160deg,#0a1833 0%,#111c35 100%);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px 16px 20px;
+      box-shadow:0 6px 18px rgba(0,0,0,.45);
+      margin-bottom:20px;
+    }
+    .hero-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .page-title{
+      font-size:1.1rem;
+      font-weight:700;
+      color:var(--brand);
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .badge{
+      background:var(--muted);color:#111;
+      border-radius:999px;
+      font-weight:800;font-size:.65rem;
+      padding:2px 8px;
+      white-space:nowrap;
+    }
+    .return-btn{
+      border-radius:999px;
+      border:1px solid #1f2937;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:.8rem;
+      padding:4px 12px;
+      cursor:pointer;
+      white-space:nowrap;
+      margin-left:8px;
+    }
+    .return-btn:hover{
+      background:#0b1120;
+    }
+
+    .hero-main{
+      text-align:center;
+    }
+    .hero-title{
+      margin:0;
+      font-size:1.6rem;
+      line-height:1.25;
+      color:var(--brand);
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .highlight{
+      display:block;
+      font-size:1.3rem;
+      color:#fff;
+      text-shadow:0 0 10px rgba(255,221,72,.4);
+    }
+    .hero-sub{
+      color:var(--muted);
+      font-size:1rem;
+      margin-top:.75rem;
+      line-height:1.4;
+    }
+
+    /* Accordion basic styling for letters + season schedule */
+    details.acc{
+      background:#0b1429;
+      border-top:1px solid var(--line);
+      border-bottom:1px solid var(--line);
+      padding:10px 14px;
+    }
+    details.acc + details.acc{
+      border-top:none;
+    }
+    details.acc summary{
+      cursor:pointer;
+      list-style:none;
+      font-weight:700;
+      color:var(--brand);
+    }
+    details.acc summary::-webkit-details-marker{
+      display:none;
+    }
+    details.acc summary::before{
+      content:"▸";
+      display:inline-block;
+      margin-right:6px;
+      transform:translateY(-1px);
+      transition:transform .15s;
+      color:var(--brand);
+    }
+    details.acc[open] summary::before{
+      transform:rotate(90deg) translateY(-1px);
+    }
+    details.acc .content{
+      margin-top:8px;
+      font-size:.9rem;
+      color:#e2e8f0;
+    }
+
+    table.sched{
+      width:100%;
+      border-collapse:collapse;
+      font-size:.85rem;
+    }
+    table.sched th,
+    table.sched td{
+      border:1px solid #27304a;
+      padding:4px 6px;
+      text-align:left;
+    }
+    table.sched thead{
+      background:#050916;
+    }
+
+    /* Hard footer */
+    .footer-hard{
+      margin-top:40px;
+      padding:26px 10px 34px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{
+      max-width:900px;
+      margin:0 auto;
+    }
+    .footer-brand{
+      color:#94a3b8;
+      font-size:.82rem;
+      margin-bottom:12px;
+    }
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px 18px;
+      font-size:.88rem;
+    }
+    .footer-links a{
+      color:#ffdd48;
+      text-decoration:none;
+    }
+    .footer-links a:hover{
+      text-decoration:underline;
+    }
+
+    @media (max-width:640px){
+      .wrap{padding:18px 12px 28px}
+      .hero{padding:16px 12px 18px}
+      .hero-title{font-size:1.35rem;}
+      .highlight{font-size:1.1rem;}
+      .page-title{font-size:1rem;}
+      .grid{grid-template-columns:1fr}
+      table.sched{font-size:.78rem;}
+      .parent-header-inner{
+        padding-inline:2px;
+      }
+      .parent-brand{
+        font-size:.85rem;
+      }
+    }.back-btn{
+  border-radius:999px;
+  border:1px solid #1f2937;
+  background:#020617;
+  color:#e5e7eb;
+  font-size:.78rem;
+  padding:4px 12px;
+  cursor:pointer;
+  text-decoration:none;
+  display:inline-block;
+}
+.back-btn:hover{
+  background:#0b1120;
+}
+  /* Optional category tag (still blue unless you want white too) */
+.cat {
+  font-size: .70rem;
+  background: #ffffff;         /* FULL WHITE BACKGROUND */
+  color: #0a1833;              /* NAVY BLUE TEXT */
+  padding: 4px 12px;
+  border-radius: 10px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: .5rem;
+  font-weight: 800;
+  display: inline-block;
+  border: 1px solid #d7dbe2;   /* soft gray border */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+}
+  </style>
+</head>
+<body>
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand">Lompoc HS Wrestling</div>
+
+    <div class="parent-lang-wrap">
+      <button class="parent-lang-btn active" data-lang="en">EN</button>
+      <button class="parent-lang-btn" data-lang="es">SP</button>
+    </div>
+  </div>
+</header>
+<button class="back-btn" onclick="history.back()">
+  ← Back
+</button>
+
+<main class="wrap">
+
+  <!-- HERO HEADER -->
+  <section class="hero">
+    <div class="hero-top">
+      <div>
+        <span class="page-title">
+          <span class="en">Para-Comms Parent Portal</span>
+          <span class="es">Portal de Comunicación para Padres</span>
+        </span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <span class="badge">
+          <span class="en">Mobile Friendly</span>
+          <span class="es">Listo para Móvil</span>
+        </span>
+        <button type="button" class="return-btn" onclick="window.history.back()">
+          <span class="en">Return</span>
+          <span class="es">Regresar</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="hero-main">
+      <h1 class="hero-title">
+        <span class="en">Lompoc High School Wrestling</span>
+        <span class="es">Lucha de Lompoc High School</span>
+        <br/>
+        <span class="highlight">
+          <span class="en">HOME OF THE BRAVES</span>
+          <span class="es">HOGAR DE LOS BRAVES</span>
+        </span>
+      </h1>
+      <p class="hero-sub">
+        <span class="en">Strength • Discipline • Honor</span>
+        <span class="es">Fuerza • Disciplina • Honor</span><br/>
+        <em>
+          <span class="en">Season Communication Hub</span>
+          <span class="es">Centro de Comunicación de la Temporada</span>
+        </em>
+      </p>
+    </div>
+  </section>
+
+  <!-- PARENT WELCOME + HOW TO USE THIS PAGE -->
+  <section class="panel">
+    <h2>
+      <span class="en">Welcome to Para-Comms</span>
+      <span class="es">Bienvenidos a Para-Comms</span>
+    </h2>
+
+    <ul class="en">
+      <li>This page is the communication home base for Lompoc High School Wrestling.</li>
+      <li>Use the tools below (A–D) to stay informed and connected with coaches.</li>
+      <li>Practices run Monday–Friday from <strong>3:45 PM to 5:45 PM</strong>.</li>
+      <li>Athletes must arrive <strong>15 minutes early</strong> to prepare.</li>
+      <li>Practices are <strong>closed to parents and spectators</strong>.</li>
+      <li>The full Boys/Girls Varsity & JV season schedule is included further down this page.</li>
+      <li>Use the EN/SP buttons at the top-right to switch languages.</li>
+    </ul>
+
+    <ul class="es">
+      <li>Esta página es la base de comunicación del equipo de lucha de Lompoc High School.</li>
+      <li>Use las herramientas de abajo (A–D) para mantenerse informado y conectado con los entrenadores.</li>
+      <li>Las prácticas son de lunes a viernes de <strong>3:45 PM a 5:45 PM</strong>.</li>
+      <li>Los atletas deben llegar <strong>15 minutos antes</strong> para prepararse.</li>
+      <li>Las prácticas están <strong>cerradas para padres y espectadores</strong>.</li>
+      <li>El calendario completo de Varsity y JV (varones y mujeres) se encuentra más abajo en esta página.</li>
+      <li>Use los botones EN/SP en la esquina superior derecha para cambiar de idioma.</li>
+    </ul>
+
+
+  </section>
+
+  <!-- Inline Accordion Schedules (Season) -->
+  <section id="season-schedules" style="margin-top:16px">
+    <div style="padding:12px 14px">
+      <h2 style="margin:0 0 6px;color:#ffdd48;font-size:1.05rem">
+    </div>
+
+    <p class="small" style="padding:0 14px 12px;color:#9aa4b1">
+      Home matches are bold. Dates and times subject to change.
+    </p>
+<!-- Quick Tools (EN + ES, 3-Tile Version) -->
+<section class="panel">
+  <h2>
+    <span class="en">Quick Tools</span>
+    <span class="es">Herramientas Rápidas</span>
+  </h2>
+
+  <div class="grid">
+
+    <!-- 1️⃣ Schedule (Daily + Season) -->
+    <a class="tile" href="/coach/para/parent/schedule.html">
+      <div class="cat">
+        <span class="en">Schedule</span>
+        <span class="es">Horario</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Daily Practice & Season Calendar</span>
+        <span class="es">Práctica Diaria y Calendario de Temporada</span>
+      </div>
+
+      <div class="sub">
+        <span class="en">Arrival rules, daily flow, duals & tournaments.</span>
+        <span class="es">Reglas de llegada, flujo diario, duelos y torneos.</span>
+      </div>
+    </a>
+
+
+<!-- 2️⃣ Announcements (Bulletin) -->
+<a class="tile" href="/coach/para/parent/announcements-feed.html">
+      <div class="cat">
+        <span class="en">Announcements</span>
+        <span class="es">Anuncios</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Bulletin & Coach Updates</span>
+        <span class="es">Boletín y Avisos del Entrenador</span>
+      </div>
+
+      <div class="sub">
+        <span class="en">Reminders, schedule changes, fundraising updates.</span>
+        <span class="es">Recordatorios, cambios de horario, actualizaciones de recaudación.</span>
+      </div>
+    </a>
+
+
+    <!-- 3️⃣ Message Coach -->
+    <a class="tile" href="/coach/para/parent/inbox-send.html">
+      <div class="cat">
+        <span class="en">Message Coach</span>
+        <span class="es">Mensaje al Entrenador</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Questions & Direct Messages</span>
+        <span class="es">Preguntas y Mensajes Directos</span>
+      </div>
+
+      <div class="sub">
+        <span class="en">Send short questions or updates directly.</span>
+        <span class="es">Envíe preguntas o actualizaciones directamente.</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+
+    <p class="footer-brand">Braves Wrestling • United. Focused. Relentless.</p>
+
+    <nav class="footer-links">
+      <a href="/coach/para/parent/parent-landing.html">Parent Home</a>
+      <a href="/coach/para/parent/index.html">Para-Comms</a>
+      <a href="/coach/meeting/handouts/index.html">Meeting Portal</a>
+      
+    </nav>
+
+  </div>
+</footer>
+
+</main>
+
+<!-- Language toggle (EN / SP) -->
+<script>
+  function paintPara(lang){
+    const showEN = (lang === 'en');
+    document.querySelectorAll('.en').forEach(el=>{
+      el.style.display = showEN ? '' : 'none';
+    });
+    document.querySelectorAll('.es').forEach(el=>{
+      el.style.display = showEN ? 'none' : '';
+    });
+  }
+
+  const langButtons = document.querySelectorAll(".parent-lang-btn");
+
+  function setLang(lang){
+    localStorage.setItem("lang", lang);
+    langButtons.forEach(btn=>{
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
+    paintPara(lang);
+  }
+
+  document.addEventListener("DOMContentLoaded", ()=>{
+    const saved = localStorage.getItem("lang") || "en";
+    setLang(saved);
+
+    langButtons.forEach(btn=>{
+      btn.addEventListener("click", () => setLang(btn.dataset.lang));
+    });
+  });
+</script>
+
+</body>
+</html>

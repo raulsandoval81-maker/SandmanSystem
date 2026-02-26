@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin — Dashboard | Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    .kpis{display:grid; gap:16px; grid-template-columns: repeat(auto-fit,minmax(220px,1fr));}
+    .card{background:#12161d; border:1px solid #2a2f3a; border-radius:14px; padding:16px}
+    .metric{font-size:2rem; font-weight:800}
+    .muted{color:#9aa3b2}
+    .pill{display:inline-block; padding:.5rem 1rem; border-radius:999px; background:#d32b2b; color:#ffd633; font-weight:700; text-decoration:none}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <p><a class="pill" href="index.html">← Back to Admin</a></p>
+    <h1>Admin Dashboard</h1>
+    <p class="muted">KPI placeholders (static). Wire to Firebase later.</p>
+
+    <section class="kpis" style="margin-top:1rem">
+      <div class="card">
+        <div class="muted">Active Athletes</div>
+        <div class="metric" id="kpi-athletes">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">XP Entries (7d)</div>
+        <div class="metric" id="kpi-xp7">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">Ceremonies (30d)</div>
+        <div class="metric" id="kpi-ceremonies">—</div>
+      </div>
+      <div class="card">
+        <div class="muted">Avg Attendance</div>
+        <div class="metric" id="kpi-att">—</div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:1rem">
+      <h3>Quick Actions</h3>
+      <p><a class="pill" href="../coaches/tools.html">Open Coach Tools</a></p>
+      <p><a class="pill" href="../coaches/coach-weekly.html">Post Weekly Update</a></p>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Optional local stub so page renders even without backend -->
+  <script defer>
+    // Static demo numbers — replace with Firebase later.
+    document.getElementById('kpi-athletes').textContent = '128';
+    document.getElementById('kpi-xp7').textContent = '642';
+    document.getElementById('kpi-ceremonies').textContent = '6';
+    document.getElementById('kpi-att').textContent = '78%';
+  </script>
+</body>
+</html>

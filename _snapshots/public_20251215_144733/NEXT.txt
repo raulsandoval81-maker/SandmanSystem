@@ -1,0 +1,6 @@
+Next: 5-minute emulator proof
+1) firebase emulators:start
+2) Coach: generate token
+3) Parent: open invite link, submit intake
+4) Verify intakes/{tokenId} written
+5) Coach: approve + markTokenUsed

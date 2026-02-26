@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Backfill Team Fields</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { background:#000; color:#ffd633; font-family:monospace; padding:20px; }
+    pre { color:#fff; }
+  </style>
+</head>
+<body>
+  <h1>Backfill Team Fields</h1>
+  <pre id="log"></pre>
+
+  <script type="module">
+    import { db, collection, getDocs, doc, setDoc } from "/assets/js/firebase-init.js";
+
+    const TEAM  = "Lompoc Strong";
+    const CITY  = "Lompoc";
+    const STATE = "CA";
+    const log   = (msg)=>document.getElementById("log").textContent += msg + "\n";
+
+    log("🔧 Running backfill...");
+
+    const snap = await getDocs(collection(db, "athletes"));
+    let updated = 0;
+
+    for (const d of snap.docs) {
+      const a = d.data();
+      const patch = {};
+
+      if (!a.team)      patch.team = TEAM;
+      if (!a.cityState) patch.cityState = `${CITY}, ${STATE}`;
+      if (!a.fullName && a.publicName) patch.fullName = a.publicName;
+      if (!a.publicName && a.fullName) patch.publicName = a.fullName.split(" ")[0][0] + ". " + a.fullName.split(" ").slice(-1)[0];
+
+      if (Object.keys(patch).length) {
+        await setDoc(doc(db, "athletes", d.id), patch, { merge: true });
+        updated++;
+        log(`✔ Updated ${d.id}`);
+      }
+    }
+
+    log(`\n✅ Done. Updated ${updated} documents.`);
+  </script>
+</body>
+</html>

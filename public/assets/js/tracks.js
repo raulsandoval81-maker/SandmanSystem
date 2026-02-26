@@ -18,6 +18,11 @@ export function rankName(track, tier) {
   const key = toTierKey(tier);
   return LADDER[t]?.names?.[key] || "Apprentice";
 }
+export function rankName(track, tier) {
+  const t = track?.toLowerCase();
+  const key = toTierKey(tier);
+  return LADDER[t]?.names?.[key] || (t === "foundry8" ? "Shadow" : "Apprentice");
+}
 
 // Rank color hex (by name)
 export function rankColor(track, tier) {

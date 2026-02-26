@@ -1,0 +1,466 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach Leaderboard · Sandman System</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      margin:0;
+      background:#06080d;
+      color:#f5f5f5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{max-width:1180px;margin:0 auto;padding:20px 14px 40px;}
+
+    /* top nav (coach) */
+    .top-nav{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .pill-nav{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:999px;
+      padding:6px 14px;
+      color:#fff;
+      font-weight:600;
+      text-decoration:none;
+      cursor:pointer;
+      transition:.15s;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:.75rem;
+    }
+    .pill-nav:hover{background:#e63946;border-color:#e63946}
+    .pill-nav.active{background:#ffdd48;color:#111;border-color:#ffdd48}
+
+    h1{margin:0 0 6px;color:#ffdd48;text-shadow:0 0 8px rgba(255,221,72,.2);}
+    .muted{color:#94a3b8;font-size:.7rem;margin-bottom:10px;}
+
+    /* filter bar */
+    .filter-bar{
+      background:#0b1017;
+      border:1px solid #1d2430;
+      border-radius:14px;
+      padding:10px 10px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-bottom:14px;
+    }
+    .filter-group{
+      display:flex;
+      gap:4px;
+      align-items:center;
+    }
+    .filter-bar label{
+      font-size:.65rem;
+      color:#e2e8f0;
+    }
+    .filter-bar select,
+    .filter-bar input[type="month"],
+    .filter-bar input[type="search"]{
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:8px;
+      padding:4px 6px;
+      color:#fff;
+      font-size:.75rem;
+    }
+
+    .chip-row{display:flex;gap:6px;flex-wrap:wrap;}
+    .chip{
+      background:#111827;
+      border:1px solid #1f2937;
+      border-radius:999px;
+      padding:3px 10px 4px;
+      font-size:.65rem;
+      cursor:pointer;
+    }
+    .chip.active{background:#ffdd48;border-color:#ffdd48;color:#111;font-weight:700;}
+
+    /* layout */
+    .grid{
+      display:grid;
+      grid-template-columns:280px minmax(0,1fr);
+      gap:12px;
+    }
+    @media(max-width:980px){
+      .grid{grid-template-columns:1fr;}
+    }
+
+    .panel{
+      background:#0b1017;
+      border:1px solid #1d2430;
+      border-radius:14px;
+      padding:10px 10px 12px;
+      box-shadow:0 0 15px rgba(0,0,0,.25);
+    }
+    .panel-title{
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#e2e8f0;
+      margin-bottom:6px;
+      font-weight:700;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    th,td{
+      padding:6px;
+      border-bottom:1px solid rgba(255,255,255,.03);
+      font-size:.72rem;
+    }
+    th{
+      text-align:left;
+      color:#dbe2f0;
+      text-transform:uppercase;
+      font-size:.58rem;
+      letter-spacing:.04em;
+    }
+    tbody tr:nth-child(even){background:rgba(255,255,255,.015);}
+    tbody tr:hover{background:rgba(230,57,70,.04);}
+
+    .virtur{
+      display:inline-block;
+      background:rgba(255,214,51,.07);
+      border:1px solid rgba(255,214,51,.35);
+      border-radius:999px;
+      padding:1px 7px 2px;
+      font-size:.58rem;
+      letter-spacing:.08em;
+      color:#ffe28a;
+      margin-right:4px;
+    }
+
+    .btn-sort{
+      background:#e63946;
+      border:0;
+      border-radius:999px;
+      padding:4px 10px;
+      font-size:.65rem;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn-sort.secondary{
+      background:transparent;
+      border:1px solid rgba(148,163,184,.25);
+      color:#e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <!-- coach nav -->
+    <div class="top-nav">
+      <a class="pill-nav" href="/coaches/index.html">🏠 Coach Index</a>
+      <a class="pill-nav" href="/coaches/daily-grind.html">📋 Daily Clipboard / XP</a>
+      <a class="pill-nav active" href="/coaches/leaderboard.html">📊 Coach Leaderboard</a>
+    </div>
+
+    <h1>Coach Leaderboard</h1>
+    <p class="muted" id="status">Listening…</p>
+
+    <!-- filters -->
+    <div class="filter-bar">
+      <div class="filter-group">
+        <label for="track">Track</label>
+        <select id="track">
+          <option value="foundry8">Foundry 8</option>
+          <option value="foundry4">Foundry 4</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="month">Month</label>
+        <input id="month" type="month"/>
+      </div>
+      <div class="filter-group" style="flex:1 1 180px">
+        <label for="search">Athlete</label>
+        <input id="search" type="search" placeholder="search name…"/>
+      </div>
+      <div class="filter-group">
+        <label for="nameMode">Name</label>
+        <select id="nameMode">
+          <option value="abbr">A. Last</option>
+          <option value="full">Full Name</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="tagMode">Virtur Tag</label>
+        <select id="tagMode">
+          <option value="off">Off</option>
+          <option value="on">On</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <button id="sortXp" class="btn-sort">Sort XP</button>
+        <button id="sortDate" class="btn-sort secondary">Sort Date</button>
+      </div>
+    </div>
+
+
+    <div class="grid">
+      <!-- summary -->
+      <section class="panel">
+        <div class="panel-title">Top this month</div>
+        <table>
+          <thead><tr><th>Athlete</th><th>XP</th></tr></thead>
+          <tbody id="totalsBody">
+            <tr><td colspan="2" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <!-- detail -->
+      <section class="panel">
+        <div class="panel-title">Log detail</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Athlete</th>
+              <th>Type</th>
+              <th>XP</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="rowsBody">
+            <tr><td colspan="4" class="muted">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </main>
+
+  <script type="module">
+    import {
+      db,
+      collection,
+      query,
+      orderBy,
+      onSnapshot,
+      doc,
+      getDoc
+    } from "/assets/js/firebase-init.js";
+
+    const trackEl    = document.getElementById("track");
+    const monthEl    = document.getElementById("month");
+    const searchEl   = document.getElementById("search");
+    const nameModeEl = document.getElementById("nameMode");
+    const tagModeEl  = document.getElementById("tagMode");
+    const totalsBody = document.getElementById("totalsBody");
+    const rowsBody   = document.getElementById("rowsBody");
+    const statusEl   = document.getElementById("status");
+    const sortXpBtn  = document.getElementById("sortXp");
+    const sortDtBtn  = document.getElementById("sortDate");
+    const typeRow    = document.getElementById("typeRow");
+
+    let unsub = null;
+    let cache = [];
+    let sortKey = "xp";
+    let sortDir = "desc";
+    const nameCache = new Map();
+    const tagCache  = new Map();
+
+    const monthKey = (d=new Date())=>{
+      const y = d.getFullYear();
+      const m = String(d.getMonth()+1).padStart(2,"0");
+      return `${y}-${m}`;
+    };
+    if (!monthEl.value) monthEl.value = monthKey();
+
+    function selectedType(){
+      const active = typeRow.querySelector(".chip.active");
+      return active ? active.dataset.type : "all";
+    }
+
+    function labelForRow(r){
+      const k = (r.kind || r.type || "").toLowerCase();
+      if (k === "attendance" || k.startsWith("practice")) return "Daily Grind";
+      if (k.startsWith("tournament")) return "Tournament";
+      if (k.startsWith("style")) return "Style";
+      if (Number(r.xp) < 0) return "Penalty";
+      return r.kind || r.type || "—";
+    }
+
+    const toVirtur = v => v ? String(v).padStart(7,"0") : "";
+
+    function displayName(r){
+      const uid   = r.uid;
+      const full  = r.athleteName || nameCache.get(uid) || "";
+      const mode  = nameModeEl.value;
+      let nameOut = full;
+      if (mode === "abbr" && full){
+        const parts = full.trim().split(/\s+/);
+        const last  = parts.pop() || "";
+        const first = parts.shift() || "";
+        nameOut = first ? `${first[0].toUpperCase()}. ${last}` : last;
+      }
+      if (!nameOut) nameOut = uid || "—";
+
+      if (tagModeEl.value === "on"){
+        const tag = r.virturTag ?? r.dogTag ?? tagCache.get(uid);
+        const t = toVirtur(tag);
+        if (t) return `<span class="virtur">${t}</span>${nameOut}`;
+      }
+      return nameOut;
+    }
+
+    function filteredRows(){
+      let rows = [...cache];
+      const q = (searchEl.value || "").trim().toLowerCase();
+      if (q){
+        rows = rows.filter(r => (r.athleteName||"").toLowerCase().includes(q));
+      }
+      const t = selectedType();
+      if (t !== "all"){
+        rows = rows.filter(r=>{
+          const k = (r.kind || r.type || "").toLowerCase();
+          if (t === "practice") return k==="attendance" || k.startsWith("practice");
+          if (t === "tournament") return k.startsWith("tournament");
+          if (t === "style") return k.startsWith("style");
+          if (t === "penalty") return Number(r.xp) < 0;
+          return true;
+        });
+      }
+      return rows;
+    }
+
+    function totalsByUid(rows){
+      const map = new Map();
+      for (const r of rows){
+        const uid = r.uid || r.athleteName || r.id;
+        const prev = map.get(uid) || {
+          uid,
+          name: r.athleteName || nameCache.get(uid) || "",
+          virturTag: r.virturTag ?? r.dogTag ?? tagCache.get(uid),
+          total: 0
+        };
+        prev.total += Number(r.xp || 0);
+        map.set(uid, prev);
+      }
+      return [...map.values()].sort((a,b)=>b.total - a.total);
+    }
+
+    async function backfill(rows){
+      const need = new Set();
+      rows.forEach(r=>{
+        const uid = r.uid;
+        if (!uid) return;
+        if (!nameCache.has(uid) || !tagCache.has(uid)){
+          need.add(uid);
+        }
+      });
+      for (const uid of need){
+        try{
+          const snap = await getDoc(doc(db,"athletes",uid));
+          if (snap.exists()){
+            const d = snap.data();
+            if (d.fullName) nameCache.set(uid, d.fullName);
+            if (d.virturTag != null) tagCache.set(uid, d.virturTag);
+            else if (d.dogTag != null) tagCache.set(uid, d.dogTag);
+          }
+        }catch(e){/* ignore */}
+      }
+    }
+
+    function render(){
+      const rows = filteredRows();
+
+      // totals
+      const totals = totalsByUid(rows).slice(0,20);
+      totalsBody.innerHTML = totals.map(t=>{
+        const nm = nameModeEl.value==="full" ? (t.name||t.uid) : (function(full){
+          if (!full) return t.uid;
+          const parts = full.trim().split(/\s+/);
+          const last  = parts.pop() || "";
+          const first = parts.shift() || "";
+          return first ? `${first[0].toUpperCase()}. ${last}` : last;
+        })(t.name);
+        const virtur = (tagModeEl.value==="on") ? toVirtur(t.virturTag) : "";
+        return `<tr>
+          <td>${virtur?`<span class="virtur">${virtur}</span>`:""}${nm}</td>
+          <td><strong>${t.total}</strong></td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="2" class="muted">No data.</td></tr>`;
+
+      // sort detail
+      rows.sort((a,b)=>{
+        if (sortKey === "xp"){
+          return sortDir==="desc" ? (Number(b.xp)-Number(a.xp)) : (Number(a.xp)-Number(b.xp));
+        } else {
+          const as = a.createdAt?.seconds || 0;
+          const bs = b.createdAt?.seconds || 0;
+          return sortDir==="desc" ? (bs - as) : (as - bs);
+        }
+      });
+
+      rowsBody.innerHTML = rows.map(r=>{
+        return `<tr>
+          <td>${displayName(r)}</td>
+          <td>${labelForRow(r)}</td>
+          <td>${Number(r.xp)||0}</td>
+          <td class="muted">${r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : ""}</td>
+        </tr>`;
+      }).join("") || `<tr><td colspan="4" class="muted">No entries.</td></tr>`;
+
+      statusEl.textContent = `Loaded ${rows.length} entries.`;
+    }
+
+    function listen(){
+      const track = trackEl.value;
+      const mk    = monthEl.value || monthKey();
+      if (unsub){ unsub(); unsub=null; }
+      statusEl.textContent = `Listening to leaderboards/${track}/months/${mk}/entries…`;
+      const qy = query(
+        collection(db,"leaderboards", track, "months", mk, "entries"),
+        orderBy("createdAt","desc")
+      );
+      unsub = onSnapshot(qy, async snap=>{
+        cache = snap.docs.map(d=>({id:d.id,...d.data()}));
+        await backfill(cache);
+        render();
+      }, err=>{
+        console.error(err);
+        statusEl.textContent = "Error loading leaderboard.";
+      });
+    }
+
+    // bindings
+    trackEl.addEventListener("change", listen);
+    monthEl.addEventListener("change", listen);
+    searchEl.addEventListener("input", render);
+    nameModeEl.addEventListener("change", render);
+    tagModeEl.addEventListener("change", render);
+    typeRow.addEventListener("click", e=>{
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      typeRow.querySelectorAll(".chip").forEach(c=>c.classList.remove("active"));
+      chip.classList.add("active");
+      render();
+    });
+    sortXpBtn.addEventListener("click", ()=>{
+      sortKey = "xp";
+      sortDir = (sortDir==="desc" ? "asc" : "desc");
+      render();
+    });
+    sortDtBtn.addEventListener("click", ()=>{
+      sortKey = "date";
+      sortDir = (sortDir==="desc" ? "asc" : "desc");
+      render();
+    });
+
+    // init
+    listen();
+  </script>
+</body>
+</html>

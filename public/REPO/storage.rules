@@ -1,0 +1,40 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // ---------- Helpers ----------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return isSignedIn() && request.auth.uid == uid;
+    }
+    function isAdminOrCoach() {
+      return isSignedIn() &&
+        (request.auth.token.admin == true || request.auth.token.coach == true);
+    }
+
+    // ---------- Public templates (read-only) ----------
+    // e.g. gs://<bucket>/waiver-templates/blank.pdf
+    match /waiver-templates/{file} {
+      allow read: if true;     // public
+      allow write: if false;   // nobody writes from client
+    }
+
+    // ---------- Signed waivers (private) ----------
+    // Files live like:
+    //   /waivers/{uid}/{yyyy}/{MM}/{fileName}.pdf
+    match /waivers/{uid}/{year}/{month}/{fileName} {
+      // Owner OR admin/coach may read
+      allow read: if isOwner(uid) || isAdminOrCoach();
+
+      // All client writes blocked; uploads happen via Cloud Functions/Admin SDK.
+      allow write: if false;
+    }
+
+    // ---------- Default deny ----------
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,196 @@
+/* ------------------------------------------------------------
+   GENERAL PAGE LAYOUT
+------------------------------------------------------------ */
+body {
+  margin: 0;
+  background: #061325;
+  color: #f0f4ff;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: #0c1a33;
+  border-bottom: 1px solid #1e2a45;
+}
+
+.top-bar h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #ffdd48;
+  flex-grow: 1;
+}
+
+/* ------------------------------------------------------------
+   BACK BUTTON
+------------------------------------------------------------ */
+.back-btn {
+  background: #0d223f;
+  border: 1px solid #264a7a;
+  color: #ffdd48;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-size: .95rem;
+  cursor: pointer;
+}
+.back-btn:hover {
+  background: #16355c;
+}
+
+/* ------------------------------------------------------------
+   THREAD CONTAINER
+------------------------------------------------------------ */
+.thread-container {
+  padding: 16px;
+  padding-bottom: 140px; /* space for reply box */
+}
+
+/* ------------------------------------------------------------
+   MESSAGE BLOCK
+------------------------------------------------------------ */
+.thread-msg {
+  margin-bottom: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.thread-msg .bubble {
+  max-width: 80%;
+  padding: 12px 14px;
+  border-radius: 10px;
+  position: relative;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* Parent bubble */
+.thread-msg.parent .bubble {
+  background: #1b2a44;
+  border: 1px solid #2f4364;
+  align-self: flex-start;
+}
+
+/* Coach bubble */
+.thread-msg.coach .bubble {
+  background: #ffd900;
+  color: #000;
+  align-self: flex-end;
+  border: 1px solid #ffe34f;
+}
+
+/* Timestamp */
+.timestamp {
+  font-size: 0.72rem;
+  margin-top: 6px;
+  opacity: 0.7;
+}
+
+/* ------------------------------------------------------------
+   REPLY BOX
+------------------------------------------------------------ */
+.reply-box {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: #0c1a33;
+  border-top: 1px solid #1d2f4d;
+  padding: 14px;
+}
+
+.reply-box textarea {
+  width: 100%;
+  height: 70px;
+  border-radius: 8px;
+  background: #0d223f;
+  border: 1px solid #264a7a;
+  color: #f0f4ff;
+  padding: 10px;
+  resize: none;
+  font-size: 1rem;
+}
+
+/* ------------------------------------------------------------
+   REPLY BUTTONS
+------------------------------------------------------------ */
+.reply-actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: .9rem;
+  cursor: pointer;
+  border: none;
+  font-weight: 600;
+}
+
+.btn.yellow { background: #ffdd48; color: #000; }
+.btn.navy   { background: #1e2a45; color: #d8e2f0; }
+.btn.red    { background: #d62828; color: #fff; }
+
+.btn:hover {
+  opacity: 0.9;
+}
+/* ------------------------------------------------------------
+   QUICK REPLY BUTTONS
+------------------------------------------------------------ */
+.quick-replies {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.quick-btn {
+  background: #1e2a45;
+  color: #ffdd48;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: .8rem;
+  border: 1px solid #2d3a57;
+  cursor: pointer;
+}
+
+.quick-btn:hover {
+  background: #2a3d62;
+}
+.quick-select-wrap {
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+#quick-category {
+  width: 100%;
+  padding: 8px;
+  background: #1b2740;
+  color: #ffdd48;
+  border-radius: 8px;
+  border: 1px solid #2c3a56;
+  font-size: .9rem;
+}
+
+.quick-replies {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.quick-btn {
+  background: #1e2a45;
+  color: #ffdd48;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #2d3a57;
+  cursor: pointer;
+  font-size: .8rem;
+}
+
+.quick-btn:hover {
+  background: #2a3d62;
+}

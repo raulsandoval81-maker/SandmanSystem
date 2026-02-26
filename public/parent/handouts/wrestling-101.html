@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>Wrestling 101 — Rules & Scoring</title>
+
+  <style>
+    /* ---------- BRAND GOLD TITLE + BUTTONS ----------- */
+    .page-title,
+    h1,
+    h2.page-title {
+      color:#ffdd48 !important;
+      text-shadow:0 0 6px rgba(255,221,72,.25);
+      font-weight:800;
+    }
+
+    .lang-btn {
+      border:1px solid #ffdd48 !important;
+      color:#ffdd48 !important;
+      background:transparent;
+    }
+    .lang-btn:hover {
+      background:#ffdd48 !important;
+      color:#111 !important;
+    }
+    .lang-btn.active {
+      background:#ffdd48 !important;
+      color:#111 !important;
+      border-color:#ffdd48 !important;
+    }
+
+    /* ---------- COLORS ---------- */
+    :root{
+      --navy:#041231;
+      --gray:#9aa0a8;
+      --panel:#ffffff;
+      --text:#0f1114;
+      --muted:#4b5563;
+    }
+
+    body{
+      margin:0;
+      background:var(--navy);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+    }
+
+    /* ---------- TOP BAR ---------- */
+    .topbar{
+      background:var(--navy);
+      padding:10px 14px;
+      border-bottom:2px solid var(--gray);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#fff;
+    }
+
+    .back-btn{
+      color:#fff;
+      text-decoration:none;
+      font-size:.85rem;
+      padding:4px 10px;
+      border:1px solid var(--gray);
+      border-radius:999px;
+    }
+
+    .lang-wrap button{
+      padding:6px 14px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:.8rem;
+      font-weight:600;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 60px;
+    }
+
+    h1{
+      color:#fff;
+      text-align:center;
+      margin:20px 0 10px;
+      font-size:1.6rem;
+    }
+
+    /* ---------- PANELS ---------- */
+    .panel{
+      background:var(--panel);
+      border-radius:12px;
+      padding:18px 20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+      margin-bottom:20px;
+    }
+
+    .panel h2{
+      margin:0 0 14px;
+      color:var(--navy);
+      font-size:1.2rem;
+      font-weight:700;
+    }
+
+    .bullet{
+      margin-bottom:18px;
+    }
+    .bullet strong{
+      font-weight:700;
+      color:var(--navy);
+    }
+    .es{
+      color:var(--muted);
+      font-size:.9rem;
+      margin-top:4px;
+    }
+
+    footer{
+      margin-top:40px;
+      text-align:center;
+      color:#e5e7eb;
+      font-size:.8rem;
+      opacity:.75;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+<h1 data-i18n="title">Wrestling 101 — Rules & Scoring</h1>
+
+<!-- ========================================================= -->
+<!-- ======================= SECTION A ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="secA">8 Basics Every Parent Should Know</h2>
+
+  <div class="bullet">
+    <strong data-i18n="b1_en">A match has 3 periods (usually 2 minutes each).</strong>
+    <div class="es" data-i18n="b1_sp">Una lucha tiene 3 períodos (generalmente 2 minutos cada uno).</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b2_en">Modern high school uses a 3-point takedown.</strong>
+    <div class="es" data-i18n="b2_sp">La lucha escolar moderna usa un derribo de 3 puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b3_en">Wrestling is about control — not punching or submissions.</strong>
+    <div class="es" data-i18n="b3_sp">La lucha se basa en el control — no golpes ni sometimientos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b4_en">A pin (“fall”) ends the match immediately.</strong>
+    <div class="es" data-i18n="b4_sp">Un “pin” termina la lucha inmediatamente.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b5_en">Points decide the winner if no pin occurs.</strong>
+    <div class="es" data-i18n="b5_sp">Si no hay pin, los puntos deciden al ganador.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b6_en">Wrestlers score from neutral, top, or bottom positions.</strong>
+    <div class="es" data-i18n="b6_sp">Los luchadores pueden anotar desde neutral, arriba o abajo.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b7_en">Matches restart in the center when out of bounds.</strong>
+    <div class="es" data-i18n="b7_sp">Las luchas reinician en el centro al salir de la zona.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b8_en">Referees prioritize safety first, scoring second.</strong>
+    <div class="es" data-i18n="b8_sp">Los árbitros priorizan la seguridad primero y la puntuación después.</div>
+  </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ======================= SECTION B ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="secB">8 Ways Wrestlers Score Points</h2>
+
+  <div class="bullet">
+    <strong data-i18n="b9_en">Takedown — now 3 points.</strong>
+    <div class="es" data-i18n="b9_sp">Derribo — ahora 3 puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b10_en">Escape — 1 point.</strong>
+    <div class="es" data-i18n="b10_sp">Escape — 1 punto.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b11_en">Reversal — 2 points.</strong>
+    <div class="es" data-i18n="b11_sp">Reversa — 2 puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b12_en">Near fall — 2, 3, or 4 points (based on 2-3-4 second count).</strong>
+    <div class="es" data-i18n="b12_sp">Casi pin — 2, 3 o 4 puntos (según el conteo de 2-3-4 segundos).</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b13_en">Penalty points — 1 or 2 points.</strong>
+    <div class="es" data-i18n="b13_sp">Puntos por penalidad — 1 o 2 puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b14_en">Technical fall — win by 15-point lead.</strong>
+    <div class="es" data-i18n="b14_sp">Superioridad técnica — ganar por ventaja de 15 puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b15_en">Major decision — win by 8–14 points.</strong>
+    <div class="es" data-i18n="b15_sp">Decisión mayor — ganar por 8–14 puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b16_en">Pin — ends match immediately.</strong>
+    <div class="es" data-i18n="b16_sp">Pin — termina la lucha inmediatamente.</div>
+  </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ======================= SECTION C ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="secC">8 Match Situations to Understand</h2>
+
+  <div class="bullet">
+    <strong data-i18n="b17_en">Starting positions: neutral, top, and bottom.</strong>
+    <div class="es" data-i18n="b17_sp">Posiciones iniciales: neutral, arriba y abajo.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b18_en">Stalling: warning → point → more points.</strong>
+    <div class="es" data-i18n="b18_sp">Pasividad: advertencia → punto → más puntos.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b19_en">Out of bounds: action stops unless scoring continues.</strong>
+    <div class="es" data-i18n="b19_sp">Fuera del área: la acción se detiene a menos que continúe la puntuación.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b20_en">Injury time: 2 minutes total for each athlete.</strong>
+    <div class="es" data-i18n="b20_sp">Tiempo de lesión: 2 minutos en total por atleta.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b21_en">Blood time: separate clock, no penalty.</strong>
+    <div class="es" data-i18n="b21_sp">Tiempo de sangre: reloj separado, sin penalidad.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b22_en">No “danger rule” in high school — that is NCAA only.</strong>
+    <div class="es" data-i18n="b22_sp">No existe la “regla de peligro” en la preparatoria — eso es solo en la NCAA.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b23_en">Officials may stop action for safety or illegal holds.</strong>
+    <div class="es" data-i18n="b23_sp">Los árbitros pueden detener la acción por seguridad o agarres ilegales.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="b24_en">Overtime: sudden victory → 30-sec ride-outs if needed.</strong>
+    <div class="es" data-i18n="b24_sp">Tiempo extra: punto de oro → períodos de 30 segundos si es necesario.</div>
+  </div>
+</section>
+
+
+<!-- ========================================================= -->
+<!-- ====================== LEARN MORE ======================== -->
+<!-- ========================================================= -->
+
+<section class="section panel">
+  <h2 data-i18n="learn_title">Learn More About Wrestling</h2>
+
+  <div class="bullet">
+    <strong data-i18n="learn1_en">For deeper understanding, explore the NFHS Wrestling Rule Book.</strong>
+    <div class="es" data-i18n="learn1_sp">Para mayor información, consulte el Libro de Reglas de Lucha de la NFHS.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="learn2_en">YouTube offers simple breakdowns of high school scoring and match flow.</strong>
+    <div class="es" data-i18n="learn2_sp">YouTube ofrece explicaciones sencillas sobre la puntuación y el desarrollo de una lucha.</div>
+  </div>
+
+  <div class="bullet">
+    <strong data-i18n="learn3_en">Recommended searches: “Folkstyle Scoring Explained” and “High School Wrestling Basics.”</strong>
+    <div class="es" data-i18n="learn3_sp">Búsquedas recomendadas: “Puntuación Folkstyle Explicada” y “Conceptos Básicos de Lucha Escolar.”</div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  Sandman Combat • Parent Information Page
+</footer>
+
+<script>
+  const dict={
+    en:{
+      title:"Wrestling 101 — Rules & Scoring",
+      secA:"8 Basics Every Parent Should Know",
+      secB:"8 Ways Wrestlers Score Points",
+      secC:"8 Match Situations to Understand",
+      learn_title:"Learn More About Wrestling",
+    },
+    sp:{
+      title:"Lucha 101 — Reglas y Puntuación",
+      secA:"8 Conceptos Básicos para Padres",
+      secB:"8 Maneras de Anotar Puntos",
+      secC:"8 Situaciones Comunes en la Lucha",
+      learn_title:"Aprenda Más Sobre la Lucha",
+    }
+  };
+
+  const btns=document.querySelectorAll(".lang-btn");
+
+  function setLang(lang){
+    btns.forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+    const pack=dict[lang]||dict.en;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key=el.getAttribute("data-i18n");
+      if (pack[key]) el.textContent=pack[key];
+    });
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener("click",()=>setLang(btn.dataset.lang));
+  });
+
+  setLang("en");
+</script>
+
+</body>
+</html>

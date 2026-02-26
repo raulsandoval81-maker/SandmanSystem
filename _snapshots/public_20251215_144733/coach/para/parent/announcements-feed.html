@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title> Announcements</title>
+
+  <link rel="stylesheet" href="/coach/para/shared/comms.css">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+    }
+    body{
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui, sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 40px;
+    }
+    .ann-item{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      margin-bottom:16px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+    .ann-item h3{
+      margin:0;
+      color:var(--gold);
+    }
+    .ann-item p{
+      color:var(--text);
+      margin:10px 0;
+      line-height:1.45;
+    }
+    .ts{
+      font-size:.8rem;
+      color:var(--muted);
+    }
+  </style>
+</head>
+
+<body class="pc-body">
+
+<header class="pc-header">
+  <button class="pc-back" onclick="history.back()">← Back</button>
+  <h1>Bulletin - & - Announcements</h1>
+  <a class="pc-home" href="/coach/para/parent/index.html">🏠</a>
+</header>
+
+<div class="wrap">
+  <div id="ann-list"></div>
+</div>
+
+<script type="module" src="/coach/para/announcements-feed.js"></script>
+
+</body>
+</html>

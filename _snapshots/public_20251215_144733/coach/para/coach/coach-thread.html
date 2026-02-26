@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Message Thread</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="./coach-thread.css" />
+<link rel="stylesheet" href="/coach/shared/comms.css">
+</head>
+
+<body>
+
+  <!-- TOP NAV -->
+  <div class="top-bar">
+    <button class="back-btn" onclick="history.back()">← Back</button>
+    <h1>Message Thread</h1>
+  </div>
+
+  <!-- THREAD -->
+  <div id="thread-container" class="thread-container">
+    <!-- JS will fill -->
+  </div>
+
+<div class="reply-box">
+
+  <textarea id="reply-body" placeholder="Write your reply..."></textarea>
+<!-- ⭐ CATEGORY SELECTOR -->
+<div class="quick-select-wrap">
+  <select id="quick-category">
+    <option value="core">Core Replies</option>
+    <option value="athlete">Athlete</option>
+    <option value="logistics">Logistics</option>
+    <option value="safety">Safety</option>
+    <option value="spanish">Spanish (ES)</option>
+  </select>
+</div>
+
+<!-- ⭐ BUTTON ROW -->
+<div id="quick-replies" class="quick-replies"></div>
+
+  <!-- ⭐ QUICK REPLY BUTTONS ⭐ -->
+  <div class="quick-replies">
+    <button class="quick-btn" data-fill="Thank you for reaching out.">Thanks</button>
+    <button class="quick-btn" data-fill="I will take care of this.">On it</button>
+    <button class="quick-btn" data-fill="Let’s talk after practice.">After practice</button>
+  </div>
+
+  <div class="reply-actions">
+    <button id="btn-send-reply" class="btn yellow">Send Reply</button>
+    <button id="btn-archive" class="btn navy">Archive</button>
+    <button id="btn-delete" class="btn red">Delete</button>
+  </div>
+</div>
+  <script type="module" src="/coach/para/coach/js/coach-thread.js"></script>
+</body>
+</html>

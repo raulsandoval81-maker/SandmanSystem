@@ -1,0 +1,42 @@
+<!-- ----------------------------------------------------------
+/coach/para/athlete/thread.html  (FULL FILE — READ-ONLY — V1 SAFE)
+Matches parent thread layout (same IDs)
+----------------------------------------------------------- -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Athlete Thread • Para-Comms</title>
+
+  <link rel="stylesheet" href="/coach/shared/comms.css">
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <div class="wrap">
+    <h1>Athlete Thread</h1>
+
+    <section class="panel">
+      <div id="thread-head" class="thread-head"></div>
+    </section>
+
+    <section class="panel">
+      <h2 class="section-title">Conversation</h2>
+      <div id="thread-messages"></div>
+    </section>
+
+    <section class="panel">
+      <label>Reply (read-only)</label>
+      <textarea id="reply-body" rows="3" placeholder="Read-only (athlete cannot message in V1)."></textarea>
+
+      <div class="btn-row" style="margin-top:12px;">
+        <button id="btn-reply" class="btn btn-send">Send</button>
+        <button class="btn btn-cancel" onclick="history.back()">Back</button>
+      </div>
+    </section>
+  </div>
+
+  <script type="module" src="/coach/para/athlete/thread.js"></script>
+</body>
+</html>

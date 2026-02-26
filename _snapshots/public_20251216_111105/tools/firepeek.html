@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Firestore Peek (Emulator)</title>
+  <style>
+    :root{--bg:#0b0f14;--panel:#121824;--edge:#1a2433;--text:#e5e7eb;--sub:#9ca3af;--accent:#ffd633}
+    body{background:var(--bg);color:var(--text);font:14px/1.45 system-ui;margin:20px}
+    h1{margin:0 0 12px;color:var(--accent)}
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0}
+    input,select,button{background:#0f1622;color:var(--text);border:1px solid #223049;border-radius:8px;padding:8px 10px}
+    button{cursor:pointer;font-weight:700}
+    button:hover{background:var(--accent);color:#0b0f14;border-color:var(--accent)}
+    .wrap{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .panel{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:12px}
+    .panel h2{margin:0 0 8px;font-size:1rem;color:var(--accent)}
+    pre{background:#000;color:#0f0;padding:12px;border-radius:10px;min-height:260px;white-space:pre-wrap}
+    ol{margin:6px 0 0 18px}
+    .muted{color:var(--sub)}
+    .foot{margin-top:8px;color:var(--sub)}
+  </style>
+</head>
+<body>
+  <h1>Firestore Peek</h1>
+  <div class="muted">Emulators → Firestore:8081 • Functions:5001 • Auth:9099</div>
+
+  <div class="row">
+    <label>Track 
+      <option value="foundry8" selected>foundry8</option>
+      <option value="foundry4">foundry4</option>
+    </select></label>
+    <label>Month <input id="mk" type="month"></label>
+    <button id="btn">Listen</button>
+    <button id="btn-csv">Export CSV</button>
+  </div>
+
+  <div class="wrap">
+    <div class="panel">
+      <h2>Raw entries (live)</h2>
+      <pre id="out">// docs print here</pre>
+    </div>
+    <div class="panel">
+      <h2>Totals by Athlete (live)</h2>
+      <div class="row">
+        <label>Show
+          <select id="topN">
+            <option value="5" selected>Top 5</option>
+            <option value="10">Top 10</option>
+            <option value="all">All</option>
+          </select>
+        </label>
+      </div>
+      <ol id="totalsList"><li class="muted">No data.</li></ol>
+      <div class="foot" id="status">Idle</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db, monthKey } from "/assets/js/firebase-init.js";
+    import {
+      collection, query, orderBy, onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const trackEl = document.getElementById("track");
+    const mkEl    = document.getElementById("mk");
+    const out     = document.getElementById("out");
+    const btn     = document.getElementById("btn");
+    const btnCsv  = document.getElementById("btn-csv");
+    const totalsList = document.getElementById("totalsList");
+    const topNEl  = document.getElementById("topN");
+    const statusEl= document.getElementById("status");
+
+    mkEl.value = monthKey();
+
+    let unsub = null;
+    let cache = []; // current snapshot rows
+
+    function log(obj){
+      out.textContent = (typeof obj==="string") ? obj : JSON.stringify(obj, null, 2);
+    }
+
+    function computeTotals(rows){
+      const m = new Map();
+      for (const r of rows){
+        const uid = r.uid || r.athleteName || r.id || "unknown";
+        const prev = m.get(uid) || { uid, name: r.athleteName || uid, total:0 };
+        prev.total += Number(r.xp || 0);
+        if (!prev.name && r.athleteName) prev.name = r.athleteName;
+        m.set(uid, prev);
+      }
+      return [...m.values()].sort((a,b)=>b.total-a.total);
+    }
+
+    function renderTotals(){
+      let totals = computeTotals(cache);
+      const sel = topNEl.value;
+      if (sel !== "all"){
+        const n = parseInt(sel,10);
+        if (!Number.isNaN(n)) totals = totals.slice(0,n);
+      }
+      totalsList.innerHTML = totals.length
+        ? totals.map(t=>`<li><strong>${t.total}</strong> — ${t.name}</li>`).join("")
+        : `<li class="muted">No data.</li>`;
+      statusEl.textContent = `Loaded ${cache.length} entr${cache.length===1?'y':'ies'}`;
+    }
+
+    function listen(){
+      const track = trackEl.value;
+      const mk    = mkEl.value || monthKey();
+      if (unsub) { try{unsub();}catch{}; unsub=null; }
+      log(`Listening: leaderboards/${track}/months/${mk}/entries ...`);
+      statusEl.textContent = "Listening…";
+
+      const qRef = query(
+        collection(db, "leaderboards", track, "months", mk, "entries"),
+        orderBy("createdAt","desc")
+      );
+      unsub = onSnapshot(qRef, snap=>{
+        cache = snap.docs.map(d=>({ id:d.id, ...d.data() }));
+        log(cache);
+        renderTotals();
+      }, err=>{
+        log({error: err.message});
+        statusEl.textContent = `Error: ${err.message}`;
+      });
+    }
+
+    // CSV export of current cache
+    function toCSV(rows){
+      if (!rows.length) return "id,uid,athleteName,track,type,xp,mk,createdAt\n";
+      const header = ["id","uid","athleteName","track","type","xp","mk","createdAt"];
+      const lines = [header.join(",")];
+      for (const r of rows){
+        const cAt = r.createdAt?.toDate ? r.createdAt.toDate().toISOString() : "";
+        const vals = [
+          r.id, r.uid || "", (r.athleteName||"").replaceAll(","," "), r.track || "", r.type || "",
+          Number(r.xp||0), r.mk || "", cAt
+        ];
+        lines.push(vals.map(v=>String(v)).join(","));
+      }
+      return lines.join("\n");
+    }
+
+    function download(name, text){
+      const blob = new Blob([text], {type:"text/csv"});
+      const url = URL.createObjectURL(blob);
+      const a = Object.assign(document.createElement("a"), { href:url, download:name });
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    // events
+    btn.onclick = listen;
+    topNEl.onchange = renderTotals;
+    btnCsv.onclick = ()=> download(
+      `entries_${trackEl.value}_${(mkEl.value||monthKey()).replace("-","")}.csv`,
+      toCSV(cache)
+    );
+
+    // auto-start
+    listen();
+  </script>
+</body>
+</html>

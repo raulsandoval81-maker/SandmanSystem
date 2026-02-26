@@ -1,0 +1,17 @@
+/* badges.css — small responsive shield */
+.shield{position:relative; width:62px; height:76px; display:inline-block}
+.shield__svg{width:100%; height:100%; display:block; filter: drop-shadow(0 6px 12px rgba(0,0,0,.35));}
+.shield__label{position:absolute; left:50%; bottom:10px; transform:translateX(-50%);
+  font-weight:800; font-size:.60rem; letter-spacing:.5px; color:var(--txt, #111); text-shadow:0 1px 0 rgba(255,255,255,.35);}
+.shield--sm{width:46px; height:58px}
+.shield--lg{width:88px; height:108px}
+
+/* sample tones per rank (tweak to your palette) */
+.shield--shadow   { --tone:#ffffff; --txt:#111; }
+.shield--recruit  { --tone:#FFCF36; --txt:#111; }
+.shield--combatant{ --tone:#FF7F1A; --txt:#111; }
+.shield--competitor{--tone:#137D2B; --txt:#fff;}
+.shield--warrior  { --tone:#0D2D7A; --txt:#fff; }
+.shield--champion { --tone:#2A147A; --txt:#fff; }
+.shield--commander{ --tone:#A34E1E; --txt:#fff; }
+.shield--legend   { --tone:#000000; --txt:#fff; }

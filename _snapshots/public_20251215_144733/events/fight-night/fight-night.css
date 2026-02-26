@@ -1,0 +1,108 @@
+body {
+  margin: 0;
+  background: #000;
+  color: #fff;
+  overflow: hidden;
+  font-family: Orbitron, system-ui;
+}
+
+/* STAGE */
+#stage {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #111 0%, #000 80%);
+}
+
+/* SPOTLIGHT */
+#spot {
+  position: absolute;
+  top: -30%;
+  left: 50%;
+  width: 200vw;
+  height: 200vh;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255,255,255,.08) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* VS CARD */
+#vsCard {
+  position: absolute;
+  top: 18%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 60px;
+}
+
+.corner {
+  width: 300px;
+  text-align: center;
+  padding: 20px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.red-corner {
+  border: 2px solid #ff3a3a;
+  box-shadow: 0 0 25px #ff3a3a50;
+}
+
+.green-corner {
+  border: 2px solid #39ff6f;
+  box-shadow: 0 0 25px #39ff6f50;
+}
+
+.name {
+  font-size: 2rem;
+  margin-bottom: 12px;
+  letter-spacing: 2px;
+}
+.score {
+  font-size: 4rem;
+}
+
+/* VS */
+.vs {
+  font-size: 4rem;
+  color: #ffdd48;
+  text-shadow: 0 0 15px #ffdd4899;
+}
+
+/* FLAMES */
+#flameLeft, #flameRight {
+  position: absolute;
+  bottom: 0;
+  width: 300px;
+  height: 300px;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0.7;
+}
+#flameLeft {
+  left: 0;
+  background-image: url('/assets/flames/flame-left.gif');
+}
+#flameRight {
+  right: 0;
+  background-image: url('/assets/flames/flame-right.gif');
+}
+
+/* ACTION FEED */
+#fnFeed {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60%;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 12px;
+  background: rgba(0,0,0,.5);
+  border: 1px solid #222;
+  border-radius: 10px;
+  font-size: 1rem;
+}

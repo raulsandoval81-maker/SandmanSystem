@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live Calendar</title>
+  <link rel="stylesheet" href="../assets/css/site.css">
+
+  <style>
+    main {
+      max-width: 1000px;
+      margin: 28px auto;
+      padding: 22px;
+      border-radius: 14px;
+      background: #0f141b;
+      color: #f0f4fa;
+      box-shadow: 0 6px 22px rgba(0,0,0,0.35);
+    }
+    h2 {
+      font-size: 1.8rem;
+      margin-bottom: 12px;
+      color: #ffd633;
+    }
+    #calendar {
+      margin-top: 20px;
+      padding: 12px;
+      background: #1a202c;
+      border-radius: 8px;
+      min-height: 400px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+    .day {
+      background: #2a2f3a;
+      border-radius: 6px;
+      padding: 8px;
+      min-height: 80px;
+      cursor: pointer;
+    }
+    .day:hover {
+      background: #333a46;
+    }
+    .event {
+      margin-top: 4px;
+      padding: 2px 4px;
+      font-size: 0.8rem;
+      border-radius: 4px;
+      background: #e53935;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main>
+    <h2>Live Calendar</h2>
+    <p>Track practices, tournaments, and events for athletes, parents, and coaches.</p>
+
+    <!-- Calendar grid placeholder -->
+    <div id="calendar">
+      <div class="day">Sun</div>
+      <div class="day">Mon</div>
+      <div class="day">Tue</div>
+      <div class="day">Wed</div>
+      <div class="day">Thu</div>
+      <div class="day">Fri</div>
+      <div class="day">Sat</div>
+    </div>
+
+    <div style="margin-top:18px;">
+      <button id="addEventBtn">+ Add Event</button>
+      <span id="status">Ready.</span>
+    </div>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script type="module" src="../assets/js/coaches-calendar.js"></script>
+</body>
+</html>

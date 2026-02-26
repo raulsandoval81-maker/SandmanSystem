@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Programs | Sandman System™</title>
+
+  <!-- keep your global site styling -->
+
+  <!-- optional: stop favicon 404 (create /public/favicon.ico) -->
+  <link rel="icon" href="/favicon.ico" />
+
+  <style>
+    :root{ color-scheme:dark; }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      background:#0b1020;
+      color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    a{ color:inherit; }
+
+    :focus-visible{
+      outline:2px solid #ffd633;
+      outline-offset:3px;
+      border-radius:10px;
+    }
+
+    /* If site.css hides pages until include JS runs, this prevents “blank page” */
+    body{
+      opacity:1 !important;
+      visibility:visible !important;
+    }
+
+    .wrap{ max-width:1100px; margin:0 auto; padding:2rem 1.25rem; }
+    .section{ margin:2rem 0; }
+    .lead{ color:#cfd3d9; line-height:1.6; }
+
+    .hero{
+      background:linear-gradient(to bottom, #8b0000, #1a1a1a);
+      border-radius:20px;
+      padding:2rem 1.5rem;
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow:0 0 22px rgba(0,0,0,.7);
+    }
+    .hero-kicker{
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:.8rem;
+      color:#facc15;
+      font-weight:800;
+      margin-bottom:.35rem;
+    }
+    .hero h1{ margin:0 0 .5rem; }
+    .hero-sub{ color:#e5e7eb; font-size:1rem; margin:0; }
+    .hero-tag{ color:#9ca3af; font-size:.92rem; margin-top:.75rem; }
+
+    .panel{
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:16px;
+      padding:1.1rem;
+      box-shadow:0 0 14px rgba(0,0,0,.35);
+    }
+    .panel + .panel{ margin-top:1.25rem; }
+
+    .panel-head{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:1rem;
+      margin-bottom:.65rem;
+      flex-wrap:wrap;
+    }
+
+    .pill-tag{
+      display:inline-block;
+      padding:.25rem .6rem;
+      border-radius:999px;
+      background:#111827;
+      border:1px solid #374151;
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#9ca3af;
+      font-weight:800;
+    }
+
+    .panel-title{
+      margin:.25rem 0 .1rem;
+      font-size:1.2rem;
+      color:#f3f4f6;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+    .panel-sub{
+      margin:0;
+      color:#cfd3d9;
+      font-size:.95rem;
+      line-height:1.55;
+    }
+
+    .journey-box{
+      margin-top:1rem;
+      border:1px solid #243041;
+      border-radius:14px;
+      background:linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(0,0,0,0.12));
+      padding:1rem;
+      overflow:hidden;
+    }
+
+    .journey-top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      flex-wrap:wrap;
+      margin-bottom:.75rem;
+    }
+
+    .journey-title{
+      margin:0;
+      font-weight:900;
+      letter-spacing:.04em;
+      color:#ffd633;
+      font-size:.95rem;
+      text-transform:uppercase;
+    }
+
+    .journey-meta{
+      margin:0;
+      color:#9ca3af;
+      font-size:.9rem;
+      font-weight:700;
+    }
+
+    .badge-row{
+      display:flex;
+      gap:.8rem;
+      overflow-x:auto;
+      padding:.15rem .15rem .6rem;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling:touch;
+    }
+    .badge-row::-webkit-scrollbar{ height:10px; }
+    .badge-row::-webkit-scrollbar-thumb{
+      background:#263142;
+      border-radius:999px;
+      border:2px solid #0f141b;
+    }
+
+    .badge{
+      flex:0 0 auto;
+      width:120px;
+      scroll-snap-align:start;
+      text-align:center;
+    }
+    .badge img{
+      width:120px;
+      height:120px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      box-shadow:0 0 16px rgba(0,0,0,.45);
+      background:#0f141b;
+      display:block;
+      object-fit:cover;
+    }
+    .badge-label{
+      margin:.45rem 0 0;
+      font-size:.88rem;
+      font-weight:900;
+      color:#e5e7eb;
+      letter-spacing:.01em;
+    }
+
+    .list{
+      margin:.9rem 0 0 1.1rem;
+      color:#cfd3d9;
+      font-size:.95rem;
+    }
+    .list li{ margin:.25rem 0; }
+
+    .purpose{
+      margin-top:.9rem;
+      border-top:1px solid #243041;
+      padding-top:.85rem;
+      color:#cfd3d9;
+      font-size:.95rem;
+    }
+    .purpose strong{ color:#ffd633; }
+
+    .note-strip{
+      background:#10151d;
+      border:1px solid #243041;
+      border-radius:12px;
+      padding:1rem;
+      color:#cfd3d9;
+      margin-top:1.25rem;
+    }
+    .note-strip strong{ color:#ffd633; }
+
+/* ===== Footer 5-across mobile dock ===== */
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap:.4rem;
+  width:100%;
+  max-width:900px;
+  margin:0 auto;
+}
+
+.footer-links{
+  display:grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap:.4rem;
+  width:100%;
+}
+
+.footer-links a{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:.6rem .25rem;
+  border:1px solid #243041;
+  background:#0b1020;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:900;
+  font-size:.8rem;
+  white-space:nowrap;
+  text-align:center;
+  transition: all .2s ease;
+
+  /* DEFAULT = yellow */
+  color:#ffd633;
+}
+
+/* Hover = white */
+.footer-links a:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+
+/* Current page stays yellow by default */
+.footer-links a[aria-current="page"]{
+  color:#ffd633;
+  border-color:#ffd633;
+}
+
+/* Hover current page = white */
+.footer-links a[aria-current="page"]:hover{
+  color:#ffffff;
+  border-color:#ffffff;
+}
+/* smaller phones */
+@media (max-width:420px){
+  .footer-links a{
+    font-size:.7rem;
+    padding:.55rem .15rem;
+  }
+}
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+
+    <section class="section">
+      <div class="hero">
+        <div class="hero-kicker">Programs</div>
+        <h1>Sandman Combat™</h1>
+        <p class="hero-sub">Two lanes. Two journeys. Same standard: show up, do the work, earn the next level.</p>
+        <p class="hero-tag">
+          Want the engine-level explanation? See
+          <a href="/overview.html" style="color:#ffd633; text-decoration:none; font-weight:900;">Overview</a>.
+        </p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 style="color:#ffd633; margin:0 0 .5rem;">Programs by Age</h2>
+      <p class="lead" style="margin:.4rem 0 0;">
+        Badges show the ladder. How it’s earned lives in training and ceremonies — not online.
+      </p>
+
+      <!-- FOUNDRY 8 -->
+      <article class="panel" style="margin-top:1rem;">
+        <div class="panel-head">
+          <span class="pill-tag">Foundry 8 · Zero2Hero · Youth</span>
+        </div>
+
+        <h3 class="panel-title">Ages ~7–13</h3>
+        <p class="panel-sub">
+          Fundamentals, discipline, and confidence — earned step-by-step with safety and control. No rush. No overload.
+        </p>
+
+        <div class="journey-box" aria-label="Foundry 8 badge journey">
+          <div class="journey-top">
+            <p class="journey-title">Foundry 8 Journey</p>
+            <p class="journey-meta">Night → Day</p>
+          </div>
+
+          <div class="badge-row" role="list" aria-label="Foundry 8 badges">
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t0-shadow.png" alt="Shadow badge" loading="lazy" />
+              <div class="badge-label">Shadow</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t1-recruit.png" alt="Recruit badge" loading="lazy" />
+              <div class="badge-label">Recruit</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t2-combatant.png" alt="Combatant badge" loading="lazy" />
+              <div class="badge-label">Combatant</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t3-competitor.png" alt="Competitor badge" loading="lazy" />
+              <div class="badge-label">Competitor</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t4-warrior.png" alt="Warrior badge" loading="lazy" />
+              <div class="badge-label">Warrior</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t5-champion.png" alt="Champion badge" loading="lazy" />
+              <div class="badge-label">Champion</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t6-commander.png" alt="Commander badge" loading="lazy" />
+              <div class="badge-label">Commander</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t7-hero.png" alt="Hero badge" loading="lazy" />
+              <div class="badge-label">Hero</div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="list">
+          <li><strong>Wrestling</strong> — stance, motion, position, body control</li>
+          <li><strong>Boxing</strong> — footwork, jab work, clean basics</li>
+        </ul>
+
+        <div class="purpose">
+          <strong>Purpose:</strong> build the base. Control first. Complexity later.
+        </div>
+      </article>
+
+      <!-- FOUNDRY 4 -->
+      <article class="panel">
+        <div class="panel-head">
+          <span class="pill-tag">Foundry 4 · Path2Legend · Teen</span>
+        </div>
+
+        <h3 class="panel-title">Ages ~13–18</h3>
+        <p class="panel-sub">
+          Hard standards and real accountability. Athletes get sharp, steady, and trusted under pressure.
+        </p>
+
+        <div class="journey-box" aria-label="Foundry 4 badge journey">
+          <div class="journey-top">
+            <p class="journey-title">Foundry 4 Journey</p>
+            <p class="journey-meta">Day → Night</p>
+          </div>
+
+          <div class="badge-row" role="list" aria-label="Foundry 4 badges">
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t0-apprentice.png" alt="Apprentice badge" loading="lazy" />
+              <div class="badge-label">Apprentice</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t1-warrior.png" alt="Warrior badge" loading="lazy" />
+              <div class="badge-label">Warrior</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t2-champion.png" alt="Champion badge" loading="lazy" />
+              <div class="badge-label">Champion</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t3-veteran.png" alt="Veteran badge" loading="lazy" />
+              <div class="badge-label">Veteran</div>
+            </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t4-legend.png" alt="Legend badge" loading="lazy" />
+              <div class="badge-label">Legend</div>
+            </div>
+          </div>
+        </div>
+
+        <ul class="list">
+          <li><strong>Wrestling</strong> — pressure, pace, control</li>
+          <li><strong>Boxing</strong> — precision under fatigue</li>
+        </ul>
+
+        <div class="purpose">
+          <strong>Purpose:</strong> expand the skill set with maturity — not earlier.
+        </div>
+      </article>
+
+      <div class="note-strip">
+        <strong>Intellectual Property Notice:</strong>
+        All names, logos, badge designs, colors, and visual elements are claimed as intellectual property of Sandman System™
+        and may not be used without written permission.
+      </div>
+
+    </section>
+  </main>
+
+  <footer class="footer">
+<div class="footer-links">
+  <a href="index.html">Home</a>
+  <a href="overview.html">Overview</a>
+  <a href="programs.html">Programs</a>
+  <a href="about.html">About</a>
+  <a href="ceremonies.html">Ceremonies</a>
+</div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Coaches • Sandman Tour — Combat</title>
+<link rel="stylesheet" href="../assets/css/site.css"/>
+<style>
+:root{--bg:#0a0f14;--ink:#e9eef5;--muted:#a7b3c2;--gold:#f4c20d;--red:#c81e1e;--line:#f6d10a}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial}
+a{color:var(--gold);text-decoration:none} a:hover{text-decoration:underline}
+.header{padding:18px 20px;text-align:center}.brand{font-weight:900;color:var(--gold);letter-spacing:.6px}
+.banner{background:var(--red);color:#fff;text-align:center;padding:10px 14px;font-weight:900;letter-spacing:.7px;text-transform:uppercase}
+.wrap{max-width:1000px;margin:0 auto;padding:20px}
+.card{background:linear-gradient(180deg,#0f1722,#0b121a);border:3px solid var(--line);border-radius:18px;padding:26px 22px;box-shadow:0 12px 40px rgba(0,0,0,.45)}
+.card h1{margin:0 0 8px;color:var(--gold);font-size:34px;text-shadow:0 6px 20px rgba(244,194,13,.25)}
+.card p{margin:6px 0}.small{color:var(--muted)}
+.section{margin-top:14px;padding-top:8px;border-top:1px solid rgba(255,255,255,.08)}
+.section h2{margin:8px 0 6px;color:var(--gold);font-size:1.1rem}
+.preview{margin:16px 0 0;border:2px dashed rgba(255,255,255,.35);border-radius:12px;padding:16px;text-align:left;color:#dbe7f6;background:rgba(255,255,255,.03)}
+.footer{max-width:1000px;margin:22px auto 48px;padding:0 20px;color:#d9dde3}
+.links{display:flex;gap:18px;justify-content:center;margin:6px 0 4px}
+.tagline{text-align:center;margin-top:8px;font-weight:800}
+.pager{display:flex;justify-content:space-between;margin:2rem 0}
+.pager a{border:1px solid rgba(255,255,255,.2);padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.04)}
+</style>
+</head>
+<body>
+<header class="header"><div class="brand">Sandman System™ — Public Tour</div></header>
+<div class="banner">DUMMY PAGE — PLACEHOLDER ONLY</div>
+
+<main class="wrap">
+  <section class="card">
+    <h1>Coaches — Mat Room Made Simple</h1>
+    <p class="small">Combat first. Structure that saves hours and keeps your room calm, focused, and climbing.</p>
+
+    <!-- PROBLEM → SOLUTION (Coaches) -->
+    <div class="section">
+      <h2>Coach Challenges → Sandman Solutions</h2>
+      <div class="preview">
+        <p><strong>Problem:</strong> Practice prep steals hours and still feels random.<br>
+           <strong>Solution:</strong> Zero2Hero ladders + day/weekly templates = fast prep with clear intent.</p>
+        <p><strong>Problem:</strong> Progress is invisible; parents ask “How’s my kid doing?” every week.<br>
+           <strong>Solution:</strong> XP, badges, and attendance snapshot make growth obvious without meetings.</p>
+        <p><strong>Problem:</strong> Parent messages flood texts and derail practice time.<br>
+           <strong>Solution:</strong> Targeted announcements + FAQ hub reduce noise and repeat questions.</p>
+        <p><strong>Problem:</strong> Managing 30+ athletes solo leads to burnout.<br>
+           <strong>Solution:</strong> Leadership tiers (Foundry) promote captains and helpers to share the load.</p>
+        <p><strong>Problem:</strong> Event weeks explode into chaos (weigh-ins, mats, brackets).<br>
+           <strong>Solution:</strong> Tournament checklist + live updates keep the room calm and on schedule.</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="pager">
+    <a href="#">← Retreat</a>
+    <a href="#">Proceed →</a>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="tagline">Zero2Hero • Heroes Build Heroes</div>
+  <div class="links">
+    <a href="tour-ceremonies.html">Ceremonies</a><span>•</span>
+    <a href="tour-hq.html">Headquarters</a><span>•</span>
+    <a href="tour-contact.html">Contact</a><span>•</span>
+    <a href="tour-zero2hero.html">Zero2Hero</a>
+  </div>
+</footer>
+
+<script>
+const pages = [
+  "index.html",
+  "tour-system.html",
+  "tour-zero2hero.html",
+  "tour-coach.html",
+  "tour-athlete.html",
+  "tour-parent.html",
+  "tour-strength.html",
+  "tour-digital.html",
+  "tour-curriculum.html",
+  "tour-tournament.html",
+  "tour-contact.html",
+  "tour-hq.html",
+  "tour-ceremonies.html",
+  "tour-finale.html"
+];
+const current = location.pathname.split("/").pop(); const idx = pages.indexOf(current);
+const prev = pages[(idx-1+pages.length)%pages.length]; const next = pages[(idx+1)%pages.length];
+document.querySelector(".pager a:first-child").href = prev;
+document.querySelector(".pager a:last-child").href  = next;
+</script>
+</body>
+</html>

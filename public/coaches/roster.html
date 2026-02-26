@@ -4,134 +4,156 @@
   <meta charset="utf-8"/>
   <title>Coach · Roster (v2)</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
   <link rel="stylesheet" href="/assets/css/site.css"/>
 
-<style>
-  :root { color-scheme: dark; }
+  <!-- Declared favicon (browser may still request /favicon.ico by default) -->
+  <link rel="icon" href="/assets/img/favicon.ico" type="image/x-icon">
 
-  body{
-    background:#0a0a0a;
-    color:#f5f5f5;
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    margin:0;
-  }
+  <style>
+    :root { color-scheme: dark; }
 
-  .wrap{ max-width:1100px; margin:0 auto; padding:24px; }
-  h1{ margin:0 0 8px; }
-  .muted{ color:#9fb3c8; }
+    body{
+      background:#0a0a0a;
+      color:#f5f5f5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+    }
 
-  table{ width:100%; border-collapse:collapse; margin-top:14px; }
-  th,td{
-    padding:10px 6px;
-    border-bottom:1px solid #1c2533;
-    font-size:.9rem;
-    vertical-align:top;
-  }
-  th{ text-align:left; color:#c9d6e5; }
-  tr:hover{ background:rgba(255,255,255,.03); }
+    .wrap{ max-width:1100px; margin:0 auto; padding:24px; }
+    h1{ margin:0 0 8px; }
+    .muted{ color:#9fb3c8; }
 
-  .pill{
-    display:inline-block;
-    background:#263142;
-    border:1px solid #3a4a60;
-    border-radius:999px;
-    padding:.25rem .65rem;
-    color:#dbeafe;
-    text-decoration:none;
-    font-size:.75rem;
-    white-space:nowrap;
-  }
+    table{ width:100%; border-collapse:collapse; margin-top:14px; }
+    th,td{
+      padding:10px 6px;
+      border-bottom:1px solid #1c2533;
+      font-size:.9rem;
+      vertical-align:top;
+    }
+    th{ text-align:left; color:#c9d6e5; }
+    tr:hover{ background:rgba(255,255,255,.03); }
 
-  .name-col{ display:flex; align-items:flex-start; gap:8px; }
-  .sub{ display:block; font-size:.7rem; color:#7a8aa1; }
-  .name-line{ font-weight:700; }
+    .pill{
+      display:inline-block;
+      background:#263142;
+      border:1px solid #3a4a60;
+      border-radius:999px;
+      padding:.25rem .65rem;
+      color:#dbeafe;
+      text-decoration:none;
+      font-size:.75rem;
+      white-space:nowrap;
+    }
 
-  .bonsai-chip{
-    width:20px;height:20px;border-radius:999px;
-    border:1px solid #ffd63333;
-    background:radial-gradient(circle,#ffd63344 0%,#0a0a0a 90%);
-    display:inline-block;
-    flex:0 0 auto;
-    margin-top:2px;
-  }
+    .name-col{ display:flex; align-items:flex-start; gap:8px; }
+    .sub{ display:block; font-size:.7rem; color:#7a8aa1; }
+    .name-line{ font-weight:700; }
 
-  /* ---- belt cell stack ---- */
-  td .belt-stack{
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    min-width:180px;
-  }
+    .bonsai-chip{
+      width:20px;height:20px;border-radius:999px;
+      border:1px solid #ffd63333;
+      background:radial-gradient(circle,#ffd63344 0%,#0a0a0a 90%);
+      display:inline-block;
+      flex:0 0 auto;
+      margin-top:2px;
+    }
 
-  /* stripe counter line */
-  td .xp-sub{
-    font-size:12px;
-    opacity:.75;
-    letter-spacing:.2px;
-    line-height:1.1;
-  }
+    td .belt-stack{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:180px;
+    }
 
-  /* ===== xp-bar-lite.js (cluster-left stripe cuts) ===== */
+    td .xp-sub{
+      font-size:12px;
+      opacity:.75;
+      letter-spacing:.2px;
+      line-height:1.1;
+    }
 
-  .xp-lite{
-    display:flex;
-    flex-direction:column;
-    gap:4px;
-  }
+    .controls-row{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin:10px 0 12px;
+      flex-wrap:wrap;
+    }
 
-  .xp-lite-track{
-    position:relative;
-    height:14px;
-    border-radius:999px;
-    overflow:hidden;
+    .canon-toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      user-select:none;
+    }
 
-    background:rgba(255,255,255,.14);
-    border:1px solid rgba(255,255,255,.10);
-    box-shadow:
-      inset 0 0 0 1px rgba(255,255,255,.06),
-      inset 0 -2px 6px rgba(0,0,0,.18);
-  }
+    .count-meta{
+      font-size:.78rem;
+      opacity:.85;
+    }
 
-  .xp-lite-fill{
-    position:absolute;
-    left:0; top:0; bottom:0;
-    width:0%;
-    border-radius:inherit;
-    z-index:1;
-  }
+    /* DEV pill (simple + matches your earlier look) */
+    .dev-pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border:1px solid #2a3443;
+      border-radius:999px;
+      background:#10151c;
+    }
+    .dev-pill input{ transform:translateY(1px); }
 
-  .xp-lite-stripes{
-    position:absolute;
-    inset:0;
-    z-index:3;
-    pointer-events:none;
-  }
+    /* ===== Lite XP Bar (xp-bar-lite.js) ===== */
+    .xp-lite{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:180px;
+    }
 
-  /* each stripe is a full-height cut, clustered LEFT */
-  .xp-lite-stripe{
-    position:absolute;
-    top:0;
-    bottom:0;
-    width: var(--sw, 10px);
-    left: calc(var(--sl, 8px) + (var(--i, 0) * (var(--sw, 10px) + var(--sg, 6px))));
-    border-radius:0;
-    transform:none;
-  }
+    .xp-lite-track{
+      position:relative;
+      height:14px;
+      border-radius:6px;
+      overflow:hidden;
+      background:rgba(255,255,255,.14);
+    }
 
-  .xp-lite-stripe.off{ display:none; }
+    .xp-lite-fill{
+      position:absolute;
+      inset:0 auto 0 0;
+      height:100%;
+      width:0%;
+    }
 
-  .xp-lite-stripe.on{
-    display:block;
-    background: var(--stripe, #fff);
-    box-shadow: 0 0 10px rgba(255,255,255,.18);
-  }
+    .xp-lite-stripes{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+    }
 
-  .xp-lite-meta{
-    font-size:12px;
-    opacity:.8;
-    line-height:1.1;
-  }
-</style>
+    .xp-lite-stripe{
+      position:absolute;
+      top:0;
+      bottom:0;
+      width:var(--sw);
+      left:calc(var(--sl) + (var(--i) * (var(--sw) + var(--sg))));
+      background:var(--stripe);
+      opacity:.18;
+    }
+
+    .xp-lite-stripe.on{ opacity:.95; }
+    .xp-lite-stripe.off{ opacity:.18; }
+
+    .xp-lite-meta{
+      font-size:11px;
+      opacity:.75;
+      letter-spacing:.3px;
+    }
+  </style>
 </head>
 
 <body>
@@ -139,22 +161,14 @@
 
   <nav class="top-nav">
     <a class="pill" href="/coaches/index.html">← Coach Index</a>
-    <a class="pill" href="/coaches/coaches-daily-clipboard.html">Coach’s Clipboard</a>
-    <a class="pill" href="/coaches/daily-grind.html">Daily Grind XP</a>
+    <a class="pill" href="/coaches/daily-xp/daily-grind.html">Xp Console</a>
   </nav>
 
   <h1>Team Roster</h1>
-  <p class="muted">Live athletes from Firestore <code>athletes</code> collection</p>
+  <p class="muted">
+    Firestore · <code id="colName">athletes</code>
+  </p>
 
-  <div class="controls-row">
-    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
-      <input id="canonicalOnly" type="checkbox" checked />
-      <span class="muted" style="font-size:.85rem;">
-        Canonical Only (hide stubs / auth noise)
-      </span>
-    </label>
-    <span id="countMeta" class="muted" style="font-size:.8rem;"></span>
-  </div>
 
   <table>
     <thead>
@@ -169,96 +183,153 @@
       <tr><td colspan="4" class="muted">Loading…</td></tr>
     </tbody>
   </table>
+  <div class="controls-row">
+    <!-- DEV MODE toggle (wired by dev-mode.js) -->
+    <div class="dev-pill" title="DEV shows ONLY devMode=true + isTest=true. LIVE hides all dev/test docs.">
+      <input id="devModeToggle" type="checkbox" />
+      <span class="muted">DEV</span>
+    </div>
+
+    <!-- Track toggle (exclusive: F4 vs F8) -->
+    <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only (exclusive)">
+      <input id="trackF8Only" type="checkbox" />
+      <span class="muted">Foundry 8 only</span>
+    </label>
+
+    <span id="countMeta" class="muted count-meta"></span>
+  </div>
 
 </main>
 
 <script type="module">
-  import { db, collection, getDocs, query, limit } from "/assets/js/firebase-init.js";
+  import { db, collection, getDocs, query, limit, where } from "/assets/js/firebase-init.js";
   import { renderLiteXpBar } from "/assets/js/xp-bar-lite.js";
   import { getStripeInfo } from "/assets/js/ladder.service.js";
 
+  import {
+    isDevMode,
+    withDev,
+    paintDevUi,
+    bindDevToggle,
+    patchDevLinks
+  } from "/assets/js/dev-mode.js";
+
+  // DEV MODE BOOTSTRAP
+  paintDevUi();
+  patchDevLinks();
+  bindDevToggle({ onChange: () => location.reload() });
+
+  console.log("ROSTER PAGE MODULE LOADED");
+
   const $ = (id) => document.getElementById(id);
 
-  function isCanonicalDocId(docId) {
-    return typeof docId === "string" && /^F4_\\d{4}$/.test(docId);
+  function trackBaseOf(docId, a = {}) {
+    const tb = String(a.trackBase || "").trim().toUpperCase();
+    if (tb === "F4" || tb === "F8") return tb;
+
+    const id = String(docId || "").toUpperCase();
+    if (id.startsWith("F4_")) return "F4";
+    if (id.startsWith("F8_")) return "F8";
+
+    const t = String(a.track || a.trackCode || "").toLowerCase();
+    if (t.includes("foundry4")) return "F4";
+    if (t.includes("foundry8")) return "F8";
+
+    return "";
   }
 
-  function isRealSeededAthlete(docId, a = {}) {
-    const hasF4Id = isCanonicalDocId(docId);
-    const mint = a.mintTag || a.mintPreview || a.virtTag || a.mintVirtueTag || "";
-    const hasMint = typeof mint === "string" && mint.startsWith("F4_CB");
-    const hasName = typeof a.fullName === "string" && a.fullName.trim().length > 0;
-    const notTest = (a.fullName || "").toUpperCase() !== "TEST";
-    return notTest && (hasF4Id || hasMint || hasName);
+  // LIVE: basic guard. DEV: show everything that matches devMode/isTest query.
+  function isRosterVisibleAthlete(docId, a = {}, devMode = false) {
+    if (devMode) return true;
+
+    const name = String(a.publicName || a.fullName || "").trim();
+    const uid  = String(a.uid || docId || "").trim();
+    if (!uid) return false;
+
+    const upper = name.toUpperCase();
+    if (upper === "TEST" || upper === "TEST ATHLETE" || upper.includes("TEST GHOST")) return false;
+
+    return name.length >= 2;
   }
 
-  function fallbackEarnedFromXp(xp, cap = 1200, total = 4){
-    const safeCap = Number(cap) > 0 ? Number(cap) : 1200;
+  function fallbackEarnedFromXp(xp, cap, total) {
+    const safeCap = (Number(cap) > 0) ? Number(cap) : 1;
     const pct = (Number(xp) || 0) / safeCap;
     return Math.max(0, Math.min(total, Math.floor(pct * total)));
   }
 
   async function loadRoster() {
-    const rowsEl = $("rows");
-    const toggle = $("canonicalOnly");
+    const rowsEl    = $("rows");
     const countMeta = $("countMeta");
+    const f8Only    = !!$("trackF8Only")?.checked;
 
     rowsEl.innerHTML = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
 
-    const snap = await getDocs(query(collection(db, "athletes"), limit(300)));
+    const devMode = isDevMode();
+    const baseRef = collection(db, "athletes");
+
+    // DEV = only dev/test docs (strict)
+    // LIVE = broad fetch then strip dev/test docs client-side
+    const qBase = devMode
+      ? query(baseRef, where("devMode", "==", true), where("isTest", "==", true), limit(500))
+      : query(baseRef, limit(500));
+
+    const snap = await getDocs(qBase);
+
     if (snap.empty) {
       rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes found.</td></tr>`;
       if (countMeta) countMeta.textContent = "";
       return;
     }
 
-    const canonicalOnly = !!toggle?.checked;
+    let all = snap.docs.map(d => ({ id: d.id, data: d.data() }));
 
-    const all = snap.docs.map(d => ({ id: d.id, data: d.data() }));
-    const filtered = all
-      .filter(({ id, data }) => isRealSeededAthlete(id, data))
-      .filter(({ id }) => (canonicalOnly ? isCanonicalDocId(id) : true));
-
-    const canonCount = all.filter(x => isCanonicalDocId(x.id)).length;
-    if (countMeta) {
-      countMeta.textContent = canonicalOnly
-        ? `Showing ${filtered.length} canonical`
-        : `Showing ${filtered.length} (all: ${all.length}, canonical: ${canonCount})`;
+    // LIVE safety strip (in case anything slips in)
+    if (!devMode) {
+      all = all.filter(x => !x.data.devMode && !x.data.isTest);
     }
 
+    // Exclusive track selection
+    const trackWanted = f8Only ? "F8" : "F4";
+
+    const filtered = all
+      .filter(({ id, data }) => isRosterVisibleAthlete(id, data, devMode))
+      .filter(({ id, data }) => trackBaseOf(id, data) === trackWanted) // strict: no mixing
+      .sort((a, b) => {
+        const A = String(a.data.publicName || a.data.fullName || a.id).toLowerCase();
+        const B = String(b.data.publicName || b.data.fullName || b.id).toLowerCase();
+        return A.localeCompare(B);
+      });
+
+    const mode = devMode ? "DEV" : "LIVE";
+    if (countMeta) countMeta.textContent = `${mode} — ${trackWanted} — Showing ${filtered.length}`;
+
+    // render table
     let html = "";
     for (const { id: uid, data: a } of filtered) {
-      let team = a.team || "";
-      const loc = [a.city, a.state].filter(Boolean).join(", ");
-      if (/lompoc|strong/i.test(team)) team = "Lompoc Academy of Wrestling";
-
       const tierLeft  = a.tier || "T0";
-      const tierRight = a.rankName || "Apprentice";
+      const tierRight = a.rankName || (trackWanted === "F8" ? "Shadow" : "Apprentice");
+      const tb = trackBaseOf(uid, a) || "—";
 
       html += `
         <tr>
           <td>
             <div class="name-col">
-              <span class="bonsai-chip" title="Path 2 Legend"></span>
+              <span class="bonsai-chip"></span>
               <div>
                 <div class="name-line">${a.publicName || a.fullName || "—"}</div>
                 <div class="sub">${a.virtue || "—"} · ${uid}</div>
-                <div class="sub">${team}${loc ? " · " + loc : ""}</div>
-                <div class="sub small-track">${a.track || a.trackCode || "—"}</div>
+                <div class="sub small-track">${tb} · ${a.track || a.trackCode || "—"}</div>
               </div>
             </div>
           </td>
 
-          <td class="rank-col">
-            ${tierLeft} / ${tierRight}
-          </td>
+          <td>${tierLeft} / ${tierRight}</td>
 
-          <td class="xp-col">
-            <div id="belt-${uid}" class="belt-stack"></div>
-          </td>
+          <td><div id="belt-${uid}" class="belt-stack"></div></td>
 
           <td>
-            <a class="pill" href="/athletes/athlete-profile.html?id=${encodeURIComponent(uid)}">
+            <a class="pill" href="${withDev(`/athletes/athlete-profile.html?id=${encodeURIComponent(uid)}`)}">
               Profile
             </a>
           </td>
@@ -268,7 +339,7 @@
 
     rowsEl.innerHTML = html || `<tr><td colspan="4" class="muted">No matching athletes.</td></tr>`;
 
-    // paint belts + stripe counter (single pass)
+    // paint belts
     for (const { id: uid, data: a } of filtered) {
       const holder = document.getElementById(`belt-${uid}`);
       if (!holder) continue;
@@ -276,53 +347,50 @@
       holder.innerHTML = "";
 
       const xp  = Number(a.xp ?? 0);
-      const cap = Number(a.xpCap ?? 1200);
+      const cap = Number(a.xpCap ?? (trackWanted === "F8" ? 800 : 1200));
+      const safeCap = cap > 0 ? cap : 1;
 
-      const isWhiteBelt =
-        String(a.rankName || "").toLowerCase() === "apprentice" ||
-        String(a.tier || "").toUpperCase() === "T0";
-
-      const stripeTone = isWhiteBelt ? "black" : "white";
+      const lane = (trackWanted === "F8") ? "f8" : "f4";
 
       let earned = 0;
-      let total = 4;
+      let total  = 4;
 
-      // Try stripe service; if it fails or returns 0 on nonzero xp, fallback
       try {
-        const info = getStripeInfo("f4", xp);
-        if (info && typeof info === "object") {
-          earned = Number(info.stripesEarned ?? 0);
-          total  = Number(info.stripesTotal  ?? 4);
-        }
-      } catch (e) {}
+        const info = getStripeInfo(lane, xp);
+        earned = Number(info?.stripesEarned ?? 0);
+        total  = Number(info?.stripesTotal ?? 4);
+      } catch {}
 
-      if (!Number.isFinite(total) || total <= 0) total = 4;
-      if (!Number.isFinite(earned) || earned < 0) earned = 0;
+      if (!earned && xp > 0) earned = Math.floor((xp / safeCap) * total);
+      earned = Math.max(0, Math.min(total, earned));
 
-      if (earned === 0 && xp > 0) {
-        earned = fallbackEarnedFromXp(xp, cap, total);
-      }
+      const isWhite =
+        String(a.rankName || "").toLowerCase() === "apprentice" ||
+        String(a.rankName || "").toLowerCase() === "shadow" ||
+        String(a.tier || "").toUpperCase() === "T0";
 
       renderLiteXpBar({
         container: holder,
         xp,
-        cap,
-        baseColor: "rgba(255,255,255,.08)",
-        fillColor: "#ffffff",
+        cap: safeCap,
         stripesTotal: total,
         stripesEarned: earned,
-        stripeTone,
+        stripeTone: isWhite ? "black" : "white",
+        fillColor: "#ffffff"
       });
 
       const sub = document.createElement("div");
       sub.className = "xp-sub";
       sub.textContent = `Stripes: ${earned}/${total}`;
       holder.appendChild(sub);
+
+      // Optional debug hook (lets you inspect the last painted row in console)
+      // window.__lastRosterXp = { uid, xp, cap: safeCap, earned, total, lane };
     }
   }
 
   loadRoster();
-  document.getElementById("canonicalOnly")?.addEventListener("change", loadRoster);
+  $("trackF8Only")?.addEventListener("change", loadRoster);
 </script>
 </body>
 </html>

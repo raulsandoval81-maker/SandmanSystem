@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Athlete · My XP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- Use your site styles; safe to leave or remove -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+
+  <style>
+    /* Minimal, local styling so this page stands alone */
+    :root { --card-bg:#121620; --card-border:#242a36; --text:#e9eef7; --muted:#9fb0c8; --gold:#FFD700; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; background:#0d1117; color:var(--text); }
+    .wrap { max-width: 960px; margin: 0 auto; padding: 24px; }
+    h1 { margin: 0 0 16px; color: var(--gold); letter-spacing:.5px; }
+    p.lead { color: var(--muted); margin: 0 0 24px; }
+    .grid { display:grid; gap:16px; grid-template-columns: 1fr; }
+    @media (min-width: 760px){ .grid{ grid-template-columns: 1fr 1fr; } }
+    .card { background: var(--card-bg); border:1px solid var(--card-border);
+            border-radius:16px; padding:18px; box-shadow: 0 12px 24px rgba(0,0,0,.3); }
+    .card h2 { margin:0 0 8px; color:#ffd33d; }
+    .muted { color: var(--muted); }
+    .actions { margin-top:14px; display:flex; gap:10px; flex-wrap:wrap; }
+    .btn { display:inline-block; padding:.6rem .9rem; border-radius:10px; text-decoration:none;
+           font-weight:700; background:#2a2f3a; color:#fff; border:1px solid #3a4354; }
+    .btn:hover { filter:brightness(1.06); }
+    .pill { display:inline-block; padding:.25rem .55rem; border-radius:999px; background:#1b2330; border:1px solid #2c3546; font-size:.85rem; color:#b8c4d9; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>My XP</h1>
+    <p class="lead">Choose your ladder to view progress, stripes, and rank details.</p>
+
+    <section class="grid">
+      <!-- Youth ladder -->
+      <article class="card">
+        <h2>Youth Ladder</h2>
+        <span class="pill">R0–R8 · Shadow → Hero</span>
+        <p class="muted" style="margin-top:10px;">
+          Traditional belt colors with stripes. Reset each tier. Best for elementary & middle school athletes.
+        </p>
+        <div class="actions">
+          <a class="btn" href="/athletes/xp-youth.html">Open Youth XP</a>
+          <a class="btn" href="/athletes/badge-ladder.html">View Ladder Map</a>
+        </div>
+      </article>
+
+      <!-- Teen/Foundry4 ladder -->
+      <article class="card">
+        <h2>Teen / Foundry4</h2>
+        <span class="pill">R0–R4 · Apprentice → Legend</span>
+        <p class="muted" style="margin-top:10px;">
+          Teen/Adult progression with belt color mapping. Reset each tier. Mirrors Youth finish.
+        </p>
+        <div class="actions">
+          <a class="btn" href="/athletes/xp.teen.html">Open Teen / Foundry4 XP</a>
+          <a class="btn" href="/foundry4/index.html">Foundry4 Home</a>
+        </div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

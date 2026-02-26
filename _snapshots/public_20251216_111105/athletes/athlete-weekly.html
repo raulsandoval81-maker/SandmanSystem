@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete — Weekly | Sandman System™</title>
+
+  <!-- Your global styles + includes loader -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill:#ff3333; --pillfg:#ffd633; --pillbr:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1000px;margin:0 auto;padding:1.25rem}
+    h1{color:#ffd633;margin:0 0 .75rem}
+    .muted{color:var(--muted)}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25)}
+    label{display:block;margin:.4rem 0 .25rem;color:#cfe2ff;font-weight:700}
+    input,select,textarea{
+      width:100%;padding:.6rem .75rem;border-radius:10px;border:1px solid #394a61;
+      background:#121821;color:#f3f4f6
+    }
+    textarea{min-height:110px}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap}
+    .pill{display:inline-block;padding:.55rem 1rem;border-radius:999px;background:var(--pill);
+      color:var(--pillfg);border:2px solid var(--pillbr);font-weight:900;text-decoration:none;cursor:pointer}
+    .pill.secondary{background:transparent}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:.6rem;border-top:1px solid #2c3a4e;vertical-align:top}
+    th{color:#cfe2ff;text-align:left}
+    .kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-top:.5rem}
+    .kpi > div{background:#111825;border:1px solid #2c3a4e;border-radius:10px;padding:.6rem;text-align:center}
+    .kpi .n{font-size:1.25rem;font-weight:800;color:#ffd633}
+    .tag{border:1px solid #3a4b61;border-radius:6px;padding:.1rem .4rem;margin-right:.25rem}
+  </style>
+</head>
+<body>
+  <!-- Header include -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <a class="pill secondary" href="tools.html">← Back to Athlete Tools</a>
+    <h1>Athlete — Weekly</h1>
+    <p class="muted" style="margin-top:-.35rem">Weekly check-in for training volume, matches, and highlights. Local demo (no Firebase yet).</p>
+
+    <section class="grid">
+      <!-- LEFT: Compose -->
+      <div class="panel">
+        <h2 style="margin-top:0">New Weekly Entry</h2>
+
+        <label for="week">Week</label>
+        <input id="week" type="week" />
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="athlete">Athlete</label>
+            <input id="athlete" placeholder="e.g., sandoval" />
+          </div>
+          <div style="flex:1">
+            <label for="program">Program</label>
+            <select id="program">
+              <option value="foundry8">Foundry 8 (Youth)</option>
+              <option value="foundry4">Foundry 4 (Combat)</option>
+              <option value="leadership">Foundry 4 (Leadership)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="discipline">Discipline</label>
+            <select id="discipline">
+              <option>wrestling</option><option>striking</option>
+              <option>kickboxing</option><option>muay-thai</option>
+              <option>submission-grappling</option><option>mma</option>
+            </select>
+          </div>
+          <div style="flex:1">
+            <label for="coach">Coach</label>
+            <input id="coach" placeholder="e.g., reyes" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="sessions">Sessions</label>
+            <input id="sessions" type="number" min="0" step="1" value="0"/>
+          </div>
+          <div style="flex:1">
+            <label for="hours">Hours Trained</label>
+            <input id="hours" type="number" min="0" step="0.5" value="0"/>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <label for="matches">Matches (official)</label>
+            <input id="matches" type="number" min="0" step="1" value="0"/>
+          </div>
+          <div style="flex:1">
+            <label for="wins">Wins</label>
+            <input id="wins" type="number" min="0" step="1" value="0"/>
+          </div>
+        </div>
+
+        <label for="focus">Focus / Theme</label>
+        <input id="focus" placeholder="e.g., double leg entries, first move off whistle" />
+
+        <label for="notes">Highlights / Notes</label>
+        <textarea id="notes" placeholder="Wins, progress, assignments, praise/corrections…"></textarea>
+
+        <div class="row" style="margin-top:.25rem">
+          <button id="save" class="pill" type="button">Save Week</button>
+          <button id="clear" class="pill secondary" type="button">Clear</button>
+        </div>
+      </div>
+
+      <!-- RIGHT: Current week summary + KPIs -->
+      <div class="panel">
+        <h2 style="margin-top:0">This Week — Snapshot</h2>
+        <div class="kpi">
+          <div><div class="n" id="kSessions">0</div><div class="muted">Sessions</div></div>
+          <div><div class="n" id="kHours">0</div><div class="muted">Hours</div></div>
+          <div><div class="n" id="kMatches">0</div><div class="muted">Matches</div></div>
+          <div><div class="n" id="kWins">0</div><div class="muted">Wins</div></div>
+        </div>
+        <div style="margin-top:.75rem">
+          <span class="tag" id="kProgram">—</span>
+          <span class="tag" id="kDiscipline">—</span>
+          <span class="tag" id="kFocus">—</span>
+        </div>
+        <p class="muted" style="margin-top:.75rem">Snapshot reflects the selected week above (or the current calendar week if empty).</p>
+      </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="panel" style="margin-top:1rem">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Recent Weeks</h2>
+        <div class="row">
+          <input id="search" type="search" placeholder="Search athlete / notes / coach…" style="min-width:260px"/>
+          <button class="pill secondary" id="export">Export JSON</button>
+        </div>
+      </div>
+
+      <table aria-live="polite" style="margin-top:.5rem">
+        <thead>
+          <tr>
+            <th style="width:130px">Week</th>
+            <th style="width:140px">Athlete</th>
+            <th style="width:130px">Program</th>
+            <th style="width:130px">Discipline</th>
+            <th style="width:220px">KPI</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="6" class="muted">No entries yet.</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <!-- Footer include -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    (function(){
+      const KEY="athleteWeekly";
+      const $=s=>document.querySelector(s);
+
+      const f = {
+        week: $("#week"), athlete: $("#athlete"), coach: $("#coach"),
+        program: $("#program"), discipline: $("#discipline"),
+        sessions: $("#sessions"), hours: $("#hours"),
+        matches: $("#matches"), wins: $("#wins"),
+        focus: $("#focus"), notes: $("#notes")
+      };
+
+      // Prefill week with current ISO week if empty
+      if(!f.week.value){ f.week.value = isoWeekStr(new Date()); }
+
+      // Save
+      $("#save").addEventListener("click", ()=>{
+        const e = getEntryFromForm();
+        if(!e.athlete){ alert("Enter athlete."); return; }
+        const list = load();
+        // Replace if same athlete+week exists
+        const idx = list.findIndex(x=>x.week===e.week && x.athlete.toLowerCase()===e.athlete.toLowerCase());
+        if(idx>=0) list[idx]=e; else list.unshift(e);
+        save(list);
+        alert("Saved locally.");
+        render();
+      });
+
+      $("#clear").addEventListener("click", ()=>{
+        Object.values(f).forEach(el=>{ if(el===f.week) return; el.value = (el.type==="number") ? 0 : ""; });
+        renderSnapshot(); // zero it out
+      });
+
+      $("#week").addEventListener("input", renderSnapshot);
+      $("#athlete").addEventListener("input", renderSnapshot);
+      $("#program").addEventListener("input", renderSnapshot);
+      $("#discipline").addEventListener("input", renderSnapshot);
+      $("#focus").addEventListener("input", renderSnapshot);
+      $("#sessions").addEventListener("input", renderSnapshot);
+      $("#hours").addEventListener("input", renderSnapshot);
+      $("#matches").addEventListener("input", renderSnapshot);
+      $("#wins").addEventListener("input", renderSnapshot);
+
+      $("#search").addEventListener("input", debounce(render, 200));
+      $("#export").addEventListener("click", ()=>{
+        const blob = new Blob([JSON.stringify(load(),null,2)], {type:"application/json"});
+        const url = URL.createObjectURL(blob); const a = document.createElement("a");
+        a.href = url; a.download = "athlete-weekly.json"; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      function getEntryFromForm(){
+        return {
+          ts: Date.now(),
+          week: f.week.value, // e.g., 2025-W37
+          athlete: (f.athlete.value||"").trim(),
+          coach: (f.coach.value||"").trim(),
+          program: f.program.value,
+          discipline: f.discipline.value,
+          sessions: +f.sessions.value||0,
+          hours: +f.hours.value||0,
+          matches: +f.matches.value||0,
+          wins: +f.wins.value||0,
+          focus: (f.focus.value||"").trim(),
+          notes: (f.notes.value||"").trim()
+        };
+      }
+
+      function render(){
+        const term = ($("#search").value||"").toLowerCase();
+        const list = load().filter(e=>{
+          const hay = (e.athlete+" "+e.coach+" "+e.program+" "+e.discipline+" "+e.focus+" "+e.notes).toLowerCase();
+          return !term || hay.includes(term);
+        });
+        const rows = $("#rows");
+        if(!list.length){ rows.innerHTML = `<tr><td colspan="6" class="muted">No entries yet.</td></tr>`; return; }
+        rows.innerHTML = list.map(e=>{
+          return `<tr>
+            <td>${esc(e.week)}</td>
+            <td>${esc(e.athlete)}</td>
+            <td>${esc(labelProgram(e.program))}</td>
+            <td>${esc(e.discipline)}</td>
+            <td>
+              <span class="tag">Sessions: ${e.sessions}</span>
+              <span class="tag">Hours: ${e.hours}</span>
+              <span class="tag">Matches: ${e.matches}</span>
+              <span class="tag">Wins: ${e.wins}</span>
+            </td>
+            <td>${e.focus?`<div><strong>${esc(e.focus)}</strong></div>`:""}${esc(e.notes||"")}</td>
+          </tr>`;
+        }).join("");
+      }
+
+      function renderSnapshot(){
+        // Pull either the form values OR an existing saved entry for that athlete+week
+        const athlete = (f.athlete.value||"").trim().toLowerCase();
+        const week = f.week.value;
+        const saved = load().find(x=>x.week===week && x.athlete.toLowerCase()===athlete);
+        const src = saved || getEntryFromForm();
+
+        $("#kSessions").textContent = src.sessions || 0;
+        $("#kHours").textContent = src.hours || 0;
+        $("#kMatches").textContent = src.matches || 0;
+        $("#kWins").textContent = src.wins || 0;
+        $("#kProgram").textContent = labelProgram(src.program||"—");
+        $("#kDiscipline").textContent = src.discipline || "—";
+        $("#kFocus").textContent = src.focus || "—";
+      }
+
+      // Helpers
+      function load(){ return JSON.parse(localStorage.getItem(KEY)||"[]"); }
+      function save(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+      function esc(s){ return (s+"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+      function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
+      function labelProgram(p){ return p==='foundry8'?'Foundry 8':p==='foundry4'?'Foundry 4':p==='leadership'?'Leadership':p; }
+
+      function isoWeekStr(d){
+        // Returns YYYY-Www (input Date)
+        const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+        // Thursday in current week decides the year
+        date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+        const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+        const weekNo = Math.ceil((((date - yearStart) / 86400000) + 1)/7);
+        return `${date.getUTCFullYear()}-W${String(weekNo).padStart(2,'0')}`;
+      }
+
+      // Initial draw
+      render();
+      renderSnapshot();
+
+      // Prefill from query (?athlete=...)
+      const q = new URLSearchParams(location.search);
+      if(q.get("athlete")){ f.athlete.value = q.get("athlete"); renderSnapshot(); }
+    })();
+  </script>
+</body>
+</html>

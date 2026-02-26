@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coach Comms • Post Announcement</title>
+
+  <link rel="stylesheet" href="/coach/para/shared/comms.css">
+
+  <style>
+    body{
+      background:#0a1833;
+      color:#f0f4f8;
+      font-family:system-ui, sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:26px 16px 60px;
+    }
+    .panel{
+      background:#111c35;
+      border:1px solid #27304a;
+      border-radius:14px;
+      padding:18px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+    label{
+      color:#ffdd48;
+      margin-top:12px;
+      display:block;
+      font-weight:600;
+      font-size:.9rem;
+    }
+    input, textarea{
+      width:100%;
+      padding:10px;
+      background:#0b1120;
+      border-radius:10px;
+      border:1px solid #27304a;
+      color:#f0f4f8;
+      font-size:1rem;
+      margin-top:4px;
+    }
+    .btn{
+      margin-top:20px;
+      padding:10px 16px;
+      background:#ffdd48;
+      color:#111;
+      border:none;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+      font-size:1rem;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="pc-header">
+  <a class="pc-back" href="/coach/para/coach/index.html">← Back</a>
+  <h1>Post Announcement</h1>
+  <a class="pc-home" href="/coach/index.html">🏠</a>
+</header>
+
+<div class="wrap">
+
+  <section class="panel">
+    <p><strong>Fast Post Tool.</strong>  
+    Use this for quick updates. For bilingual EN↔ES translation, use the Bilingual Builder instead.</p>
+
+    <label>Subject:</label>
+    <input id="a-subject" type="text" placeholder="Tournament update…" />
+
+    <label>Message:</label>
+    <textarea id="a-message" rows="6" placeholder="Write message…"></textarea>
+
+    <button class="btn" id="btn-post">Post Announcement</button>
+  </section>
+
+</div>
+
+<script>
+document.getElementById('btn-post').addEventListener('click', () => {
+  alert("Posting will connect to backend. Placeholder working.");
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Athlete XP Mock</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f3f3f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      padding: 20px;
+      width: 400px;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .bonsai {
+      font-size: 48px;
+    }
+    .xp-bar {
+      margin-top: 16px;
+    }
+    .xp-bar-bg {
+      width: 100%;
+      height: 12px;
+      border-radius: 6px;
+      background: #ddd;
+      overflow: hidden;
+    }
+    .xp-bar-fill {
+      height: 100%;
+      width: 68%;
+      background: #2563eb;
+    }
+    .rings {
+      margin-top: 12px;
+      display: flex;
+      gap: 6px;
+    }
+    .ring {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #000;
+    }
+    .ring.filled {
+      background: #000;
+    }
+    .footer {
+      margin-top: 20px;
+      font-size: 12px;
+      color: #666;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div>
+        <h2>Max S.</h2>
+        <div style="font-size: 12px; color: #666;">
+          UID F8-12345 · F8 · Warrior
+        </div>
+      </div>
+      <div class="bonsai">🌳</div>
+    </div>
+
+    <div class="xp-bar">
+      <div style="font-size: 12px; display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Tier XP</span>
+        <span>540 / 800 (68%)</span>
+      </div>
+      <div class="xp-bar-bg">
+        <div class="xp-bar-fill"></div>
+      </div>
+      <div style="margin-top: 6px; font-size: 12px; color: #666;">
+        Lifetime XP: 3120
+      </div>
+    </div>
+
+    <div style="margin-top: 16px; font-size: 12px; text-transform: uppercase; opacity: 0.7;">
+      Rings of Power
+    </div>
+    <div class="rings">
+      <div class="ring filled"></div>
+      <div class="ring filled"></div>
+      <div class="ring filled"></div>
+      <div class="ring"></div>
+      <div class="ring"></div>
+    </div>
+    <div style="font-size: 11px; color: #666; margin-top: 4px;">1440 / 2400</div>
+
+    <div class="footer">
+      Sandman Combat · Zero2Hero · Bonsai Growth
+    </div>
+  </div>
+</body>
+</html>

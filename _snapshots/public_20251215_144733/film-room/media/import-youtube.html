@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>FilmRoom · Import YouTube</title>
+
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      margin:0;background:#05070c;color:#e5e7eb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    }
+    .wrap{max-width:800px;margin:0 auto;padding:24px 16px 50px;}
+
+    h1{margin:0 0 10px;color:#ffdd48;text-shadow:0 0 8px rgba(255,221,72,.25);}
+    .muted{color:#9ca3af;font-size:.78rem;margin-bottom:18px;}
+
+    .top-nav{display:flex;gap:10px;margin-bottom:16px;}
+    .pill{
+      background:#1a1d23;border:1px solid #2d3648;
+      padding:6px 14px;border-radius:999px;color:#fff;
+      font-weight:700;text-decoration:none;
+      cursor:pointer;transition:.15s;
+    }
+    .pill:hover{background:#e63946;border-color:#e63946}
+
+    input[type=text]{
+      width:100%;padding:12px;
+      background:#1a1d23;border:1px solid #2d3648;
+      border-radius:8px;color:#fff;margin-top:10px;
+    }
+    button{
+      margin-top:14px;padding:10px 20px;
+      background:#ffdd48;color:#000;font-weight:700;
+      border-radius:10px;border:none;cursor:pointer;
+      transition:.15s;
+    }
+    button:hover{filter:brightness(1.1);}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="top-nav">
+    <a class="pill" href="../index.html">← Media</a>
+    <a class="pill" href="../../video-vault/index.html">Video Vault</a>
+  </div>
+
+  <h1>Import YouTube</h1>
+  <p class="muted">Paste a YouTube URL to store it as a FilmRoom clip.</p>
+
+  <input id="yt" type="text" placeholder="https://youtube.com/watch?v=XXXXX"/>
+
+  <button id="btnSave">Save Clip</button>
+  <div id="status" class="muted" style="margin-top:10px"></div>
+
+</main>
+
+<script type="module">
+  document.getElementById("btnSave").onclick = ()=>{
+    const url = document.getElementById("yt").value;
+    if (!url) return alert("Paste a URL first.");
+    document.getElementById("status").textContent = "Clip saved (placeholder).";
+  };
+</script>
+
+</body>
+</html>

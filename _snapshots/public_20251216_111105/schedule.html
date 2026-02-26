@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Schedule | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    :root {
+      --bg:#0a0f15;
+      --panel:#0f141b;
+      --line:#243041;
+      --muted:#9fb3c8;
+      --brand:#ffd633;
+    }
+
+    body {
+      margin:0;
+      background:var(--bg);
+      color:#e8edf5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* ---------------- TOP NAV ---------------- */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid var(--brand);
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+    .nav-logo{
+      font-size:1rem;
+      font-weight:700;
+      color:var(--brand);
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:var(--brand);
+      cursor:pointer;
+    }
+
+    /* ---------------- DRAWER ---------------- */
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid var(--brand);
+      padding:1.5rem;
+      transition:.25s;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:500;
+      display:block;
+    }
+    .drawer-links a:hover{ color:#ff4d4d; }
+
+    /* ---------------- BACKDROP ---------------- */
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none;
+      transition:.25s;
+      z-index:1500;
+    }
+    .nav-backdrop.show{
+      opacity:1; pointer-events:auto;
+    }
+
+    /* ---------------- PAGE LAYOUT ---------------- */
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:2rem 1.25rem 3rem;
+    }
+    h1{
+      margin:0 0 .5rem;
+      color:var(--brand);
+    }
+    .lead{
+      color:var(--muted);
+      margin-bottom:1.25rem;
+      max-width:680px;
+    }
+
+    /* ---------------- TOOLBAR ---------------- */
+    .toolbar{
+      display:flex;
+      gap:.5rem;
+      flex-wrap:wrap;
+      margin-bottom:1.2rem;
+    }
+    .btn{
+      background:#121821;
+      border:1px solid #2f3a4b;
+      color:#e8edf5;
+      padding:.5rem .9rem;
+      border-radius:999px;
+      font-weight:700;
+      font-size:.7rem;
+      cursor:pointer;
+    }
+    .btn.active{
+      border-color:var(--brand);
+      box-shadow:0 0 0 2px rgba(255,214,51,.3);
+    }
+
+    /* ---------------- GRID ---------------- */
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.1fr) 350px;
+      gap:1rem;
+      align-items:flex-start;
+    }
+    @media (max-width:1000px){
+      .grid{ grid-template-columns:1fr; }
+    }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:1rem;
+      box-shadow:0 0 14px rgba(0,0,0,.25);
+    }
+    .card h2{
+      margin:0 0 .6rem;
+      color:var(--brand);
+      font-size:1.05rem;
+    }
+    .muted-sm{
+      color:#7e92aa;
+      font-size:.78rem;
+    }
+
+    /* ---------------- CALENDAR ---------------- */
+    .cal{
+      border:1px dashed #314257;
+      border-radius:12px;
+      padding:.8rem;
+      background:rgba(15,20,27,.35);
+    }
+    .event-block{
+      background:#121821;
+      border:1px solid #2f3a4e;
+      border-radius:10px;
+      padding:.6rem .75rem;
+      margin-bottom:.55rem;
+    }
+    .event-block h3{
+      margin:0 0 .25rem;
+      font-size:.9rem;
+      color:#fff;
+    }
+    .event-meta{
+      font-size:.72rem;
+      color:#cbd5e1;
+      margin-bottom:.25rem;
+    }
+    .event-tag{
+      display:inline-block;
+      background:var(--brand);
+      color:#111;
+      border-radius:999px;
+      padding:.12rem .55rem;
+      font-size:.62rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+
+    /* ---------------- COMMS FEED ---------------- */
+    .feed{
+      display:grid;
+      gap:.5rem;
+      margin-top:.6rem;
+    }
+    .msg{
+      background:#0e141c;
+      border:1px solid #243041;
+      border-radius:10px;
+      padding:.5rem .65rem;
+    }
+    .msg.pinned{
+      box-shadow:0 0 0 2px rgba(255,214,51,.25);
+    }
+    .msg-head{
+      display:flex;
+      gap:.4rem;
+      align-items:center;
+      margin-bottom:.3rem;
+    }
+    .pill{
+      display:inline-block;
+      padding:.12rem .5rem;
+      border-radius:999px;
+      background:#121821;
+      border:1px solid #384a62;
+      font-size:.6rem;
+      text-transform:uppercase;
+    }
+    .msg-time{
+      font-size:.6rem;
+      color:#7f8ea5;
+    }
+    .msg-body{
+      font-size:.78rem;
+      line-height:1.35;
+      margin-bottom:.35rem;
+    }
+    .msg button{
+      background:none;
+      border:1px solid #394a61;
+      border-radius:999px;
+      color:#d2d8e1;
+      font-size:.6rem;
+      padding:.25rem .55rem;
+      cursor:pointer;
+    }
+
+    /* ---------------- FORM ---------------- */
+    .form-row{
+      display:flex;
+      gap:.45rem;
+      flex-wrap:wrap;
+      margin-bottom:.45rem;
+    }
+    input, select, textarea{
+      background:#121821;
+      border:1px solid #384a62;
+      border-radius:10px;
+      color:#f3f4f6;
+      padding:.45rem .55rem;
+      font-size:.75rem;
+    }
+    input, select{ height:36px; }
+    textarea{
+      width:100%;
+      min-height:70px;
+      resize:vertical;
+    }
+    .post-btn{
+      background:#ff3333;
+      border:1px solid #ff8a33;
+      color:#fff;
+      font-weight:700;
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    .footer{
+      background:#0f141b;
+      border-top:2px solid var(--brand);
+      padding:1rem;
+      margin-top:2rem;
+    }
+    .footer-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      justify-content:center;
+      gap:1.5rem;
+      flex-wrap:wrap;
+    }
+    .footer-title{
+      font-weight:700;
+      color:var(--brand);
+    }
+    .footer-links{
+      display:flex;
+      gap:1rem;
+    }
+    .footer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+    }
+    .footer-links a:hover{
+      color:#ff4d4d;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<!-- TOP NAV -->
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn">☰</button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<aside class="nav-drawer" id="navDrawer">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="schedule.html" aria-current="page">Schedule</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="leaderboards.html">Leaderboards</a>
+    <a href="tools.html">Tools</a>
+    <a href="ceremonies.html">Ceremonies</a>
+    <a href="coaches.html">Coach Hub</a>
+  </nav>
+</aside>
+
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<!-- MAIN -->
+<main class="wrap">
+
+  <h1>Schedule</h1>
+  <p class="lead">
+    Current practice rhythm and upcoming events.  
+    This is a public preview — the live, coach-only calendar loads inside the dashboard.
+  </p>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <button class="btn active" data-view="practice">Practice Week</button>
+    <button class="btn" data-view="events">Events & Ceremonies</button>
+  </div>
+
+  <div class="grid">
+
+    <!-- LEFT -->
+    <section class="card">
+      <h2>Calendar Preview</h2>
+      <div id="cal" class="cal"></div>
+      <p class="muted-sm" style="margin-top:.5rem;">
+        Sample sessions shown. Times and groups may change — coaches will post changes in the live feed.
+      </p>
+    </section>
+
+    <!-- RIGHT -->
+    <aside class="card">
+      <h2>Team Notices</h2>
+      <p class="muted-sm">This demo does not save to the database.</p>
+
+      <div class="form-row">
+        <select id="kind">
+          <option value="mat">Mat Assign</option>
+          <option value="ride">Ride</option>
+          <option value="general">General</option>
+        </select>
+        <input id="who" type="text" placeholder="Who (e.g. Tim)" />
+        <input id="detail" type="text" placeholder="Details (Mat 3, 5:15p)" />
+      </div>
+
+      <textarea id="note" placeholder="Optional note"></textarea>
+
+      <div class="form-row" style="justify-content:space-between;">
+        <button id="post" class="btn post-btn">Post (Preview)</button>
+        <span id="status" class="muted-sm">Preview only.</span>
+      </div>
+
+      <div id="feed" class="feed"></div>
+    </aside>
+
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  /* Drawer toggle */
+  const navBtn = document.getElementById("navBtn");
+  const drawer = document.getElementById("navDrawer");
+  const backdrop = document.getElementById("navBackdrop");
+
+  navBtn.onclick = () => {
+    drawer.classList.add("open");
+    backdrop.classList.add("show");
+  };
+  backdrop.onclick = () => {
+    drawer.classList.remove("open");
+    backdrop.classList.remove("show");
+  };
+
+  /* Sample schedule data */
+  const practiceHTML = `
+    <div class="event-block">
+      <h3>Monday — Foundry 8</h3>
+      <div class="event-meta">4:00–5:15 PM · Wrestling · Youth</div>
+      <p style="font-size:.7rem;">Focus: Takedown chain · Discipline check-in</p>
+      <span class="event-tag">Practice</span>
+    </div>
+    <div class="event-block">
+      <h3>Wednesday — Foundry 4 Combat</h3>
+      <div class="event-meta">5:30–7:00 PM · Boxing / Kickboxing</div>
+      <p style="font-size:.7rem;">Focus: Mitt work · Defense · Conditioning</p>
+      <span class="event-tag">Practice</span>
+    </div>
+    <div class="event-block">
+      <h3>Friday — Strength & Honor</h3>
+      <div class="event-meta">4:30–6:00 PM · All lanes</div>
+      <p style="font-size:.7rem;">Strength block + mindset logging</p>
+      <span class="event-tag">Honor</span>
+    </div>
+  `;
+
+  const eventsHTML = `
+    <div class="event-block">
+      <h3>Saturday, Nov 23 — Winter Classic</h3>
+      <div class="event-meta">Lompoc HS Gym · Check-in 8:00 AM</div>
+      <p style="font-size:.7rem;">XP: +15 Combat · +5 Strength · +5 Honor</p>
+      <span class="event-tag">Tournament</span>
+    </div>
+    <div class="event-block">
+      <h3>Friday, Dec 6 — Tier Ceremony</h3>
+      <div class="event-meta">6:30 PM · Family Night</div>
+      <p style="font-size:.7rem;">Badges, shirts, belts, varsity jackets.</p>
+      <span class="event-tag">Ceremony</span>
+    </div>
+  `;
+
+  /* Toggle views */
+  const cal = document.getElementById("cal");
+  const viewBtns = document.querySelectorAll("[data-view]");
+
+  function setView(view) {
+    viewBtns.forEach(b => b.classList.toggle("active", b.dataset.view === view));
+    cal.innerHTML = view === "events" ? eventsHTML : practiceHTML;
+  }
+
+  viewBtns.forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+
+  setView("practice");
+
+  /* Comms feed preview */
+  const feed = document.getElementById("feed");
+  const statusEl = document.getElementById("status");
+
+  let messages = [
+    { id:"1", kind:"general", text:"Ceremony practice on Friday. Bring binders.", when:"10m ago", pinned:true },
+    { id:"2", kind:"ride", text:"Ride needed — Layla 5:10 PM from school.", when:"22m ago", pinned:false },
+    { id:"3", kind:"mat", text:"Mat 2 — Tim, Micah, Jae · live drilling.", when:"30m ago", pinned:false },
+  ];
+
+  function renderFeed() {
+    const rows = [...messages].sort((a,b) => Number(b.pinned) - Number(a.pinned));
+    feed.innerHTML =
+      rows.map(m => `
+        <article class="msg ${m.pinned ? "pinned" : ""}" data-id="${m.id}">
+          <div class="msg-head">
+            <span class="pill">${m.kind}</span>
+            <span class="msg-time">${m.when}</span>
+          </div>
+          <div class="msg-body">${m.text}</div>
+          <button data-pin="${m.id}">${m.pinned ? "Unpin" : "Pin"}</button>
+        </article>
+      `).join("") ||
+      `<p class="muted-sm">No messages yet.</p>`;
+  }
+
+  renderFeed();
+
+  document.getElementById("post").onclick = () => {
+    const kind = document.getElementById("kind").value;
+    const who = document.getElementById("who").value.trim();
+    const detail = document.getElementById("detail").value.trim();
+    const note = document.getElementById("note").value.trim();
+    const parts = [who, detail, note].filter(Boolean);
+
+    if (!parts.length) {
+      statusEl.textContent = "Nothing to post.";
+      return;
+    }
+
+    messages.unshift({
+      id:Date.now()+"",
+      kind,
+      text:parts.join(" · "),
+      when:"just now",
+      pinned:false,
+    });
+
+    document.getElementById("who").value = "";
+    document.getElementById("detail").value = "";
+    document.getElementById("note").value = "";
+    statusEl.textContent = "Posted (preview).";
+    renderFeed();
+
+    setTimeout(() => statusEl.textContent = "Preview only.", 1200);
+  };
+
+  feed.onclick = e => {
+    const pinId = e.target?.dataset?.pin;
+    if (!pinId) return;
+
+    messages = messages.map(m => m.id === pinId ? { ...m, pinned:!m.pinned } : m);
+    renderFeed();
+  };
+</script>
+
+</body>
+</html>

@@ -1,0 +1,101 @@
+<script>
+  // Uses a relative URL so it works on emulator + production:
+  // - Emulator hosting proxies /__/functions/... automatically
+  // - Production hosting also proxies /__/functions/...
+  const VOLUNTEER_ENDPOINT = "/__/functions/submitVolunteer";
+
+  function currentLang() {
+    return localStorage.getItem("lang") || "en";
+  }
+
+  const MSG = {
+    en: {
+      missing: "Please fill in Parent Name and Athlete Name.",
+      sending: "Submitting…",
+      ok: "Thank you! Your volunteer form has been submitted.",
+      fail: "Error submitting form. Please try again.",
+      net: "Network error. Please try again."
+    },
+    
+    es: {
+      missing: "Por favor complete el nombre del padre/madre y del atleta.",
+      sending: "Enviando…",
+      ok: "¡Gracias! Su formulario de voluntariado fue enviado.",
+      fail: "Error al enviar el formulario. Inténtelo de nuevo.",
+      net: "Error de red. Inténtelo de nuevo."
+    }
+  };
+
+  document.getElementById("btn-submit").addEventListener("click", async () => {
+    const L = currentLang();
+    const t = MSG[L] || MSG.en;
+
+    // Collect fields
+    const parentName  = document.getElementById("parentName").value.trim();
+    const athleteName = document.getElementById("athleteName").value.trim();
+    const phone       = document.getElementById("phone").value.trim();
+    const email       = document.getElementById("email").value.trim();
+    const language    = document.getElementById("language").value;
+    const notes       = document.getElementById("notes").value.trim();
+
+    const helps = Array.from(document.querySelectorAll(".helpBox:checked"))
+      .map(cb => cb.value);
+
+    // Minimal validation
+    if (!parentName || !athleteName) {
+      alert(t.missing);
+      return;
+    }
+
+    const payload = {
+      parentName,
+      athleteName,
+      phone,
+      email,
+      language,
+      helps,
+      notes,
+      uiLang: L,              // what they viewed the page as
+      timestamp: Date.now(),  // fine for UI; function should set server timestamp too
+      season: "2025-26"
+    };
+
+    const btn = document.getElementById("btn-submit");
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.style.opacity = "0.85";
+    btn.textContent = t.sending;
+
+    try {
+      const res = await fetch(VOLUNTEER_ENDPOINT, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        console.error("Volunteer submit HTTP", res.status, await res.text().catch(()=> ""));
+        alert(t.fail);
+        return;
+      }
+
+      // Optional: clear form after success
+      // document.getElementById("parentName").value = "";
+      // document.getElementById("athleteName").value = "";
+      // document.getElementById("phone").value = "";
+      // document.getElementById("email").value = "";
+      // document.getElementById("language").value = "";
+      // document.getElementById("notes").value = "";
+      // document.querySelectorAll(".helpBox:checked").forEach(cb => cb.checked = false);
+
+      alert(t.ok);
+    } catch (err) {
+      console.error("Volunteer submit error:", err);
+      alert(t.net);
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = "";
+      btn.textContent = original;
+    }
+  });
+</script>

@@ -1,0 +1,29 @@
+{
+  "combat": {
+    "v0": { "stripeReq": 0 },
+    "v1": { "stripeReq": 1 },
+    "v3": { "stripeReq": 2 }
+  },
+
+  "strength": {
+    "r1-foundation":  { "stripeReq": 2 },
+    "r2-load":        { "stripeReq": 4 },
+    "r3-plyometrics": { "stripeReq": 6 },
+    "r4-barbell-basics": { "stripeReq": 8 },
+    "r5-power":       { "stripeReq": 10 },
+    "r6-strength-adv": { "stripeReq": 12 },
+    "r7-powerlifting": { "stripeReq": 14 },
+    "r8-athletic-peak": { "stripeReq": 16 }
+  },
+
+  "honor": {
+    "f1-awareness_integrity": { "stripeReq": 2 },
+    "f2-discipline_respect":  { "stripeReq": 4 },
+    "f3-patience_courage":    { "stripeReq": 6 },
+    "f4-wisdom_loyalty":      { "stripeReq": 8 },
+    "f5-next": { "stripeReq": 10 },
+    "f6-next": { "stripeReq": 12 },
+    "f7-next": { "stripeReq": 14 },
+    "f8-next": { "stripeReq": 16 }
+  }
+}

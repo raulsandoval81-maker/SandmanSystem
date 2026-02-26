@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tools | Sandman System™</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    :root { color-scheme: dark; }
+
+    body {
+      background:#0b1020;
+      color:#e5e7eb;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:2rem 1.25rem 3rem;
+    }
+
+    h1{
+      text-align:center;
+      color:#ffd633;
+      margin-bottom:.35rem;
+    }
+
+    .page-sub{
+      text-align:center;
+      color:#9ca3af;
+      margin-bottom:2rem;
+      font-size:.95rem;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(280px,1fr));
+      gap:2rem;
+    }
+
+    .tool-card{
+      background:#121821;
+      border:1px solid #243041;
+      border-radius:14px;
+      padding:1.25rem 1.25rem 1.35rem;
+      text-align:left;
+      box-shadow:0 0 14px rgba(0,0,0,.35);
+      transition:.2s;
+      min-height:190px;
+    }
+
+    .tool-card:hover{
+      border-color:#ffd633;
+      box-shadow:0 0 16px rgba(255,214,51,.3);
+    }
+
+    .tool-card h2{
+      margin:0 0 .4rem;
+      color:#ffd633;
+      font-size:1.05rem;
+      display:flex;
+      gap:.4rem;
+      align-items:center;
+    }
+
+    .tool-card p{
+      margin:.35rem 0 0;
+      color:#cbd5e1;
+      font-size:.85rem;
+      line-height:1.55;
+    }
+
+    .btn{
+      display:inline-block;
+      padding:.55rem 1rem;
+      border-radius:999px;
+      background:#ffd633;
+      color:#111;
+      font-weight:800;
+      text-decoration:none;
+      margin-top:.75rem;
+      font-size:.73rem;
+    }
+
+    .btn:hover{ opacity:.85; }
+
+    hr.section-split{
+      border:0;
+      border-top:1px solid #243041;
+      margin:2.4rem 0 2rem;
+    }
+
+    /* ---------------- TOP NAV ---------------- */
+    .top-nav{
+      background:#0f141b;
+      border-bottom:2px solid #ffd633;
+      padding:.45rem 1rem;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+
+    .nav-inner{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      max-width:1200px;
+      margin:0 auto;
+    }
+
+    .nav-logo{
+      font-size:1rem;
+      font-weight:700;
+      color:#ffd633;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .nav-btn{
+      background:none;
+      border:0;
+      font-size:1.4rem;
+      color:#ffd633;
+      cursor:pointer;
+    }
+
+    /* ---------------- DRAWER ---------------- */
+    .nav-drawer{
+      position:fixed;
+      top:0; right:-260px;
+      width:260px;
+      height:100vh;
+      background:#0b1118;
+      border-left:2px solid #ffd633;
+      padding:1.5rem;
+      transition:.25s;
+      z-index:2000;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+    }
+
+    .nav-drawer.open{ right:0; }
+
+    .drawer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+      font-size:1rem;
+      padding:.4rem 0;
+      font-weight:500;
+      display:block;
+    }
+
+    .drawer-links a:hover{
+      color:#ff4d4d;
+    }
+
+    /* ---------------- BACKDROP ---------------- */
+    .nav-backdrop{
+      position:fixed;
+      top:0; left:0;
+      width:100%; height:100%;
+      background:rgba(0,0,0,.45);
+      opacity:0;
+      pointer-events:none;
+      transition:.25s;
+      z-index:1500;
+    }
+
+    .nav-backdrop.show{
+      opacity:1;
+      pointer-events:auto;
+    }
+
+    /* ---------------- FOOTER ---------------- */
+    .footer{
+      background:#0f141b;
+      border-top:2px solid #ffd633;
+      padding:1rem;
+      margin-top:2rem;
+    }
+
+    .footer-container{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      justify-content:center;
+      gap:1.5rem;
+      flex-wrap:wrap;
+    }
+
+    .footer-title{
+      font-weight:700;
+      color:#ffd633;
+    }
+
+    .footer-links{
+      display:flex;
+      gap:1rem;
+    }
+
+    .footer-links a{
+      color:#f3f4f6;
+      text-decoration:none;
+    }
+
+    .footer-links a:hover{
+      color:#ff4d4d;
+    }
+
+    /* Highlight current page */
+    .drawer-links a[aria-current="page"],
+    .footer-links a[aria-current="page"]{
+      color:#ffd633;
+      font-weight:700;
+    }
+
+    /* Dot icon */
+    .icon-dot{
+      width:8px; height:8px;
+      background:#ffd633;
+      border-radius:50%;
+      display:inline-block;
+    }
+  </style>
+</head>
+
+<body>
+
+<!-- TOP NAV -->
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+<!-- DRAWER -->
+<aside class="nav-drawer" id="navDrawer">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="schedule.html">Schedule</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="leaderboards.html">Leaderboards</a>
+    <a href="tools.html">Tools</a>
+    <a href="ceremonies.html">Ceremonies</a>
+    <a href="coaches.html">Coach Hub</a>
+  </nav>
+</aside>
+
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<!-- MAIN -->
+<main class="wrap">
+  <h1>Coach Tools (Preview)</h1>
+  <p class="page-sub">
+    A look at the digital toolkit that runs Sandman. Public can view, coaches unlock.<br/>
+    Live tools write to Firestore and Cloud Functions — access required.
+  </p>
+
+  <!-- PHASE 1 -->
+  <div class="grid">
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> XP Calculator</h2>
+      <p>Estimate how Combat, Strength, and Honor XP stack toward your next stripe.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Ceremony Binder</h2>
+      <p>Compile promotion lists and visuals for award nights.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Standards Board</h2>
+      <p>Tier requirements, skill lists, and readiness expectations.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Attendance & Merit</h2>
+      <p>Log sessions and discipline credits — feeds straight into XP.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+  </div>
+
+  <hr class="section-split">
+
+  <!-- PHASE 2 -->
+  <div class="grid">
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> XP Reports</h2>
+      <p>Month-by-month growth, event XP, and leaderboard position.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Roster Manager</h2>
+      <p>Profiles, XP bars, tags, and status — coach-facing only.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Coach Notes</h2>
+      <p>Injury, parent, and event logs — unified staff communication.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Athlete Intake</h2>
+      <p>Verified profiles, waivers, and Mint Virtue Tags.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Skills Tracker</h2>
+      <p>Tier-aligned checklists with focus/pass ratings.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+  </div>
+
+  <hr class="section-split">
+
+  <!-- PHASE 3 -->
+  <div class="grid">
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Practice Plans</h2>
+      <p>Warm-ups, drills, live blocks — synced to XP events.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Curriculums</h2>
+      <p>Combat, Strength, and Honor lanes laid out by tier.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Coaches Library</h2>
+      <p>Lesson scripts and visuals — unified teaching system.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Parent Communications</h2>
+      <p>Updates and ceremony reminders for families.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+  </div>
+
+  <hr class="section-split">
+
+  <!-- PHASE 4 -->
+  <div class="grid">
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Student Nudges</h2>
+      <p>Automated check-ins that reinforce consistency.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Weight Management</h2>
+      <p>Track weight, hydration, and recovery safely.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Strength Tracker</h2>
+      <p>Log lifts and conditioning toward Rings2Power.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Mindset Logging</h2>
+      <p>Daily Honor prompts for Foundry 4 + 8.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Athlete Motivation</h2>
+      <p>Video, audio, and stories for slumps and gaps.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+  </div>
+
+  <hr class="section-split">
+
+  <!-- PHASE 5 -->
+  <div class="grid">
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Video Analysis</h2>
+      <p>Break down matches with time-stamped teaching points.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+    <article class="tool-card">
+      <h2><span class="icon-dot"></span> Recognition & Honors</h2>
+      <p>Badges, belts, jackets — tied to earned XP.</p>
+      <a class="btn" href="#">Preview</a>
+    </article>
+
+  </div>
+
+  <p style="text-align:center;margin-top:2rem;color:#9ca3af;font-size:.9rem;">
+    Public previews only. Live versions unlock for verified Sandman Coaches.
+  </p>
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+const btn = document.getElementById("navBtn");
+const drawer = document.getElementById("navDrawer");
+const backdrop = document.getElementById("navBackdrop");
+
+btn.addEventListener("click",()=>{
+  drawer.classList.add("open");
+  backdrop.classList.add("show");
+  document.body.style.overflow="hidden";
+});
+
+backdrop.addEventListener("click", closeMenu);
+drawer.querySelectorAll("a").forEach(a=>{
+  a.addEventListener("click", closeMenu);
+});
+
+function closeMenu(){
+  drawer.classList.remove("open");
+  backdrop.classList.remove("show");
+  document.body.style.overflow="";
+}
+
+document.querySelectorAll(".drawer-links a, .footer-links a").forEach(link=>{
+  if(link.href === window.location.href){
+    link.setAttribute("aria-current","page");
+  }
+});
+</script>
+
+</body>
+</html>

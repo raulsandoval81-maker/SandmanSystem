@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Mat–Pro Console</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root{
+  --red:#b91c1c;
+  --green:#065f46;
+  --navy:#0f172a;
+  --navy2:#1e293b;
+  --gray:#cbd5e1;
+  --yellow:#facc15;
+}
+
+body{
+  margin:0;
+  background:var(--navy);
+  color:#e5e7eb;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:20px;
+}
+
+/* TOP BAR */
+.top-row{
+  display:flex;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.top-title{
+  font-size:1.1rem;
+  text-transform:uppercase;
+  letter-spacing:.15em;
+  color:var(--yellow);
+}
+
+.preset-box{
+  background:var(--navy2);
+  padding:6px 10px;
+  border-radius:8px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:.85rem;
+}
+
+.preset-box select{
+  background:#0000;
+  border:1px solid var(--gray);
+  color:#e5e7eb;
+  border-radius:6px;
+  padding:4px 6px;
+  font-size:.85rem;
+}
+
+/* SCORE AREA */
+.score-grid{
+  display:grid;
+  grid-template-columns:1fr 160px 1fr;
+  gap:14px;
+  margin-bottom:18px;
+}
+
+.panel{
+  padding:16px;
+  border-radius:14px;
+  text-align:center;
+  color:#fff;
+}
+
+.red-panel{
+  background:var(--red);
+}
+
+.green-panel{
+  background:var(--green);
+}
+
+.big-score{
+  font-size:4rem;
+  font-weight:700;
+}
+
+.score-buttons{
+  margin-top:12px;
+  display:flex;
+  justify-content:center;
+  gap:8px;
+}
+
+.score-buttons button{
+  font-size:1.1rem;
+  padding:6px 14px;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  background:#00000033;
+  color:#fff;
+}
+
+.center-box{
+  background:var(--navy2);
+  border-radius:14px;
+  padding:12px;
+  text-align:center;
+  color:#fff;
+}
+
+.timer{
+  font-size:3rem;
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+.period-select{
+  font-size:.9rem;
+  padding:4px 6px;
+  border-radius:6px;
+  background:#0000;
+  color:#e5e7eb;
+  border:1px solid var(--gray);
+}
+
+/* CONTROLS */
+.controls{
+  margin-top:12px;
+  display:flex;
+  justify-content:center;
+  gap:10px;
+}
+
+.controls button{
+  padding:8px 18px;
+  font-size:1rem;
+  border-radius:8px;
+  border:none;
+  cursor:pointer;
+  background:var(--yellow);
+  color:#000;
+  font-weight:600;
+}
+
+/* LEGEND */
+.legend{
+  background:var(--navy2);
+  padding:10px;
+  border-radius:10px;
+  margin-top:18px;
+  font-size:.9rem;
+}
+
+.legend-title{
+  text-transform:uppercase;
+  font-size:.75rem;
+  letter-spacing:.14em;
+  color:var(--yellow);
+  margin-bottom:6px;
+}
+
+.legend-grid{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.legend-item{
+  padding:6px 10px;
+  border:1px solid var(--gray);
+  border-radius:6px;
+  cursor:pointer;
+  font-size:.9rem;
+}
+
+/* SWAP */
+.swap-box{
+  margin-top:14px;
+  display:flex;
+  justify-content:center;
+}
+
+.swap-btn{
+  background:#0000;
+  border:1px solid var(--gray);
+  padding:6px 12px;
+  border-radius:8px;
+  color:#e5e7eb;
+  cursor:pointer;
+  font-size:.85rem;
+}
+
+/* BUZZER */
+audio{display:none;}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <div class="top-row">
+    <div class="top-title">MAT–PRO CONSOLE</div>
+
+    <div class="preset-box">
+      <span>Match Type:</span>
+      <select id="preset">
+        <option value="VARSITY">Varsity — 2:00 periods</option>
+        <option value="JV" selected>JV — 1:30 periods</option>
+        <option value="CUSTOM">Custom</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- SCORE GRID -->
+  <div class="score-grid">
+
+    <!-- RED -->
+    <div class="panel red-panel" id="red-panel">
+      <div class="big-score" id="red-score">0</div>
+      <div class="score-buttons">
+        <button data-add="red-1">+1</button>
+        <button data-add="red-2">+2</button>
+        <button data-add="red-3">+3</button>
+      </div>
+    </div>
+
+    <!-- CENTER TIMER -->
+    <div class="center-box">
+      <div class="timer" id="timer">1:30</div>
+
+      <select id="period" class="period-select">
+        <option value="1">Period 1</option>
+        <option value="2">Period 2</option>
+        <option value="3">Period 3</option>
+        <option value="SV">SV — 1:00</option>
+        <option value="TB1">TB1 — 0:30</option>
+        <option value="TB2">TB2 — 0:30</option>
+        <option value="UTB">UTB — 0:30</option>
+      </select>
+
+      <div class="controls">
+        <button id="start">Start</button>
+        <button id="pause">Pause</button>
+        <button id="reset">Reset</button>
+      </div>
+    </div>
+
+    <!-- GREEN -->
+    <div class="panel green-panel" id="green-panel">
+      <div class="big-score" id="green-score">0</div>
+      <div class="score-buttons">
+        <button data-add="green-1">+1</button>
+        <button data-add="green-2">+2</button>
+        <button data-add="green-3">+3</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SWAP BUTTON -->
+  <div class="swap-box">
+    <button class="swap-btn" id="swap">Swap Red ↔ Green</button>
+  </div>
+
+  <!-- LEGEND -->
+  <div class="legend">
+    <div class="legend-title">Scoring Legend</div>
+    <div class="legend-grid">
+      <div class="legend-item" data-add="red-3">T3</div>
+      <div class="legend-item" data-add="red-1">E1</div>
+      <div class="legend-item" data-add="red-2">R2</div>
+      <div class="legend-item" data-add="red-2">N2</div>
+      <div class="legend-item" data-add="red-3">N3</div>
+      <div class="legend-item" data-add="red-4">N4</div>
+      <div class="legend-item" data-add="red-1">P1</div>
+      <div class="legend-item" data-add="red-0">C</div>
+    </div>
+  </div>
+
+  <!-- buzzer -->
+  <audio id="buzz">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+  </audio>
+
+</div>
+
+<script>
+let defaultTimes = {
+  "VARSITY":120,
+  "JV":90,
+  "SV":60,
+  "TB":30
+};
+
+let time = defaultTimes["JV"];
+let interval = null;
+
+const timerEl = document.getElementById("timer");
+const preset = document.getElementById("preset");
+const period = document.getElementById("period");
+const buzz = document.getElementById("buzz");
+
+function render(){
+  const m = Math.floor(time/60);
+  const s = String(time%60).padStart(2,"0");
+  timerEl.textContent = `${m}:${s}`;
+}
+
+function setPeriodTime(){
+  let v = period.value;
+  if(v==="1"||v==="2"||v==="3"){
+    time = defaultTimes[preset.value];
+  } else if(v==="SV"){
+    time = defaultTimes["SV"];
+  } else {
+    time = defaultTimes["TB"];
+  }
+  render();
+}
+
+preset.onchange = setPeriodTime;
+period.onchange = setPeriodTime;
+
+document.getElementById("start").onclick = () => {
+  if(interval) return;
+  interval = setInterval(()=>{
+    if(time>0){
+      time--;
+      render();
+    } else {
+      buzz.play();
+      clearInterval(interval);
+      interval=null;
+    }
+  },1000);
+};
+
+document.getElementById("pause").onclick = () => {
+  clearInterval(interval);
+  interval=null;
+};
+
+document.getElementById("reset").onclick = () => {
+  setPeriodTime();
+};
+
+["red","green"].forEach(color=>{
+  [1,2,3].forEach(v=>{
+    document.querySelectorAll(`[data-add='${color}-${v}']`).forEach(btn=>{
+      btn.onclick=()=>{
+        const box=document.getElementById(`${color}-score`);
+        box.textContent = Number(box.textContent)+v;
+      };
+    });
+  });
+});
+
+document.getElementById("swap").onclick = () => {
+  const r = document.getElementById("red-score").textContent;
+  const g = document.getElementById("green-score").textContent;
+  document.getElementById("red-score").textContent = g;
+  document.getElementById("green-score").textContent = r;
+};
+
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Apply Legacy Credit — v4.1 (F4)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root{color-scheme:dark}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:#0b0b0b;color:#eee;margin:0;padding:24px}
+    .wrap{max-width:1050px;margin:0 auto}
+    .card{border:1px solid #222;border-radius:14px;background:#121212;padding:16px}
+    h1{margin:0 0 8px}
+    .muted{color:#9aa}
+    .warn{color:#ffd28a}
+    .bad{color:#ff9b9b}
+    .ok{color:#b8ffb8}
+    .row{display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin:12px 0}
+    input,select,button{background:#0e0e0e;border:1px solid #333;color:#fff;border-radius:10px;padding:8px}
+    button{cursor:pointer}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid #1b1b1b;padding:8px 6px;text-align:left;font-size:.95rem;vertical-align:top}
+    th{color:#aab}
+    .log{white-space:pre-wrap;background:#0a0a0a;border:1px dashed #333;border-radius:10px;padding:10px;min-height:180px;margin-top:10px}
+    .box{border:1px solid #222;border-radius:12px;padding:10px;background:#0f0f0f}
+    code{color:#cfe2ff}
+    .pill{font-size:.8rem;padding:2px 8px;border-radius:999px;background:#1b1b1b;border:1px solid #2a2a2a;color:#cfd;margin-right:6px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <h1>
+      Apply Legacy Credit —
+      <span class="pill">v4.1</span><span class="pill">Foundry 4</span><span class="pill">T0 → T1</span>
+    </h1>
+
+    <p class="muted" id="stamp"></p>
+
+    <div class="box">
+      <div class="warn"><b>DRY RUN defaults ON.</b> When ON, nothing is written.</div>
+      <div class="muted">
+        This tool finds athletes where <code>legacyHold=true</code> and applies legacy credit on promotion to T1.
+      </div>
+      <div class="muted">
+        <b>Correct rule:</b> Combat resets on tier-up. So T1 XP becomes <code>legacyCredit</code> (not xpBefore+credit).
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="box">
+        <label class="muted">
+          <input id="dryRun" type="checkbox" style="margin-right:8px" checked/>
+          DRY RUN (no writes)
+        </label>
+        <div class="muted" style="font-size:.9rem">When OFF: writes athlete updates + idempotent receipts into <code>xp_logs</code>.</div>
+      </div>
+
+      <div>
+        <label class="muted">Target Tier</label><br/>
+        <select id="toTier">
+          <option value="T1" selected>T1 (Warrior)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="muted">Filter track</label><br/>
+        <select id="track">
+          <option value="foundry4-combat" selected>foundry4-combat</option>
+        </select>
+      </div>
+
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:flex-end">
+        <button id="scan">Scan Legacy Holds</button>
+        <button id="apply">Apply Credit to Checked</button>
+      </div>
+    </div>
+
+    <table aria-label="Legacy holds">
+      <thead>
+        <tr>
+          <th>Pick</th>
+          <th>UID</th>
+          <th>Name</th>
+          <th>From Tier</th>
+          <th>Legacy Credit</th>
+          <th>Current XP</th>
+          <th>After (T1 XP)</th>
+          <th>After Stripes</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+
+    <div id="log" class="log"></div>
+  </div>
+</div>
+
+<script type="module">
+  document.getElementById("stamp").textContent =
+    "Loaded: " + new Date().toLocaleString() + " · src: apply-legacy-credit.html";
+
+  const logEl = document.getElementById("log");
+  const tbody = document.getElementById("tbody");
+  const btnScan = document.getElementById("scan");
+  const btnApply = document.getElementById("apply");
+
+  function log(m){ logEl.textContent += m + "\n"; }
+  function clearLog(){ logEl.textContent = ""; }
+
+  // Path-safe importer
+  async function importRel(relPath){
+    const url = new URL(relPath, import.meta.url);
+    return await import(url.href);
+  }
+
+  let fb;
+  try{
+    try { fb = await importRel("../assets/js/firebase-init.js"); }
+    catch { fb = await importRel("./assets/js/firebase-init.js"); }
+  }catch(e){
+    log("✗ Failed to load firebase-init.js (check /assets/js/firebase-init.js)");
+    log(String(e?.message || e));
+    throw e;
+  }
+
+  const { db, collection, query, where, getDocs, doc, getDoc, setDoc, serverTimestamp } = fb;
+
+  // addDoc fallback (optional)
+  let addDoc = fb.addDoc;
+  if (!addDoc){
+    try{
+      const fs = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+      addDoc = fs.addDoc;
+      log("i addDoc fallback loaded from Firestore SDK.");
+    }catch(e){
+      log("! WARN: addDoc not available (xp_logs receipts via addDoc disabled). Deterministic setDoc receipts still work.");
+    }
+  }
+
+  const ATH_COLLECTION = "athletes";
+  const XP_LOGS_COLLECTION = "xp_logs";
+
+  // Tier meta for Foundry 4 (teen lane)
+  const tierMeta = {
+    T0: { rankColor:"white", rankName:"Apprentice", cap:1200 },
+    T1: { rankColor:"blue",  rankName:"Warrior",    cap:1600 },
+    T2: { rankColor:"purple",rankName:"Champion",   cap:2000 },
+    T3: { rankColor:"brown", rankName:"Veteran",    cap:2400 },
+    T4: { rankColor:"black", rankName:"Legend",     cap:2800 },
+  };
+
+  function stripeStepForTier(tier){
+    const cap = tierMeta[tier]?.cap ?? 1200;
+    return Math.round(cap / 4); // 25/50/75/100 rule
+  }
+  function stripeCountFor(tier, xp){
+    const step = stripeStepForTier(tier);
+    const n = Math.floor((Number(xp)||0) / step);
+    return Math.max(0, Math.min(4, n));
+  }
+  function unlocksForF4(stripes){
+    return { strength: stripes >= 2, honor: stripes >= 3, merit:false };
+  }
+
+  function legacyHoldLogId(uidCode){ return `LEGACY_HOLD_SET__${uidCode}`; }
+  function applyLegacyLogId(uidCode){ return `APPLY_LEGACY_CREDIT__${uidCode}`; }
+
+  async function writeLegacyHoldReceipt({ uidCode, legacyPatch, seedVersion }){
+    const id = legacyHoldLogId(uidCode);
+    const ref = doc(db, XP_LOGS_COLLECTION, id);
+    await setDoc(ref, {
+      kind: "LEGACY_HOLD_SET",
+      athleteId: uidCode,
+      lane: "combat",
+      legacy: true,
+      legacyHold: true,
+      legacyCredit: legacyPatch.legacyCredit,
+      legacyLabel: legacyPatch.legacyLabel,
+      legacyLogged: false,
+      source: "seeder",
+      seedVersion,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }, { merge:true });
+  }
+
+  async function writeApplyLegacyReceipt({
+    uidCode, fromTier, toTier, xpBefore, creditApplied, xpAfter, legacyLabel, seedVersion
+  }){
+    const id = applyLegacyLogId(uidCode);
+    const ref = doc(db, XP_LOGS_COLLECTION, id);
+    await setDoc(ref, {
+      kind: "APPLY_LEGACY_CREDIT",
+      athleteId: uidCode,
+      lane: "combat",
+      fromTier,
+      toTier,
+      xpBefore,
+      creditApplied,
+      xpAfter,
+      legacy: true,
+      legacyHold: false,
+      legacyLogged: true,
+      legacyLabel: legacyLabel || "",
+      source: "system",
+      seedVersion,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    }, { merge:true });
+  }
+
+  function rowHtml(a){
+    const uid = a.uidCode || a.uid || "";
+    const name = a.fullName || a.publicName || "";
+    const fromTier = a.tier || "T0";
+    const credit = Number(a.legacyCredit || 0);
+    const xpBefore = Number(a.xp || 0);
+
+    const toTier = document.getElementById("toTier").value;
+    const xpAfter = credit; // ✅ reset rule
+    const stripesAfter = stripeCountFor(toTier, xpAfter);
+
+    return `
+      <tr data-uid="${uid}">
+        <td><input type="checkbox" class="pick" checked /></td>
+        <td><code>${uid}</code></td>
+        <td>${name}</td>
+        <td>${fromTier}</td>
+        <td>${credit}</td>
+        <td>${xpBefore}</td>
+        <td>${xpAfter}</td>
+        <td>${stripesAfter} (every ${stripeStepForTier(toTier)})</td>
+      </tr>
+    `;
+  }
+
+  let lastScan = [];
+
+  btnScan.addEventListener("click", async () => {
+    clearLog();
+    tbody.innerHTML = "";
+    lastScan = [];
+
+    const track = document.getElementById("track").value;
+
+    log("Scanning for legacyHold=true …");
+    const q = query(
+      collection(db, ATH_COLLECTION),
+      where("track","==",track),
+      where("legacyHold","==",true)
+    );
+
+    const snap = await getDocs(q);
+    const rows = [];
+    snap.forEach(d => rows.push({ id:d.id, ...d.data() }));
+
+    log(`Found ${rows.length} athletes with legacyHold=true in ${track}.`);
+    lastScan = rows;
+
+    tbody.innerHTML = rows.map(rowHtml).join("");
+    if (!rows.length) log("Nothing to apply.");
+  });
+
+  btnApply.addEventListener("click", async () => {
+    clearLog();
+
+    const dryRun = document.getElementById("dryRun").checked;
+    const toTier = document.getElementById("toTier").value;
+    const meta = tierMeta[toTier];
+
+    log(dryRun ? "DRY RUN: no writes will occur." : "LIVE RUN: writes enabled.");
+
+    const checkedUids = Array.from(tbody.querySelectorAll("tr"))
+      .filter(tr => tr.querySelector(".pick")?.checked)
+      .map(tr => tr.dataset.uid);
+
+    if (!checkedUids.length){
+      log("No athletes checked.");
+      return;
+    }
+
+    let ok=0, fail=0;
+
+    for (const uidCode of checkedUids){
+      try{
+        const aRef = doc(db, ATH_COLLECTION, uidCode);
+        const snap = await getDoc(aRef);
+        if (!snap.exists()) throw new Error(`ATHLETE_NOT_FOUND: ${uidCode}`);
+
+        const a = snap.data();
+
+        if (!a.legacy || !a.legacyCredit) throw new Error(`NOT_LEGACY: ${uidCode}`);
+        if (!a.legacyHold) throw new Error(`NO_HOLD: ${uidCode} (already applied or not held)`);
+        if (a.legacyLogged) throw new Error(`ALREADY_LOGGED: ${uidCode}`);
+
+        const fromTier = a.tier || "UNKNOWN";
+        const xpBefore = Number(a.xp || 0);
+        const creditApplied = Number(a.legacyCredit || 0);
+
+        // ✅ reset rule: new tier xp starts at legacyCredit
+        const xpAfter = creditApplied;
+        const stripesAfter = stripeCountFor(toTier, xpAfter);
+        const unlocksAfter = unlocksForF4(stripesAfter);
+
+        if (dryRun){
+          log(`• WOULD APPLY: ${uidCode} from ${fromTier} → ${toTier} | xp ${xpBefore} → ${xpAfter} | stripes=${stripesAfter}`);
+          ok++;
+          continue;
+        }
+
+        await setDoc(aRef, {
+          tier: toTier,
+          rankColor: meta.rankColor,
+          rankName: meta.rankName,
+
+          xp: xpAfter,
+          stripeCount: stripesAfter,
+          unlocks: unlocksAfter,
+
+          legacyHold: false,
+          legacyLogged: true,
+          legacyAppliedAt: serverTimestamp(),
+          legacyAppliedBy: "system",
+
+          updatedAt: serverTimestamp(),
+        }, { merge:true });
+
+        await writeApplyLegacyReceipt({
+          uidCode,
+          fromTier,
+          toTier,
+          xpBefore,
+          creditApplied,
+          xpAfter,
+          legacyLabel: a.legacyLabel || "",
+          seedVersion: "v4.1",
+        });
+
+        log(`✓ APPLIED: ${uidCode} → ${toTier} | xpAfter=${xpAfter} | stripes=${stripesAfter}`);
+        ok++;
+      }catch(e){
+        log(`✗ FAIL ${uidCode}: ${e?.message || e}`);
+        fail++;
+      }
+    }
+
+    log(`\nDone. OK=${ok} FAIL=${fail}${document.getElementById("dryRun").checked ? " (dry run)" : ""}`);
+  });
+</script>
+</body>
+</html>

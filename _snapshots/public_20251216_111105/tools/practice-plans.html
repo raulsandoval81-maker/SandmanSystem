@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Practice Plans • Sandman System</title>
+  <style>
+    :root{
+      --bg:#0f141b; --nav:#0b1220; --panel:#111827; --card:#ffffff;
+      --gold:#facc15; --red:#b91c1c; --ink:#0f141b; --muted:#9ca3af;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:#e6eef7;font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial,sans-serif}
+    /* Nav */
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--nav);border-bottom:1px solid rgba(255,255,255,.08)}
+    .brand{font-weight:900;color:var(--gold);letter-spacing:.5px}
+    .links{display:flex;gap:10px;flex-wrap:wrap}
+    .links a{color:#e5e7eb;text-decoration:none;padding:6px 10px;border:1px solid rgba(255,255,255,.12);border-radius:8px}
+    .links a:hover{background:rgba(255,255,255,.06)}
+    /* Dummy banner */
+    .dummy{background:var(--red);color:#fff;text-align:center;padding:6px 10px;font:700 .85rem/1 system-ui;letter-spacing:.8px;text-transform:uppercase}
+    /* Layout */
+    .wrap{max-width:920px;margin:24px auto;padding:0 16px}
+    .card{background:var(--card);color:var(--ink);border-radius:14px;box-shadow:0 10px 28px rgba(0,0,0,.45);padding:20px;margin-bottom:18px}
+    .card h1,.card h2{margin:.2rem 0 .6rem}
+    .kicker{color:var(--gold);font-weight:700;letter-spacing:.4px}
+    .lead{opacity:.9}
+    ul{margin:.2rem 0 0 1.2rem;color:#111}
+    /* Dummy tool */
+    .tool{border:2px dashed #d9dde3;border-radius:12px;background:#f8fafc;padding:18px;text-align:center;color:#374151}
+    .tool .title{font-weight:800;margin-bottom:6px}
+    .tool .row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+    .chip{border:1px solid #e5e7eb;border-radius:999px;padding:6px 10px;background:#fff}
+    /* Footer (Option 1 – clean & minimal) */
+    footer{margin-top:22px;padding:18px 12px;text-align:center;background:var(--bg);color:var(--gold);border-top:2px solid var(--gold)}
+    footer .rail{margin-top:6px}
+    footer .rail a{color:var(--gold);text-decoration:none;margin:0 12px}
+    footer .motto{margin-top:10px;font-size:.9rem;color:#9aa3b2}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">Sandman System™</div>
+    <div class="links">
+      <a href="/athletes/index.html">Athletes</a>
+      <a href="/parents/index.html">Parents</a>
+      <a href="/coaches/index.html">Coaches</a>
+      <a href="/index.html">Portal</a>
+    </div>
+  </nav>
+
+  <div class="dummy">Dummy Page — Placeholder Only</div>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="kicker">Structure • Efficiency • Results</div>
+      <h1>Practice Plans</h1>
+      <p class="lead">Every minute on the mat should move athletes forward. Practice Plans give coaches a repeatable,
+        high-output session blueprint—no guesswork, no dead time, measurable progress.</p>
+      <ul>
+        <li><strong>Warm-up that matters:</strong> mobility + activation to prevent injuries and prime output.</li>
+        <li><strong>Technique with intent:</strong> drills tied to XP ladders so every rep unlocks progression.</li>
+        <li><strong>Live application:</strong> situational rounds that connect skill to competition reality.</li>
+        <li><strong>Condition & recover:</strong> finish stronger, recover faster, show up tomorrow ready.</li>
+      </ul>
+      <p class="lead" style="margin-top:.8rem"><em>Public preview.</em> The live tool (coach portal) adds downloadable sessions, timing blocks, and coach notes.</p>
+    </section>
+
+    <section class="card">
+      <h2>Preview Tool</h2>
+      <div class="tool">
+        <div class="title">Plan of the Day (Sample)</div>
+        <div>Warm-up → Technique A → Situations B → Conditioning → Cooldown</div>
+        <div class="row" style="margin-top:8px">
+          <span class="chip">Mobility 6:00</span>
+          <span class="chip">Chain Drill x20</span>
+          <span class="chip">Live 3×2</span>
+          <span class="chip">Condition 8:00</span>
+        </div>
+        <div style="opacity:.65;margin-top:8px">(Demo preview — full library inside Coach Portal)</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="rail">
+      <a href="#">Ceremonies</a>
+      <a href="#">Zero2Hero Journey</a>
+      <a href="/contact.html">Contact Us</a>
+    </div>
+    <div class="motto">Stronger. Faster. Smarter.</div>
+  </footer>
+</body>
+</html>
