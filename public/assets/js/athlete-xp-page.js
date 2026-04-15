@@ -5,7 +5,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 // --- minimal rank helpers (same as snapshot.js) ---
-const YOUTH_TIERS = ["Shadow","Recruit","Combatant","Competitor","Warrior","Champion","Commander","Sandman","Legend"];
+const YOUTH_TIERS = ["Shadow","Recruit","Combatant","Competitor","Warrior","Champion","Commander","Legend"];
 const F4_TIERS    = ["Apprentice","Warrior","Champion","Veteran","Legend"];
 const TIER_XP = 1000, STRIPE_XP = 250;
 

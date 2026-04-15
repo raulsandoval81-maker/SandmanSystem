@@ -66,18 +66,29 @@ function drawRankBar({
 } = {}) {
   if (!bar || !fill) return;
 
+  // Make sure the bar is a real stacking context
+  bar.style.position = "relative";
+  bar.style.overflow = "hidden";
+
+  // Fill sits under stripes
+  fill.style.position = "absolute";
+  fill.style.inset = "0 auto 0 0";
+  fill.style.height = "100%";
+  fill.style.zIndex = "1";
+
   const totalStripes = Math.max(1, Number(stripes));
   const tierCap = Math.max(1, Number(capXP));
   const tierXP = Math.max(0, Number(xpInTier));
   const earned = Math.max(0, Math.min(totalStripes, Number(stripesEarned)));
 
   const pct = Math.round((tierXP / tierCap) * 100);
+  const isAtCap = tierXP >= tierCap;
 
   // Fill
   const start = beltStart || "#FFD700";
   const end = beltEnd || start;
   fill.style.background = `linear-gradient(90deg, ${start}, ${end})`;
-  fill.style.width = `${pct}%`;
+  fill.style.width = isAtCap ? "100%" : `${pct}%`;
 
   // Stripe bars
   const stripesWrap = ensureStripeBars(bar, totalStripes);
@@ -93,18 +104,18 @@ function drawRankBar({
     });
   }
 
-  // 🔒 SINGLE TEXT LINE (LOCKED)
   if (txt) {
-    txt.textContent = `Stripes: ${earned}/${totalStripes} · Progress: ${pct}%`;
+    txt.textContent = `Stripes: ${earned}/${totalStripes}`;
   }
 }
-
 /**
  * One-call updater
  */
 export function updateRankUI({
   ladder,
   totalXP,
+  rankNameOverride = "",
+  stripeCountOverride = null,
   el = {
     barId: "rankBar",
     fillId: "rankFill",
@@ -122,13 +133,18 @@ export function updateRankUI({
     stripesEarned = 0,
   } = info;
 
-  const key = colorKeyFor(tier.name);
+  const tierName = String(rankNameOverride || tier?.name || "").trim();
+  const key = colorKeyFor(tierName) || "apprentice";
   const c = COLORS[key] || COLORS.apprentice;
 
+  const earned = Number.isFinite(Number(stripeCountOverride))
+    ? Number(stripeCountOverride)
+    : stripesEarned;
+
   const isWhite =
-    key === "apprentice" ||
-    key === "shadow" ||
-    String(tier.name).toLowerCase() === "foundation";
+    key === "legend" ||
+    key === "hero" ||
+    tierName.toLowerCase() === "mastery";
 
   drawRankBar({
     bar: document.getElementById(el.barId),
@@ -139,7 +155,7 @@ export function updateRankUI({
     xpInTier,
     beltStart: c.start,
     beltEnd: c.end,
-    stripeTone: isWhite ? "black" : "white",
-    stripesEarned,
+    stripeTone: isWhite ? "white" : "black",
+    stripesEarned: earned,
   });
 }

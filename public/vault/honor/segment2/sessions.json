@@ -1,0 +1,889 @@
+{
+  "lane": "honor",
+  "segmentId": "segment2",
+  "segmentTitle": "Partner & I",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "HON2-001",
+      "block": 1,
+      "type": "baseline_gate",
+      "title": "Training Partner Reality Check",
+      "focusArea": "Awareness",
+      "principle": "Training partners are not opponents. They are responsibility.\nThe person across from you trusts you with their safety and their progress.",
+      "houseStandard": "In this house, we protect our partners.\nResponsibility comes before ego.\nSay it out loud. Twice.",
+      "prompt": "Answer honestly: What makes someone a bad training partner? What makes someone a good one? Which one are you today?",
+      "questions": [
+        "What makes someone unsafe to train with?",
+        "What makes someone trustworthy to train with?",
+        "How does your behavior affect your partner’s progress?",
+        "Which type of partner are you right now?",
+        "What must change first?"
+      ],
+      "deliverable": "3 answers + 1 commitment",
+      "scripture": {
+        "text": "As iron sharpens iron, so one person sharpens another.",
+        "ref": "Proverbs 27:17"
+      }
+    },
+    {
+      "n": 2,
+      "id": "HON2-002",
+      "block": 1,
+      "type": "reflection",
+      "title": "Safety First",
+      "focusArea": "Respect",
+      "principle": "Safety is the foundation of trust in combat training.\nGreat rooms train hard but protect each other.",
+      "houseStandard": "In this house, we train hard and protect bodies.\nRespect keeps training alive.\nSay it out loud. Twice.",
+      "prompt": "Describe a moment when someone trained safely with you.",
+      "questions": [
+        "What did that athlete do that made training feel safe?",
+        "Why did that matter to your trust?",
+        "What unsafe behavior damages trust fastest?",
+        "How can you protect someone better this week?"
+      ],
+      "deliverable": "example + lesson",
+      "scripture": {
+        "text": "Do to others as you would have them do to you.",
+        "ref": "Luke 6:31"
+      }
+    },
+    {
+      "n": 3,
+      "id": "HON2-003",
+      "block": 1,
+      "type": "reflection",
+      "title": "Training Honesty",
+      "focusArea": "Effort",
+      "principle": "Honest training creates honest improvement.\nGoing too easy wastes time. Going too hard breaks trust.",
+      "houseStandard": "In this house, we train honestly.\nHonesty builds skill.\nSay it out loud. Twice.",
+      "prompt": "Explain what honest training effort looks like.",
+      "questions": [
+        "What is dishonest training?",
+        "Why do athletes fake effort?",
+        "What happens when intensity is too low?",
+        "What happens when intensity is too high?",
+        "What does honest effort require?"
+      ],
+      "deliverable": "definition + example",
+      "scripture": {
+        "text": "The integrity of the upright guides them.",
+        "ref": "Proverbs 11:3"
+      }
+    },
+    {
+      "n": 4,
+      "id": "HON2-004",
+      "block": 1,
+      "type": "reflection",
+      "title": "Partner Responsibility",
+      "focusArea": "Respect",
+      "principle": "Training partners share responsibility for improvement.\nYour partner’s progress partly depends on your discipline.",
+      "houseStandard": "In this house, we help partners grow.\nResponsibility grows skill.\nSay it out loud. Twice.",
+      "prompt": "Describe how you can help your partner improve during practice.",
+      "questions": [
+        "What responsibility do partners have for each other’s growth?",
+        "How does careless drilling hurt both athletes?",
+        "What does an engaged partner do differently?",
+        "How can your focus help your partner learn better?"
+      ],
+      "deliverable": "3 actions",
+      "scripture": {
+        "text": "Carry each other’s burdens.",
+        "ref": "Galatians 6:2"
+      }
+    },
+    {
+      "n": 5,
+      "id": "HON2-005",
+      "block": 1,
+      "type": "reflection",
+      "title": "Protecting the Body",
+      "focusArea": "Respect",
+      "principle": "Bodies are tools for learning.\nInjuries steal progress, and protecting partners protects the room.",
+      "houseStandard": "In this house, we protect bodies.\nControl prevents damage.\nSay it out loud. Twice.",
+      "prompt": "Describe how athletes can protect each other during training.",
+      "questions": [
+        "Why do injuries happen in practice?",
+        "What warning signs should athletes watch for?",
+        "How does control prevent unnecessary damage?",
+        "What safety habits should never be skipped?"
+      ],
+      "deliverable": "3 safety habits",
+      "scripture": {
+        "text": "The prudent see danger and take refuge.",
+        "ref": "Proverbs 22:3"
+      }
+    },
+    {
+      "n": 6,
+      "id": "HON2-006",
+      "block": 1,
+      "type": "reflection",
+      "title": "Partner Communication",
+      "focusArea": "Respect",
+      "principle": "Communication keeps training safe and productive.\nSimple communication prevents confusion and injuries.",
+      "houseStandard": "In this house, we communicate clearly.\nClear communication builds trust.\nSay it out loud. Twice.",
+      "prompt": "Describe how athletes should communicate during practice.",
+      "questions": [
+        "Why is communication important during drills and live work?",
+        "What happens when athletes stay silent?",
+        "When should you speak up during training?",
+        "How does clear communication build trust?"
+      ],
+      "deliverable": "3 communication rules",
+      "scripture": {
+        "text": "Let your conversation be always full of grace.",
+        "ref": "Colossians 4:6"
+      }
+    },
+    {
+      "n": 7,
+      "id": "HON2-007",
+      "block": 1,
+      "type": "reflection",
+      "title": "Training Awareness",
+      "focusArea": "Focus",
+      "principle": "Awareness prevents accidents.\nGood athletes stay aware of their surroundings and partners.",
+      "houseStandard": "In this house, we stay aware.\nAwareness prevents harm.\nSay it out loud. Twice.",
+      "prompt": "Explain how awareness protects your partner.",
+      "questions": [
+        "Why is awareness important in partner work?",
+        "What causes avoidable accidents in training?",
+        "How do space and positioning matter?",
+        "What habits help you stay aware?"
+      ],
+      "deliverable": "reflection",
+      "scripture": {
+        "text": "Be alert and sober minded.",
+        "ref": "1 Peter 5:8"
+      }
+    },
+    {
+      "n": 8,
+      "id": "HON2-008",
+      "block": 1,
+      "type": "reflection",
+      "title": "Partner Trust",
+      "focusArea": "Respect",
+      "principle": "Trust makes intense training possible.\nAthletes train harder when they trust their partners.",
+      "houseStandard": "In this house, we earn trust.\nTrust creates strong training.\nSay it out loud. Twice.",
+      "prompt": "Describe how athletes earn trust from partners.",
+      "questions": [
+        "What behaviors build trust fastest?",
+        "What behaviors break trust fastest?",
+        "How does consistency affect trust?",
+        "What can you do to repair trust if it is damaged?"
+      ],
+      "deliverable": "trust example",
+      "scripture": {
+        "text": "A faithful person can be trusted.",
+        "ref": "Proverbs 20:6"
+      }
+    },
+    {
+      "n": 9,
+      "id": "HON2-009",
+      "block": 2,
+      "type": "reflection",
+      "title": "Listening Under Correction",
+      "focusArea": "Respect",
+      "principle": "Partners improve faster when they listen without ego.\nIf you resist feedback, you slow down both yourself and your partner.",
+      "houseStandard": "In this house, we listen to learn.\nCorrection is a gift when pride gets out of the way.\nSay it out loud. Twice.",
+      "prompt": "How do you react when a partner or coach corrects you during drills? What should your response be instead?",
+      "questions": [
+        "Why do athletes resist correction?",
+        "How does ego hurt training?",
+        "What response shows maturity?",
+        "What does listening well look like in action?"
+      ],
+      "deliverable": "reaction + correction plan",
+      "scripture": {
+        "text": "Whoever loves discipline loves knowledge.",
+        "ref": "Proverbs 12:1"
+      }
+    },
+    {
+      "n": 10,
+      "id": "HON2-010",
+      "block": 2,
+      "type": "reflection",
+      "title": "Matching Drill Intensity",
+      "focusArea": "Respect",
+      "principle": "Good partners match the purpose of the drill, not their ego.\nToo high wastes learning. Too low wastes reps.",
+      "houseStandard": "In this house, we match the purpose of training.\nThe right intensity teaches.\nSay it out loud. Twice.",
+      "prompt": "Describe what happens when drill intensity is too high or too low. What does proper intensity look like?",
+      "questions": [
+        "What happens when athletes overpower a drill?",
+        "What happens when they underwork it?",
+        "How do you know the purpose of the rep?",
+        "What does proper intensity require?"
+      ],
+      "deliverable": "too high + too low + proper standard",
+      "scripture": {
+        "text": "There is a time for every activity under the heavens.",
+        "ref": "Ecclesiastes 3:1"
+      }
+    },
+    {
+      "n": 11,
+      "id": "HON2-011",
+      "block": 2,
+      "type": "reflection",
+      "title": "Speaking With Respect",
+      "focusArea": "Respect",
+      "principle": "How you speak to a partner affects trust, effort, and learning.\nTraining hard does not mean speaking carelessly.",
+      "houseStandard": "In this house, we speak with respect.\nYour mouth can build the room or break it.\nSay it out loud. Twice.",
+      "prompt": "What kind of language helps training? What kind of language hurts it? Give one example of each.",
+      "questions": [
+        "What kind of words build trust?",
+        "What kind of words damage it?",
+        "How should disciplined athletes speak under frustration?",
+        "What tone keeps correction helpful?"
+      ],
+      "deliverable": "helpful example + harmful example + rule",
+      "scripture": {
+        "text": "Let no corrupting talk come out of your mouths.",
+        "ref": "Ephesians 4:29"
+      }
+    },
+    {
+      "n": 12,
+      "id": "HON2-012",
+      "block": 2,
+      "type": "reflection",
+      "title": "Tapping, Stopping, Respecting Limits",
+      "focusArea": "Respect",
+      "principle": "Respect means recognizing limits before damage happens.\nIgnoring taps or warning signs is not toughness. It is immaturity.",
+      "houseStandard": "In this house, we respect limits.\nReal control protects people before damage starts.\nSay it out loud. Twice.",
+      "prompt": "Why is it important to recognize taps, injuries, and unsafe positions immediately? What does mature response look like?",
+      "questions": [
+        "Why do some athletes ignore warning signs?",
+        "What does immaturity look like here?",
+        "What does mature control look like?",
+        "Why does stopping early protect the room?"
+      ],
+      "deliverable": "importance + mature response",
+      "scripture": {
+        "text": "A wise man has great power, and a man of knowledge increases strength.",
+        "ref": "Proverbs 24:5"
+      }
+    },
+    {
+      "n": 13,
+      "id": "HON2-013",
+      "block": 2,
+      "type": "reflection",
+      "title": "Accepting Different Partners",
+      "focusArea": "Respect",
+      "principle": "Discipline means training well with different bodies, skill levels, and personalities.\nHonor means adapting without complaining.",
+      "houseStandard": "In this house, we train well with who is in front of us.\nAdaptability is part of respect.\nSay it out loud. Twice.",
+      "prompt": "What makes some partners harder for you to work with? How should you respond instead of complaining or checking out?",
+      "questions": [
+        "What kind of partners frustrate you most?",
+        "How do you usually respond?",
+        "What would maturity look like instead?",
+        "How can a difficult partner still help you grow?"
+      ],
+      "deliverable": "frustration source + better response",
+      "scripture": {
+        "text": "Do everything without grumbling.",
+        "ref": "Philippians 2:14"
+      }
+    },
+    {
+      "n": 14,
+      "id": "HON2-014",
+      "block": 2,
+      "type": "reflection",
+      "title": "Being Present for the Drill",
+      "focusArea": "Focus",
+      "principle": "A distracted partner wastes both athletes’ reps.\nPresence is part of respect.",
+      "houseStandard": "In this house, we are present for the rep.\nPresence is respect in action.\nSay it out loud. Twice.",
+      "prompt": "How do you know when you are mentally absent in drills? What does it cost your partner? What is your reset cue?",
+      "questions": [
+        "What makes you mentally drift?",
+        "How does that affect your partner?",
+        "What sign tells you that you are absent?",
+        "What cue brings you back?"
+      ],
+      "deliverable": "absence sign + partner cost + reset cue",
+      "scripture": {
+        "text": "Whatever your hand finds to do, do it with your might.",
+        "ref": "Ecclesiastes 9:10"
+      }
+    },
+    {
+      "n": 15,
+      "id": "HON2-015",
+      "block": 2,
+      "type": "reflection",
+      "title": "Ego in the Room",
+      "focusArea": "Attitude",
+      "principle": "Ego turns partners into targets instead of teachers.\nWhen you need to prove yourself every round, you stop learning.",
+      "houseStandard": "In this house, we train to improve, not to perform ego.\nEgo wins rounds and loses growth.\nSay it out loud. Twice.",
+      "prompt": "How does ego show up during partner work? What does it make athletes do? What is the disciplined alternative?",
+      "questions": [
+        "What does ego look like in training?",
+        "How does it hurt partners?",
+        "Why is proving yourself a trap?",
+        "What attitude replaces ego?"
+      ],
+      "deliverable": "ego behavior + damage + disciplined alternative",
+      "scripture": {
+        "text": "Do nothing out of selfish ambition or vain conceit.",
+        "ref": "Philippians 2:3"
+      }
+    },
+    {
+      "n": 16,
+      "id": "HON2-016",
+      "block": 2,
+      "type": "reflection",
+      "title": "Trust Retest Within Training",
+      "focusArea": "Respect",
+      "principle": "Trust is built in the small habits of daily training.\nTrust is not claimed. It is earned through behavior.",
+      "houseStandard": "In this house, trust is earned daily.\nTrust grows quietly and breaks quickly.\nSay it out loud. Twice.",
+      "prompt": "List 3 habits that make you trustworthy in training and 2 habits that weaken trust. Which one must change now?",
+      "questions": [
+        "What makes athletes trustworthy?",
+        "What weakens trust quickly?",
+        "What one habit matters most for you?",
+        "What change should happen immediately?"
+      ],
+      "deliverable": "3 trust habits + 2 weak habits + 1 change",
+      "scripture": {
+        "text": "Whoever walks in integrity walks securely.",
+        "ref": "Proverbs 10:9"
+      }
+    },
+    {
+      "n": 17,
+      "id": "HON2-017",
+      "block": 3,
+      "type": "reflection",
+      "title": "Do Not Waste Your Partner’s Time",
+      "focusArea": "Effort",
+      "principle": "Low effort does not only hurt you. It steals reps from your partner.\nEffort is shared responsibility.",
+      "houseStandard": "In this house, we do not waste reps.\nA wasted rep hurts two people.\nSay it out loud. Twice.",
+      "prompt": "How can an athlete waste a partner’s time in practice? Which one do you need to fix most?",
+      "questions": [
+        "What behaviors waste reps?",
+        "Why do athletes fall into them?",
+        "How does it hurt your partner?",
+        "Which behavior do you need to fix first?"
+      ],
+      "deliverable": "3 wasted-rep behaviors + 1 fix",
+      "scripture": {
+        "text": "Make the best use of the time.",
+        "ref": "Ephesians 5:16"
+      }
+    },
+    {
+      "n": 18,
+      "id": "HON2-018",
+      "block": 3,
+      "type": "reflection",
+      "title": "Reliable Effort",
+      "focusArea": "Effort",
+      "principle": "Partners should not have to guess which version of you showed up today.\nReliability is part of honor.",
+      "houseStandard": "In this house, effort is reliable.\nConsistency is a gift to your partner.\nSay it out loud. Twice.",
+      "prompt": "Is your training effort consistent or mood-based? Give one example. What should reliability look like instead?",
+      "questions": [
+        "What makes effort inconsistent?",
+        "How does that affect partners?",
+        "What would reliable effort look like?",
+        "Where do you need to tighten up?"
+      ],
+      "deliverable": "example + reliable standard",
+      "scripture": {
+        "text": "Let us not grow weary of doing good.",
+        "ref": "Galatians 6:9"
+      }
+    },
+    {
+      "n": 19,
+      "id": "HON2-019",
+      "block": 3,
+      "type": "reflection",
+      "title": "Showing Up Ready",
+      "focusArea": "Effort",
+      "principle": "Preparation is respect before the drill even starts.\nReadiness is part of partnership.",
+      "houseStandard": "In this house, we show up ready.\nPreparation is respect before contact.\nSay it out loud. Twice.",
+      "prompt": "What habits show that you are ready to train with a partner? Which habit do you need to improve?",
+      "questions": [
+        "What does readiness look like before practice starts?",
+        "What habits weaken readiness?",
+        "How does poor preparation affect partners?",
+        "What one habit must improve now?"
+      ],
+      "deliverable": "3 readiness habits + 1 improvement",
+      "scripture": {
+        "text": "Prepare your work outside.",
+        "ref": "Proverbs 24:27"
+      }
+    },
+    {
+      "n": 20,
+      "id": "HON2-020",
+      "block": 3,
+      "type": "reflection",
+      "title": "Honest Resistance",
+      "focusArea": "Effort",
+      "principle": "Great partners give the right amount of resistance for real growth.\nToo little creates fake confidence. Too much ruins learning.",
+      "houseStandard": "In this house, we give honest resistance.\nHonest resistance creates real skill.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between fake resistance, reckless resistance, and honest resistance?",
+      "questions": [
+        "What does fake resistance create?",
+        "What does reckless resistance create?",
+        "What makes resistance honest?",
+        "How do you match the goal of the rep?"
+      ],
+      "deliverable": "fake + reckless + honest definitions",
+      "scripture": {
+        "text": "Faithful are the wounds of a friend.",
+        "ref": "Proverbs 27:6"
+      }
+    },
+    {
+      "n": 21,
+      "id": "HON2-021",
+      "block": 3,
+      "type": "reflection",
+      "title": "Energy in the Room",
+      "focusArea": "Attitude",
+      "principle": "Your attitude affects your partner’s work whether you notice it or not.\nNegative energy spreads. So does disciplined energy.",
+      "houseStandard": "In this house, we bring working energy.\nEnergy is contagious. So is discipline.\nSay it out loud. Twice.",
+      "prompt": "What kind of energy do you usually bring into partner work? How does it affect the person across from you?",
+      "questions": [
+        "What kind of energy weakens a rep?",
+        "What kind of energy strengthens it?",
+        "What do you usually bring?",
+        "How do partners feel your energy?"
+      ],
+      "deliverable": "current energy + partner effect + correction",
+      "scripture": {
+        "text": "Encourage one another and build each other up.",
+        "ref": "1 Thessalonians 5:11"
+      }
+    },
+    {
+      "n": 22,
+      "id": "HON2-022",
+      "block": 3,
+      "type": "reflection",
+      "title": "Work Through Frustration",
+      "focusArea": "Attitude",
+      "principle": "A disciplined partner does not punish others for personal frustration.\nControl means frustration does not spill onto others.",
+      "houseStandard": "In this house, frustration does not control the rep.\nControl means your frustration does not spill onto others.\nSay it out loud. Twice.",
+      "prompt": "What happens to your partner work when you get frustrated? What should controlled response look like instead?",
+      "questions": [
+        "How does frustration change your training?",
+        "How does it affect partners?",
+        "What response shows maturity?",
+        "What should you do before the next rep?"
+      ],
+      "deliverable": "frustration pattern + partner cost + mature response",
+      "scripture": {
+        "text": "A person without self-control is like a city broken into.",
+        "ref": "Proverbs 25:28"
+      }
+    },
+    {
+      "n": 23,
+      "id": "HON2-023",
+      "block": 3,
+      "type": "reflection",
+      "title": "Shared Improvement",
+      "focusArea": "Respect",
+      "principle": "Partner work is not a one-way benefit. Both athletes should grow.\nThe strongest rooms are built by shared improvement instead of private winning.",
+      "houseStandard": "In this house, both people improve.\nStrong partners create shared gain.\nSay it out loud. Twice.",
+      "prompt": "How can you help a partner improve while still improving yourself?",
+      "questions": [
+        "What makes partner work mutual?",
+        "What makes it selfish?",
+        "How do both athletes win the session?",
+        "What can you do to raise the level of the rep?"
+      ],
+      "deliverable": "3 ways to create shared improvement",
+      "scripture": {
+        "text": "Look not only to your own interests, but also to the interests of others.",
+        "ref": "Philippians 2:4"
+      }
+    },
+    {
+      "n": 24,
+      "id": "HON2-024",
+      "block": 3,
+      "type": "reflection",
+      "title": "Personal Standard in Partner Work",
+      "focusArea": "Effort",
+      "principle": "You need a clear standard for how you train with others.\nStandards make you trustworthy.",
+      "houseStandard": "In this house, we bring a clear standard to the rep.\nClear standards create trustworthy partners.\nSay it out loud. Twice.",
+      "prompt": "Write your personal standard for partner work in one sentence.",
+      "questions": [
+        "What should your partner always get from you?",
+        "What weak habits must disappear?",
+        "What standard will you hold?",
+        "Can someone else clearly see that standard?"
+      ],
+      "deliverable": "1 sentence partner standard",
+      "scripture": {
+        "text": "Be steadfast in your work.",
+        "ref": "1 Corinthians 15:58"
+      }
+    },
+    {
+      "n": 25,
+      "id": "HON2-025",
+      "block": 4,
+      "type": "reflection",
+      "title": "Train Hard, Never Reckless",
+      "focusArea": "Respect",
+      "principle": "Hard training and reckless training are not the same thing.\nStrong rooms are built by disciplined intensity, not careless force.",
+      "houseStandard": "In this house, we train hard, never reckless.\nDiscipline separates hard work from foolishness.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between hard training and reckless training? Give one example of each.",
+      "questions": [
+        "What makes training hard but disciplined?",
+        "What makes it reckless?",
+        "Why do athletes confuse the two?",
+        "How do you push hard without losing control?"
+      ],
+      "deliverable": "hard example + reckless example + difference",
+      "scripture": {
+        "text": "The prudent see danger and take refuge.",
+        "ref": "Proverbs 22:3"
+      }
+    },
+    {
+      "n": 26,
+      "id": "HON2-026",
+      "block": 4,
+      "type": "reflection",
+      "title": "Protecting Injured Partners",
+      "focusArea": "Respect",
+      "principle": "Respect means adjusting when a partner is injured, limited, or vulnerable.\nStrong athletes do not exploit weakness in training for ego points.",
+      "houseStandard": "In this house, we protect injured partners.\nHow you treat weakness reveals your strength.\nSay it out loud. Twice.",
+      "prompt": "How should an athlete adjust when a partner is hurt, limited, or returning from injury?",
+      "questions": [
+        "What would immaturity look like here?",
+        "What would maturity look like?",
+        "Why does this matter to room trust?",
+        "How do you protect without treating someone as weak?"
+      ],
+      "deliverable": "3 adjustment behaviors",
+      "scripture": {
+        "text": "Carry each other’s burdens.",
+        "ref": "Galatians 6:2"
+      }
+    },
+    {
+      "n": 27,
+      "id": "HON2-027",
+      "block": 4,
+      "type": "reflection",
+      "title": "Control in Bad Positions",
+      "focusArea": "Respect",
+      "principle": "Control matters most when positions get messy, uncomfortable, or emotional.\nReal control shows up when positions get ugly.",
+      "houseStandard": "In this house, control stays when positions get hard.\nReal control shows up when positions get ugly.\nSay it out loud. Twice.",
+      "prompt": "What happens to your behavior in uncomfortable or chaotic positions? What should disciplined control look like instead?",
+      "questions": [
+        "What usually breaks first under chaos?",
+        "How does panic affect control?",
+        "What restores discipline?",
+        "How do you protect your partner in bad positions?"
+      ],
+      "deliverable": "current pattern + disciplined control plan",
+      "scripture": {
+        "text": "Better a patient person than a warrior.",
+        "ref": "Proverbs 16:32"
+      }
+    },
+    {
+      "n": 28,
+      "id": "HON2-028",
+      "block": 4,
+      "type": "reflection",
+      "title": "Respecting Beginner Partners",
+      "focusArea": "Respect",
+      "principle": "Beginners need protection, clarity, and discipline from experienced partners.\nProtecting newer athletes is part of honor.",
+      "houseStandard": "In this house, we protect beginners.\nYour treatment of beginners reveals your true character.\nSay it out loud. Twice.",
+      "prompt": "How should you train with a newer or less skilled partner? What should never happen?",
+      "questions": [
+        "How should experienced athletes treat beginners?",
+        "What behaviors damage trust fast?",
+        "What does mature partnership look like here?",
+        "How do you challenge without overwhelming?"
+      ],
+      "deliverable": "3 proper behaviors + 2 forbidden behaviors",
+      "scripture": {
+        "text": "Whoever welcomes one such child in my name welcomes me.",
+        "ref": "Matthew 18:5"
+      }
+    },
+    {
+      "n": 29,
+      "id": "HON2-029",
+      "block": 4,
+      "type": "reflection",
+      "title": "Do Not Chase Cheap Wins",
+      "focusArea": "Attitude",
+      "principle": "Cheap wins in practice often cost long-term trust and growth.\nSome athletes chase little victories in the room instead of learning.",
+      "houseStandard": "In this house, we do not chase cheap wins.\nCheap wins feed pride and starve growth.\nSay it out loud. Twice.",
+      "prompt": "What does a cheap win in practice look like? Why is it bad for both athletes?",
+      "questions": [
+        "What behaviors count as cheap wins?",
+        "Why are they tempting?",
+        "What do they cost long term?",
+        "What mindset replaces them?"
+      ],
+      "deliverable": "cheap win definition + partner damage + better mindset",
+      "scripture": {
+        "text": "Pride goes before destruction.",
+        "ref": "Proverbs 16:18"
+      }
+    },
+    {
+      "n": 30,
+      "id": "HON2-030",
+      "block": 4,
+      "type": "reflection",
+      "title": "Correcting Without Disrespect",
+      "focusArea": "Respect",
+      "principle": "Partners can help each other without talking down to each other.\nHelpful correction does not need arrogance.",
+      "houseStandard": "In this house, we correct with respect.\nHelpful correction does not need arrogance.\nSay it out loud. Twice.",
+      "prompt": "How can you help a partner without sounding arrogant, impatient, or disrespectful?",
+      "questions": [
+        "What makes correction disrespectful?",
+        "What makes it helpful?",
+        "How should maturity sound?",
+        "When should correction be brief instead of a lecture?"
+      ],
+      "deliverable": "3 respectful correction habits",
+      "scripture": {
+        "text": "Let your gentleness be evident to all.",
+        "ref": "Philippians 4:5"
+      }
+    },
+    {
+      "n": 31,
+      "id": "HON2-031",
+      "block": 4,
+      "type": "reflection",
+      "title": "Shared Safety Is Shared Responsibility",
+      "focusArea": "Respect",
+      "principle": "Safety is not one person’s job. Both partners carry it.\nOne mature athlete helps. Two mature athletes build a room.",
+      "houseStandard": "In this house, both partners own safety.\nShared safety creates shared trust.\nSay it out loud. Twice.",
+      "prompt": "What responsibilities belong to both partners in keeping training safe and productive?",
+      "questions": [
+        "What is your part?",
+        "What is your partner’s part?",
+        "What happens when one athlete stops caring?",
+        "How does shared safety strengthen trust?"
+      ],
+      "deliverable": "3 shared responsibilities",
+      "scripture": {
+        "text": "Two are better than one.",
+        "ref": "Ecclesiastes 4:9"
+      }
+    },
+    {
+      "n": 32,
+      "id": "HON2-032",
+      "block": 4,
+      "type": "reflection",
+      "title": "Respect Is Visible",
+      "focusArea": "Respect",
+      "principle": "Respect is not a private feeling. It is visible in behavior.\nThe truth shows in your pace, tone, control, and consistency.",
+      "houseStandard": "In this house, respect is visible.\nRespect can be seen before it is spoken.\nSay it out loud. Twice.",
+      "prompt": "List 5 behaviors that prove respect for a training partner.",
+      "questions": [
+        "What does real respect look like?",
+        "What behavior proves it?",
+        "What behavior exposes fake respect?",
+        "What do you show right now?"
+      ],
+      "deliverable": "5 visible respect behaviors",
+      "scripture": {
+        "text": "By their fruit you will recognize them.",
+        "ref": "Matthew 7:16"
+      }
+    },
+    {
+      "n": 33,
+      "id": "HON2-033",
+      "block": 5,
+      "type": "reflection",
+      "title": "Make Your Partner Better",
+      "focusArea": "Respect",
+      "principle": "A great training partner does more than avoid harm. He helps the other person improve.\nThe best partners are builders, not just participants.",
+      "houseStandard": "In this house, we make partners better.\nThe best partners are builders, not just participants.\nSay it out loud. Twice.",
+      "prompt": "What are 3 ways you can actively help a partner improve during practice?",
+      "questions": [
+        "What helps partners improve fastest?",
+        "What weakens their learning?",
+        "How can you raise the level of the rep?",
+        "What does building look like in practice?"
+      ],
+      "deliverable": "3 partner-building actions",
+      "scripture": {
+        "text": "Encourage one another and build each other up.",
+        "ref": "1 Thessalonians 5:11"
+      }
+    },
+    {
+      "n": 34,
+      "id": "HON2-034",
+      "block": 5,
+      "type": "reflection",
+      "title": "Giving the Right Look",
+      "focusArea": "Effort",
+      "principle": "Partners help each other most when they give realistic looks without sabotaging learning.\nThe right look sharpens both athletes.",
+      "houseStandard": "In this house, we give the right look.\nThe right look sharpens both athletes.\nSay it out loud. Twice.",
+      "prompt": "What does it mean to give a partner the right look in drills or live work?",
+      "questions": [
+        "What makes a look useful?",
+        "What makes it fake?",
+        "What makes it reckless?",
+        "How do you match realism to the learning goal?"
+      ],
+      "deliverable": "useful look + fake look + reckless look",
+      "scripture": {
+        "text": "Iron sharpens iron.",
+        "ref": "Proverbs 27:17"
+      }
+    },
+    {
+      "n": 35,
+      "id": "HON2-035",
+      "block": 5,
+      "type": "reflection",
+      "title": "Helping Without Carrying",
+      "focusArea": "Respect",
+      "principle": "Good partners help growth, but they do not do the work for the other athlete.\nReal help still requires real work.",
+      "houseStandard": "In this house, we help without carrying.\nReal help still requires real work.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between helping a partner and carrying a partner?",
+      "questions": [
+        "When does helping become carrying?",
+        "Why is carrying harmful?",
+        "What is the healthier standard?",
+        "How do you support without faking success?"
+      ],
+      "deliverable": "difference + harm + healthy standard",
+      "scripture": {
+        "text": "Each one should carry their own load.",
+        "ref": "Galatians 6:5"
+      }
+    },
+    {
+      "n": 36,
+      "id": "HON2-036",
+      "block": 5,
+      "type": "reflection",
+      "title": "Partners Under Pressure",
+      "focusArea": "Attitude",
+      "principle": "Pressure reveals what kind of partner you really are.\nIt is easy to be respectful when everything is smooth. The truth comes out when you are tired, frustrated, losing, or embarrassed.",
+      "houseStandard": "In this house, pressure does not change our character.\nPressure reveals partner character.\nSay it out loud. Twice.",
+      "prompt": "What kind of partner do you become under pressure? What changes first: tone, effort, control, or attitude?",
+      "questions": [
+        "What changes in you under pressure?",
+        "How does that affect partners?",
+        "What standard must stay fixed?",
+        "What usually breaks first?"
+      ],
+      "deliverable": "pressure pattern + partner effect + fixed standard",
+      "scripture": {
+        "text": "When you are tested, your faith produces perseverance.",
+        "ref": "James 1:3"
+      }
+    },
+    {
+      "n": 37,
+      "id": "HON2-037",
+      "block": 5,
+      "type": "reflection",
+      "title": "Trustworthy in Live Work",
+      "focusArea": "Respect",
+      "principle": "Live work demands the highest level of trust, control, and honesty.\nYour partner needs to know you will compete hard without losing discipline.",
+      "houseStandard": "In this house, live work stays disciplined.\nReal trust survives real pace.\nSay it out loud. Twice.",
+      "prompt": "What makes someone trustworthy in live work? What makes someone dangerous in the wrong way?",
+      "questions": [
+        "What builds trust in live rounds?",
+        "What destroys it?",
+        "What kind of live partner are you?",
+        "How do hard pace and control stay together?"
+      ],
+      "deliverable": "3 trust traits + 3 danger traits",
+      "scripture": {
+        "text": "Whoever can be trusted with very little can also be trusted with much.",
+        "ref": "Luke 16:10"
+      }
+    },
+    {
+      "n": 38,
+      "id": "HON2-038",
+      "block": 5,
+      "type": "reflection",
+      "title": "Partner Reputation",
+      "focusArea": "Respect",
+      "principle": "Every athlete builds a reputation in the room as a partner.\nYour reputation is built rep by rep.",
+      "houseStandard": "In this house, reputation is earned by behavior.\nYour partner reputation is written by your habits.\nSay it out loud. Twice.",
+      "prompt": "What reputation do you think you have as a training partner? What reputation do you want to earn instead?",
+      "questions": [
+        "What reputation do your habits build?",
+        "What do others likely trust you for?",
+        "What must change?",
+        "What reputation do you want people to feel from you?"
+      ],
+      "deliverable": "current reputation + desired reputation + 2 changes",
+      "scripture": {
+        "text": "A good name is more desirable than great riches.",
+        "ref": "Proverbs 22:1"
+      }
+    },
+    {
+      "n": 39,
+      "id": "HON2-039",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Does Great Partnership Look Like?",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Great partnership is disciplined, safe, honest, useful, and trustworthy.\nThe best partners in the room are the ones people trust to make training real, sharp, and safe.",
+      "houseStandard": "In this house, great partners strengthen the room.\nGreat partnership is visible in action.\nSay it out loud. Twice.",
+      "prompt": "Define great training partnership in actions, not feelings. List 5 behaviors you will live out next week.",
+      "questions": [
+        "What does great partnership look like?",
+        "What behavior proves it?",
+        "What weak habits must disappear?",
+        "What would someone else see if you really lived this out?"
+      ],
+      "deliverable": "5 partner behaviors",
+      "scripture": {
+        "text": "Let us consider how we may spur one another on.",
+        "ref": "Hebrews 10:24"
+      }
+    },
+    {
+      "n": 40,
+      "id": "HON2-040",
+      "block": 5,
+      "type": "baseline_retest",
+      "title": "Retest: Training Partner Reality Check",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Growth in partnership should be tested, not assumed.\nThe question is simple: are you a more trustworthy, disciplined, useful partner now than when you started?",
+      "houseStandard": "In this house, we measure growth honestly.\nPartnership growth is visible when honesty stays consistent.\nSay it out loud. Twice.",
+      "prompt": "Repeat Session 1 exactly. Answer again: What makes someone a bad training partner? What makes someone a good one? Which one are you today? Then compare your old answer to your new one.",
+      "questions": [
+        "What changed most in how you train with partners?",
+        "What weakness still remains?",
+        "What standard improved most?",
+        "What is your next-step commitment?"
+      ],
+      "deliverable": "3 answers + comparison + 1 next-step commitment",
+      "scripture": {
+        "text": "Examine yourselves.",
+        "ref": "2 Corinthians 13:5"
+      }
+    }
+  ]
+}

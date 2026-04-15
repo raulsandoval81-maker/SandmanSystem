@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin — Staff & Roles | Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      background:#06080d;
+      color:#f5f5f5;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:28px 16px 48px;
+    }
+    .hero{
+      background:#0f141b;
+      border:1px solid #1d2430;
+      border-radius:18px;
+      padding:18px 20px 16px;
+      box-shadow:0 10px 26px rgba(0,0,0,.35);
+      margin-bottom:18px;
+    }
+    .hero h1{
+      margin:0;
+      color:#ffd633;
+      font-size:1.75rem;
+    }
+    .hero p{
+      margin:8px 0 0;
+      color:#9ca3af;
+      font-size:.9rem;
+    }
+    .toprow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin:14px 0 18px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.5rem .95rem;
+      border-radius:999px;
+      background:#0b1017;
+      border:1px solid #1d2430;
+      color:#eaeaea;
+      text-decoration:none;
+      font-weight:800;
+      font-size:.78rem;
+    }
+    .pill:hover{
+      border-color:#e63946;
+      box-shadow:0 0 10px rgba(230,57,70,.35);
+    }
+    .status{
+      color:#94a3b8;
+      font-size:.78rem;
+    }
+    .panel{
+      background:#0b1017;
+      border:1px solid #1f2937;
+      border-radius:14px;
+      padding:16px;
+      box-shadow:0 10px 18px rgba(0,0,0,.22);
+    }
+    .table-wrap{
+      overflow:auto;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:700px;
+    }
+    th, td{
+      padding:10px 8px;
+      border-bottom:1px solid #1f2937;
+      text-align:left;
+      font-size:.82rem;
+    }
+    th{
+      color:#ffd633;
+      font-size:.78rem;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+    }
+    .role-select{
+      background:#111827;
+      color:#f5f5f5;
+      border:1px solid #374151;
+      border-radius:8px;
+      padding:6px 8px;
+    }
+    .btn{
+      border:none;
+      border-radius:999px;
+      padding:.45rem .95rem;
+      font-weight:900;
+      cursor:pointer;
+      font-size:.75rem;
+    }
+    .btn-red{
+      background:#e53935;
+      color:#fff;
+      box-shadow:0 0 10px rgba(229,57,53,.35);
+    }
+    .btn-red:hover{
+      background:#ff4758;
+    }
+    .muted{
+      color:#9ca3af;
+    }
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1>Staff & Roles</h1>
+      <p>Admin control for staff access and role assignment.</p>
+    </section>
+
+    <div class="toprow">
+      <div>
+        <a class="pill" href="/public/admin/index.html">Admin Home</a>
+      </div>
+      <div class="status" id="adminStatus">Checking admin access…</div>
+    </div>
+
+    <section class="panel">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>UID</th>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Role</th>
+              <th>Save</th>
+            </tr>
+          </thead>
+          <tbody id="staffBody">
+            <tr><td colspan="5" class="muted">Loading staff…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script type="module">
+    import { requireAdmin } from "/assets/js/admin-guard.js";
+    import { loadStaffRows, saveStaffRole } from "./staff.service.js";
+
+    const statusEl = document.getElementById("adminStatus");
+    const bodyEl = document.getElementById("staffBody");
+
+    await requireAdmin();
+    statusEl.textContent = "Admin verified.";
+
+    async function render() {
+      const rows = await loadStaffRows();
+      if (!rows.length) {
+        bodyEl.innerHTML = `<tr><td colspan="5" class="muted">No staff docs found.</td></tr>`;
+        return;
+      }
+
+      bodyEl.innerHTML = rows.map(row => `
+        <tr data-uid="${row.uid}">
+          <td>${row.uid}</td>
+          <td>${row.email || ""}</td>
+          <td>${row.fullName || ""}</td>
+          <td>
+            <select class="role-select">
+              <option value="coach" ${row.role === "coach" ? "selected" : ""}>coach</option>
+              <option value="admin" ${row.role === "admin" ? "selected" : ""}>admin</option>
+            </select>
+          </td>
+          <td><button class="btn btn-red save-role">Save</button></td>
+        </tr>
+      `).join("");
+    }
+
+    bodyEl.addEventListener("click", async (e) => {
+      const btn = e.target.closest(".save-role");
+      if (!btn) return;
+
+      const tr = btn.closest("tr");
+      const uid = tr.dataset.uid;
+      const role = tr.querySelector(".role-select").value;
+
+      btn.disabled = true;
+      btn.textContent = "Saving...";
+      try {
+        await saveStaffRole(uid, role);
+        btn.textContent = "Saved";
+        setTimeout(() => btn.textContent = "Save", 900);
+      } catch (err) {
+        console.error(err);
+        btn.textContent = "Failed";
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    await render();
+  </script>
+</body>
+</html>

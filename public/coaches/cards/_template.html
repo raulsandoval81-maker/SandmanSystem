@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Skill Title | Sandman System</title>
+
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#06080d;
+  --panel:#0f141b;
+  --line:#1d2430;
+  --text:#f5f5f5;
+  --muted:#9ca3af;
+  --gold:#ffd633;
+  --red:#e53935;
+}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui;
+}
+.wrap{
+  max-width:900px;
+  margin:auto;
+  padding:24px 16px 40px;
+}
+.hero{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:18px;
+}
+h1{
+  margin:0 0 6px;
+  color:var(--gold);
+}
+.sub{
+  color:var(--muted);
+  font-size:.9rem;
+}
+.section{
+  margin-top:20px;
+  padding:14px;
+  border:1px solid #1f2937;
+  border-radius:12px;
+  background:#0b1017;
+}
+.section h2{
+  margin:0 0 8px;
+  color:var(--gold);
+  font-size:.9rem;
+}
+.section p{
+  margin:0;
+  font-size:.85rem;
+  line-height:1.45;
+  color:#d1d5db;
+}
+
+/* actions */
+.card-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+.pill-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
+  padding:.55rem 1rem;
+  border-radius:999px;
+  background:#0b1017;
+  border:1px solid var(--line);
+  color:#f5f5f5;
+  text-decoration:none;
+  font-weight:800;
+  font-size:.8rem;
+  cursor:pointer;
+}
+.pill-btn:hover{
+  border-color:var(--red);
+  box-shadow:0 0 10px rgba(230,57,70,.25);
+}
+.pill-btn.danger{
+  background:var(--red);
+  color:#fff;
+  border-color:var(--red);
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<!-- TITLE -->
+<section class="hero">
+  <h1>Stance</h1>
+  <div class="sub">Base position. Balance, posture, and readiness.</div>
+</section>
+
+<!-- PURPOSE -->
+<section class="section">
+  <h2>Purpose</h2>
+  <p>
+    Establish a strong, balanced position that allows movement, reaction,
+    and control without overcommitting.
+  </p>
+</section>
+
+<!-- KEY POINTS -->
+<section class="section">
+  <h2>Key Points</h2>
+  <p>
+    • Head up, eyes forward  
+    • Hands active  
+    • Knees bent, weight centered  
+    • Stay mobile, not stiff  
+  </p>
+</section>
+
+<!-- ACTIONS -->
+<div class="card-actions">
+  <a class="pill-btn" href="./index.html">← Back to Tier</a>
+  <button class="pill-btn danger" id="addToMasterBtn">Add to Master</button>
+  <a class="pill-btn" href="/cards/master/">Open Master</a>
+</div>
+
+</div>
+
+<!-- SCRIPT -->
+<script>
+(function () {
+  const btn = document.getElementById("addToMasterBtn");
+  if (!btn) return;
+
+  const key = "sandmanMasterQueue";
+
+  const title =
+    document.querySelector("h1")?.textContent?.trim() ||
+    document.title;
+
+  const href = window.location.pathname;
+
+  btn.addEventListener("click", () => {
+    const current = JSON.parse(localStorage.getItem(key) || "[]");
+
+    const exists = current.some(item => item.href === href);
+
+    if (!exists) {
+      current.push({ title, href });
+      localStorage.setItem(key, JSON.stringify(current));
+    }
+
+    btn.textContent = "Added";
+    setTimeout(() => {
+      btn.textContent = "Add to Master";
+    }, 800);
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -193,14 +193,9 @@
 
 <body>
 <main class="wrap">
-
-  <nav class="top-nav">
-    <a class="pill-link" href="/coaches/index.html">← Coach Index</a>
-    <a class="pill-link" href="/coaches/roster.html">Team Roster</a>
-    <a class="pill-link" href="/coaches/daily-grind.html">XP Daily Command Center</a>
-    <a class="pill-link" href="/coaches/arena/weekend-arena.html">XP Weekend Event Arena</a>
-    <a class="pill-link" href="/coaches/arena/prestige-arena.html">XP Prestige Event Arena</a>
-  </nav>
+      <div class="navrow">
+        <a class="pill" href="index.html">← Back to Admin</a>
+      </div>
 
   <header>
     <h1>XP Master Log</h1>
@@ -269,7 +264,7 @@
    - apply filters (q/lane/kind/date range)
    - render rows into #xpRows and set #rowCount/#status
 -->
-<script type="module" src="/assets/js/xp-master-log.service.js"></script>
+<script type="module" src="./xp-master-log.service.js"></script>
 
 <script>
   // tiny UI-only helpers (safe, no backend)

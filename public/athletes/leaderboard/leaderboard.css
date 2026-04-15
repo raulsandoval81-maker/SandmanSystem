@@ -1,0 +1,402 @@
+:root{
+  --bg:#08090b;
+  --panel:#0f131a;
+  --panel-2:#141a24;
+  --panel-3:#1a2130;
+  --line:#2a3345;
+  --line-soft:rgba(255,221,72,.18);
+  --text:#f3f4f6;
+  --muted:#b8c2d0;
+  --gold:#ffdd48;
+  --gold-deep:#c9a227;
+  --red:#c63a3a;
+  --shadow:0 10px 30px rgba(0,0,0,.35);
+  --radius:18px;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:
+    radial-gradient(circle at top, rgba(255,221,72,.06), transparent 24%),
+    linear-gradient(180deg,#090b0f 0%, #08090b 100%);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+/* hide top system links for now */
+.system-header .athlete-tabs,
+.system-header .top-bar,
+.system-header .auth-controls,
+#btnSignIn{
+  display:none !important;
+}
+
+.system-header{
+  background:transparent;
+  border-bottom:none;
+  padding:20px 20px 0;
+  position:relative;
+}
+
+.system-header__brand{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.system-header .brand-main,
+.system-header__brand span{
+  color:var(--gold) !important;
+  font-weight:900;
+  letter-spacing:.4px;
+  font-size:1.05rem;
+}
+
+.wrap{
+  max-width:980px;
+  margin:0 auto;
+  padding:22px 20px 44px;
+  display:grid;
+  gap:18px;
+}
+
+/* HERO */
+.lb-hero{
+  position:relative;
+  overflow:hidden;
+  background:
+    linear-gradient(180deg, rgba(255,221,72,.08), rgba(255,221,72,.02)),
+    linear-gradient(180deg,#11161f 0%, #0d1218 100%);
+  border:1px solid var(--line-soft);
+  border-radius:22px;
+  padding:28px 24px 22px;
+  box-shadow:var(--shadow);
+  text-align:center;
+}
+
+.lb-hero::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(255,221,72,.18), transparent 38%);
+  pointer-events:none;
+}
+
+.lb-kicker{
+  position:relative;
+  z-index:1;
+  margin:0 0 6px;
+  color:var(--gold);
+  font-size:.82rem;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.lb-title{
+  position:relative;
+  z-index:1;
+  margin:0;
+  color:var(--gold);
+  font-size:clamp(2rem,4.6vw,3.2rem);
+  line-height:1;
+  font-weight:900;
+  letter-spacing:.02em;
+  text-shadow:0 0 22px rgba(255,221,72,.12);
+}
+
+.lb-sub{
+  position:relative;
+  z-index:1;
+  margin:10px auto 0;
+  max-width:720px;
+  color:var(--text);
+  font-size:1.02rem;
+  line-height:1.5;
+  opacity:.96;
+}
+
+/* THREE TYPES */
+.comp-box{
+  background:linear-gradient(180deg,#10151d,#0c1016);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+.comp-title{
+  margin:0 0 14px;
+  text-align:center;
+  color:var(--gold);
+  font-weight:900;
+  font-size:clamp(1.1rem,2.4vw,1.45rem);
+  letter-spacing:.01em;
+}
+
+.comp-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+
+.comp-item{
+  background:linear-gradient(180deg,#171e29,#121823);
+  border:1px solid rgba(255,221,72,.08);
+  border-radius:16px;
+  padding:16px 14px;
+  text-align:center;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+.comp-item strong{
+  display:block;
+  margin:0 0 6px;
+  color:var(--red);
+  font-size:1.1rem;
+  font-weight:900;
+  letter-spacing:.01em;
+}
+
+.comp-item span{
+  display:block;
+  color:var(--text);
+  font-size:.98rem;
+  line-height:1.42;
+}
+
+/* CONTENT WRAPPER */
+.leaderboard-list,
+.lb-shell,
+.lb-panel,
+main > section:last-child{
+  background:linear-gradient(180deg,#0f141c,#0b1016);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:20px;
+  padding:20px;
+  box-shadow:var(--shadow);
+}
+
+/* FILTERS */
+select,
+.lb-filter,
+.filter-select{
+  width:100%;
+  min-height:46px;
+  border-radius:14px;
+  background:#161d28;
+  border:1px solid #2a3345;
+  color:var(--text);
+  padding:10px 14px;
+  font-size:1rem;
+  outline:none;
+  box-shadow:none;
+}
+
+select:focus,
+.lb-filter:focus,
+.filter-select:focus{
+  border-color:rgba(255,221,72,.45);
+}
+
+label{
+  display:block;
+  margin:0 0 8px;
+  color:var(--muted);
+  font-weight:700;
+  font-size:.9rem;
+}
+
+.filters,
+.filter-row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-bottom:18px;
+}
+
+/* HEADINGS BELOW */
+h2, h3{
+  margin:0 0 10px;
+}
+
+.top-title,
+.zone-title,
+.target-title{
+  color:var(--gold);
+  font-size:1.2rem;
+  font-weight:900;
+  margin:18px 0 12px;
+}
+
+/* leaderboard rows */
+.lb-row,
+.leaderboard-row,
+.rank-row,
+li.rank-item{
+  list-style:none;
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  gap:14px;
+  align-items:center;
+  background:linear-gradient(180deg,#151c26,#111722);
+  border:1px solid rgba(255,255,255,.05);
+  border-radius:14px;
+  padding:14px 16px;
+  margin-bottom:10px;
+}
+
+.lb-row.you,
+.leaderboard-row.you,
+.rank-row.you,
+li.rank-item.you{
+  border-color:rgba(255,221,72,.45);
+  box-shadow:0 0 0 1px rgba(255,221,72,.18);
+}
+
+.lb-rank,
+.rank-num{
+  color:var(--gold);
+  font-weight:900;
+  font-size:1.05rem;
+  min-width:44px;
+}
+
+.lb-name,
+.rank-name{
+  color:var(--text);
+  font-weight:800;
+  font-size:1rem;
+}
+
+.lb-meta,
+.rank-xp{
+  color:var(--muted);
+  font-weight:700;
+  font-size:.96rem;
+}
+
+.lb-tier,
+.rank-tier{
+  color:var(--text);
+  font-weight:800;
+  opacity:.88;
+  min-width:74px;
+  text-align:right;
+}
+
+/* flat text fallback if rows aren't carded yet */
+.leaderboard-list p,
+.lb-shell p,
+.lb-panel p{
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.muted-empty{
+  color:var(--muted);
+  opacity:.88;
+}
+
+/* spacing helpers */
+.section-space{margin-top:18px}
+hr{
+  border:none;
+  border-top:1px solid rgba(255,255,255,.06);
+  margin:18px 0;
+}
+
+/* mobile */
+@media (max-width:860px){
+  .comp-grid{
+    grid-template-columns:1fr;
+  }
+
+  .filters,
+  .filter-row{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:640px){
+  .wrap{
+    padding:18px 14px 34px;
+    gap:14px;
+  }
+
+  .lb-hero,
+  .comp-box,
+  .leaderboard-list,
+  .lb-shell,
+  .lb-panel,
+  main > section:last-child{
+    padding:16px;
+    border-radius:16px;
+  }
+
+  .lb-row,
+  .leaderboard-row,
+  .rank-row,
+  li.rank-item{
+    grid-template-columns:auto 1fr;
+  }
+
+  .lb-tier,
+  .rank-tier{
+    grid-column:2;
+    text-align:left;
+    min-width:0;
+  }
+}
+.athlete-sub-header{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:#0b0f17;
+  border-bottom:2px solid #ffdd48;
+  padding:10px 16px;
+}
+
+.sub-header-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.brand{
+  color:#ffdd48;
+  font-weight:800;
+  font-size:.95rem;
+}
+
+.sub-nav{
+  display:flex;
+  gap:8px;
+}
+
+.sub-btn{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:.8rem;
+  text-decoration:none;
+  border:1px solid #1f2a40;
+  background:#0e1420;
+  color:#cbd5e1;
+}
+
+.sub-btn:hover{
+  border-color:#ffdd48;
+  color:#ffdd48;
+}
+
+.sub-btn.home{
+  background:#ffdd48;
+  color:#111;
+  border-color:#ffdd48;
+  font-weight:700;
+}

@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Launching Teen T0 Trainer</title>
+</head>
+<body>
+  <p>Checking access...</p>
+
+  <script type="module">
+    import { db, doc, getDoc } from "/assets/js/firebase-init-para.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const athleteId = params.get("id") || "";
+    const mode = params.get("mode") || "coach";
+
+    const pageTier = "T0";
+    const pageTrack = "teen";
+
+    if (!athleteId) {
+      document.body.innerHTML = "<p>Missing athlete id.</p>";
+      throw new Error("Missing athlete id");
+    }
+
+    if (pageTrack === "teen" && athleteId.startsWith("F8_")) {
+      window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+      throw new Error("Wrong branch");
+    }
+
+    if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+      window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+      throw new Error("Wrong branch");
+    }
+
+    async function guardAndLaunch() {
+      try {
+        const ref = doc(db, "athletes", athleteId);
+        const snap = await getDoc(ref);
+
+        if (!snap.exists()) {
+          document.body.innerHTML = "<p>Athlete not found.</p>";
+          return;
+        }
+
+        const athlete = snap.data();
+
+        if (athlete.tier !== pageTier) {
+          window.location.replace(`/athletes/arsenal/combat/${pageTrack}/index.html?id=${encodeURIComponent(athleteId)}`);
+          return;
+        }
+
+        const launchParams = new URLSearchParams({
+          track: "f4",
+          tier: "t0",
+          mode,
+          id: athleteId
+        });
+
+        window.location.replace(`/timer-engine/sandman-timer-mobile.html?${launchParams.toString()}`);
+      } catch (err) {
+        console.error("Train guard error:", err);
+        document.body.innerHTML = "<p>Unable to verify athlete access.</p>";
+      }
+    }
+
+    guardAndLaunch();
+  </script>
+</body>
+</html>

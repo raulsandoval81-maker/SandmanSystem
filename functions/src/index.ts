@@ -21,3 +21,4 @@ export { approveAndActivate } from "./approveAndActivate";
 
 // ---- Onboarding (single-use token)
 export { consumeOnboardingToken } from "./modules/consumeOnboardingToken";
+export { onboardingConfirmStep1 } from "./onboardingConfirmStep1";

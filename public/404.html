@@ -6,84 +6,74 @@
 <title>404 — Page Not Found</title>
 
 <style>
-  :root { color-scheme: dark; }
-  body {
-    margin:0;
-    padding:1.5rem;
-    background:#7a0000; /* deep red */
-    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    color:#ffffff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
-    text-align:center;
-  }
+body{
+  margin:0;
+  background:#7a0000;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  color:#fff;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  text-align:center;
+}
 
-  .box {
-    background:rgba(0,0,0,0.45);
-    border:1px solid rgba(255,255,255,0.25);
-    border-radius:14px;
-    padding:2rem 1.75rem;
-    max-width:420px;
-    width:100%;
-    box-shadow:0 0 20px rgba(0,0,0,.4);
-  }
+.box{
+  background:rgba(0,0,0,.45);
+  border:1px solid rgba(255,255,255,.25);
+  border-radius:14px;
+  padding:2rem 1.75rem;
+  max-width:420px;
+  box-shadow:0 0 20px rgba(0,0,0,.4);
+}
 
-  h1 {
-    margin:0 0 0.5rem;
-    font-size:2rem;
-    color:#fff;
-    font-weight:800;
-  }
+h1{
+  margin:0 0 .5rem;
+  font-size:2rem;
+  font-weight:800;
+}
 
-  p {
-    margin:0.9rem 0;
-    line-height:1.6;
-    color:#f8f8f8;
-    font-weight:300;
-  }
+p{
+  margin:.9rem 0;
+  line-height:1.6;
+  font-weight:300;
+}
 
-  .btn {
-    display:inline-block;
-    margin-top:1.3rem;
-    padding:.6rem 1.2rem;
-    background:#ffffff;
-    color:#7a0000;
-    font-weight:700;
-    border-radius:8px;
-    text-decoration:none;
-    transition:.18s ease;
-  }
+.btn{
+  display:inline-block;
+  margin-top:1.3rem;
+  padding:.6rem 1.2rem;
+  background:#fff;
+  color:#7a0000;
+  font-weight:700;
+  border-radius:8px;
+  text-decoration:none;
+}
 
-  .btn:hover {
-    background:#e5e5e5;
-  }
-
-  .sub {
-    margin-top:1rem;
-    font-size:.85rem;
-    color:#f1f1f1;
-    font-weight:300;
-  }
+.sub{
+  margin-top:1rem;
+  font-size:.85rem;
+  opacity:.8;
+}
 </style>
 </head>
 
 <body>
-  <div class="box">
-    <h1>404</h1>
 
-    <p>Page not found.<br/>La página no fue encontrada.</p>
+<div class="box">
+  <h1>404</h1>
 
-    <p>The link may be broken or the page has moved.<br/>
-       El enlace puede estar roto o la página se ha movido.</p>
+  <p>
+  Page not found.<br>
+  La página no fue encontrada.
+  </p>
 
-    <a class="btn" href="javascript:history.back()">⬅ Back / Regresar</a>
+  <a class="btn" href="/">Go Home</a>
 
-    <div class="sub">
-      If this was a QR code error, try scanning again.<br/>
-      Si esto fue un error de QR, intente escanear nuevamente.
-    </div>
+  <div class="sub">
+  If this came from a QR code, try scanning again.
   </div>
+</div>
+
 </body>
 </html>

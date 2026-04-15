@@ -1,0 +1,14 @@
+/* Messages specific styling */
+
+.banner-box{
+  padding:14px;
+  border-radius:12px;
+  background:#0b1e3b;
+  border:1px solid var(--line);
+}
+
+.banner-title{
+  font-weight:700;
+  color:var(--gold);
+  margin-bottom:6px;
+}

@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Coach Athlete Panel</title>
+  <link rel="icon" href="data:,"> 
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111a2b;
+      --line:#24324a;
+      --text:#e8edf7;
+      --muted:#9fb0c9;
+      --gold:#f1c84c;
+      --red:#d64545;
+      --green:#2e9d63;
+      --blue:#3c7cff;
+      --purple:#6f56d9;
+      --orange:#c97a1a;
+      --gray:#58657a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:Arial,Helvetica,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:24px;
+    }
+    .wrap{
+      max-width:1080px;
+      margin:0 auto;
+      display:grid;
+      gap:18px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+    }
+    h1,h2{margin:0 0 12px}
+    .muted{color:var(--muted)}
+    .row{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+    .stat{
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      background:rgba(255,255,255,.02);
+    }
+    .label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .value{
+      font-size:18px;
+      font-weight:700;
+    }
+    .controls{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+    .btn{
+      border:0;
+      border-radius:12px;
+      padding:14px 16px;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+    .ready{background:var(--blue)}
+    .start{background:var(--purple)}
+    .pass{background:var(--green)}
+    .fail{background:var(--red)}
+    .temple{background:var(--orange)}
+    .eligible{background:#278b8b}
+    .active{background:var(--gray)}
+    .promote{background:#111;border:1px solid var(--gold);color:var(--gold)}
+    .small{
+      font-size:13px;
+      color:var(--muted);
+      margin-top:8px;
+      line-height:1.4;
+    }
+    pre{
+      margin:0;
+      white-space:pre-wrap;
+      word-break:break-word;
+      background:#0a101c;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      color:#d7e4ff;
+    }
+    .status{
+      min-height:24px;
+      font-weight:700;
+      color:var(--gold);
+    }
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+    .uidbox{
+      color:var(--gold);
+      font-weight:700;
+    }
+    @media (max-width:720px){
+      .row,.controls{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <h1>Coach Athlete Panel</h1>
+      <div class="uidbox">UID: <span id="athlete-uid">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2>Snapshot</h2>
+      <div class="row">
+        <div class="stat">
+          <span class="label">Name</span>
+          <span class="value" id="athlete-name">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Tier</span>
+          <span class="value" id="athlete-tier">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">XP</span>
+          <span class="value" id="athlete-xp">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Stripes</span>
+          <span class="value" id="athlete-stripes">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Promotion Locked</span>
+          <span class="value" id="promotion-locked">—</span>
+        </div>
+        <div class="stat">
+          <span class="label">Testing State</span>
+          <span class="value" id="testing-state">—</span>
+        </div>
+      </div>
+    </div>
+<div class="card">
+  <h2>Coach Controls</h2>
+  <div class="small">
+    <div class="controls">
+      <button id="btn-ready" class="btn ready">Mark Ready</button>
+      <button id="btn-start" class="btn start">Start Test</button>
+
+      <button id="btn-pass" class="btn pass">Pass Test</button>
+      <button id="btn-fail" class="btn fail">Fail Test</button>
+
+      <button id="btn-retest" class="btn start">Retest</button>
+      <button id="btn-promote" class="btn promote">Promote Athlete</button>
+
+      <button id="btn-active" class="btn active">Return Active</button>
+    </div>
+    Temple = automatic pre-cap holding state.<br>
+    Eligible = automatic at-cap ready state.<br>
+    Ready = coach-approved preparation window.<br>
+    Pass → Cooldown (5 days default).<br>
+    Fail → Freeze (10 days default).
+  </div>
+</div>
+    <div class="card">
+      <h2>Status</h2>
+      <div id="status" class="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>Testing Debug</h2>
+      <pre id="testing-debug">Loading...</pre>
+    </div>
+  </div>
+
+  <script type="module" src="./coach-athlete-panel.js"></script>
+</body>
+</html>

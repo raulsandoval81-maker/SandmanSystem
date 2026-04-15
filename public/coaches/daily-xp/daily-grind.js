@@ -4,7 +4,7 @@ import "/coaches/_ui/dev-boot.js";
 import { db, collection, onSnapshot, ensureSignedIn } from "/assets/js/firebase-init.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { renderMiniXpBar } from "/assets/js/xp-bar-mini.js";
-
+import { COLORS, colorKeyFor, getAthleteStripeInfo } from "/assets/js/ladder.service.js";
 import {
   isDevMode,
   paintDevUi,
@@ -12,7 +12,6 @@ import {
   patchDevLinks,
 } from "/assets/js/dev-mode.js";
 console.log("XP_URL =", XP_URL);
-
 /* =========================
    DEV MODE BOOTSTRAP
 ========================= */
@@ -137,17 +136,31 @@ function updateSessionBar() {
   if (sbXP)      sbXP.textContent      = `XP issued: ${awardedXP}`;
 }
 
-function repaintMiniBarForRow({ rowEl, xp, cap, tierName }) {
+function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
   const slot = rowEl?.querySelector?.(".xp-slot");
   if (!slot) return;
 
-  const stripesTotal = 4;
+  const info = getAthleteStripeInfo({
+    ...athlete,
+    xp,
+    xpCap: cap,
+    rankName,
+    tierName,
+  });
+
+  const stripesTotal = Number(info?.stripesTotal ?? 4);
+  const stripesEarned = Number(info?.stripesEarned ?? 0);
+
   const safeCap = Math.max(1, Number(cap) || 1200);
   const safeXp  = Math.max(0, Number(xp) || 0);
-  const stripesEarned = Math.max(
-    0,
-    Math.min(stripesTotal, Math.floor((safeXp / safeCap) * stripesTotal))
-  );
+
+  const key = colorKeyFor(rankName || tierName || "") || "apprentice";
+  const c = COLORS[key] || COLORS.apprentice;
+
+  const isWhiteStripeTier =
+    String(rankName || "").toLowerCase() === "legend" ||
+    String(rankName || "").toLowerCase() === "hero" ||
+    String(rankName || "").toLowerCase() === "mastery";
 
   renderMiniXpBar({
     container: slot,
@@ -156,9 +169,10 @@ function repaintMiniBarForRow({ rowEl, xp, cap, tierName }) {
     tierName: tierName || "Apprentice",
     stripesEarned,
     stripesTotal,
+    fillColor: c.start,
+    stripeTone: isWhiteStripeTier ? "white" : "black",
   });
 }
-
 /* =========================
    Render
 ========================= */
@@ -201,11 +215,13 @@ function render(list) {
     const a = byId.get(tr.dataset.id);
     if (!a) return;
     repaintMiniBarForRow({
-      rowEl: tr,
-      xp: a.xp ?? 0,
-      cap: a.xpCap ?? 1200,
-      tierName: a.rankName || a.tierName || a.tier || "Apprentice",
-    });
+  rowEl: tr,
+  athlete: a,
+  xp: a.xp ?? 0,
+  cap: a.xpCap ?? 1200,
+  tierName: a.rankName || a.tierName || a.tier || "Apprentice",
+  rankName: a.rankName,
+});
   });
 
   updateSessionBar();
@@ -259,12 +275,25 @@ function subscribe() {
     (snap) => {
       roster = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-      // DEV/LIVE gates (single truth)
-      roster = roster.filter((a) => {
-        if (dev) return a.devMode === true && a.isTest === true;
-        return !(a.devMode === true || a.isTest === true);
-      });
+roster = roster.filter((a) => {
+  const status = a.rosterStatus || "current";
 
+  // ❌ never show archived in Daily Grind
+  if (status !== "current") return false;
+
+  // DEV toggle behavior
+  if (dev) {
+    // show real + dev
+    return true;
+  }
+
+  // LIVE mode → hide dev
+  if (a.isDev === true || a.devMode === true || a.isTest === true) {
+    return false;
+  }
+
+  return true;
+});
       applyFilterAndRender();
       setStatus(`Ready · ${wantedBase}`);
     },
@@ -336,8 +365,8 @@ syncPillsToLane();
    Award mapping (string kinds = backend truth)
 ========================= */
 const AWARDS = Object.freeze({
-GRIND_10: { label: "+10 Full-Time Grind", kind: "ATTENDANCE", amount: 10 },
-GRIND_5:  { label: "+5 Half-Time Grind",  kind: "ATTENDANCE", amount: 5  },
+  GRIND_10: { label: "+10 Full-Time Grind", kind: "ATTENDANCE", amount: 10 },
+  GRIND_5:  { label: "+5 Half-Time Grind",  kind: "ATTENDANCE", amount: 5  },
 
   STR_10:   { label: "+10 Strength", kind: "STRENGTH", amount: 10 },
   STR_5:    { label: "+5 Strength",  kind: "STRENGTH", amount: 5  },
@@ -359,6 +388,7 @@ function autoAmountForAthlete(a, chosenAmount, awardKind) {
 function parseFunctionJson(raw) {
   return raw?.result ?? raw?.data ?? raw;
 }
+
 /* =========================
    Core award runner
 ========================= */
@@ -398,8 +428,8 @@ async function issueAwardForSelection(award) {
       uid,
       kind: award.kind,
       amount: amt,
-      lane, // top-level lane
-      meta: { lane, source: "daily-grind" }, // keep meta for logging
+      lane,
+      meta: { lane, source: "daily-grind" },
     };
 
     console.log("XP SEND →", { uid, kind: award.kind, amount: amt, lane });
@@ -416,11 +446,9 @@ async function issueAwardForSelection(award) {
           "Content-Type": "application/json",
           "x-coach-uid": String(coachUid).trim(),
         },
-        // ✅ IMPORTANT: keep { data: payload } (matches your xpHttp wrapper)
         body: JSON.stringify({ data: payload }),
       });
 
-      // ✅ Read body ONCE (text), then parse
       const text = await res.text().catch(() => "");
 
       if (!res.ok) {
@@ -445,7 +473,12 @@ async function issueAwardForSelection(award) {
           (typeof data.afterXP === "number") ? data.afterXP :
           null;
 
-        if (typeof after === "number") a.xp = after;
+if (typeof after === "number") a.xp = after;
+
+// optional future-proof (only if backend sends it)
+if (typeof data.afterCap === "number") a.xpCap = data.afterCap;
+if (data.afterRankName) a.rankName = data.afterRankName;
+if (data.afterTierName) a.tierName = data.afterTierName;
 
         const row = rowsEl?.querySelector?.(`tr[data-id="${id}"]`);
         if (row) {
@@ -453,12 +486,15 @@ async function issueAwardForSelection(award) {
           const line = row.querySelector(`[data-xpline="${id}"]`);
           if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
 
-          repaintMiniBarForRow({
-            rowEl: row,
-            xp: a.xp ?? 0,
-            cap,
-            tierName: a.rankName || a.tierName || a.tier || "Apprentice",
-          });
+       
+       repaintMiniBarForRow({
+  rowEl: row,
+  athlete: a,
+  xp: a.xp ?? 0,
+  cap,
+  tierName: a.rankName || a.tierName || a.tier || "Apprentice",
+  rankName: a.rankName,
+});
         }
       }
     } catch (err) {
@@ -492,8 +528,8 @@ function bindPill(btn) {
       return;
     }
 
-    await issueAwardForSelection(award);
-    setStatus(`Ready · ${wantedTrackBase()}`);
+await issueAwardForSelection(award);
+// keep success message visible
   });
 }
 

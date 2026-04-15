@@ -26,7 +26,8 @@ export async function verifyToken(input) {
   const tokenId = extractToken(input);
   if (!tokenId) return { valid: false, reason: "bad-format" };
 
-  const snap = await getDoc(doc(db, "intakes", tokenId));
+  // ✅ Correct collection for invite tokens
+  const snap = await getDoc(doc(db, "intakeTokens", tokenId));
   if (!snap.exists()) return { valid: false, reason: "not-found" };
 
   const data = snap.data() || {};
@@ -51,6 +52,8 @@ export async function verifyToken(input) {
     tokenId,
     forTrack: data.forTrack ?? null,
     forLane: data.forLane ?? null,
+    // optional pass-throughs if you add them later
+    intakeId: data.intakeId ?? null,
   };
 }
 
@@ -67,7 +70,8 @@ export async function markTokenUsed(tokenId) {
   const id = normalizeToken(tokenId);
   if (!id) throw new Error("bad-format");
 
-  await updateDoc(doc(db, "intakes", id), {
+  // ✅ Correct collection for invite tokens
+  await updateDoc(doc(db, "intakeTokens", id), {
     used: true,
     usedAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

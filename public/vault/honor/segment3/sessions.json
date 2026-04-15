@@ -1,0 +1,888 @@
+{
+  "lane": "honor",
+  "segmentId": "segment3",
+  "segmentTitle": "Team, Partner & I",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "HON3-001",
+      "block": 1,
+      "type": "baseline_gate",
+      "title": "Team Awareness Reality Check",
+      "focusArea": "Awareness",
+      "principle": "Every athlete affects the team environment whether they intend to or not.\nYour behavior, effort, tone, and focus shape the room.",
+      "houseStandard": "In this house, every athlete protects the room.\nCulture grows from daily behavior.\nSay it out loud. Twice.",
+      "prompt": "Answer honestly: What behaviors strengthen a team? What behaviors weaken it? Which one do you contribute most right now?",
+      "questions": [
+        "What behaviors strengthen a team immediately?",
+        "What behaviors weaken a room fast?",
+        "How do effort, tone, and focus affect others?",
+        "What are you contributing most right now?",
+        "What must change first?"
+      ],
+      "deliverable": "3 team strengths + 3 team weaknesses + self assessment",
+      "scripture": {
+        "text": "Each of you should look not only to your own interests.",
+        "ref": "Philippians 2:4"
+      }
+    },
+    {
+      "n": 2,
+      "id": "HON3-002",
+      "block": 1,
+      "type": "reflection",
+      "title": "Energy in the Room",
+      "focusArea": "Attitude",
+      "principle": "Athletes bring energy that spreads through the team.\nNegative attitudes weaken rooms quickly. Disciplined energy lifts standards.",
+      "houseStandard": "In this house, we bring working energy.\nEnergy spreads faster than instruction.\nSay it out loud. Twice.",
+      "prompt": "Describe the energy you usually bring to the room and how it affects teammates.",
+      "questions": [
+        "What kind of energy do you usually bring?",
+        "How does that energy affect teammates?",
+        "When does your energy drop?",
+        "What kind of energy strengthens a room?"
+      ],
+      "deliverable": "current energy + team effect",
+      "scripture": {
+        "text": "Encourage one another and build each other up.",
+        "ref": "1 Thessalonians 5:11"
+      }
+    },
+    {
+      "n": 3,
+      "id": "HON3-003",
+      "block": 1,
+      "type": "reflection",
+      "title": "Respect Across the Team",
+      "focusArea": "Respect",
+      "principle": "Team respect means valuing every athlete in the room.\nStrong rooms treat beginners, veterans, winners, and strugglers with the same baseline respect.",
+      "houseStandard": "In this house, respect applies to everyone.\nRespect stabilizes teams.\nSay it out loud. Twice.",
+      "prompt": "Why does team respect matter even when athletes have different skill levels?",
+      "questions": [
+        "Why does respect matter across all skill levels?",
+        "What happens when respect becomes selective?",
+        "How should stronger athletes treat weaker ones?",
+        "How should struggling athletes still carry themselves?"
+      ],
+      "deliverable": "respect definition + example",
+      "scripture": {
+        "text": "Show proper respect to everyone.",
+        "ref": "1 Peter 2:17"
+      }
+    },
+    {
+      "n": 4,
+      "id": "HON3-004",
+      "block": 1,
+      "type": "reflection",
+      "title": "Your Role in the Room",
+      "focusArea": "Responsibility",
+      "principle": "Every athlete has influence inside the team.\nSome athletes lift standards. Others quietly lower them.",
+      "houseStandard": "In this house, everyone carries responsibility.\nInfluence is built by repetition.\nSay it out loud. Twice.",
+      "prompt": "Describe the role you currently play in the room and the role you should aim to play.",
+      "questions": [
+        "What role do you play right now?",
+        "How do others likely experience you?",
+        "Does your current role raise or lower standards?",
+        "What role should you aim to become?"
+      ],
+      "deliverable": "current role + desired role",
+      "scripture": {
+        "text": "Let your light shine before others.",
+        "ref": "Matthew 5:16"
+      }
+    },
+    {
+      "n": 5,
+      "id": "HON3-005",
+      "block": 1,
+      "type": "reflection",
+      "title": "Protecting Team Culture",
+      "focusArea": "Respect",
+      "principle": "Strong teams protect their standards.\nIf athletes allow laziness, disrespect, or recklessness, culture weakens quickly.",
+      "houseStandard": "In this house, we protect our culture.\nCulture survives through protection.\nSay it out loud. Twice.",
+      "prompt": "What behaviors must be protected to keep a strong team culture?",
+      "questions": [
+        "What standards define a strong room?",
+        "What behaviors weaken culture fastest?",
+        "Why does culture need protection?",
+        "What should athletes defend immediately?"
+      ],
+      "deliverable": "3 culture standards",
+      "scripture": {
+        "text": "Stand firm in the faith.",
+        "ref": "1 Corinthians 16:13"
+      }
+    },
+    {
+      "n": 6,
+      "id": "HON3-006",
+      "block": 1,
+      "type": "reflection",
+      "title": "Team Accountability",
+      "focusArea": "Responsibility",
+      "principle": "Teams improve when athletes hold each other accountable.\nIgnoring problems does not help teammates grow.",
+      "houseStandard": "In this house, we hold each other accountable.\nAccountability protects standards.\nSay it out loud. Twice.",
+      "prompt": "Why is accountability important for team growth?",
+      "questions": [
+        "Why does accountability matter?",
+        "What happens when teammates ignore problems?",
+        "How can accountability be respectful?",
+        "What should never be left unaddressed?"
+      ],
+      "deliverable": "importance + example",
+      "scripture": {
+        "text": "Better is open rebuke than hidden love.",
+        "ref": "Proverbs 27:5"
+      }
+    },
+    {
+      "n": 7,
+      "id": "HON3-007",
+      "block": 1,
+      "type": "reflection",
+      "title": "Encouraging Teammates",
+      "focusArea": "Attitude",
+      "principle": "Encouragement strengthens effort and resilience.\nAthletes who support teammates during hard training build stronger teams.",
+      "houseStandard": "In this house, we encourage effort.\nEncouragement multiplies effort.\nSay it out loud. Twice.",
+      "prompt": "Describe a moment when encouragement improved a teammate’s effort.",
+      "questions": [
+        "What kind of encouragement helps most?",
+        "When does encouragement matter most?",
+        "How can your words affect effort?",
+        "What kind of support strengthens resilience?"
+      ],
+      "deliverable": "example + lesson",
+      "scripture": {
+        "text": "Therefore encourage one another.",
+        "ref": "1 Thessalonians 5:11"
+      }
+    },
+    {
+      "n": 8,
+      "id": "HON3-008",
+      "block": 1,
+      "type": "reflection",
+      "title": "Shared Responsibility",
+      "focusArea": "Responsibility",
+      "principle": "Teams function when responsibility is shared.\nEvery athlete contributes to safety, focus, and culture.",
+      "houseStandard": "In this house, everyone contributes.\nStrong teams share responsibility.\nSay it out loud. Twice.",
+      "prompt": "What responsibilities should every athlete carry inside the team?",
+      "questions": [
+        "What responsibilities belong to every athlete?",
+        "Why can’t responsibility stay with coaches alone?",
+        "How does shared responsibility strengthen teams?",
+        "What responsibility do you need to carry better?"
+      ],
+      "deliverable": "3 responsibilities",
+      "scripture": {
+        "text": "Two are better than one.",
+        "ref": "Ecclesiastes 4:9"
+      }
+    },
+    {
+      "n": 9,
+      "id": "HON3-009",
+      "block": 2,
+      "type": "reflection",
+      "title": "Team Communication",
+      "focusArea": "Respect",
+      "principle": "Clear communication keeps teams aligned.\nTeams work better when athletes communicate honestly and respectfully.",
+      "houseStandard": "In this house, we communicate clearly.\nCommunication builds trust.\nSay it out loud. Twice.",
+      "prompt": "Why does communication matter inside teams?",
+      "questions": [
+        "Why does communication matter in a team room?",
+        "What happens when athletes stop communicating?",
+        "What makes communication respectful?",
+        "How does honest communication build alignment?"
+      ],
+      "deliverable": "communication rule",
+      "scripture": {
+        "text": "Let your conversation be always full of grace.",
+        "ref": "Colossians 4:6"
+      }
+    },
+    {
+      "n": 10,
+      "id": "HON3-010",
+      "block": 2,
+      "type": "reflection",
+      "title": "Trust Across the Team",
+      "focusArea": "Respect",
+      "principle": "Teams grow stronger when trust expands beyond one partner.\nTrust must exist across the entire room for a team to thrive.",
+      "houseStandard": "In this house, trust extends across the team.\nTrust grows through reliable behavior.\nSay it out loud. Twice.",
+      "prompt": "How do athletes earn trust from the entire team?",
+      "questions": [
+        "What behaviors build teamwide trust?",
+        "How is team trust different from one-partner trust?",
+        "What weakens trust across the room?",
+        "What do reliable athletes do consistently?"
+      ],
+      "deliverable": "3 trust behaviors",
+      "scripture": {
+        "text": "Whoever walks in integrity walks securely.",
+        "ref": "Proverbs 10:9"
+      }
+    },
+    {
+      "n": 11,
+      "id": "HON3-011",
+      "block": 2,
+      "type": "reflection",
+      "title": "Representing the Team",
+      "focusArea": "Responsibility",
+      "principle": "Athletes represent their team both inside and outside training.\nYour behavior reflects on the entire group.",
+      "houseStandard": "In this house, we represent the team with honor.\nRepresentation shapes reputation.\nSay it out loud. Twice.",
+      "prompt": "How should athletes represent their team through behavior?",
+      "questions": [
+        "What does representing the team well look like?",
+        "How does behavior reflect on others?",
+        "What damages team reputation fastest?",
+        "What standard should guide you in public and private?"
+      ],
+      "deliverable": "representation rule",
+      "scripture": {
+        "text": "Conduct yourselves in a manner worthy.",
+        "ref": "Philippians 1:27"
+      }
+    },
+    {
+      "n": 12,
+      "id": "HON3-012",
+      "block": 2,
+      "type": "reflection",
+      "title": "Supporting Teammates in Difficulty",
+      "focusArea": "Respect",
+      "principle": "Teams grow stronger when athletes support struggling teammates.\nSupport during difficult moments builds unity.",
+      "houseStandard": "In this house, we support each other.\nSupport strengthens unity.\nSay it out loud. Twice.",
+      "prompt": "Describe how teammates should respond when someone struggles.",
+      "questions": [
+        "What does real support look like?",
+        "What does fake support look like?",
+        "How can athletes strengthen a struggling teammate?",
+        "Why does support build unity?"
+      ],
+      "deliverable": "support behaviors",
+      "scripture": {
+        "text": "Carry each other’s burdens.",
+        "ref": "Galatians 6:2"
+      }
+    },
+    {
+      "n": 13,
+      "id": "HON3-013",
+      "block": 2,
+      "type": "reflection",
+      "title": "Handling Team Conflict",
+      "focusArea": "Respect",
+      "principle": "Conflict handled well can strengthen teams.\nTeams do not avoid conflict. They handle it with maturity and respect.",
+      "houseStandard": "In this house, we handle conflict with discipline.\nDiscipline keeps conflict productive.\nSay it out loud. Twice.",
+      "prompt": "How should teammates resolve disagreements respectfully?",
+      "questions": [
+        "Why do teams need a mature way to handle conflict?",
+        "What makes conflict destructive?",
+        "What makes conflict productive?",
+        "How should athletes speak during disagreement?"
+      ],
+      "deliverable": "conflict rule",
+      "scripture": {
+        "text": "Blessed are the peacemakers.",
+        "ref": "Matthew 5:9"
+      }
+    },
+    {
+      "n": 14,
+      "id": "HON3-014",
+      "block": 2,
+      "type": "reflection",
+      "title": "Shared Standards",
+      "focusArea": "Responsibility",
+      "principle": "Teams succeed when everyone follows shared standards.\nWhen standards slip, the entire team feels it.",
+      "houseStandard": "In this house, we follow shared standards.\nShared standards create strong teams.\nSay it out loud. Twice.",
+      "prompt": "What standards must every athlete follow to keep the team strong?",
+      "questions": [
+        "What standards should every athlete follow?",
+        "What happens when standards become optional?",
+        "How do shared standards protect discipline?",
+        "Which standard needs the most reinforcement right now?"
+      ],
+      "deliverable": "3 standards",
+      "scripture": {
+        "text": "Let all things be done decently and in order.",
+        "ref": "1 Corinthians 14:40"
+      }
+    },
+    {
+      "n": 15,
+      "id": "HON3-015",
+      "block": 2,
+      "type": "reflection",
+      "title": "Team Reliability",
+      "focusArea": "Effort",
+      "principle": "Reliable teammates build strong teams.\nWhen teammates know they can rely on you, trust grows.",
+      "houseStandard": "In this house, teammates are reliable.\nReliability builds trust.\nSay it out loud. Twice.",
+      "prompt": "What behaviors make someone reliable for the team?",
+      "questions": [
+        "What makes an athlete reliable?",
+        "What makes someone unreliable?",
+        "How does reliability affect trust?",
+        "Where do you need to become more dependable?"
+      ],
+      "deliverable": "reliability habits",
+      "scripture": {
+        "text": "Many claim to have unfailing love, but a faithful person who can find?",
+        "ref": "Proverbs 20:6"
+      }
+    },
+    {
+      "n": 16,
+      "id": "HON3-016",
+      "block": 2,
+      "type": "reflection",
+      "title": "Team Trust Retest",
+      "focusArea": "Respect",
+      "principle": "Trust grows through repeated responsible behavior.\nTeams grow when athletes continue strengthening trust through discipline.",
+      "houseStandard": "In this house, trust grows daily.\nTrust grows through consistent behavior.\nSay it out loud. Twice.",
+      "prompt": "List 3 habits that strengthen trust within the team and 2 habits that weaken it.",
+      "questions": [
+        "What habits strengthen trust across the team?",
+        "What habits weaken it quickly?",
+        "Which habit matters most for you?",
+        "What should change immediately?"
+      ],
+      "deliverable": "3 trust habits + 2 weak habits",
+      "scripture": {
+        "text": "Whoever walks in integrity walks securely.",
+        "ref": "Proverbs 10:9"
+      }
+    },
+    {
+      "n": 17,
+      "id": "HON3-017",
+      "block": 3,
+      "type": "reflection",
+      "title": "Do Not Be the Weak Link",
+      "focusArea": "Effort",
+      "principle": "Teams suffer when one athlete consistently drags effort down.\nLow effort spreads just like high effort.",
+      "houseStandard": "In this house, we refuse to be the weak link.\nWeak links weaken everyone.\nSay it out loud. Twice.",
+      "prompt": "What behaviors make someone the weak link on a team?",
+      "questions": [
+        "What behaviors weaken the team most?",
+        "How does low effort spread?",
+        "Why is being the weak link dangerous to culture?",
+        "What do you need to fix first?"
+      ],
+      "deliverable": "3 weak-link behaviors + 1 correction",
+      "scripture": {
+        "text": "Carry your own load.",
+        "ref": "Galatians 6:5"
+      }
+    },
+    {
+      "n": 18,
+      "id": "HON3-018",
+      "block": 3,
+      "type": "reflection",
+      "title": "Reliable Effort for the Team",
+      "focusArea": "Effort",
+      "principle": "Reliable effort stabilizes team culture.\nWhen teammates know you will work consistently, trust grows and standards rise.",
+      "houseStandard": "In this house, effort is reliable.\nConsistency creates trust.\nSay it out loud. Twice.",
+      "prompt": "Describe what reliable effort looks like on a team.",
+      "questions": [
+        "What does reliable effort look like daily?",
+        "How does it affect trust?",
+        "What makes effort inconsistent?",
+        "What standard should teammates be able to count on?"
+      ],
+      "deliverable": "reliable effort definition",
+      "scripture": {
+        "text": "Let us not grow weary of doing good.",
+        "ref": "Galatians 6:9"
+      }
+    },
+    {
+      "n": 19,
+      "id": "HON3-019",
+      "block": 3,
+      "type": "reflection",
+      "title": "Showing Up Prepared",
+      "focusArea": "Responsibility",
+      "principle": "Preparation respects the team.\nLate arrivals, missing gear, and careless preparation slow the entire group.",
+      "houseStandard": "In this house, we show up ready.\nPreparation shows respect before work begins.\nSay it out loud. Twice.",
+      "prompt": "What preparation habits show respect for your team?",
+      "questions": [
+        "What does readiness look like before practice starts?",
+        "What habits weaken team readiness?",
+        "How does poor preparation affect others?",
+        "What one habit must improve now?"
+      ],
+      "deliverable": "3 readiness habits",
+      "scripture": {
+        "text": "Prepare your work outside.",
+        "ref": "Proverbs 24:27"
+      }
+    },
+    {
+      "n": 20,
+      "id": "HON3-020",
+      "block": 3,
+      "type": "reflection",
+      "title": "Shared Workload",
+      "focusArea": "Responsibility",
+      "principle": "Teams grow when workload is shared fairly.\nSome athletes carry more work while others drift.",
+      "houseStandard": "In this house, we share the work.\nShared work builds shared strength.\nSay it out loud. Twice.",
+      "prompt": "How should teammates share responsibility for effort?",
+      "questions": [
+        "What does fair workload look like?",
+        "What happens when some athletes drift?",
+        "How does shared work build trust?",
+        "What responsibility do you carry best? Worst?"
+      ],
+      "deliverable": "shared effort rule",
+      "scripture": {
+        "text": "Two are better than one.",
+        "ref": "Ecclesiastes 4:9"
+      }
+    },
+    {
+      "n": 21,
+      "id": "HON3-021",
+      "block": 3,
+      "type": "reflection",
+      "title": "Team Energy",
+      "focusArea": "Attitude",
+      "principle": "Your attitude affects the whole team.\nComplaining, laziness, and negativity weaken team momentum.",
+      "houseStandard": "In this house, we bring working energy.\nEnergy spreads faster than effort.\nSay it out loud. Twice.",
+      "prompt": "How does negative energy spread across a team?",
+      "questions": [
+        "How does negative energy spread?",
+        "What does it do to effort?",
+        "What kind of energy lifts a team?",
+        "What do you usually bring in?"
+      ],
+      "deliverable": "energy effect explanation",
+      "scripture": {
+        "text": "Encourage one another.",
+        "ref": "1 Thessalonians 5:11"
+      }
+    },
+    {
+      "n": 22,
+      "id": "HON3-022",
+      "block": 3,
+      "type": "reflection",
+      "title": "Handling Frustration on a Team",
+      "focusArea": "Attitude",
+      "principle": "Frustration must not poison team work.\nEmotion is normal, but undisciplined frustration spreads quickly.",
+      "houseStandard": "In this house, frustration stays controlled.\nControl protects the team.\nSay it out loud. Twice.",
+      "prompt": "How should athletes manage frustration during team training?",
+      "questions": [
+        "What does frustration do to team culture?",
+        "How does it spread?",
+        "What does mature control look like?",
+        "What should happen before frustration spills onto others?"
+      ],
+      "deliverable": "frustration control plan",
+      "scripture": {
+        "text": "Better a patient person than a warrior.",
+        "ref": "Proverbs 16:32"
+      }
+    },
+    {
+      "n": 23,
+      "id": "HON3-023",
+      "block": 3,
+      "type": "reflection",
+      "title": "Shared Success",
+      "focusArea": "Respect",
+      "principle": "Team victories belong to everyone who contributes.\nStrong teams celebrate improvement together, not just individual wins.",
+      "houseStandard": "In this house, success is shared.\nShared victories strengthen teams.\nSay it out loud. Twice.",
+      "prompt": "Why should athletes value team success over personal credit?",
+      "questions": [
+        "Why is shared success important?",
+        "What happens when athletes chase only personal credit?",
+        "How does shared success strengthen a room?",
+        "What mindset helps athletes celebrate together?"
+      ],
+      "deliverable": "shared success explanation",
+      "scripture": {
+        "text": "Rejoice with those who rejoice.",
+        "ref": "Romans 12:15"
+      }
+    },
+    {
+      "n": 24,
+      "id": "HON3-024",
+      "block": 3,
+      "type": "reflection",
+      "title": "Team Standard",
+      "focusArea": "Effort",
+      "principle": "Teams need a clear effort standard.\nWithout shared expectations, discipline collapses.",
+      "houseStandard": "In this house, we hold a clear team standard.\nStandards create discipline.\nSay it out loud. Twice.",
+      "prompt": "Write the effort standard your team should live by.",
+      "questions": [
+        "What should your team’s effort standard be?",
+        "Why must it be shared?",
+        "What weakens it most?",
+        "How should teammates reinforce it?"
+      ],
+      "deliverable": "team effort standard",
+      "scripture": {
+        "text": "Be steadfast in your work.",
+        "ref": "1 Corinthians 15:58"
+      }
+    },
+    {
+      "n": 25,
+      "id": "HON3-025",
+      "block": 4,
+      "type": "reflection",
+      "title": "Protecting Teammates",
+      "focusArea": "Respect",
+      "principle": "Teams protect their members physically and mentally.\nAthletes must watch out for each other’s safety and growth.",
+      "houseStandard": "In this house, we protect teammates.\nProtection builds trust.\nSay it out loud. Twice.",
+      "prompt": "What behaviors protect teammates during training?",
+      "questions": [
+        "What behaviors protect teammates physically?",
+        "What behaviors protect them mentally?",
+        "How does protection build trust?",
+        "What should athletes notice sooner?"
+      ],
+      "deliverable": "3 protection behaviors",
+      "scripture": {
+        "text": "Carry each other’s burdens.",
+        "ref": "Galatians 6:2"
+      }
+    },
+    {
+      "n": 26,
+      "id": "HON3-026",
+      "block": 4,
+      "type": "reflection",
+      "title": "Team Accountability",
+      "focusArea": "Responsibility",
+      "principle": "Teammates help each other maintain standards.\nAccountability keeps teams disciplined.",
+      "houseStandard": "In this house, teammates hold each other accountable.\nAccountability protects culture.\nSay it out loud. Twice.",
+      "prompt": "How should teammates hold each other accountable respectfully?",
+      "questions": [
+        "Why does accountability protect culture?",
+        "How can correction stay respectful?",
+        "What happens when teammates ignore standards?",
+        "What should accountability sound like?"
+      ],
+      "deliverable": "accountability rule",
+      "scripture": {
+        "text": "Better open rebuke than hidden love.",
+        "ref": "Proverbs 27:5"
+      }
+    },
+    {
+      "n": 27,
+      "id": "HON3-027",
+      "block": 4,
+      "type": "reflection",
+      "title": "Team Loyalty",
+      "focusArea": "Respect",
+      "principle": "Loyalty means supporting teammates through difficulty.\nTeams break when loyalty disappears.",
+      "houseStandard": "In this house, we stay loyal to the team.\nLoyalty builds unity.\nSay it out loud. Twice.",
+      "prompt": "What does loyalty look like inside a team?",
+      "questions": [
+        "What does loyalty look like in action?",
+        "What weakens loyalty?",
+        "How does loyalty build unity?",
+        "When is loyalty most needed?"
+      ],
+      "deliverable": "loyalty behaviors",
+      "scripture": {
+        "text": "A friend loves at all times.",
+        "ref": "Proverbs 17:17"
+      }
+    },
+    {
+      "n": 28,
+      "id": "HON3-028",
+      "block": 4,
+      "type": "reflection",
+      "title": "Helping New Teammates",
+      "focusArea": "Respect",
+      "principle": "Strong teams help new athletes integrate safely.\nBeginners learn culture from experienced teammates.",
+      "houseStandard": "In this house, we help newcomers.\nMentorship grows teams.\nSay it out loud. Twice.",
+      "prompt": "How should teams treat new members?",
+      "questions": [
+        "How should experienced athletes treat new teammates?",
+        "What helps beginners feel safe and clear?",
+        "How does mentorship shape culture?",
+        "What should never happen to a new athlete?"
+      ],
+      "deliverable": "3 mentorship habits",
+      "scripture": {
+        "text": "Teach others also.",
+        "ref": "2 Timothy 2:2"
+      }
+    },
+    {
+      "n": 29,
+      "id": "HON3-029",
+      "block": 4,
+      "type": "reflection",
+      "title": "Protecting the Room",
+      "focusArea": "Responsibility",
+      "principle": "Athletes share responsibility for protecting team culture.\nWhen standards slip, strong athletes step up.",
+      "houseStandard": "In this house, we protect the room.\nCulture survives through protection.\nSay it out loud. Twice.",
+      "prompt": "What behaviors damage a team environment?",
+      "questions": [
+        "What behaviors damage the room most?",
+        "Why do standards need protecting?",
+        "What does stepping up look like?",
+        "What should never be ignored?"
+      ],
+      "deliverable": "3 culture threats",
+      "scripture": {
+        "text": "Stand firm in the faith.",
+        "ref": "1 Corinthians 16:13"
+      }
+    },
+    {
+      "n": 30,
+      "id": "HON3-030",
+      "block": 4,
+      "type": "reflection",
+      "title": "Correcting Teammates",
+      "focusArea": "Respect",
+      "principle": "Correction should strengthen teammates, not humiliate them.\nStrong teams correct behavior respectfully.",
+      "houseStandard": "In this house, correction builds teammates.\nRespectful correction strengthens teams.\nSay it out loud. Twice.",
+      "prompt": "How should teammates correct each other respectfully?",
+      "questions": [
+        "What makes correction helpful?",
+        "What makes it humiliating?",
+        "How should mature correction sound?",
+        "When should correction happen right away?"
+      ],
+      "deliverable": "correction habits",
+      "scripture": {
+        "text": "Speak the truth in love.",
+        "ref": "Ephesians 4:15"
+      }
+    },
+    {
+      "n": 31,
+      "id": "HON3-031",
+      "block": 4,
+      "type": "reflection",
+      "title": "Shared Safety",
+      "focusArea": "Respect",
+      "principle": "Safety is everyone’s responsibility.\nTeams train harder when everyone protects safety.",
+      "houseStandard": "In this house, safety is shared.\nSafety builds trust.\nSay it out loud. Twice.",
+      "prompt": "What responsibilities keep team training safe?",
+      "questions": [
+        "What responsibilities belong to everyone?",
+        "How does shared safety build trust?",
+        "What weakens team safety fastest?",
+        "What should athletes notice earlier?"
+      ],
+      "deliverable": "3 safety responsibilities",
+      "scripture": {
+        "text": "The prudent see danger and take refuge.",
+        "ref": "Proverbs 22:3"
+      }
+    },
+    {
+      "n": 32,
+      "id": "HON3-032",
+      "block": 4,
+      "type": "reflection",
+      "title": "Respecting Every Teammate",
+      "focusArea": "Respect",
+      "principle": "Respect must apply to every teammate.\nSelective respect damages unity.",
+      "houseStandard": "In this house, respect is universal.\nRespect unifies teams.\nSay it out loud. Twice.",
+      "prompt": "Why must respect apply to every teammate?",
+      "questions": [
+        "Why does selective respect damage unity?",
+        "How should respect look across differences?",
+        "What behaviors expose fake respect?",
+        "What does universal respect look like in practice?"
+      ],
+      "deliverable": "respect rule",
+      "scripture": {
+        "text": "Show proper respect to everyone.",
+        "ref": "1 Peter 2:17"
+      }
+    },
+    {
+      "n": 33,
+      "id": "HON3-033",
+      "block": 5,
+      "type": "reflection",
+      "title": "Raising the Team Level",
+      "focusArea": "Effort",
+      "principle": "Strong athletes raise the standard for everyone.\nOne disciplined athlete can lift the entire room.",
+      "houseStandard": "In this house, we raise the level.\nLeadership often begins with effort.\nSay it out loud. Twice.",
+      "prompt": "How can an athlete raise the effort level of teammates?",
+      "questions": [
+        "How does one athlete raise the room?",
+        "What habits raise team effort?",
+        "Why does leadership often begin with example?",
+        "What can you do this week to raise the level?"
+      ],
+      "deliverable": "3 level-raising habits",
+      "scripture": {
+        "text": "Set an example for the believers.",
+        "ref": "1 Timothy 4:12"
+      }
+    },
+    {
+      "n": 34,
+      "id": "HON3-034",
+      "block": 5,
+      "type": "reflection",
+      "title": "Team Standards Under Pressure",
+      "focusArea": "Attitude",
+      "principle": "Pressure reveals team culture.\nStress and fatigue test discipline.",
+      "houseStandard": "In this house, pressure does not break standards.\nPressure reveals preparation.\nSay it out loud. Twice.",
+      "prompt": "What happens to teams when pressure increases?",
+      "questions": [
+        "What breaks first under pressure?",
+        "What survives if culture is strong?",
+        "How does preparation show under stress?",
+        "What standard must hold no matter what?"
+      ],
+      "deliverable": "pressure standard",
+      "scripture": {
+        "text": "Be strong and courageous.",
+        "ref": "Joshua 1:9"
+      }
+    },
+    {
+      "n": 35,
+      "id": "HON3-035",
+      "block": 5,
+      "type": "reflection",
+      "title": "Shared Victory",
+      "focusArea": "Respect",
+      "principle": "Team victories belong to everyone.\nSuccess grows when athletes celebrate together.",
+      "houseStandard": "In this house, victory is shared.\nShared victory strengthens teams.\nSay it out loud. Twice.",
+      "prompt": "Why should athletes celebrate team success together?",
+      "questions": [
+        "Why does shared victory matter?",
+        "What happens when athletes only value personal credit?",
+        "How does celebrating together strengthen a team?",
+        "What mindset helps athletes share success well?"
+      ],
+      "deliverable": "shared victory explanation",
+      "scripture": {
+        "text": "Rejoice with those who rejoice.",
+        "ref": "Romans 12:15"
+      }
+    },
+    {
+      "n": 36,
+      "id": "HON3-036",
+      "block": 5,
+      "type": "reflection",
+      "title": "Team Character Under Loss",
+      "focusArea": "Attitude",
+      "principle": "Loss reveals true team character.\nHow a team reacts to defeat matters more than the loss itself.",
+      "houseStandard": "In this house, we respond to loss with discipline.\nLoss can build stronger teams.\nSay it out loud. Twice.",
+      "prompt": "How should teams respond after losing?",
+      "questions": [
+        "What does loss usually expose?",
+        "What response weakens a team after defeat?",
+        "What response strengthens it?",
+        "How can loss build something better?"
+      ],
+      "deliverable": "loss response plan",
+      "scripture": {
+        "text": "The righteous fall seven times and rise again.",
+        "ref": "Proverbs 24:16"
+      }
+    },
+    {
+      "n": 37,
+      "id": "HON3-037",
+      "block": 5,
+      "type": "reflection",
+      "title": "Trust in Competition",
+      "focusArea": "Respect",
+      "principle": "Competition requires deep team trust.\nAthletes perform better when they trust teammates behind them.",
+      "houseStandard": "In this house, teammates trust each other.\nTrust strengthens performance.\nSay it out loud. Twice.",
+      "prompt": "Why is trust important during competition?",
+      "questions": [
+        "How does trust affect performance?",
+        "What breaks trust during competition?",
+        "What support should teammates feel behind them?",
+        "What makes competitive trust strong?"
+      ],
+      "deliverable": "competition trust behaviors",
+      "scripture": {
+        "text": "Whoever walks in integrity walks securely.",
+        "ref": "Proverbs 10:9"
+      }
+    },
+    {
+      "n": 38,
+      "id": "HON3-038",
+      "block": 5,
+      "type": "reflection",
+      "title": "Team Reputation",
+      "focusArea": "Responsibility",
+      "principle": "Teams earn reputations through consistent behavior.\nPeople quickly learn what kind of team you are.",
+      "houseStandard": "In this house, reputation is earned through honor.\nReputation reflects culture.\nSay it out loud. Twice.",
+      "prompt": "What reputation should your team have?",
+      "questions": [
+        "What reputation does your team currently project?",
+        "What reputation should it earn?",
+        "What behaviors build that reputation?",
+        "What habits damage it?"
+      ],
+      "deliverable": "team reputation statement",
+      "scripture": {
+        "text": "A good name is more desirable than great riches.",
+        "ref": "Proverbs 22:1"
+      }
+    },
+    {
+      "n": 39,
+      "id": "HON3-039",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Makes a Strong Team?",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Strong teams combine discipline, trust, and shared effort.\nGreat teams are built on habits repeated daily.",
+      "houseStandard": "In this house, strong teams are built intentionally.\nStrong teams are built through disciplined habits.\nSay it out loud. Twice.",
+      "prompt": "Define what makes a strong team using behaviors, not feelings.",
+      "questions": [
+        "What habits make teams strong?",
+        "What behaviors prove team strength?",
+        "What weak habits must disappear?",
+        "What would someone else see in a truly strong team?"
+      ],
+      "deliverable": "5 team behaviors",
+      "scripture": {
+        "text": "Let all things be done decently and in order.",
+        "ref": "1 Corinthians 14:40"
+      }
+    },
+    {
+      "n": 40,
+      "id": "HON3-040",
+      "block": 5,
+      "type": "baseline_retest",
+      "title": "Retest: Team Awareness",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Team awareness should grow with discipline.\nThis session returns to the original question: how do you affect the team?",
+      "houseStandard": "In this house, we measure growth honestly.\nTeam awareness grows through honest reflection.\nSay it out loud. Twice.",
+      "prompt": "Repeat Session 1 questions and compare your answers.",
+      "questions": [
+        "What changed most in how you affect the team?",
+        "What still weakens your team impact?",
+        "What standard improved most?",
+        "What is your next commitment to the room?"
+      ],
+      "deliverable": "comparison + next commitment",
+      "scripture": {
+        "text": "Examine yourselves.",
+        "ref": "2 Corinthians 13:5"
+      }
+    }
+  ]
+}

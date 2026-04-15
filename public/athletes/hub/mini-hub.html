@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Athlete Home Base · Youth</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
+
+  <style>
+    body{
+      margin:0;
+      background:#08090b;
+      color:#e5e5e5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .system-header{
+      background:#0f0f0f;
+      border-bottom:2px solid #FFD700;
+      padding:12px 16px;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+
+    .system-header__brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .athlete-tabs{
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+      gap:6px;
+      margin:12px 0 18px;
+    }
+
+    .tab{
+      flex:1;
+      text-align:center;
+      padding:10px 8px;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:600;
+      font-size:.9rem;
+      background:#0e1420;
+      border:1px solid #1f2a40;
+      color:#cbd5e1;
+      transition:.15s;
+    }
+
+    .tab:hover{
+      border-color:#ffdd48;
+      color:#ffdd48;
+    }
+
+    .tab.active{
+      background:#ffdd48;
+      color:#111;
+      border-color:#ffdd48;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:28px 20px;
+      display:grid;
+      gap:26px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg,#f7f4e7,#e7e0c5,#c8bb9a,#8d7f63);
+      border:1px solid #cfc4a6;
+      border-radius:18px;
+      padding:26px 26px;
+      box-shadow:0 10px 26px rgba(0,0,0,.25);
+      color:#1a1a1a;
+    }
+
+    .hero-inner{
+      display:grid;
+      grid-template-columns:170px 1fr;
+      gap:18px;
+      align-items:center;
+    }
+
+    @media (max-width:720px){
+      .hero-inner{ grid-template-columns:1fr; }
+    }
+
+    .sandman-logo{
+      width:160px;
+      height:auto;
+      display:block;
+      filter:drop-shadow(0 0 6px rgba(0,0,0,.25));
+      border-radius:12px;
+    }
+
+    .hero h1{
+      margin:0 0 6px;
+      font-size:2.2rem;
+      color:#946c00;
+      letter-spacing:.8px;
+      font-weight:900;
+      text-shadow:0 0 10px rgba(148,108,0,.15);
+    }
+
+    .hero p{
+      margin:4px 0 0;
+      color:#2b2b2b;
+      font-size:1.02rem;
+      max-width:70ch;
+      line-height:1.45;
+    }
+
+    .comp-box{
+      margin-top:16px;
+      background:rgba(255,255,255,.28);
+      border:1px solid rgba(148,108,0,.18);
+      border-radius:14px;
+      padding:14px 14px;
+      box-shadow:0 6px 18px rgba(0,0,0,.10);
+    }
+
+    .comp-title{
+      margin:0 0 10px;
+      font-weight:900;
+      color:#3a2b07;
+      letter-spacing:.3px;
+      font-size:1.02rem;
+      text-transform:uppercase;
+    }
+
+    .comp-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(160px, 1fr));
+      gap:10px;
+    }
+
+    @media (max-width:820px){
+      .comp-grid{ grid-template-columns:1fr; }
+    }
+
+    .comp-item{
+      background:rgba(255,255,255,.45);
+      border:1px solid rgba(0,0,0,.05);
+      border-radius:12px;
+      padding:10px 10px;
+    }
+
+    .comp-item strong{
+      display:block;
+      color:#b01919;
+      font-weight:900;
+      margin-bottom:2px;
+      letter-spacing:.2px;
+    }
+
+    .comp-item span{
+      display:block;
+      color:#2b2b2b;
+      line-height:1.35;
+      font-weight:600;
+      font-size:.98rem;
+    }
+
+    .cta-box{
+      background:linear-gradient(180deg,#141820,#0c0e13);
+      border:1px dashed #293142;
+      border-radius:16px;
+      padding:20px 22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:14px;
+    }
+
+    .cta-box p{
+      margin:0;
+      color:#b8c2d0;
+      font-size:1rem;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="system-header">
+    <div class="system-header__brand">
+      <span style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat</span>
+    </div>
+
+    <div class="athlete-tabs">
+      <a id="profileLink" class="tab" href="#">Profile</a>
+      <a id="arsenalLink" class="tab" href="#">Arsenal</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-inner">
+        <img
+          class="sandman-logo"
+          src="/assets/images/logos/Sandman-Combat.png"
+          alt="Sandman Combat Logo"
+        />
+
+        <div>
+          <h1 id="heroTitle">Home Base</h1>
+          <p id="heroText">Keep showing up. Your journey is building.</p>
+
+          <div class="comp-box">
+            <div class="comp-title">Three Types of Competition</div>
+
+            <div class="comp-grid">
+              <div class="comp-item">
+                <strong>Myself</strong>
+                <span>Do your best. Improve every day.</span>
+              </div>
+
+              <div class="comp-item">
+                <strong>Teammates</strong>
+                <span>Help each other get better.</span>
+              </div>
+
+              <div class="comp-item">
+                <strong>The Moment</strong>
+                <span>Stay strong when it gets hard.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-box">
+      <p id="ctaMessage">Small work every day builds something big.</p>
+    </section>
+  </main>
+<script type="module">
+import {
+  db,
+  auth,
+  doc,
+  getDoc,
+  collection,
+  query,
+  where,
+  limit,
+  getDocs
+} from "/assets/js/firebase-init.js";
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+const $ = (id) => document.getElementById(id);
+const LAST_UID_KEY = "sandman_lastAthleteUid";
+
+function norm(x){ return (x || "").toString().trim().toUpperCase(); }
+
+function getIdFromUrl(){
+  const p = new URLSearchParams(location.search);
+  return norm(p.get("id") || p.get("uid"));
+}
+
+async function resolveAthleteId(){
+  const urlId = getIdFromUrl();
+
+  // URL wins first
+  if (urlId) {
+    localStorage.setItem(LAST_UID_KEY, urlId);
+    return urlId;
+  }
+
+  // fallback to stored
+  const stored = norm(localStorage.getItem(LAST_UID_KEY));
+  if (stored) return stored;
+
+  // fallback to auth lookup
+  const user = await new Promise((resolve) => {
+    if (auth.currentUser) return resolve(auth.currentUser);
+
+    const unsub = onAuthStateChanged(auth, (u) => {
+      unsub();
+      resolve(u || null);
+    });
+
+    setTimeout(() => resolve(null), 2000);
+  });
+
+  if (!user || !user.uid) return "";
+
+  try {
+    const qy = query(
+      collection(db, "athletes"),
+      where("authUid", "==", user.uid),
+      limit(1)
+    );
+
+    const snaps = await getDocs(qy);
+    if (snaps.empty) return "";
+
+    const foundId = norm(snaps.docs[0].id);
+    localStorage.setItem(LAST_UID_KEY, foundId);
+    return foundId;
+  } catch {
+    return "";
+  }
+}
+
+function setLinks(id){
+  if (!id) return;
+
+  $("profileLink").href = `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`;
+  $("arsenalLink").href = `/athletes/arsenal/?id=${encodeURIComponent(id)}`;
+}
+
+async function load(){
+  const id = await resolveAthleteId();
+
+  if (!id) {
+    console.warn("No athlete ID found");
+    return;
+  }
+
+  // If this page is meant for youth, prefer F8 URL and warn on anything else
+  const urlId = getIdFromUrl();
+  const finalId = urlId || id;
+
+  if (urlId && urlId.startsWith("F8_")) {
+    localStorage.setItem(LAST_UID_KEY, urlId);
+  }
+
+  if (!finalId.startsWith("F8_")) {
+    console.warn("mini-hub using non-F8 athlete:", finalId);
+  }
+
+  setLinks(finalId);
+
+  const snap = await getDoc(doc(db, "athletes", finalId));
+  if (!snap.exists()) return;
+
+  const A = snap.data() || {};
+  const name = A.fullName || A.name || "Athlete";
+
+  $("heroTitle").textContent = `${name}'s Home Base`;
+  $("heroText").textContent = `Welcome back, ${name}. Keep showing up.`;
+}
+
+load();
+</script>
+</body>
+</html>

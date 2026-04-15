@@ -1,0 +1,189 @@
+{
+  "id": "IRON_A",
+  "label": "Workout A",
+  "focus": "anterior_chain",
+  "tagline": "Front-side strength. Push with posture.",
+  "minAge": 13,
+
+  "sessionStructure": [
+    "Explosive",
+    "Main Lift",
+    "Secondary Lift",
+    "Assistance",
+    "Conditioning Finish",
+    "Log Best Set"
+  ],
+
+  "explosivePool": [
+    {
+      "name": "Box Jumps",
+      "sets": 4,
+      "reps": 4,
+      "notes": "Stick the landing. Reset fully between reps."
+    },
+    {
+      "name": "Broad Jumps",
+      "sets": 4,
+      "reps": 4,
+      "notes": "Explode out, land under control."
+    },
+    {
+      "name": "Medicine Ball Chest Throws",
+      "sets": 4,
+      "reps": 5,
+      "notes": "Drive from stance. Fast hands."
+    },
+    {
+      "name": "Jump Squats",
+      "sets": 4,
+      "reps": 5,
+      "notes": "Light and snappy. No grinding."
+    }
+  ],
+
+  "seasonBlocks": {
+    "preseason": {
+      "goal": "Build capacity, technique, and work tolerance.",
+      "mainLift": [
+        {
+          "exercise": "Back Squat",
+          "sets": 4,
+          "reps": "6-8",
+          "notes": "Moderate load. Clean reps."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Bench Press",
+          "sets": 4,
+          "reps": "6-8",
+          "notes": "Controlled lowering. Strong press."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Walking Lunges",
+          "sets": 3,
+          "reps": "10 each leg"
+        },
+        {
+          "exercise": "Push-ups",
+          "sets": 3,
+          "reps": "max clean reps"
+        },
+        {
+          "exercise": "Anterior Core Hold",
+          "sets": 3,
+          "reps": "30-45 sec"
+        }
+      ],
+      "conditioning": {
+        "type": "finish",
+        "options": [
+          "30/30 intervals x 8-10 rounds",
+          "Sled Push x 6",
+          "Bike Sprint 20/40 x 8"
+        ]
+      }
+    },
+
+    "inseason": {
+      "goal": "Maintain strength without draining the athlete.",
+      "mainLift": [
+        {
+          "exercise": "Back Squat",
+          "sets": 3,
+          "reps": "3-5",
+          "notes": "Heavier load, lower volume."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Bench Press",
+          "sets": 3,
+          "reps": "3-5",
+          "notes": "Fast clean reps."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Walking Lunges",
+          "sets": 2,
+          "reps": "8 each leg"
+        },
+        {
+          "exercise": "Push-ups",
+          "sets": 2,
+          "reps": "submax"
+        },
+        {
+          "exercise": "Anterior Core Hold",
+          "sets": 2,
+          "reps": "20-30 sec"
+        }
+      ],
+      "conditioning": {
+        "type": "short_finish",
+        "options": [
+          "40/20 x 6 rounds",
+          "Sled Push x 4",
+          "Bike Sprint 15/45 x 6"
+        ]
+      }
+    },
+
+    "postseason": {
+      "goal": "Raise the ceiling and rebuild stronger.",
+      "mainLift": [
+        {
+          "exercise": "Back Squat",
+          "sets": 5,
+          "reps": "4-6",
+          "notes": "Progressive loading."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Bench Press",
+          "sets": 4,
+          "reps": "5-6",
+          "notes": "Own every rep."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Walking Lunges",
+          "sets": 4,
+          "reps": "10 each leg"
+        },
+        {
+          "exercise": "Push-ups",
+          "sets": 3,
+          "reps": "max clean reps"
+        },
+        {
+          "exercise": "Anterior Core Hold",
+          "sets": 3,
+          "reps": "45 sec"
+        }
+      ],
+      "conditioning": {
+        "type": "extended_finish",
+        "options": [
+          "40/20 x 10 rounds",
+          "Sled Push x 8",
+          "Farmer Carry x 6 lengths"
+        ]
+      }
+    }
+  },
+
+  "loggingRule": {
+    "mode": "best_of_session",
+    "prompt": "Log your best working set from the main or secondary lift.",
+    "example": "Back Squat — 205 x 6"
+  },
+
+  "intensityRule": "Last 3 reps should be hard but clean. No ego reps.",
+  "coachNote": "Workout A = anterior chain day."
+}

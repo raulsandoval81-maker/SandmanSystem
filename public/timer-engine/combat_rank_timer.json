@@ -1,0 +1,36 @@
+{
+  "f4": {
+    "t0": { "rank": "Apprentice", "bucket": "beginner", "roundSec": 90,  "restSec": 45, "rounds": 5 },
+    "t1": { "rank": "Warrior",    "bucket": "intermediate", "roundSec": 120, "restSec": 45, "rounds": 5 },
+    "t2": { "rank": "Champion",   "bucket": "advanced", "roundSec": 180, "restSec": 45, "rounds": 5 },
+    "t3": { "rank": "Veteran",    "bucket": "elite", "roundSec": 240, "restSec": 45, "rounds": 5 },
+    "t4": { "rank": "Legend",     "bucket": "elite", "roundSec": 240, "restSec": 45, "rounds": 5 }
+  },
+  "f8": {
+    "t0": { "rank": "Shadow",      "bucket": "novice", "roundSec": 45,  "restSec": 30, "rounds": 5 },
+    "t1": { "rank": "Recruit",     "bucket": "novice", "roundSec": 45,  "restSec": 30, "rounds": 5 },
+    "t2": { "rank": "Combatant",   "bucket": "beginner", "roundSec": 60,  "restSec": 30, "rounds": 5 },
+    "t3": { "rank": "Competitor",  "bucket": "beginner", "roundSec": 60,  "restSec": 30, "rounds": 5 },
+    "t4": { "rank": "Warrior",     "bucket": "intermediate", "roundSec": 90,  "restSec": 30, "rounds": 5 },
+    "t5": { "rank": "Champion",    "bucket": "intermediate", "roundSec": 90,  "restSec": 30, "rounds": 5 },
+    "t6": { "rank": "Commander",   "bucket": "advanced", "roundSec": 120, "restSec": 30, "rounds": 5 },
+    "t7": { "rank": "Hero",        "bucket": "advanced", "roundSec": 120, "restSec": 30, "rounds": 5 }
+  },
+  "sequence": [
+    { "round": 1, "label": "Slow feet, slow shots", "key": "slow_slow" },
+    { "round": 2, "label": "Slow feet, fast shots", "key": "slow_fast" },
+    { "round": 3, "label": "Fast feet, slow shots", "key": "fast_slow" },
+    { "round": 4, "label": "Fast feet, fast shots", "key": "fast_fast" },
+    { "round": 5, "label": "Whistle starts", "key": "whistle" }
+  ],
+  "baseCues": {
+    "roundStart": "Ready",
+    "roundGo": "Go",
+    "shortTime": "Short time",
+    "roundEnd": "Time",
+    "rest": "Boxer's bounce",
+    "restReady": "Get ready",
+    "whistleNeutral": "Set up, hit it",
+    "whistleBottom": "Bottom set, stand up"
+  }
+}

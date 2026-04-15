@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Parent Hub | Messages and Updates</title>
+
+  <link rel="stylesheet" href="/parent/parent.css"/>
+  <link rel="icon" href="data:,">
+  <style>
+    .parent-tabs{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:10px;
+      margin:18px 0 22px;
+    }
+
+    .parent-tab{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:92px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 16px;
+      box-shadow:var(--shadow);
+      text-decoration:none;
+      color:var(--text);
+      transition:.15s ease;
+    }
+
+    .parent-tab:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+
+    .parent-tab-kicker{
+      margin:0 0 6px;
+      color:var(--gold);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .parent-tab-title{
+      margin:0 0 4px;
+      font-size:1rem;
+      line-height:1.15;
+      font-weight:900;
+    }
+
+    .parent-tab-copy{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.35;
+    }
+
+    .section-head{
+      display:grid;
+      gap:8px;
+      margin-bottom:14px;
+    }
+
+    .section-kicker{
+      margin:0;
+      color:var(--gold);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      font-size:1.55rem;
+      line-height:1.15;
+    }
+
+    .section-sub{
+      margin:0;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .page-sub-soft{
+      margin-top:10px;
+      max-width:720px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .values-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .value-card{
+      height:100%;
+    }
+
+    .value-label{
+      margin:0 0 10px;
+      color:var(--gold);
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .card-copy{
+      margin:0;
+      color:var(--text);
+      line-height:1.6;
+    }
+
+    .theme-toggle{
+      width:38px;
+      height:38px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      cursor:pointer;
+      transition:.15s ease;
+      box-shadow:var(--shadow);
+    }
+
+    .theme-toggle:hover{
+      border-color:var(--gold);
+    }
+
+    @media (max-width:760px){
+      .parent-tabs{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      .values-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+  <!-- LEFT -->
+  <div class="topbar-left">
+    <div class="lang-wrap">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sp">ES</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="topbar-center">
+    <a href="/parent/index.html" class="hub-mark">PARENT HUB</a>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="topbar-right">
+    <button id="themeToggle" class="theme-toggle">☀️</button>
+  </div>
+
+</header>
+<main class="wrap">
+
+  <section class="page-head">
+    <p class="eyebrow">
+      <span class="en">Parent Hub</span>
+      <span class="es">Portal de Padres</span>
+    </p>
+
+    <h1 class="page-title">
+      <span class="en">Messages / Questions / Updates</span>
+      <span class="es">Mensajes / Preguntas / Actualizaciones</span>
+    </h1>
+
+    <p class="page-sub">
+      <span class="en">Stay informed, follow updates, and use the right communication path when something needs attention.</span>
+      <span class="es">Manténgase informado, siga las actualizaciones y use el canal correcto de comunicación cuando algo necesite atención.</span>
+    </p>
+  </section>
+
+  <nav class="parent-tabs" aria-label="Parent hub navigation">
+    <a class="parent-tab" href="/parent/my-athlete/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Progress</span>
+        <span class="es">Progreso</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">My Athlete</span>
+        <span class="es">Mi Atleta</span>
+      </h2>
+    </a>
+
+    <a class="parent-tab" href="/parent/schedule/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Logistics</span>
+        <span class="es">Logística</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">Schedule</span>
+        <span class="es">Horario</span>
+      </h2>
+    </a>
+
+    <a class="parent-tab" href="/parent/messages/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Communication</span>
+        <span class="es">Comunicación</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">Messages</span>
+        <span class="es">Mensajes</span>
+      </h2>
+    </a>
+
+    <a class="parent-tab" href="/parent/system/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Culture</span>
+        <span class="es">Cultura</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">System</span>
+        <span class="es">Sistema</span>
+      </h2>
+    </a>
+  </nav>
+
+  <div class="main">
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="card__title">
+          <span class="en">Welcome</span>
+          <span class="es">Bienvenidos</span>
+        </h2>
+
+        <span class="section-note">
+          <span class="en">Communication lane</span>
+          <span class="es">Canal de comunicación</span>
+        </span>
+      </div>
+
+      <ul class="list en">
+        <li>This page is the communication lane for Sandman families.</li>
+        <li>Use announcements for reminders, changes, and coach-wide updates.</li>
+        <li>Use direct messages for questions, absences, or private updates.</li>
+      </ul>
+
+      <ul class="list es">
+        <li>Esta página es el espacio de comunicación para las familias de Sandman.</li>
+        <li>Use anuncios para recordatorios, cambios y avisos generales del entrenador.</li>
+        <li>Use mensajes directos para preguntas, ausencias o actualizaciones privadas.</li>
+      </ul>
+
+      <p class="small">
+        <span class="en">Tip: Switch EN/SP anytime using the buttons at the top.</span>
+        <span class="es">Consejo: Cambie EN/SP cuando quiera usando los botones arriba.</span>
+      </p>
+    </section>
+      
+<section class="card">
+  <div class="section-head">
+    <h2 class="card__title">
+      <span class="en">Quick Tools</span>
+      <span class="es">Herramientas Rápidas</span>
+    </h2>
+
+    <span class="section-note">
+      <span class="en">Fast access</span>
+      <span class="es">Acceso rápido</span>
+    </span>
+  </div>
+
+  <div class="grid">
+
+    <a class="tile" href="/para/parent/announcements-feed.html">
+      <div class="cat">
+        <span class="en">Announcements</span>
+        <span class="es">Anuncios</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Bulletin & Coach Updates</span>
+        <span class="es">Boletín y Avisos del Entrenador</span>
+      </div>
+
+      <p class="sub">
+        <span class="en">Reminders, changes, and important notices.</span>
+        <span class="es">Recordatorios, cambios y avisos importantes.</span>
+      </p>
+    </a>
+
+    <a class="tile" href="/para/parent/compose.html">
+      <div class="cat">
+        <span class="en">Message Coach</span>
+        <span class="es">Mensaje al Entrenador</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Questions for Coach</span>
+        <span class="es">Preguntas para el Entrenador</span>
+      </div>
+
+      <p class="sub">
+        <span class="en">Send short questions or private updates.</span>
+        <span class="es">Envíe preguntas o actualizaciones privadas.</span>
+      </p>
+    </a>
+
+    <a class="tile" href="/para/parent/thread.html">
+      <div class="cat">
+        <span class="en">Thread</span>
+        <span class="es">Conversación</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Active Conversations</span>
+        <span class="es">Conversación Activa</span>
+      </div>
+
+      <p class="sub">
+        <span class="en">Read replies and follow active message threads.</span>
+        <span class="es">Lea respuestas y siga conversaciones activas.</span>
+      </p>
+    </a>
+
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-head">
+    <h2 class="card__title">
+      <span class="en">Communication Paths</span>
+      <span class="es">Caminos de Comunicación</span>
+    </h2>
+
+    <span class="section-note">
+      <span class="en">Special lanes</span>
+      <span class="es">Canales especiales</span>
+    </span>
+  </div>
+
+  <div class="grid">
+
+    <a class="tile" href="/para/parent/volunteer.html">
+      <div class="cat">
+        <span class="en">Volunteer</span>
+        <span class="es">Voluntario</span>
+      </div>
+
+      <div class="title">
+        <span class="en">Volunteer to Help</span>
+        <span class="es">Ofrecer Ayuda</span>
+      </div>
+
+      <p class="sub">
+        <span class="en">Help with events, tournaments, and team activities.</span>
+        <span class="es">Ayude con eventos, torneos y actividades del equipo.</span>
+      </p>
+    </a>
+
+  </div>
+</section>
+
+    <p class="footer-note">
+      <span class="en">Sandman Combat™ • Parent Messages</span>
+      <span class="es">Sandman Combat™ • Mensajes para Padres</span>
+    </p>
+
+  </div>
+
+</main>
+<script src="/assets/js/parent-shell.js"></script>
+</body>
+</html>

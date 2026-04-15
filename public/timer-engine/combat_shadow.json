@@ -1,0 +1,116 @@
+{
+  "library": {
+    "slow_slow": {
+      "name": "Slow / Slow",
+      "purpose": "Discipline and position control",
+      "cues": {
+        "intro": "Controlled pace—clean ties.",
+        "final10": "Score once, clean."
+      }
+    },
+    "slow_fast": {
+      "name": "Slow / Fast",
+      "purpose": "Gear change on command",
+      "cues": {
+        "intro": "Calm start.",
+        "switch": "Build… build… now go!",
+        "final10": "Furious finish."
+      }
+    },
+    "fast_slow": {
+      "name": "Fast / Slow",
+      "purpose": "Composure after burst",
+      "cues": {
+        "intro": "Explode early.",
+        "switch": "Settle—breathe.",
+        "final10": "Finish composed."
+      }
+    },
+    "fast_fast": {
+      "name": "Fast / Fast",
+      "purpose": "Sustain chaos and pace",
+      "cues": {
+        "intro": "Hands always working.",
+        "final10": "Through the whistle."
+      }
+    },
+    "free": {
+      "name": "Free",
+      "purpose": "Ownership without cues",
+      "cues": {
+        "intro": "No voice. Show me."
+      }
+    }
+  },
+
+  "youth": {
+    "t0": {
+      "name": "Shadow",
+      "roundTime": 45,
+      "rounds": ["slow_slow", "fast_fast", "slow_fast", "free"]
+    },
+    "t1": {
+      "name": "Recruit",
+      "roundTime": 45,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t2": {
+      "name": "Combatant",
+      "roundTime": 60,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t3": {
+      "name": "Competitor",
+      "roundTime": 60,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t4": {
+      "name": "Warrior",
+      "roundTime": 90,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t5": {
+      "name": "Champion",
+      "roundTime": 90,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t6": {
+      "name": "Commander",
+      "roundTime": 180,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t7": {
+      "name": "Hero",
+      "roundTime": 180,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    }
+  },
+
+  "teen": {
+    "t0": {
+      "name": "Apprentice",
+      "roundTime": 90,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t1": {
+      "name": "Warrior",
+      "roundTime": 120,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t2": {
+      "name": "Champion",
+      "roundTime": 180,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t3": {
+      "name": "Veteran",
+      "roundTime": 240,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    },
+    "t4": {
+      "name": "Legend",
+      "roundTime": 240,
+      "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
+    }
+  }
+}

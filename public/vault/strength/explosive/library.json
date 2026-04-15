@@ -1,0 +1,28 @@
+{
+  "explosive": [
+    {
+      "name": "Box Jumps",
+      "sets": "4",
+      "reps": "4",
+      "note": "Full recovery between sets."
+    },
+    {
+      "name": "Broad Jumps",
+      "sets": "4",
+      "reps": "4",
+      "note": "Focus on distance and landing control."
+    },
+    {
+      "name": "Medicine Ball Slams",
+      "sets": "4",
+      "reps": "6",
+      "note": "Explode from hips."
+    },
+    {
+      "name": "Kettlebell Swings",
+      "sets": "4",
+      "reps": "8",
+      "note": "Hip drive, not arms."
+    }
+  ]
+}

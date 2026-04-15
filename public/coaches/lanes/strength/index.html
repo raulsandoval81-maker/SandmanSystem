@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coach • Strength Review</title>
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --ok:#22c55e;
+      --bad:#ef4444;
+      --warn:#f59e0b;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    header{
+      padding:16px;
+      border-bottom:1px solid var(--line);
+      background:#0f1a33;
+    }
+
+    .header-inner{
+      max-width:1200px;
+      margin:0 auto;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .title{
+      font-weight:900;
+      font-size:1.1rem;
+      letter-spacing:.5px;
+      color:var(--brand);
+    }
+
+    .sub{
+      font-size:.85rem;
+      opacity:.7;
+    }
+
+    main{
+      max-width:1200px;
+      margin:20px auto;
+      padding:0 16px 40px;
+    }
+
+    .empty{
+      opacity:.6;
+      padding:20px;
+      border:1px dashed var(--line);
+      border-radius:12px;
+      text-align:center;
+    }
+
+    .footer{
+      margin-top:40px;
+      padding-top:20px;
+      border-top:1px solid var(--line);
+      font-size:.8rem;
+      opacity:.6;
+      text-align:center;
+    }
+
+    @media (max-width:600px){
+      .header-inner{flex-direction:column;align-items:flex-start}
+    }
+    body.day{
+  --bg:#ffffff;
+  --panel:#f5f7fb;
+  --text:#111;
+  --line:#ddd;
+}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div>
+        <div class="title">Strength Lane Review</div>
+        <div class="sub">Segment 1 • Coach View • Status + XP Award</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;">
+  <div class="sub">Sandman Systems™</div>
+  <button id="themeToggle" class="btn">☀️ / 🌙</button>
+</div>
+    </div>
+  </header>
+<main>
+  <section style="margin-bottom:16px;">
+    <h2 style="margin:0 0 10px;">Remote Work Requests</h2>
+    <div id="remote-requests-container">
+      <div class="empty">Loading remote requests…</div>
+    </div>
+  </section>
+
+  <div id="submissions-container">
+    <div class="empty">Loading Strength submissions…</div>
+  </div>
+
+  <div class="footer">
+    Coach is final authority • No auto-awards
+  </div>
+</main>
+<script>
+const toggle = document.getElementById("themeToggle");
+
+const saved = localStorage.getItem("cc-theme");
+if(saved === "day"){
+  document.body.classList.add("day");
+}
+
+toggle?.addEventListener("click", () => {
+  document.body.classList.toggle("day");
+  const isDay = document.body.classList.contains("day");
+  localStorage.setItem("cc-theme", isDay ? "day" : "night");
+});
+</script>
+  <script type="module" src="/coaches/lanes/strength/review.js"></script>
+</body>
+</html>

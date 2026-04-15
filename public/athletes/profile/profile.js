@@ -1,23 +1,21 @@
 // /athletes/profile/profile.js
 // ============================
-// Athlete Profile JS (single owner, polished)
-// - Keeps: ladder pick, locks, drops, badge, belt bar, logs
-// - Fixes: use-before-declare, f8 var typo, Strength/Honor premium decal overwrite,
-//          premium band/ring progress drivers, SVG <defs> collisions (deterministic uniqify)
-// - FIXES (this drop): remove duplicate getStripeInfo calls, move locks BEFORE lane paint,
-//          gate Strength/Honor paint, hide Strength/Honor entirely for F8
+// Athlete Profile JS (F4-only owner)
+// - Full profile is now strictly teen/adult
+// - F8 is redirected immediately to mini profile
+// - Keeps: locks, drops, badge, belt bar, logs, strength/honor visuals
 // ============================
 
 import {
-  db, doc, getDoc,
+  db, auth, doc, getDoc, ensureSignedIn,
   collection, query, where, orderBy, limit, getDocs
 } from "/assets/js/firebase-init.js";
-
 import { updateRankUI } from "/assets/js/belt-bar.js";
-import { LADDER_F4, LADDER_F8, getStripeInfo } from "/assets/js/ladder.service.js";
 
-import { withDev } from "/assets/js/dev-mode.js";          // (kept; may be used elsewhere)
-import { guardDocIfLive } from "/assets/js/dev-roster.js"; // (kept; may be used elsewhere)
+import { LADDER_F4 } from "/assets/js/ladder.service.js";
+
+import { withDev } from "/assets/js/dev-mode.js";
+import { guardDocIfLive } from "/assets/js/dev-roster.js";
 import { isDevMode } from "/assets/js/dev-mode.js";
 
 import { paintDevUi, bindDevToggle, patchDevLinks } from "/assets/js/dev-mode.js";
@@ -25,7 +23,7 @@ import { paintDevUi, bindDevToggle, patchDevLinks } from "/assets/js/dev-mode.js
 // call once on load
 paintDevUi();
 patchDevLinks();
-bindDevToggle({ onChange: () => location.reload() }); // simplest: refresh page data in new mode
+bindDevToggle({ onChange: () => location.reload() });
 
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -42,7 +40,56 @@ function safeHTML(id, html) {
   el.innerHTML = html;
 }
 
-function clamp(n, a, b) { return Math.max(a, Math.min(b, n)); }
+function clamp(n, a, b) {
+  return Math.max(a, Math.min(b, n));
+}
+
+// =======================================
+// Exported helper for lane pages
+// =======================================
+export async function getAthleteProfile(athleteUid) {
+  const uid = String(athleteUid || "").trim();
+  if (!uid) return null;
+
+  const ref = doc(db, "athletes", uid);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return null;
+
+  return { id: snap.id, ...snap.data() };
+}
+
+function getStoredTierNum(a) {
+  if (typeof a?.tier === "number") return a.tier;
+  if (typeof a?.tier === "string") {
+    const m = String(a.tier).match(/T(\d+)/i);
+    if (m) return Number(m[1]) || 0;
+  }
+  return 0;
+}
+
+function getStoredStripes(a) {
+  return Number(a?.stripeCount ?? a?.stripes ?? 0);
+}
+
+function getStoredXpCap(a, ladder, tierNum) {
+  const direct = Number(a?.xpCap ?? 0);
+  if (direct > 0) return direct;
+
+  const tier = ladder?.[tierNum];
+  return Number(tier?.cap ?? tier?.xpCap ?? tier?.maxXP ?? 0);
+}
+
+function getEffectiveStripes({ xpNow, xpCap, storedStripes, stripeMax = 4 }) {
+  const safeCap = Math.max(1, Number(xpCap || 0));
+  const safeXp = Math.max(0, Number(xpNow || 0));
+  const stored = Number(storedStripes || 0);
+
+  const derived = Math.floor((safeXp / safeCap) * stripeMax);
+
+  if (safeXp >= safeCap) return stripeMax;
+
+  return Math.max(0, Math.min(stripeMax, Math.max(stored, derived)));
+}
 
 // ---------- params ----------
 const params = new URLSearchParams(location.search);
@@ -51,16 +98,23 @@ function normalizeAthleteId(id) {
   if (!id) return id;
   const m = String(id).match(/^A(\d+)$/i);
   if (!m) return id;
-  return "A" + m[1].padStart(6, "0"); // A000001
+  return "A" + m[1].padStart(6, "0");
 }
 
 const athleteIdRaw =
   params.get("id") ||
   params.get("uid") ||
   params.get("athleteId") ||
+  localStorage.getItem("sandman_lastAthleteUid") ||
   localStorage.getItem("currentAthleteId");
 
 const athleteId = normalizeAthleteId(athleteIdRaw);
+
+// 🔥 HARD F8 GUARD — youth must use mini profile
+if (String(athleteId || "").toUpperCase().startsWith("F8_")) {
+  window.location.replace(`/athletes/profile/mini-profile.html?id=${encodeURIComponent(athleteId)}`);
+  throw new Error("F8 redirected to mini profile");
+}
 
 // Keep URL canonical if needed
 if (athleteIdRaw && athleteId && athleteId !== athleteIdRaw) {
@@ -81,48 +135,14 @@ if (!athleteId) {
 }
 
 // ===============================
-// LADDER PICK (F4 vs F8) — single truth
-// ===============================
-function pickLadderFromAthlete(a) {
-  // ✅ UID prefix is the clean truth
-  const uid = String(a?.uid || a?.uidCode || "").toUpperCase();
-  if (uid.startsWith("F8_")) return LADDER_F8;
-  if (uid.startsWith("F4_")) return LADDER_F4;
-
-  // fallback heuristics
-  const foundry = String(a?.foundry || a?.division || a?.program || "").toLowerCase();
-  const track   = String(a?.track || a?.lane || a?.trackCode || "").toLowerCase();
-  const ageHint = String(a?.teenAdult || a?.ageGroup || "").toLowerCase();
-
-  const isF8 =
-    foundry.includes("8") ||
-    foundry.includes("youth") ||
-    track.includes("8") ||
-    track.includes("youth") ||
-    ageHint.includes("youth");
-
-  return isF8 ? LADDER_F8 : LADDER_F4;
-}
-
-// ===============================
-// DROPS + LOCKS (SINGLE OWNER)
+// DROPS + LOCKS
 // ===============================
 
-// 1) Review mode (override locks)
 let reviewMode = localStorage.getItem("sm_review_mode") === "1";
 
-// 2) Page order (top to bottom) — MUST match your HTML data-block keys.
-const UNLOCK_ORDER = [
-  "combat",
-  "strength",
-  "honor",
-  "performance",
-];
-
-// 3) Stripe unlock rules (doctrine)
 function unlockRules({ tierName }) {
   const t = String(tierName || "").toLowerCase();
-  const isTier0 = (t === "apprentice" || t === "shadow" || t === "foundation");
+  const isTier0 = (t === "apprentice" || t === "foundation");
   return {
     combat: 0,
     strength: 2,
@@ -134,7 +154,7 @@ function unlockRules({ tierName }) {
 // ---------- drop helpers ----------
 function syncDrop(section) {
   const body = section.querySelector(".drop-body");
-  const btn  = section.querySelector(".drop-head");
+  const btn = section.querySelector(".drop-head");
   const chev = section.querySelector(".chev");
   if (!btn || !body) return;
   const open = !body.classList.contains("collapsed");
@@ -142,30 +162,20 @@ function syncDrop(section) {
   if (chev) chev.textContent = open ? "▴" : "▾";
 }
 
-function applyLaneLocks({ athlete, tierName, stripesEarned }) {
-  // Coach/full/review ignores locks
+function applyLaneLocks({ tierName, stripesEarned }) {
   if (viewMode === "coach" || viewMode === "full" || reviewMode) {
     setDropLocked("strength", false);
     setDropLocked("honor", false);
     return;
   }
 
-  const base = String(athlete?.trackBase || athlete?.track || "").toUpperCase();
-  const isF8 = base.startsWith("F8") || base.includes("FOUNDRY8");
+  const req = unlockRules({ tierName });
+  const s = Number(stripesEarned || 0);
 
-  if (isF8) {
-    // F8: server truth (unlocks flags)
-    const u = athlete?.unlocks || {};
-    setDropLocked("strength", !(u.strength === true));
-    setDropLocked("honor", !(u.honor === true));
-  } else {
-    // F4: stripe teaser locks
-    const req = unlockRules({ tierName });
-    const s = Number(stripesEarned || 0);
-    setDropLocked("strength", s < (req.strength ?? 999));
-    setDropLocked("honor", s < (req.honor ?? 999));
-  }
+  setDropLocked("strength", s < (req.strength ?? 999));
+  setDropLocked("honor", s < (req.honor ?? 999));
 }
+
 // ---------- badge helpers ----------
 function setTierBadge({ teenAdult = "teen", tierNum = 0 }) {
   const el = $("ath-badge");
@@ -178,16 +188,6 @@ function setTierBadge({ teenAdult = "teen", tierNum = 0 }) {
       "/assets/images/logos/Purple-badge.png",
       "/assets/images/logos/Brown-badge.png",
       "/assets/images/logos/Legend-badge.png",
-    ],
-    youth: [
-      "/assets/images/logos/Shadow-badge.png",
-      "/assets/images/logos/Recruit-badge.png",
-      "/assets/images/logos/Combatant-badge.png",
-      "/assets/images/logos/Competitor-badge.png",
-      "/assets/images/logos/Warrior-badge.png",
-      "/assets/images/logos/Champion-badge.png",
-      "/assets/images/logos/Commander-badge.png",
-      "/assets/images/logos/Hero-badge.png",
     ],
   };
 
@@ -206,15 +206,9 @@ function setTierBadge({ teenAdult = "teen", tierNum = 0 }) {
 }
 
 // ===============================
-// Strength/Honor visuals (VISUAL ONLY)
-// Doctrine: 6 units, total 2400 (400 per unit)
-// Left row: 6 small icons
-// Right decal: premium SVG shows unit progress
+// Strength/Honor visuals
 // ===============================
 
-// ===============================
-// Strength — Rings of Power (SMALL)
-// ===============================
 const POWER_SMALL_SVG = `
 <svg viewBox="0 0 64 64"
      class="lane-svg power-svg"
@@ -252,9 +246,6 @@ const POWER_SMALL_SVG = `
           opacity=".55"/>
 </svg>`;
 
-// ===============================
-// Honor — Rings of Wisdom (SMALL)
-// ===============================
 const WISDOM_SMALL_SVG = `
 <svg viewBox="0 0 64 64"
      class="lane-svg wisdom-svg"
@@ -286,10 +277,6 @@ const WISDOM_SMALL_SVG = `
           opacity=".6"/>
 </svg>`;
 
-// ===============================
-// Strength — Rings of Power (PREMIUM)
-// - ONE continuous ring (0..400)
-// ===============================
 const POWER_PREMIUM_SVG = `
 <svg viewBox="0 0 120 120"
      class="decal-svg power-premium"
@@ -339,11 +326,6 @@ const POWER_PREMIUM_SVG = `
           stroke-width="2"/>
 </svg>`;
 
-// ===============================
-// Honor — Rings of Wisdom (PREMIUM)
-// - 4 concentric rings (each = 100 XP)
-// - Each ring fills continuously for its hundred
-// ===============================
 const WISDOM_PREMIUM_SVG = `
 <svg viewBox="0 0 120 120"
      class="decal-svg wisdom-premium"
@@ -415,11 +397,11 @@ const WISDOM_PREMIUM_SVG = `
 </svg>`;
 
 // ===============================
-// SVG ID DE-DUPLICATION (REQUIRED)
+// SVG ID DE-DUPLICATION
 // ===============================
 function makeSuffix(kind, idx) {
   const safeKind = String(kind).replace(/[^a-zA-Z0-9_-]/g, "_");
-  const safeIdx  = String(idx).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const safeIdx = String(idx).replace(/[^a-zA-Z0-9_-]/g, "_");
   return `${safeKind}-${safeIdx}`;
 }
 
@@ -427,7 +409,10 @@ function uniquifySvg(svg, kind, idx) {
   const suffix = makeSuffix(kind, idx);
 
   const ids = [];
-  svg.replace(/\bid="([^"]+)"/g, (_, id) => { ids.push(id); return _; });
+  svg.replace(/\bid="([^"]+)"/g, (_, id) => {
+    ids.push(id);
+    return _;
+  });
 
   const map = new Map();
   for (const id of ids) {
@@ -450,12 +435,12 @@ function uniquifySvg(svg, kind, idx) {
 }
 
 function smallSvgFor(kind, athleteKey) {
-  const raw = (kind === "strength") ? POWER_SMALL_SVG : WISDOM_SMALL_SVG;
+  const raw = kind === "strength" ? POWER_SMALL_SVG : WISDOM_SMALL_SVG;
   return uniquifySvg(raw, `${kind}-small`, athleteKey);
 }
 
 function premiumSvgFor(kind, athleteKey) {
-  const raw = (kind === "strength") ? POWER_PREMIUM_SVG : WISDOM_PREMIUM_SVG;
+  const raw = kind === "strength" ? POWER_PREMIUM_SVG : WISDOM_PREMIUM_SVG;
   return uniquifySvg(raw, `${kind}-premium`, athleteKey);
 }
 
@@ -471,8 +456,6 @@ function setCircleProgress(circleEl, pct01, cx = 60, cy = 60) {
 
   circleEl.style.strokeDasharray = `${c}`;
   circleEl.style.strokeDashoffset = `${c * (1 - pct)}`;
-
-  // rotate start to 12 o'clock
   circleEl.style.transform = "rotate(-90deg)";
   circleEl.style.transformOrigin = `${cx}px ${cy}px`;
 }
@@ -483,8 +466,9 @@ function setRingProgress(svgEl, pct01) {
   if (!fg) return;
   setCircleProgress(fg, pct01, 60, 60);
 }
+
 // ===============================
-// Lane UI Spec (SEGMENTS + TOTAL)
+// Lane UI Spec
 // ===============================
 function normTrackCode(a) {
   return String(a?.trackCode || a?.track || a?.trackBase || "")
@@ -493,67 +477,56 @@ function normTrackCode(a) {
 }
 
 function getLaneUiSpec({ trackCode, lane }) {
-  // Integrated inside F4 Combat => Phase I
   if (trackCode === "foundry4-combat") {
     if (lane === "strength" || lane === "honor") return { total: 1200, slots: 3 };
-    return { total: null, slots: null }; // combat handled elsewhere
+    return { total: null, slots: null };
   }
 
-  // Standalone Strength
   if (trackCode === "sandman-strength") {
     if (lane === "strength") return { total: 2400, slots: 6 };
     return { blocked: true };
   }
 
-  // Standalone Honor
   if (trackCode === "sandman-honor") {
     if (lane === "honor") return { total: 2400, slots: 6 };
     return { blocked: true };
   }
 
-  // Default safe behavior (treat as integrated)
   if (lane === "strength" || lane === "honor") return { total: 1200, slots: 3 };
   return { total: null, slots: null };
 }
+
 // ===============================
 // paintLane()
-// LEFT: 6 marks (keep)
-// RIGHT: premium decal shows unit progress (0..400)
-// RIGHT TEXT: "unitXP/400 XP"
 // ===============================
 function paintLane({
-  kind,              // "strength" | "honor"
+  kind,
   xp = 0,
   rowEl,
-  unitsLeftEl,       // "earned/6"
-  metaRightEl,       // "0/400 XP"
+  unitsLeftEl,
+  metaRightEl,
   decalEl,
-  athleteId,         // REQUIRED for uniqifySvg (no collisions)
+  athleteId,
   total = 2400,
   slots = 6,
 }) {
   const athleteKey = String(athleteId || "").replace(/[^a-zA-Z0-9_-]/g, "_");
 
   const totalXP = Math.max(0, Number(xp || 0));
-  const step = total / slots; // 400
+  const step = total / slots;
 
   const capXP = Math.min(totalXP, total);
   const isMax = capXP >= total;
 
-  // boundary-safe earned calc (prevents exact 400 showing as 0/400)
   const effective = isMax ? total : Math.max(0, capXP - 1e-6);
-  const earned = Math.min(slots, Math.floor(effective / step)); // 0..6
+  const earned = Math.min(slots, Math.floor(effective / step));
 
   const inStep = capXP - earned * step;
 
-  // unit XP (0..400)
   const unitXP = isMax
     ? Math.round(step)
     : Math.max(0, Math.min(Math.round(step), Math.round(inStep)));
 
-  // -----------------------------------
-  // LEFT ROW (6 icons) — per-slot uniq
-  // -----------------------------------
   if (rowEl) {
     rowEl.innerHTML = "";
     for (let i = 0; i < slots; i++) {
@@ -568,39 +541,34 @@ function paintLane({
 
   if (unitsLeftEl) unitsLeftEl.textContent = `${earned}/${slots}`;
 
-  // -----------------------------------
-  // RIGHT premium decal — render ONCE
-  // -----------------------------------
   if (decalEl) {
     decalEl.classList.add("lane-decal");
-    decalEl.classList.toggle("power",  kind === "strength");
+    decalEl.classList.toggle("power", kind === "strength");
     decalEl.classList.toggle("wisdom", kind !== "strength");
 
     decalEl.innerHTML = premiumSvgFor(kind, athleteKey);
 
     if (kind === "strength") {
-      // stage classes based on unitXP (0..400)
       const stage = unitXP < 100 ? 0 : unitXP < 200 ? 1 : unitXP < 300 ? 2 : 3;
-      decalEl.classList.remove("stage-0","stage-1","stage-2","stage-3");
+      decalEl.classList.remove("stage-0", "stage-1", "stage-2", "stage-3");
       decalEl.classList.add(`stage-${stage}`);
 
       const svg = decalEl.querySelector("svg");
       setRingProgress(svg, clamp(unitXP / 400, 0, 1));
     } else {
-      // Honor: 4 bands, each = 100 XP, each band fills continuously
       const svg = decalEl.querySelector("svg");
       const b0 = svg?.querySelector(".band.b0");
       const b1 = svg?.querySelector(".band.b1");
       const b2 = svg?.querySelector(".band.b2");
       const b3 = svg?.querySelector(".band.b3");
 
-      const bandIdx = Math.min(3, Math.floor(unitXP / 100)); // 0..3
-      const bandPct = clamp((unitXP % 100) / 100, 0, 1);     // 0..1
+      const bandIdx = Math.min(3, Math.floor(unitXP / 100));
+      const bandPct = clamp((unitXP % 100) / 100, 0, 1);
 
-      const p0 = bandIdx > 0 ? 1 : (bandIdx === 0 ? bandPct : 0);
-      const p1 = bandIdx > 1 ? 1 : (bandIdx === 1 ? bandPct : 0);
-      const p2 = bandIdx > 2 ? 1 : (bandIdx === 2 ? bandPct : 0);
-      const p3 = bandIdx > 3 ? 1 : (bandIdx === 3 ? bandPct : 0);
+      const p0 = bandIdx > 0 ? 1 : bandIdx === 0 ? bandPct : 0;
+      const p1 = bandIdx > 1 ? 1 : bandIdx === 1 ? bandPct : 0;
+      const p2 = bandIdx > 2 ? 1 : bandIdx === 2 ? bandPct : 0;
+      const p3 = bandIdx > 3 ? 1 : bandIdx === 3 ? bandPct : 0;
 
       setCircleProgress(b0, p0, 60, 60);
       setCircleProgress(b1, p1, 60, 60);
@@ -609,8 +577,10 @@ function paintLane({
     }
   }
 
-  if (metaRightEl) metaRightEl.textContent = `${unitXP}/${Math.round(step)} XP`;
+  const unitPct = Math.floor((unitXP / step) * 100);
+  if (metaRightEl) metaRightEl.textContent = `Progress: ${unitPct}%`;
 }
+
 // ---------- drop lock helpers ----------
 function setDropLocked(block, locked) {
   const section = document.querySelector(`.drop[data-block="${block}"]`);
@@ -618,7 +588,6 @@ function setDropLocked(block, locked) {
 
   section.classList.toggle("locked", !!locked);
 
-  // lock icon + hint (if present in HTML)
   const icon = section.querySelector(".lock-icon");
   if (icon) icon.textContent = locked ? "🔒" : "🔓";
 
@@ -645,7 +614,7 @@ function setAllDrops(open) {
 
 function bindDrops() {
   document.querySelectorAll(".card.drop").forEach((section) => {
-    const btn  = section.querySelector(".drop-head");
+    const btn = section.querySelector(".drop-head");
     const body = section.querySelector(".drop-body");
     if (!btn || !body) return;
 
@@ -661,11 +630,11 @@ function bindDrops() {
 }
 
 function bindReviewControls() {
-  const review   = document.getElementById("toggle-review");
-  const openAll  = document.getElementById("btn-open-all");
+  const review = document.getElementById("toggle-review");
+  const openAll = document.getElementById("btn-open-all");
   const closeAll = document.getElementById("btn-close-all");
 
-  if (openAll)  openAll.addEventListener("click", () => setAllDrops(true));
+  if (openAll) openAll.addEventListener("click", () => setAllDrops(true));
   if (closeAll) closeAll.addEventListener("click", () => setAllDrops(false));
 
   if (review) {
@@ -676,13 +645,11 @@ function bindReviewControls() {
       reviewMode = !!review.checked;
       localStorage.setItem("sm_review_mode", reviewMode ? "1" : "0");
       if (reviewMode) setAllDrops(true);
-      // re-run locks based on current athlete/stripes happens after data loads
-      // (so we just open here)
     });
   }
 }
 
-// ---------- init bindings (safe before data loads) ----------
+// ---------- init bindings ----------
 bindDrops();
 bindReviewControls();
 
@@ -693,6 +660,7 @@ if (reviewMode) setAllDrops(true);
 // MAIN
 // ===============================
 (async () => {
+  await ensureSignedIn();
   const ref = doc(db, "athletes", athleteId);
   const snap = await getDoc(ref);
 
@@ -702,8 +670,8 @@ if (reviewMode) setAllDrops(true);
   }
 
   const a = snap.data();
-const trackCode = normTrackCode(a) || "foundry4-combat";
-  // ✅ DEV guard: prevent opening DEV docs in LIVE mode
+  const trackCode = normTrackCode(a) || "foundry4-combat";
+
   if (!isDevMode() && (a?.devMode === true || a?.isTest === true)) {
     document.body.innerHTML =
       "<main class='wrap'><p>This athlete is DEV-only. Turn on DEV mode to view.</p></main>";
@@ -740,7 +708,6 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
   const cityTxt = (a.city || "").trim();
   const stateTxt = (a.state || "").trim();
 
-  // TEAM: use explicit fields only (do NOT build from athlete city)
   const academy =
     (a.academy || "").trim() ||
     (rawTeam && !rawTeam.toLowerCase().startsWith("sandman") ? rawTeam : "") ||
@@ -748,7 +715,6 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
 
   safeText("out-team", academy);
 
-  // CITY/STATE: athlete location only
   let cityState = "";
   if (cityTxt && stateTxt) cityState = `${cityTxt}, ${stateTxt}`;
   else if (cityTxt || stateTxt) cityState = cityTxt || stateTxt;
@@ -759,17 +725,15 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
   safeText("out-citystate", cityState);
 
   // -----------------------------
-  // Mint / UID (display only)
+  // Mint / UID
   // -----------------------------
-  const mintTag =
-    String(a?.mintVirtueTag || a?.mintTag || "").trim() ||
-    "";
+  const mintTag = String(a?.mintVirtueTag || a?.mintTag || "").trim() || "";
 
   function deriveMintTagFromUid(a, fallbackId) {
     const uid = String(a?.uid || a?.uidCode || fallbackId || "").trim();
-    const prefix = uid.startsWith("F8_") ? "F8" : uid.startsWith("F4_") ? "F4" : "F4";
+    const prefix = uid.startsWith("F4_") ? "F4" : "F4";
     const num = uid.match(/(\d{4})/)?.[1] || "0000";
-    const lane = "CB"; // combat only for now
+    const lane = "CB";
     const virtueRaw = String(a?.virtueName || a?.virtue || a?.virtueCode || "UNK").toUpperCase();
     return `${prefix}_${lane}${num}_${virtueRaw}`;
   }
@@ -780,30 +744,25 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
   // -----------------------------
   // Ladder + tierNum
   // -----------------------------
-  const ladder = pickLadderFromAthlete(a);
-  const isF8 = (ladder === LADDER_F8);
+  const ladder = LADDER_F4;
 
-  safeText(
-    "combatArcTitle",
-    isF8 ? "⚔️ Combat · Zero 2 Hero" : "⚔️ Combat · Path 2 Legend"
-  );
+  safeText("combatArcTitle", "⚔️ Combat · Path 2 Legend");
 
   let tierNum = 0;
   if (typeof a.tier === "number") tierNum = a.tier;
   else if (typeof a.tier === "string") tierNum = Number(a.tier.replace(/[^\d]/g, "")) || 0;
   else if (typeof a.rank === "string") tierNum = Number(a.rank.replace(/[^\d]/g, "")) || 0;
 
-  setTierBadge({ teenAdult: isF8 ? "youth" : "teen", tierNum });
+  setTierBadge({ teenAdult: "teen", tierNum });
 
   // -----------------------------
-  // Combat XP buckets (coach/full only)
+  // Combat XP buckets
   // -----------------------------
-  const xpDaily   = Number(a.xpDaily ?? 0);
-  const xpArena   = Number(a.xpArena ?? 0);
+  const xpDaily = Number(a.xpDaily ?? 0);
+  const xpArena = Number(a.xpArena ?? 0);
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
-  // combatXp is the tier-bar XP (your belt bar input)
-  const combatXp  = Number(
+  const combatXp = Number(
     a.xp ??
     a.xpTotal ??
     a.xpCombat ??
@@ -819,26 +778,30 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
   }
 
   // -----------------------------
-  // Stripe info (SINGLE TRUTH)
+  // Stripe info
   // -----------------------------
-  const info = getStripeInfo(ladder, combatXp);
-  const stripes = info?.stripesEarned ?? 0;
-  const req = unlockRules({ tierName: info?.tier?.name });
+  const storedTierNum = getStoredTierNum(a);
+  const storedStripes = getStoredStripes(a);
+  const storedXpCap = getStoredXpCap(a, ladder, storedTierNum);
+
+  const tierInfo = ladder?.[storedTierNum] || {};
+  const req = unlockRules({ tierName: a?.rankName || a?.tierName || tierInfo?.name });
 
   // -----------------------------
   // Rank / Color display
   // -----------------------------
   const rankName =
-    info?.tier?.rank ||
-    info?.tier?.name ||
     a.rankName ||
     a.tierName ||
+    a.rank ||
+    tierInfo?.rank ||
+    tierInfo?.name ||
     "Apprentice";
 
   const rankColor =
-    info?.tier?.color ||
-    info?.tier?.rankColor ||
     a.rankColor ||
+    tierInfo?.color ||
+    tierInfo?.rankColor ||
     "#ffffff";
 
   safeHTML(
@@ -858,101 +821,109 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
   );
 
   // -----------------------------
-  // Belt bar UI + Combat % (profile-only)
+  // Belt bar UI
   // -----------------------------
+  const stripeMax = 4;
+  const xpNow = Math.max(0, Math.round(Number(combatXp || 0)));
+  const xpCap = Math.max(0, Math.round(Number(storedXpCap || 0)));
+  const isAtCap = xpCap && xpNow >= xpCap;
+
+  const displayStripes = getEffectiveStripes({
+    xpNow,
+    xpCap,
+    storedStripes,
+    stripeMax
+  });
+
   updateRankUI({
     ladder,
-    totalXP: combatXp,
-    hideCap: false,
+    totalXP: Math.min(xpNow, xpCap || xpNow),
+    rankNameOverride: rankName,
+    stripeCountOverride: displayStripes,
     el: {
       barId: "rankBar",
       fillId: "rankFill",
       textId: "stripeText",
-      // keep these ONLY if your HTML actually has them
       curId: "curTier",
-      nextId: "nextTier",
-    },
+      nextId: "nextTier"
+    }
   });
 
+  const xpEl = document.getElementById("xpText");
+  if (xpEl) {
+    if (xpCap) {
+      xpEl.textContent = isAtCap
+        ? `XP: ${xpCap}/${xpCap}`
+        : `XP: ${xpNow}/${xpCap}`;
+    } else {
+      xpEl.textContent = `XP: ${xpNow}`;
+    }
+  }
 
-// -----------------------------
-// LANE LOCKS — single source of truth
-// -----------------------------
-applyLaneLocks({
-  athlete: a,
-  tierName: info?.tier?.name,
-  stripesEarned: stripes,
-});
+  // LANE LOCKS
+  applyLaneLocks({
+    tierName: rankName,
+    stripesEarned: displayStripes,
+  });
+
   // -----------------------------
-  // F8 UI doctrine: Combat-only.
-  // Hide Strength/Honor entirely.
+  // Strength / Honor
   // -----------------------------
-  if (isF8) {
+  const strengthXP = Number(a.xpStrength ?? a.strengthXP ?? 0);
+  const honorXP = Number(a.xpHonor ?? a.honorXP ?? 0);
+
+  const strengthSpec = getLaneUiSpec({ trackCode, lane: "strength" });
+  const honorSpec = getLaneUiSpec({ trackCode, lane: "honor" });
+
+  const strengthBlocked = !!strengthSpec?.blocked;
+  const honorBlocked = !!honorSpec?.blocked;
+
+  const canSeeStrength =
+    !strengthBlocked &&
+    ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
+      (displayStripes >= (req.strength ?? 999)));
+
+  const canSeeHonor =
+    !honorBlocked &&
+    ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
+      (displayStripes >= (req.honor ?? 999)));
+
+  if (canSeeStrength) {
+    paintLane({
+      kind: "strength",
+      athleteId,
+      xp: strengthXP,
+      rowEl: $("strengthRings"),
+      unitsLeftEl: $("strengthUnitsLeft"),
+      metaRightEl: $("strengthMetaRight"),
+      decalEl: $("strengthDecal"),
+      total: strengthSpec.total,
+      slots: strengthSpec.slots,
+    });
+  } else {
     const s = $("strengthLane");
-    const h = $("honorLane");
     if (s) s.style.display = "none";
+  }
+
+  if (canSeeHonor) {
+    paintLane({
+      kind: "honor",
+      athleteId,
+      xp: honorXP,
+      rowEl: $("honorRings"),
+      unitsLeftEl: $("honorUnitsLeft"),
+      metaRightEl: $("honorMetaRight"),
+      decalEl: $("honorDecal"),
+      total: honorSpec.total,
+      slots: honorSpec.slots,
+    });
+  } else {
+    const h = $("honorLane");
     if (h) h.style.display = "none";
   }
 
-// -----------------------------
-// Strength / Honor (segment switch + gating)
-// -----------------------------
-const strengthXP = Number(a.xpStrength ?? a.strengthXP ?? 0);
-const honorXP    = Number(a.xpHonor ?? a.honorXP ?? 0);
-
-// lane-level visibility rules (standalone blocks the other lane)
-const strengthSpec = getLaneUiSpec({ trackCode, lane: "strength" });
-const honorSpec    = getLaneUiSpec({ trackCode, lane: "honor" });
-
-const strengthBlocked = !!strengthSpec?.blocked;
-const honorBlocked    = !!honorSpec?.blocked;
-
-const canSeeStrength =
-  !isF8 &&
-  !strengthBlocked &&
-  ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
-    (stripes >= (req.strength ?? 999)));
-
-const canSeeHonor =
-  !isF8 &&
-  !honorBlocked &&
-  ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
-    (stripes >= (req.honor ?? 999)));
-
-if (canSeeStrength) {
-  paintLane({
-    kind: "strength",
-    athleteId,
-    xp: strengthXP,
-    rowEl: $("strengthRings"),
-    unitsLeftEl: $("strengthUnitsLeft"),
-    metaRightEl: $("strengthMetaRight"),
-    decalEl: $("strengthDecal"),
-    total: strengthSpec.total,  // ✅ 1200 or 2400
-    slots: strengthSpec.slots,  // ✅ 3 or 6
-  });
-} else {
-  const s = $("strengthLane");
-  if (s) s.style.display = "none";
-}
-
-if (canSeeHonor) {
-  paintLane({
-    kind: "honor",
-    athleteId,
-    xp: honorXP,
-    rowEl: $("honorRings"),
-    unitsLeftEl: $("honorUnitsLeft"),
-    metaRightEl: $("honorMetaRight"),
-    decalEl: $("honorDecal"),
-    total: honorSpec.total,     // ✅ 1200 or 2400
-    slots: honorSpec.slots,     // ✅ 3 or 6
-  });
-} else {
-  const h = $("honorLane");
-  if (h) h.style.display = "none";
-}  // -----------------------------
-  // Skills (best-effort)
+  // -----------------------------
+  // Skills
   // -----------------------------
   safeText("skill-neutral", a.skillNeutral);
   safeText("skill-top", a.skillTop);
@@ -961,7 +932,7 @@ if (canSeeHonor) {
   safeText("coach-notes", a.coachNotes);
 
   // -----------------------------
-  // XP logs (best-effort)
+  // XP logs
   // -----------------------------
   async function loadLogs() {
     const candidates = ["xpLogs", "xp_logs"];
@@ -974,9 +945,7 @@ if (canSeeHonor) {
         );
         const logs = await getDocs(q1);
         if (!logs.empty) return logs;
-      } catch (e) {
-        // try next
-      }
+      } catch (e) {}
     }
     return null;
   }
@@ -987,7 +956,7 @@ if (canSeeHonor) {
     let lastStyle = null;
 
     if (logsSnap) {
-      logsSnap.forEach(l => {
+      logsSnap.forEach((l) => {
         const d = l.data();
         const delta = Number(d.delta ?? d.amount ?? 0);
         const sign = delta > 0 ? "+" : "";
@@ -1006,7 +975,7 @@ if (canSeeHonor) {
   }
 
   // -----------------------------
-  // Season (tournaments table — best-effort)
+  // Season
   // -----------------------------
   try {
     const tq = query(
@@ -1019,7 +988,7 @@ if (canSeeHonor) {
     const tSnap = await getDocs(tq);
     const rows = [];
 
-    tSnap.forEach(docSnap => {
+    tSnap.forEach((docSnap) => {
       const t = docSnap.data();
       const date =
         t.dateStr ||

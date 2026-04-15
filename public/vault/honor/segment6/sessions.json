@@ -1,0 +1,927 @@
+{
+  "lane": "honor",
+  "segmentId": "segment6",
+  "segmentTitle": "Legacy & I",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "HON6-001",
+      "block": 1,
+      "type": "baseline_gate",
+      "title": "Legacy Awareness Check",
+      "focusArea": "Stewardship",
+      "principle": "Legacy begins before you leave. It is built in what you repeatedly model now.\nEvery athlete leaves something behind: discipline or drift, trust or damage, strength or softness. Legacy is not what you say about yourself. It is what remains because you were here.",
+      "houseStandard": "In this house, legacy is earned through repeated behavior.\nWhat remains matters more than what is said.\nSay it out loud. Twice.",
+      "prompt": "Answer honestly: What kind of legacy can an athlete leave in a room? What behaviors leave a bad legacy? What are you leaving right now?",
+      "questions": [
+        "What kind of legacy strengthens a room?",
+        "What kind of legacy poisons it?",
+        "What do your current habits leave behind?",
+        "What are you already teaching without words?",
+        "What must change first?"
+      ],
+      "deliverable": "legacy definition + 3 current legacy habits",
+      "scripture": {
+        "text": "A good name is more desirable than great riches.",
+        "ref": "Proverbs 22:1"
+      }
+    },
+    {
+      "n": 2,
+      "id": "HON6-002",
+      "block": 1,
+      "type": "reflection",
+      "title": "What Remains After You Leave",
+      "focusArea": "Stewardship",
+      "principle": "Legacy is measured by what remains when your voice is gone.\nThe deepest impact is not always loud. It shows in standards that stay alive after you step away.",
+      "houseStandard": "In this house, we leave standards behind, not just memories.\nWhat remains matters most.\nSay it out loud. Twice.",
+      "prompt": "What should remain in the room because of a strong athlete or leader?",
+      "questions": [
+        "What kinds of things remain after strong leaders leave?",
+        "What kinds of things fade quickly?",
+        "What kind of impact actually lasts?",
+        "What should outlive your presence?",
+        "What do people usually confuse with legacy?"
+      ],
+      "deliverable": "3 lasting impacts",
+      "scripture": {
+        "text": "The memory of the righteous is a blessing.",
+        "ref": "Proverbs 10:7"
+      }
+    },
+    {
+      "n": 3,
+      "id": "HON6-003",
+      "block": 1,
+      "type": "reflection",
+      "title": "Legacy Through Daily Habits",
+      "focusArea": "Discipline",
+      "principle": "Legacy is built through repeated daily habits.\nBig moments get attention, but daily habits shape what people remember and repeat.",
+      "houseStandard": "In this house, daily habits build long-term impact.\nWhat you repeat becomes what others inherit.\nSay it out loud. Twice.",
+      "prompt": "Which daily habits leave the strongest positive legacy in a team or room?",
+      "questions": [
+        "What daily habits create lasting respect?",
+        "What daily habits create quiet damage?",
+        "What habits do others learn from you?",
+        "Which of your daily habits are strongest?",
+        "Which daily habit needs to end?"
+      ],
+      "deliverable": "5 legacy-building daily habits",
+      "scripture": {
+        "text": "Be steadfast, immovable, always abounding in the work.",
+        "ref": "1 Corinthians 15:58"
+      }
+    },
+    {
+      "n": 4,
+      "id": "HON6-004",
+      "block": 1,
+      "type": "reflection",
+      "title": "The Difference Between Image and Legacy",
+      "focusArea": "Wisdom",
+      "principle": "Image is what people notice first. Legacy is what remains longest.\nSome athletes chase image, but legacy is deeper. Image wants to be seen. Legacy wants to leave something strong behind.",
+      "houseStandard": "In this house, we build legacy, not image.\nSubstance outlasts attention.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between image and legacy?",
+      "questions": [
+        "What makes image shallow?",
+        "What makes legacy durable?",
+        "Where do athletes get confused?",
+        "What kind of behavior feeds image?",
+        "What kind of behavior builds legacy?"
+      ],
+      "deliverable": "image vs legacy comparison",
+      "scripture": {
+        "text": "Man looks at the outward appearance, but the Lord looks at the heart.",
+        "ref": "1 Samuel 16:7"
+      }
+    },
+    {
+      "n": 5,
+      "id": "HON6-005",
+      "block": 1,
+      "type": "reflection",
+      "title": "Protecting What Was Built Before You",
+      "focusArea": "Respect",
+      "principle": "Legacy is not only what you create. It is also what you protect.\nAthletes inherit culture from those who came before them. Stewardship means respecting and protecting what was built with discipline.",
+      "houseStandard": "In this house, we honor what was built before us.\nStewardship includes gratitude.\nSay it out loud. Twice.",
+      "prompt": "Why is it important to protect the standards and culture you inherited?",
+      "questions": [
+        "What does it mean to inherit culture?",
+        "How can athletes dishonor what came before them?",
+        "What does stewardship look like here?",
+        "What should be protected first?",
+        "How does gratitude strengthen legacy?"
+      ],
+      "deliverable": "stewardship explanation + 1 commitment",
+      "scripture": {
+        "text": "Remove not the ancient landmark.",
+        "ref": "Proverbs 22:28"
+      }
+    },
+    {
+      "n": 6,
+      "id": "HON6-006",
+      "block": 1,
+      "type": "reflection",
+      "title": "Leaving the Room Better",
+      "focusArea": "Service",
+      "principle": "Legacy-minded athletes leave the room stronger than they found it.\nA mature athlete does not just benefit from the room. He adds to it through effort, example, and service.",
+      "houseStandard": "In this house, we leave the room better.\nStrong legacy adds more than it consumes.\nSay it out loud. Twice.",
+      "prompt": "How can an athlete leave the room stronger than he found it?",
+      "questions": [
+        "What does a stronger room look like?",
+        "What weakens a room over time?",
+        "How can your behavior improve it?",
+        "What do you currently add to the room?",
+        "What do you currently consume without replacing?"
+      ],
+      "deliverable": "3 room-strengthening actions",
+      "scripture": {
+        "text": "Let us do good to all people.",
+        "ref": "Galatians 6:10"
+      }
+    },
+    {
+      "n": 7,
+      "id": "HON6-007",
+      "block": 1,
+      "type": "reflection",
+      "title": "Your Name and Your Habits",
+      "focusArea": "Integrity",
+      "principle": "A name gains weight through repeated conduct.\nPeople attach trust, caution, respect, or doubt to names because of habits. Legacy lives in what your name comes to mean.",
+      "houseStandard": "In this house, names carry earned meaning.\nYour habits teach people what your name means.\nSay it out loud. Twice.",
+      "prompt": "What do you want your name to mean in the room, and what habits would make that true?",
+      "questions": [
+        "What does your name currently mean to others?",
+        "What do you want it to mean?",
+        "What habits must close the gap?",
+        "What habit hurts your name most right now?",
+        "What habit would strengthen it fastest?"
+      ],
+      "deliverable": "name meaning + 3 supporting habits",
+      "scripture": {
+        "text": "A good name is more desirable than great riches.",
+        "ref": "Proverbs 22:1"
+      }
+    },
+    {
+      "n": 8,
+      "id": "HON6-008",
+      "block": 1,
+      "type": "reflection",
+      "title": "Legacy Starts Now",
+      "focusArea": "Responsibility",
+      "principle": "Legacy is not a future project. It starts in present behavior.\nAthletes often think legacy is something older people think about. But legacy is built every day through what you tolerate, model, and protect.",
+      "houseStandard": "In this house, legacy starts today.\nTomorrow’s legacy is hidden in today’s habits.\nSay it out loud. Twice.",
+      "prompt": "Why does legacy begin now rather than later?",
+      "questions": [
+        "Why do people delay legacy thinking?",
+        "What does that cost them?",
+        "What can begin today?",
+        "What behavior already shapes legacy now?",
+        "What current habit matters most?"
+      ],
+      "deliverable": "legacy-now explanation",
+      "scripture": {
+        "text": "Teach us to number our days.",
+        "ref": "Psalm 90:12"
+      }
+    },
+    {
+      "n": 9,
+      "id": "HON6-009",
+      "block": 2,
+      "type": "reflection",
+      "title": "Mentoring Without Ego",
+      "focusArea": "Humility",
+      "principle": "Legacy deepens when mature athletes help others grow without making it about themselves.\nMentorship is not performance. It is steady, useful investment in other people’s growth.",
+      "houseStandard": "In this house, mentorship serves growth, not ego.\nUseful help matters more than image.\nSay it out loud. Twice.",
+      "prompt": "What makes mentorship helpful, and what makes it ego-driven?",
+      "questions": [
+        "What makes mentorship real?",
+        "What turns it into performance?",
+        "What should younger athletes receive from mentors?",
+        "What motive most often corrupts mentorship?",
+        "How can you stay useful instead of impressive?"
+      ],
+      "deliverable": "helpful mentorship vs ego mentorship",
+      "scripture": {
+        "text": "Teach others also.",
+        "ref": "2 Timothy 2:2"
+      }
+    },
+    {
+      "n": 10,
+      "id": "HON6-010",
+      "block": 2,
+      "type": "reflection",
+      "title": "Passing Down Standards",
+      "focusArea": "Stewardship",
+      "principle": "Legacy survives when standards are passed down clearly.\nWhat one generation refuses to explain or model well is often lost by the next.",
+      "houseStandard": "In this house, standards are handed down clearly.\nWhat is not passed down clearly often disappears.\nSay it out loud. Twice.",
+      "prompt": "How should mature athletes pass standards down to younger or newer teammates?",
+      "questions": [
+        "How are standards lost?",
+        "How are they passed down well?",
+        "What standard must not be lost?",
+        "What matters more: speech or example?",
+        "What are you currently handing down?"
+      ],
+      "deliverable": "3 standard-passing methods",
+      "scripture": {
+        "text": "Tell to the coming generation the glorious deeds of the Lord.",
+        "ref": "Psalm 78:4"
+      }
+    },
+    {
+      "n": 11,
+      "id": "HON6-011",
+      "block": 2,
+      "type": "reflection",
+      "title": "Leaving More Than Skill",
+      "focusArea": "Character",
+      "principle": "The deepest legacy is bigger than technique.\nAthletes may remember moves, but they are more deeply shaped by character, tone, standards, and how people treated them.",
+      "houseStandard": "In this house, we pass down more than skill.\nPeople remember how you shaped them.\nSay it out loud. Twice.",
+      "prompt": "Why is character legacy deeper than technical legacy alone?",
+      "questions": [
+        "What do athletes remember besides skill?",
+        "What kind of character leaves a strong mark?",
+        "What kind of character leaves damage?",
+        "Why does tone matter so much?",
+        "What part of you do people carry longest?"
+      ],
+      "deliverable": "character legacy explanation",
+      "scripture": {
+        "text": "The righteous lead blameless lives; blessed are their children after them.",
+        "ref": "Proverbs 20:7"
+      }
+    },
+    {
+      "n": 12,
+      "id": "HON6-012",
+      "block": 2,
+      "type": "reflection",
+      "title": "Being Worth Copying",
+      "focusArea": "Example",
+      "principle": "Legacy grows when your habits are worth repeating.\nWhether you want it or not, people copy what they see. Legacy asks a hard question: are your habits worth being repeated by others?",
+      "houseStandard": "In this house, our habits should be worth copying.\nBad habits should stop with us.\nSay it out loud. Twice.",
+      "prompt": "Which of your habits are worth copying, and which should never be passed on?",
+      "questions": [
+        "What habits should be repeated?",
+        "What habits should stop with you?",
+        "What do others likely copy from you?",
+        "Which habit would you never want inherited?",
+        "Which one do you most want repeated?"
+      ],
+      "deliverable": "3 copy-worthy habits + 2 habits to end",
+      "scripture": {
+        "text": "Join together in following my example.",
+        "ref": "Philippians 3:17"
+      }
+    },
+    {
+      "n": 13,
+      "id": "HON6-013",
+      "block": 2,
+      "type": "reflection",
+      "title": "Teaching Through Consistency",
+      "focusArea": "Discipline",
+      "principle": "Consistency teaches even when no formal lesson is happening.\nAthletes learn from what strong people repeatedly do. Consistency becomes silent teaching.",
+      "houseStandard": "In this house, consistency teaches.\nRepeated habits become unspoken lessons.\nSay it out loud. Twice.",
+      "prompt": "How does consistency teach younger or newer athletes without words?",
+      "questions": [
+        "What do people learn by watching?",
+        "Why does inconsistency confuse others?",
+        "What are you silently teaching now?",
+        "What repeated habit speaks the loudest?",
+        "What silent lesson do you want to leave behind?"
+      ],
+      "deliverable": "consistency teaching explanation",
+      "scripture": {
+        "text": "Be doers of the word, and not hearers only.",
+        "ref": "James 1:22"
+      }
+    },
+    {
+      "n": 14,
+      "id": "HON6-014",
+      "block": 2,
+      "type": "reflection",
+      "title": "Protecting Younger Athletes from Bad Patterns",
+      "focusArea": "Stewardship",
+      "principle": "Legacy includes refusing to pass down unhealthy habits.\nImmature rooms normalize bad patterns and call it culture. Mature athletes break those patterns before they become inheritance.",
+      "houseStandard": "In this house, we do not pass down bad patterns.\nOne of the strongest forms of legacy is what you refuse to pass on.\nSay it out loud. Twice.",
+      "prompt": "What bad patterns must mature athletes keep younger teammates from inheriting?",
+      "questions": [
+        "What bad patterns spread most easily?",
+        "Why are they hard to stop?",
+        "What stronger pattern should replace them?",
+        "Which bad pattern is most dangerous in your room?",
+        "What should end with you?"
+      ],
+      "deliverable": "3 bad patterns + 3 better replacements",
+      "scripture": {
+        "text": "Do not be misled: bad company corrupts good character.",
+        "ref": "1 Corinthians 15:33"
+      }
+    },
+    {
+      "n": 15,
+      "id": "HON6-015",
+      "block": 2,
+      "type": "reflection",
+      "title": "Helping Others Outgrow You",
+      "focusArea": "Humility",
+      "principle": "Legacy-minded athletes want others to grow strong, not stay beneath them.\nImmature influence needs dependence. Mature legacy wants the next athlete to become strong enough to carry even more.",
+      "houseStandard": "In this house, we want others to grow strong, not stay small.\nLegacy grows strongest when insecurity dies.\nSay it out loud. Twice.",
+      "prompt": "Why should mature athletes want others to grow beyond them in some ways?",
+      "questions": [
+        "Why do some athletes want others to stay beneath them?",
+        "What does mature legacy want instead?",
+        "What growth in others should you welcome?",
+        "What insecurity blocks this?",
+        "What would real abundance look like?"
+      ],
+      "deliverable": "growth-minded legacy explanation",
+      "scripture": {
+        "text": "He must become greater; I must become less.",
+        "ref": "John 3:30"
+      }
+    },
+    {
+      "n": 16,
+      "id": "HON6-016",
+      "block": 2,
+      "type": "reflection",
+      "title": "Leaving People Stronger",
+      "focusArea": "Service",
+      "principle": "A lasting legacy leaves people stronger, steadier, and more disciplined.\nThe clearest sign of a strong legacy is not what people said about you, but what kind of people they became because of your influence.",
+      "houseStandard": "In this house, we leave people stronger.\nThe best legacy is strength left behind in other people.\nSay it out loud. Twice.",
+      "prompt": "How can an athlete or leader leave others stronger over time?",
+      "questions": [
+        "What makes people stronger over time?",
+        "What keeps them weak?",
+        "What influence do you currently leave?",
+        "What does strong influence feel like to others?",
+        "What one habit would strengthen people most?"
+      ],
+      "deliverable": "3 strengthening actions",
+      "scripture": {
+        "text": "Strengthen the weak hands.",
+        "ref": "Isaiah 35:3"
+      }
+    },
+    {
+      "n": 17,
+      "id": "HON6-017",
+      "block": 3,
+      "type": "reflection",
+      "title": "Protecting Legacy Under Pressure",
+      "focusArea": "Composure",
+      "principle": "Legacy is tested most under pressure.\nAthletes often talk about values when things are easy. Pressure reveals whether those values actually hold.",
+      "houseStandard": "In this house, pressure does not erase legacy.\nA legacy that only survives easy days is weak.\nSay it out loud. Twice.",
+      "prompt": "What happens to a person’s legacy when pressure changes their standards?",
+      "questions": [
+        "What tends to break under pressure?",
+        "What should remain fixed?",
+        "What pressure habit threatens legacy most?",
+        "What standard must survive your hardest moments?",
+        "What does pressure reveal in you now?"
+      ],
+      "deliverable": "pressure threat + fixed standard",
+      "scripture": {
+        "text": "When you are tested, your faith produces perseverance.",
+        "ref": "James 1:3"
+      }
+    },
+    {
+      "n": 18,
+      "id": "HON6-018",
+      "block": 3,
+      "type": "reflection",
+      "title": "What You Tolerate Becomes Legacy",
+      "focusArea": "Stewardship",
+      "principle": "Legacy is shaped not only by what you model, but also by what you allow.\nIf mature athletes tolerate drift, disrespect, or weak standards, those things eventually become inherited culture.",
+      "houseStandard": "In this house, we do not tolerate what poisons legacy.\nWhat you tolerate today becomes someone else’s normal tomorrow.\nSay it out loud. Twice.",
+      "prompt": "What are leaders or mature athletes tempted to tolerate that eventually becomes bad legacy?",
+      "questions": [
+        "What bad things become normal through tolerance?",
+        "Why is tolerance so dangerous?",
+        "What needs to be confronted earlier?",
+        "What drift is easiest to excuse?",
+        "What should no longer be left alone?"
+      ],
+      "deliverable": "3 tolerated threats + 1 action plan",
+      "scripture": {
+        "text": "A little yeast works through the whole batch.",
+        "ref": "Galatians 5:9"
+      }
+    },
+    {
+      "n": 19,
+      "id": "HON6-019",
+      "block": 3,
+      "type": "reflection",
+      "title": "Legacy and Competition",
+      "focusArea": "Representation",
+      "principle": "Competition is one of the clearest places legacy becomes visible.\nHow athletes carry themselves under pressure, victory, defeat, and fatigue says a lot about what they will leave behind.",
+      "houseStandard": "In this house, competition reveals legacy.\nCompetition magnifies the truth of character.\nSay it out loud. Twice.",
+      "prompt": "How does the way an athlete competes shape the legacy they leave?",
+      "questions": [
+        "What competition habits leave strong legacy?",
+        "What habits leave damage?",
+        "What do people remember most?",
+        "What does pressure reveal most clearly in competition?",
+        "How should a legacy-minded athlete carry himself there?"
+      ],
+      "deliverable": "competition legacy explanation",
+      "scripture": {
+        "text": "Conduct yourselves in a manner worthy.",
+        "ref": "Philippians 1:27"
+      }
+    },
+    {
+      "n": 20,
+      "id": "HON6-020",
+      "block": 3,
+      "type": "reflection",
+      "title": "Legacy in the Hard Moments",
+      "focusArea": "Character",
+      "principle": "Legacy is often decided in the moments people are tempted to fold.\nPeople may forget your easy days. They remember your hard ones — how you responded when things hurt, slipped, failed, or got unfair.",
+      "houseStandard": "In this house, hard moments reveal true legacy.\nHard moments carve the deepest part of legacy.\nSay it out loud. Twice.",
+      "prompt": "Why do hard moments shape legacy more than easy ones?",
+      "questions": [
+        "Why do hard moments leave deeper marks?",
+        "What kind of response earns lasting respect?",
+        "What kind of response leaves damage?",
+        "What hard moment has shaped you most?",
+        "What response do you want remembered?"
+      ],
+      "deliverable": "hard-moment legacy explanation",
+      "scripture": {
+        "text": "The testing of your faith produces perseverance.",
+        "ref": "James 1:3"
+      }
+    },
+    {
+      "n": 21,
+      "id": "HON6-021",
+      "block": 4,
+      "type": "reflection",
+      "title": "Guarding the Standard After Success",
+      "focusArea": "Humility",
+      "principle": "Success can damage legacy if it weakens humility and discipline.\nSome athletes build strong habits, then let success make them careless. Legacy requires guarding the standard after visible wins.",
+      "houseStandard": "In this house, success does not loosen the standard.\nA legacy can be weakened by success handled poorly.\nSay it out loud. Twice.",
+      "prompt": "Why can success become dangerous to legacy if athletes are careless?",
+      "questions": [
+        "What changes after success for some athletes?",
+        "What should remain fixed?",
+        "How can success damage legacy?",
+        "What guardrail protects humility after a win?",
+        "What success habit could weaken you most?"
+      ],
+      "deliverable": "success-risk explanation + 1 guardrail",
+      "scripture": {
+        "text": "When pride comes, then comes disgrace.",
+        "ref": "Proverbs 11:2"
+      }
+    },
+    {
+      "n": 22,
+      "id": "HON6-022",
+      "block": 4,
+      "type": "reflection",
+      "title": "Legacy After Failure",
+      "focusArea": "Resilience",
+      "principle": "Failure can deepen legacy when handled with honesty and discipline.\nPeople often remember who stayed steady, humble, and committed after failing. Failure handled well can add weight to a name.",
+      "houseStandard": "In this house, failure becomes honest growth.\nFailure handled honestly can deepen respect.\nSay it out loud. Twice.",
+      "prompt": "How can failure strengthen legacy instead of weaken it?",
+      "questions": [
+        "What responses to failure weaken legacy?",
+        "What responses strengthen it?",
+        "Why does honest recovery matter?",
+        "What does humble failure look like?",
+        "What would you want people to remember after your loss?"
+      ],
+      "deliverable": "failure-to-legacy explanation",
+      "scripture": {
+        "text": "Though the righteous fall seven times, they rise again.",
+        "ref": "Proverbs 24:16"
+      }
+    },
+    {
+      "n": 23,
+      "id": "HON6-023",
+      "block": 4,
+      "type": "reflection",
+      "title": "Legacy and Correction",
+      "focusArea": "Teachability",
+      "principle": "People with lasting legacy stay correctable.\nA strong legacy is not built by people who think they are above correction. It is built by people who stay teachable deep into maturity.",
+      "houseStandard": "In this house, legacy stays teachable.\nLegacy without teachability becomes stiffness, not wisdom.\nSay it out loud. Twice.",
+      "prompt": "Why must athletes with influence or maturity stay open to correction?",
+      "questions": [
+        "Why do mature athletes sometimes stop listening?",
+        "What damage follows?",
+        "What does teachable legacy look like?",
+        "What correction do you most resist?",
+        "How does humility protect legacy?"
+      ],
+      "deliverable": "teachability explanation + 1 needed correction",
+      "scripture": {
+        "text": "The wise listen to advice.",
+        "ref": "Proverbs 12:15"
+      }
+    },
+    {
+      "n": 24,
+      "id": "HON6-024",
+      "block": 4,
+      "type": "reflection",
+      "title": "Protecting the Future Room",
+      "focusArea": "Stewardship",
+      "principle": "Legacy-minded athletes think beyond the present room and current cycle.\nThe strongest stewards think about who will train here next, what kind of room they will inherit, and whether current habits make that future stronger or weaker.",
+      "houseStandard": "In this house, we protect the future room.\nLegacy sees people who are not in the room yet.\nSay it out loud. Twice.",
+      "prompt": "What should athletes protect now for the sake of people who will come later?",
+      "questions": [
+        "What future damage can current drift create?",
+        "What future strength can current stewardship build?",
+        "How can you protect what comes next?",
+        "What should future athletes inherit from you?",
+        "What must never be handed to them?"
+      ],
+      "deliverable": "3 future-room protections",
+      "scripture": {
+        "text": "One generation commends your works to another.",
+        "ref": "Psalm 145:4"
+      }
+    },
+    {
+      "n": 25,
+      "id": "HON6-025",
+      "block": 4,
+      "type": "reflection",
+      "title": "Legacy and Responsibility in Absence",
+      "focusArea": "Integrity",
+      "principle": "Legacy is revealed in what people do when key leaders are absent.\nIf standards vanish when one person leaves, legacy was not truly planted. Real legacy survives absence.",
+      "houseStandard": "In this house, standards remain when leaders step away.\nLasting legacy survives the absence of its builder.\nSay it out loud. Twice.",
+      "prompt": "Why is a room’s behavior in someone’s absence a test of legacy?",
+      "questions": [
+        "What does it mean if standards disappear in absence?",
+        "What does it mean if they remain?",
+        "What kind of legacy survives absence?",
+        "What part of your influence would remain without you?",
+        "What does your absence currently reveal?"
+      ],
+      "deliverable": "absence test explanation",
+      "scripture": {
+        "text": "By wisdom a house is built, and through understanding it is established.",
+        "ref": "Proverbs 24:3"
+      }
+    },
+    {
+      "n": 26,
+      "id": "HON6-026",
+      "block": 4,
+      "type": "reflection",
+      "title": "The Cost of Bad Legacy",
+      "focusArea": "Wisdom",
+      "principle": "Bad legacy can outlive the athlete and harm others for a long time.\nA careless athlete may think damage ends with him, but unhealthy patterns often keep spreading after he is gone.",
+      "houseStandard": "In this house, we refuse to leave damage behind.\nBad legacy often outlives bad intent.\nSay it out loud. Twice.",
+      "prompt": "Why is bad legacy dangerous even after a person leaves the room?",
+      "questions": [
+        "What kinds of bad legacy spread?",
+        "Why do people underestimate them?",
+        "What should be stopped now?",
+        "What damage lingers longest?",
+        "What harmful pattern worries you most?"
+      ],
+      "deliverable": "bad legacy explanation + 1 prevention action",
+      "scripture": {
+        "text": "A little yeast works through the whole batch.",
+        "ref": "Galatians 5:9"
+      }
+    },
+    {
+      "n": 27,
+      "id": "HON6-027",
+      "block": 4,
+      "type": "reflection",
+      "title": "Leaving a Standard People Want to Defend",
+      "focusArea": "Respect",
+      "principle": "The strongest legacy creates standards others want to protect, not just obey.\nWhen people deeply respect a culture, they defend it because they know its value. That is stronger than mere compliance.",
+      "houseStandard": "In this house, legacy creates standards worth defending.\nPeople defend what they have seen prove its worth.\nSay it out loud. Twice.",
+      "prompt": "What makes a standard valuable enough that people will protect it after you are gone?",
+      "questions": [
+        "Why do some standards get defended and others ignored?",
+        "What gives standards real weight?",
+        "What kind of standard are you helping build?",
+        "What must people experience to defend a standard?",
+        "What weakens a standard’s credibility?"
+      ],
+      "deliverable": "defendable standard explanation",
+      "scripture": {
+        "text": "Stand firm. Let nothing move you.",
+        "ref": "1 Corinthians 15:58"
+      }
+    },
+    {
+      "n": 28,
+      "id": "HON6-028",
+      "block": 4,
+      "type": "reflection",
+      "title": "Legacy Through Sacrifice",
+      "focusArea": "Service",
+      "principle": "The deepest legacy often comes through sacrifice, not comfort.\nAthletes who leave real impact usually gave something up: time, comfort, ego, convenience, or recognition.",
+      "houseStandard": "In this house, legacy costs something.\nLegacy without cost is usually shallow.\nSay it out loud. Twice.",
+      "prompt": "Why does real legacy usually require sacrifice?",
+      "questions": [
+        "What sacrifices build strong legacy?",
+        "Why do some avoid them?",
+        "What cost might legacy require from you?",
+        "What comfort most tempts you away from impact?",
+        "What sacrifice would deepen your influence most?"
+      ],
+      "deliverable": "sacrifice explanation + 1 cost you must accept",
+      "scripture": {
+        "text": "Greater love has no one than this: to lay down one’s life for one’s friends.",
+        "ref": "John 15:13"
+      }
+    },
+    {
+      "n": 29,
+      "id": "HON6-029",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Do You Want Left Behind?",
+      "focusArea": "Vision",
+      "principle": "Legacy gains clarity when people define what they actually want left behind.\nVague legacy creates vague behavior. Clear legacy creates more intentional habits, tone, and standards.",
+      "houseStandard": "In this house, we name what we want left behind.\nClear legacy vision sharpens daily conduct.\nSay it out loud. Twice.",
+      "prompt": "What do you want left behind in the room because of you?",
+      "questions": [
+        "What do you want remembered?",
+        "What do you want repeated?",
+        "What do you want protected?",
+        "What do you want to disappear because you were here?",
+        "What daily habit must align with that vision?"
+      ],
+      "deliverable": "legacy vision statement",
+      "scripture": {
+        "text": "Write the vision and make it plain.",
+        "ref": "Habakkuk 2:2"
+      }
+    },
+    {
+      "n": 30,
+      "id": "HON6-030",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Must End With You?",
+      "focusArea": "Courage",
+      "principle": "Part of legacy is deciding what harmful things will stop with you.\nNot everything should be handed down. Some patterns need to end completely if the next generation is going to inherit something better.",
+      "houseStandard": "In this house, some bad patterns end with us.\nOne of the strongest legacies is what you refuse to pass on.\nSay it out loud. Twice.",
+      "prompt": "What negative pattern, habit, or attitude must stop with you and not be passed on?",
+      "questions": [
+        "What harmful pattern have you inherited or absorbed?",
+        "Why does it need to end?",
+        "What stronger pattern should replace it?",
+        "Why is it hard to stop?",
+        "What courage does this require from you?"
+      ],
+      "deliverable": "1 pattern to end + 1 replacement standard",
+      "scripture": {
+        "text": "Do not be overcome by evil, but overcome evil with good.",
+        "ref": "Romans 12:21"
+      }
+    },
+    {
+      "n": 31,
+      "id": "HON6-031",
+      "block": 5,
+      "type": "reflection",
+      "title": "Legacy and Gratitude",
+      "focusArea": "Respect",
+      "principle": "Legacy stays healthier when it carries gratitude instead of entitlement.\nPeople who remember what they received often leave behind something wiser and cleaner than people who act like everything started with them.",
+      "houseStandard": "In this house, legacy carries gratitude.\nGratitude keeps legacy grounded and clean.\nSay it out loud. Twice.",
+      "prompt": "Why does gratitude strengthen legacy?",
+      "questions": [
+        "How does gratitude shape legacy?",
+        "How does entitlement damage it?",
+        "Who or what should you openly honor?",
+        "What did you receive that you did not create alone?",
+        "How can gratitude change your behavior now?"
+      ],
+      "deliverable": "gratitude legacy explanation + 3 people/standards to honor",
+      "scripture": {
+        "text": "Give thanks in all circumstances.",
+        "ref": "1 Thessalonians 5:18"
+      }
+    },
+    {
+      "n": 32,
+      "id": "HON6-032",
+      "block": 5,
+      "type": "reflection",
+      "title": "Legacy and Presence",
+      "focusArea": "Consistency",
+      "principle": "Legacy is not built by occasional inspiration but by steady presence.\nRooms are shaped by the people who show up consistently with honest standards, not just by rare big moments.",
+      "houseStandard": "In this house, steady presence builds legacy.\nPresence repeated over time leaves deeper marks than rare intensity.\nSay it out loud. Twice.",
+      "prompt": "Why does steady presence matter more than occasional big moments in building legacy?",
+      "questions": [
+        "Why do people overvalue dramatic moments?",
+        "Why does presence matter more over time?",
+        "What does steady legacy look like?",
+        "Where are you inconsistent?",
+        "What repeated presence would strengthen your legacy?"
+      ],
+      "deliverable": "presence legacy explanation",
+      "scripture": {
+        "text": "Let us not give up meeting together.",
+        "ref": "Hebrews 10:25"
+      }
+    },
+    {
+      "n": 33,
+      "id": "HON6-033",
+      "block": 5,
+      "type": "reflection",
+      "title": "Your Legacy Reputation",
+      "focusArea": "Integrity",
+      "principle": "Legacy eventually becomes a reputation others attach to your name.\nPeople will summarize your impact whether you do or not. Legacy asks what kind of summary your habits are building.",
+      "houseStandard": "In this house, legacy reputation is earned by behavior.\nLegacy reputation is written by repeated conduct, not self-description.\nSay it out loud. Twice.",
+      "prompt": "What reputation do you think your legacy is building right now?",
+      "questions": [
+        "What kind of legacy reputation are you building?",
+        "What would you want it to become?",
+        "What has to change?",
+        "What do others likely feel from your repeated habits?",
+        "What part of your legacy reputation is strongest? Weakest?"
+      ],
+      "deliverable": "current legacy reputation + 2 needed changes",
+      "scripture": {
+        "text": "A good name is more desirable than great riches.",
+        "ref": "Proverbs 22:1"
+      }
+    },
+    {
+      "n": 34,
+      "id": "HON6-034",
+      "block": 5,
+      "type": "reflection",
+      "title": "Stewardship Over Ownership",
+      "focusArea": "Humility",
+      "principle": "Legacy is healthier when people see themselves as stewards, not owners, of culture.\nAthletes can help carry, strengthen, and pass down a culture without acting like it belongs to them alone.",
+      "houseStandard": "In this house, we steward what matters; we do not possess it with ego.\nStewardship protects culture better than ego ownership.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between stewardship and ownership in legacy work?",
+      "questions": [
+        "What does ego-ownership look like?",
+        "What does stewardship look like?",
+        "Why is stewardship healthier?",
+        "What do you try to control too tightly?",
+        "How does humility protect the house?"
+      ],
+      "deliverable": "stewardship vs ownership comparison",
+      "scripture": {
+        "text": "It is required that those who have been given a trust must prove faithful.",
+        "ref": "1 Corinthians 4:2"
+      }
+    },
+    {
+      "n": 35,
+      "id": "HON6-035",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Makes a Legacy Worth Carrying",
+      "focusArea": "Wisdom",
+      "principle": "Not every legacy should be preserved. Worthy legacy is disciplined, clean, useful, and life-giving.\nPeople inherit all kinds of things. The real question is whether what is being passed down is actually worth keeping alive.",
+      "houseStandard": "In this house, only worthy legacy is worth carrying forward.\nWorthy legacy strengthens the future instead of burdening it.\nSay it out loud. Twice.",
+      "prompt": "What makes a legacy worth carrying into the future?",
+      "questions": [
+        "What kind of legacy is not worth keeping?",
+        "What gives legacy real value?",
+        "What makes people want to defend it?",
+        "What should future athletes be thankful to inherit?",
+        "What makes something life-giving instead of draining?"
+      ],
+      "deliverable": "worthy legacy criteria list",
+      "scripture": {
+        "text": "Test everything; hold fast what is good.",
+        "ref": "1 Thessalonians 5:21"
+      }
+    },
+    {
+      "n": 36,
+      "id": "HON6-036",
+      "block": 5,
+      "type": "reflection",
+      "title": "Legacy and Mortality of Roles",
+      "focusArea": "Wisdom",
+      "principle": "Roles end, seasons change, influence shifts — but legacy can remain.\nAthletes, captains, leaders, mentors — all roles eventually change. Legacy asks what remains when the role is gone.",
+      "houseStandard": "In this house, we build what outlasts the role.\nStrong legacy outlives title, season, and position.\nSay it out loud. Twice.",
+      "prompt": "Why is it important to think beyond your current role when building legacy?",
+      "questions": [
+        "Why do people tie identity too tightly to roles?",
+        "What happens when the role ends?",
+        "What outlasts the role?",
+        "What are you building beyond title?",
+        "What role are you tempted to depend on too much?"
+      ],
+      "deliverable": "role vs legacy explanation",
+      "scripture": {
+        "text": "For here we do not have an enduring city.",
+        "ref": "Hebrews 13:14"
+      }
+    },
+    {
+      "n": 37,
+      "id": "HON6-037",
+      "block": 5,
+      "type": "reflection",
+      "title": "Legacy and the House",
+      "focusArea": "Stewardship",
+      "principle": "The highest form of athletic legacy helps strengthen the house, not just the individual story.\nA good athlete can leave memories. A stronger one helps strengthen the house itself — the standards, trust, and culture that outlive him.",
+      "houseStandard": "In this house, legacy strengthens the house.\nThe strongest legacy leaves the house sturdier, not just the athlete remembered.\nSay it out loud. Twice.",
+      "prompt": "How can an athlete’s legacy strengthen the house rather than just his own story?",
+      "questions": [
+        "What kind of legacy stays self-centered?",
+        "What kind strengthens the house?",
+        "What does the house need from your legacy?",
+        "What should remain stronger because you were here?",
+        "What would make your story useful beyond yourself?"
+      ],
+      "deliverable": "house-strengthening legacy explanation",
+      "scripture": {
+        "text": "By wisdom a house is built.",
+        "ref": "Proverbs 24:3"
+      }
+    },
+    {
+      "n": 38,
+      "id": "HON6-038",
+      "block": 5,
+      "type": "reflection",
+      "title": "Legacy Standard Statement",
+      "focusArea": "Vision",
+      "principle": "Legacy becomes more intentional when people define the standard they want to leave behind.\nA clear standard helps daily habits align with long-term impact.",
+      "houseStandard": "In this house, legacy is built on clear standards.\nClear legacy standards sharpen present behavior.\nSay it out loud. Twice.",
+      "prompt": "Write your legacy standard in one strong sentence.",
+      "questions": [
+        "What should remain because of you?",
+        "What must never be passed on?",
+        "What standard will guide your legacy?",
+        "What would someone else clearly see if you lived it?",
+        "What one sentence would keep you aligned?"
+      ],
+      "deliverable": "1 sentence legacy standard",
+      "scripture": {
+        "text": "Write the vision and make it plain.",
+        "ref": "Habakkuk 2:2"
+      }
+    },
+    {
+      "n": 39,
+      "id": "HON6-039",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Does a Strong Legacy Look Like?",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Strong legacy is disciplined, useful, clean, and worth carrying forward.\nThe strongest legacies are not loud. They are visible in the kind of people, habits, and standards left behind.",
+      "houseStandard": "In this house, strong legacy strengthens people and culture.\nLegacy becomes believable through repeated action.\nSay it out loud. Twice.",
+      "prompt": "Define strong legacy in actions, not feelings. List 5 behaviors that create a legacy worth carrying.",
+      "questions": [
+        "What does a strong legacy look like?",
+        "What behavior proves it?",
+        "What weak behavior must disappear?",
+        "What habits would others clearly inherit?",
+        "What makes a legacy worth defending?"
+      ],
+      "deliverable": "5 legacy-building behaviors",
+      "scripture": {
+        "text": "By their fruit you will recognize them.",
+        "ref": "Matthew 7:16"
+      }
+    },
+    {
+      "n": 40,
+      "id": "HON6-040",
+      "block": 5,
+      "type": "baseline_retest",
+      "title": "Legacy Retest",
+      "focusArea": "Legacy",
+      "principle": "Legacy awareness should deepen as responsibility matures.\nReturn to Session 1 and compare what you thought legacy was with what you now understand. The goal is not to be remembered loudly. The goal is to leave strength, standards, and culture behind.",
+      "houseStandard": "In this house, legacy is measured by what remains because you were here.\nDeep legacy turns influence into stewardship and stewardship into service.\nSay it out loud. Twice.",
+      "prompt": "Repeat Session 1 exactly. Answer again: What kind of legacy can an athlete leave in a room? What behaviors leave a bad legacy? What are you leaving right now? Then compare your old answer to your new one.",
+      "questions": [
+        "What changed in your understanding of legacy?",
+        "What part of your legacy has improved?",
+        "What legacy responsibility still needs work?",
+        "What are you leaving right now that is strongest?",
+        "What is your next legacy commitment?"
+      ],
+      "deliverable": "comparison + legacy commitment",
+      "scripture": {
+        "text": "Well done, good and faithful servant.",
+        "ref": "Matthew 25:23"
+      }
+    }
+  ]
+}

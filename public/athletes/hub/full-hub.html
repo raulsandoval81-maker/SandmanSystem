@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Athlete Home Base · Sandman Combat System™</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
+
+  <style>
+    body{
+      margin:0;
+      background:#08090b;
+      color:#e5e5e5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .system-header{
+      background:#0f0f0f;
+      border-bottom:2px solid #FFD700;
+      padding:12px 16px;
+      position:sticky;
+      top:0;
+      z-index:1000;
+    }
+
+    .system-header__brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .system-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:8px;
+      align-items:center;
+    }
+
+    .system-nav a,
+    .system-nav button{
+      color:#eaeaea;
+      background:#1b1f28;
+      border:1px solid #2a2f3a;
+      padding:6px 12px;
+      text-decoration:none;
+      font-weight:600;
+      font-size:.95rem;
+      border-radius:12px;
+      box-shadow:0 4px 10px rgba(0,0,0,.25);
+      cursor:pointer;
+    }
+
+    .system-nav a:hover,
+    .system-nav button:hover{
+      background:#232937;
+      color:#fff;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:28px 20px;
+      display:grid;
+      gap:26px;
+    }
+
+    .hero{
+      background:linear-gradient(180deg,#f7f4e7,#e7e0c5,#c8bb9a,#8d7f63);
+      border:1px solid #cfc4a6;
+      border-radius:18px;
+      padding:26px;
+      box-shadow:0 10px 26px rgba(0,0,0,.25);
+      color:#1a1a1a;
+    }
+
+    .hero-inner{
+      display:grid;
+      grid-template-columns:170px 1fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    @media (max-width:720px){
+      .hero-inner{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .sandman-logo{
+      width:160px;
+      height:auto;
+      display:block;
+      filter:drop-shadow(0 0 6px rgba(0,0,0,.25));
+      border-radius:12px;
+    }
+
+    .hero h1{
+      margin:0 0 6px;
+      font-size:2.4rem;
+      color:#946c00;
+      letter-spacing:.8px;
+      font-weight:900;
+      text-shadow:0 0 10px rgba(148,108,0,.15);
+    }
+
+    .hero p{
+      margin:4px 0 0;
+      color:#2b2b2b;
+      font-size:1.05rem;
+      max-width:70ch;
+      line-height:1.45;
+    }
+
+    .pillars{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:22px;
+      margin-top:18px;
+    }
+
+    .pillar{
+      background:linear-gradient(180deg,#d9ccae,#b7a887,#8e7c5e,#5d5040);
+      border:1px solid #c8b99a;
+      border-radius:16px;
+      padding:20px;
+      color:#1a1a1a;
+      box-shadow:0 8px 20px rgba(0,0,0,.22);
+    }
+
+    .pillar h2{
+      margin:.1rem 0 .35rem;
+      color:#b01919;
+      font-weight:900;
+      letter-spacing:.3px;
+    }
+
+    .pillar p{
+      margin:0;
+      line-height:1.5;
+      color:#2a2a2a;
+    }
+
+    .cta-box{
+      background:linear-gradient(180deg,#141820,#0c0e13);
+      border:1px dashed #293142;
+      border-radius:16px;
+      padding:20px 22px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:14px;
+    }
+
+    .cta-box p{
+      margin:0;
+      color:#b8c2d0;
+      font-size:1rem;
+    }
+
+    .btn-red{
+      background:#e53935;
+      color:#fff;
+      font-weight:800;
+      border-radius:12px;
+      padding:.75rem 1rem;
+      text-decoration:none;
+      box-shadow:0 6px 16px rgba(0,0,0,.35);
+      display:inline-block;
+    }
+
+    .btn-red:hover{
+      background:#c62828;
+    }
+
+    .btn-disabled{
+      opacity:.55;
+      pointer-events:none;
+      cursor:not-allowed;
+    }
+
+    #btnSignIn{
+      display:none;
+      background:#ffd700;
+      color:#1a1a1a;
+      border:1px solid rgba(0,0,0,.25);
+      font-weight:900;
+    }
+
+    #btnSignIn:hover{
+      filter:brightness(.95);
+    }
+
+    .athlete-tabs{
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+      gap:6px;
+      margin:12px 0 18px;
+    }
+
+    .tab{
+      flex:1;
+      text-align:center;
+      padding:10px 8px;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:600;
+      font-size:.9rem;
+      background:#0e1420;
+      border:1px solid #1f2a40;
+      color:#cbd5e1;
+      transition:.15s;
+    }
+
+    .tab:hover{
+      border-color:#ffdd48;
+      color:#ffdd48;
+    }
+
+    .tab.active{
+      background:#ffdd48;
+      color:#111;
+      border-color:#ffdd48;
+    }
+    
+  </style>
+</head>
+
+<body>
+
+  <header class="system-header">
+    <div class="system-header__brand">
+      <span class="brand-main" style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat™</span>
+      <span class="brand-sub" style="color:#bbb;font-weight:600;"></span>
+    </div>
+
+    <nav class="top-bar">
+      <div class="athlete-tabs">
+        <a class="tab" href="/athletes/bulletin/index.html">Bulletin</a>
+        <a id="arsenalLink" class="tab" href="#">Arsenal</a>
+        <a id="leaderboardLink" class="tab" href="#">Leaderboard</a>
+        <a id="profileLink" class="tab active" href="/athletes/profile/athlete-profile.html">Profile</a>
+      </div>
+
+      <div class="auth-controls">
+        <button id="btnSignIn" type="button">Sign in</button>
+      </div>
+    </nav>
+  </header>
+
+  <main class="wrap">
+
+    <section class="hero">
+      <div class="hero-inner">
+        <img class="sandman-logo" src="/assets/images/logos/Sandman-Combat.png" alt="Sandman Combat Logo">
+
+        <div>
+          <h1 id="heroTitle">Athlete Home Base</h1>
+          <p id="heroText">Welcome back. Stay disciplined — your journey continues.</p>
+
+
+<div class="hero-values-shell">
+  <section class="pillars">
+
+    <article class="pillar">
+      <h2>The Creed</h2>
+      <p>
+        I hold the line.<br>
+        I take pride in all I do.<br>
+        I won’t back down.
+      </p>
+    </article>
+
+    <article class="pillar">
+      <h2>The Code</h2>
+      <p>
+        Protect the house.<br>
+        Fight hard. Fight fair.<br>
+        Respect the process.
+      </p>
+    </article>
+
+    <article class="pillar">
+      <h2>The Goal</h2>
+      <p>
+        Train for opportunity.<br>
+        Recognize the moment.<br>
+        Capitalize on it.
+      </p>
+    </article>
+
+    <article class="pillar">
+      <h2>The Mission</h2>
+      <p>
+        Be my best.<br>
+        Carry it with me.<br>
+        For life.
+      </p>
+    </article>
+
+  </section>
+</div>
+          <section class="cta-box">
+      <p id="ctaMessage">Progress here is measured in months and years, not days.</p>
+    </section>
+
+  </main>
+
+  <script type="module">
+    (function hardenId(){
+      const params = new URLSearchParams(location.search);
+      const urlId = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
+      const storedId = (localStorage.getItem("sandman_lastAthleteUid") || "").trim().toUpperCase();
+
+      if (urlId) {
+        localStorage.setItem("sandman_lastAthleteUid", urlId);
+        return;
+      }
+
+      if (!urlId && storedId) {
+        location.replace("/athletes/hub/?id=" + encodeURIComponent(storedId));
+      }
+    })();
+
+    import {
+      db,
+      auth,
+      doc,
+      getDoc,
+      collection,
+      query,
+      where,
+      limit,
+      getDocs
+    } from "/assets/js/firebase-init.js";
+
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    window._auth = auth;
+    window._db = db;
+
+    const $ = (id) => document.getElementById(id);
+    const LAST_UID_KEY = "sandman_lastAthleteUid";
+
+    function norm(x){ return (x || "").toString().trim().toUpperCase(); }
+
+    function setProfileLink(id){
+      const profileLink = $("profileLink");
+      if (!profileLink || !id) return;
+
+      const profileUrl = `/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`;
+      profileLink.href = profileUrl;
+      profileLink.classList.remove("btn-disabled");
+      profileLink.removeAttribute("aria-disabled");
+    }
+
+    function setArsenalLink(id){
+      const arsenalLink = $("arsenalLink");
+      if (!arsenalLink || !id) return;
+
+      const arsenalUrl = `/athletes/arsenal/?id=${encodeURIComponent(id)}`;
+      arsenalLink.href = arsenalUrl;
+      arsenalLink.classList.remove("btn-disabled");
+      arsenalLink.removeAttribute("aria-disabled");
+    }
+
+    function showSignIn(show){
+      const btn = $("btnSignIn");
+      if (!btn) return;
+      btn.style.display = show ? "inline-block" : "none";
+    }
+
+    function setFallbackText(){
+      const heroTitle = $("heroTitle");
+      const heroText  = $("heroText");
+      const ctaMsg    = $("ctaMessage");
+
+      if (heroTitle) heroTitle.textContent = "Athlete Home Base";
+      if (heroText) heroText.textContent =
+        "No athlete loaded. If you saved this to Home Screen, tap Sign in (Reconnect), or open your onboarding link again.";
+      if (ctaMsg) ctaMsg.textContent = "No athlete loaded yet.";
+    }
+
+    function setLeaderboardLink(id){
+      const leaderboardLink = document.getElementById("leaderboardLink");
+      if (!leaderboardLink || !id) return;
+
+      const url = `/athletes/leaderboard/?id=${encodeURIComponent(id)}`;
+      leaderboardLink.href = url;
+      leaderboardLink.classList.remove("btn-disabled");
+      leaderboardLink.removeAttribute("aria-disabled");
+    }
+
+    function waitForAuthUser(timeoutMs = 2500){
+      return new Promise((resolve) => {
+        if (auth.currentUser) return resolve(auth.currentUser);
+
+        let done = false;
+        const unsub = onAuthStateChanged(auth, (u) => {
+          if (done) return;
+          done = true;
+          try { unsub(); } catch {}
+          resolve(u || null);
+        });
+
+        setTimeout(() => {
+          if (done) return;
+          done = true;
+          try { unsub(); } catch {}
+          resolve(auth.currentUser || null);
+        }, timeoutMs);
+      });
+    }
+
+    async function resolveAthleteIdFromAuth(){
+      const u = await waitForAuthUser(2500);
+      if (!u || !u.uid) return "";
+
+      const remembered = norm(localStorage.getItem(LAST_UID_KEY));
+      if (remembered) {
+        try {
+          const rs = await getDoc(doc(db, "athletes", remembered));
+          if (rs.exists()) {
+            const A = rs.data() || {};
+            if (A.authUid === u.uid) return remembered;
+          }
+        } catch {}
+      }
+
+      try {
+        const qy = query(
+          collection(db, "athletes"),
+          where("authUid", "==", u.uid),
+          limit(1)
+        );
+
+        const snaps = await getDocs(qy);
+        if (snaps.empty) return "";
+        return norm(snaps.docs[0].id);
+      } catch {
+        return "";
+      }
+    }
+
+    async function loadAthlete(){
+      const params = new URLSearchParams(location.search);
+      let id = norm(params.get("id") || params.get("uid"));
+
+      if (!id) id = await resolveAthleteIdFromAuth();
+
+      if (!id) {
+        showSignIn(true);
+        setFallbackText();
+        return;
+      }
+
+      showSignIn(false);
+      localStorage.setItem(LAST_UID_KEY, id);
+      setProfileLink(id);
+      setArsenalLink(id);
+      setLeaderboardLink(id);
+
+      let snap = null;
+      try {
+        snap = await getDoc(doc(db, "athletes", id));
+      } catch {
+        snap = null;
+      }
+
+      if (!snap || !snap.exists()) {
+        showSignIn(true);
+        setFallbackText();
+        return;
+      }
+
+      const A = snap.data() || {};
+      const displayName = A.fullName || A.publicName || A.name || "Athlete";
+
+      $("heroTitle").textContent = `${displayName}'s Home Base`;
+
+      const tierText  = A.tier ? `Tier ${A.tier}` : "Tier —";
+      const trackText = A.trackCode || A.track || "Combat";
+
+      $("heroText").textContent =
+        `Welcome back, ${displayName}. ${tierText} · ${trackText}. Stay disciplined — your journey continues.`;
+
+      $("ctaMessage").textContent =
+        `${displayName}, your profile is ready. Keep building.`;
+    }
+
+    $("btnSignIn")?.addEventListener("click", () => {
+      location.href = "/athletes/onboard/";
+    });
+
+    loadAthlete();
+  </script>
+
+</body>
+</html>

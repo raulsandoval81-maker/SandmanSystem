@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coach Cards — Master</title>
+
+<style>
+:root{
+  color-scheme: dark;
+  --bg:#0b1120;
+  --panel:#121a2b;
+  --line:#27304a;
+  --text:#f5f7fb;
+  --muted:#9aa4b1;
+  --gold:#ffdd48;
+  --red:#e63946;
+  --link:#9ecbff;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui;
+  transition:background .15s;
+}
+
+.wrap{
+  max-width:1200px;
+  margin:auto;
+  padding:24px 16px 72px;
+}
+
+.hero{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:18px;
+}
+
+h1{color:var(--gold);margin:0 0 8px;}
+
+.sub{color:var(--muted);}
+
+.toplinks{
+  display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;
+}
+
+.toplinks a{
+  color:var(--link);
+  text-decoration:none;
+  border:1px solid var(--line);
+  padding:8px 12px;
+  border-radius:10px;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:1.2fr .8fr;
+  gap:16px;
+}
+
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:18px;
+}
+
+.panel h2{
+  color:var(--gold);
+  margin-bottom:12px;
+}
+
+/* cards */
+.item{
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:14px;
+  margin-bottom:12px;
+  background:#0f1728;
+}
+
+.item h3{margin:0 0 6px;}
+.item p{margin:0 0 10px;color:var(--muted);}
+
+.row{display:flex;gap:8px;flex-wrap:wrap;}
+
+.btn{
+  background:var(--gold);
+  color:#000;
+  padding:8px 12px;
+  border-radius:10px;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+  text-decoration:none;
+}
+
+.btn-ghost{
+  background:none;
+  color:#fff;
+  border:1px solid var(--line);
+}
+
+.btn-red{
+  background:var(--red);
+  color:#fff;
+}
+
+/* ========================= */
+/* 🎯 FOUNDARY 4 COLORS */
+/* ========================= */
+
+.teen-t0{border-left:4px solid #ffffff;}
+.teen-t1{border-left:4px solid #3b82f6;}
+.teen-t2{border-left:4px solid #7c3aed;}
+.teen-t3{border-left:4px solid #8b5a2b;}
+.teen-t4{border-left:4px solid #000000;}
+
+.item.teen-t0 h3{color:#ffffff;}
+.item.teen-t1 h3{color:#60a5fa;}
+.item.teen-t2 h3{color:#a78bfa;}
+.item.teen-t3 h3{color:#d2a679;}
+.item.teen-t4 h3{color:#e5e7eb;} /* visible black */
+
+/* ========================= */
+/* 🎯 FOUNDARY 8 COLORS */
+/* ========================= */
+
+.youth-t0{border-left:4px solid #ffffff;}
+.youth-t1{border-left:4px solid #ffdd48;}
+.youth-t2{border-left:4px solid #f97316;}
+.youth-t3{border-left:4px solid #22c55e;}
+.youth-t4{border-left:4px solid #3b82f6;}
+.youth-t5{border-left:4px solid #7c3aed;}
+.youth-t6{border-left:4px solid #8b5a2b;}
+.youth-t7{border-left:4px solid #000000;}
+
+.item.youth-t0 h3{color:#ffffff;}
+.item.youth-t1 h3{color:#ffdd48;}
+.item.youth-t2 h3{color:#fb923c;}
+.item.youth-t3 h3{color:#4ade80;}
+.item.youth-t4 h3{color:#60a5fa;}
+.item.youth-t5 h3{color:#a78bfa;}
+.item.youth-t6 h3{color:#d2a679;}
+.item.youth-t7 h3{color:#e5e7eb;} /* visible black */
+
+/* ========================= */
+/* SESSION */
+/* ========================= */
+
+.session{
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  margin-bottom:12px;
+  text-align:center;
+}
+
+.session h3{color:var(--gold);margin:0;}
+
+.mix-card{
+  border:1px solid var(--line);
+  padding:10px;
+  border-radius:10px;
+  background:#0f1728;
+}
+
+@media(max-width:900px){
+  .layout{grid-template-columns:1fr;}
+}
+/* 🔥 BLACK TIERS — FULL CARD STYLE */
+
+/* Foundry 4 Legend */
+.item.teen-t4{
+  background:#000000;
+  border:1px solid #333;
+  box-shadow:0 0 18px rgba(255,221,72,.18);
+}
+
+.item.teen-t4 h3{
+  color:#ffdd48; /* gold */
+}
+
+.item.teen-t4 p{
+  color:#d4d4d4;
+}
+
+/* Foundry 8 Hero */
+.item.youth-t7{
+  background:#000000;
+  border:1px solid #333;
+  box-shadow:0 0 18px rgba(255,221,72,.18);
+}
+
+.item.youth-t7 h3{
+  color:#ffdd48;
+}
+
+.item.youth-t7 p{
+  color:#d4d4d4;
+}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+
+<section class="hero">
+  <h1>Master Card</h1>
+  <p class="sub">Build sessions and run live training.</p>
+
+  <div class="toplinks">
+    <a href="/coaches/index.html">Console</a>
+    <a href="/coaches/cards/index.html">Cards Hub</a>
+    <a href="/coaches/cards/teen/index.html">Teen</a>
+    <a href="/coaches/cards/youth/index.html">Youth</a>
+  </div>
+</section>
+
+<div class="layout">
+
+<!-- LEFT SIDE -->
+<section class="panel">
+
+<h2>Teen — Foundry 4</h2>
+
+<div class="item teen-t0"><h3>Teen T0 — Apprentice</h3><p>Foundation layer.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t0/index.html">Open Tier</a></div></div>
+<div class="item teen-t1"><h3>Teen T1 — Warrior</h3><p>Pressure + setups.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t1/index.html">Open Tier</a></div></div>
+<div class="item teen-t2"><h3>Teen T2 — Champion</h3><p>Chain wrestling.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t2/index.html">Open Tier</a></div></div>
+<div class="item teen-t3"><h3>Teen T3 — Veteran</h3><p>Advanced control.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t3/index.html">Open Tier</a></div></div>
+<div class="item teen-t4"><h3>Teen T4 — Legend</h3><p>Mastery level.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t4/index.html">Open Tier</a></div></div>
+
+<h2>Youth — Foundry 8</h2>
+
+<div class="item youth-t0"><h3>Youth T0 — Shadow</h3><p>Base fundamentals.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t0/index.html">Open Tier</a></div></div>
+<div class="item youth-t1"><h3>Youth T1 — Recruit</h3><p>Basic flow.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t1/index.html">Open Tier</a></div></div>
+<div class="item youth-t2"><h3>Youth T2 — Combatant</h3><p>Angle attacks.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t2/index.html">Open Tier</a></div></div>
+<div class="item youth-t3"><h3>Youth T3 — Competitor</h3><p>Control + finish.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t3/index.html">Open Tier</a></div></div>
+<div class="item youth-t4"><h3>Youth T4 — Warrior</h3><p>Setups + reattacks.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t4/index.html">Open Tier</a></div></div>
+<div class="item youth-t5"><h3>Youth T5 — Champion</h3><p>Chain systems.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t5/index.html">Open Tier</a></div></div>
+<div class="item youth-t6"><h3>Youth T6 — Commander</h3><p>Control + tempo.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t6/index.html">Open Tier</a></div></div>
+<div class="item youth-t7"><h3>Youth T7 — Hero</h3><p>Complete system.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t7/index.html">Open Tier</a></div></div>
+
+</section>
+
+<!-- RIGHT SIDE -->
+<aside class="panel">
+
+<h2>Session</h2>
+
+<div class="session">
+  <h3 id="sessionTitle">Ready</h3>
+  <p id="sessionStatus">No session running</p>
+</div>
+
+<div id="mixList"></div>
+
+<div class="row" style="margin-top:10px;">
+  <button class="btn btn-red" onclick="startSession()">Run</button>
+  <button class="btn btn-ghost" onclick="next()">Next</button>
+  <button class="btn btn-ghost" onclick="stop()">Stop</button>
+  <button class="btn btn-ghost" onclick="clearMix()">Clear</button>
+</div>
+
+</aside>
+
+</div>
+</main>
+
+<script>
+const key="sandmanMasterQueue";
+
+function load(){return JSON.parse(localStorage.getItem(key)||"[]");}
+function save(q){localStorage.setItem(key,JSON.stringify(q));}
+
+function render(){
+  const q=load();
+  const el=document.getElementById("mixList");
+
+  if(!q.length){
+    el.innerHTML="<p>No cards</p>";
+    return;
+  }
+
+  el.innerHTML=q.map((x,i)=>`
+    <div class="mix-card">
+      ${i+1}. ${x.title}
+      <div class="row">
+        <a class="btn btn-ghost" href="${x.href}">Open</a>
+        <button class="btn btn-ghost" onclick="remove(${i})">Remove</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+function remove(i){
+  const q=load();
+  q.splice(i,1);
+  save(q);
+  render();
+}
+
+function clearMix(){
+  localStorage.removeItem(key);
+  render();
+}
+
+let i=0,timer=null;
+
+function startSession(){
+  const q=load();
+  if(!q.length)return alert("No cards");
+  i=0;
+  play();
+}
+
+function play(){
+  const q=load();
+  if(i>=q.length)return;
+
+  document.getElementById("sessionTitle").textContent=q[i].title;
+  beep(); flash();
+
+  timer=setTimeout(()=>{i++;play();},30000);
+}
+
+function next(){
+  clearTimeout(timer);
+  i++; play();
+}
+
+function stop(){
+  clearTimeout(timer);
+}
+
+function beep(){
+  const ctx=new AudioContext();
+  const o=ctx.createOscillator();
+  o.connect(ctx.destination);
+  o.start();
+  o.stop(ctx.currentTime+.2);
+}
+
+function flash(){
+  document.body.style.background="#2a0a0a";
+  setTimeout(()=>document.body.style.background="",150);
+}
+
+render();
+</script>
+
+</body>
+</html>

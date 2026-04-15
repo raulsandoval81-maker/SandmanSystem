@@ -1,0 +1,172 @@
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="0" data-track="teen">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 4 • Teen</p>
+    <h1>Skill Tree - Tier 0 — Apprentice</h1>
+    <p class="skilltree-sub">20 skills • Reset + Standardization</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Stance &amp; Motion</h2>
+
+    <h3>Skill 1 — Stance Integrity</h3>
+    <p>A — Correct posture</p>
+    <p>B — Balance</p>
+    <p>C — Movement ready</p>
+
+    <h3>Skill 2 — Motion Control</h3>
+    <p>A — Forward / back</p>
+    <p>B — Circle</p>
+    <p>C — Stay in stance</p>
+
+    <h3>Skill 3 — Level Change</h3>
+    <p>A — Drop level</p>
+    <p>B — Maintain posture</p>
+    <p>C — Recover</p>
+
+    <h3>Skill 4 — Distance Awareness</h3>
+    <p>A — Feel range</p>
+    <p>B — Adjust feet</p>
+    <p>C — Enter safely</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Neutral Offense</h2>
+
+    <h3>Skill 5 — Double Leg (Clean)</h3>
+    <p>A — Entry</p>
+    <p>B — Penetration</p>
+    <p>C — Finish</p>
+
+    <h3>Skill 6 — Single Leg (Control)</h3>
+    <p>A — Entry</p>
+    <p>B — Control</p>
+    <p>C — Finish</p>
+
+    <h3>Skill 7 — Setups</h3>
+    <p>A — Wrist tie / contact</p>
+    <p>B — Move opponent</p>
+    <p>C — Attack</p>
+
+    <h3>Skill 8 — Snap to Go Behind</h3>
+    <p>A — Snap</p>
+    <p>B — Control</p>
+    <p>C — Score</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Neutral Defense</h2>
+
+    <h3>Skill 9 — Sprawl</h3>
+    <p>A — Hips down</p>
+    <p>B — Legs back</p>
+    <p>C — Recover</p>
+
+    <h3>Skill 10 — Down Block</h3>
+    <p>A — Block</p>
+    <p>B — Stop shot</p>
+    <p>C — Go behind</p>
+
+    <h3>Skill 11 — Head Position</h3>
+    <p>A — Inside control</p>
+    <p>B — Pressure</p>
+    <p>C — Stay safe</p>
+
+    <h3>Skill 12 — Defense to Offense</h3>
+    <p>A — Defend</p>
+    <p>B — Control</p>
+    <p>C — Re-attack</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Top</h2>
+
+    <h3>Skill 13 — Breakdown</h3>
+    <p>A — Position</p>
+    <p>B — Pressure</p>
+    <p>C — Flatten</p>
+
+    <h3>Skill 14 — Ride Control</h3>
+    <p>A — Follow hips</p>
+    <p>B — Stay behind</p>
+    <p>C — Control</p>
+
+    <h3>Skill 15 — Half Nelson</h3>
+    <p>A — Thread</p>
+    <p>B — Walk</p>
+    <p>C — Turn</p>
+
+    <h3>Skill 16 — Return</h3>
+    <p>A — Lift</p>
+    <p>B — Control</p>
+    <p>C — Return</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Bottom</h2>
+
+    <h3>Skill 17 — Base</h3>
+    <p>A — Build</p>
+    <p>B — Hold</p>
+    <p>C — Move</p>
+
+    <h3>Skill 18 — Stand Up</h3>
+    <p>A — Control hands</p>
+    <p>B — Rise</p>
+    <p>C — Escape</p>
+
+    <h3>Skill 19 — Hand Control</h3>
+    <p>A — Find hands</p>
+    <p>B — Peel</p>
+    <p>C — Clear</p>
+
+    <h3>Skill 20 — Sit Out</h3>
+    <p>A — Sit</p>
+    <p>B — Turn</p>
+    <p>C — Recover</p>
+  </article>
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T0";
+  const pageTrack = "teen";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "teen" && athleteId.startsWith("F8_")) {
+    window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+    throw new Error("Wrong branch for F8 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>

@@ -20,6 +20,12 @@ import {
 } from "/assets/js/dev-mode.js";
 
 import {
+  COLORS,
+  colorKeyFor,
+  getAthleteStripeInfo,
+} from "/assets/js/ladder.service.js";
+
+import {
   getCurrentStyle,
   onStyleIqAwarded,
   initStyleIqUi,
@@ -39,35 +45,35 @@ bindDevToggle({
 /* -----------------------------
    DOM
 ----------------------------- */
-const rowsEl       = document.getElementById("rows");
+const rowsEl = document.getElementById("rows");
 const pageStatusEl = document.getElementById("pageStatus");
 
 const searchEl = document.getElementById("search");
-const tourEl   = document.getElementById("tournamentId");
-const evEl     = document.getElementById("eventName");
-const wonEl    = document.getElementById("wonEvent");
+const tourEl = document.getElementById("tournamentId");
+const evEl = document.getElementById("eventName");
+const wonEl = document.getElementById("wonEvent");
 const winArmEl = document.getElementById("winArm");
 
 // OPTIONAL on some pages
-const levelEl  = document.getElementById("eventLevel");
+const levelEl = document.getElementById("eventLevel");
 
-const pickAllEl  = document.getElementById("pickAll");
+const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
 
-const bulkLionEl   = document.getElementById("bulkLion");
-const bulkTigerEl  = document.getElementById("bulkTiger");
-const bulkBearEl   = document.getElementById("bulkBear");
+const bulkLionEl = document.getElementById("bulkLion");
+const bulkTigerEl = document.getElementById("bulkTiger");
+const bulkBearEl = document.getElementById("bulkBear");
 
 const bulkBattleEl = document.getElementById("bulkBattle");
 const bulkPodiumEl = document.getElementById("bulkPodium");
-const bulkStyleEl  = document.getElementById("bulkStyle");
+const bulkStyleEl = document.getElementById("bulkStyle");
 
 const stampBar = document.getElementById("stampBar");
 
 const sessionBar = document.getElementById("sessionBar");
-const sbLoaded   = document.getElementById("sb-loaded");
-const sbAwarded  = document.getElementById("sb-awarded");
-const sbXP       = document.getElementById("sb-xp");
+const sbLoaded = document.getElementById("sb-loaded");
+const sbAwarded = document.getElementById("sb-awarded");
+const sbXP = document.getElementById("sb-xp");
 
 // Foundry toggle (exclusive F4 vs F8)
 const trackF8OnlyEl = document.getElementById("trackF8Only");
@@ -86,14 +92,16 @@ let isSaving = false;
 /* -----------------------------
    Helpers
 ----------------------------- */
-function setStatus(msg, ok = true){
+function setStatus(msg, ok = true) {
   if (!pageStatusEl) return;
   pageStatusEl.textContent = msg;
   pageStatusEl.style.color = ok ? "#bef264" : "#fca5a5";
-  setTimeout(() => { if (pageStatusEl) pageStatusEl.style.color = ""; }, 1200);
+  setTimeout(() => {
+    if (pageStatusEl) pageStatusEl.style.color = "";
+  }, 1200);
 }
 
-function stamp(key, value, on){
+function stamp(key, value, on) {
   return `
     <span class="stamp ${on ? "on" : "off"}">
       <span class="k">${key}</span>
@@ -102,33 +110,32 @@ function stamp(key, value, on){
   `;
 }
 
-function syncTournament(){
+function syncTournament() {
   currentTournamentId = (tourEl?.value || "").trim();
 }
 
-function championshipArmed(){
-  const won   = !!wonEl?.checked;
+function championshipArmed() {
+  const won = !!wonEl?.checked;
   const typed = String(winArmEl?.value || "").trim().toUpperCase();
   return won && typed === "WIN";
 }
 
 // If the page doesn't have eventLevel, treat as "not required"
-function hasEventLevel(){
+function hasEventLevel() {
   if (!levelEl) return true;
   return String(levelEl.value || "").trim().length > 0;
 }
 
-function eventLevelValue(){
+function eventLevelValue() {
   if (!levelEl) return null;
   const v = String(levelEl.value || "").trim().toLowerCase();
   return v || null;
 }
 
-function trackWanted(){
+function trackWanted() {
   return trackF8OnlyEl?.checked ? "F8" : "F4";
 }
 
-// Same track inference you use elsewhere
 function trackBaseOf(docId, a = {}) {
   const tb = String(a.trackBase || "").trim().toUpperCase();
   if (tb === "F4" || tb === "F8") return tb;
@@ -144,13 +151,42 @@ function trackBaseOf(docId, a = {}) {
   return "";
 }
 
-function updateStamps(){
+function resolveRank(a = {}) {
+  if (a.rankName) return a.rankName;
+  if (a.tierName) return a.tierName;
+
+  const t = String(a.tier || "").toUpperCase();
+  const base = trackBaseOf(a.id, a);
+
+  if (base === "F8") {
+    if (t === "T0") return "Shadow";
+    if (t === "T1") return "Recruit";
+    if (t === "T2") return "Combatant";
+    if (t === "T3") return "Competitor";
+    if (t === "T4") return "Warrior";
+    if (t === "T5") return "Champion";
+    if (t === "T6") return "Commander";
+    if (t === "T7") return "Hero";
+  }
+
+  if (base === "F4") {
+    if (t === "T0") return "Apprentice";
+    if (t === "T1") return "Warrior";
+    if (t === "T2") return "Champion";
+    if (t === "T3") return "Veteran";
+    if (t === "T4") return "Legend";
+  }
+
+  return a.tier || a.rank || "Apprentice";
+}
+
+function updateStamps() {
   if (!stampBar) return;
 
-  const hasT   = !!currentTournamentId;
-  const style  = getCurrentStyle();
-  const hasIQ  = !!style;
-  const armed  = championshipArmed();
+  const hasT = !!currentTournamentId;
+  const style = getCurrentStyle();
+  const hasIQ = !!style;
+  const armed = championshipArmed();
   const hasLvl = hasEventLevel();
   const lvlVal = eventLevelValue();
 
@@ -162,37 +198,33 @@ function updateStamps(){
     stamp("CHAMP", armed ? "Armed" : "Locked (Won + WIN)", armed),
   ];
 
-  // Only show level stamp if control exists on this page
-  if (levelEl){
+  if (levelEl) {
     stamps.splice(3, 0, stamp("LEVEL", hasLvl ? (lvlVal || "Set") : "Required", hasLvl));
   }
 
   stampBar.innerHTML = stamps.join("");
 }
 
-function updateButtons(){
+function updateButtons() {
   syncTournament();
 
-  const hasT   = !!currentTournamentId;
-  const hasIQ  = !!getCurrentStyle();
-  const armed  = championshipArmed();
+  const hasT = !!currentTournamentId;
+  const hasIQ = !!getCurrentStyle();
+  const armed = championshipArmed();
   const hasLvl = hasEventLevel();
 
   if (bulkBattleEl) bulkBattleEl.disabled = !hasT || isSaving;
   if (bulkPodiumEl) bulkPodiumEl.disabled = !hasT || isSaving;
+  if (bulkStyleEl) bulkStyleEl.disabled = !(hasT && hasIQ) || isSaving;
 
-  // Style requires tournamentId + IQ selection
-  if (bulkStyleEl)  bulkStyleEl.disabled  = !(hasT && hasIQ) || isSaving;
-
-  // Declared championship awards require tournamentId + armed + (level if present)
   const champOk = hasT && armed && hasLvl;
-  if (bulkLionEl)  bulkLionEl.disabled  = !champOk || isSaving;
+  if (bulkLionEl) bulkLionEl.disabled = !champOk || isSaving;
   if (bulkTigerEl) bulkTigerEl.disabled = !champOk || isSaving;
-  if (bulkBearEl)  bulkBearEl.disabled  = !champOk || isSaving;
+  if (bulkBearEl) bulkBearEl.disabled = !champOk || isSaving;
 
   updateStamps();
 
-  if (!hasT){
+  if (!hasT) {
     setStatus("Step 1: enter Tournament ID.", true);
     return;
   }
@@ -211,41 +243,55 @@ function updateButtons(){
   setStatus(parts.join(" • "), true);
 }
 
-function updateSessionBar(){
+function updateSessionBar() {
   if (!sessionBar) return;
 
-  if (!filtered.length){
+  if (!filtered.length) {
     sessionBar.style.display = "none";
     return;
   }
 
   sessionBar.style.display = "flex";
-  if (sbLoaded)  sbLoaded.textContent  = `Loaded: ${filtered.length}`;
+  if (sbLoaded) sbLoaded.textContent = `Loaded: ${filtered.length}`;
   if (sbAwarded) sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
-  if (sbXP)      sbXP.textContent      = `XP issued: ${awardedXP}`;
+  if (sbXP) sbXP.textContent = `XP issued: ${awardedXP}`;
 }
 
-function getSelectedIds(){
+function getSelectedIds() {
   return Array.from(document.querySelectorAll(".pick:checked"))
-    .map(c => c.dataset.id)
+    .map((c) => c.dataset.id)
     .filter(Boolean);
 }
 
-function clearPicks(){
-  document.querySelectorAll(".pick").forEach(c => (c.checked = false));
+function clearPicks() {
+  document.querySelectorAll(".pick").forEach((c) => (c.checked = false));
 }
 
-function repaintMiniBarForRow({ rowEl, xp, cap, tierName }){
+function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName }) {
   const slot = rowEl?.querySelector?.(".xp-slot");
   if (!slot) return;
 
-  const stripesTotal = 4;
+  const info = getAthleteStripeInfo({
+    ...athlete,
+    xp,
+    xpCap: cap,
+    rankName: tierName,
+    tierName,
+  });
+
+  const stripesEarned = Number(info?.stripesEarned ?? 0);
+  const stripesTotal = Number(info?.stripesTotal ?? 4);
+
   const safeCap = Math.max(1, Number(cap) || 1200);
-  const safeXp  = Math.max(0, Number(xp) || 0);
-  const stripesEarned = Math.max(
-    0,
-    Math.min(stripesTotal, Math.floor((safeXp / safeCap) * stripesTotal))
-  );
+  const safeXp = Math.max(0, Number(xp) || 0);
+
+  const key = colorKeyFor(tierName || "") || "apprentice";
+  const c = COLORS[key] || COLORS.apprentice;
+
+  const isWhiteStripeTier =
+    String(tierName || "").toLowerCase() === "legend" ||
+    String(tierName || "").toLowerCase() === "hero" ||
+    String(tierName || "").toLowerCase() === "mastery";
 
   renderMiniXpBar({
     container: slot,
@@ -254,27 +300,29 @@ function repaintMiniBarForRow({ rowEl, xp, cap, tierName }){
     tierName: tierName || "Apprentice",
     stripesEarned,
     stripesTotal,
+    fillColor: c.start,
+    stripeTone: isWhiteStripeTier ? "white" : "black",
   });
 }
 
-function render(list){
+function render(list) {
   if (!rowsEl) return;
 
-  if (!list.length){
+  if (!list.length) {
     rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes match.</td></tr>`;
     updateSessionBar();
     return;
   }
 
-  const byId = new Map(list.map(a => [a.id, a]));
+  const byId = new Map(list.map((a) => [a.id, a]));
 
-  rowsEl.innerHTML = list.map(a => {
-    const uid   = a.uid || a.id;
-    const name  = a.publicName || a.fullName || uid;
+  rowsEl.innerHTML = list.map((a) => {
+    const uid = a.uid || a.id;
+    const name = a.publicName || a.fullName || uid;
     const track = a.track || a.trackCode || "—";
-    const tier  = a.tierName || a.rankName || a.tier || "Apprentice";
-    const xp    = a.xp ?? 0;
-    const cap   = a.xpCap ?? 1200;
+    const tier = resolveRank(a);
+    const xp = a.xp ?? 0;
+    const cap = a.xpCap ?? 1200;
 
     return `
       <tr data-id="${a.id}">
@@ -292,14 +340,16 @@ function render(list){
     `;
   }).join("");
 
-  rowsEl.querySelectorAll("tr[data-id]").forEach(tr => {
+  rowsEl.querySelectorAll("tr[data-id]").forEach((tr) => {
     const a = byId.get(tr.dataset.id);
     if (!a) return;
+
     repaintMiniBarForRow({
       rowEl: tr,
+      athlete: a,
       xp: a.xp ?? 0,
       cap: a.xpCap ?? 1200,
-      tierName: a.tierName || a.rankName || a.tier || "Apprentice",
+      tierName: resolveRank(a),
     });
   });
 
@@ -307,35 +357,41 @@ function render(list){
 }
 
 /* -----------------------------
-   Roster load (root athletes + DEV parity + track filter)
+   Roster load
 ----------------------------- */
-async function load(){
+async function load() {
   setStatus("Loading athletes…", true);
 
   const snap = await getDocs(collection(db, "athletes"));
-  roster = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  roster = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 
-  const dev    = isDevMode();
+  const dev = isDevMode();
   const wanted = trackWanted();
 
-  // DEV/LIVE gates (same as weekend)
-  roster = roster.filter(a => {
-    if (dev) return a.devMode === true && a.isTest === true;
-    return !(a.devMode === true || a.isTest === true);
+  roster = roster.filter((a) => {
+    const status = a.rosterStatus || "current";
+
+    if (status !== "current") return false;
+    if (dev) return true;
+
+    if (a.isDev === true || a.devMode === true || a.isTest === true) {
+      return false;
+    }
+
+    return true;
   });
 
-  // Exclusive track filter (never mix)
-  roster = roster.filter(a => trackBaseOf(a.id, a) === wanted);
+  roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
   const q = String(searchEl?.value || "").toLowerCase().trim();
   filtered = roster
-    .filter(a => {
+    .filter((a) => {
       if (!q) return true;
       const name = String(a.publicName || a.fullName || "").toLowerCase();
-      const uid  = String(a.uid || a.id || "").toLowerCase();
+      const uid = String(a.uid || a.id || "").toLowerCase();
       return name.includes(q) || uid.includes(q);
     })
-    .sort((a,b) => {
+    .sort((a, b) => {
       const an = String(a.publicName || a.fullName || a.uid || a.id || "");
       const bn = String(b.publicName || b.fullName || b.uid || b.id || "");
       return an.localeCompare(bn);
@@ -346,17 +402,17 @@ async function load(){
   setStatus(`${filtered.length} athletes loaded. (${dev ? "DEV" : "LIVE"} · ${wanted})`, true);
 }
 
-function parseFunctionJson(raw){
+function parseFunctionJson(raw) {
   return raw?.result ?? raw?.data ?? raw;
 }
 
 /* -----------------------------
    Payload builders
 ----------------------------- */
-function buildArenaPayload(uid, arenaKind){
+function buildArenaPayload(uid, arenaKind) {
   if (!currentTournamentId) throw new Error("Tournament ID is required.");
 
-  if (arenaKind === "battle"){
+  if (arenaKind === "battle") {
     return {
       uid,
       kind: "ARENA/BATTLE",
@@ -369,7 +425,7 @@ function buildArenaPayload(uid, arenaKind){
     };
   }
 
-  if (arenaKind === "podium"){
+  if (arenaKind === "podium") {
     return {
       uid,
       kind: "ARENA/PODIUM",
@@ -382,7 +438,7 @@ function buildArenaPayload(uid, arenaKind){
     };
   }
 
-  if (arenaKind === "style"){
+  if (arenaKind === "style") {
     const s = getCurrentStyle();
     if (!s) throw new Error("Pick a Match IQ style first.");
     return {
@@ -401,20 +457,19 @@ function buildArenaPayload(uid, arenaKind){
   throw new Error("Unknown arena kind: " + arenaKind);
 }
 
-function buildDeclaredChampionshipPayload(uid, awardKey){
+function buildDeclaredChampionshipPayload(uid, awardKey) {
   if (!currentTournamentId) throw new Error("Tournament ID is required.");
   if (!championshipArmed()) throw new Error("Championship awards require: Won event + type WIN.");
 
-  // If the page has eventLevel, require it for declared awards
   const lvl = eventLevelValue();
   if (levelEl && !lvl) throw new Error("Event level is required for declared championship awards.");
 
   const eventName = String(evEl?.value || "").trim() || null;
 
   const map = {
-    lion:  { amount: 25, title: "LION"  },
+    lion: { amount: 25, title: "LION" },
     tiger: { amount: 50, title: "TIGER" },
-    bear:  { amount: 75, title: "BEAR"  },
+    bear: { amount: 75, title: "BEAR" },
   };
 
   const cfg = map[awardKey];
@@ -427,7 +482,7 @@ function buildDeclaredChampionshipPayload(uid, awardKey){
     meta: {
       tournamentId: currentTournamentId,
       eventName,
-      level: lvl, // null if no #eventLevel exists on the page
+      level: lvl,
       title: cfg.title,
       track: trackWanted(),
       source: "declared-championship",
@@ -438,9 +493,17 @@ function buildDeclaredChampionshipPayload(uid, awardKey){
 /* -----------------------------
    Award flows
 ----------------------------- */
-async function giveToOne(id, kind){
-  const a = roster.find(x => x.id === id);
-  if (!a) return { ok:false, delta:0 };
+async function giveToOne(id, kind) {
+  const a = roster.find((x) => x.id === id);
+  if (!a) return { ok: false, delta: 0 };
+
+  const uid = a.uidCode || a.uid || a.id;
+  const row = rowsEl?.querySelector?.(`tr[data-id="${id}"]`);
+
+  const bodyData =
+    (kind === "lion" || kind === "tiger" || kind === "bear")
+      ? buildDeclaredChampionshipPayload(uid, kind)
+      : buildArenaPayload(uid, kind);
 
   const coachUid =
     window.COACH_UID ||
@@ -456,13 +519,15 @@ async function giveToOne(id, kind){
     body: JSON.stringify({ data: bodyData }),
   });
 
-  if (!res.ok) return { ok:false, delta:0, error:`HTTP ${res.status}` };
+  if (!res.ok) return { ok: false, delta: 0, error: `HTTP ${res.status}` };
 
   let raw = null;
-  try { raw = await res.json(); } catch {}
-  const data = parseFunctionJson(raw) || {};
+  try {
+    raw = await res.json();
+  } catch {}
 
-  if (!data.ok) return { ok:false, delta:0, error: data.error || "Blocked" };
+  const data = parseFunctionJson(raw) || {};
+  if (!data.ok) return { ok: false, delta: 0, error: data.error || "Blocked" };
 
   const delta = Number(data.delta ?? bodyData.amount ?? 0);
 
@@ -472,31 +537,47 @@ async function giveToOne(id, kind){
     null;
 
   if (typeof afterFromServer === "number") a.xp = afterFromServer;
+  if (typeof data.afterCap === "number") a.xpCap = data.afterCap;
+  if (data.afterRankName) a.rankName = data.afterRankName;
+  if (data.afterTierName) a.tierName = data.afterTierName;
 
-  if (row){
-    const cap  = a.xpCap ?? 1200;
-    const tier = a.tierName || a.rankName || a.tier || "Apprentice";
+  if (row) {
+    const cap = a.xpCap ?? 1200;
+    const tier = resolveRank(a);
     const line = row.querySelector(`[data-xpline="${id}"]`);
     if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
-    repaintMiniBarForRow({ rowEl: row, xp: a.xp ?? 0, cap, tierName: tier });
+
+    repaintMiniBarForRow({
+      rowEl: row,
+      athlete: a,
+      xp: a.xp ?? 0,
+      cap,
+      tierName: tier,
+    });
   }
 
-  return { ok:true, delta };
+  return { ok: true, delta };
 }
 
-async function bulkGive(kind, label){
+/* -----------------------------
+   Bulk award flow
+----------------------------- */
+async function bulkGive(kind, label) {
   const ids = getSelectedIds();
-  if (!ids.length){ setStatus("No athletes selected.", false); return; }
+  if (!ids.length) {
+    setStatus("No athletes selected.", false);
+    return;
+  }
 
-  try{
+  try {
     updateButtons();
 
     if (!currentTournamentId) throw new Error("Tournament ID required.");
     if (kind === "style" && !getCurrentStyle()) throw new Error("Pick a Match IQ style first.");
 
-    if (kind === "lion" || kind === "tiger" || kind === "bear"){
-      if (!championshipArmed()) throw new Error("Championship awards require: Won event + type WIN.");
-      if (levelEl && !eventLevelValue()) throw new Error("Event level is required for declared championship awards.");
+    if (kind === "lion" || kind === "tiger" || kind === "bear") {
+      if (levelEl && !eventLevelValue()) throw new Error("Event level is required.");
+      if (!championshipArmed()) throw new Error("Championship requires: Won event + type WIN.");
     }
 
     isSaving = true;
@@ -506,10 +587,14 @@ async function bulkGive(kind, label){
     let ok = 0;
     let xp = 0;
 
-    for (const id of ids){
+    for (const id of ids) {
       const r = await giveToOne(id, kind);
-      if (r.ok){ ok++; xp += r.delta; }
-      else if (r.error) setStatus(r.error, false);
+      if (r.ok) {
+        ok++;
+        xp += r.delta;
+      } else if (r.error) {
+        setStatus(r.error, false);
+      }
     }
 
     awardedCount += ok;
@@ -520,7 +605,7 @@ async function bulkGive(kind, label){
 
     await load();
     setStatus(`Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}`, true);
-  } catch (e){
+  } catch (e) {
     setStatus(e?.message || "Save failed", false);
   } finally {
     isSaving = false;
@@ -531,13 +616,13 @@ async function bulkGive(kind, label){
 /* -----------------------------
    Events
 ----------------------------- */
-["input","change","blur"].forEach(evt => tourEl?.addEventListener(evt, updateButtons));
-["input","change"].forEach(evt => wonEl?.addEventListener(evt, updateButtons));
-["input","change","blur"].forEach(evt => winArmEl?.addEventListener(evt, updateButtons));
-["input","change","blur"].forEach(evt => evEl?.addEventListener(evt, updateButtons));
+["input", "change", "blur"].forEach((evt) => tourEl?.addEventListener(evt, updateButtons));
+["input", "change"].forEach((evt) => wonEl?.addEventListener(evt, updateButtons));
+["input", "change", "blur"].forEach((evt) => winArmEl?.addEventListener(evt, updateButtons));
+["input", "change", "blur"].forEach((evt) => evEl?.addEventListener(evt, updateButtons));
 
-if (levelEl){
-  ["input","change","blur"].forEach(evt => levelEl.addEventListener(evt, updateButtons));
+if (levelEl) {
+  ["input", "change", "blur"].forEach((evt) => levelEl.addEventListener(evt, updateButtons));
 }
 
 searchEl?.addEventListener("input", () => load());
@@ -548,7 +633,7 @@ trackF8OnlyEl?.addEventListener("change", async () => {
 });
 
 pickAllEl?.addEventListener("click", () => {
-  document.querySelectorAll(".pick").forEach(c => (c.checked = true));
+  document.querySelectorAll(".pick").forEach((c) => (c.checked = true));
   setStatus("All visible athletes selected.", true);
 });
 
@@ -557,13 +642,13 @@ clearAllEl?.addEventListener("click", () => {
   setStatus("Selection cleared.", true);
 });
 
-bulkLionEl?.addEventListener("click",  () => bulkGive("lion",  "Lion +25"));
+bulkLionEl?.addEventListener("click", () => bulkGive("lion", "Lion +25"));
 bulkTigerEl?.addEventListener("click", () => bulkGive("tiger", "Tiger +50"));
-bulkBearEl?.addEventListener("click",  () => bulkGive("bear",  "Bear +75"));
+bulkBearEl?.addEventListener("click", () => bulkGive("bear", "Bear +75"));
 
 bulkBattleEl?.addEventListener("click", () => bulkGive("battle", "+10 Battle"));
 bulkPodiumEl?.addEventListener("click", () => bulkGive("podium", "+5 Podium"));
-bulkStyleEl?.addEventListener("click",  () => bulkGive("style",  "+5 Bonus IQ"));
+bulkStyleEl?.addEventListener("click", () => bulkGive("style", "+5 Bonus IQ"));
 
 /* -----------------------------
    Init

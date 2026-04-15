@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Strength · Postseason</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/athletes/arsenal/arsenal.css">
+  <link rel="stylesheet" href="/athletes/arsenal/strength/strength.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <button class="back-btn" type="button" onclick="history.back()">← Back</button>
+      <h1 class="title">Strength · Postseason</h1>
+    </header>
+
+    <section class="lane-block">
+      <div class="lane-name">Postseason</div>
+      <p class="lane-desc">
+        Postseason training restores the body after competition and prepares the athlete
+        for the next development cycle.
+      </p>
+
+      <div class="section-block">
+        <h2 class="section-title">Focus Areas</h2>
+        <ul class="focus-list">
+          <li>Recovery and restoration</li>
+          <li>Mobility work</li>
+          <li>Movement correction</li>
+          <li>Light rebuilding of weak points</li>
+          <li>Preparation for the next preseason</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h2 class="section-title">How this phase works</h2>
+        <p class="lane-desc">
+          Athletes move through guided sessions focused on restoring movement quality,
+          rebuilding posture and durability, and preparing the body for the next training block.
+        </p>
+      </div>
+
+      <div class="action-block">
+        <a class="primary-btn" id="start-training-btn" href="#">
+          Start Training
+        </a>
+      </div>
+    </section>
+  </div>
+
+  <script type="module">
+    const params = new URLSearchParams(window.location.search);
+    const athleteId = (params.get("id") || "").trim().toUpperCase();
+    const btn = document.getElementById("start-training-btn");
+
+    if (btn) {
+      btn.href = athleteId
+        ? `/athletes/lanes/strength/?id=${encodeURIComponent(athleteId)}`
+        : `/athletes/lanes/strength/`;
+    }
+  </script>
+
+</body>
+</html>

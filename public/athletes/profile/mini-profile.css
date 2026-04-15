@@ -1,0 +1,81 @@
+/* ========================================
+   MINI PROFILE — STRIPE FIX (LOCAL ONLY)
+   Keeps stripes left-aligned like full profile
+======================================== */
+
+#rankBar {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Stripe container */
+#rankBar .stripe-bars{
+  position:absolute;
+  inset:0;
+  display:flex;
+  justify-content:flex-start;
+  align-items:stretch;
+
+  /* 🔥 tweak these 3 if needed */
+  gap:14px;
+  padding-left:18px;
+
+  pointer-events:none;
+  z-index:6;
+}
+
+/* Individual stripes */
+#rankBar .stripe-bar{
+  width:14px;
+  height:100%;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.20);
+}.athlete-sub-header{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:#0b0f17;
+  border-bottom:2px solid #ffdd48;
+  padding:10px 16px;
+}
+
+.sub-header-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.brand{
+  color:#ffdd48;
+  font-weight:800;
+  font-size:.95rem;
+}
+
+.sub-nav{
+  display:flex;
+  gap:8px;
+}
+
+.sub-btn{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:.8rem;
+  text-decoration:none;
+  border:1px solid #1f2a40;
+  background:#0e1420;
+  color:#cbd5e1;
+}
+
+.sub-btn:hover{
+  border-color:#ffdd48;
+  color:#ffdd48;
+}
+
+.sub-btn.home{
+  background:#ffdd48;
+  color:#111;
+  border-color:#ffdd48;
+  font-weight:700;
+}

@@ -1,0 +1,189 @@
+{
+  "id": "IRON_C",
+  "label": "Workout C",
+  "focus": "athletic_legs_core",
+  "tagline": "Athletic strength. Carry, brace, and move with control.",
+  "minAge": 13,
+
+  "sessionStructure": [
+    "Explosive",
+    "Main Lift",
+    "Secondary Lift",
+    "Assistance",
+    "Conditioning Finish",
+    "Log Best Set"
+  ],
+
+  "explosivePool": [
+    {
+      "name": "Box Jumps",
+      "sets": 4,
+      "reps": 3,
+      "notes": "Explode up. Land stable and athletic."
+    },
+    {
+      "name": "Broad Jumps",
+      "sets": 4,
+      "reps": 4,
+      "notes": "Project forward, stick the landing."
+    },
+    {
+      "name": "Medicine Ball Scoop Toss",
+      "sets": 4,
+      "reps": 5,
+      "notes": "Drive from hips. Fast release."
+    },
+    {
+      "name": "Lateral Bounds",
+      "sets": 4,
+      "reps": 4,
+      "notes": "Push side to side with balance and control."
+    }
+  ],
+
+  "seasonBlocks": {
+    "preseason": {
+      "goal": "Build athletic leg strength, trunk stability, and movement capacity.",
+      "mainLift": [
+        {
+          "exercise": "Front Squat",
+          "sets": 4,
+          "reps": "5-7",
+          "notes": "Tall chest. Stay clean through the rack."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Farmer Carry",
+          "sets": 4,
+          "reps": "20-30 yards",
+          "notes": "Heavy but controlled. No loose posture."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Rear Foot Elevated Split Squat",
+          "sets": 3,
+          "reps": "8 each leg"
+        },
+        {
+          "exercise": "Hanging Knee Raise",
+          "sets": 3,
+          "reps": "10-12"
+        },
+        {
+          "exercise": "Pallof Press Hold",
+          "sets": 3,
+          "reps": "20-30 sec each side"
+        }
+      ],
+      "conditioning": {
+        "type": "finish",
+        "options": [
+          "Sled Push x 6",
+          "Farmer Carry x 6 lengths",
+          "30/30 intervals x 8-10 rounds"
+        ]
+      }
+    },
+
+    "inseason": {
+      "goal": "Maintain leg strength and core stability without draining the athlete.",
+      "mainLift": [
+        {
+          "exercise": "Front Squat",
+          "sets": 3,
+          "reps": "3-5",
+          "notes": "Lower volume. Strong positions."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Farmer Carry",
+          "sets": 3,
+          "reps": "20 yards",
+          "notes": "Heavy and crisp. No sloppy movement."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Rear Foot Elevated Split Squat",
+          "sets": 2,
+          "reps": "6 each leg"
+        },
+        {
+          "exercise": "Hanging Knee Raise",
+          "sets": 2,
+          "reps": "8-10"
+        },
+        {
+          "exercise": "Pallof Press Hold",
+          "sets": 2,
+          "reps": "15-20 sec each side"
+        }
+      ],
+      "conditioning": {
+        "type": "short_finish",
+        "options": [
+          "Sled Push x 4",
+          "Farmer Carry x 4 lengths",
+          "40/20 x 6 rounds"
+        ]
+      }
+    },
+
+    "postseason": {
+      "goal": "Raise athletic strength, trunk control, and total-body work capacity.",
+      "mainLift": [
+        {
+          "exercise": "Front Squat",
+          "sets": 5,
+          "reps": "4-6",
+          "notes": "Progressive loading. Own the rack and brace."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Farmer Carry",
+          "sets": 5,
+          "reps": "25-30 yards",
+          "notes": "Heavy, tight posture. Walk like you mean it."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Rear Foot Elevated Split Squat",
+          "sets": 4,
+          "reps": "8 each leg"
+        },
+        {
+          "exercise": "Hanging Knee Raise",
+          "sets": 3,
+          "reps": "12"
+        },
+        {
+          "exercise": "Pallof Press Hold",
+          "sets": 3,
+          "reps": "25-30 sec each side"
+        }
+      ],
+      "conditioning": {
+        "type": "extended_finish",
+        "options": [
+          "Sled Push x 8",
+          "Farmer Carry x 8 lengths",
+          "40/20 x 10 rounds"
+        ]
+      }
+    }
+  },
+
+  "loggingRule": {
+    "mode": "best_of_session",
+    "prompt": "Log your best working set from the main lift or strongest carry of the day.",
+    "example": "Front Squat — 185 x 5"
+  },
+
+  "intensityRule": "Last 2-3 reps should be hard but clean. Strong positions only.",
+  "coachNote": "Workout C = athletic legs + core day."
+}

@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach Leaderboard · Sandman Combat</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#06080d;
+      --panel:#0b1017;
+      --panel-2:#101722;
+      --border:#1d2430;
+      --gold:#ffdd48;
+      --text:#f5f5f5;
+      --muted:#94a3b8;
+      --danger:#e63946;
+      --good:#22c55e;
+      --warn:#f59e0b;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1240px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    .top-nav{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+
+    .pill-nav{
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:999px;
+      padding:6px 14px;
+      color:#fff;
+      font-weight:600;
+      text-decoration:none;
+      cursor:pointer;
+      transition:.15s;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      font-size:.75rem;
+    }
+
+    .pill-nav:hover{
+      background:var(--danger);
+      border-color:var(--danger);
+    }
+
+    h1{
+      margin:0 0 6px;
+      color:var(--gold);
+      text-shadow:0 0 8px rgba(255,221,72,.2);
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:.72rem;
+      margin-bottom:10px;
+    }
+
+    .band{
+      margin:0 0 14px;
+      padding:14px 16px;
+      background:linear-gradient(180deg, rgba(255,221,72,.06), rgba(255,221,72,.02));
+      border:1px solid rgba(255,221,72,.18);
+      border-radius:14px;
+    }
+
+    .band-kicker{
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:.18em;
+      color:var(--gold);
+      margin-bottom:8px;
+    }
+
+    .band-line{
+      height:1px;
+      background:linear-gradient(90deg,var(--gold),transparent);
+      margin-bottom:10px;
+      opacity:.75;
+    }
+
+    .band-sub{
+      font-size:.88rem;
+      line-height:1.45;
+      color:#c9d2df;
+    }
+
+    .filter-bar{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 10px 12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:end;
+      margin-bottom:14px;
+    }
+
+    .filter-group{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:120px;
+    }
+
+    .filter-group.grow{
+      flex:1 1 220px;
+    }
+
+    .filter-bar label{
+      font-size:.65rem;
+      color:#e2e8f0;
+    }
+
+    .filter-bar select,
+    .filter-bar input[type="month"],
+    .filter-bar input[type="search"]{
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:8px;
+      padding:6px 8px;
+      color:#fff;
+      font-size:.78rem;
+    }
+
+    .chip-row{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      margin-top:6px;
+      width:100%;
+    }
+
+    .chip{
+      background:#111827;
+      border:1px solid #1f2937;
+      border-radius:999px;
+      padding:4px 10px 5px;
+      font-size:.65rem;
+      cursor:pointer;
+      color:#e5e7eb;
+    }
+
+    .chip.active{
+      background:var(--gold);
+      border-color:var(--gold);
+      color:#111;
+      font-weight:700;
+    }
+
+    .btn-sort{
+      background:var(--danger);
+      border:0;
+      border-radius:999px;
+      padding:6px 12px;
+      font-size:.68rem;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn-sort.secondary{
+      background:transparent;
+      border:1px solid rgba(148,163,184,.25);
+      color:#e2e8f0;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(5,1fr);
+      gap:12px;
+      margin-bottom:14px;
+    }
+
+    @media(max-width:1020px){
+      .stats{grid-template-columns:repeat(2,1fr);}
+    }
+
+    @media(max-width:620px){
+      .stats{grid-template-columns:1fr;}
+    }
+
+    .stat{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 14px;
+    }
+
+    .stat-label{
+      font-size:.68rem;
+      color:var(--muted);
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .stat-value{
+      color:var(--gold);
+      font-size:1.08rem;
+      font-weight:800;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:340px minmax(0,1fr);
+      gap:12px;
+    }
+
+    @media(max-width:980px){
+      .grid{grid-template-columns:1fr;}
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:10px 10px 12px;
+      box-shadow:0 0 15px rgba(0,0,0,.25);
+    }
+
+    .panel-title{
+      font-size:.72rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:#e2e8f0;
+      margin-bottom:8px;
+      font-weight:700;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    .panel-sub{
+      color:var(--muted);
+      font-size:.66rem;
+      font-weight:600;
+    }
+
+    .active-filter{
+      display:none;
+      margin-bottom:8px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(255,221,72,.18);
+      background:rgba(255,221,72,.05);
+      color:#e8edf7;
+      font-size:.72rem;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .active-filter.show{
+      display:flex;
+    }
+
+    .clear-filter-btn{
+      background:transparent;
+      border:1px solid rgba(148,163,184,.25);
+      color:#e2e8f0;
+      border-radius:999px;
+      padding:4px 10px;
+      cursor:pointer;
+      font-size:.68rem;
+      font-weight:700;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+
+    th,td{
+      padding:7px 6px;
+      border-bottom:1px solid rgba(255,255,255,.03);
+      font-size:.72rem;
+      vertical-align:top;
+    }
+
+    th{
+      text-align:left;
+      color:#dbe2f0;
+      text-transform:uppercase;
+      font-size:.58rem;
+      letter-spacing:.04em;
+    }
+
+    tbody tr:nth-child(even){
+      background:rgba(255,255,255,.015);
+    }
+
+    tbody tr:hover{
+      background:rgba(230,57,70,.04);
+    }
+
+    .totals-row{
+      cursor:pointer;
+    }
+
+    .totals-row.active{
+      background:rgba(255,221,72,.07) !important;
+      outline:1px solid rgba(255,221,72,.18);
+    }
+
+    .row-penalty{
+      background:rgba(230,57,70,.06) !important;
+    }
+
+    .row-style{
+      background:rgba(255,221,72,.04) !important;
+    }
+
+    .row-tournament{
+      background:rgba(34,197,94,.035) !important;
+    }
+
+    .virtur{
+      display:inline-block;
+      background:rgba(255,214,51,.07);
+      border:1px solid rgba(255,214,51,.35);
+      border-radius:999px;
+      padding:1px 7px 2px;
+      font-size:.58rem;
+      letter-spacing:.08em;
+      color:#ffe28a;
+      margin-right:4px;
+    }
+
+    .rank-pill{
+      display:inline-block;
+      min-width:26px;
+      text-align:center;
+      border-radius:999px;
+      padding:1px 7px 2px;
+      font-size:.6rem;
+      font-weight:800;
+      background:#151922;
+      border:1px solid #2a3344;
+      color:#f3f4f6;
+    }
+
+    .empty{
+      color:var(--muted);
+      font-size:.72rem;
+      padding:8px 0;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+
+    <div class="top-nav">
+      <a class="pill-nav" href="/coaches/index.html">🏠 Coach Index</a>
+    </div>
+
+    <h1>Coach Leaderboard</h1>
+    <p class="muted" id="status">Listening…</p>
+
+    <section class="band">
+      <div class="band-kicker">SANDMAN COMBAT™</div>
+      <div class="band-line"></div>
+      <div class="band-sub">
+        Coach view for monthly leaderboard review, athlete totals, and log detail.
+      </div>
+    </section>
+
+    <section class="filter-bar">
+      <div class="filter-group">
+        <label for="track">Scope · Track</label>
+        <select id="track">
+          <option value="foundry8">Foundry 8</option>
+          <option value="foundry4">Foundry 4</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="month">Scope · Month</label>
+        <input id="month" type="month"/>
+      </div>
+
+      <div class="filter-group grow">
+        <label for="search">Filter · Athlete</label>
+        <input id="search" type="search" placeholder="search name…"/>
+      </div>
+
+      <div class="filter-group">
+        <label for="nameMode">Display · Name</label>
+        <select id="nameMode">
+          <option value="abbr">A. Last</option>
+          <option value="full">Full Name</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label for="tagMode">Display · Virtue Tag</label>
+        <select id="tagMode">
+          <option value="off">Off</option>
+          <option value="on">On</option>
+        </select>
+      </div>
+
+      <div class="filter-group">
+        <label>Display · Sort</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button id="sortXp" class="btn-sort" type="button">Sort XP</button>
+          <button id="sortDate" class="btn-sort secondary" type="button">Sort Date</button>
+        </div>
+      </div>
+
+      <div id="typeRow" class="chip-row">
+        <button class="chip active" data-type="all" type="button">All</button>
+        <button class="chip" data-type="practice" type="button">Daily Grind</button>
+        <button class="chip" data-type="tournament" type="button">Tournament</button>
+        <button class="chip" data-type="style" type="button">Style</button>
+        <button class="chip" data-type="penalty" type="button">Penalty</button>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-label">Entries Loaded</div>
+        <div class="stat-value" id="statEntries">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Athletes This Month</div>
+        <div class="stat-value" id="statAthletes">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Top Athlete</div>
+        <div class="stat-value" id="statTop">—</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Average XP</div>
+        <div class="stat-value" id="statAvgXp">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Latest Activity</div>
+        <div class="stat-value" id="statLatest">—</div>
+      </div>
+    </section>
+
+    <div class="grid">
+
+      <section class="panel">
+        <div class="panel-title">
+          <span>Top this month</span>
+          <span class="panel-sub">Click athlete to filter logs</span>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Athlete</th>
+              <th>XP</th>
+            </tr>
+          </thead>
+          <tbody id="totalsBody">
+            <tr><td colspan="3" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="panel">
+        <div class="panel-title">
+          <span>Log detail</span>
+          <span class="panel-sub">Filtered by controls + athlete selection</span>
+        </div>
+
+        <div id="activeAthleteFilter" class="active-filter">
+          <span id="activeAthleteFilterLabel">Showing all athletes</span>
+          <button id="clearAthleteFilter" class="clear-filter-btn" type="button">Clear</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Athlete</th>
+              <th>Type</th>
+              <th>XP</th>
+              <th>When</th>
+            </tr>
+          </thead>
+          <tbody id="rowsBody">
+            <tr><td colspan="4" class="empty">Loading…</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+  </main>
+
+  <script type="module" src="/coaches/leaderboard/leaderboard.admin.js"></script>
+</body>
+</html>

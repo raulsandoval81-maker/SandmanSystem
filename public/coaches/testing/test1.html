@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test 1 — Base Check</title>
+
+  <style>
+    :root{
+      --bg:#f7f1e3;
+      --panel:#fffdf7;
+      --panel-2:#f3ecda;
+      --line:#d8ccb3;
+      --text:#201a12;
+      --muted:#6b6256;
+      --gold:#b88a12;
+      --red:#b93838;
+      --green:#1f8a43;
+    }
+
+    body[data-theme="night"]{
+      --bg:#0b1220;
+      --panel:#121b2e;
+      --panel-2:#18243d;
+      --line:#2a3550;
+      --text:#f3f4f6;
+      --muted:#9ca3af;
+      --gold:#facc15;
+      --red:#ef4444;
+      --green:#22c55e;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:14px;
+    }
+
+    .hero,.card,.summary-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.16);
+    }
+
+    .hero{padding:16px;margin-bottom:14px;}
+
+    h1,h2,p{margin:0}
+    h1{font-size:1.2rem;color:var(--gold)}
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:8px;
+    }
+
+    .sub{
+      margin-top:6px;
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .fields{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    label{
+      font-size:.8rem;
+      color:var(--muted);
+      display:block;
+      margin-bottom:6px;
+    }
+
+    input,textarea{
+      width:100%;
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px;
+      color:var(--text);
+    }
+
+    .theme-toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .switch{
+      width:54px;
+      height:30px;
+      border-radius:999px;
+      background:var(--bg);
+      border:1px solid var(--line);
+      position:relative;
+      cursor:pointer;
+    }
+
+    .switch::after{
+      content:"";
+      position:absolute;
+      top:3px;
+      left:3px;
+      width:24px;
+      height:24px;
+      border-radius:50%;
+      background:var(--gold);
+      transition:.2s;
+    }
+
+    body[data-theme="night"] .switch::after{
+      transform:translateX(24px);
+    }
+
+    .section-list{display:grid;gap:12px;}
+
+    .card{padding:14px;}
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:10px;
+    }
+
+    .section-head h2{
+      font-size:1rem;
+      color:var(--gold);
+    }
+
+    .item{padding:10px 0;border-top:1px solid rgba(128,128,128,.2);}
+    .item:first-child{border-top:none;}
+
+    .score-row{
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:6px;
+    }
+
+    .score-btn{
+      padding:10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--panel-2);
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .score-btn.active[data-score="5"]{background:rgba(34,197,94,.2);}
+    .score-btn.active[data-score="3"]{background:rgba(250,204,21,.2);}
+    .score-btn.active[data-score="0"]{background:rgba(239,68,68,.2);}
+
+    .summary-stack{
+      display:grid;
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .summary-card{padding:14px;}
+
+    .total-score{
+      font-size:1.8rem;
+      font-weight:900;
+      color:var(--gold);
+    }
+
+    .status.pass{color:var(--green)}
+    .status.fail{color:var(--red)}
+
+    .actions{
+      display:grid;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .action-btn{
+      padding:12px;
+      border:none;
+      border-radius:12px;
+      background:var(--gold);
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .action-btn.secondary{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+    }
+
+    textarea{min-height:100px;}
+  </style>
+</head>
+
+<body data-theme="night">
+
+<div class="wrap">
+
+  <section class="hero">
+    <div class="topbar">
+      <h1>Test 1 — Base Check</h1>
+
+      <div class="theme-toggle">
+        <span>Day</span>
+        <button id="themeToggle" class="switch"></button>
+        <span>Night</span>
+      </div>
+    </div>
+
+    <p class="sub">Tap scores. Pass = 85+</p>
+
+    <div class="fields">
+      <div>
+        <label>Athlete</label>
+        <input id="athlete" />
+      </div>
+
+      <div>
+        <label>Date</label>
+        <input id="testDate" type="date" />
+      </div>
+
+      <div>
+        <label>Coach</label>
+        <input id="coach" />
+      </div>
+    </div>
+  </section>
+
+  <section id="sections" class="section-list"></section>
+
+  <section class="summary-stack">
+
+    <div class="summary-card">
+      <h2>Coach Notes</h2>
+      <textarea id="notes"></textarea>
+    </div>
+
+    <div class="summary-card">
+
+      <div>
+        <div>Total</div>
+        <div id="totalScore" class="total-score">0 / 100</div>
+      </div>
+
+      <div id="statusText" class="status fail">NOT READY</div>
+
+      <div class="actions">
+        <button id="saveBtn" class="action-btn">Save Test</button>
+        <button id="copyBtn" class="action-btn">Copy Summary</button>
+        <button id="resetBtn" class="action-btn secondary">Reset</button>
+      </div>
+
+    </div>
+
+  </section>
+
+</div>
+
+<!-- 🔥 JS SPLIT -->
+<script type="module" src="./test1.js"></script>
+
+</body>
+</html>

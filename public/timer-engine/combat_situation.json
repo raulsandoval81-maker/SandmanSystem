@@ -1,0 +1,156 @@
+{
+  "situations": [
+    {
+      "id": "situ_match_sim",
+      "name": "Match Simulation (3×2:00, 1:00 rest)",
+      "segments": [
+        { "label": "Period 1", "time": 120 },
+        { "label": "Rest", "time": 60 },
+        { "label": "Period 2", "time": 120 },
+        { "label": "Rest", "time": 60 },
+        { "label": "Period 3", "time": 120 }
+      ],
+      "cues": {
+        "intro": "Win ties first.",
+        "mid": "Own the center.",
+        "final10": "Score now—clean finish."
+      },
+      "purpose": "Competition rhythm"
+    },
+    {
+      "id": "situ_top_bottom",
+      "name": "Top/Bottom Situations (6×0:45)",
+      "segments": [
+        { "label": "Top/Bottom Round", "time": 45 }
+      ],
+      "repeat": 6,
+      "cues": {
+        "intro": "First move now!",
+        "loop": "Reset positions."
+      },
+      "purpose": "Whistle starts and position discipline"
+    },
+    {
+      "id": "situ_short_gos",
+      "name": "Short Go’s (4×1:00, 0:30 rest)",
+      "segments": [
+        { "label": "Go", "time": 60 },
+        { "label": "Rest", "time": 30 }
+      ],
+      "repeat": 4,
+      "cues": {
+        "intro": "Two scores in one minute!",
+        "loop": "Breathe—burst again."
+      },
+      "purpose": "Max intensity bursts"
+    },
+    {
+      "id": "situ_shark_tank",
+      "name": "Shark Tank (5:00, fresh every 0:30)",
+      "segments": [
+        { "label": "Tank Round", "time": 300 }
+      ],
+      "cues": {
+        "intro": "Center holds—don’t break."
+      },
+      "note": "Use whistle and rotate every 30 seconds",
+      "purpose": "Resilience vs fresh partner"
+    },
+    {
+      "id": "situ_broken_time",
+      "name": "Broken Time (6×0:30 on / 0:15 off)",
+      "segments": [
+        { "label": "Burst", "time": 30 },
+        { "label": "Reset", "time": 15 }
+      ],
+      "repeat": 6,
+      "cues": {
+        "intro": "Explode, reset, go again."
+      },
+      "purpose": "Stress gas tank and recovery"
+    }
+  ],
+
+  "whistle": {
+    "library": {
+      "stand_up": {
+        "name": "Stand Up",
+        "call": "Stand up — 3…2…1… HIT",
+        "purpose": "Explode to feet with control"
+      },
+      "switch": {
+        "name": "Switch",
+        "call": "Switch — 3…2…1… HIT",
+        "purpose": "Hip separation and reversal"
+      },
+      "quad_pod": {
+        "name": "Quad Pod",
+        "call": "Quad pod — 3…2…1… HIT",
+        "purpose": "Build base and hand return"
+      },
+      "sit_out": {
+        "name": "Sit Out",
+        "call": "Sit out — 3…2…1… HIT",
+        "purpose": "Create angle and escape"
+      }
+    },
+
+    "youth": {
+      "t0": {
+        "roundTime": 45,
+        "reps": ["stand_up", "stand_up", "switch"]
+      },
+      "t1": {
+        "roundTime": 45,
+        "reps": ["stand_up", "switch", "quad_pod"]
+      },
+      "t2": {
+        "roundTime": 60,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t3": {
+        "roundTime": 60,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t4": {
+        "roundTime": 90,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t5": {
+        "roundTime": 90,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t6": {
+        "roundTime": 180,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t7": {
+        "roundTime": 180,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      }
+    },
+
+    "teen": {
+      "t0": {
+        "roundTime": 90,
+        "reps": ["stand_up", "stand_up", "switch", "quad_pod"]
+      },
+      "t1": {
+        "roundTime": 120,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t2": {
+        "roundTime": 180,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t3": {
+        "roundTime": 240,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      },
+      "t4": {
+        "roundTime": 240,
+        "reps": ["stand_up", "switch", "quad_pod", "sit_out"]
+      }
+    }
+  }
+}

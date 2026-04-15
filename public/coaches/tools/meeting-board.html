@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach • Meeting Board | Sandman System™</title>
+
+  <!-- we are inside /public/coaches/, so step back to shared assets -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill-bg:#ff3333; --pill-br:#ffd633; --pill-fg:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1200px;margin:0 auto;padding:1.25rem}
+
+    h1,h2{color:#ffd633;margin:.25rem 0 .75rem}
+    .muted{color:var(--muted)}
+    .sep{border:0;border-top:1px solid var(--line);margin:1rem 0}
+
+    .panel{
+      background:var(--panel); border:1px solid var(--line);
+      border-radius:14px; padding:1rem; box-shadow:0 0 14px rgba(0,0,0,.25);
+      margin-bottom:1rem;
+    }
+
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+    @media (max-width:1000px){.grid-2{grid-template-columns:1fr}}
+
+    .btn{
+      display:inline-block; padding:.6rem 1rem; border-radius:999px;
+      background:var(--pill-bg); color:var(--pill-fg);
+      border:2px solid var(--pill-br); font-weight:900; text-decoration:none; cursor:pointer;
+    }
+    .btn.secondary{background:transparent}
+    .btnbar{display:flex;gap:.5rem;flex-wrap:wrap}
+
+    input, textarea, select{
+      width:100%; padding:.6rem .75rem; border-radius:10px;
+      border:1px solid #394a61; background:#121821; color:#f3f4f6;
+    }
+    label{display:block;font-weight:700;margin:.35rem 0 .35rem}
+    .kicker{font-weight:800;color:#ffd633}
+    .row{display:flex;gap:.5rem;flex-wrap:wrap}
+    .pill{display:inline-block;padding:.25rem .6rem;border-radius:999px;background:#121821;border:1px solid #394a61;color:#cfe2ff;font-weight:700}
+
+    .list{margin:.35rem 0 0 .9rem}
+    .item{border:1px solid #2c3a4e;border-radius:10px;padding:.6rem;margin:.5rem 0;background:#0e141c}
+    .item .meta{color:#9fb3c8;font-size:.9rem}
+  </style>
+</head>
+<body>
+  <!-- Shared header -->
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+
+    <h1>Coaches • Meeting Board</h1>
+    <p class="muted" style="margin-top:-.45rem">
+      Public scaffold for agendas, action items, and decisions. Private edits will be gated behind Padlock/Auth later.
+    </p>
+
+    <!-- Upcoming Meeting (public-facing summary) -->
+    <section class="panel">
+      <h2>Next Meeting</h2>
+      <div class="grid-2">
+        <div>
+          <label for="mtgWhen">When</label>
+          <input id="mtgWhen" type="text" placeholder="Tue @ 6:30 PM (Gym Office) — placeholder" disabled>
+        </div>
+        <div>
+          <label for="mtgLead">Lead</label>
+          <input id="mtgLead" type="text" placeholder="Coach Sandoval — placeholder" disabled>
+        </div>
+      </div>
+      <div class="row" style="margin-top:.6rem">
+        <span class="pill">Length: 45m</span>
+        <span class="pill">Focus: XP wiring / ceremonies</span>
+        <span class="pill">Tracks: Foundry 8 / Foundry 4</span>
+      </div>
+    </section>
+
+    <!-- Agenda (read-only for now; later editable when authed) -->
+    <section class="panel">
+      <h2>Agenda</h2>
+      <ol class="list" id="agendaList">
+        <li class="item">
+          <div class="kicker">1) XP Engine — Pass 1 ✅</div>
+          <div class="meta">Confirm Youth/Teen write+read loop; recent adds visible.</div>
+        </li>
+        <li class="item">
+          <div class="kicker">2) Coaches Suite — Pass 2</div>
+          <div class="meta">Weekly/Archive/Ceremonies/Leaderboard: read-only off xp_logs.</div>
+        </li>
+        <li class="item">
+          <div class="kicker">3) Parents Suite — Intake/Contact/Volunteer</div>
+          <div class="meta">Form collections; auto-ack email later.</div>
+        </li>
+      </ol>
+    </section>
+
+    <!-- Action Items (public-view; private edit later) -->
+    <section class="panel">
+      <h2>Action Items</h2>
+      <div id="actions">
+        <div class="item">
+          <div class="kicker">Ship Ceremonies stub</div>
+          <div class="meta">Owner: Coach • Due: This week • Status: In progress</div>
+        </div>
+        <div class="item">
+          <div class="kicker">Padlock Auth (claims)</div>
+          <div class="meta">Owner: Admin • Due: After Phase 2 • Status: Planned</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Decisions Log -->
+    <section class="panel">
+      <h2>Decisions Log</h2>
+      <div id="decisions">
+        <div class="item">
+          <div class="kicker">Quarterly ceremonies = every 3 months (no early tests)</div>
+          <div class="meta">Locked • Private makeups allowed (2× 14-day cadence) • Coach may extend cooldown</div>
+        </div>
+        <div class="item">
+          <div class="kicker">At cap: Attendance & Tournaments freeze; Character/Assignments may continue</div>
+          <div class="meta">Merit renamed to Character; Merit Bank transfers at promotion</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Resources -->
+    <section class="panel">
+      <h2>Resources</h2>
+      <div class="btnbar">
+        <a class="btn secondary" href="../overview.html">Overview</a>
+        <a class="btn secondary" href="../programs.html">Programs</a>
+        <a class="btn secondary" href="../athletes/tools.html">Athlete Tools</a>
+        <a class="btn secondary" href="padlock.html">Coach Padlock</a>
+      </div>
+    </section>
+
+    <!-- (Optional) Private Editor notice -->
+    <section class="panel">
+      <h2>Private Editor (coming soon)</h2>
+      <p class="muted">
+        When Padlock is wired, coaches with claims (<code>coach</code> or <code>admin</code>) will be able to:
+      </p>
+      <ul class="list">
+        <li>Add/drag agenda items (D&D)</li>
+        <li>Assign action owners & due dates</li>
+        <li>Post decisions with timestamps</li>
+        <li>Attach links/files</li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Shared footer -->
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <!-- Stub controller; later you can move this into coaches.service.js if you prefer -->
+  <script>
+    // No live data here yet. Left intentionally static to avoid Firebase wiring today.
+    // When you’re ready: fetch agenda/actions/decisions from Firestore and render here.
+  </script>
+</body>
+</html>

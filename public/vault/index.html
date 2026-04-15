@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Vault • Index</title>
+<link rel="icon" href="data:,"> 
+  <style>
+    :root{
+      --bg:#06080d;
+      --panel:#0b1017;
+      --panel2:#0f141b;
+      --line:#1d2430;
+      --brand:#ffd633;
+      --text:#e5e7eb;
+      --muted:#9ca3af;
+      --danger:#e53935;
+      --ok:#22c55e;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:18px 14px 32px}
+    .hero{
+      background:var(--panel2);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:14px 16px;
+      box-shadow:0 10px 26px rgba(0,0,0,.35);
+    }
+    .hero h1{margin:0;color:var(--brand);font-size:1.25rem;letter-spacing:.02em}
+    .hero p{margin:6px 0 0;color:var(--muted);font-size:.86rem;line-height:1.35}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    .pill{
+      display:inline-flex;align-items:center;gap:.5rem;
+      padding:.45rem .9rem;border-radius:999px;
+      background:var(--panel);border:1px solid var(--line);
+      color:var(--text);text-decoration:none;font-weight:900;font-size:.78rem;
+    }
+    .pill:hover{border-color:#e63946;box-shadow:0 0 10px rgba(230,57,70,.35)}
+    .pill small{color:var(--muted);font-weight:700}
+
+    .grid{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+    @media(min-width:900px){ .grid{grid-template-columns:380px 1fr} }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 12px 14px;
+      box-shadow:0 10px 18px rgba(0,0,0,.22);
+    }
+    .card h2{margin:0 0 8px;color:var(--brand);font-size:.95rem;letter-spacing:.03em;text-transform:uppercase}
+    .status{font-size:.78rem;color:var(--muted);margin:0 0 10px}
+    .status b{color:var(--text)}
+
+    .lane{
+      border:1px solid #1f2937;
+      border-radius:12px;
+      padding:10px;
+      background:#0a0f15;
+      margin-bottom:10px;
+    }
+    .lane-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .lane-title{font-weight:1000;letter-spacing:.02em}
+    .badge{
+      font-size:.62rem;font-weight:1000;letter-spacing:.05em;text-transform:uppercase;
+      padding:.18rem .55rem;border-radius:999px;border:1px solid var(--line);
+      color:#cbd5e1;background:#0f141b;
+      white-space:nowrap;
+    }
+    .badge.ok{border-color:#22c55e55}
+    .badge.warn{border-color:#f59e0b55}
+    .paths{margin-top:8px;display:grid;gap:6px}
+    .btn{
+      width:100%;
+      border:1px solid var(--line);
+      background:var(--panel2);
+      color:var(--text);
+      padding:.48rem .7rem;
+      border-radius:10px;
+      font-weight:900;
+      font-size:.78rem;
+      cursor:pointer;
+      text-align:left;
+    }
+    .btn:hover{border-color:#e63946;box-shadow:0 0 10px rgba(230,57,70,.25)}
+    .btn .k{color:var(--muted);font-weight:800}
+    .btn .p{color:#e5e7eb}
+
+    pre{
+      margin:0;
+      padding:12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:#060a10;
+      color:#d1d5db;
+      overflow:auto;
+      min-height:420px;
+      font-size:.78rem;
+      line-height:1.35;
+    }
+    .hint{margin-top:10px;color:var(--muted);font-size:.75rem;line-height:1.35}
+    .error{color:#fecaca}
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <header class="hero">
+      <h1>Vault • Index</h1>
+      <p>Dev view. Reads <b>/vault/index.json</b> and lets you open lane segment meta + sessions JSON.</p>
+
+      <div class="row">
+        <a class="pill" href="/index.html">System Home <small>(root)</small></a>
+        <a class="pill" href="/coaches/index.html">Coach Console <small>(tools)</small></a>
+        <a class="pill" href="/vault/index.json">Open index.json <small>(raw)</small></a>
+      </div>
+    </header>
+
+    <section class="grid">
+      <article class="card">
+        <h2>Lane Browser</h2>
+        <p class="status" id="status">Loading <b>/vault/index.json</b>…</p>
+        <div id="lanes"></div>
+        <div class="hint">
+          If this page loads but a JSON fetch fails, it’s almost always a path typo or the file doesn’t exist in <b>public/vault/…</b>.
+        </div>
+      </article>
+
+      <article class="card">
+        <h2>Viewer</h2>
+        <p class="status" id="viewerTitle"><b>Select a file</b> to preview JSON.</p>
+        <pre id="viewer">{}</pre>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const lanesEl  = document.getElementById("lanes");
+    const viewer   = document.getElementById("viewer");
+    const viewerTitle = document.getElementById("viewerTitle");
+
+    function esc(s=""){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
+    }
+
+    async function loadJson(path){
+      const res = await fetch(path, { cache: "no-store" });
+      if(!res.ok) throw new Error(`HTTP ${res.status} for ${path}`);
+      return await res.json();
+    }
+
+    function makeBtn(label, path){
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.innerHTML = `<span class="k">${esc(label)}:</span> <span class="p">${esc(path)}</span>`;
+      btn.addEventListener("click", async () => {
+        viewerTitle.innerHTML = `<b>${esc(path)}</b>`;
+        viewer.textContent = "Loading…";
+        try{
+          const data = await loadJson(path);
+          viewer.textContent = JSON.stringify(data, null, 2);
+        }catch(err){
+          viewer.textContent = `ERROR: ${err.message}`;
+        }
+      });
+      return btn;
+    }
+
+    function renderLane(laneKey, lane){
+      const wrap = document.createElement("div");
+      wrap.className = "lane";
+
+      const head = document.createElement("div");
+      head.className = "lane-head";
+
+      const title = document.createElement("div");
+      title.className = "lane-title";
+      title.textContent = `${laneKey.toUpperCase()} • ${lane.label || ""}`;
+
+      const badge = document.createElement("span");
+      badge.className = "badge " + (lane.unlockStripe ? "ok" : "warn");
+      badge.textContent = lane.unlockStripe ? `UNLOCK STRIPE ${lane.unlockStripe}` : "NO STRIPE SET";
+
+      head.appendChild(title);
+      head.appendChild(badge);
+      wrap.appendChild(head);
+
+      const paths = document.createElement("div");
+      paths.className = "paths";
+
+      const segments = Array.isArray(lane.segments) ? lane.segments : [];
+      segments.forEach(seg => {
+        const segNum = seg.segment ?? "?";
+        if (seg.metaPath) paths.appendChild(makeBtn(`Segment ${segNum} meta`, seg.metaPath));
+        if (seg.sessionsPath) paths.appendChild(makeBtn(`Segment ${segNum} sessions`, seg.sessionsPath));
+      });
+
+      wrap.appendChild(paths);
+      return wrap;
+    }
+
+    (async () => {
+      try{
+        const idx = await loadJson("/vault/index.json");
+        const lanes = idx?.lanes || {};
+        const laneKeys = Object.keys(lanes);
+
+        statusEl.innerHTML = `Loaded <b>/vault/index.json</b> • <b>${laneKeys.length}</b> lanes • version <b>${esc(idx.version || "—")}</b>`;
+
+        lanesEl.innerHTML = "";
+        laneKeys.forEach(k => lanesEl.appendChild(renderLane(k, lanes[k])));
+
+        if (!laneKeys.length){
+          lanesEl.innerHTML = `<p class="status error">No lanes found in index.json.</p>`;
+        }
+      }catch(err){
+        statusEl.innerHTML = `<span class="error">Failed: ${esc(err.message)}</span>`;
+        viewer.textContent = `ERROR: ${err.message}`;
+      }
+    })();
+  </script>
+</body>
+</html>

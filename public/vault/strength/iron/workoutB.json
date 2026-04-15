@@ -1,0 +1,189 @@
+{
+  "id": "IRON_B",
+  "label": "Workout B",
+  "focus": "posterior_chain",
+  "tagline": "Back-side strength. Pull with power.",
+  "minAge": 13,
+
+  "sessionStructure": [
+    "Explosive",
+    "Main Lift",
+    "Secondary Lift",
+    "Assistance",
+    "Conditioning Finish",
+    "Log Best Set"
+  ],
+
+  "explosivePool": [
+    {
+      "name": "Medicine Ball Slams",
+      "sets": 4,
+      "reps": 5,
+      "notes": "Explode from hips."
+    },
+    {
+      "name": "Broad Jumps",
+      "sets": 4,
+      "reps": 4,
+      "notes": "Fast off the floor. Stable landing."
+    },
+    {
+      "name": "Kettlebell Swings",
+      "sets": 4,
+      "reps": 8,
+      "notes": "Hip snap, not arm lift."
+    },
+    {
+      "name": "Sprint Starts",
+      "sets": 4,
+      "reps": 3,
+      "notes": "Short burst. Full recovery."
+    }
+  ],
+
+  "seasonBlocks": {
+    "preseason": {
+      "goal": "Build pulling strength and posterior chain capacity.",
+      "mainLift": [
+        {
+          "exercise": "Romanian Deadlift",
+          "sets": 4,
+          "reps": "6-8",
+          "notes": "Feel the hinge. Stay tight."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Pull-ups",
+          "sets": 4,
+          "reps": "max clean reps",
+          "notes": "Full hang to strong finish."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Hip Thrust",
+          "sets": 3,
+          "reps": "8-10"
+        },
+        {
+          "exercise": "Barbell Row",
+          "sets": 3,
+          "reps": "8"
+        },
+        {
+          "exercise": "Posterior Core Hold",
+          "sets": 3,
+          "reps": "30-45 sec"
+        }
+      ],
+      "conditioning": {
+        "type": "finish",
+        "options": [
+          "Farmer Carry x 6 lengths",
+          "30/30 intervals x 8-10 rounds",
+          "Bike Sprint 20/40 x 8"
+        ]
+      }
+    },
+
+    "inseason": {
+      "goal": "Maintain pulling power without over-fatiguing the athlete.",
+      "mainLift": [
+        {
+          "exercise": "Romanian Deadlift",
+          "sets": 3,
+          "reps": "3-5",
+          "notes": "Lower volume, crisp reps."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Pull-ups",
+          "sets": 3,
+          "reps": "submax",
+          "notes": "No ugly reps."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Hip Thrust",
+          "sets": 2,
+          "reps": "6-8"
+        },
+        {
+          "exercise": "Barbell Row",
+          "sets": 2,
+          "reps": "6-8"
+        },
+        {
+          "exercise": "Posterior Core Hold",
+          "sets": 2,
+          "reps": "20-30 sec"
+        }
+      ],
+      "conditioning": {
+        "type": "short_finish",
+        "options": [
+          "40/20 x 6 rounds",
+          "Farmer Carry x 4 lengths",
+          "Bike Sprint 15/45 x 6"
+        ]
+      }
+    },
+
+    "postseason": {
+      "goal": "Raise pulling strength and posterior power ceiling.",
+      "mainLift": [
+        {
+          "exercise": "Romanian Deadlift",
+          "sets": 5,
+          "reps": "4-6",
+          "notes": "Progressive loading."
+        }
+      ],
+      "secondaryLift": [
+        {
+          "exercise": "Pull-ups",
+          "sets": 4,
+          "reps": "max clean reps",
+          "notes": "Strict reps first."
+        }
+      ],
+      "assistance": [
+        {
+          "exercise": "Hip Thrust",
+          "sets": 4,
+          "reps": "8"
+        },
+        {
+          "exercise": "Barbell Row",
+          "sets": 4,
+          "reps": "8"
+        },
+        {
+          "exercise": "Posterior Core Hold",
+          "sets": 3,
+          "reps": "45 sec"
+        }
+      ],
+      "conditioning": {
+        "type": "extended_finish",
+        "options": [
+          "Farmer Carry x 8 lengths",
+          "40/20 x 10 rounds",
+          "Sled Drag x 6"
+        ]
+      }
+    }
+  },
+
+  "loggingRule": {
+    "mode": "best_of_session",
+    "prompt": "Log your best working set from the main or secondary lift.",
+    "example": "Romanian Deadlift — 225 x 6"
+  },
+
+  "intensityRule": "Last 3 reps should be hard but clean. No ego reps.",
+  "coachNote": "Workout B = posterior chain day."
+}

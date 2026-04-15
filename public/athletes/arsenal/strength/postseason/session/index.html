@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Strength Session · Postseason</title>
+
+  <link rel="stylesheet" href="/athletes/arsenal/arsenal.css">
+  <link rel="stylesheet" href="/athletes/arsenal/strength/strength.css">
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="header">
+    <a id="backBtn" href="/athletes/arsenal/strength/" class="back-btn">← Back</a>
+    <h1 class="title">Strength Session · Postseason</h1>
+  </header>
+
+  <section class="lane-block">
+    <div id="session-shell">
+      <div class="lane-name">Loading session...</div>
+      <p class="lane-desc">Please wait.</p>
+    </div>
+  </section>
+
+</div>
+
+<script type="module">
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = (params.get("id") || "").trim().toUpperCase();
+  const backBtn = document.getElementById("backBtn");
+
+  if (backBtn && athleteId) {
+    backBtn.href = `/athletes/arsenal/strength/?id=${encodeURIComponent(athleteId)}`;
+  }
+</script>
+
+<script type="module" src="/athletes/arsenal/strength/postseason/session/session.js"></script>
+</body>
+</html>

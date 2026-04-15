@@ -1,0 +1,888 @@
+{
+  "lane": "honor",
+  "segmentId": "segment4",
+  "segmentTitle": "Competition & I",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "HON4-001",
+      "block": 1,
+      "type": "baseline_gate",
+      "title": "Competition Awareness Check",
+      "focusArea": "Composure",
+      "principle": "Competition reveals habits built in training.\nPressure exposes preparation.",
+      "houseStandard": "In this house, we compete with discipline and composure.\nPressure reveals preparation.\nSay it out loud. Twice.",
+      "prompt": "Answer honestly: What emotions appear before competition? Which emotions help performance? Which emotions hurt performance?",
+      "questions": [
+        "What emotions appear most before competition?",
+        "Which emotions help performance?",
+        "Which emotions hurt performance?",
+        "How do those emotions affect your behavior?",
+        "What is your composure strategy?"
+      ],
+      "deliverable": "emotion list + composure strategy",
+      "scripture": {
+        "text": "Be strong and courageous.",
+        "ref": "Joshua 1:9"
+      }
+    },
+    {
+      "n": 2,
+      "id": "HON4-002",
+      "block": 1,
+      "type": "reflection",
+      "title": "Preparation Before Competition",
+      "focusArea": "Responsibility",
+      "principle": "Preparation improves confidence.\nAthletes who prepare well compete calmly and effectively.",
+      "houseStandard": "In this house, preparation shows respect for competition.\nPreparation steadies confidence.\nSay it out loud. Twice.",
+      "prompt": "List three preparation habits before competition.",
+      "questions": [
+        "What preparation improves confidence?",
+        "What weakens readiness?",
+        "What habits should improve?",
+        "What should never be skipped before competition?"
+      ],
+      "deliverable": "3 preparation habits",
+      "scripture": {
+        "text": "Prepare your work outside.",
+        "ref": "Proverbs 24:27"
+      }
+    },
+    {
+      "n": 3,
+      "id": "HON4-003",
+      "block": 1,
+      "type": "reflection",
+      "title": "Managing Nerves",
+      "focusArea": "Composure",
+      "principle": "Nervous energy can become focus if controlled.\nDiscipline turns nervous energy into awareness.",
+      "houseStandard": "In this house, nerves become focus.\nComposure turns energy into awareness.\nSay it out loud. Twice.",
+      "prompt": "Describe a healthy way to control nerves before competition.",
+      "questions": [
+        "What causes your nerves?",
+        "How can nerves help focus?",
+        "What habits calm the mind?",
+        "What routine helps you compete with composure?"
+      ],
+      "deliverable": "nerve control plan",
+      "scripture": {
+        "text": "Peace I leave with you.",
+        "ref": "John 14:27"
+      }
+    },
+    {
+      "n": 4,
+      "id": "HON4-004",
+      "block": 1,
+      "type": "reflection",
+      "title": "Pre-Match Focus",
+      "focusArea": "Focus",
+      "principle": "Focus protects preparation.\nDistractions weaken performance while focus improves execution.",
+      "houseStandard": "In this house, focus protects effort.\nFocus protects execution.\nSay it out loud. Twice.",
+      "prompt": "List habits that protect focus before competition.",
+      "questions": [
+        "What breaks focus before competition?",
+        "What protects focus?",
+        "How does focus improve execution?",
+        "What distracts you most before a match?"
+      ],
+      "deliverable": "focus habit list",
+      "scripture": {
+        "text": "Set your minds on things above.",
+        "ref": "Colossians 3:2"
+      }
+    },
+    {
+      "n": 5,
+      "id": "HON4-005",
+      "block": 1,
+      "type": "reflection",
+      "title": "Respecting Competition",
+      "focusArea": "Respect",
+      "principle": "Competition deserves discipline and respect.\nAthletes should respect opponents, officials, and the event.",
+      "houseStandard": "In this house, we respect competition.\nRespect strengthens reputation.\nSay it out loud. Twice.",
+      "prompt": "Describe respectful behaviors during competition.",
+      "questions": [
+        "What shows respect during competition?",
+        "What shows disrespect?",
+        "How does respect affect reputation?",
+        "What habits build honor in competition?"
+      ],
+      "deliverable": "respect behaviors",
+      "scripture": {
+        "text": "Show proper respect to everyone.",
+        "ref": "1 Peter 2:17"
+      }
+    },
+    {
+      "n": 6,
+      "id": "HON4-006",
+      "block": 1,
+      "type": "reflection",
+      "title": "Representing Your Team",
+      "focusArea": "Responsibility",
+      "principle": "Athletes represent their team.\nEvery behavior reflects the team culture.",
+      "houseStandard": "In this house, athletes represent the team with honor.\nBehavior reflects culture.\nSay it out loud. Twice.",
+      "prompt": "How should athletes represent their team in competition?",
+      "questions": [
+        "What builds team reputation?",
+        "What damages it?",
+        "What habits represent the team well?",
+        "How should athletes carry themselves publicly?"
+      ],
+      "deliverable": "team representation rules",
+      "scripture": {
+        "text": "Let your light shine before others.",
+        "ref": "Matthew 5:16"
+      }
+    },
+    {
+      "n": 7,
+      "id": "HON4-007",
+      "block": 1,
+      "type": "reflection",
+      "title": "Mental Readiness",
+      "focusArea": "Focus",
+      "principle": "Mental readiness improves performance.\nAthletes who prepare mentally react better under pressure.",
+      "houseStandard": "In this house, mental readiness matters.\nPreparation strengthens confidence.\nSay it out loud. Twice.",
+      "prompt": "Describe a mental preparation strategy.",
+      "questions": [
+        "What mental habits help competition?",
+        "What habits hurt performance?",
+        "What improves awareness?",
+        "How do you prepare your mind before competing?"
+      ],
+      "deliverable": "mental preparation strategy",
+      "scripture": {
+        "text": "Be alert and of sober mind.",
+        "ref": "1 Peter 5:8"
+      }
+    },
+    {
+      "n": 8,
+      "id": "HON4-008",
+      "block": 1,
+      "type": "reflection",
+      "title": "Competition Responsibility",
+      "focusArea": "Responsibility",
+      "principle": "Athletes are responsible for preparation and conduct.\nBlaming circumstances weakens growth.",
+      "houseStandard": "In this house, responsibility belongs to the athlete.\nOwnership strengthens discipline.\nSay it out loud. Twice.",
+      "prompt": "List responsibilities athletes carry entering competition.",
+      "questions": [
+        "What responsibilities belong to competitors?",
+        "What mistakes weaken responsibility?",
+        "How can responsibility improve performance?",
+        "What belongs to you no matter what?"
+      ],
+      "deliverable": "responsibility list",
+      "scripture": {
+        "text": "Each of you should carry your own load.",
+        "ref": "Galatians 6:5"
+      }
+    },
+    {
+      "n": 9,
+      "id": "HON4-009",
+      "block": 2,
+      "type": "reflection",
+      "title": "Pressure Awareness",
+      "focusArea": "Composure",
+      "principle": "Pressure reveals habits.\nAthletes who stay calm perform more consistently.",
+      "houseStandard": "In this house, pressure reveals discipline.\nCalm athletes perform better.\nSay it out loud. Twice.",
+      "prompt": "How should athletes respond when pressure increases?",
+      "questions": [
+        "What causes pressure?",
+        "What helps calm pressure?",
+        "What habits help control it?",
+        "What do you return to when pressure rises?"
+      ],
+      "deliverable": "pressure response",
+      "scripture": {
+        "text": "The Lord gives strength to his people.",
+        "ref": "Psalm 29:11"
+      }
+    },
+    {
+      "n": 10,
+      "id": "HON4-010",
+      "block": 2,
+      "type": "reflection",
+      "title": "Staying Calm",
+      "focusArea": "Composure",
+      "principle": "Calm thinking improves decisions.\nEmotion without control weakens performance.",
+      "houseStandard": "In this house, calm beats chaos.\nCalm improves decisions.\nSay it out loud. Twice.",
+      "prompt": "What habits help athletes stay calm during competition?",
+      "questions": [
+        "What breaks calm?",
+        "What restores calm?",
+        "What habits help?",
+        "How does calm improve decision-making?"
+      ],
+      "deliverable": "calm habits",
+      "scripture": {
+        "text": "A gentle answer turns away wrath.",
+        "ref": "Proverbs 15:1"
+      }
+    },
+    {
+      "n": 11,
+      "id": "HON4-011",
+      "block": 2,
+      "type": "reflection",
+      "title": "Control Under Stress",
+      "focusArea": "Discipline",
+      "principle": "Stress should not control behavior.\nAthletes must control reactions under stress.",
+      "houseStandard": "In this house, discipline controls emotion.\nControl protects performance.\nSay it out loud. Twice.",
+      "prompt": "Why is self-control important during competition?",
+      "questions": [
+        "What causes emotional reactions?",
+        "How can athletes control them?",
+        "What habits help discipline?",
+        "What happens when emotion takes over?"
+      ],
+      "deliverable": "control explanation",
+      "scripture": {
+        "text": "Better a patient person than a warrior.",
+        "ref": "Proverbs 16:32"
+      }
+    },
+    {
+      "n": 12,
+      "id": "HON4-012",
+      "block": 2,
+      "type": "reflection",
+      "title": "Reset After Mistakes",
+      "focusArea": "Resilience",
+      "principle": "Mistakes happen; recovery matters.\nAthletes who reset quickly maintain performance.",
+      "houseStandard": "In this house, mistakes lead to adjustment.\nRecovery improves resilience.\nSay it out loud. Twice.",
+      "prompt": "How should athletes reset after mistakes?",
+      "questions": [
+        "What causes mistakes?",
+        "How should athletes respond?",
+        "What habits help reset?",
+        "What does a fast recovery look like?"
+      ],
+      "deliverable": "reset strategy",
+      "scripture": {
+        "text": "The righteous fall seven times and rise again.",
+        "ref": "Proverbs 24:16"
+      }
+    },
+    {
+      "n": 13,
+      "id": "HON4-013",
+      "block": 2,
+      "type": "reflection",
+      "title": "Focus During Competition",
+      "focusArea": "Focus",
+      "principle": "Focus improves reaction.\nAthletes who stay focused adapt faster.",
+      "houseStandard": "In this house, focus drives execution.\nFocus improves performance.\nSay it out loud. Twice.",
+      "prompt": "What breaks focus during competition?",
+      "questions": [
+        "What damages focus?",
+        "What protects it?",
+        "How can athletes improve?",
+        "What distraction gets you most?"
+      ],
+      "deliverable": "focus protection plan",
+      "scripture": {
+        "text": "Let us fix our eyes on what is unseen.",
+        "ref": "2 Corinthians 4:18"
+      }
+    },
+    {
+      "n": 14,
+      "id": "HON4-014",
+      "block": 2,
+      "type": "reflection",
+      "title": "Adapting Under Pressure",
+      "focusArea": "Adaptability",
+      "principle": "Athletes must adapt quickly.\nUnexpected moments require calm adjustment.",
+      "houseStandard": "In this house, athletes adapt with discipline.\nAdaptability improves resilience.\nSay it out loud. Twice.",
+      "prompt": "How should athletes adapt during unexpected situations?",
+      "questions": [
+        "What situations require adaptation?",
+        "How can athletes prepare?",
+        "What habits improve response?",
+        "How does calm help adjustment?"
+      ],
+      "deliverable": "adaptation strategy",
+      "scripture": {
+        "text": "Be wise as serpents and innocent as doves.",
+        "ref": "Matthew 10:16"
+      }
+    },
+    {
+      "n": 15,
+      "id": "HON4-015",
+      "block": 2,
+      "type": "reflection",
+      "title": "Confidence vs Ego",
+      "focusArea": "Attitude",
+      "principle": "Confidence helps; ego harms.\nConfidence improves performance while ego weakens judgment.",
+      "houseStandard": "In this house, confidence replaces ego.\nHumility strengthens discipline.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between confidence and ego?",
+      "questions": [
+        "What shows confidence?",
+        "What shows ego?",
+        "What habits help humility?",
+        "Why does ego weaken judgment?"
+      ],
+      "deliverable": "comparison explanation",
+      "scripture": {
+        "text": "Pride goes before destruction.",
+        "ref": "Proverbs 16:18"
+      }
+    },
+    {
+      "n": 16,
+      "id": "HON4-016",
+      "block": 2,
+      "type": "reflection",
+      "title": "Maintaining Discipline",
+      "focusArea": "Discipline",
+      "principle": "Discipline must remain under pressure.\nAthletes who stay disciplined perform consistently.",
+      "houseStandard": "In this house, discipline drives performance.\nDiscipline stabilizes performance.\nSay it out loud. Twice.",
+      "prompt": "How can athletes maintain discipline under pressure?",
+      "questions": [
+        "What weakens discipline?",
+        "What strengthens it?",
+        "What habits matter most?",
+        "What does discipline look like under pressure?"
+      ],
+      "deliverable": "discipline habits",
+      "scripture": {
+        "text": "Train yourself to be godly.",
+        "ref": "1 Timothy 4:7"
+      }
+    },
+    {
+      "n": 17,
+      "id": "HON4-017",
+      "block": 3,
+      "type": "reflection",
+      "title": "Respecting Opponents",
+      "focusArea": "Respect",
+      "principle": "Opponents deserve respect regardless of outcome.\nCompetition challenges athletes but should never destroy respect.",
+      "houseStandard": "In this house, we compete hard and respect opponents.\nRespect strengthens character.\nSay it out loud. Twice.",
+      "prompt": "Why should athletes respect opponents during competition?",
+      "questions": [
+        "What shows respect?",
+        "What damages sportsmanship?",
+        "What habits build honor?",
+        "Why does respect matter even in hard competition?"
+      ],
+      "deliverable": "respect explanation",
+      "scripture": {
+        "text": "Do to others as you would have them do to you.",
+        "ref": "Luke 6:31"
+      }
+    },
+    {
+      "n": 18,
+      "id": "HON4-018",
+      "block": 3,
+      "type": "reflection",
+      "title": "Fair Competition",
+      "focusArea": "Integrity",
+      "principle": "Integrity matters more than victory.\nWinning unfairly destroys the value of competition.",
+      "houseStandard": "In this house, we win with integrity.\nIntegrity protects honor.\nSay it out loud. Twice.",
+      "prompt": "What behaviors show fair competition?",
+      "questions": [
+        "What behaviors show fairness?",
+        "What damages integrity?",
+        "Why does integrity matter?",
+        "What shortcuts destroy honor?"
+      ],
+      "deliverable": "fair-play habits",
+      "scripture": {
+        "text": "Better a poor man whose walk is blameless.",
+        "ref": "Proverbs 19:1"
+      }
+    },
+    {
+      "n": 19,
+      "id": "HON4-019",
+      "block": 3,
+      "type": "reflection",
+      "title": "Learning from Opponents",
+      "focusArea": "Growth",
+      "principle": "Opponents reveal weaknesses.\nEvery opponent teaches something valuable.",
+      "houseStandard": "In this house, opponents help us grow.\nOpponents sharpen skill.\nSay it out loud. Twice.",
+      "prompt": "What can athletes learn from strong opponents?",
+      "questions": [
+        "What do opponents reveal?",
+        "What weaknesses appear in competition?",
+        "How can athletes improve?",
+        "What did a strong opponent expose in you?"
+      ],
+      "deliverable": "learning insight",
+      "scripture": {
+        "text": "As iron sharpens iron.",
+        "ref": "Proverbs 27:17"
+      }
+    },
+    {
+      "n": 20,
+      "id": "HON4-020",
+      "block": 3,
+      "type": "reflection",
+      "title": "Respecting Officials",
+      "focusArea": "Respect",
+      "principle": "Officials maintain fairness.\nRespecting officials shows maturity and discipline.",
+      "houseStandard": "In this house, we respect the rules and those who enforce them.\nRespect strengthens competition.\nSay it out loud. Twice.",
+      "prompt": "How should athletes treat officials during competition?",
+      "questions": [
+        "What behaviors show respect for officials?",
+        "What damages discipline?",
+        "Why do officials matter?",
+        "How should athletes respond to decisions they dislike?"
+      ],
+      "deliverable": "official respect rules",
+      "scripture": {
+        "text": "Submit to governing authorities.",
+        "ref": "Romans 13:1"
+      }
+    },
+    {
+      "n": 21,
+      "id": "HON4-021",
+      "block": 3,
+      "type": "reflection",
+      "title": "Sportsmanship in Competition",
+      "focusArea": "Respect",
+      "principle": "Sportsmanship shows maturity under pressure.\nAthletes reveal character not only in how they compete, but in how they carry themselves before, during, and after the result.",
+      "houseStandard": "In this house, sportsmanship matters.\nSportsmanship reveals discipline beyond performance.\nSay it out loud. Twice.",
+      "prompt": "What behaviors show strong sportsmanship during competition?",
+      "questions": [
+        "What does sportsmanship look like?",
+        "What damages it?",
+        "Why does it matter?",
+        "How do athletes carry themselves after the outcome?"
+      ],
+      "deliverable": "3 sportsmanship behaviors",
+      "scripture": {
+        "text": "Let your gentleness be evident to all.",
+        "ref": "Philippians 4:5"
+      }
+    },
+    {
+      "n": 22,
+      "id": "HON4-022",
+      "block": 3,
+      "type": "reflection",
+      "title": "Competing Without Hatred",
+      "focusArea": "Respect",
+      "principle": "Hard competition does not require hostility.\nAthletes can compete fiercely without letting contempt or hatred poison their mindset.",
+      "houseStandard": "In this house, intensity stays clean.\nControlled intensity is stronger than hostility.\nSay it out loud. Twice.",
+      "prompt": "How can athletes compete hard without becoming disrespectful or hostile?",
+      "questions": [
+        "What turns intensity into hostility?",
+        "How can athletes keep intensity clean?",
+        "Why does this matter for character?",
+        "What does controlled aggression look like?"
+      ],
+      "deliverable": "clean-intensity explanation",
+      "scripture": {
+        "text": "Be angry and do not sin.",
+        "ref": "Ephesians 4:26"
+      }
+    },
+    {
+      "n": 23,
+      "id": "HON4-023",
+      "block": 3,
+      "type": "reflection",
+      "title": "Learning During Competition",
+      "focusArea": "Growth",
+      "principle": "Competition itself teaches if athletes stay aware.\nMatches reveal patterns that training alone may hide.",
+      "houseStandard": "In this house, competition teaches us.\nAwareness turns experience into growth.\nSay it out loud. Twice.",
+      "prompt": "What can athletes learn during competition, not just after it?",
+      "questions": [
+        "What does competition reveal in real time?",
+        "How can athletes stay aware while competing?",
+        "What patterns appear only under live pressure?",
+        "How can you learn while still performing?"
+      ],
+      "deliverable": "competition learning insight",
+      "scripture": {
+        "text": "Teach me knowledge and good judgment.",
+        "ref": "Psalm 119:66"
+      }
+    },
+    {
+      "n": 24,
+      "id": "HON4-024",
+      "block": 3,
+      "type": "reflection",
+      "title": "Responding to Bad Calls",
+      "focusArea": "Discipline",
+      "principle": "Officials are not under your control.\nYour response always is.",
+      "houseStandard": "In this house, we respond with discipline.\nControl stays with us.\nSay it out loud. Twice.",
+      "prompt": "How should athletes respond to bad calls or unfair moments during competition?",
+      "questions": [
+        "Why do bad calls affect athletes so strongly?",
+        "What response weakens performance?",
+        "What response protects discipline?",
+        "How can athletes recover quickly after a bad call?"
+      ],
+      "deliverable": "bad-call response standard",
+      "scripture": {
+        "text": "Better a patient person than a warrior.",
+        "ref": "Proverbs 16:32"
+      }
+    },
+    {
+      "n": 25,
+      "id": "HON4-025",
+      "block": 4,
+      "type": "reflection",
+      "title": "Winning with Humility",
+      "focusArea": "Attitude",
+      "principle": "Victory should not create arrogance.\nHumility keeps athletes grounded and focused.",
+      "houseStandard": "In this house, victory is handled with humility.\nHumility protects growth.\nSay it out loud. Twice.",
+      "prompt": "Why is humility important after victory?",
+      "questions": [
+        "What behaviors show humility?",
+        "What damages character after victory?",
+        "What habits build humility?",
+        "Why can winning become dangerous to character?"
+      ],
+      "deliverable": "humility explanation",
+      "scripture": {
+        "text": "Pride goes before destruction.",
+        "ref": "Proverbs 16:18"
+      }
+    },
+    {
+      "n": 26,
+      "id": "HON4-026",
+      "block": 4,
+      "type": "reflection",
+      "title": "Losing with Discipline",
+      "focusArea": "Resilience",
+      "principle": "Loss reveals character.\nAthletes grow when they respond to loss with discipline.",
+      "houseStandard": "In this house, losses become lessons.\nLoss can strengthen discipline.\nSay it out loud. Twice.",
+      "prompt": "How should athletes respond after losing?",
+      "questions": [
+        "What does loss reveal?",
+        "What habits improve after loss?",
+        "What behaviors weaken growth?",
+        "How can discipline turn loss into progress?"
+      ],
+      "deliverable": "loss response plan",
+      "scripture": {
+        "text": "Though the righteous fall seven times, they rise again.",
+        "ref": "Proverbs 24:16"
+      }
+    },
+    {
+      "n": 27,
+      "id": "HON4-027",
+      "block": 4,
+      "type": "reflection",
+      "title": "Learning from Loss",
+      "focusArea": "Growth",
+      "principle": "Loss can reveal valuable lessons.\nGrowth requires honest reflection after defeat.",
+      "houseStandard": "In this house, losses become teachers.\nHonest reflection drives growth.\nSay it out loud. Twice.",
+      "prompt": "What lessons can loss teach athletes?",
+      "questions": [
+        "What lessons appear after loss?",
+        "What weaknesses appear?",
+        "How can training improve?",
+        "What truth do athletes avoid after losing?"
+      ],
+      "deliverable": "lesson summary",
+      "scripture": {
+        "text": "Teach me knowledge and good judgment.",
+        "ref": "Psalm 119:66"
+      }
+    },
+    {
+      "n": 28,
+      "id": "HON4-028",
+      "block": 4,
+      "type": "reflection",
+      "title": "Handling Criticism",
+      "focusArea": "Growth",
+      "principle": "Criticism can improve athletes.\nAthletes must accept helpful feedback.",
+      "houseStandard": "In this house, feedback builds growth.\nWise athletes learn from correction.\nSay it out loud. Twice.",
+      "prompt": "How should athletes respond to criticism?",
+      "questions": [
+        "What helps athletes improve?",
+        "What blocks growth?",
+        "How should criticism be used?",
+        "What makes criticism helpful instead of harmful?"
+      ],
+      "deliverable": "criticism response",
+      "scripture": {
+        "text": "Whoever loves discipline loves knowledge.",
+        "ref": "Proverbs 12:1"
+      }
+    },
+    {
+      "n": 29,
+      "id": "HON4-029",
+      "block": 4,
+      "type": "reflection",
+      "title": "Maintaining Perspective",
+      "focusArea": "Wisdom",
+      "principle": "Competition is one part of development.\nAthletes should value growth over ego.",
+      "houseStandard": "In this house, perspective protects character.\nPerspective protects discipline.\nSay it out loud. Twice.",
+      "prompt": "Why is perspective important after competition?",
+      "questions": [
+        "What protects perspective?",
+        "What damages perspective?",
+        "What habits build wisdom?",
+        "How does long-term thinking protect character?"
+      ],
+      "deliverable": "perspective insight",
+      "scripture": {
+        "text": "The wise store up knowledge.",
+        "ref": "Proverbs 10:14"
+      }
+    },
+    {
+      "n": 30,
+      "id": "HON4-030",
+      "block": 4,
+      "type": "reflection",
+      "title": "Returning to Training",
+      "focusArea": "Discipline",
+      "principle": "Competition should lead back to training.\nGrowth happens through continued work.",
+      "houseStandard": "In this house, competition leads back to discipline.\nWork creates growth.\nSay it out loud. Twice.",
+      "prompt": "Why should athletes return to training with purpose?",
+      "questions": [
+        "What should athletes improve after competition?",
+        "What habits matter most next?",
+        "What builds discipline after the event is over?",
+        "How does competition point back to work?"
+      ],
+      "deliverable": "training commitment",
+      "scripture": {
+        "text": "Let us not grow weary in doing good.",
+        "ref": "Galatians 6:9"
+      }
+    },
+    {
+      "n": 31,
+      "id": "HON4-031",
+      "block": 4,
+      "type": "reflection",
+      "title": "Winning and Losing in Public",
+      "focusArea": "Representation",
+      "principle": "Competition is public character testing.\nPeople remember how athletes handle outcomes, not just the outcome itself.",
+      "houseStandard": "In this house, outcomes never outrank character.\nPublic response shapes reputation.\nSay it out loud. Twice.",
+      "prompt": "How should athletes carry themselves publicly after winning or losing?",
+      "questions": [
+        "What public behaviors build respect?",
+        "What public behaviors weaken trust?",
+        "Why does public response matter?",
+        "How should athletes protect character in public?"
+      ],
+      "deliverable": "public-competition standard",
+      "scripture": {
+        "text": "Let your gentleness be evident to all.",
+        "ref": "Philippians 4:5"
+      }
+    },
+    {
+      "n": 32,
+      "id": "HON4-032",
+      "block": 4,
+      "type": "reflection",
+      "title": "Competing for Growth, Not Applause",
+      "focusArea": "Attitude",
+      "principle": "Athletes lose freedom when they compete for approval instead of truth.\nCompetition becomes distorted when athletes fight for applause, image, or outside approval instead of honest performance and growth.",
+      "houseStandard": "In this house, we compete for truth, not applause.\nFreedom grows when approval loses power.\nSay it out loud. Twice.",
+      "prompt": "What changes when an athlete competes for approval instead of growth and performance?",
+      "questions": [
+        "Whose approval affects competitors most?",
+        "What damage comes from competing for applause?",
+        "What mindset brings freedom back?",
+        "How does approval-chasing change performance?"
+      ],
+      "deliverable": "approval-vs-growth comparison",
+      "scripture": {
+        "text": "Am I now trying to win the approval of human beings?",
+        "ref": "Galatians 1:10"
+      }
+    },
+    {
+      "n": 33,
+      "id": "HON4-033",
+      "block": 5,
+      "type": "reflection",
+      "title": "Supporting Teammates",
+      "focusArea": "Team",
+      "principle": "Competition is shared with the team.\nTeammates support each other through effort and encouragement.",
+      "houseStandard": "In this house, teammates lift each other.\nSupport builds unity.\nSay it out loud. Twice.",
+      "prompt": "How should athletes support teammates in competition?",
+      "questions": [
+        "What support helps teammates most?",
+        "What damages morale?",
+        "What habits strengthen teams?",
+        "How does encouragement affect performance?"
+      ],
+      "deliverable": "support habits",
+      "scripture": {
+        "text": "Carry each other's burdens.",
+        "ref": "Galatians 6:2"
+      }
+    },
+    {
+      "n": 34,
+      "id": "HON4-034",
+      "block": 5,
+      "type": "reflection",
+      "title": "Team Expectations",
+      "focusArea": "Responsibility",
+      "principle": "Athletes carry responsibility to their team.\nTeams succeed when athletes carry shared responsibility.",
+      "houseStandard": "In this house, responsibility strengthens teams.\nResponsibility builds trust.\nSay it out loud. Twice.",
+      "prompt": "What expectations should teams have for competitors?",
+      "questions": [
+        "What builds team trust?",
+        "What damages it?",
+        "What habits matter most?",
+        "What should teams be able to count on from competitors?"
+      ],
+      "deliverable": "team expectations list",
+      "scripture": {
+        "text": "Whatever you do, work at it with all your heart.",
+        "ref": "Colossians 3:23"
+      }
+    },
+    {
+      "n": 35,
+      "id": "HON4-035",
+      "block": 5,
+      "type": "reflection",
+      "title": "Representing the Team",
+      "focusArea": "Honor",
+      "principle": "Athletes carry the reputation of the team.\nBehavior during competition reflects the team culture.",
+      "houseStandard": "In this house, athletes represent the team with honor.\nReputation reflects culture.\nSay it out loud. Twice.",
+      "prompt": "What behaviors represent a team well?",
+      "questions": [
+        "What builds reputation?",
+        "What damages it?",
+        "What habits matter most?",
+        "How do athletes visibly carry the team?"
+      ],
+      "deliverable": "team representation statement",
+      "scripture": {
+        "text": "Let your light shine before others.",
+        "ref": "Matthew 5:16"
+      }
+    },
+    {
+      "n": 36,
+      "id": "HON4-036",
+      "block": 5,
+      "type": "reflection",
+      "title": "Leading Through Competition",
+      "focusArea": "Leadership",
+      "principle": "Older or stronger athletes lead by how they carry themselves in competition.\nYounger athletes and teammates watch how competitors handle nerves, officials, outcomes, and pressure.",
+      "houseStandard": "In this house, competitors lead by conduct.\nCompetition makes leadership visible.\nSay it out loud. Twice.",
+      "prompt": "How can an athlete lead others through the way they compete?",
+      "questions": [
+        "What competition behaviors make someone worth following?",
+        "What behaviors weaken leadership?",
+        "What do others learn from you when you compete?",
+        "How does leadership show under pressure?"
+      ],
+      "deliverable": "3 competition leadership habits",
+      "scripture": {
+        "text": "Set an example for the believers.",
+        "ref": "1 Timothy 4:12"
+      }
+    },
+    {
+      "n": 37,
+      "id": "HON4-037",
+      "block": 5,
+      "type": "reflection",
+      "title": "Protecting the House in Public",
+      "focusArea": "Stewardship",
+      "principle": "Competition is one of the clearest places the house is publicly represented.\nAn athlete does not walk into competition alone. He carries his room, his team, and his standards with him.",
+      "houseStandard": "In this house, we protect the house in public.\nPublic behavior can strengthen or weaken the house.\nSay it out loud. Twice.",
+      "prompt": "What does it mean to protect the house when competing in public?",
+      "questions": [
+        "What public behaviors protect the house?",
+        "What public behaviors damage it?",
+        "Why does public representation matter?",
+        "How do standards stay visible under pressure?"
+      ],
+      "deliverable": "house-protection standard",
+      "scripture": {
+        "text": "Conduct yourselves in a manner worthy.",
+        "ref": "Philippians 1:27"
+      }
+    },
+    {
+      "n": 38,
+      "id": "HON4-038",
+      "block": 5,
+      "type": "reflection",
+      "title": "Competition Standard Statement",
+      "focusArea": "Responsibility",
+      "principle": "Athletes need a clear standard for how they compete.\nWithout a defined standard, competition becomes emotional, reactive, and inconsistent.",
+      "houseStandard": "In this house, we compete by a clear standard.\nClear standards protect athletes under pressure.\nSay it out loud. Twice.",
+      "prompt": "Write your competition standard in one strong sentence.",
+      "questions": [
+        "What should competition always bring out of you?",
+        "What weak habits must disappear?",
+        "What standard will guide your competition?",
+        "Can someone else clearly see that standard?"
+      ],
+      "deliverable": "1 sentence competition standard",
+      "scripture": {
+        "text": "Be steadfast in your work.",
+        "ref": "1 Corinthians 15:58"
+      }
+    },
+    {
+      "n": 39,
+      "id": "HON4-039",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Does Honorable Competition Look Like?",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Honorable competition is disciplined, composed, respectful, and honest.\nThe strongest competitors are not just dangerous. They are controlled, trustworthy, and grounded in standards under pressure.",
+      "houseStandard": "In this house, competition stays honorable.\nHonor in competition is visible in conduct.\nSay it out loud. Twice.",
+      "prompt": "Define honorable competition in actions, not feelings. List 5 behaviors you will live out next time you compete.",
+      "questions": [
+        "What does honorable competition look like?",
+        "What behavior proves it?",
+        "What weak habits must disappear?",
+        "What would someone else clearly see if you lived this out?"
+      ],
+      "deliverable": "5 honorable competition behaviors",
+      "scripture": {
+        "text": "By their fruit you will recognize them.",
+        "ref": "Matthew 7:16"
+      }
+    },
+    {
+      "n": 40,
+      "id": "HON4-040",
+      "block": 5,
+      "type": "baseline_retest",
+      "title": "Competition Honor Retest",
+      "focusArea": "Honor",
+      "principle": "Competition reveals character growth.\nThe goal is not image. The goal is composure, discipline, and honor under pressure.",
+      "houseStandard": "In this house, growth is measured honestly.\nGrowth becomes visible through reflection.\nSay it out loud. Twice.",
+      "prompt": "Repeat Session 1 exactly. Answer again: What emotions appear before competition? Which emotions help performance? Which emotions hurt performance? Then compare your old answer to your new one.",
+      "questions": [
+        "What changed?",
+        "What improved most?",
+        "What still needs work?",
+        "What is your next-step commitment?"
+      ],
+      "deliverable": "comparison + next step commitment",
+      "scripture": {
+        "text": "Examine yourselves.",
+        "ref": "2 Corinthians 13:5"
+      }
+    }
+  ]
+}

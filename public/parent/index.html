@@ -2,79 +2,367 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Sandman | Parent index</title>
+  <title>Sandman Combat™ | Parent Hub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/parent/parent.css?v=1">
+  <link rel="stylesheet" href="/parent/parent.css" />
+
+  <style>
+    .parent-tabs{
+      display:grid;
+      grid-template-columns:repeat(4, 1fr);
+      gap:14px;
+      margin:18px 0 22px;
+    }
+
+    .parent-tab{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      align-items:flex-start;
+      min-height:92px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 16px;
+      box-shadow:var(--shadow);
+      text-decoration:none;
+      color:var(--text);
+      transition:.15s ease;
+    }
+
+    .parent-tab:hover{
+      border-color:var(--gold);
+      transform:translateY(-1px);
+    }
+
+    .parent-tab-kicker{
+      margin:0 0 6px;
+      color:var(--gold);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .parent-tab-title{
+      margin:0 0 4px;
+      font-size:1rem;
+      line-height:1.15;
+      font-weight:900;
+    }
+
+    .parent-tab-copy{
+      margin:0;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.35;
+    }
+
+    .section-head{
+      display:grid;
+      gap:8px;
+      margin-bottom:14px;
+    }
+
+    .section-kicker{
+      margin:0;
+      color:var(--gold);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .section-title{
+      margin:0;
+      font-size:1.55rem;
+      line-height:1.15;
+    }
+
+    .section-sub{
+      margin:0;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .page-sub-soft{
+      margin-top:10px;
+      max-width:720px;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .values-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    .value-card{
+      height:100%;
+    }
+
+    .value-label{
+      margin:0 0 10px;
+      color:var(--gold);
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .card-copy{
+      margin:0;
+      color:var(--text);
+      line-height:1.6;
+    }
+
+    .theme-toggle{
+      width:38px;
+      height:38px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--gold);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:18px;
+      cursor:pointer;
+      transition:.15s ease;
+      box-shadow:var(--shadow);
+    }
+
+    .theme-toggle:hover{
+      border-color:var(--gold);
+    }
+
+    .parent-tools-bottom{
+      margin-top:40px;
+    }
+
+    @media (max-width:760px){
+      .parent-tabs{
+        grid-template-columns:1fr 1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      .values-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-<!-- Top Bar -->
-<div class="topbar">
-  <a class="back-btn" href="/hub.html">← Back</a>
+<header class="topbar">
 
-  <div class="lang-wrap">
-    <button class="lang-btn active" data-lang="en">EN</button>
-    <button class="lang-btn" data-lang="sp">SP</button>
+  <!-- LEFT -->
+  <div class="topbar-left">
+    <div class="lang-wrap">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sp">ES</button>
+    </div>
   </div>
-</div>
 
-<div class="page-head">
-  <h1 class="page-title">Parent Index</h1>
-  <p class="page-sub">
-    Partnering with you to grow strong athletes — and stronger people.
-  </p>
-</div>
-  <main class="main">
-    <!-- CORE -->
-    <section class="card">
-      <h3 class="card__title">Core</h3>
+  <!-- CENTER -->
+  <div class="topbar-center">
+    <a href="/parent/index.html" class="hub-mark">PARENT HUB</a>
+  </div>
 
-      <div class="grid grid--2">
-        <div class="tool card">
-          <h4>My Athlete Dashboard</h4>
-          <p class="card__muted">Progress, badges, XP, and recent activity.</p>
-          <a class="p-btn p-btn--accent go" href="./my-athlete.html">Open</a>
-        </div>
+  <!-- RIGHT -->
+  <div class="topbar-right">
+    <button id="themeToggle" class="theme-toggle">☀️</button>
+  </div>
 
-        <div class="tool card">
-          <h4>My Athlete — Log &amp; Skills</h4>
-          <p class="card__muted">Quick notes and skills tracking.</p>
-          <a class="p-btn p-btn--accent go" href="./my-athlete-log.html">Open</a>
-        </div>
+</header>
+  <main class="wrap">
+    <section class="page-head parent-hero">
+      <div class="hero-text">
+        <p class="eyebrow">
+          <span class="en">Parent Hub</span>
+          <span class="es">Portal de Padres</span>
+        </p>
 
-        <div class="tool card">
-          <h4>Parent Portal</h4>
-          <p class="card__muted">Announcements, key documents, and Q&amp;A.</p>
-          <a class="p-btn p-btn--accent go" href="./coach/para/parent/index.html">Open</a>
-        </div>
+        <h1 class="page-title">
+          <span class="en">Parent Home Center</span>
+          <span class="es">Centro Principal de Padres</span>
+        </h1>
 
-        <div class="tool card">
-          <h4>Honor &amp; Recognition</h4>
-          <p class="card__muted">Badge · Shirt · Belt milestones.</p>
-          <a class="p-btn p-btn--accent go" href="./badge-ladder.html">Open</a>
-        </div>
+        <p class="page-sub">
+          <span class="en">
+            Partnering with you to grow strong athletes — and stronger people.
+          </span>
+          <span class="es">
+            Colaborando con usted para formar atletas fuertes y personas aún más fuertes.
+          </span>
+        </p>
 
-        <div class="tool card">
-          <h4>Schedule</h4>
-          <p class="card__muted">Practice days, times, and event reminders.</p>
-          <a class="p-btn p-btn--accent go" href="./calendar.html">Open</a>
-        </div>
+        <p class="page-sub page-sub-soft">
+          <span class="en">
+            This hub helps your family stay connected to progress, schedule, communication, and the structure behind the room.
+          </span>
+          <span class="es">
+            Este portal ayuda a su familia a mantenerse conectada con el progreso, el horario, la comunicación y la estructura detrás del salón.
+          </span>
+        </p>
+      </div>
 
-        <div class="tool card">
-          <h4>Weekly Updates</h4>
-          <p class="card__muted">What we’re working on + how to support at home.</p>
-          <a class="p-btn p-btn--accent go" href="./parent-weekly.html">Open</a>
-        </div>
-
-        <!-- NEW: WRESTLING HANDOUTS -->
-        <div class="tool card">
-          <h4>Wrestling Handouts</h4>
-          <p class="card__muted">Tournament guide, policies, weight guidance, and parent resources.</p>
-          <a class="p-btn p-btn--accent go" href="/parent/handouts/index.html">Open</a>
-        </div>
+      <div class="hero-logo">
+        <img
+          src="/assets/images/logos/Sandman-Combat.png"
+          alt="Sandman Combat"
+          loading="lazy"
+        >
       </div>
     </section>
 
-    <p class="note">Keep this simple. No dead links. Add tools only when they’re real.</p>
+    <section class="section section-values">
+      <div class="section-head">
+        <p class="section-kicker">
+          <span class="en">Values</span>
+          <span class="es">Valores</span>
+        </p>
+
+        <h2 class="section-title">
+          <span class="en">What Parents Reinforce</span>
+          <span class="es">Lo Que Refuerzan Los Padres</span>
+        </h2>
+
+        <p class="section-sub">
+          <span class="en">The room teaches. The home strengthens. Together, those lessons last.</span>
+          <span class="es">El salón enseña. El hogar fortalece. Juntos, esos aprendizajes perduran.</span>
+        </p>
+      </div>
+
+      <div class="values-grid">
+
+
+<article class="card value-card">
+  <p class="value-label">
+    <span class="en">Parent Creed — to myself</span>
+    <span class="es">Credo de Padres — para mí</span>
+  </p>
+  <p class="card-copy">
+    <span class="en">
+      I will not compromise my standards as a parent. I will support my athlete with patience, respect, and consistency.
+      I understand this journey demands discipline and honor, and I will stand firm through every phase of it.
+    </span>
+    <span class="es">
+      No comprometeré mis estándares como padre. Apoyaré a mi atleta con paciencia, respeto y constancia.
+      Entiendo que este camino exige disciplina y honor, y me mantendré firme en cada etapa del proceso.
+    </span>
+  </p>
+</article>
+
+<article class="card value-card">
+  <p class="value-label">
+    <span class="en">Parent Code — to the room</span>
+    <span class="es">Código de Padres — para el entorno</span>
+  </p>
+  <p class="card-copy">
+    <span class="en">
+      Back the coaches. Reinforce the rules. Model discipline, respect, and accountability at all times.
+      My actions set the standard for the environment my athlete grows in.
+    </span>
+    <span class="es">
+      Apoye a los entrenadores. Refuerce las reglas. Modele disciplina, respeto y responsabilidad en todo momento.
+      Mis acciones establecen el estándar del entorno en el que crece mi atleta.
+    </span>
+  </p>
+</article>
+
+<article class="card value-card">
+  <p class="value-label">
+    <span class="en">Parent Goal — the moment</span>
+    <span class="es">Meta de Padres — el momento</span>
+  </p>
+  <p class="card-copy">
+    <span class="en">
+      Provide a stable, supportive environment where my athlete can work, learn, and grow today.
+      Stay consistent. Stay present. Stay aligned.
+    </span>
+    <span class="es">
+      Proporcione un entorno estable y de apoyo donde mi atleta pueda trabajar, aprender y crecer hoy.
+      Manténgase constante. Manténgase presente. Manténgase alineado.
+    </span>
+  </p>
+</article>
+
+<article class="card value-card">
+  <p class="value-label">
+    <span class="en">Parent Mission — the future</span>
+    <span class="es">Misión de Padres — el futuro</span>
+  </p>
+  <p class="card-copy">
+    <span class="en">
+      Help raise an athlete who succeeds beyond the mat—in school, in family, and in life.
+      Build character, discipline, and accountability that carry forward.
+    </span>
+    <span class="es">
+      Ayude a formar un atleta que tenga éxito más allá del tapete: en la escuela, en la familia y en la vida.
+      Construya carácter, disciplina y responsabilidad que perduren.
+    </span>
+  </p>
+</article>
+      </div>
+    </section>
+
+    <section class="parent-tools-bottom">
+      <div class="section-head">
+        <p class="section-kicker">
+          <span class="en">Parent Tools</span>
+          <span class="es">Herramientas Para Padres</span>
+        </p>
+      </div>
+
+      <nav class="parent-tabs" aria-label="Parent hub navigation">
+        <a class="parent-tab" href="/parent/my-athlete/index.html">
+          <p class="parent-tab-kicker">
+            <span class="en">Progress</span>
+            <span class="es">Progreso</span>
+          </p>
+          <h2 class="parent-tab-title">
+            <span class="en">My Athlete</span>
+            <span class="es">Mi Atleta</span>
+          </h2>
+        </a>
+
+        <a class="parent-tab" href="/parent/schedule/index.html">
+          <p class="parent-tab-kicker">
+            <span class="en">Logistics</span>
+            <span class="es">Logística</span>
+          </p>
+          <h2 class="parent-tab-title">
+            <span class="en">Schedule</span>
+            <span class="es">Horario</span>
+          </h2>
+        </a>
+
+        <a class="parent-tab" href="/parent/messages/index.html">
+          <p class="parent-tab-kicker">
+            <span class="en">Communication</span>
+            <span class="es">Comunicación</span>
+          </p>
+          <h2 class="parent-tab-title">
+            <span class="en">Messages</span>
+            <span class="es">Mensajes</span>
+          </h2>
+        </a>
+
+        <a class="parent-tab" href="/parent/system/index.html">
+          <p class="parent-tab-kicker">
+            <span class="en">Culture</span>
+            <span class="es">Cultura</span>
+          </p>
+          <h2 class="parent-tab-title">
+            <span class="en">System</span>
+            <span class="es">Sistema</span>
+          </h2>
+        </a>
+      </nav>
+    </section>
   </main>
+  <script src="/assets/js/parent-shell.js"></script>
 </body>
 </html>

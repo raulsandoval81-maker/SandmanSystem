@@ -10,7 +10,8 @@ import {
   getDoc,
   updateDoc,
   serverTimestamp,
-} from "../assets/js/firebase-init.js";
+  ensureSignedIn
+} from "/assets/js/firebase-init.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -45,10 +46,14 @@ async function loadSnapshot() {
   if (!uid) {
     setStatus("Missing ?id=. Ask your coach for a new link.");
     if (btnComplete) btnComplete.disabled = true;
+    if (btnBack) btnBack.disabled = true;
     return;
   }
 
   setStatus("Loading…");
+
+  // 🔐 REQUIRED so request.auth exists (phone)
+  await ensureSignedIn();
 
   const ref = doc(db, "athletes", uid);
   const snap = await getDoc(ref);
@@ -56,10 +61,17 @@ async function loadSnapshot() {
   if (!snap.exists()) {
     setStatus("Athlete not found. Check the link from coach.");
     if (btnComplete) btnComplete.disabled = true;
+    if (btnBack) btnBack.disabled = true;
     return;
   }
 
   athlete = snap.data() || {};
+
+  // If already completed/locked, skip snapshot page and go hub
+  if (athlete?.onboarding?.locks?.step9 === true || athlete?.onboarding?.completedAt) {
+    window.location.href = `/athletes/hub?id=${encodeURIComponent(uid)}`;
+    return;
+  }
 
   // Name
   const name = athlete.fullName || athlete.publicName || "—";
@@ -112,10 +124,13 @@ async function loadSnapshot() {
     setText("sum-finisher", "—");
   }
 
-  // ✅ Childhood Hero (Step 8 writes onboarding.identity.childhoodHero)
-const hero = athlete.onboarding?.identity?.childhoodHero;
-const legend = athlete.onboarding?.identity?.futureLegend;
-setText("sum-hero", [hero, legend].filter(Boolean).join(" · ") || "—");
+  // Hero + Legend (Step 8)
+  const hero = athlete.onboarding?.identity?.childhoodHero;
+  const legend = athlete.onboarding?.identity?.futureLegend;
+  setText("sum-hero", [hero, legend].filter(Boolean).join(" · ") || "—");
+
+  // Doctrine: no back. Disable back button.
+  if (btnBack) btnBack.disabled = true;
 
   setStatus("");
 }
@@ -124,17 +139,26 @@ loadSnapshot().catch((e) => {
   console.error(e);
   setStatus("Error loading snapshot.");
   if (btnComplete) btnComplete.disabled = true;
+  if (btnBack) btnBack.disabled = true;
 });
 
-// Back → Step 8
+// Back → disabled (No Back doctrine)
 btnBack?.addEventListener("click", () => {
-  if (!uid) return;
-  window.location.href = `/athlete-onboarding/step-8.html?id=${encodeURIComponent(uid)}`;
+  // do nothing
 });
 
 // Seal → Hub
 btnComplete?.addEventListener("click", async () => {
   if (!uid) return;
+
+  // ✅ remember right away (helps Home Screen even if something weird happens later)
+  localStorage.setItem("sandman_lastAthleteUid", uid);
+
+  // already completed → go hub
+  if (athlete?.onboarding?.locks?.step9 === true || athlete?.onboarding?.completedAt) {
+    window.location.href = `/athletes/hub?id=${encodeURIComponent(uid)}`;
+    return;
+  }
 
   try {
     btnComplete.disabled = true;
@@ -143,11 +167,18 @@ btnComplete?.addEventListener("click", async () => {
     await updateDoc(doc(db, "athletes", uid), {
       "onboarding.version": "v1",
       "onboarding.status": "complete",
-      "onboarding.step": 9,
+
+      // Final step locked
+      "onboarding.locks.step9": true,
+
+      // Step 9 completed → next state is 10 (done)
+      "onboarding.step": 10,
+
       "onboarding.completedAt": serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
 
+    // ✅ redirect after write + after localStorage is set
     window.location.href = `/athletes/hub?id=${encodeURIComponent(uid)}`;
   } catch (e) {
     console.error(e);

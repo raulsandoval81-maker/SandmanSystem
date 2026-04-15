@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Daily clipboard </title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      background:#06080d;
+      color:#f5f5f5;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    /* center the main column */
+    .wrap {
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px 16px 38px;
+    }
+    h1 {
+      color:#ffdd48;
+      text-shadow:0 0 8px rgba(230,57,70,.5);
+      margin-bottom:10px;
+      text-align:left;
+    }
+    .pill {
+      background:#151a22;
+      border:1px solid #252c38;
+      color:#fff;
+      text-decoration:none;
+      font-weight:600;
+      padding:6px 12px;
+      border-radius:999px;
+      transition:.15s;
+    }
+    .pill:hover { background:#ffd633; color:#111; border-color:#ffd633; }
+
+    /* nav */
+    .navrow {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+      justify-content:flex-start;
+    }
+    .navbtn {
+      background:#1a1d23;
+      border:1px solid #2d3648;
+      border-radius:999px;
+      padding:6px 16px;
+      font-weight:700;
+      color:#f5f5f5;
+      text-decoration:none;
+      transition:.2s;
+    }
+    .navbtn:hover {
+      background:#e63946;
+      border-color:#e63946;
+      color:#fff;
+      box-shadow:0 0 10px rgba(230,57,70,.4);
+    }
+
+    /* top toolbar (timer + total + run) */
+    .topbar {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:14px;
+      justify-content:space-between;
+    }
+    .left-top {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .right-top {
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .timer-btn {
+      background:#e63946;
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 0 10px rgba(230,57,70,.4);
+      transition:.2s;
+    }
+    .timer-btn:hover { background:#ff4758; }
+    #totalTime {
+      font-weight:700;
+      font-size:.8rem;
+    }
+    #totalTime.over {
+      color:#e63946;
+      text-shadow:0 0 6px rgba(230,57,70,.4);
+    }
+    .run-btn {
+      background:#e63946;
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      color:#fff;
+      font-weight:700;
+      cursor:pointer;
+      box-shadow:0 0 10px rgba(230,57,70,.4);
+    }
+
+    /* blocks */
+    .plan-block {
+      border:1px solid #252c3a;
+      border-radius:12px;
+      margin-bottom:10px;
+      background:#0b1017;
+      padding:10px 10px 12px;
+      box-shadow:0 0 15px rgba(0,0,0,.3);
+    }
+    .plan-block.red {
+      border-color:#e63946;
+      background:rgba(230,57,70,.05);
+    }
+
+    .block-head-row {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:6px;
+    }
+    .block-title {
+      font-size:.7rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:#e5e7eb;
+      font-weight:700;
+    }
+    .slot {
+      min-height:86px;
+      border:1px dashed #293241;
+      border-radius:8px;
+      padding:7px 8px;
+      outline:none;
+      white-space:pre-wrap;
+      background:rgba(0,0,0,.12);
+    }
+
+    .min-input {
+      width:52px;
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:8px;
+      color:#fff;
+      padding:3px 4px;
+      font-size:.66rem;
+      text-align:center;
+    }
+
+    .sw-head {display:flex;align-items:center;gap:4px;}
+    .move-btn {
+      background:#1f2937;
+      border:1px solid #475569;
+      border-radius:6px;
+      width:20px;height:20px;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;font-size:11px;color:#fff;
+    }
+
+    /* block tools (mini timers) */
+    .block-tools{display:flex;gap:6px;align-items:center;}
+    .mini-play,.mini-stop{
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:6px;
+      width:22px;height:22px;
+      display:flex;align-items:center;justify-content:center;
+      font-size:12px;cursor:pointer;color:#fff;
+      transition:.2s;
+    }
+    .mini-play:hover,
+    .mini-stop:hover {
+      background:#e63946;
+      border-color:#e63946;
+      box-shadow:0 0 8px rgba(230,57,70,.4);
+    }
+    .mini-clock{font-size:.65rem;color:#e2e8f0;min-width:44px;text-align:right;}
+
+    /* broadcast box */
+    .broadcast-box {
+      margin-top:14px;
+      border:1px solid #252c3a;
+      border-radius:12px;
+      background:#0b1017;
+      padding:10px;
+    }
+    textarea.broadcast {
+      width:100%;
+      background:#0f172a;
+      border:1px solid #1f2937;
+      border-radius:10px;
+      min-height:90px;
+      color:#fff;
+      padding:8px;
+      resize:vertical;
+    }
+
+    /* footer */
+    .footer-actions{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .footer-actions button{
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .footer-actions button:nth-child(1){
+      background:#ffdd48;color:#111;
+    }
+    .footer-actions button:nth-child(2){
+      background:#e63946;color:#fff;
+      box-shadow:0 0 10px rgba(230,57,70,.4);
+    }
+    .footer-actions button:nth-child(3){
+      background:#ffdd48;color:#111;
+    }
+    .muted{color:#9ca3af;font-size:.7rem}
+  </style>
+</head>
+<body>
+<main class="wrap">
+    <!-- nav -->
+    <div class="top-nav">
+      <button class="pill" onclick="location.href='/coaches/index.html'">🏠 Back to Coach Index</button>
+      <button class="pill" onclick="location.href='/coaches/roster.html'">👥 Team Roster</button>
+      <button class="pill" onclick="location.href='/coaches/coach-notes.html'">📝 Coach Notes</button>
+      <button class="pill active" onclick="location.href='/coaches/daily-grind.html'">🔥 Daily Grind XP</button>
+      <button class="pill active" onclick="location.href='/coaches/coach-console.html'">🧭 Coach Console</button>
+
+    </div>
+    <h1>Coaches Daily Clipboard </h1>
+    <p class="muted">Write today’s flow here. XP is awarded on the Daily Grind page →</p>
+
+    <!-- top toolbar -->
+    <div class="topbar">
+      <div class="left-top">
+        <button class="timer-btn" onclick="openTimerWindow()">Open Timer</button>
+      </div>
+      <div class="right-top">
+        <span id="totalTime">Total: 60:00</span>
+        <button class="run-btn" onclick="runHour()">▶ Run Practice</button>
+      </div>
+    </div>
+
+    <div id="planBlocks">
+
+      <!-- On-Mat Talk -->
+      <div class="plan-block" data-slot="onmat" data-minutes="3">
+        <div class="block-head-row">
+          <span class="block-title">On-Mat Talk</span>
+          <div class="block-tools">
+            <input type="number" value="3" readonly class="min-input"/>
+            <span class="mini-clock">03:00</span>
+          </div>
+        </div>
+        <div id="slot-onmat" class="slot" contenteditable="true">Mindset, announcements…</div>
+      </div>
+
+      <!-- Warm-Up -->
+      <div class="plan-block" data-slot="warmup" data-minutes="10">
+        <div class="block-head-row">
+          <span class="block-title">Warm-Up</span>
+          <div class="block-tools">
+            <input type="number" value="10" readonly class="min-input"/>
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+        <div id="slot-warmup" class="slot" contenteditable="true"></div>
+      </div>
+
+      <!-- Swappable / flex lane -->
+      <div id="swappable">
+        <div class="plan-block red sw" data-slot="drills" data-minutes="10">
+          <div class="block-head-row">
+            <div class="sw-head">
+              <span class="block-title">Drills (Old Moves)</span>
+              <button class="move-btn" data-dir="up">↑</button>
+              <button class="move-btn" data-dir="down">↓</button>
+            </div>
+            <div class="block-tools">
+              <input type="number" min="10" max="30" value="10" class="min-input"/>
+              <span class="mini-clock">10:00</span>
+            </div>
+          </div>
+          <div id="slot-drills" class="slot" contenteditable="true"></div>
+        </div>
+
+        <div class="plan-block red sw" data-slot="technique" data-minutes="10">
+          <div class="block-head-row">
+            <div class="sw-head">
+              <span class="block-title">Technique (New Moves)</span>
+              <button class="move-btn" data-dir="up">↑</button>
+              <button class="move-btn" data-dir="down">↓</button>
+            </div>
+            <div class="block-tools">
+              <input type="number" min="10" max="30" value="10" class="min-input"/>
+              <span class="mini-clock">10:00</span>
+            </div>
+          </div>
+          <div id="slot-tech" class="slot" contenteditable="true"></div>
+        </div>
+
+        <!-- Water / Reset fixed in middle -->
+        <div class="plan-block" data-slot="water" data-minutes="2">
+          <div class="block-head-row">
+            <span class="block-title">Water / Reset</span>
+            <div class="block-tools">
+              <input type="number" value="2" readonly class="min-input"/>
+              <span class="mini-clock">02:00</span>
+            </div>
+          </div>
+          <div class="slot" contenteditable="true">Quick water + regroup…</div>
+        </div>
+
+        <div class="plan-block red sw" data-slot="live" data-minutes="10">
+          <div class="block-head-row">
+            <div class="sw-head">
+              <span class="block-title">Live / Situations</span>
+              <button class="move-btn" data-dir="up">↑</button>
+              <button class="move-btn" data-dir="down">↓</button>
+            </div>
+            <div class="block-tools">
+              <input type="number" min="10" max="30" value="10" class="min-input"/>
+              <span class="mini-clock">10:00</span>
+            </div>
+          </div>
+          <div id="slot-live" class="slot" contenteditable="true"></div>
+        </div>
+
+        <div class="plan-block red sw" data-slot="cond" data-minutes="10">
+          <div class="block-head-row">
+            <div class="sw-head">
+              <span class="block-title">Conditioning / Finisher</span>
+            </div>
+            <div class="block-tools">
+              <input type="number" min="10" max="30" value="10" class="min-input"/>
+              <span class="mini-clock">10:00</span>
+            </div>
+          </div>
+          <div id="slot-cond" class="slot" contenteditable="true"></div>
+        </div>
+      </div>
+
+      <!-- Off-Mat Talk -->
+      <div class="plan-block" data-slot="offmat" data-minutes="5">
+        <div class="block-head-row">
+          <span class="block-title">Off-Mat Talk</span>
+          <div class="block-tools">
+            <input type="number" value="5" readonly class="min-input"/>
+            <span class="mini-clock">05:00</span>
+          </div>
+        </div>
+        <div id="slot-offmat" class="slot" contenteditable="true">Character, gratitude, announcements…</div>
+      </div>
+    </div>
+
+    <div class="broadcast-box">
+      <label class="block-title" style="display:block;margin-bottom:6px;color:#ffdd48;">Coach Broadcast Note</label>
+      <textarea id="slot-note" class="broadcast" placeholder="Theme, reminders, focus point…"></textarea>
+    </div>
+
+    <div class="footer-actions">
+      <button onclick="applyHour()">60-min Layout</button>
+      <button onclick="savePlan()">Save Plan</button>
+      <span id="saveStatus" class="muted">No plan yet.</span>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db, doc, setDoc, serverTimestamp } from "/assets/js/firebase-init.js";
+
+const totalTimeEl = document.getElementById("totalTime");
+
+function recalcTotal(){
+  const mins = [...document.querySelectorAll(".plan-block")]
+    .reduce((sum,b)=>sum + Number(b.dataset.minutes||0), 0);
+  const over = mins > 120;
+  totalTimeEl.textContent = `Total: ${String(Math.floor(mins)).padStart(2,'0')}:00${over ? ' (over 120)' : ''}`;
+  totalTimeEl.classList.toggle("over", over);
+}
+    // watch number inputs (only flex blocks change)
+    document.addEventListener("input", e=>{
+      const inp = e.target.closest(".min-input");
+      if(!inp || inp.readOnly) return;
+      const blk = inp.closest(".plan-block");
+      let v = Math.max(10, Math.min(30, Number(inp.value||10)));
+      inp.value = v;
+      blk.dataset.minutes = v;
+      // update mini-clock for that block
+      const clock = blk.querySelector(".mini-clock");
+      if (clock) clock.textContent = `${String(v).padStart(2,'0')}:00`;
+      recalcTotal();
+    });
+
+    // move buttons for swappables only
+    document.addEventListener("click", e=>{
+      const mv = e.target.closest(".move-btn");
+      if(!mv) return;
+      const dir = mv.dataset.dir;
+      const block = mv.closest(".sw");
+      const parent = document.getElementById("swappable");
+      if(dir==="up" && block.previousElementSibling){
+        parent.insertBefore(block, block.previousElementSibling);
+      }
+      if(dir==="down" && block.nextElementSibling){
+        parent.insertBefore(block.nextElementSibling, block);
+      }
+    });
+
+    // default 60-min layout
+    window.applyHour = function(){
+      document.querySelectorAll(".sw .min-input").forEach(inp=>{
+        inp.value = 10;
+        const blk = inp.closest(".plan-block");
+        blk.dataset.minutes = 10;
+        const clk = blk.querySelector(".mini-clock");
+        if (clk) clk.textContent = "10:00";
+      });
+      recalcTotal();
+      document.getElementById("saveStatus").textContent = "60-min layout loaded (not saved).";
+    };
+
+window.savePlan = async function(){
+  const blocksDom = [...document.querySelectorAll(".plan-block")];
+  const blocks = blocksDom.map(b=>({
+    slot: b.dataset.slot,
+    minutes: Number(b.dataset.minutes||0)
+  }));
+  const totalMinutes = blocks.reduce((sum,b)=>sum + b.minutes, 0);
+
+  const payload = {
+    onmat: document.getElementById("slot-onmat").textContent.trim(),
+    warmup: document.getElementById("slot-warmup").textContent.trim(),
+    drills: document.getElementById("slot-drills").textContent.trim(),
+    technique: document.getElementById("slot-tech").textContent.trim(),
+    live: document.getElementById("slot-live").textContent.trim(),
+    cond: document.getElementById("slot-cond").textContent.trim(),
+    offmat: document.getElementById("slot-offmat").textContent.trim(),
+    note: document.getElementById("slot-note").value.trim(),
+    blocks,
+    totalMinutes,
+    updatedAt: serverTimestamp(),
+    source: "practice-plan"
+  };
+
+  const key = new Date().toISOString().slice(0,10);
+  await setDoc(doc(db,"practicePlans", key), payload, { merge:true });
+  document.getElementById("saveStatus").textContent = "Saved.";
+};
+
+    window.openTimerWindow = function(){
+      const w = window.open("/timer-engine/sandman_timer_engine.html", "sandmanTimer", "width=520,height=700");
+      w && w.focus();
+    };
+
+    window.runHour = function(){
+      const w = window.open("/timer-engine/sandman_timer_engine.html", "sandmanTimer", "width=520,height=700");
+      setTimeout(()=>{
+        w && w.startSandmanTimer && w.startSandmanTimer("Practice Layout","layout_60_std");
+      }, 400);
+    };
+
+    // init
+    applyHour();
+  </script>
+</body>
+</html>

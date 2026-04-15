@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach · Roster</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+  <link rel="stylesheet" href="/coaches/roster/roster.css"/>
+  <link rel="icon" href="data:,"> 
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    <button class="pill" type="button" id="toggleArchiveView">Archived</button>
+  </nav>
+<a href="/coaches/testing/index.html">Testing Hub</a>
+  <h1>Team Roster</h1>
+  <p class="muted">Firestore · <code>athletes</code></p>
+
+  <div class="controls-row">
+    <label class="canon-toggle">
+      <input id="trackF8Only" type="checkbox"/>
+      <span class="muted">Foundry 8 only</span>
+    </label>
+    <span id="countMeta" class="muted count-meta"></span>
+  </div>
+
+  <table class="roster-table">
+    <thead>
+      <tr>
+        <th>Athlete</th>
+        <th>Tier / Rank</th>
+        <th>XP</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+      <tr><td colspan="4" class="muted">Loading…</td></tr>
+    </tbody>
+  </table>
+
+</main>
+
+<script type="module" src="/coaches/roster/roster.js"></script>
+</body>
+</html>

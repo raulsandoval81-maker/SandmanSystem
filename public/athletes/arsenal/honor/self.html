@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Honor · Self</title>
+
+  <link rel="stylesheet" href="/athletes/arsenal/arsenal.css">
+  <link rel="stylesheet" href="/athletes/arsenal/honor/honor.css">
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <header class="header">
+    <button onclick="history.back()" class="back-btn">← Back</button>
+    <h1 class="title">Honor · Self</h1>
+  </header>
+
+  <section class="lane-block">
+
+    <div class="lane-name">
+      Segment 1 — Self
+    </div>
+
+    <p class="lane-desc">
+      Honor begins with discipline over yourself. Before leading others,
+      an athlete must first show control, effort, attitude, and respect
+      in daily work.
+    </p>
+
+    <div class="section-block">
+      <h2 class="section-title">Focus Areas</h2>
+      <ul class="focus-list">
+        <li>Focus</li>
+        <li>Effort</li>
+        <li>Attitude</li>
+        <li>Respect</li>
+      </ul>
+    </div>
+
+    <div class="section-block">
+      <h2 class="section-title">What this segment builds</h2>
+      <p class="lane-desc">
+        This segment teaches the athlete how to carry discipline in practice,
+        respond to coaching correctly, and hold standards without being chased.
+      </p>
+    </div>
+
+    <div class="action-block">
+      <a
+        class="primary-btn"
+        id="open-session-btn"
+        href="#"
+      >
+        Open Session
+      </a>
+    </div>
+
+  </section>
+
+</div>
+
+<script type="module">
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = (params.get("id") || "").trim().toUpperCase();
+  const btn = document.getElementById("open-session-btn");
+
+  if (btn) {
+    btn.href = athleteId
+      ? `/athletes/arsenal/honor/session/index.html?segment=segment1&id=${encodeURIComponent(athleteId)}`
+      : `/athletes/arsenal/honor/session/index.html?segment=segment1`;
+  }
+</script>
+
+</body>
+</html>

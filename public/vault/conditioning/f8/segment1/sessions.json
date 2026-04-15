@@ -1,0 +1,64 @@
+{
+  "sessions": [
+    {
+      "n": 1,
+      "title": "Conditioning Session 1",
+      "level": "NOVICE",
+      "interval": { "workSec": 30, "restSec": 30 },
+      "rounds": 3,
+      "movesPerCycle": 4,
+      "sequence": [
+        "Jumping Jacks",
+        "Squats",
+        "Push-ups",
+        "Plank"
+      ],
+      "prompt": "Complete all rounds. Stay moving and controlled.",
+      "questions": [
+        "Did you finish all rounds?",
+        "What was the hardest movement?"
+      ]
+    },
+    {
+      "n": 2,
+      "title": "Conditioning Session 2",
+      "level": "BEGINNER",
+      "interval": { "workSec": 40, "restSec": 20 },
+      "rounds": 4,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Push-ups",
+        "Lunges",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Plank"
+      ],
+      "prompt": "Push pace, stay clean.",
+      "questions": [
+        "Did you complete all rounds?",
+        "Where did you slow down?"
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Conditioning Session 3",
+      "level": "INTERMEDIATE",
+      "interval": { "workSec": 45, "restSec": 15 },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Squats",
+        "Push-ups",
+        "Sit-ups",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Plank"
+      ],
+      "prompt": "Stay consistent. No drop in effort.",
+      "questions": [
+        "Did you maintain pace?",
+        "What fatigued first?"
+      ]
+    }
+  ]
+}

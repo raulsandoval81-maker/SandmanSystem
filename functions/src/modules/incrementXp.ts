@@ -1,4 +1,4 @@
-// functions/src/incremenXp.ts
+// functions/src/incrementXp.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
@@ -33,10 +33,10 @@ const XP = Object.freeze({
   // Foundry 8 (Youth) — capped monthly arena
   F8: {
     tierCaps: {
-      T0: 800,
-      T1: 1000,
-      T2: 1200,
-      T3: 1400,
+      T0: 600,
+      T1: 800,
+      T2: 1000,
+      T3: 1200,
       T4: 1600,
       T5: 1800,
       T6: 2000,
@@ -171,12 +171,17 @@ function nextTier(base: Base, tier: string): string | null {
   return tiers[idx + 1] ?? null; // null = already at cap tier
 }
 
-function stripeStepFor(cap: number) {
-  return Math.max(1, Math.round(cap / STRIPES_PER_TIER / 10) * 10);
-}
-function stripeCountFor(xp: number, cap: number) {
-  const step = stripeStepFor(cap);
-  return Math.floor(Math.min(cap, xp) / step);
+
+function stripeCountForCombatTotal(total: number, cap: number) {
+  const safeCap = Math.max(1, Number(cap) || 1);
+  const safeTotal = Math.max(0, Math.min(safeCap, Number(total) || 0));
+  const pct = (safeTotal / safeCap) * 100;
+
+  if (pct >= 100) return 4;
+  if (pct >= 75) return 3;
+  if (pct >= 50) return 2;
+  if (pct >= 25) return 1;
+  return 0;
 }
 
 export const incrementXp = onCall(async (req) => {
@@ -340,9 +345,7 @@ export const incrementXp = onCall(async (req) => {
       // absolute set, clamped (delta carries the desired XP target)
       const target = Math.max(0, Math.min(cap, delta));
 
-      const stripeStep = stripeStepFor(cap);
-      const stripeCount = stripeCountFor(target, cap);
-
+    const stripeCount = stripeCountForCombatTotal(target, cap);
       tx.set(
         athleteRef,
         {
@@ -398,7 +401,6 @@ export const incrementXp = onCall(async (req) => {
         beforeXp: beforeXpSet,
         afterXp: target,
         stripeCount,
-        stripeStep,
         logId: logRef.id,
       };
     }
@@ -627,8 +629,7 @@ export const incrementXp = onCall(async (req) => {
     const allowDevBypass = devMode && isTestUid;
 
     // For gating we need current stripe (computed off combat total)
-    const beforeStripeCount = stripeCountFor(beforeCombatTotal, cap);
-
+    const beforeStripeCount = stripeCountForCombatTotal(beforeCombatTotal, cap);
     // ------------------------
     // MONTHLY ENFORCEMENT (no dev / no bypass)
     // ------------------------
@@ -883,9 +884,7 @@ if (!alreadyUnlocked && canUnlockNow) {
     const afterHonorClamped = Math.min(cap, afterHonor);
 
     // Derived stripes are for COMBAT bar (visual)
-    const stripeStep = stripeStepFor(cap);
-    const stripeCount = stripeCountFor(afterCombatTotal, cap);
-
+const stripeCount = stripeCountForCombatTotal(afterCombatTotal, cap);
     // ------------------------
     // Athlete update
     // ------------------------
@@ -914,6 +913,42 @@ if (!alreadyUnlocked && canUnlockNow) {
       if (isStrengthKind(kind)) athletePatch.xpStrength = afterStrengthClamped;
       if (isHonorKind(kind)) athletePatch.xpHonor = afterHonorClamped;
     }
+    // ------------------------
+// AUTO TESTING STAGE (SYSTEM-OWNED)
+// ------------------------
+
+const ratio = cap > 0 ? afterCombatTotal / cap : 0;
+
+// read current testing safely
+const currentState = String((athlete as any)?.testing?.state || "ACTIVE");
+
+let nextState: string | null = null;
+
+if (currentState === "ACTIVE") {
+  if (ratio >= 1) {
+    nextState = "ELIGIBLE";
+  } else if (ratio >= 0.9) {
+    nextState = "TEMPLE";
+  }
+}
+
+// apply if needed
+if (nextState) {
+  athletePatch["testing"] = {
+    ...(athlete as any).testing,
+    state: nextState,
+  };
+
+  athletePatch["tierStatus"] = nextState.toLowerCase();
+
+  if (nextState === "TEMPLE") {
+    athletePatch["templeEnteredAt"] = FieldValue.serverTimestamp();
+  }
+
+  if (nextState === "ELIGIBLE") {
+    athletePatch["testEligibleAt"] = FieldValue.serverTimestamp();
+  }
+}
 
     tx.set(athleteRef, athletePatch, { merge: true });
 
@@ -955,7 +990,7 @@ if (!alreadyUnlocked && canUnlockNow) {
         ...(meta || {}),
         lane: laneTag,
         ...(isArenaKind(kind) ? { tournamentId } : {}),
-        stripeSnapshot: { beforeStripeCount, stripeStep },
+        stripeSnapshot: { beforeStripeCount },
         xpBuckets: {
           beforeDaily,
           beforeArena,
@@ -989,7 +1024,6 @@ return {
   beforeXp: beforeCombatTotal,
   afterXp: afterCombatTotal,
   stripeCount,
-  stripeStep,
 
   xpStrength:
     (base === "F8" && kind === KIND.STRENGTH) ? afterStrengthClamped

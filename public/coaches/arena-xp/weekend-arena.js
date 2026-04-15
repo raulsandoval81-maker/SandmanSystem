@@ -11,6 +11,12 @@ import {
   patchDevLinks,
 } from "/assets/js/dev-mode.js";
 
+import {
+  COLORS,
+  colorKeyFor,
+  getAthleteStripeInfo,
+} from "/assets/js/ladder.service.js";
+
 import { renderMiniXpBar } from "/assets/js/xp-bar-mini.js";
 
 /* -----------------------------
@@ -24,27 +30,27 @@ bindDevToggle({ toggleId: "devModeToggle", onChange: () => location.reload() });
 /* -----------------------------
    DOM
 ----------------------------- */
-const rowsEl   = document.getElementById("rows");
+const rowsEl = document.getElementById("rows");
 const statusEl = document.getElementById("status");
 
-const tourEl   = document.getElementById("tournamentId");
+const tourEl = document.getElementById("tournamentId");
 const searchEl = document.getElementById("search");
 
 const refreshBtn = document.getElementById("refreshBtn");
 
-const pickAllEl  = document.getElementById("pickAll");
+const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
 
-const fullAllEl  = document.getElementById("fullAll");   // +10 Battle
-const partAllEl  = document.getElementById("partAll");   // +5 Podium
-const styleAllEl = document.getElementById("styleAll");  // +5 Style/IQ
+const fullAllEl = document.getElementById("fullAll");   // +10 Battle
+const partAllEl = document.getElementById("partAll");   // +5 Podium
+const styleAllEl = document.getElementById("styleAll"); // +5 Style/IQ
 
 const iqSelectEl = document.getElementById("iqSelect");
 
 const sessionBar = document.getElementById("sessionBar");
-const sbLoaded   = document.getElementById("sb-loaded");
-const sbAwarded  = document.getElementById("sb-awarded");
-const sbXP       = document.getElementById("sb-xp");
+const sbLoaded = document.getElementById("sb-loaded");
+const sbAwarded = document.getElementById("sb-awarded");
+const sbXP = document.getElementById("sb-xp");
 const sbReceipts = document.getElementById("sb-receipts");
 
 // Foundry toggle (exclusive F4 vs F8)
@@ -69,7 +75,9 @@ function setStatus(msg, ok = true) {
   if (!statusEl) return;
   statusEl.textContent = msg;
   statusEl.style.color = ok ? "#bef264" : "#fca5a5";
-  setTimeout(() => { if (statusEl) statusEl.style.color = ""; }, 1200);
+  setTimeout(() => {
+    if (statusEl) statusEl.style.color = "";
+  }, 1200);
 }
 
 function syncTournament() {
@@ -95,6 +103,35 @@ function trackBaseOf(docId, a = {}) {
   return "";
 }
 
+function resolveRank(a = {}) {
+  if (a.rankName) return a.rankName;
+  if (a.tierName) return a.tierName;
+
+  const t = String(a.tier || "").toUpperCase();
+  const base = trackBaseOf(a.id, a);
+
+  if (base === "F8") {
+    if (t === "T0") return "Shadow";
+    if (t === "T1") return "Recruit";
+    if (t === "T2") return "Combatant";
+    if (t === "T3") return "Competitor";
+    if (t === "T4") return "Warrior";
+    if (t === "T5") return "Champion";
+    if (t === "T6") return "Commander";
+    if (t === "T7") return "Hero";
+  }
+
+  if (base === "F4") {
+    if (t === "T0") return "Apprentice";
+    if (t === "T1") return "Warrior";
+    if (t === "T2") return "Champion";
+    if (t === "T3") return "Veteran";
+    if (t === "T4") return "Legend";
+  }
+
+  return a.tier || a.rank || "Apprentice";
+}
+
 function updateSessionBar() {
   if (!sessionBar) return;
 
@@ -104,9 +141,9 @@ function updateSessionBar() {
   }
 
   sessionBar.style.display = "flex";
-  if (sbLoaded)  sbLoaded.textContent  = `Loaded: ${filtered.length}`;
+  if (sbLoaded) sbLoaded.textContent = `Loaded: ${filtered.length}`;
   if (sbAwarded) sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
-  if (sbXP)      sbXP.textContent      = `XP issued: ${awardedXP}`;
+  if (sbXP) sbXP.textContent = `XP issued: ${awardedXP}`;
   if (sbReceipts) sbReceipts.textContent = receipts ? `Receipts: ${receipts}` : "";
 }
 
@@ -116,23 +153,41 @@ function getSelectedIds() {
     .filter(Boolean);
 }
 
-function repaintMiniBarForRow({ rowEl, xp, cap, tierName }) {
+function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName }) {
   const slot = rowEl?.querySelector?.(".xp-slot");
   if (!slot) return;
 
-  const stripesTotal = 4;
-  const stripesEarned = Math.max(
-    0,
-    Math.min(stripesTotal, Math.floor((Number(xp) / Math.max(1, Number(cap))) * stripesTotal))
-  );
+  const info = getAthleteStripeInfo({
+    ...athlete,
+    xp,
+    xpCap: cap,
+    rankName: tierName,
+    tierName,
+  });
+
+  const stripesEarned = Number(info?.stripesEarned ?? 0);
+  const stripesTotal = Number(info?.stripesTotal ?? 4);
+
+  const safeXp = Math.max(0, Number(xp) || 0);
+  const safeCap = Math.max(1, Number(cap) || 1200);
+
+  const key = colorKeyFor(tierName || "") || "apprentice";
+  const c = COLORS[key] || COLORS.apprentice;
+
+  const isWhiteStripeTier =
+    String(tierName || "").toLowerCase() === "legend" ||
+    String(tierName || "").toLowerCase() === "hero" ||
+    String(tierName || "").toLowerCase() === "mastery";
 
   renderMiniXpBar({
     container: slot,
-    xp: Number(xp) || 0,
-    cap: Number(cap) || 1200,
+    xp: safeXp,
+    cap: safeCap,
     tierName: tierName || "Apprentice",
     stripesEarned,
     stripesTotal,
+    fillColor: c.start,
+    stripeTone: isWhiteStripeTier ? "white" : "black",
   });
 }
 
@@ -150,15 +205,16 @@ function render(list) {
 
   const byId = new Map(list.map((a) => [a.id, a]));
 
-  rowsEl.innerHTML = list.map((a) => {
-    const uid   = a.uid || a.id;
-    const name  = a.publicName || a.fullName || uid;
-    const track = a.track || a.trackCode || "—";
-    const tier  = a.tierName || a.rankName || a.tier || "Apprentice";
-    const xp    = a.xp ?? 0;
-    const cap   = a.xpCap ?? 1200;
+  rowsEl.innerHTML = list
+    .map((a) => {
+      const uid = a.uid || a.id;
+      const name = a.publicName || a.fullName || uid;
+      const track = a.track || a.trackCode || "—";
+      const tier = resolveRank(a);
+      const xp = a.xp ?? 0;
+      const cap = a.xpCap ?? 1200;
 
-    return `
+      return `
       <tr data-id="${a.id}">
         <td><input type="checkbox" class="pick" data-id="${a.id}"></td>
         <td>
@@ -168,20 +224,23 @@ function render(list) {
         <td>${tier} / ${track}</td>
         <td>
           <div class="xp-slot"></div>
-          <div class="sub">${xp} / ${cap}</div>
+          <div class="sub" data-xpline="${a.id}">${xp} / ${cap}</div>
         </td>
       </tr>
     `;
-  }).join("");
+    })
+    .join("");
 
   rowsEl.querySelectorAll("tr[data-id]").forEach((tr) => {
     const a = byId.get(tr.dataset.id);
     if (!a) return;
+
     repaintMiniBarForRow({
       rowEl: tr,
+      athlete: a,
       xp: a.xp ?? 0,
       cap: a.xpCap ?? 1200,
-      tierName: a.tierName || a.rankName || a.tier || "Apprentice",
+      tierName: resolveRank(a),
     });
   });
 
@@ -189,7 +248,7 @@ function render(list) {
 }
 
 /* -----------------------------
-   Load roster (simple + matches your earlier arena pages)
+   Load roster
 ----------------------------- */
 async function load() {
   syncTournament();
@@ -202,13 +261,20 @@ async function load() {
   const dev = isDevMode();
   const wanted = trackWanted();
 
-  // DEV/LIVE gates
   roster = roster.filter((a) => {
-    if (dev) return a.devMode === true && a.isTest === true;
-    return !(a.devMode === true || a.isTest === true);
+    const status = a.rosterStatus || "current";
+
+    if (status !== "current") return false;
+
+    if (dev) return true;
+
+    if (a.isDev === true || a.devMode === true || a.isTest === true) {
+      return false;
+    }
+
+    return true;
   });
 
-  // Exclusive track filter (never mix)
   roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
   const q = (searchEl?.value || "").toLowerCase().trim();
@@ -240,10 +306,8 @@ function updateButtons() {
   const hasIQ = !!String(iqSelectEl?.value || "").trim();
   const locked = isSaving;
 
-  if (fullAllEl)  fullAllEl.disabled  = !hasT || locked;
-  if (partAllEl)  partAllEl.disabled  = !hasT || locked;
-
-  // Style requires tournamentId + iq selection
+  if (fullAllEl) fullAllEl.disabled = !hasT || locked;
+  if (partAllEl) partAllEl.disabled = !hasT || locked;
   if (styleAllEl) styleAllEl.disabled = !(hasT && hasIQ) || locked;
 }
 
@@ -310,7 +374,6 @@ async function giveToOne(id, kind) {
   const a = roster.find((x) => x.id === id);
   if (!a) return { ok: false, delta: 0, error: "Athlete not found" };
 
-  // find the row (so UI repaint doesn't crash)
   const row = document.querySelector(`tr[data-id="${id}"]`);
 
   const coachUid =
@@ -318,13 +381,11 @@ async function giveToOne(id, kind) {
     localStorage.getItem("coachUid") ||
     "DEV_COACH";
 
-  // Map UI kind -> server kind + amount rules
-  // (adjust if your buttons already pass server kind strings)
   const serverKind =
     kind === "battle" ? "ARENA/BATTLE" :
     kind === "podium" ? "ARENA/PODIUM" :
-    kind === "style"  ? "ARENA/STYLEIQ" :
-    kind; // fallback if caller already passes "ARENA/..."
+    kind === "style" ? "ARENA/STYLEIQ" :
+    kind;
 
   const amount =
     serverKind === "ARENA/BATTLE" ? 10 :
@@ -332,7 +393,6 @@ async function giveToOne(id, kind) {
     serverKind === "ARENA/STYLEIQ" ? 5 :
     0;
 
-  // Build payload (THIS replaces bodyData)
   const payload = {
     uid: a.uidCode || a.uid || a.id,
     kind: serverKind,
@@ -340,7 +400,6 @@ async function giveToOne(id, kind) {
     meta: {
       tournamentId: String(currentTournamentId || "").trim(),
       source: "arena",
-      // Match IQ required for STYLEIQ
       ...(serverKind === "ARENA/STYLEIQ"
         ? { matchIq: String(iqSelectEl?.value || "").trim() }
         : {}),
@@ -353,11 +412,9 @@ async function giveToOne(id, kind) {
       "Content-Type": "application/json",
       "x-coach-uid": String(coachUid).trim(),
     },
-    // ✅ IMPORTANT: send { data: payload } (same as Daily Grind)
     body: JSON.stringify({ data: payload }),
   });
 
-  // Read text once (best debug)
   const text = await res.text().catch(() => "");
 
   if (!res.ok) {
@@ -367,30 +424,39 @@ async function giveToOne(id, kind) {
 
   console.log("XP OK:", res.status, text);
 
-  // Parse from text
   let raw = null;
-  try { raw = text ? JSON.parse(text) : null; } catch {}
-  const data = parseFunctionJson(raw) || {};
+  try {
+    raw = text ? JSON.parse(text) : null;
+  } catch {}
 
+  const data = parseFunctionJson(raw) || {};
   if (!data.ok) return { ok: false, delta: 0, error: data.error || "Blocked" };
 
   const delta = Number(data.delta ?? payload.amount ?? 0);
 
-  // Your server returns afterXp/afterXP
   const afterFromServer =
     (typeof data.afterXp === "number") ? data.afterXp :
     (typeof data.afterXP === "number") ? data.afterXP :
     null;
 
   if (typeof afterFromServer === "number") a.xp = afterFromServer;
+  if (typeof data.afterCap === "number") a.xpCap = data.afterCap;
+  if (data.afterRankName) a.rankName = data.afterRankName;
+  if (data.afterTierName) a.tierName = data.afterTierName;
 
-  // repaint UI safely
   if (row) {
     const cap = a.xpCap ?? 1200;
-    const tier = a.tierName || a.rankName || a.tier || "Apprentice";
-    const line = row.querySelector(".sub");
+    const tier = resolveRank(a);
+    const line = row.querySelector(`[data-xpline="${id}"]`);
     if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
-    repaintMiniBarForRow({ rowEl: row, xp: a.xp ?? 0, cap, tierName: tier });
+
+    repaintMiniBarForRow({
+      rowEl: row,
+      athlete: a,
+      xp: a.xp ?? 0,
+      cap,
+      tierName: tier,
+    });
   }
 
   return { ok: true, delta };
@@ -398,12 +464,18 @@ async function giveToOne(id, kind) {
 
 async function bulkGive(kind, label) {
   const ids = getSelectedIds();
-  if (!ids.length) { setStatus("No athletes selected.", false); return; }
+  if (!ids.length) {
+    setStatus("No athletes selected.", false);
+    return;
+  }
 
   try {
     updateButtons();
 
-    if (!String(currentTournamentId || "").trim()) throw new Error("Tournament ID required.");
+    if (!String(currentTournamentId || "").trim()) {
+      throw new Error("Tournament ID required.");
+    }
+
     if (kind === "style" && !String(iqSelectEl?.value || "").trim()) {
       throw new Error("Pick Match IQ first.");
     }
@@ -417,7 +489,11 @@ async function bulkGive(kind, label) {
 
     for (const id of ids) {
       const r = await giveToOne(id, kind);
-      if (r.ok) { ok++; xp += r.delta; receipts++; }
+      if (r.ok) {
+        ok++;
+        xp += r.delta;
+        receipts++;
+      }
     }
 
     awardedCount += ok;
@@ -437,7 +513,7 @@ async function bulkGive(kind, label) {
 /* -----------------------------
    Events
 ----------------------------- */
-["input","change","blur"].forEach((evt) => tourEl?.addEventListener(evt, updateButtons));
+["input", "change", "blur"].forEach((evt) => tourEl?.addEventListener(evt, updateButtons));
 ["input"].forEach((evt) => searchEl?.addEventListener(evt, load));
 ["change"].forEach((evt) => iqSelectEl?.addEventListener(evt, updateButtons));
 
@@ -447,6 +523,7 @@ pickAllEl?.addEventListener("click", () => {
   document.querySelectorAll(".pick").forEach((c) => (c.checked = true));
   setStatus("All visible athletes selected.", true);
 });
+
 clearAllEl?.addEventListener("click", () => {
   document.querySelectorAll(".pick").forEach((c) => (c.checked = false));
   setStatus("Selection cleared.", true);

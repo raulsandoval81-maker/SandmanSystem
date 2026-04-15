@@ -1,0 +1,356 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Youth Combat Tree</title>
+
+  <link rel="stylesheet" href="/athletes/arsenal/combat/combat.css" />
+  <link rel="icon" href="data:," />
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      padding:24px 16px 72px;
+    }
+
+    .hero{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px 20px;
+      margin-bottom:14px;
+      text-align:center;
+    }
+
+    .hero h1{
+      margin:0;
+      color:var(--gold);
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .hero-actions{
+      margin-top:12px;
+      display:flex;
+      justify-content:center;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+      gap:14px;
+    }
+
+    .tier-card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      border-top:4px solid;
+      transition:.2s ease;
+    }
+
+    .tier-card.locked{
+      opacity:.55;
+    }
+
+    .tier-card:hover{
+      transform:translateY(-2px);
+    }
+
+    .tier-rank{
+      font-weight:900;
+      font-size:1.1rem;
+      margin-bottom:4px;
+    }
+
+    .tier-num{
+      font-size:.85rem;
+      opacity:.7;
+      margin-bottom:6px;
+    }
+
+    .tier-desc{
+      font-size:.92rem;
+      opacity:.85;
+      margin-bottom:12px;
+      line-height:1.4;
+    }
+
+    .actions{
+      display:flex;
+      gap:8px;
+    }
+
+    .btn{
+      flex:1;
+      padding:8px;
+      border-radius:8px;
+      font-weight:800;
+      text-align:center;
+      text-decoration:none;
+      font-size:.85rem;
+      cursor:pointer;
+      border:none;
+    }
+
+    .btn-train{
+      background:var(--gold);
+      color:#111;
+    }
+
+    .btn-study{
+      background:#1d2a4a;
+      color:var(--text);
+      border:1px solid var(--line);
+    }
+
+    .shadow{ border-top-color:#d8dbe2; }
+    .recruit{ border-top-color:#f1c84a; }
+    .combatant{ border-top-color:#e38b2c; }
+    .competitor{ border-top-color:#4bb36a; }
+    .warrior{ border-top-color:#4a7ff1; }
+    .champion{ border-top-color:#8a58d6; }
+    .commander{ border-top-color:#8c5a3c; }
+
+    .hero-tier{
+      background:#000;
+      border-top-color:#d4af37;
+      color:#d4af37;
+    }
+
+    /* MODAL */
+    #tier-lock-modal{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:999;
+    }
+
+    .tier-lock-box{
+      background:#111c35;
+      border:1px solid #27304a;
+      border-radius:14px;
+      padding:20px;
+      width:min(360px,90%);
+      text-align:center;
+    }
+
+    .tier-lock-box h3{
+      color:#ffdd48;
+      margin-bottom:10px;
+    }
+
+    .tier-lock-box p{
+      color:#9aa4b1;
+    }
+
+    .tier-lock-close{
+      margin-top:14px;
+      padding:8px 12px;
+      border-radius:8px;
+      border:1px solid #27304a;
+      background:#1d2a4a;
+      color:#f0f4f8;
+      cursor:pointer;
+    }
+  </style>
+</head>
+
+
+<body>
+
+  <div class="wrap">
+
+    <header class="header">
+      <button class="back-btn" type="button" onclick="history.back()">← Back</button>
+    </header>
+
+
+  <header class="hero">
+    <h1 class="title">ZERO TO HERO — COMBAT SKILLS TREE</h1>
+
+    <div class="hero-actions">
+    </div>
+  </header>
+
+  <section class="grid">
+
+    <article class="tier-card shadow" data-tier="T0">
+      <div class="tier-rank">Shadow</div>
+      <div class="tier-num">Tier 0</div>
+      <p class="tier-desc">Build movement, body awareness, stance, control, and first identity on the mat.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t0.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-0.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card recruit" data-tier="T1">
+      <div class="tier-rank">Recruit</div>
+      <div class="tier-num">Tier 1</div>
+      <p class="tier-desc">Develop simple reactions and first chains under movement.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t1.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-1.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card combatant" data-tier="T2">
+      <div class="tier-rank">Combatant</div>
+      <div class="tier-num">Tier 2</div>
+      <p class="tier-desc">Build pressure and repeat clean action.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t2.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-2.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card competitor" data-tier="T3">
+      <div class="tier-rank">Competitor</div>
+      <div class="tier-num">Tier 3</div>
+      <p class="tier-desc">Score under pressure and compete with intent.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t3.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-3.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card warrior" data-tier="T4">
+      <div class="tier-rank">Warrior</div>
+      <div class="tier-num">Tier 4</div>
+      <p class="tier-desc">Wrestle with control and confidence.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t4.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-4.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card champion" data-tier="T5">
+      <div class="tier-rank">Champion</div>
+      <div class="tier-num">Tier 5</div>
+      <p class="tier-desc">Sharpen execution and finish with discipline.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t5.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-5.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card commander" data-tier="T6">
+      <div class="tier-rank">Commander</div>
+      <div class="tier-num">Tier 6</div>
+      <p class="tier-desc">Lead the room and control the match.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t6.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-6.html">Skill Tree</a>
+      </div>
+    </article>
+
+    <article class="tier-card hero-tier" data-tier="T7">
+      <div class="tier-rank">Hero</div>
+      <div class="tier-num">Tier 7</div>
+      <p class="tier-desc">Represent the system with discipline and identity.</p>
+      <div class="actions">
+        <a class="btn btn-train" href="/athletes/arsenal/combat/youth/train/t7.html">Train</a>
+        <a class="btn btn-study" href="/athletes/arsenal/combat/youth/study/skilltree-7.html">Skill Tree</a>
+      </div>
+    </article>
+
+  </section>
+
+  <div id="tier-lock-modal">
+    <div class="tier-lock-box">
+      <h3>Locked</h3>
+      <p id="tier-lock-message"></p>
+      <button class="tier-lock-close" onclick="closeTierLock()">Close</button>
+    </div>
+  </div>
+
+  <script>
+    const tierMessages = {
+      T1: "Earn it through your daily grind.",
+      T2: "Build the habits first.",
+      T3: "Control before power.",
+      T4: "Stay sharp under pressure.",
+      T5: "Execution matters now.",
+      T6: "Lead with discipline.",
+      T7: "You’ve earned it."
+    };
+
+    function openTierLock(tier){
+      document.getElementById("tier-lock-message").textContent =
+        tierMessages[tier] || "Locked.";
+      document.getElementById("tier-lock-modal").style.display = "flex";
+    }
+
+    function closeTierLock(){
+      document.getElementById("tier-lock-modal").style.display = "none";
+    }
+  </script>
+
+  <script type="module">
+    import { lockTierView } from "/assets/js/combat-lock.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const athleteId = (params.get("id") || "").trim();
+
+    if (!athleteId) throw new Error("Missing athlete id");
+
+    function goToHub(id) {
+      window.location.href = `/athletes/hub/index.html?id=${encodeURIComponent(id)}`;
+    }
+
+    const backBtn = document.getElementById("backBtn");
+    if (backBtn) {
+      backBtn.addEventListener("click", () => {
+        goToHub(athleteId);
+      });
+    }
+
+    if (athleteId.startsWith("F4_")) {
+      window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+    }
+
+    document.querySelectorAll(".actions a").forEach((link) => {
+      const href = link.getAttribute("href") || "";
+      link.setAttribute("href", `${href}?id=${encodeURIComponent(athleteId)}`);
+    });
+
+    await lockTierView(athleteId);
+
+    document.querySelectorAll(".tier-card.locked").forEach(card => {
+      const tier = card.dataset.tier;
+
+      card.querySelectorAll("a").forEach(link => {
+        link.addEventListener("click", (e) => {
+          e.preventDefault();
+          openTierLock(tier);
+        });
+      });
+    });
+  </script>
+
+</div>
+</body>
+</html>

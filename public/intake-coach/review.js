@@ -1,16 +1,13 @@
 // ======================================================
-// Coach Intake — Review & Mint (TOKEN FLOW) — V1 COUNTERS
+// Coach Intake — Review & Mint (TOKEN FLOW)
 // Sandman Systems™
 //
-// V1 changes:
-// - UID is NO LONGER generated client-side.
-// - Approve is a SINGLE callable: approveAndActivate (server reserves counter + creates athlete + stamps intake).
-// - Mint buttons now only set track + enable approve + show preview (0000).
-//
-// SAFE ADDITIONS (for Para-Comms + future targeting):
-// - Cache intake doc in-memory (INTAKE_CACHE)
-// - Compute teamId slug (slugTeamId)
-// - Pass parent identity + teamId into approveAndActivate payload
+// Final polish:
+// - Aligned to current review.html
+// - Experience Credit preview wired in
+// - Sends experience.years to approveAndActivate
+// - Keeps lane locked to Combat (CB) for current flow
+// - Optional coach adjustment fields included in payload
 // ======================================================
 
 import {
@@ -41,12 +38,12 @@ if (!tokenId) {
 const intakeRef = doc(db, "intakes", tokenId);
 
 // ------------------------------------------------------
-// Intake cache (SAFE)
+// Intake cache
 // ------------------------------------------------------
 let INTAKE_CACHE = null;
 
 // ------------------------------------------------------
-// UI helpers / gates
+// UI helpers
 // ------------------------------------------------------
 function setApproveEnabled(on) {
   const btn = $("btn-approve");
@@ -80,8 +77,6 @@ function setApprovedUI(on, uid = "") {
 
   if (copyBtn) copyBtn.disabled = !on;
   if (openBtn) openBtn.disabled = !on;
-
-  // lock approve after success
   if (approveBtn) approveBtn.disabled = on;
 }
 
@@ -90,11 +85,20 @@ setApprovedUI(false);
 setApproveEnabled(false);
 if ($("approve-status")) $("approve-status").textContent = "";
 hideApprovalModal();
+
+setPadlockStatus("—");
+
 if ($("copy-link")) $("copy-link").disabled = true;
 if ($("open-link")) $("open-link").disabled = true;
 
+function setPadlockStatus(status = "—") {
+  const el = $("m-padlock");
+  if (!el) return;
+  el.textContent = status;
+}
+
 // ------------------------------------------------------
-// Small helpers
+// Helpers
 // ------------------------------------------------------
 function slugTeamId(s) {
   const out = String(s || "")
@@ -106,64 +110,67 @@ function slugTeamId(s) {
   return out || null;
 }
 
-// ------------------------------------------------------
-// Mint UI paint helpers
-// ------------------------------------------------------
-function paintMintUI({
-  track = "",
-  lane = "",
-  tier = "",
-  rank = "",
-  uid = "",
-  padlock = "🔒",
-  mintTag = ""
-}) {
-  const LANE_MAP = {
-    CB: "Combat",
-    ST: "Strength",
-    HN: "Honor"
-  };
-
-  const laneLabel = LANE_MAP[lane] || lane || "";
-
-  const trackDisplay =
-    (track && laneLabel) ? `${track}_${laneLabel}` : (track || "—");
-
-  const tierRankText =
-    (tier && rank) ? `${tier}_${rank}` : (tier || rank || "—");
-
-  const lock = uid ? padlock : "—";
-
-  if ($("m-track")) $("m-track").textContent = trackDisplay;
-  if ($("m-rank"))  $("m-rank").textContent  = tierRankText;
-  if ($("m-padlock")) $("m-padlock").textContent = lock;
-  if ($("m-minttag")) $("m-minttag").textContent = mintTag || "—";
-  if ($("c-uid")) $("c-uid").value = uid || "";
+function isF8Uid(uid) {
+  return String(uid || "").startsWith("F8_");
 }
 
 // ------------------------------------------------------
-// Lane locks (F8 = Combat only)
+// Experience Credit preview
 // ------------------------------------------------------
-function enforceLaneRulesForTrack(track) {
-  const laneSel = $("mint-lane");
-  if (!laneSel) return;
+function getExperiencePlan(years) {
+  const y = Number(years || 0);
 
-  if (track === "F8") {
-    laneSel.value = "CB";
-    laneSel.disabled = true;
-
-    // hard-hide other options (looks locked)
-    [...laneSel.options].forEach(o => {
-      o.hidden = (o.value !== "CB");
-    });
-  } else {
-    laneSel.disabled = false;
-    [...laneSel.options].forEach(o => { o.hidden = false; });
+  if (y === 1) {
+    return {
+      yearsVerified: 1,
+      total: 200,
+      issuedNow: 200,
+      held: 0,
+      schedule: "full_t0"
+    };
   }
+
+  if (y === 2) {
+    return {
+      yearsVerified: 2,
+      total: 400,
+      issuedNow: 200,
+      held: 200,
+      schedule: "deferred_t1_entry"
+    };
+  }
+
+  if (y >= 3) {
+    return {
+      yearsVerified: 3,
+      total: 600,
+      issuedNow: 300,
+      held: 300,
+      schedule: "deferred_t1_entry"
+    };
+  }
+
+  return {
+    yearsVerified: 0,
+    total: 0,
+    issuedNow: 0,
+    held: 0,
+    schedule: "—"
+  };
+}
+
+function updateExperiencePreview() {
+  const years = Number($("c-exp-years")?.value || 0);
+  const plan = getExperiencePlan(years);
+
+  if ($("exp-total")) $("exp-total").textContent = String(plan.total);
+  if ($("exp-now")) $("exp-now").textContent = String(plan.issuedNow);
+  if ($("exp-hold")) $("exp-hold").textContent = String(plan.held);
+  if ($("exp-schedule")) $("exp-schedule").textContent = plan.schedule;
 }
 
 // ------------------------------------------------------
-// Virtues by track (your final sets)
+// Virtues by track
 // ------------------------------------------------------
 const F8_VIRTUES = ["FOCUS","EFFORT","ATTITUDE","RESPECT","SPEED","POWER","AGILITY","COMBAT"];
 const F4_VIRTUES = ["HONOR","COURAGE","DISCIPLINE","INTEGRITY","PATIENCE","WISDOM","STRENGTH","TENACITY"];
@@ -172,10 +179,10 @@ function setVirtuesForTrack(track) {
   const sel = $("mint-virtue");
   if (!sel) return;
 
-  const list = (track === "F4") ? F4_VIRTUES : F8_VIRTUES;
+  const list = track === "F4" ? F4_VIRTUES : F8_VIRTUES;
 
   sel.innerHTML = "";
-  list.forEach(v => {
+  list.forEach((v) => {
     const opt = document.createElement("option");
     opt.value = v;
     opt.textContent = v;
@@ -186,10 +193,9 @@ function setVirtuesForTrack(track) {
 }
 
 // ------------------------------------------------------
-// Virtue codes (V1 mapping)
+// Virtue codes
 // ------------------------------------------------------
 const VIRTUE_CODE = {
-  // Foundry 8
   FOCUS: "FOC",
   EFFORT: "EFF",
   ATTITUDE: "ATT",
@@ -198,7 +204,6 @@ const VIRTUE_CODE = {
   POWER: "PWR",
   AGILITY: "AGL",
   COMBAT: "CBT",
-  // Foundry 4
   HONOR: "HNR",
   COURAGE: "CRG",
   DISCIPLINE: "DSC",
@@ -215,57 +220,59 @@ function getVirtueCode(virtueName) {
 }
 
 // ------------------------------------------------------
-// Mint tag builders
+// Mint tag helpers
 // ------------------------------------------------------
-
-// Before approve (no UID yet): show 0000 preview using track + lane + virtue
-function buildPreviewTag(track, lane, virtue) {
+function buildPreviewTag(track, virtue) {
   const t = String(track || "").trim().toUpperCase();
-  const l = String(lane || "CB").trim().toUpperCase();
   const v = String(virtue || "").trim().toUpperCase();
   if (!t || !v) return "";
-  return `${t}_${l}0000_${v}`;
+  return `${t}_CB0000_${v}`;
 }
 
-// After approve (UID exists): build from UID (truth)
-function buildTagFromUid(uid, lane, virtue) {
+function buildTagFromUid(uid, virtue) {
   const u = String(uid || "");
   if (!u || !virtue) return "";
 
-  const prefix = u.slice(0, 2); // "F8" or "F4"
-  const serial = (u.split("_")[1] || "0000").padStart(4, "0"); // "0004"
-  const l = String(lane || "CB").trim().toUpperCase();
+  const prefix = u.slice(0, 2);
+  const serial = (u.split("_")[1] || "0000").padStart(4, "0");
   const v = String(virtue || "").trim().toUpperCase();
 
-  return `${prefix}_${l}${serial}_${v}`;
+  return `${prefix}_CB${serial}_${v}`;
 }
 
-function isF8Uid(uid) {
-  return String(uid || "").startsWith("F8_");
-}
-
-// ------------------------------------------------------
-// Preview paint updater
-// ------------------------------------------------------
 function updateMintTagPreview() {
-  const out = $("mint-tag-output"); // optional input
-
-  const track  = ($("mint-track")?.value || $("c-track")?.value || "").trim().toUpperCase();
-  const lane   = ($("mint-lane")?.value || "CB").trim().toUpperCase();
+  const out = $("mint-tag-output");
+  const track = ($("c-track")?.value || "").trim().toUpperCase();
   const virtue = ($("mint-virtue")?.value || "").trim().toUpperCase();
 
-  const preview = buildPreviewTag(track, lane, virtue);
-
+  const preview = buildPreviewTag(track, virtue);
   if (out) out.value = preview;
-  if ($("m-minttag")) $("m-minttag").textContent = preview || "—";
 }
 
-["mint-track", "mint-lane", "mint-virtue"].forEach((id) => {
-  $(id)?.addEventListener("change", updateMintTagPreview);
-});
+$("mint-virtue")?.addEventListener("change", updateMintTagPreview);
 
 // ------------------------------------------------------
-// Load submission (intakes/{token})
+// Paint Mint UI
+// ------------------------------------------------------
+function paintMintUI({
+  track = "",
+  tier = "",
+  rank = "",
+  uid = "",
+  padlock = "—"
+}) {
+  const trackDisplay = track || "—";
+  const tierRankText = (tier && rank) ? `${tier}_${rank}` : (tier || rank || "—");
+  const lock = uid ? padlock : "—";
+
+  if ($("m-track")) $("m-track").textContent = trackDisplay;
+  if ($("m-rank")) $("m-rank").textContent = tierRankText;
+  if ($("m-padlock")) $("m-padlock").textContent = lock;
+  if ($("c-uid")) $("c-uid").value = uid || "";
+}
+
+// ------------------------------------------------------
+// Load submission
 // ------------------------------------------------------
 async function loadSubmission() {
   const snap = await getDoc(intakeRef);
@@ -276,9 +283,8 @@ async function loadSubmission() {
   }
 
   const s = snap.data() || {};
-  INTAKE_CACHE = s; // ✅ cache for approve payload
+  INTAKE_CACHE = s;
 
-  // If already approved, lock the page into approved state
   if (s.status === "approved" && s.approvedUid) {
     const uid = s.approvedUid;
 
@@ -286,35 +292,35 @@ async function loadSubmission() {
     if ($("approve-status")) $("approve-status").textContent = "✓ Already approved.";
     setApproveEnabled(false);
 
-    // Intake stores forTrack/forLane in your data
     const track = String(s.forTrack || "").trim().toUpperCase() || (isF8Uid(uid) ? "F8" : "F4");
-    const lane  = String(s.forLane || "CB").trim().toUpperCase();
-
-    const virtueName = String(s.virtueName || "").trim().toUpperCase();
-    const virtueCode = String(s.virtueCode || "").trim().toUpperCase();
-    const virtueForTag = virtueName || virtueCode || "";
 
     paintMintUI({
       track,
-      lane,
       tier: "T0",
       rank: isF8Uid(uid) ? "Shadow" : "Apprentice",
       uid,
-      padlock: "—",
-      // If you stored mintVirtueTagSerial, use it; otherwise derive safely from UID
-      mintTag: s.mintVirtueTag || s.mintVirtueTagDisplay || buildTagFromUid(uid, lane, virtueForTag) || "—"
+      padlock: "—"
     });
+
+    setPadlockStatus("READY");
+
+    const virtueName = String(s.virtueName || "").trim().toUpperCase();
+    if ($("mint-tag-output")) {
+      $("mint-tag-output").value =
+        s.mintVirtueTag ||
+        s.mintVirtueTagDisplay ||
+        buildTagFromUid(uid, virtueName) ||
+        "";
+    }
 
     openSuccessModal(uid);
     return;
   }
 
-  // Root mirrors (preferred) with fallback to nested athlete
   const athleteFirst = s.first ?? s.athlete?.first ?? "";
   const athleteLast  = s.last  ?? s.athlete?.last  ?? "";
   const dob          = s.dob   ?? s.athlete?.dob   ?? "—";
 
-  // Auto-fill public initial from first name (only if empty)
   if ($("c-initial") && !$("c-initial").value) {
     const first = String(athleteFirst || "").trim();
     $("c-initial").value = first ? first[0].toUpperCase() : "";
@@ -331,98 +337,75 @@ async function loadSubmission() {
 
   const medical = s.medical ?? "—";
 
-  // Fill UI
   if ($("s-firstlast")) $("s-firstlast").textContent = `${athleteFirst} ${athleteLast}`.trim() || "—";
   if ($("s-dob")) $("s-dob").textContent = dob;
 
   if ($("s-city")) $("s-city").textContent = city;
   if ($("s-state")) $("s-state").textContent = state;
-
   if ($("s-email")) $("s-email").textContent = parentEmail;
   if ($("s-phone")) $("s-phone").textContent = parentPhone;
-
   if ($("s-emer")) $("s-emer").textContent = `${emerName} (${emerPhone})`;
   if ($("s-med")) $("s-med").textContent = medical;
 
-  // Prefill coach edit fields
-  if ($("c-city"))  $("c-city").value  = s.location?.city ?? "";
+  if ($("c-city")) $("c-city").value = s.location?.city ?? "";
   if ($("c-state")) $("c-state").value = s.location?.state ?? "";
-  if ($("c-team"))  $("c-team").value  = s.location?.team ?? "";
+  if ($("c-team")) $("c-team").value = s.location?.team ?? "";
 
-  // Helpful default: public last = athlete last (coach can overwrite)
-  if ($("c-last") && !$("c-last").value) $("c-last").value = athleteLast || "";
+  if ($("c-last") && !$("c-last").value) {
+    $("c-last").value = athleteLast || "";
+  }
 
-  // Gates on load (until Mint)
   hideApprovalModal();
   setApproveEnabled(false);
   if ($("approve-status")) $("approve-status").textContent = "";
   if ($("copy-link")) $("copy-link").disabled = true;
   if ($("open-link")) $("open-link").disabled = true;
 
+  updateExperiencePreview();
   console.log("[coach-review] loaded intake", { tokenId, status: s.status });
 }
 
 loadSubmission().catch(console.error);
 
 // ------------------------------------------------------
-// Mint F8 / F4 (enables Approve)
-// NOTE: NO UID minted here anymore. Server will return UID.
+// Mint F8 / F4 (preview only)
 // ------------------------------------------------------
 function mintTrack(track) {
-  track = String(track || "").toUpperCase();
-
+  const t = String(track || "").toUpperCase();
   const tier = "T0";
-  const rank = (track === "F8") ? "Shadow" : "Apprentice";
+  const rank = t === "F8" ? "Shadow" : "Apprentice";
 
-  // required fields for approve flow
-  if ($("c-track")) $("c-track").value = track;
+  if ($("c-track")) $("c-track").value = t;
   if ($("c-tier")) $("c-tier").value = tier;
   if ($("c-rank")) $("c-rank").value = rank;
-
-  // clear UID (server-minted)
   if ($("c-uid")) $("c-uid").value = "";
 
-  // sync mint selector UI + enforce lane rules
-  if ($("mint-track")) $("mint-track").value = track;
-  enforceLaneRulesForTrack(track);
-
-  // virtues switch based on track
-  setVirtuesForTrack(track);
-
-  // update preview (0000)
+  setVirtuesForTrack(t);
   updateMintTagPreview();
 
-  const lane = ($("mint-lane")?.value || "CB").trim().toUpperCase();
-  const virtue = ($("mint-virtue")?.value || "").trim().toUpperCase();
-  const previewTag = buildPreviewTag(track, lane, virtue);
-
-  // paint immediately (padlock comes after approve)
   paintMintUI({
-    track,
-    lane,
+    track: t,
     tier,
     rank,
-    uid: "", // unknown until server approves
-    padlock: "",
-    mintTag: previewTag
+    uid: "",
+    padlock: ""
   });
+  setPadlockStatus("—");
 
   setApprovedUI(false);
   setApproveEnabled(true);
 
-  if ($("approve-status")) $("approve-status").textContent =
-    "Minted (server UID pending). Verify details, then Approve.";
+  if ($("approve-status")) {
+    $("approve-status").textContent = "Minted (server UID pending). Verify details, then Approve.";
+  }
 }
 
 $("btn-mint-f8")?.addEventListener("click", () => mintTrack("F8"));
 $("btn-mint-f4")?.addEventListener("click", () => mintTrack("F4"));
 
 // ------------------------------------------------------
-// Approve (backend source of truth) — SINGLE CALLABLE
-// Cloud Function: approveAndActivate
+// Approve (backend source of truth)
 // ------------------------------------------------------
-
-// Double-tap guard (define BEFORE binding)
 function preventDoubleTap(btn, fn) {
   let busy = false;
 
@@ -437,7 +420,6 @@ function preventDoubleTap(btn, fn) {
 
     try {
       await fn(e);
-      // keep disabled after success (approve should never run twice)
     } catch (err) {
       busy = false;
       btn.disabled = false;
@@ -448,28 +430,36 @@ function preventDoubleTap(btn, fn) {
   };
 }
 
-let authReady = ensureSignedIn().catch(console.error);
+const authReady = ensureSignedIn().catch(console.error);
 
 async function approveAthlete() {
-  await authReady; // ensure req.auth is present
+  await authReady;
 
   const initial = ($("c-initial")?.value || "").trim();
-  const last    = ($("c-last")?.value || "").trim();
-  const team    = ($("c-team")?.value || "").trim();
-  const city    = ($("c-city")?.value || "").trim();
-  const state   = ($("c-state")?.value || "").trim();
+  const last = ($("c-last")?.value || "").trim();
+  const team = ($("c-team")?.value || "").trim();
+  const city = ($("c-city")?.value || "").trim();
+  const state = ($("c-state")?.value || "").trim();
+  const years = Number($("c-exp-years")?.value || 0);
 
-  if (!initial || !last) return alert("Public Initial + Public Last required.");
+  const adjustXp = Number($("c-adjust-xp")?.value || 0);
+  const adjustNote = ($("c-adjust-note")?.value || "").trim();
+
+  if (!initial || !last) {
+    return alert("Public Initial + Public Last required.");
+  }
 
   const track = ($("c-track")?.value || "").trim().toUpperCase();
-  if (!track) return alert("Mint first (track missing).");
+  if (!track) {
+    return alert("Mint first (track missing).");
+  }
 
-  const lane   = ($("mint-lane")?.value || "CB").trim().toUpperCase();
   const virtue = ($("mint-virtue")?.value || "").trim().toUpperCase();
-  if (!virtue) return alert("Pick a Mint Virtue.");
+  if (!virtue) {
+    return alert("Pick a Mint Virtue.");
+  }
 
-  // V1: combat-only trackCode assumption
-  const trackCode = (track === "F4") ? "foundry4-combat" : "foundry8-combat";
+  const trackCode = track === "F4" ? "foundry4-combat" : "foundry8-combat";
 
   setApproveEnabled(false);
   if ($("approve-status")) $("approve-status").textContent = "Approving…";
@@ -477,10 +467,9 @@ async function approveAthlete() {
   try {
     const approveAndActivate = httpsCallable(functions, "approveAndActivate");
 
-    const foundry = track.toLowerCase(); // "f4" | "f8"
+    const foundry = track.toLowerCase();
     const publicName = `${initial}. ${last}`.trim();
 
-    // ✅ pull parent/team identity from cached intake (SAFE)
     const s = INTAKE_CACHE || {};
     const parentEmail = String(s.parent?.email || "").trim().toLowerCase();
     const parentPhoneDigits = String(s.parent?.phoneDigits || "").trim();
@@ -492,25 +481,22 @@ async function approveAthlete() {
       slugTeamId(intakeTeamName) ||
       slugTeamId(team);
 
-    const res = await approveAndActivate({
+    const payload = {
       intakeId: tokenId,
       foundry,
       virtueName: virtue,
       virtueCode: getVirtueCode(virtue),
       trackCode,
 
-      // Optional fields (harmless if ignored)
       fullName: ($("s-firstlast")?.textContent || "").trim(),
       publicName,
 
-      // ✅ parent identity (for Para seeding later)
       parent: {
         email: parentEmail || null,
         phoneDigits: parentPhoneDigits || null,
         name: parentName || null,
       },
 
-      // ✅ team identity (for targeting later)
       team: {
         name: team || intakeTeamName || null,
         teamId: teamIdFromIntake || null,
@@ -518,45 +504,65 @@ async function approveAthlete() {
         state,
       },
 
-      mint: { lane },
-    });
+      mint: {
+        lane: "CB"
+      },
+
+      experience: {
+        years
+      }
+    };
+
+    if (adjustXp > 0) {
+      payload.adjustment = {
+        amount: adjustXp,
+        note: adjustNote || "Coach adjustment",
+        kind: "DAILY_GRIND",
+        source: "coach_adjustment"
+      };
+    }
+
+    const res = await approveAndActivate(payload);
 
     const data = res?.data || {};
     const uid = data.uid;
-    const mintVirtueTag = data.mintVirtueTag;
 
     if (!uid) throw new Error("Missing uid in response");
 
     if ($("c-uid")) $("c-uid").value = uid;
     if ($("approve-status")) $("approve-status").textContent = "✓ Approved!";
 
-    // UID-truth rank + tag
     const rank = isF8Uid(uid) ? "Shadow" : "Apprentice";
-    const fallbackTag = buildTagFromUid(uid, lane, virtue);
 
-    paintMintUI({
-      track,
-      lane,
-      tier: "T0",
-      rank,
-      uid,
-      padlock: "—",
-      mintTag: mintVirtueTag || fallbackTag,
-    });
+paintMintUI({
+  track,
+  tier: "T0",
+  rank,
+  uid,
+  padlock: "READY"
+});
+
+setPadlockStatus("READY");
+
+    if ($("mint-tag-output")) {
+      $("mint-tag-output").value =
+        data.mintVirtueTag || buildTagFromUid(uid, virtue);
+    }
 
     setApprovedUI(true, uid);
     openSuccessModal(uid);
 
   } catch (err) {
     console.error("[approveAthlete] approveAndActivate failed:", err);
-    if ($("approve-status")) $("approve-status").textContent = "⚠ Approve failed. Check console.";
-    setApproveEnabled(true);   // optional redundancy, safe
+    if ($("approve-status")) {
+      $("approve-status").textContent = "⚠ Approve failed. Check console.";
+    }
+    setApproveEnabled(true);
     setApprovedUI(false);
-    throw err;                 // lets preventDoubleTap re-enable on failure
+    throw err;
   }
 }
 
-// Bind ONCE (remove any older direct addEventListener you had before)
 const approveBtn = $("btn-approve");
 if (approveBtn) {
   approveBtn.addEventListener("click", preventDoubleTap(approveBtn, approveAthlete));
@@ -566,27 +572,53 @@ if (approveBtn) {
 // Onboarding modal
 // ------------------------------------------------------
 function openSuccessModal(uid) {
-  const link = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
+  const onboarding = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
+const parentLink = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
+  // UID
+  if ($("approved-athlete-uid")) {
+    $("approved-athlete-uid").value = uid;
+  }
 
-  if ($("onboarding-link")) $("onboarding-link").value = link;
-
-  if ($("copy-link")) $("copy-link").disabled = false;
-  if ($("open-link")) $("open-link").disabled = false;
-
-  showApprovalModal();
+  // ONBOARDING
+  if ($("onboarding-link")) {
+    $("onboarding-link").value = onboarding;
+  }
 
   if ($("copy-link")) {
-    $("copy-link").onclick = () => navigator.clipboard.writeText(link);
+    $("copy-link").disabled = false;
+    $("copy-link").onclick = () => navigator.clipboard.writeText(onboarding);
   }
-  if ($("open-link")) {
-    $("open-link").onclick = () => window.open(link, "_blank", "noopener");
-  }
-}
 
+  if ($("open-link")) {
+    $("open-link").disabled = false;
+    $("open-link").onclick = () => window.open(onboarding, "_blank", "noopener");
+  }
+
+  // 🔥 PARENT LINK (NEW)
+  if ($("parent-my-athlete-link")) {
+    $("parent-my-athlete-link").value = parentLink;
+  }
+
+  if ($("copy-parent-link")) {
+    $("copy-parent-link").onclick = () => navigator.clipboard.writeText(parentLink);
+  }
+
+  if ($("open-parent-link")) {
+    $("open-parent-link").onclick = () => window.open(parentLink, "_blank", "noopener");
+  }
+
+  showApprovalModal();
+}
+// ------------------------------------------------------
 // Back button
+// ------------------------------------------------------
 $("btn-back")?.addEventListener("click", () => {
   location.href = "./index.html";
 });
 
-// initial preview paint (empty until mint)
+// ------------------------------------------------------
+// Init
+// ------------------------------------------------------
+$("c-exp-years")?.addEventListener("change", updateExperiencePreview);
+updateExperiencePreview();
 updateMintTagPreview();

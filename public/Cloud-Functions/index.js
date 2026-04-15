@@ -1,3 +1,9 @@
+// ⚠️ LEGACY HANDLER (ACTIVE)
+// Handles contact + volunteer submissions
+// Not yet migrated to /functions
+// Do NOT delete until migration is complete
+
+
 import * as admin from "firebase-admin";
 import * as functions from "firebase-functions";
 import cors from "cors";

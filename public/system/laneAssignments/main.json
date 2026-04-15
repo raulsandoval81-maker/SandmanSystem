@@ -1,0 +1,20 @@
+{
+  "strength": {
+    "lane": "strength",
+    "segment": "segment1",
+    "session": 1,
+    "audience": "F4",
+    "mode": "manual",
+    "status": "live",
+    "updatedAt": "serverTimestamp"
+  },
+  "honor": {
+    "lane": "honor",
+    "segment": "segment1",
+    "session": 1,
+    "audience": "F4",
+    "mode": "manual",
+    "status": "live",
+    "updatedAt": "serverTimestamp"
+  }
+}

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Testing Hub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <style>
+    body{
+      background:#0b1220;
+      color:white;
+      font-family:system-ui;
+      padding:20px;
+      margin:0;
+    }
+
+    .wrap{
+      max-width:800px;
+      margin:0 auto;
+    }
+
+    h1{
+      margin-bottom:20px;
+    }
+
+    .card{
+      background:#121b2e;
+      padding:16px;
+      border-radius:12px;
+      margin-bottom:16px;
+    }
+
+    .card h3{
+      margin:0 0 10px 0;
+      font-size:16px;
+      opacity:.8;
+    }
+
+    .btn{
+      display:block;
+      padding:14px;
+      background:#18243d;
+      border-radius:10px;
+      text-decoration:none;
+      color:white;
+      margin-top:10px;
+      transition:all .15s ease;
+    }
+
+    .btn:hover{
+      background:#22325a;
+    }
+
+    .btn.primary{
+      background:#1f6feb;
+    }
+
+    .btn.primary:hover{
+      background:#2b7fff;
+    }
+
+    .muted{
+      opacity:.5;
+      font-size:13px;
+    }
+
+    .back{
+      margin-bottom:20px;
+      display:inline-block;
+      opacity:.6;
+      text-decoration:none;
+      color:white;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="wrap">
+
+  <!-- BACK -->
+  <a class="back" href="/coaches/index.html">← Back to Coach</a>
+
+  <h1>Testing Hub</h1>
+
+  <!-- RUN TEST -->
+  <div class="card">
+    <h3>Run Test</h3>
+
+    <a class="btn primary" href="/coaches/testing/test1.html">
+      Test 1 — Base Check
+    </a>
+
+    <div class="muted">Start a new athlete test</div>
+  </div>
+
+  <!-- READY ATHLETES (future hook) -->
+  <div class="card">
+    <h3>Ready Athletes</h3>
+
+    <div class="muted">
+      Athletes at cap will appear here next.
+    </div>
+  </div>
+
+  <!-- RECENT TESTS -->
+  <div class="card">
+    <h3>Recent Tests</h3>
+
+    <div class="muted">
+      Coming next — history, pass/fail, and logs.
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

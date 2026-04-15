@@ -1,0 +1,486 @@
+{
+  "lane": "strength",
+  "segmentId": "segment3",
+  "segmentTitle": "Postseason · Performance",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "STR-PERF-001",
+      "type": "performance",
+      "title": "Sharp Output I",
+      "prompt": "Complete the session with sharp intent and clean execution.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Clean reps. No ego."
+    },
+    {
+      "n": 2,
+      "id": "STR-PERF-002",
+      "type": "performance",
+      "title": "Explosive Intent",
+      "prompt": "Complete the session with speed and precision.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Fast and controlled."
+    },
+    {
+      "n": 3,
+      "id": "STR-PERF-003",
+      "type": "performance",
+      "title": "Controlled Pressure",
+      "prompt": "Complete the session and stay composed under fatigue.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay composed."
+    },
+
+    {
+      "n": 4,
+      "id": "STR-PERF-004",
+      "type": "performance",
+      "title": "Iron Precision",
+      "prompt": "Complete the session with perfect form and intent.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "No sloppy reps."
+    },
+    {
+      "n": 5,
+      "id": "STR-PERF-005",
+      "type": "performance",
+      "title": "Explosive Speed",
+      "prompt": "Execute every movement with speed and control.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Speed without loss of form."
+    },
+    {
+      "n": 6,
+      "id": "STR-PERF-006",
+      "type": "performance",
+      "title": "Short Burst",
+      "prompt": "Complete the session with high intent in short bursts.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Explode, recover, repeat."
+    },
+
+    {
+      "n": 7,
+      "id": "STR-PERF-007",
+      "type": "performance",
+      "title": "Iron Control",
+      "prompt": "Execute each lift with discipline and control.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Own the movement."
+    },
+    {
+      "n": 8,
+      "id": "STR-PERF-008",
+      "type": "performance",
+      "title": "Explosive Repeat",
+      "prompt": "Repeat explosive output without hesitation.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "No hesitation."
+    },
+    {
+      "n": 9,
+      "id": "STR-PERF-009",
+      "type": "performance",
+      "title": "HIIT Precision",
+      "prompt": "Maintain exact pacing throughout the session.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Control the pace."
+    },
+
+    {
+      "n": 10,
+      "id": "STR-PERF-010",
+      "type": "performance",
+      "title": "Performance Check I",
+      "prompt": "Complete the session and assess execution quality.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Quality over numbers."
+    },
+    {
+      "n": 11,
+      "id": "STR-PERF-011",
+      "type": "performance",
+      "title": "Iron Sharpness",
+      "prompt": "Lift with intent and precision.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Sharp execution."
+    },
+    {
+      "n": 12,
+      "id": "STR-PERF-012",
+      "type": "performance",
+      "title": "Explosive Sharpness",
+      "prompt": "Execute explosive work with full intent.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Fast and clean."
+    },
+    {
+      "n": 13,
+      "id": "STR-PERF-013",
+      "type": "performance",
+      "title": "HIIT Control",
+      "prompt": "Control breathing and pacing.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay composed."
+    },
+
+    {
+      "n": 14,
+      "id": "STR-PERF-014",
+      "type": "performance",
+      "title": "Iron Peak I",
+      "prompt": "Lift with maximum control and intent.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "No wasted reps."
+    },
+    {
+      "n": 15,
+      "id": "STR-PERF-015",
+      "type": "performance",
+      "title": "Explosive Peak",
+      "prompt": "Produce max explosive output.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Max intent."
+    },
+    {
+      "n": 16,
+      "id": "STR-PERF-016",
+      "type": "performance",
+      "title": "HIIT Peak",
+      "prompt": "Maintain high output under fatigue.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay sharp."
+    },
+    {
+      "n": 17,
+      "id": "STR-PERF-017",
+      "type": "performance",
+      "title": "Iron Precision II",
+      "prompt": "Execute each lift with control and intent.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "No wasted movement."
+    },
+    {
+      "n": 18,
+      "id": "STR-PERF-018",
+      "type": "performance",
+      "title": "Explosive Accuracy",
+      "prompt": "Perform explosive work with precision.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Precision over chaos."
+    },
+    {
+      "n": 19,
+      "id": "STR-PERF-019",
+      "type": "performance",
+      "title": "HIIT Control II",
+      "prompt": "Maintain exact pacing across all rounds.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Control breathing."
+    },
+
+    {
+      "n": 20,
+      "id": "STR-PERF-020",
+      "type": "performance",
+      "title": "Performance Check II",
+      "prompt": "Complete session and evaluate execution quality.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Execution matters."
+    },
+
+    {
+      "n": 21,
+      "id": "STR-PERF-021",
+      "type": "performance",
+      "title": "Iron Sharpness II",
+      "prompt": "Lift with clean intent and discipline.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Stay disciplined."
+    },
+    {
+      "n": 22,
+      "id": "STR-PERF-022",
+      "type": "performance",
+      "title": "Explosive Response",
+      "prompt": "React fast and execute cleanly.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Fast reaction."
+    },
+    {
+      "n": 23,
+      "id": "STR-PERF-023",
+      "type": "performance",
+      "title": "HIIT Stability",
+      "prompt": "Hold pace and composure throughout.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay steady."
+    },
+
+    {
+      "n": 24,
+      "id": "STR-PERF-024",
+      "type": "performance",
+      "title": "Iron Peak II",
+      "prompt": "Lift with maximum control and precision.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Peak control."
+    },
+    {
+      "n": 25,
+      "id": "STR-PERF-025",
+      "type": "performance",
+      "title": "Explosive Peak II",
+      "prompt": "Produce high explosive output consistently.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Max intent."
+    },
+    {
+      "n": 26,
+      "id": "STR-PERF-026",
+      "type": "performance",
+      "title": "HIIT Peak II",
+      "prompt": "Maintain high output under fatigue.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay sharp."
+    },
+
+    {
+      "n": 27,
+      "id": "STR-PERF-027",
+      "type": "performance",
+      "title": "Iron Discipline",
+      "prompt": "Execute lifts with discipline and consistency.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Stay consistent."
+    },
+    {
+      "n": 28,
+      "id": "STR-PERF-028",
+      "type": "performance",
+      "title": "Explosive Discipline",
+      "prompt": "Maintain explosive control under fatigue.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Controlled speed."
+    },
+    {
+      "n": 29,
+      "id": "STR-PERF-029",
+      "type": "performance",
+      "title": "HIIT Discipline",
+      "prompt": "Maintain steady pacing and breathing.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay composed."
+    },
+
+    {
+      "n": 30,
+      "id": "STR-PERF-030",
+      "type": "performance",
+      "title": "Performance Check III",
+      "prompt": "Evaluate execution and control under fatigue.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Execution first."
+    },
+
+    {
+      "n": 31,
+      "id": "STR-PERF-031",
+      "type": "performance",
+      "title": "Iron Control III",
+      "prompt": "Lift with precision and stability.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Stable reps."
+    },
+    {
+      "n": 32,
+      "id": "STR-PERF-032",
+      "type": "performance",
+      "title": "Explosive Control III",
+      "prompt": "Execute explosive work with control.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Control speed."
+    },
+    {
+      "n": 33,
+      "id": "STR-PERF-033",
+      "type": "performance",
+      "title": "HIIT Control III",
+      "prompt": "Maintain pacing and composure.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay steady."
+    },
+
+    {
+      "n": 34,
+      "id": "STR-PERF-034",
+      "type": "performance",
+      "title": "Iron Final Build",
+      "prompt": "Complete final iron session with intent.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Final push."
+    },
+    {
+      "n": 35,
+      "id": "STR-PERF-035",
+      "type": "performance",
+      "title": "Explosive Final Build",
+      "prompt": "Finish explosive work with control.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Stay sharp."
+    },
+    {
+      "n": 36,
+      "id": "STR-PERF-036",
+      "type": "performance",
+      "title": "HIIT Final Build",
+      "prompt": "Complete final conditioning with composure.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Finish strong."
+    },
+    {
+      "n": 37,
+      "id": "STR-PERF-037",
+      "type": "performance",
+      "title": "Final Iron",
+      "prompt": "Execute final iron session with precision.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Show control."
+    },
+    {
+      "n": 38,
+      "id": "STR-PERF-038",
+      "type": "performance",
+      "title": "Final Explosive",
+      "prompt": "Finish with explosive intent.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "reps", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Finish sharp."
+    },
+    {
+      "n": 39,
+      "id": "STR-PERF-039",
+      "type": "performance",
+      "title": "Final HIIT",
+      "prompt": "Complete final conditioning session.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "No drop."
+    },
+    {
+      "n": 40,
+      "id": "STR-PERF-040",
+      "type": "baseline_retest",
+      "title": "Performance Retest",
+      "prompt": "Repeat Segment 1 Session 1 exactly. Compare results.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Be honest. Compare progress."
+    }
+  ]
+}

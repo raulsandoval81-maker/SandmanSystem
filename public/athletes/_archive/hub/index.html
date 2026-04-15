@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Athlete Lanes</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="icon" href="data:,"> 
+
+  <style>
+    .lane {
+      border: 1px solid #1f2937;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 16px;
+      background: #0b1017;
+      transition: .2s ease;
+    }
+
+    .lane h2 {
+      margin: 0 0 6px;
+      color: #ffd633;
+    }
+
+    .lane-locked {
+      opacity: 0.25;
+      pointer-events: none;
+      filter: grayscale(100%);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="wrap">
+
+  <h1>Your Lanes</h1>
+
+  <!-- Strength -->
+  <div id="lane-strength" class="lane lane-locked">
+    <h2>Strength</h2>
+    <p>Built in the shadows.</p>
+    <a id="link-strength" href="/athletes/lanes/strength/">Enter</a>
+  </div>
+
+  <!-- Honor -->
+  <div id="lane-honor" class="lane lane-locked">
+    <h2>Honor</h2>
+    <p>Staged in the light.</p>
+    <a id="link-honor" href="/athletes/lanes/honor/">Enter</a>
+  </div>
+
+</main>
+
+<!-- Lane gate logic (unlocks based on stripe) -->
+<script type="module" src="/athletes/arsenal/honor/lanes/lane-gate.js"></script>
+
+<!-- Pass athlete id to lane links -->
+<script type="module">
+
+const params = new URLSearchParams(location.search);
+const id = (params.get("id") || "").trim().toUpperCase();
+
+if (!id) {
+  console.warn("Athlete lanes loaded without ?id=");
+}
+
+const s = document.getElementById("link-strength");
+const h = document.getElementById("link-honor");
+
+if (id) {
+  if (s) s.href = `/athletes/lanes/strength/?id=${encodeURIComponent(id)}`;
+  if (h) h.href = `/athletes/lanes/honor/?id=${encodeURIComponent(id)}`;
+}
+
+</script>
+
+</body>
+</html>

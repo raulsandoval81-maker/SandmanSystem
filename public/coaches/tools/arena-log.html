@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach · Console / Arena Log</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      background:#06080d;
+      color:#f5f5f5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:20px 16px 38px;}
+    .topbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;}
+    .pill{
+      background:#1a1d23;border:1px solid #2d3648;color:#f5f5f5;
+      border-radius:999px;padding:6px 14px;font-weight:700;text-decoration:none;
+    }
+    .pill:hover{background:#e63946;border-color:#e63946;}
+    .pill.active{background:#ffdd48;color:#111;border-color:#ffdd48;}
+    h1{margin:4px 0 6px;font-size:1.35rem;font-weight:800;color:#ffdd48;}
+    .muted{color:#94a3b8;font-size:.74rem;}
+    .grid{display:grid;grid-template-columns:1fr 320px;gap:14px;}
+    @media(max-width:900px){.grid{grid-template-columns:1fr;}}
+    .card{
+      background:#0b1017;border:1px solid #252c3a;border-radius:14px;
+      padding:14px;margin-bottom:14px;box-shadow:0 0 15px rgba(0,0,0,.25);
+    }
+    label{display:block;font-size:.68rem;margin-bottom:3px;color:#d1d5db;}
+    input,textarea{
+      width:100%;background:#0f172a;border:1px solid #1f2937;border-radius:9px;
+      padding:6px 8px;color:#fff;font-size:.78rem;
+    }
+    textarea{min-height:70px;resize:vertical;}
+    .btn{border:0;border-radius:999px;padding:6px 14px;font-weight:700;cursor:pointer;}
+    .btn-primary{background:#e63946;color:#fff;}
+    .xp-btn{
+      border:0;border-radius:999px;padding:5px 10px;font-size:.7rem;font-weight:700;
+      cursor:pointer;margin:2px;
+    }
+    .xp-battle{background:#ef4444;color:#fff;}
+    .xp-podium{background:#facc15;color:#111;}
+    .xp-style{background:#38bdf8;color:#02131c;}
+    .xp-penalty{background:#111827;color:#f43f5e;border:1px solid rgba(244,63,94,.5);}
+    #feedItems{display:flex;flex-direction:column;gap:6px;max-height:420px;overflow-y:auto;}
+    .feed-item{
+      background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);
+      border-radius:8px;padding:6px 8px;
+    }
+    .feed-head{display:flex;gap:6px;align-items:center;margin-bottom:2px;}
+    .feed-kind{
+      font-size:.55rem;text-transform:uppercase;font-weight:700;padding:2px 6px;
+      border-radius:999px;color:#020617;
+    }
+    .feed-text{font-size:.7rem;}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+
+    <h1>Coach Console — Arena Log</h1>
+    <p class="muted" id="status">Fill notes or issue XP. Live tournament feed on the right.</p>
+
+    <div class="grid">
+      <!-- LEFT PANEL -->
+      <section>
+        <div class="card">
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="flex:1">
+              <label for="athleteId">Athlete UID / Name</label>
+              <input id="athleteId" placeholder="F4_0001 or full name"/>
+            </div>
+            <div style="flex:1">
+              <label for="eventName">Event / Tournament</label>
+              <input id="eventName" placeholder="CA Fall Open"/>
+            </div>
+            <div style="flex:1">
+              <label for="division">Division / Weight</label>
+              <input id="division" placeholder="12U • 70lb"/>
+            </div>
+          </div>
+
+          <label for="coachNote" style="margin-top:10px;">Coach Notes / Feedback</label>
+          <textarea id="coachNote" placeholder="Example: Excellent composure after loss, needs quicker tie-up…"></textarea>
+
+
+        <!-- TOURNAMENT / PARENT / INJURY -->
+        <div class="card">
+          <h3 style="margin:0 0 6px;font-size:.9rem;color:#ffdd48;">Tournament Notes</h3>
+          <textarea id="tournNote" placeholder="Mat 3 delayed 15min, update parents…"></textarea>
+          <button class="btn btn-primary" id="saveTourn" style="margin-top:8px;">Save Tournament Note</button>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 6px;font-size:.9rem;color:#ffdd48;">Parent Notes</h3>
+          <textarea id="parentNote" placeholder="Parent asked for match video link…"></textarea>
+          <button class="btn btn-primary" id="saveParent" style="margin-top:8px;">Save Parent Note</button>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 6px;font-size:.9rem;color:#ffdd48;">Injury Reports</h3>
+          <textarea id="injuryNote" placeholder="F4_0004 — twisted knee, icing between rounds…"></textarea>
+          <button class="btn btn-primary" id="saveInjury" style="margin-top:8px;">Save Injury Report</button>
+        </div>
+      </section>
+
+      <!-- RIGHT PANEL (LIVE FEED) -->
+      <section class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <h2 style="font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;">Live Tournament Feed</h2>
+          <small class="muted" id="feedStatus">connecting…</small>
+        </div>
+        <div id="feedItems">
+          <div class="muted">No feed items yet.</div>
+        </div>
+      </section>
+    </div>
+  </main>
+
+<script type="module">
+  import {
+    db,
+    collection,
+    addDoc,
+    serverTimestamp,
+    query,
+    orderBy,
+    limit,
+    onSnapshot
+  } from "/assets/js/firebase-init.js";
+
+  const COACH_NAME = "Coach Sandoval";
+  const statusEl = document.getElementById("status");
+  const feedItemsEl = document.getElementById("feedItems");
+  const feedStatusEl = document.getElementById("feedStatus");
+
+  // form els you mentioned
+  const athleteId      = document.getElementById("athleteId");
+  const eventNameEl    = document.getElementById("eventName");
+  const divisionEl     = document.getElementById("division");
+  const coachNote      = document.getElementById("coachNote");
+
+  const tournNote      = document.getElementById("tournNote");
+  const parentNote     = document.getElementById("parentNote");
+  const injuryNote     = document.getElementById("injuryNote");
+  const saveTourn      = document.getElementById("saveTourn");
+  const saveParent     = document.getElementById("saveParent");
+  const saveInjury     = document.getElementById("saveInjury");
+
+  // function URLs (emulator)
+import { XP_URL, ARENA_URL, ADD_NOTE_URL } from "/assets/js/coach-endpoints.js";
+
+  // 1) XP button → XP function + arena log function
+  async function sendXp(kind, delta){
+    const uid       = athleteId.value.trim();
+    const eventName = eventNameEl.value.trim();
+    const division  = divisionEl.value.trim();
+    const note      = coachNote.value.trim();
+
+    if(!uid){
+      statusEl.textContent = "Add athlete first.";
+      return;
+    }
+
+    statusEl.textContent = "Sending XP…";
+
+    // A. send XP
+    try {
+      const res = await fetch(XP_URL, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          data:{
+            uid,
+            event: kind,            // e.g. "ARENA/BATTLE"
+            amount: delta,
+            note,
+            meta:{
+              source: "coach-console",
+              eventName,
+              division
+            }
+          }
+        })
+      });
+      const data = await res.json();
+      statusEl.textContent = data.ok ? `XP applied: ${kind}` : (data.error || "XP error");
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "XP call failed.";
+    }
+
+    // B. log it through arena endpoint so Firestore is consistent
+    try {
+      await fetch(ARENA_URL, {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          data:{
+            athleteUid: uid,
+            eventName,
+            division,
+            // translate your button kind → flags
+            battle: kind === "ARENA/BATTLE",
+            podium: kind === "ARENA/PODIUM",
+            matchIq: kind === "ARENA/STYLEIQ",
+            style: kind === "ARENA/STYLEIQ" ? "style" : null,
+            penalty: kind === "COACH_PENALTY",
+            note
+          }
+        })
+      });
+    } catch (err) {
+      console.error("[arena-log] failed:", err);
+    }
+
+    // C. still add to realtime feed
+    await addDoc(collection(db,"tournamentFeed"),{
+      text: `${uid} → ${kind} (${delta})${note ? " · " + note : ""}`,
+      athleteId: uid,
+      eventName,
+      kind: "match",
+      coachName: COACH_NAME,
+      createdAt: serverTimestamp()
+    });
+  }
+
+  // wire XP buttons
+  document.querySelectorAll(".xp-btn").forEach(btn=>{
+    btn.addEventListener("click", ()=>{
+      const kind  = btn.dataset.kind;      // e.g. ARENA/BATTLE
+      const delta = Number(btn.dataset.delta);
+      sendXp(kind, delta);
+    });
+  });
+
+  // 2) note savers → addCoachNote function
+  async function saveNoteToFunction(type, text){
+    if (!text.trim()) return;
+
+    try {
+      const res = await fetch(ADD_NOTE_URL, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          data: {
+            athleteUid: "unassigned", // or bind to selected athlete if you have it
+            type,                      // "parent" | "injury" | "eventSummary"
+            body: text.trim(),
+            meta: {
+              coachName: COACH_NAME
+            }
+          }
+        })
+      });
+      const json = await res.json();
+      if (!json.ok) {
+        statusEl.textContent = json.error || "Note failed.";
+        return;
+      }
+      statusEl.textContent = "Saved.";
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Note failed (network).";
+    }
+
+    // also push to feed so it shows up live
+    await addDoc(collection(db,"tournamentFeed"),{
+      text,
+      kind: type === "injury" ? "injury" : (type === "parent" ? "parent" : "note"),
+      coachName: COACH_NAME,
+      createdAt: serverTimestamp()
+    });
+  }
+
+  // hook UI buttons
+  if (saveTourn) {
+    saveTourn.onclick = () => saveNoteToFunction("eventSummary", tournNote.value);
+  }
+  if (saveParent) {
+    saveParent.onclick = () => saveNoteToFunction("parent", parentNote.value);
+  }
+  if (saveInjury) {
+    saveInjury.onclick = () => saveNoteToFunction("injury", injuryNote.value);
+  }
+
+  // 3) Feed listener (this part is good)
+  function renderFeed(docs){
+    if(!docs.length){
+      feedItemsEl.innerHTML = `<div class="muted">No feed items yet.</div>`;
+      return;
+    }
+    feedItemsEl.innerHTML = docs.map(d=>{
+      const x = d.data();
+      const when = x.createdAt?.toDate ? x.createdAt.toDate().toLocaleTimeString() : "";
+      const color =
+        x.kind === "injury" ? "#f43f5e" :
+        x.kind === "style"  ? "#38bdf8" :
+        x.kind === "parent" ? "#22c55e" :
+        "#ffd633";
+      return `
+        <div class="feed-item">
+          <div class="feed-head">
+            <span class="feed-kind" style="background:${color}">${x.kind || "note"}</span>
+            <span style="font-size:.6rem;color:#94a3b8;">${when}</span>
+          </div>
+          <div class="feed-text">${x.text || ""}</div>
+          ${x.athleteId ? `<div style="font-size:.6rem;color:#64748b;">${x.athleteId}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+  }
+
+  const q = query(
+    collection(db,"tournamentFeed"),
+    orderBy("createdAt","desc"),
+    limit(25)
+  );
+  onSnapshot(q, snap=>{
+    renderFeed(snap.docs);
+    feedStatusEl.textContent = "live";
+  }, err=>{
+    console.error(err);
+    feedStatusEl.textContent = "error";
+  });
+</script>
+</body>
+</html>

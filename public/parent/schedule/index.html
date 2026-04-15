@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Parent Hub | Schedule</title>
+
+  <link rel="stylesheet" href="/parent/parent.css"/>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/parent/schedule/schedule.css"/>
+</head>
+
+<body>
+<header class="topbar">
+
+  <!-- LEFT -->
+  <div class="topbar-left">
+    <div class="lang-wrap">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sp">ES</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="topbar-center">
+    <a href="/parent/index.html" class="hub-mark">PARENT HUB</a>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="topbar-right">
+    <button id="themeToggle" class="theme-toggle">☀️</button>
+  </div>
+
+</header>
+<main class="wrap">
+
+  <section class="page-head">
+    <p class="eyebrow">
+      <span class="en">Parent Hub</span>
+      <span class="es">Portal de Padres</span>
+    </p>
+
+    <h1 class="page-title">
+      <span class="en">Schedule / Daily / Weekly / Monthly</span>
+      <span class="es">Horario</span>
+    </h1>
+
+    <p class="page-sub">
+      <span class="en">Know when to arrive, what is happening today, and what events are coming up.</span>
+      <span class="es">Sepa cuándo llegar, qué está pasando hoy y qué eventos vienen.</span>
+    </p>
+  </section>
+
+  <nav class="parent-tabs" aria-label="Parent hub navigation">
+    <a class="parent-tab" href="/parent/my-athlete/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Progress</span>
+        <span class="es">Progreso</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">My Athlete</span>
+        <span class="es">Mi Atleta</span>
+      </h2>
+    </a>
+
+    <a class="parent-tab" href="/parent/schedule/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Logistics</span>
+        <span class="es">Logística</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">Schedule</span>
+        <span class="es">Horario</span>
+      </h2>
+    </a>
+
+    <a class="parent-tab" href="/parent/messages/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Communication</span>
+        <span class="es">Comunicación</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">Messages</span>
+        <span class="es">Mensajes</span>
+      </h2>
+    </a>
+
+    <a class="parent-tab" href="/parent/system/index.html">
+      <p class="parent-tab-kicker">
+        <span class="en">Culture</span>
+        <span class="es">Cultura</span>
+      </p>
+      <h2 class="parent-tab-title">
+        <span class="en">System</span>
+        <span class="es">Sistema</span>
+      </h2>
+    </a>
+  </nav>
+
+  <div class="main">
+
+    <section id="banner-card" class="card" style="display:none;">
+      <div class="banner-box">
+        <div class="banner-title">
+          <span class="en">Important Update</span>
+          <span class="es">Actualización Importante</span>
+        </div>
+        <div id="banner-text">—</div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="card__title">
+          <span class="en">Today’s Practice</span>
+          <span class="es">Práctica de Hoy</span>
+        </h2>
+
+        <span class="section-note">
+          <span class="en">Live status</span>
+          <span class="es">Estado en vivo</span>
+        </span>
+      </div>
+
+      <div class="today-box" id="today-box">
+        <p class="muted-empty">
+          <span class="en">Loading today’s practice...</span>
+          <span class="es">Cargando la práctica de hoy...</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="card__title">
+          <span class="en">Weekly Practice</span>
+          <span class="es">Práctica Semanal</span>
+        </h2>
+
+        <span class="section-note">
+          <span class="en">Standard training rhythm</span>
+          <span class="es">Ritmo normal de entrenamiento</span>
+        </span>
+      </div>
+
+      <div class="weekly-list" id="weekly-list">
+        <p class="muted-empty">
+          <span class="en">Loading weekly schedule...</span>
+          <span class="es">Cargando horario semanal...</span>
+        </p>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-head">
+        <h2 class="card__title">
+          <span class="en">Upcoming Events</span>
+          <span class="es">Próximos Eventos</span>
+        </h2>
+
+        <span class="section-note">
+          <span class="en">Tournaments, ceremonies, and important dates</span>
+          <span class="es">Torneos, ceremonias y fechas importantes</span>
+        </span>
+      </div>
+
+      <div class="events-list" id="events-list">
+        <p class="muted-empty">
+          <span class="en">Loading events...</span>
+          <span class="es">Cargando eventos...</span>
+        </p>
+      </div>
+    </section>
+
+  </div>
+
+</main>
+
+<script type="module" src="/parent/schedule/schedule.js"></script>
+<script src="/assets/js/parent-shell.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Test Results</title>
+  <style>
+    body { font-family: sans-serif; padding:20px; background:#111; color:#fff; }
+    .box { border:1px solid #444; padding:15px; margin-bottom:15px; border-radius:10px; }
+    .pass { color:lime; }
+    .fail { color:red; }
+  </style>
+</head>
+<body>
+
+<h1>Test Results</h1>
+
+<div id="results"></div>
+
+<script>
+const params = new URLSearchParams(location.search);
+const athlete = params.get("athlete") || "unknown";
+
+const coaches = ["coach1", "coach2", "coach3"];
+
+let totals = [];
+
+const wrap = document.getElementById("results");
+
+coaches.forEach(coach => {
+  const key = `test_${athlete}_${coach}`;
+  const raw = localStorage.getItem(key);
+
+  if (!raw) return;
+
+  const data = JSON.parse(raw);
+
+  totals.push(data.total);
+
+  const div = document.createElement("div");
+  div.className = "box";
+  div.innerHTML = `
+    <strong>${coach.toUpperCase()}</strong><br>
+    Score: ${data.total}<br>
+    Result: ${data.result}
+  `;
+  wrap.appendChild(div);
+});
+
+// 🔥 FINAL DECISION
+if (totals.length) {
+  const avg = totals.reduce((a,b)=>a+b,0) / totals.length;
+
+  const result =
+    avg >= 95 ? 'ELITE BASE' :
+    avg >= 90 ? 'STRONG' :
+    avg >= 85 ? 'PASS' : 'NOT READY';
+
+  const final = document.createElement("div");
+  final.className = "box";
+
+  final.innerHTML = `
+    <h2>FINAL</h2>
+    Average: ${avg.toFixed(1)}<br>
+    <strong class="${avg >= 85 ? 'pass':'fail'}">${result}</strong>
+  `;
+
+  wrap.appendChild(final);
+}
+</script>
+
+</body>
+</html>

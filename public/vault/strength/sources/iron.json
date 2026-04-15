@@ -1,0 +1,82 @@
+[
+  {
+    "id": "IRON_A",
+    "label": "Workout A",
+    "focus": "anterior_chain",
+    "sessionStructure": [
+      "Explosive",
+      "Main Lift",
+      "Secondary Lift",
+      "Assistance",
+      "Conditioning Finish",
+      "Log Best Set"
+    ],
+    "seasonBlocks": {
+      "postseason": {
+        "mainLift": [{ "exercise": "Back Squat", "sets": 5, "reps": "4-6" }],
+        "secondaryLift": [{ "exercise": "Bench Press", "sets": 4, "reps": "5-6" }],
+        "assistance": [
+          { "exercise": "Walking Lunges", "sets": 4, "reps": "10 each leg" },
+          { "exercise": "Push-ups", "sets": 3, "reps": "max" }
+        ],
+        "conditioning": {
+          "options": ["40/20 x 10", "Sled Push x 8"]
+        }
+      }
+    }
+  },
+
+  {
+    "id": "IRON_B",
+    "label": "Workout B",
+    "focus": "posterior_chain",
+    "sessionStructure": [
+      "Explosive",
+      "Main Lift",
+      "Secondary Lift",
+      "Assistance",
+      "Conditioning Finish",
+      "Log Best Set"
+    ],
+    "seasonBlocks": {
+      "postseason": {
+        "mainLift": [{ "exercise": "Romanian Deadlift", "sets": 5, "reps": "4-6" }],
+        "secondaryLift": [{ "exercise": "Pull-ups", "sets": 4, "reps": "max" }],
+        "assistance": [
+          { "exercise": "Hip Thrust", "sets": 4, "reps": "8" },
+          { "exercise": "Barbell Row", "sets": 4, "reps": "8" }
+        ],
+        "conditioning": {
+          "options": ["Farmer Carry x 8", "40/20 x 10"]
+        }
+      }
+    }
+  },
+
+  {
+    "id": "IRON_C",
+    "label": "Workout C",
+    "focus": "athletic_legs_core",
+    "sessionStructure": [
+      "Explosive",
+      "Main Lift",
+      "Secondary Lift",
+      "Assistance",
+      "Conditioning Finish",
+      "Log Best Set"
+    ],
+    "seasonBlocks": {
+      "postseason": {
+        "mainLift": [{ "exercise": "Front Squat", "sets": 5, "reps": "4-6" }],
+        "secondaryLift": [{ "exercise": "Farmer Carry", "sets": 5, "reps": "25 yards" }],
+        "assistance": [
+          { "exercise": "Split Squat", "sets": 4, "reps": "8 each leg" },
+          { "exercise": "Hanging Knee Raise", "sets": 3, "reps": "12" }
+        ],
+        "conditioning": {
+          "options": ["Sled Push x 8", "Farmer Carry x 8"]
+        }
+      }
+    }
+  }
+]

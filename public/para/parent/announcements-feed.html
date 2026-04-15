@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Bulletin • Parent</title>
+
+  <link rel="stylesheet" href="/para/shared/comms.css">
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0b1120;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+
+      --card:#0f172a;
+      --cardLine:#334155;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:18px 14px 40px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    .hero{
+      background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(0,0,0,.08));
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px 18px;
+      margin-bottom:16px;
+    }
+
+    .eyebrow{
+      margin:0 0 6px;
+      color:var(--gold);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0;
+      color:var(--text);
+      font-size:1.65rem;
+      line-height:1.1;
+      font-weight:900;
+    }
+
+    .hero-sub{
+      margin:10px 0 0;
+      color:var(--muted);
+      font-size:.95rem;
+      line-height:1.5;
+    }
+
+    .section-head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:4px 0 12px;
+    }
+
+    .section-title{
+      margin:0;
+      color:var(--gold);
+      font-size:1rem;
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+
+    .section-note{
+      color:var(--muted);
+      font-size:.82rem;
+      font-weight:700;
+    }
+
+    .pin-shell{
+      display:none;
+      margin-bottom:14px;
+      padding:12px 14px;
+      border:1px dashed rgba(255,221,72,.35);
+      border-radius:14px;
+      background:rgba(255,221,72,.04);
+    }
+
+    .pin-shell.show{
+      display:block;
+    }
+
+    .pin-label{
+      margin:0;
+      color:var(--gold);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .pin-sub{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:.88rem;
+      line-height:1.4;
+    }
+
+    .empty{
+      display:none;
+      opacity:.75;
+      text-align:center;
+      padding:18px;
+      border:1px dashed var(--cardLine);
+      border-radius:14px;
+      background:rgba(255,255,255,.02);
+    }
+
+    .feed-card{
+      background:var(--card);
+      border:1px solid var(--cardLine);
+      border-radius:18px;
+      padding:18px 20px;
+      margin:16px 0;
+      box-shadow:0 6px 20px rgba(0,0,0,.35);
+      transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+    }
+
+    .feed-card:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,221,72,.55);
+      box-shadow:0 10px 26px rgba(0,0,0,.45);
+    }
+
+    .feed-card.pinned{
+      border-color:rgba(255,221,72,.6);
+      box-shadow:0 0 0 1px rgba(255,221,72,.08) inset, 0 8px 24px rgba(0,0,0,.4);
+    }
+
+    .feed-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .feed-title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:900;
+      font-size:1.1rem;
+      line-height:1.2;
+    }
+
+    .feed-icon{
+      font-size:1.2rem;
+      opacity:.95;
+    }
+
+    .feed-tag{
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      opacity:.82;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.04);
+      white-space:nowrap;
+    }
+
+    .feed-tag.pinned{
+      color:var(--gold);
+      border-color:rgba(255,221,72,.4);
+      background:rgba(255,221,72,.08);
+    }
+
+    .feed-body{
+      white-space:pre-wrap;
+      margin:10px 0 12px;
+      opacity:.96;
+      line-height:1.5;
+      font-size:1rem;
+    }
+
+    .feed-foot{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      font-size:.82rem;
+      opacity:.68;
+      align-items:center;
+    }
+
+    .feed-date{
+      font-weight:700;
+    }
+
+    .feed-team{
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-weight:800;
+    }
+
+    @media (max-width:640px){
+      .wrap{
+        padding:14px 12px 28px;
+      }
+
+      .panel,
+      .hero{
+        padding:14px;
+      }
+
+      h1{
+        font-size:1.42rem;
+      }
+
+      .feed-head,
+      .feed-foot{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .feed-tag{
+        align-self:flex-start;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="panel">
+
+      <section class="hero">
+        <p class="eyebrow">Parent Messages</p>
+        <h1>Bulletin</h1>
+        <p class="hero-sub">
+          Coach updates, reminders, schedule notes, and important program announcements.
+        </p>
+      </section>
+
+      <div class="section-head">
+        <p class="section-title">Latest Posts</p>
+        <span class="section-note">Pinned first, then newest to oldest</span>
+      </div>
+
+      <div id="pinnedShell" class="pin-shell">
+        <p class="pin-label">Pinned Notice</p>
+        <p class="pin-sub">Important updates stay at the top of the bulletin for quick parent visibility.</p>
+      </div>
+
+      <div id="empty" class="empty">No bulletin posts yet.</div>
+      <div id="feed"></div>
+    </div>
+  </div>
+
+  <script type="module" src="/para/parent/announcements-feed.js"></script>
+</body>
+</html>

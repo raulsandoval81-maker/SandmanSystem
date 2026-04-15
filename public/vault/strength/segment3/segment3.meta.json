@@ -1,0 +1,61 @@
+{
+  "lane": "strength",
+  "segmentId": "segment3",
+  "segmentTitle": "Postseason · Performance",
+  "phase": "postseason",
+
+  "unlockStripe": 2,
+  "sessionCount": 40,
+
+  "sessionDuration": {
+    "teenMinutes": [40, 60],
+    "youthMinutes": [20, 30]
+  },
+
+  "xp": {
+    "awardOptions": [5, 10],
+    "defaultTeen": 10,
+    "defaultYouth": 5,
+    "youthMax": 5,
+    "rule": "Teen: +5 partial, +10 full with honest intensity and logged results. Youth: max +5, coach-led."
+  },
+
+  "loggingRule": {
+    "trackMode": "best_of_session",
+    "note": "Athlete logs best working set per lift or best round for HIIT. Coach can request full logs later."
+  },
+
+  "intensityRule": "Last 3 reps should be hard but clean. No ego reps and no ugly form.",
+
+  "format": {
+    "rotation": "A/B/C",
+    "note": "Partner-friendly. Alternate sets as rest. Solo: superset or rest 60 to 120 seconds."
+  },
+
+  "retestRule": {
+    "day1": 1,
+    "day40": 40,
+    "note": "Session 40 repeats Session 1 exactly for comparison."
+  },
+
+  "remoteOption": {
+    "enabled": true,
+    "type": "hiit_ladder",
+    "levels": [
+      "Novice 30/30",
+      "Beginner 40/20",
+      "Intermediate 45/15",
+      "Advanced 50/10",
+      "Elite EMOM"
+    ],
+    "allowedForYouth": true
+  },
+
+  "ironRule": {
+    "enabled": true,
+    "minAge": 13,
+    "note": "Iron Room logging is 13+ only."
+  },
+
+  "tagline": "Built in the Shadows."
+}

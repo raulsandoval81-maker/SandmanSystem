@@ -1,0 +1,66 @@
+{
+  "sessions": [
+    {
+      "n": 1,
+      "title": "Conditioning Session 1",
+      "level": "INTERMEDIATE",
+      "interval": { "workSec": 45, "restSec": 15 },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Push-ups",
+        "Air Squats",
+        "Sit-ups",
+        "Burpees",
+        "Bear Crawl",
+        "Jump Lunges"
+      ],
+      "prompt": "Stay sharp. No lazy reps.",
+      "questions": [
+        "Did you complete all rounds?",
+        "What broke down first?"
+      ]
+    },
+    {
+      "n": 2,
+      "title": "Conditioning Session 2",
+      "level": "ADVANCED",
+      "interval": { "workSec": 50, "restSec": 10 },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Jump Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Plank"
+      ],
+      "prompt": "Control pace. No breaks.",
+      "questions": [
+        "Did you complete all rounds?",
+        "Where did you lose pace?"
+      ]
+    },
+    {
+      "n": 3,
+      "title": "Conditioning Session 3",
+      "level": "ELITE",
+      "interval": { "workSec": 60, "restSec": 0 },
+      "rounds": 5,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Squats",
+        "Sit-ups",
+        "Mountain Climbers"
+      ],
+      "prompt": "EMOM. No rest. Stay disciplined.",
+      "questions": [
+        "Did you hold pace every minute?",
+        "Where did you break mentally?"
+      ]
+    }
+  ]
+}

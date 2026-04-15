@@ -1,0 +1,330 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+
+  <title>How the System Works</title>
+
+  <style>
+    /* --- Gold Title + Gold Nav Buttons (Minimal) --- */
+
+    .page-title,
+    h1,
+    h2.page-title {
+      color: #ffdd48 !important;
+      text-shadow: 0 0 6px rgba(255,221,72,.25);
+      font-weight: 800;
+    }
+
+    .lang-btn {
+      border: 1px solid #ffdd48 !important;
+      color: #ffdd48 !important;
+      background: transparent;
+    }
+
+    .lang-btn:hover {
+      background: #ffdd48 !important;
+      color: #111 !important;
+    }
+
+    .lang-btn.active {
+      background: #ffdd48 !important;
+      color: #111 !important;
+      border-color: #ffdd48 !important;
+    }
+
+    :root{
+      --navy:#041231;
+      --gray:#9aa0a8;
+      --panel:#ffffff;
+      --text:#0f1114;
+      --muted:#4b5563;
+    }
+
+    *{box-sizing:border-box;}
+
+    body{
+      margin:0;
+      background:var(--navy);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+    }
+
+    .topbar{
+      background:var(--navy);
+      padding:10px 14px;
+      border-bottom:2px solid var(--gray);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      color:#fff;
+    }
+
+    .back-btn{
+      color:#fff;
+      text-decoration:none;
+      font-size:.85rem;
+      padding:4px 10px;
+      border:1px solid var(--gray);
+      border-radius:999px;
+    }
+
+    .lang-wrap button{
+      padding:6px 14px;
+      border-radius:999px;
+      border:none;
+      cursor:pointer;
+      font-size:.8rem;
+      font-weight:600;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 60px;
+    }
+
+    h1{
+      color:#fff;
+      margin:20px 0 10px;
+      text-align:center;
+      font-size:1.6rem;
+      font-weight:700;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border-radius:12px;
+      padding:18px 20px;
+      box-shadow:0 4px 14px rgba(0,0,0,.25);
+      margin-bottom:20px;
+    }
+
+    .panel h2{
+      margin:0 0 14px;
+      color:var(--navy);
+      font-size:1.2rem;
+    }
+
+    .bullet{
+      margin-bottom:18px;
+    }
+
+    .bullet strong{
+      color:var(--navy);
+      font-weight:700;
+    }
+
+    .es{
+      color:var(--muted);
+      margin-top:4px;
+      font-size:.9rem;
+    }
+
+    footer{
+      margin-top:40px;
+      text-align:center;
+      color:#e5e7eb;
+      font-size:.8rem;
+      opacity:.75;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <h1 data-i18n="title">How the System Works</h1>
+
+  <!-- SECTION A -->
+  <section class="section panel">
+    <h2 data-i18n="secA">8 Core System Facts</h2>
+
+    <div class="bullet">
+      <strong data-i18n="a1_en">Combat is the core of the system.</strong>
+      <div class="es" data-i18n="a1_sp">El combate es el núcleo del sistema.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a2_en">Every athlete begins in Combat.</strong>
+      <div class="es" data-i18n="a2_sp">Cada atleta comienza en Combate.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a3_en">Progress in Combat happens through effort, stripes, testing, and ceremony.</strong>
+      <div class="es" data-i18n="a3_sp">El progreso en Combate ocurre por esfuerzo, franjas, pruebas y ceremonia.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a4_en">Strength develops the body and work capacity.</strong>
+      <div class="es" data-i18n="a4_sp">Strength desarrolla el cuerpo y la capacidad de trabajo.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a5_en">Honor develops discipline, reflection, and leadership.</strong>
+      <div class="es" data-i18n="a5_sp">Honor desarrolla disciplina, reflexión y liderazgo.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a6_en">Strength and Honor support Combat — they do not replace it.</strong>
+      <div class="es" data-i18n="a6_sp">Strength y Honor apoyan al Combate — no lo reemplazan.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a7_en">Combat is always active; other lanes unlock through progress.</strong>
+      <div class="es" data-i18n="a7_sp">Combate siempre está activo; las otras rutas se desbloquean con el progreso.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="a8_en">The goal is to build a complete athlete — skill, body, and character.</strong>
+      <div class="es" data-i18n="a8_sp">La meta es formar un atleta completo — habilidad, cuerpo y carácter.</div>
+    </div>
+  </section>
+
+  <!-- SECTION B -->
+  <section class="section panel">
+    <h2 data-i18n="secB">8 Progression & Unlock Rules</h2>
+
+    <div class="bullet">
+      <strong data-i18n="b1_en">Combat is required for every athlete.</strong>
+      <div class="es" data-i18n="b1_sp">Combate es obligatorio para cada atleta.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b2_en">Strength is an earned lane, not a starting lane.</strong>
+      <div class="es" data-i18n="b2_sp">Strength es una ruta ganada, no una ruta inicial.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b3_en">Honor is a trusted lane, not a starting lane.</strong>
+      <div class="es" data-i18n="b3_sp">Honor es una ruta de confianza, no una ruta inicial.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b4_en">Strength unlocks through stripe progress in Combat.</strong>
+      <div class="es" data-i18n="b4_sp">Strength se desbloquea por el progreso de franjas en Combate.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b5_en">Honor unlocks through stripe progress in Combat.</strong>
+      <div class="es" data-i18n="b5_sp">Honor se desbloquea por el progreso de franjas en Combate.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b6_en">Combat progress resets by tier because each tier is a new proving ground.</strong>
+      <div class="es" data-i18n="b6_sp">El progreso en Combate se reinicia por nivel porque cada nivel es una nueva prueba.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b7_en">Strength and Honor continue building over time without resetting each tier.</strong>
+      <div class="es" data-i18n="b7_sp">Strength y Honor continúan creciendo con el tiempo sin reiniciarse en cada nivel.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="b8_en">Athletes are known first by their Combat progress.</strong>
+      <div class="es" data-i18n="b8_sp">Los atletas se reconocen primero por su progreso en Combate.</div>
+    </div>
+  </section>
+
+  <!-- SECTION C -->
+  <section class="section panel">
+    <h2 data-i18n="secC">8 Things Families Should Understand</h2>
+
+    <div class="bullet">
+      <strong data-i18n="c1_en">Not every athlete unlocks every lane at the same time.</strong>
+      <div class="es" data-i18n="c1_sp">No todos los atletas desbloquean cada ruta al mismo tiempo.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c2_en">Growth is earned through consistency, not shortcuts.</strong>
+      <div class="es" data-i18n="c2_sp">El crecimiento se gana con consistencia, no con atajos.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c3_en">Combat tests what an athlete can do under pressure.</strong>
+      <div class="es" data-i18n="c3_sp">Combate prueba lo que un atleta puede hacer bajo presión.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c4_en">Strength reinforces physical habits that support performance.</strong>
+      <div class="es" data-i18n="c4_sp">Strength refuerza hábitos físicos que apoyan el rendimiento.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c5_en">Honor reinforces discipline, ownership, and maturity.</strong>
+      <div class="es" data-i18n="c5_sp">Honor refuerza disciplina, responsabilidad y madurez.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c6_en">The system should feel structured, not rushed.</strong>
+      <div class="es" data-i18n="c6_sp">El sistema debe sentirse estructurado, no apresurado.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c7_en">Parents help most by reinforcing effort, discipline, and trust in the process.</strong>
+      <div class="es" data-i18n="c7_sp">Los padres ayudan más reforzando esfuerzo, disciplina y confianza en el proceso.</div>
+    </div>
+
+    <div class="bullet">
+      <strong data-i18n="c8_en">The long-term goal is not just wins — it is building the complete athlete.</strong>
+      <div class="es" data-i18n="c8_sp">La meta a largo plazo no son solo las victorias — es formar al atleta completo.</div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  Sandman Combat™ • Parent Guide
+</footer>
+
+<script>
+  const dict = {
+    en:{
+      title:"How the System Works",
+      secA:"8 Core System Facts",
+      secB:"8 Progression & Unlock Rules",
+      secC:"8 Things Families Should Understand"
+    },
+    sp:{
+      title:"Cómo Funciona el Sistema",
+      secA:"8 Hechos Fundamentales del Sistema",
+      secB:"8 Reglas de Progreso y Desbloqueo",
+      secC:"8 Cosas que las Familias Deben Entender"
+    }
+  };
+
+  const btns=document.querySelectorAll(".lang-btn");
+
+  function setLang(lang){
+    btns.forEach(b=>b.classList.toggle("active", b.dataset.lang===lang));
+    const pack=dict[lang]||dict.en;
+    document.querySelectorAll("[data-i18n]").forEach(el=>{
+      const key=el.getAttribute("data-i18n");
+      if (pack[key]) el.textContent=pack[key];
+    });
+  }
+
+  btns.forEach(btn=>{
+    btn.addEventListener("click",()=>setLang(btn.dataset.lang));
+  });
+
+  setLang("en");
+</script>
+
+</body>
+</html>

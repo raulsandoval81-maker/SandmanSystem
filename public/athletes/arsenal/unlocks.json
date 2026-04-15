@@ -1,14 +1,26 @@
 {
-  "combat": {
-    "unlocked": true,
-    "chapters": [true, true, true, true, true, true, true, true]
-  },
   "strength": {
     "unlocked": false,
-    "chapters": [false, false, false, false, false, false, false, false]
+    "unlockTier": 0,
+    "unlockStripe": 2,
+    "chapters": [false, false, false, false, false, false, false, false],
+    "youthMode": {
+      "tier0to1": "badge_only",
+      "tier2plus": "remote_lane",
+      "remoteUnlockTier": 2,
+      "remoteUnlockStripe": 2
+    }
   },
   "honor": {
     "unlocked": false,
-    "chapters": [false, false, false, false, false, false, false, false]
+    "unlockTier": 0,
+    "unlockStripe": 3,
+    "chapters": [false, false, false, false, false, false, false, false],
+    "youthMode": {
+      "tier0to1": "badge_only",
+      "tier2plus": "remote_lane",
+      "remoteUnlockTier": 2,
+      "remoteUnlockStripe": 3
+    }
   }
 }

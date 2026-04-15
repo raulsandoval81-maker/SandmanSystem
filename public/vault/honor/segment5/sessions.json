@@ -1,0 +1,888 @@
+{
+  "lane": "honor",
+  "segmentId": "segment5",
+  "segmentTitle": "Leadership & I",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "HON5-001",
+      "block": 1,
+      "type": "baseline_gate",
+      "title": "Leadership Awareness Check",
+      "focusArea": "Responsibility",
+      "principle": "Leadership begins with ownership, not status.\nLeadership is not a title you wear. It is responsibility you carry.",
+      "houseStandard": "In this house, leadership starts with responsibility.\nLeadership begins before recognition.\nSay it out loud. Twice.",
+      "prompt": "Answer honestly: What makes someone a leader? What behaviors destroy leadership? Which leadership habits do you show right now?",
+      "questions": [
+        "What habits build leadership?",
+        "What habits weaken trust?",
+        "What responsibilities matter most?",
+        "Which leadership habits do you actually show right now?",
+        "What must change first?"
+      ],
+      "deliverable": "leadership definition + 3 current habits",
+      "scripture": {
+        "text": "Whoever wants to become great among you must be your servant.",
+        "ref": "Matthew 20:26"
+      }
+    },
+    {
+      "n": 2,
+      "id": "HON5-002",
+      "block": 1,
+      "type": "reflection",
+      "title": "Leading Yourself First",
+      "focusArea": "Discipline",
+      "principle": "Athletes who cannot lead themselves cannot lead others.\nSelf-leadership means controlling effort, attitude, and discipline without needing constant correction.",
+      "houseStandard": "In this house, we lead ourselves first.\nSelf-control is the root of leadership.\nSay it out loud. Twice.",
+      "prompt": "What does self-leadership look like in daily training?",
+      "questions": [
+        "What habits show self-leadership?",
+        "What habits weaken it?",
+        "Where do you need the most work?",
+        "What does self-leadership look like when nobody is watching?"
+      ],
+      "deliverable": "3 self-leadership habits",
+      "scripture": {
+        "text": "Whoever rules his spirit is better than he who takes a city.",
+        "ref": "Proverbs 16:32"
+      }
+    },
+    {
+      "n": 3,
+      "id": "HON5-003",
+      "block": 1,
+      "type": "reflection",
+      "title": "Leadership Through Example",
+      "focusArea": "Example",
+      "principle": "People follow what they consistently see.\nAthletes trust leaders whose work, discipline, and respect show up every day.",
+      "houseStandard": "In this house, example leads first.\nExample carries more weight than instruction.\nSay it out loud. Twice.",
+      "prompt": "What behaviors make someone worth following?",
+      "questions": [
+        "What behaviors earn trust?",
+        "What behaviors weaken influence?",
+        "What do others consistently see from you?",
+        "What example do you set when no one is praising you?"
+      ],
+      "deliverable": "5 example-based leadership behaviors",
+      "scripture": {
+        "text": "Set an example for the believers.",
+        "ref": "1 Timothy 4:12"
+      }
+    },
+    {
+      "n": 4,
+      "id": "HON5-004",
+      "block": 1,
+      "type": "reflection",
+      "title": "Responsibility Without Recognition",
+      "focusArea": "Service",
+      "principle": "Real leadership works without needing applause.\nLeaders carry weight even when nobody notices.",
+      "houseStandard": "In this house, we carry responsibility quietly.\nThe strongest leadership often looks quiet.\nSay it out loud. Twice.",
+      "prompt": "How do leaders act when nobody is praising them?",
+      "questions": [
+        "Why do some athletes need praise to lead?",
+        "What makes quiet leadership strong?",
+        "What responsibility do you avoid when no one is watching?",
+        "What habit would prove quiet leadership in you?"
+      ],
+      "deliverable": "quiet leadership standard",
+      "scripture": {
+        "text": "Your Father sees what is done in secret.",
+        "ref": "Matthew 6:4"
+      }
+    },
+    {
+      "n": 5,
+      "id": "HON5-005",
+      "block": 1,
+      "type": "reflection",
+      "title": "Trust and Reliability",
+      "focusArea": "Trust",
+      "principle": "Reliable athletes become trusted leaders.\nTeammates follow athletes they can count on, not athletes who are strong only when convenient.",
+      "houseStandard": "In this house, reliability earns influence.\nReliability is leadership people can feel.\nSay it out loud. Twice.",
+      "prompt": "What habits make an athlete reliable enough to lead?",
+      "questions": [
+        "What builds reliability?",
+        "What breaks trust?",
+        "What reliability habit do you need most?",
+        "How does dependable behavior create influence?"
+      ],
+      "deliverable": "3 trust-building habits + 1 needed change",
+      "scripture": {
+        "text": "A faithful person will be richly blessed.",
+        "ref": "Proverbs 28:20"
+      }
+    },
+    {
+      "n": 6,
+      "id": "HON5-006",
+      "block": 1,
+      "type": "reflection",
+      "title": "Service Over Status",
+      "focusArea": "Service",
+      "principle": "Leadership is service before it is influence.\nLeaders help the room improve. They do not use the room to feed ego.",
+      "houseStandard": "In this house, leaders serve first.\nService makes leadership credible.\nSay it out loud. Twice.",
+      "prompt": "What does serving the team actually look like in practice?",
+      "questions": [
+        "What does service look like?",
+        "What looks like status-chasing instead?",
+        "What one act of service matters most in your room?",
+        "How does service build real influence?"
+      ],
+      "deliverable": "3 service behaviors",
+      "scripture": {
+        "text": "Serve one another humbly in love.",
+        "ref": "Galatians 5:13"
+      }
+    },
+    {
+      "n": 7,
+      "id": "HON5-007",
+      "block": 1,
+      "type": "reflection",
+      "title": "Emotional Control in Leaders",
+      "focusArea": "Composure",
+      "principle": "Undisciplined emotion weakens leadership.\nAthletes copy the emotional habits of the people they trust.",
+      "houseStandard": "In this house, leaders stay composed.\nComposure protects influence.\nSay it out loud. Twice.",
+      "prompt": "Why is emotional control essential for leadership?",
+      "questions": [
+        "What emotional habits weaken leadership?",
+        "What emotional habits strengthen it?",
+        "What do others learn from your reactions?",
+        "Where do you most need better composure?"
+      ],
+      "deliverable": "emotion-control explanation + 1 correction",
+      "scripture": {
+        "text": "A person without self-control is like a city broken into.",
+        "ref": "Proverbs 25:28"
+      }
+    },
+    {
+      "n": 8,
+      "id": "HON5-008",
+      "block": 1,
+      "type": "reflection",
+      "title": "Responsibility at a Higher Standard",
+      "focusArea": "Responsibility",
+      "principle": "Leadership raises the standard, not lowers it.\nThe more influence an athlete has, the more responsibility they carry for culture, effort, and trust.",
+      "houseStandard": "In this house, leadership means higher responsibility.\nInfluence multiplies responsibility.\nSay it out loud. Twice.",
+      "prompt": "What responsibilities increase when someone becomes a leader in the room?",
+      "questions": [
+        "What responsibilities grow with leadership?",
+        "Why do some athletes resist them?",
+        "Which one matters most to you?",
+        "What standard rises first when influence increases?"
+      ],
+      "deliverable": "leadership responsibility list",
+      "scripture": {
+        "text": "To whom much is given, much will be required.",
+        "ref": "Luke 12:48"
+      }
+    },
+    {
+      "n": 9,
+      "id": "HON5-009",
+      "block": 2,
+      "type": "reflection",
+      "title": "Leading Partners Safely",
+      "focusArea": "Respect",
+      "principle": "Leadership shows up in how you handle the person across from you.\nLeaders protect training partners, give honest work, and set the tone for safe, disciplined practice.",
+      "houseStandard": "In this house, leaders protect the rep.\nLeadership is visible in the rep before it is visible in the room.\nSay it out loud. Twice.",
+      "prompt": "How should leaders train with partners differently from immature athletes?",
+      "questions": [
+        "What makes partner leadership visible?",
+        "What destroys partner trust?",
+        "What habit must you improve?",
+        "How does safe leadership shape the tone of the room?"
+      ],
+      "deliverable": "partner leadership standard",
+      "scripture": {
+        "text": "Do to others as you would have them do to you.",
+        "ref": "Luke 6:31"
+      }
+    },
+    {
+      "n": 10,
+      "id": "HON5-010",
+      "block": 2,
+      "type": "reflection",
+      "title": "Helping Without Arrogance",
+      "focusArea": "Humility",
+      "principle": "Leaders help others without acting superior.\nCorrection without humility becomes ego.",
+      "houseStandard": "In this house, leaders help without arrogance.\nHumility makes leadership teachable.\nSay it out loud. Twice.",
+      "prompt": "How can a leader help a partner improve without sounding arrogant?",
+      "questions": [
+        "What makes help feel disrespectful?",
+        "What makes it useful?",
+        "How should maturity sound?",
+        "What tone helps without humiliating?"
+      ],
+      "deliverable": "3 humble leadership habits",
+      "scripture": {
+        "text": "Do nothing out of selfish ambition or vain conceit.",
+        "ref": "Philippians 2:3"
+      }
+    },
+    {
+      "n": 11,
+      "id": "HON5-011",
+      "block": 2,
+      "type": "reflection",
+      "title": "Protecting Beginners",
+      "focusArea": "Stewardship",
+      "principle": "Leadership protects the newest people in the room.\nBeginners often learn culture from the first athletes they touch.",
+      "houseStandard": "In this house, leaders protect beginners.\nHow you treat beginners reveals your stewardship.\nSay it out loud. Twice.",
+      "prompt": "How should a leader train with a newer athlete?",
+      "questions": [
+        "What damages a beginner’s trust?",
+        "What strengthens it?",
+        "What should a leader never do?",
+        "How should beginners experience your leadership?"
+      ],
+      "deliverable": "3 beginner-protection habits",
+      "scripture": {
+        "text": "Whoever welcomes one such child in my name welcomes me.",
+        "ref": "Matthew 18:5"
+      }
+    },
+    {
+      "n": 12,
+      "id": "HON5-012",
+      "block": 2,
+      "type": "reflection",
+      "title": "Raising the Partner Standard",
+      "focusArea": "Effort",
+      "principle": "Leaders bring the level up without turning everything into ego.\nStrong athletes raise the quality of the rep through honest effort, clear tone, and disciplined pace.",
+      "houseStandard": "In this house, leaders raise the level.\nGood leaders raise the rep without hijacking it.\nSay it out loud. Twice.",
+      "prompt": "How can a leader raise a partner’s level during training?",
+      "questions": [
+        "What raises the rep level?",
+        "What ruins it?",
+        "What leadership habit matters most here?",
+        "How do you challenge without turning the rep into ego?"
+      ],
+      "deliverable": "3 level-raising behaviors",
+      "scripture": {
+        "text": "Encourage one another and build each other up.",
+        "ref": "1 Thessalonians 5:11"
+      }
+    },
+    {
+      "n": 13,
+      "id": "HON5-013",
+      "block": 2,
+      "type": "reflection",
+      "title": "Tone of Voice and Leadership",
+      "focusArea": "Communication",
+      "principle": "Leadership is heard in tone as much as content.\nTone can build trust or poison it.",
+      "houseStandard": "In this house, leaders speak with discipline.\nTone reveals maturity before words do.\nSay it out loud. Twice.",
+      "prompt": "How does tone of voice affect leadership in training?",
+      "questions": [
+        "What tone builds trust?",
+        "What tone damages it?",
+        "What tone do you default to?",
+        "How should mature leadership sound?"
+      ],
+      "deliverable": "tone rule + 1 correction",
+      "scripture": {
+        "text": "Let your conversation be always full of grace.",
+        "ref": "Colossians 4:6"
+      }
+    },
+    {
+      "n": 14,
+      "id": "HON5-014",
+      "block": 2,
+      "type": "reflection",
+      "title": "Leading in Hard Rounds",
+      "focusArea": "Composure",
+      "principle": "Leadership matters more when rounds get hard.\nLeaders are revealed when pace, fatigue, and frustration rise.",
+      "houseStandard": "In this house, leadership stays steady under pressure.\nPressure reveals the truth of leadership.\nSay it out loud. Twice.",
+      "prompt": "What does leadership look like during hard, emotional, or exhausting rounds?",
+      "questions": [
+        "What usually breaks first?",
+        "What should stay fixed?",
+        "What do others learn from your pressure habits?",
+        "What does your behavior teach in hard rounds?"
+      ],
+      "deliverable": "pressure leadership standard",
+      "scripture": {
+        "text": "Consider it pure joy whenever you face trials.",
+        "ref": "James 1:2"
+      }
+    },
+    {
+      "n": 15,
+      "id": "HON5-015",
+      "block": 2,
+      "type": "reflection",
+      "title": "Listening as Leadership",
+      "focusArea": "Humility",
+      "principle": "Leaders who cannot listen eventually stop growing.\nLeadership is not only giving direction. It is also receiving correction.",
+      "houseStandard": "In this house, leaders stay teachable.\nTeachable leaders stay usable.\nSay it out loud. Twice.",
+      "prompt": "Why is listening an important leadership habit?",
+      "questions": [
+        "Why do some leaders stop listening?",
+        "What damage follows?",
+        "What does teachable leadership look like?",
+        "How does listening protect growth?"
+      ],
+      "deliverable": "listening habit + 1 improvement",
+      "scripture": {
+        "text": "The wise listen to advice.",
+        "ref": "Proverbs 12:15"
+      }
+    },
+    {
+      "n": 16,
+      "id": "HON5-016",
+      "block": 2,
+      "type": "reflection",
+      "title": "Partner Trust Through Leadership",
+      "focusArea": "Trust",
+      "principle": "Partners should feel safer, sharper, and more focused with a real leader.\nLeadership in partner work is measured by the trust people feel when training with you.",
+      "houseStandard": "In this house, leadership earns partner trust.\nTrust is leadership people can feel in real time.\nSay it out loud. Twice.",
+      "prompt": "What habits make a leader trustworthy in partner work?",
+      "questions": [
+        "What habits create partner trust?",
+        "What habits damage it quickly?",
+        "What one trust habit matters most for you?",
+        "How should trust feel to someone training with you?"
+      ],
+      "deliverable": "3 trust habits + 2 weak habits",
+      "scripture": {
+        "text": "Whoever walks in integrity walks securely.",
+        "ref": "Proverbs 10:9"
+      }
+    },
+    {
+      "n": 17,
+      "id": "HON5-017",
+      "block": 3,
+      "type": "reflection",
+      "title": "Raising the Team Standard",
+      "focusArea": "Example",
+      "principle": "Leaders raise the room by raising the standard of daily behavior.\nTeams rise when leaders work at a level others can feel and follow.",
+      "houseStandard": "In this house, leaders raise the standard.\nThe room rises to what leadership repeatedly tolerates or models.\nSay it out loud. Twice.",
+      "prompt": "How does a leader raise the standard of the room without needing a speech?",
+      "questions": [
+        "What behaviors lift the standard?",
+        "What behaviors quietly lower it?",
+        "What standard do you currently reinforce?",
+        "What do others feel from your daily example?"
+      ],
+      "deliverable": "3 room-raising behaviors",
+      "scripture": {
+        "text": "Set an example.",
+        "ref": "1 Timothy 4:12"
+      }
+    },
+    {
+      "n": 18,
+      "id": "HON5-018",
+      "block": 3,
+      "type": "reflection",
+      "title": "Being Reliable for the Team",
+      "focusArea": "Reliability",
+      "principle": "Teams trust leaders who are dependable in effort and behavior.\nReliability gives your influence weight.",
+      "houseStandard": "In this house, leaders are dependable.\nDependability turns influence into trust.\nSay it out loud. Twice.",
+      "prompt": "What habits make a leader dependable for the team?",
+      "questions": [
+        "What builds dependability?",
+        "What breaks it?",
+        "Where are you inconsistent?",
+        "What would make teammates trust you more?"
+      ],
+      "deliverable": "dependability habits + 1 needed fix",
+      "scripture": {
+        "text": "Many claim to have unfailing love, but a faithful person who can find?",
+        "ref": "Proverbs 20:6"
+      }
+    },
+    {
+      "n": 19,
+      "id": "HON5-019",
+      "block": 3,
+      "type": "reflection",
+      "title": "Serving Team Morale",
+      "focusArea": "Support",
+      "principle": "Leaders affect team morale through daily attitude.\nStrong leaders stabilize morale without feeding false hype.",
+      "houseStandard": "In this house, leaders protect morale with truth and effort.\nReal morale grows from truth plus effort.\nSay it out loud. Twice.",
+      "prompt": "How can leaders strengthen team morale without becoming fake or soft?",
+      "questions": [
+        "What strengthens morale?",
+        "What weakens it?",
+        "What does mature encouragement sound like?",
+        "How can truth and effort work together?"
+      ],
+      "deliverable": "morale plan",
+      "scripture": {
+        "text": "Encourage one another daily.",
+        "ref": "Hebrews 3:13"
+      }
+    },
+    {
+      "n": 20,
+      "id": "HON5-020",
+      "block": 3,
+      "type": "reflection",
+      "title": "Shared Responsibility in Leadership",
+      "focusArea": "Responsibility",
+      "principle": "Leadership is not doing everything alone; it is helping others carry responsibility well.\nLeaders strengthen the team by increasing ownership in others.",
+      "houseStandard": "In this house, leaders multiply responsibility.\nThe best leaders make the room stronger, not more dependent.\nSay it out loud. Twice.",
+      "prompt": "How should a leader help teammates carry more responsibility?",
+      "questions": [
+        "What makes teams too dependent on one person?",
+        "What creates shared ownership?",
+        "How can you multiply responsibility?",
+        "What can you stop doing that creates dependence?"
+      ],
+      "deliverable": "shared leadership strategy",
+      "scripture": {
+        "text": "Equip his people for works of service.",
+        "ref": "Ephesians 4:12"
+      }
+    },
+    {
+      "n": 21,
+      "id": "HON5-021",
+      "block": 4,
+      "type": "reflection",
+      "title": "Correcting Teammates with Respect",
+      "focusArea": "Accountability",
+      "principle": "Leaders correct behavior without humiliating people.\nStrong leaders protect standards and dignity at the same time.",
+      "houseStandard": "In this house, leaders correct with respect.\nCorrection without respect weakens leadership.\nSay it out loud. Twice.",
+      "prompt": "How should a leader correct a teammate when standards slip?",
+      "questions": [
+        "What makes correction destructive?",
+        "What makes it useful?",
+        "What does respectful accountability sound like?",
+        "How do you protect dignity while protecting standards?"
+      ],
+      "deliverable": "correction strategy + 1 tone rule",
+      "scripture": {
+        "text": "Wounds from a friend can be trusted.",
+        "ref": "Proverbs 27:6"
+      }
+    },
+    {
+      "n": 22,
+      "id": "HON5-022",
+      "block": 4,
+      "type": "reflection",
+      "title": "Protecting Team Culture",
+      "focusArea": "Stewardship",
+      "principle": "Leaders protect the culture that protects the team.\nCulture weakens when standards go unguarded.",
+      "houseStandard": "In this house, leaders protect culture.\nCulture survives through disciplined protection.\nSay it out loud. Twice.",
+      "prompt": "What behaviors protect team culture and what behaviors quietly damage it?",
+      "questions": [
+        "What strengthens culture?",
+        "What slowly damages it?",
+        "What must leaders guard most?",
+        "What drift have you seen that needs early response?"
+      ],
+      "deliverable": "3 culture protectors + 3 culture threats",
+      "scripture": {
+        "text": "Stand firm in the faith.",
+        "ref": "1 Corinthians 16:13"
+      }
+    },
+    {
+      "n": 23,
+      "id": "HON5-023",
+      "block": 4,
+      "type": "reflection",
+      "title": "Handling Resistance from Teammates",
+      "focusArea": "Composure",
+      "principle": "Leaders will face resistance and must stay disciplined through it.\nLeadership requires steadiness when pushback comes.",
+      "houseStandard": "In this house, leaders stay steady under resistance.\nLeadership is tested most when others push back.\nSay it out loud. Twice.",
+      "prompt": "How should a leader respond when teammates resist correction or responsibility?",
+      "questions": [
+        "Why do teammates resist leadership?",
+        "What response weakens leadership?",
+        "What response protects it?",
+        "How do you return to standards without ego?"
+      ],
+      "deliverable": "resistance response plan",
+      "scripture": {
+        "text": "A gentle answer turns away wrath.",
+        "ref": "Proverbs 15:1"
+      }
+    },
+    {
+      "n": 24,
+      "id": "HON5-024",
+      "block": 4,
+      "type": "reflection",
+      "title": "Accountability Without Ego",
+      "focusArea": "Humility",
+      "principle": "Leaders must hold standards without turning correction into self-importance.\nMature accountability is about strengthening the person and the room.",
+      "houseStandard": "In this house, accountability serves the standard, not the ego.\nHumility keeps accountability clean.\nSay it out loud. Twice.",
+      "prompt": "What is the difference between accountability with humility and accountability with ego?",
+      "questions": [
+        "What makes accountability ego-driven?",
+        "What makes it mature?",
+        "Which side do you lean toward?",
+        "What motive usually drives your correction?"
+      ],
+      "deliverable": "comparison + 1 needed correction",
+      "scripture": {
+        "text": "Do nothing out of selfish ambition.",
+        "ref": "Philippians 2:3"
+      }
+    },
+    {
+      "n": 25,
+      "id": "HON5-025",
+      "block": 4,
+      "type": "reflection",
+      "title": "When to Speak and When to Stay Quiet",
+      "focusArea": "Wisdom",
+      "principle": "Leadership requires timing, not just truth.\nWisdom protects both truth and relationship.",
+      "houseStandard": "In this house, leaders use timing with discipline.\nTruth lands better when timing is disciplined.\nSay it out loud. Twice.",
+      "prompt": "How can a leader know when to speak immediately and when to wait?",
+      "questions": [
+        "What makes timing poor?",
+        "What makes it wise?",
+        "Why does timing matter in leadership?",
+        "What happens when truth is delivered at the wrong time?"
+      ],
+      "deliverable": "timing rule + 1 example",
+      "scripture": {
+        "text": "There is a time to be silent and a time to speak.",
+        "ref": "Ecclesiastes 3:7"
+      }
+    },
+    {
+      "n": 26,
+      "id": "HON5-026",
+      "block": 4,
+      "type": "reflection",
+      "title": "Carrying Standards When Coaches Aren’t Watching",
+      "focusArea": "Integrity",
+      "principle": "Real leaders carry standards without supervision.\nLeadership becomes real when athletes protect discipline even when coaches are absent or distracted.",
+      "houseStandard": "In this house, standards stay alive without supervision.\nIntegrity-led leadership lives without an audience.\nSay it out loud. Twice.",
+      "prompt": "What should leaders protect when coaches are not right there to correct the room?",
+      "questions": [
+        "What usually slips when supervision fades?",
+        "What should remain fixed?",
+        "What does integrity-led leadership look like?",
+        "What would the room lose if you drift when coaches are away?"
+      ],
+      "deliverable": "3 unsupervised leadership standards",
+      "scripture": {
+        "text": "Whatever you do, work at it with all your heart.",
+        "ref": "Colossians 3:23"
+      }
+    },
+    {
+      "n": 27,
+      "id": "HON5-027",
+      "block": 4,
+      "type": "reflection",
+      "title": "Protecting Teammates from Drift",
+      "focusArea": "Stewardship",
+      "principle": "Leaders notice when teammates start slipping before the damage becomes normal.\nLeadership notices drift early.",
+      "houseStandard": "In this house, leaders notice drift early.\nSmall drift becomes culture when no one challenges it.\nSay it out loud. Twice.",
+      "prompt": "What signs show that a teammate or a room is starting to drift?",
+      "questions": [
+        "What signs of drift are easiest to ignore?",
+        "Why is early response important?",
+        "How should leaders respond?",
+        "What repeated small habits become dangerous if ignored?"
+      ],
+      "deliverable": "3 drift signs + 1 response plan",
+      "scripture": {
+        "text": "Catch for us the foxes, the little foxes that ruin the vineyards.",
+        "ref": "Song of Songs 2:15"
+      }
+    },
+    {
+      "n": 28,
+      "id": "HON5-028",
+      "block": 4,
+      "type": "reflection",
+      "title": "Leading Different Personalities",
+      "focusArea": "Adaptability",
+      "principle": "Leaders must learn how to help different kinds of teammates.\nMature leadership adapts without lowering standards.",
+      "houseStandard": "In this house, leaders adapt without compromising standards.\nAdaptability makes leadership more useful, not softer.\nSay it out loud. Twice.",
+      "prompt": "Why does leadership require different approaches for different teammates?",
+      "questions": [
+        "Why does one approach not fit everyone?",
+        "What should remain constant?",
+        "How can leaders adapt wisely?",
+        "What kind of teammate do you need to learn to lead better?"
+      ],
+      "deliverable": "adaptability explanation + 2 examples",
+      "scripture": {
+        "text": "The wise in heart are called discerning.",
+        "ref": "Proverbs 16:21"
+      }
+    },
+    {
+      "n": 29,
+      "id": "HON5-029",
+      "block": 5,
+      "type": "reflection",
+      "title": "Leadership Under Pressure",
+      "focusArea": "Composure",
+      "principle": "Pressure exposes the truth of a leader’s maturity.\nAnyone can look like a leader when things are easy.",
+      "houseStandard": "In this house, leaders stay steady under pressure.\nPressure reveals whether leadership is built or borrowed.\nSay it out loud. Twice.",
+      "prompt": "What should leadership look like when the room is tired, frustrated, or losing momentum?",
+      "questions": [
+        "What breaks first under pressure?",
+        "What must stay fixed?",
+        "What do teammates need from leaders in hard moments?",
+        "What does pressure reveal about your current leadership?"
+      ],
+      "deliverable": "pressure leadership standard",
+      "scripture": {
+        "text": "When you are tested, your faith produces perseverance.",
+        "ref": "James 1:3"
+      }
+    },
+    {
+      "n": 30,
+      "id": "HON5-030",
+      "block": 5,
+      "type": "reflection",
+      "title": "Stabilizing the Room",
+      "focusArea": "Stewardship",
+      "principle": "Strong leaders help stabilize rooms during chaos, conflict, or low morale.\nLeaders who stabilize the room become anchors for culture.",
+      "houseStandard": "In this house, leaders stabilize the room.\nSteady leadership keeps chaos from becoming culture.\nSay it out loud. Twice.",
+      "prompt": "How can a leader stabilize the room during hard days or chaotic moments?",
+      "questions": [
+        "What destabilizes a room?",
+        "What steadies it?",
+        "How can leadership become an anchor?",
+        "What do people feel from a stable leader?"
+      ],
+      "deliverable": "room-stabilizing plan",
+      "scripture": {
+        "text": "God is not a God of disorder but of peace.",
+        "ref": "1 Corinthians 14:33"
+      }
+    },
+    {
+      "n": 31,
+      "id": "HON5-031",
+      "block": 5,
+      "type": "reflection",
+      "title": "Protecting the Weakest Link",
+      "focusArea": "Service",
+      "principle": "Leadership serves weaker teammates without feeding weakness.\nStrong leaders protect and develop weaker athletes without mocking them or carrying them irresponsibly.",
+      "houseStandard": "In this house, leaders protect and develop the weaker link.\nGood leadership strengthens weakness without worshiping it.\nSay it out loud. Twice.",
+      "prompt": "How should a leader help weaker or struggling teammates without enabling laziness?",
+      "questions": [
+        "What helps weaker teammates improve?",
+        "What enables weakness?",
+        "What does mature service look like?",
+        "How do you support effort without lowering standards?"
+      ],
+      "deliverable": "support strategy + boundary rule",
+      "scripture": {
+        "text": "Strengthen the weak hands.",
+        "ref": "Isaiah 35:3"
+      }
+    },
+    {
+      "n": 32,
+      "id": "HON5-032",
+      "block": 5,
+      "type": "reflection",
+      "title": "When Leadership Costs You",
+      "focusArea": "Courage",
+      "principle": "Leadership often costs comfort, popularity, or convenience.\nReal leadership sometimes means standing firm when it would be easier to stay quiet.",
+      "houseStandard": "In this house, leaders carry cost with courage.\nLeadership without cost is usually performance, not stewardship.\nSay it out loud. Twice.",
+      "prompt": "What kinds of cost come with real leadership, and why must leaders accept them?",
+      "questions": [
+        "Why do some athletes avoid leadership cost?",
+        "What cost matters most in your room?",
+        "What does courage-led leadership look like?",
+        "What cost have you been avoiding?"
+      ],
+      "deliverable": "leadership cost explanation + 1 commitment",
+      "scripture": {
+        "text": "Be strong and courageous.",
+        "ref": "Joshua 1:9"
+      }
+    },
+    {
+      "n": 33,
+      "id": "HON5-033",
+      "block": 5,
+      "type": "reflection",
+      "title": "Leadership Reputation",
+      "focusArea": "Integrity",
+      "principle": "Leaders build reputations through repeated behavior.\nLeadership reputation is earned rep by rep.",
+      "houseStandard": "In this house, leadership reputation is earned by behavior.\nLeadership reputation is written by repeated behavior.\nSay it out loud. Twice.",
+      "prompt": "What reputation do you think you have as a leader, and what reputation do you want to earn instead?",
+      "questions": [
+        "What reputation do your habits build?",
+        "What do people likely trust you for?",
+        "What must change?",
+        "What kind of leader do others likely experience you as right now?"
+      ],
+      "deliverable": "current reputation + desired reputation + 2 changes",
+      "scripture": {
+        "text": "A good name is more desirable than great riches.",
+        "ref": "Proverbs 22:1"
+      }
+    },
+    {
+      "n": 34,
+      "id": "HON5-034",
+      "block": 5,
+      "type": "reflection",
+      "title": "Leadership and Humility Together",
+      "focusArea": "Humility",
+      "principle": "Leadership and humility are not opposites; they need each other.\nWithout humility, leadership becomes ego. Without courage, humility becomes passivity.",
+      "houseStandard": "In this house, leaders stay humble and strong.\nHumility keeps leadership clean and usable.\nSay it out loud. Twice.",
+      "prompt": "Why must leadership and humility stay together?",
+      "questions": [
+        "What happens when leadership loses humility?",
+        "What happens when humility loses courage?",
+        "What does healthy balance look like?",
+        "Where are you currently out of balance?"
+      ],
+      "deliverable": "balance explanation + 1 needed correction",
+      "scripture": {
+        "text": "Clothe yourselves with humility.",
+        "ref": "1 Peter 5:5"
+      }
+    },
+    {
+      "n": 35,
+      "id": "HON5-035",
+      "block": 5,
+      "type": "reflection",
+      "title": "Multiplying Leadership",
+      "focusArea": "Stewardship",
+      "principle": "Good leaders do not hoard influence; they develop more leaders.\nThe healthiest rooms are built around shared leadership and multiplied responsibility.",
+      "houseStandard": "In this house, leaders multiply leadership.\nThe best leaders leave the room stronger, not more dependent.\nSay it out loud. Twice.",
+      "prompt": "How can a leader help grow leadership in others?",
+      "questions": [
+        "What keeps teams too dependent on one leader?",
+        "What grows shared leadership?",
+        "What can you start doing now?",
+        "How can you invite responsibility in others?"
+      ],
+      "deliverable": "3 leadership-multiplying actions",
+      "scripture": {
+        "text": "Teach others also.",
+        "ref": "2 Timothy 2:2"
+      }
+    },
+    {
+      "n": 36,
+      "id": "HON5-036",
+      "block": 5,
+      "type": "reflection",
+      "title": "Leadership in Competition Environments",
+      "focusArea": "Representation",
+      "principle": "Leadership must survive outside normal practice comfort.\nCompetition, travel, nerves, and chaos reveal whether leadership carries into real environments.",
+      "houseStandard": "In this house, leaders represent the team under pressure.\nReal leadership travels well under pressure.\nSay it out loud. Twice.",
+      "prompt": "What should leadership look like in competition settings, not just in practice?",
+      "questions": [
+        "What changes in competition environments?",
+        "What should remain the same?",
+        "How can leaders represent the room well?",
+        "What does pressure expose about leadership outside practice?"
+      ],
+      "deliverable": "competition leadership standard",
+      "scripture": {
+        "text": "Conduct yourselves in a manner worthy.",
+        "ref": "Philippians 1:27"
+      }
+    },
+    {
+      "n": 37,
+      "id": "HON5-037",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Teammates Need from Leaders",
+      "focusArea": "Service",
+      "principle": "Leadership is measured by what teammates actually receive from you.\nStrong leaders think about what the room actually needs.",
+      "houseStandard": "In this house, leaders give the room what it truly needs.\nUseful leadership is more valuable than impressive leadership.\nSay it out loud. Twice.",
+      "prompt": "What do teammates need most from leaders during normal training and hard moments?",
+      "questions": [
+        "What does the room truly need?",
+        "What do immature leaders focus on instead?",
+        "What can you provide more consistently?",
+        "How do you become more useful to the room?"
+      ],
+      "deliverable": "3 teammate needs + 1 commitment",
+      "scripture": {
+        "text": "Look not only to your own interests.",
+        "ref": "Philippians 2:4"
+      }
+    },
+    {
+      "n": 38,
+      "id": "HON5-038",
+      "block": 5,
+      "type": "reflection",
+      "title": "Leadership Standard Statement",
+      "focusArea": "Responsibility",
+      "principle": "Leaders need a clear standard to live by.\nA clear standard protects the room and the leader.",
+      "houseStandard": "In this house, leaders live by a clear standard.\nClear standards create trustworthy leadership.\nSay it out loud. Twice.",
+      "prompt": "Write your leadership standard in one strong sentence.",
+      "questions": [
+        "What should teammates always get from you?",
+        "What weak habits must disappear?",
+        "What standard will you live by?",
+        "Can someone else clearly see that standard?"
+      ],
+      "deliverable": "1 sentence leadership standard",
+      "scripture": {
+        "text": "Be steadfast in your work.",
+        "ref": "1 Corinthians 15:58"
+      }
+    },
+    {
+      "n": 39,
+      "id": "HON5-039",
+      "block": 5,
+      "type": "reflection",
+      "title": "What Does Real Leadership Look Like?",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Real leadership is disciplined, useful, humble, and trustworthy.\nThe strongest leaders are not the loudest. They are the ones whose habits strengthen the room consistently.",
+      "houseStandard": "In this house, real leadership strengthens the room.\nLeadership is visible in repeated action.\nSay it out loud. Twice.",
+      "prompt": "Define real leadership in actions, not titles. List 5 behaviors you will live out next week.",
+      "questions": [
+        "What does real leadership look like?",
+        "What behavior proves it?",
+        "What weak habits must disappear?",
+        "What would others clearly see if you lived this out?"
+      ],
+      "deliverable": "5 leadership behaviors",
+      "scripture": {
+        "text": "By their fruit you will recognize them.",
+        "ref": "Matthew 7:16"
+      }
+    },
+    {
+      "n": 40,
+      "id": "HON5-040",
+      "block": 5,
+      "type": "baseline_retest",
+      "title": "Leadership Retest",
+      "focusArea": "Leadership",
+      "principle": "Leadership growth should be visible and measurable.\nThe goal is not image. The goal is responsibility, usefulness, and stewardship.",
+      "houseStandard": "In this house, leadership grows through responsibility and service.\nGrowth becomes visible through reflection.\nSay it out loud. Twice.",
+      "prompt": "Repeat Session 1 exactly. Answer again: What makes someone a leader? What behaviors destroy leadership? Which leadership habits do you show right now? Then compare your old answer to your new one.",
+      "questions": [
+        "What changed in your leadership understanding?",
+        "What habits improved most?",
+        "What leadership responsibility still needs work?",
+        "What is your next-step leadership commitment?"
+      ],
+      "deliverable": "comparison + leadership commitment",
+      "scripture": {
+        "text": "Well done, good and faithful servant.",
+        "ref": "Matthew 25:23"
+      }
+    }
+  ]
+}

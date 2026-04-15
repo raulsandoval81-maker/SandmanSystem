@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bulletin • Announcements</title>
+
+  <link rel="stylesheet" href="/para/shared/comms.css">
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0b1120;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 40px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+
+    h1{
+      margin:0 0 10px;
+      color:var(--gold);
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+    }
+
+    .top{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:12px;
+    }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0b1120;
+      color:var(--text);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      font-weight:600;
+    }
+
+    .btn:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+
+    .empty{
+      opacity:.75;
+      text-align:center;
+      padding:18px;
+    }
+
+    /* feed layout */
+    #feed{
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    /* if JS renders one element per announcement, this styles each one */
+    #feed > *{
+      background:var(--deep);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+    }
+
+    /* common text styling */
+    #feed h2,
+    #feed h3,
+    #feed strong{
+      color:var(--gold);
+      margin:0 0 8px;
+    }
+
+    #feed p{
+      margin:8px 0;
+      line-height:1.5;
+    }
+
+    #feed small,
+    #feed .meta,
+    #feed .timestamp{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    /* optional helper classes if JS already uses these names or you add them later */
+    .announcement-card{
+      background:var(--deep);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+    }
+
+    .announcement-header{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-bottom:8px;
+      font-weight:800;
+      color:var(--gold);
+    }
+
+    .announcement-title{
+      font-size:1.1rem;
+      font-weight:800;
+      color:var(--gold);
+      margin-bottom:6px;
+    }
+
+    .announcement-body{
+      color:var(--text);
+      line-height:1.5;
+      margin-bottom:10px;
+      white-space:pre-wrap;
+    }
+
+    .announcement-meta{
+      color:var(--muted);
+      font-size:.9rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <div class="top">
+        <a class="btn" href="/athletes/bulletin/index.html">← Bulletin</a>
+      </div>
+
+      <h1>Announcements</h1>
+      <p class="sub">Coach updates and team notices.</p>
+    </div>
+
+    <div class="panel">
+      <div id="feed"></div>
+      <div id="empty" class="empty" style="display:none;">No announcements yet.</div>
+    </div>
+  </div>
+
+  <script type="module" src="/para/athlete/announcements-feed.js"></script>
+</body>
+</html>

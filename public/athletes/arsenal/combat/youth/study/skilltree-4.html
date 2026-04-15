@@ -1,0 +1,152 @@
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="4" data-track="youth">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 8 • Youth</p>
+    <h1>Skill Tree 4 — Warrior</h1>
+    <p class="skilltree-sub">15 skills • Pressure, timing, and positional control</p>
+  </header>
+
+  <!-- STANCE & MOTION -->
+  <article class="tree-block">
+    <h2>Stance &amp; Motion</h2>
+
+    <h3>Skill 1 — Head Position</h3>
+    <p>A — Inside head position</p>
+    <p>B — Pressure into opponent</p>
+    <p>C — Attack from position</p>
+
+    <h3>Skill 2 — Distance Control</h3>
+    <p>A — Feel distance</p>
+    <p>B — Adjust feet</p>
+    <p>C — Attack or defend at range</p>
+
+    <h3>Skill 3 — Tempo Change</h3>
+    <p>A — Slow pace</p>
+    <p>B — Change speed</p>
+    <p>C — Attack on timing</p>
+  </article>
+
+  <!-- NEUTRAL OFFENSE -->
+  <article class="tree-block">
+    <h2>Neutral Offense</h2>
+
+    <h3>Skill 4 — Setups / Control Ties</h3>
+    <p>A — Establish tie</p>
+    <p>B — Move opponent</p>
+    <p>C — Attack from tie</p>
+
+    <h3>Skill 5 — Re-Shot</h3>
+    <p>A — Defend first shot</p>
+    <p>B — Re-enter quickly</p>
+    <p>C — Finish re-shot</p>
+
+    <h3>Skill 6 — Arm Drag to Finish</h3>
+    <p>A — Wrist control</p>
+    <p>B — Drag across</p>
+    <p>C — Take angle and score</p>
+  </article>
+
+  <!-- NEUTRAL DEFENSE -->
+  <article class="tree-block">
+    <h2>Neutral Defense</h2>
+
+    <h3>Skill 7 — Head &amp; Arm Defense</h3>
+    <p>A — Recognize danger</p>
+    <p>B — Block line</p>
+    <p>C — Recover and square up</p>
+
+    <h3>Skill 8 — Counter Balance</h3>
+    <p>A — Feel opponent pressure</p>
+    <p>B — Adjust base</p>
+    <p>C — Attack back</p>
+
+    <h3>Skill 9 — Front Headlock Defense to Score</h3>
+    <p>A — Stop head control</p>
+    <p>B — Recover position</p>
+    <p>C — Spin or attack back</p>
+  </article>
+
+  <!-- TOP -->
+  <article class="tree-block">
+    <h2>Top</h2>
+
+    <h3>Skill 10 — Ride Control</h3>
+    <p>A — Follow hips</p>
+    <p>B — Match movement</p>
+    <p>C — Maintain control</p>
+
+    <h3>Skill 11 — Turn Setup</h3>
+    <p>A — Build control</p>
+    <p>B — Open opponent</p>
+    <p>C — Turn to score</p>
+
+    <h3>Skill 12 — Return to Ride</h3>
+    <p>A — Return opponent to mat</p>
+    <p>B — Stay behind hips</p>
+    <p>C — Re-establish ride</p>
+  </article>
+
+  <!-- BOTTOM -->
+  <article class="tree-block">
+    <h2>Bottom</h2>
+
+    <h3>Skill 13 — Hip Heist</h3>
+    <p>A — Post</p>
+    <p>B — Turn hips</p>
+    <p>C — Escape or reverse</p>
+
+    <h3>Skill 14 — Avoid Pin</h3>
+    <p>A — Bridge</p>
+    <p>B — Turn shoulders</p>
+    <p>C — Recover base</p>
+
+    <h3>Skill 15 — Escape Chain</h3>
+    <p>A — First movement</p>
+    <p>B — Transition</p>
+    <p>C — Escape finish</p>
+  </article>
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T4";
+  const pageTrack = "youth";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+    window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+    throw new Error("Wrong branch for F4 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>

@@ -1,0 +1,35 @@
+{
+  "phases": [
+    "Pre-Season",
+    "In-Season",
+    "Post-Season"
+  ],
+  "daysPerWeek": 3,
+
+  "minAge": 13,
+
+  "dayMap": {
+    "1": { "label": "A", "focus": "Posterior / Pull (hinge + back)" },
+    "2": { "label": "B", "focus": "Anterior / Push (press + front chain)" },
+    "3": { "label": "C", "focus": "Athletic / Legs + Core (carry + brace)" }
+  },
+
+  "submissionRequiredFields": [
+    "phase",
+    "day",
+    "topMovement",
+    "setsCompleted",
+    "repsCompleted",
+    "topSetReps",
+    "topSetWeight",
+    "unit",
+    "completedPrescribedWork",
+    "note"
+  ],
+
+  "rules": {
+    "carryPreviousNoteForward": true,
+    "archiveAllSessions": true,
+    "notes": "Iron logs execution discipline, not full spreadsheet tracking."
+  }
+}

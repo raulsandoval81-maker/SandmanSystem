@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Lompoc Wrestling • Volunteer Form</title>
+  <link rel="icon" href="data:,"> 
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+      --ok:#1f9d55;
+      --bad:#d64545;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:22px 14px 40px;
+    }
+
+    .parent-header{
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{
+      display:flex;
+      gap:6px;
+    }
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    .hero{
+      margin-top:8px;
+      padding:20px 16px 16px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(150deg,#0a1833 0%,#111c35 45%,#050814 100%);
+      box-shadow:0 8px 22px rgba(0,0,0,.45);
+      text-align:left;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      color:var(--brand);
+      font-size:1.4rem;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+    .hero p{
+      margin:0;
+      color:#e2e8f0;
+      font-size:.95rem;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      margin-top:14px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    h2{
+      margin:0 0 8px;
+      font-size:1.05rem;
+      color:var(--brand);
+    }
+
+    label{
+      display:block;
+      margin:8px 0 4px;
+      font-size:.9rem;
+      color:var(--muted);
+      font-weight:600;
+    }
+
+    input[type="text"],
+    input[type="tel"],
+    input[type="email"],
+    textarea,
+    select{
+      width:100%;
+      padding:9px 10px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0b1428;
+      color:var(--text);
+      font-size:.92rem;
+    }
+    textarea{
+      min-height:100px;
+      resize:vertical;
+      line-height:1.4;
+    }
+
+    .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+    }
+    .col{
+      flex:1;
+      min-width:230px;
+    }
+
+    .checks{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:6px 16px;
+      margin-top:6px;
+    }
+    .checks label{
+      display:flex;
+      align-items:flex-start;
+      gap:6px;
+      font-weight:400;
+      margin:0;
+      color:var(--text);
+    }
+    .checks input[type="checkbox"]{
+      width:auto;
+      transform:translateY(2px);
+    }
+
+    .small{
+      margin-top:8px;
+      font-size:.86rem;
+      color:var(--muted);
+    }
+
+    .btn-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:14px;
+    }
+    .btn{
+      border-radius:999px;
+      border:1px solid var(--line);
+      padding:10px 16px;
+      font-size:.92rem;
+      font-weight:700;
+      cursor:pointer;
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      text-decoration:none;
+    }
+    .btn-brand{
+      background:var(--brand);
+      color:#111827;
+      border-color:var(--brand);
+    }
+    .btn-ghost{
+      background:transparent;
+      color:var(--text);
+    }
+    .btn:hover{ filter:brightness(1.05); }
+    .btn:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+      filter:none;
+    }
+
+    .status{
+      margin-top:12px;
+      min-height:22px;
+      font-size:.9rem;
+      font-weight:700;
+    }
+    .status.ok{ color:#9ff0b8; }
+    .status.err{ color:#ff9d9d; }
+
+    .footer-hard{
+      margin-top:28px;
+      padding:22px 10px 30px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{
+      max-width:900px;
+      margin:0 auto;
+    }
+    .footer-brand{
+      color:#94a3b8;
+      font-size:.82rem;
+      margin-bottom:12px;
+    }
+    .footer-links{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:14px 18px;
+      font-size:.88rem;
+    }
+    .footer-links a{
+      color:#ffdd48;
+      text-decoration:none;
+    }
+    .footer-links a:hover{
+      text-decoration:underline;
+    }
+
+    @media (max-width:640px){
+      .wrap{padding:18px 12px 32px}
+      .hero h1{font-size:1.25rem}
+      .parent-header-inner{padding-inline:2px}
+      .parent-brand{font-size:.85rem}
+    }
+  </style>
+</head>
+<body>
+
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="parent-brand">Sandman Combat</div>
+    <div class="parent-lang-wrap">
+      <button class="parent-lang-btn active" data-lang="en" type="button">EN</button>
+      <button class="parent-lang-btn" data-lang="es" type="button">ES</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h1 data-i18n="heroTitle">Volunteer Interest Form</h1>
+    <p data-i18n="heroSub">
+      Help support Lompoc Academy of Wrestling • Ayude a apoyar a Lompoc Academia de Lucha.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2 data-i18n="infoHead">Basic Information / Información básica</h2>
+
+    <div class="row">
+      <div class="col">
+        <label for="parentName" data-i18n="labelParent">Parent/Guardian Name / Nombre del padre/madre</label>
+        <input id="parentName" type="text" autocomplete="name"/>
+      </div>
+      <div class="col">
+        <label for="athleteName" data-i18n="labelAthlete">Athlete Name / Nombre del atleta</label>
+        <input id="athleteName" type="text"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for="phone" data-i18n="labelPhone">Phone / Teléfono</label>
+        <input id="phone" type="tel" autocomplete="tel"/>
+      </div>
+      <div class="col">
+        <label for="email" data-i18n="labelEmail">Email / Correo electrónico</label>
+        <input id="email" type="email" autocomplete="email"/>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <label for="language" data-i18n="labelLanguage">Preferred Language / Idioma preferido</label>
+        <select id="language">
+          <option value="" data-i18n="optSelect">Select / Seleccione</option>
+          <option value="en" data-i18n="optEnglish">English</option>
+          <option value="es" data-i18n="optSpanish">Español</option>
+          <option value="both" data-i18n="optBoth">Both / Ambos</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2 data-i18n="helpHead">Ways I Can Help / Formas en que puedo ayudar</h2>
+    <p class="small" data-i18n="helpIntro">
+      Check any areas where you might be willing to help this season. This is not a contract — it just lets us know who to contact.
+    </p>
+
+    <div class="checks">
+      <label><input type="checkbox" value="Rides / Transportation" class="helpBox"/> <span data-i18n="help1">Rides / Transportation</span></label>
+      <label><input type="checkbox" value="Snacks / Meals" class="helpBox"/> <span data-i18n="help2">Snacks / Meals</span></label>
+      <label><input type="checkbox" value="Scorekeeping / Table" class="helpBox"/> <span data-i18n="help3">Scorekeeping / Table</span></label>
+      <label><input type="checkbox" value="Tournament Help" class="helpBox"/> <span data-i18n="help4">Tournament Help</span></label>
+      <label><input type="checkbox" value="Fundraising / Sponsorships" class="helpBox"/> <span data-i18n="help5">Fundraising / Sponsorships</span></label>
+      <label><input type="checkbox" value="Team Events (banquet, senior night)" class="helpBox"/> <span data-i18n="help6">Team Events (banquet, senior night)</span></label>
+      <label><input type="checkbox" value="Photos / Video" class="helpBox"/> <span data-i18n="help7">Photos / Video</span></label>
+      <label><input type="checkbox" value="Wherever Needed" class="helpBox"/> <span data-i18n="help8">Wherever Needed / Donde sea necesario</span></label>
+    </div>
+
+    <label for="notes" data-i18n="labelNotes" style="margin-top:12px;">Notes / Notas (schedule, skills, ideas)</label>
+    <textarea id="notes"></textarea>
+
+    <div class="btn-row">
+      <button type="button" class="btn btn-brand" id="btn-submit">
+        🚀 <span data-i18n="btnSubmit">Submit to Coaches</span>
+      </button>
+    </div>
+
+    <div id="status" class="status"></div>
+  </section>
+
+</main>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+    <p class="footer-brand">Sandman Combat • United. Focused. Relentless.</p>
+  </div>
+</footer>
+
+<script type="module" src="/para/parent/volunteer.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,946 @@
+{
+  "lane": "strength",
+  "segmentId": "segment1",
+  "sessions": [
+
+    {
+  "n": 1,
+  "id": "STR-001",
+  "type": "baseline_test",
+  "title": "Baseline Strength Test",
+  "prompt": "Complete the baseline test and record results honestly. This establishes your starting point for the Strength lane.",
+  "workout": [
+    "Run 1 mile (record time)",
+    "Push-ups — 2 minutes max reps",
+    "Squats — 2 minutes max reps",
+    "V-ups — 2 minutes max reps",
+    "Plank — 2 minutes hold",
+    "Pull-ups — 2 minutes max reps"
+  ],
+  "track": {
+    "baseline": {
+      "fields": [
+        {
+          "key": "mile_time",
+          "label": "1 Mile Time",
+          "placeholder": "Example: 8:42",
+          "type": "time"
+        },
+        {
+          "key": "pushups",
+          "label": "Push-ups",
+          "placeholder": "Max reps in 2 minutes"
+        },
+        {
+          "key": "squats",
+          "label": "Squats",
+          "placeholder": "Max reps in 2 minutes"
+        },
+        {
+          "key": "vups",
+          "label": "V-ups",
+          "placeholder": "Max reps in 2 minutes"
+        },
+        {
+          "key": "plank",
+          "label": "Plank",
+          "placeholder": "Time held",
+          "type": "time"
+        },
+        {
+          "key": "pullups",
+          "label": "Pull-ups",
+          "placeholder": "Max reps in 2 minutes"
+        }
+      ]
+    }
+  },
+  "deliverable": "Submit mile time and max reps for each exercise.",
+  "athleteNote": true,
+  "coachNote": "Session 40 repeats this exact test to measure progress."
+},
+    {
+      "n": 2,
+      "id": "STR-002",
+      "type": "iron",
+      "title": "Iron Foundation I",
+      "prompt": "Complete the assigned Iron workout with control and honest effort.",
+      "workout": [
+        "Main lift — working sets",
+        "Secondary lift — controlled reps",
+        "Accessory work — finish clean"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note which movement felt strongest.",
+      "athleteNote": true,
+      "coachNote": "Feel the last 3 reps. That’s where discipline shows."
+    },
+    {
+      "n": 3,
+      "id": "STR-003",
+      "type": "iron",
+      "title": "Iron Foundation II",
+      "prompt": "Complete the assigned Iron workout and focus on clean reps.",
+      "workout": [
+        "Main lift — working sets",
+        "Secondary lift — controlled reps",
+        "Accessory work — finish clean"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note which movement felt weakest.",
+      "athleteNote": true,
+      "coachNote": "Clean reps first. Don’t chase ugly weight."
+    },
+    {
+      "n": 4,
+      "id": "STR-004",
+      "type": "explosive",
+      "title": "Explosive Power I",
+      "prompt": "Train speed and explosion with clean mechanics and full intent.",
+      "workout": [
+        "Primary explosive movement",
+        "Secondary power movement",
+        "Short burst finish"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your best movement and where you felt fastest.",
+      "athleteNote": true,
+      "coachNote": "Fast and clean. No sloppy power."
+    },
+    {
+      "n": 5,
+      "id": "STR-005",
+      "type": "iron",
+      "title": "Iron Foundation III",
+      "prompt": "Complete the assigned Iron workout and keep the last reps disciplined.",
+      "workout": [
+        "Main lift — working sets",
+        "Secondary lift — controlled reps",
+        "Accessory work — finish clean"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and best completed lift.",
+      "athleteNote": true,
+      "coachNote": "Earn the last reps. No shortcuts under fatigue."
+    },
+    {
+      "n": 6,
+      "id": "STR-006",
+      "type": "remote_hiit",
+      "title": "Remote HIIT I",
+      "prompt": "Complete the assigned full-body HIIT circuit with steady pace and clean movement.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Steady pace across rounds",
+        "Clean transitions"
+      ],
+      "source": "remote-hiit",
+      "preset": "level1",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds completed and hardest movement.",
+      "athleteNote": true,
+      "coachNote": "Don’t sprint the first round and die early."
+    },
+    {
+      "n": 7,
+      "id": "STR-007",
+      "type": "iron",
+      "title": "Iron Foundation IV",
+      "prompt": "Complete the assigned Iron workout and focus on full range and posture.",
+      "workout": [
+        "Main lift — working sets",
+        "Secondary lift — full range",
+        "Accessory work — posture under fatigue"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note one form correction.",
+      "athleteNote": true,
+      "coachNote": "Full range. Own the position."
+    },
+    {
+      "n": 8,
+      "id": "STR-008",
+      "type": "explosive",
+      "title": "Explosive Power II",
+      "prompt": "Train power output with short bursts and strong recovery between efforts.",
+      "workout": [
+        "Primary explosive movement",
+        "Short burst power work",
+        "Controlled recovery between efforts"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your strongest movement and what improved from last power session.",
+      "athleteNote": true,
+      "coachNote": "Explode hard. Recover with discipline."
+    },
+    {
+      "n": 9,
+      "id": "STR-009",
+      "type": "iron",
+      "title": "Iron Build I",
+      "prompt": "Complete the assigned Iron workout and push the final work sets with control.",
+      "workout": [
+        "Main lift — top working sets",
+        "Secondary lift — controlled volume",
+        "Accessory work — finish strong"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and hardest exercise.",
+      "athleteNote": true,
+      "coachNote": "Pressure the last sets. Stay clean."
+    },
+    {
+      "n": 10,
+      "id": "STR-010",
+      "type": "remote_hiit",
+      "title": "Remote HIIT II",
+      "prompt": "Complete the assigned HIIT session and maintain pace from start to finish.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Even pace start to finish",
+        "No dead rounds"
+      ],
+      "source": "remote-hiit",
+      "preset": "level1",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and where your pace broke.",
+      "athleteNote": true,
+      "coachNote": "Hold your pace. Don’t let fatigue own the middle."
+    },
+    {
+      "n": 11,
+      "id": "STR-011",
+      "type": "iron",
+      "title": "Iron Build II",
+      "prompt": "Complete the assigned Iron workout and stay disciplined through the final sets.",
+      "workout": [
+        "Main lift — top working sets",
+        "Secondary lift — controlled volume",
+        "Accessory work — no sloppy finish"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note one improvement.",
+      "athleteNote": true,
+      "coachNote": "Discipline shows when the set gets ugly."
+    },
+    {
+      "n": 12,
+      "id": "STR-012",
+      "type": "explosive",
+      "title": "Explosive Power III",
+      "prompt": "Train explosive output and focus on fast intent, not sloppy reps.",
+      "workout": [
+        "Primary explosive movement",
+        "Fast intent on every rep",
+        "Clean landings and positions"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your best explosive movement and note what felt most athletic.",
+      "athleteNote": true,
+      "coachNote": "Fast intent. No wasted reps."
+    },
+    {
+      "n": 13,
+      "id": "STR-013",
+      "type": "iron",
+      "title": "Iron Build III",
+      "prompt": "Complete the assigned Iron workout and hold position under fatigue.",
+      "workout": [
+        "Main lift — top sets",
+        "Secondary lift — controlled reps",
+        "Accessory work — posture under fatigue"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note the most demanding lift.",
+      "athleteNote": true,
+      "coachNote": "Posture is part of strength."
+    },
+    {
+      "n": 14,
+      "id": "STR-014",
+      "type": "remote_hiit",
+      "title": "Remote HIIT III",
+      "prompt": "Complete the assigned HIIT session and keep transitions tight.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Tight transitions",
+        "No wasted movement"
+      ],
+      "source": "remote-hiit",
+      "preset": "level2",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and hardest transition.",
+      "athleteNote": true,
+      "coachNote": "Transitions matter. Don’t bleed time."
+    },
+    {
+      "n": 15,
+      "id": "STR-015",
+      "type": "iron",
+      "title": "Iron Build IV",
+      "prompt": "Complete the assigned Iron workout with full effort and clean posture.",
+      "workout": [
+        "Main lift — top sets",
+        "Secondary lift — controlled effort",
+        "Accessory work — finish with posture"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and one cue that helped.",
+      "athleteNote": true,
+      "coachNote": "Own the position before you chase load."
+    },
+    {
+      "n": 16,
+      "id": "STR-016",
+      "type": "explosive",
+      "title": "Explosive Power IV",
+      "prompt": "Train explosiveness with crisp movement and aggressive intent.",
+      "workout": [
+        "Primary explosive movement",
+        "Aggressive intent each round",
+        "Crisp mechanics throughout"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your best movement and where your speed dropped.",
+      "athleteNote": true,
+      "coachNote": "Speed drops before effort admits it."
+    },
+    {
+      "n": 17,
+      "id": "STR-017",
+      "type": "iron",
+      "title": "Iron Strength I",
+      "prompt": "Complete the assigned Iron workout and attack the working sets with discipline.",
+      "workout": [
+        "Main lift — strong working sets",
+        "Secondary lift — controlled effort",
+        "Accessory work — no wasted reps"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note which lift challenged you most.",
+      "athleteNote": true,
+      "coachNote": "Attack the set. Respect the form."
+    },
+    {
+      "n": 18,
+      "id": "STR-018",
+      "type": "iron",
+      "title": "Iron Strength II",
+      "prompt": "Complete the assigned Iron workout and focus on tension and control.",
+      "workout": [
+        "Main lift — tension and control",
+        "Secondary lift — honest reps",
+        "Accessory work — controlled finish"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note one technical win.",
+      "athleteNote": true,
+      "coachNote": "Control the weight. Don’t let it control you."
+    },
+    {
+      "n": 19,
+      "id": "STR-019",
+      "type": "remote_hiit",
+      "title": "Remote HIIT IV",
+      "prompt": "Complete the assigned HIIT session and hold effort across every round.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Even effort across rounds",
+        "No collapse in the finish"
+      ],
+      "source": "remote-hiit",
+      "preset": "level2",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and the point where fatigue hit.",
+      "athleteNote": true,
+      "coachNote": "Fatigue tells the truth. Stay working."
+    },
+    {
+      "n": 20,
+      "id": "STR-020",
+      "type": "explosive",
+      "title": "Explosive Power V",
+      "prompt": "Train power with full intent and honest rest between rounds.",
+      "workout": [
+        "Primary explosive movement",
+        "Honest rest between efforts",
+        "Full intent every round"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your strongest explosive movement and note one improvement.",
+      "athleteNote": true,
+      "coachNote": "Rest with purpose. Explode on command."
+    },
+    {
+      "n": 21,
+      "id": "STR-021",
+      "type": "iron",
+      "title": "Iron Strength III",
+      "prompt": "Complete the assigned Iron workout and keep quality high through the final reps.",
+      "workout": [
+        "Main lift — top sets",
+        "Secondary lift — quality reps",
+        "Accessory work — clean finish"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note where form got tested.",
+      "athleteNote": true,
+      "coachNote": "When form gets tested, discipline gets exposed."
+    },
+    {
+      "n": 22,
+      "id": "STR-022",
+      "type": "iron",
+      "title": "Iron Strength IV",
+      "prompt": "Complete the assigned Iron workout and stay aggressive but controlled.",
+      "workout": [
+        "Main lift — top sets",
+        "Secondary lift — aggressive control",
+        "Accessory work — finish honest"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note the hardest working set.",
+      "athleteNote": true,
+      "coachNote": "Aggressive is good. Sloppy is not."
+    },
+    {
+      "n": 23,
+      "id": "STR-023",
+      "type": "explosive",
+      "title": "Explosive Power VI",
+      "prompt": "Train speed and power with clean posture and sharp effort.",
+      "workout": [
+        "Primary explosive movement",
+        "Sharp effort each round",
+        "Posture stays clean"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your best movement and note what felt most explosive.",
+      "athleteNote": true,
+      "coachNote": "Posture carries power."
+    },
+    {
+      "n": 24,
+      "id": "STR-024",
+      "type": "remote_hiit",
+      "title": "Remote HIIT V",
+      "prompt": "Complete the assigned HIIT session and keep consistent pace through the full circuit.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Consistent pace throughout",
+        "No dead transitions"
+      ],
+      "source": "remote-hiit",
+      "preset": "level2",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and note which movement slowed you down.",
+      "athleteNote": true,
+      "coachNote": "Consistency wins more than hype."
+    },
+    {
+      "n": 25,
+      "id": "STR-025",
+      "type": "iron",
+      "title": "Iron Pressure I",
+      "prompt": "Complete the assigned Iron workout and keep your last 3 reps disciplined.",
+      "workout": [
+        "Main lift — pressure sets",
+        "Secondary lift — honest reps",
+        "Accessory work — no quit reps"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note one moment you wanted to quit.",
+      "athleteNote": true,
+      "coachNote": "The last 3 reps tell the truth."
+    },
+    {
+      "n": 26,
+      "id": "STR-026",
+      "type": "iron",
+      "title": "Iron Pressure II",
+      "prompt": "Complete the assigned Iron workout and focus on posture under fatigue.",
+      "workout": [
+        "Main lift — pressure sets",
+        "Secondary lift — posture under fatigue",
+        "Accessory work — finish disciplined"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and the movement that exposed weakness.",
+      "athleteNote": true,
+      "coachNote": "Weakness shows when posture slips."
+    },
+    {
+      "n": 27,
+      "id": "STR-027",
+      "type": "explosive",
+      "title": "Explosive Power VII",
+      "prompt": "Train power under control and focus on sharp effort every round.",
+      "workout": [
+        "Primary explosive movement",
+        "Controlled power rounds",
+        "Sharp effort every set"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your strongest movement and what changed from the last explosive day.",
+      "athleteNote": true,
+      "coachNote": "Power without control leaks everywhere."
+    },
+    {
+      "n": 28,
+      "id": "STR-028",
+      "type": "remote_hiit",
+      "title": "Remote HIIT VI",
+      "prompt": "Complete the assigned HIIT session with clean movement and honest pace.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Honest pace throughout",
+        "Clean movement first"
+      ],
+      "source": "remote-hiit",
+      "preset": "level3",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and the movement that broke your rhythm.",
+      "athleteNote": true,
+      "coachNote": "Rhythm breaks before effort admits it."
+    },
+    {
+      "n": 29,
+      "id": "STR-029",
+      "type": "iron",
+      "title": "Iron Pressure III",
+      "prompt": "Complete the assigned Iron workout and stay disciplined through fatigue.",
+      "workout": [
+        "Main lift — pressure sets",
+        "Secondary lift — controlled fatigue",
+        "Accessory work — disciplined finish"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note one technical correction.",
+      "athleteNote": true,
+      "coachNote": "Fatigue is not permission to get lazy."
+    },
+    {
+      "n": 30,
+      "id": "STR-030",
+      "type": "iron",
+      "title": "Iron Pressure IV",
+      "prompt": "Complete the assigned Iron workout and keep rep quality high when tired.",
+      "workout": [
+        "Main lift — pressure sets",
+        "Secondary lift — quality reps tired",
+        "Accessory work — finish clean"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note your strongest movement.",
+      "athleteNote": true,
+      "coachNote": "Quality is the test when you’re tired."
+    },
+    {
+      "n": 31,
+      "id": "STR-031",
+      "type": "explosive",
+      "title": "Explosive Power VIII",
+      "prompt": "Train short-burst power and recover with discipline between rounds.",
+      "workout": [
+        "Short-burst explosive work",
+        "Disciplined recovery",
+        "Power every round"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your best explosive movement and where your power faded.",
+      "athleteNote": true,
+      "coachNote": "Recovery is part of performance."
+    },
+    {
+      "n": 32,
+      "id": "STR-032",
+      "type": "remote_hiit",
+      "title": "Remote HIIT VII",
+      "prompt": "Complete the assigned HIIT session and hold pace as long as possible.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Hold pace deep into session",
+        "Fight the drop"
+      ],
+      "source": "remote-hiit",
+      "preset": "level3",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and the point where pace dropped.",
+      "athleteNote": true,
+      "coachNote": "Know where you broke. That’s where you train next."
+    },
+    {
+      "n": 33,
+      "id": "STR-033",
+      "type": "iron",
+      "title": "Iron Peak I",
+      "prompt": "Complete the assigned Iron workout and attack the top sets with control.",
+      "workout": [
+        "Main lift — peak sets",
+        "Secondary lift — support work",
+        "Accessory work — clean finish"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note your best lift of the day.",
+      "athleteNote": true,
+      "coachNote": "Peak with control, not ego."
+    },
+    {
+      "n": 34,
+      "id": "STR-034",
+      "type": "iron",
+      "title": "Iron Peak II",
+      "prompt": "Complete the assigned Iron workout and keep technical discipline under pressure.",
+      "workout": [
+        "Main lift — peak sets",
+        "Secondary lift — technical support",
+        "Accessory work — under pressure"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and the hardest movement of the session.",
+      "athleteNote": true,
+      "coachNote": "Pressure should sharpen technique, not erase it."
+    },
+    {
+      "n": 35,
+      "id": "STR-035",
+      "type": "explosive",
+      "title": "Explosive Power IX",
+      "prompt": "Train explosive effort and focus on fast, clean movement.",
+      "workout": [
+        "Primary explosive movement",
+        "Fast clean execution",
+        "No wasted jumps or throws"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your strongest explosive movement and note one improvement.",
+      "athleteNote": true,
+      "coachNote": "Fast is good. Fast and clean is better."
+    },
+    {
+      "n": 36,
+      "id": "STR-036",
+      "type": "remote_hiit",
+      "title": "Remote HIIT VIII",
+      "prompt": "Complete the assigned HIIT session and finish with discipline.",
+      "workout": [
+        "Full-body HIIT circuit",
+        "Hold pace through finish",
+        "No quit rounds"
+      ],
+      "source": "remote-hiit",
+      "preset": "level3",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and which movement hurt your finish.",
+      "athleteNote": true,
+      "coachNote": "The finish tells the truth."
+    },
+    {
+      "n": 37,
+      "id": "STR-037",
+      "type": "performance",
+      "title": "Performance Lead-In I",
+      "prompt": "Complete the assigned strength session and focus on speed, posture, and composure.",
+      "workout": [
+        "Strength session",
+        "Speed on intent",
+        "Posture under load",
+        "Composure throughout"
+      ],
+      "source": "iron",
+      "rotationMode": "ABC",
+      "track": {
+        "bestSet": {
+          "fields": ["date", "exercise", "weight", "reps"]
+        }
+      },
+      "deliverable": "Log your top working set and note what feels stronger now than Session 1.",
+      "athleteNote": true,
+      "coachNote": "Feel the difference. Don’t just survive the work."
+    },
+    {
+      "n": 38,
+      "id": "STR-038",
+      "type": "performance",
+      "title": "Performance Lead-In II",
+      "prompt": "Complete the assigned session and measure how well you hold effort under fatigue.",
+      "workout": [
+        "Performance session",
+        "Hold effort under fatigue",
+        "Track where output slips"
+      ],
+      "source": "remote-hiit",
+      "preset": "level3",
+      "track": {
+        "rounds": {
+          "fields": ["date", "roundsCompleted", "time"]
+        }
+      },
+      "deliverable": "Log total rounds and what improved most since the start.",
+      "athleteNote": true,
+      "coachNote": "Progress shows up when fatigue no longer runs the session."
+    },
+    {
+      "n": 39,
+      "id": "STR-039",
+      "type": "performance",
+      "title": "Performance Lead-In III",
+      "prompt": "Complete the assigned strength session and prepare for the retest with full effort.",
+      "workout": [
+        "Performance session",
+        "Best movement focus",
+        "Prepare for retest"
+      ],
+      "source": "explosive",
+      "track": {
+        "bestMovement": {
+          "fields": ["date", "movement", "output"]
+        }
+      },
+      "deliverable": "Log your best movement and one clear sign of progress.",
+      "athleteNote": true,
+      "coachNote": "See the progress clearly before the retest."
+    },
+
+{
+  "n": 40,
+  "id": "STR-040",
+  "type": "baseline_retest",
+  "title": "Baseline Retest",
+  "prompt": "Repeat the exact baseline test from Session 1 and compare your results.",
+  "workout": [
+    "Run 1 mile (record time)",
+    "Push-ups — 2 minutes max reps",
+    "Squats — 2 minutes max reps",
+    "V-ups — 2 minutes max reps",
+    "Plank — 2 minutes hold",
+    "Pull-ups — 2 minutes max reps"
+  ],
+  "track": {
+    "baseline": {
+      "fields": [
+        {
+          "key": "mile_time",
+          "label": "1 Mile Time",
+          "placeholder": "Example: 8:42",
+          "type": "time"
+        },
+        {
+          "key": "pushups",
+          "label": "Push-ups",
+          "placeholder": "Max reps in 2 minutes"
+        },
+        {
+          "key": "squats",
+          "label": "Squats",
+          "placeholder": "Max reps in 2 minutes"
+        },
+        {
+          "key": "vups",
+          "label": "V-ups",
+          "placeholder": "Max reps in 2 minutes"
+        },
+        {
+          "key": "plank",
+          "label": "Plank",
+          "placeholder": "Time held",
+          "type": "time"
+        },
+        {
+          "key": "pullups",
+          "label": "Pull-ups",
+          "placeholder": "Max reps in 2 minutes"
+        }
+      ]
+    }
+  },
+  "deliverable": "Submit mile time and max reps again.",
+  "athleteNote": true,
+  "coachNote": "Compare results with Session 1."
+}    ]
+}

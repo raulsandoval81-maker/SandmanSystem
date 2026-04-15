@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Prestige Arena XP</title>
+  <style>
+    :root { color-scheme: dark; }
+    body{background:#090b0f;color:#f5f5f5;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{max-width:1150px;margin:0 auto;padding:20px 16px 38px;}
+    .top-nav{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+    .pill{background:#151a22;border:1px solid #252c38;color:#fff;text-decoration:none;font-weight:600;padding:6px 12px;border-radius:999px;}
+    .pill:hover{background:#ffd633;color:#111;border-color:#ffd633;}
+    h1{margin:4px 0 2px;font-size:1.4rem;font-weight:800;color:#ffd633;}
+    .creed{background:linear-gradient(90deg, rgba(249,115,22,.12), rgba(9,11,15,0));border:1px solid rgba(249,115,22,.08);border-radius:10px;padding:6px 10px 7px;margin-bottom:12px;}
+    .card{background:#0c1017;border:1px solid #1d2430;border-radius:14px;padding:14px 14px 12px;box-shadow:0 20px 35px rgba(0,0,0,.25);}
+    .actions-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:8px;background:rgba(3,4,6,.35);border:1px solid rgba(255,255,255,.015);border-radius:10px;padding:6px 8px;}
+    .input{background:#0a0d12;border:1px solid #252c38;border-radius:9px;padding:6px 10px;color:#fff;min-width:170px;font-size:.75rem;}
+    .btn{border:0;border-radius:999px;padding:6px 13px;font-weight:700;cursor:pointer;font-size:.72rem;}
+    .btn-ghost{background:transparent;border:1px solid #2a3240;color:#fff;}
+    .btn-lion{background:#f97316;color:#fff;box-shadow:0 0 8px rgba(249,115,22,.35);}
+    .btn-tiger{background:#e11d48;color:#fff;box-shadow:0 0 8px rgba(225,29,72,.35);}
+    .btn-bear{background:#6366f1;color:#fff;box-shadow:0 0 8px rgba(99,102,241,.35);}
+
+    /* style / IQ pills */
+    .iq-bar{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+    .iq-label{font-size:.66rem;color:#e2e8f0;margin-right:2px;}
+    .iq-pill{background:#11151d;border:1px solid #273143;border-radius:999px;padding:3px 9px 4px;font-size:.63rem;cursor:pointer;}
+    .iq-pill.active{background:#ffdd48;border-color:#ffdd48;color:#111;font-weight:700;box-shadow:0 0 10px rgba(255,221,72,.25);}
+
+    .session-bar{margin-top:6px;background:rgba(15,19,26,.6);border:1px solid rgba(255,214,51,.03);border-radius:10px;padding:5px 8px;display:flex;gap:16px;flex-wrap:wrap;font-size:.68rem;}
+    table{width:100%;border-collapse:collapse;margin-top:12px;border-radius:10px;overflow:hidden;}
+    th,td{padding:6px 6px;border-bottom:1px solid rgba(255,255,255,.02);font-size:.78rem;vertical-align:middle;}
+    th{text-align:left;font-size:.65rem;color:#cbd5f5;text-transform:uppercase;letter-spacing:.08em;}
+    tbody tr:nth-child(even){background:rgba(255,255,255,.01);}
+    tbody tr:hover{background:rgba(249,115,22,.05);}
+    .ath-name{font-weight:600;}
+    .sub{font-size:.65rem;color:#94a3b8;}
+
+    /* mini xp bar */
+    .row-xp-track{background:rgba(0,0,0,.2);border:1px solid rgba(255,255,255,.02);border-radius:999px;height:9px;overflow:hidden;position:relative;}
+    .row-xp-fill{height:100%;width:0%;transition:width .25s ease-out;}
+    .row-xp-meta{font-size:.62rem;margin-top:2px;color:#94a3b8;}
+
+    #status{margin-top:6px;font-size:.7rem;}
+    @media(max-width:700px){
+      th:nth-child(3),td:nth-child(3){display:none;}
+      .session-bar{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+<main class="wrap">
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    <a class="pill" href="/coaches/roster.html">Team Roster</a>
+    <a class="pill" href="/coaches/coaches-weekend-xp.html">Weekend Arena XP</a>
+  </nav>
+
+  <h1>Prestige Arena XP</h1>
+  <div class="creed">Win the event → prestige. Still log Battle / Podium / Style like weekend.</div>
+
+  <section class="card">
+    <div class="actions-bar">
+      <input id="search" class="input" placeholder="Search by name or UID…"/>
+      <input id="eventName" class="input" placeholder="Event / Tournament"/>
+      <label style="display:flex;align-items:center;gap:4px;font-size:.68rem;color:#e2e8f0;">
+        <input id="wonEvent" type="checkbox" style="accent-color:#f97316"> Won event
+      </label>
+
+      <!-- prestige bulk -->
+      <button id="bulkLion"  class="btn btn-lion">Lion +25</button>
+      <button id="bulkTiger" class="btn btn-tiger">Tiger +50</button>
+      <button id="bulkBear"  class="btn btn-bear">Bear +75</button>
+
+      <!-- weekend bulk still allowed -->
+      <button id="bulkBattle" class="btn btn-ghost">+10 Battle</button>
+      <button id="bulkPodium" class="btn btn-ghost">+5 Podium</button>
+      <button id="bulkStyle"  class="btn btn-ghost">+5 Style</button>
+
+      <button id="pickAll" class="btn btn-ghost">Select all</button>
+      <button id="clearAll" class="btn btn-ghost">Clear</button>
+
+      <!-- match IQ picker -->
+      <div class="iq-bar" id="iqBar">
+        <span class="iq-label">Match IQ:</span>
+        <button class="iq-pill" data-style="bull">Bull</button>
+        <button class="iq-pill" data-style="matador">Matador</button>
+        <button class="iq-pill" data-style="snake">Snake</button>
+        <button class="iq-pill" data-style="mongoose">Mongoose</button>
+        <button class="iq-pill" data-style="gorilla">Gorilla</button>
+        <button class="iq-pill" data-style="shark">Shark</button>
+      </div>
+    </div>
+
+    <div id="sessionBar" class="session-bar" style="display:none">
+      <span id="sb-loaded">Loaded: 0</span>
+      <span id="sb-awarded">Awarded this session: 0</span>
+      <span id="sb-xp">XP issued: 0</span>
+    </div>
+
+    <table>
+      <thead>
+        
+        <tr>
+          <th style="width:38px">Pick</th>
+          <th>Athlete</th>
+          <th style="width:140px">Tier / Track</th>
+          <th style="width:220px">XP</th>
+          
+        </tr>
+      </thead>
+      <tbody id="rows"><tr><td colspan="4" class="muted">Loading…</td></tr></tbody>
+    </table>
+    <p id="status" class="muted">Ready.</p>
+  </section>
+</main>
+
+<script type="module">
+  import { db, collection, getDocs } from "/assets/js/firebase-init.js";
+  import { renderMiniXpBar } from "/assets/js/xp-bar-mini.js";
+
+  // same quick tier → color map
+  const TIER_COLORS = {
+    shadow:    "#ffffff",
+    recruit:   "#facc15",
+    combatant: "#fb923c",
+    competitor:"#22c55e",
+    warrior:   "#3b82f6",
+    champion:  "#a855f7",
+    commander: "#92400e",
+    sandman:   "#eab308",
+    hero:      "#000000",
+    apprentice:"#ffffff",
+    veteran:   "#92400e",
+    legend:    "#000000"
+  };
+  const tierColor = (name="") => TIER_COLORS[name.toLowerCase()] || "#ef4444";
+
+  const rowsEl      = document.getElementById("rows");
+  const statusEl    = document.getElementById("status");
+  const searchEl    = document.getElementById("search");
+  const evEl        = document.getElementById("eventName");
+  const wonEl       = document.getElementById("wonEvent");
+  const pickAllEl   = document.getElementById("pickAll");
+  const clearAllEl  = document.getElementById("clearAll");
+  const bulkLionEl  = document.getElementById("bulkLion");
+  const bulkTigerEl = document.getElementById("bulkTiger");
+  const bulkBearEl  = document.getElementById("bulkBear");
+  const bulkBattle  = document.getElementById("bulkBattle");
+  const bulkPodium  = document.getElementById("bulkPodium");
+  const bulkStyle   = document.getElementById("bulkStyle");
+  const iqBar       = document.getElementById("iqBar");
+
+  const sessionBar = document.getElementById("sessionBar");
+  const sbLoaded   = document.getElementById("sb-loaded");
+  const sbAwarded  = document.getElementById("sb-awarded");
+  const sbXP       = document.getElementById("sb-xp");
+
+  let roster = [];
+  let filtered = [];
+  let awardedCount = 0;
+  let awardedXP = 0;
+  let currentStyle = null;
+
+  function updateSessionBar(){
+    if (!filtered.length){ sessionBar.style.display="none"; return; }
+    sessionBar.style.display = "flex";
+    sbLoaded.textContent  = `Loaded: ${filtered.length}`;
+    sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
+    sbXP.textContent      = `XP issued: ${awardedXP}`;
+  }
+
+import { renderMiniXpBar } from "/assets/js/xp-bar-mini.js";
+
+function render(list) {
+  if (!list.length) {
+    rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes match.</td></tr>`;
+    updateSessionBar();
+    return;
+  }
+
+  // 1) build the rows with an xp-slot placeholder
+  rowsEl.innerHTML = list.map(a => {
+    const uid   = a.uid || a.id;
+    const name  = a.publicName || a.fullName || uid;
+    const track = a.track || a.trackCode || "—";
+    const tier = resolveRank(a);
+    const xp    = a.xp ?? 0;
+    const cap   = a.xpCap ?? 1200;
+
+    return `
+      <tr data-id="${a.id}">
+        <td><input type="checkbox" class="pick" data-id="${a.id}"/></td>
+        <td>
+          <div class="ath-name">${name}</div>
+          <div class="sub">${uid}</div>
+        </td>
+        <td>${tier} / ${track}</td>
+        <td>
+          <div class="xp-slot"></div>
+          <div class="sub">${xp} / ${cap}</div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // 2) now the DOM exists, paint each mini bar
+  rowsEl.querySelectorAll("tr[data-id]").forEach(tr => {
+    const id   = tr.dataset.id;
+    const a    = list.find(x => x.id === id);
+    if (!a) return;
+
+    const xp         = a.xp ?? 0;
+    const cap        = a.xpCap ?? 1200;
+    const tierName   = a.tierName || a.rankName || a.tier || "Apprentice";
+    const slot       = tr.querySelector(".xp-slot");
+
+    // simple stripe math (same as before, 4 boxes)
+    const stripesTotal  = 4;
+    const stripesEarned = Math.floor((xp / cap) * stripesTotal);
+
+    renderMiniXpBar({
+      container: slot,
+      xp,
+      cap,
+      tierName,
+      stripesEarned,
+      stripesTotal
+    });
+  });
+
+  updateSessionBar();
+}
+
+  async function load(){
+    statusEl.textContent = "Loading athletes…";
+    const snap = await getDocs(collection(db,"athletes"));
+    roster = snap.docs.map(d=>({id:d.id,...d.data()}));
+    filtered = roster.slice().sort((a,b)=>(a.publicName||a.fullName||"").localeCompare(b.publicName||b.fullName||""));
+    render(filtered);
+    statusEl.textContent = `${filtered.length} athletes loaded.`;
+  }
+
+  function getSelectedIds(){ return Array.from(document.querySelectorAll(".pick:checked")).map(c=>c.dataset.id); }
+
+  // weekend payload, now with optional style
+  function weekendPayload(uid, kind){
+    const eventName = evEl.value.trim();
+    const won = !!wonEl.checked;
+    const baseMeta = { source:"prestige-clipboard", weekend:true, eventName, won };
+    if (kind==="battle") return { uid, event:"ARENA/BATTLE", amount:10, meta:baseMeta };
+    if (kind==="podium") return { uid, event:"ARENA/PODIUM", amount:5, meta:baseMeta };
+    return {
+      uid,
+      event:"ARENA/STYLEIQ",
+      amount:5,
+      meta: { ...baseMeta, style: currentStyle || null }
+    };
+  }
+
+  function prestigePayload(uid, level){
+    const eventName = evEl.value.trim();
+    const won = !!wonEl.checked;
+    const amount = level==="lion"?25: level==="tiger"?50:75;
+    return {
+      uid,
+      event:"PRESTIGE",
+      amount,
+      note:eventName || level,
+      meta:{ source:"prestige-clipboard", weekend:true, eventName, won, prestigeLevel:level }
+    };
+  }
+
+  async function giveToOne(id, kind){
+    const a = roster.find(x=>x.id===id);
+    if (!a) return;
+    const uid = a.uid || a.id;
+    statusEl.textContent = "Saving…";
+
+    const bodyData =
+      (kind==="lion" || kind==="tiger" || kind==="bear")
+        ? prestigePayload(uid, kind)
+        : weekendPayload(uid, kind);
+
+    // if coach hits style but didn’t pick style -> block
+    if (kind === "style" && !currentStyle){
+      statusEl.textContent = "Pick a Match IQ style first.";
+      return;
+    }
+
+    try{
+      const res = await fetch("http://127.0.0.1:8088/sandmandashboard/us-central1/incrementXpHttp", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({ data: bodyData })
+      });
+      if (!res.ok){ statusEl.textContent = "Server error "+res.status; return; }
+      const data = await res.json();
+      if (!data.ok){ statusEl.textContent = data.error || "No XP added."; return;}
+
+      const delta = Number(data.delta) || bodyData.amount || 0;
+      const cap   = a.xpCap ?? 1200;
+      const next  = Math.min(cap, (a.xp ?? 0) + delta);
+      a.xp = next;
+
+      const row = rowsEl.querySelector(`tr[data-id="${id}"]`);
+      if (row){
+        const fill = row.querySelector(".row-xp-fill");
+        const meta = row.querySelector(".row-xp-meta");
+        const tier = a.tierName || a.rankName || a.tier || "Apprentice";
+        const pct  = Math.min(100, Math.round((next/cap)*100));
+        if (fill){ fill.style.width = pct+"%"; fill.style.background = tierColor(tier); }
+        if (meta){ meta.textContent = `${next} / ${cap}`; }
+      }
+
+      awardedCount += 1;
+      awardedXP    += delta;
+      updateSessionBar();
+
+      statusEl.textContent = `${bodyData.event} → ${uid} (+${delta})`;
+      statusEl.style.color = "#bef264";
+      setTimeout(()=>statusEl.style.color="", 1800);
+    }catch(e){
+      console.error(e);
+      statusEl.textContent = "Save failed for "+uid;
+    }
+  }
+
+  async function bulkGive(kind,label){
+    const ids = getSelectedIds();
+    if (!ids.length){ statusEl.textContent = "No athletes selected."; return; }
+    if (kind==="style" && !currentStyle){
+      statusEl.textContent = "Pick a Match IQ style first.";
+      return;
+    }
+    statusEl.textContent = `Saving ${label} for ${ids.length}…`;
+    for (const id of ids){ await giveToOne(id, kind); }
+    statusEl.textContent = `Saved ${label} for ${ids.length}.`;
+  }
+
+  // search
+  searchEl.addEventListener("input", ()=>{
+    const q = searchEl.value.toLowerCase().trim();
+    filtered = !q ? roster : roster.filter(a=>{
+      return (a.publicName||a.fullName||"").toLowerCase().includes(q)
+          || (a.id||"").toLowerCase().includes(q);
+    });
+    render(filtered);
+  });
+
+  // pickers
+  pickAllEl.addEventListener("click", ()=>{ document.querySelectorAll(".pick").forEach(c=>c.checked=true); statusEl.textContent="All visible athletes selected."; });
+  clearAllEl.addEventListener("click", ()=>{ document.querySelectorAll(".pick").forEach(c=>c.checked=false); statusEl.textContent="Selection cleared."; });
+
+  // style picker wiring
+  iqBar.addEventListener("click", e=>{
+    const btn = e.target.closest(".iq-pill");
+    if (!btn) return;
+    iqBar.querySelectorAll(".iq-pill").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    currentStyle = btn.dataset.style;
+    statusEl.textContent = `Match IQ set to: ${currentStyle}`;
+  });
+
+  // bulk buttons
+  bulkLionEl.addEventListener("click",  ()=>bulkGive("lion","Lion +25"));
+  bulkTigerEl.addEventListener("click", ()=>bulkGive("tiger","Tiger +50"));
+  bulkBearEl.addEventListener("click",  ()=>bulkGive("bear","Bear +75"));
+
+  bulkBattle.addEventListener("click", ()=>bulkGive("battle","+10 Battle"));
+  bulkPodium.addEventListener("click", ()=>bulkGive("podium","+5 Podium"));
+  bulkStyle.addEventListener("click",  ()=>bulkGive("style","+5 Style"));
+
+  load();
+</script>
+</body>
+</html>

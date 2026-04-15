@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Admin Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b1220;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .card {
+      background: #111827;
+      padding: 28px;
+      border-radius: 16px;
+      width: 320px;
+      box-shadow: 0 0 0 1px #1f2937;
+    }
+
+    h1 {
+      margin: 0 0 16px;
+      font-size: 20px;
+      text-align: center;
+      color: #facc15;
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #374151;
+      background: #020617;
+      color: #fff;
+      box-sizing: border-box;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: #facc15;
+      color: #000;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .link-btn {
+      margin-top: 10px;
+      background: transparent;
+      color: #facc15;
+      border: 1px solid #374151;
+    }
+
+    .status {
+      margin-top: 10px;
+      font-size: 13px;
+      text-align: center;
+      color: #9ca3af;
+      min-height: 18px;
+    }
+
+    .error {
+      color: #f87171;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>Admin Login</h1>
+
+    <input id="email" type="email" placeholder="Email" value="coach@sandmancombat.com" />
+    <input id="password" type="password" placeholder="Password" />
+
+    <button id="loginBtn">Sign In</button>
+    <button id="resetBtn" class="link-btn" type="button">Forgot Password?</button>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <script type="module">
+    import { auth } from "/assets/js/firebase-init.js";
+    import {
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const statusEl = document.getElementById("status");
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+    const loginBtn = document.getElementById("loginBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.classList.toggle("error", isError);
+    }
+
+    loginBtn.addEventListener("click", async () => {
+      const email = emailEl.value.trim();
+      const password = passwordEl.value.trim();
+
+      if (!email || !password) {
+        setStatus("Enter email and password", true);
+        return;
+      }
+
+      try {
+        setStatus("Signing in...");
+        loginBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        const res = await signInWithEmailAndPassword(auth, email, password);
+
+        console.log("SIGNED IN:", res.user.uid, res.user.email);
+        setStatus("Success. Redirecting...");
+
+        setTimeout(() => {
+          window.location.href = "/admin/hub.html";
+        }, 500);
+      } catch (err) {
+        console.error(err);
+        setStatus(err.message, true);
+      } finally {
+        loginBtn.disabled = false;
+        resetBtn.disabled = false;
+      }
+    });
+
+    resetBtn.addEventListener("click", async () => {
+      const email = emailEl.value.trim();
+
+      if (!email) {
+        setStatus("Enter your email first", true);
+        return;
+      }
+
+      try {
+        setStatus("Sending reset email...");
+        loginBtn.disabled = true;
+        resetBtn.disabled = true;
+
+        await sendPasswordResetEmail(auth, email);
+
+        setStatus("Password reset email sent. Check inbox and spam.");
+      } catch (err) {
+        console.error(err);
+        setStatus(err.message, true);
+      } finally {
+        loginBtn.disabled = false;
+        resetBtn.disabled = false;
+      }
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        console.log("Already signed in:", user.email);
+        window.location.href = "/admin/hub.html";
+      }
+    });
+  </script>
+
+</body>
+</html>

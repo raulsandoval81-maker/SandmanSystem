@@ -1,24 +1,36 @@
 // public/assets/js/firebase-init-para.js
-// Para-Comms ONLY. Does not touch XP/Intake.
-// Uses CDN ESM modules (stable exports)
+// Para-Comms / Parent Portal Firebase init
+// Stable CDN ESM module exports
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 
 import {
   getFirestore,
   connectFirestoreEmulator,
-  collection, doc, getDoc, getDocs, addDoc,
-  setDoc, updateDoc, deleteDoc,
-  query, where, orderBy, limit, onSnapshot,
-    writeBatch,                  // ✅ ADD THIS
-  serverTimestamp, Timestamp
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  writeBatch,
+  serverTimestamp,
+  Timestamp
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 import {
   getAuth,
   connectAuthEmulator,
   signInAnonymously,
-  onAuthStateChanged
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 import {
@@ -28,7 +40,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-functions.js";
 
 // ------------------------------------------------------------
-// 🔒 Hardcoded Config (Pilot Safe)
+// Firebase Config
 // ------------------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyDr8fZgWVCP_qBu2Ev9E2KtVay3lJcWJs4",
@@ -46,9 +58,7 @@ export const auth = getAuth(app);
 export const functions = getFunctions(app, "us-central1");
 
 // ------------------------------------------------------------
-// Emulator Detection (SAFE)
-// - Never allow emulators on hosted domains (web.app/firebaseapp.com)
-// - Only allow emulators on localhost or LAN IP while developing
+// Emulator Detection
 // ------------------------------------------------------------
 const host = window.location.hostname;
 
@@ -61,13 +71,12 @@ const isPrivateIp =
   /^192\.168\./.test(host) ||
   /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
 
-// Only allow emulators when NOT hosted prod
 const useEmu =
   !isHostedProd && (
     host === "localhost" ||
     host === "127.0.0.1" ||
     isPrivateIp ||
-    location.search.includes("emu=1") // now safe because hosted prod blocks it
+    location.search.includes("emu=1")
   );
 
 if (useEmu) {
@@ -82,14 +91,18 @@ if (useEmu) {
   connectFunctionsEmulator(functions, emuHost, 5001);
 } else {
   console.log("🌍 [para prod] using live Firebase services");
-}// ------------------------------------------------------------
-// Auth Guard (required for rules / callables)
+}
+
 // ------------------------------------------------------------
-export async function ensureSignedIn() {
+// Auth Helpers
+// ------------------------------------------------------------
+
+// Wait briefly for an existing restored auth session.
+// This is what parent pages need if parents are using real login links.
+export async function getSignedInUser(timeoutMs = 1200) {
   if (auth.currentUser) return auth.currentUser;
 
-  // Wait briefly for restored session
-  const existing = await new Promise((resolve) => {
+  return await new Promise((resolve) => {
     let done = false;
 
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -104,26 +117,30 @@ export async function ensureSignedIn() {
       done = true;
       try { unsub(); } catch {}
       resolve(auth.currentUser || null);
-    }, 600);
+    }, timeoutMs);
   });
+}
 
+// Use this only on pages that are allowed to work with anonymous auth.
+export async function ensureSignedIn() {
+  const existing = await getSignedInUser(1200);
   if (existing) return existing;
 
-  // Fresh anon sign-in (with repair if persistence got poisoned)
   try {
     const cred = await signInAnonymously(auth);
     return cred.user;
   } catch (err) {
     console.warn("⚠️ para auth anon failed, repairing auth state...", err);
 
-    // Repair: sign out + clear persisted auth
-    try { await auth.signOut(); } catch {}
+    try { await signOut(auth); } catch {}
 
-    // Clear firebase auth persistence (best-effort)
     try { indexedDB.deleteDatabase("firebaseLocalStorageDb"); } catch {}
+
     try {
       Object.keys(localStorage || {}).forEach((k) => {
-        if (k.startsWith("firebase:authUser:")) localStorage.removeItem(k);
+        if (k.startsWith("firebase:authUser:")) {
+          localStorage.removeItem(k);
+        }
       });
     } catch {}
 
@@ -131,18 +148,39 @@ export async function ensureSignedIn() {
     return cred2.user;
   }
 }
+
+// Use this on pages that must resolve real parent/coach identity.
+export async function requireRealUser() {
+  const user = await getSignedInUser(1500);
+  if (!user) return null;
+  if (user.isAnonymous) return null;
+  return user;
+}
+
 // ------------------------------------------------------------
-// Re-exports (so Para pages stay clean)
+// Re-exports
 // ------------------------------------------------------------
 export {
   httpsCallable,
-  collection, doc, getDoc, getDocs, addDoc,
-  setDoc, updateDoc, deleteDoc,
-  query, where, orderBy, limit, onSnapshot,
-    writeBatch,                  // ✅ ADD THIS
-  serverTimestamp, Timestamp
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  addDoc,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  orderBy,
+  limit,
+  onSnapshot,
+  writeBatch,
+  serverTimestamp,
+  Timestamp
 };
 
 console.log("🔥 firebase-init-para loaded", host);
-// DEV ONLY — lets you inspect in Console
+
+// Dev only
 window.PARA = { db, auth, functions };

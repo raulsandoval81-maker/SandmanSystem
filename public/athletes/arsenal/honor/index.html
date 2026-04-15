@@ -3,53 +3,45 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Honor Arsenal</title>
-  <link rel="stylesheet" href="honor.css"/>
+  <title>Honor · Athlete Arsenal</title>
+
+  <link rel="stylesheet" href="/athletes/arsenal/arsenal.css"/>
+  <link rel="stylesheet" href="/athletes/arsenal/honor/honor.css"/>
 </head>
+
 <body>
   <div class="wrap">
 
     <header class="header">
-      <button class="back-btn" onclick="history.back()">← Back</button>
-      <h1 class="title">Honor Arsenal</h1>
-      <p class="subtitle">Character · Awareness · Discipline · Loyalty</p>
+      <button class="back-btn" type="button" onclick="history.back()">← Back</button>
+      <h1 class="title">Honor Development Track</h1>
     </header>
 
-    <section class="tool-grid">
+    <section class="lane-block">
 
-      <div class="tool-card">
-        <h2>Awareness & Integrity</h2>
-        <p>Mindset · truth · reflection</p>
-      </div>
+      <div class="lane-name">Honor</div>
 
-      <div class="tool-card">
-        <h2>Discipline & Respect</h2>
-        <p>Control · calm · consistency</p>
-      </div>
+      <p class="lane-desc">
+        Honor develops the character behind the athlete.
+        Progress expands from self-discipline to responsibility for teammates
+        and finally to leadership within the team.
+      </p>
 
-      <div class="tool-card">
-        <h2>Patience & Courage</h2>
-        <p>Struggle · grit · ownership</p>
-      </div>
+      <div class="chapter-grid">
 
-      <div class="tool-card locked">
-        <h2>Wisdom & Loyalty</h2>
-        <p class="locked-note">Unlock at Stripe 1</p>
-      </div>
+        <a id="honor-self" class="chapter-tile" href="/athletes/arsenal/honor/self.html">
+          <span class="chapter-title">Self</span>
+        </a>
 
-      <div class="chapter-list">
-        <h3 class="chapter-title">Your Chapters</h3>
+        <a id="honor-teammates" class="chapter-tile locked" aria-disabled="true"
+           href="/athletes/arsenal/honor/teammates.html">
+          <span class="chapter-title">Teammates 🔒</span>
+        </a>
 
-        <ul>
-          <li><a href="f1-awareness/index.html">F1 · Awareness</a></li>
-          <li><a href="f2-integrity/index.html">F2 · Integrity</a></li>
-          <li><a href="f3-discipline/index.html">F3 · Discipline</a></li>
-          <li><a href="f4-respect/index.html">F4 · Respect</a></li>
-          <li><a href="f5-patience/index.html">F5 · Patience</a></li>
-          <li><a href="f6-courage/index.html">F6 · Courage</a></li>
-          <li><a href="f7-wisdom/index.html">F7 · Wisdom</a></li>
-          <li><a href="f8-loyalty/index.html">F8 · Loyalty</a></li>
-        </ul>
+        <a id="honor-team" class="chapter-tile locked" aria-disabled="true"
+           href="/athletes/arsenal/honor/team.html">
+          <span class="chapter-title">Team 🔒</span>
+        </a>
 
       </div>
 
@@ -57,6 +49,6 @@
 
   </div>
 
-  <script type="module" src="honor.app.js"></script>
+  <script type="module" src="/athletes/arsenal/honor/honor.app.js"></script>
 </body>
 </html>

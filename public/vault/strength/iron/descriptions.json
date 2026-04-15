@@ -1,0 +1,22 @@
+{
+  "mainLift": {
+    "desc": "Build force with control. Own posture and bar path on every working set.",
+    "prompt": "Top set, reps, weight, how it felt"
+  },
+  "secondaryLift": {
+    "desc": "Support the main lift with strict execution. No sloppy reps.",
+    "prompt": "What did you hit here?"
+  },
+  "assistance": {
+    "desc": "Finish the body with honest accessory work. No lazy effort.",
+    "prompt": "What got done? What broke down?"
+  },
+  "conditioning": {
+    "desc": "Finish with pace and discipline under fatigue.",
+    "prompt": "How did you finish? Did you complete it clean?"
+  },
+  "explosive": {
+    "desc": "Train speed and intent. Every rep should be sharp and explosive.",
+    "prompt": "What did you actually do here?"
+  }
+}

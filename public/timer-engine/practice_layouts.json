@@ -1,0 +1,57 @@
+{
+  "single-45": {
+    "warmup-only": [
+      { "id": "warmup", "label": "Warm-up", "minutes": 45 }
+    ],
+
+    "conditioning": [
+      { "id": "warmup", "label": "Warm-up", "minutes": 5 },
+      { "id": "conditioning", "label": "Conditioning", "minutes": 40 }
+    ],
+
+    "technique": [
+      { "id": "warmup", "label": "Warm-up", "minutes": 5 },
+      { "id": "technique", "label": "Technique", "minutes": 40 }
+    ],
+
+    "drilling": [
+      { "id": "warmup", "label": "Warm-up", "minutes": 5 },
+      { "id": "drilling", "label": "Drilling", "minutes": 40 }
+    ],
+
+    "live": [
+      { "id": "warmup", "label": "Warm-up", "minutes": 5 },
+      { "id": "live", "label": "Live Wrestling", "minutes": 40 }
+    ]
+  },
+
+  "standard-60-90": {
+    "daily-default": [
+      { "id": "roll-call", "label": "Roll Call and Announcements", "minutes": 5 },
+      { "id": "warmup", "label": "Warm Up", "minutes": 10 },
+      { "id": "review", "label": "Review of Prior Week’s Skills", "minutes": 5 },
+      { "id": "new-technique", "label": "Introduction of New Techniques", "minutes": 20 },
+      { "id": "live", "label": "Live Wrestling (Optional)", "minutes": 10 },
+      { "id": "strength-skill", "label": "Strength and Skill Based Activities", "minutes": 15 },
+      { "id": "mat-games", "label": "Mat Games", "minutes": 10 },
+      { "id": "cool-down", "label": "Cool Down", "minutes": 5 },
+      { "id": "closing", "label": "Closing Announcements", "minutes": 5 }
+    ]
+  },
+
+  "sandman-60-120": {
+    "daily-default": [
+      { "id": "mat-talk", "label": "Mat Talk", "minutes": 5 },
+      { "id": "warmup", "label": "Warm-up", "minutes": 10 },
+      { "id": "shadow", "label": "Shadow (Tempo)", "minutes": 10 },
+      { "id": "old-move", "label": "Old Move / Drill", "minutes": 15 },
+      { "id": "new-move", "label": "New Move", "minutes": 25 },
+      { "id": "whistle", "label": "Whistle Starts", "minutes": 10 },
+      { "id": "water", "label": "Water Break", "minutes": 5 },
+      { "id": "live", "label": "Live Wrestling", "minutes": 35 },
+      { "id": "situations", "label": "Situational Wrestling", "minutes": 15 },
+      { "id": "conditioning", "label": "Conditioning Finish", "minutes": 10 },
+      { "id": "finish", "label": "Finish / Close", "minutes": 5 }
+    ]
+  }
+}

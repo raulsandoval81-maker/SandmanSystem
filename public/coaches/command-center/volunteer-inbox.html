@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Volunteer Inbox</title>
+<link rel="icon" href="data:,"> 
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0b1220;
+      color: #fff;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #121a2b;
+      border: 1px solid #1f2a44;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+    }
+
+    .row {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+
+    .label {
+      color: #8aa0c6;
+      margin-right: 6px;
+    }
+
+    .status {
+      font-weight: bold;
+      color: #f4d44d;
+    }
+
+    .btn {
+      margin-top: 10px;
+      margin-right: 6px;
+      padding: 6px 10px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .reviewing { background: #3b82f6; color: #fff; }
+    .assigned  { background: #22c55e; color: #000; }
+    .closed    { background: #ef4444; color: #fff; }
+    
+
+  </style>
+</head>
+
+<body>
+
+  <h1>Volunteer Inbox</h1>
+
+  <div id="list"></div>
+  
+
+  <script type="module" src="./volunteer-inbox.js"></script>
+
+</body>
+</html>

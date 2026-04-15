@@ -1,0 +1,584 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Parent Hub | System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="/parent/parent.css">
+  <link rel="stylesheet" href="/parent/system/system.css">
+<style>
+
+/* System page layout */
+
+.system-shell{
+  display:grid;
+  gap:14px;
+}
+
+/* System internal tabs */
+
+.system-tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin:0;
+}
+
+.tab-btn{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:var(--panel);
+  color:var(--text);
+  padding:10px 14px;
+  font-weight:800;
+  cursor:pointer;
+  box-shadow:var(--shadow);
+}
+
+.tab-btn.active{
+  border-color:var(--gold);
+  color:var(--gold-deep);
+  background:#fffaf0;
+}
+
+/* Tab panels */
+
+.tab-panel{
+  display:none;
+}
+
+.tab-panel.active{
+  display:grid;
+  gap:14px;
+}
+
+/* Card action row */
+
+.card-action{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  flex-wrap:wrap;
+}
+
+/* Buttons */
+
+.p-btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:42px;
+  padding:0 14px;
+  border-radius:12px;
+  background:#0e1420;
+  border:1px solid #1f2a40;
+  color:#e5e7eb;
+  text-decoration:none;
+  font-weight:800;
+}
+
+.p-btn:hover{
+  border-color:var(--gold);
+  color:var(--gold);
+  background:#111827;
+}
+
+/* Handouts grid */
+
+.handout-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:14px;
+}
+
+.handout-card{
+  display:block;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:18px;
+  box-shadow:var(--shadow);
+  transition:transform .14s ease, border-color .14s ease, box-shadow .14s ease;
+}
+
+.handout-card:hover{
+  transform:translateY(-2px);
+  border-color:var(--gold);
+  box-shadow:0 12px 26px rgba(15, 23, 42, 0.08);
+}
+
+.handout-top{
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+
+.handout-icon{
+  font-size:1.4rem;
+  line-height:1;
+}
+
+.handout-meta h4{
+  margin:2px 0 0;
+  color:var(--text);
+  font-size:1rem;
+}
+
+.handout-type{
+  margin:0;
+  color:var(--gold-deep);
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.handout-card p{
+  margin:0 0 8px;
+  color:var(--muted);
+}
+
+.handout-link{
+  color:var(--gold-deep);
+  font-weight:800;
+}
+
+/* Mobile */
+
+@media (max-width:700px){
+
+  .handout-grid{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
+</head>
+<body>
+<header class="topbar">
+
+  <!-- LEFT -->
+  <div class="topbar-left">
+    <div class="lang-wrap">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sp">ES</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="topbar-center">
+    <a href="/parent/index.html" class="hub-mark">PARENT HUB</a>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="topbar-right">
+    <button id="themeToggle" class="theme-toggle">☀️</button>
+  </div>
+
+</header>
+<main class="wrap">
+
+  <section class="page-head">
+    <p class="eyebrow">
+      <span class="en">Parent Hub</span>
+      <span class="es">Portal de Padres</span>
+    </p>
+
+    <h1 class="page-title">
+      <span class="en">System / Resources</span>
+      <span class="es">Sistema / Recursos</span>
+    </h1>
+
+    <p class="page-sub">
+      <span class="en">Understanding the structure behind the room helps families support the journey.</span>
+      <span class="es">Comprender la estructura detrás del salón ayuda a las familias a apoyar el proceso.</span>
+    </p>
+  </section>
+
+    <nav class="parent-tabs" aria-label="Parent hub navigation">
+      <a class="parent-tab" href="/parent/my-athlete/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Progress</span>
+          <span class="es">Progreso</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">My Athlete</span>
+          <span class="es">Mi Atleta</span>
+        </h2>
+      </a>
+
+      <a class="parent-tab" href="/parent/schedule/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Logistics</span>
+          <span class="es">Logística</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">Schedule</span>
+          <span class="es">Horario</span>
+        </h2>
+      </a>
+
+      <a class="parent-tab" href="/parent/messages/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Communication</span>
+          <span class="es">Comunicación</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">Messages</span>
+          <span class="es">Mensajes</span>
+        </h2>
+      </a>
+
+      <a class="parent-tab" href="/parent/system/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Culture</span>
+          <span class="es">Cultura</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">System</span>
+          <span class="es">Sistema</span>
+        </h2>
+      </a>
+    </nav>
+
+
+  <div class="system-shell">
+
+    <!-- OVERVIEW -->
+    <section id="tab-overview" class="tab-panel active">
+      <div class="card">
+        <h3>
+          <span class="en">What Parents Should Know</span>
+          <span class="es">Lo Que Deben Saber Los Padres</span>
+        </h3>
+        <p>
+          <span class="en">
+            The Sandman system focuses on long-term athlete development. Progress is built through effort, discipline, and consistency rather than shortcuts or quick results.
+          </span>
+          <span class="es">
+            El sistema Sandman se enfoca en el desarrollo a largo plazo del atleta. El progreso se construye con esfuerzo, disciplina y constancia, no con atajos ni resultados rápidos.
+          </span>
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>
+          <span class="en">What Parents Reinforce</span>
+          <span class="es">Lo Que Refuerzan Los Padres</span>
+        </h3>
+        <ul class="en">
+          <li>Encourage effort over results</li>
+          <li>Support discipline and focus</li>
+          <li>Respect the coaching process</li>
+          <li>Help athletes stay consistent</li>
+        </ul>
+        <ul class="es">
+          <li>Fomentar el esfuerzo por encima del resultado</li>
+          <li>Apoyar la disciplina y el enfoque</li>
+          <li>Respetar el proceso del entrenador</li>
+          <li>Ayudar al atleta a mantenerse constante</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h3>
+          <span class="en">How To Use This Section</span>
+          <span class="es">Cómo Usar Esta Sección</span>
+        </h3>
+        <p>
+          <span class="en">
+            Use this area to understand the structure, review expectations, and access family handouts when questions come up during the season.
+          </span>
+          <span class="es">
+            Use esta área para entender la estructura, revisar expectativas y acceder a guías familiares cuando surjan preguntas durante la temporada.
+          </span>
+        </p>
+      </div>
+    </section>
+
+    <!-- Sandman System -->
+    <article class="card">
+
+      <h2>
+        <span class="en">The Sandman System</span>
+        <span class="es">El Sistema Sandman</span>
+      </h2>
+
+      <p>
+        <span class="en">
+          Our program is built on a structured progression that develops the complete athlete.
+          Combat, Strength, and Honor work together to build skill, discipline, and character.
+        </span>
+
+        <span class="es">
+          Nuestro programa se basa en una progresión estructurada que desarrolla al atleta completo.
+          Combate, Strength y Honor trabajan juntos para desarrollar habilidad, disciplina y carácter.
+        </span>
+      </p>
+
+      <a href="/parent/system/handouts/how-the-system-works.html" class="system-cta">
+        <span class="en">How the System Works →</span>
+        <span class="es">Cómo Funciona el Sistema →</span>
+      </a>
+
+    </article>
+
+    <!-- PROGRESSION -->
+    <section id="tab-progression" class="tab-panel">
+      <div class="card">
+        <h3>
+          <span class="en">Understanding Progress</span>
+          <span class="es">Entender el Progreso</span>
+        </h3>
+        <p>
+          <span class="en">
+            Athletes grow through structured training cycles and progression tiers designed to build skill, confidence, and character over time.
+          </span>
+          <span class="es">
+            Los atletas crecen por medio de ciclos de entrenamiento estructurados y niveles de progresión diseñados para desarrollar habilidad, confianza y carácter con el tiempo.
+          </span>
+        </p>
+      </div>
+
+      <div class="card">
+        <h3>
+          <span class="en">What Progress Means</span>
+          <span class="es">Qué Significa el Progreso</span>
+        </h3>
+        <ul class="en">
+          <li>Progress is earned, not rushed</li>
+          <li>Consistency matters more than hype</li>
+          <li>Readiness includes effort, discipline, and behavior</li>
+          <li>Growth is both athletic and personal</li>
+        </ul>
+        <ul class="es">
+          <li>El progreso se gana, no se apresura</li>
+          <li>La constancia importa más que la emoción del momento</li>
+          <li>La preparación incluye esfuerzo, disciplina y conducta</li>
+          <li>El crecimiento es atlético y personal</li>
+        </ul>
+      </div>
+
+      <div class="card card-action">
+        <div>
+          <h3>
+            <span class="en">Progression Guide</span>
+            <span class="es">Guía de Progresión</span>
+          </h3>
+          <p>
+            <span class="en">
+              Open the progression page for a parent-friendly explanation of how advancement works.
+            </span>
+            <span class="es">
+              Abra la página de progresión para una explicación clara para padres sobre cómo funciona el avance.
+            </span>
+          </p>
+        </div>
+        <a class="p-btn" href="/parent/system/progression.html">
+          <span class="en">Learn About Progression</span>
+          <span class="es">Aprender Sobre Progresión</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- HANDOUTS -->
+    <section id="tab-handouts" class="tab-panel">
+      <div class="handout-grid">
+
+        <a class="handout-card" href="/parent/system/handouts/faq.html">
+          <div class="handout-top">
+            <div class="handout-icon">📄</div>
+            <div class="handout-meta">
+              <p class="handout-type">
+                <span class="en">Guide</span>
+                <span class="es">Guía</span>
+              </p>
+              <h4>FAQ</h4>
+            </div>
+          </div>
+          <p>
+            <span class="en">Common questions parents ask about the program.</span>
+            <span class="es">Preguntas comunes que hacen los padres sobre el programa.</span>
+          </p>
+          <span class="handout-link">
+            <span class="en">Open Guide →</span>
+            <span class="es">Abrir Guía →</span>
+          </span>
+        </a>
+
+        <a class="handout-card" href="/parent/system/handouts/tournament-guide.html">
+          <div class="handout-top">
+            <div class="handout-icon">📄</div>
+            <div class="handout-meta">
+              <p class="handout-type">
+                <span class="en">Event Guide</span>
+                <span class="es">Guía de Evento</span>
+              </p>
+              <h4>
+                <span class="en">Tournament Guide</span>
+                <span class="es">Guía de Torneos</span>
+              </h4>
+            </div>
+          </div>
+          <p>
+            <span class="en">What tournament days look like and how families prepare.</span>
+            <span class="es">Cómo son los días de torneo y cómo se preparan las familias.</span>
+          </p>
+          <span class="handout-link">
+            <span class="en">Open Guide →</span>
+            <span class="es">Abrir Guía →</span>
+          </span>
+        </a>
+
+
+        <a class="handout-card" href="/parent/system/handouts/weight-hydration.html">
+          <div class="handout-top">
+            <div class="handout-icon">📄</div>
+            <div class="handout-meta">
+              <p class="handout-type">
+                <span class="en">Health</span>
+                <span class="es">Salud</span>
+              </p>
+              <h4>
+                <span class="en">Weight & Hydration</span>
+                <span class="es">Peso e Hidratación</span>
+              </h4>
+            </div>
+          </div>
+          <p>
+            <span class="en">Healthy guidance for athlete hydration and weight safety.</span>
+            <span class="es">Guía saludable para la hidratación y seguridad del peso del atleta.</span>
+          </p>
+          <span class="handout-link">
+            <span class="en">Open Guide →</span>
+            <span class="es">Abrir Guía →</span>
+          </span>
+        </a>
+
+        <a class="handout-card" href="/parent/system/handouts/wrestling-101.html">
+          <div class="handout-top">
+            <div class="handout-icon">📄</div>
+            <div class="handout-meta">
+              <p class="handout-type">
+                <span class="en">Basics</span>
+                <span class="es">Básico</span>
+              </p>
+              <h4>Wrestling 101</h4>
+            </div>
+          </div>
+          <p>
+            <span class="en">Basic match terms and explanations for new families.</span>
+            <span class="es">Términos básicos de lucha y explicaciones para familias nuevas.</span>
+          </p>
+          <span class="handout-link">
+            <span class="en">Open Guide →</span>
+            <span class="es">Abrir Guía →</span>
+          </span>
+        </a>
+
+        <a class="handout-card" href="/parent/system/handouts/gear-hygiene.html">
+          <div class="handout-top">
+            <div class="handout-icon">🧼</div>
+            <div class="handout-meta">
+              <p class="handout-type">
+                <span class="en">Athlete Guide</span>
+                <span class="es">Guía del Atleta</span>
+              </p>
+              <h4>
+                <span class="en">Gear & Hygiene</span>
+                <span class="es">Equipo e Higiene</span>
+              </h4>
+            </div>
+          </div>
+          <p>
+            <span class="en">What athletes should bring, wear, and do before, during, and after training.</span>
+            <span class="es">Qué deben traer, usar y hacer los atletas antes, durante y después del entrenamiento.</span>
+          </p>
+          <span class="handout-link">
+            <span class="en">Open Guide →</span>
+            <span class="es">Abrir Guía →</span>
+          </span>
+        </a>
+                <a class="handout-card" href="/parent/system/handouts/volunteer.html">
+          <div class="handout-top">
+            <div class="handout-icon">📄</div>
+            <div class="handout-meta">
+              <p class="handout-type">
+                <span class="en">Support</span>
+                <span class="es">Apoyo</span>
+              </p>
+              <h4>
+                <span class="en">Volunteer Guide</span>
+                <span class="es">Guía de Voluntariado</span>
+              </h4>
+            </div>
+          </div>
+          <p>
+            <span class="en">Ways families can help support the team and events.</span>
+            <span class="es">Formas en que las familias pueden ayudar al equipo y los eventos.</span>
+          </p>
+          <span class="handout-link">
+            <span class="en">Open Guide →</span>
+            <span class="es">Abrir Guía →</span>
+          </span>
+        </a>
+
+
+      </div>
+    </section>
+
+    <section class="system-footer-tabs">
+      <nav class="system-tabs" aria-label="Parent system tabs">
+
+        <button class="tab-btn active" data-tab="overview" type="button">
+          <span class="en">Overview</span>
+          <span class="es">Resumen</span>
+        </button>
+
+        <button class="tab-btn" data-tab="progression" type="button">
+          <span class="en">Progression</span>
+          <span class="es">Progresión</span>
+        </button>
+
+        <button class="tab-btn" data-tab="handouts" type="button">
+          <span class="en">Handouts</span>
+          <span class="es">Guías</span>
+        </button>
+
+      </nav>
+    </section>
+
+  </div>
+
+</main>
+
+
+<script>
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabPanels = document.querySelectorAll(".tab-panel");
+
+  function setTab(name){
+    tabBtns.forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.tab === name);
+    });
+
+    tabPanels.forEach(panel => {
+      panel.classList.toggle("active", panel.id === `tab-${name}`);
+    });
+  }
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => setTab(btn.dataset.tab));
+  });
+
+  setTab("overview");
+</script>
+<script type="module" src="/assets/js/parent-shell.js"></script>
+<script src="/assets/js/parent-shell.js"></script>
+
+</body>
+</html>

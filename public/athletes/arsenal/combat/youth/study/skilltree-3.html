@@ -1,0 +1,152 @@
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="3" data-track="youth">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 8 • Youth</p>
+    <h1>Skill Tree 3 — Competitor</h1>
+    <p class="skilltree-sub">15 skills • Applied offense and defensive reactions</p>
+  </header>
+
+  <!-- STANCE & MOTION -->
+  <article class="tree-block">
+    <h2>Stance &amp; Motion</h2>
+
+    <h3>Skill 1 — Angle Step</h3>
+    <p>A — Step off line</p>
+    <p>B — Create angle</p>
+    <p>C — Attack from angle</p>
+
+    <h3>Skill 2 — Motion to Attack</h3>
+    <p>A — Move first</p>
+    <p>B — Read reaction</p>
+    <p>C — Attack clean</p>
+
+    <h3>Skill 3 — Head Position</h3>
+    <p>A — Get inside position</p>
+    <p>B — Apply pressure</p>
+    <p>C — Hold while moving</p>
+  </article>
+
+  <!-- NEUTRAL OFFENSE -->
+  <article class="tree-block">
+    <h2>Neutral Offense</h2>
+
+    <h3>Skill 4 — Single Leg (Run the Corner)</h3>
+    <p>A — Secure single</p>
+    <p>B — Create angle</p>
+    <p>C — Finish behind</p>
+
+    <h3>Skill 5 — Double Leg (Drive Finish)</h3>
+    <p>A — Enter clean</p>
+    <p>B — Drive through</p>
+    <p>C — Secure score</p>
+
+    <h3>Skill 6 — Snap Down to Go Behind</h3>
+    <p>A — Snap</p>
+    <p>B — Control head</p>
+    <p>C — Spin behind</p>
+  </article>
+
+  <!-- NEUTRAL DEFENSE -->
+  <article class="tree-block">
+    <h2>Neutral Defense</h2>
+
+    <h3>Skill 7 — Sprawl &amp; Spin</h3>
+    <p>A — Sprawl</p>
+    <p>B — Find angle</p>
+    <p>C — Spin behind</p>
+
+    <h3>Skill 8 — Counter-Defense</h3>
+    <p>A — Defend</p>
+    <p>B — Recover</p>
+    <p>C — Attack back</p>
+
+    <h3>Skill 9 — Down Block to Re-Attack</h3>
+    <p>A — Down block</p>
+    <p>B — Stop penetration</p>
+    <p>C — Re-attack or go behind</p>
+  </article>
+
+  <!-- TOP -->
+  <article class="tree-block">
+    <h2>Top</h2>
+
+    <h3>Skill 10 — Crossface</h3>
+    <p>A — Crossface arm</p>
+    <p>B — Apply pressure</p>
+    <p>C — Turn or reset</p>
+
+    <h3>Skill 11 — Cradle</h3>
+    <p>A — Lock head and knee</p>
+    <p>B — Adjust and squeeze</p>
+    <p>C — Turn and hold</p>
+
+    <h3>Skill 12 — Ride Control</h3>
+    <p>A — Follow hips</p>
+    <p>B — Maintain pressure</p>
+    <p>C — Control position</p>
+  </article>
+
+  <!-- BOTTOM -->
+  <article class="tree-block">
+    <h2>Bottom</h2>
+
+    <h3>Skill 13 — Escape to Neutral</h3>
+    <p>A — Clear hands</p>
+    <p>B — Stand and separate</p>
+    <p>C — Face opponent</p>
+
+    <h3>Skill 14 — Bottom Movement</h3>
+    <p>A — Move hips</p>
+    <p>B — Adjust base</p>
+    <p>C — Chain to escape</p>
+
+    <h3>Skill 15 — Switch to Reversal</h3>
+    <p>A — Sit out line</p>
+    <p>B — Turn hips</p>
+    <p>C — Secure reversal</p>
+  </article>
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T3";
+  const pageTrack = "youth";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+    window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+    throw new Error("Wrong branch for F4 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>

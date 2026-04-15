@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Parent Hub | My Athlete</title>
+  <link rel="stylesheet" href="/parent/parent.css"/>
+  <link rel="icon" href="data:,">
+<link rel="stylesheet" href="/parent/my-athlete/my-athlete.css"/>
+</head>
+<body class="auth-pending">
+<header class="topbar">
+
+  <!-- LEFT -->
+  <div class="topbar-left">
+    <div class="lang-wrap">
+      <button class="lang-btn active" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="sp">ES</button>
+    </div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="topbar-center">
+    <a href="/parent/index.html" class="hub-mark">PARENT HUB</a>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="topbar-right">
+    <button id="themeToggle" class="theme-toggle">☀️</button>
+  </div>
+
+</header>
+  <div class="wrap">
+
+    <section class="page-head">
+      <p class="eyebrow">
+        <span class="en">Parent Hub</span>
+        <span class="es">Portal de Padres</span>
+      </p>
+
+      <h1 class="page-title">
+        <span class="en">My Athlete</span>
+        <span class="es">Mi Atleta</span>
+      </h1>
+
+      <p class="page-sub">
+        <span class="en">Follow your athlete’s progress, live practice status, and next milestone.</span>
+        <span class="es">Siga el progreso de su atleta, el estado en vivo de la práctica y el próximo objetivo.</span>
+      </p>
+    </section>
+
+    <nav class="parent-tabs" aria-label="Parent hub navigation">
+      <a class="parent-tab" href="/parent/my-athlete/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Progress</span>
+          <span class="es">Progreso</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">My Athlete</span>
+          <span class="es">Mi Atleta</span>
+        </h2>
+      </a>
+
+      <a class="parent-tab" href="/parent/schedule/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Logistics</span>
+          <span class="es">Logística</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">Schedule</span>
+          <span class="es">Horario</span>
+        </h2>
+      </a>
+
+      <a class="parent-tab" href="/parent/messages/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Communication</span>
+          <span class="es">Comunicación</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">Messages</span>
+          <span class="es">Mensajes</span>
+        </h2>
+      </a>
+
+      <a class="parent-tab" href="/parent/system/index.html">
+        <p class="parent-tab-kicker">
+          <span class="en">Culture</span>
+          <span class="es">Cultura</span>
+        </p>
+        <h2 class="parent-tab-title">
+          <span class="en">System</span>
+          <span class="es">Sistema</span>
+        </h2>
+      </a>
+    </nav>
+
+
+    <main class="main">
+
+      <section class="athlete-hero card">
+        <div class="athlete-hero__identity">
+          <div class="athlete-avatar" id="athlete-avatar">A</div>
+
+          <div class="athlete-meta">
+            <h2 class="athlete-name" id="athlete-name">—</h2>
+
+            <p class="athlete-tier">
+              <span class="en">Tier:</span>
+              <span class="es">Nivel:</span>
+              <strong id="athlete-tier">—</strong>
+            </p>
+
+            <p class="athlete-tag">
+              <span class="en">Virtue Tag:</span>
+              <span class="es">Etiqueta de Virtud:</span>
+              <strong id="athlete-tag">—</strong>
+            </p>
+          </div>
+        </div>
+
+        <div class="athlete-hero__summary">
+          <div class="summary-item">
+            <span class="summary-label">XP</span>
+            <span class="summary-value" id="summary-xp">—</span>
+          </div>
+
+          <div class="summary-item">
+            <span class="summary-label">
+              <span class="en">Stripe</span>
+              <span class="es">Franja</span>
+            </span>
+            <span class="summary-value" id="summary-stripe">—</span>
+          </div>
+
+          <div class="summary-item">
+            <span class="summary-label">
+              <span class="en">Team</span>
+              <span class="es">Equipo</span>
+            </span>
+            <span class="summary-value" id="summary-grind">—</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="card progress-card">
+        <div class="section-head">
+          <h3 class="card__title">
+            <span class="en">Progress</span>
+            <span class="es">Progreso</span>
+          </h3>
+
+          <span class="section-note">
+            <span class="en">Current tier progress</span>
+            <span class="es">Progreso actual del nivel</span>
+          </span>
+        </div>
+
+        <div class="xp-row">
+          <span class="xp-label">
+            <span class="en">Tier Progress</span>
+            <span class="es">Progreso del Nivel</span>
+          </span>
+          <span class="xp-value" id="athlete-tier-line">—</span>
+        </div>
+
+        <div id="rankBar" class="belt-track">
+          <div id="rankFill" class="belt-fill"></div>
+        </div>
+
+        <div class="rank-stats">
+          <span id="stripeText">—</span>
+          <span id="xpText">—</span>
+        </div>
+
+        <div class="stripe-target" id="stripe-target">—</div>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h3 class="card__title">
+            <span class="en">Today’s Practice</span>
+            <span class="es">Práctica de Hoy</span>
+          </h3>
+
+          <span class="section-note">
+            <span class="en">Live status</span>
+            <span class="es">Estado en vivo</span>
+          </span>
+        </div>
+
+        <div class="today-box" id="today-box">
+          <p class="muted-empty">
+            <span class="en">Loading today’s practice...</span>
+            <span class="es">Cargando la práctica de hoy...</span>
+          </p>
+        </div>
+      </section>
+
+      <section class="grid--2">
+        <article class="card">
+          <div class="section-head">
+            <h3 class="card__title">
+              <span class="en">Recent Activity</span>
+              <span class="es">Actividad Reciente</span>
+            </h3>
+
+            <span class="section-note">
+              <span class="en">Latest updates</span>
+              <span class="es">Últimas actualizaciones</span>
+            </span>
+          </div>
+
+          <ul class="activity-list" id="activity-list">
+            <li class="muted-empty">
+              <span class="en">Recent activity not available yet.</span>
+              <span class="es">La actividad reciente todavía no está disponible.</span>
+            </li>
+          </ul>
+        </article>
+
+        <article class="card">
+          <div class="section-head">
+            <h3 class="card__title">
+              <span class="en">Next Milestone</span>
+              <span class="es">Próximo Objetivo</span>
+            </h3>
+
+            <span class="section-note">
+              <span class="en">What’s ahead</span>
+              <span class="es">Lo que sigue</span>
+            </span>
+          </div>
+
+          <p class="milestone-copy" id="milestone-xp">
+            <span class="en">Loading milestone...</span>
+            <span class="es">Cargando objetivo...</span>
+          </p>
+
+          <p class="milestone-copy" id="milestone-stripe"></p>
+        </article>
+      </section>
+
+      <section class="card">
+        <div class="section-head">
+          <h3 class="card__title">
+            <span class="en">Coach Note</span>
+            <span class="es">Nota del Entrenador</span>
+          </h3>
+
+          <span class="section-note">
+            <span class="en">Parent view</span>
+            <span class="es">Vista para padres</span>
+          </span>
+        </div>
+
+        <p class="coach-note" id="coach-note">
+          <span class="en">No coach note available yet.</span>
+          <span class="es">Todavía no hay una nota del entrenador.</span>
+        </p>
+      </section>
+
+    </main>
+  </div>
+  <script src="/assets/js/parent-shell.js"></script>
+  <script type="module" src="/parent/my-athlete/my-athlete.js"></script>
+</body>
+</html>

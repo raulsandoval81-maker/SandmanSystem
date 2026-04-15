@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="./coach.intake.css"/>
   <link rel="stylesheet" href="/intake-shared/shared.css"/>
+  <link rel="icon" href="data:,"> 
 </head>
 
 <body>
@@ -104,6 +105,68 @@
     </section>
 
     <!-- ========================= -->
+    <!--      EXPERIENCE CREDIT    -->
+    <!-- ========================= -->
+    <section class="card" aria-labelledby="exp-title">
+      <h3 id="exp-title">Experience Credit</h3>
+      <p class="muted small">Apply prior experience credit before minting.</p>
+
+      <div class="row">
+        <div class="field">
+          <label for="c-exp-years">Prior Experience</label>
+          <select id="c-exp-years">
+            <option value="0">None (New Athlete)</option>
+            <option value="1">1 Year</option>
+            <option value="2">2 Years</option>
+            <option value="3">3+ Years</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="stat">
+          <div class="label">Total Credit</div>
+          <div class="value" id="exp-total">0</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Issued Now</div>
+          <div class="value" id="exp-now">0</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Held (T1)</div>
+          <div class="value" id="exp-hold">0</div>
+        </div>
+
+        <div class="stat">
+          <div class="label">Schedule</div>
+          <div class="value small" id="exp-schedule">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= -->
+    <!--    COACH ADJUSTMENT       -->
+    <!-- ========================= -->
+    <section class="card" aria-labelledby="adjust-title">
+      <h3 id="adjust-title">Coach Adjustment (Optional)</h3>
+      <p class="muted small">Only use for delays or corrections. Logged to XP history later in workflow.</p>
+
+      <div class="row">
+        <div class="field">
+          <label for="c-adjust-xp">XP Adjustment</label>
+          <input id="c-adjust-xp" type="number" min="0" step="1" placeholder="e.g., 50">
+        </div>
+
+        <div class="field" style="flex:2">
+          <label for="c-adjust-note">Reason</label>
+          <input id="c-adjust-note" placeholder="e.g., Intake delay, testing backlog">
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================= -->
     <!--      MINT VIRTUE TAG      -->
     <!-- ========================= -->
     <section class="card" id="mint-box" aria-labelledby="minttag-title">
@@ -124,6 +187,7 @@
         </div>
       </div>
     </section>
+
     <!-- ========================= -->
     <!--           MINT            -->
     <!-- ========================= -->
@@ -140,7 +204,6 @@
         </div>
       </div>
 
-      <!-- required by Phase 2 intake rules -->
       <input id="c-track" type="hidden">
       <input id="c-tier"  type="hidden">
       <input id="c-rank"  type="hidden">
@@ -161,7 +224,6 @@
       </div>
     </section>
 
-
     <!-- ========================= -->
     <!--          APPROVE          -->
     <!-- ========================= -->
@@ -178,27 +240,51 @@
       </div>
     </section>
 
-    <!-- ========================= -->
-    <!--      APPROVAL MODAL       -->
-    <!-- ========================= -->
-    <div id="approval-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="approved-title">
-      <div class="modal-box">
-        <h2 id="approved-title">Athlete Approved!</h2>
-        <p class="muted small">Send this link to the athlete to begin onboarding:</p>
+<!-- ========================= -->
+<!--      APPROVAL MODAL       -->
+<!-- ========================= -->
+<div id="approval-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div class="modal-box">
+    <h2>Athlete Approved!</h2>
+    <p class="muted small">Send links below to continue setup.</p>
 
-        <div class="row">
-          <div class="field" style="flex:1 1 420px">
-            <label for="onboarding-link" class="sr-only">Onboarding link</label>
-            <input id="onboarding-link" type="text" readonly />
-          </div>
-        </div>
+    <!-- UID -->
+    <label class="small muted">Athlete UID</label>
+    <div class="row">
+      <div class="field" style="flex:1 1 320px">
+        <input id="approved-athlete-uid" type="text" readonly class="mono small" />
+      </div>
+      <button type="button" class="pill" id="copy-athlete-uid">Copy</button>
+    </div>
 
-        <div class="row">
-          <button type="button" class="pill" id="copy-link">Copy Link</button>
-          <button type="button" class="pill" id="open-link">Open</button>
-        </div>
+    <!-- ONBOARDING -->
+    <label class="small muted">Coach / Athlete Onboarding</label>
+    <div class="row">
+      <div class="field" style="flex:1 1 420px">
+        <input id="onboarding-link" type="text" readonly />
       </div>
     </div>
+
+    <div class="row">
+      <button type="button" class="pill" id="copy-link">Copy</button>
+      <button type="button" class="pill" id="open-link">Open</button>
+    </div>
+
+    <!-- PARENT LINK -->
+    <label class="small muted">Parent My-Athlete Link</label>
+    <div class="row">
+      <div class="field" style="flex:1 1 420px">
+        <input id="parent-my-athlete-link" type="text" readonly />
+      </div>
+    </div>
+
+    <div class="row">
+      <button type="button" class="pill" id="copy-parent-link">Copy</button>
+      <button type="button" class="pill" id="open-parent-link">Open</button>
+    </div>
+
+  </div>
+</div>
 
     <footer class="footer small muted">
       Sandman Systems™ — Coach Intake Review

@@ -1,444 +1,922 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>Join | Sandman System™</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <link rel="stylesheet" href="assets/css/site.css" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join | Sandman Combat™</title>
+  <link rel="icon" href="/favicon.ico" />
+
+  <link rel="stylesheet" href="public.css" />
+  <script src="assets/js/public-shell.js" defer></script>
+
   <style>
-    body {
-      margin: 0;
-      background: #0b1020;
-      color: #e5e7eb;
-      font-family: system-ui, Segoe UI, Roboto, Arial, sans-serif;
+    :root{ color-scheme:dark; }
+    *{ box-sizing:border-box; }
+
+    a{ color:inherit; }
+
+    :focus-visible{
+      outline:2px solid var(--brand);
+      outline-offset:3px;
+      border-radius:10px;
     }
 
-    /* Top Nav (match other public pages) */
-    .top-nav {
-      background:#0f141b;
-      border-bottom:2px solid #ffd633;
-      padding:.75rem 1.5rem;
-      position:sticky;
-      top:0;
-      z-index:1000;
-    }
-    .nav-container {
-      max-width:1200px;
-      margin:0 auto;
+    .top-nav{
       display:flex;
       flex-direction:column;
+      gap:8px;
+      padding:10px 12px 12px;
+      background:#081a34;
+      border-bottom:1px solid rgba(255,214,51,.14);
+    }
+
+    .nav-top{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
       align-items:center;
+      gap:8px;
+    }
+
+    .nav-logo{
+      display:block;
+      justify-self:center;
       text-align:center;
-      gap:.5rem;
-    }
-    .nav-logo {
-      font-size:1.25rem;
-      font-weight:700;
-      color:#ffd633;
-      text-transform:uppercase;
-      letter-spacing:1px;
-    }
-    .nav-links {
-      display:flex;
-      gap:1.5rem;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
-    .nav-links a {
       text-decoration:none;
-      font-weight:500;
-      color:#f3f4f6;
-      transition:color .2s;
-    }
-    .nav-links a:hover { color:#ff4d4d; }
-    @media (min-width:900px){
-      .nav-container{ flex-direction:row; justify-content:space-between; }
-    }
-
-    /* Layout */
-    .wrap {
-      max-width: 680px;
-      margin: 2.5rem auto;
-      padding: 0 16px;
-    }
-    .card {
-      background: #0f172a;
-      border: 1px solid #1f2937;
-      border-radius: 14px;
-      padding: 16px;
-      box-shadow: 0 0 14px rgba(0,0,0,.35);
-    }
-    h1 {
-      font-size: 1.6rem;
-      margin: 0 0 8px;
-    }
-    .muted {
-      color: #9ca3af;
-    }
-    .row {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-      margin: 10px 0;
-    }
-    input {
-      flex: 1;
-      min-width: 260px;
-      background: #0a1224;
-      color: #e5e7eb;
-      border: 1px solid #1f2937;
-      border-radius: 8px;
-      padding: 8px;
-    }
-    button {
-      background: #ffd633;
-      color: #111;
-      border: none;
-      border-radius: 999px;
-      padding: 8px 14px;
-      cursor: pointer;
-      font-weight: 700;
-    }
-    button.secondary {
-      background: #263142;
-      color: #e5e7eb;
-      border: 1px solid #3a4a60;
-    }
-    img {
-      display: block;
-      background: #0a1224;
-      border-radius: 12px;
-      border: 1px solid #1f2937;
+      color:#ffd633;
+      font-weight:900;
+      font-size:.98rem;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      white-space:nowrap;
     }
 
-    /* Footer (match others) */
-    .footer {
-      background:#0f141b;
-      border-top:2px solid #ffd633;
-      padding:1rem 1.5rem;
-      margin-top:2rem;
+    .lang-toggle{
+      justify-self:start;
     }
-    .footer-container {
-      max-width:1200px;
-      margin:0 auto;
+
+    .lang-toggle .lang-btn{
+      min-height:32px;
+      padding:.28rem .58rem;
+      font-size:.8rem;
+      border-radius:999px;
+    }
+
+    .theme-toggle{
+      justify-self:end;
+      width:38px;
+      height:38px;
+      min-width:38px;
+      min-height:38px;
       display:flex;
-      gap:1rem;
       align-items:center;
       justify-content:center;
-      flex-wrap:wrap;
+      border-radius:999px;
+      padding:0;
     }
-    .footer-title { font-weight:700; color:#ffd633; }
-    .footer-links {
+
+    .site-nav{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+      width:100%;
+      background:transparent;
+      padding:0;
+      border:none;
+      box-shadow:none;
+    }
+
+    .site-nav a{
       display:flex;
-      gap:1.25rem;
-      flex-wrap:wrap;
-    }
-    .footer-links a {
-      color:#f3f4f6;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      padding:.38rem .35rem;
+      border-radius:999px;
+      background:rgba(0,0,0,.28);
+      color:#ffffff;
       text-decoration:none;
-      font-weight:500;
+      font-weight:800;
+      font-size:.83rem;
+      line-height:1;
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:none;
+      text-align:center;
+      transition:filter .15s ease, transform .15s ease, border-color .15s ease;
     }
-    .footer-links a:hover { color:#ff4d4d; }
-    /* ===== Shared Top Nav (Shrunk, Unified) ===== */
-.top-nav {
-  background:#0f141b;
-  border-bottom:2px solid #ffd633;
-  padding:.45rem 1.25rem;       /* was .75rem 1.5rem */
-  position:sticky;
-  top:0;
-  z-index:1000;
-}
 
-.nav-container {
-  max-width:1200px;
-  margin:0 auto;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  text-align:center;
-  gap:.3rem;                    /* tighter gap */
-}
+    .site-nav a:hover{
+      filter:brightness(1.05);
+      transform:translateY(-1px);
+      border-color:#ffd633;
+    }
 
-.nav-logo a,
-.nav-logo {
-  font-size:1.05rem;            /* was 1.25rem */
-  font-weight:700;
-  color:#ffd633;
-  text-transform:uppercase;
-  letter-spacing:.08em;
-  text-decoration:none;
-}
+    .site-nav a[aria-current="page"]{
+      background:#ffd633;
+      color:#111827;
+      border-color:#ffd633;
+    }
 
-.nav-links {
-  display:flex;
-  gap:1rem;                     /* slightly tighter */
-  flex-wrap:wrap;
-  justify-content:center;
-  font-size:.85rem;             /* smaller text for mobile */
-}
+    body.day-mode .top-nav{
+      background:#f3e7cf;
+      border-bottom:1px solid rgba(166,124,0,.14);
+    }
 
-.nav-links a {
-  text-decoration:none;
-  font-weight:500;
-  color:#f3f4f6;
-  transition:color .2s;
-}
+    body.day-mode .nav-logo{
+      color:#a16207;
+    }
 
-.nav-links a[aria-current="page"] {
-  color:#ffd633;
-  font-weight:700;
-}
+    body.day-mode .site-nav a{
+      background:#ffffff;
+      color:#1c2430;
+      border:1px solid #d7c7a2;
+    }
 
-.nav-links a:hover { color:#ff4d4d; }
+    body.day-mode .site-nav a[aria-current="page"]{
+      background:#ffd633;
+      color:#111827;
+      border-color:#e5b800;
+    }
 
-@media (min-width:900px){
-  .nav-container{
-    flex-direction:row;
-    justify-content:space-between;
-  }
-}
-/* ---------------- TOP NAV ---------------- */
-.top-nav{
-  background:#0f141b;
-  border-bottom:2px solid #ffd633;
-  padding:.45rem 1rem;
-  position:sticky;
-  top:0;
-  z-index:1000;
-}
-.nav-inner{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  max-width:1200px;
-  margin:0 auto;
-}
-.nav-logo{
-  font-size:1rem;
-  font-weight:700;
-  color:#ffd633;
-  text-decoration:none;
-  text-transform:uppercase;
-  letter-spacing:.05em;
-}
-.nav-btn{
-  background:none;
-  border:0;
-  font-size:1.4rem;
-  color:#ffd633;
-  cursor:pointer;
-}
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:2rem 1.25rem;
+    }
 
-/* ---------------- DRAWER ---------------- */
-.nav-drawer{
-  position:fixed;
-  top:0; right:-260px;
-  width:260px;
-  height:100vh;
-  background:#0b1118;
-  border-left:2px solid #ffd633;
-  padding:1.5rem;
-  transition:.25s;
-  z-index:2000;
-  display:flex;
-  flex-direction:column;
-  gap:.75rem;
-}
-.nav-drawer.open{ right:0; }
+    .section{ margin:2rem 0; }
 
-.drawer-links a{
-  color:#f3f4f6;
-  text-decoration:none;
-  font-size:1rem;
-  padding:.4rem 0;
-  font-weight:500;
-  display:block;
-}
+    .hero{
+      background:linear-gradient(to bottom, #8b0000, #1a1a1a);
+      border-radius:20px;
+      padding:2rem 1.5rem;
+      border:1px solid rgba(255,255,255,.06);
+      box-shadow:0 0 22px rgba(0,0,0,.7);
+    }
 
-.drawer-links a:hover{
-  color:#ff4d4d;
-}
+    body.day-mode .hero{
+      background:linear-gradient(to bottom,#c2410c,#f3e7cf);
+      border:1px solid rgba(166,124,0,.2);
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
 
-/* ---------------- BACKDROP ---------------- */
-.nav-backdrop{
-  position:fixed;
-  top:0; left:0;
-  width:100%; height:100%;
-  background:rgba(0,0,0,.45);
-  opacity:0; pointer-events:none;
-  transition:.25s;
-  z-index:1500;
-}
-.nav-backdrop.show{
-  opacity:1; pointer-events:auto;
-}
+    .hero-kicker{
+      text-transform:uppercase;
+      letter-spacing:.12em;
+      font-size:.8rem;
+      color:var(--brand);
+      font-weight:800;
+      margin-bottom:.35rem;
+    }
 
-/* ---------------- FOOTER ---------------- */
-.footer{
-  background:#0f141b;
-  border-top:2px solid #ffd633;
-  padding:1rem;
-  margin-top:2rem;
-}
-.footer-container{
-  max-width:1200px;
-  margin:0 auto;
-  display:flex;
-  justify-content:center;
-  gap:1.5rem;
-  flex-wrap:wrap;
-}
-.footer-title{
-  font-weight:700;
-  color:#ffd633;
-}
-.footer-links{
-  display:flex;
-  gap:1rem;
-}
-.footer-links a{
-  color:#f3f4f6;
-  text-decoration:none;
-}
-.footer-links a:hover{
-  color:#ff4d4d;
-}
+    .hero h1{
+      margin:0 0 .5rem;
+    }
 
-/* Highlight Current Page */
-.drawer-links a[aria-current="page"],
-.footer-links a[aria-current="page"]{
-  color:#ffd633;
-  font-weight:700;
-}
-</style>
+    .hero-sub{
+      color:#e5e7eb;
+      font-size:1rem;
+      margin:0;
+    }
 
+    body.day-mode .hero-sub{
+      color:#1c2430;
+    }
+
+    .hero-tag{
+      color:#cfd3d9;
+      font-size:.95rem;
+      line-height:1.55;
+      margin-top:.75rem;
+    }
+
+    body.day-mode .hero-tag{
+      color:#374151;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:1.1rem;
+      box-shadow:var(--shadow);
+    }
+
+    .pill-tag{
+      display:inline-block;
+      padding:.25rem .6rem;
+      border-radius:999px;
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      font-size:.7rem;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:.75rem;
+    }
+
+    .panel-title{
+      margin:.25rem 0 .25rem;
+      font-size:1.2rem;
+      color:var(--text);
+      font-weight:900;
+      letter-spacing:.02em;
+    }
+
+    .panel-sub{
+      margin:0 0 1rem;
+      color:var(--muted);
+      font-size:.95rem;
+      line-height:1.55;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:.9rem;
+      margin-top:1rem;
+    }
+
+    .col-12{ grid-column: span 12; }
+    .col-6{ grid-column: span 6; }
+
+    @media (max-width: 860px){
+      .col-6{ grid-column: span 12; }
+    }
+
+    label{
+      display:block;
+      font-weight:900;
+      letter-spacing:.02em;
+      margin:.75rem 0 .35rem;
+      color:var(--text);
+      font-size:.85rem;
+      text-transform:uppercase;
+    }
+
+    input, select, textarea{
+      width:100%;
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      color:var(--text);
+      padding:.75rem .85rem;
+      border-radius:12px;
+      font-size:1rem;
+      outline:none;
+    }
+
+    textarea{
+      min-height:120px;
+      resize:vertical;
+    }
+
+    body.day-mode input,
+    body.day-mode select,
+    body.day-mode textarea{
+      background:#fffdf8;
+      color:#1c2430;
+      border-color:#d7c7a2;
+    }
+
+    .row-actions{
+      display:flex;
+      gap:.75rem;
+      flex-wrap:wrap;
+      margin-top:1rem;
+      align-items:center;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius:12px;
+      padding:.85rem 1rem;
+      font-weight:900;
+      letter-spacing:.02em;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      transition: transform .05s ease, filter .15s ease, background .15s ease, border-color .15s ease;
+    }
+
+    .btn:active{ transform: translateY(1px); }
+
+    .btn-primary{
+      background:var(--brand);
+      color:var(--brand-ink);
+      border:1px solid rgba(0,0,0,.2);
+    }
+
+    .btn-primary:hover{ filter:brightness(1.02); }
+
+    .btn-ghost{
+      background:transparent;
+      color:var(--brand);
+      border:1px solid var(--line);
+    }
+
+    .btn-ghost:hover{
+      color:#ffffff;
+      border-color:#ffffff;
+    }
+
+    body.day-mode .btn-ghost:hover{
+      color:#1c2430;
+      border-color:var(--brand);
+    }
+
+    .status{
+      margin-top:1rem;
+      padding:.9rem 1rem;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--panel-2);
+      color:var(--muted);
+      display:none;
+    }
+
+    .status strong{ color:var(--brand); }
+
+    .info-note{
+      margin-top:1rem;
+      padding:.9rem 1rem;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--panel-2);
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .info-note strong{ color:var(--brand); }
+
+    .option-card{
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:1rem;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      gap:.75rem;
+      transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;
+    }
+
+    .option-card:hover{
+      transform:translateY(-1px);
+    }
+
+.option-card.active{
+  border:2px solid #ffd633;
+  box-shadow:0 0 0 2px rgba(255,214,51,.22);
+}
+    .option-card h3{
+      margin:0;
+      font-size:1.1rem;
+      color:var(--text);
+      font-weight:900;
+    }
+
+    .option-price{
+      font-size:1rem;
+      font-weight:900;
+      color:var(--brand);
+      margin:0;
+    }
+
+    .option-copy{
+      margin:0;
+      color:var(--muted);
+      line-height:1.55;
+      flex:1;
+    }
+
+    .option-note{
+      margin:0;
+      padding:.8rem .9rem;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,.14);
+      color:var(--muted);
+      line-height:1.55;
+      font-size:.92rem;
+    }
+
+    body.day-mode .option-note{
+      background:rgba(255,255,255,.65);
+    }
+
+    .option-note strong{
+      color:var(--brand);
+    }
+
+    .selected-path{
+      margin-top:1rem;
+      padding:.9rem 1rem;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--panel-2);
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .selected-path strong{
+      color:var(--brand);
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    @media (min-width:700px){
+      .site-nav{
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+      }
+
+      .site-nav a{
+        min-height:40px;
+        font-size:.86rem;
+      }
+
+      .nav-logo{
+        font-size:1.02rem;
+      }
+    }
+
+    @media (max-width:640px){
+      .top-nav{
+        padding:10px;
+      }
+
+      .wrap{
+        padding:1.4rem .9rem;
+      }
+
+      .hero{
+        padding:1.4rem 1rem;
+      }
+    }
+    
   </style>
-</head>
 <body>
-<!-- TOP NAV -->
-<header class="top-nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo">Sandman System™</a>
-    <button class="nav-btn" id="navBtn" aria-label="Menu">
-      ☰
-    </button>
-  </div>
-</header>
+  <header class="top-nav">
+    <div class="nav-top">
+      <div class="lang-toggle" role="group" aria-label="Language toggle">
+        <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+      </div>
 
-<!-- DRAWER -->
-<aside class="nav-drawer" id="navDrawer" aria-label="Site menu">
-  <nav class="drawer-links">
-    <a href="index.html">Home</a>
-    <a href="overview.html">Overview</a>
-    <a href="programs.html">Programs</a>
-    <a href="about.html">About</a>
-    <a href="contact.html">Contact</a>
-    <a href="ceremonies.html">Ceremonies</a>
-  </nav>
-</aside>
+      <a href="index.html" class="nav-logo">Sandman Combat™</a>
 
-<!-- BACKDROP -->
-<div class="nav-backdrop" id="navBackdrop"></div>
+      <button type="button" class="theme-toggle" aria-label="Toggle theme">☾</button>
+    </div>
+
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
+
+      <a href="overview.html">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
+
+      <a href="programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
+
+      <a href="about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
 
   <main class="wrap">
-    <h1>Parent Invite</h1>
-    <p class="muted" style="margin-bottom:1rem;">
-      Coach sent you a token. Scan or continue to open your intake form.
-    </p>
-    <div class="card">
-      <p class="muted">Scan the QR or click Continue to start the intake.</p>
-      <div class="row">
-        <img id="qr" width="240" height="240" alt="QR code to start intake">
+    <section class="section">
+      <div class="hero">
+        <div data-lang-block="en">
+          <div class="hero-kicker">Join</div>
+          <h1>Start Your Path</h1>
+          <p class="hero-sub">Sandman Combat™</p>
+          <p class="hero-tag">
+            Families begin here. Coach reviews each request, then approved families receive the official next step.
+          </p>
+
+          <div class="option-note">
+            <strong>Free 3-day trial available for:</strong><br />
+            • Lompoc High School students<br />
+            • First-time local families (one per household)<br /><br />
+            Proof of residency required. Coach approval required.
+          </div>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <div class="hero-kicker">Unirse</div>
+          <h1>Comienza tu camino</h1>
+          <p class="hero-sub">Sandman Combat™</p>
+          <p class="hero-tag">
+            Las familias comienzan aquí. Coach revisa cada solicitud y luego las familias aprobadas reciben el siguiente paso oficial.
+          </p>
+
+          <div class="option-note">
+            <strong>Prueba gratuita de 3 días disponible para:</strong><br />
+            • Estudiantes de Lompoc High School<br />
+            • Familias locales por primera vez (una por hogar)<br /><br />
+            Se requiere comprobante de residencia. Se requiere aprobación de Coach.
+          </div>
+        </div>
       </div>
-      <div class="row">
-        <input id="link" readonly>
-        <button id="copy">Copy</button>
-        <button id="go" class="secondary">Continue</button>
-      </div>
-      <div id="msg" class="muted"></div>
-    </div>
+    </section>
+
+    <section class="section">
+      <article class="panel">
+        <div data-lang-block="en">
+          <span class="pill-tag">Choose Your Path</span>
+          <h2 class="panel-title">Pick the right starting point</h2>
+          <p class="panel-sub">
+            Choose the option that fits your situation, then submit the request below. Coach will review it before any invite is sent.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <span class="pill-tag">Elige tu camino</span>
+          <h2 class="panel-title">Elige el punto de inicio correcto</h2>
+          <p class="panel-sub">
+            Elige la opción que mejor se ajuste a tu situación y luego envía la solicitud abajo. Coach la revisará antes de enviar cualquier invitación.
+          </p>
+        </div>
+
+        <div class="grid">
+          <div class="col-6">
+            <div class="option-card active" id="trialCard">
+              <div data-lang-block="en">
+                <h3>3-Day Trial</h3>
+                <p class="option-price">$30 Standard Trial</p>
+                <p class="option-copy">
+                  Best for athletes who want to step into the room first before committing.
+                </p>
+
+                <p class="option-note">
+                  <strong>Free trial available if qualified:</strong><br>
+                  • Lompoc High School students<br>
+                  • First-time local families (one per household)<br><br>
+                  Proof of residency required. Coach approval required.
+                </p>
+              </div>
+
+              <div data-lang-block="es" class="hidden-lang">
+                <h3>Prueba de 3 días</h3>
+                <p class="option-price">$30 prueba estándar</p>
+                <p class="option-copy">
+                  Ideal para atletas que quieren entrar al salón primero antes de comprometerse.
+                </p>
+
+                <p class="option-note">
+                  <strong>Prueba gratuita disponible si califica:</strong><br>
+                  • Estudiantes de Lompoc High School<br>
+                  • Familias locales por primera vez (una por hogar)<br><br>
+                  Se requiere comprobante de residencia. Se requiere aprobación de Coach.
+                </p>
+              </div>
+
+              <button class="btn btn-primary" type="button" id="btnTrial">
+                <span data-lang-block="en">Choose Trial</span>
+                <span data-lang-block="es" class="hidden-lang">Elegir prueba</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="col-6">
+            <div class="option-card" id="joinCard">
+              <div data-lang-block="en">
+                <h3>Join the Academy</h3>
+                <p class="option-price">$100/month (family cap)</p>
+                <p class="option-copy">
+                  Best for families ready to commit and begin the full Sandman process.
+                </p>
+              </div>
+
+              <div data-lang-block="es" class="hidden-lang">
+                <h3>Únete a la academia</h3>
+                <p class="option-price">$100/mes (tope familiar)</p>
+                <p class="option-copy">
+                  Ideal para familias listas para comprometerse y comenzar el proceso completo de Sandman.
+                </p>
+              </div>
+
+              <button class="btn btn-primary" type="button" id="btnJoin">
+                <span data-lang-block="en">Choose Join</span>
+                <span data-lang-block="es" class="hidden-lang">Elegir unirse</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="selected-path" id="selectedPath">
+          <div data-lang-block="en">
+            <strong>Current path:</strong> Trial request selected. Submit the form below and Coach will follow up with the next step if approved.
+          </div>
+          <div data-lang-block="es" class="hidden-lang">
+            <strong>Ruta actual:</strong> Solicitud de prueba seleccionada. Envía el formulario abajo y Coach dará seguimiento con el siguiente paso si es aprobado.
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="section">
+      <article class="panel">
+        <div data-lang-block="en">
+          <span class="pill-tag">Invite Request</span>
+          <h2 class="panel-title">Parent / Guardian Info</h2>
+          <p class="panel-sub">
+            Fill this out and Coach will follow up. Approved families receive the proper next step: trial invite or formal onboarding.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <span class="pill-tag">Solicitud de invitación</span>
+          <h2 class="panel-title">Información del padre / tutor</h2>
+          <p class="panel-sub">
+            Complete esto y Coach dará seguimiento. Las familias aprobadas recibirán el siguiente paso correcto: invitación de prueba o incorporación formal.
+          </p>
+        </div>
+
+        <form id="joinForm" novalidate>
+          <input type="hidden" name="entryType" id="entryType" value="trial" />
+
+          <div class="grid">
+            <div class="col-6">
+              <label for="parentName">
+                <span data-lang-block="en">Parent / Guardian Name</span>
+                <span data-lang-block="es" class="hidden-lang">Nombre del padre / tutor</span>
+              </label>
+              <input id="parentName" name="parentName" type="text" autocomplete="name" required />
+            </div>
+
+            <div class="col-6">
+              <label for="parentEmail">
+                <span data-lang-block="en">Parent Email</span>
+                <span data-lang-block="es" class="hidden-lang">Correo del padre</span>
+              </label>
+              <input id="parentEmail" name="parentEmail" type="email" autocomplete="email" required />
+            </div>
+
+            <div class="col-6">
+              <label for="athleteName">
+                <span data-lang-block="en">Athlete Name</span>
+                <span data-lang-block="es" class="hidden-lang">Nombre del atleta</span>
+              </label>
+              <input id="athleteName" name="athleteName" type="text" required />
+            </div>
+
+            <div class="col-6">
+              <label for="athleteAge">
+                <span data-lang-block="en">Age / Grade</span>
+                <span data-lang-block="es" class="hidden-lang">Edad / grado</span>
+              </label>
+              <input id="athleteAge" name="athleteAge" type="text" placeholder="Example: 12 / 6th" />
+            </div>
+
+            <div class="col-6">
+              <label for="track">
+                <span data-lang-block="en">Program</span>
+                <span data-lang-block="es" class="hidden-lang">Programa</span>
+              </label>
+              <select id="track" name="track" required>
+                <option value="">Select…</option>
+                <option value="foundry8">Foundry 8 (Youth)</option>
+                <option value="foundry4">Foundry 4 (Teen)</option>
+              </select>
+            </div>
+
+            <div class="col-6">
+              <label for="interest">
+                <span data-lang-block="en">Primary Interest</span>
+                <span data-lang-block="es" class="hidden-lang">Interés principal</span>
+              </label>
+              <select id="interest" name="interest" required>
+                <option value="">Select…</option>
+                <option value="wrestling">Wrestling</option>
+                <option value="boxing">Boxing</option>
+                <option value="kickboxing">Kickboxing</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label for="message">
+                <span data-lang-block="en">Message (optional)</span>
+                <span data-lang-block="es" class="hidden-lang">Mensaje (opcional)</span>
+              </label>
+              <textarea
+                id="message"
+                name="message"
+                maxlength="2000"
+                placeholder="Anything Coach should know?"
+              ></textarea>
+            </div>
+          </div>
+
+          <div class="row-actions">
+            <button class="btn btn-primary" type="submit" id="btnSubmit">
+              <span data-lang-block="en">Request Invite</span>
+              <span data-lang-block="es" class="hidden-lang">Solicitar invitación</span>
+            </button>
+
+            <a class="btn btn-ghost" href="message.html">
+              <span data-lang-block="en">Message Coach</span>
+              <span data-lang-block="es" class="hidden-lang">Mensaje a Coach</span>
+            </a>
+          </div>
+
+          <div class="status" id="statusBox"></div>
+        </form>
+
+        <div class="info-note">
+          <div data-lang-block="en">
+            <strong>Note:</strong>
+            <p class="trial-note">No payment required to request a trial.</p>
+          </div>
+
+          <div data-lang-block="es" class="hidden-lang">
+            <strong>Nota:</strong>
+            <p class="trial-note">No se requiere pago para solicitar una prueba.</p>
+          </div>
+        </div>
+      </article>
+    </section>
   </main>
 
-<footer class="footer">
-  <div class="footer-container">
-    <span class="footer-title">Sandman System™</span>
-    <nav class="footer-links">
-      <a href="overview.html">Overview</a>
-      <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-  </div>
-</footer>
+  <script type="module">
+    import {
+      db,
+      collection,
+      doc,
+      addDoc,
+      setDoc,
+      serverTimestamp
+    } from "/assets/js/firebase-init.js";
 
-  <script>
-  (function(){
-    const u = new URL(location.href);
-    // accept both ?token= and old ?invite=
-    const tok = u.searchParams.get('token') || u.searchParams.get('invite') || '';
+    const $ = (id) => document.getElementById(id);
 
-    // new public intake page we split out earlier
-    const intakeUrl = `${location.origin}/parent-intake.html?token=${encodeURIComponent(tok)}`;
-
-    // show link
-    const linkEl = document.getElementById('link');
-    linkEl.value = intakeUrl;
-
-    // QR image (hosted service, fine for now)
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=240x240&data=${encodeURIComponent(intakeUrl)}`;
-    document.getElementById('qr').src = qrUrl;
-
-    // copy button
-    document.getElementById('copy').onclick = async () => {
-      try {
-        await navigator.clipboard.writeText(intakeUrl);
-        setMsg('Link copied.');
-      } catch (e) {
-        setMsg('Copy failed.');
-      }
-    };
-
-    // continue button
-    document.getElementById('go').onclick = () => {
-      location.href = intakeUrl;
-    };
-
-    function setMsg(t) {
-      document.getElementById('msg').textContent = t;
+    function getParam(name){
+      const p = new URLSearchParams(location.search);
+      return (p.get(name) || "").trim();
     }
-  })();
+
+    function esc(s=""){
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#39;");
+    }
+
+    function showStatus(html){
+      const box = $("statusBox");
+      if (!box) return;
+      box.style.display = "block";
+      box.innerHTML = html;
+    }
+
+    const academy = getParam("academy") || "lompoc";
+    const source  = getParam("src") || "public";
+
+    function getCurrentLang(){
+      return document.documentElement.lang === "es" ? "es" : "en";
+    }
+
+    function setIntent(intent){
+      const entryTypeEl = $("entryType");
+      if (entryTypeEl) entryTypeEl.value = intent;
+
+      $("trialCard")?.classList.remove("active");
+      $("joinCard")?.classList.remove("active");
+
+      const currentLang = getCurrentLang();
+
+      if (intent === "join") {
+        $("joinCard")?.classList.add("active");
+        $("selectedPath").innerHTML = currentLang === "es"
+          ? `<div data-lang-block="es"><strong>Ruta actual:</strong> Solicitud de ingreso seleccionada. Envía el formulario abajo y Coach dará seguimiento con el siguiente paso si es aprobado.</div>`
+          : `<div data-lang-block="en"><strong>Current path:</strong> Join request selected. Submit the form below and Coach will follow up with the next step if approved.</div>`;
+      } else {
+        $("trialCard")?.classList.add("active");
+        $("selectedPath").innerHTML = currentLang === "es"
+          ? `<div data-lang-block="es"><strong>Ruta actual:</strong> Solicitud de prueba seleccionada. Envía el formulario abajo y Coach dará seguimiento con el siguiente paso si es aprobado.</div>`
+          : `<div data-lang-block="en"><strong>Current path:</strong> Trial request selected. Submit the form below and Coach will follow up with the next step if approved.</div>`;
+      }
+    }
+
+    $("btnTrial")?.addEventListener("click", () => setIntent("trial"));
+    $("btnJoin")?.addEventListener("click", () => setIntent("join"));
+
+    setIntent("trial");
+
+    $("joinForm")?.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const parentName  = ($("parentName")?.value || "").trim();
+      const parentEmail = ($("parentEmail")?.value || "").trim();
+      const athleteName = ($("athleteName")?.value || "").trim();
+      const athleteAge  = ($("athleteAge")?.value || "").trim();
+      const track       = ($("track")?.value || "").trim();
+      const interest    = ($("interest")?.value || "").trim();
+      const bodyRaw     = ($("message")?.value || "").trim();
+      const entryType   = ($("entryType")?.value || "trial").trim();
+
+      const currentLang = getCurrentLang();
+
+      if (!parentName || !parentEmail || !athleteName || !track || !interest) {
+        showStatus(
+          currentLang === "es"
+            ? `<strong>Faltan campos.</strong> Completa todos los campos obligatorios.`
+            : `<strong>Missing fields.</strong> Please complete all required fields.`
+        );
+        return;
+      }
+
+      const trackLabel = track === "foundry8" ? "Foundry 8" : "Foundry 4";
+      const entryLabel = entryType === "join" ? "Join" : "3-Day Trial";
+      const subject = `${entryLabel} Request – ${trackLabel}`;
+
+      const body =
+`${entryLabel} Request
+Parent: ${parentName} (${parentEmail})
+Athlete: ${athleteName}${athleteAge ? " (" + athleteAge + ")" : ""}
+Track: ${track}
+Interest: ${interest}
+
+Message:
+${bodyRaw || "(none)"}`;
+
+      const btn = $("btnSubmit");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = currentLang === "es" ? "Enviando..." : "Sending...";
+      }
+
+      try {
+        const threadRef = doc(collection(db, "paraParentInbox"));
+
+        await setDoc(threadRef, {
+          academy,
+          source,
+          category: "join",
+          entryType,
+          status: "pending",
+          subject,
+          parentName,
+          parentEmail,
+          athleteName,
+          athleteAge,
+          track,
+          interest,
+          lastBody: body.slice(0, 500),
+          lastReplyAt: serverTimestamp(),
+          coachHasUnread: true,
+          parentHasUnread: false,
+          seenByCoach: false,
+          seenByParent: true,
+          createdAt: serverTimestamp()
+        });
+
+        await addDoc(collection(db, "paraParentInbox", threadRef.id, "thread"), {
+          from: "parent",
+          fromName: parentName,
+          body,
+          createdAt: serverTimestamp(),
+          seenByCoach: false,
+          seenByParent: true
+        });
+
+        showStatus(
+          currentLang === "es"
+            ? `<strong>Enviado.</strong> Coach dará seguimiento con el siguiente paso si es aprobado.`
+            : `<strong>Sent.</strong> Coach will follow up with the next step if approved.`
+        );
+
+        $("joinForm")?.reset();
+        setIntent("trial");
+      } catch (err) {
+        console.error(err);
+        showStatus(
+          currentLang === "es"
+            ? `<strong>Error.</strong> ${esc(err?.message || "No se pudo enviar la solicitud.")}`
+            : `<strong>Error.</strong> ${esc(err?.message || "Unable to send request.")}`
+        );
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = currentLang === "es"
+            ? `<span data-lang-block="en" class="hidden-lang">Request Invite</span><span data-lang-block="es">Solicitar invitación</span>`
+            : `<span data-lang-block="en">Request Invite</span><span data-lang-block="es" class="hidden-lang">Solicitar invitación</span>`;
+        }
+      }
+    });
   </script>
 </body>
-</html>
-<script>
-const btn = document.getElementById("navBtn");
-const drawer = document.getElementById("navDrawer");
-const backdrop = document.getElementById("navBackdrop");
-
-// open
-btn.addEventListener("click",()=>{
-  drawer.classList.add("open");
-  backdrop.classList.add("show");
-  document.body.style.overflow="hidden";
-});
-
-// close
-backdrop.addEventListener("click", closeMenu);
-drawer.querySelectorAll("a").forEach(a=>{
-  a.addEventListener("click", closeMenu);
-});
-
-function closeMenu(){
-  drawer.classList.remove("open");
-  backdrop.classList.remove("show");
-  document.body.style.overflow="";
-}
-
-// highlight current page
-const links=[...document.querySelectorAll(".drawer-links a, .footer-links a")];
-links.forEach(link=>{
-  if(link.href === window.location.href){
-    link.setAttribute("aria-current","page");
-  }
-});
-</script>

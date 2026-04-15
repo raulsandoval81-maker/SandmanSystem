@@ -45,25 +45,170 @@ body {
   color:var(--muted);
 }
 
-.tool-grid {
-  display:grid;
-  gap:16px;
+.combat-band {
+  margin-bottom:24px;
 }
 
-.tool-card {
+.combat-kicker {
+  font-weight:800;
+  color:var(--text);
+  margin-bottom:4px;
+}
+
+.combat-line {
+  width:100%;
+  height:1px;
+  background:var(--border);
+  margin:10px 0 12px;
+}
+
+.combat-sub {
+  color:var(--text);
+  font-size:1rem;
+  line-height:1.45;
+}
+
+.panel {
   padding:20px;
   background:var(--panel);
   border:1px solid var(--border);
   border-radius:14px;
 }
 
+.panel-head {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  margin-bottom:16px;
+}
+
+.panel-head h2 {
+  margin:0;
+  font-size:1.1rem;
+}
+
+.panel-note {
+  color:var(--muted);
+  font-size:.9rem;
+}
+
+.tool-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:16px;
+  margin-top:16px;
+}
+
+.tool-card {
+  padding:18px;
+  border-radius:12px;
+  border:1px solid #2a3245;
+  background:#121826;
+  transition:all .18s ease;
+}
+
+.tool-card:hover {
+  border-color:#f4d03f;
+  transform:translateY(-2px);
+  box-shadow:0 6px 18px rgba(0,0,0,.35);
+}
+
+.tool-title {
+  font-weight:800;
+  font-size:1.05rem;
+  color:#f4d03f;
+}
+
+.tool-desc {
+  margin-top:6px;
+  font-size:.9rem;
+  color:#c7d0df;
+}
+
+.tool-actions {
+  margin-top:14px;
+}
+
+.tool-btn {
+  display:block;
+  padding:16px 18px;
+  margin:12px 0;
+  border-radius:10px;
+  border:1px solid #2a3245;
+  background:#121826;
+  color:#f4d03f;
+  text-decoration:none;
+  font-weight:700;
+  transition:all .18s ease;
+}
+
+.tool-btn span {
+  display:block;
+  font-weight:500;
+  color:#c7d0df;
+  font-size:.9rem;
+  margin-top:4px;
+}
+
+.tool-btn:hover {
+  border-color:#f4d03f;
+  background:#0f1522;
+  transform:translateY(-1px);
+}
+
+.tool-btn.secondary {
+  color:#f0f0f0;
+}
+
+.tool-btn.locked {
+  color:#6b7487;
+  border-color:#1f2635;
+  cursor:not-allowed;
+}
+
+.tool-btn.locked span {
+  color:#5a6375;
+}
+
 .tool-card.locked {
-  opacity:0.55;
-  position:relative;
+  opacity:.45;
+  filter:grayscale(.6);
+  pointer-events:none;
+}
+
+.tool-card.locked .tool-title {
+  color:#6b7487;
+}
+
+.tool-card.locked .tool-desc {
+  color:#596277;
 }
 
 .locked-note {
   color:#ff6b6b;
   font-size:.85rem;
   margin-top:6px;
+}
+
+.chapter-tile.locked {
+  opacity:0.45;
+  filter:grayscale(60%);
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+.chapter-subtitle {
+  display:block;
+  margin-top:6px;
+  font-size:0.85rem;
+  color:#94a3b8;
+}
+
+.chapter-tile.preview {
+  border-color:#2a3344;
+}
+
+.chapter-tile.preview:hover {
+  border-color:#ffdd48;
 }

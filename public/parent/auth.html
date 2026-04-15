@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Parent Access | Sandman Combat™</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:#f6f3ea;
+      color:#111827;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px 16px;
+    }
+
+    .card{
+      width:min(100%, 520px);
+      background:#fffdf8;
+      border:1px solid #e7dcc0;
+      border-radius:24px;
+      box-shadow:0 18px 44px rgba(0,0,0,.12);
+      padding:24px 20px 22px;
+    }
+
+    .kicker{
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+      color:#b38a16;
+      margin:0 0 10px;
+    }
+
+    h1{
+      margin:0 0 10px;
+      font-size:2rem;
+      line-height:1.05;
+    }
+
+    .sub{
+      margin:0 0 18px;
+      color:#4b5563;
+      line-height:1.55;
+    }
+
+    .tabs{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:8px;
+      margin:0 0 18px;
+    }
+
+    .tab-btn{
+      border:1px solid #d8ccb0;
+      background:#f8f2e4;
+      color:#3b2f14;
+      border-radius:999px;
+      padding:12px 14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .tab-btn.is-active{
+      background:#d4af37;
+      border-color:#c29a26;
+      color:#111827;
+    }
+
+    .panel{ display:none; }
+    .panel.is-active{ display:block; }
+
+    .field{
+      margin:0 0 14px;
+    }
+
+    label{
+      display:block;
+      font-size:.86rem;
+      font-weight:800;
+      margin:0 0 6px;
+      color:#374151;
+    }
+
+    input{
+      width:100%;
+      box-sizing:border-box;
+      border:1px solid #d8ccb0;
+      border-radius:16px;
+      padding:14px 14px;
+      font-size:1rem;
+      background:#fff;
+      color:#111827;
+      outline:none;
+    }
+
+    input:focus{
+      border-color:#b38a16;
+      box-shadow:0 0 0 3px rgba(179,138,22,.14);
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:8px;
+    }
+
+    button{
+      border:none;
+      border-radius:999px;
+      padding:12px 18px;
+      font-weight:900;
+      font-size:.95rem;
+      cursor:pointer;
+    }
+
+    .btn-primary{
+      background:#d4af37;
+      color:#111827;
+    }
+
+    .btn-secondary{
+      background:#eef1f4;
+      color:#111827;
+      border:1px solid #d7dde3;
+    }
+
+    .status{
+      min-height:22px;
+      margin:14px 0 0;
+      font-size:.92rem;
+      font-weight:700;
+    }
+
+    .status.error{ color:#b42318; }
+    .status.ok{ color:#067647; }
+
+    .fine{
+      margin-top:14px;
+      color:#6b7280;
+      font-size:.82rem;
+      line-height:1.45;
+    }
+    body.auth-pending main {
+  visibility: hidden;
+}
+
+body.auth-ready main {
+  visibility: visible;
+}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <p class="kicker">Parents' Portal</p>
+    <h1>Parent Access</h1>
+    <p class="sub">
+      Log in if you already have an account, or create one using the parent email connected to your athlete.
+    </p>
+
+    <div class="tabs" role="tablist" aria-label="Parent access options">
+      <button
+        id="tabLogin"
+        class="tab-btn is-active"
+        type="button"
+        role="tab"
+        aria-selected="true"
+        aria-controls="panelLogin"
+      >
+        Login
+      </button>
+
+      <button
+        id="tabCreate"
+        class="tab-btn"
+        type="button"
+        role="tab"
+        aria-selected="false"
+        aria-controls="panelCreate"
+      >
+        Create Account
+      </button>
+    </div>
+
+    <section id="panelLogin" class="panel is-active" role="tabpanel" aria-labelledby="tabLogin">
+      <form id="loginForm" novalidate>
+        <div class="field">
+          <label for="loginEmail">Email</label>
+          <input id="loginEmail" name="loginEmail" type="email" autocomplete="email" required />
+        </div>
+
+        <div class="field">
+          <label for="loginPassword">Password</label>
+          <input id="loginPassword" name="loginPassword" type="password" autocomplete="current-password" required />
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" type="submit" id="loginBtn">Sign In</button>
+          <button class="btn-secondary" type="button" id="goHomeBtn">Back</button>
+        </div>
+
+        <div id="loginStatus" class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <section id="panelCreate" class="panel" role="tabpanel" aria-labelledby="tabCreate">
+      <form id="createForm" novalidate>
+        <div class="field">
+          <label for="createName">Parent Name</label>
+          <input id="createName" name="createName" type="text" autocomplete="name" required />
+        </div>
+
+        <div class="field">
+          <label for="createEmail">Email</label>
+          <input id="createEmail" name="createEmail" type="email" autocomplete="email" required />
+        </div>
+
+        <div class="field">
+          <label for="createPassword">Password</label>
+          <input id="createPassword" name="createPassword" type="password" autocomplete="new-password" required />
+        </div>
+
+        <div class="field">
+          <label for="createPassword2">Confirm Password</label>
+          <input id="createPassword2" name="createPassword2" type="password" autocomplete="new-password" required />
+        </div>
+
+        <div class="actions">
+          <button class="btn-primary" type="submit" id="createBtn">Create Account</button>
+          <button class="btn-secondary" type="button" id="goHomeBtn2">Back</button>
+        </div>
+
+        <div id="createStatus" class="status" aria-live="polite"></div>
+      </form>
+    </section>
+
+    <p class="fine">
+      If your athlete is already in the system but your account is not linked yet, contact coach.
+    </p>
+  </main>
+
+  <script type="module" src="/parent/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+{
+  "resetBetweenPeriodsSec": 120,
+
+  "levels": [
+    {
+      "id": "NOVICE",
+      "label": "Novice",
+      "interval": { "workSec": 30, "restSec": 30 },
+      "periodMinutes": 4,
+      "movesPerPeriod": 4,
+      "periods": 3,
+      "notes": "Youth entry level. Technical control first."
+    },
+    {
+      "id": "BEGINNER",
+      "label": "Beginner",
+      "interval": { "workSec": 40, "restSec": 20 },
+      "periodMinutes": 4,
+      "movesPerPeriod": 5,
+      "periods": 3,
+      "notes": "Higher density, same match length."
+    },
+    {
+      "id": "INTERMEDIATE",
+      "label": "Intermediate",
+      "interval": { "workSec": 45, "restSec": 15 },
+      "periodMinutes": 6,
+      "movesPerPeriod": 6,
+      "periods": 4,
+      "notes": "Full varsity match simulation."
+    },
+    {
+      "id": "ADVANCED",
+      "label": "Advanced",
+      "interval": { "workSec": 50, "restSec": 10 },
+      "periodMinutes": 7,
+      "movesPerPeriod": 7,
+      "periods": 5,
+      "notes": "6-minute match plus 1-minute overtime."
+    },
+    {
+      "id": "ELITE",
+      "label": "Elite",
+      "mode": "EMOM",
+      "interval": { "workSec": 60, "restSec": 0 },
+      "periodMinutes": 8,
+      "movesPerPeriod": 8,
+      "periods": 6,
+      "notes": "Championship pacing. EMOM structure."
+    }
+  ],
+
+  "movementPool": {
+    "lower": [
+      "Squats",
+      "Jump Squats",
+      "Lunges",
+      "Split Squats",
+      "Broad Jumps"
+    ],
+    "upper": [
+      "Push-ups",
+      "Hand Release Push-ups",
+      "Bear Crawl",
+      "Plank Shoulder Taps"
+    ],
+    "core": [
+      "Plank",
+      "Hollow Hold",
+      "Mountain Climbers",
+      "V-Ups",
+      "Sit-outs"
+    ],
+    "wrestling": [
+      "Sprawls",
+      "Shot Entries",
+      "Stand-ups",
+      "Snap-down Footwork",
+      "Level Change Shuffles"
+    ]
+  },
+
+  "generationRules": {
+    "balancedFirst": true,
+    "avoidDuplicatesInPeriod": true,
+    "priorityOrder": ["lower", "upper", "core", "wrestling"],
+    "matchFeel": {
+      "enabled": true,
+      "rules": [
+        "First 30 seconds = pace control. Do not redline early.",
+        "Middle = pressure. Keep stance and posture.",
+        "Last 30 seconds = finish. Clean speed, no sloppy reps."
+      ],
+      "bestRoundPrompt": "Which round did you keep stance and pace under pressure? Include Period #, Round #, and 1 sentence why."
+    }
+  },
+
+  "presets": [
+    {
+      "id": "F8_FOUNDATION",
+      "label": "Foundry 8 Foundation",
+      "levelId": "NOVICE",
+      "rounds": 5,
+      "movements": [
+        "Push-ups",
+        "Jump Squats",
+        "Mountain Climbers",
+        "Reverse Lunges"
+      ],
+      "notes": "Coach-led youth foundation sequence."
+    },
+    {
+      "id": "F8_BUILD",
+      "label": "Foundry 8 Build",
+      "levelId": "BEGINNER",
+      "rounds": 5,
+      "movements": [
+        "Push-ups",
+        "Jump Squats",
+        "Mountain Climbers",
+        "Reverse Lunges",
+        "V-Ups"
+      ],
+      "notes": "Youth progression sequence."
+    },
+    {
+      "id": "F4_REMOTE_BASE",
+      "label": "Foundry 4 Remote Base",
+      "levelId": "BEGINNER",
+      "rounds": 5,
+      "movements": [
+        "Push-ups",
+        "Jump Squats",
+        "Mountain Climbers",
+        "Reverse Lunges",
+        "Plank Shoulder Taps"
+      ],
+      "notes": "Teen remote conditioning base."
+    },
+    {
+      "id": "F4_REMOTE_PRESSURE",
+      "label": "Foundry 4 Remote Pressure",
+      "levelId": "INTERMEDIATE",
+      "rounds": 6,
+      "movements": [
+        "Push-ups",
+        "Jump Squats",
+        "Mountain Climbers",
+        "Sprawls",
+        "Level Change Shuffles",
+        "V-Ups"
+      ],
+      "notes": "Teen match-feel conditioning sequence."
+    }
+  ]
+}

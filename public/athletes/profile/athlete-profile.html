@@ -7,6 +7,16 @@
   <link rel="stylesheet" href="/athletes/profile/profile.css"/>
   <link rel="icon" href="data:,">
 </head>
+<header class="athlete-sub-header">
+  <div class="sub-header-inner">
+    <span class="brand">Sandman Combat™</span>
+
+    <div class="sub-nav">
+      <a id="homeLink" href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
+    </div>
+  </div>
+</header>
+
 
 <body>
 <main class="wrap">
@@ -21,7 +31,7 @@
     <div class="row" style="margin-bottom:8px">
       <div class="stat" style="flex:1 1 100%">
         <div class="combat-header">
-          <span id="combatArcTitle" class="title">⚔️ Combat</span>
+          <span id="combatArcTitle" class="title">⚔️ Combat · Path 2 Legend</span>
         </div>
       </div>
     </div>
@@ -54,43 +64,44 @@
       </div>
     </div>
 
-    <!-- Identity Details -->
-    <div class="row">
-      <div class="stat">
-        <div class="label">Team · Sandman Combat</div>
-        <div class="value" id="out-team">—</div>
-      </div>
+<!-- Identity Details -->
+<div class="row">
+  <div class="stat">
+    <div class="label">Team · Sandman Combat</div>
+    <div class="value" id="out-team">—</div>
+  </div>
 
-      <div class="stat">
-        <div class="label">City · State</div>
-        <div class="value" id="out-citystate">—</div>
-      </div>
+  <div class="stat">
+    <div class="label">City · State</div>
+    <div class="value" id="out-citystate">—</div>
+  </div>
 
-      <div class="stat">
-        <div class="label">Track-Lane-####-Virtue</div>
-        <div class="value" id="out-uid">—</div>
-      </div>
+  <div class="stat">
+    <div class="label">Track-Lane-####-Virtue</div>
+    <div class="value" id="out-uid">—</div>
+  </div>
+</div>
 
-      <!-- Rank + Belt -->
-      <div class="stat rank-box">
-        <div class="label">Color · Rank</div>
-        <div class="value" id="out-rank">—</div>
+<div class="row">
+  <!-- Rank + Belt -->
+  <div class="stat rank-box" style="flex:1 1 100%">
+    <div class="label">Color · Rank</div>
+    <div class="value" id="out-rank">—</div>
 
-        <div id="rankBar" class="belt-track"
-             style="position:relative;height:30px;width:100%;
-                    border-radius:999px;background:rgba(255,255,255,.09);
-                    overflow:hidden;margin-top:8px;">
-          <div id="rankFill" class="belt-fill"
-               style="height:100%;width:0;border-radius:inherit;"></div>
-        </div>
-
-        <div id="stripeText" class="muted"
-             style="margin-top:6px;font-size:.85rem;">
-          Stripes: —
-        </div>
-
-      </div>
+    <div id="rankBar" class="belt-track"
+         style="position:relative;height:30px;width:100%;
+                border-radius:999px;background:rgba(255,255,255,.09);
+                overflow:hidden;margin-top:8px;">
+      <div id="rankFill" class="belt-fill"
+           style="height:100%;width:0;border-radius:inherit;"></div>
     </div>
+
+    <div class="rank-stats">
+      <span id="stripeText"></span>
+      <span id="xpText"></span>
+    </div>
+  </div>
+</div>
   </section>
 
 

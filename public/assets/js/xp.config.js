@@ -2,8 +2,15 @@
 // Single Source of Truth — V1 (LOCKED)
 // Clean top → bottom. No logic leaks.
 
-export const STRIPES_PER_TIER = 4;
-
+export const STRIPES_PER_TIER = {
+  F8: {
+    T0: 3, // Shadow
+    default: 4
+  },
+  F4: {
+    default: 4
+  }
+};
 export const XP_CONFIG = Object.freeze({
 
   // =========================
@@ -57,18 +64,18 @@ export const XP_CONFIG = Object.freeze({
   // =========================
   // Foundry 8 (Youth) — V1
   // =========================
-  foundry8: {
-    tierCaps: {
-      T0: 800,
-      T1: 1000,
-      T2: 1200,
-      T3: 1400,
-      T4: 1600,
-      T5: 1800,
-      T6: 2000,
-      T7: 2400
-    },
-
+foundry8: {
+  tierCaps: {
+    T0: 600,
+    T1: 800,
+    T2: 1000,
+    T3: 1200,
+    T4: 1600,
+    T5: 1800,
+    T6: 2000,
+    T7: 2400
+  },
+  
     monthly: {
       attendance: 160,
 
@@ -170,10 +177,18 @@ export function getRank(trackBaseOrKey, tier = "T0") {
 }
 
 export function stripeStep(trackBaseOrKey, tier = "T0") {
-  const cap = getCap(trackBaseOrKey, tier);
-  return Math.max(1, Math.round(cap / STRIPES_PER_TIER / 10) * 10);
-}
+  const base = normalizeBase(trackBaseOrKey);
+  const t = normalizeTier(tier);
 
+  const cap = getCap(base, t);
+
+  const stripes =
+    base === "F8"
+      ? (STRIPES_PER_TIER.F8[t] ?? STRIPES_PER_TIER.F8.default)
+      : STRIPES_PER_TIER.F4.default;
+
+  return Math.max(1, Math.round(cap / stripes / 10) * 10);
+}
 // ======================================================
 // XP BUCKETS (UI labels only)
 // ======================================================

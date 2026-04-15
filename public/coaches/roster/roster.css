@@ -1,0 +1,418 @@
+:root{
+  color-scheme:dark;
+}
+
+body{
+  background:#0a0a0a;
+  color:#f5f5f5;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  margin:0;
+}
+
+.wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:24px;
+}
+
+h1{
+  margin:0 0 8px;
+}
+
+.muted{
+  color:#9fb3c8;
+}
+
+.top-nav{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:14px;
+}
+
+th,td{
+  padding:10px 6px;
+  border-bottom:1px solid #1c2533;
+  font-size:.9rem;
+  vertical-align:top;
+}
+
+th{
+  text-align:left;
+  color:#c9d6e5;
+}
+
+tr:hover{
+  background:rgba(255,255,255,.03);
+}
+
+.pill{
+  display:inline-block;
+  background:#263142;
+  border:1px solid #3a4a60;
+  border-radius:999px;
+  padding:.25rem .65rem;
+  color:#dbeafe;
+  text-decoration:none;
+  font-size:.75rem;
+  white-space:nowrap;
+  cursor:pointer;
+}
+
+button.pill{
+  appearance:none;
+  -webkit-appearance:none;
+  font:inherit;
+}
+
+.name-col{
+  display:flex;
+  align-items:flex-start;
+  gap:8px;
+}
+
+.name-line{
+  font-weight:700;
+}
+
+.sub{
+  display:block;
+  font-size:.7rem;
+  color:#7a8aa1;
+}
+
+.bonsai-chip{
+  width:20px;
+  height:20px;
+  border-radius:999px;
+  border:1px solid #ffd63333;
+  background:radial-gradient(circle,#ffd63344 0%,#0a0a0a 90%);
+  display:inline-block;
+  flex:0 0 auto;
+  margin-top:2px;
+}
+
+/* ===============================
+   BELT STACK (Roster → Combat UI)
+================================ */
+
+.belt-stack{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:200px;
+}
+
+.xp-lite-track{
+  position:relative;
+  height:14px;
+  border-radius:6px;
+  overflow:hidden;
+  background:rgba(255,255,255,.14);
+}
+
+.xp-lite-fill{
+  position:absolute;
+  inset:0 auto 0 0;
+  height:100%;
+  width:0%;
+  z-index:1; /* fill sits under stripes */
+}
+
+/* belt-bar.js stripe system support */
+.xp-lite-track .stripe-bars{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:stretch;
+  justify-content:flex-start;
+  pointer-events:none;
+  z-index:6; /* stripes above fill */
+}
+
+.xp-lite-track .stripe-bar{
+  height:100%;
+  box-sizing:border-box;
+}
+
+/* text under belt */
+.xp-sub{
+  font-size:12px;
+  opacity:.75;
+  letter-spacing:.2px;
+  line-height:1.1;
+}
+.xp-lite-track .stripe-bars{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:stretch;
+  justify-content:flex-start;
+
+  /* THIS is the missing lock */
+  width:fit-content;
+  max-width:100%;
+
+  pointer-events:none;
+  z-index:6;
+}
+/* ===============================
+   CONTROLS
+================================ */
+
+.controls-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  margin:10px 0 12px;
+  flex-wrap:wrap;
+}
+
+.canon-toggle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  cursor:pointer;
+  user-select:none;
+}
+
+.count-meta{
+  font-size:.78rem;
+  opacity:.85;
+}
+
+/* ===============================
+   TEMPLE WATCH
+================================ */
+
+.card-lite{
+  background:#10151c;
+  border:1px solid #1c2533;
+  border-radius:16px;
+  padding:16px;
+  margin:14px 0 18px;
+}
+
+.temple-watch-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid #1c2533;
+  flex-wrap:wrap;
+}
+
+.temple-watch-row:last-child{
+  border-bottom:none;
+}
+
+.temple-watch-left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.temple-watch-name{
+  font-weight:700;
+}
+
+.temple-watch-meta{
+  font-size:.8rem;
+  color:#9fb3c8;
+}
+
+.temple-watch-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.belt-stack{
+  min-width: 220px;
+}
+
+@media (max-width: 700px){
+  table{
+    table-layout: fixed;
+  }
+
+  th:nth-child(1), td:nth-child(1){
+    width: 26%;
+  }
+
+  th:nth-child(2), td:nth-child(2){
+    width: 20%;
+  }
+
+  th:nth-child(3), td:nth-child(3){
+    width: 34%;
+  }
+
+  th:nth-child(4), td:nth-child(4){
+    width: 20%;
+  }
+
+  .belt-stack{
+    min-width: 0;
+    width: 100%;
+  }
+
+  .xp-lite-track{
+    min-width: 160px;
+    width: 100%;
+  }
+
+  td{
+    word-break: break-word;
+  }
+
+  td:last-child > div{
+    align-items: flex-start;
+  }
+}
+.status-chip{
+  display:inline-flex;
+  align-items:center;
+  margin-left:8px;
+  padding:2px 8px;
+  border-radius:999px;
+  font-size:.7rem;
+  line-height:1.2;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+
+.status-chip--ready{
+  background:rgba(255, 214, 51, .12);
+  border:1px solid rgba(255, 214, 51, .35);
+  color:#ffd633;
+}
+
+.status-chip--tempo{
+  background:rgba(53, 199, 89, .12);
+  border:1px solid rgba(53, 199, 89, .35);
+  color:#35c759;
+}
+.roster-table{
+  width:100%;
+  border-collapse:collapse;
+}
+
+@media (max-width: 700px){
+  .wrap{
+    padding:16px;
+  }
+
+  .top-nav{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:14px;
+  }
+
+  .controls-row{
+    align-items:flex-start;
+    gap:10px;
+  }
+
+  .roster-table,
+  .roster-table thead,
+  .roster-table tbody,
+  .roster-table th,
+  .roster-table td,
+  .roster-table tr{
+    display:block;
+    width:100%;
+  }
+
+  .roster-table thead{
+    display:none;
+  }
+
+  .roster-table tbody{
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+  }
+
+  .roster-table tr{
+    background:#10151c;
+    border:1px solid #1c2533;
+    border-radius:16px;
+    padding:14px;
+    box-sizing:border-box;
+  }
+
+  .roster-table td{
+    border-bottom:none;
+    padding:0;
+    margin:0 0 10px 0;
+  }
+
+  .roster-table td:last-child{
+    margin-bottom:0;
+  }
+
+  .roster-table td::before{
+    display:block;
+    font-size:.72rem;
+    color:#9fb3c8;
+    margin-bottom:4px;
+    letter-spacing:.2px;
+  }
+
+  .roster-table td[data-label="Athlete"]::before{
+    content:"Athlete";
+  }
+
+  .roster-table td[data-label="Tier / Rank"]::before{
+    content:"Tier / Rank";
+  }
+
+  .roster-table td[data-label="XP"]::before{
+    content:"XP";
+  }
+
+  .roster-table td[data-label="Actions"]::before{
+    content:"Actions";
+  }
+
+  .name-line{
+    display:flex;
+    align-items:center;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+
+  .belt-stack{
+    min-width:0;
+    width:100%;
+  }
+
+  .xp-lite-track{
+    width:100%;
+    min-width:0;
+  }
+
+  .xp-sub{
+    margin-top:4px;
+  }
+
+  .roster-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+
+  .roster-actions .pill{
+    flex:1 1 auto;
+    text-align:center;
+  }
+}

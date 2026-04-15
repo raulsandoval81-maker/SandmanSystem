@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach · Roster (v2)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+
+  <!-- Declared favicon (browser may still request /favicon.ico by default) -->
+  <link rel="icon" href="/assets/img/favicon.ico" type="image/x-icon">
+<link rel="icon" href="data:,">
+  <style>
+    :root { color-scheme: dark; }
+
+    body{
+      background:#0a0a0a;
+      color:#f5f5f5;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+    }
+
+    .wrap{ max-width:1100px; margin:0 auto; padding:24px; }
+    h1{ margin:0 0 8px; }
+    .muted{ color:#9fb3c8; }
+
+    table{ width:100%; border-collapse:collapse; margin-top:14px; }
+    th,td{
+      padding:10px 6px;
+      border-bottom:1px solid #1c2533;
+      font-size:.9rem;
+      vertical-align:top;
+    }
+    th{ text-align:left; color:#c9d6e5; }
+    tr:hover{ background:rgba(255,255,255,.03); }
+
+    .pill{
+      display:inline-block;
+      background:#263142;
+      border:1px solid #3a4a60;
+      border-radius:999px;
+      padding:.25rem .65rem;
+      color:#dbeafe;
+      text-decoration:none;
+      font-size:.75rem;
+      white-space:nowrap;
+    }
+
+    .name-col{ display:flex; align-items:flex-start; gap:8px; }
+    .sub{ display:block; font-size:.7rem; color:#7a8aa1; }
+    .name-line{ font-weight:700; }
+
+    .bonsai-chip{
+      width:20px;height:20px;border-radius:999px;
+      border:1px solid #ffd63333;
+      background:radial-gradient(circle,#ffd63344 0%,#0a0a0a 90%);
+      display:inline-block;
+      flex:0 0 auto;
+      margin-top:2px;
+    }
+
+    td .belt-stack{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:180px;
+    }
+
+    td .xp-sub{
+      font-size:12px;
+      opacity:.75;
+      letter-spacing:.2px;
+      line-height:1.1;
+    }
+
+    .controls-row{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin:10px 0 12px;
+      flex-wrap:wrap;
+    }
+
+    .canon-toggle{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      cursor:pointer;
+      user-select:none;
+    }
+
+    .count-meta{
+      font-size:.78rem;
+      opacity:.85;
+    }
+
+    /* DEV pill (simple + matches your earlier look) */
+    .dev-pill{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border:1px solid #2a3443;
+      border-radius:999px;
+      background:#10151c;
+    }
+    .dev-pill input{ transform:translateY(1px); }
+
+    /* ===== Lite XP Bar (xp-bar-lite.js) ===== */
+    .xp-lite{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:180px;
+    }
+
+    .xp-lite-track{
+      position:relative;
+      height:14px;
+      border-radius:6px;
+      overflow:hidden;
+      background:rgba(255,255,255,.14);
+    }
+
+    .xp-lite-fill{
+      position:absolute;
+      inset:0 auto 0 0;
+      height:100%;
+      width:0%;
+    }
+
+    .xp-lite-stripes{
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+    }
+
+    .xp-lite-stripe{
+      position:absolute;
+      top:0;
+      bottom:0;
+      width:var(--sw);
+      left:calc(var(--sl) + (var(--i) * (var(--sw) + var(--sg))));
+      background:var(--stripe);
+      opacity:.18;
+    }
+
+    .xp-lite-stripe.on{ opacity:.95; }
+    .xp-lite-stripe.off{ opacity:.18; }
+
+    .xp-lite-meta{
+      font-size:11px;
+      opacity:.75;
+      letter-spacing:.3px;
+    }
+    .card-lite{
+  background:#10151c;
+  border:1px solid #1c2533;
+  border-radius:16px;
+  padding:16px;
+  margin:14px 0 18px;
+}
+
+.temple-watch-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  padding:10px 0;
+  border-bottom:1px solid #1c2533;
+  flex-wrap:wrap;
+}
+
+.temple-watch-row:last-child{
+  border-bottom:none;
+}
+
+.temple-watch-left{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.temple-watch-name{
+  font-weight:700;
+}
+
+.temple-watch-meta{
+  font-size:.8rem;
+  color:#9fb3c8;
+}
+
+.temple-watch-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+<div style="background:#7c2d12;color:#fff;padding:8px;font-weight:800;text-align:center;">
+  DEV MODE — NOT FOR LIVE USE
+</div>
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    <a class="pill" href="/coaches/daily-xp/daily-grind.html">Xp Console</a>
+  </nav>
+
+  <h1>Team Roster</h1>
+  <p class="muted">
+    Firestore · <code id="colName">athletes</code>
+  </p>
+  <div class="card-lite" id="templeWatchCard">
+  <h2 style="margin:0 0 8px;">Temple Watch (90%+)</h2>
+  <p class="muted" style="margin:0 0 10px;">
+    Athletes approaching cap. Watch closely and move into Temple when appropriate.
+  </p>
+  <div id="templeWatchList" class="muted">Loading…</div>
+</div>
+
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:38%">Athlete</th>
+        <th style="width:22%">Tier / Rank</th>
+        <th style="width:25%">XP Belt Tracker</th>
+        <th style="width:15%"></th>
+      </tr>
+    </thead>
+    <tbody id="rows">
+      <tr><td colspan="4" class="muted">Loading…</td></tr>
+    </tbody>
+  </table>
+  <div class="controls-row">
+    <!-- DEV MODE toggle (wired by dev-mode.js) -->
+    <div class="dev-pill" title="DEV shows ONLY devMode=true + isTest=true. LIVE hides all dev/test docs.">
+      <input id="devModeToggle" type="checkbox" />
+      <span class="muted">DEV</span>
+    </div>
+
+    <!-- Track toggle (exclusive: F4 vs F8) -->
+    <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only (exclusive)">
+      <input id="trackF8Only" type="checkbox" />
+      <span class="muted">Foundry 8 only</span>
+    </label>
+
+    <span id="countMeta" class="muted count-meta"></span>
+  </div>
+
+</main>
+<script type="module">
+  import {
+    db,
+    collection,
+    getDocs,
+    query,
+    limit,
+    where,
+    doc,
+    updateDoc,
+    serverTimestamp
+  } from "/assets/js/firebase-init.js";
+
+  import { renderLiteXpBar } from "/assets/js/xp-bar-lite.js";
+import { getStripeInfo, LADDER_F4, LADDER_F8, COLORS, colorKeyFor } from "/assets/js/ladder.service.js";
+  import {
+    isDevMode,
+    withDev,
+    paintDevUi,
+    bindDevToggle,
+    patchDevLinks
+  } from "/assets/js/dev-mode.js";
+
+  // DEV MODE BOOTSTRAP
+  paintDevUi();
+  patchDevLinks();
+  bindDevToggle({ onChange: () => location.reload() });
+
+  console.log("ROSTER PAGE MODULE LOADED");
+
+  const $ = (id) => document.getElementById(id);
+
+  function trackBaseOf(docId, a = {}) {
+    const tb = String(a.trackBase || "").trim().toUpperCase();
+    if (tb === "F4" || tb === "F8") return tb;
+
+    const id = String(docId || "").toUpperCase();
+    if (id.startsWith("F4_")) return "F4";
+    if (id.startsWith("F8_")) return "F8";
+
+    const t = String(a.track || a.trackCode || "").toLowerCase();
+    if (t.includes("foundry4")) return "F4";
+    if (t.includes("foundry8")) return "F8";
+
+    return "";
+  }
+  function getEffectiveStripes({ xpNow, xpCap, storedStripes, stripeMax = 4 }) {
+  const safeCap = Math.max(1, Number(xpCap || 0));
+  const safeXp = Math.max(0, Number(xpNow || 0));
+  const stored = Number(storedStripes || 0);
+  const derived = Math.floor((safeXp / safeCap) * stripeMax);
+
+  if (safeXp >= safeCap) return stripeMax;
+
+  return Math.max(0, Math.min(stripeMax, Math.max(stored, derived)));
+}
+
+  // LIVE: basic guard. DEV: show everything that matches devMode/isTest query.
+  function isRosterVisibleAthlete(docId, a = {}, devMode = false) {
+    if (devMode) return true;
+
+    if (a.devMode === true || a.isDev === true || a.isTest === true) return false;
+    if (a.isArchived === true) return false;
+
+    const name = String(a.publicName || a.fullName || "").trim();
+    const uid  = String(a.uid || docId || "").trim();
+    if (!uid) return false;
+
+    const upper = name.toUpperCase();
+    if (upper === "TEST" || upper === "TEST ATHLETE" || upper.includes("TEST GHOST")) return false;
+
+    return name.length >= 2;
+  }
+
+  function percentToCap(xp, cap) {
+    const safeCap = Number(cap) > 0 ? Number(cap) : 1;
+    return Math.round(((Number(xp) || 0) / safeCap) * 10000) / 100;
+  }
+
+  function isTempleWatch(xp, cap) {
+    const pct = percentToCap(xp, cap);
+    return pct >= 90 && Number(xp || 0) < Number(cap || 0);
+  }
+
+  async function enterTempleFromRoster(uid) {
+    const ref = doc(db, "athletes", uid);
+
+    await updateDoc(ref, {
+      "testing.state": "TEMPLE",
+      "testing.templeEnteredAt": serverTimestamp(),
+      "testing.lastTestResult": null,
+      "testing.freezeUntil": null,
+      "testing.cooldownUntil": null,
+      "testing.coachReady": false,
+      "testing.coachReadyAt": null,
+      "testing.testingStartedAt": null,
+      updatedAt: serverTimestamp()
+    });
+  }
+
+  async function loadRoster() {
+    const rowsEl = $("rows");
+    const countMeta = $("countMeta");
+    const f8Only = !!$("trackF8Only")?.checked;
+    const templeWatchEl = $("templeWatchList");
+
+    rowsEl.innerHTML = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
+    if (templeWatchEl) templeWatchEl.innerHTML = `<div class="muted">Loading…</div>`;
+
+    const devMode = isDevMode();
+    const baseRef = collection(db, "athletes");
+
+    // DEV = only dev/test docs (strict)
+    // LIVE = broad fetch then strip dev/test docs client-side
+    const qBase = devMode
+      ? query(baseRef, where("devMode", "==", true), where("isTest", "==", true), limit(500))
+      : query(baseRef, limit(500));
+
+    const snap = await getDocs(qBase);
+
+    if (snap.empty) {
+      rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes found.</td></tr>`;
+      if (countMeta) countMeta.textContent = "";
+      if (templeWatchEl) {
+        templeWatchEl.innerHTML = `<div class="muted">No athletes at 90% yet.</div>`;
+      }
+      return;
+    }
+
+    let all = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+
+    // LIVE safety strip
+    if (!devMode) {
+      all = all.filter(x =>
+        x.data.devMode !== true &&
+        x.data.isDev !== true &&
+        x.data.isTest !== true &&
+        x.data.isArchived !== true
+      );
+    }
+
+    // Exclusive track selection
+    const trackWanted = f8Only ? "F8" : "F4";
+
+    const filtered = all
+      .filter(({ id, data }) => isRosterVisibleAthlete(id, data, devMode))
+      .filter(({ id, data }) => trackBaseOf(id, data) === trackWanted)
+      .sort((a, b) => {
+        const A = String(a.data.publicName || a.data.fullName || a.id).toLowerCase();
+        const B = String(b.data.publicName || b.data.fullName || b.id).toLowerCase();
+        return A.localeCompare(B);
+      });
+
+    const mode = devMode ? "DEV" : "LIVE";
+    if (countMeta) countMeta.textContent = `${mode} — ${trackWanted} — Showing ${filtered.length}`;
+
+    // Build Temple Watch
+    const templeWatch = filtered
+      .map(({ id, data }) => {
+        const cap = Number(data.xpCap ?? (trackWanted === "F8" ? 800 : 1200));
+        const pct = percentToCap(data.xp ?? 0, cap);
+        return { id, data, cap, pct };
+      })
+      .filter(({ data, cap }) => isTempleWatch(data.xp ?? 0, cap))
+      .sort((a, b) => b.pct - a.pct);
+
+    if (templeWatchEl) {
+      if (!templeWatch.length) {
+        templeWatchEl.innerHTML = `<div class="muted">No athletes at 90% yet.</div>`;
+      } else {
+        templeWatchEl.innerHTML = templeWatch.map(({ id, data, cap, pct }) => `
+          <div class="temple-watch-row">
+            <div class="temple-watch-left">
+              <div class="temple-watch-name">${data.publicName || data.fullName || id}</div>
+              <div class="temple-watch-meta">
+                ${id} · ${data.xp ?? 0}/${cap} · ${pct}% · state: ${data.testing?.state || "ACTIVE"}
+              </div>
+            </div>
+            <div class="temple-watch-actions">
+              ${data.testing?.state === "TEMPLE"
+                ? `<span class="pill disabled">In Temple</span>`
+                : `<button class="pill temple-action-btn" data-temple-uid="${id}">
+                    Enter Temple
+                  </button>`
+              }
+              <a class="pill" href="${withDev(`/coaches/command-center/coach-athlete-panel.html?id=${encodeURIComponent(id)}`)}">
+                Open Panel
+              </a>
+              <a class="pill" href="${withDev(`/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`)}">
+                Profile
+              </a>
+            </div>
+          </div>
+        `).join("");
+      }
+    }
+
+    // Bind Temple buttons after render
+    document.querySelectorAll("[data-temple-uid]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const targetUid = btn.dataset.templeUid;
+        if (!targetUid) return;
+
+        const ok = window.confirm(`Enter Temple for ${targetUid}?`);
+        if (!ok) return;
+
+        const original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Setting...";
+
+        try {
+          await enterTempleFromRoster(targetUid);
+          await loadRoster();
+        } catch (err) {
+          console.error("Enter Temple failed:", err);
+          alert("Enter Temple failed. Check rules.");
+          btn.disabled = false;
+          btn.textContent = original;
+        }
+      });
+    });
+
+    // Render table
+    let html = "";
+    for (const { id: uid, data: a } of filtered) {
+      const tierLeft = a.tier || "T0";
+      const tierRight = a.rankName || (trackWanted === "F8" ? "Shadow" : "Apprentice");
+      const tb = trackBaseOf(uid, a) || "—";
+
+      html += `
+        <tr>
+          <td>
+            <div class="name-col">
+              <span class="bonsai-chip"></span>
+              <div>
+                <div class="name-line">${a.publicName || a.fullName || "—"}</div>
+                <div class="sub">${a.virtue || "—"} · ${uid}</div>
+                <div class="sub small-track">${tb} · ${a.track || a.trackCode || "—"}</div>
+              </div>
+            </div>
+          </td>
+
+          <td>${tierLeft} / ${tierRight}</td>
+
+          <td><div id="belt-${uid}" class="belt-stack"></div></td>
+
+          <td>
+            <a class="pill" href="${withDev(`/athletes/profile/athlete-profile.html?id=${encodeURIComponent(uid)}`)}">
+              Profile
+            </a>
+          </td>
+        </tr>
+      `;
+    }
+
+    rowsEl.innerHTML = html || `<tr><td colspan="4" class="muted">No matching athletes.</td></tr>`;
+
+    // Paint belts
+    for (const { id: uid, data: a } of filtered) {
+      const holder = document.getElementById(`belt-${uid}`);
+      if (!holder) continue;
+
+      holder.innerHTML = "";
+
+      const xp = Number(a.xp ?? 0);
+      const cap = Number(a.xpCap ?? (trackWanted === "F8" ? 800 : 1200));
+      const safeCap = cap > 0 ? cap : 1;
+
+
+const ladder = trackWanted === "F8" ? LADDER_F8 : LADDER_F4;
+
+const info = getStripeInfo(ladder, xp);
+
+const total = Number(info?.stripesTotal ?? 4);
+let earned = Number(info?.stripesEarned ?? 0);
+earned = Math.max(0, Math.min(total, earned));
+earned = Math.max(0, Math.min(total, earned));
+      const key = colorKeyFor(a.rankName || "") || "apprentice";
+      const c = COLORS[key] || COLORS.apprentice;
+
+      const isWhiteStripeTier =
+        String(a.rankName || "").toLowerCase() === "legend" ||
+        String(a.rankName || "").toLowerCase() === "hero" ||
+        String(a.rankName || "").toLowerCase() === "mastery";
+
+      renderLiteXpBar({
+        container: holder,
+        xp,
+        cap: safeCap,
+        stripesTotal: total,
+        stripesEarned: earned,
+        stripeTone: isWhiteStripeTier ? "white" : "black",
+        fillColor: c.start
+      });
+
+      const sub = document.createElement("div");
+      sub.className = "xp-sub";
+      sub.textContent = `Stripes: ${earned}/${total}`;
+      holder.appendChild(sub);
+    }
+  }
+
+  loadRoster();
+  $("trackF8Only")?.addEventListener("change", loadRoster);
+</script>
+</body>
+</html>

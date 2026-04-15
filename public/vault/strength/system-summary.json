@@ -1,0 +1,16 @@
+{
+  "remoteStrength": {
+    "model": "Match Period Simulation",
+    "movesEqualMinutes": true,
+    "twoMinuteResetLocked": true,
+    "youthMaxDurationMinutes": 30,
+    "youthMaxPoints": 5
+  },
+
+  "ironStrength": {
+    "model": "Load Discipline Execution",
+    "phases": 3,
+    "daysPerWeek": 3,
+    "focus": "Top Set + Completion + Short Note"
+  }
+}

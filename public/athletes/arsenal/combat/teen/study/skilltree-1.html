@@ -1,0 +1,172 @@
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="1" data-track="teen">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 4 • Teen</p>
+    <h1>Skill Tree - Tier 1 — Warrior</h1>
+    <p class="skilltree-sub">20 skills • Reinforcement + Separation</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Stance &amp; Motion</h2>
+
+    <h3>Skill 1 — Head Position</h3>
+    <p>A — Inside head position</p>
+    <p>B — Apply pressure</p>
+    <p>C — Hold while moving</p>
+
+    <h3>Skill 2 — Angle Step</h3>
+    <p>A — Step off line</p>
+    <p>B — Create angle</p>
+    <p>C — Attack from angle</p>
+
+    <h3>Skill 3 — Motion to Attack</h3>
+    <p>A — Move first</p>
+    <p>B — Read reaction</p>
+    <p>C — Attack clean</p>
+
+    <h3>Skill 4 — Tempo Change</h3>
+    <p>A — Slow pace</p>
+    <p>B — Change speed</p>
+    <p>C — Attack on timing</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Neutral Offense</h2>
+
+    <h3>Skill 5 — Setups / Control Ties</h3>
+    <p>A — Establish tie</p>
+    <p>B — Move opponent</p>
+    <p>C — Attack from tie</p>
+
+    <h3>Skill 6 — Arm Drag to Finish</h3>
+    <p>A — Wrist control</p>
+    <p>B — Drag across</p>
+    <p>C — Finish behind</p>
+
+    <h3>Skill 7 — Re-Shot</h3>
+    <p>A — Defend first shot</p>
+    <p>B — Re-enter</p>
+    <p>C — Finish re-shot</p>
+
+    <h3>Skill 8 — Snap Down to Score</h3>
+    <p>A — Snap</p>
+    <p>B — Front head control</p>
+    <p>C — Spin / score</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Neutral Defense</h2>
+
+    <h3>Skill 9 — Sprawl &amp; Spin</h3>
+    <p>A — Sprawl</p>
+    <p>B — Find angle</p>
+    <p>C — Spin behind</p>
+
+    <h3>Skill 10 — Front Headlock Defense</h3>
+    <p>A — Stop head control</p>
+    <p>B — Recover position</p>
+    <p>C — Attack back</p>
+
+    <h3>Skill 11 — Counter-Defense</h3>
+    <p>A — Defend</p>
+    <p>B — Recover</p>
+    <p>C — Re-attack</p>
+
+    <h3>Skill 12 — Down Block to Score</h3>
+    <p>A — Down block</p>
+    <p>B — Stop penetration</p>
+    <p>C — Go behind or re-shot</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Top</h2>
+
+    <h3>Skill 13 — Spiral Ride</h3>
+    <p>A — Insert spiral</p>
+    <p>B — Apply forward pressure</p>
+    <p>C — Break opponent down</p>
+
+    <h3>Skill 14 — Crossface</h3>
+    <p>A — Crossface arm</p>
+    <p>B — Apply pressure</p>
+    <p>C — Turn or reset</p>
+
+    <h3>Skill 15 — Ride Control</h3>
+    <p>A — Follow hips</p>
+    <p>B — Keep heavy pressure</p>
+    <p>C — Maintain control</p>
+
+    <h3>Skill 16 — Return to Ride</h3>
+    <p>A — Return opponent to mat</p>
+    <p>B — Stay behind hips</p>
+    <p>C — Re-establish ride</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Bottom</h2>
+
+    <h3>Skill 17 — Escape to Neutral</h3>
+    <p>A — Clear hands</p>
+    <p>B — Stand and separate</p>
+    <p>C — Face opponent</p>
+
+    <h3>Skill 18 — Switch to Reversal</h3>
+    <p>A — Sit out line</p>
+    <p>B — Turn hips</p>
+    <p>C — Secure reversal</p>
+
+    <h3>Skill 19 — Hip Heist</h3>
+    <p>A — Post</p>
+    <p>B — Turn hips</p>
+    <p>C — Escape or reverse</p>
+
+    <h3>Skill 20 — Bottom Movement Chain</h3>
+    <p>A — Move hips</p>
+    <p>B — Rebuild base</p>
+    <p>C — Chain to escape</p>
+  </article>
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T1";
+  const pageTrack = "teen";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "teen" && athleteId.startsWith("F8_")) {
+    window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+    throw new Error("Wrong branch for F8 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>

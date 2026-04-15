@@ -54,7 +54,27 @@ export async function createAthlete(uid, form) {
     city,
     state,
     mintVirtueTag,
-    virtue
+    virtue,
+
+    // new / optional fields
+    trackCode = "F4",
+    lane = "combat",
+    tier = 0,
+    rankName = "Apprentice",
+    rankColor = "#ffffff",
+    xpCap = 1200,
+
+    startingXp = 0,
+    stripeCount = 0,
+
+    legacy = false,
+    legacyType = null,
+    legacyYearsVerified = 0,
+    legacyCreditTotal = 0,
+    legacyCreditIssued = 0,
+    legacyHold = false,
+    legacyCreditSchedule = null,
+    legacyNote = null
   } = form;
 
   const data = {
@@ -64,8 +84,8 @@ export async function createAthlete(uid, form) {
     team,
     city,
     state,
-    trackCode: "F4",
-    lane: "combat",
+    trackCode,
+    lane,
 
     mintVirtueTag,
     virtue,
@@ -73,18 +93,18 @@ export async function createAthlete(uid, form) {
     onboardingComplete: false,
     onboardingStartedAt: serverTimestamp(),
 
-    xp: 0,
-    xpCap: 1200,
-    stripeCount: 0,
+    xp: startingXp,
+    xpCap,
+    stripeCount,
 
     xpHonor: 0,
     xpHonorCap: 2400,
     xpStrength: 0,
     xpStrengthCap: 2400,
 
-    tier: 0,
-    rankName: "Apprentice",
-    rankColor: "#ffffff",
+    tier,
+    rankName,
+    rankColor,
 
     matchesTotal: 0,
     wins: 0,
@@ -94,6 +114,15 @@ export async function createAthlete(uid, form) {
     skillTop: "",
     skillBottom: "",
     coachNotes: "",
+
+    legacy,
+    legacyType,
+    legacyYearsVerified,
+    legacyCreditTotal,
+    legacyCreditIssued,
+    legacyHold,
+    legacyCreditSchedule,
+    legacyNote,
 
     createdAt: serverTimestamp(),
     lastUpdate: serverTimestamp(),

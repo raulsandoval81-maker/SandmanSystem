@@ -266,13 +266,16 @@ function paintLane({
     setRingProgress(svg, clamp(unitXP / 400, 0, 1));
   }
 
-  if (metaRightEl) metaRightEl.textContent = `${unitXP}/${Math.round(step)} XP`;
-}
+if (metaRightEl) {
+  const pct = Math.round((capXP / total) * 100);
+  metaRightEl.textContent = `Progress: ${pct}%`;
+}}
 
 // ===============================
 // MAIN
 // ===============================
 (async () => {
+  
   const ref = doc(db, "athletes", athleteId);
   const snap = await getDoc(ref);
 

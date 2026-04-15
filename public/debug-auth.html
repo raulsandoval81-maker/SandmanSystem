@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Debug Auth</title>
+</head>
+<body style="font-family: monospace; padding:20px;">
+  <h2>Auth Debug</h2>
+  <pre id="out">Starting...</pre>
+
+  <script type="module">
+    const out = document.getElementById("out");
+
+    try {
+      out.textContent = "Importing Firebase...";
+
+      const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js");
+      const { getAuth, onAuthStateChanged } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js");
+
+      out.textContent = "Initializing app...";
+
+      const app = initializeApp({
+  apiKey: "AIzaSyDr8fZgWVCP_qBu2Ev9E2KtVay3lJcWJs4",
+  authDomain: "sandmandashboard.firebaseapp.com",
+  projectId: "sandmandashboard",
+      });
+
+      const auth = getAuth(app);
+
+      out.textContent = "Waiting for auth state...";
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          out.textContent = JSON.stringify({
+            signedIn: true,
+            uid: user.uid,
+            email: user.email
+          }, null, 2);
+        } else {
+          out.textContent = JSON.stringify({
+            signedIn: false
+          }, null, 2);
+        }
+      });
+
+    } catch (err) {
+      out.textContent = "ERROR:\n\n" + err.message;
+    }
+  </script>
+</body>
+</html>

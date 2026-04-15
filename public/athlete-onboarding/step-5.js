@@ -1,4 +1,11 @@
-import { db, doc, updateDoc, serverTimestamp } from "../assets/js/firebase-init.js";
+import {
+  db,
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp,
+  ensureSignedIn
+} from "/assets/js/firebase-init.js";
 
 const params = new URLSearchParams(window.location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
@@ -16,6 +23,35 @@ if (scoreEl && valEl) {
   scoreEl.addEventListener("input", () => { valEl.textContent = String(scoreEl.value); });
 }
 
+// --------------------------------
+// BOOT: ensure auth + load lock state
+// --------------------------------
+let athlete = null;
+
+async function boot() {
+  try {
+    // 🔐 REQUIRED so request.auth exists (phone)
+    await ensureSignedIn();
+
+    const snap = await getDoc(doc(db, "athletes", uid));
+    athlete = snap.exists() ? (snap.data() || {}) : null;
+
+    // If Step 5 already locked, forward immediately
+    if (athlete?.onboarding?.locks?.step5 === true) {
+      window.location.href = `/athlete-onboarding/step-6.html?id=${encodeURIComponent(uid)}`;
+      return;
+    }
+
+    setStatus("");
+  } catch (e) {
+    console.error(e);
+    setStatus("Auth/load failed.");
+    if (nextBtn) nextBtn.disabled = true;
+  }
+}
+
+boot();
+
 nextBtn && (nextBtn.onclick = async () => {
   const v = Number(String(scoreEl?.value ?? "").trim());
   if (!Number.isFinite(v) || v < 1 || v > 10) return setStatus("Enter a number from 1 to 10.");
@@ -27,9 +63,16 @@ nextBtn && (nextBtn.onclick = async () => {
     await updateDoc(doc(db, "athletes", uid), {
       "onboarding.version": "v1",
       "onboarding.status": "in_progress",
-      "onboarding.step": 5,
+
+      // Step 5 completed → next step is 6
+      "onboarding.step": 6,
+
       "onboarding.selfAssess.smart": v,
       "onboarding.selfAssess.smartAt": serverTimestamp(),
+
+      // Step-lock model
+      "onboarding.locks.step5": true,
+
       updatedAt: serverTimestamp(),
     });
 

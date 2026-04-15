@@ -3,102 +3,220 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Sandman System™ overview. Sandman Combat™ is the primary training lane inside a structured progression system built on earned advancement and visible standards." />
-  <title>Overview | Sandman System™</title>
+  <meta
+    name="description"
+    content="Sandman Combat™ is a wrestling-first training program for youth and teen athletes built on discipline, earned progress, and clear standards."
+  />
+  <title>Overview | Sandman Combat™</title>
 
   <link rel="stylesheet" href="assets/css/site.css" />
+  <link rel="stylesheet" href="public.css" />
+  <script src="assets/js/public-shell.js" defer></script>
 
   <style>
-    *{ box-sizing:border-box; }
-    body{
-      margin:0;
-      background:#0a0a0a;
-      color:#f3f4f6;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    *{box-sizing:border-box;}
+
+    .top-nav{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      padding:10px 12px 12px;
+      background:#081a34;
+      border-bottom:1px solid rgba(255,214,51,.14);
     }
 
-    /* TOP NAV */
-    .top-nav{
-      background:#0f141b;
-      border-bottom:2px solid #ffd633;
-      padding:.6rem 1rem;
+    .nav-top{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:8px;
     }
-    .nav-inner{
+
+    .nav-logo{
+      display:block;
+      justify-self:center;
+      text-align:center;
+      text-decoration:none;
+      color:#ffd633;
+      font-weight:900;
+      font-size:.98rem;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .lang-toggle{
+      justify-self:start;
+    }
+
+    .lang-toggle .lang-btn{
+      min-height:32px;
+      padding:.28rem .58rem;
+      font-size:.8rem;
+      border-radius:999px;
+    }
+
+    .theme-toggle{
+      justify-self:end;
+      width:38px;
+      height:38px;
+      min-width:38px;
+      min-height:38px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      padding:0;
+    }
+
+    .site-nav{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+      width:100%;
+      background:transparent;
+      padding:0;
+      border:none;
+      box-shadow:none;
+    }
+
+    .site-nav a{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      padding:.38rem .35rem;
+      border-radius:999px;
+      background:rgba(0,0,0,.28);
+      color:#ffffff;
+      text-decoration:none;
+      font-weight:800;
+      font-size:.83rem;
+      line-height:1;
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:none;
+      text-align:center;
+      transition:filter .15s ease, transform .15s ease, border-color .15s ease;
+    }
+
+    .site-nav a:hover{
+      filter:brightness(1.05);
+      transform:translateY(-1px);
+      border-color:#ffd633;
+    }
+
+    .site-nav a[aria-current="page"]{
+      background:#ffd633;
+      color:#111827;
+      border-color:#ffd633;
+    }
+
+    body.day-mode .top-nav{
+      background:#f3e7cf;
+      border-bottom:1px solid rgba(166,124,0,.14);
+    }
+
+    body.day-mode .nav-logo{
+      color:#a16207;
+    }
+
+    body.day-mode .site-nav a{
+      background:#ffffff;
+      color:#1c2430;
+      border:1px solid #d7c7a2;
+    }
+
+    body.day-mode .site-nav a[aria-current="page"]{
+      background:#ffd633;
+      color:#111827;
+      border-color:#e5b800;
+    }
+
+    .wrap{
       max-width:1100px;
       margin:0 auto;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
+      padding:2rem 1.25rem;
     }
-    .nav-logo{
+
+    .section{
+      margin:2rem 0;
+    }
+
+    .section h2{
+      color:var(--brand);
+      margin-bottom:.6rem;
       font-weight:900;
-      color:#ffd633;
-      text-decoration:none;
-      text-transform:uppercase;
-      letter-spacing:.06em;
     }
 
-    /* LAYOUT */
-    .wrap{ max-width:1100px; margin:0 auto; padding:2rem 1.25rem; }
-    .section{ margin:2rem 0; }
-    .section h2{ color:#ffd633; margin-bottom:.6rem; }
-    .lead{ color:#cfd3d9; line-height:1.65; margin:.6rem 0; }
+    .lead{
+      color:var(--muted);
+      line-height:1.65;
+      margin:.6rem 0;
+    }
 
-    /* HERO */
     .hero-box{
-      background:linear-gradient(to bottom, #8b0000, #151515);
+      background:linear-gradient(to bottom,#8b0000,#151515);
       border-radius:20px;
       padding:2rem 1.5rem;
       border:1px solid rgba(255,255,255,.06);
       box-shadow:0 0 22px rgba(0,0,0,.7);
     }
+
+    body.day-mode .hero-box{
+      background:linear-gradient(to bottom,#c2410c,#f3e7cf);
+      border:1px solid rgba(166,124,0,.2);
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
     .hero-kicker{
       text-transform:uppercase;
       letter-spacing:.12em;
       font-size:.8rem;
-      color:#facc15;
+      color:var(--brand);
       font-weight:900;
     }
+
     .hero-sub{
       color:#e5e7eb;
       line-height:1.6;
       margin:.5rem 0 1rem;
     }
-    .hero-tag{
-      color:#9ca3af;
-      font-size:.9rem;
+
+    body.day-mode .hero-sub{
+      color:#374151;
     }
 
-    /* LIST */
     .diff-list{
       list-style:none;
       padding-left:0;
-      color:#cfd3d9;
+      color:#e5e7eb;
     }
+
     .diff-list li{
       position:relative;
       padding-left:1.15rem;
       margin-bottom:.45rem;
     }
+
     .diff-list li::before{
       content:"★";
       position:absolute;
       left:0;
-      color:#facc15;
+      color:#ffd633;
       font-size:.8rem;
     }
 
-    /* GRID */
-    .grid-3{ display:grid; gap:1rem; }
-    @media (min-width:900px){
-      .grid-3{ grid-template-columns:repeat(3,1fr); }
+    .grid-3{
+      display:grid;
+      gap:1rem;
     }
 
     .card{
-      background:#121821;
-      border:1px solid #243041;
+      background:var(--panel);
+      border:1px solid var(--line);
       border-radius:14px;
       padding:1rem;
+      box-shadow:var(--shadow);
     }
 
     .pill-tag{
@@ -108,193 +226,380 @@
       text-transform:uppercase;
       padding:.25rem .6rem;
       border-radius:999px;
-      background:#111827;
-      border:1px solid #374151;
-      color:#9ca3af;
+      background:var(--panel-2);
+      border:1px solid var(--line);
+      color:var(--muted);
       font-weight:900;
       margin-bottom:.5rem;
     }
 
-    /* CTA */
-    .actions{ display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem; }
+    .actions{
+      display:flex;
+      gap:.75rem;
+      flex-wrap:wrap;
+      margin-top:1rem;
+    }
+
     .btn{
-      padding:.65rem 1.25rem;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      padding:.7rem 1.2rem;
       border-radius:999px;
-      background:#ffd633;
-      color:#111827;
       font-weight:900;
       text-decoration:none;
-    }
-    .btn.secondary{
-      background:#263142;
-      color:#e6e8eb;
-      border:1px solid #3a4a60;
+      white-space:nowrap;
     }
 
-/* ===== Footer 5-across mobile dock ===== */
-.footer-links{
-  display:grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap:.4rem;
-  width:100%;
-  max-width:900px;
-  margin:0 auto;
+    .btn-primary{
+      background:#e53935;
+      color:#ffffff;
+      border:1px solid #e53935;
+    }
+
+    .btn-secondary{
+      background:#0b0b0f;
+      color:#ffd633;
+      border:1px solid #ffd633;
+    }
+
+    body.day-mode .btn-primary{
+      background:#e53935;
+      color:#ffffff;
+      border:1px solid #e53935;
+    }
+
+    body.day-mode .btn-secondary{
+      background:#0b0b0f;
+      color:#ffd633;
+      border:1px solid #ffd633;
+    }
+
+    .hero-box h2{
+      color:#ffffff;
+      font-weight:900;
+    }
+
+    .hero-box .lead{
+      color:#e5e7eb;
+    }
+
+    .hero-box .hero-sub{
+      color:#d1d5db;
+    }
+
+    body.day-mode .hero-box h2{
+      color:#111827;
+    }
+
+    body.day-mode .hero-box .lead{
+      color:#1f2937;
+    }
+
+    body.day-mode .hero-box .hero-sub{
+      color:#374151;
+    }
+
+    .section h2{
+      color:#ffd633;
+    }
+
+    .section .lead{
+      color:#d1d5db;
+    }
+
+    body.day-mode .section h2{
+      color:#6b3f00;
+    }
+
+    body.day-mode .section .lead{
+      color:#374151;
+    }
+
+    .card h3{
+      color:#ffffff;
+      font-weight:900;
+    }
+
+    .card .lead{
+      color:#d1d5db;
+    }
+
+    body.day-mode .card h3{
+      color:#1f2937;
+    }
+
+    body.day-mode .card .lead{
+      color:#374151;
+    }
+
+    body.day-mode .panel{
+      background:#ffffff;
+      border:1px solid #d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    @media (min-width:700px){
+      .site-nav{
+        grid-template-columns:repeat(4, minmax(0, 1fr));
+      }
+
+      .site-nav a{
+        min-height:40px;
+        font-size:.86rem;
+      }
+
+      .nav-logo{
+        font-size:1.02rem;
+      }
+    }
+
+    @media (min-width:900px){
+      .grid-3{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+
+    @media (max-width:640px){
+      .top-nav{
+        padding:10px;
+      }
+
+      .wrap{
+        padding:1.4rem .9rem;
+      }
+
+      .hero-box{
+        padding:1.4rem 1rem;
+      }
+    }
+    /* DAY MODE — fix washed-out list text on white cards/panels */
+body.day-mode .panel .diff-list,
+body.day-mode .panel .diff-list li{
+  color:#374151;
 }
 
-.footer-links{
-  display:grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap:.4rem;
-  width:100%;
+body.day-mode .panel .diff-list li::before{
+  color:#b7791f;
 }
 
-.footer-links a{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:.6rem .25rem;
-  border:1px solid #243041;
-  background:#0b1020;
-  border-radius:12px;
-  text-decoration:none;
-  font-weight:900;
-  font-size:.8rem;
-  white-space:nowrap;
-  text-align:center;
-  transition: all .2s ease;
-
-  /* DEFAULT = yellow */
-  color:#ffd633;
+body.day-mode .panel .lead{
+  color:#374151;
 }
 
-/* Hover = white */
-.footer-links a:hover{
-  color:#ffffff;
-  border-color:#ffffff;
-}
-
-/* Current page stays yellow by default */
-.footer-links a[aria-current="page"]{
-  color:#ffd633;
-  border-color:#ffd633;
-}
-
-/* Hover current page = white */
-.footer-links a[aria-current="page"]:hover{
-  color:#ffffff;
-  border-color:#ffffff;
-}
-/* smaller phones */
-@media (max-width:420px){
-  .footer-links a{
-    font-size:.7rem;
-    padding:.55rem .15rem;
-  }
+body.day-mode .panel h2,
+body.day-mode .panel h3{
+  color:#1f2937;
 }
   </style>
 </head>
 
 <body>
+  <header class="top-nav">
+    <div class="nav-top">
+      <div class="lang-toggle" role="group" aria-label="Language toggle">
+        <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+      </div>
 
-<header class="top-nav">
-  <div class="nav-inner">
-    <a href="index.html" class="nav-logo">Sandman System™</a>
-  </div>
-</header>
+      <a href="index.html" class="nav-logo">Sandman Combat™</a>
 
-<main class="wrap">
+      <button type="button" class="theme-toggle" aria-label="Toggle theme">☾</button>
+    </div>
 
-<section class="section hero-box">
-  <div class="hero-kicker">Overview</div>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
 
+      <a href="overview.html" aria-current="page">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
 
-    <h2>How It Works</h2>
+      <a href="programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
 
-  <p class="lead">
-    Sandman System™ establishes the structure — tiers, expectations, and accountability.
-  </p>
+      <a href="about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
 
+  <main class="wrap">
 
-  <p class="lead">
-    Sandman Combat™ is the primary lane where that structure is applied.
-    Training is consistent. Progress is measurable. Advancement is earned.
-  </p>
-      <p class="hero-sub">
-    A structured progression built around earned advancement, visible standards, and long-term development.
-  </p>
+    <!-- HERO -->
+    <section class="section hero-box">
+      <div data-lang-block="en">
+        <div class="hero-kicker">Overview</div>
+        <h2>What Sandman Combat Is</h2>
 
+        <p class="lead">
+          Sandman Combat™ is a structured training program for youth and teen athletes built on discipline, accountability, and earned progress.
+        </p>
 
-  <p class="lead">
-    One system. One standard. Different stages of growth.
-  </p>
+        <p class="lead">
+          This is not random practice or a drop-in room. Athletes show up, work, respect the process, and grow through consistent effort.
+        </p>
+      </div>
 
-</section>
+      <div data-lang-block="es" class="hidden-lang">
+        <div class="hero-kicker">Resumen</div>
+        <h2>Qué es Sandman Combat</h2>
 
+        <p class="lead">
+          Sandman Combat™ es un programa de entrenamiento estructurado para atletas juveniles y adolescentes, construido sobre disciplina, responsabilidad y progreso ganado.
+        </p>
 
-  <section class="section">
-    <h2>What Makes It Different</h2>
-    <ul class="diff-list">
-      <li>Visible progress</li>
-      <li>Clear standards</li>
+        <p class="lead">
+          Esto no es una práctica al azar ni una sala de entrada libre. Los atletas llegan, trabajan, respetan el proceso y crecen con esfuerzo constante.
+        </p>
+      </div>
 
-      <li>Earned advancement</li>
-      <li>No skipped steps</li>
-    </ul>
-  </section>
+      <div class="actions">
+        <a class="btn btn-secondary" href="programs.html">
+          <span data-lang-block="en">View Programs</span>
+          <span data-lang-block="es" class="hidden-lang">Ver Programas</span>
+        </a>
 
-<section class="section">
-  <h2>Two Tracks. One Standard.</h2>
+        <a class="btn btn-primary" href="join.html">
+          <span data-lang-block="en">Join the Academy</span>
+          <span data-lang-block="es" class="hidden-lang">Únete a la Academia</span>
+        </a>
+      </div>
+    </section>
 
-  <p class="lead">
-    Sandman System™ operates as one structure. The expectations stay consistent.
-    The pacing changes by age and stage.
-  </p>
+    <!-- DIFFERENCE -->
+    <section class="section">
+      <div class="panel">
+        <div data-lang-block="en">
+          <h2 class="section-title">What Makes It Different</h2>
 
-  <div class="grid-3">
+          <p class="lead">
+            Sandman Combat is built around clear expectations and earned growth. Progress is not handed out, and development is meant to be seen over time.
+          </p>
 
-    <article class="card">
-      <div class="pill-tag">Youth · Foundry 8</div>
-      <h3>Zero to Hero</h3>
-      <p class="lead">
-        A structured foundation for youth athletes. Discipline, effort, and confidence are built
-        through clear standards and earned progression.
-      </p>
-    </article>
+          <ul class="diff-list">
+            <li>Visible progress</li>
+            <li>Clear standards</li>
+            <li>Earned advancement</li>
+            <li>No skipped steps</li>
+          </ul>
+        </div>
 
-    <article class="card">
-      <div class="pill-tag">Teen · Foundry 4</div>
-      <h3>Path to Legend</h3>
-      <p class="lead">
-        Increased accountability under pressure. Identity and composure are forged
-        through measurable advancement and responsibility.
-      </p>
-    </article>
+        <div data-lang-block="es" class="hidden-lang">
+          <h2 class="section-title">Qué lo hace diferente</h2>
 
+          <p class="lead">
+            Sandman Combat está construido sobre expectativas claras y crecimiento ganado. El progreso no se regala, y el desarrollo se ve con el tiempo.
+          </p>
 
-  </div>
-</section>
-  <section class="section">
-    <h2>Why Combat</h2>
-    <p class="lead">
-      Combat provides immediate feedback. It exposes habits quickly and honestly.
-    </p>
-    <p class="lead">
-      That is why it is used — to build restraint, composure, and responsibility through real effort.
-    </p>
-  </section>
+          <ul class="diff-list">
+            <li>Progreso visible</li>
+            <li>Estándares claros</li>
+            <li>Avance ganado</li>
+            <li>Sin saltar pasos</li>
+          </ul>
+        </div>
+      </div>
+    </section>
 
+    <!-- STAGES -->
+    <section class="section">
+      <div class="panel">
+        <div data-lang-block="en">
+          <h2 class="section-title">Built for Different Stages of Growth</h2>
 
-</main>
+          <p class="lead">
+            Athletes develop at different stages. Sandman Combat keeps the same standard of discipline and effort while adjusting structure to match the athlete.
+          </p>
+        </div>
 
-  <footer class="footer">
-<div class="footer-links">
-  <a href="index.html">Home</a>
-  <a href="overview.html">Overview</a>
-  <a href="programs.html">Programs</a>
-  <a href="about.html">About</a>
-  <a href="ceremonies.html">Ceremonies</a>
-</div>
-  </footer>
+        <div data-lang-block="es" class="hidden-lang">
+          <h2 class="section-title">Diseñado para distintas etapas de crecimiento</h2>
 
+          <p class="lead">
+            Los atletas se desarrollan en distintas etapas. Sandman Combat mantiene el mismo estándar de disciplina y esfuerzo mientras ajusta la estructura al atleta.
+          </p>
+        </div>
+
+        <div class="grid-3">
+          <article class="card">
+            <div data-lang-block="en">
+              <div class="pill-tag">Youth</div>
+              <h3>Foundation Years</h3>
+              <p class="lead">
+                Younger athletes build discipline, effort, confidence, and strong habits through structured training.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <div class="pill-tag">Juventud</div>
+              <h3>Años de base</h3>
+              <p class="lead">
+                Los atletas más jóvenes construyen disciplina, esfuerzo, confianza y hábitos sólidos mediante entrenamiento estructurado.
+              </p>
+            </div>
+          </article>
+
+          <article class="card">
+            <div data-lang-block="en">
+              <div class="pill-tag">Teen</div>
+              <h3>Competitive Growth</h3>
+              <p class="lead">
+                Older athletes take on greater responsibility and develop skill, identity, and composure under pressure.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <div class="pill-tag">Adolescente</div>
+              <h3>Crecimiento competitivo</h3>
+              <p class="lead">
+                Los atletas mayores asumen más responsabilidad y desarrollan habilidad, identidad y compostura bajo presión.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMBAT -->
+    <section class="section">
+      <div class="panel">
+        <div data-lang-block="en">
+          <h2 class="section-title">Why “Combat”</h2>
+
+          <p class="lead">
+            Combat gives honest feedback. It exposes habits quickly and forces athletes to respond with discipline, composure, and effort.
+          </p>
+
+          <p class="lead">
+            Done the right way, it builds stronger athletes and stronger people.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2 class="section-title">Por qué “Combat”</h2>
+
+          <p class="lead">
+            El combate da retroalimentación honesta. Expone hábitos rápidamente y obliga a responder con disciplina, compostura y esfuerzo.
+          </p>
+
+          <p class="lead">
+            Hecho correctamente, forma atletas más fuertes y mejores personas.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
 </body>
 </html>

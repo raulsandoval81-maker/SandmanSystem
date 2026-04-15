@@ -1,0 +1,33 @@
+{
+  "lane": "honor",
+  "segmentId": "segment5",
+  "segmentTitle": "Leadership & I",
+  "title": "Leadership",
+  "unlockStripe": 7,
+  "sessions": 40,
+  "sessionDuration": {
+    "teenMinutes": [40, 60],
+    "youthMinutes": [20, 30]
+  },
+  "xp": {
+    "awardOptions": [5, 10],
+    "defaultTeen": 10,
+    "defaultYouth": 5,
+    "rule": "5 if incomplete or weak evidence; 10 if complete with real anchor and honest grading."
+  },
+  "nonNegotiables": [
+    "Not motivational fluff.",
+    "Must reference real leadership behavior.",
+    "No generic journaling."
+  ],
+  "retestRule": {
+    "day1": 1,
+    "day40": 40,
+    "note": "Session 40 repeats Session 1 exactly so athlete compares change over time."
+  },
+  "coachReview": {
+    "required": true,
+    "evidenceRequired": ["anchorEvent", "answers", "selfGrade"]
+  },
+  "tagline": "Staged in the Light."
+}

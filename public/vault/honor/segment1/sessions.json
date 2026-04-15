@@ -1,0 +1,786 @@
+{
+  "lane": "honor",
+  "segmentId": "segment1",
+  "segmentTitle": "Self",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "HON-001",
+      "block": 1,
+      "type": "baseline_gate",
+      "title": "Baseline Check",
+      "focusArea": "Focus · Effort · Attitude · Respect",
+      "principle": "Pressure reveals what is real.\nControl shows when it gets hard.",
+      "houseStandard": "In this house, we tell the truth and return to stance.\nDelay is a choice.\nSay it out loud. Twice.",
+      "prompt": "Answer from your last match or practice.",
+      "questions": [
+        "What distracted you the most?",
+        "What did you actually do under pressure?",
+        "What excuse did you tell yourself?",
+        "What should you have done instead?",
+        "What is your command when things break?"
+      ],
+      "deliverable": "Write:\n- distraction\n- action\n- excuse\n- correction\n- command\nRate: F/E/A/R (1–10)",
+      "scripture": { "text": "Whoever rules his spirit is better than he who takes a city.", "ref": "Proverbs 16:32" }
+    },
+
+    {
+      "n": 2,
+      "id": "HON-002",
+      "block": 1,
+      "type": "reflection",
+      "title": "Distraction Control",
+      "focusArea": "Focus",
+      "principle": "Discipline is speed of return.",
+      "houseStandard": "In this house, we return immediately.\nNo drifting.\nSay it out loud. Twice.",
+      "prompt": "Identify your distractions.",
+      "questions": [
+        "What are your top distractions?",
+        "When do they show up?",
+        "What do they cost you?",
+        "What replaces them?"
+      ],
+      "deliverable": "3 distractions + fixes",
+      "scripture": { "text": "Set your mind on things above.", "ref": "Colossians 3:2" }
+    },
+
+    {
+      "n": 3,
+      "id": "HON-003",
+      "block": 1,
+      "type": "reflection",
+      "title": "Control vs Noise",
+      "focusArea": "Focus",
+      "principle": "Control what you can. Ignore the rest.",
+      "houseStandard": "In this house, we control what we can.\nNoise is ignored.\nSay it out loud. Twice.",
+      "prompt": "Separate control vs noise.",
+      "questions": [
+        "What is in your control?",
+        "What is not?",
+        "Where do you waste energy?",
+        "What is your fix?"
+      ],
+      "deliverable": "control + noise + fix",
+      "scripture": { "text": "Let your eyes look straight ahead.", "ref": "Proverbs 4:25" }
+    },
+
+    {
+      "n": 4,
+      "id": "HON-004",
+      "block": 1,
+      "type": "reflection",
+      "title": "Stay in the Moment",
+      "focusArea": "Attitude",
+      "principle": "Outcome thinking kills action.",
+      "houseStandard": "In this house, we work the next task.\nStay present.\nSay it out loud. Twice.",
+      "prompt": "Where did you leave the moment?",
+      "questions": [
+        "When did you look ahead?",
+        "What did it cost?",
+        "What should you do instead?",
+        "What is your reset cue?"
+      ],
+      "deliverable": "moment + cost + cue",
+      "scripture": { "text": "Do not worry about tomorrow.", "ref": "Matthew 6:34" }
+    },
+
+    {
+      "n": 5,
+      "id": "HON-005",
+      "block": 1,
+      "type": "reflection",
+      "title": "Clock Control",
+      "focusArea": "Focus",
+      "principle": "Time pressure exposes behavior.",
+      "houseStandard": "In this house, we wrestle the position.\nNot the clock.\nSay it out loud. Twice.",
+      "prompt": "What happens when you see the clock?",
+      "questions": [
+        "Do you rush or freeze?",
+        "What thought hits first?",
+        "What changes?",
+        "What rule replaces it?"
+      ],
+      "deliverable": "pattern + rule",
+      "scripture": { "text": "Teach us to number our days.", "ref": "Psalm 90:12" }
+    },
+
+    {
+      "n": 6,
+      "id": "HON-006",
+      "block": 1,
+      "type": "reflection",
+      "title": "Task Under Pressure",
+      "focusArea": "Attitude",
+      "principle": "Task restores control.",
+      "houseStandard": "In this house, we return to task.\nEmotion does not lead.\nSay it out loud. Twice.",
+      "prompt": "What task resets you?",
+      "questions": [
+        "What happens under pressure?",
+        "What task stabilizes you?",
+        "Why does it work?",
+        "When do you use it?"
+      ],
+      "deliverable": "task + why",
+      "scripture": { "text": "Work with all your heart.", "ref": "Colossians 3:23" }
+    },
+
+    {
+      "n": 7,
+      "id": "HON-007",
+      "block": 1,
+      "type": "command_lock",
+      "title": "Command Lock",
+      "focusArea": "Focus",
+      "principle": "Short commands control chaos.",
+      "houseStandard": "In this house, we use command.\nDrift is not allowed.\nSay it out loud. Twice.",
+      "prompt": "Create your command.",
+      "questions": [
+        "What do you say when things break?",
+        "Is it simple?",
+        "When do you use it?",
+        "Does it reset you?"
+      ],
+      "deliverable": "3-word command",
+      "scripture": { "text": "Be strong and courageous.", "ref": "Joshua 1:9" }
+    },
+
+    {
+      "n": 8,
+      "id": "HON-008",
+      "block": 1,
+      "type": "reflection",
+      "title": "Action Over Outcome",
+      "focusArea": "Focus",
+      "principle": "Action beats hesitation.",
+      "houseStandard": "In this house, we act.\nNo hesitation.\nSay it out loud. Twice.",
+      "prompt": "Where did you hesitate?",
+      "questions": [
+        "Why did you hesitate?",
+        "What were you thinking?",
+        "What should you do?",
+        "What is your correction?"
+      ],
+      "deliverable": "example + correction",
+      "scripture": { "text": "Commit your work.", "ref": "Proverbs 16:3" }
+    },
+
+    {
+      "n": 9,
+      "id": "HON-009",
+      "block": 2,
+      "type": "reflection",
+      "title": "Effort Standard",
+      "focusArea": "Effort",
+      "principle": "Effort is non-negotiable.",
+      "houseStandard": "In this house, effort is required.\nNot optional.\nSay it out loud. Twice.",
+      "prompt": "Define your effort.",
+      "questions": [
+        "What does full effort look like?",
+        "When do you fall off?",
+        "Why?",
+        "What fixes it?"
+      ],
+      "deliverable": "effort standard",
+      "scripture": { "text": "Do it with all your might.", "ref": "Ecclesiastes 9:10" }
+    },
+
+    {
+      "n": 10,
+      "id": "HON-010",
+      "block": 2,
+      "type": "reflection",
+      "title": "Half Effort Truth",
+      "focusArea": "Effort",
+      "principle": "Half effort creates false confidence.",
+      "houseStandard": "In this house, we give full effort.\nNo half work.\nSay it out loud. Twice.",
+      "prompt": "Where do you give half effort?",
+      "questions": [
+        "When do you coast?",
+        "Why?",
+        "What does it cost?",
+        "What changes now?"
+      ],
+      "deliverable": "weak point + fix",
+      "scripture": { "text": "Be steadfast.", "ref": "1 Corinthians 15:58" }
+    },
+
+    {
+      "n": 11,
+      "id": "HON-011",
+      "block": 2,
+      "type": "reflection",
+      "title": "Fatigue Response",
+      "focusArea": "Effort",
+      "principle": "Fatigue reveals your truth.",
+      "houseStandard": "In this house, effort continues under fatigue.\nSay it out loud. Twice.",
+      "prompt": "What happens when tired?",
+      "questions": [
+        "Do you slow down?",
+        "What changes?",
+        "Why?",
+        "What is your rule?"
+      ],
+      "deliverable": "pattern + rule",
+      "scripture": { "text": "Do not grow weary.", "ref": "Galatians 6:9" }
+    },
+
+    {
+      "n": 12,
+      "id": "HON-012",
+      "block": 2,
+      "type": "reflection",
+      "title": "Consistency",
+      "focusArea": "Effort",
+      "principle": "Consistency builds trust.",
+      "houseStandard": "In this house, we are consistent.\nSay it out loud. Twice.",
+      "prompt": "Are you consistent?",
+      "questions": [
+        "When do you drop?",
+        "Why?",
+        "What fixes it?",
+        "What is your rule?"
+      ],
+      "deliverable": "pattern + fix",
+      "scripture": { "text": "Let us not grow weary.", "ref": "Galatians 6:9" }
+    },
+
+    {
+      "n": 13,
+      "id": "HON-013",
+      "block": 3,
+      "type": "reflection",
+      "title": "Attitude Under Pressure",
+      "focusArea": "Attitude",
+      "principle": "Attitude shows under stress.",
+      "houseStandard": "In this house, attitude stays controlled.\nSay it out loud. Twice.",
+      "prompt": "How do you react?",
+      "questions": [
+        "What happens first?",
+        "What do you show?",
+        "Why?",
+        "What is your fix?"
+      ],
+      "deliverable": "reaction + fix",
+      "scripture": { "text": "Be self-controlled.", "ref": "1 Peter 5:8" }
+    },
+
+    {
+      "n": 14,
+      "id": "HON-014",
+      "block": 3,
+      "type": "reflection",
+      "title": "Blame vs Ownership",
+      "focusArea": "Attitude",
+      "principle": "Blame kills growth.",
+      "houseStandard": "In this house, we take ownership.\nSay it out loud. Twice.",
+      "prompt": "Where do you blame?",
+      "questions": [
+        "Who do you blame?",
+        "Why?",
+        "What is yours?",
+        "What changes?"
+      ],
+      "deliverable": "ownership shift",
+      "scripture": { "text": "Examine yourselves.", "ref": "2 Corinthians 13:5" }
+    },
+
+    {
+      "n": 15,
+      "id": "HON-015",
+      "block": 3,
+      "type": "reflection",
+      "title": "Mistake Recovery",
+      "focusArea": "Attitude",
+      "principle": "Mistakes are not the problem.\nDelay is.",
+      "houseStandard": "In this house, we recover immediately.\nSay it out loud. Twice.",
+      "prompt": "How fast do you recover?",
+      "questions": [
+        "What happens after mistake?",
+        "How long do you stay there?",
+        "Why?",
+        "What is your reset?"
+      ],
+      "deliverable": "recovery plan",
+      "scripture": { "text": "Rise again.", "ref": "Proverbs 24:16" }
+    },
+
+  {
+    "n": 16,
+    "id": "HON-016",
+    "block": 3,
+    "type": "reflection",
+    "title": "Emotional Control",
+    "focusArea": "Attitude",
+    "principle": "Emotion is natural.\nLack of control is a choice.",
+    "houseStandard": "In this house, we control emotion.\nEmotion does not control action.\nSay it out loud. Twice.",
+    "prompt": "How do emotions affect you?",
+    "questions": [
+      "What emotion hits you most?",
+      "When does it show up?",
+      "What does it make you do?",
+      "What is your control rule?"
+    ],
+    "deliverable": "emotion + trigger + rule",
+    "scripture": { "text": "Better a patient person than a warrior.", "ref": "Proverbs 16:32" }
+  },
+
+  {
+    "n": 17,
+    "id": "HON-017",
+    "block": 3,
+    "type": "reflection",
+    "title": "Frustration Control",
+    "focusArea": "Attitude",
+    "principle": "Frustration is a test of discipline.",
+    "houseStandard": "In this house, frustration stays controlled.\nSay it out loud. Twice.",
+    "prompt": "What happens when frustrated?",
+    "questions": [
+      "What triggers frustration?",
+      "What do you do next?",
+      "What does it cost you?",
+      "What is your fix?"
+    ],
+    "deliverable": "trigger + cost + fix",
+    "scripture": { "text": "A person without self-control is like a city broken into.", "ref": "Proverbs 25:28" }
+  },
+
+  {
+    "n": 18,
+    "id": "HON-018",
+    "block": 3,
+    "type": "reflection",
+    "title": "Body Language",
+    "focusArea": "Attitude",
+    "principle": "Your body speaks before your words.",
+    "houseStandard": "In this house, body language stays strong.\nSay it out loud. Twice.",
+    "prompt": "What does your body show?",
+    "questions": [
+      "What does your posture say?",
+      "What do others see?",
+      "When does it drop?",
+      "What is your correction?"
+    ],
+    "deliverable": "pattern + correction",
+    "scripture": { "text": "Stand firm.", "ref": "1 Corinthians 16:13" }
+  },
+
+  {
+    "n": 19,
+    "id": "HON-019",
+    "block": 3,
+    "type": "reflection",
+    "title": "Talking Under Stress",
+    "focusArea": "Attitude",
+    "principle": "Words reveal discipline.",
+    "houseStandard": "In this house, we speak with control.\nSay it out loud. Twice.",
+    "prompt": "What do you say under stress?",
+    "questions": [
+      "What do you say when losing?",
+      "Does it help or hurt?",
+      "Why do you say it?",
+      "What replaces it?"
+    ],
+    "deliverable": "pattern + replacement",
+    "scripture": { "text": "Let no corrupt talk come out of your mouths.", "ref": "Ephesians 4:29" }
+  },
+
+  {
+    "n": 20,
+    "id": "HON-020",
+    "block": 3,
+    "type": "reflection",
+    "title": "Self-Talk",
+    "focusArea": "Attitude",
+    "principle": "Your inner voice drives your actions.",
+    "houseStandard": "In this house, we control self-talk.\nSay it out loud. Twice.",
+    "prompt": "What do you tell yourself?",
+    "questions": [
+      "What is your default self-talk?",
+      "Is it helpful?",
+      "When does it fail?",
+      "What replaces it?"
+    ],
+    "deliverable": "old talk + new command",
+    "scripture": { "text": "Be transformed by the renewing of your mind.", "ref": "Romans 12:2" }
+  },
+
+  {
+    "n": 21,
+    "id": "HON-021",
+    "block": 4,
+    "type": "reflection",
+    "title": "Respect Standard",
+    "focusArea": "Respect",
+    "principle": "Respect is shown through action.",
+    "houseStandard": "In this house, respect is visible.\nSay it out loud. Twice.",
+    "prompt": "How do you show respect?",
+    "questions": [
+      "What does respect look like?",
+      "Where do you fail it?",
+      "Why?",
+      "What is your standard?"
+    ],
+    "deliverable": "standard + fix",
+    "scripture": { "text": "Show proper respect to everyone.", "ref": "1 Peter 2:17" }
+  },
+
+  {
+    "n": 22,
+    "id": "HON-022",
+    "block": 4,
+    "type": "reflection",
+    "title": "Coach Respect",
+    "focusArea": "Respect",
+    "principle": "Respect shows in listening and action.",
+    "houseStandard": "In this house, we respond to coaching.\nSay it out loud. Twice.",
+    "prompt": "How do you respond to coaching?",
+    "questions": [
+      "Do you listen fully?",
+      "Do you apply it?",
+      "Where do you resist?",
+      "What changes?"
+    ],
+    "deliverable": "pattern + fix",
+    "scripture": { "text": "Listen to advice.", "ref": "Proverbs 12:15" }
+  },
+
+  {
+    "n": 23,
+    "id": "HON-023",
+    "block": 4,
+    "type": "reflection",
+    "title": "Opponent Respect",
+    "focusArea": "Respect",
+    "principle": "Respect exists even in competition.",
+    "houseStandard": "In this house, we compete with respect.\nSay it out loud. Twice.",
+    "prompt": "How do you treat opponents?",
+    "questions": [
+      "What is your mindset toward them?",
+      "Does it change your behavior?",
+      "Why?",
+      "What is the correct approach?"
+    ],
+    "deliverable": "mindset + rule",
+    "scripture": { "text": "Love your enemies.", "ref": "Matthew 5:44" }
+  },
+
+  {
+    "n": 24,
+    "id": "HON-024",
+    "block": 4,
+    "type": "reflection",
+    "title": "Room Respect",
+    "focusArea": "Respect",
+    "principle": "How you act in the room reflects your discipline.",
+    "houseStandard": "In this house, we respect the room.\nSay it out loud. Twice.",
+    "prompt": "How do you treat the room?",
+    "questions": [
+      "Do you stay engaged?",
+      "Do you waste time?",
+      "What do others see?",
+      "What is your fix?"
+    ],
+    "deliverable": "pattern + correction",
+    "scripture": { "text": "Conduct yourselves in a worthy manner.", "ref": "Philippians 1:27" }
+  },
+
+  {
+    "n": 25,
+    "id": "HON-025",
+    "block": 4,
+    "type": "reflection",
+    "title": "Respect Under Pressure",
+    "focusArea": "Respect",
+    "principle": "Respect must hold under stress.",
+    "houseStandard": "In this house, respect stays under pressure.\nSay it out loud. Twice.",
+    "prompt": "Does your respect change under pressure?",
+    "questions": [
+      "When does it drop?",
+      "Why?",
+      "What does it look like?",
+      "What is your rule?"
+    ],
+    "deliverable": "pattern + rule",
+    "scripture": { "text": "A gentle answer turns away wrath.", "ref": "Proverbs 15:1" }
+  },
+
+  {
+    "n": 26,
+    "id": "HON-026",
+    "block": 4,
+    "type": "reflection",
+    "title": "Daily Discipline",
+    "focusArea": "Respect",
+    "principle": "Discipline is daily behavior.",
+    "houseStandard": "In this house, discipline shows daily.\nSay it out loud. Twice.",
+    "prompt": "Where do you lack discipline?",
+    "questions": [
+      "What habits are weak?",
+      "Why?",
+      "What does it cost?",
+      "What is your fix?"
+    ],
+    "deliverable": "habit + correction",
+    "scripture": { "text": "No discipline seems pleasant at the time.", "ref": "Hebrews 12:11" }
+  },
+
+  {
+    "n": 27,
+    "id": "HON-027",
+    "block": 4,
+    "type": "reflection",
+    "title": "Consistency of Respect",
+    "focusArea": "Respect",
+    "principle": "Respect must be consistent.",
+    "houseStandard": "In this house, respect is consistent.\nSay it out loud. Twice.",
+    "prompt": "Are you consistent?",
+    "questions": [
+      "Where do you drop it?",
+      "Why?",
+      "What is the pattern?",
+      "What is your fix?"
+    ],
+    "deliverable": "pattern + fix",
+    "scripture": { "text": "Let us not grow weary.", "ref": "Galatians 6:9" }
+  },
+
+  {
+    "n": 28,
+    "id": "HON-028",
+    "block": 5,
+    "type": "reflection",
+    "title": "Identity Check",
+    "focusArea": "All",
+    "principle": "Identity is built through behavior.",
+    "houseStandard": "In this house, identity matches action.\nSay it out loud. Twice.",
+    "prompt": "Who are you right now?",
+    "questions": [
+      "What do your actions say?",
+      "Do they match your goals?",
+      "Where do they fail?",
+      "What changes?"
+    ],
+    "deliverable": "identity + gap",
+    "scripture": { "text": "By their fruit you will know them.", "ref": "Matthew 7:16" }
+  },
+
+  {
+    "n": 29,
+    "id": "HON-029",
+    "block": 5,
+    "type": "reflection",
+    "title": "Pattern Recognition",
+    "focusArea": "All",
+    "principle": "Patterns reveal truth.",
+    "houseStandard": "In this house, we identify patterns.\nSay it out loud. Twice.",
+    "prompt": "What patterns repeat?",
+    "questions": [
+      "What keeps happening?",
+      "Why?",
+      "What triggers it?",
+      "What breaks it?"
+    ],
+    "deliverable": "pattern + break",
+    "scripture": { "text": "Be alert.", "ref": "1 Peter 5:8" }
+  },
+
+  {
+    "n": 30,
+    "id": "HON-030",
+    "block": 5,
+    "type": "reflection",
+    "title": "Correction Plan",
+    "focusArea": "All",
+    "principle": "Correction requires action.",
+    "houseStandard": "In this house, we correct immediately.\nSay it out loud. Twice.",
+    "prompt": "What will you fix?",
+    "questions": [
+      "What is your biggest issue?",
+      "What is your plan?",
+      "When will you apply it?",
+      "How will you track it?"
+    ],
+    "deliverable": "1 correction plan",
+    "scripture": { "text": "Commit your work.", "ref": "Proverbs 16:3" }
+  },
+
+  {
+    "n": 31,
+    "id": "HON-031",
+    "block": 5,
+    "type": "reflection",
+    "title": "Standard Lock",
+    "focusArea": "All",
+    "principle": "Standards must be defined.",
+    "houseStandard": "In this house, we hold standards.\nSay it out loud. Twice.",
+    "prompt": "What is your standard?",
+    "questions": [
+      "What do you expect from yourself?",
+      "Is it clear?",
+      "Is it consistent?",
+      "What needs tightening?"
+    ],
+    "deliverable": "standard statement",
+    "scripture": { "text": "Stand firm.", "ref": "1 Corinthians 16:13" }
+  },
+
+  {
+    "n": 32,
+    "id": "HON-032",
+    "block": 5,
+    "type": "reflection",
+    "title": "Self-Honesty",
+    "focusArea": "All",
+    "principle": "Truth creates growth.",
+    "houseStandard": "In this house, we tell the truth.\nSay it out loud. Twice.",
+    "prompt": "Where are you lying to yourself?",
+    "questions": [
+      "What do you avoid?",
+      "Why?",
+      "What is the truth?",
+      "What changes now?"
+    ],
+    "deliverable": "truth + change",
+    "scripture": { "text": "The truth will set you free.", "ref": "John 8:32" }
+  },
+
+  {
+    "n": 33,
+    "id": "HON-033",
+    "block": 5,
+    "type": "reflection",
+    "title": "Accountability",
+    "focusArea": "All",
+    "principle": "Accountability builds discipline.",
+    "houseStandard": "In this house, we take responsibility.\nSay it out loud. Twice.",
+    "prompt": "What are you accountable for?",
+    "questions": [
+      "What is yours?",
+      "What do you avoid?",
+      "Why?",
+      "What is your action?"
+    ],
+    "deliverable": "accountability list",
+    "scripture": { "text": "Each will give account.", "ref": "Romans 14:12" }
+  },
+
+  {
+    "n": 34,
+    "id": "HON-034",
+    "block": 5,
+    "type": "reflection",
+    "title": "Discipline Loop",
+    "focusArea": "All",
+    "principle": "Discipline repeats.",
+    "houseStandard": "In this house, we repeat discipline.\nSay it out loud. Twice.",
+    "prompt": "What repeats daily?",
+    "questions": [
+      "What habits repeat?",
+      "Are they good?",
+      "What breaks them?",
+      "What reinforces them?"
+    ],
+    "deliverable": "habit loop",
+    "scripture": { "text": "Run with perseverance.", "ref": "Hebrews 12:1" }
+  },
+
+  {
+    "n": 35,
+    "id": "HON-035",
+    "block": 5,
+    "type": "reflection",
+    "title": "Mental Reset",
+    "focusArea": "All",
+    "principle": "Reset quickly or fall behind.",
+    "houseStandard": "In this house, we reset fast.\nSay it out loud. Twice.",
+    "prompt": "How fast do you reset?",
+    "questions": [
+      "What slows you down?",
+      "Why?",
+      "What is your trigger?",
+      "What is your reset?"
+    ],
+    "deliverable": "reset system",
+    "scripture": { "text": "Be renewed in the spirit of your mind.", "ref": "Ephesians 4:23" }
+  },
+
+  {
+    "n": 36,
+    "id": "HON-036",
+    "block": 5,
+    "type": "reflection",
+    "title": "Pressure Identity",
+    "focusArea": "All",
+    "principle": "Pressure shows identity.",
+    "houseStandard": "In this house, pressure reveals us.\nSay it out loud. Twice.",
+    "prompt": "Who are you under pressure?",
+    "questions": [
+      "What shows first?",
+      "Is it consistent?",
+      "Why?",
+      "What changes?"
+    ],
+    "deliverable": "identity answer",
+    "scripture": { "text": "Be strong.", "ref": "Joshua 1:9" }
+  },
+
+  {
+    "n": 37,
+    "id": "HON-037",
+    "block": 5,
+    "type": "reflection",
+    "title": "Final Standard",
+    "focusArea": "All",
+    "principle": "Standards define you.",
+    "houseStandard": "In this house, we live our standard.\nSay it out loud. Twice.",
+    "prompt": "What is your final standard?",
+    "questions": [
+      "What defines you?",
+      "Is it clear?",
+      "Do you live it?",
+      "What must change?"
+    ],
+    "deliverable": "final standard",
+    "scripture": { "text": "Be steadfast.", "ref": "1 Corinthians 15:58" }
+  },
+
+  {
+    "n": 38,
+    "id": "HON-038",
+    "block": 5,
+    "type": "reflection",
+    "title": "Execution Truth",
+    "focusArea": "All",
+    "principle": "Execution reveals everything.",
+    "houseStandard": "In this house, we execute.\nSay it out loud. Twice.",
+    "prompt": "Do you execute?",
+    "questions": [
+      "Where do you fail?",
+      "Why?",
+      "What must change?",
+      "What is your plan?"
+    ],
+    "deliverable": "execution fix",
+    "scripture": { "text": "Be doers of the word.", "ref": "James 1:22" }
+  },
+
+  {
+    "n": 39,
+    "id": "HON-039",
+    "block": 5,
+    "type": "reflection",
+    "title": "Final Reflection",
+    "focusArea": "All",
+    "principle": "Reflection completes growth.",
+    "houseStandard": "In this house, we reflect honestly.\nSay it out loud. Twice.",
+    "prompt": "What did you learn?",
+    "questions": [
+      "What changed most?",
+      "What stayed the same?",
+      "What improved?",
+      "What is next?"
+    ],
+    "deliverable": "reflection",
+    "scripture": { "text": "Examine yourselves.", "ref": "2 Corinthians 13:5" }
+  }
+]}

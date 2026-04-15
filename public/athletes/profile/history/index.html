@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inner Lanes History</title>
+  <style>
+    :root{
+      --bg:#081225;
+      --panel:#0d1b34;
+      --panel2:#102246;
+      --line:rgba(255,255,255,.12);
+      --text:#f3f6ff;
+      --muted:#b6c2e1;
+      --gold:#ffd84d;
+      --green:#67d58c;
+      --red:#ff7a7a;
+      --blue:#8db8ff;
+      --pill:#1a2c54;
+      --blackpanel:#0b0f18;
+      --radius:18px;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(255,216,77,.12), transparent 18%),
+        linear-gradient(180deg, #0a1730 0%, #081225 100%);
+      color:var(--text);
+    }
+
+    .wrap{
+      width:min(980px, 94vw);
+      margin:0 auto;
+      padding:18px 0 40px;
+    }
+
+    .topbar{
+      padding:8px 4px 18px;
+      border-bottom:1px solid var(--line);
+      margin-bottom:18px;
+    }
+
+    .title{
+      color:var(--gold);
+      font-size:1.1rem;
+      font-weight:800;
+      line-height:1.1;
+    }
+
+    .subtitle{
+      color:var(--text);
+      opacity:.92;
+      font-size:.95rem;
+      font-weight:600;
+    }
+
+    .brand{
+      color:var(--text);
+      opacity:.9;
+      font-weight:700;
+      margin-top:10px;
+      font-size:.95rem;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      padding:18px;
+      margin-bottom:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,.16);
+    }
+
+    .athlete-name{
+      font-size:1.15rem;
+      font-weight:900;
+      margin-bottom:4px;
+    }
+
+    .athlete-sub{
+      color:var(--muted);
+      font-size:.95rem;
+      margin-bottom:14px;
+    }
+
+    .filters{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
+
+    .filters select{
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      font:inherit;
+      min-width:160px;
+      outline:none;
+    }
+
+    .stats{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .stat{
+      background:rgba(255,255,255,.025);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:18px;
+      min-height:92px;
+    }
+
+    .stat-label{
+      color:var(--text);
+      opacity:.95;
+      font-size:.95rem;
+      margin-bottom:6px;
+      font-weight:600;
+    }
+
+    .stat-value{
+      font-size:2rem;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .history-list{
+      display:grid;
+      gap:16px;
+    }
+
+    .entry{
+      background:linear-gradient(180deg, rgba(120,150,255,.08), rgba(255,255,255,.03));
+      border:1px solid rgba(180,200,255,.18);
+      border-radius:20px;
+      padding:16px;
+    }
+
+    .entry-top{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:8px;
+    }
+
+    .lane{
+      font-size:1.55rem;
+      font-weight:900;
+      line-height:1;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:32px;
+      padding:0 12px;
+      border-radius:999px;
+      font-size:.92rem;
+      font-weight:900;
+      letter-spacing:.01em;
+      background:var(--pill);
+      border:1px solid rgba(255,255,255,.1);
+    }
+
+    .pill.status-approved{ color:#dff7e6; background:rgba(74,140,96,.32); }
+    .pill.status-revision{ color:#ffe5e5; background:rgba(140,65,65,.36); }
+    .pill.status-closed{ color:#e8edf9; background:rgba(140,150,170,.26); }
+    .pill.reward-progress{ color:#0d1220; background:#d6ef64; }
+
+    .entry-meta{
+      display:flex;
+      flex-wrap:wrap;
+      gap:14px;
+      color:var(--text);
+      font-size:.95rem;
+      margin-bottom:10px;
+    }
+
+    .entry-meta strong{
+      font-weight:800;
+    }
+
+    .submission-box,
+    .coach-note-box{
+      background:var(--blackpanel);
+      border-radius:14px;
+      padding:14px 16px;
+      margin-top:12px;
+      border:1px solid rgba(255,255,255,.06);
+    }
+
+    .box-label{
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+      color:var(--text);
+    }
+
+    .box-text{
+      font-size:1rem;
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+
+    .empty{
+      text-align:center;
+      color:var(--text);
+      opacity:.9;
+      padding:26px 18px;
+      border:1px dashed var(--line);
+      border-radius:18px;
+    }
+
+    .footer-note{
+      text-align:center;
+      color:var(--text);
+      opacity:.9;
+      margin-top:22px;
+      font-weight:700;
+    }
+
+    @media (max-width: 700px){
+      .stats{
+        grid-template-columns:1fr;
+      }
+
+      .lane{
+        font-size:1.3rem;
+      }
+
+      .stat-value{
+        font-size:1.7rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">Inner Lanes History</div>
+      <div class="subtitle">Strength • Honor • reviews • progress</div>
+      <div class="brand">Sandman Systems™</div>
+    </div>
+
+    <section class="card">
+      <div id="athlete-name" class="athlete-name">Loading athlete...</div>
+      <div id="athlete-sub" class="athlete-sub">Strength and Honor record</div>
+
+      <div class="filters">
+        <select id="lane-filter">
+          <option value="all">All Inner Lanes</option>
+          <option value="strength">Strength</option>
+          <option value="honor">Honor</option>
+        </select>
+
+        <select id="status-filter">
+          <option value="all">All Statuses</option>
+          <option value="approved">Approved</option>
+          <option value="revision">Revision</option>
+          <option value="closed">Closed</option>
+          <option value="pending">Pending</option>
+        </select>
+      </div>
+    </section>
+
+    <section class="stats">
+      <div class="stat">
+        <div class="stat-label">Total Entries</div>
+        <div id="stat-total" class="stat-value">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">Approved</div>
+        <div id="stat-approved" class="stat-value">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">Revisions</div>
+        <div id="stat-revision" class="stat-value">0</div>
+      </div>
+
+      <div class="stat">
+        <div class="stat-label">Progress Logged</div>
+        <div id="stat-progress" class="stat-value">0</div>
+      </div>
+    </section>
+
+    <section id="history-list" class="history-list">
+      <div class="empty">Loading history...</div>
+    </section>
+
+    <div class="footer-note">Permanent Strength and Honor record • Combat stays separate</div>
+  </div>
+
+  <script type="module" src="/athletes/profile/history/history.js"></script>
+</body>
+</html>

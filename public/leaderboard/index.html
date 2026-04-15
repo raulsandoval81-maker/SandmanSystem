@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Public Leaderboard</title>
+  <link rel="stylesheet" href="/leaderboard/leaderboard.public.css"/>
+  <link rel="icon" href="data:,"> 
+</head>
+<body>
+  <div class="wrap">
+
+    <header class="header">
+      <div>
+        <h1 class="title">Sandman Leaderboard</h1>
+        <p class="subtitle">Top 8 by track. No crossover.</p>
+      </div>
+    </header>
+
+    <section class="controls-panel">
+      <div class="leaderboard-controls">
+
+        <div class="control">
+          <label for="track-filter">Track</label>
+          <select id="track-filter">
+            <option value="foundry8">Foundry 8</option>
+            <option value="foundry4">Foundry 4</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <label for="view-mode">View</label>
+          <select id="view-mode">
+            <option value="overall">Overall</option>
+            <option value="tier">Tier</option>
+          </select>
+        </div>
+
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2>Leaderboard</h2>
+        <span class="panel-note">Public View</span>
+      </div>
+
+      <div id="leaderboard-list" class="rank-list"></div>
+    </section>
+
+  </div>
+<script type="module" src="/leaderboard/leaderboard.public.js"></script>
+</body>
+</html>

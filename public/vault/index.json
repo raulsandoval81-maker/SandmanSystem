@@ -1,0 +1,40 @@
+{
+  "version": "v1",
+  "updatedAt": "2026-02-26T00:00:00Z",
+  "lanes": [
+    {
+      "id": "strength",
+      "title": "Strength",
+      "tagline": "Built in the Shadows.",
+      "unlockStripe": 2,
+      "monthlyCap": 120,
+      "xpPerSession": [5, 10],
+      "segments": [
+        {
+          "id": "segment1",
+          "title": "Foundation",
+          "sessions": 40,
+          "meta": "/vault/strength/segment1.meta.json",
+          "sessionsFile": "/vault/strength/sessions.json"
+        }
+      ]
+    },
+    {
+      "id": "honor",
+      "title": "Honor",
+      "tagline": "Staged in the Light.",
+      "unlockStripe": 3,
+      "monthlyCap": 120,
+      "xpPerSession": [5, 10],
+      "segments": [
+        {
+          "id": "segment1",
+          "title": "Foundation",
+          "sessions": 40,
+          "meta": "/vault/honor/segment1.meta.json",
+          "sessionsFile": "/vault/honor/sessions.json"
+        }
+      ]
+    }
+  ]
+}

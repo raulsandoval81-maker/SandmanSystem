@@ -3,57 +3,10 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Arsenal · Athlete</title>
-  <link rel="stylesheet" href="arsenal.css"/>
+  <title>Arsenal Router</title>
 </head>
-<body>
-  <div class="wrap">
-
-    <header class="header">
-      <button class="back-btn" onclick="history.back()">← Back</button>
-      <h1 class="title">Athlete Arsenal</h1>
-    </header>
-
-    <section class="grid">
-      <a class="card" href="weapon/index.html">
-        <h2>Choose Your Weapon</h2>
-        <p>Your identity tool (Combat · Strength · Honor)</p>
-      </a>
-
-      <a class="card" href="combat/lane.html">
-        <h2>Combat Lane</h2>
-        <p>Shadow Trainer · Drills · Footwork</p>
-      </a>
-
-      <a class="card" href="strength/lane.html">
-        <h2>Strength Lane</h2>
-        <p>Foundation → Load → Power → Peak</p>
-      </a>
-
-      <a class="card" href="honor/lane.html">
-        <h2>Honor Lane</h2>
-        <p>Awareness → Respect → Wisdom → Loyalty</p>
-      </a>
-    </section>
-
-  </div>
-<div id="weapon-choice-modal" class="modal">
-  <h2>Choose Your Next Weapon</h2>
-  <p>You’ve reached Stripe 2. Your journey branches now.</p>
-
-  <button class="weapon-btn" data-choice="strength">
-    Strength • Chapter 1
-  </button>
-
-  <button class="weapon-btn" data-choice="honor">
-    Honor • Chapter 1
-  </button>
-
-  <button class="weapon-btn" data-choice="combat-upgrade">
-    ShadowTrainer • Level 3
-  </button>
-</div>
-
-  <script type="module" src="arsenal.app.js"></script>
+<body style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0b0d12;color:#aaa;font-family:sans-serif;">
+  <p>Routing Arsenal…</p>
+  <script type="module" src="/athletes/arsenal/arsenal.linker.js"></script>
 </body>
 </html>

@@ -1,8 +1,8 @@
 import {
   db,
+  ensureSignedIn,
   collection,
   doc,
-  getDoc,
   getDocs,
   setDoc,
   query,
@@ -10,19 +10,99 @@ import {
   orderBy,
   serverTimestamp,
   limit,
-  onSnapshot
+  onSnapshot,
 } from "/assets/js/firebase-init.js";
+
 const $ = (id) => document.getElementById(id);
+
+function esc(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+function inviteUrlForToken(tokenId) {
+  return `${location.origin}/intake-parent/?invite=${encodeURIComponent(tokenId)}`;
+}
+
+function reviewUrlForIntake(intakeId) {
+  return `/intake-coach/review.html?token=${encodeURIComponent(intakeId)}`;
+}
+
+function formatNameFromIntake(d = {}) {
+  return (
+    `${d.athlete?.first ?? ""} ${d.athlete?.last ?? ""}`.trim() ||
+    `${d.first ?? ""} ${d.last ?? ""}`.trim() ||
+    d.fullName ||
+    "(no name)"
+  );
+}
+
+function formatCityState(city, state) {
+  const c = String(city || "").trim();
+  const s = String(state || "").trim();
+
+  if (c && s) return `${c}, ${s}`;
+  if (c) return c;
+  if (s) return s;
+  return "—";
+}
+
+function renderPendingCard({ intakeId, name, city, state }) {
+  return `
+    <div class="pending-card">
+      <div class="pending-card-head">
+        <div>
+          <div class="pending-card-name">${esc(name)}</div>
+          <div class="pending-card-meta">${esc(formatCityState(city, state))}</div>
+          <div class="pending-card-id">(${esc(intakeId.slice(-6))})</div>
+        </div>
+      </div>
+
+      <div class="pending-card-actions">
+        <button class="small solid-blue" data-intake="${esc(intakeId)}">Review →</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderApprovedCard({ uid, name, city, state, parentEmail }) {
+  return `
+    <div class="pending-card">
+      <div class="pending-card-head">
+        <div>
+          <div class="pending-card-name">${esc(name)}</div>
+          <div class="pending-card-meta">${esc(formatCityState(city, state))}</div>
+          <div class="pending-card-id">${esc(uid)}</div>
+          ${
+            parentEmail
+              ? `<div class="pending-card-meta small">${esc(parentEmail)}</div>`
+              : ""
+          }
+        </div>
+      </div>
+
+      <div class="pending-card-actions">
+        <button class="small outline-blue" data-approved-uid="${esc(uid)}">Open Onboarding</button>
+        <button class="small outline-blue" data-parent-uid="${esc(uid)}">Parent Link</button>
+      </div>
+    </div>
+  `;
+}
 
 // ------------------------------------------------------
 // 1) Generate Token (48 hours)
+//   Writes to: intakeTokens/{token}
 // ------------------------------------------------------
 $("btn-make-token")?.addEventListener("click", async () => {
   try {
     const newTokenId = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
     const exp = Date.now() + 48 * 60 * 60 * 1000;
 
-    await setDoc(doc(db, "intakes", newTokenId), {
+    await setDoc(doc(db, "intakeTokens", newTokenId), {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       exp,
@@ -32,12 +112,17 @@ $("btn-make-token")?.addEventListener("click", async () => {
       forLane: null,
     });
 
-    const inviteUrl = `${location.origin}/intake-parent/?invite=${newTokenId}`;
+    const inviteUrl = inviteUrlForToken(newTokenId);
+
     if ($("invite-link")) $("invite-link").value = inviteUrl;
-    if ($("invite-status")) $("invite-status").textContent = "✓ Invite token created (48h).";
+    if ($("invite-status")) {
+      $("invite-status").textContent = "✓ Invite token created (48h).";
+    }
   } catch (err) {
     console.error(err);
-    if ($("invite-status")) $("invite-status").textContent = "⚠ Error creating token.";
+    if ($("invite-status")) {
+      $("invite-status").textContent = "⚠ Error creating token.";
+    }
   }
 });
 
@@ -45,10 +130,21 @@ $("btn-make-token")?.addEventListener("click", async () => {
 // 2) Copy Link
 // ------------------------------------------------------
 $("btn-copy-token")?.addEventListener("click", async () => {
-  const url = $("invite-link")?.value;
-  if (!url) return;
-  await navigator.clipboard.writeText(url);
-  if ($("invite-status")) $("invite-status").textContent = "✓ Copied to clipboard.";
+  try {
+    const url = $("invite-link")?.value;
+    if (!url) return;
+
+    await navigator.clipboard.writeText(url);
+
+    if ($("invite-status")) {
+      $("invite-status").textContent = "✓ Copied to clipboard.";
+    }
+  } catch (err) {
+    console.error(err);
+    if ($("invite-status")) {
+      $("invite-status").textContent = "⚠ Copy failed.";
+    }
+  }
 });
 
 // ------------------------------------------------------
@@ -61,21 +157,32 @@ $("btn-open-qr")?.addEventListener("click", () => {
 });
 
 // ------------------------------------------------------
-// 4) Load Pending Intakes
+// 4) Load Pending Intakes (Live)
+//   Reads from: intakes (submitted)
+//   Pending = approvedUid is null (not minted yet)
 // ------------------------------------------------------
 let unsubPending = null;
+
+function wirePendingButtons() {
+  document.querySelectorAll("[data-intake]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const intakeId = btn.dataset.intake;
+      if (!intakeId) return;
+      location.href = reviewUrlForIntake(intakeId);
+    });
+  });
+}
 
 function loadPendingLive() {
   const box = $("pending-list");
   if (!box) return;
 
-  // prevent stacking multiple listeners
   if (typeof unsubPending === "function") unsubPending();
 
   const qy = query(
     collection(db, "intakes"),
-    where("status", "==", "submitted"),
-    orderBy("updatedAt", "desc"),
+    where("approvedUid", "==", null),
+    orderBy("createdAt", "desc"),
     limit(25)
   );
 
@@ -87,39 +194,27 @@ function loadPendingLive() {
 
       snaps.forEach((snap) => {
         const d = snap.data() || {};
-        const t = snap.id;
-        count++;
+        const intakeId = snap.id;
 
-        const name =
-          `${d.athlete?.first ?? ""} ${d.athlete?.last ?? ""}`.trim() ||
-          `${d.first ?? ""} ${d.last ?? ""}`.trim() ||
-          d.fullName ||
-          "(no name)";
+        count += 1;
 
-        const city = d.location?.city ?? "—";
-        const state = d.location?.state ?? "—";
-
-        html += `
-          <div class="pending-item">
-            <div>
-              <strong>${name}</strong>
-              <span class="muted small"> (${t.slice(-6)})</span><br>
-              <span class="muted small">${city}, ${state}</span>
-            </div>
-            <button class="small solid-blue" data-token="${t}">Review →</button>
-          </div>
-        `;
-      });
-
-      if ($("pending-count")) $("pending-count").textContent = `${count} pending`;
-      box.innerHTML = html || "<div class='muted small'>No pending intakes.</div>";
-
-      document.querySelectorAll("[data-token]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const t = btn.dataset.token;
-          location.href = `/intake-coach/review.html?token=${encodeURIComponent(t)}`;
+        html += renderPendingCard({
+          intakeId,
+          name: formatNameFromIntake(d),
+          city: d.location?.city ?? "",
+          state: d.location?.state ?? "",
         });
       });
+
+      if ($("pending-count")) {
+        $("pending-count").textContent = `${count} pending`;
+      }
+
+      box.innerHTML = html
+        ? `<div class="pending-list">${html}</div>`
+        : "<div class='muted small'>No pending intakes.</div>";
+
+      wirePendingButtons();
     },
     (err) => {
       console.error(err);
@@ -127,12 +222,34 @@ function loadPendingLive() {
     }
   );
 }
+
 $("btn-find-intakes")?.addEventListener("click", loadPendingLive);
-loadPendingLive();
 
 // ------------------------------------------------------
 // 5) Load Recently Approved Athletes
 // ------------------------------------------------------
+function wireApprovedButtons() {
+  document.querySelectorAll("[data-approved-uid]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const uid = btn.dataset.approvedUid;
+      if (!uid) return;
+
+      const onboardingUrl = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
+      window.open(onboardingUrl, "_blank", "noopener");
+    });
+  });
+
+  document.querySelectorAll("[data-parent-uid]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const uid = btn.dataset.parentUid;
+      if (!uid) return;
+
+const parentUrl = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
+      window.open(parentUrl, "_blank", "noopener");
+    });
+  });
+}
+
 async function loadApproved() {
   const box = $("approved-list");
   if (!box) return;
@@ -140,30 +257,51 @@ async function loadApproved() {
   try {
     const qy = query(
       collection(db, "athletes"),
-      orderBy("approvedAt", "desc"),
-      limit(10)
+      orderBy("createdAt", "desc"),
+      limit(7)
     );
 
     const snaps = await getDocs(qy);
 
     let html = "";
+
     snaps.forEach((snap) => {
       const a = snap.data() || {};
-      const name = a.publicName || a.fullName || a.uid || snap.id;
+      const uid = a.uid || snap.id;
+      const name = a.publicName || a.fullName || uid;
 
-      html += `
-        <div class="approved-item small">
-          <strong>${name}</strong>
-          <span class="muted">(${a.uid || snap.id})</span>
-        </div>
-      `;
+      html += renderApprovedCard({
+        uid,
+        name,
+        city: a.city || "",
+        state: a.state || "",
+        parentEmail: a.parentEmail || "",
+      });
     });
 
-    box.innerHTML = html || "<div class='muted small'>—</div>";
+    box.innerHTML = html
+      ? `<div class="pending-list">${html}</div>`
+      : "<div class='muted small'>No recent approvals.</div>";
+
+    wireApprovedButtons();
   } catch (err) {
     console.error(err);
     box.innerHTML = "<div class='muted small'>Error loading approvals.</div>";
   }
 }
 
-loadApproved();
+// ------------------------------------------------------
+// Boot: sign in first, THEN query/list
+// ------------------------------------------------------
+(async () => {
+  try {
+    if (typeof ensureSignedIn === "function") {
+      await ensureSignedIn();
+    }
+  } catch (err) {
+    console.error("ensureSignedIn failed:", err);
+  }
+
+  loadPendingLive();
+  loadApproved();
+})();

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Sandman Combat • Parent Handouts & Forms</title>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    /* SIMPLE PARENT HEADER */
+    .parent-header{
+      background:#04173a;
+      color:#ffdd48;
+      padding:10px 14px;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .parent-brand{
+      font-weight:700;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.95rem;
+    }
+    .parent-lang-wrap{display:flex;gap:6px;}
+    .parent-lang-btn{
+      border:none;
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:600;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .parent-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    /* HERO */
+    .hero{
+      background:linear-gradient(160deg,#0a1833 0%,#111c35 100%);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:24px 16px 20px;
+      text-align:center;
+      box-shadow:0 6px 18px rgba(0,0,0,.45);
+      margin:12px 0 18px;
+    }
+    .hero-title{
+      margin:0 0 6px;
+      color:var(--brand);
+      font-size:1.4rem;
+      text-transform:uppercase;
+      letter-spacing:.03em;
+    }
+    .hero-sub{
+      color:#fff;
+      opacity:.96;
+      font-size:.96rem;
+      line-height:1.4;
+    }
+
+    /* GRID + CARDS */
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+      gap:12px;
+    }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 14px 12px;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+    }
+    .card h2{
+      margin:0 0 6px;
+      font-size:1rem;
+      color:var(--brand);
+    }
+    .card p{
+      margin:4px 0 8px;
+      font-size:.9rem;
+      color:#dbe2ea;
+      line-height:1.45;
+    }
+
+    /* Sky-blue link style */
+    .card a{
+      display:inline-block;
+      margin-top:4px;
+      color:#cfe8ff !important;
+      font-weight:700;
+      text-decoration:none;
+      padding-bottom:2px;
+      border-bottom:1px solid transparent;
+      transition:0.25s;
+    }
+    .card a:hover{
+      color:#ffffff !important;
+      border-bottom-color:#cfe8ff;
+    }
+
+    @media(max-width:640px){
+      .wrap{padding:18px 12px 30px}
+      .hero-title{font-size:1.25rem}
+      .hero-sub{font-size:.9rem}
+      .parent-header-inner{padding-inline:2px}
+      .parent-brand{font-size:.85rem}
+    }
+
+    .back-btn{
+      border-radius:999px;
+      border:1px solid #1f2937;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:.78rem;
+      padding:4px 12px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-block;
+      margin:10px 14px 0;
+    }
+    .back-btn:hover{ background:#0b1120; }
+
+    /* FOOTER */
+    .footer-hard{
+      margin-top:40px;
+      padding:26px 10px 34px;
+      background:transparent;
+      text-align:center;
+    }
+    .footer-inner{max-width:900px;margin:0 auto;}
+    .footer-brand{color:#94a3b8;font-size:.82rem;margin-bottom:12px;}
+  </style>
+</head>
+
+<body>
+<!-- Top Bar -->
+<div class="topbar">
+  <a class="back-btn" onclick="history.back()">← Back</a>
+
+  <div class="lang-wrap">
+    <button class="lang-btn active" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="sp">SP</button>
+  </div>
+</div>
+
+
+<main class="wrap">
+  <section class="hero">
+    <h1 class="hero-title">
+      <span class="en">Parent Handouts &amp; Forms</span>
+      <span class="es">Formularios y Documentos para Padres</span>
+    </h1>
+    <p class="hero-sub">
+      <span class="en">
+        Quick access to parent documents and wrestling resources.<br/>
+        Phone-friendly and ready to print.
+      </span>
+      <span class="es">
+        Acceso rápido a documentos para padres y recursos de lucha.<br/>
+        Listo para teléfono e impresión.
+      </span>
+    </p>
+  </section>
+
+  <section class="grid">
+
+    <article class="card">
+      <h2>
+        <span class="en">Sandman Parent Policy</span>
+        <span class="es">Política para Padres (Sandman)</span>
+      </h2>
+      <p>
+        <span class="en">Clear standards and expectations. Waiver handles signatures.</span>
+        <span class="es">Estándares y expectativas claras. La exención maneja las firmas.</span>
+      </p>
+      <a href="./sandman-parent-policy.html">
+        <span class="en">Open Policy →</span>
+        <span class="es">Abrir Política →</span>
+      </a>
+    </article>
+
+    <article class="card">
+      <h2>
+        <span class="en">Team Policy</span>
+        <span class="es">Política del Equipo</span>
+      </h2>
+      <p>
+        <span class="en">Official team rules, expectations, and parent agreement.</span>
+        <span class="es">Reglas oficiales del equipo, expectativas y acuerdo para padres.</span>
+      </p>
+      <a href="./policy.html" target="_blank" rel="noopener">
+        <span class="en">Open Policy →</span>
+        <span class="es">Abrir Política →</span>
+      </a>
+    </article>
+
+    <article class="card">
+      <h2>
+        <span class="en">Parent Sign-In Sheet</span>
+        <span class="es">Hoja de Registro de Padres</span>
+      </h2>
+      <p>
+        <span class="en">Printable sign-in sheet for meetings and events.</span>
+        <span class="es">Hoja de registro imprimible para reuniones y eventos.</span>
+      </p>
+      <a href="./sign-in-sheet.html">
+        <span class="en">Open Sign-In Sheet →</span>
+        <span class="es">Abrir Hoja de Registro →</span>
+      </a>
+    </article>
+
+    <!-- Keep this only if you want schedule linked here; otherwise delete this card -->
+    <article class="card">
+      <h2>
+        <span class="en">Training Schedule</span>
+        <span class="es">Horario de Entrenamiento</span>
+      </h2>
+      <p>
+        <span class="en">Practice days and times. Check often for updates.</span>
+        <span class="es">Días y horarios de práctica. Revíselo con frecuencia.</span>
+      </p>
+      <a href="/coach/para/parent/schedule.html">
+        <span class="en">Open Schedule →</span>
+        <span class="es">Abrir Horario →</span>
+      </a>
+    </article>
+
+    <article class="card">
+      <h2>
+        <span class="en">Wrestling 101: Rules &amp; Scoring</span>
+        <span class="es">Lucha 101: Reglas y Puntuación</span>
+      </h2>
+      <p>
+        <span class="en">Plain-language guide to scoring, positions, and what you’re watching.</span>
+        <span class="es">Guía sencilla sobre puntuación, posiciones y qué está pasando.</span>
+      </p>
+      <a href="./wrestling-101.html">
+        <span class="en">Open Wrestling 101 →</span>
+        <span class="es">Abrir Lucha 101 →</span>
+      </a>
+    </article>
+
+    <article class="card">
+      <h2>
+        <span class="en">Tournament Weekend Guide</span>
+        <span class="es">Guía para Fines de Semana de Torneo</span>
+      </h2>
+      <p>
+        <span class="en">What to pack, weigh-ins, brackets, and what tournament day looks like.</span>
+        <span class="es">Qué llevar, pesajes, llaves y cómo se ve un día de torneo.</span>
+      </p>
+      <a href="./tournament-guide.html">
+        <span class="en">Open Tournament Guide →</span>
+        <span class="es">Abrir Guía de Torneos →</span>
+      </a>
+    </article>
+
+    <article class="card">
+      <h2>
+        <span class="en">Wrestling FAQ</span>
+        <span class="es">Preguntas Frecuentes de Lucha</span>
+      </h2>
+      <p>
+        <span class="en">Common questions and answers about the program and expectations.</span>
+        <span class="es">Preguntas y respuestas comunes sobre el programa y expectativas.</span>
+      </p>
+      <a href="./faq.html">
+        <span class="en">Open FAQ →</span>
+        <span class="es">Abrir Preguntas Frecuentes →</span>
+      </a>
+    </article>
+
+    <article class="card">
+      <h2>
+        <span class="en">Weight Management &amp; Hydration</span>
+        <span class="es">Peso Saludable e Hidratación</span>
+      </h2>
+      <p>
+        <span class="en">Healthy guidelines: food, sleep, and safe limits.</span>
+        <span class="es">Guías sanas: comida, descanso y límites seguros.</span>
+      </p>
+      <a href="./weight-hydration.html">
+        <span class="en">Open Weight Guide →</span>
+        <span class="es">Abrir Guía de Peso →</span>
+      </a>
+    </article>
+</main>
+
+<footer class="footer-hard">
+  <div class="footer-inner">
+    <p class="footer-brand">Sandman Combat • United. Focused. Relentless.</p>
+  </div>
+</footer>
+
+<script>
+  (function(){
+    const buttons = document.querySelectorAll(".parent-lang-btn");
+    if (!buttons.length) return;
+
+    let current = localStorage.getItem("lang") || "en";
+
+    function applyLang(lang){
+      current = lang;
+      localStorage.setItem("lang", lang);
+
+      buttons.forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+
+      const showEN = (lang === "en");
+      document.querySelectorAll(".en").forEach(el=>{ el.style.display = showEN ? "" : "none"; });
+      document.querySelectorAll(".es").forEach(el=>{ el.style.display = showEN ? "none" : ""; });
+    }
+
+    buttons.forEach(btn=>{
+      btn.addEventListener("click", () => applyLang(btn.dataset.lang));
+    });
+
+    applyLang(current);
+  })();
+</script>
+</body>
+</html>

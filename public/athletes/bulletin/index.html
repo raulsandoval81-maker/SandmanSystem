@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Team Bulletin</title>
+
+<link rel="stylesheet" href="/para/shared/comms.css">
+<link rel="icon" href="data:,">
+
+<style>
+:root{
+  --bg:#0a1833;
+  --panel:#111c35;
+  --line:#27304a;
+  --gold:#ffdd48;
+  --text:#f0f4f8;
+  --muted:#9aa4b1;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:720px;
+  margin:0 auto;
+  padding:24px 16px 40px;
+}
+
+h1{
+  color:var(--gold);
+  margin-bottom:20px;
+  font-size:clamp(2rem, 6vw, 3rem);
+  line-height:1.05;
+}
+
+.button-grid{
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+  margin-bottom:34px;
+}
+
+.bulletin-btn{
+  display:flex;
+  align-items:center;
+  min-height:110px;
+  text-decoration:none;
+  padding:24px 22px;
+  border-radius:22px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  font-weight:800;
+  font-size:1.2rem;
+  letter-spacing:.2px;
+  color:var(--text);
+  transition:.18s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.18);
+}
+
+.bulletin-btn:hover{
+  border-color:var(--gold);
+  color:var(--gold);
+  transform:translateY(-1px);
+}
+
+.quote{
+  border-top:1px solid var(--line);
+  padding-top:20px;
+  color:var(--muted);
+  font-style:italic;
+  line-height:1.5;
+  font-size:1rem;
+}
+
+.quote span{
+  display:block;
+  margin-top:8px;
+  font-style:normal;
+  font-weight:700;
+  color:var(--gold);
+}
+
+@media (max-width: 640px){
+  .bulletin-btn{
+    min-height:120px;
+    padding:26px 22px;
+    font-size:1.15rem;
+  }
+}
+.athlete-sub-header{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  background:#0b0f17;
+  border-bottom:2px solid #ffdd48;
+  padding:10px 16px;
+}
+
+.sub-header-inner{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  max-width:1100px;
+  margin:0 auto;
+}
+
+.brand{
+  color:#ffdd48;
+  font-weight:800;
+  font-size:.95rem;
+}
+
+.sub-nav{
+  display:flex;
+  gap:8px;
+}
+
+.sub-btn{
+  padding:6px 10px;
+  border-radius:8px;
+  font-size:.8rem;
+  text-decoration:none;
+  border:1px solid #1f2a40;
+  background:#0e1420;
+  color:#cbd5e1;
+}
+
+.sub-btn:hover{
+  border-color:#ffdd48;
+  color:#ffdd48;
+}
+
+.sub-btn.home{
+  background:#ffdd48;
+  color:#111;
+  border-color:#ffdd48;
+  font-weight:700;
+}
+</style>
+</head>
+<header class="athlete-sub-header">
+  <div class="sub-header-inner">
+    <span class="brand">Sandman Combat™</span>
+
+    <div class="sub-nav">
+      <a href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
+    </div>
+  </div>
+</header>
+
+
+<body>
+<div class="wrap">
+
+  <h1>Team Bulletin</h1>
+
+  <div class="button-grid">
+    <a class="bulletin-btn" href="/athletes/bulletin/announcements.html">
+      📣 Announcements
+    </a>
+<a class="bulletin-btn" href="/para/athlete/schedule.html">
+  📅 Practice &amp; Tournament Schedule
+</a>
+  </div>
+
+  <div class="quote">
+    "Let us run with perseverance the race marked out for us."
+    <span>— Hebrews 12:1</span>
+  </div>
+
+</div>
+</body>
+</html>

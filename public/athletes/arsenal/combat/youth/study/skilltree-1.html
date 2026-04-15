@@ -1,0 +1,141 @@
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="1" data-track="youth">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 8 • Youth</p>
+    <h1>Skill Tree 1 — Recruit</h1>
+    <p class="skilltree-sub">10 skills • Entry mechanics and early control</p>
+  </header>
+
+  <!-- STANCE & MOTION -->
+  <article class="tree-block">
+    <h2>Stance &amp; Motion</h2>
+
+    <h3>Skill 1 — Level Change</h3>
+    <p>A — Drop</p>
+    <p>B — Posture</p>
+    <p>C — Recover</p>
+
+    <h3>Skill 2 — Penetration Step</h3>
+    <p>A — Step</p>
+    <p>B — Knee</p>
+    <p>C — Trail leg</p>
+  </article>
+
+  <!-- NEUTRAL OFFENSE -->
+  <article class="tree-block">
+    <h2>Neutral Offense</h2>
+
+    <h3>Skill 3 — Wrist Tie</h3>
+    <p>A — Control</p>
+    <p>B — Move</p>
+    <p>C — Attack</p>
+
+    <h3>Skill 4 — Snap Down</h3>
+    <p>A — Contact</p>
+    <p>B — Snap</p>
+    <p>C — Spin</p>
+  </article>
+
+  <!-- NEUTRAL DEFENSE -->
+  <article class="tree-block">
+    <h2>Neutral Defense</h2>
+
+    <h3>Skill 5 — Head Position</h3>
+    <p>A — Inside</p>
+    <p>B — Pressure</p>
+    <p>C — Control</p>
+
+    <h3>Skill 6 — Circle Defense</h3>
+    <p>A — Move</p>
+    <p>B — Create space</p>
+    <p>C — Reset</p>
+  </article>
+
+  <!-- TOP -->
+  <article class="tree-block">
+    <h2>Top</h2>
+
+    <h3>Skill 7 — Chop</h3>
+    <p>A — Control</p>
+    <p>B — Break</p>
+    <p>C — Flatten</p>
+
+    <h3>Skill 8 — Ankle Ride</h3>
+    <p>A — Catch</p>
+    <p>B — Control</p>
+    <p>C — Break</p>
+  </article>
+
+  <!-- BOTTOM -->
+  <article class="tree-block">
+    <h2>Bottom</h2>
+
+    <h3>Skill 9 — Hand Control</h3>
+    <p>A — Find</p>
+    <p>B — Peel</p>
+    <p>C — Escape</p>
+
+    <h3>Skill 10 — Sit Out</h3>
+    <p>A — Sit</p>
+    <p>B — Turn</p>
+    <p>C — Recover</p>
+  </article>
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T1"; // Recruit
+  const pageTrack = "youth";
+
+  // 🔒 LOCK PAGE IMMEDIATELY (prevents flash)
+  document.body.style.display = "none";
+
+  function deny(message = "Access denied") {
+    document.body.style.display = "block";
+    document.body.innerHTML = `<p style="padding:20px">${message}</p>`;
+    throw new Error(message);
+  }
+
+  if (!athleteId) {
+    deny("Missing athlete id.");
+  }
+
+  // 🔒 WRONG BRANCH
+  if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+    window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
+    throw new Error("Wrong branch");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        deny("Athlete not found.");
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.tier;
+
+      // 🔒 WRONG TIER
+      if (actualTier !== pageTier) {
+        window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+        return;
+      }
+
+      // ✅ PASS → SHOW PAGE
+      document.body.style.display = "block";
+
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+      deny("Error loading page.");
+    }
+  }
+
+  guardSkillTreePage();
+</script>

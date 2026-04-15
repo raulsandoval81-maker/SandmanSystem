@@ -1,0 +1,526 @@
+{
+  "lane": "strength",
+  "segmentId": "segment2",
+  "segmentTitle": "Postseason · Capacity",
+  "sessions": [
+    {
+      "n": 1,
+      "id": "STR-CAP-001",
+      "type": "capacity",
+      "title": "Volume Build I",
+      "prompt": "Complete the session and maintain output through fatigue.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": {
+        "bestSet": {
+          "fields": ["exercise", "reps", "weight"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Don’t die in the middle. Hold your pace."
+    },
+
+    {
+      "n": 2,
+      "id": "STR-CAP-002",
+      "type": "capacity",
+      "title": "Sustained Output",
+      "prompt": "Complete the session and keep effort consistent across all sets.",
+      "source": "remote-hiit",
+      "preset": "Beginner 40/20",
+      "track": {
+        "rounds": {
+          "fields": ["roundsCompleted", "time"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Same pace start to finish. No drop off."
+    },
+
+    {
+      "n": 3,
+      "id": "STR-CAP-003",
+      "type": "capacity",
+      "title": "Repeat Effort",
+      "prompt": "Complete the session and recover quickly between efforts.",
+      "source": "explosive",
+      "track": {
+        "output": {
+          "fields": ["exercise", "rounds", "notes"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Recover fast. Get back to work."
+    },
+
+    {
+      "n": 4,
+      "id": "STR-CAP-004",
+      "type": "capacity",
+      "title": "Iron Density",
+      "prompt": "Complete the session with steady pacing and no drop in quality.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": {
+        "bestSet": {
+          "fields": ["exercise", "reps", "weight"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Control the tempo. Don’t rush sloppy reps."
+    },
+
+    {
+      "n": 5,
+      "id": "STR-CAP-005",
+      "type": "capacity",
+      "title": "HIIT Ladder",
+      "prompt": "Complete the ladder and maintain output each round.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": {
+        "rounds": {
+          "fields": ["roundsCompleted", "time"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Don’t fade late. Finish strong."
+    },
+
+    {
+      "n": 6,
+      "id": "STR-CAP-006",
+      "type": "capacity",
+      "title": "Explosive Repeat",
+      "prompt": "Complete the session and repeat explosive effort under fatigue.",
+      "source": "explosive",
+      "track": {
+        "output": {
+          "fields": ["exercise", "rounds", "notes"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Same power every round."
+    },
+
+    {
+      "n": 7,
+      "id": "STR-CAP-007",
+      "type": "capacity",
+      "title": "Volume Build II",
+      "prompt": "Complete the session and hold effort across all working sets.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": {
+        "bestSet": {
+          "fields": ["exercise", "reps", "weight"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Don’t coast. Stay engaged."
+    },
+
+    {
+      "n": 8,
+      "id": "STR-CAP-008",
+      "type": "capacity",
+      "title": "Extended Output",
+      "prompt": "Complete the session and maintain pace under extended duration.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": {
+        "rounds": {
+          "fields": ["roundsCompleted", "time"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Long work. Stay locked in."
+    },
+
+    {
+      "n": 9,
+      "id": "STR-CAP-009",
+      "type": "capacity",
+      "title": "Explosive Fatigue",
+      "prompt": "Complete the session and maintain power output under fatigue.",
+      "source": "explosive",
+      "track": {
+        "output": {
+          "fields": ["exercise", "rounds", "notes"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Power doesn’t drop. Stay sharp."
+    },
+
+    {
+      "n": 10,
+      "id": "STR-CAP-010",
+      "type": "capacity",
+      "title": "Capacity Check",
+      "prompt": "Complete the session and assess your ability to hold output.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": {
+        "bestSet": {
+          "fields": ["exercise", "reps", "weight"]
+        }
+      },
+      "athleteNote": true,
+      "coachNote": "Check your consistency, not just strength."
+    },
+    {
+      "n": 11,
+      "id": "STR-CAP-011",
+      "type": "capacity",
+      "title": "Volume Build III",
+      "prompt": "Complete the session and maintain steady output.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Stay consistent across all sets."
+    },
+    {
+      "n": 12,
+      "id": "STR-CAP-012",
+      "type": "capacity",
+      "title": "HIIT Grind I",
+      "prompt": "Complete the session and hold pace under fatigue.",
+      "source": "remote-hiit",
+      "preset": "Beginner 40/20",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Don’t slow down mid-session."
+    },
+    {
+      "n": 13,
+      "id": "STR-CAP-013",
+      "type": "capacity",
+      "title": "Explosive Cycle I",
+      "prompt": "Repeat explosive work with minimal drop-off.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Same power each round."
+    },
+    {
+      "n": 14,
+      "id": "STR-CAP-014",
+      "type": "capacity",
+      "title": "Iron Density II",
+      "prompt": "Complete all sets with controlled tempo.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Control every rep."
+    },
+    {
+      "n": 15,
+      "id": "STR-CAP-015",
+      "type": "capacity",
+      "title": "HIIT Ladder II",
+      "prompt": "Maintain output each round of the ladder.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Don’t drop late."
+    },
+    {
+      "n": 16,
+      "id": "STR-CAP-016",
+      "type": "capacity",
+      "title": "Explosive Repeat II",
+      "prompt": "Repeat explosive movements with control.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Stay sharp under fatigue."
+    },
+    {
+      "n": 17,
+      "id": "STR-CAP-017",
+      "type": "capacity",
+      "title": "Volume Build IV",
+      "prompt": "Complete all sets without drop in effort.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Effort stays high."
+    },
+    {
+      "n": 18,
+      "id": "STR-CAP-018",
+      "type": "capacity",
+      "title": "Extended HIIT",
+      "prompt": "Complete session and maintain pace throughout.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Long work. Stay locked in."
+    },
+    {
+      "n": 19,
+      "id": "STR-CAP-019",
+      "type": "capacity",
+      "title": "Explosive Fatigue II",
+      "prompt": "Maintain power output across all rounds.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Power stays consistent."
+    },
+    {
+      "n": 20,
+      "id": "STR-CAP-020",
+      "type": "capacity",
+      "title": "Mid Cycle Check",
+      "prompt": "Assess ability to hold output under fatigue.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Check consistency, not max."
+    },
+
+    {
+      "n": 21,
+      "id": "STR-CAP-021",
+      "type": "capacity",
+      "title": "Volume Push",
+      "prompt": "Push volume without breaking form.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Quality first."
+    },
+    {
+      "n": 22,
+      "id": "STR-CAP-022",
+      "type": "capacity",
+      "title": "HIIT Grind II",
+      "prompt": "Maintain steady pace across all rounds.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "No drop-off."
+    },
+    {
+      "n": 23,
+      "id": "STR-CAP-023",
+      "type": "capacity",
+      "title": "Explosive Cycle III",
+      "prompt": "Repeat explosive output under fatigue.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Stay powerful."
+    },
+    {
+      "n": 24,
+      "id": "STR-CAP-024",
+      "type": "capacity",
+      "title": "Iron Density III",
+      "prompt": "Complete all sets with control.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Tempo matters."
+    },
+    {
+      "n": 25,
+      "id": "STR-CAP-025",
+      "type": "capacity",
+      "title": "HIIT Ladder III",
+      "prompt": "Maintain output across ladder.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Finish strong."
+    },
+    {
+      "n": 26,
+      "id": "STR-CAP-026",
+      "type": "capacity",
+      "title": "Explosive Repeat III",
+      "prompt": "Repeat explosive work without drop.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "No drop in output."
+    },
+
+    {
+      "n": 27,
+      "id": "STR-CAP-027",
+      "type": "capacity",
+      "title": "Volume Peak",
+      "prompt": "Push volume while maintaining control.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Push but stay clean."
+    },
+    {
+      "n": 28,
+      "id": "STR-CAP-028",
+      "type": "capacity",
+      "title": "Extended Grind",
+      "prompt": "Maintain output over extended duration.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay locked in."
+    },
+    {
+      "n": 29,
+      "id": "STR-CAP-029",
+      "type": "capacity",
+      "title": "Explosive Peak",
+      "prompt": "Maintain explosive power under fatigue.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Power stays consistent."
+    },
+    {
+      "n": 30,
+      "id": "STR-CAP-030",
+      "type": "capacity",
+      "title": "Capacity Check II",
+      "prompt": "Assess your ability to sustain output.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Consistency over strength."
+    },
+
+    {
+      "n": 31,
+      "id": "STR-CAP-031",
+      "type": "capacity",
+      "title": "Volume Hold",
+      "prompt": "Hold effort across all working sets.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "No coasting."
+    },
+    {
+      "n": 32,
+      "id": "STR-CAP-032",
+      "type": "capacity",
+      "title": "HIIT Pressure",
+      "prompt": "Maintain pace under fatigue pressure.",
+      "source": "remote-hiit",
+      "preset": "Intermediate 45/15",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Stay steady."
+    },
+    {
+      "n": 33,
+      "id": "STR-CAP-033",
+      "type": "capacity",
+      "title": "Explosive Hold",
+      "prompt": "Repeat explosive work without drop.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Power every round."
+    },
+    {
+      "n": 34,
+      "id": "STR-CAP-034",
+      "type": "capacity",
+      "title": "Iron Stability",
+      "prompt": "Complete all sets with controlled form.",
+      "source": "iron",
+      "preset": "workoutB",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Form holds."
+    },
+    {
+      "n": 35,
+      "id": "STR-CAP-035",
+      "type": "capacity",
+      "title": "HIIT Finish",
+      "prompt": "Finish strong and maintain output.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "Strong finish."
+    },
+    {
+      "n": 36,
+      "id": "STR-CAP-036",
+      "type": "capacity",
+      "title": "Explosive Finish",
+      "prompt": "Maintain explosive effort through fatigue.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Finish with power."
+    },
+
+    {
+      "n": 37,
+      "id": "STR-CAP-037",
+      "type": "capacity",
+      "title": "Final Volume",
+      "prompt": "Push final volume with control.",
+      "source": "iron",
+      "preset": "workoutC",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Last push."
+    },
+    {
+      "n": 38,
+      "id": "STR-CAP-038",
+      "type": "capacity",
+      "title": "Final Grind",
+      "prompt": "Maintain output to the end.",
+      "source": "remote-hiit",
+      "preset": "Advanced 50/10",
+      "track": { "rounds": { "fields": ["roundsCompleted", "time"] } },
+      "athleteNote": true,
+      "coachNote": "No drop."
+    },
+    {
+      "n": 39,
+      "id": "STR-CAP-039",
+      "type": "capacity",
+      "title": "Final Explosive",
+      "prompt": "Finish with consistent power.",
+      "source": "explosive",
+      "track": { "output": { "fields": ["exercise", "rounds", "notes"] } },
+      "athleteNote": true,
+      "coachNote": "Stay sharp."
+    },
+    {
+      "n": 40,
+      "id": "STR-CAP-040",
+      "type": "capacity",
+      "title": "Capacity Retest",
+      "prompt": "Repeat session 1 and compare output.",
+      "source": "iron",
+      "preset": "workoutA",
+      "track": { "bestSet": { "fields": ["exercise", "reps", "weight"] } },
+      "athleteNote": true,
+      "coachNote": "Compare honestly."
+    }]}

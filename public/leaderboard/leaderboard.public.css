@@ -1,0 +1,199 @@
+:root{
+  --bg:#0b0f17;
+  --panel:#111827;
+  --line:#1f2937;
+  --text:#f9fafb;
+  --muted:#9ca3af;
+  --accent:#dc2626;   /* red */
+  --gold:#facc15;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+}
+
+.wrap{
+  max-width:900px;
+  margin:0 auto;
+  padding:20px 16px 60px;
+}
+
+/* --------------------------------------
+   Header
+---------------------------------------*/
+.header{
+  margin-bottom:16px;
+}
+
+.title{
+  margin:0;
+  font-size:1.8rem;
+  font-weight:800;
+}
+
+.subtitle{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:.9rem;
+}
+
+/* --------------------------------------
+   Controls
+---------------------------------------*/
+.controls-panel{
+  margin:16px 0;
+}
+
+.leaderboard-controls{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+}
+
+.control{
+  display:flex;
+  flex-direction:column;
+  font-size:.75rem;
+  color:var(--muted);
+}
+
+.control select{
+  margin-top:4px;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  color:var(--text);
+  font-weight:600;
+}
+
+/* --------------------------------------
+   Panel
+---------------------------------------*/
+.panel{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:16px;
+}
+
+.panel-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:12px;
+}
+
+.panel-head h2{
+  margin:0;
+  font-size:1.1rem;
+}
+
+.panel-note{
+  font-size:.7rem;
+  color:var(--muted);
+}
+
+/* --------------------------------------
+   Rows
+---------------------------------------*/
+.rank-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.rank-row{
+  display:grid;
+  grid-template-columns:50px 1fr 120px 100px;
+  gap:10px;
+  align-items:center;
+
+  padding:10px 12px;
+  border-radius:8px;
+  border:1px solid var(--line);
+  background:#0f172a;
+  font-size:.9rem;
+}
+
+.rank-row:hover{
+  border-color:var(--accent);
+}
+
+.rank-num{
+  font-weight:800;
+  color:var(--gold);
+}
+
+.rank-name{
+  font-weight:600;
+}
+
+.rank-tier{
+  color:var(--muted);
+  font-size:.8rem;
+}
+
+.rank-xp{
+  text-align:right;
+  font-weight:700;
+}
+
+/* --------------------------------------
+   Tier Groups
+---------------------------------------*/
+.group-block{
+  margin-bottom:16px;
+}
+
+.group-title{
+  font-size:.8rem;
+  font-weight:800;
+  color:var(--accent);
+  margin-bottom:6px;
+  text-transform:uppercase;
+  letter-spacing:.05em;
+}
+
+/* --------------------------------------
+   Empty State
+---------------------------------------*/
+.empty{
+  text-align:center;
+  color:var(--muted);
+  padding:20px 0;
+}
+/* --------------------------------------
+   Top 3 Highlight (Prestige Layer)
+---------------------------------------*/
+.rank-row.top-1{
+  border:1px solid #facc15;
+  background:linear-gradient(90deg, rgba(250,204,21,0.12), rgba(0,0,0,0));
+  box-shadow:0 0 12px rgba(250,204,21,0.25);
+}
+
+.rank-row.top-2{
+  border:1px solid #cbd5f5;
+  background:linear-gradient(90deg, rgba(203,213,245,0.10), rgba(0,0,0,0));
+  box-shadow:0 0 10px rgba(203,213,245,0.20);
+}
+
+.rank-row.top-3{
+  border:1px solid #d97706;
+  background:linear-gradient(90deg, rgba(217,119,6,0.10), rgba(0,0,0,0));
+  box-shadow:0 0 10px rgba(217,119,6,0.20);
+}
+
+/* Slight lift effect */
+.rank-row.top-1,
+.rank-row.top-2,
+.rank-row.top-3{
+  transform:translateY(-1px);
+}

@@ -1,0 +1,15 @@
+{
+  "strength": {
+    "activeSegment": "segment1",
+    "activeSessionId": "STR-002",
+    "seasonPhase": "postseason",
+    "rotation": "A",
+    "updatedAt": "2026-03-26"
+  },
+  "honor": {
+    "activeSegment": "segment1",
+    "activeSessionId": "HON-001",
+    "seasonPhase": "postseason",
+    "updatedAt": "2026-03-26"
+  }
+}

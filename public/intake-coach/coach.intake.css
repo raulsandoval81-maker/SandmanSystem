@@ -125,3 +125,71 @@ input,select{
   justify-content:space-between;
 }
 .hidden { display: none !important; }
+.pending-card{
+  background: var(--deep);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+/* Pending intake cards */
+.pending-list{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  margin-top:12px;
+}
+
+.pending-card{
+  background:var(--deep, #0b1120);
+  border:1px solid var(--line, #27304a);
+  border-radius:14px;
+  padding:14px 16px;
+  box-shadow:0 2px 10px rgba(0,0,0,.22);
+}
+
+.pending-card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+
+.pending-card-name{
+  font-weight:900;
+  font-size:1rem;
+  line-height:1.2;
+  color:var(--text, #eef2f7);
+}
+
+.pending-card-meta{
+  color:var(--muted, #9aa4b1);
+  font-size:.9rem;
+  line-height:1.35;
+}
+
+.pending-card-id{
+  color:var(--gold, #ffdd48);
+  font-size:.82rem;
+  font-weight:700;
+  margin-top:4px;
+}
+
+.pending-card-actions{
+  margin-top:12px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.pending-card .solid-blue,
+.pending-card .outline-blue,
+.pending-card .pill,
+.pending-card button{
+  margin:0;
+}
+
+.pending-card + .pending-card{
+  margin-top:0;
+}

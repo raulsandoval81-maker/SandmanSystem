@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Profile Router</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body{
+      margin:0;
+      background:#08090b;
+      color:#e5e5e5;
+      display:grid;
+      place-items:center;
+      min-height:100vh;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .msg{
+      opacity:.8;
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+  </style>
+</head>
+<body>
+  <div class="msg">Routing profile...</div>
+
+  <script>
+    function norm(x) {
+      return (x || "").toString().trim().toUpperCase();
+    }
+
+    function getIdFromUrl() {
+      const p = new URLSearchParams(window.location.search);
+      return norm(p.get("id") || p.get("uid") || p.get("athleteId"));
+    }
+
+    function fail(msg) {
+      document.body.innerHTML = `<div class="msg">${msg}</div>`;
+      throw new Error(msg);
+    }
+
+    (function route() {
+      const id = getIdFromUrl();
+
+      if (!id) {
+        fail("Missing athlete ID");
+        return;
+      }
+
+      if (id.startsWith("F8_")) {
+        window.location.replace(`/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`);
+        return;
+      }
+
+      if (id.startsWith("F4_")) {
+        window.location.replace(`/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`);
+        return;
+      }
+
+      fail("Unknown athlete ID format");
+    })();
+  </script>
+</body>
+</html>
