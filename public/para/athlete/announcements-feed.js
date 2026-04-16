@@ -1,4 +1,4 @@
-// /coach/para/athlete/announcements-feed.js
+// /para/athlete/announcements-feed.js
 // Athlete feed (read-only) — V1-safe
 // - HARD REQUIRE AUTH (no silent catch)
 // - Simple query (no composite index drama)

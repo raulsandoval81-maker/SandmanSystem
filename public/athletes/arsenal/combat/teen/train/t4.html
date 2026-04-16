@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Launching Teen T0 Trainer</title>
+  <title>Launching Teen T4 Trainer</title>
 </head>
 <body>
   <p>Checking access...</p>
@@ -55,7 +55,7 @@
           id: athleteId
         });
 
-        window.location.replace(`/timer-engine/sandman-timer-mobile.html?${launchParams.toString()}`);
+window.location.replace(`/lab/timer-engine/ui/sandman-timer-mobile.html?${launchParams.toString()}`);
       } catch (err) {
         console.error("Train guard error:", err);
         document.body.innerHTML = "<p>Unable to verify athlete access.</p>";

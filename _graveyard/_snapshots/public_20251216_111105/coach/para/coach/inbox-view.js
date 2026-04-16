@@ -191,7 +191,7 @@ btnArchive?.addEventListener("click", async () => {
   });
 
   alert("Message archived.");
-  window.location.href = "/coach/para/index.html";
+  window.location.href = "/para/index.html";
 });
 
 /* ------------------------------------------------------------
@@ -205,7 +205,7 @@ btnDelete?.addEventListener("click", async () => {
   });
 
   alert("Message deleted.");
-  window.location.href = "/coach/para/index.html";
+  window.location.href = "/para/index.html";
 });
 
 /* ------------------------------------------------------------

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coach Segment Print Sheet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/testing/testing.css" />
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#111111;
+      --line:#222222;
+      --muted:#444444;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:Arial, Helvetica, sans-serif;
+      padding:24px;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-block;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 14px;
+      background:#fff;
+      color:#111;
+      font-weight:700;
+      text-decoration:none;
+      cursor:pointer;
+    }
+
+    h1{
+      margin:0 0 8px;
+      font-size:28px;
+    }
+
+    .sub{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:14px;
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    @media (max-width:900px){
+      .meta{grid-template-columns:1fr 1fr;}
+    }
+
+    @media (max-width:600px){
+      .meta{grid-template-columns:1fr;}
+    }
+
+    .field{
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      min-height:56px;
+    }
+
+    .field strong{
+      display:block;
+      font-size:12px;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      margin-bottom:6px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+
+    @media (max-width:900px){
+      .grid{grid-template-columns:1fr;}
+    }
+
+    .card{
+      border:2px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      break-inside:avoid;
+      page-break-inside:avoid;
+    }
+
+    .card h2{
+      margin:0 0 10px;
+      font-size:20px;
+    }
+
+    .row{
+      margin-bottom:10px;
+      line-height:1.45;
+      font-size:14px;
+    }
+
+    .row strong{
+      display:inline-block;
+      min-width:120px;
+    }
+
+    .notes{
+      margin-top:12px;
+      border-top:1px solid var(--line);
+      padding-top:10px;
+    }
+
+    .line{
+      border-bottom:1px solid #777;
+      height:24px;
+      margin-top:6px;
+    }
+
+    .house,
+    .identity{
+      border:2px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin-bottom:14px;
+    }
+
+    .identity-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+      margin-top:10px;
+    }
+
+    @media (max-width:700px){
+      .identity-grid{grid-template-columns:1fr;}
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:13px;
+    }
+
+    @media print{
+      .topbar{display:none;}
+      body{padding:0.35in;}
+      .wrap{max-width:none;}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="topbar">
+      <button class="btn" onclick="window.print()">Print / Save PDF</button>
+      <a class="btn" href="/coaches/testing/index.html">Back to Testing</a>
+    </div>
+
+    <h1>Coach Segment Print Sheet</h1>
+    <p class="sub">Quick-scan version for running the test live. Watch first. Score after.</p>
+
+    <div class="meta">
+      <div class="field"><strong>Athlete</strong></div>
+      <div class="field"><strong>Coach</strong></div>
+      <div class="field"><strong>Date</strong></div>
+      <div class="field"><strong>Track / Tier</strong></div>
+    </div>
+
+    <section class="house">
+      <h2 style="margin:0 0 8px;">House Standard</h2>
+      <div class="row"><strong>Coach asks:</strong> What are the house standards?</div>
+      <div class="row"><strong>Athlete says:</strong> Focus, effort, attitude, respect.</div>
+    </section>
+
+    <div class="grid">
+
+      <section class="card">
+        <h2>1. Neutral Offense</h2>
+        <div class="row"><strong>Coach calls:</strong> Square stance, staggered stance, favorite tie, favorite shot</div>
+        <div class="row"><strong>Watch:</strong> Stance, motion, entry, pressure, scoring intent, finish</div>
+        <div class="row"><strong>Room language:</strong> Easy in, no finish. Easy in, easy finish. Hard in, easy finish. </div>
+        <div class="notes">
+          <strong>Quick notes</strong>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>2. Neutral Defense</h2>
+        <div class="row"><strong>Coach calls:</strong> Head &amp; hands, chest &amp; hips, low-level defense</div>
+        <div class="row"><strong>Watch:</strong> Don’t get caught, see it early, hips back, block shots, recover position</div>
+        <div class="row"><strong>Room language:</strong> Go behind. Reshot. Reattack.</div>
+        <div class="notes">
+          <strong>Quick notes</strong>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>3. Top</h2>
+        <div class="row"><strong>Coach calls:</strong> Top pressure, breakdown, keep working</div>
+        <div class="row"><strong>Watch:</strong> Weight on hands, heavy control, effective breakdowns, chain to score</div>
+        <div class="row"><strong>Room language:</strong> Left side. Right side. Position breakdowns. If this → then that. Two-on-one. Pinning series.</div>
+        <div class="notes">
+          <strong>Quick notes</strong>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Bottom</h2>
+        <div class="row"><strong>Coach calls:</strong> Whistle, build, clear hands, get out</div>
+        <div class="row"><strong>Watch:</strong> Explosive first move, strong base, clear elbow, win hands, escape, no panic</div>
+        <div class="row"><strong>Room language:</strong> Stand up. Don’t stay flat. Hold if stuck. No panic.</div>
+        <div class="notes">
+          <strong>Quick notes</strong>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>5. Ride</h2>
+        <div class="row"><strong>Coach calls:</strong> Deep waist ride, back to mat</div>
+        <div class="row"><strong>Watch:</strong> Establish ride, lock and settle, finish returns, stay on top through reactions</div>
+        <div class="row"><strong>Room language:</strong> Don’t give escapes. They move → you adjust. Stay on top no matter what.</div>
+        <div class="notes">
+          <strong>Quick notes</strong>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>6. Effort — Finish When It’s Hard</h2>
+        <div class="row"><strong>Coach calls:</strong> Partner lets you in. Partner fights setup.</div>
+        <div class="row"><strong>Watch:</strong> Can they finish when resistance shows up? Do they keep working? Do they stay in the fight?</div>
+        <div class="row"><strong>Room language:</strong> Easy in → hard finish. Hard in → hard finish. Don’t stop. Push pace.</div>
+        <div class="notes">
+          <strong>Quick notes</strong>
+          <div class="line"></div>
+          <div class="line"></div>
+        </div>
+      </section>
+
+    </div>
+
+    <section class="identity" style="margin-top:14px;">
+      <h2 style="margin:0 0 8px;">Identity Close</h2>
+      <p class="small">Use this at the end of the full test.</p>
+      <div class="identity-grid">
+        <div class="field"><strong>Creed</strong></div>
+        <div class="field"><strong>Code</strong></div>
+        <div class="field"><strong>Goal</strong></div>
+        <div class="field"><strong>Mission</strong></div>
+      </div>
+    </section>
+
+  </div>
+</body>
+</html>

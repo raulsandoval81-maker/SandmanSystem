@@ -15,22 +15,239 @@ console.log("DB:", db);
 const params = new URLSearchParams(window.location.search);
 const athleteId = params.get("uid") || params.get("athleteId") || "";
 const coachIdFromUrl = params.get("coachId") || "";
+const sessionId = params.get("sessionId") || "";
+const panelSlot = params.get("panel") || "";
+
+// ------------------
+// DOM / STATE
+// ------------------
+const sectionsWrap = document.getElementById("sections");
+const scoreState = {};
 
 // ------------------
 // DATA
 // ------------------
 const sections = [
-  { title: "1. Neutral — 20 pts", max: 20, items: ["Stance & motion", "Favorite tie", "Shot", "Finish (2 clean reps)"] },
-  { title: "2. Top — 20 pts", max: 20, items: ["Control on start", "Half OR cross face", "Breakdown execution", "Maintain pressure"] },
-  { title: "3. Bottom — 20 pts", max: 20, items: ["Stand up", "Switch", "Turn in / quad pod", "Clean escape (no panic)"] },
-  { title: "4. Counters — 15 pts", max: 15, items: ["Correct reaction", "Timing", "Control after counter"] },
-  { title: "5. Ride — 15 pts", max: 15, items: ["Ride control", "Pressure", "Mat return"] },
-  { title: "6. Strength + Mind — 10 pts", max: 10, items: ["Pyramid or Glacier work", "Answers (awareness)"] }
+
+  {
+    title: "1. Neutral Offense — 20 pts",
+    max: 20,
+    items: [
+      {
+        title: "Stance, Motion & Actions",
+        note: {
+          cue: "Square stance / Staggered stance",
+          shows: "Move, react, fake, shoot, sprawl, downblock",
+          watch: "Comfort, hand placement, readiness, clean stance under activity"
+        }
+      },
+      {
+        title: "Tie & Shot Entry",
+        note: {
+          cue: "Favorite tie / Favorite shot",
+          shows: "Enter cleanly into position or shot",
+          watch: "Easy in, no finish / Easy in, easy finish"
+        }
+      },
+      {
+        title: "Pressure to Score",
+        note: {
+          cue: "Pressure work",
+          shows: "Forward pressure, scoring intent, make partner carry you",
+          watch: "Pressure → easy finishes / Hard in, easy finish"
+        }
+      },
+      {
+        title: "Finish",
+        note: {
+          cue: "Finish",
+          shows: "Complete the action clean through the end",
+          watch: "Finish clean A, B, C / Don’t stop wrestling"
+        }
+      }
+    ]
+  },
+
+  {
+    title: "2. Neutral Defense — 20 pts",
+    max: 20,
+    items: [
+      {
+        title: "Head & Hands",
+        note: {
+          cue: "Head & hands defense",
+          shows: "Position early, defend before getting caught",
+          watch: "Don’t get caught / See it early"
+        }
+      },
+      {
+        title: "Chest & Hips",
+        note: {
+          cue: "Chest & hips defense",
+          shows: "Hips back, chest in position, control body line",
+          watch: "Stay in position / Don’t fold"
+        }
+      },
+      {
+        title: "Low-Level Defense",
+        note: {
+          cue: "Low-level defense",
+          shows: "Block shots, defend underneath, recover position",
+          watch: "Stop the shot / Stay underneath control"
+        }
+      },
+      {
+        title: "Reaction & Counter",
+        note: {
+          cue: "Go behind / Reshot / Reattack",
+          shows: "Answer defense with action",
+          watch: "Quick reaction, clear counter, continued wrestling"
+        }
+      }
+    ]
+  },
+
+  {
+    title: "3. Top — Control — 20 pts",
+    max: 20,
+    items: [
+      {
+        title: "Start Control",
+        note: {
+          cue: "Top pressure",
+          shows: "Settle heavy, control first",
+          watch: "Weight on hands / Stay heavy / No loose start"
+        }
+      },
+      {
+        title: "Breakdown",
+        note: {
+          cue: "Break them down",
+          shows: "Effective breakdown left or right",
+          watch: "Position breakdowns / Make it work"
+        }
+      },
+      {
+        title: "Control & Chain",
+        note: {
+          cue: "Keep working",
+          shows: "Chain from one control to the next",
+          watch: "Don’t stop / If this → then that"
+        }
+      },
+      {
+        title: "Control to Score",
+        note: {
+          cue: "Work to score",
+          shows: "Turn, expose, or build scoring pressure",
+          watch: "Two-on-one / Pinning series / Don’t just ride"
+        }
+      }
+    ]
+  },
+
+  {
+    title: "4. Bottom — Escape — 20 pts",
+    max: 20,
+    items: [
+      {
+        title: "Whistle & First Move",
+        note: {
+          cue: "Whistle",
+          shows: "Immediate first move",
+          watch: "Explosive / No hesitation"
+        }
+      },
+      {
+        title: "Build & Base",
+        note: {
+          cue: "Build",
+          shows: "Stand up or build strong base",
+          watch: "Don’t stay flat / Strong body position"
+        }
+      },
+      {
+        title: "Hand Control",
+        note: {
+          cue: "Clear hands",
+          shows: "Hand fight, clear elbow, win control",
+          watch: "Clear the elbow / Win hands"
+        }
+      },
+      {
+        title: "Escape / Hold",
+        note: {
+          cue: "Get out",
+          shows: "Escape clean or stabilize if stuck",
+          watch: "Get out / Hold if stuck / No panic"
+        }
+      }
+    ]
+  },
+
+  {
+    title: "5. Ride — Deep Waist Control — 15 pts",
+    max: 15,
+    items: [
+      {
+        title: "Establish Ride",
+        note: {
+          cue: "Deep waist ride",
+          shows: "Get to it, lock it, settle in",
+          watch: "Control first / Lock and settle"
+        }
+      },
+      {
+        title: "Return to Mat",
+        note: {
+          cue: "Back to mat",
+          shows: "Return partner and keep them underneath",
+          watch: "Don’t give escapes / Finish returns"
+        }
+      },
+      {
+        title: "Stay on Top",
+        note: {
+          cue: "They move, you adjust",
+          shows: "Adjust through reactions without losing control",
+          watch: "Stay on top no matter what"
+        }
+      }
+    ]
+  },
+
+  {
+    title: "6. Effort — Finish When It’s Hard — 15 pts",
+    max: 15,
+    items: [
+      {
+        title: "Easy In → Hard Finish",
+        note: {
+          cue: "Partner lets you in",
+          shows: "Earn the finish once inside",
+          watch: "Stay in it / Finish when it gets hard"
+        }
+      },
+      {
+        title: "Hard In → Hard Finish",
+        note: {
+          cue: "Partner fights setup",
+          shows: "Work in anyway and finish through resistance",
+          watch: "Finish anyway / Don’t stop"
+        }
+      },
+      {
+        title: "Work Rate",
+        note: {
+          cue: "Go",
+          shows: "Push pace and stay engaged",
+          watch: "Don’t stop / Push pace / Stay in the fight"
+        }
+      }
+    ]
+  }
+
 ];
-
-const sectionsWrap = document.getElementById("sections");
-const scoreState = {};
-
 // ------------------
 // HELPERS
 // ------------------
@@ -51,6 +268,25 @@ function getTrackFromAthleteId(id = "") {
 
 function addDays(days) {
   return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+}
+
+function getIncompleteRows() {
+  const missing = [];
+
+  sections.forEach((section, sectionIndex) => {
+    section.items.forEach((item, itemIndex) => {
+      const key = `${sectionIndex}-${itemIndex}`;
+      if (scoreState[key] === null) {
+        missing.push({
+          sectionTitle: section.title,
+          itemLabel: item.title,
+          key
+        });
+      }
+    });
+  });
+
+  return missing;
 }
 
 async function hydrateFormFromAthlete() {
@@ -106,7 +342,7 @@ function renderSections() {
         <div class="section-subtotal" id="subtotal-${sectionIndex}">0 / ${section.max}</div>
       </div>
       <div class="items"></div>
-      <div class="rule">Tap one: 5 = clean · 3 = sloppy · 0 = missed</div>
+      <div class="rule">Score what you see: Position → Action → Outcome. 5 = clean · 3 = sloppy/incomplete · 0 = missed</div>
     `;
 
     const itemsWrap = card.querySelector(".items");
@@ -119,13 +355,20 @@ function renderSections() {
       row.className = "item";
 
       row.innerHTML = `
-        <div class="name">${item}</div>
+        <div class="name">${item.title}</div>
         <div class="score-row">
           <button class="score-btn" data-key="${key}" data-score="5" type="button">5</button>
           <button class="score-btn" data-key="${key}" data-score="3" type="button">3</button>
           <button class="score-btn" data-key="${key}" data-score="0" type="button">0</button>
         </div>
       `;
+
+      if (item.note && item.note.length) {
+        const noteEl = document.createElement("div");
+        noteEl.className = "coach-note";
+        noteEl.innerHTML = item.note.map(n => `• ${n}`).join("<br>");
+        row.appendChild(noteEl);
+      }
 
       itemsWrap.appendChild(row);
     });
@@ -174,14 +417,19 @@ document.addEventListener("click", (e) => {
   const btn = e.target.closest(".score-btn");
   if (!btn) return;
 
-  const { key, score } = btn.dataset;
+  const key = btn.dataset.key;
+  const score = btn.dataset.score;
+
   scoreState[key] = Number(score);
 
   document
     .querySelectorAll(`.score-btn[data-key="${key}"]`)
-    .forEach((node) => node.classList.remove("active"));
+    .forEach((node) => {
+      node.classList.remove("selected-5", "selected-3", "selected-0");
+    });
 
-  btn.classList.add("active");
+  btn.classList.add(`selected-${score}`);
+
   updateTotals();
 });
 
@@ -195,7 +443,9 @@ document.getElementById("resetBtn")?.addEventListener("click", () => {
 
   document
     .querySelectorAll(".score-btn")
-    .forEach((btn) => btn.classList.remove("active"));
+    .forEach((btn) => {
+      btn.classList.remove("selected-5", "selected-3", "selected-0");
+    });
 
   const notesEl = document.getElementById("notes");
   if (notesEl) notesEl.value = "";
@@ -210,6 +460,16 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
   try {
     const total = updateTotals();
 
+    const incompleteRows = getIncompleteRows();
+    if (incompleteRows.length) {
+      const firstMissing = incompleteRows[0];
+      alert(
+        `Incomplete test. Missing ${incompleteRows.length} row(s).\n\n` +
+        `First missing:\n${firstMissing.sectionTitle}\n${firstMissing.itemLabel}`
+      );
+      return;
+    }
+
     const athlete = document.getElementById("athlete")?.value.trim() || "";
     const coachInput = document.getElementById("coach")?.value.trim() || "";
     const date = document.getElementById("testDate")?.value || "";
@@ -220,6 +480,11 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
       return;
     }
 
+    if (!sessionId) {
+      alert("Missing sessionId. Generate links from Command Center.");
+      return;
+    }
+
     if (!coachIdFromUrl && !coachInput) {
       alert("Missing coachId in URL or coach name in form");
       return;
@@ -227,7 +492,7 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
 
     const finalCoachId = coachIdFromUrl || coachInput;
     const finalCoachName = coachInput || coachIdFromUrl;
-    const testType = "BASE_CHECK_V1";
+    const testType = params.get("testType") || "BASE_CHECK_V1";
     const result = getResultLabel(total);
     const nextTestingState = getTestingState(total);
 
@@ -248,6 +513,9 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
       testId: "test1",
       version: 1,
 
+      sessionId,
+      panel: panelSlot,
+
       decision: total >= 85 ? "APPROVE" : "DENY",
 
       scores: { ...scoreState },
@@ -261,18 +529,17 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
       date
     };
 
-    const submissionId = `${testType}__${finalCoachId}`;
+    const submissionId = `${sessionId}__${finalCoachId}`;
     const logRef = doc(db, "athletes", athleteId, "testingLogs", submissionId);
 
     const existing = await getDoc(logRef);
     if (existing.exists()) {
-      alert(`Submission locked. ${finalCoachName} already submitted this test.`);
+      alert("Panel already submitted — locked.");
       return;
     }
 
     await setDoc(logRef, payload);
 
-    // tie test into athlete state without overwriting whole testing map
     await updateDoc(athleteRef, {
       "testing.state": nextTestingState,
       "testing.lastTest": new Date().toISOString(),
@@ -286,6 +553,15 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
       tierStatus: total >= 85 ? "cooldown" : "freeze",
       updatedAt: serverTimestamp()
     });
+
+    // 🔒 LOCK UI AFTER SUCCESS
+    document.body.classList.add("locked");
+
+    const saveBtn = document.getElementById("saveBtn");
+    if (saveBtn) {
+      saveBtn.textContent = "Submitted";
+      saveBtn.disabled = true;
+    }
 
     alert(`Saved — ${result}`);
     console.log("testingLogs write success:", submissionId, payload);
@@ -362,9 +638,40 @@ themeToggle?.addEventListener("click", () => {
   localStorage.setItem("coachTestTheme", next);
 });
 
+async function checkIfAlreadySubmitted() {
+  try {
+    if (!athleteId || !sessionId) return;
+
+    const coachInput = document.getElementById("coach")?.value.trim() || "";
+    const finalCoachId = coachIdFromUrl || coachInput;
+
+    if (!finalCoachId) return;
+
+    const submissionId = `${sessionId}__${finalCoachId}`;
+    const logRef = doc(db, "athletes", athleteId, "testingLogs", submissionId);
+
+    const snap = await getDoc(logRef);
+
+    if (snap.exists()) {
+      document.body.classList.add("locked");
+
+      const saveBtn = document.getElementById("saveBtn");
+      if (saveBtn) {
+        saveBtn.textContent = "Submitted";
+        saveBtn.disabled = true;
+      }
+
+      console.log("Already submitted — UI locked");
+    }
+  } catch (err) {
+    console.warn("Lock check failed:", err);
+  }
+}
+
 // ------------------
 // INIT
 // ------------------
 renderSections();
 updateTotals();
 hydrateFormFromAthlete();
+checkIfAlreadySubmitted();

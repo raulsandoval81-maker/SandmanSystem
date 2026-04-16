@@ -1,0 +1,382 @@
+/* =========================
+   THEME TOKENS
+========================= */
+
+:root{
+  --bg:#0b1220;
+  --panel:#121b2e;
+  --panel2:#18243d;
+  --line:#2a3550;
+  --text:#f3f4f6;
+  --muted:#9ca3af;
+  --gold:#facc15;
+  --blue:#1f6feb;
+  --blue2:#2b7fff;
+  --green:#22c55e;
+  --red:#ef4444;
+}
+
+/* DAY MODE */
+body:not([data-theme="night"]){
+  --bg:#f7f1e3;
+  --panel:#fffdf7;
+  --panel2:#f3ecda;
+  --line:#d8ccb3;
+  --text:#201a12;
+  --muted:#6b6256;
+  --gold:#b88a12;
+  --green:#1f8a43;
+  --red:#b93838;
+}
+
+/* =========================
+   BASE
+========================= */
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:960px;
+  margin:0 auto;
+  padding:20px;
+}
+
+/* =========================
+   CARDS / LAYOUT
+========================= */
+
+.hero,
+.card,
+.summary-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  box-shadow:0 10px 24px rgba(0,0,0,.16);
+}
+
+.hero{
+  padding:16px;
+  margin-bottom:20px;
+}
+
+.card,
+.summary-card{
+  padding:14px;
+}
+
+.section-list{
+  display:grid;
+  gap:12px;
+  margin-top:10px;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  margin-bottom:10px;
+}
+
+.section-head h2{
+  font-size:1rem;
+  color:var(--gold);
+  font-weight:800;
+}
+
+/* =========================
+   TYPOGRAPHY
+========================= */
+
+h1,h2,h3,p{margin:0}
+
+h1{
+  font-size:1.2rem;
+  color:var(--gold);
+}
+
+.sub{
+  margin-top:6px;
+  color:var(--muted);
+  font-size:.92rem;
+}
+
+.muted{
+  color:var(--muted);
+}
+
+/* =========================
+   INPUTS (FIXED VISIBILITY)
+========================= */
+
+label{
+  display:block;
+  margin-bottom:6px;
+  font-size:.82rem;
+  color:var(--muted);
+  font-weight:700;
+}
+
+input,
+textarea,
+select{
+  width:100%;
+  border-radius:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  font:inherit;
+}
+
+/* NIGHT */
+body[data-theme="night"] input,
+body[data-theme="night"] textarea,
+body[data-theme="night"] select{
+  background:var(--panel2);
+  color:var(--text);
+}
+
+/* DAY — FIXED (THIS WAS YOUR PROBLEM) */
+body:not([data-theme="night"]) input,
+body:not([data-theme="night"]) textarea,
+body:not([data-theme="night"]) select{
+  background:#fffdf7;
+  color:#201a12;
+  border:1px solid #d8ccb3;
+}
+
+body:not([data-theme="night"]) input::placeholder,
+body:not([data-theme="night"]) textarea::placeholder{
+  color:#6b6256;
+}
+
+textarea{
+  min-height:100px;
+}
+
+/* =========================
+   ITEMS
+========================= */
+
+.item{
+  padding:10px 0;
+  border-top:1px solid rgba(128,128,128,.2);
+}
+
+.item:first-child{
+  border-top:none;
+}
+
+/* =========================
+   SCORE BUTTONS
+========================= */
+
+.score-row{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-top:10px;
+}
+
+.score-btn{
+  padding:16px 0;
+  border-radius:14px;
+  border:2px solid rgba(255,255,255,0.15);
+  background:#0f172a;
+  color:#cbd5f5;
+  font-weight:900;
+  font-size:1.05rem;
+  transition:.12s ease;
+  cursor:pointer;
+}
+
+/* BASE VISIBILITY (NOT FADED ANYMORE) */
+.score-btn[data-score="5"]{ background:rgba(34,197,94,.35); }
+.score-btn[data-score="3"]{ background:rgba(251,191,36,.35); }
+.score-btn[data-score="0"]{ background:rgba(239,68,68,.35); }
+
+.score-btn:hover{
+  transform:scale(1.04);
+}
+
+/* SELECTED */
+.score-btn.selected-5{
+  background:#22c55e;
+  color:#052e16;
+  box-shadow:0 0 0 3px rgba(34,197,94,.7);
+}
+
+.score-btn.selected-3{
+  background:#facc15;
+  color:#3b2f00;
+  box-shadow:0 0 0 3px rgba(250,204,21,.7);
+}
+
+.score-btn.selected-0{
+  background:#ef4444;
+  color:#fff;
+  box-shadow:0 0 0 3px rgba(239,68,68,.7);
+}
+
+/* =========================
+   SUMMARY
+========================= */
+
+.summary-stack{
+  display:grid;
+  gap:12px;
+  margin-top:14px;
+}
+
+.total-score{
+  font-size:1.8rem;
+  font-weight:900;
+  color:var(--gold);
+}
+
+.status.pass{ color:var(--green); }
+.status.fail{ color:var(--red); }
+
+/* =========================
+   BUTTONS
+========================= */
+
+.btn,
+.action-btn{
+  width:100%;
+  border:none;
+  border-radius:12px;
+  padding:13px;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.btn{
+  background:var(--panel2);
+  color:var(--text);
+}
+
+.btn.primary{
+  background:var(--blue);
+}
+
+.btn.primary:hover{
+  background:var(--blue2);
+}
+
+.action-btn{
+  background:var(--gold);
+}
+
+.action-btn.secondary{
+  background:var(--panel2);
+  border:1px solid var(--line);
+}
+
+/* =========================
+   COACH NOTES (INLINE STYLE)
+========================= */
+
+.coach-note-line{
+  margin-top:8px;
+  font-size:13px;
+  line-height:1.45;
+}
+
+.coach-note-line strong{
+  font-weight:800;
+}
+
+/* =========================
+   THEME TOGGLE
+========================= */
+
+.theme-toggle{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:12px;
+  color:var(--muted);
+}
+
+.switch{
+  width:54px;
+  height:30px;
+  border-radius:999px;
+  background:var(--bg);
+  border:1px solid var(--line);
+  position:relative;
+  cursor:pointer;
+}
+
+.switch::after{
+  content:"";
+  position:absolute;
+  top:3px;
+  left:3px;
+  width:24px;
+  height:24px;
+  border-radius:50%;
+  background:var(--gold);
+  transition:.2s;
+}
+
+body[data-theme="night"] .switch::after{
+  transform:translateX(24px);
+}
+
+/* =========================
+   LOCK STATE
+========================= */
+
+body.locked{
+  opacity:.7;
+}
+
+body.locked .score-btn{
+  pointer-events:none;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width:760px){
+  .wrap{padding:14px;}
+  .section-head{flex-direction:column;}
+}
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:12px; /* space between buttons */
+  margin-top:16px;
+}
+
+.action-btn{
+  padding:14px;
+  border-radius:14px;
+  font-weight:900;
+}
+.action-btn.primary{
+  background:var(--gold);
+  color:#201a12;
+}
+
+.action-btn.secondary{
+  background:var(--panel-2);
+  border:1px solid var(--line);
+}
+
+.action-btn.reset{
+  background:transparent;
+  border:1px dashed var(--line);
+  color:var(--muted);
+}
+.actions .action-btn:first-child{
+  margin-bottom:6px; /* extra space under Save */
+}

@@ -1,5 +1,5 @@
 // ----------------------------------------------------------
-// /coach/para/athlete/thread.js  (FULL FILE — READ-ONLY — V1 SAFE)
+// /para/athlete/thread.js  (FULL FILE — READ-ONLY — V1 SAFE)
 // Athlete view of Parent ↔ Coach thread (Unified Thread Model)
 //
 // Schema:

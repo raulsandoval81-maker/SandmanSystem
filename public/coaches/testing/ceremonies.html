@@ -5,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Coach • Ceremonies | Sandman System™</title>
 
-  <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="icon" href="data:,">
-
+<link rel="stylesheet" href="/coaches/testing/testing.css" />
   <style>
     :root{
       --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
@@ -48,6 +47,7 @@
     .pill-mini{display:inline-block;padding:.15rem .5rem;border-radius:999px;background:#121821;border:1px solid #394a61;color:#eaeaea;font-weight:700;font-size:.8rem}
     .notice{border-left:3px solid #ffd633;padding:.6rem .8rem;background:#0d121a;margin:.6rem 0;border-radius:8px}
   </style>
+  
 </head>
 <body>
 
@@ -180,15 +180,13 @@ class="small"style="line-height:145">
   </main>
 
   <script type="module">
-    import {
-      db,
-      collection,
-      getDocs,
-      doc,
-      updateDoc,
-      serverTimestamp,
-      ensureSignedIn
-    } from "/assets/js/firebase-init.js";
+import {
+  db,
+  collection,
+  getDocs,
+  ensureSignedIn
+} from "/assets/js/firebase-init.js";
+
 
 async function loadMakeups(track){
   await ensureSignedIn();
@@ -270,16 +268,17 @@ async function loadMakeups(track){
         const mapped = mapStatusFromTestingState(data.testing?.state || "");
         if (!mapped) return;
 
-        list.push({
-          id,
-          name: data.publicName || data.fullName || id,
-          track: athleteTrack,
-          tier: data.rankName || data.tierName || data.tier || "—",
-          status: mapped.text,
-          statusClass: mapped.cls,
-          notes: data.testing?.lastResult || "",
-          rawState: String(data.testing?.state || "").toUpperCase()
-        });
+
+list.push({
+  id,
+  name: data.publicName || data.fullName || id,
+  track: athleteTrack,
+  tier: data.rankName || data.tierName || data.tier || "—",
+  status: mapped.text,
+  statusClass: mapped.cls,
+  notes: data.testing?.lastDecision || data.testing?.lastTestResult || "",
+  rawState: String(data.testing?.state || "").toUpperCase()
+});
       });
 
       list.sort((a,b)=> a.name.localeCompare(b.name));

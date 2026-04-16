@@ -13,7 +13,7 @@ function openThread() {
   // For V1: ath-uid box is repurposed to hold parent email threadId
   const threadId = normEmail(uidEl?.value || "");
   if (!threadId) return alert("Enter parent email (thread id).");
-  location.href = `/coach/para/athlete/thread.html?id=${encodeURIComponent(threadId)}`;
+  location.href = `/para/athlete/thread.html?id=${encodeURIComponent(threadId)}`;
 }
 
 btnOpen?.addEventListener("click", (e) => {

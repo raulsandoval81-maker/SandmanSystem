@@ -1,4 +1,4 @@
-// public/coach/para/inbox-receipt.js
+// public/para/inbox-receipt.js
 
 import {
   db,
@@ -31,7 +31,7 @@ async function load() {
 }
 
 load();
-// public/coach/para/inbox-receipt.js
+// public/para/inbox-receipt.js
 // Pilot mode: no DB reads. Just confirm page loaded.
 
 console.log("[Para-Comms] Receipt page loaded.");

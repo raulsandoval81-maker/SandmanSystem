@@ -1,4 +1,4 @@
-// public/coach/para/parent/inbox-send.js
+// public/para/parent/inbox-send.js
 // Option A: Unified thread model (compose-first -> thread)
 
 import {
@@ -163,7 +163,7 @@ btnSend?.addEventListener("click", async () => {
 
     // 4) Redirect to the unified thread reader
     setTimeout(() => {
-      window.location.href = `/coach/para/parent/thread.html?id=${encodeURIComponent(threadId)}`;
+      window.location.href = `/para/parent/thread.html?id=${encodeURIComponent(threadId)}`;
     }, 400);
 
   } catch (err) {

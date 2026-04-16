@@ -1,4 +1,4 @@
-// public/coach/para/para-message-engine.js
+// public/para/-message-engine.js
 // Core wiring for Para-Comms — used by BOTH parent + coach pages.
 
 import {

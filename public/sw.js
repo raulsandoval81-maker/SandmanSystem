@@ -10,7 +10,7 @@ const RUNTIME_CACHE = `sandman-runtime-${VERSION}`;
 // (PDFs are intentionally NOT precached.)
 const PRECACHE_URLS = [
   '/',
-  '/timer-engine/sandman-timer-mobile.html',
+  '/lab/timer-engine/ui/sandman-timer-mobile.html',
   '/manifest.json',
   '/icons/sandman-192.png',
   '/icons/sandman-512.png',
@@ -80,7 +80,7 @@ self.addEventListener('fetch', (event) => {
 
       } catch (e) {
         const cached = await caches.match(req);
-        return cached || caches.match('/timer-engine/sandman-timer-mobile.html');
+        return cached || caches.match('/lab/timer-engine/ui/sandman-timer-mobile.html');
       }
     })());
 

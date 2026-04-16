@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Announcements Feed • Coach</title>
+
+  <link rel="stylesheet" href="/para/shared/comms.css">
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0b1120;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+    }
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:18px 14px 40px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    h1{
+      margin:0 0 12px;
+      color:var(--gold);
+      font-size:1.2rem;
+    }
+
+    .top{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:var(--deep);
+      color:var(--text);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+
+    .card{
+      background:#0f172a;
+      border:1px solid #334155;
+      border-radius:18px;
+      padding:20px 22px;
+      margin:18px 0;
+      box-shadow:0 6px 20px rgba(0,0,0,.35);
+      transition:transform .15s ease, box-shadow .15s ease;
+    }
+
+    .card:hover{
+      transform:translateY(-2px);
+      box-shadow:0 10px 26px rgba(0,0,0,.45);
+    }
+
+    .card-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:12px;
+      margin-bottom:10px;
+    }
+
+    .title{
+      font-weight:900;
+      font-size:1.15rem;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    .icon{
+      font-size:1.2rem;
+      opacity:.9;
+    }
+
+    .meta-right{
+      font-size:.75rem;
+      font-weight:700;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+      opacity:.6;
+    }
+
+    .card-body{
+      margin-bottom:10px;
+      white-space:pre-wrap;
+    }
+
+    .card-date{
+      font-size:.8rem;
+      opacity:.55;
+    }
+
+    .pill{
+      display:inline-block;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:.7rem;
+      font-weight:800;
+      background:#334155;
+      color:var(--text);
+      margin-left:8px;
+    }
+
+    .empty{
+      opacity:.75;
+      text-align:center;
+      padding:18px;
+    }
+
+    .status{
+      min-height:20px;
+      margin:8px 0 4px;
+      color:var(--gold);
+      font-size:.9rem;
+      font-weight:700;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel">
+      <h1>Announcements Feed (Coach)</h1>
+
+      <div class="top">
+        <a class="btn" href="/para/coach/broadcast.html">+ Post</a>
+        <a class="btn" href="/para/coach/hub.html">Coach Home</a>
+        <button id="toggle-archived" class="btn" type="button">Show Archived</button>
+      </div>
+
+      <div id="status" class="status"></div>
+      <div id="feed"></div>
+      <div id="empty" class="empty" style="display:none;">No announcements yet.</div>
+    </div>
+  </div>
+
+  <script type="module" src="/para/coach/announcements-feed.js"></script>
+</body>
+</html>

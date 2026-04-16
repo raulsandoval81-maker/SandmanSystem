@@ -1,5 +1,5 @@
 // ----------------------------------------------------------
-// /coach/para/parent/inbox-view.js
+// /para/parent/inbox-view.js
 // Parent Inbox (Unified Thread Model)
 // Shows ONLY this parent's thread (filtered by parentKey)
 // ----------------------------------------------------------
@@ -77,7 +77,7 @@ async function loadThreads() {
     const id = encodeURIComponent(d.id);
 
     return `
-      <a class="pc-card" href="/coach/para/parent/thread.html?id=${id}">
+      <a class="pc-card" href="/para/parent/thread.html?id=${id}">
         <div class="pc-card-title">${subject}</div>
         <div class="pc-card-body">${preview}</div>
       </a>

@@ -28,7 +28,7 @@ btnSend.addEventListener("click", async () => {
   });
 
   // Redirect to receipt
-  window.location.href = `/coach/para/parent/sent.html?id=${newMsg.id}&month=${monthKey}`;
+  window.location.href = `/para/parent/sent.html?id=${newMsg.id}&month=${monthKey}`;
 });
 // ------------------------------------------------------------
 // PREVENT SECOND MESSAGE UNTIL COACH REPLIES
@@ -102,5 +102,5 @@ btnSend.addEventListener("click", async () => {
   });
 
   messageBox.value = "";
-  window.location.href = `/coach/para/parent/sent.html?id=${newMsg.id}`;
+  window.location.href = `/para/parent/sent.html?id=${newMsg.id}`;
 });

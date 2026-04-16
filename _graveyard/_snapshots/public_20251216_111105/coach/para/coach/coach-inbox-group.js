@@ -1,4 +1,4 @@
-// public/coach/para/coach-inbox-group.js
+// public/para/coach-inbox-group.js
 import {
   collection,
   getDocs

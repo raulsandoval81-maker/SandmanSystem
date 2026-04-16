@@ -1,4 +1,4 @@
-// /coach/para/parent/announcements-feed.js
+// /para/parent/announcements-feed.js
 // Parent feed (read-only) — V1-stable
 // - HARD REQUIRE AUTH (no silent catch)
 // - Simple query (no composite index)

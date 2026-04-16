@@ -234,7 +234,7 @@ if (btnArchive) {
     const msgRef = doc(db, "parentInbox", monthKey, "entries", msgId);
     await updateDoc(msgRef, { archived: true });
     alert("Message archived.");
-    window.location.href = "/coach/para/coach/inbox.html";
+    window.location.href = "/para/coach/inbox.html";
   });
 }
 
@@ -245,7 +245,7 @@ if (btnDelete) {
     const msgRef = doc(db, "parentInbox", monthKey, "entries", msgId);
     await updateDoc(msgRef, { deleted: true });
     alert("Message deleted.");
-    window.location.href = "/coach/para/coach/inbox.html";
+    window.location.href = "/para/coach/inbox.html";
   });
 }
 

@@ -1,4 +1,4 @@
-// /coach/para/shared/announcements-ui.js
+// /para/shared/announcements-ui.js
 // Shared announcements renderer (Admin + Parent + Athlete)
 
 export function esc(s = "") {

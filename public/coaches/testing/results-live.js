@@ -13,25 +13,35 @@ import {
 const params = new URLSearchParams(window.location.search);
 const athleteId = params.get("uid") || params.get("athleteId");
 const decidedBy = params.get("coachId") || "admin";
+const sessionId = params.get("sessionId") || "";
+const testType = params.get("testType") || "BASE_CHECK_V1";
 
 const wrap = document.getElementById("results");
 
 async function load() {
-  if (!athleteId) {
-    wrap.innerHTML = "Missing athleteId in URL";
-    return;
-  }
+if (!athleteId) {
+  wrap.innerHTML = "Missing athleteId in URL";
+  return;
+}
 
+if (!sessionId) {
+  wrap.innerHTML = "Missing sessionId in URL";
+  return;
+}
   const q = query(
     collection(db, "athletes", athleteId, "testingLogs"),
-    where("testType", "==", "BASE_CHECK_V1")
+    where("testType", "==", testType)
   );
 
   const snap = await getDocs(q);
   const rows = [];
 
   snap.forEach((docSnap) => {
-    rows.push(docSnap.data());
+    const data = docSnap.data();
+
+    if (!sessionId || data.sessionId === sessionId) {
+      rows.push(data);
+    }
   });
 
   if (!rows.length) {
@@ -46,6 +56,7 @@ async function load() {
   });
 
   const totals = [];
+  const REQUIRED_PANEL = 3;
   wrap.innerHTML = "";
 
   rows.forEach((d) => {
@@ -58,7 +69,7 @@ async function load() {
     div.style.borderRadius = "10px";
 
     div.innerHTML = `
-      <strong>${d.coachName || d.coachId || "Coach"}</strong><br>
+      <strong>${d.coachName || d.coachId || "Coach"}${d.panel ? ` (${d.panel})` : ""}</strong><br>
       Score: ${d.total || 0} / 100<br>
       Result: ${d.result || "—"}<br>
       Date: ${d.date || "—"}
@@ -103,6 +114,14 @@ async function load() {
     <div id="decisionStatus" style="font-weight:600;"></div>
   `;
 
+  if (totals.length < REQUIRED_PANEL) {
+    final.innerHTML += `
+      <div style="color:#ef4444; margin-top:10px; font-weight:700;">
+        Waiting for ${REQUIRED_PANEL - totals.length} more coach submission(s)
+      </div>
+    `;
+  }
+
   wrap.appendChild(final);
 
   const athleteRef = doc(db, "athletes", athleteId);
@@ -119,11 +138,11 @@ async function load() {
     try {
       const note = document.getElementById("decisionNote").value.trim();
 
-const nextState =
-  decision === "APPROVE" ? "COOLDOWN" :
-  decision === "HOLD" ? "TEMPLE" :
-  decision === "RETEST" ? "ELIGIBLE" :
-  "TEMPLE";
+      const nextState =
+        decision === "APPROVE" ? "COOLDOWN" :
+        decision === "HOLD" ? "TEMPLE" :
+        decision === "RETEST" ? "ELIGIBLE" :
+        "TEMPLE";
 
       await updateDoc(athleteRef, {
         "testing.baseCheckV1.testType": "BASE_CHECK_V1",
@@ -136,7 +155,6 @@ const nextState =
         "testing.baseCheckV1.decidedAt": serverTimestamp(),
         "testing.baseCheckV1.manualPromotionOnly": true,
 
-        // main athlete testing state
         "testing.state": nextState,
         "testing.lastDecision": decision,
         "testing.lastDecisionAt": serverTimestamp(),
@@ -153,15 +171,31 @@ const nextState =
     }
   }
 
+  function canDecide() {
+    return totals.length >= REQUIRED_PANEL;
+  }
+
   document.getElementById("approveBtn").addEventListener("click", () => {
+    if (!canDecide()) {
+      alert("Panel incomplete. Need 3 coach submissions.");
+      return;
+    }
     saveDecision("APPROVE");
   });
 
   document.getElementById("holdBtn").addEventListener("click", () => {
+    if (!canDecide()) {
+      alert("Panel incomplete. Need 3 coach submissions.");
+      return;
+    }
     saveDecision("HOLD");
   });
 
   document.getElementById("retestBtn").addEventListener("click", () => {
+    if (!canDecide()) {
+      alert("Panel incomplete. Need 3 coach submissions.");
+      return;
+    }
     saveDecision("RETEST");
   });
 }

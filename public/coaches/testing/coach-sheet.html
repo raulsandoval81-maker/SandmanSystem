@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Coach Cue Sheet | Testing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/testing/testing.css" />
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#121b2e;
+      --panel2:#18243d;
+      --line:#2a3550;
+      --text:#f3f4f6;
+      --muted:#9ca3af;
+      --gold:#facc15;
+      --blue:#1f6feb;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      padding:20px;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+      flex-wrap:wrap;
+    }
+
+    .back{
+      display:inline-block;
+      color:var(--muted);
+      text-decoration:none;
+      font-weight:700;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      display:inline-block;
+      border:none;
+      border-radius:12px;
+      padding:12px 14px;
+      background:var(--panel2);
+      color:var(--text);
+      font-weight:800;
+      text-decoration:none;
+      cursor:pointer;
+    }
+
+    .btn.primary{
+      background:var(--blue);
+    }
+
+    h1{
+      margin:0 0 8px;
+      color:var(--gold);
+      font-size:1.9rem;
+    }
+
+    .sub{
+      margin:0 0 18px;
+      color:var(--muted);
+    }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      margin-bottom:16px;
+    }
+
+    .meta{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    @media (max-width: 900px){
+      .meta{ grid-template-columns:1fr 1fr; }
+    }
+
+    @media (max-width: 600px){
+      .meta{ grid-template-columns:1fr; }
+    }
+
+    label{
+      display:block;
+      font-size:.8rem;
+      color:var(--muted);
+      margin-bottom:6px;
+      font-weight:700;
+    }
+
+    input, textarea{
+      width:100%;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:var(--panel2);
+      color:var(--text);
+      padding:12px;
+      font:inherit;
+    }
+
+    .house{
+      font-size:1rem;
+      font-weight:800;
+      color:var(--gold);
+    }
+
+    .segment{
+      background:rgba(255,255,255,0.02);
+      border:1px solid rgba(255,255,255,0.06);
+      border-radius:14px;
+      padding:14px;
+      margin-top:12px;
+    }
+
+    .segment h2{
+      margin:0 0 10px;
+      color:var(--gold);
+      font-size:1.02rem;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns:1.1fr 1.2fr 1fr;
+      gap:12px;
+      align-items:start;
+    }
+
+    @media (max-width: 860px){
+      .row{ grid-template-columns:1fr; }
+    }
+
+    .mini{
+      background:var(--panel2);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:12px;
+      min-height:96px;
+    }
+
+    .mini strong{
+      display:block;
+      margin-bottom:8px;
+      color:var(--text);
+      font-size:.88rem;
+    }
+
+    .mini p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.45;
+      font-size:.92rem;
+    }
+
+    .quick-notes{
+      margin-top:12px;
+    }
+
+    .identity{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+
+    @media (max-width: 700px){
+      .identity{ grid-template-columns:1fr; }
+    }
+
+    .print-note{
+      color:var(--muted);
+      font-size:.85rem;
+      margin-top:8px;
+    }
+
+    @media print{
+      body{
+        background:#fff;
+        color:#000;
+        padding:0;
+      }
+      .wrap{
+        max-width:none;
+      }
+      .topbar{
+        display:none;
+      }
+      .card, .segment, .mini, input, textarea{
+        background:#fff !important;
+        color:#000 !important;
+        border:1px solid #bbb !important;
+        box-shadow:none !important;
+      }
+      .back, .sub, .print-note{
+        color:#444 !important;
+      }
+      h1, .house, .segment h2{
+        color:#000 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <div class="topbar">
+      <a class="back" href="/coaches/testing/index.html">← Back to Testing</a>
+      <div class="actions">
+        <button class="btn" onclick="window.print()">Print / Save PDF</button>
+        <a class="btn primary" href="/coaches/testing/test1.html">Open Scoring Console</a>
+      </div>
+    </div>
+
+    <h1>Coach Cue Sheet</h1>
+    <p class="sub">Run the test from this sheet. Watch first, score after.</p>
+
+    <section class="card">
+      <div class="meta">
+        <div>
+          <label for="athlete">Athlete</label>
+          <input id="athlete" type="text" placeholder="Athlete name / UID" />
+        </div>
+        <div>
+          <label for="coach">Coach</label>
+          <input id="coach" type="text" placeholder="Coach name" />
+        </div>
+        <div>
+          <label for="date">Date</label>
+          <input id="date" type="date" />
+        </div>
+        <div>
+          <label for="track">Track / Tier</label>
+          <input id="track" type="text" placeholder="F8 T0 / F4 T0" />
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="house">House Standard</div>
+      <div class="print-note">Coach asks: What are the house standards?</div>
+      <p><strong>Athlete response:</strong> Focus, effort, attitude, respect.</p>
+    </section>
+
+    <section class="card">
+      <div class="segment">
+        <h2>1. Neutral Offense</h2>
+        <div class="row">
+          <div class="mini">
+            <strong>Coach calls</strong>
+            <p>Square stance, staggered stance, favorite tie, favorite shot.</p>
+          </div>
+          <div class="mini">
+            <strong>Watch</strong>
+            <p>Stance, motion, entry, pressure, scoring intent, finish.</p>
+          </div>
+          <div class="mini">
+            <strong>Room language</strong>
+            <p>Easy in, no finish. Easy in, easy finish. Hard in, easy finish. Hard in, hard finish.</p>
+          </div>
+        </div>
+        <div class="quick-notes">
+          <label for="notes1">Quick notes</label>
+          <textarea id="notes1" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="segment">
+        <h2>2. Neutral Defense</h2>
+        <div class="row">
+          <div class="mini">
+            <strong>Coach calls</strong>
+            <p>Head &amp; hands, chest &amp; hips, low-level defense.</p>
+          </div>
+          <div class="mini">
+            <strong>Watch</strong>
+            <p>Don’t get caught, early reaction, hips back, block shots, recover position.</p>
+          </div>
+          <div class="mini">
+            <strong>Room language</strong>
+            <p>Go behind. Reshot. Reattack.</p>
+          </div>
+        </div>
+        <div class="quick-notes">
+          <label for="notes2">Quick notes</label>
+          <textarea id="notes2" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="segment">
+        <h2>3. Top</h2>
+        <div class="row">
+          <div class="mini">
+            <strong>Coach calls</strong>
+            <p>Top pressure, breakdown, keep working.</p>
+          </div>
+          <div class="mini">
+            <strong>Watch</strong>
+            <p>Weight on hands, heavy control, effective breakdowns, chaining, scoring intent.</p>
+          </div>
+          <div class="mini">
+            <strong>Room language</strong>
+            <p>Left side. Right side. Position breakdowns. If this → then that. Two-on-one. Pinning series.</p>
+          </div>
+        </div>
+        <div class="quick-notes">
+          <label for="notes3">Quick notes</label>
+          <textarea id="notes3" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="segment">
+        <h2>4. Bottom</h2>
+        <div class="row">
+          <div class="mini">
+            <strong>Coach calls</strong>
+            <p>Whistle, build, clear hands, get out.</p>
+          </div>
+          <div class="mini">
+            <strong>Watch</strong>
+            <p>Explosive first move, strong base, clear elbow, win hands, escape, no panic.</p>
+          </div>
+          <div class="mini">
+            <strong>Room language</strong>
+            <p>Stand up. Don’t stay flat. Hold if stuck. No panic.</p>
+          </div>
+        </div>
+        <div class="quick-notes">
+          <label for="notes4">Quick notes</label>
+          <textarea id="notes4" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="segment">
+        <h2>5. Ride</h2>
+        <div class="row">
+          <div class="mini">
+            <strong>Coach calls</strong>
+            <p>Deep waist ride, back to mat.</p>
+          </div>
+          <div class="mini">
+            <strong>Watch</strong>
+            <p>Establish ride, lock and settle, finish returns, stay on top through reactions.</p>
+          </div>
+          <div class="mini">
+            <strong>Room language</strong>
+            <p>Don’t give escapes. They move → you adjust. Stay on top no matter what.</p>
+          </div>
+        </div>
+        <div class="quick-notes">
+          <label for="notes5">Quick notes</label>
+          <textarea id="notes5" rows="3"></textarea>
+        </div>
+      </div>
+
+      <div class="segment">
+        <h2>6. Effort — Finish When It’s Hard</h2>
+        <div class="row">
+          <div class="mini">
+            <strong>Coach calls</strong>
+            <p>Partner lets you in. Partner fights setup.</p>
+          </div>
+          <div class="mini">
+            <strong>Watch</strong>
+            <p>Can they finish when resistance shows up? Do they keep working? Do they stay in the fight?</p>
+          </div>
+          <div class="mini">
+            <strong>Room language</strong>
+            <p>Easy in → hard finish. Hard in → hard finish. Don’t stop. Push pace.</p>
+          </div>
+        </div>
+        <div class="quick-notes">
+          <label for="notes6">Quick notes</label>
+          <textarea id="notes6" rows="3"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2 style="margin-top:0;color:var(--gold);">Identity Close</h2>
+      <div class="identity">
+        <div>
+          <label for="creed">Creed</label>
+          <textarea id="creed" rows="2"></textarea>
+        </div>
+        <div>
+          <label for="code">Code</label>
+          <textarea id="code" rows="2"></textarea>
+        </div>
+        <div>
+          <label for="goal">Goal</label>
+          <textarea id="goal" rows="2"></textarea>
+        </div>
+        <div>
+          <label for="mission">Mission</label>
+          <textarea id="mission" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="print-note">Use this at the end of the full test, not during live scoring.</div>
+    </section>
+  </div>
+
+  <script>
+    const dateEl = document.getElementById("date");
+    if (dateEl && !dateEl.value) {
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60000);
+      dateEl.value = local.toISOString().slice(0, 10);
+    }
+  </script>
+</body>
+</html>
