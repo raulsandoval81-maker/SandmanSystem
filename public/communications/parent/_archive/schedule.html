@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Para-Comms • Schedule / Horario</title>
+
+  <link rel="stylesheet" href="/communications/shared/comms.css"/>
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --hover:#1d2a4a;
+      --deep:#0b1120;
+      --warn:#3a120f;
+      --warn-line:#7c2d12;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{ max-width:900px; margin:0 auto; padding:18px 14px 40px; }
+
+    .parent-header{
+      position:sticky;
+      top:0;
+      z-index:40;
+      padding:10px 14px;
+      background:#04173a;
+      border-bottom:1px solid rgba(15,23,42,.9);
+    }
+    .parent-header-inner{
+      max-width:920px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .parent-brand{
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+      font-size:.92rem;
+      color:var(--brand);
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+    .page-title{
+      font-size:.82rem;
+      color:#cbd5e1;
+      white-space:nowrap;
+      overflow:hidden;
+      text-overflow:ellipsis;
+    }
+
+    .right{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-shrink:0;
+    }
+
+    .back-btn{
+      border-radius:999px;
+      border:1px solid #1f2937;
+      background:#020617;
+      color:#e5e7eb;
+      font-size:.78rem;
+      padding:6px 12px;
+      cursor:pointer;
+      text-decoration:none;
+      display:inline-block;
+    }
+    .back-btn:hover{ background:#0b1120; }
+
+    .pc-lang{ display:flex; gap:6px; align-items:center; }
+    .pc-lang-btn{
+      border:none;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:900;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .pc-lang-btn.active{
+      background:var(--brand);
+      color:#111827;
+    }
+    .pc-home{
+      color:var(--brand);
+      text-decoration:none;
+      font-size:1.1rem;
+      padding:4px 6px;
+      border-radius:10px;
+      border:1px solid rgba(255,221,72,.18);
+    }
+    .pc-home:hover{ filter:brightness(1.15); }
+
+    .hero{
+      margin-top:12px;
+      padding:18px 16px 14px;
+      border-radius:16px;
+      border:1px solid var(--line);
+      background:linear-gradient(150deg,#0a1833 0%,#111c35 45%,#050814 100%);
+      box-shadow:0 8px 22px rgba(0,0,0,.45);
+    }
+    .hero-title{
+      margin:0;
+      color:var(--brand);
+      font-size:1.15rem;
+      text-shadow:0 0 6px rgba(255,221,72,.2);
+    }
+    .hero-sub{
+      margin:6px 0 0;
+      font-size:.92rem;
+      color:#e2e8f0;
+      line-height:1.4;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      margin-top:12px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    }
+
+    .banner-panel{
+      background:var(--warn);
+      border:1px solid var(--warn-line);
+    }
+
+    h2{ margin:.3rem 0 .6rem; color:var(--brand); font-size:1rem; }
+    h3{ margin:0 0 .45rem; font-size:.96rem; color:#fff; }
+    p{ margin:.35rem 0; line-height:1.45; }
+    .small{ color:var(--muted); font-size:.9rem; }
+    ul{ margin:.2rem 0 .6rem 1.2rem; padding:0; }
+    li{ line-height:1.45; margin-bottom:.25rem; }
+
+    .pill-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+      margin-top:10px;
+    }
+    .pill{
+      display:inline-block;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,221,72,.22);
+      background:rgba(15,23,42,.55);
+      color:#e5e7eb;
+      font-size:.82rem;
+      font-weight:800;
+      letter-spacing:.02em;
+    }
+
+    .cta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .cta a{
+      text-decoration:none;
+      font-weight:900;
+      border-radius:12px;
+      padding:10px 12px;
+      border:1px solid rgba(255,221,72,.22);
+      background:#0b1428;
+      color:#e5e7eb;
+    }
+    .cta a:hover{ border-color:var(--brand); color:var(--brand); background:var(--hover); }
+
+    .last-updated{
+      margin-top:10px;
+      padding-top:10px;
+      border-top:1px solid rgba(255,255,255,.07);
+      color:#94a3b8;
+      font-size:.85rem;
+    }
+
+    .status-card{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:var(--deep);
+      padding:12px;
+    }
+    .status-row{
+      display:grid;
+      grid-template-columns:140px 1fr;
+      gap:8px 12px;
+      margin-top:8px;
+    }
+    .k{
+      color:var(--muted);
+      font-weight:700;
+      font-size:.88rem;
+    }
+    .v{
+      color:var(--text);
+      font-weight:700;
+    }
+
+    .list{
+      display:grid;
+      gap:10px;
+      margin-top:8px;
+    }
+    .item{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:var(--deep);
+      padding:12px;
+    }
+    .item-top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .item-day,
+    .item-date{
+      color:var(--brand);
+      font-weight:900;
+    }
+    .item-title{
+      font-weight:900;
+      color:#fff;
+      margin-top:4px;
+    }
+    .item-sub{
+      color:#cbd5e1;
+      margin-top:4px;
+      font-size:.92rem;
+    }
+    .muted-empty{
+      color:var(--muted);
+      font-style:italic;
+    }
+
+    .loading{
+      color:var(--muted);
+      font-size:.92rem;
+    }
+
+    .hide{ display:none !important; }
+
+    @media (max-width:640px){
+      .wrap{padding:16px 12px 28px}
+      .hero-title{font-size:1.05rem}
+      .parent-brand{font-size:.85rem;}
+      .status-row{ grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="parent-header">
+  <div class="parent-header-inner">
+    <div class="left">
+      <div class="parent-brand">Sandman Combat™</div>
+      <div class="page-title">
+        <span class="en">Schedule</span>
+        <span class="es">Horario</span>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="pc-lang" aria-label="Language toggle">
+        <button class="pc-lang-btn active" data-lang="en" type="button">EN</button>
+        <button class="pc-lang-btn" data-lang="es" type="button">SP</button>
+      </div>
+
+      <a href="/communications/parent/index.html" class="pc-home" title="Parent Home">🏠</a>
+
+<a href="/communications/parent/index.html" class="back-btn">
+  <span class="en">← Back</span>
+  <span class="es">← Volver</span>
+</a>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero">
+    <h2 class="hero-title">
+      <span class="en">Practice Schedule</span>
+      <span class="es">Horario de Prácticas</span>
+    </h2>
+    <p class="hero-sub">
+      <span class="en">This page reflects the current team schedule, weekly practice rhythm, and upcoming events.</span>
+      <span class="es">Esta página muestra el horario actual del equipo, la rutina semanal de prácticas y los próximos eventos.</span>
+    </p>
+
+    <div class="pill-row">
+      <span class="pill"><span class="en">Parents Portal</span><span class="es">Portal de Padres</span></span>
+      <span class="pill"><span class="en">Read Only</span><span class="es">Solo Lectura</span></span>
+    </div>
+  </section>
+
+  <section id="banner-panel" class="panel banner-panel hide">
+    <h2>
+      <span class="en">Important Update</span>
+      <span class="es">Actualización Importante</span>
+    </h2>
+    <p id="banner-text"></p>
+  </section>
+
+  <section class="panel">
+    <h2>
+      <span class="en">Today’s Practice</span>
+      <span class="es">Práctica de Hoy</span>
+    </h2>
+
+    <div id="today-card" class="status-card">
+      <p class="loading">
+        <span class="en">Loading today’s schedule...</span>
+        <span class="es">Cargando el horario de hoy...</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>
+      <span class="en">Weekly Schedule</span>
+      <span class="es">Horario Semanal</span>
+    </h2>
+
+    <div id="weekly-list" class="list">
+      <p class="loading">
+        <span class="en">Loading weekly schedule...</span>
+        <span class="es">Cargando horario semanal...</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>
+      <span class="en">Upcoming Events</span>
+      <span class="es">Próximos Eventos</span>
+    </h2>
+
+    <div id="events-list" class="list">
+      <p class="loading">
+        <span class="en">Loading upcoming events...</span>
+        <span class="es">Cargando próximos eventos...</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>
+      <span class="en">Arrival & Communication</span>
+      <span class="es">Llegada y Comunicación</span>
+    </h2>
+
+    <ul class="en">
+      <li>Be early. Kids who show up late start behind.</li>
+      <li>If your athlete will miss practice, message the coach.</li>
+      <li>Bulletins are for team-wide changes. Direct messages are for your family.</li>
+    </ul>
+
+    <ul class="es">
+      <li>Llegue temprano. Los niños que llegan tarde empiezan en desventaja.</li>
+      <li>Si su atleta va a faltar, envíe un mensaje al entrenador.</li>
+      <li>Los boletines son para cambios de todo el equipo. Los mensajes directos son para su familia.</li>
+    </ul>
+
+    <div class="cta">
+      <a href="/communications/parent/announcements-feed.html">
+        <span class="en">Open Bulletin</span>
+        <span class="es">Ver Boletín</span>
+      </a>
+      <a href="/communications/parent/compose.html">
+        <span class="en">Message Coach</span>
+        <span class="es">Mensaje al Entrenador</span>
+      </a>
+    </div>
+
+    <div id="last-updated" class="last-updated">
+      <span class="en"><strong>Last updated:</strong> Loading...</span>
+      <span class="es"><strong>Última actualización:</strong> Cargando...</span>
+    </div>
+  </section>
+
+</main>
+
+<script type="module">
+  import {
+    db,
+    doc,
+    getDoc
+  } from "/assets/js/firebase-init-para.js";
+
+  const bannerPanel = document.getElementById("banner-panel");
+  const bannerText = document.getElementById("banner-text");
+  const todayCard = document.getElementById("today-card");
+  const weeklyList = document.getElementById("weekly-list");
+  const eventsList = document.getElementById("events-list");
+  const lastUpdated = document.getElementById("last-updated");
+
+  const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const DAY_ORDER = {
+    Monday: 1,
+    Tuesday: 2,
+    Wednesday: 3,
+    Thursday: 4,
+    Friday: 5,
+    Saturday: 6,
+    Sunday: 7
+  };
+
+  function esc(str = "") {
+    return String(str)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }
+
+  function isUsableText(v = "") {
+    const s = String(v || "").trim();
+    return !!s && s.toUpperCase() !== "TBA";
+  }
+
+  function formatUpdatedAt(ts) {
+    if (!ts) return "";
+    try {
+      const d = ts.toDate ? ts.toDate() : new Date(ts);
+      return d.toLocaleString();
+    } catch {
+      return "";
+    }
+  }
+
+  function sortDaily(rows = []) {
+    return [...rows].sort((a, b) => {
+      const aVal = DAY_ORDER[a?.day] || 99;
+      const bVal = DAY_ORDER[b?.day] || 99;
+      return aVal - bVal;
+    });
+  }
+
+  function toMinutes(hhmm = "") {
+    const [h, m] = String(hhmm).split(":").map(Number);
+    if (Number.isNaN(h) || Number.isNaN(m)) return null;
+    return h * 60 + m;
+  }
+
+  function getDisplayTime(item = {}) {
+    const label = String(item?.label || "").trim();
+    const legacyTime = String(item?.time || "").trim();
+    const start = String(item?.start || "").trim();
+    const end = String(item?.end || "").trim();
+
+    if (label) return label;
+    if (legacyTime) return legacyTime;
+    if (start && end) return `${start} – ${end}`;
+    return "—";
+  }
+
+  function isLiveNow(item = {}) {
+    const now = new Date();
+    const todayName = DAYS[now.getDay()];
+    const rowDay = String(item?.day || "").trim();
+
+   if (!rowDay.toLowerCase().includes(todayName.toLowerCase())) return false;
+    const start = toMinutes(item?.start);
+    const end = toMinutes(item?.end);
+
+    if (start == null || end == null) return false;
+
+    const nowMinutes = now.getHours() * 60 + now.getMinutes();
+    return nowMinutes >= start && nowMinutes <= end;
+  }
+
+  function renderBanner(banner = {}) {
+    const active = banner?.active === true;
+    const text = String(banner?.text || "").trim();
+
+    if (!active || !text) {
+      bannerPanel.classList.add("hide");
+      bannerText.textContent = "";
+      return;
+    }
+
+    bannerText.textContent = text;
+    bannerPanel.classList.remove("hide");
+  }
+
+  function renderToday(daily = []) {
+    const todayName = DAYS[new Date().getDay()];
+const todayRow = daily.find(item =>
+  String(item?.day || "")
+    .toLowerCase()
+    .includes(todayName.toLowerCase())
+);
+    if (!todayRow || (!isUsableText(getDisplayTime(todayRow)) && !isUsableText(todayRow.title) && !isUsableText(todayRow.details))) {
+      todayCard.innerHTML = `
+        <h3>${esc(todayName)}</h3>
+        <div class="status-row">
+          <div class="k">
+            <span class="en">Status</span>
+            <span class="es">Estado</span>
+          </div>
+          <div class="v">
+            <span class="en">No Practice Today</span>
+            <span class="es">No Hay Práctica Hoy</span>
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    const displayTime = getDisplayTime(todayRow);
+    const title = String(todayRow.title || "").trim();
+    const details = String(todayRow.details || "").trim();
+    const live = isLiveNow(todayRow);
+    const statusEN = live ? "LIVE NOW" : "Not Active";
+    const statusES = live ? "EN VIVO AHORA" : "No Activa";
+
+    todayCard.innerHTML = `
+      <h3>${esc(todayName)}</h3>
+
+      <div class="status-row">
+        <div class="k">
+          <span class="en">Status</span>
+          <span class="es">Estado</span>
+        </div>
+        <div class="v">
+          <span class="en">${esc(statusEN)}</span>
+          <span class="es">${esc(statusES)}</span>
+        </div>
+
+        <div class="k">
+          <span class="en">Time</span>
+          <span class="es">Hora</span>
+        </div>
+        <div class="v">${esc(displayTime)}</div>
+
+        <div class="k">
+          <span class="en">Session</span>
+          <span class="es">Sesión</span>
+        </div>
+        <div class="v">${esc(title || "—")}</div>
+
+        <div class="k">
+          <span class="en">Details</span>
+          <span class="es">Detalles</span>
+        </div>
+        <div class="v">${esc(details || "—")}</div>
+      </div>
+    `;
+  }
+
+  function renderWeekly(daily = []) {
+    const rows = sortDaily(daily);
+
+    if (!rows.length) {
+      weeklyList.innerHTML = `
+        <p class="muted-empty en">No weekly schedule posted yet.</p>
+        <p class="muted-empty es">Todavía no hay horario semanal publicado.</p>
+      `;
+      return;
+    }
+
+    weeklyList.innerHTML = rows.map(item => {
+      const day = String(item?.day || "").trim();
+      const displayTime = getDisplayTime(item);
+      const title = String(item?.title || "").trim();
+      const details = String(item?.details || "").trim();
+
+      return `
+        <div class="item">
+          <div class="item-top">
+            <div class="item-day">${esc(day || "—")}</div>
+            <div class="item-sub">${esc(displayTime)}</div>
+          </div>
+          <div class="item-title">${esc(title || "—")}</div>
+          ${details ? `<div class="item-sub">${esc(details)}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+  }
+
+function parseEventDate(value = "") {
+  const s = String(value || "").trim();
+  if (!s) return null;
+
+  const direct = new Date(s);
+  if (!Number.isNaN(direct.getTime())) return direct;
+
+  const firstPart = s.split("-")[0].trim();
+  const fallback = new Date(firstPart);
+  return Number.isNaN(fallback.getTime()) ? null : fallback;
+}
+
+function startOfToday() {
+  const d = new Date();
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function isMeaningful(item = {}) {
+  const title = String(item?.title || "").trim().toUpperCase();
+  const location = String(item?.location || "").trim().toUpperCase();
+  const details = String(item?.details || "").trim().toUpperCase();
+
+  return (
+    (title && title !== "TBA") ||
+    (location && location !== "TBA" && location !== "TBA / TBA") ||
+    (details && details !== "TBA")
+  );
+}
+
+function renderEvents(tournaments = []) {
+  const today = startOfToday();
+
+  const filtered = tournaments
+    .filter(item => {
+      const d = parseEventDate(item?.date);
+      if (!d) return true; // keep if unclear
+      return d >= today;
+    })
+    .filter(isMeaningful);
+
+  if (!filtered.length) {
+    eventsList.innerHTML = `
+      <p class="muted-empty en">No upcoming events posted yet.</p>
+      <p class="muted-empty es">Todavía no hay eventos próximos publicados.</p>
+    `;
+      return;
+  }
+
+  eventsList.innerHTML = filtered.map(item => {
+    const date = String(item?.date || "").trim();
+    const title = String(item?.title || "").trim();
+    const location = String(item?.location || "").trim();
+    const details = String(item?.details || "").trim();
+
+    return `
+      <div class="item">
+        <div class="item-date">${esc(date || "—")}</div>
+        <div class="item-title">${esc(title || "—")}</div>
+        ${location ? `<div class="item-sub">${esc(location)}</div>` : ""}
+        ${details ? `<div class="item-sub">${esc(details)}</div>` : ""}
+      </div>
+    `;
+  }).join("");
+}
+
+    eventsList.innerHTML = tournaments.map(item => {
+      const date = String(item?.date || "").trim();
+      const title = String(item?.title || "").trim();
+      const location = String(item?.location || "").trim();
+      const details = String(item?.details || "").trim();
+
+      return `
+        <div class="item">
+          <div class="item-date">${esc(date || "—")}</div>
+          <div class="item-title">${esc(title || "—")}</div>
+          ${location ? `<div class="item-sub">${esc(location)}</div>` : ""}
+          ${details ? `<div class="item-sub">${esc(details)}</div>` : ""}
+        </div>
+      `;
+    }).join("");
+  
+
+  async function loadSchedule() {
+    try {
+      const ref = doc(db, "system", "schedule");
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        renderBanner({});
+        renderToday([]);
+        renderWeekly([]);
+        renderEvents([]);
+        lastUpdated.innerHTML = `
+          <span class="en"><strong>Last updated:</strong> No schedule posted yet.</span>
+          <span class="es"><strong>Última actualización:</strong> Todavía no hay horario publicado.</span>
+        `;
+        paintSchedule(localStorage.getItem("lang") || "en");
+        return;
+      }
+
+      const data = snap.data() || {};
+      const daily = Array.isArray(data.daily) ? data.daily : [];
+      const tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
+      const banner = data.banner || {};
+
+      renderBanner(banner);
+      renderToday(daily);
+      renderWeekly(daily);
+      renderEvents(tournaments);
+
+      const updated = formatUpdatedAt(data.updatedAt);
+      lastUpdated.innerHTML = `
+        <span class="en"><strong>Last updated:</strong> ${esc(updated || "—")}</span>
+        <span class="es"><strong>Última actualización:</strong> ${esc(updated || "—")}</span>
+      `;
+
+      paintSchedule(localStorage.getItem("lang") || "en");
+    } catch (err) {
+      console.error("[parent-schedule] load failed:", err);
+
+      todayCard.innerHTML = `
+        <p class="muted-empty en">Failed to load schedule.</p>
+        <p class="muted-empty es">No se pudo cargar el horario.</p>
+      `;
+      weeklyList.innerHTML = `
+        <p class="muted-empty en">Failed to load weekly schedule.</p>
+        <p class="muted-empty es">No se pudo cargar el horario semanal.</p>
+      `;
+      eventsList.innerHTML = `
+        <p class="muted-empty en">Failed to load events.</p>
+        <p class="muted-empty es">No se pudieron cargar los eventos.</p>
+      `;
+      lastUpdated.innerHTML = `
+        <span class="en"><strong>Last updated:</strong> Unavailable</span>
+        <span class="es"><strong>Última actualización:</strong> No disponible</span>
+      `;
+      paintSchedule(localStorage.getItem("lang") || "en");
+    }
+  }
+
+  function paintSchedule(lang){
+    const L = lang || localStorage.getItem("lang") || "en";
+    const showEN = (L === "en");
+    document.querySelectorAll(".en").forEach(el => el.style.display = showEN ? "" : "none");
+    document.querySelectorAll(".es").forEach(el => el.style.display = showEN ? "none" : "");
+  }
+
+  const btns = document.querySelectorAll(".pc-lang-btn");
+
+  function setLang(lang){
+    localStorage.setItem("lang", lang);
+    btns.forEach(b => b.classList.toggle("active", b.dataset.lang === lang));
+    paintSchedule(lang);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const saved = localStorage.getItem("lang") || "en";
+    setLang(saved);
+    btns.forEach(b => b.addEventListener("click", () => setLang(b.dataset.lang)));
+    loadSchedule();
+  });
+</script>
+</body>
+</html>

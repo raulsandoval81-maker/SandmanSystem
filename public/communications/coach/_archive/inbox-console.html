@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Coach Inbox Console</title>
+
+  <link rel="stylesheet" href="/coach/shared/comms.css"/>
+
+  <style>
+    :root {
+      --bg:#0a1833;
+      --panel:#0f1b33;
+      --line:#27304a;
+      --brand:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+    }
+
+    body {
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui, sans-serif;
+      margin:0;
+    }
+
+    .wrap {
+      max-width:900px;
+      margin:0 auto;
+      padding:22px 16px 40px;
+    }
+
+    .thread-card {
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px 16px;
+      margin-bottom:12px;
+      cursor:pointer;
+      transition:.2s;
+    }
+    .thread-card:hover {
+      background:#152449;
+    }
+
+    .thread-header {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:4px;
+    }
+
+    .thread-name {
+      font-size:1.05rem;
+      font-weight:700;
+      color:var(--brand);
+    }
+
+    .unread-badge {
+      background:#ff4444;
+      color:white;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:700;
+    }
+
+    .thread-preview {
+      font-size:.9rem;
+      color:var(--muted);
+      margin-top:4px;
+      line-height:1.35;
+    }
+
+    .thread-time {
+      font-size:.75rem;
+      color:#7f8aa3;
+      margin-top:6px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<header class="pc-header">
+  <a class="pc-back" href="/communications/coach/index.html">← Back</a>
+  <h1>Coach Inbox</h1>
+  <a class="pc-home" href="/communications/coach/index.html">🏠</a>
+</header>
+
+<div class="wrap">
+  <h2 style="color:var(--brand);margin-bottom:10px;">Parent Messages</h2>
+
+  <div id="threads"></div>
+</div>
+
+<script type="module" src="/communications/coach/inbox-console.js"></script>
+</body>
+</html>

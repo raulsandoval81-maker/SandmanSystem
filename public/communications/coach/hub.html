@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach Inbox • Para-Comms</title>
+
+  <link rel="stylesheet" href="/communications/shared/comms.css">
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root{
+      --bg:#0a1833; --panel:#111c35; --deep:#0b1120; --line:#27304a;
+      --gold:#ffdd48; --text:#f0f4f8; --muted:#9aa4b1;
+    }
+    body{ margin:0; background:var(--bg); color:var(--text); font-family:system-ui; }
+    .wrap{ max-width:900px; margin:0 auto; padding:18px 14px 60px; }
+    h1{ margin:0 0 14px; text-align:center; color:var(--gold); letter-spacing:.02em; }
+    .panel{
+      background:var(--panel); border:1px solid var(--line); border-radius:14px;
+      padding:14px; box-shadow:0 4px 14px rgba(0,0,0,.25); margin-bottom:14px;
+    }
+    .headline{ font-weight:900; color:var(--gold); margin-bottom:10px; }
+    .muted{ opacity:.75; color:var(--muted); }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    input{
+      flex:1; min-width:220px;
+      background:var(--deep); border:1px solid var(--line); border-radius:10px;
+      padding:10px; color:var(--text); outline:none;
+    }
+    input:focus{ border-color:var(--gold); box-shadow:0 0 0 3px rgba(255,221,72,.18); }
+    .btn{
+      border:none; border-radius:10px; padding:10px 14px;
+      font-weight:900; cursor:pointer;
+    }
+    .btn-gold{ background:var(--gold); color:#111; }
+    .btn-dark{ background:#1d2a4a; color:var(--text); border:1px solid var(--line); }
+    .list{ display:grid; gap:10px; }
+    a.card{
+      display:block; text-decoration:none; color:inherit;
+      background:var(--deep); border:1px solid var(--line); border-radius:12px;
+      padding:12px;
+    }
+    .title{ font-weight:900; }
+    .sub{ opacity:.75; margin-top:3px; font-size:.9rem; }
+    .body{ opacity:.9; margin-top:6px; white-space:pre-wrap; }
+    .pill{
+      display:inline-block; font-size:.75rem; font-weight:900;
+      padding:3px 8px; border-radius:999px; margin-left:8px;
+      border:1px solid var(--line);
+    }
+    .pill.unread{ color:var(--gold); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Coach Inbox</h1>
+
+    <section class="panel">
+      <div class="headline">Open Thread</div>
+      <div class="row">
+        <input id="open-id" placeholder="Paste thread id (paraParentInbox doc id)"/>
+        <button id="btn-open" class="btn btn-gold">Open</button>
+        <button class="btn btn-dark" onclick="history.back()">Back</button>
+      </div>
+      <div class="muted" style="margin-top:8px;">
+        This is V1: Unread + Open-by-ID. No giant inbox.
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="headline">Unread</div>
+      <div id="status" class="muted">Loading…</div>
+      <div id="list" class="list" style="margin-top:10px;"></div>
+    </section>
+
+    <section class="panel">
+      <div class="headline">Recent</div>
+      <div id="status2" class="muted">Loading…</div>
+      <div id="list2" class="list" style="margin-top:10px;"></div>
+    </section>
+  </div>
+
+  <script type="module" src="/communications/coach/hub.js"></script>
+</body>
+</html>

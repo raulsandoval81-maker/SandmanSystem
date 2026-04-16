@@ -46,7 +46,7 @@ btnPost.addEventListener("click", async () => {
     setTimeout(() => successMsg.style.display = "none", 2000);
 
     // Optional auto-redirect:
-    // setTimeout(() => window.location.href = "/para/announcements.html", 600);
+    // setTimeout(() => window.location.href = "/communications/announcements.html", 600);
 
   } catch (err) {
     console.error("Error posting announcement:", err);

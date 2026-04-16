@@ -1,4 +1,4 @@
-// public/para/parent/inbox-send.js
+// public/communications/parent/inbox-send.js
 import {
   db,
   serverTimestamp,
@@ -44,7 +44,7 @@ btnSend.addEventListener("click", async () => {
 
     // Redirect WITH correct ID
     setTimeout(() => {
-      window.location.href = `/para/parent/sent.html?id=${ref.id}`;
+      window.location.href = `/communications/parent/sent.html?id=${ref.id}`;
     }, 900);
 
   } catch (err) {

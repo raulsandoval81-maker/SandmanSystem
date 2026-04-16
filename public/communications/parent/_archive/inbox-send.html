@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Message Coach | Para-Comms</title>
+
+<!-- Use the Para-Comms shared CSS (matches your folder structure) -->
+<link rel="stylesheet" href="/coach/shared/comms.css">
+<link rel="icon" href="data:,"> 
+  <style>
+    :root{
+      --bg:#0a1833; --panel:#0e1935; --line:#27304a;
+      --brand:#ffdd48; --text:#f0f4f8; --muted:#9aa4b1;
+    }
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    /* Header adjustments */
+    .pc-header h1{ font-size:1.1rem; letter-spacing:.03em; }
+
+    /* Lang toggle */
+    .pc-lang{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .pc-lang-btn{
+      border:none;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:.78rem;
+      font-weight:800;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+    }
+    .pc-lang-btn.active{
+      background:var(--brand);
+      color:#111827;
+    }
+
+    /* Page spacing */
+    .wrap{ max-width:900px; margin:0 auto; padding:10px 14px 40px; }
+
+    /* Help panel */
+    .pc-help{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      margin-bottom:16px;
+      box-shadow:0 0 12px rgba(0,0,0,.18);
+    }
+    .pc-help p{ font-size:.93rem; margin:.4rem 0; color:#dbe1e8; }
+    .pc-help strong{ color:var(--brand); }
+
+    /* Main panel */
+    .pc-main{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:20px 18px;
+      box-shadow:0 0 12px rgba(0,0,0,.18);
+    }
+
+    /* Labels */
+    .pc-main label{
+      display:block;
+      margin:12px 0 6px;
+      font-size:.88rem;
+      font-weight:700;
+      color:#cfd3d9;
+    }
+
+    /* Inputs */
+    .pc-main input,
+    .pc-main textarea{
+      width:100%;
+      padding:10px 12px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:#0b1120;
+      color:#e5e7eb;
+      font-size:.92rem;
+      font-family:inherit;
+      outline:none;
+      transition:.15s;
+    }
+    .pc-main input:focus,
+    .pc-main textarea:focus{
+      border-color:var(--brand);
+      box-shadow:0 0 0 3px rgba(255,221,72,.22);
+    }
+
+    /* Send button */
+    .btn-brand{
+      background:var(--brand);
+      color:#111;
+      border:none;
+      padding:10px 14px;
+      border-radius:10px;
+      font-size:.95rem;
+      font-weight:900;
+      cursor:pointer;
+      transition:.2s;
+      width:100%;
+      margin-top:18px;
+      letter-spacing:.02em;
+    }
+    .btn-brand:hover{
+      background:#fbe46a;
+      box-shadow:0 0 10px rgba(255,221,72,.25);
+    }
+
+    /* Footer nav */
+    .pc-footer{ text-align:center; margin:22px 0 40px; }
+    .pc-footer-link{
+      display:inline-block;
+      padding:10px 18px;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:10px;
+      font-size:.9rem;
+      color:#cfd3d9;
+      text-decoration:none;
+      transition:.2s;
+      font-weight:800;
+    }
+    .pc-footer-link:hover{
+      background:#1a2a55;
+      border-color:var(--brand);
+      color:var(--brand);
+    }@media (max-width:520px){
+  .pc-header{
+    gap:8px;
+  }
+  .pc-lang-btn{
+    padding:6px 10px;
+  }
+  .pc-header h1{
+    font-size:1rem;
+  }
+}
+  </style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="pc-header">
+  <button class="pc-back" onclick="history.back()">← Back</button>
+
+  <h1>
+    <span class="en">Message Coach</span>
+    <span class="es">Mensaje al Entrenador</span>
+  </h1>
+
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div class="pc-lang" aria-label="Language toggle">
+      <button class="pc-lang-btn active" data-lang="en">EN</button>
+      <button class="pc-lang-btn" data-lang="es">SP</button>
+    </div>
+    <a href="/parent/hub.html" class="pc-home" title="Home">🏠</a>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- HELP PANEL -->
+  <section class="pc-help panel">
+    <p>
+      <strong class="en">Send a private message to the coaching staff.</strong>
+      <strong class="es">Envíe un mensaje privado al equipo de entrenadores.</strong>
+    </p>
+    <p class="en">This message goes directly to the coach inbox.</p>
+    <p class="es">Este mensaje va directamente a la bandeja del entrenador.</p>
+    <p class="en" style="margin-top:10px;color:#9aa4b1;font-size:.88rem;">
+      Keep it short and clear (questions, absences, updates).
+    </p>
+    <p class="es" style="margin-top:10px;color:#9aa4b1;font-size:.88rem;">
+      Manténgalo corto y claro (preguntas, ausencias, avisos).
+    </p>
+  </section>
+
+  <!-- MAIN SEND FORM -->
+  <main class="pc-main panel">
+
+    <label>
+      <span class="en">Your Name:</span>
+      <span class="es">Su Nombre:</span>
+    </label>
+    <input id="inbox-parent-name" type="text"
+           placeholder="Your full name…"
+           data-ph-en="Your full name…"
+           data-ph-es="Su nombre completo…"/>
+
+    <label>
+      <span class="en">Your Email (optional):</span>
+      <span class="es">Su Correo (opcional):</span>
+    </label>
+    <input id="inbox-parent-email" type="email"
+           placeholder="name@example.com"
+           data-ph-en="name@example.com"
+           data-ph-es="nombre@ejemplo.com"/>
+
+    <label>
+      <span class="en">Subject:</span>
+      <span class="es">Asunto:</span>
+    </label>
+    <input id="inbox-subject" type="text"
+           placeholder="Practice question…"
+           data-ph-en="Practice question…"
+           data-ph-es="Pregunta sobre práctica…"/>
+
+    <label>
+      <span class="en">Message:</span>
+      <span class="es">Mensaje:</span>
+    </label>
+    <textarea id="inbox-body" rows="7"
+              placeholder="Type your message…"
+              data-ph-en="Type your message…"
+              data-ph-es="Escriba su mensaje…"></textarea>
+
+    <button id="btn-send-inbox" class="btn-brand">
+      <span class="en">Send to Coach</span>
+      <span class="es">Enviar al Entrenador</span>
+    </button>
+
+    <p id="inbox-success" style="display:none; margin-top:14px; color:#7af59a; font-weight:800;">
+      <span class="en">Message sent!</span>
+      <span class="es">¡Mensaje enviado!</span>
+    </p>
+
+    <p id="inbox-error" style="display:none; margin-top:14px; color:#ff6b6b; font-weight:800;">
+      <span class="en">Please fill in name and message.</span>
+      <span class="es">Por favor escriba su nombre y mensaje.</span>
+    </p>
+
+  </main>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="pc-footer">
+  <a class="pc-footer-link" href="/communications/parent/index.html">
+    <span class="en">← Back to Parent Home</span>
+    <span class="es">← Volver al Inicio de Padres</span>
+  </a>
+</footer>
+
+<!-- Language toggle (EN / SP) -->
+<script>
+  function paintLang(lang){
+    const showEN = (lang === 'en');
+    document.querySelectorAll('.en').forEach(el => el.style.display = showEN ? '' : 'none');
+    document.querySelectorAll('.es').forEach(el => el.style.display = showEN ? 'none' : '');
+
+    // swap placeholders for inputs/textareas (optional but nice)
+    document.querySelectorAll('input[data-ph-en], textarea[data-ph-en]').forEach(el=>{
+      el.setAttribute('placeholder', showEN ? el.dataset.phEn : el.dataset.phEs);
+    });
+  }
+
+  const btns = document.querySelectorAll('.pc-lang-btn');
+
+  function setLang(lang){
+    localStorage.setItem('lang', lang);
+    btns.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    paintLang(lang);
+  }
+
+  document.addEventListener('DOMContentLoaded', ()=>{
+    const saved = localStorage.getItem('lang') || 'en';
+    setLang(saved);
+    btns.forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+  });
+</script>
+
+<script type="module" src="/communications/parent/inbox-send.js></script></body>
+</html>

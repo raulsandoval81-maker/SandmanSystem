@@ -1,1 +1,1 @@
-import "/para/athlete/announcements-feed.js";
+import "/communications/athlete/announcements-feed.js";

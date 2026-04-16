@@ -54,7 +54,7 @@ function renderSection(title, items) {
 const threadText = d.threadId
   ? `<div class="row">
        <span class="label">Thread:</span>
-       <a href="/para/parent/thread.html?id=${d.threadId}" style="color:#f4d44d; font-weight:600;">
+       <a href="/communications/parent/thread.html?id=${d.threadId}" style="color:#f4d44d; font-weight:600;">
          Open Thread
        </a>
      </div>`

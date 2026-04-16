@@ -1,4 +1,4 @@
-// public/para/coach/inbox.js
+// public/communications/coach/inbox.js
 
 // -----------------------------
 //  FIREBASE IMPORTS
@@ -164,7 +164,7 @@ function renderList(messages) {
     // Click → open full thread view
     row.addEventListener("click", () => {
       if (!monthKey || !msg.id) return;
-      window.location.href = `/para/coach/coach-thread.html?month=${encodeURIComponent(
+      window.location.href = `/communications/coach/coach-thread.html?month=${encodeURIComponent(
         monthKey
       )}&id=${encodeURIComponent(msg.id)}`;
     });

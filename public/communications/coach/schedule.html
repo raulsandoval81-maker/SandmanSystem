@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Schedule Admin • Para-Comms</title>
+
+  <link rel="stylesheet" href="/communications/shared/comms.css">
+  <link rel="icon" href="data:,">
+
+  <style>
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0b1120;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
+      --danger:#ef4444;
+      --ok:#22c55e;
+    }
+
+    *{ box-sizing:border-box; }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1180px;
+      margin:0 auto;
+      padding:20px 14px 40px;
+    }
+
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:16px 18px;
+      box-shadow:0 4px 14px rgba(0,0,0,.35);
+      margin-bottom:16px;
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    h1,h2{
+      margin:0 0 10px;
+      color:var(--gold);
+    }
+
+    .sub{
+      margin:0;
+      color:var(--muted);
+    }
+
+    .btn-row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid var(--line);
+      background:var(--deep);
+      color:var(--text);
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:700;
+      cursor:pointer;
+    }
+
+    .btn:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+
+    .btn-primary{
+      background:#13213f;
+    }
+
+    .btn-danger{
+      border-color:#5b1f1f;
+      color:#fecaca;
+    }
+
+    .btn-danger:hover{
+      border-color:var(--danger);
+      color:#fff;
+    }
+
+    .status{
+      min-height:22px;
+      font-size:.95rem;
+      font-weight:700;
+      color:var(--gold);
+      margin-top:8px;
+    }
+
+    .list{
+      display:grid;
+      gap:12px;
+    }
+
+    .row-card{
+      background:var(--deep);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:14px;
+    }
+
+    .row-grid{
+      display:grid;
+      grid-template-columns: repeat(6, minmax(140px, 1fr)) auto;
+      gap:10px;
+      align-items:end;
+    }
+
+    .row-grid.monthly{
+      grid-template-columns: 1fr 1fr 1.2fr 1.8fr auto;
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .label{
+      font-size:.82rem;
+      color:var(--muted);
+      font-weight:700;
+      letter-spacing:.2px;
+    }
+
+input, textarea, select{
+  width:100%;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#0f172a;
+  color:var(--text);
+  padding:10px 12px;
+  font:inherit;
+}
+select[multiple]{
+  min-height:120px;
+}
+
+    textarea{
+      min-height:42px;
+      resize:vertical;
+    }
+
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+
+    .note{
+      color:var(--muted);
+      font-size:.93rem;
+      margin-top:8px;
+    }
+
+    .banner-admin{
+      background:var(--deep);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:14px;
+      margin-top:12px;
+    }
+
+    .banner-grid{
+      display:grid;
+      grid-template-columns: 180px 1fr;
+      gap:12px;
+      align-items:end;
+    }
+
+    .check-row{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-height:44px;
+    }
+
+    .check-row input[type="checkbox"]{
+      width:auto;
+      transform:scale(1.2);
+    }
+
+    @media (max-width: 1100px){
+      .row-grid,
+      .row-grid.monthly,
+      .banner-grid{
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+
+    <section class="panel">
+      <div class="top">
+        <div>
+          <h1>Schedule Admin</h1>
+          <p class="sub">Update daily practice schedule and monthly tournament schedule.</p>
+        </div>
+
+        <div class="btn-row">
+          <a class="btn" href="/communications/coach/hub.html">← Coach Home</a>
+          <button id="btn-save-all" class="btn btn-primary" type="button">Save Schedule</button>
+        </div>
+      </div>
+
+      <div class="banner-admin">
+        <h2>Coach Banner</h2>
+        <p class="sub">Use this for urgent schedule overrides or important notices.</p>
+
+        <div class="banner-grid">
+          <div class="field">
+            <label class="label">Banner Active</label>
+            <div class="check-row">
+              <input id="banner-active" type="checkbox">
+              <span>Show coach update banner</span>
+            </div>
+          </div>
+
+          <div class="field">
+            <label class="label" for="banner-text">Banner Text</label>
+            <input id="banner-text" type="text" placeholder="Practice cancelled today">
+          </div>
+        </div>
+      </div>
+
+      <div id="status" class="status"></div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Daily Practice Schedule</h2>
+          <p class="sub">Use this for the regular weekly practice structure.</p>
+        </div>
+        <button id="btn-add-daily" class="btn" type="button">+ Add Daily Row</button>
+      </div>
+
+      <div id="daily-list" class="list"></div>
+      
+<div class="note">
+  Daily rows now use: Day selector, Start, End, Display Label, Title, Details.
+</div>
+    </section>
+
+    <section class="panel">
+      <div class="section-head">
+        <div>
+          <h2>Monthly Tournament Schedule</h2>
+          <p class="sub">Use this for events, tournaments, ceremonies, and important dates.</p>
+        </div>
+        <button id="btn-add-monthly" class="btn" type="button">+ Add Tournament Row</button>
+      </div>
+
+      <div id="monthly-list" class="list"></div>
+
+      <div class="note">
+        Keep only real rows or intentional “No Tournament Scheduled” rows. Do not leave blank placeholders.
+      </div>
+    </section>
+
+  </div>
+
+  <script type="module" src="/communications/coach/schedule.js"></script>
+</body>
+</html>

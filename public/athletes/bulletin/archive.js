@@ -14,7 +14,7 @@ import {
 import {
   renderAnnouncementCard,
   sortPinnedThenNewest
-} from "/para/shared/announcements-ui.js";
+} from "/communications/shared/announcements-ui.js";
 
 await ensureSignedIn();
 

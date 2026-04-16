@@ -26,7 +26,7 @@ function renderThreadCard(id, data) {
   const unread = data.unreadForCoach ? data.unreadForCoach : 0;
 
   return `
-    <div class="thread-card" onclick="location.href='/para/coach/inbox-view.html?id=${id}'">
+    <div class="thread-card" onclick="location.href='/communications/coach/inbox-view.html?id=${id}'">
       <div class="thread-header">
         <div class="thread-name">${data.parentName || "Parent"}</div>
         ${unread > 0 ? `<div class="unread-badge">${unread}</div>` : ""}

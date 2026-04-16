@@ -59,7 +59,7 @@ toolbar.appendChild(langWrap);
 const path = window.location.pathname || "";
 
 const isParentPage =
-  path.includes("/para/") ||           // Para-Comms pages
+  path.includes("/communications/") ||           // Para-Comms pages
   path.includes("/coach/meeting/") ||        // Parent meeting portal
   path.includes("/coach/parent-landing") ||  // QR parent landing page
   path.includes("/coach/parent/");           // any future /coach/parent/... pages

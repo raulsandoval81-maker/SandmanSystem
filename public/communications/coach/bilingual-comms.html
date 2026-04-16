@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coach Comms • Bilingual Builder</title>
+
+  <!-- Shared Coach Styling -->
+  <link rel="stylesheet" href="/communications/shared/comms.css" />
+
+  <style>
+    /* Hybrid Clean Panel Enhancements */
+    body {
+      background:#0a1833;
+      color:#f0f4f8;
+      font-family:system-ui, sans-serif;
+    }
+
+    .wrap {
+      max-width:860px;
+      margin:0 auto;
+      padding:24px 16px 60px;
+    }
+
+    /* Main clean panel */
+    .pc-panel {
+      background:#111c35;
+      border:1px solid #27304a;
+      border-radius:14px;
+      padding:22px;
+      margin-top:16px;
+    }
+
+    h2.section-title {
+      margin:0 0 12px;
+      font-size:1.25rem;
+      color:#ffdd48;
+      font-weight:600;
+      letter-spacing:.02em;
+    }
+
+    label {
+      display:block;
+      margin-top:14px;
+      font-size:.9rem;
+      font-weight:600;
+      color:#ffdd48;
+    }
+
+    input, textarea {
+      width:100%;
+      margin-top:6px;
+      padding:10px;
+      border-radius:10px;
+      background:#0c152c;
+      border:1px solid #27304a;
+      color:#f0f4f8;
+      font-size:.95rem;
+    }
+
+    textarea {
+      resize:vertical;
+    }
+
+    /* Buttons */
+    .btn {
+      margin-top:10px;
+      padding:10px 14px;
+      border-radius:10px;
+      cursor:pointer;
+      font-size:.9rem;
+      border:none;
+      transition:.2s;
+    }
+
+    .btn-dark {
+      background:#152449;
+      color:#fff;
+    }
+    .btn-dark:hover {
+      background:#1c2f5c;
+    }
+
+    .btn-brand {
+      background:#ffdd48;
+      color:#000;
+      font-weight:600;
+    }
+    .btn-brand:hover {
+      background:#ffe979;
+    }
+
+    /* Copy button row */
+    .pc-copy-grid {
+      display:flex;
+      gap:10px;
+      margin-top:12px;
+      flex-wrap:wrap;
+    }
+    .small { padding:8px 12px; }
+
+    /* Modal preview */
+    .pc-modal {
+      position:fixed;
+      top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,0.6);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .pc-modal-box {
+      background:#111c35;
+      border:1px solid #27304a;
+      padding:20px;
+      border-radius:14px;
+      width:100%;
+      max-width:480px;
+    }
+
+    .pc-modal-box h2 {
+      color:#ffdd48;
+      margin-top:0;
+    }
+
+    pre {
+      white-space:pre-wrap;
+      background:#0c152c;
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #27304a;
+      max-height:220px;
+      overflow-y:auto;
+      margin-bottom:10px;
+    }
+
+    .pc-modal-actions {
+      display:flex;
+      gap:12px;
+      margin-top:10px;
+      justify-content:flex-end;
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- Header -->
+  <header class="pc-header">
+    <a class="pc-back" href="/communications/coach/index.html">← Back</a>
+    <h1>Bilingual Comms Builder</h1>
+    <a class="pc-home" href="/communications/coach/index.html">🏠</a>
+  </header>
+
+  <div class="wrap">
+
+    <!-- Panel -->
+    <div class="pc-panel">
+
+      <h2 class="section-title">Message Composer</h2>
+
+      <label>Subject</label>
+      <input id="pc-subject" type="text" placeholder="Practice time change…" />
+
+      <label>Message (EN)</label>
+      <textarea id="pc-en" rows="6" placeholder="Type English message…"></textarea>
+      <button id="btn-en-to-es" class="btn btn-dark">Translate EN → ES</button>
+
+      <label>Mensaje (ES)</label>
+      <textarea id="pc-es" rows="6" placeholder="Escriba su mensaje en español…"></textarea>
+      <button id="btn-es-to-en" class="btn btn-dark">Translate ES → EN</button>
+
+      <div class="pc-copy-grid">
+        <button id="btn-copy-en" class="btn btn-dark small">Copy EN</button>
+        <button id="btn-copy-es" class="btn btn-dark small">Copy ES</button>
+        <button id="btn-copy-both" class="btn btn-brand small">Copy Both</button>
+      </div>
+
+      <button id="btn-post-bulletin" class="btn btn-brand" style="margin-top:18px;">
+        Post to Announcements
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="preview" class="pc-modal">
+    <div class="pc-modal-box">
+      <h2>Translation Preview</h2>
+      <pre id="preview-text"></pre>
+      <p id="preview-confidence" class="confidence"></p>
+
+      <div class="pc-modal-actions">
+        <button id="preview-apply" class="btn btn-brand">Apply</button>
+        <button id="preview-cancel" class="btn btn-dark">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JS -->
+<script type="module" src="/communications/coach/bilingual-comms.js"></script>
+</body>
+</html>
