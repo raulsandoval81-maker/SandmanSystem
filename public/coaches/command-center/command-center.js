@@ -67,6 +67,7 @@ const listConditioningEl = document.getElementById("list-conditioning");
 const countJoinRequestsEl = document.getElementById("count-join-requests");
 const countTrialRequestsEl = document.getElementById("count-trial-requests");
 const countParentMessagesEl = document.getElementById("count-parent-messages");
+const countFreePassEl = document.getElementById("count-free-pass");
 
 // -----------------------------
 // Intake launcher
@@ -267,14 +268,26 @@ function subscribeParentInboxCounts() {
       let joinCount = 0;
       let trialCount = 0;
       let messageCount = 0;
+      let freePassCount = 0;
 
       snap.forEach((docSnap) => {
         const d = docSnap.data() || {};
 
-        if (d.category === "join" && isPending(d.status)) {
-          if (d.entryType === "join") joinCount++;
-          if (d.entryType === "trial") trialCount++;
-        }
+if (d.category === "join") {
+
+  if (d.entryType === "join" && isPending(d.status)) {
+    joinCount++;
+  }
+
+  if (d.entryType === "trial") {
+  trialCount++;
+}
+
+if (d.entryType === "free_pass") {
+  freePassCount++;
+}
+
+}
 
         if (d.category === "message" && isPending(d.status)) {
           messageCount++;
@@ -282,8 +295,10 @@ function subscribeParentInboxCounts() {
       });
 
       setCount(countJoinRequestsEl, joinCount);
-      setCount(countTrialRequestsEl, trialCount);
-      setCount(countParentMessagesEl, messageCount);
+setCount(countTrialRequestsEl, trialCount);
+setCount(countFreePassEl, freePassCount);
+setCount(countParentMessagesEl, messageCount);
+
     },
     (err) => {
       console.error("[command-center] parent inbox count error:", err);

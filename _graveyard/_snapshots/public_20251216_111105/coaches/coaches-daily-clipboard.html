@@ -462,12 +462,12 @@ window.savePlan = async function(){
 };
 
     window.openTimerWindow = function(){
-      const w = window.open("/timer-engine/sandman_timer_engine.html", "sandmanTimer", "width=520,height=700");
+      const w = window.open("/lab/timer-engine/ui/athlete/sandman-coach-timer.html", "sandmanTimer", "width=520,height=700");
       w && w.focus();
     };
 
     window.runHour = function(){
-      const w = window.open("/timer-engine/sandman_timer_engine.html", "sandmanTimer", "width=520,height=700");
+      const w = window.open("/lab/timer-engine/ui/athlete/sandman-coach-timer.html", "sandmanTimer", "width=520,height=700");
       setTimeout(()=>{
         w && w.startSandmanTimer && w.startSandmanTimer("Practice Layout","layout_60_std");
       }, 400);

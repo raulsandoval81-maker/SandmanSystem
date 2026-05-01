@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Admin — Index | Sandman System</title>
+  <link rel="stylesheet" href="../assets/css/site.css"/>
+  <script src="../assets/js/include.js" defer></script>
+  <style>
+    :root { color-scheme: dark; }
+    body{
+      background:#06080d;
+      color:#f5f5f5;
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+    .wrap{
+      max-width:1200px;
+      margin:0 auto;
+      padding:28px 16px 48px;
+    }
+    .hero{
+      background:#0f141b;
+      border:1px solid #1d2430;
+      border-radius:18px;
+      padding:18px 20px 16px;
+      box-shadow:0 10px 26px rgba(0,0,0,.35);
+      margin-bottom:18px;
+      text-align:center;
+    }
+    .hero h1{
+      margin:0;
+      color:#ffd633;
+      font-size:1.85rem;
+      text-shadow:0 0 12px rgba(255,214,51,.25);
+      letter-spacing:.02em;
+    }
+    .hero p{
+      margin:8px 0 0;
+      color:#9ca3af;
+      font-size:.9rem;
+      line-height:1.45;
+    }
+    .navrow{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin:14px 0 0;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:.45rem;
+      padding:.45rem .9rem;
+      border-radius:999px;
+      background:#0b1017;
+      border:1px solid #1d2430;
+      color:#eaeaea;
+      text-decoration:none;
+      font-weight:800;
+      font-size:.78rem;
+    }
+    .pill:hover{
+      border-color:#e63946;
+      box-shadow:0 0 10px rgba(230,57,70,.35);
+    }
+    .section-kicker{
+      font-size:1.05rem;
+      font-weight:900;
+      color:#ffd633;
+      margin:2rem 0 1rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+    .tools-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:1.1rem;
+    }
+    .tool-card{
+      background:#0b1017;
+      border:1px solid #1f2937;
+      border-radius:12px;
+      padding:1rem .95rem 1.05rem;
+      box-shadow:0 10px 18px rgba(0,0,0,.22);
+      display:flex;
+      flex-direction:column;
+      gap:.6rem;
+      transition:.15s;
+    }
+    .tool-card h3{
+      margin:0;
+      color:#ffdd48;
+      font-size:1rem;
+      letter-spacing:.01em;
+    }
+    .tool-card p{
+      font-size:.78rem;
+      color:#9ca3af;
+      line-height:1.45;
+      margin:0;
+      flex:1;
+    }
+    .tool-card:hover{
+      border-color:#e63946;
+      box-shadow:0 0 12px rgba(230,57,70,.4);
+      transform:translateY(-2px);
+    }
+    .btn{
+      display:inline-block;
+      border:none;
+      border-radius:999px;
+      padding:.45rem 1rem;
+      font-weight:900;
+      text-decoration:none;
+      cursor:pointer;
+      font-size:.75rem;
+      width:max-content;
+    }
+    .btn-red{
+      background:#e53935;
+      color:#fff;
+      box-shadow:0 0 10px rgba(229,57,53,.35);
+    }
+    .btn-red:hover{
+      background:#ff4758;
+    }
+    .tagrow{
+      display:flex;
+      gap:.4rem;
+      flex-wrap:wrap;
+      margin-bottom:.1rem;
+    }
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:.35rem;
+      width:max-content;
+      padding:.22rem .6rem;
+      border-radius:999px;
+      border:1px solid #1d2430;
+      background:#0f141b;
+      color:#cfd7e6;
+      font-size:.66rem;
+      font-weight:900;
+      letter-spacing:.03em;
+      text-transform:uppercase;
+    }
+    .tag.core{ border-color:#f59e0b55; }
+    .tag.ops{ border-color:#60a5fa55; }
+    .fine{
+      color:#94a3b8;
+      font-size:.72rem;
+      margin:.4rem 0 0;
+      text-align:center;
+      line-height:1.35;
+    }
+    .status{
+      margin-top:10px;
+      color:#94a3b8;
+      font-size:.78rem;
+    }
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <header class="hero">
+      <h1>Admin Panel</h1>
+      <p>Admin oversight for system health, activity snapshots, and XP audit.</p>
+
+      <div class="navrow">
+        <a class="pill" href="../index.html">Back to Portal</a>
+      </div>
+
+      <div class="status" id="adminStatus">Checking admin access…</div>
+
+      <div class="fine">
+        Admin-only surface. Use this lane for oversight, audit, and access control.
+      </div>
+    </header>
+
+    <section>
+      <h2 class="section-kicker">Overview</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tagrow"><span class="tag core">Core</span></div>
+          <h3>Dashboard</h3>
+          <p>At-a-glance KPIs and quick actions.</p>
+          <a class="btn btn-red" href="/admin/dashboard.html">Open Dashboard</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tagrow"><span class="tag core">Core</span></div>
+          <h3>Hub</h3>
+          <p>Links to weekly ops, tools, and admin flows.</p>
+          <a class="btn btn-red" href="/admin/hub.html">Open Hub</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tagrow"><span class="tag ops">Ops</span></div>
+          <h3>Snapshot</h3>
+          <p>Static summary view for meetings and check-ins.</p>
+          <a class="btn btn-red" href="/admin/system/snapshot.html">Open Snapshot</a>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section-kicker">Control</h2>
+      <div class="tools-grid">
+        <div class="tool-card">
+          <div class="tagrow"><span class="tag core">Core</span></div>
+          <h3>Staff & Roles</h3>
+          <p>View staff docs and assign coach/admin access.</p>
+          <a class="btn btn-red" href="/admin/people/staff.html">Open Staff</a>
+        </div>
+
+        <div class="tool-card">
+          <div class="tagrow"><span class="tag ops">Ops</span></div>
+          <h3>XP Master Log</h3>
+          <p>Audit lane for XP history and receipts.</p>
+          <a class="btn btn-red" href="/admin/system/xp-master-log.html">Open XP Log</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+
+  <script type="module">
+    import { requireAdmin } from "/assets/js/admin-guard.js";
+    const statusEl = document.getElementById("adminStatus");
+    try {
+      const user = await requireAdmin();
+      statusEl.textContent = `Admin verified${user?.email ? " · " + user.email : ""}`;
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = "Admin access required.";
+    }
+  </script>
+</body>
+</html>

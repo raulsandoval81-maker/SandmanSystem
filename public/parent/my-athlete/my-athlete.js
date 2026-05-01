@@ -169,14 +169,8 @@ function renderAthlete(a = {}) {
   const xpInTier = Number(info?.xpInTier || 0);
   const capXP = Number(info?.capXP || 1);
 
-  const storedStripeCount = safeNumber(
-    a.stripeCount ?? a.stripes ?? a.currentStripes ?? a.stripe ?? null,
-    null
-  );
-
-  const computedStripeCount = Number(info?.stripesEarned || 0);
-  const stripeCount =
-    storedStripeCount == null ? computedStripeCount : storedStripeCount;
+const computedStripeCount = Number(info?.stripesEarned || 0);
+const stripeCount = computedStripeCount;
 
   const stripeTotal = Number(info?.stripesTotal || 4);
   const remainingTier = Number(info?.xpToNextTier || 0);

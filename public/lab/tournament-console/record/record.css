@@ -1,0 +1,58 @@
+body {
+  margin:0;
+  background:#0b1120;
+  color:#fff;
+  font-family:system-ui;
+}
+
+.wrap {
+  max-width:800px;
+  margin:auto;
+  padding:16px;
+}
+
+h1 {
+  margin-bottom:4px;
+}
+
+.muted {
+  color:#9aa4b1;
+  font-size:.8rem;
+}
+
+.video-wrap {
+  margin-top:16px;
+  background:#000;
+  border:1px solid #27304a;
+}
+
+video {
+  width:100%;
+  height:auto;
+  display:block;
+}
+
+.controls {
+  margin-top:16px;
+  display:flex;
+  gap:12px;
+}
+
+button {
+  flex:1;
+  padding:14px;
+  font-size:1rem;
+  font-weight:700;
+  border:none;
+  cursor:pointer;
+}
+
+#startBtn {
+  background:#16a34a;
+  color:#fff;
+}
+
+#stopBtn {
+  background:#e63946;
+  color:#fff;
+}

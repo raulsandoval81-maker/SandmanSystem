@@ -44,6 +44,12 @@ type ApproveActivateInput = {
   experience?: {
     years?: number | null;
   };
+  adjustment?: {
+    amount?: number | null;
+    note?: string | null;
+    kind?: string | null;
+    source?: string | null;
+  };
 };
 
 type ExperiencePlan = {
@@ -133,6 +139,7 @@ export const approveAndActivate = onCall(async (req) => {
       team,
       mint,
       experience,
+      adjustment,
     } = input;
 
     const foundry = String(foundryRaw || "").trim().toLowerCase();
@@ -142,6 +149,15 @@ export const approveAndActivate = onCall(async (req) => {
 
     const lane = String(mint?.lane || "CB").trim().toUpperCase() || "CB";
     const expPlan = buildExperiencePlan(experience?.years);
+
+    const adjustmentAmount = Number(adjustment?.amount || 0);
+    const adjustmentNote =
+      adjustmentAmount > 0
+        ? String(adjustment?.note || "Coach adjustment")
+        : null;
+
+    const hasLegacy = expPlan.total > 0;
+    const hasAdjustment = adjustmentAmount > 0;
 
     const counterRef = db.doc(`counters/${foundry}`);
     const intakeRef = db.doc(`intakes/${intakeId}`);
@@ -282,9 +298,9 @@ export const approveAndActivate = onCall(async (req) => {
       const starter =
         foundry === "f4"
           ? { tier: "T0", rankName: "Apprentice", rankColor: "white", xpCap: 1200 }
-          : { tier: "T0", rankName: "Shadow", rankColor: "white", xpCap: 800 };
+          : { tier: "T0", rankName: "Shadow", rankColor: "white", xpCap: 600 };
 
-      const startingXp = expPlan.issuedNow;
+      const startingXp = expPlan.issuedNow + adjustmentAmount;
       const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);
 
       tx.create(athleteRef, {
@@ -326,10 +342,20 @@ export const approveAndActivate = onCall(async (req) => {
 
         xp: startingXp,
         stripeCount,
-        xpSource: startingXp > 0 ? "intake+legacy" : "intake",
+        xpSource:
+          hasLegacy && hasAdjustment
+            ? "intake+legacy+adjustment"
+            : hasLegacy
+            ? "intake+legacy"
+            : hasAdjustment
+            ? "intake+adjustment"
+            : "intake",
 
-        legacy: expPlan.total > 0,
-        legacyType: expPlan.total > 0 ? "external" : null,
+        adjustmentAmount: hasAdjustment ? adjustmentAmount : 0,
+        adjustmentNote,
+
+        legacy: hasLegacy,
+        legacyType: hasLegacy ? "external" : null,
         legacyYearsVerified: expPlan.yearsVerified,
         legacyCreditTotal: expPlan.total,
         legacyCreditIssued: expPlan.issuedNow,
@@ -417,14 +443,17 @@ export const approveAndActivate = onCall(async (req) => {
         parentPhoneDigits,
         parentName,
 
-        legacy: expPlan.total > 0,
-        legacyType: expPlan.total > 0 ? "external" : null,
+        legacy: hasLegacy,
+        legacyType: hasLegacy ? "external" : null,
         legacyYearsVerified: expPlan.yearsVerified,
         legacyCreditTotal: expPlan.total,
         legacyCreditIssued: expPlan.issuedNow,
         legacyHold: expPlan.hold,
         legacyCreditSchedule: expPlan.schedule,
         legacyNote: expPlan.note,
+
+        adjustmentAmount: hasAdjustment ? adjustmentAmount : 0,
+        adjustmentNote,
 
         updatedAt: now,
       });
@@ -445,6 +474,8 @@ export const approveAndActivate = onCall(async (req) => {
         legacyYearsVerified: expPlan.yearsVerified,
         legacyCreditTotal: expPlan.total,
         legacyCreditIssued: expPlan.issuedNow,
+        adjustmentAmount: hasAdjustment ? adjustmentAmount : 0,
+        adjustmentNote,
         stripeCount,
         parentUid,
         parentEmail,

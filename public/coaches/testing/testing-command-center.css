@@ -1,0 +1,209 @@
+:root{
+  --bg:#06080d;
+  --panel:#0f141b;
+  --card:#0b1017;
+  --line:#27304a;
+  --text:#f5f7fb;
+  --muted:#9aa4b1;
+  --gold:#ffdd48;
+  --blue:#2563eb;
+  --good:#e8dcc4;
+}
+
+/* BASE */
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:32px 16px 72px;
+}
+
+/* HEADER */
+.back{
+  display:inline-block;
+  margin-bottom:20px;
+  color:var(--muted);
+  text-decoration:none;
+  font-weight:800;
+}
+
+.back:hover{color:var(--gold)}
+
+h1{
+  margin:0;
+  font-size:2rem;
+  color:var(--gold);
+}
+
+.sub{
+  margin:10px 0 28px;
+  color:var(--muted);
+  line-height:1.5;
+}
+
+/* LAYOUT */
+.grid{
+  display:grid;
+  gap:22px;
+}
+
+/* CARD */
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 12px 30px rgba(0,0,0,.2);
+}
+
+.card h2{
+  margin:0 0 20px;
+  font-size:1.35rem;
+}
+
+/* INPUTS */
+.row{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+}
+
+.row-3{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:16px;
+}
+
+label{
+  display:block;
+  margin-bottom:6px;
+  font-size:.8rem;
+  color:var(--muted);
+  font-weight:900;
+}
+
+input, select{
+  width:100%;
+  min-height:48px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:var(--card);
+  color:var(--text);
+  padding:0 14px;
+}
+
+input:focus, select:focus{
+  outline:none;
+  border-color:var(--gold);
+}
+
+/* STATUS */
+.status{
+  margin-top:16px;
+  padding:10px 14px;
+  border-radius:12px;
+  background:var(--card);
+  border:1px solid var(--line);
+  font-weight:800;
+  color:var(--muted);
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  margin-top:18px;
+}
+
+/* BUTTONS */
+.btn{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:50px;
+  border-radius:14px;
+  border:1px solid var(--line);
+  font-weight:900;
+  text-decoration:none;
+  cursor:pointer;
+  background:var(--good);
+  color:#05070b;
+}
+
+.btn.primary{
+  background:var(--blue);
+  color:#fff;
+  border-color:var(--blue);
+}
+
+.btn.good{
+  background:var(--good);
+}
+
+/* LAUNCH GRID */
+.launch-grid{
+  display:grid;
+  gap:26px;
+}
+
+/* INDIVIDUAL BOX */
+.launch-box{
+  padding-bottom:20px;
+  border-bottom:1px solid var(--line);
+}
+
+.launch-box:last-child{
+  border-bottom:none;
+}
+
+.launch-box h3{
+  margin:0 0 12px;
+  font-size:1.05rem;
+  color:var(--gold);
+}
+
+/* BUTTON STACK FIX (THIS FIXES YOUR ISSUE) */
+.launch-box .btn{
+  margin-bottom:12px;
+}
+
+/* LINK PREVIEW */
+.link-preview{
+  margin-top:6px;
+  padding:12px;
+  border-radius:12px;
+  background:var(--card);
+  border:1px solid var(--line);
+  color:var(--muted);
+  font-size:.82rem;
+  overflow-wrap:anywhere;
+}
+
+/* DESKTOP IMPROVEMENT */
+@media (min-width:760px){
+
+  .launch-box{
+    display:grid;
+    grid-template-columns:220px 1fr;
+    column-gap:20px;
+    align-items:start;
+  }
+
+  .launch-box h3{
+    grid-column:1 / -1;
+  }
+
+  .launch-box .link-preview{
+    grid-column:1 / -1;
+  }
+}

@@ -1,217 +1,83 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Para-Comms Hub</title>
-
-  <link rel="stylesheet" href="/communications/shared/comms.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Developer Console | Sandman</title>
 
   <style>
-    :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --line:#27304a;
-      --gold:#ffdd48;
-      --text:#f0f4f8;
-      --hover:#152449;
-    }
-
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui, sans-serif;
-    }
-
-    .wrap{
-      max-width:900px;
-      margin:0 auto;
-      padding:28px 16px 50px;
-    }
-
-    h1{
-      font-size:1.4rem;
-      letter-spacing:.03em;
-      font-weight:700;
-    }
-
-    /* CARD STYLE */
-    .pc-card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:18px 20px;
-      margin-bottom:18px;
-      transition:.25s;
-      box-shadow:0 4px 14px rgba(0,0,0,.35);
-    }
-    .pc-card:hover{
-      background:var(--hover);
-      border-color:var(--gold);
-      transform:translateY(-2px);
-    }
-
-    .pc-card h2{
-      margin:0 0 6px;
-      color:var(--gold);
-      font-size:1.15rem;
-      letter-spacing:.02em;
-    }
-
-    .pc-card a{
-      color:#cbd5e1;
-      text-decoration:none;
-      font-weight:600;
-      font-size:.95rem;
-    }
-    .pc-card a:hover{
-      text-decoration:underline;
-    }
-
-    /* HEADER STYLE (from comms.css but reinforced) */
-    .pc-header{
-      background:#04173a;
-      color:var(--gold);
-      border-bottom:1px solid rgba(255,255,255,0.1);
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-    }
-    .pc-back, .pc-home{
-      color:var(--gold);
-      font-size:.9rem;
-      text-decoration:none;
-      font-weight:600;
-    }
-    .pc-back:hover, .pc-home:hover{
-      text-decoration:underline;
-    }
-
-    @media(max-width:600px){
-      .pc-card{padding:16px}
-      .pc-card h2{font-size:1.05rem}
-      .pc-card a{font-size:.9rem}
-    }
+    :root{color-scheme:dark;--bg:#05070b;--panel:#101827;--card:#0b1017;--line:#334155;--text:#f8fafc;--muted:#94a3b8;--gold:#ffdd48;--red:#ef4444}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
+    .hero{background:linear-gradient(180deg,#1f1111,#101827);border:1px solid var(--red);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
+    h1{margin:0;color:var(--red);font-size:2rem}
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
+    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
+    .pill.primary{background:var(--red);border-color:var(--red);color:#fff}
+    .section-title{margin:26px 0 12px;color:var(--gold);font-size:.82rem;text-transform:uppercase;letter-spacing:.08em;font-weight:900}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{display:block;border-radius:14px;padding:18px;min-height:120px;transition:.15s}
+    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(239,68,68,.35);transform:translateY(-2px)}
+    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.05rem}
+    .card p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.45}
   </style>
 </head>
 
 <body>
+<main class="wrap">
+  <header class="hero">
+    <h1>Developer Console</h1>
+    <p>Internal-only tools. Not part of coach flow. Use carefully.</p>
 
-<header class="pc-header">
-  <a class="pc-back" href="/coach/index.html">← Back</a>
-  <h1>Para-Comms Hub</h1>
-  <a class="pc-home" href="/coach/index.html">🏠</a>
-</header>
-
-<div class="wrap">
-
-  <div class="pc-card">
-    <h2>Coach Portal</h2>
-    <a href="/communications/coach/index.html">Open Coach Comms →</a>
-  </div>
-
-  <div class="pc-card">
-    <h2>Parent Portal</h2>
-    <a href="/communications/parent/index.html">Open Parent Comms →</a>
-  </div>
-
-  <div class="pc-card">
-    <h2>Announcements</h2>
-    <a href="/communications/coach/announcements.html">View Announcements →</a>
-  </div>
-
-  <div class="pc-card">
-    <h2>Submit New Announcement</h2>
-    <a href="/communications/coach/announcements-post.html">Post Announcement →</a>
-  </div>
-
-</div>
-
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Para-Comms | Coach → Parents</title>
-
-  <!-- Royal Blue Theme -->
-  <link rel="stylesheet" href="coach/communications/shared/comms.css" />
-</head>
-
-<body>
-
-  <!-- 🔵 Top Header (Back + Title + Home) -->
-  <header class="pc-header">
-    <button class="pc-back" onclick="history.back()">← Back</button>
-    <h1>Para-Comms</h1>
-    <a href="/parents/index.html" class="pc-home">🏠</a>
+    <nav class="topnav">
+      <a class="pill primary" href="/dev/">Dev Home</a>
+      <a class="pill" href="/coaches/index.html">Coach Area</a>
+    </nav>
   </header>
 
-  <div class="wrap">
+  <div class="section-title">Dashboards</div>
+  <section class="grid">
+    <a class="card" href="./dev-dashboard.html"><h2>Dev Dashboard</h2><p>Main dev dashboard.</p></a>
+    <a class="card" href="./dev-dashboard-mobile.html"><h2>Mobile Dev Dashboard</h2><p>Mobile dev view.</p></a>
+    <a class="card" href="./dev-console.html"><h2>Dev Console</h2><p>Console tools and checks.</p></a>
+    <a class="card" href="./dev-index.html"><h2>Dev Index</h2><p>Legacy dev index.</p></a>
+  </section>
 
-    <!-- Instructions / Overview -->
-    <section class="pc-help panel">
-      <p><strong>Bilingual Message Builder (Coach → Parents).</strong></p>
-      <p>Create English + Spanish messages, copy them, or post directly to the Announcements page.</p>
-      <ul>
-        <li><strong>Subject</strong> — Title of the announcement</li>
-        <li><strong>EN / ES Boxes</strong> — Type your message</li>
-        <li><strong>Translate Buttons</strong> — EN → ES or ES → EN preview</li>
-        <li><strong>Copy</strong> — EN only, ES only, or Both</li>
-        <li><strong>Post to Announcements</strong> — Sends to the Bulletin (HS Pilot)</li>
-      </ul>
-    </section>
+  <div class="section-title">Harness / Testing</div>
+  <section class="grid">
+    <a class="card" href="./dev-harness.html"><h2>Dev Harness</h2><p>Testing harness.</p></a>
+    <a class="card" href="./sidekick-test.html"><h2>Sidekick Test</h2><p>Sidekick test surface.</p></a>
+    <a class="card" href="./status-lab.html"><h2>Status Lab</h2><p>Status testing lab.</p></a>
+    <a class="card" href="./test-xp.html"><h2>XP Test</h2><p>XP test page.</p></a>
+  </section>
 
-    <!-- Main Panel -->
-    <main class="pc-main panel">
+  <div class="section-title">Data / Migration</div>
+  <section class="grid">
+    <a class="card" href="./apply-legacy-credit.html"><h2>Legacy Credit</h2><p>Apply old credit carefully.</p></a>
+    <a class="card" href="./backfill-team.html"><h2>Backfill Team</h2><p>Backfill team data.</p></a>
+    <a class="card" href="./create-athlete-test.html"><h2>Create Athlete Test</h2><p>Create test athlete records.</p></a>
+    <a class="card" href="./dump-athletes.html"><h2>Dump Athletes</h2><p>Export / inspect athlete data.</p></a>
+    <a class="card" href="./migrate-track-f4.html"><h2>Migrate Track F4</h2><p>Migration utility.</p></a>
+    <a class="card" href="./seed-athletes-preview.html"><h2>Seed Athletes Preview</h2><p>Preview seeded athlete data.</p></a>
+  </section>
 
-      <label>Subject:</label>
-      <input id="pc-subject" type="text" placeholder="Practice time change…" />
+  <div class="section-title">Timer / Sidekick</div>
+  <section class="grid">
+    <a class="card" href="./sandman-timer-mobile-dev.html"><h2>Timer Mobile Dev</h2><p>Mobile timer dev page.</p></a>
+    <a class="card" href="./sidekick-changelog.html"><h2>Sidekick Changelog</h2><p>Sidekick changes.</p></a>
+  </section>
 
-      <label>Message (EN):</label>
-      <textarea id="pc-en" rows="6" placeholder="Type English message…"></textarea>
-      <button id="btn-en-to-es" class="btn btn-dark">Translate EN → ES</button>
-
-      <label>Mensaje (ES):</label>
-      <textarea id="pc-es" rows="6" placeholder="Escriba su mensaje en español…"></textarea>
-      <button id="btn-es-to-en" class="btn btn-dark">Translate ES → EN</button>
-
-      <!-- Copy Buttons -->
-      <div class="pc-copy-grid">
-        <button id="btn-copy-en" class="btn btn-dark small">Copy EN</button>
-        <button id="btn-copy-es" class="btn btn-dark small">Copy ES</button>
-        <button id="btn-copy-both" class="btn btn-brand small">Copy Both</button>
-      </div>
-
-      <!-- Post to Announcements -->
-      <button id="btn-post-bulletin" class="btn btn-brand" style="margin-top:16px;">
-        Post to Announcements
-      </button>
-
-    </main>
-
-  </div>
-
-  <!-- Translation Preview Modal -->
-  <div id="preview" class="pc-modal">
-    <div class="pc-modal-box">
-      <h2>Translation Preview</h2>
-      <pre id="preview-text"></pre>
-      <p id="preview-confidence" class="confidence"></p>
-
-      <div class="pc-modal-actions">
-        <button id="preview-apply" class="btn btn-brand">Apply</button>
-        <button id="preview-cancel" class="btn btn-dark">Cancel</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JS -->
-  <script type="module" src="./comms.js"></script>
-
+  <div class="section-title">Other</div>
+  <section class="grid">
+    <a class="card" href="./dev-roster.html"><h2>Dev Roster</h2><p>Roster dev view.</p></a>
+    <a class="card" href="./dev-virtues.html"><h2>Dev Virtues</h2><p>Virtue system dev view.</p></a>
+    <a class="card" href="./ladder-stress.html"><h2>Ladder Stress</h2><p>Stress test ladder flow.</p></a>
+    <a class="card" href="./ladder-test.html"><h2>Ladder Test</h2><p>Ladder test flow.</p></a>
+    <a class="card" href="./mint-preview.html"><h2>Mint Preview</h2><p>Preview mint output.</p></a>
+  </section>
+</main>
 </body>
 </html>

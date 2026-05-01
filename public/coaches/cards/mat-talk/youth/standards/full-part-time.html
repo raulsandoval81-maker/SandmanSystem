@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mat Talk | Full-Time vs Part-Time</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/cards/shared/card-shared.css" />
+  <link rel="stylesheet" href="/coaches/cards/mat-talk/shared/mat-talk-shared.css" />
+</head>
+<body>
+
+<main class="card-wrap">
+
+  <div class="card-header">
+    <div class="card-eyebrow">Mat Talk • Work</div>
+    <h1 class="card-title">Full-Time vs Part-Time</h1>
+    <p class="card-sub">One click adds this to On-Mat and Off-Mat.</p>
+  </div>
+
+  <div class="card-toolbar">
+    <a href="/coaches/execution/daily-clipboard/">← Clipboard</a>
+    <a href="/coaches/cards/mat-talk/youth/index.html">Mat Talk</a>
+    <a href="/coaches/cards/master/index.html">Cards</a>
+  </div>
+
+  <div class="card-body">
+
+    <div class="card-section">
+      <h2>On-Mat</h2>
+      <p class="card-line">Full-time work beats part-time effort.</p>
+      <p class="card-note">You don’t get better only when you feel like it.</p>
+    </div>
+
+    <div class="card-section">
+      <h2>Off-Mat</h2>
+      <p class="card-line">Did you work full-time or part-time today?</p>
+      <p class="card-note">Consistency separates people.</p>
+    </div>
+
+  </div>
+
+  <div class="card-actions">
+    <button id="addMatTalkBtn">+ Add Mat Talk</button>
+    <span id="addStatus" class="card-status"></span>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  const key = "sandman_clipboard_v1";
+  const btn = document.getElementById("addMatTalkBtn");
+  const status = document.getElementById("addStatus");
+
+  function load() {
+    try {
+      return JSON.parse(localStorage.getItem(key) || "[]");
+    } catch { return []; }
+  }
+
+  function save(data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function exists(data, id, lane) {
+    return data.some(x => x.id === id && x.lane === lane);
+  }
+
+  btn.addEventListener("click", () => {
+    const data = load();
+    const id = "work-fullpart-01";
+    const title = "Full-Time vs Part-Time";
+    const href = window.location.pathname;
+
+    const onmat = { id, title, category:"mat-talk", lane:"onmat", assignTo:"onmat", minutes:0, href };
+    const offmat = { id, title, category:"mat-talk", lane:"offmat", assignTo:"offmat", minutes:0, href };
+
+    let added = 0;
+
+    if (!exists(data, id, "onmat")) { data.push(onmat); added++; }
+    if (!exists(data, id, "offmat")) { data.push(offmat); added++; }
+
+    save(data);
+
+    if (!added) {
+      btn.textContent = "Added";
+      btn.disabled = true;
+      status.textContent = "Already added.";
+      return;
+    }
+
+    btn.textContent = "Added";
+    btn.disabled = true;
+    status.textContent = "Added to On-Mat and Off-Mat.";
+  });
+})();
+</script>
+
+</body>
+</html>

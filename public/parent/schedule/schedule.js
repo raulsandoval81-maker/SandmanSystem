@@ -1,8 +1,22 @@
 import {
+  auth,
   db,
   doc,
-  getDoc
+  getDoc,
+  collection,
+  query,
+  where,
+  limit,
+  getDocs
 } from "/assets/js/firebase-init-para.js";
+
+import {
+  LADDER_F4,
+  LADDER_F8,
+  getStripeInfo,
+} from "/assets/js/ladder.service.js";
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 const bannerPanel = document.getElementById("banner-card");
 const bannerText = document.getElementById("banner-text");
@@ -12,6 +26,7 @@ const eventsList = document.getElementById("events-list");
 const lastUpdated = document.getElementById("last-updated");
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
 const DAY_ORDER = {
   Monday: 1,
   Tuesday: 2,
@@ -34,6 +49,108 @@ function esc(str = "") {
 function isUsableText(v = "") {
   const s = String(v || "").trim();
   return !!s && s.toUpperCase() !== "TBA";
+}
+
+function safeNumber(v, fallback = 0) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
+function getXp(a = {}) {
+  return safeNumber(a.xp ?? 0, 0);
+}
+
+function resolveLadder(a = {}) {
+  const track = String(a.track || "").trim().toLowerCase();
+  const tier = String(a.rankName || a.tier || a.rank || "").trim().toLowerCase();
+
+  if (track.includes("foundry8")) return LADDER_F8;
+  if (track.includes("foundry4")) return LADDER_F4;
+
+  if (["shadow", "recruit", "combatant", "competitor", "commander", "hero"].includes(tier)) {
+    return LADDER_F8;
+  }
+
+  return LADDER_F4;
+}
+
+function canSeeTournaments(athlete = {}) {
+  const ladder = resolveLadder(athlete);
+  const info = getStripeInfo(ladder, getXp(athlete));
+
+  const tierName = String(
+    info?.tier?.name || athlete.rankName || athlete.tier || athlete.rank || ""
+  )
+    .trim()
+    .toLowerCase();
+
+  const isYouth = ladder === LADDER_F8;
+  const isFirstShirt = tierName === "shadow";
+
+  return !(isYouth && isFirstShirt);
+}
+
+async function getAthleteByUid(athleteUid) {
+  const cleanUid = String(athleteUid || "").trim().toUpperCase();
+  if (!cleanUid) return null;
+
+  const ref = doc(db, "athletes", cleanUid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) return null;
+
+  return snap.data() || {};
+}
+
+async function getAthleteForParent(userUid) {
+  const linkQuery = query(
+    collection(db, "parentAthleteLinks"),
+    where("parentUid", "==", userUid),
+    where("status", "==", "active"),
+    limit(1)
+  );
+
+  const linkSnap = await getDocs(linkQuery);
+
+  if (!linkSnap.empty) {
+    const linkData = linkSnap.docs[0].data() || {};
+    const linkedAthleteUid = String(linkData.athleteUid || "").trim().toUpperCase();
+
+    if (linkedAthleteUid) {
+      const athlete = await getAthleteByUid(linkedAthleteUid);
+      if (athlete) return athlete;
+    }
+  }
+
+  const parentRef = doc(db, "parents", userUid);
+  const parentSnap = await getDoc(parentRef);
+
+  if (parentSnap.exists()) {
+    const parentData = parentSnap.data() || {};
+    const linkedAthleteUid = String(
+      parentData.athleteUid ||
+      parentData.primaryAthleteUid ||
+      parentData.uid ||
+      ""
+    ).trim().toUpperCase();
+
+    if (linkedAthleteUid) {
+      const athlete = await getAthleteByUid(linkedAthleteUid);
+      if (athlete) return athlete;
+    }
+  }
+
+  const athleteQuery = query(
+    collection(db, "athletes"),
+    where("parentUid", "==", userUid),
+    limit(1)
+  );
+
+  const athleteSnap = await getDocs(athleteQuery);
+
+  if (athleteSnap.empty) return null;
+
+  return athleteSnap.docs[0].data() || {};
 }
 
 function formatUpdatedAt(ts) {
@@ -259,8 +376,18 @@ function isMeaningful(item = {}) {
   );
 }
 
-function renderEvents(tournaments = []) {
+function renderEvents(tournaments = [], canSee = true) {
   if (!eventsList) return;
+
+  if (!canSee) {
+    eventsList.innerHTML = `
+      <p class="muted-empty">
+        <span class="en">Tournament schedule unlocks after first shirt progression.</span>
+        <span class="es">El calendario de torneos se desbloquea después de la primera progresión de camiseta.</span>
+      </p>
+    `;
+    return;
+  }
 
   const today = startOfToday();
 
@@ -326,7 +453,7 @@ function setLang(lang) {
   paintSchedule(normalized);
 }
 
-async function loadSchedule() {
+async function loadSchedule(athlete = null) {
   try {
     const ref = doc(db, "system", "schedule");
     const snap = await getDoc(ref);
@@ -335,7 +462,7 @@ async function loadSchedule() {
       renderBanner({});
       renderToday([]);
       renderWeekly([]);
-      renderEvents([]);
+      renderEvents([], athlete ? canSeeTournaments(athlete) : true);
 
       if (lastUpdated) {
         lastUpdated.innerHTML = `
@@ -352,11 +479,12 @@ async function loadSchedule() {
     const daily = Array.isArray(data.daily) ? data.daily : [];
     const tournaments = Array.isArray(data.tournaments) ? data.tournaments : [];
     const banner = data.banner || {};
+    const showTournaments = athlete ? canSeeTournaments(athlete) : true;
 
     renderBanner(banner);
     renderToday(daily);
     renderWeekly(daily);
-    renderEvents(tournaments);
+    renderEvents(tournaments, showTournaments);
 
     const updated = formatUpdatedAt(data.updatedAt);
     if (lastUpdated) {
@@ -416,5 +544,13 @@ document.addEventListener("DOMContentLoaded", () => {
     b.addEventListener("click", () => setLang(b.dataset.lang));
   });
 
-  loadSchedule();
+  onAuthStateChanged(auth, async (user) => {
+    if (!user || !user.uid) {
+      await loadSchedule(null);
+      return;
+    }
+
+    const athlete = await getAthleteForParent(user.uid);
+    await loadSchedule(athlete);
+  });
 });

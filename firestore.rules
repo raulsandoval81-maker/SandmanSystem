@@ -2,37 +2,41 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    /* --------------------------------------
-       Para-Comms V1
-    ---------------------------------------*/
-    match /paraParentInbox/{threadId} {
-  allow read: if request.auth != null;
+/* --------------------------------------
+   Para-Comms V1
+---------------------------------------*/
+match /paraParentInbox/{threadId} {
+  allow read: if true;
   allow create: if true;
-
-  allow update: if request.auth != null
-    && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-      "parentName","parentEmail","parentKey","subject",
-      "lastBody","lastReplyAt",
-      "coachHasUnread","parentHasUnread",
-      "seenByCoach","seenByParent",
-      "coachOpenedAt","parentOpenedAt",
-      "status","closedBy","closedAt"
-    ]);
-
+  allow update: if true;
   allow delete: if false;
 
   match /thread/{messageId} {
-    allow read: if request.auth != null;
+    allow read: if true;
 
     allow create: if true
       && request.resource.data.keys().hasOnly([
-        "from","fromName","body","createdAt",
-        "seenByCoach","seenByParent"
+        "from",
+        "fromName",
+        "subject",
+        "body",
+        "createdAt",
+        "seenByCoach",
+        "seenByParent"
       ])
-      && request.resource.data.from in ["parent","coach"]
+      && request.resource.data.from in ["parent", "coach"]
+      && request.resource.data.fromName is string
+      && (
+        !("subject" in request.resource.data)
+        || request.resource.data.subject == null
+        || request.resource.data.subject is string
+      )
       && request.resource.data.body is string
       && request.resource.data.body.size() > 0
-      && request.resource.data.body.size() <= 2000;
+      && request.resource.data.body.size() <= 2000
+      && request.resource.data.createdAt is timestamp
+      && request.resource.data.seenByCoach is bool
+      && request.resource.data.seenByParent is bool;
 
     allow update, delete: if false;
   }
@@ -400,6 +404,15 @@ match /athletes/{athleteId}/testingLogs/{logId} {
   allow get, list: if request.auth != null;
   allow create: if request.auth != null;
   allow update, delete: if false;
+}
+
+/* --------------------------------------
+   Practice Plans
+---------------------------------------*/
+match /practicePlans/{planId} {
+  allow read: if request.auth != null;
+  allow create, update: if request.auth != null;
+  allow delete: if false;
 }
     /* --------------------------------------
        DEFAULT CLOSED

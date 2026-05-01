@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Arena Flow Clipboard</title>
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#06080d;
+      --panel:#0b1017;
+      --panel-2:#151a22;
+      --line:#252c3a;
+      --line-2:#2d3648;
+      --text:#f5f5f5;
+      --muted:#94a3b8;
+      --gold:#ffdd48;
+      --red:#e63946;
+      --red-glow:rgba(230,57,70,.35);
+      --slot-bg:rgba(0,0,0,.12);
+      --slot-line:rgba(255,255,255,.05);
+      --input-bg:#0f172a;
+      --input-line:#1f2937;
+      --active-bg:rgba(230,57,70,.04);
+    }
+
+    body.theme-day{
+      color-scheme: light;
+      --bg:#f4f7fb;
+      --panel:#ffffff;
+      --panel-2:#eef3fa;
+      --line:#d7deea;
+      --line-2:#c5cfdf;
+      --text:#0f172a;
+      --muted:#64748b;
+      --gold:#1d4ed8;
+      --red:#dc2626;
+      --red-glow:rgba(220,38,38,.18);
+      --slot-bg:#f8fafc;
+      --slot-line:#cbd5e1;
+      --input-bg:#ffffff;
+      --input-line:#cbd5e1;
+      --active-bg:rgba(29,78,216,.08);
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      background:var(--bg);
+      color:var(--text);
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      transition:background .2s ease,color .2s ease;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:20px 16px 38px;
+    }
+
+    h1{
+      color:var(--gold);
+      text-shadow:0 0 8px var(--red-glow);
+      margin:0 0 4px;
+    }
+
+    .muted{
+      color:var(--muted);
+      font-size:.74rem;
+      margin-bottom:10px;
+    }
+
+    .topbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:14px;
+    }
+
+    .left-top,
+    .right-top{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .pill-btn,
+    .timer-btn{
+      background:var(--panel-2);
+      border:1px solid var(--line-2);
+      border-radius:999px;
+      padding:6px 14px;
+      color:var(--text);
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s;
+    }
+
+    .timer-btn{
+      background:var(--red);
+      border-color:var(--red);
+      color:#fff;
+      box-shadow:0 0 10px rgba(230,57,70,.4);
+    }
+
+    .pill-btn:hover,
+    .timer-btn:hover{
+      filter:brightness(1.05);
+    }
+
+    #totalTime{
+      font-weight:700;
+    }
+
+    #totalTime.over{
+      color:var(--red);
+      text-shadow:0 0 6px rgba(230,57,70,.4);
+    }
+
+    .plan-block{
+      border:1px solid var(--line);
+      border-radius:12px;
+      margin-bottom:10px;
+      background:var(--panel);
+      padding:10px 10px 12px;
+      box-shadow:0 0 15px rgba(0,0,0,.18);
+    }
+
+    .plan-block.red{
+      border-color:var(--red);
+      background:var(--active-bg);
+    }
+
+    .block-head-row{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:6px;
+    }
+
+    .block-title{
+      font-size:.72rem;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      color:var(--text);
+      font-weight:700;
+    }
+
+    .block-tools{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+
+    .min-input{
+      width:52px;
+      background:var(--input-bg);
+      border:1px solid var(--input-line);
+      border-radius:8px;
+      color:var(--text);
+      padding:3px 4px;
+      font-size:.66rem;
+      text-align:center;
+    }
+
+    .mini-play,.mini-stop{
+      background:var(--input-bg);
+      border:1px solid var(--input-line);
+      border-radius:6px;
+      width:22px;
+      height:22px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:12px;
+      cursor:pointer;
+      color:var(--text);
+      transition:.15s;
+    }
+
+    .mini-play:hover,
+    .mini-stop:hover{
+      background:var(--red);
+      border-color:var(--red);
+      color:#fff;
+    }
+
+    .mini-clock{
+      font-size:.65rem;
+      color:var(--text);
+      min-width:44px;
+      text-align:right;
+      opacity:.88;
+    }
+
+    .slot{
+      min-height:50px;
+      border:1px dashed var(--slot-line);
+      border-radius:8px;
+      background:var(--slot-bg);
+      padding:6px 7px;
+      white-space:pre-wrap;
+    }
+
+    .slot[contenteditable="true"]:focus{
+      outline:none;
+      border-color:rgba(255,221,72,.4);
+    }
+
+    body.theme-day .slot[contenteditable="true"]:focus{
+      border-color:rgba(29,78,216,.35);
+    }
+
+    .footer-actions{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .footer-actions button{
+      border:0;
+      border-radius:999px;
+      padding:6px 14px;
+      font-weight:700;
+      cursor:pointer;
+      transition:.15s;
+    }
+
+    .footer-actions button:first-child{
+      background:var(--gold);
+      color:#111;
+    }
+
+    .footer-actions button:nth-child(2){
+      background:var(--red);
+      color:#fff;
+    }
+
+    @media (max-width:640px){
+      .block-head-row{flex-wrap:wrap;align-items:flex-start}
+      .topbar{flex-direction:column;align-items:flex-start}
+      #totalTime{margin-left:0}
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Arena Flow Clipboard</h1>
+    <p class="muted">Competition prep flow. Untimed talk and recovery, timed arena blocks. Warm-up first, then controlled arena phases, then hard finish.</p>
+
+    <div class="topbar">
+      <div class="left-top">
+        <button class="timer-btn" onclick="openTimerWindow()">Open Timer</button>
+        <button class="timer-btn" onclick="runArenaFlow()">▶ Run Arena Flow</button>
+        <button id="themeToggle" class="theme-toggle" type="button" aria-label="Toggle theme">☀</button>
+      </div>
+
+      <div class="right-top">
+        <span id="totalTime">Total timed: 45:00</span>
+      </div>
+    </div>
+
+    <div id="planBlocks">
+      <div class="plan-block">
+        <div class="block-head-row">
+          <span class="block-title">Bleacher Talk (Untimed)</span>
+        </div>
+        <div class="slot" contenteditable="true">Set tone, calm nerves, control what you can.</div>
+      </div>
+
+      <div class="plan-block" data-slot="warmup" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Warm-Up — Freestyle 8</span>
+          <div class="block-tools">
+            <input type="number" value="8" readonly class="min-input">
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Jog → Mobility → Shadow wrestle → Stance motion</div>
+      </div>
+
+      <div class="plan-block red" data-slot="neutral" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Neutral — Call-Out</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Chain attacks, motion, sprawls.</div>
+      </div>
+
+      <div class="plan-block" data-slot="rope1" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Light rope tempo. Coach transitions group.</div>
+      </div>
+
+      <div class="plan-block red" data-slot="top" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Top — Call-Out</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Breakdowns, rides, turns.</div>
+      </div>
+
+      <div class="plan-block" data-slot="rope2" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Stay hot.</div>
+      </div>
+
+      <div class="plan-block red" data-slot="bottom" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Bottom — Call-Out</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">First move, standups, clear.</div>
+      </div>
+
+      <div class="plan-block" data-slot="rope3" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Breathing check.</div>
+      </div>
+
+      <div class="plan-block red" data-slot="play" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Play Wrestle / Match IQ</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Flow live, situational, score-to-win.</div>
+      </div>
+
+      <div class="plan-block" data-slot="hardgo" data-minutes="6">
+        <div class="block-head-row">
+          <span class="block-title">Hard Go / Sprints</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="6" class="min-input">
+            <button class="mini-play" title="start">▶</button>
+            <button class="mini-stop" title="stop">■</button>
+            <span class="mini-clock">06:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">20-sec gos, mat sprints, open lungs.</div>
+      </div>
+
+      <div class="plan-block">
+        <div class="block-head-row">
+          <span class="block-title">Hydrate / Stretch (Untimed)</span>
+        </div>
+        <div class="slot" contenteditable="true">Water, shake out, stay loose.</div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button onclick="loadDefault()">Load Arena Flow 45</button>
+      <button onclick="savePlan()">Save Clipboard</button>
+      <span id="saveStatus" class="muted">Not saved.</span>
+    </div>
+  </main>
+
+  <script>
+    function applyArenaTheme(theme){
+      const isDay = theme === "day";
+      document.body.classList.toggle("theme-day", isDay);
+      const btn = document.getElementById("themeToggle");
+      if (btn) btn.textContent = isDay ? "Night mode" : "Day mode";
+      localStorage.setItem("arenaClipboardTheme", theme);
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+      const saved = localStorage.getItem("arenaClipboardTheme") || "night";
+      applyArenaTheme(saved);
+
+      const btn = document.getElementById("themeToggle");
+      if (btn){
+        btn.addEventListener("click", () => {
+          const next = document.body.classList.contains("theme-day") ? "night" : "day";
+          applyArenaTheme(next);
+        });
+      }
+    });
+  </script>
+
+  <script type="module">
+    import { db, doc, setDoc, serverTimestamp } from "/assets/js/firebase-init.js";
+
+    const totalTimeEl = document.getElementById("totalTime");
+    const saveStatusEl = document.getElementById("saveStatus");
+
+    function recalcTotal(){
+      const mins = [...document.querySelectorAll("[data-minutes]")]
+        .reduce((sum,b)=>sum+Number(b.dataset.minutes||0),0);
+
+      totalTimeEl.textContent = "Total timed: " + String(mins).padStart(2,"0") + ":00";
+      totalTimeEl.classList.toggle("over", mins > 60);
+    }
+
+    document.addEventListener("input", e=>{
+      const inp = e.target.closest(".min-input");
+      if(!inp) return;
+      const blk = inp.closest(".plan-block");
+      if (inp.readOnly) return;
+
+      let v = Number(inp.value||0);
+      if (v < 1) v = 1;
+      if (v > 30) v = 30;
+      inp.value = v;
+      blk.dataset.minutes = v;
+
+      const clock = blk.querySelector(".mini-clock");
+      if (clock){
+        const mm = String(v).padStart(2,"0");
+        clock.textContent = mm + ":00";
+      }
+      recalcTotal();
+    });
+
+    const miniTimers = new Map();
+
+    function toClock(sec){
+      const m = Math.floor(sec/60);
+      const s = sec%60;
+      return String(m).padStart(2,"0")+":"+String(s).padStart(2,"0");
+    }
+
+    document.addEventListener("click", e=>{
+      const play = e.target.closest(".mini-play");
+      const stop = e.target.closest(".mini-stop");
+
+      if (play){
+        const head = play.closest(".block-head-row");
+        const inp  = head.querySelector(".min-input");
+        const clock= head.querySelector(".mini-clock");
+        const mins = Number(inp.value||0);
+        const totalSecs = mins*60;
+
+        if (miniTimers.has(head)){
+          clearInterval(miniTimers.get(head));
+        }
+
+        let left = totalSecs;
+        clock.textContent = toClock(left);
+
+        const id = setInterval(()=>{
+          left--;
+          if (left <= 0){
+            left = 0;
+            clearInterval(id);
+          }
+          clock.textContent = toClock(left);
+        },1000);
+
+        miniTimers.set(head, id);
+      }
+
+      if (stop){
+        const head = stop.closest(".block-head-row");
+        const inp  = head.querySelector(".min-input");
+        const clock= head.querySelector(".mini-clock");
+
+        if (miniTimers.has(head)){
+          clearInterval(miniTimers.get(head));
+        }
+
+        const mins = Number(inp.value||0);
+        clock.textContent = toClock(mins*60);
+      }
+    });
+
+    window.loadDefault = function(){
+      saveStatusEl.textContent = "Arena Flow 45 loaded (not saved).";
+      recalcTotal();
+    };
+
+    window.savePlan = async function(){
+      const payload = {
+        bleacher: document.querySelector("#planBlocks .plan-block:nth-child(1) .slot").textContent.trim(),
+        warmup: document.getElementById("planBlocks").querySelector('[data-slot="warmup"] .slot').textContent.trim(),
+        neutral: document.getElementById("planBlocks").querySelector('[data-slot="neutral"] .slot').textContent.trim(),
+        top: document.getElementById("planBlocks").querySelector('[data-slot="top"] .slot').textContent.trim(),
+        bottom: document.getElementById("planBlocks").querySelector('[data-slot="bottom"] .slot').textContent.trim(),
+        play: document.getElementById("planBlocks").querySelector('[data-slot="play"] .slot').textContent.trim(),
+        hardgo: document.getElementById("planBlocks").querySelector('[data-slot="hardgo"] .slot').textContent.trim(),
+        hydrate: document.querySelector("#planBlocks .plan-block:last-child .slot").textContent.trim(),
+        blocks: [...document.querySelectorAll("[data-slot]")].map(b=>({
+          slot: b.dataset.slot,
+          minutes: Number(b.dataset.minutes||0)
+        })),
+        updatedAt: serverTimestamp(),
+        source: "arena-flow-clipboard"
+      };
+
+      const key = new Date().toISOString().slice(0,10) + "-arena-flow";
+      await setDoc(doc(db,"practicePlans", key), payload, { merge:true });
+      saveStatusEl.textContent = "Saved.";
+    };
+
+    window.openTimerWindow = function(){
+      const key = new Date().toISOString().slice(0,10) + "-arena-flow";
+      const url = `/timer-engine/sandman_timer_engine.html?plan=${encodeURIComponent(key)}`;
+      const w = window.open(url, "sandmanTimer", "width=760,height=820");
+      if (w) w.focus();
+    };
+
+    window.runArenaFlow = function(){
+      const key = new Date().toISOString().slice(0,10) + "-arena-flow";
+      const url = `/timer-engine/sandman_timer_engine.html?plan=${encodeURIComponent(key)}`;
+
+      const w = window.open(url, "sandmanTimer", "width=760,height=820");
+      if (!w) return;
+
+      setTimeout(() => {
+        if (w.startSandmanPlan) {
+          w.startSandmanPlan(key);
+        }
+      }, 700);
+    };
+
+    recalcTotal();
+  </script>
+</body>
+</html>

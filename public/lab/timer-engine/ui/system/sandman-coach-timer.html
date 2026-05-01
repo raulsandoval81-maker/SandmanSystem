@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<title>Sandman Coach Timer</title>
+
+<link rel="stylesheet" href="./sandman-coach-timer.css">
+</head>
+
+<body class="safe">
+
+<header>
+  <h1>Sandman Timer — Coach</h1>
+  <div class="toolbar">
+    <span class="chip" id="themeToggle">Team colors</span>
+    <span class="chip" id="stageToggle">Big clock</span>
+    <button id="gearBtn" class="gear" aria-label="Settings">⚙️</button>
+  </div>
+</header>
+
+<div id="settings" class="card" style="display:none;position:fixed;right:12px;top:56px;z-index:4;width:92vw;max-width:360px">
+  <div style="font-weight:700;margin-bottom:8px">Settings</div>
+
+  <div class="row">
+    <div>
+      <label for="colorMode">Color Mode</label>
+      <input type="checkbox" id="colorMode" />
+    </div>
+    <div>
+      <label for="voiceToggle">Voice</label>
+      <select id="voiceToggle">
+        <option value="on">On</option>
+        <option value="off">Off</option>
+      </select>
+    </div>
+  </div>
+
+  <label for="audioMode">Audio</label>
+  <select id="audioMode">
+    <option value="voiceWhistle">Voice + Whistle</option>
+    <option value="voice">Voice</option>
+    <option value="whistle">Whistle</option>
+    <option value="bell">Bell</option>
+    <option value="none">None</option>
+  </select>
+
+  <div class="row" style="margin-top:10px">
+    <div>
+      <label for="countdownMode">Countdown</label>
+      <select id="countdownMode">
+        <option value="standard">Standard</option>
+        <option value="none">None</option>
+      </select>
+    </div>
+    <div>
+      <label for="volume">Volume</label>
+      <input id="volume" type="range" min="0" max="1" step="0.1" value="0.9" />
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:10px">
+    <button id="defaultsBtn" class="btn btn-grey" style="font-size:16px">Reset</button>
+    <button id="closeSettings" class="btn btn-red" style="font-size:16px">Close</button>
+  </div>
+</div>
+
+<main>
+
+  <section class="card">
+
+    <div class="trainer-panel">
+      <div class="trainer-chip"><span class="k">Track</span><span class="v" id="trainerTrack">—</span></div>
+      <div class="trainer-chip"><span class="k">Tier</span><span class="v" id="trainerTier">—</span></div>
+      <div class="trainer-chip"><span class="k">Mode</span><span class="v" id="trainerMode">—</span></div>
+      <div class="trainer-chip"><span class="k">Sequence</span><span class="v" id="trainerSequence">—</span></div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="concept">Concept</label>
+        <select id="concept"></select>
+      </div>
+      <div>
+        <label for="preset">Preset</label>
+        <select id="preset"></select>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label for="prompts">Custom prompts at each whistle</label>
+        <input id="prompts" placeholder="comma-separated, optional" inputmode="text" />
+      </div>
+      <div>
+        <label for="roundsInput">Rounds</label>
+        <input id="roundsInput" type="number" min="1" value="1" inputmode="numeric" />
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:10px">
+      <div>
+        <label for="restInput">Rest between rounds (sec)</label>
+        <input id="restInput" type="number" min="0" value="0" inputmode="numeric" />
+      </div>
+      <div>
+        <label>Status</label>
+        <div id="sub">
+          <span id="status">idle</span>
+          <span id="intervalPill"> • next whistle: <span id="intervalClock">—</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <div id="clock">00:00</div>
+
+      <div class="controls">
+        <button id="startBtn" class="btn btn-green">Start</button>
+        <button id="pauseBtn" class="btn btn-grey">Pause</button>
+        <button id="resetBtn" class="btn btn-red">Stop</button>
+      </div>
+    </div>
+
+  </section>
+
+  <section class="card">
+    <label>Run log</label>
+    <div id="log"></div>
+  </section>
+
+</main>
+
+
+<script src="/lab/timer-engine/engine/sandman-timer-engine.js"></script>
+<script src="/lab/timer-engine/ui/coach/sandman-coach-timer.js"></script>
+</body>
+</html>

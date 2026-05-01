@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arena Review</title>
+  <link rel="stylesheet" href="/lab/arena-console/review/review.css" />
+</head>
+
+<body>
+<main class="wrap">
+  <nav class="top">
+    <a href="/lab/arena-console/arena-console.html">Arena Console</a>
+    <a href="/lab/arena-console/record/record.html">Record</a>
+  </nav>
+
+  <h1>Arena Review</h1>
+  <p class="muted">Video, events, stats, and coach notes.</p>
+
+  <section class="card">
+    <h2>Match Video</h2>
+    <video id="video" controls playsinline></video>
+    <div id="matchInfo" class="muted">Loading match...</div>
+  </section>
+  
+
+  <section class="card">
+    <h2>Stats</h2>
+    <div id="stats"></div>
+  </section>
+
+  <section class="bout-card">
+  <h2>Bout Board</h2>
+  <div id="boutBoard" class="bout-board"></div>
+</section>
+
+  <section class="card">
+    <h2>Event Timeline</h2>
+    <div id="events"></div>
+  </section>
+
+  <section class="card">
+    <h2>Coach Notes</h2>
+    <textarea id="notes" placeholder="1 win. 1 fix. Keep it short."></textarea>
+    <button id="saveNotes">Save Notes</button>
+    <div id="status" class="muted">Ready.</div>
+  </section>
+</main>
+
+<script type="module" src="/lab/arena-console/review/review.js"></script>
+</body>
+</html>

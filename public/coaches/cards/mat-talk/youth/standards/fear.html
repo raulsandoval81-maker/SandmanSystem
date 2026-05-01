@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>F.E.A.R | Mat Talk</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+
+<main class="wrap">
+
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>F.E.A.R.</h1>
+    <p class="muted">Standards</p>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="card-body">
+
+    <div class="card-section">
+      <h3>On-Mat</h3>
+      <p>Focus. Effort. Attitude. Respect.</p>
+      <p class="muted">That’s the standard every day.</p>
+    </div>
+
+    <div class="card-section">
+      <h3>Off-Mat</h3>
+      <p>Did you bring focus, effort, attitude, and respect today?</p>
+      <p class="muted">Those four decide who you become.</p>
+    </div>
+
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="card-actions">
+
+    <button
+      data-card-id="standards-fear-01"
+      data-title="F.E.A.R."
+      data-category="mat-talk"
+      data-lane="onmat"
+    >
+      Add to On-Mat
+    </button>
+
+    <button
+      data-card-id="standards-fear-01"
+      data-title="F.E.A.R."
+      data-category="mat-talk"
+      data-lane="offmat"
+    >
+      Add to Off-Mat
+    </button>
+
+  </div>
+
+  <!-- BACK -->
+  <div style="margin-top:20px;">
+    <a href="/coaches/cards/">← Back to Cards</a>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  const key = "sandman_clipboard_v1";
+
+  function getClipboard() {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveClipboard(data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function buildCard(btn) {
+    return {
+      id: btn.dataset.cardId,
+      title: btn.dataset.title,
+      category: btn.dataset.category,
+      lane: btn.dataset.lane,
+      minutes: 0,
+      timer: null,
+      timerMode: null,
+      href: window.location.pathname
+    };
+  }
+
+  document.querySelectorAll("[data-card-id]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const data = getClipboard();
+      const card = buildCard(btn);
+
+      data.push(card);
+      saveClipboard(data);
+
+      btn.textContent = "Added";
+      setTimeout(() => (btn.textContent = btn.dataset.lane === "onmat" ? "Add to On-Mat" : "Add to Off-Mat"), 1000);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,254 +1,70 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Para-Comms Hub</title>
-
-  <link rel="stylesheet" href="/communications/shared/comms.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Communications | Sandman</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
 
   <style>
-    :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --line:#27304a;
-      --gold:#ffdd48;
-      --text:#f0f4f8;
-      --muted:#9aa4b1;
-      --hover:#152449;
-    }
-
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-
-    /* Header */
-    .pc-header{
-      background:#04173a;
-      color:var(--gold);
-      border-bottom:1px solid rgba(255,255,255,0.10);
-      padding:14px 16px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      position:sticky;
-      top:0;
-      z-index:10;
-    }
-
-    .pc-header h1{
-      margin:0;
-      font-size:1.05rem;
-      letter-spacing:.06em;
-      font-weight:900;
-      text-transform:uppercase;
-      color:var(--gold);
-      text-align:center;
-      flex:1;
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
-    }
-
-    .pc-back, .pc-home{
-      color:var(--gold);
-      font-size:.9rem;
-      text-decoration:none;
-      font-weight:800;
-      white-space:nowrap;
-      opacity:.95;
-    }
-    .pc-back:hover, .pc-home:hover{ text-decoration:underline; }
-
-    .wrap{
-      max-width:960px;
-      margin:0 auto;
-      padding:22px 16px 56px;
-    }
-
-    /* Hero */
-    .hero{
-      background:linear-gradient(160deg,#0a1833 0%, #111c35 100%);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:18px 16px;
-      box-shadow:0 8px 22px rgba(0,0,0,.35);
-      margin-bottom:16px;
-    }
-    .hero-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      margin-bottom:10px;
-      flex-wrap:wrap;
-    }
-    .hero-kicker{
-      color:var(--muted);
-      font-weight:800;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-      font-size:.78rem;
-    }
-    .hero-badge{
-      background:rgba(255,221,72,.12);
-      border:1px solid rgba(255,221,72,.25);
-      color:var(--gold);
-      font-weight:900;
-      font-size:.72rem;
-      padding:4px 10px;
-      border-radius:999px;
-      white-space:nowrap;
-    }
-    .hero-title{
-      margin:0;
-      color:var(--gold);
-      font-size:1.55rem;
-      letter-spacing:.02em;
-      text-transform:uppercase;
-      font-weight:950;
-      line-height:1.15;
-    }
-    .hero-sub{
-      margin:.55rem 0 0;
-      color:#cbd5e1;
-      font-size:.98rem;
-      line-height:1.4;
-      opacity:.95;
-    }
-
-    /* Grid */
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0,1fr));
-      gap:14px;
-      margin-top:14px;
-    }
-
-    .pc-card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:18px 18px 16px;
-      transition:.22s;
-      box-shadow:0 4px 14px rgba(0,0,0,.30);
-      text-decoration:none;
-      color:inherit;
-      display:block;
-    }
-    .pc-card:hover{
-      background:var(--hover);
-      border-color:var(--gold);
-      transform:translateY(-2px);
-    }
-
-    .pc-card h2{
-      margin:0 0 6px;
-      color:var(--gold);
-      font-size:1.05rem;
-      letter-spacing:.02em;
-      font-weight:900;
-    }
-    .pc-card p{
-      margin:0;
-      color:#cbd5e1;
-      font-size:.92rem;
-      line-height:1.35;
-      opacity:.95;
-    }
-    .pc-arrow{
-      margin-top:10px;
-      color:var(--gold);
-      font-weight:900;
-      font-size:.9rem;
-      display:inline-flex;
-      gap:6px;
-      align-items:center;
-    }
-
-    /* Footer */
-    .footer{
-      margin-top:22px;
-      padding-top:18px;
-      border-top:1px solid rgba(255,255,255,.08);
-      color:var(--muted);
-      font-size:.85rem;
-      text-align:center;
-    }
-
-    @media(max-width:720px){
-      .grid{ grid-template-columns:1fr; }
-      .hero-title{ font-size:1.35rem; }
-      .wrap{ padding:18px 12px 46px; }
-    }
+    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
+    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
+    h1{margin:0;color:var(--gold);font-size:2rem}
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
+    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
+    .pill.primary{background:var(--red);border-color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
+    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
+    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
+    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
   </style>
 </head>
 
 <body>
-
-<header class="pc-header">
-  <a class="pc-back" href="/parent/hub.html">← Back</a>
-  <h1>Para-Comms Hub</h1>
-  <a class="pc-home" href="/coach/index.html">🏠</a>
-</header>
-
 <main class="wrap">
+  <header class="hero">
+    <h1>Communications</h1>
+    <p>Role-based messaging for coaches, parents, athletes, and shared communication tools.</p>
 
-  <section class="hero">
-    <div class="hero-top">
-      <div class="hero-kicker">Sandman Parents</div>
-      <div class="hero-badge">EN / SP • Mobile Ready</div>
-    </div>
-
-    <h2 class="hero-title">Communication Center</h2>
-    <p class="hero-sub">
-      Parent ↔ Coach messages, announcements, and bilingual tools — clean, fast, organized.
-    </p>
-  </section>
+    <nav class="topnav">
+      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
+      <a class="pill" href="/coaches/index.html">Daily Tools</a>
+      <a class="pill" href="/coaches/support/index.html">Support</a>
+    </nav>
+  </header>
 
   <section class="grid">
-
-    <!-- Admin / Coach Console -->
-    <a class="pc-card" href="/communications/coach/index.html">
-      <h2>Admin Console</h2>
-      <p>Coach tools: inbox, message builder, announcements, volunteer/admin utilities.</p>
-      <div class="pc-arrow">Open →</div>
+    <a class="card" href="/communications/coach/">
+      <h2>Coach</h2>
+      <p>Coach inbox, threads, parent messages, and communication tools.</p>
     </a>
 
-    <!-- Parent Portal -->
-    <a class="pc-card" href="/communications/parent/index.html">
-      <h2>Parent Portal</h2>
-      <p>Announcements feed, schedule tools, and message coach.</p>
-      <div class="pc-arrow">Open →</div>
+    <a class="card" href="/communications/parent/">
+      <h2>Parent</h2>
+      <p>Parent-facing inbox, updates, and family communication layer.</p>
     </a>
 
-    <!-- Parent Announcements -->
-    <a class="pc-card" href="/communications/parent/announcements-feed.html">
-      <h2>Announcements</h2>
-      <p>Official updates, reminders, and event-day notices.</p>
-      <div class="pc-arrow">View →</div>
+    <a class="card" href="/communications/athlete/">
+      <h2>Athlete</h2>
+      <p>Athlete-facing updates, messages, and communication access.</p>
     </a>
 
-    <!-- Post Announcement (Admin) -->
-    <a class="pc-card" href="/communications/coach/announcements-post.html">
-      <h2>Post Announcement</h2>
-      <p>Create bilingual posts and publish them to the parent feed.</p>
-      <div class="pc-arrow">Post →</div>
+    <a class="card" href="/communications/shared/">
+      <h2>Shared</h2>
+      <p>Shared communication pages and reusable role-based surfaces.</p>
     </a>
 
+    <a class="card" href="/communications/includes/">
+      <h2>Includes</h2>
+      <p>Reusable communication components and shared include files.</p>
+    </a>
   </section>
-
-  <div class="footer">
-    Para-Comms is a pilot layer inside Sandman Systems™ — built for clarity and speed.
-  </div>
-
 </main>
-
 </body>
 </html>

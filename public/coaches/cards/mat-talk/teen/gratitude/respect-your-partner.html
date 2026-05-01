@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mat Talk | Respect Your Partner</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/cards/shared/card-shared.css" />
+  <link rel="stylesheet" href="/coaches/cards/mat-talk/shared/mat-talk-shared.css" />
+</head>
+<body>
+
+<main class="card-wrap">
+
+  <div class="card-header">
+    <div class="card-eyebrow">Mat Talk • Gratitude</div>
+    <h1 class="card-title">Respect Your Partner</h1>
+    <p class="card-sub">One click adds this to On-Mat and Off-Mat.</p>
+  </div>
+
+  <div class="card-toolbar">
+    <a href="/coaches/execution/daily-clipboard/">← Clipboard</a>
+    <a href="/coaches/cards/mat-talk/teen/index.html">Teen Mat Talk</a>
+    <a href="/coaches/cards/master/index.html">Cards</a>
+  </div>
+
+  <div class="card-body">
+    <div class="card-section">
+      <h2>On-Mat</h2>
+      <p class="card-line">Your partner helps you grow.</p>
+      <p class="card-note">You need them to improve.</p>
+    </div>
+
+    <div class="card-section">
+      <h2>Off-Mat</h2>
+      <p class="card-line">Did you help your partner get better today?</p>
+      <p class="card-note">Better partners build better athletes.</p>
+    </div>
+  </div>
+
+  <div class="card-actions">
+    <button id="addMatTalkBtn" type="button">+ Add Mat Talk</button>
+    <span id="addStatus" class="card-status" aria-live="polite"></span>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  const key = "sandman_clipboard_v1";
+  const btn = document.getElementById("addMatTalkBtn");
+  const status = document.getElementById("addStatus");
+
+  if (!btn) return;
+
+  function loadClipboard() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(key) || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveClipboard(items) {
+    localStorage.setItem(key, JSON.stringify(items));
+  }
+
+  function exists(items, id, lane) {
+    return items.some(item => item.id === id && item.lane === lane);
+  }
+
+  function showStatus(message) {
+    status.textContent = message;
+  }
+
+  function syncButtonState() {
+    const items = loadClipboard();
+    const baseId = "gratitude-partner-01";
+    const hasOnmat = exists(items, baseId, "onmat");
+    const hasOffmat = exists(items, baseId, "offmat");
+
+    if (hasOnmat && hasOffmat) {
+      btn.textContent = "Added";
+      btn.disabled = true;
+      showStatus("Already added to On-Mat and Off-Mat.");
+    }
+  }
+
+  btn.addEventListener("click", () => {
+    const items = loadClipboard();
+    const baseId = "gratitude-partner-01";
+    const title = "Respect Your Partner";
+    const href = window.location.pathname;
+
+    const onmatCard = {
+      id: baseId,
+      title,
+      category: "mat-talk",
+      lane: "onmat",
+      assignTo: "onmat",
+      minutes: 0,
+      href
+    };
+
+    const offmatCard = {
+      id: baseId,
+      title,
+      category: "mat-talk",
+      lane: "offmat",
+      assignTo: "offmat",
+      minutes: 0,
+      href
+    };
+
+    let added = 0;
+
+    if (!exists(items, baseId, "onmat")) {
+      items.push(onmatCard);
+      added++;
+    }
+
+    if (!exists(items, baseId, "offmat")) {
+      items.push(offmatCard);
+      added++;
+    }
+
+    saveClipboard(items);
+
+    if (added === 0) {
+      btn.textContent = "Added";
+      btn.disabled = true;
+      showStatus("Already added to On-Mat and Off-Mat.");
+      return;
+    }
+
+    btn.textContent = "Added";
+    btn.disabled = true;
+    showStatus("Added to On-Mat and Off-Mat.");
+  });
+
+  syncButtonState();
+})();
+</script>
+
+</body>
+</html>

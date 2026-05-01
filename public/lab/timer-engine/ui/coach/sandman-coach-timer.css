@@ -1,0 +1,240 @@
+:root{
+  --bg:#000000;
+  --panel:#0b0b0b;
+  --panel-2:#111111;
+  --line:#2a2a2a;
+  --text:#f5f5f5;
+  --muted:#9a9a9a;
+  --gold:#d7b26d;
+  --danger:#b22222;
+  --shadow:0 14px 40px rgba(0,0,0,.45);
+
+  --go-box:#008f11;
+  --short-box:#d4aa00;
+  --stop-box:#cc0000;
+
+  --go-line:#3cff57;
+  --short-line:#ffe15a;
+  --stop-line:#ff4d4d;
+}
+
+/* ===== BASE ===== */
+
+*{ box-sizing:border-box; }
+
+html, body{
+  margin:0;
+  padding:0;
+  background:#000;
+  color:var(--text);
+  font-family:Arial,Helvetica,sans-serif;
+}
+
+body.theme-day{
+  --panel:#ffffff;
+  --panel-2:#f5f5f5;
+  --line:#d0d0d0;
+  --text:#111;
+  --muted:#666;
+  background:#f2f2f2;
+}
+
+/* ===== HEADER ===== */
+
+header{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+}
+
+h1{
+  font-size:20px;
+  margin:0;
+}
+
+.toolbar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+}
+
+.chip{
+  padding:6px 10px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--panel);
+  font-size:12px;
+  cursor:pointer;
+}
+
+/* ===== LAYOUT ===== */
+
+main{
+  max-width:720px;
+  margin:auto;
+  padding:14px;
+}
+
+.card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:14px;
+  margin-bottom:14px;
+  box-shadow:var(--shadow);
+}
+
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+label{
+  font-size:12px;
+  color:var(--muted);
+  margin-bottom:4px;
+  display:block;
+}
+
+/* ===== TRAINER PANEL ===== */
+
+.trainer-panel{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-bottom:12px;
+}
+
+.trainer-chip{
+  background:#0a0a0a;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:8px 10px;
+  display:flex;
+  justify-content:space-between;
+  font-size:13px;
+}
+
+.trainer-chip .k{ color:var(--muted); }
+.trainer-chip .v{ font-weight:700; }
+
+/* ===== INPUTS ===== */
+
+input, select{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:#0d0d0d;
+  color:#fff;
+  font-size:14px;
+}
+
+/* ===== CLOCK ===== */
+
+#clock{
+  text-align:center;
+  font-size:clamp(110px,24vw,220px);
+  font-weight:900;
+  margin:12px 0;
+  letter-spacing:.05em;
+}
+
+#status{
+  font-size:12px;
+  text-transform:uppercase;
+  color:var(--muted);
+}
+
+/* ===== STATE COLORS ===== */
+
+body.go #clock{ color:var(--go-line); }
+body.short #clock{ color:var(--short-line); }
+body.stop #clock{ color:var(--stop-line); }
+
+/* ===== BUTTONS ===== */
+
+.controls{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:10px;
+}
+
+.btn{
+  background:#111;
+  color:#fff;
+  border:1px solid #333;
+  border-radius:16px;
+  padding:16px;
+  font-size:16px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.1s ease;
+}
+
+.btn:active{ transform:scale(.97); }
+
+.btn-green{ border-color:#22c55e; }
+.btn-red{ border-color:#ef4444; }
+.btn-grey{ border-color:#555; }
+
+/* ===== LOG ===== */
+
+#log{
+  margin-top:10px;
+  max-height:160px;
+  overflow:auto;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--line);
+  background:#050505;
+  font-family:monospace;
+  font-size:12px;
+  color:#bbb;
+}
+
+/* ===== SETTINGS ===== */
+
+#settings{
+  position:fixed;
+  right:10px;
+  top:60px;
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  z-index:10;
+}
+
+/* ===== STAGE MODE ===== */
+
+body.stage .trainer-panel,
+body.stage #log{
+  display:none;
+}
+
+body.stage main{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  height:100vh;
+}
+
+body.stage #clock{
+  font-size:clamp(180px,34vw,380px);
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media(min-width:700px){
+  .trainer-panel{
+    grid-template-columns:repeat(4,1fr);
+  }
+
+  .controls{
+    grid-template-columns:repeat(3,1fr);
+  }
+}

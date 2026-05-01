@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Conditioning | Partner</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/cards/shared/execution.css" />
+</head>
+<body>
+
+<main class="wrap">
+
+  <div class="page-header">
+    <h1>Partner Strength</h1>
+    <p class="muted">Tap to add to Conditioning.</p>
+  </div>
+
+  <div class="toplinks">
+    <a href="/coaches/execution/daily-clipboard/">← Back to Clipboard</a>
+    <a href="/coaches/cards/conditioning/index.html">Conditioning Hub</a>
+    <a href="/coaches/cards/master/index.html">Cards Hub</a>
+  </div>
+
+  <ul class="exec-list">
+    <li class="exec-item" data-cond="Partner Carry">Partner Carry</li>
+    <li class="exec-item" data-cond="Fireman Carry Walk">Fireman Carry Walk</li>
+    <li class="exec-item" data-cond="Piggyback Carry">Piggyback Carry</li>
+    <li class="exec-item" data-cond="Partner Push">Partner Push</li>
+    <li class="exec-item" data-cond="Partner Pull">Partner Pull</li>
+    <li class="exec-item" data-cond="Resistance Shots">Resistance Shots</li>
+    <li class="exec-item" data-cond="Hand Fight Grind">Hand Fight Grind</li>
+    <li class="exec-item" data-cond="Snap & Go Reps">Snap &amp; Go Reps</li>
+    <li class="exec-item" data-cond="Spin Behind Repeats">Spin Behind Repeats</li>
+    <li class="exec-item" data-cond="Live Hold Pressure">Live Hold Pressure</li>
+    <li class="exec-item" data-cond="Top Ride Pressure">Top Ride Pressure</li>
+    <li class="exec-item" data-cond="Bottom Escape Reps">Bottom Escape Reps</li>
+  </ul>
+
+</main>
+
+<script>
+(function () {
+  const key = "sandman_clipboard_v1";
+  const MAX_COND = 4;
+
+  function getClipboard() {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveClipboard(data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function slugify(value) {
+    return value.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function countInLane(data, lane) {
+    const cleanLane = String(lane || "").toLowerCase().trim();
+    return data.filter(item =>
+      String(item.lane || "").toLowerCase().trim() === cleanLane
+    ).length;
+  }
+
+  function showStatus(message) {
+    let el = document.getElementById("statusMessage");
+
+    if (!el) {
+      el = document.createElement("div");
+      el.id = "statusMessage";
+      el.style.position = "fixed";
+      el.style.bottom = "20px";
+      el.style.left = "50%";
+      el.style.transform = "translateX(-50%)";
+      el.style.background = "#121a2b";
+      el.style.border = "1px solid #27304a";
+      el.style.color = "#fff";
+      el.style.padding = "10px 16px";
+      el.style.borderRadius = "10px";
+      el.style.fontWeight = "800";
+      el.style.zIndex = "9999";
+      document.body.appendChild(el);
+    }
+
+    el.textContent = message;
+    el.style.opacity = "1";
+
+    clearTimeout(el._timer);
+    el._timer = setTimeout(() => {
+      el.style.opacity = "0";
+    }, 1500);
+  }
+
+  function markExistingItems() {
+    const data = getClipboard();
+
+    document.querySelectorAll("[data-cond]").forEach(el => {
+      const title = el.dataset.cond;
+      const id = "cond-" + slugify(title);
+
+      const exists = data.some(item =>
+        item.id === id &&
+        String(item.lane || "").toLowerCase().trim() === "cond"
+      );
+
+      if (exists) el.classList.add("added");
+    });
+  }
+
+  document.querySelectorAll("[data-cond]").forEach(el => {
+    el.addEventListener("click", () => {
+      const title = el.dataset.cond;
+      const id = "cond-" + slugify(title);
+      const lane = "cond";
+      const data = getClipboard();
+
+      const exists = data.some(item =>
+        item.id === id &&
+        String(item.lane || "").toLowerCase().trim() === lane
+      );
+
+      if (exists) {
+        el.classList.add("added");
+        showStatus(title + " already added.");
+        return;
+      }
+
+      const count = countInLane(data, lane);
+
+      if (count >= MAX_COND) {
+        showStatus("Max 4 items in Conditioning.");
+        return;
+      }
+
+      data.push({
+        id,
+        title,
+        category: "conditioning",
+        lane,
+        assignTo: lane,
+        minutes: 0,
+        href: window.location.pathname
+      });
+
+      saveClipboard(data);
+
+      el.classList.add("added");
+      showStatus(title + " added.");
+    });
+  });
+
+  markExistingItems();
+})();
+</script>
+
+</body>
+</html>

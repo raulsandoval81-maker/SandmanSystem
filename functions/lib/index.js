@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ---- Health / Debug
@@ -65,3 +65,9 @@ var consumeOnboardingToken_1 = require("./modules/consumeOnboardingToken");
 Object.defineProperty(exports, "consumeOnboardingToken", { enumerable: true, get: function () { return consumeOnboardingToken_1.consumeOnboardingToken; } });
 var onboardingConfirmStep1_1 = require("./onboardingConfirmStep1");
 Object.defineProperty(exports, "onboardingConfirmStep1", { enumerable: true, get: function () { return onboardingConfirmStep1_1.onboardingConfirmStep1; } });
+// ---- Communications (forms / intake)
+var forms_1 = require("./handlers/forms");
+Object.defineProperty(exports, "submitContact", { enumerable: true, get: function () { return forms_1.submitContact; } });
+Object.defineProperty(exports, "submitVolunteer", { enumerable: true, get: function () { return forms_1.submitVolunteer; } });
+var sendGatekeeperEmail_1 = require("./modules/sendGatekeeperEmail");
+Object.defineProperty(exports, "sendGatekeeperEmail", { enumerable: true, get: function () { return sendGatekeeperEmail_1.sendGatekeeperEmail; } });

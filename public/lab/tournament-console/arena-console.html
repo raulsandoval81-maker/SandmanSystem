@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Arena Console | Sandman Lab</title>
+
+  <link rel="stylesheet" href="/lab/arena-console/shared/arena-console.css" />
+  <link rel="stylesheet" href="/lab/arena-console/arena-console.css" />
+</head>
+
+<body>
+<main class="wrap">
+
+  <!-- NAV -->
+  <header class="top">
+    <a class="pill" href="/lab/arena-console/">Arena Home</a>
+    <a class="pill" href="/lab/arena-console/record/record.html">Record</a>
+    <a class="pill" href="/lab/arena-console/review/review.html">Review</a>
+  </header>
+
+  <!-- MATCH HEAD -->
+  <section class="match-head">
+    <input id="athleteName" value="Sandman Athlete" />
+    <span class="vs">VS</span>
+    <input id="opponentName" value="Opponent" />
+  </section>
+
+  <!-- SCOREBOARD -->
+  <section class="scoreboard">
+    <div class="side red">
+      <div class="side-label">RED</div>
+      <div id="redScore" class="score">0</div>
+    </div>
+
+    <div class="center">
+      <div id="periodLabel" class="period">Period 1</div>
+      <div id="clock" class="clock">02:00</div>
+
+      <div class="clock-controls">
+        <button id="startClock">Start</button>
+        <button id="pauseClock">Pause</button>
+        <button id="resetClock">Reset</button>
+      </div>
+    </div>
+
+    <div class="side green">
+      <div class="side-label">GREEN</div>
+      <div id="greenScore" class="score">0</div>
+    </div>
+  </section>
+
+  <!-- SCORING -->
+  <section class="actions">
+
+    <!-- RED -->
+    <div class="action-col">
+      <h2>Red</h2>
+      <div class="grid">
+        <button data-side="red" data-code="td3">TD +3</button>
+        <button data-side="red" data-code="esc1">ESC +1</button>
+        <button data-side="red" data-code="rev2">REV +2</button>
+
+        <button data-side="red" data-code="nf2">NF +2</button>
+        <button data-side="red" data-code="nf3">NF +3</button>
+        <button data-side="red" data-code="nf4">NF +4</button>
+
+        <button data-side="red" data-code="pen1">PEN +1</button>
+        <button data-side="red" data-code="pen2">PEN +2</button>
+
+        <button data-side="red" data-code="stallWarn">STALL ⚠️</button>
+        <button data-side="red" data-code="stall1">STALL +1</button>
+        <button data-side="red" data-code="stall2">STALL +2</button>
+      </div>
+    </div>
+
+    <!-- GREEN -->
+    <div class="action-col">
+      <h2>Green</h2>
+      <div class="grid">
+        <button data-side="green" data-code="td3">TD +3</button>
+        <button data-side="green" data-code="esc1">ESC +1</button>
+        <button data-side="green" data-code="rev2">REV +2</button>
+
+        <button data-side="green" data-code="nf2">NF +2</button>
+        <button data-side="green" data-code="nf3">NF +3</button>
+        <button data-side="green" data-code="nf4">NF +4</button>
+
+        <button data-side="green" data-code="pen1">PEN +1</button>
+        <button data-side="green" data-code="pen2">PEN +2</button>
+
+        <button data-side="green" data-code="stallWarn">STALL ⚠️</button>
+        <button data-side="green" data-code="stall1">STALL +1</button>
+        <button data-side="green" data-code="stall2">STALL +2</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- TOOLS -->
+  <section class="match-tools">
+    <button id="undoBtn">Undo</button>
+    <button id="recordBtn">Record</button>
+    <button id="endMatchBtn" class="danger">End Match</button>
+  </section>
+
+  <!-- ACTION LOG -->
+  <section class="log-card">
+    <h2>Action Log</h2>
+    <div id="actionLog" class="action-log"></div>
+  </section>
+
+</main>
+
+<script type="module" src="/lab/arena-console/arena-console.js"></script>
+</body>
+</html>

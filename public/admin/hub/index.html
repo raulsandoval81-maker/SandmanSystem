@@ -4,8 +4,10 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Admin — Creed · Code · Goal · Mission | Sandman System</title>
+
   <link rel="stylesheet" href="../assets/css/site.css"/>
   <script src="../assets/js/include.js" defer></script>
+
   <style>
     :root { color-scheme: dark; }
 
@@ -48,6 +50,25 @@
       max-width:780px;
     }
 
+    .primary-cta{
+      display:inline-block;
+      margin-top:14px;
+      padding:.6rem 1.2rem;
+      border-radius:999px;
+      background:#e53935;
+      color:#fff;
+      font-weight:900;
+      font-size:.85rem;
+      text-decoration:none;
+      box-shadow:0 0 12px rgba(229,57,53,.35);
+      transition:.15s;
+    }
+
+    .primary-cta:hover{
+      background:#ff4758;
+      transform:translateY(-1px);
+    }
+
     .navrow{
       display:flex;
       justify-content:center;
@@ -70,17 +91,9 @@
       font-size:.8rem;
     }
 
-    .pill:hover,
-    .pill:focus{
+    .pill:hover{
       border-color:#e63946;
       box-shadow:0 0 10px rgba(230,57,70,.35);
-      outline:none;
-    }
-
-    .status{
-      margin-top:12px;
-      color:#94a3b8;
-      font-size:.8rem;
     }
 
     .landing-grid{
@@ -121,32 +134,6 @@
       color:#9ca3af;
       font-size:.82rem;
       line-height:1.45;
-      flex:1;
-    }
-
-    .lane-links{
-      display:flex;
-      flex-direction:column;
-      gap:.5rem;
-      margin-top:.2rem;
-    }
-
-    .lane-links a{
-      color:#e8edf7;
-      text-decoration:none;
-      font-size:.82rem;
-      font-weight:700;
-      background:#101722;
-      border:1px solid #1d2430;
-      border-radius:10px;
-      padding:.6rem .75rem;
-    }
-
-    .lane-links a:hover,
-    .lane-links a:focus{
-      border-color:#ffd633;
-      color:#ffd633;
-      outline:none;
     }
 
     .fine{
@@ -156,19 +143,9 @@
       text-align:center;
       line-height:1.35;
     }
-
-    .section-note{
-      margin-top:20px;
-      background:#0f141b;
-      border:1px solid #1d2430;
-      border-radius:14px;
-      padding:14px 16px;
-      color:#9ca3af;
-      font-size:.8rem;
-      line-height:1.45;
-    }
   </style>
 </head>
+
 <body>
   <div data-include="../assets/includes/header.html"></div>
 
@@ -180,77 +157,52 @@
         Coaches operate the system. Admin protects it.
       </p>
 
+      <a class="primary-cta" href="/admin/hub/dashboard.html">
+        Admin Index
+      </a>
+
       <div class="navrow">
-        <a class="pill" href="index.html">← Back to Admin</a>
         <a class="pill" href="../index.html">Back to Portal</a>
       </div>
 
-      <div class="status" id="hubStatus">Loading admin hub…</div>
-
       <div class="fine">
-        Admin-only structure page. Use this to move with intention, not guesswork.
+        Admin is oversight. This page defines direction — not tools.
       </div>
     </header>
 
-    <section class="landing-grid" id="hub-grid">
+    <section class="landing-grid">
 
       <article class="lane-card">
         <h2>Creed</h2>
         <p>
-          This is the standard. What the system stands for and what it refuses to compromise.
-          If this drifts, everything drifts.
+          The standard. What the system stands for and never compromises.
         </p>
-        <div class="lane-links">
-          <a href="index.html">Admin Index</a>
-          <a href="snapshot.html">Snapshot</a>
-        </div>
       </article>
 
       <article class="lane-card">
         <h2>Code</h2>
         <p>
-          This is how the system is enforced. Rules, structure, and authority live here.
-          No drift, no shortcuts, no exceptions.
+          The rules. Structure, enforcement, and authority.
         </p>
-        <div class="lane-links">
-          <a href="staff.html">Staff & Roles</a>
-          <a href="questionnaire.html">Questionnaire Review</a>
-        </div>
       </article>
 
       <article class="lane-card">
         <h2>Goal</h2>
         <p>
-          This is the now. Active work, decisions, and corrections happen here.
-          What gets done today moves the system forward.
+          The now. Daily execution and forward movement.
         </p>
-        <div class="lane-links">
-          <a href="dashboard.html">Dashboard</a>
-        </div>
       </article>
 
       <article class="lane-card">
         <h2>Mission</h2>
         <p>
-          This is long-range control. Audit, correction, and system health live here.
-          Everything is tracked. Everything is accountable.
+          The long game. Audit, correction, and system health.
         </p>
-        <div class="lane-links">
-          <a href="xp-master-log.html">XP Master Log</a>
-          <a href="snapshot.html">System Snapshot</a>
-        </div>
       </article>
 
-    </section>
-
-    <section class="section-note">
-      This page is a routing layer, not a tool surface. Build tools in their lanes.
-      Keep oversight, correction, and daily operations separate.
     </section>
   </main>
 
   <div data-include="../assets/includes/footer.html"></div>
-
-  <script type="module" src="./hub.service.js"></script>
 </body>
 </html>

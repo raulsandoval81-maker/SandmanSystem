@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Arena Flow Clipboard</title>
+  <link rel="stylesheet" href="/coaches/execution/arena-flow.css"/>
+</head>
+<body>
+  <main class="wrap">
+
+    <div class="page-header">
+      <h1>Arena Flow Clipboard</h1>
+      <button id="themeToggle" class="theme-icon-btn" type="button" aria-label="Toggle theme">◐</button>
+    </div>
+
+    <p class="muted">Competition prep flow. Warm-up → controlled arena → hard finish.</p>
+
+    <div class="topbar">
+      <div class="left-top">
+        <span id="totalTime">Total timed: 45:00</span>
+      </div>
+    </div>
+
+    <div id="inlineRunbar" class="plan-block live-run stopped">
+      <div class="block-head-row">
+        <span class="block-title">Live Run</span>
+        <div class="block-tools">
+          <span id="inlineRunStatus" class="muted">idle</span>
+          <span id="inlineClock" class="mini-clock">00:00</span>
+        </div>
+      </div>
+
+      <div class="live-run-actions">
+        <button class="run-btn" type="button" onclick="runArenaFlow()">▶ Run Arena Flow</button>
+        <button id="inlinePauseBtn" type="button">Pause</button>
+        <button id="inlineStopBtn" type="button">Stop</button>
+        <span id="inlineCurrentBlock" class="muted">No active block.</span>
+      </div>
+    </div>
+
+    <div id="planBlocks">
+      <div class="plan-block">
+        <div class="block-head-row">
+          <span class="block-title">Bleacher Talk (Untimed)</span>
+        </div>
+        <div class="slot" contenteditable="true">Set tone, calm nerves, control what you can.</div>
+      </div>
+
+      <div class="plan-block" data-slot="warmup" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Warm-Up — Freestyle 8</span>
+          <div class="block-tools">
+            <input type="number" value="8" readonly class="min-input">
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Jog → Mobility → Shadow wrestle → Stance motion</div>
+      </div>
+
+      <div class="plan-block red" data-slot="neutral" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Coach Call-Out — Neutral</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start" type="button">▶</button>
+            <button class="mini-stop" title="stop" type="button">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Chain attacks, motion, sprawls.</div>
+      </div>
+
+      <div class="plan-block" data-slot="rope1" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Light rope tempo. Coach transitions group.</div>
+      </div>
+
+      <div class="plan-block red" data-slot="top" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Coach Call-Out — Top</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start" type="button">▶</button>
+            <button class="mini-stop" title="stop" type="button">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Breakdowns, rides, turns.</div>
+      </div>
+
+      <div class="plan-block" data-slot="rope2" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Stay hot.</div>
+      </div>
+
+      <div class="plan-block red" data-slot="bottom" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Coach Call-Out — Bottom</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start" type="button">▶</button>
+            <button class="mini-stop" title="stop" type="button">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">First move, standups, clear.</div>
+      </div>
+
+      <div class="plan-block" data-slot="rope3" data-minutes="1">
+        <div class="block-head-row">
+          <span class="block-title">Shadow Jump Rope</span>
+          <div class="block-tools">
+            <input type="number" value="1" readonly class="min-input">
+            <span class="mini-clock">01:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Breathing check.</div>
+      </div>
+
+      <div class="plan-block red" data-slot="play" data-minutes="8">
+        <div class="block-head-row">
+          <span class="block-title">Play Wrestle / Match IQ</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="8" class="min-input">
+            <button class="mini-play" title="start" type="button">▶</button>
+            <button class="mini-stop" title="stop" type="button">■</button>
+            <span class="mini-clock">08:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">Flow live, situational, score-to-win.</div>
+      </div>
+
+      <div class="plan-block" data-slot="hardgo" data-minutes="6">
+        <div class="block-head-row">
+          <span class="block-title">Hard Go / Sprints</span>
+          <div class="block-tools">
+            <input type="number" min="1" max="30" value="6" class="min-input">
+            <button class="mini-play" title="start" type="button">▶</button>
+            <button class="mini-stop" title="stop" type="button">■</button>
+            <span class="mini-clock">06:00</span>
+          </div>
+        </div>
+        <div class="slot" contenteditable="true">20-sec gos, mat sprints, open lungs.</div>
+      </div>
+
+      <div class="plan-block">
+        <div class="block-head-row">
+          <span class="block-title">Hydrate / Stretch (Untimed)</span>
+        </div>
+        <div class="slot" contenteditable="true">Water, shake out, stay loose.</div>
+      </div>
+    </div>
+
+    <div class="footer-actions">
+      <button type="button" onclick="loadDefault()">Load Arena Flow 45</button>
+      <button type="button" onclick="savePlan()">Save Clipboard</button>
+      <span id="saveStatus" class="muted">Not saved.</span>
+    </div>
+  </main>
+
+  <script src="/coaches/execution/arena-flow/arena-flow.theme.js"></script>
+  <script type="module" src="/coaches/execution/arena-flow/arena-flow.logic.js"></script>
+</body>
+</html>

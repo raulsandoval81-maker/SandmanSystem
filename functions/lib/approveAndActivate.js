@@ -105,13 +105,19 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             !input?.trackCode) {
             throw new https_1.HttpsError("invalid-argument", "Missing required fields");
         }
-        const { intakeId, foundry: foundryRaw, virtueName, virtueCode, trackCode, fullName, publicName, parent, team, mint, experience, } = input;
+        const { intakeId, foundry: foundryRaw, virtueName, virtueCode, trackCode, fullName, publicName, parent, team, mint, experience, adjustment, } = input;
         const foundry = String(foundryRaw || "").trim().toLowerCase();
         if (foundry !== "f4" && foundry !== "f8") {
             throw new https_1.HttpsError("invalid-argument", `Invalid foundry: ${foundryRaw}`);
         }
         const lane = String(mint?.lane || "CB").trim().toUpperCase() || "CB";
         const expPlan = buildExperiencePlan(experience?.years);
+        const adjustmentAmount = Number(adjustment?.amount || 0);
+        const adjustmentNote = adjustmentAmount > 0
+            ? String(adjustment?.note || "Coach adjustment")
+            : null;
+        const hasLegacy = expPlan.total > 0;
+        const hasAdjustment = adjustmentAmount > 0;
         const counterRef = db.doc(`counters/${foundry}`);
         const intakeRef = db.doc(`intakes/${intakeId}`);
         const intakeSnapPre = await intakeRef.get();
@@ -200,8 +206,8 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             tx.update(counterRef, { next: n + 1 });
             const starter = foundry === "f4"
                 ? { tier: "T0", rankName: "Apprentice", rankColor: "white", xpCap: 1200 }
-                : { tier: "T0", rankName: "Shadow", rankColor: "white", xpCap: 800 };
-            const startingXp = expPlan.issuedNow;
+                : { tier: "T0", rankName: "Shadow", rankColor: "white", xpCap: 600 };
+            const startingXp = expPlan.issuedNow + adjustmentAmount;
             const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);
             tx.create(athleteRef, {
                 uid,
@@ -234,9 +240,17 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 mintVirtueTagDisplay: mintVirtueTag,
                 xp: startingXp,
                 stripeCount,
-                xpSource: startingXp > 0 ? "intake+legacy" : "intake",
-                legacy: expPlan.total > 0,
-                legacyType: expPlan.total > 0 ? "external" : null,
+                xpSource: hasLegacy && hasAdjustment
+                    ? "intake+legacy+adjustment"
+                    : hasLegacy
+                        ? "intake+legacy"
+                        : hasAdjustment
+                            ? "intake+adjustment"
+                            : "intake",
+                adjustmentAmount: hasAdjustment ? adjustmentAmount : 0,
+                adjustmentNote,
+                legacy: hasLegacy,
+                legacyType: hasLegacy ? "external" : null,
                 legacyYearsVerified: expPlan.yearsVerified,
                 legacyCreditTotal: expPlan.total,
                 legacyCreditIssued: expPlan.issuedNow,
@@ -304,14 +318,16 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 parentEmail,
                 parentPhoneDigits,
                 parentName,
-                legacy: expPlan.total > 0,
-                legacyType: expPlan.total > 0 ? "external" : null,
+                legacy: hasLegacy,
+                legacyType: hasLegacy ? "external" : null,
                 legacyYearsVerified: expPlan.yearsVerified,
                 legacyCreditTotal: expPlan.total,
                 legacyCreditIssued: expPlan.issuedNow,
                 legacyHold: expPlan.hold,
                 legacyCreditSchedule: expPlan.schedule,
                 legacyNote: expPlan.note,
+                adjustmentAmount: hasAdjustment ? adjustmentAmount : 0,
+                adjustmentNote,
                 updatedAt: now,
             });
             const receiptRef = db.collection("receipts").doc();
@@ -330,6 +346,8 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 legacyYearsVerified: expPlan.yearsVerified,
                 legacyCreditTotal: expPlan.total,
                 legacyCreditIssued: expPlan.issuedNow,
+                adjustmentAmount: hasAdjustment ? adjustmentAmount : 0,
+                adjustmentNote,
                 stripeCount,
                 parentUid,
                 parentEmail,

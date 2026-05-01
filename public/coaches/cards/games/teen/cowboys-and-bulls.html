@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cowboys &amp; Bulls | Game</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#0b1120;
+      --panel:#121a2b;
+      --line:#27304a;
+      --text:#f5f7fb;
+      --muted:#9aa4b1;
+      --gold:#ffdd48;
+      --red:#e63946;
+      --link:#9ecbff;
+      --green:#57d38c;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:900px;
+      margin:0 auto;
+      padding:24px 16px 72px;
+    }
+
+    .page-header{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:20px;
+      margin-bottom:18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.24);
+    }
+
+    .page-header h1{
+      margin:0 0 8px;
+      color:var(--gold);
+      font-size:clamp(28px,4vw,40px);
+    }
+
+    .muted{
+      color:var(--muted);
+      margin:0;
+      line-height:1.5;
+    }
+
+    .card-body{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:20px;
+      margin-bottom:18px;
+      box-shadow:0 10px 18px rgba(0,0,0,.2);
+    }
+
+    .card-body p,
+    .card-body li{
+      line-height:1.55;
+    }
+
+    .card-body p{
+      margin:0 0 18px;
+    }
+
+    .card-body ul{
+      margin:0 0 18px 18px;
+      padding:0;
+    }
+
+    .card-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+      margin:0 0 18px;
+    }
+
+    .card-actions button{
+      appearance:none;
+      border:0;
+      border-radius:10px;
+      padding:12px 16px;
+      font-weight:800;
+      font-size:1rem;
+      background:var(--gold);
+      color:#0b1120;
+      cursor:pointer;
+    }
+
+    .card-actions button:hover{
+      filter:brightness(1.04);
+    }
+
+    .card-actions button.added{
+      background:var(--green);
+      color:#08130d;
+    }
+
+    .status{
+      min-height:24px;
+      color:var(--green);
+      font-weight:700;
+    }
+
+    .page-tools{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+    }
+
+    .back-link{
+      display:inline-block;
+      color:var(--link);
+      text-decoration:none;
+      border:1px solid var(--line);
+      background:var(--panel);
+      padding:10px 12px;
+      border-radius:10px;
+      font-weight:700;
+    }
+
+    .back-link:hover{
+      border-color:var(--red);
+      box-shadow:0 0 10px rgba(230,57,70,.25);
+    }
+  </style>
+</head>
+<body
+  data-card-id="teen-game-cowboys-bulls-01"
+  data-title="Cowboys & Bulls"
+  data-category="game"
+  data-minutes="8"
+  data-timer="live_go"
+  data-timer-mode="group"
+  data-assign-to="water"
+>
+
+<main class="wrap">
+
+  <div class="page-header">
+    <h1>Cowboys &amp; Bulls</h1>
+    <p class="muted">Game</p>
+  </div>
+
+  <div class="card-body">
+    <p><strong>Goal:</strong> Team pressure, control, and controlled chaos.</p>
+
+    <p><strong>Setup:</strong></p>
+    <ul>
+      <li>Split into two teams</li>
+      <li>One side = Bulls (in center)</li>
+      <li>Other side = Cowboys (outside)</li>
+    </ul>
+
+    <p><strong>Play:</strong></p>
+    <ul>
+      <li>On whistle, Cowboys enter and try to control or “ride” Bulls</li>
+      <li>Bulls fight to escape or stay on feet</li>
+      <li>Switch roles each round</li>
+    </ul>
+
+    <p><strong>Rules (coach control):</strong></p>
+    <ul>
+      <li>Stay on feet OR controlled mat only (pick one)</li>
+      <li>No dangerous throws</li>
+      <li>Short rounds (10–20 sec)</li>
+    </ul>
+
+    <p><strong>Focus:</strong> pressure, teamwork, control, compete.</p>
+
+    <p class="muted">
+      Set boundaries before starting—this can get wild fast.
+    </p>
+  </div>
+
+  <div class="card-actions">
+    <button id="addGameBtn" type="button">+ Add Game</button>
+    <div id="statusMessage" class="status" aria-live="polite"></div>
+  </div>
+
+  <div class="page-tools">
+    <a class="back-link" href="/coaches/execution/daily-clipboard/">← Return to Clipboard</a>
+    <a class="back-link" href="/coaches/cards/games/teen/index.html">← Back to Games</a>
+  </div>
+
+</main>
+
+<script>
+(function () {
+  const key = "sandman_clipboard_v1";
+  const btn = document.getElementById("addGameBtn");
+  const statusEl = document.getElementById("statusMessage");
+
+  if (!btn) return;
+
+  function getClipboard() {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveClipboard(data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function showStatus(message) {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    clearTimeout(showStatus._timer);
+    showStatus._timer = setTimeout(() => {
+      statusEl.textContent = "";
+    }, 1800);
+  }
+
+  function buildCard() {
+    return {
+      id: document.body.dataset.cardId || window.location.pathname,
+      title: document.body.dataset.title || document.title,
+      category: document.body.dataset.category || "game",
+      lane: document.body.dataset.assignTo || "water",
+      assignTo: document.body.dataset.assignTo || "water",
+      minutes: Number(document.body.dataset.minutes || 5),
+      timer: document.body.dataset.timer || "game",
+      timerMode: document.body.dataset.timerMode || "group",
+      href: window.location.pathname,
+      addedAt: Date.now()
+    };
+  }
+
+  function updateInitialState() {
+    const data = getClipboard();
+    const exists = data.some(item => item.id === (document.body.dataset.cardId || window.location.pathname));
+
+    if (exists) {
+      btn.textContent = "Added";
+      btn.classList.add("added");
+      showStatus("Already in clipboard.");
+    }
+  }
+
+  btn.addEventListener("click", () => {
+    const data = getClipboard();
+    const card = buildCard();
+
+    const alreadyExists = data.some(item => item.id === card.id);
+    if (alreadyExists) {
+      btn.textContent = "Added";
+      btn.classList.add("added");
+      showStatus("Cowboys & Bulls is already in clipboard.");
+      return;
+    }
+
+    data.push(card);
+    saveClipboard(data);
+
+    btn.textContent = "Added";
+    btn.classList.add("added");
+    showStatus("Cowboys & Bulls added to clipboard.");
+  });
+
+  updateInitialState();
+})();
+</script>
+
+</body>
+</html>

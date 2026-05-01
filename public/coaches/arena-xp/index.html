@@ -3,12 +3,152 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Arena XP</title>
+  <title>Arena XP | Sandman</title>
 
-  <!-- Option A: auto-load Weekend Arena -->
-  <script>
-    window.location.replace("/coaches/arena-xp/weekend-arena.html");
-  </script>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#06080d;
+      --panel:#0f141b;
+      --card:#0b1017;
+      --line:#27304a;
+      --text:#f5f7fb;
+      --muted:#9aa4b1;
+      --gold:#ffdd48;
+      --red:#e53935;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:28px 16px 64px;
+    }
+
+    .hero{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      text-align:center;
+      margin-bottom:20px;
+    }
+
+    h1{
+      margin:0;
+      color:var(--gold);
+      font-size:2rem;
+    }
+
+    .hero p{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:.9rem;
+    }
+
+    .topnav{
+      display:flex;
+      justify-content:center;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+    }
+
+    .pill{
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:.55rem 1rem;
+      font-weight:900;
+      font-size:.8rem;
+      text-decoration:none;
+      color:var(--text);
+      background:var(--card);
+    }
+
+    .pill.primary{
+      background:var(--red);
+      border-color:var(--red);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:16px;
+    }
+
+    .card{
+      display:block;
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:18px;
+      min-height:140px;
+      text-decoration:none;
+      color:var(--text);
+      background:var(--card);
+      transition:.15s;
+    }
+
+    .card:hover{
+      border-color:var(--red);
+      box-shadow:0 0 12px rgba(229,57,53,.35);
+      transform:translateY(-2px);
+    }
+
+    .card h2{
+      margin:0 0 8px;
+      color:var(--gold);
+      font-size:1.1rem;
+    }
+
+    .card p{
+      margin:0;
+      color:var(--muted);
+      font-size:.86rem;
+      line-height:1.45;
+    }
+  </style>
 </head>
-<body></body>
+
+<body>
+<main class="wrap">
+
+  <header class="hero">
+    <h1>Arena XP</h1>
+    <p>Competition formats, scoring systems, and arena-based XP tools.</p>
+
+    <nav class="topnav">
+      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
+      <a class="pill" href="/coaches/index.html">Daily Tools</a>
+    </nav>
+  </header>
+
+  <section class="grid">
+
+    <a class="card" href="/coaches/arena-xp/championship-arena.html">
+      <h2>Championship Arena</h2>
+      <p>Main structured competition system.</p>
+    </a>
+
+    <a class="card" href="/coaches/arena-xp/declared-championship.html">
+      <h2>Declared Championship</h2>
+      <p>Challenge-based competition format.</p>
+    </a>
+
+    <a class="card" href="/coaches/arena-xp/weekend-arena.html">
+      <h2>Weekend Arena</h2>
+      <p>Flexible event-style competition.</p>
+    </a>
+
+  </section>
+
+</main>
+</body>
 </html>

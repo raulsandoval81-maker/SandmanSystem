@@ -2,50 +2,95 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Team</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="../hub.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Team | Sandman</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <style>
+    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
+    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
+    h1{margin:0;color:var(--gold);font-size:2rem}
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
+    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
+    .pill.primary{background:var(--red);border-color:var(--red)}
+    .section-title{color:var(--gold);font-size:1.25rem;margin:26px 0 12px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{display:block;border-radius:14px;padding:18px;min-height:120px;transition:.15s}
+    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
+    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.05rem}
+    .card p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.45}
+  </style>
 </head>
+
 <body>
+<main class="wrap">
 
-<main class="coach-hub-main">
+  <header class="hero">
+    <h1>Team</h1>
+    <p>Roster, athletes, notes, forms, and direct athlete tools.</p>
 
-  <section class="card coach-card">
-    <h3 class="coach-card-title">Team</h3>
-    <p class="coach-card-copy">
-      Manage athletes, communication, and team structure.
-    </p>
+    <nav class="topnav">
+      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
+      <a class="pill" href="/coaches/index.html">Daily Tools</a>
+    </nav>
+  </header>
+
+  <h2 class="section-title">Team</h2>
+  <section class="grid">
+    <a class="card" href="/coaches/roster/">
+      <h2>Roster</h2>
+      <p>Active team list and athlete access.</p>
+    </a>
+
+    <a class="card" href="/coaches/athletes/">
+      <h2>Athletes</h2>
+      <p>Athlete tracker, logs, history, and details.</p>
+    </a>
+
+    <a class="card" href="/coaches/notes/">
+      <h2>Notes</h2>
+      <p>Coach notes and observations.</p>
+    </a>
+
+    <a class="card" href="/coaches/forms/">
+      <h2>Forms</h2>
+      <p>Team forms, sign-in, and operations.</p>
+    </a>
   </section>
 
-  <section class="tools-grid">
+  <h2 class="section-title">Athletes</h2>
+  <section class="grid">
+    <a class="card" href="/coaches/athletes/athlete.html">
+      <h2>Athlete Tracker</h2>
+      <p>Main athlete personal tracker.</p>
+    </a>
 
-    <article class="tool-card">
-      <h3>Progress</h3>
-   <p>View athlete progress, sessions, and development.</p>
-      <a class="btn btn-red" href="/coaches/roster/index.html">Open</a>
-    </article>
+    <a class="card" href="/coaches/athletes/athlete-live-log.html">
+      <h2>Live Log</h2>
+      <p>Live athlete room log.</p>
+    </a>
 
-<article class="tool-card">
-  <h3>Communication</h3>
-  <p>Open parent threads, announcements, and team communication.</p>
-  <a class="btn btn-red" href="/communications/coach/hub.html">Open</a>
-</article>
+    <a class="card" href="/coaches/athletes/athlete-log-history.html">
+      <h2>Log History</h2>
+      <p>Historical athlete records.</p>
+    </a>
 
-
-    <article class="tool-card">
-      <h3>Logistics</h3>
-      <p>Schedule, events, and coordination.</p>
-      <a class="btn btn-red" href="./logistics.html">Open</a>
-    </article>
-
-    <article class="tool-card">
-      <h3>Culture</h3>
-      <p>Creed, Code, expectations, and standards.</p>
-      <a class="btn btn-red" href="./culture.html">Open</a>
-    </article>
-
+    <a class="card" href="/coaches/athletes/athlete-log-details.html">
+      <h2>Log Details</h2>
+      <p>Detailed athlete log view.</p>
+    </a>
   </section>
 
 </main>
+
+<script type="module">
+  import { requireCoach } from "/assets/js/coach-guard.js";
+  await requireCoach();
+</script>
 </body>
 </html>

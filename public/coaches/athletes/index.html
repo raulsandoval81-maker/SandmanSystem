@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Athletes | Sandman</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <style>
+    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
+    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
+    h1{margin:0;color:var(--gold);font-size:2rem}
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
+    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
+    .pill.primary{background:var(--red);border-color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
+    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
+    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
+    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+  <header class="hero">
+    <h1>Athletes</h1>
+    <p>Athlete tracker, logs, details, and history.</p>
+
+    <nav class="topnav">
+      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
+      <a class="pill" href="/coaches/index.html">Daily Tools</a>
+      <a class="pill" href="/coaches/team/index.html">Team Logistics</a>
+    </nav>
+  </header>
+
+  <section class="grid">
+    <a class="card" href="/coaches/athletes/athlete.html">
+      <h2>Athlete Tracker</h2>
+      <p>Main athlete personal tracker.</p>
+    </a>
+
+    <a class="card" href="/coaches/athletes/athlete-live-log.html">
+      <h2>Athlete Live Log</h2>
+      <p>Live athlete activity and room log.</p>
+    </a>
+
+    <a class="card" href="/coaches/athletes/athlete-log-details.html">
+      <h2>Athlete Log Details</h2>
+      <p>Detailed athlete log view.</p>
+    </a>
+
+    <a class="card" href="/coaches/athletes/athlete-log-history.html">
+      <h2>Athlete Log History</h2>
+      <p>Historical athlete log records.</p>
+    </a>
+  </section>
+</main>
+
+<script type="module">
+  import { requireCoach } from "/assets/js/coach-guard.js";
+  await requireCoach();
+</script>
+</body>
+</html>

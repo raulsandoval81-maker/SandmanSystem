@@ -2,7 +2,7 @@
   "name": "Sandman Timer",
   "short_name": "Sandman",
   "description": "Coach-first practice timer for combat sports and conditioning.",
-  "start_url": "/lab/timer-engine/ui/sandman-timer-mobile.html",
+  "start_url": "/lab/timer-engine/ui/athlete/sandman-timer-mobile.html",
   "scope": "/timer-engine/",
   "display": "standalone",
   "orientation": "portrait",

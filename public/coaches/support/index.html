@@ -2,49 +2,68 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Admin Support</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="../hub.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Support | Sandman</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <style>
+    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
+    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
+    h1{margin:0;color:var(--gold);font-size:2rem}
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
+    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
+    .pill.primary{background:var(--red);border-color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
+    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
+    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
+    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
+  </style>
 </head>
+
 <body>
+<main class="wrap">
+  <header class="hero">
+    <h1>Support</h1>
+    <p>Coach help, admin contact, communications, volunteer, parent, and support access.</p>
 
-<main class="coach-hub-main">
+    <nav class="topnav">
+      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
+      <a class="pill" href="/coaches/index.html">Daily Tools</a>
+    </nav>
+  </header>
 
-  <section class="card coach-card">
-    <h3 class="coach-card-title">Admin Support</h3>
-    <p class="coach-card-copy">
-      Get help, report issues, and understand how the system works.
-    </p>
+  <section class="grid">
+    <a class="card" href="/coaches/support/">
+      <h2>Support Hub</h2>
+      <p>Coach support, help requests, admin contact, and issue reporting.</p>
+    </a>
+
+    <a class="card" href="/communications/">
+      <h2>Communications</h2>
+      <p>Messaging, announcements, and communication tools.</p>
+    </a>
+
+    <a class="card" href="/coaches/forms/">
+      <h2>Forms</h2>
+      <p>Volunteer, parent, sign-in, QR, and support forms.</p>
+    </a>
+
+    <a class="card" href="/coaches/tools/">
+      <h2>Extra Tools</h2>
+      <p>Loose tools and support resources that have not been promoted yet.</p>
+    </a>
   </section>
-
-  <section class="tools-grid">
-
-    <article class="tool-card">
-      <h3>Contact Admin</h3>
-      <p>Reach out for support or questions.</p>
-      <a class="btn btn-red" href="./contact.html">Open</a>
-    </article>
-
-    <article class="tool-card">
-      <h3>Report Issue</h3>
-      <p>Log a problem with sessions or athlete data.</p>
-      <a class="btn btn-red" href="./report.html">Open</a>
-    </article>
-
-    <article class="tool-card">
-      <h3>System Guide</h3>
-      <p>Understand how the system works.</p>
-      <a class="btn btn-red" href="./system.html">Open</a>
-    </article>
-
-    <article class="tool-card">
-      <h3>Policies</h3>
-      <p>Review rules and expectations.</p>
-      <a class="btn btn-red" href="./policies.html">Open</a>
-    </article>
-
-  </section>
-
 </main>
+
+<script type="module">
+  import { requireCoach } from "/assets/js/coach-guard.js";
+  await requireCoach();
+</script>
 </body>
 </html>

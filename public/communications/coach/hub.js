@@ -21,8 +21,14 @@ import {
 } from "/assets/js/firebase-init-para.js";
 
 await ensureSignedIn();
-
+// 🔒 CORE ENGINE — DO NOT RENAME
+// UI layer = /communications
+// Data layer = paraParentInbox (legacy)
+// Threads live under this collection
+// Renaming requires full migration (copy + update all refs)
+// ⚠️ Changing this breaks inbox + threads + unread state
 const ROOT = "paraParentInbox";
+
 const UNREAD_LIMIT = 8;
 const RECENT_LIMIT = 8;
 

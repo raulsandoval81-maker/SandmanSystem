@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Execution | Sandman</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <style>
+    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
+    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
+    h1{margin:0;color:var(--gold);font-size:2rem}
+    .hero p{margin:8px 0 0;color:var(--muted)}
+    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
+    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
+    .pill.primary{background:var(--red);border-color:var(--red)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .card{display:block;border-radius:14px;padding:18px;min-height:130px;transition:.15s}
+    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
+    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.05rem}
+    .card p{margin:0;color:var(--muted);font-size:.85rem;line-height:1.45}
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <header class="hero">
+    <h1>Execution</h1>
+    <p>Clipboard, arena flow, and session-building tools for running practice.</p>
+
+    <nav class="topnav">
+      <a class="pill primary" href="/coaches/execution/daily-clipboard/index.html">Clipboard</a>
+      <a class="pill" href="/coaches/practice/index.html">Practice Support</a>
+      <a class="pill" href="/coaches/index.html">Daily Tools</a>
+    </nav>
+  </header>
+
+  <section class="grid">
+
+    <a class="card" href="/coaches/execution/daily-clipboard/index.html">
+      <h2>Daily Clipboard</h2>
+      <p>Main practice clipboard and coach execution surface.</p>
+    </a>
+
+    <a class="card" href="/coaches/execution/arena-flow/index.html">
+      <h2>Arena Flow</h2>
+      <p>Practice flow structure and arena-style clipboard support.</p>
+    </a>
+
+    <a class="card" href="/coaches/execution/session-builder/index.html">
+      <h2>Session Builder</h2>
+      <p>Build practice sessions before sending them into execution.</p>
+    </a>
+
+    <a class="card" href="/coaches/execution/daily-clipboard/clock.html">
+      <h2>Clock</h2>
+      <p>Clipboard clock page if needed during practice execution.</p>
+    </a>
+
+  </section>
+
+</main>
+
+<script type="module">
+  import { requireCoach } from "/assets/js/coach-guard.js";
+  await requireCoach();
+</script>
+
+</body>
+</html>

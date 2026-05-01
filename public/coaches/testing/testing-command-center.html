@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Testing Command Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,"> 
+  <link rel="stylesheet" href="/coaches/testing/testing.css" />
+  <link rel="stylesheet" href="/coaches/testing/testing-command-center.css" />
+</head>
+<body>
+
+<div class="wrap">
+  <a class="back" href="/coaches/index.html">← Back to Coach</a>
+
+  <h1>Testing Command Center</h1>
+  <p class="sub">Assign athlete, choose test, set 3-coach panel, generate launch links, and open live results.</p>
+
+  <div class="grid">
+
+    <!-- ATHLETE -->
+    <section class="card">
+      <h2>1. Athlete</h2>
+
+      <div class="row">
+        <div>
+          <label for="uid">Athlete UID</label>
+          <input id="uid" placeholder="F4_0001" />
+        </div>
+
+        <div>
+          <label for="athleteName">Athlete Name</label>
+          <input id="athleteName" placeholder="M. Sandoval" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <div>
+          <label for="track">Track</label>
+          <select id="track">
+            <option value="foundry4-combat">Foundry 4 Combat</option>
+            <option value="foundry8-combat">Foundry 8 Combat</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="tier">Tier</label>
+          <select id="tier"></select>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEST -->
+    <section class="card">
+      <h2>2. Test Setup</h2>
+
+      <div class="row">
+        <div>
+          <label for="testType">Test</label>
+          <select id="testType">
+            <option value="BASE_CHECK_V1">Base Check</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="testDate">Test Date</label>
+          <input id="testDate" type="date" />
+        </div>
+      </div>
+
+      <div class="muted" style="margin-top:12px;">
+        Current build assumes one active test page. Expand later only after live flow is trusted.
+      </div>
+    </section>
+
+    <!-- PANEL -->
+    <section class="card">
+      <h2>3. Panel Assignment</h2>
+
+      <div class="row-3">
+        <div>
+          <label for="coachA">Coach A</label>
+          <input id="coachA" placeholder="coach_a_uid or name" />
+        </div>
+
+        <div>
+          <label for="coachB">Coach B</label>
+          <input id="coachB" placeholder="coach_b_uid or name" />
+        </div>
+
+        <div>
+          <label for="coachC">Coach C</label>
+          <input id="coachC" placeholder="coach_c_uid or name" />
+        </div>
+      </div>
+
+      <div class="status" id="panelStatus">Panel not ready</div>
+
+      <div class="actions">
+        <button id="generateBtn" class="btn primary" type="button">Generate Panel Links</button>
+      </div>
+    </section>
+
+    <!-- LAUNCH -->
+    <section class="card">
+      <h2>4. Launch Panel</h2>
+
+      <div class="launch-grid">
+
+        <div class="launch-box">
+          <h3>Coach A</h3>
+          <a id="launchA" class="btn" href="#">Launch Coach A Test</a>
+          <button id="copyA" class="btn good" type="button">Copy Coach A Link</button>
+          <div id="previewA" class="link-preview">No link generated yet.</div>
+        </div>
+
+        <div class="launch-box">
+          <h3>Coach B</h3>
+          <a id="launchB" class="btn" href="#">Launch Coach B Test</a>
+          <button id="copyB" class="btn good" type="button">Copy Coach B Link</button>
+          <div id="previewB" class="link-preview">No link generated yet.</div>
+        </div>
+
+        <div class="launch-box">
+          <h3>Coach C</h3>
+          <a id="launchC" class="btn" href="#">Launch Coach C Test</a>
+          <button id="copyC" class="btn good" type="button">Copy Coach C Link</button>
+          <div id="previewC" class="link-preview">No link generated yet.</div>
+        </div>
+
+        <div class="launch-box">
+          <h3>Live Results</h3>
+          <a id="launchLive" class="btn primary" href="#">Open Live Results Board</a>
+          <button id="copyLive" class="btn good" type="button">Copy Live Results Link</button>
+          <div id="previewLive" class="link-preview">No link generated yet.</div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- FOLLOW THROUGH -->
+    <section class="card">
+      <h2>5. Follow Through</h2>
+
+      <div class="actions">
+        <a class="btn" href="/coaches/testing/results.html">Open Test History</a>
+        <a class="btn" href="/coaches/testing/ceremonies.html">Open Ceremonies Queue</a>
+      </div>
+
+      <div class="muted" style="margin-top:12px;">
+        Testing runs here. Ceremony follows after result and review.
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+  const els = {
+    uid: document.getElementById("uid"),
+    athleteName: document.getElementById("athleteName"),
+    track: document.getElementById("track"),
+    tier: document.getElementById("tier"),
+    testType: document.getElementById("testType"),
+    testDate: document.getElementById("testDate"),
+    coachA: document.getElementById("coachA"),
+    coachB: document.getElementById("coachB"),
+    coachC: document.getElementById("coachC"),
+    panelStatus: document.getElementById("panelStatus"),
+
+    launchA: document.getElementById("launchA"),
+    launchB: document.getElementById("launchB"),
+    launchC: document.getElementById("launchC"),
+    launchLive: document.getElementById("launchLive"),
+
+    previewA: document.getElementById("previewA"),
+    previewB: document.getElementById("previewB"),
+    previewC: document.getElementById("previewC"),
+    previewLive: document.getElementById("previewLive"),
+
+    copyA: document.getElementById("copyA"),
+    copyB: document.getElementById("copyB"),
+    copyC: document.getElementById("copyC"),
+    copyLive: document.getElementById("copyLive"),
+
+    generateBtn: document.getElementById("generateBtn")
+  };
+
+  function todayLocalISO() {
+    const d = new Date();
+    const offset = d.getTimezoneOffset();
+    const local = new Date(d.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 10);
+  }
+
+  function populateTierOptions() {
+    const track = els.track.value;
+    let tiers = [];
+
+    if (track === "foundry4-combat") {
+      tiers = ["T0", "T1", "T2", "T3", "T4"];
+    } else {
+      tiers = ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"];
+    }
+
+    const currentValue = els.tier.value;
+    els.tier.innerHTML = "";
+
+    tiers.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      els.tier.appendChild(opt);
+    });
+
+    if (tiers.includes(currentValue)) {
+      els.tier.value = currentValue;
+    }
+  }
+
+  if (!els.testDate.value) {
+    els.testDate.value = todayLocalISO();
+  }
+
+  function enc(v) {
+    return encodeURIComponent((v || "").trim());
+  }
+
+  function buildTestType() {
+  const trackCode = els.track.value === "foundry4-combat" ? "F4" : "F8";
+  const tierCode = els.tier.value;
+  return `${trackCode}_${tierCode}_BASE_V1`;
+}
+
+  function panelReady() {
+    return (
+      els.uid.value.trim() &&
+      els.testType.value.trim() &&
+      els.tier.value.trim() &&
+      els.coachA.value.trim() &&
+      els.coachB.value.trim() &&
+      els.coachC.value.trim()
+    );
+  }
+
+  function updatePanelStatus() {
+    els.panelStatus.textContent = panelReady() ? "Panel ready" : "Panel not ready";
+  }
+
+  function buildSessionId() {
+    const uid = (els.uid.value || "").trim();
+const testType = buildTestType();
+    const testDate = (els.testDate.value || "").trim();
+
+    return `${uid}__${testType}__${testDate}`;
+  }
+
+  function getTestPage() {
+    const type = els.testType.value;
+
+    if (type === "BASE_CHECK_V1") return "test1.html";
+
+    return "test1.html";
+  }
+
+  function buildTestLink(coachId, panelSlot) {
+    const testPage = `/coaches/testing/${getTestPage()}`;
+    const sessionId = buildSessionId();
+
+    return `${testPage}?uid=${enc(els.uid.value)}&athleteName=${enc(els.athleteName.value)}&track=${enc(els.track.value)}&tier=${enc(els.tier.value)}&testDate=${enc(els.testDate.value)}&coachId=${enc(coachId)}&panel=${enc(panelSlot)}&sessionId=${enc(sessionId)}&testType=${enc(buildTestType())}`;
+  }
+
+  function buildLiveLink() {
+    const sessionId = buildSessionId();
+
+    return `/coaches/testing/results-live.html?uid=${enc(els.uid.value)}&athleteName=${enc(els.athleteName.value)}&track=${enc(els.track.value)}&tier=${enc(els.tier.value)}&testType=${enc(buildTestType())}&testDate=${enc(els.testDate.value)}&sessionId=${enc(sessionId)}`;
+  }
+
+  function applyLink(anchor, preview, href) {
+    anchor.href = href;
+    preview.textContent = href;
+  }
+
+  function generateLinks() {
+    updatePanelStatus();
+
+    if (!panelReady()) {
+      alert("Missing athlete UID, test, or one of the 3 coach panel fields.");
+      return;
+    }
+
+    const coaches = [
+      els.coachA.value.trim(),
+      els.coachB.value.trim(),
+      els.coachC.value.trim()
+    ];
+
+    const unique = new Set(coaches);
+
+    if (unique.size !== 3) {
+      alert("Each panel coach must be unique.");
+      return;
+    }
+
+    const linkA = buildTestLink(els.coachA.value, "A");
+    const linkB = buildTestLink(els.coachB.value, "B");
+    const linkC = buildTestLink(els.coachC.value, "C");
+    const liveLink = buildLiveLink();
+
+    applyLink(els.launchA, els.previewA, linkA);
+    applyLink(els.launchB, els.previewB, linkB);
+    applyLink(els.launchC, els.previewC, linkC);
+    applyLink(els.launchLive, els.previewLive, liveLink);
+  }
+
+  async function copyText(text) {
+    try {
+      await navigator.clipboard.writeText(text);
+      alert("Link copied");
+    } catch {
+      alert(text);
+    }
+  }
+
+  [els.uid, els.testType, els.coachA, els.coachB, els.coachC].forEach(el => {
+    el.addEventListener("input", updatePanelStatus);
+    el.addEventListener("change", updatePanelStatus);
+  });
+
+  els.track.addEventListener("change", populateTierOptions);
+
+  els.generateBtn.addEventListener("click", generateLinks);
+
+  els.copyA.addEventListener("click", () => copyText(els.launchA.href));
+  els.copyB.addEventListener("click", () => copyText(els.launchB.href));
+  els.copyC.addEventListener("click", () => copyText(els.launchC.href));
+  els.copyLive.addEventListener("click", () => copyText(els.launchLive.href));
+
+  populateTierOptions();
+  updatePanelStatus();
+</script>
+
+</body>
+</html>

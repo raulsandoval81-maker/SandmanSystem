@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Record Match</title>
+
+  <link rel="stylesheet" href="/lab/arena-console/record/record.css" />
+</head>
+
+<body>
+<main class="wrap">
+
+  <h1>Record Match</h1>
+  <p class="muted">Tap → record → stop → save</p>
+
+  <!-- VIDEO PREVIEW -->
+  <div class="video-wrap">
+    <video id="preview" autoplay playsinline muted></video>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls">
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop</button>
+  </div>
+
+  <!-- STATUS -->
+  <div id="status" class="muted">Ready</div>
+
+</main>
+
+<script type="module" src="/lab/arena-console/record/record.js"></script>
+</body>
+</html>
