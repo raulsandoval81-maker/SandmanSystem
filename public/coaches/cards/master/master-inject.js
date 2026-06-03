@@ -3,106 +3,205 @@
 
   if (!path.includes("/cards/")) return;
   if (path.endsWith("index.html")) return;
+
   const key = "sandman_clipboard_v1";
+  const SESSION_FILTER_KEY = "sandman_clipboard_filter_v1";
 
-  // --- READ DATA FROM PAGE ---
-
-const addBtn = document.querySelector("[data-add-card]");
-
-function getSkillFromPath(path) {
-  const match = path.match(/skill-(\d+)/i);
-  return match ? match[1].padStart(2, "0") : "";
-}
-
-function getTierFromPage() {
-  const tierLine = Array.from(document.querySelectorAll("p"))
-    .find(p => p.textContent.includes("Tier:"));
-
-  if (!tierLine) return "";
-
-  const match = tierLine.textContent.match(/\bT\d+\b/i);
-  return match ? match[0].toUpperCase() : "";
-}
-
-function getFirstCueFromPage() {
-  const headings = Array.from(document.querySelectorAll("h3"));
-  const cueHeading = headings.find(
-    h => h.textContent.trim().toLowerCase() === "coaching cues"
-  );
-
-  if (!cueHeading) return "";
-
-  let next = cueHeading.nextElementSibling;
-
-  while (next) {
-    if (next.tagName === "UL") {
-      const li = next.querySelector("li");
-      return li
-        ? li.textContent.replace(/[“”"]/g, "").trim()
-        : "";
+  function getActiveClipboardFilter() {
+    try {
+      return JSON.parse(localStorage.getItem(SESSION_FILTER_KEY) || "{}");
+    } catch {
+      return {};
     }
-    if (/^H[1-6]$/.test(next.tagName)) break;
-    next = next.nextElementSibling;
   }
 
-  return "";
+function cardAllowedForSession(card) {
+  const filter = getActiveClipboardFilter();
+
+  // For now, only block if discipline is clearly wrong.
+  // Journey controls which hub opens, not whether a card can be added yet.
+  if (
+    filter.discipline &&
+    card.discipline &&
+    card.discipline !== filter.discipline
+  ) {
+    return false;
+  }
+
+  if (
+    filter.tier &&
+    card.tier &&
+    String(card.tier).toLowerCase() !== String(filter.tier).toLowerCase()
+  ) {
+    return false;
+  }
+
+  return true;
 }
+  // --- READ DATA FROM PAGE ---
 
-const card = {
-  id:
-    addBtn?.dataset.id ||
-    path.replace(/\/+/g, "-").replace(/^-|-$/g, ""),
+  const addBtn = document.querySelector("[data-add-card]");
 
-  title:
-    addBtn?.dataset.title ||
-    document.querySelector("h1, h2")?.textContent?.replace(/^Skill\s*—\s*/i, "").trim() ||
-    document.title ||
-    "Untitled Skill",
+  function getSkillFromPath(path) {
+    const match = path.match(/skill-(\d+)/i);
+    return match ? match[1].padStart(2, "0") : "";
+  }
 
-  category:
-    normalizeCategory(addBtn?.dataset.category || "technique"),
+  function getTierFromPage() {
+    const tierLine = Array.from(document.querySelectorAll("p"))
+      .find(p => p.textContent.includes("Tier:"));
 
-  minutes:
-    Number(addBtn?.dataset.minutes || 10),
+    if (!tierLine) return "";
 
-  timer:
-    addBtn?.dataset.timer || "tech_partner_2",
+    const match = tierLine.textContent.match(/\bT\d+\b/i);
+    return match ? match[0].toLowerCase() : "";
+  }
 
-  timerMode:
-    addBtn?.dataset.timerMode || null,
+  function getFirstCueFromPage() {
+    const headings = Array.from(document.querySelectorAll("h3"));
+    const cueHeading = headings.find(
+      h => h.textContent.trim().toLowerCase() === "coaching cues"
+    );
 
-  skill:
-    getSkillFromPath(path),
+    if (!cueHeading) return "";
 
-  tier:
-    getTierFromPage(),
+    let next = cueHeading.nextElementSibling;
 
-  cue:
-    getFirstCueFromPage(),
+    while (next) {
+      if (next.tagName === "UL") {
+        const li = next.querySelector("li");
+        return li
+          ? li.textContent.replace(/[“”"]/g, "").trim()
+          : "";
+      }
 
-  href: path
-};
+      if (/^H[1-6]$/.test(next.tagName)) break;
+
+      next = next.nextElementSibling;
+    }
+
+    return "";
+  }
+
+  function normalizeCategory(value) {
+    switch ((value || "").toLowerCase()) {
+      case "technique":
+        return "technique";
+
+      case "drill":
+      case "drills":
+        return "drill";
+
+      case "live":
+        return "live";
+
+      case "conditioning":
+      case "cond":
+        return "conditioning";
+
+      default:
+        return "technique";
+    }
+  }
+
+  function normalizeLane(value) {
+    switch ((value || "").toLowerCase()) {
+      case "technique":
+        return "technique";
+
+      case "drill":
+      case "drills":
+        return "drill";
+
+      case "live":
+        return "live";
+
+      case "conditioning":
+      case "cond":
+        return "conditioning";
+
+      default:
+        return "technique";
+    }
+  }
+
+  const card = {
+    id:
+      addBtn?.dataset.id ||
+      path.replace(/\/+/g, "-").replace(/^-|-$/g, ""),
+
+    title:
+      addBtn?.dataset.title ||
+      document.querySelector("h1, h2")
+        ?.textContent
+        ?.replace(/^Skill\s*—\s*/i, "")
+        .trim() ||
+      document.title ||
+      "Untitled Skill",
+
+    category:
+      normalizeCategory(addBtn?.dataset.category || "technique"),
+
+    minutes:
+      Number(addBtn?.dataset.minutes || 10),
+
+    timer:
+      addBtn?.dataset.timer || "tech_partner_2",
+
+    timerMode:
+      addBtn?.dataset.timerMode || null,
+
+    skill:
+      getSkillFromPath(path),
+
+    tier:
+      addBtn?.dataset.tier || getTierFromPage(),
+
+    discipline:
+      addBtn?.dataset.discipline || "",
+
+    journey:
+      addBtn?.dataset.journey || "",
+
+    cue:
+      getFirstCueFromPage(),
+
+    href: path
+  };
+
   // --- UI ---
+
   const container = document.createElement("div");
   container.className = "card-actions";
 
-container.innerHTML = `
-  <a class="pill-btn" href="./index.html">← Back</a>
+  container.innerHTML = `
+    <a class="pill-btn" href="./index.html">← Back</a>
 
-  <div class="card-actions">
-    <button class="pill-btn" data-assign="technique" type="button">Technique</button>
-    <button class="pill-btn" data-assign="drill" type="button">Drill</button>
-    <button class="pill-btn" data-assign="live" type="button">Live</button>
-  </div>
+    <div class="card-actions">
+      <button class="pill-btn" data-assign="technique" type="button">
+        Technique
+      </button>
 
-  <a class="pill-btn" href="/coaches/execution/daily-clipboard/">
-    ← Back to Clipboard
-  </a>
-`;
+      <button class="pill-btn" data-assign="drill" type="button">
+        Drill
+      </button>
+
+      <button class="pill-btn" data-assign="live" type="button">
+        Live
+      </button>
+    </div>
+
+    <a class="pill-btn" href="/coaches/execution/clipboard-2.0/">
+      ← Back to Clipboard
+    </a>
+  `;
+
   document.body.appendChild(container);
 
   // --- STYLE ---
+
   const style = document.createElement("style");
+
   style.innerHTML = `
     .card-actions{
       position: fixed;
@@ -152,9 +251,11 @@ container.innerHTML = `
       color: #fff;
     }
   `;
+
   document.head.appendChild(style);
 
   // --- HELPERS ---
+
   function getClipboard() {
     try {
       const parsed = JSON.parse(localStorage.getItem(key) || "[]");
@@ -170,91 +271,73 @@ container.innerHTML = `
 
   function flashButton(button, text, type = "success") {
     const original = button.dataset.originalText || button.textContent;
+
     button.dataset.originalText = original;
 
     button.textContent = text;
+
     button.classList.remove("success", "error");
     button.classList.add(type);
 
     setTimeout(() => {
       button.textContent = original;
       button.classList.remove("success", "error");
-    }, 800);
+    }, 1000);
   }
 
-  function normalizeCategory(value) {
-  switch ((value || "").toLowerCase()) {
-    case "technique":
-      return "technique";
-    case "drill":
-    case "drills":
-      return "drill";
-    case "live":
-      return "live";
-    case "conditioning":
-    case "cond":
-      return "conditioning";
-    default:
-      return "technique";
+  function buildCard(lane = null) {
+    return {
+      ...card,
+      lane: lane ? normalizeLane(lane) : null
+    };
   }
-}
 
-function normalizeLane(value) {
-  switch ((value || "").toLowerCase()) {
-    case "technique":
-      return "technique";
-    case "drill":
-    case "drills":
-      return "drill";
-    case "live":
-      return "live";
-    case "conditioning":
-    case "cond":
-      return "conditioning";
-    default:
-      return "technique";
-  }
-}
+  // --- ASSIGN LOGIC ---
 
-function buildCard(lane = null) {
-  return {
-    ...card,
-    lane: lane ? normalizeLane(lane) : null
-  };
-}
+  container.querySelectorAll("[data-assign]").forEach(assignBtn => {
+    assignBtn.addEventListener("click", () => {
+      const lane = assignBtn.dataset.assign;
 
-// --- ASSIGN LOGIC ---
-container.querySelectorAll("[data-assign]").forEach(assignBtn => {
-  assignBtn.addEventListener("click", () => {
-    const lane = assignBtn.dataset.assign;
-    const current = getClipboard();
-    const assignedCard = buildCard(lane);
+      const current = getClipboard();
 
-    const cleanLane = String(assignedCard.lane || "").toLowerCase().trim();
+      const assignedCard = buildCard(lane);
 
-    const exists = current.some(
-      item =>
-        String(item.id || "") === String(assignedCard.id || "") &&
+      if (!cardAllowedForSession(assignedCard)) {
+        flashButton(assignBtn, "Wrong discipline", "error");
+        console.warn("🚫 Wrong discipline for active session", assignedCard);
+        return;
+      }
+
+      const cleanLane =
+        String(assignedCard.lane || "")
+          .toLowerCase()
+          .trim();
+
+      const exists = current.some(
+        item =>
+          String(item.id || "") === String(assignedCard.id || "") &&
+          String(item.lane || "").toLowerCase().trim() === cleanLane
+      );
+
+      if (exists) {
+        flashButton(assignBtn, "Already There", "error");
+        return;
+      }
+
+      const count = current.filter(item =>
         String(item.lane || "").toLowerCase().trim() === cleanLane
-    );
+      ).length;
 
-    if (exists) {
-      flashButton(assignBtn, "Already There", "error");
-      return;
-    }
+      if (count >= 4) {
+        flashButton(assignBtn, "Max reached", "error");
+        return;
+      }
 
-    const count = current.filter(item =>
-      String(item.lane || "").toLowerCase().trim() === cleanLane
-    ).length;
+      current.push(assignedCard);
 
-    if (count >= 4) {
-      flashButton(assignBtn, "Max reached", "error");
-      return;
-    }
+      saveClipboard(current);
 
-    current.push(assignedCard);
-    saveClipboard(current);
-    flashButton(assignBtn, "✓ Added", "success");
+      flashButton(assignBtn, "✓ Added", "success");
+    });
   });
-});
 })();

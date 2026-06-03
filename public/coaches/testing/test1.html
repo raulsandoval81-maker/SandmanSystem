@@ -4,119 +4,119 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Test 1 — Base Check</title>
-<link rel="stylesheet" href="/coaches/testing/testing.css" />
+
+  <link rel="stylesheet" href="/coaches/testing/testing.css" />
+
   <style>
+    :root{
+      --bg:#f7f1e3;
+      --panel:#fffdf7;
+      --panel-2:#f3ecda;
+      --line:#d8ccb3;
+      --text:#201a12;
+      --muted:#6b6256;
+      --gold:#b88a12;
+      --red:#b93838;
+      --green:#1f8a43;
+    }
 
-:root{
-  --bg:#f7f1e3;
-  --panel:#fffdf7;
-  --panel-2:#f3ecda;
-  --line:#d8ccb3;
-  --text:#201a12;
-  --muted:#6b6256;
-  --gold:#b88a12;
-  --red:#b93838;
-  --green:#1f8a43;
-}
+    body[data-theme="night"]{
+      --bg:#0b1220;
+      --panel:#121b2e;
+      --panel-2:#18243d;
+      --line:#2a3550;
+      --text:#f3f4f6;
+      --muted:#9ca3af;
+      --gold:#facc15;
+      --red:#ef4444;
+      --green:#22c55e;
+    }
 
-body[data-theme="night"]{
-  --bg:#0b1220;
-  --panel:#121b2e;
-  --panel-2:#18243d;
-  --line:#2a3550;
-  --text:#f3f4f6;
-  --muted:#9ca3af;
-  --gold:#facc15;
-  --red:#ef4444;
-  --green:#22c55e;
-}
+    .theme-toggle{
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
 
-.theme-toggle{
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
+    .switch{
+      width:54px;
+      height:30px;
+      border-radius:999px;
+      background:var(--bg);
+      border:1px solid var(--line);
+      position:relative;
+      cursor:pointer;
+    }
 
-.switch{
-  width:54px;
-  height:30px;
-  border-radius:999px;
-  background:var(--bg);
-  border:1px solid var(--line);
-  position:relative;
-  cursor:pointer;
-}
+    .switch::after{
+      content:"";
+      position:absolute;
+      top:3px;
+      left:3px;
+      width:24px;
+      height:24px;
+      border-radius:50%;
+      background:var(--gold);
+      transition:.2s;
+    }
 
-.switch::after{
-  content:"";
-  position:absolute;
-  top:3px;
-  left:3px;
-  width:24px;
-  height:24px;
-  border-radius:50%;
-  background:var(--gold);
-  transition:.2s;
-}
+    body[data-theme="night"] .switch::after{
+      transform:translateX(24px);
+    }
 
-body[data-theme="night"] .switch::after{
-  transform:translateX(24px);
-}
+    .score-btn{
+      flex:1;
+      padding:16px 0;
+      border-radius:14px;
+      border:2px solid rgba(255,255,255,0.15);
+      background:#0f172a;
+      color:#cbd5f5;
+      font-weight:900;
+      font-size:1.1rem;
+      letter-spacing:0.5px;
+      transition:all 0.12s ease;
+    }
 
-.score-btn{
-  flex:1;
-  padding:16px 0;
-  border-radius:14px;
-  border:2px solid rgba(255,255,255,0.15);
-  background:#0f172a;
-  color:#cbd5f5;
-  font-weight:900;
-  font-size:1.1rem;
-  letter-spacing:0.5px;
-  transition:all 0.12s ease;
-}
+    .score-btn[data-score="5"]{background:rgba(34,197,94,0.18);}
+    .score-btn[data-score="3"]{background:rgba(251,191,36,0.18);}
+    .score-btn[data-score="0"]{background:rgba(239,68,68,0.18);}
 
-.score-btn[data-score="5"]{
-  background:rgba(34,197,94,0.18);
-}
-.score-btn[data-score="3"]{
-  background:rgba(251,191,36,0.18);
-}
-.score-btn[data-score="0"]{
-  background:rgba(239,68,68,0.18);
-}
+    .score-btn:hover{transform:scale(1.06);}
 
-.score-btn:hover{
-  transform:scale(1.06);
-}
+    .score-btn.selected-5{
+      background:#22c55e;
+      color:#022c22;
+      border-color:#4ade80;
+    }
 
-.score-btn.selected-5{
-  background:#22c55e;
-  color:#022c22;
-  border-color:#4ade80;
-  box-shadow:
-    0 0 0 3px rgba(34,197,94,0.8),
-    0 10px 28px rgba(34,197,94,0.55);
-}
+    .score-btn.selected-3{
+      background:#fde047;
+      color:#3b2f00;
+      border-color:#facc15;
+    }
 
-.score-btn.selected-3{
-  background:#fde047;
-  color:#3b2f00;
-  border-color:#facc15;
-  box-shadow:
-    0 0 0 3px rgba(250,204,21,0.8),
-    0 10px 28px rgba(250,204,21,0.55);
-}
+    .score-btn.selected-0{
+      background:#ef4444;
+      color:#ffffff;
+      border-color:#f87171;
+    }
 
-.score-btn.selected-0{
-  background:#ef4444;
-  color:#ffffff;
-  border-color:#f87171;
-  box-shadow:
-    0 0 0 3px rgba(239,68,68,0.8),
-    0 10px 28px rgba(239,68,68,0.55);
-}
-</style>
+    /* PRINT MODE */
+    @media print{
+      body{
+        background:#fff !important;
+        color:#000 !important;
+      }
+
+      .theme-toggle,
+      #saveBtn,
+      #copyBtn,
+      #resetBtn,
+      #printBtn{
+        display:none !important;
+      }
+    }
+  </style>
 </head>
 
 <body data-theme="night">
@@ -175,7 +175,8 @@ body[data-theme="night"] .switch::after{
       <div class="actions">
         <button id="saveBtn" class="action-btn">Save Test</button>
         <button id="copyBtn" class="action-btn">Copy Summary</button>
-        <button id="resetBtn" class="action-btn secondary">Reset</button>
+        <button id="printBtn" class="action-btn secondary" type="button">Print Sheet</button>
+        <button id="resetBtn" class="action-btn secondary" type="button">Reset</button>
       </div>
 
     </div>
@@ -184,8 +185,13 @@ body[data-theme="night"] .switch::after{
 
 </div>
 
-<!-- 🔥 JS SPLIT -->
 <script type="module" src="./test1.js"></script>
+
+<script>
+  document.getElementById("printBtn")?.addEventListener("click", () => {
+    window.print();
+  });
+</script>
 
 </body>
 </html>

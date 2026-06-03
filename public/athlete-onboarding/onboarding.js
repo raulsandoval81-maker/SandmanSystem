@@ -131,11 +131,71 @@ function needsRealLogin() {
 }
 
 /* -------------------------------- LOAD ATHLETE -------------------------------- */
+
+function prettyJourneyName(programTrack = "", art = "", placement = {}) {
+  const pt = String(
+    programTrack ||
+    placement.programTrack ||
+    ""
+  ).toLowerCase();
+
+  const a = String(
+    art ||
+    placement.art ||
+    ""
+  ).toLowerCase();
+
+  if (pt === "zero2hero") return "Zero2Hero";
+  if (pt === "path2legend") return "Path2Legend";
+  if (pt === "quest2mastery") return "Quest2Mastery";
+  if (pt === "road2glory" || pt === "adultboxing") return "Road2Glory";
+
+  if (a === "boxing") return "Road2Glory";
+  if (a === "mma") return "Quest2Mastery";
+  if (a === "wrestling") return "Path2Legend";
+
+  return "—";
+}
+function prettyArtName(art = "") {
+  switch (String(art || "").toLowerCase()) {
+    case "mma":
+      return "MMA";
+
+    case "boxing":
+      return "Boxing";
+
+    case "wrestling":
+      return "Wrestling";
+
+    case "kickboxing":
+      return "Kickboxing";
+
+    case "grappling":
+      return "Submission Grappling";
+
+    default:
+      return "—";
+  }
+}
+
+function prettyTierRank(a = {}) {
+  const pt = String(a.programTrack || "").toLowerCase();
+
+  if (
+    pt === "quest2mastery" ||
+    pt === "road2glory" ||
+    pt === "adultboxing"
+  ) {
+    return `${a.tier || "T1"} ${a.rankName || a.rank || "Apprentice"}`;
+  }
+
+  return `${a.tier || "T0"} ${a.rankName || a.rank || "—"}`;
+}
+
 async function loadAthlete() {
   setStatus("Loading…");
   disableButtons(true);
 
-  // needed for rules-gated reads (anonymous OK here)
   await ensureSignedIn();
 
   const snap = await getDoc(doc(db, "athletes", uid));
@@ -147,6 +207,10 @@ async function loadAthlete() {
 
   athlete = snap.data() || {};
 
+  console.log("[loadAthlete] full athlete:", athlete);
+console.log("[loadAthlete] programTrack:", athlete.programTrack);
+console.log("[loadAthlete] placement:", athlete.placement);
+
   const displayName = athlete.fullName || athlete.publicName || uid;
   const mintTag =
     athlete.mintVirtueTagDisplay ||
@@ -155,16 +219,28 @@ async function loadAthlete() {
     athlete.uid ||
     "—";
 
-  if (nameEl)   nameEl.textContent = displayName;
+  if (nameEl) nameEl.textContent = displayName;
   if (virtueEl) virtueEl.textContent = mintTag;
+const journeyName = prettyJourneyName(
+  athlete.programTrack,
+  athlete.art,
+  athlete.placement
+);
+  const artName = prettyArtName(athlete.art);
 
-  // Identity (read-only)
   text("mini-uid", uid);
-  text("mini-track", athlete.trackCode || athlete.track || athlete.foundry || "—");
-  text("mini-tier", athlete.tier || "—");
 
-  const team  = pickTeamName(athlete);
-  const city  = pickCity(athlete);
+  text(
+    "mini-track",
+    journeyName !== "—"
+      ? `${journeyName} • ${artName}`
+      : (athlete.trackCode || athlete.track || athlete.foundry || "—")
+  );
+
+  text("mini-tier", prettyTierRank(athlete));
+
+  const team = pickTeamName(athlete);
+  const city = pickCity(athlete);
   const state = pickState(athlete);
 
   text("mini-team", team);
@@ -182,9 +258,9 @@ async function loadAthlete() {
   disableButtons(false);
 
   console.log("[loadAthlete] uid:", uid);
+  console.log("[loadAthlete] journey/art:", journeyName, artName);
   console.log("[loadAthlete] team/city/state:", team, city, state);
 }
-
 /* -------------------------------- CONFIRM IDENTITY (STEP 1) --------------------------------
    Pivot: NO Firestore write here.
    After magic login, call Cloud Function to do the write with Admin privileges.

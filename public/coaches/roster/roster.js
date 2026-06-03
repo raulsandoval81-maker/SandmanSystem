@@ -10,8 +10,8 @@ import {
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
-import { updateRankUI } from "/assets/js/belt-bar.js";
-import { getStripeInfo, LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
+import { renderDigitalBelt } from "/assets/js/digital-belt.js";
+import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -19,6 +19,23 @@ function trackBaseOf(id, a = {}) {
   if (id.startsWith("F4_")) return "F4";
   if (id.startsWith("F8_")) return "F8";
   return "";
+}
+
+function xpCapForAthlete(data = {}, track = "F4") {
+  const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
+  const rankName = data.rankName || data.tierName;
+
+  const tier =
+    ladder.find((t) => t.name === rankName) ||
+    ladder[0];
+
+  return Number(
+    tier?.cap ??
+    data.xpCap ??
+    data.cap ??
+    data.tierCap ??
+    1200
+  );
 }
 
 function rosterStatusOf(a = {}) {
@@ -39,29 +56,19 @@ function athleteName(data = {}, id = "") {
   return data.publicName || data.fullName || id;
 }
 
-/* =========================
-   TEMPO / TEMPLE STATUS
-========================= */
-
 function getTempoStatus(data = {}, track = "F4") {
   const xp = Number(data.xp || 0);
-  const cap = Number(data.xpCap || (track === "F8" ? 600 : 1200));
+  const cap = xpCapForAthlete(data, track);
   const pct = Math.round((xp / (cap || 1)) * 100);
 
   const testingState = String(data.testing?.state || "").toUpperCase();
-// 1️⃣ POST-TEST / PROMOTION STATES OVERRIDE EVERYTHING
-if (testingState === "PROMOTED") return "promoted";
-if (testingState === "COOLDOWN") return "cooldown";
-if (testingState === "FREEZE") return "freeze";
 
-// 2️⃣ TEMPLE (coach-controlled override)
-if (testingState === "TEMPLE") return "in-temple";
-
-// 3️⃣ ELIGIBLE = XP at cap (old logic)
-if (xp >= cap) return "eligible";
-
-// 4️⃣ WATCH (90–99%)
-if (pct >= 90 && xp < cap) return "temple-watch";
+  if (testingState === "PROMOTED") return "promoted";
+  if (testingState === "COOLDOWN") return "cooldown";
+  if (testingState === "FREEZE") return "freeze";
+  if (testingState === "TEMPLE") return "in-temple";
+  if (xp >= cap) return "eligible";
+  if (pct >= 90 && xp < cap) return "temple-watch";
 
   return "";
 }
@@ -69,39 +76,15 @@ if (pct >= 90 && xp < cap) return "temple-watch";
 function tempoChipHtml(data = {}, track = "F4") {
   const status = getTempoStatus(data, track);
 
-  if (status === "promoted") {
-    return `<span class="status-chip status-chip--promoted">Promoted</span>`;
-  }
-
-  if (status === "cooldown") {
-    return `<span class="status-chip status-chip--cooldown">Cooldown</span>`;
-  }
-
-  if (status === "freeze") {
-    return `<span class="status-chip status-chip--freeze">Freeze</span>`;
-  }
-
-  if (status === "ready") {
-    return `<span class="status-chip status-chip--ready">Ready</span>`;
-  }
-
-  if (status === "in-temple") {
-    return `<span class="status-chip status-chip--tempo">In Temple</span>`;
-  }
-
-  if (status === "temple-watch") {
-    return `<span class="status-chip status-chip--watch">Temple Watch</span>`;
-  }
-  if (status === "eligible") {
-  return `<span class="status-chip status-chip--eligible">Eligible</span>`;
-}
+  if (status === "promoted") return `<span class="status-chip status-chip--promoted">Promoted</span>`;
+  if (status === "cooldown") return `<span class="status-chip status-chip--cooldown">Cooldown</span>`;
+  if (status === "freeze") return `<span class="status-chip status-chip--freeze">Freeze</span>`;
+  if (status === "in-temple") return `<span class="status-chip status-chip--tempo">In Temple</span>`;
+  if (status === "temple-watch") return `<span class="status-chip status-chip--watch">Temple Watch</span>`;
+  if (status === "eligible") return `<span class="status-chip status-chip--eligible">Eligible</span>`;
 
   return "";
 }
-
-/* =========================
-   ARCHIVE ACTIONS
-========================= */
 
 async function archiveAthlete(uid) {
   await updateDoc(doc(db, "athletes", uid), {
@@ -117,9 +100,6 @@ async function restoreAthlete(uid) {
   });
 }
 
-/* =========================
-   LOAD ROSTER
-========================= */
 async function loadRoster() {
   await ensureSignedIn();
 
@@ -157,49 +137,41 @@ async function loadRoster() {
   }
 
   rowsEl.innerHTML = list.length
-    ? list.map(({ id, data }) => {
-        return `
-          <tr>
-            <td data-label="Athlete">
-              <div class="name-col">
-                <div class="name-line">
-                  ${athleteName(data, id)}
-                  ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
-                </div>
-              </div>
-            </td>
+    ? list.map(({ id, data }) => `
+      <tr>
+        <td data-label="Athlete">
+          <div class="name-col">
+            <div class="name-line">
+              ${athleteName(data, id)}
+              ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
+            </div>
+          </div>
+        </td>
 
-            <td data-label="Tier / Rank">${data.rankName || "—"}</td>
+        <td data-label="Tier / Rank">${data.rankName || "—"}</td>
 
-            <td data-label="XP">
-              <div class="belt-stack">
-                <div id="rankBar-${id}" class="xp-lite-track">
-                  <div id="rankFill-${id}" class="xp-lite-fill"></div>
-                </div>
-                <div id="stripeText-${id}" class="xp-sub"></div>
-              </div>
-            </td>
+        <td data-label="XP">
+          <div class="belt-stack">
+            <div id="rankBar-${id}" class="mini-belt-slot"></div>
+            <div id="stripeText-${id}" class="xp-sub"></div>
+          </div>
+        </td>
 
-            <td data-label="Actions">
-              <div class="roster-actions">
-                <a class="pill" href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}">
-                  Profile
-                </a>
-                ${
-                  isArchiveView()
-                    ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
-                    : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
-                }
-              </div>
-            </td>
-          </tr>
-        `;
-      }).join("")
+        <td data-label="Actions">
+          <div class="roster-actions">
+            <a class="pill" href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}">
+              Profile
+            </a>
+            ${
+              isArchiveView()
+                ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
+                : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
+            }
+          </div>
+        </td>
+      </tr>
+    `).join("")
     : `<tr><td colspan="4" class="muted">No athletes found.</td></tr>`;
-
-  /* =========================
-     BUTTON HANDLERS
-  ========================= */
 
   document.querySelectorAll("[data-archive]").forEach((btn) => {
     btn.onclick = async () => {
@@ -237,32 +209,70 @@ async function loadRoster() {
     };
   });
 
-  /* =========================
-     BELT RENDER
-  ========================= */
-
   for (const { id, data } of list) {
     const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
-    const totalXP = Number(data.xp || 0);
-    const info = getStripeInfo(ladder, totalXP);
+    const tier = ladder.find((t) => t.name === data.rankName) || ladder[0];
 
-    updateRankUI({
-      ladder,
-      totalXP,
-      rankNameOverride: data.rankName || "",
-      stripeCountOverride: Number(info.stripesEarned || 0),
-      el: {
-        barId: `rankBar-${id}`,
-        fillId: `rankFill-${id}`,
-        textId: `stripeText-${id}`
-      }
-    });
+    const xpNow = Number(data.xp ?? data.currentTierXP ?? 0);
+    const xpCap = xpCapForAthlete(data, track);
+    const stripeMax = Number(tier.stripes ?? 4);
+    const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
+
+    const calculatedStripes = Math.min(
+      stripeMax,
+      Math.floor(xpNow / stripeSize)
+    );
+
+    const finalStripes = Math.max(
+      Number(data.stripeCount ?? 0),
+      calculatedStripes
+    );
+
+    const colorMapF4 = {
+      Apprentice: "belt-white",
+      Warrior: "belt-blue",
+      Champion: "belt-purple",
+      Veteran: "belt-brown",
+      Legend: "belt-black"
+    };
+
+    const colorMapF8 = {
+      Shadow: "belt-white",
+      Recruit: "belt-yellow",
+      Combatant: "belt-orange",
+      Competitor: "belt-green",
+      Warrior: "belt-blue",
+      Champion: "belt-purple",
+      Commander: "belt-brown",
+      Hero: "belt-black"
+    };
+
+    const colorClass =
+      track === "F8"
+        ? colorMapF8[data.rankName] || "belt-white"
+        : colorMapF4[data.rankName] || "belt-white";
+
+    const beltEl = document.getElementById(`rankBar-${id}`);
+    if (beltEl) {
+      beltEl.innerHTML = renderDigitalBelt({
+        colorClass,
+        stripes: finalStripes,
+        size: "small"
+      });
+    }
+
+    const textEl = document.getElementById(`stripeText-${id}`);
+    if (textEl) {
+      const xpPercent = Math.min(
+        100,
+        Math.round((xpNow / xpCap) * 100)
+      );
+
+      textEl.textContent =
+        `${xpNow} / ${xpCap} XP · ${xpPercent}% · Stripes: ${finalStripes} / ${stripeMax}`;
+    }
   }
 }
-
-/* =========================
-   INIT
-========================= */
 
 loadRoster();
 

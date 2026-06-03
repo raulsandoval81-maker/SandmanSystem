@@ -13,11 +13,9 @@ import {
 import {
   LADDER_F4,
   LADDER_F8,
-  getStripeInfo,
 } from "/assets/js/ladder.service.js";
 
-import { updateRankUI } from "/assets/js/belt-bar.js";
-
+import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -47,11 +45,6 @@ function setText(id, value) {
 function setHTML(id, value) {
   const el = $(id);
   if (el) el.innerHTML = value;
-}
-
-function setStyle(id, prop, value) {
-  const el = $(id);
-  if (el) el.style[prop] = value;
 }
 
 function wireParentTabs() {
@@ -117,11 +110,6 @@ function isLiveNow(item = {}) {
   return nowMinutes >= start && nowMinutes <= end;
 }
 
-function safeNumber(v, fallback = 0) {
-  const n = Number(v);
-  return Number.isFinite(n) ? n : fallback;
-}
-
 function getAthleteName(a = {}) {
   return a.publicName || a.fullName || a.displayName || a.name || a.athleteName || "Athlete";
 }
@@ -131,11 +119,7 @@ function getVirtueTag(a = {}) {
 }
 
 function getTier(a = {}) {
-  return a.rankName || a.tier || a.rank || "—";
-}
-
-function getXp(a = {}) {
-  return safeNumber(a.xp ?? 0, 0);
+  return a.rankName || a.tierName || a.tier || a.rank || "—";
 }
 
 function getInitial(name = "") {
@@ -143,76 +127,167 @@ function getInitial(name = "") {
 }
 
 function resolveLadder(a = {}) {
-  const track = String(a.track || "").trim().toLowerCase();
-  const tier = String(a.rankName || a.tier || a.rank || "").trim().toLowerCase();
+  const id = String(a.uid || a.uidCode || a.id || "").toUpperCase();
+  const track = String(a.track || a.trackCode || "").trim().toLowerCase();
+  const rank = String(a.rankName || a.tierName || a.tier || a.rank || "").trim().toLowerCase();
 
-  if (track.includes("foundry8")) return LADDER_F8;
-  if (track.includes("foundry4")) return LADDER_F4;
-
-  if (["shadow", "recruit", "combatant", "competitor", "commander", "hero"].includes(tier)) {
+  if (
+    id.startsWith("F8_") ||
+    track.includes("foundry8") ||
+    ["shadow", "recruit", "combatant", "competitor", "contender", "commander", "hero"].includes(rank)
+  ) {
     return LADDER_F8;
   }
 
   return LADDER_F4;
 }
 
+function getTierNum(a = {}) {
+  if (typeof a?.tierNum === "number") return a.tierNum;
+  if (typeof a?.rankNum === "number") return a.rankNum;
+
+  const raw = String(a.tier || a.rank || "").trim();
+  const match = raw.match(/T(\d+)|R(\d+)|(\d+)/i);
+  if (!match) return 0;
+
+  return Number(match[1] || match[2] || match[3] || 0) || 0;
+}
+
+function findCurrentTier(ladder, tierName, a = {}) {
+  const wanted = String(tierName || "").trim().toLowerCase();
+
+  const direct = ladder.find((t) =>
+    String(t.name || "").trim().toLowerCase() === wanted
+  );
+
+  if (direct) return direct;
+
+  // Youth wording safety: older UI sometimes says Contender while ladder says Competitor.
+  if (wanted === "contender") {
+    const competitor = ladder.find((t) =>
+      String(t.name || "").trim().toLowerCase() === "competitor"
+    );
+    if (competitor) return competitor;
+  }
+
+  const tierNum = getTierNum(a);
+  return ladder[tierNum] || ladder[0];
+}
+
+function getColorClass(ladder, tierName) {
+  const colorMapF8 = {
+    Shadow: "belt-white",
+    Recruit: "belt-yellow",
+    Combatant: "belt-orange",
+    Competitor: "belt-green",
+    Contender: "belt-green",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Commander: "belt-brown",
+    Hero: "belt-black"
+  };
+
+  const colorMapF4 = {
+    Apprentice: "belt-white",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Legend: "belt-black"
+  };
+
+  const isF8 = ladder === LADDER_F8;
+  return (isF8 ? colorMapF8 : colorMapF4)[tierName] || "belt-white";
+}
+
 function renderAthlete(a = {}) {
   const name = getAthleteName(a);
   const virtueTag = getVirtueTag(a);
-  const totalXP = getXp(a);
   const summaryThird = a.team || a.teamName || "—";
 
   const ladder = resolveLadder(a);
-  const info = getStripeInfo(ladder, totalXP);
 
-  const tierName = info?.tier?.name || getTier(a);
-  const xpInTier = Number(info?.xpInTier || 0);
-  const capXP = Number(info?.capXP || 1);
+  const tierName =
+    a.rankName ||
+    a.tierName ||
+    getTier(a);
 
-const computedStripeCount = Number(info?.stripesEarned || 0);
-const stripeCount = computedStripeCount;
+  const tier = findCurrentTier(ladder, tierName, a);
 
-  const stripeTotal = Number(info?.stripesTotal || 4);
-  const remainingTier = Number(info?.xpToNextTier || 0);
-  const remainingStripe = Number(info?.xpToNextStripe || 0);
-  const nextStripe = Math.min(stripeCount + 1, stripeTotal);
+  // Current tier XP. Your system resets this on promotion.
+  const xpNow = Math.max(0, Number(a.xp ?? a.currentTierXP ?? 0));
+
+  // Current tier cap comes from stored athlete cap first, then ladder tier cap.
+const xpCap = Math.max(
+  1,
+  Number(tier?.cap ?? a.xpCap ?? a.cap ?? a.tierCap ?? 1)
+);
+
+const stripeMax = Math.max(1, Number(tier?.stripes ?? 4));
+  const stripeSize = Math.max(1, Number(tier?.stripe ?? (xpCap / stripeMax)));
+
+  const calculatedStripes = Math.min(
+    stripeMax,
+    Math.floor(xpNow / stripeSize)
+  );
+
+  const storedStripes = Number(a.stripeCount ?? a.stripes);
+  const stripeCount = Number.isFinite(storedStripes)
+    ? Math.max(0, Math.min(stripeMax, Math.max(storedStripes, calculatedStripes)))
+    : calculatedStripes;
+
+  const nextStripe = Math.min(stripeCount + 1, stripeMax);
+  const remainingTier = Math.max(0, xpCap - xpNow);
+  const remainingStripe =
+    stripeCount < stripeMax
+      ? Math.max(0, Math.ceil(nextStripe * stripeSize) - xpNow)
+      : 0;
 
   setText("athlete-avatar", getInitial(name));
   setText("athlete-name", name);
   setText("athlete-tier", tierName);
   setText("athlete-tag", virtueTag);
 
-  setText("summary-xp", `${totalXP}`);
-  setText("summary-stripe", `${stripeCount}/${stripeTotal}`);
+  setText("summary-xp", `${xpNow}`);
+  setText("summary-stripe", `${stripeCount}/${stripeMax}`);
   setText("summary-grind", summaryThird);
 
   setText("athlete-tier-line", tierName);
 
-  updateRankUI({
-    ladder,
-    totalXP,
-    stripeCountOverride: stripeCount, // 🔥 THIS LINE
-    el: {
-      barId: "rankBar",
-      fillId: "rankFill",
-      textId: "stripeText",
-    },
-  });
-setText("stripeText", `Stripes: ${stripeCount}/${stripeTotal}`);
-  setText("xpText", `${xpInTier}/${capXP} XP`);
+  const mappedColor = getColorClass(ladder, tierName);
+
+  setHTML(
+    "rankBar",
+    renderDigitalBelt({
+      colorClass: mappedColor,
+      stripes: stripeCount,
+      size: "small"
+    })
+  );
+
+  setText("stripeText", `Stripes: ${stripeCount}/${stripeMax}`);
+const xpPercent = Math.min(
+  100,
+  Math.round((xpNow / xpCap) * 100)
+);
+
+setText(
+  "xpText",
+  `${xpNow} / ${xpCap} XP · ${xpPercent}%`
+);
+
 
   setHTML(
     "milestone-xp",
     remainingTier > 0
-         ? `<span class="en">${esc(name)} needs <strong>${remainingTier} XP</strong> to reach the next tier milestone.</span>
-         <span class="es">${esc(name)} necesita <strong>${remainingTier} XP</strong> para llegar al próximo objetivo del nivel.</span>`
-      : `<span class="en">${esc(name)} is at the current cap tier.</span>
-         <span class="es">${esc(name)} está en el nivel máximo actual.</span>`
+      ? `<span class="en">${esc(name)} needs <strong>${remainingTier} XP</strong> to complete this tier.</span>
+         <span class="es">${esc(name)} necesita <strong>${remainingTier} XP</strong> para completar este nivel.</span>`
+      : `<span class="en">${esc(name)} is ready for the next tier step.</span>
+         <span class="es">${esc(name)} está listo para el siguiente paso de nivel.</span>`
   );
 
   setHTML(
     "milestone-stripe",
-    stripeCount < stripeTotal
+    stripeCount < stripeMax
       ? `<span class="en">Next visible progress target: <strong>Stripe ${nextStripe}</strong> (${remainingStripe} XP)</span>
          <span class="es">Próximo objetivo visible: <strong>Franja ${nextStripe}</strong> (${remainingStripe} XP)</span>`
       : `<span class="en">All current stripes filled.</span>
@@ -259,7 +334,7 @@ function renderToday(daily = []) {
       <p class="today-title">${esc(todayName)}</p>
       <p class="today-sub">
         <span class="en">No scheduled session today.</span>
-        <span class="es">No hay sesión programada para hoy.</span>
+        <span class="es">No hay sesión programada hoy.</span>
       </p>
     `;
     return;
@@ -416,8 +491,7 @@ function renderNoAccess() {
   setText("xpText", "—");
   setText("stripe-target", "");
 
-  setStyle("rankFill", "width", "0%");
-  setStyle("rankFill", "background", "transparent");
+  setHTML("rankBar", "");
 
   setHTML("activity-list", `
     <li class="muted-empty">

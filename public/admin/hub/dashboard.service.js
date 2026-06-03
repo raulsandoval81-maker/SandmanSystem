@@ -46,10 +46,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setStatus("Enter a valid XP amount.", true);
-      return;
+
+
+    if (!Number.isFinite(amount) || amount === 0) {
+  setStatus("Enter a valid non-zero XP amount.", true);
+  return;
     }
+
 
     if (!kind) {
       setStatus("XP type is required.", true);
@@ -66,7 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     setStatus(
-      `Applied +${result.amount} XP to ${result.uid}. ${result.beforeXp} → ${result.afterXp}`
+      `Applied ${result.amount > 0 ? "+" : ""}${result.amount} XP to ${result.uid}. ${result.beforeXp} → ${result.afterXp}`
     );
 
     clearForm();

@@ -9,88 +9,108 @@
   <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
   <link rel="stylesheet" href="/athletes/leaderboard/leaderboard.css"/>
 </head>
+
+<body>
+
 <header class="athlete-sub-header">
   <div class="sub-header-inner">
     <span class="brand">Sandman Combat™</span>
 
     <div class="sub-nav">
-<a id="homeLink" href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
+      <a id="homeLink" href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
     </div>
   </div>
 </header>
-<body>
 
-  <main class="wrap">
+<main class="wrap">
 
 
+  <section class="lb-hero">
+    <div class="lb-hero__inner">
+      <div class="lb-hero__copy">
+        <p class="lb-kicker">Foundry 4 Combat</p>
+        <h1 class="lb-title">Leaderboard</h1>
+        <p class="lb-sub">
+          Compete with purpose. Build yourself. Strengthen your teammates. Represent the team.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="leaderboard-list">
+
+    <div class="controls">
+      <select id="mode-toggle">
+        <option value="private">Private</option>
+        <option value="public">Public</option>
+      </select>
+
+      <select id="view-mode">
+        <option value="overall">Overall</option>
+        <option value="tier">Tier</option>
+      </select>
+
+      <select id="rank-mode">
+        <option value="progression">Progression</option>
+        <option value="lifetime">Lifetime XP</option>
+      </select>
+    </div>
+
+    <h2 id="board-title">Top 8</h2>
+    <div id="top8-list"></div>
+
+    <div id="private-zone-panel">
+      <h3>Your Zone</h3>
+      <div id="your-zone"></div>
+    </div>
+
+    <div id="next-target-panel">
+      <h3>Next Target</h3>
+      <div id="next-target"></div>
+    </div>
+
+  </section>
     <section class="comp-box">
-      <h2 class="comp-title">Three Types of Competition — Know Them</h2>
+    <h2 class="comp-title">Three Types of Competition — Know Them</h2>
 
-      <div class="comp-grid">
-        <article class="comp-item">
-          <strong>Myself</strong>
-          <span>Win the day. Build discipline. Stay accountable. Me vs Me</span>
-        </article>
+    <div class="comp-grid">
+      <article class="comp-item">
+        <strong>Myself</strong>
+        <span>Win the day. Build discipline. Stay accountable. Me vs Me</span>
+      </article>
 
-        <article class="comp-item">
-          <strong>Teammates</strong>
-          <span>Push each other. Make each other better. Iron sharpens iron.</span>
-        </article>
+      <article class="comp-item">
+        <strong>Teammates</strong>
+        <span>Push each other. Make each other better. Iron sharpens iron.</span>
+      </article>
 
-        <article class="comp-item">
-          <strong>Team</strong>
-          <span>Show up. Do your job. Win together. Represent the room.</span>
-        </article>
-      </div>
-    </section>
-        <section class="lb-hero">
-      <div class="lb-hero__inner">
-        <div class="lb-hero__copy">
-          <p class="lb-kicker">Foundry 4 Combat</p>
-          <h1 class="lb-title">Leaderboard</h1>
-          <p class="lb-sub">
-            Compete with purpose. Build yourself. Strengthen your teammates. Represent the team.
-          </p>
-        </div>
-      </div>
-    </section>
+      <article class="comp-item">
+        <strong>Team</strong>
+        <span>Show up. Do your job. Win together. Represent the room.</span>
+      </article>
+    </div>
+  </section>
 
 
-    <section class="leaderboard-list">
+</main>
 
-      <div class="controls">
-        <select id="mode-toggle">
-          <option value="private">Private</option>
-          <option value="public">Public</option>
-        </select>
+<script>
+  window.LEADERBOARD_TRACK = "foundry4";
 
-        <select id="view-mode">
-          <option value="overall">Overall</option>
-          <option value="tier">Tier</option>
-        </select>
-      </div>
+  const params = new URLSearchParams(window.location.search);
+  const athleteId =
+    params.get("athleteId") ||
+    params.get("id") ||
+    localStorage.getItem("currentAthleteId") ||
+    "";
 
-      <h2 id="board-title">Top 8</h2>
-      <div id="top8-list"></div>
+  const homeLink = document.getElementById("homeLink");
+  if (homeLink && athleteId) {
+    homeLink.href = `/athletes/hub/full-hub.html?id=${encodeURIComponent(athleteId)}`;
+  }
+</script>
 
-      <div id="private-zone-panel">
-        <h3>Your Zone</h3>
-        <div id="your-zone"></div>
-      </div>
+<script type="module" src="/athletes/leaderboard/leaderboard.app.js"></script>
 
-      <div id="next-target-panel">
-        <h3>Next Target</h3>
-        <div id="next-target"></div>
-      </div>
-
-    </section>
-
-  </main>
-
-  <script>
-    window.LEADERBOARD_TRACK = "foundry4";
-  </script>
-
-  <script type="module" src="/athletes/leaderboard/leaderboard.app.js"></script>
 </body>
 </html>

@@ -202,6 +202,23 @@
       color:#ffd7d7;
     }
 
+    .intent {
+  font-weight: 800;
+  letter-spacing: .04em;
+}
+
+.intent-high {
+  color: #22c55e; /* green */
+}
+
+.intent-mid {
+  color: #f59e0b; /* amber */
+}
+
+.intent-low {
+  color: #94a3b8; /* muted */
+}
+
     .empty{
       opacity:.75;
       text-align:center;
@@ -255,7 +272,7 @@
 
 <div class="wrap">
   <section class="panel">
-    <h2>Join Requests</h2>
+<h2>Join & Trial Requests</h2>
     <div style="opacity:.8;">
       Review trial and join requests, open threads, and approve the next step.
     </div>
@@ -265,6 +282,7 @@
     <div class="inbox-filters">
       <button type="button" class="filter-btn is-active" data-filter="pending">Pending</button>
       <button type="button" class="filter-btn" data-filter="approved">Approved</button>
+      
       <button type="button" class="filter-btn" data-filter="archived">Archived</button>
       <button type="button" class="filter-btn" data-filter="deleted">Deleted</button>
       <button type="button" class="filter-btn" data-filter="all">All</button>

@@ -14,25 +14,27 @@ function titleCase(str = "") {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-function sortByXp(list) {
-  return [...list].sort((a, b) => b.xp - a.xp);
-}
-
-/* --------------------------------------
-   Track-specific tier ladders
----------------------------------------*/
 function getTierOrder(track) {
   if (track === "foundry8") {
     return ["shadow","recruit","combatant","competitor","warrior","champion","commander","hero"];
   }
-
   return ["apprentice","warrior","champion","veteran","legend"];
 }
 
-/* --------------------------------------
-   Public board = sealed track view
-   NO crossover
----------------------------------------*/
+function getTierIndex(tier, track) {
+  const order = getTierOrder(track);
+  const idx = order.indexOf(tier);
+  return idx === -1 ? 0 : idx;
+}
+
+function sortByProgression(list, track) {
+  return [...list].sort((a, b) => {
+    const tierDiff = getTierIndex(b.tier, track) - getTierIndex(a.tier, track);
+    if (tierDiff !== 0) return tierDiff;
+    return b.xp - a.xp;
+  });
+}
+
 function getTrackAthletes() {
   const track = trackFilterEl.value;
   return athletes.filter(a => a.track === track);
@@ -54,29 +56,24 @@ function rowHtml(entry, rank) {
   `;
 }
 
-/* --------------------------------------
-   Overall = Top 8 for selected track only
----------------------------------------*/
 function renderOverall(list) {
-  const top8 = sortByXp(list).slice(0, 8);
+  const track = trackFilterEl.value;
+  const top8 = sortByProgression(list, track).slice(0, 8);
 
   leaderboardList.innerHTML = top8.length
     ? top8.map((a, i) => rowHtml(a, i + 1)).join("")
     : `<div class="empty">No rankings yet.</div>`;
 }
 
-/* --------------------------------------
-   Tier view = grouped by selected track's tiers
-   still no crossover
----------------------------------------*/
 function renderByTier(list) {
   const track = trackFilterEl.value;
   const tierOrder = getTierOrder(track);
 
   const html = tierOrder.map(tier => {
-    const group = sortByXp(
-      list.filter(a => a.tier === tier)
-    ).slice(0, 8);
+    const group = list
+      .filter(a => a.tier === tier)
+      .sort((a, b) => b.xp - a.xp)
+      .slice(0, 8);
 
     if (!group.length) return "";
 
@@ -95,16 +92,10 @@ function render() {
   const filtered = getTrackAthletes();
   const view = viewModeEl.value;
 
-  if (view === "tier") {
-    renderByTier(filtered);
-  } else {
-    renderOverall(filtered);
-  }
+  if (view === "tier") renderByTier(filtered);
+  else renderOverall(filtered);
 }
 
-/* --------------------------------------
-   Live Firestore load
----------------------------------------*/
 function normalizeTrack(raw = "", docId = "") {
   const t = String(raw || "").toLowerCase();
   const id = String(docId || "").toUpperCase();
@@ -119,14 +110,32 @@ function normalizeTier(raw = "") {
   return String(raw || "").toLowerCase().trim();
 }
 
+function isRealPublicAthlete(a) {
+  const id = String(a.id || "").toUpperCase();
+  const name = String(a.name || "").toLowerCase();
+
+  return (
+    !a.isDev &&
+    !a.isTest &&
+    !a.devMode &&
+    !id.includes("_TEST_") &&
+    !id.includes("_GHOST_") &&
+    !id.includes("GHOST") &&
+    !name.includes("dev") &&
+    !name.includes("ghost")
+  );
+}
+
 async function loadAthletes() {
   const snap = await getDocs(collection(db, "athletes"));
 
   athletes = snap.docs
     .map(doc => {
       const d = doc.data() || {};
+      const id = doc.id.toUpperCase();
 
       return {
+        id,
         name: d.fullName || d.name || doc.id,
         track: normalizeTrack(d.track, doc.id),
         tier: normalizeTier(d.tier || d.rank || d.rankName || ""),
@@ -136,12 +145,7 @@ async function loadAthletes() {
         devMode: d.devMode === true
       };
     })
-    .filter(a =>
-      !a.isDev &&
-      !a.isTest &&
-      !a.devMode &&
-      !a.name.toLowerCase().includes("dev")
-    );
+    .filter(isRealPublicAthlete);
 
   render();
 }

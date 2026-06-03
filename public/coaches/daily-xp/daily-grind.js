@@ -1,16 +1,15 @@
 // public/coaches/daily-xp/daily-grind.js
-import "/coaches/_ui/dev-boot.js";
-
 import { db, collection, onSnapshot, ensureSignedIn } from "/assets/js/firebase-init.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
-import { renderMiniXpBar } from "/assets/js/xp-bar-mini.js";
-import { COLORS, colorKeyFor, getAthleteStripeInfo } from "/assets/js/ladder.service.js";
+import { renderDigitalBelt } from "/assets/js/digital-belt.js";
+import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
 import {
   isDevMode,
   paintDevUi,
   bindDevToggle,
   patchDevLinks,
 } from "/assets/js/dev-mode.js";
+
 console.log("XP_URL =", XP_URL);
 /* =========================
    DEV MODE BOOTSTRAP
@@ -81,6 +80,26 @@ let isSaving = false;
 /* =========================
    Helpers
 ========================= */
+function xpCapForAthlete(a = {}) {
+  const base = baseFromAthlete(a);
+  const rankName = a.rankName || a.tierName;
+
+  const ladder = base === "F8"
+    ? LADDER_F8
+    : LADDER_F4;
+
+  const tier = ladder.find(t => t.name === rankName);
+
+  return Number(
+    tier?.cap ??
+    a.xpCap ??
+    a.cap ??
+    a.tierCap ??
+    1200
+  );
+
+}
+
 function setStatus(msg) {
   if (pageStatusEl) pageStatusEl.textContent = msg;
 }
@@ -140,37 +159,55 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
   const slot = rowEl?.querySelector?.(".xp-slot");
   if (!slot) return;
 
-  const info = getAthleteStripeInfo({
-    ...athlete,
-    xp,
-    xpCap: cap,
-    rankName,
-    tierName,
-  });
+  const ladder = baseFromAthlete(athlete) === "F8" ? LADDER_F8 : LADDER_F4;
+  const tier = ladder.find(t => t.name === rankName) || ladder[0];
 
-  const stripesTotal = Number(info?.stripesTotal ?? 4);
-  const stripesEarned = Number(info?.stripesEarned ?? 0);
+  const xpNow = Number(xp ?? 0);
+  const xpCap = Number(cap ?? tier.cap);
+  const stripeMax = Number(tier.stripes ?? 4);
+  const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
 
-  const safeCap = Math.max(1, Number(cap) || 1200);
-  const safeXp  = Math.max(0, Number(xp) || 0);
+  const calculatedStripes = Math.min(
+    stripeMax,
+    Math.floor(xpNow / stripeSize)
+  );
 
-  const key = colorKeyFor(rankName || tierName || "") || "apprentice";
-  const c = COLORS[key] || COLORS.apprentice;
+  const finalStripes = Math.max(
+    Number(athlete.stripeCount ?? 0),
+    calculatedStripes
+  );
 
-  const isWhiteStripeTier =
-    String(rankName || "").toLowerCase() === "legend" ||
-    String(rankName || "").toLowerCase() === "hero" ||
-    String(rankName || "").toLowerCase() === "mastery";
+  const colorMapF4 = {
+    Apprentice: "belt-white",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Legend: "belt-black"
+  };
 
-  renderMiniXpBar({
-    container: slot,
-    xp: safeXp,
-    cap: safeCap,
-    tierName: tierName || "Apprentice",
-    stripesEarned,
-    stripesTotal,
-    fillColor: c.start,
-    stripeTone: isWhiteStripeTier ? "white" : "black",
+  const colorMapF8 = {
+    Shadow: "belt-white",
+    Recruit: "belt-yellow",
+    Combatant: "belt-orange",
+    Competitor: "belt-green",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Commander: "belt-brown",
+    Hero: "belt-black"
+  };
+
+  const base = baseFromAthlete(athlete);
+
+  const colorClass =
+    base === "F8"
+      ? colorMapF8[rankName] || "belt-white"
+      : colorMapF4[rankName] || "belt-white";
+
+  // 🔥 replace mini bar with belt
+  slot.innerHTML = renderDigitalBelt({
+    colorClass,
+    stripes: finalStripes,
+    size: "small"
   });
 }
 /* =========================
@@ -193,7 +230,7 @@ function render(list) {
     const track = a.trackCode || a.track || "—";
     const tier  = a.rankName || a.tierName || a.tier || "Apprentice";
     const xp    = a.xp ?? 0;
-    const cap   = a.xpCap ?? 1200;
+    const cap   = xpCapForAthlete(a);
 
     return `
       <tr data-id="${a.id}">
@@ -218,7 +255,7 @@ function render(list) {
   rowEl: tr,
   athlete: a,
   xp: a.xp ?? 0,
-  cap: a.xpCap ?? 1200,
+  cap: xpCapForAthlete(a),
   tierName: a.rankName || a.tierName || a.tier || "Apprentice",
   rankName: a.rankName,
 });
@@ -482,7 +519,7 @@ if (data.afterTierName) a.tierName = data.afterTierName;
 
         const row = rowsEl?.querySelector?.(`tr[data-id="${id}"]`);
         if (row) {
-          const cap = a.xpCap ?? 1200;
+          const cap = xpCapForAthlete(a);
           const line = row.querySelector(`[data-xpline="${id}"]`);
           if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
 

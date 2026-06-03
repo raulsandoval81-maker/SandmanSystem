@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Quest2Mastery | Foundry 4</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../public.css" />
+  <script src="../assets/js/public-shell.js" defer></script>
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #1f2937,
+        #111827
+      );
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    padding:48px 30px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+
+    margin-bottom:28px;
+  }
+
+  body.day-mode .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff,
+        #f3e7cf
+      );
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+
+    text-transform:uppercase;
+    letter-spacing:.16em;
+
+    font-size:.78rem;
+    font-weight:800;
+
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+
+    font-size:clamp(2.5rem,5vw,4.5rem);
+
+    line-height:1;
+
+    color:var(--heading);
+  }
+
+  .journey{
+    color:var(--heading-accent);
+
+    font-size:1.1rem;
+    font-weight:800;
+
+    margin-bottom:20px;
+  }
+
+  .lead{
+    max-width:780px;
+
+    color:var(--hero-muted);
+
+    line-height:1.75;
+
+    font-size:1.05rem;
+  }
+
+  .adult-paths{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(220px,1fr));
+
+    gap:16px;
+
+    margin-top:28px;
+  }
+
+  .path-card{
+    display:flex;
+
+    flex-direction:column;
+
+    gap:8px;
+
+    padding:22px;
+
+    border-radius:18px;
+
+    text-decoration:none;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    color:var(--text);
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .path-card{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .path-card:hover{
+    transform:translateY(-3px);
+
+    border-color:#dc2626;
+
+    box-shadow:
+      0 10px 28px rgba(0,0,0,.28),
+      0 0 18px rgba(220,38,38,.18);
+  }
+
+  .path-card strong{
+    color:var(--heading-accent);
+
+    font-size:1.25rem;
+  }
+
+  body.day-mode .path-card strong{
+    color:var(--heading);
+  }
+
+  .path-card span{
+    color:var(--heading-accent);
+
+    font-weight:800;
+
+    letter-spacing:.04em;
+  }
+
+  body.day-mode .path-card span{
+    color:#7c4a03;
+  }
+
+  .path-card p{
+    margin:0;
+
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  .grid{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(240px,1fr));
+
+    gap:18px;
+
+    margin-top:28px;
+  }
+
+  .card{
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:20px;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card:hover{
+    transform:translateY(-2px);
+
+    border-color:#ff2a2a;
+
+    box-shadow:0 0 18px rgba(255,42,42,.22);
+  }
+
+  .card h3{
+    color:var(--heading-accent);
+
+    margin:0 0 10px;
+  }
+
+  body.day-mode .card h3{
+    color:var(--heading);
+  }
+
+  .card p,
+  .card li{
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  ul{
+    padding-left:18px;
+    margin:0;
+  }
+
+  .quote{
+    margin-top:30px;
+
+    padding:24px;
+
+    border-left:4px solid var(--heading-accent);
+
+    background:var(--panel);
+
+    border-radius:16px;
+
+    color:var(--text);
+
+    line-height:1.8;
+
+    font-size:1.04rem;
+
+    border:1px solid var(--line);
+  }
+
+  body.day-mode .quote{
+    background:#ffffff;
+
+    border-color:#d7c7a2;
+  }
+
+  .shadow-line{
+    margin-top:20px;
+
+    font-size:1.35rem;
+    font-weight:900;
+
+    color:var(--heading);
+
+    letter-spacing:.04em;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  @media (max-width:640px){
+
+    main{
+      padding:28px 14px 70px;
+    }
+
+    .hero{
+      padding:36px 22px;
+    }
+
+    h1{
+      font-size:2.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+  <header class="top-nav">
+    <div class="nav-top">
+      <div class="lang-toggle" role="group" aria-label="Language toggle">
+        <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+        <button type="button" class="lang-btn" data-lang="es">ES</button>
+      </div>
+
+      <a href="../index.html" class="nav-logo">Sandman Combat™</a>
+
+      <button type="button" class="theme-toggle" aria-label="Toggle theme">☾</button>
+    </div>
+
+    <nav class="site-nav" aria-label="Primary">
+      <a href="../index.html">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
+
+      <a href="../overview.html">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
+
+      <a href="../programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
+
+      <a href="../about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
+
+  <main>
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+        <div class="eyebrow">Foundry 4 Adult</div>
+
+        <h1>Adult Combat Paths</h1>
+
+        <p class="lead">
+          Adult Foundry 4 provides structured combat development inside Sandman Combat™.
+          Athletes train through coach-guided progression, accountability,
+          pressure, discipline, and repetition.
+        </p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <div class="eyebrow">Foundry 4 Adulto</div>
+
+        <h1>Caminos de Combate Adulto</h1>
+
+        <p class="lead">
+          Adult Foundry 4 ofrece desarrollo estructurado de combate dentro de Sandman Combat™.
+          Los atletas entrenan mediante progresión guiada por el entrenador,
+          responsabilidad, presión, disciplina y repetición.
+        </p>
+      </div>
+
+      <div class="adult-paths">
+
+        <div class="path-card">
+          <div class="path-label"><span>MMA</span></div>
+
+          <strong>Quest2Mastery</strong>
+
+          <p data-lang-block="en">
+            Full-spectrum combat development through striking,
+            grappling, conditioning, pressure, and control.
+          </p>
+
+          <p data-lang-block="es" class="hidden-lang">
+            Desarrollo completo de combate mediante golpeo,
+            grappling, acondicionamiento, presión y control.
+          </p>
+        </div>
+
+        <div class="path-card">
+          <div class="path-label"><span>BOXING</span></div>
+
+          <strong>Road2Glory</strong>
+
+          <p data-lang-block="en">
+            Boxing-focused development through footwork,
+            defense, combinations, conditioning, and composure.
+          </p>
+
+          <p data-lang-block="es" class="hidden-lang">
+            Desarrollo enfocado en boxeo mediante movimiento,
+            defensa, combinaciones, acondicionamiento y compostura.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="grid">
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Shared House Structure</h3>
+
+          <ul>
+            <li>Same Foundry 4 progression rhythm</li>
+            <li>Same belt and badge identity system</li>
+            <li>Same discipline and accountability culture</li>
+            <li>Different curriculum and testing by path</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Estructura compartida</h3>
+
+          <ul>
+            <li>El mismo ritmo de progresión Foundry 4</li>
+            <li>El mismo sistema de cinturones e insignias</li>
+            <li>La misma cultura de disciplina y responsabilidad</li>
+            <li>Currículo y pruebas diferentes según el camino</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>The Standard</h3>
+
+          <p>
+            Combat without discipline has no value.
+            Adult Foundry 4 is not built around ego,
+            recklessness, or shortcuts.
+          </p>
+
+          <p>
+            The standard is simple:
+            train with control,
+            respect the room,
+            protect your partners,
+            and grow through pressure.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>El estándar</h3>
+
+          <p>
+            El combate sin disciplina no tiene valor.
+            Adult Foundry 4 no está construido alrededor del ego,
+            la imprudencia o los atajos.
+          </p>
+
+          <p>
+            El estándar es simple:
+            entrenar con control,
+            respetar la sala,
+            proteger a los compañeros
+            y crecer bajo presión.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <div class="quote">
+
+      <span data-lang-block="en">
+        The house stays unified. The path shapes the athlete.
+      </span>
+
+      <span data-lang-block="es" class="hidden-lang">
+        La casa permanece unificada. El camino forma al atleta.
+      </span>
+
+    </div>
+
+    <div class="shadow-line">
+      <span data-lang-block="en">Built in the Shadows.</span>
+      <span data-lang-block="es" class="hidden-lang">Construido en las sombras.</span>
+    </div>
+
+  </main>
+
+</body>
+</html>

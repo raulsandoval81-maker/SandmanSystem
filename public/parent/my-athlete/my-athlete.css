@@ -2,8 +2,6 @@
    My Athlete page specific styles
    ================================ */
 
-/* Athlete header card */
-
 .athlete-card{
   display:flex;
   gap:16px;
@@ -24,8 +22,6 @@
   color:var(--gold);
 }
 
-/* Athlete info */
-
 .athlete-info{
   flex:1;
 }
@@ -41,34 +37,8 @@
   color:var(--muted);
 }
 
-/* Stats grid */
-
-.stats-grid{
-  display:grid;
-  grid-template-columns:1fr;
-  gap:12px;
-  margin-top:14px;
-}
-
-.stat-box{
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:14px;
-}
-
-.stat-label{
-  font-size:.8rem;
-  color:var(--muted);
-  margin-bottom:4px;
-}
-
-.stat-value{
-  font-size:1.2rem;
-  font-weight:800;
-}
 /* ================================
-   My Athlete page specific styles
+   HERO / SUMMARY
    ================================ */
 
 .athlete-hero{
@@ -78,425 +48,8 @@
 
 .athlete-hero__identity{
   display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.athlete-hero__summary{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:10px;
-}
-
-.athlete-avatar{
-  width:68px;
-  height:68px;
-  border-radius:50%;
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  color:var(--gold);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.4rem;
-  font-weight:900;
-  flex-shrink:0;
-}
-
-.athlete-name{
-  margin:0;
-  font-size:1.45rem;
-  line-height:1.1;
-  color:var(--text);
-}
-
-.athlete-tier,
-.athlete-tag{
-  margin:.3rem 0 0;
-  color:var(--text);
-}
-
-.summary-item{
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px;
-}
-
-.summary-label{
-  display:block;
-  color:var(--muted);
-  font-size:.8rem;
-  font-weight:800;
-  margin-bottom:4px;
-}
-
-.summary-value{
-  display:block;
-  color:var(--text);
-  font-size:1rem;
-  font-weight:900;
-  word-break:break-word;
-}
-
-.xp-row{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-
-.xp-label{
-  color:var(--text);
-  font-weight:800;
-}
-
-.xp-value{
-  color:var(--text);
-  font-weight:900;
-}
-
-.stripe-target{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:.9rem;
-  font-weight:700;
-}
-
-.grid--2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-.activity-list{
-  margin:0;
-  padding-left:18px;
-  color:var(--text);
-}
-
-.activity-list li{
-  margin:0 0 8px;
-}
-
-.milestone-copy{
-  margin:.45rem 0;
-  color:var(--text);
-}
-
-.today-box{
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:14px;
-}
-
-.live-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:34px;
-  padding:0 12px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:#111827;
-  color:#e5e7eb;
-  font-weight:900;
-  margin-bottom:12px;
-}
-
-.live-pill.live{
-  background:#0f2418;
-  border-color:#1f5132;
-  color:#dcfce7;
-}
-
-.live-pill.idle{
-  background:#111827;
-  border-color:#334155;
-  color:#cbd5e1;
-}
-
-.live-pill.none{
-  background:#18181b;
-  border-color:#3f3f46;
-  color:#d4d4d8;
-}
-
-.today-title{
-  margin:0 0 6px;
-  color:var(--text);
-  font-size:1.08rem;
-  font-weight:900;
-}
-
-.today-sub{
-  margin:0 0 10px;
-  color:var(--text);
-}
-
-.today-grid{
-  display:grid;
-  grid-template-columns:140px 1fr;
-  gap:8px 12px;
-}
-
-.k{
-  color:var(--muted);
-  font-weight:700;
-  font-size:.9rem;
-}
-
-.v{
-  color:var(--text);
-  font-weight:800;
-}
-
-.muted-empty{
-  color:var(--muted);
-  font-style:italic;
-}
-
-.coach-note{
-  margin:0;
-  color:var(--text);
-  line-height:1.6;
-}
-
-@media (max-width:860px){
-  .grid--2{
-    grid-template-columns:1fr;
-  }
-}
-
-@media (max-width:640px){
-  .athlete-hero__summary{
-    grid-template-columns:1fr;
-  }
-
-  .today-grid{
-    grid-template-columns:1fr;
-  }
-}
-/* ================================
-   My Athlete page specific styles
-   ================================ */
-
-.athlete-hero{
-  display:grid;
-  gap:16px;
-}
-
-.athlete-hero__identity{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.athlete-hero__summary{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:10px;
-}
-
-.athlete-avatar{
-  width:68px;
-  height:68px;
-  border-radius:50%;
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  color:var(--gold);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-size:1.4rem;
-  font-weight:900;
-  flex-shrink:0;
-}
-
-.athlete-name{
-  margin:0;
-  font-size:1.45rem;
-  line-height:1.1;
-  color:var(--text);
-}
-
-.athlete-tier,
-.athlete-tag{
-  margin:.3rem 0 0;
-  color:var(--text);
-}
-
-.summary-item{
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  border-radius:12px;
-  padding:12px;
-}
-
-.summary-label{
-  display:block;
-  color:var(--muted);
-  font-size:.8rem;
-  font-weight:800;
-  margin-bottom:4px;
-}
-
-.summary-value{
-  display:block;
-  color:var(--text);
-  font-size:1rem;
-  font-weight:900;
-  word-break:break-word;
-}
-
-.xp-row{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-
-.xp-label{
-  color:var(--text);
-  font-weight:800;
-}
-
-.xp-value{
-  color:var(--text);
-  font-weight:900;
-}
-
-.stripe-target{
-  margin-top:8px;
-  color:var(--muted);
-  font-size:.9rem;
-  font-weight:700;
-}
-
-.grid--2{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:14px;
-}
-
-.activity-list{
-  margin:0;
-  padding-left:18px;
-  color:var(--text);
-}
-
-.activity-list li{
-  margin:0 0 8px;
-}
-
-.milestone-copy{
-  margin:.45rem 0;
-  color:var(--text);
-}
-
-.today-box{
-  background:var(--panel-soft);
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:14px;
-}
-
-.live-pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  min-height:34px;
-  padding:0 12px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:#111827;
-  color:#e5e7eb;
-  font-weight:900;
-  margin-bottom:12px;
-}
-
-.live-pill.live{
-  background:#0f2418;
-  border-color:#1f5132;
-  color:#dcfce7;
-}
-
-.live-pill.idle{
-  background:#111827;
-  border-color:#334155;
-  color:#cbd5e1;
-}
-
-.live-pill.none{
-  background:#18181b;
-  border-color:#3f3f46;
-  color:#d4d4d8;
-}
-
-.today-title{
-  margin:0 0 6px;
-  color:var(--text);
-  font-size:1.08rem;
-  font-weight:900;
-}
-
-.today-sub{
-  margin:0 0 10px;
-  color:var(--text);
-}
-
-.today-grid{
-  display:grid;
-  grid-template-columns:140px 1fr;
-  gap:8px 12px;
-}
-
-.k{
-  color:var(--muted);
-  font-weight:700;
-  font-size:.9rem;
-}
-
-.v{
-  color:var(--text);
-  font-weight:800;
-}
-
-.muted-empty{
-  color:var(--muted);
-  font-style:italic;
-}
-
-.coach-note{
-  margin:0;
-  color:var(--text);
-  line-height:1.6;
-}
-
-@media (max-width:860px){
-  .grid--2{
-    grid-template-columns:1fr;
-  }
-}
-
-@media (max-width:640px){
-  .athlete-hero__summary{
-    grid-template-columns:1fr;
-  }
-
-  .today-grid{
-    grid-template-columns:1fr;
-  }
-}
-/* ================================
-   Real athlete hardening
-   ================================ */
-
-.athlete-hero__identity{
   align-items:flex-start;
+  gap:14px;
 }
 
 .athlete-meta{
@@ -504,58 +57,86 @@
   flex:1;
 }
 
-.athlete-name,
-.athlete-tier,
-.athlete-tag,
-.summary-value,
-.summary-label,
-.xp-label,
-.xp-value,
-#athlete-tier-line,
-#stripeText,
-#xpText,
-#stripe-target{
-  overflow-wrap:anywhere;
-  word-break:break-word;
+.athlete-avatar{
+  width:68px;
+  height:68px;
+  border-radius:50%;
+  background:var(--panel-soft);
+  border:1px solid var(--line);
+  color:var(--gold);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.4rem;
+  font-weight:900;
+  flex-shrink:0;
 }
 
-.summary-item{
-  min-width:0;
+.athlete-name{
+  margin:0;
+  font-size:1.45rem;
+  line-height:1.1;
+  color:var(--text);
+}
+
+.athlete-tier,
+.athlete-tag{
+  margin:.3rem 0 0;
+  color:var(--text);
 }
 
 .athlete-hero__summary{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0,1fr));
+  gap:10px;
   align-items:stretch;
 }
 
-@media (max-width:700px){
-
-  .athlete-hero__identity{
-    align-items:flex-start;
-  }
-
-  .athlete-avatar{
-    width:60px;
-    height:60px;
-    font-size:1.2rem;
-  }
-
-  .athlete-name{
-    font-size:1.2rem;
-    line-height:1.15;
-  }
-
-  .athlete-tier,
-  .athlete-tag{
-    line-height:1.35;
-  }
-
-  .athlete-hero__summary{
-    grid-template-columns:1fr;
-  }
+.summary-item{
+  background:var(--panel-soft);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  min-width:0;
 }
+
+.summary-label{
+  display:block;
+  color:var(--muted);
+  font-size:.8rem;
+  font-weight:800;
+  margin-bottom:4px;
+}
+
+.summary-value{
+  display:block;
+  color:var(--text);
+  font-size:1rem;
+  font-weight:900;
+  word-break:break-word;
+}
+
 /* ================================
-   Stripe / progress hardening
+   XP / STRIPES TEXT
    ================================ */
+
+.xp-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.xp-label{
+  color:var(--text);
+  font-weight:800;
+}
+
+.xp-value{
+  color:var(--text);
+  font-weight:900;
+}
 
 .rank-stats{
   display:flex;
@@ -578,78 +159,180 @@
 .stripe-target{
   margin-top:8px;
   line-height:1.35;
+  color:var(--muted);
+  font-size:.9rem;
+  font-weight:700;
 }
 
-.belt-track{
+/* ================================
+   DIGITAL BELT SLOT (NEW SYSTEM)
+   ================================ */
+
+.mini-belt-slot{
+  margin-top:10px;
   width:100%;
-  max-width:100%;
-  overflow:hidden;
 }
 
-.belt-fill{
-  max-width:100%;
+.mini-belt-slot .sm-belt{
+  width:100%;
+  max-width:none;
+}
+
+.mini-belt-slot .sm-belt-patch{
+  right:6%;
+}
+
+/* ================================
+   ACTIVITY / CONTENT
+   ================================ */
+
+.grid--2{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+.activity-list{
+  margin:0;
+  padding-left:18px;
+  color:var(--text);
+}
+
+.activity-list li{
+  margin:0 0 8px;
+}
+
+.milestone-copy{
+  margin:.45rem 0;
+  color:var(--text);
+}
+
+/* ================================
+   TODAY BOX
+   ================================ */
+
+.today-box{
+  background:var(--panel-soft);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.live-pill{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:0 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:#111827;
+  color:#e5e7eb;
+  font-weight:900;
+  margin-bottom:12px;
+}
+
+.live-pill.live{
+  background:#0f2418;
+  border-color:#1f5132;
+  color:#dcfce7;
+}
+
+.live-pill.idle{
+  background:#111827;
+  border-color:#334155;
+  color:#cbd5e1;
+}
+
+.live-pill.none{
+  background:#18181b;
+  border-color:#3f3f46;
+  color:#d4d4d8;
+}
+
+.today-title{
+  margin:0 0 6px;
+  color:var(--text);
+  font-size:1.08rem;
+  font-weight:900;
+}
+
+.today-sub{
+  margin:0 0 10px;
+  color:var(--text);
+}
+
+.today-grid{
+  display:grid;
+  grid-template-columns:140px 1fr;
+  gap:8px 12px;
+}
+
+.k{
+  color:var(--muted);
+  font-weight:700;
+  font-size:.9rem;
+}
+
+.v{
+  color:var(--text);
+  font-weight:800;
+}
+
+.muted-empty{
+  color:var(--muted);
+  font-style:italic;
+}
+
+.coach-note{
+  margin:0;
+  color:var(--text);
+  line-height:1.6;
+}
+
+/* ================================
+   RESPONSIVE
+   ================================ */
+
+@media (max-width:860px){
+  .grid--2{
+    grid-template-columns:1fr;
+  }
 }
 
 @media (max-width:700px){
+
+  .athlete-avatar{
+    width:60px;
+    height:60px;
+    font-size:1.2rem;
+  }
+
+  .athlete-name{
+    font-size:1.2rem;
+  }
+
+  .athlete-hero__summary{
+    grid-template-columns:1fr;
+  }
+
   .rank-stats{
     flex-direction:column;
     align-items:flex-start;
     gap:6px;
   }
 }
-/* Anchor the stripe column */
-.athlete-progress {
-  position: relative;
+
+@media (max-width:640px){
+  .today-grid{
+    grid-template-columns:1fr;
+  }
 }
 
-/* Left stripe rail */
-.stripe-rail {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 48px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+/* ================================
+   AUTH VISIBILITY
+   ================================ */
 
-/* Keep main progress content clear of the stripe rail */
-.progress-main {
-  margin-left: 60px;
-}
-
-/* Prevent stripe visuals from stretching across the page */
-.stripe,
-.stripe-slot {
-  width: 32px;
-  height: 6px;
-  border-radius: 3px;
-}
-/* ===== Belt / stripe containment fix ===== */
-
-.belt-track{
-  display:flex;
-  align-items:center;
-  position:relative;
-  height:22px;
-  overflow:hidden;
-}
-
-.belt-stripes{
-  display:flex;
-  gap:6px;
-  position:absolute;
-  left:12px;
-  top:50%;
-  transform:translateY(-50%);
-}
-
-.belt-stripes span{
-  width:10px;
-  height:16px;
-  border-radius:2px;
-}
 body.auth-pending main {
   visibility: hidden;
 }

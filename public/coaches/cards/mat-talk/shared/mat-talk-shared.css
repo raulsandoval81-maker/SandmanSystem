@@ -1,24 +1,63 @@
-.mat-talk-toolbar{
+.mat-talk-toolbar,
+.card-action-row,
+.card-toolbar,
+.card-actions{
   display:flex;
   flex-wrap:wrap;
-  gap:10px;
-  margin:0 0 22px;
+  gap:.75rem;
+  margin:1rem 0 1.5rem;
 }
 
-.back-link{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:700;
+.back-link,
+.card-btn,
+.card-btn:visited,
+.card-toolbar a,
+.card-actions button{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+
+  min-height:44px;
+  padding:.75rem 1rem;
+
+  border-radius:12px;
+  border:1px solid rgba(255,215,0,.55);
+
+  background:rgba(255,215,0,.10);
+  color:#ffd700;
+
+  font-size:.95rem;
+  font-weight:800;
   text-decoration:none;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.12);
-  transition:.15s;
+
+  cursor:pointer;
+
+  transition:
+    background .18s ease,
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
 }
 
-.back-link:hover{
-  border-color:rgba(255,221,72,.5);
-  background:rgba(255,221,72,.08);
+.back-link:hover,
+.card-btn:hover,
+.card-toolbar a:hover,
+.card-actions button:hover{
+  background:rgba(255,215,0,.18);
+  border-color:#ffd700;
+
+  box-shadow:
+    0 0 0 2px rgba(255,0,0,.22),
+    0 0 18px rgba(255,215,0,.18);
+
+  transform:translateY(-1px);
+}
+
+.card-btn.secondary{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.18);
+  color:#f5f5f5;
 }
 
 .mat-talk-grid{

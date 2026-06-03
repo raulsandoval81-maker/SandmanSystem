@@ -171,76 +171,6 @@ body{
 }
 
 /* ------------------------------------------------------------
-   5) COMBAT BELT BAR (BIG + CLEAN)
-   ------------------------------------------------------------ */
-.belt-bar{
-  position:relative;
-  width:100%;
-  height: var(--beltH);
-  border-radius:999px;
-  background:rgba(0, 0, 0, 0.25);
-  border:1px solid rgba(255,255,255,.06);
-  overflow:hidden;
-}
-
-/* fill lives UNDER stripes */
-.belt-bar .belt-fill{
-  position:absolute;
-  left:0; top:0; bottom:0;
-  width:0%;
-  border-radius:inherit;
-  transition:width .35s ease;
-  filter:saturate(.9);
-  z-index:1;
-}
-
-/* stripes always above fill */
-.belt-bar .stripe-boxes,
-.belt-bar .stripes,
-.belt-bar .stripe-wrap{
-  position:absolute;
-  top:-2px;
-  bottom:-2px;
-  left: var(--stripeLeft);
-  display:flex;
-  gap: var(--stripeGap);
-  align-items:stretch;
-  pointer-events:none;
-  z-index:10;
-}
-
-/* stripe segments */
-.belt-bar .stripe-box,
-.belt-bar .stripes > *,
-.belt-bar .stripe-wrap > *{
-  display:block;
-  width: var(--stripeW);
-  min-height:100%;
-  height:100%;
-  border-radius:0;
-  background:transparent;
-  opacity:.25;
-  border-left:1px solid rgba(255,255,255,.22);
-  border-right:1px solid rgba(255,255,255,.22);
-}
-.belt-bar .stripe-box.filled{
-  background: var(--stripe, #fff);
-  border-left-color: var(--stripe, #fff);
-  border-right-color: var(--stripe, #fff);
-  opacity: 1;
-}
-
-/* belt glow (optional) */
-.belt-bar.glow{box-shadow:0 0 14px rgba(255,214,51,.5);}
-
-#ath-belt .belt-bar{height: var(--beltH);}
-#rankBar{height: var(--beltH); position:relative; overflow:hidden;}
-#rankFill{height:100%;}
-
-/* Kill belt meta if you’re using your own text elsewhere */
-#ath-belt-meta{ display:none !important; }
-
-/* ------------------------------------------------------------
    6) DROPS
    ------------------------------------------------------------ */
 .drop{margin-top:14px; position:relative;}
@@ -678,4 +608,44 @@ body{
   color:#111;
   border-color:#ffdd48;
   font-weight:700;
+}.badge-history {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge-history-small {
+  width: 58px;
+  height: 58px;
+  object-fit: contain;
+  opacity: 0.75;
+}
+
+.badge-current-big {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+
+}
+.honor-grow-fill {
+  fill: var(--wis-tan);
+  fill-opacity: 0.75;     /* stronger than before */
+  opacity: 1;             /* remove double dimming */
+  transition: r 0.25s ease;
+  filter: none;           /* remove blur — it was washing it out */
+}.mini-belt-slot{
+  margin-top:10px;
+  width:100%;
+}
+
+/* make medium belt fill nicely */
+.mini-belt-slot .sm-belt {
+  width:100%;
+  max-width:none;
+}
+
+/* restore belt tip (important) */
+.mini-belt-slot .sm-belt-patch{
+  right:6%;
 }

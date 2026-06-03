@@ -111,7 +111,7 @@ h1{color:var(--gold);margin:0 0 8px;}
 }
 
 /* ========================= */
-/* 🎯 FOUNDARY 4 COLORS */
+/* 🎯 FOUNDRY 4 COLORS */
 /* ========================= */
 
 .teen-t0{border-left:4px solid #ffffff;}
@@ -124,10 +124,26 @@ h1{color:var(--gold);margin:0 0 8px;}
 .item.teen-t1 h3{color:#60a5fa;}
 .item.teen-t2 h3{color:#a78bfa;}
 .item.teen-t3 h3{color:#d2a679;}
-.item.teen-t4 h3{color:#e5e7eb;} /* visible black */
+.item.teen-t4 h3{color:#e5e7eb;}
+
+/* 🔥 FOUNDRY 4 BLACK TIER */
+
+.item.teen-t4{
+  background:#000000;
+  border:1px solid #333;
+  box-shadow:0 0 18px rgba(255,221,72,.18);
+}
+
+.item.teen-t4 h3{
+  color:#ffdd48;
+}
+
+.item.teen-t4 p{
+  color:#d4d4d4;
+}
 
 /* ========================= */
-/* 🎯 FOUNDARY 8 COLORS */
+/* 🎯 FOUNDRY 8 COLORS */
 /* ========================= */
 
 .youth-t0{border-left:4px solid #ffffff;}
@@ -146,50 +162,10 @@ h1{color:var(--gold);margin:0 0 8px;}
 .item.youth-t4 h3{color:#60a5fa;}
 .item.youth-t5 h3{color:#a78bfa;}
 .item.youth-t6 h3{color:#d2a679;}
-.item.youth-t7 h3{color:#e5e7eb;} /* visible black */
+.item.youth-t7 h3{color:#e5e7eb;}
 
-/* ========================= */
-/* SESSION */
-/* ========================= */
+/* 🔥 FOUNDRY 8 BLACK TIER */
 
-.session{
-  padding:14px;
-  border:1px solid var(--line);
-  border-radius:12px;
-  margin-bottom:12px;
-  text-align:center;
-}
-
-.session h3{color:var(--gold);margin:0;}
-
-.mix-card{
-  border:1px solid var(--line);
-  padding:10px;
-  border-radius:10px;
-  background:#0f1728;
-}
-
-@media(max-width:900px){
-  .layout{grid-template-columns:1fr;}
-}
-/* 🔥 BLACK TIERS — FULL CARD STYLE */
-
-/* Foundry 4 Legend */
-.item.teen-t4{
-  background:#000000;
-  border:1px solid #333;
-  box-shadow:0 0 18px rgba(255,221,72,.18);
-}
-
-.item.teen-t4 h3{
-  color:#ffdd48; /* gold */
-}
-
-.item.teen-t4 p{
-  color:#d4d4d4;
-}
-
-/* Foundry 8 Hero */
 .item.youth-t7{
   background:#000000;
   border:1px solid #333;
@@ -202,6 +178,50 @@ h1{color:var(--gold);margin:0 0 8px;}
 
 .item.youth-t7 p{
   color:#d4d4d4;
+}
+
+/* ========================= */
+/* 🎯 ADULT COLORS */
+/* ========================= */
+
+.adult-t1{border-left:4px solid #ffffff;}
+.adult-t2{border-left:4px solid #3b82f6;}
+.adult-t3{border-left:4px solid #7c3aed;}
+.adult-t4{border-left:4px solid #8b5a2b;}
+.adult-t5{border-left:4px solid #000000;}
+
+.item.adult-t1 h3{color:#ffffff;}
+.item.adult-t2 h3{color:#60a5fa;}
+.item.adult-t3 h3{color:#a78bfa;}
+.item.adult-t4 h3{color:#d2a679;}
+.item.adult-t5 h3{color:#e5e7eb;}
+
+/* 🔥 ADULT BLACK TIER */
+
+.item.adult-t5{
+  background:#000000;
+  border:1px solid #333;
+  box-shadow:0 0 18px rgba(255,221,72,.18);
+}
+
+.item.adult-t5 h3{
+  color:#ffdd48;
+}
+
+.item.adult-t5 p{
+  color:#d4d4d4;
+}
+.item.dormant{
+  opacity:.28;
+  filter:grayscale(1);
+}
+
+.item.dormant .btn{
+  opacity:.35;
+}
+
+.item.active-session{
+  box-shadow:0 0 18px rgba(255,221,72,.28);
 }
 </style>
 </head>
@@ -222,31 +242,64 @@ h1{color:var(--gold);margin:0 0 8px;}
 
 <div class="layout">
 
+
+
 <!-- LEFT SIDE -->
 <section class="panel">
 
-<h2>Teen — Foundry 4</h2>
+<h2>Youth — Zero 2 Hero Wrestling</h2>
 
-<div class="item teen-t0"><h3>Teen T0 — Apprentice</h3><p>Foundation layer.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t0/index.html">Open Tier</a></div></div>
-<div class="item teen-t1"><h3>Teen T1 — Warrior</h3><p>Pressure + setups.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t1/index.html">Open Tier</a></div></div>
-<div class="item teen-t2"><h3>Teen T2 — Champion</h3><p>Chain wrestling.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t2/index.html">Open Tier</a></div></div>
-<div class="item teen-t3"><h3>Teen T3 — Veteran</h3><p>Advanced control.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t3/index.html">Open Tier</a></div></div>
-<div class="item teen-t4"><h3>Teen T4 — Legend</h3><p>Mastery level.</p><div class="row"><a class="btn" href="/coaches/cards/teen/t4/index.html">Open Tier</a></div></div>
+<div class="item youth-t0" data-discipline="wrestling" data-journey="z2h"><h3>Shadow</h3><p>Base fundamentals.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t0/index.html">Open Tier</a></div></div>
+<div class="item youth-t1" data-discipline="wrestling" data-journey="z2h"><h3>Recruit</h3><p>Basic flow.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t1/index.html">Open Tier</a></div></div>
+<div class="item youth-t2" data-discipline="wrestling" data-journey="z2h"><h3>Combatant</h3><p>Angle attacks.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t2/index.html">Open Tier</a></div></div>
+<div class="item youth-t3" data-discipline="wrestling" data-journey="z2h"><h3>Competitor</h3><p>Control + finish.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t3/index.html">Open Tier</a></div></div>
+<div class="item youth-t4" data-discipline="wrestling" data-journey="z2h"><h3>Warrior</h3><p>Setups + reattacks.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t4/index.html">Open Tier</a></div></div>
+<div class="item youth-t5" data-discipline="wrestling" data-journey="z2h"><h3>Champion</h3><p>Chain systems.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t5/index.html">Open Tier</a></div></div>
+<div class="item youth-t6" data-discipline="wrestling" data-journey="z2h"><h3>Commander</h3><p>Control + tempo.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t6/index.html">Open Tier</a></div></div>
+<div class="item youth-t7" data-discipline="wrestling" data-journey="z2h"><h3>Hero</h3><p>Complete system.</p><div class="row"><a class="btn" href="/coaches/cards/youth/z2h-wrestling/t7/index.html">Open Tier</a></div></div>
 
-<h2>Youth — Foundry 8</h2>
+<h2>Teen — Path 2 Legend Wrestling</h2>
 
-<div class="item youth-t0"><h3>Youth T0 — Shadow</h3><p>Base fundamentals.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t0/index.html">Open Tier</a></div></div>
-<div class="item youth-t1"><h3>Youth T1 — Recruit</h3><p>Basic flow.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t1/index.html">Open Tier</a></div></div>
-<div class="item youth-t2"><h3>Youth T2 — Combatant</h3><p>Angle attacks.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t2/index.html">Open Tier</a></div></div>
-<div class="item youth-t3"><h3>Youth T3 — Competitor</h3><p>Control + finish.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t3/index.html">Open Tier</a></div></div>
-<div class="item youth-t4"><h3>Youth T4 — Warrior</h3><p>Setups + reattacks.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t4/index.html">Open Tier</a></div></div>
-<div class="item youth-t5"><h3>Youth T5 — Champion</h3><p>Chain systems.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t5/index.html">Open Tier</a></div></div>
-<div class="item youth-t6"><h3>Youth T6 — Commander</h3><p>Control + tempo.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t6/index.html">Open Tier</a></div></div>
-<div class="item youth-t7"><h3>Youth T7 — Hero</h3><p>Complete system.</p><div class="row"><a class="btn" href="/coaches/cards/youth/t7/index.html">Open Tier</a></div></div>
+<div class="item teen-t0" data-discipline="wrestling" data-journey="p2l"><h3>Apprentice</h3><p>Foundation layer.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-wrestling/t0/index.html">Open Tier</a></div></div>
+<div class="item teen-t1" data-discipline="wrestling" data-journey="p2l"><h3>Warrior</h3><p>Pressure + setups.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-wrestling/t1/index.html">Open Tier</a></div></div>
+<div class="item teen-t2" data-discipline="wrestling" data-journey="p2l"><h3>Champion</h3><p>Chain wrestling.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-wrestling/t2/index.html">Open Tier</a></div></div>
+<div class="item teen-t3" data-discipline="wrestling" data-journey="p2l"><h3>Veteran</h3><p>Advanced control.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-wrestling/t3/index.html">Open Tier</a></div></div>
+<div class="item teen-t4" data-discipline="wrestling" data-journey="p2l"><h3>Legend</h3><p>Mastery level.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-wrestling/t4/index.html">Open Tier</a></div></div>
+
+<h2>Teen — Path 2 Legend Boxing</h2>
+
+<div class="item teen-t0" data-discipline="boxing" data-journey="p2l"><h3>Apprentice</h3><p>Boxing foundation.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-boxing/t0/index.html">Open Tier</a></div></div>
+<div class="item teen-t1" data-discipline="boxing" data-journey="p2l"><h3>Warrior</h3><p>Movement + combinations.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-boxing/t1/index.html">Open Tier</a></div></div>
+<div class="item teen-t2" data-discipline="boxing" data-journey="p2l"><h3>Champion</h3><p>Timing + counters.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-boxing/t2/index.html">Open Tier</a></div></div>
+<div class="item teen-t3" data-discipline="boxing" data-journey="p2l"><h3>Veteran</h3><p>Pressure + ringcraft.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-boxing/t3/index.html">Open Tier</a></div></div>
+<div class="item teen-t4" data-discipline="boxing" data-journey="p2l"><h3>Legend</h3><p>Boxing mastery.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-boxing/t4/index.html">Open Tier</a></div></div>
+
+<h2>Teen — Path 2 Legend Kickboxing</h2>
+
+<div class="item teen-t0" data-discipline="kickboxing" data-journey="p2l"><h3>Apprentice</h3><p>Kickboxing foundation.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-kickboxing/t0/index.html">Open Tier</a></div></div>
+<div class="item teen-t1" data-discipline="kickboxing" data-journey="p2l"><h3>Warrior</h3><p>Hands + kicks.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-kickboxing/t1/index.html">Open Tier</a></div></div>
+<div class="item teen-t2" data-discipline="kickboxing" data-journey="p2l"><h3>Champion</h3><p>Timing + range.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-kickboxing/t2/index.html">Open Tier</a></div></div>
+<div class="item teen-t3" data-discipline="kickboxing" data-journey="p2l"><h3>Veteran</h3><p>Pressure + weapons.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-kickboxing/t3/index.html">Open Tier</a></div></div>
+<div class="item teen-t4" data-discipline="kickboxing" data-journey="p2l"><h3>Legend</h3><p>Kickboxing mastery.</p><div class="row"><a class="btn" href="/coaches/cards/teen/p2l-kickboxing/t4/index.html">Open Tier</a></div></div>
+
+<h2>Adult — Quest 2 Mastery MMA</h2>
+
+<div class="item adult-t1" data-discipline="mma" data-journey="q2m"><h3>Apprentice</h3><p>MMA foundation.</p><div class="row"><a class="btn" href="/coaches/cards/adult/q2m-mma/t1/index.html">Open Tier</a></div></div>
+<div class="item adult-t2" data-discipline="mma" data-journey="q2m"><h3>Warrior</h3><p>Integrated combat.</p><div class="row"><a class="btn" href="/coaches/cards/adult/q2m-mma/t2/index.html">Open Tier</a></div></div>
+<div class="item adult-t3" data-discipline="mma" data-journey="q2m"><h3>Champion</h3><p>Transitions + pressure.</p><div class="row"><a class="btn" href="/coaches/cards/adult/q2m-mma/t3/index.html">Open Tier</a></div></div>
+<div class="item adult-t4" data-discipline="mma" data-journey="q2m"><h3>Veteran</h3><p>System control.</p><div class="row"><a class="btn" href="/coaches/cards/adult/q2m-mma/t4/index.html">Open Tier</a></div></div>
+<div class="item adult-t5" data-discipline="mma" data-journey="q2m"><h3>Master</h3><p>Mastery level.</p><div class="row"><a class="btn" href="/coaches/cards/adult/q2m-mma/t5/index.html">Open Tier</a></div></div>
+
+<h2>Adult — Road 2 Greatness Boxing</h2>
+
+<div class="item adult-t1" data-discipline="boxing" data-journey="r2g"><h3>Apprentice</h3><p>Boxing foundation.</p><div class="row"><a class="btn" href="/coaches/cards/adult/r2g-boxing/t1/index.html">Open Tier</a></div></div>
+<div class="item adult-t2" data-discipline="boxing" data-journey="r2g"><h3>Warrior</h3><p>Timing + range.</p><div class="row"><a class="btn" href="/coaches/cards/adult/r2g-boxing/t2/index.html">Open Tier</a></div></div>
+<div class="item adult-t3" data-discipline="boxing" data-journey="r2g"><h3>Champion</h3><p>Pressure + counters.</p><div class="row"><a class="btn" href="/coaches/cards/adult/r2g-boxing/t3/index.html">Open Tier</a></div></div>
+<div class="item adult-t4" data-discipline="boxing" data-journey="r2g"><h3>Veteran</h3><p>Ring command.</p><div class="row"><a class="btn" href="/coaches/cards/adult/r2g-boxing/t4/index.html">Open Tier</a></div></div>
+<div class="item adult-t5" data-discipline="boxing" data-journey="r2g"><h3>Master</h3><p>Mastery level.</p><div class="row"><a class="btn" href="/coaches/cards/adult/r2g-boxing/t5/index.html">Open Tier</a></div></div>
 
 </section>
-
-<!-- RIGHT SIDE -->
+  <!-- RIGHT SIDE -->
 <aside class="panel">
 
 <h2>Session</h2>
@@ -269,23 +322,62 @@ h1{color:var(--gold);margin:0 0 8px;}
 
 </div>
 </main>
-
 <script>
-const key="sandmanMasterQueue";
+const key = "sandmanMasterQueue";
+const SESSION_FILTER_KEY = "sandman_clipboard_filter_v1";
 
-function load(){return JSON.parse(localStorage.getItem(key)||"[]");}
-function save(q){localStorage.setItem(key,JSON.stringify(q));}
+function getActiveClipboardFilter(){
+  try{
+    return JSON.parse(localStorage.getItem(SESSION_FILTER_KEY) || "{}");
+  }catch{
+    return {};
+  }
+}
+
+function applySessionFilterToMaster(){
+  const filter = getActiveClipboardFilter();
+  const items = document.querySelectorAll(".item");
+
+  items.forEach(item => {
+    const discipline = item.dataset.discipline || "";
+    const journey = item.dataset.journey || "";
+
+    const active =
+      (!filter.discipline || filter.discipline === discipline) &&
+      (!filter.journey || filter.journey === journey);
+
+    item.classList.toggle("dormant", !active);
+    item.classList.toggle("active-session", active);
+
+    const btn = item.querySelector(".btn");
+
+    if(btn && !active){
+      btn.addEventListener("click", e => {
+        e.preventDefault();
+        alert("This tier is outside the active clipboard session. Change discipline on the clipboard to use this path.");
+      });
+    }
+  });
+}
+
+function load(){
+  return JSON.parse(localStorage.getItem(key) || "[]");
+}
+
+function save(q){
+  localStorage.setItem(key, JSON.stringify(q));
+}
 
 function render(){
-  const q=load();
-  const el=document.getElementById("mixList");
+  const q = load();
+  const el = document.getElementById("mixList");
 
   if(!q.length){
-    el.innerHTML="<p>No cards</p>";
+    el.innerHTML = "<p>No cards</p>";
     return;
   }
 
-  el.innerHTML=q.map((x,i)=>`
+  el.innerHTML = q.map((x,i)=>`
     <div class="mix-card">
       ${i+1}. ${x.title}
       <div class="row">
@@ -297,7 +389,7 @@ function render(){
 }
 
 function remove(i){
-  const q=load();
+  const q = load();
   q.splice(i,1);
   save(q);
   render();
@@ -308,28 +400,34 @@ function clearMix(){
   render();
 }
 
-let i=0,timer=null;
+let i = 0;
+let timer = null;
 
 function startSession(){
-  const q=load();
-  if(!q.length)return alert("No cards");
-  i=0;
+  const q = load();
+  if(!q.length) return alert("No cards");
+  i = 0;
   play();
 }
 
 function play(){
-  const q=load();
-  if(i>=q.length)return;
+  const q = load();
+  if(i >= q.length) return;
 
-  document.getElementById("sessionTitle").textContent=q[i].title;
-  beep(); flash();
+  document.getElementById("sessionTitle").textContent = q[i].title;
+  beep();
+  flash();
 
-  timer=setTimeout(()=>{i++;play();},30000);
+  timer = setTimeout(() => {
+    i++;
+    play();
+  }, 30000);
 }
 
 function next(){
   clearTimeout(timer);
-  i++; play();
+  i++;
+  play();
 }
 
 function stop(){
@@ -337,20 +435,22 @@ function stop(){
 }
 
 function beep(){
-  const ctx=new AudioContext();
-  const o=ctx.createOscillator();
+  const ctx = new AudioContext();
+  const o = ctx.createOscillator();
   o.connect(ctx.destination);
   o.start();
-  o.stop(ctx.currentTime+.2);
+  o.stop(ctx.currentTime + .2);
 }
 
 function flash(){
-  document.body.style.background="#2a0a0a";
-  setTimeout(()=>document.body.style.background="",150);
+  document.body.style.background = "#2a0a0a";
+  setTimeout(() => document.body.style.background = "", 150);
 }
 
-render();
+document.addEventListener("DOMContentLoaded", () => {
+  applySessionFilterToMaster();
+  render();
+});
 </script>
-
 </body>
 </html>

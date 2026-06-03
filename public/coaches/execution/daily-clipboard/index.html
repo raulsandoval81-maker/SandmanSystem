@@ -43,7 +43,7 @@
         <option value="conditioning">Conditioning</option>
         <option value="technique">Technique</option>
         <option value="drilling">Drilling</option>
-        <option value="live">Live Wrestling</option>
+        <option value="live">Live Session</option>
       </select>
     </div>
 
@@ -59,11 +59,7 @@
 
       <div class="timer-head-right">
 
-
-<a class="clock-toggle" href="/lab/timer-engine/ui/coach/sandman-coach-timer">
-  Open Timer
-</a>
-        <div id="inlineRunStatus" class="timer-status">stopped</div>
+       <div id="inlineRunStatus" class="timer-status">stopped</div>
       </div>
     </div>
 
@@ -123,13 +119,13 @@
       <div class="plan-block red sw" id="block-drills" data-slot="drills" data-minutes="10">
         <div class="block-head-row">
           <div class="sw-head">
-            <span class="block-title" id="title-drills">Drills (Old Moves)</span>
+            <span class="block-title" id="title-drills">Review of Prior Week’s Skills</span>
             <button class="move-btn" data-dir="up" type="button">↑</button>
             <button class="move-btn" data-dir="down" type="button">↓</button>
           </div>
 
           <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/master/index.html">+ Add</a>
+            <button class="pill-btn library-btn" type="button" onclick="openDisciplineCards()">+ Add</button>
             <input type="number" min="5" max="60" value="10" class="min-input"/>
             <span class="mini-clock">10:00</span>
           </div>
@@ -147,13 +143,13 @@
       <div class="plan-block red sw" id="block-technique" data-slot="technique" data-minutes="10">
         <div class="block-head-row">
           <div class="sw-head">
-            <span class="block-title" id="title-technique">Technique (New Moves)</span>
+            <span class="block-title" id="title-technique">Introduction of New Techniques</span>
             <button class="move-btn" data-dir="up" type="button">↑</button>
             <button class="move-btn" data-dir="down" type="button">↓</button>
           </div>
 
           <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/master/index.html">+ Add</a>
+            <button class="pill-btn library-btn" type="button" onclick="openDisciplineCards()">+ Add</button>
             <input type="number" min="5" max="60" value="10" class="min-input"/>
             <span class="mini-clock">10:00</span>
           </div>
@@ -190,13 +186,13 @@
       <div class="plan-block red sw" id="block-live" data-slot="live" data-minutes="10">
         <div class="block-head-row">
           <div class="sw-head">
-            <span class="block-title" id="title-live">Live / Situations</span>
+            <span class="block-title" id="title-live">Live Session</span>
             <button class="move-btn" data-dir="up" type="button">↑</button>
             <button class="move-btn" data-dir="down" type="button">↓</button>
           </div>
 
           <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/master/index.html">+ Add</a>
+            <button class="pill-btn library-btn" type="button" onclick="openDisciplineCards()">+ Add</button>
             <input type="number" min="5" max="60" value="10" class="min-input"/>
             <span class="mini-clock">10:00</span>
           </div>
@@ -214,7 +210,7 @@
       <div class="plan-block red sw" id="block-cond" data-slot="cond" data-minutes="10">
         <div class="block-head-row">
           <div class="sw-head">
-            <span class="block-title" id="title-cond">Conditioning / Finisher</span>
+            <span class="block-title" id="title-cond">Conditioning / Skill Based Activities</span>
             <button class="move-btn" data-dir="up" type="button">↑</button>
             <button class="move-btn" data-dir="down" type="button">↓</button>
           </div>
@@ -239,7 +235,7 @@
 
     <div class="plan-block" id="block-offmat" data-slot="offmat" data-minutes="5">
       <div class="block-head-row">
-        <span class="block-title" id="title-offmat">Off-Mat Talk</span>
+        <span class="block-title" id="title-offmat">ROLL CALL / OFF THE MAT TALK</span>
         <div class="block-tools">
           <input type="number" value="5" readonly class="min-input"/>
           <span class="mini-clock">05:00</span>
@@ -265,293 +261,13 @@
   <div class="footer-actions">
     <button onclick="savePlan()">Save Plan</button>
     <button onclick="clearSession()">Clear Session</button>
-    <a class="pill-btn" href="/coaches/cards/master/index.html">Curriculum Card Library</a>
-    <!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Coach · Daily Clipboard</title>
-  <link rel="stylesheet" href="/coaches/execution/daily-clipboard/coaches-daily-clipboard.css?v=2"/>
-  <link rel="icon" href="data:,">
-</head>
-
-<body>
-<main class="wrap">
-
-  <div class="page-header">
-    <h1>Coaches Daily Clipboard</h1>
-    <button id="themeToggle" class="theme-icon-btn" aria-label="Toggle theme">◐</button>
-  </div>
-
-  <p class="muted">Write today’s flow here. XP is awarded on the Daily Grind page →</p>
-
-  <div class="toolbar-2">
-
-    <div class="mode-tools">
-      <strong class="muted" style="font-size:.8rem;">Session Type:</strong>
-      <button class="schema-btn active" data-schema="quick-45" type="button">Quick 45</button>
-      <button class="schema-btn" data-schema="standard-60" type="button">Standard 60</button>
-      <button class="schema-btn" data-schema="elite-90" type="button">Elite 90</button>
-      <button class="schema-btn" data-schema="extended-120" type="button">Extended 120</button>
-    </div>
-
-    <div class="session-actions-top">
-      <button class="reset-btn" type="button" onclick="loadCurrentSchema()">Reset Session</button>
-    </div>
-
-    <div class="session-total-row">
-      <span id="totalTime">Total: 00:00</span>
-    </div>
-
-    <div class="mode-tools" id="singleFocusWrap">
-      <strong class="muted" style="font-size:.8rem;">Single Focus:</strong>
-      <select id="singleFocus" class="mode-select">
-        <option value="warmup-only">Warm-up Only</option>
-        <option value="conditioning">Conditioning</option>
-        <option value="technique">Technique</option>
-        <option value="drilling">Drilling</option>
-        <option value="live">Live Wrestling</option>
-      </select>
-    </div>
-
-  </div>
-<div class="runbar-wrap">
-  <div id="inlineRunbar" class="timer-card stopped">
-
-    <div class="timer-head">
-      <div>
-        <div class="timer-label">Live Run</div>
-        <div id="inlineCurrentBlock" class="timer-sub">No active block.</div>
-      </div>
-
-      <div class="timer-head-right">
-
-
-<a class="clock-toggle" href="/lab/timer-engine/ui/coach/sandman-coach-timer">
-  Open Timer
-</a>
-        <div id="inlineRunStatus" class="timer-status">stopped</div>
-      </div>
-    </div>
-
-    <div id="inlineClock" class="timer-clock">00:00</div>
-
-    <div class="timer-controls">
-      <button class="run-btn" onclick="runPractice()">▶ Run Practice</button>
-      <button id="inlinePauseBtn" type="button">Pause</button>
-      <button id="inlineStopBtn" type="button">Stop</button>
-    </div>
-
-  </div>
-</div>
-
-  <div id="planBlocks">
-    <div class="plan-block" id="block-onmat" data-slot="onmat" data-minutes="3">
-      <div class="block-head-row">
-        <span class="block-title" id="title-onmat">On-Mat Talk</span>
-        <div class="block-tools">
-          <a class="pill-btn library-btn" href="/coaches/cards/mat-talk/index.html">+ Add</a>
-          <input type="number" value="3" readonly class="min-input"/>
-          <span class="mini-clock">03:00</span>
-        </div>
-      </div>
-
-      <div id="slot-onmat" class="slot">
-        <div id="cards-onmat" class="slot-cards"></div>
-        <div class="slot-notes">
-          <div class="notes-label"># notes</div>
-          <textarea id="notes-onmat" class="slot-notes-input" placeholder="Mindset, announcements..."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div class="plan-block" id="block-warmup" data-slot="warmup" data-minutes="10">
-      <div class="block-head-row">
-        <span class="block-title" id="title-warmup">Warm-Up</span>
-        <div class="block-tools">
-          <a class="pill-btn library-btn" href="/coaches/cards/warmup/index.html">+ Add</a>
-          <input type="number" value="10" readonly class="min-input"/>
-          <span class="mini-clock">10:00</span>
-        </div>
-      </div>
-
-      <div id="slot-warmup" class="slot">
-        <div id="cards-warmup-body" class="slot-cards"></div>
-        <div id="cards-warmup-agility" class="slot-cards"></div>
-        <div class="slot-notes">
-          <div class="notes-label"># notes</div>
-          <textarea id="notes-warmup" class="slot-notes-input" placeholder="Add notes..."></textarea>
-        </div>
-      </div>
-    </div>
-
-    <div id="swappable">
-
-      <div class="plan-block red sw" id="block-drills" data-slot="drills" data-minutes="10">
-        <div class="block-head-row">
-          <div class="sw-head">
-            <span class="block-title" id="title-drills">Drills (Old Moves)</span>
-            <button class="move-btn" data-dir="up" type="button">↑</button>
-            <button class="move-btn" data-dir="down" type="button">↓</button>
-          </div>
-
-          <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/master/index.html">+ Add</a>
-            <input type="number" min="5" max="60" value="10" class="min-input"/>
-            <span class="mini-clock">10:00</span>
-          </div>
-        </div>
-
-        <div id="slot-drills" class="slot">
-          <div id="cards-drills" class="slot-cards"></div>
-          <div class="slot-notes">
-            <div class="notes-label"># notes</div>
-            <textarea id="notes-drills" class="slot-notes-input" placeholder="Add notes..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="plan-block red sw" id="block-technique" data-slot="technique" data-minutes="10">
-        <div class="block-head-row">
-          <div class="sw-head">
-            <span class="block-title" id="title-technique">Technique (New Moves)</span>
-            <button class="move-btn" data-dir="up" type="button">↑</button>
-            <button class="move-btn" data-dir="down" type="button">↓</button>
-          </div>
-
-          <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/master/index.html">+ Add</a>
-            <input type="number" min="5" max="60" value="10" class="min-input"/>
-            <span class="mini-clock">10:00</span>
-          </div>
-        </div>
-
-        <div id="slot-technique" class="slot">
-          <div id="cards-technique" class="slot-cards"></div>
-          <div class="slot-notes">
-            <div class="notes-label"># notes</div>
-            <textarea id="notes-technique" class="slot-notes-input" placeholder="Add notes..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="plan-block" id="block-water" data-slot="water" data-minutes="2">
-        <div class="block-head-row">
-          <span class="block-title" id="title-water">Water / Reset</span>
-          <div class="block-tools">
-            <a class="pill-btn library-btn" id="btn-add-game" href="/coaches/cards/games/index.html" style="display:none;">+ Add</a>
-            <input type="number" value="2" readonly class="min-input"/>
-            <span class="mini-clock">02:00</span>
-          </div>
-        </div>
-
-        <div id="slot-water" class="slot">
-          <div id="cards-water" class="slot-cards"></div>
-          <div class="slot-notes">
-            <div class="notes-label"># notes</div>
-            <textarea id="notes-water" class="slot-notes-input" placeholder="Quick water + regroup..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="plan-block red sw" id="block-live" data-slot="live" data-minutes="10">
-        <div class="block-head-row">
-          <div class="sw-head">
-            <span class="block-title" id="title-live">Live / Situations</span>
-            <button class="move-btn" data-dir="up" type="button">↑</button>
-            <button class="move-btn" data-dir="down" type="button">↓</button>
-          </div>
-
-          <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/master/index.html">+ Add</a>
-            <input type="number" min="5" max="60" value="10" class="min-input"/>
-            <span class="mini-clock">10:00</span>
-          </div>
-        </div>
-
-        <div id="slot-live" class="slot">
-          <div id="cards-live" class="slot-cards"></div>
-          <div class="slot-notes">
-            <div class="notes-label"># notes</div>
-            <textarea id="notes-live" class="slot-notes-input" placeholder="Add notes..."></textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="plan-block red sw" id="block-cond" data-slot="cond" data-minutes="10">
-        <div class="block-head-row">
-          <div class="sw-head">
-            <span class="block-title" id="title-cond">Conditioning / Finisher</span>
-            <button class="move-btn" data-dir="up" type="button">↑</button>
-            <button class="move-btn" data-dir="down" type="button">↓</button>
-          </div>
-
-          <div class="block-tools">
-            <a class="pill-btn library-btn" href="/coaches/cards/conditioning/index.html">+ Add</a>
-            <input type="number" min="5" max="60" value="10" class="min-input"/>
-            <span class="mini-clock">10:00</span>
-          </div>
-        </div>
-
-        <div id="slot-cond" class="slot">
-          <div id="cards-cond" class="slot-cards"></div>
-          <div class="slot-notes">
-            <div class="notes-label"># notes</div>
-            <textarea id="notes-cond" class="slot-notes-input" placeholder="Add notes..."></textarea>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="plan-block" id="block-offmat" data-slot="offmat" data-minutes="5">
-      <div class="block-head-row">
-        <span class="block-title" id="title-offmat">Off-Mat Talk</span>
-        <div class="block-tools">
-          <input type="number" value="5" readonly class="min-input"/>
-          <span class="mini-clock">05:00</span>
-        </div>
-      </div>
-
-      <div id="slot-offmat" class="slot">
-        <div id="cards-offmat" class="slot-cards"></div>
-        <div class="slot-notes">
-          <div class="notes-label"># notes</div>
-          <textarea id="notes-offmat" class="slot-notes-input" placeholder="Character, gratitude, announcements..."></textarea>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <div class="broadcast-box">
-    <label class="block-title" style="display:block;margin-bottom:6px;color:var(--gold);">Session Focus</label>
-    <textarea id="slot-note" class="broadcast" placeholder="Theme, reminders, focus point…"></textarea>
-  </div>
-
-<div class="footer-actions">
-  <button onclick="savePlan()">Save Plan</button>
-  <button onclick="clearSession()">Clear Session</button>
-
-  <button onclick="endPractice()">End Practice → Log</button>
-
-  <a class="pill-btn" href="/coaches/cards/master/index.html">Curriculum Card Library</a>
-  <span id="saveStatus" class="muted">No plan yet.</span>
-</div>
-
-</main>
-
-<script src="/coaches/execution/daily-clipboard/coach-clipboard.theme.js?v=3"></script>
-<script type="module" src="/coaches/execution/daily-clipboard/coaches-daily-clipboard.js?v=4"></script>
-</body>
-</html>
+    <button onclick="endPractice()">End Practice → Log</button>
+    <button class="pill-btn" type="button" onclick="openDisciplineCards()">Curriculum Card Library</button>
     <span id="saveStatus" class="muted">No plan yet.</span>
   </div>
 
 </main>
-
-<script src="/coaches/execution/daily-clipboard/coach-clipboard.theme.js?v=3"></script>
-<script type="module" src="/coaches/execution/daily-clipboard/coaches-daily-clipboard.js?v=4"></script>
+<script src="/coaches/execution/daily-clipboard/all-in-one-console.theme.js?v=3"></script>
+<script type="module" src="/coaches/execution/all-in-one-console/all-in-one-console.js?v=5"></script>
 </body>
 </html>

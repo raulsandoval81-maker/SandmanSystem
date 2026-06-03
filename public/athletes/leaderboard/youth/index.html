@@ -6,34 +6,46 @@
   <title>Foundry 8 Leaderboard</title>
   <link rel="stylesheet" href="/athletes/leaderboard/leaderboard.css"/>
 </head>
+
+<body>
+
 <header class="athlete-sub-header">
   <div class="sub-header-inner">
     <span class="brand">Sandman Combat System™</span>
 
     <div class="sub-nav">
-      <a href="/athletes/hub/full-hub.html?id=F4_0001" class="sub-btn home">Home</a>
+      <a id="nav-home" href="#" class="sub-btn home">Home</a>
       <a href="/athletes/bulletin/index.html" class="sub-btn">Bulletin</a>
       <a href="/athletes/arsenal/index.html" class="sub-btn">Arsenal</a>
       <a href="/athletes/leaderboard/teen/index.html" class="sub-btn">Leaderboard</a>
     </div>
   </div>
 </header>
-<body>
 
 <div class="wrap">
 
   <h1>Foundry 8 Leaderboard</h1>
 
   <div class="controls">
+    
+    <!-- public/private -->
     <select id="mode-toggle">
       <option value="private">Private</option>
       <option value="public">Public</option>
     </select>
 
+    <!-- scope -->
     <select id="view-mode">
       <option value="overall">Overall</option>
       <option value="tier">Tier</option>
     </select>
+
+    <!-- ranking -->
+    <select id="rank-mode">
+      <option value="progression">Progression</option>
+      <option value="lifetime">Lifetime XP</option>
+    </select>
+
   </div>
 
   <h2 id="board-title">Top 8</h2>
@@ -53,6 +65,19 @@
 
 <script>
   window.LEADERBOARD_TRACK = "foundry8";
+
+  // 🔥 dynamic home link
+  const params = new URLSearchParams(window.location.search);
+  const id =
+    params.get("athleteId") ||
+    params.get("id") ||
+    localStorage.getItem("currentAthleteId") ||
+    "";
+
+  const home = document.getElementById("nav-home");
+  if (home && id) {
+    home.href = `/athletes/hub/full-hub.html?id=${encodeURIComponent(id)}`;
+  }
 </script>
 
 <script type="module" src="/athletes/leaderboard/leaderboard.app.js"></script>

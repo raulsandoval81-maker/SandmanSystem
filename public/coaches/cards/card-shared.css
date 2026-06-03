@@ -166,34 +166,49 @@ body{
   background: #7a1f1f !important;
   color: #fff !important;
 }
-.clip-card {
-  display: block;
-  text-decoration: none;
-  color: inherit;
-}.clip-card {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 10px;
-  border-radius: 10px;
-  font-size: 14px;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
+.clip-card{
+  display:block;
+  padding:12px 14px;
+  border-radius:10px;
+  background:#111c35;
+  text-decoration:none;
+  color:#fff;
+  border:1px solid #27304a;
+  transition:.2s;
+  margin-bottom:10px;
 }
 
-.clip-title {
-  font-weight: 600;
+.clip-card:hover{
+  background:#1a2747;
+  border-color:#ffdd48;
 }
 
-.clip-meta {
-  opacity: 0.6;
-  font-size: 12px;
+.clip-title{
+  display:block;
+  color:#fff;
+  font-weight:800;
 }
 
-.clip-cue {
-  opacity: 0.7;
-  font-size: 12px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.clip-meta{
+  display:block;
+  margin-top:3px;
+  color:#9aa4b1;
+  font-size:.82rem;
+}
+
+.clip-cue{
+  display:block;
+  margin-top:2px;
+  color:#9aa4b1;
+  font-size:.8rem;
+}.disabled-discipline{
+  opacity:.35;
+  filter:grayscale(1);
+  cursor:not-allowed;
+  pointer-events:none;
+}
+
+.disabled-discipline:hover{
+  border-color:#1d2430 !important;
+  box-shadow:none !important;
 }

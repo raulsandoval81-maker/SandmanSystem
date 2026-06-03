@@ -18,9 +18,19 @@
   </div>
 
   <div class="toplinks">
-    <a href="/coaches/execution/daily-clipboard/">← Back to Clipboard</a>
+    <a id="returnToCoach" href="/coaches/execution/clipboard-2.0/">← Back</a>
+
+<script>
+  const returnUrl =
+    localStorage.getItem("sandman_return_to") ||
+    "/coaches/execution/clipboard-2.0/";
+
+  const btn =
+    document.getElementById("returnToCoach");
+
+  if (btn) btn.href = returnUrl;
+</script>
     <a href="/coaches/cards/conditioning/index.html">Conditioning Hub</a>
-    <a href="/coaches/cards/master/index.html">Cards Hub</a>
   </div>
 
   <ul class="exec-list">

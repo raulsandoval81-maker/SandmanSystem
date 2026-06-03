@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Progression Audit</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      background:#0b0f14;
+      color:#f5f5f5;
+      font-family:Arial, Helvetica, sans-serif;
+      padding:24px;
+    }
+
+    .page{
+      max-width:1400px;
+      margin:auto;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:24px;
+    }
+
+    h1{
+      font-size:2rem;
+      font-weight:900;
+    }
+
+    .refresh-btn{
+      border:none;
+      background:#1f2937;
+      color:white;
+      padding:10px 16px;
+      border-radius:10px;
+      cursor:pointer;
+      font-weight:700;
+    }
+
+    .audit-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+      gap:18px;
+    }
+
+    .audit-card{
+      background:#111827;
+      border:1px solid #1f2937;
+      border-radius:18px;
+      padding:18px;
+    }
+
+    .audit-title{
+      font-size:1rem;
+      font-weight:800;
+      margin-bottom:10px;
+    }
+
+    .audit-count{
+      font-size:3rem;
+      font-weight:900;
+      margin-bottom:8px;
+    }
+
+    .good{
+      color:#22c55e;
+    }
+
+    .warn{
+      color:#f59e0b;
+    }
+
+    .bad{
+      color:#ef4444;
+    }
+
+    .audit-list{
+      margin-top:10px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .audit-item{
+      background:#0f172a;
+      border-radius:12px;
+      padding:10px;
+      font-size:.9rem;
+    }
+
+    .muted{
+      opacity:.7;
+      font-size:.85rem;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div class="page">
+
+  <div class="topbar">
+    <h1>Progression Audit</h1>
+
+    <button
+      id="refreshBtn"
+      class="refresh-btn">
+      Refresh
+    </button>
+  </div>
+
+  <div class="audit-grid">
+
+    <div class="audit-card">
+      <div class="audit-title">Cooldown Issues</div>
+
+      <div
+        id="cooldownCount"
+        class="audit-count good">
+        0
+      </div>
+
+      <div class="muted">
+        Athletes missing or stuck in cooldown.
+      </div>
+
+      <div
+        id="cooldownList"
+        class="audit-list">
+      </div>
+    </div>
+
+    <div class="audit-card">
+      <div class="audit-title">XP Integrity</div>
+
+      <div
+        id="xpCount"
+        class="audit-count good">
+        0
+      </div>
+
+      <div class="muted">
+        XP above cap or invalid values.
+      </div>
+
+      <div
+        id="xpList"
+        class="audit-list">
+      </div>
+    </div>
+
+    <div class="audit-card">
+      <div class="audit-title">Stripe Integrity</div>
+
+      <div
+        id="stripeCount"
+        class="audit-count good">
+        0
+      </div>
+
+      <div class="muted">
+        Stripe mismatch or invalid stripe counts.
+      </div>
+
+      <div
+        id="stripeList"
+        class="audit-list">
+      </div>
+    </div>
+
+    <div class="audit-card">
+      <div class="audit-title">Tier Integrity</div>
+
+      <div
+        id="tierCount"
+        class="audit-count good">
+        0
+      </div>
+
+      <div class="muted">
+        Invalid tier or missing rank metadata.
+      </div>
+
+      <div
+        id="tierList"
+        class="audit-list">
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script type="module" src="./progression-audit.page.js"></script>
+
+</body>
+</html>

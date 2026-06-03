@@ -144,7 +144,7 @@
 
       <div class="actions">
         <a class="btn" href="/coaches/testing/results.html">Open Test History</a>
-        <a class="btn" href="/coaches/testing/ceremonies.html">Open Ceremonies Queue</a>
+        <a class="btn" href="/coaches/ceremonies/index.html">Open Ceremonies Queue</a>
       </div>
 
       <div class="muted" style="margin-top:12px;">
@@ -218,6 +218,30 @@
     }
   }
 
+  function applyIncomingParams() {
+    const params = new URLSearchParams(window.location.search);
+
+    const uid = params.get("uid") || params.get("athleteId") || "";
+    const athleteName = params.get("athleteName") || params.get("name") || "";
+    const track = params.get("track") || "";
+    const tier = params.get("tier") || "";
+
+    if (uid) els.uid.value = uid;
+    if (athleteName) els.athleteName.value = athleteName;
+
+    if (track) {
+      els.track.value = track;
+    }
+
+    populateTierOptions();
+
+    if (tier) {
+      els.tier.value = tier;
+    }
+
+    updatePanelStatus();
+  }
+
   if (!els.testDate.value) {
     els.testDate.value = todayLocalISO();
   }
@@ -227,10 +251,10 @@
   }
 
   function buildTestType() {
-  const trackCode = els.track.value === "foundry4-combat" ? "F4" : "F8";
-  const tierCode = els.tier.value;
-  return `${trackCode}_${tierCode}_BASE_V1`;
-}
+    const trackCode = els.track.value === "foundry4-combat" ? "F4" : "F8";
+    const tierCode = els.tier.value;
+    return `${trackCode}_${tierCode}_BASE_V1`;
+  }
 
   function panelReady() {
     return (
@@ -249,7 +273,7 @@
 
   function buildSessionId() {
     const uid = (els.uid.value || "").trim();
-const testType = buildTestType();
+    const testType = buildTestType();
     const testDate = (els.testDate.value || "").trim();
 
     return `${uid}__${testType}__${testDate}`;
@@ -322,7 +346,7 @@ const testType = buildTestType();
     }
   }
 
-  [els.uid, els.testType, els.coachA, els.coachB, els.coachC].forEach(el => {
+  [els.uid, els.athleteName, els.testType, els.track, els.tier, els.coachA, els.coachB, els.coachC].forEach(el => {
     el.addEventListener("input", updatePanelStatus);
     el.addEventListener("change", updatePanelStatus);
   });
@@ -337,6 +361,7 @@ const testType = buildTestType();
   els.copyLive.addEventListener("click", () => copyText(els.launchLive.href));
 
   populateTierOptions();
+  applyIncomingParams();
   updatePanelStatus();
 </script>
 

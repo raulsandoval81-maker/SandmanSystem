@@ -3,56 +3,94 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>Steal the Bacon | Game</title>
 
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/coaches/cards/games/shared/games-shared.css" />
 </head>
-<body>
+
+<body
+  data-card-id="game-steal-bacon-01"
+  data-title="Steal the Bacon"
+  data-category="game"
+  data-minutes="8"
+  data-timer="live_go"
+  data-timer-mode="group"
+  data-assign-to="water"
+>
 
 <main class="wrap">
 
-  <div class="page-header">
+  <section class="page-header">
     <h1>Steal the Bacon</h1>
     <p class="muted">Game</p>
-  </div>
+  </section>
 
-  <div class="card-body">
+  <section class="card-body">
+
     <h3>Goal</h3>
-    <p>Reaction, speed, and quick decision-making under pressure.</p>
+    <p>
+      Build reaction, speed, and quick decision-making under pressure.
+    </p>
 
     <h3>Setup</h3>
-    <p>Split into two teams. Each athlete has a number. Place an object (“bacon”) in the center.</p>
+    <p>
+      Split athletes into two teams.
+      Assign each athlete a number and place an object (“bacon”) in the center.
+    </p>
 
     <h3>Play</h3>
     <ul>
       <li>Coach calls a number</li>
-      <li>Those athletes sprint to the center</li>
+      <li>Matching athletes sprint to the center</li>
       <li>Grab the object and return to your side</li>
-      <li>Opponent can tag before you cross back</li>
+      <li>The opponent can tag before you cross back safely</li>
     </ul>
 
     <h3>Coach Notes</h3>
-    <p class="muted">Add stance requirement, shots only, or touch rules to match your focus. Keep rounds fast and high energy.</p>
-  </div>
+    <p class="muted">
+      Add stance requirements, shots only, or touch rules to match your focus.
+      Keep rounds fast, competitive, and high energy.
+    </p>
 
-  <div class="card-actions">
+  </section>
+
+  <div class="card-footer-actions">
+
     <button
-      data-card-id="game-steal-bacon-01"
-      data-title="Steal the Bacon"
-      data-category="game"
+      id="addGameBtn"
+      class="game-btn primary"
+      type="button"
     >
-      Add to Games
+      + Add to Games
     </button>
-  </div>
 
-  <div class="page-tools">
-    <a class="back-link" href="/coaches/execution/daily-clipboard/">← Return to Clipboard</a>
-    <a class="back-link" href="/coaches/cards/games/youth/index.html">← Back to Games</a>
+    <a
+      class="game-btn"
+      href="/coaches/execution/clipboard-2.0/"
+    >
+      ← Return to Clipboard
+    </a>
+
+    <a
+      class="game-btn"
+      href="/coaches/cards/games/index.html"
+    >
+      ← Back to Games
+    </a>
+
+    <span
+      id="statusMessage"
+      class="status"
+      aria-live="polite"
+    ></span>
+
   </div>
 
 </main>
 
-<script src="/coaches/cards/games/shared/games-actions.js"></script>
+<script defer src="/coaches/cards/games/shared/games-actions.js"></script>
+
 </body>
 </html>

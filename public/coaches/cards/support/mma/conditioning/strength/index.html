@@ -20,7 +20,18 @@
   </div>
 
   <div class="toplinks">
-    <a href="/coaches/execution/clipboard-2.0/">← Back to Clipboard</a>
+    <a id="returnToCoach" href="/coaches/execution/clipboard-2.0/">← Back</a>
+
+<script>
+  const returnUrl =
+    localStorage.getItem("sandman_return_to") ||
+    "/coaches/execution/clipboard-2.0/";
+
+  const btn =
+    document.getElementById("returnToCoach");
+
+  if (btn) btn.href = returnUrl;
+</script>
     <a href="/coaches/cards/support/mma/conditioning/index.html">Conditioning Hub</a>
   </div>
 

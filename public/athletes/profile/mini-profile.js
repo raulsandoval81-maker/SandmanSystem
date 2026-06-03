@@ -4,8 +4,8 @@ import {
   getDoc
 } from "/assets/js/firebase-init.js";
 
-import { updateRankUI } from "/assets/js/belt-bar.js";
-import { LADDER_F8, getStripeInfo } from "/assets/js/ladder.service.js";
+import { renderDigitalBelt } from "/assets/js/digital-belt.js";
+import { LADDER_F8 } from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -49,23 +49,23 @@ function pct(xp = 0, cap = 1) {
   return Math.max(0, Math.min(100, Math.round((safeXp / safeCap) * 100)));
 }
 
-function getStoredTierNum(a) {
-  if (typeof a?.tier === "number") return a.tier;
-  if (typeof a?.tier === "string") {
-    const m = String(a.tier).match(/T(\d+)/i);
+function getStoredTierNum(A) {
+  if (typeof A?.tier === "number") return A.tier;
+  if (typeof A?.tier === "string") {
+    const m = String(A.tier).match(/T(\d+)/i);
     if (m) return Number(m[1]) || 0;
-    const n = Number(String(a.tier).replace(/[^\d]/g, ""));
+    const n = Number(String(A.tier).replace(/[^\d]/g, ""));
     if (!Number.isNaN(n)) return n;
   }
-  return Number(a?.tierNum ?? a?.rankNum ?? 0) || 0;
+  return Number(A?.tierNum ?? A?.rankNum ?? 0) || 0;
 }
 
-function getStoredStripes(a) {
-  return Number(a?.stripeCount ?? a?.stripes ?? 0);
+function getStoredStripes(A) {
+  return Number(A?.stripeCount ?? A?.stripes ?? 0);
 }
 
-function getStoredXpCap(a, ladder, tierNum) {
-  const direct = Number(a?.xpCap ?? a?.cap ?? a?.tierCap ?? 0);
+function getStoredXpCap(A, ladder, tierNum) {
+  const direct = Number(A?.xpCap ?? A?.cap ?? A?.tierCap ?? 0);
   if (direct > 0) return direct;
 
   const tier = ladder?.[tierNum];
@@ -82,22 +82,6 @@ function getEffectiveStripes({ xpNow, xpCap, storedStripes, stripeMax = 4 }) {
   if (safeXp >= safeCap) return stripeMax;
 
   return Math.max(0, Math.min(stripeMax, Math.max(stored, derived)));
-}
-
-function badgeForTier(tierNum = 0) {
-  const MAP = [
-    "/assets/images/logos/Shadow-badge.png",
-    "/assets/images/logos/Recruit-badge.png",
-    "/assets/images/logos/Combatant-badge.png",
-    "/assets/images/logos/Competitor-badge.png",
-    "/assets/images/logos/Warrior-badge.png",
-    "/assets/images/logos/Champion-badge.png",
-    "/assets/images/logos/Commander-badge.png",
-    "/assets/images/logos/Hero-badge.png",
-  ];
-
-  const idx = Math.max(0, Math.min(MAP.length - 1, Number(tierNum || 0)));
-  return MAP[idx];
 }
 
 async function load() {
@@ -123,11 +107,23 @@ async function load() {
     return;
   }
 
+  const ladder = LADDER_F8;
+  const tierNum = getStoredTierNum(A);
+  const tierInfo = ladder?.[tierNum] || {};
+
+  const rankName =
+    A.rankName ||
+    tierInfo?.rank ||
+    "Shadow";
+
+  const rankColor =
+    A.rankColor ||
+    tierInfo?.color ||
+    "#ffffff";
+
+  // ===== Avatar =====
   const fullName =
     A.fullName ||
-    [A.firstName, A.lastName].filter(Boolean).join(" ").trim() ||
-    A.name ||
-    A.athleteName ||
     A.publicName ||
     "Athlete";
 
@@ -144,94 +140,34 @@ async function load() {
 
   safeText("out-name", fullName);
 
-  const rawTeam = String(A.team || A.teamName || A.team?.name || "").trim();
-  const academy =
-    String(A.academy || "").trim() ||
-    (rawTeam && !rawTeam.toLowerCase().startsWith("sandman") ? rawTeam : "") ||
-    "Academy of Wrestling";
+  // ===== Team / Location =====
+  const team =
+    A.team ||
+    A.academy ||
+    "";
 
-  safeText("out-team", academy);
+  const city = A.city || "";
+  const state = A.state || "";
 
-  const cityTxt =
-    String(A.city || A.team?.city || A.location?.city || "").trim();
-  const stateTxt =
-    String(A.state || A.team?.state || A.location?.state || "").trim();
+  const cityState =
+    city && state ? `${city}, ${state}` :
+    city || state || "—";
 
-  let cityState = "";
-  if (cityTxt && stateTxt) cityState = `${cityTxt}, ${stateTxt}`;
-  else if (cityTxt || stateTxt) cityState = cityTxt || stateTxt;
-  else {
-    const hint = `${academy} ${rawTeam}`.toLowerCase();
-    if (hint.includes("lompoc")) cityState = "Lompoc, CA";
-  }
-
+  safeText("out-team", team || "—");
   safeText("out-citystate", cityState);
 
-  const ladder = LADDER_F8;
-  const tierNum = getStoredTierNum(A);
-  const tierInfo = ladder?.[tierNum] || {};
-
-  const rankName =
-    A.rankName ||
-    A.rankLabel ||
-    A.tierName ||
-    A.tierLabel ||
-    A.rank ||
-    tierInfo?.rank ||
-    tierInfo?.name ||
-    "Shadow";
-
-  const rankColor =
-    A.rankColor ||
-    tierInfo?.color ||
-    tierInfo?.rankColor ||
-    "#ffffff";
-
+  // ===== Rank =====
   safeHTML(
     "out-rank",
-    `
-      <span style="
-        display:inline-block;
-        width:10px;
-        height:10px;
-        border-radius:999px;
-        background:${rankColor};
-        margin-right:6px;
-        vertical-align:middle;
-      "></span>
-      ${rankName}
-    `
+    `<span style="width:10px;height:10px;border-radius:50%;background:${rankColor};display:inline-block;margin-right:6px"></span>${rankName}`
   );
 
-  const badgeSrc =
-    A.badgeUrl ||
-    A.badge ||
-    A.badgeImage ||
-    badgeForTier(tierNum);
-
-  const badgeEl = $("ath-badge");
-  if (badgeEl) {
-    badgeEl.src = badgeSrc;
-    badgeEl.alt = `${rankName} badge`;
-    badgeEl.onerror = () => {
-      badgeEl.onerror = null;
-      badgeEl.src = badgeForTier(tierNum);
-    };
-  }
-
-  const totalXP = Number(
-    A.xp ??
-    A.xpTotal ??
-    A.xpCombat ??
-    A.combatXp ??
-    0
-  );
-
-  const xpCap = Math.max(0, Math.round(getStoredXpCap(A, ladder, tierNum) || 800));
+  // ===== XP / STRIPES =====
+  const xpNow = Number(A.xp || 0);
+  const xpCap = getStoredXpCap(A, ladder, tierNum) || 800;
   const storedStripes = getStoredStripes(A);
+  const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
 
-const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
-  const xpNow = Math.max(0, Math.round(totalXP));
   const displayStripes = getEffectiveStripes({
     xpNow,
     xpCap,
@@ -239,24 +175,34 @@ const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
     stripeMax
   });
 
-  updateRankUI({
-    ladder,
-    totalXP: Math.min(xpNow, xpCap || xpNow),
-    rankNameOverride: rankName,
-    stripeCountOverride: displayStripes,
-    el: {
-      barId: "rankBar",
-      fillId: "rankFill",
-      textId: "stripeText"
-    }
-  });
+  // ===== NEW BELT RENDER =====
+  const colorMap = {
+    Shadow: "belt-white",
+    Recruit: "belt-yellow",
+    Combatant: "belt-orange",
+    Contender: "belt-green",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Commander: "belt-brown",
+    Hero: "belt-black"
+  };
+
+  const mappedColor = colorMap[rankName] || "belt-white";
+
+  safeHTML(
+    "rankBar",
+    renderDigitalBelt({
+      colorClass: mappedColor,
+      stripes: displayStripes,
+      size: "small"
+    })
+  );
 
   const percent = pct(xpNow, xpCap);
 
   if ($("percentText")) $("percentText").textContent = `${percent}%`;
   if ($("progressLabel")) $("progressLabel").textContent = progressLabel(percent);
 
-  // optional: make sure stripe text stays youth-safe if helper prints weird text
   const stripeEl = $("stripeText");
   if (stripeEl) {
     stripeEl.textContent = `Stripes: ${displayStripes}/${stripeMax}`;

@@ -1,46 +1,465 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Ceremonies — Recognition & Legacy</title>
-  <link rel="stylesheet" href="../assets/css/site.css" />
-  <style>
-    main { max-width:980px; margin:28px auto; padding:0 18px; }
-    .panel { background:#0f141b; color:#eef3fb; border-radius:16px; padding:18px; border:1px solid #283241; box-shadow:0 16px 36px rgba(0,0,0,.35); }
-    h1 { color:#ffd633; margin:6px 0 12px; }
-    .sub { color:#aeb9c9; margin-bottom:14px; }
-    .list { display:grid; gap:10px; }
-    .item { background:#121a24; border:1px solid #263244; border-radius:12px; padding:12px; }
-    .back { display:inline-block; margin:14px 0; color:#aeb9c9; text-decoration:underline; }
-    .btn { display:inline-block; margin-top:8px; padding:8px 12px; border-radius:8px; background:#e53935; color:#fff; text-decoration:none; font-weight:700; }
-  </style>
-</head>
-<body>
-  <div data-include="../assets/includes/header.html"></div>
-  <main>
-    <section class="panel">
-      <h1>Ceremonies</h1>
-      <p class="sub">Recognition & Legacy across programs.</p>
 
-      <div class="list">
-        <div class="item">
-          <strong>Promotion Ceremony (Youth 0–8 / Adult 0–4)</strong>
-          <p>Script, checklist, and printable certificates. (Shell)</p>
-          <a class="btn" href="#">Open Kit</a>
-        </div>
-        <div class="item">
-          <strong>Honor Awards</strong>
-          <p>Sportsmanship, attendance streaks, community service. (Shell)</p>
-          <a class="btn" href="#">Open Kit</a>
-        </div>
+  <title>Foundry 8 Ceremonies | Sandman System</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../public.css" />
+
+  <script src="../assets/js/public-shell.js" defer></script>
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #1f2937,
+        #111827
+      );
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    padding:48px 30px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+
+    margin-bottom:28px;
+  }
+
+  body.day-mode .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff,
+        #f3e7cf
+      );
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+
+    text-transform:uppercase;
+    letter-spacing:.16em;
+
+    font-size:.78rem;
+    font-weight:800;
+
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+
+    font-size:clamp(2.5rem,5vw,4.5rem);
+
+    line-height:1;
+
+    color:var(--heading);
+  }
+
+  .hero-sub{
+    max-width:760px;
+
+    color:var(--hero-muted);
+
+    line-height:1.75;
+
+    font-size:1.05rem;
+  }
+
+  .section{
+    margin-top:30px;
+  }
+
+  .section h2{
+    color:var(--heading-accent);
+
+    margin-bottom:12px;
+
+    font-size:1.5rem;
+  }
+
+  body.day-mode .section h2{
+    color:var(--heading);
+  }
+
+  .lead{
+    color:var(--muted);
+
+    line-height:1.7;
+
+    margin-bottom:18px;
+  }
+
+  .grid{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(220px,1fr));
+
+    gap:18px;
+  }
+
+  .card,
+  .step,
+  .rule{
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:20px;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card,
+  body.day-mode .step,
+  body.day-mode .rule{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card:hover,
+  .step:hover,
+  .rule:hover{
+    transform:translateY(-2px);
+
+    border-color:#ff2a2a;
+
+    box-shadow:0 0 18px rgba(255,42,42,.22);
+  }
+
+  .card h3,
+  .rule h3{
+    margin:0 0 10px;
+
+    color:var(--heading-accent);
+
+    font-size:1.05rem;
+  }
+
+  body.day-mode .card h3,
+  body.day-mode .rule h3{
+    color:var(--heading);
+  }
+
+  .card p,
+  .rule p,
+  .step p{
+    margin:0;
+
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  .steps{
+    display:grid;
+
+    gap:14px;
+
+    margin-top:18px;
+  }
+
+  .step strong{
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .step strong{
+    color:var(--heading);
+  }
+
+  .step p{
+    margin-top:.45rem;
+  }
+
+  .quote{
+    margin-top:30px;
+
+    padding:24px;
+
+    border-left:4px solid var(--heading-accent);
+
+    background:var(--panel);
+
+    border-radius:16px;
+
+    color:var(--text);
+
+    line-height:1.8;
+
+    font-size:1.04rem;
+
+    border:1px solid var(--line);
+  }
+
+  body.day-mode .quote{
+    background:#ffffff;
+
+    border-color:#d7c7a2;
+  }
+
+  .rule{
+    margin-top:28px;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  @media (max-width:640px){
+
+    main{
+      padding:28px 14px 70px;
+    }
+
+    .hero{
+      padding:36px 22px;
+    }
+
+    h1{
+      font-size:2.5rem;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="top-nav">
+
+  <div class="nav-top">
+
+    <div class="lang-toggle" role="group" aria-label="Language toggle">
+      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="es">ES</button>
+    </div>
+
+    <a href="../index.html" class="nav-logo">
+      Sandman Combat™
+    </a>
+
+    <button type="button" class="theme-toggle" aria-label="Toggle theme">
+      ☾
+    </button>
+
+  </div>
+
+  <nav class="site-nav" aria-label="Primary">
+
+    <a href="../index.html">
+      <span data-lang-block="en">Home</span>
+      <span data-lang-block="es" class="hidden-lang">Inicio</span>
+    </a>
+
+    <a href="../overview.html">
+      <span data-lang-block="en">Overview</span>
+      <span data-lang-block="es" class="hidden-lang">Resumen</span>
+    </a>
+
+    <a href="../programs.html">
+      <span data-lang-block="en">Programs</span>
+      <span data-lang-block="es" class="hidden-lang">Programas</span>
+    </a>
+
+    <a href="../about.html">
+      <span data-lang-block="en">About</span>
+      <span data-lang-block="es" class="hidden-lang">Acerca</span>
+    </a>
+
+  </nav>
+
+</header>
+
+<main>
+
+  <section class="hero">
+
+    <div data-lang-block="en">
+
+      <div class="eyebrow">
+        Foundry 8
       </div>
 
-      <div><a class="back" href="./index.html">← Back to Combat Hub</a></div>
-      <p id="status" class="sub" style="margin-top:8px;">Ready.</p>
-    </section>
-  </main>
-  <div data-include="../assets/includes/footer.html"></div>
-  <script defer src="../assets/js/site.js"></script>
+      <h1>Ceremonies</h1>
+
+      <p class="hero-sub">
+        Ceremonies recognize earned progress inside the Sandman System.
+        They are designed to honor growth, discipline, consistency,
+        testing, and transition through the Foundry 8 journey.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <div class="eyebrow">
+        Foundry 8
+      </div>
+
+      <h1>Ceremonias</h1>
+
+      <p class="hero-sub">
+        Las ceremonias reconocen el progreso ganado dentro del Sandman System.
+        Están diseñadas para honrar crecimiento, disciplina,
+        consistencia, evaluación y transición a través del viaje Foundry 8.
+      </p>
+
+    </div>
+
+  </section>
+
+  <section class="section">
+
+    <div data-lang-block="en">
+
+      <h2>Progression Identity</h2>
+
+      <p class="lead">
+        Foundry 8 progression is built around earned identity,
+        not shortcuts or empty recognition.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <h2>Identidad de progresión</h2>
+
+      <p class="lead">
+        La progresión de Foundry 8 está construida alrededor de identidad ganada,
+        no atajos ni reconocimiento vacío.
+      </p>
+
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Badge</h3>
+
+          <p>
+            The badge represents history.
+            It marks where the athlete has been and what they have earned through work and progression.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Insignia</h3>
+
+          <p>
+            La insignia representa historia.
+            Marca dónde ha estado el atleta y lo que ha ganado mediante trabajo y progresión.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Shirt</h3>
+
+          <p>
+            The shirt represents current identity.
+            It reflects who the athlete is becoming inside the room right now.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Camiseta</h3>
+
+          <p>
+            La camiseta representa identidad actual.
+            Refleja en quién se está convirtiendo el atleta dentro de la sala.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Belt</h3>
+
+          <p>
+            The belt represents milestone progression.
+            Belts are earned through testing, readiness, and demonstrated standards.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Cinturón</h3>
+
+          <p>
+            El cinturón representa progresión importante.
+            Los cinturones se ganan mediante evaluación, preparación y estándares demostrados.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Ceremony</h3>
+
+          <p>
+            Ceremony recognizes earned transition.
+            Promotion is earned first. Ceremony honors the completed step.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Ceremonia</h3>
+
+          <p>
+            La ceremonia reconoce transición ganada.
+            La promoción se gana primero.
+            La ceremonia honra el paso completado.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
 </body>
 </html>

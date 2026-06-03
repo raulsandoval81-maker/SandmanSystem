@@ -27,16 +27,44 @@ function esc(s = "") {
     .replaceAll(">", "&gt;");
 }
 
-function safeDate(ts) {
+function getStatus(d) {
+  return d.status || "pending";
+}
+
+// 🔥 NEW: intent + time helpers
+
+function getIntentLabel(entryType) {
+  if (entryType === "free_pass") return "FIRST LOOK";
+  if (entryType === "trial") return "TRYING IT OUT";
+  if (entryType === "join") return "READY TO COMMIT";
+  return "REQUEST";
+}
+
+function getIntentClass(entryType) {
+  if (entryType === "join") return "intent-high";
+  if (entryType === "trial") return "intent-mid";
+  return "intent-low";
+}
+
+function getTimeAgo(ts) {
   try {
-    return ts?.toDate?.().toLocaleString() || "";
+    const date = ts?.toDate?.();
+    if (!date) return "";
+
+    const diff = Date.now() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+
+    if (mins < 5) return "JUST NOW";
+    if (mins < 60) return `${mins}m ago`;
+
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
   } catch {
     return "";
   }
-}
-
-function getStatus(d) {
-  return d.status || "pending";
 }
 
 // ------------------ filters ------------------
@@ -133,11 +161,19 @@ function buildActions(id, d) {
   `;
 }
 
-// ------------------ row ------------------
+// ------------------ row (UPGRADED) ------------------
 
 function buildRow(id, d) {
   const unread = d.coachHasUnread === true;
   const status = getStatus(d);
+
+  const intentLabel = getIntentLabel(d.entryType);
+  const intentClass = getIntentClass(d.entryType);
+  const timeAgo = getTimeAgo(d.createdAt);
+
+  const athlete = esc(d.athleteName || "New Request");
+  const parent = esc(d.parentName || "");
+  const age = d.athleteAge ? `(${d.athleteAge})` : "";
 
   return `
     <div class="inbox-row-wrap" data-id="${id}">
@@ -146,15 +182,15 @@ function buildRow(id, d) {
 
         <div class="inbox-head">
           <div class="inbox-subject">
-            ${esc(d.athleteName || "New Request")}
+            ${athlete} ${age}
           </div>
           ${buildBadge(d)}
         </div>
 
         <div class="inbox-meta">
-          <span>${esc(d.parentName || "")}</span>
-          <span>${d.entryType === "join" ? "JOIN" : "TRIAL"}</span>
-          <span>${safeDate(d.createdAt)}</span>
+          <span>${parent}</span>
+          <span class="intent ${intentClass}">${intentLabel}</span>
+          <span>${timeAgo}</span>
         </div>
 
         <div class="inbox-preview">

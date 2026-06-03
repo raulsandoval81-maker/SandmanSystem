@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="/athletes/profile/profile.css"/>
   <link rel="stylesheet" href="/athletes/profile/mini-profile.css"/>
+  <link rel="stylesheet" href="/assets/css/belts.css"/>
   <link rel="icon" href="data:,">
 
   <style>
@@ -16,24 +17,7 @@
       color:var(--text, #fff);
     }
 
-    .rank-box .belt-track{
-      position:relative;
-      height:30px;
-      width:100%;
-      border-radius:999px;
-      background:rgba(255,255,255,.09);
-      overflow:hidden;
-      margin-top:8px;
-    }
 
-    .rank-box .belt-fill{
-      position:absolute;
-      inset:0 auto 0 0;
-      height:100%;
-      width:0;
-      border-radius:inherit;
-      z-index:1;
-    }
 
     .rank-stats{
       display:flex;
@@ -45,23 +29,22 @@
       color:var(--text, #fff);
     }
 
-    /* mini profile only */
-    .rank-box .belt-track .stripe-bars{
-      position:absolute;
-      inset:0;
-      display:flex;
-      justify-content:flex-start;
-      align-items:stretch;
-      gap:14px;
-      padding-left:18px;
-      pointer-events:none;
-      z-index:6;
-    }
+    .mini-belt-slot{
+  margin-top:8px;
+  width:100%;
+}
+/* FORCE belt to fill container */
+.mini-belt-slot .sm-belt {
+  width: 100%;
+  max-width: none;
+}
 
-    .rank-box .belt-track .stripe-bar{
-      width:14px;
-      height:100%;
-    }
+/* keep patch proportion correct */
+.mini-belt-slot .sm-belt-patch {
+  right: 0;           /* anchor to edge */
+  width: 28%;         /* adjust if needed (25–30%) */
+  min-width: 120px;   /* prevents collapse */
+}
   </style>
 </head>
 <header class="athlete-sub-header">
@@ -92,14 +75,7 @@
           <div class="avatar-badge">
             <div id="ath-avatar" class="avatar-box"></div>
 
-            <img
-              id="ath-badge"
-              class="tier-badge"
-              src="/assets/images/logos/Shadow-badge.png"
-              alt="Current Tier Badge"
-              loading="lazy"
-              decoding="async"
-            />
+             <div id="ath-badge-history" class="badge-history"></div>
           </div>
         </div>
 
@@ -111,7 +87,7 @@
 
       <div class="row">
         <div class="stat">
-          <div class="label">Team · Sandman Combat</div>
+          <div class="label">Team</div>
           <div class="value" id="out-team">—</div>
         </div>
 
@@ -124,9 +100,8 @@
           <div class="label">Color · Rank</div>
           <div class="value" id="out-rank">—</div>
 
-          <div id="rankBar" class="belt-track">
-            <div id="rankFill" class="belt-fill"></div>
-          </div>
+          <div id="rankBar" class="mini-belt-slot"></div>
+
 
           <div class="rank-stats">
             <span id="stripeText">Stripes: 0/4</span>

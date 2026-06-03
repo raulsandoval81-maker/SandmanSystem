@@ -12,390 +12,40 @@
   <link rel="stylesheet" href="assets/css/site.css" />
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
+<style>
+  .hero-box h2{
+    margin-bottom:.75rem;
+  }
 
-  <style>
-    *{box-sizing:border-box;}
+  .hero-sub{
+    margin:0;
+  }
 
-    .top-nav{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      padding:10px 12px 12px;
-      background:#081a34;
-      border-bottom:1px solid rgba(255,214,51,.14);
-    }
+  .grid-3{
+    display:grid;
+    gap:1rem;
+  }
 
-    .nav-top{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:8px;
-    }
+  .grid-3 .card{
+    border:1px solid rgba(255,255,255,.08);
+    transition:
+      border-color .18s ease,
+      box-shadow .18s ease,
+      transform .18s ease;
+  }
 
-    .nav-logo{
-      display:block;
-      justify-self:center;
-      text-align:center;
-      text-decoration:none;
-      color:#ffd633;
-      font-weight:900;
-      font-size:.98rem;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-      white-space:nowrap;
-    }
+  .grid-3 .card:hover{
+    border-color:#ff2a2a;
+    box-shadow:0 0 18px rgba(255,42,42,.28);
+    transform:translateY(-2px);
+  }
 
-    .lang-toggle{
-      justify-self:start;
-    }
-
-    .lang-toggle .lang-btn{
-      min-height:32px;
-      padding:.28rem .58rem;
-      font-size:.8rem;
-      border-radius:999px;
-    }
-
-    .theme-toggle{
-      justify-self:end;
-      width:38px;
-      height:38px;
-      min-width:38px;
-      min-height:38px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:999px;
-      padding:0;
-    }
-
-    .site-nav{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:8px;
-      width:100%;
-      background:transparent;
-      padding:0;
-      border:none;
-      box-shadow:none;
-    }
-
-    .site-nav a{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:38px;
-      padding:.38rem .35rem;
-      border-radius:999px;
-      background:rgba(0,0,0,.28);
-      color:#ffffff;
-      text-decoration:none;
-      font-weight:800;
-      font-size:.83rem;
-      line-height:1;
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow:none;
-      text-align:center;
-      transition:filter .15s ease, transform .15s ease, border-color .15s ease;
-    }
-
-    .site-nav a:hover{
-      filter:brightness(1.05);
-      transform:translateY(-1px);
-      border-color:#ffd633;
-    }
-
-    .site-nav a[aria-current="page"]{
-      background:#ffd633;
-      color:#111827;
-      border-color:#ffd633;
-    }
-
-    body.day-mode .top-nav{
-      background:#f3e7cf;
-      border-bottom:1px solid rgba(166,124,0,.14);
-    }
-
-    body.day-mode .nav-logo{
-      color:#a16207;
-    }
-
-    body.day-mode .site-nav a{
-      background:#ffffff;
-      color:#1c2430;
-      border:1px solid #d7c7a2;
-    }
-
-    body.day-mode .site-nav a[aria-current="page"]{
-      background:#ffd633;
-      color:#111827;
-      border-color:#e5b800;
-    }
-
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:2rem 1.25rem;
-    }
-
-    .section{
-      margin:2rem 0;
-    }
-
-    .section h2{
-      color:var(--brand);
-      margin-bottom:.6rem;
-      font-weight:900;
-    }
-
-    .lead{
-      color:var(--muted);
-      line-height:1.65;
-      margin:.6rem 0;
-    }
-
-    .hero-box{
-      background:linear-gradient(to bottom,#8b0000,#151515);
-      border-radius:20px;
-      padding:2rem 1.5rem;
-      border:1px solid rgba(255,255,255,.06);
-      box-shadow:0 0 22px rgba(0,0,0,.7);
-    }
-
-    body.day-mode .hero-box{
-      background:linear-gradient(to bottom,#c2410c,#f3e7cf);
-      border:1px solid rgba(166,124,0,.2);
-      box-shadow:0 10px 24px rgba(0,0,0,.10);
-    }
-
-    .hero-kicker{
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-size:.8rem;
-      color:var(--brand);
-      font-weight:900;
-    }
-
-    .hero-sub{
-      color:#e5e7eb;
-      line-height:1.6;
-      margin:.5rem 0 1rem;
-    }
-
-    body.day-mode .hero-sub{
-      color:#374151;
-    }
-
-    .diff-list{
-      list-style:none;
-      padding-left:0;
-      color:#e5e7eb;
-    }
-
-    .diff-list li{
-      position:relative;
-      padding-left:1.15rem;
-      margin-bottom:.45rem;
-    }
-
-    .diff-list li::before{
-      content:"★";
-      position:absolute;
-      left:0;
-      color:#ffd633;
-      font-size:.8rem;
-    }
-
+  @media (min-width:900px){
     .grid-3{
-      display:grid;
-      gap:1rem;
+      grid-template-columns:repeat(3,1fr);
     }
-
-    .card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:1rem;
-      box-shadow:var(--shadow);
-    }
-
-    .pill-tag{
-      display:inline-block;
-      font-size:.7rem;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-      padding:.25rem .6rem;
-      border-radius:999px;
-      background:var(--panel-2);
-      border:1px solid var(--line);
-      color:var(--muted);
-      font-weight:900;
-      margin-bottom:.5rem;
-    }
-
-    .actions{
-      display:flex;
-      gap:.75rem;
-      flex-wrap:wrap;
-      margin-top:1rem;
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:.7rem 1.2rem;
-      border-radius:999px;
-      font-weight:900;
-      text-decoration:none;
-      white-space:nowrap;
-    }
-
-    .btn-primary{
-      background:#e53935;
-      color:#ffffff;
-      border:1px solid #e53935;
-    }
-
-    .btn-secondary{
-      background:#0b0b0f;
-      color:#ffd633;
-      border:1px solid #ffd633;
-    }
-
-    body.day-mode .btn-primary{
-      background:#e53935;
-      color:#ffffff;
-      border:1px solid #e53935;
-    }
-
-    body.day-mode .btn-secondary{
-      background:#0b0b0f;
-      color:#ffd633;
-      border:1px solid #ffd633;
-    }
-
-    .hero-box h2{
-      color:#ffffff;
-      font-weight:900;
-    }
-
-    .hero-box .lead{
-      color:#e5e7eb;
-    }
-
-    .hero-box .hero-sub{
-      color:#d1d5db;
-    }
-
-    body.day-mode .hero-box h2{
-      color:#111827;
-    }
-
-    body.day-mode .hero-box .lead{
-      color:#1f2937;
-    }
-
-    body.day-mode .hero-box .hero-sub{
-      color:#374151;
-    }
-
-    .section h2{
-      color:#ffd633;
-    }
-
-    .section .lead{
-      color:#d1d5db;
-    }
-
-    body.day-mode .section h2{
-      color:#6b3f00;
-    }
-
-    body.day-mode .section .lead{
-      color:#374151;
-    }
-
-    .card h3{
-      color:#ffffff;
-      font-weight:900;
-    }
-
-    .card .lead{
-      color:#d1d5db;
-    }
-
-    body.day-mode .card h3{
-      color:#1f2937;
-    }
-
-    body.day-mode .card .lead{
-      color:#374151;
-    }
-
-    body.day-mode .panel{
-      background:#ffffff;
-      border:1px solid #d7c7a2;
-      box-shadow:0 8px 18px rgba(0,0,0,.08);
-    }
-
-    .hidden-lang{
-      display:none !important;
-    }
-
-    @media (min-width:700px){
-      .site-nav{
-        grid-template-columns:repeat(4, minmax(0, 1fr));
-      }
-
-      .site-nav a{
-        min-height:40px;
-        font-size:.86rem;
-      }
-
-      .nav-logo{
-        font-size:1.02rem;
-      }
-    }
-
-    @media (min-width:900px){
-      .grid-3{
-        grid-template-columns:repeat(2,1fr);
-      }
-    }
-
-    @media (max-width:640px){
-      .top-nav{
-        padding:10px;
-      }
-
-      .wrap{
-        padding:1.4rem .9rem;
-      }
-
-      .hero-box{
-        padding:1.4rem 1rem;
-      }
-    }
-    /* DAY MODE — fix washed-out list text on white cards/panels */
-body.day-mode .panel .diff-list,
-body.day-mode .panel .diff-list li{
-  color:#374151;
-}
-
-body.day-mode .panel .diff-list li::before{
-  color:#b7791f;
-}
-
-body.day-mode .panel .lead{
-  color:#374151;
-}
-
-body.day-mode .panel h2,
-body.day-mode .panel h3{
-  color:#1f2937;
-}
-  </style>
+  }
+</style>
 </head>
 
 <body>
@@ -513,6 +163,19 @@ body.day-mode .panel h3{
       <div class="panel">
         <div data-lang-block="en">
           <h2 class="section-title">Built for Different Stages of Growth</h2>
+          <div class="actions">
+
+  <a class="btn btn-secondary" href="/foundry8/index.html">
+    <span data-lang-block="en">Explore Foundry 8</span>
+    <span data-lang-block="es" class="hidden-lang">Explorar Foundry 8</span>
+  </a>
+
+  <a class="btn btn-secondary" href="/foundry4/index.html">
+    <span data-lang-block="en">Explore Foundry 4</span>
+    <span data-lang-block="es" class="hidden-lang">Explorar Foundry 4</span>
+  </a>
+
+</div>
 
           <p class="lead">
             Athletes develop at different stages. Sandman Combat keeps the same standard of discipline and effort while adjusting structure to match the athlete.
@@ -563,6 +226,38 @@ body.day-mode .panel h3{
               </p>
             </div>
           </article>
+
+          <article class="card">
+
+
+  <div data-lang-block="en">
+    <div class="pill-tag">Adult</div>
+
+    <h3>Pressure, Composure, and Mastery</h3>
+
+    <p class="lead">
+      Adult athletes train with purpose. Whether the path is MMA or Boxing,
+      the standard is discipline, conditioning, composure, and accountability.
+      The goal is not ego or shortcuts —
+      it is earned confidence through consistent work under pressure.
+    </p>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <div class="pill-tag">Adulto</div>
+
+    <h3>Presión, compostura y maestría</h3>
+
+    <p class="lead">
+      Los atletas adultos entrenan con propósito. Ya sea en MMA o Boxeo,
+      el estándar es disciplina, acondicionamiento, compostura y responsabilidad.
+      La meta no es el ego ni los atajos —
+      es confianza ganada mediante trabajo constante bajo presión.
+    </p>
+  </div>
+
+</article>
+
         </div>
       </div>
     </section>
@@ -595,6 +290,7 @@ body.day-mode .panel h3{
         </div>
       </div>
     </section>
+
 
   </main>
 </body>

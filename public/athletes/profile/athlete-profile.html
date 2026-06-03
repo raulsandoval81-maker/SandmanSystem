@@ -5,6 +5,7 @@
   <title>Athlete · Profile</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <link rel="stylesheet" href="/athletes/profile/profile.css"/>
+  <link rel="stylesheet" href="/assets/css/belts.css"/>
   <link rel="icon" href="data:,">
 </head>
 <header class="athlete-sub-header">
@@ -42,14 +43,7 @@
         <div class="avatar-badge">
           <div id="ath-avatar" class="avatar-box"></div>
 
-          <img
-            id="ath-badge"
-            class="tier-badge"
-            src="/assets/images/logos/Apprentice-badge.png"
-            alt="Current Tier Badge"
-            loading="lazy"
-            decoding="async"
-          />
+ <div id="ath-badge-history" class="badge-history"></div>
         </div>
       </div>
 
@@ -67,7 +61,7 @@
 <!-- Identity Details -->
 <div class="row">
   <div class="stat">
-    <div class="label">Team · Sandman Combat</div>
+    <div class="label">Team</div>
     <div class="value" id="out-team">—</div>
   </div>
 
@@ -77,7 +71,7 @@
   </div>
 
   <div class="stat">
-    <div class="label">Track-Lane-####-Virtue</div>
+    <div class="label">Dog Tag #</div>
     <div class="value" id="out-uid">—</div>
   </div>
 </div>
@@ -88,14 +82,7 @@
     <div class="label">Color · Rank</div>
     <div class="value" id="out-rank">—</div>
 
-    <div id="rankBar" class="belt-track"
-         style="position:relative;height:30px;width:100%;
-                border-radius:999px;background:rgba(255,255,255,.09);
-                overflow:hidden;margin-top:8px;">
-      <div id="rankFill" class="belt-fill"
-           style="height:100%;width:0;border-radius:inherit;"></div>
-    </div>
-
+<div id="rankBar" class="mini-belt-slot"></div>
     <div class="rank-stats">
       <span id="stripeText"></span>
       <span id="xpText"></span>

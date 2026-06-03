@@ -15,6 +15,10 @@ const db = (0, firestore_1.getFirestore)();
 if (process.env.FIRESTORE_EMULATOR_HOST) {
     console.log("🔥 Using Firestore Emulator:", process.env.FIRESTORE_EMULATOR_HOST);
 }
+// 👇 put it HERE (with helpers, not inside a function)
+function getMonthKey(date) {
+    return date.toISOString().slice(0, 7); // "2026-05"
+}
 /**
  * Minimal XP rules mirror (server-side).
  * Keep this in functions so the client can't bypass caps.
@@ -883,6 +887,48 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             beforeXp: beforeCombatTotal,
             afterXp: afterCombatTotal,
             month: mKey,
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+        });
+        // 🔥 LEADERBOARD WRITE
+        const leaderboardTrack = base === "F8" ? "foundry8" : "foundry4";
+        const leaderboardEntryRef = db
+            .collection("leaderboards")
+            .doc(leaderboardTrack)
+            .collection("months")
+            .doc(mKey)
+            .collection("entries")
+            .doc();
+        tx.set(leaderboardEntryRef, {
+            uid,
+            athleteName: athlete.fullName ||
+                athlete.publicName ||
+                athlete.name ||
+                uid,
+            xp: delta,
+            kind,
+            base,
+            tier,
+            month: mKey,
+            createdAt: firestore_1.FieldValue.serverTimestamp(),
+        });
+        // 🔥 LIFETIME LEADERBOARD WRITE (ADD THIS UNDER)
+        const lifetimeEntryRef = db
+            .collection("leaderboards")
+            .doc(leaderboardTrack)
+            .collection("lifetime")
+            .doc("summary")
+            .collection("entries")
+            .doc();
+        tx.set(lifetimeEntryRef, {
+            uid,
+            athleteName: athlete.fullName ||
+                athlete.publicName ||
+                athlete.name ||
+                uid,
+            xp: delta,
+            kind,
+            base,
+            tier,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
         });
         return {

@@ -16,13 +16,6 @@ import {
   patchDevLinks,
 } from "/assets/js/dev-mode.js";
 
-/* =========================
-   DEV MODE BOOT
-========================= */
-paintDevUi();
-patchDevLinks();
-bindDevToggle({ onChange: () => location.reload() });
-await ensureSignedIn();
 
 /* =========================
    DOM
@@ -105,7 +98,7 @@ function render(list) {
     const uid = a.uid || a.id;
     const name = a.publicName || a.fullName || uid;
     const xp = a.xp ?? 0;
-    const cap = a.xpCap ?? 1200;
+    const cap = xpCapForAthlete(a);
 
     return `
       <tr>

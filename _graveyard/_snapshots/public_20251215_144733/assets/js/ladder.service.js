@@ -20,7 +20,7 @@ export const LADDER_F4 = [
   { key: "R0", name: "Apprentice", cap: 1200, stripe: 300, stripes: 4 },
   { key: "R1", name: "Warrior",    cap: 1400, stripe: 350, stripes: 4 },
   { key: "R2", name: "Champion",   cap: 1600, stripe: 400, stripes: 4 },
-  { key: "R3", name: "Veteran",    cap: 2200, stripe: 550, stripes: 4 },
+  { key: "R3", name: ",    cap: 2200, stripe: 550, stripes: 4 },
   { key: "R4", name: "Legend",     cap: 2400, stripe: 600, stripes: 4 },    // final
 ];
 

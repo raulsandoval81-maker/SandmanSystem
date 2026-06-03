@@ -381,7 +381,7 @@
       <div class="band-kicker">SANDMAN COMBAT™</div>
       <div class="band-line"></div>
       <div class="band-sub">
-        Coach view for monthly leaderboard review, athlete totals, and log detail.
+        Coach view for monthly/lifetime leaderboard review, athlete totals, and log detail.
       </div>
     </section>
 
@@ -395,6 +395,14 @@
       </div>
 
       <div class="filter-group">
+        <label for="periodMode">Scope · Period</label>
+        <select id="periodMode">
+          <option value="month">Month</option>
+          <option value="lifetime">Lifetime</option>
+        </select>
+      </div>
+
+      <div class="filter-group" id="monthGroup">
         <label for="month">Scope · Month</label>
         <input id="month" type="month"/>
       </div>
@@ -443,7 +451,7 @@
         <div class="stat-value" id="statEntries">0</div>
       </div>
       <div class="stat">
-        <div class="stat-label">Athletes This Month</div>
+        <div class="stat-label">Athletes Loaded</div>
         <div class="stat-value" id="statAthletes">0</div>
       </div>
       <div class="stat">
@@ -464,7 +472,7 @@
 
       <section class="panel">
         <div class="panel-title">
-          <span>Top this month</span>
+          <span id="panelTitle">Top this month</span>
           <span class="panel-sub">Click athlete to filter logs</span>
         </div>
         <table>

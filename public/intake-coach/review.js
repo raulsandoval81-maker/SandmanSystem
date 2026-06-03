@@ -2,12 +2,14 @@
 // Coach Intake — Review & Mint (TOKEN FLOW)
 // Sandman Systems™
 //
-// Final polish:
-// - Aligned to current review.html
-// - Experience Credit preview wired in
-// - Sends experience.years to approveAndActivate
-// - Keeps lane locked to Combat (CB) for current flow
-// - Optional coach adjustment fields included in payload
+// Updated:
+// - Keeps existing F8 / F4 mint flow intact
+// - Adds framework/programTrack/art placement bridge
+// - Adult F4 + age 18+ routes to Quest2Mastery / MMA
+// - Youth F8 routes to Zero2Hero / Wrestling
+// - Teen F4 routes to Path2Legend / Wrestling default
+// - Experience remains intake validation only
+// - Does NOT rewrite XP engine
 // ======================================================
 
 import {
@@ -23,6 +25,9 @@ ensureSignedIn().catch(console.error);
 
 const $ = (id) => document.getElementById(id);
 
+const DEFAULT_LOCATION_ID = "lompoc";
+const DEFAULT_COACH_IDS = ["coach_sandoval"];
+
 // ------------------------------------------------------
 // URL → tokenId (REVIEW PAGE)
 // ------------------------------------------------------
@@ -34,12 +39,8 @@ if (!tokenId) {
   throw new Error("Missing ?token=");
 }
 
-// Firestore doc: intakes/{tokenId}
 const intakeRef = doc(db, "intakes", tokenId);
 
-// ------------------------------------------------------
-// Intake cache
-// ------------------------------------------------------
 let INTAKE_CACHE = null;
 
 // ------------------------------------------------------
@@ -80,7 +81,6 @@ function setApprovedUI(on, uid = "") {
   if (approveBtn) approveBtn.disabled = on;
 }
 
-// Boot state
 setApprovedUI(false);
 setApproveEnabled(false);
 if ($("approve-status")) $("approve-status").textContent = "";
@@ -107,6 +107,7 @@ function slugTeamId(s) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 48);
+
   return out || null;
 }
 
@@ -114,6 +115,112 @@ function isF8Uid(uid) {
   return String(uid || "").startsWith("F8_");
 }
 
+function getDobFromIntake(s = {}) {
+  return s.dob || s.athlete?.dob || "";
+}
+
+function getAgeFromDob(dob) {
+  if (!dob) return null;
+
+  const birth = new Date(dob);
+  if (Number.isNaN(birth.getTime())) return null;
+
+  const today = new Date();
+  let age = today.getFullYear() - birth.getFullYear();
+
+  const monthDiff = today.getMonth() - birth.getMonth();
+  const dayDiff = today.getDate() - birth.getDate();
+
+  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+    age -= 1;
+  }
+
+  return age;
+}
+
+function getAgeFromIntake(s = {}) {
+  const directAge =
+    s.age ??
+    s.athlete?.age ??
+    s.profile?.age ??
+    null;
+
+  if (directAge !== null && directAge !== undefined && directAge !== "") {
+    const n = Number(directAge);
+    if (Number.isFinite(n)) return n;
+  }
+
+  return getAgeFromDob(getDobFromIntake(s));
+}
+function buildPlacementFromTrack(track, s = {}) {
+  const t = String(track || "").trim().toUpperCase();
+  const age = getAgeFromIntake(s);
+
+  const selectedProgramTrack =
+    $("c-program-track")?.value || "";
+
+  // --------------------------------------------------
+  // F8 → Youth Zero2Hero
+  // --------------------------------------------------
+  if (t === "F8") {
+    return {
+      framework: "foundry8",
+      programTrack: "zero2hero",
+      art: "wrestling",
+      ladderKey: "F8",
+      rosterIds: ["youth-wrestling"],
+      locationId: DEFAULT_LOCATION_ID,
+      coachIds: DEFAULT_COACH_IDS,
+      trackCode: "foundry8-combat"
+    };
+  }
+
+  // --------------------------------------------------
+  // Adult Boxing
+  // --------------------------------------------------
+  if (selectedProgramTrack === "road2glory") {
+    return {
+      framework: "foundry4",
+      programTrack: "road2glory",
+      art: "boxing",
+      ladderKey: "R2G",
+      rosterIds: ["adult-boxing"],
+      locationId: DEFAULT_LOCATION_ID,
+      coachIds: DEFAULT_COACH_IDS,
+      trackCode: "adult-boxing"
+    };
+  }
+
+  // --------------------------------------------------
+  // Adult MMA / Quest2Mastery
+  // --------------------------------------------------
+  if (age !== null && age >= 18) {
+    return {
+      framework: "foundry4",
+      programTrack: "quest2mastery",
+      art: "mma",
+      ladderKey: "Q2M",
+      rosterIds: ["adult-mma"],
+      locationId: DEFAULT_LOCATION_ID,
+      coachIds: DEFAULT_COACH_IDS,
+      trackCode: "quest2mastery-mma"
+    };
+  }
+
+  // --------------------------------------------------
+  // Teen Path2Legend
+  // --------------------------------------------------
+  return {
+    framework: "foundry4",
+    programTrack: "path2legend",
+    art: "wrestling",
+    ladderKey: "F4",
+    rosterIds: ["teen-wrestling"],
+    locationId: DEFAULT_LOCATION_ID,
+    coachIds: DEFAULT_COACH_IDS,
+    trackCode: "foundry4-combat"
+  };
+}
 // ------------------------------------------------------
 // Experience Credit preview
 // ------------------------------------------------------
@@ -254,6 +361,7 @@ $("mint-virtue")?.addEventListener("change", updateMintTagPreview);
 // ------------------------------------------------------
 // Paint Mint UI
 // ------------------------------------------------------
+
 function paintMintUI({
   track = "",
   tier = "",
@@ -261,8 +369,14 @@ function paintMintUI({
   uid = "",
   padlock = "—"
 }) {
+
   const trackDisplay = track || "—";
-  const tierRankText = (tier && rank) ? `${tier}_${rank}` : (tier || rank || "—");
+
+  const tierRankText =
+    (tier && rank)
+      ? `${tier}_${rank}`
+      : (tier || rank || "—");
+
   const lock = uid ? padlock : "—";
 
   if ($("m-track")) $("m-track").textContent = trackDisplay;
@@ -270,8 +384,7 @@ function paintMintUI({
   if ($("m-padlock")) $("m-padlock").textContent = lock;
   if ($("c-uid")) $("c-uid").value = uid || "";
 }
-
-// ------------------------------------------------------
+    // ------------------------------------------------------
 // Load submission
 // ------------------------------------------------------
 async function loadSubmission() {
@@ -294,13 +407,32 @@ async function loadSubmission() {
 
     const track = String(s.forTrack || "").trim().toUpperCase() || (isF8Uid(uid) ? "F8" : "F4");
 
-    paintMintUI({
-      track,
-      tier: "T0",
-      rank: isF8Uid(uid) ? "Shadow" : "Apprentice",
-      uid,
-      padlock: "—"
-    });
+const programTrack =
+  String(s.programTrack || "").toLowerCase();
+
+let tier = "T0";
+let rank = "Apprentice";
+
+if (isF8Uid(uid)) {
+  tier = "T0";
+  rank = "Shadow";
+}
+
+if (
+  programTrack === "quest2mastery" ||
+  programTrack === "road2glory"
+) {
+  tier = "T1";
+  rank = "Apprentice";
+}
+
+paintMintUI({
+  track,
+  tier,
+  rank,
+  uid,
+  padlock: "—"
+});
 
     setPadlockStatus("READY");
 
@@ -362,47 +494,168 @@ async function loadSubmission() {
   if ($("open-link")) $("open-link").disabled = true;
 
   updateExperiencePreview();
+  applyAgeGuardrails();
   console.log("[coach-review] loaded intake", { tokenId, status: s.status });
 }
 
 loadSubmission().catch(console.error);
 
+function applyAgeGuardrails() {
+  const s = INTAKE_CACHE || {};
+  const age = getAgeFromIntake(s);
+
+  const z2h = $("btn-mint-z2h");
+  const p2l = $("btn-mint-p2l");
+  const q2m = $("btn-mint-q2m");
+  const abox = $("btn-mint-road2glory");
+
+[z2h, p2l, q2m, abox].forEach((btn) => {
+  if (!btn) return;
+  btn.hidden = true;
+  btn.disabled = true;
+});
+
+if (age === null) {
+  [z2h, p2l, q2m, abox].forEach((btn) => {
+    if (!btn) return;
+    btn.hidden = false;
+    btn.disabled = false;
+  });
+  return;
+}
+  if (age < 13) {
+    if (z2h) { z2h.hidden = false; z2h.disabled = false; }
+    return;
+  }
+
+  if (age === 13) {
+    if (z2h) { z2h.hidden = false; z2h.disabled = false; }
+    if (p2l) { p2l.hidden = false; p2l.disabled = false; }
+    return;
+  }
+
+  if (age > 13 && age < 18) {
+    if (p2l) { p2l.hidden = false; p2l.disabled = false; }
+    return;
+  }
+
+if (age === 18) {
+  if (p2l) { p2l.hidden = false; p2l.disabled = false; }
+
+  if (q2m) {
+    q2m.hidden = false;
+    q2m.disabled = false;
+  }
+
+  if (abox) {
+    abox.hidden = false;
+    abox.disabled = false;
+  }
+
+  return;
+}
+
+if (q2m) {
+  q2m.hidden = false;
+  q2m.disabled = false;
+}
+
+if (abox) {
+  abox.hidden = false;
+  abox.disabled = false;
+}
+}
 // ------------------------------------------------------
 // Mint F8 / F4 (preview only)
 // ------------------------------------------------------
-function mintTrack(track) {
+function mintTrack(track, programTrack = "") {
   const t = String(track || "").toUpperCase();
-  const tier = "T0";
-  const rank = t === "F8" ? "Shadow" : "Apprentice";
+
+  let tier = "T0";
+  let rank = "Apprentice";
+
+  if (programTrack === "zero2hero") {
+    tier = "T0";
+    rank = "Shadow";
+  }
+
+  if (programTrack === "path2legend") {
+    tier = "T0";
+    rank = "Apprentice";
+  }
+
+if (programTrack === "quest2mastery") {
+  tier = "T1";
+  rank = "Apprentice";
+}
+
+if (programTrack === "road2glory") {
+  tier = "T1";
+  rank = "Apprentice";
+}
 
   if ($("c-track")) $("c-track").value = t;
   if ($("c-tier")) $("c-tier").value = tier;
   if ($("c-rank")) $("c-rank").value = rank;
+  if ($("c-program-track")) $("c-program-track").value = programTrack;
   if ($("c-uid")) $("c-uid").value = "";
 
   setVirtuesForTrack(t);
   updateMintTagPreview();
 
   paintMintUI({
-    track: t,
+    track: programTrack || t,
     tier,
     rank,
     uid: "",
     padlock: ""
   });
-  setPadlockStatus("—");
 
+  setPadlockStatus("—");
   setApprovedUI(false);
   setApproveEnabled(true);
 
   if ($("approve-status")) {
-    $("approve-status").textContent = "Minted (server UID pending). Verify details, then Approve.";
+    $("approve-status").textContent = "Minted selection ready. Verify details, then Approve.";
   }
 }
 
-$("btn-mint-f8")?.addEventListener("click", () => mintTrack("F8"));
-$("btn-mint-f4")?.addEventListener("click", () => mintTrack("F4"));
+function setMintButtonState(activeId) {
+  [
+    "btn-mint-z2h",
+    "btn-mint-p2l",
+    "btn-mint-q2m",
+    "btn-mint-road2glory"
+  ].forEach((id) => {
 
+    const btn = $(id);
+    if (!btn) return;
+
+    btn.classList.toggle(
+      "is-selected",
+      id === activeId
+    );
+  });
+}
+
+$("btn-mint-z2h")?.addEventListener("click", () => {
+  mintTrack("F8", "zero2hero");
+  setMintButtonState("btn-mint-z2h");
+});
+
+$("btn-mint-p2l")?.addEventListener("click", () => {
+  mintTrack("F4", "path2legend");
+  setMintButtonState("btn-mint-p2l");
+});
+
+$("btn-mint-q2m")?.addEventListener("click", () => {
+  mintTrack("F4", "quest2mastery");
+  setMintButtonState("btn-mint-q2m");
+});
+$("btn-mint-road2glory")?.addEventListener("click", () => {
+  mintTrack("F4", "road2glory");
+  setMintButtonState("btn-mint-road2glory");
+});
 // ------------------------------------------------------
 // Approve (backend source of truth)
 // ------------------------------------------------------
@@ -459,18 +712,21 @@ async function approveAthlete() {
     return alert("Pick a Mint Virtue.");
   }
 
-  const trackCode = track === "F4" ? "foundry4-combat" : "foundry8-combat";
-
   setApproveEnabled(false);
   if ($("approve-status")) $("approve-status").textContent = "Approving…";
 
   try {
     const approveAndActivate = httpsCallable(functions, "approveAndActivate");
 
+    const s = INTAKE_CACHE || {};
+    const placement = buildPlacementFromTrack(track, s);
+
+    // Keep old backend compatibility.
     const foundry = track.toLowerCase();
+    const legacyTrackCode = track === "F4" ? "foundry4-combat" : "foundry8-combat";
+
     const publicName = `${initial}. ${last}`.trim();
 
-    const s = INTAKE_CACHE || {};
     const parentEmail = String(s.parent?.email || "").trim().toLowerCase();
     const parentPhoneDigits = String(s.parent?.phoneDigits || "").trim();
     const parentName = String(s.parent?.name || s.waiver?.signatureName || "").trim();
@@ -483,10 +739,34 @@ async function approveAthlete() {
 
     const payload = {
       intakeId: tokenId,
+
+      // Legacy fields — keep these so existing backend does not break.
       foundry,
+      trackCode: legacyTrackCode,
+
+      // New placement bridge.
+      framework: placement.framework,
+      programTrack: placement.programTrack,
+      art: placement.art,
+      ladderKey: placement.ladderKey,
+      rosterIds: placement.rosterIds,
+      coachIds: placement.coachIds,
+      locationId: placement.locationId,
+
+      placement: {
+        framework: placement.framework,
+        programTrack: placement.programTrack,
+        art: placement.art,
+        ladderKey: placement.ladderKey,
+        rosterIds: placement.rosterIds,
+        coachIds: placement.coachIds,
+        locationId: placement.locationId,
+        trackCode: placement.trackCode,
+        source: "coach_intake_review"
+      },
+
       virtueName: virtue,
       virtueCode: getVirtueCode(virtue),
-      trackCode,
 
       fullName: ($("s-firstlast")?.textContent || "").trim(),
       publicName,
@@ -508,8 +788,23 @@ async function approveAthlete() {
         lane: "CB"
       },
 
+      // Prior experience is allowed only for intake placement / validation.
+      // It is NOT cross-art XP transfer.
       experience: {
-        years
+        years,
+        placementOnly: true,
+        grantsXP: false,
+        transferXP: false,
+        source: "intake_validation"
+      },
+
+      priorExperienceValidation: {
+        allowed: true,
+        years,
+        placementOnly: true,
+        grantsXP: false,
+        transferXP: false,
+        note: "Prior experience may affect intake placement only. XP/progression does not transfer between art journeys."
       }
     };
 
@@ -532,17 +827,34 @@ async function approveAthlete() {
     if ($("c-uid")) $("c-uid").value = uid;
     if ($("approve-status")) $("approve-status").textContent = "✓ Approved!";
 
-    const rank = isF8Uid(uid) ? "Shadow" : "Apprentice";
+const programTrack =
+  $("c-program-track")?.value || "";
 
-paintMintUI({
-  track,
-  tier: "T0",
-  rank,
-  uid,
-  padlock: "READY"
-});
+let tier = "T0";
+let rank = "Apprentice";
 
-setPadlockStatus("READY");
+if (isF8Uid(uid)) {
+  tier = "T0";
+  rank = "Shadow";
+}
+
+if (
+  programTrack === "quest2mastery" ||
+  programTrack === "road2glory"
+) {
+  tier = "T1";
+  rank = "Apprentice";
+}
+
+    paintMintUI({
+      track,
+      tier,
+      rank,
+      uid,
+      padlock: "READY"
+    });
+
+    setPadlockStatus("READY");
 
     if ($("mint-tag-output")) {
       $("mint-tag-output").value =
@@ -554,9 +866,11 @@ setPadlockStatus("READY");
 
   } catch (err) {
     console.error("[approveAthlete] approveAndActivate failed:", err);
+
     if ($("approve-status")) {
       $("approve-status").textContent = "⚠ Approve failed. Check console.";
     }
+
     setApproveEnabled(true);
     setApprovedUI(false);
     throw err;
@@ -573,13 +887,12 @@ if (approveBtn) {
 // ------------------------------------------------------
 function openSuccessModal(uid) {
   const onboarding = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
-const parentLink = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
-  // UID
+  const parentLink = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
+
   if ($("approved-athlete-uid")) {
     $("approved-athlete-uid").value = uid;
   }
 
-  // ONBOARDING
   if ($("onboarding-link")) {
     $("onboarding-link").value = onboarding;
   }
@@ -594,7 +907,6 @@ const parentLink = `${location.origin}/parent/index.html?uid=${encodeURIComponen
     $("open-link").onclick = () => window.open(onboarding, "_blank", "noopener");
   }
 
-  // 🔥 PARENT LINK (NEW)
   if ($("parent-my-athlete-link")) {
     $("parent-my-athlete-link").value = parentLink;
   }
@@ -609,6 +921,7 @@ const parentLink = `${location.origin}/parent/index.html?uid=${encodeURIComponen
 
   showApprovalModal();
 }
+
 // ------------------------------------------------------
 // Back button
 // ------------------------------------------------------

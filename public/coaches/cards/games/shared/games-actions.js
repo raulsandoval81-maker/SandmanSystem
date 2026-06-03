@@ -1,6 +1,11 @@
 (function () {
   const key = "sandman_clipboard_v1";
 
+  const btn = document.getElementById("addGameBtn");
+  const statusEl = document.getElementById("statusMessage");
+
+  if (!btn) return;
+
   function getClipboard() {
     try {
       const parsed = JSON.parse(localStorage.getItem(key) || "[]");
@@ -14,93 +19,83 @@
     localStorage.setItem(key, JSON.stringify(data));
   }
 
-  function getSlotLimit(card) {
-    const category = (card.category || "").toLowerCase().trim();
-    const lane = (card.lane || "").toLowerCase().trim();
+  function showStatus(message) {
+    if (!statusEl) return;
 
-    if (category === "mat-talk" || lane === "onmat" || lane === "offmat") {
-      return 1;
-    }
+    statusEl.textContent = message;
 
-    return 3;
+    clearTimeout(showStatus._timer);
+
+    showStatus._timer = setTimeout(() => {
+      statusEl.textContent = "";
+    }, 1800);
   }
 
-  function countInLane(data, lane) {
-    const cleanLane = String(lane || "").toLowerCase().trim();
-
-    return data.filter(card =>
-      String(card.lane || "").toLowerCase().trim() === cleanLane
-    ).length;
-  }
-
-  function buildCard(btn) {
+  function buildCard() {
     return {
-      id: btn.dataset.cardId,
-      title: btn.dataset.title,
-      category: btn.dataset.category || "game",
-      lane: "games",
-      assignTo: "games",
-      minutes: 0,
-      timer: null,
-      timerMode: null,
-      href: window.location.pathname
+      id: document.body.dataset.cardId || window.location.pathname,
+      title: document.body.dataset.title || document.title,
+      category: document.body.dataset.category || "game",
+      lane: document.body.dataset.assignTo || "games",
+      assignTo: document.body.dataset.assignTo || "games",
+      minutes: Number(document.body.dataset.minutes || 5),
+      timer: document.body.dataset.timer || "game",
+      timerMode: document.body.dataset.timerMode || "group",
+      href: window.location.pathname,
+      addedAt: Date.now()
     };
   }
 
-  function exists(data, id, lane) {
-    const cleanLane = String(lane || "").toLowerCase().trim();
-
+  function exists(data, id) {
     return data.some(card =>
-      String(card.id || "") === String(id || "") &&
-      String(card.lane || "").toLowerCase().trim() === cleanLane
+      String(card.id || "") === String(id || "")
     );
   }
 
-  function setAddedState(btn, message = "Added") {
-    btn.textContent = message;
-    btn.disabled = true;
+  function setAddedState() {
+    btn.textContent = "Added";
+    btn.classList.remove("primary");
+    btn.classList.add("added");
     btn.dataset.added = "true";
   }
 
-  function setDefaultState(btn) {
-    btn.textContent = btn.dataset.originalText || "Add to Games";
-    btn.disabled = false;
-    btn.dataset.added = "false";
+  function countGames(data) {
+    return data.filter(card =>
+      String(card.category || "").toLowerCase() === "game" ||
+      String(card.lane || "").toLowerCase() === "games"
+    ).length;
   }
 
-  document.querySelectorAll("[data-card-id]").forEach(btn => {
-    btn.dataset.originalText = btn.dataset.originalText || btn.textContent;
+  function updateInitialState() {
+    const data = getClipboard();
+    const card = buildCard();
 
-    const current = getClipboard();
-    const id = btn.dataset.cardId;
+    if (exists(data, card.id)) {
+      setAddedState();
+    }
+  }
 
-    if (exists(current, id, "games")) {
-      setAddedState(btn, "Already Added");
+  btn.addEventListener("click", () => {
+    const data = getClipboard();
+    const card = buildCard();
+
+    if (exists(data, card.id)) {
+      setAddedState();
+      showStatus(`${card.title} is already in clipboard.`);
       return;
     }
 
-    setDefaultState(btn);
+    if (countGames(data) >= 3) {
+      showStatus("Max 3 games per section.");
+      return;
+    }
 
-    btn.addEventListener("click", () => {
-      const data = getClipboard();
-      const card = buildCard(btn);
+    data.push(card);
+    saveClipboard(data);
 
-      if (exists(data, card.id, card.lane)) {
-        setAddedState(btn, "Already Added");
-        return;
-      }
-
-      const limit = getSlotLimit(card);
-      const currentCount = countInLane(data, card.lane);
-
-      if (currentCount >= limit) {
-        alert("Max 3 games per section");
-        return;
-      }
-
-      data.push(card);
-      saveClipboard(data);
-      setAddedState(btn, "Added");
-    });
+    setAddedState();
+    showStatus(`${card.title} added to clipboard.`);
   });
+
+  updateInitialState();
 })();

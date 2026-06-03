@@ -30,51 +30,47 @@
 <main class="wrap">
   <header class="hero">
     <h1>Testing</h1>
-    <p>Run tests, assign panels, track results, and move athletes toward ceremony.</p>
+    <p>Build panels, collect coach scores, review results, and finalize athlete testing.</p>
 
     <nav class="topnav">
       <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
       <a class="pill" href="/coaches/index.html">Daily Tools</a>
-      <a class="pill" href="/coaches/system/index.html">System</a>
+      <a class="pill" href="/coaches/command-center/index.html">Command Center</a>
     </nav>
   </header>
 
   <section class="grid">
     <a class="card" href="/coaches/testing/testing-command-center.html">
       <h2>Testing Command Center</h2>
-      <p>Assign athlete, build panel, generate links, and launch test.</p>
+      <p>Assign athlete, build the 3-coach panel, generate links, and launch test pages.</p>
     </a>
 
     <a class="card" href="/coaches/testing/results-live.html">
-      <h2>Live Results</h2>
-      <p>View panel scoring live during testing.</p>
+      <h2>Panel Results</h2>
+      <p>Review submitted coach scores, check panel completion, average results, and finalize decision.</p>
     </a>
 
-    <a class="card" href="/coaches/testing/results.html">
+    <a class="card" href="/coaches/testing/results-history.html">
       <h2>Test History</h2>
-      <p>Review completed tests and athlete performance.</p>
+      <p>Review completed test sessions by athlete UID and open full result breakdowns.</p>
     </a>
 
-    <a class="card" href="/coaches/testing/ceremonies.html">
-      <h2>Ceremonies Queue</h2>
-      <p>Move passed athletes toward promotion and ceremony.</p>
+    <a class="card" href="/coaches/testing/login.html">
+      <h2>Coach Testing Login</h2>
+      <p>Limited coach login for submitting test scores only. No promotion or admin access.</p>
     </a>
 
     <a class="card" href="/coaches/testing/test1.html">
       <h2>Base Test Page</h2>
-      <p>Primary test execution interface.</p>
+      <p>Primary scoring page. Use generated panel links instead of opening this manually.</p>
     </a>
 
     <a class="card" href="/coaches/testing/coach-sheet.html">
       <h2>Coach Sheet</h2>
-      <p>Coach reference and scoring sheet.</p>
+      <p>Coach reference and scoring language for the base test.</p>
     </a>
   </section>
 </main>
 
-<script type="module">
-  import { requireCoach } from "/assets/js/coach-guard.js";
-  await requireCoach();
-</script>
 </body>
 </html>

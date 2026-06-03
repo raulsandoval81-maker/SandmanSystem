@@ -2,6 +2,7 @@
 // Admin-only XP adjustment engine
 
 import { db } from "/assets/js/firebase-init.js";
+
 import {
   doc,
   getDoc,
@@ -11,17 +12,31 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-export async function applyXpAdjustment({ uid, amount, kind, note }) {
-  const athleteIdClean = String(uid || "").trim().toUpperCase();
+export async function applyXpAdjustment({
+  uid,
+  amount,
+  kind,
+  note
+}) {
+
+  const athleteIdClean = String(uid || "")
+    .trim()
+    .toUpperCase();
+
   const xpAmount = Number(amount || 0);
-  const xpKind = String(kind || "ADMIN").trim().toUpperCase();
-  const xpNote = String(note || "").trim();
+
+  const xpKind = String(kind || "OTHER")
+    .trim()
+    .toUpperCase();
+
+  const xpNote = String(note || "")
+    .trim();
 
   if (!athleteIdClean) {
     throw new Error("Missing athlete ID");
   }
 
-  if (!Number.isFinite(xpAmount) || xpAmount <= 0) {
+  if (!Number.isFinite(xpAmount) || xpAmount === 0) {
     throw new Error("Invalid XP amount");
   }
 
@@ -33,13 +48,32 @@ export async function applyXpAdjustment({ uid, amount, kind, note }) {
   }
 
   const athlete = athleteSnap.data() || {};
+
   const beforeXp = Number(athlete.xp || 0);
-  const afterXp = beforeXp + xpAmount;
+
+  const afterXp = Math.max(
+    0,
+    beforeXp + xpAmount
+  );
+
+  console.log("[XP ADJUST]", {
+    athleteIdClean,
+    beforeXp,
+    xpAmount,
+    afterXp,
+    xpKind
+  });
+
+  console.log("[XP ADJUST] BEFORE athlete update");
 
   await updateDoc(athleteRef, {
     xp: afterXp,
     updatedAt: serverTimestamp()
   });
+
+  console.log("[XP ADJUST] AFTER athlete update");
+
+  console.log("[XP ADJUST] BEFORE xpLogs create");
 
   await addDoc(collection(db, "xpLogs"), {
     uid: athleteIdClean,
@@ -48,7 +82,7 @@ export async function applyXpAdjustment({ uid, amount, kind, note }) {
     afterXp,
     kind: xpKind,
     track: athlete.track || "",
-    lane: athlete.lane || "combat",
+    lane: "combat",
     xpCap: Number(athlete.xpCap || 0),
     coachUid: athlete.coachUid || "ADMIN",
     meta: {
@@ -57,6 +91,8 @@ export async function applyXpAdjustment({ uid, amount, kind, note }) {
     },
     createdAt: serverTimestamp()
   });
+
+  console.log("[XP ADJUST] AFTER xpLogs create");
 
   return {
     uid: athleteIdClean,

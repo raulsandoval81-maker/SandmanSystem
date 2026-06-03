@@ -1,54 +1,382 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Foundry4 Hub</title>
-  <link rel="stylesheet" href="../assets/css/site.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Foundry 4 | Sandman System</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../public.css" />
+
+  <script src="../assets/js/public-shell.js" defer></script>
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #1f2937,
+        #111827
+      );
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    padding:48px 30px;
+
+    margin-bottom:28px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+  }
+
+  body.day-mode .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff,
+        #f3e7cf
+      );
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+
+    text-transform:uppercase;
+    letter-spacing:.16em;
+
+    font-size:.78rem;
+    font-weight:800;
+
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+
+    font-size:clamp(2.5rem,5vw,4.5rem);
+
+    line-height:1;
+
+    color:var(--heading);
+  }
+
+  .hero p{
+    max-width:760px;
+
+    color:var(--hero-muted);
+
+    line-height:1.75;
+
+    font-size:1.05rem;
+  }
+
+  .grid{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(260px,1fr));
+
+    gap:18px;
+
+    margin-top:28px;
+  }
+
+  .card{
+    position:relative;
+
+    overflow:hidden;
+
+    display:block;
+
+    text-decoration:none;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:22px;
+
+    cursor:pointer;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card::after{
+    content:"";
+
+    position:absolute;
+
+    inset:0;
+
+    border-radius:18px;
+
+    pointer-events:none;
+
+    box-shadow:0 0 0 0 rgba(220,38,38,0);
+
+    transition:box-shadow .18s ease;
+  }
+
+  .card:hover{
+    transform:translateY(-3px);
+
+    border-color:#dc2626;
+
+    box-shadow:
+      0 10px 28px rgba(0,0,0,.28),
+      0 0 18px rgba(220,38,38,.18);
+  }
+
+  .card:hover::after{
+    box-shadow:
+      inset 0 0 0 2px rgba(220,38,38,.9);
+  }
+
+  .card h2{
+    margin:0 0 10px;
+
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .card h2{
+    color:var(--heading);
+  }
+
+  .card p{
+    margin:0;
+
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  @media (max-width:640px){
+
+    main{
+      padding:28px 14px 70px;
+    }
+
+    .hero{
+      padding:36px 22px;
+    }
+
+    h1{
+      font-size:2.5rem;
+    }
+  }
+</style>
 </head>
 <body>
 
-  <main class="hub">
+<header class="top-nav">
 
-    <!-- COMBAT SECTION -->
-    <section class="card combat">
-      <div class="card-header">
-        <span class="label">COMBAT</span>
-        <h2>Enter the Arena </h2>
+  <div class="nav-top">
+
+    <div class="lang-toggle" role="group" aria-label="Language toggle">
+      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="es">ES</button>
+    </div>
+
+    <a href="../index.html" class="nav-logo">
+      Sandman Combat™
+    </a>
+
+    <button type="button" class="theme-toggle" aria-label="Toggle theme">
+      ☾
+    </button>
+
+  </div>
+
+  <nav class="site-nav" aria-label="Primary">
+
+    <a href="../index.html">
+      <span data-lang-block="en">Home</span>
+      <span data-lang-block="es" class="hidden-lang">Inicio</span>
+    </a>
+
+    <a href="../overview.html">
+      <span data-lang-block="en">Overview</span>
+      <span data-lang-block="es" class="hidden-lang">Resumen</span>
+    </a>
+
+    <a href="../programs.html">
+      <span data-lang-block="en">Programs</span>
+      <span data-lang-block="es" class="hidden-lang">Programas</span>
+    </a>
+
+    <a href="../about.html">
+      <span data-lang-block="en">About</span>
+      <span data-lang-block="es" class="hidden-lang">Acerca</span>
+    </a>
+
+  </nav>
+
+</header>
+
+<main>
+
+  <section class="hero">
+
+    <div data-lang-block="en">
+
+      <div class="eyebrow">
+        Foundry 4
       </div>
-      <p>
-        0–4 Combat sports has always had warriors, but never a way to earn honor.  
-        A new chapter in combat sports — honor, tradition, and merit.
-      </p>
-      <a href="../foundry4_combat.html" class="btn combat-btn">Enter Combat Track →</a>
-    </section>
 
-    <!-- SPORTS SECTION -->
-    <section class="card sports">
-      <div class="card-header">
-        <span class="label">SPORTS</span>
-        <h2>Learn the Rules, Own the Game</h2>
+      <h1>Teen & Adult Combat Development</h1>
+
+      <p>
+        Foundry 4 is the advanced progression phase inside the Sandman System.
+        Athletes develop through structure, pressure, discipline,
+        accountability, and live combat experience.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <div class="eyebrow">
+        Foundry 4
       </div>
-      <p>
-        Early sport skills: Basketball, Soccer, & Football — fun drills that translate across games while building great habits.
-      </p>
-      <a href="foundry4_sports.html" class="btn sports-btn">Enter Sports Track →</a>
-    </section>
 
-    <!-- LIFESTYLE SECTION -->
-    <section class="card lifestyle">
-      <div class="card-header">
-        <span class="label">LIFESTYLE</span>
-        <h2>Strong Habits, Strong Kids</h2>
+      <h1>Desarrollo de Combate Adolescente y Adulto</h1>
+
+      <p>
+        Foundry 4 es la fase avanzada de progresión dentro del Sandman System.
+        Los atletas se desarrollan mediante estructura, presión,
+        disciplina, responsabilidad y experiencia real de combate.
+      </p>
+
+    </div>
+
+  </section>
+
+  <section class="grid">
+
+    <a class="card" href="/foundry4/teen.html">
+
+      <div data-lang-block="en">
+
+        <h2>Teen Paths</h2>
+
+        <p>
+          Wrestling, Boxing, and Kickboxing progression
+          built around identity, discipline,
+          pressure, and technical development.
+        </p>
+
       </div>
-      <p>
-        Movement, balance, badges for life-skills, and confidence-building routines.  
-        Recognition without ranks — just growth and health.
-      </p>
-      <a href="../foundry4_lifestyle.html" class="btn lifestyle-btn">Enter Lifestyle Track →</a>
-    </section>
 
-  </main>
+      <div data-lang-block="es" class="hidden-lang">
+
+        <h2>Caminos Adolescente</h2>
+
+        <p>
+          Progresión en lucha, boxeo y kickboxing
+          construida alrededor de identidad,
+          disciplina, presión y desarrollo técnico.
+        </p>
+
+      </div>
+
+    </a>
+
+    <a class="card" href="/foundry4/adult.html">
+
+      <div data-lang-block="en">
+
+        <h2>Adult Paths</h2>
+
+        <p>
+          Adult MMA and Boxing progression focused on composure,
+          conditioning, discipline, pressure,
+          and long-term combat growth.
+        </p>
+
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+
+        <h2>Caminos Adultos</h2>
+
+        <p>
+          Progresión adulta de MMA y Boxeo enfocada en compostura,
+          acondicionamiento, disciplina,
+          presión y crecimiento de combate.
+        </p>
+
+      </div>
+
+    </a>
+
+    <a class="card" href="./ceremonies.html">
+
+      <div data-lang-block="en">
+
+        <h2>Ceremonies & Testing</h2>
+
+        <p>
+          Learn how testing, promotion,
+          progression identity, and ceremony cycles
+          operate inside Foundry 4.
+        </p>
+
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+
+        <h2>Ceremonias y Evaluaciones</h2>
+
+        <p>
+          Aprende cómo funcionan las evaluaciones,
+          promociones, identidad de progresión
+          y ciclos ceremoniales dentro de Foundry 4.
+        </p>
+
+      </div>
+
+    </a>
+
+  </section>
+
+</main>
 
 </body>
 </html>

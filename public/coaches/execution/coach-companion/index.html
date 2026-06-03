@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Companion</title>
+
+  <link rel="stylesheet" href="/coaches/execution/coach-companion/coach-companion.css?v=1"/>
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+<main class="wrap">
+
+  <div class="page-header">
+    <h1>Coach Companion</h1>
+    <button id="themeToggle" class="theme-icon-btn" aria-label="Toggle theme">◐</button>
+  </div>
+
+  <p class="muted">
+    Private coach-side view. Session is loaded from Coach Console.
+  </p>
+
+  <div class="toolbar-2">
+    <div class="session-total-row">
+      <span id="totalTime">Total: 00:00</span>
+      <span id="saveStatus" class="muted">Waiting for Coach Console session.</span>
+    </div>
+  </div>
+
+  <div id="planBlocks">
+
+    <div class="plan-block" id="block-onmat" data-slot="onmat" data-minutes="3">
+      <div class="block-head-row">
+        <span class="block-title" id="title-onmat">On-Mat Talk</span>
+        <div class="block-tools">
+          <span class="mini-clock">03:00</span>
+        </div>
+      </div>
+
+      <div id="slot-onmat" class="slot">
+        <div id="cards-onmat" class="slot-cards"></div>
+        <div class="slot-notes">
+          <div class="notes-label"># coach notes</div>
+          <textarea id="notes-onmat" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-block" id="block-warmup" data-slot="warmup" data-minutes="10">
+      <div class="block-head-row">
+        <span class="block-title" id="title-warmup">Warm-Up</span>
+        <div class="block-tools">
+          <span class="mini-clock">10:00</span>
+        </div>
+      </div>
+
+      <div id="slot-warmup" class="slot">
+        <div id="cards-warmup-body" class="slot-cards"></div>
+        <div id="cards-warmup-agility" class="slot-cards"></div>
+        <div class="slot-notes">
+          <div class="notes-label"># coach notes</div>
+          <textarea id="notes-warmup" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div id="swappable">
+
+      <div class="plan-block" id="block-drills" data-slot="drills" data-minutes="10">
+        <div class="block-head-row">
+          <span class="block-title" id="title-drills">Drills</span>
+          <div class="block-tools">
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-drills" class="slot">
+          <div id="cards-drills" class="slot-cards"></div>
+          <div class="slot-notes">
+            <div class="notes-label"># coach notes</div>
+            <textarea id="notes-drills" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block" id="block-technique" data-slot="technique" data-minutes="10">
+        <div class="block-head-row">
+          <span class="block-title" id="title-technique">Technique</span>
+          <div class="block-tools">
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-technique" class="slot">
+          <div id="cards-technique" class="slot-cards"></div>
+          <div class="slot-notes">
+            <div class="notes-label"># coach notes</div>
+            <textarea id="notes-technique" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block" id="block-water" data-slot="water" data-minutes="2">
+        <div class="block-head-row">
+          <span class="block-title" id="title-water">Water / Reset</span>
+          <div class="block-tools">
+            <span class="mini-clock">02:00</span>
+          </div>
+        </div>
+
+        <div id="slot-water" class="slot">
+          <div id="cards-water" class="slot-cards"></div>
+          <div class="slot-notes">
+            <div class="notes-label"># coach notes</div>
+            <textarea id="notes-water" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block" id="block-live" data-slot="live" data-minutes="10">
+        <div class="block-head-row">
+          <span class="block-title" id="title-live">Live Session</span>
+          <div class="block-tools">
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-live" class="slot">
+          <div id="cards-live" class="slot-cards"></div>
+          <div class="slot-notes">
+            <div class="notes-label"># coach notes</div>
+            <textarea id="notes-live" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block" id="block-cond" data-slot="cond" data-minutes="10">
+        <div class="block-head-row">
+          <span class="block-title" id="title-cond">Conditioning / Skill Based Activities</span>
+          <div class="block-tools">
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-cond" class="slot">
+          <div id="cards-cond" class="slot-cards"></div>
+          <div class="slot-notes">
+            <div class="notes-label"># coach notes</div>
+            <textarea id="notes-cond" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="plan-block" id="block-offmat" data-slot="offmat" data-minutes="5">
+      <div class="block-head-row">
+        <span class="block-title" id="title-offmat">ROLL CALL / OFF THE MAT TALK</span>
+        <div class="block-tools">
+          <span class="mini-clock">05:00</span>
+        </div>
+      </div>
+
+      <div id="slot-offmat" class="slot">
+        <div id="cards-offmat" class="slot-cards"></div>
+        <div class="slot-notes">
+          <div class="notes-label"># coach notes</div>
+          <textarea id="notes-offmat" class="slot-notes-input" placeholder="Private coach notes..."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="broadcast-box">
+    <label class="block-title" style="display:block;margin-bottom:6px;color:var(--gold);">
+      Session Focus
+    </label>
+    <textarea id="slot-note" class="broadcast" placeholder="Private session reminders…"></textarea>
+  </div>
+  <div class="footer-actions">
+    <button type="button" onclick="clearSession()">Clear Notes</button>
+    <button type="button" onclick="endPractice()">End Practice → Log</button>
+  </div>
+
+</main>
+
+<script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
+<script type="module" src="/coaches/execution/coach-companion/coach-companion.js?v=1"></script>
+</body>
+</html>

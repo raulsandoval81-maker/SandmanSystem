@@ -3,226 +3,168 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Coach Cards — Youth</title>
-  <style>
-    :root{
-      color-scheme: dark;
-      --bg:#0b1120;
-      --panel:#121a2b;
-      --line:#27304a;
-      --text:#f5f7fb;
-      --muted:#9aa4b1;
-      --gold:#ffdd48;
-      --red:#e63946;
-      --link:#9ecbff;
-    }
 
-    *{box-sizing:border-box}
+  <title>Zero2Hero Youth Wrestling</title>
 
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:24px 16px 72px;
-    }
-
-    .hero{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:20px;
-      margin-bottom:18px;
-      box-shadow:0 10px 24px rgba(0,0,0,.24);
-    }
-
-    h1{
-      margin:0 0 8px;
-      color:var(--gold);
-      font-size:clamp(28px,4vw,40px);
-    }
-
-    .sub{
-      color:var(--muted);
-      margin:0;
-      line-height:1.5;
-    }
-
-    .toplinks{
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      margin:14px 0 0;
-    }
-
-    .toplinks a{
-      color:var(--link);
-      text-decoration:none;
-      border:1px solid var(--line);
-      background:var(--panel);
-      padding:10px 12px;
-      border-radius:10px;
-      font-weight:700;
-    }
-
-    .toplinks a:hover{
-      border-color:var(--red);
-      box-shadow:0 0 10px rgba(230,57,70,.25);
-    }
-
-    .section-title{
-      margin:26px 0 12px;
-      color:var(--gold);
-      font-size:1rem;
-      font-weight:900;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px;
-    }
-
-    .card{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:18px;
-      box-shadow:0 10px 18px rgba(0,0,0,.2);
-      display:flex;
-      flex-direction:column;
-      gap:10px;
-      transition:.15s;
-    }
-
-    .card:hover{
-      border-color:var(--red);
-      box-shadow:0 0 12px rgba(230,57,70,.32);
-      transform:translateY(-2px);
-    }
-
-    .badge{
-      display:inline-block;
-      width:max-content;
-      padding:4px 10px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      color:var(--gold);
-      font-size:12px;
-      font-weight:800;
-      margin-bottom:2px;
-    }
-
-    h2{
-      margin:0 0 6px;
-      font-size:22px;
-    }
-
-    p{
-      margin:0 0 14px;
-      color:var(--muted);
-      line-height:1.45;
-      flex:1;
-    }
-
-    a.btn{
-      display:inline-block;
-      width:max-content;
-      text-decoration:none;
-      color:#0b1120;
-      background:var(--gold);
-      padding:10px 14px;
-      border-radius:10px;
-      font-weight:700;
-    }
-
-    a.btn:hover{
-      filter:brightness(1.04);
-    }
-  </style>
+  <link rel="stylesheet" href="/coaches/cards/card-hub.css">
 </head>
+
 <body>
   <main class="wrap">
+
     <section class="hero">
-      <h1>Youth Cards</h1>
+      <h1>Zero2Hero Youth Wrestling</h1>
+
       <p class="sub">
-        Coach access for Foundry 8 youth tier hubs. Open any tier to reach its full skill card set.
+        Coach access for Foundry 8 — Zero2Hero Youth Wrestling.
+        Open a tier to access its skill card set.
       </p>
 
       <div class="toplinks">
-<div class="assign-actions">
-  <a class="pill-btn" href="/coaches/command-center/">Coach Console</a>
-  <a class="pill-btn" href="/coaches/cards/master/">Master Card</a>
-</div>
+        <a class="pill-btn" href="/coaches/command-center/">
+          Coach Console
+        </a>
+
+        <a class="pill-btn" href="/coaches/execution/clipboard-2.0/">
+          Back to Clipboard
+        </a>
+
+        <a class="pill-btn" href="/coaches/cards/">
+          All Disciplines
+        </a>
       </div>
     </section>
 
     <h2 class="section-title">Foundry 8</h2>
 
     <section class="grid">
+
       <article class="card">
         <span class="badge">T0</span>
         <h2>Shadow</h2>
-        <p>Stance, motion, level change, penetration step, double leg, single leg, sprawl, base, stand up, half nelson.</p>
-        <a class="btn" href="/coaches/cards/youth/t0/index.html">Open T0 Hub</a>
+
+        <p>
+          Stance, motion, level change, penetration step,
+          double leg, single leg, sprawl, base,
+          stand up, half nelson.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t0/index.html">
+          Open T0 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T1</span>
         <h2>Recruit</h2>
-        <p>Stance-motion flow, level change to score, double and single leg finishes, snap down, go behind, ride, escape.</p>
-        <a class="btn" href="/coaches/cards/youth/t1/index.html">Open T1 Hub</a>
+
+        <p>
+          Stance-motion flow, level change to score,
+          double and single leg finishes,
+          snap down, go behind, ride, escape.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t1/index.html">
+          Open T1 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T2</span>
         <h2>Combatant</h2>
-        <p>Angle step, motion to attack, double leg drive, single leg run, snap to score, down block, sprawl to spin, sit out.</p>
-        <a class="btn" href="/coaches/cards/youth/t2/index.html">Open T2 Hub</a>
+
+        <p>
+          Angle step, motion to attack, double leg drive,
+          single leg run, snap to score,
+          down block, sprawl to spin, sit out.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t2/index.html">
+          Open T2 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T3</span>
         <h2>Competitor</h2>
-        <p>Angle step, motion to attack, head position, finishes, sprawl spin, counter defense, cradle, ride control, escape, switch.</p>
-        <a class="btn" href="/coaches/cards/youth/t3/index.html">Open T3 Hub</a>
+
+        <p>
+          Angle step, motion to attack, head position,
+          finishes, sprawl spin, counter defense,
+          cradle, ride control, escape, switch.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t3/index.html">
+          Open T3 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T4</span>
         <h2>Warrior</h2>
-        <p>Head position, distance control, tempo change, setups, reshot, arm drag, front headlock, turn setup, hip heist, avoid pin.</p>
-        <a class="btn" href="/coaches/cards/youth/t4/index.html">Open T4 Hub</a>
+
+        <p>
+          Head position, distance control,
+          tempo change, setups, reshot,
+          arm drag, front headlock,
+          turn setup, hip heist, avoid pin.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t4/index.html">
+          Open T4 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T5</span>
         <h2>Champion</h2>
-        <p>Pressure motion, motion to reattack, tempo change, chain wrestling, underhook series, slide by, reshot system, ride to return.</p>
-        <a class="btn" href="/coaches/cards/youth/t5/index.html">Open T5 Hub</a>
+
+        <p>
+          Pressure motion, motion to reattack,
+          tempo change, chain wrestling,
+          underhook series, slide by,
+          reshot system, ride to return.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t5/index.html">
+          Open T5 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T6</span>
         <h2>Commander</h2>
-        <p>Angle domination, distance control, pressure footwork, tempo control, upper body entry, underhook score, turn chain, bottom score.</p>
-        <a class="btn" href="/coaches/cards/youth/t6/index.html">Open T6 Hub</a>
+
+        <p>
+          Angle domination, distance control,
+          pressure footwork, tempo control,
+          upper body entry, underhook score,
+          turn chain, bottom score.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t6/index.html">
+          Open T6 Hub
+        </a>
       </article>
 
       <article class="card">
         <span class="badge">T7</span>
         <h2>Hero</h2>
-        <p>Flow motion, tempo control, motion reattack, multichain wrestling, upper body mastery, defense control, ride mastery, recovery flow.</p>
-        <a class="btn" href="/coaches/cards/youth/t7/index.html">Open T7 Hub</a>
+
+        <p>
+          Flow motion, tempo control,
+          motion reattack, multichain wrestling,
+          upper body mastery, defense control,
+          ride mastery, recovery flow.
+        </p>
+
+        <a class="btn" href="/coaches/cards/youth/z2h-wrestling/t7/index.html">
+          Open T7 Hub
+        </a>
       </article>
+
     </section>
+
   </main>
 </body>
 </html>

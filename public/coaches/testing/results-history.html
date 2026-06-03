@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Test History | Sandman</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/testing/testing.css" />
+  <style>
+    body{background:#070b12;color:#f5f7fb;font-family:system-ui,Arial,sans-serif;margin:0;padding:20px}
+    .wrap{max-width:1000px;margin:0 auto}
+    .card{background:#111827;border:1px solid #263244;border-radius:14px;padding:16px;margin:12px 0}
+    .row{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+    .muted{color:#9aa4b1}
+    .btn{display:inline-flex;align-items:center;justify-content:center;padding:10px 14px;border-radius:10px;background:#0b1017;border:1px solid #334155;color:#fff;text-decoration:none;font-weight:800}
+    .btn.primary{background:#ffdd48;color:#000;border-color:#ffdd48}
+    input{padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1017;color:#fff}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <p><a class="btn" href="/coaches/testing/index.html">← Back to Testing</a></p>
+
+  <h1>Test History</h1>
+  <p class="muted">Enter an athlete UID or open this page with <code>?uid=F4_0009</code>.</p>
+
+  <div class="card">
+    <input id="uidInput" placeholder="F4_0009" />
+    <button id="loadBtn" class="btn primary" type="button">Load History</button>
+    <div id="status" class="muted" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="history"></div>
+</div>
+
+<script type="module">
+  import {
+    db,
+    collection,
+    getDocs
+  } from "/assets/js/firebase-init.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const uidInput = document.getElementById("uidInput");
+  const loadBtn = document.getElementById("loadBtn");
+  const statusEl = document.getElementById("status");
+  const historyEl = document.getElementById("history");
+
+  const incomingUid = params.get("uid") || params.get("athleteId") || "";
+  if (incomingUid) uidInput.value = incomingUid;
+
+  function enc(v) {
+    return encodeURIComponent(String(v || "").trim());
+  }
+
+  function toMs(v) {
+    if (!v) return 0;
+    if (typeof v.toDate === "function") return v.toDate().getTime();
+    if (typeof v.seconds === "number") return v.seconds * 1000;
+    const ms = new Date(v).getTime();
+    return Number.isFinite(ms) ? ms : 0;
+  }
+
+  function resultFromAvg(avg) {
+    if (avg >= 95) return "ELITE BASE";
+    if (avg >= 90) return "STRONG";
+    if (avg >= 85) return "PASS";
+    return "NOT READY";
+  }
+
+  async function loadHistory() {
+    const uid = uidInput.value.trim();
+
+    historyEl.innerHTML = "";
+    statusEl.textContent = "";
+
+    if (!uid) {
+      statusEl.textContent = "Enter athlete UID.";
+      return;
+    }
+
+    statusEl.textContent = "Loading...";
+
+    try {
+      const logsRef = collection(db, "athletes", uid, "testingLogs");
+      const snap = await getDocs(logsRef);
+
+      if (snap.empty) {
+        statusEl.textContent = "No testing logs found.";
+        return;
+      }
+
+      const sessions = new Map();
+
+      snap.forEach((docSnap) => {
+        const d = docSnap.data() || {};
+        const sessionId = d.sessionId || "unknown-session";
+
+        if (!sessions.has(sessionId)) {
+          sessions.set(sessionId, {
+            sessionId,
+            athleteName: d.athleteName || uid,
+            testType: d.testType || "BASE_CHECK_V1",
+            date: d.date || "",
+            createdAtMs: toMs(d.createdAt),
+            totals: [],
+            panels: new Set(),
+            coaches: [],
+          });
+        }
+
+        const group = sessions.get(sessionId);
+        group.createdAtMs = Math.max(group.createdAtMs, toMs(d.createdAt));
+        group.date = group.date || d.date || "";
+        group.testType = d.testType || group.testType;
+        group.athleteName = d.athleteName || group.athleteName;
+
+        if (typeof d.total !== "undefined") group.totals.push(Number(d.total || 0));
+        if (d.panel) group.panels.add(d.panel);
+        group.coaches.push(d.coachName || d.coachId || "Coach");
+      });
+
+      const rows = [...sessions.values()].sort((a, b) => b.createdAtMs - a.createdAtMs);
+
+      historyEl.innerHTML = rows.map((s) => {
+        const count = s.totals.length;
+        const avg = count
+          ? s.totals.reduce((a, b) => a + b, 0) / count
+          : 0;
+
+        const finalResult = count ? resultFromAvg(avg) : "—";
+        const panelText = [...s.panels].sort().join(", ") || "—";
+
+        const resultHref =
+          `/coaches/testing/results.html?uid=${enc(uid)}&sessionId=${enc(s.sessionId)}&testType=${enc(s.testType)}`;
+
+        return `
+          <section class="card">
+            <div class="row">
+              <div>
+                <h2 style="margin:0 0 6px;">${s.athleteName}</h2>
+                <div class="muted">${s.sessionId}</div>
+                <div class="muted">Date: ${s.date || "—"} · Test: ${s.testType}</div>
+              </div>
+
+              <div>
+                <strong>${finalResult}</strong><br>
+                Avg: ${count ? avg.toFixed(1) : "—"} / 100<br>
+                Coaches: ${count} / 3<br>
+                Panels: ${panelText}
+              </div>
+            </div>
+
+            <div style="margin-top:14px;">
+              <a class="btn primary" href="${resultHref}">Open Results</a>
+            </div>
+          </section>
+        `;
+      }).join("");
+
+      statusEl.textContent = `Loaded ${rows.length} session(s).`;
+    } catch (err) {
+      console.error(err);
+      statusEl.textContent = `Load failed: ${err.message || err}`;
+    }
+  }
+
+  loadBtn.addEventListener("click", loadHistory);
+
+  if (incomingUid) {
+    loadHistory();
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ceremonies Queue | Sandman</title>
+
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/testing/testing.css" />
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#06080d;
+    --panel:#0f141b;
+    --card:#0b1017;
+    --line:#334155;
+    --text:#f8fafc;
+    --muted:#cbd5e1;
+    --gold:#ffdd48;
+    --red:#e53935;
+    --green:#34d399;
+    --warn:#fbbf24;
+  }
+
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  }
+
+  .wrap{
+    max-width:1200px;
+    margin:0 auto;
+    padding:28px 16px 64px;
+  }
+
+  .hero,.card{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+  }
+
+  .hero{
+    padding:20px;
+    text-align:center;
+    margin-bottom:20px;
+  }
+
+  .card{
+    padding:18px;
+    margin-bottom:16px;
+  }
+
+  h1{
+    margin:0;
+    color:var(--gold);
+    font-size:2rem;
+  }
+
+  .hero p{
+    margin:8px 0 0;
+    color:var(--muted);
+  }
+
+  h2,h3{
+    color:var(--gold);
+    margin:0 0 12px;
+  }
+
+  .topnav,.actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+  .topnav{
+    justify-content:center;
+    margin-top:16px;
+  }
+
+  .actions{margin-top:12px}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:40px;
+    padding:0 14px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#111827;
+    color:var(--text);
+    font-weight:900;
+    text-decoration:none;
+    cursor:pointer;
+  }
+
+  .btn.primary{
+    background:var(--red);
+    border-color:var(--red);
+    color:#fff;
+  }
+
+  .btn.gold{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:#000;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:340px 1fr;
+    gap:16px;
+  }
+
+  @media(max-width:900px){
+    .grid{grid-template-columns:1fr}
+  }
+
+  .muted,.small{
+    color:var(--muted);
+    font-size:.9rem;
+    line-height:1.45;
+  }
+
+  .row{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+
+  @media(max-width:700px){
+    .row{grid-template-columns:1fr}
+  }
+
+  label{
+    display:grid;
+    gap:6px;
+    color:var(--muted);
+    font-size:.85rem;
+    font-weight:800;
+  }
+
+  select{
+    width:100%;
+    padding:10px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:#111827;
+    color:var(--text);
+    font-weight:800;
+  }
+
+  .notice{
+    border:1px solid var(--line);
+    border-left:4px solid var(--gold);
+    background:#111827;
+    border-radius:12px;
+    padding:12px;
+    color:var(--muted);
+    font-size:.88rem;
+    line-height:1.45;
+  }
+
+  .table-wrap{
+    overflow:auto;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:#0b1017;
+  }
+
+  table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:720px;
+    background:#0b1017;
+  }
+
+  thead{
+    background:#111827;
+  }
+
+  tbody tr{
+    background:#0f172a;
+  }
+
+  tbody tr:nth-child(even){
+    background:#111827;
+  }
+
+  th,td{
+    padding:12px 10px;
+    border-bottom:1px solid var(--line);
+    text-align:left;
+    vertical-align:top;
+    font-size:.92rem;
+  }
+
+  th{
+    color:var(--gold);
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+  }
+
+  td{
+    color:#f8fafc;
+  }
+
+  tr:last-child td{border-bottom:0}
+
+  .pill{
+    display:inline-flex;
+    align-items:center;
+    padding:.22rem .6rem;
+    border-radius:999px;
+    border:1px solid #475569;
+    background:#111827;
+    color:#dbeafe;
+    font-size:.78rem;
+    font-weight:900;
+  }
+
+  .ok{color:var(--green);font-weight:900}
+  .warn{color:var(--warn);font-weight:900}
+  .bad{color:#ff7b7b;font-weight:900}
+</style>
+</head>
+
+<body>
+<main class="wrap">
+  <header class="hero">
+    <h1>Ceremonies Queue</h1>
+    <p>Shows passed athletes in cooldown and failed athletes waiting for makeup review.</p>
+
+    <nav class="topnav">
+      <a class="btn primary" href="/coaches/testing/index.html">Testing Home</a>
+      <a class="btn" href="/coaches/testing/results.html">Test History</a>
+      <a class="btn" href="/coaches/command-center/">Command Center</a>
+    </nav>
+  </header>
+
+  <section class="grid">
+    <aside>
+      <section class="card">
+        <h2>Planner</h2>
+
+        <div class="row">
+          <label>
+            Quarter
+            <select id="quarter">
+              <option value="Q1">Q1 (Jan–Mar)</option>
+              <option value="Q2" selected>Q2 (Apr–Jun)</option>
+              <option value="Q3">Q3 (Jul–Sep)</option>
+              <option value="Q4">Q4 (Oct–Dec)</option>
+            </select>
+          </label>
+
+          <label>
+            Track
+            <select id="track">
+              <option value="f8">Foundry 8</option>
+              <option value="f4" selected>Foundry 4</option>
+              <option value="lead">Leadership</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button class="btn gold" id="apply" type="button">Load Candidates</button>
+          <button class="btn" id="clear" type="button">Clear</button>
+        </div>
+
+        <p class="small" id="resultInfo">Ready.</p>
+      </section>
+
+      <section class="card">
+        <h2>Policy</h2>
+        <ul class="small">
+          <li>Approve test → COOLDOWN</li>
+          <li>Cooldown athletes appear here</li>
+          <li>Freeze athletes appear in makeup queue</li>
+          <li>Promotion remains head-coach controlled</li>
+        </ul>
+      </section>
+
+      <section class="notice">
+        This page is display and planning only. It does not promote athletes.
+      </section>
+    </aside>
+
+    <section>
+      <section class="card">
+        <h2>Upcoming Ceremony</h2>
+        <p class="small">
+          Date: <strong id="ceremonyDate">June 13</strong> ·
+          Window: <strong id="ceremonyWindow">Q2</strong> ·
+          Track: <strong id="ceremonyTrack">Foundry 4</strong>
+        </p>
+
+        <div class="actions">
+          <button class="btn" id="printPack" type="button">Print Pack</button>
+          <button class="btn" id="exportRoster" type="button">Export Roster JSON</button>
+          <button class="btn" id="exportMakeups" type="button">Export Makeups JSON</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Ceremony Candidates</h3>
+        <p class="small">Pulls athletes with <span class="pill">testing.state = COOLDOWN</span>.</p>
+
+        <div class="table-wrap">
+          <table id="roster">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Track</th>
+                <th>Tier</th>
+                <th>Status</th>
+                <th>Cooldown Until</th>
+                <th>Last Decision</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card">
+        <h3>Makeup Queue</h3>
+        <p class="small">Pulls athletes with <span class="pill">testing.state = FREEZE</span>.</p>
+
+        <div class="table-wrap">
+          <table id="makeups">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Attempt</th>
+                <th>Freeze Until</th>
+                <th>Window</th>
+                <th>Flag</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </section>
+</main>
+
+<script type="module">
+  import {
+    db,
+    collection,
+    getDocs,
+    ensureSignedIn
+  } from "/assets/js/firebase-init.js";
+
+  const $ = (s, root = document) => root.querySelector(s);
+  const byId = (id) => document.getElementById(id);
+
+  const rosterTBody = $("#roster tbody");
+  const makeupsTBody = $("#makeups tbody");
+
+  const quarterEl = byId("quarter");
+  const trackEl = byId("track");
+  const infoEl = byId("resultInfo");
+  const cerDateEl = byId("ceremonyDate");
+  const cerWinEl = byId("ceremonyWindow");
+  const cerTrackEl = byId("ceremonyTrack");
+
+  function trackName(code) {
+    if (code === "f8") return "Foundry 8";
+    if (code === "f4") return "Foundry 4";
+    return "Leadership";
+  }
+
+  function fmtDate(value) {
+    if (!value) return "—";
+    try {
+      if (typeof value?.toDate === "function") {
+        return value.toDate().toLocaleDateString();
+      }
+      return new Date(value).toLocaleDateString();
+    } catch {
+      return String(value);
+    }
+  }
+
+  function mapTrackFromId(id = "") {
+    const upper = String(id).toUpperCase();
+    if (upper.startsWith("F8_")) return "f8";
+    if (upper.startsWith("F4_")) return "f4";
+    return "lead";
+  }
+
+  function isActiveAthlete(data = {}) {
+    if (data.rosterStatus && data.rosterStatus !== "current") return false;
+    if (data.devMode === true || data.isDev === true || data.isTest === true) return false;
+    return true;
+  }
+
+  async function getAthletesByTrack(track) {
+    await ensureSignedIn();
+
+    const snap = await getDocs(collection(db, "athletes"));
+    const list = [];
+
+    snap.forEach((docSnap) => {
+      const data = docSnap.data() || {};
+      const id = docSnap.id;
+
+      if (!isActiveAthlete(data)) return;
+      if (mapTrackFromId(id) !== track) return;
+
+      list.push({ id, data });
+    });
+
+    return list;
+  }
+
+  async function loadCandidates(track) {
+    const athletes = await getAthletesByTrack(track);
+
+    return athletes
+      .filter(({ data }) => String(data.testing?.state || "").toUpperCase() === "COOLDOWN")
+      .map(({ id, data }) => ({
+        id,
+        name: data.publicName || data.fullName || id,
+        track: mapTrackFromId(id),
+        tier: data.rankName || data.tierName || data.tier || "—",
+        status: "ready for ceremony",
+        statusClass: "ok",
+        cooldownUntil: data.testing?.cooldownUntil || "",
+        decision: data.testing?.lastDecision || data.testing?.baseCheckV1?.decision || data.testing?.lastTestResult || ""
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  async function loadMakeups(track) {
+    const athletes = await getAthletesByTrack(track);
+
+    return athletes
+      .filter(({ data }) => String(data.testing?.state || "").toUpperCase() === "FREEZE")
+      .map(({ id, data }) => ({
+        id,
+        name: data.publicName || data.fullName || id,
+        attempt: Number(data.testing?.attempt || 1),
+        freezeUntil: data.testing?.freezeUntil || "",
+        windowDays: Number(data.testing?.windowDays || 7),
+        flag: data.testing?.coachExtend === true ? "coach-extend" : "ok"
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  function renderRoster(list) {
+    if (!list.length) {
+      rosterTBody.innerHTML = `<tr><td colspan="7" class="muted">No cooldown athletes for this filter.</td></tr>`;
+      return;
+    }
+
+    rosterTBody.innerHTML = list.map((a) => `
+      <tr>
+        <td>${a.id}</td>
+        <td>${a.name}</td>
+        <td>${trackName(a.track)}</td>
+        <td>${a.tier}</td>
+        <td><span class="${a.statusClass}">${a.status}</span></td>
+        <td>${fmtDate(a.cooldownUntil)}</td>
+        <td>${a.decision || "—"}</td>
+      </tr>
+    `).join("");
+  }
+
+  function renderMakeups(list) {
+    if (!list.length) {
+      makeupsTBody.innerHTML = `<tr><td colspan="6" class="muted">No freeze athletes for this filter.</td></tr>`;
+      return;
+    }
+
+    makeupsTBody.innerHTML = list.map((m) => `
+      <tr>
+        <td>${m.id}</td>
+        <td>${m.name}</td>
+        <td>${m.attempt}</td>
+        <td>${fmtDate(m.freezeUntil)}</td>
+        <td>${m.windowDays} days</td>
+        <td>
+          ${
+            m.flag === "ok"
+              ? "<span class='ok'>on track</span>"
+              : m.flag === "coach-extend"
+                ? "<span class='warn'>coach extend</span>"
+                : "<span class='bad'>attention</span>"
+          }
+        </td>
+      </tr>
+    `).join("");
+  }
+
+  async function applyFilters() {
+    const q = quarterEl.value;
+    const t = trackEl.value;
+
+    infoEl.textContent = "Loading...";
+
+    const candidates = await loadCandidates(t);
+    renderRoster(candidates);
+
+    const makeups = await loadMakeups(t);
+    renderMakeups(makeups);
+
+    infoEl.textContent =
+      `Loaded ${candidates.length} ceremony candidate(s), ${makeups.length} makeup(s) for ${trackName(t)} • ${q}`;
+
+    cerWinEl.textContent = q;
+    cerTrackEl.textContent = trackName(t);
+    cerDateEl.textContent = "June 13";
+  }
+
+  function downloadJSON(name, obj) {
+    const blob = new Blob([JSON.stringify(obj, null, 2)], { type:"application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = `${name}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+
+    URL.revokeObjectURL(url);
+  }
+
+  byId("apply").addEventListener("click", () => applyFilters());
+
+  byId("clear").addEventListener("click", () => {
+    quarterEl.value = "Q2";
+    trackEl.value = "f4";
+    renderRoster([]);
+    renderMakeups([]);
+    infoEl.textContent = "Ready.";
+    cerWinEl.textContent = "Q2";
+    cerTrackEl.textContent = "Foundry 4";
+    cerDateEl.textContent = "June 13";
+  });
+
+  byId("exportRoster").addEventListener("click", async () => {
+    const roster = await loadCandidates(trackEl.value);
+    downloadJSON("ceremony_roster", {
+      quarter: quarterEl.value,
+      track: trackEl.value,
+      roster
+    });
+  });
+
+  byId("exportMakeups").addEventListener("click", async () => {
+    const makeups = await loadMakeups(trackEl.value);
+    downloadJSON("ceremony_makeups", { items: makeups });
+  });
+
+  byId("printPack").addEventListener("click", () => {
+    window.print();
+  });
+
+  applyFilters().catch((err) => {
+    console.error(err);
+    infoEl.textContent = `Load failed: ${err.message || err}`;
+  });
+</script>
+
+</body>
+</html>

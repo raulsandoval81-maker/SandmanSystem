@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Path2Legend | Foundry 4</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../public.css" />
+
+  <script src="../assets/js/public-shell.js" defer></script>
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #1f2937,
+        #111827
+      );
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    padding:48px 30px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+
+    margin-bottom:28px;
+  }
+
+  body.day-mode .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff,
+        #f3e7cf
+      );
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+
+    text-transform:uppercase;
+    letter-spacing:.16em;
+
+    font-size:.78rem;
+    font-weight:800;
+
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+
+    font-size:clamp(2.5rem,5vw,4.5rem);
+
+    line-height:1;
+
+    color:var(--heading);
+  }
+
+  .journey{
+    color:var(--heading-accent);
+
+    font-size:1.1rem;
+    font-weight:800;
+
+    margin-bottom:20px;
+  }
+
+  .lead{
+    max-width:780px;
+
+    color:var(--hero-muted);
+
+    line-height:1.75;
+
+    font-size:1.05rem;
+  }
+
+  .disciplines{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(180px,1fr));
+
+    gap:16px;
+
+    margin-top:30px;
+
+    max-width:760px;
+  }
+
+  .tag{
+    display:flex;
+
+    align-items:center;
+    justify-content:center;
+
+    min-height:58px;
+
+    background:
+      linear-gradient(
+        180deg,
+        #1c2735,
+        #131c27
+      );
+
+    border:1px solid #314154;
+
+    color:#ffe98a;
+
+    border-radius:18px;
+
+    padding:14px 18px;
+
+    text-align:center;
+
+    font-size:1rem;
+    font-weight:800;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.25);
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  .tag:hover{
+    transform:translateY(-2px);
+
+    border-color:#ff2a2a;
+
+    box-shadow:0 0 18px rgba(255,42,42,.22);
+  }
+
+  body.day-mode .tag{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    color:#7c4a03;
+
+    box-shadow:0 6px 16px rgba(0,0,0,.08);
+  }
+
+  .grid{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(240px,1fr));
+
+    gap:18px;
+
+    margin-top:28px;
+  }
+
+  .card{
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:20px;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card:hover{
+    transform:translateY(-2px);
+
+    border-color:#ff2a2a;
+
+    box-shadow:0 0 18px rgba(255,42,42,.22);
+  }
+
+  .card h3{
+    color:var(--heading-accent);
+
+    margin:0 0 10px;
+  }
+
+  body.day-mode .card h3{
+    color:var(--heading);
+  }
+
+  .card p,
+  .card li{
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  ul{
+    padding-left:18px;
+    margin:0;
+  }
+
+  .quote{
+    margin-top:30px;
+
+    padding:24px;
+
+    border-left:4px solid var(--heading-accent);
+
+    background:var(--panel);
+
+    border-radius:16px;
+
+    color:var(--text);
+
+    line-height:1.8;
+
+    font-size:1.04rem;
+
+    border:1px solid var(--line);
+  }
+
+  body.day-mode .quote{
+    background:#ffffff;
+
+    border-color:#d7c7a2;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  @media (max-width:640px){
+
+    main{
+      padding:28px 14px 70px;
+    }
+
+    .hero{
+      padding:36px 22px;
+    }
+
+    h1{
+      font-size:2.5rem;
+    }
+
+    .disciplines{
+      grid-template-columns:1fr;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="top-nav">
+  <div class="nav-top">
+
+    <div class="lang-toggle" role="group" aria-label="Language toggle">
+      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="es">ES</button>
+    </div>
+
+    <a href="../index.html" class="nav-logo">Sandman Combat™</a>
+
+    <button type="button" class="theme-toggle" aria-label="Toggle theme">☾</button>
+
+  </div>
+
+  <nav class="site-nav" aria-label="Primary">
+    <a href="../index.html">
+      <span data-lang-block="en">Home</span>
+      <span data-lang-block="es" class="hidden-lang">Inicio</span>
+    </a>
+
+    <a href="../overview.html">
+      <span data-lang-block="en">Overview</span>
+      <span data-lang-block="es" class="hidden-lang">Resumen</span>
+    </a>
+
+    <a href="../programs.html">
+      <span data-lang-block="en">Programs</span>
+      <span data-lang-block="es" class="hidden-lang">Programas</span>
+    </a>
+
+    <a href="../about.html">
+      <span data-lang-block="en">About</span>
+      <span data-lang-block="es" class="hidden-lang">Acerca</span>
+    </a>
+  </nav>
+</header>
+
+<main>
+
+  <section class="hero">
+
+    <div data-lang-block="en">
+      <div class="eyebrow">Foundry 4 Teen</div>
+
+      <h1>Path2Legend</h1>
+
+      <div class="journey">The Day to Night Journey</div>
+
+      <p class="lead">
+        Path2Legend is the teen progression phase of the Sandman System.
+        This phase expands development beyond foundational wrestling while continuing
+        to reinforce discipline, accountability, composure, and responsibility under pressure.
+      </p>
+
+      <p class="lead">
+        Athletes are not expected to arrive experienced.
+        No prior combat background is required.
+        Age, maturity, discipline, and willingness to grow matter more than previous training.
+      </p>
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <div class="eyebrow">Foundry 4 Adolescente</div>
+
+      <h1>Path2Legend</h1>
+
+      <div class="journey">El Viaje del Día a la Noche</div>
+
+      <p class="lead">
+        Path2Legend es la fase de progresión adolescente del Sandman System.
+        Esta fase expande el desarrollo más allá de la lucha básica mientras continúa
+        reforzando disciplina, responsabilidad, compostura y control bajo presión.
+      </p>
+
+      <p class="lead">
+        No se espera que los atletas lleguen con experiencia.
+        No se requiere experiencia previa en combate.
+        La edad, madurez, disciplina y disposición para crecer importan más que el entrenamiento previo.
+      </p>
+    </div>
+
+    <div class="disciplines">
+      <div class="tag">Wrestling</div>
+      <div class="tag">Boxing</div>
+      <div class="tag">Kickboxing</div>
+    </div>
+
+  </section>
+
+  <section class="grid">
+
+    <div class="card">
+      <div data-lang-block="en">
+        <h3>Why Expand Combat?</h3>
+        <p>
+          Teen athletes are entering a phase where pressure, responsibility,
+          emotional control, and identity become more real.
+          Additional combat disciplines increase complexity while teaching athletes
+          how to remain composed under stress.
+        </p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <h3>¿Por qué expandir el combate?</h3>
+        <p>
+          Los atletas adolescentes están entrando en una etapa donde la presión,
+          responsabilidad, control emocional e identidad se vuelven más reales.
+          Las disciplinas adicionales aumentan la complejidad mientras enseñan
+          cómo mantener la calma bajo estrés.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div data-lang-block="en">
+        <h3>What Athletes Learn</h3>
+        <ul>
+          <li>Responsibility under pressure</li>
+          <li>Controlled aggression</li>
+          <li>Distance and timing</li>
+          <li>Leadership and accountability</li>
+          <li>Composure during adversity</li>
+          <li>Discipline through fatigue</li>
+        </ul>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <h3>Lo que aprenden los atletas</h3>
+        <ul>
+          <li>Responsabilidad bajo presión</li>
+          <li>Agresión controlada</li>
+          <li>Distancia y tiempo</li>
+          <li>Liderazgo y responsabilidad</li>
+          <li>Compostura ante la adversidad</li>
+          <li>Disciplina bajo fatiga</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card">
+      <div data-lang-block="en">
+        <h3>The Standard</h3>
+        <p>
+          Combat is never separated from responsibility.
+          Athletes are expected to show discipline, maturity,
+          effort, and respect inside and outside the room.
+        </p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <h3>El estándar</h3>
+        <p>
+          El combate nunca se separa de la responsabilidad.
+          Se espera que los atletas muestren disciplina,
+          madurez, esfuerzo y respeto dentro y fuera de la sala.
+        </p>
+      </div>
+    </div>
+
+  </section>
+
+  <div class="quote">
+    <span data-lang-block="en">
+      Teen athletes begin discovering who they are when pressure rises and comfort fades.
+    </span>
+
+    <span data-lang-block="es" class="hidden-lang">
+      Los atletas adolescentes comienzan a descubrir quiénes son cuando la presión aumenta y la comodidad desaparece.
+    </span>
+  </div>
+
+</main>
+
+</body>
+</html>

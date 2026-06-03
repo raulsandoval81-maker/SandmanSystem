@@ -2,76 +2,268 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mat Talk | Sandman</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mat Talk Cards</title>
 
   <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/cards/shared/card-hub.css" />
-</head>
-<body>
 
+  <style>
+    .mat-section{
+      margin:2rem 0;
+    }
+
+    .mat-section h2{
+      margin:0 0 .75rem;
+      color:#ffdd48;
+      font-size:1.5rem;
+    }
+
+    .mat-note{
+      margin:.25rem 0 1rem;
+      color:rgba(255,255,255,.72);
+      line-height:1.5;
+    }
+
+    .mat-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:14px;
+    }
+
+    .mat-tile{
+      display:block;
+      padding:18px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.05);
+      color:inherit;
+      text-decoration:none;
+      transition:
+        transform .15s ease,
+        border-color .15s ease,
+        background .15s ease,
+        box-shadow .15s ease;
+    }
+
+    .mat-tile:hover{
+      transform:translateY(-2px);
+      border-color:rgba(255,221,72,.6);
+      background:rgba(255,221,72,.08);
+      box-shadow:
+        0 0 0 2px rgba(230,57,70,.18),
+        0 0 18px rgba(255,221,72,.12);
+    }
+
+    .mat-kicker{
+      display:block;
+      margin-bottom:.35rem;
+      color:rgba(255,255,255,.62);
+      font-size:.78rem;
+      font-weight:800;
+      text-transform:uppercase;
+      letter-spacing:.05em;
+    }
+
+    .mat-tile h3{
+      margin:0;
+      color:#ffdd48;
+      font-size:1.1rem;
+      line-height:1.25;
+    }
+
+    .top-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:.75rem;
+      margin:1rem 0 1.5rem;
+    }
+
+    .action-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:44px;
+      padding:.75rem 1rem;
+      border-radius:12px;
+      border:1px solid rgba(255,215,0,.55);
+      background:rgba(255,215,0,.10);
+      color:#ffdd48;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    .action-btn:hover{
+      background:rgba(255,215,0,.18);
+      border-color:#ffdd48;
+      box-shadow:
+        0 0 0 2px rgba(255,0,0,.22),
+        0 0 18px rgba(255,215,0,.18);
+    }
+  </style>
+</head>
+
+<body>
 <main class="wrap">
 
-  <div class="page-header">
-    <h1>Mat Talk</h1>
-    <p class="muted">Pick a concept and go.</p>
-  </div>
+<section class="page-header">
+  <h1>Mat Talk Cards</h1>
+  <p class="muted">
+    One coach list. Youth standards first, then teen conversation cards.
+  </p>
+</section>
 
-  <div class="toplinks">
-    <a href="/coaches/execution/daily-clipboard/">← Back to Clipboard</a>
-    <a href="/coaches/cards/master/index.html">Master Card</a>
-  </div>
+<div class="top-actions">
+  <a class="action-btn" href="/coaches/execution/clipboard-2.0/">
+    ← Return to Clipboard
+  </a>
 
-  <h2 class="section-title">Youth Standards</h2>
-  <div class="hub-grid">
-    <a class="hub-tile" href="/coaches/cards/mat-talk/youth/standards/focus.html"><h2>Focus</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/youth/standards/effort.html"><h2>Effort</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/youth/standards/attitude.html"><h2>Attitude</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/youth/standards/respect.html"><h2>Respect</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/youth/standards/fear.html"><h2>F.E.A.R.</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/youth/standards/full-part-time.html"><h2>Full-Time vs Part-Time</h2></a>
-  </div>
+  <a class="action-btn" href="/coaches/cards/">
+    ← Back to Cards
+  </a>
+</div>
 
-  <h2 class="section-title">Gratitude</h2>
-  <div class="hub-grid">
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/gratitude/opportunity.html"><h2>Opportunity</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/gratitude/respect-the-room.html"><h2>Respect the Room</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/gratitude/respect-your-partner.html"><h2>Respect Your Partner</h2></a>
-  </div>
+<section class="mat-section">
+  <h2>Youth Standards</h2>
 
-  <h2 class="section-title">Identity</h2>
-  <div class="hub-grid">
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/identity/creed.html"><h2>Creed</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/identity/code.html"><h2>Code</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/identity/goal.html"><h2>Goal</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/identity/mission.html"><h2>Mission</h2></a>
-  </div>
+  <p class="mat-note">
+    These are the priority youth mat talks. Keep these in front of the room most.
+  </p>
 
-  <h2 class="section-title">Reflect</h2>
-  <div class="hub-grid">
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/reflect/review.html"><h2>Review</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/reflect/own-it.html"><h2>Own It</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/reflect/adjust.html"><h2>Adjust</h2></a>
-  </div>
+  <div class="mat-grid">
 
-  <h2 class="section-title">System</h2>
-  <div class="hub-grid">
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/system/combat.html"><h2>Combat</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/system/strength.html"><h2>Strength</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/system/honor.html"><h2>Honor</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/system/csh.html"><h2>C.S.H.</h2></a>
-  </div>
+    <a class="mat-tile" href="/coaches/cards/mat-talk/youth/standards/attitude.html">
+      <span class="mat-kicker">Youth • Standard</span>
+      <h3>Attitude</h3>
+    </a>
 
-  <h2 class="section-title">Work</h2>
-  <div class="hub-grid">
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/work/full-part-time.html"><h2>Full-Time vs Part-Time</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/work/show-up.html"><h2>Show Up</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/work/no-shortcuts.html"><h2>No Shortcuts</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/work/finish.html"><h2>Finish</h2></a>
-    <a class="hub-tile" href="/coaches/cards/mat-talk/teen/work/daily-work.html"><h2>Daily Work</h2></a>
+    <a class="mat-tile" href="/coaches/cards/mat-talk/youth/standards/effort.html">
+      <span class="mat-kicker">Youth • Standard</span>
+      <h3>Effort</h3>
+    </a>
+
+    <a class="mat-tile" href="/coaches/cards/mat-talk/youth/standards/fear.html">
+      <span class="mat-kicker">Youth • Standard</span>
+      <h3>FEAR</h3>
+    </a>
+
+    <a class="mat-tile" href="/coaches/cards/mat-talk/youth/standards/focus.html">
+      <span class="mat-kicker">Youth • Standard</span>
+      <h3>Focus</h3>
+    </a>
+
+    <a class="mat-tile" href="/coaches/cards/mat-talk/youth/standards/full-part-time.html">
+      <span class="mat-kicker">Youth • Standard</span>
+      <h3>Full Part-Time</h3>
+    </a>
+
+    <a class="mat-tile" href="/coaches/cards/mat-talk/youth/standards/respect.html">
+      <span class="mat-kicker">Youth • Standard</span>
+      <h3>Respect</h3>
+    </a>
+
   </div>
+</section>
+  <section class="mat-section">
+    <h2>Teen Mat Talk</h2>
+    <p class="mat-note">
+      Teen cards are good conversation tools. Use when the room needs reflection, identity, work, gratitude, or system language.
+    </p>
+
+    <div class="mat-grid">
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/gratitude/opportunity.html">
+        <span class="mat-kicker">Teen • Gratitude</span>
+        <h3>Opportunity</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/gratitude/respect-the-room.html">
+        <span class="mat-kicker">Teen • Gratitude</span>
+        <h3>Respect the Room</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/gratitude/respect-your-partner.html">
+        <span class="mat-kicker">Teen • Gratitude</span>
+        <h3>Respect Your Partner</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/identity/code.html">
+        <span class="mat-kicker">Teen • Identity</span>
+        <h3>Code</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/identity/creed.html">
+        <span class="mat-kicker">Teen • Identity</span>
+        <h3>Creed</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/identity/goal.html">
+        <span class="mat-kicker">Teen • Identity</span>
+        <h3>Goal</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/identity/mission.html">
+        <span class="mat-kicker">Teen • Identity</span>
+        <h3>Mission</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/reflect/adjust.html">
+        <span class="mat-kicker">Teen • Reflect</span>
+        <h3>Adjust</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/reflect/own-it.html">
+        <span class="mat-kicker">Teen • Reflect</span>
+        <h3>Own It</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/reflect/review.html">
+        <span class="mat-kicker">Teen • Reflect</span>
+        <h3>Review</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/system/combat.html">
+        <span class="mat-kicker">Teen • System</span>
+        <h3>Combat</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/system/honor.html">
+        <span class="mat-kicker">Teen • System</span>
+        <h3>Honor</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/system/strength.html">
+        <span class="mat-kicker">Teen • System</span>
+        <h3>Strength</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/work/daily-work.html">
+        <span class="mat-kicker">Teen • Work</span>
+        <h3>Daily Work</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/work/finish.html">
+        <span class="mat-kicker">Teen • Work</span>
+        <h3>Finish</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/work/full-part-time.html">
+        <span class="mat-kicker">Teen • Work</span>
+        <h3>Full Part-Time</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/work/no-shortcuts.html">
+        <span class="mat-kicker">Teen • Work</span>
+        <h3>No Shortcuts</h3>
+      </a>
+
+      <a class="mat-tile" href="/coaches/cards/mat-talk/teen/work/show-up.html">
+        <span class="mat-kicker">Teen • Work</span>
+        <h3>Show Up</h3>
+      </a>
+
+    </div>
+  </section>
 
 </main>
-
 </body>
 </html>

@@ -1,5 +1,6 @@
 import {
   db,
+  auth, // 👈 ADD THIS
   ensureSignedIn,
   doc,
   updateDoc,
@@ -8,15 +9,6 @@ import {
 } from "/assets/js/firebase-init.js";
 import { getAthleteStripeInfo } from "/assets/js/ladder.service.js";
 
-const info = getAthleteStripeInfo({
-  ...data,
-  xp: data.xp,
-  xpCap: data.xpCap,
-  rankName: tierName,
-  tierName,
-});
-
-$("athlete-stripes").textContent = `${info.stripesEarned}`;
 const $ = (id) => document.getElementById(id);
 
 const params = new URLSearchParams(location.search);
@@ -174,7 +166,7 @@ function updateButtonVisibility(testing) {
   toggle("btn-pass", state === "TESTING");
   toggle("btn-fail", state === "TESTING");
   toggle("btn-retest", state === "FREEZE");
-  toggle("btn-promote", state === "COOLDOWN");
+  toggle("btn-promote", false);
   toggle("btn-active", state === "FREEZE" || state === "COOLDOWN");
 }
 function renderAthlete(data) {
@@ -220,19 +212,14 @@ $("athlete-stripes").textContent = `${stripesEarned}`;
 
 async function markReady() {
   await updateDoc(athleteRef, {
-    tierStatus: "ready",
-    promotionLocked: true,
-
     "testing.state": "READY",
     "testing.coachReady": true,
     "testing.coachReadyAt": serverTimestamp(),
-
     updatedAt: serverTimestamp()
   });
 
-  setStatus("Marked READY (locked).");
+  setStatus("Marked READY.");
 }
-
 async function enterTemple() {
   await updateDoc(athleteRef, {
     tierStatus: "temple",
@@ -272,26 +259,68 @@ async function setEligible() {
 }
 
 async function startTest() {
-  assertJailClear("Start Test"); // ADD THIS
-  await updateDoc(athleteRef, {
-    tierStatus: "testing",
+  assertJailClear("Start Test");
 
+  await updateDoc(athleteRef, {
     "testing.state": "TESTING",
     "testing.testingStartedAt": serverTimestamp(),
-
     "testing.lastTestResult": null,
     "testing.freezeUntil": null,
     "testing.cooldownUntil": null,
-
     updatedAt: serverTimestamp()
   });
+
   setStatus("Testing started.");
 }
 
+
 async function passTest() {
-  assertJailClear("Pass Test"); // ADD
-  await updateDoc(athleteRef, {
+  assertJailClear("Pass Test");
+
+  if (!athleteData) {
+    throw new Error("Athlete not loaded.");
+  }
+
+  const currentTier = String(athleteData?.tier || "T0");
+  const nextMeta = getNextTierMeta(athleteData);
+
+  if (!nextMeta) {
+    throw new Error(`No next tier found from "${athleteData.tier}".`);
+  }
+
+  const canReleaseHeldLegacy =
+    currentTier === "T0" &&
+    nextMeta.tier === "T1" &&
+    athleteData?.legacyHold === true &&
+    athleteData?.legacyCreditSchedule === "deferred_t1_entry";
+
+  const legacyCreditTotal = Number(athleteData?.legacyCreditTotal || 0);
+  const legacyCreditIssued = Number(athleteData?.legacyCreditIssued || 0);
+
+  const heldRelease = canReleaseHeldLegacy
+    ? Math.max(0, legacyCreditTotal - legacyCreditIssued)
+    : 0;
+
+    const previousBadge = {
+  tier: currentTier,
+  rankName: athleteData.rankName || "",
+  rankColor: athleteData.rankColor || "",
+  earnedAt: new Date().toISOString()
+};
+ 
+  const updatePayload = {
+    // PROMOTION HAPPENS NOW
+    tier: nextMeta.tier,
+    rankName: nextMeta.rankName,
+    rankColor: nextMeta.rankColor,
+    xpCap: nextMeta.xpCap,
+
+    xp: heldRelease,
+    stripeCount: 0,
+
+    // ACTIVE GRATITUDE WINDOW
     tierStatus: "cooldown",
+    promotionLocked: false,
 
     "testing.state": "COOLDOWN",
     "testing.lastTestResult": "pass",
@@ -301,9 +330,31 @@ async function passTest() {
     "testing.coachReady": false,
     "testing.coachReadyAt": null,
 
+    "testing.promotedFrom": currentTier,
+    "testing.promotedTo": nextMeta.tier,
+    "testing.promotedAt": serverTimestamp(),
+
+      // 🔥 ADD THIS BLOCK
+  badges: [
+    ...(Array.isArray(athleteData.badges) ? athleteData.badges : []),
+    previousBadge
+  ],
+
     updatedAt: serverTimestamp()
-  });
-  setStatus("Pass recorded. Cooldown applied.");
+  };
+
+  if (canReleaseHeldLegacy) {
+    updatePayload.legacyCreditIssued = legacyCreditIssued + heldRelease;
+    updatePayload.legacyHold = false;
+  }
+
+  await updateDoc(athleteRef, updatePayload);
+
+  if (canReleaseHeldLegacy) {
+    setStatus(`Pass recorded. Advanced to ${nextMeta.tier}. Cooldown applied. Released held legacy XP: +${heldRelease}.`);
+  } else {
+    setStatus(`Pass recorded. Advanced to ${nextMeta.tier}. Cooldown applied.`);
+  }
 }
 
 async function failTest() {
@@ -392,7 +443,7 @@ async function promoteAthlete() {
     xp: heldRelease,
     stripeCount: 0,
     tierStatus: "active",
-    promotionLocked: true,
+    promotionLocked: false,
 
     "testing.state": "ACTIVE",
     "testing.coachReady": false,
@@ -423,6 +474,10 @@ async function promoteAthlete() {
 async function bind() {
   try {
     await ensureSignedIn();
+
+    // 👇 ADD THIS
+    console.log("SIGNED IN USER:", auth.currentUser?.uid);
+
   } catch (err) {
     console.error(err);
     setStatus("Sign-in failed.", true);

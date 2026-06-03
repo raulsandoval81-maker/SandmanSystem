@@ -1,26 +1,94 @@
+/* =========================
+   GAMES TOOLBAR
+========================= */
+
 .games-toolbar{
   display:flex;
   flex-wrap:wrap;
-  gap:10px;
-  margin:0 0 22px;
+  gap:.75rem;
+  margin:1rem 0 1.5rem;
 }
 
-.back-link{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:10px;
-  font-weight:700;
+/* =========================
+   SHARED BUTTON SYSTEM
+========================= */
+
+.game-btn,
+.game-btn:visited,
+.back-link,
+.back-link:visited{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.4rem;
+
+  min-height:48px;
+  padding:.85rem 1.15rem;
+
+  border-radius:14px;
+  border:1px solid rgba(255,255,255,.16);
+
+  background:rgba(255,255,255,.06);
+  color:#f5f5f5;
+
+  font-size:1rem;
+  font-weight:900;
   text-decoration:none;
-  color:inherit;
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(255,255,255,.12);
-  transition:.15s;
+
+  cursor:pointer;
+
+  transition:
+    transform .16s ease,
+    box-shadow .16s ease,
+    border-color .16s ease,
+    background .16s ease;
 }
 
+.game-btn:hover,
 .back-link:hover{
-  border-color:rgba(255,221,72,.5);
-  background:rgba(255,221,72,.08);
+  transform:translateY(-1px);
+
+  border-color:rgba(255,215,0,.55);
+
+  box-shadow:
+    0 0 0 2px rgba(230,57,70,.24),
+    0 0 18px rgba(255,221,72,.18);
 }
+
+/* =========================
+   PRIMARY GAME BUTTON
+========================= */
+
+.game-btn.primary{
+  background:#ffdd48;
+  color:#0b1120;
+  border-color:rgba(255,221,72,.8);
+}
+
+/* =========================
+   ADDED STATE
+========================= */
+
+.game-btn.added{
+  background:rgba(87,211,140,.18);
+  color:#57d38c;
+  border-color:rgba(87,211,140,.45);
+}
+
+/* =========================
+   STATUS
+========================= */
+
+.status{
+  min-height:24px;
+  color:#57d38c;
+  font-weight:800;
+  font-size:.95rem;
+}
+
+/* =========================
+   GAME INDEX GRID
+========================= */
 
 .games-grid{
   display:grid;
@@ -28,49 +96,97 @@
   gap:16px;
 }
 
+/* =========================
+   GAME TILE
+========================= */
+
 .games-tile{
   display:flex;
   flex-direction:column;
   justify-content:center;
+
   min-height:140px;
   padding:20px;
+
   border:1px solid rgba(255,255,255,.12);
   border-radius:16px;
+
   text-decoration:none;
   color:inherit;
+
   background:rgba(255,255,255,.04);
-  transition:transform .15s ease,border-color .15s ease,background .15s ease;
+
+  transition:
+    transform .15s ease,
+    border-color .15s ease,
+    background .15s ease,
+    box-shadow .15s ease;
 }
 
 .games-tile:hover{
   transform:translateY(-2px);
+
   border-color:rgba(255,221,72,.55);
+
   background:rgba(255,221,72,.08);
+
+  box-shadow:
+    0 0 0 2px rgba(230,57,70,.18),
+    0 0 18px rgba(255,221,72,.12);
 }
+
+/* =========================
+   GAME TILE TEXT
+========================= */
 
 .games-kicker{
   display:block;
+
   margin-bottom:8px;
+
   font-size:.78rem;
   font-weight:700;
   letter-spacing:.04em;
+
   opacity:.7;
+
   text-transform:uppercase;
 }
 
 .games-tile h2{
   margin:0 0 8px;
+
   font-size:1.1rem;
   line-height:1.2;
 }
 
 .games-tile p{
   margin:0;
+
   line-height:1.4;
   opacity:.88;
 }
 
+/* =========================
+   GAME CARD FOOTER
+========================= */
+
+.game-action-row,
+.card-footer-actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:.75rem;
+
+  margin:1.5rem 0 0;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
 @media (max-width:640px){
+
   .games-grid{
     grid-template-columns:1fr;
     gap:12px;
@@ -84,4 +200,16 @@
   .games-tile h2{
     font-size:1rem;
   }
+
+  .game-action-row,
+  .card-footer-actions{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .game-btn,
+  .back-link{
+    width:100%;
+  }
+
 }

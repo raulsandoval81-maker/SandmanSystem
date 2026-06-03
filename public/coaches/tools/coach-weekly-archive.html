@@ -186,7 +186,7 @@
       
 // inside your render loop
 const xp = a.xp ?? 0;
-const cap = a.xpCap ?? 1200;
+const cap = xpCapForAthlete(a);
 const tierName = a.rankName || a.tierName || a.tier || "Apprentice";
 const stripesEarned = Math.floor((xp / cap) * 4); // or your ladder calc
 const el = row.querySelector(".xp-slot");

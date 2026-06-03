@@ -1,48 +1,50 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-/* --------------------------------------
-   Para-Comms V1
----------------------------------------*/
-match /paraParentInbox/{threadId} {
-  allow read: if true;
-  allow create: if true;
-  allow update: if true;
-  allow delete: if false;
-
-  match /thread/{messageId} {
-    allow read: if true;
-
-    allow create: if true
-      && request.resource.data.keys().hasOnly([
-        "from",
-        "fromName",
-        "subject",
-        "body",
-        "createdAt",
-        "seenByCoach",
-        "seenByParent"
-      ])
-      && request.resource.data.from in ["parent", "coach"]
-      && request.resource.data.fromName is string
-      && (
-        !("subject" in request.resource.data)
-        || request.resource.data.subject == null
-        || request.resource.data.subject is string
-      )
-      && request.resource.data.body is string
-      && request.resource.data.body.size() > 0
-      && request.resource.data.body.size() <= 2000
-      && request.resource.data.createdAt is timestamp
-      && request.resource.data.seenByCoach is bool
-      && request.resource.data.seenByParent is bool;
-
-    allow update, delete: if false;
-  }
-}
     /* --------------------------------------
-       Schedule (Public Read)
+       Para-Comms V1
+    ---------------------------------------*/
+    match /paraParentInbox/{threadId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if true;
+      allow delete: if false;
+
+      match /thread/{messageId} {
+        allow read: if true;
+
+        allow create: if true
+          && request.resource.data.keys().hasOnly([
+            "from",
+            "fromName",
+            "subject",
+            "body",
+            "createdAt",
+            "seenByCoach",
+            "seenByParent"
+          ])
+          && request.resource.data.from in ["parent", "coach"]
+          && request.resource.data.fromName is string
+          && (
+            !("subject" in request.resource.data)
+            || request.resource.data.subject == null
+            || request.resource.data.subject is string
+          )
+          && request.resource.data.body is string
+          && request.resource.data.body.size() > 0
+          && request.resource.data.body.size() <= 2000
+          && request.resource.data.createdAt is timestamp
+          && request.resource.data.seenByCoach is bool
+          && request.resource.data.seenByParent is bool;
+
+        allow update, delete: if false;
+      }
+    }
+
+    /* --------------------------------------
+       Schedule
     ---------------------------------------*/
     match /paraSchedule/{teamId} {
       allow read: if true;
@@ -70,110 +72,126 @@ match /paraParentInbox/{threadId} {
 
       allow update: if request.auth != null
         && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-          "pinned","pinnedAt","unpinnedAt",
-          "archived","archivedAt",
-          "deleted","deletedAt",
-          "title","message","editedAt"
+          "pinned",
+          "pinnedAt",
+          "unpinnedAt",
+          "archived",
+          "archivedAt",
+          "deleted",
+          "deletedAt",
+          "title",
+          "message",
+          "editedAt"
         ]);
 
       allow delete: if false;
     }
 
-/* --------------------------------------
-   ATHLETES
----------------------------------------*/
-match /athletes/{athleteId} {
+    /* --------------------------------------
+       Athletes
+    ---------------------------------------*/
+    match /athletes/{athleteId} {
+      allow get, list: if request.auth != null;
+      allow create, delete: if false;
 
-  allow get, list: if request.auth != null;
-  allow create, delete: if false;
-
-  allow update: if request.auth != null && (
-    (
-      !(
-        resource.data.onboarding is map
-        && resource.data.onboarding.keys().hasAny(["completedAt"])
-      )
-
-      && (request.resource.data.onboarding is map)
-
-      && (
-        (resource.data.authUid is string && request.auth.uid == resource.data.authUid)
-        || (
-          !(resource.data.authUid is string)
-          && request.resource.data.authUid is string
-          && request.resource.data.authUid == request.auth.uid
-        )
-      )
-
-      && (
+      allow update: if request.auth != null && (
         (
-          resource.data.authUid is string
+          !(
+            resource.data.onboarding is map
+            && resource.data.onboarding.keys().hasAny(["completedAt"])
+          )
+
+          && request.resource.data.onboarding is map
+
+          && (
+            (
+              resource.data.authUid is string
+              && request.auth.uid == resource.data.authUid
+            )
+            ||
+            (
+              !(resource.data.authUid is string)
+              && request.resource.data.authUid is string
+              && request.resource.data.authUid == request.auth.uid
+            )
+          )
+
+          && (
+            (
+              resource.data.authUid is string
+              && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+                "onboarding",
+                "updatedAt"
+              ])
+            )
+            ||
+            (
+              !(resource.data.authUid is string)
+              && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+                "onboarding",
+                "updatedAt",
+                "authUid"
+              ])
+            )
+          )
+
+          && validLocksProgressionNextStep(
+            (resource.data.onboarding is map && resource.data.onboarding.step is int)
+              ? resource.data.onboarding.step
+              : null,
+            (request.resource.data.onboarding is map && request.resource.data.onboarding.step is int)
+              ? request.resource.data.onboarding.step
+              : null,
+            (resource.data.onboarding is map && resource.data.onboarding.locks is map)
+              ? resource.data.onboarding.locks
+              : {},
+            (request.resource.data.onboarding is map && request.resource.data.onboarding.locks is map)
+              ? request.resource.data.onboarding.locks
+              : {}
+          )
+        )
+        ||
+        (
+          isAdmin()
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-            "onboarding",
+            "testing",
+            "promotionLocked",
+            "tier",
+            "xp",
+            "xpCombat",
+            "stripeCount",
             "updatedAt"
           ])
         )
         ||
         (
-          !(resource.data.authUid is string)
+          request.auth != null
           && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-            "onboarding",
-            "updatedAt",
-            "authUid"
+            "testing",
+            "tierStatus",
+            "updatedAt"
           ])
         )
-      )
+      );
 
-      && validLocksProgressionNextStep(
-        (resource.data.onboarding is map && resource.data.onboarding.step is int)
-          ? resource.data.onboarding.step
-          : null,
-        (request.resource.data.onboarding is map && request.resource.data.onboarding.step is int)
-          ? request.resource.data.onboarding.step
-          : null,
-        (resource.data.onboarding is map && resource.data.onboarding.locks is map)
-          ? resource.data.onboarding.locks
-          : {},
-        (request.resource.data.onboarding is map && request.resource.data.onboarding.locks is map)
-          ? request.resource.data.onboarding.locks
-          : {}
-      )
-    )
-    ||
-    (
-      isAdmin()
-      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-        "testing",
-        "promotionLocked",
-        "tier",
-        "xp",
-        "stripeCount",
-        "updatedAt"
-      ])
-    )
-    ||
-    (
-      request.auth != null
-      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-        "testing",
-        "updatedAt"
-      ])
-    )
-  );
-}
-/* --------------------------------------
-   Athlete XP Logs (SUBCOLLECTION FIX)
----------------------------------------*/
-match /athletes/{athleteId}/xpLogs/{logId} {
-  allow get, list: if isCoachOrAdmin();
+      match /testingLogs/{logId} {
+        allow get, list: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update, delete: if false;
+      }
 
-  allow create: if isAdmin()
-    && request.resource.data.uid is string
-    && request.resource.data.xp is number
-    && request.resource.data.createdAt is timestamp;
+      match /xpLogs/{logId} {
+        allow get, list: if isCoachOrAdmin();
 
-  allow update, delete: if false;
-}
+        allow create: if isAdmin()
+          && request.resource.data.uid is string
+          && request.resource.data.xp is number
+          && request.resource.data.createdAt != null;
+
+        allow update, delete: if false;
+      }
+    }
+
     /* --------------------------------------
        Intake
     ---------------------------------------*/
@@ -211,38 +229,30 @@ match /athletes/{athleteId}/xpLogs/{logId} {
       allow delete: if false;
     }
 
-/* --------------------------------------
-   Lane Submissions
----------------------------------------*/
-match /laneSubmissions/{athleteId} {
+    /* --------------------------------------
+       Lane Submissions
+    ---------------------------------------*/
+    match /laneSubmissions/{athleteId} {
+      allow read: if request.auth != null;
 
-  // Any signed-in user can read their data
-  allow read: if request.auth != null;
+      allow create: if request.auth != null
+        && exists(/databases/$(database)/documents/athletes/$(athleteId));
 
-  // Create new submission doc (first time)
-  allow create: if request.auth != null
-    && exists(/databases/$(database)/documents/athletes/$(athleteId));
+      allow update: if request.auth != null
+        && exists(/databases/$(database)/documents/athletes/$(athleteId));
 
-  // Update existing doc (THIS FIXES YOUR ISSUE)
-  allow update: if request.auth != null
-    && exists(/databases/$(database)/documents/athletes/$(athleteId));
+      allow delete: if false;
+    }
 
-  // No deletes
-  allow delete: if false;
-}
+    /* --------------------------------------
+       Lane History
+    ---------------------------------------*/
+    match /laneHistory/{docId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if false;
+    }
 
-/* --------------------------------------
-   Lane History
----------------------------------------*/
-match /laneHistory/{docId} {
-
-  allow read: if request.auth != null;
-
-  // Coaches/admin write history
-  allow create: if request.auth != null;
-
-  allow update, delete: if false;
-}
     /* --------------------------------------
        Parents
     ---------------------------------------*/
@@ -321,8 +331,12 @@ match /laneHistory/{docId} {
 
         allow create: if request.auth != null
           && request.resource.data.keys().hasOnly([
-            "from","fromName","body","createdAt",
-            "seenByCoach","seenByParent"
+            "from",
+            "fromName",
+            "body",
+            "createdAt",
+            "seenByCoach",
+            "seenByParent"
           ])
           && request.resource.data.from is string
           && request.resource.data.fromName is string
@@ -338,7 +352,7 @@ match /laneHistory/{docId} {
     }
 
     /* --------------------------------------
-       Para Threads (Parent ↔ Coach)
+       Para Threads
     ---------------------------------------*/
     match /paraThreads/{athleteUid} {
       allow read, write: if request.auth != null;
@@ -371,23 +385,24 @@ match /laneHistory/{docId} {
     }
 
     /* --------------------------------------
-       XP Logs (Admin audit lane)
+       XP Logs
     ---------------------------------------*/
-match /xpLogs/{logId} {
-  allow get, list: if isCoachOrAdmin();
+    match /xpLogs/{logId} {
+      allow get, list: if isCoachOrAdmin();
 
-  allow create: if isAdmin()
-    && request.resource.data.uid is string
-    && request.resource.data.amount is number
-    && request.resource.data.beforeXp is number
-    && request.resource.data.afterXp is number
-    && request.resource.data.kind is string
-    && request.resource.data.createdAt is timestamp;
+      allow create: if isAdmin()
+        && request.resource.data.uid is string
+        && request.resource.data.amount is number
+        && request.resource.data.beforeXp is number
+        && request.resource.data.afterXp is number
+        && request.resource.data.kind is string
+        && request.resource.data.createdAt != null;
 
-  allow update, delete: if false;
-}
+      allow update, delete: if false;
+    }
+
     /* --------------------------------------
-       Staff (Admin Access Control)
+       Staff
     ---------------------------------------*/
     match /staff/{userId} {
       allow get: if request.auth != null
@@ -398,22 +413,31 @@ match /xpLogs/{logId} {
     }
 
     /* --------------------------------------
-       Athlete Testing Logs
+       Practice Plans
     ---------------------------------------*/
-match /athletes/{athleteId}/testingLogs/{logId} {
-  allow get, list: if request.auth != null;
-  allow create: if request.auth != null;
-  allow update, delete: if false;
-}
+    match /practicePlans/{planId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
 
-/* --------------------------------------
-   Practice Plans
----------------------------------------*/
-match /practicePlans/{planId} {
-  allow read: if request.auth != null;
-  allow create, update: if request.auth != null;
-  allow delete: if false;
-}
+    /* --------------------------------------
+       Leaderboards
+    ---------------------------------------*/
+    match /leaderboards/{track}/{document=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    /* --------------------------------------
+       Live Sessions
+    ---------------------------------------*/
+    match /liveSessions/{sessionId} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null;
+      allow delete: if false;
+    }
+
     /* --------------------------------------
        DEFAULT CLOSED
     ---------------------------------------*/
@@ -421,60 +445,62 @@ match /practicePlans/{planId} {
       allow read, write: if false;
     }
 
-/* --------------------------------------
-   Helpers (CLEAN + LOCKED)
----------------------------------------*/
-function isSignedIn() {
-  return request.auth != null;
-}
+    /* --------------------------------------
+       Helpers
+    ---------------------------------------*/
+    function isSignedIn() {
+      return request.auth != null;
+    }
 
-function staffRole() {
-  return isSignedIn()
-    && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
-      ? get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role
-      : null;
-}
+    function staffRole() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+          ? get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.role
+          : null;
+    }
 
-function isAdmin() {
-  return staffRole() == "admin";
-}
+    function isAdmin() {
+      return staffRole() == "admin";
+    }
 
-function isCoachOrAdmin() {
-  return staffRole() in ["admin", "coach"];
-}
+    function isCoachOrAdmin() {
+      return staffRole() in ["admin", "coach"];
+    }
 
-function lockVal(locks, key) {
-  return (locks is map)
-    && locks.keys().hasAny([key])
-    && locks[key] == true;
-}
+    function lockVal(locks, key) {
+      return (locks is map)
+        && locks.keys().hasAny([key])
+        && locks[key] == true;
+    }
 
-function lockForStep(locks, s) {
-  return s == 1 ? lockVal(locks,"step1") :
-         s == 2 ? lockVal(locks,"step2") :
-         s == 3 ? lockVal(locks,"step3") :
-         s == 4 ? lockVal(locks,"step4") :
-         s == 5 ? lockVal(locks,"step5") :
-         s == 6 ? lockVal(locks,"step6") :
-         s == 7 ? lockVal(locks,"step7") :
-         s == 8 ? lockVal(locks,"step8") :
-         s == 9 ? lockVal(locks,"step9") :
-         false;
-}
+    function lockForStep(locks, s) {
+      return s == 1 ? lockVal(locks, "step1") :
+             s == 2 ? lockVal(locks, "step2") :
+             s == 3 ? lockVal(locks, "step3") :
+             s == 4 ? lockVal(locks, "step4") :
+             s == 5 ? lockVal(locks, "step5") :
+             s == 6 ? lockVal(locks, "step6") :
+             s == 7 ? lockVal(locks, "step7") :
+             s == 8 ? lockVal(locks, "step8") :
+             s == 9 ? lockVal(locks, "step9") :
+             false;
+    }
 
-function validLocksProgressionNextStep(oldStep, newStep, oldLocks, newLocks) {
-  return (newLocks is map) && (
-    (
-      !(oldStep is int) &&
-      newStep == 2 &&
-      lockVal(newLocks,"step1")
-    )
-    ||
-    (
-      (oldStep is int) &&
-      (newStep is int) &&
-      (newStep == oldStep + 1) &&
-      lockForStep(newLocks, oldStep)
-    )
-  );
-} }}
+    function validLocksProgressionNextStep(oldStep, newStep, oldLocks, newLocks) {
+      return (newLocks is map) && (
+        (
+          !(oldStep is int)
+          && newStep == 2
+          && lockVal(newLocks, "step1")
+        )
+        ||
+        (
+          (oldStep is int)
+          && (newStep is int)
+          && (newStep == oldStep + 1)
+          && lockForStep(newLocks, oldStep)
+        )
+      );
+    }
+  }
+}

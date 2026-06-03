@@ -149,3 +149,113 @@ textarea {
   color: var(--muted);
   opacity: 0.7;
 }
+/* ============= TOP BAR / TOGGLES ============= */
+
+.intake-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 26px;
+}
+
+.title-wrap {
+  flex: 1;
+}
+
+.intake-topbar .page-title,
+.intake-topbar .muted {
+  text-align: left;
+}
+
+.toggle-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.toggle-btn {
+  border: 1px solid rgba(255, 221, 72, 0.38);
+  background: rgba(255, 221, 72, 0.08);
+  color: var(--brand);
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.toggle-btn:hover {
+  background: rgba(255, 221, 72, 0.16);
+}
+
+/* ============= SELECT ============= */
+
+select {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  background: #0c121b;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+/* ============= DAY MODE ============= */
+
+body.day-mode {
+  --bg: #f4f4f0;
+  --panel: #ffffff;
+  --border: #d1d5db;
+  --text: #111827;
+  --muted: #4b5563;
+  background: var(--bg);
+  color: var(--text);
+}
+
+body.day-mode input,
+body.day-mode textarea,
+body.day-mode select {
+  background: #ffffff;
+  color: #111827;
+  border-color: #cbd5e1;
+}
+
+body.day-mode .waiver-block {
+  background: #f9fafb;
+}
+
+body.day-mode .btn-waiver {
+  background: #f3f4f6;
+  color: #8a6f00;
+}
+
+body.day-mode .toggle-btn {
+  background: rgba(0, 0, 0, 0.04);
+  color: #8a6f00;
+  border-color: #d6b83f;
+}
+
+/* ============= MOBILE ============= */
+
+@media (max-width: 720px) {
+  .intake-topbar {
+    flex-direction: column;
+  }
+
+  .toggle-tools {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .toggle-btn {
+    flex: 1;
+  }
+
+  .intake-topbar .page-title,
+  .intake-topbar .muted {
+    text-align: center;
+  }
+}

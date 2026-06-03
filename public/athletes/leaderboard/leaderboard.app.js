@@ -29,6 +29,10 @@ const athleteId = (
   ""
 ).trim().toUpperCase();
 
+/* =========================
+   HELPERS
+========================= */
+
 function titleCase(str = "") {
   return str ? str.charAt(0).toUpperCase() + str.slice(1) : "";
 }
@@ -37,8 +41,8 @@ function normalizeTrack(raw = "", docId = "") {
   const t = String(raw || "").toLowerCase();
   const id = String(docId || "").toUpperCase();
 
-  if (t.includes("f8") || t.includes("foundry8") || id.startsWith("F8_")) return "foundry8";
-  if (t.includes("f4") || t.includes("foundry4") || id.startsWith("F4_")) return "foundry4";
+  if (t.includes("f8") || id.startsWith("F8_")) return "foundry8";
+  if (t.includes("f4") || id.startsWith("F4_")) return "foundry4";
 
   return "foundry4";
 }
@@ -51,43 +55,76 @@ function normalizeXp(raw = 0) {
   return Number(raw || 0);
 }
 
-function sortByXp(list) {
-  return [...list].sort((a, b) => b.xp - a.xp);
-}
+/* =========================
+   TIER ORDER
+========================= */
 
 function getTierOrder() {
   if (TRACK === "foundry8") {
-    return ["shadow", "recruit", "combatant", "competitor", "warrior", "champion", "veteran", "hero"];
+    return ["shadow","recruit","combatant","competitor","warrior","champion","veteran","hero"];
   }
-
-  return ["apprentice", "warrior", "champion", "veteran", "legend"];
+  return ["apprentice","warrior","champion","veteran","legend"];
 }
+
+function getTierIndex(tier) {
+  const order = getTierOrder();
+  const idx = order.indexOf(normalizeTier(tier));
+  return idx === -1 ? 0 : idx;
+}
+
+/* =========================
+   🔥 ONE SORTING BRAIN
+========================= */
+
+function sortAthletes(list, mode) {
+  return [...list].sort((a, b) => {
+
+    if (mode === "lifetime") {
+      return (b.lifetimeXp || 0) - (a.lifetimeXp || 0);
+    }
+
+    if (mode === "tier") {
+      return b.xp - a.xp;
+    }
+
+    // progression / overall / track
+    const tierDiff = getTierIndex(b.tier) - getTierIndex(a.tier);
+    if (tierDiff !== 0) return tierDiff;
+
+    const xpDiff = b.xp - a.xp;
+    if (xpDiff !== 0) return xpDiff;
+
+    return b.stripe - a.stripe;
+  });
+}
+
+/* =========================
+   DATA SCOPING
+========================= */
 
 function getTrackAthletes() {
   return athletes.filter(a => a.track === TRACK);
 }
 
 function getScopedAthletes() {
-  const view = viewModeEl ? viewModeEl.value : "overall";
-  const trackAthletes = getTrackAthletes();
+  const view = viewModeEl?.value || "overall";
+  const rankingMode = modeToggleEl?.value || "progression";
+
+  let list = getTrackAthletes();
 
   if (view === "tier" && currentAthlete) {
-    return sortByXp(trackAthletes.filter(a => a.tier === currentAthlete.tier))
-      .map((a, i) => ({ ...a, scopedRank: i + 1 }));
+    list = list.filter(a => a.tier === currentAthlete.tier);
+    list = sortAthletes(list, "tier");
+  } else {
+    list = sortAthletes(list, rankingMode);
   }
 
-  return sortByXp(trackAthletes)
-    .map((a, i) => ({ ...a, scopedRank: i + 1 }));
+  return list.map((a, i) => ({ ...a, scopedRank: i + 1 }));
 }
 
-function getScopedCurrentAthlete() {
-  if (!currentAthlete) return null;
-
-  const scopedAthletes = getScopedAthletes();
-  const found = scopedAthletes.find(a => a.id === currentAthlete.id);
-
-  return found || null;
-}
+/* =========================
+   UI
+========================= */
 
 function rowHtml(a, isYou = false) {
   return `
@@ -105,68 +142,33 @@ function rowHtml(a, isYou = false) {
 }
 
 function renderTop8() {
-  if (!top8ListEl) return;
-
   const list = getScopedAthletes().slice(0, 8);
 
   top8ListEl.innerHTML = list.length
     ? list.map(a => rowHtml(a, a.id === athleteId)).join("")
     : `<div class="empty">No rankings yet.</div>`;
-
-  if (boardTitleEl) {
-    const view = viewModeEl ? viewModeEl.value : "overall";
-
-    if (view === "tier" && currentAthlete?.tier) {
-      boardTitleEl.textContent = `${titleCase(currentAthlete.tier)} Top 8`;
-    } else {
-      boardTitleEl.textContent = "Top 8";
-    }
-  }
 }
 
 function renderYourZone() {
-  if (!yourZoneEl) return;
+  if (!currentAthlete) return;
 
-  if (!currentAthlete) {
-    yourZoneEl.innerHTML = `<div class="empty">No athlete selected.</div>`;
-    return;
-  }
+  const scoped = getScopedAthletes();
+  const index = scoped.findIndex(a => a.id === currentAthlete.id);
 
-  const scopedAthletes = getScopedAthletes();
-  const index = scopedAthletes.findIndex(a => a.id === currentAthlete.id);
+  const zone = scoped.slice(Math.max(0, index - 2), index + 3);
 
-  if (index === -1) {
-    yourZoneEl.innerHTML = `<div class="empty">No zone data yet.</div>`;
-    return;
-  }
-
-  const zone = scopedAthletes.slice(
-    Math.max(0, index - 2),
-    index + 3
-  );
-
-  yourZoneEl.innerHTML = zone.length
-    ? zone.map(a => rowHtml(a, a.id === currentAthlete.id)).join("")
-    : `<div class="empty">No zone data yet.</div>`;
+  yourZoneEl.innerHTML = zone.map(a =>
+    rowHtml(a, a.id === currentAthlete.id)
+  ).join("");
 }
 
 function renderNextTarget() {
-  if (!nextTargetEl) return;
+  if (!currentAthlete) return;
 
-  if (!currentAthlete) {
-    nextTargetEl.innerHTML = `<div class="empty">No athlete selected.</div>`;
-    return;
-  }
+  const scoped = getScopedAthletes();
+  const me = scoped.find(a => a.id === currentAthlete.id);
 
-  const scopedAthletes = getScopedAthletes();
-  const me = scopedAthletes.find(a => a.id === currentAthlete.id);
-
-  if (!me) {
-    nextTargetEl.innerHTML = `<div class="empty">No target data yet.</div>`;
-    return;
-  }
-
-  const next = scopedAthletes
+  const next = scoped
     .filter(a => a.scopedRank < me.scopedRank)
     .sort((a, b) => b.scopedRank - a.scopedRank)[0];
 
@@ -178,42 +180,27 @@ function renderNextTarget() {
   const gap = Math.max(0, next.xp - me.xp + 1);
 
   nextTargetEl.innerHTML = `
-    <div class="target-name">${next.name}</div>
-    <div class="target-rank">Rank #${next.scopedRank}</div>
-    <div class="target-gap">+${gap} XP to pass</div>
+    <div>${next.name}</div>
+    <div>#${next.scopedRank}</div>
+    <div>+${gap} XP</div>
   `;
 }
 
-function syncPrivatePanels() {
-  const mode = modeToggleEl ? modeToggleEl.value : "private";
-
-  if (mode === "public") {
-    if (privateZonePanel) privateZonePanel.style.display = "none";
-    if (nextTargetPanel) nextTargetPanel.style.display = "none";
-  } else {
-    if (privateZonePanel) privateZonePanel.style.display = "";
-    if (nextTargetPanel) nextTargetPanel.style.display = "";
-  }
-}
-
 function render() {
-  if (!currentAthlete) {
-    if (top8ListEl) top8ListEl.innerHTML = `<div class="empty">No athlete selected.</div>`;
-    if (yourZoneEl) yourZoneEl.innerHTML = `<div class="empty">No athlete selected.</div>`;
-    if (nextTargetEl) nextTargetEl.innerHTML = `<div class="empty">No athlete selected.</div>`;
-    syncPrivatePanels();
-    return;
-  }
+  if (!currentAthlete) return;
 
   renderTop8();
-  syncPrivatePanels();
 
-  const mode = modeToggleEl ? modeToggleEl.value : "private";
+  const mode = modeToggleEl?.value || "private";
   if (mode !== "public") {
     renderYourZone();
     renderNextTarget();
   }
 }
+
+/* =========================
+   LOAD
+========================= */
 
 async function loadAthletes() {
   const snap = await getDocs(collection(db, "athletes"));
@@ -221,27 +208,44 @@ async function loadAthletes() {
   athletes = snap.docs
     .map(doc => {
       const data = doc.data() || {};
+      const id = doc.id.toUpperCase();
+      const name = (data.fullName || data.name || doc.id);
 
       return {
-        id: doc.id.toUpperCase(),
-        name: data.fullName || data.name || doc.id,
+        id,
+        name,
         track: normalizeTrack(data.track, doc.id),
-        tier: normalizeTier(data.tier || data.rank || data.rankName || ""),
-        stripe: Number(data.stripeCount || data.stripe || 0),
+        tier: normalizeTier(data.tier || data.rankName),
+        stripe: Number(data.stripeCount || 0),
         xp: normalizeXp(data.xp),
+
+        lifetimeXp: normalizeXp(
+          data.lifetimeXp ??
+          data.xpLifetime ??
+          data.totalLifetimeXp ??
+          data.xp
+        ),
 
         isDev: data.isDev === true,
         isTest: data.isTest === true,
         devMode: data.devMode === true
       };
     })
-    .filter(a =>
-      a.track === TRACK &&
-      !a.isDev &&
-      !a.isTest &&
-      !a.devMode &&
-      !a.name.toLowerCase().includes("dev")
-    );
+    .filter(a => {
+      const id = a.id;
+      const name = a.name.toLowerCase();
+
+      return (
+        !a.isDev &&
+        !a.isTest &&
+        !a.devMode &&
+        !id.includes("_TEST_") &&
+        !id.includes("_GHOST_") &&
+        !id.includes("GHOST") &&
+        !name.includes("dev") &&
+        !name.includes("ghost")
+      );
+    });
 
   currentAthlete =
     athletes.find(a => a.id === athleteId) ||
@@ -250,13 +254,11 @@ async function loadAthletes() {
 
   render();
 }
+/* =========================
+   EVENTS
+========================= */
 
-if (viewModeEl) viewModeEl.addEventListener("change", render);
-if (modeToggleEl) modeToggleEl.addEventListener("change", render);
+viewModeEl?.addEventListener("change", render);
+modeToggleEl?.addEventListener("change", render);
 
-loadAthletes().catch(err => {
-  console.error("[leaderboard] load failed:", err);
-  if (top8ListEl) top8ListEl.innerHTML = `<div class="empty">Failed to load leaderboard.</div>`;
-  if (yourZoneEl) yourZoneEl.innerHTML = `<div class="empty">Failed to load private zone.</div>`;
-  if (nextTargetEl) nextTargetEl.innerHTML = `<div class="empty">Failed to load next target.</div>`;
-});
+loadAthletes();

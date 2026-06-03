@@ -18,18 +18,9 @@
     return data.some(item => item.id === id && item.lane === lane);
   }
 
-
-lanes.forEach((lane) => {
-  const cleanLane = String(lane || "").toLowerCase().trim();
-  const id = btn.dataset.cardId;
-
-  if (exists(data, id, cleanLane)) return;
-
-  if (laneHasAny(data, cleanLane)) return;
-
-  data.push(buildCard(btn, cleanLane));
-  added++;
-});
+function laneHasAny(data, lane) {
+  return data.some(item => item.lane === lane);
+}
 
   function buildCard(btn, lane) {
     return {

@@ -3,86 +3,289 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Parent Intake</title>
+  <title>Athlete Intake</title>
+
   <link rel="stylesheet" href="/intake-parent/parent.intake.css">
   <link rel="icon" href="data:,"> 
 </head>
+
 <body>
+
   <main class="wrap">
-    <h1 class="page-title">Parent Intake</h1>
-    <p class="muted">Tell us about your athlete. Coach will review and activate your profile.</p>
+
+    <h1 class="page-title">
+      Athlete Intake
+      <span class="lang-alt-title">
+        / Registro del Atleta
+      </span>
+    </h1>
+      <!-- PLACEMENT NOTE -->
+      <p class="placement-note">
+        Coach will review age, experience, and goals before assigning the correct training path.
+        <span class="lang-alt-block">
+          El entrenador revisará edad, experiencia y metas antes de asignar el camino correcto de entrenamiento.
+        </span>
+      </p>
+
+
 
     <form id="intakeForm">
+
+      <!-- TEAM -->
       <label>
         Team / School
-        <input type="text" id="team" placeholder="School or club (optional)">
+        <span class="lang-alt">Equipo / Escuela</span>
+
+        <input
+          type="text"
+          id="team"
+          placeholder="School or club (optional)"
+        >
       </label>
 
-      <label>Athlete First & Last Name</label>
-      <input type="text" id="athleteName" required placeholder="e.g., Jordan Rivera"/>
+      <!-- ATHLETE -->
+      <label>
+        Athlete First & Last Name
+        <span class="lang-alt">
+          Nombre y apellido del atleta
+        </span>
+      </label>
 
-      <label>Email</label>
-      <input type="email" id="parentEmail" required placeholder="name@example.com"/>
+      <input
+        type="text"
+        id="athleteName"
+        required
+        placeholder="e.g., Jordan Rivera"
+      />
 
-      <label>Phone</label>
-      <input type="text" id="parentPhone" required placeholder="555-123-4567"/>
+      <!-- EMAIL -->
+      <label>
+        Email
+        <span class="lang-alt">
+          Correo electrónico
+        </span>
+      </label>
 
-      <label>Date of Birth</label>
-      <input type="date" id="dob" required/>
+      <input
+        type="email"
+        id="parentEmail"
+        required
+        placeholder="name@example.com"
+      />
 
-      <label>City</label>
-      <input type="text" id="city" required/>
+      <!-- PHONE -->
+      <label>
+        Phone
+        <span class="lang-alt">
+          Teléfono
+        </span>
+      </label>
 
-      <label>State</label>
-      <input type="text" id="state" required/>
+      <input
+        type="text"
+        id="parentPhone"
+        required
+        placeholder="555-123-4567"
+      />
 
+      <!-- DOB -->
+      <label>
+        Date of Birth
+        <span class="lang-alt">
+          Fecha de nacimiento
+        </span>
+      </label>
+
+      <input
+        type="date"
+        id="dob"
+        required
+      />
+
+      <!-- CITY -->
+      <label>
+        City
+        <span class="lang-alt">
+          Ciudad
+        </span>
+      </label>
+
+      <input
+        type="text"
+        id="city"
+        required
+      />
+
+      <!-- STATE -->
+      <label>
+        State
+        <span class="lang-alt">
+          Estado
+        </span>
+      </label>
+
+      <input
+        type="text"
+        id="state"
+        required
+      />
+
+      <!-- EMERGENCY NAME -->
       <label>
         Emergency Contact Name
-        <input type="text" id="emergencyName" placeholder="Full name">
+        <span class="lang-alt">
+          Nombre del contacto de emergencia
+        </span>
+
+        <input
+          type="text"
+          id="emergencyName"
+          placeholder="Full name"
+        >
       </label>
 
+      <!-- EMERGENCY PHONE -->
       <label>
         Emergency Contact Phone
-        <input type="tel" id="emergencyPhone" placeholder="(555) 555-5555">
+        <span class="lang-alt">
+          Teléfono del contacto de emergencia
+        </span>
+
+        <input
+          type="tel"
+          id="emergencyPhone"
+          placeholder="(555) 555-5555"
+        >
       </label>
 
-      <label>Medical Notes</label>
-      <textarea id="medical" placeholder="Allergies, medications, injuries…"></textarea>
+      <!-- MEDICAL -->
+      <label>
+        Medical Notes
+        <span class="lang-alt">
+          Notas médicas
+        </span>
+      </label>
 
-      <section class="waiver-block">
-        <h2 class="waiver-title">Waiver & Release</h2>
+      <textarea
+        id="medical"
+        placeholder="Allergies, medications, injuries…"
+      ></textarea>
 
-        <button type="button" id="openWaiverBtn" class="btn btn-waiver">
-          Open Waiver PDF
-        </button>
+<!-- WAIVER -->
+<section class="waiver-block">
 
-        <p id="waiverStatus" class="muted">
-          Status: <strong>Not Viewed</strong>
-        </p>
+  <h2 class="waiver-title">
+    Waiver & Release
+    <span class="lang-alt-title">
+      / Exención y autorización
+    </span>
+  </h2>
 
-        <label class="checkbox-row">
-          <input type="checkbox" id="waiverCheck" disabled />
-          <span>I have read and agree to the waiver.</span>
-        </label>
+  <div class="waiver-lang-row">
 
-        <label>Parent Signature</label>
-        <input id="signatureParent" type="text" disabled placeholder="Type full name…"/>
+    <button
+      type="button"
+      id="openWaiverBtnEn"
+      class="btn btn-waiver"
+    >
+      English
+      <span class="lang-alt">
+      </span>
+    </button>
 
-        <label>Today's Date</label>
-        <input id="signatureDate" type="date" disabled />
-      </section>
+    <button
+      type="button"
+      id="openWaiverBtnEs"
+      class="btn btn-waiver"
+    >
+      Español
+      <span class="lang-alt">
+      </span>
+    </button>
 
-      <button type="submit" id="submitBtn" class="btn btn-brand" disabled>
+  </div>
+
+  <p id="waiverStatus" class="muted">
+    Status / Estado:
+    <strong>
+      Not Viewed / No visto
+    </strong>
+  </p>
+
+  <label class="checkbox-row">
+
+    <input
+      type="checkbox"
+      id="waiverCheck"
+      disabled
+    />
+
+    <span>
+      I have read and agree to the waiver.
+      <span class="lang-alt-block">
+        He leído y acepto la exención.
+      </span>
+    </span>
+
+  </label>
+
+  <!-- SIGNATURE -->
+  <label>
+    Parent / Adult Signature
+    <span class="lang-alt">
+      Firma del padre / adulto
+    </span>
+  </label>
+
+  <input
+    id="signatureParent"
+    type="text"
+    disabled
+    placeholder="Type full name…"
+  />
+
+  <!-- DATE -->
+  <label>
+    Today's Date
+    <span class="lang-alt">
+      Fecha de hoy
+    </span>
+  </label>
+
+  <input
+    id="signatureDate"
+    type="date"
+    disabled
+  />
+
+    </section>
+
+      <!-- SUBMIT -->
+      <button
+        type="submit"
+        id="submitBtn"
+        class="btn btn-brand"
+        disabled
+      >
         Submit to Coach
+        <span class="lang-alt">
+          Enviar al entrenador
+        </span>
       </button>
+
     </form>
 
     <footer class="footer">
       Built in the Shadows.<br>
       Sandman Combat™ — Athlete Intake
     </footer>
+
   </main>
 
-  <script type="module" src="/intake-parent/parent.intake.js"></script>
+  <script
+    type="module"
+    src="/intake-parent/parent.intake.js"
+  ></script>
+
 </body>
 </html>

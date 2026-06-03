@@ -1,4 +1,4 @@
-/* /public/coaches/ceremonies.service.js
+/* /public/coaches/ceremonies/ceremonies.service.js
    Sandman System™ — Ceremonies service (LOCAL STUB)
    Purpose:
    - Ceremony/Belt recognition only

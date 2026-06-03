@@ -5,19 +5,20 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Leaderboard</title>
 </head>
+
+<body>
 <header class="athlete-sub-header">
   <div class="sub-header-inner">
     <span class="brand">Sandman Combat™</span>
 
     <div class="sub-nav">
-      <a href="/athletes/hub/full-hub.html?" class="sub-btn home">Home</a>
+      <a href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
       <a href="/athletes/bulletin/index.html" class="sub-btn">Bulletin</a>
       <a href="/athletes/arsenal/index.html" class="sub-btn">Arsenal</a>
       <a href="/athletes/leaderboard/teen/index.html" class="sub-btn">Leaderboard</a>
     </div>
   </div>
 </header>
-<body>
 
 <script>
   const params = new URLSearchParams(window.location.search);
@@ -35,10 +36,10 @@
 
   if (!id) {
     document.body.innerHTML = "No athlete ID found.";
-  } else if (id.startsWith("F8_")) {
-    window.location.replace(`/athletes/leaderboard/youth/?athleteId=${id}`);
-  } else if (id.startsWith("F4_")) {
-    window.location.replace(`/athletes/leaderboard/teen/?athleteId=${id}`);
+  } else if (id.toUpperCase().startsWith("F8_")) {
+    window.location.replace(`/athletes/leaderboard/youth/?athleteId=${encodeURIComponent(id)}`);
+  } else if (id.toUpperCase().startsWith("F4_")) {
+    window.location.replace(`/athletes/leaderboard/teen/?athleteId=${encodeURIComponent(id)}`);
   } else {
     document.body.innerHTML = "Invalid athlete ID.";
   }

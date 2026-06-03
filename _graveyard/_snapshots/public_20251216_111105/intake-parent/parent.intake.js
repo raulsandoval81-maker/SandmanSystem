@@ -264,13 +264,228 @@ function wirePhoneSanitizer(id) {
     el.value = digitsOnly(el.value).slice(0, 10);
   });
 }
+// -------------------- Language + Theme --------------------
+const translations = {
 
+  en: {
+    title: "Athlete Intake",
+
+    subtitle:
+      "Tell us about yourself or your athlete. Coach will review and activate your profile.",
+
+    team: "Team / School",
+
+    athleteName:
+      "Athlete First & Last Name",
+
+    email: "Email",
+
+    phone: "Phone",
+
+
+    dob: "Date of Birth",
+
+    city: "City",
+
+    state: "State",
+
+    emergencyName:
+      "Emergency Contact Name",
+
+    emergencyPhone:
+      "Emergency Contact Phone",
+
+    medical:
+      "Medical Notes",
+
+    waiverTitle:
+      "Waiver & Release",
+
+    openWaiver:
+      "Open Waiver PDF",
+
+    status:
+      "Status:",
+
+    notViewed:
+      "Not Viewed",
+
+    waiverAgree:
+      "I have read and agree to the waiver.",
+
+    signature:
+      "Parent / Adult Signature",
+
+    today:
+      "Today's Date",
+
+    submit:
+      "Submit to Coach"
+  },
+
+  es: {
+
+    title:
+      "Registro del Atleta",
+
+    subtitle:
+      "Cuéntenos sobre usted o su atleta. El entrenador revisará y activará su perfil.",
+
+    team:
+      "Equipo / Escuela",
+
+    athleteName:
+      "Nombre y apellido del atleta",
+
+    email:
+      "Correo electrónico",
+
+    phone:
+      "Teléfono",
+
+
+    dob:
+      "Fecha de nacimiento",
+
+    city:
+      "Ciudad",
+
+    state:
+      "Estado",
+
+    emergencyName:
+      "Nombre del contacto de emergencia",
+
+    emergencyPhone:
+      "Teléfono del contacto de emergencia",
+
+    medical:
+      "Notas médicas",
+
+    waiverTitle:
+      "Exención y autorización",
+
+    openWaiver:
+      "Abrir PDF de exención",
+
+    status:
+      "Estado:",
+
+    notViewed:
+      "No visto",
+
+    waiverAgree:
+      "He leído y acepto la exención.",
+
+    signature:
+      "Firma del padre / adulto",
+
+    today:
+      "Fecha de hoy",
+
+    submit:
+      "Enviar al entrenador"
+  }
+};
+
+function applyLanguage(lang = "en") {
+
+  localStorage.setItem(
+    "sandman_intake_lang",
+    lang
+  );
+
+  document.documentElement.lang = lang;
+
+  document
+    .querySelectorAll("[data-i18n]")
+    .forEach((el) => {
+
+      const key = el.dataset.i18n;
+
+      const value =
+        translations?.[lang]?.[key];
+
+      if (value) {
+        el.textContent = value;
+      }
+    });
+
+  const btn = $("langToggle");
+
+  if (btn) {
+    btn.textContent =
+      lang === "en"
+        ? "Español"
+        : "English";
+  }
+}
+
+function applyTheme(theme = "night") {
+
+  document.body.classList.toggle(
+    "day-mode",
+    theme === "day"
+  );
+
+  localStorage.setItem(
+    "sandman_intake_theme",
+    theme
+  );
+
+  const btn = $("themeToggle");
+
+  if (btn) {
+    btn.textContent =
+      theme === "day"
+        ? "🌙 Night"
+        : "☀ Day";
+  }
+}
+
+function wireLanguageTheme() {
+
+  const savedLang =
+    localStorage.getItem(
+      "sandman_intake_lang"
+    ) || "en";
+
+  const savedTheme =
+    localStorage.getItem(
+      "sandman_intake_theme"
+    ) || "night";
+
+  applyLanguage(savedLang);
+  applyTheme(savedTheme);
+
+  $("langToggle")
+    ?.addEventListener("click", () => {
+
+      const next =
+        document.documentElement.lang === "en"
+          ? "es"
+          : "en";
+
+      applyLanguage(next);
+    });
+
+  $("themeToggle")
+    ?.addEventListener("click", () => {
+
+      const next =
+        document.body.classList.contains("day-mode")
+          ? "night"
+          : "day";
+
+      applyTheme(next);
+    });
+}
 document.addEventListener("DOMContentLoaded", () => {
   const tok = getInviteFromURL();
   if (!tok) setWaiverStatusStrong("Not Viewed (missing invite token)", "#fbbf24");
-  wireWaiver(); // 🔑 REQUIRED
 
   wireWaiver();
+  wireLanguageTheme();
   wirePhoneSanitizer("parentPhone");
   wirePhoneSanitizer("emergencyPhone");
 

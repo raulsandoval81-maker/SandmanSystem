@@ -24,10 +24,13 @@ const statusEl = document.getElementById("status");
 const nameEl = document.getElementById("vol-name");
 const athleteEl = document.getElementById("vol-athlete");
 const typeEl = document.getElementById("vol-type");
+const timeEl = document.getElementById("vol-time");
 const availabilityEl = document.getElementById("vol-availability");
 
 const btnGotIt = document.getElementById("btn-got-it");
 const btnReview = document.getElementById("btn-review");
+const btnApproveTrial = document.getElementById("btn-approve-trial");
+const btnApproveJoin = document.getElementById("btn-approve-join");
 const btnNoted = document.getElementById("btn-noted");
 
 const params = new URLSearchParams(location.search);
@@ -74,6 +77,33 @@ function buildMsg(m = {}) {
     </div>
   `;
 }
+function getIntentLabel(entryType) {
+  if (entryType === "free_pass") return "1-Day Assessment";
+  if (entryType === "trial") return "3-Day Trial";
+  if (entryType === "join") return "Join Request";
+  return "Request";
+}
+
+function getTimeAgo(ts) {
+  try {
+    const date = ts?.toDate?.();
+    if (!date) return "";
+
+    const diff = Date.now() - date.getTime();
+    const mins = Math.floor(diff / 60000);
+
+    if (mins < 5) return "JUST NOW";
+    if (mins < 60) return `${mins}m ago`;
+
+    const hours = Math.floor(mins / 60);
+    if (hours < 24) return `${hours}h ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  } catch {
+    return "";
+  }
+}
 
 function paintSnapshot(d = {}) {
   if (nameEl) {
@@ -81,51 +111,58 @@ function paintSnapshot(d = {}) {
   }
 
   if (athleteEl) {
-    athleteEl.textContent = d.athleteName || "—";
+    const age = d.athleteAge ? ` (${d.athleteAge})` : "";
+    athleteEl.textContent = `${d.athleteName || "—"}${age}`;
   }
 
   if (typeEl) {
-    typeEl.textContent = d.intent === "join" ? "Join" : "3-Day Trial";
+    typeEl.textContent = getIntentLabel(d.entryType);
+
+    typeEl.classList.remove("intent-high", "intent-mid", "intent-low");
+
+    if (d.entryType === "join") typeEl.classList.add("intent-high");
+    else if (d.entryType === "trial") typeEl.classList.add("intent-mid");
+    else typeEl.classList.add("intent-low");
+  }
+
+  if (timeEl) {
+    timeEl.textContent = getTimeAgo(d.createdAt) || "—";
   }
 
   if (availabilityEl) {
     const pieces = [];
+
     if (d.track) {
-      pieces.push(d.track === "foundry8" ? "Foundry 8" : d.track === "foundry4" ? "Foundry 4" : d.track);
+      pieces.push(
+        d.track === "foundry8"
+          ? "Foundry 8"
+          : d.track === "foundry4"
+          ? "Foundry 4"
+          : d.track
+      );
     }
+
     if (d.interest) {
       pieces.push(d.interest);
     }
-    availabilityEl.textContent = pieces.length ? pieces.join(" • ") : "—";
+
+    availabilityEl.textContent = pieces.length
+      ? pieces.join(" • ")
+      : "—";
   }
 }
 
 function getRootRequestBody(d = {}) {
-  const pieces = [];
+  return `
+Parent: ${d.parentName || "—"}${d.parentEmail ? ` (${d.parentEmail})` : ""}
+Athlete: ${d.athleteName || "—"}${d.athleteAge ? ` (${d.athleteAge})` : ""}
+Type: ${getIntentLabel(d.entryType)}
+Track: ${d.track || "—"}
 
-  if (d.subject && String(d.subject).trim()) {
-    pieces.push(`Subject: ${d.subject}`);
-  }
-
-  pieces.push(`Parent: ${d.parentName || "—"}${d.parentEmail ? ` (${d.parentEmail})` : ""}`);
-  pieces.push(`Athlete: ${d.athleteName || "—"}${d.athleteAge ? ` (${d.athleteAge})` : ""}`);
-  pieces.push(`Intent: ${d.intent === "join" ? "Join" : "3-Day Trial"}`);
-
-  if (d.track) {
-    pieces.push(`Track: ${d.track}`);
-  }
-
-  if (d.interest) {
-    pieces.push(`Interest: ${d.interest}`);
-  }
-
-  pieces.push("");
-  pieces.push("Message:");
-  pieces.push(d.lastBody || "(none)");
-
-  return pieces.join("\n");
+Message:
+${d.message || "(none)"}
+`.trim();
 }
-
 async function load() {
   if (!id) {
     if (container) {
@@ -254,7 +291,34 @@ async function markDone() {
     if (btnMarkDone) btnMarkDone.disabled = false;
   }
 }
+async function approveTrial() {
+  if (!id) return;
+  setStatus("Approving trial...");
 
+  await updateDoc(doc(db, "paraParentInbox", id), {
+    status: "approved_trial",
+    approvedAt: serverTimestamp()
+  });
+
+  setStatus("Trial approved.");
+  await load();
+}
+
+async function approveJoin() {
+  if (!id) return;
+  setStatus("Approving join...");
+
+  await updateDoc(doc(db, "paraParentInbox", id), {
+    status: "approved_join",
+    approvedAt: serverTimestamp()
+  });
+
+  setStatus("Join approved.");
+  await load();
+}
+
+btnApproveTrial?.addEventListener("click", approveTrial);
+btnApproveJoin?.addEventListener("click", approveJoin);
 btnSend?.addEventListener("click", async () => {
   await sendReply();
 });

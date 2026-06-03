@@ -6,10 +6,6 @@ import {
   getDoc
 } from "/assets/js/firebase-init.js";
 
-function bounce(path = "/index.html") {
-  location.href = path;
-  throw new Error("[coach-guard] Unauthorized");
-}
 
 export async function requireCoach() {
   await ensureSignedIn();

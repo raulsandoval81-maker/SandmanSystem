@@ -141,10 +141,12 @@
       border-radius:10px;
       color:var(--text);
       font-size:.95rem;
+      box-sizing:border-box;
     }
 
     #reply-body{
       min-height:180px;
+      resize:vertical;
     }
 
     .btn-row{
@@ -180,8 +182,19 @@
     }
 
     .mini-card p{
-      margin:.4rem 0;
+      margin:.45rem 0;
+      line-height:1.35;
     }
+
+    .intent{
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .intent-high{ color:#22c55e; }
+    .intent-mid{ color:#f59e0b; }
+    .intent-low{ color:#94a3b8; }
 
     #status{
       font-weight:700;
@@ -189,7 +202,7 @@
       margin-bottom:12px;
     }
 
-    @media (max-width: 860px){
+    @media (max-width:860px){
       .layout{grid-template-columns:1fr;}
     }
   </style>
@@ -204,13 +217,10 @@
 </header>
 
 <div class="wrap">
-
   <div id="status"></div>
 
   <div class="layout">
-
     <div class="main-stack">
-
       <section class="panel">
         <h2>Conversation</h2>
         <div id="thread" class="thread-box">
@@ -222,42 +232,40 @@
         <h2>Reply</h2>
 
         <div class="field">
-          <label class="label">Subject</label>
+          <label class="label" for="reply-subject">Subject</label>
           <input id="reply-subject" type="text" placeholder="Join Request Follow-Up"/>
         </div>
 
         <div class="field">
-          <label class="label">Reply Message</label>
+          <label class="label" for="reply-body">Reply Message</label>
           <textarea id="reply-body" placeholder="Write your reply here..."></textarea>
         </div>
 
         <div class="btn-row">
-          <button id="btn-send-reply" class="btn btn-primary">Send Reply</button>
-          <button id="btn-mark-done" class="btn btn-ok">Archive</button>
-          <button id="btn-got-it" class="btn">Got It</button>
-          <button id="btn-review" class="btn">Review</button>
-          <button id="btn-noted" class="btn">Noted</button>
+          <button id="btn-send-reply" class="btn btn-primary" type="button">Send Reply</button>
+          <button id="btn-mark-done" class="btn btn-ok" type="button">Archive</button>
+          <button id="btn-got-it" class="btn" type="button">Got It</button>
+          <button id="btn-review" class="btn" type="button">Review</button>
+          <button id="btn-approve-trial" class="btn">Approve Trial</button>
+          <button id="btn-approve-join" class="btn">Approve Join</button>
+          <button id="btn-noted" class="btn" type="button">Noted</button>
         </div>
       </section>
-
     </div>
 
     <div class="side-stack">
-
       <section class="panel">
         <h2>Request Snapshot</h2>
         <div class="mini-card">
           <p><strong>Parent:</strong> <span id="vol-name">—</span></p>
           <p><strong>Athlete:</strong> <span id="vol-athlete">—</span></p>
-          <p><strong>Intent:</strong> <span id="vol-type">—</span></p>
+          <p><strong>Intent:</strong> <span id="vol-type" class="intent">—</span></p>
+          <p><strong>Submitted:</strong> <span id="vol-time">—</span></p>
           <p><strong>Track / Interest:</strong> <span id="vol-availability">—</span></p>
         </div>
       </section>
-
     </div>
-
   </div>
-
 </div>
 
 <script type="module" src="/communications/coach/inbox-view.js"></script>

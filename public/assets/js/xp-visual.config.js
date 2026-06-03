@@ -2,19 +2,19 @@
 // RESET-BASED system: xp is current-tier XP, not lifetime cumulative XP.
 
 export const XP_VISUAL = Object.freeze({
-  foundry8: {
-    name: "Foundry 8 (Youth)",
-    tiers: [
-      { tier: "T0", name: "Shadow",     xpCap:  600, stripeCount: 3, stripeXP: 200, badge: "shadow.png" },
-      { tier: "T1", name: "Recruit",    xpCap:  800, stripeCount: 4, stripeXP: 200, badge: "recruit.png" },
-      { tier: "T2", name: "Combatant",  xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "combatant.png" },
-      { tier: "T3", name: "Competitor", xpCap: 1200, stripeCount: 4, stripeXP: 300, badge: "competitor.png" },
-      { tier: "T4", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
-      { tier: "T5", name: "Champion",   xpCap: 1800, stripeCount: 4, stripeXP: 450, badge: "champion.png" },
-      { tier: "T6", name: "Veteran",    xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "veteran.png" },
-      { tier: "T7", name: "Hero",       xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "hero.png" } // cap tier visual units only
-    ]
-  },
+foundry8: {
+name: "Foundry 8 (Youth)",
+tiers: [
+{ tier: "T0", name: "Shadow",     xpCap:  600, stripeCount: 3, stripeXP: 200, badge: "shadow.png" },
+{ tier: "T1", name: "Recruit",    xpCap:  800, stripeCount: 4, stripeXP: 200, badge: "recruit.png" },
+{ tier: "T2", name: "Combatant",  xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "combatant.png" },
+{ tier: "T3", name: "Competitor", xpCap: 1200, stripeCount: 4, stripeXP: 300, badge: "competitor.png" },
+{ tier: "T4", name: "Warrior",    xpCap: 1400, stripeCount: 4, stripeXP: 350, badge: "warrior.png" },
+{ tier: "T5", name: "Champion",   xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "champion.png" },
+{ tier: "T6", name: "Commander",  xpCap: 1800, stripeCount: 4, stripeXP: 450, badge: "commander.png" },
+{ tier: "T7", name: "Hero",       xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "hero.png" }
+]
+},
 
   foundry4: {
     name: "Foundry 4 (Teen/Adult)",

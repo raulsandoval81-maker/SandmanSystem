@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coach Login | Testing</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body{
+      margin:0;
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      background:#06080d;
+      color:#f5f7fb;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      padding:20px;
+    }
+    .card{
+      width:min(420px,100%);
+      background:#0f141b;
+      border:1px solid #27304a;
+      border-radius:18px;
+      padding:22px;
+    }
+    h1{margin:0 0 8px;color:#ffdd48}
+    p{color:#9aa4b1}
+    label{display:block;margin-top:14px;font-weight:800}
+    input{
+      width:100%;
+      margin-top:6px;
+      padding:13px;
+      border-radius:10px;
+      border:1px solid #27304a;
+      background:#0b1017;
+      color:#fff;
+      font-size:1rem;
+      box-sizing:border-box;
+    }
+    button{
+      width:100%;
+      margin-top:18px;
+      padding:14px;
+      border:0;
+      border-radius:10px;
+      background:#ffdd48;
+      color:#000;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .status{margin-top:12px;color:#ffdd48;font-weight:800}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Coach Login</h1>
+    <p>Sign in to submit testing scores. This does not open admin or promotion controls.</p>
+
+    <label>Email</label>
+    <input id="email" type="email" autocomplete="email" />
+
+    <label>Password</label>
+    <input id="password" type="password" autocomplete="current-password" />
+
+    <button id="loginBtn" type="button">Sign In & Continue</button>
+
+    <div id="status" class="status"></div>
+  </main>
+
+  <script type="module">
+    import { auth } from "/assets/js/firebase-init.js";
+    import {
+      signInWithEmailAndPassword,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+
+    const params = new URLSearchParams(window.location.search);
+    const next = params.get("next") || "/coaches/testing/index.html";
+
+    const emailEl = document.getElementById("email");
+    const passwordEl = document.getElementById("password");
+    const btn = document.getElementById("loginBtn");
+    const statusEl = document.getElementById("status");
+
+    function goNext() {
+      window.location.href = next;
+    }
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) goNext();
+    });
+
+    btn.addEventListener("click", async () => {
+      try {
+        statusEl.textContent = "Signing in...";
+        await signInWithEmailAndPassword(
+          auth,
+          emailEl.value.trim(),
+          passwordEl.value
+        );
+        statusEl.textContent = "Signed in. Redirecting...";
+        goNext();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = err.message || "Login failed.";
+      }
+    });
+  </script>
+</body>
+</html>

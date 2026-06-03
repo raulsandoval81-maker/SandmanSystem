@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Gatekeeper | Admin</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      background:#0b0f14;
+      color:#f5f5f5;
+      font-family:Arial, Helvetica, sans-serif;
+      padding:24px;
+    }
+
+    h1{
+      font-size:2rem;
+      margin-bottom:20px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(360px,1fr));
+      gap:16px;
+    }
+
+    .card{
+      background:#111827;
+      border:1px solid #1f2937;
+      border-radius:18px;
+      padding:18px;
+    }
+
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .badge{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:800;
+      text-transform:uppercase;
+    }
+
+    .auto{
+      background:#14532d;
+      color:#86efac;
+    }
+
+    .reply{
+      background:#7c2d12;
+      color:#fdba74;
+    }
+
+    .name{
+      font-size:1.1rem;
+      font-weight:900;
+      margin-bottom:6px;
+    }
+
+    .line{
+      margin-bottom:8px;
+      color:#d1d5db;
+      line-height:1.45;
+    }
+
+    .muted{
+      color:#94a3b8;
+      font-size:.9rem;
+    }
+
+    .message{
+      margin-top:14px;
+      padding:12px;
+      border-radius:12px;
+      background:#0f172a;
+      line-height:1.5;
+      white-space:pre-wrap;
+    }
+
+    .empty{
+      color:#64748b;
+      font-style:italic;
+    }
+    .actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+
+.actions button{
+  border:none;
+  border-radius:10px;
+  padding:8px 10px;
+  font-weight:800;
+  cursor:pointer;
+  background:#1f2937;
+  color:white;
+}
+
+  </style>
+</head>
+
+<body>
+
+  <h1>Gatekeeper Requests</h1>
+
+  <div id="requestGrid" class="grid"></div>
+
+  <script type="module" src="/admin/gatekeeper/gatekeeper.page.js"></script>
+
+</body>
+</html>

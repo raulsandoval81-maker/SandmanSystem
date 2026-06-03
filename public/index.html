@@ -9,364 +9,56 @@
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
 
-  <style>
-    :root{
-      --nav-bg:#081a34;
-      --nav-pill:#0e47b8;
-      --nav-line:rgba(255,255,255,.18);
-      --nav-gold:#ffd633;
-      --nav-text:#111827;
-      --btn-red:#e53935;
-      --btn-red-hover:#c62828;
-      --btn-black:#0b0b0f;
-      --btn-black-hover:#17171d;
-    }
 
-    .top-nav{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      padding:10px 12px 12px;
-      background:#081a34;
-      border-bottom:1px solid rgba(255,214,51,.14);
-    }
-
-    .nav-top{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:8px;
-    }
-
-    .lang-toggle{
-      justify-self:start;
-      transform:scale(.84);
-      transform-origin:left center;
-      display:inline-flex;
-      align-items:center;
-    }
-
-    .nav-logo{
-      display:block;
-      justify-self:center;
-      text-align:center;
-      text-decoration:none;
-      color:#ffd633;
-      font-weight:900;
-      font-size:.98rem;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-      white-space:nowrap;
-    }
-
-    .theme-toggle{
-      justify-self:end;
-      width:36px;
-      height:36px;
-      min-width:36px;
-      min-height:36px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:999px;
-      background:rgba(0,0,0,.28);
-      border:1px solid rgba(255,255,255,.14);
-      color:#ffd633;
-      font-size:.9rem;
-      padding:0;
-    }
-
-    .site-nav{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:8px;
-      width:100%;
-      background:transparent;
-      padding:0;
-      border:none;
-      box-shadow:none;
-    }
-
-    .site-nav a{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:38px;
-      padding:.38rem .35rem;
-      border-radius:999px;
-      background:rgba(0,0,0,.28);
-      color:#ffffff;
-      text-decoration:none;
-      font-weight:800;
-      font-size:.83rem;
-      line-height:1;
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow:none;
-      text-align:center;
-      transition:filter .15s ease, transform .15s ease, border-color .15s ease;
-    }
-
-    .site-nav a:hover{
-      filter:brightness(1.05);
-      transform:translateY(-1px);
-      border-color:#ffd633;
-    }
-
-    .site-nav a[aria-current="page"]{
-      background:#ffd633;
-      color:#111827;
-      border-color:#ffd633;
-    }
-
-    .lang-toggle .lang-btn{
-      min-height:30px;
-      padding:.25rem .5rem;
-      font-size:.78rem;
-      border-radius:999px;
-    }
-
-    body.day-mode .top-nav{
-      background:#f3e7cf;
-      border-bottom:1px solid rgba(166,124,0,.18);
-    }
-
-    body.day-mode .nav-logo{
-      color:#a16207;
-    }
-
-    body.day-mode .site-nav a{
-      background:#ffffff;
-      color:#1c2430;
-      border:1px solid #d7c7a2;
-    }
-
-    body.day-mode .site-nav a[aria-current="page"]{
-      background:#ffd633;
-      color:#111827;
-      border-color:#e5b800;
-    }
-
-    .hero{
-      background:linear-gradient(to bottom, #6d0101, #1a1a1a);
-      color:#fff;
-      padding:2rem;
-      border-radius:20px;
-      text-align:center;
-      box-shadow:0 0 20px rgba(0,0,0,.7);
-      margin-bottom:2rem;
-    }
-
-    body.day-mode .hero{
-      background:linear-gradient(to bottom, #c2410c, #f3e7cf);
-      color:#1c2430;
-      box-shadow:0 10px 24px rgba(0,0,0,.12);
-    }
-
-    .hero-panel{
-      box-shadow:
-        inset 0 0 0 1px rgba(255,214,51,.14),
-        0 18px 40px rgba(0,0,0,.45);
-    }
-
-    body.day-mode .hero-panel{
-      box-shadow:
-        inset 0 0 0 1px rgba(166,124,0,.18),
-        0 14px 30px rgba(0,0,0,.10);
-    }
-
-    .hq-sub{
-      margin:0 0 .75rem;
-      font-size:.98rem;
-      font-weight:700;
-      color:#f3f4f6;
-      opacity:.95;
-    }
-
-    body.day-mode .hq-sub{
-      color:#1c2430;
-    }
-
-    .section-kicker{
-      font-size:1.2rem;
-      font-weight:700;
-      color:#fff;
-      text-transform:uppercase;
-      margin-bottom:1rem;
-      letter-spacing:1px;
-    }
-
-    body.day-mode .section-kicker{
-      color:#1c2430;
-    }
-
-    .hero-sub{
-      max-width:700px;
-      margin:1rem auto 0;
-      line-height:1.65;
-      color:#e5e7eb;
-      font-size:1rem;
-    }
-
-    body.day-mode .hero-sub{
-      color:#374151;
-    }
-
-    .actions{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:.75rem 1rem;
-      flex-wrap:wrap;
-      margin-top:1.25rem;
-    }
-
-    .btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      padding:.7rem 1.25rem;
-      min-height:48px;
-      border-radius:999px;
-      font-weight:900;
-      text-decoration:none;
-      white-space:nowrap;
-      transition:transform .15s ease, filter .15s ease, background .15s ease, border-color .15s ease;
-    }
-
-    .btn:hover{
-      transform:translateY(-1px);
-      filter:brightness(1.03);
-    }
-
-    /* RED BUTTON */
-    .btn-primary{
-      background:var(--btn-red);
-      color:#ffffff;
-      border:1px solid var(--btn-red);
-    }
-
-    .btn-primary:hover{
-      background:var(--btn-red-hover);
-      border-color:var(--btn-red-hover);
-    }
-
-    /* BLACK BUTTON */
-    .btn-secondary{
-      background:var(--btn-black);
-      color:#ffd633;
-      border:1px solid #ffd633;
-    }
-
-    .btn-secondary:hover{
-      background:var(--btn-black-hover);
-    }
-
-    /* keep same button colors in day mode */
-    body.day-mode .btn-primary{
-      background:var(--btn-red);
-      color:#ffffff;
-      border:1px solid var(--btn-red);
-    }
-
-    body.day-mode .btn-primary:hover{
-      background:var(--btn-red-hover);
-      border-color:var(--btn-red-hover);
-    }
-
-    body.day-mode .btn-secondary{
-      background:var(--btn-black);
-      color:#ffd633;
-      border:1px solid #ffd633;
-    }
-
-    body.day-mode .btn-secondary:hover{
-      background:var(--btn-black-hover);
-    }
-
-    .trial-note{
-      margin:0;
-      font-size:.9rem;
-      opacity:.9;
-      line-height:1.35;
-      white-space:nowrap;
-    }
-
-    .sandman-crest{
-      width:100%;
-      max-width:280px;
-      height:auto;
-      display:block;
-      margin:20px auto 10px;
-    }
-
-    .hidden-lang{
-      display:none !important;
-    }
-
-    @media (min-width:700px){
-      .site-nav{
-        grid-template-columns:repeat(4, minmax(0, 1fr));
-      }
-
-      .site-nav a{
-        min-height:40px;
-        font-size:.86rem;
-      }
-
-      .nav-logo{
-        font-size:1.02rem;
-      }
-    }
-
-    @media (max-width:640px){
-      .top-nav{
-        padding:12px;
-        gap:10px;
-      }
-
-      .nav-top{
-        gap:10px;
-      }
-
-      .site-nav{
-        gap:8px;
-      }
-
-      .site-nav a{
-        min-height:46px;
-        padding:.55rem .3rem;
-        font-size:.9rem;
-      }
-
-      .nav-logo{
-        font-size:1rem;
-      }
-
-      .hero{
-        padding:1.5rem 1rem;
-      }
-
-      .hero-sub{
-        font-size:.96rem;
-      }
-
-      .actions{
-        gap:.75rem;
-      }
-
-      .btn{
-        font-size:.92rem;
-      }
-
-      .trial-note{
-        width:100%;
-        white-space:normal;
-        text-align:center;
-      }
-    }
-  </style>
 </head>
+<style>
+  .hero{
+    text-align:center;
+    margin-bottom:2rem;
+  }
 
+  .hq-sub{
+    margin:0 0 .75rem;
+    font-size:.98rem;
+    font-weight:700;
+    color:#f3f4f6;
+    opacity:.95;
+  }
+
+  body.day-mode .hq-sub{
+    color:#1c2430;
+  }
+
+  .section-kicker{
+    font-size:.95rem;
+    font-weight:700;
+    color:#fff;
+    text-transform:uppercase;
+    margin:.25rem 0 1rem;
+    letter-spacing:1px;
+    opacity:.9;
+  }
+
+  body.day-mode .section-kicker{
+    color:#1c2430;
+  }
+
+  .hero-sub{
+    max-width:700px;
+    margin:1rem auto 0;
+  }
+
+  .sandman-crest{
+    width:100%;
+    max-width:280px;
+    height:auto;
+    margin:20px auto 10px;
+  }
+
+  .hero .btn{
+    margin-top:1.25rem;
+  }
+</style>
 <body>
   <header class="top-nav">
     <div class="nav-top">
@@ -420,13 +112,13 @@
       />
 
       <div data-lang-block="en">
-        <div class="section-kicker" style="font-size:.95rem; opacity:.9; margin-top:.25rem;">
+        <div class="section-kicker"></div>
           Stronger · Faster · Smarter
         </div>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <div class="section-kicker" style="font-size:.95rem; opacity:.9; margin-top:.25rem;">
+        <div class="section-kicker"></div>
           Más fuerte · Más rápido · Más inteligente
         </div>
       </div>

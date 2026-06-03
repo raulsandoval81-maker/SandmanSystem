@@ -4,12 +4,13 @@ export function renderCards(cards, container) {
   container.innerHTML = "";
 
   if (!Array.isArray(cards) || !cards.length) {
-    container.innerHTML = `<div class="muted">No skills yet.</div>`;
+    container.innerHTML = `<div class="muted">No cards yet.</div>`;
     return;
   }
 
   cards.forEach(card => {
     const rawTitle = (card.title || "Untitled Skill").trim();
+
     const cleanTitle = rawTitle
       .replace(/^Skill\s*\d+\s*[—-]\s*/i, "")
       .replace(/^Skill\s*\d+\s*/i, "")
@@ -17,31 +18,49 @@ export function renderCards(cards, container) {
 
     const skillNum = String(card.skill || "").padStart(2, "0");
     const tier = (card.tier || "").trim().toUpperCase();
+    const category = (card.category || "technique").trim().toLowerCase();
     const cue = typeof card.cue === "string" ? card.cue.trim() : "";
     const href = typeof card.href === "string" ? card.href.trim() : "";
 
     const el = document.createElement("div");
     el.className = "clip-item";
-el.innerHTML = `
-  <div class="clip-line1">
-    ${href
-      ? `<a class="clip-title-link" href="${escapeAttr(href)}">${escapeHtml(cleanTitle)}</a>`
-      : `${escapeHtml(cleanTitle)}`
-    }
-  </div>
 
-  ${(skillNum || tier) ? `
-    <div class="clip-line2">
-      — Skill ${escapeHtml(skillNum)} · ${escapeHtml(tier)}
-    </div>
-  ` : ""}
+    el.dataset.category = category;
+    el.dataset.tier = card.tier || "";
+    el.dataset.journey = card.journey || "";
+    el.dataset.discipline = card.discipline || "";
+    el.dataset.skill = skillNum || "";
 
-  ${cue ? `
-    <div class="clip-line3">
-      — ${escapeHtml(cue)}
-    </div>
-  ` : ""}
-`;
+    el.innerHTML = `
+      <div class="clip-line1">
+        ${
+          href
+            ? `<a class="clip-title-link" href="${escapeAttr(href)}">${escapeHtml(cleanTitle)}</a>`
+            : `${escapeHtml(cleanTitle)}`
+        }
+      </div>
+
+      ${
+        skillNum || tier
+          ? `
+            <div class="clip-line2">
+              Skill ${escapeHtml(skillNum)} · ${escapeHtml(tier)}
+            </div>
+          `
+          : ""
+      }
+
+      ${
+        cue
+          ? `
+            <div class="clip-line3">
+              — ${escapeHtml(cue)}
+            </div>
+          `
+          : ""
+      }
+    `;
+
     container.appendChild(el);
   });
 }

@@ -1,8 +1,6 @@
 import {
   db,
   collection,
-  query,
-  where,
   getDocs,
   doc,
   getDoc,
@@ -11,41 +9,47 @@ import {
 } from "/assets/js/firebase-init.js";
 
 const params = new URLSearchParams(window.location.search);
-const athleteId = params.get("uid") || params.get("athleteId");
+const athleteId = params.get("uid") || params.get("athleteId") || "";
 const decidedBy = params.get("coachId") || "admin";
 const sessionId = params.get("sessionId") || "";
-const testType = params.get("testType") || "BASE_CHECK_V1";
+const testType = params.get("testType") || "";
 
 const wrap = document.getElementById("results");
 
+function resultFromAvg(avg) {
+  if (avg >= 95) return "ELITE BASE";
+  if (avg >= 90) return "STRONG";
+  if (avg >= 85) return "PASS";
+  return "NOT READY";
+}
+
 async function load() {
-if (!athleteId) {
-  wrap.innerHTML = "Missing athleteId in URL";
-  return;
-}
+  if (!athleteId) {
+    wrap.innerHTML = "Missing athleteId in URL";
+    return;
+  }
 
-if (!sessionId) {
-  wrap.innerHTML = "Missing sessionId in URL";
-  return;
-}
-  const q = query(
-    collection(db, "athletes", athleteId, "testingLogs"),
-    where("testType", "==", testType)
-  );
+  if (!sessionId) {
+    wrap.innerHTML = "Missing sessionId in URL";
+    return;
+  }
 
-  const snap = await getDocs(q);
+  const logsRef = collection(db, "athletes", athleteId, "testingLogs");
+  const snap = await getDocs(logsRef);
+
   const rows = [];
 
   snap.forEach((docSnap) => {
-    const data = docSnap.data();
+    const data = docSnap.data() || {};
 
-    if (!sessionId || data.sessionId === sessionId) {
-      rows.push(data);
-    }
+    if (data.sessionId !== sessionId) return;
+    if (testType && data.testType !== testType) return;
+
+    rows.push(data);
   });
 
   if (!rows.length) {
-    wrap.innerHTML = "No tests found";
+    wrap.innerHTML = "No tests found for this session.";
     return;
   }
 
@@ -79,11 +83,7 @@ if (!sessionId) {
   });
 
   const avg = totals.reduce((a, b) => a + b, 0) / totals.length;
-
-  const finalResult =
-    avg >= 95 ? "ELITE BASE" :
-    avg >= 90 ? "STRONG" :
-    avg >= 85 ? "PASS" : "NOT READY";
+  const finalResult = resultFromAvg(avg);
 
   const final = document.createElement("div");
   final.style.border = "2px solid #888";
@@ -126,7 +126,7 @@ if (!sessionId) {
 
   const athleteRef = doc(db, "athletes", athleteId);
   const athleteSnap = await getDoc(athleteRef);
-  const athleteData = athleteSnap.exists() ? athleteSnap.data() : {};
+  const athleteData = athleteSnap.exists() ? athleteSnap.data() || {} : {};
   const existingDecision = athleteData?.testing?.baseCheckV1?.decision || "";
 
   if (existingDecision) {
@@ -134,8 +134,17 @@ if (!sessionId) {
       `Decision already saved: ${existingDecision}`;
   }
 
+  function canDecide() {
+    return totals.length >= REQUIRED_PANEL;
+  }
+
   async function saveDecision(decision) {
     try {
+      if (!canDecide()) {
+        alert("Panel incomplete. Need 3 coach submissions.");
+        return;
+      }
+
       const note = document.getElementById("decisionNote").value.trim();
 
       const nextState =
@@ -144,8 +153,15 @@ if (!sessionId) {
         decision === "RETEST" ? "ELIGIBLE" :
         "TEMPLE";
 
+      const nextTierStatus =
+        decision === "APPROVE" ? "cooldown" :
+        decision === "HOLD" ? "temple" :
+        decision === "RETEST" ? "eligible" :
+        "temple";
+
       await updateDoc(athleteRef, {
-        "testing.baseCheckV1.testType": "BASE_CHECK_V1",
+        "testing.baseCheckV1.testType": testType || "BASE_CHECK",
+        "testing.baseCheckV1.sessionId": sessionId,
         "testing.baseCheckV1.decision": decision,
         "testing.baseCheckV1.finalResult": finalResult,
         "testing.baseCheckV1.avgScore": Number(avg.toFixed(1)),
@@ -158,8 +174,12 @@ if (!sessionId) {
         "testing.state": nextState,
         "testing.lastDecision": decision,
         "testing.lastDecisionAt": serverTimestamp(),
+        "testing.coachReady": false,
+        "testing.coachReadyAt": null,
+        "testing.testingStartedAt": null,
 
-        "updatedAt": serverTimestamp()
+        tierStatus: nextTierStatus,
+        updatedAt: serverTimestamp()
       });
 
       document.getElementById("decisionStatus").textContent =
@@ -171,31 +191,15 @@ if (!sessionId) {
     }
   }
 
-  function canDecide() {
-    return totals.length >= REQUIRED_PANEL;
-  }
-
   document.getElementById("approveBtn").addEventListener("click", () => {
-    if (!canDecide()) {
-      alert("Panel incomplete. Need 3 coach submissions.");
-      return;
-    }
     saveDecision("APPROVE");
   });
 
   document.getElementById("holdBtn").addEventListener("click", () => {
-    if (!canDecide()) {
-      alert("Panel incomplete. Need 3 coach submissions.");
-      return;
-    }
     saveDecision("HOLD");
   });
 
   document.getElementById("retestBtn").addEventListener("click", () => {
-    if (!canDecide()) {
-      alert("Panel incomplete. Need 3 coach submissions.");
-      return;
-    }
     saveDecision("RETEST");
   });
 }

@@ -39,7 +39,12 @@ function setWaiverStatusStrong(text, color = "") {
 }
 
 // -------------------- Waiver config --------------------
-const WAIVER_URL = "/waiver/sandman-waiver-v3.pdf";
+
+const WAIVER_URL_EN =
+  "/waiver/sandman-waiver-heavy-en.pdf";
+
+const WAIVER_URL_ES =
+  "/waiver/sandman-waiver-heavy-es.pdf";
 let waiverViewed = false;
 
 // -------------------- Waiver gating --------------------
@@ -61,7 +66,7 @@ function markWaiverViewed() {
   setWaiverStatusStrong("Viewed");
 
   setDisabled("waiverCheck", false);
-  setDisabled("signatureParent", false);
+  setDisabled("signatureParent", true);
 
   const todayISO = new Date().toISOString().slice(0, 10);
   const dateEl = $("signatureDate");
@@ -261,7 +266,8 @@ async function handleSubmit(e) {
       });
 
     // allow opening waiver still (optional)
-    if ($("openWaiverBtn")) $("openWaiverBtn").disabled = false;
+if ($("openWaiverBtnEn")) $("openWaiverBtnEn").disabled = false;
+if ($("openWaiverBtnEs")) $("openWaiverBtnEs").disabled = false;
 
     console.log("[intake-parent] submitted:", tokenId, intake);
   } catch (err) {
@@ -278,19 +284,58 @@ function wireWaiver() {
   setDisabled("signatureDate", true);
   setDisabled("submitBtn", true);
 
-  $("openWaiverBtn")?.addEventListener("click", (e) => {
+ $("openWaiverBtnEn")
+  ?.addEventListener("click", (e) => {
+
     e.preventDefault();
-    window.open(WAIVER_URL, "_blank", "noopener");
+
+    window.open(
+      WAIVER_URL_EN,
+      "_blank",
+      "noopener"
+    );
+
     markWaiverViewed();
   });
 
-  ["waiverCheck", "signatureParent", "signatureDate"].forEach((id) => {
-    const el = $(id);
-    if (!el) return;
-    ["input", "change"].forEach((evt) =>
-      el.addEventListener(evt, maybeUnlockSubmit)
+$("openWaiverBtnEs")
+  ?.addEventListener("click", (e) => {
+
+    e.preventDefault();
+
+    window.open(
+      WAIVER_URL_ES,
+      "_blank",
+      "noopener"
     );
+
+    markWaiverViewed();
   });
+
+$("waiverCheck")
+  ?.addEventListener("change", () => {
+
+    const checked =
+      !!$("waiverCheck")?.checked;
+
+    setDisabled(
+      "signatureParent",
+      !checked
+    );
+
+    maybeUnlockSubmit();
+  });
+
+["signatureParent", "signatureDate"].forEach((id) => {
+
+  const el = $(id);
+
+  if (!el) return;
+
+  ["input", "change"].forEach((evt) =>
+    el.addEventListener(evt, maybeUnlockSubmit)
+  );
+});
 }
 
 function wirePhoneSanitizer(id) {

@@ -3,99 +3,320 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Combat • Tools</title>
+
+  <title>Foundry 8 | Sandman System</title>
+
   <link rel="stylesheet" href="../assets/css/site.css" />
-  <style>
-    :root{--bg:#0f141b;--card:#f5f7fb;--ink:#0f141b;--muted:#586074;--gold:#ffd633;--red:#e53935}
-    body{margin:0;background:var(--bg);color:#e6eef7;font-family:system-ui,sans-serif}
-    .wrap{max-width:1120px;margin:28px auto;padding:0 18px}
-    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-    .title{font-size:2rem;font-weight:900;color:#fff;text-shadow:0 8px 28px rgba(255,214,51,.2)}
-    .back{color:#e6eef7;text-decoration:none;border:1px solid rgba(255,255,255,.12);
-      padding:8px 12px;border-radius:10px;background:rgba(255,255,255,.06)}
-    .back:hover{background:rgba(255,255,255,.12)}
-    h2.section{margin:18px 0 12px;color:var(--gold);font-size:.95rem;letter-spacing:.08em;text-transform:uppercase}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-    .card{background:var(--card);color:var(--ink);border-radius:16px;box-shadow:0 12px 26px rgba(0,0,0,.25);padding:16px;display:flex;flex-direction:column}
-    .card h3{margin:0 0 6px}
-    .card p{margin:0 0 12px;color:var(--muted)}
-    .open{align-self:flex-start;background:var(--red);color:#fff;text-decoration:none;border:none;border-radius:10px;padding:9px 14px;font-weight:800}
-    .open:hover{filter:brightness(.95)}
-    .mini{margin-top:8px;font-size:.9rem}
-    .mini a{color:#334155;text-decoration:none}
-    .mini a:hover{text-decoration:underline}
-  </style>
+  <link rel="stylesheet" href="../public.css" />
+
+  <script src="../assets/js/public-shell.js" defer></script>
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:980px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #1f2937,
+        #111827
+      );
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    padding:48px 30px;
+
+    margin-bottom:28px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+  }
+
+  body.day-mode .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff,
+        #f3e7cf
+      );
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+
+    text-transform:uppercase;
+    letter-spacing:.16em;
+
+    font-size:.78rem;
+    font-weight:800;
+
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+
+    font-size:clamp(2.5rem,5vw,4.5rem);
+
+    line-height:1;
+
+    color:var(--heading);
+  }
+
+  .hero p{
+    max-width:720px;
+
+    color:var(--hero-muted);
+
+    line-height:1.75;
+
+    font-size:1.05rem;
+  }
+
+  .grid{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(260px,1fr));
+
+    gap:18px;
+
+    margin-top:28px;
+  }
+
+  .card{
+    display:block;
+
+    text-decoration:none;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:22px;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card:hover{
+    transform:translateY(-2px);
+
+    border-color:#ff2a2a;
+
+    box-shadow:0 0 18px rgba(255,42,42,.22);
+  }
+
+  .card h2{
+    margin:0 0 10px;
+
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .card h2{
+    color:var(--heading);
+  }
+
+  .card p{
+    margin:0;
+
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  @media (max-width:640px){
+
+    main{
+      padding:28px 14px 70px;
+    }
+
+    .hero{
+      padding:36px 22px;
+    }
+
+    h1{
+      font-size:2.5rem;
+    }
+  }
+</style>
 </head>
+
 <body>
-  <main class="wrap">
-    <header>
-      <div class="title">Sandman System</div>
-      <a class="back" href="./hub.html">← Back to Landing</a>
-    </header>
 
-    <h2 class="section">Programs</h2>
-    <section class="grid">
-      <article class="card">
-        <h3>Wrestling</h3>
-        <p>Brotherhood 4 Life.</p>
-        <a class="open" href="./wrestling.html">Open</a>
-        <div class="mini">
-          <a href="/dashboard/index.html?program=wrestling">Dashboard</a> ·
-          <a href="/leaderboard.html?program=wrestling">Leaderboard</a>
-        </div>
-      </article>
+<header class="top-nav">
 
-      <article class="card">
-        <h3>Boxing</h3>
-        <p>A Gentleman Sport.</p>
-        <a class="open" href="./boxing.html">Open</a>
-        <div class="mini">
-          <a href="/dashboard/index.html?program=boxing">Dashboard</a> ·
-          <a href="/leaderboard.html?program=boxing">Leaderboard</a>
-        </div>
-      </article>
+  <div class="nav-top">
 
-      <article class="card">
-        <h3>Kickboxing</h3>
-        <p>Fast hands, fast feet.</p>
-        <a class="open" href="./kick_boxing.html">Open</a>
-        <div class="mini">
-          <a href="/dashboard/index.html?program=kick_boxing">Dashboard</a> ·
-          <a href="/leaderboard.html?program=kick_boxing">Leaderboard</a>
-        </div>
-      </article>
+    <div class="lang-toggle" role="group" aria-label="Language toggle">
+      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="es">ES</button>
+    </div>
 
+    <a href="../index.html" class="nav-logo">
+      Sandman Combat™
+    </a>
 
+    <button type="button" class="theme-toggle" aria-label="Toggle theme">
+      ☾
+    </button>
 
-      <article class="card">
-        <h3>Submission Grappling</h3>
-        <p>The Deadly Art</p>
-        <a class="open" href="./submission_grappling.html">Open</a>
-        <div class="mini">
-          <a href="/dashboard/index.html?program=submission_grappling">Dashboard</a> ·
-          <a href="/leaderboard.html?program=submission_grappling">Leaderboard</a>
-        </div>
-      </article>
-    </section>
+  </div>
 
-    <h2 class="section">Recognition</h2>
-    <section class="grid">
-      <article class="card">
-        <h3>Badge • Shirt • Belt • Honor</h3>
-        <p>Milestones and moments that matter.</p>
-        <a class="open" href="./badge-ladder.html">Open</a>
-      </article>
-      <article class="card">
-        <h3>Ceremonies</h3>
-        <p>Scripts & tools for recognition.</p>
-        <a class="open" href="./ceremonies.html">Open</a>
-      </article>
-    </section>
-     <section class="card">
-  <h2>Motivation Wall</h2>
-  <div id="motivationWall" class="stack"></div>
-</section>
- 
-  </main>
+  <nav class="site-nav" aria-label="Primary">
+
+    <a href="../index.html">
+      <span data-lang-block="en">Home</span>
+      <span data-lang-block="es" class="hidden-lang">Inicio</span>
+    </a>
+
+    <a href="../overview.html">
+      <span data-lang-block="en">Overview</span>
+      <span data-lang-block="es" class="hidden-lang">Resumen</span>
+    </a>
+
+    <a href="../programs.html">
+      <span data-lang-block="en">Programs</span>
+      <span data-lang-block="es" class="hidden-lang">Programas</span>
+    </a>
+
+    <a href="../about.html">
+      <span data-lang-block="en">About</span>
+      <span data-lang-block="es" class="hidden-lang">Acerca</span>
+    </a>
+
+  </nav>
+
+</header>
+
+<main>
+
+  <section class="hero">
+
+    <div data-lang-block="en">
+
+      <div class="eyebrow">Foundry 8</div>
+
+      <h1>Foundry 8 Youth</h1>
+
+      <p>
+        The youth progression phase of the Sandman System.
+        Wrestling-first development focused on structure,
+        discipline, confidence, accountability, and earned growth.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <div class="eyebrow">Foundry 8</div>
+
+      <h1>Foundry 8 Juventud</h1>
+
+      <p>
+        La fase juvenil de progresión dentro del Sandman System.
+        Desarrollo basado primero en lucha enfocado en estructura,
+        disciplina, confianza, responsabilidad y crecimiento ganado.
+      </p>
+
+    </div>
+
+  </section>
+
+  <section class="grid">
+
+    <a class="card" href="/foundry8/youth.html">
+
+      <div data-lang-block="en">
+
+        <h2>Youth Journey</h2>
+
+        <p>
+          Learn about the Night to Day Journey,
+          wrestling-first development,
+          and how young athletes grow inside Foundry 8.
+        </p>
+
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+
+        <h2>Viaje Juvenil</h2>
+
+        <p>
+          Aprende sobre el Viaje de la Noche al Día,
+          el desarrollo basado primero en lucha
+          y cómo los jóvenes atletas crecen dentro de Foundry 8.
+        </p>
+
+      </div>
+
+    </a>
+
+    <a class="card" href="./ceremonies.html">
+
+      <div data-lang-block="en">
+
+        <h2>Ceremonies</h2>
+
+        <p>
+          Understand progression, testing,
+          promotion, badges, shirts, belts,
+          and how ceremonies work inside Foundry 8.
+        </p>
+
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+
+        <h2>Ceremonias</h2>
+
+        <p>
+          Comprende la progresión, evaluaciones,
+          promociones, insignias, camisetas, cinturones
+          y cómo funcionan las ceremonias dentro de Foundry 8.
+        </p>
+
+      </div>
+
+    </a>
+
+  </section>
+
+</main>
+
 </body>
 </html>

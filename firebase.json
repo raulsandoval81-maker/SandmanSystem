@@ -4,6 +4,7 @@
     "runtime": "nodejs20"
   },
   "hosting": {
+    "target": "sandman",
     "public": "public",
     "cleanUrls": true,
     "ignore": [

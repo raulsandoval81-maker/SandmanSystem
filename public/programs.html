@@ -8,419 +8,155 @@
   <link rel="icon" href="/favicon.ico" />
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
+<style>
+  .hero h1{
+    margin-bottom:.5rem;
+  }
 
-  <style>
-    :root{ color-scheme:dark; }
-    *{ box-sizing:border-box; }
+  .hero-sub{
+    margin:0;
+  }
 
-    a{ color:inherit; }
+  .hero-tag{
+    margin-top:.75rem;
+  }
 
-    :focus-visible{
-      outline:2px solid var(--brand);
-      outline-offset:3px;
-      border-radius:10px;
-    }
+  .panel + .panel{
+    margin-top:1.25rem;
+  }
 
-    .top-nav{
-      display:flex;
-      flex-direction:column;
-      gap:8px;
-      padding:10px 12px 12px;
-      background:#081a34;
-      border-bottom:1px solid rgba(255,214,51,.14);
-    }
+  .journey-box{
+    margin-top:1rem;
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:linear-gradient(
+      to bottom,
+      rgba(255,255,255,.03),
+      rgba(0,0,0,.12)
+    );
+    padding:1rem;
+    overflow:hidden;
+  }
 
-    .nav-top{
-      display:grid;
-      grid-template-columns:auto 1fr auto;
-      align-items:center;
-      gap:8px;
-    }
+  body.day-mode .journey-box{
+    background:linear-gradient(
+      to bottom,
+      rgba(255,255,255,.65),
+      rgba(236,225,198,.55)
+    );
+  }
 
-    .nav-logo{
-      display:block;
-      justify-self:center;
-      text-align:center;
-      text-decoration:none;
-      color:#ffd633;
-      font-weight:900;
-      font-size:.98rem;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-      white-space:nowrap;
-    }
+  .journey-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:1rem;
+    flex-wrap:wrap;
+    margin-bottom:.75rem;
+  }
 
-    .lang-toggle{
-      justify-self:start;
-    }
+  .journey-title{
+    margin:0;
+    font-weight:900;
+    letter-spacing:.04em;
+    color:var(--brand);
+    font-size:.95rem;
+    text-transform:uppercase;
+  }
 
-    .lang-toggle .lang-btn{
-      min-height:32px;
-      padding:.28rem .58rem;
-      font-size:.8rem;
-      border-radius:999px;
-    }
+  .journey-meta{
+    margin:0;
+    color:var(--muted);
+    font-size:.9rem;
+    font-weight:700;
+  }
 
-    .theme-toggle{
-      justify-self:end;
-      width:38px;
-      height:38px;
-      min-width:38px;
-      min-height:38px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      border-radius:999px;
-      padding:0;
-    }
+  .badge-row{
+    display:flex;
+    gap:.8rem;
+    overflow-x:auto;
+    padding:.15rem .15rem .6rem;
+    scroll-snap-type:x mandatory;
+    -webkit-overflow-scrolling:touch;
+  }
 
-    .site-nav{
-      display:grid;
-      grid-template-columns:repeat(2, minmax(0, 1fr));
-      gap:8px;
-      width:100%;
-      background:transparent;
-      padding:0;
-      border:none;
-      box-shadow:none;
-    }
+  .badge-row::-webkit-scrollbar{
+    height:10px;
+  }
 
-    .site-nav a{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:38px;
-      padding:.38rem .35rem;
-      border-radius:999px;
-      background:rgba(0,0,0,.28);
-      color:#ffffff;
-      text-decoration:none;
-      font-weight:800;
-      font-size:.83rem;
-      line-height:1;
-      border:1px solid rgba(255,255,255,.14);
-      box-shadow:none;
-      text-align:center;
-      transition:filter .15s ease, transform .15s ease, border-color .15s ease;
-    }
+  .badge-row::-webkit-scrollbar-thumb{
+    background:#263142;
+    border-radius:999px;
+    border:2px solid #0f141b;
+  }
 
-    .site-nav a:hover{
-      filter:brightness(1.05);
-      transform:translateY(-1px);
-      border-color:#ffd633;
-    }
+  body.day-mode .badge-row::-webkit-scrollbar-thumb{
+    background:#d7c7a2;
+    border-color:#fff8ec;
+  }
 
-    .site-nav a[aria-current="page"]{
-      background:#ffd633;
-      color:#111827;
-      border-color:#ffd633;
-    }
+  .badge{
+    flex:0 0 auto;
+    width:120px;
+    scroll-snap-align:start;
+    text-align:center;
+  }
 
-    body.day-mode .top-nav{
-      background:#f3e7cf;
-      border-bottom:1px solid rgba(166,124,0,.14);
-    }
+  .badge img{
+    width:120px;
+    height:120px;
+    border-radius:14px;
+    border:1px solid rgba(255,255,255,.10);
+    box-shadow:0 0 16px rgba(0,0,0,.45);
+    background:#0f141b;
+    display:block;
+    object-fit:cover;
+  }
 
-    body.day-mode .nav-logo{
-      color:#a16207;
-    }
+  .badge-label{
+    margin:.45rem 0 0;
+    font-size:.88rem;
+    font-weight:900;
+    color:var(--text);
+    letter-spacing:.01em;
+  }
 
-    body.day-mode .site-nav a{
-      background:#ffffff;
-      color:#1c2430;
-      border:1px solid #d7c7a2;
-    }
+  .list{
+    margin:.9rem 0 0 1.1rem;
+    color:var(--muted);
+    font-size:.95rem;
+  }
 
-    body.day-mode .site-nav a[aria-current="page"]{
-      background:#ffd633;
-      color:#111827;
-      border-color:#e5b800;
-    }
+  .list li{
+    margin:.25rem 0;
+  }
 
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:2rem 1.25rem;
-    }
+  .purpose{
+    margin-top:.9rem;
+    border-top:1px solid var(--line);
+    padding-top:.85rem;
+    color:var(--muted);
+    font-size:.95rem;
+  }
 
-    .section{
-      margin:2rem 0;
-    }
+  .purpose strong{
+    color:var(--brand);
+  }
 
-    .lead{
-      color:var(--muted);
-      line-height:1.6;
-    }
+  .note-strip{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:1rem;
+    color:var(--muted);
+    margin-top:1.25rem;
+    line-height:1.55;
+  }
 
-    .hero{
-      background:linear-gradient(to bottom,#8b0000,#1a1a1a);
-      border-radius:20px;
-      padding:2rem 1.5rem;
-      border:1px solid rgba(255,255,255,.06);
-      box-shadow:0 0 22px rgba(0,0,0,.7);
-    }
-
-    body.day-mode .hero{
-      background:linear-gradient(to bottom,#c2410c,#f3e7cf);
-      border:1px solid rgba(166,124,0,.2);
-      box-shadow:0 10px 24px rgba(0,0,0,.10);
-    }
-
-    .hero-kicker{
-      text-transform:uppercase;
-      letter-spacing:.12em;
-      font-size:.8rem;
-      color:var(--brand);
-      font-weight:800;
-      margin-bottom:.35rem;
-    }
-
-    .hero h1{
-      margin:0 0 .5rem;
-    }
-
-    .hero-sub{
-      color:#e5e7eb;
-      font-size:1rem;
-      margin:0;
-      line-height:1.55;
-    }
-
-    body.day-mode .hero-sub{
-      color:#1c2430;
-    }
-
-    .hero-tag{
-      color:#9ca3af;
-      font-size:.92rem;
-      margin-top:.75rem;
-      line-height:1.55;
-    }
-
-    body.day-mode .hero-tag{
-      color:#374151;
-    }
-
-    .hero-link{
-      color:var(--brand);
-      text-decoration:none;
-      font-weight:900;
-    }
-
-    .actions{
-      display:flex;
-      gap:.75rem;
-      flex-wrap:wrap;
-      margin-top:1rem;
-    }
-
-    .section-title{
-      color:var(--brand);
-      margin:0 0 .5rem;
-    }
-
-    .panel{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:1.1rem;
-      box-shadow:var(--shadow);
-    }
-
-    .panel + .panel{
-      margin-top:1.25rem;
-    }
-
-    .panel-head{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap:1rem;
-      margin-bottom:.65rem;
-      flex-wrap:wrap;
-    }
-
-    .pill-tag{
-      display:inline-block;
-      padding:.25rem .6rem;
-      border-radius:999px;
-      background:var(--panel-2);
-      border:1px solid var(--line);
-      font-size:.7rem;
-      text-transform:uppercase;
-      letter-spacing:.08em;
-      color:var(--muted);
-      font-weight:800;
-    }
-
-    .panel-title{
-      margin:.25rem 0 .1rem;
-      font-size:1.2rem;
-      color:var(--text);
-      font-weight:900;
-      letter-spacing:.02em;
-    }
-
-    .panel-sub{
-      margin:0;
-      color:var(--muted);
-      font-size:.95rem;
-      line-height:1.55;
-    }
-
-    .journey-box{
-      margin-top:1rem;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:linear-gradient(to bottom,rgba(255,255,255,.03),rgba(0,0,0,.12));
-      padding:1rem;
-      overflow:hidden;
-    }
-
-    body.day-mode .journey-box{
-      background:linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(236,225,198,0.55));
-    }
-
-    .journey-top{
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:1rem;
-      flex-wrap:wrap;
-      margin-bottom:.75rem;
-    }
-
-    .journey-title{
-      margin:0;
-      font-weight:900;
-      letter-spacing:.04em;
-      color:var(--brand);
-      font-size:.95rem;
-      text-transform:uppercase;
-    }
-
-    .journey-meta{
-      margin:0;
-      color:var(--muted);
-      font-size:.9rem;
-      font-weight:700;
-    }
-
-    .badge-row{
-      display:flex;
-      gap:.8rem;
-      overflow-x:auto;
-      padding:.15rem .15rem .6rem;
-      scroll-snap-type:x mandatory;
-      -webkit-overflow-scrolling:touch;
-    }
-
-    .badge-row::-webkit-scrollbar{
-      height:10px;
-    }
-
-    .badge-row::-webkit-scrollbar-thumb{
-      background:#263142;
-      border-radius:999px;
-      border:2px solid #0f141b;
-    }
-
-    body.day-mode .badge-row::-webkit-scrollbar-thumb{
-      background:#d7c7a2;
-      border-color:#fff8ec;
-    }
-
-    .badge{
-      flex:0 0 auto;
-      width:120px;
-      scroll-snap-align:start;
-      text-align:center;
-    }
-
-    .badge img{
-      width:120px;
-      height:120px;
-      border-radius:14px;
-      border:1px solid rgba(255,255,255,.10);
-      box-shadow:0 0 16px rgba(0,0,0,.45);
-      background:#0f141b;
-      display:block;
-      object-fit:cover;
-    }
-
-    .badge-label{
-      margin:.45rem 0 0;
-      font-size:.88rem;
-      font-weight:900;
-      color:var(--text);
-      letter-spacing:.01em;
-    }
-
-    .list{
-      margin:.9rem 0 0 1.1rem;
-      color:var(--muted);
-      font-size:.95rem;
-    }
-
-    .list li{
-      margin:.25rem 0;
-    }
-
-    .purpose{
-      margin-top:.9rem;
-      border-top:1px solid var(--line);
-      padding-top:.85rem;
-      color:var(--muted);
-      font-size:.95rem;
-    }
-
-    .purpose strong{
-      color:var(--brand);
-    }
-
-    .note-strip{
-      background:var(--panel-2);
-      border:1px solid var(--line);
-      border-radius:12px;
-      padding:1rem;
-      color:var(--muted);
-      margin-top:1.25rem;
-      line-height:1.55;
-    }
-
-    .note-strip strong{
-      color:var(--brand);
-    }
-
-    @media (min-width:700px){
-      .site-nav{
-        grid-template-columns:repeat(4, minmax(0, 1fr));
-      }
-
-      .site-nav a{
-        min-height:40px;
-        font-size:.86rem;
-      }
-
-      .nav-logo{
-        font-size:1.02rem;
-      }
-    }
-
-    @media (max-width:640px){
-      .top-nav{
-        padding:10px;
-      }
-
-      .wrap{
-        padding:1.4rem .9rem;
-      }
-
-      .hero{
-        padding:1.4rem 1rem;
-      }
-    }
-  </style>
+  .note-strip strong{
+    color:var(--brand);
+  }
+</style>
 </head>
 
 <body>
@@ -508,7 +244,7 @@
         <h2 class="section-title">Programas por edad</h2>
       </div>
 
-      <article class="panel" style="margin-top:1rem;">
+      <article class="panel"></article>
         <div data-lang-block="en">
           <div class="panel-head">
             <span class="pill-tag">Foundry 8 · Zero2Hero · Youth</span>
@@ -534,82 +270,107 @@
         <div class="journey-box" aria-label="Foundry 8 badge journey">
           <div class="journey-top">
             <div data-lang-block="en">
-              <p class="journey-title">Foundry 8 Journey</p>
+              <p class="journey-title">Foundry 8 Youth Journey</p>
               <p class="journey-meta">Night → Day</p>
             </div>
 
             <div data-lang-block="es" class="hidden-lang">
-              <p class="journey-title">Camino Foundry 8</p>
+              <p class="journey-title">Foundry 4 Teen Journey</p>
               <p class="journey-meta">Noche → Día</p>
             </div>
           </div>
 
-          <div class="badge-row" role="list" aria-label="Foundry 8 badges">
-            <div class="badge" role="listitem">
-              <img src="/assets/img/f8/t0-shadow.png" alt="Shadow badge" loading="lazy" />
-              <div class="badge-label">
-                <span data-lang-block="en">Shadow</span>
-                <span data-lang-block="es" class="hidden-lang">Shadow</span>
-              </div>
-            </div>
-            <div class="badge" role="listitem">
-              <img src="/assets/img/f8/t2-combatant.png" alt="Combatant badge" loading="lazy" />
-              <div class="badge-label">
-                <span data-lang-block="en">Combatant</span>
-                <span data-lang-block="es" class="hidden-lang">Combatant</span>
-              </div>
-            </div>
-            <div class="badge" role="listitem">
-              <img src="/assets/img/f8/t4-warrior.png" alt="Warrior badge" loading="lazy" />
-              <div class="badge-label">
-                <span data-lang-block="en">Warrior</span>
-                <span data-lang-block="es" class="hidden-lang">Warrior</span>
-              </div>
-            </div>
-            <div class="badge" role="listitem">
-              <img src="/assets/img/f8/t7-hero.png" alt="Hero badge" loading="lazy" />
-              <div class="badge-label">
-                <span data-lang-block="en">Hero</span>
-                <span data-lang-block="es" class="hidden-lang">Hero</span>
-              </div>
-            </div>
-          </div>
-        </div>
+<div class="badge-row" role="list" aria-label="Foundry 8 badges">
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t0-shadow.png" alt="Shadow badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Shadow</span>
+      <span data-lang-block="es" class="hidden-lang">Shadow</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t1-recruit.png" alt="Recruit badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Recruit</span>
+      <span data-lang-block="es" class="hidden-lang">Recluta</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t2-combatant.png" alt="Combatant badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Combatant</span>
+      <span data-lang-block="es" class="hidden-lang">Combatant</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t3-competitor.png" alt="Competitor badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Competitor</span>
+      <span data-lang-block="es" class="hidden-lang">Competidor</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t4-warrior.png" alt="Warrior badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Warrior</span>
+      <span data-lang-block="es" class="hidden-lang">Guerrero</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t5-champion.png" alt="Champion badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Champion</span>
+      <span data-lang-block="es" class="hidden-lang">Campeón</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t6-commander.png" alt="Commander badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Commander</span>
+      <span data-lang-block="es" class="hidden-lang">Comandante</span>
+    </div>
+  </div>
+
+  <div class="badge" role="listitem">
+    <img src="/assets/img/f8/t7-hero.png" alt="Hero badge" loading="lazy" />
+    <div class="badge-label">
+      <span data-lang-block="en">Hero</span>
+      <span data-lang-block="es" class="hidden-lang">Héroe</span>
+    </div>
+  </div>
+
+</div>
+</div>
 
         <div data-lang-block="en">
           <ul class="list">
-            <li><strong>Wrestling</strong> — stance, motion, position, body control</li>
+            <li><strong>Wrestling</strong> — basics, mechanics, and body control</li>
           </ul>
 
           <div class="purpose">
-            <strong>Purpose:</strong> build the base. Control first. Complexity later.
+            <strong>Purpose:</strong> build fundamentals that carry from youth to college. Control first. Complexity later.
           </div>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
-          <ul class="list">
-            <li><strong>Wrestling</strong> — postura, movimiento, posición y control corporal</li>
-          </ul>
+  <ul class="list">
+    <li><strong>Wrestling</strong> — fundamentos, mecánica y control corporal</li>
+  </ul>
 
-          <div class="purpose">
-            <strong>Propósito:</strong> construir la base. Control primero. Complejidad después.
-          </div>
+  <div class="purpose">
+    <strong>Propósito:</strong> construir fundamentos que acompañen al atleta desde la juventud hasta la universidad. Control primero. Complejidad después.
+  </div>
+</div>
+
         </div>
       </article>
-
-      <div class="panel" style="margin-top:1rem;">
-        <div data-lang-block="en">
-
-
-        <div data-lang-block="es" class="hidden-lang">
-          <h3 class="panel-title">Promoción y ceremonias</h3>
-          <p class="panel-sub">
-            El progreso se gana mediante evaluación y se reconoce en ceremonia.
-          </p>
-
-        </div>
-      </div>
-
       <article class="panel">
         <div data-lang-block="en">
           <div class="panel-head">
@@ -636,12 +397,12 @@
         <div class="journey-box" aria-label="Foundry 4 badge journey">
           <div class="journey-top">
             <div data-lang-block="en">
-              <p class="journey-title">Foundry 4 Journey</p>
+              <p class="journey-title">Foundry 4 Teen Journey</p>
               <p class="journey-meta">Day → Night</p>
             </div>
 
             <div data-lang-block="es" class="hidden-lang">
-              <p class="journey-title">Camino Foundry 4</p>
+              <p class="journey-title">Viaje Juvenil Foundry 4</p>
               <p class="journey-meta">Día → Noche</p>
             </div>
           </div>
@@ -669,6 +430,13 @@
               </div>
             </div>
             <div class="badge" role="listitem">
+  <img src="/assets/img/f4/t3-veteran.png" alt="Veteran badge" loading="lazy" />
+  <div class="badge-label">
+    <span data-lang-block="en">Veteran</span>
+    <span data-lang-block="es" class="hidden-lang">Veterano</span>
+  </div>
+</div>
+            <div class="badge" role="listitem">
               <img src="/assets/img/f4/t4-legend.png" alt="Legend badge" loading="lazy" />
               <div class="badge-label">
                 <span data-lang-block="en">Legend</span>
@@ -680,8 +448,9 @@
 
         <div data-lang-block="en">
           <ul class="list">
-            <li><strong>Wrestling</strong> — pressure, pace, control</li>
-            <li><strong>Boxing</strong> — precision under fatigue</li>
+            <li><strong>Wrestling</strong> — brotherhood & sisterhood forged in battle</li>
+            <li><strong>Boxing</strong> — the sweet science</li>
+            <li><strong>Kickboxing</strong> — fast hands, fast feet</li>
           </ul>
 
           <div class="purpose">
@@ -691,8 +460,9 @@
 
         <div data-lang-block="es" class="hidden-lang">
           <ul class="list">
-            <li><strong>Wrestling</strong> — presión, ritmo y control</li>
-            <li><strong>Boxing</strong> — precisión bajo fatiga</li>
+            <li><strong>Wrestling</strong> — hermandad y sororidad forjadas en batalla</li>
+            <li><strong>Boxing</strong> — la ciencia dulce</li>
+            <li><strong>Kickboxing</strong> — manos rápidas, pies rápidos</li>
           </ul>
 
           <div class="purpose">
@@ -700,6 +470,119 @@
           </div>
         </div>
       </article>
+      
+
+  <div data-lang-block="en">
+    <div class="panel-head">
+      <span class="pill-tag">Foundry 4 · Quest2Mastery· Adult</span>
+    </div>
+
+    <h3 class="panel-title">Ages ~18–30</h3>
+
+    <p class="panel-sub">
+      Structured combat training built through discipline, pressure, and consistency. Athletes develop composure, conditioning, and control across striking, grappling, and live combat.
+    </p>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <div class="panel-head">
+      <span class="pill-tag">Foundry 4 · Adult Journeys</span>
+    </div>
+
+    <h3 class="panel-title">Edades ~18–30</h3>
+
+    <p class="panel-sub">
+      Entrenamiento estructurado de combate construido con disciplina, presión y constancia. Los atletas desarrollan compostura, condición física y control en golpeo, grappling y combate en vivo.
+    </p>
+  </div>
+
+  <div class="journey-box" aria-label="Foundry 4 adult badge journey">
+
+    <div class="journey-top">
+      <div data-lang-block="en">
+        <p class="journey-title">Foundry 4 Adult Journey</p>
+        <p class="journey-meta">Built in the Shadows</p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <p class="journey-meta">Forjado en las Sombras</p>
+        <p class="journey-title">Viaje Adulto Foundry 4</p>
+      </div>
+    </div>
+
+    <div class="badge-row" role="list" aria-label="Foundry 4 adult badges">
+
+      <div class="badge" role="listitem">
+        <img src="/assets/img/f4/f4-adult-apprentice.png" alt="Apprentice badge" loading="lazy" />
+        <div class="badge-label">
+          <span data-lang-block="en">Apprentice</span>
+          <span data-lang-block="es" class="hidden-lang">Aprendiz</span>
+        </div>
+      </div>
+
+      <div class="badge" role="listitem">
+        <img src="/assets/img/f4/f4-adult-warrior.png" alt="Warrior badge" loading="lazy" />
+        <div class="badge-label">
+          <span data-lang-block="en">Warrior</span>
+          <span data-lang-block="es" class="hidden-lang">Guerrero</span>
+        </div>
+      </div>
+
+      <div class="badge" role="listitem">
+        <img src="/assets/img/f4/f4-adult-champion.png" alt="Champion badge" loading="lazy" />
+        <div class="badge-label">
+          <span data-lang-block="en">Champion</span>
+          <span data-lang-block="es" class="hidden-lang">Campeón</span>
+        </div>
+      </div>
+
+      <div class="badge" role="listitem">
+        <img src="/assets/img/f4/f4-adult-veteran.png" alt="Veteran badge" loading="lazy" />
+        <div class="badge-label">
+          <span data-lang-block="en">Veteran</span>
+          <span data-lang-block="es" class="hidden-lang">Veterano</span>
+        </div>
+      </div>
+
+      <div class="badge" role="listitem">
+        <img src="/assets/img/f4/f4-adult-master.png" alt="Master badge" loading="lazy" />
+        <div class="badge-label">
+          <span data-lang-block="en">Master</span>
+          <span data-lang-block="es" class="hidden-lang">Maestro</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div data-lang-block="en">
+    <ul class="list">
+      <li><strong>Quest2Mastery (MMA)</strong> — integrated combat path</li>
+      <li><strong>Road2Greatness (Boxing)</strong> — adult boxing journey</li>
+      <li><strong>Striking</strong> — timing, pressure, composure</li>
+      <li><strong>Grappling</strong> — control, positioning, endurance</li>
+    </ul>
+
+    <div class="purpose">
+      <strong>Purpose:</strong> forge disciplined adults capable of performing under pressure through structured combat training.
+    </div>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <ul class="list">
+      <ul class="list">
+      <li><strong>Quest2Mastery (MMA)</strong> — camino integrado de combate</li>
+      <li><strong>Road2Greatness (Boxing)</strong> — trayectoria de boxeo para adultos</li>
+      <li><strong>Striking</strong> — tiempo, presión y compostura</li>
+      <li><strong>Grappling</strong> — control, posicionamiento y resistencia</li>
+    </ul>
+
+    <div class="purpose">
+      <strong>Propósito:</strong> formar adultos disciplinados capaces de rendir bajo presión a través de entrenamiento estructurado de combate.
+    </div>
+  </div>
+
+</article>
 
       <div class="note-strip">
         <div data-lang-block="en">
@@ -713,8 +596,6 @@
         </div>
       </div>
     </section>
-  </main>
-</body>
 </main>
 </body>
 </html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Belt Rank Test</title>
+
+  <link rel="stylesheet" href="../assets/css/belts.css">
+
+  <style>
+    body {
+      background: #5f6368;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      padding: 24px;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      margin: 30px 0 10px;
+      font-size: 14px;
+      letter-spacing: .5px;
+      opacity: .7;
+    }
+
+    .belt-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .belt-meta {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .belt-rank {
+      font-size: 18px;
+      font-weight: 900;
+      letter-spacing: .6px;
+      text-transform: uppercase;
+      line-height: 1;
+    }
+
+    .belt-message {
+      font-size: 13px;
+      opacity: .72;
+      line-height: 1.2;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Digital Belt Test</h1>
+
+<h2>YOUTH (F8)</h2>
+<div class="belt-wrap" id="youth"></div>
+
+<h2>TEEN / ADULT (F4)</h2>
+<div class="belt-wrap" id="teen"></div>
+
+<script type="module">
+  import { renderDigitalBelt } from "../assets/js/digital-belt.js";
+
+  /* =========================
+     YOUTH (F8)
+  ========================= */
+
+  const youthMessages = {
+    Shadow: "Every journey starts here.",
+    Recruit: "Show up. Learn fast.",
+    Combatant: "What you earn is yours.",
+    Contender: "You’re starting to figure it out.",
+    Warrior: "Now it gets hard.",
+    Champion: "Raise the standard.",
+    Commander: "Others follow your example.",
+    Hero: "You carry it now."
+  };
+
+  const youthData = [
+    { name:"Shadow", color:"belt-white", stripes:1 },
+    { name:"Recruit", color:"belt-yellow", stripes:2 },
+    { name:"Combatant", color:"belt-orange", stripes:3 },
+    { name:"Contender", color:"belt-green", stripes:4 },
+    { name:"Warrior", color:"belt-blue", stripes:2 },
+    { name:"Champion", color:"belt-purple", stripes:3 },
+    { name:"Commander", color:"belt-brown", stripes:2 },
+    { name:"Hero", color:"belt-black", stripes:4 }
+  ];
+
+  const youthWrap = document.getElementById("youth");
+
+  youthData.forEach(b => {
+    youthWrap.insertAdjacentHTML("beforeend", `
+      <div class="row">
+        <div class="belt-meta">
+          <div class="belt-rank">${b.name}</div>
+          <div class="belt-message">${youthMessages[b.name]}</div>
+        </div>
+
+        ${renderDigitalBelt({
+          colorClass: b.color,
+          stripes: b.stripes,
+          size: "large"
+        })}
+      </div>
+    `);
+  });
+
+  /* =========================
+     TEEN / ADULT (F4)
+  ========================= */
+
+  const teenMessages = {
+    Apprentice: "Learn the foundation.",
+    Warrior: "Now it gets hard.",
+    Champion: "Raise the standard.",
+    Veteran: "Consistency builds mastery.",
+    Legend: "The standard never drops."
+  };
+
+  const teenData = [
+    { name:"Apprentice", color:"belt-white", stripes:1 },
+    { name:"Warrior", color:"belt-blue", stripes:2 },
+    { name:"Champion", color:"belt-purple", stripes:3 },
+    { name:"Veteran", color:"belt-brown", stripes:2 },
+    { name:"Legend", color:"belt-black", stripes:4 }
+  ];
+
+  const teenWrap = document.getElementById("teen");
+
+  teenData.forEach(b => {
+    teenWrap.insertAdjacentHTML("beforeend", `
+      <div class="row">
+        <div class="belt-meta">
+          <div class="belt-rank">${b.name}</div>
+          <div class="belt-message">${teenMessages[b.name]}</div>
+        </div>
+
+        ${renderDigitalBelt({
+          colorClass: b.color,
+          stripes: b.stripes,
+          size: "large"
+        })}
+      </div>
+    `);
+  });
+
+</script>
+
+</body>
+</html>

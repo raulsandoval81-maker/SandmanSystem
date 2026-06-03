@@ -1,0 +1,635 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Foundry 4 Ceremonies | Sandman System</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../public.css" />
+
+  <script src="../assets/js/public-shell.js" defer></script>
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #1f2937,
+        #111827
+      );
+
+    border:1px solid #263244;
+
+    border-radius:24px;
+
+    padding:48px 30px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+
+    margin-bottom:28px;
+  }
+
+  body.day-mode .hero{
+    background:
+      linear-gradient(
+        to bottom,
+        #ffffff,
+        #f3e7cf
+      );
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+
+    text-transform:uppercase;
+    letter-spacing:.16em;
+
+    font-size:.78rem;
+    font-weight:800;
+
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+
+    font-size:clamp(2.5rem,5vw,4.5rem);
+
+    line-height:1;
+
+    color:var(--heading);
+  }
+
+  .hero-sub{
+    max-width:760px;
+
+    color:var(--hero-muted);
+
+    line-height:1.75;
+
+    font-size:1.05rem;
+  }
+
+  .section{
+    margin-top:30px;
+  }
+
+  .section h2{
+    color:var(--heading-accent);
+
+    margin-bottom:12px;
+
+    font-size:1.5rem;
+  }
+
+  body.day-mode .section h2{
+    color:var(--heading);
+  }
+
+  .lead{
+    color:var(--muted);
+
+    line-height:1.7;
+
+    margin-bottom:18px;
+  }
+
+  .grid{
+    display:grid;
+
+    grid-template-columns:
+      repeat(auto-fit,minmax(220px,1fr));
+
+    gap:18px;
+  }
+
+  .card,
+  .step,
+  .rule{
+    background:var(--panel);
+
+    border:1px solid var(--line);
+
+    border-radius:18px;
+
+    padding:20px;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card,
+  body.day-mode .step,
+  body.day-mode .rule{
+    background:#ffffff;
+
+    border:1px solid #d7c7a2;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card:hover,
+  .step:hover,
+  .rule:hover{
+    transform:translateY(-2px);
+
+    border-color:#ff2a2a;
+
+    box-shadow:0 0 18px rgba(255,42,42,.22);
+  }
+
+  .card h3,
+  .rule h3{
+    margin:0 0 10px;
+
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .card h3,
+  body.day-mode .rule h3{
+    color:var(--heading);
+  }
+
+  .card p,
+  .rule p,
+  .step p{
+    margin:0;
+
+    color:var(--muted);
+
+    line-height:1.65;
+  }
+
+  .steps{
+    display:grid;
+
+    gap:14px;
+
+    margin-top:18px;
+  }
+
+  .step strong{
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .step strong{
+    color:#a16207;
+  }
+
+  .step p{
+    margin-top:.45rem;
+  }
+
+  .quote{
+    margin-top:30px;
+
+    padding:24px;
+
+    border-left:4px solid var(--heading-accent);
+
+    background:var(--panel);
+
+    border-radius:16px;
+
+    color:var(--text);
+
+    line-height:1.8;
+
+    font-size:1.04rem;
+
+    border:1px solid var(--line);
+  }
+
+  body.day-mode .quote{
+    background:#ffffff;
+
+    border-color:#d7c7a2;
+  }
+
+  .rule{
+    margin-top:28px;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  @media (max-width:640px){
+
+    main{
+      padding:28px 14px 70px;
+    }
+
+    .hero{
+      padding:36px 22px;
+    }
+
+    h1{
+      font-size:2.5rem;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="top-nav">
+
+  <div class="nav-top">
+
+    <div class="lang-toggle" role="group" aria-label="Language toggle">
+      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
+      <button type="button" class="lang-btn" data-lang="es">ES</button>
+    </div>
+
+    <a href="../index.html" class="nav-logo">
+      Sandman Combat™
+    </a>
+
+    <button type="button" class="theme-toggle" aria-label="Toggle theme">
+      ☾
+    </button>
+
+  </div>
+
+  <nav class="site-nav" aria-label="Primary">
+
+    <a href="../index.html">
+      <span data-lang-block="en">Home</span>
+      <span data-lang-block="es" class="hidden-lang">Inicio</span>
+    </a>
+
+    <a href="../overview.html">
+      <span data-lang-block="en">Overview</span>
+      <span data-lang-block="es" class="hidden-lang">Resumen</span>
+    </a>
+
+    <a href="../programs.html">
+      <span data-lang-block="en">Programs</span>
+      <span data-lang-block="es" class="hidden-lang">Programas</span>
+    </a>
+
+    <a href="../about.html">
+      <span data-lang-block="en">About</span>
+      <span data-lang-block="es" class="hidden-lang">Acerca</span>
+    </a>
+
+  </nav>
+
+</header>
+
+<main>
+
+  <section class="hero">
+
+    <div data-lang-block="en">
+
+      <div class="eyebrow">
+        Foundry 4
+      </div>
+
+      <h1>Ceremonies</h1>
+
+      <p class="hero-sub">
+        Foundry 4 ceremonies recognize earned progression for teen and adult athletes.
+        This phase carries higher responsibility, greater pressure, and a more mature standard
+        of discipline, identity, and accountability.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <div class="eyebrow">
+        Foundry 4
+      </div>
+
+      <h1>Ceremonias</h1>
+
+      <p class="hero-sub">
+        Las ceremonias de Foundry 4 reconocen el progreso ganado para atletas adolescentes y adultos.
+        Esta fase lleva mayor responsabilidad, más presión y un estándar más maduro de disciplina,
+        identidad y responsabilidad.
+      </p>
+
+    </div>
+
+  </section>
+
+  <section class="section">
+
+    <div data-lang-block="en">
+
+      <h2>Progression Identity</h2>
+
+      <p class="lead">
+        Foundry 4 is built for athletes moving through deeper pressure and higher responsibility.
+        Recognition is never given early. It is earned through work, testing, readiness, and maturity.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <h2>Identidad de progresión</h2>
+
+      <p class="lead">
+        Foundry 4 está construido para atletas que avanzan bajo mayor presión y responsabilidad.
+        El reconocimiento nunca se entrega antes de tiempo.
+        Se gana mediante trabajo, evaluación, preparación y madurez.
+      </p>
+
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Badge</h3>
+          <p>
+            The badge represents history.
+            It marks what the athlete has already earned through training, testing, pressure, and growth.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Insignia</h3>
+          <p>
+            La insignia representa la historia.
+            Marca lo que el atleta ya ha ganado mediante entrenamiento,
+            evaluación, presión y crecimiento.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Shirt</h3>
+          <p>
+            The shirt represents current identity.
+            It shows the standard the athlete is carrying inside the room right now.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Camiseta</h3>
+          <p>
+            La camiseta representa la identidad actual.
+            Muestra el estándar que el atleta lleva dentro de la sala en este momento.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Belt</h3>
+          <p>
+            The belt represents milestone progression.
+            It is earned through demonstrated readiness, not attendance alone or empty recognition.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Cinturón</h3>
+          <p>
+            El cinturón representa una progresión importante.
+            Se gana mediante preparación demostrada, no solamente asistencia o reconocimiento vacío.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <div data-lang-block="en">
+          <h3>Ceremony</h3>
+          <p>
+            Ceremony honors the transition after it has been earned.
+            Promotion comes from the standard. Ceremony recognizes the completed step.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h3>Ceremonia</h3>
+          <p>
+            La ceremonia honra la transición después de haber sido ganada.
+            La promoción viene del estándar.
+            La ceremonia reconoce el paso completado.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <section class="section">
+
+    <div data-lang-block="en">
+
+      <h2>How Progression Works</h2>
+
+      <p class="lead">
+        Foundry 4 progression protects the meaning of advancement.
+        Athletes must show consistency, discipline, technical growth,
+        composure, and responsibility under pressure.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <h2>Cómo funciona la progresión</h2>
+
+      <p class="lead">
+        La progresión de Foundry 4 protege el significado del avance.
+        Los atletas deben demostrar consistencia, disciplina,
+        crecimiento técnico, compostura y responsabilidad bajo presión.
+      </p>
+
+    </div>
+
+    <div class="steps">
+
+      <div class="step">
+
+        <div data-lang-block="en">
+          <strong>1. Train</strong>
+          <p>
+            Athletes develop skill, control, conditioning, discipline,
+            and maturity through structured practice and live pressure.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <strong>1. Entrenar</strong>
+          <p>
+            Los atletas desarrollan habilidad, control, condición física,
+            disciplina y madurez mediante práctica estructurada y presión en vivo.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="step">
+
+        <div data-lang-block="en">
+          <strong>2. Earn XP</strong>
+          <p>
+            Progress is earned through consistent work, effort,
+            accountability, training habits, and demonstrated growth.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <strong>2. Ganar XP</strong>
+          <p>
+            El progreso se gana mediante trabajo constante,
+            esfuerzo, responsabilidad, hábitos de entrenamiento y crecimiento demostrado.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="step">
+
+        <div data-lang-block="en">
+          <strong>3. Reach Testing</strong>
+          <p>
+            When athletes reach the required standard,
+            they become eligible to test.
+            Testing confirms readiness; it does not create it.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <strong>3. Llegar a evaluación</strong>
+          <p>
+            Cuando los atletas alcanzan el estándar requerido,
+            se vuelven elegibles para evaluación.
+            La evaluación confirma preparación; no la crea.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="step">
+
+        <div data-lang-block="en">
+          <strong>4. Pass or Continue</strong>
+          <p>
+            Passing confirms the athlete is ready for promotion.
+            If the athlete is not ready, training continues until the standard is met.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <strong>4. Aprobar o continuar</strong>
+          <p>
+            Aprobar confirma que el atleta está listo para promoción.
+            Si no está listo, el entrenamiento continúa hasta cumplir el estándar.
+          </p>
+        </div>
+
+      </div>
+
+      <div class="step">
+
+        <div data-lang-block="en">
+          <strong>5. Ceremony</strong>
+          <p>
+            Ceremonies recognize athletes who completed the process during the system cycle.
+            The ceremony honors earned progress; it does not replace the work.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <strong>5. Ceremonia</strong>
+          <p>
+            Las ceremonias reconocen a los atletas que completaron el proceso durante el ciclo del sistema.
+            La ceremonia honra el progreso ganado; no reemplaza el trabajo.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+  <div class="quote">
+
+    <span data-lang-block="en">
+      Foundry 4 is not about rushing athletes into status.
+      It is about building maturity, pressure tolerance,
+      discipline, and identity through earned progression.
+    </span>
+
+    <span data-lang-block="es" class="hidden-lang">
+      Foundry 4 no se trata de apresurar atletas hacia el estatus.
+      Se trata de construir madurez, tolerancia a la presión,
+      disciplina e identidad mediante progreso ganado.
+    </span>
+
+  </div>
+
+  <div class="rule">
+
+    <div data-lang-block="en">
+
+      <h3>The Standard</h3>
+
+      <p>
+        No skipped tiers. No empty recognition. No borrowed status.
+        The athlete rises to meet the standard — the standard does not move to meet the athlete.
+      </p>
+
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+
+      <h3>El estándar</h3>
+
+      <p>
+        No se saltan niveles.
+        No hay reconocimiento vacío.
+        No existe estatus prestado.
+        El atleta sube para alcanzar el estándar — el estándar no baja para alcanzar al atleta.
+      </p>
+
+    </div>
+
+  </div>
+
+</main>
+
+</body>
+</html>

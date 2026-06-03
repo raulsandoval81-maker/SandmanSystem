@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Ceremony History</title>
+  <style>
+    body { font-family: Arial; padding:20px; }
+    .row { margin:6px 0; }
+  </style>
+</head>
+<body>
+
+<h1>Ceremony History</h1>
+
+<div id="list"></div>
+
+<script>
+  async function load() {
+    if (!window.CoachCeremonies) return;
+
+    const res = await window.CoachCeremonies.listRecent(50);
+    document.getElementById("list").innerHTML =
+      res.map(r => `
+        <div class="row">
+          ${r.athleteName} — ${r.rankName} — ${new Date(r.ceremonyDate).toLocaleDateString()}
+        </div>
+      `).join("");
+  }
+
+  load();
+</script>
+
+</body>
+</html>

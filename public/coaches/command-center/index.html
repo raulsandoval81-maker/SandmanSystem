@@ -330,34 +330,49 @@
         </div>
 
         <div class="queue">
-          <div class="queue-row">
-            <div class="queue-left">
-              <div class="queue-label">Pending Join Requests</div>
-              <div class="queue-sub">Families asking to enter the system</div>
-            </div>
-            <div class="queue-count" id="count-join-requests">0</div>
-          </div>
 
-          <div class="queue-row">
-            <div class="queue-left">
-              <div class="queue-label">Pending Trial Requests</div>
-              <div class="queue-sub">3-day trial path selected</div>
-            </div>
-            <div class="queue-count" id="count-trial-requests">0</div>
-          </div>
 
-          <div class="queue-row">
-            <div class="queue-left">
-              <div class="queue-label">Pending Messages</div>
-              <div class="queue-sub">General parent communication</div>
-            </div>
-            <div class="queue-count" id="count-parent-messages">0</div>
-          </div>
-        </div>
+    <!-- JOIN -->
+  <div class="queue-row">
+    <div class="queue-left">
+      <div class="queue-label">Pending Join Requests</div>
+      <div class="queue-sub">Full member families</div>
+    </div>
+    <div class="queue-count" id="count-join-requests">0</div>
+  </div>
+
+  <!-- NEW: ASSESSMENT -->
+  <div class="queue-row">
+    <div class="queue-left">
+      <div class="queue-label">Pending Assessments</div>
+      <div class="queue-sub">1-day free-assessment entry</div>
+    </div>
+    <div class="queue-count" id="count-free-pass">0</div>
+  </div>
+
+  <!-- TRIAL -->
+  <div class="queue-row">
+    <div class="queue-left">
+      <div class="queue-label">Pending Trial Requests</div>
+      <div class="queue-sub">3-day trial payed-path selected</div>
+    </div>
+    <div class="queue-count" id="count-trial-requests">0</div>
+  </div>
+
+
+      <!-- MESSAGES -->
+  <div class="queue-row">
+    <div class="queue-left">
+      <div class="queue-label">Pending Messages</div>
+      <div class="queue-sub">General parent communication</div>
+    </div>
+    <div class="queue-count" id="count-parent-messages">0</div>
+  </div>
+</div>
+
 
         <div class="mini-note">
-          Public front door now splits athletes into <strong>trial</strong> or <strong>join</strong>.
-          Coach side should read that cleanly and act from one inbox.
+          Public front door now splits athletes into <strong>assessment</strong>, <strong>trial</strong>, or <strong>join</strong>.
         </div>
 
         <div class="actions">
@@ -376,6 +391,23 @@
 
   <div class="actions">
     <a class="btn brand" href="/intake-coach/">Open Coach Intake</a>
+  </div>
+</article>
+
+<article class="card wide">
+  <div class="eyebrow">Testing</div>
+  <div class="card-title">Ready Athletes</div>
+
+  <div id="list-testing" class="queue"></div>
+
+  <div class="card-copy">
+    Athletes marked READY for testing. Launch test directly.
+  </div>
+
+  <div class="actions">
+    <a class="btn brand" href="/coaches/testing/testing-command-center.html">
+      Open Testing Command Center
+    </a>
   </div>
 </article>
 

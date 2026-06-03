@@ -7,18 +7,18 @@
 // ============================
 
 // ---------- Foundry 8 / Youth (R0–R7) ----------
-// Locked caps (your current doctrine):
-// Shadow 800, Recruit 1000, Combatant 1200, Competitor 1400,
-// Warrior 1600, Champion 1800, Commander 2000, Hero 2400.
+// Locked caps:
+// Shadow 600, Recruit 800, Combatant 1000, Competitor 1200,
+// Warrior 1400, Champion 1600, Commander 1800, Hero 2400.
 export const LADDER_YOUTH = [
-  { key: "R0", name: "Shadow",     cap:  600, stripe: 200, stripes: 3 },
-  { key: "R1", name: "Recruit",    cap:  800, stripe: 200, stripes: 4 },
-  { key: "R2", name: "Combatant",  cap: 1000, stripe: 200, stripes: 4 },
-  { key: "R3", name: "Competitor", cap: 1200, stripe: 200, stripes: 4 },
-  { key: "R4", name: "Warrior",    cap: 1600, stripe: 400, stripes: 4 },
-  { key: "R5", name: "Champion",   cap: 1800, stripe: 450, stripes: 4 },
-  { key: "R6", name: "Commander",  cap: 2000, stripe: 500, stripes: 4 },
-  { key: "R7", name: "Hero",       cap: 2400, stripe: 600, stripes: 4 }
+  { key:"R0", name:"Shadow",     cap:  600, stripe:200, stripes:3 },
+  { key:"R1", name:"Recruit",    cap:  800, stripe:200, stripes:4 },
+  { key:"R2", name:"Combatant",  cap: 1000, stripe:250, stripes:4 },
+  { key:"R3", name:"Competitor", cap: 1200, stripe:300, stripes:4 },
+  { key:"R4", name:"Warrior",    cap: 1400, stripe:350, stripes:4 },
+  { key:"R5", name:"Champion",   cap: 1600, stripe:400, stripes:4 },
+  { key:"R6", name:"Commander",  cap: 1800, stripe:450, stripes:4 },
+  { key:"R7", name:"Hero",       cap: 2400, stripe:600, stripes:4 }
 ];
 // Alias so pages can import either name
 export const LADDER_F8 = LADDER_YOUTH;
@@ -32,6 +32,14 @@ export const LADDER_F4 = [
   { key: "R4", name: "Legend",     cap: 2800, stripe: 650, stripes: 4 }, // final
 ];
 
+// ---------- Quest2Mastery / Adult (R0–R4) ----------
+export const LADDER_Q2M = [
+  { key: "R0", name: "Apprentice", cap: 1000, stripe: 250, stripes: 4 },
+  { key: "R1", name: "Warrior",    cap: 1600, stripe: 400, stripes: 4 },
+  { key: "R2", name: "Champion",   cap: 2000, stripe: 500, stripes: 4 },
+  { key: "R3", name: "Veteran",    cap: 2400, stripe: 600, stripes: 4 },
+  { key: "R4", name: "Master",     cap: 3000, stripe: 750, stripes: 4 },
+];
 // Optional alias (if you ever prefer “teen” naming)
 export const LADDER_TEEN = LADDER_F4;
 
@@ -51,12 +59,14 @@ export const COLORS = {
   combatant:  { text:"#FFFFFF", start:"#EA6A0F", end:"#FF7F1A", outline:"#CC5A0A" },
   recruit:    { text:"#111111", start:"#FFE47A", end:"#FFCF36", outline:"#D2A800" },
   shadow:     { text:"#111111", start:"#FFFFFF", end:"#FFFFFF", outline:"#CCCCCC" },
+
 };
 
 // Map display name -> color token key
 export function colorKeyFor(name = "") {
   const n = String(name).toLowerCase();
   if (n === "legend")     return "legend";
+  if (n === "master") return "legend";
   if (n === "hero")       return "hero";
   if (n === "veteran")    return "veteran";
   if (n === "champion")   return "champion";
@@ -71,19 +81,70 @@ export function colorKeyFor(name = "") {
 }
 export function getLadderForAthlete(a = {}) {
   const id = String(a.uid || a.uidCode || a.id || "").toUpperCase();
-  const track = String(a.track || a.trackCode || "").toLowerCase();
+
+  const track = String(
+    a.programTrack ||
+    a.track ||
+    a.trackCode ||
+    ""
+  ).toLowerCase();
+
   const rank = String(a.rankName || "").toLowerCase();
 
-  if (id.startsWith("F8_") || track.includes("foundry8") || rank === "shadow" || rank === "recruit" || rank === "combatant" || rank === "competitor" || rank === "commander" || rank === "hero") {
+  // Quest2Mastery / Adult
+  if (
+    track.includes("quest2mastery") ||
+    track.includes("adult")
+  ) {
+    return LADDER_Q2M;
+  }
+
+  // Foundry 8 / Youth
+  if (
+    id.startsWith("F8_") ||
+    track.includes("foundry8") ||
+    rank === "shadow" ||
+    rank === "recruit" ||
+    rank === "combatant" ||
+    rank === "competitor" ||
+    rank === "commander" ||
+    rank === "hero"
+  ) {
     return LADDER_F8;
   }
 
+  // Default Foundry 4 Teen
   return LADDER_F4;
 }
 
 export function getAthleteStripeInfo(a = {}) {
-  const ladder = getLadderForAthlete(a);
-  return getStripeInfo(ladder, Number(a.xp || 0));
+  const xp = Math.max(0, Number(a.xp || 0));
+  const xpCap = Math.max(1, Number(a.xpCap || 1200));
+
+  const stripesTotal = 4;
+  const stripeSize = xpCap / stripesTotal;
+
+  const stripesEarned = Math.max(
+    0,
+    Math.min(stripesTotal, Math.floor(xp / stripeSize))
+  );
+
+  return {
+    tier: { name: a.rankName || a.tierName || a.tier || "Apprentice" },
+    nextTier: null,
+    totalXP: xp,
+    capXP: xpCap,
+    xpInTier: xp,
+    percent: Math.round(Math.min(100, (xp / xpCap) * 100)),
+    stripesTotal,
+    stripesEarned,
+    xpToNextStripe:
+      stripesEarned < stripesTotal
+        ? Math.max(0, Math.ceil((stripesEarned + 1) * stripeSize) - xp)
+        : 0,
+    xpToNextTier: Math.max(0, xpCap - xp),
+    status: `Stripes ${stripesEarned}/${stripesTotal}`,
+  };
 }
 // ============================
 // STRIPES / PROGRESS

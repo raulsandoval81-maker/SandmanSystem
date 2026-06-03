@@ -572,10 +572,10 @@
           blocks = [
             { slot:"onmat",   label:"On-Mat Talk",           minutes:3 },
             { slot:"warmup",  label:"Warm-Up",               minutes:10 },
-            { slot:"drills",  label:"Drills (Old Moves)",    minutes:15 },
-            { slot:"tech",    label:"Technique (New Moves)", minutes:15 },
+            { slot:"drills",  label:"drills", label: "Review of Prior Week’s Skills",    minutes:15 },
+            { slot:"tech",    label:"technique", label: "Introduction of New Techniques", minutes:15 },
             { slot:"water",   label:"Water / Reset",         minutes:2 },
-            { slot:"live",    label:"Live / Situations",     minutes:10 },
+            { slot:"live",    label:"live", label: "Live Session",     minutes:10 },
             { slot:"cond",    label:"Conditioning / Finish", minutes:5 }
           ];
           totalMinutes = blocks.reduce((s,b)=>s+b.minutes,0);
@@ -594,22 +594,22 @@
           blocks = [
             { slot:"onmat",   label:"On-Mat Talk",           minutes:3 },
             { slot:"warmup",  label:"Warm-Up",               minutes:10 },
-            { slot:"drills",  label:"Drills (Old Moves)",    minutes:15 },
-            { slot:"tech",    label:"Technique (New Moves)", minutes:15 },
+            { slot:"drills",  label:"drills", label: "Review of Prior Week’s Skills",    minutes:15 },
+            { slot:"tech",    label:"technique", label: "Introduction of New Techniques", minutes:15 },
             { slot:"water",   label:"Water / Reset",         minutes:2 },
-            { slot:"live",    label:"Live / Situations",     minutes:10 },
+            { slot:"live",    label:"live", label: "Live Session",     minutes:10 },
             { slot:"cond",    label:"Conditioning / Finish", minutes:5 }
           ];
         } else {
           const labelMap = {
             onmat:"On-Mat Talk",
             warmup:"Warm-Up",
-            drills:"Drills (Old Moves)",
-            technique:"Technique (New Moves)",
-            tech:"Technique (New Moves)",
-            live:"Live / Situations",
-            cond:"Conditioning / Finisher",
-            offmat:"Off-Mat Talk",
+            drills:"drills", label: "Review of Prior Week’s Skills",
+            technique:"technique", label: "Introduction of New Techniques",
+            tech:"technique", label: "Introduction of New Techniques",
+            live:"live", label: "Live Session",
+            cond:"cond", label: "Conditioning / Skill Based Activities",
+            offmat:"ROLL CALL / OFF THE MAT TALK",
             solo:"Solo Work"
           };
 

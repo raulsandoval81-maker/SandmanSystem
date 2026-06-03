@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Session Builder</title>
+
+<link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css">
+  <link rel="icon" href="data:,">
+
+</head>
+
+<body>
+
+<main class="wrap">
+
+  <section class="hero">
+
+    <h1>Session Builder</h1>
+
+    <p class="sub">
+      Build the session shell, choose the room, then send it into Clipboard 2.0.
+    </p>
+
+    <div class="hero-session-types">
+
+      <button class="session-card " data-schema="quick-45">
+        <span class="title">Quick 45</span>
+        <span class="desc">Single-focus fast session.</span>
+      </button>
+
+      <button class="session-card active" data-schema="standard-60">
+        <span class="title">Standard 60</span>
+        <span class="desc">Balanced room structure.</span>
+      </button>
+
+      <button class="session-card" data-schema="elite-90">
+        <span class="title">Elite 90</span>
+        <span class="desc">Advanced live training.</span>
+      </button>
+
+      <button class="session-card" data-schema="extended-120">
+        <span class="title">Extended 120</span>
+        <span class="desc">Full competition room.</span>
+      </button>
+
+    </div>
+
+  </section>
+
+  <section class="panel">
+
+    <h2>Execution Mode</h2>
+
+    <div class="mode-row">
+
+      <button class="mode-btn" data-mode="manual">
+        Manual
+      </button>
+
+      <button class="mode-btn active" data-mode="hybrid">
+        Hybrid
+      </button>
+
+      <button class="mode-btn" data-mode="auto">
+        Auto
+      </button>
+
+    </div>
+
+    <h2>Live Room</h2>
+
+    <div class="mode-row">
+
+      <button class="mode-btn active" data-session-id="lompoc-mat-1">
+        Lompoc Mat 1
+      </button>
+
+      <button class="mode-btn" data-session-id="solvang-mat-1">
+        Solvang Mat 1
+      </button>
+
+    </div>
+
+    <h2>Program Identity</h2>
+
+    <div class="program-wrap">
+
+      <div class="program-label">
+        Active Program
+      </div>
+
+      <select id="disciplineSelect" class="mode-select">
+
+        <option value="">
+          Select Program
+        </option>
+
+        <optgroup label="Youth · Foundry 8">
+
+          <option
+            value="youth-z2h-wrestling"
+            data-foundry="Foundry 8"
+            data-track="Foundry 8"
+            data-journey="Z2H"
+            data-discipline="Wrestling"
+            data-tier="T0">
+            Z2H Wrestling
+          </option>
+
+        </optgroup>
+
+        <optgroup label="Teen · Foundry 4">
+
+          <option
+            value="teen-p2l-wrestling"
+            data-foundry="Foundry 4"
+            data-track="Foundry 4"
+            data-journey="P2L"
+            data-discipline="Wrestling"
+            data-tier="T0">
+            P2L Wrestling
+          </option>
+
+          <option
+            value="teen-p2l-boxing"
+            data-foundry="Foundry 4"
+            data-track="Foundry 4"
+            data-journey="P2L"
+            data-discipline="Boxing"
+            data-tier="T0">
+            P2L Boxing
+          </option>
+
+          <option
+            value="teen-p2l-kickboxing"
+            data-foundry="Foundry 4"
+            data-track="Foundry 4"
+            data-journey="P2L"
+            data-discipline="Kickboxing"
+            data-tier="T0">
+            P2L Kickboxing
+          </option>
+
+        </optgroup>
+
+        <optgroup label="Adult">
+
+          <option
+            value="adult-q2m-mma"
+            data-foundry="Adult"
+            data-track="Adult"
+            data-journey="Q2M"
+            data-discipline="MMA"
+            data-tier="T1">
+            Q2M MMA
+          </option>
+
+          <option
+            value="adult-r2g-boxing"
+            data-foundry="Adult"
+            data-track="Adult"
+            data-journey="R2G"
+            data-discipline="Boxing"
+            data-tier="T1">
+            R2G Boxing
+          </option>
+
+        </optgroup>
+
+      </select>
+
+      <div class="program-label">
+        Tier / Rank
+      </div>
+
+      <select id="rankSelect" class="mode-select">
+        <option value="">Select Program First</option>
+      </select>
+
+    </div>
+
+    <h2>Training Cycle</h2>
+
+    <div class="program-wrap">
+
+      <div class="program-label">
+        Training Week
+      </div>
+
+      <select id="weekSelect" class="mode-select">
+
+        <option value="1">Week 1</option>
+        <option value="2">Week 2</option>
+        <option value="3">Week 3</option>
+        <option value="4">Week 4</option>
+        <option value="5">Week 5</option>
+        <option value="6">Week 6</option>
+
+        <option value="7">Week 7</option>
+        <option value="8">Week 8</option>
+        <option value="9">Week 9</option>
+        <option value="10">Week 10</option>
+        <option value="11">Week 11</option>
+        <option value="12">Week 12</option>
+
+        <option value="13">Week 13</option>
+        <option value="14">Week 14</option>
+        <option value="15">Week 15</option>
+        <option value="16">Week 16</option>
+        <option value="17">Week 17</option>
+        <option value="18">Week 18</option>
+
+        <option value="19">Week 19</option>
+        <option value="20">Week 20</option>
+        <option value="21">Week 21</option>
+        <option value="22">Week 22</option>
+        <option value="23">Week 23</option>
+        <option value="24">Week 24</option>
+
+        <option value="25">Week 25</option>
+        <option value="26">Week 26</option>
+        <option value="27">Week 27</option>
+        <option value="28">Week 28</option>
+        <option value="29">Week 29</option>
+        <option value="30">Week 30</option>
+
+        <option value="31">Week 31</option>
+        <option value="32">Week 32</option>
+        <option value="33">Week 33</option>
+        <option value="34">Week 34</option>
+        <option value="35">Week 35</option>
+        <option value="36">Week 36</option>
+
+      </select>
+
+    </div>
+
+    <div class="footer">
+
+      <button id="buildBtn" class="build-btn">
+        Build Session
+      </button>
+
+    </div>
+
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/coaches/execution/session-builder/session-builder.js">
+</script>
+
+</body>
+</html>

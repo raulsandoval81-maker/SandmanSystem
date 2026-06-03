@@ -105,8 +105,23 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             !input?.trackCode) {
             throw new https_1.HttpsError("invalid-argument", "Missing required fields");
         }
-        const { intakeId, foundry: foundryRaw, virtueName, virtueCode, trackCode, fullName, publicName, parent, team, mint, experience, adjustment, } = input;
+        const { intakeId, foundry: foundryRaw, virtueName, virtueCode, trackCode, fullName, publicName, parent, team, mint, experience, adjustment, framework, programTrack, art, ladderKey, rosterIds, coachIds, locationId, placement, priorExperienceValidation, } = input;
         const foundry = String(foundryRaw || "").trim().toLowerCase();
+        const safeFramework = String(framework || "").trim() ||
+            (foundry === "f4" ? "foundry4" : "foundry8");
+        const safeProgramTrack = String(programTrack || "").trim() ||
+            (foundry === "f8" ? "zero2hero" : "path2legend");
+        const safeArt = String(art || "").trim() ||
+            (foundry === "f8" ? "wrestling" : "wrestling");
+        const safeLadderKey = String(ladderKey || "").trim() ||
+            (foundry === "f8" ? "F8" : "F4");
+        const safeRosterIds = Array.isArray(rosterIds) ? rosterIds : [];
+        const safeCoachIds = Array.isArray(coachIds) ? coachIds : [];
+        const safeLocationId = String(locationId || "").trim() || null;
+        const safePlacement = placement && typeof placement === "object" ? placement : null;
+        const safePriorExperienceValidation = priorExperienceValidation && typeof priorExperienceValidation === "object"
+            ? priorExperienceValidation
+            : null;
         if (foundry !== "f4" && foundry !== "f8") {
             throw new https_1.HttpsError("invalid-argument", `Invalid foundry: ${foundryRaw}`);
         }
@@ -204,15 +219,37 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             }
             const now = firestore_1.FieldValue.serverTimestamp();
             tx.update(counterRef, { next: n + 1 });
+            const isAdultTrack = placement?.programTrack === "quest2mastery" ||
+                placement?.programTrack === "road2glory";
             const starter = foundry === "f4"
-                ? { tier: "T0", rankName: "Apprentice", rankColor: "white", xpCap: 1200 }
-                : { tier: "T0", rankName: "Shadow", rankColor: "white", xpCap: 600 };
+                ? {
+                    tier: isAdultTrack ? "T1" : "T0",
+                    rankName: "Apprentice",
+                    rankColor: "white",
+                    xpCap: 1200
+                }
+                : {
+                    tier: "T0",
+                    rankName: "Shadow",
+                    rankColor: "white",
+                    xpCap: 800
+                };
             const startingXp = expPlan.issuedNow + adjustmentAmount;
             const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);
             tx.create(athleteRef, {
                 uid,
                 uidCode: uid,
                 coachUid,
+                foundry,
+                framework: safeFramework,
+                programTrack: safeProgramTrack,
+                art: safeArt,
+                ladderKey: safeLadderKey,
+                rosterIds: safeRosterIds,
+                coachIds: safeCoachIds,
+                locationId: safeLocationId,
+                placement: safePlacement,
+                priorExperienceValidation: safePriorExperienceValidation,
                 tier: starter.tier,
                 rankName: starter.rankName,
                 rankColor: starter.rankColor,
@@ -257,7 +294,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 legacyHold: expPlan.hold,
                 legacyCreditSchedule: expPlan.schedule,
                 legacyNote: expPlan.note,
-                promotionLocked: true,
+                promotionLocked: false,
                 testing: {
                     state: "ACTIVE",
                     coachReady: false,
@@ -309,6 +346,15 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 minted: true,
                 forTrack: prefix,
                 forLane: lane,
+                framework: safeFramework,
+                programTrack: safeProgramTrack,
+                art: safeArt,
+                ladderKey: safeLadderKey,
+                rosterIds: safeRosterIds,
+                coachIds: safeCoachIds,
+                locationId: safeLocationId,
+                placement: safePlacement,
+                priorExperienceValidation: safePriorExperienceValidation,
                 trackCode,
                 virtueName: vName,
                 virtueCode: vCode,
@@ -341,6 +387,13 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 virtue: vName,
                 virtueCode: vCode,
                 trackCode,
+                framework: safeFramework,
+                programTrack: safeProgramTrack,
+                art: safeArt,
+                ladderKey: safeLadderKey,
+                rosterIds: safeRosterIds,
+                coachIds: safeCoachIds,
+                locationId: safeLocationId,
                 intakeId,
                 lane,
                 legacyYearsVerified: expPlan.yearsVerified,

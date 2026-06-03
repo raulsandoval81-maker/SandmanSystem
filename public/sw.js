@@ -63,30 +63,48 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // --- HTML: network-first so you always see latest UI ---
-  const isHTML =
-    req.destination === 'document' ||
-    req.headers.get('accept')?.includes('text/html');
+// --- HTML: network-first so you always see latest UI ---
+const isHTML =
+  req.destination === 'document' ||
+  req.headers.get('accept')?.includes('text/html');
 
-  if (isHTML) {
-    event.respondWith((async () => {
-      try {
-        const fresh = await fetch(req, { cache: 'no-store' });
+if (isHTML) {
 
-        const cache = await caches.open(RUNTIME_CACHE);
-        cache.put(req, fresh.clone());
+  event.respondWith((async () => {
 
-        return fresh;
+    try {
 
-      } catch (e) {
-        const cached = await caches.match(req);
-        return cached || caches.match('/lab/timer-engine/ui/athlete/sandman-timer-mobile.html');
+      const fresh = await fetch(req, {
+        cache: 'no-store'
+      });
+
+      const cache = await caches.open(RUNTIME_CACHE);
+
+      const url = new URL(req.url);
+
+      if (
+        url.protocol === "http:" ||
+        url.protocol === "https:"
+      ) {
+        await cache.put(req, fresh.clone());
       }
-    })());
 
-    return;
-  }
+      return fresh;
 
+    } catch (e) {
+
+      const cached = await caches.match(req);
+
+      return (
+        cached ||
+        caches.match('/lab/timer-engine/ui/athlete/sandman-timer-mobile.html')
+      );
+    }
+
+  })());
+
+  return;
+}
   // --- Everything else: cache-first with network fallback ---
   event.respondWith((async () => {
 
@@ -98,8 +116,11 @@ self.addEventListener('fetch', (event) => {
       const res = await fetch(req);
 
       const cache = await caches.open(RUNTIME_CACHE);
-      cache.put(req, res.clone());
+const url = new URL(req.url);
 
+if (url.protocol === "http:" || url.protocol === "https:") {
+  await cache.put(req, res.clone());
+}
       return res;
 
     } catch (e) {

@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Public Leaderboard</title>
   <link rel="stylesheet" href="/leaderboard/leaderboard.public.css"/>
-  <link rel="icon" href="data:,"> 
+  <link rel="icon" href="data:,">
 </head>
+
 <body>
   <div class="wrap">
 
     <header class="header">
       <div>
         <h1 class="title">Sandman Leaderboard</h1>
-        <p class="subtitle">Top 8 by track. No crossover.</p>
+        <p class="subtitle">Top 8 by track. Overall ranks by tier first, then XP.</p>
       </div>
     </header>
 
@@ -31,8 +32,8 @@
         <div class="control">
           <label for="view-mode">View</label>
           <select id="view-mode">
-            <option value="overall">Overall</option>
-            <option value="tier">Tier</option>
+            <option value="overall">Overall Progression</option>
+            <option value="tier">Tier Leaderboard</option>
           </select>
         </div>
 
@@ -41,7 +42,7 @@
 
     <section class="panel">
       <div class="panel-head">
-        <h2>Leaderboard</h2>
+        <h2 id="public-board-title">Leaderboard</h2>
         <span class="panel-note">Public View</span>
       </div>
 
@@ -49,6 +50,7 @@
     </section>
 
   </div>
-<script type="module" src="/leaderboard/leaderboard.public.js"></script>
+
+  <script type="module" src="/leaderboard/leaderboard.public.js"></script>
 </body>
 </html>

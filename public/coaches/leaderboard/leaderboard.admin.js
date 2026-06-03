@@ -10,6 +10,7 @@ import {
 
 const trackEl    = document.getElementById("track");
 const monthEl    = document.getElementById("month");
+const periodEl   = document.getElementById("periodMode");
 const searchEl   = document.getElementById("search");
 const nameModeEl = document.getElementById("nameMode");
 const tagModeEl  = document.getElementById("tagMode");
@@ -44,7 +45,11 @@ const monthKey = (d = new Date()) => {
   return `${y}-${m}`;
 };
 
-if (!monthEl.value) monthEl.value = monthKey();
+if (monthEl && !monthEl.value) monthEl.value = monthKey();
+
+function selectedPeriod() {
+  return periodEl?.value || "month";
+}
 
 function selectedType() {
   const active = typeRow?.querySelector(".chip.active");
@@ -79,23 +84,21 @@ function abbreviate(full = "") {
 }
 
 function displayNameFromParts(uid, full) {
-  const mode = nameModeEl.value;
+  const mode = nameModeEl?.value || "full";
   let nameOut = full || "";
 
-  if (mode === "abbr" && full) {
-    nameOut = abbreviate(full);
-  }
-
+  if (mode === "abbr" && full) nameOut = abbreviate(full);
   if (!nameOut) nameOut = uid || "—";
+
   return nameOut;
 }
 
 function displayName(r) {
-  const uid   = r.uid;
-  const full  = r.athleteName || nameCache.get(uid) || "";
+  const uid = r.uid;
+  const full = r.athleteName || nameCache.get(uid) || "";
   const nameOut = displayNameFromParts(uid, full);
 
-  if (tagModeEl.value === "on") {
+  if ((tagModeEl?.value || "off") === "on") {
     const tag = r.virturTag ?? r.dogTag ?? tagCache.get(uid);
     const t = toVirtur(tag);
     if (t) return `<span class="virtur">${t}</span>${nameOut}`;
@@ -106,7 +109,7 @@ function displayName(r) {
 
 function filteredRows() {
   let rows = [...cache];
-  const q = (searchEl.value || "").trim().toLowerCase();
+  const q = (searchEl?.value || "").trim().toLowerCase();
 
   if (q) {
     rows = rows.filter(r => {
@@ -146,6 +149,7 @@ function totalsByUid(rows) {
       virturTag: r.virturTag ?? r.dogTag ?? tagCache.get(uid),
       total: 0
     };
+
     prev.total += Number(r.xp || 0);
     map.set(uid, prev);
   }
@@ -159,9 +163,7 @@ async function backfill(rows) {
   rows.forEach(r => {
     const uid = r.uid;
     if (!uid) return;
-    if (!nameCache.has(uid) || !tagCache.has(uid)) {
-      need.add(uid);
-    }
+    if (!nameCache.has(uid) || !tagCache.has(uid)) need.add(uid);
   });
 
   for (const uid of need) {
@@ -173,9 +175,7 @@ async function backfill(rows) {
         if (d.virturTag != null) tagCache.set(uid, d.virturTag);
         else if (d.dogTag != null) tagCache.set(uid, d.dogTag);
       }
-    } catch (e) {
-      // ignore per-athlete failures
-    }
+    } catch (e) {}
   }
 }
 
@@ -255,51 +255,61 @@ function render() {
   const baseTotals = totalsByUid(cache);
   const totals = totalsByUid(rows);
 
-  statEntriesEl.textContent = rows.length;
-  statAthletesEl.textContent = totals.length;
-  statTopEl.textContent = baseTotals[0]
-    ? displayNameFromParts(baseTotals[0].uid, baseTotals[0].name || baseTotals[0].uid)
-    : "—";
-  statAvgXpEl.textContent = averageXp(baseTotals);
-  statLatestEl.textContent = formatLatest(cache);
+  if (statEntriesEl) statEntriesEl.textContent = rows.length;
+  if (statAthletesEl) statAthletesEl.textContent = totals.length;
+  if (statTopEl) {
+    statTopEl.textContent = baseTotals[0]
+      ? displayNameFromParts(baseTotals[0].uid, baseTotals[0].name || baseTotals[0].uid)
+      : "—";
+  }
+  if (statAvgXpEl) statAvgXpEl.textContent = averageXp(baseTotals);
+  if (statLatestEl) statLatestEl.textContent = formatLatest(cache);
 
-  totalsBody.innerHTML = totals.slice(0, 20).map((t, i) => {
-    const nm = displayNameFromParts(t.uid, t.name || t.uid);
-    const virtur = (tagModeEl.value === "on") ? toVirtur(t.virturTag) : "";
-    const isActive = selectedAthleteUid === t.uid;
+  if (totalsBody) {
+    totalsBody.innerHTML = totals.slice(0, 20).map((t, i) => {
+      const nm = displayNameFromParts(t.uid, t.name || t.uid);
+      const virtur = (tagModeEl?.value === "on") ? toVirtur(t.virturTag) : "";
+      const isActive = selectedAthleteUid === t.uid;
 
-    return `
-      <tr class="totals-row ${isActive ? "active" : ""}" data-uid="${t.uid}">
-        <td><span class="rank-pill">#${i + 1}</span></td>
-        <td>${virtur ? `<span class="virtur">${virtur}</span>` : ""}${nm}</td>
-        <td><strong>${t.total}</strong></td>
-      </tr>
-    `;
-  }).join("") || `<tr><td colspan="3" class="empty">No data.</td></tr>`;
+      return `
+        <tr class="totals-row ${isActive ? "active" : ""}" data-uid="${t.uid}">
+          <td><span class="rank-pill">#${i + 1}</span></td>
+          <td>${virtur ? `<span class="virtur">${virtur}</span>` : ""}${nm}</td>
+          <td><strong>${t.total}</strong></td>
+        </tr>
+      `;
+    }).join("") || `<tr><td colspan="3" class="empty">No data.</td></tr>`;
+  }
 
   rows.sort((a, b) => {
     if (sortKey === "xp") {
       return sortDir === "desc"
-        ? (Number(b.xp) - Number(a.xp))
-        : (Number(a.xp) - Number(b.xp));
-    } else {
-      const as = a.createdAt?.seconds || 0;
-      const bs = b.createdAt?.seconds || 0;
-      return sortDir === "desc" ? (bs - as) : (as - bs);
+        ? Number(b.xp) - Number(a.xp)
+        : Number(a.xp) - Number(b.xp);
     }
+
+    const as = a.createdAt?.seconds || 0;
+    const bs = b.createdAt?.seconds || 0;
+    return sortDir === "desc" ? bs - as : as - bs;
   });
 
-  rowsBody.innerHTML = rows.map(r => `
-    <tr class="${rowClassForType(r)}">
-      <td>${displayName(r)}</td>
-      <td>${labelForRow(r)}</td>
-      <td>${Number(r.xp) || 0}</td>
-      <td class="muted">${r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : ""}</td>
-    </tr>
-  `).join("") || `<tr><td colspan="4" class="empty">No entries.</td></tr>`;
+  if (rowsBody) {
+    rowsBody.innerHTML = rows.map(r => `
+      <tr class="${rowClassForType(r)}">
+        <td>${displayName(r)}</td>
+        <td>${labelForRow(r)}</td>
+        <td>${Number(r.xp) || 0}</td>
+        <td class="muted">${r.createdAt?.toDate ? r.createdAt.toDate().toLocaleString() : ""}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="4" class="empty">No entries.</td></tr>`;
+  }
 
-  statusEl.textContent =
-    `Track: ${trackEl.value} · Month: ${monthEl.value || monthKey()} · Loaded ${rows.length} entries.`;
+  if (statusEl) {
+    const period = selectedPeriod();
+    statusEl.textContent = period === "lifetime"
+      ? `Track: ${trackEl.value} · Lifetime · Loaded ${rows.length} entries.`
+      : `Track: ${trackEl.value} · Month: ${monthEl.value || monthKey()} · Loaded ${rows.length} entries.`;
+  }
 
   updateChipCounts();
   syncActiveAthleteFilter();
@@ -307,7 +317,8 @@ function render() {
 
 function listen() {
   const track = trackEl.value;
-  const mk    = monthEl.value || monthKey();
+  const mk = monthEl?.value || monthKey();
+  const period = selectedPeriod();
 
   if (unsub) {
     unsub();
@@ -317,33 +328,73 @@ function listen() {
   selectedAthleteUid = "";
   syncActiveAthleteFilter();
 
-  statusEl.textContent = `Listening to leaderboards/${track}/months/${mk}/entries…`;
+  let entriesRef;
 
-  const qy = query(
-    collection(db, "leaderboards", track, "months", mk, "entries"),
-    orderBy("createdAt", "desc")
-  );
+  if (period === "lifetime") {
+    if (monthEl) monthEl.disabled = true;
+
+    statusEl.textContent = `Listening to leaderboards/${track}/lifetime/entries…`;
+
+    entriesRef = collection(
+      db,
+      "leaderboards",
+      track,
+      "lifetime",
+      "entries"
+    );
+  } else {
+    if (monthEl) monthEl.disabled = false;
+
+    statusEl.textContent = `Listening to leaderboards/${track}/months/${mk}/entries…`;
+
+    entriesRef = collection(
+      db,
+      "leaderboards",
+      track,
+      "months",
+      mk,
+      "entries"
+    );
+  }
+
+  const qy = query(entriesRef, orderBy("createdAt", "desc"));
 
   unsub = onSnapshot(qy, async snap => {
-    cache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    cache = snap.docs
+      .map(d => ({ id: d.id, ...d.data() }))
+      .filter(r => {
+        const uid = String(r.uid || r.athleteUid || r.id || "").toUpperCase();
+        const name = String(r.athleteName || "").toLowerCase();
+
+        return (
+          !uid.includes("_TEST_") &&
+          !uid.includes("_GHOST_") &&
+          !uid.includes("GHOST") &&
+          !name.includes("dev") &&
+          !name.includes("ghost")
+        );
+      });
+
     await backfill(cache);
     render();
   }, err => {
     console.error(err);
-    statusEl.textContent = "Error loading leaderboard.";
+    if (statusEl) statusEl.textContent = "Error loading leaderboard.";
   });
 }
 
-trackEl.addEventListener("change", listen);
-monthEl.addEventListener("change", listen);
-searchEl.addEventListener("input", render);
-nameModeEl.addEventListener("change", render);
-tagModeEl.addEventListener("change", render);
+trackEl?.addEventListener("change", listen);
+monthEl?.addEventListener("change", listen);
+periodEl?.addEventListener("change", listen);
+searchEl?.addEventListener("input", render);
+nameModeEl?.addEventListener("change", render);
+tagModeEl?.addEventListener("change", render);
 
 if (typeRow) {
   typeRow.addEventListener("click", e => {
     const chip = e.target.closest(".chip");
     if (!chip) return;
+
     typeRow.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
     chip.classList.add("active");
     render();
@@ -361,31 +412,31 @@ if (totalsBody) {
   });
 }
 
-if (clearAthleteFilterBtn) {
-  clearAthleteFilterBtn.addEventListener("click", () => {
-    selectedAthleteUid = "";
-    render();
-  });
-}
+clearAthleteFilterBtn?.addEventListener("click", () => {
+  selectedAthleteUid = "";
+  render();
+});
 
-sortXpBtn.addEventListener("click", () => {
+sortXpBtn?.addEventListener("click", () => {
   if (sortKey === "xp") {
-    sortDir = (sortDir === "desc" ? "asc" : "desc");
+    sortDir = sortDir === "desc" ? "asc" : "desc";
   } else {
     sortKey = "xp";
     sortDir = "desc";
   }
+
   syncSortButtons();
   render();
 });
 
-sortDtBtn.addEventListener("click", () => {
+sortDtBtn?.addEventListener("click", () => {
   if (sortKey === "date") {
-    sortDir = (sortDir === "desc" ? "asc" : "desc");
+    sortDir = sortDir === "desc" ? "asc" : "desc";
   } else {
     sortKey = "date";
     sortDir = "desc";
   }
+
   syncSortButtons();
   render();
 });

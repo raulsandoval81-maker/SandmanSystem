@@ -12,7 +12,10 @@ const db = getFirestore();
 if (process.env.FIRESTORE_EMULATOR_HOST) {
   console.log("🔥 Using Firestore Emulator:", process.env.FIRESTORE_EMULATOR_HOST);
 }
-
+// 👇 put it HERE (with helpers, not inside a function)
+function getMonthKey(date: Date) {
+  return date.toISOString().slice(0, 7); // "2026-05"
+}
 /**
  * Minimal XP rules mirror (server-side).
  * Keep this in functions so the client can't bypass caps.
@@ -968,49 +971,98 @@ if (nextState) {
       tx.set(monthlyRef, patch, { merge: true });
     }
 
-    // Log (permanent coach file)
-    const laneTag =
-      kind === KIND.STRENGTH
-        ? "strength"
-        : kind === KIND.HONOR
-          ? "honor"
-          : isArenaKind(kind)
-            ? "arena"
-            : kind === KIND.ATTENDANCE
-              ? "combat"
-              : "unknown";
+// Log (permanent coach file)
+const laneTag =
+  kind === KIND.STRENGTH
+    ? "strength"
+    : kind === KIND.HONOR
+      ? "honor"
+      : isArenaKind(kind)
+        ? "arena"
+        : kind === KIND.ATTENDANCE
+          ? "combat"
+          : "unknown";
 
-    tx.set(logRef, {
-      uid,
-      coachUid,
-      kind,
-      amount: delta,
-      note,
-      meta: {
-        ...(meta || {}),
-        lane: laneTag,
-        ...(isArenaKind(kind) ? { tournamentId } : {}),
-        stripeSnapshot: { beforeStripeCount },
-        xpBuckets: {
-          beforeDaily,
-          beforeArena,
-          beforeFightIQ,
-          afterDaily,
-          afterArena,
-          afterFightIQ,
-          beforeStrength,
-          beforeHonor,
-          afterStrength: afterStrengthClamped,
-          afterHonor: afterHonorClamped,
-        },
-      },
-      base,
-      tier,
-      beforeXp: beforeCombatTotal,
-      afterXp: afterCombatTotal,
-      month: mKey,
-      createdAt: FieldValue.serverTimestamp(),
-    });
+tx.set(logRef, {
+  uid,
+  coachUid,
+  kind,
+  amount: delta,
+  note,
+  meta: {
+    ...(meta || {}),
+    lane: laneTag,
+    ...(isArenaKind(kind) ? { tournamentId } : {}),
+    stripeSnapshot: { beforeStripeCount },
+    xpBuckets: {
+      beforeDaily,
+      beforeArena,
+      beforeFightIQ,
+      afterDaily,
+      afterArena,
+      afterFightIQ,
+      beforeStrength,
+      beforeHonor,
+      afterStrength: afterStrengthClamped,
+      afterHonor: afterHonorClamped,
+    },
+  },
+  base,
+  tier,
+  beforeXp: beforeCombatTotal,
+  afterXp: afterCombatTotal,
+  month: mKey,
+  createdAt: FieldValue.serverTimestamp(),
+});
+
+// 🔥 LEADERBOARD WRITE
+const leaderboardTrack = base === "F8" ? "foundry8" : "foundry4";
+
+const leaderboardEntryRef = db
+  .collection("leaderboards")
+  .doc(leaderboardTrack)
+  .collection("months")
+  .doc(mKey)
+  .collection("entries")
+  .doc();
+
+tx.set(leaderboardEntryRef, {
+  uid,
+  athleteName:
+    (athlete as any).fullName ||
+    (athlete as any).publicName ||
+    (athlete as any).name ||
+    uid,
+  xp: delta,
+  kind,
+  base,
+  tier,
+  month: mKey,
+  createdAt: FieldValue.serverTimestamp(),
+});
+
+// 🔥 LIFETIME LEADERBOARD WRITE (ADD THIS UNDER)
+const lifetimeEntryRef = db
+  .collection("leaderboards")
+  .doc(leaderboardTrack)
+  .collection("lifetime")
+  .doc("summary")
+  .collection("entries")
+  .doc();
+
+tx.set(lifetimeEntryRef, {
+  uid,
+  athleteName:
+    (athlete as any).fullName ||
+    (athlete as any).publicName ||
+    (athlete as any).name ||
+    uid,
+  xp: delta,
+  kind,
+  base,
+  tier,
+  createdAt: FieldValue.serverTimestamp(),
+});
 
 return {
   ok: true,

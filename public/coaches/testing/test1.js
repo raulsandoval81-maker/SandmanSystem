@@ -1,14 +1,12 @@
 import {
   db,
+  ensureSignedIn, // 🔥 ADD THIS
   doc,
   getDoc,
   setDoc,
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
-
-console.log("DB:", db);
-
 // ------------------
 // URL PARAMS
 // ------------------
@@ -18,6 +16,17 @@ const coachIdFromUrl = params.get("coachId") || "";
 const sessionId = params.get("sessionId") || "";
 const panelSlot = params.get("panel") || "";
 
+function normalizeCoach(raw = "") {
+  const n = raw.toLowerCase().trim();
+
+  if (n.includes("collins") || n.includes("james")) return "collins";
+  if (n.includes("campos") || n.includes("david")) return "campos";
+  if (n.includes("castellanos") || n.includes("chantalle")) return "castellanos";
+  if (n.includes("alleman") || n.includes("zeke")) return "alleman";
+  if (n.includes("sandoval") || n.includes("raul")) return "sandoval";
+
+  return n.replace(/\s+/g, "_");
+}
 // ------------------
 // DOM / STATE
 // ------------------
@@ -28,7 +37,6 @@ const scoreState = {};
 // DATA
 // ------------------
 const sections = [
-
   {
     title: "1. Neutral Offense — 20 pts",
     max: 20,
@@ -89,9 +97,9 @@ const sections = [
         }
       },
       {
-        title: "Low-Level Defense",
+        title: "Low and High-Level Defense",
         note: {
-          cue: "Low-level defense",
+          cue: "Low-level,high level defense",
           shows: "Block shots, defend underneath, recover position",
           watch: "Stop the shot / Stay underneath control"
         }
@@ -99,7 +107,7 @@ const sections = [
       {
         title: "Reaction & Counter",
         note: {
-          cue: "Go behind / Reshot / Reattack",
+          cue: "Go behind / Reshot ",
           shows: "Answer defense with action",
           watch: "Quick reaction, clear counter, continued wrestling"
         }
@@ -108,19 +116,19 @@ const sections = [
   },
 
   {
-    title: "3. Top — Control — 20 pts",
-    max: 20,
+    title: "3. Top — Control — 15 pts",
+    max: 15,
     items: [
       {
         title: "Start Control",
         note: {
-          cue: "Top pressure",
+          cue: "Top pressure belly",
           shows: "Settle heavy, control first",
           watch: "Weight on hands / Stay heavy / No loose start"
         }
       },
       {
-        title: "Breakdown",
+        title: "Breakdown — Referee's Position",
         note: {
           cue: "Break them down",
           shows: "Effective breakdown left or right",
@@ -134,52 +142,36 @@ const sections = [
           shows: "Chain from one control to the next",
           watch: "Don’t stop / If this → then that"
         }
-      },
-      {
-        title: "Control to Score",
-        note: {
-          cue: "Work to score",
-          shows: "Turn, expose, or build scoring pressure",
-          watch: "Two-on-one / Pinning series / Don’t just ride"
-        }
       }
     ]
   },
 
   {
-    title: "4. Bottom — Escape — 20 pts",
-    max: 20,
+    title: "4. Bottom — Escape — 15 pts",
+    max: 15,
     items: [
       {
-        title: "Whistle & First Move",
+        title: "Whistle → Build & Base",
         note: {
           cue: "Whistle",
-          shows: "Immediate first move",
-          watch: "Explosive / No hesitation"
+          shows: "Immediate first move into strong build and base",
+          watch: "No hesitation / Doesn’t stay flat / Builds to position fast"
         }
       },
       {
-        title: "Build & Base",
-        note: {
-          cue: "Build",
-          shows: "Stand up or build strong base",
-          watch: "Don’t stay flat / Strong body position"
-        }
-      },
-      {
-        title: "Hand Control",
+        title: "Hand Control → Seal Out",
         note: {
           cue: "Clear hands",
-          shows: "Hand fight, clear elbow, win control",
-          watch: "Clear the elbow / Win hands"
+          shows: "Hand fight, clear elbow, seal out, and win position",
+          watch: "Clear the elbow / Win hands / Seal the hip"
         }
       },
       {
-        title: "Escape / Hold",
+        title: "Escape the Lock",
         note: {
-          cue: "Get out",
-          shows: "Escape clean or stabilize if stuck",
-          watch: "Get out / Hold if stuck / No panic"
+          cue: "Top locks: chop, ankle, tight waist",
+          shows: "Maintains base, clears control, and works back to escape or position",
+          watch: "Doesn’t get flattened / Builds back up / Clears hands or hips / No panic"
         }
       }
     ]
@@ -206,11 +198,11 @@ const sections = [
         }
       },
       {
-        title: "Stay on Top",
+        title: "Stay on Top, Follow the Hips",
         note: {
           cue: "They move, you adjust",
           shows: "Adjust through reactions without losing control",
-          watch: "Stay on top no matter what"
+          watch: "Stay on top / Follow hips / No separation"
         }
       }
     ]
@@ -246,8 +238,8 @@ const sections = [
       }
     ]
   }
-
 ];
+
 // ------------------
 // HELPERS
 // ------------------
@@ -458,6 +450,7 @@ document.getElementById("resetBtn")?.addEventListener("click", () => {
 // ------------------
 document.getElementById("saveBtn")?.addEventListener("click", async () => {
   try {
+    await ensureSignedIn();  // 🔥 ADD THIS LINE
     const total = updateTotals();
 
     const incompleteRows = getIncompleteRows();
@@ -490,8 +483,11 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
       return;
     }
 
-    const finalCoachId = coachIdFromUrl || coachInput;
-    const finalCoachName = coachInput || coachIdFromUrl;
+    const rawCoach = coachIdFromUrl || coachInput;
+
+const finalCoachId = normalizeCoach(rawCoach); // 🔥 REQUIRED
+const finalCoachName = rawCoach;
+
     const testType = params.get("testType") || "BASE_CHECK_V1";
     const result = getResultLabel(total);
     const nextTestingState = getTestingState(total);
@@ -540,19 +536,6 @@ document.getElementById("saveBtn")?.addEventListener("click", async () => {
 
     await setDoc(logRef, payload);
 
-    await updateDoc(athleteRef, {
-      "testing.state": nextTestingState,
-      "testing.lastTest": new Date().toISOString(),
-      "testing.lastTestResult": total >= 85 ? "pass" : "fail",
-      "testing.lastScore": total,
-      "testing.coachReady": false,
-      "testing.coachReadyAt": null,
-      "testing.testingStartedAt": null,
-      "testing.cooldownUntil": total >= 85 ? addDays(5) : null,
-      "testing.freezeUntil": total >= 85 ? null : addDays(7),
-      tierStatus: total >= 85 ? "cooldown" : "freeze",
-      updatedAt: serverTimestamp()
-    });
 
     // 🔒 LOCK UI AFTER SUCCESS
     document.body.classList.add("locked");
@@ -642,8 +625,12 @@ async function checkIfAlreadySubmitted() {
   try {
     if (!athleteId || !sessionId) return;
 
-    const coachInput = document.getElementById("coach")?.value.trim() || "";
-    const finalCoachId = coachIdFromUrl || coachInput;
+const coachInputEl = document.getElementById("coach");
+const coachInput = coachInputEl?.value.trim() || "";
+
+const rawCoach = coachIdFromUrl || coachInput;
+const finalCoachId = normalizeCoach(rawCoach); // 🔥 FIXED
+const finalCoachName = rawCoach;               // display only
 
     if (!finalCoachId) return;
 

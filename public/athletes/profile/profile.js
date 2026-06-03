@@ -10,20 +10,10 @@ import {
   db, auth, doc, getDoc, ensureSignedIn,
   collection, query, where, orderBy, limit, getDocs
 } from "/assets/js/firebase-init.js";
-import { updateRankUI } from "/assets/js/belt-bar.js";
+import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 
 import { LADDER_F4 } from "/assets/js/ladder.service.js";
 
-import { withDev } from "/assets/js/dev-mode.js";
-import { guardDocIfLive } from "/assets/js/dev-roster.js";
-import { isDevMode } from "/assets/js/dev-mode.js";
-
-import { paintDevUi, bindDevToggle, patchDevLinks } from "/assets/js/dev-mode.js";
-
-// call once on load
-paintDevUi();
-patchDevLinks();
-bindDevToggle({ onChange: () => location.reload() });
 
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -162,7 +152,7 @@ function syncDrop(section) {
   if (chev) chev.textContent = open ? "▴" : "▾";
 }
 
-function applyLaneLocks({ tierName, stripesEarned }) {
+function applyLaneLocks({ tierName, stripesEarned, athlete }) {
   if (viewMode === "coach" || viewMode === "full" || reviewMode) {
     setDropLocked("strength", false);
     setDropLocked("honor", false);
@@ -172,37 +162,16 @@ function applyLaneLocks({ tierName, stripesEarned }) {
   const req = unlockRules({ tierName });
   const s = Number(stripesEarned || 0);
 
-  setDropLocked("strength", s < (req.strength ?? 999));
-  setDropLocked("honor", s < (req.honor ?? 999));
-}
+  const strengthUnlocked =
+    athlete?.unlocks?.strength === true ||
+    s >= (req.strength ?? 999);
 
-// ---------- badge helpers ----------
-function setTierBadge({ teenAdult = "teen", tierNum = 0 }) {
-  const el = $("ath-badge");
-  if (!el) return;
+  const honorUnlocked =
+    athlete?.unlocks?.honor === true ||
+    s >= (req.honor ?? 999);
 
-  const MAP = {
-    teen: [
-      "/assets/images/logos/Apprentice-badge.png",
-      "/assets/images/logos/Blue-badge.png",
-      "/assets/images/logos/Purple-badge.png",
-      "/assets/images/logos/Brown-badge.png",
-      "/assets/images/logos/Legend-badge.png",
-    ],
-  };
-
-  const list = MAP[teenAdult] || MAP.teen;
-  const idx = clamp(tierNum, 0, list.length - 1);
-  el.src = list[idx];
-
-  if (!el.dataset.bound) {
-    el.dataset.bound = "1";
-    el.onerror = () => {
-      el.onerror = null;
-      el.src = MAP.teen[0];
-      el.style.display = "";
-    };
-  }
+  setDropLocked("strength", !strengthUnlocked);
+  setDropLocked("honor", !honorUnlocked);
 }
 
 // ===============================
@@ -370,9 +339,13 @@ const WISDOM_PREMIUM_SVG = `
   <circle cx="60" cy="60" r="46" fill="url(#wp_base)" opacity=".88"/>
   <circle cx="60" cy="60" r="46" fill="none" stroke="url(#wp_rim)" stroke-width="4" opacity=".85"/>
 
-  <g mask="url(#wp_bandMask)" filter="url(#wp_grain)" opacity=".28">
+  <g mask="url(#wp_bandMask)" filter="url(#wp_grain)" opacity=".12">
     <circle cx="60" cy="60" r="46" style="fill: var(--wis-tan, rgb(205,170,120)); fill-opacity:1"/>
   </g>
+
+  <circle class="honor-grow-fill"
+          cx="60" cy="60" r="0"
+          style="fill: var(--wis-tan, rgb(205,170,120)); fill-opacity:.85"/>
 
   <g class="tracks" fill="none" stroke-width="6" opacity=".55">
     <circle class="track t0" cx="60" cy="60" r="46" stroke="rgba(255,255,255,.10)"/>
@@ -381,7 +354,7 @@ const WISDOM_PREMIUM_SVG = `
     <circle class="track t3" cx="60" cy="60" r="28" stroke="rgba(255,255,255,.10)"/>
   </g>
 
-  <g class="bands" fill="none" stroke-width="6">
+  <g class="bands" fill="none" stroke-width="4">
     <circle class="band b0" cx="60" cy="60" r="46" stroke="var(--wis1, #3b2a1a)"/>
     <circle class="band b1" cx="60" cy="60" r="40" stroke="var(--wis2, #6b4a2a)"/>
     <circle class="band b2" cx="60" cy="60" r="34" stroke="var(--wis3, #c2a476)"/>
@@ -395,7 +368,6 @@ const WISDOM_PREMIUM_SVG = `
   <circle cx="54" cy="52" r="10" fill="rgba(255,255,255,.08)" opacity=".70"/>
   <circle cx="56" cy="54" r="4" fill="rgba(0,0,0,.25)" opacity=".55"/>
 </svg>`;
-
 // ===============================
 // SVG ID DE-DUPLICATION
 // ===============================
@@ -557,30 +529,36 @@ function paintLane({
       setRingProgress(svg, clamp(unitXP / 400, 0, 1));
     } else {
       const svg = decalEl.querySelector("svg");
-      const b0 = svg?.querySelector(".band.b0");
-      const b1 = svg?.querySelector(".band.b1");
-      const b2 = svg?.querySelector(".band.b2");
-      const b3 = svg?.querySelector(".band.b3");
+      if (!svg) return;
 
-      const bandIdx = Math.min(3, Math.floor(unitXP / 100));
-      const bandPct = clamp((unitXP % 100) / 100, 0, 1);
+      const pct01 = clamp(unitXP / 400, 0, 1);
+      const pct100 = pct01 * 100;
 
-      const p0 = bandIdx > 0 ? 1 : bandIdx === 0 ? bandPct : 0;
-      const p1 = bandIdx > 1 ? 1 : bandIdx === 1 ? bandPct : 0;
-      const p2 = bandIdx > 2 ? 1 : bandIdx === 2 ? bandPct : 0;
-      const p3 = bandIdx > 3 ? 1 : bandIdx === 3 ? bandPct : 0;
+      // Honor fills from inside → outside
+      const fill = svg.querySelector(".honor-grow-fill");
+      if (fill) {
+        fill.setAttribute("r", 20 + (26 * pct01));
+      }
 
-      setCircleProgress(b0, p0, 60, 60);
-      setCircleProgress(b1, p1, 60, 60);
-      setCircleProgress(b2, p2, 60, 60);
-      setCircleProgress(b3, p3, 60, 60);
+      // Honor rings unlock from inside → outside
+      const bands = [
+        svg.querySelector(".band.b3"), // inner
+        svg.querySelector(".band.b2"),
+        svg.querySelector(".band.b1"),
+        svg.querySelector(".band.b0")  // outer
+      ];
+
+      bands.forEach((band, i) => {
+        if (!band) return;
+        const threshold = (i + 1) * 25;
+        band.style.opacity = pct100 >= threshold ? "1" : "0.1";
+      });
     }
   }
 
   const unitPct = Math.floor((unitXP / step) * 100);
   if (metaRightEl) metaRightEl.textContent = `Progress: ${unitPct}%`;
 }
-
 // ---------- drop lock helpers ----------
 function setDropLocked(block, locked) {
   const section = document.querySelector(`.drop[data-block="${block}"]`);
@@ -672,11 +650,6 @@ if (reviewMode) setAllDrops(true);
   const a = snap.data();
   const trackCode = normTrackCode(a) || "foundry4-combat";
 
-  if (!isDevMode() && (a?.devMode === true || a?.isTest === true)) {
-    document.body.innerHTML =
-      "<main class='wrap'><p>This athlete is DEV-only. Turn on DEV mode to view.</p></main>";
-    return;
-  }
 
   // -----------------------------
   // Identity
@@ -753,7 +726,6 @@ if (reviewMode) setAllDrops(true);
   else if (typeof a.tier === "string") tierNum = Number(a.tier.replace(/[^\d]/g, "")) || 0;
   else if (typeof a.rank === "string") tierNum = Number(a.rank.replace(/[^\d]/g, "")) || 0;
 
-  setTierBadge({ teenAdult: "teen", tierNum });
 
   // -----------------------------
   // Combat XP buckets
@@ -820,6 +792,56 @@ if (reviewMode) setAllDrops(true);
     `
   );
 
+const badgeRow = $("ath-badge-history");
+
+if (badgeRow) {
+  badgeRow.innerHTML = "";
+
+  const F4_BADGES = {
+    t0: "t0-apprentice.png",
+    t1: "t1-warrior.png",
+    t2: "t2-champion.png",
+    t3: "t3-veteran.png",
+    t4: "t4-legend.png",
+  };
+
+  const currentTier = String(a.tier || "T0").toUpperCase();
+
+  const badges = Array.isArray(a.badges) && a.badges.length
+    ? a.badges
+    : [{ tier: a.tier || "T0", rankName }];
+
+  // Past badges only
+  const pastBadges = badges.filter(
+    (b) => String(b.tier || "").toUpperCase() !== currentTier
+  );
+
+  // Render past badges small
+  pastBadges.forEach((b) => {
+    const histTierNum = Number(String(b.tier || "T0").replace("T", "")) || 0;
+    const file = F4_BADGES[`t${histTierNum}`];
+    if (!file) return;
+
+    const img = document.createElement("img");
+    img.src = `/assets/img/f4/${file}`;
+    img.className = "badge-history-small";
+    img.alt = `${b.rankName || "Badge"} badge`;
+
+    badgeRow.appendChild(img);
+  });
+
+  // Render current badge big
+  const currentTierNum = Number(String(a.tier || "T0").replace("T", "")) || 0;
+  const currentFile = F4_BADGES[`t${currentTierNum}`] || F4_BADGES.t0;
+
+  const currentImg = document.createElement("img");
+  currentImg.src = `/assets/img/f4/${currentFile}`;
+  currentImg.className = "badge-current-big";
+  currentImg.alt = `${rankName} current badge`;
+
+  badgeRow.appendChild(currentImg);
+}  
+
   // -----------------------------
   // Belt bar UI
   // -----------------------------
@@ -835,20 +857,26 @@ if (reviewMode) setAllDrops(true);
     stripeMax
   });
 
-  updateRankUI({
-    ladder,
-    totalXP: Math.min(xpNow, xpCap || xpNow),
-    rankNameOverride: rankName,
-    stripeCountOverride: displayStripes,
-    el: {
-      barId: "rankBar",
-      fillId: "rankFill",
-      textId: "stripeText",
-      curId: "curTier",
-      nextId: "nextTier"
-    }
-  });
+// ===== NEW BELT RENDER =====
 
+const colorMap = {
+  Apprentice: "belt-white",
+  Warrior: "belt-blue",
+  Champion: "belt-purple",
+  Veteran: "belt-brown",
+  Legend: "belt-black"
+};
+
+const mappedColor = colorMap[rankName] || "belt-white";
+
+safeHTML(
+  "rankBar",
+  renderDigitalBelt({
+    colorClass: mappedColor,
+    stripes: displayStripes,
+    size: "medium"
+  })
+);
   const xpEl = document.getElementById("xpText");
   if (xpEl) {
     if (xpCap) {
@@ -861,11 +889,11 @@ if (reviewMode) setAllDrops(true);
   }
 
   // LANE LOCKS
-  applyLaneLocks({
-    tierName: rankName,
-    stripesEarned: displayStripes,
-  });
-
+applyLaneLocks({
+  tierName: rankName,
+  stripesEarned: displayStripes,
+  athlete: a,
+});
   // -----------------------------
   // Strength / Honor
   // -----------------------------
@@ -877,17 +905,20 @@ if (reviewMode) setAllDrops(true);
 
   const strengthBlocked = !!strengthSpec?.blocked;
   const honorBlocked = !!honorSpec?.blocked;
+const strengthUnlocked =
+  a.unlocks?.strength === true ||
+  displayStripes >= (req.strength ?? 999);
 
-  const canSeeStrength =
-    !strengthBlocked &&
-    ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
-      (displayStripes >= (req.strength ?? 999)));
+const honorUnlocked =
+  a.unlocks?.honor === true ||
+  displayStripes >= (req.honor ?? 999);
+const canSeeStrength =
+  !strengthBlocked &&
+  ((viewMode === "coach" || viewMode === "full" || reviewMode) || strengthUnlocked);
 
-  const canSeeHonor =
-    !honorBlocked &&
-    ((viewMode === "coach" || viewMode === "full" || reviewMode) ||
-      (displayStripes >= (req.honor ?? 999)));
-
+const canSeeHonor =
+  !honorBlocked &&
+  ((viewMode === "coach" || viewMode === "full" || reviewMode) || honorUnlocked);
   if (canSeeStrength) {
     paintLane({
       kind: "strength",

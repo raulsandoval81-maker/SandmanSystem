@@ -5,6 +5,8 @@ import {
   ensureSignedIn,
   collection,
   onSnapshot,
+  query,
+  where,
 } from "/assets/js/firebase-init.js";
 
 await ensureSignedIn();
@@ -58,11 +60,20 @@ const listHonorEl = document.getElementById("list-honor");
 const listConditioningEl = document.getElementById("list-conditioning");
 
 // -----------------------------
+// Testing elements
+// Required HTML ID:
+// list-testing
+// -----------------------------
+const listTestingEl = document.getElementById("list-testing");
+
+// -----------------------------
 // Parent inbox count elements
 // Required HTML IDs:
 // count-join-requests
 // count-trial-requests
 // count-parent-messages
+// Optional:
+// count-free-pass
 // -----------------------------
 const countJoinRequestsEl = document.getElementById("count-join-requests");
 const countTrialRequestsEl = document.getElementById("count-trial-requests");
@@ -73,8 +84,6 @@ const countFreePassEl = document.getElementById("count-free-pass");
 // Intake launcher
 // Optional HTML ID:
 // open-intake-control
-//
-// If this button/link exists, it will route to /coach-intake/
 // -----------------------------
 const openIntakeControlBtn = document.getElementById("open-intake-control");
 
@@ -112,44 +121,34 @@ function hasBody(entry) {
 
 function isStrengthEntry(key, entry) {
   const k = String(key || "").trim();
-
   const matchesLegacyKey = /^strength_segment1_session\d+$/i.test(k);
   const matchesCurrentKey = /^STR-\d+$/i.test(k);
 
   if (!matchesLegacyKey && !matchesCurrentKey) return false;
-
   return String(entry?.lane || "").trim().toLowerCase() === "strength";
 }
 
 function isHonorEntry(key, entry) {
   const k = String(key || "").trim();
-
   const matchesLegacyKey = /^honor_segment1_session\d+$/i.test(k);
   const matchesCurrentKey = /^HON-\d+$/i.test(k);
 
   if (!matchesLegacyKey && !matchesCurrentKey) return false;
-
   return String(entry?.lane || "").trim().toLowerCase() === "honor";
 }
 
 function isConditioningEntry(key, entry) {
   const k = String(key || "").trim();
-
   const matchesLegacyKeyF4 = /^conditioning_f4_segment1_session\d+$/i.test(k);
   const matchesLegacyKeyF8 = /^conditioning_f8_segment1_session\d+$/i.test(k);
   const matchesCurrentKey = /^CON-\d+$/i.test(k);
 
   if (!matchesLegacyKeyF4 && !matchesLegacyKeyF8 && !matchesCurrentKey) return false;
-
   return String(entry?.lane || "").trim().toLowerCase() === "conditioning";
 }
 
 // -----------------------------
 // Lane queue counts
-// Rules locked:
-// - Remote HIIT folds into Conditioning
-// - Iron stays under Strength review
-// - Conditioning requests count separately
 // -----------------------------
 function computeCounts(docs) {
   let strength = 0;
@@ -169,42 +168,33 @@ function computeCounts(docs) {
     Object.keys(data).forEach((k) => {
       const entry = data[k];
 
-      if (isStrengthEntry(k, entry)) {
-        if (hasBody(entry) && isPending(entry?.status)) {
-          strength++;
-          strengthIds.push(athleteId);
-        }
+      if (isStrengthEntry(k, entry) && hasBody(entry) && isPending(entry?.status)) {
+        strength++;
+        strengthIds.push(athleteId);
       }
 
-      if (isHonorEntry(k, entry)) {
-        if (hasBody(entry) && isPending(entry?.status)) {
-          honor++;
-          honorIds.push(athleteId);
-        }
+      if (isHonorEntry(k, entry) && hasBody(entry) && isPending(entry?.status)) {
+        honor++;
+        honorIds.push(athleteId);
       }
 
-      if (isConditioningEntry(k, entry)) {
-        if (hasBody(entry) && isPending(entry?.status)) {
-          conditioning++;
-          conditioningIds.push(athleteId);
-        }
+      if (isConditioningEntry(k, entry) && hasBody(entry) && isPending(entry?.status)) {
+        conditioning++;
+        conditioningIds.push(athleteId);
       }
     });
 
-    // Conditioning Requests (new)
     const conditioningRequest = data?.conditioning_request;
     if (conditioningRequest && isPending(conditioningRequest.status)) {
       conditioningRequests++;
     }
 
-    // Remote HIIT now counts as Conditioning
     const hiitEntry = data?.strength_remote_hiit;
     if (hiitEntry?.submittedAt && isPending(hiitEntry?.status)) {
       conditioning++;
       conditioningIds.push(athleteId);
     }
 
-    // Iron stays separate under Strength review
     const ironEntry = data?.strength_iron_latest;
     if (ironEntry?.submittedAt && isPending(ironEntry?.status)) {
       iron++;
@@ -248,16 +238,7 @@ function subscribeLaneCounts() {
 }
 
 // -----------------------------
-// Parent inbox counts (LIVE)
-// Reads from: paraParentInbox
-// Splits:
-// - join requests
-// - trial requests
-// - parent messages
-//
-// NOTE:
-// This page no longer performs approve / hold / reply.
-// Actions belong inside the inbox cards, not here.
+// Parent inbox counts
 // -----------------------------
 function subscribeParentInboxCounts() {
   const ref = collection(db, "paraParentInbox");
@@ -273,21 +254,11 @@ function subscribeParentInboxCounts() {
       snap.forEach((docSnap) => {
         const d = docSnap.data() || {};
 
-if (d.category === "join") {
-
-  if (d.entryType === "join" && isPending(d.status)) {
-    joinCount++;
-  }
-
-  if (d.entryType === "trial") {
-  trialCount++;
-}
-
-if (d.entryType === "free_pass") {
-  freePassCount++;
-}
-
-}
+        if (d.category === "join") {
+          if (d.entryType === "join" && isPending(d.status)) joinCount++;
+          if (d.entryType === "trial") trialCount++;
+          if (d.entryType === "free_pass") freePassCount++;
+        }
 
         if (d.category === "message" && isPending(d.status)) {
           messageCount++;
@@ -295,13 +266,77 @@ if (d.entryType === "free_pass") {
       });
 
       setCount(countJoinRequestsEl, joinCount);
-setCount(countTrialRequestsEl, trialCount);
-setCount(countFreePassEl, freePassCount);
-setCount(countParentMessagesEl, messageCount);
-
+      setCount(countTrialRequestsEl, trialCount);
+      setCount(countFreePassEl, freePassCount);
+      setCount(countParentMessagesEl, messageCount);
     },
     (err) => {
       console.error("[command-center] parent inbox count error:", err);
+    }
+  );
+}
+
+// -----------------------------
+// TESTING — READY ATHLETES
+// -----------------------------
+function subscribeTestingReady() {
+  if (!listTestingEl) return;
+
+const q = query(
+  collection(db, "athletes"),
+  where("testing.coachReady", "==", true)
+);
+  onSnapshot(
+    q,
+    (snap) => {
+      listTestingEl.innerHTML = "";
+
+      snap.forEach((docSnap) => {
+        const data = docSnap.data() || {};
+        const uid = docSnap.id;
+        const sessionId = `test_${uid}_${Date.now()}`;
+
+        const row = document.createElement("div");
+        row.className = "queue-row";
+
+const name = encodeURIComponent(data.publicName || data.fullName || "");
+const tier = encodeURIComponent(data.tier || "");
+const track = encodeURIComponent(data.track || "foundry4-combat");
+
+const panelLink = `/coaches/testing/testing-command-center.html?uid=${uid}&athleteName=${name}&tier=${tier}&track=${track}`;
+
+row.innerHTML = `
+  <div class="queue-left">
+    <div class="queue-label">${data.publicName || data.fullName || uid}</div>
+    <div class="queue-sub">${data.tier || "—"} · READY</div>
+  </div>
+
+  <div style="display:flex; gap:6px; flex-wrap:wrap;">
+    <a class="btn" href="/coaches/command-center/coach-athlete-panel.html?id=${uid}">
+      View
+    </a>
+
+    <a class="btn good"
+       href="/coaches/testing/test1.html?athleteId=${uid}&sessionId=${sessionId}&panel=1">
+      Test
+    </a>
+
+    <a class="btn"
+       href="${panelLink}">
+      Panel
+    </a>
+  </div>
+`;
+        listTestingEl.appendChild(row);
+      });
+
+      if (!snap.size) {
+        listTestingEl.innerHTML = `<div style="opacity:.6;">No athletes ready</div>`;
+      }
+    },
+    (err) => {
+      console.error("[command-center] ready athlete load error:", err);
+      listTestingEl.innerHTML = `<div style="opacity:.6;">Testing queue unavailable</div>`;
     }
   );
 }
@@ -322,3 +357,4 @@ wireThemeToggle();
 wireIntakeControl();
 subscribeLaneCounts();
 subscribeParentInboxCounts();
+subscribeTestingReady();

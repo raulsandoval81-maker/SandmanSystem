@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+        content="width=device-width,initial-scale=1" />
+
+  <title>Sandman Big Screen</title>
+
+  <link rel="stylesheet"
+        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=6" />
+</head>
+
+<body>
+
+<div id="readyScreen" class="ready-screen">
+
+  <div class="ready-inner">
+
+    <!-- BRAND -->
+
+    <div class="ready-brand">
+      SANDMAN COMBAT
+    </div>
+
+    <div class="ready-standards-title">
+      RULES OF LIFE
+    </div>
+
+    <div class="ready-fear">
+      <div>FOCUS</div>
+      <div>•</div>
+      <div>EFFORT</div>
+      <div>•</div>
+      <div>ATTITUDE</div>
+      <div>•</div>
+      <div>RESPECT</div>
+    </div>
+
+    <div class="ready-status">
+      Session Ready
+    </div>
+
+    <button
+      class="ready-pill primary ready-start"
+      type="button"
+      onclick="startPracticeNow()">
+
+      Start Practice
+
+    </button>
+
+    <!-- TOOLS -->
+
+    <div class="ready-tools">
+
+      <div id="qrPanel"
+           class="qr-panel hidden">
+
+        <div id="qrTitle"
+             class="qr-title">
+
+          Scan QR
+
+        </div>
+
+        <img
+          id="qrImage"
+          alt="QR Code" />
+
+      </div>
+
+      <div class="ready-tool-row">
+
+
+        <button
+          class="ready-pill"
+          type="button"
+          onclick="showCompanionQr()">
+
+          ⧉ Clipboard
+
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<main class="big-screen">
+
+  <div id="status"
+       class="status stopped">
+
+    STOPPED
+
+  </div>
+
+  <div id="block"
+       class="block">
+
+    No active block
+
+  </div>
+
+  <div id="cues"
+       class="cues">
+  </div>
+
+  <div id="clock"
+       class="clock">
+
+    00:00
+
+  </div>
+
+  <div id="next"
+       class="next">
+
+    Next: —
+
+  </div>
+
+</main>
+
+<div class="brand">
+  Sandman Combat
+</div>
+
+<div class="session-end-actions hidden"
+     id="sessionEndActions">
+
+<a class="return-btn"
+   href="/coaches/execution/coach-companion/">
+
+  Return to Coach Companion
+
+</a>
+</div>
+
+<script
+  type="module"
+  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=8">
+</script>
+</body>
+</html>

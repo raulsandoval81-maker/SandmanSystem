@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Belt Lineup Full</title>
+
+  <link rel="stylesheet" href="../assets/css/belts.css">
+
+  <style>
+    body {
+      background: #5f6368;
+      color: #fff;
+      font-family: system-ui, sans-serif;
+      padding: 24px;
+    }
+
+    h1 { margin-bottom: 20px; }
+
+    .section { margin-bottom: 40px; }
+
+    .label {
+      font-size: 14px;
+      opacity: .7;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 16px;
+    }
+
+    .belt-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Full Belt System</h1>
+
+<!-- Youth -->
+<div class="section">
+  <div class="label">Youth (Foundry 8)</div>
+  <div id="youth" class="belt-wrap"></div>
+</div>
+
+<!-- Teen -->
+<div class="section">
+  <div class="label">Teen (Foundry 4)</div>
+  <div id="teen" class="belt-wrap"></div>
+</div>
+
+<script type="module">
+import { renderDigitalBelt } from "../assets/js/digital-belt.js";
+
+/* Mini bar generator (matches belt system) */
+function renderMiniBelt({ colorClass, stripes }) {
+  const safe = Math.max(0, Math.min(4, stripes));
+
+  return `
+    <div class="sm-belt small ${colorClass}">
+      <div class="sm-belt-body"></div>
+
+      <div class="sm-belt-patch">
+        <div class="sm-belt-text">SANDMAN SYSTEM</div>
+        <div class="sm-belt-stripes">
+          ${[0,1,2,3].map(i => `
+            <span class="sm-stripe ${i < safe ? "filled" : ""}"></span>
+          `).join("")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+const youthData = [
+  { name:"Shadow", color:"belt-white", stripes:1 },
+  { name:"Recruit", color:"belt-yellow", stripes:2 },
+  { name:"Combatant", color:"belt-orange", stripes:3 },
+  { name:"Contender", color:"belt-green", stripes:4 },
+  { name:"Warrior", color:"belt-blue", stripes:1 },
+  { name:"Champion", color:"belt-purple", stripes:0 },
+  { name:"Commander", color:"belt-brown", stripes:2 },
+  { name:"Hero", color:"belt-black", stripes:3 }
+];
+
+const teenData = [
+  { name:"Apprentice", color:"belt-white", stripes:1 },
+  { name:"Warrior", color:"belt-blue", stripes:2 },
+  { name:"Champion", color:"belt-purple", stripes:3 },
+  { name:"Veteran", color:"belt-brown", stripes:4 },
+  { name:"Legend", color:"belt-black", stripes:2 }
+];
+
+function renderSection(data, containerId) {
+  const el = document.getElementById(containerId);
+
+  data.forEach(b => {
+    el.insertAdjacentHTML("beforeend", `
+      <div class="row">
+
+        <!-- FULL BELT -->
+        ${renderDigitalBelt({
+          colorClass: b.color,
+          stripes: b.stripes,
+          size: "large"
+        })}
+
+        <!-- MINI BELT -->
+        ${renderMiniBelt({
+          colorClass: b.color,
+          stripes: b.stripes
+        })}
+
+      </div>
+    `);
+  });
+}
+
+renderSection(youthData, "youth");
+renderSection(teenData, "teen");
+
+</script>
+
+</body>
+</html>

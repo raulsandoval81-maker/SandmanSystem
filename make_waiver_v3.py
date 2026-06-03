@@ -78,11 +78,7 @@ def build_waiver(filename):
         "I agree athlete and family will follow all rules and standards. Violation may result in",
         "removal without refund to protect safety and culture.",
         "",
-        "8) Dual Progression & Fast-Track",
-        "Any exception pathway is subject to management review within 48 hours and may include",
-        "private/non-ceremonial acknowledgments until backfilled upward.",
-        "",
-        "9) Acknowledgment",
+        "8) Acknowledgment",
         "I have read and understand this waiver. I am the parent/guardian of the participant and",
         "have authority to sign. I may ask questions at any time.",
         ""
@@ -93,87 +89,61 @@ def build_waiver(filename):
     c.showPage()
 
     # =============================
-    # PAGE 2 — Culture & Standards
+    # PAGE 2 — Academy Policies
     # =============================
     y = height - 1 * inch
-    y = add_block(c, ["Culture & Standards", ""], y, leading=16, font="Helvetica-Bold", size=12)
 
-    # Parent Culture (compact paragraphs)
     y = add_block(c, [
-        "Parent Creed — to my athlete",
-        "I will support the growth of my athlete with patience, respect, and encouragement.",
-        "I understand that combat sports demand commitment, consistency, and honor, and I will",
-        "stand by my athlete through the ups and downs of the journey.",
+        "Academy Policies & Expectations",
+        ""
+    ], y, leading=16, font="Helvetica-Bold", size=12)
+
+    y = add_block(c, [
+        "Training Environment & Observation Policy",
+        "Sandman Combat™ is designed to provide athletes with a focused, supportive,",
+        "and low-pressure environment where they can learn, make mistakes, build",
+        "confidence, and develop independence.",
+        "",
+        "Parents and guardians who are new to the program are welcome to remain",
+        "nearby while their athlete becomes comfortable in the training environment.",
+        "",
+        "As athletes become comfortable and capable of participating independently,",
+        "practices become coach-directed training environments. At that point,",
+        "spectators may be limited or restricted at the discretion of the coaching staff.",
+        "",
+        "Practice is where athletes learn, experiment, and improve. Competition,",
+        "testing, and events are where athletes demonstrate their work.",
+        "",
+        "Instruction is provided by the coaching staff. Sideline coaching, instruction",
+        "from spectators, or interference with training is not permitted.",
         ""
     ], y)
 
     y = add_block(c, [
-        "Parent Code — to myself",
-        "I commit to modeling discipline, respect, and integrity in and out of the gym.",
-        "I will back the coaches, reinforce the rules, and set the standard at home and in the",
-        "community, knowing my actions shape the culture my athlete grows in.",
+        "Team Standards",
+        "Athletes are expected to uphold the following standards during training",
+        "and competition:",
+        "",
+        "Focus — Be present and pay attention.",
+        "Effort — Give your best effort.",
+        "Attitude — Take ownership of your actions and responses.",
+        "Respect — Respect coaches, teammates, opponents, officials, and facilities.",
+        "",
+        "These standards help create a safe, productive, and positive training",
+        "environment for everyone involved.",
         ""
     ], y)
 
     y = add_block(c, [
-        "Parent Goal — to the now",
-        "To create an environment where my athlete can thrive, learn resilience, and grow stronger",
-        "in body, character, and honor. Today’s habits shape tomorrow’s outcomes.",
-        ""
-    ], y)
-
-    y = add_block(c, [
-        "Parent Mission — to the then",
-        "To partner with Sandman Combat™ in raising athletes who succeed not only in sport,",
-        "but also in school, family, and life. Respect, accountability, and culture extend beyond",
-        "the mat, and I will uphold these values as we build for the future.",
-        ""
-    ], y)
-
-    # Spacer
-    y -= 6
-
-    # Athlete Rules of Life (long form)
-    y = add_block(c, ["Athlete Rules of Life", ""], y, leading=16, font="Helvetica-Bold", size=12)
-
-    y = add_block(c, [
-        "Rule #1 — Focus",
-        "Focus up. Eyes up, ears open. Excellence is in the details. Pay attention to the details",
-        "and excellence will come. See it. Feel it. Do it.",
-        ""
-    ], y)
-
-    y = add_block(c, [
-        "Rule #2 — Effort",
-        "Always try. Nothing great comes without great effort. Nothing good comes without it either.",
-        "Repetition is the mother of all learning.",
-        ""
-    ], y)
-
-    y = add_block(c, [
-        "Rule #3 — Attitude",
-        "Control your emotions. Stay steady when it’s hard. Mind over matter. No whining, no crying,",
-        "no excuses, no blaming others. Take ownership in everything you do. Attitude is everything.",
-        ""
-    ], y)
-
-    y = add_block(c, [
-        "Rule #4 — Respect",
-        "Give respect to get respect. Treat others as you want to be treated. Without respect, we have",
-        "no trust. Without trust, we have nothing. Respect the fight. Trust the process.",
-        ""
-    ], y)
-
-    y = add_block(c, [
-        "Athlete Responsibility",
-        "These Rules of Life apply not only in the gym, but also in the classroom and the community —",
-        "in sport and outside of sport, in battle and in life. I accept responsibility for my actions,",
-        "choices, and behavior both inside and outside the program.",
+        "Acknowledgment",
+        "I acknowledge that I have received, read, and understand these academy",
+        "policies and expectations and agree to support them as a participant,",
+        "parent, or guardian.",
         ""
     ], y)
 
     # Signature bottom of page 2
-    draw_signature_line(c, "Parent/Guardian", 1 * inch)
+    draw_signature_line(c, "Participant / Parent-Guardian", 1 * inch)
 
     c.save()
 

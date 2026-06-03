@@ -586,7 +586,26 @@ function makeClipCard(card) {
 
   if (
     ["game", "games", "warmup", "conditioning", "cond"].includes(category) ||
-    ["water", "game", "games", "warmup", "warmup_body", "warmup_agility", "cond", "conditioning"].includes(lane)
+    [
+  "water",
+  "game",
+  "games",
+
+  "warmup",
+  "warmup_body",
+  "warmup_agility",
+
+  "warmup_footwork",
+  "warmup_striking_motion",
+  "warmup_reaction",
+
+  "warmup_transition",
+  "warmup_movement",
+  "warmup_live",
+
+  "cond",
+  "conditioning"
+]
   ) {
     const desc = getAutoDesc(card);
 
@@ -804,33 +823,42 @@ const allCards =
     }
   }
 
-  const LANE_MAP = {
 
-    technique: "cards-technique",
+const LANE_MAP = {
 
-    drill: "cards-drills",
-    drills: "cards-drills",
+  technique: "cards-technique",
 
-    live: "cards-live",
+  drill: "cards-drills",
+  drills: "cards-drills",
 
-    onmat: "cards-onmat",
-    offmat: "cards-offmat",
+  live: "cards-live",
 
-    water: "cards-water",
-    games: "cards-water",
+  onmat: "cards-onmat",
+  offmat: "cards-offmat",
 
-    warmup: "cards-warmup-body",
-    warmup_body: "cards-warmup-body",
+  water: "cards-water",
+  games: "cards-water",
 
-    warmup_agility: "cards-warmup-agility",
-    agility: "cards-warmup-agility",
+  warmup: "cards-warmup-body",
+  warmup_body: "cards-warmup-body",
 
-    balance: "cards-warmup-body",
+  warmup_agility: "cards-warmup-agility",
+  agility: "cards-warmup-agility",
 
-    cond: "cards-cond",
-    conditioning: "cards-cond"
+  balance: "cards-warmup-body",
 
-  };
+  warmup_footwork: "cards-warmup-body",
+  warmup_striking_motion: "cards-warmup-body",
+  warmup_reaction: "cards-warmup-agility",
+
+  warmup_transition: "cards-warmup-body",
+  warmup_movement: "cards-warmup-agility",
+  warmup_live: "cards-warmup-body",
+
+  cond: "cards-cond",
+  conditioning: "cards-cond"
+
+};
 
   allCards.forEach(card => {
 
@@ -1100,7 +1128,10 @@ document.addEventListener("click", (e) => {
     "sandman_pending_add_lane",
     slotKey
   );
-
+localStorage.setItem(
+  RETURN_TO_KEY,
+  ALL_IN_ONE_RETURN
+);
 openDisciplineCards();
 });
 /* =========================
@@ -1617,7 +1648,8 @@ function updateSupportLinks() {
   if (Array.isArray(hybridCards) && hybridCards.length) {
 
     const existingCards =
-      getStoredClipboardCards();
+      getStoredClipboardCards()
+      .filter(card => card.source !== "hybrid");
 
     const aggressiveFoundation =
       Number(week || 1) <= 3;

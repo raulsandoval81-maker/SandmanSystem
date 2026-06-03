@@ -206,4 +206,79 @@ input:focus, select:focus{
   .launch-box .link-preview{
     grid-column:1 / -1;
   }
+}/* =========================
+   PRINT MODE
+========================= */
+@media print {
+
+  body{
+    background:#fff !important;
+    color:#000 !important;
+    font-size:12px;
+  }
+
+  .topnav,
+  #saveBtn,
+  #resetBtn,
+  #copyBtn,
+  #themeToggle{
+    display:none !important;
+  }
+
+  .wrap{
+    max-width:100%;
+    padding:0;
+  }
+
+  .card{
+    border:1px solid #000;
+    background:#fff;
+    margin-bottom:12px;
+    page-break-inside:avoid;
+  }
+
+  h1, h2{
+    color:#000;
+  }
+
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    font-weight:bold;
+  }
+
+  .item{
+    display:flex;
+    justify-content:space-between;
+    border-bottom:1px solid #ccc;
+    padding:4px 0;
+  }
+
+  .score-row{
+    display:none; /* remove buttons */
+  }
+
+  .section-subtotal{
+    font-weight:bold;
+  }
+
+  #totalScore{
+    font-size:18px;
+    font-weight:bold;
+  }
+
+  #statusText{
+    font-size:16px;
+    font-weight:bold;
+  }
+
+  .coach-note{
+    font-size:10px;
+    color:#333;
+  }
+
+  textarea{
+    border:1px solid #000;
+    color:#000;
+  }
 }

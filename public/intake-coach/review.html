@@ -11,280 +11,302 @@
 </head>
 
 <body>
-  <main class="wrap" role="main">
+  <main class="wrap intake-review" role="main">
 
-    <header class="page-head">
-      <h1>Coach — Review Submission</h1>
+    <header class="page-head review-hero">
+      <div>
+        <p class="eyebrow">Coach Intake</p>
+        <h1>Review & Mint Athlete</h1>
+        <p class="muted small">Confirm identity, validate placement, mint profile, and send setup links.</p>
+      </div>
     </header>
 
-    <!-- ========================= -->
-    <!--     LOADED SUBMISSION     -->
-    <!-- ========================= -->
-    <section class="card" aria-labelledby="submitted-title">
-      <h3 id="submitted-title">Submitted Data</h3>
+    <section class="review-grid">
 
-      <div class="row">
-        <div class="stat">
-          <div class="label">Athlete</div>
-          <div class="value" id="s-firstlast">—</div>
-        </div>
-        <div class="stat">
-          <div class="label">DOB</div>
-          <div class="value" id="s-dob">—</div>
-        </div>
+      <!-- LEFT COLUMN -->
+      <div class="review-stack">
+
+        <section class="card" aria-labelledby="submitted-title">
+          <div class="card-head">
+            <h3 id="submitted-title">Submitted Data</h3>
+            <span class="status-pill">Parent Intake</span>
+          </div>
+
+          <div class="info-grid two">
+            <div class="stat">
+              <div class="label">Athlete</div>
+              <div class="value" id="s-firstlast">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">DOB</div>
+              <div class="value" id="s-dob">—</div>
+            </div>
+          </div>
+
+          <div class="info-grid three">
+            <div class="stat">
+              <div class="label">City</div>
+              <div class="value" id="s-city">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">State</div>
+              <div class="value" id="s-state">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Parent Email</div>
+              <div class="value small" id="s-email">—</div>
+            </div>
+          </div>
+
+          <div class="info-grid two">
+            <div class="stat">
+              <div class="label">Parent Phone</div>
+              <div class="value" id="s-phone">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Emergency</div>
+              <div class="value" id="s-emer">—</div>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="label">Medical</div>
+            <div class="value small" id="s-med">—</div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="confirm-title">
+          <div class="card-head">
+            <h3 id="confirm-title">Coach Confirm</h3>
+            <span class="status-pill">Edit Safe</span>
+          </div>
+
+          <div class="form-grid two">
+            <div class="field">
+              <label for="c-initial">Public Initial</label>
+              <input id="c-initial" placeholder="e.g., J." autocomplete="off">
+            </div>
+
+            <div class="field">
+              <label for="c-last">Public Last</label>
+              <input id="c-last" placeholder="e.g., Sandoval" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="form-grid three">
+            <div class="field">
+              <label for="c-team">Team</label>
+              <input id="c-team" placeholder="e.g., Trojans" autocomplete="organization">
+            </div>
+
+            <div class="field">
+              <label for="c-city">City</label>
+              <input id="c-city" autocomplete="address-level2">
+            </div>
+
+            <div class="field">
+              <label for="c-state">State</label>
+              <input id="c-state" autocomplete="address-level1" placeholder="CA">
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="exp-title">
+          <div class="card-head">
+            <h3 id="exp-title">Experience Validation</h3>
+            <span class="status-pill gold">Placement Only</span>
+          </div>
+
+          <p class="muted small">
+            Prior experience may support intake placement. It does not transfer XP between art journeys.
+          </p>
+
+          <div class="form-grid one">
+            <div class="field">
+              <label for="c-exp-years">Prior Experience</label>
+              <select id="c-exp-years">
+                <option value="0">None — New Athlete</option>
+                <option value="1">1 Year</option>
+                <option value="2">2 Years</option>
+                <option value="3">3+ Years</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="info-grid four">
+            <div class="stat">
+              <div class="label">Total Credit</div>
+              <div class="value" id="exp-total">0</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Issued Now</div>
+              <div class="value" id="exp-now">0</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Held</div>
+              <div class="value" id="exp-hold">0</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Schedule</div>
+              <div class="value small" id="exp-schedule">—</div>
+            </div>
+          </div>
+        </section>
+
       </div>
 
-      <div class="row">
-        <div class="stat">
-          <div class="label">City</div>
-          <div class="value" id="s-city">—</div>
-        </div>
-        <div class="stat">
-          <div class="label">State</div>
-          <div class="value" id="s-state">—</div>
-        </div>
-        <div class="stat">
-          <div class="label">Parent Email</div>
-          <div class="value small" id="s-email">—</div>
-        </div>
-      </div>
+      <!-- RIGHT COLUMN -->
+      <div class="review-stack">
 
-      <div class="row">
-        <div class="stat">
-          <div class="label">Parent Phone</div>
-          <div class="value" id="s-phone">—</div>
-        </div>
-        <div class="stat">
-          <div class="label">Emergency</div>
-          <div class="value" id="s-emer">—</div>
-        </div>
-      </div>
+        <section class="card" id="mint-box" aria-labelledby="minttag-title">
+          <div class="card-head">
+            <h3 id="minttag-title">Mint Virtue Tag</h3>
+            <span class="status-pill">Identity</span>
+          </div>
 
-      <div class="row">
-        <div class="stat big">
-          <div class="label">Medical</div>
-          <div class="value small" id="s-med">—</div>
-        </div>
+          <div class="form-grid one">
+            <div class="field">
+              <label for="mint-virtue">Virtue</label>
+              <select id="mint-virtue"></select>
+            </div>
+
+            <div class="field">
+              <label for="mint-tag-output">Mint Tag</label>
+              <input id="mint-tag-output" readonly />
+            </div>
+          </div>
+        </section>
+
+        <section class="card mint-card" aria-labelledby="mint-title">
+          <div class="card-head">
+            <h3 id="mint-title">Mint UID</h3>
+            <span class="status-pill gold">Choose Journey</span>
+          </div>
+
+          <div class="mint-grid">
+
+            <button type="button" class="mint-track-btn" id="btn-mint-z2h">
+              <span class="mint-track-name">Mint Zero2Hero</span>
+              <span class="mint-track-meta">Ages 7–13 • Youth</span>
+              <span class="mint-track-sub">Foundry 8</span>
+            </button>
+
+            <button type="button" class="mint-track-btn" id="btn-mint-p2l">
+              <span class="mint-track-name">Mint Path2Legend</span>
+              <span class="mint-track-meta">Ages 13–18 • Teen</span>
+              <span class="mint-track-sub">Foundry 4</span>
+            </button>
+
+            <button type="button" class="mint-track-btn" id="btn-mint-q2m">
+              <span class="mint-track-name">Mint Quest2Mastery</span>
+              <span class="mint-track-meta">Ages 18+ • MMA</span>
+              <span class="mint-track-sub">Foundry 4</span>
+            </button>
+
+<button type="button" class="mint-track-btn" id="btn-mint-road2glory">
+  <span class="mint-track-name">Mint Road2Glory</span>
+  <span class="mint-track-meta">Ages 18+ • Boxing</span>
+  <span class="mint-track-sub">Foundry 4</span>
+</button>
+
+          </div>
+
+          <div class="field uid-field">
+            <label for="c-uid">UID</label>
+            <input id="c-uid" class="mono small" placeholder="UID appears…" readonly>
+          </div>
+
+          <input id="c-track" type="hidden">
+          <input id="c-tier" type="hidden">
+          <input id="c-rank" type="hidden">
+          <input id="c-program-track" type="hidden">
+
+          <div class="info-grid three">
+            <div class="stat">
+              <div class="label">Track</div>
+              <div class="value" id="m-track">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Tier_Rank</div>
+              <div class="value" id="m-rank">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Padlock</div>
+              <div class="value mono" id="m-padlock">—</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="adjust-title">
+          <div class="card-head">
+            <h3 id="adjust-title">Coach Adjustment</h3>
+            <span class="status-pill danger">Optional</span>
+          </div>
+
+          <p class="muted small">Only use for delays or corrections. Leave blank for normal approval.</p>
+
+          <div class="form-grid two">
+            <div class="field">
+              <label for="c-adjust-xp">XP Adjustment</label>
+              <input id="c-adjust-xp" type="number" min="0" step="1" placeholder="0">
+            </div>
+
+            <div class="field">
+              <label for="c-adjust-note">Reason</label>
+              <input id="c-adjust-note" placeholder="Intake delay, testing backlog">
+            </div>
+          </div>
+        </section>
+
+        <section class="card approve-card" aria-labelledby="approve-title">
+          <h3 id="approve-title">Approve & Create Profile</h3>
+
+          <div class="approve-actions">
+            <button type="button" id="btn-approve" class="solid-blue">Approve & Activate</button>
+            <button type="button" class="outline-blue small" id="btn-back">Back to Pending</button>
+          </div>
+
+          <span id="approve-status" class="small muted" role="status" aria-live="polite"></span>
+        </section>
+
       </div>
     </section>
 
-    <!-- ========================= -->
-    <!--      COACH CONTROLS       -->
-    <!-- ========================= -->
-    <section class="card" aria-labelledby="confirm-title">
-      <h3 id="confirm-title">Coach — Edit / Confirm</h3>
+    <div id="approval-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <h2>Athlete Approved!</h2>
+        <p class="muted small">Send links below to continue setup.</p>
 
-      <div class="row">
-        <div class="field">
-          <label for="c-initial">Public Initial</label>
-          <input id="c-initial" placeholder="e.g., J." autocomplete="off">
+        <label class="small muted">Athlete UID</label>
+        <div class="modal-row">
+          <input id="approved-athlete-uid" type="text" readonly class="mono small" />
+          <button type="button" class="pill" id="copy-athlete-uid">Copy</button>
         </div>
 
-        <div class="field">
-          <label for="c-last">Public Last</label>
-          <input id="c-last" placeholder="e.g., Sandoval" autocomplete="off">
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label for="c-team">Team</label>
-          <input id="c-team" placeholder="e.g., Trojans" autocomplete="organization">
+        <label class="small muted">Coach / Athlete Onboarding</label>
+        <div class="modal-row">
+          <input id="onboarding-link" type="text" readonly />
         </div>
 
-        <div class="field">
-          <label for="c-city">City</label>
-          <input id="c-city" autocomplete="address-level2">
+        <div class="modal-actions">
+          <button type="button" class="pill" id="copy-link">Copy</button>
+          <button type="button" class="pill" id="open-link">Open</button>
         </div>
 
-        <div class="field">
-          <label for="c-state">State</label>
-          <input id="c-state" autocomplete="address-level1" placeholder="e.g., CA">
+        <label class="small muted">Parent My-Athlete Link</label>
+        <div class="modal-row">
+          <input id="parent-my-athlete-link" type="text" readonly />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="pill" id="copy-parent-link">Copy</button>
+          <button type="button" class="pill" id="open-parent-link">Open</button>
         </div>
       </div>
-    </section>
-
-    <!-- ========================= -->
-    <!--      EXPERIENCE CREDIT    -->
-    <!-- ========================= -->
-    <section class="card" aria-labelledby="exp-title">
-      <h3 id="exp-title">Experience Credit</h3>
-      <p class="muted small">Apply prior experience credit before minting.</p>
-
-      <div class="row">
-        <div class="field">
-          <label for="c-exp-years">Prior Experience</label>
-          <select id="c-exp-years">
-            <option value="0">None (New Athlete)</option>
-            <option value="1">1 Year</option>
-            <option value="2">2 Years</option>
-            <option value="3">3+ Years</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="stat">
-          <div class="label">Total Credit</div>
-          <div class="value" id="exp-total">0</div>
-        </div>
-
-        <div class="stat">
-          <div class="label">Issued Now</div>
-          <div class="value" id="exp-now">0</div>
-        </div>
-
-        <div class="stat">
-          <div class="label">Held (T1)</div>
-          <div class="value" id="exp-hold">0</div>
-        </div>
-
-        <div class="stat">
-          <div class="label">Schedule</div>
-          <div class="value small" id="exp-schedule">—</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================= -->
-    <!--    COACH ADJUSTMENT       -->
-    <!-- ========================= -->
-    <section class="card" aria-labelledby="adjust-title">
-      <h3 id="adjust-title">Coach Adjustment (Optional)</h3>
-      <p class="muted small">Only use for delays or corrections. Logged to XP history later in workflow.</p>
-
-      <div class="row">
-        <div class="field">
-          <label for="c-adjust-xp">XP Adjustment</label>
-          <input id="c-adjust-xp" type="number" min="0" step="1" placeholder="e.g., 50">
-        </div>
-
-        <div class="field" style="flex:2">
-          <label for="c-adjust-note">Reason</label>
-          <input id="c-adjust-note" placeholder="e.g., Intake delay, testing backlog">
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================= -->
-    <!--      MINT VIRTUE TAG      -->
-    <!-- ========================= -->
-    <section class="card" id="mint-box" aria-labelledby="minttag-title">
-      <h3 id="minttag-title">Mint Virtue Tag</h3>
-      <p class="muted small">Select virtue. Auto-builds the official mint tag.</p>
-
-      <div class="row">
-        <div class="field">
-          <label for="mint-virtue">Virtue</label>
-          <select id="mint-virtue"></select>
-        </div>
-      </div>
-
-      <div class="row">
-        <div class="field" style="flex:1 1 320px">
-          <label for="mint-tag-output">Mint Tag</label>
-          <input id="mint-tag-output" readonly />
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================= -->
-    <!--           MINT            -->
-    <!-- ========================= -->
-    <section class="card" aria-labelledby="mint-title">
-      <h3 id="mint-title">Mint UID</h3>
-
-      <div class="row">
-        <button type="button" class="outline-gold small" id="btn-mint-f8">Mint Foundry 8</button>
-        <button type="button" class="outline-gold small" id="btn-mint-f4">Mint Foundry 4</button>
-
-        <div class="field" style="flex:1 1 260px">
-          <label for="c-uid" class="sr-only">UID</label>
-          <input id="c-uid" class="mono small" placeholder="UID appears…" readonly>
-        </div>
-      </div>
-
-      <input id="c-track" type="hidden">
-      <input id="c-tier"  type="hidden">
-      <input id="c-rank"  type="hidden">
-
-      <div class="row" style="margin-top:10px">
-        <div class="stat">
-          <div class="label">Track</div>
-          <div class="value" id="m-track">—</div>
-        </div>
-        <div class="stat">
-          <div class="label">Tier_Rank</div>
-          <div class="value" id="m-rank">—</div>
-        </div>
-        <div class="stat">
-          <div class="label">Padlock</div>
-          <div class="value mono" id="m-padlock">—</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ========================= -->
-    <!--          APPROVE          -->
-    <!-- ========================= -->
-    <section class="card" aria-labelledby="approve-title">
-      <h3 id="approve-title">Approve & Create Profile</h3>
-
-      <div class="row" style="align-items:center">
-        <button type="button" id="btn-approve" class="solid-blue">Approve & Activate</button>
-        <span id="approve-status" class="small muted" role="status" aria-live="polite"></span>
-      </div>
-
-      <div class="row" style="margin-top:10px">
-        <button type="button" class="outline-blue small" id="btn-back">Back to Pending</button>
-      </div>
-    </section>
-
-<!-- ========================= -->
-<!--      APPROVAL MODAL       -->
-<!-- ========================= -->
-<div id="approval-modal" class="modal hidden" role="dialog" aria-modal="true">
-  <div class="modal-box">
-    <h2>Athlete Approved!</h2>
-    <p class="muted small">Send links below to continue setup.</p>
-
-    <!-- UID -->
-    <label class="small muted">Athlete UID</label>
-    <div class="row">
-      <div class="field" style="flex:1 1 320px">
-        <input id="approved-athlete-uid" type="text" readonly class="mono small" />
-      </div>
-      <button type="button" class="pill" id="copy-athlete-uid">Copy</button>
     </div>
-
-    <!-- ONBOARDING -->
-    <label class="small muted">Coach / Athlete Onboarding</label>
-    <div class="row">
-      <div class="field" style="flex:1 1 420px">
-        <input id="onboarding-link" type="text" readonly />
-      </div>
-    </div>
-
-    <div class="row">
-      <button type="button" class="pill" id="copy-link">Copy</button>
-      <button type="button" class="pill" id="open-link">Open</button>
-    </div>
-
-    <!-- PARENT LINK -->
-    <label class="small muted">Parent My-Athlete Link</label>
-    <div class="row">
-      <div class="field" style="flex:1 1 420px">
-        <input id="parent-my-athlete-link" type="text" readonly />
-      </div>
-    </div>
-
-    <div class="row">
-      <button type="button" class="pill" id="copy-parent-link">Copy</button>
-      <button type="button" class="pill" id="open-parent-link">Open</button>
-    </div>
-
-  </div>
-</div>
 
     <footer class="footer small muted">
       Sandman Systems™ — Coach Intake Review

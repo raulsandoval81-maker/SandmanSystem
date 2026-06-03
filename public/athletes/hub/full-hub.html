@@ -348,15 +348,38 @@
 
     function norm(x){ return (x || "").toString().trim().toUpperCase(); }
 
-    function setProfileLink(id){
-      const profileLink = $("profileLink");
-      if (!profileLink || !id) return;
+function getProfileUrl(id, athlete = {}) {
+  const track = String(
+    athlete.programTrack ||
+    athlete.track ||
+    athlete.trackCode ||
+    ""
+  ).toLowerCase();
 
-      const profileUrl = `/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`;
-      profileLink.href = profileUrl;
-      profileLink.classList.remove("btn-disabled");
-      profileLink.removeAttribute("aria-disabled");
-    }
+  if (track.includes("quest2mastery") || track.includes("adult")) {
+    return `/athletes/profile/adult-profile.html?id=${encodeURIComponent(id)}`;
+  }
+
+  if (
+    String(id).toUpperCase().startsWith("F8_") ||
+    track.includes("foundry8") ||
+    track.includes("zero2hero")
+  ) {
+    return `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`;
+  }
+
+  return `/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`;
+}
+
+function setProfileLink(id, athlete = {}) {
+  const profileLink = $("profileLink");
+  if (!profileLink || !id) return;
+
+  profileLink.href = getProfileUrl(id, athlete);
+  profileLink.classList.remove("btn-disabled");
+  profileLink.removeAttribute("aria-disabled");
+}
+
 
     function setArsenalLink(id){
       const arsenalLink = $("arsenalLink");

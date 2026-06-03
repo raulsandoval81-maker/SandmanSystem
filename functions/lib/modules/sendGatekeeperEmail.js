@@ -34,55 +34,249 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendGatekeeperEmail = void 0;
+exports.buildEmail = buildEmail;
 const functions = __importStar(require("firebase-functions"));
 const resend_1 = require("resend");
-function buildEmail(entryType) {
-    const scheduleBlock = `Location:
-Lompoc High School Wrestling Room  
-515 W College Ave  
-Lompoc, CA 93436
+function isAdultTrack(programTrack) {
+    return programTrack === "quest2mastery";
+}
+function buildEmail(entryType, programTrack, lang) {
+    const adult = isAdultTrack(programTrack);
+    const waiverLink = lang === "es"
+        ? `Si deseas completar la exención antes de llegar, visita:
 
-Practice Schedule:
-Monday, Wednesday, Friday
+https://sandmancombat.com/waiver`
+        : `If you would like to complete the waiver before arrival, please visit:
 
-Elementary (Ages 7–10): 4:00–4:45 PM  
-Junior High (Ages 10–13): 4:45–6:00 PM  
-High School (Ages 13–18): 6:00–7:30 PM  
+https://sandmancombat.com/waiver`;
+    const locationBlock = lang === "es"
+        ? adult
+            ? `Ubicación:
+320 Alisal Road
+Suite 106
+Solvang, CA`
+            : `Ubicación:
+Lompoc High School Wrestling Room — Room IA-1
+515 W College Ave
+Lompoc, CA 93436`
+        : adult
+            ? `Practice Location:
+320 Alisal Road
+Suite 106
+Solvang, CA`
+            : `Practice Location:
+Lompoc High School Wrestling Room — Room IA-1
+515 W College Ave
+Lompoc, CA 93436`;
+    const scheduleBlock = lang === "es"
+        ? adult
+            ? `Horario:
+Martes / Jueves
 
-Check in with Coach when you arrive.`;
+Sesión 1:
+4:45 PM – 6:00 PM
+
+Sesión 2:
+7:00 PM – 8:15 PM
+
+El coach confirmará la ubicación apropiada después de revisar la solicitud.`
+            : `Horario:
+Lunes / Miércoles / Viernes
+
+Elemental (Edades 7–10)
+4:00 PM – 4:45 PM
+
+Junior High (Edades 10–13)
+4:45 PM – 6:00 PM
+
+High School (Edades 13–18)
+6:00 PM – 7:30 PM
+
+El coach determinará el grupo de entrenamiento más apropiado después de la evaluación.`
+        : adult
+            ? `Schedule:
+Tuesday / Thursday
+
+Session 1:
+4:45 PM – 6:00 PM
+
+Session 2:
+7:00 PM – 8:15 PM
+
+Coach will confirm appropriate placement after reviewing your request.`
+            : `Schedule:
+Monday / Wednesday / Friday
+
+Elementary (Ages 7–10)
+4:00 PM – 4:45 PM
+
+Junior High (Ages 10–13)
+4:45 PM – 6:00 PM
+
+High School (Ages 13–18)
+6:00 PM – 7:30 PM
+
+Coach will determine the most appropriate training group after evaluation.`;
+    const requirements = lang === "es"
+        ? `Requisitos:
+• Exención de responsabilidad firmada
+• Ropa atlética o equipo de entrenamiento
+• Botella de agua
+• Membresía, licencia, sanción o seguro si el programa o evento lo requiere`
+        : `Requirements:
+• Signed liability waiver
+• Athletic clothing or training gear
+• Water bottle
+• Membership, licensing, sanctioning, or insurance coverage if required by the program or event`;
+    const subjectBase = "Sandman Combat";
+    // ----------------------------------------------------
+    // 1 DAY ASSESSMENT
+    // ----------------------------------------------------
     if (entryType === "free_pass") {
         return {
-            subject: "Sandman Combat — 1-Day Assessment",
-            text: `Welcome — you’re one step away.
+            subject: lang === "es"
+                ? `${subjectBase} — Evaluación de 1 Día`
+                : `${subjectBase} — 1-Day Assessment`,
+            text: lang === "es"
+                ? `Bienvenido a Sandman Combat.
 
-Come in for a 1-Day Assessment and train with us.
+Tu solicitud de Evaluación de 1 Día ha sido recibida.
 
-Check in with Coach when you arrive.
+Esta evaluación permite que el atleta asista a una sesión para que el cuerpo técnico pueda evaluar movimiento, conciencia, experiencia y ubicación apropiada.
 
-${scheduleBlock}`
+Un coach revisará al atleta y determinará el grupo de entrenamiento y progresión más apropiado.
+
+${adult
+                    ? "Los atletas adultos serán contactados con el siguiente paso."
+                    : "Un padre o tutor debe estar presente en la primera práctica."}
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${requirements}
+
+Esta evaluación es solo una sesión de entrada. La participación continua será determinada por el coach después de la evaluación en persona.
+
+— Sandman Combat`
+                : `Welcome to Sandman Combat.
+
+Your 1-Day Assessment request has been received.
+
+This assessment allows the athlete to attend one session so the coaching staff can evaluate movement, awareness, experience level, and appropriate placement.
+
+A coach will review the athlete and determine the most appropriate training group and next step.
+
+${adult
+                    ? "Adult athletes will be contacted with the next step."
+                    : "A parent or guardian must be present at the first practice."}
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${requirements}
+
+This assessment is an entry session only. Ongoing participation is determined by the coach after in-person evaluation.
+
+— Sandman Combat`
         };
     }
+    // ----------------------------------------------------
+    // 3 DAY TRIAL
+    // ----------------------------------------------------
     if (entryType === "trial") {
         return {
-            subject: "Sandman Combat — 3-Day Trial",
-            text: `Your 3-Day Trial is ready.
+            subject: lang === "es"
+                ? `${subjectBase} — Prueba de 3 Días`
+                : `${subjectBase} — 3-Day Trial`,
+            text: lang === "es"
+                ? `Bienvenido a Sandman Combat.
 
-Come in for your first session and check in with Coach.
+Tu solicitud de Prueba de 3 Días ha sido recibida.
 
-Payment is handled in person.
+Esta prueba permite experimentar varias sesiones, conocer al equipo de entrenamiento y entender la estructura antes de considerar membresía.
 
-${scheduleBlock}`
+Un coach revisará al atleta y determinará el grupo de entrenamiento y progresión más apropiado.
+
+Antes de participar, se requiere una exención firmada. Algunas actividades pueden requerir membresía, licencia, sanción o cobertura de seguro.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${requirements}
+
+Completar la prueba no garantiza membresía. La ubicación y participación continua serán determinadas por el coach.
+
+— Sandman Combat`
+                : `Welcome to Sandman Combat.
+
+Your 3-Day Trial request has been received.
+
+This trial allows the athlete to experience multiple sessions, meet the coaching staff, and understand the structure before membership consideration.
+
+A coach will review the athlete and determine the most appropriate training group and next step.
+
+Before participating, a signed waiver is required. Some activities may require membership, licensing, sanctioning, or insurance coverage.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${requirements}
+
+Completion of the trial does not guarantee membership. Placement and continued participation are determined by the coach.
+
+— Sandman Combat`
         };
     }
+    // ----------------------------------------------------
+    // MEMBERSHIP REQUEST
+    // ----------------------------------------------------
     return {
-        subject: "Sandman Combat — Welcome",
-        text: `Welcome — you’re one step away.
+        subject: lang === "es"
+            ? `${subjectBase} — Solicitud de Membresía Recibida`
+            : `${subjectBase} — Membership Request Received`,
+        text: lang === "es"
+            ? `Bienvenido a Sandman Combat.
 
-Come in for a 1-Day Assessment and train with us.
+Tu solicitud de membresía ha sido recibida.
 
-At the end of the session, Coach will determine the next step.
+Un coach revisará tu solicitud y determinará el siguiente paso basado en experiencia, madurez, seguridad, ajuste con la sala y ubicación apropiada.
 
-${scheduleBlock}`
+Antes de participar regularmente, se requiere una exención firmada. Algunas actividades pueden requerir membresía, licencia, sanción o cobertura de seguro.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+— Sandman Combat`
+            : `Welcome to Sandman Combat.
+
+Your membership request has been received.
+
+A coach will review your submission and determine the next step based on experience, maturity, safety, room fit, and appropriate placement.
+
+Before regular participation, a signed waiver is required. Some activities may require membership, licensing, sanctioning, or insurance coverage.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+— Sandman Combat`
     };
 }
 exports.sendGatekeeperEmail = functions.firestore
@@ -98,12 +292,16 @@ exports.sendGatekeeperEmail = functions.firestore
         console.error("Missing Resend API key");
         return;
     }
+    const entryType = (data.entryType || "join");
+    const programTrack = (data.programTrack || data.track || "zero2hero");
+    const lang = (data.lang || "en");
+    const email = buildEmail(entryType, programTrack, lang);
     const resend = new resend_1.Resend(resendKey);
-    const email = buildEmail(data.entryType || "join");
-    await resend.emails.send({
-        from: "Sandman Combat <onboarding@resend.dev>",
+    const result = await resend.emails.send({
+        from: "Sandman Combat <join@sandmancombat.com>",
         to: data.parentEmail,
         subject: email.subject,
         text: email.text
     });
+    console.log("EMAIL RESULT:", JSON.stringify(result));
 });

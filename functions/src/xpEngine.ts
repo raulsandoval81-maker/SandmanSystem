@@ -2,6 +2,38 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 
+function xpCapForAthlete(a: any): number {
+  const tier = String(a?.tier || "T0").toUpperCase();
+
+  const F4_CAPS: Record<string, number> = {
+    T0: 1200,
+    T1: 1600,
+    T2: 2000,
+    T3: 2400,
+    T4: 2800,
+  };
+
+  const F8_CAPS: Record<string, number> = {
+    T0: 800,
+    T1: 1000,
+    T2: 1200,
+    T3: 1400,
+    T4: 1600,
+    T5: 1800,
+    T6: 2000,
+    T7: 2400,
+  };
+
+  const id = String(a?.uid || a?.id || "").toUpperCase();
+  const base = id.startsWith("F8_") ? "F8" : "F4";
+
+  return Number(
+    a?.xpCap ||
+    (base === "F8" ? F8_CAPS[tier] : F4_CAPS[tier]) ||
+    1200
+  );
+}
+
 const db = getFirestore();
 
 type Kind =
@@ -416,7 +448,8 @@ export async function runIncrementXp(coachUid: string, payload: any) {
     }
 
     const xp = Number(a.xp ?? 0);
-    const xpCap = Number(a.xpCap ?? 1200);
+
+    const xpCap = xpCapForAthlete(a);
     const track = String(a.track ?? a.trackCode ?? "foundry4-combat");
 
     const beforeStrength = Number(a.xpStrength ?? 0);

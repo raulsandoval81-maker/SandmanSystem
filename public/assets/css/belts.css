@@ -1,136 +1,284 @@
-/* base look */
-.belt{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:.6rem .9rem;margin:.45rem 0;border-radius:12px;
-  border:2px solid var(--outline, #000);
-  color:var(--text, #fff);
-  background:linear-gradient(90deg, var(--start, #222), var(--end, #111));
+/* =========================
+   Sandman System Belts
+   CLEAN SOURCE OF TRUTH
+========================= */
+
+/* Legacy Belt */
+.belt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: .6rem .9rem;
+  margin: .45rem 0;
+  border-radius: 12px;
+  border: 2px solid var(--outline, #000);
+  color: var(--text, #fff);
+  background: linear-gradient(90deg, var(--start, #222), var(--end, #111));
 }
 
-/* keys (Youth + Teen use the same keys) */
-.belt[data-key="warrior"]        { --text:#FFFFFF; --start:#2196F3; --end:#0047A1; --outline:#000000; }
-.belt[data-key="champion"]       { --text:#FFFFFF; --start:#9C27B0; --end:#4A148C; --outline:#000000; }
-.belt[data-key="veteran"]        { --text:#FFFFFF; --start:#6D2B24; --end:#3E0E0A; --outline:#000000; }
-.belt[data-key="apprentice"]     { --text:#111111; --start:#F4F4F4; --end:#EAEAEA; --outline:#000000; }
-.belt[data-key="legend"]         { --text:#FFFFFF; --start:#000000; --end:#000000; --outline:#FFFFFF; }
-.belt[data-key="hero"]   { --text:#FFFFFF; --start:#000000; --end:#000000; --outline:#FFFFFF; } /* no glow */
-.belt[data-key="sandman"]        { --text:#111111; --start:#FFD700; --end:#FFC107; --outline:#000000; }
-.belt[data-key="commander"]      { --text:#FFFFFF; --start:#D46C41; --end:#8B3E23; --outline:#000000; }
-.belt[data-key="competitor"]     { --text:#FFFFFF; --start:#4CAF50; --end:#1B5E20; --outline:#000000; }
-.belt[data-key="combatant"]      { --text:#FFFFFF; --start:#FFA040; --end:#D2691E; --outline:#000000; }
-.belt[data-key="recruit"]        { --text:#111111; --start:#FFF176; --end:#FBC02D; --outline:#000000; }
-.belt[data-key="shadow"]         { --text:#FFFFFF; --start:#EEEEEE; --end:#E0E0E0; --outline:#000000; }
-.rank-row { display:flex; gap:.5rem; align-items:center; margin:.25rem 0 .5rem }
-.rank-name { font-weight:700; letter-spacing:.3px }
-
-.progress {
-  position: relative; height: 14px; border-radius: 999px;
-  background: #111a20; border: 1px solid #2A2A36; overflow: hidden;
+.rank-row {
+  display: flex;
+  gap: .5rem;
+  align-items: center;
+  margin: .25rem 0 .5rem;
 }
-.progress-fill {
-  height: 100%; width: 0%;
-  background: linear-gradient(90deg, #FFD000, #FFB700);
-  transition: width .35s ease;
+
+.rank-name {
+  font-weight: 700;
+  letter-spacing: .3px;
+}
+
+/* Rank Colors */
+.belt[data-key="apprentice"],
+.belt[data-key="shadow"],
+.belt[data-key="white"] {
+  --text: #111;
+  --start: #F4F4F4;
+  --end: #EAEAEA;
+  --outline: #000;
+}
+
+.belt[data-key="recruit"],
+.belt[data-key="yellow"] {
+  --text: #111;
+  --start: #FFF176;
+  --end: #FBC02D;
+  --outline: #000;
+}
+
+.belt[data-key="combatant"],
+.belt[data-key="orange"] {
+  --text: #fff;
+  --start: #FFA040;
+  --end: #D2691E;
+  --outline: #000;
+}
+
+.belt[data-key="contender"],
+.belt[data-key="green"] {
+  --text: #fff;
+  --start: #4CAF50;
+  --end: #1B5E20;
+  --outline: #000;
+}
+
+.belt[data-key="warrior"],
+.belt[data-key="blue"] {
+  --text: #fff;
+  --start: #2196F3;
+  --end: #0047A1;
+  --outline: #000;
+}
+
+.belt[data-key="champion"],
+.belt[data-key="purple"] {
+  --text: #fff;
+  --start: #9C27B0;
+  --end: #4A148C;
+  --outline: #000;
+}
+
+.belt[data-key="veteran"],
+.belt[data-key="commander"],
+.belt[data-key="brown"] {
+  --text: #fff;
+  --start: #6D2B24;
+  --end: #3E0E0A;
+  --outline: #000;
+}
+
+.belt[data-key="legend"],
+.belt[data-key="hero"],
+.belt[data-key="black"] {
+  --text: #fff;
+  --start: #000;
+  --end: #000;
+  --outline: #fff;
+}
+
+/* Belt Color Helpers */
+.belt-white   { --belt-color: #F4F4F4; }
+.belt-yellow  { --belt-color: #FFF176; }
+.belt-orange  { --belt-color: #FFA040; }
+.belt-green   { --belt-color: #4CAF50; }
+.belt-blue    { --belt-color: #2196F3; }
+.belt-purple  { --belt-color: #9C27B0; }
+.belt-brown   { --belt-color: #6D2B24; }
+.belt-black   { --belt-color: #000000; }
+
+/* =========================
+   Sandman Digital Belt
+   Physical Belt Visual
+========================= */
+
+.sm-belt {
+  position: relative;
+  width: 100%;
+  max-width: 900px;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--belt-color, #f4f4f4);
+  border: 2px solid rgba(0,0,0,.85);
+  box-shadow: 0 8px 18px rgba(0,0,0,.35);
+  box-sizing: border-box;
+}
+
+.sm-belt-body {
+  position: absolute;
+  inset: 0;
+  background: var(--belt-color, #f4f4f4);
+}
+
+.sm-belt-body::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.18) 0px,
+      rgba(255,255,255,.18) 2px,
+      rgba(0,0,0,.12) 3px,
+      rgba(0,0,0,.12) 5px,
+      transparent 6px,
+      transparent 10px
+    );
+  opacity: .45;
+}
+
+.sm-belt-patch {
+  position: absolute;
+  right: 7%;
+  top: 0;
+  bottom: 0;
+  width: 38%;
+  min-width: 250px;
+  background: #050505;
+  border-left: 2px solid rgba(255,255,255,.08);
+  border-right: 2px solid rgba(255,255,255,.08);
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  gap: 16px;
+  box-sizing: border-box;
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.06),
+    0 4px 10px rgba(0,0,0,.55);
+}
+
+.sm-belt-text {
+  color: #fff;
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: .8px;
+  line-height: 1;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+
+.sm-belt-stripes {
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+  height: 100%;
+  align-items: stretch;
+}
+
+.sm-stripe {
+  width: 15px;
+  height: 100%;
+  background: rgba(255,255,255,.18);
+  border-radius: 0;
+}
+
+.sm-stripe.filled {
+  background: #fff;
 }
 
 /* =========================
-   Canonical Rank Bar
-   ========================= */
+   Small version
+========================= */
 
-#rankBar {
-  position: relative;
-  height: 20px;
-  border-radius: 999px;
-  background: rgba(255,255,255,.08);
-  overflow: visible;
-  --stripe: #fff;
+.sm-belt.small {
+  height: 34px;
+  max-width: 520px;
 }
 
-#rankFill {
-  height: 100%;
-  width: 0%;
-  border-radius: inherit;
-  transition: width 420ms ease-in-out;
+.sm-belt.small .sm-belt-patch {
+  right: 6%;
+  top: 0;
+  bottom: 0;
+  width: 40%;
+  min-width: 210px;
+  padding: 0 8px;
+  gap: 7px;
+  border-radius: 0;
 }
 
-/* boundary ticks */
-#rankBar .progress-tick {
-  position:absolute;
-  top:-6px;
-  height:32px;
-  width:2px;
-  transform:translateX(-1px);
-  background: var(--stripe);
-  opacity:.22;
-  z-index:2;
+.sm-belt.small .sm-belt-text {
+  font-size: 8px;
+  letter-spacing: .25px;
 }
 
-#rankBar .progress-tick.earned {
-  opacity:.95;
+.sm-belt.small .sm-belt-stripes {
+  gap: 4px;
 }
 
-/* stripe boxes */
-#rankBar .stripe-boxes {
-  position:absolute;
-  right:10px;
-  top:50%;
-  transform:translateY(-50%);
-  display:flex;
-  gap:6px;
-  z-index:3;
-}
-
-#rankBar .stripe-box {
-  width:10px;
-  height:10px;
-  border-radius:3px;
-  background: rgba(255,255,255,.12);
-  border:1px solid rgba(255,255,255,.18);
-}
-
-#rankBar .stripe-box.filled {
-  background: var(--stripe);
-  border-color: var(--stripe);
-}
-/* ===============================
-   STRIPE OVERLAY — FORCE VISIBILITY
-   =============================== */
-
-/* Rank bar is the anchor */
-#rankBar {
-  position: relative;
-  overflow: visible;
-}
-
-/* Fill stays underneath */
-#rankFill {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-}
-
-/* Stripe container ON TOP */
-#rankBar .stripe-boxes {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
+.sm-belt.small .sm-stripe {
+  width: 7px;
+}.sm-belt-text-block {
   display: flex;
-  gap: 6px;
-  z-index: 5;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;   /* 🔥 center horizontally */
+  text-align: center;    /* 🔥 center text */
+  gap: 3px;
 }
 
-/* Stripe boxes */
-#rankBar .stripe-box {
-  width: 10px;
-  height: 10px;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.25);
-  border: 1px solid rgba(255,255,255,0.35);
+.sm-belt-rank {
+  font-size: 12px;
+  opacity: .7;
+  font-style: italic;
 }
 
-/* Earned stripes */
-#rankBar .stripe-box.filled {
-  background: var(--stripe, #ffffff);
-  border-color: var(--stripe, #ffffff);
+.sm-belt-text-main {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: .6px;
+  white-space: nowrap;
+}/* =========================
+   Medium Belt (Profile Fit)
+========================= */
+
+.sm-belt.medium {
+  height: 42px;
+  max-width: none;
+}
+
+.sm-belt.medium .sm-belt-patch {
+  width: 28%;
+  min-width: 160px;
+  padding: 0 10px;
+}
+
+.sm-belt.medium .sm-belt-text {
+  font-size: 11px;
+  letter-spacing: .35px;
+}
+
+.sm-belt.medium .sm-belt-stripes {
+  gap: 5px;
+}
+
+.sm-belt.medium .sm-stripe {
+  width: 7px;
+  height: 100%;
+}.sm-belt.medium .sm-belt-patch {
+  right: 6%;          /* 👈 pull it off the edge */
+  width: 28%;
+  min-width: 160px;
+  padding: 0 10px;
 }
