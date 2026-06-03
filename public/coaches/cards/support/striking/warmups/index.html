@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Striking Warm-Ups | Sandman</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/cards/shared/execution.css" />
+</head>
+<body>
+
+<main class="wrap">
+
+  <div class="page-header">
+    <h1>Striking Warm-Ups</h1>
+    <p class="muted">Tap a warm-up to add it to the clipboard.</p>
+  </div>
+
+  <div class="toplinks">
+    <a href="/coaches/execution/clipboard-2.0/">← Back to Clipboard</a>
+  </div>
+
+  <div id="statusMessage" class="status" aria-live="polite"></div>
+
+  <!-- FOOTWORK -->
+
+  <h2 class="section-title">Footwork</h2>
+
+  <ul class="exec-list">
+
+    <li class="exec-item"
+      data-lane="warmup_footwork"
+      data-prefix="warmup-footwork"
+      data-warmup="Stance Motion">
+      Stance Motion
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_footwork"
+      data-prefix="warmup-footwork"
+      data-warmup="Line Footwork">
+      Line Footwork
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_footwork"
+      data-prefix="warmup-footwork"
+      data-warmup="Lateral Step">
+      Lateral Step
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_footwork"
+      data-prefix="warmup-footwork"
+      data-warmup="Pivot Motion">
+      Pivot Motion
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_footwork"
+      data-prefix="warmup-footwork"
+      data-warmup="Angle Step">
+      Angle Step
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_footwork"
+      data-prefix="warmup-footwork"
+      data-warmup="Circle Footwork">
+      Circle Footwork
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+  </ul>
+
+  <!-- STRIKING MOTION -->
+
+  <h2 class="section-title">Striking Motion</h2>
+
+  <ul class="exec-list">
+
+    <li class="exec-item"
+      data-lane="warmup_striking_motion"
+      data-prefix="warmup-striking"
+      data-warmup="Shadowboxing Flow">
+      Shadowboxing Flow
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_striking_motion"
+      data-prefix="warmup-striking"
+      data-warmup="Jab Motion">
+      Jab Motion
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_striking_motion"
+      data-prefix="warmup-striking"
+      data-warmup="Cross Motion">
+      Cross Motion
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_striking_motion"
+      data-prefix="warmup-striking"
+      data-warmup="Hook Motion">
+      Hook Motion
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_striking_motion"
+      data-prefix="warmup-striking"
+      data-warmup="Hip Rotation">
+      Hip Rotation
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_striking_motion"
+      data-prefix="warmup-striking"
+      data-warmup="Slip Line">
+      Slip Line
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+  </ul>
+
+  <!-- REACTION -->
+
+  <h2 class="section-title">Reaction</h2>
+
+  <ul class="exec-list">
+
+    <li class="exec-item"
+      data-lane="warmup_reaction"
+      data-prefix="warmup-reaction"
+      data-warmup="Reaction Steps">
+      Reaction Steps
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_reaction"
+      data-prefix="warmup-reaction"
+      data-warmup="Partner Mirror">
+      Partner Mirror
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_reaction"
+      data-prefix="warmup-reaction"
+      data-warmup="Coach Callouts">
+      Coach Callouts
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_reaction"
+      data-prefix="warmup-reaction"
+      data-warmup="Touch And Move">
+      Touch And Move
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_reaction"
+      data-prefix="warmup-reaction"
+      data-warmup="Jab Tag Motion">
+      Jab Tag Motion
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+    <li class="exec-item"
+      data-lane="warmup_reaction"
+      data-prefix="warmup-reaction"
+      data-warmup="Angle Reaction">
+      Angle Reaction
+      <span class="exec-note">Tap to add</span>
+    </li>
+
+  </ul>
+
+</main>
+
+<script>
+(function () {
+  const key = "sandman_clipboard_v1";
+  const statusEl = document.getElementById("statusMessage");
+  const MAX = 4;
+
+  function getClipboard() {
+    try { return JSON.parse(localStorage.getItem(key)) || []; }
+    catch { return []; }
+  }
+
+  function saveClipboard(data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function slugify(v) {
+    return v.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function showStatus(msg) {
+    if (!statusEl) return;
+    statusEl.textContent = msg;
+
+    clearTimeout(showStatus._t);
+
+    showStatus._t = setTimeout(() => {
+      statusEl.textContent = "";
+    }, 1500);
+  }
+
+  function countLane(data, lane) {
+    return data.filter(i =>
+      (i.lane || "").toLowerCase() === lane
+    ).length;
+  }
+
+  function markExisting() {
+    const data = getClipboard();
+
+    document.querySelectorAll("[data-warmup]").forEach(el => {
+      const title = el.dataset.warmup;
+      const lane = el.dataset.lane;
+      const prefix = el.dataset.prefix;
+
+      const id = prefix + "-" + slugify(title);
+
+      if (data.some(i => i.id === id)) {
+        el.classList.add("added");
+
+        el.querySelector(".exec-note").textContent =
+          "Already added";
+      }
+    });
+  }
+
+  document.querySelectorAll("[data-warmup]").forEach(el => {
+
+    el.addEventListener("click", () => {
+
+      const title = el.dataset.warmup;
+      const lane = el.dataset.lane;
+      const prefix = el.dataset.prefix;
+
+      const id = prefix + "-" + slugify(title);
+
+      const data = getClipboard();
+
+      if (data.some(i => i.id === id)) {
+
+        showStatus(title + " already added.");
+
+        el.classList.add("added");
+
+        return;
+      }
+
+      if (countLane(data, lane) >= MAX) {
+
+        showStatus("Max 4 items in this section.");
+
+        return;
+      }
+
+      data.push({
+        id,
+        title,
+        category: "warmup",
+        lane,
+        assignTo: lane,
+        minutes: 0,
+        href: window.location.pathname
+      });
+
+      saveClipboard(data);
+
+      el.classList.add("added");
+
+      el.querySelector(".exec-note").textContent =
+        "Added";
+
+      showStatus(title + " added.");
+    });
+
+  });
+
+  markExisting();
+})();
+</script>
+
+</body>
+</html>

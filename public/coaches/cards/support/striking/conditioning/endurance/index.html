@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Conditioning | Striking</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+  <style>
+
+    .exec-list {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+
+      display: grid;
+      gap: 12px;
+    }
+
+    .exec-item {
+      background: #121826;
+      border: 1px solid #27304a;
+      border-radius: 14px;
+
+      padding: 16px 18px;
+
+      color: #fff;
+      font-weight: 700;
+      font-size: 15px;
+
+      cursor: pointer;
+
+      transition:
+        transform 0.15s ease,
+        border-color 0.15s ease,
+        background 0.15s ease;
+    }
+
+    .exec-item:hover {
+      transform: translateY(-2px);
+
+      border-color: #4f8cff;
+
+      background: #182033;
+    }
+
+    .exec-item.added {
+      border-color: #32d27a;
+
+      background: #13261c;
+
+      color: #baf5d2;
+    }
+
+    .toplinks {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+
+      margin-bottom: 26px;
+    }
+
+    .toplinks a {
+      text-decoration: none;
+
+      background: #121826;
+      border: 1px solid #27304a;
+      border-radius: 12px;
+
+      padding: 10px 14px;
+
+      color: #fff;
+      font-weight: 700;
+    }
+
+  </style>
+
+</head>
+<body>
+
+<main class="wrap">
+
+  <div class="page-header">
+    <h1>Striking Conditioning</h1>
+    <p class="muted">Tap to add to Conditioning.</p>
+  </div>
+
+  <div class="toplinks">
+    <a href="/coaches/execution/clipboard-2.0/">
+      ← Back to Clipboard
+    </a>
+
+    <a href="/coaches/cards/support/striking/conditioning/index.html">
+      Conditioning Hub
+    </a>
+  </div>
+
+  <ul class="exec-list">
+
+    <li class="exec-item" data-cond="Shadowboxing Burnout">
+      Shadowboxing Burnout
+    </li>
+
+    <li class="exec-item" data-cond="Jab Sprint Rounds">
+      Jab Sprint Rounds
+    </li>
+
+    <li class="exec-item" data-cond="Punch-Out Rounds">
+      Punch-Out Rounds
+    </li>
+
+    <li class="exec-item" data-cond="Kick Burners">
+      Kick Burners
+    </li>
+
+    <li class="exec-item" data-cond="Footwork Burnout">
+      Footwork Burnout
+    </li>
+
+    <li class="exec-item" data-cond="Pad Sprint Rounds">
+      Pad Sprint Rounds
+    </li>
+
+    <li class="exec-item" data-cond="Defense Reset Rounds">
+      Defense Reset Rounds
+    </li>
+
+    <li class="exec-item" data-cond="Slip And Counter Burnout">
+      Slip And Counter Burnout
+    </li>
+
+    <li class="exec-item" data-cond="Bag Pressure Rounds">
+      Bag Pressure Rounds
+    </li>
+
+    <li class="exec-item" data-cond="Partner Reaction Burnout">
+      Partner Reaction Burnout
+    </li>
+
+    <li class="exec-item" data-cond="Range Change Rounds">
+      Range Change Rounds
+    </li>
+
+    <li class="exec-item" data-cond="Finish Flurry Rounds">
+      Finish Flurry Rounds
+    </li>
+
+  </ul>
+
+</main>
+
+<script>
+(function () {
+
+  const key = "sandman_clipboard_v1";
+  const MAX_COND = 4;
+
+  function getClipboard() {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveClipboard(data) {
+    localStorage.setItem(key, JSON.stringify(data));
+  }
+
+  function slugify(value) {
+    return value.toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "");
+  }
+
+  function countInLane(data, lane) {
+
+    const cleanLane =
+      String(lane || "").toLowerCase().trim();
+
+    return data.filter(item =>
+      String(item.lane || "")
+        .toLowerCase()
+        .trim() === cleanLane
+    ).length;
+
+  }
+
+  function showStatus(message) {
+
+    let el = document.getElementById("statusMessage");
+
+    if (!el) {
+
+      el = document.createElement("div");
+
+      el.id = "statusMessage";
+
+      el.style.position = "fixed";
+      el.style.bottom = "20px";
+      el.style.left = "50%";
+      el.style.transform = "translateX(-50%)";
+
+      el.style.background = "#121a2b";
+      el.style.border = "1px solid #27304a";
+
+      el.style.color = "#fff";
+
+      el.style.padding = "10px 16px";
+
+      el.style.borderRadius = "10px";
+
+      el.style.fontWeight = "800";
+
+      el.style.zIndex = "9999";
+
+      document.body.appendChild(el);
+
+    }
+
+    el.textContent = message;
+
+    el.style.opacity = "1";
+
+    clearTimeout(el._timer);
+
+    el._timer = setTimeout(() => {
+      el.style.opacity = "0";
+    }, 1500);
+
+  }
+
+  function markExistingItems() {
+
+    const data = getClipboard();
+
+    document.querySelectorAll("[data-cond]").forEach(el => {
+
+      const title = el.dataset.cond;
+
+      const id =
+        "cond-striking-" + slugify(title);
+
+      const exists = data.some(item =>
+        item.id === id &&
+        String(item.lane || "")
+          .toLowerCase()
+          .trim() === "cond"
+      );
+
+      if (exists) {
+        el.classList.add("added");
+      }
+
+    });
+
+  }
+
+  document.querySelectorAll("[data-cond]").forEach(el => {
+
+    el.addEventListener("click", () => {
+
+      const title = el.dataset.cond;
+
+      const id =
+        "cond-striking-" + slugify(title);
+
+      const lane = "cond";
+
+      const data = getClipboard();
+
+      const exists = data.some(item =>
+        item.id === id &&
+        String(item.lane || "")
+          .toLowerCase()
+          .trim() === lane
+      );
+
+      if (exists) {
+
+        el.classList.add("added");
+
+        showStatus(title + " already added.");
+
+        return;
+
+      }
+
+      const count = countInLane(data, lane);
+
+      if (count >= MAX_COND) {
+
+        showStatus("Max 4 items in Conditioning.");
+
+        return;
+
+      }
+
+      data.push({
+        id,
+        title,
+        category: "conditioning",
+        lane,
+        assignTo: lane,
+        minutes: 0,
+        href: window.location.pathname
+      });
+
+      saveClipboard(data);
+
+      el.classList.add("added");
+
+      showStatus(title + " added.");
+
+    });
+
+  });
+
+  markExistingItems();
+
+})();
+</script>
+
+</body>
+</html>

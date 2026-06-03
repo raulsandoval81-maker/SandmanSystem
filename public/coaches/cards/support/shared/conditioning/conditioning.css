@@ -1,0 +1,48 @@
+.exec-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.exec-item {
+  background: #121826;
+  border: 1px solid #27304a;
+  border-radius: 14px;
+  padding: 16px 18px;
+  color: #fff;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.exec-item:hover {
+  transform: translateY(-2px);
+  border-color: #4f8cff;
+  background: #182033;
+}
+
+.exec-item.added {
+  border-color: #32d27a;
+  background: #13261c;
+  color: #baf5d2;
+}
+
+.toplinks {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 26px;
+}
+
+.toplinks a {
+  text-decoration: none;
+  background: #121826;
+  border: 1px solid #27304a;
+  border-radius: 12px;
+  padding: 10px 14px;
+  color: #fff;
+  font-weight: 700;
+}

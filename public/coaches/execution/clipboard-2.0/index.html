@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Clipboard 2.0</title>
+
+  <link rel="stylesheet" href="/coaches/execution/clipboard-2.0/clipboard-2.0.css?v=2"/>
+  <link rel="icon" href="data:,">
+</head>
+
+<body id="clipboardRoot">
+
+<main class="wrap">
+
+  <div class="page-header clipboard-topbar">
+
+    <div class="topbar-center">
+      <h1>Practice Clipboard</h1>
+      <p class="muted">Build the plan. Run the plan.</p>
+    </div>
+
+    <div class="topbar-right">
+      <button id="themeToggle" class="theme-icon-btn" aria-label="Toggle theme">◐</button>
+    </div>
+
+  </div>
+
+  <div class="broadcast-box">
+
+    <div class="hybrid-summary">
+
+      <div class="hybrid-line" id="hybridIdentity">
+        —
+      </div>
+
+      <div class="hybrid-line muted" id="hybridCycle">
+        —
+      </div>
+
+    </div>
+
+    <label class="block-title" style="display:block;margin-bottom:6px;color:var(--gold);">
+      Session Focus
+    </label>
+
+    <textarea
+      id="slot-note"
+      class="broadcast"
+      placeholder="Theme, reminders, focus point…"></textarea>
+
+  </div>
+
+  <div class="quick-focus-wrap hidden" id="quickFocusWrap">
+    <strong class="muted" style="font-size:.8rem;">Single Focus:</strong>
+
+    <select id="singleFocus" class="mode-select">
+      <option value="warmup-only">Warm-up Only</option>
+      <option value="conditioning">Conditioning</option>
+      <option value="technique">Technique</option>
+      <option value="drilling">Drilling</option>
+      <option value="live">Live Session</option>
+    </select>
+  </div>
+
+  <div id="planBlocks">
+
+    <div class="plan-block" id="block-onmat" data-slot="onmat" data-minutes="3">
+      <div class="block-head-row">
+        <span class="block-title" id="title-onmat">ANNOUNCEMENTS / ON THE MAT TALK</span>
+
+        <div class="block-tools">
+          <a class="pill-btn library-btn" href="/coaches/cards/mat-talk/index.html">+ Add</a>
+          <input type="number" value="3" readonly class="min-input"/>
+          <span class="mini-clock">03:00</span>
+        </div>
+      </div>
+
+      <div id="slot-onmat" class="slot">
+        <div id="cards-onmat" class="slot-cards"></div>
+
+        <div class="slot-notes">
+          <div class="notes-label"># notes</div>
+          <textarea id="notes-onmat" class="slot-notes-input" placeholder="Mindset, announcements..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="plan-block" id="block-warmup" data-slot="warmup" data-minutes="10">
+      <div class="block-head-row">
+        <span class="block-title" id="title-warmup">WARM UP / BODY MECHANICS</span>
+
+        <div class="block-tools">
+          <a class="pill-btn library-btn" id="btn-add-warmup" href="/coaches/cards/support/grappling/warmups/index.html">+ Add</a>
+          <input type="number" value="10" readonly class="min-input"/>
+          <span class="mini-clock">10:00</span>
+        </div>
+      </div>
+
+      <div id="slot-warmup" class="slot">
+        <div id="cards-warmup-body" class="slot-cards"></div>
+        <div id="cards-warmup-agility" class="slot-cards"></div>
+
+        <div class="slot-notes">
+          <div class="notes-label"># notes</div>
+          <textarea id="notes-warmup" class="slot-notes-input" placeholder="Add notes..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div id="swappable">
+
+      <div class="plan-block red sw" id="block-drills" data-slot="drills" data-minutes="10">
+        <div class="block-head-row">
+          <div class="sw-head">
+            <span class="block-title" id="title-drills">Review of Prior Week’s Skills</span>
+            <button class="move-btn" data-dir="up" type="button">↑</button>
+            <button class="move-btn" data-dir="down" type="button">↓</button>
+          </div>
+
+          <div class="block-tools">
+            <button class="pill-btn library-btn" type="button" data-add-slot="drills">+ Add</button>
+            <input type="number" min="5" max="60" value="10" class="min-input"/>
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-drills" class="slot">
+          <div id="cards-drills" class="slot-cards"></div>
+
+          <div class="slot-notes">
+            <div class="notes-label"># notes</div>
+            <textarea id="notes-drills" class="slot-notes-input" placeholder="Add notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block red sw" id="block-technique" data-slot="technique" data-minutes="10">
+        <div class="block-head-row">
+          <div class="sw-head">
+            <span class="block-title" id="title-technique">Introduction of New Techniques</span>
+            <button class="move-btn" data-dir="up" type="button">↑</button>
+            <button class="move-btn" data-dir="down" type="button">↓</button>
+          </div>
+
+          <div class="block-tools">
+            <button class="pill-btn library-btn" type="button" data-add-slot="technique">+ Add</button>
+            <input type="number" min="5" max="60" value="10" class="min-input"/>
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-technique" class="slot">
+          <div id="cards-technique" class="slot-cards"></div>
+
+          <div class="slot-notes">
+            <div class="notes-label"># notes</div>
+            <textarea id="notes-technique" class="slot-notes-input" placeholder="Add notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block" id="block-water" data-slot="water" data-minutes="2">
+        <div class="block-head-row">
+          <span class="block-title" id="title-water">Water / Reset</span>
+
+          <div class="block-tools">
+            <a class="pill-btn library-btn" id="btn-add-game" href="/coaches/cards/support/grappling/mat-games/index.html" style="display:none;">+ Add</a>
+            <input type="number" value="2" readonly class="min-input"/>
+            <span class="mini-clock">02:00</span>
+          </div>
+        </div>
+
+        <div id="slot-water" class="slot">
+          <div id="cards-water" class="slot-cards"></div>
+
+          <div class="slot-notes">
+            <div class="notes-label"># notes</div>
+            <textarea id="notes-water" class="slot-notes-input" placeholder="Quick water + regroup..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block red sw" id="block-live" data-slot="live" data-minutes="10">
+        <div class="block-head-row">
+          <div class="sw-head">
+            <span class="block-title" id="title-live">Live Session</span>
+            <button class="move-btn" data-dir="up" type="button">↑</button>
+            <button class="move-btn" data-dir="down" type="button">↓</button>
+          </div>
+
+          <div class="block-tools">
+            <button class="pill-btn library-btn" type="button" data-add-slot="live">+ Add</button>
+            <input type="number" min="5" max="60" value="10" class="min-input"/>
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-live" class="slot">
+          <div id="cards-live" class="slot-cards"></div>
+
+          <div class="slot-notes">
+            <div class="notes-label"># notes</div>
+            <textarea id="notes-live" class="slot-notes-input" placeholder="Add notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="plan-block red sw" id="block-cond" data-slot="cond" data-minutes="10">
+        <div class="block-head-row">
+          <div class="sw-head">
+            <span class="block-title" id="title-cond">Conditioning / Skill Based Activities</span>
+            <button class="move-btn" data-dir="up" type="button">↑</button>
+            <button class="move-btn" data-dir="down" type="button">↓</button>
+          </div>
+
+          <div class="block-tools">
+            <a class="pill-btn library-btn" id="btn-add-conditioning" href="/coaches/cards/support/grappling/conditioning/index.html">+ Add</a>
+            <input type="number" min="5" max="60" value="10" class="min-input"/>
+            <span class="mini-clock">10:00</span>
+          </div>
+        </div>
+
+        <div id="slot-cond" class="slot">
+          <div id="cards-cond" class="slot-cards"></div>
+
+          <div class="slot-notes">
+            <div class="notes-label"># notes</div>
+            <textarea id="notes-cond" class="slot-notes-input" placeholder="Add notes..."></textarea>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="plan-block" id="block-offmat" data-slot="offmat" data-minutes="5">
+      <div class="block-head-row">
+        <span class="block-title" id="title-offmat">ROLL CALL / OFF THE MAT TALK</span>
+
+        <div class="block-tools">
+          <input type="number" value="5" readonly class="min-input"/>
+          <span class="mini-clock">05:00</span>
+        </div>
+      </div>
+
+      <div id="slot-offmat" class="slot">
+        <div id="cards-offmat" class="slot-cards"></div>
+
+        <div class="slot-notes">
+          <div class="notes-label"># notes</div>
+          <textarea id="notes-offmat" class="slot-notes-input" placeholder="Character, gratitude, announcements..."></textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="live-links">
+
+    <button
+      class="live-link-btn primary"
+      type="button"
+      onclick="runPractice()">
+      ▶ Clock Portal
+    </button>
+
+    <button
+      class="live-link-btn"
+      type="button"
+      onclick="clearSession()">
+      Clear Session
+    </button>
+
+  </div>
+
+</main>
+
+<script src="/coaches/execution/coach-companion/coach-companion.theme.js?v=1"></script>
+
+<script
+  type="module"
+  src="/coaches/execution/clipboard-2.0/clipboard-2.0.js?v=4">
+</script>
+
+</body>
+</html>
