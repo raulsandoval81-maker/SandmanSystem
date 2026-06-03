@@ -25,6 +25,8 @@ service cloud.firestore {
             "seenByCoach",
             "seenByParent"
           ])
+
+
           && request.resource.data.from in ["parent", "coach"]
           && request.resource.data.fromName is string
           && (
@@ -163,6 +165,15 @@ service cloud.firestore {
             "updatedAt"
           ])
         )
+
+        ||
+(
+  isCoachOrAdmin()
+  && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+    "rosterStatus",
+    "updatedAt"
+  ])
+)
         ||
         (
           request.auth != null
