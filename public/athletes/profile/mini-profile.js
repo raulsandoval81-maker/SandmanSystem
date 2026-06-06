@@ -65,11 +65,15 @@ function getStoredStripes(A) {
 }
 
 function getStoredXpCap(A, ladder, tierNum) {
-  const direct = Number(A?.xpCap ?? A?.cap ?? A?.tierCap ?? 0);
-  if (direct > 0) return direct;
-
   const tier = ladder?.[tierNum];
-  return Number(tier?.cap ?? tier?.xpCap ?? tier?.maxXP ?? 0);
+
+  return Number(
+    tier?.cap ??
+    A?.xpCap ??
+    A?.cap ??
+    A?.tierCap ??
+    0
+  );
 }
 
 function getEffectiveStripes({ xpNow, xpCap, storedStripes, stripeMax = 4 }) {
@@ -164,7 +168,7 @@ async function load() {
 
   // ===== XP / STRIPES =====
   const xpNow = Number(A.xp || 0);
-  const xpCap = getStoredXpCap(A, ladder, tierNum) || 800;
+  const xpCap = getStoredXpCap(A, ladder, tierNum) || 600;
   const storedStripes = getStoredStripes(A);
   const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
 
@@ -200,7 +204,7 @@ async function load() {
 
   const percent = pct(xpNow, xpCap);
 
-  if ($("percentText")) $("percentText").textContent = `${percent}%`;
+  if ($("percentText")) $("percentText").textContent = `XP · ${percent}%`;
   if ($("progressLabel")) $("progressLabel").textContent = progressLabel(percent);
 
   const stripeEl = $("stripeText");

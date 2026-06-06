@@ -272,9 +272,8 @@ const xpPercent = Math.min(
 
 setText(
   "xpText",
-  `${xpNow} / ${xpCap} XP · ${xpPercent}%`
+  `XP · ${xpPercent}%`
 );
-
 
   setHTML(
     "milestone-xp",

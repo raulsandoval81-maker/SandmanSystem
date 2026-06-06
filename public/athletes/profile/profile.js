@@ -878,16 +878,13 @@ safeHTML(
   })
 );
   const xpEl = document.getElementById("xpText");
-  if (xpEl) {
-    if (xpCap) {
-      xpEl.textContent = isAtCap
-        ? `XP: ${xpCap}/${xpCap}`
-        : `XP: ${xpNow}/${xpCap}`;
-    } else {
-      xpEl.textContent = `XP: ${xpNow}`;
-    }
-  }
+if (xpEl) {
+  const xpPercent = xpCap
+    ? Math.min(100, Math.round((xpNow / xpCap) * 100))
+    : 0;
 
+  xpEl.textContent = `XP · ${xpPercent}%`;
+}
   // LANE LOCKS
 applyLaneLocks({
   tierName: rankName,
