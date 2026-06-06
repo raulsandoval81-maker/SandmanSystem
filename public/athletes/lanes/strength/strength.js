@@ -467,8 +467,10 @@ async function loadStrengthSession() {
       return;
     }
 
-    const athlete = athleteSnap.data() || {};
-    const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
+
+const athlete = athleteSnap.data() || {};
+const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
+const strengthUnlocked = athlete?.unlocks?.strength === true;
 
 const tierRaw =
   athlete.tier ??
@@ -478,9 +480,9 @@ const tierRaw =
 
 const tierMatch = String(tierRaw).match(/T(\d+)/i);
 const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
-if (isFoundry8(athleteId)) {
 
-  if (tierNum < 3) {
+if (isFoundry8(athleteId)) {
+  if (!strengthUnlocked && tierNum < 3) {
     container.innerHTML = `
       <div class="lane-card">
         Strength unlocks at Competitor.
@@ -489,7 +491,7 @@ if (isFoundry8(athleteId)) {
     return;
   }
 
-  if (stripe < 1) {
+  if (!strengthUnlocked && stripe < 1) {
     container.innerHTML = `
       <div class="lane-card">
         Strength unlocks at Competitor Stripe 1.
@@ -497,19 +499,15 @@ if (isFoundry8(athleteId)) {
     `;
     return;
   }
-
-} else {
-
-  if (stripe < 1) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Earn Stripe 1 to unlock Strength.
-      </div>
-    `;
-    return;
-  }
-
+} else if (!strengthUnlocked && stripe < 1) {
+  container.innerHTML = `
+    <div class="lane-card">
+      Earn Stripe 1 to unlock Strength.
+    </div>
+  `;
+  return;
 }
+
     const vaultSessions = Array.isArray(sessionData)
       ? sessionData
       : (sessionData.sessions || []);
