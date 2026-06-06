@@ -34,13 +34,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const isF8 = isFoundry8Id(athleteId);
 
-    const strengthOpen = isF8
-      ? tier >= 3 && stripe >= 1
-      : stripe >= 1;
+    const strengthOpen =
+  athlete?.unlocks?.strength === true ||
+  (isF8 ? tier >= 3 && stripe >= 1 : stripe >= 1);
 
-    const honorOpen = isF8
-      ? tier >= 3 && stripe >= 2
-      : stripe >= 2;
+    const honorOpen =
+  athlete?.unlocks?.honor === true ||
+  (isF8 ? tier >= 3 && stripe >= 2 : stripe >= 2);
+
 
     strengthOpen ? unlockLane(strengthLane) : lockLane(strengthLane);
     honorOpen ? unlockLane(honorLane) : lockLane(honorLane);

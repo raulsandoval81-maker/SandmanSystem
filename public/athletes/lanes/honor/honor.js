@@ -109,29 +109,33 @@ const tierMatch = String(tierRaw).match(/T(\d+)/i);
 const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
 
 
+const honorUnlocked = athlete?.unlocks?.honor === true;
+
 if (isFoundry8(athleteId)) {
 
-  if (tierNum < 3) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Honor unlocks at Competitor.
-      </div>
-    `;
-    return;
-  }
+  if (!honorUnlocked) {
+    if (tierNum < 3) {
+      container.innerHTML = `
+        <div class="lane-card">
+          Honor unlocks at Competitor.
+        </div>
+      `;
+      return;
+    }
 
-  if (stripe < 2) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Honor unlocks at Competitor Stripe 2.
-      </div>
-    `;
-    return;
+    if (stripe < 2) {
+      container.innerHTML = `
+        <div class="lane-card">
+          Honor unlocks at Competitor Stripe 2.
+        </div>
+      `;
+      return;
+    }
   }
 
 } else {
 
-  if (stripe < 2) {
+  if (!honorUnlocked && stripe < 2) {
     container.innerHTML = `
       <div class="lane-card">
         Earn Stripe 2 to unlock Honor.

@@ -46,13 +46,13 @@ function tierNumber(profile = {}) {
   if (linkStrength) linkStrength.style.display = "";
   if (linkHonor) linkHonor.style.display = "";
 
-  const strengthOpen = isF8
-    ? tier >= 3 && stripes >= 1
-    : stripes >= 1;
+const strengthOpen =
+  profile?.unlocks?.strength === true ||
+  (isF8 ? tier >= 3 && stripes >= 1 : stripes >= 1);
 
-  const honorOpen = isF8
-    ? tier >= 3 && stripes >= 2
-    : stripes >= 2;
+const honorOpen =
+  profile?.unlocks?.honor === true ||
+  (isF8 ? tier >= 3 && stripes >= 2 : stripes >= 2);
 
   setLocked(linkStrength, !strengthOpen);
   setLocked(linkHonor, !honorOpen);
