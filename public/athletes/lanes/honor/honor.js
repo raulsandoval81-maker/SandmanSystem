@@ -88,14 +88,34 @@ async function loadHonorSession() {
   if (!container) return;
   if (!athleteId) fatalMissingId();
 
-  if (isFoundry8(athleteId)) {
+const tierRaw =
+  athlete.tier ??
+  athlete.tierCode ??
+  athlete.currentTier ??
+  "T0";
+
+const tierMatch = String(tierRaw).match(/T(\d+)/i);
+const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
+
+if (isFoundry8(athleteId)) {
+  if (tierNum < 3) {
     container.innerHTML = `
       <div class="lane-card">
-        Youth does not use the Honor lane.
+        Honor unlocks at Competitor.
       </div>
     `;
     return;
   }
+
+  if (stripe < 2) {
+    container.innerHTML = `
+      <div class="lane-card">
+        Honor unlocks at Competitor Stripe 2.
+      </div>
+    `;
+    return;
+  }
+}
 
   try {
     const athleteSnap = await getDoc(doc(db, "athletes", athleteId));
@@ -107,8 +127,8 @@ async function loadHonorSession() {
     const athlete = athleteSnap.data() || {};
     const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
 
-    if (stripe < 3) {
-      container.innerHTML = `Honor unlocks at Stripe 3.`;
+    if (stripe < 2) {
+      container.innerHTML = `Honor unlocks at Stripe 2.`;
       return;
     }
 

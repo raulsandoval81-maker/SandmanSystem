@@ -433,17 +433,25 @@ async function loadStrengthSession() {
       ? Number(approved[0].sessionN || 0) + 1
       : 1;
 
-  if (isFoundry8(athleteId)) {
+if (isFoundry8(athleteId)) {
+  if (tierNum < 3) {
     container.innerHTML = `
-      <div class="lane-card" style="opacity:.8;">
-        <div style="font-weight:900;">Foundry 8</div>
-        <div style="margin-top:.35rem;">
-          Youth does not use the Strength lane. Conditioning is coach-led and feeds Combat XP.
-        </div>
+      <div class="lane-card">
+        Strength unlocks at Competitor.
       </div>
     `;
     return;
   }
+
+  if (stripe < 1) {
+    container.innerHTML = `
+      <div class="lane-card">
+        Strength unlocks at Competitor Stripe 1.
+      </div>
+    `;
+    return;
+  }
+}
 
   const backLink = document.querySelector("a.btn-back");
   if (backLink) {
@@ -481,10 +489,6 @@ async function loadStrengthSession() {
     const athlete = athleteSnap.data() || {};
     const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
 
-    if (stripe < 2) {
-      container.innerHTML = `<div style="opacity:.6;">Strength unlocks at Stripe 2.</div>`;
-      return;
-    }
 
     const vaultSessions = Array.isArray(sessionData)
       ? sessionData

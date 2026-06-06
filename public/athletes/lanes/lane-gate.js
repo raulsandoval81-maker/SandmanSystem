@@ -2,6 +2,24 @@
 
 import { getAthleteProfile, resolveAthleteId, isFoundry8Id } from "/assets/js/athlete-profile.js";
 
+function tierNumber(athlete = {}) {
+  const raw = athlete.tier ?? athlete.tierCode ?? athlete.currentTier ?? "T0";
+  const match = String(raw).toUpperCase().match(/T(\d+)/);
+  return match ? Number(match[1]) : Number(raw) || 0;
+}
+
+function unlockLane(el) {
+  if (!el) return;
+  el.classList.remove("lane-locked", "hidden");
+  el.classList.add("lane-open");
+}
+
+function lockLane(el) {
+  if (!el) return;
+  el.classList.remove("lane-open", "hidden");
+  el.classList.add("lane-locked");
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const athleteId = resolveAthleteId();
@@ -9,34 +27,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!athlete) return;
 
     const stripe = Number(athlete.stripeCount || 0);
+    const tier = tierNumber(athlete);
 
     const strengthLane = document.getElementById("lane-strength");
     const honorLane = document.getElementById("lane-honor");
 
-    // Foundry 8: NO Strength/Honor lanes at all (youth uses feeders into Combat XP)
-    if (isFoundry8Id(athleteId)) {
-      strengthLane?.classList.add("hidden");
-      honorLane?.classList.add("hidden");
-      return;
-    }
+    const isF8 = isFoundry8Id(athleteId);
 
-    // Strength unlocks at Stripe 2
-    if (stripe >= 2) {
-      strengthLane?.classList.remove("lane-locked");
-      strengthLane?.classList.add("lane-open");
-    } else {
-      strengthLane?.classList.add("lane-locked");
-      strengthLane?.classList.remove("lane-open");
-    }
+    const strengthOpen = isF8
+      ? tier >= 3 && stripe >= 1
+      : stripe >= 1;
 
-    // Honor unlocks at Stripe 3
-    if (stripe >= 3) {
-      honorLane?.classList.remove("lane-locked");
-      honorLane?.classList.add("lane-open");
-    } else {
-      honorLane?.classList.add("lane-locked");
-      honorLane?.classList.remove("lane-open");
-    }
+    const honorOpen = isF8
+      ? tier >= 3 && stripe >= 2
+      : stripe >= 2;
+
+    strengthOpen ? unlockLane(strengthLane) : lockLane(strengthLane);
+    honorOpen ? unlockLane(honorLane) : lockLane(honorLane);
 
   } catch (err) {
     console.error("Lane gate error:", err);

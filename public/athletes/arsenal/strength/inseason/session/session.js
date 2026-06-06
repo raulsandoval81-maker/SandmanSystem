@@ -254,19 +254,27 @@ async function loadStrengthSession() {
   if (!athleteId) fatalMissingId();
 
   sessionN = await resolveAssignedSession(ACTIVE_LANE, 1);
-
-  if (isFoundry8(athleteId)) {
+if (isFoundry8(athleteId)) {
+  if (tierNum < 3) {
     container.innerHTML = `
-      <div class="lane-card" style="opacity:.8;">
-        <div style="font-weight:900;">Foundry 8</div>
-        <div style="margin-top:.35rem;">
-          Youth does not use the Strength lane. Conditioning is coach-led and feeds Combat XP.
-        </div>
+      <div class="lane-card">
+        Strength unlocks at Competitor.
       </div>
     `;
     return;
   }
 
+  if (stripe < 1) {
+    container.innerHTML = `
+      <div class="lane-card">
+        Strength unlocks at Competitor Stripe 1.
+      </div>
+    `;
+    return;
+  }
+}
+ 
+ 
   const backLink = document.querySelector("a.btn-back");
   if (backLink) {
     backLink.href = `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`;
@@ -292,11 +300,9 @@ async function loadStrengthSession() {
     const age = Number(athlete.age ?? 0);
     const ironAllowed = age >= 13;
 
-    if (stripe < 2) {
-      container.innerHTML = `<div style="opacity:.6;">Strength unlocks at Stripe 2.</div>`;
-      return;
-    }
 
+
+    
     const vaultSessions = Array.isArray(sessionData) ? sessionData : sessionData.sessions || [];
     let session = vaultSessions.find((s) => Number(s?.n) === Number(sessionN)) || null;
 

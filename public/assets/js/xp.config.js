@@ -102,16 +102,14 @@ character: {
   netMax: 10,
   domains: ["HOME", "CLASSROOM", "COMMUNITY"]
 },
-
 contributions: {
-  strength: { delta: 5, monthlyCap: 40 },
-  honor:    { delta: 5, monthlyCap: 40 }
+  strength: { delta: 5, monthlyCap: 60 },
+  honor:    { delta: 5, monthlyCap: 60 }
 },
 
-// Youth unlock gates
 unlockGates: {
-  strength: { tier: "T0", stripe: 1 },
-  honor:    { tier: "T0", stripe: 2 }
+  strength: { tier: "T3", stripe: 1 },
+  honor:    { tier: "T3", stripe: 2 }
 },
 
 arena: { battle: 10, podium: 5, styleIQ: 5, styleIQMaxPerEvent: 1 },

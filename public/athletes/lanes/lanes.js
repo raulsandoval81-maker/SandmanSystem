@@ -1,10 +1,19 @@
-import { resolveAthleteId, getAthleteProfile, isFoundry8Id } from "/assets/js/athlete-profile.js";
+import {
+  resolveAthleteId,
+  getAthleteProfile,
+  isFoundry8Id
+} from "/assets/js/athlete-profile.js";
 
 function setLocked(el, locked) {
   if (!el) return;
   el.classList.toggle("locked", !!locked);
   el.setAttribute("aria-disabled", locked ? "true" : "false");
-  if (locked) el.addEventListener("click", (e) => e.preventDefault(), { once: true });
+
+  if (locked) {
+    el.onclick = (e) => e.preventDefault();
+  } else {
+    el.onclick = null;
+  }
 }
 
 function setHrefWithId(a, id) {
@@ -13,37 +22,57 @@ function setHrefWithId(a, id) {
   a.setAttribute("href", base.replace(/\?.*$/, "") + `?id=${encodeURIComponent(id)}`);
 }
 
+function tierNumber(profile = {}) {
+  const raw = profile.tier ?? profile.tierCode ?? profile.currentTier ?? "T0";
+  const match = String(raw).toUpperCase().match(/T(\d+)/);
+  return match ? Number(match[1]) : Number(raw) || 0;
+}
+
 (async function boot() {
   const athleteId = resolveAthleteId();
 
-  // rewrite links immediately so they always carry id forward
   const linkStrength = document.getElementById("link-strength");
   const linkHonor = document.getElementById("link-honor");
+
   setHrefWithId(linkStrength, athleteId);
   setHrefWithId(linkHonor, athleteId);
 
   const profile = await getAthleteProfile(athleteId);
 
-  // If Foundry 8: hide lanes completely (your rule)
-  if (isFoundry8Id(athleteId)) {
-    if (linkStrength) linkStrength.style.display = "none";
-    if (linkHonor) linkHonor.style.display = "none";
-    const msg = document.getElementById("laneStatus");
-    if (msg) msg.textContent = "Strength & Honor unlock later (Foundry 4 only).";
-    return;
-  }
-
   const stripes = Number(profile?.stripesEarned ?? profile?.stripeCount ?? 0);
+  const tier = tierNumber(profile);
+  const isF8 = isFoundry8Id(athleteId);
 
-  // Stripe gates
-  setLocked(linkStrength, stripes < 2);
-  setLocked(linkHonor, stripes < 3);
+  if (linkStrength) linkStrength.style.display = "";
+  if (linkHonor) linkHonor.style.display = "";
+
+  const strengthOpen = isF8
+    ? tier >= 3 && stripes >= 1
+    : stripes >= 1;
+
+  const honorOpen = isF8
+    ? tier >= 3 && stripes >= 2
+    : stripes >= 2;
+
+  setLocked(linkStrength, !strengthOpen);
+  setLocked(linkHonor, !honorOpen);
 
   const status = document.getElementById("laneStatus");
   if (status) {
-    status.textContent =
-      stripes < 2 ? "Earn Stripe 2 to unlock Strength."
-    : stripes < 3 ? "Strength unlocked. Earn Stripe 3 to unlock Honor."
-    : "Strength + Honor unlocked.";
+    if (isF8) {
+      status.textContent =
+        !strengthOpen
+          ? "Strength unlocks at Competitor, Stripe 1."
+          : !honorOpen
+            ? "Strength unlocked. Honor unlocks at Competitor, Stripe 2."
+            : "Strength + Honor unlocked.";
+    } else {
+      status.textContent =
+        !strengthOpen
+          ? "Earn Stripe 1 to unlock Strength."
+          : !honorOpen
+            ? "Strength unlocked. Earn Stripe 2 to unlock Honor."
+            : "Strength + Honor unlocked.";
+    }
   }
 })();
