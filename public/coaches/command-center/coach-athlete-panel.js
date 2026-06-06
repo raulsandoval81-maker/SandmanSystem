@@ -24,24 +24,22 @@ $("athlete-uid").textContent = uid;
 const athleteRef = doc(db, "athletes", uid);
 let athleteData = null;
 
-const F4_LADDER = {
-  T0: { tier: "T0", rankName: "Apprentice", rankColor: "white", xpCap: 1200 },
-  T1: { tier: "T1", rankName: "Warrior", rankColor: "blue", xpCap: 1600 },
-  T2: { tier: "T2", rankName: "Champion", rankColor: "purple", xpCap: 2000 },
-  T3: { tier: "T3", rankName: "Veteran", rankColor: "brown", xpCap: 2400 },
-  T4: { tier: "T4", rankName: "Legend", rankColor: "black", xpCap: 2800 },
-};
+function ladderMapFromArray(ladder = []) {
+  return Object.fromEntries(
+    ladder.map((t, i) => [
+      `T${i}`,
+      {
+        tier: `T${i}`,
+        rankName: t.name,
+        rankColor: t.color || "",
+        xpCap: t.cap
+      }
+    ])
+  );
+}
 
-const F8_LADDER = {
-  T0: { tier: "T0", rankName: "Shadow", rankColor: "white", xpCap: 800 },
-  T1: { tier: "T1", rankName: "Recruit", rankColor: "yellow", xpCap: 1000 },
-  T2: { tier: "T2", rankName: "Combatant", rankColor: "orange", xpCap: 1200 },
-  T3: { tier: "T3", rankName: "Competitor", rankColor: "green", xpCap: 1400 },
-  T4: { tier: "T4", rankName: "Warrior", rankColor: "blue", xpCap: 1600 },
-  T5: { tier: "T5", rankName: "Champion", rankColor: "purple", xpCap: 1800 },
-  T6: { tier: "T6", rankName: "Veteran", rankColor: "brown", xpCap: 2000 },
-  T7: { tier: "T7", rankName: "Hero", rankColor: "black", xpCap: 2400 },
-};
+const F4_LADDER = ladderMapFromArray(LADDER_F4);
+const F8_LADDER = ladderMapFromArray(LADDER_F8);
 
 function addDays(days) {
   const d = new Date();

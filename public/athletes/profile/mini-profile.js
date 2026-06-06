@@ -5,7 +5,11 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
-import { LADDER_F8 } from "/assets/js/ladder.service.js";
+import {
+  getAthleteStripeInfo,
+  LADDER_F4,
+  LADDER_F8
+} from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 
