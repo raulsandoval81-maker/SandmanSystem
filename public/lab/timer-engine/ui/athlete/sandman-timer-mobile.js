@@ -163,6 +163,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const cfg = TIMER_CONFIG[track][tier];
+  const isYouthT0 = track === "f8" && tier === "t0";
+const isYouthT1 = track === "f8" && tier === "t1";
+const isTeenT0 = track === "f4" && tier === "t0";
+const isTeenT1 = track === "f4" && tier === "t1";
 
   const COMBAT = {
     active: true,
@@ -174,7 +178,16 @@ document.addEventListener("DOMContentLoaded", () => {
     roundSec: cfg.roundSec,
     restSec: cfg.restSec,
 
-    roundLabels: [
+
+roundLabels: isYouthT0
+  ? [
+      { key: "ready", label: "Slow movement, slow action" },
+      { key: "ready", label: "Slow movement, fast action" },
+      { key: "ready", label: "Fast movement, slow action" },
+      { key: "ready", label: "Fast movement, fast action" },
+      { key: "go", label: "Solo flow" }
+    ]
+  : [
       { key: "slowSlow", label: "Slow feet, slow shots" },
       { key: "slowFast", label: "Slow feet, fast shots" },
       { key: "fastSlow", label: "Fast feet, slow shots" },
