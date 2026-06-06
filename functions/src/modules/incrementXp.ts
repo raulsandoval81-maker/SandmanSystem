@@ -53,14 +53,34 @@ const XP = Object.freeze({
 } as const);
 
 // Lane rules (V1)
+// Lane rules (V1)
 const LANE = Object.freeze({
   F8: {
-    strength: { delta: 5, monthlyCap: 40, gate: { tier: "T0", stripe: 2 } },
-    honor: { delta: 5, monthlyCap: 40, gate: { tier: "T0", stripe: 3 } },
+    strength: {
+      delta: 5,
+      monthlyCap: 60,
+      gate: { tier: "T3", stripe: 1 }
+    },
+
+    honor: {
+      delta: 5,
+      monthlyCap: 60,
+      gate: { tier: "T3", stripe: 2 }
+    },
   },
+
   F4: {
-    strength: { deltaFull: 10, deltaMerit: 5, monthlyCap: 120 },
-    honor: { deltaFull: 10, deltaMerit: 5, monthlyCap: 120 },
+    strength: {
+      deltaFull: 10,
+      deltaMerit: 5,
+      monthlyCap: 120
+    },
+
+    honor: {
+      deltaFull: 10,
+      deltaMerit: 5,
+      monthlyCap: 120
+    },
   },
 } as const);
 
