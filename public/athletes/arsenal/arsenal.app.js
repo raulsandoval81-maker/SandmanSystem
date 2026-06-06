@@ -42,6 +42,17 @@ function getStripeCount(athlete = {}) {
   );
 }
 
+function getTierNumber(athlete = {}) {
+  const raw =
+    athlete.tier ??
+    athlete.tierCode ??
+    athlete.currentTier ??
+    "T0";
+
+  const match = String(raw).toUpperCase().match(/T(\d+)/);
+  return match ? Number(match[1]) : Number(raw) || 0;
+}
+
 function getTrackCode(athleteId, athlete = {}) {
   const raw = String(
     athlete.trackCode ??
@@ -79,15 +90,6 @@ async function loadUnlocks() {
     return;
   }
 
-  // Safety guard:
-  // Full Arsenal should not handle youth athletes anymore.
-  if (athleteId.startsWith("F8_")) {
-    window.location.replace(
-      `/athletes/arsenal/mini-arsenal.html?id=${encodeURIComponent(athleteId)}`
-    );
-    return;
-  }
-
   setLocked(
     combatCard,
     "Combat",
@@ -119,23 +121,19 @@ async function loadUnlocks() {
 
     const athlete = athleteSnap.data() || {};
 
-    // Second guard in case trackCode says F8 even if id formatting changes later
-    if (isF8Athlete(athleteId, athlete)) {
-      window.location.replace(
-        `/athletes/arsenal/mini-arsenal.html?id=${encodeURIComponent(athleteId)}`
-      );
-      return;
-    }
-
     wireHomeLink(athleteId);
 
     const stripe = getStripeCount(athlete);
+    const tier = getTierNumber(athlete);
+    const isF8 = isF8Athlete(athleteId, athlete);
 
     const strengthUnlocked =
-      athlete?.unlocks?.strength === true || stripe >= 2;
+      athlete?.unlocks?.strength === true ||
+      (isF8 ? tier >= 3 && stripe >= 1 : stripe >= 1);
 
     const honorUnlocked =
-      athlete?.unlocks?.honor === true || stripe >= 3;
+      athlete?.unlocks?.honor === true ||
+      (isF8 ? tier >= 3 && stripe >= 2 : stripe >= 2);
 
     setOpen(
       combatCard,
@@ -151,6 +149,20 @@ async function loadUnlocks() {
         "Strength Development Track",
         `/athletes/arsenal/strength/?id=${encodeURIComponent(athleteId)}`
       );
+    } else if (isF8) {
+      setLocked(
+        strengthCard,
+        "Strength 🔒",
+        tier < 3
+          ? "Unlocks at Competitor."
+          : "Unlocks at Competitor Stripe 1."
+      );
+    } else {
+      setLocked(
+        strengthCard,
+        "Strength 🔒",
+        "Earn Stripe 1 to unlock Strength."
+      );
     }
 
     if (honorUnlocked) {
@@ -160,9 +172,22 @@ async function loadUnlocks() {
         "Honor Development Track",
         `/athletes/arsenal/honor/?id=${encodeURIComponent(athleteId)}`
       );
+    } else if (isF8) {
+      setLocked(
+        honorCard,
+        "Honor 🔒",
+        tier < 3
+          ? "Unlocks at Competitor."
+          : "Unlocks at Competitor Stripe 2."
+      );
+    } else {
+      setLocked(
+        honorCard,
+        "Honor 🔒",
+        "Earn Stripe 2 to unlock Honor."
+      );
     }
 
-    // Full Arsenal no longer uses the mixed-mode panel.
     const panel = document.getElementById("arsenalModePanel");
     const inner = document.getElementById("modePanelInner");
     if (panel) panel.hidden = true;
