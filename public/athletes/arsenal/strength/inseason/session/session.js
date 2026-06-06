@@ -254,26 +254,6 @@ async function loadStrengthSession() {
   if (!athleteId) fatalMissingId();
 
   sessionN = await resolveAssignedSession(ACTIVE_LANE, 1);
-if (isFoundry8(athleteId)) {
-  if (tierNum < 3) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Strength unlocks at Competitor.
-      </div>
-    `;
-    return;
-  }
-
-  if (stripe < 1) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Strength unlocks at Competitor Stripe 1.
-      </div>
-    `;
-    return;
-  }
-}
- 
  
   const backLink = document.querySelector("a.btn-back");
   if (backLink) {
@@ -301,8 +281,43 @@ if (isFoundry8(athleteId)) {
     const ironAllowed = age >= 13;
 
 
+const tierRaw =
+  athlete.tier ??
+  athlete.tierCode ??
+  athlete.currentTier ??
+  "T0";
 
-    
+const tierMatch = String(tierRaw).match(/T(\d+)/i);
+const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
+
+if (isFoundry8(athleteId)) {
+  if (tierNum < 3) {
+    container.innerHTML = `
+      <div class="lane-card">
+        Strength unlocks at Competitor.
+      </div>
+    `;
+    return;
+  }
+
+  if (stripe < 1) {
+    container.innerHTML = `
+      <div class="lane-card">
+        Strength unlocks at Competitor Stripe 1.
+      </div>
+    `;
+    return;
+  }
+} else if (stripe < 1) {
+  container.innerHTML = `
+    <div class="lane-card">
+      Earn Stripe 1 to unlock Strength.
+    </div>
+  `;
+  return;
+}
+
+
     const vaultSessions = Array.isArray(sessionData) ? sessionData : sessionData.sessions || [];
     let session = vaultSessions.find((s) => Number(s?.n) === Number(sessionN)) || null;
 

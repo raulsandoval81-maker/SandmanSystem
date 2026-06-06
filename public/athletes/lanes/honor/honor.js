@@ -88,7 +88,18 @@ async function loadHonorSession() {
   if (!container) return;
   if (!athleteId) fatalMissingId();
 
-const tierRaw =
+
+  try {
+    const athleteSnap = await getDoc(doc(db, "athletes", athleteId));
+    if (!athleteSnap.exists()) {
+      container.innerHTML = `Athlete not found`;
+      return;
+    }
+
+    const athlete = athleteSnap.data() || {};
+    const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
+
+    const tierRaw =
   athlete.tier ??
   athlete.tierCode ??
   athlete.currentTier ??
@@ -97,7 +108,9 @@ const tierRaw =
 const tierMatch = String(tierRaw).match(/T(\d+)/i);
 const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
 
+
 if (isFoundry8(athleteId)) {
+
   if (tierNum < 3) {
     container.innerHTML = `
       <div class="lane-card">
@@ -115,23 +128,19 @@ if (isFoundry8(athleteId)) {
     `;
     return;
   }
+
+} else {
+
+  if (stripe < 2) {
+    container.innerHTML = `
+      <div class="lane-card">
+        Earn Stripe 2 to unlock Honor.
+      </div>
+    `;
+    return;
+  }
+
 }
-
-  try {
-    const athleteSnap = await getDoc(doc(db, "athletes", athleteId));
-    if (!athleteSnap.exists()) {
-      container.innerHTML = `Athlete not found`;
-      return;
-    }
-
-    const athlete = athleteSnap.data() || {};
-    const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
-
-    if (stripe < 2) {
-      container.innerHTML = `Honor unlocks at Stripe 2.`;
-      return;
-    }
-
 
 const active = await getActiveVaultSession(ACTIVE_LANE);
 console.log("HONOR ACTIVE", active);
