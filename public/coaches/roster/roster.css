@@ -473,3 +473,17 @@ td[data-label="Present"]{
     text-align:left;
   }
 }
+.status-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:6px;
+}
+
+.status-dot--active{ background:#35c759; }
+.status-dot--warning{ background:#ffd633; }
+.status-dot--risk{ background:#ff9f0a; }
+.status-dot--edge{ background:#ff453a; }
+.status-dot--freeze{ background:#5ac8fa; }
+.status-dot--unknown{ background:#8e8e93; }

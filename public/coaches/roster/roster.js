@@ -18,6 +18,7 @@ const $ = (id) => document.getElementById(id);
 
 let attendanceMode = false;
 let currentList = [];
+let statusFilter = "all";
 
 function trackBaseOf(id) {
   if (id.startsWith("F4_")) return "F4";
@@ -83,14 +84,24 @@ function edgeStatusOf(data = {}) {
 
 function edgeChipHtml(data = {}) {
   const status = edgeStatusOf(data);
+if (status === "frozen")
+  return `<span class="status-chip status-chip--freeze">🔵 Frozen</span>`;
 
-  if (status === "frozen") return `<span class="status-chip status-chip--freeze">Frozen</span>`;
-  if (status === "edge-loss") return `<span class="status-chip status-chip--cooldown">Edge Loss</span>`;
-  if (status === "at-risk") return `<span class="status-chip status-chip--watch">At Risk</span>`;
-  if (status === "warning") return `<span class="status-chip status-chip--tempo">Warning</span>`;
-  if (status === "active") return `<span class="status-chip status-chip--promoted">Active</span>`;
+if (status === "edge-loss")
+  return `<span class="status-chip status-chip--cooldown">🔴 Edge Loss</span>`;
 
-  return `<span class="status-chip">No Attendance</span>`;
+if (status === "at-risk")
+  return `<span class="status-chip status-chip--watch">🟠 At Risk</span>`;
+
+if (status === "warning")
+  return `<span class="status-chip status-chip--tempo">🟡 Warning</span>`;
+
+if (status === "active")
+  return `<span class="status-chip status-chip--promoted">🟢 Active</span>`;
+
+return `<span class="status-chip">⚪ No Attendance</span>`;
+
+
 }
 function updateRosterSummary(list = []) {
   const counts = {
@@ -291,16 +302,46 @@ async function loadRoster() {
     .filter((x) => isLiveRosterAthlete(x.id, x.data))
     .filter((x) => trackBaseOf(x.id, x.data) === track)
     .filter((x) => rosterStatusOf(x.data) === wantedStatus)
-    .sort((a, b) =>
-      athleteName(a.data, a.id).localeCompare(athleteName(b.data, b.id))
-    );
+.sort((a, b) => {
+  const statusPriority = {
+    frozen: 0,
+    "edge-loss": 1,
+    "at-risk": 2,
+    warning: 3,
+    unknown: 4,
+    active: 5
+  };
 
+  const aPriority =
+    statusPriority[edgeStatusOf(a.data)] ?? 999;
+
+  const bPriority =
+    statusPriority[edgeStatusOf(b.data)] ?? 999;
+
+  if (aPriority !== bPriority) {
+    return aPriority - bPriority;
+  }
+
+  return athleteName(a.data, a.id)
+    .localeCompare(athleteName(b.data, b.id));
+});
+
+    
   if (countMeta) {
     countMeta.textContent = `${track} · ${wantedStatus} · ${currentList.length} athletes`;
   }
   updateRosterSummary(currentList);
-rowsEl.innerHTML = currentList.length
-  ? currentList.map(({ id, data }) => `
+const visibleList =
+  statusFilter === "all"
+    ? currentList
+    : currentList.filter(
+        ({ data }) => edgeStatusOf(data) === statusFilter
+      );
+
+
+      rowsEl.innerHTML = visibleList.length
+  ? visibleList.map(({ id, data }) => `
+
     <tr>
       <td class="attendance-only" data-label="Present" ${attendanceMode ? "" : "hidden"}>
         <input class="attendance-check" type="checkbox" value="${id}">
@@ -397,8 +438,8 @@ rowsEl.innerHTML = currentList.length
     };
   });
 
-  for (const { id, data } of currentList) {
-    const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
+  for (const { id, data } of visibleList) {
+  const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
     const tier = ladder.find((t) => t.name === data.rankName) || ladder[0];
 
     const xpNow = Number(data.xp ?? data.currentTierXP ?? 0);
@@ -488,3 +529,10 @@ $("clearAll")?.addEventListener("click", () => {
 });
 
 $("saveAttendance")?.addEventListener("click", saveAttendance);
+
+document.querySelectorAll(".status-filter").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    statusFilter = btn.dataset.statusFilter || "all";
+    loadRoster();
+  });
+});
