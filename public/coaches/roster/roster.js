@@ -25,9 +25,7 @@ function xpCapForAthlete(data = {}, track = "F4") {
   const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
   const rankName = data.rankName || data.tierName;
 
-  const tier =
-    ladder.find((t) => t.name === rankName) ||
-    ladder[0];
+  const tier = ladder.find((t) => t.name === rankName) || ladder[0];
 
   return Number(
     tier?.cap ??
@@ -56,16 +54,60 @@ function athleteName(data = {}, id = "") {
   return data.publicName || data.fullName || id;
 }
 
+function dateFromFirestore(raw) {
+  if (!raw) return null;
+  if (raw.toDate) return raw.toDate();
+  return new Date(raw);
+}
+
+function daysSince(raw) {
+  const date = dateFromFirestore(raw);
+  if (!date || Number.isNaN(date.getTime())) return null;
+  return Math.floor((Date.now() - date.getTime()) / 86400000);
+}
+
+function lastSeenText(data = {}) {
+  const days = daysSince(data.lastAttendanceAt);
+
+  if (days === null) return "No attendance logged";
+  if (days <= 0) return "Today";
+  if (days === 1) return "1 day ago";
+  return `${days} days ago`;
+}
+
+function edgeStatusOf(data = {}) {
+  const days = daysSince(data.lastAttendanceAt);
+
+  if (days === null) return "unknown";
+  if (days >= 84) return "frozen";
+  if (days >= 56) return "edge-loss";
+  if (days >= 28) return "at-risk";
+  if (days >= 14) return "warning";
+  return "active";
+}
+
+function edgeChipHtml(data = {}) {
+  const status = edgeStatusOf(data);
+
+  if (status === "frozen") return `<span class="status-chip status-chip--freeze">Frozen</span>`;
+  if (status === "edge-loss") return `<span class="status-chip status-chip--cooldown">Edge Loss</span>`;
+  if (status === "at-risk") return `<span class="status-chip status-chip--watch">At Risk</span>`;
+  if (status === "warning") return `<span class="status-chip status-chip--tempo">Warning</span>`;
+  if (status === "active") return `<span class="status-chip status-chip--promoted">Active</span>`;
+
+  return `<span class="status-chip">No Attendance</span>`;
+}
+
 function getTempoStatus(data = {}, track = "F4") {
   const xp = Number(data.xp || 0);
   const cap = xpCapForAthlete(data, track);
   const pct = Math.round((xp / (cap || 1)) * 100);
-
   const testingState = String(data.testing?.state || "").toUpperCase();
 
   if (testingState === "PROMOTED") return "promoted";
   if (testingState === "COOLDOWN") return "cooldown";
   if (testingState === "FREEZE") return "freeze";
+  if (testingState === "FROZEN") return "freeze";
   if (testingState === "TEMPLE") return "in-temple";
   if (xp >= cap) return "eligible";
   if (pct >= 90 && xp < cap) return "temple-watch";
@@ -111,7 +153,7 @@ async function loadRoster() {
   const track = f8Only ? "F8" : "F4";
   const wantedStatus = isArchiveView() ? "archived" : "current";
 
-  rowsEl.innerHTML = `<tr><td colspan="4" class="muted">Loading…</td></tr>`;
+  rowsEl.innerHTML = `<tr><td colspan="5" class="muted">Loading…</td></tr>`;
 
   if (archiveBtn) {
     archiveBtn.textContent = isArchiveView() ? "Current" : "Archived";
@@ -157,6 +199,11 @@ async function loadRoster() {
           </div>
         </td>
 
+        <td data-label="Attendance">
+          <div class="xp-sub">Last seen: ${lastSeenText(data)}</div>
+          ${!isArchiveView() ? edgeChipHtml(data) : ""}
+        </td>
+
         <td data-label="Actions">
           <div class="roster-actions">
             <a class="pill" href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}">
@@ -171,7 +218,7 @@ async function loadRoster() {
         </td>
       </tr>
     `).join("")
-    : `<tr><td colspan="4" class="muted">No athletes found.</td></tr>`;
+    : `<tr><td colspan="5" class="muted">No athletes found.</td></tr>`;
 
   document.querySelectorAll("[data-archive]").forEach((btn) => {
     btn.onclick = async () => {
@@ -263,10 +310,7 @@ async function loadRoster() {
 
     const textEl = document.getElementById(`stripeText-${id}`);
     if (textEl) {
-      const xpPercent = Math.min(
-        100,
-        Math.round((xpNow / xpCap) * 100)
-      );
+      const xpPercent = Math.min(100, Math.round((xpNow / xpCap) * 100));
 
       textEl.textContent =
         `${xpNow} / ${xpCap} XP · ${xpPercent}% · Stripes: ${finalStripes} / ${stripeMax}`;
