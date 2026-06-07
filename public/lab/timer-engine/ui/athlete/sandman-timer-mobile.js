@@ -179,24 +179,25 @@ const isTeenT1 = track === "f4" && tier === "t1";
     restSec: cfg.restSec,
 
 
+
 roundLabels: isYouthT0
   ? [
-      { key: "ready", label: "Slow movement, slow action" },
-      { key: "ready", label: "Slow movement, fast action" },
-      { key: "ready", label: "Fast movement, slow action" },
-      { key: "ready", label: "Fast movement, fast action" },
-      { key: "go", label: "Solo flow" }
+      { key: "round32", label: "Round of 32" },
+      { key: "round16", label: "Round of 16" },
+      { key: "round8", label: "Round of 8" },
+      { key: "round4", label: "Round of 4" },
+      { key: "round2", label: "Round of 2" }
     ]
   : [
       { key: "slowSlow", label: "Slow feet, slow shots" },
       { key: "slowFast", label: "Slow feet, fast shots" },
-      { key: "fastSlow", label: "Fast feet, slow shots" },
+      { key: "fastSlow", label: "Fast feet, fast shots" },
       { key: "fastFast", label: "Fast feet, fast shots" },
       { key: "whistleStarts", label: "Whistle starts" }
     ],
 
-    shortTime: "Short time",
-    restLabel: "BOXER'S BOUNCE - SHADOW ROPE"
+    shortTime: "Short time! Go get it!",
+    restLabel: "SHADOW ROPE"
   };
 
   // =========================
@@ -601,13 +602,12 @@ async function sayRoundStart(roundNum) {
 function sayShortTime() {
   setStatus("SHORT TIME");
   shortVisual();
-  setCoachFeed("Short time");
+  setCoachFeed("Yellow light • Short time • Go get it!");
 
   if (structureCueEnabled()) {
-    speakFallback(COMBAT.shortTime);
+    speakFallback("Yellow light. Short time. Go get it!");
   }
 }
-
 function sayRoundEnd() {
   hardStopVisual();
 
@@ -862,7 +862,7 @@ if (!r5Busy && r5Timer >= R5_INTERVAL) {
 
       S.inRest = true;
       S.restLeft = COMBAT.restSec;
-      log(`Rest ${COMBAT.restSec}s • Boxer's Bounce`);
+      log(`Rest ${COMBAT.restSec}s • Shadow Rope`);
       sayRestStart();
     }
   }

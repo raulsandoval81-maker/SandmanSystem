@@ -164,15 +164,18 @@ document.addEventListener("DOMContentLoaded", () => {
     restSec: cfg.restSec,
 
     roundLabels: [
-      { key: "slowSlow", label: "Slow feet, slow shots" },
-      { key: "slowFast", label: "Slow feet, fast shots" },
-      { key: "fastSlow", label: "Fast feet, slow shots" },
-      { key: "fastFast", label: "Fast feet, fast shots" },
-      { key: "whistleStarts", label: "Whistle starts" }
+{ key: "round-32", label: "Round of 32" },
+{ key: "round-16", label: "Round of 16" },
+{ key: "round-8", label: "Round of 8" },
+{ key: "round-4", label: "Round of 4" },
+{ key: "round-2", label: "Round of 2" },
+
     ],
 
+    
+
     shortTime: "Short time",
-    restLabel: "BOXER'S BOUNCE - SHADOW ROPE"
+    restLabel: "SHADOW ROPE"
   };
 
   // =========================
@@ -573,16 +576,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+
   function sayShortTime() {
-    setStatus("SHORT TIME");
-    shortVisual();
-    setCoachFeed("Short time");
+  setStatus("SHORT TIME");
+  shortVisual();
+  setCoachFeed("Yellow light • Short time • Go get it!");
 
-    if (structureCueEnabled()) {
-      speakFallback(COMBAT.shortTime);
-    }
+  if (structureCueEnabled()) {
+    speakFallback("Yellow light. Short time. Go get it!");
   }
-
+}
   function sayRoundEnd() {
     hardStopVisual();
 
@@ -831,7 +834,7 @@ document.addEventListener("DOMContentLoaded", () => {
         S.running = true;
         S.inRest = true;
         S.restLeft = COMBAT.restSec;
-        log(`Rest ${COMBAT.restSec}s • Boxer's Bounce`);
+        log(`Rest ${COMBAT.restSec}s • Shadow Rope`);
         sayRestStart();
         S.lastTick = performance.now();
         tick();

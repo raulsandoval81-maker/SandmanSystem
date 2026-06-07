@@ -112,6 +112,91 @@
   body.day-mode #agreeTerms + span{
     color:#1c2430;
   }
+#joinForm{
+  margin-top:1rem;
+}
+
+#joinForm label{
+  display:block;
+  margin-bottom:.4rem;
+  color:var(--text);
+  font-weight:900;
+  font-size:.9rem;
+}
+
+#joinForm input,
+#joinForm select,
+#joinForm textarea{
+  width:100%;
+  min-height:46px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(0,0,0,.22);
+  color:var(--text);
+  padding:.75rem .85rem;
+  font:inherit;
+  outline:none;
+}
+
+#joinForm textarea{
+  min-height:110px;
+  resize:vertical;
+}
+
+#joinForm input:focus,
+#joinForm select:focus,
+#joinForm textarea:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px rgba(255,214,51,.18);
+}
+
+body.day-mode #joinForm input,
+body.day-mode #joinForm select,
+body.day-mode #joinForm textarea{
+  background:rgba(255,255,255,.78);
+  color:#1c2430;
+}
+
+.terms-check{
+  display:flex !important;
+  align-items:flex-start;
+  gap:.65rem;
+  margin:1rem 0;
+  line-height:1.45;
+}
+
+.terms-check input{
+  width:auto !important;
+  min-height:auto !important;
+  margin-top:.2rem;
+}
+
+.join-actions{
+  margin-top:1rem;
+}
+
+.info-note{
+  margin-top:1.25rem;
+  padding:1rem;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panel-2);
+  color:var(--muted);
+  line-height:1.55;
+  font-size:.92rem;
+}
+
+.info-note strong{
+  display:block;
+  margin-bottom:.5rem;
+  color:var(--brand);
+  font-size:1rem;
+}
+
+.info-note p{
+  margin:.65rem 0 0;
+}
+
 </style>
 <body>
 
@@ -439,14 +524,12 @@
     <form id="joinForm">
       <input type="hidden" id="entryType" value="trial">
 
-      <div class="grid">
-        <div class="col-6">
-          <label for="parentName">
-            <span data-lang-block="en">Parent / Guardian or Adult Participant Name</span>
-            <span data-lang-block="es" class="hidden-lang">Nombre del padre/tutor o participante adulto</span>
-          </label>
-          <input id="parentName" required />
-        </div>
+<label for="parentName">
+  <span data-lang-block="en">Parent / Guardian Name</span>
+  <span data-lang-block="es" class="hidden-lang">
+    Nombre del padre/tutor o participante adulto
+  </span>
+</label>
 
         <div class="col-6">
           <label for="parentEmail">
@@ -458,7 +541,7 @@
 
         <div class="col-6">
           <label for="athleteName">
-            <span data-lang-block="en">Athlete Name</span>
+            <span data-lang-block="en">Athlete / Participant Name</span>
             <span data-lang-block="es" class="hidden-lang">Nombre del atleta</span>
           </label>
           <input id="athleteName" required />
@@ -473,17 +556,43 @@
         </div>
 
         <div class="col-6">
+  <label for="programTrackSelect">Program / Journey</label>
+  <select id="programTrackSelect" required>
+<option value="zero2hero">
+  Youth Wrestling (Ages 7–12)
+</option>
+
+<option value="path2legend">
+  Teen Wrestling  (Ages 13–18)
+</option>
+
+<option value="path2legend_boxing">
+  Teen Boxing (Ages 13–18)
+</option>
+
+<option value="road2greatness">
+  Adult Boxing.  (Ages 18+)
+</option>
+
+<option value="adult_fitness">
+  Teen / Adult Fitness, Kickboxing & Self Defense (Ages 13+)
+</option>
+
+  </select>
+</div>
+
+        <div class="col-6">
           <label for="interest">
             <span data-lang-block="en">Experience Level</span>
             <span data-lang-block="es" class="hidden-lang">Nivel de experiencia</span>
           </label>
           <select id="interest" required>
-            <option value="">Select / Seleccionar</option>
-            <option value="new">New / Nuevo</option>
-            <option value="some">Some Experience / Algo de experiencia</option>
-            <option value="competitive">Competitive / Competitivo</option>
-            <option value="combat">Combat Sports Background / Experiencia en deportes de combate</option>
-          </select>
+  <option value="">Select / Seleccionar</option>
+  <option value="new">New / Nuevo</option>
+  <option value="some">Some Experience / Algo de experiencia</option>
+  <option value="competitive">Competitive / Competitivo</option>
+  <option value="combat">Combat Sports Background / Experiencia en deportes de combate</option>
+</select>
         </div>
 
         <div class="col-12">
@@ -573,8 +682,17 @@
     });
   }
 
-  const academy = getParam("academy") || "lompoc";
-  const source = getParam("src") || "public";
+
+const academy = getParam("academy") || "lompoc";
+const source = getParam("src") || "public";
+let programTrack = getParam("track") || "zero2hero";
+
+
+const trackSelect = $("programTrackSelect");
+
+if (trackSelect) {
+  trackSelect.value = programTrack;
+}
 
 function getCurrentLang(){
   return document.body.dataset.lang === "es" ? "es" : "en";
@@ -662,6 +780,9 @@ function getCurrentLang(){
     if (entryType === "free_pass") {
       entryLabel = currentLang === "es" ? "Evaluación de 1 día" : "1-Day Assessment";
     }
+programTrack =
+  $("programTrackSelect")?.value || programTrack;
+
 
 const subject = `${entryLabel} Request`;
     const body =
@@ -691,6 +812,7 @@ await setDoc(threadRef, {
   source,
   category: "join",
   entryType,
+  programTrack,
 
    lang: currentLang,
 
@@ -742,7 +864,6 @@ assignmentStatus: "unassigned",
 
   // EXISTING
 
-lang: document.documentElement.lang === "es" ? "es" : "en",
 
   subject,
   parentName,

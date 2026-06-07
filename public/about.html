@@ -3,20 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>About | Sandman Combat™</title>
 
   <link rel="stylesheet" href="assets/css/site.css" />
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
-<style>
-  .hero-box h1{
-    margin-bottom:.5rem;
-  }
 
-  .hero-sub{
-    margin-bottom:.75rem;
-  }
-</style>
+  <style>
+    .hero-box h1{
+      margin-bottom:.5rem;
+    }
+
+    .hero-sub{
+      margin-bottom:.75rem;
+    }
+
+    .grid-2{
+      display:grid;
+      gap:1rem;
+    }
+
+    @media (min-width:900px){
+      .grid-2{
+        grid-template-columns:repeat(2,1fr);
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -56,11 +69,12 @@
   </header>
 
   <main class="wrap">
-    <!-- HERO -->
+
     <section class="section">
       <div class="hero-box">
         <div data-lang-block="en">
           <div class="hero-kicker">About</div>
+
           <h1>Our Purpose</h1>
 
           <p class="lead">
@@ -68,7 +82,7 @@
           </p>
 
           <p class="lead">
-            Sandman Combat™ did not come out of theory. It came out of fatherhood, partnership, coaching, and years of building inside a real room.
+            Sandman Combat™ did not come from theory. It came from fatherhood, partnership, coaching, and years of building inside a real training room.
           </p>
 
           <p class="lead">
@@ -84,14 +98,15 @@
 
         <div data-lang-block="es" class="hidden-lang">
           <div class="hero-kicker">Acerca</div>
+
           <h1>Nuestro propósito</h1>
 
-          <p class="hero-sub">
-            Construido a través de la familia, formado por la lucha y llevado hacia adelante mediante disciplina, progreso ganado y estándares claros.
+          <p class="lead">
+            Construido a través de la familia, formado por la lucha y llevado hacia adelante mediante disciplina, crecimiento ganado y estándares claros.
           </p>
 
           <p class="lead">
-            Sandman Combat™ no salió de teoría. Nació de la paternidad, la pareja, el entrenamiento y años de construir dentro de un espacio real.
+            Sandman Combat™ no nació de una teoría. Nació de la paternidad, la pareja, el entrenamiento y años de construir dentro de un salón real.
           </p>
 
           <p class="lead">
@@ -107,7 +122,6 @@
       </div>
     </section>
 
-    <!-- BELIEF -->
     <section class="section">
       <div data-lang-block="en">
         <h2>What We Believe</h2>
@@ -118,7 +132,6 @@
       </div>
 
       <div class="grid-2">
-        <!-- FAMILY -->
         <article class="card">
           <div data-lang-block="en">
             <h3>Family Built</h3>
@@ -128,17 +141,17 @@
             </p>
 
             <p class="lead">
-              What we want for them is simple — character that carries into life.
+              What we want for our own family is simple: character that carries into life.
             </p>
 
             <p class="lead">
-              I’m a father of five. That experience shapes how we build growth, pressure, and responsibility in the room.
+              I’m a father of five. That experience shapes how we build growth, pressure, responsibility, and confidence in the room.
             </p>
 
             <ul class="diff-list">
               <li>Fatherhood shaped the mission</li>
               <li>Growth is guided, not guessed</li>
-              <li>What I build at home, we build in the room</li>
+              <li>What we build at home, we build in the room</li>
             </ul>
           </div>
 
@@ -150,28 +163,27 @@
             </p>
 
             <p class="lead">
-              Lo que queremos para ellos es simple — carácter que se lleve a la vida.
+              Lo que queremos para nuestra propia familia es simple: carácter que se lleve a la vida.
             </p>
 
             <p class="lead">
-              Soy padre de cinco. Esa experiencia da forma a cómo construimos el crecimiento y la responsabilidad en el salón.
+              Soy padre de cinco. Esa experiencia da forma a cómo construimos crecimiento, presión, responsabilidad y confianza en el salón.
             </p>
 
             <ul class="diff-list">
               <li>La paternidad dio forma a la misión</li>
               <li>El crecimiento se guía, no se adivina</li>
-              <li>Lo que construyo en casa, lo construimos en el salón</li>
+              <li>Lo que construimos en casa, lo construimos en el salón</li>
             </ul>
           </div>
         </article>
 
-        <!-- PARTNERSHIP -->
         <article class="card">
           <div data-lang-block="en">
             <h3>Built Together</h3>
 
             <p class="lead">
-              My partner and I have built and run a local gym for over 13 years.
+              My partner and I have built and run a local gym for over 15 years.
             </p>
 
             <p class="lead">
@@ -179,7 +191,8 @@
             </p>
 
             <ul class="diff-list">
-              <li>13+ years serving the local community</li>
+              <li>45+ years combined coaching experience</li>
+              <li>15+ years serving athletes and the local community through our own facility</li>
               <li>Built through partnership, not image</li>
               <li>Family-driven foundation</li>
             </ul>
@@ -189,7 +202,7 @@
             <h3>Construido juntos</h3>
 
             <p class="lead">
-              Mi compañera y yo hemos construido y dirigido un gimnasio local por más de 13 años.
+              Mi compañera y yo hemos construido y dirigido un gimnasio local por más de 15 años.
             </p>
 
             <p class="lead">
@@ -197,16 +210,16 @@
             </p>
 
             <ul class="diff-list">
-              <li>Más de 13 años sirviendo a la comunidad</li>
+              <li>Más de 45 años de experiencia combinada entrenando atletas</li>
+              <li>Más de 15 años sirviendo a atletas y a la comunidad local a través de nuestro propio gimnasio</li>
               <li>Construido con compañerismo, no con imagen</li>
-              <li>Base familiar</li>
+              <li>Base impulsada por la familia</li>
             </ul>
           </div>
         </article>
       </div>
     </section>
 
-    <!-- ROOM -->
     <section class="section">
       <div data-lang-block="en">
         <h2>What We Bring Into The Room</h2>
@@ -222,7 +235,7 @@
             <h3>Experience</h3>
 
             <p class="lead">
-              Wrestling put the outcome in my hands. I’ve competed beyond high school, including professional fighting.
+              Wrestling taught me that the outcome was in my hands. I competed beyond high school, including professional fighting, and those lessons still shape how I coach.
             </p>
 
             <p class="lead">
@@ -230,10 +243,10 @@
             </p>
 
             <ul class="diff-list">
+              <li>25+ years coaching athletes</li>
               <li>Wrestling foundation from youth through high school</li>
-              <li>15+ years coaching athletes</li>
               <li>Head Coach — Lompoc High School</li>
-              <li>High-level combat experience</li>
+              <li>Professional and high-level combat sports experience</li>
             </ul>
           </div>
 
@@ -241,7 +254,7 @@
             <h3>Experiencia</h3>
 
             <p class="lead">
-              La lucha puso el resultado en mis manos. Competí más allá de la preparatoria, incluyendo pelea profesional.
+              La lucha me enseñó que el resultado estaba en mis manos. Competí más allá de la preparatoria, incluyendo pelea profesional, y esas lecciones siguen dando forma a cómo entreno.
             </p>
 
             <p class="lead">
@@ -249,10 +262,10 @@
             </p>
 
             <ul class="diff-list">
-              <li>Base en lucha desde joven hasta preparatoria</li>
-              <li>Más de 15 años entrenando atletas</li>
+              <li>Más de 25 años entrenando atletas</li>
+              <li>Base en lucha desde la juventud hasta la preparatoria</li>
               <li>Head Coach — Lompoc High School</li>
-              <li>Experiencia en alto nivel de combate</li>
+              <li>Experiencia profesional y de alto nivel en deportes de combate</li>
             </ul>
           </div>
         </article>
@@ -266,44 +279,53 @@
             </p>
 
             <p class="lead">
-              The room is for training, growth, and standards—nothing else.
+              The room is for training, growth, and standards — nothing else.
             </p>
 
-            <p class="lead">
-              Character is currency. Effort, attitude, and respect determine progress.
-            </p>
+<p class="lead">
+  Character is currency.
+</p>
 
-            <ul class="diff-list">
-              <li>Honor before hype</li>
-              <li>Structure before chaos</li>
-              <li>Focus before noise</li>
-            </ul>
-          </div>
+<p class="lead">
+  Hard work and consistency determine progress.
+</p>
+
+<ul class="diff-list">
+  <li>Combat with honor</li>
+  <li>Strength with purpose</li>
+  <li>Discipline every day</li>
+</ul>
+</div>
 
           <div data-lang-block="es" class="hidden-lang">
-            <h3>Estándares del Salón</h3>
+            <h3>Estándares del salón</h3>
 
             <p class="lead">
               Este es un entorno donde todo se gana.
             </p>
 
             <p class="lead">
-              El salón es para entrenar, crecer y mantener estándares—nada más.
+              El salón es para entrenar, crecer y mantener estándares — nada más.
             </p>
 
-            <p class="lead">
-              El carácter es la moneda. El esfuerzo, la actitud y el respeto determinan el progreso.
-            </p>
+<p class="lead">
+  El carácter es la moneda.
+</p>
 
-            <ul class="diff-list">
-              <li>Honor antes que espectáculo</li>
-              <li>Estructura antes que caos</li>
-              <li>Enfoque antes que ruido</li>
-            </ul>
-          </div>
+<p class="lead">
+  El progreso se gana mediante trabajo duro y constancia.
+</p>
+
+<ul class="diff-list">
+  <li>Combate con honor</li>
+  <li>Fortaleza con propósito</li>
+  <li>Disciplina cada día</li>
+</ul>
+</div>
         </article>
       </div>
     </section>
+
   </main>
 </body>
 </html>

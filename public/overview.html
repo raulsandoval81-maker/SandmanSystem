@@ -3,49 +3,65 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <meta
     name="description"
-    content="Sandman Combat™ is a wrestling-first training program for youth and teen athletes built on discipline, earned progress, and clear standards."
+    content="Sandman Combat™ is a wrestling-first training program for youth, teen, and adult athletes built on discipline, earned progress, and clear standards."
   />
+
   <title>Overview | Sandman Combat™</title>
 
   <link rel="stylesheet" href="assets/css/site.css" />
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
-<style>
-  .hero-box h2{
-    margin-bottom:.75rem;
-  }
 
-  .hero-sub{
-    margin:0;
-  }
-
-  .grid-3{
-    display:grid;
-    gap:1rem;
-  }
-
-  .grid-3 .card{
-    border:1px solid rgba(255,255,255,.08);
-    transition:
-      border-color .18s ease,
-      box-shadow .18s ease,
-      transform .18s ease;
-  }
-
-  .grid-3 .card:hover{
-    border-color:#ff2a2a;
-    box-shadow:0 0 18px rgba(255,42,42,.28);
-    transform:translateY(-2px);
-  }
-
-  @media (min-width:900px){
-    .grid-3{
-      grid-template-columns:repeat(3,1fr);
+  <style>
+    .hero h1,
+    .hero-box h2{
+      margin-bottom:.75rem;
     }
-  }
-</style>
+
+    .hero-sub{
+      margin:0;
+    }
+
+    .panel + .panel{
+      margin-top:1.25rem;
+    }
+
+    .grid-3{
+      display:grid;
+      gap:1rem;
+      margin-top:1rem;
+    }
+
+    .grid-3 .card{
+      border:1px solid rgba(255,255,255,.08);
+      transition:
+        border-color .18s ease,
+        box-shadow .18s ease,
+        transform .18s ease;
+    }
+
+    .grid-3 .card:hover{
+      border-color:#ff2a2a;
+      box-shadow:0 0 18px rgba(255,42,42,.28);
+      transform:translateY(-2px);
+    }
+
+    .overview-actions{
+      margin-top:1rem;
+      display:flex;
+      flex-wrap:wrap;
+      gap:.75rem;
+    }
+
+    @media (min-width:900px){
+      .grid-3{
+        grid-template-columns:repeat(3,1fr);
+      }
+    }
+  </style>
 </head>
 
 <body>
@@ -86,46 +102,48 @@
 
   <main class="wrap">
 
-    <!-- HERO -->
-    <section class="section hero-box">
-      <div data-lang-block="en">
-        <div class="hero-kicker">Overview</div>
-        <h2>What Sandman Combat Is</h2>
+    <section class="section">
+      <div class="hero">
+        <div data-lang-block="en">
+          <div class="hero-kicker">Overview</div>
 
-        <p class="lead">
-          Sandman Combat™ is a structured training program for youth and teen athletes built on discipline, accountability, and earned progress.
-        </p>
+          <h1>What Sandman Combat Is</h1>
 
-        <p class="lead">
-          This is not random practice or a drop-in room. Athletes show up, work, respect the process, and grow through consistent effort.
-        </p>
-      </div>
+          <p class="hero-sub">
+            Sandman Combat™ is a structured training program for youth, teen, and adult athletes built on discipline, accountability, and earned progress.
+          </p>
 
-      <div data-lang-block="es" class="hidden-lang">
-        <div class="hero-kicker">Resumen</div>
-        <h2>Qué es Sandman Combat</h2>
+          <p class="lead">
+            This is not random practice or a drop-in room. Athletes show up, work, respect the process, and grow through consistent effort.
+          </p>
 
-        <p class="lead">
-          Sandman Combat™ es un programa de entrenamiento estructurado para atletas juveniles y adolescentes, construido sobre disciplina, responsabilidad y progreso ganado.
-        </p>
+          <div class="overview-actions">
+            <a class="btn btn-primary" href="programs.html">View Programs</a>
+          </div>
+        </div>
 
-        <p class="lead">
-          Esto no es una práctica al azar ni una sala de entrada libre. Los atletas llegan, trabajan, respetan el proceso y crecen con esfuerzo constante.
-        </p>
-      </div>
+        <div data-lang-block="es" class="hidden-lang">
+          <div class="hero-kicker">Resumen</div>
 
-      <div class="actions">
-        <a class="btn btn-secondary" href="programs.html">
-          <span data-lang-block="en">View Programs</span>
-          <span data-lang-block="es" class="hidden-lang">Ver Programas</span>
-        </a>
+          <h1>Qué es Sandman Combat</h1>
 
+          <p class="hero-sub">
+            Sandman Combat™ es un programa de entrenamiento estructurado para atletas juveniles, adolescentes y adultos, construido sobre disciplina, responsabilidad y progreso ganado.
+          </p>
+
+          <p class="lead">
+            Esto no es una práctica al azar ni una sala de entrada libre. Los atletas llegan, trabajan, respetan el proceso y crecen con esfuerzo constante.
+          </p>
+
+          <div class="overview-actions">
+            <a class="btn btn-primary" href="programs.html">Ver Programas</a>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- DIFFERENCE -->
     <section class="section">
-      <div class="panel">
+      <article class="panel">
         <div data-lang-block="en">
           <h2 class="section-title">What Makes It Different</h2>
 
@@ -155,31 +173,22 @@
             <li>Sin saltar pasos</li>
           </ul>
         </div>
-      </div>
+      </article>
     </section>
 
-    <!-- STAGES -->
     <section class="section">
-      <div class="panel">
+      <article class="panel">
         <div data-lang-block="en">
           <h2 class="section-title">Built for Different Stages of Growth</h2>
-          <div class="actions">
-
-  <a class="btn btn-secondary" href="/foundry8/index.html">
-    <span data-lang-block="en">Explore Foundry 8</span>
-    <span data-lang-block="es" class="hidden-lang">Explorar Foundry 8</span>
-  </a>
-
-  <a class="btn btn-secondary" href="/foundry4/index.html">
-    <span data-lang-block="en">Explore Foundry 4</span>
-    <span data-lang-block="es" class="hidden-lang">Explorar Foundry 4</span>
-  </a>
-
-</div>
 
           <p class="lead">
             Athletes develop at different stages. Sandman Combat keeps the same standard of discipline and effort while adjusting structure to match the athlete.
           </p>
+
+          <div class="overview-actions">
+            <a class="btn btn-secondary" href="/foundry8/index.html">Explore Foundry 8</a>
+            <a class="btn btn-secondary" href="/foundry4/index.html">Explore Foundry 4</a>
+          </div>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
@@ -188,13 +197,20 @@
           <p class="lead">
             Los atletas se desarrollan en distintas etapas. Sandman Combat mantiene el mismo estándar de disciplina y esfuerzo mientras ajusta la estructura al atleta.
           </p>
+
+          <div class="overview-actions">
+            <a class="btn btn-secondary" href="/foundry8/index.html">Explorar Foundry 8</a>
+            <a class="btn btn-secondary" href="/foundry4/index.html">Explorar Foundry 4</a>
+          </div>
         </div>
 
         <div class="grid-3">
           <article class="card">
             <div data-lang-block="en">
               <div class="pill-tag">Youth</div>
+
               <h3>Foundation Years</h3>
+
               <p class="lead">
                 Younger athletes build discipline, effort, confidence, and strong habits through structured training.
               </p>
@@ -202,7 +218,9 @@
 
             <div data-lang-block="es" class="hidden-lang">
               <div class="pill-tag">Juventud</div>
+
               <h3>Años de base</h3>
+
               <p class="lead">
                 Los atletas más jóvenes construyen disciplina, esfuerzo, confianza y hábitos sólidos mediante entrenamiento estructurado.
               </p>
@@ -212,7 +230,9 @@
           <article class="card">
             <div data-lang-block="en">
               <div class="pill-tag">Teen</div>
+
               <h3>Competitive Growth</h3>
+
               <p class="lead">
                 Older athletes take on greater responsibility and develop skill, identity, and composure under pressure.
               </p>
@@ -220,7 +240,9 @@
 
             <div data-lang-block="es" class="hidden-lang">
               <div class="pill-tag">Adolescente</div>
+
               <h3>Crecimiento competitivo</h3>
+
               <p class="lead">
                 Los atletas mayores asumen más responsabilidad y desarrollan habilidad, identidad y compostura bajo presión.
               </p>
@@ -228,43 +250,34 @@
           </article>
 
           <article class="card">
+            <div data-lang-block="en">
+              <div class="pill-tag">Adult</div>
+
+              <h3>Pressure, Composure, and Mastery</h3>
 
 
-  <div data-lang-block="en">
-    <div class="pill-tag">Adult</div>
+<p class="lead">
+  Adult athletes train with purpose. Through boxing, fitness kickboxing, and self-defense training, they build conditioning, confidence, composure, and accountability through consistent effort.
+</p>
+            </div>
 
-    <h3>Pressure, Composure, and Mastery</h3>
+            <div data-lang-block="es" class="hidden-lang">
+              <div class="pill-tag">Adulto</div>
 
-    <p class="lead">
-      Adult athletes train with purpose. Whether the path is MMA or Boxing,
-      the standard is discipline, conditioning, composure, and accountability.
-      The goal is not ego or shortcuts —
-      it is earned confidence through consistent work under pressure.
-    </p>
-  </div>
+              <h3>Presión, compostura y maestría</h3>
 
-  <div data-lang-block="es" class="hidden-lang">
-    <div class="pill-tag">Adulto</div>
+<p class="lead">
+  Los atletas adultos entrenan con propósito. A través del boxeo, kickboxing fitness y defensa personal, desarrollan condición física, confianza, compostura y responsabilidad mediante un esfuerzo constante.
+</p>
 
-    <h3>Presión, compostura y maestría</h3>
-
-    <p class="lead">
-      Los atletas adultos entrenan con propósito. Ya sea en MMA o Boxeo,
-      el estándar es disciplina, acondicionamiento, compostura y responsabilidad.
-      La meta no es el ego ni los atajos —
-      es confianza ganada mediante trabajo constante bajo presión.
-    </p>
-  </div>
-
-</article>
-
+            </div>
+          </article>
         </div>
-      </div>
+      </article>
     </section>
 
-    <!-- COMBAT -->
     <section class="section">
-      <div class="panel">
+      <article class="panel">
         <div data-lang-block="en">
           <h2 class="section-title">Why “Combat”</h2>
 
@@ -288,7 +301,7 @@
             Hecho correctamente, forma atletas más fuertes y mejores personas.
           </p>
         </div>
-      </div>
+      </article>
     </section>
 
 

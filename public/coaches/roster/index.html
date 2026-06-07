@@ -8,8 +8,7 @@
   <link rel="stylesheet" href="/assets/css/site.css"/>
   <link rel="stylesheet" href="/coaches/roster/roster.css"/>
   <link rel="stylesheet" href="/assets/css/belts.css"/>
-  <link rel="icon" href="data:,"> 
-
+  <link rel="icon" href="data:,">
 </head>
 
 <body>
@@ -17,11 +16,47 @@
 
   <nav class="top-nav">
     <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    <a class="pill" href="/coaches/testing/testing-command-center.html">Testing Hub</a>
+    <button class="pill" type="button" id="toggleAttendanceMode">Take Attendance</button>
     <button class="pill" type="button" id="toggleArchiveView">Archived</button>
   </nav>
-<a href="/coaches/testing/testing-command-center.html">Testing Hub</a>
+
   <h1>Team Roster</h1>
   <p class="muted">Firestore · <code>athletes</code></p>
+
+  <section id="attendancePanel" class="card" hidden>
+    <h2>Attendance</h2>
+
+    <label>
+      Practice Type
+      <select id="practiceType">
+        <option value="wrestling">Wrestling</option>
+        <option value="boxing">Boxing</option>
+        <option value="strength">Strength</option>
+        <option value="open_mat">Open Mat</option>
+        <option value="competition">Competition</option>
+      </select>
+    </label>
+
+    <label>
+      Coach
+      <input id="coachName" type="text" value="Raul"/>
+    </label>
+
+    <label>
+      Notes
+      <textarea id="practiceNotes" rows="3" placeholder="Optional notes"></textarea>
+    </label>
+
+    <div class="top-nav">
+      <button id="selectAll" class="pill" type="button">Select All</button>
+      <button id="clearAll" class="pill" type="button">Clear All</button>
+      <button id="saveAttendance" class="pill" type="button">Save Attendance</button>
+      <span id="presentCount" class="muted">0 selected</span>
+    </div>
+
+    <p id="saveStatus" class="muted"></p>
+  </section>
 
   <div class="controls-row">
     <label class="canon-toggle">
@@ -33,17 +68,17 @@
 
   <table class="roster-table">
     <thead>
-<tr>
-  <th>Athlete</th>
-  <th>Tier / Rank</th>
-  <th>XP</th>
-  <th>Attendance</th>
-  <th></th>
-</tr>
-
+      <tr>
+        <th class="attendance-only" hidden>Present</th>
+        <th>Athlete</th>
+        <th>Tier / Rank</th>
+        <th>XP</th>
+        <th>Attendance</th>
+        <th></th>
+      </tr>
     </thead>
     <tbody id="rows">
-      <tr><td colspan="5" class="muted">Loading…</td></tr>
+      <tr><td colspan="6" class="muted">Loading…</td></tr>
     </tbody>
   </table>
 
