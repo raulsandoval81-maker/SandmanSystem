@@ -113,12 +113,18 @@ function updateRosterSummary(list = []) {
     else counts.unknown++;
   }
 
-  $("summaryActive").textContent = counts.active;
-  $("summaryWarning").textContent = counts.warning;
-  $("summaryRisk").textContent = counts.risk;
-  $("summaryEdgeLoss").textContent = counts.edgeLoss;
-  $("summaryFrozen").textContent = counts.frozen;
-  $("summaryUnknown").textContent = counts.unknown;
+const setText = (id, value) => {
+  const el = $(id);
+  if (el) el.textContent = value;
+};
+
+setText("summaryActive", counts.active);
+setText("summaryWarning", counts.warning);
+setText("summaryRisk", counts.risk);
+setText("summaryEdgeLoss", counts.edgeLoss);
+setText("summaryFrozen", counts.frozen);
+setText("summaryUnknown", counts.unknown);
+
 }
 
 function getTempoStatus(data = {}, track = "F4") {
