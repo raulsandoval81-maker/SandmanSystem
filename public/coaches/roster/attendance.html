@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Coach · Attendance</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+  <link rel="stylesheet" href="/coaches/roster/roster.css"/>
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/roster/index.html">← Roster</a>
+  </nav>
+
+  <h1>Attendance</h1>
+  <p class="muted">Create a practice attendance log and update athlete last-seen dates.</p>
+
+  <section class="card">
+    <label>
+      Practice Date
+      <input id="practiceDate" type="date"/>
+    </label>
+
+    <label>
+      Practice Type
+      <select id="practiceType">
+        <option value="wrestling">Wrestling</option>
+        <option value="boxing">Boxing</option>
+        <option value="strength">Strength</option>
+        <option value="open_mat">Open Mat</option>
+        <option value="competition">Competition</option>
+      </select>
+    </label>
+
+    <label>
+      Coach
+      <input id="coachName" type="text" value="Raul"/>
+    </label>
+
+    <label>
+      Notes
+      <textarea id="practiceNotes" rows="3" placeholder="Optional practice notes"></textarea>
+    </label>
+  </section>
+
+  <section class="card">
+    <div class="top-nav">
+      <button id="selectAll" class="pill" type="button">Select All</button>
+      <button id="clearAll" class="pill" type="button">Clear All</button>
+      <span id="presentCount" class="muted">0 selected</span>
+    </div>
+  </section>
+
+  <div id="attendanceList" class="card">
+    Loading...
+  </div>
+
+  <section class="card">
+    <button id="saveAttendance" class="pill" type="button">
+      Save Attendance
+    </button>
+    <p id="saveStatus" class="muted"></p>
+  </section>
+
+</main>
+
+<script type="module" src="/coaches/roster/attendance.js"></script>
+</body>
+</html>
