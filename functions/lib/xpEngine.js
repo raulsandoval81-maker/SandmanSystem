@@ -466,6 +466,14 @@ async function runIncrementXp(coachUid, payload) {
             updatedAt: now,
             ...monthPatch,
         };
+        const shouldStampAttendance = kind === "ATTENDANCE" ||
+            kind === "ARENA/BATTLE";
+        if (shouldStampAttendance) {
+            patch.lastAttendanceAt = now;
+            patch.lastAttendanceType = "combat_activity";
+            patch.lastAttendanceSource = kind;
+            patch.lastAttendanceCoach = coachUid;
+        }
         // AUTO TESTING STAGE (FINAL — CORRECT FOR YOUR SCHEMA)
         const ratio = xpCap > 0 ? afterXp / xpCap : 0;
         const currentState = String(a?.testing?.state || "ACTIVE");

@@ -924,6 +924,7 @@ const stripeCount = stripeCountForCombatTotal(afterCombatTotal, cap);
       xpFightIQ: afterFightIQ,
       stripeCount,
     };
+    
 
     // ✅ F4: always store lanes
     if (base === "F4") {

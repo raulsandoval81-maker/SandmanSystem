@@ -92,6 +92,34 @@ function edgeChipHtml(data = {}) {
 
   return `<span class="status-chip">No Attendance</span>`;
 }
+function updateRosterSummary(list = []) {
+  const counts = {
+    active: 0,
+    warning: 0,
+    risk: 0,
+    edgeLoss: 0,
+    frozen: 0,
+    unknown: 0
+  };
+
+  for (const { data } of list) {
+    const status = edgeStatusOf(data);
+
+    if (status === "active") counts.active++;
+    else if (status === "warning") counts.warning++;
+    else if (status === "at-risk") counts.risk++;
+    else if (status === "edge-loss") counts.edgeLoss++;
+    else if (status === "frozen") counts.frozen++;
+    else counts.unknown++;
+  }
+
+  $("summaryActive").textContent = counts.active;
+  $("summaryWarning").textContent = counts.warning;
+  $("summaryRisk").textContent = counts.risk;
+  $("summaryEdgeLoss").textContent = counts.edgeLoss;
+  $("summaryFrozen").textContent = counts.frozen;
+  $("summaryUnknown").textContent = counts.unknown;
+}
 
 function getTempoStatus(data = {}, track = "F4") {
   const xp = Number(data.xp || 0);
@@ -264,6 +292,7 @@ async function loadRoster() {
   if (countMeta) {
     countMeta.textContent = `${track} · ${wantedStatus} · ${currentList.length} athletes`;
   }
+  updateRosterSummary(currentList);
 rowsEl.innerHTML = currentList.length
   ? currentList.map(({ id, data }) => `
     <tr>
