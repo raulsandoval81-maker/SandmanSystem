@@ -253,52 +253,63 @@ async function loadRoster() {
   if (countMeta) {
     countMeta.textContent = `${track} · ${wantedStatus} · ${currentList.length} athletes`;
   }
+rowsEl.innerHTML = currentList.length
+  ? currentList.map(({ id, data }) => `
+    <tr>
+      <td class="attendance-only" data-label="Present" ${attendanceMode ? "" : "hidden"}>
+        <input class="attendance-check" type="checkbox" value="${id}">
+      </td>
 
-  rowsEl.innerHTML = currentList.length
-    ? currentList.map(({ id, data }) => `
-      <tr>
-        <td class="attendance-only" data-label="Present" ${attendanceMode ? "" : "hidden"}>
-          <input class="attendance-check" type="checkbox" value="${id}">
-        </td>
+      <td data-label="Athlete">
+        <div class="name-col">
+          <div>
 
-        <td data-label="Athlete">
-          <div class="name-col">
             <div class="name-line">
               ${athleteName(data, id)}
               ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
             </div>
+
+            <div class="roster-actions" style="margin-top:6px;">
+              <a
+                class="pill"
+                href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}"
+              >
+                Profile
+              </a>
+
+              ${
+                isArchiveView()
+                  ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
+                  : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
+              }
+            </div>
+
           </div>
-        </td>
+        </div>
+      </td>
 
-        <td data-label="Tier / Rank">${data.rankName || "—"}</td>
+      <td data-label="Tier / Rank">
+        ${data.rankName || "—"}
+      </td>
 
-        <td data-label="XP">
-          <div class="belt-stack">
-            <div id="rankBar-${id}" class="mini-belt-slot"></div>
-            <div id="stripeText-${id}" class="xp-sub"></div>
-          </div>
-        </td>
+      <td data-label="XP">
+        <div class="belt-stack">
+          <div id="rankBar-${id}" class="mini-belt-slot"></div>
+          <div id="stripeText-${id}" class="xp-sub"></div>
+        </div>
+      </td>
 
-        <td data-label="Attendance">
-          <div class="xp-sub">Last seen: ${lastSeenText(data)}</div>
-          ${!isArchiveView() ? edgeChipHtml(data) : ""}
-        </td>
+      <td data-label="Attendance">
+        <div class="xp-sub">
+          Last seen: ${lastSeenText(data)}
+        </div>
+        ${!isArchiveView() ? edgeChipHtml(data) : ""}
+      </td>
 
-        <td data-label="Actions">
-          <div class="roster-actions">
-            <a class="pill" href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}">
-              Profile
-            </a>
-            ${
-              isArchiveView()
-                ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
-                : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
-            }
-          </div>
-        </td>
-      </tr>
-    `).join("")
-    : `<tr><td colspan="6" class="muted">No athletes found.</td></tr>`;
+    </tr>
+  `).join("")
+  : `<tr><td colspan="5" class="muted">No athletes found.</td></tr>`;
+
 
   document.querySelectorAll(".attendance-check").forEach((box) => {
     box.addEventListener("change", updatePresentCount);
