@@ -139,12 +139,23 @@ async function restoreAthlete(uid) {
 function updateAttendanceUi() {
   const panel = $("attendancePanel");
   const toggle = $("toggleAttendanceMode");
+  const archived = isArchiveView();
 
-  if (panel) panel.hidden = !attendanceMode;
-  if (toggle) toggle.textContent = attendanceMode ? "Exit Attendance" : "Take Attendance";
+  if (archived) {
+    attendanceMode = false;
+  }
+
+  if (panel) {
+    panel.hidden = archived || !attendanceMode;
+  }
+
+  if (toggle) {
+    toggle.hidden = archived;
+    toggle.textContent = attendanceMode ? "Exit Attendance" : "Take Attendance";
+  }
 
   document.querySelectorAll(".attendance-only").forEach((el) => {
-    el.hidden = !attendanceMode;
+    el.hidden = archived || !attendanceMode;
   });
 
   updatePresentCount();
@@ -412,11 +423,17 @@ loadRoster();
 $("trackF8Only")?.addEventListener("change", loadRoster);
 
 $("toggleArchiveView")?.addEventListener("click", () => {
+  attendanceMode = false;
   window.__rosterArchiveView = !window.__rosterArchiveView;
   loadRoster();
 });
 
 $("toggleAttendanceMode")?.addEventListener("click", () => {
+
+  if (isArchiveView()) {
+    return;
+  }
+
   attendanceMode = !attendanceMode;
   updateAttendanceUi();
 });
