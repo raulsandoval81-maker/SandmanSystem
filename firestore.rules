@@ -450,6 +450,16 @@ service cloud.firestore {
     }
 
     /* --------------------------------------
+   Attendance Sessions
+---------------------------------------*/
+match /attendance_sessions/{sessionId} {
+  allow read: if isCoachOrAdmin();
+  allow create: if request.auth != null;
+  allow update: if request.auth != null;
+  allow delete: if false;
+}
+
+    /* --------------------------------------
        DEFAULT CLOSED
     ---------------------------------------*/
     match /{document=**} {

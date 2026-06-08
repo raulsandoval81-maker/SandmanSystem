@@ -1,7 +1,7 @@
 // /assets/js/xp-bar-lite.js
 // Slim XP bar with tight-left, full-height stripe cuts (north/south)
 
-const LITE_XP_CAP_DEFAULT = 1200;
+const LITE_XP_CAP_DEFAULT = 1000;
 const LITE_STRIPES_MAX = 4;
 
 function clamp(n, min, max) {

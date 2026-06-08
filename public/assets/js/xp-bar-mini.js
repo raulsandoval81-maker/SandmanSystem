@@ -31,7 +31,7 @@ function stripeToneFor(hex = "") {
 export function renderMiniXpBar({
   container,
   xp = 0,
-  cap = 1200,
+  cap = 1000,
   tierName = "Apprentice",
   stripesEarned = 0,
   stripesTotal = 4,

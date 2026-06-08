@@ -487,3 +487,8 @@ td[data-label="Present"]{
 .status-dot--edge{ background:#ff453a; }
 .status-dot--freeze{ background:#5ac8fa; }
 .status-dot--unknown{ background:#8e8e93; }
+.status-filter.is-active{
+  background:#dbeafe;
+  color:#0a0a0a;
+  border-color:#dbeafe;
+}

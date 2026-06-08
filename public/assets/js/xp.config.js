@@ -22,14 +22,13 @@ export const XP_CONFIG = Object.freeze({
 // NOTE: unchanged until teen legacy migration is decided.
 // =========================
 foundry4: {
-tierCaps: {
-T0: 1200,
-T1: 1600,
-T2: 2000,
-T3: 2400,
-T4: 2800
-},
-
+  tierCaps: {
+    T0: 1000,
+    T1: 1600,
+    T2: 2000,
+    T3: 2400,
+    T4: 3000
+  },
 
 monthly: {
   attendance: 200,

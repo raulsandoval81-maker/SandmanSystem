@@ -19,7 +19,7 @@ tiers: [
   foundry4: {
     name: "Foundry 4 (Teen/Adult)",
     tiers: [
-      { tier: "T0", name: "Apprentice", xpCap: 1200, stripeCount: 4, stripeXP: 300, badge: "apprentice.png" },
+      { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "apprentice.png" },
       { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
       { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "champion.png" },
       { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "veteran.png" },

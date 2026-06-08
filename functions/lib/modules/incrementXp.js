@@ -27,7 +27,7 @@ const STRIPES_PER_TIER = 4;
 const XP = Object.freeze({
     // Foundry 4 (Teen) — arena monthly cap removed (unlimited)
     F4: {
-        tierCaps: { T0: 1200, T1: 1600, T2: 2000, T3: 2400, T4: 2800 },
+        tierCaps: { T0: 1000, T1: 1600, T2: 2000, T3: 2400, T4: 3000 },
         monthly: {
             attendance: 200,
             arena: { T0: null, T1: null, T2: null, T3: null, T4: null }, // unlimited

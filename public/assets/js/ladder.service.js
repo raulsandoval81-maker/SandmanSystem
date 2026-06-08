@@ -25,11 +25,11 @@ export const LADDER_F8 = LADDER_YOUTH;
 
 // ---------- Foundry 4 / Teen (R0–R4) ----------
 export const LADDER_F4 = [
-  { key: "R0", name: "Apprentice", cap: 1200, stripe: 300, stripes: 4 },
+  { key: "R0", name: "Apprentice", cap: 1000, stripe: 250, stripes: 4 },
   { key: "R1", name: "Warrior",    cap: 1600, stripe: 400, stripes: 4 },
   { key: "R2", name: "Champion",   cap: 2000, stripe: 500, stripes: 4 },
   { key: "R3", name: "Veteran",    cap: 2400, stripe: 600, stripes: 4 },
-  { key: "R4", name: "Legend",     cap: 2800, stripe: 650, stripes: 4 }, // final
+  { key: "R4", name: "Legend",     cap: 3000, stripe: 750, stripes: 4 },
 ];
 
 // ---------- Quest2Mastery / Adult (R0–R4) ----------
@@ -119,7 +119,9 @@ export function getLadderForAthlete(a = {}) {
 
 export function getAthleteStripeInfo(a = {}) {
   const xp = Math.max(0, Number(a.xp || 0));
-  const xpCap = Math.max(1, Number(a.xpCap || 1200));
+const ladder = getLadderForAthlete(a);
+const fallbackCap = Number(ladder?.[0]?.cap || 1000);
+const xpCap = Math.max(1, Number(a.xpCap || fallbackCap));
 
   const stripesTotal = 4;
   const stripeSize = xpCap / stripesTotal;

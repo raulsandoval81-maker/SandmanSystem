@@ -31,7 +31,13 @@ function xpCapForAthlete(data = {}, track = "F4") {
   const rankName = data.rankName || data.tierName;
   const tier = ladder.find((t) => t.name === rankName) || ladder[0];
 
-  return Number(tier?.cap ?? data.xpCap ?? data.cap ?? data.tierCap ?? 1200);
+  return Number(
+    tier?.cap ??
+    data.xpCap ??
+    data.cap ??
+    data.tierCap ??
+    (track === "F8" ? 600 : 1000)
+  );
 }
 
 function rosterStatusOf(a = {}) {
@@ -533,6 +539,11 @@ $("saveAttendance")?.addEventListener("click", saveAttendance);
 document.querySelectorAll(".status-filter").forEach((btn) => {
   btn.addEventListener("click", () => {
     statusFilter = btn.dataset.statusFilter || "all";
+
+    document.querySelectorAll(".status-filter").forEach((b) => {
+      b.classList.toggle("is-active", b === btn);
+    });
+
     loadRoster();
   });
 });

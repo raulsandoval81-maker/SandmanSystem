@@ -18,6 +18,7 @@
     <a class="pill" href="/coaches/index.html">← Coach Index</a>
     <button class="pill" type="button" id="toggleAttendanceMode">Take Attendance</button>
     <button class="pill" type="button" id="toggleArchiveView">Archived</button>
+    <a class="pill" href="/coaches/attendance/">Attendance History</a>
   </nav>
 
   <h1>Team Roster</h1>
@@ -64,35 +65,25 @@
     </label>
     <span id="countMeta" class="muted count-meta"></span>
   </div>
+
   <section class="roster-summary" aria-label="Roster summary">
-  <div class="summary-pill">
-    🟢 Active: <strong id="summaryActive">0</strong>
-  </div>
-  <div class="summary-pill">
-    🟡 Warning: <strong id="summaryWarning">0</strong>
-  </div>
-  <div class="summary-pill">
-    🟠 At Risk: <strong id="summaryRisk">0</strong>
-  </div>
-  <div class="summary-pill">
-    🔴 Edge Loss: <strong id="summaryEdgeLoss">0</strong>
-  </div>
-  <div class="summary-pill">
-    ❄️ Frozen: <strong id="summaryFrozen">0</strong>
-  </div>
-  <div class="summary-pill">
-    ⚪ No Attendance: <strong id="summaryUnknown">0</strong>
-  </div>
+    <div class="summary-pill">🟢 Active: <strong id="summaryActive">0</strong></div>
+    <div class="summary-pill">🟡 Warning: <strong id="summaryWarning">0</strong></div>
+    <div class="summary-pill">🟠 At Risk: <strong id="summaryRisk">0</strong></div>
+    <div class="summary-pill">🔴 Edge Loss: <strong id="summaryEdgeLoss">0</strong></div>
+    <div class="summary-pill">❄️ Frozen: <strong id="summaryFrozen">0</strong></div>
+    <div class="summary-pill">⚪ No Attendance: <strong id="summaryUnknown">0</strong></div>
+  </section>
+
   <div class="status-filters">
-  <button class="pill status-filter" data-status-filter="all">All</button>
-  <button class="pill status-filter" data-status-filter="unknown">⚪ No Attendance</button>
-  <button class="pill status-filter" data-status-filter="warning">🟡 Warning</button>
-  <button class="pill status-filter" data-status-filter="at-risk">🟠 At Risk</button>
-  <button class="pill status-filter" data-status-filter="edge-loss">🔴 Edge Loss</button>
-  <button class="pill status-filter" data-status-filter="frozen">🔵 Frozen</button>
-  <button class="pill status-filter" data-status-filter="active">🟢 Active</button>
-</div>
-</section>
+    <button class="pill status-filter is-active" data-status-filter="all">All</button>
+    <button class="pill status-filter" data-status-filter="unknown">⚪ No Attendance</button>
+    <button class="pill status-filter" data-status-filter="warning">🟡 Warning</button>
+    <button class="pill status-filter" data-status-filter="at-risk">🟠 At Risk</button>
+    <button class="pill status-filter" data-status-filter="edge-loss">🔴 Edge Loss</button>
+    <button class="pill status-filter" data-status-filter="frozen">🔵 Frozen</button>
+    <button class="pill status-filter" data-status-filter="active">🟢 Active</button>
+  </div>
 
   <table class="roster-table">
     <thead>
@@ -102,11 +93,10 @@
         <th>Tier / Rank</th>
         <th>XP</th>
         <th>Attendance</th>
-        <th></th>
       </tr>
     </thead>
     <tbody id="rows">
-      <tr><td colspan="6" class="muted">Loading…</td></tr>
+      <tr><td colspan="5" class="muted">Loading…</td></tr>
     </tbody>
   </table>
 

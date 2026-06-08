@@ -95,7 +95,7 @@ function xpCapForAthlete(a = {}) {
     a.xpCap ??
     a.cap ??
     a.tierCap ??
-    1200
+    (baseFromAthlete(a) === "F8" ? 600 : 1000)
   );
 
 }
