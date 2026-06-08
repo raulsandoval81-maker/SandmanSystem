@@ -12,13 +12,34 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
+function accountabilityLevelFromKind(kind = "") {
+  const k = String(kind || "").toUpperCase();
+
+  if (k.includes("ACCOUNTABILITY/MAJOR")) return "major_infraction";
+  if (k.includes("ACCOUNTABILITY/SEMI")) return "semi_major_infraction";
+  if (k.includes("ACCOUNTABILITY/MINOR")) return "minor_infraction";
+
+  return null;
+}
+
+function transitionStatusFromKind(kind = "") {
+  const k = String(kind || "").toUpperCase();
+  return k.includes("TRANSITION") ? "transition_credit" : null;
+}
+
+function safeKeyFromDate() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${yyyy}_${mm}_adjustment`;
+}
+
 export async function applyXpAdjustment({
   uid,
   amount,
   kind,
   note
 }) {
-
   const athleteIdClean = String(uid || "")
     .trim()
     .toUpperCase();
@@ -50,11 +71,35 @@ export async function applyXpAdjustment({
   const athlete = athleteSnap.data() || {};
 
   const beforeXp = Number(athlete.xp || 0);
+  const afterXp = Math.max(0, beforeXp + xpAmount);
 
-  const afterXp = Math.max(
-    0,
-    beforeXp + xpAmount
-  );
+  const accountabilityType = accountabilityLevelFromKind(xpKind);
+  const transitionType = transitionStatusFromKind(xpKind);
+
+  const adjustmentKey = safeKeyFromDate();
+
+  const athletePatch = {
+    xp: afterXp,
+    updatedAt: serverTimestamp()
+  };
+
+  if (accountabilityType) {
+    athletePatch[`accountability.${adjustmentKey}`] = {
+      amount: xpAmount,
+      type: accountabilityType,
+      reason: xpNote || "Conduct inconsistent with program standards",
+      appliedAt: serverTimestamp()
+    };
+  }
+
+  if (transitionType) {
+    athletePatch[`transitionAdjustments.${adjustmentKey}`] = {
+      amount: xpAmount,
+      type: transitionType,
+      reason: xpNote || "F4 ladder migration transition credit",
+      appliedAt: serverTimestamp()
+    };
+  }
 
   console.log("[XP ADJUST]", {
     athleteIdClean,
@@ -64,16 +109,7 @@ export async function applyXpAdjustment({
     xpKind
   });
 
-  console.log("[XP ADJUST] BEFORE athlete update");
-
-  await updateDoc(athleteRef, {
-    xp: afterXp,
-    updatedAt: serverTimestamp()
-  });
-
-  console.log("[XP ADJUST] AFTER athlete update");
-
-  console.log("[XP ADJUST] BEFORE xpLogs create");
+  await updateDoc(athleteRef, athletePatch);
 
   await addDoc(collection(db, "xpLogs"), {
     uid: athleteIdClean,
@@ -87,17 +123,18 @@ export async function applyXpAdjustment({
     coachUid: athlete.coachUid || "ADMIN",
     meta: {
       source: "admin_adjustment",
-      note: xpNote
+      note: xpNote,
+      accountabilityType,
+      transitionType
     },
     createdAt: serverTimestamp()
   });
-
-  console.log("[XP ADJUST] AFTER xpLogs create");
 
   return {
     uid: athleteIdClean,
     beforeXp,
     afterXp,
-    amount: xpAmount
+    amount: xpAmount,
+    kind: xpKind
   };
 }

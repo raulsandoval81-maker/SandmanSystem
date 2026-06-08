@@ -9,9 +9,7 @@
   <link rel="stylesheet" href="/assets/css/site.css" />
 
   <style>
-    :root{
-      color-scheme:dark;
-    }
+    :root{ color-scheme:dark; }
 
     body{
       background:#06080d;
@@ -98,6 +96,13 @@
       resize:vertical;
     }
 
+    .hint{
+      color:#9ca3af;
+      font-size:.78rem;
+      font-weight:700;
+      margin-top:-8px;
+    }
+
     .athlete-preview{
       margin-top:-6px;
       min-height:0;
@@ -172,8 +177,8 @@
     <h1>XP Adjustments</h1>
 
     <p>
-      Admin-only reconciliation lane for delayed testing,
-      paper recovery, and correction handling.
+      Admin-only lane for transition credits, accountability deductions,
+      paper recovery, and manual correction handling.
     </p>
   </section>
 
@@ -190,29 +195,53 @@
 
       <label>
         XP Amount
-        <input id="amount" type="number" placeholder="25" />
+        <input id="amount" type="number" placeholder="-200 or 200" />
       </label>
 
+      <div class="hint">
+        Use negative numbers for deductions. Example: -25, -100, -200.
+      </div>
+
       <label>
-  Kind
-  <select id="kind">
+        Kind
+        <select id="kind">
+          <optgroup label="Accountability">
+            <option value="ACCOUNTABILITY/MINOR">
+              ACCOUNTABILITY/MINOR · -25 Character
+            </option>
 
+            <option value="ACCOUNTABILITY/SEMI_MAJOR">
+              ACCOUNTABILITY/SEMI_MAJOR · -100 XP
+            </option>
 
-    <option value="PAPER_RECONCILE_ARENA">
-      PAPER_RECONCILE_ARENA
-    </option>
+            <option value="ACCOUNTABILITY/MAJOR">
+              ACCOUNTABILITY/MAJOR · -200 XP
+            </option>
+          </optgroup>
 
-    <option value="PAPER_RECONCILE_GRIND">
-      PAPER_RECONCILE_GRIND
-    </option>
+          <optgroup label="Transition">
+            <option value="TRANSITION/CREDIT">
+              TRANSITION/CREDIT · +200
+            </option>
+          </optgroup>
 
-    <option value="OTHER">
-      OTHER
-    </option>
+          <optgroup label="Paper Reconcile">
+            <option value="PAPER_RECONCILE_ARENA">
+              PAPER_RECONCILE_ARENA
+            </option>
 
-  </select>
-</label>
+            <option value="PAPER_RECONCILE_GRIND">
+              PAPER_RECONCILE_GRIND
+            </option>
+          </optgroup>
 
+          <optgroup label="Other">
+            <option value="OTHER">
+              OTHER
+            </option>
+          </optgroup>
+        </select>
+      </label>
 
       <label>
         Notes
@@ -242,6 +271,6 @@
 
 </main>
 
-<script type="module" src="./xp-adjustments.page.js?v=2"></script>
+<script type="module" src="./xp-adjustments.page.js?v=3"></script>
 </body>
 </html>
