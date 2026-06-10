@@ -735,7 +735,7 @@ if (programTrack === "quest2mastery") {
     "🥋 MMA · Quest 2 Mastery";
 }
 
-if (programTrack === "road2glory") {
+if (programTrack === "road2greatness") {
   combatArcLabel =
     "🥊 Boxing · Road 2 Glory";
 }

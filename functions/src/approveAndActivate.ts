@@ -336,14 +336,10 @@ const safePriorExperienceValidation =
 
       tx.update(counterRef, { next: n + 1 });
 
-const isAdultTrack =
-  placement?.programTrack === "quest2mastery" ||
-  placement?.programTrack === "road2glory";
-
 const starter =
   foundry === "f4"
     ? {
-        tier: isAdultTrack ? "T1" : "T0",
+        tier: "T0",
         rankName: "Apprentice",
         rankColor: "white",
         xpCap: 1200

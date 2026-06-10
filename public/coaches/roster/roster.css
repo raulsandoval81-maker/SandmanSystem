@@ -1,66 +1,100 @@
 :root{
   color-scheme:dark;
+
+  --bg:#070a0f;
+  --panel:#0f1620;
+  --panel-2:#111b27;
+  --line:#223044;
+  --line-soft:rgba(255,255,255,.08);
+
+  --text:#f5f7fb;
+  --muted:#9fb0c4;
+  --muted-2:#718096;
+
+  --gold:#ffd633;
+  --blue:#dbeafe;
+  --green:#35c759;
+  --yellow:#ffd633;
+  --orange:#ff9f0a;
+  --red:#ff453a;
+  --ice:#5ac8fa;
+  --gray:#8e8e93;
+
+  --radius:16px;
+  --shadow:0 18px 50px rgba(0,0,0,.28);
+}
+
+*{
+  box-sizing:border-box;
 }
 
 body{
-  background:#0a0a0a;
-  color:#f5f5f5;
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
   margin:0;
+  background:
+    radial-gradient(circle at top, rgba(255,214,51,.08), transparent 34rem),
+    var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 }
 
 .wrap{
-  max-width:1100px;
+  max-width:1120px;
   margin:0 auto;
-  padding:24px;
+  padding:28px 20px 56px;
 }
 
 h1{
   margin:0 0 8px;
+  font-size:clamp(2rem,5vw,3.4rem);
+  line-height:1;
+  letter-spacing:-.04em;
 }
 
 .muted{
-  color:#9fb3c8;
+  color:var(--muted);
+}
+
+.sub{
+  display:block;
+  font-size:.74rem;
+  color:var(--muted-2);
+  margin-top:3px;
+}
+
+/* ===============================
+   NAV / BUTTONS
+================================ */
+
+.top-nav,
+.controls-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
 }
 
 .top-nav{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:16px;
+  margin-bottom:18px;
 }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:14px;
-}
-
-th,td{
-  padding:10px 6px;
-  border-bottom:1px solid #1c2533;
-  font-size:.9rem;
-  vertical-align:top;
-}
-
-th{
-  text-align:left;
-  color:#c9d6e5;
-}
-
-tr:hover{
-  background:rgba(255,255,255,.03);
+.controls-row{
+  margin:16px 0;
 }
 
 .pill{
-  display:inline-block;
-  background:#263142;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+  min-height:32px;
+  background:linear-gradient(180deg,#263244,#1a2433);
   border:1px solid #3a4a60;
   border-radius:999px;
-  padding:.25rem .65rem;
-  color:#dbeafe;
+  padding:.35rem .78rem;
+  color:var(--blue);
   text-decoration:none;
-  font-size:.75rem;
+  font-size:.76rem;
+  font-weight:800;
   white-space:nowrap;
   cursor:pointer;
 }
@@ -71,107 +105,15 @@ button.pill{
   font:inherit;
 }
 
-.name-col{
-  display:flex;
-  align-items:flex-start;
-  gap:8px;
+.pill:hover{
+  border-color:rgba(255,214,51,.5);
+  color:#fff7bf;
 }
 
-.name-line{
-  font-weight:700;
-}
-
-.sub{
-  display:block;
-  font-size:.7rem;
-  color:#7a8aa1;
-}
-
-.bonsai-chip{
-  width:20px;
-  height:20px;
-  border-radius:999px;
-  border:1px solid #ffd63333;
-  background:radial-gradient(circle,#ffd63344 0%,#0a0a0a 90%);
-  display:inline-block;
-  flex:0 0 auto;
-  margin-top:2px;
-}
-
-/* ===============================
-   BELT STACK (Roster → Combat UI)
-================================ */
-
-.belt-stack{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  min-width:200px;
-}
-
-.xp-lite-track{
-  position:relative;
-  height:14px;
-  border-radius:6px;
-  overflow:hidden;
-  background:rgba(255,255,255,.14);
-}
-
-.xp-lite-fill{
-  position:absolute;
-  inset:0 auto 0 0;
-  height:100%;
-  width:0%;
-  z-index:1; /* fill sits under stripes */
-}
-
-/* belt-bar.js stripe system support */
-.xp-lite-track .stripe-bars{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:stretch;
-  justify-content:flex-start;
-  pointer-events:none;
-  z-index:6; /* stripes above fill */
-}
-
-.xp-lite-track .stripe-bar{
-  height:100%;
-  box-sizing:border-box;
-}
-
-/* text under belt */
-.xp-sub{
-  font-size:12px;
-  opacity:.75;
-  letter-spacing:.2px;
-  line-height:1.1;
-}
-.xp-lite-track .stripe-bars{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:stretch;
-  justify-content:flex-start;
-
-  /* THIS is the missing lock */
-  width:fit-content;
-  max-width:100%;
-
-  pointer-events:none;
-  z-index:6;
-}
-/* ===============================
-   CONTROLS
-================================ */
-
-.controls-row{
-  display:flex;
-  align-items:center;
-  gap:14px;
-  margin:10px 0 12px;
-  flex-wrap:wrap;
+.status-filter.is-active{
+  background:var(--blue);
+  color:#07111f;
+  border-color:var(--blue);
 }
 
 .canon-toggle{
@@ -183,29 +125,234 @@ button.pill{
 }
 
 .count-meta{
-  font-size:.78rem;
-  opacity:.85;
+  font-size:.8rem;
+  color:var(--muted);
 }
+
+/* ===============================
+   CARDS / FORMS
+================================ */
+
+.card,
+.card-lite{
+  background:linear-gradient(180deg,var(--panel),#0b111a);
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  padding:18px;
+  margin:16px 0 20px;
+  box-shadow:var(--shadow);
+}
+
+.card label{
+  display:block;
+  margin:0 0 12px;
+  color:#c9d6e5;
+  font-size:.86rem;
+  font-weight:800;
+}
+
+.card input,
+.card select,
+.card textarea{
+  width:100%;
+  margin-top:6px;
+  background:#070a0f;
+  color:var(--text);
+  border:1px solid #34455c;
+  border-radius:12px;
+  padding:11px 12px;
+  font:inherit;
+}
+
+.card input:focus,
+.card select:focus,
+.card textarea:focus{
+  outline:2px solid rgba(255,214,51,.7);
+  border-color:var(--gold);
+}
+
+.attendance-check{
+  width:18px;
+  height:18px;
+  cursor:pointer;
+}
+
+/* ===============================
+   ROSTER TABLE
+================================ */
+
+.roster-table{
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  margin-top:16px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:var(--radius);
+  background:rgba(15,22,32,.72);
+}
+
+.roster-table th,
+.roster-table td{
+  padding:12px 10px;
+  border-bottom:1px solid var(--line-soft);
+  font-size:.9rem;
+  vertical-align:top;
+}
+
+.roster-table th{
+  text-align:left;
+  color:#c9d6e5;
+  background:#121b28;
+  font-size:.75rem;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+
+.roster-table tr:last-child td{
+  border-bottom:none;
+}
+
+.roster-table tbody tr:hover{
+  background:rgba(255,255,255,.035);
+}
+
+.name-col{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+
+.name-line{
+  font-weight:900;
+  color:#fff;
+}
+
+.bonsai-chip{
+  width:22px;
+  height:22px;
+  border-radius:999px;
+  border:1px solid rgba(255,214,51,.28);
+  background:radial-gradient(circle,#ffd63355 0%,#10151c 76%);
+  flex:0 0 auto;
+  margin-top:2px;
+}
+
+.roster-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+/* ===============================
+   BELT / XP DISPLAY
+================================ */
+
+.belt-stack{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  min-width:220px;
+}
+
+.xp-lite-track{
+  position:relative;
+  width:100%;
+  height:14px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,.14);
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.xp-lite-fill{
+  position:absolute;
+  inset:0 auto 0 0;
+  height:100%;
+  width:0%;
+  z-index:1;
+}
+
+.xp-lite-track .stripe-bars{
+  position:absolute;
+  inset:0;
+  display:flex;
+  align-items:stretch;
+  justify-content:flex-start;
+  width:fit-content;
+  max-width:100%;
+  pointer-events:none;
+  z-index:6;
+}
+
+.xp-lite-track .stripe-bar{
+  height:100%;
+  box-sizing:border-box;
+}
+
+.xp-sub{
+  font-size:12px;
+  color:var(--muted);
+  letter-spacing:.2px;
+  line-height:1.2;
+}
+
+/* ===============================
+   STATUS / ATTENDANCE
+================================ */
+
+.status-chip{
+  display:inline-flex;
+  align-items:center;
+  margin-left:8px;
+  padding:3px 8px;
+  border-radius:999px;
+  font-size:.7rem;
+  font-weight:900;
+  line-height:1.2;
+  vertical-align:middle;
+  white-space:nowrap;
+}
+
+.status-chip--ready{
+  background:rgba(255,214,51,.12);
+  border:1px solid rgba(255,214,51,.38);
+  color:var(--gold);
+}
+
+.status-chip--tempo{
+  background:rgba(53,199,89,.12);
+  border:1px solid rgba(53,199,89,.38);
+  color:var(--green);
+}
+
+.status-dot{
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  display:inline-block;
+  margin-right:6px;
+}
+
+.status-dot--active{ background:var(--green); }
+.status-dot--warning{ background:var(--yellow); }
+.status-dot--risk{ background:var(--orange); }
+.status-dot--edge{ background:var(--red); }
+.status-dot--freeze,
+.status-dot--frozen{ background:var(--ice); }
+.status-dot--unknown{ background:var(--gray); }
 
 /* ===============================
    TEMPLE WATCH
 ================================ */
 
-.card-lite{
-  background:#10151c;
-  border:1px solid #1c2533;
-  border-radius:16px;
-  padding:16px;
-  margin:14px 0 18px;
-}
-
 .temple-watch-row{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  gap:10px;
-  padding:10px 0;
-  border-bottom:1px solid #1c2533;
+  gap:12px;
+  padding:12px 0;
+  border-bottom:1px solid var(--line-soft);
   flex-wrap:wrap;
 }
 
@@ -220,12 +367,12 @@ button.pill{
 }
 
 .temple-watch-name{
-  font-weight:700;
+  font-weight:900;
 }
 
 .temple-watch-meta{
-  font-size:.8rem;
-  color:#9fb3c8;
+  font-size:.82rem;
+  color:var(--muted);
 }
 
 .temple-watch-actions{
@@ -234,92 +381,19 @@ button.pill{
   flex-wrap:wrap;
 }
 
-.belt-stack{
-  min-width: 220px;
-}
+/* ===============================
+   MOBILE CARD LAYOUT
+================================ */
 
-@media (max-width: 700px){
-  table{
-    table-layout: fixed;
-  }
-
-  th:nth-child(1), td:nth-child(1){
-    width: 26%;
-  }
-
-  th:nth-child(2), td:nth-child(2){
-    width: 20%;
-  }
-
-  th:nth-child(3), td:nth-child(3){
-    width: 34%;
-  }
-
-  th:nth-child(4), td:nth-child(4){
-    width: 20%;
-  }
-
-  .belt-stack{
-    min-width: 0;
-    width: 100%;
-  }
-
-  .xp-lite-track{
-    min-width: 160px;
-    width: 100%;
-  }
-
-  td{
-    word-break: break-word;
-  }
-
-  td:last-child > div{
-    align-items: flex-start;
-  }
-}
-.status-chip{
-  display:inline-flex;
-  align-items:center;
-  margin-left:8px;
-  padding:2px 8px;
-  border-radius:999px;
-  font-size:.7rem;
-  line-height:1.2;
-  vertical-align:middle;
-  white-space:nowrap;
-}
-
-.status-chip--ready{
-  background:rgba(255, 214, 51, .12);
-  border:1px solid rgba(255, 214, 51, .35);
-  color:#ffd633;
-}
-
-.status-chip--tempo{
-  background:rgba(53, 199, 89, .12);
-  border:1px solid rgba(53, 199, 89, .35);
-  color:#35c759;
-}
-.roster-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-@media (max-width: 700px){
+@media (max-width:700px){
   .wrap{
-    padding:16px;
+    padding:18px 14px 44px;
   }
 
-  .top-nav{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-    margin-bottom:14px;
-  }
-
+  .top-nav,
   .controls-row{
     align-items:flex-start;
-    gap:10px;
+    gap:8px;
   }
 
   .roster-table,
@@ -330,6 +404,11 @@ button.pill{
   .roster-table tr{
     display:block;
     width:100%;
+  }
+
+  .roster-table{
+    border:none;
+    background:transparent;
   }
 
   .roster-table thead{
@@ -343,17 +422,17 @@ button.pill{
   }
 
   .roster-table tr{
-    background:#10151c;
-    border:1px solid #1c2533;
-    border-radius:16px;
+    background:linear-gradient(180deg,var(--panel),#0b111a);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
     padding:14px;
-    box-sizing:border-box;
+    box-shadow:var(--shadow);
   }
 
   .roster-table td{
     border-bottom:none;
     padding:0;
-    margin:0 0 10px 0;
+    margin:0 0 12px;
   }
 
   .roster-table td:last-child{
@@ -363,25 +442,22 @@ button.pill{
   .roster-table td::before{
     display:block;
     font-size:.72rem;
-    color:#9fb3c8;
-    margin-bottom:4px;
-    letter-spacing:.2px;
+    color:var(--muted);
+    margin-bottom:5px;
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.08em;
   }
 
-  .roster-table td[data-label="Athlete"]::before{
-    content:"Athlete";
-  }
+  .roster-table td[data-label="Present"]::before{ content:"Present"; }
+  .roster-table td[data-label="Athlete"]::before{ content:"Athlete"; }
+  .roster-table td[data-label="Tier / Rank"]::before{ content:"Tier / Rank"; }
+  .roster-table td[data-label="XP"]::before{ content:"XP"; }
+  .roster-table td[data-label="Attendance"]::before{ content:"Attendance"; }
+  .roster-table td[data-label="Actions"]::before{ content:"Actions"; }
 
-  .roster-table td[data-label="Tier / Rank"]::before{
-    content:"Tier / Rank";
-  }
-
-  .roster-table td[data-label="XP"]::before{
-    content:"XP";
-  }
-
-  .roster-table td[data-label="Actions"]::before{
-    content:"Actions";
+  td[data-label="Present"]{
+    text-align:left;
   }
 
   .name-line{
@@ -405,90 +481,98 @@ button.pill{
     margin-top:4px;
   }
 
-  .roster-actions{
-    display:flex;
-    gap:8px;
-    flex-wrap:wrap;
-  }
-
   .roster-actions .pill{
     flex:1 1 auto;
     text-align:center;
   }
 }
 /* ===============================
-   ATTENDANCE MODE
+   ROSTER COMMAND BOARD LOOK
 ================================ */
 
-.card{
-  background:#10151c;
-  border:1px solid #1c2533;
-  border-radius:16px;
-  padding:16px;
-  margin:14px 0 18px;
-}
-
-.card label{
+.roster-table{
   display:block;
-  margin:0 0 12px;
-  color:#c9d6e5;
-  font-size:.85rem;
+  border:none;
+  background:transparent;
+  margin-top:22px;
 }
 
-.card input,
-.card select,
-.card textarea{
+.roster-table thead{
+  display:none;
+}
+
+.roster-table tbody{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:16px;
+}
+
+.roster-table tr{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  background:
+    linear-gradient(180deg,rgba(18,27,40,.96),rgba(8,12,18,.98));
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:22px;
+  padding:18px;
+  box-shadow:0 18px 45px rgba(0,0,0,.32);
+}
+
+.roster-table tr:hover{
+  transform:translateY(-2px);
+  border-color:rgba(255,214,51,.35);
+  background:
+    linear-gradient(180deg,rgba(23,34,50,.98),rgba(10,15,23,.98));
+}
+
+.roster-table td{
+  display:block;
   width:100%;
-  box-sizing:border-box;
-  margin-top:6px;
-  background:#0a0a0a;
-  color:#f5f5f5;
-  border:1px solid #3a4a60;
-  border-radius:10px;
-  padding:10px;
-  font:inherit;
+  padding:0;
+  margin:0;
+  border:none;
 }
 
-.attendance-check{
-  width:18px;
+.roster-table td::before{
+  display:block;
+  font-size:.68rem;
+  color:#7f8ea3;
+  margin-bottom:5px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.09em;
+}
+
+.roster-table td[data-label="Present"]::before{ content:"Present"; }
+.roster-table td[data-label="Athlete"]::before{ content:"Athlete"; }
+.roster-table td[data-label="Tier / Rank"]::before{ content:"Tier / Rank"; }
+.roster-table td[data-label="XP"]::before{ content:"Progress"; }
+.roster-table td[data-label="Attendance"]::before{ content:"Attendance"; }
+.roster-table td[data-label="Actions"]::before{ content:"Actions"; }
+
+.name-line{
+  font-size:1.15rem;
+  font-weight:1000;
+  color:#fff;
+}
+
+.roster-actions{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+}
+
+.roster-actions .pill{
+  flex:1 1 auto;
+}
+
+.belt-stack{
+  width:100%;
+  min-width:0;
+}
+
+.xp-lite-track{
   height:18px;
-  cursor:pointer;
-}
-
-td[data-label="Present"]{
-  text-align:center;
-}
-
-/* Mobile label for new Attendance column */
-@media (max-width: 700px){
-  .roster-table td[data-label="Present"]::before{
-    content:"Present";
-  }
-
-  .roster-table td[data-label="Attendance"]::before{
-    content:"Attendance";
-  }
-
-  td[data-label="Present"]{
-    text-align:left;
-  }
-}
-.status-dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  display:inline-block;
-  margin-right:6px;
-}
-
-.status-dot--active{ background:#35c759; }
-.status-dot--warning{ background:#ffd633; }
-.status-dot--risk{ background:#ff9f0a; }
-.status-dot--edge{ background:#ff453a; }
-.status-dot--freeze{ background:#5ac8fa; }
-.status-dot--unknown{ background:#8e8e93; }
-.status-filter.is-active{
-  background:#dbeafe;
-  color:#0a0a0a;
-  border-color:#dbeafe;
+  border-radius:999px;
 }

@@ -15,10 +15,12 @@
 <main class="wrap">
 
   <nav class="top-nav">
-    <a class="pill" href="/coaches/index.html">← Coach Index</a>
     <button class="pill" type="button" id="toggleAttendanceMode">Take Attendance</button>
-    <button class="pill" type="button" id="toggleArchiveView">Archived</button>
     <a class="pill" href="/coaches/attendance/">Attendance History</a>
+
+    <button class="pill" type="button" id="toggleArchiveView">Archived</button>
+    <button class="pill status-filter is-active" data-status-filter="all">Roster</button>
+    <a class="pill" href="/coaches/index.html">← Coach Index</a>
   </nav>
 
   <h1>Team Roster</h1>
@@ -28,24 +30,18 @@
     <h2>Attendance</h2>
 
     <label>
-      Practice Type
+      Program
       <select id="practiceType">
-        <option value="wrestling">Wrestling</option>
-        <option value="boxing">Boxing</option>
-        <option value="strength">Strength</option>
-        <option value="open_mat">Open Mat</option>
-        <option value="competition">Competition</option>
+        <option value="z2h">Z2H · Zero2Hero</option>
+        <option value="p2l">P2L · Path2Legend</option>
+        <option value="r2g">R2G · Road2Greatness</option>
+        <option value="q2m">Q2M · Quest2Mastery</option>
       </select>
     </label>
 
     <label>
       Coach
       <input id="coachName" type="text" value="Raul"/>
-    </label>
-
-    <label>
-      Notes
-      <textarea id="practiceNotes" rows="3" placeholder="Optional notes"></textarea>
     </label>
 
     <div class="top-nav">
@@ -63,26 +59,43 @@
       <input id="trackF8Only" type="checkbox"/>
       <span class="muted">Foundry 8 only</span>
     </label>
+
+    <label>
+      Discipline
+      <select id="disciplineFilter">
+        <option value="all">All Disciplines</option>
+        <option value="wrestling">Wrestling</option>
+        <option value="boxing">Boxing</option>
+      </select>
+    </label>
+
     <span id="countMeta" class="muted count-meta"></span>
   </div>
 
-  <section class="roster-summary" aria-label="Roster summary">
-    <div class="summary-pill">🟢 Active: <strong id="summaryActive">0</strong></div>
-    <div class="summary-pill">🟡 Warning: <strong id="summaryWarning">0</strong></div>
-    <div class="summary-pill">🟠 At Risk: <strong id="summaryRisk">0</strong></div>
-    <div class="summary-pill">🔴 Edge Loss: <strong id="summaryEdgeLoss">0</strong></div>
-    <div class="summary-pill">❄️ Frozen: <strong id="summaryFrozen">0</strong></div>
-    <div class="summary-pill">⚪ No Attendance: <strong id="summaryUnknown">0</strong></div>
-  </section>
+  <div class="status-toolbar">
+    <button class="pill status-filter" data-status-filter="active">
+      🟢 Active <strong id="summaryActive">0</strong>
+    </button>
 
-  <div class="status-filters">
-    <button class="pill status-filter is-active" data-status-filter="all">All</button>
-    <button class="pill status-filter" data-status-filter="unknown">⚪ No Attendance</button>
-    <button class="pill status-filter" data-status-filter="warning">🟡 Warning</button>
-    <button class="pill status-filter" data-status-filter="at-risk">🟠 At Risk</button>
-    <button class="pill status-filter" data-status-filter="edge-loss">🔴 Edge Loss</button>
-    <button class="pill status-filter" data-status-filter="frozen">🔵 Frozen</button>
-    <button class="pill status-filter" data-status-filter="active">🟢 Active</button>
+    <button class="pill status-filter" data-status-filter="warning">
+      🟡 Warning <strong id="summaryWarning">0</strong>
+    </button>
+
+    <button class="pill status-filter" data-status-filter="at-risk">
+      🟠 At Risk <strong id="summaryRisk">0</strong>
+    </button>
+
+    <button class="pill status-filter" data-status-filter="edge-loss">
+      🔴 Edge Loss <strong id="summaryEdgeLoss">0</strong>
+    </button>
+
+    <button class="pill status-filter" data-status-filter="frozen">
+      ❄️ Frozen <strong id="summaryFrozen">0</strong>
+    </button>
+
+    <button class="pill status-filter" data-status-filter="unknown">
+      ⚪ No Attendance <strong id="summaryUnknown">0</strong>
+    </button>
   </div>
 
   <table class="roster-table">

@@ -38,8 +38,7 @@ exports.buildEmail = buildEmail;
 const functions = __importStar(require("firebase-functions"));
 const resend_1 = require("resend");
 function isSolvangTrack(programTrack) {
-    return (programTrack === "path2legend_boxing" ||
-        programTrack === "road2greatness" ||
+    return (programTrack === "road2greatness" ||
         programTrack === "quest2mastery" ||
         programTrack === "adult_fitness");
 }
@@ -53,13 +52,9 @@ function getTrackLabel(programTrack, lang) {
             en: "Teen Wrestling — Path2Legend",
             es: "Lucha adolescente — Path2Legend"
         },
-        path2legend_boxing: {
-            en: "Teen Boxing — Path2Legend",
-            es: "Boxeo adolescente — Path2Legend"
-        },
         road2greatness: {
-            en: "Adult Boxing — Road2Greatness",
-            es: "Boxeo adulto — Road2Greatness"
+            en: "Road2Greatness Boxing — Ages 14+",
+            es: "Boxeo Road2Greatness — Edades 14+"
         },
         quest2mastery: {
             en: "Quest2Mastery MMA",
@@ -103,87 +98,65 @@ Lompoc High School Wrestling Room — Room IA-1
 515 W College Ave
 Lompoc, CA 93436`;
     const scheduleBlock = lang === "es"
-        ? programTrack === "path2legend_boxing"
+        ? programTrack === "road2greatness"
             ? `Horario:
 Martes / Jueves
 
-Path2Legend Boxing:
-5:00 PM – 6:00 PM
+Road2Greatness Boxing:
+6:00 PM – 7:30 PM
 
 El coach confirmará la ubicación apropiada después de revisar la solicitud.`
-            : programTrack === "road2greatness"
+            : adultFitness
                 ? `Horario:
 Martes / Jueves
 
-Road2Greatness Boxing:
-6:00 PM – 7:30 PM
-
-El coach confirmará la ubicación apropiada después de revisar la solicitud.`
-                : adultFitness
-                    ? `Horario:
-Martes / Jueves
-
 Teen / Adult Fitness:
 6:00 PM – 7:00 PM
 
 El coach confirmará la ubicación apropiada después de revisar la solicitud.`
-                    : programTrack === "path2legend"
-                        ? `Horario:
+                : programTrack === "path2legend"
+                    ? `Horario:
 Lunes / Miércoles / Viernes
 
-Junior High Wrestling (Edades 10–13)
-4:45 PM – 6:00 PM
-
-High School Wrestling (Edades 13–18)
+P2L Wrestling (Edades 14+)
 6:00 PM – 7:30 PM
 
 El coach determinará el grupo de entrenamiento más apropiado después de la evaluación.`
-                        : `Horario:
+                    : `Horario:
 Lunes / Miércoles / Viernes
 
-Youth Wrestling (Edades 7–12)
+Z2H Wrestling (Edades 7–13)
 4:00 PM – 4:45 PM
 
 El coach determinará el grupo de entrenamiento más apropiado después de la evaluación.`
-        : programTrack === "path2legend_boxing"
+        : programTrack === "road2greatness"
             ? `Schedule:
-Tuesday / Thursday
-
-Path2Legend Boxing:
-5:00 PM – 6:00 PM
-
-Coach will confirm appropriate placement after reviewing your request.`
-            : programTrack === "road2greatness"
-                ? `Schedule:
 Tuesday / Thursday
 
 Road2Greatness Boxing:
 6:00 PM – 7:30 PM
 
 Coach will confirm appropriate placement after reviewing your request.`
-                : adultFitness
-                    ? `Schedule:
+            : adultFitness
+                ? `Schedule:
 Tuesday / Thursday
 
 Teen / Adult Fitness:
 6:00 PM – 7:00 PM
 
 Coach will confirm appropriate placement after reviewing your request.`
-                    : programTrack === "path2legend"
-                        ? `Schedule:
+                : programTrack === "path2legend"
+                    ? `Schedule:
 Monday / Wednesday / Friday
 
-Junior High Wrestling (Ages 10–13)
-4:45 PM – 6:00 PM
-
-High School Wrestling (Ages 13–18)
+P2L Wrestling (Ages 14+)
 6:00 PM – 7:30 PM
 
 Coach will determine the most appropriate training group after evaluation.`
-                        : `Schedule:
+                    : `Schedule:
 Monday / Wednesday / Friday
 
-Youth Wrestling (Ages 7–12)
+Z2H Wrestling (Ages 7–13)
 4:00 PM – 4:45 PM
 
 Coach will determine the most appropriate training group after evaluation.`;

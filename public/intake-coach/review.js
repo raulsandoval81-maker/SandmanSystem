@@ -175,21 +175,22 @@ function buildPlacementFromTrack(track, s = {}) {
     };
   }
 
-  // --------------------------------------------------
-  // Adult Boxing
-  // --------------------------------------------------
-  if (selectedProgramTrack === "road2glory") {
-    return {
-      framework: "foundry4",
-      programTrack: "road2glory",
-      art: "boxing",
-      ladderKey: "R2G",
-      rosterIds: ["adult-boxing"],
-      locationId: DEFAULT_LOCATION_ID,
-      coachIds: DEFAULT_COACH_IDS,
-      trackCode: "adult-boxing"
-    };
-  }
+
+// --------------------------------------------------
+// Road2Greatness Boxing
+// --------------------------------------------------
+if (selectedProgramTrack === "road2greatness") {
+  return {
+    framework: "foundry4",
+    programTrack: "road2greatness",
+    art: "boxing",
+    ladderKey: "R2G",
+    rosterIds: ["road2greatness-boxing"],
+    locationId: DEFAULT_LOCATION_ID,
+    coachIds: DEFAULT_COACH_IDS,
+    trackCode: "road2greatness-boxing"
+  };
+}
 
   // --------------------------------------------------
   // Adult MMA / Quest2Mastery
@@ -420,7 +421,7 @@ if (isF8Uid(uid)) {
 
 if (
   programTrack === "quest2mastery" ||
-  programTrack === "road2glory"
+  programTrack === "road2greatness"
 ) {
   tier = "T1";
   rank = "Apprentice";
@@ -507,44 +508,53 @@ function applyAgeGuardrails() {
   const z2h = $("btn-mint-z2h");
   const p2l = $("btn-mint-p2l");
   const q2m = $("btn-mint-q2m");
-  const abox = $("btn-mint-road2glory");
+  
+  if (q2m) {
+  q2m.hidden = true;
+  q2m.disabled = true;
+}
+  const abox = $("btn-mint-r2g");
 
-[z2h, p2l, q2m, abox].forEach((btn) => {
-  if (!btn) return;
-  btn.hidden = true;
-  btn.disabled = true;
-});
+  [z2h, p2l, q2m, abox].forEach((btn) => {
+    if (!btn) return;
+    btn.hidden = true;
+    btn.disabled = true;
+  });
 
 if (age === null) {
-  [z2h, p2l, q2m, abox].forEach((btn) => {
+  [z2h, p2l, abox].forEach((btn) => {
     if (!btn) return;
     btn.hidden = false;
     btn.disabled = false;
   });
   return;
 }
-  if (age < 13) {
-    if (z2h) { z2h.hidden = false; z2h.disabled = false; }
+
+  if (age < 14) {
+    if (z2h) {
+      z2h.hidden = false;
+      z2h.disabled = false;
+    }
     return;
   }
 
-  if (age === 13) {
-    if (z2h) { z2h.hidden = false; z2h.disabled = false; }
-    if (p2l) { p2l.hidden = false; p2l.disabled = false; }
+  if (age >= 14 && age < 18) {
+    if (p2l) {
+      p2l.hidden = false;
+      p2l.disabled = false;
+    }
+
+    if (abox) {
+      abox.hidden = false;
+      abox.disabled = false;
+    }
+
     return;
   }
 
-  if (age > 13 && age < 18) {
-    if (p2l) { p2l.hidden = false; p2l.disabled = false; }
-    return;
-  }
-
-if (age === 18) {
-  if (p2l) { p2l.hidden = false; p2l.disabled = false; }
-
-  if (q2m) {
-    q2m.hidden = false;
-    q2m.disabled = false;
+  if (p2l) {
+    p2l.hidden = false;
+    p2l.disabled = false;
   }
 
   if (abox) {
@@ -552,18 +562,6 @@ if (age === 18) {
     abox.disabled = false;
   }
 
-  return;
-}
-
-if (q2m) {
-  q2m.hidden = false;
-  q2m.disabled = false;
-}
-
-if (abox) {
-  abox.hidden = false;
-  abox.disabled = false;
-}
 }
 // ------------------------------------------------------
 // Mint F8 / F4 (preview only)
@@ -585,12 +583,12 @@ function mintTrack(track, programTrack = "") {
   }
 
 if (programTrack === "quest2mastery") {
-  tier = "T1";
+  tier = "T0";
   rank = "Apprentice";
 }
 
-if (programTrack === "road2glory") {
-  tier = "T1";
+if (programTrack === "road2greatness") {
+  tier = "T0";
   rank = "Apprentice";
 }
 
@@ -620,12 +618,13 @@ if (programTrack === "road2glory") {
   }
 }
 
+
 function setMintButtonState(activeId) {
   [
     "btn-mint-z2h",
     "btn-mint-p2l",
     "btn-mint-q2m",
-    "btn-mint-road2glory"
+    "btn-mint-r2g"
   ].forEach((id) => {
 
     const btn = $(id);
@@ -652,10 +651,11 @@ $("btn-mint-q2m")?.addEventListener("click", () => {
   mintTrack("F4", "quest2mastery");
   setMintButtonState("btn-mint-q2m");
 });
-$("btn-mint-road2glory")?.addEventListener("click", () => {
-  mintTrack("F4", "road2glory");
-  setMintButtonState("btn-mint-road2glory");
+$("btn-mint-r2g")?.addEventListener("click", () => {
+  mintTrack("F4", "road2greatness");
+  setMintButtonState("btn-mint-r2g");
 });
+
 // ------------------------------------------------------
 // Approve (backend source of truth)
 // ------------------------------------------------------
@@ -840,7 +840,7 @@ if (isF8Uid(uid)) {
 
 if (
   programTrack === "quest2mastery" ||
-  programTrack === "road2glory"
+  programTrack === "road2greatness"
 ) {
   tier = "T1";
   rank = "Apprentice";

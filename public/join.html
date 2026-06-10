@@ -530,6 +530,7 @@ body.day-mode #joinForm textarea{
     Nombre del padre/tutor o participante adulto
   </span>
 </label>
+<input id="parentName" required />
 
         <div class="col-6">
           <label for="parentEmail">
@@ -557,28 +558,24 @@ body.day-mode #joinForm textarea{
 
         <div class="col-6">
   <label for="programTrackSelect">Program / Journey</label>
-  <select id="programTrackSelect" required>
-<option value="zero2hero">
-  Youth Wrestling (Ages 7–12)
-</option>
 
-<option value="path2legend">
-  Teen Wrestling  (Ages 13–18)
-</option>
+<select id="programTrackSelect" required>
+  <option value="zero2hero">
+    Z2H Wrestling (Ages 7–13)
+  </option>
 
-<option value="path2legend_boxing">
-  Teen Boxing (Ages 13–18)
-</option>
+  <option value="path2legend">
+    P2L Wrestling (Ages 14+)
+  </option>
 
-<option value="road2greatness">
-  Adult Boxing.  (Ages 18+)
-</option>
+  <option value="road2greatness">
+    Road2Greatness Boxing (Ages 14+)
+  </option>
 
-<option value="adult_fitness">
-  Teen / Adult Fitness, Kickboxing & Self Defense (Ages 13+)
-</option>
-
-  </select>
+  <option value="adult_fitness">
+    Teen / Adult Fitness, Kickboxing & Self Defense (Ages 12+)
+  </option>
+</select>
 </div>
 
         <div class="col-6">

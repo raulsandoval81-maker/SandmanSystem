@@ -148,7 +148,7 @@ function prettyJourneyName(programTrack = "", art = "", placement = {}) {
   if (pt === "zero2hero") return "Zero2Hero";
   if (pt === "path2legend") return "Path2Legend";
   if (pt === "quest2mastery") return "Quest2Mastery";
-  if (pt === "road2glory" || pt === "adultboxing") return "Road2Glory";
+  if (pt === "road2grestness" || pt === "adultboxing") return "Road2Glory";
 
   if (a === "boxing") return "Road2Glory";
   if (a === "mma") return "Quest2Mastery";
