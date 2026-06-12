@@ -1,6 +1,8 @@
 import {
   auth,
   db,
+  functions,
+  httpsCallable,
   doc,
   getDoc,
   collection,
@@ -19,6 +21,7 @@ import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const getParentInboxCall = httpsCallable(functions, "getParentInbox");
 
 const params = new URLSearchParams(window.location.search);
 const urlAthleteUid =
@@ -400,6 +403,61 @@ function renderRecentActivity(a = {}) {
     .join("");
 }
 
+function formatInboxDate(value) {
+  if (!value) return "—";
+
+  const d = new Date(value);
+  return Number.isFinite(d.getTime())
+    ? d.toLocaleDateString()
+    : "—";
+}
+
+async function renderParentInboxPreview(parentUid, athleteUid) {
+  const list = $("activity-list");
+  if (!list) return false;
+
+  try {
+const result = await getParentInboxCall();
+
+    const items = (result.data?.items || [])
+      .filter((item) =>
+        !athleteUid ||
+        String(item.uid || "").toUpperCase() === String(athleteUid).toUpperCase()
+      )
+      .slice(0, 5);
+
+    if (!items.length) {
+      return false;
+    }
+
+    list.innerHTML = items
+      .map((item) => {
+        return `
+          <li>
+            <strong>${esc(item.title || "Update")}</strong>
+            <br />
+            <span>${esc(item.message || "")}</span>
+            <br />
+            <small>${esc(formatInboxDate(item.createdAt))}</small>
+          </li>
+        `;
+      })
+      .join("") + `
+        <li>
+          <a href="/parent/updates/">
+            <span class="en">View all updates</span>
+            <span class="es">Ver todas las actualizaciones</span>
+          </a>
+        </li>
+      `;
+
+    return true;
+  } catch (err) {
+    console.error("[parent-my-athlete] parent inbox preview failed:", err);
+    return false;
+  }
+}
+
 async function getAthleteByUid(athleteUid) {
   const athleteRef = doc(db, "athletes", athleteUid);
   const athleteSnap = await getDoc(athleteRef);
@@ -539,8 +597,14 @@ async function loadPageForUser(userUid) {
     const athlete = athleteResult.data;
     console.log("[parent-my-athlete] athlete loaded:", athleteResult.id, athlete);
 
-    renderAthlete(athlete);
-    renderRecentActivity(athlete);
+
+renderAthlete(athlete);
+renderRecentActivity(athlete);
+
+await renderParentInboxPreview(
+  userUid,
+  athleteResult.id
+);
 
     const scheduleRef = doc(db, "system", "schedule");
     const scheduleSnap = await getDoc(scheduleRef);
