@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Testing History | Sandman System</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+
+<body data-theme="night">
+  <main class="scan-wrap">
+    <section class="scan-card">
+      <p class="range-label">Coach Tools</p>
+
+      <h1>Testing History</h1>
+
+      <p class="sub">
+        Review testing lifecycle events: scheduled, started, passed, promoted, and failed.
+      </p>
+
+      <div class="actions">
+        <a class="btn" href="/coaches/command-center/">Back to Command Center</a>
+      </div>
+
+      <section class="output-card">
+        <h2>Recent Testing Events</h2>
+        <div id="testing-history-list">Loading...</div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="./testing-history.js"></script>
+</body>
+</html>
