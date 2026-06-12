@@ -1,3 +1,4 @@
+
 import {
   functions,
   httpsCallable
@@ -69,11 +70,11 @@ function renderUnreadCount(count) {
   if (!unreadCountEl) return;
 
   if (count > 0) {
-    unreadCountEl.hidden = false;
+    unreadCountEl.style.display = "inline-block";
     unreadCountEl.textContent =
       `${count} unread`;
   } else {
-    unreadCountEl.hidden = true;
+    unreadCountEl.style.display = "none";
     unreadCountEl.textContent = "";
   }
 }
@@ -97,6 +98,7 @@ async function init() {
   try {
     const result =
       await getParentInboxCall();
+console.log("PARENT INBOX RESULT", result.data);
 
     const items =
       result.data?.items || [];
