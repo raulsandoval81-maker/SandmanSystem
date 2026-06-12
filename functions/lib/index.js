@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ---- Health / Debug
@@ -52,6 +52,10 @@ var promoteTier_1 = require("./modules/promoteTier");
 Object.defineProperty(exports, "promoteTier", { enumerable: true, get: function () { return promoteTier_1.promoteTier; } });
 var freezeAthlete_1 = require("./modules/freezeAthlete");
 Object.defineProperty(exports, "freezeAthlete", { enumerable: true, get: function () { return freezeAthlete_1.freezeAthlete; } });
+var scheduleTesting_1 = require("./modules/scheduleTesting");
+Object.defineProperty(exports, "scheduleTesting", { enumerable: true, get: function () { return scheduleTesting_1.scheduleTesting; } });
+var startTesting_1 = require("./modules/startTesting");
+Object.defineProperty(exports, "startTesting", { enumerable: true, get: function () { return startTesting_1.startTesting; } });
 // ---- Arena (log-only in V1)
 var logArenaHttp_1 = require("./modules/logArenaHttp");
 Object.defineProperty(exports, "logArenaHttp", { enumerable: true, get: function () { return logArenaHttp_1.logArenaHttp; } });

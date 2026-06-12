@@ -21,6 +21,9 @@ const params = new URLSearchParams(location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
 const promoteTierCall = httpsCallable(functions, "promoteTier");
 const freezeAthleteCall = httpsCallable(functions, "freezeAthlete");
+const scheduleTestingCall = httpsCallable(functions, "scheduleTesting");
+const startTestingCall = httpsCallable(functions, "startTesting");
+
 
 
 if (!uid) {
@@ -256,19 +259,9 @@ $("athlete-stripes").textContent = `${stripesEarned}`;
 async function markReady() {
   const scheduledDate = getScheduledTestDate();
 
-  await updateDoc(athleteRef, {
-    "testing.state": "READY",
-
-    "testing.preReadyState":
-      athleteData?.testing?.state || null,
-
-    "testing.coachReady": true,
-    "testing.scheduledDate": scheduledDate,
-    "testing.scheduledAt": serverTimestamp(),
-    "testing.scheduledBy": auth.currentUser?.uid || null,
-    "testing.coachReadyAt": serverTimestamp(),
-
-    updatedAt: serverTimestamp()
+  await scheduleTestingCall({
+    uid,
+    scheduledDate
   });
 
   setStatus(
@@ -317,18 +310,12 @@ async function setEligible() {
 async function startTest() {
   assertJailClear("Start Test");
 
-  await updateDoc(athleteRef, {
-    "testing.state": "TESTING",
-    "testing.testingStartedAt": serverTimestamp(),
-    "testing.lastTestResult": null,
-    "testing.freezeUntil": null,
-    "testing.cooldownUntil": null,
-    updatedAt: serverTimestamp()
+  await startTestingCall({
+    uid
   });
 
   setStatus("Testing started.");
 }
-
 
 async function passTest() {
   assertJailClear("Pass Test");
