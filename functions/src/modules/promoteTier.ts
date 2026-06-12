@@ -1,5 +1,7 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { createTestingEvent } from "./testing-events/createTestingEvent";
+import { writeParentTestingPing } from "./testing-events/writeParentTestingPing";
 
 type Base = "F4" | "F8";
 
@@ -202,8 +204,26 @@ tx.update(athleteRef, {
       score,
       cooldownUntil: cooldownUntil.toISOString(),
       logId: logRef.id,
+      parentUid: athlete.parentUid ?? null,
+      publicName: athlete.publicName ?? athlete.fullName ?? null,
     };
   });
 
+  if (result.ok && !result.blocked) {
+    const eventPayload = {
+      uid: result.uid,
+      type: "PROMOTED" as const,
+      score: result.score,
+      tier: result.fromTier,
+      nextTier: result.toTier,
+      parentUid: result.parentUid ?? null,
+      publicName: result.publicName ?? null,
+    };
+
+    await createTestingEvent(eventPayload);
+    await writeParentTestingPing(eventPayload);
+  }
+
   return result;
 });
+

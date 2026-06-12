@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.promoteTier = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const createTestingEvent_1 = require("./testing-events/createTestingEvent");
+const writeParentTestingPing_1 = require("./testing-events/writeParentTestingPing");
 const XP = Object.freeze({
     F4: {
         tierCaps: {
@@ -172,7 +174,22 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             score,
             cooldownUntil: cooldownUntil.toISOString(),
             logId: logRef.id,
+            parentUid: athlete.parentUid ?? null,
+            publicName: athlete.publicName ?? athlete.fullName ?? null,
         };
     });
+    if (result.ok && !result.blocked) {
+        const eventPayload = {
+            uid: result.uid,
+            type: "PROMOTED",
+            score: result.score,
+            tier: result.fromTier,
+            nextTier: result.toTier,
+            parentUid: result.parentUid ?? null,
+            publicName: result.publicName ?? null,
+        };
+        await (0, createTestingEvent_1.createTestingEvent)(eventPayload);
+        await (0, writeParentTestingPing_1.writeParentTestingPing)(eventPayload);
+    }
     return result;
 });
