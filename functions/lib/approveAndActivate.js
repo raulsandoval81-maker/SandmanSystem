@@ -50,6 +50,36 @@ function computeStartingStripeCount(xp, xpCap) {
 function pad4(n) {
     return String(n).padStart(4, "0");
 }
+function monthKey(date = new Date()) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, "0");
+    return `${y}-${m}`;
+}
+const SYSTEM_PING_EVENTS = {
+    PLACEMENT_ASSIGNED: "placement_assigned",
+    ATHLETE_MINTED: "athlete_minted",
+    TESTING_ELIGIBLE: "testing_eligible",
+    TEST_SCHEDULED: "test_scheduled",
+    TEST_PASSED: "test_passed",
+    TEST_FAILED: "test_failed",
+    STRENGTH_UNLOCKED: "strength_unlocked",
+    HONOR_UNLOCKED: "honor_unlocked",
+    STRIPE_EARNED: "stripe_earned",
+    PROMOTION_EARNED: "promotion_earned",
+    CEREMONY_SCHEDULED: "ceremony_scheduled",
+    SCHEDULE_CHANGED: "schedule_changed",
+};
+function programLabel(programTrack, art) {
+    if (programTrack === "road2greatness")
+        return "Road2Greatness Boxing";
+    if (programTrack === "path2legend")
+        return "Path2Legend Wrestling";
+    if (programTrack === "zero2hero")
+        return "Zero2Hero Wrestling";
+    if (programTrack === "quest2mastery")
+        return "Quest2Mastery MMA";
+    return `${programTrack} ${art}`.trim();
+}
 function buildExperiencePlan(yearsRaw) {
     const years = Number(yearsRaw || 0);
     if (years === 1) {
@@ -305,7 +335,8 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     testEligibleAt: null
                 },
                 unlocks: {
-                    strength: true,
+                    combat: true,
+                    strength: false,
                     honor: false,
                     merit: false,
                 },
@@ -410,9 +441,56 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 allocatedNumber: n,
                 receiptId: receiptRef.id,
                 parentUid,
+                parentEmail,
+                parentName,
+                athleteName: fullName ?? publicName ?? uid,
+                programTrack: safeProgramTrack,
+                art: safeArt,
+                rankName: starter.rankName,
+                tier: starter.tier,
+                legacyCreditIssued: expPlan.issuedNow,
                 idempotent: false,
             };
         });
+        if (result.parentUid && !result.idempotent) {
+            const label = programLabel(result.programTrack, result.art);
+            const body = `${result.athleteName} has been placed into ${label}.\n\n` +
+                `Starting rank: ${result.tier} ${result.rankName}.`;
+            const threadRef = db.collection("paraParentInbox").doc();
+            await threadRef.set({
+                academy: "lompoc",
+                academyId: "lompoc",
+                source: "system",
+                category: "system",
+                entryType: SYSTEM_PING_EVENTS.PLACEMENT_ASSIGNED,
+                eventType: SYSTEM_PING_EVENTS.PLACEMENT_ASSIGNED,
+                programTrack: result.programTrack,
+                athleteUid: result.uid,
+                lang: "en",
+                stage: "placement",
+                status: "active",
+                subject: "Placement Assigned",
+                parentName: result.parentName || "Family",
+                parentEmail: result.parentEmail || "",
+                athleteName: result.athleteName || "",
+                lastBody: body,
+                lastReplyAt: firestore_1.FieldValue.serverTimestamp(),
+                coachHasUnread: false,
+                parentHasUnread: true,
+                seenByCoach: true,
+                seenByParent: false,
+                systemGenerated: true,
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+            });
+            await threadRef.collection("thread").add({
+                from: "system",
+                fromName: "Sandman System",
+                body,
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+                seenByCoach: true,
+                seenByParent: false,
+            });
+        }
         return { ok: true, ...result };
     }
     catch (err) {

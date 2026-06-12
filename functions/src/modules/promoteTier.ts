@@ -5,18 +5,30 @@ type Base = "F4" | "F8";
 
 const XP = Object.freeze({
   F4: {
-    tierCaps: { T0: 1200, T1: 1600, T2: 2000, T3: 2400, T4: 2800 },
+    tierCaps: {
+      T0: 1000,
+      T1: 1600,
+      T2: 2000,
+      T3: 2400,
+      T4: 3000,
+    },
     tiers: ["T0", "T1", "T2", "T3", "T4"],
   },
+
   F8: {
-    tierCaps: { T0: 800, T1: 1000, T2: 1200, T3: 1400, T4: 1600, T5: 1800, T6: 2000, T7: 2400 },
+    tierCaps: {
+      T0: 600,
+      T1: 800,
+      T2: 1000,
+      T3: 1200,
+      T4: 1400,
+      T5: 1600,
+      T6: 1800,
+      T7: 2400,
+    },
     tiers: ["T0", "T1", "T2", "T3", "T4", "T5", "T6", "T7"],
   },
 } as const);
-
-function isEmulator(): boolean {
-  return process.env.FUNCTIONS_EMULATOR === "true" || !!process.env.FIREBASE_EMULATOR_HUB;
-}
 
 function normalizeBaseFromAthlete(a: any): Base {
   const raw = String(a?.trackBase || a?.track || a?.program || a?.base || "").toUpperCase();
@@ -38,17 +50,24 @@ function monthKey(d = new Date()) {
 }
 
 export const promoteTier = onCall(async (req) => {
-  // ✅ keep this emulator-only until you add real auth/roles
-  if (!isEmulator()) {
-    throw new HttpsError("failed-precondition", "promoteTier is emulator-only right now.");
-  }
-
   const db = getFirestore();
+
   const payload = req.data || {};
   const uid = String(payload.uid || "").trim();
+  const score = Number(payload.score || 0);
   const note = typeof payload.note === "string" ? payload.note.trim() : "";
 
-  if (!uid) throw new HttpsError("invalid-argument", "Missing uid");
+  if (!uid) {
+    throw new HttpsError("invalid-argument", "Missing uid");
+  }
+
+  if (!Number.isFinite(score) || score < 0 || score > 100) {
+    throw new HttpsError("invalid-argument", "Invalid score");
+  }
+
+  if (score < 85) {
+    throw new HttpsError("failed-precondition", "Score must be 85 or higher to promote.");
+  }
 
   const athleteRef = db.collection("athletes").doc(uid);
   const mKey = monthKey();
@@ -56,9 +75,21 @@ export const promoteTier = onCall(async (req) => {
 
   const result = await db.runTransaction(async (tx) => {
     const snap = await tx.get(athleteRef);
-    if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${uid}`);
+
+    if (!snap.exists) {
+      throw new HttpsError("not-found", `Athlete not found: ${uid}`);
+    }
 
     const athlete = snap.data() || {};
+    const testingState = String(athlete?.testing?.state || "");
+
+    if (testingState !== "TESTING") {
+      throw new HttpsError(
+        "failed-precondition",
+        `Athlete must be TESTING before promotion. Current state: ${testingState}`
+      );
+    }
+
     const base = normalizeBaseFromAthlete(athlete);
     const tier = normalizeTier(athlete);
 
@@ -66,49 +97,89 @@ export const promoteTier = onCall(async (req) => {
     const caps = XP[base].tierCaps as unknown as Record<string, number>;
 
     const idx = tiers.indexOf(tier);
-    if (idx < 0) throw new HttpsError("failed-precondition", `Unknown tier: ${tier}`);
+
+    if (idx < 0) {
+      throw new HttpsError("failed-precondition", `Unknown tier: ${tier}`);
+    }
+
     if (idx >= tiers.length - 1) {
-      return { ok: true, blocked: true, reason: "MAX_TIER_REACHED", uid, base, tier };
+      return {
+        ok: true,
+        blocked: true,
+        reason: "MAX_TIER_REACHED",
+        uid,
+        base,
+        tier,
+      };
     }
 
     const cap = Number(caps[tier] ?? 0);
-    if (!cap) throw new HttpsError("failed-precondition", `Missing cap for ${base} ${tier}`);
-
     const beforeXp = Number(athlete.xp ?? 0);
+
     if (beforeXp < cap) {
       return {
         ok: true,
         blocked: true,
         reason: "NOT_READY",
-        uid, base, tier,
-        beforeXp, cap,
+        uid,
+        base,
+        tier,
+        beforeXp,
+        cap,
       };
     }
 
     const nextTier = tiers[idx + 1];
     const nextCap = Number(caps[nextTier] ?? 0);
-    if (!nextCap) throw new HttpsError("failed-precondition", `Missing cap for ${base} ${nextTier}`);
 
-    // ✅ reset to 0 on promotion
-    tx.set(
-      athleteRef,
-      {
-        tier: nextTier,
-        xp: 0,
-        xpCap: nextCap,
-        stripeCount: 0,
-        trackBase: base,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true }
-    );
+    if (!nextCap) {
+      throw new HttpsError("failed-precondition", `Missing cap for ${base} ${nextTier}`);
+    }
+
+    const cooldownUntil = new Date();
+    cooldownUntil.setDate(cooldownUntil.getDate() + 5);
+
+tx.update(athleteRef, {
+  tier: nextTier,
+  xp: 0,
+  xpCap: nextCap,
+  stripeCount: 0,
+  trackBase: base,
+
+  tierStatus: "cooldown",
+  promotionLocked: false,
+
+  "testing.state": "COOLDOWN",
+  "testing.lastTestResult": "pass",
+  "testing.lastTestScore": score,
+  "testing.passingScore": 85,
+  "testing.cooldownUntil": cooldownUntil,
+  "testing.freezeUntil": null,
+  "testing.testingStartedAt": null,
+  "testing.coachReady": false,
+  "testing.coachReadyAt": null,
+  "testing.scheduledDate": null,
+  "testing.scheduledAt": null,
+  "testing.scheduledBy": null,
+
+  "testing.promotedFrom": tier,
+  "testing.promotedTo": nextTier,
+  "testing.promotedAt": FieldValue.serverTimestamp(),
+
+  updatedAt: FieldValue.serverTimestamp(),
+});
 
     tx.set(logRef, {
       uid,
       kind: "PROMOTION",
       amount: 0,
-      note: note || `Promoted ${tier} → ${nextTier}`,
-      meta: { fromTier: tier, toTier: nextTier },
+      note: note || `Passed test with ${score}%. Promoted ${tier} → ${nextTier}`,
+      meta: {
+        fromTier: tier,
+        toTier: nextTier,
+        score,
+        passingScore: 85,
+      },
       base,
       tier: nextTier,
       beforeXp,
@@ -128,7 +199,8 @@ export const promoteTier = onCall(async (req) => {
       beforeXp,
       afterXp: 0,
       cap: nextCap,
-      stripeCount: 0,
+      score,
+      cooldownUntil: cooldownUntil.toISOString(),
       logId: logRef.id,
     };
   });

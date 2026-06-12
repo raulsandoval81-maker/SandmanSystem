@@ -728,16 +728,16 @@ const programTrack =
     .toLowerCase();
 
 let combatArcLabel =
-  "⚔️ Combat · Path 2 Legend";
+  "⚔️ Combat-Wrestling · Path 2 Legend";
 
 if (programTrack === "quest2mastery") {
   combatArcLabel =
-    "🥋 MMA · Quest 2 Mastery";
+    "🥋 Combat-MMA · Quest 2 Mastery";
 }
 
 if (programTrack === "road2greatness") {
   combatArcLabel =
-    "🥊 Boxing · Road 2 Glory";
+    "🥊 Combat-Boxing · Road 2 Greatness";
 }
 
 safeText(

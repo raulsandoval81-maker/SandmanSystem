@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ---- Health / Debug
@@ -50,6 +50,8 @@ var xpHttp_1 = require("./modules/xpHttp"); // onRequest (weekend)
 Object.defineProperty(exports, "xpHttp", { enumerable: true, get: function () { return xpHttp_1.xpHttp; } });
 var promoteTier_1 = require("./modules/promoteTier");
 Object.defineProperty(exports, "promoteTier", { enumerable: true, get: function () { return promoteTier_1.promoteTier; } });
+var freezeAthlete_1 = require("./modules/freezeAthlete");
+Object.defineProperty(exports, "freezeAthlete", { enumerable: true, get: function () { return freezeAthlete_1.freezeAthlete; } });
 // ---- Arena (log-only in V1)
 var logArenaHttp_1 = require("./modules/logArenaHttp");
 Object.defineProperty(exports, "logArenaHttp", { enumerable: true, get: function () { return logArenaHttp_1.logArenaHttp; } });

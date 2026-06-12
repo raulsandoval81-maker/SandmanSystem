@@ -10,6 +10,7 @@ export { testAthleteXp } from "./modules/testAthleteXp";
 export { incrementXp } from "./modules/incrementXp"; // onCall (app)
 export { xpHttp } from "./modules/xpHttp";           // onRequest (weekend)
 export { promoteTier } from "./modules/promoteTier";
+export { freezeAthlete } from "./modules/freezeAthlete";
 
 // ---- Arena (log-only in V1)
 export { logArenaHttp } from "./modules/logArenaHttp";

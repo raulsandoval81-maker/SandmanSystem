@@ -284,7 +284,7 @@ function subscribeTestingReady() {
 
 const q = query(
   collection(db, "athletes"),
-  where("testing.coachReady", "==", true)
+  where("testing.state", "==", "READY")
 );
   onSnapshot(
     q,
@@ -305,14 +305,22 @@ const track = encodeURIComponent(data.track || "foundry4-combat");
 
 const panelLink = `/coaches/testing/testing-command-center.html?uid=${uid}&athleteName=${name}&tier=${tier}&track=${track}`;
 
+const testDate =
+  data?.testing?.scheduledDate || "No Date";
+
 row.innerHTML = `
   <div class="queue-left">
-    <div class="queue-label">${data.publicName || data.fullName || uid}</div>
-    <div class="queue-sub">${data.tier || "—"} · READY</div>
+    <div class="queue-label">
+      ${data.publicName || data.fullName || uid}
+    </div>
+
+    <div class="queue-sub">
+      ${data.tier || "—"} · READY · Test: ${testDate}
+    </div>
   </div>
 
   <div style="display:flex; gap:6px; flex-wrap:wrap;">
-    <a class="btn" href="/coaches/command-center/coach-athlete-panel.html?id=${uid}">
+    <a class="btn" href="/coaches/command-center/coach-athlete-panel.html?id=${uid}&v=2">
       View
     </a>
 
@@ -327,7 +335,8 @@ row.innerHTML = `
     </a>
   </div>
 `;
-        listTestingEl.appendChild(row);
+
+listTestingEl.appendChild(row);
       });
 
       if (!snap.size) {

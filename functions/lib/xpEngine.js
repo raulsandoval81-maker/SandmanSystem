@@ -7,20 +7,20 @@ const firestore_1 = require("firebase-admin/firestore");
 function xpCapForAthlete(a) {
     const tier = String(a?.tier || "T0").toUpperCase();
     const F4_CAPS = {
-        T0: 1200,
+        T0: 1000,
         T1: 1600,
         T2: 2000,
         T3: 2400,
-        T4: 2800,
+        T4: 3000,
     };
     const F8_CAPS = {
-        T0: 800,
-        T1: 1000,
-        T2: 1200,
-        T3: 1400,
-        T4: 1600,
-        T5: 1800,
-        T6: 2000,
+        T0: 600,
+        T1: 800,
+        T2: 1000,
+        T3: 1200,
+        T4: 1400,
+        T5: 1600,
+        T6: 1800,
         T7: 2400,
     };
     const id = String(a?.uid || a?.id || "").toUpperCase();

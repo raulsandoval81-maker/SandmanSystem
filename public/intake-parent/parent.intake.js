@@ -66,7 +66,7 @@ function markWaiverViewed() {
   setWaiverStatusStrong("Viewed");
 
   setDisabled("waiverCheck", false);
-  setDisabled("signatureParent", true);
+  setDisabled("signatureParent", false);
 
   const todayISO = new Date().toISOString().slice(0, 10);
   const dateEl = $("signatureDate");
@@ -78,6 +78,19 @@ function markWaiverViewed() {
 
   maybeUnlockSubmit();
 }
+
+function openWaiver(url) {
+  window.open(url, "_blank", "noopener");
+  markWaiverViewed();
+}
+
+$("openWaiverBtnEn")?.addEventListener("click", () => {
+  openWaiver(WAIVER_URL_EN);
+});
+
+$("openWaiverBtnEs")?.addEventListener("click", () => {
+  openWaiver(WAIVER_URL_ES);
+});
 
 // -------------------- Normalizers --------------------
 function normalizeState(s) {
@@ -284,35 +297,13 @@ function wireWaiver() {
   setDisabled("signatureDate", true);
   setDisabled("submitBtn", true);
 
- $("openWaiverBtnEn")
-  ?.addEventListener("click", (e) => {
-
-    e.preventDefault();
-
-    window.open(
-      WAIVER_URL_EN,
-      "_blank",
-      "noopener"
-    );
-
-    markWaiverViewed();
-  });
+$("openWaiverBtnEn")
+  ?.addEventListener("click", markWaiverViewed);
 
 $("openWaiverBtnEs")
-  ?.addEventListener("click", (e) => {
+  ?.addEventListener("click", markWaiverViewed);
 
-    e.preventDefault();
-
-    window.open(
-      WAIVER_URL_ES,
-      "_blank",
-      "noopener"
-    );
-
-    markWaiverViewed();
-  });
-
-$("waiverCheck")
+  $("waiverCheck")
   ?.addEventListener("change", () => {
 
     const checked =

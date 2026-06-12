@@ -1,4 +1,4 @@
-// public/communications/-message-engine.js
+// public/communications/shared/para-message-engine.js
 // Core wiring for Para-Comms — used by BOTH parent + coach pages.
 
 import {
@@ -7,7 +7,6 @@ import {
   addDoc,
   setDoc,
   serverTimestamp,
-  getDocs
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 export function monthKey(date = new Date()) {
@@ -15,6 +14,24 @@ export function monthKey(date = new Date()) {
   const m = String(date.getMonth() + 1).padStart(2, "0");
   return `${y}-${m}`;
 }
+
+export const SYSTEM_PING_EVENTS = {
+  PLACEMENT_ASSIGNED: "placement_assigned",
+  ATHLETE_MINTED: "athlete_minted",
+
+  TESTING_ELIGIBLE: "testing_eligible",
+  TEST_SCHEDULED: "test_scheduled",
+  TEST_PASSED: "test_passed",
+  TEST_FAILED: "test_failed",
+
+  STRENGTH_UNLOCKED: "strength_unlocked",
+  HONOR_UNLOCKED: "honor_unlocked",
+  STRIPE_EARNED: "stripe_earned",
+  PROMOTION_EARNED: "promotion_earned",
+
+  CEREMONY_SCHEDULED: "ceremony_scheduled",
+  SCHEDULE_CHANGED: "schedule_changed"
+};
 
 /**
  * Create / mirror a new parent-originated message.
@@ -59,7 +76,7 @@ export async function sendParentMessage({
   // ------- 2) Mirror to PARENT inbox (parentInbox/...) -------
   let parentDocRef;
   if (scope === "family") {
-    parentDocRef = doc(db, "parentInbox", authUid, key, "family", entryId);
+    parentDocRef = doc(db, "parentInbox", authUid,"months", key, "family", entryId);
   } else {
     parentDocRef = doc(
       db,
@@ -81,7 +98,6 @@ export async function sendParentMessage({
 
   return { entryId, coachPath: coachRef.path };
 }
-
 /**
  * Coach reply — writes to both master + parent mirror and flips unread flags.
  */
@@ -175,14 +191,119 @@ export async function sendCoachReply({
     { merge: true }
   );
 }
+/**
+ * System ping — creates a system-originated communication.
+ * Used for placement, unlocks, promotions, ceremonies, schedules, etc.
+ */
 
+export async function createSystemPing({
+  db,
+  authUid = null,
+  athleteUid = null,
+  familyName,
+  eventType,
+  audience = "parent", // "parent" | "coach" | "athlete"
+  title_en,
+  title_es,
+  text_en,
+  text_es,
+  priority = "normal"
+}) {
+  const key = monthKey();
+  const scope = athleteUid ? "athlete" : "family";
+
+  const payload = {
+    authUid: authUid || null,
+    athleteUid: athleteUid || null,
+    familyName: familyName || "Family",
+    scope,
+
+    fromRole: "system",
+    lastSender: "system",
+    sender: "system",
+
+    eventType: eventType || "system_ping",
+    audience,
+    priority,
+
+    title_en: title_en || "",
+    title_es: title_es || "",
+    text_en: text_en || "",
+    text_es: text_es || "",
+
+    unreadForCoach: audience === "coach",
+    unreadForParent: audience === "parent",
+    unreadForAthlete: audience === "athlete",
+
+    systemGenerated: true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp()
+  };
+
+  let coachCol;
+
+  if (scope === "family") {
+    coachCol = collection(db, "comms", key, "family");
+  } else {
+    coachCol = collection(
+      db,
+      "comms",
+      key,
+      "athletes",
+      athleteUid,
+      "entries"
+    );
+  }
+
+  const coachRef = await addDoc(coachCol, payload);
+  const entryId = coachRef.id;
+
+  const mirrorPayload = {
+    ...payload,
+    entryId,
+    mirroredFrom: coachRef.path
+  };
+
+  if (authUid && audience === "parent") {
+    let parentRef;
+
+    if (scope === "family") {
+      parentRef = doc(
+        db,
+        "parentInbox",
+        authUid,
+        key,
+        "family",
+        entryId
+      );
+    } else {
+      parentRef = doc(
+        db,
+        "parentInbox",
+        authUid,
+        key,
+        "athletes",
+        athleteUid,
+        "entries",
+        entryId
+      );
+    }
+
+    await setDoc(parentRef, mirrorPayload);
+  }
+
+  return {
+    entryId,
+    coachPath: coachRef.path
+  };
+}
 /**
  * Mark a message as seen on PARENT side.
  */
 export async function markParentSeen({ db, authUid, scope, key, athleteUid, entryId }) {
   let ref;
   if (scope === "family") {
-    ref = doc(db, "parentInbox", authUid, key, "family", entryId);
+    ref = doc(db, "parentInbox", authUid, "months", key, "family", entryId);
   } else {
     ref = doc(
       db,

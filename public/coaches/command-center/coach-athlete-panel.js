@@ -1,18 +1,28 @@
 import {
   db,
-  auth, // 👈 ADD THIS
+  auth,
+  functions,
+  httpsCallable,
   ensureSignedIn,
   doc,
   updateDoc,
   onSnapshot,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
-import { getAthleteStripeInfo } from "/assets/js/ladder.service.js";
 
-const $ = (id) => document.getElementById(id);
+import {
+  LADDER_F4,
+  LADDER_F8,
+  getAthleteStripeInfo
+} from "/assets/js/ladder.service.js";
+
 
 const params = new URLSearchParams(location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
+const functions = getFunctions();
+const promoteTierCall = httpsCallable(functions, "promoteTier");
+const freezeAthleteCall = httpsCallable(functions, "freezeAthlete");
+
 
 if (!uid) {
   alert("Missing ?id= athlete UID");
@@ -55,6 +65,42 @@ function setStatus(msg, isError = false) {
   const el = $("status");
   el.textContent = msg;
   el.style.color = isError ? "#ff8a8a" : "#f1c84c";
+}
+
+function getTestScore() {
+  const score = Number($("test-score")?.value || 0);
+
+  if (!Number.isFinite(score) || score < 0 || score > 100) {
+    throw new Error("Enter a valid test score from 0 to 100.");
+  }
+
+  return score;
+}
+
+function getScheduledTestDate() {
+  const raw = $("test-date")?.value || "";
+
+  if (!raw) {
+    throw new Error("Select a test date before marking READY.");
+  }
+
+  const selected = new Date(`${raw}T00:00:00`);
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const max = new Date(today);
+  max.setDate(max.getDate() + 5);
+
+  if (selected < today) {
+    throw new Error("Test date cannot be in the past.");
+  }
+
+  if (selected > max) {
+    throw new Error("Test date must be within 5 days.");
+  }
+
+  return raw;
 }
 
 function clearResultFields() {
@@ -159,7 +205,7 @@ function updateButtonVisibility(testing) {
   }
 
   // Coach-owned stages (only when jail is clear)
-  toggle("btn-ready", state === "ELIGIBLE");
+  toggle( "btn-ready", state === "TEMPLE" || state === "ELIGIBLE");
   toggle("btn-start", state === "READY");
   toggle("btn-pass", state === "TESTING");
   toggle("btn-fail", state === "TESTING");
@@ -209,15 +255,28 @@ $("athlete-stripes").textContent = `${stripesEarned}`;
 }
 
 async function markReady() {
+  const scheduledDate = getScheduledTestDate();
+
   await updateDoc(athleteRef, {
     "testing.state": "READY",
+
+    "testing.preReadyState":
+      athleteData?.testing?.state || null,
+
     "testing.coachReady": true,
+    "testing.scheduledDate": scheduledDate,
+    "testing.scheduledAt": serverTimestamp(),
+    "testing.scheduledBy": auth.currentUser?.uid || null,
     "testing.coachReadyAt": serverTimestamp(),
+
     updatedAt: serverTimestamp()
   });
 
-  setStatus("Marked READY.");
+  setStatus(
+    `Test scheduled for ${scheduledDate}. Athlete marked READY.`
+  );
 }
+
 async function enterTemple() {
   await updateDoc(athleteRef, {
     tierStatus: "temple",
@@ -275,102 +334,49 @@ async function startTest() {
 async function passTest() {
   assertJailClear("Pass Test");
 
+  const score = getTestScore();
+
+  if (score < 85) {
+    throw new Error("Passing score requires 85% or higher.");
+  }
+
   if (!athleteData) {
     throw new Error("Athlete not loaded.");
   }
 
-  const currentTier = String(athleteData?.tier || "T0");
-  const nextMeta = getNextTierMeta(athleteData);
+  const result = await promoteTierCall({
+    uid,
+    score
+  });
 
-  if (!nextMeta) {
-    throw new Error(`No next tier found from "${athleteData.tier}".`);
+  if (result.data?.blocked) {
+    throw new Error(result.data.reason || "Promotion blocked.");
   }
 
-  const canReleaseHeldLegacy =
-    currentTier === "T0" &&
-    nextMeta.tier === "T1" &&
-    athleteData?.legacyHold === true &&
-    athleteData?.legacyCreditSchedule === "deferred_t1_entry";
-
-  const legacyCreditTotal = Number(athleteData?.legacyCreditTotal || 0);
-  const legacyCreditIssued = Number(athleteData?.legacyCreditIssued || 0);
-
-  const heldRelease = canReleaseHeldLegacy
-    ? Math.max(0, legacyCreditTotal - legacyCreditIssued)
-    : 0;
-
-    const previousBadge = {
-  tier: currentTier,
-  rankName: athleteData.rankName || "",
-  rankColor: athleteData.rankColor || "",
-  earnedAt: new Date().toISOString()
-};
- 
-  const updatePayload = {
-    // PROMOTION HAPPENS NOW
-    tier: nextMeta.tier,
-    rankName: nextMeta.rankName,
-    rankColor: nextMeta.rankColor,
-    xpCap: nextMeta.xpCap,
-
-    xp: heldRelease,
-    stripeCount: 0,
-
-    // ACTIVE GRATITUDE WINDOW
-    tierStatus: "cooldown",
-    promotionLocked: false,
-
-    "testing.state": "COOLDOWN",
-    "testing.lastTestResult": "pass",
-    "testing.cooldownUntil": addDays(5),
-    "testing.freezeUntil": null,
-    "testing.testingStartedAt": null,
-    "testing.coachReady": false,
-    "testing.coachReadyAt": null,
-
-    "testing.promotedFrom": currentTier,
-    "testing.promotedTo": nextMeta.tier,
-    "testing.promotedAt": serverTimestamp(),
-
-      // 🔥 ADD THIS BLOCK
-  badges: [
-    ...(Array.isArray(athleteData.badges) ? athleteData.badges : []),
-    previousBadge
-  ],
-
-    updatedAt: serverTimestamp()
-  };
-
-  if (canReleaseHeldLegacy) {
-    updatePayload.legacyCreditIssued = legacyCreditIssued + heldRelease;
-    updatePayload.legacyHold = false;
-  }
-
-  await updateDoc(athleteRef, updatePayload);
-
-  if (canReleaseHeldLegacy) {
-    setStatus(`Pass recorded. Advanced to ${nextMeta.tier}. Cooldown applied. Released held legacy XP: +${heldRelease}.`);
-  } else {
-    setStatus(`Pass recorded. Advanced to ${nextMeta.tier}. Cooldown applied.`);
-  }
+  setStatus(
+    `Pass recorded. Advanced to ${result.data?.toTier}. Cooldown applied.`
+  );
 }
 
 async function failTest() {
-   assertJailClear("Fail Test"); // ADD
-  await updateDoc(athleteRef, {
-    tierStatus: "freeze",
+  assertJailClear("Fail Test");
 
-    "testing.state": "FREEZE",
-    "testing.lastTestResult": "fail",
-    "testing.freezeUntil": addDays(7),
-    "testing.cooldownUntil": null,
-    "testing.testingStartedAt": null,
-    "testing.coachReady": false,
-    "testing.coachReadyAt": null,
+  const score = getTestScore();
 
-    updatedAt: serverTimestamp()
+  if (score >= 85) {
+    throw new Error("Score is 85% or higher. Use Pass Test.");
+  }
+
+  const result = await freezeAthleteCall({
+    uid,
+    score
   });
-  setStatus("Fail recorded. Freeze applied.");
+
+  setStatus(
+    `Fail recorded. Freeze applied until ${new Date(
+      result.data.freezeUntil
+    ).toLocaleDateString()}.`
+  );
 }
 
 async function retestAthlete() {
@@ -538,7 +544,7 @@ async function bind() {
       await passTest();
     } catch (err) {
       console.error(err);
-      setStatus("Pass failed.", true);
+      setStatus(err.message || "Pass failed.", true);
     }
   });
 

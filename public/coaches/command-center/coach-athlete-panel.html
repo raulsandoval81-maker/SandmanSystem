@@ -167,22 +167,34 @@
   <h2>Coach Controls</h2>
   <div class="small">
     <div class="controls">
+
+      <label>
+  Test Date
+  <input id="test-date" type="date" />
+</label>
+
       <button id="btn-ready" class="btn ready">Mark Ready</button>
       <button id="btn-start" class="btn start">Start Test</button>
 
       <button id="btn-pass" class="btn pass">Pass Test</button>
       <button id="btn-fail" class="btn fail">Fail Test</button>
 
+      <label>
+        Test Score %
+       <input id="test-score" type="number" min="0" max="100" step="1" />
+      </label>
+
       <button id="btn-retest" class="btn start">Retest</button>
       <button id="btn-promote" class="btn promote">Promote Athlete</button>
 
       <button id="btn-active" class="btn active">Return Active</button>
     </div>
-    Temple = automatic pre-cap holding state.<br>
-    Eligible = automatic at-cap ready state.<br>
-    Ready = coach-approved preparation window.<br>
-    Pass → Cooldown (5 days default).<br>
-    Fail → Freeze (10 days default).
+Temple = 90% automatic preparation state.<br>
+Eligible = 100% automatic testing eligibility.<br>
+Ready = test date scheduled within 5 days.<br>
+Pass → Cooldown (5 days default).<br>
+Fail → Freeze (minimum 7 days).
+
   </div>
 </div>
     <div class="card">
