@@ -16,10 +16,9 @@ import {
   getAthleteStripeInfo
 } from "/assets/js/ladder.service.js";
 
-
+const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
-const functions = getFunctions();
 const promoteTierCall = httpsCallable(functions, "promoteTier");
 const freezeAthleteCall = httpsCallable(functions, "freezeAthlete");
 

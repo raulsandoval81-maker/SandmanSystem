@@ -1,6 +1,9 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
+import { createTestingEvent } from "./testing-events/createTestingEvent";
+import { writeParentTestingPing } from "./testing-events/writeParentTestingPing";
+
 export const freezeAthlete = onCall(async (req) => {
   const db = getFirestore();
 
@@ -24,6 +27,8 @@ export const freezeAthlete = onCall(async (req) => {
   }
 
   const athleteRef = db.collection("athletes").doc(uid);
+
+  console.log("FREEZE STEP 1", uid);
 
   const freezeUntil = new Date();
   freezeUntil.setDate(freezeUntil.getDate() + 5);
@@ -70,8 +75,33 @@ export const freezeAthlete = onCall(async (req) => {
       score,
       state: "FREEZE",
       freezeUntil: freezeUntil.toISOString(),
+
+      tier: athlete.tier ?? null,
+      parentUid: athlete.parentUid ?? null,
+      publicName: athlete.publicName ?? athlete.fullName ?? null,
     };
   });
+
+  console.log("FREEZE STEP 2", result);
+
+  if (result.ok) {
+    const eventPayload = {
+      uid: result.uid,
+      type: "TEST_FAILED" as const,
+      score: result.score,
+      tier: result.tier,
+      parentUid: result.parentUid,
+      publicName: result.publicName,
+    };
+
+    console.log("FREEZE EVENT FINAL PAYLOAD", eventPayload);
+
+    await createTestingEvent(eventPayload);
+    console.log("FREEZE STEP 3 EVENT WRITTEN");
+
+    await writeParentTestingPing(eventPayload);
+    console.log("FREEZE STEP 4 PARENT WRITTEN");
+  }
 
   return result;
 });
