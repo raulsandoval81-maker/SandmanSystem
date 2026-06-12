@@ -14,6 +14,7 @@ export { freezeAthlete } from "./modules/freezeAthlete";
 export { scheduleTesting } from "./modules/scheduleTesting";
 export { startTesting } from "./modules/startTesting";
 export { getTestingHistory } from "./modules/getTestingHistory";
+export { getParentInbox } from "./modules/getParentInbox";
 
 // ---- Arena (log-only in V1)
 export { logArenaHttp } from "./modules/logArenaHttp";
