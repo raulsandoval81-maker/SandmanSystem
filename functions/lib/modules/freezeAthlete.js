@@ -4,7 +4,8 @@ exports.freezeAthlete = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
-const writeParentTestingPing_1 = require("./testing-events/writeParentTestingPing");
+const sendParentSignal_1 = require("./parent/sendParentSignal");
+const parentSignalTypes_1 = require("./parent/parentSignalTypes");
 exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
     const payload = req.data || {};
@@ -13,14 +14,15 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
     if (!uid) {
         throw new https_1.HttpsError("invalid-argument", "Missing uid");
     }
-    if (!Number.isFinite(score) || score < 0 || score > 100) {
+    if (!Number.isFinite(score) ||
+        score < 0 ||
+        score > 100) {
         throw new https_1.HttpsError("invalid-argument", "Invalid score");
     }
     if (score >= 85) {
         throw new https_1.HttpsError("failed-precondition", "Score is 85 or higher. Use Pass Test.");
     }
     const athleteRef = db.collection("athletes").doc(uid);
-    console.log("FREEZE STEP 1", uid);
     const freezeUntil = new Date();
     freezeUntil.setDate(freezeUntil.getDate() + 5);
     const result = await db.runTransaction(async (tx) => {
@@ -57,10 +59,11 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
             freezeUntil: freezeUntil.toISOString(),
             tier: athlete.tier ?? null,
             parentUid: athlete.parentUid ?? null,
-            publicName: athlete.publicName ?? athlete.fullName ?? null,
+            publicName: athlete.publicName ??
+                athlete.fullName ??
+                null,
         };
     });
-    console.log("FREEZE STEP 2", result);
     if (result.ok) {
         const eventPayload = {
             uid: result.uid,
@@ -70,11 +73,17 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
             parentUid: result.parentUid,
             publicName: result.publicName,
         };
-        console.log("FREEZE EVENT FINAL PAYLOAD", eventPayload);
         await (0, createTestingEvent_1.createTestingEvent)(eventPayload);
-        console.log("FREEZE STEP 3 EVENT WRITTEN");
-        await (0, writeParentTestingPing_1.writeParentTestingPing)(eventPayload);
-        console.log("FREEZE STEP 4 PARENT WRITTEN");
+        if (result.parentUid) {
+            await (0, sendParentSignal_1.sendParentSignal)({
+                parentUid: result.parentUid,
+                athleteId: result.uid,
+                athleteName: result.publicName ?? undefined,
+                type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEST_FAILED,
+                source: "freezeAthlete",
+                sourceId: result.uid,
+            });
+        }
     }
     return result;
 });

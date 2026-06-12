@@ -4,7 +4,8 @@ exports.scheduleTesting = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
-const writeParentTestingPing_1 = require("./testing-events/writeParentTestingPing");
+const sendParentSignal_1 = require("./parent/sendParentSignal");
+const parentSignalTypes_1 = require("./parent/parentSignalTypes");
 exports.scheduleTesting = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
     const uid = String(req.data?.uid || "").trim();
@@ -30,16 +31,30 @@ exports.scheduleTesting = (0, https_1.onCall)(async (req) => {
         "testing.coachReadyAt": firestore_1.FieldValue.serverTimestamp(),
         updatedAt: firestore_1.FieldValue.serverTimestamp(),
     });
+    const athleteName = athlete.publicName ||
+        athlete.fullName ||
+        null;
+    const parentUid = athlete.parentUid || null;
     const eventPayload = {
         uid,
         type: "TEST_SCHEDULED",
         tier: athlete.tier ?? null,
-        parentUid: athlete.parentUid ?? null,
-        publicName: athlete.publicName ?? athlete.fullName ?? null,
+        parentUid,
+        publicName: athleteName,
         scheduledDate,
     };
     await (0, createTestingEvent_1.createTestingEvent)(eventPayload);
-    await (0, writeParentTestingPing_1.writeParentTestingPing)(eventPayload);
+    if (parentUid) {
+        await (0, sendParentSignal_1.sendParentSignal)({
+            parentUid,
+            athleteId: uid,
+            athleteName,
+            type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEST_SCHEDULED,
+            testingDate: scheduledDate,
+            source: "scheduleTesting",
+            sourceId: uid,
+        });
+    }
     return {
         ok: true,
         uid,

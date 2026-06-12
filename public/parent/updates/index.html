@@ -2,14 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
 
   <title>Parent Updates</title>
 
-  <link rel="stylesheet" href="./parent.css" />
+  <link
+    rel="stylesheet"
+    href="/parent/parent.css"
+  />
 </head>
-<body>
 
+<body>
   <main class="wrap">
 
     <section class="hero">
@@ -22,7 +28,17 @@
     </section>
 
     <section class="card">
-      <h2>Recent Updates</h2>
+      <div class="section-header">
+        <h2>Recent Updates</h2>
+
+        <span
+          id="unread-count"
+          class="badge"
+          hidden
+        >
+          0 unread
+        </span>
+      </div>
 
       <div id="updates-list">
         Loading...
@@ -44,6 +60,5 @@
     type="module"
     src="./updates.js"
   ></script>
-
 </body>
 </html>

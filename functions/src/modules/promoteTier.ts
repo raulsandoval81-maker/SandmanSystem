@@ -1,7 +1,24 @@
-import { onCall, HttpsError } from "firebase-functions/v2/https";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { createTestingEvent } from "./testing-events/createTestingEvent";
-import { writeParentTestingPing } from "./testing-events/writeParentTestingPing";
+import {
+  onCall,
+  HttpsError
+} from "firebase-functions/v2/https";
+
+import {
+  getFirestore,
+  FieldValue
+} from "firebase-admin/firestore";
+
+import {
+  createTestingEvent
+} from "./testing-events/createTestingEvent";
+
+import {
+  sendParentSignal
+} from "./parent/sendParentSignal";
+
+import {
+  PARENT_SIGNAL_TYPES
+} from "./parent/parentSignalTypes";
 
 type Base = "F4" | "F8";
 
@@ -33,181 +50,284 @@ const XP = Object.freeze({
 } as const);
 
 function normalizeBaseFromAthlete(a: any): Base {
-  const raw = String(a?.trackBase || a?.track || a?.program || a?.base || "").toUpperCase();
-  if (raw.startsWith("F8") || raw.includes("FOUNDRY8") || raw.includes("YOUTH")) return "F8";
+  const raw =
+    String(
+      a?.trackBase ||
+      a?.track ||
+      a?.program ||
+      a?.base ||
+      ""
+    ).toUpperCase();
+
+  if (
+    raw.startsWith("F8") ||
+    raw.includes("FOUNDRY8") ||
+    raw.includes("YOUTH")
+  ) {
+    return "F8";
+  }
+
   return "F4";
 }
 
 function normalizeTier(a: any): string {
-  if (typeof a?.tier === "string" && a.tier.startsWith("T")) return a.tier;
-  if (typeof a?.tier === "number") return `T${a.tier}`;
-  if (typeof a?.rank === "string" && a.rank.startsWith("T")) return a.rank;
+  if (
+    typeof a?.tier === "string" &&
+    a.tier.startsWith("T")
+  ) {
+    return a.tier;
+  }
+
+  if (typeof a?.tier === "number") {
+    return `T${a.tier}`;
+  }
+
+  if (
+    typeof a?.rank === "string" &&
+    a.rank.startsWith("T")
+  ) {
+    return a.rank;
+  }
+
   return "T0";
 }
 
 function monthKey(d = new Date()) {
   const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const m =
+    String(d.getMonth() + 1).padStart(2, "0");
+
   return `${y}-${m}`;
 }
 
 export const promoteTier = onCall(async (req) => {
   const db = getFirestore();
 
-  const payload = req.data || {};
-  const uid = String(payload.uid || "").trim();
-  const score = Number(payload.score || 0);
-  const note = typeof payload.note === "string" ? payload.note.trim() : "";
+  const payload =
+    req.data || {};
+
+  const uid =
+    String(payload.uid || "").trim();
+
+  const score =
+    Number(payload.score || 0);
+
+  const note =
+    typeof payload.note === "string"
+      ? payload.note.trim()
+      : "";
 
   if (!uid) {
-    throw new HttpsError("invalid-argument", "Missing uid");
+    throw new HttpsError(
+      "invalid-argument",
+      "Missing uid"
+    );
   }
 
-  if (!Number.isFinite(score) || score < 0 || score > 100) {
-    throw new HttpsError("invalid-argument", "Invalid score");
+  if (
+    !Number.isFinite(score) ||
+    score < 0 ||
+    score > 100
+  ) {
+    throw new HttpsError(
+      "invalid-argument",
+      "Invalid score"
+    );
   }
 
   if (score < 85) {
-    throw new HttpsError("failed-precondition", "Score must be 85 or higher to promote.");
+    throw new HttpsError(
+      "failed-precondition",
+      "Score must be 85 or higher to promote."
+    );
   }
 
-  const athleteRef = db.collection("athletes").doc(uid);
-  const mKey = monthKey();
-  const logRef = db.collection("xp_logs").doc();
+  const athleteRef =
+    db.collection("athletes").doc(uid);
 
-  const result = await db.runTransaction(async (tx) => {
-    const snap = await tx.get(athleteRef);
+  const mKey =
+    monthKey();
 
-    if (!snap.exists) {
-      throw new HttpsError("not-found", `Athlete not found: ${uid}`);
-    }
+  const logRef =
+    db.collection("xp_logs").doc();
 
-    const athlete = snap.data() || {};
-    const testingState = String(athlete?.testing?.state || "");
+  const result =
+    await db.runTransaction(async (tx) => {
+      const snap =
+        await tx.get(athleteRef);
 
-    if (testingState !== "TESTING") {
-      throw new HttpsError(
-        "failed-precondition",
-        `Athlete must be TESTING before promotion. Current state: ${testingState}`
+      if (!snap.exists) {
+        throw new HttpsError(
+          "not-found",
+          `Athlete not found: ${uid}`
+        );
+      }
+
+      const athlete =
+        snap.data() || {};
+
+      const testingState =
+        String(athlete?.testing?.state || "");
+
+      if (testingState !== "TESTING") {
+        throw new HttpsError(
+          "failed-precondition",
+          `Athlete must be TESTING before promotion. Current state: ${testingState}`
+        );
+      }
+
+      const base =
+        normalizeBaseFromAthlete(athlete);
+
+      const tier =
+        normalizeTier(athlete);
+
+      const tiers =
+        XP[base].tiers as unknown as string[];
+
+      const caps =
+        XP[base].tierCaps as unknown as Record<
+          string,
+          number
+        >;
+
+      const idx =
+        tiers.indexOf(tier);
+
+      if (idx < 0) {
+        throw new HttpsError(
+          "failed-precondition",
+          `Unknown tier: ${tier}`
+        );
+      }
+
+      if (idx >= tiers.length - 1) {
+        return {
+          ok: true,
+          blocked: true,
+          reason: "MAX_TIER_REACHED",
+          uid,
+          base,
+          tier,
+        };
+      }
+
+      const cap =
+        Number(caps[tier] ?? 0);
+
+      const beforeXp =
+        Number(athlete.xp ?? 0);
+
+      if (beforeXp < cap) {
+        return {
+          ok: true,
+          blocked: true,
+          reason: "NOT_READY",
+          uid,
+          base,
+          tier,
+          beforeXp,
+          cap,
+        };
+      }
+
+      const nextTier =
+        tiers[idx + 1];
+
+      const nextCap =
+        Number(caps[nextTier] ?? 0);
+
+      if (!nextCap) {
+        throw new HttpsError(
+          "failed-precondition",
+          `Missing cap for ${base} ${nextTier}`
+        );
+      }
+
+      const cooldownUntil =
+        new Date();
+
+      cooldownUntil.setDate(
+        cooldownUntil.getDate() + 5
       );
-    }
 
-    const base = normalizeBaseFromAthlete(athlete);
-    const tier = normalizeTier(athlete);
+      tx.update(athleteRef, {
+        tier: nextTier,
+        xp: 0,
+        xpCap: nextCap,
+        stripeCount: 0,
+        trackBase: base,
 
-    const tiers = XP[base].tiers as unknown as string[];
-    const caps = XP[base].tierCaps as unknown as Record<string, number>;
+        tierStatus: "cooldown",
+        promotionLocked: false,
 
-    const idx = tiers.indexOf(tier);
+        "testing.state": "COOLDOWN",
+        "testing.lastTestResult": "pass",
+        "testing.lastTestScore": score,
+        "testing.passingScore": 85,
+        "testing.cooldownUntil": cooldownUntil,
+        "testing.freezeUntil": null,
+        "testing.testingStartedAt": null,
+        "testing.coachReady": false,
+        "testing.coachReadyAt": null,
+        "testing.scheduledDate": null,
+        "testing.scheduledAt": null,
+        "testing.scheduledBy": null,
 
-    if (idx < 0) {
-      throw new HttpsError("failed-precondition", `Unknown tier: ${tier}`);
-    }
+        "testing.promotedFrom": tier,
+        "testing.promotedTo": nextTier,
+        "testing.promotedAt":
+          FieldValue.serverTimestamp(),
 
-    if (idx >= tiers.length - 1) {
-      return {
-        ok: true,
-        blocked: true,
-        reason: "MAX_TIER_REACHED",
+        updatedAt:
+          FieldValue.serverTimestamp(),
+      });
+
+      tx.set(logRef, {
         uid,
+        kind: "PROMOTION",
+        amount: 0,
+        note:
+          note ||
+          `Passed test with ${score}%. Promoted ${tier} → ${nextTier}`,
+        meta: {
+          fromTier: tier,
+          toTier: nextTier,
+          score,
+          passingScore: 85,
+        },
         base,
-        tier,
-      };
-    }
-
-    const cap = Number(caps[tier] ?? 0);
-    const beforeXp = Number(athlete.xp ?? 0);
-
-    if (beforeXp < cap) {
-      return {
-        ok: true,
-        blocked: true,
-        reason: "NOT_READY",
-        uid,
-        base,
-        tier,
+        tier: nextTier,
         beforeXp,
-        cap,
-      };
-    }
+        afterXp: 0,
+        cap: nextCap,
+        month: mKey,
+        createdAt:
+          FieldValue.serverTimestamp(),
+      });
 
-    const nextTier = tiers[idx + 1];
-    const nextCap = Number(caps[nextTier] ?? 0);
-
-    if (!nextCap) {
-      throw new HttpsError("failed-precondition", `Missing cap for ${base} ${nextTier}`);
-    }
-
-    const cooldownUntil = new Date();
-    cooldownUntil.setDate(cooldownUntil.getDate() + 5);
-
-tx.update(athleteRef, {
-  tier: nextTier,
-  xp: 0,
-  xpCap: nextCap,
-  stripeCount: 0,
-  trackBase: base,
-
-  tierStatus: "cooldown",
-  promotionLocked: false,
-
-  "testing.state": "COOLDOWN",
-  "testing.lastTestResult": "pass",
-  "testing.lastTestScore": score,
-  "testing.passingScore": 85,
-  "testing.cooldownUntil": cooldownUntil,
-  "testing.freezeUntil": null,
-  "testing.testingStartedAt": null,
-  "testing.coachReady": false,
-  "testing.coachReadyAt": null,
-  "testing.scheduledDate": null,
-  "testing.scheduledAt": null,
-  "testing.scheduledBy": null,
-
-  "testing.promotedFrom": tier,
-  "testing.promotedTo": nextTier,
-  "testing.promotedAt": FieldValue.serverTimestamp(),
-
-  updatedAt: FieldValue.serverTimestamp(),
-});
-
-    tx.set(logRef, {
-      uid,
-      kind: "PROMOTION",
-      amount: 0,
-      note: note || `Passed test with ${score}%. Promoted ${tier} → ${nextTier}`,
-      meta: {
+      return {
+        ok: true,
+        blocked: false,
+        uid,
+        base,
         fromTier: tier,
         toTier: nextTier,
+        beforeXp,
+        afterXp: 0,
+        cap: nextCap,
         score,
-        passingScore: 85,
-      },
-      base,
-      tier: nextTier,
-      beforeXp,
-      afterXp: 0,
-      cap: nextCap,
-      month: mKey,
-      createdAt: FieldValue.serverTimestamp(),
+        cooldownUntil:
+          cooldownUntil.toISOString(),
+        logId: logRef.id,
+        parentUid:
+          athlete.parentUid ?? null,
+        publicName:
+          athlete.publicName ??
+          athlete.fullName ??
+          null,
+      };
     });
-
-    return {
-      ok: true,
-      blocked: false,
-      uid,
-      base,
-      fromTier: tier,
-      toTier: nextTier,
-      beforeXp,
-      afterXp: 0,
-      cap: nextCap,
-      score,
-      cooldownUntil: cooldownUntil.toISOString(),
-      logId: logRef.id,
-      parentUid: athlete.parentUid ?? null,
-      publicName: athlete.publicName ?? athlete.fullName ?? null,
-    };
-  });
 
   if (result.ok && !result.blocked) {
     const eventPayload = {
@@ -221,9 +341,22 @@ tx.update(athleteRef, {
     };
 
     await createTestingEvent(eventPayload);
-    await writeParentTestingPing(eventPayload);
+
+    if (result.parentUid) {
+      await sendParentSignal({
+        parentUid: result.parentUid,
+        athleteId: result.uid,
+        athleteName: result.publicName ?? undefined,
+
+        type: PARENT_SIGNAL_TYPES.PROMOTED,
+
+        nextTier: result.toTier,
+
+        source: "promoteTier",
+        sourceId: result.logId,
+      });
+    }
   }
 
   return result;
 });
-

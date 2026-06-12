@@ -7,30 +7,26 @@
   <link rel="stylesheet" href="/parent/parent.css" />
 
   <style>
-    .parent-tabs{
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:14px;
-      margin:18px 0 22px;
-    }
+.parent-tabs{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+  gap:14px;
+  margin:18px 0 22px;
+}
 
-    .parent-tab{
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:flex-start;
-      min-height:92px;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px 16px;
-      box-shadow:var(--shadow);
-      text-decoration:none;
-      color:var(--text);
-      transition:.15s ease;
-    }
+.parent-unread-badge{
+  display:none;
+  margin-top:8px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:var(--gold);
+  color:#111;
+  font-size:.72rem;
+  font-weight:900;
+  line-height:1;
+}
 
-    .parent-tab:hover{
+.parent-tab:hover{
       border-color:var(--gold);
       transform:translateY(-1px);
     }
@@ -360,9 +356,65 @@
             <span class="es">Sistema</span>
           </h2>
         </a>
+<a class="parent-tab" href="/parent/updates/index.html">
+  <p class="parent-tab-kicker">
+    <span class="en">Updates</span>
+    <span class="es">Actualizaciones</span>
+  </p>
+
+  <h2 class="parent-tab-title">
+    <span class="en">Parent Updates</span>
+    <span class="es">Actualizaciones</span>
+  </h2>
+
+  <p
+    id="parentUnreadBadge"
+    class="parent-unread-badge"
+  >
+   🔔 New Updates
+  </p>
+</a>
       </nav>
     </section>
   </main>
+
+<script type="module">
+import {
+  functions,
+  httpsCallable
+} from "/assets/js/firebase-init.js";
+
+const getParentInboxCall =
+  httpsCallable(functions, "getParentInbox");
+
+async function loadUnreadBadge() {
+  const badge =
+    document.getElementById("parentUnreadBadge");
+
+  if (!badge) return;
+
+  badge.style.display = "none";
+  badge.textContent = "";
+
+  try {
+    const result =
+      await getParentInboxCall();
+
+    const unread =
+      Number(result.data?.unreadCount || 0);
+
+    if (unread > 0) {
+      badge.style.display = "inline-block";
+      badge.textContent =
+        `${unread} New Update${unread === 1 ? "" : "s"}`;
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+loadUnreadBadge();
+</script>
   <script src="/assets/js/parent-shell.js"></script>
 </body>
 </html>

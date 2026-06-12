@@ -4,7 +4,8 @@ exports.promoteTier = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
-const writeParentTestingPing_1 = require("./testing-events/writeParentTestingPing");
+const sendParentSignal_1 = require("./parent/sendParentSignal");
+const parentSignalTypes_1 = require("./parent/parentSignalTypes");
 const XP = Object.freeze({
     F4: {
         tierCaps: {
@@ -31,18 +32,30 @@ const XP = Object.freeze({
     },
 });
 function normalizeBaseFromAthlete(a) {
-    const raw = String(a?.trackBase || a?.track || a?.program || a?.base || "").toUpperCase();
-    if (raw.startsWith("F8") || raw.includes("FOUNDRY8") || raw.includes("YOUTH"))
+    const raw = String(a?.trackBase ||
+        a?.track ||
+        a?.program ||
+        a?.base ||
+        "").toUpperCase();
+    if (raw.startsWith("F8") ||
+        raw.includes("FOUNDRY8") ||
+        raw.includes("YOUTH")) {
         return "F8";
+    }
     return "F4";
 }
 function normalizeTier(a) {
-    if (typeof a?.tier === "string" && a.tier.startsWith("T"))
+    if (typeof a?.tier === "string" &&
+        a.tier.startsWith("T")) {
         return a.tier;
-    if (typeof a?.tier === "number")
+    }
+    if (typeof a?.tier === "number") {
         return `T${a.tier}`;
-    if (typeof a?.rank === "string" && a.rank.startsWith("T"))
+    }
+    if (typeof a?.rank === "string" &&
+        a.rank.startsWith("T")) {
         return a.rank;
+    }
     return "T0";
 }
 function monthKey(d = new Date()) {
@@ -55,11 +68,15 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
     const payload = req.data || {};
     const uid = String(payload.uid || "").trim();
     const score = Number(payload.score || 0);
-    const note = typeof payload.note === "string" ? payload.note.trim() : "";
+    const note = typeof payload.note === "string"
+        ? payload.note.trim()
+        : "";
     if (!uid) {
         throw new https_1.HttpsError("invalid-argument", "Missing uid");
     }
-    if (!Number.isFinite(score) || score < 0 || score > 100) {
+    if (!Number.isFinite(score) ||
+        score < 0 ||
+        score > 100) {
         throw new https_1.HttpsError("invalid-argument", "Invalid score");
     }
     if (score < 85) {
@@ -146,7 +163,8 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             uid,
             kind: "PROMOTION",
             amount: 0,
-            note: note || `Passed test with ${score}%. Promoted ${tier} → ${nextTier}`,
+            note: note ||
+                `Passed test with ${score}%. Promoted ${tier} → ${nextTier}`,
             meta: {
                 fromTier: tier,
                 toTier: nextTier,
@@ -175,7 +193,9 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             cooldownUntil: cooldownUntil.toISOString(),
             logId: logRef.id,
             parentUid: athlete.parentUid ?? null,
-            publicName: athlete.publicName ?? athlete.fullName ?? null,
+            publicName: athlete.publicName ??
+                athlete.fullName ??
+                null,
         };
     });
     if (result.ok && !result.blocked) {
@@ -189,7 +209,17 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             publicName: result.publicName ?? null,
         };
         await (0, createTestingEvent_1.createTestingEvent)(eventPayload);
-        await (0, writeParentTestingPing_1.writeParentTestingPing)(eventPayload);
+        if (result.parentUid) {
+            await (0, sendParentSignal_1.sendParentSignal)({
+                parentUid: result.parentUid,
+                athleteId: result.uid,
+                athleteName: result.publicName ?? undefined,
+                type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.PROMOTED,
+                nextTier: result.toTier,
+                source: "promoteTier",
+                sourceId: result.logId,
+            });
+        }
     }
     return result;
 });

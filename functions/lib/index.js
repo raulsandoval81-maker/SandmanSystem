@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getParentInbox = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.markParentInboxRead = exports.getParentInbox = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 // ---- Health / Debug
@@ -44,9 +44,9 @@ Object.defineProperty(exports, "testXpWrite", { enumerable: true, get: function 
 var testAthleteXp_1 = require("./modules/testAthleteXp");
 Object.defineProperty(exports, "testAthleteXp", { enumerable: true, get: function () { return testAthleteXp_1.testAthleteXp; } });
 // ---- XP Core
-var incrementXp_1 = require("./modules/incrementXp"); // onCall (app)
+var incrementXp_1 = require("./modules/incrementXp");
 Object.defineProperty(exports, "incrementXp", { enumerable: true, get: function () { return incrementXp_1.incrementXp; } });
-var xpHttp_1 = require("./modules/xpHttp"); // onRequest (weekend)
+var xpHttp_1 = require("./modules/xpHttp");
 Object.defineProperty(exports, "xpHttp", { enumerable: true, get: function () { return xpHttp_1.xpHttp; } });
 var promoteTier_1 = require("./modules/promoteTier");
 Object.defineProperty(exports, "promoteTier", { enumerable: true, get: function () { return promoteTier_1.promoteTier; } });
@@ -58,8 +58,10 @@ var startTesting_1 = require("./modules/startTesting");
 Object.defineProperty(exports, "startTesting", { enumerable: true, get: function () { return startTesting_1.startTesting; } });
 var getTestingHistory_1 = require("./modules/getTestingHistory");
 Object.defineProperty(exports, "getTestingHistory", { enumerable: true, get: function () { return getTestingHistory_1.getTestingHistory; } });
-var getParentInbox_1 = require("./modules/getParentInbox");
+var getParentInbox_1 = require("./modules/parent/getParentInbox");
 Object.defineProperty(exports, "getParentInbox", { enumerable: true, get: function () { return getParentInbox_1.getParentInbox; } });
+var markParentInboxRead_1 = require("./modules/parent/markParentInboxRead");
+Object.defineProperty(exports, "markParentInboxRead", { enumerable: true, get: function () { return markParentInboxRead_1.markParentInboxRead; } });
 // ---- Arena (log-only in V1)
 var logArenaHttp_1 = require("./modules/logArenaHttp");
 Object.defineProperty(exports, "logArenaHttp", { enumerable: true, get: function () { return logArenaHttp_1.logArenaHttp; } });

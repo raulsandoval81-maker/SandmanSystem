@@ -573,3 +573,18 @@ body.lang-es .es{ display:inline!important; }
     gap:8px;
   }
 }
+.unread-pill,
+.badge {
+  display:inline-block;
+  margin-left:8px;
+  padding:4px 8px;
+  border-radius:999px;
+  background:var(--gold);
+  color:#111;
+  font-size:.72rem;
+  font-weight:900;
+}
+
+.parent-update-card.unread {
+  border-color:var(--gold);
+}

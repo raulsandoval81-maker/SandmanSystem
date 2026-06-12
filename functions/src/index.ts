@@ -7,20 +7,21 @@ export { testXpWrite } from "./modules/testXpWrite";
 export { testAthleteXp } from "./modules/testAthleteXp";
 
 // ---- XP Core
-export { incrementXp } from "./modules/incrementXp"; // onCall (app)
-export { xpHttp } from "./modules/xpHttp";           // onRequest (weekend)
+export { incrementXp } from "./modules/incrementXp";
+export { xpHttp } from "./modules/xpHttp";
 export { promoteTier } from "./modules/promoteTier";
 export { freezeAthlete } from "./modules/freezeAthlete";
 export { scheduleTesting } from "./modules/scheduleTesting";
 export { startTesting } from "./modules/startTesting";
 export { getTestingHistory } from "./modules/getTestingHistory";
-export { getParentInbox } from "./modules/getParentInbox";
+export { getParentInbox } from "./modules/parent/getParentInbox";
+export { markParentInboxRead } from "./modules/parent/markParentInboxRead";
 
 // ---- Arena (log-only in V1)
 export { logArenaHttp } from "./modules/logArenaHttp";
 
 // ---- Intake (TOKEN FLOW)
-export { approveIntakeCall } from "./modules/approveIntakeCall"; 
+export { approveIntakeCall } from "./modules/approveIntakeCall";
 export { createAthleteFromIntakeCall } from "./modules/createAthleteFromIntakeCall";
 export { approveAndActivate } from "./approveAndActivate";
 

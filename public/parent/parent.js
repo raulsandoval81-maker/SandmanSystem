@@ -1,55 +1,63 @@
-function paintLang(lang){
+function paintLang(lang) {
+  const showEN = lang === "en";
 
-const showEN = lang === "en";
+  document.querySelectorAll(".en").forEach((el) => {
+    el.style.display = showEN ? "" : "none";
+  });
 
-document.querySelectorAll(".en").forEach(el=>{
-el.style.display = showEN ? "" : "none";
-});
-
-document.querySelectorAll(".es").forEach(el=>{
-el.style.display = showEN ? "none" : "";
-});
-
+  document.querySelectorAll(".es").forEach((el) => {
+    el.style.display = showEN ? "none" : "";
+  });
 }
 
-const buttons = document.querySelectorAll(".parent-lang-btn");
+function setLang(lang) {
+  const buttons =
+    document.querySelectorAll(".lang-btn");
 
-function setLang(lang){
+  localStorage.setItem("lang", lang);
 
-localStorage.setItem("lang",lang);
+  buttons.forEach((btn) => {
+    btn.classList.toggle(
+      "active",
+      btn.dataset.lang === lang
+    );
+  });
 
-buttons.forEach(btn=>{
-btn.classList.toggle("active",btn.dataset.lang===lang);
-});
-
-paintLang(lang);
-
+  paintLang(lang);
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
-
-const saved = localStorage.getItem("lang") || "en";
-
-setLang(saved);
-
-buttons.forEach(btn=>{
-btn.addEventListener("click",()=>setLang(btn.dataset.lang));
-});
-
-});
-function setTheme(mode){
-  document.body.classList.remove("day","night");
+function setTheme(mode) {
+  document.body.classList.remove("day", "night");
   document.body.classList.add(mode);
   localStorage.setItem("theme", mode);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const savedTheme = localStorage.getItem("theme") || "day";
+  const savedLang =
+    localStorage.getItem("lang") || "en";
+
+  setLang(savedLang);
+
+  document
+    .querySelectorAll(".lang-btn")
+    .forEach((btn) => {
+      btn.addEventListener("click", () => {
+        setLang(btn.dataset.lang);
+      });
+    });
+
+  const savedTheme =
+    localStorage.getItem("theme") || "day";
+
   setTheme(savedTheme);
 
-  const themeBtn = document.getElementById("themeToggle");
+  const themeBtn =
+    document.getElementById("themeToggle");
+
   themeBtn?.addEventListener("click", () => {
-    const isDay = document.body.classList.contains("day");
+    const isDay =
+      document.body.classList.contains("day");
+
     setTheme(isDay ? "night" : "day");
   });
 });

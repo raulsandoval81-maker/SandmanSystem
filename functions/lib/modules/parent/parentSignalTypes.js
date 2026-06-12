@@ -1,0 +1,14 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.PARENT_SIGNAL_TYPES = void 0;
+exports.PARENT_SIGNAL_TYPES = {
+    TEST_SCHEDULED: "TEST_SCHEDULED",
+    TEST_STARTED: "TEST_STARTED",
+    TEST_PASSED: "TEST_PASSED",
+    TEST_FAILED: "TEST_FAILED",
+    PROMOTED: "PROMOTED",
+    ATTENDANCE_LOGGED: "ATTENDANCE_LOGGED",
+    COACH_NOTE: "COACH_NOTE",
+    FREEZE_WARNING: "FREEZE_WARNING",
+    LEVEL_READY: "LEVEL_READY",
+};
