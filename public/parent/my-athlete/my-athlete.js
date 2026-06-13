@@ -298,20 +298,30 @@ setText(
 
   setText("stripe-target", "");
 
-  const coachNote =
-    a.parentCoachNote ||
-    a.coachNoteParent ||
-    a.coachNote ||
-    a.parentNote ||
-    "";
+const coachNote =
+  a.latestCoachNote?.note ||
+  a.parentCoachNote ||
+  a.coachNoteParent ||
+  a.coachNote ||
+  a.parentNote ||
+  "";
 
-  setHTML(
-    "coach-note",
-    coachNote
-      ? esc(coachNote)
-      : `<span class="en">No coach note available yet.</span>
-         <span class="es">Todavía no hay una nota del entrenador.</span>`
-  );
+const coachName =
+  a.latestCoachNote?.coachName || "";
+
+setHTML(
+  "coach-note",
+  coachNote
+    ? `
+        ${coachName ? `<strong>${esc(coachName)}</strong><br>` : ""}
+        ${esc(coachNote)}
+      `
+    : `
+        <span class="en">No coach note available yet.</span>
+        <span class="es">Todavía no hay una nota del entrenador.</span>
+      `
+);
+
 }
 
 function renderToday(daily = []) {
@@ -417,18 +427,24 @@ async function renderParentInboxPreview(parentUid, athleteUid) {
   if (!list) return false;
 
   try {
-const result = await getParentInboxCall();
+const result = await getParentInboxCall({
+  parentUid
+});
 
     const items = (result.data?.items || [])
-      .filter((item) =>
-        !athleteUid ||
-        String(item.uid || "").toUpperCase() === String(athleteUid).toUpperCase()
-      )
-      .slice(0, 5);
+.filter((item) => {
+  if (!athleteUid) return true;
 
-    if (!items.length) {
-      return false;
-    }
+  const itemAthleteId =
+    String(
+      item.athleteId ||
+      item.uid ||
+      item.sourceId ||
+      ""
+    ).toUpperCase();
+
+  return itemAthleteId === String(athleteUid).toUpperCase();
+})
 
     list.innerHTML = items
       .map((item) => {
@@ -469,67 +485,6 @@ async function getAthleteByUid(athleteUid) {
   return {
     id: athleteSnap.id,
     data: athleteSnap.data() || {},
-  };
-}
-
-async function getAthleteForParent(userUid) {
-  const linkQuery = query(
-    collection(db, "parentAthleteLinks"),
-    where("parentUid", "==", userUid),
-    where("status", "==", "active"),
-    limit(1)
-  );
-
-  const linkSnap = await getDocs(linkQuery);
-  console.log("[parent-my-athlete] parentAthleteLinks size:", linkSnap.size);
-
-  if (!linkSnap.empty) {
-    const linkData = linkSnap.docs[0].data() || {};
-    const linkedAthleteUid = String(linkData.athleteUid || "").trim().toUpperCase();
-
-    console.log("[parent-my-athlete] parentAthleteLinks hit:", linkData);
-
-    if (linkedAthleteUid) {
-      const linked = await getAthleteByUid(linkedAthleteUid);
-      if (linked) return linked;
-    }
-  }
-
-  const parentRef = doc(db, "parents", userUid);
-  const parentSnap = await getDoc(parentRef);
-
-  if (parentSnap.exists()) {
-    const parentData = parentSnap.data() || {};
-    const linkedAthleteUid = String(
-      parentData.athleteUid ||
-      parentData.primaryAthleteUid ||
-      parentData.uid ||
-      ""
-    ).trim().toUpperCase();
-
-    console.log("[parent-my-athlete] parent doc found:", userUid, parentData);
-
-    if (linkedAthleteUid) {
-      const linked = await getAthleteByUid(linkedAthleteUid);
-      if (linked) return linked;
-    }
-  }
-
-  const athleteQuery = query(
-    collection(db, "athletes"),
-    where("parentUid", "==", userUid),
-    limit(1)
-  );
-
-  const athleteSnap = await getDocs(athleteQuery);
-  console.log("[parent-my-athlete] fallback athlete query size:", athleteSnap.size);
-
-  if (athleteSnap.empty) return null;
-
-  const athleteDoc = athleteSnap.docs[0];
-  return {
-    id: athleteDoc.id,
-    data: athleteDoc.data() || {},
   };
 }
 
@@ -582,10 +537,24 @@ function redirectToAuth() {
 }
 
 async function loadPageForUser(userUid) {
+  console.log("CURRENT USER UID", userUid);
+
   try {
-    const athleteResult = urlAthleteUid
-      ? await getAthleteByUid(urlAthleteUid)
-      : await getAthleteForParent(userUid);
+    const getMyAthlete =
+  httpsCallable(functions, "getMyAthlete");
+
+const athleteResult =
+  await getMyAthlete({});
+
+if (
+  !athleteResult.data?.ok ||
+  !athleteResult.data?.linked
+) {
+  renderNoAccess();
+document.body.classList.remove("auth-pending");
+document.body.classList.add("auth-ready");
+return;
+}
 
     if (!athleteResult) {
       renderNoAccess();
@@ -594,33 +563,55 @@ async function loadPageForUser(userUid) {
       return;
     }
 
-    const athlete = athleteResult.data;
-    console.log("[parent-my-athlete] athlete loaded:", athleteResult.id, athlete);
-
+const athlete = athleteResult.data.athlete;
+console.log("[parent-my-athlete] athlete loaded:", athlete.id, athlete);
 
 renderAthlete(athlete);
 renderRecentActivity(athlete);
 
+try {
 await renderParentInboxPreview(
   userUid,
-  athleteResult.id
+  athlete.id
 );
+
+} catch (err) {
+  console.error(
+    "[parent-my-athlete] inbox preview skipped:",
+    err
+  );
+}
 
     const scheduleRef = doc(db, "system", "schedule");
     const scheduleSnap = await getDoc(scheduleRef);
 
-    if (scheduleSnap.exists()) {
-      const schedule = scheduleSnap.data() || {};
-      const daily = Array.isArray(schedule.daily) ? schedule.daily : [];
-      renderToday(daily);
-    } else {
-      setHTML("today-box", `
-        <p class="muted-empty">
-          <span class="en">No schedule posted yet.</span>
-          <span class="es">Todavía no hay horario publicado.</span>
-        </p>
-      `);
-    }
+try {
+
+  if (scheduleSnap.exists()) {
+    const schedule = scheduleSnap.data() || {};
+    const daily = Array.isArray(schedule.daily)
+      ? schedule.daily
+      : [];
+
+    renderToday(daily);
+  } else {
+    setHTML("today-box", `
+      <p class="muted-empty">
+        <span class="en">No schedule posted yet.</span>
+        <span class="es">Todavía no hay horario publicado.</span>
+      </p>
+    `);
+  }
+} catch (err) {
+  console.error("[parent-my-athlete] schedule skipped:", err);
+
+  setHTML("today-box", `
+    <p class="muted-empty">
+      <span class="en">Schedule unavailable right now.</span>
+      <span class="es">Horario no disponible en este momento.</span>
+    </p>
+  `);
+}
 
     document.body.classList.remove("auth-pending");
     document.body.classList.add("auth-ready");

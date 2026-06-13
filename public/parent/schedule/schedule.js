@@ -24,7 +24,7 @@ const todayCard = document.getElementById("today-box");
 const weeklyList = document.getElementById("weekly-list");
 const eventsList = document.getElementById("events-list");
 const lastUpdated = document.getElementById("last-updated");
-
+const getMyAthleteCall = httpsCallable(functions, "getMyAthlete");
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const DAY_ORDER = {
@@ -100,57 +100,6 @@ async function getAthleteByUid(athleteUid) {
   if (!snap.exists()) return null;
 
   return snap.data() || {};
-}
-
-async function getAthleteForParent(userUid) {
-  const linkQuery = query(
-    collection(db, "parentAthleteLinks"),
-    where("parentUid", "==", userUid),
-    where("status", "==", "active"),
-    limit(1)
-  );
-
-  const linkSnap = await getDocs(linkQuery);
-
-  if (!linkSnap.empty) {
-    const linkData = linkSnap.docs[0].data() || {};
-    const linkedAthleteUid = String(linkData.athleteUid || "").trim().toUpperCase();
-
-    if (linkedAthleteUid) {
-      const athlete = await getAthleteByUid(linkedAthleteUid);
-      if (athlete) return athlete;
-    }
-  }
-
-  const parentRef = doc(db, "parents", userUid);
-  const parentSnap = await getDoc(parentRef);
-
-  if (parentSnap.exists()) {
-    const parentData = parentSnap.data() || {};
-    const linkedAthleteUid = String(
-      parentData.athleteUid ||
-      parentData.primaryAthleteUid ||
-      parentData.uid ||
-      ""
-    ).trim().toUpperCase();
-
-    if (linkedAthleteUid) {
-      const athlete = await getAthleteByUid(linkedAthleteUid);
-      if (athlete) return athlete;
-    }
-  }
-
-  const athleteQuery = query(
-    collection(db, "athletes"),
-    where("parentUid", "==", userUid),
-    limit(1)
-  );
-
-  const athleteSnap = await getDocs(athleteQuery);
-
-  if (athleteSnap.empty) return null;
-
-  return athleteSnap.docs[0].data() || {};
 }
 
 function formatUpdatedAt(ts) {
@@ -550,7 +499,17 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const athlete = await getAthleteForParent(user.uid);
+const result =
+  await getMyAthleteCall({});
+
+if (!result.data?.ok || !result.data?.linked) {
+  renderNoAccess?.();
+  return;
+}
+
+const athlete =
+  result.data.athlete;
+
     await loadSchedule(athlete);
   });
 });

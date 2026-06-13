@@ -16,6 +16,8 @@ export { startTesting } from "./modules/startTesting";
 export { getTestingHistory } from "./modules/getTestingHistory";
 export { getParentInbox } from "./modules/parent/getParentInbox";
 export { markParentInboxRead } from "./modules/parent/markParentInboxRead";
+export { saveCoachNote } from "./modules/parent/saveCoachNote";
+export { getMyAthlete } from "./modules/parent/getMyAthlete";
 
 // ---- Arena (log-only in V1)
 export { logArenaHttp } from "./modules/logArenaHttp";
