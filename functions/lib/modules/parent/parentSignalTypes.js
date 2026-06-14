@@ -3,7 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.PARENT_SIGNAL_TYPES = void 0;
 exports.PARENT_SIGNAL_TYPES = {
     // Daily Activity
-    ATTENDANCE_LOGGED: "ATTENDANCE_LOGGED",
+    ATTENDANCE_LOGGED: "ATTENDANCE_LOGGED", // legacy / tournament / manual attendance
+    DAILY_GRIND_LOGGED: "DAILY_GRIND_LOGGED", // practice XP grind
     XP_MILESTONE: "XP_MILESTONE",
     // Testing Journey
     TEMPLE_ENTERED: "TEMPLE_ENTERED",

@@ -10,6 +10,8 @@ async function sendParentSignal(input) {
         testingDate: input.testingDate,
         nextTier: input.nextTier,
         note: input.note,
+        amount: input.amount,
+        stripeCount: input.stripeCount,
     });
     return (0, writeParentInbox_1.writeParentInbox)({
         parentUid: input.parentUid,

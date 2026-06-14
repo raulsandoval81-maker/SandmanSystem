@@ -75,7 +75,7 @@ function clamp(n: number, lo: number, hi: number) {
 function getMonthlyCaps(trackCode: string) {
   void trackCode;
   return {
-    attendance: 200,
+    attendance: 225,
     arena: 40,
   };
 }

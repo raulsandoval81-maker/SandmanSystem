@@ -1149,7 +1149,13 @@ return {
   cap,
   beforeXp: beforeCombatTotal,
   afterXp: afterCombatTotal,
+  beforeStripeCount,
   stripeCount,
+
+
+  earnedStripe:
+    stripeCount > beforeStripeCount &&
+    stripeCount < 4,
 
   becameEligible:
     nextState === "ELIGIBLE",
@@ -1176,19 +1182,46 @@ return {
 };
   });
 
-  if (
-    result.becameEligible &&
-    result.parentUid
-  ) {
-    await sendParentSignal({
-      parentUid: result.parentUid,
-      athleteId: uid,
-      athleteName: result.athleteName,
-      type: PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
-      source: "incrementXp",
-      sourceId: result.logId,
-    });
-  }
+if (
+  result.becameEligible &&
+  result.parentUid
+) {
+  await sendParentSignal({
+    parentUid: result.parentUid,
+    athleteId: uid,
+    athleteName: result.athleteName,
+    type: PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
+    source: "incrementXp",
+    sourceId: result.logId,
+  });
+}
 
-  return result;
+if (result.earnedStripe && result.parentUid) {
+  await sendParentSignal({
+    parentUid: result.parentUid,
+    athleteId: uid,
+    athleteName: result.athleteName,
+    type: PARENT_SIGNAL_TYPES.XP_MILESTONE,
+    stripeCount: result.stripeCount,
+    source: "incrementXp",
+    sourceId: result.logId,
+  });
+}
+
+if (
+  result.kind === KIND.DAILY_GRIND &&
+  result.parentUid
+) {
+  await sendParentSignal({
+    parentUid: result.parentUid,
+    athleteId: uid,
+    athleteName: result.athleteName,
+    type: PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED,
+    amount: result.amount,
+    source: "incrementXp",
+    sourceId: result.logId,
+  });
+}
+
+return result;
 });

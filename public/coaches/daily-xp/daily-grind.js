@@ -402,8 +402,24 @@ syncPillsToLane();
    Award mapping (string kinds = backend truth)
 ========================= */
 const AWARDS = Object.freeze({
-  GRIND_10: { label: "+10 Full-Time Grind", kind: "ATTENDANCE", amount: 10 },
-  GRIND_5:  { label: "+5 Half-Time Grind",  kind: "ATTENDANCE", amount: 5  },
+
+GRIND_15: {
+  label: "+15 Overtime Grind",
+  kind: "DAILY_GRIND",
+  amount: 15
+},
+
+GRIND_10: {
+  label: "+10 Full-Time Grind",
+  kind: "DAILY_GRIND",
+  amount: 10
+},
+
+GRIND_5: {
+  label: "+5 Part-Time Grind",
+  kind: "DAILY_GRIND",
+  amount: 5
+},
 
   STR_10:   { label: "+10 Strength", kind: "STRENGTH", amount: 10 },
   STR_5:    { label: "+5 Strength",  kind: "STRENGTH", amount: 5  },

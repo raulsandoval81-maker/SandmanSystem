@@ -980,7 +980,10 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             cap,
             beforeXp: beforeCombatTotal,
             afterXp: afterCombatTotal,
+            beforeStripeCount,
             stripeCount,
+            earnedStripe: stripeCount > beforeStripeCount &&
+                stripeCount < 4,
             becameEligible: nextState === "ELIGIBLE",
             athleteName: athlete.publicName ||
                 athlete.fullName ||
@@ -1003,6 +1006,29 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             athleteId: uid,
             athleteName: result.athleteName,
             type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
+            source: "incrementXp",
+            sourceId: result.logId,
+        });
+    }
+    if (result.earnedStripe && result.parentUid) {
+        await (0, sendParentSignal_1.sendParentSignal)({
+            parentUid: result.parentUid,
+            athleteId: uid,
+            athleteName: result.athleteName,
+            type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.XP_MILESTONE,
+            stripeCount: result.stripeCount,
+            source: "incrementXp",
+            sourceId: result.logId,
+        });
+    }
+    if (result.kind === KIND.DAILY_GRIND &&
+        result.parentUid) {
+        await (0, sendParentSignal_1.sendParentSignal)({
+            parentUid: result.parentUid,
+            athleteId: uid,
+            athleteName: result.athleteName,
+            type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED,
+            amount: result.amount,
             source: "incrementXp",
             sourceId: result.logId,
         });

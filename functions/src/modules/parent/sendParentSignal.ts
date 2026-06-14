@@ -20,6 +20,8 @@ type SendParentSignalInput = {
   testingDate?: string;
   nextTier?: string;
   note?: string;
+  amount?: number;
+  stripeCount?: number;
 
   source?: string;
   sourceId?: string;
@@ -35,6 +37,8 @@ export async function sendParentSignal(
       testingDate: input.testingDate,
       nextTier: input.nextTier,
       note: input.note,
+      amount: input.amount,
+      stripeCount: input.stripeCount,
     });
 
   return writeParentInbox({

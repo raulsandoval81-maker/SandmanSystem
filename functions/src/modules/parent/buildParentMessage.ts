@@ -4,11 +4,13 @@ import {
 } from "./parentSignalTypes";
 
 type BuildParentMessageInput = {
+  stripeCount?: number;
   type: ParentSignalType;
   athleteName?: string;
   testingDate?: string;
   nextTier?: string;
   note?: string;
+  amount?: number;
 };
 
 export function buildParentMessage(
@@ -20,18 +22,56 @@ export function buildParentMessage(
   switch (input.type) {
     case PARENT_SIGNAL_TYPES.ATTENDANCE_LOGGED:
       return {
-        title: "Daily Grind",
+        title: "Attendance Recorded",
         message:
           `${athleteName}'s training attendance has been recorded.`,
       };
 
-    case PARENT_SIGNAL_TYPES.XP_MILESTONE:
-      return {
-        title: "XP Milestone • Stripe Earned",
-        message:
-          `${athleteName} earned a new stripe.`,
-      };
+    case PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED: {
+      const amount =
+        Number(input.amount || 0);
 
+      let message =
+        `${athleteName} earned +${amount} XP today.`;
+
+      if (amount >= 15) {
+        message =
+          `${athleteName} earned +15 XP today for Full-Time Grind and Overtime effort.`;
+      } else if (amount >= 10) {
+        message =
+          `${athleteName} earned +10 XP today for Full-Time Grind.`;
+      } else {
+        message =
+          `${athleteName} earned +5 XP today for Part-Time Grind.`;
+      }
+
+      return {
+        title: "Daily Grind Logged",
+        message,
+      };
+    }
+
+case PARENT_SIGNAL_TYPES.XP_MILESTONE: {
+  const stripe =
+    Number(input.stripeCount || 0);
+
+  let note =
+    "Progress is being earned.";
+
+  if (stripe === 1) {
+    note = "The climb has begun.";
+  } else if (stripe === 2) {
+    note = "Momentum is building.";
+  } else if (stripe === 3) {
+    note = "Testing is within reach.";
+  }
+
+  return {
+    title: "XP Milestone • Stripe Earned",
+    message:
+      `${athleteName} earned Stripe ${stripe}.\n\n${note}`,
+  };
+}
     case PARENT_SIGNAL_TYPES.TEMPLE_ENTERED:
       return {
         title: "Temple Watch",
@@ -39,13 +79,13 @@ export function buildParentMessage(
           `${athleteName} has entered Temple Watch.`,
       };
 
-    case PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE:
-      return {
-        title: "Testing Eligible",
-        message:
-          `${athleteName} has completed the required XP and is eligible for testing.`,
-      };
-
+      case PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE:
+  return {
+    title: "Testing Eligible",
+    message:
+      `${athleteName} has earned all 4 required stripes and is now eligible for testing.\n\nEvery step was earned.`,
+  };
+  
     case PARENT_SIGNAL_TYPES.TEST_SCHEDULED:
       return {
         title: "Testing Scheduled",

@@ -31,7 +31,7 @@ foundry4: {
   },
 
 monthly: {
-  attendance: 200,
+  attendance: 225,
   attendanceNegFishEventsMax: 2,
   arena: { T0: null, T1: null, T2: null, T3: null, T4: null }
 },
@@ -80,7 +80,7 @@ T7: 2400
 
 
 monthly: {
-  attendance: 160,
+  attendance: 185,
   attendanceNegFishEventsMax: 2,
 
   arena: {
@@ -142,7 +142,7 @@ T4: 3000
 
 
 monthly: {
-  attendance: 200,
+  attendance: 225,
   attendanceNegFishEventsMax: 2,
   arena: { T0: null, T1: null, T2: null, T3: null, T4: null }
 },

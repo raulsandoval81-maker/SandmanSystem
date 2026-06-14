@@ -42,6 +42,8 @@ export { saveCoachNote }
 
 export { retestAthlete } from "./modules/retestAthlete";
 
+export { sendTestDayPings } from "./modules/parent/sendTestDayPings";
+
 /*
   createParentSignal()
   is an internal helper.

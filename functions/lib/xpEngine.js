@@ -55,7 +55,7 @@ function clamp(n, lo, hi) {
 function getMonthlyCaps(trackCode) {
     void trackCode;
     return {
-        attendance: 200,
+        attendance: 225,
         arena: 40,
     };
 }
