@@ -13,12 +13,9 @@ import {
 } from "./testing-events/createTestingEvent";
 
 import {
-  sendParentSignal
-} from "./parent/sendParentSignal";
-
-import {
+  createParentSignal,
   PARENT_SIGNAL_TYPES
-} from "./parent/parentSignalTypes";
+} from "./parent/createParentSignal";
 
 export const startTesting = onCall(async (req) => {
   const db = getFirestore();
@@ -63,7 +60,7 @@ export const startTesting = onCall(async (req) => {
   const athleteName =
     athlete.publicName ||
     athlete.fullName ||
-    null;
+    uid;
 
   const parentUid =
     athlete.parentUid || null;
@@ -78,18 +75,13 @@ export const startTesting = onCall(async (req) => {
 
   await createTestingEvent(eventPayload);
 
-  if (parentUid) {
-    await sendParentSignal({
-      parentUid,
-      athleteId: uid,
-      athleteName,
-
-      type: PARENT_SIGNAL_TYPES.TEST_STARTED,
-
-      source: "startTesting",
-      sourceId: uid,
-    });
-  }
+  await createParentSignal({
+    athleteId: uid,
+    athleteName,
+    type: PARENT_SIGNAL_TYPES.TEST_STARTED,
+    source: "startTesting",
+    sourceId: uid,
+  });
 
   return {
     ok: true,

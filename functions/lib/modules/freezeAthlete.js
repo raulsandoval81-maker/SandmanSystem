@@ -4,8 +4,7 @@ exports.freezeAthlete = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
-const sendParentSignal_1 = require("./parent/sendParentSignal");
-const parentSignalTypes_1 = require("./parent/parentSignalTypes");
+const createParentSignal_1 = require("./parent/createParentSignal");
 exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
     const payload = req.data || {};
@@ -61,7 +60,7 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
             parentUid: athlete.parentUid ?? null,
             publicName: athlete.publicName ??
                 athlete.fullName ??
-                null,
+                uid,
         };
     });
     if (result.ok) {
@@ -74,16 +73,20 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
             publicName: result.publicName,
         };
         await (0, createTestingEvent_1.createTestingEvent)(eventPayload);
-        if (result.parentUid) {
-            await (0, sendParentSignal_1.sendParentSignal)({
-                parentUid: result.parentUid,
-                athleteId: result.uid,
-                athleteName: result.publicName ?? undefined,
-                type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEST_FAILED,
-                source: "freezeAthlete",
-                sourceId: result.uid,
-            });
-        }
+        await (0, createParentSignal_1.createParentSignal)({
+            athleteId: result.uid,
+            athleteName: result.publicName,
+            type: createParentSignal_1.PARENT_SIGNAL_TYPES.TEST_FAILED,
+            source: "freezeAthlete",
+            sourceId: result.uid,
+        });
+        await (0, createParentSignal_1.createParentSignal)({
+            athleteId: result.uid,
+            athleteName: result.publicName,
+            type: createParentSignal_1.PARENT_SIGNAL_TYPES.TEST_FREEZE,
+            source: "freezeAthlete",
+            sourceId: result.uid,
+        });
     }
     return result;
 });

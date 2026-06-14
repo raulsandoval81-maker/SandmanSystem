@@ -13,12 +13,9 @@ import {
 } from "./testing-events/createTestingEvent";
 
 import {
-  sendParentSignal
-} from "./parent/sendParentSignal";
-
-import {
+  createParentSignal,
   PARENT_SIGNAL_TYPES
-} from "./parent/parentSignalTypes";
+} from "./parent/createParentSignal";
 
 export const freezeAthlete = onCall(async (req) => {
   const db = getFirestore();
@@ -129,7 +126,7 @@ export const freezeAthlete = onCall(async (req) => {
         publicName:
           athlete.publicName ??
           athlete.fullName ??
-          null,
+          uid,
       };
     });
 
@@ -145,18 +142,21 @@ export const freezeAthlete = onCall(async (req) => {
 
     await createTestingEvent(eventPayload);
 
-    if (result.parentUid) {
-      await sendParentSignal({
-        parentUid: result.parentUid,
-        athleteId: result.uid,
-        athleteName: result.publicName ?? undefined,
+    await createParentSignal({
+      athleteId: result.uid,
+      athleteName: result.publicName,
+      type: PARENT_SIGNAL_TYPES.TEST_FAILED,
+      source: "freezeAthlete",
+      sourceId: result.uid,
+    });
 
-        type: PARENT_SIGNAL_TYPES.TEST_FAILED,
-
-        source: "freezeAthlete",
-        sourceId: result.uid,
-      });
-    }
+    await createParentSignal({
+      athleteId: result.uid,
+      athleteName: result.publicName,
+      type: PARENT_SIGNAL_TYPES.TEST_FREEZE,
+      source: "freezeAthlete",
+      sourceId: result.uid,
+    });
   }
 
   return result;
