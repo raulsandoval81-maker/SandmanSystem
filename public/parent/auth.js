@@ -91,9 +91,31 @@ function goToNext() {
   window.location.href = getNextUrl();
 }
 
+async function mirrorParentUidToAthlete(athleteUid, parentUid) {
+  const cleanAthleteUid =
+    String(athleteUid || "").trim();
+
+  const cleanParentUid =
+    String(parentUid || "").trim();
+
+  if (!cleanAthleteUid || !cleanParentUid) return false;
+
+  await updateDoc(doc(db, "athletes", cleanAthleteUid), {
+    parentUid: cleanParentUid,
+    updatedAt: serverTimestamp(),
+  });
+
+  return true;
+}
+
 async function activatePendingLinksForEmail(email, parentUid) {
-  const normalizedEmail = String(email || "").trim().toLowerCase();
-  if (!normalizedEmail || !parentUid) return 0;
+  const normalizedEmail =
+    String(email || "").trim().toLowerCase();
+
+  const cleanParentUid =
+    String(parentUid || "").trim();
+
+  if (!normalizedEmail || !cleanParentUid) return 0;
 
   const linksQuery = query(
     collection(db, "parentAthleteLinks"),
@@ -107,20 +129,41 @@ async function activatePendingLinksForEmail(email, parentUid) {
 
   for (const linkDoc of snap.docs) {
     const data = linkDoc.data() || {};
-    const status = String(data.status || "").trim().toLowerCase();
-    const existingParentUid = String(data.parentUid || "").trim();
 
-    if (status === "active" && existingParentUid === parentUid) {
-      continue;
+    const status =
+      String(data.status || "").trim().toLowerCase();
+
+    const existingParentUid =
+      String(data.parentUid || "").trim();
+
+    const athleteUid =
+      String(
+        data.athleteUid ||
+        data.athleteId ||
+        data.uid ||
+        ""
+      ).trim();
+
+    const alreadyActive =
+      status === "active" &&
+      existingParentUid === cleanParentUid;
+
+    if (!alreadyActive) {
+      await updateDoc(doc(db, "parentAthleteLinks", linkDoc.id), {
+        parentUid: cleanParentUid,
+        status: "active",
+        activatedAt: serverTimestamp(),
+      });
+
+      activatedCount += 1;
     }
 
-    await updateDoc(doc(db, "parentAthleteLinks", linkDoc.id), {
-      parentUid,
-      status: "active",
-      activatedAt: serverTimestamp(),
-    });
-
-    activatedCount += 1;
+    if (athleteUid) {
+      await mirrorParentUidToAthlete(
+        athleteUid,
+        cleanParentUid
+      );
+    }
   }
 
   return activatedCount;
@@ -158,8 +201,11 @@ document.addEventListener("DOMContentLoaded", () => {
     loginForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const email = (loginEmail?.value || "").trim().toLowerCase();
-      const password = loginPassword?.value || "";
+      const email =
+        (loginEmail?.value || "").trim().toLowerCase();
+
+      const password =
+        loginPassword?.value || "";
 
       if (!email || !password) {
         setStatus(loginStatus, "Enter both email and password.", "error");
@@ -170,13 +216,21 @@ document.addEventListener("DOMContentLoaded", () => {
       setStatus(loginStatus, "Signing in...");
 
       try {
-        await signInWithEmailAndPassword(auth, email, password);
+        const cred =
+          await signInWithEmailAndPassword(auth, email, password);
+
+        await activatePendingLinksForEmail(
+          email,
+          cred.user.uid
+        );
+
         setStatus(loginStatus, "Signed in.", "ok");
         goToNext();
       } catch (err) {
         console.error("[parent-auth login] failed:", err);
 
         let message = "Login failed.";
+
         if (err?.code === "auth/invalid-credential") {
           message = "Wrong email or password.";
         } else if (err?.code === "auth/too-many-requests") {
@@ -193,29 +247,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   if (forgotPasswordBtn) {
-  forgotPasswordBtn.addEventListener(
-    "click",
-    async () => {
-
+    forgotPasswordBtn.addEventListener("click", async () => {
       const email =
-        (loginEmail?.value || "")
-          .trim()
-          .toLowerCase();
+        (loginEmail?.value || "").trim().toLowerCase();
 
       if (!email) {
-        setStatus(
-          loginStatus,
-          "Enter your email first.",
-          "error"
-        );
+        setStatus(loginStatus, "Enter your email first.", "error");
         return;
       }
 
       try {
-        await sendPasswordResetEmail(
-          auth,
-          email
-        );
+        await sendPasswordResetEmail(auth, email);
 
         setStatus(
           loginStatus,
@@ -231,18 +273,24 @@ document.addEventListener("DOMContentLoaded", () => {
           "error"
         );
       }
-    }
-  );
-}
+    });
+  }
 
   if (createForm) {
     createForm.addEventListener("submit", async (e) => {
       e.preventDefault();
 
-      const name = (createName?.value || "").trim();
-      const email = (createEmail?.value || "").trim().toLowerCase();
-      const password = createPassword?.value || "";
-      const confirm = createPassword2?.value || "";
+      const name =
+        (createName?.value || "").trim();
+
+      const email =
+        (createEmail?.value || "").trim().toLowerCase();
+
+      const password =
+        createPassword?.value || "";
+
+      const confirm =
+        createPassword2?.value || "";
 
       if (!name || !email || !password || !confirm) {
         setStatus(createStatus, "Complete all fields.", "error");
@@ -255,7 +303,11 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (password.length < 6) {
-        setStatus(createStatus, "Password must be at least 6 characters.", "error");
+        setStatus(
+          createStatus,
+          "Password must be at least 6 characters.",
+          "error"
+        );
         return;
       }
 
@@ -263,13 +315,20 @@ document.addEventListener("DOMContentLoaded", () => {
       setStatus(createStatus, "Creating account...");
 
       try {
-        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        const cred =
+          await createUserWithEmailAndPassword(auth, email, password);
+
         const user = cred.user;
 
-        const activated = await activatePendingLinksForEmail(email, user.uid);
+        const activated =
+          await activatePendingLinksForEmail(email, user.uid);
 
         if (activated > 0) {
-          setStatus(createStatus, "Account created and athlete access linked.", "ok");
+          setStatus(
+            createStatus,
+            "Account created and athlete access linked.",
+            "ok"
+          );
         } else {
           setStatus(
             createStatus,
@@ -283,6 +342,7 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("[parent-auth create] failed:", err);
 
         let message = "Account creation failed.";
+
         if (err?.code === "auth/email-already-in-use") {
           message = "That email already has an account. Use Login instead.";
         } else if (err?.code === "auth/invalid-email") {
