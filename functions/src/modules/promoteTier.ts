@@ -13,13 +13,9 @@ import {
 } from "./testing-events/createTestingEvent";
 
 import {
-  sendParentSignal
-} from "./parent/sendParentSignal";
-
-import {
+  createParentSignal,
   PARENT_SIGNAL_TYPES
-} from "./parent/parentSignalTypes";
-
+} from "./parent/createParentSignal";
 type Base = "F4" | "F8";
 
 const XP = Object.freeze({
@@ -330,33 +326,49 @@ export const promoteTier = onCall(async (req) => {
     });
 
   if (result.ok && !result.blocked) {
-    const eventPayload = {
+    await createTestingEvent({
       uid: result.uid,
-      type: "PROMOTED" as const,
+      type: "TEST_PASSED",
+      score: result.score,
+      tier: result.fromTier,
+      parentUid: result.parentUid ?? null,
+      publicName: result.publicName ?? null,
+    });
+
+    await createTestingEvent({
+      uid: result.uid,
+      type: "PROMOTED",
       score: result.score,
       tier: result.fromTier,
       nextTier: result.toTier,
       parentUid: result.parentUid ?? null,
       publicName: result.publicName ?? null,
-    };
+    });
 
-    await createTestingEvent(eventPayload);
+    await createParentSignal({
+      athleteId: result.uid,
+      athleteName: result.publicName ?? result.uid,
+      type: PARENT_SIGNAL_TYPES.TEST_PASSED,
+      source: "promoteTier",
+      sourceId: result.logId,
+    });
 
-    if (result.parentUid) {
-      await sendParentSignal({
-        parentUid: result.parentUid,
-        athleteId: result.uid,
-        athleteName: result.publicName ?? undefined,
+    await createParentSignal({
+      athleteId: result.uid,
+      athleteName: result.publicName ?? result.uid,
+      type: PARENT_SIGNAL_TYPES.COOLDOWN_STARTED,
+      source: "promoteTier",
+      sourceId: result.logId,
+    });
 
-        type: PARENT_SIGNAL_TYPES.PROMOTED,
-
-        nextTier: result.toTier,
-
-        source: "promoteTier",
-        sourceId: result.logId,
-      });
-    }
+    await createParentSignal({
+      athleteId: result.uid,
+      athleteName: result.publicName ?? result.uid,
+      type: PARENT_SIGNAL_TYPES.PROMOTED,
+      nextTier: result.toTier,
+      source: "promoteTier",
+      sourceId: result.logId,
+    });
   }
 
-  return result;
-});
+  });

@@ -4,8 +4,7 @@ exports.promoteTier = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
-const sendParentSignal_1 = require("./parent/sendParentSignal");
-const parentSignalTypes_1 = require("./parent/parentSignalTypes");
+const createParentSignal_1 = require("./parent/createParentSignal");
 const XP = Object.freeze({
     F4: {
         tierCaps: {
@@ -199,7 +198,15 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
         };
     });
     if (result.ok && !result.blocked) {
-        const eventPayload = {
+        await (0, createTestingEvent_1.createTestingEvent)({
+            uid: result.uid,
+            type: "TEST_PASSED",
+            score: result.score,
+            tier: result.fromTier,
+            parentUid: result.parentUid ?? null,
+            publicName: result.publicName ?? null,
+        });
+        await (0, createTestingEvent_1.createTestingEvent)({
             uid: result.uid,
             type: "PROMOTED",
             score: result.score,
@@ -207,19 +214,28 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             nextTier: result.toTier,
             parentUid: result.parentUid ?? null,
             publicName: result.publicName ?? null,
-        };
-        await (0, createTestingEvent_1.createTestingEvent)(eventPayload);
-        if (result.parentUid) {
-            await (0, sendParentSignal_1.sendParentSignal)({
-                parentUid: result.parentUid,
-                athleteId: result.uid,
-                athleteName: result.publicName ?? undefined,
-                type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.PROMOTED,
-                nextTier: result.toTier,
-                source: "promoteTier",
-                sourceId: result.logId,
-            });
-        }
+        });
+        await (0, createParentSignal_1.createParentSignal)({
+            athleteId: result.uid,
+            athleteName: result.publicName ?? result.uid,
+            type: createParentSignal_1.PARENT_SIGNAL_TYPES.TEST_PASSED,
+            source: "promoteTier",
+            sourceId: result.logId,
+        });
+        await (0, createParentSignal_1.createParentSignal)({
+            athleteId: result.uid,
+            athleteName: result.publicName ?? result.uid,
+            type: createParentSignal_1.PARENT_SIGNAL_TYPES.COOLDOWN_STARTED,
+            source: "promoteTier",
+            sourceId: result.logId,
+        });
+        await (0, createParentSignal_1.createParentSignal)({
+            athleteId: result.uid,
+            athleteName: result.publicName ?? result.uid,
+            type: createParentSignal_1.PARENT_SIGNAL_TYPES.PROMOTED,
+            nextTier: result.toTier,
+            source: "promoteTier",
+            sourceId: result.logId,
+        });
     }
-    return result;
 });
