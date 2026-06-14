@@ -25,7 +25,15 @@ exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("not-found", "Athlete not found");
     }
     const athlete = snap.data() || {};
-    const parentUid = athlete.parentUid || null;
+    const linkSnap = await db
+        .collection("parentAthleteLinks")
+        .where("athleteUid", "==", uid)
+        .where("status", "==", "active")
+        .limit(1)
+        .get();
+    const parentUid = linkSnap.empty
+        ? athlete.parentUid || null
+        : String(linkSnap.docs[0].data()?.parentUid || "").trim();
     const athleteName = athlete.publicName ||
         athlete.fullName ||
         null;

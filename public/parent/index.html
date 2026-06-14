@@ -398,7 +398,7 @@ async function loadUnreadBadge() {
 
   try {
     const result =
-      await getParentInboxCall();
+    await getParentInboxCall({});
 
     const unread =
       Number(result.data?.unreadCount || 0);

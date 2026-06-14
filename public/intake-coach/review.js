@@ -33,7 +33,8 @@ const DEFAULT_COACH_IDS = ["coach_sandoval"];
 // ------------------------------------------------------
 const params = new URLSearchParams(location.search);
 const tokenId = (params.get("token") || "").trim();
-
+const approveIntakeCall =
+  httpsCallable(functions, "approveIntakeCall");
 if (!tokenId) {
   alert("Missing ?token= in URL");
   throw new Error("Missing ?token=");
@@ -67,6 +68,8 @@ function setApprovedUI(on, uid = "") {
   const copyBtn = $("copy-link");
   const openBtn = $("open-link");
   const approveBtn = $("btn-approve");
+
+  
 
   if (modal) modal.classList.toggle("hidden", !on);
 
@@ -881,7 +884,78 @@ const approveBtn = $("btn-approve");
 if (approveBtn) {
   approveBtn.addEventListener("click", preventDoubleTap(approveBtn, approveAthlete));
 }
+const linkExistingBtn = $("btn-link-existing");
 
+if (linkExistingBtn) {
+  linkExistingBtn.addEventListener(
+    "click",
+    preventDoubleTap(linkExistingBtn, async () => {
+      await authReady;
+
+      const existingUid =
+        String($("existing-athlete-uid")?.value || "").trim();
+
+      if (!existingUid) {
+        alert("Enter existing athlete UID.");
+        return;
+      }
+
+      if (
+        !confirm(
+          `Link this intake to existing athlete ${existingUid}?`
+        )
+      ) {
+        return;
+      }
+
+      const statusEl =
+        $("link-existing-status");
+
+      try {
+        if (statusEl) {
+          statusEl.textContent =
+            "Linking existing athlete…";
+        }
+
+        await approveIntakeCall({
+          intakeId: tokenId,
+          approvedUid: existingUid,
+          note:
+            "Linked to existing athlete from intake review.",
+        });
+
+        if ($("c-uid")) {
+          $("c-uid").value = existingUid;
+        }
+
+        if ($("approve-status")) {
+          $("approve-status").textContent =
+            "✓ Intake linked to existing athlete.";
+        }
+
+        if (statusEl) {
+          statusEl.textContent =
+            `✓ Linked to ${existingUid}`;
+        }
+
+        setApprovedUI(true, existingUid);
+        openSuccessModal(existingUid);
+      } catch (err) {
+        console.error(
+          "[linkExistingAthlete] failed:",
+          err
+        );
+
+        if (statusEl) {
+          statusEl.textContent =
+            "⚠ Link failed. Check console.";
+        }
+
+        throw err;
+      }
+    })
+  );
+}
 // ------------------------------------------------------
 // Onboarding modal
 // ------------------------------------------------------

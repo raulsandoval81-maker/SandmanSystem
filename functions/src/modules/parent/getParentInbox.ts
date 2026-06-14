@@ -1,24 +1,28 @@
-import { onCall } from "firebase-functions/v2/https";
-import { getFirestore } from "firebase-admin/firestore";
+import {
+  onCall,
+  HttpsError,
+} from "firebase-functions/v2/https";
+
+import {
+  getFirestore,
+} from "firebase-admin/firestore";
 
 export const getParentInbox = onCall(async (req) => {
   const db = getFirestore();
 
   const parentUid =
-    String(req.data?.parentUid || "").trim();
+    req.auth?.uid || "";
 
-  let query: FirebaseFirestore.Query =
-    db.collection("parentInbox");
-
-  if (parentUid) {
-    query = query.where(
-      "parentUid",
-      "==",
-      parentUid
+  if (!parentUid) {
+    throw new HttpsError(
+      "unauthenticated",
+      "Parent must be signed in."
     );
   }
 
-  const snap = await query
+  const snap = await db
+    .collection("parentInbox")
+    .where("parentUid", "==", parentUid)
     .orderBy("createdAt", "desc")
     .limit(50)
     .get();
@@ -42,6 +46,7 @@ export const getParentInbox = onCall(async (req) => {
 
   return {
     ok: true,
+    parentUid,
     unreadCount,
     items,
   };

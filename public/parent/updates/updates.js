@@ -16,6 +16,7 @@ const getParentInboxCall =
 const markParentInboxReadCall =
   httpsCallable(functions, "markParentInboxRead");
 
+
 function renderMessage(item) {
   const created =
     item.createdAt
@@ -24,6 +25,25 @@ function renderMessage(item) {
 
   const isUnread =
     item.read !== true;
+const labels = {
+  COACH_NOTE: "📝 Coach Note",
+  ATTENDANCE_LOGGED: "✅ Attendance Recorded",
+  XP_MILESTONE: "⭐ XP Milestone • Stripe Earned",
+  TESTING_ELIGIBLE: "🎯 Testing Eligible",
+  TEST_SCHEDULED: "📋 Testing Scheduled",
+  TEST_STARTED: "🟡 Testing Started",
+  TEST_PASSED: "🏆 Testing Passed",
+  TEST_FAILED: "🛠 Additional Preparation Required",
+  COOLDOWN_STARTED: "🙏 Gratitude Window • 5-Day Cooldown",
+  PREPARATION_WINDOW: "⏳ Preparation Window • 5-Day Minimum",
+  PROMOTED: "⬆️ Promotion Earned",
+  LEVEL_READY: "🎯 Ready for Next Step",
+  FREEZE_WARNING: "⚠️ Progress Freeze",
+};
+
+
+  const displayType =
+    labels[item.type] || "📣 Parent Update";
 
   return `
     <article
@@ -32,7 +52,7 @@ function renderMessage(item) {
       data-message-id="${item.id}"
     >
       <div class="eyebrow">
-        ${item.type || "UPDATE"}
+        ${displayType}
         ${isUnread ? `<span class="unread-pill">NEW</span>` : ""}
       </div>
 
@@ -66,6 +86,7 @@ function renderMessage(item) {
   `;
 }
 
+
 function renderUnreadCount(count) {
   if (!unreadCountEl) return;
 
@@ -97,8 +118,7 @@ async function markRead(messageId) {
 async function init() {
   try {
     const result =
-      await getParentInboxCall();
-console.log("PARENT INBOX RESULT", result.data);
+    await getParentInboxCall({});
 
     const items =
       result.data?.items || [];

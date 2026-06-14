@@ -1,0 +1,67 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Test Coach Note</title>
+</head>
+<body>
+  <h1>Test Coach Note</h1>
+
+  <label>
+    Athlete UID
+    <input id="uid" value="F4_0001" />
+  </label>
+
+  <br /><br />
+
+  <label>
+    Coach Name
+    <input id="coachName" value="Coach Raul" />
+  </label>
+
+  <br /><br />
+
+  <label>
+    Note
+    <textarea id="note" rows="5" cols="40">Testing coach note parent ping.</textarea>
+  </label>
+
+  <br /><br />
+
+  <button id="sendBtn">Send Coach Note</button>
+
+  <pre id="output"></pre>
+
+  <script type="module">
+    import {
+      functions,
+      httpsCallable
+    } from "/assets/js/firebase-init-para.js";
+
+    const sendBtn = document.getElementById("sendBtn");
+    const output = document.getElementById("output");
+
+    const saveCoachNote =
+      httpsCallable(functions, "saveCoachNote");
+
+    sendBtn.addEventListener("click", async () => {
+      output.textContent = "Sending...";
+
+      try {
+        const result = await saveCoachNote({
+          uid: document.getElementById("uid").value.trim(),
+          coachName: document.getElementById("coachName").value.trim(),
+          note: document.getElementById("note").value.trim(),
+        });
+
+        output.textContent =
+          JSON.stringify(result.data, null, 2);
+      } catch (err) {
+        console.error(err);
+        output.textContent =
+          err.message || "Failed.";
+      }
+    });
+  </script>
+</body>
+</html>

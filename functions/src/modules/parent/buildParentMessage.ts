@@ -18,6 +18,27 @@ export function buildParentMessage(
     input.athleteName || "Your athlete";
 
   switch (input.type) {
+    case PARENT_SIGNAL_TYPES.ATTENDANCE_LOGGED:
+      return {
+        title: "Attendance Recorded",
+        message:
+          `${athleteName}'s attendance has been recorded.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.XP_MILESTONE:
+      return {
+        title: "XP Milestone • Stripe Earned",
+        message:
+          `${athleteName} earned a new stripe.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE:
+      return {
+        title: "Testing Eligible",
+        message:
+          `${athleteName} has completed the required stripes and is eligible for testing.`,
+      };
+
     case PARENT_SIGNAL_TYPES.TEST_SCHEDULED:
       return {
         title: "Testing Scheduled",
@@ -41,11 +62,25 @@ export function buildParentMessage(
           `${athleteName} completed testing successfully.`,
       };
 
+    case PARENT_SIGNAL_TYPES.COOLDOWN_STARTED:
+      return {
+        title: "Gratitude Window • 5-Day Cooldown",
+        message:
+          `${athleteName} has entered a 5-day cooldown period following successful testing. XP progression is locked and regular training is paused during this period.`,
+      };
+
     case PARENT_SIGNAL_TYPES.TEST_FAILED:
       return {
         title: "Additional Preparation Required",
         message:
           `${athleteName} completed testing. Additional preparation has been assigned before the next attempt.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.PREPARATION_WINDOW:
+      return {
+        title: "Preparation Window • 5-Day Minimum",
+        message:
+          `${athleteName} has entered a preparation window before the next testing opportunity. XP progression is locked, but training may continue during this period.`,
       };
 
     case PARENT_SIGNAL_TYPES.PROMOTED:
@@ -55,13 +90,6 @@ export function buildParentMessage(
           `${athleteName} advanced${
             input.nextTier ? ` to ${input.nextTier}` : ""
           }.`,
-      };
-
-    case PARENT_SIGNAL_TYPES.ATTENDANCE_LOGGED:
-      return {
-        title: "Attendance Recorded",
-        message:
-          `${athleteName}'s attendance has been recorded.`,
       };
 
     case PARENT_SIGNAL_TYPES.COACH_NOTE:
@@ -74,9 +102,9 @@ export function buildParentMessage(
 
     case PARENT_SIGNAL_TYPES.FREEZE_WARNING:
       return {
-        title: "Progress Freeze Warning",
+        title: "Progress Freeze",
         message:
-          `${athleteName} may need attention before progress is paused.`,
+          `${athleteName}'s XP progression is temporarily locked. Training may continue while requirements are resolved.`,
       };
 
     case PARENT_SIGNAL_TYPES.LEVEL_READY:

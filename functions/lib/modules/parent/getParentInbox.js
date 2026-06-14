@@ -5,12 +5,13 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 exports.getParentInbox = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
-    const parentUid = String(req.data?.parentUid || "").trim();
-    let query = db.collection("parentInbox");
-    if (parentUid) {
-        query = query.where("parentUid", "==", parentUid);
+    const parentUid = req.auth?.uid || "";
+    if (!parentUid) {
+        throw new https_1.HttpsError("unauthenticated", "Parent must be signed in.");
     }
-    const snap = await query
+    const snap = await db
+        .collection("parentInbox")
+        .where("parentUid", "==", parentUid)
         .orderBy("createdAt", "desc")
         .limit(50)
         .get();
@@ -26,6 +27,7 @@ exports.getParentInbox = (0, https_1.onCall)(async (req) => {
     const unreadCount = items.filter((item) => item.read !== true).length;
     return {
         ok: true,
+        parentUid,
         unreadCount,
         items,
     };

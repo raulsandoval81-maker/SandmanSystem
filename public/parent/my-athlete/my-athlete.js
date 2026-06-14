@@ -379,40 +379,6 @@ function renderToday(daily = []) {
   `;
 }
 
-function renderRecentActivity(a = {}) {
-  const list = $("activity-list");
-  if (!list) return;
-
-  const raw = Array.isArray(a.parentRecentActivity)
-    ? a.parentRecentActivity
-    : Array.isArray(a.recentActivity)
-      ? a.recentActivity
-      : Array.isArray(a.activity)
-        ? a.activity
-        : [];
-
-  if (!raw.length) {
-    list.innerHTML = `
-      <li class="muted-empty">
-        <span class="en">Recent activity not available yet.</span>
-        <span class="es">La actividad reciente todavía no está disponible.</span>
-      </li>
-    `;
-    return;
-  }
-
-  list.innerHTML = raw
-    .slice(0, 5)
-    .map((item) => {
-      const text =
-        typeof item === "string"
-          ? item
-          : item?.label || item?.text || item?.title || JSON.stringify(item);
-      return `<li>${esc(text)}</li>`;
-    })
-    .join("");
-}
-
 function formatInboxDate(value) {
   if (!value) return "—";
 
@@ -422,29 +388,38 @@ function formatInboxDate(value) {
     : "—";
 }
 
+
 async function renderParentInboxPreview(parentUid, athleteUid) {
   const list = $("activity-list");
   if (!list) return false;
 
   try {
-const result = await getParentInboxCall({
-  parentUid
-});
+    const result = await getParentInboxCall({});
 
     const items = (result.data?.items || [])
-.filter((item) => {
-  if (!athleteUid) return true;
+      .filter((item) => {
+        if (!athleteUid) return true;
 
-  const itemAthleteId =
-    String(
-      item.athleteId ||
-      item.uid ||
-      item.sourceId ||
-      ""
-    ).toUpperCase();
+        const itemAthleteId =
+          String(
+            item.athleteId ||
+            item.uid ||
+            ""
+          ).toUpperCase();
 
-  return itemAthleteId === String(athleteUid).toUpperCase();
-})
+        return itemAthleteId === String(athleteUid).toUpperCase();
+      })
+      .slice(0, 3);
+
+    if (!items.length) {
+      list.innerHTML = `
+        <li class="muted-empty">
+          <span class="en">No recent activity yet.</span>
+          <span class="es">Todavía no hay actividad reciente.</span>
+        </li>
+      `;
+      return true;
+    }
 
     list.innerHTML = items
       .map((item) => {
@@ -458,14 +433,7 @@ const result = await getParentInboxCall({
           </li>
         `;
       })
-      .join("") + `
-        <li>
-          <a href="/parent/updates/">
-            <span class="en">View all updates</span>
-            <span class="es">Ver todas las actualizaciones</span>
-          </a>
-        </li>
-      `;
+      .join("");
 
     return true;
   } catch (err) {
@@ -567,12 +535,11 @@ const athlete = athleteResult.data.athlete;
 console.log("[parent-my-athlete] athlete loaded:", athlete.id, athlete);
 
 renderAthlete(athlete);
-renderRecentActivity(athlete);
 
 try {
 await renderParentInboxPreview(
   userUid,
-  athlete.id
+  athleteResult.data.athleteId
 );
 
 } catch (err) {

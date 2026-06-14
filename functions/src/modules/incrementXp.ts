@@ -2,6 +2,9 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
+import { sendParentSignal } from "./parent/sendParentSignal";
+import { PARENT_SIGNAL_TYPES } from "./parent/parentSignalTypes";
+
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -254,6 +257,7 @@ export const incrementXp = onCall(async (req) => {
   const logRef = db.collection("xp_logs").doc();
 
   const result = await db.runTransaction(async (tx) => {
+    
     const athleteSnap = await tx.get(athleteRef);
     if (!athleteSnap.exists) throw new HttpsError("not-found", `Athlete not found: ${uid}`);
 
@@ -261,6 +265,8 @@ export const incrementXp = onCall(async (req) => {
     const base: Base = normalizeBaseFromAthlete(athlete);
     const tier = normalizeTier(athlete);
     const devRun = isDevKind(kind);
+
+    
 
     // ------------------------
     // DEV: PROMOTE TIER (test only)
@@ -947,10 +953,12 @@ const ratio = cap > 0 ? afterCombatTotal / cap : 0;
 const currentState = String((athlete as any)?.testing?.state || "ACTIVE");
 
 let nextState: string | null = null;
+let becameEligible = false;
 
 if (currentState === "ACTIVE") {
   if (ratio >= 1) {
     nextState = "ELIGIBLE";
+    becameEligible = true;
   } else if (ratio >= 0.9) {
     nextState = "TEMPLE";
   }
@@ -1098,6 +1106,17 @@ return {
   afterXp: afterCombatTotal,
   stripeCount,
 
+  becameEligible:
+    nextState === "ELIGIBLE",
+
+  athleteName:
+    (athlete as any).publicName ||
+    (athlete as any).fullName ||
+    (athlete as any).name ||
+    uid,
+
+  parentUid:
+    (athlete as any).parentUid || null,
   xpStrength:
     (base === "F8" && kind === KIND.STRENGTH) ? afterStrengthClamped
     : (base === "F4") ? afterStrengthClamped
@@ -1111,6 +1130,20 @@ return {
   logId: logRef.id,
 };
   });
+
+  if (
+    result.becameEligible &&
+    result.parentUid
+  ) {
+    await sendParentSignal({
+      parentUid: result.parentUid,
+      athleteId: uid,
+      athleteName: result.athleteName,
+      type: PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
+      source: "incrementXp",
+      sourceId: result.logId,
+    });
+  }
 
   return result;
 });
