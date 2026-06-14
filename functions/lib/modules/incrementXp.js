@@ -31,7 +31,7 @@ const XP = Object.freeze({
     F4: {
         tierCaps: { T0: 1000, T1: 1600, T2: 2000, T3: 2400, T4: 3000 },
         monthly: {
-            attendance: 200,
+            attendance: 225,
             arena: { T0: null, T1: null, T2: null, T3: null, T4: null }, // unlimited
         },
     },
@@ -48,7 +48,7 @@ const XP = Object.freeze({
             T7: 2400,
         },
         monthly: {
-            attendance: 160, // ✅ LOCKED: 160 for ALL F8 tiers
+            attendance: 185, // ✅ LOCKED: 160 for ALL F8 tiers
             arena: { T0: 0, T1: 40, T2: 40, T3: 60, T4: 60, T5: 60, T6: 60, T7: 80 },
         },
     },
@@ -82,6 +82,7 @@ const LANE = Object.freeze({
     },
 });
 const KIND = Object.freeze({
+    DAILY_GRIND: "DAILY_GRIND",
     ATTENDANCE: "ATTENDANCE",
     ARENA_BATTLE: "ARENA/BATTLE",
     ARENA_PODIUM: "ARENA/PODIUM",
@@ -152,24 +153,21 @@ function defaultAmountFor(kind) {
     if (kind === DEV.SETXP)
         return NaN;
     if (kind === DEV.PROMOTE_TIER)
-        return 1; // dummy positive number
-    // ✅ dev status kinds ignore amount but must pass validation
+        return 1;
     if (kind === DEV.SET_STATUS)
         return 1;
     if (kind === DEV.CLEAR_LOCK)
         return 1;
-    if (kind === KIND.ATTENDANCE)
+    if (kind === KIND.ATTENDANCE ||
+        kind === KIND.DAILY_GRIND) {
         return 10;
+    }
     if (kind === KIND.ARENA_BATTLE)
         return 10;
     if (kind === KIND.ARENA_PODIUM)
         return 5;
     if (kind === KIND.ARENA_STYLEIQ)
         return 5;
-    // Strength/Honor:
-    // - F4 usually +10 (or +5 merit)
-    // - F8 must be +5
-    // We validate later by base, so defaulting to 10 is fine as long as youth passes 5.
     if (kind === KIND.STRENGTH)
         return 10;
     if (kind === KIND.HONOR)
@@ -571,14 +569,15 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
         // MONTHLY ENFORCEMENT (no dev / no bypass)
         // ------------------------
         if (!devRun && !allowDevBypass) {
-            // Attendance cap
-            if (kind === KIND.ATTENDANCE) {
+            // Daily Grind / legacy Attendance cap
+            if (kind === KIND.ATTENDANCE ||
+                kind === KIND.DAILY_GRIND) {
                 const maxAttend = monthlyAttendanceCap(base);
                 if (attendanceSoFar + delta > maxAttend) {
                     return {
                         ok: true,
                         blocked: true,
-                        reason: "MONTHLY_ATTENDANCE_CAP_REACHED",
+                        reason: "MONTHLY_DAILY_GRIND_CAP_REACHED",
                         base,
                         tier,
                         cap,
@@ -747,12 +746,17 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
         // MAP DELTA -> BUCKETS / TOTALS
         // ------------------------
         // Combat mapping (always affects combat buckets)
-        if (kind === KIND.ATTENDANCE)
+        if (kind === KIND.ATTENDANCE ||
+            kind === KIND.DAILY_GRIND) {
             afterDaily += delta;
-        if (kind === KIND.ARENA_BATTLE || kind === KIND.ARENA_PODIUM)
+        }
+        if (kind === KIND.ARENA_BATTLE ||
+            kind === KIND.ARENA_PODIUM) {
             afterArena += delta;
-        if (kind === KIND.ARENA_STYLEIQ)
+        }
+        if (kind === KIND.ARENA_STYLEIQ) {
             afterFightIQ += delta;
+        }
         // Strength/Honor mapping
         if (isLaneKind(kind)) {
             if (base === "F8") {
@@ -857,16 +861,29 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
         // Monthly counters update
         // ------------------------
         if (!devRun) {
-            const patch = { uid, month: mKey, updatedAt: firestore_1.FieldValue.serverTimestamp() };
-            if (kind === KIND.ATTENDANCE)
-                patch.attendance = attendanceSoFar + delta;
-            if (isArenaKind(kind))
-                patch.arena = arenaSoFar + delta;
+            const patch = {
+                uid,
+                month: mKey,
+                updatedAt: firestore_1.FieldValue.serverTimestamp()
+            };
+            if (kind === KIND.ATTENDANCE ||
+                kind === KIND.DAILY_GRIND) {
+                patch.attendance =
+                    attendanceSoFar + delta;
+            }
+            if (isArenaKind(kind)) {
+                patch.arena =
+                    arenaSoFar + delta;
+            }
             // Lane monthly counters (works for BOTH F4 and F8 gating)
-            if (isStrengthKind(kind))
-                patch.strength = strengthSoFar + delta;
-            if (isHonorKind(kind))
-                patch.honor = honorSoFar + delta;
+            if (isStrengthKind(kind)) {
+                patch.strength =
+                    strengthSoFar + delta;
+            }
+            if (isHonorKind(kind)) {
+                patch.honor =
+                    honorSoFar + delta;
+            }
             tx.set(monthlyRef, patch, { merge: true });
         }
         // Log (permanent coach file)
