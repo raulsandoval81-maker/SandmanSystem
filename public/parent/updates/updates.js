@@ -1,4 +1,3 @@
-
 import {
   functions,
   httpsCallable
@@ -16,6 +15,36 @@ const getParentInboxCall =
 const markParentInboxReadCall =
   httpsCallable(functions, "markParentInboxRead");
 
+function esc(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
+const labels = {
+  COACH_NOTE: "📝 Coach Note",
+  ATTENDANCE_LOGGED: "✅ Attendance Recorded",
+  XP_MILESTONE: "⭐ XP Milestone • Stripe Earned",
+
+  TEMPLE_ENTERED: "🛕 Temple Watch",
+  TESTING_ELIGIBLE: "🎯 Testing Eligible",
+  TEST_SCHEDULED: "📋 Testing Scheduled",
+  TEST_DAY: "🥋 Test Day",
+  TEST_STARTED: "🟡 Testing Started",
+
+  TEST_PASSED: "🏆 Testing Passed",
+  COOLDOWN_STARTED: "🙏 Gratitude Window • 5-Day Cooldown",
+  PROMOTED: "⬆️ Promotion Earned",
+
+  TEST_FAILED: "🛠 Additional Preparation Required",
+  PREPARATION_WINDOW: "⏳ Preparation Window • 5-Day Minimum",
+  RETEST_READY: "🔁 Retest Ready",
+
+  FREEZE_WARNING: "⚠️ Progress Freeze",
+};
 
 function renderMessage(item) {
   const created =
@@ -25,22 +54,6 @@ function renderMessage(item) {
 
   const isUnread =
     item.read !== true;
-const labels = {
-  COACH_NOTE: "📝 Coach Note",
-  ATTENDANCE_LOGGED: "✅ Attendance Recorded",
-  XP_MILESTONE: "⭐ XP Milestone • Stripe Earned",
-  TESTING_ELIGIBLE: "🎯 Testing Eligible",
-  TEST_SCHEDULED: "📋 Testing Scheduled",
-  TEST_STARTED: "🟡 Testing Started",
-  TEST_PASSED: "🏆 Testing Passed",
-  TEST_FAILED: "🛠 Additional Preparation Required",
-  COOLDOWN_STARTED: "🙏 Gratitude Window • 5-Day Cooldown",
-  PREPARATION_WINDOW: "⏳ Preparation Window • 5-Day Minimum",
-  PROMOTED: "⬆️ Promotion Earned",
-  LEVEL_READY: "🎯 Ready for Next Step",
-  FREEZE_WARNING: "⚠️ Progress Freeze",
-};
-
 
   const displayType =
     labels[item.type] || "📣 Parent Update";
@@ -49,23 +62,34 @@ const labels = {
     <article
       class="card parent-update-card ${isUnread ? "unread" : ""}"
       style="margin-top:12px;"
-      data-message-id="${item.id}"
+      data-message-id="${esc(item.id)}"
     >
       <div class="eyebrow">
-        ${displayType}
+        ${esc(displayType)}
         ${isUnread ? `<span class="unread-pill">NEW</span>` : ""}
       </div>
 
       <h3>
-        ${item.title || "Update"}
+        ${esc(item.title || "Update")}
       </h3>
 
       <p>
-        ${item.message || ""}
+        ${esc(item.message || "")}
       </p>
 
+      ${
+        item.note
+          ? `
+            <div class="update-note">
+              <strong>Coach Note:</strong><br />
+              ${esc(item.note)}
+            </div>
+          `
+          : ""
+      }
+
       <small>
-        ${created}
+        ${esc(created)}
       </small>
 
       ${
@@ -74,7 +98,7 @@ const labels = {
             <button
               class="btn mark-read-btn"
               type="button"
-              data-message-id="${item.id}"
+              data-message-id="${esc(item.id)}"
               style="margin-top:12px;"
             >
               Mark Read
@@ -85,7 +109,6 @@ const labels = {
     </article>
   `;
 }
-
 
 function renderUnreadCount(count) {
   if (!unreadCountEl) return;
@@ -118,7 +141,7 @@ async function markRead(messageId) {
 async function init() {
   try {
     const result =
-    await getParentInboxCall({});
+      await getParentInboxCall({});
 
     const items =
       result.data?.items || [];

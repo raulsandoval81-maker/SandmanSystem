@@ -15,6 +15,11 @@ function buildParentMessage(input) {
                 title: "XP Milestone • Stripe Earned",
                 message: `${athleteName} earned a new stripe.`,
             };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEMPLE_ENTERED:
+            return {
+                title: "Temple Watch",
+                message: `${athleteName} has entered Temple Watch and is nearing testing eligibility.`,
+            };
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE:
             return {
                 title: "Testing Eligible",
@@ -24,6 +29,11 @@ function buildParentMessage(input) {
             return {
                 title: "Testing Scheduled",
                 message: `${athleteName} has been scheduled for testing${input.testingDate ? ` on ${input.testingDate}` : ""}.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEST_DAY:
+            return {
+                title: "Test Day",
+                message: `${athleteName} tests today. Please arrive prepared and on time.`,
             };
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEST_STARTED:
             return {
@@ -35,15 +45,20 @@ function buildParentMessage(input) {
                 title: "Testing Passed",
                 message: `${athleteName} completed testing successfully.`,
             };
-        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.COOLDOWN_STARTED:
-            return {
-                title: "Gratitude Window • 5-Day Cooldown",
-                message: `${athleteName} has entered a 5-day cooldown period following successful testing. XP progression is locked and regular training is paused during this period.`,
-            };
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TEST_FAILED:
             return {
                 title: "Additional Preparation Required",
                 message: `${athleteName} completed testing. Additional preparation has been assigned before the next attempt.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.RETEST_READY:
+            return {
+                title: "Retest Ready",
+                message: `${athleteName} is ready for the next testing opportunity after additional preparation.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.COOLDOWN_STARTED:
+            return {
+                title: "Gratitude Window • 5-Day Cooldown",
+                message: `${athleteName} has entered a 5-day cooldown period following successful testing. XP progression is locked and regular training is paused during this period.`,
             };
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.PREPARATION_WINDOW:
             return {
@@ -65,11 +80,6 @@ function buildParentMessage(input) {
             return {
                 title: "Progress Freeze",
                 message: `${athleteName}'s XP progression is temporarily locked. Training may continue while requirements are resolved.`,
-            };
-        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.LEVEL_READY:
-            return {
-                title: "Ready for Next Step",
-                message: `${athleteName} is ready for the next level step.`,
             };
         default:
             return {

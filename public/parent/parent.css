@@ -588,3 +588,13 @@ body.lang-es .es{ display:inline!important; }
 .parent-update-card.unread {
   border-color:var(--gold);
 }
+.update-note{
+  margin-top:10px;
+  margin-bottom:10px;
+  padding:10px 12px;
+  border-radius:12px;
+  background:rgba(212,175,55,.12);
+  border:1px solid rgba(212,175,55,.28);
+  font-size:.92rem;
+  line-height:1.45;
+}
