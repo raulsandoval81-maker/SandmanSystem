@@ -20,9 +20,9 @@ export function buildParentMessage(
   switch (input.type) {
     case PARENT_SIGNAL_TYPES.ATTENDANCE_LOGGED:
       return {
-        title: "Attendance Recorded",
+        title: "Daily Grind",
         message:
-          `${athleteName}'s attendance has been recorded.`,
+          `${athleteName}'s training attendance has been recorded.`,
       };
 
     case PARENT_SIGNAL_TYPES.XP_MILESTONE:
@@ -36,14 +36,14 @@ export function buildParentMessage(
       return {
         title: "Temple Watch",
         message:
-          `${athleteName} has entered Temple Watch and is nearing testing eligibility.`,
+          `${athleteName} has entered Temple Watch.`,
       };
 
     case PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE:
       return {
         title: "Testing Eligible",
         message:
-          `${athleteName} has completed the required stripes and is eligible for testing.`,
+          `${athleteName} has completed the required XP and is eligible for testing.`,
       };
 
     case PARENT_SIGNAL_TYPES.TEST_SCHEDULED:
@@ -76,32 +76,11 @@ export function buildParentMessage(
           `${athleteName} completed testing successfully.`,
       };
 
-    case PARENT_SIGNAL_TYPES.TEST_FAILED:
-      return {
-        title: "Additional Preparation Required",
-        message:
-          `${athleteName} completed testing. Additional preparation has been assigned before the next attempt.`,
-      };
-
-    case PARENT_SIGNAL_TYPES.RETEST_READY:
-      return {
-        title: "Retest Ready",
-        message:
-          `${athleteName} is ready for the next testing opportunity after additional preparation.`,
-      };
-
     case PARENT_SIGNAL_TYPES.COOLDOWN_STARTED:
       return {
         title: "Gratitude Window • 5-Day Cooldown",
         message:
-          `${athleteName} has entered a 5-day cooldown period following successful testing. XP progression is locked and regular training is paused during this period.`,
-      };
-
-    case PARENT_SIGNAL_TYPES.PREPARATION_WINDOW:
-      return {
-        title: "Preparation Window • 5-Day Minimum",
-        message:
-          `${athleteName} has entered a preparation window before the next testing opportunity. XP progression is locked, but training may continue during this period.`,
+          `${athleteName} has entered a 5-day cooldown period following successful testing.`,
       };
 
     case PARENT_SIGNAL_TYPES.PROMOTED:
@@ -113,6 +92,27 @@ export function buildParentMessage(
           }.`,
       };
 
+    case PARENT_SIGNAL_TYPES.TEST_FAILED:
+      return {
+        title: "Additional Preparation Required",
+        message:
+          `${athleteName} completed testing. Additional preparation has been assigned before the next attempt.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.TEST_FREEZE:
+      return {
+        title: "Preparation Period Started",
+        message:
+          `${athleteName} has entered a preparation period before the next testing opportunity.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.RETEST_READY:
+      return {
+        title: "Retest Ready",
+        message:
+          `${athleteName} is ready for the next testing opportunity.`,
+      };
+
     case PARENT_SIGNAL_TYPES.COACH_NOTE:
       return {
         title: "Coach Note",
@@ -121,11 +121,46 @@ export function buildParentMessage(
           `A coach note has been added for ${athleteName}.`,
       };
 
-    case PARENT_SIGNAL_TYPES.FREEZE_WARNING:
+    case PARENT_SIGNAL_TYPES.DECAY_WARNING:
       return {
-        title: "Progress Freeze",
+        title: "Decay Warning",
         message:
-          `${athleteName}'s XP progression is temporarily locked. Training may continue while requirements are resolved.`,
+          `${athleteName} has received a decay warning. Requirements should be addressed to avoid additional consequences.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.DECAY_POINTS:
+      return {
+        title: "Decay Points Applied",
+        message:
+          `${athleteName} has received decay points as part of the accountability system.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.PROGRAM_FROZEN:
+      return {
+        title: "Program Frozen",
+        message:
+          `${athleteName}'s progression is currently frozen while requirements are resolved.`,
+      };
+
+    case PARENT_SIGNAL_TYPES.MINOR_INFRACTION:
+      return {
+        title: "Minor Infraction",
+        message:
+          `${athleteName} received a minor infraction (-25 XP).`,
+      };
+
+    case PARENT_SIGNAL_TYPES.SEMI_MAJOR_INFRACTION:
+      return {
+        title: "Semi-Major Infraction",
+        message:
+          `${athleteName} received a semi-major infraction (-100 XP).`,
+      };
+
+    case PARENT_SIGNAL_TYPES.MAJOR_INFRACTION:
+      return {
+        title: "Major Infraction",
+        message:
+          `${athleteName} received a major infraction (-200 XP).`,
       };
 
     default:
