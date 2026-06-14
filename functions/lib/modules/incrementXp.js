@@ -8,6 +8,8 @@ exports.incrementXp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
+const sendParentSignal_1 = require("./parent/sendParentSignal");
+const parentSignalTypes_1 = require("./parent/parentSignalTypes");
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp();
 }
@@ -826,9 +828,11 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
         // read current testing safely
         const currentState = String(athlete?.testing?.state || "ACTIVE");
         let nextState = null;
+        let becameEligible = false;
         if (currentState === "ACTIVE") {
             if (ratio >= 1) {
                 nextState = "ELIGIBLE";
+                becameEligible = true;
             }
             else if (ratio >= 0.9) {
                 nextState = "TEMPLE";
@@ -960,6 +964,12 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             beforeXp: beforeCombatTotal,
             afterXp: afterCombatTotal,
             stripeCount,
+            becameEligible: nextState === "ELIGIBLE",
+            athleteName: athlete.publicName ||
+                athlete.fullName ||
+                athlete.name ||
+                uid,
+            parentUid: athlete.parentUid || null,
             xpStrength: (base === "F8" && kind === KIND.STRENGTH) ? afterStrengthClamped
                 : (base === "F4") ? afterStrengthClamped
                     : undefined,
@@ -969,5 +979,16 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             logId: logRef.id,
         };
     });
+    if (result.becameEligible &&
+        result.parentUid) {
+        await (0, sendParentSignal_1.sendParentSignal)({
+            parentUid: result.parentUid,
+            athleteId: uid,
+            athleteName: result.athleteName,
+            type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
+            source: "incrementXp",
+            sourceId: result.logId,
+        });
+    }
     return result;
 });

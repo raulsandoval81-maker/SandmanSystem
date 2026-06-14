@@ -13,6 +13,7 @@ import {
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
+  sendPasswordResetEmail,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
@@ -26,6 +27,7 @@ const panelCreate = $("panelCreate");
 const loginForm = $("loginForm");
 const loginEmail = $("loginEmail");
 const loginPassword = $("loginPassword");
+const forgotPasswordBtn = $("forgotPasswordBtn");
 const loginBtn = $("loginBtn");
 const loginStatus = $("loginStatus");
 
@@ -189,6 +191,49 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+
+  if (forgotPasswordBtn) {
+  forgotPasswordBtn.addEventListener(
+    "click",
+    async () => {
+
+      const email =
+        (loginEmail?.value || "")
+          .trim()
+          .toLowerCase();
+
+      if (!email) {
+        setStatus(
+          loginStatus,
+          "Enter your email first.",
+          "error"
+        );
+        return;
+      }
+
+      try {
+        await sendPasswordResetEmail(
+          auth,
+          email
+        );
+
+        setStatus(
+          loginStatus,
+          "Password reset email sent.",
+          "ok"
+        );
+      } catch (err) {
+        console.error(err);
+
+        setStatus(
+          loginStatus,
+          "Unable to send reset email.",
+          "error"
+        );
+      }
+    }
+  );
+}
 
   if (createForm) {
     createForm.addEventListener("submit", async (e) => {

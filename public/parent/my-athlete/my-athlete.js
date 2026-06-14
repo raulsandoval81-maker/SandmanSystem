@@ -222,24 +222,35 @@ function renderAthlete(a = {}) {
   // Current tier cap comes from stored athlete cap first, then ladder tier cap.
 const xpCap = Math.max(
   1,
-  Number(tier?.cap ?? a.xpCap ?? a.cap ?? a.tierCap ?? 1)
+  Number(a.xpCap ?? a.cap ?? a.tierCap ?? tier?.cap ?? 1)
 );
 
-const stripeMax = Math.max(1, Number(tier?.stripes ?? 4));
-  const stripeSize = Math.max(1, Number(tier?.stripe ?? (xpCap / stripeMax)));
 
-  const calculatedStripes = Math.min(
+const stripeMax =
+  Math.max(1, Number(a.stripesTotal ?? tier?.stripes ?? 4));
+
+const stripeSize =
+  Math.max(1, xpCap / stripeMax);
+
+const calculatedStripes =
+  Math.min(
     stripeMax,
     Math.floor(xpNow / stripeSize)
   );
 
-  const storedStripes = Number(a.stripeCount ?? a.stripes);
+const storedStripes = Number(a.stripeCount ?? a.stripes);
   const stripeCount = Number.isFinite(storedStripes)
     ? Math.max(0, Math.min(stripeMax, Math.max(storedStripes, calculatedStripes)))
     : calculatedStripes;
 
   const nextStripe = Math.min(stripeCount + 1, stripeMax);
   const remainingTier = Math.max(0, xpCap - xpNow);
+
+  const xpPercent = Math.min(
+  100,
+  Math.round((xpNow / xpCap) * 100)
+);
+
   const remainingStripe =
     stripeCount < stripeMax
       ? Math.max(0, Math.ceil(nextStripe * stripeSize) - xpNow)
@@ -250,7 +261,7 @@ const stripeMax = Math.max(1, Number(tier?.stripes ?? 4));
   setText("athlete-tier", tierName);
   setText("athlete-tag", virtueTag);
 
-  setText("summary-xp", `${xpNow}`);
+  setText("summary-xp", `${xpPercent}%`);
   setText("summary-stripe", `${stripeCount}/${stripeMax}`);
   setText("summary-grind", summaryThird);
 
@@ -268,10 +279,10 @@ const stripeMax = Math.max(1, Number(tier?.stripes ?? 4));
   );
 
   setText("stripeText", `Stripes: ${stripeCount}/${stripeMax}`);
-const xpPercent = Math.min(
-  100,
-  Math.round((xpNow / xpCap) * 100)
-);
+
+setText("summary-xp", `${xpPercent}%`);
+setText("summary-stripe", `${stripeCount}/${stripeMax}`);
+setText("summary-grind", summaryThird);
 
 setText(
   "xpText",
@@ -532,6 +543,8 @@ return;
     }
 
 const athlete = athleteResult.data.athlete;
+
+
 console.log("[parent-my-athlete] athlete loaded:", athlete.id, athlete);
 
 renderAthlete(athlete);
