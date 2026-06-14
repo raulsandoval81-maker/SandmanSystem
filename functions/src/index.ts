@@ -40,6 +40,8 @@ export { markParentInboxRead }
 export { saveCoachNote }
   from "./modules/parent/saveCoachNote";
 
+export { retestAthlete } from "./modules/retestAthlete";
+
 /*
   createParentSignal()
   is an internal helper.

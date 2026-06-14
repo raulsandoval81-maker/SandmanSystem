@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.retestAthlete = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -73,6 +73,8 @@ var markParentInboxRead_1 = require("./modules/parent/markParentInboxRead");
 Object.defineProperty(exports, "markParentInboxRead", { enumerable: true, get: function () { return markParentInboxRead_1.markParentInboxRead; } });
 var saveCoachNote_1 = require("./modules/parent/saveCoachNote");
 Object.defineProperty(exports, "saveCoachNote", { enumerable: true, get: function () { return saveCoachNote_1.saveCoachNote; } });
+var retestAthlete_1 = require("./modules/retestAthlete");
+Object.defineProperty(exports, "retestAthlete", { enumerable: true, get: function () { return retestAthlete_1.retestAthlete; } });
 /*
   createParentSignal()
   is an internal helper.

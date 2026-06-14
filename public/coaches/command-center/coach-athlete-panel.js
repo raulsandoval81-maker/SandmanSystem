@@ -23,7 +23,7 @@ const promoteTierCall = httpsCallable(functions, "promoteTier");
 const freezeAthleteCall = httpsCallable(functions, "freezeAthlete");
 const scheduleTestingCall = httpsCallable(functions, "scheduleTesting");
 const startTestingCall = httpsCallable(functions, "startTesting");
-
+const retestAthleteCall = httpsCallable(functions, "retestAthlete");
 
 
 if (!uid) {
@@ -151,6 +151,8 @@ function assertJailClear(actionLabel) {
     throw new Error(`${actionLabel} blocked: freeze still active.`);
   }
 }
+
+
 function inferBase(data) {
   const tb = String(data?.trackBase || "").trim().toUpperCase();
   if (tb === "F4" || tb === "F8") return tb;
@@ -202,9 +204,10 @@ function updateButtonVisibility(testing) {
   toggle("btn-active", false);
 
   // 🔒 Hard jail — nothing allowed
-  if (jail.jailActive) {
-    return;
-  }
+if (jail.jailActive) {
+  toggle("btn-retest", state === "FREEZE");
+  return;
+}
 
   // Coach-owned stages (only when jail is clear)
   toggle( "btn-ready", state === "TEMPLE" || state === "ELIGIBLE");
@@ -373,21 +376,17 @@ async function failTest() {
   );
 }
 
+
 async function retestAthlete() {
-  assertJailClear("Retest"); // ADD
-  await updateDoc(athleteRef, {
-    tierStatus: "eligible",
+  const result =
+    await retestAthleteCall({
+      uid
+    });
 
-    "testing.state": "ELIGIBLE",
-    "testing.lastTestResult": null,
-    "testing.freezeUntil": null,
-    "testing.cooldownUntil": null,
-    "testing.coachReady": false,
-    "testing.coachReadyAt": null,
-    "testing.testingStartedAt": null,
+  if (result.data?.ok !== true) {
+    throw new Error("Retest failed.");
+  }
 
-    updatedAt: serverTimestamp()
-  });
   setStatus("Retest ready.");
 }
 

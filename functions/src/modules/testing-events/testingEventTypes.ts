@@ -3,6 +3,7 @@ export type TestingEventType =
   | "TEST_STARTED"
   | "TEST_PASSED"
   | "TEST_FAILED"
+   |"RETEST_READY"
   | "PROMOTED";
 
 export type TestingEventPayload = {
