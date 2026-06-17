@@ -13,7 +13,10 @@ import {
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 
 import { LADDER_F4 } from "/assets/js/ladder.service.js";
-
+import {
+  renderAthleteAchievements,
+  renderAthleteActivity
+} from "/athletes/profile/profile-core.js";
 
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -958,6 +961,19 @@ const canSeeHonor =
   safeText("skill-bottom", a.skillBottom);
   safeText("skill-next", a.skillNext);
   safeText("coach-notes", a.coachNotes);
+
+
+  await renderAthleteAchievements({
+  athleteId,
+  targetId: "achievementFeed",
+  max: 3,
+});
+
+await renderAthleteActivity({
+  athleteId,
+  targetId: "activityFeed",
+  max: 3,
+});
 
   // -----------------------------
   // XP logs

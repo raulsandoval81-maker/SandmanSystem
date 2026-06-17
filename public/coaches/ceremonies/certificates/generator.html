@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Certificate Generator | Sandman Combat</title>
+  <link rel="stylesheet" href="./generator.css" />
+</head>
+
+<body>
+  <main class="page">
+    <section class="controls no-print">
+      <h1>Certificate Generator</h1>
+
+      <select id="mode">
+        <option value="filled">Filled Certificate</option>
+        <option value="manual">Manual Write-In Certificate</option>
+      </select>
+
+      <select id="foundry">
+        <option value="f8">Foundry 8</option>
+        <option value="f4">Foundry 4</option>
+      </select>
+
+      <select id="tier"></select>
+      <select id="stripe"></select>
+
+      <input id="athleteName" placeholder="Athlete Name" value="L. Sampson Sandoval" />
+      <input id="academyName" placeholder="Academy Name" value="Lompoc Academy of Wrestling" />
+      <input id="coach" placeholder="Coach" value="Coach Sandoval" />
+      <input id="date" placeholder="Date" value="June 2026" />
+
+      <input id="beltImage" placeholder="Existing belt image path" value="" />
+
+      <button id="printBtn">Print Certificate</button>
+    </section>
+
+    <section class="certificate" id="certificate">
+      <div class="seal-top">S</div>
+
+      <h1 class="brand">SANDMAN COMBAT™</h1>
+      <div class="journey" id="outJourney">ZERO2HERO™</div>
+
+      <h2 class="title">CERTIFICATE OF ACHIEVEMENT</h2>
+
+      <div class="awarded">AWARDED TO</div>
+
+      <div class="athlete" id="outAthlete">L. SAMPSON SANDOVAL</div>
+
+      <div class="rank" id="outRank">SHADOW RANK</div>
+
+      <div class="tier-stripe">
+        <span id="outTier">TIER 0</span>
+        <span class="dot">◆</span>
+        <span id="outStripe">STRIPE I</span>
+      </div>
+
+      <img class="belt" id="outBelt" src="" alt="Sandman belt" />
+
+      <div class="quote" id="outQuote">“Greatness begins unseen.”</div>
+
+      <div class="academy" id="outAcademy">LOMPOC ACADEMY OF WRESTLING</div>
+      <div class="academy-label">ACADEMY</div>
+
+      <div class="bottom-row">
+        <div>
+          <div class="signature" id="outCoach">Coach Sandoval</div>
+          <div class="label">COACH</div>
+        </div>
+
+        <div class="seal-bottom">S</div>
+
+        <div>
+          <div class="signature" id="outDate">June 2026</div>
+          <div class="label">DATE</div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="./generator.js"></script>
+</body>
+</html>

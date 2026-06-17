@@ -1,12 +1,10 @@
 import {
-  db,
-  collection,
-  query,
-  where,
-  orderBy,
-  limit,
-  getDocs
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
+
+const getAthleteProfileFeedCall =
+  httpsCallable(functions, "getAthleteProfileFeed");
 
 function esc(value = "") {
   return String(value)
@@ -17,35 +15,10 @@ function esc(value = "") {
     .replaceAll("'", "&#39;");
 }
 
-const ATHLETE_ACHIEVEMENT_TYPES = new Set([
-  "XP_MILESTONE",
-  "TESTING_ELIGIBLE",
-  "TEST_SCHEDULED",
-  "TEST_STARTED",
-  "TEST_PASSED",
-  "PROMOTED",
-  "COACH_NOTE",
-]);
-
-function labelFor(type = "") {
-  const labels = {
-    XP_MILESTONE: "⭐ Stripe Earned",
-    TESTING_ELIGIBLE: "🎯 Testing Eligible",
-    TEST_SCHEDULED: "📋 Testing Scheduled",
-    TEST_STARTED: "🟡 Testing Started",
-    TEST_PASSED: "🏆 Testing Passed",
-    PROMOTED: "⬆️ Promotion Earned",
-    COACH_NOTE: "📝 Coach Note",
-  };
-
-  return labels[type] || "Achievement";
-}
-
 function formatDate(value) {
   if (!value) return "—";
 
   const date =
-    value?.toDate?.() ||
     new Date(value);
 
   return Number.isFinite(date.getTime())
@@ -53,10 +26,45 @@ function formatDate(value) {
     : "—";
 }
 
+async function getFeed(athleteId) {
+  const result =
+    await getAthleteProfileFeedCall({
+      athleteId
+    });
+
+  return result.data || {};
+}
+
+function renderAchievementItem(item = {}) {
+  return `
+    <div class="achievement-row">
+      <strong>${esc(item.label || "Achievement")}</strong>
+      <p>${esc(item.message || item.title || item.note || "")}</p>
+      <small>${esc(formatDate(item.createdAt))}</small>
+    </div>
+  `;
+}
+
+function renderActivityItem(item = {}) {
+  const amount =
+    Number(item.amount || 0);
+
+  const sign =
+    amount > 0 ? "+" : "";
+
+  return `
+    <div class="activity-row">
+      <strong>${esc(sign)}${esc(amount)} XP</strong>
+      <p>${esc(item.label || item.note || item.kind || "XP Earned")}</p>
+      <small>${esc(formatDate(item.createdAt))}</small>
+    </div>
+  `;
+}
+
 export async function renderAthleteAchievements({
   athleteId,
   targetId = "achievementFeed",
-  max = 5,
+  max = 3,
 }) {
   const target =
     document.getElementById(targetId);
@@ -67,25 +75,11 @@ export async function renderAthleteAchievements({
     `<p class="muted">Loading achievements...</p>`;
 
   try {
-    const qy = query(
-      collection(db, "parentInbox"),
-      where("athleteId", "==", athleteId),
-      orderBy("createdAt", "desc"),
-      limit(20)
-    );
-
-    const snap =
-      await getDocs(qy);
+    const data =
+      await getFeed(athleteId);
 
     const items =
-      snap.docs
-        .map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }))
-        .filter((item) =>
-          ATHLETE_ACHIEVEMENT_TYPES.has(item.type)
-        )
+      (data.achievements || [])
         .slice(0, max);
 
     if (!items.length) {
@@ -95,21 +89,48 @@ export async function renderAthleteAchievements({
     }
 
     target.innerHTML =
-      items
-        .map((item) => {
-          return `
-            <div class="achievement-row">
-              <strong>${esc(labelFor(item.type))}</strong>
-              <p>${esc(item.message || item.title || "")}</p>
-              <small>${esc(formatDate(item.createdAt))}</small>
-            </div>
-          `;
-        })
-        .join("");
+      items.map(renderAchievementItem).join("");
   } catch (err) {
     console.error("[athlete-achievements] failed:", err);
 
     target.innerHTML =
       `<p class="muted">Achievements unavailable.</p>`;
+  }
+}
+
+export async function renderAthleteActivity({
+  athleteId,
+  targetId = "activityFeed",
+  max = 3,
+}) {
+  const target =
+    document.getElementById(targetId);
+
+  if (!target || !athleteId) return;
+
+  target.innerHTML =
+    `<p class="muted">Loading activity...</p>`;
+
+  try {
+    const data =
+      await getFeed(athleteId);
+
+    const items =
+      (data.activity || [])
+        .slice(0, max);
+
+    if (!items.length) {
+      target.innerHTML =
+        `<p class="muted">No activity yet.</p>`;
+      return;
+    }
+
+    target.innerHTML =
+      items.map(renderActivityItem).join("");
+  } catch (err) {
+    console.error("[athlete-activity] failed:", err);
+
+    target.innerHTML =
+      `<p class="muted">Activity unavailable.</p>`;
   }
 }

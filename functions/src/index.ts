@@ -54,6 +54,14 @@ export { linkParentToAthlete } from "./modules/parent/linkParentToAthlete";
 */
 
 /* =========================
+   ATHLETE
+========================= */
+
+export {
+  getAthleteProfileFeed
+} from "./modules/athlete/getAthleteProfileFeed";
+
+/* =========================
    ARENA
 ========================= */
 
