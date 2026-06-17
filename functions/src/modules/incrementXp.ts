@@ -2,9 +2,14 @@
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import admin from "firebase-admin";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
-import { sendParentSignal } from "./parent/sendParentSignal";
-import { PARENT_SIGNAL_TYPES } from "./parent/parentSignalTypes";
 
+import {
+  sendParentSignalToAthleteParents
+} from "./parent/sendParentSignalToAthleteParents";
+
+import {
+  PARENT_SIGNAL_TYPES
+} from "./parent/parentSignalTypes";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -1154,8 +1159,7 @@ return {
 
 
   earnedStripe:
-    stripeCount > beforeStripeCount &&
-    stripeCount < 4,
+  stripeCount > beforeStripeCount,
 
   becameEligible:
     nextState === "ELIGIBLE",
@@ -1182,12 +1186,8 @@ return {
 };
   });
 
-if (
-  result.becameEligible &&
-  result.parentUid
-) {
-  await sendParentSignal({
-    parentUid: result.parentUid,
+if (result.becameEligible) {
+  await sendParentSignalToAthleteParents({
     athleteId: uid,
     athleteName: result.athleteName,
     type: PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
@@ -1196,9 +1196,8 @@ if (
   });
 }
 
-if (result.earnedStripe && result.parentUid) {
-  await sendParentSignal({
-    parentUid: result.parentUid,
+if (result.earnedStripe) {
+  await sendParentSignalToAthleteParents({
     athleteId: uid,
     athleteName: result.athleteName,
     type: PARENT_SIGNAL_TYPES.XP_MILESTONE,
@@ -1208,12 +1207,8 @@ if (result.earnedStripe && result.parentUid) {
   });
 }
 
-if (
-  result.kind === KIND.DAILY_GRIND &&
-  result.parentUid
-) {
-  await sendParentSignal({
-    parentUid: result.parentUid,
+if (result.kind === KIND.DAILY_GRIND) {
+  await sendParentSignalToAthleteParents({
     athleteId: uid,
     athleteName: result.athleteName,
     type: PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED,
@@ -1222,6 +1217,5 @@ if (
     sourceId: result.logId,
   });
 }
-
-return result;
+  return result;
 });

@@ -8,7 +8,7 @@ exports.incrementXp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
-const sendParentSignal_1 = require("./parent/sendParentSignal");
+const sendParentSignalToAthleteParents_1 = require("./parent/sendParentSignalToAthleteParents");
 const parentSignalTypes_1 = require("./parent/parentSignalTypes");
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp();
@@ -982,8 +982,7 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             afterXp: afterCombatTotal,
             beforeStripeCount,
             stripeCount,
-            earnedStripe: stripeCount > beforeStripeCount &&
-                stripeCount < 4,
+            earnedStripe: stripeCount > beforeStripeCount,
             becameEligible: nextState === "ELIGIBLE",
             athleteName: athlete.publicName ||
                 athlete.fullName ||
@@ -999,10 +998,8 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             logId: logRef.id,
         };
     });
-    if (result.becameEligible &&
-        result.parentUid) {
-        await (0, sendParentSignal_1.sendParentSignal)({
-            parentUid: result.parentUid,
+    if (result.becameEligible) {
+        await (0, sendParentSignalToAthleteParents_1.sendParentSignalToAthleteParents)({
             athleteId: uid,
             athleteName: result.athleteName,
             type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.TESTING_ELIGIBLE,
@@ -1010,9 +1007,8 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             sourceId: result.logId,
         });
     }
-    if (result.earnedStripe && result.parentUid) {
-        await (0, sendParentSignal_1.sendParentSignal)({
-            parentUid: result.parentUid,
+    if (result.earnedStripe) {
+        await (0, sendParentSignalToAthleteParents_1.sendParentSignalToAthleteParents)({
             athleteId: uid,
             athleteName: result.athleteName,
             type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.XP_MILESTONE,
@@ -1021,10 +1017,8 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             sourceId: result.logId,
         });
     }
-    if (result.kind === KIND.DAILY_GRIND &&
-        result.parentUid) {
-        await (0, sendParentSignal_1.sendParentSignal)({
-            parentUid: result.parentUid,
+    if (result.kind === KIND.DAILY_GRIND) {
+        await (0, sendParentSignalToAthleteParents_1.sendParentSignalToAthleteParents)({
             athleteId: uid,
             athleteName: result.athleteName,
             type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED,

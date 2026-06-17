@@ -2,6 +2,15 @@
 import { HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 
+import {
+  sendParentSignalToAthleteParents
+} from "./modules/parent/sendParentSignalToAthleteParents";
+
+import {
+  PARENT_SIGNAL_TYPES
+} from "./modules/parent/parentSignalTypes";
+
+
 function xpCapForAthlete(a: any): number {
   const tier = String(a?.tier || "T0").toUpperCase();
 
@@ -599,37 +608,59 @@ if (shouldStampAttendance) {
       tx.update(athleteRef, testingPatch);
     }
 
-    return {
-      ok: true,
-      uid,
-      kind,
-      delta,
-      beforeXp,
-      afterXp,
-      monthKey,
-      logId: logRef.id,
-      base,
-      xpStrength:
-        base === "F4"
-          ? afterStrength
-          : kind === "STRENGTH"
-            ? afterStrength
-            : undefined,
-      xpHonor:
-        base === "F4"
-          ? afterHonor
-          : kind === "HONOR"
-            ? afterHonor
-            : undefined,
-      autoStageDebug: {
-        xpCap,
-        afterXp,
-        ratio,
-        currentState,
-        nextState,
-      },
-    };
+return {
+  ok: true,
+  uid,
+  kind,
+  delta,
+  beforeXp,
+  afterXp,
+  monthKey,
+  logId: logRef.id,
+  base,
+
+  athleteName:
+    (a as any).publicName ||
+    (a as any).fullName ||
+    uid,
+
+  parentUid:
+    (a as any).parentUid || null,
+
+  xpStrength:
+    base === "F4"
+      ? afterStrength
+      : kind === "STRENGTH"
+        ? afterStrength
+        : undefined,
+
+  xpHonor:
+    base === "F4"
+      ? afterHonor
+      : kind === "HONOR"
+        ? afterHonor
+        : undefined,
+
+  autoStageDebug: {
+    xpCap,
+    afterXp,
+    ratio,
+    currentState,
+    nextState,
+     },
+    }; 
   });
+
+if (out.kind === "ATTENDANCE") {
+  await sendParentSignalToAthleteParents({
+    athleteId: uid,
+    athleteName: out.athleteName,
+    type: PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED,
+    amount: out.delta,
+    source: "xpEngine",
+    sourceId: out.logId,
+  });
+}
 
   return out;
 }

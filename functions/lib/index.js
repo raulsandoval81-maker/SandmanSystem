@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.sendTestDayPings = exports.retestAthlete = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.linkParentToAthlete = exports.sendTestDayPings = exports.retestAthlete = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -77,6 +77,8 @@ var retestAthlete_1 = require("./modules/retestAthlete");
 Object.defineProperty(exports, "retestAthlete", { enumerable: true, get: function () { return retestAthlete_1.retestAthlete; } });
 var sendTestDayPings_1 = require("./modules/parent/sendTestDayPings");
 Object.defineProperty(exports, "sendTestDayPings", { enumerable: true, get: function () { return sendTestDayPings_1.sendTestDayPings; } });
+var linkParentToAthlete_1 = require("./modules/parent/linkParentToAthlete");
+Object.defineProperty(exports, "linkParentToAthlete", { enumerable: true, get: function () { return linkParentToAthlete_1.linkParentToAthlete; } });
 /*
   createParentSignal()
   is an internal helper.

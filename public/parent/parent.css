@@ -598,3 +598,13 @@ body.lang-es .es{ display:inline!important; }
   font-size:.92rem;
   line-height:1.45;
 }
+.inner-topbar{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  padding:14px 18px;
+}
+
+.inner-topbar .hub-mark{
+  margin-left:auto;
+}

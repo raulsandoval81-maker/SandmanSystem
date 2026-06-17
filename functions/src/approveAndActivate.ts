@@ -612,6 +612,60 @@ return {
 
     });
 
+if (
+  !result.idempotent &&
+  (
+    result.parentEmail ||
+    result.parentUid
+  )
+) {
+  const linkKey =
+    String(
+      result.parentUid ||
+      result.parentEmail
+    )
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_@.-]/g, "_");
+
+  const linkId =
+    `${linkKey}_${result.uid}`;
+
+  await db
+    .collection("parentAthleteLinks")
+    .doc(linkId)
+    .set(
+      {
+        athleteUid: result.uid,
+        athleteName:
+          result.athleteName || result.uid,
+
+        parentUid:
+          result.parentUid || null,
+
+        parentEmail:
+          result.parentEmail || null,
+
+        parentName:
+          result.parentName || null,
+
+        role: "parent",
+        status:
+          result.parentUid ? "active" : "pending",
+
+        source: "approveAndActivate",
+        intakeId,
+        createdAt:
+          FieldValue.serverTimestamp(),
+        updatedAt:
+          FieldValue.serverTimestamp(),
+
+          
+      },
+      
+      { merge: true }
+    );
+}
 
 if (result.parentUid && !result.idempotent) {
 

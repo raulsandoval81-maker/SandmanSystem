@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent Link Tool | Coach</title>
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+  <main class="page">
+    <section class="card">
+      <h1>Parent Link Tool</h1>
+      <p>Attach or repair a parent account link for an athlete.</p>
+
+      <form id="parentLinkForm">
+        <label>
+          Athlete UID
+          <input id="athleteUid" placeholder="F4_0001" required />
+        </label>
+
+        <label>
+          Parent Email
+          <input id="parentEmail" type="email" placeholder="parent@email.com" required />
+        </label>
+
+        <button id="submitBtn" type="submit">
+          Link Parent
+        </button>
+      </form>
+
+      <pre id="resultBox"></pre>
+    </section>
+  </main>
+
+  <script type="module" src="./parent-link-tool.js"></script>
+</body>
+</html>

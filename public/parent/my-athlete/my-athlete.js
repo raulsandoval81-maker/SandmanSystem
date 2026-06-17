@@ -420,7 +420,7 @@ async function renderParentInboxPreview(parentUid, athleteUid) {
 
         return itemAthleteId === String(athleteUid).toUpperCase();
       })
-      .slice(0, 3);
+      .slice(0, 2);
 
     if (!items.length) {
       list.innerHTML = `
@@ -515,98 +515,230 @@ function redirectToAuth() {
   window.location.href = `/parent/auth.html?next=${next}`;
 }
 
+function renderAthleteSelector(
+  athletes = [],
+  selectedUid = ""
+) {
+  const wrap =
+    $("athleteSelectorWrap");
+
+  const selector =
+    $("athleteSelector");
+
+  if (!wrap || !selector) return;
+
+  if (athletes.length <= 1) {
+    wrap.hidden = true;
+    return;
+  }
+
+  wrap.hidden = false;
+
+  selector.innerHTML =
+    athletes
+      .map((a) => {
+        const uid =
+          a.id || a.uid || "";
+
+        const name =
+          a.publicName ||
+          a.fullName ||
+          uid;
+
+        return `
+          <option value="${esc(uid)}">
+            ${esc(name)}
+          </option>
+        `;
+      })
+      .join("");
+
+  selector.value =
+    selectedUid;
+
+  selector.onchange = () => {
+    const nextUid =
+      selector.value;
+
+    localStorage.setItem(
+      "parentSelectedAthleteUid",
+      nextUid
+    );
+
+    const url =
+      new URL(window.location.href);
+
+url.searchParams.set("id", nextUid);
+url.searchParams.set("uid", nextUid);
+url.searchParams.set("athleteUid", nextUid);
+
+    window.location.href =
+      url.pathname + url.search;
+  };
+}
 async function loadPageForUser(userUid) {
   console.log("CURRENT USER UID", userUid);
 
   try {
     const getMyAthlete =
-  httpsCallable(functions, "getMyAthlete");
+      httpsCallable(functions, "getMyAthlete");
 
-const athleteResult =
-  await getMyAthlete({});
+    const athleteResult =
+      await getMyAthlete({});
 
-if (
-  !athleteResult.data?.ok ||
-  !athleteResult.data?.linked
-) {
-  renderNoAccess();
-document.body.classList.remove("auth-pending");
-document.body.classList.add("auth-ready");
-return;
-}
+    console.log(
+      "ATHLETE RESULT",
+      athleteResult.data
+    );
 
-    if (!athleteResult) {
+    console.log(
+  "ATHLETE COUNT",
+  athleteResult.data?.athletes?.length
+);
+
+console.log(
+  "ATHLETES",
+  athleteResult.data?.athletes
+);
+
+    if (
+      !athleteResult.data?.ok ||
+      !athleteResult.data?.linked
+    ) {
       renderNoAccess();
       document.body.classList.remove("auth-pending");
       document.body.classList.add("auth-ready");
       return;
     }
 
-const athlete = athleteResult.data.athlete;
+    const athletes =
+      athleteResult.data?.athletes || [];
 
+    if (!athletes.length) {
+      renderNoAccess();
+      document.body.classList.remove("auth-pending");
+      document.body.classList.add("auth-ready");
+      return;
+    }
 
-console.log("[parent-my-athlete] athlete loaded:", athlete.id, athlete);
+    let selectedUid =
+      localStorage.getItem(
+        "parentSelectedAthleteUid"
+      );
 
-renderAthlete(athlete);
+    if (urlAthleteUid) {
+      selectedUid = urlAthleteUid;
 
-try {
-await renderParentInboxPreview(
-  userUid,
-  athleteResult.data.athleteId
-);
+      localStorage.setItem(
+        "parentSelectedAthleteUid",
+        selectedUid
+      );
+    }
 
-} catch (err) {
-  console.error(
-    "[parent-my-athlete] inbox preview skipped:",
-    err
-  );
-}
+    let athlete =
+      athletes.find((a) =>
+        String(a.id || a.uid || "")
+          .toUpperCase() ===
+        String(selectedUid || "")
+          .toUpperCase()
+      );
 
-    const scheduleRef = doc(db, "system", "schedule");
-    const scheduleSnap = await getDoc(scheduleRef);
+    if (!athlete) {
+      athlete = athletes[0];
 
-try {
+      localStorage.setItem(
+        "parentSelectedAthleteUid",
+        athlete.id || athlete.uid
+      );
+    }
 
-  if (scheduleSnap.exists()) {
-    const schedule = scheduleSnap.data() || {};
-    const daily = Array.isArray(schedule.daily)
-      ? schedule.daily
-      : [];
+    const athleteUid =
+      athlete.id || athlete.uid;
 
-    renderToday(daily);
-  } else {
-    setHTML("today-box", `
-      <p class="muted-empty">
-        <span class="en">No schedule posted yet.</span>
-        <span class="es">Todavía no hay horario publicado.</span>
-      </p>
-    `);
-  }
-} catch (err) {
-  console.error("[parent-my-athlete] schedule skipped:", err);
+    renderAthleteSelector(
+      athletes,
+      athleteUid
+    );
 
-  setHTML("today-box", `
-    <p class="muted-empty">
-      <span class="en">Schedule unavailable right now.</span>
-      <span class="es">Horario no disponible en este momento.</span>
-    </p>
-  `);
-}
+    console.log(
+      "[parent-my-athlete] athlete loaded:",
+      athleteUid,
+      athlete
+    );
+
+    renderAthlete(athlete);
+
+    try {
+      await renderParentInboxPreview(
+        userUid,
+        athleteUid
+      );
+    } catch (err) {
+      console.error(
+        "[parent-my-athlete] inbox preview skipped:",
+        err
+      );
+    }
+
+    const scheduleRef =
+      doc(db, "system", "schedule");
+
+    const scheduleSnap =
+      await getDoc(scheduleRef);
+
+    try {
+      if (scheduleSnap.exists()) {
+        const schedule =
+          scheduleSnap.data() || {};
+
+        const daily =
+          Array.isArray(schedule.daily)
+            ? schedule.daily
+            : [];
+
+        renderToday(daily);
+      } else {
+        setHTML("today-box", `
+          <p class="muted-empty">
+            <span class="en">No schedule posted yet.</span>
+            <span class="es">Todavía no hay horario publicado.</span>
+          </p>
+        `);
+      }
+    } catch (err) {
+      console.error(
+        "[parent-my-athlete] schedule skipped:",
+        err
+      );
+
+      setHTML("today-box", `
+        <p class="muted-empty">
+          <span class="en">Schedule unavailable right now.</span>
+          <span class="es">Horario no disponible en este momento.</span>
+        </p>
+      `);
+    }
 
     document.body.classList.remove("auth-pending");
     document.body.classList.add("auth-ready");
   } catch (err) {
-    console.error("[parent-my-athlete] load failed:", err);
+    console.error(
+      "[parent-my-athlete] load failed:",
+      err
+    );
+
     setHTML("today-box", `
       <p class="muted-empty">
         <span class="en">Failed to load page data.</span>
         <span class="es">No se pudieron cargar los datos de la página.</span>
       </p>
     `);
+
     document.body.classList.remove("auth-pending");
     document.body.classList.add("auth-ready");
   }
 }
+
 
 document.addEventListener("DOMContentLoaded", () => {
   wireParentTabs();

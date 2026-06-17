@@ -13,35 +13,55 @@ exports.getMyAthlete = (0, https_1.onCall)(async (req) => {
         .collection("parentAthleteLinks")
         .where("parentUid", "==", parentUid)
         .where("status", "==", "active")
-        .limit(1)
         .get();
     if (linkSnap.empty) {
         return {
             ok: true,
             linked: false,
-            athlete: null,
             parentUid,
+            athleteId: null,
+            athlete: null,
+            athletes: [],
         };
     }
-    const link = linkSnap.docs[0].data() || {};
-    const athleteUid = String(link.athleteUid || "").trim();
-    if (!athleteUid) {
-        throw new https_1.HttpsError("failed-precondition", "Parent link is missing athleteUid.");
+    const athleteUids = [
+        ...new Set(linkSnap.docs
+            .map((doc) => String(doc.data()?.athleteUid || "").trim())
+            .filter(Boolean)),
+    ];
+    if (!athleteUids.length) {
+        return {
+            ok: true,
+            linked: false,
+            parentUid,
+            athleteId: null,
+            athlete: null,
+            athletes: [],
+        };
     }
-    const athleteRef = db.collection("athletes").doc(athleteUid);
-    const athleteSnap = await athleteRef.get();
-    if (!athleteSnap.exists) {
-        throw new https_1.HttpsError("not-found", "Linked athlete not found.");
+    const athletes = [];
+    for (const athleteUid of athleteUids) {
+        const athleteSnap = await db.collection("athletes").doc(athleteUid).get();
+        if (!athleteSnap.exists)
+            continue;
+        const athlete = athleteSnap.data() || {};
+        athletes.push({
+            id: athleteSnap.id,
+            ...athlete,
+        });
     }
-    const athlete = athleteSnap.data() || {};
+    if (!athletes.length) {
+        throw new https_1.HttpsError("not-found", "Linked athletes not found.");
+    }
+    const firstAthlete = athletes[0];
     return {
         ok: true,
         linked: true,
         parentUid,
-        athleteId: athleteSnap.id,
-        athlete: {
-            id: athleteSnap.id,
-            ...athlete,
-        },
+        // Backward compatible single-athlete fields.
+        athleteId: firstAthlete.id,
+        athlete: firstAthlete,
+        // New family-aware field.
+        athletes,
     };
 });

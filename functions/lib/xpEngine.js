@@ -4,6 +4,8 @@ exports.runIncrementXp = runIncrementXp;
 // functions/src/xpEngine.ts
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const sendParentSignalToAthleteParents_1 = require("./modules/parent/sendParentSignalToAthleteParents");
+const parentSignalTypes_1 = require("./modules/parent/parentSignalTypes");
 function xpCapForAthlete(a) {
     const tier = String(a?.tier || "T0").toUpperCase();
     const F4_CAPS = {
@@ -525,6 +527,10 @@ async function runIncrementXp(coachUid, payload) {
             monthKey,
             logId: logRef.id,
             base,
+            athleteName: a.publicName ||
+                a.fullName ||
+                uid,
+            parentUid: a.parentUid || null,
             xpStrength: base === "F4"
                 ? afterStrength
                 : kind === "STRENGTH"
@@ -544,5 +550,15 @@ async function runIncrementXp(coachUid, payload) {
             },
         };
     });
+    if (out.kind === "ATTENDANCE") {
+        await (0, sendParentSignalToAthleteParents_1.sendParentSignalToAthleteParents)({
+            athleteId: uid,
+            athleteName: out.athleteName,
+            type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED,
+            amount: out.delta,
+            source: "xpEngine",
+            sourceId: out.logId,
+        });
+    }
     return out;
 }

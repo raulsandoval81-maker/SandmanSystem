@@ -9,15 +9,22 @@ const buildParentMessage_1 = require("./buildParentMessage");
 async function createParentSignal(input) {
     const db = (0, firestore_1.getFirestore)();
     const athleteId = String(input.athleteId || "").trim();
-    if (!athleteId)
-        return { ok: false, reason: "missing-athleteId" };
+    if (!athleteId) {
+        return {
+            ok: false,
+            reason: "missing-athleteId",
+        };
+    }
     const linksSnap = await db
         .collection("parentAthleteLinks")
         .where("athleteUid", "==", athleteId)
         .where("status", "==", "active")
         .get();
     if (linksSnap.empty) {
-        return { ok: false, reason: "no-active-parent-link" };
+        return {
+            ok: false,
+            reason: "no-active-parent-link",
+        };
     }
     const built = (0, buildParentMessage_1.buildParentMessage)({
         type: input.type,
@@ -26,12 +33,19 @@ async function createParentSignal(input) {
         nextTier: input.nextTier,
         note: input.note,
     });
+    const parentUids = [
+        ...new Set(linksSnap.docs
+            .map((doc) => String(doc.data()?.parentUid || "").trim())
+            .filter(Boolean)),
+    ];
+    if (!parentUids.length) {
+        return {
+            ok: false,
+            reason: "no-parentUid-on-links",
+        };
+    }
     const batch = db.batch();
-    linksSnap.docs.forEach((linkDoc) => {
-        const link = linkDoc.data() || {};
-        const parentUid = String(link.parentUid || "").trim();
-        if (!parentUid)
-            return;
+    parentUids.forEach((parentUid) => {
         const ref = db.collection("parentInbox").doc();
         batch.set(ref, {
             athleteId,
@@ -48,5 +62,9 @@ async function createParentSignal(input) {
         });
     });
     await batch.commit();
-    return { ok: true };
+    return {
+        ok: true,
+        sent: parentUids.length,
+        parentUids,
+    };
 }

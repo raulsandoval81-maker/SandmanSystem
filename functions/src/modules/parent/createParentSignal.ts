@@ -23,9 +23,15 @@ export async function createParentSignal(
 ) {
   const db = getFirestore();
 
-  const athleteId = String(input.athleteId || "").trim();
+  const athleteId =
+    String(input.athleteId || "").trim();
 
-  if (!athleteId) return { ok: false, reason: "missing-athleteId" };
+  if (!athleteId) {
+    return {
+      ok: false,
+      reason: "missing-athleteId",
+    };
+  }
 
   const linksSnap = await db
     .collection("parentAthleteLinks")
@@ -34,7 +40,10 @@ export async function createParentSignal(
     .get();
 
   if (linksSnap.empty) {
-    return { ok: false, reason: "no-active-parent-link" };
+    return {
+      ok: false,
+      reason: "no-active-parent-link",
+    };
   }
 
   const built = buildParentMessage({
@@ -45,37 +54,63 @@ export async function createParentSignal(
     note: input.note,
   });
 
+  const parentUids = [
+    ...new Set(
+      linksSnap.docs
+        .map((doc) =>
+          String(doc.data()?.parentUid || "").trim()
+        )
+        .filter(Boolean)
+    ),
+  ];
+
+  if (!parentUids.length) {
+    return {
+      ok: false,
+      reason: "no-parentUid-on-links",
+    };
+  }
+
   const batch = db.batch();
 
-  linksSnap.docs.forEach((linkDoc) => {
-    const link = linkDoc.data() || {};
-    const parentUid = String(link.parentUid || "").trim();
+  parentUids.forEach((parentUid) => {
+    const ref =
+      db.collection("parentInbox").doc();
 
-    if (!parentUid) return;
+    batch.set(ref, {
+      athleteId,
+      athleteName:
+        input.athleteName || athleteId,
 
-    const ref = db.collection("parentInbox").doc();
+      parentUid,
 
+      type: input.type,
+      title: built.title,
+      message: built.message,
 
-batch.set(ref, {
-  athleteId,
-  athleteName: input.athleteName || athleteId,
-  parentUid,
-  type: input.type,
-  title: built.title,
-  message: built.message,
+      note:
+        input.note || null,
 
-  note: input.note || null,
+      read: false,
 
-  read: false,
-  source: input.source || "system",
-  sourceId: input.sourceId || athleteId,
-  createdAt: FieldValue.serverTimestamp(),
-});
-});
+      source:
+        input.source || "system",
+
+      sourceId:
+        input.sourceId || athleteId,
+
+      createdAt:
+        FieldValue.serverTimestamp(),
+    });
+  });
 
   await batch.commit();
 
-  return { ok: true };
+  return {
+    ok: true,
+    sent: parentUids.length,
+    parentUids,
+  };
 }
 
 export { PARENT_SIGNAL_TYPES };

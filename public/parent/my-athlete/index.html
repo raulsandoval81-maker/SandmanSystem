@@ -10,26 +10,14 @@
 <link rel="stylesheet" href="/assets/css/belts.css">
 </head>
 <body class="auth-pending">
-<header class="topbar">
+<header class="topbar inner-topbar">
+  <div class="topbar-spacer"></div>
 
-  <!-- LEFT -->
-  <div class="topbar-left">
-    <div class="lang-wrap">
-      <button class="lang-btn active" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="sp">ES</button>
-    </div>
-  </div>
-
-  <!-- CENTER -->
-  <div class="topbar-center">
-    <a href="/parent/index.html" class="hub-mark">PARENT HUB</a>
-  </div>
-
-  <!-- RIGHT -->
   <div class="topbar-right">
-    <button id="themeToggle" class="theme-toggle">☀️</button>
+    <a href="/parent/index.html" class="hub-mark">
+      PARENT HUB
+    </a>
   </div>
-
 </header>
   <div class="wrap">
 
@@ -97,9 +85,23 @@
     </nav>
 
 
-    <main class="main">
+<main class="main">
 
-      <section class="athlete-hero card">
+  <section
+    id="athleteSelectorWrap"
+    class="card athlete-selector-wrap"
+    hidden
+  >
+    <label for="athleteSelector" class="section-note">
+      <span class="en">Viewing Athlete</span>
+      <span class="es">Viendo Atleta</span>
+    </label>
+
+    <select id="athleteSelector" class="athlete-selector"></select>
+  </section>
+
+  <section class="athlete-hero card">
+
         <div class="athlete-hero__identity">
           <div class="athlete-avatar" id="athlete-avatar">A</div>
 
@@ -205,8 +207,9 @@
             </h3>
 
             <span class="section-note">
-              <span class="en">Latest updates</span>
-              <span class="es">Últimas actualizaciones</span>
+              <span class="en">Last 2 athlete events</span>
+              <span class="es">Últimos 2 eventos del atleta</span>
+
             </span>
           </div>
 

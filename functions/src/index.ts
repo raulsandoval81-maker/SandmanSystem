@@ -44,6 +44,7 @@ export { retestAthlete } from "./modules/retestAthlete";
 
 export { sendTestDayPings } from "./modules/parent/sendTestDayPings";
 
+export { linkParentToAthlete } from "./modules/parent/linkParentToAthlete";
 /*
   createParentSignal()
   is an internal helper.

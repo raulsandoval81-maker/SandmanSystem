@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.saveCoachNote = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
-const sendParentSignal_1 = require("./sendParentSignal");
+const createParentSignal_1 = require("./createParentSignal");
 const parentSignalTypes_1 = require("./parentSignalTypes");
 exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
@@ -25,15 +25,6 @@ exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("not-found", "Athlete not found");
     }
     const athlete = snap.data() || {};
-    const linkSnap = await db
-        .collection("parentAthleteLinks")
-        .where("athleteUid", "==", uid)
-        .where("status", "==", "active")
-        .limit(1)
-        .get();
-    const parentUid = linkSnap.empty
-        ? athlete.parentUid || null
-        : String(linkSnap.docs[0].data()?.parentUid || "").trim();
     const athleteName = athlete.publicName ||
         athlete.fullName ||
         null;
@@ -42,7 +33,6 @@ exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
         uid,
         athleteId: uid,
         athleteName,
-        parentUid,
         note,
         coachName,
         createdAt: firestore_1.FieldValue.serverTimestamp(),
@@ -60,21 +50,18 @@ exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
     }, {
         merge: true,
     });
-    if (parentUid) {
-        await (0, sendParentSignal_1.sendParentSignal)({
-            parentUid,
-            athleteId: uid,
-            athleteName,
-            type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.COACH_NOTE,
-            note,
-            source: "saveCoachNote",
-            sourceId: noteRef.id,
-        });
-    }
+    const signalResult = await (0, createParentSignal_1.createParentSignal)({
+        athleteId: uid,
+        athleteName,
+        type: parentSignalTypes_1.PARENT_SIGNAL_TYPES.COACH_NOTE,
+        note,
+        source: "saveCoachNote",
+        sourceId: noteRef.id,
+    });
     return {
         ok: true,
         uid,
         noteId: noteRef.id,
-        parentNotified: !!parentUid,
+        parentSignal: signalResult,
     };
 });

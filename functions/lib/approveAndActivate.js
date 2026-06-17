@@ -452,6 +452,32 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 idempotent: false,
             };
         });
+        if (!result.idempotent &&
+            (result.parentEmail ||
+                result.parentUid)) {
+            const linkKey = String(result.parentUid ||
+                result.parentEmail)
+                .trim()
+                .toLowerCase()
+                .replace(/[^a-z0-9_@.-]/g, "_");
+            const linkId = `${linkKey}_${result.uid}`;
+            await db
+                .collection("parentAthleteLinks")
+                .doc(linkId)
+                .set({
+                athleteUid: result.uid,
+                athleteName: result.athleteName || result.uid,
+                parentUid: result.parentUid || null,
+                parentEmail: result.parentEmail || null,
+                parentName: result.parentName || null,
+                role: "parent",
+                status: result.parentUid ? "active" : "pending",
+                source: "approveAndActivate",
+                intakeId,
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+                updatedAt: firestore_1.FieldValue.serverTimestamp(),
+            }, { merge: true });
+        }
         if (result.parentUid && !result.idempotent) {
             const label = programLabel(result.programTrack, result.art);
             const body = `${result.athleteName} has been placed into ${label}.\n\n` +

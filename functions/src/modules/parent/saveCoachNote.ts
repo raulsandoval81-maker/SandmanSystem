@@ -9,8 +9,8 @@ import {
 } from "firebase-admin/firestore";
 
 import {
-  sendParentSignal
-} from "./sendParentSignal";
+  createParentSignal
+} from "./createParentSignal";
 
 import {
   PARENT_SIGNAL_TYPES
@@ -65,18 +65,6 @@ export const saveCoachNote = onCall(async (req) => {
   const athlete =
     snap.data() || {};
 
-const linkSnap = await db
-  .collection("parentAthleteLinks")
-  .where("athleteUid", "==", uid)
-  .where("status", "==", "active")
-  .limit(1)
-  .get();
-
-const parentUid =
-  linkSnap.empty
-    ? athlete.parentUid || null
-    : String(linkSnap.docs[0].data()?.parentUid || "").trim();
-
   const athleteName =
     athlete.publicName ||
     athlete.fullName ||
@@ -89,7 +77,6 @@ const parentUid =
     uid,
     athleteId: uid,
     athleteName,
-    parentUid,
 
     note,
     coachName,
@@ -118,9 +105,8 @@ const parentUid =
     }
   );
 
-  if (parentUid) {
-    await sendParentSignal({
-      parentUid,
+  const signalResult =
+    await createParentSignal({
       athleteId: uid,
       athleteName,
 
@@ -131,12 +117,11 @@ const parentUid =
       source: "saveCoachNote",
       sourceId: noteRef.id,
     });
-  }
 
   return {
     ok: true,
     uid,
     noteId: noteRef.id,
-    parentNotified: !!parentUid,
+    parentSignal: signalResult,
   };
 });

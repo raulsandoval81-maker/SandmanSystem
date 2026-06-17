@@ -27,6 +27,7 @@ function esc(value = "") {
 const labels = {
   COACH_NOTE: "📝 Coach Note",
   ATTENDANCE_LOGGED: "✅ Attendance Recorded",
+  DAILY_GRIND_LOGGED: "📣 Daily Grind Logged",
   XP_MILESTONE: "⭐ XP Milestone • Stripe Earned",
 
   TEMPLE_ENTERED: "🛕 Temple Watch",
@@ -40,11 +41,28 @@ const labels = {
   PROMOTED: "⬆️ Promotion Earned",
 
   TEST_FAILED: "🛠 Additional Preparation Required",
+  TEST_FREEZE: "🧊 Progress Freeze",
   PREPARATION_WINDOW: "⏳ Preparation Window • 5-Day Minimum",
   RETEST_READY: "🔁 Retest Ready",
 
-  FREEZE_WARNING: "⚠️ Progress Freeze",
+  DECAY_WARNING: "⚠️ Decay Warning",
+  DECAY_POINTS: "⬇️ Decay Points",
+  PROGRAM_FROZEN: "🧊 Program Frozen",
+
+  MINOR_INFRACTION: "⚠️ Minor Infraction",
+  SEMI_MAJOR_INFRACTION: "🚨 Semi-Major Infraction",
+  MAJOR_INFRACTION: "🛑 Major Infraction",
 };
+
+function getAthleteLabel(item = {}) {
+  return (
+    item.athleteName ||
+    item.publicName ||
+    item.athleteId ||
+    item.athleteUid ||
+    "Athlete"
+  );
+}
 
 function renderMessage(item) {
   const created =
@@ -58,12 +76,19 @@ function renderMessage(item) {
   const displayType =
     labels[item.type] || "📣 Parent Update";
 
+  const athleteLabel =
+    getAthleteLabel(item);
+
   return `
     <article
       class="card parent-update-card ${isUnread ? "unread" : ""}"
       style="margin-top:12px;"
       data-message-id="${esc(item.id)}"
     >
+      <div class="update-athlete">
+        ${esc(athleteLabel)}
+      </div>
+
       <div class="eyebrow">
         ${esc(displayType)}
         ${isUnread ? `<span class="unread-pill">NEW</span>` : ""}
@@ -144,7 +169,8 @@ async function init() {
       await getParentInboxCall({});
 
     const items =
-      result.data?.items || [];
+      (result.data?.items || [])
+        .slice(0, 12);
 
     const unreadCount =
       result.data?.unreadCount || 0;
