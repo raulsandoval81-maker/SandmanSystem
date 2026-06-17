@@ -1,10 +1,6 @@
 // public/assets/js/xp.timeline.athletes.js
 // Sandman XP Timeline Tool
-// Modernized schema:
-// - Writes uid + amount + kind
-// - Keeps old athlete/xp fields for backward compatibility
-// - Supports combat / strength / honor lane labeling
-// - Keeps demo tool separate from authoritative incrementXp engine
+// Modern schema: uid + kind + amount + meta.lane
 
 import {
   collection,
@@ -53,6 +49,7 @@ function getLaneFromNote(note = "") {
   if (n.includes("strength")) return "strength";
   if (n.includes("honor")) return "honor";
   if (n.includes("arena")) return "arena";
+
   return "combat";
 }
 
@@ -60,10 +57,11 @@ function getKindFromLane(lane = "combat") {
   if (lane === "strength") return "STRENGTH";
   if (lane === "honor") return "HONOR";
   if (lane === "arena") return "ARENA";
+
   return "DAILY_GRIND";
 }
 
-function makeXpPayload(points = 10, note = "demo click") {
+function makeXpPayload(points = 10, note = "Daily Grind") {
   const uid =
     normalizeUid(currentAthlete());
 
@@ -74,7 +72,6 @@ function makeXpPayload(points = 10, note = "demo click") {
     getKindFromLane(lane);
 
   return {
-    // modern fields
     uid,
     kind,
     amount: Number(points || 0),
@@ -93,26 +90,7 @@ function makeXpPayload(points = 10, note = "demo click") {
   };
 }
 
-function docData(d) {
-  return {
-    id: d.id,
-    ...d.data(),
-  };
-}
-
-function matchesCurrentAthlete(row = {}) {
-  const ath =
-    currentAthlete();
-
-  if (!ath || ath === "demo") return true;
-
-  const uid =
-    normalizeUid(row.uid || row.athlete || "");
-
-  return uid === normalizeUid(ath);
-}
-
-async function addXP(points = 10, note = "demo click") {
+async function addXP(points = 10, note = "Daily Grind") {
   try {
     const data =
       makeXpPayload(points, note);
@@ -143,50 +121,25 @@ async function loadLatest10() {
     const ath =
       currentAthlete();
 
-    let qy;
-
-    if (ath && ath !== "demo") {
-      qy =
-        query(
-          base,
-          where("uid", "==", normalizeUid(ath)),
-          orderBy("createdAt", "desc"),
-          limit(10)
-        );
-    } else {
-      qy =
-        query(
-          base,
-          orderBy("createdAt", "desc"),
-          limit(10)
-        );
-    }
+    const qy =
+      ath && ath !== "demo"
+        ? query(
+            base,
+            where("uid", "==", normalizeUid(ath)),
+            orderBy("createdAt", "desc"),
+            limit(10)
+          )
+        : query(
+            base,
+            orderBy("createdAt", "desc"),
+            limit(10)
+          );
 
     const snap =
       await getDocs(qy);
 
-    let docs =
-      snap.docs;
-
-    // fallback for old logs using athlete instead of uid
-    if (!docs.length && ath && ath !== "demo") {
-      const legacyQ =
-        query(
-          base,
-          where("athlete", "==", normalizeUid(ath)),
-          orderBy("createdAt", "desc"),
-          limit(10)
-        );
-
-      const legacySnap =
-        await getDocs(legacyQ);
-
-      docs =
-        legacySnap.docs;
-    }
-
-    renderFeed(docs);
-    renderTotals(docs);
+    renderFeed(snap.docs);
+    renderTotals(snap.docs);
   } catch (err) {
     console.error("Error loading latest:", err);
   }
@@ -277,7 +230,6 @@ async function undoDelete() {
 
 sel("undoBtn")?.addEventListener("click", undoDelete);
 
-// Optional helpers for console testing
 window.SandmanTimelineXP = {
   addXP,
   loadLatest10,
