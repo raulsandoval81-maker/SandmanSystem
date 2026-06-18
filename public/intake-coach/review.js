@@ -961,7 +961,7 @@ if (linkExistingBtn) {
 // ------------------------------------------------------
 function openSuccessModal(uid) {
   const onboarding = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
-  const parentLink = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
+  const parentLink = `${location.origin}/parent/`;
 
   if ($("approved-athlete-uid")) {
     $("approved-athlete-uid").value = uid;
