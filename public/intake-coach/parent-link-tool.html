@@ -8,28 +8,76 @@
 </head>
 <body>
   <main class="page">
+
     <section class="card">
       <h1>Parent Link Tool</h1>
-      <p>Attach or repair a parent account link for an athlete.</p>
+      <p>
+        Attach or repair a parent account link for an athlete.
+      </p>
 
       <form id="parentLinkForm">
+
         <label>
           Athlete UID
-          <input id="athleteUid" placeholder="F4_0001" required />
+          <input
+            id="athleteUid"
+            placeholder="F4_0001"
+            required
+          />
         </label>
 
         <label>
           Parent Email
-          <input id="parentEmail" type="email" placeholder="parent@email.com" required />
+          <input
+            id="parentEmail"
+            type="email"
+            placeholder="parent@email.com"
+            required
+          />
         </label>
 
-        <button id="submitBtn" type="submit">
+        <button
+          id="submitBtn"
+          type="submit"
+        >
           Link Parent
         </button>
-      </form>
 
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Athlete Quick Access</h2>
+
+      <p>
+        Enter an athlete UID and instantly open
+        common Sandman pages.
+      </p>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button id="openProfileBtn" type="button">
+          Open Profile
+        </button>
+
+        <button id="openOnboardingBtn" type="button">
+          Open Onboarding
+        </button>
+
+        <button id="copyProfileBtn" type="button">
+          Copy Profile Link
+        </button>
+
+        <button id="copyOnboardingBtn" type="button">
+          Copy Onboarding Link
+        </button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
       <pre id="resultBox"></pre>
     </section>
+
   </main>
 
   <script type="module" src="./parent-link-tool.js"></script>
