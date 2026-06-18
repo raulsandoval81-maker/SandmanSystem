@@ -38,20 +38,25 @@ function activityLabel(item) {
         .toUpperCase();
     const lane = String(item?.meta?.lane || "")
         .toLowerCase();
-    if (kind.includes("DAILY_GRIND")) {
-        return "Combat XP · Daily Grind";
+    const amount = Number(item?.amount || 0);
+    if (kind.includes("DAILY_GRIND") ||
+        kind.includes("ATTENDANCE")) {
+        if (amount >= 15) {
+            return "Daily Grind — Above Standard";
+        }
+        if (amount >= 10) {
+            return "Daily Grind — Standard Met";
+        }
+        return "Daily Grind — Needs Work";
     }
     if (kind.includes("STRENGTH") || lane === "strength") {
-        return "Strength XP";
+        return "Strength Development";
     }
     if (kind.includes("HONOR") || lane === "honor") {
-        return "Honor XP";
-    }
-    if (kind.includes("ATTENDANCE")) {
-        return "Combat XP · Attendance";
+        return "Honor Development";
     }
     if (lane === "arena") {
-        return "Combat XP · Arena";
+        return "Arena Work";
     }
     return (item?.note ||
         item?.kind ||
@@ -107,13 +112,19 @@ exports.getAthleteProfileFeed = (0, https_1.onCall)(async (req) => {
         .localeCompare(String(a.createdAt || "")))
         .slice(0, 5);
     const xpDocs = [];
-    for (const id of possibleIds) {
-        const snap = await db
-            .collection("xp_logs")
-            .where("uid", "==", id)
-            .limit(20)
-            .get();
-        xpDocs.push(...snap.docs);
+    const collectionsToCheck = [
+        "xp_logs",
+        "xpLogs",
+    ];
+    for (const coll of collectionsToCheck) {
+        for (const id of possibleIds) {
+            const snap = await db
+                .collection(coll)
+                .where("uid", "==", id)
+                .limit(20)
+                .get();
+            xpDocs.push(...snap.docs);
+        }
     }
     const seen = new Set();
     const activity = xpDocs
@@ -138,27 +149,11 @@ exports.getAthleteProfileFeed = (0, https_1.onCall)(async (req) => {
         .sort((a, b) => String(b.createdAt || "")
         .localeCompare(String(a.createdAt || "")))
         .slice(0, 5);
-    const recentXpSnap = await db
-        .collection("xp_logs")
-        .limit(10)
-        .get();
-    const recentXpDebug = recentXpSnap.docs.map((doc) => {
-        const data = doc.data();
-        return {
-            id: doc.id,
-            uid: data.uid || "",
-            kind: data.kind || "",
-            amount: Number(data.amount || 0),
-            note: data.note || "",
-            createdAt: toISO(data.createdAt),
-        };
-    });
     return {
         ok: true,
         athleteId,
         possibleIds,
         achievements,
         activity,
-        recentXpDebug,
     };
 });

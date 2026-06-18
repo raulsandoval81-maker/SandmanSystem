@@ -410,7 +410,7 @@ GRIND_15: {
 },
 
 GRIND_10: {
-  label: "+10 Daily Grind — Standard",
+  label: "+10 Daily Grind — Standard Met",
   kind: "DAILY_GRIND",
   amount: 10
 },

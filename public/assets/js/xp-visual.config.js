@@ -23,7 +23,7 @@ tiers: [
       { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
       { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "champion.png" },
       { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "veteran.png" },
-      { tier: "T4", name: "Legend",     xpCap: 2800, stripeCount: 4, stripeXP: 700, badge: "legend.png" } // cap tier visual units only
+      { tier: "T4", name: "Legend",     xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "legend.png" } // cap tier visual units only
     ]
   },
 
