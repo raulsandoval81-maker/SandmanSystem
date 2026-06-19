@@ -10,67 +10,149 @@
 </head>
 
 <body>
+
 <main class="wrap">
 
   <nav class="top-nav">
-    <a class="pill" href="/coaches/hub/index.html">Coach Hub</a>
-    <a class="pill" href="/coaches/support/index.html">Admin Support</a>
+    <a class="pill" href="/coaches/hub/index.html">
+      Coach Hub
+    </a>
+
+
+<a class="pill" href="/coaches/index.html">
+  Coaches Index
+</a>
+
+
   </nav>
 
-  <section class="hero">
-    <div class="kicker">Coach Safety</div>
-    <h1>Emergency Protocol</h1>
-    <p>
-      Find athlete emergency details, medical notes, parent contacts, and incident steps fast.
-    </p>
-  </section>
+  <header class="hero">
 
-  <section class="card">
-    <h2>Athlete Safety Lookup</h2>
 
-    <div class="row">
-      <input id="athleteIdInput" placeholder="Athlete UID / Dog Tag / Name">
-      <button id="lookupBtn" type="button">Lookup</button>
-    </div>
+<div class="kicker">
+  Coach Safety
+</div>
 
-    <div id="status" class="status">Ready.</div>
+<h1>
+  Safety Command
+</h1>
 
-    <div id="safetyProfile" class="profile hidden"></div>
-  </section>
+<p>
+  Fast access to emergency lookup, protocols, medical alerts,
+  and facility safety information.
+</p>
 
-  <section class="card">
-    <h2>Emergency Steps</h2>
 
-    <ol class="steps">
-      <li>Stop activity.</li>
-      <li>Secure the room and move athletes away.</li>
-      <li>Assess athlete condition.</li>
-      <li>Call 911 if needed.</li>
-      <li>Contact parent / guardian.</li>
-      <li>Document the incident.</li>
-      <li>Follow up before return to activity.</li>
-    </ol>
+  </header>
+
+  <section class="top-nav">
+
+
+<a class="pill" href="/coaches/safety/lookup.html">
+  Emergency Lookup
+</a>
+
+<a class="pill" href="/coaches/safety/protocols.html">
+  Protocols
+</a>
+
+<a class="pill" href="/coaches/safety/medical.html">
+  Medical Alerts
+</a>
+
+<a class="pill" href="/coaches/safety/facility.html">
+  Facility Safety
+</a>
+
+
   </section>
 
   <section class="grid">
-    <a class="action-card" href="/waiver/waiver-hub.html">
-      <h3>Waivers</h3>
-      <p>Open waiver hub and safety documents.</p>
-    </a>
 
-    <a class="action-card" href="/coaches/forms/team-operations.html">
-      <h3>Team Operations</h3>
-      <p>Open team operations documents.</p>
-    </a>
 
-    <a class="action-card" href="/coaches/support/report.html">
-      <h3>Report Issue</h3>
-      <p>Document safety, facility, or conduct issues.</p>
-    </a>
+<a class="card urgent" href="/coaches/safety/lookup.html">
+
+  <h2>
+    🚨 Emergency Lookup
+  </h2>
+
+  <p>
+    Find athlete parent contact,
+    emergency contact,
+    and medical notes immediately.
+  </p>
+
+</a>
+
+<a class="card" href="/coaches/safety/protocols.html">
+
+  <h2>
+    Emergency Protocols
+  </h2>
+
+  <p>
+    Medical emergency,
+    head injury,
+    bleeding,
+    missing athlete,
+    and evacuation procedures.
+  </p>
+
+</a>
+
+<a class="card" href="/coaches/safety/medical.html">
+
+  <h2>
+    Medical Alerts
+  </h2>
+
+  <p>
+    Read-only medical information
+    sourced directly from athlete intake records.
+  </p>
+
+</a>
+
+<a class="card" href="/coaches/safety/facility.html">
+
+  <h2>
+    Facility Safety
+  </h2>
+
+  <p>
+    Facility address,
+    emergency exits,
+    first aid,
+    AED,
+    and hospital information.
+  </p>
+
+</a>
+
+
+  </section>
+
+  <section class="hero">
+
+```
+<div class="kicker">
+  Safety Doctrine
+</div>
+
+<h2>
+  Stop · Secure · Assess · Call · Contact · Document
+</h2>
+
+<p>
+  Intake owns data.
+  Safety retrieves data.
+  Information should be entered once and accessed everywhere.
+</p>
+
+
   </section>
 
 </main>
 
-<script type="module" src="/coaches/safety/safety.js"></script>
 </body>
 </html>

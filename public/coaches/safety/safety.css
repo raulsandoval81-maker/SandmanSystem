@@ -149,3 +149,10 @@ button{
 .action-card:hover{
   border-color:var(--gold);
 }
+.urgent{
+  border:2px solid var(--gold);
+}
+
+.urgent:hover{
+  border-color:#ffffff;
+}

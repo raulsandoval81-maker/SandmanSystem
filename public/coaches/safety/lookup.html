@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Emergency Lookup · Safety</title>
+  <link rel="stylesheet" href="/coaches/safety/safety.css">
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/safety/index.html">Safety</a>
+    <a class="pill" href="/coaches/hub/index.html">Coach Hub</a>
+  </nav>
+
+  <header class="hero">
+    <div class="kicker">Emergency Lookup</div>
+    <h1>Athlete Safety Profile</h1>
+    <p>Search athlete UID, dog tag, or public name.</p>
+  </header>
+
+  <section class="panel">
+    <div class="row">
+      <input id="athleteSearch" placeholder="F4_0001, dog tag, or athlete name">
+      <button id="lookupBtn" type="button">Lookup</button>
+    </div>
+
+    <div id="status" class="status">Ready.</div>
+    <div id="profileBox" class="profile hidden"></div>
+  </section>
+
+</main>
+
+<script type="module" src="/coaches/safety/safety.js"></script>
+</body>
+</html>
