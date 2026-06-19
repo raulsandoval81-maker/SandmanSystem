@@ -264,6 +264,9 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 };
             const startingXp = expPlan.issuedNow + adjustmentAmount;
             const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);
+            const emergencyName = String(intakeData.emergency?.name || "").trim() || null;
+            const emergencyPhoneDigits = String(intakeData.emergency?.phoneDigits || "").trim() || null;
+            const medical = String(intakeData.medical || "").trim() || "None";
             tx.create(athleteRef, {
                 uid,
                 uidCode: uid,
@@ -393,6 +396,19 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 parentEmail,
                 parentPhoneDigits,
                 parentName,
+                emergency: {
+                    name: emergencyName,
+                    phoneDigits: emergencyPhoneDigits,
+                },
+                medical,
+                medicalNotes: medical,
+                safety: {
+                    emergencyContactName: emergencyName,
+                    emergencyPhoneDigits,
+                    medical,
+                    source: "intake",
+                    updatedAt: now,
+                },
                 legacy: hasLegacy,
                 legacyType: hasLegacy ? "external" : null,
                 legacyYearsVerified: expPlan.yearsVerified,

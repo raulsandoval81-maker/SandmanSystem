@@ -383,6 +383,14 @@ const starter =
       };
       const startingXp = expPlan.issuedNow + adjustmentAmount;
       const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);
+      const emergencyName =
+  String(intakeData.emergency?.name || "").trim() || null;
+
+const emergencyPhoneDigits =
+  String(intakeData.emergency?.phoneDigits || "").trim() || null;
+
+const medical =
+  String(intakeData.medical || "").trim() || "None";
 
       tx.create(athleteRef, {
         uid,
@@ -546,6 +554,22 @@ priorExperienceValidation: safePriorExperienceValidation,
         parentEmail,
         parentPhoneDigits,
         parentName,
+
+        emergency: {
+  name: emergencyName,
+  phoneDigits: emergencyPhoneDigits,
+},
+
+medical,
+medicalNotes: medical,
+
+safety: {
+  emergencyContactName: emergencyName,
+  emergencyPhoneDigits,
+  medical,
+  source: "intake",
+  updatedAt: now,
+},
 
         legacy: hasLegacy,
         legacyType: hasLegacy ? "external" : null,

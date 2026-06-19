@@ -10,10 +10,19 @@ import {
 
 await ensureSignedIn();
 
-const athleteIdInput = document.getElementById("athleteIdInput");
-const lookupBtn = document.getElementById("lookupBtn");
-const statusEl = document.getElementById("status");
-const safetyProfile = document.getElementById("safetyProfile");
+const athleteIdInput =
+  document.getElementById("athleteSearch") ||
+  document.getElementById("athleteIdInput");
+
+const lookupBtn =
+  document.getElementById("lookupBtn");
+
+const statusEl =
+  document.getElementById("status");
+
+const safetyProfile =
+  document.getElementById("profileBox") ||
+  document.getElementById("safetyProfile");
 
 function setStatus(msg, isError = false) {
   statusEl.textContent = msg;
@@ -97,9 +106,8 @@ function renderProfile(a) {
     ${row("Team / Location", a.team?.name || a.teamName || a.locationId || "")}
   `;
 }
-
 lookupBtn?.addEventListener("click", async () => {
-  const term = athleteIdInput.value.trim();
+  const term = athleteIdInput?.value?.trim() || "";
 
   if (!term) {
     setStatus("Enter athlete UID, tag, or name.", true);
@@ -108,7 +116,7 @@ lookupBtn?.addEventListener("click", async () => {
 
   try {
     setStatus("Looking up safety profile...");
-    safetyProfile.classList.add("hidden");
+    safetyProfile?.classList.add("hidden");
 
     const athlete = await findAthlete(term);
 
