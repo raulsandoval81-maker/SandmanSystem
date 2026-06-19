@@ -1,0 +1,151 @@
+:root{
+  --bg:#070b12;
+  --panel:#111827;
+  --card:#0b1120;
+  --line:#263244;
+  --text:#f8fafc;
+  --muted:#9ca3af;
+  --gold:#ffdd48;
+  --red:#ef4444;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+  max-width:1050px;
+  margin:0 auto;
+  padding:28px 16px 64px;
+}
+
+.top-nav{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+
+.pill{
+  color:var(--text);
+  text-decoration:none;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:999px;
+  padding:9px 14px;
+  font-weight:900;
+}
+
+.hero,.card,.action-card{
+  background:var(--panel);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:20px;
+  margin-bottom:16px;
+}
+
+.kicker{
+  color:var(--gold);
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  font-size:.78rem;
+}
+
+h1,h2,h3{
+  color:var(--gold);
+  margin:0 0 10px;
+}
+
+p{
+  color:var(--muted);
+  line-height:1.45;
+}
+
+.row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+input{
+  flex:1;
+  min-width:240px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#0f172a;
+  color:var(--text);
+  padding:12px;
+  font:inherit;
+}
+
+button{
+  border:1px solid var(--gold);
+  border-radius:12px;
+  background:#1f2937;
+  color:var(--gold);
+  padding:12px 16px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.status{
+  margin-top:12px;
+  color:var(--gold);
+  font-weight:800;
+}
+
+.hidden{display:none}
+
+.profile{
+  margin-top:14px;
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.profile-row{
+  padding:8px 0;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.profile-row:last-child{
+  border-bottom:0;
+}
+
+.label{
+  color:var(--muted);
+  font-size:.82rem;
+  font-weight:900;
+}
+
+.value{
+  margin-top:2px;
+  font-weight:800;
+}
+
+.steps{
+  line-height:1.8;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  gap:14px;
+}
+
+.action-card{
+  display:block;
+  text-decoration:none;
+  color:var(--text);
+}
+
+.action-card:hover{
+  border-color:var(--gold);
+}

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Safety · Sandman</title>
+
+  <link rel="stylesheet" href="/coaches/safety/safety.css">
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/hub/index.html">Coach Hub</a>
+    <a class="pill" href="/coaches/support/index.html">Admin Support</a>
+  </nav>
+
+  <section class="hero">
+    <div class="kicker">Coach Safety</div>
+    <h1>Emergency Protocol</h1>
+    <p>
+      Find athlete emergency details, medical notes, parent contacts, and incident steps fast.
+    </p>
+  </section>
+
+  <section class="card">
+    <h2>Athlete Safety Lookup</h2>
+
+    <div class="row">
+      <input id="athleteIdInput" placeholder="Athlete UID / Dog Tag / Name">
+      <button id="lookupBtn" type="button">Lookup</button>
+    </div>
+
+    <div id="status" class="status">Ready.</div>
+
+    <div id="safetyProfile" class="profile hidden"></div>
+  </section>
+
+  <section class="card">
+    <h2>Emergency Steps</h2>
+
+    <ol class="steps">
+      <li>Stop activity.</li>
+      <li>Secure the room and move athletes away.</li>
+      <li>Assess athlete condition.</li>
+      <li>Call 911 if needed.</li>
+      <li>Contact parent / guardian.</li>
+      <li>Document the incident.</li>
+      <li>Follow up before return to activity.</li>
+    </ol>
+  </section>
+
+  <section class="grid">
+    <a class="action-card" href="/waiver/waiver-hub.html">
+      <h3>Waivers</h3>
+      <p>Open waiver hub and safety documents.</p>
+    </a>
+
+    <a class="action-card" href="/coaches/forms/team-operations.html">
+      <h3>Team Operations</h3>
+      <p>Open team operations documents.</p>
+    </a>
+
+    <a class="action-card" href="/coaches/support/report.html">
+      <h3>Report Issue</h3>
+      <p>Document safety, facility, or conduct issues.</p>
+    </a>
+  </section>
+
+</main>
+
+<script type="module" src="/coaches/safety/safety.js"></script>
+</body>
+</html>

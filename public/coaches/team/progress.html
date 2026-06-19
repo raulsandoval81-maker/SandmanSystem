@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Team Progress · Challenges</title>
+  <link rel="icon" href="data:,">
+<link rel="stylesheet" href="/coaches/team/team.css">
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/coaches/hub/index.html">Coach Hub</a>
+    <a class="pill" href="/coaches/team/index.html">Team</a>
+    <a class="pill" href="/coaches/roster/index.html">Roster</a>
+  </nav>
+
+  <section class="hero">
+    <h1>Team Progress</h1>
+    <p class="sub">
+      Push coach-directed challenges, missions, focus points, and team emphasis.
+      Challenge creates focus. XP is still earned separately.
+    </p>
+  </section>
+
+  <section class="panel">
+    <h2>Create Challenge</h2>
+
+    <div class="grid">
+
+      <div>
+        <div class="field">
+          <label for="laneSelect">Lane</label>
+          <select id="laneSelect">
+            <option value="combat">Combat</option>
+            <option value="strength">Strength</option>
+            <option value="honor">Honor</option>
+            <option value="arena">Arena</option>
+            <option value="attendance">Attendance</option>
+            <option value="culture">Culture</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="typeSelect">Signal Type</label>
+          <select id="typeSelect">
+            <option value="challenge">Challenge</option>
+            <option value="mission">Mission</option>
+            <option value="quest">Quest</option>
+            <option value="focus_point">Focus Point</option>
+            <option value="coach_emphasis">Coach Emphasis</option>
+            <option value="agreement">Agreement Challenge</option>
+            <option value="regional">Regional Challenge</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="audienceSelect">Audience</label>
+          <select id="audienceSelect">
+            <option value="team">Whole Team</option>
+            <option value="group">Group</option>
+            <option value="athlete">Single Athlete</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="audienceValue">Group / Athlete ID</label>
+          <input id="audienceValue" type="text" placeholder="Optional unless group or athlete">
+        </div>
+      </div>
+
+      <div>
+        <div class="field">
+          <label for="titleInput">Title</label>
+          <input id="titleInput" type="text" placeholder="Earn 3 Daily Grinds this week">
+        </div>
+
+        <div class="field">
+          <label for="detailsInput">Details</label>
+          <textarea id="detailsInput" placeholder="Coach message, standard, or mission details."></textarea>
+        </div>
+
+        <div class="field">
+          <label for="xpHintInput">XP Note</label>
+          <input id="xpHintInput" type="text" placeholder="Example: Coach may award Strength +5 after proof.">
+        </div>
+      </div>
+
+    </div>
+
+    <div class="btn-row">
+      <button id="templateBtn" type="button">Use Template</button>
+      <button id="previewBtn" type="button">Preview</button>
+      <button id="pushBtn" class="primary" type="button">Push Challenge</button>
+    </div>
+
+    <div id="previewBox" class="preview" style="display:none"></div>
+    <div id="status" class="status"></div>
+  </section>
+
+  <section class="panel">
+    <h2>Recent Pushes</h2>
+    <p class="hint">Local session history only. Firestore record is saved when pushed.</p>
+    <div id="recentList" class="recent"></div>
+  </section>
+
+</main>
+
+<script type="module" src="/coaches/team/progress.js"></script>
+</body>
+</html>
