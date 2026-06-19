@@ -1,9 +1,6 @@
 const DEFAULT_COMBAT_MODEL = {
-
   FOUNDATIONS: [],
-
   SKILL_WAVES: {},
-
   WAVE_CARDS: {},
 
   WEEK_STRUCTURE: [
@@ -17,7 +14,6 @@ const DEFAULT_COMBAT_MODEL = {
     majorReturnWeeks: 6,
     maxTravelingWaves: 2
   }
-
 };
 
 const COMBAT_MODEL_PATHS = {
@@ -26,12 +22,6 @@ const COMBAT_MODEL_PATHS = {
 
   "teen-p2l-wrestling-t0":
     "/assets/js/hybrid/teen/teen-path-to-legend-wrestling-t0-waves.js",
-
-  "teen-p2l-boxing-t0":
-    "/assets/js/hybrid/teen/teen-path-to-legend-boxing-t0-waves.js",
-
-  "teen-p2l-kickboxing-t0":
-    "/assets/js/hybrid/teen/teen-path-to-legend-kickboxing-t0-waves.js",
 
   "adult-q2m-mma-t1":
     "/assets/js/hybrid/adult/adult-quest-to-mastery-mma-t1-waves.js",
@@ -58,8 +48,11 @@ const weekSelect =
 const buildBtn =
   document.getElementById("buildBtn");
 
-const RANK_LABELS = {
+const SCHEMA_ONLY_CLASSES = [
+  "kickboxing-60"
+];
 
+const RANK_LABELS = {
   Z2H: {
     T0: "Shadow",
     T1: "Recruit",
@@ -94,11 +87,9 @@ const RANK_LABELS = {
     T4: "Veteran",
     T5: "Master"
   }
-
 };
 
-function populateRanks(){
-
+function populateRanks() {
   const option =
     disciplineSelect?.selectedOptions?.[0];
 
@@ -111,35 +102,27 @@ function populateRanks(){
   rankSelect.innerHTML = "";
 
   if (!Object.keys(ranks).length) {
-
     const opt =
       document.createElement("option");
 
     opt.value = "";
-
-    opt.textContent =
-      "Select Program First";
+    opt.textContent = "Select Program First";
 
     rankSelect.appendChild(opt);
-
     return;
   }
 
   Object.entries(ranks).forEach(([tier, label]) => {
-
     const opt =
       document.createElement("option");
 
     opt.value = tier;
-
-    opt.textContent =
-      `${tier} — ${label}`;
+    opt.textContent = `${tier} — ${label}`;
 
     rankSelect.appendChild(opt);
-
   });
-
 }
+
 let selectedSchema =
   document.querySelector(".session-card.active")
     ?.dataset.schema || "standard-60";
@@ -152,8 +135,7 @@ let selectedSessionId =
   document.querySelector("[data-session-id].active")
     ?.dataset.sessionId || "lompoc-mat-1";
 
-function setActive(list, activeEl){
-
+function setActive(list, activeEl) {
   list.forEach(el =>
     el.classList.remove("active")
   );
@@ -162,42 +144,30 @@ function setActive(list, activeEl){
 }
 
 cards.forEach(card => {
-
   card.addEventListener("click", () => {
-
     setActive(cards, card);
 
     selectedSchema =
       card.dataset.schema || "quick-45";
-
   });
-
 });
 
 modeBtns.forEach(btn => {
-
   btn.addEventListener("click", () => {
-
     setActive(modeBtns, btn);
 
     selectedMode =
       btn.dataset.mode || "hybrid";
-
   });
-
 });
 
 sessionBtns.forEach(btn => {
-
   btn.addEventListener("click", () => {
-
     setActive(sessionBtns, btn);
 
     selectedSessionId =
       btn.dataset.sessionId || "lompoc-mat-1";
-
   });
-
 });
 
 disciplineSelect?.addEventListener(
@@ -207,8 +177,7 @@ disciplineSelect?.addEventListener(
 
 populateRanks();
 
-function getProgramData(){
-
+function getProgramData() {
   const option =
     disciplineSelect?.selectedOptions?.[0];
 
@@ -247,8 +216,7 @@ function getProgramData(){
   };
 }
 
-function getCycleData(){
-
+function getCycleData() {
   return {
     rank:
       rankSelect?.value || "",
@@ -256,7 +224,6 @@ function getCycleData(){
     week:
       weekSelect?.value || ""
   };
-
 }
 
 async function getHybridData(programData, cycleData) {
@@ -273,7 +240,11 @@ async function getHybridData(programData, cycleData) {
     try {
       model = await import(COMBAT_MODEL_PATHS[modelKey]);
     } catch (err) {
-      console.warn("Combat hybrid model missing, using default:", modelKey, err);
+      console.warn(
+        "Combat hybrid model missing, using default:",
+        modelKey,
+        err
+      );
     }
   }
 
@@ -281,9 +252,8 @@ async function getHybridData(programData, cycleData) {
     model.WEEK_STRUCTURE || ["teach", "drill", "live"];
 
   const phase =
-    weekStructure[
-      (weekNumber - 1) % weekStructure.length
-    ] || "teach";
+    weekStructure[(weekNumber - 1) % weekStructure.length] ||
+    "teach";
 
   const cycleNumber =
     Math.ceil(weekNumber / 6);
@@ -308,8 +278,20 @@ async function getHybridData(programData, cycleData) {
     hybridRules: model.HYBRID_RULES || {}
   };
 }
-function getRoomData(sessionId){
 
+function getEmptyHybridData() {
+  return {
+    hybridPhase: "",
+    hybridCycle: "",
+    hybridWeekInCycle: "",
+    hybridWaveKey: "",
+    hybridWave: [],
+    hybridCards: [],
+    hybridRules: {}
+  };
+}
+
+function getRoomData(sessionId) {
   const parts =
     String(sessionId || "lompoc-mat-1")
       .split("-");
@@ -326,28 +308,30 @@ function getRoomData(sessionId){
   };
 }
 
-  buildBtn?.addEventListener("click", async () => {
+buildBtn?.addEventListener("click", async () => {
   const programData =
     getProgramData();
 
   const cycleData =
     getCycleData();
 
-  const hybridData =
-  await getHybridData(programData, cycleData);
+  const isSchemaOnly =
+    SCHEMA_ONLY_CLASSES.includes(selectedSchema);
 
-    if (!programData.program) {
-
+  if (!isSchemaOnly && !programData.program) {
     alert("Select a program first.");
-
     return;
   }
+
+  const hybridData =
+    isSchemaOnly
+      ? getEmptyHybridData()
+      : await getHybridData(programData, cycleData);
 
   const roomData =
     getRoomData(selectedSessionId);
 
   const payload = {
-
     schema:
       selectedSchema,
 
@@ -463,16 +447,12 @@ function getRoomData(sessionId){
     "sandman_hybrid_wave",
     JSON.stringify(hybridData.hybridWave)
   );
-  localStorage.setItem(
-  "sandman_hybrid_wave",
-  JSON.stringify(hybridData.hybridWave)
-);
 
-localStorage.setItem(
-  "sandman_hybrid_cards",
-  JSON.stringify(hybridData.hybridCards)
-);
+  localStorage.setItem(
+    "sandman_hybrid_cards",
+    JSON.stringify(hybridData.hybridCards)
+  );
+
   window.location.href =
     `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(selectedSessionId)}`;
-
 });

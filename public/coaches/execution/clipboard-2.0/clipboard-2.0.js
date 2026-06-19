@@ -70,7 +70,7 @@ function getSessionPayload() {
 const SCHEMAS = {
   "quick-45": {
     mode: "single",
-    label: "Quick 45",
+    label: "Combat Quick 45",
     maxMinutes: 45,
     focusModes: {
       "warmup-only": [
@@ -97,7 +97,7 @@ const SCHEMAS = {
 
   "standard-60": {
     mode: "board",
-    label: "Standard 60",
+    label: "Combat Standard 60",
     maxMinutes: 60,
     blocks: [
       { key: "onmat", label: "Announcements / On The Mat Talk", minutes: 2 },
@@ -111,9 +111,57 @@ const SCHEMAS = {
     ]
   },
 
+"fitness-striking-60": {
+  mode: "board",
+  label: "Fitness Striking 60",
+  maxMinutes: 60,
+  blocks: [
+    {
+      key: "onmat",
+      label: "Arrival / Mindset",
+      minutes: 3
+    },
+    {
+      key: "warmup",
+      label: "Movement & Body Mechanics",
+      minutes: 8
+    },
+    {
+      key: "drills",
+      label: "Review & Reinforcement",
+      minutes: 12
+    },
+    {
+      key: "technique",
+      label: "New Skill Development",
+      minutes: 8
+    },
+    {
+      key: "water",
+      label: "Transition / Water",
+      minutes: 3
+    },
+    {
+      key: "live",
+      label: "Self-Defense Integration",
+      minutes: 12
+    },
+    {
+      key: "cond",
+      label: "Conditioning",
+      minutes: 12
+    },
+    {
+      key: "offmat",
+      label: "Close",
+      minutes: 2
+    }
+  ]
+},
+
   "elite-90": {
     mode: "board",
-    label: "Elite 90",
+    label: "Combat Elite 90",
     maxMinutes: 90,
     blocks: [
       { key: "onmat", label: "Announcements / On The Mat Talk", minutes: 2 },
@@ -129,7 +177,7 @@ const SCHEMAS = {
 
   "extended-120": {
     mode: "board",
-    label: "Extended 120",
+    label: "Combat Extended 120",
     maxMinutes: 120,
     blocks: [
       { key: "onmat", label: "Announcements / On The Mat Talk", minutes: 3 },

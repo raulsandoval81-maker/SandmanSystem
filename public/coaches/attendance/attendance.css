@@ -1,0 +1,175 @@
+.wrap{
+  max-width:1100px;
+  margin:0 auto;
+  padding:32px 18px 80px;
+}
+
+.attendance-header{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:flex-start;
+  margin-bottom:24px;
+}
+
+.attendance-header h1{
+  margin:0 0 6px;
+}
+
+.top-nav{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+
+.card,
+.setup-card,
+.toolbar-card,
+.roster-card{
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.045);
+  border-radius:18px;
+  padding:18px;
+  margin-bottom:16px;
+}
+
+.field-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+
+label{
+  display:grid;
+  gap:7px;
+  font-weight:700;
+}
+
+select,
+input,
+textarea{
+  width:100%;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.14);
+  background:#0b0f18;
+  color:#fff;
+  padding:11px 12px;
+  font:inherit;
+}
+
+textarea{
+  resize:vertical;
+}
+
+.notes-label{
+  margin-top:14px;
+}
+
+.toolbar-card{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+}
+
+.action-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+.pill.primary{
+  background:#fff;
+  color:#050505;
+  border-color:#fff;
+}
+
+.pill:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+.section-head{
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  margin-bottom:14px;
+}
+
+.section-head h2{
+  margin:0;
+}
+
+.athlete-list{
+  display:grid;
+  gap:10px;
+}
+
+.athlete-row{
+  display:flex;
+  grid-template-columns:auto 1fr;
+  align-items:center;
+  gap:12px;
+  padding:13px 14px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:14px;
+  background:rgba(0,0,0,.18);
+  cursor:pointer;
+}
+
+.athlete-row:hover{
+  background:rgba(255,255,255,.07);
+}
+
+.athlete-row input{
+  width:20px;
+  height:20px;
+  accent-color:#fff;
+}
+
+.athlete-main{
+  display:grid;
+  gap:3px;
+}
+
+.muted{
+  opacity:.72;
+}
+
+@media (max-width:760px){
+  .attendance-header{
+    display:block;
+  }
+
+  .top-nav{
+    justify-content:flex-start;
+    margin-top:14px;
+  }
+
+  .field-grid{
+    grid-template-columns:1fr;
+  }
+
+  .toolbar-card{
+    display:block;
+  }
+
+  .action-row{
+    margin-bottom:12px;
+  }
+}
+.athlete-row{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.athlete-main{
+  flex:1;
+}
+
+.athlete-status{
+  margin-left:auto;
+}

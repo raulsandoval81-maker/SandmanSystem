@@ -14,50 +14,26 @@
 <body>
 <main class="wrap">
 
-  <nav class="top-nav">
-    <button class="pill" type="button" id="toggleAttendanceMode">Take Attendance</button>
-    <a class="pill" href="/coaches/attendance/">Attendance History</a>
-
-    <button class="pill" type="button" id="toggleArchiveView">Archived</button>
-    <button class="pill status-filter is-active" data-status-filter="all">Roster</button>
-    <a class="pill" href="/coaches/index.html">← Coach Index</a>
-  </nav>
-
-  <h1>Team Roster</h1>
-  <p class="muted">Firestore · <code>athletes</code></p>
-
-  <section id="attendancePanel" class="card" hidden>
-    <h2>Attendance</h2>
-
-    <label>
-      Program
-      <select id="practiceType">
-        <option value="z2h">Z2H · Zero2Hero</option>
-        <option value="p2l">P2L · Path2Legend</option>
-        <option value="r2g">R2G · Road2Greatness</option>
-        <option value="q2m">Q2M · Quest2Mastery</option>
-      </select>
-    </label>
-
-    <label>
-      Coach
-      <input id="coachName" type="text" value="Raul"/>
-    </label>
-
-    <div class="top-nav">
-      <button id="selectAll" class="pill" type="button">Select All</button>
-      <button id="clearAll" class="pill" type="button">Clear All</button>
-      <button id="saveAttendance" class="pill" type="button">Save Attendance</button>
-      <span id="presentCount" class="muted">0 selected</span>
+  <!-- PAGE HEADER -->
+  <header class="roster-header">
+    <div>
+      <h1>Team Roster</h1>
+      <p class="muted">Coach command center · Athletes</p>
     </div>
 
-    <p id="saveStatus" class="muted"></p>
-  </section>
+    <nav class="top-nav">
+      <a class="pill" href="/coaches/attendance/">Attendance</a>
+      <button class="pill" type="button" id="toggleArchiveView">Archived</button>
+      <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    </nav>
+  </header>
 
-  <div class="controls-row">
+  <!-- FILTERS -->
+  <section class="controls-row card-lite">
+
     <label class="canon-toggle">
       <input id="trackF8Only" type="checkbox"/>
-      <span class="muted">Foundry 8 only</span>
+      <span>Foundry 8 only</span>
     </label>
 
     <label>
@@ -70,48 +46,34 @@
     </label>
 
     <span id="countMeta" class="muted count-meta"></span>
-  </div>
 
-  <div class="status-toolbar">
-    <button class="pill status-filter" data-status-filter="active">
-      🟢 Active <strong id="summaryActive">0</strong>
-    </button>
+  </section>
 
-    <button class="pill status-filter" data-status-filter="warning">
-      🟡 Warning <strong id="summaryWarning">0</strong>
-    </button>
+  <!-- ROSTER TABLE -->
+  <section class="card roster-card">
 
-    <button class="pill status-filter" data-status-filter="at-risk">
-      🟠 At Risk <strong id="summaryRisk">0</strong>
-    </button>
+    <table class="roster-table">
 
-    <button class="pill status-filter" data-status-filter="edge-loss">
-      🔴 Edge Loss <strong id="summaryEdgeLoss">0</strong>
-    </button>
+      <thead>
+        <tr>
+          <th>Athlete</th>
+          <th>Tier / Rank</th>
+          <th>XP</th>
+          <th>Last Seen</th>
+        </tr>
+      </thead>
 
-    <button class="pill status-filter" data-status-filter="frozen">
-      ❄️ Frozen <strong id="summaryFrozen">0</strong>
-    </button>
+      <tbody id="rows">
+        <tr>
+          <td colspan="4" class="muted">
+            Loading…
+          </td>
+        </tr>
+      </tbody>
 
-    <button class="pill status-filter" data-status-filter="unknown">
-      ⚪ No Attendance <strong id="summaryUnknown">0</strong>
-    </button>
-  </div>
+    </table>
 
-  <table class="roster-table">
-    <thead>
-      <tr>
-        <th class="attendance-only" hidden>Present</th>
-        <th>Athlete</th>
-        <th>Tier / Rank</th>
-        <th>XP</th>
-        <th>Attendance</th>
-      </tr>
-    </thead>
-    <tbody id="rows">
-      <tr><td colspan="5" class="muted">Loading…</td></tr>
-    </tbody>
-  </table>
+  </section>
 
 </main>
 

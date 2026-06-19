@@ -1,14 +1,13 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<title>Session Builder</title>
+  <title>Session Builder</title>
 
-<link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css">
   <link rel="icon" href="data:,">
-
 </head>
 
 <body>
@@ -25,25 +24,32 @@
 
     <div class="hero-session-types">
 
-      <button class="session-card " data-schema="quick-45">
-        <span class="title">Quick 45</span>
+      <button class="session-card" data-schema="quick-45">
+        <span class="title">Quick · 45 min · Combat Session</span>
         <span class="desc">Single-focus fast session.</span>
       </button>
 
       <button class="session-card active" data-schema="standard-60">
-        <span class="title">Standard 60</span>
+        <span class="title"> Standard · 60 min · Combat Class </span>
         <span class="desc">Balanced room structure.</span>
       </button>
 
+
       <button class="session-card" data-schema="elite-90">
-        <span class="title">Elite 90</span>
+        <span class="title">Advanced · 90 min · Combat Class</span>
         <span class="desc">Advanced live training.</span>
       </button>
 
       <button class="session-card" data-schema="extended-120">
-        <span class="title">Extended 120</span>
+        <span class="title">Extended · 120 min · Combat Class</span>
         <span class="desc">Full competition room.</span>
       </button>
+
+            <button class="session-card" data-schema="fitness-striking-60">
+        <span class="title">Standard · 60 min · Striking Fitness</span>
+        <span class="desc">Fitness &amp; Self-Defense.</span>
+      </button>
+
 
     </div>
 
@@ -97,7 +103,7 @@
           Select Program
         </option>
 
-        <optgroup label="Youth · Foundry 8">
+        <optgroup label="Youth · Combat 7+">
 
           <option
             value="youth-z2h-wrestling"
@@ -111,7 +117,7 @@
 
         </optgroup>
 
-        <optgroup label="Teen · Foundry 4">
+        <optgroup label="Teen · Combat  14+">
 
           <option
             value="teen-p2l-wrestling"
@@ -125,7 +131,7 @@
 
         </optgroup>
 
-        <optgroup label="Adult">
+        <optgroup label="Teen/Adult Combat 14+">
 
           <option
             value="adult-r2g-boxing"
@@ -137,7 +143,23 @@
             R2G Boxing
           </option>
 
+          
+
         </optgroup>
+
+        <optgroup label="Teen/Adult Fitness 12+">
+
+  <option
+    value="fitness-striking"
+    data-foundry="Fitness"
+    data-track="Fitness"
+    data-journey=""
+    data-discipline="Striking"
+    data-tier="">
+    SFS Striking Fitness  Self-defense
+  </option>
+
+</optgroup>
 
       </select>
 
@@ -160,51 +182,43 @@
       </div>
 
       <select id="weekSelect" class="mode-select">
-
         <option value="1">Week 1</option>
         <option value="2">Week 2</option>
         <option value="3">Week 3</option>
         <option value="4">Week 4</option>
         <option value="5">Week 5</option>
         <option value="6">Week 6</option>
-
         <option value="7">Week 7</option>
         <option value="8">Week 8</option>
         <option value="9">Week 9</option>
         <option value="10">Week 10</option>
         <option value="11">Week 11</option>
         <option value="12">Week 12</option>
-
         <option value="13">Week 13</option>
         <option value="14">Week 14</option>
         <option value="15">Week 15</option>
         <option value="16">Week 16</option>
         <option value="17">Week 17</option>
         <option value="18">Week 18</option>
-
         <option value="19">Week 19</option>
         <option value="20">Week 20</option>
         <option value="21">Week 21</option>
         <option value="22">Week 22</option>
         <option value="23">Week 23</option>
         <option value="24">Week 24</option>
-
         <option value="25">Week 25</option>
         <option value="26">Week 26</option>
         <option value="27">Week 27</option>
         <option value="28">Week 28</option>
         <option value="29">Week 29</option>
         <option value="30">Week 30</option>
-
         <option value="31">Week 31</option>
         <option value="32">Week 32</option>
         <option value="33">Week 33</option>
         <option value="34">Week 34</option>
         <option value="35">Week 35</option>
         <option value="36">Week 36</option>
-
       </select>
-      
 
     </div>
 

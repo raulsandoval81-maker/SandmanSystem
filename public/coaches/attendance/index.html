@@ -2,52 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>Coach · Attendance History</title>
+  <title>Coach · Attendance</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
   <link rel="stylesheet" href="/assets/css/site.css"/>
-  <link rel="stylesheet" href="/coaches/roster/roster.css"/>
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css"/>
   <link rel="icon" href="data:,">
 </head>
 
 <body>
 <main class="wrap">
 
-  <nav class="top-nav">
-    <a class="pill" href="/coaches/index.html">← Coach Index</a>
-    <a class="pill" href="/coaches/roster/">Roster</a>
-  </nav>
+  <header class="attendance-header">
+    <div>
+      <h1>Sandman Attendance</h1>
+      <p class="muted">Track attendance health · Take attendance · Save today’s session</p>
+    </div>
 
-  <h1>Attendance History</h1>
-  <p class="muted">Firestore · <code>attendance_sessions</code></p>
+    <nav class="top-nav">
+      <a class="pill" href="/coaches/attendance/attendance-history.html">History</a>
+      <a class="pill" href="/coaches/daily-grind/">Daily Grind XP</a>
+      <a class="pill" href="/coaches/roster/">Roster</a>
+      <a class="pill" href="/coaches/index.html">← Coach Index</a>
+    </nav>
+  </header>
 
-  <section class="card">
-    <div id="historyMeta" class="muted">Loading sessions…</div>
+  <section class="status-toolbar">
+    <div class="pill">Roster <strong id="summaryTotal">0</strong></div>
+    <div class="pill">🟢 Active <strong id="summaryActive">0</strong></div>
+    <div class="pill">🟡 Warning <strong id="summaryWarning">0</strong></div>
+    <div class="pill">🟠 At Risk <strong id="summaryRisk">0</strong></div>
+    <div class="pill">🔴 Edge Loss <strong id="summaryEdgeLoss">0</strong></div>
+    <div class="pill">❄️ Frozen <strong id="summaryFrozen">0</strong></div>
+    <div class="pill">⚪ No Attendance <strong id="summaryUnknown">0</strong></div>
   </section>
 
-  <table class="roster-table">
-    <thead>
-      <tr>
-        <th>Date</th>
-        <th>Type</th>
-        <th>Coach</th>
-        <th>Count</th>
-        <th>Session</th>
-      </tr>
-    </thead>
-    <tbody id="historyRows">
-      <tr><td colspan="5" class="muted">Loading…</td></tr>
-    </tbody>
-  </table>
+  <section class="card setup-card">
+    <div class="field-grid">
+      <label>
+        Program
+        <select id="practiceType">
+          <option value="z2h">Z2H · Zero2Hero</option>
+          <option value="p2l">P2L · Path2Legend</option>
+          <option value="r2g">R2G · Road2Greatness</option>
+          <option value="q2m">Q2M · Quest2Mastery</option>
+        </select>
+      </label>
 
-  <section id="sessionDetail" class="card" hidden>
-    <h2 id="sessionTitle">Session</h2>
-    <p id="sessionNotes" class="muted"></p>
-    <div id="sessionAthletes"></div>
+      <label>
+        Coach
+        <input id="coachName" type="text" value="Raul"/>
+      </label>
+    </div>
+
+    <label class="notes-label">
+      Practice Notes
+      <textarea id="practiceNotes" rows="3" placeholder="Optional notes for today’s session..."></textarea>
+    </label>
+  </section>
+
+  <section class="toolbar-card">
+    <div class="action-row">
+      <button id="selectAll" class="pill" type="button">Select All</button>
+      <button id="clearAll" class="pill" type="button">Clear All</button>
+      <button id="saveAttendance" class="pill primary" type="button">Save Attendance</button>
+    </div>
+
+    <div class="save-meta">
+      <strong id="presentCount">0 selected</strong>
+      <p id="saveStatus" class="muted"></p>
+    </div>
+  </section>
+
+  <section class="card roster-card">
+    <div class="section-head">
+      <h2>Athletes</h2>
+      <span id="countMeta" class="muted">Loading…</span>
+    </div>
+
+    <div id="athleteList" class="athlete-list">
+      <p class="muted">Loading athletes…</p>
+    </div>
   </section>
 
 </main>
 
-<script type="module" src="/coaches/attendance/attendance-history.js"></script>
+<script type="module" src="/coaches/attendance/attendance.js"></script>
 </body>
 </html>

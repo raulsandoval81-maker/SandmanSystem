@@ -6,7 +6,6 @@ import {
   limit,
   doc,
   updateDoc,
-  addDoc,
   serverTimestamp,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
@@ -16,9 +15,7 @@ import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 
-let attendanceMode = false;
 let currentList = [];
-let statusFilter = "all";
 
 function trackBaseOf(id) {
   if (id.startsWith("F4_")) return "F4";
@@ -72,76 +69,12 @@ function daysSince(raw) {
 
 function lastSeenText(data = {}) {
   const days = daysSince(data.lastAttendanceAt);
+
   if (days === null) return "No attendance logged";
   if (days <= 0) return "Today";
   if (days === 1) return "1 day ago";
+
   return `${days} days ago`;
-}
-
-function edgeStatusOf(data = {}) {
-  const days = daysSince(data.lastAttendanceAt);
-  if (days === null) return "unknown";
-  if (days >= 84) return "frozen";
-  if (days >= 56) return "edge-loss";
-  if (days >= 28) return "at-risk";
-  if (days >= 14) return "warning";
-  return "active";
-}
-
-function edgeChipHtml(data = {}) {
-  const status = edgeStatusOf(data);
-if (status === "frozen")
-  return `<span class="status-chip status-chip--freeze">🔵 Frozen</span>`;
-
-if (status === "edge-loss")
-  return `<span class="status-chip status-chip--cooldown">🔴 Edge Loss</span>`;
-
-if (status === "at-risk")
-  return `<span class="status-chip status-chip--watch">🟠 At Risk</span>`;
-
-if (status === "warning")
-  return `<span class="status-chip status-chip--tempo">🟡 Warning</span>`;
-
-if (status === "active")
-  return `<span class="status-chip status-chip--promoted">🟢 Active</span>`;
-
-return `<span class="status-chip">⚪ No Attendance</span>`;
-
-
-}
-function updateRosterSummary(list = []) {
-  const counts = {
-    active: 0,
-    warning: 0,
-    risk: 0,
-    edgeLoss: 0,
-    frozen: 0,
-    unknown: 0
-  };
-
-  for (const { data } of list) {
-    const status = edgeStatusOf(data);
-
-    if (status === "active") counts.active++;
-    else if (status === "warning") counts.warning++;
-    else if (status === "at-risk") counts.risk++;
-    else if (status === "edge-loss") counts.edgeLoss++;
-    else if (status === "frozen") counts.frozen++;
-    else counts.unknown++;
-  }
-
-const setText = (id, value) => {
-  const el = $(id);
-  if (el) el.textContent = value;
-};
-
-setText("summaryActive", counts.active);
-setText("summaryWarning", counts.warning);
-setText("summaryRisk", counts.risk);
-setText("summaryEdgeLoss", counts.edgeLoss);
-setText("summaryFrozen", counts.frozen);
-setText("summaryUnknown", counts.unknown);
-
 }
 
 function getTempoStatus(data = {}, track = "F4") {
@@ -163,12 +96,29 @@ function getTempoStatus(data = {}, track = "F4") {
 function tempoChipHtml(data = {}, track = "F4") {
   const status = getTempoStatus(data, track);
 
-  if (status === "promoted") return `<span class="status-chip status-chip--promoted">Promoted</span>`;
-  if (status === "cooldown") return `<span class="status-chip status-chip--cooldown">Cooldown</span>`;
-  if (status === "freeze") return `<span class="status-chip status-chip--freeze">Freeze</span>`;
-  if (status === "in-temple") return `<span class="status-chip status-chip--tempo">In Temple</span>`;
-  if (status === "temple-watch") return `<span class="status-chip status-chip--watch">Temple Watch</span>`;
-  if (status === "eligible") return `<span class="status-chip status-chip--eligible">Eligible</span>`;
+  if (status === "promoted") {
+    return `<span class="status-chip status-chip--promoted">Promoted</span>`;
+  }
+
+  if (status === "cooldown") {
+    return `<span class="status-chip status-chip--cooldown">Cooldown</span>`;
+  }
+
+  if (status === "freeze") {
+    return `<span class="status-chip status-chip--freeze">Freeze</span>`;
+  }
+
+  if (status === "in-temple") {
+    return `<span class="status-chip status-chip--tempo">In Temple</span>`;
+  }
+
+  if (status === "temple-watch") {
+    return `<span class="status-chip status-chip--watch">Temple Watch</span>`;
+  }
+
+  if (status === "eligible") {
+    return `<span class="status-chip status-chip--eligible">Eligible</span>`;
+  }
 
   return "";
 }
@@ -187,100 +137,6 @@ async function restoreAthlete(uid) {
   });
 }
 
-function updateAttendanceUi() {
-  const panel = $("attendancePanel");
-  const toggle = $("toggleAttendanceMode");
-  const archived = isArchiveView();
-
-  if (archived) {
-    attendanceMode = false;
-  }
-
-  if (panel) {
-    panel.hidden = archived || !attendanceMode;
-  }
-
-  if (toggle) {
-    toggle.hidden = archived;
-    toggle.textContent = attendanceMode ? "Exit Attendance" : "Take Attendance";
-  }
-
-  document.querySelectorAll(".attendance-only").forEach((el) => {
-    el.hidden = archived || !attendanceMode;
-  });
-
-  updatePresentCount();
-}
-
-function updatePresentCount() {
-  const checked = document.querySelectorAll(".attendance-check:checked").length;
-  const presentCount = $("presentCount");
-  if (presentCount) presentCount.textContent = `${checked} selected`;
-}
-
-async function saveAttendance() {
-  const checked = [...document.querySelectorAll(".attendance-check:checked")];
-
-  if (!checked.length) {
-    alert("No athletes selected.");
-    return;
-  }
-
-  const selectedIds = checked.map((item) => item.value);
-
-  const selectedAthletes = currentList
-    .filter((a) => selectedIds.includes(a.id))
-    .map((a) => ({
-      uid: a.id,
-      name: athleteName(a.data, a.id)
-    }));
-
-  const typeValue = $("practiceType")?.value || "wrestling";
-  const coachValue = $("coachName")?.value?.trim() || "Coach";
-  const notesValue = $("practiceNotes")?.value?.trim() || "";
-  const saveBtn = $("saveAttendance");
-  const saveStatus = $("saveStatus");
-
-  if (saveBtn) saveBtn.disabled = true;
-  if (saveStatus) saveStatus.textContent = "Saving attendance...";
-
-  try {
-    const sessionRef = await addDoc(collection(db, "attendance_sessions"), {
-      type: typeValue,
-      coach: coachValue,
-      notes: notesValue,
-      presentCount: selectedAthletes.length,
-      present: selectedAthletes,
-      presentIds: selectedIds,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    });
-
-    for (const athlete of selectedAthletes) {
-      await updateDoc(doc(db, "athletes", athlete.uid), {
-        lastAttendanceAt: serverTimestamp(),
-        lastAttendanceType: typeValue,
-        lastAttendanceCoach: coachValue,
-        lastAttendanceSessionId: sessionRef.id,
-        updatedAt: serverTimestamp()
-      });
-    }
-
-    if (saveStatus) {
-      saveStatus.textContent = `Saved ${selectedAthletes.length} athletes · ${typeValue}`;
-    }
-
-    alert(`Attendance saved for ${selectedAthletes.length} athletes.`);
-    await loadRoster();
-  } catch (err) {
-    console.error("[roster attendance] save failed", err);
-    if (saveStatus) saveStatus.textContent = "Attendance save failed.";
-    alert("Attendance save failed.");
-  }
-
-  if (saveBtn) saveBtn.disabled = false;
-}
-
 async function loadRoster() {
   await ensureSignedIn();
 
@@ -288,17 +144,29 @@ async function loadRoster() {
   const countMeta = $("countMeta");
   const archiveBtn = $("toggleArchiveView");
   const f8Only = !!$("trackF8Only")?.checked;
+  const disciplineFilter = $("disciplineFilter")?.value || "all";
+
+  if (!rowsEl) return;
 
   const track = f8Only ? "F8" : "F4";
   const wantedStatus = isArchiveView() ? "archived" : "current";
 
-  rowsEl.innerHTML = `<tr><td colspan="6" class="muted">Loading…</td></tr>`;
+  rowsEl.innerHTML = `
+    <tr>
+      <td colspan="4" class="muted">Loading…</td>
+    </tr>
+  `;
 
   if (archiveBtn) {
     archiveBtn.textContent = isArchiveView() ? "Current" : "Archived";
   }
 
-  const snap = await getDocs(query(collection(db, "athletes"), limit(500)));
+  const snap = await getDocs(
+    query(
+      collection(db, "athletes"),
+      limit(500)
+    )
+  );
 
   currentList = snap.docs
     .map((d) => ({
@@ -306,107 +174,87 @@ async function loadRoster() {
       data: d.data() || {}
     }))
     .filter((x) => isLiveRosterAthlete(x.id, x.data))
-    .filter((x) => trackBaseOf(x.id, x.data) === track)
+    .filter((x) => trackBaseOf(x.id) === track)
     .filter((x) => rosterStatusOf(x.data) === wantedStatus)
-.sort((a, b) => {
-  const statusPriority = {
-    frozen: 0,
-    "edge-loss": 1,
-    "at-risk": 2,
-    warning: 3,
-    unknown: 4,
-    active: 5
-  };
+    .filter((x) => {
+      if (disciplineFilter === "all") return true;
 
-  const aPriority =
-    statusPriority[edgeStatusOf(a.data)] ?? 999;
+      const discipline = String(
+        x.data.discipline ||
+        x.data.primaryDiscipline ||
+        x.data.sport ||
+        x.data.trackDiscipline ||
+        ""
+      ).toLowerCase();
 
-  const bPriority =
-    statusPriority[edgeStatusOf(b.data)] ?? 999;
+      return discipline === disciplineFilter;
+    })
+    .sort((a, b) =>
+      athleteName(a.data, a.id)
+        .localeCompare(athleteName(b.data, b.id))
+    );
 
-  if (aPriority !== bPriority) {
-    return aPriority - bPriority;
-  }
-
-  return athleteName(a.data, a.id)
-    .localeCompare(athleteName(b.data, b.id));
-});
-
-    
   if (countMeta) {
-    countMeta.textContent = `${track} · ${wantedStatus} · ${currentList.length} athletes`;
+    countMeta.textContent =
+      `${track} · ${wantedStatus} · ${currentList.length} athletes`;
   }
-  updateRosterSummary(currentList);
-const visibleList =
-  statusFilter === "all"
-    ? currentList
-    : currentList.filter(
-        ({ data }) => edgeStatusOf(data) === statusFilter
-      );
 
+  rowsEl.innerHTML = currentList.length
+    ? currentList.map(({ id, data }) => `
+      <tr>
 
-      rowsEl.innerHTML = visibleList.length
-  ? visibleList.map(({ id, data }) => `
+        <td data-label="Athlete">
+          <div class="name-col">
+            <div>
 
-    <tr>
-      <td class="attendance-only" data-label="Present" ${attendanceMode ? "" : "hidden"}>
-        <input class="attendance-check" type="checkbox" value="${id}">
-      </td>
+              <div class="name-line">
+                ${athleteName(data, id)}
+                ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
+              </div>
 
-      <td data-label="Athlete">
-        <div class="name-col">
-          <div>
+              <div class="roster-actions" style="margin-top:6px;">
+                <a
+                  class="pill"
+                  href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}"
+                >
+                  Profile
+                </a>
 
-            <div class="name-line">
-              ${athleteName(data, id)}
-              ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
+                ${
+                  isArchiveView()
+                    ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
+                    : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
+                }
+              </div>
+
             </div>
-
-            <div class="roster-actions" style="margin-top:6px;">
-              <a
-                class="pill"
-                href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}"
-              >
-                Profile
-              </a>
-
-              ${
-                isArchiveView()
-                  ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
-                  : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
-              }
-            </div>
-
           </div>
-        </div>
-      </td>
+        </td>
 
-      <td data-label="Tier / Rank">
-        ${data.rankName || "—"}
-      </td>
+        <td data-label="Tier / Rank">
+          ${data.rankName || "—"}
+        </td>
 
-      <td data-label="XP">
-        <div class="belt-stack">
-          <div id="rankBar-${id}" class="mini-belt-slot"></div>
-          <div id="stripeText-${id}" class="xp-sub"></div>
-        </div>
-      </td>
+        <td data-label="XP">
+          <div class="belt-stack">
+            <div id="rankBar-${id}" class="mini-belt-slot"></div>
+            <div id="stripeText-${id}" class="xp-sub"></div>
+          </div>
+        </td>
 
-      <td data-label="Attendance">
-        <div class="xp-sub">
-          Last seen: ${lastSeenText(data)}
-        </div>
-        ${!isArchiveView() ? edgeChipHtml(data) : ""}
-      </td>
+        <td data-label="Last Seen">
+          <div class="xp-sub">
+            ${lastSeenText(data)}
+          </div>
+        </td>
 
-    </tr>
-  `).join("")
-  : `<tr><td colspan="5" class="muted">No athletes found.</td></tr>`;
-
-
-  document.querySelectorAll(".attendance-check").forEach((box) => {
-    box.addEventListener("change", updatePresentCount);
-  });
+      </tr>
+    `).join("")
+    : `
+      <tr>
+        <td colspan="4" class="muted">No athletes found.</td>
+      </tr>
+    `;
 
   document.querySelectorAll("[data-archive]").forEach((btn) => {
     btn.onclick = async () => {
@@ -444,8 +292,8 @@ const visibleList =
     };
   });
 
-  for (const { id, data } of visibleList) {
-  const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
+  for (const { id, data } of currentList) {
+    const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
     const tier = ladder.find((t) => t.name === data.rankName) || ladder[0];
 
     const xpNow = Number(data.xp ?? data.currentTierXP ?? 0);
@@ -453,8 +301,11 @@ const visibleList =
     const stripeMax = Number(tier.stripes ?? 4);
     const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
 
-    const calculatedStripes = Math.min(stripeMax, Math.floor(xpNow / stripeSize));
-    const finalStripes = Math.max(Number(data.stripeCount ?? 0), calculatedStripes);
+    const calculatedStripes =
+      Math.min(stripeMax, Math.floor(xpNow / stripeSize));
+
+    const finalStripes =
+      Math.max(Number(data.stripeCount ?? 0), calculatedStripes);
 
     const colorMapF4 = {
       Apprentice: "belt-white",
@@ -492,12 +343,11 @@ const visibleList =
     const textEl = document.getElementById(`stripeText-${id}`);
     if (textEl) {
       const xpPercent = Math.min(100, Math.round((xpNow / xpCap) * 100));
+
       textEl.textContent =
         `${xpNow} / ${xpCap} XP · ${xpPercent}% · Stripes: ${finalStripes} / ${stripeMax}`;
     }
   }
-
-  updateAttendanceUi();
 }
 
 loadRoster();
@@ -505,45 +355,8 @@ loadRoster();
 $("trackF8Only")?.addEventListener("change", loadRoster);
 
 $("toggleArchiveView")?.addEventListener("click", () => {
-  attendanceMode = false;
   window.__rosterArchiveView = !window.__rosterArchiveView;
   loadRoster();
 });
 
-$("toggleAttendanceMode")?.addEventListener("click", () => {
-
-  if (isArchiveView()) {
-    return;
-  }
-
-  attendanceMode = !attendanceMode;
-  updateAttendanceUi();
-});
-
-$("selectAll")?.addEventListener("click", () => {
-  document.querySelectorAll(".attendance-check").forEach((box) => {
-    box.checked = true;
-  });
-  updatePresentCount();
-});
-
-$("clearAll")?.addEventListener("click", () => {
-  document.querySelectorAll(".attendance-check").forEach((box) => {
-    box.checked = false;
-  });
-  updatePresentCount();
-});
-
-$("saveAttendance")?.addEventListener("click", saveAttendance);
-
-document.querySelectorAll(".status-filter").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    statusFilter = btn.dataset.statusFilter || "all";
-
-    document.querySelectorAll(".status-filter").forEach((b) => {
-      b.classList.toggle("is-active", b === btn);
-    });
-
-    loadRoster();
-  });
-});
+$("disciplineFilter")?.addEventListener("change", loadRoster);

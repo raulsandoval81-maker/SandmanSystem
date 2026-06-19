@@ -11,6 +11,8 @@ const PAYLOAD_KEY = "sandman_big_clock_payload_v2";
 const TV_SCALE_KEY = "sandman_tv_scale";
 
 let authReady = false;
+let audioCtx = null;
+let lastBeepKey = "";
 
 ensureSignedIn()
   .then(() => {
@@ -27,6 +29,101 @@ document.documentElement.style.setProperty(
   "--tv-scale",
   savedScale
 );
+
+/* =========================
+   AUDIO
+========================= */
+
+function getAudioCtx() {
+  try {
+    const AudioContext =
+      window.AudioContext || window.webkitAudioContext;
+
+    if (!AudioContext) return null;
+
+    if (!audioCtx) {
+      audioCtx = new AudioContext();
+    }
+
+    if (audioCtx.state === "suspended") {
+      audioCtx.resume();
+    }
+
+    return audioCtx;
+  } catch (err) {
+    console.warn("Audio context failed:", err);
+    return null;
+  }
+}
+
+function beep(frequency = 880, duration = 0.2) {
+  const ctx = getAudioCtx();
+
+  if (!ctx) return;
+
+  try {
+    const oscillator =
+      ctx.createOscillator();
+
+    const gain =
+      ctx.createGain();
+
+    oscillator.type = "square";
+    oscillator.frequency.value = frequency;
+
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.8, ctx.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + duration);
+  } catch (err) {
+    console.warn("Beep failed:", err);
+  }
+}
+
+function intersectionBeep(index) {
+  const key =
+    `intersection-${index}`;
+
+  if (lastBeepKey === key) return;
+
+  lastBeepKey = key;
+
+  beep(880, 0.16);
+  setTimeout(() => beep(880, 0.16), 220);
+  setTimeout(() => beep(880, 0.16), 440);
+}
+
+function completeBeep() {
+  const key = "complete";
+
+  if (lastBeepKey === key) return;
+
+  lastBeepKey = key;
+
+  beep(440, 0.8);
+  setTimeout(() => beep(440, 0.8), 1000);
+  setTimeout(() => beep(440, 0.8), 2000);
+}
+
+window.testBeep = function () {
+  beep(880, 1);
+};
+
+window.testTransitionBeep = function () {
+  intersectionBeep("test");
+};
+
+window.testCompleteBeep = function () {
+  completeBeep();
+};
+/* =========================
+   HELPERS
+========================= */
 
 function format(totalSeconds = 0) {
   const safe = Math.max(0, Number(totalSeconds || 0));
@@ -45,14 +142,13 @@ function getState() {
 }
 
 async function setState(state) {
-
   localStorage.setItem(
     STATE_KEY,
     JSON.stringify(state)
   );
 
   try {
-     if (!authReady) return;
+    if (!authReady) return;
 
     const session =
       getSessionPayload();
@@ -84,14 +180,11 @@ async function setState(state) {
     );
 
   } catch (err) {
-
     console.warn(
       "runState sync failed:",
       err
     );
-
   }
-
 }
 
 function getPayload() {
@@ -113,6 +206,8 @@ function getSessionPayload() {
 }
 
 function startFromPayload() {
+  beep(660, 0.12);
+  lastBeepKey = "";
 
   const payload = getPayload();
 
@@ -143,7 +238,6 @@ function startFromPayload() {
     blockDuration: playlist[0].minutes * 60,
     updatedAt: Date.now()
   });
-
 }
 
 function renderComplete({
@@ -207,8 +301,11 @@ function render() {
     ? data.playlist
     : [];
 
-  const current = playlist[data.index] || null;
-  const next = playlist[(data.index || 0) + 1] || null;
+  const current =
+    playlist[data.index] || null;
+
+  const next =
+    playlist[(data.index || 0) + 1] || null;
 
   const status =
     data.paused
@@ -227,26 +324,35 @@ function render() {
       current?.title || "No active block";
   }
 
-  const now = Date.now();
+  const now =
+    Date.now();
 
-  const elapsed = Math.floor(
-    (now - (data.blockStartedAt || now)) / 1000
-  );
+  const elapsed =
+    Math.floor(
+      (now - (data.blockStartedAt || now)) / 1000
+    );
 
-  const remaining = Math.max(
-    0,
-    (data.blockDuration || 0) - elapsed
-  );
+  const remaining =
+    Math.max(
+      0,
+      (data.blockDuration || 0) - elapsed
+    );
 
   if (clockEl) {
-    clockEl.textContent = format(remaining);
+    clockEl.textContent =
+      format(remaining);
   }
 
   if (remaining <= 0 && data.running) {
-    const nextIndex = Number(data.index || 0) + 1;
-    const nextBlock = playlist[nextIndex];
+    const nextIndex =
+      Number(data.index || 0) + 1;
+
+    const nextBlock =
+      playlist[nextIndex];
 
     if (nextBlock) {
+      intersectionBeep(nextIndex);
+
       setState({
         ...data,
         index: nextIndex,
@@ -256,6 +362,8 @@ function render() {
         updatedAt: Date.now()
       });
     } else {
+      completeBeep();
+
       setState({
         ...data,
         running: false,
@@ -268,9 +376,10 @@ function render() {
     return;
   }
 
-  const cues = Array.isArray(current?.cards)
-    ? current.cards
-    : [];
+  const cues =
+    Array.isArray(current?.cards)
+      ? current.cards
+      : [];
 
   if (cuesEl) {
     cuesEl.innerHTML = cues.length
@@ -306,6 +415,8 @@ const readyScreen =
 ========================= */
 
 window.startPracticeNow = function () {
+  beep(660, 0.12);
+
   document
     .getElementById("sessionEndActions")
     ?.classList.add("hidden");
@@ -336,7 +447,6 @@ window.showCompanionQr = function () {
 };
 
 function showQrPanel(url, title = "Scan QR") {
-
   const qrPanel =
     document.getElementById("qrPanel");
 
@@ -367,7 +477,6 @@ function showQrPanel(url, title = "Scan QR") {
   }
 
   if (qrImage) {
-
     qrImage.src =
       `https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=${encodeURIComponent(url)}`;
 
@@ -377,6 +486,7 @@ function showQrPanel(url, title = "Scan QR") {
   qrPanel?.classList.remove("hidden");
   qrPanel?.classList.add("active");
 }
+
 render();
 
 setInterval(render, 250);
