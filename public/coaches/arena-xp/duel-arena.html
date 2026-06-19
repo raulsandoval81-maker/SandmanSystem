@@ -3,16 +3,13 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Coach · XP Weekend Arena</title>
+  <title>Coach · Duel Arena</title>
 
-  <!-- Canon console styles -->
   <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
   <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css" />
   <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
-
-  <!-- Shared mini belt bar -->
-   <link rel="stylesheet" href="/assets/css/belts.css" />
-  <link rel="icon" href="data:,"> 
+  <link rel="stylesheet" href="/assets/css/belts.css" />
+  <link rel="icon" href="data:,">
 </head>
 
 <body>
@@ -22,35 +19,33 @@
     <a class="pill" href="/coaches/coach-notes.html">Coach Notes</a>
   </nav>
 
-  <h1>XP Weekend Event Arena</h1>
-<div class="creed">Arena = Battle + Podium + Match IQ + Sportsmanship. Clean receipts. No guessing.</div>
+  <h1>XP Duel Arena</h1>
+  <div class="creed">
+    Duel Arena = Battle + Forfeit Win + No Opp Day + Match IQ + Sportsmanship.
+  </div>
 
   <section class="card">
-
-      <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only">
-        <input id="trackF8Only" type="checkbox" />
-        <span class="muted">Foundry 8 only</span>
-      </label>
-    </div>
+    <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only">
+      <input id="trackF8Only" type="checkbox" />
+      <span class="muted">Foundry 8 only</span>
+    </label>
 
     <div class="steps">
-      <!-- STEP 1 -->
       <div class="step">
         <div class="step-head">
           <div class="step-title"><span class="step-num">1</span> Setup</div>
         </div>
 
         <div class="row">
-          <input id="tournamentId" class="input" placeholder="Tournament ID (required)"/>
-          <button id="refreshBtn" class="btn btn-ghost" title="Reload roster from Firestore" type="button">Refresh</button>
+          <input id="tournamentId" class="input" placeholder="Duel/Event ID required"/>
+          <button id="refreshBtn" class="btn btn-ghost" type="button">Refresh</button>
         </div>
 
         <div class="hint">
-          Tournament ID first. Refresh only if you need a clean reload.
+          Use a clean event ID like duel-2026-01-15.
         </div>
       </div>
 
-      <!-- STEP 2 -->
       <div class="step">
         <div class="step-head">
           <div class="step-title"><span class="step-num">2</span> Select</div>
@@ -64,30 +59,23 @@
           <button id="pickAll" class="btn btn-ghost" type="button">Select all</button>
           <button id="clearAll" class="btn btn-ghost" type="button">Clear</button>
         </div>
-
-        <div class="hint">
-          Filter the roster, then pick athletes.
-        </div>
       </div>
 
-      <!-- STEP 3 -->
       <div class="step">
         <div class="step-head">
           <div class="step-title"><span class="step-num">3</span> Award</div>
         </div>
 
         <div class="row">
-          <button id="fullAll" class="btn btn-full" disabled type="button">+10 Arena — Battle</button>
-          <button id="partAll" class="btn btn-part" disabled type="button">+5 Arena — Podium</button>
-          <button id="styleAll" class="btn btn-style" disabled type="button">+5 Style / IQ</button>
-
-<button id="sportsmanshipAll" class="btn btn-penalty" disabled type="button">
-  −5 Sportsmanship
-</button>
+          <button id="battleAll" class="btn btn-full" disabled type="button">+10 Battle</button>
+          <button id="forfeitAll" class="btn btn-part" disabled type="button">+5 Forfeit Win</button>
+          <button id="noOppAll" class="btn btn-part" disabled type="button">+5 No Opp Day</button>
+          <button id="iqAll" class="btn btn-style" disabled type="button">+5 Match IQ</button>
+          <button id="sportsmanshipAll" class="btn btn-penalty" disabled type="button">−5 Sportsmanship</button>
         </div>
 
         <div class="row" style="margin-top:10px;">
-          <select id="iqSelect" class="select" title="Match IQ (required for IQ awards)">
+          <select id="iqSelect" class="select">
             <option value="">Match IQ: (select)</option>
             <option value="bull">Bull — Pressure</option>
             <option value="matador">Matador — Precision</option>
@@ -99,7 +87,7 @@
         </div>
 
         <div class="hint">
-          Battle/Podium only need Tournament ID. Style/IQ requires a Match IQ pick.
+          No Opp Day is dual-only: athlete was ready, available, and received no match opportunity.
         </div>
       </div>
     </div>
@@ -131,6 +119,6 @@
   </section>
 </main>
 
-<script type="module" src="/coaches/arena-xp/weekend-arena.js"></script>
+<script type="module" src="/coaches/arena-xp/duel-arena.js"></script>
 </body>
 </html>

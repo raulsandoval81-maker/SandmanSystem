@@ -12,22 +12,18 @@ function buildParentMessage(input) {
             };
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED: {
             const amount = Number(input.amount || 0);
-            let message = `${athleteName} earned +${amount} XP today.`;
+            let grindLabel = "Daily Grind — Part-Time Work";
             if (amount >= 15) {
-                message =
-                    `${athleteName} earned +15 XP today for Full-Time Grind and Overtime effort.`;
+                grindLabel =
+                    "Daily Grind — Double Shift";
             }
             else if (amount >= 10) {
-                message =
-                    `${athleteName} earned +10 XP today for Full-Time Grind.`;
-            }
-            else {
-                message =
-                    `${athleteName} earned +5 XP today for Part-Time Grind.`;
+                grindLabel =
+                    "Daily Grind — Full-Time Work";
             }
             return {
                 title: "Daily Grind Logged",
-                message,
+                message: `${athleteName} earned Combat +${amount} XP today for ${grindLabel}.`,
             };
         }
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.XP_MILESTONE: {
@@ -101,6 +97,31 @@ function buildParentMessage(input) {
             return {
                 title: "Retest Ready",
                 message: `${athleteName} is ready for the next testing opportunity.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TOURNAMENT_POSTED:
+            return {
+                title: "Tournament Posted",
+                message: `${input.tournamentTitle || "A tournament"} has been posted for ${athleteName}. Check the tournament details in Parent Hub.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TOURNAMENT_UPDATED:
+            return {
+                title: "Tournament Updated",
+                message: `${input.tournamentTitle || "A tournament"} has been updated. Please check the latest details in Parent Hub.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TOURNAMENT_REMINDER:
+            return {
+                title: "Tournament Reminder",
+                message: `${input.tournamentTitle || "Tournament"} reminder: please check the Parent Hub for arrival time, location, and details.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.TOURNAMENT_RESULTS_POSTED:
+            return {
+                title: "Tournament Results Posted",
+                message: `${athleteName}'s tournament results have been posted. Check Parent Hub for the update.`,
+            };
+        case parentSignalTypes_1.PARENT_SIGNAL_TYPES.ARENA_XP_POSTED:
+            return {
+                title: "Arena XP Posted",
+                message: `${athleteName} has a new Arena XP update from tournament competition.`,
             };
         case parentSignalTypes_1.PARENT_SIGNAL_TYPES.COACH_NOTE:
             return {

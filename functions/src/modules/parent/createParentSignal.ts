@@ -14,8 +14,16 @@ type CreateParentSignalInput = {
   testingDate?: string;
   nextTier?: string;
   note?: string;
+
   source?: string;
   sourceId?: string;
+
+  tournamentId?: string;
+  tournamentTitle?: string;
+  tournamentDate?: string;
+  tournamentLocation?: string;
+
+  meta?: Record<string, unknown>;
 };
 
 export async function createParentSignal(
@@ -98,6 +106,12 @@ export async function createParentSignal(
 
       sourceId:
         input.sourceId || athleteId,
+
+      tournamentId:
+         input.tournamentId || null,
+
+      meta:
+         input.meta || null,
 
       createdAt:
         FieldValue.serverTimestamp(),

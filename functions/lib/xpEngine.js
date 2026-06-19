@@ -84,6 +84,12 @@ function allowedKind(kind) {
         return true;
     if (kind === "ARENA/EXTRA")
         return true;
+    if (kind === "ARENA/FORFEIT_WIN")
+        return true;
+    if (kind === "ARENA/NO_OPP_DAY")
+        return true;
+    if (kind === "ARENA/SPORTSMANSHIP")
+        return true;
     if (kind === "STRENGTH")
         return true;
     if (kind === "HONOR")
@@ -162,6 +168,24 @@ function normalizeAmount(kind, amount) {
         }
         return amount;
     }
+    if (kind === "ARENA/FORFEIT_WIN") {
+        if (amount !== 5) {
+            throw new https_1.HttpsError("invalid-argument", "ARENA/FORFEIT_WIN amount must be 5");
+        }
+        return amount;
+    }
+    if (kind === "ARENA/NO_OPP_DAY") {
+        if (amount !== 5) {
+            throw new https_1.HttpsError("invalid-argument", "ARENA/NO_OPP_DAY amount must be 5");
+        }
+        return amount;
+    }
+    if (kind === "ARENA/SPORTSMANSHIP") {
+        if (amount !== -5) {
+            throw new https_1.HttpsError("invalid-argument", "ARENA/SPORTSMANSHIP amount must be -5");
+        }
+        return amount;
+    }
     return amount;
 }
 async function runIncrementXp(coachUid, payload) {
@@ -175,7 +199,7 @@ async function runIncrementXp(coachUid, payload) {
     if (!allowedKind(kind)) {
         throw new https_1.HttpsError("invalid-argument", `Unsupported kind: ${kind}`);
     }
-    if (rawAmount <= 0) {
+    if (rawAmount <= 0 && kind !== "ARENA/SPORTSMANSHIP") {
         throw new https_1.HttpsError("invalid-argument", "amount must be > 0");
     }
     const amount = normalizeAmount(kind, rawAmount);
@@ -243,6 +267,9 @@ async function runIncrementXp(coachUid, payload) {
             let battleCount = 0;
             let podiumCount = 0;
             let extraCount = 0;
+            let forfeitCount = 0;
+            let noOppCount = 0;
+            let sportsmanshipCount = 0;
             todayArenaSnap.forEach((docSnap) => {
                 const d = docSnap.data() || {};
                 const createdAt = d.createdAt;
@@ -258,6 +285,12 @@ async function runIncrementXp(coachUid, payload) {
                     podiumCount += 1;
                 if (k === "ARENA/EXTRA")
                     extraCount += 1;
+                if (k === "ARENA/SPORTSMANSHIP")
+                    sportsmanshipCount += 1;
+                if (k === "ARENA/FORFEIT_WIN")
+                    forfeitCount += 1;
+                if (k === "ARENA/NO_OPP_DAY")
+                    noOppCount += 1;
             });
             if (kind === "ARENA/BATTLE" && battleCount >= 1) {
                 return {
@@ -287,6 +320,36 @@ async function runIncrementXp(coachUid, payload) {
                     uid,
                     eventId,
                     extraCount,
+                };
+            }
+            if (kind === "ARENA/FORFEIT_WIN" && forfeitCount >= 1) {
+                return {
+                    ok: true,
+                    blocked: true,
+                    reason: "ARENA_FORFEIT_WIN_LIMIT",
+                    uid,
+                    eventId,
+                    forfeitCount,
+                };
+            }
+            if (kind === "ARENA/NO_OPP_DAY" && noOppCount >= 1) {
+                return {
+                    ok: true,
+                    blocked: true,
+                    reason: "ARENA_NO_OPP_DAY_LIMIT",
+                    uid,
+                    eventId,
+                    noOppCount,
+                };
+            }
+            if (kind === "ARENA/SPORTSMANSHIP" && sportsmanshipCount >= 1) {
+                return {
+                    ok: true,
+                    blocked: true,
+                    reason: "ARENA_SPORTSMANSHIP_LIMIT",
+                    uid,
+                    eventId,
+                    sportsmanshipCount,
                 };
             }
             if (kind === "ARENA/STYLEIQ") {

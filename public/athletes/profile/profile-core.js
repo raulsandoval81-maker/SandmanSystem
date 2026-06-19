@@ -45,6 +45,26 @@ function renderAchievementItem(item = {}) {
   `;
 }
 
+function activityLaneLabel(item = {}) {
+  const kind =
+    String(item.kind || "")
+      .toUpperCase();
+
+  const lane =
+    String(item.lane || item.meta?.lane || "")
+      .toLowerCase();
+
+  if (kind.includes("STRENGTH") || lane === "strength") {
+    return "Strength";
+  }
+
+  if (kind.includes("HONOR") || lane === "honor") {
+    return "Honor";
+  }
+
+  return "Combat";
+}
+
 function renderActivityItem(item = {}) {
   const amount =
     Number(item.amount || 0);
@@ -52,9 +72,12 @@ function renderActivityItem(item = {}) {
   const sign =
     amount > 0 ? "+" : "";
 
+  const laneLabel =
+    activityLaneLabel(item);
+
   return `
     <div class="activity-row">
-      <strong>${esc(sign)}${esc(amount)} XP</strong>
+      <strong>${esc(laneLabel)} ${esc(sign)}${esc(amount)} XP</strong>
       <p>${esc(item.label || item.note || item.kind || "XP Earned")}</p>
       <small>${esc(formatDate(item.createdAt))}</small>
     </div>

@@ -1,4 +1,4 @@
-// public/coaches/arena-xp/weekend-arena.js
+// public/coaches/arena-xp/duel-arena.js
 import "/coaches/_ui/dev-boot.js";
 
 import { db, collection, getDocs } from "/assets/js/firebase-init.js";
@@ -12,15 +12,16 @@ import {
   patchDevLinks,
 } from "/assets/js/dev-mode.js";
 
-
-
 /* -----------------------------
    DEV UI
 ----------------------------- */
 document.body.classList.toggle("dev-on", isDevMode());
 paintDevUi({ toggleId: "devModeToggle" });
 patchDevLinks();
-bindDevToggle({ toggleId: "devModeToggle", onChange: () => location.reload() });
+bindDevToggle({
+  toggleId: "devModeToggle",
+  onChange: () => location.reload(),
+});
 
 /* -----------------------------
    DOM
@@ -30,16 +31,27 @@ const statusEl = document.getElementById("status");
 
 const tourEl = document.getElementById("tournamentId");
 const searchEl = document.getElementById("search");
-
 const refreshBtn = document.getElementById("refreshBtn");
 
 const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
 
-const fullAllEl = document.getElementById("fullAll");   // +10 Battle
-const partAllEl = document.getElementById("partAll");   // +5 Podium
-const styleAllEl = document.getElementById("styleAll"); // +5 Style/IQ
-const sportsmanshipAllEl = document.getElementById("sportsmanshipAll");
+const battleAllEl =
+  document.getElementById("battleAll") ||
+  document.getElementById("fullAll");
+
+const forfeitAllEl =
+  document.getElementById("forfeitAll");
+
+const noOppAllEl =
+  document.getElementById("noOppAll");
+
+const iqAllEl =
+  document.getElementById("iqAll") ||
+  document.getElementById("styleAll");
+
+const sportsmanshipAllEl =
+  document.getElementById("sportsmanshipAll");
 
 const iqSelectEl = document.getElementById("iqSelect");
 
@@ -49,7 +61,6 @@ const sbAwarded = document.getElementById("sb-awarded");
 const sbXP = document.getElementById("sb-xp");
 const sbReceipts = document.getElementById("sb-receipts");
 
-// Foundry toggle (exclusive F4 vs F8)
 const trackF8OnlyEl = document.getElementById("trackF8Only");
 
 /* -----------------------------
@@ -67,33 +78,19 @@ let isSaving = false;
 /* -----------------------------
    Helpers
 ----------------------------- */
-function xpCapForAthlete(a = {}) {
-  const base = trackBaseOf(a.id, a);
-  const rankName = resolveRank(a);
-
-  const ladder = base === "F8" ? LADDER_F8 : LADDER_F4;
-  const tier = ladder.find(t => t.name === rankName);
-
-  return Number(
-    tier?.cap ??
-    a.xpCap ??
-    a.cap ??
-    a.tierCap ??
-    (baseFromAthlete(a) === "F8" ? 600 : 1000)
-  );
-} 
-
 function setStatus(msg, ok = true) {
   if (!statusEl) return;
+
   statusEl.textContent = msg;
   statusEl.style.color = ok ? "#bef264" : "#fca5a5";
+
   setTimeout(() => {
     if (statusEl) statusEl.style.color = "";
   }, 1200);
 }
 
 function syncTournament() {
-  currentTournamentId = (tourEl?.value || "").trim();
+  currentTournamentId = String(tourEl?.value || "").trim();
 }
 
 function trackWanted() {
@@ -102,23 +99,28 @@ function trackWanted() {
 
 function trackBaseOf(docId, a = {}) {
   const tb = String(a.trackBase || "").trim().toUpperCase();
+
   if (tb === "F4" || tb === "F8") return tb;
 
   const id = String(docId || a.uid || "").toUpperCase();
+
   if (id.startsWith("F4_")) return "F4";
   if (id.startsWith("F8_")) return "F8";
 
   const t = String(a.track || a.trackCode || "").toLowerCase();
+
   if (t.includes("foundry4")) return "F4";
   if (t.includes("foundry8")) return "F8";
 
   return "";
 }
-function resolveRank(a = {}) {
-  // 🔥 ALWAYS trust live rank first
-  if (a.rankName) return a.rankName;
 
-  // fallback
+function baseFromAthlete(a = {}) {
+  return trackBaseOf(a.id, a) || "F4";
+}
+
+function resolveRank(a = {}) {
+  if (a.rankName) return a.rankName;
   if (a.tierName) return a.tierName;
 
   const base = trackBaseOf(a.id, a);
@@ -133,27 +135,39 @@ function resolveRank(a = {}) {
       T4: "Warrior",
       T5: "Champion",
       T6: "Commander",
-      T7: "Hero"
+      T7: "Hero",
     };
+
     return map[t] || "Shadow";
   }
 
-  if (base === "F4") {
-    const map = {
-      T0: "Apprentice",
-      T1: "Warrior",
-      T2: "Champion",
-      T3: "Veteran",
-      T4: "Legend"
-    };
-    return map[t] || "Apprentice";
-  }
+  const map = {
+    T0: "Apprentice",
+    T1: "Warrior",
+    T2: "Champion",
+    T3: "Veteran",
+    T4: "Legend",
+  };
 
-  return "Apprentice";
+  return map[t] || "Apprentice";
 }
-function baseFromAthlete(a = {}) {
-  return trackBaseOf(a.id, a) || "F4";
+
+function xpCapForAthlete(a = {}) {
+  const base = trackBaseOf(a.id, a);
+  const rankName = resolveRank(a);
+
+  const ladder = base === "F8" ? LADDER_F8 : LADDER_F4;
+  const tier = ladder.find((t) => t.name === rankName);
+
+  return Number(
+    tier?.cap ??
+      a.xpCap ??
+      a.cap ??
+      a.tierCap ??
+      (baseFromAthlete(a) === "F8" ? 600 : 1000)
+  );
 }
+
 function updateSessionBar() {
   if (!sessionBar) return;
 
@@ -163,6 +177,7 @@ function updateSessionBar() {
   }
 
   sessionBar.style.display = "flex";
+
   if (sbLoaded) sbLoaded.textContent = `Loaded: ${filtered.length}`;
   if (sbAwarded) sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
   if (sbXP) sbXP.textContent = `XP issued: ${awardedXP}`;
@@ -175,17 +190,17 @@ function getSelectedIds() {
     .filter(Boolean);
 }
 
-function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
+function repaintMiniBarForRow({ rowEl, athlete, xp, cap, rankName }) {
   const slot = rowEl?.querySelector?.(".xp-slot");
   if (!slot) return;
 
   const ladder = baseFromAthlete(athlete) === "F8" ? LADDER_F8 : LADDER_F4;
-  const tier = ladder.find(t => t.name === rankName) || ladder[0];
+  const tier = ladder.find((t) => t.name === rankName) || ladder[0];
 
   const xpNow = Number(xp ?? 0);
   const xpCap = Number(cap ?? tier.cap);
   const stripeMax = Number(tier.stripes ?? 4);
-  const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
+  const stripeSize = Number(tier.stripe ?? xpCap / stripeMax);
 
   const calculatedStripes = Math.min(
     stripeMax,
@@ -202,7 +217,7 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
     Warrior: "belt-blue",
     Champion: "belt-purple",
     Veteran: "belt-brown",
-    Legend: "belt-black"
+    Legend: "belt-black",
   };
 
   const colorMapF8 = {
@@ -213,7 +228,7 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
     Warrior: "belt-blue",
     Champion: "belt-purple",
     Commander: "belt-brown",
-    Hero: "belt-black"
+    Hero: "belt-black",
   };
 
   const base = baseFromAthlete(athlete);
@@ -223,20 +238,23 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
       ? colorMapF8[rankName] || "belt-white"
       : colorMapF4[rankName] || "belt-white";
 
-  // 🔥 replace mini bar with belt
   slot.innerHTML = renderDigitalBelt({
     colorClass,
     stripes: finalStripes,
-    size: "small"
+    size: "small",
   });
-}/* -----------------------------
+}
+
+/* -----------------------------
    Render
 ----------------------------- */
 function render(list) {
   if (!rowsEl) return;
 
   if (!list.length) {
-    rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes match.</td></tr>`;
+    rowsEl.innerHTML =
+      `<tr><td colspan="4" class="muted">No athletes match.</td></tr>`;
+
     updateSessionBar();
     return;
   }
@@ -248,40 +266,45 @@ function render(list) {
       const uid = a.uid || a.id;
       const name = a.publicName || a.fullName || uid;
       const track = a.track || a.trackCode || "—";
-      const tier = resolveRank(a);
+      const rank = resolveRank(a);
       const xp = a.xp ?? 0;
       const cap = xpCapForAthlete(a);
 
       return `
-      <tr data-id="${a.id}">
-        <td><input type="checkbox" class="pick" data-id="${a.id}"></td>
-        <td>
-          <div class="ath-name">${name}</div>
-          <div class="sub">${uid}</div>
-        </td>
-        <td>${tier} / ${track}</td>
-        <td>
-          <div class="xp-slot"></div>
-          <div class="sub" data-xpline="${a.id}">${xp} / ${cap}</div>
-        </td>
-      </tr>
-    `;
+        <tr data-id="${a.id}">
+          <td>
+            <input type="checkbox" class="pick" data-id="${a.id}">
+          </td>
+
+          <td>
+            <div class="ath-name">${name}</div>
+            <div class="sub">${uid}</div>
+          </td>
+
+          <td>${rank} / ${track}</td>
+
+          <td>
+            <div class="xp-slot"></div>
+            <div class="sub" data-xpline="${a.id}">${xp} / ${cap}</div>
+          </td>
+        </tr>
+      `;
     })
     .join("");
 
   rowsEl.querySelectorAll("tr[data-id]").forEach((tr) => {
     const a = byId.get(tr.dataset.id);
     if (!a) return;
-const rank = resolveRank(a);
 
-repaintMiniBarForRow({
-  rowEl: tr,
-  athlete: a,
-  xp: a.xp ?? 0,
-  cap: xpCapForAthlete(a),
-  tierName: rank,
-  rankName: rank
-});
+    const rank = resolveRank(a);
+
+    repaintMiniBarForRow({
+      rowEl: tr,
+      athlete: a,
+      xp: a.xp ?? 0,
+      cap: xpCapForAthlete(a),
+      rankName: rank,
+    });
   });
 
   updateSessionBar();
@@ -296,7 +319,11 @@ async function load() {
   setStatus("Loading athletes…", true);
 
   const snap = await getDocs(collection(db, "athletes"));
-  roster = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+
+  roster = snap.docs.map((d) => ({
+    id: d.id,
+    ...d.data(),
+  }));
 
   const dev = isDevMode();
   const wanted = trackWanted();
@@ -317,115 +344,128 @@ async function load() {
 
   roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
-  const q = (searchEl?.value || "").toLowerCase().trim();
+  const q = String(searchEl?.value || "").toLowerCase().trim();
+
   filtered = roster
     .filter((a) => {
       if (!q) return true;
-      const name = (a.publicName || a.fullName || "").toLowerCase();
-      const uid = (a.uid || a.id || "").toLowerCase();
+
+      const name = String(a.publicName || a.fullName || "").toLowerCase();
+      const uid = String(a.uid || a.id || "").toLowerCase();
+
       return name.includes(q) || uid.includes(q);
     })
     .sort((a, b) => {
       const an = String(a.publicName || a.fullName || a.uid || a.id || "");
       const bn = String(b.publicName || b.fullName || b.uid || b.id || "");
+
       return an.localeCompare(bn);
     });
 
   render(filtered);
   updateButtons();
-  setStatus(`${filtered.length} athletes loaded. (${dev ? "DEV" : "LIVE"} · ${wanted})`, true);
+
+  setStatus(
+    `${filtered.length} athletes loaded. (${dev ? "DEV" : "LIVE"} · ${wanted})`,
+    true
+  );
 }
 
 /* -----------------------------
-   Button gating
+   Buttons
 ----------------------------- */
 function updateButtons() {
   syncTournament();
 
-  const hasT = !!currentTournamentId;
+  const hasEventId = !!currentTournamentId;
   const hasIQ = !!String(iqSelectEl?.value || "").trim();
   const locked = isSaving;
 
-  if (fullAllEl) fullAllEl.disabled = !hasT || locked;
-  if (partAllEl) partAllEl.disabled = !hasT || locked;
-  if (styleAllEl) styleAllEl.disabled = !(hasT && hasIQ) || locked;
-  if (sportsmanshipAllEl) sportsmanshipAllEl.disabled = !hasT || locked;
+  if (battleAllEl) battleAllEl.disabled = !hasEventId || locked;
+  if (forfeitAllEl) forfeitAllEl.disabled = !hasEventId || locked;
+  if (noOppAllEl) noOppAllEl.disabled = !hasEventId || locked;
+  if (iqAllEl) iqAllEl.disabled = !(hasEventId && hasIQ) || locked;
+  if (sportsmanshipAllEl) sportsmanshipAllEl.disabled = !hasEventId || locked;
 }
 
 /* -----------------------------
-   Payload builders
+   Award Mapping
 ----------------------------- */
 function parseFunctionJson(raw) {
   return raw?.result ?? raw?.data ?? raw;
 }
 
-function buildPayload(uid, kind) {
-  if (!currentTournamentId) throw new Error("Tournament ID is required.");
-
+function mapArenaAward(kind) {
   if (kind === "battle") {
     return {
-      uid,
-      kind: "ARENA/BATTLE",
+      serverKind: "ARENA/BATTLE",
       amount: 10,
-      meta: {
-        tournamentId: currentTournamentId,
-        track: trackWanted(),
-        source: "weekend-arena",
-      },
+      meta: {},
     };
   }
 
-  if (kind === "podium") {
+  if (kind === "forfeit") {
     return {
-      uid,
-      kind: "ARENA/PODIUM",
+      serverKind: "ARENA/FORFEIT_WIN",
       amount: 5,
       meta: {
-        tournamentId: currentTournamentId,
-        track: trackWanted(),
-        source: "weekend-arena",
+        duelLogic: true,
       },
     };
   }
 
-  if (kind === "style") {
-    const style = String(iqSelectEl?.value || "").trim();
-    if (!style) throw new Error("Pick a Match IQ style first.");
-
+  if (kind === "noOpp") {
     return {
-      uid,
-      kind: "ARENA/STYLEIQ",
+      serverKind: "ARENA/NO_OPP_DAY",
       amount: 5,
       meta: {
-        tournamentId: currentTournamentId,
-        style,
-        track: trackWanted(),
-        source: "weekend-arena",
+        duelLogic: true,
+        note:
+          "Dual-event only. Athlete attended, made weight, warmed up, remained available, but received no match opportunity through no fault of their own.",
       },
     };
   }
-    if (kind === "sportsmanship") {
+
+  if (kind === "iq") {
+    const matchIq = String(iqSelectEl?.value || "").trim();
+
+    if (!matchIq) {
+      throw new Error("Pick Match IQ first.");
+    }
+
     return {
-      uid,
-      kind: "ARENA/SPORTSMANSHIP",
+      serverKind: "ARENA/STYLEIQ",
+      amount: 5,
+      meta: {
+        matchIq,
+      },
+    };
+  }
+
+  if (kind === "sportsmanship") {
+    return {
+      serverKind: "ARENA/SPORTSMANSHIP",
       amount: -5,
-      meta: {
-        tournamentId: currentTournamentId,
-        track: trackWanted(),
-        source: "weekend-arena",
-      },
+      meta: {},
     };
   }
 
-  throw new Error("Unknown kind: " + kind);
+  throw new Error("Unknown Duel Arena award: " + kind);
 }
 
 /* -----------------------------
-   Award flows
+   Award Flow
 ----------------------------- */
 async function giveToOne(id, kind) {
   const a = roster.find((x) => x.id === id);
-  if (!a) return { ok: false, delta: 0, error: "Athlete not found" };
+
+  if (!a) {
+    return {
+      ok: false,
+      delta: 0,
+      error: "Athlete not found",
+    };
+  }
 
   const row = document.querySelector(`tr[data-id="${id}"]`);
 
@@ -434,32 +474,19 @@ async function giveToOne(id, kind) {
     localStorage.getItem("coachUid") ||
     "DEV_COACH";
 
-const serverKind =
-  kind === "battle" ? "ARENA/BATTLE" :
-  kind === "podium" ? "ARENA/PODIUM" :
-  kind === "style" ? "ARENA/STYLEIQ" :
-  kind === "sportsmanship" ? "ARENA/SPORTSMANSHIP" :
-  kind;
-
-const amount =
-  serverKind === "ARENA/BATTLE" ? 10 :
-  serverKind === "ARENA/PODIUM" ? 5 :
-  serverKind === "ARENA/STYLEIQ" ? 5 :
-  serverKind === "ARENA/SPORTSMANSHIP" ? -5 :
-  0;
-
-
+  const mapped = mapArenaAward(kind);
 
   const payload = {
     uid: a.uidCode || a.uid || a.id,
-    kind: serverKind,
-    amount,
+    kind: mapped.serverKind,
+    amount: mapped.amount,
     meta: {
-      tournamentId: String(currentTournamentId || "").trim(),
-      source: "arena",
-      ...(serverKind === "ARENA/STYLEIQ"
-        ? { matchIq: String(iqSelectEl?.value || "").trim() }
-        : {}),
+      tournamentId: currentTournamentId,
+      eventId: currentTournamentId,
+      eventType: "duel",
+      source: "duel-arena",
+      track: trackWanted(),
+      ...mapped.meta,
     },
   };
 
@@ -476,25 +503,40 @@ const amount =
 
   if (!res.ok) {
     console.log("XP ERR:", res.status, text);
-    return { ok: false, delta: 0, error: `HTTP ${res.status}${text ? " · " + text : ""}` };
+
+    return {
+      ok: false,
+      delta: 0,
+      error: `HTTP ${res.status}${text ? " · " + text : ""}`,
+    };
   }
 
   console.log("XP OK:", res.status, text);
 
   let raw = null;
+
   try {
     raw = text ? JSON.parse(text) : null;
   } catch {}
 
   const data = parseFunctionJson(raw) || {};
-  if (!data.ok) return { ok: false, delta: 0, error: data.error || "Blocked" };
+
+  if (!data.ok) {
+    return {
+      ok: false,
+      delta: 0,
+      error: data.error || "Blocked",
+    };
+  }
 
   const delta = Number(data.delta ?? payload.amount ?? 0);
 
   const afterFromServer =
-    (typeof data.afterXp === "number") ? data.afterXp :
-    (typeof data.afterXP === "number") ? data.afterXP :
-    null;
+    typeof data.afterXp === "number"
+      ? data.afterXp
+      : typeof data.afterXP === "number"
+        ? data.afterXP
+        : null;
 
   if (typeof afterFromServer === "number") a.xp = afterFromServer;
   if (typeof data.afterCap === "number") a.xpCap = data.afterCap;
@@ -503,24 +545,32 @@ const amount =
 
   if (row) {
     const cap = xpCapForAthlete(a);
-    const tier = resolveRank(a);
+    const rank = resolveRank(a);
+
     const line = row.querySelector(`[data-xpline="${id}"]`);
-    if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
+
+    if (line) {
+      line.textContent = `${a.xp ?? 0} / ${cap}`;
+    }
 
     repaintMiniBarForRow({
       rowEl: row,
       athlete: a,
       xp: a.xp ?? 0,
       cap,
-      tierName: tier,
+      rankName: rank,
     });
   }
 
-  return { ok: true, delta };
+  return {
+    ok: true,
+    delta,
+  };
 }
 
 async function bulkGive(kind, label) {
   const ids = getSelectedIds();
+
   if (!ids.length) {
     setStatus("No athletes selected.", false);
     return;
@@ -529,17 +579,17 @@ async function bulkGive(kind, label) {
   try {
     updateButtons();
 
-    if (!String(currentTournamentId || "").trim()) {
-      throw new Error("Tournament ID required.");
+    if (!currentTournamentId) {
+      throw new Error("Duel/Event ID required.");
     }
 
-    if (kind === "style" && !String(iqSelectEl?.value || "").trim()) {
+    if (kind === "iq" && !String(iqSelectEl?.value || "").trim()) {
       throw new Error("Pick Match IQ first.");
     }
 
-
     isSaving = true;
     updateButtons();
+
     setStatus(`Saving ${label} for ${ids.length}…`, true);
 
     let ok = 0;
@@ -547,6 +597,7 @@ async function bulkGive(kind, label) {
 
     for (const id of ids) {
       const r = await giveToOne(id, kind);
+
       if (r.ok) {
         ok++;
         xp += r.delta;
@@ -556,10 +607,15 @@ async function bulkGive(kind, label) {
 
     awardedCount += ok;
     awardedXP += xp;
+
     updateSessionBar();
 
     await load();
-    setStatus(`Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}`, true);
+
+    setStatus(
+      `Saved ${label}. ok:${ok}/${ids.length} • XP:${xp}`,
+      true
+    );
   } catch (e) {
     setStatus(e?.message || "Save failed", false);
   } finally {
@@ -571,26 +627,50 @@ async function bulkGive(kind, label) {
 /* -----------------------------
    Events
 ----------------------------- */
-["input", "change", "blur"].forEach((evt) => tourEl?.addEventListener(evt, updateButtons));
-["input"].forEach((evt) => searchEl?.addEventListener(evt, load));
-["change"].forEach((evt) => iqSelectEl?.addEventListener(evt, updateButtons));
+["input", "change", "blur"].forEach((evt) => {
+  tourEl?.addEventListener(evt, updateButtons);
+});
+
+searchEl?.addEventListener("input", () => load());
+iqSelectEl?.addEventListener("change", () => updateButtons());
 
 refreshBtn?.addEventListener("click", () => load());
 
 pickAllEl?.addEventListener("click", () => {
-  document.querySelectorAll(".pick").forEach((c) => (c.checked = true));
+  document.querySelectorAll(".pick").forEach((c) => {
+    c.checked = true;
+  });
+
   setStatus("All visible athletes selected.", true);
 });
 
 clearAllEl?.addEventListener("click", () => {
-  document.querySelectorAll(".pick").forEach((c) => (c.checked = false));
+  document.querySelectorAll(".pick").forEach((c) => {
+    c.checked = false;
+  });
+
   setStatus("Selection cleared.", true);
 });
 
-fullAllEl?.addEventListener("click", () => bulkGive("battle", "+10 Battle"));
-partAllEl?.addEventListener("click", () => bulkGive("podium", "+5 Podium"));
-styleAllEl?.addEventListener("click", () => bulkGive("style", "+5 Style/IQ"));
-sportsmanshipAllEl?.addEventListener("click", () => bulkGive("sportsmanship", "-5 Sportsmanship"));
+battleAllEl?.addEventListener("click", () => {
+  bulkGive("battle", "+10 Battle");
+});
+
+forfeitAllEl?.addEventListener("click", () => {
+  bulkGive("forfeit", "+5 Forfeit Win");
+});
+
+noOppAllEl?.addEventListener("click", () => {
+  bulkGive("noOpp", "+5 NO_OPP_DAY");
+});
+
+iqAllEl?.addEventListener("click", () => {
+  bulkGive("iq", "+5 Match IQ");
+});
+
+sportsmanshipAllEl?.addEventListener("click", () => {
+  bulkGive("sportsmanship", "-5 Sportsmanship");
+});
 
 trackF8OnlyEl?.addEventListener("change", () => load());
 

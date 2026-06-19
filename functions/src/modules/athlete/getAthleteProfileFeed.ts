@@ -42,6 +42,26 @@ function achievementLabel(type = ""): string {
   return labels[type] || "Achievement";
 }
 
+function activityLane(item: any): string {
+  const kind =
+    String(item?.kind || "")
+      .toUpperCase();
+
+  const lane =
+    String(item?.meta?.lane || "")
+      .toLowerCase();
+
+  if (kind.includes("STRENGTH") || lane === "strength") {
+    return "Strength";
+  }
+
+  if (kind.includes("HONOR") || lane === "honor") {
+    return "Honor";
+  }
+
+  return "Combat";
+}
+
 function activityLabel(item: any): string {
   const kind =
     String(item?.kind || "")
@@ -54,20 +74,14 @@ function activityLabel(item: any): string {
   const amount =
     Number(item?.amount || 0);
 
-if (
-  kind.includes("DAILY_GRIND") ||
-  kind.includes("ATTENDANCE")
-) {
-  if (amount >= 15) {
-    return "Daily Grind — Above Standard";
+  if (
+    kind.includes("DAILY_GRIND") ||
+    kind.includes("ATTENDANCE")
+  ) {
+    if (amount >= 15) return "Daily Grind — Double Shift";
+    if (amount >= 10) return "Daily Grind — Full-Time Work";
+    return "Daily Grind — Part-Time Work";
   }
-
-  if (amount >= 10) {
-    return "Daily Grind — Standard Met";
-  }
-
-  return "Daily Grind — Needs Work";
-}
 
   if (kind.includes("STRENGTH") || lane === "strength") {
     return "Strength Development";
@@ -77,10 +91,34 @@ if (
     return "Honor Development";
   }
 
-  if (lane === "arena") {
-    return "Arena Work";
+  if (kind === "ARENA/BATTLE") {
+    return "⚔️ Arena Battle";
   }
 
+  if (kind === "ARENA/PODIUM") {
+    return "🏅 Arena Podium";
+  }
+
+  if (kind === "ARENA/STYLEIQ") {
+    return "🧠 Match IQ";
+  }
+
+  if (kind === "ARENA/FORFEIT_WIN") {
+    return "🤝 Forfeit Win";
+  }
+
+  if (kind === "ARENA/NO_OPP_DAY") {
+    return "💪 No Opp Day";
+  }
+
+  if (kind === "ARENA/SPORTSMANSHIP") {
+    return "⚠️ Sportsmanship";
+  }
+
+  if (lane === "arena" || kind.includes("ARENA")) {
+    return "Arena Work";
+  }
+  
   return (
     item?.note ||
     item?.kind ||

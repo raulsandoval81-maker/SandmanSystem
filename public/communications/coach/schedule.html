@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Schedule Admin • Para-Comms</title>
+  <title>Team Calendar • Scedule </title>
 
   <link rel="stylesheet" href="/communications/shared/comms.css">
   <link rel="icon" href="data:,">
@@ -222,14 +222,23 @@ select[multiple]{
     <section class="panel">
       <div class="top">
         <div>
-          <h1>Schedule Admin</h1>
+          <h1>Team Calendar</h1>
           <p class="sub">Update daily practice schedule and monthly tournament schedule.</p>
         </div>
 
-        <div class="btn-row">
-          <a class="btn" href="/communications/coach/hub.html">← Coach Home</a>
-          <button id="btn-save-all" class="btn btn-primary" type="button">Save Schedule</button>
-        </div>
+<div class="btn-row">
+  <a class="btn" href="/communications/coach/hub.html">← Coach Home</a>
+
+  <label class="check-row" style="margin:0;">
+    <input id="send-tournament-ping" type="checkbox">
+    <span>Send parent ping after save</span>
+  </label>
+
+  <button id="btn-save-all" class="btn btn-primary" type="button">
+    Save Schedule
+  </button>
+</div>
+
       </div>
 
       <div class="banner-admin">

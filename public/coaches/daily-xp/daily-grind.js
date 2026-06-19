@@ -404,19 +404,19 @@ syncPillsToLane();
 const AWARDS = Object.freeze({
 
 GRIND_15: {
-  label: "+15 Daily Grind — Above Standard",
+  label: "+15 Daily Grind — Double Shift",
   kind: "DAILY_GRIND",
   amount: 15
 },
 
 GRIND_10: {
-  label: "+10 Daily Grind — Standard Met",
+  label: "+10 Daily Grind — Full-Time Work",
   kind: "DAILY_GRIND",
   amount: 10
 },
 
 GRIND_5: {
-  label: "+5 Daily Grind — Needs Work",
+  label: "+5 Daily Grind — Part-Time Work",
   kind: "DAILY_GRIND",
   amount: 5
 },

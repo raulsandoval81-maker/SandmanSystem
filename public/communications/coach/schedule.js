@@ -20,6 +20,7 @@ const statusEl = document.getElementById("status");
 
 const bannerActiveEl = document.getElementById("banner-active");
 const bannerTextEl = document.getElementById("banner-text");
+const sendTournamentPingEl = document.getElementById("send-tournament-ping");
 
 function setStatus(msg = "", isError = false) {
   if (!statusEl) return;
@@ -64,6 +65,7 @@ if (isDaily) {
         </select>
       </div>
 
+
       <div class="field">
         <label class="label">Start</label>
         <input
@@ -81,6 +83,7 @@ if (isDaily) {
           value="${escapeAttr(item.end || "")}"
           placeholder="19:00">
       </div>
+
 
       <div class="field">
         <label class="label">Display Label</label>
@@ -114,6 +117,16 @@ if (isDaily) {
   `;
 } else {
   wrap.innerHTML = `
+
+        <div class="field">
+  <label class="label">Tournament ID</label>
+  <input
+    data-key="tournamentId"
+    type="text"
+    value="${escapeAttr(item.tournamentId || "")}"
+    placeholder="beach-brawl-2026">
+  </div>
+
     <div class="row-grid">
       <div class="field">
         <label class="label">Date</label>
@@ -182,12 +195,14 @@ day: [...row.querySelector('[data-key="day"]').selectedOptions]
         };
       }
 
-      return {
-        date: get("date"),
-        location: get("location"),
-        title: get("title"),
-        details: get("details")
-      };
+return {
+  tournamentId: get("tournamentId"),
+  date: get("date"),
+  location: get("location"),
+  title: get("title"),
+  details: get("details")
+};
+
     })
     .filter((x) => Object.values(x).some(Boolean));
 }
@@ -323,7 +338,17 @@ btnSaveAll?.addEventListener("click", async () => {
       { merge: true }
     );
 
-    setStatus("Schedule saved.");
+    const shouldPing =
+      sendTournamentPingEl?.checked === true;
+
+    if (shouldPing) {
+      setStatus(
+        "Schedule saved. Parent ping selected (not wired yet)."
+      );
+    } else {
+      setStatus("Schedule saved.");
+    }
+
   } catch (err) {
     console.error("[schedule-admin] save failed:", err);
     setStatus("Save failed. Check console.", true);

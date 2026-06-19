@@ -58,6 +58,8 @@ async function createParentSignal(input) {
             read: false,
             source: input.source || "system",
             sourceId: input.sourceId || athleteId,
+            tournamentId: input.tournamentId || null,
+            meta: input.meta || null,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
         });
     });

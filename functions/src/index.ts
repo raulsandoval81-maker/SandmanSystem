@@ -24,6 +24,10 @@ export { scheduleTesting } from "./modules/scheduleTesting";
 export { startTesting } from "./modules/startTesting";
 export { getTestingHistory } from "./modules/getTestingHistory";
 
+export {
+  sendTournamentPing,
+} from "./modules/parent/sendTournamentPing";
+
 /* =========================
    PARENT PORTAL
 ========================= */
