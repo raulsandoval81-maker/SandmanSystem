@@ -318,10 +318,14 @@ buildBtn?.addEventListener("click", async () => {
   const isSchemaOnly =
     SCHEMA_ONLY_CLASSES.includes(selectedSchema);
 
-  if (!isSchemaOnly && !programData.program) {
-    alert("Select a program first.");
-    return;
-  }
+const requiresProgram =
+  selectedMode !== "manual" &&
+  !isSchemaOnly;
+
+if (requiresProgram && !programData.program) {
+  alert("Select a program first.");
+  return;
+}
 
 const shouldLoadHybrid =
   selectedMode === "hybrid" &&
