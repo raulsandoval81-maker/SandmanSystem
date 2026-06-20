@@ -215,6 +215,17 @@ function getProgramData() {
       rankLabel
   };
 }
+function getManualProgramData() {
+  return {
+    program: "manual-build",
+    foundry: "Manual",
+    track: "Manual Build",
+    journey: "Manual",
+    discipline: "Coach Built",
+    tier: "",
+    rankLabel: "Manual Build"
+  };
+}
 
 function getCycleData() {
   return {
@@ -309,8 +320,10 @@ function getRoomData(sessionId) {
 }
 
 buildBtn?.addEventListener("click", async () => {
-  const programData =
-    getProgramData();
+const programData =
+  selectedMode === "manual"
+    ? getManualProgramData()
+    : getProgramData();
 
   const cycleData =
     getCycleData();
