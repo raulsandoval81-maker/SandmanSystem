@@ -1906,6 +1906,20 @@ function updateSupportLinks() {
   const hybridCycleEl =
     document.getElementById("hybridCycle");
 
+if (session.executionMode === "manual") {
+
+  if (hybridIdentityEl) {
+    hybridIdentityEl.textContent =
+      "MANUAL BUILD";
+  }
+
+  if (hybridCycleEl) {
+    hybridCycleEl.textContent =
+      "Coach Built Session";
+  }
+
+} else {
+
   if (hybridIdentityEl) {
     hybridIdentityEl.textContent =
       `${journeyLabel} ${disciplineLabel} · ${tierLabel} ${rankLabel}`;
@@ -1916,4 +1930,5 @@ function updateSupportLinks() {
       `Week ${week} · ${phase} · ${(waveKey || "").replaceAll("_", " ")}`;
   }
 
+}
 })();
