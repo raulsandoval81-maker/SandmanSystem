@@ -261,3 +261,28 @@ body {
     page-break-after: always;
   }
 }
+.belt-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.belt-img {
+  display: block;
+  width: 100%;
+}
+
+.belt-stripes {
+  position: absolute;
+  right: 15%;
+  top: 31%;
+  display: flex;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.belt-stripe {
+  width: 7px;
+  height: 46px;
+  background: #fff;
+  border-radius: 2px;
+}

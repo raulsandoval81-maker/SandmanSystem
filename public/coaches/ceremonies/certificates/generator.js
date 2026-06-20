@@ -1,33 +1,21 @@
 const BELTS = {
   f8: {
-    0: {
-      I: "/assets/img/belts/f8-shadow-s1.png",
-      II: "/assets/img/belts/f8-shadow-s2.png",
-      III: "/assets/img/belts/f8-shadow-s3.png"
-    },
-
-    1: {
-      I: "/assets/img/belts/f8-recruit-s1.png",
-      II: "/assets/img/belts/f8-recruit-s2.png",
-      III: "/assets/img/belts/f8-recruit-s3.png",
-      IV: "/assets/img/belts/f8-recruit-s4.png"
-    }
+    0: "/assets/img/f8/T0-whitebelt.png",
+    1: "/assets/img/f8/T1-yellowbelt.png",
+    2: "/assets/img/f8/T2-orangebelt.png",
+    3: "/assets/img/f8/T3-greenbelt.png",
+    4: "/assets/img/f8/T4-bluebelt.png",
+    5: "/assets/img/f8/T5-purplebelt.png",
+    6: "/assets/img/f8/T6-brownbelt.png",
+    7: "/assets/img/f8/T7-blackbelt.png"
   },
 
   f4: {
-    0: {
-      I: "/assets/img/belts/f4-apprentice-s1.png",
-      II: "/assets/img/belts/f4-apprentice-s2.png",
-      III: "/assets/img/belts/f4-apprentice-s3.png",
-      IV: "/assets/img/belts/f4-apprentice-s4.png"
-    },
-
-    1: {
-      I: "/assets/img/belts/f4-warrior-s1.png",
-      II: "/assets/img/belts/f4-warrior-s2.png",
-      III: "/assets/img/belts/f4-warrior-s3.png",
-      IV: "/assets/img/belts/f4-warrior-s4.png"
-    }
+    0: "/assets/img/f4/T0.1-whitebelt.png",
+    1: "/assets/img/f4/T1-bluebelt.png",
+    2: "/assets/img/f4/T2-purplebelt.png",
+    3: "/assets/img/f4/T3-brownbelt.png",
+    4: "/assets/img/f4/T4-blackbelt.png"
   }
 };
 
@@ -189,27 +177,22 @@ function updateCertificate() {
     fields.beltImage?.value.trim();
 
 const autoBeltPath =
-  BELTS?.[foundryKey]?.[tier]?.[stripe] ||
+  BELTS?.[foundryKey]?.[tier] ||
   "/assets/img/belts/placeholder.png";
 
-    if (!autoBeltPath && !manualBeltPath) {
-  console.warn(
-    `Missing belt asset for ${foundryKey} T${tier} Stripe ${stripe}`
-  );
-}
+output.belt.src =
+  manualBeltPath || autoBeltPath;
 
-  output.belt.src =
-    manualBeltPath || autoBeltPath;
+output.belt.style.display =
+  output.belt.src ? "block" : "none";
 
-  output.belt.style.display =
-    output.belt.src ? "block" : "none";
+renderBeltStripes(stripe);
 }
 
 fields.tier.addEventListener("change", () => {
   populateStripeOptions();
   updateCertificate();
 });
-
 
 Object.values(fields).forEach((field) => {
   if (!field) return;
