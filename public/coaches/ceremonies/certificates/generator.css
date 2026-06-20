@@ -11,35 +11,50 @@ body {
 
 .page {
   min-height: 100vh;
-  padding: 24px;
+  padding: 32px;
   display: grid;
-  gap: 24px;
-  justify-items: center;
+  grid-template-columns: 420px 1fr;
+  gap: 36px;
+  align-items: start;
 }
 
 .controls {
-  width: min(100%, 900px);
+  width: 100%;
+  min-width: 400px;
+
+  position: sticky;
+  top: 24px;
+
   background: #111827;
   color: white;
+
   border: 1px solid #263244;
-  border-radius: 18px;
-  padding: 18px;
+  border-radius: 20px;
+
+  padding: 28px;
+
   display: grid;
-  gap: 10px;
+  gap: 16px;
 }
 
 .controls h1 {
-  margin: 0 0 8px;
+  margin: 0 0 12px;
   color: #ffdd3b;
+  font-size: 32px;
+  line-height: 1.1;
 }
+
 
 .controls input,
 .controls select,
 .controls button {
   width: 100%;
-  padding: 12px;
+  padding: 14px 16px;
+  min-height: 48px;
+
   border-radius: 10px;
   border: 1px solid #334155;
+
   font-size: 16px;
 }
 
@@ -53,99 +68,23 @@ body {
 .certificate {
   width: 11in;
   height: 8.5in;
+  margin: 0 auto;
   background:
-    radial-gradient(circle at center, rgba(0,0,0,0.05), transparent 45%),
+    radial-gradient(circle at center, rgba(0, 0, 0, 0.05), transparent 45%),
     #f4efe3;
   border: 14px solid #111;
   outline: 4px solid #c59b35;
   outline-offset: -24px;
-  padding: 30px 70px 120px;
+  padding: 26px 56px 118px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.seal-top {
-  margin: 0 auto 4px;
-  width: 58px;
-  height: 58px;
-  font-size: 32px;
-}
-
-.brand {
-  font-size: 50px;
-}
-
-.journey {
-  font-size: 22px;
-  margin-top: 4px;
-}
-
-.title {
-  margin: 22px 0 14px;
-  font-size: 28px;
-}
-
-.awarded {
-  font-size: 15px;
-}
-
-.athlete {
-  margin: 14px auto;
-  font-size: 44px;
-  padding-bottom: 10px;
-}
-
-.rank {
-  margin-top: 10px;
-  font-size: 30px;
-}
-
-.tier-stripe {
-  margin: 10px auto 16px;
-  padding: 10px 28px;
-  font-size: 20px;
-}
-
-.belt {
-  width: 74%;
-  max-height: 85px;
-  margin: 0 auto 12px;
-}
-
-.quote {
-  font-size: 24px;
-  margin: 10px 0 12px;
-}
-
-.academy {
-  font-size: 16px;
-  margin-top: 6px;
-}
-
-.bottom-row {
-  position: absolute;
-  left: 80px;
-  right: 80px;
-  bottom: 36px;
-  display: grid;
-  grid-template-columns: 1fr 74px 1fr;
-  align-items: end;
-  gap: 40px;
-}
-
-.signature {
-  font-size: 24px;
-  min-height: 34px;
-}
-
 .seal-bottom {
   width: 58px;
   height: 58px;
   font-size: 32px;
-}
-.seal-top,
-.seal-bottom {
   border-radius: 50%;
   background: #111;
   color: #d4af37;
@@ -157,27 +96,36 @@ body {
 
 .brand {
   margin: 0;
+  font-size: 50px;
   letter-spacing: 4px;
   font-weight: 1000;
 }
 
 .journey {
+  font-size: 22px;
+  margin-top: 4px;
   letter-spacing: 8px;
   color: #a67c1b;
   font-weight: 900;
 }
 
 .title {
+  margin: 20px 0 12px;
+  font-size: 28px;
   letter-spacing: 6px;
 }
 
 .awarded {
+  font-size: 15px;
   color: #9a741d;
   font-weight: 900;
   letter-spacing: 4px;
 }
 
 .athlete {
+  margin: 12px auto;
+  font-size: 44px;
+  padding-bottom: 8px;
   font-family: Georgia, serif;
   letter-spacing: 4px;
   text-transform: uppercase;
@@ -185,6 +133,8 @@ body {
 }
 
 .rank {
+  margin-top: 8px;
+  font-size: 30px;
   font-weight: 1000;
   letter-spacing: 8px;
   text-transform: uppercase;
@@ -193,9 +143,12 @@ body {
 .tier-stripe {
   width: fit-content;
   min-width: 420px;
+  margin: 8px auto 14px;
+  padding: 10px 28px;
   background: #111;
   color: white;
   border: 3px solid #c59b35;
+  font-size: 20px;
   font-weight: 900;
   letter-spacing: 5px;
 }
@@ -205,17 +158,51 @@ body {
   margin: 0 18px;
 }
 
+.belt-wrap {
+  width: 94%;
+  height: 130px;
+  margin: 12px auto 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .belt {
   display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  object-position: center;
+}
+
+.belt-stripe-overlay {
+  position: absolute;
+  right: 10.5%;
+  top: 34%;
+  display: flex;
+  gap: 10px;
+  pointer-events: none;
+}
+
+.earned-belt-stripe {
+  width: 20px;
+  height: 48px;
+  background: #d4af37;
+  border: 2px solid #111;
+  border-radius: 2px;
 }
 
 .quote {
   font-family: Georgia, serif;
   font-style: italic;
+  font-size: 24px;
+  margin: 10px 0 12px;
 }
 
 .academy {
+  font-size: 16px;
+  margin-top: 6px;
   font-weight: 900;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -230,11 +217,35 @@ body {
   margin-top: 5px;
 }
 
+.bottom-row {
+  position: absolute;
+  left: 80px;
+  right: 80px;
+  bottom: 36px;
+  display: grid;
+  grid-template-columns: 1fr 74px 1fr;
+  align-items: end;
+  gap: 40px;
+}
+
 .signature {
   font-family: cursive;
+  font-size: 24px;
+  min-height: 34px;
   border-bottom: 2px solid #b58a25;
   padding-bottom: 6px;
 }
+
+@media (max-width: 1200px) {
+  .page {
+    grid-template-columns: 1fr;
+  }
+
+  .controls {
+    position: static;
+  }
+}
+
 @media print {
   @page {
     size: landscape;
@@ -260,29 +271,4 @@ body {
     border-radius: 0;
     page-break-after: always;
   }
-}
-.belt-wrap {
-  position: relative;
-  display: inline-block;
-}
-
-.belt-img {
-  display: block;
-  width: 100%;
-}
-
-.belt-stripes {
-  position: absolute;
-  right: 15%;
-  top: 31%;
-  display: flex;
-  gap: 6px;
-  pointer-events: none;
-}
-
-.belt-stripe {
-  width: 7px;
-  height: 46px;
-  background: #fff;
-  border-radius: 2px;
 }
