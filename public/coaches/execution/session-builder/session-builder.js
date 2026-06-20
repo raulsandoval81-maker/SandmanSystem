@@ -323,10 +323,14 @@ buildBtn?.addEventListener("click", async () => {
     return;
   }
 
-  const hybridData =
-    isSchemaOnly
-      ? getEmptyHybridData()
-      : await getHybridData(programData, cycleData);
+const shouldLoadHybrid =
+  selectedMode === "hybrid" &&
+  !isSchemaOnly;
+
+const hybridData =
+  shouldLoadHybrid
+    ? await getHybridData(programData, cycleData)
+    : getEmptyHybridData();
 
   const roomData =
     getRoomData(selectedSessionId);
