@@ -560,3 +560,11 @@ body{
   width:170px !important;
   max-width:42vw !important;
 }
+.action {
+  margin-top: 16px;
+  font-size: clamp(1.4rem, 3vw, 2.6rem);
+  font-weight: 800;
+  color: #4caf50;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}

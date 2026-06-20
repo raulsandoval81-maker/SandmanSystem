@@ -8,7 +8,7 @@
   <title>Sandman Big Screen</title>
 
   <link rel="stylesheet"
-        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=6" />
+        href="/coaches/execution/big-clock-2.0/big-clock-2.0.css?v=7" />
 </head>
 
 <body>
@@ -17,74 +17,75 @@
 
   <div class="ready-inner">
 
-    <!-- BRAND -->
 
-    <div class="ready-brand">
-      SANDMAN COMBAT
+<!-- BRAND -->
+
+<div class="ready-brand">
+  SANDMAN COMBAT
+</div>
+
+<div class="ready-standards-title">
+  RULES OF LIFE
+</div>
+
+<div class="ready-fear">
+  <div>FOCUS</div>
+  <div>•</div>
+  <div>EFFORT</div>
+  <div>•</div>
+  <div>ATTITUDE</div>
+  <div>•</div>
+  <div>RESPECT</div>
+</div>
+
+<div class="ready-status">
+  Session Ready
+</div>
+
+<button
+  class="ready-pill primary ready-start"
+  type="button"
+  onclick="startPracticeNow()">
+
+  Start Practice
+
+</button>
+
+<!-- TOOLS -->
+
+<div class="ready-tools">
+
+  <div id="qrPanel"
+       class="qr-panel hidden">
+
+    <div id="qrTitle"
+         class="qr-title">
+
+      Scan QR
+
     </div>
 
-    <div class="ready-standards-title">
-      RULES OF LIFE
-    </div>
+    <img
+      id="qrImage"
+      alt="QR Code" />
 
-    <div class="ready-fear">
-      <div>FOCUS</div>
-      <div>•</div>
-      <div>EFFORT</div>
-      <div>•</div>
-      <div>ATTITUDE</div>
-      <div>•</div>
-      <div>RESPECT</div>
-    </div>
+  </div>
 
-    <div class="ready-status">
-      Session Ready
-    </div>
+  <div class="ready-tool-row">
 
     <button
-      class="ready-pill primary ready-start"
+      class="ready-pill"
       type="button"
-      onclick="startPracticeNow()">
+      onclick="showCompanionQr()">
 
-      Start Practice
+      ⧉ Clipboard
 
     </button>
 
-    <!-- TOOLS -->
+  </div>
 
-    <div class="ready-tools">
+</div>
 
-      <div id="qrPanel"
-           class="qr-panel hidden">
-
-        <div id="qrTitle"
-             class="qr-title">
-
-          Scan QR
-
-        </div>
-
-        <img
-          id="qrImage"
-          alt="QR Code" />
-
-      </div>
-
-      <div class="ready-tool-row">
-
-
-        <button
-          class="ready-pill"
-          type="button"
-          onclick="showCompanionQr()">
-
-          ⧉ Clipboard
-
-        </button>
-
-      </div>
-
-    </div>
 
   </div>
 
@@ -95,33 +96,45 @@
   <div id="status"
        class="status stopped">
 
-    STOPPED
+
+STOPPED
+
 
   </div>
 
   <div id="block"
        class="block">
 
-    No active block
 
-  </div>
+No active block
 
-  <div id="cues"
-       class="cues">
+
   </div>
 
   <div id="clock"
        class="clock">
 
-    00:00
 
+00:00
+
+
+  </div>
+
+  <div id="action"
+       class="action">
   </div>
 
   <div id="next"
        class="next">
 
-    Next: —
 
+Next: —
+
+
+  </div>
+
+  <div id="cues"
+       class="cues">
   </div>
 
 </main>
@@ -134,16 +147,20 @@
      id="sessionEndActions">
 
 <a class="return-btn"
-   href="/coaches/execution/coach-companion/">
+  href="/coaches/execution/coach-companion/">
 
-  Return to Coach Companion
 
-</a>
+Return to Coach Companion
+
+
+  </a>
+
 </div>
 
 <script
   type="module"
-  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=9">
+  src="/coaches/execution/big-clock-2.0/big-clock-2.0.js?v=10">
 </script>
+
 </body>
 </html>

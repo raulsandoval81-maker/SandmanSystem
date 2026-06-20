@@ -206,7 +206,6 @@ function getSessionPayload() {
 }
 
 function startFromPayload() {
-  beep(660, 0.12);
   lastBeepKey = "";
 
   const payload = getPayload();
@@ -286,6 +285,7 @@ function render() {
   const blockEl = document.getElementById("block");
   const clockEl = document.getElementById("clock");
   const nextEl = document.getElementById("next");
+  const actionEl = document.getElementById("action");
   const cuesEl = document.getElementById("cues");
 
   if (data.complete) {
@@ -323,15 +323,16 @@ function render() {
   }
 
 if (blockEl) {
+  blockEl.textContent =
+    current?.title || "No active block";
+}
+
+if (actionEl) {
   const timerLabel =
     current?.timer?.label || "";
 
-  blockEl.innerHTML = timerLabel
-    ? `
-      <div>${current?.title || "No active block"}</div>
-      <div class="block-subtimer">${timerLabel}</div>
-    `
-    : current?.title || "No active block";
+  actionEl.textContent =
+    timerLabel || "";
 }
 
   const now =
