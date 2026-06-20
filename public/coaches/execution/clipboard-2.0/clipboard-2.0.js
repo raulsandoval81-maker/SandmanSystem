@@ -1834,6 +1834,7 @@ function updateSupportLinks() {
   );
 
   loadCurrentSchema();
+  attachTimerSelectors();
   updateSupportLinks();
 
   if (Array.isArray(hybridCards) && hybridCards.length) {

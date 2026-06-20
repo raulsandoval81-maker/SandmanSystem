@@ -529,6 +529,7 @@ function setSchema(schemaKey) {
   currentSchema = schemaKey;
   localStorage.setItem("sandman_clipboard_schema", schemaKey);
   loadCurrentSchema();
+  attachTimerSelectors();
   renderClipboardList();
 }
 
