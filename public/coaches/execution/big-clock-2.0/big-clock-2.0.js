@@ -217,13 +217,16 @@ function startFromPayload() {
 
   if (!blocks.length) return;
 
-  const playlist = blocks
-    .map(b => ({
-      title: b.title || b.slot || "Block",
-      minutes: Number(b.minutes || 0),
-      cards: Array.isArray(b.cards) ? b.cards : [],
-      notes: b.notes || ""
-    }))
+
+
+const playlist = blocks
+  .map(b => ({
+    title: b.title || b.slot || "Block",
+    minutes: Number(b.minutes || 0),
+    cards: Array.isArray(b.cards) ? b.cards : [],
+    notes: b.notes || "",
+    timer: b.timer || null
+  }))
     .filter(b => b.minutes > 0);
 
   if (!playlist.length) return;
@@ -319,10 +322,17 @@ function render() {
     statusEl.className = `status ${status}`;
   }
 
-  if (blockEl) {
-    blockEl.textContent =
-      current?.title || "No active block";
-  }
+if (blockEl) {
+  const timerLabel =
+    current?.timer?.label || "";
+
+  blockEl.innerHTML = timerLabel
+    ? `
+      <div>${current?.title || "No active block"}</div>
+      <div class="block-subtimer">${timerLabel}</div>
+    `
+    : current?.title || "No active block";
+}
 
   const now =
     Date.now();

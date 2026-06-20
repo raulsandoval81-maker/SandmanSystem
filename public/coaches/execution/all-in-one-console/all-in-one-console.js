@@ -188,6 +188,82 @@ function gamesAllowed() {
 
 
 const BLOCK_KEYS = ["onmat", "warmup", "drills", "technique", "water", "live", "cond", "offmat"];
+const SLOT_TIMER_PACKS = {
+  warmup: [
+    {
+      pack: "Warm-Up Timers",
+      preset: "wu_shadow_ss",
+      label: "Shadow Slow / Slow"
+    },
+    {
+      pack: "Warm-Up Timers",
+      preset: "wu_shadow_ff",
+      label: "Shadow Fast / Fast"
+    }
+  ],
+
+  drills: [
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_easy_no",
+      label: "Easy In / No Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_easy_easy",
+      label: "Easy In / Easy Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_easy_hard",
+      label: "Easy In / Hard Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_hard_easy",
+      label: "Hard In / Easy Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_hard_hard",
+      label: "Hard In / Hard Finish"
+    }
+  ],
+
+  technique: [
+    {
+      pack: "Technique Timers (New Moves)",
+      preset: "tech_partner_2",
+      label: "Partner Drill 2:00"
+    }
+  ],
+
+  live: [
+    {
+      pack: "Live Timers (Situations)",
+      preset: "lv_beg_neu_15x8",
+      label: "Neutral 15s x 8"
+    },
+    {
+      pack: "Live Timers (Situations)",
+      preset: "lv_beg_bot_20x6",
+      label: "Bottom 20s x 6"
+    }
+  ],
+
+  cond: [
+    {
+      pack: "Conditioning Timers",
+      preset: "cond_tabata_20_10",
+      label: "Tabata 20/10"
+    },
+    {
+      pack: "Conditioning Timers",
+      preset: "cond_hiit_30_30x8",
+      label: "HIIT 30/30"
+    }
+  ]
+};
 
 const blockEls = {
   onmat: document.getElementById("block-onmat"),
@@ -250,6 +326,57 @@ function setMinutes(key, minutes, editable = false) {
   if (clock) {
     clock.textContent = `${String(minutes).padStart(2, "0")}:00`;
   }
+}
+
+
+function attachTimerSelectors() {
+  document
+    .querySelectorAll("#planBlocks .plan-block")
+    .forEach(block => {
+      const slot = block.dataset.slot;
+      const options = SLOT_TIMER_PACKS[slot];
+
+      block.querySelector(".timer-attach")?.remove();
+
+      if (!options) return;
+
+      const wrap = document.createElement("div");
+      wrap.className = "timer-attach";
+
+      wrap.innerHTML = `
+        <label class="timer-label">
+          Block Timer
+          <select class="block-timer-select">
+            <option value="">No block timer</option>
+
+            ${options.map(opt => `
+              <option value="${opt.pack}|||${opt.preset}|||${opt.label}">
+                ${opt.label}
+              </option>
+            `).join("")}
+
+          </select>
+        </label>
+      `;
+
+      const head =
+        block.querySelector(".block-head-row");
+
+      head?.insertAdjacentElement("afterend", wrap);
+
+      const select =
+        wrap.querySelector(".block-timer-select");
+
+      select.addEventListener("change", () => {
+
+const [pack, preset, label] =
+  select.value.split("|||");
+
+block.dataset.timerPack = pack || "";
+block.dataset.timerPreset = preset || "";
+block.dataset.timerLabel = label || "";
+      });
+    });
 }
 
 function showBlock(key, show) {

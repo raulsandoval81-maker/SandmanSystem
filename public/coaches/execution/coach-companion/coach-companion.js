@@ -20,6 +20,82 @@ const BLOCK_KEYS = [
   "cond",
   "offmat"
 ];
+const SLOT_TIMER_PACKS = {
+  warmup: [
+    {
+      pack: "Warm-Up Timers",
+      preset: "wu_shadow_ss",
+      label: "Shadow Slow / Slow"
+    },
+    {
+      pack: "Warm-Up Timers",
+      preset: "wu_shadow_ff",
+      label: "Shadow Fast / Fast"
+    }
+  ],
+
+  drills: [
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_easy_no",
+      label: "Easy In / No Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_easy_easy",
+      label: "Easy In / Easy Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_easy_hard",
+      label: "Easy In / Hard Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_hard_easy",
+      label: "Hard In / Easy Finish"
+    },
+    {
+      pack: "Drill Timers (Old Moves)",
+      preset: "dr_hard_hard",
+      label: "Hard In / Hard Finish"
+    }
+  ],
+
+  technique: [
+    {
+      pack: "Technique Timers (New Moves)",
+      preset: "tech_partner_2",
+      label: "Partner Drill 2:00"
+    }
+  ],
+
+  live: [
+    {
+      pack: "Live Timers (Situations)",
+      preset: "lv_beg_neu_15x8",
+      label: "Neutral 15s x 8"
+    },
+    {
+      pack: "Live Timers (Situations)",
+      preset: "lv_beg_bot_20x6",
+      label: "Bottom 20s x 6"
+    }
+  ],
+
+  cond: [
+    {
+      pack: "Conditioning Timers",
+      preset: "cond_tabata_20_10",
+      label: "Tabata 20/10"
+    },
+    {
+      pack: "Conditioning Timers",
+      preset: "cond_hiit_30_30x8",
+      label: "HIIT 30/30"
+    }
+  ]
+};
 
 const blockEls = Object.fromEntries(
   BLOCK_KEYS.map(key => [key, document.getElementById(`block-${key}`)])
