@@ -158,6 +158,16 @@ modeBtns.forEach(btn => {
 
     selectedMode =
       btn.dataset.mode || "hybrid";
+
+    if (selectedMode === "manual") {
+      disciplineSelect.value = "manual-build";
+
+      if (weekSelect) {
+        weekSelect.value = "manual";
+      }
+
+      populateRanks();
+    }
   });
 });
 
