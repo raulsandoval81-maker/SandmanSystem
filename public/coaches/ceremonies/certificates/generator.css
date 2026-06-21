@@ -159,10 +159,11 @@ body {
 }
 
 .belt-wrap {
-  width: 94%;
-  height: 130px;
-  margin: 12px auto 16px;
+  width: 92%;
+  height: 150px;
+  margin: 0 auto 12px;
   position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -171,18 +172,27 @@ body {
 .belt {
   display: block;
   width: 100%;
-  height: 100%;
-  object-fit: contain;
-  object-position: center;
+  height: auto;
+  transform: scaleY(2.15);
+  transform-origin: center;
 }
 
 .belt-stripe-overlay {
   position: absolute;
-  right: 10.5%;
-  top: 34%;
+  right: 8.6%;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
-  gap: 10px;
+  gap: 7px;
   pointer-events: none;
+}
+
+.earned-belt-stripe {
+  width: 12px;
+  height: 54px;
+  background: #ffffff;
+  border: 1px solid #111;
+  border-radius: 1px;
 }
 
 .earned-belt-stripe {
@@ -396,3 +406,16 @@ min-width: unset;
   margin: 0;
 }
 
+.belt-wrap{
+  width:94%;
+  height:140px;
+  margin:12px auto 16px;
+  position:relative;
+}
+
+.belt{
+  width:100%;
+  height:100%;
+  object-fit:fill;
+  display:block;
+}
