@@ -272,3 +272,127 @@ body {
     page-break-after: always;
   }
 }
+
+/* ==========================
+WORKSPACE LAYOUT
+========================== */
+
+.page {
+min-height: 100vh;
+padding: 48px;
+display: grid;
+grid-template-columns: 480px 1fr;
+gap: 64px;
+align-items: start;
+}
+
+/* ==========================
+COACH CONTROLS
+========================== */
+
+.controls {
+width: 100%;
+min-width: 460px;
+
+position: sticky;
+top: 32px;
+
+background: #111827;
+color: white;
+
+border: 1px solid #263244;
+border-radius: 24px;
+
+padding: 36px;
+
+display: grid;
+gap: 18px;
+
+box-shadow:
+0 10px 30px rgba(0,0,0,.35);
+}
+
+.controls h1 {
+margin: 0 0 18px;
+
+color: #ffdd3b;
+
+font-size: 42px;
+font-weight: 900;
+line-height: 1.05;
+}
+
+.controls input,
+.controls select,
+.controls button {
+width: 100%;
+
+min-height: 58px;
+
+padding: 16px 18px;
+
+border-radius: 12px;
+border: 1px solid #334155;
+
+font-size: 17px;
+}
+
+.controls input,
+.controls select {
+background: white;
+}
+
+.controls button {
+background: #ffdd3b;
+color: #111;
+
+font-weight: 900;
+font-size: 18px;
+
+cursor: pointer;
+
+transition: .2s ease;
+}
+
+.controls button:hover {
+transform: translateY(-1px);
+}
+
+/* ==========================
+RESPONSIVE
+========================== */
+
+@media (max-width: 1400px) {
+.page {
+grid-template-columns: 420px 1fr;
+gap: 40px;
+}
+
+.controls {
+min-width: 400px;
+}
+}
+
+@media (max-width: 1200px) {
+.page {
+grid-template-columns: 1fr;
+}
+
+.controls {
+position: static;
+min-width: unset;
+}
+}
+
+.certificate-stage {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding-right: 80px;
+}
+
+.certificate {
+  margin: 0;
+}
+

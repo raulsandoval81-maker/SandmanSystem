@@ -1,21 +1,21 @@
 const BELTS = {
   f8: {
-    0: "/assets/img/f8/T0-whitebelt.png",
-    1: "/assets/img/f8/T1-yellowbelt.png",
-    2: "/assets/img/f8/T2-orangebelt.png",
-    3: "/assets/img/f8/T3-greenbelt.png",
-    4: "/assets/img/f8/T4-bluebelt.png",
-    5: "/assets/img/f8/T5-purplebelt.png",
-    6: "/assets/img/f8/T6-brownbelt.png",
-    7: "/assets/img/f8/T7-blackbelt.png"
+    0: "/assets/img/belts/whitegraybelt.png",
+    1: "/assets/img/belts/yellowgraybelt.png",
+    2: "/assets/img/belts/orangegraybelt.png",
+    3: "/assets/img/belts/greengraybelt.png",
+    4: "/assets/img/belts/bluegraybelt.png",
+    5: "/assets/img/belts/purplegraybelt.png",
+    6: "/assets/img/belts/browngraybelt.png",
+    7: "/assets/img/belts/blackgraybelt.png"
   },
-
+ 
   f4: {
-    0: "/assets/img/f4/T0.1-whitebelt.png",
-    1: "/assets/img/f4/T1-bluebelt.png",
-    2: "/assets/img/f4/T2-purplebelt.png",
-    3: "/assets/img/f4/T3-brownbelt.png",
-    4: "/assets/img/f4/T4-blackbelt.png"
+    0: "/assets/img/belts/T0.1-whitebelt.png",
+    1: "/assets/img/belts/T1-bluebelt.png",
+    2: "/assets/img/belts/T2-purplebelt.png",
+    3: "/assets/img/belts/T3-brownbelt.png",
+    4: "/assets/img/belts/T4-blackbelt.png"
   }
 };
 
@@ -33,6 +33,21 @@ const CERTIFICATE_PRESETS = {
         rank: "Warrior",
         quote: "Courage grows through challenge.",
         stripes: ["I", "II", "III", "IV"]
+      },
+      2: {
+        rank: "Champion",
+        quote: "Victory belongs to the prepared.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      3: {
+        rank: "Veteran",
+        quote: "Experience sharpens the blade.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      4: {
+        rank: "Legend",
+        quote: "Legends leave a path for others.",
+        stripes: ["I", "II", "III", "IV"]
       }
     }
   },
@@ -49,6 +64,36 @@ const CERTIFICATE_PRESETS = {
       1: {
         rank: "Recruit",
         quote: "The first steps build the path.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      2: {
+        rank: "Combatant",
+        quote: "Skill grows through repetition.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      3: {
+        rank: "Competitor",
+        quote: "Pressure reveals preparation.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      4: {
+        rank: "Warrior",
+        quote: "Discipline defeats doubt.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      5: {
+        rank: "Champion",
+        quote: "Champions are built one day at a time.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      6: {
+        rank: "Commander",
+        quote: "Leadership is earned through service.",
+        stripes: ["I", "II", "III", "IV"]
+      },
+      7: {
+        rank: "Hero",
+        quote: "Heroes build heroes.",
         stripes: ["I", "II", "III", "IV"]
       }
     }
@@ -125,6 +170,29 @@ function setManualLine(element, short = false) {
     : "____________________________";
 }
 
+function renderBeltStripes(stripe) {
+  const overlay = document.getElementById("beltStripeOverlay");
+
+  if (!overlay) return;
+
+  const stripeMap = {
+    I: 1,
+    II: 2,
+    III: 3,
+    IV: 4
+  };
+
+  const count = stripeMap[stripe] || 0;
+
+  overlay.innerHTML = "";
+
+  for (let i = 0; i < count; i++) {
+    const mark = document.createElement("span");
+    mark.className = "earned-belt-stripe";
+    overlay.appendChild(mark);
+  }
+}
+
 function updateCertificate() {
   const foundryKey = fields.foundry.value;
   const tier = fields.tier.value;
@@ -151,7 +219,6 @@ function updateCertificate() {
   output.quote.textContent =
     `“${preset.quote}”`;
 
-
   if (isManual) {
     setManualLine(output.athlete);
     setManualLine(output.academy);
@@ -176,23 +243,31 @@ function updateCertificate() {
   const manualBeltPath =
     fields.beltImage?.value.trim();
 
-const autoBeltPath =
-  BELTS?.[foundryKey]?.[tier] ||
-  "/assets/img/belts/placeholder.png";
+  const autoBeltPath =
+    BELTS?.[foundryKey]?.[Number(tier)] || "";
 
-output.belt.src =
-  manualBeltPath || autoBeltPath;
+  output.belt.src =
+    manualBeltPath || autoBeltPath;
 
-output.belt.style.display =
-  output.belt.src ? "block" : "none";
+  output.belt.style.display =
+    output.belt.src ? "block" : "none";
 
-renderBeltStripes(stripe);
+  renderBeltStripes(stripe);
 }
+
+fields.foundry.addEventListener("change", () => {
+  populateTierOptions();
+  populateStripeOptions();
+  updateCertificate();
+});
+
 
 fields.tier.addEventListener("change", () => {
   populateStripeOptions();
   updateCertificate();
 });
+
+
 
 Object.values(fields).forEach((field) => {
   if (!field) return;
