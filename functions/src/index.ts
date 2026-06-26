@@ -28,6 +28,17 @@ export {
   sendTournamentPing,
 } from "./modules/parent/sendTournamentPing";
 
+export { testPromotionEngine } from "./modules/testPromotionEngine";
+
+export { testStripeEngine } from "./modules/testStripeEngine";
+
+export { testProgressionEngine } from "./modules/testProgressionEngine";
+
+export { testCertificatePayloadEngine } from "./modules/testCertificatePayloadEngine";
+
+export { testAthleteNormalizer } from "./modules/testAthleteNormalizer";
+
+export { testAthleteLoader } from "./modules/testAthleteLoader";
 /* =========================
    PARENT PORTAL
 ========================= */
@@ -84,6 +95,9 @@ export { createAthleteFromIntakeCall }
 
 export { approveAndActivate }
   from "./approveAndActivate";
+
+  export { createCoachAthleteCall }
+  from "./modules/createCoachAthleteCall";
 
 /* =========================
    ONBOARDING

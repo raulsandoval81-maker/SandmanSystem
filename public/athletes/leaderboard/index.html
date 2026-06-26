@@ -4,6 +4,9 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Leaderboard</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
 </head>
 
 <body>
@@ -12,36 +15,91 @@
     <span class="brand">Sandman Combat™</span>
 
     <div class="sub-nav">
-      <a href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
-      <a href="/athletes/bulletin/index.html" class="sub-btn">Bulletin</a>
-      <a href="/athletes/arsenal/index.html" class="sub-btn">Arsenal</a>
-      <a href="/athletes/leaderboard/teen/index.html" class="sub-btn">Leaderboard</a>
+      <a id="homeLink" href="/athletes/hub/full-hub.html" class="sub-btn home">Home</a>
+      <a id="bulletinLink" href="/athletes/bulletin/index.html" class="sub-btn">Bulletin</a>
+      <a id="arsenalLink" href="/athletes/arsenal/index.html" class="sub-btn">Arsenal</a>
+      <a id="leaderboardLink" href="/athletes/leaderboard/" class="sub-btn">Leaderboard</a>
     </div>
   </div>
 </header>
 
+<main style="padding:24px;color:white;">
+  Routing leaderboard…
+</main>
+
 <script>
   const params = new URLSearchParams(window.location.search);
 
-  function getId(){
+  function getId() {
     return (
       params.get("athleteId") ||
       params.get("id") ||
       localStorage.getItem("currentAthleteId") ||
+      sessionStorage.getItem("currentAthleteId") ||
       ""
-    ).trim();
+    ).trim().toUpperCase();
   }
 
   const id = getId();
 
+  const tier =
+    params.get("tier") ||
+    localStorage.getItem("currentAthleteTier") ||
+    "";
+
+  const programTrack =
+    params.get("programTrack") ||
+    localStorage.getItem("currentProgramTrack") ||
+    "";
+
+  function withParams(base) {
+    const out = new URLSearchParams();
+
+    if (id) out.set("athleteId", id);
+    if (tier) out.set("tier", tier);
+    if (programTrack) out.set("programTrack", programTrack);
+
+    return `${base}?${out.toString()}`;
+  }
+
+  function wireNav() {
+    const encoded = encodeURIComponent(id);
+
+    if (!id) return;
+
+    const home = document.getElementById("homeLink");
+    const bulletin = document.getElementById("bulletinLink");
+    const arsenal = document.getElementById("arsenalLink");
+
+    if (home) {
+      home.href = `/athletes/hub/full-hub.html?id=${encoded}`;
+    }
+
+    if (bulletin) {
+      bulletin.href = `/athletes/bulletin/index.html?id=${encoded}`;
+    }
+
+    if (arsenal) {
+      arsenal.href = `/athletes/arsenal/index.html?id=${encoded}`;
+    }
+  }
+
+  wireNav();
+
   if (!id) {
-    document.body.innerHTML = "No athlete ID found.";
-  } else if (id.toUpperCase().startsWith("F8_")) {
-    window.location.replace(`/athletes/leaderboard/youth/?athleteId=${encodeURIComponent(id)}`);
-  } else if (id.toUpperCase().startsWith("F4_")) {
-    window.location.replace(`/athletes/leaderboard/teen/?athleteId=${encodeURIComponent(id)}`);
+    document.querySelector("main").innerHTML =
+      "No athlete ID found.";
+  } else if (id.startsWith("F8_")) {
+    window.location.replace(
+      withParams("/athletes/leaderboard/youth/")
+    );
+  } else if (id.startsWith("F4_")) {
+    window.location.replace(
+      withParams("/athletes/leaderboard/teen/")
+    );
   } else {
-    document.body.innerHTML = "Invalid athlete ID.";
+    document.querySelector("main").innerHTML =
+      "Invalid athlete ID.";
   }
 </script>
 

@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Coach Intake • Add Athlete</title>
+  <link rel="icon" href="data:," />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/intake-shared/shared.css" />
+<link rel="stylesheet" href="/intake-coach/coach.intake.css" />
+
+  <style>
+    body{
+      background:#0a1833;
+      color:#f0f4f8;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+    }
+
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      padding:28px 16px 50px;
+    }
+
+    .card{
+      background:#111c35;
+      border:1px solid #27304a;
+      border-radius:16px;
+      padding:22px;
+      box-shadow:0 10px 30px rgba(0,0,0,.22);
+    }
+
+    .eyebrow{
+      color:#9aa4b1;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.78rem;
+      font-weight:900;
+    }
+
+    h1{
+      color:#ffdd48;
+      margin:6px 0 8px;
+    }
+
+    .muted{
+      color:#9aa4b1;
+      line-height:1.45;
+    }
+
+    .form-grid{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+    }
+
+    label{
+      display:grid;
+      gap:6px;
+      font-weight:800;
+    }
+
+    input,select,textarea{
+      width:100%;
+      border:1px solid #27304a;
+      background:#0b1017;
+      color:#f0f4f8;
+      border-radius:10px;
+      padding:12px;
+      font:inherit;
+    }
+
+    .full{
+      grid-column:1 / -1;
+    }
+
+    .mini-panel{
+      border:1px solid #27304a;
+      background:#0b1017;
+      border-radius:14px;
+      padding:14px;
+    }
+
+    .preview-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+
+    .preview-item{
+      border:1px solid #27304a;
+      border-radius:12px;
+      padding:10px;
+      background:#111c35;
+    }
+
+    .preview-label{
+      color:#9aa4b1;
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-weight:900;
+    }
+
+    .preview-value{
+      margin-top:4px;
+      font-weight:900;
+      color:#ffdd48;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:0 14px;
+      border-radius:10px;
+      border:1px solid #27304a;
+      background:#0b1017;
+      color:#f0f4f8;
+      text-decoration:none;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .btn.brand{
+      background:#ffdd48;
+      border-color:#ffdd48;
+      color:#000;
+    }
+
+    .mini-note{
+      margin-top:16px;
+      border:1px solid #27304a;
+      background:#0b1017;
+      border-radius:14px;
+      padding:14px;
+      line-height:1.5;
+    }
+
+    @media(max-width:760px){
+      .form-grid,
+      .preview-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="eyebrow">Coach Direct Intake</div>
+      <h1>Add Athlete</h1>
+
+      <p class="muted">
+        Create an athlete directly for roster, attendance, XP, and hub access.
+        Parent linking can happen later.
+      </p>
+
+      <form id="newAthleteForm" class="form-grid">
+
+        <label>
+          First Name
+          <input id="first" required autocomplete="given-name" />
+        </label>
+
+        <label>
+          Last Name
+          <input id="last" required autocomplete="family-name" />
+        </label>
+
+        <label>
+          Program Track
+          <select id="programTrack">
+            <option value="path2legend">Path2Legend · Teen Wrestling</option>
+            <option value="zero2hero">Zero2Hero · Youth Wrestling</option>
+            <option value="road2greatness">Road2Greatness · Boxing</option>
+            <option value="quest2mastery">Quest2Mastery · MMA</option>
+          </select>
+        </label>
+
+        <label>
+          Track
+          <select id="track">
+            <option value="F4">F4</option>
+            <option value="F8">F8</option>
+          </select>
+        </label>
+
+        <label>
+          Program / Art
+          <select id="program">
+            <option value="wrestling">Wrestling</option>
+            <option value="boxing">Boxing</option>
+            <option value="mma">MMA</option>
+            <option value="kickboxing">Kickboxing</option>
+            <option value="fitness">Fitness</option>
+          </select>
+        </label>
+
+        <label>
+          Team
+          <input id="team" value="LAW" />
+        </label>
+
+        <label>
+          Grade
+          <input id="grade" placeholder="9, 10, 11, 12" />
+        </label>
+
+        <label>
+          Birth Year
+          <input id="birthYear" inputmode="numeric" placeholder="2010" />
+        </label>
+
+        <label>
+          Source
+          <select id="source">
+            <option value="high_school">High School</option>
+            <option value="club">Club</option>
+            <option value="walk_in">Walk-In</option>
+            <option value="coach_direct">Coach Direct</option>
+          </select>
+        </label>
+
+        <label>
+          Mint Virtue
+          <select id="virtueName"></select>
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Mint Preview</div>
+
+          <div class="preview-grid">
+            <div class="preview-item">
+              <div class="preview-label">Track</div>
+              <div class="preview-value" id="p-track">—</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Rank</div>
+              <div class="preview-value" id="p-rank">—</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Placement</div>
+              <div class="preview-value" id="p-placement">—</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Mint Tag</div>
+              <div class="preview-value" id="p-mint-tag">—</div>
+            </div>
+          </div>
+        </div>
+
+        <label>
+          Prior Experience Years
+          <input id="experienceYears" type="number" min="0" max="20" value="0" />
+        </label>
+
+        <label>
+          Paper Pilot / Late Onboarding XP
+          <input id="startingXp" type="number" min="0" step="5" value="0" />
+        </label>
+
+        <label class="full">
+          XP Note
+          <textarea id="startingXpNote" rows="3" placeholder="Example: Athlete trained on paper for 8 practices before system entry."></textarea>
+        </label>
+
+        <label class="full">
+          Coach Notes
+          <textarea id="notes" rows="4" placeholder="Optional coach notes"></textarea>
+        </label>
+
+        <div class="actions full">
+          <button id="submitBtn" class="btn brand" type="submit">
+            Create Athlete
+          </button>
+
+          <a class="btn" href="/intake-coach/">
+            Back to Coach Intake
+          </a>
+
+          <a class="btn" href="/intake-coach/parent-link-tool.html">
+            Parent Link Tool
+          </a>
+
+          <a class="btn" href="/coaches/command-center/">
+            Coach Command Center
+          </a>
+        </div>
+      </form>
+
+      <div id="resultBox" class="mini-note" style="display:none;"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/intake-coach/new-athlete.js"></script>
+</body>
+</html>

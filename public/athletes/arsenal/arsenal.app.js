@@ -121,8 +121,26 @@ async function loadUnlocks() {
 
     const athlete = athleteSnap.data() || {};
 
-    wireHomeLink(athleteId);
+    if (
+      athlete.active === false ||
+      athlete.rosterStatus === "suspended" ||
+      athlete?.discipline?.state === "suspended"
+    ) {
+      document.body.innerHTML = `
+        <main style="min-height:100vh;display:grid;place-items:center;padding:30px;background:#050505;color:white;font-family:system-ui;">
+          <section style="max-width:520px;text-align:center;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:28px;background:#111;">
+            <h1 style="margin:0 0 10px;">Account Suspended</h1>
+            <p style="margin:0;color:#bbb;line-height:1.5;">
+              This athlete account is currently unavailable. Please contact your coach regarding account status.
+            </p>
+          </section>
+        </main>
+      `;
+      return;
+    }
 
+    wireHomeLink(athleteId);
+    
     const stripe = getStripeCount(athlete);
     const tier = getTierNumber(athlete);
     const isF8 = isF8Athlete(athleteId, athlete);

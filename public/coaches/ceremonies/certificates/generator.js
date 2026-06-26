@@ -1,4 +1,4 @@
-const BELTS = {
+const BELTS_V1 = {
   f8: {
     0: "/assets/img/belts/whitegraybelt.png",
     1: "/assets/img/belts/yellowgraybelt.png",
@@ -9,7 +9,7 @@ const BELTS = {
     6: "/assets/img/belts/browngraybelt.png",
     7: "/assets/img/belts/blackgraybelt.png"
   },
- 
+
   f4: {
     0: "/assets/img/belts/T0.1-whitebelt.png",
     1: "/assets/img/belts/T1-bluebelt.png",
@@ -19,7 +19,56 @@ const BELTS = {
   }
 };
 
+const BELTS_V2 = {
+  f8: {
+    0: "/assets/img/belts/whitegraybelt-v2.png",
+    1: "/assets/img/belts/yellowgraybelt-v2.png",
+    2: "/assets/img/belts/orangegraybelt-v2.png",
+    3: "/assets/img/belts/greengraybelt-v2.png",
+    4: "/assets/img/belts/bluegraybelt-v2.png",
+    5: "/assets/img/belts/purplegraybelt-v2.png",
+    6: "/assets/img/belts/browngraybelt-v2.png",
+    7: "/assets/img/belts/blackgraybelt-v2.png"
+  },
 
+  f4: {
+    0: "/assets/img/belts/whitebelt-v2.png",
+    1: "/assets/img/belts/bluebelt-v2.png",
+    2: "/assets/img/belts/purplebelt-v2.png",
+    3: "/assets/img/belts/brownbelt-v2.png",
+    4: "/assets/img/belts/blackbelt-v2.png"
+  }
+};
+
+const BELT_HOTSPOTS = {
+  f8: {
+    default: {
+      right: "19.8%",
+      top: "50%",
+      width: "24px",
+      height: "60px",
+      gap: "14px"
+    },
+
+    0: {
+      right: "20.8%",
+      top: "50%",
+      width: "24px",
+      height: "52px",
+      gap: "28px"
+    }
+  },
+
+  f4: {
+    default: {
+      right: "10.5%",
+      top: "50%",
+      width: "10px",
+      height: "52px",
+      gap: "10px"
+    }
+  }
+};
 
 const CERTIFICATE_PRESETS = {
   f4: {
@@ -104,6 +153,7 @@ const CERTIFICATE_PRESETS = {
 
 const fields = {
   mode: document.getElementById("mode"),
+  beltStyle: document.getElementById("beltStyle"),
   foundry: document.getElementById("foundry"),
   tier: document.getElementById("tier"),
   stripe: document.getElementById("stripe"),
@@ -132,6 +182,12 @@ function getPreset() {
   const tierKey = fields.tier.value;
 
   return CERTIFICATE_PRESETS[foundryKey].tiers[tierKey];
+}
+
+function getActiveBelts() {
+  return fields.beltStyle.value === "v2"
+    ? BELTS_V2
+    : BELTS_V1;
 }
 
 function populateTierOptions() {
@@ -172,10 +228,28 @@ function setManualLine(element, short = false) {
     : "____________________________";
 }
 
-function renderBeltStripes(stripe) {
+function renderBeltStripes(stripe, foundryKey, tierKey) {
   const overlay = document.getElementById("beltStripeOverlay");
-
   if (!overlay) return;
+
+  const isDigital =
+    fields.beltStyle.value === "v2";
+
+  overlay.style.display = isDigital ? "flex" : "none";
+
+  if (!isDigital) return;
+
+  const family =
+    BELT_HOTSPOTS[foundryKey] || BELT_HOTSPOTS.f8;
+
+  const hotspot =
+    family[tierKey] ||
+    family.default ||
+    family;
+
+  overlay.style.right = hotspot.right;
+  overlay.style.top = hotspot.top;
+  overlay.style.gap = hotspot.gap;
 
   const stripeMap = {
     I: 1,
@@ -191,8 +265,50 @@ function renderBeltStripes(stripe) {
   for (let i = 0; i < count; i++) {
     const mark = document.createElement("span");
     mark.className = "earned-belt-stripe";
+    mark.style.width = hotspot.width;
+    mark.style.height = hotspot.height;
     overlay.appendChild(mark);
   }
+}
+
+function enableStripeDevDrag() {
+  const overlay = document.getElementById("beltStripeOverlay");
+  const wrap = document.querySelector(".belt-wrap");
+
+  if (!overlay || !wrap) return;
+
+  overlay.style.cursor = "move";
+  overlay.style.pointerEvents = "auto";
+
+  let dragging = false;
+
+  overlay.addEventListener("mousedown", () => {
+    dragging = true;
+  });
+
+  window.addEventListener("mouseup", () => {
+    dragging = false;
+  });
+
+  window.addEventListener("mousemove", (event) => {
+    if (!dragging) return;
+
+    const rect = wrap.getBoundingClientRect();
+
+    const xPercent =
+      ((rect.right - event.clientX) / rect.width) * 100;
+
+    const yPercent =
+      ((event.clientY - rect.top) / rect.height) * 100;
+
+    overlay.style.right = `${xPercent.toFixed(2)}%`;
+    overlay.style.top = `${yPercent.toFixed(2)}%`;
+
+    console.log({
+      right: `${xPercent.toFixed(2)}%`,
+      top: `${yPercent.toFixed(2)}%`
+    });
+  });
 }
 
 function updateCertificate() {
@@ -245,8 +361,10 @@ function updateCertificate() {
   const manualBeltPath =
     fields.beltImage?.value.trim();
 
+  const activeBelts = getActiveBelts();
+
   const autoBeltPath =
-    BELTS?.[foundryKey]?.[Number(tier)] || "";
+    activeBelts?.[foundryKey]?.[Number(tier)] || "";
 
   output.belt.src =
     manualBeltPath || autoBeltPath;
@@ -254,7 +372,7 @@ function updateCertificate() {
   output.belt.style.display =
     output.belt.src ? "block" : "none";
 
-  renderBeltStripes(stripe);
+  renderBeltStripes(stripe, foundryKey, Number(tier));
 }
 
 fields.foundry.addEventListener("change", () => {
@@ -263,13 +381,10 @@ fields.foundry.addEventListener("change", () => {
   updateCertificate();
 });
 
-
 fields.tier.addEventListener("change", () => {
   populateStripeOptions();
   updateCertificate();
 });
-
-
 
 Object.values(fields).forEach((field) => {
   if (!field) return;
@@ -286,3 +401,6 @@ document.getElementById("printBtn").addEventListener("click", () => {
 populateTierOptions();
 populateStripeOptions();
 updateCertificate();
+
+/* enable only while locally tuning overlay */
+// enableStripeDevDrag();

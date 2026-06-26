@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.linkParentToAthlete = exports.sendTestDayPings = exports.retestAthlete = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.linkParentToAthlete = exports.sendTestDayPings = exports.retestAthlete = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.testAthleteLoader = exports.testAthleteNormalizer = exports.testCertificatePayloadEngine = exports.testProgressionEngine = exports.testStripeEngine = exports.testPromotionEngine = exports.sendTournamentPing = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -64,6 +64,18 @@ var getTestingHistory_1 = require("./modules/getTestingHistory");
 Object.defineProperty(exports, "getTestingHistory", { enumerable: true, get: function () { return getTestingHistory_1.getTestingHistory; } });
 var sendTournamentPing_1 = require("./modules/parent/sendTournamentPing");
 Object.defineProperty(exports, "sendTournamentPing", { enumerable: true, get: function () { return sendTournamentPing_1.sendTournamentPing; } });
+var testPromotionEngine_1 = require("./modules/testPromotionEngine");
+Object.defineProperty(exports, "testPromotionEngine", { enumerable: true, get: function () { return testPromotionEngine_1.testPromotionEngine; } });
+var testStripeEngine_1 = require("./modules/testStripeEngine");
+Object.defineProperty(exports, "testStripeEngine", { enumerable: true, get: function () { return testStripeEngine_1.testStripeEngine; } });
+var testProgressionEngine_1 = require("./modules/testProgressionEngine");
+Object.defineProperty(exports, "testProgressionEngine", { enumerable: true, get: function () { return testProgressionEngine_1.testProgressionEngine; } });
+var testCertificatePayloadEngine_1 = require("./modules/testCertificatePayloadEngine");
+Object.defineProperty(exports, "testCertificatePayloadEngine", { enumerable: true, get: function () { return testCertificatePayloadEngine_1.testCertificatePayloadEngine; } });
+var testAthleteNormalizer_1 = require("./modules/testAthleteNormalizer");
+Object.defineProperty(exports, "testAthleteNormalizer", { enumerable: true, get: function () { return testAthleteNormalizer_1.testAthleteNormalizer; } });
+var testAthleteLoader_1 = require("./modules/testAthleteLoader");
+Object.defineProperty(exports, "testAthleteLoader", { enumerable: true, get: function () { return testAthleteLoader_1.testAthleteLoader; } });
 /* =========================
    PARENT PORTAL
 ========================= */
@@ -107,6 +119,8 @@ var createAthleteFromIntakeCall_1 = require("./modules/createAthleteFromIntakeCa
 Object.defineProperty(exports, "createAthleteFromIntakeCall", { enumerable: true, get: function () { return createAthleteFromIntakeCall_1.createAthleteFromIntakeCall; } });
 var approveAndActivate_1 = require("./approveAndActivate");
 Object.defineProperty(exports, "approveAndActivate", { enumerable: true, get: function () { return approveAndActivate_1.approveAndActivate; } });
+var createCoachAthleteCall_1 = require("./modules/createCoachAthleteCall");
+Object.defineProperty(exports, "createCoachAthleteCall", { enumerable: true, get: function () { return createCoachAthleteCall_1.createCoachAthleteCall; } });
 /* =========================
    ONBOARDING
 ========================= */

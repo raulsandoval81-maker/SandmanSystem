@@ -98,18 +98,49 @@
   window.LEADERBOARD_TRACK = "foundry4";
 
   const params = new URLSearchParams(window.location.search);
+
   const athleteId =
     params.get("athleteId") ||
     params.get("id") ||
     localStorage.getItem("currentAthleteId") ||
     "";
 
+  const athleteTier =
+    params.get("tier") ||
+    localStorage.getItem("currentAthleteTier") ||
+    "";
+
+  const athleteProgramTrack =
+    params.get("programTrack") ||
+    "path2legend";
+
+  window.LEADERBOARD_DEFAULTS = {
+    athleteId,
+    programTrack: athleteProgramTrack,
+    tier: athleteTier,
+    viewMode: athleteTier ? "tier" : "overall",
+    rankMode: "progression",
+  };
+
   const homeLink = document.getElementById("homeLink");
   if (homeLink && athleteId) {
-    homeLink.href = `/athletes/hub/full-hub.html?id=${encodeURIComponent(athleteId)}`;
+    homeLink.href =
+      `/athletes/hub/full-hub.html?id=${encodeURIComponent(athleteId)}`;
   }
-</script>
 
+  window.addEventListener("DOMContentLoaded", () => {
+    const viewMode = document.getElementById("view-mode");
+    const rankMode = document.getElementById("rank-mode");
+
+    if (viewMode) {
+      viewMode.value = window.LEADERBOARD_DEFAULTS.viewMode;
+    }
+
+    if (rankMode) {
+      rankMode.value = window.LEADERBOARD_DEFAULTS.rankMode;
+    }
+  });
+</script>
 <script type="module" src="/athletes/leaderboard/leaderboard.app.js"></script>
 
 </body>

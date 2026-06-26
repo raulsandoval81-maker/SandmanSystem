@@ -652,6 +652,20 @@ if (reviewMode) setAllDrops(true);
   }
 
   const a = snap.data();
+
+  if (
+    a.active === false ||
+    a.rosterStatus === "suspended" ||
+    a?.discipline?.state === "suspended"
+  ) {
+    document.body.innerHTML = `
+      <main class="wrap" style="padding:40px;text-align:center;">
+        <h1>Account Suspended</h1>
+        <p>Please contact your coach regarding your account status.</p>
+      </main>
+    `;
+    return;
+  }
   const trackCode = normTrackCode(a) || "foundry4-combat";
 
 

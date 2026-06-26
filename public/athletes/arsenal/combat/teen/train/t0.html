@@ -44,6 +44,15 @@
         }
 
         const athlete = snap.data();
+        
+          if (
+          athlete.active === false ||
+          athlete.rosterStatus === "suspended" ||
+          athlete?.discipline?.state === "suspended"
+        ) {
+          document.body.innerHTML = "<p>Account suspended. Please contact your coach.</p>";
+          return;
+        }
 
         if (athlete.tier !== pageTier) {
           window.location.replace(`/athletes/arsenal/combat/${pageTrack}/index.html?id=${encodeURIComponent(athleteId)}`);

@@ -26,6 +26,12 @@ const statAthletesEl = document.getElementById("statAthletes");
 const statTopEl      = document.getElementById("statTop");
 const statAvgXpEl    = document.getElementById("statAvgXp");
 const statLatestEl   = document.getElementById("statLatest");
+const programTrackEl =
+  document.getElementById("programTrack");
+
+const tierFilterEl =
+  document.getElementById("tierFilter");
+
 
 const activeAthleteFilter = document.getElementById("activeAthleteFilter");
 const activeAthleteFilterLabel = document.getElementById("activeAthleteFilterLabel");
@@ -38,6 +44,9 @@ let sortDir = "desc";
 let selectedAthleteUid = "";
 const nameCache = new Map();
 const tagCache  = new Map();
+const programCache = new Map();
+const tierCache = new Map();
+const rankCache = new Map();
 
 const monthKey = (d = new Date()) => {
   const y = d.getFullYear();
@@ -131,6 +140,24 @@ function filteredRows() {
     });
   }
 
+  const journey =
+  programTrackEl?.value || "all";
+
+if (journey !== "all") {
+  rows = rows.filter(r =>
+    programCache.get(r.uid) === journey
+  );
+}
+
+const tier =
+  tierFilterEl?.value || "all";
+
+if (tier !== "all") {
+  rows = rows.filter(r =>
+    tierCache.get(r.uid) === tier
+  );
+}
+
   if (selectedAthleteUid) {
     rows = rows.filter(r => r.uid === selectedAthleteUid);
   }
@@ -169,12 +196,33 @@ async function backfill(rows) {
   for (const uid of need) {
     try {
       const snap = await getDoc(doc(db, "athletes", uid));
-      if (snap.exists()) {
-        const d = snap.data();
-        if (d.fullName) nameCache.set(uid, d.fullName);
-        if (d.virturTag != null) tagCache.set(uid, d.virturTag);
-        else if (d.dogTag != null) tagCache.set(uid, d.dogTag);
-      }
+if (snap.exists()) {
+  const d = snap.data();
+
+  if (d.fullName)
+    nameCache.set(uid, d.fullName);
+
+  if (d.virturTag != null)
+    tagCache.set(uid, d.virturTag);
+  else if (d.dogTag != null)
+    tagCache.set(uid, d.dogTag);
+
+  programCache.set(
+    uid,
+    d.programTrack || ""
+  );
+
+  tierCache.set(
+    uid,
+    d.tier || ""
+  );
+
+  rankCache.set(
+    uid,
+    d.rank || ""
+  );
+}
+
     } catch (e) {}
   }
 }
@@ -386,6 +434,8 @@ function listen() {
 trackEl?.addEventListener("change", listen);
 monthEl?.addEventListener("change", listen);
 periodEl?.addEventListener("change", listen);
+programTrackEl?.addEventListener("change", render);
+tierFilterEl?.addEventListener("change", render);
 searchEl?.addEventListener("input", render);
 nameModeEl?.addEventListener("change", render);
 tagModeEl?.addEventListener("change", render);
