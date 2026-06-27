@@ -16,6 +16,10 @@ function isLegacyStripeVetoed(athlete, tier, stripe) {
         return true;
     return false;
 }
+function hasPassedPromotion(athlete) {
+    return (athlete?.testing?.lastTestResult === "pass" &&
+        !!athlete?.testing?.promotedAt);
+}
 function evaluateRecognition(athlete) {
     const progression = (0, progressionEngine_1.evaluateProgression)(athlete);
     const tier = Number(athlete.tier || 0);
@@ -25,6 +29,9 @@ function evaluateRecognition(athlete) {
     const stripePending = stripe > 0 &&
         !stripeAlreadyAwarded &&
         !legacyVetoed;
+    const ceremonyAlreadyCompleted = (0, recognitionHistory_1.hasRecognition)(athlete, "CEREMONY", tier);
+    const ceremonyPending = hasPassedPromotion(athlete) &&
+        !ceremonyAlreadyCompleted;
     return {
         stripeAward: {
             type: "STRIPE_AWARD",
@@ -39,12 +46,24 @@ function evaluateRecognition(athlete) {
                     ? `Stripe ${stripe} already awarded.`
                     : `Stripe ${stripe} needs award.`
         },
-        nextAction: legacyVetoed
-            ? `Legacy placement recognized. Stripe ${stripe} is suppressed for Tier ${tier}.`
-            : stripeAlreadyAwarded
-                ? "No stripe award pending."
-                : stripe > 0
-                    ? `Award Stripe ${stripe}.`
+        ceremony: {
+            type: "CEREMONY",
+            eligible: hasPassedPromotion(athlete),
+            pending: ceremonyPending,
+            completed: ceremonyAlreadyCompleted,
+            tier,
+            message: ceremonyAlreadyCompleted
+                ? "Ceremony already completed."
+                : ceremonyPending
+                    ? "Promotion passed. Ceremony recognition pending."
+                    : "No ceremony recognition pending."
+        },
+        nextAction: stripePending
+            ? `Award Stripe ${stripe}.`
+            : ceremonyPending
+                ? "Add to ceremony recognition."
+                : legacyVetoed
+                    ? `Legacy placement recognized. Stripe ${stripe} is suppressed for Tier ${tier}.`
                     : "No recognition action needed."
     };
 }

@@ -19,6 +19,13 @@ function isLegacyStripeVetoed(
   return false;
 }
 
+function hasPassedPromotion(athlete: any): boolean {
+  return (
+    athlete?.testing?.lastTestResult === "pass" &&
+    !!athlete?.testing?.promotedAt
+  );
+}
+
 export function evaluateRecognition(athlete: any): RecognitionSummary {
   const progression = evaluateProgression(athlete);
 
@@ -39,6 +46,16 @@ export function evaluateRecognition(athlete: any): RecognitionSummary {
     !stripeAlreadyAwarded &&
     !legacyVetoed;
 
+  const ceremonyAlreadyCompleted = hasRecognition(
+    athlete,
+    "CEREMONY",
+    tier
+  );
+
+  const ceremonyPending =
+    hasPassedPromotion(athlete) &&
+    !ceremonyAlreadyCompleted;
+
   return {
     stripeAward: {
       type: "STRIPE_AWARD",
@@ -55,13 +72,26 @@ export function evaluateRecognition(athlete: any): RecognitionSummary {
             : `Stripe ${stripe} needs award.`
     },
 
+    ceremony: {
+      type: "CEREMONY",
+      eligible: hasPassedPromotion(athlete),
+      pending: ceremonyPending,
+      completed: ceremonyAlreadyCompleted,
+      tier,
+      message: ceremonyAlreadyCompleted
+        ? "Ceremony already completed."
+        : ceremonyPending
+          ? "Promotion passed. Ceremony recognition pending."
+          : "No ceremony recognition pending."
+    },
+
     nextAction:
-      legacyVetoed
-        ? `Legacy placement recognized. Stripe ${stripe} is suppressed for Tier ${tier}.`
-        : stripeAlreadyAwarded
-          ? "No stripe award pending."
-          : stripe > 0
-            ? `Award Stripe ${stripe}.`
+      stripePending
+        ? `Award Stripe ${stripe}.`
+        : ceremonyPending
+          ? "Add to ceremony recognition."
+          : legacyVetoed
+            ? `Legacy placement recognized. Stripe ${stripe} is suppressed for Tier ${tier}.`
             : "No recognition action needed."
   };
 }
