@@ -23,11 +23,7 @@ export function evaluateRecognition(athlete: any): RecognitionSummary {
   const progression = evaluateProgression(athlete);
 
   const tier = Number(athlete.tier || 0);
-  const stripe = Number(
-    athlete.stripe ||
-    progression?.stripeDecision?.nextStripe ||
-    0
-  );
+  const stripe = Number(athlete.stripe || 0);
 
   const legacyVetoed = isLegacyStripeVetoed(athlete, tier, stripe);
 

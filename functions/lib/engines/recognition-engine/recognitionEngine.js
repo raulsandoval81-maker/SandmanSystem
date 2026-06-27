@@ -19,9 +19,7 @@ function isLegacyStripeVetoed(athlete, tier, stripe) {
 function evaluateRecognition(athlete) {
     const progression = (0, progressionEngine_1.evaluateProgression)(athlete);
     const tier = Number(athlete.tier || 0);
-    const stripe = Number(athlete.stripe ||
-        progression?.stripeDecision?.nextStripe ||
-        0);
+    const stripe = Number(athlete.stripe || 0);
     const legacyVetoed = isLegacyStripeVetoed(athlete, tier, stripe);
     const stripeAlreadyAwarded = (0, recognitionHistory_1.hasRecognition)(athlete, "STRIPE_AWARD", tier, stripe);
     const stripePending = stripe > 0 &&
