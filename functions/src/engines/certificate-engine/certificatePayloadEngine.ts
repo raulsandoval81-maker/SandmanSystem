@@ -1,5 +1,6 @@
 import { EngineAthlete } from "../athlete-engine/athleteNormalizer";
 import { evaluateProgression } from "../progression-engine/progressionEngine";
+import { evaluateRecognition } from "../recognition-engine/recognitionEngine";
 
 function hasIssuedStripeCertificate(
   athlete: EngineAthlete,
@@ -84,6 +85,7 @@ function stripePayload(
 
 export function buildCertificatePayload(athlete: EngineAthlete) {
   const progression = evaluateProgression(athlete);
+  const recognition = evaluateRecognition(athlete);
   const stripeDecision = progression.stripeDecision;
   const currentStripe = Number(athlete.stripe || 0);
   const currentTier = Number(athlete.tier || 0);
@@ -101,6 +103,20 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
       currentTier,
       currentStripe
     );
+
+    if (!recognition.stripeAward?.eligible) {
+  return notReady(
+    athlete,
+    recognition.nextAction
+  );
+}
+
+if (recognition.stripeAward?.completed) {
+  return notReady(
+    athlete,
+    recognition.stripeAward.message
+  );
+}
 
     if (!alreadyIssued) {
       return stripePayload(

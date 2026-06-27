@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.buildCertificatePayload = buildCertificatePayload;
 const progressionEngine_1 = require("../progression-engine/progressionEngine");
+const recognitionEngine_1 = require("../recognition-engine/recognitionEngine");
 function hasIssuedStripeCertificate(athlete, tier, stripe) {
     return (athlete.certificates || []).some((cert) => {
         return (cert.type === "STRIPE" &&
@@ -57,6 +58,7 @@ function stripePayload(athlete, stripeDecision, certificateType, title, subtitle
 }
 function buildCertificatePayload(athlete) {
     const progression = (0, progressionEngine_1.evaluateProgression)(athlete);
+    const recognition = (0, recognitionEngine_1.evaluateRecognition)(athlete);
     const stripeDecision = progression.stripeDecision;
     const currentStripe = Number(athlete.stripe || 0);
     const currentTier = Number(athlete.tier || 0);
@@ -65,6 +67,12 @@ function buildCertificatePayload(athlete) {
             return notReady(athlete, "Legacy placement recognized. Stripe I certificate is vetoed for this tier; recognition opens after deeper Sandman-earned progress.");
         }
         const alreadyIssued = hasIssuedStripeCertificate(athlete, currentTier, currentStripe);
+        if (!recognition.stripeAward?.eligible) {
+            return notReady(athlete, recognition.nextAction);
+        }
+        if (recognition.stripeAward?.completed) {
+            return notReady(athlete, recognition.stripeAward.message);
+        }
         if (!alreadyIssued) {
             return stripePayload(athlete, stripeDecision, "STRIPE", `Stripe ${currentStripe}`, stripeDecision?.workingTowardBelt || "Next Belt", currentStripe, `${athlete.name} has earned Stripe ${currentStripe}.`);
         }
