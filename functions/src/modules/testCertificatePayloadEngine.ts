@@ -1,7 +1,7 @@
 import { onRequest } from "firebase-functions/v2/https";
 
 import { loadAthlete } from "../engines/athlete-engine/athleteLoader";
-import { buildCertificatePayload } from "../engines/certificate-engine/certificatePayloadEngine";
+import { generateCertificateFromAthlete } from "../engines/certificate-engine/generateFromAthlete";
 
 export const testCertificatePayloadEngine = onRequest(
   { cors: true },
@@ -13,7 +13,7 @@ export const testCertificatePayloadEngine = onRequest(
 
       const athlete = await loadAthlete(uid);
 
-      const payload = buildCertificatePayload(athlete);
+      const payload = generateCertificateFromAthlete(athlete);
 
       res.status(200).json({
 
