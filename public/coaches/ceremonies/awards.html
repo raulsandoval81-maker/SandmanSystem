@@ -1,31 +1,258 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <title>Ceremony Print Pack</title>
-  <style>
-    body { font-family: Arial; padding: 24px; }
-    h1 { margin-bottom: 10px; }
-    .row { margin: 6px 0; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>Ceremony Awards</title>
+
+<style>
+:root{
+color-scheme:dark;
+--bg:#06080d;
+--panel:#0f141b;
+--line:#334155;
+--gold:#ffdd48;
+--text:#f8fafc;
+--muted:#cbd5e1;
+}
+
+*{box-sizing:border-box}
+
+body{
+margin:0;
+background:var(--bg);
+color:var(--text);
+font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+}
+
+.wrap{
+max-width:1100px;
+margin:auto;
+padding:28px 18px 60px;
+}
+
+h1{
+margin:0;
+color:var(--gold);
+}
+
+.subtitle{
+margin:10px 0 24px;
+color:var(--muted);
+}
+
+.card{
+background:var(--panel);
+border:1px solid var(--line);
+border-radius:16px;
+padding:18px;
+margin-bottom:18px;
+}
+
+table{
+width:100%;
+border-collapse:collapse;
+}
+
+th,td{
+padding:10px;
+border-bottom:1px solid var(--line);
+text-align:left;
+}
+
+th{
+color:var(--gold);
+font-size:.8rem;
+text-transform:uppercase;
+}
+
+.check{
+width:18px;
+height:18px;
+display:inline-block;
+border:1px solid #fff;
+}
+
+.actions{
+margin-top:24px;
+display:flex;
+gap:12px;
+flex-wrap:wrap;
+}
+
+.btn{
+display:inline-flex;
+padding:10px 16px;
+border-radius:10px;
+background:#111827;
+border:1px solid var(--line);
+color:white;
+text-decoration:none;
+font-weight:700;
+cursor:pointer;
+}
+
+.btn.primary{
+background:#e53935;
+border-color:#e53935;
+}
+
+@media print{
+
+.actions{
+display:none;
+}
+
+body{
+background:white;
+color:black;
+}
+
+.card{
+border:1px solid #ccc;
+}
+
+}
+</style>
 </head>
+
 <body>
 
-<h1>Ceremony Roster</h1>
-<p id="meta"></p>
+<main class="wrap">
 
-<div id="list"></div>
+<h1>Ceremony Awards</h1>
+
+<p class="subtitle">
+Final coach checklist before the quarterly ceremony begins.
+</p>
+
+<div class="card">
+
+<h2>Presentation Checklist</h2>
+
+<table>
+
+<thead>
+
+<tr>
+<th>Athlete</th>
+<th>Tier</th>
+<th>Certificate</th>
+<th>Belt</th>
+<th>Award</th>
+<th>Presented</th>
+</tr>
+
+</thead>
+
+<tbody id="roster">
+
+<tr>
+
+<td colspan="6">
+Loading...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="card">
+
+<h2>Coach Notes</h2>
+
+<ul>
+
+<li>Certificates printed.</li>
+
+<li>Belts organized by rank.</li>
+
+<li>Awards prepared.</li>
+
+<li>Presentation order confirmed.</li>
+
+<li>Photos scheduled.</li>
+
+</ul>
+
+</div>
+
+<div class="actions">
+
+<a
+class="btn"
+href="/coaches/ceremonies/print-pack.html">
+Print Pack
+</a>
+
+<a
+class="btn"
+href="/coaches/ceremonies/history.html">
+History
+</a>
+
+<button
+class="btn primary"
+onclick="window.print()">
+Print Checklist
+</button>
+
+</div>
+
+</main>
 
 <script>
-  const data = JSON.parse(localStorage.getItem("ceremony_roster") || "[]");
 
-  document.getElementById("meta").textContent =
-    `Athletes: ${data.length}`;
+const roster =
+JSON.parse(
+localStorage.getItem("ceremony_roster") || "[]"
+);
 
-  document.getElementById("list").innerHTML =
-    data.map(a => `<div class="row">${a.name} — ${a.tier}</div>`).join("");
+const tbody =
+document.getElementById("roster");
 
-  window.print();
+if(!roster.length){
+
+tbody.innerHTML=`
+<tr>
+
+<td colspan="6">
+No ceremony roster loaded.
+</td>
+
+</tr>
+`;
+
+}else{
+
+tbody.innerHTML=
+roster.map(a=>`
+
+<tr>
+
+<td>${a.name||"—"}</td>
+
+<td>${a.tier||"—"}</td>
+
+<td>☐</td>
+
+<td>☐</td>
+
+<td>☐</td>
+
+<td>☐</td>
+
+</tr>
+
+`).join("");
+
+}
+
 </script>
 
 </body>

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Promotion Queue</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/console-ui.css">
+  <link rel="stylesheet" href="/coaches/_ui/steps-shell.css">
+
+  <style>
+    .section{
+      margin:28px 0;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+      gap:16px;
+    }
+
+    .card{
+      background:#111827;
+      border:1px solid #2d3748;
+      border-radius:12px;
+      padding:16px;
+    }
+
+    .card h3{
+      margin:0 0 10px;
+    }
+
+    .empty{
+      opacity:.6;
+      font-style:italic;
+    }
+
+    .btn{
+      margin-top:12px;
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="wrap">
+
+<h1>Promotion Queue</h1>
+
+<p class="creed">
+Testing complete. Monitor cooldowns, approve promotions, and prepare athletes for ceremony.
+</p>
+
+<section class="section">
+
+<h2>🕒 In Cooldown</h2>
+
+<div id="cooldownList" class="cards">
+<div class="empty">Loading...</div>
+</div>
+
+</section>
+
+<section class="section">
+
+<h2>⬆ Ready to Promote</h2>
+
+<div id="promotionList" class="cards">
+<div class="empty">Loading...</div>
+</div>
+
+</section>
+
+<section class="section">
+
+<h2>❄ Frozen / Makeup Testing</h2>
+
+<div id="freezeList" class="cards">
+<div class="empty">Loading...</div>
+</div>
+
+</section>
+
+<section class="section">
+
+<h2>🎓 Recently Promoted</h2>
+
+<div id="recentList" class="cards">
+<div class="empty">Loading...</div>
+</div>
+
+</section>
+
+</main>
+
+<script type="module" src="./queue.js"></script>
+
+</body>
+</html>
