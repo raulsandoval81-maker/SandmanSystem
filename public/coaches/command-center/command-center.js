@@ -320,7 +320,7 @@ row.innerHTML = `
   </div>
 
   <div style="display:flex; gap:6px; flex-wrap:wrap;">
-    <a class="btn" href="/coaches/command-center/coach-athlete-panel.html?id=${uid}&v=2">
+    <a class="btn" href="/coaches/testing/coach-athlete-panel.html?id=${uid}&v=2">
       View
     </a>
 

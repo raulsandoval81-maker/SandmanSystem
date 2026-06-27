@@ -215,8 +215,8 @@ if (jail.jailActive) {
   toggle("btn-pass", state === "TESTING");
   toggle("btn-fail", state === "TESTING");
   toggle("btn-retest", state === "FREEZE");
-  toggle("btn-promote", false);
-  toggle("btn-active", state === "FREEZE" || state === "COOLDOWN");
+toggle("btn-promote", state === "COOLDOWN");
+toggle("btn-active", state === "FREEZE");
 }
 function renderAthlete(data) {
   athleteData = data;

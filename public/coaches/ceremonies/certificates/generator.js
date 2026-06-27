@@ -41,33 +41,33 @@ const BELTS_V2 = {
 };
 
 const BELT_HOTSPOTS = {
-  f8: {
-    default: {
-      right: "19.8%",
-      top: "50%",
-      width: "24px",
-      height: "60px",
-      gap: "14px"
-    },
-
-    0: {
-      right: "20.8%",
-      top: "50%",
-      width: "24px",
-      height: "52px",
-      gap: "28px"
-    }
+f8: {
+  default: {
+    right: "10.5%",
+    top: "34%",
+    width: "18px",
+    height: "42px",
+    gap: "12px"
   },
 
-  f4: {
-    default: {
-      right: "10.5%",
-      top: "50%",
-      width: "10px",
-      height: "52px",
-      gap: "10px"
-    }
+  0: {
+    right: "10.5%",
+    top: "45%",
+    width: "18px",
+    height: "44px",
+    gap: "18px"
   }
+},
+
+f4: {
+  default: {
+    right: "10.5%",
+    top: "33.5%",
+    width: "16px",
+    height: "44px",
+    gap: "10px"
+  }
+}
 };
 
 const CERTIFICATE_PRESETS = {
@@ -176,6 +176,107 @@ const output = {
   date: document.getElementById("outDate"),
   belt: document.getElementById("outBelt")
 };
+
+const ENGINE_ENDPOINTS = {
+  certificatePayload:
+    "https://us-central1-sandmandashboard.cloudfunctions.net/testCertificatePayloadEngine"
+};
+
+function romanToNumber(value) {
+  const map = {
+    I: 1,
+    II: 2,
+    III: 3,
+    IV: 4
+  };
+
+  return map[value] || 0;
+}
+
+function numberToRoman(value) {
+  const map = {
+    1: "I",
+    2: "II",
+    3: "III",
+    4: "IV"
+  };
+
+  return map[value] || "I";
+}
+
+function resolveFoundryKey(programCode) {
+  return String(programCode || "").toLowerCase();
+}
+
+function applyCertificatePayload(payload) {
+  if (!payload || !payload.printReady) {
+    console.warn("No printable certificate payload.", payload);
+    return;
+  }
+
+  const foundryKey = resolveFoundryKey(payload.programCode);
+  const tierValue = String(payload.tier);
+  const stripeValue = numberToRoman(payload.stripe);
+
+  fields.mode.value = "digital";
+  fields.beltStyle.value = "v2";
+  fields.foundry.value = foundryKey;
+
+  populateTierOptions();
+
+  fields.tier.value = tierValue;
+
+  populateStripeOptions();
+
+  fields.stripe.value = stripeValue;
+
+  fields.athleteName.value = payload.athleteName || "";
+  fields.academyName.value = "Lompoc Academy of Wrestling";
+  fields.coach.value = payload.coach || "Coach Sandoval";
+
+  const date = payload.dateAwarded
+    ? new Date(payload.dateAwarded)
+    : new Date();
+
+  fields.date.value =
+    date.toLocaleDateString("en-US");
+
+  updateCertificate();
+}
+
+async function loadCertificatePayloadFromEngine(uid) {
+  const url =
+    `${ENGINE_ENDPOINTS.certificatePayload}?uid=${encodeURIComponent(uid)}`;
+
+  const response = await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(`Engine request failed: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  if (!data.success) {
+    throw new Error(data.error || "Engine returned failure.");
+  }
+
+  applyCertificatePayload(data.payload);
+
+  console.log("Loaded certificate payload:", data);
+}
+
+function autoLoadFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const uid = params.get("uid");
+
+  if (!uid) return;
+
+  loadCertificatePayloadFromEngine(uid).catch((err) => {
+    console.error(err);
+    alert(`Could not load certificate payload: ${err.message}`);
+  });
+}
+
 
 function getPreset() {
   const foundryKey = fields.foundry.value;
@@ -401,6 +502,7 @@ document.getElementById("printBtn").addEventListener("click", () => {
 populateTierOptions();
 populateStripeOptions();
 updateCertificate();
+autoLoadFromQuery();
 
 /* enable only while locally tuning overlay */
 // enableStripeDevDrag();

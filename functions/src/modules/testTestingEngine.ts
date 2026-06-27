@@ -1,29 +1,33 @@
 import { onRequest } from "firebase-functions/v2/https";
 
 import { loadAthlete } from "../engines/athlete-engine/athleteLoader";
-import { buildCertificatePayload } from "../engines/certificate-engine/certificatePayloadEngine";
 
-export const testCertificatePayloadEngine = onRequest(
+import { evaluateTesting } from "../engines/testing-engine/testingEngine";
+
+export const testTestingEngine = onRequest(
   { cors: true },
   async (req, res) => {
 
     try {
 
-      const uid = String(req.query.uid || "F4_0001");
+      const uid =
+        String(req.query.uid || "F4_0001");
 
-      const athlete = await loadAthlete(uid);
+      const athlete =
+        await loadAthlete(uid);
 
-      const payload = buildCertificatePayload(athlete);
+      const decision =
+        evaluateTesting(athlete);
 
       res.status(200).json({
 
         success: true,
 
-        engine: "Sandman Certificate Payload Engine",
+        engine: "Sandman Testing Engine",
 
         athlete,
 
-        payload
+        decision
 
       });
 

@@ -4,7 +4,7 @@ exports.testProgressionEngine = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const athleteLoader_1 = require("../engines/athlete-engine/athleteLoader");
 const progressionEngine_1 = require("../engines/progression-engine/progressionEngine");
-exports.testProgressionEngine = (0, https_1.onRequest)(async (req, res) => {
+exports.testProgressionEngine = (0, https_1.onRequest)({ cors: true }, async (req, res) => {
     try {
         const uid = String(req.query.uid || "F4_0001");
         const athlete = await (0, athleteLoader_1.loadAthlete)(uid);

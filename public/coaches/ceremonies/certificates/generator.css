@@ -187,21 +187,6 @@ body {
   pointer-events: none;
 }
 
-.earned-belt-stripe {
-  width: 12px;
-  height: 54px;
-  background: #ffffff;
-  border: 1px solid #111;
-  border-radius: 1px;
-}
-
-.earned-belt-stripe {
-  width: 20px;
-  height: 48px;
-  background: #d4af37;
-  border: 2px solid #111;
-  border-radius: 2px;
-}
 
 .quote {
   font-family: Georgia, serif;
@@ -441,6 +426,7 @@ min-width: unset;
   height:140px;
   margin:12px auto 16px;
   position:relative;
+  overflow:hidden;
 }
 
 .belt{
@@ -449,6 +435,21 @@ min-width: unset;
   object-fit:fill;
   display:block;
 }
-.belt-stripe-overlay {
-  pointer-events: auto;
+
+.belt-stripe-overlay{
+  position:absolute;
+  right:10.8%;
+  top:50%;
+  transform:translateY(-50%);
+  display:flex;
+  gap:7px;
+  pointer-events:none;
+}
+
+.earned-belt-stripe {
+  width: 16px;
+  height: 44px;
+  background: #ffffff;
+  border: 2px solid #111;
+  border-radius: 2px;
 }
