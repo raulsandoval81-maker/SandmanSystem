@@ -10,12 +10,18 @@ export const testRecognitionQueue = onRequest(async (_req, res) => {
 
     const snapshot = await db.collection("athletes").get();
 
-    const athletes = snapshot.docs.map((doc) =>
-      normalizeAthlete({
-        uid: doc.id,
-        ...doc.data()
-      })
-    );
+    const athletes = snapshot.docs
+      .map((doc) =>
+        normalizeAthlete({
+          uid: doc.id,
+          ...doc.data()
+        })
+      )
+      .filter((a: any) => {
+        if (a.rosterStatus !== "current") return false;
+        if (a.isDev === true || a.devMode === true || a.isTest === true) return false;
+        return true;
+      });
 
     const queue = buildRecognitionQueueFromAthletes(athletes);
 

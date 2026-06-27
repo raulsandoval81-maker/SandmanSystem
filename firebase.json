@@ -12,11 +12,13 @@
       "**/.*",
       "**/node_modules/**"
     ],
-    "rewrites": [
-      { "source": "/xp", "function": "xpHttp", "region": "us-central1" },
-      { "source": "/api/approveIntakeCall", "function": "approveIntakeCall", "region": "us-central1" },
-      { "source": "/api/createAthleteFromIntakeCall", "function": "createAthleteFromIntakeCall", "region": "us-central1" }
-    ]
+"rewrites": [
+  { "source": "/xp", "function": "xpHttp", "region": "us-central1" },
+  { "source": "/testRecognitionQueue", "function": "testRecognitionQueue", "region": "us-central1" },
+  { "source": "/api/approveIntakeCall", "function": "approveIntakeCall", "region": "us-central1" },
+  { "source": "/api/createAthleteFromIntakeCall", "function": "createAthleteFromIntakeCall", "region": "us-central1" }
+]
+
   },
   "firestore": {
     "rules": "firestore.rules"

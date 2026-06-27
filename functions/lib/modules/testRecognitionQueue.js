@@ -9,10 +9,18 @@ exports.testRecognitionQueue = (0, https_1.onRequest)(async (_req, res) => {
     try {
         const db = (0, firestore_1.getFirestore)();
         const snapshot = await db.collection("athletes").get();
-        const athletes = snapshot.docs.map((doc) => (0, athleteNormalizer_1.normalizeAthlete)({
+        const athletes = snapshot.docs
+            .map((doc) => (0, athleteNormalizer_1.normalizeAthlete)({
             uid: doc.id,
             ...doc.data()
-        }));
+        }))
+            .filter((a) => {
+            if (a.rosterStatus !== "current")
+                return false;
+            if (a.isDev === true || a.devMode === true || a.isTest === true)
+                return false;
+            return true;
+        });
         const queue = (0, recognitionQueue_1.buildRecognitionQueueFromAthletes)(athletes);
         res.json({
             ok: true,

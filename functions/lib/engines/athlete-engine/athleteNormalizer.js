@@ -30,6 +30,10 @@ function normalizeAthlete(doc) {
         coach: doc.coachName || doc.coach || "Coach Sandoval",
         rankName: doc.rankName || "",
         rankColor: doc.rankColor || "",
+        rosterStatus: doc.rosterStatus || "current",
+        isDev: doc.isDev === true,
+        devMode: doc.devMode === true,
+        isTest: doc.isTest === true,
         certificates: doc.certificates ?? []
     };
 }

@@ -32,7 +32,16 @@ export interface EngineAthlete {
 
   rankColor: string;
 
+  rosterStatus?: string;
+
+  isDev?: boolean;
+
+  devMode?: boolean;
+
+  isTest?: boolean;
+
   certificates: string[];
+
 
 }
 
@@ -88,6 +97,14 @@ export function normalizeAthlete(doc: any): EngineAthlete {
     rankName: doc.rankName || "",
 
     rankColor: doc.rankColor || "",
+
+    rosterStatus: doc.rosterStatus || "current",
+
+    isDev: doc.isDev === true,
+
+    devMode: doc.devMode === true,
+
+    isTest: doc.isTest === true,
 
     certificates: doc.certificates ?? []
 
