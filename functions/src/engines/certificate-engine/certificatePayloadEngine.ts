@@ -24,15 +24,26 @@ function getLegacyXp(athlete: any): number {
   );
 }
 
-function shouldSuppressLegacyStripeCertificate(
+function isLegacyStripeVetoed(
   athlete: any,
+  tier: number,
   stripe: number
 ): boolean {
-  const legacyXp = getLegacyXp(athlete);
-  if (legacyXp <= 0) return false;
+  if (getLegacyXp(athlete) <= 0) return false;
+  if (Number(stripe) !== 1) return false;
 
-  // Legacy athletes do not receive Stripe I certificate from placement.
-  return Number(stripe) < 2;
+  const veto = athlete?.legacyRecognitionVeto;
+
+  if (veto?.enabled === true) {
+    return (
+      veto?.tiers?.[String(tier)]?.stripe1Vetoed === true ||
+      veto?.tiers?.[Number(tier)]?.stripe1Vetoed === true
+    );
+  }
+
+  // fallback rule for older legacy records:
+  // legacy athletes do not receive Stripe I certificate in Tier 0 or Tier 1
+  return Number(tier) === 0 || Number(tier) === 1;
 }
 
 function notReady(athlete: EngineAthlete, message: string) {
@@ -63,8 +74,8 @@ function stripePayload(
     programCode: athlete.programCode,
     tier: athlete.tier,
     stripe,
-    trainingShirt: stripeDecision.trainingShirt,
-    workingTowardBelt: stripeDecision.workingTowardBelt,
+    trainingShirt: stripeDecision?.trainingShirt || "",
+    workingTowardBelt: stripeDecision?.workingTowardBelt || "Next Belt",
     coach: athlete.coach,
     dateAwarded: new Date().toISOString(),
     message
@@ -75,18 +86,19 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
   const progression = evaluateProgression(athlete);
   const stripeDecision = progression.stripeDecision;
   const currentStripe = Number(athlete.stripe || 0);
+  const currentTier = Number(athlete.tier || 0);
 
   if (currentStripe > 0) {
-    if (shouldSuppressLegacyStripeCertificate(athlete, currentStripe)) {
+    if (isLegacyStripeVetoed(athlete, currentTier, currentStripe)) {
       return notReady(
         athlete,
-        "Legacy placement recognized. Stripe certificate opens at Stripe II."
+        "Legacy placement recognized. Stripe I certificate is vetoed for this tier; recognition opens after deeper Sandman-earned progress."
       );
     }
 
     const alreadyIssued = hasIssuedStripeCertificate(
       athlete,
-      athlete.tier,
+      currentTier,
       currentStripe
     );
 
@@ -104,12 +116,12 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
   }
 
   if (progression.certificateAction === "STRIPE_CERTIFICATE") {
-    const nextStripe = Number(stripeDecision.nextStripe);
+    const nextStripe = Number(stripeDecision?.nextStripe || 0);
 
-    if (shouldSuppressLegacyStripeCertificate(athlete, nextStripe)) {
+    if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
       return notReady(
         athlete,
-        "Legacy placement recognized. Stripe certificate opens at Stripe II."
+        "Legacy placement recognized. Stripe I certificate is vetoed for this tier; recognition opens after deeper Sandman-earned progress."
       );
     }
 
@@ -120,12 +132,19 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
       `Stripe ${nextStripe}`,
       stripeDecision?.workingTowardBelt || "Next Belt",
       nextStripe,
-      stripeDecision.message
+      stripeDecision?.message || "Stripe certificate ready."
     );
   }
 
   if (progression.certificateAction === "TESTING_ELIGIBLE_STRIPE_CERTIFICATE") {
-    const nextStripe = Number(stripeDecision.nextStripe);
+    const nextStripe = Number(stripeDecision?.nextStripe || 0);
+
+    if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
+      return notReady(
+        athlete,
+        "Legacy placement recognized. Testing certificate is blocked until deeper Sandman-earned progress is recorded."
+      );
+    }
 
     return stripePayload(
       athlete,
@@ -134,9 +153,12 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
       `Stripe ${nextStripe}`,
       "Testing Eligible",
       nextStripe,
-      stripeDecision.message
+      stripeDecision?.message || "Testing eligible stripe certificate ready."
     );
   }
 
-  return notReady(athlete, progression.nextAction);
+  return notReady(
+    athlete,
+    progression.nextAction || "No certificate ready."
+  );
 }
