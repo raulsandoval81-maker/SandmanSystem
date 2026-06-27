@@ -1,6 +1,6 @@
 export type RecognitionType =
   | "NONE"
-  | "STRIPE"
+  | "STRIPE_AWARD"
   | "CERTIFICATE"
   | "TESTING"
   | "PROMOTION"
@@ -11,9 +11,19 @@ export interface RecognitionDecision {
   eligible: boolean;
   pending: boolean;
   completed: boolean;
+  tier: number;
+  stripe?: number;
   message: string;
 }
 
+export interface RecognitionSummary {
+  stripeAward?: RecognitionDecision;
+  certificate?: RecognitionDecision;
+  testing?: RecognitionDecision;
+  promotion?: RecognitionDecision;
+  ceremony?: RecognitionDecision;
+  nextAction: string;
+}
 export interface RecognitionHistoryEntry {
   type: RecognitionType;
   tier: number;
