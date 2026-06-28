@@ -86,7 +86,9 @@ export { testCertificatePayloadEngine }
 export { testProgressionEngine }
   from "./modules/testProgressionEngine";
 
-/* =========================
+
+export { coachAction } from "./modules/coachAction";
+  /* =========================
    ATHLETE
 ========================= */
 

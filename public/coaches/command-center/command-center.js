@@ -8,6 +8,7 @@ import {
   query,
   where,
 } from "/assets/js/firebase-init.js";
+import { buildCoachActions } from "../execution/coachActions.js";
 
 await ensureSignedIn();
 
@@ -294,6 +295,33 @@ const q = query(
       snap.forEach((docSnap) => {
         const data = docSnap.data() || {};
         const uid = docSnap.id;
+        const actions = buildCoachActions(data.testing?.state || "TEMPLE");
+
+const coachBlock = document.createElement("div");
+coachBlock.style.marginTop = "8px";
+coachBlock.style.display = "flex";
+coachBlock.style.gap = "6px";
+coachBlock.style.flexWrap = "wrap";
+
+actions.forEach((action) => {
+  const btn = document.createElement("button");
+
+  btn.innerText = action.label;
+  btn.className = action.severity || "info";
+
+  btn.onclick = async () => {
+    await fetch("/api/coach/action", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        type: action.type,
+        athleteId: uid
+      })
+    });
+  };
+
+  coachBlock.appendChild(btn);
+});
         const sessionId = `test_${uid}_${Date.now()}`;
 
         const row = document.createElement("div");
@@ -337,6 +365,7 @@ row.innerHTML = `
 `;
 
 listTestingEl.appendChild(row);
+row.appendChild(coachBlock);
       });
 
       if (!snap.size) {
