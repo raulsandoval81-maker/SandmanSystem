@@ -24,6 +24,27 @@ export interface RecognitionSummary {
   ceremony?: RecognitionDecision;
   nextAction: string;
 }
+
+/**
+ * 🔥 ADD THIS (THIS WAS YOUR MISSING PIECE)
+ */
+export interface RecognitionQueueItem {
+  athleteUid: string;
+  athleteName: string;
+  decision: RecognitionDecision;
+}
+
+/**
+ * 🔥 ADD THIS (THIS WAS CAUSING YOUR ERRORS)
+ */
+export interface RecognitionQueue {
+  stripeAwards: RecognitionQueueItem[];
+  certificates: RecognitionQueueItem[];
+  testing: RecognitionQueueItem[];
+  promotions: RecognitionQueueItem[];
+  ceremonies: RecognitionQueueItem[];
+}
+
 export interface RecognitionHistoryEntry {
   type: RecognitionType;
   tier: number;

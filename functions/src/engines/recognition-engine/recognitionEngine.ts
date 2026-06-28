@@ -3,6 +3,10 @@ import { evaluateLegacy } from "../legacy-engine/legacyEngine";
 import { hasRecognition } from "./recognitionHistory";
 import { RecognitionSummary } from "./recognitionTypes";
 
+function normalizeText(value: any): string {
+  return String(value || "").trim().toLowerCase();
+}
+
 function isLegacyStripeVetoed(
   athlete: any,
   tier: number,
@@ -19,15 +23,51 @@ function isLegacyStripeVetoed(
   return false;
 }
 
-function hasPassedPromotion(athlete: any): boolean {
+function hasPassedTesting(athlete: any): boolean {
+  const result = normalizeText(athlete?.testing?.lastTestResult);
+  const decision = normalizeText(athlete?.testing?.lastDecision);
+
+  return result === "pass" || decision === "approve";
+}
+
+function isTestingPending(athlete: any): boolean {
+  const testing = athlete?.testing || {};
+  const state = normalizeText(testing.state);
+  const tierStatus = normalizeText(testing.tierStatus);
+
+  if (hasPassedTesting(athlete)) return false;
+
   return (
-    athlete?.testing?.lastTestResult === "pass" &&
-    !!athlete?.testing?.promotedAt
+    Boolean(testing.testEligibleAt) ||
+    state === "eligible" ||
+    tierStatus === "eligible"
+  );
+}
+
+function isPromotionPending(athlete: any): boolean {
+  const transitionStatus = normalizeText(athlete?.transition?.status);
+  const impact = normalizeText(athlete?.transition?.promotionImpact);
+
+  return (
+    hasPassedTesting(athlete) &&
+    (
+      transitionStatus === "pending" ||
+      impact.includes("pending")
+    )
+  );
+}
+
+function isCeremonyPending(athlete: any): boolean {
+  const transitionStatus = normalizeText(athlete?.transition?.status);
+
+  return (
+    hasPassedTesting(athlete) &&
+    transitionStatus === "awarded"
   );
 }
 
 export function evaluateRecognition(athlete: any): RecognitionSummary {
-  const progression = evaluateProgression(athlete);
+  evaluateProgression(athlete);
 
   const tier = Number(athlete.tier || 0);
   const stripe = Number(athlete.stripe || 0);
@@ -41,10 +81,17 @@ export function evaluateRecognition(athlete: any): RecognitionSummary {
     stripe
   );
 
-  const stripePending =
-    stripe > 0 &&
-    !stripeAlreadyAwarded &&
-    !legacyVetoed;
+  const testingAlreadyCompleted = hasRecognition(
+    athlete,
+    "TESTING",
+    tier
+  );
+
+  const promotionAlreadyCompleted = hasRecognition(
+    athlete,
+    "PROMOTION",
+    tier
+  );
 
   const ceremonyAlreadyCompleted = hasRecognition(
     athlete,
@@ -52,8 +99,21 @@ export function evaluateRecognition(athlete: any): RecognitionSummary {
     tier
   );
 
+  const stripePending =
+    stripe > 0 &&
+    !stripeAlreadyAwarded &&
+    !legacyVetoed;
+
+  const testingPending =
+    isTestingPending(athlete) &&
+    !testingAlreadyCompleted;
+
+  const promotionPending =
+    isPromotionPending(athlete) &&
+    !promotionAlreadyCompleted;
+
   const ceremonyPending =
-    hasPassedPromotion(athlete) &&
+    isCeremonyPending(athlete) &&
     !ceremonyAlreadyCompleted;
 
   return {
@@ -72,26 +132,56 @@ export function evaluateRecognition(athlete: any): RecognitionSummary {
             : `Stripe ${stripe} needs award.`
     },
 
+    testing: {
+      type: "TESTING",
+      eligible: isTestingPending(athlete),
+      pending: testingPending,
+      completed: testingAlreadyCompleted,
+      tier,
+      message: testingPending
+        ? "Testing eligible. Schedule or complete test."
+        : testingAlreadyCompleted
+          ? "Testing already completed."
+          : "No testing action needed."
+    },
+
+    promotion: {
+      type: "PROMOTION",
+      eligible: isPromotionPending(athlete),
+      pending: promotionPending,
+      completed: promotionAlreadyCompleted,
+      tier,
+      message: promotionPending
+        ? "Testing passed. Promotion action pending."
+        : promotionAlreadyCompleted
+          ? "Promotion already completed."
+          : "No promotion action needed."
+    },
+
     ceremony: {
       type: "CEREMONY",
-      eligible: hasPassedPromotion(athlete),
+      eligible: isCeremonyPending(athlete),
       pending: ceremonyPending,
       completed: ceremonyAlreadyCompleted,
       tier,
-      message: ceremonyAlreadyCompleted
-        ? "Ceremony already completed."
-        : ceremonyPending
-          ? "Promotion passed. Ceremony recognition pending."
-          : "No ceremony recognition pending."
+      message: ceremonyPending
+        ? "Promotion awarded. Ceremony recognition pending."
+        : ceremonyAlreadyCompleted
+          ? "Ceremony already completed."
+          : "No ceremony action needed."
     },
 
     nextAction:
       stripePending
         ? `Award Stripe ${stripe}.`
-        : ceremonyPending
-          ? "Add to ceremony recognition."
-          : legacyVetoed
-            ? `Legacy placement recognized. Stripe ${stripe} is suppressed for Tier ${tier}.`
-            : "No recognition action needed."
+        : testingPending
+          ? "Testing action pending."
+          : promotionPending
+            ? "Promotion action pending."
+            : ceremonyPending
+              ? "Ceremony recognition pending."
+              : legacyVetoed
+                ? `Legacy placement recognized. Stripe ${stripe} is suppressed for Tier ${tier}.`
+                : "No recognition action needed."
   };
 }

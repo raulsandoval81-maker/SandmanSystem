@@ -1,10 +1,9 @@
-import { evaluateRecognition } from "./recognitionEngine";
-import { RecognitionDecision } from "./recognitionTypes";
+import { evaluateRecognition } from "../recognition-engine/evaluateRecognition";
 
 export interface RecognitionQueueItem {
   athleteUid: string;
   athleteName: string;
-  decision: RecognitionDecision;
+  decision: any;
 }
 
 export interface RecognitionQueue {
@@ -15,28 +14,7 @@ export interface RecognitionQueue {
   ceremonies: RecognitionQueueItem[];
 }
 
-function athleteUid(athlete: any): string {
-  return athlete.uid || athlete.uidCode || athlete.id || "";
-}
-
-function athleteName(athlete: any): string {
-  return athlete.name || athlete.fullName || athlete.publicName || athleteUid(athlete);
-}
-
-function makeItem(
-  athlete: any,
-  decision: RecognitionDecision
-): RecognitionQueueItem {
-  return {
-    athleteUid: athleteUid(athlete),
-    athleteName: athleteName(athlete),
-    decision
-  };
-}
-
-export function buildRecognitionQueueFromAthletes(
-  athletes: any[]
-): RecognitionQueue {
+export function buildRecognitionQueueFromAthletes(athletes: any[]) {
   const queue: RecognitionQueue = {
     stripeAwards: [],
     certificates: [],
@@ -45,29 +23,40 @@ export function buildRecognitionQueueFromAthletes(
     ceremonies: []
   };
 
-  athletes.forEach((athlete) => {
-    const summary = evaluateRecognition(athlete);
+  for (const a of athletes) {
+    const summary = evaluateRecognition(a);
 
+    const item: RecognitionQueueItem = {
+      athleteUid: a.uid,
+      athleteName: a.name || a.fullName,
+      decision: summary
+    };
+
+    // 🟢 STRIPE
     if (summary.stripeAward?.pending) {
-      queue.stripeAwards.push(makeItem(athlete, summary.stripeAward));
+      queue.stripeAwards.push(item);
     }
 
+    // 🟢 CERTIFICATE
     if (summary.certificate?.pending) {
-      queue.certificates.push(makeItem(athlete, summary.certificate));
+      queue.certificates.push(item);
     }
 
+    // 🟢 TESTING
     if (summary.testing?.pending) {
-      queue.testing.push(makeItem(athlete, summary.testing));
+      queue.testing.push(item);
     }
 
+    // 🟢 PROMOTION
     if (summary.promotion?.pending) {
-      queue.promotions.push(makeItem(athlete, summary.promotion));
+      queue.promotions.push(item);
     }
 
+    // 🟢 CEREMONY
     if (summary.ceremony?.pending) {
-      queue.ceremonies.push(makeItem(athlete, summary.ceremony));
+      queue.ceremonies.push(item);
     }
-  });
+  }
 
   return queue;
 }
