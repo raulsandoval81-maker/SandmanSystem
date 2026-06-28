@@ -15,6 +15,16 @@ import {
   getAutoDesc,
   makeClipCard
 } from "../engine/clipboard/card-engine.js";
+
+import {
+  clearSlotCards,
+  clearClipboardSlots,
+  getSlotLimit,
+  appendCardToSlot
+} from "../engine/clipboard/slot-engine.js";
+
+const RETURN_TO_KEY = "sandman_return_to";
+const ALL_IN_ONE_RETURN = "/coaches/execution/clipboard-2.0/";
 /* =========================
    DEBUG / AUTH
 ========================= */
@@ -593,76 +603,6 @@ function getStoredClipboardCards() {
   }
 }
 
-function clearSlotCards(slotEl) {
-  if (!slotEl) return;
-
-  slotEl
-    .querySelectorAll(".clip-card")
-    .forEach(node => node.remove());
-}
-
-function clearClipboardSlots() {
-
-  const bank =
-    document.getElementById("clipboard-list");
-
-  if (bank) bank.innerHTML = "";
-
-  [
-    "cards-onmat",
-    "cards-warmup-body",
-    "cards-warmup-agility",
-    "cards-drills",
-    "cards-technique",
-    "cards-water",
-    "cards-live",
-    "cards-cond",
-    "cards-offmat"
-  ].forEach(id => {
-
-    const slot =
-      document.getElementById(id);
-
-    if (!slot) return;
-
-    slot
-      .querySelectorAll(".clip-card")
-      .forEach(node => node.remove());
-
-  });
-
-}
-
-function getSlotLimit(card) {
-  const category = (card.category || "").toLowerCase().trim();
-  const lane = (card.lane || "").toLowerCase().trim();
-
-  if (
-    category === "mat-talk" ||
-    lane === "onmat" ||
-    lane === "offmat"
-  ) {
-    return 1;
-  }
-
-  return 3;
-}
-
-function appendCardToSlot(slot, card) {
-  if (!slot) return;
-
-  const limit = getSlotLimit(card);
-  const currentCards = slot.querySelectorAll(".clip-card");
-
-  if (currentCards.length >= limit) {
-    console.warn(`🚫 Slot limit reached (${limit}) for`, card);
-    return;
-  }
-
-  slot.appendChild(makeClipCard(card));
-}
-
-
 function dedupeClipboardCards(cards) {
   const seen = new Set();
 
@@ -1148,6 +1088,7 @@ localStorage.setItem(
   RETURN_TO_KEY,
   ALL_IN_ONE_RETURN
 );
+
 openDisciplineCards();
 });
 /* =========================
