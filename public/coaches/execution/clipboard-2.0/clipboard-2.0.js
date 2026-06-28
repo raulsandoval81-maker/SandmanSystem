@@ -23,6 +23,13 @@ import {
   appendCardToSlot
 } from "../engine/clipboard/slot-engine.js";
 
+
+import {
+  getBlockCards,
+  getStoredClipboardCards,
+  dedupeClipboardCards
+} from "../engine/clipboard/clipboard-storage.js";
+
 const RETURN_TO_KEY = "sandman_return_to";
 const ALL_IN_ONE_RETURN = "/coaches/execution/clipboard-2.0/";
 /* =========================
@@ -569,62 +576,6 @@ window.loadCurrentSchema = function () {
 };
 
 /* =========================
-   CARD DATA HELPERS
-========================= */
-
-function getBlockCards(blockEl) {
-  if (!blockEl) return [];
-
-  return [...blockEl.querySelectorAll(".clip-title, .clip-title-link")]
-    .map(el => {
-      const cardEl = el.closest(".clip-card");
-
-      return {
-        title: el.textContent.trim(),
-        href: el.tagName === "A" ? el.getAttribute("href") : "",
-
-        skill: cardEl?.dataset.skill || "",
-        tier: cardEl?.dataset.tier || "",
-        discipline: cardEl?.dataset.discipline || "",
-        journey: cardEl?.dataset.journey || "",
-        category: cardEl?.dataset.category || "",
-        lane: cardEl?.dataset.lane || ""
-      };
-    })
-    .filter(card => card.title);
-}
-
-function getStoredClipboardCards() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(CLIPBOARD_KEY) || "[]");
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-
-function dedupeClipboardCards(cards) {
-  const seen = new Set();
-
-  return cards.filter(card => {
-    const id = String(card.id || card.href || card.title || "")
-      .trim()
-      .toLowerCase();
-
-    const lane = String(card.lane || "")
-      .trim()
-      .toLowerCase();
-
-    const key = `${id}__${lane}`;
-
-    if (seen.has(key)) return false;
-
-    seen.add(key);
-    return true;
-  });
-}
-
-/* =========================
    ADD CARD ROUTING
 ========================= */
 const DISCIPLINE_CARD_ROUTES = {
@@ -722,7 +673,7 @@ function renderClipboardList() {
 
   clearClipboardSlots();
 const rawCards =
-  dedupeClipboardCards(getStoredClipboardCards());
+  dedupeClipboardCards(getStoredClipboardCards(CLIPBOARD_KEY));
 
 
 const allCards =
@@ -1598,8 +1549,8 @@ function updateSupportLinks() {
   if (Array.isArray(hybridCards) && hybridCards.length) {
 
     const existingCards =
-      getStoredClipboardCards()
-      .filter(card => card.source !== "hybrid");
+      getStoredClipboardCards(CLIPBOARD_KEY)
+        .filter(card => card.source !== "hybrid");
 
     const aggressiveFoundation =
       Number(week || 1) <= 3;
