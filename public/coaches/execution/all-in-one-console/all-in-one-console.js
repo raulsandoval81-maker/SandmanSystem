@@ -8,6 +8,25 @@ import {
 } from "/assets/js/firebase-init.js";
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 
+
+import {
+  escapeHtml,
+  getAutoDesc,
+  makeClipCard
+} from "../engine/clipboard/card-engine.js";
+
+import {
+  clearSlotCards,
+  clearClipboardSlots,
+  appendCardToSlot
+} from "../engine/clipboard/slot-engine.js";
+
+import {
+  getBlockCards,
+  getStoredClipboardCards,
+  dedupeClipboardCards
+} from "../engine/clipboard/clipboard-storage.js";
+
 const RETURN_TO_KEY = "sandman_return_to";
 const ALL_IN_ONE_RETURN = "/coaches/execution/all-in-one-console/";
 
@@ -533,28 +552,6 @@ function setSchema(schemaKey) {
   renderClipboardList();
 }
 
-function getBlockCards(blockEl) {
-  if (!blockEl) return [];
-
-  return [...blockEl.querySelectorAll(".clip-card")]
-    .map(cardEl => {
-      const titleEl = cardEl.querySelector(".clip-title, .clip-title-link");
-      if (!titleEl) return null;
-
-      return {
-        title: titleEl.textContent.trim(),
-        href: titleEl.tagName === "A" ? titleEl.getAttribute("href") : "",
-
-        skill: cardEl.dataset.skill || "",
-        tier: cardEl.dataset.tier || "",
-        discipline: cardEl.dataset.discipline || "",
-        journey: cardEl.dataset.journey || "",
-        category: cardEl.dataset.category || "",
-        lane: cardEl.dataset.lane || ""
-      };
-    })
-    .filter(Boolean);
-}
 
 function getBlockCardTitles(blockEl) {
   if (!blockEl) return [];
@@ -640,209 +637,12 @@ document.addEventListener("click", e => {
 
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
 
-function getStoredClipboardCards() {
-  try {
-    const arr = JSON.parse(localStorage.getItem(CLIPBOARD_KEY) || "[]");
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
 function getCoachSessionPayload() {
   try {
     return JSON.parse(localStorage.getItem(COACH_SESSION_KEY) || "null");
   } catch {
     return null;
   }
-}
-function clearSlotCards(slotEl) {
-  if (!slotEl) return;
-  slotEl.querySelectorAll(".clip-card").forEach(node => node.remove());
-}
-
-function clearClipboardSlots() {
-  const bank = document.getElementById("clipboard-list");
-  if (bank) bank.innerHTML = "";
-
-  [
-    "slot-onmat",
-    "slot-warmup",
-    "slot-technique",
-    "slot-drills",
-    "slot-water",
-    "slot-live",
-    "slot-cond",
-    "slot-offmat"
-  ].forEach(id => {
-    clearSlotCards(document.getElementById(id));
-  });
-}
-// helpers / utilities (top of file or above render)
-// --- HELPERS ---
-
-// other helpers...
-function getAutoDesc(card) {
-  if (card.desc) return card.desc;
-
-  const title = (card.title || "").toLowerCase();
-  const category = (card.category || "").toLowerCase().trim();
-  const lane = (card.lane || "").toLowerCase().trim();
-
-  if (lane === "water" || category === "game" || category === "games") {
-    return "Reset on your own";
-  }
-
-  if (title.includes("push")) return "3–5 sets";
-  if (title.includes("sit")) return "3–5 sets";
-  if (title.includes("pull")) return "3–5 sets";
-
-  if (title.includes("plank")) return "3 x 30 sec hold";
-  if (title.includes("hold")) return "hold + control position";
-
-  if (title.includes("carry")) return "down & back x 3";
-  if (title.includes("walk")) return "down & back x 3";
-  if (title.includes("drag")) return "down & back x 3";
-
-  if (title.includes("crawl")) return "forward + backward";
-  if (title.includes("bear")) return "forward + backward";
-
-  if (title.includes("sprint")) return "wall to wall x 3";
-  if (title.includes("shuttle")) return "wall to wall x 3";
-
-  if (title.includes("balance")) return "hold + control position";
-
-  if (category === "conditioning") return "3–5 sets";
-  if (category === "warmup") return "controlled reps";
-
-  return "";
-}
-
-function appendCardToSlot(slot, card) {
-  if (!slot) return;
-
-const slotKey =
-  slot.dataset.slot;
-
-const limit =
-  getSlotLimit(slotKey);
-  const currentCards = slot.querySelectorAll(".clip-card");
-
-  if (currentCards.length >= limit) {
-    console.warn(`🚫 Slot limit reached (${limit}) for`, card);
-    return; // 🔒 HARD LOCK
-  }
-
-  slot.appendChild(makeClipCard(card));
-}
-
-function makeClipCard(card) {
-  const el = document.createElement("div");
-  
-  el.setAttribute("contenteditable", "false");
-
-  const title = (card.title || "Untitled").trim();
-  const href = typeof card.href === "string" ? card.href.trim() : "";
-  const category = (card.category || "").toLowerCase();
-
-if (category === "mat-talk") {
-  el.innerHTML = `
-    <div class="clip-card-body compact mat-talk-card">
-      <div class="clip-card-lines">
-        <div class="clip-line1">
-          ${href
-            ? `<a class="clip-title-link" href="${escapeHtml(href)}">${escapeHtml(title)}</a>`
-            : `<span class="clip-title">${escapeHtml(title)}</span>`}
-        </div>
-      </div>
-    </div>
-  `;
-  return el;
-}
-
-/* 👇 ADD THIS RIGHT HERE 👇 */
-
-const lane = (card.lane || "").toLowerCase().trim();
-
-if (
-
-  ["game", "games", "warmup", "conditioning", "cond"]
-    .includes(category)
-
-  ||
-
-  [
-    "water",
-    "game",
-    "games",
-
-    "warmup",
-    "warmup_body",
-    "warmup_agility",
-
-    "warmup_footwork",
-    "warmup_striking_motion",
-    "warmup_reaction",
-
-    "warmup_transition",
-    "warmup_movement",
-    "warmup_live",
-
-    "cond",
-    "conditioning"
-
-  ].includes(lane)
-
-) {
-  
-const desc = getAutoDesc(card);
-  el.innerHTML = `
-    <div class="clip-card-body compact">
-      <div class="clip-card-lines">
-        <div class="clip-line1">
-          ${href
-            ? `<a class="clip-title-link" href="${escapeHtml(href)}">${escapeHtml(title)}</a>`
-            : `<span class="clip-title">${escapeHtml(title)}</span>`}
-        </div>
-        ${desc ? `<div class="clip-line2">— ${escapeHtml(desc)}</div>` : ""}
-      </div>
-    </div>
-  `;
-  return el;
-}
-
-/* 👇 EXISTING DEFAULT SKILL RENDER STAYS BELOW 👇 */
-
-  const skill = String(card.skill || "").padStart(2, "0");
-  const tier = (card.tier || "").trim().toUpperCase();
-  const cue = typeof card.cue === "string" ? card.cue.trim() : "";
-
-  const cleanTitle = title.replace(/^Skill\s*\d+\s*[—-]\s*/i, "").trim();
-
-  el.innerHTML = `
-    <div class="clip-card-body compact">
-      <div class="clip-card-lines">
-        <div class="clip-line1">
-          ${href
-            ? `<a class="clip-title-link" href="${escapeHtml(href)}">${escapeHtml(cleanTitle)}</a>`
-            : `<span class="clip-title">${escapeHtml(cleanTitle)}</span>`}
-        </div>
-
-        ${(skill || tier) ? `
-          <div class="clip-line2">
-            — Skill ${escapeHtml(skill)} · ${escapeHtml(tier)}
-          </div>
-        ` : ""}
-
-        ${cue ? `
-          <div class="clip-line3">
-            — ${escapeHtml(cue)}
-          </div>
-        ` : ""}
-      </div>
-    </div>
-  `;
-
-  return el;
 }
 
 
@@ -855,25 +655,14 @@ function getSlotUserText(slotId) {
 
   return clone.textContent.trim();
 }
-function dedupeClipboardCards(cards) {
-  const seen = new Set();
-
-  return cards.filter(card => {
-    const id = String(card.id || "").trim().toLowerCase();
-    const lane = String(card.lane || "").trim().toLowerCase();
-
-    const key = `${id}__${lane}`;
-    if (seen.has(key)) return false;
-
-    seen.add(key);
-    return true;
-  });
-}
-
 function renderClipboardList() {
   clearClipboardSlots();
 
-  const allCards = dedupeClipboardCards(getStoredClipboardCards());
+
+
+const allCards = dedupeClipboardCards(
+  getStoredClipboardCards(CLIPBOARD_KEY)
+);
   const bankCards = allCards.filter(card => !card.lane);
 
   const bank = document.getElementById("clipboard-list");
@@ -1416,14 +1205,6 @@ window.endPractice = function endPractice() {
   }
 };
 
-function escapeHtml(value) {
-  return String(value || "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-}
 
 // =========================
 // AUTO GROW NOTES
