@@ -3,10 +3,11 @@ import {
   MATCH_STATUS,
   POSITIONS,
   WIN_METHODS,
-  createInitialMatchState,
   opponentOf,
   topPositionFor,
 } from "./types.js";
+
+import { cloneMatch, endMatch } from "./match.js";
 
 import { folkstyleRules } from "./folkstyle.js";
 import { freestyleRules } from "./freestyle.js";
@@ -30,17 +31,6 @@ export function getRules(style = "folkstyle") {
   return rules;
 }
 
-export function createMatch(options = {}) {
-  const style = options.style || "folkstyle";
-  getRules(style);
-
-  return createInitialMatchState({
-    style,
-    greenName: options.greenName || "Green",
-    redName: options.redName || "Red",
-  });
-}
-
 export function applyEvent(matchState, event) {
   if (!matchState) throw new Error("Missing matchState.");
   if (!event) throw new Error("Missing event.");
@@ -52,7 +42,7 @@ export function applyEvent(matchState, event) {
   const wrestler = event.wrestler;
   const opponent = wrestler ? opponentOf(wrestler) : null;
 
-  let points = resolvePoints(rules, event);
+  const points = resolvePoints(rules, event);
 
   if (wrestler && points > 0) {
     next[wrestler].score += points;
@@ -102,9 +92,6 @@ function updatePosition(match, event, wrestler, opponent) {
 
     case EVENT_TYPES.PIN:
     case EVENT_TYPES.FALL:
-      match.position = POSITIONS.ENDED;
-      break;
-
     case EVENT_TYPES.END_MATCH:
       match.position = POSITIONS.ENDED;
       break;
@@ -116,13 +103,16 @@ function updatePosition(match, event, wrestler, opponent) {
 
 function checkMatchEnd(match, rules, event, wrestler) {
   if (event.type === EVENT_TYPES.PIN || event.type === EVENT_TYPES.FALL) {
-    endMatch(match, wrestler, rules.winMethods.fall || WIN_METHODS.FALL);
+    Object.assign(
+      match,
+      endMatch(match, wrestler, rules.winMethods.fall || WIN_METHODS.FALL)
+    );
     return;
   }
 
   if (event.type === EVENT_TYPES.END_MATCH) {
     const winner = getPointsWinner(match);
-    endMatch(match, winner, WIN_METHODS.POINTS);
+    Object.assign(match, endMatch(match, winner, WIN_METHODS.POINTS));
     return;
   }
 
@@ -131,28 +121,21 @@ function checkMatchEnd(match, rules, event, wrestler) {
 
     if (lead >= rules.techFallLead) {
       const winner = match.green.score > match.red.score ? "green" : "red";
-      endMatch(match, winner, rules.winMethods.tech);
+      Object.assign(match, endMatch(match, winner, rules.winMethods.tech));
       return;
     }
   }
 
   if (rules.pointsToWin) {
     if (match.green.score >= rules.pointsToWin) {
-      endMatch(match, "green", WIN_METHODS.POINTS);
+      Object.assign(match, endMatch(match, "green", WIN_METHODS.POINTS));
       return;
     }
 
     if (match.red.score >= rules.pointsToWin) {
-      endMatch(match, "red", WIN_METHODS.POINTS);
+      Object.assign(match, endMatch(match, "red", WIN_METHODS.POINTS));
     }
   }
-}
-
-function endMatch(match, winner, method) {
-  match.status = MATCH_STATUS.ENDED;
-  match.position = POSITIONS.ENDED;
-  match.winner = winner || null;
-  match.winMethod = method || null;
 }
 
 function getPointsWinner(match) {
@@ -172,10 +155,4 @@ function recordEvent(match, event, points) {
     positionAfter: match.position,
     statusAfter: match.status,
   });
-}
-
-function cloneMatch(matchState) {
-  return structuredClone
-    ? structuredClone(matchState)
-    : JSON.parse(JSON.stringify(matchState));
 }
