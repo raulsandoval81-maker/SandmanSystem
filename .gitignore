@@ -77,3 +77,11 @@ node_modules/
 # secrets
 serviceAccount*.json
 *.key
+
+# macOS
+.DS_Store
+**/.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
