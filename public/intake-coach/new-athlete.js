@@ -268,6 +268,34 @@ form.addEventListener("submit", async (e) => {
         source: "coach_direct",
       },
 
+            lifecycleDefaults: {
+        promotionLocked: true,
+
+        legacy: false,
+        legacyCreditIssued: 0,
+        legacyCreditTotal: 0,
+        legacyCreditSchedule: "",
+        legacyHold: false,
+        legacyNote: "",
+        legacyType: "",
+        legacyYearsVerified: 0,
+
+        testing: {
+          state: "ACTIVE",
+          coachReady: false,
+          coachReadyAt: null,
+          cooldownUntil: null,
+          freezeUntil: null,
+          lastTestResult: null,
+          templeEnteredAt: null,
+          testEligibleAt: null,
+          testingStartedAt: null,
+          tier: "T0",
+          track: placement.trackCode,
+          trackCode: placement.trackCode
+        }
+      },
+
       adjustment: startingXp > 0
         ? {
             amount: startingXp,

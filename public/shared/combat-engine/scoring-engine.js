@@ -8,6 +8,7 @@ import {
 } from "./types.js";
 
 import { cloneMatch, endMatch } from "./match.js";
+import { validateEvent } from "./validator.js";
 
 import { folkstyleRules } from "./folkstyle.js";
 import { freestyleRules } from "./freestyle.js";
@@ -35,6 +36,12 @@ export function applyEvent(matchState, event) {
   if (!matchState) throw new Error("Missing matchState.");
   if (!event) throw new Error("Missing event.");
   if (matchState.status === MATCH_STATUS.ENDED) return matchState;
+
+  const validation = validateEvent(matchState, event);
+
+  if (!validation.valid) {
+    return matchState;
+  }
 
   const rules = getRules(matchState.style);
   const next = cloneMatch(matchState);

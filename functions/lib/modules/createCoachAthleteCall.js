@@ -9,6 +9,51 @@ function pad4(n) {
 function cleanString(v) {
     return String(v || "").trim();
 }
+function buildExperiencePlan(yearsRaw) {
+    const years = Number(yearsRaw || 0);
+    if (years === 1) {
+        return {
+            yearsVerified: 1,
+            total: 200,
+            issuedNow: 200,
+            held: 0,
+            hold: false,
+            schedule: "full_t0",
+            note: "External legacy — 1 year of prior experience verified and honored.",
+        };
+    }
+    if (years === 2) {
+        return {
+            yearsVerified: 2,
+            total: 400,
+            issuedNow: 200,
+            held: 200,
+            hold: true,
+            schedule: "deferred_t1_entry",
+            note: "External legacy — 2 years of prior experience verified and honored.",
+        };
+    }
+    if (years >= 3) {
+        return {
+            yearsVerified: 3,
+            total: 600,
+            issuedNow: 300,
+            held: 300,
+            hold: true,
+            schedule: "deferred_t1_entry",
+            note: "External legacy — 3 years of prior experience verified and honored.",
+        };
+    }
+    return {
+        yearsVerified: 0,
+        total: 0,
+        issuedNow: 0,
+        held: 0,
+        hold: false,
+        schedule: null,
+        note: null,
+    };
+}
 exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
         throw new Error("unauthenticated");
@@ -31,6 +76,13 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
         const athleteRef = db.collection("athletes").doc(uid);
         const isF8 = cleanTrack === "F8";
         const xpAdjustment = Math.max(0, Number(adjustment?.amount || 0));
+        const experienceYears = Number(experience?.years || 0);
+        const expPlan = buildExperiencePlan(experienceYears);
+        const hasLegacy = expPlan.total > 0;
+        const totalXp = xpAdjustment + expPlan.issuedNow;
+        const rankName = isF8 ? "Shadow" : "Apprentice";
+        const trackCode = placement?.trackCode ||
+            (isF8 ? "foundry8-combat" : "foundry4-combat");
         const athleteData = {
             uid,
             athleteId: uid,
@@ -40,9 +92,42 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
             track: cleanTrack,
             program: program || "wrestling",
             tier: "T0",
-            rank: isF8 ? "Shadow" : "Apprentice",
+            rank: rankName,
+            rankName,
+            rankColor: "white",
             stripeCount: 0,
-            xp: xpAdjustment,
+            xp: totalXp,
+            xpCap: isF8 ? 600 : 1000,
+            xpSource: hasLegacy
+                ? "intake+legacy"
+                : xpAdjustment > 0
+                    ? "coach_direct_intake"
+                    : "coach_direct",
+            isCanonical: true,
+            isDev: false,
+            promotionLocked: true,
+            legacy: hasLegacy,
+            legacyType: hasLegacy ? "external" : null,
+            legacyYearsVerified: expPlan.yearsVerified,
+            legacyCreditTotal: expPlan.total,
+            legacyCreditIssued: expPlan.issuedNow,
+            legacyHold: expPlan.hold,
+            legacyCreditSchedule: expPlan.schedule,
+            legacyNote: expPlan.note,
+            testing: {
+                state: "ACTIVE",
+                coachReady: false,
+                coachReadyAt: null,
+                cooldownUntil: null,
+                freezeUntil: null,
+                lastTestResult: null,
+                templeEnteredAt: null,
+                testEligibleAt: null,
+                testingStartedAt: null,
+                tier: "T0",
+                track: trackCode,
+                trackCode,
+            },
             team: team || "",
             grade: grade || "",
             birthYear: birthYear || "",
@@ -75,12 +160,9 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
             adjustment: xpAdjustment > 0
                 ? {
                     amount: xpAdjustment,
-                    note: adjustment?.note ||
-                        "Paper pilot / late onboarding XP",
-                    kind: adjustment?.kind ||
-                        "PAPER_RECONCILE_GRIND",
-                    source: adjustment?.source ||
-                        "coach_direct_intake",
+                    note: adjustment?.note || "Paper pilot / late onboarding XP",
+                    kind: adjustment?.kind || "PAPER_RECONCILE_GRIND",
+                    source: adjustment?.source || "coach_direct_intake",
                     createdAt: firestore_1.FieldValue.serverTimestamp(),
                 }
                 : null,
@@ -102,8 +184,18 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
                 amount: xpAdjustment,
                 kind: "PAPER_RECONCILE_GRIND",
                 source: "coach_direct_intake",
-                note: adjustment?.note ||
-                    "Paper pilot / late onboarding XP",
+                note: adjustment?.note || "Paper pilot / late onboarding XP",
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+            });
+        }
+        if (expPlan.issuedNow > 0) {
+            const legacyLogRef = athleteRef.collection("logs").doc();
+            tx.set(legacyLogRef, {
+                athleteUid: uid,
+                amount: expPlan.issuedNow,
+                kind: "LEGACY_CREDIT",
+                source: "coach_direct_intake",
+                note: expPlan.note,
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
             });
         }
