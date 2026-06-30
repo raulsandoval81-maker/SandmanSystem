@@ -3,25 +3,26 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Message Coach | Sandman Combat™</title>
-  <link rel="icon" href="/favicon.ico" />
 
+  <title>Message Coach | Sandman Combat™</title>
+
+  <link rel="icon" href="/favicon.ico" />
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
 
-<style>
-  .hero h1{
-    margin-bottom:.5rem;
-  }
+  <style>
+    .hero h1{
+      margin-bottom:.5rem;
+    }
 
-  .hero-sub{
-    margin:0;
-  }
+    .hero-sub{
+      margin:0;
+    }
 
-  .hero-tag{
-    margin-top:.75rem;
-  }
-</style>
+    .hero-tag{
+      margin-top:.75rem;
+    }
+  </style>
 </head>
 
 <body>
@@ -59,111 +60,162 @@
       </a>
     </nav>
   </header>
+<main class="wrap">
 
-  <main class="wrap">
-    <section class="section">
-      <div class="hero">
-        <div data-lang-block="en">
-          <div class="hero-kicker">Message Coach</div>
-          <h1>Ask a Question</h1>
-          <p class="hero-sub">Sandman Combat™</p>
-          <p class="hero-tag">
-            Send a message directly to Coach.
-          </p>
-          <p class="hero-tag">
-            For joining the program, use the Join page. This form is for questions only.
-          </p>
-        </div>
+  <section class="section">
+    <div class="hero">
 
-        <div data-lang-block="es" class="hidden-lang">
-          <div class="hero-kicker">Mensaje a Coach</div>
-          <h1>Haz una pregunta</h1>
-          <p class="hero-sub">Sandman Combat™</p>
-          <p class="hero-tag">
-            Envía un mensaje directamente a Coach.
-          </p>
-          <p class="hero-tag">
-            Para unirte al programa, usa la página de Unirse. Este formulario es solo para preguntas.
-          </p>
-        </div>
+      <div data-lang-block="en">
+        <div class="hero-kicker">Contact</div>
+
+        <h1>Questions? We're Here to Help.</h1>
+
+        <p class="hero-sub">
+          Whether you're interested in our programs, have questions about scheduling, or simply want to learn more, we'd love to hear from you.
+        </p>
+
+        <p class="hero-tag">
+          Ready to begin training? Visit our <strong>Join</strong> page to request an assessment or trial.
+        </p>
       </div>
-    </section>
 
-    <section class="section">
-      <article class="panel">
+      <div data-lang-block="es" class="hidden-lang">
+        <div class="hero-kicker">Contacto</div>
+
+        <h1>¿Tienes preguntas? Estamos aquí para ayudarte.</h1>
+
+        <p class="hero-sub">
+          Ya sea que quieras conocer nuestros programas, tengas preguntas sobre horarios o simplemente desees obtener más información, estaremos encantados de ayudarte.
+        </p>
+
+        <p class="hero-tag">
+          ¿Listo para comenzar? Visita nuestra página de <strong>Unirse</strong> para solicitar una evaluación o una prueba.
+        </p>
+      </div>
+
+    </div>
+  </section>
+
+  <section class="section">
+
+    <article class="panel">
+
+      <div data-lang-block="en">
+        <span class="pill-tag">General Questions</span>
+
+        <h2 class="panel-title">Ask Coach</h2>
+
+        <p class="panel-sub">
+          Send us your question below. We'll review your message and get back to you as soon as possible.
+        </p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <span class="pill-tag">Preguntas Generales</span>
+
+        <h2 class="panel-title">Pregunta al Coach</h2>
+
+        <p class="panel-sub">
+          Escríbenos tu pregunta. Revisaremos tu mensaje y responderemos lo antes posible.
+        </p>
+      </div>
+
+      <form id="msgForm" novalidate>
+
+        <div class="grid">
+
+          <div class="col-6">
+            <label for="name">
+              <span data-lang-block="en">Your Name</span>
+              <span data-lang-block="es" class="hidden-lang">Tu nombre</span>
+            </label>
+
+            <input
+              id="name"
+              type="text"
+              autocomplete="name"
+              required
+            />
+          </div>
+
+          <div class="col-6">
+            <label for="email">
+              <span data-lang-block="en">Email Address</span>
+              <span data-lang-block="es" class="hidden-lang">Correo electrónico</span>
+            </label>
+
+            <input
+              id="email"
+              type="email"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="col-12">
+            <label for="body">
+              <span data-lang-block="en">How can we help?</span>
+              <span data-lang-block="es" class="hidden-lang">¿Cómo podemos ayudarte?</span>
+            </label>
+
+            <textarea
+              id="body"
+              required
+            ></textarea>
+          </div>
+
+        </div>
+
+        <div class="row-actions">
+
+          <button
+            class="btn btn-primary"
+            type="submit"
+            id="btnSend"
+          >
+            <span data-lang-block="en">Send Message</span>
+            <span data-lang-block="es" class="hidden-lang">Enviar mensaje</span>
+          </button>
+
+          <a
+            class="btn btn-ghost"
+            href="contact.html"
+          >
+            <span data-lang-block="en">Back to Contact</span>
+            <span data-lang-block="es" class="hidden-lang">Volver a Contacto</span>
+          </a>
+
+        </div>
+
+        <div id="statusBox" class="status"></div>
+
+      </form>
+
+      <div class="info-note">
+
         <div data-lang-block="en">
-          <span class="pill-tag">Public Message</span>
-          <h2 class="panel-title">Send a Question</h2>
-          <p class="panel-sub">
-            Keep it simple. Coach will review your message and reply when appropriate.
+          <strong>Need to join the academy?</strong>
+
+          <p>
+            This form is for general questions. If you're ready to begin your journey with Sandman Combat™, please visit the <strong>Join</strong> page to request an assessment or trial.
           </p>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
-          <span class="pill-tag">Mensaje público</span>
-          <h2 class="panel-title">Enviar una pregunta</h2>
-          <p class="panel-sub">
-            Mantenlo simple. Coach revisará tu mensaje y responderá cuando corresponda.
+          <strong>¿Quieres unirte a la academia?</strong>
+
+          <p>
+            Este formulario es para preguntas generales. Si estás listo para comenzar tu camino con Sandman Combat™, visita la página de <strong>Unirse</strong> para solicitar una evaluación o una prueba.
           </p>
         </div>
 
-        <form id="msgForm" novalidate>
-          <div class="grid">
-            <div class="col-6">
-              <label for="name">
-                <span data-lang-block="en">Name</span>
-                <span data-lang-block="es" class="hidden-lang">Nombre</span>
-              </label>
-              <input id="name" type="text" autocomplete="name" required />
-            </div>
+      </div>
 
-            <div class="col-6">
-              <label for="email">
-                <span data-lang-block="en">Email</span>
-                <span data-lang-block="es" class="hidden-lang">Correo</span>
-              </label>
-              <input id="email" type="email" autocomplete="email" required />
-            </div>
+    </article>
 
-            <div class="col-12">
-              <label for="body">
-                <span data-lang-block="en">Message</span>
-                <span data-lang-block="es" class="hidden-lang">Mensaje</span>
-              </label>
-              <textarea id="body" required></textarea>
-            </div>
-          </div>
+  </section>
 
-          <div class="row-actions">
-            <button class="btn btn-primary" type="submit" id="btnSend">
-              <span data-lang-block="en">Send Message</span>
-              <span data-lang-block="es" class="hidden-lang">Enviar mensaje</span>
-
-            </button>
-
-            <a class="btn btn-ghost" href="contact.html">
-              <span data-lang-block="en">Back</span>
-              <span data-lang-block="es" class="hidden-lang">Volver</span>
-            </a>
-          </div>
-
-          <div id="statusBox" class="status"></div>
-        </form>
-
-        <div class="info-note">
-          <div data-lang-block="en">
-            <strong>Note:</strong>
-            This page sends a question to Coach for review. It does not create an athlete account or start formal onboarding.
-          </div>
-
-          <div data-lang-block="es" class="hidden-lang">
-            <strong>Nota:</strong>
-            Esta página envía una pregunta a Coach para revisión. No crea una cuenta de atleta ni inicia la incorporación formal.
-          </div>
-        </div>
-      </article>
-    </section>
-  </main>
+</main>
 
   <script type="module">
     import {
@@ -177,13 +229,13 @@
 
     const $ = (id) => document.getElementById(id);
 
-    function esc(s=""){
+    function esc(s = ""){
       return String(s)
-        .replaceAll("&","&amp;")
-        .replaceAll("<","&lt;")
-        .replaceAll(">","&gt;")
-        .replaceAll('"',"&quot;")
-        .replaceAll("'","&#39;");
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
     }
 
     function showStatus(html){
@@ -211,6 +263,7 @@
 
       const btn = $("btnSend");
       const originalBtnHtml = btn.innerHTML;
+
       btn.disabled = true;
       btn.textContent = currentLang === "es" ? "Enviando..." : "Sending...";
 
@@ -219,8 +272,8 @@
 
         await setDoc(threadRef, {
           category: "message",
-          intent: "question", // 🔥 ADD THIS
-          academy: "lompoc",  // 🔥 ADD THIS (match join)
+          intent: "question",
+          academy: "lompoc",
           subject: "Public Message",
           parentName: name,
           parentEmail: email,
@@ -251,6 +304,7 @@
         $("msgForm").reset();
       } catch (err) {
         console.error("[message] submit failed:", err);
+
         showStatus(
           currentLang === "es"
             ? `<strong>Error.</strong> ${esc(err?.message || "No se pudo enviar el mensaje.")}`

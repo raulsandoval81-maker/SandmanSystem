@@ -3,62 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+
   <title>Home | Sandman Combat™</title>
 
   <link rel="stylesheet" href="assets/css/site.css" />
   <link rel="stylesheet" href="public.css" />
   <script src="assets/js/public-shell.js" defer></script>
 
+  <style>
+    .hero{
+      text-align:center;
+      margin-bottom:2rem;
+    }
 
+    .hq-sub{
+      margin:0 0 .75rem;
+      font-size:.98rem;
+      font-weight:700;
+      color:#f3f4f6;
+      opacity:.95;
+    }
+
+    body.day-mode .hq-sub{
+      color:#1c2430;
+    }
+
+    .section-kicker{
+      font-size:.95rem;
+      font-weight:700;
+      color:#fff;
+      text-transform:uppercase;
+      margin:.25rem 0 1rem;
+      letter-spacing:1px;
+      opacity:.9;
+    }
+
+    body.day-mode .section-kicker{
+      color:#1c2430;
+    }
+
+    .hero-sub{
+      max-width:700px;
+      margin:1rem auto 0;
+    }
+
+    .sandman-crest{
+      width:100%;
+      max-width:280px;
+      height:auto;
+      margin:20px auto 10px;
+    }
+
+    .hero .btn{
+      margin-top:1.25rem;
+    }
+  </style>
 </head>
-<style>
-  .hero{
-    text-align:center;
-    margin-bottom:2rem;
-  }
 
-  .hq-sub{
-    margin:0 0 .75rem;
-    font-size:.98rem;
-    font-weight:700;
-    color:#f3f4f6;
-    opacity:.95;
-  }
-
-  body.day-mode .hq-sub{
-    color:#1c2430;
-  }
-
-  .section-kicker{
-    font-size:.95rem;
-    font-weight:700;
-    color:#fff;
-    text-transform:uppercase;
-    margin:.25rem 0 1rem;
-    letter-spacing:1px;
-    opacity:.9;
-  }
-
-  body.day-mode .section-kicker{
-    color:#1c2430;
-  }
-
-  .hero-sub{
-    max-width:700px;
-    margin:1rem auto 0;
-  }
-
-  .sandman-crest{
-    width:100%;
-    max-width:280px;
-    height:auto;
-    margin:20px auto 10px;
-  }
-
-  .hero .btn{
-    margin-top:1.25rem;
-  }
-</style>
 <body>
   <header class="top-nav">
     <div class="nav-top">
@@ -67,7 +68,7 @@
         <button type="button" class="lang-btn" data-lang="es">ES</button>
       </div>
 
-      <a href="index.html" class="nav-logo">Sandman Combat™</a>
+      <a href="index.html" class="nav-logo">Sandman</a>
 
       <button type="button" class="theme-toggle" aria-label="Toggle theme">☾</button>
     </div>
@@ -97,12 +98,17 @@
 
   <main class="wrap">
     <section class="hero hero-panel">
+
       <div data-lang-block="en">
-        <p class="hq-sub">Structure matters. Discipline earns everything.</p>
+        <p class="hq-sub">
+          Everyone Starts at Zero. Every Step is Earned.
+        </p>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <p class="hq-sub">La estructura importa. La disciplina lo gana todo.</p>
+        <p class="hq-sub">
+          Todos Comienzan Desde Cero. Cada Paso Se Gana.
+        </p>
       </div>
 
       <img
@@ -112,35 +118,34 @@
       />
 
       <div data-lang-block="en">
-        <div class="section-kicker"></div>
-          Stronger · Faster · Smarter
+        <div class="section-kicker">
+          Stronger · Faster · Smarter · Together
         </div>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <div class="section-kicker"></div>
-          Más fuerte · Más rápido · Más inteligente
+        <div class="section-kicker">
+          Más Fuertes · Más Rápidos · Más Inteligentes · Juntos
         </div>
       </div>
 
-<div data-lang-block="en">
-  <p class="hero-sub">
-    Wrestling-first training for youth and teen athletes, built on discipline, earned growth, and clear standards. Rooted in wrestling. Built for life.
-  </p>
-</div>
-
-<div data-lang-block="es" class="hidden-lang">
-  <p class="hero-sub">
-    Entrenamiento enfocado en la lucha para jóvenes y adolescentes, basado en disciplina, progreso ganado y estándares claros. Basado en la lucha. Formado para la vida.
-  </p>
-</div>
-
-        <a class="btn btn-secondary" href="join.html">
-          <span data-lang-block="en">Join the Academy</span>
-          <span data-lang-block="es" class="hidden-lang">Únete a la Academia</span>
-        </a>
-
+      <div data-lang-block="en">
+        <p class="hero-sub">
+          Wrestling-first training for youth and teen athletes, supported by boxing, fitness, and self-defense programs for every stage of growth.
+        </p>
       </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <p class="hero-sub">
+          Entrenamiento enfocado primero en la lucha para jóvenes y adolescentes, con programas de boxeo, acondicionamiento físico y defensa personal para cada etapa de crecimiento.
+        </p>
+      </div>
+
+      <a class="btn btn-secondary" href="join.html">
+        <span data-lang-block="en">Join the Academy</span>
+        <span data-lang-block="es" class="hidden-lang">Únete a la Academia</span>
+      </a>
+
     </section>
   </main>
 </body>
