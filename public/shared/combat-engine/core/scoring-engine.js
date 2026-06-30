@@ -5,15 +5,15 @@ import {
   WIN_METHODS,
   opponentOf,
   topPositionFor,
-} from "./types.js";
+} from "../types.js";
 
 import { cloneMatch, endMatch } from "./match.js";
 import { validateEvent } from "./validator.js";
 
-import { folkstyleRules } from "./folkstyle.js";
-import { freestyleRules } from "./freestyle.js";
-import { grecoRules } from "./greco.js";
-import { beachRules } from "./beach.js";
+import { folkstyleRules } from "../rules/folkstyle.js";
+import { freestyleRules } from "../rules/freestyle.js";
+import { grecoRules } from "../rules/greco.js";
+import { beachRules } from "../rules/beach.js";
 
 export const wrestlingRuleSets = Object.freeze({
   folkstyle: folkstyleRules,

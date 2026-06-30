@@ -2,7 +2,7 @@ import {
   MATCH_STATUS,
   POSITIONS,
   createInitialMatchState,
-} from "./types.js";
+} from "../types.js";
 
 export function createMatch(options = {}) {
   return createInitialMatchState({

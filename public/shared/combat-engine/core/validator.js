@@ -9,7 +9,7 @@ import {
   EVENT_TYPES,
   POSITIONS,
   MATCH_STATUS,
-} from "./types.js";
+} from "../types.js";
 
 export function validateEvent(match, event) {
   const errors = [];

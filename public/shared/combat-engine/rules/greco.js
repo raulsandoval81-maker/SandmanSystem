@@ -1,4 +1,4 @@
-import { EVENT_TYPES, WIN_METHODS } from "./types.js";
+import { EVENT_TYPES, WIN_METHODS } from "../types.js";
 
 export const grecoRules = Object.freeze({
   id: "greco",
