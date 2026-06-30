@@ -4,318 +4,228 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <title>Foundry 8 | Sandman System</title>
+  <title>Foundry 8 | Sandman Combat™</title>
 
   <link rel="stylesheet" href="../assets/css/site.css" />
   <link rel="stylesheet" href="../public.css" />
-
   <script src="../assets/js/public-shell.js" defer></script>
-<style>
-  *{
-    box-sizing:border-box;
-  }
 
-  body{
-    background:var(--bg);
-    color:var(--text);
-  }
+  <style>
+    *{ box-sizing:border-box; }
 
-  main{
-    max-width:980px;
-    margin:0 auto;
-    padding:40px 20px 80px;
-  }
-
-  .hero{
-    background:
-      linear-gradient(
-        to bottom,
-        #1f2937,
-        #111827
-      );
-
-    border:1px solid #263244;
-
-    border-radius:24px;
-
-    padding:48px 30px;
-
-    margin-bottom:28px;
-
-    box-shadow:0 20px 40px rgba(0,0,0,.35);
-  }
-
-  body.day-mode .hero{
-    background:
-      linear-gradient(
-        to bottom,
-        #ffffff,
-        #f3e7cf
-      );
-
-    border:1px solid #d7c7a2;
-
-    box-shadow:0 10px 24px rgba(0,0,0,.10);
-  }
-
-  .eyebrow{
-    color:var(--heading-accent);
-
-    text-transform:uppercase;
-    letter-spacing:.16em;
-
-    font-size:.78rem;
-    font-weight:800;
-
-    margin-bottom:10px;
-  }
-
-  h1{
-    margin:0 0 14px;
-
-    font-size:clamp(2.5rem,5vw,4.5rem);
-
-    line-height:1;
-
-    color:var(--heading);
-  }
-
-  .hero p{
-    max-width:720px;
-
-    color:var(--hero-muted);
-
-    line-height:1.75;
-
-    font-size:1.05rem;
-  }
-
-  .grid{
-    display:grid;
-
-    grid-template-columns:
-      repeat(auto-fit,minmax(260px,1fr));
-
-    gap:18px;
-
-    margin-top:28px;
-  }
-
-  .card{
-    display:block;
-
-    text-decoration:none;
-
-    background:var(--panel);
-
-    border:1px solid var(--line);
-
-    border-radius:18px;
-
-    padding:22px;
-
-    transition:
-      transform .18s ease,
-      border-color .18s ease,
-      box-shadow .18s ease;
-  }
-
-  body.day-mode .card{
-    background:#ffffff;
-
-    border:1px solid #d7c7a2;
-
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-  }
-
-  .card:hover{
-    transform:translateY(-2px);
-
-    border-color:#ff2a2a;
-
-    box-shadow:0 0 18px rgba(255,42,42,.22);
-  }
-
-  .card h2{
-    margin:0 0 10px;
-
-    color:var(--heading-accent);
-  }
-
-  body.day-mode .card h2{
-    color:var(--heading);
-  }
-
-  .card p{
-    margin:0;
-
-    color:var(--muted);
-
-    line-height:1.65;
-  }
-
-  .hidden-lang{
-    display:none !important;
-  }
-
-  @media (max-width:640px){
+    body{
+      background:var(--bg);
+      color:var(--text);
+    }
 
     main{
-      padding:28px 14px 70px;
+      max-width:980px;
+      margin:0 auto;
+      padding:40px 20px 80px;
     }
 
     .hero{
-      padding:36px 22px;
+      background:linear-gradient(to bottom,#1f2937,#111827);
+      border:1px solid #263244;
+      border-radius:24px;
+      padding:48px 30px;
+      margin-bottom:28px;
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+
+    body.day-mode .hero{
+      background:linear-gradient(to bottom,#ffffff,#f3e7cf);
+      border:1px solid #d7c7a2;
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .eyebrow{
+      color:var(--heading-accent);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-size:.78rem;
+      font-weight:800;
+      margin-bottom:10px;
     }
 
     h1{
-      font-size:2.5rem;
+      margin:0 0 14px;
+      font-size:clamp(2.5rem,5vw,4.5rem);
+      line-height:1;
+      color:var(--heading);
     }
-  }
-</style>
+
+    .hero p{
+      max-width:720px;
+      color:var(--hero-muted);
+      line-height:1.75;
+      font-size:1.05rem;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      display:block;
+      text-decoration:none;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:22px;
+      transition:transform .18s ease, border-color .18s ease, box-shadow .18s ease;
+    }
+
+    body.day-mode .card{
+      background:#ffffff;
+      border:1px solid #d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .card:hover{
+      transform:translateY(-2px);
+      border-color:#ff2a2a;
+      box-shadow:0 0 18px rgba(255,42,42,.22);
+    }
+
+    .card h2{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+    }
+
+    body.day-mode .card h2{
+      color:var(--heading);
+    }
+
+    .card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    @media (max-width:640px){
+      main{
+        padding:28px 14px 70px;
+      }
+
+      .hero{
+        padding:36px 22px;
+      }
+
+      h1{
+        font-size:2.5rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
 
-<header class="top-nav">
-
-  <div class="nav-top">
-
-    <div class="lang-toggle" role="group" aria-label="Language toggle">
-      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
-      <button type="button" class="lang-btn" data-lang="es">ES</button>
+  <header class="top-nav top-nav-simple">
+    <div class="nav-top nav-top-center">
+      <a href="../index.html" class="nav-logo">Sandman Combat™</a>
     </div>
 
-    <a href="../index.html" class="nav-logo">
-      Sandman Combat™
-    </a>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="../index.html">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
+      <a href="../overview.html">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
+      <a href="../programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
+      <a href="../about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
 
-    <button type="button" class="theme-toggle" aria-label="Toggle theme">
-      ☾
-    </button>
+  <main>
 
-  </div>
-
-  <nav class="site-nav" aria-label="Primary">
-
-    <a href="../index.html">
-      <span data-lang-block="en">Home</span>
-      <span data-lang-block="es" class="hidden-lang">Inicio</span>
-    </a>
-
-    <a href="../overview.html">
-      <span data-lang-block="en">Overview</span>
-      <span data-lang-block="es" class="hidden-lang">Resumen</span>
-    </a>
-
-    <a href="../programs.html">
-      <span data-lang-block="en">Programs</span>
-      <span data-lang-block="es" class="hidden-lang">Programas</span>
-    </a>
-
-    <a href="../about.html">
-      <span data-lang-block="en">About</span>
-      <span data-lang-block="es" class="hidden-lang">Acerca</span>
-    </a>
-
-  </nav>
-
-</header>
-
-<main>
-
-  <section class="hero">
-
-    <div data-lang-block="en">
-
-      <div class="eyebrow">Foundry 8</div>
-
-      <h1>Foundry 8 Youth</h1>
-
-      <p>
-        The youth progression phase of the Sandman System.
-        Wrestling-first development focused on structure,
-        discipline, confidence, accountability, and earned growth.
-      </p>
-
-    </div>
-
-    <div data-lang-block="es" class="hidden-lang">
-
-      <div class="eyebrow">Foundry 8</div>
-
-      <h1>Foundry 8 Juventud</h1>
-
-      <p>
-        La fase juvenil de progresión dentro del Sandman System.
-        Desarrollo basado primero en lucha enfocado en estructura,
-        disciplina, confianza, responsabilidad y crecimiento ganado.
-      </p>
-
-    </div>
-
-  </section>
-
-  <section class="grid">
-
-    <a class="card" href="/foundry8/youth.html">
-
+    <section class="hero">
       <div data-lang-block="en">
+        <div class="eyebrow">Foundry 8 · Zero2Hero</div>
 
-        <h2>Youth Journey</h2>
+        <h1>Youth Wrestling</h1>
 
         <p>
-          Learn about the Night to Day Journey,
-          wrestling-first development,
-          and how young athletes grow inside Foundry 8.
+          Foundry 8 is the youth foundation of Sandman Combat™. It gives young athletes a clear starting point, a structured path forward, and a training environment built around confidence, discipline, accountability, and earned growth.
         </p>
 
+        <p>
+          Every athlete starts at zero. Every step is earned.
+        </p>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
+        <div class="eyebrow">Foundry 8 · Zero2Hero</div>
 
-        <h2>Viaje Juvenil</h2>
+        <h1>Lucha Juvenil</h1>
 
         <p>
-          Aprende sobre el Viaje de la Noche al Día,
-          el desarrollo basado primero en lucha
-          y cómo los jóvenes atletas crecen dentro de Foundry 8.
+          Foundry 8 es la base juvenil de Sandman Combat™. Ofrece a los jóvenes atletas un punto de inicio claro, un camino estructurado y un ambiente de entrenamiento basado en confianza, disciplina, responsabilidad y crecimiento ganado.
         </p>
 
+        <p>
+          Todos comienzan desde cero. Cada paso se gana.
+        </p>
       </div>
+    </section>
 
-    </a>
+    <section class="grid">
 
-    <a class="card" href="./ceremonies.html">
+      <a class="card" href="/foundry8/youth.html">
+        <div data-lang-block="en">
+          <h2>Youth Journey</h2>
 
-      <div data-lang-block="en">
+          <p>
+            Learn how young athletes begin the Zero2Hero journey through wrestling-first development, structured coaching, and age-appropriate challenges.
+          </p>
+        </div>
 
-        <h2>Ceremonies</h2>
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Camino Juvenil</h2>
 
-<p>
-  Understand progression, testing,
-  promotion, recognition,
-  and how ceremonies work inside Foundry 8.
-</p>
-      </div>
+          <p>
+            Conoce cómo los jóvenes atletas comienzan el camino Zero2Hero mediante desarrollo basado primero en lucha, entrenamiento estructurado y desafíos apropiados para su edad.
+          </p>
+        </div>
+      </a>
 
-      <div data-lang-block="es" class="hidden-lang">
+      <a class="card" href="./ceremonies.html">
+        <div data-lang-block="en">
+          <h2>Ceremonies</h2>
 
-        <h2>Ceremonias</h2>
+          <p>
+            Understand how progress, testing, promotion, recognition, and earned ceremonies work inside Foundry 8.
+          </p>
+        </div>
 
-<p>
-  Comprende la progresión, evaluaciones,
-  promociones, reconocimiento
-  y cómo funcionan las ceremonias dentro de Foundry 8.
-</p>
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Ceremonias</h2>
 
-      </div>
+          <p>
+            Comprende cómo funcionan el progreso, las evaluaciones, las promociones, el reconocimiento y las ceremonias ganadas dentro de Foundry 8.
+          </p>
+        </div>
+      </a>
 
-    </a>
+    </section>
 
-  </section>
-
-</main>
+  </main>
 
 </body>
 </html>

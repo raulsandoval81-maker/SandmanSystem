@@ -11,290 +11,294 @@
 
   <script src="../assets/js/public-shell.js" defer></script>
 
-<style>
-  *{ box-sizing:border-box; }
+  <style>
+    *{ box-sizing:border-box; }
 
-  body{
-    background:var(--bg);
-    color:var(--text);
-  }
+    body{
+      background:var(--bg);
+      color:var(--text);
+    }
 
-  main{
-    max-width:1050px;
-    margin:0 auto;
-    padding:40px 20px 80px;
-  }
+    main{
+      max-width:1050px;
+      margin:0 auto;
+      padding:40px 20px 80px;
+    }
 
-  .hero{
-    background:linear-gradient(to bottom,#1f2937,#111827);
-    border:1px solid #263244;
-    border-radius:24px;
-    padding:48px 30px;
-    box-shadow:0 20px 40px rgba(0,0,0,.35);
-    margin-bottom:28px;
-  }
+    .hero{
+      background:linear-gradient(to bottom,#1f2937,#111827);
+      border:1px solid #263244;
+      border-radius:24px;
+      padding:48px 30px;
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+      margin-bottom:28px;
+    }
 
-  body.day-mode .hero{
-    background:linear-gradient(to bottom,#ffffff,#f3e7cf);
-    border:1px solid #d7c7a2;
-    box-shadow:0 10px 24px rgba(0,0,0,.10);
-  }
+    body.day-mode .hero{
+      background:linear-gradient(to bottom,#ffffff,#f3e7cf);
+      border:1px solid #d7c7a2;
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
 
-  .eyebrow{
-    color:var(--heading-accent);
-    text-transform:uppercase;
-    letter-spacing:.16em;
-    font-size:.78rem;
-    font-weight:800;
-    margin-bottom:10px;
-  }
+    .eyebrow{
+      color:var(--heading-accent);
+      text-transform:uppercase;
+      letter-spacing:.16em;
+      font-size:.78rem;
+      font-weight:800;
+      margin-bottom:10px;
+    }
 
-  h1{
-    margin:0 0 14px;
-    font-size:clamp(2.5rem,5vw,4.5rem);
-    line-height:1;
-    color:var(--heading);
-  }
+    h1{
+      margin:0 0 14px;
+      font-size:clamp(2.5rem,5vw,4.5rem);
+      line-height:1;
+      color:var(--heading);
+    }
 
-  .journey{
-    color:var(--heading-accent);
-    font-size:1.1rem;
-    font-weight:800;
-    margin-bottom:20px;
-  }
+    .journey{
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:800;
+      margin-bottom:20px;
+    }
 
-  .lead{
-    max-width:780px;
-    color:var(--hero-muted);
-    line-height:1.75;
-    font-size:1.05rem;
-  }
+    .lead{
+      max-width:780px;
+      color:var(--hero-muted);
+      line-height:1.75;
+      font-size:1.05rem;
+    }
 
-  .disciplines{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:16px;
-    margin-top:30px;
-    max-width:520px;
-  }
+    .disciplines{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:16px;
+      margin-top:30px;
+      max-width:260px;
+    }
 
-  .tag{
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    min-height:58px;
-    background:linear-gradient(180deg,#1c2735,#131c27);
-    border:1px solid #314154;
-    color:#ffe98a;
-    border-radius:18px;
-    padding:14px 18px;
-    text-align:center;
-    font-size:1rem;
-    font-weight:800;
-    box-shadow:0 4px 12px rgba(0,0,0,.25);
-    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
-  }
+    .tag{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      min-height:58px;
+      background:linear-gradient(180deg,#1c2735,#131c27);
+      border:1px solid #314154;
+      color:#ffe98a;
+      border-radius:18px;
+      padding:14px 18px;
+      text-align:center;
+      font-size:1rem;
+      font-weight:800;
+      box-shadow:0 4px 12px rgba(0,0,0,.25);
+      transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    }
 
-  .tag:hover{
-    transform:translateY(-2px);
-    border-color:#ff2a2a;
-    box-shadow:0 0 18px rgba(255,42,42,.22);
-  }
+    .tag:hover{
+      transform:translateY(-2px);
+      border-color:#ff2a2a;
+      box-shadow:0 0 18px rgba(255,42,42,.22);
+    }
 
-  body.day-mode .tag{
-    background:#ffffff;
-    border:1px solid #d7c7a2;
-    color:#7c4a03;
-    box-shadow:0 6px 16px rgba(0,0,0,.08);
-  }
+    body.day-mode .tag{
+      background:#ffffff;
+      border:1px solid #d7c7a2;
+      color:#7c4a03;
+      box-shadow:0 6px 16px rgba(0,0,0,.08);
+    }
 
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:18px;
-    margin-top:28px;
-  }
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
 
-  .card{
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:18px;
-    padding:20px;
-    transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
-  }
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:20px;
+      transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+    }
 
-  body.day-mode .card{
-    background:#ffffff;
-    border:1px solid #d7c7a2;
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-  }
+    body.day-mode .card{
+      background:#ffffff;
+      border:1px solid #d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
 
-  .card:hover{
-    transform:translateY(-2px);
-    border-color:#ff2a2a;
-    box-shadow:0 0 18px rgba(255,42,42,.22);
-  }
+    .card:hover{
+      transform:translateY(-2px);
+      border-color:#ff2a2a;
+      box-shadow:0 0 18px rgba(255,42,42,.22);
+    }
 
-  .card h3{
-    color:var(--heading-accent);
-    margin:0 0 10px;
-  }
+    .card h3{
+      color:var(--heading-accent);
+      margin:0 0 10px;
+    }
 
-  body.day-mode .card h3{
-    color:var(--heading);
-  }
+    body.day-mode .card h3{
+      color:var(--heading);
+    }
 
-  .card p,
-  .card li{
-    color:var(--muted);
-    line-height:1.65;
-  }
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
 
-  ul{
-    padding-left:18px;
-    margin:0;
-  }
+    ul{
+      padding-left:18px;
+      margin:0;
+    }
 
-  .quote{
-    margin-top:30px;
-    padding:24px;
-    border-left:4px solid var(--heading-accent);
-    background:var(--panel);
-    border-radius:16px;
-    color:var(--text);
-    line-height:1.8;
-    font-size:1.04rem;
-    border:1px solid var(--line);
-  }
+    .quote{
+      margin-top:30px;
+      padding:24px;
+      border-left:4px solid var(--heading-accent);
+      background:var(--panel);
+      border-radius:16px;
+      color:var(--text);
+      line-height:1.8;
+      font-size:1.04rem;
+      border:1px solid var(--line);
+    }
 
-  body.day-mode .quote{
-    background:#ffffff;
-    border-color:#d7c7a2;
-  }
+    body.day-mode .quote{
+      background:#ffffff;
+      border-color:#d7c7a2;
+    }
 
-  .hidden-lang{
-    display:none !important;
-  }
+    .actions{
+      margin-top:24px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:.75rem;
+    }
 
-  @media (max-width:640px){
-    main{ padding:28px 14px 70px; }
-    .hero{ padding:36px 22px; }
-    h1{ font-size:2.5rem; }
-    .disciplines{ grid-template-columns:1fr; }
-  }
-</style>
+    .hidden-lang{
+      display:none !important;
+    }
+
+    @media (max-width:640px){
+      main{ padding:28px 14px 70px; }
+      .hero{ padding:36px 22px; }
+      h1{ font-size:2.5rem; }
+      .disciplines{ grid-template-columns:1fr; max-width:100%; }
+    }
+  </style>
 </head>
 
 <body>
 
-<header class="top-nav">
-  <div class="nav-top">
-    <div class="lang-toggle" role="group" aria-label="Language toggle">
-      <button type="button" class="lang-btn is-active" data-lang="en">EN</button>
-      <button type="button" class="lang-btn" data-lang="es">ES</button>
+<header class="top-nav top-nav-simple">
+    <div class="nav-top nav-top-center">
+      <a href="../index.html" class="nav-logo">Sandman Combat™</a>
     </div>
 
-    <a href="../index.html" class="nav-logo">Sandman Combat™</a>
-
-    <button type="button" class="theme-toggle" aria-label="Toggle theme">☾</button>
-  </div>
-
-  <nav class="site-nav" aria-label="Primary">
-    <a href="../index.html">
-      <span data-lang-block="en">Home</span>
-      <span data-lang-block="es" class="hidden-lang">Inicio</span>
-    </a>
-
-    <a href="../overview.html">
-      <span data-lang-block="en">Overview</span>
-      <span data-lang-block="es" class="hidden-lang">Resumen</span>
-    </a>
-
-    <a href="../programs.html">
-      <span data-lang-block="en">Programs</span>
-      <span data-lang-block="es" class="hidden-lang">Programas</span>
-    </a>
-
-    <a href="../about.html">
-      <span data-lang-block="en">About</span>
-      <span data-lang-block="es" class="hidden-lang">Acerca</span>
-    </a>
-  </nav>
-</header>
+    <nav class="site-nav" aria-label="Primary">
+      <a href="../index.html">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
+      <a href="../overview.html">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
+      <a href="../programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
+      <a href="../about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
 
 <main>
 
   <section class="hero">
-
     <div data-lang-block="en">
-      <div class="eyebrow">Foundry 4 Teen</div>
+      <div class="eyebrow">Foundry 4 · Path2Legend</div>
 
-      <h1>Path2Legend</h1>
+      <h1>Teen Wrestling Progression</h1>
 
-      <div class="journey">The Day to Night Journey</div>
+      <div class="journey">Everyone Starts at Zero. Every Step is Earned.</div>
 
       <p class="lead">
-        Path2Legend is the teen progression phase of the Sandman System.
-        This phase expands development through wrestling and boxing while continuing
-        to reinforce discipline, accountability, composure, and responsibility under pressure.
+        Path2Legend is the teen wrestling progression inside Sandman Combat™. Athletes develop through structured coaching, advanced wrestling, pressure, accountability, composure, and consistent training.
       </p>
 
       <p class="lead">
-        Athletes are not expected to arrive experienced.
-        No prior combat background is required.
-        Age, maturity, discipline, and willingness to grow matter more than previous training.
+        Athletes are not expected to arrive perfect. The goal is to build skill, maturity, discipline, and confidence through earned progress over time.
       </p>
+
+      <div class="disciplines">
+        <div class="tag">Wrestling</div>
+      </div>
+
+      <div class="actions">
+        <a class="btn btn-primary" href="../join.html?track=path2legend&intent=free_pass">
+          Start Your Path
+        </a>
+
+        <a class="btn btn-secondary" href="../programs.html">
+          Back to Programs
+        </a>
+      </div>
     </div>
 
     <div data-lang-block="es" class="hidden-lang">
-      <div class="eyebrow">Foundry 4 Adolescente</div>
+      <div class="eyebrow">Foundry 4 · Path2Legend</div>
 
-      <h1>Path2Legend</h1>
+      <h1>Progresión Adolescente De Lucha</h1>
 
-      <div class="journey">El viaje del día a la noche</div>
+      <div class="journey">Todos Comienzan Desde Cero. Cada Paso Se Gana.</div>
 
       <p class="lead">
-        Path2Legend es la fase de progresión adolescente del Sandman System.
-        Esta fase expande el desarrollo mediante lucha y boxeo mientras continúa
-        reforzando disciplina, responsabilidad, compostura y control bajo presión.
+        Path2Legend es la progresión adolescente de lucha dentro de Sandman Combat™. Los atletas se desarrollan mediante entrenamiento estructurado, lucha avanzada, presión, responsabilidad, compostura y constancia.
       </p>
 
       <p class="lead">
-        No se espera que los atletas lleguen con experiencia.
-        No se requiere experiencia previa en combate.
-        La edad, madurez, disciplina y disposición para crecer importan más que el entrenamiento previo.
+        No se espera que los atletas lleguen perfectos. La meta es desarrollar habilidad, madurez, disciplina y confianza mediante progreso ganado con el tiempo.
       </p>
-    </div>
 
-    <div class="disciplines">
-      <div class="tag">Wrestling</div>
-      <div class="tag">Boxing</div>
-    </div>
+      <div class="disciplines">
+        <div class="tag">Lucha</div>
+      </div>
 
+      <div class="actions">
+        <a class="btn btn-primary" href="../join.html?track=path2legend&intent=free_pass">
+          Comienza Tu Camino
+        </a>
+
+        <a class="btn btn-secondary" href="../programs.html">
+          Volver A Programas
+        </a>
+      </div>
+    </div>
   </section>
 
   <section class="grid">
 
     <div class="card">
       <div data-lang-block="en">
-        <h3>Why Expand Development?</h3>
+        <h3>Why Teen Progression Matters</h3>
 
         <p>
-          Teen athletes are entering a phase where pressure, responsibility,
-          emotional control, and identity become more real.
-          Wrestling and boxing increase complexity while teaching athletes
-          how to stay composed, disciplined, and coachable under stress.
+          Teen athletes are entering a stage where pressure, responsibility, identity, and emotional control become more real. Wrestling gives them a structured way to grow through challenge.
         </p>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <h3>¿Por qué expandir el desarrollo?</h3>
+        <h3>Por Qué Importa La Progresión Adolescente</h3>
 
         <p>
-          Los atletas adolescentes están entrando en una etapa donde la presión,
-          responsabilidad, control emocional e identidad se vuelven más reales.
-          La lucha y el boxeo aumentan la complejidad mientras enseñan
-          cómo mantener la compostura, disciplina y capacidad de ser guiados bajo estrés.
+          Los atletas adolescentes entran en una etapa donde la presión, la responsabilidad, la identidad y el control emocional se vuelven más reales. La lucha les da una forma estructurada de crecer mediante el desafío.
         </p>
       </div>
     </div>
@@ -306,7 +310,7 @@
         <ul>
           <li>Responsibility under pressure</li>
           <li>Controlled intensity</li>
-          <li>Distance and timing</li>
+          <li>Position, pressure, and timing</li>
           <li>Leadership and accountability</li>
           <li>Composure during adversity</li>
           <li>Discipline through fatigue</li>
@@ -314,12 +318,12 @@
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <h3>Lo que aprenden los atletas</h3>
+        <h3>Lo Que Aprenden Los Atletas</h3>
 
         <ul>
           <li>Responsabilidad bajo presión</li>
           <li>Intensidad controlada</li>
-          <li>Distancia y tiempo</li>
+          <li>Posición, presión y tiempo</li>
           <li>Liderazgo y responsabilidad</li>
           <li>Compostura ante la adversidad</li>
           <li>Disciplina bajo fatiga</li>
@@ -332,19 +336,15 @@
         <h3>The Standard</h3>
 
         <p>
-          Combat is never separated from responsibility.
-          Athletes are expected to train with discipline,
-          maturity, control, and respect inside and outside the room.
+          Wrestling is never separated from responsibility. Athletes are expected to train with discipline, maturity, control, and respect inside and outside the room.
         </p>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <h3>El estándar</h3>
+        <h3>El Estándar</h3>
 
         <p>
-          El combate nunca se separa de la responsabilidad.
-          Se espera que los atletas entrenen con disciplina,
-          madurez, control y respeto dentro y fuera del salón.
+          La lucha nunca se separa de la responsabilidad. Se espera que los atletas entrenen con disciplina, madurez, control y respeto dentro y fuera del salón.
         </p>
       </div>
     </div>

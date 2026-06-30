@@ -809,3 +809,12 @@ textarea{
   display:none !important;
   content:none !important;
 }
+
+/* Simplified public-page header */
+.nav-top-center{
+  justify-content:center;
+}
+
+.top-nav-simple .nav-logo{
+  margin:0 auto;
+}
