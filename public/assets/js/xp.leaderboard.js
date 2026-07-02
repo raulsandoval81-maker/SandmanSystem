@@ -21,7 +21,7 @@ const ATHL_COLL = () => collection(db, "athletes");
 const el  = (id) => document.getElementById(id);
 const on  = (id, evt, fn) => { const n = el(id); if (n) n.addEventListener(evt, fn); };
 
-const YOUTH_RANKS  = ["Shadow","Recruit","Combatant","Competitor","Warrior","Champion","Commander","Sandman","Legend"];
+const YOUTH_RANKS  = ["Shadow","Recruit","Contender","Contender","Warrior","Champion","Commander","Sandman","Legend"];
 const ADULT_RANKS  = ["White","Blue","Purple","Brown","Black"];
 const COLORS       = ["White","Gray","Blue","Purple","Brown","Black","Gold Stripe"];
 const CATS         = ["Technique","Competition Day","Discipline","Conditioning","Leadership","Attendance","Extra Merit","Decay"];

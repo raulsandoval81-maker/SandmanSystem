@@ -1,172 +1,269 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
-<title>Understanding Progression</title>
+  <title>Understanding Progression | Sandman System™</title>
 
-<style>
+  <link rel="stylesheet" href="system.css">
+  <script src="system.js" defer></script>
 
-:root{
---navy:#041231;
---panel:#ffffff;
---gold:#ffdd48;
---text:#0f1114;
---muted:#4b5563;
-}
+  <style>
+    :root{
+      --navy:#041231;
+      --panel:#ffffff;
+      --gold:#ffdd48;
+      --text:#0f1114;
+      --muted:#4b5563;
+    }
 
-body{
-margin:0;
-background:var(--navy);
-font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-color:var(--text);
-}
+    body{
+      margin:0;
+      background:var(--navy);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      color:var(--text);
+    }
 
-.topbar{
-padding:12px 16px;
-border-bottom:2px solid var(--gold);
-display:flex;
-justify-content:space-between;
-align-items:center;
-color:white;
-}
+    .topbar{
+      padding:12px 16px;
+      border-bottom:2px solid var(--gold);
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+    }
 
-.back{
-color:white;
-text-decoration:none;
-border:1px solid #9aa0a8;
-padding:6px 12px;
-border-radius:999px;
-font-size:.85rem;
-}
+    .back{
+      color:#fff;
+      text-decoration:none;
+      border:1px solid rgba(255,255,255,.35);
+      padding:6px 14px;
+      border-radius:999px;
+      font-size:.9rem;
+    }
 
-.wrap{
-max-width:900px;
-margin:auto;
-padding:30px 16px 60px;
-}
+    .wrap{
+      max-width:900px;
+      margin:auto;
+      padding:32px 16px 60px;
+    }
 
-h1{
-color:var(--gold);
-text-align:center;
-margin-bottom:24px;
-}
+    h1{
+      color:var(--gold);
+      text-align:center;
+      margin-bottom:28px;
+    }
 
-.panel{
-background:var(--panel);
-padding:22px;
-border-radius:12px;
-box-shadow:0 4px 14px rgba(0,0,0,.25);
-margin-bottom:22px;
-}
+    .panel{
+      background:#fff;
+      border-radius:14px;
+      padding:24px;
+      margin-bottom:22px;
+      box-shadow:0 8px 24px rgba(0,0,0,.25);
+    }
 
-.panel h2{
-margin-top:0;
-color:#041231;
-}
+    .panel h2{
+      margin-top:0;
+      color:#041231;
+    }
 
-.panel ul{
-margin:10px 0 0 20px;
-}
+    .panel p,
+    .panel li{
+      line-height:1.7;
+    }
 
-footer{
-text-align:center;
-margin-top:40px;
-color:#e5e7eb;
-font-size:.8rem;
-}
+    .panel ul{
+      margin:12px 0 0 22px;
+    }
 
-</style>
+    .note-strip{
+      margin-top:18px;
+      padding:14px 16px;
+      border-left:4px solid var(--gold);
+      background:#fff8d8;
+      color:#111827;
+      border-radius:10px;
+      font-weight:800;
+      line-height:1.5;
+    }
+
+    .hidden-lang{
+      display:none;
+    }
+
+    footer{
+      text-align:center;
+      color:#e5e7eb;
+      font-size:.85rem;
+      padding:40px 20px;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="topbar">
-<a class="back" onclick="history.back()">← Back</a>
-</div>
+<header class="topbar">
+  <a class="back" href="index.html">
+    ←
+    <span data-lang-block="en">System Guide</span>
+    <span data-lang-block="es" class="hidden-lang">Guía del Sistema</span>
+  </a>
+</header>
 
 <main class="wrap">
 
-<h1>Understanding Progression</h1>
+  <h1>
+    <span data-lang-block="en">Understanding Progression</span>
+    <span data-lang-block="es" class="hidden-lang">Entendiendo La Progresión</span>
+  </h1>
 
-<div class="panel">
+  <div class="panel">
+    <h2>
+      <span data-lang-block="en">How Athletes Grow</span>
+      <span data-lang-block="es" class="hidden-lang">Cómo Crecen Los Atletas</span>
+    </h2>
 
-<h2>How Athletes Grow</h2>
+    <p data-lang-block="en">
+      Athletes grow through structured training, consistent practice, earned experience, and positive habits developed over time. Progression is designed to build skill, confidence, discipline, character, and personal responsibility—not simply athletic ability.
+    </p>
 
-<p>
-Athletes grow through structured training cycles that build skill,
-confidence, discipline, and character over time.
-</p>
+    <p data-lang-block="es" class="hidden-lang">
+      Los atletas crecen mediante entrenamiento estructurado, práctica constante, experiencia ganada y hábitos positivos desarrollados con el tiempo. La progresión está diseñada para desarrollar habilidad, confianza, disciplina, carácter y responsabilidad personal, no solamente el rendimiento deportivo.
+    </p>
+  </div>
 
-<p>
-Progress is not based on shortcuts or hype. It comes from consistent
-work, effort in practice, and the ability to apply what is learned.
-</p>
+  <div class="panel">
+    <h2>
+      <span data-lang-block="en">What Progress Means</span>
+      <span data-lang-block="es" class="hidden-lang">Qué Significa El Progreso</span>
+    </h2>
 
-</div>
+    <div data-lang-block="en">
+      <ul>
+        <li>Progress is earned, never rushed.</li>
+        <li>Consistency matters more than talent.</li>
+        <li>Readiness includes attitude, effort, discipline, and behavior.</li>
+        <li>Growth happens both athletically and personally.</li>
+        <li>Every athlete develops at a different pace.</li>
+      </ul>
+    </div>
 
-<div class="panel">
+    <div data-lang-block="es" class="hidden-lang">
+      <ul>
+        <li>El progreso se gana; nunca se apresura.</li>
+        <li>La constancia vale más que el talento.</li>
+        <li>La preparación incluye actitud, esfuerzo, disciplina y comportamiento.</li>
+        <li>El crecimiento ocurre tanto dentro como fuera del deporte.</li>
+        <li>Cada atleta avanza a su propio ritmo.</li>
+      </ul>
+    </div>
+  </div>
 
-<h2>What Progress Means</h2>
+  <div class="panel">
+    <h2>
+      <span data-lang-block="en">How Promotion Is Earned</span>
+      <span data-lang-block="es" class="hidden-lang">Cómo Se Gana La Promoción</span>
+    </h2>
 
-<ul>
+    <p data-lang-block="en">
+      Athletes move through a clear process. They train, reach the required standard, test, and earn promotion when they are ready.
+    </p>
 
-<li>Progress is earned, not rushed.</li>
+    <p data-lang-block="es" class="hidden-lang">
+      Los atletas avanzan mediante un proceso claro. Entrenan, alcanzan el estándar requerido, son evaluados y ganan la promoción cuando están listos.
+    </p>
 
-<li>Consistency matters more than talent.</li>
+    <div data-lang-block="en">
+      <ul>
+        <li><strong>Train</strong> — build skill, habits, discipline, and consistency.</li>
+        <li><strong>Reach the standard</strong> — complete the work required for the current level.</li>
+        <li><strong>Test</strong> — demonstrate readiness under coach evaluation.</li>
+        <li><strong>Promote</strong> — earn recognition when the standard is met.</li>
+        <li><strong>If not ready</strong> — continue training, improve, and retest.</li>
+      </ul>
 
-<li>Readiness includes effort, discipline, and behavior.</li>
+      <div class="note-strip">
+        The standard does not lower. The athlete rises to meet it.
+      </div>
+    </div>
 
-<li>Growth happens both athletically and personally.</li>
+    <div data-lang-block="es" class="hidden-lang">
+      <ul>
+        <li><strong>Entrenar</strong> — construir habilidad, hábitos, disciplina y constancia.</li>
+        <li><strong>Alcanzar el estándar</strong> — completar el trabajo requerido para el nivel actual.</li>
+        <li><strong>Evaluar</strong> — demostrar preparación bajo evaluación del coach.</li>
+        <li><strong>Promover</strong> — ganar reconocimiento cuando se cumple el estándar.</li>
+        <li><strong>Si aún no está listo</strong> — seguir entrenando, mejorar y volver a evaluar.</li>
+      </ul>
 
-<li>Every athlete develops at their own pace.</li>
+      <div class="note-strip">
+        El estándar no baja. El atleta se eleva para alcanzarlo.
+      </div>
+    </div>
+  </div>
 
-</ul>
+  <div class="panel">
+    <h2>
+      <span data-lang-block="en">What Parents Should Expect</span>
+      <span data-lang-block="es" class="hidden-lang">Qué Deben Esperar Los Padres</span>
+    </h2>
 
-</div>
+    <div data-lang-block="en">
+      <ul>
+        <li>Some athletes progress faster than others.</li>
+        <li>The early stages emphasize strong fundamentals.</li>
+        <li>Competition results do not always reflect long-term development.</li>
+        <li>Confidence grows through repetition and experience.</li>
+        <li>Character development is just as important as athletic performance.</li>
+      </ul>
+    </div>
 
-<div class="panel">
+    <div data-lang-block="es" class="hidden-lang">
+      <ul>
+        <li>Algunos atletas progresan más rápido que otros.</li>
+        <li>Las primeras etapas enfatizan fundamentos sólidos.</li>
+        <li>Los resultados en competencia no siempre reflejan el desarrollo a largo plazo.</li>
+        <li>La confianza crece mediante repetición y experiencia.</li>
+        <li>El desarrollo del carácter es tan importante como el rendimiento deportivo.</li>
+      </ul>
+    </div>
+  </div>
 
-<h2>What Parents Should Expect</h2>
+  <div class="panel">
+    <h2>
+      <span data-lang-block="en">The Role Of The Family</span>
+      <span data-lang-block="es" class="hidden-lang">El Papel De La Familia</span>
+    </h2>
 
-<ul>
+    <p data-lang-block="en">
+      Parents play a vital role by supporting attendance, encouraging effort, reinforcing positive habits, and trusting the coaching process. Athletes who consistently show up, work hard, and remain patient develop the strongest long-term results.
+    </p>
 
-<li>Some athletes progress quickly, others take longer.</li>
+    <p data-lang-block="es" class="hidden-lang">
+      Los padres desempeñan un papel fundamental apoyando la asistencia, fomentando el esfuerzo, reforzando hábitos positivos y confiando en el proceso de entrenamiento. Los atletas que asisten con constancia, trabajan duro y mantienen la paciencia obtienen los mejores resultados a largo plazo.
+    </p>
+  </div>
 
-<li>Early stages focus heavily on fundamentals.</li>
+  <div class="panel">
+    <h2>
+      <span data-lang-block="en">Recognition Comes Later</span>
+      <span data-lang-block="es" class="hidden-lang">El Reconocimiento Llega Después</span>
+    </h2>
 
-<li>Competition results do not always reflect development.</li>
+    <p data-lang-block="en">
+      Progression is the journey. When athletes reach the required standard, they may become eligible for testing. Successful testing leads to promotion, and ceremonies recognize achievements that have already been earned.
+    </p>
 
-<li>Confidence grows through repetition and experience.</li>
-
-<li>Character development is just as important as performance.</li>
-
-</ul>
-
-</div>
-
-<div class="panel">
-
-<h2>The Role of the Family</h2>
-
-<p>
-Parents play a major role in athlete growth by supporting
-consistent attendance, encouraging effort, and trusting
-the training process.
-</p>
-
-<p>
-Athletes who show up, work hard, and stay patient
-develop the strongest long-term results.
-</p>
-
-</div>
+    <p data-lang-block="es" class="hidden-lang">
+      La progresión es el camino. Cuando los atletas alcanzan el estándar requerido, pueden volverse elegibles para evaluación. Una evaluación exitosa conduce a la promoción, y las ceremonias reconocen los logros que ya han sido ganados.
+    </p>
+  </div>
 
 </main>
 
 <footer>
-Sandman Combat™ • Parent System Guide
+  <span data-lang-block="en">Sandman System™ • Parent Guide</span>
+  <span data-lang-block="es" class="hidden-lang">Sandman System™ • Guía Para Padres</span>
 </footer>
 
 </body>

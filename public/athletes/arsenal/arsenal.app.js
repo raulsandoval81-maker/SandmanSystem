@@ -172,8 +172,8 @@ async function loadUnlocks() {
         strengthCard,
         "Strength 🔒",
         tier < 3
-          ? "Unlocks at Competitor."
-          : "Unlocks at Competitor Stripe 1."
+          ? "Unlocks at Contender."
+          : "Unlocks at Contender Stripe 1."
       );
     } else {
       setLocked(
@@ -195,8 +195,8 @@ async function loadUnlocks() {
         honorCard,
         "Honor 🔒",
         tier < 3
-          ? "Unlocks at Competitor."
-          : "Unlocks at Competitor Stripe 2."
+          ? "Unlocks at Contender."
+          : "Unlocks at Contender Stripe 2."
       );
     } else {
       setLocked(

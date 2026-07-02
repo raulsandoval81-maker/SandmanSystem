@@ -162,8 +162,8 @@ function resolveRank(a = {}) {
     const map = {
       T0: "Shadow",
       T1: "Recruit",
-      T2: "Combatant",
-      T3: "Competitor",
+      T2: "Contender",
+      T3: "Contender",
       T4: "Warrior",
       T5: "Champion",
       T6: "Commander",
@@ -296,8 +296,8 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
   const colorMapF8 = {
     Shadow: "belt-white",
     Recruit: "belt-yellow",
-    Combatant: "belt-orange",
-    Competitor: "belt-green",
+    Contender: "belt-orange",
+    Contender: "belt-green",
     Warrior: "belt-blue",
     Champion: "belt-purple",
     Commander: "belt-brown",

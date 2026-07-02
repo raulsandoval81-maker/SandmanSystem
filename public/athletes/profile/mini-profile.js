@@ -187,7 +187,7 @@ async function load() {
   const colorMap = {
     Shadow: "belt-white",
     Recruit: "belt-yellow",
-    Combatant: "belt-orange",
+    Contender: "belt-orange",
     Contender: "belt-green",
     Warrior: "belt-blue",
     Champion: "belt-purple",

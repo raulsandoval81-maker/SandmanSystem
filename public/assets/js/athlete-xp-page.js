@@ -5,12 +5,12 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
 
 // --- minimal rank helpers (same as snapshot.js) ---
-const YOUTH_TIERS = ["Shadow","Recruit","Combatant","Competitor","Warrior","Champion","Commander","Legend"];
+const YOUTH_TIERS = ["Shadow","Recruit","Contender","Contender","Warrior","Champion","Commander","Legend"];
 const F4_TIERS    = ["Apprentice","Warrior","Champion","Veteran","Legend"];
 const TIER_XP = 1000, STRIPE_XP = 250;
 
 const BELT_COLOR_MAP = {
-  youth:   { Shadow:"#FFFFFF", Recruit:"#FFFF00", Combatant:"#FFA500", Competitor:"#2ECC71", Warrior:"#1E90FF", Champion:"#8B59B6", Commander:"#8B4513", Sandman:"#FFD700", Legend:"#000000" },
+  youth:   { Shadow:"#FFFFFF", Recruit:"#FFFF00", Contender:"#FFA500", Contender:"#2ECC71", Warrior:"#1E90FF", Champion:"#8B59B6", Commander:"#8B4513", Sandman:"#FFD700", Legend:"#000000" },
   foundry4:{ Apprentice:"#FFFFFF", Warrior:"#1E90FF", Champion:"#8B59B6", Veteran:"#8B4513", Legend:"#000000" }
 };
 

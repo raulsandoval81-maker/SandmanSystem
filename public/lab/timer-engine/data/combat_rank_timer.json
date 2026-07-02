@@ -9,8 +9,8 @@
   "f8": {
     "t0": { "rank": "Shadow",      "bucket": "novice", "roundSec": 45,  "restSec": 30, "rounds": 5 },
     "t1": { "rank": "Recruit",     "bucket": "novice", "roundSec": 45,  "restSec": 30, "rounds": 5 },
-    "t2": { "rank": "Combatant",   "bucket": "beginner", "roundSec": 60,  "restSec": 30, "rounds": 5 },
-    "t3": { "rank": "Competitor",  "bucket": "beginner", "roundSec": 60,  "restSec": 30, "rounds": 5 },
+    "t2": { "rank": "Contender",   "bucket": "beginner", "roundSec": 60,  "restSec": 30, "rounds": 5 },
+    "t3": { "rank": "Contender",  "bucket": "beginner", "roundSec": 60,  "restSec": 30, "rounds": 5 },
     "t4": { "rank": "Warrior",     "bucket": "intermediate", "roundSec": 90,  "restSec": 30, "rounds": 5 },
     "t5": { "rank": "Champion",    "bucket": "intermediate", "roundSec": 90,  "restSec": 30, "rounds": 5 },
     "t6": { "rank": "Commander",   "bucket": "advanced", "roundSec": 120, "restSec": 30, "rounds": 5 },

@@ -118,12 +118,12 @@ const CERTIFICATE_PRESETS = {
         stripes: ["I", "II", "III", "IV"]
       },
       2: {
-        rank: "Combatant",
+        rank: "Contender",
         quote: "Skill grows through repetition.",
         stripes: ["I", "II", "III", "IV"]
       },
       3: {
-        rank: "Competitor",
+        rank: "Contender",
         quote: "Pressure reveals preparation.",
         stripes: ["I", "II", "III", "IV"]
       },

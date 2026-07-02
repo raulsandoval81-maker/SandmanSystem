@@ -485,7 +485,7 @@ if (isFoundry8(athleteId)) {
   if (!strengthUnlocked && tierNum < 3) {
     container.innerHTML = `
       <div class="lane-card">
-        Strength unlocks at Competitor.
+        Strength unlocks at Contender.
       </div>
     `;
     return;
@@ -494,7 +494,7 @@ if (isFoundry8(athleteId)) {
   if (!strengthUnlocked && stripe < 1) {
     container.innerHTML = `
       <div class="lane-card">
-        Strength unlocks at Competitor Stripe 1.
+        Strength unlocks at Contender Stripe 1.
       </div>
     `;
     return;

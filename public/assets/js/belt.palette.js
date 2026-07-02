@@ -18,8 +18,8 @@ const BLACK  = { text:"#FFFFFF", bandStart:"#000000", bandEnd:"#000000", outline
 export const BELT_YOUTH = {
   Shadow:     WHITE,
   Recruit:    { text:"#000000", bandStart:"#FFD54F", bandEnd:"#FFA000", outline:"#000000" }, // yellow
-  Combatant:  { text:"#FFFFFF", bandStart:"#FF7043", bandEnd:"#D84315", outline:"#000000" }, // orange
-  Competitor: { text:"#FFFFFF", bandStart:"#4CAF50", bandEnd:"#1B5E20", outline:"#000000" }, // green
+  Contender:  { text:"#FFFFFF", bandStart:"#FF7043", bandEnd:"#D84315", outline:"#000000" }, // orange
+  Contender: { text:"#FFFFFF", bandStart:"#4CAF50", bandEnd:"#1B5E20", outline:"#000000" }, // green
   Warrior:    BLUE,
   Champion:   PURPLE,
   Commander:  BROWN,

@@ -56,8 +56,8 @@ const RANK_LABELS = {
   Z2H: {
     T0: "Shadow",
     T1: "Recruit",
-    T2: "Combatant",
-    T3: "Competitor",
+    T2: "Contender",
+    T3: "Contender",
     T4: "Warrior",
     T5: "Champion",
     T6: "Commander",

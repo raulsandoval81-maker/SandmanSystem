@@ -165,7 +165,7 @@ function findCurrentTier(ladder, tierName, a = {}) {
 
   if (direct) return direct;
 
-  // Youth wording safety: older UI sometimes says Contender while ladder says Competitor.
+  // Youth wording safety: older UI sometimes says Contender while ladder says Contender.
   if (wanted === "contender") {
     const competitor = ladder.find((t) =>
       String(t.name || "").trim().toLowerCase() === "competitor"
@@ -181,8 +181,8 @@ function getColorClass(ladder, tierName) {
   const colorMapF8 = {
     Shadow: "belt-white",
     Recruit: "belt-yellow",
-    Combatant: "belt-orange",
-    Competitor: "belt-green",
+    Contender: "belt-orange",
+    Contender: "belt-green",
     Contender: "belt-green",
     Warrior: "belt-blue",
     Champion: "belt-purple",

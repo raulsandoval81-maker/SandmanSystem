@@ -62,9 +62,9 @@ const honorOpen =
     if (isF8) {
       status.textContent =
         !strengthOpen
-          ? "Strength unlocks at Competitor, Stripe 1."
+          ? "Strength unlocks at Contender, Stripe 1."
           : !honorOpen
-            ? "Strength unlocked. Honor unlocks at Competitor, Stripe 2."
+            ? "Strength unlocked. Honor unlocks at Contender, Stripe 2."
             : "Strength + Honor unlocked.";
     } else {
       status.textContent =

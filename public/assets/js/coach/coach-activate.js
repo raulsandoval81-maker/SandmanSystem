@@ -9,8 +9,8 @@
 
   // ---------- Track & Tier/Ranks ----------
   const TIERS = {
-    foundry8: [ ['t0','T0 · Shadow'], ['t1','T1 · Recruit'], ['t2','T2 · Combatant'],
-                ['t3','T3 · Competitor'], ['t4','T4 · Warrior'], ['t5','T5 · Champion'],
+    foundry8: [ ['t0','T0 · Shadow'], ['t1','T1 · Recruit'], ['t2','T2 · Contender'],
+                ['t3','T3 · Contender'], ['t4','T4 · Warrior'], ['t5','T5 · Champion'],
                 ['t6','T6 · Commander'], ['t7','T7 · Sandman'], ['t8','T8 · Hero'] ],
     foundry4: [ ['t0','T0 · Apprentice'], ['t1','T1 · Warrior'], ['t2','T2 · Champion'],
                 ['t3','T3 · Veteran'], ['t4','T4 · Legend'] ]

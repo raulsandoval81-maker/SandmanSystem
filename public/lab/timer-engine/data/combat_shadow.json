@@ -55,12 +55,12 @@
       "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
     },
     "t2": {
-      "name": "Combatant",
+      "name": "Contender",
       "roundTime": 60,
       "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
     },
     "t3": {
-      "name": "Competitor",
+      "name": "Contender",
       "roundTime": 60,
       "rounds": ["slow_slow", "slow_fast", "fast_slow", "fast_fast", "free"]
     },

@@ -318,8 +318,8 @@ async function loadRoster() {
     const colorMapF8 = {
       Shadow: "belt-white",
       Recruit: "belt-yellow",
-      Combatant: "belt-orange",
-      Competitor: "belt-green",
+      Contender: "belt-orange",
+      Contender: "belt-green",
       Warrior: "belt-blue",
       Champion: "belt-purple",
       Commander: "belt-brown",

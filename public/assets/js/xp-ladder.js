@@ -43,8 +43,8 @@ export const LADDER = Object.freeze({
     names: {
       T0: "Shadow",
       T1: "Recruit",
-      T2: "Combatant",
-      T3: "Competitor",
+      T2: "Contender",
+      T3: "Contender",
       T4: "Warrior",
       T5: "Champion",
       T6: "Commander",
@@ -53,8 +53,8 @@ export const LADDER = Object.freeze({
     colors: {
       Shadow:     "#ffffff",
       Recruit:    "#ffd633",
-      Combatant:  "#ff9f1a",
-      Competitor: "#35c759",
+      Contender:  "#ff9f1a",
+      Contender: "#35c759",
       Warrior:    "#007aff",
       Champion:   "#af52de",
       Commander:  "#8e6b3a",

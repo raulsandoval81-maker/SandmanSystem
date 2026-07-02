@@ -106,7 +106,7 @@ export function applyPenalty(side, penaltyValue) {
 export function applyCP1(side) {
   scoringState[side] += 1;
 
-  scoringState.lastAction = `${side.toUpperCase()} CP1 Competitor Point`;
+  scoringState.lastAction = `${side.toUpperCase()} CP1 Contender Point`;
 
   fireToAll({
     type: "score",

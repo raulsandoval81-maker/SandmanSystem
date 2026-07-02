@@ -117,7 +117,7 @@ if (isFoundry8(athleteId)) {
     if (tierNum < 3) {
       container.innerHTML = `
         <div class="lane-card">
-          Honor unlocks at Competitor.
+          Honor unlocks at Contender.
         </div>
       `;
       return;
@@ -126,7 +126,7 @@ if (isFoundry8(athleteId)) {
     if (stripe < 2) {
       container.innerHTML = `
         <div class="lane-card">
-          Honor unlocks at Competitor Stripe 2.
+          Honor unlocks at Contender Stripe 2.
         </div>
       `;
       return;

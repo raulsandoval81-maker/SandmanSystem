@@ -8,13 +8,13 @@
 
 // ---------- Foundry 8 / Youth (R0–R7) ----------
 // Locked caps:
-// Shadow 600, Recruit 800, Combatant 1000, Competitor 1200,
+// Shadow 600, Recruit 800, Contender 1000, Contender 1200,
 // Warrior 1400, Champion 1600, Commander 1800, Hero 2400.
 export const LADDER_YOUTH = [
   { key:"R0", name:"Shadow",     cap:  600, stripe:200, stripes:3 },
   { key:"R1", name:"Recruit",    cap:  800, stripe:200, stripes:4 },
-  { key:"R2", name:"Combatant",  cap: 1000, stripe:250, stripes:4 },
-  { key:"R3", name:"Competitor", cap: 1200, stripe:300, stripes:4 },
+  { key:"R2", name:"Contender",  cap: 1000, stripe:250, stripes:4 },
+  { key:"R3", name:"Contender", cap: 1200, stripe:300, stripes:4 },
   { key:"R4", name:"Warrior",    cap: 1400, stripe:350, stripes:4 },
   { key:"R5", name:"Champion",   cap: 1600, stripe:400, stripes:4 },
   { key:"R6", name:"Commander",  cap: 1800, stripe:450, stripes:4 },

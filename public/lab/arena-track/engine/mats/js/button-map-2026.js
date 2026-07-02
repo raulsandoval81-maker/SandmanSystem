@@ -51,7 +51,7 @@ document.querySelectorAll(".penalty-select").forEach(select => {
 
 
 /* ============================================================
-   3) CP1 — Competitor Point
+   3) CP1 — Contender Point
    ============================================================ */
 
 document.querySelectorAll("[data-cp1]").forEach(btn => {

@@ -7,14 +7,14 @@ const MAP = {
     colorByRank: {
       Shadow: "White",
       Recruit: "Gray",
-      Combatant: "Yellow",
-      Competitor: "Orange",
+      Contender: "Yellow",
+      Contender: "Orange",
       Warrior: "Blue",
       Champion: "Purple",
       Commander: "Brown",
       Legend: "Black",
     },
-    order: ["Shadow","Recruit","Combatant","Competitor","Warrior","Champion","Commander","Legend"],
+    order: ["Shadow","Recruit","Contender","Contender","Warrior","Champion","Commander","Legend"],
     label: "Youth (0–8)",
   },
   adult: {

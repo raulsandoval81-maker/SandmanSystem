@@ -76,8 +76,8 @@ document.addEventListener("DOMContentLoaded", () => {
     f8: {
       t0: { rank: "Shadow", roundSec: 45, restSec: 30, rounds: 5 },
       t1: { rank: "Recruit", roundSec: 45, restSec: 30, rounds: 5 },
-      t2: { rank: "Combatant", roundSec: 60, restSec: 30, rounds: 5 },
-      t3: { rank: "Competitor", roundSec: 60, restSec: 30, rounds: 5 },
+      t2: { rank: "Contender", roundSec: 60, restSec: 30, rounds: 5 },
+      t3: { rank: "Contender", roundSec: 60, restSec: 30, rounds: 5 },
       t4: { rank: "Warrior", roundSec: 90, restSec: 30, rounds: 5 },
       t5: { rank: "Champion", roundSec: 90, restSec: 30, rounds: 5 },
       t6: { rank: "Commander", roundSec: 120, restSec: 30, rounds: 5 },
