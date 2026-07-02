@@ -37,40 +37,217 @@ exports.sendGatekeeperEmail = void 0;
 exports.buildEmail = buildEmail;
 const functions = __importStar(require("firebase-functions"));
 const resend_1 = require("resend");
+function normalizeTrack(programTrack) {
+    if (programTrack === "fitness")
+        return "adult_fitness";
+    return programTrack;
+}
+function isFitnessTrack(programTrack) {
+    return normalizeTrack(programTrack) === "adult_fitness";
+}
 function isSolvangTrack(programTrack) {
-    return (programTrack === "road2greatness" ||
-        programTrack === "quest2mastery" ||
-        programTrack === "adult_fitness");
+    const track = normalizeTrack(programTrack);
+    return (track === "road2greatness" ||
+        track === "quest2mastery" ||
+        track === "adult_fitness");
 }
 function getTrackLabel(programTrack, lang) {
+    const track = normalizeTrack(programTrack);
     const labels = {
         zero2hero: {
-            en: "Youth Wrestling — Zero2Hero",
-            es: "Lucha juvenil — Zero2Hero"
+            en: "Zero to Hero™ Wrestling (Ages 7–13)",
+            es: "Zero to Hero™ Lucha (Edades 7–13)"
         },
         path2legend: {
-            en: "Teen Wrestling — Path2Legend",
-            es: "Lucha adolescente — Path2Legend"
+            en: "Path to Legend™ Wrestling (Ages 13+)",
+            es: "Path to Legend™ Lucha (Edades 13+)"
         },
         road2greatness: {
-            en: "Road2Greatness Boxing — Ages 14+",
-            es: "Boxeo Road2Greatness — Edades 14+"
+            en: "Road to Greatness™ Boxing (Ages 14+)",
+            es: "Road to Greatness™ Boxeo (Edades 14+)"
         },
         quest2mastery: {
-            en: "Quest2Mastery MMA",
-            es: "Quest2Mastery MMA"
+            en: "Quest to Mastery™ MMA",
+            es: "Quest to Mastery™ MMA"
         },
         adult_fitness: {
-            en: "Teen / Adult Fitness, Kickboxing & Self Defense",
-            es: "Fitness para adolescentes/adultos, Kickboxing y Defensa Personal"
+            en: "Kickboxing, Fitness & Self-Defense (Ages 12+)",
+            es: "Kickboxing, Fitness y Defensa Personal (Edades 12+)"
+        },
+        fitness: {
+            en: "Kickboxing, Fitness & Self-Defense (Ages 12+)",
+            es: "Kickboxing, Fitness y Defensa Personal (Edades 12+)"
         }
     };
-    return labels[programTrack]?.[lang] || labels.zero2hero[lang];
+    return labels[track]?.[lang] || labels.zero2hero[lang];
+}
+function getLocationBlock(programTrack, lang) {
+    const track = normalizeTrack(programTrack);
+    if (track === "zero2hero") {
+        return lang === "es"
+            ? `Ubicaciones:
+Lompoc High School Wrestling Room — Room IA-1
+515 W College Ave
+Lompoc, CA 93436
+
+Solvang
+320 Alisal Road
+Suite 106
+Solvang, CA`
+            : `Practice Locations:
+Lompoc High School Wrestling Room — Room IA-1
+515 W College Ave
+Lompoc, CA 93436
+
+Solvang
+320 Alisal Road
+Suite 106
+Solvang, CA`;
+    }
+    if (track === "path2legend") {
+        return lang === "es"
+            ? `Ubicación:
+Lompoc High School Wrestling Room — Room IA-1
+515 W College Ave
+Lompoc, CA 93436`
+            : `Practice Location:
+Lompoc High School Wrestling Room — Room IA-1
+515 W College Ave
+Lompoc, CA 93436`;
+    }
+    return lang === "es"
+        ? `Ubicación:
+320 Alisal Road
+Suite 106
+Solvang, CA`
+        : `Practice Location:
+320 Alisal Road
+Suite 106
+Solvang, CA`;
+}
+function getScheduleBlock(programTrack, lang) {
+    const track = normalizeTrack(programTrack);
+    if (lang === "es") {
+        if (track === "zero2hero") {
+            return `Horario:
+Zero to Hero™ Wrestling
+
+Lompoc:
+Lunes / Miércoles
+4:45 PM – 6:00 PM
+
+Solvang:
+Martes / Jueves
+4:45 PM – 6:00 PM
+
+Los atletas pueden asistir a cualquiera de las ubicaciones con aprobación del coach y según disponibilidad.
+
+Sesiones adicionales de viernes o sábado pueden ofrecerse en un horario rotativo. Los fines de semana de competencia tienen prioridad.`;
+        }
+        if (track === "path2legend") {
+            return `Horario:
+Path to Legend™ Wrestling
+
+Lompoc:
+Lunes / Miércoles
+6:00 PM – 7:30 PM
+
+Edad típica: 13+
+
+El rango de edad es una guía general. La colocación final será determinada por el cuerpo técnico según madurez, experiencia, tamaño, seguridad y preparación.
+
+Sesiones adicionales de viernes o sábado pueden ofrecerse en un horario rotativo. Los fines de semana de competencia tienen prioridad.`;
+        }
+        if (track === "road2greatness") {
+            return `Horario:
+Road to Greatness™ Boxing
+
+Solvang:
+Martes / Jueves
+6:00 PM – 7:30 PM
+
+Edad típica: 14+
+
+Sesiones adicionales de viernes o sábado pueden ofrecerse en un horario rotativo. Los fines de semana de competencia tienen prioridad.`;
+        }
+        if (track === "adult_fitness") {
+            return `Horario:
+Kickboxing, Fitness y Defensa Personal
+
+Solvang:
+Martes / Jueves
+6:00 PM – 7:00 PM
+
+Esta clase desarrolla condición física, confianza, movimiento, fundamentos de kickboxing y defensa personal práctica mediante entrenamiento estructurado.
+
+Sesiones adicionales de viernes o sábado pueden ofrecerse en un horario rotativo.`;
+        }
+        return `Horario:
+El coach confirmará el horario apropiado después de revisar la solicitud.`;
+    }
+    if (track === "zero2hero") {
+        return `Schedule:
+Zero to Hero™ Wrestling
+
+Lompoc:
+Monday / Wednesday
+4:45 PM – 6:00 PM
+
+Solvang:
+Tuesday / Thursday
+4:45 PM – 6:00 PM
+
+Athletes may attend either location with coach approval and subject to availability.
+
+Additional Friday or Saturday sessions may be offered on a rotating schedule. Competition weekends take priority.`;
+    }
+    if (track === "path2legend") {
+        return `Schedule:
+Path to Legend™ Wrestling
+
+Lompoc:
+Monday / Wednesday
+6:00 PM – 7:30 PM
+
+Typical Age: 13+
+
+Age ranges are general guidelines. Final placement is determined by the coaching staff based on maturity, experience, size, safety, and readiness.
+
+Additional Friday or Saturday sessions may be offered on a rotating schedule. Competition weekends take priority.`;
+    }
+    if (track === "road2greatness") {
+        return `Schedule:
+Road to Greatness™ Boxing
+
+Solvang:
+Tuesday / Thursday
+6:00 PM – 7:30 PM
+
+Typical Age: 14+
+
+Additional Friday or Saturday sessions may be offered on a rotating schedule. Competition weekends take priority.`;
+    }
+    if (track === "adult_fitness") {
+        return `Schedule:
+Kickboxing, Fitness & Self-Defense
+
+Solvang:
+Tuesday / Thursday
+6:00 PM – 7:00 PM
+
+This class builds conditioning, confidence, movement, kickboxing fundamentals, and practical self-defense through structured coach-led training.
+
+Additional Friday or Saturday sessions may be offered on a rotating schedule.`;
+    }
+    return `Schedule:
+Coach will confirm the appropriate schedule after reviewing your request.`;
 }
 function buildEmail(entryType, programTrack, lang) {
-    const solvang = isSolvangTrack(programTrack);
-    const adultFitness = programTrack === "adult_fitness";
-    const trackLabel = getTrackLabel(programTrack, lang);
+    const track = normalizeTrack(programTrack);
+    const adultFitness = isFitnessTrack(track);
+    const trackLabel = getTrackLabel(track, lang);
+    const locationBlock = getLocationBlock(track, lang);
+    const scheduleBlock = getScheduleBlock(track, lang);
     const waiverLink = lang === "es"
         ? `Si deseas completar la exención antes de llegar, visita:
 
@@ -78,88 +255,6 @@ https://sandmancombat.com/waiver`
         : `If you would like to complete the waiver before arrival, please visit:
 
 https://sandmancombat.com/waiver`;
-    const locationBlock = lang === "es"
-        ? solvang
-            ? `Ubicación:
-320 Alisal Road
-Suite 106
-Solvang, CA`
-            : `Ubicación:
-Lompoc High School Wrestling Room — Room IA-1
-515 W College Ave
-Lompoc, CA 93436`
-        : solvang
-            ? `Practice Location:
-320 Alisal Road
-Suite 106
-Solvang, CA`
-            : `Practice Location:
-Lompoc High School Wrestling Room — Room IA-1
-515 W College Ave
-Lompoc, CA 93436`;
-    const scheduleBlock = lang === "es"
-        ? programTrack === "road2greatness"
-            ? `Horario:
-Martes / Jueves
-
-Road2Greatness Boxing:
-6:00 PM – 7:30 PM
-
-El coach confirmará la ubicación apropiada después de revisar la solicitud.`
-            : adultFitness
-                ? `Horario:
-Martes / Jueves
-
-Teen / Adult Fitness:
-6:00 PM – 7:00 PM
-
-El coach confirmará la ubicación apropiada después de revisar la solicitud.`
-                : programTrack === "path2legend"
-                    ? `Horario:
-Lunes / Miércoles / Viernes
-
-P2L Wrestling (Edades 14+)
-6:00 PM – 7:30 PM
-
-El coach determinará el grupo de entrenamiento más apropiado después de la evaluación.`
-                    : `Horario:
-Lunes / Miércoles / Viernes
-
-Z2H Wrestling (Edades 7–13)
-4:00 PM – 4:45 PM
-
-El coach determinará el grupo de entrenamiento más apropiado después de la evaluación.`
-        : programTrack === "road2greatness"
-            ? `Schedule:
-Tuesday / Thursday
-
-Road2Greatness Boxing:
-6:00 PM – 7:30 PM
-
-Coach will confirm appropriate placement after reviewing your request.`
-            : adultFitness
-                ? `Schedule:
-Tuesday / Thursday
-
-Teen / Adult Fitness:
-6:00 PM – 7:00 PM
-
-Coach will confirm appropriate placement after reviewing your request.`
-                : programTrack === "path2legend"
-                    ? `Schedule:
-Monday / Wednesday / Friday
-
-P2L Wrestling (Ages 14+)
-6:00 PM – 7:30 PM
-
-Coach will determine the most appropriate training group after evaluation.`
-                    : `Schedule:
-Monday / Wednesday / Friday
-
-Z2H Wrestling (Ages 7–13)
-4:00 PM – 4:45 PM
-
-Coach will determine the most appropriate training group after evaluation.`;
     const requirements = lang === "es"
         ? `Requisitos:
 • Exención de responsabilidad firmada
@@ -173,20 +268,35 @@ Coach will determine the most appropriate training group after evaluation.`;
 • Membership, licensing, sanctioning, or insurance coverage if required by the program or event`;
     const adultFitnessNote = lang === "es"
         ? `Nota:
-Adult Fitness está enfocado en condición física, Kickboxing Fitness y defensa personal. No se requiere sparring.`
+Kickboxing, Fitness y Defensa Personal puede incluir condición física, fundamentos de kickboxing, trabajo con almohadillas, movimiento y defensa personal práctica. No se requiere sparring.`
         : `Note:
-Teen / Adult Fitness may include conditioning, kickboxing fitness, pad work, movement drills, and self-defense instruction. No sparring is required.`;
+Kickboxing, Fitness & Self-Defense may include conditioning, kickboxing fundamentals, pad work, movement drills, and practical self-defense instruction. No sparring is required.`;
     const combatNote = lang === "es"
         ? `Qué esperar:
 
 No se requiere experiencia previa.
 
-Sandman Combat está construido sobre un sistema de progresión estructurado donde los atletas desarrollan habilidades, confianza, disciplina y liderazgo paso a paso mediante entrenamiento constante y avance ganado.`
+Sandman Combat™ está construido sobre un sistema de progresión estructurado donde los atletas desarrollan habilidades, confianza, disciplina y liderazgo paso a paso mediante entrenamiento constante y avance ganado.`
         : `What To Expect:
 
 No previous experience is required.
 
-Sandman Combat is built on a structured progression system where athletes develop skills, confidence, discipline, and leadership one step at a time through consistent training and earned advancement.`;
+Sandman Combat™ is built on a structured progression system where athletes develop skills, confidence, discipline, and leadership one step at a time through consistent training and earned advancement.`;
+    const intakeProcess = lang === "es"
+        ? `Cada atleta comienza con:
+
+• Evaluación
+• Conversación
+• Onboarding
+
+Durante este proceso conoceremos al atleta, responderemos preguntas y recomendaremos el camino que mejor se adapte a sus metas.`
+        : `Every athlete begins with:
+
+• Assessment
+• Conversation
+• Onboarding
+
+During this process we'll get to know the athlete, answer questions, and recommend the journey that's the best fit for their goals.`;
     const subjectBase = "Sandman Combat";
     if (entryType === "free_pass") {
         return {
@@ -194,15 +304,15 @@ Sandman Combat is built on a structured progression system where athletes develo
                 ? `${subjectBase} — Evaluación de 1 Día`
                 : `${subjectBase} — 1-Day Assessment`,
             text: lang === "es"
-                ? `Bienvenido a Sandman Combat.
+                ? `Bienvenido a Sandman Combat™.
 
 Programa seleccionado: ${trackLabel}
 
 Tu solicitud de Evaluación de 1 Día ha sido recibida.
 
-Esta evaluación permite asistir a una sesión para que el cuerpo técnico pueda evaluar movimiento, conciencia, experiencia y ubicación apropiada.
+La Evaluación de 1 Día está disponible solo para atletas locales. Los atletas de fuera del área deben elegir la Prueba de 3 Días.
 
-Un coach revisará al participante y determinará el grupo de entrenamiento y progresión más apropiado.
+${intakeProcess}
 
 ${waiverLink}
 
@@ -210,24 +320,22 @@ ${locationBlock}
 
 ${scheduleBlock}
 
-
-${adultFitness
-                    ? adultFitnessNote + "\n"
-                    : combatNote + "\n"}
+${adultFitness ? adultFitnessNote : combatNote}
 
 ${requirements}
+
 Esta evaluación es solo una sesión de entrada. La participación continua será determinada por el coach después de la evaluación en persona.
 
-— Sandman Combat`
-                : `Welcome to Sandman Combat.
+— Sandman Combat™`
+                : `Welcome to Sandman Combat™.
 
 Selected Program: ${trackLabel}
 
 Your 1-Day Assessment request has been received.
 
-This assessment allows the participant to attend one session so the coaching staff can evaluate movement, awareness, experience level, and appropriate placement.
+The 1-Day Assessment is available for local hometown athletes only. Out-of-town athletes should choose the 3-Day Trial.
 
-A coach will review the participant and determine the most appropriate training group and next step.
+${intakeProcess}
 
 ${waiverLink}
 
@@ -235,33 +343,32 @@ ${locationBlock}
 
 ${scheduleBlock}
 
-${adultFitness
-                    ? adultFitnessNote + "\n"
-                    : combatNote + "\n"}
+${adultFitness ? adultFitnessNote : combatNote}
 
 ${requirements}
+
 This assessment is an entry session only. Ongoing participation is determined by the coach after in-person evaluation.
 
-— Sandman Combat`
+— Sandman Combat™`
         };
     }
     if (entryType === "trial") {
         return {
             subject: lang === "es"
-                ? `${subjectBase} — Pase de 3 Días`
-                : `${subjectBase} — 3-Day Pass`,
+                ? `${subjectBase} — Prueba de 3 Días`
+                : `${subjectBase} — 3-Day Trial`,
             text: lang === "es"
-                ? `Bienvenido a Sandman Combat.
+                ? `Bienvenido a Sandman Combat™.
 
 Programa seleccionado: ${trackLabel}
 
-Tu solicitud de Pase de 3 Días ha sido recibida.
+Tu solicitud de Prueba de 3 Días ha sido recibida.
 
-Este pase permite experimentar varias sesiones, conocer al equipo de entrenamiento y entender la estructura antes de considerar membresía.
+La Prueba de 3 Días es ideal para atletas visitantes, familias de fuera del área y familias que desean conocer el ambiente antes de considerar membresía.
 
-Un coach revisará al participante y determinará el grupo de entrenamiento y progresión más apropiado.
+${intakeProcess}
 
-Antes de participar, se requiere una exención firmada. Algunas actividades pueden requerir membresía, licencia, sanción o cobertura de seguro.
+Antes de participar, se requiere una exención firmada. Puede requerirse membresía adicional para continuar en clases regulares después de la prueba.
 
 ${waiverLink}
 
@@ -269,27 +376,24 @@ ${locationBlock}
 
 ${scheduleBlock}
 
-
-${adultFitness
-                    ? adultFitnessNote + "\n"
-                    : combatNote + "\n"}
+${adultFitness ? adultFitnessNote : combatNote}
 
 ${requirements}
 
-Completar el pase no garantiza membresía. La ubicación y participación continua serán determinadas por el coach.
+Completar la prueba no garantiza membresía. La ubicación y participación continua serán determinadas por el coach.
 
-— Sandman Combat`
-                : `Welcome to Sandman Combat.
+— Sandman Combat™`
+                : `Welcome to Sandman Combat™.
 
 Selected Program: ${trackLabel}
 
-Your 3-Day Pass request has been received.
+Your 3-Day Trial request has been received.
 
-This pass allows the participant to experience multiple sessions, meet the coaching staff, and understand the structure before membership consideration.
+The 3-Day Trial is ideal for visiting athletes, out-of-town families, and families who want to experience the environment before considering membership.
 
-A coach will review the participant and determine the most appropriate training group and next step.
+${intakeProcess}
 
-Before participating, a signed waiver is required. Some activities may require membership, licensing, sanctioning, or insurance coverage.
+Before participating, a signed waiver is required. Additional membership may be required to continue in regular classes after the trial.
 
 ${waiverLink}
 
@@ -297,15 +401,161 @@ ${locationBlock}
 
 ${scheduleBlock}
 
-${adultFitness
-                    ? adultFitnessNote + "\n"
-                    : combatNote + "\n"}
+${adultFitness ? adultFitnessNote : combatNote}
 
 ${requirements}
 
-Completion of the pass does not guarantee membership. Placement and continued participation are determined by the coach.
+Completion of the trial does not guarantee membership. Placement and continued participation are determined by the coach.
 
-— Sandman Combat`
+— Sandman Combat™`
+        };
+    }
+    if (entryType === "unlimited") {
+        return {
+            subject: lang === "es"
+                ? `${subjectBase} — Membresía Ilimitada para Atleta`
+                : `${subjectBase} — Unlimited Athlete Membership`,
+            text: lang === "es"
+                ? `Bienvenido a Sandman Combat™.
+
+Programa seleccionado: ${trackLabel}
+
+Tu solicitud de Membresía Ilimitada para Atleta ha sido recibida.
+
+Esta opción está diseñada para atletas que desean entrenar en múltiples programas elegibles de Sandman Combat™.
+
+${intakeProcess}
+
+Un coach revisará la solicitud, hablará contigo sobre las metas del atleta y recomendará el horario de entrenamiento más apropiado.
+
+Programas elegibles actuales:
+• Zero to Hero™ Wrestling
+• Path to Legend™ Wrestling
+• Road to Greatness™ Boxing
+• Kickboxing, Fitness y Defensa Personal
+
+La participación en cada programa depende de edad, madurez, seguridad, disponibilidad y aprobación del coach.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${adultFitness ? adultFitnessNote : combatNote}
+
+${requirements}
+
+— Sandman Combat™`
+                : `Welcome to Sandman Combat™.
+
+Selected Program: ${trackLabel}
+
+Your Unlimited Athlete Membership request has been received.
+
+This option is designed for athletes who want to train across multiple eligible Sandman Combat™ programs.
+
+${intakeProcess}
+
+A coach will review the request, discuss the athlete's goals, and recommend the most appropriate training schedule.
+
+Current eligible programs:
+• Zero to Hero™ Wrestling
+• Path to Legend™ Wrestling
+• Road to Greatness™ Boxing
+• Kickboxing, Fitness & Self-Defense
+
+Participation in each program depends on age, maturity, safety, availability, and coach approval.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${adultFitness ? adultFitnessNote : combatNote}
+
+${requirements}
+
+— Sandman Combat™`
+        };
+    }
+    if (entryType === "family_wellness") {
+        return {
+            subject: lang === "es"
+                ? `${subjectBase} — Membresía Familiar de Bienestar`
+                : `${subjectBase} — Family Wellness Membership`,
+            text: lang === "es"
+                ? `Bienvenido a Sandman Combat™.
+
+Tu solicitud de Membresía Familiar de Bienestar ha sido recibida.
+
+Esta membresía está diseñada para familias que desean entrenar juntas.
+
+Los atletas elegibles participan en sus caminos de Sandman Combat™, mientras los padres pueden participar en clases de Kickboxing, Fitness y Defensa Personal.
+
+${intakeProcess}
+
+Un coach revisará la solicitud y se comunicará contigo para hablar sobre:
+• Atletas elegibles
+• Metas familiares
+• Horarios disponibles
+• El mejor plan de membresía para tu familia
+
+Programas elegibles actuales:
+• Zero to Hero™ Wrestling
+• Path to Legend™ Wrestling
+• Road to Greatness™ Boxing
+• Kickboxing, Fitness y Defensa Personal
+
+La participación en cada programa depende de edad, madurez, seguridad, disponibilidad y aprobación del coach.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${adultFitnessNote}
+
+${requirements}
+
+— Sandman Combat™`
+                : `Welcome to Sandman Combat™.
+
+Your Family Wellness Membership request has been received.
+
+This membership is designed for families who want to train together.
+
+Eligible athletes participate in their Sandman Combat™ journeys while parents may participate in Kickboxing, Fitness & Self-Defense classes.
+
+${intakeProcess}
+
+A coach will review the request and contact you to discuss:
+• Eligible athletes
+• Family goals
+• Available schedules
+• The best membership option for your family
+
+Current eligible programs:
+• Zero to Hero™ Wrestling
+• Path to Legend™ Wrestling
+• Road to Greatness™ Boxing
+• Kickboxing, Fitness & Self-Defense
+
+Participation in each program depends on age, maturity, safety, availability, and coach approval.
+
+${waiverLink}
+
+${locationBlock}
+
+${scheduleBlock}
+
+${adultFitnessNote}
+
+${requirements}
+
+— Sandman Combat™`
         };
     }
     return {
@@ -313,15 +563,17 @@ Completion of the pass does not guarantee membership. Placement and continued pa
             ? `${subjectBase} — Solicitud de Membresía Recibida`
             : `${subjectBase} — Membership Request Received`,
         text: lang === "es"
-            ? `Bienvenido a Sandman Combat.
+            ? `Bienvenido a Sandman Combat™.
 
 Programa seleccionado: ${trackLabel}
 
 Tu solicitud de membresía ha sido recibida.
 
+${intakeProcess}
+
 Un coach revisará tu solicitud y determinará el siguiente paso basado en experiencia, madurez, seguridad, ajuste con la sala y ubicación apropiada.
 
-Antes de participar regularmente, se requiere una exención firmada. Algunas actividades pueden requerir membresía, licencia, sanción o cobertura de seguro.
+Antes de participar regularmente, se requiere una exención firmada. Puede requerirse membresía adicional para continuar en clases regulares.
 
 ${waiverLink}
 
@@ -329,22 +581,22 @@ ${locationBlock}
 
 ${scheduleBlock}
 
-
-${adultFitness
-                ? adultFitnessNote + "\n"
-                : combatNote + "\n"}
+${adultFitness ? adultFitnessNote : combatNote}
 
 ${requirements}
-— Sandman Combat`
-            : `Welcome to Sandman Combat.
+
+— Sandman Combat™`
+            : `Welcome to Sandman Combat™.
 
 Selected Program: ${trackLabel}
 
 Your membership request has been received.
 
+${intakeProcess}
+
 A coach will review your submission and determine the next step based on experience, maturity, safety, room fit, and appropriate placement.
 
-Before regular participation, a signed waiver is required. Some activities may require membership, licensing, sanctioning, or insurance coverage.
+Before regular participation, a signed waiver is required. Additional membership may be required to continue in regular classes.
 
 ${waiverLink}
 
@@ -352,13 +604,11 @@ ${locationBlock}
 
 ${scheduleBlock}
 
-
-${adultFitness
-                ? adultFitnessNote + "\n"
-                : combatNote + "\n"}
+${adultFitness ? adultFitnessNote : combatNote}
 
 ${requirements}
-— Sandman Combat`
+
+— Sandman Combat™`
     };
 }
 exports.sendGatekeeperEmail = functions.firestore
