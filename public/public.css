@@ -818,3 +818,30 @@ textarea{
 .top-nav-simple .nav-logo{
   margin:0 auto;
 }
+
+/* ==========================================================
+   SUBPAGE HEADER OVERRIDE
+   Centers Sandman Combat™ on all pages except Home
+   ========================================================== */
+
+body.subpage .nav-top{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  position:relative;
+  min-height:64px;
+  padding:0 20px;
+}
+
+body.subpage .nav-logo{
+  margin:0;
+  font-size:1.15rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+body.subpage .lang-toggle,
+body.subpage .theme-toggle{
+  display:none !important;
+}
