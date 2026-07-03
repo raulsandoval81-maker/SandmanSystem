@@ -231,14 +231,9 @@ body.day-mode #joinForm textarea{
     <section class="section">
       <div class="hero">
         <div data-lang-block="en">
-          <div class="hero-kicker">Join</div>
 
           <h1>Start Your Journey</h1>
 
-          <p class="hero-sub">
-            Everyone Starts at Zero.<br>
-            Every Step is Earned.
-          </p>
 
           <p class="hero-tag">
             Whether you're new to combat sports or already have experience, every athlete begins with an assessment, a conversation, and then onboarding into the program that's right for them.
@@ -251,14 +246,8 @@ body.day-mode #joinForm textarea{
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
-          <div class="hero-kicker">Unirse</div>
 
           <h1>Comienza tu camino</h1>
-
-          <p class="hero-sub">
-            Todos Comienzan Desde Cero.<br>
-            Cada Paso Se Gana.
-          </p>
 
           <p class="hero-tag">
             Ya sea que tu atleta sea nuevo en los deportes de combate o ya tenga experiencia, cada atleta comienza con una evaluación, una conversación y luego una orientación hacia el programa adecuado.
@@ -669,40 +658,49 @@ body.day-mode #joinForm textarea{
     });
   }
 
+  const academy = getParam("academy") || "lompoc";
+  const source = getParam("src") || "public";
+  let programTrack = getParam("track") || "zero2hero";
 
-const academy = getParam("academy") || "lompoc";
-const source = getParam("src") || "public";
-let programTrack = getParam("track") || "zero2hero";
+  const trackSelect = $("programTrackSelect");
 
+  if (trackSelect) {
+    trackSelect.value = programTrack;
+  }
 
-const trackSelect = $("programTrackSelect");
+  function getCurrentLang(){
+    return document.body.dataset.lang === "es" ? "es" : "en";
+  }
 
-if (trackSelect) {
-  trackSelect.value = programTrack;
-}
-
-function getCurrentLang(){
-  return document.body.dataset.lang === "es" ? "es" : "en";
-}
-
+  function clearActiveCards(){
+    $("freeCard")?.classList.remove("active");
+    $("trialCard")?.classList.remove("active");
+    $("joinCard")?.classList.remove("active");
+    $("unlimitedCard")?.classList.remove("active");
+    $("familyWellnessCard")?.classList.remove("active");
+  }
 
   function setIntent(intent){
     const entryTypeEl = $("entryType");
     if (entryTypeEl) entryTypeEl.value = intent;
 
-    $("freeCard")?.classList.remove("active");
-    $("trialCard")?.classList.remove("active");
-    $("joinCard")?.classList.remove("active");
+    clearActiveCards();
 
     const isES = getCurrentLang() === "es";
-    let label = isES ? "Prueba de 3 días" : "3-Day Trial";
+    let label = isES ? "Prueba de 2 días" : "2-Day Trial";
 
     if (intent === "free_pass") {
       label = isES ? "Evaluación de 1 día" : "1-Day Assessment";
       $("freeCard")?.classList.add("active");
     } else if (intent === "join") {
-      label = isES ? "Membresía" : "Membership";
+      label = isES ? "Membresía mensual" : "Monthly Membership";
       $("joinCard")?.classList.add("active");
+    } else if (intent === "unlimited") {
+      label = isES ? "Membresía ilimitada para atleta" : "Unlimited Athlete Membership";
+      $("unlimitedCard")?.classList.add("active");
+    } else if (intent === "family_wellness") {
+      label = isES ? "Membresía familiar de bienestar" : "Family Wellness Membership";
+      $("familyWellnessCard")?.classList.add("active");
     } else {
       $("trialCard")?.classList.add("active");
     }
@@ -718,8 +716,10 @@ function getCurrentLang(){
   $("btnFree")?.addEventListener("click", () => setIntent("free_pass"));
   $("btnTrial")?.addEventListener("click", () => setIntent("trial"));
   $("btnJoin")?.addEventListener("click", () => setIntent("join"));
+  $("btnUnlimited")?.addEventListener("click", () => setIntent("unlimited"));
+  $("btnFamilyWellness")?.addEventListener("click", () => setIntent("family_wellness"));
 
-  setIntent("free_pass");
+  setIntent(getParam("intent") || "free_pass");
 
   const agree = $("agreeTerms");
   const submitBtn = $("btnSubmit");
@@ -734,6 +734,28 @@ function getCurrentLang(){
 
   agree?.addEventListener("change", updateSubmitState);
   updateSubmitState();
+
+  function getEntryLabel(entryType, currentLang){
+    const isES = currentLang === "es";
+
+    if (entryType === "free_pass") {
+      return isES ? "Evaluación de 1 día" : "1-Day Assessment";
+    }
+
+    if (entryType === "join") {
+      return isES ? "Membresía mensual" : "Monthly Membership";
+    }
+
+    if (entryType === "unlimited") {
+      return isES ? "Membresía ilimitada para atleta" : "Unlimited Athlete Membership";
+    }
+
+    if (entryType === "family_wellness") {
+      return isES ? "Membresía familiar de bienestar" : "Family Wellness Membership";
+    }
+
+    return isES ? "Prueba de 2 días" : "2-Day Trial";
+  }
 
   $("joinForm")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -757,26 +779,18 @@ function getCurrentLang(){
       return;
     }
 
+    const entryLabel = getEntryLabel(entryType, currentLang);
 
-    let entryLabel = currentLang === "es" ? "Prueba de 3 días" : "3-Day Trial";
+    programTrack = $("programTrackSelect")?.value || programTrack;
 
-    if (entryType === "join") {
-      entryLabel = currentLang === "es" ? "Membresía" : "Membership";
-    }
+    const subject = `${entryLabel} Request`;
 
-    if (entryType === "free_pass") {
-      entryLabel = currentLang === "es" ? "Evaluación de 1 día" : "1-Day Assessment";
-    }
-programTrack =
-  $("programTrackSelect")?.value || programTrack;
-
-
-const subject = `${entryLabel} Request`;
     const body =
 `${entryLabel} Request
 Parent: ${parentName} (${parentEmail})
 Athlete: ${athleteName}${athleteAge ? " (" + athleteAge + ")" : ""}
 
+Program / Journey: ${programTrack}
 Experience: ${interest}
 
 Message:
@@ -792,85 +806,72 @@ ${bodyRaw || "(none)"}`;
     try {
       const threadRef = doc(collection(db, "paraParentInbox"));
 
+      await setDoc(threadRef, {
+        academy,
+        source,
+        category: "join",
+        entryType,
+        programTrack,
 
-await setDoc(threadRef, {
+        lang: currentLang,
 
-  academy,
-  source,
-  category: "join",
-  entryType,
-  programTrack,
+        stage: "gatekeeper",
+        status: entryType === "join" ? "pending" : "auto-approved",
 
-   lang: currentLang,
+        publicMessage: bodyRaw || "",
+        hasPublicMessage: Boolean(bodyRaw),
+        needsManualEmailReply: Boolean(bodyRaw),
 
-  stage: "gatekeeper",
-  status: entryType === "join" ? "pending" : "auto-approved",
+        publicContactStatus: bodyRaw
+          ? "needs_review"
+          : "auto_handled",
 
-  // NEW
+        responseChannel: "external_email",
 
-  publicMessage: bodyRaw || "",
+        autoReplySent: true,
+        autoReplyType: entryType,
 
-  hasPublicMessage: Boolean(bodyRaw),
+        adminGatekeeperStatus: "new",
 
-  needsManualEmailReply: Boolean(bodyRaw),
+        coachNotify: true,
+        coachNotificationSent: false,
 
-  publicContactStatus: bodyRaw
-    ? "needs_review"
-    : "auto_handled",
+        coachFollowUpStatus: bodyRaw
+          ? "needs_reply"
+          : "heads_up_only",
 
-  responseChannel: "external_email",
+        academyId: "lompoc",
+        city: "Lompoc",
+        state: "CA",
 
-  autoReplySent: true,
+        teamId: "",
+        teamName: "",
 
-  autoReplyType: entryType,
+        assignedCoachId: "",
+        assignedCoachName: "",
+        assignedCoachEmail: "",
 
-  adminGatekeeperStatus: "new",
+        assignmentStatus: "unassigned",
 
-  coachNotify: true,
+        suggestedCoachReply: "",
 
-  coachNotificationSent: false,
+        subject,
+        parentName,
+        parentEmail,
+        athleteName,
+        athleteAge,
+        interest,
 
-  coachFollowUpStatus: bodyRaw
-    ? "needs_reply"
-    : "heads_up_only",
+        lastBody: body,
+        lastReplyAt: serverTimestamp(),
 
-academyId: "lompoc",
-city: "Lompoc",
-state: "CA",
+        coachHasUnread: true,
+        parentHasUnread: false,
+        seenByCoach: false,
+        seenByParent: true,
 
-teamId: "",
-teamName: "",
-
-assignedCoachId: "",
-assignedCoachName: "",
-assignedCoachEmail: "",
-
-assignmentStatus: "unassigned",
-
-  suggestedCoachReply: "",
-
-  // EXISTING
-
-
-  subject,
-  parentName,
-  parentEmail,
-  athleteName,
-  athleteAge,
-
-
-  interest,
-
-  lastBody: body,
-  lastReplyAt: serverTimestamp(),
-
-  coachHasUnread: true,
-  parentHasUnread: false,
-  seenByCoach: false,
-  seenByParent: true,
-
-  createdAt: serverTimestamp()
-});
+        createdAt: serverTimestamp()
+      });
 
       await addDoc(collection(db, "paraParentInbox", threadRef.id, "thread"), {
         from: "parent",
@@ -906,9 +907,11 @@ assignmentStatus: "unassigned",
       if (btn) {
         btn.disabled = agree ? !agree.checked : false;
         btn.innerHTML = currentLang === "es"
-          ? `<span data-lang-block="en" class="hidden-lang">Request Invite</span><span data-lang-block="es">Solicitar invitación</span>`
-          : `<span data-lang-block="en">Request Invite</span><span data-lang-block="es" class="hidden-lang">Solicitar invitación</span>`;
+          ? `<span data-lang-block="en" class="hidden-lang">Submit Request</span><span data-lang-block="es">Enviar solicitud</span>`
+          : `<span data-lang-block="en">Submit Request</span><span data-lang-block="es" class="hidden-lang">Enviar solicitud</span>`;
       }
     }
   });
 </script>
+</body>
+</html>
