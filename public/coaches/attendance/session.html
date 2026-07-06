@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Session Check-In | Sandman Combat</title>
+
+  <link rel="stylesheet" href="/coaches/attendance/attendance.css" />
+</head>
+
+<body>
+  <main class="attendance-page">
+    <header class="attendance-header">
+      <h1>Session Check-In</h1>
+      <p>Kids check in here. Coach finalizes attendance later.</p>
+    </header>
+
+    <section class="attendance-card">
+<label>
+  Journey
+  <select id="journey">
+    <option value="p2l">Path to Legend</option>
+    <option value="z2h">Zero to Hero</option>
+    <option value="r2g">Road to Greatness</option>
+    <option value="q2m">Quest for Mastery</option>
+  </select>
+</label>
+
+<label>
+  Discipline
+  <select id="discipline">
+    <option value="wrestling">Wrestling</option>
+    <option value="boxing">Boxing</option>
+    <option value="mma">MMA</option>
+    <option value="open_mat">Open Mat</option>
+  </select>
+</label>
+
+      <label>
+        Coach Name
+        <input id="coachName" type="text" value="Coach Sandoval" />
+      </label>
+
+      <label>
+        Notes
+        <textarea id="practiceNotes" placeholder="Optional notes..."></textarea>
+      </label>
+
+      <button id="startSession" type="button">
+        Start Check-In Session
+      </button>
+
+      <p id="sessionStatus" class="muted">Ready.</p>
+    </section>
+
+    <section class="attendance-card">
+      <h2>Athlete Check-In</h2>
+
+      <input
+        id="searchAthlete"
+        type="text"
+        placeholder="Search athlete name..."
+      />
+
+      <div id="athleteList"></div>
+    </section>
+
+    <section class="attendance-card">
+      <h2>Checked In Today</h2>
+      <p id="checkedCount" class="muted">0 checked in</p>
+      <div id="checkedList"></div>
+
+      <button id="finalizeSession" type="button">
+        Finalize Attendance
+      </button>
+    </section>
+  </main>
+
+  <script type="module" src="/coaches/attendance/session.js"></script>
+</body>
+</html>

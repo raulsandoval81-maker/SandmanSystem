@@ -4,10 +4,10 @@ import {
   getDocs,
   addDoc,
   query,
-  orderBy,
   doc,
   updateDoc,
   serverTimestamp,
+  arrayUnion,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
@@ -319,6 +319,26 @@ function selectedAthletesPayload() {
       rank: athlete.rank || ""
     }));
 }
+function todayKey() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function countsAsDecayRecoveryDay(practiceType = "") {
+  const type = String(practiceType || "").toLowerCase();
+
+  return (
+    type.includes("attendance") ||
+    type.includes("combat") ||
+    type.includes("practice") ||
+    type.includes("open_mat") ||
+    type.includes("daily_grind") ||
+    type.includes("tournament") ||
+    type.includes("p2l") ||
+    type.includes("z2h") ||
+    type.includes("r2g") ||
+    type.includes("q2m")
+  );
+}
 
 async function saveAttendance() {
   const saveBtn = $("saveAttendance");
@@ -353,17 +373,63 @@ async function saveAttendance() {
       source: "coach-attendance"
     });
 
-    await Promise.all(
-      present.map((athlete) =>
-        updateDoc(doc(db, "athletes", athlete.id), {
-          lastAttendanceAt: serverTimestamp(),
-          lastAttendanceType: practiceType,
-          lastAttendanceCoach: coach,
-          lastAttendanceSessionId: sessionRef.id,
-          updatedAt: serverTimestamp()
-        })
-      )
+const recoveryDateKey = todayKey();
+const isCombatRecoveryDay =
+  countsAsDecayRecoveryDay(practiceType);
+
+await Promise.all(
+  present.map((athlete) => {
+    const current = athletes.find((a) => a.id === athlete.id) || {};
+    const decay = current.decay || {};
+    const recoveryLog = Array.isArray(decay.recoveryLog)
+      ? decay.recoveryLog
+      : [];
+
+    const alreadyCountedToday =
+      recoveryLog.includes(recoveryDateKey);
+
+    const updatePayload = {
+      lastAttendanceAt: serverTimestamp(),
+      lastAttendanceType: practiceType,
+      lastAttendanceCoach: coach,
+      lastAttendanceSessionId: sessionRef.id,
+      updatedAt: serverTimestamp()
+    };
+
+    if (
+      isCombatRecoveryDay &&
+      decay.state === "DECAY_ACTIVE" &&
+      !alreadyCountedToday
+    ) {
+      const completed =
+        Number(decay.recoveryDaysCompleted || 0) + 1;
+
+      updatePayload["decay.recoveryDaysCompleted"] = completed;
+      updatePayload["decay.recoveryLog"] =
+        arrayUnion(recoveryDateKey);
+      updatePayload["decay.lastRecoveryAt"] =
+        serverTimestamp();
+
+      if (completed >= 3) {
+        updatePayload["decay.state"] = "CLEAR";
+        updatePayload["decay.points"] = 0;
+        updatePayload["decay.hits"] = 0;
+        updatePayload["decay.nextHitAt"] = null;
+        updatePayload["decay.recoveryLog"] = [];
+        updatePayload["decay.recoveryDaysCompleted"] = 0;
+        updatePayload["decay.clearedAt"] =
+          serverTimestamp();
+        updatePayload["decay.reason"] =
+          "Recovered after 3 separate verified combat attendance days";
+      }
+    }
+
+    return updateDoc(
+      doc(db, "athletes", athlete.id),
+      updatePayload
     );
+  })
+);
 
     selectedIds.clear();
 

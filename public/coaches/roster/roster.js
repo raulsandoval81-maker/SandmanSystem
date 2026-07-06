@@ -38,17 +38,11 @@ function xpCapForAthlete(data = {}, track = "F4") {
 }
 
 function rosterStatusOf(a = {}) {
-  return a.rosterStatus || "current";
+  return String(a.rosterStatus || "current");
 }
 
 function isArchiveView() {
   return !!window.__rosterArchiveView;
-}
-
-function isLiveRosterAthlete(id, a = {}) {
-  if (!id) return false;
-  if (a.devMode === true || a.isDev === true || a.isTest === true) return false;
-  return true;
 }
 
 function athleteName(data = {}, id = "") {
@@ -173,9 +167,8 @@ async function loadRoster() {
       id: d.id,
       data: d.data() || {}
     }))
-    .filter((x) => isLiveRosterAthlete(x.id, x.data))
-    .filter((x) => trackBaseOf(x.id) === track)
     .filter((x) => rosterStatusOf(x.data) === wantedStatus)
+    .filter((x) => trackBaseOf(x.id) === track)
     .filter((x) => {
       if (disciplineFilter === "all") return true;
 
@@ -202,11 +195,9 @@ async function loadRoster() {
   rowsEl.innerHTML = currentList.length
     ? currentList.map(({ id, data }) => `
       <tr>
-
         <td data-label="Athlete">
           <div class="name-col">
             <div>
-
               <div class="name-line">
                 ${athleteName(data, id)}
                 ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
@@ -226,7 +217,6 @@ async function loadRoster() {
                     : `<button class="pill" type="button" data-archive="${id}">Archive</button>`
                 }
               </div>
-
             </div>
           </div>
         </td>
@@ -247,7 +237,6 @@ async function loadRoster() {
             ${lastSeenText(data)}
           </div>
         </td>
-
       </tr>
     `).join("")
     : `
@@ -318,7 +307,7 @@ async function loadRoster() {
     const colorMapF8 = {
       Shadow: "belt-white",
       Recruit: "belt-yellow",
-      Contender: "belt-orange",
+      Competitor: "belt-orange",
       Contender: "belt-green",
       Warrior: "belt-blue",
       Champion: "belt-purple",
@@ -342,7 +331,10 @@ async function loadRoster() {
 
     const textEl = document.getElementById(`stripeText-${id}`);
     if (textEl) {
-      const xpPercent = Math.min(100, Math.round((xpNow / xpCap) * 100));
+      const xpPercent = Math.min(
+        100,
+        Math.round((xpNow / xpCap) * 100)
+      );
 
       textEl.textContent =
         `${xpNow} / ${xpCap} XP · ${xpPercent}% · Stripes: ${finalStripes} / ${stripeMax}`;

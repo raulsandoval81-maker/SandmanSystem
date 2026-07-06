@@ -1,23 +1,18 @@
 // public/coaches/daily-xp/daily-grind.js
-import { db, collection, onSnapshot, ensureSignedIn } from "/assets/js/firebase-init.js";
+
+import {
+  db,
+  collection,
+  onSnapshot,
+  ensureSignedIn
+} from "/assets/js/firebase-init.js";
+
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
-import {
-  isDevMode,
-  paintDevUi,
-  bindDevToggle,
-  patchDevLinks,
-} from "/assets/js/dev-mode.js";
 
 console.log("XP_URL =", XP_URL);
-/* =========================
-   DEV MODE BOOTSTRAP
-========================= */
-document.body.classList.toggle("dev-on", isDevMode());
-paintDevUi({ toggleId: "devModeToggle" });
-patchDevLinks();
-bindDevToggle({ toggleId: "devModeToggle", onChange: () => location.reload() });
+
 await ensureSignedIn();
 
 window.addEventListener("error", (e) => {
@@ -31,33 +26,25 @@ window.addEventListener("unhandledrejection", (e) => {
   if (el) el.textContent = "PROMISE ERROR: " + msg;
 });
 
-/* =========================
-   DOM
-========================= */
 const rowsEl = document.getElementById("rows");
 const pageStatusEl = document.getElementById("pageStatus");
 
 const searchEl = document.getElementById("search");
 const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
-
-// Track toggle (exclusive)
 const trackF8OnlyEl = document.getElementById("trackF8Only");
 
 const laneEl = document.getElementById("xpLane");
 const modeEl = document.getElementById("xpMode");
 const awardHintEl = document.getElementById("awardHint");
 
-// Session pills
 const sessionBar = document.getElementById("sessionBar");
 const sbLoaded = document.getElementById("sb-loaded");
 const sbAwarded = document.getElementById("sb-awarded");
 const sbXP = document.getElementById("sb-xp");
 
-// Refresh (optional)
 const refreshBtn = document.getElementById("refreshBtn");
 
-// Pills
 const btnGrind10 = document.getElementById("btnGrind10");
 const btnGrind5  = document.getElementById("btnGrind5");
 const btnStr10   = document.getElementById("btnStr10");
@@ -65,11 +52,15 @@ const btnStr5    = document.getElementById("btnStr5");
 const btnHon10   = document.getElementById("btnHon10");
 const btnHon5    = document.getElementById("btnHon5");
 
-const ALL_PILLS = [btnGrind10, btnGrind5, btnStr10, btnStr5, btnHon10, btnHon5].filter(Boolean);
+const ALL_PILLS = [
+  btnGrind10,
+  btnGrind5,
+  btnStr10,
+  btnStr5,
+  btnHon10,
+  btnHon5
+].filter(Boolean);
 
-/* =========================
-   State
-========================= */
 let roster = [];
 let filtered = [];
 let awardedCount = 0;
@@ -77,55 +68,18 @@ let awardedXP = 0;
 let unsub = null;
 let isSaving = false;
 
-/* =========================
-   Helpers
-========================= */
-function xpCapForAthlete(a = {}) {
-  const base = baseFromAthlete(a);
-  const rankName = a.rankName || a.tierName;
-
-  const ladder = base === "F8"
-    ? LADDER_F8
-    : LADDER_F4;
-
-  const tier = ladder.find(t => t.name === rankName);
-
-  return Number(
-    tier?.cap ??
-    a.xpCap ??
-    a.cap ??
-    a.tierCap ??
-    (baseFromAthlete(a) === "F8" ? 600 : 1000)
-  );
-
-}
-
 function setStatus(msg) {
   if (pageStatusEl) pageStatusEl.textContent = msg;
 }
 
-function setAllPicks(checked) {
-  if (!rowsEl) return;
-  rowsEl.querySelectorAll(".pick").forEach((cb) => (cb.checked = checked));
+function rosterStatusOf(a = {}) {
+  return String(a.rosterStatus || "current");
 }
 
-function selectedAthleteIds() {
-  if (!rowsEl) return [];
-  return Array.from(rowsEl.querySelectorAll(".pick:checked"))
-    .map((el) => el.getAttribute("data-id"))
-    .filter(Boolean);
-}
-
-function athleteById(id) {
-  return roster.find((a) => a.id === id);
-}
-
-// Exclusive track selector (default F4)
 function wantedTrackBase() {
   return trackF8OnlyEl && trackF8OnlyEl.checked ? "F8" : "F4";
 }
 
-// Canonical base inference
 function baseFromAthlete(a) {
   const tb = String(a?.trackBase || "").trim().toUpperCase();
   if (tb === "F4" || tb === "F8") return tb;
@@ -141,6 +95,40 @@ function baseFromAthlete(a) {
   return "F4";
 }
 
+function xpCapForAthlete(a = {}) {
+  const base = baseFromAthlete(a);
+  const rankName = a.rankName || a.tierName;
+  const ladder = base === "F8" ? LADDER_F8 : LADDER_F4;
+  const tier = ladder.find((t) => t.name === rankName);
+
+  return Number(
+    tier?.cap ??
+    a.xpCap ??
+    a.cap ??
+    a.tierCap ??
+    (base === "F8" ? 600 : 1000)
+  );
+}
+
+function setAllPicks(checked) {
+  if (!rowsEl) return;
+  rowsEl.querySelectorAll(".pick").forEach((cb) => {
+    cb.checked = checked;
+  });
+}
+
+function selectedAthleteIds() {
+  if (!rowsEl) return [];
+
+  return Array.from(rowsEl.querySelectorAll(".pick:checked"))
+    .map((el) => el.getAttribute("data-id"))
+    .filter(Boolean);
+}
+
+function athleteById(id) {
+  return roster.find((a) => a.id === id);
+}
+
 function updateSessionBar() {
   if (!sessionBar) return;
 
@@ -150,9 +138,18 @@ function updateSessionBar() {
   }
 
   sessionBar.style.display = "flex";
-  if (sbLoaded)  sbLoaded.textContent  = `Loaded: ${filtered.length}`;
-  if (sbAwarded) sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
-  if (sbXP)      sbXP.textContent      = `XP issued: ${awardedXP}`;
+
+  if (sbLoaded) {
+    sbLoaded.textContent = `Loaded: ${filtered.length}`;
+  }
+
+  if (sbAwarded) {
+    sbAwarded.textContent = `Awarded this session: ${awardedCount}`;
+  }
+
+  if (sbXP) {
+    sbXP.textContent = `XP issued: ${awardedXP}`;
+  }
 }
 
 function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
@@ -160,7 +157,7 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
   if (!slot) return;
 
   const ladder = baseFromAthlete(athlete) === "F8" ? LADDER_F8 : LADDER_F4;
-  const tier = ladder.find(t => t.name === rankName) || ladder[0];
+  const tier = ladder.find((t) => t.name === rankName) || ladder[0];
 
   const xpNow = Number(xp ?? 0);
   const xpCap = Number(cap ?? tier.cap);
@@ -177,24 +174,42 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
     calculatedStripes
   );
 
-  const colorMapF4 = {
+const colorMapByJourney = {
+  z2h: {
+    Shadow: "belt-white-gray",
+    Recruit: "belt-yellow-gray",
+    Competitor: "belt-orange-gray",
+    Contender: "belt-green-gray",
+    Warrior: "belt-blue-gray",
+    Champion: "belt-purple-gray",
+    Commander: "belt-brown-gray",
+    Hero: "belt-black-gray"
+  },
+
+  p2l: {
     Apprentice: "belt-white",
     Warrior: "belt-blue",
     Champion: "belt-purple",
     Veteran: "belt-brown",
     Legend: "belt-black"
-  };
+  },
 
-  const colorMapF8 = {
-    Shadow: "belt-white",
-    Recruit: "belt-yellow",
-    Contender: "belt-orange",
-    Contender: "belt-green",
+  r2g: {
+    Apprentice: "belt-gray",
     Warrior: "belt-blue",
     Champion: "belt-purple",
-    Commander: "belt-brown",
-    Hero: "belt-black"
-  };
+    Veteran: "belt-brown",
+    Craftsman: "belt-black"
+  },
+
+  q2m: {
+    Apprentice: "belt-gray",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Master: "belt-black"
+  }
+};
 
   const base = baseFromAthlete(athlete);
 
@@ -203,21 +218,22 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
       ? colorMapF8[rankName] || "belt-white"
       : colorMapF4[rankName] || "belt-white";
 
-  // 🔥 replace mini bar with belt
   slot.innerHTML = renderDigitalBelt({
     colorClass,
     stripes: finalStripes,
     size: "small"
   });
 }
-/* =========================
-   Render
-========================= */
+
 function render(list) {
   if (!rowsEl) return;
 
   if (!list.length) {
-    rowsEl.innerHTML = `<tr><td colspan="4" class="muted">No athletes match.</td></tr>`;
+    rowsEl.innerHTML = `
+      <tr>
+        <td colspan="4" class="muted">No athletes match.</td>
+      </tr>
+    `;
     updateSessionBar();
     return;
   }
@@ -225,24 +241,31 @@ function render(list) {
   const byId = new Map(list.map((a) => [a.id, a]));
 
   rowsEl.innerHTML = list.map((a) => {
-    const uid   = a.uidCode || a.uid || a.id;
-    const name  = a.publicName || a.fullName || uid;
+    const uid = a.uidCode || a.uid || a.id;
+    const name = a.publicName || a.fullName || uid;
     const track = a.trackCode || a.track || "—";
-    const tier  = a.rankName || a.tierName || a.tier || "Apprentice";
-    const xp    = a.xp ?? 0;
-    const cap   = xpCapForAthlete(a);
+    const tier = a.rankName || a.tierName || a.tier || "Apprentice";
+    const xp = a.xp ?? 0;
+    const cap = xpCapForAthlete(a);
 
     return `
       <tr data-id="${a.id}">
-        <td><input type="checkbox" class="pick" data-id="${a.id}"/></td>
+        <td>
+          <input type="checkbox" class="pick" data-id="${a.id}" />
+        </td>
+
         <td>
           <div class="ath-name">${name}</div>
           <div class="sub">${uid}</div>
         </td>
+
         <td>${tier} / ${track}</td>
+
         <td>
           <div class="xp-slot"></div>
-          <div class="row-xp-meta" data-xpline="${a.id}">${xp} / ${cap}</div>
+          <div class="row-xp-meta" data-xpline="${a.id}">
+            ${xp} / ${cap}
+          </div>
         </td>
       </tr>
     `;
@@ -251,22 +274,20 @@ function render(list) {
   rowsEl.querySelectorAll("tr[data-id]").forEach((tr) => {
     const a = byId.get(tr.dataset.id);
     if (!a) return;
+
     repaintMiniBarForRow({
-  rowEl: tr,
-  athlete: a,
-  xp: a.xp ?? 0,
-  cap: xpCapForAthlete(a),
-  tierName: a.rankName || a.tierName || a.tier || "Apprentice",
-  rankName: a.rankName,
-});
+      rowEl: tr,
+      athlete: a,
+      xp: a.xp ?? 0,
+      cap: xpCapForAthlete(a),
+      tierName: a.rankName || a.tierName || a.tier || "Apprentice",
+      rankName: a.rankName
+    });
   });
 
   updateSessionBar();
 }
 
-/* =========================
-   Filter
-========================= */
 function applyFilterAndRender() {
   const q = String(searchEl?.value || "").toLowerCase().trim();
   const wantedBase = wantedTrackBase();
@@ -274,13 +295,13 @@ function applyFilterAndRender() {
   filtered = !q
     ? roster.slice()
     : roster.filter((a) => {
-        const n  = String(a.publicName || a.fullName || "").toLowerCase();
-        const u  = String(a.uidCode || a.uid || a.id || "").toLowerCase();
+        const n = String(a.publicName || a.fullName || "").toLowerCase();
+        const u = String(a.uidCode || a.uid || a.id || "").toLowerCase();
         const id = String(a.id || "").toLowerCase();
+
         return n.includes(q) || u.includes(q) || id.includes(q);
       });
 
-  // Exclusive track filter (never mix)
   filtered = filtered.filter((a) => baseFromAthlete(a) === wantedBase);
 
   filtered.sort((a, b) => {
@@ -293,73 +314,40 @@ function applyFilterAndRender() {
   setStatus(`Ready · ${wantedBase}`);
 }
 
-/* =========================
-   Live subscribe (root athletes + DEV/LIVE gate)
-========================= */
 function subscribe() {
-  if (unsub) { unsub(); unsub = null; }
+  if (unsub) {
+    unsub();
+    unsub = null;
+  }
 
-  const dev = isDevMode();
   const wantedBase = wantedTrackBase();
 
-  setStatus(`Loading athletes… ${dev ? "(DEV)" : "(LIVE)"} · ${wantedBase}`);
+  setStatus(`Loading athletes… ${wantedBase}`);
 
-  // ✅ Single source of truth (matches weekend/declared)
   const colRef = collection(db, "athletes");
 
   unsub = onSnapshot(
     colRef,
     (snap) => {
-      roster = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      roster = snap.docs.map((d) => ({
+        id: d.id,
+        ...d.data()
+      }));
 
-roster = roster.filter((a) => {
-  const status = a.rosterStatus || "current";
+      roster = roster.filter((a) => {
+        return rosterStatusOf(a) === "current";
+      });
 
-  // ❌ never show archived in Daily Grind
-  if (status !== "current") return false;
-
-  // DEV toggle behavior
-  if (dev) {
-    // show real + dev
-    return true;
-  }
-
-  // LIVE mode → hide dev
-  if (a.isDev === true || a.devMode === true || a.isTest === true) {
-    return false;
-  }
-
-  return true;
-});
       applyFilterAndRender();
       setStatus(`Ready · ${wantedBase}`);
     },
     (err) => {
       console.error(err);
-      setStatus(`${dev ? "DEV" : "LIVE"} load failed (see console).`);
+      setStatus("Athlete load failed. See console.");
     }
   );
 }
 
-searchEl?.addEventListener("input", applyFilterAndRender);
-pickAllEl?.addEventListener("click", () => setAllPicks(true));
-clearAllEl?.addEventListener("click", () => setAllPicks(false));
-
-trackF8OnlyEl?.addEventListener("change", () => {
-  setAllPicks(false);
-  subscribe();
-});
-
-refreshBtn?.addEventListener("click", () => {
-  setAllPicks(false);
-  subscribe();
-});
-
-subscribe();
-
-/* =========================
-   Lane → show ONLY 2 pills
-========================= */
 function setPillVisible(btn, on) {
   if (!btn) return;
   btn.style.display = on ? "" : "none";
@@ -395,46 +383,57 @@ function syncPillsToLane() {
   setPillVisible(btnGrind5, true);
 }
 
-laneEl?.addEventListener("change", syncPillsToLane);
-syncPillsToLane();
-
-/* =========================
-   Award mapping (string kinds = backend truth)
-========================= */
 const AWARDS = Object.freeze({
+  GRIND_15: {
+    label: "+15 Daily Grind — Double Shift",
+    kind: "DAILY_GRIND",
+    amount: 15
+  },
 
-GRIND_15: {
-  label: "+15 Daily Grind — Double Shift",
-  kind: "DAILY_GRIND",
-  amount: 15
-},
+  GRIND_10: {
+    label: "+10 Daily Grind — Full-Time Work",
+    kind: "DAILY_GRIND",
+    amount: 10
+  },
 
-GRIND_10: {
-  label: "+10 Daily Grind — Full-Time Work",
-  kind: "DAILY_GRIND",
-  amount: 10
-},
+  GRIND_5: {
+    label: "+5 Daily Grind — Part-Time Work",
+    kind: "DAILY_GRIND",
+    amount: 5
+  },
 
-GRIND_5: {
-  label: "+5 Daily Grind — Part-Time Work",
-  kind: "DAILY_GRIND",
-  amount: 5
-},
+  STR_10: {
+    label: "+10 Strength",
+    kind: "STRENGTH",
+    amount: 10
+  },
 
-  STR_10:   { label: "+10 Strength", kind: "STRENGTH", amount: 10 },
-  STR_5:    { label: "+5 Strength",  kind: "STRENGTH", amount: 5  },
+  STR_5: {
+    label: "+5 Strength",
+    kind: "STRENGTH",
+    amount: 5
+  },
 
-  HON_10:   { label: "+10 Honor", kind: "HONOR", amount: 10 },
-  HON_5:    { label: "+5 Honor",  kind: "HONOR", amount: 5  },
+  HON_10: {
+    label: "+10 Honor",
+    kind: "HONOR",
+    amount: 10
+  },
+
+  HON_5: {
+    label: "+5 Honor",
+    kind: "HONOR",
+    amount: 5
+  }
 });
 
 function autoAmountForAthlete(a, chosenAmount, awardKind) {
   const base = baseFromAthlete(a);
 
-  // Youth rule: Strength/Honor always +5 (server enforces too)
   if (base === "F8" && (awardKind === "STRENGTH" || awardKind === "HONOR")) {
     return 5;
   }
+
   return chosenAmount;
 }
 
@@ -442,11 +441,9 @@ function parseFunctionJson(raw) {
   return raw?.result ?? raw?.data ?? raw;
 }
 
-/* =========================
-   Core award runner
-========================= */
 async function issueAwardForSelection(award) {
   const ids = selectedAthleteIds();
+
   if (!ids.length) {
     setStatus("Step 2: pick at least one athlete.");
     return;
@@ -457,7 +454,10 @@ async function issueAwardForSelection(award) {
 
   const mode = String(modeEl?.value || "auto").toLowerCase();
 
-  ALL_PILLS.forEach((b) => (b.disabled = true));
+  ALL_PILLS.forEach((b) => {
+    b.disabled = true;
+  });
+
   setStatus(`Issuing… (${ids.length})`);
 
   let okCount = 0;
@@ -476,16 +476,23 @@ async function issueAwardForSelection(award) {
 
     const lane = String(laneEl?.value || "combat").toLowerCase();
 
-    // ✅ single, server-friendly shape
     const payload = {
       uid,
       kind: award.kind,
       amount: amt,
       lane,
-      meta: { lane, source: "daily-grind" },
+      meta: {
+        lane,
+        source: "daily-grind"
+      }
     };
 
-    console.log("XP SEND →", { uid, kind: award.kind, amount: amt, lane });
+    console.log("XP SEND →", {
+      uid,
+      kind: award.kind,
+      amount: amt,
+      lane
+    });
 
     try {
       const coachUid =
@@ -497,9 +504,11 @@ async function issueAwardForSelection(award) {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "x-coach-uid": String(coachUid).trim(),
+          "x-coach-uid": String(coachUid).trim()
         },
-        body: JSON.stringify({ data: payload }),
+        body: JSON.stringify({
+          data: payload
+        })
       });
 
       const text = await res.text().catch(() => "");
@@ -513,62 +522,81 @@ async function issueAwardForSelection(award) {
       console.log("XP OK:", res.status, text);
 
       let raw = null;
-      try { raw = text ? JSON.parse(text) : null; } catch {}
+      try {
+        raw = text ? JSON.parse(text) : null;
+      } catch {}
+
       const data = parseFunctionJson(raw) || {};
 
       if (data.ok) {
         okCount += 1;
+
         const delta = Number(data.delta ?? amt);
         xpTotal += delta;
 
         const after =
-          (typeof data.afterXp === "number") ? data.afterXp :
-          (typeof data.afterXP === "number") ? data.afterXP :
-          null;
+          typeof data.afterXp === "number"
+            ? data.afterXp
+            : typeof data.afterXP === "number"
+              ? data.afterXP
+              : null;
 
-if (typeof after === "number") a.xp = after;
+        if (typeof after === "number") {
+          a.xp = after;
+        }
 
-// optional future-proof (only if backend sends it)
-if (typeof data.afterCap === "number") a.xpCap = data.afterCap;
-if (data.afterRankName) a.rankName = data.afterRankName;
-if (data.afterTierName) a.tierName = data.afterTierName;
+        if (typeof data.afterCap === "number") {
+          a.xpCap = data.afterCap;
+        }
+
+        if (data.afterRankName) {
+          a.rankName = data.afterRankName;
+        }
+
+        if (data.afterTierName) {
+          a.tierName = data.afterTierName;
+        }
 
         const row = rowsEl?.querySelector?.(`tr[data-id="${id}"]`);
+
         if (row) {
           const cap = xpCapForAthlete(a);
           const line = row.querySelector(`[data-xpline="${id}"]`);
-          if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
 
-       
-       repaintMiniBarForRow({
-  rowEl: row,
-  athlete: a,
-  xp: a.xp ?? 0,
-  cap,
-  tierName: a.rankName || a.tierName || a.tier || "Apprentice",
-  rankName: a.rankName,
-});
+          if (line) {
+            line.textContent = `${a.xp ?? 0} / ${cap}`;
+          }
+
+          repaintMiniBarForRow({
+            rowEl: row,
+            athlete: a,
+            xp: a.xp ?? 0,
+            cap,
+            tierName: a.rankName || a.tierName || a.tier || "Apprentice",
+            rankName: a.rankName
+          });
         }
       }
     } catch (err) {
       console.error(err);
-      setStatus("Call failed (see console).");
+      setStatus("Call failed. See console.");
     }
   }
 
   awardedCount += okCount;
   awardedXP += xpTotal;
+
   updateSessionBar();
 
   setStatus(`Done. Success: ${okCount}/${ids.length} · XP issued: ${xpTotal}`);
 
-  ALL_PILLS.forEach((b) => (b.disabled = false));
+  ALL_PILLS.forEach((b) => {
+    b.disabled = false;
+  });
+
   isSaving = false;
 }
 
-/* =========================
-   Bind pills
-========================= */
 function bindPill(btn) {
   if (!btn) return;
 
@@ -577,14 +605,32 @@ function bindPill(btn) {
     const award = AWARDS[key];
 
     if (!award) {
-      setStatus("Invalid award button (missing mapping).");
+      setStatus("Invalid award button.");
       return;
     }
 
-await issueAwardForSelection(award);
-// keep success message visible
+    await issueAwardForSelection(award);
   });
 }
+
+searchEl?.addEventListener("input", applyFilterAndRender);
+pickAllEl?.addEventListener("click", () => setAllPicks(true));
+clearAllEl?.addEventListener("click", () => setAllPicks(false));
+
+trackF8OnlyEl?.addEventListener("change", () => {
+  setAllPicks(false);
+  subscribe();
+});
+
+refreshBtn?.addEventListener("click", () => {
+  setAllPicks(false);
+  subscribe();
+});
+
+laneEl?.addEventListener("change", syncPillsToLane);
+
+syncPillsToLane();
+subscribe();
 
 bindPill(btnGrind10);
 bindPill(btnGrind5);
