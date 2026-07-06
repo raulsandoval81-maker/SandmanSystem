@@ -5,6 +5,7 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
+const rankMeta_1 = require("./promotion/rankMeta");
 const XP = Object.freeze({
     F4: {
         tierCaps: {
@@ -33,26 +34,56 @@ const XP = Object.freeze({
 function normalizeBaseFromAthlete(a) {
     const raw = String(a?.trackBase ||
         a?.track ||
+        a?.trackCode ||
+        a?.programCode ||
         a?.program ||
         a?.base ||
         "").toUpperCase();
     if (raw.startsWith("F8") ||
         raw.includes("FOUNDRY8") ||
-        raw.includes("YOUTH")) {
+        raw.includes("YOUTH") ||
+        raw.includes("ZERO") ||
+        raw.includes("Z2H")) {
         return "F8";
     }
     return "F4";
 }
+function normalizeProgramKind(a) {
+    const raw = String(a?.programKind ||
+        a?.trackCode ||
+        a?.track ||
+        a?.programCode ||
+        a?.program ||
+        "").toLowerCase();
+    if (raw.includes("zero-to-hero") ||
+        raw.includes("zero2hero") ||
+        raw.includes("z2h") ||
+        raw.includes("youth") ||
+        raw.includes("foundry8")) {
+        return "youth";
+    }
+    if (raw.includes("road-to-greatness") ||
+        raw.includes("roadtogreatness") ||
+        raw.includes("r2g") ||
+        raw.includes("boxing")) {
+        return "boxing";
+    }
+    if (raw.includes("quest-for-mastery") ||
+        raw.includes("questformastery") ||
+        raw.includes("q2m") ||
+        raw.includes("mma")) {
+        return "mma";
+    }
+    return "wrestling";
+}
 function normalizeTier(a) {
-    if (typeof a?.tier === "string" &&
-        a.tier.startsWith("T")) {
+    if (typeof a?.tier === "string" && a.tier.startsWith("T")) {
         return a.tier;
     }
     if (typeof a?.tier === "number") {
         return `T${a.tier}`;
     }
-    if (typeof a?.rank === "string" &&
-        a.rank.startsWith("T")) {
+    if (typeof a?.rank === "string" && a.rank.startsWith("T")) {
         return a.rank;
     }
     return "T0";
@@ -61,6 +92,11 @@ function monthKey(d = new Date()) {
     const y = d.getFullYear();
     const m = String(d.getMonth() + 1).padStart(2, "0");
     return `${y}-${m}`;
+}
+function stripeCountFromXp(xp, cap) {
+    if (!cap || cap <= 0)
+        return 0;
+    return Math.max(0, Math.min(4, Math.floor(xp / (cap / 4))));
 }
 exports.promoteTier = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
@@ -73,9 +109,7 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
     if (!uid) {
         throw new https_1.HttpsError("invalid-argument", "Missing uid");
     }
-    if (!Number.isFinite(score) ||
-        score < 0 ||
-        score > 100) {
+    if (!Number.isFinite(score) || score < 0 || score > 100) {
         throw new https_1.HttpsError("invalid-argument", "Invalid score");
     }
     if (score < 85) {
@@ -95,6 +129,7 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("failed-precondition", `Athlete must be TESTING before promotion. Current state: ${testingState}`);
         }
         const base = normalizeBaseFromAthlete(athlete);
+        const programKind = normalizeProgramKind(athlete);
         const tier = normalizeTier(athlete);
         const tiers = XP[base].tiers;
         const caps = XP[base].tierCaps;
@@ -109,6 +144,7 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
                 reason: "MAX_TIER_REACHED",
                 uid,
                 base,
+                programKind,
                 tier,
             };
         }
@@ -121,6 +157,7 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
                 reason: "NOT_READY",
                 uid,
                 base,
+                programKind,
                 tier,
                 beforeXp,
                 cap,
@@ -133,16 +170,34 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
         }
         const cooldownUntil = new Date();
         cooldownUntil.setDate(cooldownUntil.getDate() + 5);
-        tx.update(athleteRef, {
+        const legacyTotal = Number(athlete.legacyCreditTotal || 0);
+        const legacyIssued = Number(athlete.legacyCreditIssued || 0);
+        const canReleaseLegacy = tier === "T0" &&
+            nextTier === "T1" &&
+            athlete.legacyHold === true &&
+            athlete.legacyCreditSchedule === "deferred_t1_entry";
+        const releasedLegacyXp = canReleaseLegacy
+            ? Math.max(0, legacyTotal - legacyIssued)
+            : 0;
+        const afterXp = releasedLegacyXp;
+        const stripeCount = stripeCountFromXp(afterXp, nextCap);
+        const nextRank = rankMeta_1.RANK_META[programKind]?.[base]?.[nextTier] || {
+            rankName: nextTier,
+            rankColor: "",
+        };
+        const updatePayload = {
             tier: nextTier,
-            xp: 0,
+            rankName: nextRank.rankName,
+            rankColor: nextRank.rankColor,
+            xp: afterXp,
             xpCap: nextCap,
-            stripeCount: 0,
+            stripeCount,
             trackBase: base,
+            programKind,
             tierStatus: "cooldown",
-            promotionLocked: false,
+            promotionLocked: true,
             "testing.state": "COOLDOWN",
-            "testing.lastTestResult": "pass",
+            "testing.lastTestResult": "PASS",
             "testing.lastTestScore": score,
             "testing.passingScore": 85,
             "testing.cooldownUntil": cooldownUntil,
@@ -157,11 +212,17 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             "testing.promotedTo": nextTier,
             "testing.promotedAt": firestore_1.FieldValue.serverTimestamp(),
             updatedAt: firestore_1.FieldValue.serverTimestamp(),
-        });
+        };
+        if (canReleaseLegacy) {
+            updatePayload.legacyHold = false;
+            updatePayload.legacyCreditIssued =
+                legacyIssued + releasedLegacyXp;
+        }
+        tx.update(athleteRef, updatePayload);
         tx.set(logRef, {
             uid,
             kind: "PROMOTION",
-            amount: 0,
+            amount: afterXp,
             note: note ||
                 `Passed test with ${score}%. Promoted ${tier} → ${nextTier}`,
             meta: {
@@ -169,11 +230,13 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
                 toTier: nextTier,
                 score,
                 passingScore: 85,
+                releasedLegacyXp,
             },
             base,
+            programKind,
             tier: nextTier,
             beforeXp,
-            afterXp: 0,
+            afterXp,
             cap: nextCap,
             month: mKey,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
@@ -183,10 +246,11 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             blocked: false,
             uid,
             base,
+            programKind,
             fromTier: tier,
             toTier: nextTier,
             beforeXp,
-            afterXp: 0,
+            afterXp,
             cap: nextCap,
             score,
             cooldownUntil: cooldownUntil.toISOString(),
@@ -238,4 +302,5 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
             sourceId: result.logId,
         });
     }
+    return result;
 });
