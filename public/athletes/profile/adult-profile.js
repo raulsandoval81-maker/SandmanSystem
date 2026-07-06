@@ -835,13 +835,38 @@ if (badgeRow) {
   badgeRow.innerHTML = "";
 
 
-const Q2M_BADGES = {
-  t0: "f4-adult-apprentice.png",
-  t1: "f4-adult-warrior.png",
-  t2: "f4-adult-champion.png",
-  t3: "f4-adult-veteran.png",
-  t4: "f4-adult-master.png",
+const badgeSets = {
+
+  foundry4: {
+    t0: "apprentice.png",
+    t1: "warrior.png",
+    t2: "champion.png",
+    t3: "veteran.png",
+    t4: "legend.png"
+  },
+
+  road2greatness: {
+    t0: "f4-adult-grey-apprentice.png",
+    t1: "f4-adult-warrior.png",
+    t2: "f4-adult-champion.png",
+    t3: "f4-adult-veteran.png",
+    t4: "f4-adult-master.png"
+  },
+
+  quest2mastery: {
+    t0: "f4-adult-grey-apprentice.png",
+    t1: "f4-adult-warrior.png",
+    t2: "f4-adult-champion.png",
+    t3: "f4-adult-veteran.png",
+    t4: "f4-adult-master.png"
+  }
+
 };
+
+const BADGES =
+  badgeSets[programTrack] ??
+  badgeSets.foundry4;
+
   const currentTier = String(a.tier || "T0").toUpperCase();
 
   const badges = Array.isArray(a.badges) && a.badges.length
@@ -856,7 +881,7 @@ const Q2M_BADGES = {
   // Render past badges small
   pastBadges.forEach((b) => {
     const histTierNum = Number(String(b.tier || "T0").replace("T", "")) || 0;
-    const file = Q2M_BADGES[`t${histTierNum}`];
+    const file = BADGES[`t${histTierNum}`];
     if (!file) return;
 
     const img = document.createElement("img");
@@ -873,8 +898,7 @@ const Q2M_BADGES = {
   0,
   (Number(String(a.tier || "T1").replace("T", "")) || 1) - 1
 );
-  const currentFile = Q2M_BADGES[`t${currentTierNum}`] || Q2M_BADGES.t0;
-
+  const currentFile = BADGES[`t${currentTierNum}`] || BADGES.t0;
   const currentImg = document.createElement("img");
   currentImg.src = `/assets/img/f4/${currentFile}`;
   currentImg.className = "badge-current-big";

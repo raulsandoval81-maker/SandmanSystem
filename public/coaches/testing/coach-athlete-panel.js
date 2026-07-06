@@ -215,8 +215,8 @@ if (jail.jailActive) {
   toggle("btn-pass", state === "TESTING");
   toggle("btn-fail", state === "TESTING");
   toggle("btn-retest", state === "FREEZE");
-toggle("btn-promote", state === "COOLDOWN");
-toggle("btn-active", state === "FREEZE");
+  toggle("btn-promote", false);
+  toggle("btn-active", state === "FREEZE");
 }
 function renderAthlete(data) {
   athleteData = data;
@@ -406,68 +406,27 @@ async function returnActive() {
 }
 
 
-async function promoteAthlete() {
-  assertJailClear("Promote");
-  if (!athleteData) {
-    throw new Error("Athlete not loaded.");
-  }
+async function clearExpiredCooldown(data) {
+  const testing = data?.testing || {};
 
-  const currentTier = String(athleteData?.tier || "T0");
-  const nextMeta = getNextTierMeta(athleteData);
-  if (!nextMeta) {
-    throw new Error(`No next tier found from "${athleteData.tier}".`);
-  }
+  if (String(testing.state).toUpperCase() !== "COOLDOWN") return;
 
-  const canReleaseHeldLegacy =
-    currentTier === "T0" &&
-    nextMeta.tier === "T1" &&
-    athleteData?.legacyHold === true &&
-    athleteData?.legacyCreditSchedule === "deferred_t1_entry";
+  const until = toMillis(testing.cooldownUntil);
 
-  const legacyCreditTotal = Number(athleteData?.legacyCreditTotal || 0);
-  const legacyCreditIssued = Number(athleteData?.legacyCreditIssued || 0);
+  if (!until || until > Date.now()) return;
 
-  const heldRelease = canReleaseHeldLegacy
-    ? Math.max(0, legacyCreditTotal - legacyCreditIssued)
-    : 0;
-
-  const updatePayload = {
-    tier: nextMeta.tier,
-    rankName: nextMeta.rankName,
-    rankColor: nextMeta.rankColor,
-    xpCap: nextMeta.xpCap,
-
-    xp: heldRelease,
-    stripeCount: 0,
+  await updateDoc(athleteRef, {
     tierStatus: "active",
     promotionLocked: false,
 
     "testing.state": "ACTIVE",
-    "testing.coachReady": false,
-    "testing.coachReadyAt": null,
-    "testing.testingStartedAt": null,
-    "testing.lastTestResult": null,
     "testing.cooldownUntil": null,
-    "testing.freezeUntil": null,
-    "testing.templeEnteredAt": null,
-    "testing.testEligibleAt": null,
+    "testing.cooldownClearedAt": serverTimestamp(),
 
     updatedAt: serverTimestamp()
-  };
-
-  if (canReleaseHeldLegacy) {
-    updatePayload.legacyCreditIssued = legacyCreditIssued + heldRelease;
-    updatePayload.legacyHold = false;
-  }
-
-  await updateDoc(athleteRef, updatePayload);
-
-  if (canReleaseHeldLegacy) {
-    setStatus(`Promoted to ${nextMeta.tier}. Released held legacy XP: +${heldRelease}.`);
-  } else {
-    setStatus(`Promoted to ${nextMeta.tier}. Fresh start.`);
-  }
+  });
 }
+
 async function bind() {
   try {
     await ensureSignedIn();
@@ -483,12 +442,22 @@ async function bind() {
 
   onSnapshot(
     athleteRef,
-    (snap) => {
+    async (snap) => {
       if (!snap.exists()) {
         setStatus("Athlete not found.", true);
         return;
       }
-      renderAthlete(snap.data() || {});
+const data = snap.data() || {};
+
+if (
+  String(data.testing?.state).toUpperCase() === "COOLDOWN" &&
+  toMillis(data.testing?.cooldownUntil) <= Date.now()
+) {
+  await clearExpiredCooldown(data);
+  return;
+}
+
+renderAthlete(data);
     },
     (err) => {
       console.error(err);
@@ -559,14 +528,6 @@ async function bind() {
     }
   });
 
-  $("btn-promote")?.addEventListener("click", async () => {
-    try {
-      await promoteAthlete();
-    } catch (err) {
-      console.error(err);
-      setStatus(err.message || "Promote failed.", true);
-    }
-  });
 
   $("btn-active")?.addEventListener("click", async () => {
     try {

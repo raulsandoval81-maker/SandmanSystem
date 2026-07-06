@@ -30,7 +30,6 @@ const noteEl = document.getElementById("note");
 
 const statusEl = document.getElementById("status");
 const btnApply = document.getElementById("btnApply");
-
 const previewEl = document.getElementById("athletePreview");
 
 function setStatus(message, isError = false) {

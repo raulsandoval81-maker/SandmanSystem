@@ -26,6 +26,7 @@ export { getTestingHistory } from "./modules/getTestingHistory";
 
 
 export { testRecognitionQueue } from "./modules/testRecognitionQueue";
+export { scheduledDecaySweep } from "./modules/decay/scheduledDecaySweep";
 /* =========================
    PARENT PORTAL
 ========================= */

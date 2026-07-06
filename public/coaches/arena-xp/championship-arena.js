@@ -285,31 +285,49 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
     calculatedStripes
   );
 
-  const colorMapF4 = {
+const colorMapByJourney = {
+  z2h: {
+    Shadow: "belt-white-gray",
+    Recruit: "belt-yellow-gray",
+    Competitor: "belt-orange-gray",
+    Contender: "belt-green-gray",
+    Warrior: "belt-blue-gray",
+    Champion: "belt-purple-gray",
+    Commander: "belt-brown-gray",
+    Hero: "belt-black-gray"
+  },
+
+  p2l: {
     Apprentice: "belt-white",
     Warrior: "belt-blue",
     Champion: "belt-purple",
     Veteran: "belt-brown",
     Legend: "belt-black"
-  };
+  },
 
-  const colorMapF8 = {
-    Shadow: "belt-white",
-    Recruit: "belt-yellow",
-    Contender: "belt-orange",
-    Contender: "belt-green",
+  r2g: {
+    Apprentice: "belt-gray",
     Warrior: "belt-blue",
     Champion: "belt-purple",
-    Commander: "belt-brown",
-    Hero: "belt-black"
-  };
+    Veteran: "belt-brown",
+    Craftsman: "belt-black"
+  },
+
+  q2m: {
+    Apprentice: "belt-gray",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Master: "belt-black"
+  }
+};
 
   const base = baseFromAthlete(athlete);
 
   const colorClass =
     base === "F8"
-      ? colorMapF8[rankName] || "belt-white"
-      : colorMapF4[rankName] || "belt-white";
+      ? colorMapByJourney.z2h[rankName] || "belt-white"
+      : colorMapByJourney.p2l[rankName] || "belt-white";
 
   // 🔥 replace mini bar with belt
   slot.innerHTML = renderDigitalBelt({

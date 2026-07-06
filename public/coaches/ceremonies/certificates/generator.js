@@ -17,6 +17,24 @@ const BELTS_V1 = {
     3: "/assets/img/belts/T3-brownbelt.png",
     4: "/assets/img/belts/T4-blackbelt.png"
   }
+,
+
+r2g: {
+  0: "/assets/img/belts/T0-graybelt.png",
+  1: "/assets/img/belts/T1-bluebelt.png",
+  2: "/assets/img/belts/T2-purplebelt.png",
+  3: "/assets/img/belts/T3-brownbelt.png",
+  4: "/assets/img/belts/T4-blackbelt.png"
+},
+
+q2m: {
+  0: "/assets/img/belts/T0-graybelt.png",
+  1: "/assets/img/belts/T1-bluebelt.png",
+  2: "/assets/img/belts/T2-purplebelt.png",
+  3: "/assets/img/belts/T3-brownbelt.png",
+  4: "/assets/img/belts/T4-blackbelt.png"
+},
+
 };
 
 const BELTS_V2 = {
@@ -37,7 +55,24 @@ const BELTS_V2 = {
     2: "/assets/img/belts/purplebelt-v2.png",
     3: "/assets/img/belts/brownbelt-v2.png",
     4: "/assets/img/belts/blackbelt-v2.png"
-  }
+  },
+
+r2g: {
+  0: "/assets/img/belts/graybelt-v2.png",
+  1: "/assets/img/belts/bluebelt-v2.png",
+  2: "/assets/img/belts/purplebelt-v2.png",
+  3: "/assets/img/belts/brownbelt-v2.png",
+  4: "/assets/img/belts/blackbelt-v2.png"
+},
+
+q2m: {
+  0: "/assets/img/belts/graybelt-v2.png",
+  1: "/assets/img/belts/bluebelt-v2.png",
+  2: "/assets/img/belts/purplebelt-v2.png",
+  3: "/assets/img/belts/brownbelt-v2.png",
+  4: "/assets/img/belts/blackbelt-v2.png"
+},
+
 };
 
 const BELT_HOTSPOTS = {
@@ -60,6 +95,26 @@ f8: {
 },
 
 f4: {
+  default: {
+    right: "10.5%",
+    top: "33.5%",
+    width: "16px",
+    height: "44px",
+    gap: "10px"
+  }
+},
+
+r2g: {
+  default: {
+    right: "10.5%",
+    top: "33.5%",
+    width: "16px",
+    height: "44px",
+    gap: "10px"
+  }
+},
+
+q2m: {
   default: {
     right: "10.5%",
     top: "33.5%",
@@ -102,6 +157,31 @@ const CERTIFICATE_PRESETS = {
       }
     }
   },
+  
+
+r2g: {
+  label: "Road to Greatness",
+  journey: "Road2Greatness™",
+  tiers: {
+    0: { rank: "Apprentice", quote: "The forge reveals character.", stripes: ["I", "II", "III", "IV"] },
+    1: { rank: "Warrior", quote: "Courage grows through challenge.", stripes: ["I", "II", "III", "IV"] },
+    2: { rank: "Champion", quote: "Victory belongs to the prepared.", stripes: ["I", "II", "III", "IV"] },
+    3: { rank: "Veteran", quote: "Experience sharpens the blade.", stripes: ["I", "II", "III", "IV"] },
+    4: { rank: "Greatness", quote: "Greatness is earned one round at a time.", stripes: ["I", "II", "III", "IV"] }
+  }
+},
+
+q2m: {
+  label: "Quest to Mastery",
+  journey: "Quest2Mastery™",
+  tiers: {
+    0: { rank: "Apprentice", quote: "The forge reveals character.", stripes: ["I", "II", "III", "IV"] },
+    1: { rank: "Warrior", quote: "Courage grows through challenge.", stripes: ["I", "II", "III", "IV"] },
+    2: { rank: "Champion", quote: "Victory belongs to the prepared.", stripes: ["I", "II", "III", "IV"] },
+    3: { rank: "Veteran", quote: "Experience sharpens the blade.", stripes: ["I", "II", "III", "IV"] },
+    4: { rank: "Mastery", quote: "Mastery is earned through pressure, patience, and purpose.", stripes: ["I", "II", "III", "IV"] }
+  }
+},
 
   f8: {
     label: "Foundry 8",

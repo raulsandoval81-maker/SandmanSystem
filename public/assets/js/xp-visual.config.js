@@ -26,6 +26,38 @@ tiers: [
       { tier: "T4", name: "Legend",     xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "legend.png" } // cap tier visual units only
     ]
   },
+  foundry4: {
+  name: "Foundry 4 — Path to Legend Wrestling",
+  tiers: [
+    { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "apprentice.png" },
+    { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
+    { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "champion.png" },
+    { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "veteran.png" },
+    { tier: "T4", name: "Legend",     xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "legend.png" }
+  ]
+},
+
+road2greatness: {
+  name: "Road to Greatness Boxing",
+  tiers: [
+    { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "f4-adult-grey-apprentice.png" },
+    { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
+    { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "champion.png" },
+    { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "veteran.png" },
+    { tier: "T4", name: "Greatness",  xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "legend.png" }
+  ]
+},
+
+quest2mastery: {
+  name: "Quest to Mastery MMA",
+  tiers: [
+    { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "f4-adult-grey-apprentice.png" },
+    { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
+    { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "champion.png" },
+    { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "veteran.png" },
+    { tier: "T4", name: "Mastery",    xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "legend.png" }
+  ]
+},
 
   leadership: {
     name: "Leadership",
