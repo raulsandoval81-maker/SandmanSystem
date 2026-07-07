@@ -13,8 +13,6 @@ import {
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 
 import {
-  LADDER_F4,
-  LADDER_Q2M,
   getLadderForAthlete
 } from "/assets/js/ladder.service.js";
 
@@ -25,9 +23,9 @@ import {
 
 
 const PROFILE = {
-  type: "teen",
+  type: "adult",
   foundry: "F4",
-  journey: "p2l"
+  journeys: ["r2g", "q2m"]
 };
 // call once on load
 // ---------- helpers ----------
@@ -664,28 +662,11 @@ if (reviewMode) setAllDrops(true);
   }
 
   const a = snap.data();
-
+console.log("Adult profile loaded", athleteId, a);
 let combatTitle = "⚔️ Combat";
 
-switch (journey) {
-  case "z2h":
-    combatTitle = "🤼 Wrestling · Zero 2 Hero";
-    break;
-
-  case "p2l":
-    combatTitle = "🤼 Wrestling · Path 2 Legend";
-    break;
-
-  case "r2g":
-    combatTitle = "🥊 Boxing · Road 2 Greatness";
-    break;
-
-  case "q2m":
-    combatTitle = "🥋 MMA · Quest 2 Mastery";
-    break;
-}
-
 safeText("combatArcTitle", combatTitle);
+console.log("Reached combat title");
 
 const trackCode = normTrackCode(a);
   if (
@@ -965,29 +946,30 @@ const currentTier = String(a.tier || "T0").toUpperCase();
 
 
 function beltColorForAthlete(a = {}, rankName = "") {
-  const journey = String(a.journey || "r2g").toLowerCase();
+  const journey =
+  String(a.journey || a.program || a.track || "")
+    .trim()
+    .toLowerCase();
+
   const rank = String(rankName || "").toLowerCase();
 
-  const beltSets = {
+const beltSets = {
+  r2g: {
+    apprentice: "belt-r2g-apprentice",
+    warrior: "belt-r2g-warrior",
+    champion: "belt-r2g-champion",
+    veteran: "belt-r2g-veteran",
+    craftsman: "belt-r2g-craftsman"
+  },
 
-    r2g: {
-      apprentice: "belt-gray",
-      warrior: "belt-blue",
-      champion: "belt-purple",
-      veteran: "belt-brown",
-      craftsman: "belt-black"
-    },
-
-    q2m: {
-      apprentice: "belt-gray",
-      warrior: "belt-blue",
-      champion: "belt-purple",
-      veteran: "belt-brown",
-      master: "belt-black"
-    }
-
-  };
-
+  q2m: {
+    apprentice: "belt-q2m-apprentice",
+    warrior: "belt-q2m-warrior",
+    champion: "belt-q2m-champion",
+    veteran: "belt-q2m-veteran",
+    master: "belt-q2m-master"
+  }
+};
   const belts = beltSets[journey] ?? beltSets.r2g;
 
   return belts[rank] ?? belts.apprentice;

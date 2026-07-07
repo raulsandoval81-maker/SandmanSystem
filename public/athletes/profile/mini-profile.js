@@ -6,8 +6,6 @@ import {
 
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import {
-  getAthleteStripeInfo,
-  LADDER_F4,
   LADDER_F8
 } from "/assets/js/ladder.service.js";
 
@@ -184,18 +182,19 @@ async function load() {
   });
 
   // ===== NEW BELT RENDER =====
-const colorMap = {
-  Shadow:     "belt-white-gray-center",
-  Recruit:    "belt-yellow-gray-center",
-  Competitor: "belt-orange-gray-center",
-  Contender:  "belt-green-gray-center",
-  Warrior:    "belt-blue-gray-center",
-  Champion:   "belt-purple-gray-center",
-  Commander:  "belt-brown-gray-center",
-  Hero:       "belt-black-gray-center"
+
+  const colorMap = {
+  Shadow: "belt-z2h-shadow",
+  Recruit: "belt-z2h-recruit",
+  Competitor: "belt-z2h-competitor",
+  Contender: "belt-z2h-contender",
+  Warrior: "belt-z2h-warrior",
+  Champion: "belt-z2h-champion",
+  Commander: "belt-z2h-commander",
+  Hero: "belt-z2h-hero"
 };
 
-  const mappedColor = colorMap[rankName] || "belt-white";
+  const mappedColor = colorMap[rankName] || "belt-z2h-shadow";
 
   safeHTML(
     "rankBar",

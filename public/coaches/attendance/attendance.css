@@ -173,3 +173,109 @@ textarea{
 .athlete-status{
   margin-left:auto;
 }
+/* Session Check-In cleanup */
+
+.wrap {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.card,
+.toolbar-card,
+.setup-card {
+  background: rgba(15, 23, 42, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  padding: 16px;
+  margin: 14px 0;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+label {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+select,
+input,
+textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(2, 6, 23, 0.8);
+  color: #fff;
+  padding: 12px;
+}
+
+.action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill,
+button {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.primary {
+  background: #facc15;
+  color: #111827;
+}
+
+.athlete-list {
+  display: grid;
+  gap: 10px;
+}
+
+.athlete-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.athlete-main {
+  display: grid;
+  gap: 3px;
+}
+
+.checkin-btn,
+.remove-checkin-btn {
+  white-space: nowrap;
+}
+
+.muted {
+  color: #9ca3af;
+  font-size: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .athlete-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .checkin-btn,
+  .remove-checkin-btn {
+    width: 100%;
+  }
+}

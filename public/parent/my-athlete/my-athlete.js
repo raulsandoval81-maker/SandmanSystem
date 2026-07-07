@@ -177,29 +177,59 @@ function findCurrentTier(ladder, tierName, a = {}) {
   return ladder[tierNum] || ladder[0];
 }
 
-function getColorClass(ladder, tierName) {
-  const colorMapF8 = {
-    Shadow: "belt-white",
-    Recruit: "belt-yellow",
-    Contender: "belt-orange",
-    Contender: "belt-green",
-    Contender: "belt-green",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Commander: "belt-brown",
-    Hero: "belt-black"
+function getColorClass(a = {}, tierName = "") {
+  const journey = String(
+    a.journey ||
+    a.program ||
+    a.track ||
+    a.trackCode ||
+    ""
+  ).toLowerCase();
+
+  const colorMaps = {
+    z2h: {
+      Shadow: "belt-z2h-shadow",
+      Recruit: "belt-z2h-recruit",
+      Competitor: "belt-z2h-competitor",
+      Contender: "belt-z2h-contender",
+      Warrior: "belt-z2h-warrior",
+      Champion: "belt-z2h-champion",
+      Commander: "belt-z2h-commander",
+      Hero: "belt-z2h-hero"
+    },
+
+    p2l: {
+      Apprentice: "belt-p2l-apprentice",
+      Warrior: "belt-p2l-warrior",
+      Champion: "belt-p2l-champion",
+      Veteran: "belt-p2l-veteran",
+      Legend: "belt-p2l-legend"
+    },
+
+    r2g: {
+      Apprentice: "belt-r2g-apprentice",
+      Warrior: "belt-r2g-warrior",
+      Champion: "belt-r2g-champion",
+      Veteran: "belt-r2g-veteran",
+      Craftsman: "belt-r2g-craftsman"
+    },
+
+    q2m: {
+      Apprentice: "belt-q2m-apprentice",
+      Warrior: "belt-q2m-warrior",
+      Champion: "belt-q2m-champion",
+      Veteran: "belt-q2m-veteran",
+      Master: "belt-q2m-master"
+    }
   };
 
-  const colorMapF4 = {
-    Apprentice: "belt-white",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Legend: "belt-black"
-  };
+  let key = journey;
 
-  const isF8 = ladder === LADDER_F8;
-  return (isF8 ? colorMapF8 : colorMapF4)[tierName] || "belt-white";
+  if (!key) {
+    key = resolveLadder(a) === LADDER_F8 ? "z2h" : "p2l";
+  }
+
+  return colorMaps[key]?.[tierName] || "belt-p2l-apprentice";
 }
 
 function renderAthlete(a = {}) {
@@ -267,7 +297,7 @@ const storedStripes = Number(a.stripeCount ?? a.stripes);
 
   setText("athlete-tier-line", tierName);
 
-  const mappedColor = getColorClass(ladder, tierName);
+  const mappedColor = getColorClass(a, tierName);
 
   setHTML(
     "rankBar",

@@ -19,7 +19,6 @@ const firebaseConfig = {
 // ---- Core App ----
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 
-// ---- Firestore ----
 import {
   getFirestore,
   connectFirestoreEmulator,
@@ -36,7 +35,8 @@ import {
   setDoc,
   updateDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  arrayUnion
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
 // ---- Auth ----
@@ -159,5 +159,6 @@ export {
   setDoc,
   updateDoc,
   deleteDoc,
-  addDoc
+  addDoc,
+  arrayUnion
 };

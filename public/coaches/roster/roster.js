@@ -338,31 +338,56 @@ async function loadRoster() {
     const finalStripes =
       Math.max(Number(data.stripeCount ?? 0), calculatedStripes);
 
-    const colorMapF4 = {
-      Apprentice: "belt-white",
-      Warrior: "belt-blue",
-      Champion: "belt-purple",
-      Veteran: "belt-brown",
-      Legend: "belt-black"
-    };
+const colorMaps = {
+  z2h: {
+    Shadow: "belt-z2h-shadow",
+    Recruit: "belt-z2h-recruit",
+    Competitor: "belt-z2h-competitor",
+    Contender: "belt-z2h-contender",
+    Warrior: "belt-z2h-warrior",
+    Champion: "belt-z2h-champion",
+    Commander: "belt-z2h-commander",
+    Hero: "belt-z2h-hero"
+  },
 
-    const colorMapF8 = {
-      Shadow: "belt-white",
-      Recruit: "belt-yellow",
-      Competitor: "belt-orange",
-      Contender: "belt-green",
-      Warrior: "belt-blue",
-      Champion: "belt-purple",
-      Commander: "belt-brown",
-      Hero: "belt-black"
-    };
+  p2l: {
+    Apprentice: "belt-p2l-apprentice",
+    Warrior: "belt-p2l-warrior",
+    Champion: "belt-p2l-champion",
+    Veteran: "belt-p2l-veteran",
+    Legend: "belt-p2l-legend"
+  },
 
-    const colorClass =
-      track === "F8"
-        ? colorMapF8[data.rankName] || "belt-white"
-        : colorMapF4[data.rankName] || "belt-white";
+  r2g: {
+    Apprentice: "belt-r2g-apprentice",
+    Warrior: "belt-r2g-warrior",
+    Champion: "belt-r2g-champion",
+    Veteran: "belt-r2g-veteran",
+    Craftsman: "belt-r2g-craftsman"
+  },
 
-    const beltEl = document.getElementById(`rankBar-${id}`);
+  q2m: {
+    Apprentice: "belt-q2m-apprentice",
+    Warrior: "belt-q2m-warrior",
+    Champion: "belt-q2m-champion",
+    Veteran: "belt-q2m-veteran",
+    Master: "belt-q2m-master"
+  }
+};
+
+const journey = String(
+  data.journey ||
+  data.program ||
+  data.track ||
+  data.trackCode ||
+  (track === "F8" ? "z2h" : "p2l")
+).toLowerCase();
+
+const colorClass =
+  colorMaps[journey]?.[data.rankName] ||
+  "belt-p2l-apprentice";
+
+      const beltEl = document.getElementById(`rankBar-${id}`);
     if (beltEl) {
       beltEl.innerHTML = renderDigitalBelt({
         colorClass,

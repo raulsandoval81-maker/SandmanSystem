@@ -171,7 +171,14 @@ service cloud.firestore {
   isCoachOrAdmin()
   && request.resource.data.diff(resource.data).changedKeys().hasOnly([
     "rosterStatus",
-    "updatedAt"
+    "updatedAt",
+
+    "lastAttendanceAt",
+    "lastAttendanceType",
+    "lastAttendanceCoach",
+    "lastAttendanceSessionId",
+
+    "decay"
   ])
 )
         ||
@@ -458,6 +465,8 @@ match /attendance_sessions/{sessionId} {
   allow update: if request.auth != null;
   allow delete: if false;
 }
+
+
 
     /* --------------------------------------
        DEFAULT CLOSED

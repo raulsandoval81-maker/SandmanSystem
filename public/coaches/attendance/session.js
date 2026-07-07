@@ -8,7 +8,6 @@ import {
   ensureSignedIn,
   query,
   where,
-  orderBy,
   limit
 } from "/assets/js/firebase-init.js";
 
@@ -50,11 +49,11 @@ function athleteProgram(a = {}) {
 }
 
 function getJourney() {
-  return $("journey")?.value || "p2l";
+  return String($("journey")?.value || "p2l").toLowerCase();
 }
 
 function getDiscipline() {
-  return $("discipline")?.value || "wrestling";
+  return disciplineForJourney(getJourney());
 }
 
 function getPracticeType() {
@@ -65,57 +64,102 @@ function programMatchesAthlete(athlete = {}) {
   const journey = getJourney();
   const program = athleteProgram(athlete);
 
-  if (journey === "z2h") return program.includes("z2h") || program.includes("zero2hero") || program.includes("foundry8") || program.includes("f8");
-  if (journey === "p2l") return program.includes("p2l") || program.includes("path2legend") || program.includes("foundry4") || program.includes("f4");
-  if (journey === "r2g") return program.includes("r2g") || program.includes("road2greatness") || program.includes("road");
-  if (journey === "q2m") return program.includes("q2m") || program.includes("quest2mastery") || program.includes("quest") || program.includes("mma");
+  if (journey === "z2h" || journey === "zero2hero") {
+    return program.includes("z2h") || program.includes("zero2hero") || program.includes("foundry8") || program.includes("f8");
+  }
+
+  if (journey === "p2l" || journey === "path2legend") {
+    return program.includes("p2l") || program.includes("path2legend") || program.includes("foundry4") || program.includes("f4");
+  }
+
+  if (journey === "r2g" || journey === "road2greatness") {
+    return program.includes("r2g") || program.includes("road2greatness") || program.includes("road");
+  }
+
+  if (journey === "q2m" || journey === "quest2mastery") {
+    return program.includes("q2m") || program.includes("quest2mastery") || program.includes("quest") || program.includes("mma");
+  }
 
   return true;
 }
 
+function disciplineForJourney(journey) {
+  if (journey === "r2g") return "boxing";
+  if (journey === "q2m") return "mma";
+  return "wrestling";
+}
+
 async function checkTodaySessionLock() {
-  const snap = await getDocs(
-    query(
-      collection(db, "attendance_sessions"),
-      where("sessionDateKey", "==", todayKey()),
-      where("type", "==", getPracticeType()),
-      orderBy("createdAt", "desc"),
-      limit(1)
-    )
-  );
+  sessionLocked = false;
 
-  if (snap.empty) {
+  try {
+    const snap = await getDocs(
+      query(
+        collection(db, "attendance_sessions"),
+        where("sessionDateKey", "==", todayKey()),
+        where("type", "==", getPracticeType()),
+        limit(5)
+      )
+    );
+
+    if (snap.empty) return;
+
+    const locked = snap.docs.some((docSnap) => {
+      const data = docSnap.data() || {};
+      return data.status === "pending_review" || data.status === "finalized";
+    });
+
+    if (locked) {
+      sessionLocked = true;
+      setStatus(`Today's ${getPracticeType()} session is already submitted.`);
+    }
+  } catch (err) {
+    console.warn("[session] lock check skipped", err);
     sessionLocked = false;
-    return;
-  }
-
-  const docSnap = snap.docs[0];
-  const data = docSnap.data() || {};
-
-  if (data.status === "pending_review" || data.status === "finalized") {
-    sessionLocked = true;
-    setStatus(`Today's ${getPracticeType()} session is already submitted.`);
   }
 }
 
 async function loadAthletes() {
-  await ensureSignedIn();
-  await checkTodaySessionLock();
+  setStatus("Loading athletes…");
 
-  const snap = await getDocs(collection(db, "athletes"));
+  try {
+    await ensureSignedIn();
+    await checkTodaySessionLock();
 
-  athletes = snap.docs
-    .map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() || {})
-    }))
-    .filter((athlete) => {
-      if (!athlete.id) return false;
-      return String(athlete.rosterStatus || "current") === "current";
-    })
-    .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
+    const snap = await getDocs(collection(db, "athletes"));
+    const dateEl = $("sessionDateLabel");
+if (dateEl) {
+  dateEl.textContent = todayLabel();
+}
 
-  applyFilters();
+    athletes = snap.docs
+      .map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() || {})
+      }))
+      .filter((athlete) => {
+        if (!athlete.id) return false;
+        const status = String(athlete.rosterStatus || "current").toLowerCase();
+        return status === "current";
+      })
+      .sort((a, b) => athleteName(a).localeCompare(athleteName(b)));
+
+    console.log("[session] athletes loaded:", athletes.length, athletes);
+
+    applyFilters();
+
+    if (!sessionLocked) {
+      setStatus(`Ready. ${athletes.length} athlete(s) loaded.`);
+    }
+  } catch (err) {
+    console.error("[session] loadAthletes failed", err);
+    setStatus("Could not load athletes. Check console.", true);
+
+    const list = $("athleteList");
+    if (list) {
+      list.innerHTML = `<p class="muted">Could not load athletes.</p>`;
+    }
+  }
 }
 
 function applyFilters() {
@@ -129,6 +173,8 @@ function applyFilters() {
 
     return !search || name.includes(search) || id.includes(search);
   });
+
+  console.log("[session] filtered:", filteredAthletes.length, filteredAthletes);
 
   renderAthletes();
 }
@@ -189,9 +235,11 @@ async function startSession() {
   const practiceType = getPracticeType();
   const coach = $("coachName")?.value?.trim() || "Coach";
   const notes = $("practiceNotes")?.value?.trim() || "";
+  
 
   sessionRef = await addDoc(collection(db, "attendance_sessions"), {
     sessionDateKey: todayKey(),
+    sessionDateLabel: todayLabel(),
     journey,
     discipline,
     type: practiceType,
@@ -211,7 +259,7 @@ async function startSession() {
   sessionId = sessionRef.id;
   checkedIn = new Map();
 
-  setStatus(`Session started for ${todayKey()}.`);
+  setStatus(`Session started for ${todayLabel()}.`);
   renderAthletes();
   renderCheckedIn();
 }
@@ -264,7 +312,6 @@ function renderCheckedIn() {
   const list = $("checkedList");
 
   if (count) count.textContent = `${checkedIn.size} checked in`;
-
   if (!list) return;
 
   if (!checkedIn.size) {
@@ -311,7 +358,13 @@ function renderCheckedIn() {
     });
   });
 }
-
+function todayLabel() {
+  return new Date().toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric"
+  });
+}
 async function submitForReview() {
   if (!sessionRef || !sessionId) {
     setStatus("Start a session first.", true);
@@ -330,6 +383,8 @@ async function submitForReview() {
 
   await updateDoc(sessionRef, {
     sessionDateKey: todayKey(),
+    sessionDateLabel: todayLabel(),
+
     journey,
     discipline,
     type: practiceType,
@@ -346,7 +401,9 @@ async function submitForReview() {
 
   sessionLocked = true;
 
-  setStatus(`Submitted ${checkedIn.size} athlete(s) for coach review.`);
+  setStatus(
+  `Submitted ${checkedIn.size} athlete(s) for coach review • ${todayLabel()}`
+);
 
   renderAthletes();
   renderCheckedIn();
@@ -363,12 +420,6 @@ function bindEvents() {
     await loadAthletes();
   });
 
-  $("discipline")?.addEventListener("change", async () => {
-    checkedIn.clear();
-    sessionRef = null;
-    sessionId = null;
-    await loadAthletes();
-  });
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
 }

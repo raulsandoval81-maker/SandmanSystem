@@ -96,16 +96,40 @@
   --outline: #fff;
 }
 
-/* Belt Color Helpers */
-.belt-white   { --belt-color: #F4F4F4; }
-.belt-yellow  { --belt-color: #FFF176; }
-.belt-orange  { --belt-color: #FFA040; }
-.belt-green   { --belt-color: #4CAF50; }
-.belt-blue    { --belt-color: #2196F3; }
-.belt-purple  { --belt-color: #9C27B0; }
-.belt-brown   { --belt-color: #6D2B24; }
-.belt-black   { --belt-color: #000000; }
+/* =========================
+   SANDMAN BELTS BY JOURNEY
+========================= */
 
+/* Youth / Zero2Hero — gray-center belts */
+.belt-z2h-shadow     { --belt-color:#F4F4F4; --belt-center:#9CA3AF; }
+.belt-z2h-recruit    { --belt-color:#FFF176; --belt-center:#9CA3AF; }
+.belt-z2h-competitor { --belt-color:#FFA040; --belt-center:#9CA3AF; }
+.belt-z2h-contender  { --belt-color:#4CAF50; --belt-center:#9CA3AF; }
+.belt-z2h-warrior    { --belt-color:#2196F3; --belt-center:#9CA3AF; }
+.belt-z2h-champion   { --belt-color:#9C27B0; --belt-center:#9CA3AF; }
+.belt-z2h-commander  { --belt-color:#6D2B24; --belt-center:#9CA3AF; }
+.belt-z2h-hero       { --belt-color:#000000; --belt-center:#9CA3AF; }
+
+/* Wrestling / Path2Legend — solid belts */
+.belt-p2l-apprentice { --belt-color:#F4F4F4; }
+.belt-p2l-warrior    { --belt-color:#2196F3; }
+.belt-p2l-champion   { --belt-color:#9C27B0; }
+.belt-p2l-veteran    { --belt-color:#6D2B24; }
+.belt-p2l-legend     { --belt-color:#000000; }
+
+/* Boxing / Road2Greatness — gray then solid */
+.belt-r2g-apprentice { --belt-color:#9CA3AF; }
+.belt-r2g-warrior    { --belt-color:#2196F3; }
+.belt-r2g-champion   { --belt-color:#9C27B0; }
+.belt-r2g-veteran    { --belt-color:#6D2B24; }
+.belt-r2g-craftsman  { --belt-color:#000000; }
+
+/* MMA / Quest2Mastery — gray then solid */
+.belt-q2m-apprentice { --belt-color:#9CA3AF; }
+.belt-q2m-warrior    { --belt-color:#2196F3; }
+.belt-q2m-champion   { --belt-color:#9C27B0; }
+.belt-q2m-veteran    { --belt-color:#6D2B24; }
+.belt-q2m-master     { --belt-color:#000000; }
 /* =========================
    Sandman Digital Belt
    Physical Belt Visual
@@ -154,7 +178,9 @@
   bottom: 0;
   width: 38%;
   min-width: 250px;
-  background: #050505;
+
+  background: var(--belt-center, #050505);
+
   border-left: 2px solid rgba(255,255,255,.08);
   border-right: 2px solid rgba(255,255,255,.08);
   border-radius: 0;

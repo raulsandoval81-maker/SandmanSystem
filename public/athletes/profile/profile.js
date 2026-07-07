@@ -875,16 +875,16 @@ if (badgeRow) {
 // ===== NEW BELT RENDER =====
 
 const beltMap = {
-  Apprentice: "belt-white",
-  Warrior: "belt-blue",
-  Champion: "belt-purple",
-  Veteran: "belt-brown",
-  Legend: "belt-black"
+  Apprentice: "belt-p2l-apprentice",
+  Warrior:    "belt-p2l-warrior",
+  Champion:   "belt-p2l-champion",
+  Veteran:    "belt-p2l-veteran",
+  Legend:     "belt-p2l-legend"
 };
 
 const beltClass =
   beltMap[rankName] ||
-  beltMap.Apprentice;
+  "belt-p2l-apprentice";
 
 safeHTML(
   "rankBar",

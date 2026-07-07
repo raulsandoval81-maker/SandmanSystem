@@ -17,25 +17,21 @@
     </header>
 
     <section class="attendance-card">
-<label>
-  Journey
-  <select id="journey">
-    <option value="p2l">Path to Legend</option>
+    <div class="session-date">
+      <span class="label">Today's Date</span>
+      <span id="sessionDateLabel" class="value">—</span>
+     </div>
+
+   <label>
+     Journey
+     <select id="journey">
+       <option value="p2l">Path to Legend</option>
     <option value="z2h">Zero to Hero</option>
     <option value="r2g">Road to Greatness</option>
     <option value="q2m">Quest for Mastery</option>
   </select>
 </label>
 
-<label>
-  Discipline
-  <select id="discipline">
-    <option value="wrestling">Wrestling</option>
-    <option value="boxing">Boxing</option>
-    <option value="mma">MMA</option>
-    <option value="open_mat">Open Mat</option>
-  </select>
-</label>
 
       <label>
         Coach Name
@@ -43,12 +39,12 @@
       </label>
 
       <label>
-        Notes
+        Notes / Discipline
         <textarea id="practiceNotes" placeholder="Optional notes..."></textarea>
       </label>
 
       <button id="startSession" type="button">
-        Start Check-In Session
+        Start Session Check-In
       </button>
 
       <p id="sessionStatus" class="muted">Ready.</p>
