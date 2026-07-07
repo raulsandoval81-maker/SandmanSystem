@@ -2,8 +2,10 @@ import {
   db,
   collection,
   getDocs,
-  addDoc,
   query,
+  where,
+  orderBy,
+  limit,
   doc,
   updateDoc,
   serverTimestamp,
@@ -16,6 +18,9 @@ const $ = (id) => document.getElementById(id);
 let athletes = [];
 let filteredAthletes = [];
 let selectedIds = new Set();
+let pendingSessionRef = null;
+let pendingSessionId = null;
+
 
 function athleteName(a = {}) {
   return a.name || a.publicName || a.fullName || a.uid || a.id || "Unknown athlete";
@@ -24,8 +29,11 @@ function athleteName(a = {}) {
 
 function athleteProgram(a = {}) {
   return String(
+    a.journey ||
+    a.programTrack ||
     a.program ||
     a.track ||
+    a.trackCode ||
     a.trackKey ||
     a.ladderKey ||
     ""
@@ -35,22 +43,43 @@ function athleteProgram(a = {}) {
 function programMatchesAthlete(athlete = {}) {
   const selectedProgram = $("practiceType")?.value || "z2h";
 
+  const journey = String(athlete.journey || "").toLowerCase();
   const program = athleteProgram(athlete);
 
   if (selectedProgram === "z2h") {
-    return program.includes("foundry8") || program.includes("f8");
+    return (
+      journey === "z2h" ||
+      program.includes("z2h") ||
+      program.includes("zero2hero") ||
+      program.includes("foundry8") ||
+      program.includes("f8")
+    );
   }
 
   if (selectedProgram === "p2l") {
-    return program.includes("foundry4") || program.includes("f4");
+    return (
+      journey === "p2l" ||
+      program.includes("p2l") ||
+      program.includes("path2legend") ||
+      program.includes("foundry4") ||
+      program.includes("f4")
+    );
   }
 
   if (selectedProgram === "r2g") {
-    return program.includes("r2g") || program.includes("road2greatness");
+    return (
+      journey === "r2g" ||
+      program.includes("r2g") ||
+      program.includes("road2greatness")
+    );
   }
 
   if (selectedProgram === "q2m") {
-    return program.includes("q2m") || program.includes("quest2mastery");
+    return (
+      journey === "q2m" ||
+      program.includes("q2m") ||
+      program.includes("quest2mastery")
+    );
   }
 
   return true;
@@ -270,15 +299,11 @@ async function loadAthletes() {
       }))
       .filter((athlete) => {
         if (!athlete.id) return false;
-        if (athlete.devMode === true) return false;
-        if (athlete.isDev === true) return false;
-        if (athlete.isTest === true) return false;
+const rosterStatus = String(
+  athlete.rosterStatus || "current"
+);
 
-        const rosterStatus = String(
-          athlete.rosterStatus || "current"
-        );
-
-        return rosterStatus === "current";
+return rosterStatus === "current";
       })
       .sort((a, b) =>
         athleteName(a).localeCompare(athleteName(b))
@@ -319,6 +344,40 @@ function selectedAthletesPayload() {
       rank: athlete.rank || ""
     }));
 }
+  
+async function loadPendingSession() {
+  const snap = await getDocs(
+    query(
+      collection(db, "attendance_sessions"),
+      where("status", "==", "pending_review"),
+      orderBy("submittedAt", "desc"),
+      limit(1)
+    )
+  );
+
+  if (snap.empty) return;
+
+  // Save the pending session so we can finalize THIS document later
+  pendingSessionRef = snap.docs[0].ref;
+  pendingSessionId = snap.docs[0].id;
+
+  const session = snap.docs[0].data() || {};
+
+  if (session.type && $("practiceType")) {
+    const journey = String(session.type).split("-")[0];
+    $("practiceType").value = journey;
+  }
+
+  const ids = Array.isArray(session.checkedInIds)
+    ? session.checkedInIds
+    : [];
+
+  selectedIds = new Set(ids);
+
+  applyFilters();
+  updatePresentCount();
+}
+
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
 }
@@ -361,19 +420,32 @@ async function saveAttendance() {
     if (saveBtn) saveBtn.disabled = true;
     if (saveStatus) saveStatus.textContent = "Saving attendance…";
 
-    const sessionRef = await addDoc(collection(db, "attendance_sessions"), {
-      type: practiceType,
-      coach,
-      notes,
-      present,
-      presentIds: present.map((a) => a.id),
-      presentCount: present.length,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      source: "coach-attendance"
-    });
+if (!pendingSessionRef) {
+  throw new Error("No pending session loaded to finalize.");
+}
 
-const recoveryDateKey = todayKey();
+await updateDoc(pendingSessionRef, {
+  type: practiceType,
+  coach,
+  notes,
+
+  status: "finalized",
+  readyForDailyGrind: true,
+  finalized: true,
+  finalizedAt: serverTimestamp(),
+  finalizedBy: coach,
+
+  present,
+  presentIds: present.map((a) => a.id),
+  presentCount: present.length,
+
+  updatedAt: serverTimestamp(),
+  source: "coach-attendance"
+});
+
+const sessionRef = pendingSessionRef;
+
+    const recoveryDateKey = todayKey();
 const isCombatRecoveryDay =
   countsAsDecayRecoveryDay(practiceType);
 
@@ -432,12 +504,15 @@ await Promise.all(
 );
 
     selectedIds.clear();
+    pendingSessionRef = null;
+    pendingSessionId = null;
 
     if (saveStatus) {
       saveStatus.textContent = `Attendance saved for ${present.length} athlete(s).`;
     }
 
-    await loadAthletes();
+await loadAthletes();
+await loadPendingSession();
   } catch (error) {
     console.error("[attendance] save failed", error);
 
@@ -464,7 +539,14 @@ function bindEvents() {
   });
 
   $("saveAttendance")?.addEventListener("click", saveAttendance);
+
 }
 
 bindEvents();
-loadAthletes();
+
+async function init() {
+  await loadAthletes();
+  await loadPendingSession();
+}
+
+init();

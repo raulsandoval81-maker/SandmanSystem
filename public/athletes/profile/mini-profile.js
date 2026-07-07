@@ -184,16 +184,16 @@ async function load() {
   });
 
   // ===== NEW BELT RENDER =====
-  const colorMap = {
-    Shadow: "belt-white",
-    Recruit: "belt-yellow",
-    Contender: "belt-orange",
-    Contender: "belt-green",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Commander: "belt-brown",
-    Hero: "belt-black"
-  };
+const colorMap = {
+  Shadow:     "belt-white-gray-center",
+  Recruit:    "belt-yellow-gray-center",
+  Competitor: "belt-orange-gray-center",
+  Contender:  "belt-green-gray-center",
+  Warrior:    "belt-blue-gray-center",
+  Champion:   "belt-purple-gray-center",
+  Commander:  "belt-brown-gray-center",
+  Hero:       "belt-black-gray-center"
+};
 
   const mappedColor = colorMap[rankName] || "belt-white";
 

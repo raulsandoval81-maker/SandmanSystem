@@ -31,23 +31,30 @@
   <!-- FILTERS -->
   <section class="controls-row card-lite">
 
-    <label class="canon-toggle">
-      <input id="trackF8Only" type="checkbox"/>
-      <span>Foundry 8 only</span>
-    </label>
+  <label>
+    Journey
+    <select id="journeyFilter">
+      <option value="all">All Journeys</option>
+      <option value="z2h">Z2H · Zero2Hero</option>
+      <option value="p2l">P2L · Path2Legend</option>
+      <option value="r2g">R2G · Road2Greatness</option>
+      <option value="q2m">Q2M · Quest2Mastery</option>
+    </select>
+  </label>
 
-    <label>
-      Discipline
-      <select id="disciplineFilter">
-        <option value="all">All Disciplines</option>
-        <option value="wrestling">Wrestling</option>
-        <option value="boxing">Boxing</option>
-      </select>
-    </label>
+  <label>
+    Discipline
+    <select id="disciplineFilter">
+      <option value="all">All Disciplines</option>
+      <option value="wrestling">Wrestling</option>
+      <option value="boxing">Boxing</option>
+      <option value="mma">MMA</option>
+    </select>
+  </label>
 
-    <span id="countMeta" class="muted count-meta"></span>
+  <span id="countMeta" class="muted count-meta"></span>
 
-  </section>
+</section>
 
   <!-- ROSTER TABLE -->
   <section class="card roster-card">

@@ -666,7 +666,6 @@ if (
   return;
 }
 
-const trackCode = normTrackCode(a) || "foundry4-combat";
 
   // -----------------------------
   // Identity
@@ -736,7 +735,6 @@ const trackCode = normTrackCode(a) || "foundry4-combat";
   // -----------------------------
   const ladder = LADDER_F4;
 
-  safeText("combatArcTitle", "⚔️ Combat · Path 2 Legend");
 
   let tierNum = 0;
   if (typeof a.tier === "number") tierNum = a.tier;
@@ -876,7 +874,7 @@ if (badgeRow) {
 
 // ===== NEW BELT RENDER =====
 
-const colorMap = {
+const beltMap = {
   Apprentice: "belt-white",
   Warrior: "belt-blue",
   Champion: "belt-purple",
@@ -884,12 +882,14 @@ const colorMap = {
   Legend: "belt-black"
 };
 
-const mappedColor = colorMap[rankName] || "belt-white";
+const beltClass =
+  beltMap[rankName] ||
+  beltMap.Apprentice;
 
 safeHTML(
   "rankBar",
   renderDigitalBelt({
-    colorClass: mappedColor,
+    colorClass: beltClass,
     stripes: displayStripes,
     size: "medium"
   })

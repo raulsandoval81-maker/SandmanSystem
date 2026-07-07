@@ -106,6 +106,7 @@ function renderProfile(a) {
     ${row("Team / Location", a.team?.name || a.teamName || a.locationId || "")}
   `;
 }
+
 lookupBtn?.addEventListener("click", async () => {
   const term = athleteIdInput?.value?.trim() || "";
 

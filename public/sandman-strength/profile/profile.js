@@ -285,7 +285,31 @@ if (metaRightEl) {
   }
 
   const a = snap.data();
+const journey = String(a.journey || "").toLowerCase();
 
+let combatTitle = "⚔️ Combat";
+
+switch (journey) {
+  case "z2h":
+    combatTitle = "🤼 Wrestling · Zero 2 Hero";
+    break;
+
+  case "p2l":
+    combatTitle = "🤼 Wrestling · Path 2 Legend";
+    break;
+
+  case "r2g":
+    combatTitle = "🥊 Boxing · Road 2 Greatness";
+    break;
+
+  case "q2m":
+    combatTitle = "🥋 MMA · Quest 2 Mastery";
+    break;
+}
+
+safeText("combatArcTitle", combatTitle);
+
+const trackCode = normTrackCode(a);
   // Identity
   const fullName =
     a.fullName ||

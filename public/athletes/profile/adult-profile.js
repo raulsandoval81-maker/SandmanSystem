@@ -18,6 +18,17 @@ import {
   getLadderForAthlete
 } from "/assets/js/ladder.service.js";
 
+import {
+  renderAthleteAchievements,
+  renderAthleteActivity
+} from "/athletes/profile/profile-core.js";
+
+
+const PROFILE = {
+  type: "teen",
+  foundry: "F4",
+  journey: "p2l"
+};
 // call once on load
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -423,6 +434,7 @@ function premiumSvgFor(kind, athleteKey) {
 // ===============================
 // Progress helpers
 // ===============================
+
 function setCircleProgress(circleEl, pct01, cx = 60, cy = 60) {
   if (!circleEl) return;
   const pct = clamp(Number(pct01 || 0), 0, 1);
@@ -653,6 +665,29 @@ if (reviewMode) setAllDrops(true);
 
   const a = snap.data();
 
+let combatTitle = "⚔️ Combat";
+
+switch (journey) {
+  case "z2h":
+    combatTitle = "🤼 Wrestling · Zero 2 Hero";
+    break;
+
+  case "p2l":
+    combatTitle = "🤼 Wrestling · Path 2 Legend";
+    break;
+
+  case "r2g":
+    combatTitle = "🥊 Boxing · Road 2 Greatness";
+    break;
+
+  case "q2m":
+    combatTitle = "🥋 MMA · Quest 2 Mastery";
+    break;
+}
+
+safeText("combatArcTitle", combatTitle);
+
+const trackCode = normTrackCode(a);
   if (
     a.active === false ||
     a.rosterStatus === "suspended" ||
@@ -666,7 +701,6 @@ if (reviewMode) setAllDrops(true);
     `;
     return;
   }
-  const trackCode = normTrackCode(a) || "foundry4-combat";
 
 
   // -----------------------------
@@ -732,28 +766,42 @@ if (reviewMode) setAllDrops(true);
   const displayMintTag = mintTag || deriveMintTagFromUid(a, athleteId);
   safeHTML("out-uid", `<div>${displayMintTag}</div>`);
 
-  // -----------------------------
-  // Ladder + tierNum
-  // -----------------------------
+// -----------------------------
+// Ladder + Journey
+// -----------------------------
 const ladder = getLadderForAthlete(a);
-const programTrack =
-  String(a.programTrack || "")
+
+const journey =
+  String(a.journey || "p2l")
     .trim()
     .toLowerCase();
 
 let combatArcLabel =
   "⚔️ Combat-Wrestling · Path 2 Legend";
 
-if (programTrack === "quest2mastery") {
-  combatArcLabel =
-    "🥋 Combat-MMA · Quest 2 Mastery";
-}
+switch (journey) {
 
-if (programTrack === "road2greatness") {
-  combatArcLabel =
-    "🥊 Combat-Boxing · Road 2 Greatness";
-}
+  case "z2h":
+    combatArcLabel =
+      "🥇 Combat-Wrestling · Zero 2 Hero";
+    break;
 
+  case "r2g":
+    combatArcLabel =
+      "🥊 Combat-Boxing · Road 2 Greatness";
+    break;
+
+  case "q2m":
+    combatArcLabel =
+      "🥋 Combat-MMA · Quest 2 Mastery";
+    break;
+
+  case "p2l":
+  default:
+    combatArcLabel =
+      "⚔️ Combat-Wrestling · Path 2 Legend";
+    break;
+}
 safeText(
   "combatArcTitle",
   combatArcLabel
@@ -837,24 +885,16 @@ if (badgeRow) {
 
 const badgeSets = {
 
-  foundry4: {
-    t0: "apprentice.png",
-    t1: "warrior.png",
-    t2: "champion.png",
-    t3: "veteran.png",
-    t4: "legend.png"
-  },
-
-  road2greatness: {
-    t0: "f4-adult-grey-apprentice.png",
+  r2g: {
+    t0: "f4-adult-gray-apprentice.png",
     t1: "f4-adult-warrior.png",
     t2: "f4-adult-champion.png",
     t3: "f4-adult-veteran.png",
-    t4: "f4-adult-master.png"
+    t4: "f4-adult-craftsman.png"
   },
 
-  quest2mastery: {
-    t0: "f4-adult-grey-apprentice.png",
+  q2m: {
+    t0: "f4-adult-gray-apprentice.png",
     t1: "f4-adult-warrior.png",
     t2: "f4-adult-champion.png",
     t3: "f4-adult-veteran.png",
@@ -862,12 +902,11 @@ const badgeSets = {
   }
 
 };
-
 const BADGES =
-  badgeSets[programTrack] ??
-  badgeSets.foundry4;
+  badgeSets[journey] ??
+  badgeSets.r2g;
 
-  const currentTier = String(a.tier || "T0").toUpperCase();
+const currentTier = String(a.tier || "T0").toUpperCase();
 
   const badges = Array.isArray(a.badges) && a.badges.length
     ? a.badges
@@ -924,16 +963,37 @@ const BADGES =
 
 // ===== NEW BELT RENDER =====
 
-const colorMap = {
-  Apprentice: "belt-white",
-  Warrior: "belt-blue",
-  Champion: "belt-purple",
-  Veteran: "belt-brown",
-  Master: "belt-black"
-};
 
-const mappedColor = colorMap[rankName] || "belt-white";
+function beltColorForAthlete(a = {}, rankName = "") {
+  const journey = String(a.journey || "r2g").toLowerCase();
+  const rank = String(rankName || "").toLowerCase();
 
+  const beltSets = {
+
+    r2g: {
+      apprentice: "belt-gray",
+      warrior: "belt-blue",
+      champion: "belt-purple",
+      veteran: "belt-brown",
+      craftsman: "belt-black"
+    },
+
+    q2m: {
+      apprentice: "belt-gray",
+      warrior: "belt-blue",
+      champion: "belt-purple",
+      veteran: "belt-brown",
+      master: "belt-black"
+    }
+
+  };
+
+  const belts = beltSets[journey] ?? beltSets.r2g;
+
+  return belts[rank] ?? belts.apprentice;
+}
+
+const mappedColor = beltColorForAthlete(a, rankName);
 safeHTML(
   "rankBar",
   renderDigitalBelt({
@@ -1124,4 +1184,17 @@ const canSeeHonor =
         </tr>`;
     }
   }
+
+  await renderAthleteAchievements({
+    athleteId,
+    targetId: "achievementFeed",
+    max: 3,
+  });
+
+  await renderAthleteActivity({
+    athleteId,
+    targetId: "activityFeed",
+    max: 3,
+  });
+
 })();

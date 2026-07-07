@@ -49,6 +49,20 @@ function athleteName(data = {}, id = "") {
   return data.publicName || data.fullName || data.name || id;
 }
 
+function profileUrlForAthlete(id, data = {}) {
+  const profileType = String(data.profileType || "").toLowerCase();
+
+  if (profileType === "mini") {
+    return `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`;
+  }
+
+  if (profileType === "adult") {
+    return `/athletes/profile/adult-profile.html?id=${encodeURIComponent(id)}`;
+  }
+
+  return `/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`;
+}
+
 function dateFromFirestore(raw) {
   if (!raw) return null;
   if (raw.toDate) return raw.toDate();
@@ -137,12 +151,13 @@ async function loadRoster() {
   const rowsEl = $("rows");
   const countMeta = $("countMeta");
   const archiveBtn = $("toggleArchiveView");
-  const f8Only = !!$("trackF8Only")?.checked;
+  const journeyFilter = $("journeyFilter")?.value || "all";
   const disciplineFilter = $("disciplineFilter")?.value || "all";
+
 
   if (!rowsEl) return;
 
-  const track = f8Only ? "F8" : "F4";
+  const track = journeyFilter === "z2h" ? "F8" : "F4";
   const wantedStatus = isArchiveView() ? "archived" : "current";
 
   rowsEl.innerHTML = `
@@ -168,7 +183,35 @@ async function loadRoster() {
       data: d.data() || {}
     }))
     .filter((x) => rosterStatusOf(x.data) === wantedStatus)
-    .filter((x) => trackBaseOf(x.id) === track)
+.filter((x) => {
+  if (journeyFilter === "all") return true;
+
+  const journey = String(
+    x.data.journey ||
+    x.data.track ||
+    x.data.trackCode ||
+    x.data.program ||
+    ""
+  ).toLowerCase();
+
+  if (journeyFilter === "z2h") {
+    return journey.includes("z2h") || journey.includes("foundry8") || x.id.startsWith("F8_");
+  }
+
+  if (journeyFilter === "p2l") {
+    return journey.includes("p2l") || journey.includes("foundry4") || x.id.startsWith("F4_");
+  }
+
+  if (journeyFilter === "r2g") {
+    return journey.includes("r2g") || journey.includes("road");
+  }
+
+  if (journeyFilter === "q2m") {
+    return journey.includes("q2m") || journey.includes("quest");
+  }
+
+  return true;
+})
     .filter((x) => {
       if (disciplineFilter === "all") return true;
 
@@ -204,13 +247,12 @@ async function loadRoster() {
               </div>
 
               <div class="roster-actions" style="margin-top:6px;">
-                <a
-                  class="pill"
-                  href="/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}"
-                >
-                  Profile
-                </a>
-
+<a
+  class="pill"
+  href="${profileUrlForAthlete(id, data)}"
+>
+  Profile
+</a>
                 ${
                   isArchiveView()
                     ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
@@ -344,7 +386,7 @@ async function loadRoster() {
 
 loadRoster();
 
-$("trackF8Only")?.addEventListener("change", loadRoster);
+$("journeyFilter")?.addEventListener("change", loadRoster);
 
 $("toggleArchiveView")?.addEventListener("click", () => {
   window.__rosterArchiveView = !window.__rosterArchiveView;

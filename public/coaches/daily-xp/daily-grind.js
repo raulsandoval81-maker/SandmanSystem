@@ -4,6 +4,13 @@ import {
   db,
   collection,
   onSnapshot,
+  getDocs,
+  query,
+  where,
+  orderBy,
+  limit,
+  doc,
+  updateDoc,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
@@ -51,6 +58,45 @@ const btnStr10   = document.getElementById("btnStr10");
 const btnStr5    = document.getElementById("btnStr5");
 const btnHon10   = document.getElementById("btnHon10");
 const btnHon5    = document.getElementById("btnHon5");
+
+const colorMapByJourney = {
+  z2h: {
+    Shadow: "belt-white-gray",
+    Recruit: "belt-yellow-gray",
+    Competitor: "belt-orange-gray",
+    Contender: "belt-green-gray",
+    Warrior: "belt-blue-gray",
+    Champion: "belt-purple-gray",
+    Commander: "belt-brown-gray",
+    Hero: "belt-black-gray"
+  },
+
+  p2l: {
+    Apprentice: "belt-white",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Legend: "belt-black"
+  },
+
+  r2g: {
+    Apprentice: "belt-gray",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Craftsman: "belt-black"
+  },
+
+  q2m: {
+    Apprentice: "belt-gray",
+    Warrior: "belt-blue",
+    Champion: "belt-purple",
+    Veteran: "belt-brown",
+    Master: "belt-black"
+  }
+};
+
+
 
 const ALL_PILLS = [
   btnGrind10,
@@ -174,49 +220,11 @@ function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
     calculatedStripes
   );
 
-const colorMapByJourney = {
-  z2h: {
-    Shadow: "belt-white-gray",
-    Recruit: "belt-yellow-gray",
-    Competitor: "belt-orange-gray",
-    Contender: "belt-green-gray",
-    Warrior: "belt-blue-gray",
-    Champion: "belt-purple-gray",
-    Commander: "belt-brown-gray",
-    Hero: "belt-black-gray"
-  },
+const journey = String(athlete.journey || "").toLowerCase();
 
-  p2l: {
-    Apprentice: "belt-white",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Legend: "belt-black"
-  },
-
-  r2g: {
-    Apprentice: "belt-gray",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Craftsman: "belt-black"
-  },
-
-  q2m: {
-    Apprentice: "belt-gray",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Master: "belt-black"
-  }
-};
-
-  const base = baseFromAthlete(athlete);
-
-  const colorClass =
-    base === "F8"
-      ? colorMapF8[rankName] || "belt-white"
-      : colorMapF4[rankName] || "belt-white";
+const colorClass =
+  colorMapByJourney[journey]?.[rankName] ||
+  "belt-white";
 
   slot.innerHTML = renderDigitalBelt({
     colorClass,
@@ -311,7 +319,51 @@ function applyFilterAndRender() {
   });
 
   render(filtered);
+
+  
   setStatus(`Ready · ${wantedBase}`);
+}
+
+async function loadApprovedAttendance() {
+  const snap = await getDocs(
+    query(
+      collection(db, "attendance_sessions"),
+      where("status", "==", "finalized"),
+      where("readyForDailyGrind", "==", true),
+      orderBy("finalizedAt", "desc"),
+      limit(1)
+    )
+  );
+
+  if (snap.empty) {
+    setStatus("No approved attendance ready for Daily Grind.");
+    return;
+  }
+
+  const session = snap.docs[0].data() || {};
+  const presentIds = Array.isArray(session.presentIds)
+    ? session.presentIds
+    : [];
+
+  if (!presentIds.length) {
+    setStatus("Approved attendance has no athletes.");
+    return;
+  }
+
+  filtered = roster.filter((a) =>
+    presentIds.includes(a.id)
+  );
+
+  render(filtered);
+
+  await updateDoc(
+  doc(db, "attendance_sessions", snap.docs[0].id),
+  {
+    readyForDailyGrind: false
+  }
+);
+
+  setStatus(`Daily Grind loaded ${filtered.length} approved athlete(s).`);
 }
 
 function subscribe() {
@@ -338,8 +390,7 @@ function subscribe() {
         return rosterStatusOf(a) === "current";
       });
 
-      applyFilterAndRender();
-      setStatus(`Ready · ${wantedBase}`);
+      loadApprovedAttendance();
     },
     (err) => {
       console.error(err);
