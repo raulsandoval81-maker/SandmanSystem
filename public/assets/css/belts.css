@@ -308,3 +308,43 @@
   min-width: 160px;
   padding: 0 10px;
 }
+
+.sm-belt-body::after {
+  content: "";
+  position: absolute;
+
+  left: 0;
+  right: 0;
+
+  top: 50%;
+  transform: translateY(-50%);
+
+  height: 8px;              /* adjust thickness */
+  background: var(--belt-center, transparent);
+
+  z-index: 1;
+}
+.sm-belt-patch {
+  z-index: 2;
+}
+/* =========================
+   Master Belt (Top Tier)
+========================= */
+
+.sm-belt.master .sm-belt-patch {
+  background: #8B0000;
+  border-left: 2px solid rgba(255,255,255,.18);
+  border-right: 2px solid rgba(255,255,255,.18);
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.10),
+    0 4px 12px rgba(0,0,0,.60);
+}
+
+.sm-belt.master .sm-belt-text,
+.sm-belt.master .sm-belt-rank {
+  color: #fff;
+}
+
+.sm-belt.master .sm-stripe.filled {
+  background: #fff;
+}

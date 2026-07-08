@@ -15,7 +15,6 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
-import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
 
 console.log("XP_URL =", XP_URL);
@@ -35,6 +34,7 @@ window.addEventListener("unhandledrejection", (e) => {
 
 const rowsEl = document.getElementById("rows");
 const pageStatusEl = document.getElementById("pageStatus");
+const journeyFilterEl = document.getElementById("journeyFilter");
 
 const searchEl = document.getElementById("search");
 const pickAllEl = document.getElementById("pickAll");
@@ -58,44 +58,6 @@ const btnStr10   = document.getElementById("btnStr10");
 const btnStr5    = document.getElementById("btnStr5");
 const btnHon10   = document.getElementById("btnHon10");
 const btnHon5    = document.getElementById("btnHon5");
-
-const colorMapByJourney = {
-  z2h: {
-    Shadow: "belt-white-gray",
-    Recruit: "belt-yellow-gray",
-    Competitor: "belt-orange-gray",
-    Contender: "belt-green-gray",
-    Warrior: "belt-blue-gray",
-    Champion: "belt-purple-gray",
-    Commander: "belt-brown-gray",
-    Hero: "belt-black-gray"
-  },
-
-  p2l: {
-    Apprentice: "belt-white",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Legend: "belt-black"
-  },
-
-  r2g: {
-    Apprentice: "belt-gray",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Craftsman: "belt-black"
-  },
-
-  q2m: {
-    Apprentice: "belt-gray",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Master: "belt-black"
-  }
-};
-
 
 
 const ALL_PILLS = [
@@ -198,40 +160,6 @@ function updateSessionBar() {
   }
 }
 
-function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
-  const slot = rowEl?.querySelector?.(".xp-slot");
-  if (!slot) return;
-
-  const ladder = baseFromAthlete(athlete) === "F8" ? LADDER_F8 : LADDER_F4;
-  const tier = ladder.find((t) => t.name === rankName) || ladder[0];
-
-  const xpNow = Number(xp ?? 0);
-  const xpCap = Number(cap ?? tier.cap);
-  const stripeMax = Number(tier.stripes ?? 4);
-  const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
-
-  const calculatedStripes = Math.min(
-    stripeMax,
-    Math.floor(xpNow / stripeSize)
-  );
-
-  const finalStripes = Math.max(
-    Number(athlete.stripeCount ?? 0),
-    calculatedStripes
-  );
-
-const journey = String(athlete.journey || "").toLowerCase();
-
-const colorClass =
-  colorMapByJourney[journey]?.[rankName] ||
-  "belt-white";
-
-  slot.innerHTML = renderDigitalBelt({
-    colorClass,
-    stripes: finalStripes,
-    size: "small"
-  });
-}
 
 function render(list) {
   if (!rowsEl) return;
@@ -255,7 +183,11 @@ function render(list) {
     const tier = a.rankName || a.tierName || a.tier || "Apprentice";
     const xp = a.xp ?? 0;
     const cap = xpCapForAthlete(a);
+    const stripes = Number(a.stripeCount ?? a.stripes ?? 0);
 
+const stars =
+  "★".repeat(stripes) +
+  "☆".repeat(4 - stripes);
     return `
       <tr data-id="${a.id}">
         <td>
@@ -269,36 +201,25 @@ function render(list) {
 
         <td>${tier} / ${track}</td>
 
-        <td>
-          <div class="xp-slot"></div>
-          <div class="row-xp-meta" data-xpline="${a.id}">
-            ${xp} / ${cap}
-          </div>
-        </td>
-      </tr>
+<td>
+  <div class="coach-xp-card">
+    <div><strong>Combat:</strong> ${xp} / ${cap}</div>
+    <div><strong>Strength:</strong> ${a.strengthXp ?? 0} / 120</div>
+    <div><strong>Honor:</strong> ${a.honorXp ?? 0} / 120</div>
+    <div><strong>Stripes:</strong> ${stars}</div>
+    <div><strong>Attendance:</strong> ${a.attendanceStatus ?? "Active"}</div>
+  </div>
+</td>
+        </tr>
     `;
   }).join("");
-
-  rowsEl.querySelectorAll("tr[data-id]").forEach((tr) => {
-    const a = byId.get(tr.dataset.id);
-    if (!a) return;
-
-    repaintMiniBarForRow({
-      rowEl: tr,
-      athlete: a,
-      xp: a.xp ?? 0,
-      cap: xpCapForAthlete(a),
-      tierName: a.rankName || a.tierName || a.tier || "Apprentice",
-      rankName: a.rankName
-    });
-  });
 
   updateSessionBar();
 }
 
 function applyFilterAndRender() {
   const q = String(searchEl?.value || "").toLowerCase().trim();
-  const wantedBase = wantedTrackBase();
+  const wantedJourney = String(journeyFilterEl?.value || "all").toLowerCase();
 
   filtered = !q
     ? roster.slice()
@@ -310,7 +231,44 @@ function applyFilterAndRender() {
         return n.includes(q) || u.includes(q) || id.includes(q);
       });
 
-  filtered = filtered.filter((a) => baseFromAthlete(a) === wantedBase);
+  filtered = filtered.filter((a) => {
+    if (wantedJourney === "all") return true;
+
+    const journey = String(
+      a.journey ||
+      a.program ||
+      a.track ||
+      a.trackCode ||
+      ""
+    ).toLowerCase();
+
+    if (wantedJourney === "z2h") {
+      return journey.includes("z2h") ||
+        journey.includes("foundry8") ||
+        String(a.id || "").startsWith("F8_");
+    }
+
+    if (wantedJourney === "p2l") {
+      return journey.includes("p2l") ||
+        journey.includes("path") ||
+        journey.includes("wrestling");
+    }
+
+    if (wantedJourney === "r2g") {
+      return journey.includes("r2g") ||
+        journey.includes("greatness") ||
+        journey.includes("boxing");
+    }
+
+    if (wantedJourney === "q2m") {
+      return journey.includes("q2m") ||
+        journey.includes("mastery") ||
+        journey.includes("mma");
+    }
+
+    return true;
+  });
+
 
   filtered.sort((a, b) => {
     const an = String(a.publicName || a.fullName || a.uidCode || a.uid || a.id || "");
@@ -318,10 +276,18 @@ function applyFilterAndRender() {
     return an.localeCompare(bn);
   });
 
-  render(filtered);
+render(filtered);
 
-  
-  setStatus(`Ready · ${wantedBase}`);
+const journeyLabels = {
+  all: "All Journeys",
+  z2h: "Zero2Hero",
+  p2l: "Path2Legend",
+  r2g: "Road2Greatness",
+  q2m: "Quest2Mastery"
+};
+
+setStatus(`Ready · ${journeyLabels[wantedJourney] || wantedJourney}`);
+
 }
 
 async function loadApprovedAttendance() {
@@ -618,14 +584,6 @@ async function issueAwardForSelection(award) {
             line.textContent = `${a.xp ?? 0} / ${cap}`;
           }
 
-          repaintMiniBarForRow({
-            rowEl: row,
-            athlete: a,
-            xp: a.xp ?? 0,
-            cap,
-            tierName: a.rankName || a.tierName || a.tier || "Apprentice",
-            rankName: a.rankName
-          });
         }
       }
     } catch (err) {
@@ -664,14 +622,14 @@ function bindPill(btn) {
   });
 }
 
+journeyFilterEl?.addEventListener("change", () => {
+  setAllPicks(false);
+  applyFilterAndRender();
+});
+
 searchEl?.addEventListener("input", applyFilterAndRender);
 pickAllEl?.addEventListener("click", () => setAllPicks(true));
 clearAllEl?.addEventListener("click", () => setAllPicks(false));
-
-trackF8OnlyEl?.addEventListener("change", () => {
-  setAllPicks(false);
-  subscribe();
-});
 
 refreshBtn?.addEventListener("click", () => {
   setAllPicks(false);

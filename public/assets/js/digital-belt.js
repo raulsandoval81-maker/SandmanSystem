@@ -4,19 +4,25 @@ export function renderDigitalBelt({
   size = "medium",
   percent = 0
 }) {
-
-  const safeStripes = Math.max(0, Math.min(4, stripes));
+  const safeStripes = Math.max(0, Math.min(4, Number(stripes || 0)));
 
   const safePercent = Math.max(
     0,
     Math.min(1, Number(percent || 0))
   );
 
-  const fillPct = `${safePercent * 100}%`;
+  const masterClasses = [
+    "belt-p2l-legend",
+    "belt-r2g-craftsman",
+    "belt-q2m-master"
+  ];
+
+  const masterClass = masterClasses.includes(colorClass)
+    ? " master"
+    : "";
 
   return `
-    <div class="sm-belt ${size}">
-      
+    <div class="sm-belt ${size}${masterClass}">
       <div class="sm-belt-body ${colorClass}"></div>
 
       <div class="sm-belt-patch">
@@ -25,12 +31,11 @@ export function renderDigitalBelt({
         </div>
 
         <div class="sm-belt-stripes">
-          ${[0,1,2,3].map(i => `
+          ${[0, 1, 2, 3].map(i => `
             <span class="sm-stripe ${i < safeStripes ? "filled" : ""}"></span>
           `).join("")}
         </div>
       </div>
-
     </div>
   `;
 }
