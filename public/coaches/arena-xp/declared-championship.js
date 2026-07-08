@@ -10,7 +10,6 @@ import "/coaches/_ui/dev-boot.js";
 
 import { db, collection, getDocs } from "/assets/js/firebase-init.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
-import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
 import {
   isDevMode,
@@ -288,61 +287,6 @@ function clearPicks() {
   document.querySelectorAll(".pick").forEach((c) => (c.checked = false));
 }
 
-function repaintMiniBarForRow({ rowEl, athlete, xp, cap, tierName, rankName }) {
-  const slot = rowEl?.querySelector?.(".xp-slot");
-  if (!slot) return;
-
-  const ladder = baseFromAthlete(athlete) === "F8" ? LADDER_F8 : LADDER_F4;
-  const tier = ladder.find(t => t.name === rankName) || ladder[0];
-
-  const xpNow = Number(xp ?? 0);
-  const xpCap = Number(cap ?? tier.cap);
-  const stripeMax = Number(tier.stripes ?? 4);
-  const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
-
-  const calculatedStripes = Math.min(
-    stripeMax,
-    Math.floor(xpNow / stripeSize)
-  );
-
-  const finalStripes = Math.max(
-    Number(athlete.stripeCount ?? 0),
-    calculatedStripes
-  );
-
-  const colorMapF4 = {
-    Apprentice: "belt-white",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Veteran: "belt-brown",
-    Legend: "belt-black"
-  };
-
-  const colorMapF8 = {
-    Shadow: "belt-white",
-    Recruit: "belt-yellow",
-    Contender: "belt-orange",
-    Contender: "belt-green",
-    Warrior: "belt-blue",
-    Champion: "belt-purple",
-    Commander: "belt-brown",
-    Hero: "belt-black"
-  };
-
-  const base = baseFromAthlete(athlete);
-
-  const colorClass =
-    base === "F8"
-      ? colorMapF8[rankName] || "belt-white"
-      : colorMapF4[rankName] || "belt-white";
-
-  // 🔥 replace mini bar with belt
-  slot.innerHTML = renderDigitalBelt({
-    colorClass,
-    stripes: finalStripes,
-    size: "small"
-  });
-}
 function render(list) {
   if (!rowsEl) return;
 
@@ -352,13 +296,12 @@ function render(list) {
     return;
   }
 
-  const byId = new Map(list.map((a) => [a.id, a]));
 
   rowsEl.innerHTML = list.map((a) => {
     const uid = a.uid || a.id;
     const name = a.publicName || a.fullName || uid;
     const track = a.track || a.trackCode || "—";
-    const tier = resolveRank(a);
+    const tier = resolveRank(a); 
     const xp = a.xp ?? 0;
     const cap = xpCapForAthlete(a);
 
@@ -370,29 +313,19 @@ function render(list) {
           <div class="sub">${uid}</div>
         </td>
         <td>${tier} / ${track}</td>
-        <td>
-          <div class="xp-slot"></div>
-          <div class="sub" data-xpline="${a.id}">${xp} / ${cap}</div>
-        </td>
-      </tr>
+<td>
+  <div class="coach-xp-card">
+    <div><strong>Combat:</strong> <span data-xpline="${a.id}">${xp} / ${cap}</span></div>
+    <div><strong>Strength:</strong> ${a.xpStrength ?? a.strengthXP ?? 0} / 120</div>
+    <div><strong>Honor:</strong> ${a.xpHonor ?? a.honorXP ?? 0} / 120</div>
+    <div><strong>Stripes:</strong> ${"★".repeat(Number(a.stripeCount ?? a.stripes ?? 0))}${"☆".repeat(4 - Number(a.stripeCount ?? a.stripes ?? 0))}</div>
+    <div><strong>Attendance:</strong> ${a.attendanceStatus ?? "Active"}</div>
+  </div>
+</td>
+        </tr>
     `;
   }).join("");
 
-  rowsEl.querySelectorAll("tr[data-id]").forEach((tr) => {
-    const a = byId.get(tr.dataset.id);
-    if (!a) return;
-
-const rank = resolveRank(a);
-
-repaintMiniBarForRow({
-  rowEl: tr,
-  athlete: a,
-  xp: a.xp ?? 0,
-  cap: xpCapForAthlete(a),
-  tierName: rank,
-  rankName: rank
-});
-  });
 
   updateSessionBar();
 }
@@ -584,17 +517,9 @@ async function giveToOne(id, kind) {
 
   if (row) {
     const cap = xpCapForAthlete(a);
-    const tier = resolveRank(a);
     const line = row.querySelector(`[data-xpline="${id}"]`);
     if (line) line.textContent = `${a.xp ?? 0} / ${cap}`;
 
-    repaintMiniBarForRow({
-      rowEl: row,
-      athlete: a,
-      xp: a.xp ?? 0,
-      cap,
-      tierName: tier,
-    });
   }
 
   return { ok: true, delta };

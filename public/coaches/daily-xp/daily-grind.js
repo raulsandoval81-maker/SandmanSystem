@@ -174,7 +174,6 @@ function render(list) {
     return;
   }
 
-  const byId = new Map(list.map((a) => [a.id, a]));
 
   rowsEl.innerHTML = list.map((a) => {
     const uid = a.uidCode || a.uid || a.id;
