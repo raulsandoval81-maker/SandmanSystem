@@ -69,9 +69,6 @@ const sbLoaded = document.getElementById("sb-loaded");
 const sbAwarded = document.getElementById("sb-awarded");
 const sbXP = document.getElementById("sb-xp");
 
-// Foundry toggle (exclusive F4 vs F8)
-const trackF8OnlyEl = document.getElementById("trackF8Only");
-
 /* -----------------------------
    State
 ----------------------------- */
@@ -142,9 +139,6 @@ function eventLevelValue() {
   return v || null;
 }
 
-function trackWanted() {
-  return trackF8OnlyEl?.checked ? "F8" : "F4";
-}
 
 function trackBaseOf(docId, a = {}) {
   const tb = String(a.trackBase || "").trim().toUpperCase();
@@ -355,7 +349,6 @@ async function load() {
     return true;
   });
 
-  roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
   const q = String(searchEl?.value || "").toLowerCase().trim();
   filtered = roster

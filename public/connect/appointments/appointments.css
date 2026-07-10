@@ -1,0 +1,156 @@
+:root{
+  --bg:#090909;
+  --panel:#141414;
+  --panel-soft:#1c1c1c;
+  --gold:#facc15;
+  --red:#7a1111;
+  --text:#f4f4f5;
+  --muted:#a1a1aa;
+  --border:#2b2b2b;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(circle at top,rgba(250,204,21,.1),transparent 30%),
+    var(--bg);
+  color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+
+.appointments-page{
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+  padding:32px 18px 60px;
+}
+
+.appointments-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-bottom:24px;
+}
+
+.eyebrow{
+  margin:0 0 8px;
+  color:var(--gold);
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+h1{
+  margin:0 0 8px;
+  color:#fff;
+  font-size:clamp(2rem,5vw,3.3rem);
+}
+
+.appointments-header p{
+  margin:0;
+  color:var(--muted);
+}
+
+.header-actions{
+  display:flex;
+  gap:10px;
+}
+
+.btn{
+  min-height:42px;
+  padding:10px 16px;
+  border:1px solid var(--border);
+  border-radius:999px;
+  background:var(--panel-soft);
+  color:#fff;
+  font-weight:800;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.btn-primary{
+  background:var(--red);
+  border-color:#941b1b;
+}
+
+.page-status{
+  min-height:24px;
+  color:var(--muted);
+  font-weight:700;
+}
+
+.page-status.error{
+  color:#fca5a5;
+}
+
+.appointment-list{
+  display:grid;
+  gap:14px;
+}
+
+.appointment-card{
+  padding:18px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+}
+
+.appointment-card h2{
+  margin:0 0 5px;
+  color:#fff;
+  font-size:1.15rem;
+}
+
+.appointment-sub{
+  color:var(--muted);
+  font-size:.88rem;
+}
+
+.appointment-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+  margin-top:16px;
+}
+
+.field-label{
+  display:block;
+  margin-bottom:4px;
+  color:var(--muted);
+  font-size:.7rem;
+  font-weight:900;
+  text-transform:uppercase;
+}
+
+.field-value{
+  color:#fff;
+  line-height:1.45;
+  word-break:break-word;
+}
+
+.empty{
+  padding:44px 20px;
+  text-align:center;
+  color:var(--muted);
+  background:var(--panel);
+  border:1px solid var(--border);
+  border-radius:18px;
+}
+
+@media(max-width:700px){
+  .appointment-grid{
+    grid-template-columns:1fr;
+  }
+
+  .appointments-page{
+    padding:22px 13px 50px;
+  }
+}

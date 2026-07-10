@@ -238,6 +238,10 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+
+
+
+
     /* --------------------------------------
        System Docs
     ---------------------------------------*/
@@ -465,7 +469,21 @@ match /attendance_sessions/{sessionId} {
   allow update: if request.auth != null;
   allow delete: if false;
 }
+/* --------------------------------------
+   Interest Leads
+---------------------------------------*/
+match /interest_leads/{leadId} {
 
+  // Public form may submit a lead.
+  allow create: if true;
+
+  // Only coaches and admins may view or manage leads.
+  allow get, list: if isCoachOrAdmin();
+
+  allow update: if isCoachOrAdmin();
+
+  allow delete: if isAdmin();
+}
 
 
     /* --------------------------------------

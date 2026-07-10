@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Appointments | Sandman Connect</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="./appointments.css"
+  />
+</head>
+
+<body>
+  <main class="appointments-page">
+
+    <header class="appointments-header">
+      <div>
+        <p class="eyebrow">
+          Sandman Connect
+        </p>
+
+        <h1>
+          Appointments
+        </h1>
+
+        <p>
+          Leads marked Appointment Scheduled appear here.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <a class="btn" href="/connect/leads/">
+          Back to Leads
+        </a>
+
+        <button
+          id="refreshBtn"
+          class="btn btn-primary"
+          type="button"
+        >
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <p
+      id="pageStatus"
+      class="page-status"
+    ></p>
+
+    <section
+      id="appointmentList"
+      class="appointment-list"
+    ></section>
+
+  </main>
+
+  <script
+    type="module"
+    src="./appointments.js"
+  ></script>
+</body>
+</html>

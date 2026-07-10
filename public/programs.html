@@ -13,7 +13,6 @@
   <style>
     .hero h1{ margin-bottom:.5rem; }
     .hero-sub{ margin:0; }
-    .hero-tag{ margin-top:.75rem; }
     .panel + .panel{ margin-top:1.25rem; }
 
     .journey-box{
@@ -47,13 +46,6 @@
       text-transform:uppercase;
     }
 
-    .journey-meta{
-      margin:0;
-      color:var(--muted);
-      font-size:.9rem;
-      font-weight:700;
-    }
-
     .badge-row{
       display:flex;
       gap:.8rem;
@@ -61,19 +53,6 @@
       padding:.15rem .15rem .6rem;
       scroll-snap-type:x mandatory;
       -webkit-overflow-scrolling:touch;
-    }
-
-    .badge-row::-webkit-scrollbar{ height:10px; }
-
-    .badge-row::-webkit-scrollbar-thumb{
-      background:#263142;
-      border-radius:999px;
-      border:2px solid #0f141b;
-    }
-
-    body.day-mode .badge-row::-webkit-scrollbar-thumb{
-      background:#d7c7a2;
-      border-color:#fff8ec;
     }
 
     .badge{
@@ -99,7 +78,6 @@
       font-size:.88rem;
       font-weight:900;
       color:var(--text);
-      letter-spacing:.01em;
     }
 
     .list{
@@ -108,7 +86,7 @@
       font-size:.95rem;
     }
 
-    .list li{ margin:.25rem 0; }
+    .list li{ margin:.35rem 0; }
 
     .purpose{
       margin-top:.9rem;
@@ -119,6 +97,15 @@
     }
 
     .purpose strong{ color:var(--brand); }
+
+    .program-coming-soon{
+      opacity:.52;
+      font-style:italic;
+    }
+
+    .coming-soon{
+      opacity:.74;
+    }
 
     .note-strip{
       background:var(--panel-2);
@@ -131,7 +118,6 @@
     }
 
     .note-strip strong{ color:var(--brand); }
-    
   </style>
 </head>
 
@@ -146,14 +132,17 @@
         <span data-lang-block="en">Home</span>
         <span data-lang-block="es" class="hidden-lang">Inicio</span>
       </a>
+
       <a href="overview.html">
         <span data-lang-block="en">Overview</span>
         <span data-lang-block="es" class="hidden-lang">Resumen</span>
       </a>
+
       <a href="programs.html" aria-current="page">
         <span data-lang-block="en">Programs</span>
         <span data-lang-block="es" class="hidden-lang">Programas</span>
       </a>
+
       <a href="about.html">
         <span data-lang-block="en">About</span>
         <span data-lang-block="es" class="hidden-lang">Acerca</span>
@@ -162,177 +151,148 @@
   </header>
 
   <main class="wrap">
-<section class="section">
 
-  <!-- English -->
-  <div class="hero" data-lang-block="en">
+    <section class="section">
+      <div class="hero" data-lang-block="en">
+        <h1>Sandman System™</h1>
 
-    <h1>Sandman System™</h1>
+        <p class="hero-sub">
+          The Sandman System™ powers every Sandman Combat™ program through structured progression, clear standards, and earned achievement.
+        </p>
 
-    <p class="hero-sub">
-      The Sandman System™ powers every Sandman Combat™ program through structured progression, clear standards, and earned achievement.
-    </p>
+        <p class="lead">
+          Whether you're stepping onto the mat for the first time or preparing for competition, every Sandman Combat™ program follows the same philosophy:
+          Everyone Starts at Zero. Every Step is Earned.
+        </p>
 
-    <p class="lead">
-      Whether you're stepping onto the mat for the first time or preparing for high-level competition, every Sandman Combat™ program follows the same philosophy: Everyone Starts at Zero. Every Step is Earned.
-    </p>
+        <a class="btn btn-primary" href="/connect/interest/">
+          Start Your Journey
+        </a>
+      </div>
 
-    <a class="btn btn-primary" href="join.html?track=zero2hero&intent=free_pass">
-      Start Your Journey
-    </a>
+      <div class="hero hidden-lang" data-lang-block="es">
+        <h1>Sandman System™</h1>
 
-</div> 
-  <!-- Spanish -->
-  <div class="hero hidden-lang" data-lang-block="es">
+        <p class="hero-sub">
+          El Sandman System™ impulsa todos los programas de Sandman Combat™ mediante una progresión estructurada, estándares claros y logros ganados con esfuerzo.
+        </p>
 
-    <h1>Sandman System™</h1>
+        <p class="lead">
+          Ya sea que pises el tapete por primera vez o te prepares para competir, cada programa de Sandman Combat™ sigue la misma filosofía:
+          Todos comienzan desde cero. Cada paso se gana.
+        </p>
 
-    <p class="hero-sub">
-      El Sandman System™ impulsa todos los programas de Sandman Combat™ mediante una progresión estructurada, estándares claros y logros ganados con esfuerzo.
-    </p>
-
-    <p class="lead">
-      Ya sea que pises el tapete por primera vez o te prepares para competir al más alto nivel, cada programa de Sandman Combat™ sigue la misma filosofía: Todos comienzan desde cero. Cada paso se gana.
-    </p>
-
-    <a class="btn btn-primary" href="join.html?track=zero2hero&intent=free_pass">
-      Comienza tu camino
-    </a>
-
-  </div>
-
-</section>
+        <a class="btn btn-primary" href="/connect/interest/">
+          Comienza tu camino
+        </a>
+      </div>
+    </section>
 
     <section class="section">
       <div data-lang-block="en">
-        <h2 class="section-title">Programs by Age</h2>
+        <h2 class="section-title">Programs &amp; Journeys</h2>
       </div>
 
       <div data-lang-block="es" class="hidden-lang">
-        <h2 class="section-title">Programas por edad</h2>
+        <h2 class="section-title">Programas y Caminos</h2>
       </div>
 
       <article class="panel">
         <div data-lang-block="en">
           <div class="panel-head">
-            <span class="pill-tag">Foundry 8 · Youth · Ages ~7–13</span>
+            <span class="pill-tag">Youth · Ages 6–13</span>
           </div>
 
           <p class="panel-sub">
-            Designed for young athletes beginning their wrestling journey through structured instruction, positive coaching, and age-appropriate challenges.
+            Designed for young athletes building confidence, coordination, discipline, and strong combat fundamentals through structured, age-appropriate training.
           </p>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <div class="panel-head">
-            <span class="pill-tag">Foundry 8 · Juventud · Edades ~7–13</span>
+            <span class="pill-tag">Juventud · Edades 6–13</span>
           </div>
 
           <p class="panel-sub">
-            Diseñado para jóvenes atletas que comienzan su camino en la lucha, mediante instrucción estructurada, entrenamiento positivo y desafíos apropiados para su edad.
+            Diseñado para jóvenes atletas que desarrollan confianza, coordinación, disciplina y fundamentos sólidos de combate mediante entrenamiento estructurado y apropiado para su edad.
           </p>
         </div>
 
-        <div class="journey-box" aria-label="Foundry 8 badge journey">
+        <div class="journey-box" aria-label="Zero2Hero badge journey">
           <div class="journey-top">
-            <div data-lang-block="en">
-              <p class="journey-title">The Journey: Zero2Hero™</p>
-            </div>
+            <p class="journey-title" data-lang-block="en">
+              The Journey: Zero2Hero™
+            </p>
 
-            <div data-lang-block="es" class="hidden-lang">
-              <p class="journey-title">El Viaje: Zero2Hero™</p>
-            </div>
+            <p class="journey-title hidden-lang" data-lang-block="es">
+              El Viaje: Zero2Hero™
+            </p>
           </div>
 
-<div class="badge-row" role="list" aria-label="Foundry 8 badges">
+          <div class="badge-row" role="list" aria-label="Zero2Hero badges">
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t0-shadow.png" alt="Shadow badge" loading="lazy" />
+              <div class="badge-label">Shadow</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t0-shadow.png" alt="Shadow badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Shadow</span>
-      <span data-lang-block="es" class="hidden-lang">Sombra</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t1-recruit.png" alt="Recruit badge" loading="lazy" />
+              <div class="badge-label">Recruit</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t1-recruit.png" alt="Recruit badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Recruit</span>
-      <span data-lang-block="es" class="hidden-lang">Recluta</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t2-competitor.png" alt="Competitor badge" loading="lazy" />
+              <div class="badge-label">Competitor</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t2-competitor.png" alt="Competitor badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Competitor</span>
-      <span data-lang-block="es" class="hidden-lang">Competidor</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t3-contender.png" alt="Contender badge" loading="lazy" />
+              <div class="badge-label">Contender</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t3-contender.png" alt="Contender badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Contender</span>
-      <span data-lang-block="es" class="hidden-lang">Contendiente</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t4-warrior.png" alt="Warrior badge" loading="lazy" />
+              <div class="badge-label">Warrior</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t4-warrior.png" alt="Warrior badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Warrior</span>
-      <span data-lang-block="es" class="hidden-lang">Guerrero</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t5-champion.png" alt="Champion badge" loading="lazy" />
+              <div class="badge-label">Champion</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t5-champion.png" alt="Champion badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Champion</span>
-      <span data-lang-block="es" class="hidden-lang">Campeón</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t6-commander.png" alt="Commander badge" loading="lazy" />
+              <div class="badge-label">Commander</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t6-commander.png" alt="Commander badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Commander</span>
-      <span data-lang-block="es" class="hidden-lang">Comandante</span>
-    </div>
-  </div>
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f8/t7-hero.png" alt="Hero badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Hero</span>
-      <span data-lang-block="es" class="hidden-lang">Héroe</span>
-    </div>
-  </div>
-
-</div>
-
- </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f8/t7-hero.png" alt="Hero badge" loading="lazy" />
+              <div class="badge-label">Hero</div>
+            </div>
+          </div>
+        </div>
 
         <div data-lang-block="en">
           <ul class="list">
-            <li><strong>Wrestling</strong> — basics, mechanics, and body control</li>
+            <li><strong>Wrestling</strong> — basics, mechanics, balance, and body control</li>
+            <li><strong>Kickboxing</strong> — movement, coordination, distance, and controlled striking fundamentals</li>
           </ul>
 
           <div class="purpose">
             <strong>Purpose:</strong>
-            Develop confident young athletes with strong fundamentals, positive habits, and a lifelong appreciation for wrestling.
+            Develop confident young athletes with strong fundamentals, positive habits, and a lifelong appreciation for combat training.
           </div>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <ul class="list">
-            <li><strong>Wrestling</strong> — fundamentos, mecánica y control corporal</li>
+            <li><strong>Wrestling</strong> — fundamentos, mecánica, equilibrio y control corporal</li>
+            <li><strong>Kickboxing</strong> — movimiento, coordinación, distancia y fundamentos de golpeo controlado</li>
           </ul>
 
           <div class="purpose">
             <strong>Propósito:</strong>
-            Desarrollar atletas seguros de sí mismos con fundamentos sólidos, hábitos positivos y un aprecio por la lucha que dure toda la vida.
+            Desarrollar jóvenes atletas seguros de sí mismos con fundamentos sólidos, hábitos positivos y un aprecio duradero por el entrenamiento de combate.
           </div>
         </div>
       </article>
@@ -340,378 +300,163 @@
       <article class="panel">
         <div data-lang-block="en">
           <div class="panel-head">
-            <span class="pill-tag">Foundry 4 · Teen · Ages 13+</span>
+            <span class="pill-tag">Teen / Adult · Ages 14+</span>
           </div>
 
           <p class="panel-sub">
-            Designed for athletes ready to compete with greater responsibility, advanced technique, and higher expectations both on and off the mat.
+            Designed for teen and adult athletes developing advanced skills, responsibility, leadership, and higher standards in training and competition.
           </p>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <div class="panel-head">
-            <span class="pill-tag">Foundry 4 · Adolescente · Edades 13+</span>
+            <span class="pill-tag">Adolescente / Adulto · Edades 14+</span>
           </div>
 
           <p class="panel-sub">
-            Diseñado para atletas preparados para competir con mayor responsabilidad, técnica avanzada y estándares más altos, tanto dentro como fuera del tapete.
+            Diseñado para atletas adolescentes y adultos que desarrollan habilidades avanzadas, responsabilidad, liderazgo y estándares más altos en el entrenamiento y la competencia.
           </p>
         </div>
 
-        <div class="journey-box" aria-label="Foundry 4 badge journey">
+        <div class="journey-box" aria-label="Path2Legend badge journey">
           <div class="journey-top">
-            <div data-lang-block="en">
-              <p class="journey-title">The Journey: Path2Legend™</p>
-            </div>
+            <p class="journey-title" data-lang-block="en">
+              The Journey: Path2Legend™
+            </p>
 
-            <div data-lang-block="es" class="hidden-lang">
-              <p class="journey-title"> El Viaje: Path2Legend™</p>
-            </div>
+            <p class="journey-title hidden-lang" data-lang-block="es">
+              El Viaje: Path2Legend™
+            </p>
           </div>
 
-<div class="badge-row" role="list" aria-label="Foundry 4 badges">
+          <div class="badge-row" role="list" aria-label="Path2Legend badges">
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t0-apprentice.png" alt="Apprentice badge" loading="lazy" />
+              <div class="badge-label">Apprentice</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/t0-apprentice.png" alt="Apprentice badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Apprentice</span>
-      <span data-lang-block="es" class="hidden-lang">Aprendiz</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t1-warrior.png" alt="Warrior badge" loading="lazy" />
+              <div class="badge-label">Warrior</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/t1-warrior.png" alt="Warrior badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Warrior</span>
-      <span data-lang-block="es" class="hidden-lang">Guerrero</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t2-champion.png" alt="Champion badge" loading="lazy" />
+              <div class="badge-label">Champion</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/t2-champion.png" alt="Champion badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Champion</span>
-      <span data-lang-block="es" class="hidden-lang">Campeón</span>
-    </div>
-  </div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t3-veteran.png" alt="Veteran badge" loading="lazy" />
+              <div class="badge-label">Veteran</div>
+            </div>
 
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/t3-veteran.png" alt="Veteran badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Veteran</span>
-      <span data-lang-block="es" class="hidden-lang">Veterano</span>
-    </div>
-  </div>
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/t4-legend.png" alt="Legend badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Legend</span>
-      <span data-lang-block="es" class="hidden-lang">Leyenda</span>
-    </div>
-  </div>
-
-</div>
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/t4-legend.png" alt="Legend badge" loading="lazy" />
+              <div class="badge-label">Legend</div>
+            </div>
+          </div>
+        </div>
 
         <div data-lang-block="en">
           <ul class="list">
             <li><strong>Wrestling</strong> — advanced skills, pressure, leadership, and competition readiness</li>
+            <li><strong>Boxing</strong> — timing, footwork, conditioning, pressure, and composure</li>
+            <li class="program-coming-soon"><strong>Kickboxing</strong> — Coming Soon</li>
+            <li class="program-coming-soon"><strong>Submission Grappling</strong> — Coming Soon</li>
           </ul>
 
           <div class="purpose">
             <strong>Purpose:</strong>
-            Prepare athletes for high school competition, advanced wrestling, and leadership through disciplined training and consistent accountability.
+            Prepare teen and adult athletes for competition, leadership, and long-term development through disciplined training and consistent accountability.
           </div>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <ul class="list">
             <li><strong>Wrestling</strong> — habilidades avanzadas, presión, liderazgo y preparación competitiva</li>
+            <li><strong>Boxeo</strong> — tiempo, juego de pies, condición física, presión y compostura</li>
+            <li class="program-coming-soon"><strong>Kickboxing</strong> — Próximamente</li>
+            <li class="program-coming-soon"><strong>Grappling de Sumisión</strong> — Próximamente</li>
           </ul>
 
           <div class="purpose">
             <strong>Propósito:</strong>
-            Preparar a los atletas para la competencia de nivel preparatoria, la lucha avanzada y el liderazgo mediante entrenamiento disciplinado y responsabilidad constante.
+            Preparar a atletas adolescentes y adultos para la competencia, el liderazgo y el desarrollo a largo plazo mediante entrenamiento disciplinado y responsabilidad constante.
           </div>
         </div>
       </article>
 
-<article class="panel">
-  <div data-lang-block="en">
-    <div class="panel-head">
-      <span class="pill-tag">Foundry 4 · Teen / Adult · Ages 14+</span>
-    </div>
+      <article class="panel coming-soon">
+        <div data-lang-block="en">
+          <div class="panel-head">
+            <span class="pill-tag">Ages 16+ · Coming Soon</span>
+          </div>
 
-    <p class="panel-sub">
-      Structured boxing instruction that develops timing, footwork, conditioning, composure, and confidence through disciplined training.
-    </p>
-  </div>
-
-  <div data-lang-block="es" class="hidden-lang">
-    <div class="panel-head">
-      <span class="pill-tag">Foundry 4 · Adolescente / Adulto · Edades 14+</span>
-    </div>
-
-    <p class="panel-sub">
-      Entrenamiento estructurado de boxeo que desarrolla tiempo, juego de pies, condición física, compostura y confianza mediante una práctica disciplinada.
-    </p>
-  </div>
-
-  <div class="journey-box" aria-label="Foundry 4 adult badge journey">
-
-    <div class="journey-top">
-      <div data-lang-block="en">
-        <p class="journey-title">The Journey: Road2Greatness™</p>
-      </div>
-
-      <div data-lang-block="es" class="hidden-lang">
-        <p class="journey-title">El Viaje: Road2Greatness™</p>
-      </div>
-    </div>
-
-    <div class="badge-row" role="list" aria-label="Road2Greatness Boxing badges">
-
-      <div class="badge" role="listitem">
-        <img src="/assets/img/f4/f4-adult-gray-apprentice.png" alt="Apprentice badge" loading="lazy" />
-        <div class="badge-label">
-          <span data-lang-block="en">Apprentice</span>
-          <span data-lang-block="es" class="hidden-lang">Aprendiz</span>
+          <p class="panel-sub">
+            Quest2Mastery™ is the future MMA journey for athletes ages 16 and older. Program details will be announced when the pilot is ready.
+          </p>
         </div>
-      </div>
 
-      <div class="badge" role="listitem">
-        <img src="/assets/img/f4/f4-adult-warrior.png" alt="Warrior badge" loading="lazy" />
-        <div class="badge-label">
-          <span data-lang-block="en">Warrior</span>
-          <span data-lang-block="es" class="hidden-lang">Guerrero</span>
+        <div data-lang-block="es" class="hidden-lang">
+          <div class="panel-head">
+            <span class="pill-tag">Edades 16+ · Próximamente</span>
+          </div>
+
+          <p class="panel-sub">
+            Quest2Mastery™ será el futuro camino de MMA para atletas de 16 años en adelante. Los detalles se anunciarán cuando el programa piloto esté listo.
+          </p>
         </div>
-      </div>
 
-      <div class="badge" role="listitem">
-        <img src="/assets/img/f4/f4-adult-champion.png" alt="Champion badge" loading="lazy" />
-        <div class="badge-label">
-          <span data-lang-block="en">Champion</span>
-          <span data-lang-block="es" class="hidden-lang">Campeón</span>
+        <div class="journey-box" aria-label="Quest2Mastery badge journey">
+          <div class="journey-top">
+            <p class="journey-title" data-lang-block="en">
+              The Journey: Quest2Mastery™
+            </p>
+
+            <p class="journey-title hidden-lang" data-lang-block="es">
+              El Viaje: Quest2Mastery™
+            </p>
+          </div>
+
+          <div class="badge-row" role="list" aria-label="Quest2Mastery badges">
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/f4-adult-gray-apprentice.png" alt="Apprentice badge" loading="lazy" />
+              <div class="badge-label">Apprentice</div>
+            </div>
+
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/f4-adult-warrior.png" alt="Warrior badge" loading="lazy" />
+              <div class="badge-label">Warrior</div>
+            </div>
+
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/f4-adult-champion.png" alt="Champion badge" loading="lazy" />
+              <div class="badge-label">Champion</div>
+            </div>
+
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/f4-adult-veteran.png" alt="Veteran badge" loading="lazy" />
+              <div class="badge-label">Veteran</div>
+            </div>
+
+            <div class="badge" role="listitem">
+              <img src="/assets/img/f4/f4-adult-master.png" alt="Master badge" loading="lazy" />
+              <div class="badge-label">Master</div>
+            </div>
+          </div>
         </div>
-      </div>
-
-      <div class="badge" role="listitem">
-        <img src="/assets/img/f4/f4-adult-veteran.png" alt="Veteran badge" loading="lazy" />
-        <div class="badge-label">
-          <span data-lang-block="en">Veteran</span>
-          <span data-lang-block="es" class="hidden-lang">Veterano</span>
-        </div>
-      </div>
-
-      <div class="badge" role="listitem">
-        <img src="/assets/img/f4/f4-adult-craftsman.png" alt="Craftsman badge" loading="lazy" />
-        <div class="badge-label">
-          <span data-lang-block="en">Craftsman</span>
-          <span data-lang-block="es" class="hidden-lang">Artesano</span>
-        </div>
-      </div>
-
-    </div>
-
-    <div data-lang-block="en">
-      <ul class="list">
-        <li><strong>Boxing</strong> — timing, footwork, conditioning, pressure, and composure.</li>
-      </ul>
-
-      <div class="purpose">
-        <strong>Purpose:</strong>
-        Develop technically sound boxers with the discipline, craftsmanship, and mindset to perform under pressure.
-      </div>
-    </div>
-
-    <div data-lang-block="es" class="hidden-lang">
-      <ul class="list">
-        <li><strong>Boxeo</strong> — tiempo, juego de pies, condición física, presión y compostura.</li>
-      </ul>
-
-      <div class="purpose">
-        <strong>Propósito:</strong>
-        Formar boxeadores técnicamente sólidos con la disciplina, el dominio del oficio y la mentalidad necesarios para rendir bajo presión.
-      </div>
-    </div>
-
-  </div>
-</article>
-
+      </article>
     </section>
-
-<article class="panel coming-soon">
-
-  <div data-lang-block="en">
-    <div class="panel-head">
-      <span class="pill-tag">Foundry 4 · Adult · Ages 18+ · Coming Soon</span>
-    </div>
-
-    <p class="panel-sub">
-      Mixed Martial Arts combines wrestling, boxing, kickboxing, and grappling into a complete combat system. Athletes develop technical mastery, strategic decision-making, conditioning, and composure through structured long-term training.
-    </p>
-  </div>
-
-  <div data-lang-block="es" class="hidden-lang">
-    <div class="panel-head">
-      <span class="pill-tag">Foundry 4 · Adulto · Edades 18+ · Próximamente</span>
-    </div>
-
-    <p class="panel-sub">
-      Las Artes Marciales Mixtas combinan lucha, boxeo, kickboxing y grappling en un sistema completo de combate. Los atletas desarrollan dominio técnico, estrategia, condición física y compostura mediante un entrenamiento estructurado a largo plazo.
-    </p>
-  </div>
-
-  <div class="journey-box" aria-label="Foundry 4 MMA badge journey">
-
-    <div class="journey-top">
-      <div data-lang-block="en">
-        <p class="journey-title">The Journey: Quest2Mastery™</p>
-      </div>
-
-      <div data-lang-block="es" class="hidden-lang">
-        <p class="journey-title">El Viaje: Quest2Mastery™</p>
-      </div>
-    </div>
-
-    <div class="badge-row" role="list" aria-label="Quest2Mastery MMA badges">
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/f4-adult-gray-apprentice.png" alt="Apprentice badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Apprentice</span>
-      <span data-lang-block="es" class="hidden-lang">Aprendiz</span>
-    </div>
-  </div>
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/f4-adult-warrior.png" alt="Warrior badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Warrior</span>
-      <span data-lang-block="es" class="hidden-lang">Guerrero</span>
-    </div>
-  </div>
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/f4-adult-champion.png" alt="Champion badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Champion</span>
-      <span data-lang-block="es" class="hidden-lang">Campeón</span>
-    </div>
-  </div>
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/f4-adult-veteran.png" alt="Veteran badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Veteran</span>
-      <span data-lang-block="es" class="hidden-lang">Veterano</span>
-    </div>
-  </div>
-
-  <div class="badge" role="listitem">
-    <img src="/assets/img/f4/f4-adult-master.png" alt="Master badge" loading="lazy" />
-    <div class="badge-label">
-      <span data-lang-block="en">Master</span>
-      <span data-lang-block="es" class="hidden-lang">Maestro</span>
-    </div>
-  </div>
-
-  
-    </div>
-
-    <p class="program-copy">
-      <strong>MMA</strong> — wrestling, striking, clinch work, submissions, cage control, and complete fight strategy.
-    </p>
-
-    <p class="program-purpose">
-      <strong>Purpose:</strong> Develop complete mixed martial artists capable of applying multiple disciplines with technical precision, discipline, and intelligent decision-making.
-    </p>
-
-  </div>
-
-</article>
-<section class="section">
-  <article class="panel">
-
-    <div data-lang-block="en">
-
-      <div class="hero-kicker">Sandman Fitness &amp; Self-Defense™</div>
-
-      <h2 class="section-title">Teen / Adult · Ages 12+</h2>
-
-      <p class="lead">
-        Competition isn't everyone's goal—and it doesn't have to be.
-      </p>
-
-      <p class="lead">
-        Sandman Fitness &amp; Self-Defense™ helps teens and adults build strength,
-        confidence, conditioning, and practical self-defense skills through
-        structured, coach-led training.
-      </p>
-
-      <ul class="diff-list">
-        <li><strong>Fitness Kickboxing</strong> — conditioning, footwork, movement, and striking fundamentals.</li>
-        <li><strong>Self-Defense</strong> — awareness, positioning, personal protection, and practical skills.</li>
-      </ul>
-
-      <p class="lead">
-        <strong>Purpose:</strong> Help everyday people improve their health,
-        fitness, confidence, discipline, and personal safety through consistent training.
-      </p>
-
-      <p class="lead">
-        No previous experience is required.
-      </p>
-
-    </div>
-
-    <div data-lang-block="es" class="hidden-lang">
-
-      <div class="hero-kicker">Sandman Fitness y Defensa Personal™</div>
-
-      <h2 class="section-title">Adolescentes / Adultos · Edades 12+</h2>
-
-      <p class="lead">
-        Competir no es la meta de todos, y no tiene por qué serlo.
-      </p>
-
-      <p class="lead">
-        Sandman Fitness y Defensa Personal™ ayuda a adolescentes y adultos
-        a desarrollar fuerza, condición física, confianza y habilidades
-        prácticas de defensa personal mediante entrenamiento estructurado
-        dirigido por un entrenador.
-      </p>
-
-      <ul class="diff-list">
-        <li><strong>Fitness Kickboxing</strong> — acondicionamiento, juego de pies, movimiento y fundamentos de golpeo.</li>
-        <li><strong>Defensa Personal</strong> — conciencia situacional, posicionamiento, protección personal y habilidades prácticas.</li>
-      </ul>
-
-      <p class="lead">
-        <strong>Propósito:</strong> Ayudar a las personas a mejorar su salud,
-        condición física, confianza, disciplina y seguridad personal mediante
-        entrenamiento constante.
-      </p>
-
-      <p class="lead">
-        No se requiere experiencia previa.
-      </p>
-
-    </div>
-
-  </article>
-</section>
 
     <section class="section">
       <article class="panel">
         <div data-lang-block="en">
-
-<h2 class="section-title">
-  Everyone Starts at Zero • Every Step is Earned • Heroes Build Heroes
-</h2>
+          <h2 class="section-title">
+            Everyone Starts at Zero • Every Step is Earned • Heroes Build Heroes
+          </h2>
 
           <p class="lead">
-            Sandman Academy™ is more than a place to train. It's a community built on discipline, respect, accountability, and continuous growth.
+            Sandman Academy™ is more than a place to train. It is a community built on discipline, respect, accountability, and continuous growth.
           </p>
 
           <p class="lead">
@@ -719,19 +464,14 @@
           </p>
 
           <p class="lead">
-            Whether your goal is confidence, competition, fitness, or personal growth, you'll be challenged, supported, and encouraged every step of the way.
-          </p>
-
-          <p class="lead">
-            Because the greatest victory isn't simply winning a match—it's becoming the kind of person others can depend on.
+            Whether your goal is confidence, competition, fitness, or personal growth, you will be challenged, supported, and encouraged every step of the way.
           </p>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
-
-<h2 class="section-title">
-  Todos Comienzan Desde Cero • Cada Paso Se Gana • Los Héroes Crean Héroes
-</h2>
+          <h2 class="section-title">
+            Todos Comienzan Desde Cero • Cada Paso Se Gana • Los Héroes Crean Héroes
+          </h2>
 
           <p class="lead">
             Academia Sandman™ es mucho más que un lugar para entrenar. Es una comunidad construida sobre disciplina, respeto, responsabilidad y crecimiento constante.
@@ -742,29 +482,22 @@
           </p>
 
           <p class="lead">
-            Ya sea que tu meta sea ganar confianza, competir, mejorar tu condición física o crecer como persona, aquí encontrarás un lugar donde serás desafiado, apoyado y motivado en cada paso del camino.
-          </p>
-
-          <p class="lead">
-            Porque la mayor victoria no es simplemente ganar un combate; es convertirse en la clase de persona en quien los demás pueden confiar.
+            Ya sea que tu meta sea ganar confianza, competir, mejorar tu condición física o crecer como persona, aquí encontrarás apoyo y motivación en cada paso del camino.
           </p>
         </div>
       </article>
 
-<div class="note-strip">
+      <div class="note-strip">
+        <div data-lang-block="en">
+          <strong>Program Identity Notice:</strong>
+          All program names, logos, badge designs, colors, progression marks, and visual elements are part of the Sandman System™ identity.
+        </div>
 
-  <div data-lang-block="en">
-    <strong>Program Identity Notice:</strong>
-    All program names, logos, badge designs, colors, progression marks, and visual elements are part of the Sandman System™ identity.
-  </div>
-
-  <div data-lang-block="es" class="hidden-lang">
-    <strong>Aviso de identidad del programa:</strong>
-    Todos los nombres de programas, logotipos, diseños de insignias, colores, marcas de progresión y elementos visuales forman parte de la identidad de Sandman System™.
-  </div>
-
-</div>
-
+        <div data-lang-block="es" class="hidden-lang">
+          <strong>Aviso de identidad del programa:</strong>
+          Todos los nombres de programas, logotipos, diseños de insignias, colores, marcas de progresión y elementos visuales forman parte de la identidad de Sandman System™.
+        </div>
+      </div>
     </section>
 
   </main>

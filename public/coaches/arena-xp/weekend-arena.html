@@ -27,11 +27,6 @@
 
   <section class="card">
 
-      <label class="canon-toggle" title="OFF = Foundry 4 only · ON = Foundry 8 only">
-        <input id="trackF8Only" type="checkbox" />
-        <span class="muted">Foundry 8 only</span>
-      </label>
-    </div>
 
     <div class="steps">
       <!-- STEP 1 -->
@@ -40,10 +35,22 @@
           <div class="step-title"><span class="step-num">1</span> Setup</div>
         </div>
 
+                    <select id="journeyFilter">
+       <option value="all">All Journeys</option>
+       <option value="p2l">Path2Legend · Wrestling</option>
+       <option value="z2h">Zero2Hero · Youth</option>
+       <option value="r2g">Road2Greatness · Boxing</option>
+       <option value="q2m">Quest2Mastery · MMA</option>
+    </select>
+
+
         <div class="row">
           <input id="tournamentId" class="input" placeholder="Tournament ID (required)"/>
           <button id="refreshBtn" class="btn btn-ghost" title="Reload roster from Firestore" type="button">Refresh</button>
         </div>
+
+
+
 
         <div class="hint">
           Tournament ID first. Refresh only if you need a clean reload.

@@ -236,7 +236,7 @@ body.day-mode #joinForm textarea{
 
 
           <p class="hero-tag">
-            Whether you're new to combat sports or already have experience, every athlete begins with an assessment, a conversation, and then onboarding into the program that's right for them.
+            Whether you're new to combat sports or already have experience, every family begins with a conversation. We'll learn about your goals, recommend the best starting point, and guide you through enrollment.
           </p>
 
           <div class="option-note">
@@ -250,7 +250,7 @@ body.day-mode #joinForm textarea{
           <h1>Comienza tu camino</h1>
 
           <p class="hero-tag">
-            Ya sea que tu atleta sea nuevo en los deportes de combate o ya tenga experiencia, cada atleta comienza con una evaluación, una conversación y luego una orientación hacia el programa adecuado.
+            Ya sea que tu atleta sea nuevo en los deportes de combate o ya tenga experiencia, cada familia comienza con una conversación. Conoceremos sus objetivos, recomendaremos el mejor punto de partida y los guiaremos durante el proceso de inscripción.
           </p>
 
           <div class="option-note">
@@ -280,31 +280,31 @@ body.day-mode #joinForm textarea{
               <p class="option-price">$0</p>
 
               <h3>
-                <span data-lang-block="en">1-Day Assessment</span>
-                <span data-lang-block="es" class="hidden-lang">Evaluación de 1 día</span>
+                <span data-lang-block="en">Academy Introduction</span>
+                <span data-lang-block="es" class="hidden-lang">Introducción a la Academia</span>
               </h3>
 
               <p class="option-copy">
                 <span data-lang-block="en">
-                  Available for local hometown athletes only. Out-of-town athletes should choose the 3-Day Trial.
+                  Contact us to get started. We'll schedule an appointment and guide you through the next steps.
                 </span>
                 <span data-lang-block="es" class="hidden-lang">
-                  Disponible solo para atletas locales. Los atletas de fuera del área deben elegir la prueba de 3 días.
+                  Contáctanos para comenzar. Programaremos una cita y te guiaremos en los próximos pasos.
                 </span>
               </p>
 
               <p class="option-note">
                 <span data-lang-block="en">
-                  Meet the coaching staff, experience a class, complete an initial assessment, and receive a recommendation for the best place to begin.
+                  Meet with us to discuss the program, training standards, expectations, scheduling, membership, and whether Sandman Combat is the right fit.
                 </span>
                 <span data-lang-block="es" class="hidden-lang">
-                  Conoce al equipo de entrenadores, participa en una clase, completa una evaluación inicial y recibe una recomendación sobre el mejor punto para comenzar.
+                  Reúnete con nosotros para hablar sobre el programa, los estándares de entrenamiento, las expectativas, los horarios, la membresía y si Sandman Combat es la opción adecuada.
                 </span>
               </p>
 
               <button class="btn btn-primary" type="button" id="btnFree">
-                <span data-lang-block="en">Request 1-Day Assessment</span>
-                <span data-lang-block="es" class="hidden-lang">Solicitar evaluación de 1 día</span>
+                <span data-lang-block="en">Request Academy Introduction</span>
+                <span data-lang-block="es" class="hidden-lang">Solicitar una cita</span>
               </button>
             </div>
           </div>
@@ -482,13 +482,13 @@ body.day-mode #joinForm textarea{
     <section class="section">
       <article class="panel">
         <span class="pill-tag">
-          <span data-lang-block="en">Tell Us About Your Athlete</span>
-          <span data-lang-block="es" class="hidden-lang">Cuéntanos sobre tu atleta</span>
+          <span data-lang-block="en">Begin Your Enrollment</span>
+          <span data-lang-block="es" class="hidden-lang">Comienza tu inscripción</span>
         </span>
 
         <h2 class="panel-title">
-          <span data-lang-block="en">We'll use this information to help recommend the best starting point.</span>
-          <span data-lang-block="es" class="hidden-lang">Usaremos esta información para ayudar a recomendar el mejor punto de partida.</span>
+          <span data-lang-block="en">We'll use this information to prepare your enrollment and coach follow-up.</span>
+          <span data-lang-block="es" class="hidden-lang">Usaremos esta información para preparar tu inscripción y el seguimiento con un entrenador.</span>
         </h2>
 
         <form id="joinForm">
@@ -532,13 +532,13 @@ body.day-mode #joinForm textarea{
 
             <select id="programTrackSelect" required>
               <option value="zero2hero">
-                Zero to Hero™ Wrestling (Ages 7–13)
+                Zero to Hero™ Wrestling (Ages 6–13)
               </option>
               <option value="path2legend">
                 Path to Legend™ Wrestling (Ages 14+)
               </option>
               <option value="road2greatness">
-                Road to Greatness™ Boxing (Ages 14+)
+                Path to Legend™ Boxing (Ages 14+)
               </option>
               <option value="fitness">
                 Fitness Kickboxing & Self-Defense (Teen & Adult • Ages 12+)
@@ -592,7 +592,7 @@ body.day-mode #joinForm textarea{
             </strong>
 
             <p data-lang-block="en">
-              1-Day Assessments are available for local athletes only and allow the coaching staff to evaluate movement, awareness, experience level, and appropriate placement.
+              Coach meetings are scheduled as needed during the enrollment process.
             </p>
             <p data-lang-block="en">
               A parent or guardian must be present at the first practice for minors. Waiver instructions will be provided by email, and waivers will also be available at check-in.
@@ -602,7 +602,7 @@ body.day-mode #joinForm textarea{
             </p>
 
             <p data-lang-block="es" class="hidden-lang">
-              Las evaluaciones de 1 día están disponibles solo para atletas locales y permiten que el cuerpo técnico evalúe movimiento, conciencia, nivel de experiencia y colocación apropiada.
+              Las reuniones con el entrenador se programan cuando sean necesarias durante el proceso de inscripción.
             </p>
             <p data-lang-block="es" class="hidden-lang">
               Un padre o tutor debe estar presente en la primera práctica para menores. Las instrucciones de la exención se enviarán por correo electrónico y también habrá exenciones disponibles al llegar.
@@ -689,8 +689,8 @@ body.day-mode #joinForm textarea{
     const isES = getCurrentLang() === "es";
     let label = isES ? "Prueba de 2 días" : "2-Day Trial";
 
-    if (intent === "free_pass") {
-      label = isES ? "Evaluación de 1 día" : "1-Day Assessment";
+    if (intent === "appointment") {
+      label = isES ? "Introducción a la Academia" : "Academy Introduction";
       $("freeCard")?.classList.add("active");
     } else if (intent === "join") {
       label = isES ? "Membresía mensual" : "Monthly Membership";
@@ -713,13 +713,13 @@ body.day-mode #joinForm textarea{
     }
   }
 
-  $("btnFree")?.addEventListener("click", () => setIntent("free_pass"));
+  $("btnFree")?.addEventListener("click", () => setIntent("appointment"));
   $("btnTrial")?.addEventListener("click", () => setIntent("trial"));
   $("btnJoin")?.addEventListener("click", () => setIntent("join"));
   $("btnUnlimited")?.addEventListener("click", () => setIntent("unlimited"));
   $("btnFamilyWellness")?.addEventListener("click", () => setIntent("family_wellness"));
 
-  setIntent(getParam("intent") || "free_pass");
+  setIntent(getParam("intent") || "appointment");
 
   const agree = $("agreeTerms");
   const submitBtn = $("btnSubmit");
@@ -738,8 +738,8 @@ body.day-mode #joinForm textarea{
   function getEntryLabel(entryType, currentLang){
     const isES = currentLang === "es";
 
-    if (entryType === "free_pass") {
-      return isES ? "Evaluación de 1 día" : "1-Day Assessment";
+    if (entryType === "appointment") {
+      return isES ? "Introducción a la Academia" : "Academy Introduction";
     }
 
     if (entryType === "join") {
@@ -890,7 +890,7 @@ ${bodyRaw || "(none)"}`;
       );
 
       $("joinForm")?.reset();
-      setIntent("free_pass");
+      setIntent("appointment");
       updateSubmitState();
 
     } catch (err) {

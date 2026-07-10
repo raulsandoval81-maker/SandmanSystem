@@ -48,9 +48,6 @@ const sbAwarded = document.getElementById("sb-awarded");
 const sbXP = document.getElementById("sb-xp");
 const sbReceipts = document.getElementById("sb-receipts");
 
-// Foundry toggle (exclusive F4 vs F8)
-const trackF8OnlyEl = document.getElementById("trackF8Only");
-
 /* -----------------------------
    State
 ----------------------------- */
@@ -93,10 +90,6 @@ function setStatus(msg, ok = true) {
 
 function syncTournament() {
   currentTournamentId = (tourEl?.value || "").trim();
-}
-
-function trackWanted() {
-  return trackF8OnlyEl?.checked ? "F8" : "F4";
 }
 
 function trackBaseOf(docId, a = {}) {
@@ -248,7 +241,6 @@ async function load() {
     return true;
   });
 
-  roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
   const q = (searchEl?.value || "").toLowerCase().trim();
   filtered = roster
@@ -516,7 +508,6 @@ partAllEl?.addEventListener("click", () => bulkGive("podium", "+5 Podium"));
 styleAllEl?.addEventListener("click", () => bulkGive("style", "+5 Style/IQ"));
 sportsmanshipAllEl?.addEventListener("click", () => bulkGive("sportsmanship", "-5 Sportsmanship"));
 
-trackF8OnlyEl?.addEventListener("change", () => load());
 
 /* -----------------------------
    Init

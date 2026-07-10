@@ -50,9 +50,6 @@ function setStatus(msg, ok = true) {
   statusLine.classList.toggle("warn", !ok);
 }
 
-function trackWanted() {
-  return trackF8OnlyEl?.checked ? "F8" : "F4";
-}
 
 function trackBaseOf(docId, a = {}) {
   const tb = String(a.trackBase || "").trim().toUpperCase();

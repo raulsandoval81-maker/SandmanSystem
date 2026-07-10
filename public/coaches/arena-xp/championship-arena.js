@@ -129,9 +129,6 @@ function prestigeArmed() {
   return won && typed === "WIN";
 }
 
-function trackWanted() {
-  return trackF8OnlyEl?.checked ? "F8" : "F4";
-}
 
 function trackBaseOf(docId, a = {}) {
   const tb = String(a.trackBase || "").trim().toUpperCase();
@@ -332,7 +329,6 @@ async function load() {
     return true;
   });
 
-  roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
   const q = String(searchEl?.value || "").toLowerCase().trim();
   filtered = roster
@@ -559,7 +555,6 @@ async function bulkGive(kind, label) {
 ["change", "blur"].forEach((evt) => levelEl?.addEventListener(evt, updateButtons));
 
 searchEl?.addEventListener("input", () => load());
-trackF8OnlyEl?.addEventListener("change", () => load());
 
 pickAllEl?.addEventListener("click", () => {
   document.querySelectorAll(".pick").forEach((c) => (c.checked = true));

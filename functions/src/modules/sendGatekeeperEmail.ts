@@ -2,7 +2,7 @@ import * as functions from "firebase-functions";
 import { Resend } from "resend";
 
 type EntryType =
-  | "free_pass"
+  | "appointment"
   | "trial"
   | "join"
   | "unlimited"
@@ -20,6 +20,10 @@ type Lang = "en" | "es";
 
 function normalizeTrack(programTrack: ProgramTrack): ProgramTrack {
   if (programTrack === "fitness") return "adult_fitness";
+
+  // Backward compatibility for older links and saved requests.
+  if (programTrack === "road2greatness") return "path2legend";
+
   return programTrack;
 }
 
@@ -42,23 +46,23 @@ function getTrackLabel(programTrack: ProgramTrack, lang: Lang) {
 
   const labels = {
     zero2hero: {
-      en: "Zero to Hero™ Wrestling (Ages 7–13)",
-      es: "Zero to Hero™ Lucha (Edades 7–13)"
+      en: "Zero2Hero™ — Wrestling or Kickboxing (Ages 6–13)",
+      es: "Zero2Hero™ — Lucha o Kickboxing (Edades 6–13)"
     },
 
     path2legend: {
-      en: "Path to Legend™ Wrestling (Ages 13+)",
-      es: "Path to Legend™ Lucha (Edades 13+)"
+      en: "Path2Legend™ — Wrestling or Boxing (Ages 14+)",
+      es: "Path2Legend™ — Lucha o Boxeo (Edades 14+)"
     },
 
     road2greatness: {
-      en: "Road to Greatness™ Boxing (Ages 14+)",
-      es: "Road to Greatness™ Boxeo (Edades 14+)"
+      en: "Path2Legend™ — Boxing (Ages 14+)",
+      es: "Path2Legend™ — Boxeo (Edades 14+)"
     },
 
     quest2mastery: {
-      en: "Quest to Mastery™ MMA",
-      es: "Quest to Mastery™ MMA"
+      en: "Quest2Mastery™ MMA (Ages 16+ · Coming Soon)",
+      es: "Quest2Mastery™ MMA (Edades 16+ · Próximamente)"
     },
 
     adult_fitness: {
@@ -161,7 +165,7 @@ Sesiones adicionales de viernes o sábado pueden ofrecerse en un horario rotativ
 
     if (track === "road2greatness") {
       return `Horario:
-Road to Greatness™ Boxing
+Path2Legend™ Boxing
 
 Solvang:
 Martes / Jueves
@@ -223,7 +227,7 @@ Additional Friday or Saturday sessions may be offered on a rotating schedule. Co
 
   if (track === "road2greatness") {
     return `Schedule:
-Road to Greatness™ Boxing
+Path2Legend™ Boxing
 
 Solvang:
 Tuesday / Thursday
@@ -306,76 +310,70 @@ Sandman Combat™ is built on a structured progression system where athletes dev
 
   const intakeProcess =
     lang === "es"
-      ? `Cada atleta comienza con:
+      ? `Cada familia comienza con:
 
-• Evaluación
-• Conversación
-• Onboarding
+• Contacto
+• Seguimiento del entrenador
+• Cita programada
 
-Durante este proceso conoceremos al atleta, responderemos preguntas y recomendaremos el camino que mejor se adapte a sus metas.`
-      : `Every athlete begins with:
+Durante la cita hablaremos sobre el programa, responderemos preguntas, revisaremos las metas de la familia y explicaremos los próximos pasos.`
+      : `Every family begins with:
 
-• Assessment
-• Conversation
-• Onboarding
+• Contact
+• Coach follow-up
+• Scheduled appointment
 
-During this process we'll get to know the athlete, answer questions, and recommend the journey that's the best fit for their goals.`;
+During the appointment we'll discuss the program, answer questions, review your family's goals, and explain the next steps.`;
 
   const subjectBase = "Sandman Combat";
 
-  if (entryType === "free_pass") {
+  if (entryType === "appointment") {
     return {
       subject:
         lang === "es"
-          ? `${subjectBase} — Evaluación de 1 Día`
-          : `${subjectBase} — 1-Day Assessment`,
+          ? `${subjectBase} — Solicitud de Cita Recibida`
+          : `${subjectBase} — Appointment Request Received`,
 
       text:
         lang === "es"
-          ? `Bienvenido a Sandman Combat™.
+          ? `Gracias por comunicarte con Sandman Combat™.
 
-Programa seleccionado: ${trackLabel}
+Programa de interés: ${trackLabel}
 
-Tu solicitud de Evaluación de 1 Día ha sido recibida.
+Recibimos tu solicitud.
 
-La Evaluación de 1 Día está disponible solo para atletas locales. Los atletas de fuera del área deben elegir la Prueba de 3 Días.
+Un representante de Sandman revisará tu información y se comunicará contigo para programar una cita.
 
 ${intakeProcess}
 
-${waiverLink}
+Durante la cita podremos hablar sobre:
+• El programa y su estructura
+• Las metas del atleta o la familia
+• Horarios y disponibilidad
+• Expectativas y estándares de entrenamiento
+• Membresía y próximos pasos
 
-${locationBlock}
-
-${scheduleBlock}
-
-${adultFitness ? adultFitnessNote : combatNote}
-
-${requirements}
-
-Esta evaluación es solo una sesión de entrada. La participación continua será determinada por el coach después de la evaluación en persona.
+No debes presentarte a una práctica sin una cita o confirmación previa.
 
 — Sandman Combat™`
-          : `Welcome to Sandman Combat™.
+          : `Thank you for contacting Sandman Combat™.
 
-Selected Program: ${trackLabel}
+Program of Interest: ${trackLabel}
 
-Your 1-Day Assessment request has been received.
+We received your request.
 
-The 1-Day Assessment is available for local hometown athletes only. Out-of-town athletes should choose the 3-Day Trial.
+A Sandman representative will review your information and contact you to schedule an appointment.
 
 ${intakeProcess}
 
-${waiverLink}
+During the appointment we can discuss:
+• The program and its structure
+• Athlete or family goals
+• Scheduling and availability
+• Training expectations and standards
+• Membership and next steps
 
-${locationBlock}
-
-${scheduleBlock}
-
-${adultFitness ? adultFitnessNote : combatNote}
-
-${requirements}
-
-This assessment is an entry session only. Ongoing participation is determined by the coach after in-person evaluation.
+Please do not arrive for a practice without a scheduled appointment or prior confirmation.
 
 — Sandman Combat™`
     };
@@ -394,9 +392,9 @@ This assessment is an entry session only. Ongoing participation is determined by
 
 Programa seleccionado: ${trackLabel}
 
-Tu solicitud de Prueba de 3 Días ha sido recibida.
+Tu consulta sobre una prueba ha sido recibida.
 
-La Prueba de 3 Días es ideal para atletas visitantes, familias de fuera del área y familias que desean conocer el ambiente antes de considerar membresía.
+Un coach se comunicará contigo para programar una cita antes de aprobar cualquier participación en el entrenamiento.
 
 ${intakeProcess}
 
@@ -419,9 +417,9 @@ Completar la prueba no garantiza membresía. La ubicación y participación cont
 
 Selected Program: ${trackLabel}
 
-Your 3-Day Trial request has been received.
+Your trial inquiry has been received.
 
-The 3-Day Trial is ideal for visiting athletes, out-of-town families, and families who want to experience the environment before considering membership.
+A coach will contact you to schedule an appointment before any training participation is approved.
 
 ${intakeProcess}
 
@@ -464,11 +462,11 @@ ${intakeProcess}
 
 Un coach revisará la solicitud, hablará contigo sobre las metas del atleta y recomendará el horario de entrenamiento más apropiado.
 
-Programas elegibles actuales:
-• Zero to Hero™ Wrestling
-• Path to Legend™ Wrestling
-• Road to Greatness™ Boxing
-• Kickboxing, Fitness y Defensa Personal
+Programas actuales:
+• Zero2Hero™ Wrestling
+• Zero2Hero™ Kickboxing
+• Path2Legend™ Wrestling
+• Path2Legend™ Boxing
 
 La participación en cada programa depende de edad, madurez, seguridad, disponibilidad y aprobación del coach.
 
@@ -495,11 +493,11 @@ ${intakeProcess}
 
 A coach will review the request, discuss the athlete's goals, and recommend the most appropriate training schedule.
 
-Current eligible programs:
-• Zero to Hero™ Wrestling
-• Path to Legend™ Wrestling
-• Road to Greatness™ Boxing
-• Kickboxing, Fitness & Self-Defense
+Current programs:
+• Zero2Hero™ Wrestling
+• Zero2Hero™ Kickboxing
+• Path2Legend™ Wrestling
+• Path2Legend™ Boxing
 
 Participation in each program depends on age, maturity, safety, availability, and coach approval.
 
@@ -542,11 +540,11 @@ Un coach revisará la solicitud y se comunicará contigo para hablar sobre:
 • Horarios disponibles
 • El mejor plan de membresía para tu familia
 
-Programas elegibles actuales:
-• Zero to Hero™ Wrestling
-• Path to Legend™ Wrestling
-• Road to Greatness™ Boxing
-• Kickboxing, Fitness y Defensa Personal
+Programas actuales:
+• Zero2Hero™ Wrestling
+• Zero2Hero™ Kickboxing
+• Path2Legend™ Wrestling
+• Path2Legend™ Boxing
 
 La participación en cada programa depende de edad, madurez, seguridad, disponibilidad y aprobación del coach.
 
@@ -577,11 +575,11 @@ A coach will review the request and contact you to discuss:
 • Available schedules
 • The best membership option for your family
 
-Current eligible programs:
-• Zero to Hero™ Wrestling
-• Path to Legend™ Wrestling
-• Road to Greatness™ Boxing
-• Kickboxing, Fitness & Self-Defense
+Current programs:
+• Zero2Hero™ Wrestling
+• Zero2Hero™ Kickboxing
+• Path2Legend™ Wrestling
+• Path2Legend™ Boxing
 
 Participation in each program depends on age, maturity, safety, availability, and coach approval.
 
@@ -615,7 +613,7 @@ Tu solicitud de membresía ha sido recibida.
 
 ${intakeProcess}
 
-Un coach revisará tu solicitud y determinará el siguiente paso basado en experiencia, madurez, seguridad, ajuste con la sala y ubicación apropiada.
+Un coach revisará tu solicitud y se comunicará contigo para programar una cita y hablar sobre el siguiente paso apropiado.
 
 Antes de participar regularmente, se requiere una exención firmada. Puede requerirse membresía adicional para continuar en clases regulares.
 
@@ -638,7 +636,7 @@ Your membership request has been received.
 
 ${intakeProcess}
 
-A coach will review your submission and determine the next step based on experience, maturity, safety, room fit, and appropriate placement.
+A coach will review your submission and contact you to schedule an appointment and discuss the appropriate next step.
 
 Before regular participation, a signed waiver is required. Additional membership may be required to continue in regular classes.
 
@@ -671,7 +669,7 @@ export const sendGatekeeperEmail = functions.firestore
       return;
     }
 
-    const entryType = (data.entryType || "join") as EntryType;
+    const entryType = (data.entryType || "appointment") as EntryType;
 
     const programTrack = (
       data.programTrack ||

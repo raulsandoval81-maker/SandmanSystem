@@ -1,4 +1,27 @@
 "use strict";
+/**
+ * Sandman Combat Decay Engine
+ *
+ * PURPOSE
+ * -------
+ * Maintains combat readiness through inactivity decay.
+ *
+ * RULES
+ * -----
+ * Day 14  -> Warning
+ * Day 28  -> -25 XP
+ * Day 35  -> -25 XP
+ * Every 14 days thereafter -> -25 XP
+ * Maximum Decay -> 150 XP
+ *
+ * Recovery
+ * --------
+ * Three separate verified combat attendance days
+ * stop decay and reset inactivity.
+ *
+ * Decay never demotes earned tiers.
+ * XP never falls below zero.
+ */
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.scheduledDecaySweep = void 0;
 const scheduler_1 = require("firebase-functions/v2/scheduler");

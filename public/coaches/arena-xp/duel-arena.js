@@ -92,10 +92,6 @@ function syncTournament() {
   currentTournamentId = String(tourEl?.value || "").trim();
 }
 
-function trackWanted() {
-  return trackF8OnlyEl?.checked ? "F8" : "F4";
-}
-
 function trackBaseOf(docId, a = {}) {
   const tb = String(a.trackBase || "").trim().toUpperCase();
 
@@ -276,7 +272,6 @@ async function load() {
     return true;
   });
 
-  roster = roster.filter((a) => trackBaseOf(a.id, a) === wanted);
 
   const q = String(searchEl?.value || "").toLowerCase().trim();
 
@@ -599,7 +594,6 @@ sportsmanshipAllEl?.addEventListener("click", () => {
   bulkGive("sportsmanship", "-5 Sportsmanship");
 });
 
-trackF8OnlyEl?.addEventListener("change", () => load());
 
 /* -----------------------------
    Init

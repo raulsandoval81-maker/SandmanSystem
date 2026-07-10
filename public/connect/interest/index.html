@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Connect | Sandman Combat Academy</title>
+
+  <meta
+    name="description"
+    content="Join the Sandman Combat Academy interest list."
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+<link
+  rel="stylesheet"
+  href="./interest.css"
+/>
+</head>
+
+<body>
+  <main class="connect-page">
+    <section class="connect-shell">
+
+      <header class="connect-hero">
+        <p class="eyebrow">
+          Sandman Combat Academy
+        </p>
+
+        <h1>
+          Connect With Us
+        </h1>
+
+        <p class="hero-copy">
+          Tell us a little about your athlete or family.
+          A Sandman coach will review your information
+          and contact you personally.
+        </p>
+      </header>
+
+      <form
+        id="interestForm"
+        class="interest-form"
+        novalidate
+      >
+        <section class="form-section">
+          <h2>
+            Parent or Guardian
+          </h2>
+
+          <div class="field">
+            <label for="parentName">
+              Parent or Guardian Name
+            </label>
+
+            <input
+              id="parentName"
+              name="parentName"
+              type="text"
+              autocomplete="name"
+              required
+            />
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Athlete Information
+          </h2>
+
+          <div class="field">
+            <label for="athleteName">
+              Athlete Name
+            </label>
+
+            <input
+              id="athleteName"
+              name="athleteName"
+              type="text"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="athleteAge">
+              Athlete Age
+            </label>
+
+            <input
+              id="athleteAge"
+              name="athleteAge"
+              type="number"
+              min="3"
+              max="99"
+              inputmode="numeric"
+              required
+            />
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Contact Information
+          </h2>
+
+          <div class="field">
+            <label for="phone">
+              Phone Number
+            </label>
+
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="email">
+              Email Address
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="city">
+              City
+            </label>
+
+            <input
+              id="city"
+              name="city"
+              type="text"
+              autocomplete="address-level2"
+            />
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Program Interest
+          </h2>
+
+          <div class="field">
+            <label for="programInterest">
+              Which program interests you?
+            </label>
+
+            <select
+              id="programInterest"
+              name="programInterest"
+              required
+            >
+              <option value="">
+                Select a program
+              </option>
+
+              <option value="z2h-wrestling">
+                Zero2Hero Wrestling · Ages 6–13
+              </option>
+
+              <option value="z2h-kickboxing">
+                Zero2Hero Kickboxing · Ages 6–13
+              </option>
+
+              <option value="p2l-wrestling">
+                Path2Legend Wrestling · Ages 14+
+              </option>
+
+              <option value="p2l-boxing">
+                Path2Legend Boxing · Ages 14+
+              </option>
+
+              <option value="learning-more">
+                Just Learning More
+              </option>
+            </select>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Experience
+          </h2>
+
+          <div class="field">
+            <label for="experience">
+              Current experience level
+            </label>
+
+            <select
+              id="experience"
+              name="experience"
+              required
+            >
+              <option value="">
+                Select experience level
+              </option>
+
+              <option value="brand-new">
+                Brand New
+              </option>
+
+              <option value="some-experience">
+                Some Experience
+              </option>
+
+              <option value="experienced-competitor">
+                Experienced Competitor
+              </option>
+            </select>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Referral
+          </h2>
+
+          <div class="field">
+            <label for="referralSource">
+              How did you hear about us?
+            </label>
+
+            <select
+              id="referralSource"
+              name="referralSource"
+              required
+            >
+              <option value="">
+                Select one
+              </option>
+
+              <option value="tournament">
+                Tournament or Event
+              </option>
+
+              <option value="friend-family">
+                Friend or Family
+              </option>
+
+              <option value="school">
+                School
+              </option>
+
+              <option value="social-media">
+                Social Media
+              </option>
+
+              <option value="website">
+                Website
+              </option>
+
+              <option value="flyer">
+                Flyer or QR Code
+              </option>
+
+              <option value="other">
+                Other
+              </option>
+            </select>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Additional Notes
+          </h2>
+
+          <div class="field">
+            <label for="notes">
+              Anything you would like us to know?
+              <span class="optional">
+                Optional
+              </span>
+            </label>
+
+            <textarea
+              id="notes"
+              name="notes"
+              rows="5"
+              maxlength="1000"
+            ></textarea>
+          </div>
+        </section>
+
+        <div
+          id="formStatus"
+          class="form-status"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <button
+          id="submitBtn"
+          class="submit-btn"
+          type="submit"
+        >
+          Join the Interest List
+        </button>
+
+        <p class="privacy-note">
+          By submitting this form, you agree that a Sandman
+          coach may contact you about programs, scheduling,
+          academy visits, and enrollment.
+        </p>
+      </form>
+
+      <footer class="connect-footer">
+        <a href="/">
+          Return to Sandman Combat
+        </a>
+
+        <p>
+         Combat = Character
+        </p>
+      </footer>
+
+    </section>
+  </main>
+
+<script
+  type="module"
+  src="./interest.js"
+></script>
+</body>
+</html>

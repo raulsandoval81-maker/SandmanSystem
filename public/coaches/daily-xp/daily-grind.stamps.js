@@ -26,10 +26,6 @@ function selectText(id) {
   return (text || el.value || "—").trim();
 }
 
-function trackWanted() {
-  return $(TRACK_ID)?.checked ? "F8" : "F4";
-}
-
 function pickedCount() {
   return document.querySelectorAll(".pick:checked").length;
 }

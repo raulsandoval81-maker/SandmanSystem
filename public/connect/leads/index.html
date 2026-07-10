@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Interest Leads | Sandman Combat</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="./leads.css"
+  />
+</head>
+
+<body>
+  <main class="leads-page">
+
+    <header class="leads-header">
+      <div>
+        <p class="eyebrow">
+          Sandman Connect
+        </p>
+
+        <h1>
+          Interest Leads
+        </h1>
+
+        <p>
+          Review families who submitted the public interest form.
+        </p>
+      </div>
+
+      <div class="header-actions">
+<a class="btn" href="/connect/interest/">
+  Open Public Form
+</a>
+
+        <a class="btn" href="/connect/appointments/">
+          Appointments
+        </a>
+
+        <button
+          id="refreshBtn"
+          class="btn btn-primary"
+          type="button"
+        >
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <section class="summary-grid">
+      <article class="summary-card">
+        <span>All Leads</span>
+        <strong id="countAll">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>New</span>
+        <strong id="countNew">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>Contacted</span>
+        <strong id="countContacted">0</strong>
+      </article>
+
+      <article class="summary-card">
+        <span>Appointments</span>
+        <strong id="countAppointments">0</strong>
+      </article>
+    </section>
+
+    <section class="toolbar">
+      <label>
+        Search
+
+        <input
+          id="searchInput"
+          type="search"
+          placeholder="Parent, athlete, email, phone..."
+        />
+      </label>
+
+      <label>
+        Status
+
+        <select id="statusFilter">
+          <option value="all">All Statuses</option>
+          <option value="new">New</option>
+          <option value="contacted">Contacted</option>
+          <option value="appointment_scheduled">Appointment Scheduled</option>
+          <option value="ready_for_intake">Ready for Intake</option>
+          <option value="intake_started">Intake Started</option>
+          <option value="converted">Converted</option>
+          <option value="closed">Closed</option>
+        </select>
+      </label>
+
+      <label>
+        Program
+
+        <select id="programFilter">
+          <option value="all">All Programs</option>
+          <option value="z2h-wrestling">Zero2Hero Wrestling</option>
+          <option value="z2h-kickboxing">Zero2Hero Kickboxing</option>
+          <option value="p2l-wrestling">Path2Legend Wrestling</option>
+          <option value="p2l-boxing">Path2Legend Boxing</option>
+          <option value="learning-more">Just Learning More</option>
+        </select>
+      </label>
+    </section>
+
+    <p
+      id="pageStatus"
+      class="page-status"
+      role="status"
+      aria-live="polite"
+    ></p>
+
+    <section
+      id="leadList"
+      class="lead-list"
+    ></section>
+
+  </main>
+
+  <script
+    type="module"
+    src="./leads.js"
+  ></script>
+</body>
+</html>
