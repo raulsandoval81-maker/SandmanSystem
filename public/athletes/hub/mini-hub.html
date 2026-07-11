@@ -334,6 +334,13 @@ async function load(){
   }
 
   if (!finalId.startsWith("F8_")) {
+  window.location.replace(
+    `/athletes/hub/full-hub.html?id=${encodeURIComponent(finalId)}`
+  );
+    return;
+}
+
+  if (!finalId.startsWith("F8_")) {
     console.warn("mini-hub using non-F8 athlete:", finalId);
   }
 

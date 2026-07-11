@@ -97,7 +97,6 @@ function labelPath(programTrack = "") {
 
   if (p === "zero2hero") return "Zero2Hero™";
   if (p === "path2legend") return "Path2Legend™";
-  if (p === "road2greatness") return "Road2Greatness™";
   if (p === "quest2mastery") return "Quest2Mastery™";
 
   return "Sandman Path";

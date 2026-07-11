@@ -209,7 +209,9 @@ if (snap.exists()) {
 
   programCache.set(
     uid,
-    d.programTrack || ""
+    d.programTrack ||
+    d.journey ||
+    ""
   );
 
   tierCache.set(
