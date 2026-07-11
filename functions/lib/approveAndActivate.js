@@ -70,14 +70,22 @@ const SYSTEM_PING_EVENTS = {
     SCHEDULE_CHANGED: "schedule_changed",
 };
 function programLabel(programTrack, art) {
-    if (programTrack === "road2greatness")
-        return "Road2Greatness Boxing";
-    if (programTrack === "path2legend")
-        return "Path2Legend Wrestling";
-    if (programTrack === "zero2hero")
-        return "Zero2Hero Wrestling";
-    if (programTrack === "quest2mastery")
+    if (programTrack === "zero2hero") {
+        return art === "kickboxing"
+            ? "Zero2Hero Kickboxing"
+            : "Zero2Hero Wrestling";
+    }
+    if (programTrack === "path2legend") {
+        return art === "boxing"
+            ? "Path2Legend Boxing"
+            : "Path2Legend Wrestling";
+    }
+    if (programTrack === "quest2mastery") {
         return "Quest2Mastery MMA";
+    }
+    if (programTrack === "road2greatness") {
+        return "Road2Greatness";
+    }
     return `${programTrack} ${art}`.trim();
 }
 function buildExperiencePlan(yearsRaw) {

@@ -283,6 +283,7 @@ if ($("openWaiverBtnEn")) $("openWaiverBtnEn").disabled = false;
 if ($("openWaiverBtnEs")) $("openWaiverBtnEs").disabled = false;
 
     console.log("[intake-parent] submitted:", tokenId, intake);
+    window.location.href = "/intake-parent/thanks.html";
   } catch (err) {
     console.error("[intake-parent] submit error:", err);
     btn?.removeAttribute("disabled");

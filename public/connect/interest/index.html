@@ -41,10 +41,28 @@
 
         <p class="hero-copy">
           Tell us a little about your athlete or family.
-          A Sandman coach will review your information
-          and contact you personally.
+          A Sandman coach will review your information,
+          schedule an Academy Introduction, and send your
+          appointment details by email.
         </p>
       </header>
+
+      <div
+        id="intentNotice"
+        class="form-section"
+        style="
+          margin-bottom:24px;
+          border:1px solid rgba(250,204,21,.25);
+          background:rgba(250,204,21,.08);
+          border-radius:14px;
+          padding:18px;
+          display:none;
+        "
+      >
+        <strong>Selected Membership</strong>
+        <p id="intentText" style="margin:.5rem 0 0;"></p>
+      </div>
+
 
       <form
         id="interestForm"
@@ -154,6 +172,84 @@
             />
           </div>
         </section>
+
+
+        <section class="form-section">
+          <h2>
+            Preferred Academy Location
+          </h2>
+
+          <div class="field">
+            <label for="preferredLocation">
+              Where would you prefer to meet?
+            </label>
+
+            <select
+              id="preferredLocation"
+              name="preferredLocation"
+              required
+            >
+              <option value="">
+                Select a location
+              </option>
+
+              <option value="lompoc">
+                Lompoc
+              </option>
+
+              <option value="solvang">
+                Solvang
+              </option>
+
+              <option value="either">
+                Either Location
+              </option>
+            </select>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            Preferred Meeting Availability
+          </h2>
+
+          <div class="field">
+            <label for="preferredMeetingWindow">
+              Best time to meet
+            </label>
+
+            <select
+              id="preferredMeetingWindow"
+              name="preferredMeetingWindow"
+              required
+            >
+              <option value="">
+                Select one
+              </option>
+
+              <option value="weekday-afternoon">
+                Weekday Afternoon (2:00 PM – 6:00 PM)
+              </option>
+
+              <option value="weekday-evening">
+                Weekday Evening (5:00 PM – 9:00 PM)
+              </option>
+
+              <option value="saturday-morning">
+                Saturday Morning (8:00 AM – 12:00 PM)
+              </option>
+
+              <option value="saturday-afternoon">
+                Saturday Afternoon (12:00 PM – 4:00 PM)
+              </option>
+
+              <option value="flexible">
+                Flexible
+              </option>
+            </select>
+          </div>
+        </section>
+
 
         <section class="form-section">
           <h2>
@@ -315,13 +411,15 @@
           class="submit-btn"
           type="submit"
         >
-          Join the Interest List
+          Connect With Us
         </button>
 
         <p class="privacy-note">
           By submitting this form, you agree that a Sandman
-          coach may contact you about programs, scheduling,
-          academy visits, and enrollment.
+          coach may contact you to answer questions, schedule
+          your Academy Introduction, discuss programs, and
+          guide you through enrollment if you choose to move
+          forward.
         </p>
       </form>
 

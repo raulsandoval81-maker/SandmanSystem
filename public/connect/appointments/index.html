@@ -8,7 +8,7 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Appointments | Sandman Connect</title>
+  <title>Academy Appointments | Sandman Connect</title>
 
   <meta
     name="robots"
@@ -36,11 +36,12 @@
         </p>
 
         <h1>
-          Appointments
+          Academy Appointments
         </h1>
 
         <p>
-          Leads marked Appointment Scheduled appear here.
+          Schedule Academy Introductions, review upcoming appointments,
+          and send confirmed appointment details through Gatekeeper.
         </p>
       </div>
 
@@ -63,6 +64,94 @@
       id="pageStatus"
       class="page-status"
     ></p>
+
+
+    <section class="info-card">
+      <h2>Coach Workflow</h2>
+
+      <p>
+        Review the selected lead, schedule the Academy Introduction,
+        then send the confirmed appointment through Gatekeeper.
+      </p>
+
+      <ul>
+        <li>Review Lead</li>
+        <li>Choose Date &amp; Time</li>
+        <li>Select Academy Location</li>
+        <li>Assign Coach</li>
+        <li>Send Appointment Confirmation</li>
+      </ul>
+    </section>
+
+
+    <section
+      id="schedulePanel"
+      class="info-card"
+      hidden
+    >
+      <h2>Schedule Academy Introduction</h2>
+
+      <div id="selectedLeadSummary"></div>
+
+      <form id="scheduleForm">
+        <label for="appointmentDate">
+          Appointment Date
+        </label>
+        <input
+          id="appointmentDate"
+          type="date"
+          required
+        />
+
+        <label for="appointmentTime">
+          Appointment Time
+        </label>
+        <input
+          id="appointmentTime"
+          type="time"
+          required
+        />
+
+        <label for="appointmentLocation">
+          Academy Location
+        </label>
+        <select
+          id="appointmentLocation"
+          required
+        >
+          <option value="">Select location</option>
+          <option value="lompoc">Lompoc</option>
+          <option value="solvang">Solvang</option>
+        </select>
+
+        <label for="appointmentCoach">
+          Coach
+        </label>
+        <input
+          id="appointmentCoach"
+          type="text"
+          value="Coach Sandoval"
+          required
+        />
+
+        <label for="appointmentNotes">
+          Appointment Notes
+          <span class="optional">Optional</span>
+        </label>
+        <textarea
+          id="appointmentNotes"
+          rows="4"
+        ></textarea>
+
+        <button
+          id="scheduleBtn"
+          class="btn btn-primary"
+          type="submit"
+        >
+          Schedule &amp; Send Confirmation
+        </button>
+      </form>
+    </section>
 
     <section
       id="appointmentList"

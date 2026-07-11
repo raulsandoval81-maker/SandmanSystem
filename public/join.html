@@ -232,7 +232,7 @@ body.day-mode #joinForm textarea{
       <div class="hero">
         <div data-lang-block="en">
 
-          <h1>Start Your Journey</h1>
+          <h1>Membership &amp; Getting Started</h1>
 
 
           <p class="hero-tag">
@@ -247,7 +247,7 @@ body.day-mode #joinForm textarea{
 
         <div data-lang-block="es" class="hidden-lang">
 
-          <h1>Comienza tu camino</h1>
+          <h1>Membresías y Primeros Pasos</h1>
 
           <p class="hero-tag">
             Ya sea que tu atleta sea nuevo en los deportes de combate o ya tenga experiencia, cada familia comienza con una conversación. Conoceremos sus objetivos, recomendaremos el mejor punto de partida y los guiaremos durante el proceso de inscripción.
@@ -302,10 +302,12 @@ body.day-mode #joinForm textarea{
                 </span>
               </p>
 
-              <button class="btn btn-primary" type="button" id="btnFree">
-                <span data-lang-block="en">Request Academy Introduction</span>
-                <span data-lang-block="es" class="hidden-lang">Solicitar una cita</span>
-              </button>
+              
+<a class="btn btn-primary" href="/connect/interest/?intent=academy-introduction">
+  <span data-lang-block="en">Connect With Us</span>
+  <span data-lang-block="es" class="hidden-lang">Conéctate con Nosotros</span>
+</a>
+
             </div>
           </div>
 
@@ -336,10 +338,12 @@ body.day-mode #joinForm textarea{
                 </span>
               </p>
 
-              <button class="btn btn-primary" type="button" id="btnTrial">
-                <span data-lang-block="en">Request 2-Day Trial</span>
-                <span data-lang-block="es" class="hidden-lang">Solicitar prueba de 2 días</span>
-              </button>
+              
+<a class="btn btn-primary" href="/connect/interest/?intent=trial">
+  <span data-lang-block="en">Connect With Us</span>
+  <span data-lang-block="es" class="hidden-lang">Conéctate con Nosotros</span>
+</a>
+
             </div>
           </div>
 
@@ -373,10 +377,12 @@ body.day-mode #joinForm textarea{
                 </span>
               </p>
 
-              <button class="btn btn-primary" type="button" id="btnJoin">
-                <span data-lang-block="en">Request Membership</span>
-                <span data-lang-block="es" class="hidden-lang">Solicitar membresía</span>
-              </button>
+              
+<a class="btn btn-primary" href="/connect/interest/?intent=membership">
+  <span data-lang-block="en">Connect With Us</span>
+  <span data-lang-block="es" class="hidden-lang">Conéctate con Nosotros</span>
+</a>
+
             </div>
           </div>
 
@@ -410,10 +416,12 @@ body.day-mode #joinForm textarea{
                 </span>
               </p>
 
-              <button class="btn btn-primary" type="button" id="btnUnlimited">
-                <span data-lang-block="en">Explore Unlimited Training</span>
-                <span data-lang-block="es" class="hidden-lang">Explorar entrenamiento ilimitado</span>
-              </button>
+              
+<a class="btn btn-primary" href="/connect/interest/?intent=unlimited">
+  <span data-lang-block="en">Connect With Us</span>
+  <span data-lang-block="es" class="hidden-lang">Conéctate con Nosotros</span>
+</a>
+
             </div>
           </div>
 
@@ -447,10 +455,12 @@ body.day-mode #joinForm textarea{
                 </span>
               </p>
 
-              <button class="btn btn-primary" type="button" id="btnFamilyWellness">
-                <span data-lang-block="en">Ask About Family Wellness</span>
-                <span data-lang-block="es" class="hidden-lang">Preguntar sobre bienestar familiar</span>
-              </button>
+              
+<a class="btn btn-primary" href="/connect/interest/?intent=family-wellness">
+  <span data-lang-block="en">Connect With Us</span>
+  <span data-lang-block="es" class="hidden-lang">Conéctate con Nosotros</span>
+</a>
+
             </div>
           </div>
 
@@ -470,448 +480,36 @@ body.day-mode #joinForm textarea{
           </span>
         </div>
 
-        <div class="selected-path" id="selectedPath">
-          <strong>
-            <span data-lang-block="en">Current path:</span>
-            <span data-lang-block="es" class="hidden-lang">Ruta actual:</span>
-          </strong>
-        </div>
+        
+<div class="selected-path">
+  <strong>Ready to Get Started?</strong><br><br>
+
+  <span data-lang-block="en">
+    Review the membership options above, then connect with us.
+    A Sandman coach will review your information and schedule
+    an Academy Introduction.
+  </span>
+
+  <span data-lang-block="es" class="hidden-lang">
+    Revisa las opciones anteriores y después conéctate con nosotros.
+    Un entrenador de Sandman revisará tu información y programará
+    una Introducción a la Academia.
+  </span>
+
+  <div style="margin-top:1rem">
+    <a class="btn btn-primary" href="/connect/interest/">
+      <span data-lang-block="en">Connect With Us</span>
+      <span data-lang-block="es" class="hidden-lang">Conéctate con Nosotros</span>
+    </a>
+  </div>
+</div>
+
       </article>
     </section>
 
-    <section class="section">
-      <article class="panel">
-        <span class="pill-tag">
-          <span data-lang-block="en">Begin Your Enrollment</span>
-          <span data-lang-block="es" class="hidden-lang">Comienza tu inscripción</span>
-        </span>
-
-        <h2 class="panel-title">
-          <span data-lang-block="en">We'll use this information to prepare your enrollment and coach follow-up.</span>
-          <span data-lang-block="es" class="hidden-lang">Usaremos esta información para preparar tu inscripción y el seguimiento con un entrenador.</span>
-        </h2>
-
-        <form id="joinForm">
-          <input type="hidden" id="entryType" value="trial">
-
-          <label for="parentName">
-            <span data-lang-block="en">Parent / Guardian Name</span>
-            <span data-lang-block="es" class="hidden-lang">Nombre del padre/tutor o participante adulto</span>
-          </label>
-          <input id="parentName" required />
-
-          <div class="col-6">
-            <label for="parentEmail">
-              <span data-lang-block="en">Email</span>
-              <span data-lang-block="es" class="hidden-lang">Correo electrónico</span>
-            </label>
-            <input id="parentEmail" type="email" required />
-          </div>
-
-          <div class="col-6">
-            <label for="athleteName">
-              <span data-lang-block="en">Athlete / Participant Name</span>
-              <span data-lang-block="es" class="hidden-lang">Nombre del atleta / participante</span>
-            </label>
-            <input id="athleteName" required />
-          </div>
-
-          <div class="col-6">
-            <label for="athleteAge">
-              <span data-lang-block="en">Age</span>
-              <span data-lang-block="es" class="hidden-lang">Edad</span>
-            </label>
-            <input id="athleteAge" />
-          </div>
-
-          <div class="col-6">
-            <label for="programTrackSelect">
-              <span data-lang-block="en">Program / Journey</span>
-              <span data-lang-block="es" class="hidden-lang">Programa / camino</span>
-            </label>
-
-            <select id="programTrackSelect" required>
-              <option value="zero2hero">
-                Zero to Hero™ Wrestling (Ages 6–13)
-              </option>
-              <option value="path2legend">
-                Path to Legend™ Wrestling (Ages 14+)
-              </option>
-              <option value="road2greatness">
-                Path to Legend™ Boxing (Ages 14+)
-              </option>
-              <option value="fitness">
-                Fitness Kickboxing & Self-Defense (Teen & Adult • Ages 12+)
-              </option>
-            </select>
-          </div>
-
-          <div class="col-6">
-            <label for="interest">
-              <span data-lang-block="en">Previous Experience</span>
-              <span data-lang-block="es" class="hidden-lang">Experiencia previa</span>
-            </label>
-            <select id="interest" required>
-              <option value="">Select / Seleccionar</option>
-              <option value="new">New / Nuevo</option>
-              <option value="some">Some Experience / Algo de experiencia</option>
-              <option value="competitive">Competitive / Competitivo</option>
-              <option value="combat">Combat Sports Background / Experiencia en deportes de combate</option>
-            </select>
-          </div>
-
-          <div class="col-12">
-            <label for="message">
-              <span data-lang-block="en">Anything you'd like Coach to know?</span>
-              <span data-lang-block="es" class="hidden-lang">¿Hay algo que te gustaría que Coach supiera?</span>
-            </label>
-            <textarea id="message"></textarea>
-          </div>
-
-          <div class="row-actions join-actions">
-            <label class="terms-check">
-              <input type="checkbox" id="agreeTerms" required />
-              <span>
-                <span data-lang-block="en">By checking this box, I agree to the Terms & Conditions below.</span>
-                <span data-lang-block="es" class="hidden-lang">Al marcar esta casilla, acepto los Términos y Condiciones a continuación.</span>
-              </span>
-            </label>
-
-            <button id="btnSubmit" class="btn btn-primary" type="submit" disabled>
-              <span data-lang-block="en">Submit Request</span>
-              <span data-lang-block="es" class="hidden-lang">Enviar solicitud</span>
-            </button>
-
-            <div id="statusBox" class="status"></div>
-          </div>
-
-          <div class="info-note">
-            <strong>
-              <span data-lang-block="en">Terms & Conditions</span>
-              <span data-lang-block="es" class="hidden-lang">Términos y condiciones</span>
-            </strong>
-
-            <p data-lang-block="en">
-              Coach meetings are scheduled as needed during the enrollment process.
-            </p>
-            <p data-lang-block="en">
-              A parent or guardian must be present at the first practice for minors. Waiver instructions will be provided by email, and waivers will also be available at check-in.
-            </p>
-            <p data-lang-block="en">
-              2-Day Trials and ongoing participation require a signed liability waiver. Additional membership may be required to continue in regular classes after the trial.
-            </p>
-
-            <p data-lang-block="es" class="hidden-lang">
-              Las reuniones con el entrenador se programan cuando sean necesarias durante el proceso de inscripción.
-            </p>
-            <p data-lang-block="es" class="hidden-lang">
-              Un padre o tutor debe estar presente en la primera práctica para menores. Las instrucciones de la exención se enviarán por correo electrónico y también habrá exenciones disponibles al llegar.
-            </p>
-            <p data-lang-block="es" class="hidden-lang">
-              Las pruebas de 2 días y la participación continua requieren una exención de responsabilidad firmada. Puede requerirse membresía adicional para continuar en clases regulares después de la prueba.
-            </p>
-          </div>
-        </form>
-      </article>
-    </section>
+    
 
   </main>
-</body>
 
-<script type="module">
-  import {
-    db,
-    collection,
-    doc,
-    addDoc,
-    setDoc,
-    serverTimestamp
-  } from "/assets/js/firebase-init.js";
-
-  const $ = (id) => document.getElementById(id);
-
-  function getParam(name){
-    const p = new URLSearchParams(location.search);
-    return (p.get(name) || "").trim();
-  }
-
-  function esc(s = ""){
-    return String(s)
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#39;");
-  }
-
-  function showStatus(html, type = "info"){
-    const box = $("statusBox");
-    if (!box) return;
-
-    box.className = `status status-${type}`;
-    box.style.display = "block";
-    box.innerHTML = html;
-
-    box.scrollIntoView({
-      behavior:"smooth",
-      block:"center"
-    });
-  }
-
-  const academy = getParam("academy") || "lompoc";
-  const source = getParam("src") || "public";
-  let programTrack = getParam("track") || "zero2hero";
-
-  const trackSelect = $("programTrackSelect");
-
-  if (trackSelect) {
-    trackSelect.value = programTrack;
-  }
-
-  function getCurrentLang(){
-    return document.body.dataset.lang === "es" ? "es" : "en";
-  }
-
-  function clearActiveCards(){
-    $("freeCard")?.classList.remove("active");
-    $("trialCard")?.classList.remove("active");
-    $("joinCard")?.classList.remove("active");
-    $("unlimitedCard")?.classList.remove("active");
-    $("familyWellnessCard")?.classList.remove("active");
-  }
-
-  function setIntent(intent){
-    const entryTypeEl = $("entryType");
-    if (entryTypeEl) entryTypeEl.value = intent;
-
-    clearActiveCards();
-
-    const isES = getCurrentLang() === "es";
-    let label = isES ? "Prueba de 2 días" : "2-Day Trial";
-
-    if (intent === "appointment") {
-      label = isES ? "Introducción a la Academia" : "Academy Introduction";
-      $("freeCard")?.classList.add("active");
-    } else if (intent === "join") {
-      label = isES ? "Membresía mensual" : "Monthly Membership";
-      $("joinCard")?.classList.add("active");
-    } else if (intent === "unlimited") {
-      label = isES ? "Membresía ilimitada para atleta" : "Unlimited Athlete Membership";
-      $("unlimitedCard")?.classList.add("active");
-    } else if (intent === "family_wellness") {
-      label = isES ? "Membresía familiar de bienestar" : "Family Wellness Membership";
-      $("familyWellnessCard")?.classList.add("active");
-    } else {
-      $("trialCard")?.classList.add("active");
-    }
-
-    const selectedPath = $("selectedPath");
-    if (selectedPath) {
-      selectedPath.innerHTML = isES
-        ? `<strong>Ruta actual:</strong> ${label} seleccionada.`
-        : `<strong>Current path:</strong> ${label} selected.`;
-    }
-  }
-
-  $("btnFree")?.addEventListener("click", () => setIntent("appointment"));
-  $("btnTrial")?.addEventListener("click", () => setIntent("trial"));
-  $("btnJoin")?.addEventListener("click", () => setIntent("join"));
-  $("btnUnlimited")?.addEventListener("click", () => setIntent("unlimited"));
-  $("btnFamilyWellness")?.addEventListener("click", () => setIntent("family_wellness"));
-
-  setIntent(getParam("intent") || "appointment");
-
-  const agree = $("agreeTerms");
-  const submitBtn = $("btnSubmit");
-
-  function updateSubmitState(){
-    if (!agree || !submitBtn) return;
-
-    submitBtn.disabled = !agree.checked;
-    submitBtn.style.opacity = agree.checked ? "1" : ".55";
-    submitBtn.style.cursor = agree.checked ? "pointer" : "not-allowed";
-  }
-
-  agree?.addEventListener("change", updateSubmitState);
-  updateSubmitState();
-
-  function getEntryLabel(entryType, currentLang){
-    const isES = currentLang === "es";
-
-    if (entryType === "appointment") {
-      return isES ? "Introducción a la Academia" : "Academy Introduction";
-    }
-
-    if (entryType === "join") {
-      return isES ? "Membresía mensual" : "Monthly Membership";
-    }
-
-    if (entryType === "unlimited") {
-      return isES ? "Membresía ilimitada para atleta" : "Unlimited Athlete Membership";
-    }
-
-    if (entryType === "family_wellness") {
-      return isES ? "Membresía familiar de bienestar" : "Family Wellness Membership";
-    }
-
-    return isES ? "Prueba de 2 días" : "2-Day Trial";
-  }
-
-  $("joinForm")?.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const parentName = ($("parentName")?.value || "").trim();
-    const parentEmail = ($("parentEmail")?.value || "").trim();
-    const athleteName = ($("athleteName")?.value || "").trim();
-    const athleteAge = ($("athleteAge")?.value || "").trim();
-    const interest = ($("interest")?.value || "").trim();
-    const bodyRaw = ($("message")?.value || "").trim();
-    const entryType = ($("entryType")?.value || "trial").trim();
-    const currentLang = getCurrentLang();
-
-    if (!parentName || !parentEmail || !athleteName || !interest) {
-      showStatus(
-        currentLang === "es"
-          ? `<strong>⚠️ Faltan campos.</strong><br>Completa todos los campos obligatorios.`
-          : `<strong>⚠️ Missing fields.</strong><br>Please complete all required fields.`,
-        "error"
-      );
-      return;
-    }
-
-    const entryLabel = getEntryLabel(entryType, currentLang);
-
-    programTrack = $("programTrackSelect")?.value || programTrack;
-
-    const subject = `${entryLabel} Request`;
-
-    const body =
-`${entryLabel} Request
-Parent: ${parentName} (${parentEmail})
-Athlete: ${athleteName}${athleteAge ? " (" + athleteAge + ")" : ""}
-
-Program / Journey: ${programTrack}
-Experience: ${interest}
-
-Message:
-${bodyRaw || "(none)"}`;
-
-    const btn = $("btnSubmit");
-
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = currentLang === "es" ? "Enviando..." : "Sending...";
-    }
-
-    try {
-      const threadRef = doc(collection(db, "paraParentInbox"));
-
-      await setDoc(threadRef, {
-        academy,
-        source,
-        category: "join",
-        entryType,
-        programTrack,
-
-        lang: currentLang,
-
-        stage: "gatekeeper",
-        status: entryType === "join" ? "pending" : "auto-approved",
-
-        publicMessage: bodyRaw || "",
-        hasPublicMessage: Boolean(bodyRaw),
-        needsManualEmailReply: Boolean(bodyRaw),
-
-        publicContactStatus: bodyRaw
-          ? "needs_review"
-          : "auto_handled",
-
-        responseChannel: "external_email",
-
-        autoReplySent: true,
-        autoReplyType: entryType,
-
-        adminGatekeeperStatus: "new",
-
-        coachNotify: true,
-        coachNotificationSent: false,
-
-        coachFollowUpStatus: bodyRaw
-          ? "needs_reply"
-          : "heads_up_only",
-
-        academyId: "lompoc",
-        city: "Lompoc",
-        state: "CA",
-
-        teamId: "",
-        teamName: "",
-
-        assignedCoachId: "",
-        assignedCoachName: "",
-        assignedCoachEmail: "",
-
-        assignmentStatus: "unassigned",
-
-        suggestedCoachReply: "",
-
-        subject,
-        parentName,
-        parentEmail,
-        athleteName,
-        athleteAge,
-        interest,
-
-        lastBody: body,
-        lastReplyAt: serverTimestamp(),
-
-        coachHasUnread: true,
-        parentHasUnread: false,
-        seenByCoach: false,
-        seenByParent: true,
-
-        createdAt: serverTimestamp()
-      });
-
-      await addDoc(collection(db, "paraParentInbox", threadRef.id, "thread"), {
-        from: "parent",
-        fromName: parentName,
-        body,
-        createdAt: serverTimestamp(),
-        seenByCoach: false,
-        seenByParent: true
-      });
-
-      showStatus(
-        currentLang === "es"
-          ? `<strong>✅ Enviado.</strong><br>Revisa tu correo electrónico para los próximos pasos.`
-          : `<strong>✅ Request sent.</strong><br>Check your email for next steps.`,
-        "success"
-      );
-
-      $("joinForm")?.reset();
-      setIntent("appointment");
-      updateSubmitState();
-
-    } catch (err) {
-      console.error(err);
-
-      showStatus(
-        currentLang === "es"
-          ? `<strong>⚠️ Error.</strong><br>${esc(err?.message || "No se pudo enviar la solicitud.")}`
-          : `<strong>⚠️ Error.</strong><br>${esc(err?.message || "Unable to send request.")}`,
-        "error"
-      );
-
-    } finally {
-      if (btn) {
-        btn.disabled = agree ? !agree.checked : false;
-        btn.innerHTML = currentLang === "es"
-          ? `<span data-lang-block="en" class="hidden-lang">Submit Request</span><span data-lang-block="es">Enviar solicitud</span>`
-          : `<span data-lang-block="en">Submit Request</span><span data-lang-block="es" class="hidden-lang">Enviar solicitud</span>`;
-      }
-    }
-  });
-</script>
 </body>
 </html>

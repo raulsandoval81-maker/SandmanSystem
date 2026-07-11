@@ -52,9 +52,14 @@ function readForm() {
     phone: normalizePhone(formData.get("phone")),
     email: normalizeEmail(formData.get("email")),
     city: clean(formData.get("city")),
+    preferredLocation: clean(formData.get("preferredLocation")),
     programInterest: clean(formData.get("programInterest")),
     experience: clean(formData.get("experience")),
     referralSource: clean(formData.get("referralSource")),
+    preferredMeetingWindow: clean(formData.get("preferredMeetingWindow")),
+    intent:
+      clean(new URLSearchParams(window.location.search).get("intent")) ||
+      "general",
     notes: clean(formData.get("notes"))
   };
 }
@@ -78,6 +83,10 @@ function validateLead(lead = {}) {
 
   if (!lead.email || !lead.email.includes("@")) {
     return "Enter a valid email address.";
+  }
+
+  if (!lead.preferredLocation) {
+    return "Select a preferred academy location.";
   }
 
   if (!lead.programInterest) {
@@ -133,7 +142,7 @@ form?.addEventListener("submit", async (event) => {
       }
     );
 
-    window.location.href = "/thanks/contact.html";
+    window.location.href = "/connect/thanks/contact.html";
   } catch (error) {
     console.error("[connect] submission failed:", error);
 
@@ -147,3 +156,24 @@ form?.addEventListener("submit", async (event) => {
 });
 
 console.log("[interest] interest.js loaded");
+// -------------------- Membership Intent --------------------
+const intentLabels = {
+  "academy-introduction": "Academy Introduction",
+  "trial": "2-Day Trial",
+  "membership": "Monthly Membership",
+  "unlimited": "Unlimited Athlete Membership",
+  "family-wellness": "Family Wellness Membership"
+};
+
+const selectedIntent =
+  new URLSearchParams(window.location.search).get("intent");
+
+if (selectedIntent && intentLabels[selectedIntent]) {
+  const box = document.getElementById("intentNotice");
+  const text = document.getElementById("intentText");
+
+  if (box && text) {
+    box.style.display = "block";
+    text.textContent = intentLabels[selectedIntent];
+  }
+}

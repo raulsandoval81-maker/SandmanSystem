@@ -39,7 +39,7 @@ body{
 
 .connect-shell{
   width:100%;
-  max-width:760px;
+  max-width:820px;
   margin:auto;
 }
 
@@ -250,4 +250,13 @@ textarea{
     padding:24px 14px;
   }
 
+}
+.form-section{
+  padding-top:.5rem;
+  border-top:1px solid rgba(255,255,255,.05);
+}
+
+.form-section:first-child{
+  border-top:none;
+  padding-top:0;
 }

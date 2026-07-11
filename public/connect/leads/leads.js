@@ -222,6 +222,27 @@ function render() {
             </div>
 
             <div>
+              <span class="field-label">Membership</span>
+              <div class="field-value">
+                ${esc(lead.intent || "General")}
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Preferred Academy</span>
+              <div class="field-value">
+                ${esc(lead.preferredLocation || "—")}
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Meeting Window</span>
+              <div class="field-value">
+                ${esc(lead.preferredMeetingWindow || "—")}
+              </div>
+            </div>
+
+            <div>
               <span class="field-label">Experience</span>
               <div class="field-value">
                 ${esc(lead.experience || "—")}
@@ -287,6 +308,13 @@ function render() {
             >
               Save Status
             </button>
+
+            <a
+              class="save-btn"
+              href="/connect/appointments/?leadId=${esc(lead.id)}"
+            >
+              Schedule Appointment
+            </a>
           </div>
 
         </article>

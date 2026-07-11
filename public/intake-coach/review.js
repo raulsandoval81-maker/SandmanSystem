@@ -180,25 +180,25 @@ function buildPlacementFromTrack(track, s = {}) {
 
 
 // --------------------------------------------------
-// Road2Greatness Boxing
+// Path2Legend Boxing
 // --------------------------------------------------
-if (selectedProgramTrack === "road2greatness") {
+if (selectedProgramTrack === "path2legend-boxing") {
   return {
     framework: "foundry4",
-    programTrack: "road2greatness",
+    programTrack: "path2legend",
     art: "boxing",
-    ladderKey: "R2G",
-    rosterIds: ["road2greatness-boxing"],
+    ladderKey: "F4",
+    rosterIds: ["teen-adult-boxing"],
     locationId: DEFAULT_LOCATION_ID,
     coachIds: DEFAULT_COACH_IDS,
-    trackCode: "road2greatness-boxing"
+    trackCode: "path2legend-boxing"
   };
 }
 
   // --------------------------------------------------
   // Adult MMA / Quest2Mastery
   // --------------------------------------------------
-  if (age !== null && age >= 18) {
+  if (age !== null && age >= 16) {
     return {
       framework: "foundry4",
       programTrack: "quest2mastery",
@@ -422,11 +422,8 @@ if (isF8Uid(uid)) {
   rank = "Shadow";
 }
 
-if (
-  programTrack === "quest2mastery" ||
-  programTrack === "road2greatness"
-) {
-  tier = "T1";
+if (programTrack === "quest2mastery") {
+  tier = "T0";
   rank = "Apprentice";
 }
 
@@ -516,7 +513,7 @@ function applyAgeGuardrails() {
   q2m.hidden = true;
   q2m.disabled = true;
 }
-  const abox = $("btn-mint-r2g");
+  const abox = $("btn-mint-boxing");
 
   [z2h, p2l, q2m, abox].forEach((btn) => {
     if (!btn) return;
@@ -590,10 +587,6 @@ if (programTrack === "quest2mastery") {
   rank = "Apprentice";
 }
 
-if (programTrack === "road2greatness") {
-  tier = "T0";
-  rank = "Apprentice";
-}
 
   if ($("c-track")) $("c-track").value = t;
   if ($("c-tier")) $("c-tier").value = tier;
@@ -627,7 +620,7 @@ function setMintButtonState(activeId) {
     "btn-mint-z2h",
     "btn-mint-p2l",
     "btn-mint-q2m",
-    "btn-mint-r2g"
+    "btn-mint-boxing"
   ].forEach((id) => {
 
     const btn = $(id);
@@ -654,9 +647,9 @@ $("btn-mint-q2m")?.addEventListener("click", () => {
   mintTrack("F4", "quest2mastery");
   setMintButtonState("btn-mint-q2m");
 });
-$("btn-mint-r2g")?.addEventListener("click", () => {
-  mintTrack("F4", "road2greatness");
-  setMintButtonState("btn-mint-r2g");
+$("btn-mint-boxing")?.addEventListener("click", () => {
+  mintTrack("F4", "path2legend-boxing");
+  setMintButtonState("btn-mint-boxing");
 });
 
 // ------------------------------------------------------
@@ -841,11 +834,8 @@ if (isF8Uid(uid)) {
   rank = "Shadow";
 }
 
-if (
-  programTrack === "quest2mastery" ||
-  programTrack === "road2greatness"
-) {
-  tier = "T1";
+if (programTrack === "quest2mastery") {
+  tier = "T0";
   rank = "Apprentice";
 }
 
