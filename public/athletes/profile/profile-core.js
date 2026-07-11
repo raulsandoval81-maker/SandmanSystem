@@ -62,7 +62,7 @@ function activityLaneLabel(item = {}) {
     return "Honor";
   }
 
-  return "Competitor";
+  return "Combat";
 }
 
 function renderActivityItem(item = {}) {

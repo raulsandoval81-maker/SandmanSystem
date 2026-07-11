@@ -1,64 +1,106 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <title>Profile Router</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body{
-      margin:0;
-      background:#08090b;
-      color:#e5e5e5;
-      display:grid;
-      place-items:center;
-      min-height:100vh;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-    .msg{
-      opacity:.8;
-      font-weight:700;
-      letter-spacing:.2px;
-    }
-  </style>
-</head>
-<body>
-  <div class="msg">Routing profile...</div>
+<script type="module">
+  import {
+    db,
+    doc,
+    getDoc
+  } from "/assets/js/firebase-init.js";
 
-  <script>
-    function norm(x) {
-      return (x || "").toString().trim().toUpperCase();
+  function norm(value) {
+    return String(value || "").trim().toUpperCase();
+  }
+
+  function normalizeField(value) {
+    if (value && typeof value === "object") {
+      value = value.name || value.code || value.slug || value.value || "";
     }
 
-    function getIdFromUrl() {
-      const p = new URLSearchParams(window.location.search);
-      return norm(p.get("id") || p.get("uid") || p.get("athleteId"));
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, "-");
+  }
+
+  function getIdFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+
+    return norm(
+      params.get("id") ||
+      params.get("uid") ||
+      params.get("athleteId")
+    );
+  }
+
+  function fail(message) {
+    document.body.innerHTML = `<div class="msg">${message}</div>`;
+    throw new Error(message);
+  }
+
+  async function route() {
+    const id = getIdFromUrl();
+
+    if (!id) {
+      fail("Missing athlete ID");
+      return;
     }
 
-    function fail(msg) {
-      document.body.innerHTML = `<div class="msg">${msg}</div>`;
-      throw new Error(msg);
+    if (id.startsWith("F8_")) {
+      window.location.replace(
+        `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`
+      );
+      return;
     }
 
-    (function route() {
-      const id = getIdFromUrl();
-
-      if (!id) {
-        fail("Missing athlete ID");
-        return;
-      }
-
-      if (id.startsWith("F8_")) {
-        window.location.replace(`/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`);
-        return;
-      }
-
-      if (id.startsWith("F4_")) {
-        window.location.replace(`/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`);
-        return;
-      }
-
+    if (!id.startsWith("F4_")) {
       fail("Unknown athlete ID format");
-    })();
-  </script>
-</body>
-</html>
+      return;
+    }
+
+    const snap = await getDoc(doc(db, "athletes", id));
+
+    if (!snap.exists()) {
+      fail("Athlete not found");
+      return;
+    }
+
+    const athlete = snap.data() || {};
+
+    const journey = normalizeField(
+      athlete.journey ||
+      athlete.programTrack ||
+      athlete.program ||
+      athlete.track
+    );
+
+    const art = normalizeField(
+      athlete.art ||
+      athlete.primaryDiscipline ||
+      athlete.discipline
+    );
+
+    const profileType = normalizeField(athlete.profileType);
+
+    const isQuest2Mastery =
+      journey === "q2m" ||
+      journey === "quest2mastery" ||
+      journey === "quest-to-mastery" ||
+      art === "mma" ||
+      profileType === "adult";
+
+    const destination = isQuest2Mastery
+      ? "/athletes/profile/adult-profile.html"
+      : "/athletes/profile/athlete-profile.html";
+
+    window.location.replace(
+      `${destination}?id=${encodeURIComponent(id)}`
+    );
+  }
+
+  route().catch((error) => {
+    console.error("Profile routing failed:", error);
+
+    if (!document.body.textContent.includes("Athlete")) {
+      document.body.innerHTML =
+        `<div class="msg">Unable to route profile</div>`;
+    }
+  });
+</script>

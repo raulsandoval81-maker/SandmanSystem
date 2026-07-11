@@ -25,7 +25,7 @@ import {
 const PROFILE = {
   type: "adult",
   foundry: "F4",
-  journeys: ["r2g", "q2m"]
+  journeys: ["q2m"]
 };
 // call once on load
 // ---------- helpers ----------
@@ -148,8 +148,8 @@ function unlockRules({ tierName }) {
   const isTier0 = (t === "apprentice" || t === "foundation");
   return {
     combat: 0,
-    strength: 2,
-    honor: 3,
+    strength: 1,
+    honor: 2,
     performance: isTier0 ? 1 : 999,
   };
 }
@@ -663,11 +663,6 @@ if (reviewMode) setAllDrops(true);
 
   const a = snap.data();
 console.log("Adult profile loaded", athleteId, a);
-let combatTitle = "⚔️ Combat";
-
-safeText("combatArcTitle", combatTitle);
-console.log("Reached combat title");
-
 const trackCode = normTrackCode(a);
   if (
     a.active === false ||
@@ -753,45 +748,27 @@ const trackCode = normTrackCode(a);
 const ladder = getLadderForAthlete(a);
 
 const journey =
-  String(a.journey || "p2l")
+  String(a.journey || "q2m")
     .trim()
     .toLowerCase();
 
-let combatArcLabel =
-  "⚔️ Combat-Wrestling · Path 2 Legend";
+const combatArcLabel =
+  "🥋 Combat-MMA · Quest 2 Mastery";
 
-switch (journey) {
-
-  case "z2h":
-    combatArcLabel =
-      "🥇 Combat-Wrestling · Zero 2 Hero";
-    break;
-
-  case "r2g":
-    combatArcLabel =
-      "🥊 Combat-Boxing · Road 2 Greatness";
-    break;
-
-  case "q2m":
-    combatArcLabel =
-      "🥋 Combat-MMA · Quest 2 Mastery";
-    break;
-
-  case "p2l":
-  default:
-    combatArcLabel =
-      "⚔️ Combat-Wrestling · Path 2 Legend";
-    break;
-}
 safeText(
   "combatArcTitle",
   combatArcLabel
 );
-  let tierNum = 0;
-  if (typeof a.tier === "number") tierNum = a.tier;
-  else if (typeof a.tier === "string") tierNum = Number(a.tier.replace(/[^\d]/g, "")) || 0;
-  else if (typeof a.rank === "string") tierNum = Number(a.rank.replace(/[^\d]/g, "")) || 0;
 
+let tierNum = 0;
+
+if (typeof a.tier === "number") {
+  tierNum = a.tier;
+} else if (typeof a.tier === "string") {
+  tierNum = Number(a.tier.replace(/[^\d]/g, "")) || 0;
+} else if (typeof a.rank === "string") {
+  tierNum = Number(a.rank.replace(/[^\d]/g, "")) || 0;
+}
 
   // -----------------------------
   // Combat XP buckets
@@ -863,29 +840,13 @@ const badgeRow = $("ath-badge-history");
 if (badgeRow) {
   badgeRow.innerHTML = "";
 
-
-const badgeSets = {
-
-  r2g: {
-    t0: "f4-adult-gray-apprentice.png",
-    t1: "f4-adult-warrior.png",
-    t2: "f4-adult-champion.png",
-    t3: "f4-adult-veteran.png",
-    t4: "f4-adult-craftsman.png"
-  },
-
-  q2m: {
-    t0: "f4-adult-gray-apprentice.png",
-    t1: "f4-adult-warrior.png",
-    t2: "f4-adult-champion.png",
-    t3: "f4-adult-veteran.png",
-    t4: "f4-adult-master.png"
-  }
-
+const BADGES = {
+  t0: "f4-adult-gray-apprentice.png",
+  t1: "f4-adult-warrior.png",
+  t2: "f4-adult-champion.png",
+  t3: "f4-adult-veteran.png",
+  t4: "f4-adult-master.png"
 };
-const BADGES =
-  badgeSets[journey] ??
-  badgeSets.r2g;
 
 const currentTier = String(a.tier || "T0").toUpperCase();
 

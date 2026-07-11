@@ -138,8 +138,8 @@ function unlockRules({ tierName }) {
   const isTier0 = (t === "apprentice" || t === "foundation");
   return {
     combat: 0,
-    strength: 2,
-    honor: 3,
+    strength: 1,
+    honor: 2,
     performance: isTier0 ? 1 : 999,
   };
 }
@@ -652,6 +652,37 @@ if (reviewMode) setAllDrops(true);
 
 const a = snap.data();
 
+const trackCode = normTrackCode(a);
+
+const art = String(
+  a.art ||
+  a.primaryDiscipline ||
+  a.discipline ||
+  "wrestling"
+).toLowerCase();
+
+let combatArcLabel = "⚔️ Combat-Wrestling · Path 2 Legend";
+
+switch (art) {
+  case "boxing":
+    combatArcLabel = "🥊 Combat-Boxing · Path 2 Legend";
+    break;
+
+  case "kickboxing":
+    combatArcLabel = "🥊 Combat-Kickboxing · Path 2 Legend";
+    break;
+
+  case "submission-grappling":
+    combatArcLabel = "🤼 Combat-Submission Grappling · Path 2 Legend";
+    break;
+
+  default:
+    combatArcLabel = "⚔️ Combat-Wrestling · Path 2 Legend";
+    break;
+}
+
+safeText("combatArcTitle", combatArcLabel);
+
 if (
   a.active === false ||
   a.rosterStatus === "suspended" ||
@@ -874,17 +905,27 @@ if (badgeRow) {
 
 // ===== NEW BELT RENDER =====
 
+const isStriking =
+  art === "boxing" ||
+  art === "kickboxing";
+
+const currentTier =
+  String(a.tier || "T0").toUpperCase();
+
 const beltMap = {
-  Apprentice: "belt-p2l-apprentice",
-  Warrior:    "belt-p2l-warrior",
-  Champion:   "belt-p2l-champion",
-  Veteran:    "belt-p2l-veteran",
-  Legend:     "belt-p2l-legend"
+  T0: isStriking
+    ? "belt-p2l-apprentice-gray"
+    : "belt-p2l-apprentice",
+
+  T1: "belt-p2l-warrior",
+  T2: "belt-p2l-champion",
+  T3: "belt-p2l-veteran",
+  T4: "belt-p2l-legend"
 };
 
 const beltClass =
-  beltMap[rankName] ||
-  "belt-p2l-apprentice";
+  beltMap[currentTier] ||
+  beltMap.T0;
 
 safeHTML(
   "rankBar",
@@ -894,6 +935,7 @@ safeHTML(
     size: "medium"
   })
 );
+
   const xpEl = document.getElementById("xpText");
 if (xpEl) {
   const xpPercent = xpCap

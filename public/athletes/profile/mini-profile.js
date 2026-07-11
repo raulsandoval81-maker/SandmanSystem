@@ -107,11 +107,30 @@ async function load() {
 
   const A = snap.data() || {};
 
+  const art = String(
+    A.art ||
+    A.primaryDiscipline ||
+    A.discipline ||
+    "wrestling"
+  )
+    .trim()
+    .toLowerCase();
+
   // youth only
   if (!id.startsWith("F8_")) {
     window.location.replace(`/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`);
     return;
   }
+
+  let combatArcLabel = "🤼 Combat-Wrestling · Zero 2 Hero";
+
+  if (art === "kickboxing") {
+    combatArcLabel = "🥊 Combat-Kickboxing · Zero 2 Hero";
+  } else if (art === "boxing") {
+    combatArcLabel = "🥊 Combat-Boxing · Zero 2 Hero";
+  }
+
+  safeText("combatArcTitle", combatArcLabel);
 
   const ladder = LADDER_F8;
   const tierNum = getStoredTierNum(A);
@@ -186,8 +205,8 @@ async function load() {
   const colorMap = {
   Shadow: "belt-z2h-shadow",
   Recruit: "belt-z2h-recruit",
+  Combatant: "belt-z2h-combatant",
   Competitor: "belt-z2h-competitor",
-  Contender: "belt-z2h-contender",
   Warrior: "belt-z2h-warrior",
   Champion: "belt-z2h-champion",
   Commander: "belt-z2h-commander",
