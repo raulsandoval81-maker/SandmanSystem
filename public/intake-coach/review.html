@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Coach Review — Intake</title>
+  <title>Coach Review | Sandman Combat</title>
 
+  <link rel="stylesheet" href="/assets/css/site.css"/>
   <link rel="stylesheet" href="./coach.intake.css"/>
   <link rel="stylesheet" href="/intake-shared/shared.css"/>
   <link rel="icon" href="data:,"> 
@@ -15,8 +16,8 @@
 
     <header class="page-head review-hero">
       <div>
-        <p class="eyebrow">Coach Intake</p>
-        <h1>Review & Mint Athlete</h1>
+        <p class="eyebrow">Sandman Enrollment</p>
+        <h1>Review & Activate Athlete</h1>
         <p class="muted small">Confirm identity, validate placement, mint profile, and send setup links.</p>
       </div>
     </header>
@@ -84,7 +85,14 @@
           <div class="form-grid two">
             <div class="field">
               <label for="c-initial">Public Initial</label>
-              <input id="c-initial" placeholder="e.g., J." autocomplete="off">
+              <input
+                id="c-initial"
+                type="text"
+                maxlength="1"
+                autocapitalize="characters"
+                placeholder="J"
+                autocomplete="off"
+              >
             </div>
 
             <div class="field">
@@ -106,7 +114,14 @@
 
             <div class="field">
               <label for="c-state">State</label>
-              <input id="c-state" autocomplete="address-level1" placeholder="CA">
+              <input
+                id="c-state"
+                type="text"
+                maxlength="2"
+                autocapitalize="characters"
+                autocomplete="address-level1"
+                placeholder="CA"
+              >
             </div>
           </div>
         </section>
@@ -182,7 +197,7 @@
 
         <section class="card mint-card" aria-labelledby="mint-title">
           <div class="card-head">
-            <h3 id="mint-title">Mint UID</h3>
+            <h3 id="mint-title">Journey Placement</h3>
             <span class="status-pill gold">Choose Journey</span>
           </div>
 
@@ -190,7 +205,7 @@
 
             <button type="button" class="mint-track-btn" id="btn-mint-z2h">
               <span class="mint-track-name">Mint Zero2Hero</span>
-              <span class="mint-track-meta">Ages 7–13 • Wrestling</span>
+              <span class="mint-track-meta">Ages 6–13 • Wrestling</span>
               <span class="mint-track-sub">Foundry 8</span>
             </button>
 
@@ -201,7 +216,7 @@
             </button>
 
 <button type="button" class="mint-track-btn" id="btn-mint-boxing">
-  <span class="mint-track-name">Mint Road2Greatness</span>
+  <span class="mint-track-name">Mint Path2Legend Boxing</span>
   <span class="mint-track-meta">Ages 14+ • Boxing</span>
   <span class="mint-track-sub">Foundry 4</span>
 </button>
@@ -298,7 +313,7 @@
 </section>
 
         <section class="card approve-card" aria-labelledby="approve-title">
-          <h3 id="approve-title">Approve & Create Profile</h3>
+          <h3 id="approve-title">Approve & Activate Profile</h3>
 
           <div class="approve-actions">
             <button type="button" id="btn-approve" class="solid-blue">Approve & Activate</button>
@@ -345,7 +360,7 @@
     </div>
 
     <footer class="footer small muted">
-      Sandman Systems™ — Coach Intake Review
+      Sandman System™ — Coach Intake Review
     </footer>
 
   </main>

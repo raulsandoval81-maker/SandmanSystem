@@ -193,6 +193,9 @@ async function handleSubmit(e) {
   try {
     // 0) token must be valid + not expired
     const { token, tokenId, exp } = await requireValidInvite();
+const connectLeadId =
+  token.connectLeadId || null;
+
     if (!tokenId)
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
 
@@ -212,6 +215,8 @@ async function handleSubmit(e) {
 
     // 4) payload (canonical)
     const intake = {
+
+      connectLeadId,
       // ---- token + lifecycle ----
       tokenId,
       tokenRaw: token,

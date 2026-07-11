@@ -4,156 +4,194 @@ import {
   ensureSignedIn,
 } from "/assets/js/firebase-init.js";
 
-const form = document.getElementById("parentLinkForm");
-const athleteUidInput = document.getElementById("athleteUid");
-const parentEmailInput = document.getElementById("parentEmail");
-const submitBtn = document.getElementById("submitBtn");
-const resultBox = document.getElementById("resultBox");
+const form =
+  document.getElementById("parentLinkForm");
 
-function buildLinks(uid) {
-  const athleteUid =
-    String(uid || "")
-      .trim()
-      .toUpperCase();
+const athleteUidInput =
+  document.getElementById("athleteUid");
 
-  return {
-    profile:
-      `https://sandmancombat.com/athletes/profile/?id=${encodeURIComponent(athleteUid)}`,
+const parentEmailInput =
+  document.getElementById("parentEmail");
 
-    onboarding:
-      `https://sandmancombat.com/athlete-onboarding/?id=${encodeURIComponent(athleteUid)}`,
-  };
-}
+const submitBtn =
+  document.getElementById("submitBtn");
 
-function showResult(data) {
-  resultBox.textContent =
-    JSON.stringify(data, null, 2);
-}
+const resultBox =
+  document.getElementById("resultBox");
 
-form.addEventListener("submit", async (e) => {
-  e.preventDefault();
+const openMyAthleteBtn =
+  document.getElementById("openMyAthleteBtn");
 
-  const athleteUid =
-    athleteUidInput.value
-      .trim()
-      .toUpperCase();
+const copyMyAthleteBtn =
+  document.getElementById("copyMyAthleteBtn");
 
-  const parentEmail =
-    parentEmailInput.value
-      .trim()
-      .toLowerCase();
-
-  if (!athleteUid || !parentEmail) {
-    showResult({
-      ok: false,
-      error:
-        "Athlete UID and parent email required.",
-    });
-
-    return;
-  }
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Linking...";
-
-  try {
-    await ensureSignedIn();
-
-    const linkParentToAthlete =
-      httpsCallable(
-        functions,
-        "linkParentToAthlete"
-      );
-
-    const res =
-      await linkParentToAthlete({
-        athleteUid,
-        parentEmail,
-      });
-
-    const links =
-      buildLinks(athleteUid);
-
-    showResult({
-      ...res.data,
-
-      quickAccess: {
-        athleteUid,
-
-        profile:
-          links.profile,
-
-        onboarding:
-          links.onboarding,
-      },
-    });
-  } catch (err) {
-    console.error(err);
-
-    showResult({
-      ok: false,
-      error:
-        err?.message ||
-        String(err),
-    });
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent =
-      "Link Parent";
-  }
-});
-const openProfileBtn =
-  document.getElementById("openProfileBtn");
-
-const openOnboardingBtn =
-  document.getElementById("openOnboardingBtn");
-
-const copyProfileBtn =
-  document.getElementById("copyProfileBtn");
-
-const copyOnboardingBtn =
-  document.getElementById("copyOnboardingBtn");
-
-function getUid() {
+function getAthleteUid() {
   return String(
-    athleteUidInput.value || ""
+    athleteUidInput?.value || ""
   )
     .trim()
     .toUpperCase();
 }
 
-function profileUrl(uid) {
-  return `https://sandmancombat.com/athletes/profile/?id=${encodeURIComponent(uid)}`;
+function getParentEmail() {
+  return String(
+    parentEmailInput?.value || ""
+  )
+    .trim()
+    .toLowerCase();
 }
 
-function onboardingUrl(uid) {
-  return `https://sandmancombat.com/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
+function myAthleteUrl(uid) {
+  return (
+    "https://sandmancombat.com/parent/index.html" +
+    `?uid=${encodeURIComponent(uid)}`
+  );
 }
 
-openProfileBtn?.addEventListener("click", () => {
-  const uid = getUid();
-  if (!uid) return;
-  window.open(profileUrl(uid), "_blank");
-});
+function showResult(data) {
+  if (!resultBox) return;
 
-openOnboardingBtn?.addEventListener("click", () => {
-  const uid = getUid();
-  if (!uid) return;
-  window.open(onboardingUrl(uid), "_blank");
-});
+  resultBox.textContent =
+    JSON.stringify(data, null, 2);
+}
 
-copyProfileBtn?.addEventListener("click", async () => {
-  const uid = getUid();
-  if (!uid) return;
-  await navigator.clipboard.writeText(
-    profileUrl(uid)
-  );
-});
+function requireAthleteUid() {
+  const uid = getAthleteUid();
 
-copyOnboardingBtn?.addEventListener("click", async () => {
-  const uid = getUid();
-  if (!uid) return;
-  await navigator.clipboard.writeText(
-    onboardingUrl(uid)
-  );
-});
+  if (!uid) {
+    showResult({
+      ok: false,
+      error: "Enter an athlete UID.",
+    });
+
+    return "";
+  }
+
+  return uid;
+}
+
+form?.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
+
+    const athleteUid =
+      getAthleteUid();
+
+    const parentEmail =
+      getParentEmail();
+
+    if (!athleteUid || !parentEmail) {
+      showResult({
+        ok: false,
+        error:
+          "Athlete UID and parent email are required.",
+      });
+
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent =
+        "Linking Parent...";
+    }
+
+    try {
+      await ensureSignedIn();
+
+      const linkParentToAthlete =
+        httpsCallable(
+          functions,
+          "linkParentToAthlete"
+        );
+
+      const response =
+        await linkParentToAthlete({
+          athleteUid,
+          parentEmail,
+        });
+
+      showResult({
+        ...response.data,
+
+        quickAccess: {
+          athleteUid,
+          parentEmail,
+          myAthlete:
+            myAthleteUrl(athleteUid),
+        },
+      });
+    } catch (error) {
+      console.error(
+        "[parent-link-tool] failed:",
+        error
+      );
+
+      showResult({
+        ok: false,
+        error:
+          error?.message ||
+          String(error),
+      });
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent =
+          "Link Parent";
+      }
+    }
+  }
+);
+
+openMyAthleteBtn?.addEventListener(
+  "click",
+  () => {
+    const uid =
+      requireAthleteUid();
+
+    if (!uid) return;
+
+    window.open(
+      myAthleteUrl(uid),
+      "_blank",
+      "noopener"
+    );
+  }
+);
+
+copyMyAthleteBtn?.addEventListener(
+  "click",
+  async () => {
+    const uid =
+      requireAthleteUid();
+
+    if (!uid) return;
+
+    try {
+      await navigator.clipboard.writeText(
+        myAthleteUrl(uid)
+      );
+
+      showResult({
+        ok: true,
+        message:
+          "My Athlete link copied.",
+        athleteUid: uid,
+        myAthlete:
+          myAthleteUrl(uid),
+      });
+    } catch (error) {
+      console.error(
+        "[parent-link-tool] copy failed:",
+        error
+      );
+
+      showResult({
+        ok: false,
+        error:
+          "Unable to copy the My Athlete link.",
+      });
+    }
+  }
+);

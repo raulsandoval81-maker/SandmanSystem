@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Coach Intake • Add Athlete</title>
+  <title>Paper Intake | Sandman Enrollment</title>
   <link rel="icon" href="data:," />
 <link rel="stylesheet" href="/assets/css/site.css" />
 <link rel="stylesheet" href="/intake-shared/shared.css" />
@@ -159,13 +159,20 @@
 <body>
   <main class="wrap">
     <section class="card">
-      <div class="eyebrow">Coach Direct Intake</div>
-      <h1>Add Athlete</h1>
+      <div class="eyebrow">Sandman Enrollment</div>
+      <h1>Enter Returned Paper Intake</h1>
 
       <p class="muted">
-        Create an athlete directly for roster, attendance, XP, and hub access.
-        Parent linking can happen later.
+        Use this form only after a parent or guardian has completed and returned
+        the paper enrollment intake and waiver. Whenever possible, use the online
+        parent intake link instead.
       </p>
+
+      <div class="actions">
+        <a class="btn brand" href="/intake-coach/">
+          Send Parent Intake Link
+        </a>
+      </div>
 
       <form id="newAthleteForm" class="form-grid">
 
@@ -180,57 +187,176 @@
         </label>
 
         <label>
-          Program Track
-          <select id="programTrack">
-            <option value="path2legend">Path2Legend · Teen Wrestling</option>
-            <option value="zero2hero">Zero2Hero · Youth Wrestling</option>
-            <option value="road2greatness">Road2Greatness · Boxing</option>
-            <option value="quest2mastery">Quest2Mastery · MMA</option>
+          Journey and Art
+          <select id="programTrack" required>
+            <option value="path2legend">
+              Path2Legend · Wrestling
+            </option>
+
+            <option value="path2legend-boxing">
+              Path2Legend · Boxing
+            </option>
+
+            <option value="zero2hero">
+              Zero2Hero · Youth Wrestling
+            </option>
+
+            <option value="quest2mastery">
+              Quest2Mastery · MMA
+            </option>
           </select>
         </label>
 
         <label>
-          Track
-          <select id="track">
-            <option value="F4">F4</option>
-            <option value="F8">F8</option>
+          Academy Location
+          <select id="locationId" required>
+            <option value="lompoc">Lompoc</option>
+            <option value="solvang">Solvang</option>
           </select>
         </label>
 
-        <label>
-          Program / Art
-          <select id="program">
-            <option value="wrestling">Wrestling</option>
-            <option value="boxing">Boxing</option>
-            <option value="mma">MMA</option>
-            <option value="kickboxing">Kickboxing</option>
-            <option value="fitness">Fitness</option>
-          </select>
-        </label>
+        <input id="track" type="hidden" />
+        <input id="program" type="hidden" />
 
         <label>
-          Team
-          <input id="team" value="LAW" />
+          Team / School
+          <input
+            id="team"
+            value="LAW"
+            autocomplete="organization"
+          />
         </label>
 
         <label>
           Grade
-          <input id="grade" placeholder="9, 10, 11, 12" />
+          <input
+            id="grade"
+            placeholder="Example: 9"
+            inputmode="numeric"
+          />
         </label>
 
         <label>
-          Birth Year
-          <input id="birthYear" inputmode="numeric" placeholder="2010" />
+          Date of Birth
+          <input
+            id="dob"
+            type="date"
+            required
+          />
         </label>
 
         <label>
-          Source
-          <select id="source">
-            <option value="high_school">High School</option>
-            <option value="club">Club</option>
-            <option value="walk_in">Walk-In</option>
-            <option value="coach_direct">Coach Direct</option>
-          </select>
+          City
+          <input
+            id="city"
+            autocomplete="address-level2"
+            required
+          />
+        </label>
+
+        <label>
+          State
+          <input
+            id="state"
+            maxlength="2"
+            autocomplete="address-level1"
+            autocapitalize="characters"
+            placeholder="CA"
+            required
+          />
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Parent or Guardian</div>
+        </div>
+
+        <label>
+          Parent or Guardian Name
+          <input
+            id="parentName"
+            autocomplete="name"
+            required
+          />
+        </label>
+
+        <label>
+          Parent Email
+          <input
+            id="parentEmail"
+            type="email"
+            autocomplete="email"
+            required
+          />
+        </label>
+
+        <label>
+          Parent Phone
+          <input
+            id="parentPhone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            required
+          />
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Safety Information</div>
+        </div>
+
+        <label>
+          Emergency Contact Name
+          <input
+            id="emergencyName"
+            autocomplete="name"
+            required
+          />
+        </label>
+
+        <label>
+          Emergency Contact Phone
+          <input
+            id="emergencyPhone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            required
+          />
+        </label>
+
+        <label class="full">
+          Medical Notes
+          <textarea
+            id="medical"
+            rows="4"
+            placeholder="Allergies, medications, injuries, conditions, or None"
+          ></textarea>
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Returned Paper Waiver</div>
+
+          <p class="muted">
+            Enter the signer and date exactly as recorded on the returned paper waiver.
+          </p>
+        </div>
+
+        <label>
+          Waiver Signed By
+          <input
+            id="waiverSignedBy"
+            autocomplete="name"
+            required
+          />
+        </label>
+
+        <label>
+          Waiver Signature Date
+          <input
+            id="waiverSignatureDate"
+            type="date"
+            required
+          />
         </label>
 
         <label>
@@ -265,12 +391,12 @@
         </div>
 
         <label>
-          Prior Experience Years
+          Verified Prior Experience Years
           <input id="experienceYears" type="number" min="0" max="20" value="0" />
         </label>
 
         <label>
-          Paper Pilot / Late Onboarding XP
+          Paper Training / Late Entry XP
           <input id="startingXp" type="number" min="0" step="5" value="0" />
         </label>
 
@@ -286,15 +412,11 @@
 
         <div class="actions full">
           <button id="submitBtn" class="btn brand" type="submit">
-            Create Athlete
+            Verify Paper Intake &amp; Create Athlete
           </button>
 
           <a class="btn" href="/intake-coach/">
             Back to Coach Intake
-          </a>
-
-          <a class="btn" href="/intake-coach/parent-link-tool.html">
-            Parent Link Tool
           </a>
 
           <a class="btn" href="/coaches/command-center/">

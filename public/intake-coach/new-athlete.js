@@ -9,6 +9,15 @@ const $ = (id) => document.getElementById(id);
 const DEFAULT_LOCATION_ID = "lompoc";
 const DEFAULT_COACH_IDS = ["coach_sandoval"];
 
+function selectedLocationId() {
+  const location =
+    String($("locationId")?.value || "").trim().toLowerCase();
+
+  return location === "solvang"
+    ? "solvang"
+    : DEFAULT_LOCATION_ID;
+}
+
 const F8_VIRTUES = [
   "FOCUS",
   "EFFORT",
@@ -82,29 +91,41 @@ function getPlacement(programTrack) {
       track: "F8",
       program: "wrestling",
       framework: "foundry8",
+      journey: "zero2hero",
       programTrack: "zero2hero",
       art: "wrestling",
+      discipline: "wrestling",
+      primaryDiscipline: "wrestling",
       ladderKey: "F8",
       rosterIds: ["youth-wrestling"],
-      locationId: DEFAULT_LOCATION_ID,
+      locationId: selectedLocationId(),
       coachIds: DEFAULT_COACH_IDS,
       trackCode: "foundry8-combat",
+      profileType: "youth",
+      beltSet: "f8-youth",
+      badgeSet: "f8-youth",
       rank: "Shadow",
     };
   }
 
-  if (pt === "road2greatness") {
+  if (pt === "path2legend-boxing") {
     return {
       track: "F4",
       program: "boxing",
       framework: "foundry4",
-      programTrack: "road2greatness",
+      journey: "path2legend",
+      programTrack: "path2legend",
       art: "boxing",
-      ladderKey: "R2G",
-      rosterIds: ["road2greatness-boxing"],
-      locationId: DEFAULT_LOCATION_ID,
+      discipline: "boxing",
+      primaryDiscipline: "boxing",
+      ladderKey: "F4",
+      rosterIds: ["teen-adult-boxing"],
+      locationId: selectedLocationId(),
       coachIds: DEFAULT_COACH_IDS,
-      trackCode: "road2greatness-boxing",
+      trackCode: "path2legend-boxing",
+      profileType: "adult",
+      beltSet: "f4-adult",
+      badgeSet: "f4-adult",
       rank: "Apprentice",
     };
   }
@@ -114,13 +135,19 @@ function getPlacement(programTrack) {
       track: "F4",
       program: "mma",
       framework: "foundry4",
+      journey: "quest2mastery",
       programTrack: "quest2mastery",
       art: "mma",
+      discipline: "mma",
+      primaryDiscipline: "mma",
       ladderKey: "Q2M",
       rosterIds: ["adult-mma"],
-      locationId: DEFAULT_LOCATION_ID,
+      locationId: selectedLocationId(),
       coachIds: DEFAULT_COACH_IDS,
       trackCode: "quest2mastery-mma",
+      profileType: "adult",
+      beltSet: "f4-adult",
+      badgeSet: "f4-adult",
       rank: "Apprentice",
     };
   }
@@ -129,13 +156,19 @@ function getPlacement(programTrack) {
     track: "F4",
     program: "wrestling",
     framework: "foundry4",
+    journey: "path2legend",
     programTrack: "path2legend",
     art: "wrestling",
+    discipline: "wrestling",
+    primaryDiscipline: "wrestling",
     ladderKey: "F4",
     rosterIds: ["teen-wrestling"],
-    locationId: DEFAULT_LOCATION_ID,
+    locationId: selectedLocationId(),
     coachIds: DEFAULT_COACH_IDS,
     trackCode: "foundry4-combat",
+    profileType: "adult",
+    beltSet: "f4",
+    badgeSet: "f4",
     rank: "Apprentice",
   };
 }
@@ -211,6 +244,24 @@ $("program")?.addEventListener("change", updatePreview);
 
 syncFromProgramTrack();
 
+function birthYearFromDob(dob = "") {
+  const match = String(dob || "").match(/^(\d{4})-\d{2}-\d{2}$/);
+  return match ? match[1] : "";
+}
+
+function normalizePhone(value = "") {
+  return String(value || "").replace(/\D/g, "").slice(0, 10);
+}
+
+function publicNameFromParts(first = "", last = "") {
+  const initial = String(first || "").trim().charAt(0).toUpperCase();
+  const cleanLast = String(last || "").trim();
+
+  return initial && cleanLast
+    ? `${initial}. ${cleanLast}`
+    : `${first} ${last}`.trim();
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -224,36 +275,152 @@ form.addEventListener("submit", async (e) => {
       httpsCallable(functions, "createCoachAthleteCall");
 
     const placement = getPlacement(val("programTrack"));
-    const track = val("track");
+
+    // Placement is the source of truth.
+    const track = placement.track;
+    const program = placement.program;
+
+    const first = val("first");
+    const last = val("last");
+    const dob = val("dob");
+    const birthYear =
+      birthYearFromDob(dob) || val("birthYear");
+
     const virtueName = val("virtueName").toUpperCase();
     const virtueCode = getVirtueCode(virtueName);
     const mintVirtueTag = buildPreviewTag(track, virtueName);
+
     const experienceYears = num("experienceYears");
     const startingXp = Math.max(0, num("startingXp"));
     const startingXpNote = val("startingXpNote");
 
+    const parentName = val("parentName");
+    const parentEmail = val("parentEmail").toLowerCase();
+    const parentPhoneDigits =
+      normalizePhone(val("parentPhone"));
+
+    const emergencyName = val("emergencyName");
+    const emergencyPhoneDigits =
+      normalizePhone(val("emergencyPhone"));
+
+    const city = val("city");
+    const state = val("state").toUpperCase().slice(0, 2);
+    const medical = val("medical") || "None";
+
+    const waiverSignedBy = val("waiverSignedBy");
+    const waiverSignatureDate = val("waiverSignatureDate");
+
+    if (!first || !last) {
+      throw new Error("Athlete first and last name are required.");
+    }
+
+    if (!dob && !birthYear) {
+      throw new Error("Date of birth or birth year is required.");
+    }
+
+    if (!parentName || !parentEmail || !parentPhoneDigits) {
+      throw new Error(
+        "Parent or guardian name, email, and phone are required for paper intake."
+      );
+    }
+
+    if (!emergencyName || !emergencyPhoneDigits) {
+      throw new Error(
+        "Emergency contact name and phone are required."
+      );
+    }
+
+    if (!city || !state) {
+      throw new Error("City and state are required.");
+    }
+
+    if (!waiverSignedBy || !waiverSignatureDate) {
+      throw new Error(
+        "Paper waiver signer and signature date are required."
+      );
+    }
+
     const payload = {
-      first: val("first"),
-      last: val("last"),
+      // Identity
+      first,
+      last,
+      fullName: `${first} ${last}`.trim(),
+      publicName: publicNameFromParts(first, last),
+
+      dob: dob || null,
+      birthYear,
+      grade: val("grade") || null,
+
+      // Coach-entered paper intake
+      intakeMethod: "paper",
+      source: "coach_paper_intake",
+      paperIntakeVerified: true,
+      notes: val("notes") || "",
+
+      // Family
+      parent: {
+        name: parentName,
+        email: parentEmail,
+        phoneDigits: parentPhoneDigits,
+      },
+
+      parentName,
+      parentEmail,
+      parentPhoneDigits,
+
+      // Safety
+      emergency: {
+        name: emergencyName,
+        phoneDigits: emergencyPhoneDigits,
+      },
+
+      emergencyName,
+      emergencyPhoneDigits,
+      medical,
+
+      // Paper waiver record
+      waiver: {
+        viewed: true,
+        agreed: true,
+        method: "paper",
+        signatureName: waiverSignedBy,
+        signatureDate: waiverSignatureDate,
+        verifiedByCoach: true,
+      },
+
+      // Location / team
+      team: val("team") || null,
+      city,
+      state,
+      location: {
+        team: val("team") || null,
+        city,
+        state,
+        locationId: placement.locationId,
+      },
+
+      // Placement source of truth
       track,
-      program: val("program"),
-      team: val("team"),
-      grade: val("grade"),
-      birthYear: val("birthYear"),
-      source: val("source"),
-      notes: val("notes"),
+      program,
 
       framework: placement.framework,
+      journey: placement.journey,
       programTrack: placement.programTrack,
       art: placement.art,
+      discipline: placement.discipline,
+      primaryDiscipline: placement.primaryDiscipline,
       ladderKey: placement.ladderKey,
       rosterIds: placement.rosterIds,
       coachIds: placement.coachIds,
       locationId: placement.locationId,
+      trackCode: placement.trackCode,
+      profileType: placement.profileType,
+      beltSet: placement.beltSet,
+      badgeSet: placement.badgeSet,
 
       placement: {
         ...placement,
-        source: "coach_direct_intake",
+        source: "coach_paper_intake",
       },
 
       virtueName,
@@ -265,7 +432,7 @@ form.addEventListener("submit", async (e) => {
         placementOnly: true,
         grantsXP: false,
         transferXP: false,
-        source: "coach_direct",
+        source: "coach_paper_intake",
       },
 
             lifecycleDefaults: {
@@ -303,7 +470,7 @@ form.addEventListener("submit", async (e) => {
               startingXpNote ||
               "Paper pilot / late onboarding XP",
             kind: "PAPER_RECONCILE_GRIND",
-            source: "coach_direct_intake",
+            source: "coach_paper_intake",
           }
         : null,
     };
@@ -352,6 +519,6 @@ form.addEventListener("submit", async (e) => {
     `);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Create Athlete";
+    submitBtn.textContent = "Verify Paper Intake & Create Athlete";
   }
 });

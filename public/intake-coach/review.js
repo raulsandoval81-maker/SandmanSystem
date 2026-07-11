@@ -818,6 +818,25 @@ async function approveAthlete() {
     const data = res?.data || {};
     const uid = data.uid;
 
+    if (INTAKE_CACHE?.connectLeadId) {
+
+  await updateDoc(
+    doc(
+      db,
+      "interest_leads",
+      INTAKE_CACHE.connectLeadId
+    ),
+    {
+      status: "converted",
+
+      athleteUid: uid,
+
+      enrolledAt: serverTimestamp()
+    }
+  );
+
+}
+
     if (!uid) throw new Error("Missing uid in response");
 
     if ($("c-uid")) $("c-uid").value = uid;

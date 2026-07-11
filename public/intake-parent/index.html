@@ -82,9 +82,11 @@
       </label>
 
       <input
-        type="text"
+        type="tel"
         id="parentPhone"
         required
+        autocomplete="tel"
+        inputmode="tel"
         placeholder="555-123-4567"
       />
 
@@ -114,6 +116,7 @@
         type="text"
         id="city"
         required
+        autocomplete="address-level2"
       />
 
       <!-- STATE -->
@@ -128,6 +131,10 @@
         type="text"
         id="state"
         required
+        maxlength="2"
+        autocomplete="address-level1"
+        autocapitalize="characters"
+        placeholder="CA"
       />
 
       <!-- EMERGENCY NAME -->
@@ -141,6 +148,8 @@
           type="text"
           id="emergencyName"
           placeholder="Full name"
+          autocomplete="name"
+          required
         >
       </label>
 
@@ -155,6 +164,9 @@
           type="tel"
           id="emergencyPhone"
           placeholder="(555) 555-5555"
+          autocomplete="tel"
+          inputmode="tel"
+          required
         >
       </label>
 
@@ -184,15 +196,13 @@
   <div class="waiver-lang-row">
 
 
-<a
+<button
   id="openWaiverBtnEn"
   class="btn btn-waiver"
-  href="/waiver/sandman-waiver-heavy-en.pdf"
-  target="_blank"
-  rel="noopener"
+  type="button"
 >
   English
-</a>
+</button>
 
 <a
   id="openWaiverBtnEs"
@@ -202,7 +212,7 @@
   rel="noopener"
 >
   Español
-</a>
+</button>
 
   </div>
 
@@ -268,9 +278,9 @@
         class="btn btn-brand"
         disabled
       >
-        Submit to Coach
+        Submit Enrollment Intake
         <span class="lang-alt">
-          Enviar al entrenador
+          Enviar registro de inscripción
         </span>
       </button>
 
