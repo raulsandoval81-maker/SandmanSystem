@@ -1,51 +1,54 @@
 export const FOUNDATIONS = [
-  "ringcraft",
-  "pressure-flow",
-  "counter-chain",
-  "reaction-training"
+  "fight-iq",
+  "adaptation",
+  "pressure-control",
+  "range-control"
 ];
 
 export const SKILL_WAVES = {
 
-  striking_systems: [
-    "setup-system",
-    "dirty-boxing",
-    "weapon-selection",
-    "combination-defense"
+  pressure_systems: [
+    "counter-pressure",
+    "chain-pressure",
+    "pressure-layering",
+    "fight-breaking"
   ],
 
   cage_clinch: [
-    "cage-pressure",
-    "clinch-chain",
-    "cage-escapes"
+    "cage-traps",
+    "clinch-dominance",
+    "cage-dictation"
   ],
 
-  wrestling_scramble: [
-    "advanced-shot",
-    "rescramble",
-    "counter-wrestling",
-    "ride-control"
+  wrestling_transition: [
+    "shot-chain",
+    "scramble-control",
+    "transition-traps"
   ],
 
-  ground_systems: [
-    "ground-pressure",
-    "submission-chain",
-    "escape-chain",
-    "transition-control",
-    "ground-awareness"
+  ground_finishing: [
+    "ground-dominance",
+    "submission-hunting",
+    "chain-finishing"
   ],
 
-  live_application: [
-    "pace-break",
-    "live-rounds",
-    "fatigue-performance",
-    "fight-awareness",
-    "composure",
-    "tempo-control",
-    "false-pressure",
-    "angle-traps",
-    "chaos-drills",
-    "second-effort"
+  live_mastery: [
+    "fatigue-weaponization",
+    "mental-pressure",
+    "round-stealing",
+    "live-chaos",
+    "strategy-build",
+    "opponent-reading",
+    "finish-instinct",
+    "mental-fatigue",
+    "high-pressure-rounds",
+    "chaos-composure",
+    "fight-management",
+    "system-mastery"
+  ],
+
+  weapon_blending: [
+    "weapon-blending"
   ]
 
 };

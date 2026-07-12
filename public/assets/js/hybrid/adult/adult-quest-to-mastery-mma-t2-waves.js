@@ -1,46 +1,51 @@
 export const FOUNDATIONS = [
-  "angle",
-  "timing",
-  "feint",
-  "counter"
+  "ringcraft",
+  "pressure-flow",
+  "counter-chain",
+  "reaction-training"
 ];
 
 export const SKILL_WAVES = {
 
-  neutral_combat: [
-    "chain-entry",
-    "cage-control",
-    "underhook",
-    "hand-fight",
-    "level-change"
+  striking_systems: [
+    "setup-system",
+    "dirty-boxing",
+    "weapon-selection",
+    "combination-defense"
   ],
 
-  defense_counter: [
-    "shot-defense",
-    "kick-defense",
-    "scramble",
-    "submission-defense"
+  cage_clinch: [
+    "cage-pressure",
+    "clinch-chain",
+    "cage-escapes"
   ],
 
-  striking_flow: [
-    "combination-flow"
+  wrestling_scramble: [
+    "advanced-shot",
+    "rescramble",
+    "counter-wrestling",
+    "ride-control"
   ],
 
-  ground_control: [
-    "ground-transition",
-    "top-pressure",
-    "transition-chain",
-    "pressure-control"
+  ground_systems: [
+    "ground-pressure",
+    "submission-chain",
+    "escape-chain",
+    "transition-control",
+    "ground-awareness"
   ],
 
   live_application: [
-    "round-management",
-    "fatigue-control",
-    "controlled-sparring",
-    "live-application",
-    "cage-awareness",
-    "live-situations",
-    "finish-standard"
+    "pace-break",
+    "live-rounds",
+    "fatigue-performance",
+    "fight-awareness",
+    "composure",
+    "tempo-control",
+    "false-pressure",
+    "angle-traps",
+    "chaos-drills",
+    "second-effort"
   ]
 
 };

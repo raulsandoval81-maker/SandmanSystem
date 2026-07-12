@@ -1,41 +1,46 @@
 export const FOUNDATIONS = [
-  "stance",
-  "motion",
-  "distance",
-  "base"
+  "angle",
+  "timing",
+  "feint",
+  "counter"
 ];
 
 export const SKILL_WAVES = {
 
   neutral_combat: [
-    "entry",
-    "wall",
-    "clinch",
-    "sprawl"
+    "chain-entry",
+    "cage-control",
+    "underhook",
+    "hand-fight",
+    "level-change"
   ],
 
-  ground_survival: [
-    "get-up",
-    "guard",
-    "escape",
-    "top-control"
+  defense_counter: [
+    "shot-defense",
+    "kick-defense",
+    "scramble",
+    "submission-defense"
   ],
 
-  striking_foundation: [
-    "strike-defense",
-    "basic-combo"
+  striking_flow: [
+    "combination-flow"
   ],
 
-  combat_application: [
-    "takedown",
-    "pressure",
-    "sparring-rules",
+  ground_control: [
+    "ground-transition",
+    "top-pressure",
+    "transition-chain",
+    "pressure-control"
+  ],
+
+  live_application: [
+    "round-management",
+    "fatigue-control",
+    "controlled-sparring",
+    "live-application",
+    "cage-awareness",
+    "live-situations",
     "finish-standard"
-  ],
-
-  strength_recovery: [
-    "conditioning",
-    "recovery"
   ]
 
 };

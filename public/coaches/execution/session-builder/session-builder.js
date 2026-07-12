@@ -23,11 +23,11 @@ const COMBAT_MODEL_PATHS = {
   "teen-p2l-wrestling-t0":
     "/assets/js/hybrid/teen/teen-path-to-legend-wrestling-t0-waves.js",
 
-  "adult-q2m-mma-t1":
-    "/assets/js/hybrid/adult/adult-quest-to-mastery-mma-t1-waves.js",
+  "adult-q2m-mma-t0":
+    "/assets/js/hybrid/adult/adult-quest-to-mastery-mma-t0-waves.js",
 
-  "adult-r2g-boxing-t1":
-    "/assets/js/hybrid/adult/adult-road-to-glory-boxing-t1-waves.js"
+  "teen-p2l-boxing-t0":
+    "/assets/js/hybrid/teen/teen-path-to-legend-boxing-t0-waves.js"
 };
 
 const SESSION_KEY = "sandman_session_builder_v1";
@@ -56,8 +56,8 @@ const RANK_LABELS = {
   Z2H: {
     T0: "Shadow",
     T1: "Recruit",
-    T2: "Contender",
-    T3: "Contender",
+    T2: "Combatant",
+    T3: "Competitor",
     T4: "Warrior",
     T5: "Champion",
     T6: "Commander",
@@ -73,20 +73,13 @@ const RANK_LABELS = {
   },
 
   Q2M: {
-    T1: "Apprentice",
-    T2: "Warrior",
-    T3: "Champion",
-    T4: "Veteran",
-    T5: "Master"
+    T0: "Apprentice",
+    T1: "Warrior",
+    T2: "Champion",
+    T3: "Veteran",
+    T4: "Master"
   },
 
-  R2G: {
-    T1: "Apprentice",
-    T2: "Warrior",
-    T3: "Champion",
-    T4: "Veteran",
-    T5: "Master"
-  }
 };
 
 function populateRanks() {
