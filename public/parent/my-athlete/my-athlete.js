@@ -225,7 +225,27 @@ function getColorClass(a = {}, tierName = "") {
 
   let key = journey;
 
-  if (!key) {
+  if (
+    key === "z2h" ||
+    key.startsWith("zero2hero")
+  ) {
+    key = "z2h";
+  } else if (
+    key === "p2l" ||
+    key.startsWith("path2legend")
+  ) {
+    key = "p2l";
+  } else if (
+    key === "r2g" ||
+    key.startsWith("road2greatness")
+  ) {
+    key = "r2g";
+  } else if (
+    key === "q2m" ||
+    key.startsWith("quest2mastery")
+  ) {
+    key = "q2m";
+  } else if (!key) {
     key = resolveLadder(a) === LADDER_F8 ? "z2h" : "p2l";
   }
 
