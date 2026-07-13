@@ -30,15 +30,19 @@ function isValidEmail(email: string): boolean {
 
 function getClientIp(req: functions.https.Request): string {
   const forwarded = req.headers["x-forwarded-for"];
+
   if (Array.isArray(forwarded)) {
     return safeTrim(forwarded[0]?.split(",")[0]);
   }
+
   return safeTrim(String(forwarded || "").split(",")[0]);
 }
 
-// Parse x-www-form-urlencoded or multipart/form-data (HTML forms)
+// Parse x-www-form-urlencoded or multipart/form-data HTML forms.
 // Falls back to req.body for JSON/debugging requests.
-function parseForm(req: functions.https.Request): Promise<Record<string, string>> {
+function parseForm(
+  req: functions.https.Request
+): Promise<Record<string, string>> {
   return new Promise((resolve, reject) => {
     const contentType = String(req.headers["content-type"] || "");
 
@@ -48,9 +52,11 @@ function parseForm(req: functions.https.Request): Promise<Record<string, string>
     ) {
       const body = (req.body ?? {}) as Record<string, unknown>;
       const normalized: Record<string, string> = {};
+
       for (const [key, value] of Object.entries(body)) {
         normalized[key] = safeTrim(value);
       }
+
       return resolve(normalized);
     }
 
@@ -77,8 +83,11 @@ function parseForm(req: functions.https.Request): Promise<Record<string, string>
   });
 }
 
-// Shared minimal server-side guardrails
-function basicGuards(fields: Record<string, string>, minMs = 1000): { ok: boolean; reason?: string } {
+// Shared minimal server-side guardrails.
+function basicGuards(
+  fields: Record<string, string>,
+  minMs = 1000
+): { ok: boolean; reason?: string } {
   // Honeypot
   if (safeTrim(fields.nickname)) {
     return { ok: false, reason: "honeypot" };
@@ -87,6 +96,7 @@ function basicGuards(fields: Record<string, string>, minMs = 1000): { ok: boolea
   // Speed / antibot
   // Light nuisance filter only; client timestamp is not trusted security.
   const ts = Number(fields.__pageload_ts || 0);
+
   if (Number.isFinite(ts) && ts > 0 && Date.now() - ts < minMs) {
     return { ok: false, reason: "too_fast" };
   }
@@ -117,7 +127,7 @@ async function saveSubmission(
 }
 
 function redirect(res: functions.Response, location: string): void {
-  // 303 ensures browser follows with GET
+  // 303 ensures browser follows with GET.
   res.setHeader("Location", location);
   res.status(303).send("");
 }
@@ -135,9 +145,13 @@ export const submitContact = functions.https.onRequest(async (req, res) => {
     try {
       const fields = await parseForm(req);
       const guards = basicGuards(fields, 1500);
+
       if (!guards.ok) {
-        functions.logger.warn("submitContact blocked by guard", { reason: guards.reason });
-        return redirect(res, "/thanks/contact.html");
+        functions.logger.warn("submitContact blocked by guard", {
+          reason: guards.reason,
+        });
+
+        return redirect(res, "/connect/thanks/contact.html");
       }
 
       const name = safeTrim(fields.name);
@@ -152,7 +166,8 @@ export const submitContact = functions.https.onRequest(async (req, res) => {
           emailValid: isValidEmail(email),
           hasMessage: !!message,
         });
-        return redirect(res, "/thanks/contact.html");
+
+        return redirect(res, "/connect/thanks/contact.html");
       }
 
       await saveSubmission(
@@ -161,10 +176,11 @@ export const submitContact = functions.https.onRequest(async (req, res) => {
         req
       );
 
-      return redirect(res, "/thanks/contact.html");
+      return redirect(res, "/connect/thanks/contact.html");
     } catch (error) {
       functions.logger.error("submitContact failed", error);
-      return redirect(res, "/thanks/contact.html");
+
+      return redirect(res, "/connect/thanks/contact.html");
     }
   });
 });
@@ -178,9 +194,13 @@ export const submitVolunteer = functions.https.onRequest(async (req, res) => {
     try {
       const fields = await parseForm(req);
       const guards = basicGuards(fields, 1500);
+
       if (!guards.ok) {
-        functions.logger.warn("submitVolunteer blocked by guard", { reason: guards.reason });
-        return redirect(res, "/thanks/volunteer.html");
+        functions.logger.warn("submitVolunteer blocked by guard", {
+          reason: guards.reason,
+        });
+
+        return redirect(res, "/connect/thanks/volunteer.html");
       }
 
       const name = safeTrim(fields.name);
@@ -197,7 +217,8 @@ export const submitVolunteer = functions.https.onRequest(async (req, res) => {
           hasEmail: !!email,
           emailValid: isValidEmail(email),
         });
-        return redirect(res, "/thanks/volunteer.html");
+
+        return redirect(res, "/connect/thanks/volunteer.html");
       }
 
       await saveSubmission(
@@ -214,10 +235,11 @@ export const submitVolunteer = functions.https.onRequest(async (req, res) => {
         req
       );
 
-      return redirect(res, "/thanks/volunteer.html");
+      return redirect(res, "/connect/thanks/volunteer.html");
     } catch (error) {
       functions.logger.error("submitVolunteer failed", error);
-      return redirect(res, "/thanks/volunteer.html");
+
+      return redirect(res, "/connect/thanks/volunteer.html");
     }
   });
 });

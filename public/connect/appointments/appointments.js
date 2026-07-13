@@ -146,13 +146,7 @@ async function requireAdminUser() {
   const user = auth.currentUser;
 
   if (!user) {
-    throw new Error("Admin login required.");
-  }
-
-  if (user.isAnonymous) {
-    throw new Error(
-      "Anonymous users cannot access the appointments dashboard."
-    );
+    throw new Error("Firebase user session required.");
   }
 
   await user.getIdTokenResult(true);
@@ -254,10 +248,17 @@ async function loadAppointments() {
           id: leadDoc.id,
           ...leadDoc.data()
         }))
-        .filter(
-          (lead) =>
-            lead.status === "appointment_scheduled"
-        );
+.filter((lead) => {
+  const appointmentStatus =
+    lead.appointmentStatus ||
+    lead.appointment?.status ||
+    "";
+
+  return (
+    appointmentStatus === "scheduled" ||
+    lead.status === "appointment_scheduled"
+  );
+});
 
     if (!appointments.length) {
       appointmentList.innerHTML = `
@@ -413,40 +414,50 @@ scheduleForm?.addEventListener(
     try {
       await requireAdminUser();
 
-      await updateDoc(
-        doc(db, "interest_leads", selectedLeadId),
-        {
-          status: "appointment_scheduled",
 
-          appointmentDate: dateValue,
-          appointmentTime: timeValue,
-          appointmentLocation: locationValue,
-          appointmentCoach: coachValue,
-          appointmentNotes: notesValue,
+  await updateDoc(
+  doc(db, "interest_leads", selectedLeadId),
+  {
+    // New separated lifecycle fields
+    leadStatus: "contacted",
+    status: "contacted",
 
-          appointment: {
-            date: dateValue,
-            time: timeValue,
-            location: locationValue,
-            coachName: coachValue,
-            notes: notesValue,
-            status: "scheduled"
-          },
+    appointmentStatus: "scheduled",
 
-          appointmentScheduledAt: serverTimestamp(),
+    enrollmentStatus:
+      selectedLead.enrollmentStatus || "not_started",
 
-          appointmentConfirmationStatus: "pending",
-          appointmentConfirmationRequestedAt:
-            serverTimestamp(),
+    appointmentDate: dateValue,
+    appointmentTime: timeValue,
+    appointmentLocation: locationValue,
+    appointmentCoach: coachValue,
+    appointmentNotes: notesValue,
 
-          updatedAt: serverTimestamp()
-        }
-      );
+    appointment: {
+      date: dateValue,
+      time: timeValue,
+      location: locationValue,
+      coachName: coachValue,
+      notes: notesValue,
+      status: "scheduled"
+    },
 
-      setStatus(
-        "Appointment scheduled. Gatekeeper confirmation queued."
-      );
+    appointmentScheduledAt: serverTimestamp(),
 
+    // Confirmation has been requested but not necessarily sent.
+    appointmentConfirmationStatus: "pending",
+    appointmentConfirmationRequestedAt:
+      serverTimestamp(),
+
+    athleteStatus:
+      selectedLead.athleteStatus || "none",
+
+    updatedAt: serverTimestamp()
+  }
+);
+setStatus(
+  "Appointment scheduled. Confirmation is pending."
+);
       await loadAppointments();
 
       scheduleForm.reset();

@@ -111,18 +111,12 @@
 .belt-z2h-hero       { --belt-color:#000000; --belt-center:#9CA3AF; }
 
 /* Wrestling / Path2Legend — solid belts */
-.belt-p2l-apprentice { --belt-color:#F4F4F4; }
-.belt-p2l-warrior    { --belt-color:#2196F3; }
-.belt-p2l-champion   { --belt-color:#9C27B0; }
-.belt-p2l-veteran    { --belt-color:#6D2B24; }
-.belt-p2l-legend     { --belt-color:#000000; }
-
-/* Boxing / Road2Greatness — gray then solid */
-.belt-r2g-apprentice { --belt-color:#9CA3AF; }
-.belt-r2g-warrior    { --belt-color:#2196F3; }
-.belt-r2g-champion   { --belt-color:#9C27B0; }
-.belt-r2g-veteran    { --belt-color:#6D2B24; }
-.belt-r2g-craftsman  { --belt-color:#000000; }
+.belt-p2l-apprentice      { --belt-color:#F4F4F4; }
+.belt-p2l-apprentice-gray { --belt-color:#9CA3AF; }
+.belt-p2l-warrior         { --belt-color:#2196F3; }
+.belt-p2l-champion        { --belt-color:#9C27B0; }
+.belt-p2l-veteran         { --belt-color:#6D2B24; }
+.belt-p2l-legend          { --belt-color:#000000; }
 
 /* MMA / Quest2Mastery — gray then solid */
 .belt-q2m-apprentice { --belt-color:#9CA3AF; }

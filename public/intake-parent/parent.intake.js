@@ -193,8 +193,33 @@ async function handleSubmit(e) {
   try {
     // 0) token must be valid + not expired
     const { token, tokenId, exp } = await requireValidInvite();
-const connectLeadId =
-  token.connectLeadId || null;
+
+    const connectLeadId =
+      token.connectLeadId || null;
+
+    const intakeMode =
+      String(token.mode || "new_athlete").trim();
+
+    const existingAthleteUid =
+      String(token.existingAthleteUid || "").trim();
+
+    const forTrack =
+      String(token.forTrack || "").trim();
+
+    const forLane =
+      String(token.forLane || "").trim();
+
+    if (intakeMode === "add_sport") {
+      if (
+        !existingAthleteUid ||
+        !forTrack ||
+        !forLane
+      ) {
+        fail(
+          "This add-sport invite is missing athlete or journey information."
+        );
+      }
+    }
 
     if (!tokenId)
       fail("Invite token missing canonical id (tokenId).", "openWaiverBtn");
@@ -217,6 +242,27 @@ const connectLeadId =
     const intake = {
 
       connectLeadId,
+
+      mode:
+        intakeMode === "add_sport"
+          ? "add_sport"
+          : "new_athlete",
+
+      existingAthleteUid:
+        intakeMode === "add_sport"
+          ? existingAthleteUid
+          : "",
+
+      forTrack:
+        intakeMode === "add_sport"
+          ? forTrack
+          : null,
+
+      forLane:
+        intakeMode === "add_sport"
+          ? forLane
+          : null,
+
       // ---- token + lifecycle ----
       tokenId,
       tokenRaw: token,

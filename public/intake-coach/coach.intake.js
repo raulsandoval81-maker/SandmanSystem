@@ -15,6 +15,21 @@ import {
 
 const $ = (id) => document.getElementById(id);
 
+const intakeParams =
+  new URLSearchParams(window.location.search);
+
+const intakeMode =
+  String(intakeParams.get("mode") || "new_athlete").trim();
+
+const existingAthleteUid =
+  String(intakeParams.get("athleteUid") || "").trim();
+
+const requestedTrack =
+  String(intakeParams.get("track") || "").trim();
+
+const requestedLane =
+  String(intakeParams.get("lane") || "").trim();
+
 function esc(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -102,14 +117,43 @@ $("btn-make-token")?.addEventListener("click", async () => {
     const newTokenId = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
     const exp = Date.now() + 48 * 60 * 60 * 1000;
 
+   if (intakeMode === "add_sport") {
+  if (
+    !existingAthleteUid ||
+    !requestedTrack ||
+    !requestedLane
+  ) {
+    throw new Error(
+      "Add-sport intake requires athlete UID, track, and lane."
+    );
+  }
+}
+
     await setDoc(doc(db, "intakeTokens", newTokenId), {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
       exp,
       used: false,
       status: "invited",
-      forTrack: null,
-      forLane: null,
+      mode:
+        intakeMode === "add_sport"
+          ? "add_sport"
+          : "new_athlete",
+
+      existingAthleteUid:
+        intakeMode === "add_sport"
+          ? existingAthleteUid
+          : "",
+
+      forTrack:
+        intakeMode === "add_sport"
+          ? requestedTrack
+          : null,
+
+      forLane:
+        intakeMode === "add_sport"
+          ? requestedLane
+          : null,
     });
 
     const inviteUrl = inviteUrlForToken(newTokenId);

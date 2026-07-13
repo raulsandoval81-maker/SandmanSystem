@@ -165,6 +165,18 @@ export const approveAndActivate = onCall(async (req) => {
   try {
     const input = req.data as ApproveActivateInput;
 
+    const mode =
+  String((input as any).mode || "new_athlete").trim();
+
+const existingAthleteUid =
+  String((input as any).existingAthleteUid || "").trim();
+
+const forTrack =
+  String((input as any).forTrack || "").trim();
+
+const forLane =
+  String((input as any).forLane || "").trim();
+
     if (
       !input?.intakeId ||
       !input?.foundry ||
@@ -248,7 +260,14 @@ const safePriorExperienceValidation =
     const hasLegacy = expPlan.total > 0;
     const hasAdjustment = adjustmentAmount > 0;
 
+    
+
     const counterRef = db.doc(`counters/${foundry}`);
+    if (mode === "add_sport") {
+
+   // existing athlete workflow
+
+}
     const intakeRef = db.doc(`intakes/${intakeId}`);
 
     const intakeSnapPre = await intakeRef.get();
@@ -429,8 +448,8 @@ priorExperienceValidation: safePriorExperienceValidation,
         rankName: starter.rankName,
         rankColor: starter.rankColor,
         xpCap: starter.xpCap,
-
-        track: trackCode,
+        
+        track: safeProgramTrack,
         trackCode,
 
         onboarding: {
@@ -547,11 +566,13 @@ priorExperienceValidation: safePriorExperienceValidation,
 
         minted: true,
 
+
         forTrack: prefix,
         forLane: lane,
 
         framework: safeFramework,
 programTrack: safeProgramTrack,
+track: safeProgramTrack,
 art: safeArt,
 ladderKey: safeLadderKey,
 rosterIds: safeRosterIds,
@@ -616,6 +637,7 @@ safety: {
         trackCode,
         framework: safeFramework,
 programTrack: safeProgramTrack,
+track: safeProgramTrack,
 art: safeArt,
 ladderKey: safeLadderKey,
 rosterIds: safeRosterIds,

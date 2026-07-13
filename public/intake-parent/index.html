@@ -31,6 +31,15 @@
 
     <form id="intakeForm">
 
+      <section class="intake-card">
+        <div class="section-head">
+          <p class="eyebrow">Step 1</p>
+          <h2>
+            Athlete Information
+            <span class="lang-alt-title">/ Información del atleta</span>
+          </h2>
+        </div>
+
       <!-- TEAM -->
       <label>
         Team / School
@@ -104,6 +113,17 @@
         required
       />
 
+      </section>
+
+      <section class="intake-card">
+        <div class="section-head">
+          <p class="eyebrow">Step 2</p>
+          <h2>
+            Parent Contact
+            <span class="lang-alt-title">/ Contacto del padre o tutor</span>
+          </h2>
+        </div>
+
       <!-- CITY -->
       <label>
         City
@@ -136,6 +156,17 @@
         autocapitalize="characters"
         placeholder="CA"
       />
+
+      </section>
+
+      <section class="intake-card">
+        <div class="section-head">
+          <p class="eyebrow">Step 3</p>
+          <h2>
+            Emergency & Medical
+            <span class="lang-alt-title">/ Emergencia y datos médicos</span>
+          </h2>
+        </div>
 
       <!-- EMERGENCY NAME -->
       <label>
@@ -183,8 +214,13 @@
         placeholder="Allergies, medications, injuries…"
       ></textarea>
 
-<!-- WAIVER -->
-<section class="waiver-block">
+      </section>
+
+      <!-- WAIVER -->
+      <section class="intake-card waiver-block">
+        <div class="section-head">
+          <p class="eyebrow">Step 4</p>
+        </div>
 
   <h2 class="waiver-title">
     Waiver & Release
@@ -212,7 +248,7 @@
   rel="noopener"
 >
   Español
-</button>
+</a>
 
   </div>
 
@@ -269,20 +305,29 @@
     disabled
   />
 
-    </section>
+      </section>
 
-      <!-- SUBMIT -->
-      <button
-        type="submit"
-        id="submitBtn"
-        class="btn btn-brand"
-        disabled
-      >
-        Submit Enrollment Intake
-        <span class="lang-alt">
-          Enviar registro de inscripción
-        </span>
-      </button>
+      <section class="submit-card">
+        <p class="submit-note">
+          Review the information above before submitting.
+          <span class="lang-alt-block">
+            Revise la información antes de enviarla.
+          </span>
+        </p>
+
+        <!-- SUBMIT -->
+        <button
+          type="submit"
+          id="submitBtn"
+          class="btn btn-brand"
+          disabled
+        >
+          Submit Enrollment Intake
+          <span class="lang-alt">
+            Enviar registro de inscripción
+          </span>
+        </button>
+      </section>
 
     </form>
 

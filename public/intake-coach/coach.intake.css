@@ -1,18 +1,18 @@
 :root{
-  --bg:#0b1020;
-  --panel:#0f172a;
-  --panel-2:#111c33;
-  --ink:#e5e7eb;
-  --muted:#9ca3af;
-  --line:#1f2937;
+  --bg:#050505;
+  --panel:#0d0d0d;
+  --panel-2:#151515;
 
-  --gold:#ffcc00;
-  --gold-2:#ffd84d;
+  --ink:#f5f5f5;
+  --muted:#a3a3a3;
+  --line:#2a2a2a;
 
-  --blue:#2563eb;
-  --blue-soft:rgba(37,99,235,.12);
+  --gold:#facc15;
+  --gold-2:#fde047;
 
-  --red:#ef4444;
+  --red:#dc2626;
+  --red-2:#ef4444;
+  --red-soft:rgba(220,38,38,.12);
 
   --radius:18px;
 }
@@ -24,8 +24,17 @@
 body{
   margin:0;
   background:
-    radial-gradient(circle at top, rgba(255,204,0,.06), transparent 28%),
-    linear-gradient(180deg,#09101d,#0b1020 38%);
+    radial-gradient(
+      circle at top,
+      rgba(250,204,21,.08),
+      transparent 30%
+    ),
+    linear-gradient(
+      180deg,
+      #111 0,
+      #050505 38%
+    );
+
   color:var(--ink);
   font-family:Inter,system-ui,sans-serif;
   min-height:100vh;
@@ -421,8 +430,8 @@ button{
   background:
     linear-gradient(
       180deg,
-      #3b82f6,
-      #1d4ed8
+      var(--red-2),
+      #991b1b
     );
 
   color:#fff;
@@ -436,7 +445,7 @@ button{
   font-weight:900;
 
   box-shadow:
-    0 12px 24px rgba(37,99,235,.22);
+    0 12px 24px rgba(220,38,38,.22);
 
   transition:
     transform .15s ease,
@@ -449,11 +458,11 @@ button{
 }
 
 .outline-blue{
-  border:1px solid rgba(59,130,246,.35);
+  border:1px solid rgba(250,204,21,.35);
 
-  background:rgba(59,130,246,.08);
+  background:rgba(250,204,21,.08);
 
-  color:#9ec5ff;
+  color:#fde68a;
 
   min-height:48px;
 
@@ -465,10 +474,10 @@ button{
 }
 
 .approve-card{
-  border-color:rgba(59,130,246,.22);
+  border-color:rgba(220,38,38,.28);
 
   box-shadow:
-    0 0 28px rgba(59,130,246,.08),
+    0 0 28px rgba(250,204,21,.08),
     inset 0 0 0 1px rgba(255,255,255,.02);
 }
 
@@ -670,3 +679,205 @@ button{
   }
 
 }
+
+
+/* === REVIEW WORKFLOW LAYOUT START === */
+
+/*
+ * Coach Review is presented as one guided workflow.
+ * Existing HTML IDs and JavaScript hooks remain unchanged.
+ */
+
+.intake-review{
+  max-width:1180px;
+}
+
+.intake-review .review-hero{
+  margin-bottom:20px;
+  border-color:rgba(250,204,21,.18);
+}
+
+.intake-review .review-hero h1{
+  max-width:760px;
+}
+
+/*
+ * display:contents allows the existing two HTML stacks
+ * to participate in one unified page grid.
+ */
+.intake-review .review-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:18px;
+  align-items:start;
+}
+
+.intake-review .review-stack{
+  display:contents;
+}
+
+/* 1. Athlete information */
+.intake-review section[aria-labelledby="submitted-title"]{
+  order:1;
+  grid-column:1 / -1;
+}
+
+/* 2. Journey selection — primary coach decision */
+.intake-review section[aria-labelledby="mint-title"]{
+  order:2;
+  grid-column:1 / -1;
+  padding:24px;
+  border-color:rgba(250,204,21,.34);
+  box-shadow:
+    0 0 0 1px rgba(250,204,21,.05) inset,
+    0 18px 42px rgba(0,0,0,.30),
+    0 0 30px rgba(250,204,21,.06);
+}
+
+.intake-review section[aria-labelledby="mint-title"] .card-head{
+  margin-bottom:20px;
+}
+
+.intake-review section[aria-labelledby="mint-title"] .card-head h3{
+  font-size:1.25rem;
+}
+
+/* 3. Coach review */
+.intake-review section[aria-labelledby="confirm-title"]{
+  order:3;
+  grid-column:1;
+}
+
+/* 4. Athlete identity */
+.intake-review section[aria-labelledby="minttag-title"]{
+  order:4;
+  grid-column:2;
+}
+
+/* 5. Experience */
+.intake-review section[aria-labelledby="exp-title"]{
+  order:5;
+  grid-column:1 / -1;
+}
+
+/* 6. Approval — final decisive action */
+.intake-review section[aria-labelledby="approve-title"]{
+  order:6;
+  grid-column:1 / -1;
+  padding:24px;
+  border-color:rgba(220,38,38,.40);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(220,38,38,.09),
+      rgba(255,255,255,.018)
+    );
+}
+
+.intake-review section[aria-labelledby="approve-title"] h3{
+  margin-top:0;
+  font-size:1.3rem;
+}
+
+.intake-review section[aria-labelledby="approve-title"] .approve-actions{
+  align-items:center;
+}
+
+.intake-review #btn-approve{
+  min-width:240px;
+}
+
+/* 7–8. Administrative tools */
+.intake-review section[aria-labelledby="adjust-title"]{
+  order:7;
+  grid-column:1;
+}
+
+.intake-review section[aria-labelledby="legacy-title"]{
+  order:8;
+  grid-column:2;
+}
+
+.intake-review section[aria-labelledby="adjust-title"],
+.intake-review section[aria-labelledby="legacy-title"]{
+  background:rgba(255,255,255,.018);
+  border-style:dashed;
+  opacity:.86;
+}
+
+.intake-review section[aria-labelledby="adjust-title"]:focus-within,
+.intake-review section[aria-labelledby="legacy-title"]:focus-within{
+  opacity:1;
+  border-style:solid;
+}
+
+/* Journey cards */
+.intake-review .mint-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+
+.intake-review .mint-track-btn{
+  min-height:130px;
+  padding:18px 14px;
+}
+
+.intake-review .mint-track-name{
+  font-size:1.05rem;
+}
+
+.intake-review .mint-track-btn.is-selected{
+  transform:translateY(-2px);
+}
+
+/* Submitted data should read as a compact summary */
+.intake-review section[aria-labelledby="submitted-title"] .stat{
+  min-height:66px;
+}
+
+/* Clean up isolated inline spacing on repair tool */
+.intake-review section[aria-labelledby="legacy-title"] .field + div{
+  margin-top:14px !important;
+}
+
+/* Make approval status easier to notice */
+.intake-review #approve-status{
+  display:block;
+  margin-top:12px;
+  min-height:20px;
+}
+
+/* Mobile workflow remains in the same logical order */
+@media (max-width:860px){
+
+  .intake-review .review-grid{
+    grid-template-columns:1fr;
+  }
+
+  .intake-review section[aria-labelledby="submitted-title"],
+  .intake-review section[aria-labelledby="mint-title"],
+  .intake-review section[aria-labelledby="confirm-title"],
+  .intake-review section[aria-labelledby="minttag-title"],
+  .intake-review section[aria-labelledby="exp-title"],
+  .intake-review section[aria-labelledby="approve-title"],
+  .intake-review section[aria-labelledby="adjust-title"],
+  .intake-review section[aria-labelledby="legacy-title"]{
+    grid-column:1;
+  }
+
+  .intake-review .mint-grid{
+    grid-template-columns:1fr;
+  }
+
+  .intake-review .mint-track-btn{
+    min-height:104px;
+  }
+
+  .intake-review #btn-approve{
+    width:100%;
+    min-width:0;
+  }
+}
+
+/* === REVIEW WORKFLOW LAYOUT END === */
+

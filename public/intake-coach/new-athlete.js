@@ -100,7 +100,8 @@ function getPlacement(programTrack) {
       rosterIds: ["youth-wrestling"],
       locationId: selectedLocationId(),
       coachIds: DEFAULT_COACH_IDS,
-      trackCode: "foundry8-combat",
+      trackCode: "zero2hero-wrestling",
+      track: "zero2hero",
       profileType: "youth",
       beltSet: "f8-youth",
       badgeSet: "f8-youth",
@@ -110,7 +111,7 @@ function getPlacement(programTrack) {
 
   if (pt === "path2legend-boxing") {
     return {
-      track: "F4",
+      track: "path2legend",
       program: "boxing",
       framework: "foundry4",
       journey: "path2legend",
@@ -123,16 +124,16 @@ function getPlacement(programTrack) {
       locationId: selectedLocationId(),
       coachIds: DEFAULT_COACH_IDS,
       trackCode: "path2legend-boxing",
-      profileType: "adult",
-      beltSet: "f4-adult",
-      badgeSet: "f4-adult",
+      profileType: "teen",
+      beltSet: "teen",
+      badgeSet: "teen",
       rank: "Apprentice",
     };
   }
 
   if (pt === "quest2mastery") {
     return {
-      track: "F4",
+      track: "quest2mastery",
       program: "mma",
       framework: "foundry4",
       journey: "quest2mastery",
@@ -153,7 +154,6 @@ function getPlacement(programTrack) {
   }
 
   return {
-    track: "F4",
     program: "wrestling",
     framework: "foundry4",
     journey: "path2legend",
@@ -165,10 +165,11 @@ function getPlacement(programTrack) {
     rosterIds: ["teen-wrestling"],
     locationId: selectedLocationId(),
     coachIds: DEFAULT_COACH_IDS,
-    trackCode: "foundry4-combat",
-    profileType: "adult",
-    beltSet: "f4",
-    badgeSet: "f4",
+    track:  "path2legend",
+    trackCode: "path2legend-wrestling",
+    profileType: "teen",
+    beltSet: "teen",
+    badgeSet: "teen",
     rank: "Apprentice",
   };
 }
@@ -458,7 +459,7 @@ form.addEventListener("submit", async (e) => {
           testEligibleAt: null,
           testingStartedAt: null,
           tier: "T0",
-          track: placement.trackCode,
+          track: placement.track,
           trackCode: placement.trackCode
         }
       },

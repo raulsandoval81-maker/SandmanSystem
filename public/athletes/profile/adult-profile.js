@@ -22,11 +22,6 @@ import {
 } from "/athletes/profile/profile-core.js";
 
 
-const PROFILE = {
-  type: "adult",
-  foundry: "F4",
-  journeys: ["q2m"]
-};
 // call once on load
 // ---------- helpers ----------
 const $ = (id) => document.getElementById(id);
@@ -463,7 +458,16 @@ function normTrackCode(a) {
 }
 
 function getLaneUiSpec({ trackCode, lane }) {
-  if (trackCode === "foundry4-combat") {
+
+  const path2LegendTracks = new Set([
+    "path2legend-wrestling",
+    "path2legend-boxing",
+
+    // Legacy compatibility
+    "foundry4-combat"
+  ]);
+
+  if (path2LegendTracks.has(trackCode)) {
     if (lane === "strength" || lane === "honor") return { total: 1200, slots: 3 };
     return { total: null, slots: null };
   }
@@ -747,18 +751,19 @@ const trackCode = normTrackCode(a);
 // -----------------------------
 const ladder = getLadderForAthlete(a);
 
-const journey =
-  String(a.journey || "q2m")
-    .trim()
-    .toLowerCase();
+const journey = String(a.journey || "")
+  .trim()
+  .toLowerCase();
 
-const combatArcLabel =
-  "🥋 Combat-MMA · Quest 2 Mastery";
+let combatArcLabel = "⚔️ Combat · Path 2 Legend";
 
-safeText(
-  "combatArcTitle",
-  combatArcLabel
-);
+if (journey === "r2g") {
+  combatArcLabel = "🥊 Combat-Boxing · Path 2 Legend";
+} else if (journey === "q2m") {
+  combatArcLabel = "🥋 Combat-MMA · Quest 2 Mastery";
+}
+
+safeText("combatArcTitle", combatArcLabel);
 
 let tierNum = 0;
 

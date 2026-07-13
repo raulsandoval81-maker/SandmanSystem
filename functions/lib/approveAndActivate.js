@@ -136,6 +136,10 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
     const coachUid = req.auth.uid;
     try {
         const input = req.data;
+        const mode = String(input.mode || "new_athlete").trim();
+        const existingAthleteUid = String(input.existingAthleteUid || "").trim();
+        const forTrack = String(input.forTrack || "").trim();
+        const forLane = String(input.forLane || "").trim();
         if (!input?.intakeId ||
             !input?.foundry ||
             !input?.virtueName ||
@@ -172,6 +176,9 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
         const hasLegacy = expPlan.total > 0;
         const hasAdjustment = adjustmentAmount > 0;
         const counterRef = db.doc(`counters/${foundry}`);
+        if (mode === "add_sport") {
+            // existing athlete workflow
+        }
         const intakeRef = db.doc(`intakes/${intakeId}`);
         const intakeSnapPre = await intakeRef.get();
         if (!intakeSnapPre.exists) {
@@ -293,7 +300,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 rankName: starter.rankName,
                 rankColor: starter.rankColor,
                 xpCap: starter.xpCap,
-                track: trackCode,
+                track: safeProgramTrack,
                 trackCode,
                 onboarding: {
                     version: "v1",
@@ -388,6 +395,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 forLane: lane,
                 framework: safeFramework,
                 programTrack: safeProgramTrack,
+                track: safeProgramTrack,
                 art: safeArt,
                 ladderKey: safeLadderKey,
                 rosterIds: safeRosterIds,
@@ -442,6 +450,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 trackCode,
                 framework: safeFramework,
                 programTrack: safeProgramTrack,
+                track: safeProgramTrack,
                 art: safeArt,
                 ladderKey: safeLadderKey,
                 rosterIds: safeRosterIds,

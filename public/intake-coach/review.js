@@ -16,6 +16,8 @@ import {
   db,
   doc,
   getDoc,
+  updateDoc,
+  serverTimestamp,
   functions,
   httpsCallable,
   ensureSignedIn
@@ -163,7 +165,24 @@ function buildPlacementFromTrack(track, s = {}) {
     $("c-program-track")?.value || "";
 
   // --------------------------------------------------
-  // F8 → Youth Zero2Hero
+  // Zero2Hero Kickboxing
+  // --------------------------------------------------
+  if (selectedProgramTrack === "zero2hero-kickboxing") {
+    return {
+      framework: "foundry8",
+      programTrack: "zero2hero",
+      art: "kickboxing",
+      ladderKey: "F8",
+      rosterIds: ["youth-kickboxing"],
+      locationId: DEFAULT_LOCATION_ID,
+      coachIds: DEFAULT_COACH_IDS,
+      track: "zero2hero",
+      trackCode: "zero2hero-kickboxing"
+    };
+  }
+
+  // --------------------------------------------------
+  // F8 → Youth Zero2Hero Wrestling
   // --------------------------------------------------
   if (t === "F8") {
     return {
@@ -174,31 +193,32 @@ function buildPlacementFromTrack(track, s = {}) {
       rosterIds: ["youth-wrestling"],
       locationId: DEFAULT_LOCATION_ID,
       coachIds: DEFAULT_COACH_IDS,
-      trackCode: "foundry8-combat"
+      track: "zero2hero",
+      trackCode: "zero2hero-wrestling"
     };
   }
 
-
-// --------------------------------------------------
-// Path2Legend Boxing
-// --------------------------------------------------
-if (selectedProgramTrack === "path2legend-boxing") {
-  return {
-    framework: "foundry4",
-    programTrack: "path2legend",
-    art: "boxing",
-    ladderKey: "F4",
-    rosterIds: ["teen-adult-boxing"],
-    locationId: DEFAULT_LOCATION_ID,
-    coachIds: DEFAULT_COACH_IDS,
-    trackCode: "path2legend-boxing"
-  };
-}
+  // --------------------------------------------------
+  // Path2Legend Boxing
+  // --------------------------------------------------
+  if (selectedProgramTrack === "path2legend-boxing") {
+    return {
+      framework: "foundry4",
+      programTrack: "path2legend",
+      art: "boxing",
+      ladderKey: "F4",
+      rosterIds: ["teen-adult-boxing"],
+      locationId: DEFAULT_LOCATION_ID,
+      coachIds: DEFAULT_COACH_IDS,
+      track: "path2legend",
+      trackCode: "path2legend-boxing"
+    };
+  }
 
   // --------------------------------------------------
-  // Adult MMA / Quest2Mastery
+  // Quest2Mastery MMA
   // --------------------------------------------------
-  if (age !== null && age >= 16) {
+  if (selectedProgramTrack === "quest2mastery") {
     return {
       framework: "foundry4",
       programTrack: "quest2mastery",
@@ -207,6 +227,7 @@ if (selectedProgramTrack === "path2legend-boxing") {
       rosterIds: ["adult-mma"],
       locationId: DEFAULT_LOCATION_ID,
       coachIds: DEFAULT_COACH_IDS,
+      track: "quest2mastery",
       trackCode: "quest2mastery-mma"
     };
   }
@@ -222,7 +243,7 @@ if (selectedProgramTrack === "path2legend-boxing") {
     rosterIds: ["teen-wrestling"],
     locationId: DEFAULT_LOCATION_ID,
     coachIds: DEFAULT_COACH_IDS,
-    trackCode: "foundry4-combat"
+    trackCode: "path2legend-wrestling"
   };
 }
 // ------------------------------------------------------
@@ -717,9 +738,7 @@ async function approveAthlete() {
     const s = INTAKE_CACHE || {};
     const placement = buildPlacementFromTrack(track, s);
 
-    // Keep old backend compatibility.
     const foundry = track.toLowerCase();
-    const legacyTrackCode = track === "F4" ? "foundry4-combat" : "foundry8-combat";
 
     const publicName = `${initial}. ${last}`.trim();
 
@@ -736,9 +755,29 @@ async function approveAthlete() {
     const payload = {
       intakeId: tokenId,
 
-      // Legacy fields — keep these so existing backend does not break.
+      mode:
+        s.mode === "add_sport"
+          ? "add_sport"
+          : "new_athlete",
+
+      existingAthleteUid:
+        s.mode === "add_sport"
+          ? String(s.existingAthleteUid || "").trim()
+          : "",
+
+      forTrack:
+        s.mode === "add_sport"
+          ? String(s.forTrack || "").trim()
+          : null,
+
+      forLane:
+        s.mode === "add_sport"
+          ? String(s.forLane || "").trim()
+          : null,
+
       foundry,
-      trackCode: legacyTrackCode,
+      track: placement.track,
+      trackCode: placement.trackCode,
 
       // New placement bridge.
       framework: placement.framework,
@@ -752,12 +791,13 @@ async function approveAthlete() {
       placement: {
         framework: placement.framework,
         programTrack: placement.programTrack,
+        track: placement.track,
+        trackCode: placement.trackCode,
         art: placement.art,
         ladderKey: placement.ladderKey,
         rosterIds: placement.rosterIds,
         coachIds: placement.coachIds,
         locationId: placement.locationId,
-        trackCode: placement.trackCode,
         source: "coach_intake_review"
       },
 
@@ -784,23 +824,22 @@ async function approveAthlete() {
         lane: "CB"
       },
 
-      // Prior experience is allowed only for intake placement / validation.
-      // It is NOT cross-art XP transfer.
+      // Verified prior work may earn starting credit inside Tier 0.
+      // XP from another combat journey never transfers.
       experience: {
         years,
-        placementOnly: true,
-        grantsXP: false,
+        grantsStartingCredit: years > 0,
         transferXP: false,
-        source: "intake_validation"
+        source: "coach_verified_experience"
       },
 
       priorExperienceValidation: {
         allowed: true,
         years,
-        placementOnly: true,
-        grantsXP: false,
+        grantsStartingCredit: years > 0,
         transferXP: false,
-        note: "Prior experience may affect intake placement only. XP/progression does not transfer between art journeys."
+        note:
+          "Verified prior experience may earn starting credit within Tier 0. XP from another combat journey does not transfer."
       }
     };
 

@@ -452,8 +452,19 @@ function normTrackCode(a) {
 }
 
 function getLaneUiSpec({ trackCode, lane }) {
-  if (trackCode === "foundry4-combat") {
-    if (lane === "strength" || lane === "honor") return { total: 1200, slots: 3 };
+  const path2LegendTracks = new Set([
+    "path2legend-wrestling",
+    "path2legend-boxing",
+
+    // Legacy compatibility during migration.
+    "foundry4-combat"
+  ]);
+
+  if (path2LegendTracks.has(trackCode)) {
+    if (lane === "strength" || lane === "honor") {
+      return { total: 1200, slots: 3 };
+    }
+
     return { total: null, slots: null };
   }
 
@@ -728,10 +739,19 @@ if (
   const cityTxt = (a.city || "").trim();
   const stateTxt = (a.state || "").trim();
 
+  const defaultAcademy =
+    art === "boxing"
+      ? "Academy of Boxing"
+      : art === "kickboxing"
+        ? "Academy of Kickboxing"
+        : art === "submission-grappling"
+          ? "Academy of Submission Grappling"
+          : "Academy of Wrestling";
+
   const academy =
     (a.academy || "").trim() ||
     (rawTeam && !rawTeam.toLowerCase().startsWith("sandman") ? rawTeam : "") ||
-    "Academy of Wrestling";
+    defaultAcademy;
 
   safeText("out-team", academy);
 

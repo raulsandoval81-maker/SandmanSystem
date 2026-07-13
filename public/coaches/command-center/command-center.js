@@ -329,7 +329,7 @@ actions.forEach((action) => {
 
 const name = encodeURIComponent(data.publicName || data.fullName || "");
 const tier = encodeURIComponent(data.tier || "");
-const track = encodeURIComponent(data.track || "foundry4-combat");
+const track = encodeURIComponent(data.track || "path2legend");
 
 const panelLink = `/coaches/testing/testing-command-center.html?uid=${uid}&athleteName=${name}&tier=${tier}&track=${track}`;
 

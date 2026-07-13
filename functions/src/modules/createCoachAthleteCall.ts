@@ -162,7 +162,6 @@ export const createCoachAthleteCall =
       rosterIds,
       coachIds,
       locationId,
-
       profileType,
       beltSet,
       badgeSet,
@@ -420,8 +419,8 @@ export const createCoachAthleteCall =
       ) ||
       (
         cleanTrack === "F8"
-          ? "foundry8-combat"
-          : "foundry4-combat"
+          ? "zero2hero-wrestling"
+          : "path2legend-wrestling"
       );
 
     const cleanProfileType =
@@ -583,7 +582,7 @@ export const createCoachAthleteCall =
               null,
 
             track:
-              cleanTrack,
+              cleanProgramTrack,
 
             trackCode:
               cleanTrackCode,
@@ -697,7 +696,7 @@ export const createCoachAthleteCall =
                 "T0",
 
               track:
-                cleanTrackCode,
+                cleanProgramTrack,
 
               trackCode:
                 cleanTrackCode,
@@ -877,7 +876,7 @@ export const createCoachAthleteCall =
                 cleanLadderKey,
 
               track:
-                cleanTrack,
+                cleanProgramTrack,
 
               trackCode:
                 cleanTrackCode,

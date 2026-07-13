@@ -193,8 +193,8 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
     const cleanTrackCode = cleanString(trackCode ||
         placement?.trackCode) ||
         (cleanTrack === "F8"
-            ? "foundry8-combat"
-            : "foundry4-combat");
+            ? "zero2hero-wrestling"
+            : "path2legend-wrestling");
     const cleanProfileType = cleanString(profileType) ||
         (cleanTrack === "F8"
             ? "youth"
@@ -269,7 +269,7 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
             age: calculateAge(cleanDob),
             grade: cleanString(grade) ||
                 null,
-            track: cleanTrack,
+            track: cleanProgramTrack,
             trackCode: cleanTrackCode,
             program: cleanProgram,
             tier: "T0",
@@ -320,7 +320,7 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
                 testEligibleAt: null,
                 testingStartedAt: null,
                 tier: "T0",
-                track: cleanTrackCode,
+                track: cleanProgramTrack,
                 trackCode: cleanTrackCode,
             },
             framework: cleanFramework,
@@ -391,7 +391,7 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
                 discipline: cleanDiscipline,
                 primaryDiscipline: cleanPrimaryDiscipline,
                 ladderKey: cleanLadderKey,
-                track: cleanTrack,
+                track: cleanProgramTrack,
                 trackCode: cleanTrackCode,
                 rosterIds: cleanRosterIds,
                 coachIds: cleanCoachIds,

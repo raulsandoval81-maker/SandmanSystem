@@ -67,7 +67,7 @@ function getClientIp(req) {
     }
     return safeTrim(String(forwarded || "").split(",")[0]);
 }
-// Parse x-www-form-urlencoded or multipart/form-data (HTML forms)
+// Parse x-www-form-urlencoded or multipart/form-data HTML forms.
 // Falls back to req.body for JSON/debugging requests.
 function parseForm(req) {
     return new Promise((resolve, reject) => {
@@ -99,7 +99,7 @@ function parseForm(req) {
         }
     });
 }
-// Shared minimal server-side guardrails
+// Shared minimal server-side guardrails.
 function basicGuards(fields, minMs = 1000) {
     // Honeypot
     if (safeTrim(fields.nickname)) {
@@ -129,7 +129,7 @@ async function saveSubmission(collectionName, data, req) {
     await db.collection(collectionName).add(doc);
 }
 function redirect(res, location) {
-    // 303 ensures browser follows with GET
+    // 303 ensures browser follows with GET.
     res.setHeader("Location", location);
     res.status(303).send("");
 }
@@ -145,8 +145,10 @@ exports.submitContact = functions.https.onRequest(async (req, res) => {
             const fields = await parseForm(req);
             const guards = basicGuards(fields, 1500);
             if (!guards.ok) {
-                functions.logger.warn("submitContact blocked by guard", { reason: guards.reason });
-                return redirect(res, "/thanks/contact.html");
+                functions.logger.warn("submitContact blocked by guard", {
+                    reason: guards.reason,
+                });
+                return redirect(res, "/connect/thanks/contact.html");
             }
             const name = safeTrim(fields.name);
             const email = safeTrim(fields.email);
@@ -159,14 +161,14 @@ exports.submitContact = functions.https.onRequest(async (req, res) => {
                     emailValid: isValidEmail(email),
                     hasMessage: !!message,
                 });
-                return redirect(res, "/thanks/contact.html");
+                return redirect(res, "/connect/thanks/contact.html");
             }
             await saveSubmission("contact_submissions", { name, email, subject, message }, req);
-            return redirect(res, "/thanks/contact.html");
+            return redirect(res, "/connect/thanks/contact.html");
         }
         catch (error) {
             functions.logger.error("submitContact failed", error);
-            return redirect(res, "/thanks/contact.html");
+            return redirect(res, "/connect/thanks/contact.html");
         }
     });
 });
@@ -179,8 +181,10 @@ exports.submitVolunteer = functions.https.onRequest(async (req, res) => {
             const fields = await parseForm(req);
             const guards = basicGuards(fields, 1500);
             if (!guards.ok) {
-                functions.logger.warn("submitVolunteer blocked by guard", { reason: guards.reason });
-                return redirect(res, "/thanks/volunteer.html");
+                functions.logger.warn("submitVolunteer blocked by guard", {
+                    reason: guards.reason,
+                });
+                return redirect(res, "/connect/thanks/volunteer.html");
             }
             const name = safeTrim(fields.name);
             const email = safeTrim(fields.email);
@@ -195,7 +199,7 @@ exports.submitVolunteer = functions.https.onRequest(async (req, res) => {
                     hasEmail: !!email,
                     emailValid: isValidEmail(email),
                 });
-                return redirect(res, "/thanks/volunteer.html");
+                return redirect(res, "/connect/thanks/volunteer.html");
             }
             await saveSubmission("volunteer_submissions", {
                 name,
@@ -206,11 +210,11 @@ exports.submitVolunteer = functions.https.onRequest(async (req, res) => {
                 affiliation,
                 message,
             }, req);
-            return redirect(res, "/thanks/volunteer.html");
+            return redirect(res, "/connect/thanks/volunteer.html");
         }
         catch (error) {
             functions.logger.error("submitVolunteer failed", error);
-            return redirect(res, "/thanks/volunteer.html");
+            return redirect(res, "/connect/thanks/volunteer.html");
         }
     });
 });

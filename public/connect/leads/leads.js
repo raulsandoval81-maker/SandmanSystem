@@ -95,8 +95,13 @@ function updateCounts() {
   }
 
   if (countAppointments) {
-    countAppointments.textContent =
-      leads.filter((lead) => lead.status === "appointment_scheduled").length;
+countAppointments.textContent =
+  leads.filter((lead) =>
+    lead.appointmentStatus === "scheduled" ||
+    lead.appointment?.status === "scheduled" ||
+    lead.status === "appointment_scheduled"
+  ).length;
+
   }
 }
 
@@ -113,9 +118,17 @@ function filteredLeads() {
     String(programFilter?.value || "all");
 
   return leads.filter((lead) => {
-    if (wantedStatus !== "all" && lead.status !== wantedStatus) {
-      return false;
-    }
+const leadStatus =
+  lead.leadStatus ||
+  lead.status ||
+  "new";
+
+if (
+  wantedStatus !== "all" &&
+  leadStatus !== wantedStatus
+) {
+  return false;
+}
 
     if (
       wantedProgram !== "all" &&
@@ -185,7 +198,10 @@ function render() {
 
   leadList.innerHTML = list
     .map((lead) => {
-      const status = lead.status || "new";
+        const status =
+        lead.leadStatus ||
+        lead.status ||
+        "new";
 
       return `
         <article class="lead-card" data-id="${esc(lead.id)}">
@@ -381,11 +397,11 @@ async function saveStatus(leadId) {
   try {
     setStatus("Saving status...");
 
-    const updates = {
-      status: nextStatus,
-      updatedAt: serverTimestamp()
-    };
-
+  const updates = {
+     leadStatus: nextStatus,
+     status: nextStatus, // temporary compatibility
+     updatedAt: serverTimestamp()
+   };
     if (
       nextStatus === "contacted" &&
       !lead.contactedAt
@@ -430,7 +446,8 @@ async function saveStatus(leadId) {
       updates
     );
 
-    lead.status = nextStatus;
+     lead.leadStatus = nextStatus;
+     lead.status = nextStatus;
 
     if (
       nextStatus === "contacted" &&
