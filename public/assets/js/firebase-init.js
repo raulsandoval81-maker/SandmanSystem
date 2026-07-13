@@ -75,6 +75,10 @@ console.log("🔥 firebase-init loaded", location.hostname);
 // 3) Emulator wiring (Local + LAN-safe “key code”)
 // ----------------------------------------------------
 const host = window.location.hostname;
+const searchParams = new URLSearchParams(window.location.search);
+
+const forceProduction = searchParams.get("prod") === "1";
+const forceEmulator = searchParams.get("emu") === "1";
 
 // RFC1918 / private IP detection (LAN phones safe)
 const isPrivateIp =
@@ -82,22 +86,31 @@ const isPrivateIp =
   /^192\.168\./.test(host) ||
   /^172\.(1[6-9]|2\d|3[0-1])\./.test(host);
 
-// Use emulators if local OR LAN OR manual override (?emu=1)
-const useEmu =
+const isLocalHost =
   host === "localhost" ||
-  host === "127.0.0.1" ||
-  isPrivateIp ||
-  location.search.includes("emu=1");
+  host === "127.0.0.1";
+
+// Default local/LAN behavior remains emulator.
+// ?prod=1 explicitly overrides it.
+const useEmu =
+  !forceProduction &&
+  (
+    isLocalHost ||
+    isPrivateIp ||
+    forceEmulator
+  );
 
 if (useEmu) {
-  // ✅ Use SAME host the page loaded from (Mac + phone LAN-safe)
-const emuHost = (host === "localhost") ? "127.0.0.1" : host;
+  const emuHost = host === "localhost" ? "127.0.0.1" : host;
+
   console.log(
     `✅ [emu] Firestore@${emuHost}:8081, Auth@${emuHost}:9099, Functions@${emuHost}:5001`
   );
 
   connectFirestoreEmulator(db, emuHost, 8081);
-  connectAuthEmulator(auth, `http://${emuHost}:9099`, { disableWarnings: true });
+  connectAuthEmulator(auth, `http://${emuHost}:9099`, {
+    disableWarnings: true
+  });
   connectFunctionsEmulator(functions, emuHost, 5001);
 } else {
   console.log("🌍 [prod] using live Firebase services");

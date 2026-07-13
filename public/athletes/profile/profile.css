@@ -649,3 +649,77 @@ body{
 .mini-belt-slot .sm-belt-patch{
   right:6%;
 }
+.discipline-selector{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+.discipline-btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:#d4d4d8;
+  border-radius:999px;
+  padding:8px 14px;
+  font:inherit;
+  font-size:.85rem;
+  font-weight:800;
+  cursor:pointer;
+  transition:
+    background .18s ease,
+    border-color .18s ease,
+    color .18s ease,
+    transform .18s ease;
+}
+
+.discipline-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(250,204,21,.55);
+}
+
+.discipline-btn.active{
+  background:#facc15;
+  border-color:#facc15;
+  color:#111;
+}
+
+.discipline-btn:focus-visible{
+  outline:2px solid #facc15;
+  outline-offset:2px;
+}
+/* ===============================
+   Multi-discipline selector
+   =============================== */
+
+.discipline-selector{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:8px;
+}
+
+.discipline-btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.06);
+  color:#d4d4d8;
+  border-radius:999px;
+  padding:8px 14px;
+  font:inherit;
+  font-size:.85rem;
+  font-weight:800;
+  cursor:pointer;
+}
+
+.discipline-btn.active{
+  background:#facc15;
+  border-color:#facc15;
+  color:#111;
+}
+
+.discipline-btn:disabled{
+  opacity:.55;
+  cursor:wait;
+}

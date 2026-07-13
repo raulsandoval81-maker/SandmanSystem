@@ -107,14 +107,110 @@ async function load() {
 
   const A = snap.data() || {};
 
+  // Multi-discipline Combat resolver.
+  // Identity stays on A. Combat progression comes from combat.
+  const disciplineIds = Array.from(
+    new Set([
+      ...(Array.isArray(A.disciplineIds) ? A.disciplineIds : []),
+      ...Object.keys(A.disciplines || {})
+    ]
+      .map((value) => String(value || "").trim().toLowerCase())
+      .filter(Boolean))
+  );
+
+  const requestedDiscipline =
+    params.get("discipline") ||
+    localStorage.getItem(`sandman_active_discipline_${id}`);
+
+  const normalizedRequested =
+    String(requestedDiscipline || "").trim().toLowerCase();
+
+  const activeDiscipline =
+    normalizedRequested && disciplineIds.includes(normalizedRequested)
+      ? normalizedRequested
+      : String(
+          A.activeDiscipline ||
+          disciplineIds[0] ||
+          A.primaryDiscipline ||
+          A.discipline ||
+          A.art ||
+          "wrestling"
+        ).trim().toLowerCase();
+
+  const combat =
+    A.disciplines?.[activeDiscipline] || A;
+
   const art = String(
-    A.art ||
-    A.primaryDiscipline ||
-    A.discipline ||
+    combat.art ||
+    combat.primaryDiscipline ||
+    combat.discipline ||
+    activeDiscipline ||
     "wrestling"
   )
     .trim()
     .toLowerCase();
+
+  function formatDisciplineLabel(value) {
+    const labels = {
+      wrestling: "Wrestling",
+      kickboxing: "Kickboxing",
+      boxing: "Boxing",
+      mma: "MMA",
+      "submission-grappling": "Submission Grappling"
+    };
+
+    return labels[value] ||
+      String(value || "")
+        .split("-")
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+  }
+
+  function renderDisciplineSelector() {
+    const wrap = $("disciplineSelectorWrap");
+    const selector = $("disciplineSelector");
+
+    if (!wrap || !selector) return;
+
+    if (disciplineIds.length <= 1) {
+      wrap.style.display = "none";
+      return;
+    }
+
+    wrap.style.display = "";
+    selector.innerHTML = "";
+
+    disciplineIds.forEach((discipline) => {
+      const button = document.createElement("button");
+
+      button.type = "button";
+      button.className = "discipline-btn";
+      button.textContent = formatDisciplineLabel(discipline);
+
+      const isActive = discipline === activeDiscipline;
+
+      button.classList.toggle("active", isActive);
+      button.setAttribute("aria-pressed", String(isActive));
+
+      button.addEventListener("click", () => {
+        if (discipline === activeDiscipline) return;
+
+        localStorage.setItem(
+          `sandman_active_discipline_${id}`,
+          discipline
+        );
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("discipline", discipline);
+
+        window.location.replace(url.toString());
+      });
+
+      selector.appendChild(button);
+    });
+  }
+
+  renderDisciplineSelector();
 
   // youth only
   if (!id.startsWith("F8_")) {
@@ -133,16 +229,16 @@ async function load() {
   safeText("combatArcTitle", combatArcLabel);
 
   const ladder = LADDER_F8;
-  const tierNum = getStoredTierNum(A);
+  const tierNum = getStoredTierNum(combat);
   const tierInfo = ladder?.[tierNum] || {};
 
   const rankName =
-    A.rankName ||
+    combat.rankName ||
     tierInfo?.rank ||
     "Shadow";
 
   const rankColor =
-    A.rankColor ||
+    combat.rankColor ||
     tierInfo?.color ||
     "#ffffff";
 
@@ -188,9 +284,9 @@ async function load() {
   );
 
   // ===== XP / STRIPES =====
-  const xpNow = Number(A.xp || 0);
-  const xpCap = getStoredXpCap(A, ladder, tierNum) || 600;
-  const storedStripes = getStoredStripes(A);
+  const xpNow = Number(combat.xp || 0);
+  const xpCap = getStoredXpCap(combat, ladder, tierNum) || 600;
+  const storedStripes = getStoredStripes(combat);
   const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
 
   const displayStripes = getEffectiveStripes({

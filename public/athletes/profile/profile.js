@@ -51,24 +51,24 @@ export async function getAthleteProfile(athleteUid) {
   return { id: snap.id, ...snap.data() };
 }
 
-function getStoredTierNum(a) {
-  if (typeof a?.tier === "number") return a.tier;
-  if (typeof a?.tier === "string") {
-    const m = String(a.tier).match(/T(\d+)/i);
+function getStoredTierNum(combat) {
+  if (typeof combat?.tier === "number") return combat.tier;
+  if (typeof combat?.tier === "string") {
+    const m = String(combat.tier).match(/T(\d+)/i);
     if (m) return Number(m[1]) || 0;
   }
   return 0;
 }
 
-function getStoredStripes(a) {
-  return Number(a?.stripeCount ?? a?.stripes ?? 0);
+function getStoredStripes(combat) {
+  return Number(combat?.stripeCount ?? combat?.stripes ?? 0);
 }
+function getStoredXpCap(combat, ladder, storedTierNum) {
 
-function getStoredXpCap(a, ladder, tierNum) {
-  const direct = Number(a?.xpCap ?? 0);
+  const direct = Number(combat?.xpCap ?? 0);
   if (direct > 0) return direct;
 
-  const tier = ladder?.[tierNum];
+  const tier = ladder?.[storedTierNum];
   return Number(tier?.cap ?? tier?.xpCap ?? tier?.maxXP ?? 0);
 }
 
@@ -663,12 +663,122 @@ if (reviewMode) setAllDrops(true);
 
 const a = snap.data();
 
-const trackCode = normTrackCode(a);
+// Multi-discipline Combat resolver.
+// Shared athlete data continues to come from `a`.
+const disciplineIds = Array.from(
+  new Set([
+    ...(Array.isArray(a.disciplineIds) ? a.disciplineIds : []),
+    ...Object.keys(a.disciplines || {})
+  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))
+);
+
+const requestedDiscipline =
+  params.get("discipline") ||
+  localStorage.getItem(`sandman_active_discipline_${athleteId}`);
+
+const activeDiscipline =
+  String(
+    (
+      requestedDiscipline &&
+      disciplineIds.includes(
+        String(requestedDiscipline).trim().toLowerCase()
+      )
+    )
+      ? requestedDiscipline
+      : (
+          a.activeDiscipline ||
+          disciplineIds[0] ||
+          a.primaryDiscipline ||
+          a.discipline ||
+          a.art ||
+          "wrestling"
+        )
+  ).trim().toLowerCase();
+
+const combat =
+  a.disciplines?.[activeDiscipline] || a;
+
+function formatDisciplineLabel(value) {
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  };
+
+  return labels[value] ||
+    String(value || "")
+      .split("-")
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+}
+
+function renderDisciplineSelector() {
+  const wrap = $("disciplineSelectorWrap");
+  const selector = $("disciplineSelector");
+
+  if (!wrap || !selector) return;
+
+  if (disciplineIds.length <= 1) {
+    wrap.style.display = "none";
+    return;
+  }
+
+  wrap.style.display = "";
+  selector.innerHTML = "";
+
+  disciplineIds.forEach((discipline) => {
+    const button = document.createElement("button");
+
+    button.type = "button";
+    button.className = "discipline-btn";
+    button.textContent = formatDisciplineLabel(discipline);
+
+    const isActive = discipline === activeDiscipline;
+
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+
+    button.addEventListener("click", async () => {
+      if (discipline === activeDiscipline) return;
+
+      selector.querySelectorAll("button").forEach((btn) => {
+        btn.disabled = true;
+      });
+
+      try {
+        localStorage.setItem(
+          `sandman_active_discipline_${athleteId}`,
+          discipline
+        );
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("discipline", discipline);
+
+        window.location.replace(url.toString());
+      } catch (error) {
+        console.error("Unable to change discipline:", error);
+
+        selector.querySelectorAll("button").forEach((btn) => {
+          btn.disabled = false;
+        });
+      }
+    });
+
+    selector.appendChild(button);
+  });
+}
+
+renderDisciplineSelector();
+
+const trackCode = normTrackCode(combat);
 
 const art = String(
-  a.art ||
-  a.primaryDiscipline ||
-  a.discipline ||
+  combat.art ||
+  combat.primaryDiscipline ||
+  combat.discipline ||
+  activeDiscipline ||
   "wrestling"
 ).toLowerCase();
 
@@ -801,9 +911,9 @@ if (
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
-    a.xp ??
-    a.xpTotal ??
-    a.xpCombat ??
+    combat.xp ??
+    combat.xpTotal ??
+    combat.xpCombat ??
     (xpDaily + xpArena + xpFightIQ) ??
     0
   );
@@ -818,26 +928,27 @@ if (
   // -----------------------------
   // Stripe info
   // -----------------------------
-  const storedTierNum = getStoredTierNum(a);
-  const storedStripes = getStoredStripes(a);
-  const storedXpCap = getStoredXpCap(a, ladder, storedTierNum);
+const storedTierNum = getStoredTierNum(combat);
+const storedStripes = getStoredStripes(combat);
+
+  const storedXpCap = getStoredXpCap(combat, ladder, storedTierNum);
 
   const tierInfo = ladder?.[storedTierNum] || {};
-  const req = unlockRules({ tierName: a?.rankName || a?.tierName || tierInfo?.name });
+  const req = unlockRules({ tierName: combat?.rankName || combat?.tierName || tierInfo?.name });
 
   // -----------------------------
   // Rank / Color display
   // -----------------------------
   const rankName =
-    a.rankName ||
-    a.tierName ||
-    a.rank ||
+    combat.rankName ||
+    combat.tierName ||
+    combat.rank ||
     tierInfo?.rank ||
     tierInfo?.name ||
     "Apprentice";
 
   const rankColor =
-    a.rankColor ||
+    combat.rankColor ||
     tierInfo?.color ||
     tierInfo?.rankColor ||
     "#ffffff";
@@ -871,11 +982,12 @@ if (badgeRow) {
     t4: "t4-legend.png",
   };
 
-  const currentTier = String(a.tier || "T0").toUpperCase();
+  const currentTier = String(combat.tier || "T0").toUpperCase();
 
-  const badges = Array.isArray(a.badges) && a.badges.length
-    ? a.badges
-    : [{ tier: a.tier || "T0", rankName }];
+  const badges =
+    Array.isArray(combat.badges) && combat.badges.length
+      ? combat.badges
+      : [{ tier: combat.tier || "T0", rankName }];
 
   // Past badges only
   const pastBadges = badges.filter(
@@ -897,7 +1009,7 @@ if (badgeRow) {
   });
 
   // Render current badge big
-  const currentTierNum = Number(String(a.tier || "T0").replace("T", "")) || 0;
+  const currentTierNum = Number(String(combat.tier || "T0").replace("T", "")) || 0;
   const currentFile = F4_BADGES[`t${currentTierNum}`] || F4_BADGES.t0;
 
   const currentImg = document.createElement("img");
@@ -930,7 +1042,7 @@ const isStriking =
   art === "kickboxing";
 
 const currentTier =
-  String(a.tier || "T0").toUpperCase();
+  String(combat.tier || "T0").toUpperCase();
 
 const beltMap = {
   T0: isStriking
