@@ -14,11 +14,11 @@
 <body>
   <main class="wrap intake-review" role="main">
 
-    <header class="page-head review-hero">
+    <header class="page-head review-hero" id="reviewHero">
       <div>
         <p class="eyebrow">Sandman Enrollment</p>
-        <h1>Review & Activate Athlete</h1>
-        <p class="muted small">Review the athlete, choose the correct journey, confirm placement, and activate the profile.</p>
+        <h1 id="reviewPageTitle">Review & Activate Athlete</h1>
+        <p id="reviewPageSubtitle" class="muted small">Review the athlete, choose the correct journey, confirm placement, and activate the profile.</p>
       </div>
     </header>
 
@@ -126,7 +126,7 @@
           </div>
         </section>
 
-        <section class="card" aria-labelledby="exp-title">
+        <section class="card" id="experienceCard" aria-labelledby="exp-title">
           <div class="card-head">
             <h3 id="exp-title">Experience Validation</h3>
             <span class="status-pill gold">Placement Only</span>
@@ -176,6 +176,58 @@
       <!-- RIGHT COLUMN -->
       <div class="review-stack">
 
+
+        <section
+          class="card"
+          id="addDisciplineSummaryCard"
+          hidden
+          aria-labelledby="add-discipline-summary-title"
+        >
+          <div class="card-head">
+            <h3 id="add-discipline-summary-title">
+              Add Discipline
+            </h3>
+
+            <span class="status-pill gold">
+              Existing Athlete
+            </span>
+          </div>
+
+          <div class="info-grid two">
+            <div class="stat">
+              <div class="label">Existing Athlete</div>
+              <div class="value" id="addDisciplineAthleteName">—</div>
+              <div class="small muted mono" id="addDisciplineAthleteUid">—</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">New Discipline</div>
+              <div class="value" id="addDisciplineName">—</div>
+            </div>
+          </div>
+
+          <div class="info-grid three">
+            <div class="stat">
+              <div class="label">Journey</div>
+              <div class="value" id="addDisciplineJourney">—</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Starting Rank</div>
+              <div class="value" id="addDisciplineRank">—</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Starting XP</div>
+              <div class="value" id="addDisciplineXp">0 / —</div>
+            </div>
+          </div>
+
+          <p class="muted small">
+            This adds Combat progression to the existing athlete. Strength, Honor, parent access, and athlete identity remain shared.
+          </p>
+        </section>
+
         <section class="card" id="mint-box" aria-labelledby="minttag-title">
           <div class="card-head">
             <h3 id="minttag-title">Athlete Identity</h3>
@@ -195,7 +247,7 @@
           </div>
         </section>
 
-        <section class="card mint-card" aria-labelledby="mint-title">
+        <section class="card mint-card" id="journeyPickerCard" aria-labelledby="mint-title">
           <div class="card-head">
             <h3 id="mint-title">Select Journey</h3>
             <span class="status-pill gold">Choose Journey</span>
@@ -251,7 +303,7 @@
           </div>
         </section>
 
-        <section class="card" aria-labelledby="adjust-title">
+        <section class="card" id="adjustmentCard" aria-labelledby="adjust-title">
           <div class="card-head">
             <h3 id="adjust-title">Administrative Adjustment</h3>
             <span class="status-pill danger">Optional</span>
@@ -272,15 +324,15 @@
           </div>
         </section>
 
-        <section class="card" aria-labelledby="legacy-title">
+        <section class="card" id="parentConnectionCard" aria-labelledby="legacy-title">
 
   <div class="card-head">
-    <h3 id="legacy-title">Repair Athlete Link</h3>
+    <h3 id="legacy-title">Connect Parent</h3>
     <span class="status-pill gold">Legacy</span>
   </div>
 
   <p class="muted small">
-    Use only to reconnect an intake that already belongs to an existing athlete.
+    Use when an athlete was created before the parent joined. This gives the parent access without creating or changing the athlete profile.
   </p>
 
   <div class="field">
@@ -301,7 +353,7 @@
       id="btn-link-existing"
       class="outline-blue"
     >
-      Repair Athlete Link
+      Connect Parent
     </button>
   </div>
 
@@ -312,7 +364,7 @@
 
 </section>
 
-        <section class="card approve-card" aria-labelledby="approve-title">
+        <section class="card approve-card" id="approveCard" aria-labelledby="approve-title">
           <h3 id="approve-title">Approve & Activate Profile</h3>
 
           <div class="approve-actions">

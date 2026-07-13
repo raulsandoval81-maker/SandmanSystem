@@ -125,6 +125,11 @@ export {
   createCoachAthleteCall,
 } from "./modules/createCoachAthleteCall";
 
+
+export {
+  addDisciplineCoachCall,
+} from "./modules/addDisciplineCoachCall";
+
 /* =========================
    ONBOARDING
 ========================= */

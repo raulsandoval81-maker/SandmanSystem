@@ -14,13 +14,42 @@
   <main class="wrap">
 
     <h1 class="page-title">
-      Athlete Intake
+      <span id="intakePageTitle">Athlete Intake</span>
       <span class="lang-alt-title">
-        / Registro del Atleta
+        / <span id="intakePageTitleEs">Registro del Atleta</span>
       </span>
     </h1>
+
+    <section
+      id="intakeModeBanner"
+      class="intake-card"
+      hidden
+    >
+      <p class="eyebrow">Existing Athlete</p>
+
+      <h2 id="intakeModeTitle">
+        Add Discipline
+      </h2>
+
+      <p id="intakeModeMessage" class="muted">
+        This intake will add a new combat discipline to an existing Sandman athlete profile.
+      </p>
+
+      <div class="info-grid two">
+        <div>
+          <strong>Athlete</strong>
+          <div id="existingAthleteDisplay">—</div>
+        </div>
+
+        <div>
+          <strong>New Discipline</strong>
+          <div id="requestedDisciplineDisplay">—</div>
+        </div>
+      </div>
+    </section>
+
       <!-- PLACEMENT NOTE -->
-      <p class="placement-note">
+      <p id="placementNote" class="placement-note">
         Coach will review age, experience, and goals before assigning the correct training path.
         <span class="lang-alt-block">
           El entrenador revisará edad, experiencia y metas antes de asignar el camino correcto de entrenamiento.
@@ -322,9 +351,9 @@
           class="btn btn-brand"
           disabled
         >
-          Submit Enrollment Intake
+          <span id="submitLabelEn">Submit Enrollment Intake</span>
           <span class="lang-alt">
-            Enviar registro de inscripción
+            <span id="submitLabelEs">Enviar registro de inscripción</span>
           </span>
         </button>
       </section>

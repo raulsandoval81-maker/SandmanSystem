@@ -42,6 +42,131 @@ const SYSTEM_PING_EVENTS = {
   SCHEDULE_CHANGED: "schedule_changed",
 } as const;
 
+function getStartingRankColor(
+  framework: string,
+  programTrack: string,
+  discipline: string
+): string {
+  const fw = String(framework || "").trim().toLowerCase();
+  const journey = String(programTrack || "").trim().toLowerCase();
+  const art = String(discipline || "").trim().toLowerCase();
+
+  if (fw === "foundry8") {
+    return "white";
+  }
+
+  if (journey === "quest2mastery") {
+    return "gray";
+  }
+
+  if (journey === "path2legend") {
+    if (art === "wrestling" || art === "submission-grappling") {
+      return "white";
+    }
+
+    if (art === "boxing" || art === "kickboxing") {
+      return "gray";
+    }
+  }
+
+  return "gray";
+}
+
+function resolveRequestedDiscipline(
+  art: unknown,
+  lane: unknown
+): string {
+  const fromArt =
+    String(art || "")
+      .trim()
+      .toLowerCase();
+
+  if (fromArt) return fromArt;
+
+  const fromLane =
+    String(lane || "")
+      .trim()
+      .toLowerCase();
+
+  if (fromLane) return fromLane;
+
+  return "";
+}
+
+function buildDisciplineRecord({
+  discipline,
+  framework,
+  programTrack,
+  trackCode,
+  ladderKey,
+  rosterIds,
+  coachIds,
+  locationId,
+  placement,
+  tier,
+  rankName,
+  rankColor,
+  xpCap,
+  now
+}: {
+  discipline: string;
+  framework: string;
+  programTrack: string;
+  trackCode: string;
+  ladderKey: string;
+  rosterIds: string[];
+  coachIds: string[];
+  locationId: string | null;
+  placement: Record<string, unknown> | null;
+  tier: string;
+  rankName: string;
+  rankColor: string;
+  xpCap: number;
+  now: FirebaseFirestore.FieldValue;
+}) {
+  return {
+    discipline,
+    primaryDiscipline: discipline,
+    sport: discipline,
+    art: discipline,
+
+    framework,
+    journey: programTrack,
+    program: programTrack,
+    programTrack,
+    track: programTrack,
+    trackCode,
+    ladderKey,
+
+    rosterIds,
+    coachIds,
+    locationId,
+    placement,
+
+    tier,
+    rankName,
+    rankColor,
+    xp: 0,
+    xpCap,
+    stripeCount: 0,
+
+    testing: {
+      state: "ACTIVE",
+      coachReady: false,
+      coachReadyAt: null,
+      testingStartedAt: null,
+      cooldownUntil: null,
+      freezeUntil: null,
+      lastTestResult: null,
+      templeEnteredAt: null,
+      testEligibleAt: null
+    },
+
+    createdAt: now,
+    updatedAt: now
+  };
+}
+
 function programLabel(programTrack: string, art: string) {
 
   if (programTrack === "zero2hero") {
@@ -262,12 +387,390 @@ const safePriorExperienceValidation =
 
     
 
-    const counterRef = db.doc(`counters/${foundry}`);
     if (mode === "add_sport") {
+      if (!existingAthleteUid) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Missing existingAthleteUid."
+        );
+      }
 
-   // existing athlete workflow
+      if (!forTrack || !forLane) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Add-sport request requires forTrack and forLane."
+        );
+      }
 
-}
+      const existingRef =
+        db.doc(`athletes/${existingAthleteUid}`);
+
+      const existingSnap =
+        await existingRef.get();
+
+      if (!existingSnap.exists) {
+        throw new HttpsError(
+          "not-found",
+          `Athlete not found: ${existingAthleteUid}`
+        );
+      }
+
+      const existingAthlete =
+        existingSnap.data() || {};
+
+      const requestedDiscipline =
+        resolveRequestedDiscipline(
+          safeArt,
+          forLane
+        );
+
+      if (!requestedDiscipline) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Unable to determine requested discipline."
+        );
+      }
+
+      const existingDisciplines =
+        existingAthlete.disciplines &&
+        typeof existingAthlete.disciplines === "object"
+          ? existingAthlete.disciplines
+          : {};
+
+      const legacyDiscipline =
+        String(
+          existingAthlete.primaryDiscipline ||
+          existingAthlete.discipline ||
+          existingAthlete.art ||
+          existingAthlete.sport ||
+          ""
+        )
+          .trim()
+          .toLowerCase();
+
+      const legacyTrackCode =
+        String(existingAthlete.trackCode || "")
+          .trim()
+          .toLowerCase();
+
+      const alreadyHasNestedDiscipline =
+        Object.prototype.hasOwnProperty.call(
+          existingDisciplines,
+          requestedDiscipline
+        );
+
+      const alreadyHasLegacyDiscipline =
+        legacyDiscipline === requestedDiscipline ||
+        legacyTrackCode.endsWith(`-${requestedDiscipline}`);
+
+      if (
+        alreadyHasNestedDiscipline ||
+        alreadyHasLegacyDiscipline
+      ) {
+        throw new HttpsError(
+          "already-exists",
+          `${existingAthleteUid} already has ${requestedDiscipline}.`
+        );
+      }
+
+      const addSportIntakeRef =
+        db.doc(`intakes/${intakeId}`);
+
+      const addSportResult =
+        await db.runTransaction(async (tx) => {
+          const athleteSnap =
+            await tx.get(existingRef);
+
+          const intakeSnap =
+            await tx.get(addSportIntakeRef);
+
+          if (!athleteSnap.exists) {
+            throw new HttpsError(
+              "not-found",
+              `Athlete not found: ${existingAthleteUid}`
+            );
+          }
+
+          if (!intakeSnap.exists) {
+            throw new HttpsError(
+              "failed-precondition",
+              `Submission doc missing: ${addSportIntakeRef.path}`
+            );
+          }
+
+          const athleteData =
+            athleteSnap.data() || {};
+
+          const intakeData =
+            intakeSnap.data() || {};
+
+          const existingStatus =
+            String(intakeData.status || "")
+              .trim()
+              .toLowerCase();
+
+          const approvedUid =
+            String(intakeData.approvedUid || "")
+              .trim();
+
+          if (
+            existingStatus === "approved" &&
+            approvedUid === existingAthleteUid
+          ) {
+            return {
+              uid: existingAthleteUid,
+              discipline: requestedDiscipline,
+              mintVirtueTag:
+                String(
+                  athleteData.mintVirtueTag ||
+                  athleteData.mintVirtueTagDisplay ||
+                  ""
+                ).trim(),
+              idempotent: true
+            };
+          }
+
+          if (
+            existingStatus &&
+            existingStatus !== "submitted"
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              `Submission not approvable: ${existingStatus}`
+            );
+          }
+
+          const currentDisciplines =
+            athleteData.disciplines &&
+            typeof athleteData.disciplines === "object"
+              ? athleteData.disciplines
+              : {};
+
+          if (
+            Object.prototype.hasOwnProperty.call(
+              currentDisciplines,
+              requestedDiscipline
+            )
+          ) {
+            throw new HttpsError(
+              "already-exists",
+              `${existingAthleteUid} already has ${requestedDiscipline}.`
+            );
+          }
+
+          const now =
+            FieldValue.serverTimestamp();
+
+          const starter =
+            foundry === "f8"
+              ? {
+                  tier: "T0",
+                  rankName: "Shadow",
+                  rankColor:
+                    getStartingRankColor(
+                      safeFramework,
+                      safeProgramTrack,
+                      requestedDiscipline
+                    ),
+                  xpCap: 600
+                }
+              : {
+                  tier: "T0",
+                  rankName: "Apprentice",
+                  rankColor:
+                    getStartingRankColor(
+                      safeFramework,
+                      safeProgramTrack,
+                      requestedDiscipline
+                    ),
+                  xpCap: 1000
+                };
+
+          const disciplinePath =
+            `disciplines.${requestedDiscipline}`;
+
+          const disciplineRecord =
+            buildDisciplineRecord({
+              discipline:
+                requestedDiscipline,
+              framework:
+                safeFramework,
+              programTrack:
+                safeProgramTrack,
+              trackCode,
+              ladderKey:
+                safeLadderKey,
+              rosterIds:
+                safeRosterIds,
+              coachIds:
+                safeCoachIds,
+              locationId:
+                safeLocationId,
+              placement:
+                safePlacement,
+              tier:
+                starter.tier,
+              rankName:
+                starter.rankName,
+              rankColor:
+                starter.rankColor,
+              xpCap:
+                starter.xpCap,
+              now
+            });
+
+          const athletePatch: Record<string, any> = {
+            [disciplinePath]: disciplineRecord,
+
+            disciplineIds:
+              FieldValue.arrayUnion(
+                requestedDiscipline
+              ),
+
+            rosterIds:
+              FieldValue.arrayUnion(
+                ...(safeRosterIds || [])
+              ),
+
+            updatedAt: now
+          };
+
+          if (!athleteData.activeDiscipline) {
+            athletePatch.activeDiscipline =
+              requestedDiscipline;
+          }
+
+          tx.update(
+            existingRef,
+            athletePatch
+          );
+
+          tx.update(
+            addSportIntakeRef,
+            {
+              status: "approved",
+              used: true,
+              approved: true,
+              approvedUid:
+                existingAthleteUid,
+              approvedAt: now,
+
+              minted: false,
+              attachedSport: true,
+              mode: "add_sport",
+
+              existingAthleteUid,
+              requestedDiscipline,
+
+              forTrack,
+              forLane,
+
+              framework: safeFramework,
+              programTrack:
+                safeProgramTrack,
+              track:
+                safeProgramTrack,
+              trackCode,
+              art: safeArt,
+              ladderKey:
+                safeLadderKey,
+              rosterIds:
+                safeRosterIds,
+              coachIds:
+                safeCoachIds,
+              locationId:
+                safeLocationId,
+              placement:
+                safePlacement,
+
+              updatedAt: now
+            }
+          );
+
+          const receiptRef =
+            db.collection("receipts").doc();
+
+          tx.create(
+            receiptRef,
+            {
+              type:
+                "ATHLETE_DISCIPLINE_ADDED",
+
+              mode: "add_sport",
+              intakeId,
+              uid:
+                existingAthleteUid,
+
+              discipline:
+                requestedDiscipline,
+
+              framework:
+                safeFramework,
+              programTrack:
+                safeProgramTrack,
+              track:
+                safeProgramTrack,
+              trackCode,
+              art: safeArt,
+              ladderKey:
+                safeLadderKey,
+              rosterIds:
+                safeRosterIds,
+              coachIds:
+                safeCoachIds,
+              locationId:
+                safeLocationId,
+
+              tier:
+                starter.tier,
+              rankName:
+                starter.rankName,
+              xp: 0,
+              xpCap:
+                starter.xpCap,
+              stripeCount: 0,
+
+              coachUid,
+              createdAt: now
+            }
+          );
+
+          return {
+            uid:
+              existingAthleteUid,
+
+            discipline:
+              requestedDiscipline,
+
+            mintVirtueTag:
+              String(
+                athleteData.mintVirtueTag ||
+                athleteData.mintVirtueTagDisplay ||
+                ""
+              ).trim(),
+
+            receiptId:
+              receiptRef.id,
+
+            idempotent: false
+          };
+        });
+
+      console.log(
+        "[approveAndActivate] discipline attached",
+        addSportResult
+      );
+
+      return {
+        ok: true,
+        mode: "add_sport",
+        addedDiscipline:
+          addSportResult.discipline,
+        ...addSportResult
+      };
+    }
+
+    const counterRef = db.doc(`counters/${foundry}`);
     const intakeRef = db.doc(`intakes/${intakeId}`);
 
     const intakeSnapPre = await intakeRef.get();
@@ -409,13 +912,13 @@ const starter =
         tier: "T0",
         rankName: "Apprentice",
         rankColor: "white",
-        xpCap: 1200
+        xpCap: 1000
       }
     : {
         tier: "T0",
         rankName: "Shadow",
         rankColor: "white",
-        xpCap: 800
+        xpCap: 600
       };
       const startingXp = expPlan.issuedNow + adjustmentAmount;
       const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);

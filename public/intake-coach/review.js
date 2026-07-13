@@ -410,6 +410,241 @@ function paintMintUI({
   if ($("c-uid")) $("c-uid").value = uid || "";
 }
     // ------------------------------------------------------
+// Review workflow mode
+// ------------------------------------------------------
+function formatDisciplineLabel(value = "") {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  };
+
+  return labels[key] || key || "—";
+}
+
+function formatJourneyLabel(value = "") {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  const labels = {
+    zero2hero: "Zero2Hero",
+    path2legend: "Path2Legend",
+    quest2mastery: "Quest2Mastery",
+    road2greatness: "Road2Greatness"
+  };
+
+  return labels[key] || key || "—";
+}
+
+function getAddDisciplineStarter(s = {}) {
+  const discipline =
+    String(
+      s.requestedDiscipline ||
+      s.forLane ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const trackCode =
+    String(
+      s.requestedTrackCode ||
+      s.forTrack ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const journey =
+    trackCode.startsWith("zero2hero")
+      ? "zero2hero"
+      : trackCode.startsWith("quest2mastery")
+      ? "quest2mastery"
+      : trackCode.startsWith("path2legend")
+      ? "path2legend"
+      : "";
+
+  if (journey === "zero2hero") {
+    return {
+      discipline,
+      journey,
+      rank: "Shadow",
+      xpCap: 600
+    };
+  }
+
+  return {
+    discipline,
+    journey,
+    rank: "Apprentice",
+    xpCap: 1000
+  };
+}
+
+function applyReviewModeUI(s = {}) {
+  const mode =
+    String(s.mode || "new_athlete")
+      .trim()
+      .toLowerCase();
+
+  const isAddSport =
+    mode === "add_sport";
+
+  const summaryCard =
+    $("addDisciplineSummaryCard");
+
+  const journeyPicker =
+    $("journeyPickerCard");
+
+  const experienceCard =
+    $("experienceCard");
+
+  const adjustmentCard =
+    $("adjustmentCard");
+
+  const identityCard =
+    $("mint-box");
+
+  const parentConnectionCard =
+    $("parentConnectionCard");
+
+  const approveTitle =
+    $("approve-title");
+
+  const approveButton =
+    $("btn-approve");
+
+  if (!isAddSport) {
+    if (summaryCard) {
+      summaryCard.hidden = true;
+    }
+
+    return;
+  }
+
+  const starter =
+    getAddDisciplineStarter(s);
+
+  const athleteUid =
+    String(
+      s.existingAthleteUid || ""
+    ).trim();
+
+  const athleteName =
+    String(
+      s.existingAthleteName ||
+      `${s.first || s.athlete?.first || ""} ${s.last || s.athlete?.last || ""}`.trim() ||
+      athleteUid
+    ).trim();
+
+  if ($("reviewPageTitle")) {
+    $("reviewPageTitle").textContent =
+      "Review & Add Discipline";
+  }
+
+  if ($("reviewPageSubtitle")) {
+    $("reviewPageSubtitle").textContent =
+      "Confirm the existing athlete and the new discipline. No new athlete identity will be created.";
+  }
+
+  if (summaryCard) {
+    summaryCard.hidden = false;
+  }
+
+  if ($("addDisciplineAthleteName")) {
+    $("addDisciplineAthleteName").textContent =
+      athleteName || "Existing athlete";
+  }
+
+  if ($("addDisciplineAthleteUid")) {
+    $("addDisciplineAthleteUid").textContent =
+      athleteUid || "—";
+  }
+
+  if ($("addDisciplineName")) {
+    $("addDisciplineName").textContent =
+      formatDisciplineLabel(
+        starter.discipline
+      );
+  }
+
+  if ($("addDisciplineJourney")) {
+    $("addDisciplineJourney").textContent =
+      formatJourneyLabel(
+        starter.journey
+      );
+  }
+
+  if ($("addDisciplineRank")) {
+    $("addDisciplineRank").textContent =
+      starter.rank;
+  }
+
+  if ($("addDisciplineXp")) {
+    $("addDisciplineXp").textContent =
+      `0 / ${starter.xpCap}`;
+  }
+
+  if (journeyPicker) {
+    journeyPicker.hidden = true;
+  }
+
+  if (experienceCard) {
+    experienceCard.hidden = true;
+  }
+
+  if (adjustmentCard) {
+    adjustmentCard.hidden = true;
+  }
+
+  if (identityCard) {
+    identityCard.hidden = true;
+  }
+
+  if (parentConnectionCard) {
+    parentConnectionCard.hidden = true;
+  }
+
+  if (approveTitle) {
+    approveTitle.textContent =
+      "Approve & Add Discipline";
+  }
+
+  if (approveButton) {
+    approveButton.textContent =
+      "Approve & Add Discipline";
+  }
+
+  const requestedTrack =
+    String(
+      s.requestedTrackCode ||
+      s.forTrack ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  if (requestedTrack.startsWith("zero2hero")) {
+    mintTrack("F8", "zero2hero");
+  } else if (requestedTrack === "quest2mastery-mma") {
+    mintTrack("F4", "quest2mastery");
+  } else if (requestedTrack === "path2legend-boxing") {
+    mintTrack("F4", "path2legend-boxing");
+  } else {
+    mintTrack("F4", "path2legend");
+  }
+
+  setApproveEnabled(true);
+}
+
+// ------------------------------------------------------
 // Load submission
 // ------------------------------------------------------
 async function loadSubmission() {
@@ -422,6 +657,8 @@ async function loadSubmission() {
 
   const s = snap.data() || {};
   INTAKE_CACHE = s;
+
+  applyReviewModeUI(s);
 
   if (s.status === "approved" && s.approvedUid) {
     const uid = s.approvedUid;
@@ -705,6 +942,13 @@ const authReady = ensureSignedIn().catch(console.error);
 async function approveAthlete() {
   await authReady;
 
+  const s = INTAKE_CACHE || {};
+
+  const isAddSport =
+    String(s.mode || "")
+      .trim()
+      .toLowerCase() === "add_sport";
+
   const initial = ($("c-initial")?.value || "").trim();
   const last = ($("c-last")?.value || "").trim();
   const team = ($("c-team")?.value || "").trim();
@@ -715,7 +959,7 @@ async function approveAthlete() {
   const adjustXp = Number($("c-adjust-xp")?.value || 0);
   const adjustNote = ($("c-adjust-note")?.value || "").trim();
 
-  if (!initial || !last) {
+  if (!isAddSport && (!initial || !last)) {
     return alert("Public Initial + Public Last required.");
   }
 
@@ -724,8 +968,13 @@ async function approveAthlete() {
     return alert("Mint first (track missing).");
   }
 
-  const virtue = ($("mint-virtue")?.value || "").trim().toUpperCase();
-  if (!virtue) {
+  const virtue =
+    ($("mint-virtue")?.value || "").trim().toUpperCase() ||
+    String(s.virtueName || "HONOR")
+      .trim()
+      .toUpperCase();
+
+  if (!isAddSport && !virtue) {
     return alert("Pick a Mint Virtue.");
   }
 
@@ -735,7 +984,6 @@ async function approveAthlete() {
   try {
     const approveAndActivate = httpsCallable(functions, "approveAndActivate");
 
-    const s = INTAKE_CACHE || {};
     const placement = buildPlacementFromTrack(track, s);
 
     const foundry = track.toLowerCase();
@@ -774,6 +1022,24 @@ async function approveAthlete() {
         s.mode === "add_sport"
           ? String(s.forLane || "").trim()
           : null,
+
+          requestedTrackCode:
+  s.mode === "add_sport"
+    ? String(s.requestedTrackCode || "").trim()
+    : null,
+
+requestedDiscipline:
+  s.mode === "add_sport"
+    ? String(s.requestedDiscipline || "").trim()
+    : null,
+
+existingAthleteName:
+  s.mode === "add_sport"
+    ? String(s.existingAthleteName || "").trim()
+    : null,
+
+workflowVersion:
+  String(s.workflowVersion || "v1"),
 
       foundry,
       track: placement.track,
@@ -879,7 +1145,12 @@ async function approveAthlete() {
     if (!uid) throw new Error("Missing uid in response");
 
     if ($("c-uid")) $("c-uid").value = uid;
-    if ($("approve-status")) $("approve-status").textContent = "✓ Approved!";
+    if ($("approve-status")) {
+      $("approve-status").textContent =
+        isAddSport
+          ? "✓ Discipline added!"
+          : "✓ Approved!";
+    }
 
 const programTrack =
   $("c-program-track")?.value || "";

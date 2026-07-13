@@ -153,7 +153,95 @@
       Sandman Systems™ — Coach Intake Console
     </footer>
 
-  </main>
+  
+<section class="card add-discipline-card" id="add-discipline-card">
+  <div class="card-head">
+    <div>
+      <h3>Add Discipline</h3>
+      <p class="muted small">
+        Use for an athlete who already has a Sandman profile and is joining another combat discipline.
+      </p>
+    </div>
+
+    <span class="status-pill gold">Existing Athlete</span>
+  </div>
+
+  <div class="form-grid two">
+    <div class="field">
+      <label for="add-discipline-athlete-uid">
+        Existing Athlete UID
+      </label>
+
+      <input
+        id="add-discipline-athlete-uid"
+        class="mono"
+        type="text"
+        placeholder="F4_0001"
+        autocomplete="off"
+      >
+    </div>
+
+    <div class="field">
+      <label for="add-discipline-track">
+        New Discipline
+      </label>
+
+      <select id="add-discipline-track">
+        <option value="">Choose discipline</option>
+        <option
+          value="zero2hero-kickboxing"
+          data-track="zero2hero-kickboxing"
+          data-lane="kickboxing"
+        >
+          Zero2Hero Kickboxing
+        </option>
+
+        <option
+          value="path2legend-wrestling"
+          data-track="path2legend-wrestling"
+          data-lane="wrestling"
+        >
+          Path2Legend Wrestling
+        </option>
+
+        <option
+          value="path2legend-boxing"
+          data-track="path2legend-boxing"
+          data-lane="boxing"
+        >
+          Path2Legend Boxing
+        </option>
+
+        <option
+          value="quest2mastery-mma"
+          data-track="quest2mastery-mma"
+          data-lane="mma"
+        >
+          Quest2Mastery MMA
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <div class="approve-actions" style="margin-top:14px;">
+    <button
+      type="button"
+      id="btn-start-add-discipline"
+      class="solid-blue"
+    >
+      Start Add-Discipline Intake
+    </button>
+  </div>
+
+  <p
+    id="add-discipline-status"
+    class="small muted"
+    role="status"
+    aria-live="polite"
+  ></p>
+</section>
+
+</main>
 
   <script
     type="module"

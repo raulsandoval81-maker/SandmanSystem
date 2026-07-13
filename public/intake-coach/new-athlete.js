@@ -63,6 +63,170 @@ const form = $("newAthleteForm");
 const submitBtn = $("submitBtn");
 const resultBox = $("resultBox");
 
+const NEW_ATHLETE_ONLY_IDS = [
+  "first",
+  "last",
+  "team",
+  "grade",
+  "dob",
+  "city",
+  "state",
+  "parentName",
+  "parentEmail",
+  "parentPhone",
+  "emergencyName",
+  "emergencyPhone",
+  "medical",
+  "waiverSignedBy",
+  "waiverSignatureDate",
+  "virtueName",
+  "experienceYears",
+  "startingXp",
+  "startingXpNote",
+  "notes",
+];
+
+function getWorkflowMode() {
+  return String(
+    $("workflowMode")?.value ||
+    "new_athlete"
+  )
+    .trim()
+    .toLowerCase();
+}
+
+function isAddDisciplineMode() {
+  return getWorkflowMode() === "add_sport";
+}
+
+function setWorkflowMode(mode) {
+  const safeMode =
+    mode === "add_sport"
+      ? "add_sport"
+      : "new_athlete";
+
+  if ($("workflowMode")) {
+    $("workflowMode").value =
+      safeMode;
+  }
+
+  applyWorkflowModeUI();
+}
+
+function setFieldMode(id, hidden) {
+  const el = $(id);
+  if (!el) return;
+
+  const wrap = el.closest("label");
+  if (wrap) {
+    wrap.hidden = hidden;
+  }
+
+  if (hidden) {
+    el.dataset.wasRequired =
+      el.required ? "true" : "false";
+
+    el.required = false;
+    el.disabled = true;
+  } else {
+    el.disabled = false;
+
+    if (el.dataset.wasRequired === "true") {
+      el.required = true;
+    }
+  }
+}
+
+function applyWorkflowModeUI() {
+  const addSport =
+    isAddDisciplineMode();
+
+  const newButton =
+    $("workflowNewAthleteBtn");
+
+  const addButton =
+    $("workflowAddSportBtn");
+
+  newButton?.classList.toggle(
+    "is-active",
+    !addSport
+  );
+
+  addButton?.classList.toggle(
+    "is-active",
+    addSport
+  );
+
+  newButton?.setAttribute(
+    "aria-pressed",
+    String(!addSport)
+  );
+
+  addButton?.setAttribute(
+    "aria-pressed",
+    String(addSport)
+  );
+
+  if ($("workflowHeading")) {
+    $("workflowHeading").textContent =
+      addSport
+        ? "Add Discipline to Existing Athlete"
+        : "Create New Athlete";
+  }
+
+  if ($("workflowDescription")) {
+    $("workflowDescription").textContent =
+      addSport
+        ? "Keep the athlete’s current UID and add another Combat progression path."
+        : "Create a new Sandman identity and assign the athlete’s first Combat discipline.";
+  }
+
+  if ($("existingAthleteUidField")) {
+    $("existingAthleteUidField").hidden =
+      !addSport;
+  }
+
+  if ($("existingAthleteUid")) {
+    $("existingAthleteUid").required =
+      addSport;
+
+    $("existingAthleteUid").disabled =
+      !addSport;
+  }
+
+  if ($("addDisciplineNotice")) {
+    $("addDisciplineNotice").hidden =
+      !addSport;
+  }
+
+  NEW_ATHLETE_ONLY_IDS.forEach((id) => {
+    setFieldMode(id, addSport);
+  });
+
+  if ($("programTrackLabel")) {
+    $("programTrackLabel").textContent =
+      addSport
+        ? "Discipline to Add"
+        : "Journey and Art";
+  }
+
+  if ($("previewEyebrow")) {
+    $("previewEyebrow").textContent =
+      addSport
+        ? "Discipline Preview"
+        : "Mint Preview";
+  }
+
+  if ($("submitBtnLabel")) {
+    $("submitBtnLabel").textContent =
+      addSport
+        ? "Verify & Add Discipline"
+        : "Verify Paper Intake & Create Athlete";
+  }
+
+  updatePreview();
+}
+
 function val(id) {
   return String($(id)?.value || "").trim();
 }
@@ -86,6 +250,28 @@ function buildPreviewTag(track, virtue) {
 function getPlacement(programTrack) {
   const pt = String(programTrack || "").trim();
 
+  if (pt === "zero2hero-kickboxing") {
+    return {
+      track: "F8",
+      program: "kickboxing",
+      framework: "foundry8",
+      journey: "zero2hero",
+      programTrack: "zero2hero",
+      art: "kickboxing",
+      discipline: "kickboxing",
+      primaryDiscipline: "kickboxing",
+      ladderKey: "F8",
+      rosterIds: ["youth-kickboxing"],
+      locationId: selectedLocationId(),
+      coachIds: DEFAULT_COACH_IDS,
+      trackCode: "zero2hero-kickboxing",
+      profileType: "youth",
+      beltSet: "f8-youth",
+      badgeSet: "f8-youth",
+      rank: "Shadow",
+    };
+  }
+
   if (pt === "zero2hero") {
     return {
       track: "F8",
@@ -101,7 +287,6 @@ function getPlacement(programTrack) {
       locationId: selectedLocationId(),
       coachIds: DEFAULT_COACH_IDS,
       trackCode: "zero2hero-wrestling",
-      track: "zero2hero",
       profileType: "youth",
       beltSet: "f8-youth",
       badgeSet: "f8-youth",
@@ -235,6 +420,21 @@ function profileUrl(uid) {
   return `/athletes/profile/?id=${encodeURIComponent(uid)}`;
 }
 
+$("workflowNewAthleteBtn")?.addEventListener(
+  "click",
+  () => setWorkflowMode("new_athlete")
+);
+
+$("workflowAddSportBtn")?.addEventListener(
+  "click",
+  () => setWorkflowMode("add_sport")
+);
+
+$("workflowMode")?.addEventListener(
+  "change",
+  applyWorkflowModeUI
+);
+
 $("programTrack")?.addEventListener("change", syncFromProgramTrack);
 $("track")?.addEventListener("change", () => {
   setVirtuesForTrack(val("track"));
@@ -244,6 +444,7 @@ $("virtueName")?.addEventListener("change", updatePreview);
 $("program")?.addEventListener("change", updatePreview);
 
 syncFromProgramTrack();
+applyWorkflowModeUI();
 
 function birthYearFromDob(dob = "") {
   const match = String(dob || "").match(/^(\d{4})-\d{2}-\d{2}$/);
@@ -263,11 +464,89 @@ function publicNameFromParts(first = "", last = "") {
     : `${first} ${last}`.trim();
 }
 
+async function addDisciplineFromPaperForm(
+  placement
+) {
+  const existingAthleteUid =
+    String(
+      $("existingAthleteUid")?.value ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  if (!existingAthleteUid) {
+    throw new Error(
+      "Existing athlete UID is required."
+    );
+  }
+
+  const addDisciplineCoachCall =
+    httpsCallable(
+      functions,
+      "addDisciplineCoachCall"
+    );
+
+  const response =
+    await addDisciplineCoachCall({
+      existingAthleteUid,
+
+      foundry:
+        placement.framework === "foundry8"
+          ? "f8"
+          : "f4",
+
+      framework:
+        placement.framework,
+
+      programTrack:
+        placement.programTrack,
+
+      art:
+        placement.art,
+
+      discipline:
+        placement.discipline,
+
+      trackCode:
+        placement.trackCode,
+
+      ladderKey:
+        placement.ladderKey,
+
+      rosterIds:
+        placement.rosterIds,
+
+      coachIds:
+        placement.coachIds,
+
+      locationId:
+        placement.locationId,
+
+      placement: {
+        ...placement,
+        source: "coach_paper_add_sport",
+      },
+    });
+
+  return {
+    existingAthleteUid,
+    result:
+      response?.data || {},
+  };
+}
+
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   submitBtn.disabled = true;
-  submitBtn.textContent = "Creating...";
+
+  if ($("submitBtnLabel")) {
+    $("submitBtnLabel").textContent =
+      isAddDisciplineMode()
+        ? "Adding Discipline..."
+        : "Creating Athlete...";
+  }
 
   try {
     await ensureSignedIn();
@@ -276,6 +555,72 @@ form.addEventListener("submit", async (e) => {
       httpsCallable(functions, "createCoachAthleteCall");
 
     const placement = getPlacement(val("programTrack"));
+
+    if (isAddDisciplineMode()) {
+      const added =
+        await addDisciplineFromPaperForm(
+          placement
+        );
+
+      const uid =
+        added.existingAthleteUid;
+
+      showResult(`
+        <strong>✓ Discipline added</strong><br><br>
+
+        <div><strong>ID:</strong> ${uid}</div>
+        <div><strong>Athlete:</strong> ${uid}</div>
+
+        <div>
+          <strong>New Discipline:</strong>
+          ${placement.art}
+        </div>
+
+        <div>
+          <strong>Journey:</strong>
+          ${placement.programTrack}
+        </div>
+
+        <div>
+          <strong>Starting Rank:</strong>
+          ${
+            placement.framework === "foundry8"
+              ? "Shadow"
+              : "Apprentice"
+          }
+        </div>
+
+        <div>
+          <strong>Starting XP:</strong>
+          0 / ${
+            placement.framework === "foundry8"
+              ? 600
+              : 1000
+          }
+        </div>
+
+        <br>
+
+        <div class="actions">
+          <a
+            class="btn brand"
+            href="${hubUrl(uid)}"
+          >
+            Open Athlete Hub
+          </a>
+
+          <a
+            class="btn"
+            href="${profileUrl(uid)}"
+          >
+            Open Profile
+          </a>
+        </div>
+      `);
+
+      $("existingAthleteUid").value = "";
+      return;
+    }
 
     // Placement is the source of truth.
     const track = placement.track;
@@ -520,6 +865,12 @@ form.addEventListener("submit", async (e) => {
     `);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Verify Paper Intake & Create Athlete";
+
+    if ($("submitBtnLabel")) {
+      $("submitBtnLabel").textContent =
+        isAddDisciplineMode()
+          ? "Verify & Add Discipline"
+          : "Verify Paper Intake & Create Athlete";
+    }
   }
 });

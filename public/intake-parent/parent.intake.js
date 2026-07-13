@@ -263,6 +263,24 @@ async function handleSubmit(e) {
           ? forLane
           : null,
 
+          requestedTrackCode:
+  intakeMode === "add_sport"
+    ? String(token.requestedTrackCode || "").trim()
+    : null,
+
+requestedDiscipline:
+  intakeMode === "add_sport"
+    ? String(token.requestedDiscipline || "").trim()
+    : null,
+
+existingAthleteName:
+  intakeMode === "add_sport"
+    ? String(token.existingAthleteName || "").trim()
+    : null,
+
+workflowVersion:
+  String(token.workflowVersion || "v1"),
+
       // ---- token + lifecycle ----
       tokenId,
       tokenRaw: token,
@@ -389,6 +407,105 @@ function wirePhoneSanitizer(id) {
   });
 }
 
+// -------------------- Invite mode UI --------------------
+function formatDisciplineLabel(value = "") {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  };
+
+  return labels[key] || key || "—";
+}
+
+async function applyInviteModeUI() {
+  const invite =
+    await requireValidInvite();
+
+  const token =
+    invite?.token || {};
+
+  const mode =
+    String(token.mode || "new_athlete")
+      .trim()
+      .toLowerCase();
+
+  if (mode !== "add_sport") {
+    return;
+  }
+
+  const athleteName =
+    String(
+      token.existingAthleteName ||
+      token.existingAthleteUid ||
+      ""
+    ).trim();
+
+  const discipline =
+    String(
+      token.requestedDiscipline ||
+      token.forLane ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const banner =
+    $("intakeModeBanner");
+
+  if (banner) {
+    banner.hidden = false;
+  }
+
+  if ($("intakePageTitle")) {
+    $("intakePageTitle").textContent =
+      "Add Athlete Discipline";
+  }
+
+  if ($("intakePageTitleEs")) {
+    $("intakePageTitleEs").textContent =
+      "Agregar disciplina del atleta";
+  }
+
+  if ($("existingAthleteDisplay")) {
+    $("existingAthleteDisplay").textContent =
+      athleteName || "Existing athlete";
+  }
+
+  if ($("requestedDisciplineDisplay")) {
+    $("requestedDisciplineDisplay").textContent =
+      formatDisciplineLabel(discipline);
+  }
+
+  if ($("placementNote")) {
+    $("placementNote").innerHTML = `
+      Confirm the athlete and parent information below. The coach will attach
+      <strong>${formatDisciplineLabel(discipline)}</strong>
+      to the athlete's existing Sandman profile.
+      <span class="lang-alt-block">
+        Confirme la información del atleta y del padre o tutor.
+        El entrenador agregará esta disciplina al perfil existente del atleta.
+      </span>
+    `;
+  }
+
+  if ($("submitLabelEn")) {
+    $("submitLabelEn").textContent =
+      "Submit Add-Discipline Intake";
+  }
+
+  if ($("submitLabelEs")) {
+    $("submitLabelEs").textContent =
+      "Enviar solicitud para agregar disciplina";
+  }
+}
+
 // -------------------- Boot --------------------
 document.addEventListener("DOMContentLoaded", async () => {
   // ✅ AUTH FIRST (phones)
@@ -403,7 +520,26 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // status if missing token
   const tok = getInviteFromURL();
-  if (!tok) setWaiverStatusStrong("⚠ Missing invite token.", "#fbbf24");
+  if (!tok) {
+    setWaiverStatusStrong(
+      "⚠ Missing invite token.",
+      "#fbbf24"
+    );
+  } else {
+    try {
+      await applyInviteModeUI();
+    } catch (err) {
+      console.error(
+        "[intake-parent] invite mode UI failed:",
+        err
+      );
+
+      setWaiverStatusStrong(
+        `⚠ ${err?.message || "Invite could not be loaded."}`,
+        "#fbbf24"
+      );
+    }
+  }
 
   wireWaiver();
   wirePhoneSanitizer("parentPhone");
