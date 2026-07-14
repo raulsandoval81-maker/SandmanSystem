@@ -723,3 +723,57 @@ body{
   opacity:.55;
   cursor:wait;
 }
+
+/* Existing athlete verification */
+.existing-athlete-verification{
+  margin:14px 0;
+  padding:16px;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:14px;
+  background:rgba(255,255,255,.05);
+}
+
+.existing-athlete-verification.is-found{
+  border-color:rgba(34,197,94,.55);
+}
+
+.existing-athlete-verification.is-error{
+  border-color:rgba(239,68,68,.65);
+}
+
+.existing-athlete-card-title{
+  margin-bottom:12px;
+  font-weight:900;
+}
+
+.existing-athlete-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+  gap:10px;
+}
+
+.existing-athlete-grid div,
+.existing-athlete-disciplines,
+.existing-athlete-add-preview{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+.existing-athlete-grid span,
+.existing-athlete-disciplines span,
+.existing-athlete-add-preview span{
+  font-size:.75rem;
+  opacity:.65;
+}
+
+.existing-athlete-disciplines,
+.existing-athlete-add-preview{
+  margin-top:12px;
+}
+
+.existing-athlete-verification p{
+  margin:12px 0 0;
+  opacity:.75;
+  font-size:.85rem;
+}

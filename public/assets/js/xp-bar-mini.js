@@ -5,12 +5,11 @@
 const MINI_TIER_COLORS = {
   shadow:     "#ffffff",
   recruit:    "#facc15",
-  combatant:  "#fb923c",
+  contender:  "#fb923c",
   competitor: "#22c55e",
   warrior:    "#3b82f6",
   champion:   "#a855f7",
   commander:  "#92400e",
-  sandman:    "#eab308",
   hero:       "#000000",
   apprentice: "#ffffff",
   veteran:    "#92400e",

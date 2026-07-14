@@ -215,15 +215,34 @@ async function loadRoster() {
     .filter((x) => {
       if (disciplineFilter === "all") return true;
 
-      const discipline = String(
-        x.data.discipline ||
-        x.data.primaryDiscipline ||
-        x.data.sport ||
-        x.data.trackDiscipline ||
-        ""
-      ).toLowerCase();
+      const disciplines = new Set(
+        [
+          ...(Array.isArray(x.data.disciplineIds)
+            ? x.data.disciplineIds
+            : []),
 
-      return discipline === disciplineFilter;
+          ...Object.keys(x.data.disciplines || {}),
+
+          x.data.activeDiscipline,
+          x.data.primaryDiscipline,
+          x.data.discipline,
+          x.data.art,
+          x.data.sport,
+          x.data.trackDiscipline
+        ]
+          .map((value) =>
+            String(value || "")
+              .trim()
+              .toLowerCase()
+          )
+          .filter(Boolean)
+      );
+
+      return disciplines.has(
+        String(disciplineFilter)
+          .trim()
+          .toLowerCase()
+      );
     })
     .sort((a, b) =>
       athleteName(a.data, a.id)
@@ -342,8 +361,8 @@ const colorMaps = {
   z2h: {
     Shadow: "belt-z2h-shadow",
     Recruit: "belt-z2h-recruit",
-    Competitor: "belt-z2h-competitor",
     Contender: "belt-z2h-contender",
+    Competitor: "belt-z2h-competitor",
     Warrior: "belt-z2h-warrior",
     Champion: "belt-z2h-champion",
     Commander: "belt-z2h-commander",

@@ -29,7 +29,15 @@ const STRIPES_PER_TIER = 4;
 const XP = Object.freeze({
     // Foundry 4 (Teen) — arena monthly cap removed (unlimited)
     F4: {
-        tierCaps: { T0: 1000, T1: 1600, T2: 2000, T3: 2400, T4: 3000 },
+        tierCaps: { T0: 1000, T1: 1600, T2: 2200, T3: 2800, T4: 3200 },
+        monthly: {
+            attendance: 225,
+            arena: { T0: null, T1: null, T2: null, T3: null, T4: null }, // unlimited
+        },
+    },
+    // Quest2Mastery / Adult — same economy as F4
+    ADULT: {
+        tierCaps: { T0: 1000, T1: 1600, T2: 2200, T3: 2800, T4: 3200 },
         monthly: {
             attendance: 225,
             arena: { T0: null, T1: null, T2: null, T3: null, T4: null }, // unlimited
@@ -80,6 +88,18 @@ const LANE = Object.freeze({
             monthlyCap: 120
         },
     },
+    ADULT: {
+        strength: {
+            deltaFull: 10,
+            deltaMerit: 5,
+            monthlyCap: 120
+        },
+        honor: {
+            deltaFull: 10,
+            deltaMerit: 5,
+            monthlyCap: 120
+        },
+    },
 });
 const KIND = Object.freeze({
     DAILY_GRIND: "DAILY_GRIND",
@@ -115,11 +135,25 @@ function monthKey(d = new Date()) {
     return `${y}-${m}`;
 }
 function normalizeBaseFromAthlete(a) {
-    const raw = String(a?.trackBase || a?.track || a?.program || "").toUpperCase();
-    if (raw.startsWith("F8") || raw.includes("FOUNDRY8"))
+    const raw = String(a?.trackBase ||
+        a?.track ||
+        a?.programTrack ||
+        a?.trackCode ||
+        a?.journey ||
+        a?.program ||
+        "").toUpperCase();
+    if (raw.startsWith("F8") || raw.includes("FOUNDRY8") || raw.includes("YOUTH")) {
         return "F8";
-    if (raw.startsWith("F4") || raw.includes("FOUNDRY4"))
+    }
+    if (raw.includes("ADULT") ||
+        raw.includes("Q2M") ||
+        raw.includes("QUEST2MASTERY") ||
+        raw.includes("MASTERY")) {
+        return "ADULT";
+    }
+    if (raw.startsWith("F4") || raw.includes("FOUNDRY4")) {
         return "F4";
+    }
     return "F4"; // safe default
 }
 function normalizeTier(a) {
@@ -513,7 +547,7 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
                 afterXp: beforeCombatTotal,
             };
         }
-        if (base === "F4") {
+        if (base === "F4" || base === "ADULT") {
             // Combat kinds
             if (!isLaneKind(kind) && beforeCombatTotal >= cap) {
                 return {
@@ -673,8 +707,11 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
                         };
                     }
                 }
-                if (base === "F4") {
-                    const rule = lane === "strength" ? LANE.F4.strength : LANE.F4.honor;
+                if (base === "F4" || base === "ADULT") {
+                    const teenAdultLane = base === "ADULT" ? LANE.ADULT : LANE.F4;
+                    const rule = lane === "strength"
+                        ? teenAdultLane.strength
+                        : teenAdultLane.honor;
                     // F4 delta must be +10 (full) or +5 (merit)
                     const okDelta = delta === rule.deltaFull || delta === rule.deltaMerit;
                     if (!okDelta) {
@@ -781,7 +818,7 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
         // CLAMP + FINAL TOTALS
         // ------------------------
         // ✅ Bar total rules
-        if (base === "F4") {
+        if (base === "F4" || base === "ADULT") {
             // F4 bar = combat buckets only (lanes are separate)
             afterCombatTotal = afterDaily + afterArena + afterFightIQ;
         }
@@ -814,7 +851,7 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             stripeCount,
         };
         // ✅ F4: always store lanes
-        if (base === "F4") {
+        if (base === "F4" || base === "ADULT") {
             athletePatch.xpStrength = afterStrengthClamped;
             athletePatch.xpHonor = afterHonorClamped;
         }
@@ -990,10 +1027,10 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
                 uid,
             parentUid: athlete.parentUid || null,
             xpStrength: (base === "F8" && kind === KIND.STRENGTH) ? afterStrengthClamped
-                : (base === "F4") ? afterStrengthClamped
+                : (base === "F4" || base === "ADULT") ? afterStrengthClamped
                     : undefined,
             xpHonor: (base === "F8" && kind === KIND.HONOR) ? afterHonorClamped
-                : (base === "F4") ? afterHonorClamped
+                : (base === "F4" || base === "ADULT") ? afterHonorClamped
                     : undefined,
             logId: logRef.id,
         };

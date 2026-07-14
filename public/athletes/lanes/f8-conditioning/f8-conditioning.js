@@ -75,7 +75,7 @@ function normalizeTierValue(athlete = {}) {
   const map = {
     SHADOW: 0,
     RECRUIT: 1,
-    COMBATANT: 2,
+    CONTENDER: 2,
     COMPETITOR: 3,
     WARRIOR: 4,
     CHAMPION: 5,

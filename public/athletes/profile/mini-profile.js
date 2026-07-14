@@ -112,7 +112,11 @@ async function load() {
   const disciplineIds = Array.from(
     new Set([
       ...(Array.isArray(A.disciplineIds) ? A.disciplineIds : []),
-      ...Object.keys(A.disciplines || {})
+      ...Object.keys(A.disciplines || {}),
+      A.activeDiscipline,
+      A.primaryDiscipline,
+      A.discipline,
+      A.art
     ]
       .map((value) => String(value || "").trim().toLowerCase())
       .filter(Boolean))
@@ -301,7 +305,7 @@ async function load() {
   const colorMap = {
   Shadow: "belt-z2h-shadow",
   Recruit: "belt-z2h-recruit",
-  Combatant: "belt-z2h-combatant",
+  Contender: "belt-z2h-contender",
   Competitor: "belt-z2h-competitor",
   Warrior: "belt-z2h-warrior",
   Champion: "belt-z2h-champion",

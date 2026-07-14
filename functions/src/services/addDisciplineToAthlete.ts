@@ -69,6 +69,39 @@ function startingRankColor(
   return "gray";
 }
 
+function getMergedDisciplineIds(
+  athleteData: FirebaseFirestore.DocumentData,
+  newDiscipline: string
+): string[] {
+  const nestedDisciplines =
+    athleteData.disciplines &&
+    typeof athleteData.disciplines === "object"
+      ? Object.keys(athleteData.disciplines)
+      : [];
+
+  return Array.from(
+    new Set(
+      [
+        ...(Array.isArray(athleteData.disciplineIds)
+          ? athleteData.disciplineIds
+          : []),
+
+        ...nestedDisciplines,
+
+        athleteData.activeDiscipline,
+        athleteData.primaryDiscipline,
+        athleteData.discipline,
+        athleteData.art,
+        athleteData.sport,
+
+        newDiscipline,
+      ]
+        .map(clean)
+        .filter(Boolean)
+    )
+  );
+}
+
 export async function addDisciplineToAthlete(
   db: Firestore,
   coachUid: string,
@@ -257,6 +290,12 @@ export async function addDisciplineToAthlete(
         );
       }
 
+      const mergedDisciplineIds =
+        getMergedDisciplineIds(
+          athleteData,
+          discipline
+        );
+
       const now =
         FieldValue.serverTimestamp();
 
@@ -297,6 +336,7 @@ export async function addDisciplineToAthlete(
         rosterIds,
         coachIds,
         locationId,
+
         placement:
           input.placement || null,
 
@@ -324,36 +364,35 @@ export async function addDisciplineToAthlete(
         updatedAt: now,
       };
 
-      const athletePatch:
-        Record<string, unknown> = {
-          [`disciplines.${discipline}`]:
-            disciplineRecord,
+const athletePatch:
+  FirebaseFirestore.UpdateData<FirebaseFirestore.DocumentData> = {
+    [`disciplines.${discipline}`]:
+      disciplineRecord,
 
-          disciplineIds:
-            FieldValue.arrayUnion(
-              discipline
-            ),
+    disciplineIds:
+      mergedDisciplineIds,
 
-          updatedAt: now,
-        };
+    updatedAt: now,
+  };
 
-      if (rosterIds.length) {
-        athletePatch.rosterIds =
-          FieldValue.arrayUnion(
-            ...rosterIds
-          );
-      }
+if (rosterIds.length) {
+  athletePatch["rosterIds"] =
+    FieldValue.arrayUnion(
+      ...rosterIds
+    );
+}
 
-      if (!athleteData.activeDiscipline) {
-        athletePatch.activeDiscipline =
-          legacyDiscipline ||
-          discipline;
-      }
+if (!athleteData.activeDiscipline) {
+  athletePatch["activeDiscipline"] =
+    legacyDiscipline ||
+    discipline;
+}
 
-      tx.update(
-        athleteRef,
-        athletePatch
-      );
+tx.update(
+  athleteRef,
+  athletePatch
+);
+
 
       if (intakeRef) {
         tx.update(
@@ -362,8 +401,10 @@ export async function addDisciplineToAthlete(
             status: "approved",
             used: true,
             approved: true,
+
             approvedUid:
               existingAthleteUid,
+
             approvedAt: now,
 
             minted: false,
@@ -371,6 +412,7 @@ export async function addDisciplineToAthlete(
             mode: "add_sport",
 
             existingAthleteUid,
+
             requestedDiscipline:
               discipline,
 
@@ -383,6 +425,7 @@ export async function addDisciplineToAthlete(
             rosterIds,
             coachIds,
             locationId,
+
             placement:
               input.placement || null,
 
@@ -401,6 +444,7 @@ export async function addDisciplineToAthlete(
             "ATHLETE_DISCIPLINE_ADDED",
 
           mode: "add_sport",
+
           source:
             intakeRef
               ? "parent_intake"
@@ -413,6 +457,9 @@ export async function addDisciplineToAthlete(
             existingAthleteUid,
 
           discipline,
+          disciplineIds:
+            mergedDisciplineIds,
+
           framework,
           programTrack,
           track: programTrack,
@@ -424,13 +471,17 @@ export async function addDisciplineToAthlete(
           locationId,
 
           tier: starter.tier,
+
           rankName:
             starter.rankName,
+
           rankColor,
 
           xp: 0,
+
           xpCap:
             starter.xpCap,
+
           stripeCount: 0,
 
           coachUid,

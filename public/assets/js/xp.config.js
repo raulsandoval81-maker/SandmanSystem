@@ -18,16 +18,17 @@ default: 4
 export const XP_CONFIG = Object.freeze({
 
 // =========================
-// Foundry 4 (Teen) — Legend Ladder
-// NOTE: unchanged until teen legacy migration is decided.
+// Foundry 4 — Path2Legend
+// Reset-based Combat ladder.
+// Total tier-cap journey: 10,800 XP.
 // =========================
 foundry4: {
   tierCaps: {
     T0: 1000,
     T1: 1600,
-    T2: 2000,
-    T3: 2400,
-    T4: 3000
+    T2: 2200,
+    T3: 2800,
+    T4: 3200
   },
 
 monthly: {
@@ -48,7 +49,19 @@ lanes: {
   honor:    { deltaFull: 10, deltaMerit: 5, monthlyCap: 120 }
 },
 
-arena: { battle: 10, podium: 5, styleIQ: 5, styleIQMaxPerEvent: 1 },
+arena: {
+  tournament: {
+    show: 5,
+    compete: 15,
+    podium: 5
+  },
+
+  dual: {
+    show: 5,
+    forfeit: 5,
+    win: 10
+  }
+},
 prestigeYearly: { state: 3, regional: 1, national: 1 },
 
 ranks: {
@@ -118,7 +131,7 @@ ranks: {
   T0: "Shadow",
   T1: "Recruit",
   T2: "Contender",
-  T3: "Contender",
+  T3: "Competitor",
   T4: "Warrior",
   T5: "Champion",
   T6: "Commander",
@@ -130,14 +143,15 @@ ranks: {
 
 // =========================
 // Adult Quest2Mastery — Mastery Ladder
+// Uses the same reset-based XP caps as Path2Legend.
 // =========================
 adult: {
 tierCaps: {
 T0: 1000,
 T1: 1600,
-T2: 2000,
-T3: 2400,
-T4: 3000
+T2: 2200,
+T3: 2800,
+T4: 3200
 },
 
 
@@ -159,7 +173,19 @@ lanes: {
   honor:    { deltaFull: 10, deltaMerit: 5, monthlyCap: 120 }
 },
 
-arena: { battle: 10, podium: 5, styleIQ: 5, styleIQMaxPerEvent: 1 },
+arena: {
+  tournament: {
+    show: 5,
+    compete: 15,
+    podium: 5
+  },
+
+  dual: {
+    show: 5,
+    forfeit: 5,
+    win: 10
+  }
+},
 prestigeYearly: { state: 3, regional: 1, national: 1 },
 
 ranks: {

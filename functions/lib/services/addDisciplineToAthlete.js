@@ -27,6 +27,26 @@ function startingRankColor(framework, programTrack, discipline) {
     }
     return "gray";
 }
+function getMergedDisciplineIds(athleteData, newDiscipline) {
+    const nestedDisciplines = athleteData.disciplines &&
+        typeof athleteData.disciplines === "object"
+        ? Object.keys(athleteData.disciplines)
+        : [];
+    return Array.from(new Set([
+        ...(Array.isArray(athleteData.disciplineIds)
+            ? athleteData.disciplineIds
+            : []),
+        ...nestedDisciplines,
+        athleteData.activeDiscipline,
+        athleteData.primaryDiscipline,
+        athleteData.discipline,
+        athleteData.art,
+        athleteData.sport,
+        newDiscipline,
+    ]
+        .map(clean)
+        .filter(Boolean)));
+}
 async function addDisciplineToAthlete(db, coachUid, input) {
     const existingAthleteUid = String(input.existingAthleteUid || "")
         .trim()
@@ -114,6 +134,7 @@ async function addDisciplineToAthlete(db, coachUid, input) {
         if (alreadyNested || alreadyLegacy) {
             throw new https_1.HttpsError("already-exists", `${existingAthleteUid} already has ${discipline}.`);
         }
+        const mergedDisciplineIds = getMergedDisciplineIds(athleteData, discipline);
         const now = firestore_1.FieldValue.serverTimestamp();
         const starter = foundry === "f8"
             ? {
@@ -165,15 +186,15 @@ async function addDisciplineToAthlete(db, coachUid, input) {
         };
         const athletePatch = {
             [`disciplines.${discipline}`]: disciplineRecord,
-            disciplineIds: firestore_1.FieldValue.arrayUnion(discipline),
+            disciplineIds: mergedDisciplineIds,
             updatedAt: now,
         };
         if (rosterIds.length) {
-            athletePatch.rosterIds =
+            athletePatch["rosterIds"] =
                 firestore_1.FieldValue.arrayUnion(...rosterIds);
         }
         if (!athleteData.activeDiscipline) {
-            athletePatch.activeDiscipline =
+            athletePatch["activeDiscipline"] =
                 legacyDiscipline ||
                     discipline;
         }
@@ -213,6 +234,7 @@ async function addDisciplineToAthlete(db, coachUid, input) {
             intakeId: intakeId || null,
             uid: existingAthleteUid,
             discipline,
+            disciplineIds: mergedDisciplineIds,
             framework,
             programTrack,
             track: programTrack,

@@ -16,8 +16,15 @@ const BELTS_V1 = {
     2: "/assets/img/belts/T2-purplebelt.png",
     3: "/assets/img/belts/T3-brownbelt.png",
     4: "/assets/img/belts/T4-blackbelt.png"
-  }
-,
+  },
+
+  f4Striking: {
+    0: "/assets/img/belts/T0-graybelt.png",
+    1: "/assets/img/belts/T1-bluebelt.png",
+    2: "/assets/img/belts/T2-purplebelt.png",
+    3: "/assets/img/belts/T3-brownbelt.png",
+    4: "/assets/img/belts/T4-blackbelt.png"
+  },
 
 r2g: {
   0: "/assets/img/belts/T0-graybelt.png",
@@ -51,6 +58,14 @@ const BELTS_V2 = {
 
   f4: {
     0: "/assets/img/belts/whitebelt-v2.png",
+    1: "/assets/img/belts/bluebelt-v2.png",
+    2: "/assets/img/belts/purplebelt-v2.png",
+    3: "/assets/img/belts/brownbelt-v2.png",
+    4: "/assets/img/belts/blackbelt-v2.png"
+  },
+
+  f4Striking: {
+    0: "/assets/img/belts/graybelt-v2.png",
     1: "/assets/img/belts/bluebelt-v2.png",
     2: "/assets/img/belts/purplebelt-v2.png",
     3: "/assets/img/belts/brownbelt-v2.png",
@@ -203,7 +218,7 @@ q2m: {
         stripes: ["I", "II", "III", "IV"]
       },
       3: {
-        rank: "Contender",
+        rank: "Competitor",
         quote: "Pressure reveals preparation.",
         stripes: ["I", "II", "III", "IV"]
       },
@@ -231,10 +246,74 @@ q2m: {
   }
 };
 
+const DISCIPLINE_OPTIONS = {
+  f8: [
+    { value: "wrestling", label: "Wrestling" },
+    { value: "kickboxing", label: "Kickboxing" }
+  ],
+
+  f4: [
+    { value: "wrestling", label: "Wrestling" },
+    {
+      value: "submission-grappling",
+      label: "Submission Grappling"
+    },
+    { value: "boxing", label: "Boxing" },
+    { value: "kickboxing", label: "Kickboxing" }
+  ],
+
+  q2m: [
+    { value: "mma", label: "MMA" }
+  ]
+};
+
+function disciplineLabel(value = "") {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  const options =
+    Object.values(DISCIPLINE_OPTIONS).flat();
+
+  const match =
+    options.find((item) => item.value === key);
+
+  if (match) return match.label;
+
+  return key
+    .split("-")
+    .filter(Boolean)
+    .map(
+      (part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+    )
+    .join(" ");
+}
+
+function beltFamilyFor(foundryKey, discipline) {
+  const journey = String(foundryKey || "")
+    .trim()
+    .toLowerCase();
+
+  const art = String(discipline || "")
+    .trim()
+    .toLowerCase();
+
+  if (journey !== "f4") {
+    return journey;
+  }
+
+  return ["boxing", "kickboxing"].includes(art)
+    ? "f4Striking"
+    : "f4";
+}
+
 const fields = {
   mode: document.getElementById("mode"),
   beltStyle: document.getElementById("beltStyle"),
   foundry: document.getElementById("foundry"),
+  discipline: document.getElementById("discipline"),
   tier: document.getElementById("tier"),
   stripe: document.getElementById("stripe"),
   athleteName: document.getElementById("athleteName"),
@@ -248,6 +327,7 @@ const output = {
   athlete: document.getElementById("outAthlete"),
   academy: document.getElementById("outAcademy"),
   journey: document.getElementById("outJourney"),
+  discipline: document.getElementById("outDisciplineLine"),
   rank: document.getElementById("outRank"),
   tier: document.getElementById("outTier"),
   stripe: document.getElementById("outStripe"),
@@ -298,9 +378,16 @@ function applyCertificatePayload(payload) {
   const tierValue = String(payload.tier);
   const stripeValue = numberToRoman(payload.stripe);
 
-  fields.mode.value = "digital";
+  fields.mode.value = "filled";
   fields.beltStyle.value = "v2";
   fields.foundry.value = foundryKey;
+
+  populateDisciplineOptions(
+    payload.discipline ||
+    payload.art ||
+    payload.primaryDiscipline ||
+    ""
+  );
 
   populateTierOptions();
 
@@ -369,6 +456,46 @@ function getActiveBelts() {
   return fields.beltStyle.value === "v2"
     ? BELTS_V2
     : BELTS_V1;
+}
+
+function populateDisciplineOptions(preferred = "") {
+  if (!fields.discipline) return;
+
+  const foundryKey =
+    fields.foundry.value;
+
+  const options =
+    DISCIPLINE_OPTIONS[foundryKey] || [];
+
+  const wanted = String(
+    preferred ||
+    fields.discipline.value ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  fields.discipline.innerHTML = "";
+
+  options.forEach((item) => {
+    const option =
+      document.createElement("option");
+
+    option.value = item.value;
+    option.textContent = item.label;
+
+    fields.discipline.appendChild(option);
+  });
+
+  const isValid =
+    options.some(
+      (item) => item.value === wanted
+    );
+
+  fields.discipline.value =
+    isValid
+      ? wanted
+      : options[0]?.value || "";
 }
 
 function populateTierOptions() {
@@ -506,6 +633,20 @@ function updateCertificate() {
   output.journey.textContent =
     foundry.journey.toUpperCase();
 
+  if (output.discipline) {
+    const selectedDiscipline =
+      fields.discipline?.value || "";
+
+    output.discipline.textContent =
+      selectedDiscipline
+        ? `COMBAT DISCIPLINE · ${
+            disciplineLabel(
+              selectedDiscipline
+            ).toUpperCase()
+          }`
+        : "";
+  }
+
   output.rank.textContent =
     `${preset.rank.toUpperCase()} RANK`;
 
@@ -544,8 +685,16 @@ function updateCertificate() {
 
   const activeBelts = getActiveBelts();
 
+  const beltFamily =
+    beltFamilyFor(
+      foundryKey,
+      fields.discipline?.value
+    );
+
   const autoBeltPath =
-    activeBelts?.[foundryKey]?.[Number(tier)] || "";
+    activeBelts?.[beltFamily]?.[
+      Number(tier)
+    ] || "";
 
   output.belt.src =
     manualBeltPath || autoBeltPath;
@@ -557,6 +706,7 @@ function updateCertificate() {
 }
 
 fields.foundry.addEventListener("change", () => {
+  populateDisciplineOptions();
   populateTierOptions();
   populateStripeOptions();
   updateCertificate();
@@ -579,6 +729,7 @@ document.getElementById("printBtn").addEventListener("click", () => {
   window.print();
 });
 
+populateDisciplineOptions();
 populateTierOptions();
 populateStripeOptions();
 updateCertificate();

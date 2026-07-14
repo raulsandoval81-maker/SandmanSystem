@@ -101,8 +101,8 @@ async function loadBadges() {
       rows = [
         { id: 'shadow',   name: 'Shadow (Lvl 0) – White'  },
         { id: 'recruit',  name: 'Recruit – Yellow'        },
-        { id: 'combatant',name: 'Contender – Orange'      },
-        { id: 'competitor',name:'Contender – Green'      },
+        { id: 'contender', name: 'Contender – Orange' },
+        { id: 'competitor', name: 'Competitor – Green' },
         { id: 'warrior',  name: 'Warrior – Blue'          },
         { id: 'champion', name: 'Champion – Purple'       },
         { id: 'commander',name: 'Commander – Brown'       },

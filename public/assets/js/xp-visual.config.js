@@ -7,8 +7,8 @@ foundry8: {
   tiers: [
     { tier: "T0", name: "Shadow",     xpCap:  600, stripeCount: 3, stripeXP: 200, badge: "shadow.png" },
     { tier: "T1", name: "Recruit",    xpCap:  800, stripeCount: 4, stripeXP: 200, badge: "recruit.png" },
-    { tier: "T2", name: "Competitor", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "competitor.png" },
-    { tier: "T3", name: "Contender",  xpCap: 1200, stripeCount: 4, stripeXP: 300, badge: "contender.png" },
+    { tier: "T2", name: "Contender", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "contender.png" },
+    { tier: "T3", name: "Competitor", xpCap: 1200, stripeCount: 4, stripeXP: 300, badge: "competitor.png" },
     { tier: "T4", name: "Warrior",    xpCap: 1400, stripeCount: 4, stripeXP: 350, badge: "warrior.png" },
     { tier: "T5", name: "Champion",   xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "champion.png" },
     { tier: "T6", name: "Commander",  xpCap: 1800, stripeCount: 4, stripeXP: 450, badge: "commander.png" },
@@ -21,44 +21,25 @@ foundry4: {
   tiers: [
     { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "apprentice.png" },
     { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "warrior.png" },
-    { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "champion.png" },
-    { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "veteran.png" },
-    { tier: "T4", name: "Legend",     xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "legend.png" }
+    { tier: "T2", name: "Champion", xpCap: 2200, stripeCount: 4, stripeXP: 550, badge: "champion.png" },
+    { tier: "T3", name: "Veteran",  xpCap: 2800, stripeCount: 4, stripeXP: 700, badge: "veteran.png" },
+    { tier: "T4", name: "Legend",   xpCap: 3200, stripeCount: 4, stripeXP: 800, badge: "legend.png" }
   ]
 },
 
-road2greatness: {
-  name: "Road to Greatness Boxing",
-  tiers: [
-    { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "f4-adult-gray-apprentice.png" },
-    { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "f4-adult-warrior.png" },
-    { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "f4-adult-champion.png" },
-    { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "f4-adult-veteran.png" },
-    { tier: "T4", name: "Craftsman",  xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "f4-adult-craftsman.png" }
-  ]
-},
 
 quest2mastery: {
   name: "Quest to Mastery MMA",
   tiers: [
     { tier: "T0", name: "Apprentice", xpCap: 1000, stripeCount: 4, stripeXP: 250, badge: "f4-adult-gray-apprentice.png" },
     { tier: "T1", name: "Warrior",    xpCap: 1600, stripeCount: 4, stripeXP: 400, badge: "f4-adult-warrior.png" },
-    { tier: "T2", name: "Champion",   xpCap: 2000, stripeCount: 4, stripeXP: 500, badge: "f4-adult-champion.png" },
-    { tier: "T3", name: "Veteran",    xpCap: 2400, stripeCount: 4, stripeXP: 600, badge: "f4-adult-veteran.png" },
-    { tier: "T4", name: "Master",     xpCap: 3000, stripeCount: 4, stripeXP: 750, badge: "f4-adult-master.png" }
-  ]
-},
+    { tier: "T2", name: "Champion", xpCap: 2200, stripeCount: 4, stripeXP: 550, badge: "f4-adult-champion.png" },
+    { tier: "T3", name: "Veteran",  xpCap: 2800, stripeCount: 4, stripeXP: 700, badge: "f4-adult-veteran.png" },
+    { tier: "T4", name: "Mastery",   xpCap: 3200, stripeCount: 4, stripeXP: 800, badge: "f4-adult-master.png" }
 
-  leadership: {
-    name: "Leadership",
-    tiers: [
-      { tier: "T0", name: "Seed",       xpCap:  800, badge: "leadership_apprentice.png" },
-      { tier: "T1", name: "Mentor",     xpCap: 1200, badge: "leadership_mentor.png" },
-      { tier: "T2", name: "Scholar",    xpCap: 1600, badge: "leadership_scholar.png" },
-      { tier: "T3", name: "Advisor",    xpCap: 2000, badge: "leadership_advisor.png" },
-      { tier: "T4", name: "Mastery",    xpCap: 2200, badge: "leadership_master.png" }
-    ]
-  }
+]
+}
+
 });
 
 // Hero (F8) & Legend (F4) have no moon overlay

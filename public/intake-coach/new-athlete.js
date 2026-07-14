@@ -1,4 +1,7 @@
 import {
+  db,
+  doc,
+  getDoc,
   functions,
   httpsCallable,
   ensureSignedIn,
@@ -62,6 +65,18 @@ const VIRTUE_CODE = {
 const form = $("newAthleteForm");
 const submitBtn = $("submitBtn");
 const resultBox = $("resultBox");
+
+const originalProgramTrackOptions = Array.from(
+  $("programTrack")?.options || []
+).map((option) => ({
+  value: option.value,
+  text: option.textContent,
+  disabled: option.disabled
+}));
+
+let verifiedExistingAthlete = null;
+let verifiedExistingAthleteUid = "";
+let existingAthleteLookupTimer = null;
 
 const NEW_ATHLETE_ONLY_IDS = [
   "first",
@@ -225,6 +240,31 @@ function applyWorkflowModeUI() {
   }
 
   updatePreview();
+
+  if (addSport) {
+    submitBtn.disabled = true;
+    scheduleExistingAthleteLookup();
+  } else {
+    verifiedExistingAthlete = null;
+    verifiedExistingAthleteUid = "";
+
+    restoreProgramTrackOptions();
+
+    Array.from(
+      $("programTrack")?.options || []
+    ).forEach((option) => {
+      option.hidden = false;
+      option.disabled = false;
+    });
+
+    const card = existingAthleteCard();
+    if (card) {
+      card.hidden = true;
+      card.innerHTML = "";
+    }
+
+    submitBtn.disabled = false;
+  }
 }
 
 function val(id) {
@@ -404,7 +444,9 @@ function updatePreview() {
     `${placement.framework} / ${placement.programTrack} / ${placement.art}`;
 
   $("p-mint-tag").textContent =
-    buildPreviewTag(track, virtue);
+    isAddDisciplineMode()
+      ? "Existing identity retained"
+      : buildPreviewTag(track, virtue);
 }
 
 function showResult(html) {
@@ -418,6 +460,422 @@ function hubUrl(uid) {
 
 function profileUrl(uid) {
   return `/athletes/profile/?id=${encodeURIComponent(uid)}`;
+}
+
+function restoreProgramTrackOptions() {
+  const select = $("programTrack");
+  if (!select || !originalProgramTrackOptions.length) return;
+
+  const currentValue = select.value;
+  select.innerHTML = "";
+
+  originalProgramTrackOptions.forEach((saved) => {
+    const option = document.createElement("option");
+    option.value = saved.value;
+    option.textContent = saved.text;
+    option.disabled = saved.disabled;
+    select.appendChild(option);
+  });
+
+  if (
+    Array.from(select.options).some(
+      (option) => option.value === currentValue
+    )
+  ) {
+    select.value = currentValue;
+  }
+}
+
+function allowedProgramTrackValuesForAthlete(uid, athlete = {}) {
+  const normalizedUid = String(uid || "").trim().toUpperCase();
+
+  const ladderKey = String(
+    athlete.ladderKey ||
+    athlete.framework ||
+    athlete.profileType ||
+    ""
+  ).trim().toLowerCase();
+
+  const isYouth =
+    normalizedUid.startsWith("F8_") ||
+    ladderKey === "f8" ||
+    ladderKey === "foundry8" ||
+    ladderKey === "youth";
+
+  if (isYouth) {
+    return new Set([
+      "zero2hero",
+      "zero2hero-kickboxing"
+    ]);
+  }
+
+  return new Set([
+    "path2legend",
+    "path2legend-boxing",
+    "quest2mastery"
+  ]);
+}
+
+function syncProgramTrackOptionsForAthlete(uid, athlete = {}) {
+  const select = $("programTrack");
+  if (!select) return;
+
+  restoreProgramTrackOptions();
+
+  const allowed =
+    allowedProgramTrackValuesForAthlete(uid, athlete);
+
+  const existingDisciplines =
+    getExistingDisciplines(athlete);
+
+  let firstAvailableValue = "";
+
+  Array.from(select.options).forEach((option) => {
+    const placement = getPlacement(option.value);
+
+    const discipline = String(
+      placement.discipline ||
+      placement.art ||
+      ""
+    ).trim().toLowerCase();
+
+    const allowedForAthlete =
+      allowed.has(option.value);
+
+    const alreadyOwned =
+      existingDisciplines.includes(discipline);
+
+    option.hidden = !allowedForAthlete;
+    option.disabled =
+      !allowedForAthlete || alreadyOwned;
+
+    if (
+      !firstAvailableValue &&
+      allowedForAthlete &&
+      !alreadyOwned
+    ) {
+      firstAvailableValue = option.value;
+    }
+  });
+
+  const selectedOption =
+    select.options[select.selectedIndex];
+
+  if (
+    !selectedOption ||
+    selectedOption.disabled ||
+    selectedOption.hidden
+  ) {
+    if (firstAvailableValue) {
+      select.value = firstAvailableValue;
+    }
+  }
+
+  syncFromProgramTrack();
+}
+
+function formatDisciplineLabel(value = "") {
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling",
+  };
+
+  const key = String(value || "").trim().toLowerCase();
+
+  return labels[key] ||
+    key
+      .split("-")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+}
+
+function existingAthleteCard() {
+  let card = $("existingAthleteVerification");
+
+  if (card) return card;
+
+  const uidField = $("existingAthleteUidField");
+  if (!uidField) return null;
+
+  card = document.createElement("div");
+  card.id = "existingAthleteVerification";
+  card.className = "existing-athlete-verification";
+  card.hidden = true;
+
+  uidField.insertAdjacentElement("afterend", card);
+
+  return card;
+}
+
+function getExistingDisciplines(athlete = {}) {
+  return Array.from(
+    new Set([
+      ...(Array.isArray(athlete.disciplineIds)
+        ? athlete.disciplineIds
+        : []),
+      ...Object.keys(athlete.disciplines || {}),
+      athlete.discipline,
+      athlete.primaryDiscipline,
+      athlete.art,
+    ]
+      .map((value) =>
+        String(value || "").trim().toLowerCase()
+      )
+      .filter(Boolean))
+  );
+}
+
+function clearExistingAthleteVerification(message = "") {
+  verifiedExistingAthlete = null;
+  verifiedExistingAthleteUid = "";
+
+  const card = existingAthleteCard();
+
+  if (card) {
+    if (message) {
+      card.hidden = false;
+      card.classList.remove("is-found");
+      card.classList.add("is-error");
+      card.innerHTML = `<strong>⚠ ${message}</strong>`;
+    } else {
+      card.hidden = true;
+      card.innerHTML = "";
+      card.classList.remove("is-found", "is-error");
+    }
+  }
+
+  if (isAddDisciplineMode()) {
+    submitBtn.disabled = true;
+  }
+}
+
+function renderExistingAthleteVerification(
+  uid,
+  athlete,
+  disciplineToAdd
+) {
+  const card = existingAthleteCard();
+  if (!card) return;
+
+  const disciplines = getExistingDisciplines(athlete);
+
+  const activeDiscipline =
+    String(
+      athlete.activeDiscipline ||
+      disciplines[0] ||
+      athlete.discipline ||
+      athlete.art ||
+      ""
+    ).trim().toLowerCase();
+
+  const activeCombat =
+    athlete.disciplines?.[activeDiscipline] ||
+    athlete;
+
+  const fullName =
+    athlete.fullName ||
+    athlete.publicName ||
+    [athlete.firstName, athlete.lastName]
+      .filter(Boolean)
+      .join(" ") ||
+    uid;
+
+  const rankName =
+    activeCombat.rankName ||
+    activeCombat.rank ||
+    activeCombat.tierName ||
+    activeCombat.tier ||
+    "—";
+
+  const xp = Number(
+    activeCombat.xp ??
+    activeCombat.xpTotal ??
+    activeCombat.xpCombat ??
+    0
+  );
+
+  const xpCap = Number(
+    activeCombat.xpCap ??
+    activeCombat.cap ??
+    activeCombat.tierCap ??
+    0
+  );
+
+  const alreadyHasDiscipline =
+    disciplines.includes(disciplineToAdd);
+
+  card.hidden = false;
+  card.classList.toggle("is-error", alreadyHasDiscipline);
+  card.classList.toggle("is-found", !alreadyHasDiscipline);
+
+  card.innerHTML = `
+    <div class="existing-athlete-card-title">
+      ${alreadyHasDiscipline
+        ? "⚠ Discipline Already Exists"
+        : "✓ Existing Athlete Found"}
+    </div>
+
+    <div class="existing-athlete-grid">
+      <div>
+        <span>Name</span>
+        <strong>${fullName}</strong>
+      </div>
+
+      <div>
+        <span>Athlete UID</span>
+        <strong>${uid}</strong>
+      </div>
+
+      <div>
+        <span>Current Discipline</span>
+        <strong>${formatDisciplineLabel(activeDiscipline)}</strong>
+      </div>
+
+      <div>
+        <span>Current Rank</span>
+        <strong>${rankName}</strong>
+      </div>
+
+      <div>
+        <span>Current XP</span>
+        <strong>${xp}${xpCap > 0 ? ` / ${xpCap}` : ""}</strong>
+      </div>
+
+      <div>
+        <span>Team</span>
+        <strong>${athlete.team || athlete.academy || "—"}</strong>
+      </div>
+    </div>
+
+    <div class="existing-athlete-disciplines">
+      <span>Current Combat Disciplines</span>
+      <strong>
+        ${disciplines.length
+          ? disciplines.map(formatDisciplineLabel).join(" · ")
+          : "None recorded"}
+      </strong>
+    </div>
+
+    <div class="existing-athlete-add-preview">
+      <span>Adding</span>
+      <strong>${formatDisciplineLabel(disciplineToAdd)}</strong>
+    </div>
+
+    <p>
+      Same athlete UID. Existing Combat progression will remain intact.
+      Strength, Honor, parent access, and safety information stay shared.
+    </p>
+  `;
+
+  if (alreadyHasDiscipline) {
+    verifiedExistingAthlete = null;
+    verifiedExistingAthleteUid = "";
+    submitBtn.disabled = true;
+    return;
+  }
+
+  verifiedExistingAthlete = athlete;
+  verifiedExistingAthleteUid = uid;
+  submitBtn.disabled = false;
+}
+
+async function lookupExistingAthlete() {
+  if (!isAddDisciplineMode()) return;
+
+  const uid =
+    String($("existingAthleteUid")?.value || "")
+      .trim()
+      .toUpperCase();
+
+  if (!uid) {
+    clearExistingAthleteVerification();
+    return;
+  }
+
+  const placement = getPlacement(val("programTrack"));
+  const disciplineToAdd =
+    String(placement.discipline || placement.art || "")
+      .trim()
+      .toLowerCase();
+
+  clearExistingAthleteVerification();
+
+  const card = existingAthleteCard();
+
+  if (card) {
+    card.hidden = false;
+    card.classList.remove("is-found", "is-error");
+    card.innerHTML = "<strong>Looking up athlete…</strong>";
+  }
+
+  try {
+    await ensureSignedIn();
+
+    const snap = await getDoc(
+      doc(db, "athletes", uid)
+    );
+
+    if (!snap.exists()) {
+      clearExistingAthleteVerification(
+        `No athlete found for ${uid}.`
+      );
+      return;
+    }
+
+    const athlete = snap.data() || {};
+
+    syncProgramTrackOptionsForAthlete(
+      uid,
+      athlete
+    );
+
+    if (
+      athlete.active === false ||
+      athlete.status === "merged" ||
+      athlete.isCanonical === false
+    ) {
+      const mergedInto =
+        athlete.mergedInto ||
+        athlete.mergedIntoAthleteUid ||
+        "";
+
+      clearExistingAthleteVerification(
+        mergedInto
+          ? `${uid} is inactive. Use canonical athlete ${mergedInto}.`
+          : `${uid} is not an active canonical athlete.`
+      );
+      return;
+    }
+
+    renderExistingAthleteVerification(
+      uid,
+      athlete,
+      disciplineToAdd
+    );
+  } catch (error) {
+    console.error(
+      "Existing athlete lookup failed:",
+      error
+    );
+
+    clearExistingAthleteVerification(
+      error?.message || "Unable to verify athlete."
+    );
+  }
+}
+
+function scheduleExistingAthleteLookup() {
+  window.clearTimeout(existingAthleteLookupTimer);
+
+  existingAthleteLookupTimer =
+    window.setTimeout(
+      lookupExistingAthlete,
+      350
+    );
 }
 
 $("workflowNewAthleteBtn")?.addEventListener(
@@ -435,7 +893,23 @@ $("workflowMode")?.addEventListener(
   applyWorkflowModeUI
 );
 
-$("programTrack")?.addEventListener("change", syncFromProgramTrack);
+$("existingAthleteUid")?.addEventListener(
+  "input",
+  scheduleExistingAthleteLookup
+);
+
+$("existingAthleteUid")?.addEventListener(
+  "blur",
+  lookupExistingAthlete
+);
+
+$("programTrack")?.addEventListener("change", () => {
+  syncFromProgramTrack();
+
+  if (isAddDisciplineMode()) {
+    lookupExistingAthlete();
+  }
+});
 $("track")?.addEventListener("change", () => {
   setVirtuesForTrack(val("track"));
   updatePreview();
@@ -478,6 +952,15 @@ async function addDisciplineFromPaperForm(
   if (!existingAthleteUid) {
     throw new Error(
       "Existing athlete UID is required."
+    );
+  }
+
+  if (
+    !verifiedExistingAthlete ||
+    verifiedExistingAthleteUid !== existingAthleteUid
+  ) {
+    throw new Error(
+      "Verify the existing athlete before adding a discipline."
     );
   }
 
@@ -569,7 +1052,14 @@ form.addEventListener("submit", async (e) => {
         <strong>✓ Discipline added</strong><br><br>
 
         <div><strong>ID:</strong> ${uid}</div>
-        <div><strong>Athlete:</strong> ${uid}</div>
+        <div>
+          <strong>Athlete:</strong>
+          ${
+            verifiedExistingAthlete?.fullName ||
+            verifiedExistingAthlete?.publicName ||
+            uid
+          }
+        </div>
 
         <div>
           <strong>New Discipline:</strong>

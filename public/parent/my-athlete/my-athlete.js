@@ -64,7 +64,21 @@ function wireParentTabs() {
 
     const url = new URL(href, window.location.origin);
     url.searchParams.set("id", athleteId);
-    a.setAttribute("href", url.pathname + url.search);
+
+    const discipline =
+      params.get("discipline");
+
+    if (discipline) {
+      url.searchParams.set(
+        "discipline",
+        discipline
+      );
+    }
+
+    a.setAttribute(
+      "href",
+      url.pathname + url.search
+    );
   });
 }
 
@@ -137,7 +151,7 @@ function resolveLadder(a = {}) {
   if (
     id.startsWith("F8_") ||
     track.includes("foundry8") ||
-    ["shadow", "recruit", "combatant", "competitor", "contender", "commander", "hero"].includes(rank)
+    ["shadow", "recruit", "contender", "competitor", "warrior", "champion", "commander", "hero"].includes(rank)
   ) {
     return LADDER_F8;
   }
@@ -165,28 +179,23 @@ function findCurrentTier(ladder, tierName, a = {}) {
 
   if (direct) return direct;
 
-  // Youth wording safety: older UI sometimes says Contender while ladder says Contender.
-  if (wanted === "contender") {
-    const competitor = ladder.find((t) =>
-      String(t.name || "").trim().toLowerCase() === "competitor"
-    );
-    if (competitor) return competitor;
-  }
-
   const tierNum = getTierNum(a);
   return ladder[tierNum] || ladder[0];
 }
-
 function getColorClass(a = {}, tierName = "") {
+
+  // renderAthlete() already passes the selected combat record.
+  // No need to resolve activeDiscipline again.
   const journey = String(
     a.journey ||
+    a.programTrack ||
     a.program ||
     a.track ||
     a.trackCode ||
     ""
   ).toLowerCase();
 
-  const colorMaps = {
+const colorMaps = {
     z2h: {
       Shadow: "belt-z2h-shadow",
       Recruit: "belt-z2h-recruit",
@@ -252,32 +261,309 @@ function getColorClass(a = {}, tierName = "") {
   return colorMaps[key]?.[tierName] || "belt-p2l-apprentice";
 }
 
+function formatCombatDisciplineLabel(value = "") {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling",
+  };
+
+  return labels[key] ||
+    key
+      .split("-")
+      .filter(Boolean)
+      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+      .join(" ");
+}
+
+function getParentCombatContext(a = {}) {
+  const athleteUid =
+    String(
+      a.id ||
+      a.uid ||
+      a.uidCode ||
+      urlAthleteUid ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  // Include nested discipline records and legacy root fields.
+  // This matters for athletes whose original discipline still lives at root.
+  const disciplineIds = Array.from(
+    new Set([
+      ...(Array.isArray(a.disciplineIds)
+        ? a.disciplineIds
+        : []),
+      ...Object.keys(a.disciplines || {}),
+      a.activeDiscipline,
+      a.primaryDiscipline,
+      a.discipline,
+      a.art,
+    ]
+      .map((value) =>
+        String(value || "")
+          .trim()
+          .toLowerCase()
+      )
+      .filter(Boolean))
+  );
+
+  const requestedDiscipline =
+    params.get("discipline") ||
+    localStorage.getItem(
+      `parent_active_discipline_${athleteUid}`
+    );
+
+  const normalizedRequested =
+    String(requestedDiscipline || "")
+      .trim()
+      .toLowerCase();
+
+  const activeDiscipline =
+    normalizedRequested &&
+    disciplineIds.includes(normalizedRequested)
+      ? normalizedRequested
+      : String(
+          a.activeDiscipline ||
+          disciplineIds[0] ||
+          a.primaryDiscipline ||
+          a.discipline ||
+          a.art ||
+          "wrestling"
+        )
+          .trim()
+          .toLowerCase();
+
+  const combat =
+    a.disciplines?.[activeDiscipline] || a;
+
+  return {
+    athleteUid,
+    disciplineIds,
+    activeDiscipline,
+    combat,
+  };
+}
+
+function ensureParentDisciplineSelectorStyles() {
+  if ($("parentDisciplineSelectorStyles")) return;
+
+  const style = document.createElement("style");
+  style.id = "parentDisciplineSelectorStyles";
+
+  style.textContent = `
+    .parent-discipline-wrap{
+      margin:12px 0;
+      padding:12px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:14px;
+      background:rgba(255,255,255,.045);
+    }
+
+    .parent-discipline-label{
+      margin-bottom:8px;
+      font-size:.76rem;
+      font-weight:800;
+      opacity:.7;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .parent-discipline-selector{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .parent-discipline-btn{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:999px;
+      padding:8px 14px;
+      background:rgba(255,255,255,.06);
+      color:inherit;
+      font:inherit;
+      font-size:.85rem;
+      font-weight:800;
+      cursor:pointer;
+    }
+
+    .parent-discipline-btn.is-active{
+      background:#facc15;
+      border-color:#facc15;
+      color:#111;
+    }
+  `;
+
+  document.head.appendChild(style);
+}
+
+function renderParentDisciplineSelector({
+  athleteUid,
+  disciplineIds,
+  activeDiscipline,
+}) {
+  let wrap =
+    $("combatDisciplineSelectorWrap");
+
+  if (disciplineIds.length <= 1) {
+    if (wrap) wrap.hidden = true;
+    return;
+  }
+
+  ensureParentDisciplineSelectorStyles();
+
+  if (!wrap) {
+    const rankBar = $("rankBar");
+    if (!rankBar?.parentElement) return;
+
+    wrap = document.createElement("div");
+    wrap.id = "combatDisciplineSelectorWrap";
+    wrap.className = "parent-discipline-wrap";
+
+    rankBar.parentElement.insertBefore(
+      wrap,
+      rankBar
+    );
+  }
+
+  wrap.hidden = false;
+
+  wrap.innerHTML = `
+    <div class="parent-discipline-label">
+      Combat Discipline
+    </div>
+
+    <div
+      id="combatDisciplineSelector"
+      class="parent-discipline-selector"
+      role="group"
+      aria-label="Combat discipline"
+    ></div>
+  `;
+
+  const selector =
+    $("combatDisciplineSelector");
+
+  disciplineIds.forEach((discipline) => {
+    const button =
+      document.createElement("button");
+
+    button.type = "button";
+    button.className =
+      "parent-discipline-btn";
+
+    button.textContent =
+      formatCombatDisciplineLabel(discipline);
+
+    const isActive =
+      discipline === activeDiscipline;
+
+    button.classList.toggle(
+      "is-active",
+      isActive
+    );
+
+    button.setAttribute(
+      "aria-pressed",
+      String(isActive)
+    );
+
+    button.addEventListener("click", () => {
+      if (isActive) return;
+
+      localStorage.setItem(
+        `parent_active_discipline_${athleteUid}`,
+        discipline
+      );
+
+      const url =
+        new URL(window.location.href);
+
+      url.searchParams.set(
+        "discipline",
+        discipline
+      );
+
+      window.location.href =
+        url.pathname + url.search;
+    });
+
+    selector.appendChild(button);
+  });
+}
+
 function renderAthlete(a = {}) {
+  const {
+    athleteUid,
+    disciplineIds,
+    activeDiscipline,
+    combat,
+  } = getParentCombatContext(a);
+
+  renderParentDisciplineSelector({
+    athleteUid,
+    disciplineIds,
+    activeDiscipline,
+  });
+
   const name = getAthleteName(a);
   const virtueTag = getVirtueTag(a);
   const summaryThird = a.team || a.teamName || "—";
 
-  const ladder = resolveLadder(a);
+  const ladder = resolveLadder(combat);
 
   const tierName =
-    a.rankName ||
-    a.tierName ||
-    getTier(a);
+    combat.rankName ||
+    combat.tierName ||
+    getTier(combat);
 
-  const tier = findCurrentTier(ladder, tierName, a);
+  const tier = findCurrentTier(
+    ladder,
+    tierName,
+    combat
+  );
 
   // Current tier XP. Your system resets this on promotion.
-  const xpNow = Math.max(0, Number(a.xp ?? a.currentTierXP ?? 0));
+  const xpNow = Math.max(
+    0,
+    Number(
+      combat.xp ??
+      combat.currentTierXP ??
+      combat.xpCombat ??
+      0
+    )
+  );
 
   // Current tier cap comes from stored athlete cap first, then ladder tier cap.
 const xpCap = Math.max(
   1,
-  Number(a.xpCap ?? a.cap ?? a.tierCap ?? tier?.cap ?? 1)
+  Number(
+    combat.xpCap ??
+    combat.cap ??
+    combat.tierCap ??
+    tier?.cap ??
+    1
+  )
 );
 
 
 const stripeMax =
-  Math.max(1, Number(a.stripesTotal ?? tier?.stripes ?? 4));
+  Math.max(
+    1,
+    Number(
+      combat.stripesTotal ??
+      tier?.stripes ??
+      4
+    )
+  );
 
 const stripeSize =
   Math.max(1, xpCap / stripeMax);
@@ -288,7 +574,10 @@ const calculatedStripes =
     Math.floor(xpNow / stripeSize)
   );
 
-const storedStripes = Number(a.stripeCount ?? a.stripes);
+const storedStripes = Number(
+  combat.stripeCount ??
+  combat.stripes
+);
   const stripeCount = Number.isFinite(storedStripes)
     ? Math.max(0, Math.min(stripeMax, Math.max(storedStripes, calculatedStripes)))
     : calculatedStripes;
@@ -317,7 +606,10 @@ const storedStripes = Number(a.stripeCount ?? a.stripes);
 
   setText("athlete-tier-line", tierName);
 
-  const mappedColor = getColorClass(a, tierName);
+  const mappedColor = getColorClass(
+    combat,
+    tierName
+  );
 
   setHTML(
     "rankBar",
@@ -709,6 +1001,30 @@ console.log(
       athletes,
       athleteUid
     );
+
+    // The callable may return a compact athlete summary.
+    // Read the authorized full document so nested disciplines are available.
+    try {
+      const fullRecord =
+        await getAthleteByUid(athleteUid);
+
+      if (fullRecord?.data) {
+        athlete = {
+          ...athlete,
+          ...fullRecord.data,
+          id: athleteUid,
+          uid:
+            fullRecord.data.uid ||
+            athlete.uid ||
+            athleteUid,
+        };
+      }
+    } catch (error) {
+      console.error(
+        "[parent-my-athlete] full athlete lookup skipped:",
+        error
+      );
+    }
 
     console.log(
       "[parent-my-athlete] athlete loaded:",

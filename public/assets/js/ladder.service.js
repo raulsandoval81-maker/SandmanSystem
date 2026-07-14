@@ -1,6 +1,6 @@
 // assets/js/ladder.service.js
-// Shared ladder math (Foundry 8 Youth R0–R7, Foundry 4 Teen R0–R4) + shared colors
-// Model: each tier has an absolute XP CAP. Tier start = previous CAP (or 0).
+// Shared ladder metadata, stripe progress, and color mapping.
+// RESET-BASED system: athlete XP is current-tier XP and resets after promotion.
 
 // ============================
 // LADDERS
@@ -8,13 +8,13 @@
 
 // ---------- Foundry 8 / Youth (R0–R7) ----------
 // Locked caps:
-// Shadow 600, Recruit 800, Contender 1000, Contender 1200,
+// Shadow 600, Recruit 800, Contender 1000, Competitor 1200,
 // Warrior 1400, Champion 1600, Commander 1800, Hero 2400.
 export const LADDER_YOUTH = [
   { key:"R0", name:"Shadow",     cap:  600, stripe:200, stripes:3 },
   { key:"R1", name:"Recruit",    cap:  800, stripe:200, stripes:4 },
   { key:"R2", name:"Contender",  cap: 1000, stripe:250, stripes:4 },
-  { key:"R3", name:"Contender", cap: 1200, stripe:300, stripes:4 },
+  { key:"R3", name:"Competitor", cap: 1200, stripe:300, stripes:4 },
   { key:"R4", name:"Warrior",    cap: 1400, stripe:350, stripes:4 },
   { key:"R5", name:"Champion",   cap: 1600, stripe:400, stripes:4 },
   { key:"R6", name:"Commander",  cap: 1800, stripe:450, stripes:4 },
@@ -27,19 +27,20 @@ export const LADDER_F8 = LADDER_YOUTH;
 export const LADDER_F4 = [
   { key: "R0", name: "Apprentice", cap: 1000, stripe: 250, stripes: 4 },
   { key: "R1", name: "Warrior",    cap: 1600, stripe: 400, stripes: 4 },
-  { key: "R2", name: "Champion",   cap: 2000, stripe: 500, stripes: 4 },
-  { key: "R3", name: "Veteran",    cap: 2400, stripe: 600, stripes: 4 },
-  { key: "R4", name: "Legend",     cap: 3000, stripe: 750, stripes: 4 },
+  { key: "R2", name: "Champion",   cap: 2200, stripe: 550, stripes: 4 },
+  { key: "R3", name: "Veteran",    cap: 2800, stripe: 700, stripes: 4 },
+  { key: "R4", name: "Legend",     cap: 3200, stripe: 800, stripes: 4 }
 ];
 
 // ---------- Quest2Mastery / Adult (R0–R4) ----------
 export const LADDER_Q2M = [
   { key: "R0", name: "Apprentice", cap: 1000, stripe: 250, stripes: 4 },
   { key: "R1", name: "Warrior",    cap: 1600, stripe: 400, stripes: 4 },
-  { key: "R2", name: "Champion",   cap: 2000, stripe: 500, stripes: 4 },
-  { key: "R3", name: "Veteran",    cap: 2400, stripe: 600, stripes: 4 },
-  { key: "R4", name: "Master",     cap: 3000, stripe: 750, stripes: 4 },
+  { key: "R2", name: "Champion",   cap: 2200, stripe: 550, stripes: 4 },
+  { key: "R3", name: "Veteran",    cap: 2800, stripe: 700, stripes: 4 },
+  { key: "R4", name: "Mastery",    cap: 3200, stripe: 800, stripes: 4 }
 ];
+
 // Optional alias (if you ever prefer “teen” naming)
 export const LADDER_TEEN = LADDER_F4;
 
@@ -66,7 +67,7 @@ export const COLORS = {
 export function colorKeyFor(name = "") {
   const n = String(name).toLowerCase();
   if (n === "legend")     return "legend";
-  if (n === "master") return "legend";
+  if (n === "master" || n === "mastery") return "legend";
   if (n === "hero")       return "hero";
   if (n === "veteran")    return "veteran";
   if (n === "champion")   return "champion";
@@ -105,7 +106,8 @@ export function getLadderForAthlete(a = {}) {
     track.includes("foundry8") ||
     rank === "shadow" ||
     rank === "recruit" ||
-    rank === "combatant" ||
+    rank === "contender" ||
+    rank === "combatant" || // legacy compatibility
     rank === "competitor" ||
     rank === "commander" ||
     rank === "hero"
@@ -119,33 +121,83 @@ export function getLadderForAthlete(a = {}) {
 
 export function getAthleteStripeInfo(a = {}) {
   const xp = Math.max(0, Number(a.xp || 0));
-const ladder = getLadderForAthlete(a);
-const fallbackCap = Number(ladder?.[0]?.cap || 1000);
-const xpCap = Math.max(1, Number(a.xpCap || fallbackCap));
+  const ladder = getLadderForAthlete(a);
 
-  const stripesTotal = 4;
+  const rankName = String(
+    a.rankName ||
+    a.tierName ||
+    ""
+  ).trim();
+
+  const tierCode = String(
+    a.tier ||
+    a.tierCode ||
+    "T0"
+  )
+    .trim()
+    .toUpperCase();
+
+  const ladderKey = tierCode.replace(/^T/, "R");
+
+  const currentTier =
+    ladder.find((item) =>
+      String(item.name || "").toLowerCase() ===
+      rankName.toLowerCase()
+    ) ||
+    ladder.find((item) =>
+      String(item.key || "").toUpperCase() === ladderKey
+    ) ||
+    ladder[0];
+
+  const fallbackCap = Number(currentTier?.cap || 1000);
+
+  const xpCap = Math.max(
+    1,
+    Number(a.xpCap || fallbackCap)
+  );
+
+  const stripesTotal = Math.max(
+    1,
+    Number(currentTier?.stripes || 4)
+  );
+
   const stripeSize = xpCap / stripesTotal;
 
   const stripesEarned = Math.max(
     0,
-    Math.min(stripesTotal, Math.floor(xp / stripeSize))
+    Math.min(
+      stripesTotal,
+      Math.floor(xp / stripeSize)
+    )
   );
 
   return {
-    tier: { name: a.rankName || a.tierName || a.tier || "Apprentice" },
+    tier: {
+      name:
+        rankName ||
+        currentTier?.name ||
+        "Apprentice"
+    },
     nextTier: null,
     totalXP: xp,
     capXP: xpCap,
     xpInTier: xp,
-    percent: Math.round(Math.min(100, (xp / xpCap) * 100)),
+    percent: Math.round(
+      Math.min(100, (xp / xpCap) * 100)
+    ),
     stripesTotal,
     stripesEarned,
     xpToNextStripe:
       stripesEarned < stripesTotal
-        ? Math.max(0, Math.ceil((stripesEarned + 1) * stripeSize) - xp)
+        ? Math.max(
+            0,
+            Math.ceil(
+              (stripesEarned + 1) * stripeSize
+            ) - xp
+          )
         : 0,
     xpToNextTier: Math.max(0, xpCap - xp),
-    status: `Stripes ${stripesEarned}/${stripesTotal}`,
+    status: `Stripes ${stripesEarned}/${stripesTotal}`
   };
 }
 // ============================

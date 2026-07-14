@@ -159,7 +159,7 @@ function resolveRank(a = {}) {
       T0: "Shadow",
       T1: "Recruit",
       T2: "Contender",
-      T3: "Contender",
+      T3: "Competitor",
       T4: "Warrior",
       T5: "Champion",
       T6: "Commander",

@@ -14,34 +14,43 @@ import {
 function xpCapForAthlete(a: any): number {
   const tier = String(a?.tier || "T0").toUpperCase();
 
-const F4_CAPS: Record<string, number> = {
-T0: 1000,
-T1: 1600,
-T2: 2000,
-T3: 2400,
-T4: 3000,
-};
+  const F4_CAPS: Record<string, number> = {
+    T0: 1000,
+    T1: 1600,
+    T2: 2200,
+    T3: 2800,
+    T4: 3200,
+  };
 
-const F8_CAPS: Record<string, number> = {
-T0: 600,
-T1: 800,
-T2: 1000,
-T3: 1200,
-T4: 1400,
-T5: 1600,
-T6: 1800,
-T7: 2400,
-};
+  const ADULT_CAPS: Record<string, number> = {
+    T0: 1000,
+    T1: 1600,
+    T2: 2200,
+    T3: 2800,
+    T4: 3200,
+  };
 
+  const F8_CAPS: Record<string, number> = {
+    T0: 600,
+    T1: 800,
+    T2: 1000,
+    T3: 1200,
+    T4: 1400,
+    T5: 1600,
+    T6: 1800,
+    T7: 2400,
+  };
 
-  const id = String(a?.uid || a?.id || "").toUpperCase();
-  const base = id.startsWith("F8_") ? "F8" : "F4";
+  const base = inferBase(a);
 
-  return Number(
-    a?.xpCap ||
-    (base === "F8" ? F8_CAPS[tier] : F4_CAPS[tier]) ||
-    1200
-  );
+  const fallbackCap =
+    base === "F8"
+      ? F8_CAPS[tier]
+      : base === "ADULT"
+        ? ADULT_CAPS[tier]
+        : F4_CAPS[tier];
+
+  return Number(a?.xpCap || fallbackCap || 1000);
 }
 
 const db = getFirestore();
@@ -96,12 +105,36 @@ function isLaneKind(kind: string) {
   return kind === "STRENGTH" || kind === "HONOR";
 }
 
-function inferBase(a: any): "F4" | "F8" {
-  const tb = String(a?.trackBase || "").toUpperCase();
-  if (tb === "F8" || tb.includes("FOUNDRY8")) return "F8";
+function inferBase(a: any): "F4" | "F8" | "ADULT" {
+  const raw = String(
+    a?.trackBase ||
+    a?.track ||
+    a?.programTrack ||
+    a?.trackCode ||
+    a?.journey ||
+    a?.program ||
+    ""
+  ).toUpperCase();
 
   const id = String(a?.uid || a?.id || "").toUpperCase();
-  if (id.startsWith("F8_")) return "F8";
+
+  if (
+    id.startsWith("F8_") ||
+    raw.startsWith("F8") ||
+    raw.includes("FOUNDRY8") ||
+    raw.includes("YOUTH")
+  ) {
+    return "F8";
+  }
+
+  if (
+    raw.includes("ADULT") ||
+    raw.includes("Q2M") ||
+    raw.includes("QUEST2MASTERY") ||
+    raw.includes("MASTERY")
+  ) {
+    return "ADULT";
+  }
 
   return "F4";
 }
@@ -599,7 +632,7 @@ if (k === "ARENA/NO_OPP_DAY") noOppCount += 1;
       xpCap,
       track,
       base,
-      ...(base === "F4" ? { xpStrength: afterStrength, xpHonor: afterHonor } : {}),
+      ...((base === "F4" || base === "ADULT") ? { xpStrength: afterStrength, xpHonor: afterHonor } : {}),
       meta: {
         ...meta,
         source: meta?.source ?? "engine",
@@ -642,7 +675,7 @@ if (shouldStampAttendance) {
       }
     }
 
-    if (isLaneKind(kind) && base === "F4") {
+    if (isLaneKind(kind) && (base === "F4" || base === "ADULT")) {
       if (kind === "STRENGTH") patch.xpStrength = afterStrength;
       if (kind === "HONOR") patch.xpHonor = afterHonor;
     } else {
@@ -693,14 +726,14 @@ return {
     (a as any).parentUid || null,
 
   xpStrength:
-    base === "F4"
+    (base === "F4" || base === "ADULT")
       ? afterStrength
       : kind === "STRENGTH"
         ? afterStrength
         : undefined,
 
   xpHonor:
-    base === "F4"
+    (base === "F4" || base === "ADULT")
       ? afterHonor
       : kind === "HONOR"
         ? afterHonor

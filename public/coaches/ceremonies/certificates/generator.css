@@ -453,3 +453,11 @@ min-width: unset;
   border: 2px solid #111;
   border-radius: 2px;
 }
+.discipline-line{
+  margin-top:6px;
+  font-size:.72rem;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  opacity:.82;
+}

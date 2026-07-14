@@ -16,7 +16,7 @@ function titleCase(str = "") {
 
 function getTierOrder(track) {
   if (track === "foundry8") {
-    return ["shadow","recruit","combatant","competitor","warrior","champion","commander","hero"];
+    return ["shadow","recruit","contender","competitor","warrior","champion","commander","hero"];
   }
   return ["apprentice","warrior","champion","veteran","legend"];
 }

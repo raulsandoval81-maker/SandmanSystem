@@ -2,64 +2,181 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  />
+
   <title>Certificate Generator | Sandman Combat</title>
-  <link rel="stylesheet" href="./generator.css" />
+
+  <link
+    rel="stylesheet"
+    href="./generator.css"
+  />
 </head>
 
 <body>
   <main class="page">
+
+    <!-- ===================== CONTROLS ===================== -->
     <section class="controls no-print">
       <h1>Certificate Generator</h1>
 
-      <select id="mode">
-        <option value="filled">Filled Certificate</option>
-        <option value="manual">Manual Write-In Certificate</option>
+      <select
+        id="mode"
+        aria-label="Certificate mode"
+      >
+        <option value="filled">
+          Filled Certificate
+        </option>
+
+        <option value="manual">
+          Manual Write-In Certificate
+        </option>
       </select>
 
-      <select id="foundry">
-        <option value="f8">Foundry 8</option>
-        <option value="f4">Foundry 4</option>
+      <select
+        id="foundry"
+        aria-label="Journey"
+      >
+        <option value="f8">
+          Foundry 8 · Zero2Hero
+        </option>
+
+        <option value="f4">
+          Foundry 4 · Path2Legend
+        </option>
+
+        <option value="q2m">
+          Quest2Mastery · MMA
+        </option>
       </select>
 
-      <select id="beltStyle">
-       <option value="v1">Classic Belt</option>
-       <option value="v2">Digital Belt</option>
+      <select
+        id="discipline"
+        aria-label="Combat discipline"
+      ></select>
+
+      <select
+        id="beltStyle"
+        aria-label="Belt style"
+      >
+        <option value="v1">
+          Classic Belt
+        </option>
+
+        <option value="v2">
+          Digital Belt
+        </option>
       </select>
 
-      <select id="tier"></select>
-      <select id="stripe"></select>
+      <select
+        id="tier"
+        aria-label="Tier"
+      ></select>
 
-      <input id="athleteName" placeholder="Athlete Name" value="L. Sampson Sandoval" />
-      <input id="academyName" placeholder="Academy Name" value="Lompoc Academy of Wrestling" />
-      <input id="coach" placeholder="Coach" value="Coach Sandoval" />
-      <input id="date" placeholder="Date" value="June 2026" />
+      <select
+        id="stripe"
+        aria-label="Stripe"
+      ></select>
 
-      <input id="beltImage" placeholder="Existing belt image path" value="" />
+      <input
+        id="athleteName"
+        placeholder="Athlete Name"
+        value="L. Sampson Sandoval"
+      />
 
-      <button id="printBtn">Print Certificate</button>
+      <input
+        id="academyName"
+        placeholder="Academy Name"
+        value="Lompoc Academy of Wrestling"
+      />
+
+      <input
+        id="coach"
+        placeholder="Coach"
+        value="Coach Sandoval"
+      />
+
+      <input
+        id="date"
+        placeholder="Date"
+        value="June 2026"
+      />
+
+      <input
+        id="beltImage"
+        placeholder="Existing belt image path"
+        value=""
+      />
+
+      <button
+        id="printBtn"
+        type="button"
+      >
+        Print Certificate
+      </button>
     </section>
 
+    <!-- ===================== CERTIFICATE ===================== -->
     <div class="certificate-stage">
-      <section class="certificate" id="certificate">
-        <h1 class="brand">SANDMAN COMBAT™</h1>
-        <div class="journey" id="outJourney">ZERO2HERO™</div>
+      <section
+        class="certificate"
+        id="certificate"
+      >
+        <h1 class="brand">
+          SANDMAN COMBAT™
+        </h1>
 
-        <h2 class="title">CERTIFICATE OF ACHIEVEMENT</h2>
-
-        <div class="awarded">AWARDED TO</div>
-
-        <div class="athlete" id="outAthlete">L. SAMPSON SANDOVAL</div>
-
-        <div class="rank" id="outRank">SHADOW RANK</div>
-
-        <div class="tier-stripe">
-          <span id="outTier">TIER 0</span>
-          <span class="dot">◆</span>
-          <span id="outStripe">STRIPE I</span>
+        <div
+          class="journey"
+          id="outJourney"
+        >
+          ZERO2HERO™
         </div>
 
-        
+        <div
+          class="discipline-line"
+          id="outDisciplineLine"
+        >
+          COMBAT DISCIPLINE · WRESTLING
+        </div>
+
+        <h2 class="title">
+          CERTIFICATE OF ACHIEVEMENT
+        </h2>
+
+        <div class="awarded">
+          AWARDED TO
+        </div>
+
+        <div
+          class="athlete"
+          id="outAthlete"
+        >
+          L. SAMPSON SANDOVAL
+        </div>
+
+        <div
+          class="rank"
+          id="outRank"
+        >
+          SHADOW RANK
+        </div>
+
+        <div class="tier-stripe">
+          <span id="outTier">
+            TIER 0
+          </span>
+
+          <span class="dot">
+            ◆
+          </span>
+
+          <span id="outStripe">
+            STRIPE I
+          </span>
+        </div>
 
         <div class="belt-wrap">
           <img
@@ -68,30 +185,61 @@
             src=""
             alt="Sandman belt"
           />
+
           <div
             id="beltStripeOverlay"
             class="belt-stripe-overlay"
           ></div>
         </div>
 
-        <div class="quote" id="outQuote">“Greatness begins unseen.”</div>
-<div class="academy" id="outAcademy"> LOMPOC ACADEMY OF WRESTLING </div>
+        <div
+          class="quote"
+          id="outQuote"
+        >
+          “Greatness begins unseen.”
+        </div>
+
+        <div
+          class="academy"
+          id="outAcademy"
+        >
+          LOMPOC ACADEMY OF WRESTLING
+        </div>
 
         <div class="bottom-row">
           <div>
-            <div class="signature" id="outCoach">Coach Sandoval</div>
-            <div class="label">COACH</div>
+            <div
+              class="signature"
+              id="outCoach"
+            >
+              Coach Sandoval
+            </div>
+
+            <div class="label">
+              COACH
+            </div>
           </div>
 
-          <div class="seal-bottom">S</div>
+          <div class="seal-bottom">
+            S
+          </div>
 
           <div>
-            <div class="signature" id="outDate">June 2026</div>
-            <div class="label">DATE</div>
+            <div
+              class="signature"
+              id="outDate"
+            >
+              June 2026
+            </div>
+
+            <div class="label">
+              DATE
+            </div>
           </div>
         </div>
       </section>
     </div>
+
   </main>
 
   <script src="./generator.js"></script>

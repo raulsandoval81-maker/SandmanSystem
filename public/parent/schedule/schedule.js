@@ -67,7 +67,7 @@ function resolveLadder(a = {}) {
   if (track.includes("foundry8")) return LADDER_F8;
   if (track.includes("foundry4")) return LADDER_F4;
 
-  if (["shadow", "recruit", "combatant", "competitor", "commander", "hero"].includes(tier)) {
+  if (["shadow", "recruit", "contender", "competitor", "commander", "hero"].includes(tier)) {
     return LADDER_F8;
   }
 
