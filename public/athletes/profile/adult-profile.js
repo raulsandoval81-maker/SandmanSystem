@@ -1,4 +1,4 @@
-// /athletes/profile/profile.js
+// /athletes/profile/adult-profile.js
 // ============================
 // Athlete Profile JS (F4-only owner)
 // - Full profile is now strictly teen/adult
@@ -138,14 +138,16 @@ if (!athleteId) {
 
 let reviewMode = localStorage.getItem("sm_review_mode") === "1";
 
-function unlockRules({ tierName }) {
-  const t = String(tierName || "").toLowerCase();
-  const isTier0 = (t === "apprentice" || t === "foundation");
+function unlockRules({ athlete }) {
+  const isLegacy =
+    athlete?.legacyAthlete === true ||
+    athlete?.legacy === true;
+
   return {
     combat: 0,
-    strength: 1,
-    honor: 2,
-    performance: isTier0 ? 1 : 999,
+    strength: isLegacy ? 2 : 1,
+    honor: isLegacy ? 3 : 2,
+    performance: 999
   };
 }
 
@@ -166,8 +168,7 @@ function applyLaneLocks({ tierName, stripesEarned, athlete }) {
     setDropLocked("honor", false);
     return;
   }
-
-  const req = unlockRules({ tierName });
+  const req = unlockRules({ athlete });
   const s = Number(stripesEarned || 0);
 
   const strengthUnlocked =
@@ -805,7 +806,7 @@ if (typeof a.tier === "number") {
   const storedXpCap = getStoredXpCap(a, ladder, storedTierNum);
 
   const tierInfo = ladder?.[storedTierNum] || {};
-  const req = unlockRules({ tierName: a?.rankName || a?.tierName || tierInfo?.name });
+  const req = unlockRules({ athlete: a });
 
   // -----------------------------
   // Rank / Color display

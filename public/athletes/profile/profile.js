@@ -133,14 +133,16 @@ if (!athleteId) {
 
 let reviewMode = localStorage.getItem("sm_review_mode") === "1";
 
-function unlockRules({ tierName }) {
-  const t = String(tierName || "").toLowerCase();
-  const isTier0 = (t === "apprentice" || t === "foundation");
+function unlockRules({ athlete }) {
+  const isLegacy =
+    athlete?.legacyAthlete === true ||
+    athlete?.legacy === true;
+
   return {
     combat: 0,
-    strength: 1,
-    honor: 2,
-    performance: isTier0 ? 1 : 999,
+    strength: isLegacy ? 2 : 1,
+    honor: isLegacy ? 3 : 2,
+    performance: 999
   };
 }
 
@@ -162,7 +164,7 @@ function applyLaneLocks({ tierName, stripesEarned, athlete }) {
     return;
   }
 
-  const req = unlockRules({ tierName });
+  const req = unlockRules({ athlete });
   const s = Number(stripesEarned || 0);
 
   const strengthUnlocked =
@@ -934,7 +936,7 @@ const storedStripes = getStoredStripes(combat);
   const storedXpCap = getStoredXpCap(combat, ladder, storedTierNum);
 
   const tierInfo = ladder?.[storedTierNum] || {};
-  const req = unlockRules({ tierName: combat?.rankName || combat?.tierName || tierInfo?.name });
+  const req = unlockRules({ athlete: a });
 
   // -----------------------------
   // Rank / Color display
