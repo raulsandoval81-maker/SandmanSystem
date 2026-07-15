@@ -338,12 +338,7 @@ function applyFilterAndRender() {
     if (wantedJourney === "p2l") {
       return journey.includes("p2l") ||
         journey.includes("path") ||
-        journey.includes("wrestling");
-    }
-
-    if (wantedJourney === "r2g") {
-      return journey.includes("r2g") ||
-        journey.includes("greatness") ||
+        journey.includes("wrestling") ||
         journey.includes("boxing");
     }
 
