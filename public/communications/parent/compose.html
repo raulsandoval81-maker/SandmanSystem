@@ -1,12 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Message Coach • Para-Comms</title>
+  <meta charset="utf-8" />
 
-  <link rel="stylesheet" href="/communications/shared/comms.css">
-  <link rel="icon" href="data:,">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Message Coach · Para-Comms</title>
+
+  <link
+    rel="stylesheet"
+    href="/communications/shared/comms.css"
+  />
+
+  <link rel="icon" href="data:," />
 
   <style>
     :root{
@@ -17,140 +26,375 @@
       --gold:#ffdd48;
       --text:#f0f4f8;
       --muted:#9aa4b1;
+      --ok:#79f29b;
+      --danger:#ff6b6b;
     }
+
+    *{
+      box-sizing:border-box;
+    }
+
     body{
       margin:0;
       background:var(--bg);
       color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
     }
+
     .wrap{
       max-width:800px;
       margin:0 auto;
       padding:24px 16px 60px;
     }
+
     h1{
       margin:0 0 12px;
       color:var(--gold);
       font-size:1.25rem;
+      text-align:center;
       text-transform:uppercase;
-      text-align:center;
+      letter-spacing:.04em;
     }
+
     .intro{
-      text-align:center;
-      color:var(--muted);
       margin:0 0 18px;
-      line-height:1.45;
+      color:var(--muted);
       font-size:.95rem;
+      line-height:1.45;
+      text-align:center;
     }
+
     .panel{
-      background:var(--panel);
+      margin-bottom:22px;
+      padding:18px 20px;
       border:1px solid var(--line);
       border-radius:14px;
-      padding:18px 20px;
-      margin-bottom:22px;
+      background:var(--panel);
       box-shadow:0 4px 14px rgba(0,0,0,.35);
     }
-    label{
-      font-size:.92rem;
-      color:var(--muted);
-      margin-top:12px;
-      display:block;
+
+    .context-card{
+      display:grid;
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:16px;
+      padding:12px 14px;
+      border:1px solid rgba(255,221,72,.2);
+      border-radius:12px;
+      background:rgba(255,221,72,.05);
     }
-    input, textarea{
+
+    .context-item{
+      min-width:0;
+    }
+
+    .context-label{
+      display:block;
+      margin-bottom:4px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .context-value{
+      color:var(--gold);
+      font-weight:900;
+      overflow-wrap:anywhere;
+    }
+
+    label{
+      display:block;
+      margin-top:12px;
+      color:var(--muted);
+      font-size:.92rem;
+      font-weight:700;
+    }
+
+    input,
+    textarea{
       width:100%;
-      background:var(--deep);
+      margin-top:5px;
+      padding:10px 12px;
       border:1px solid var(--line);
       border-radius:10px;
-      padding:10px;
+      background:var(--deep);
       color:var(--text);
-      font-size:.95rem;
-      margin-top:4px;
+      font:inherit;
       outline:none;
     }
-    input:focus, textarea:focus{
+
+    input:focus,
+    textarea:focus{
       border-color:var(--gold);
-      box-shadow:0 0 0 3px rgba(255,221,72,.18);
+      box-shadow:
+        0 0 0 3px rgba(255,221,72,.18);
     }
+
+    input:disabled,
+    textarea:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    textarea{
+      resize:vertical;
+      min-height:160px;
+    }
+
     .btn-row{
       display:flex;
       gap:10px;
       margin-top:18px;
     }
+
     .btn{
       padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:.92rem;
       border:none;
+      border-radius:10px;
+      font:inherit;
+      font-size:.92rem;
+      cursor:pointer;
     }
+
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
     .btn-send{
+      flex:1;
       background:var(--gold);
       color:#111;
-      font-weight:800;
-      flex:1;
+      font-weight:900;
     }
+
     .btn-cancel{
+      border:1px solid var(--line);
       background:#1d2a4a;
       color:var(--text);
-      border:1px solid var(--line);
     }
-    .msg-ok{
-      color:#79f29b;
-      font-weight:800;
-      margin-top:14px;
-      display:none;
-    }
+
+    .msg-ok,
     .msg-err{
-      color:#ff6b6b;
-      font-weight:800;
-      margin-top:14px;
       display:none;
+      margin:14px 0 0;
+      font-weight:800;
+      line-height:1.45;
     }
+
+    .msg-ok{
+      color:var(--ok);
+    }
+
+    .msg-err{
+      color:var(--danger);
+    }
+
+    .thread-note{
+      margin:14px 0 0;
+      padding:11px 12px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--deep);
+      color:var(--muted);
+      font-size:.88rem;
+      line-height:1.45;
+    }
+
     .link-row{
       display:flex;
       justify-content:space-between;
       gap:10px;
       margin-top:14px;
     }
+
     .link-row a{
       color:var(--gold);
       font-size:.9rem;
       text-decoration:none;
     }
+
+    @media (max-width:620px){
+      .wrap{
+        padding:16px 10px 40px;
+      }
+
+      .panel{
+        padding:16px;
+      }
+
+      .context-card{
+        grid-template-columns:1fr;
+      }
+
+      .btn-row{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .btn{
+        width:100%;
+      }
+    }
   </style>
 </head>
 
 <body>
-  <div class="wrap">
-    <h1>Message Coach</h1>
-    <p class="intro">
-      Send a private message to coach with questions, updates, or absences.
-    </p>
 
-    <section class="panel">
-      <label>Your Name</label>
-      <input id="pc-name" type="text" placeholder="Your full name…"/>
+<main class="wrap">
 
-      <label>Your Email <span style="color:var(--gold)">*</span></label>
-      <input id="pc-email" type="email" placeholder="name@example.com" required/>
+  <h1>Message Coach</h1>
 
-      <label>Subject (optional)</label>
-      <input id="pc-subject" type="text" placeholder="Absence / Question / Update…"/>
+  <p class="intro">
+    Send a private message about questions, updates, absences,
+    or athlete support.
+  </p>
 
-      <label>Message <span style="color:var(--gold)">*</span></label>
-      <textarea id="pc-body" rows="7" placeholder="Type your message…" required></textarea>
+  <section class="panel">
 
-      <div class="btn-row">
-        <button id="pc-send" class="btn btn-send">Send</button>
-        <button id="pc-cancel" class="btn btn-cancel">Cancel</button>
+    <div class="context-card">
+
+      <div class="context-item">
+        <span class="context-label">
+          Athlete
+        </span>
+
+        <span
+          id="pc-athlete"
+          class="context-value"
+        >
+          Loading…
+        </span>
       </div>
 
-      <p id="pc-success" class="msg-ok">Sent. Opening thread…</p>
-      <p id="pc-error" class="msg-err">Error — please try again.</p>
-    </section>
-  </div>
+      <div class="context-item">
+        <span class="context-label">
+          Discipline
+        </span>
 
-  <script type="module" src="/communications/parent/compose.js"></script>
+        <span
+          id="pc-discipline-label"
+          class="context-value"
+        >
+          Loading…
+        </span>
+      </div>
+
+    </div>
+
+    <label for="pc-name">
+      Your Name
+    </label>
+
+    <input
+      id="pc-name"
+      type="text"
+      placeholder="Your full name…"
+      autocomplete="name"
+    />
+
+    <label for="pc-email">
+      Your Email
+      <span style="color:var(--gold)">
+        *
+      </span>
+    </label>
+
+    <input
+      id="pc-email"
+      type="email"
+      placeholder="name@example.com"
+      autocomplete="email"
+      required
+    />
+
+    <label for="pc-subject">
+      Subject
+      <span style="font-weight:400;">
+        (optional)
+      </span>
+    </label>
+
+    <input
+      id="pc-subject"
+      type="text"
+      placeholder="Absence / Question / Update…"
+    />
+
+    <label for="pc-body">
+      Message
+      <span style="color:var(--gold)">
+        *
+      </span>
+    </label>
+
+    <textarea
+      id="pc-body"
+      rows="7"
+      placeholder="Type your message…"
+      required
+    ></textarea>
+
+    <div class="btn-row">
+
+      <button
+        id="pc-send"
+        class="btn btn-send"
+        type="button"
+      >
+        Send
+      </button>
+
+      <button
+        id="pc-cancel"
+        class="btn btn-cancel"
+        type="button"
+      >
+        Cancel
+      </button>
+
+    </div>
+
+    <p
+      id="pc-success"
+      class="msg-ok"
+      aria-live="polite"
+    >
+      Message sent. Opening thread…
+    </p>
+
+    <p
+      id="pc-error"
+      class="msg-err"
+      aria-live="assertive"
+    >
+      Error — please try again.
+    </p>
+
+    <div class="thread-note">
+      Conversations are limited to 12 total messages.
+      Once the limit is reached, contact the coach by phone
+      or arrange an in-person conversation.
+    </div>
+
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/communications/parent/compose.js"
+></script>
+
 </body>
 </html>
