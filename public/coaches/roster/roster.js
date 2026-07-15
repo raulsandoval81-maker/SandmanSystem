@@ -343,70 +343,202 @@ async function loadRoster() {
   });
 
   for (const { id, data } of currentList) {
-    const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
-    const tier = ladder.find((t) => t.name === data.rankName) || ladder[0];
+    // Identity stays on the root athlete document.
+    // Combat progression comes from the selected discipline.
+    const selectedDiscipline = String(
+      disciplineFilter !== "all"
+        ? disciplineFilter
+        : data.activeDiscipline ||
+          data.primaryDiscipline ||
+          data.discipline ||
+          data.art ||
+          "wrestling"
+    )
+      .trim()
+      .toLowerCase();
 
-    const xpNow = Number(data.xp ?? data.currentTierXP ?? 0);
-    const xpCap = xpCapForAthlete(data, track);
-    const stripeMax = Number(tier.stripes ?? 4);
-    const stripeSize = Number(tier.stripe ?? (xpCap / stripeMax));
+    const combat =
+      data.disciplines?.[selectedDiscipline] ||
+      data;
+
+    const athleteTrack =
+      id.startsWith("F8_")
+        ? "F8"
+        : track;
+
+    const ladder =
+      athleteTrack === "F8"
+        ? LADDER_F8
+        : LADDER_F4;
+
+    const tierNum = (() => {
+      if (typeof combat.tier === "number") {
+        return combat.tier;
+      }
+
+      const tierMatch = String(
+        combat.tier || ""
+      ).match(/T(\d+)/i);
+
+      if (tierMatch) {
+        return Number(tierMatch[1]) || 0;
+      }
+
+      return Number(
+        combat.tierNum ??
+        combat.rankNum ??
+        0
+      ) || 0;
+    })();
+
+    const tier =
+      ladder[tierNum] ||
+      ladder.find((item) =>
+        item.name === combat.rankName ||
+        item.rank === combat.rankName
+      ) ||
+      ladder[0];
+
+    const rankName =
+      combat.rankName ||
+      combat.tierName ||
+      tier?.rank ||
+      tier?.name ||
+      (athleteTrack === "F8"
+        ? "Shadow"
+        : "Apprentice");
+
+    const xpNow = Number(
+      combat.xp ??
+      combat.currentTierXP ??
+      0
+    );
+
+    const xpCap = Number(
+      tier?.cap ??
+      combat.xpCap ??
+      combat.cap ??
+      combat.tierCap ??
+      (athleteTrack === "F8"
+        ? 600
+        : 1000)
+    );
+
+    const stripeMax = Number(
+      tier?.stripes ??
+      4
+    );
+
+    const storedStripes = Number(
+      combat.stripeCount ??
+      combat.stripes ??
+      0
+    );
 
     const calculatedStripes =
-      Math.min(stripeMax, Math.floor(xpNow / stripeSize));
+      xpNow >= xpCap
+        ? stripeMax
+        : Math.floor(
+            (xpNow / Math.max(1, xpCap)) *
+            stripeMax
+          );
 
-    const finalStripes =
-      Math.max(Number(data.stripeCount ?? 0), calculatedStripes);
+    const finalStripes = Math.max(
+      0,
+      Math.min(
+        stripeMax,
+        Math.max(
+          storedStripes,
+          calculatedStripes
+        )
+      )
+    );
 
-const colorMaps = {
-  z2h: {
-    Shadow: "belt-z2h-shadow",
-    Recruit: "belt-z2h-recruit",
-    Contender: "belt-z2h-contender",
-    Competitor: "belt-z2h-competitor",
-    Warrior: "belt-z2h-warrior",
-    Champion: "belt-z2h-champion",
-    Commander: "belt-z2h-commander",
-    Hero: "belt-z2h-hero"
-  },
+    const colorMaps = {
+      z2h: {
+        Shadow: "belt-z2h-shadow",
+        Recruit: "belt-z2h-recruit",
+        Contender: "belt-z2h-contender",
+        Competitor: "belt-z2h-competitor",
+        Warrior: "belt-z2h-warrior",
+        Champion: "belt-z2h-champion",
+        Commander: "belt-z2h-commander",
+        Hero: "belt-z2h-hero"
+      },
 
-  p2l: {
-    Apprentice: "belt-p2l-apprentice",
-    Warrior: "belt-p2l-warrior",
-    Champion: "belt-p2l-champion",
-    Veteran: "belt-p2l-veteran",
-    Legend: "belt-p2l-legend"
-  },
+p2l: {
+  Apprentice: "belt-p2l-apprentice",
+  Warrior: "belt-p2l-warrior",
+  Champion: "belt-p2l-champion",
+  Veteran: "belt-p2l-veteran",
+  Legend: "belt-p2l-legend"
+},
 
-  r2g: {
-    Apprentice: "belt-r2g-apprentice",
-    Warrior: "belt-r2g-warrior",
-    Champion: "belt-r2g-champion",
-    Veteran: "belt-r2g-veteran",
-    Craftsman: "belt-r2g-craftsman"
-  },
+      q2m: {
+        Apprentice: "belt-q2m-apprentice",
+        Champion: "belt-q2m-champion",
+        Veteran: "belt-q2m-veteran",
+        Master: "belt-q2m-master"
+      }
+    };
 
-  q2m: {
-    Apprentice: "belt-q2m-apprentice",
-    Warrior: "belt-q2m-warrior",
-    Champion: "belt-q2m-champion",
-    Veteran: "belt-q2m-veteran",
-    Master: "belt-q2m-master"
-  }
-};
+    const rawJourney = String(
+      combat.journey ||
+      data.journey ||
+      data.program ||
+      data.track ||
+      data.trackCode ||
+      ""
+    ).toLowerCase();
+    
+const journeyKey =
+  id.startsWith("F8_") ||
+  rawJourney.includes("z2h") ||
+  rawJourney.includes("zero2hero") ||
+  rawJourney.includes("foundry8")
+    ? "z2h"
+    : rawJourney.includes("q2m") ||
+      rawJourney.includes("mastery")
+      ? "q2m"
+      : "p2l";
 
-const journey = String(
-  data.journey ||
-  data.program ||
-  data.track ||
-  data.trackCode ||
-  (track === "F8" ? "z2h" : "p2l")
-).toLowerCase();
+const beltFamily =
+  journeyKey === "z2h"
+    ? "z2h"
+    : journeyKey === "q2m"
+      ? "q2m"
+      : "p2l";
 
-const colorClass =
-  colorMaps[journey]?.[data.rankName] ||
-  "belt-p2l-apprentice";
+let colorClass =
+  colorMaps[beltFamily]?.[rankName];
 
-      const beltEl = document.getElementById(`rankBar-${id}`);
+if (
+  beltFamily === "p2l" &&
+  rankName === "Apprentice"
+) {
+  colorClass =
+    selectedDiscipline === "boxing"
+      ? "belt-p2l-apprentice-gray"
+      : "belt-p2l-apprentice";
+}
+
+colorClass =
+  colorClass ||
+  (
+    beltFamily === "z2h"
+      ? "belt-z2h-shadow"
+      : beltFamily === "q2m"
+        ? "belt-q2m-apprentice"
+        : selectedDiscipline === "boxing"
+          ? "belt-p2l-apprentice-gray"
+          : "belt-p2l-apprentice"
+  );
+
+    const beltEl =
+      document.getElementById(
+        `rankBar-${id}`
+      );
+
     if (beltEl) {
       beltEl.innerHTML = renderDigitalBelt({
         colorClass,
@@ -415,15 +547,24 @@ const colorClass =
       });
     }
 
-    const textEl = document.getElementById(`stripeText-${id}`);
+    const textEl =
+      document.getElementById(
+        `stripeText-${id}`
+      );
+
     if (textEl) {
       const xpPercent = Math.min(
         100,
-        Math.round((xpNow / xpCap) * 100)
+        Math.round(
+          (xpNow / Math.max(1, xpCap)) *
+          100
+        )
       );
 
       textEl.textContent =
-        `${xpNow} / ${xpCap} XP · ${xpPercent}% · Stripes: ${finalStripes} / ${stripeMax}`;
+        `${xpNow} / ${xpCap} XP · ` +
+        `${xpPercent}% · ` +
+        `Stripes: ${finalStripes} / ${stripeMax}`;
     }
   }
 }

@@ -1137,13 +1137,13 @@ const canSeeHonor =
   await renderAthleteAchievements({
     athleteId,
     targetId: "achievementFeed",
-    max: 3,
+    max: 5,
   });
 
   await renderAthleteActivity({
     athleteId,
     targetId: "activityFeed",
-    max: 3,
+    max: 5,
   });
 
 })();

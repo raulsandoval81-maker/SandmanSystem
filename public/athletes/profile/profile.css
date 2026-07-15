@@ -777,3 +777,27 @@ body{
   opacity:.75;
   font-size:.85rem;
 }
+
+.activity-feed-item[hidden],
+.achievement-feed-item[hidden]{
+  display:none;
+}
+
+.activity-toggle{
+  width:100%;
+  margin-top:12px;
+  padding:10px 14px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background:rgba(255,255,255,.04);
+  color:#ffd633;
+  font:inherit;
+  font-size:.82rem;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.activity-toggle:hover{
+  background:rgba(255,214,51,.08);
+  border-color:rgba(255,214,51,.35);
+}

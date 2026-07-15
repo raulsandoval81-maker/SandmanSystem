@@ -46,22 +46,71 @@ function renderAchievementItem(item = {}) {
 }
 
 function activityLaneLabel(item = {}) {
-  const kind =
-    String(item.kind || "")
-      .toUpperCase();
+  const kind = String(
+    item.kind || ""
+  ).toUpperCase();
 
-  const lane =
-    String(item.lane || item.meta?.lane || "")
-      .toLowerCase();
+  const lane = String(
+    item.lane ||
+    item.meta?.lane ||
+    ""
+  ).toLowerCase();
 
-  if (kind.includes("STRENGTH") || lane === "strength") {
+  if (
+    kind.includes("STRENGTH") ||
+    lane === "strength"
+  ) {
     return "Strength";
   }
 
-  if (kind.includes("HONOR") || lane === "honor") {
+  if (
+    kind.includes("HONOR") ||
+    lane === "honor"
+  ) {
     return "Honor";
   }
 
+  const rawDiscipline = String(
+    item.discipline ||
+    item.primaryDiscipline ||
+    item.sport ||
+    item.art ||
+    item.meta?.discipline ||
+    item.meta?.primaryDiscipline ||
+    item.meta?.sport ||
+    item.meta?.art ||
+    item.meta?.program ||
+    item.meta?.track ||
+    ""
+  ).toLowerCase();
+
+  if (rawDiscipline.includes("kickbox")) {
+    return "Kickboxing";
+  }
+
+  if (rawDiscipline.includes("wrest")) {
+    return "Wrestling";
+  }
+
+  if (
+    rawDiscipline.includes("mma") ||
+    rawDiscipline.includes("mixed martial")
+  ) {
+    return "MMA";
+  }
+
+  if (rawDiscipline.includes("box")) {
+    return "Boxing";
+  }
+
+  if (
+    rawDiscipline.includes("submission") ||
+    rawDiscipline.includes("grappling")
+  ) {
+    return "Submission Grappling";
+  }
+
+  // Legacy records may not contain discipline metadata.
   return "Combat";
 }
 
@@ -87,7 +136,7 @@ function renderActivityItem(item = {}) {
 export async function renderAthleteAchievements({
   athleteId,
   targetId = "achievementFeed",
-  max = 3,
+  max = 5,
 }) {
   const target =
     document.getElementById(targetId);
@@ -111,10 +160,80 @@ export async function renderAthleteAchievements({
       return;
     }
 
-    target.innerHTML =
-      items.map(renderAchievementItem).join("");
+    const collapsedCount =
+      Math.min(2, items.length);
+
+    const hasMore =
+      items.length > collapsedCount;
+
+    target.innerHTML = `
+      <div class="achievement-list">
+        ${items.map((item, index) => `
+          <div
+            class="achievement-feed-item"
+            data-achievement-item
+            ${index >= collapsedCount ? "hidden" : ""}
+          >
+            ${renderAchievementItem(item)}
+          </div>
+        `).join("")}
+      </div>
+
+      ${
+        hasMore
+          ? `
+            <button
+              type="button"
+              class="activity-toggle"
+              data-achievement-toggle
+              aria-expanded="false"
+            >
+              Show last ${items.length}
+            </button>
+          `
+          : ""
+      }
+    `;
+
+    const toggle =
+      target.querySelector(
+        "[data-achievement-toggle]"
+      );
+
+    if (!toggle) return;
+
+    toggle.addEventListener("click", () => {
+      const expanded =
+        toggle.getAttribute(
+          "aria-expanded"
+        ) === "true";
+
+      target
+        .querySelectorAll(
+          "[data-achievement-item]"
+        )
+        .forEach((item, index) => {
+          item.hidden =
+            expanded
+              ? index >= collapsedCount
+              : false;
+        });
+
+      toggle.setAttribute(
+        "aria-expanded",
+        String(!expanded)
+      );
+
+      toggle.textContent =
+        expanded
+          ? `Show last ${items.length}`
+          : "Show less";
+    });
   } catch (err) {
-    console.error("[athlete-achievements] failed:", err);
+    console.error(
+      "[athlete-achievements] failed:",
+      err
+    );
 
     target.innerHTML =
       `<p class="muted">Achievements unavailable.</p>`;
@@ -124,7 +243,7 @@ export async function renderAthleteAchievements({
 export async function renderAthleteActivity({
   athleteId,
   targetId = "activityFeed",
-  max = 3,
+  max = 5,
 }) {
   const target =
     document.getElementById(targetId);
@@ -148,10 +267,80 @@ export async function renderAthleteActivity({
       return;
     }
 
-    target.innerHTML =
-      items.map(renderActivityItem).join("");
+    const collapsedCount =
+      Math.min(2, items.length);
+
+    const hasMore =
+      items.length > collapsedCount;
+
+    target.innerHTML = `
+      <div class="activity-list">
+        ${items.map((item, index) => `
+          <div
+            class="activity-feed-item"
+            data-activity-item
+            ${index >= collapsedCount ? "hidden" : ""}
+          >
+            ${renderActivityItem(item)}
+          </div>
+        `).join("")}
+      </div>
+
+      ${
+        hasMore
+          ? `
+            <button
+              type="button"
+              class="activity-toggle"
+              data-activity-toggle
+              aria-expanded="false"
+            >
+              Show last ${items.length}
+            </button>
+          `
+          : ""
+      }
+    `;
+
+    const toggle =
+      target.querySelector(
+        "[data-activity-toggle]"
+      );
+
+    if (!toggle) return;
+
+    toggle.addEventListener("click", () => {
+      const expanded =
+        toggle.getAttribute(
+          "aria-expanded"
+        ) === "true";
+
+      target
+        .querySelectorAll(
+          "[data-activity-item]"
+        )
+        .forEach((item, index) => {
+          item.hidden =
+            expanded
+              ? index >= collapsedCount
+              : false;
+        });
+
+      toggle.setAttribute(
+        "aria-expanded",
+        String(!expanded)
+      );
+
+      toggle.textContent =
+        expanded
+          ? `Show last ${items.length}`
+          : "Show less";
+    });
   } catch (err) {
-    console.error("[athlete-activity] failed:", err);
+    console.error(
+      "[athlete-activity] failed:",
+      err
+    );
 
     target.innerHTML =
       `<p class="muted">Activity unavailable.</p>`;
