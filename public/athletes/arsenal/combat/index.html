@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Combat • Arsenal</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Combat Arsenal | Sandman Combat™</title>
+
   <link rel="icon" href="data:," />
 
   <style>
@@ -16,18 +22,23 @@
       --muted:#9aa4b1;
     }
 
+    *{
+      box-sizing:border-box;
+    }
+
     body{
       margin:0;
       min-height:100vh;
       display:grid;
       place-items:center;
+      padding:16px;
       background:var(--bg);
       color:var(--text);
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
     }
 
     .box{
-      width:min(520px, calc(100% - 32px));
+      width:min(520px,100%);
       background:var(--panel);
       border:1px solid var(--line);
       border-radius:16px;
@@ -57,18 +68,18 @@
     }
 
     .btn{
-      padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:.92rem;
-      border:1px solid var(--line);
-      text-decoration:none;
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-weight:800;
+      padding:10px 14px;
+      border:1px solid var(--line);
+      border-radius:10px;
       background:#1d2a4a;
       color:var(--text);
+      text-decoration:none;
+      font-size:.92rem;
+      font-weight:800;
+      cursor:pointer;
     }
 
     .btn:hover{
@@ -76,29 +87,107 @@
     }
   </style>
 </head>
+
 <body>
-  <div class="box">
-    <h1>Combat</h1>
-    <p id="status">Checking athlete path…</p>
+
+  <main class="box">
+    <h1>Combat Arsenal</h1>
+
+    <p id="status">
+      Checking athlete path…
+    </p>
+
     <div class="actions">
-      <a class="btn" href="/athletes/arsenal/">Back</a>
+      <a
+        id="backLink"
+        class="btn"
+        href="/athletes/arsenal/"
+      >
+        Back
+      </a>
     </div>
-  </div>
+  </main>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const athleteId = params.get("id") || "";
-    const statusEl = document.getElementById("status");
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const athleteId = String(
+      params.get("athleteId") ||
+      params.get("id") ||
+      localStorage.getItem("currentAthleteId") ||
+      sessionStorage.getItem("currentAthleteId") ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+    const discipline =
+      params.get("discipline") ||
+      (
+        athleteId
+          ? localStorage.getItem(
+              `sandman_active_discipline_${athleteId}`
+            )
+          : ""
+      ) ||
+      "";
+
+    const statusEl =
+      document.getElementById("status");
+
+    const backLink =
+      document.getElementById("backLink");
+
+    function buildUrl(base) {
+      const out =
+        new URLSearchParams();
+
+      if (athleteId) {
+        out.set("id", athleteId);
+      }
+
+      if (discipline) {
+        out.set(
+          "discipline",
+          discipline
+        );
+      }
+
+      return `${base}?${out.toString()}`;
+    }
+
+    if (backLink && athleteId) {
+      backLink.href =
+        buildUrl(
+          "/athletes/arsenal/"
+        );
+    }
 
     if (!athleteId) {
-      statusEl.textContent = "Missing athlete id.";
-    } else if (athleteId.startsWith("F4_")) {
-      window.location.replace(`/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`);
-    } else if (athleteId.startsWith("F8_")) {
-      window.location.replace(`/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`);
+      statusEl.textContent =
+        "Missing athlete ID.";
+    } else if (
+      athleteId.startsWith("F4_")
+    ) {
+      window.location.replace(
+        buildUrl(
+          "/athletes/arsenal/combat/teen/index.html"
+        )
+      );
+    } else if (
+      athleteId.startsWith("F8_")
+    ) {
+      window.location.replace(
+        buildUrl(
+          "/athletes/arsenal/combat/youth/index.html"
+        )
+      );
     } else {
-      statusEl.textContent = "Unknown athlete type.";
+      statusEl.textContent =
+        "Unknown athlete type.";
     }
   </script>
+
 </body>
 </html>
