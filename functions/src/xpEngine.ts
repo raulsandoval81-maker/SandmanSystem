@@ -205,8 +205,11 @@ function getPacificDayKeyFromTimestamp(ts: Timestamp) {
 ------------------------- */
 function normalizeAmount(kind: string, amount: number) {
   if (kind === "ATTENDANCE") {
-    if (amount !== 10 && amount !== 5) {
-      throw new HttpsError("invalid-argument", "ATTENDANCE amount must be 10 or 5");
+    if (![5, 10, 15, 20].includes(amount)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "ATTENDANCE amount must be 5, 10, 15, or 20"
+      );
     }
     return amount;
   }
@@ -593,7 +596,14 @@ if (k === "ARENA/NO_OPP_DAY") noOppCount += 1;
         };
       }
 
-      if (dailyXpTotal + amount > 15) {
+      const durationMinutes = Number(meta?.durationMinutes || 60);
+
+      const dailyGrindLimit =
+        durationMinutes >= 120 ? 20 :
+        durationMinutes >= 90 ? 15 :
+        10;
+
+      if (dailyXpTotal + amount > dailyGrindLimit) {
         return {
           ok: true,
           blocked: true,
@@ -603,6 +613,8 @@ if (k === "ARENA/NO_OPP_DAY") noOppCount += 1;
           dailyPressCount,
           dailyXpTotal,
           attemptedAmount: amount,
+          dailyGrindLimit,
+          durationMinutes,
           weekday: pacificWeekday,
         };
       }

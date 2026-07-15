@@ -166,8 +166,8 @@ function getPacificDayKeyFromTimestamp(ts) {
 ------------------------- */
 function normalizeAmount(kind, amount) {
     if (kind === "ATTENDANCE") {
-        if (amount !== 10 && amount !== 5) {
-            throw new https_1.HttpsError("invalid-argument", "ATTENDANCE amount must be 10 or 5");
+        if (![5, 10, 15, 20].includes(amount)) {
+            throw new https_1.HttpsError("invalid-argument", "ATTENDANCE amount must be 5, 10, 15, or 20");
         }
         return amount;
     }
@@ -495,7 +495,11 @@ async function runIncrementXp(coachUid, payload) {
                     weekday: pacificWeekday,
                 };
             }
-            if (dailyXpTotal + amount > 15) {
+            const durationMinutes = Number(meta?.durationMinutes || 60);
+            const dailyGrindLimit = durationMinutes >= 120 ? 20 :
+                durationMinutes >= 90 ? 15 :
+                    10;
+            if (dailyXpTotal + amount > dailyGrindLimit) {
                 return {
                     ok: true,
                     blocked: true,
@@ -505,6 +509,8 @@ async function runIncrementXp(coachUid, payload) {
                     dailyPressCount,
                     dailyXpTotal,
                     attemptedAmount: amount,
+                    dailyGrindLimit,
+                    durationMinutes,
                     weekday: pacificWeekday,
                 };
             }

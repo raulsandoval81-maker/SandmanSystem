@@ -13,6 +13,9 @@ function normalizeKind(kind: any): string {
   if (up === "STRENGTH") return "STRENGTH";
   if (up === "HONOR") return "HONOR";
 
+  // Daily Grind frontend → xpEngine contract
+  if (up === "DAILY_GRIND") return "ATTENDANCE";
+
   // Arena kinds should pass through exactly as you use them
   // (e.g., "ARENA/BATTLE", "ARENA/PODIUM", "ARENA/STYLEIQ")
   if (up.startsWith("ARENA/")) return up;

@@ -39,7 +39,6 @@ const journeyFilterEl = document.getElementById("journeyFilter");
 const searchEl = document.getElementById("search");
 const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
-const trackF8OnlyEl = document.getElementById("trackF8Only");
 
 const laneEl = document.getElementById("xpLane");
 const modeEl = document.getElementById("xpMode");
@@ -176,9 +175,6 @@ function rosterStatusOf(a = {}) {
   return String(a.rosterStatus || "current");
 }
 
-function wantedTrackBase() {
-  return trackF8OnlyEl && trackF8OnlyEl.checked ? "F8" : "F4";
-}
 
 function baseFromAthlete(a) {
   const tb = String(a?.trackBase || "").trim().toUpperCase();
@@ -373,7 +369,6 @@ const journeyLabels = {
   all: "All Journeys",
   z2h: "Zero2Hero",
   p2l: "Path2Legend",
-  r2g: "Road2Greatness",
   q2m: "Quest2Mastery"
 };
 
@@ -457,9 +452,7 @@ function subscribe() {
     unsub = null;
   }
 
-  const wantedBase = wantedTrackBase();
-
-  setStatus(`Loading athletes… ${wantedBase}`);
+  setStatus("Loading athletes…");
 
   const colRef = collection(db, "athletes");
 
