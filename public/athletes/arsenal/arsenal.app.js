@@ -33,153 +33,491 @@ function setOpen(card, title, desc, href) {
   if (p) p.textContent = desc;
 }
 
-function getStripeCount(athlete = {}) {
+function normalizeDiscipline(value = "") {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (raw.includes("kickbox")) return "kickboxing";
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (raw.includes("wrest")) return "wrestling";
+  if (raw.includes("box")) return "boxing";
+
+  return raw;
+}
+
+function disciplineLabel(value = "") {
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  };
+
+  const normalized = normalizeDiscipline(value);
+
+  return (
+    labels[normalized] ||
+    normalized
+      .split("-")
+      .filter(Boolean)
+      .map((part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+      )
+      .join(" ") ||
+    "Combat"
+  );
+}
+
+function disciplineIdsOf(athlete = {}) {
+  return Array.from(
+    new Set(
+      [
+        ...(Array.isArray(athlete.disciplineIds)
+          ? athlete.disciplineIds
+          : []),
+
+        ...Object.keys(
+          athlete.disciplines || {}
+        ),
+
+        athlete.activeDiscipline,
+        athlete.primaryDiscipline,
+        athlete.discipline,
+        athlete.art,
+        athlete.sport
+      ]
+        .map(normalizeDiscipline)
+        .filter(Boolean)
+    )
+  );
+}
+
+function resolveActiveDiscipline(
+  athlete = {},
+  requested = ""
+) {
+  const allowed = disciplineIdsOf(athlete);
+
+  const wanted =
+    normalizeDiscipline(requested);
+
+  if (
+    wanted &&
+    allowed.includes(wanted)
+  ) {
+    return wanted;
+  }
+
+  const preferred =
+    normalizeDiscipline(
+      athlete.activeDiscipline ||
+      athlete.primaryDiscipline ||
+      athlete.discipline ||
+      athlete.art ||
+      athlete.sport ||
+      ""
+    );
+
+  if (
+    preferred &&
+    allowed.includes(preferred)
+  ) {
+    return preferred;
+  }
+
+  return allowed[0] || "wrestling";
+}
+
+function combatForDiscipline(
+  athlete = {},
+  discipline = ""
+) {
+  const normalized =
+    normalizeDiscipline(discipline);
+
+  return (
+    athlete.disciplines?.[normalized] ||
+    athlete
+  );
+}
+
+function getStripeCount(combat = {}) {
   return Number(
-    athlete.stripeCount ??
-    athlete.stripesEarned ??
-    athlete.stripes ??
+    combat.stripeCount ??
+    combat.stripesEarned ??
+    combat.stripes ??
     0
   );
 }
 
-function getTierNumber(athlete = {}) {
-  const raw =
-    athlete.tier ??
-    athlete.tierCode ??
-    athlete.currentTier ??
-    "T0";
-
-  const match = String(raw).toUpperCase().match(/T(\d+)/);
-  return match ? Number(match[1]) : Number(raw) || 0;
-}
-
-function getTrackCode(athleteId, athlete = {}) {
+function getTrackCode(
+  athleteId,
+  athlete = {},
+  combat = {}
+) {
   const raw = String(
+    combat.trackCode ??
+    combat.track ??
+    combat.programTrack ??
+    combat.journey ??
     athlete.trackCode ??
     athlete.track ??
+    athlete.programTrack ??
+    athlete.journey ??
     ""
-  ).trim().toUpperCase();
+  )
+    .trim()
+    .toUpperCase();
 
-  if (raw) return raw;
-  if (athleteId.startsWith("F8_")) return "F8";
-  if (athleteId.startsWith("F4_")) return "F4";
+  if (
+    athleteId.startsWith("F8_") ||
+    raw.includes("F8") ||
+    raw.includes("FOUNDRY8") ||
+    raw.includes("ZERO2HERO") ||
+    raw.includes("Z2H")
+  ) {
+    return "F8";
+  }
+
+  if (
+    athleteId.startsWith("F4_") ||
+    raw.includes("F4") ||
+    raw.includes("FOUNDRY4") ||
+    raw.includes("PATH2LEGEND") ||
+    raw.includes("P2L")
+  ) {
+    return "F4";
+  }
+
   return "";
 }
 
-function isF8Athlete(athleteId, athlete = {}) {
-  return getTrackCode(athleteId, athlete).includes("F8");
+function isF8Athlete(
+  athleteId,
+  athlete = {},
+  combat = {}
+) {
+  return (
+    getTrackCode(
+      athleteId,
+      athlete,
+      combat
+    ) === "F8"
+  );
 }
 
-function wireHomeLink(athleteId) {
-  const homeLink = document.getElementById("homeLink");
-  if (!homeLink || !athleteId) return;
+function isLegacyAthlete(athlete = {}) {
+  return (
+    athlete.legacyAthlete === true ||
+    athlete.legacy === true
+  );
+}
 
-  homeLink.href = `/athletes/hub/full-hub.html?id=${encodeURIComponent(athleteId)}`;
+function wireNavigation(
+  athleteId,
+  discipline
+) {
+  const encodedId =
+    encodeURIComponent(athleteId);
+
+  const encodedDiscipline =
+    encodeURIComponent(discipline);
+
+  const homeLink =
+    document.getElementById("homeLink");
+
+  if (homeLink) {
+    homeLink.href =
+      `/athletes/hub/full-hub.html` +
+      `?id=${encodedId}` +
+      `&discipline=${encodedDiscipline}`;
+  }
+
+  const bulletinLink =
+    document.getElementById("bulletinLink");
+
+  if (bulletinLink) {
+    bulletinLink.href =
+      `/athletes/bulletin/index.html` +
+      `?id=${encodedId}` +
+      `&discipline=${encodedDiscipline}`;
+  }
+
+  const leaderboardLink =
+    document.getElementById("leaderboardLink");
+
+  if (leaderboardLink) {
+    leaderboardLink.href =
+      `/athletes/leaderboard/` +
+      `?id=${encodedId}` +
+      `&discipline=${encodedDiscipline}`;
+  }
 }
 
 async function loadUnlocks() {
-  const combatCard = document.getElementById("combat-card");
-  const strengthCard = document.getElementById("strength-card");
-  const honorCard = document.getElementById("honor-card");
+  const combatCard =
+    document.getElementById("combat-card");
 
-  const params = new URLSearchParams(window.location.search);
-  const athleteId = (params.get("id") || "").trim().toUpperCase();
+  const strengthCard =
+    document.getElementById("strength-card");
+
+  const honorCard =
+    document.getElementById("honor-card");
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const athleteId = String(
+    params.get("athleteId") ||
+    params.get("id") ||
+    localStorage.getItem("currentAthleteId") ||
+    sessionStorage.getItem("currentAthleteId") ||
+    ""
+  )
+    .trim()
+    .toUpperCase();
 
   if (!athleteId) {
-    console.error("Missing athlete id in Arsenal URL");
+    console.error(
+      "Missing athlete ID in Arsenal URL"
+    );
+
     return;
   }
 
   setLocked(
     combatCard,
     "Combat",
-    "Primary lane · access expands through Combat progress"
+    "Loading combat access..."
   );
 
   setLocked(
     strengthCard,
     "Strength 🔒",
-    "Unlocked lane · opens through Combat progress"
+    "Loading Strength access..."
   );
 
   setLocked(
     honorCard,
     "Honor 🔒",
-    "Unlocked lane · opens through Combat progress"
+    "Loading Honor access..."
   );
 
   try {
     await ensureSignedIn();
 
-    const athleteRef = doc(db, "athletes", athleteId);
-    const athleteSnap = await getDoc(athleteRef);
+    const athleteRef =
+      doc(db, "athletes", athleteId);
+
+    const athleteSnap =
+      await getDoc(athleteRef);
 
     if (!athleteSnap.exists()) {
-      console.error("Athlete not found:", athleteId);
+      console.error(
+        "Athlete not found:",
+        athleteId
+      );
+
       return;
     }
 
-    const athlete = athleteSnap.data() || {};
+    const athlete =
+      athleteSnap.data() || {};
+
+    const requestedDiscipline =
+      params.get("discipline") ||
+      localStorage.getItem(
+        `sandman_active_discipline_${athleteId}`
+      ) ||
+      "";
+
+    const activeDiscipline =
+      resolveActiveDiscipline(
+        athlete,
+        requestedDiscipline
+      );
+
+    const combat =
+      combatForDiscipline(
+        athlete,
+        activeDiscipline
+      );
+
+    const disciplineState =
+      String(
+        combat.state ||
+        combat.status ||
+        ""
+      ).toLowerCase();
 
     if (
       athlete.active === false ||
       athlete.rosterStatus === "suspended" ||
-      athlete?.discipline?.state === "suspended"
+      disciplineState === "suspended"
     ) {
       document.body.innerHTML = `
-        <main style="min-height:100vh;display:grid;place-items:center;padding:30px;background:#050505;color:white;font-family:system-ui;">
-          <section style="max-width:520px;text-align:center;border:1px solid rgba(255,255,255,.18);border-radius:18px;padding:28px;background:#111;">
-            <h1 style="margin:0 0 10px;">Account Suspended</h1>
-            <p style="margin:0;color:#bbb;line-height:1.5;">
-              This athlete account is currently unavailable. Please contact your coach regarding account status.
+        <main
+          style="
+            min-height:100vh;
+            display:grid;
+            place-items:center;
+            padding:30px;
+            background:#050505;
+            color:white;
+            font-family:system-ui;
+          "
+        >
+          <section
+            style="
+              max-width:520px;
+              text-align:center;
+              border:1px solid rgba(255,255,255,.18);
+              border-radius:18px;
+              padding:28px;
+              background:#111;
+            "
+          >
+            <h1 style="margin:0 0 10px;">
+              Account Suspended
+            </h1>
+
+            <p
+              style="
+                margin:0;
+                color:#bbb;
+                line-height:1.5;
+              "
+            >
+              This athlete account is currently unavailable.
+              Please contact your coach regarding account status.
             </p>
           </section>
         </main>
       `;
+
       return;
     }
 
-    wireHomeLink(athleteId);
-    
-    const stripe = getStripeCount(athlete);
-    const tier = getTierNumber(athlete);
-    const isF8 = isF8Athlete(athleteId, athlete);
+    localStorage.setItem(
+      "currentAthleteId",
+      athleteId
+    );
+
+    localStorage.setItem(
+      `sandman_active_discipline_${athleteId}`,
+      activeDiscipline
+    );
+
+    wireNavigation(
+      athleteId,
+      activeDiscipline
+    );
+
+    const stripe =
+      getStripeCount(combat);
+
+    const isF8 =
+      isF8Athlete(
+        athleteId,
+        athlete,
+        combat
+      );
+
+    const isLegacy =
+      isLegacyAthlete(athlete);
+
+    /*
+      Current unlock doctrine:
+
+      Youth / F8
+      Strength: Stripe 2
+      Honor: Stripe 3
+
+      New teen/adult / F4
+      Strength: Stripe 1
+      Honor: Stripe 2
+
+      Legacy teen/adult / F4
+      Strength: Stripe 2
+      Honor: Stripe 3
+    */
+
+    const strengthRequired =
+      isF8
+        ? 2
+        : isLegacy
+          ? 2
+          : 1;
+
+    const honorRequired =
+      isF8
+        ? 3
+        : isLegacy
+          ? 3
+          : 2;
 
     const strengthUnlocked =
-      athlete?.unlocks?.strength === true ||
-      (isF8 ? tier >= 3 && stripe >= 1 : stripe >= 1);
+      athlete.unlocks?.strength === true ||
+      stripe >= strengthRequired;
 
     const honorUnlocked =
-      athlete?.unlocks?.honor === true ||
-      (isF8 ? tier >= 3 && stripe >= 2 : stripe >= 2);
+      athlete.unlocks?.honor === true ||
+      stripe >= honorRequired;
+
+    const disciplineName =
+      disciplineLabel(
+        activeDiscipline
+      );
+
+    const encodedId =
+      encodeURIComponent(athleteId);
+
+    const encodedDiscipline =
+      encodeURIComponent(
+        activeDiscipline
+      );
 
     setOpen(
       combatCard,
-      "Combat",
-      "Primary lane · access expands through Combat progress",
-      `/athletes/arsenal/combat/?id=${encodeURIComponent(athleteId)}`
+      disciplineName,
+      `${disciplineName} Combat Arsenal`,
+      `/athletes/arsenal/combat/` +
+      `?id=${encodedId}` +
+      `&discipline=${encodedDiscipline}`
     );
 
     if (strengthUnlocked) {
       setOpen(
         strengthCard,
         "Strength",
-        "Strength Development Track",
-        `/athletes/arsenal/strength/?id=${encodeURIComponent(athleteId)}`
-      );
-    } else if (isF8) {
-      setLocked(
-        strengthCard,
-        "Strength 🔒",
-        tier < 3
-          ? "Unlocks at Contender."
-          : "Unlocks at Contender Stripe 1."
+        "Shared Strength and Conditioning Track",
+        `/athletes/arsenal/strength/` +
+        `?id=${encodedId}`
       );
     } else {
       setLocked(
         strengthCard,
         "Strength 🔒",
-        "Earn Stripe 1 to unlock Strength."
+        `Earn Stripe ${strengthRequired} to unlock Strength.`
       );
     }
 
@@ -187,42 +525,53 @@ async function loadUnlocks() {
       setOpen(
         honorCard,
         "Honor",
-        "Honor Development Track",
-        `/athletes/arsenal/honor/?id=${encodeURIComponent(athleteId)}`
-      );
-    } else if (isF8) {
-      setLocked(
-        honorCard,
-        "Honor 🔒",
-        tier < 3
-          ? "Unlocks at Contender."
-          : "Unlocks at Contender Stripe 2."
+        "Shared Honor Development Track",
+        `/athletes/arsenal/honor/` +
+        `?id=${encodedId}`
       );
     } else {
       setLocked(
         honorCard,
         "Honor 🔒",
-        "Earn Stripe 2 to unlock Honor."
+        `Earn Stripe ${honorRequired} to unlock Honor.`
       );
     }
 
-    const panel = document.getElementById("arsenalModePanel");
-    const inner = document.getElementById("modePanelInner");
+    const panel =
+      document.getElementById(
+        "arsenalModePanel"
+      );
+
+    const inner =
+      document.getElementById(
+        "modePanelInner"
+      );
+
     if (panel) panel.hidden = true;
     if (inner) inner.innerHTML = "";
 
   } catch (err) {
-    console.error("Failed to load Arsenal unlocks:", err);
-
-    setOpen(
-      combatCard,
-      "Combat",
-      "Primary lane · access expands through Combat progress",
-      `/athletes/arsenal/combat/?id=${encodeURIComponent(athleteId)}`
+    console.error(
+      "Failed to load Arsenal:",
+      err
     );
 
-    const panel = document.getElementById("arsenalModePanel");
-    const inner = document.getElementById("modePanelInner");
+    setLocked(
+      combatCard,
+      "Combat unavailable",
+      "Unable to verify athlete access."
+    );
+
+    const panel =
+      document.getElementById(
+        "arsenalModePanel"
+      );
+
+    const inner =
+      document.getElementById(
+        "modePanelInner"
+      );
+
     if (panel) panel.hidden = true;
     if (inner) inner.innerHTML = "";
   }

@@ -1,26 +1,34 @@
 {
+  "_note": [
+    "Youth Development Doctrine",
+    "Before Tier 3, Strength and Honor are coach-led experiences focused on movement fundamentals, biomechanics, physical literacy, and character development.",
+    "Athletes earn Strength and Honor recognition badges during this phase, but independent remote assignments remain locked.",
+    "At Tier 3, athletes become eligible for the remote Strength and Honor lanes, reflecting increased maturity and readiness for guided independent development."
+  ],
+
   "strength": {
+    "unlocked": false,
+    "unlockTier": 0,
+    "unlockStripe": 1,
+    "chapters": [false, false, false, false, false, false, false, false],
+    "youthMode": {
+      "tier0to2": "badge_only",
+      "tier3plus": "remote_lane",
+      "remoteUnlockTier": 3,
+      "remoteUnlockStripe": 1
+    }
+  },
+
+  "honor": {
     "unlocked": false,
     "unlockTier": 0,
     "unlockStripe": 2,
     "chapters": [false, false, false, false, false, false, false, false],
     "youthMode": {
-      "tier0to1": "badge_only",
-      "tier2plus": "remote_lane",
-      "remoteUnlockTier": 2,
+      "tier0to2": "badge_only",
+      "tier3plus": "remote_lane",
+      "remoteUnlockTier": 3,
       "remoteUnlockStripe": 2
-    }
-  },
-  "honor": {
-    "unlocked": false,
-    "unlockTier": 0,
-    "unlockStripe": 3,
-    "chapters": [false, false, false, false, false, false, false, false],
-    "youthMode": {
-      "tier0to1": "badge_only",
-      "tier2plus": "remote_lane",
-      "remoteUnlockTier": 2,
-      "remoteUnlockStripe": 3
     }
   }
 }

@@ -2,70 +2,221 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Youth Arsenal | Sandman System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="/athletes/arsenal/mini-arsenal.css" />
+  <title>Youth Arsenal | Sandman Combat™</title>
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/athletes/arsenal/mini-arsenal.css"
+  />
+
   <link rel="icon" href="data:," />
 </head>
+
 <body>
-  <main class="mini-arsenal-page">
 
-    <header class="page-header card">
-      <div class="page-header-top">
-        <a id="homeBtn" class="btn btn-ghost" href="/athletes/hub/mini-hub.html">← Home</a>
+<main class="mini-arsenal-page">
+
+  <header class="page-header card">
+
+    <div class="page-header-top">
+      <a
+        id="homeBtn"
+        class="btn btn-ghost"
+        href="/athletes/hub/mini-hub.html"
+      >
+        ← Home
+      </a>
+    </div>
+
+    <div class="page-header-main">
+      <p class="eyebrow">
+        Sandman Combat™
+      </p>
+
+      <h1>
+        Youth Arsenal
+      </h1>
+
+      <p
+        class="subtext"
+        id="athleteLabel"
+      >
+        Loading athlete...
+      </p>
+    </div>
+
+  </header>
+
+  <!-- =========================
+       Youth Doctrine
+  ========================== -->
+
+  <section class="card doctrine-card">
+
+    <p class="eyebrow">
+      Youth Development
+    </p>
+
+    <h2>
+      Build the Athlete Before the Assignment
+    </h2>
+
+    <p class="subtext">
+      Before Tier 3, Strength and Honor are
+      coach-guided experiences focused on
+      movement fundamentals, biomechanics,
+      physical literacy, and character
+      development.
+
+      Independent remote assignments unlock
+      at Tier 3 as athletes demonstrate
+      increased maturity and responsibility.
+    </p>
+
+  </section>
+
+  <!-- =========================
+       Arsenal Cards
+  ========================== -->
+
+  <section class="arsenal-grid">
+
+    <button
+      class="arsenal-card card"
+      id="combatCard"
+      type="button"
+      data-panel="combat"
+    >
+
+      <div class="card-icon">
+        🥋
       </div>
 
-      <div class="page-header-main">
-        <p class="eyebrow">Sandman Combat™</p>
-        <h1>Foundry 8 Arsenal</h1>
-        <p class="subtext" id="athleteLabel">Loading athlete...</p>
-      </div>
-    </header>
+      <div class="card-copy">
+        <h2>
+          Combat
+        </h2>
 
-    <section class="arsenal-grid">
-      <button class="arsenal-card card" id="combatCard" type="button" data-panel="combat">
-        <div class="card-icon">🥋</div>
-        <div class="card-copy">
-          <h2>Combat</h2>
-          <p>Skills, growth, and progress on the mat.</p>
-        </div>
-      </button>
-
-      <button class="arsenal-card card" id="strengthCard" type="button" data-panel="strength">
-        <div class="card-icon">💪</div>
-        <div class="card-copy">
-          <h2>Acts of Strength</h2>
-          <p>Coach-recognized moments of effort, toughness, and discipline.</p>
-        </div>
-      </button>
-
-      <button class="arsenal-card card" id="honorCard" type="button" data-panel="honor">
-        <div class="card-icon">🛡️</div>
-        <div class="card-copy">
-          <h2>Acts of Honor</h2>
-          <p>Coach-recognized moments of respect, character, and leadership.</p>
-        </div>
-      </button>
-    </section>
-
-    <section class="card badge-panel">
-      <div class="badge-panel-header">
-        <p class="eyebrow" id="panelEyebrow">Recognition</p>
-        <h2 id="panelTitle">Mini Arsenal Board</h2>
-        <p class="subtext" id="panelText">
-          Select a card above to view progress, badges, or earned recognition.
+        <p>
+          Skills, development, and progression
+          in your combat discipline.
         </p>
       </div>
 
-      <div id="badgeWall" class="badge-wall">
-        <div class="empty-state" id="emptyState">
-          <p>No badges to show yet.</p>
-        </div>
+    </button>
+
+    <button
+      class="arsenal-card card"
+      id="strengthCard"
+      type="button"
+      data-panel="strength"
+    >
+
+      <div class="card-icon">
+        💪
       </div>
-    </section>
 
-  </main>
+      <div class="card-copy">
+        <h2>
+          Strength
+        </h2>
 
-  <script type="module" src="/athletes/arsenal/mini-arsenal.app.js"></script>
+        <p>
+          Coach-guided movement,
+          biomechanics, physical literacy,
+          and Acts of Strength.
+        </p>
+      </div>
+
+    </button>
+
+    <button
+      class="arsenal-card card"
+      id="honorCard"
+      type="button"
+      data-panel="honor"
+    >
+
+      <div class="card-icon">
+        🛡️
+      </div>
+
+      <div class="card-copy">
+        <h2>
+          Honor
+        </h2>
+
+        <p>
+          Coach-guided character development,
+          reflection, leadership,
+          and Acts of Honor.
+        </p>
+      </div>
+
+    </button>
+
+  </section>
+
+  <!-- =========================
+       Detail Panel
+  ========================== -->
+
+  <section class="card badge-panel">
+
+    <div class="badge-panel-header">
+
+      <p
+        class="eyebrow"
+        id="panelEyebrow"
+      >
+        Youth Development
+      </p>
+
+      <h2 id="panelTitle">
+        Arsenal Overview
+      </h2>
+
+      <p
+        class="subtext"
+        id="panelText"
+      >
+        Select Combat, Strength,
+        or Honor to view your
+        progress, recognition,
+        and development.
+      </p>
+
+    </div>
+
+    <div
+      id="badgeWall"
+      class="badge-wall"
+    >
+
+      <div
+        class="empty-state"
+        id="emptyState"
+      >
+        <p>
+          Select a development area
+          to begin.
+        </p>
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/athletes/arsenal/mini-arsenal.app.js"
+></script>
+
 </body>
 </html>
