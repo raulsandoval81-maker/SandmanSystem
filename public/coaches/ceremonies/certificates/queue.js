@@ -96,7 +96,16 @@ async function checkAthlete() {
         <p><strong>Next Action:</strong> ${escapeHtml(decision.nextAction)}</p>
         <p><strong>Coach Action:</strong> ${escapeHtml(decision.coachAction)}</p>
 
-        <p><strong>Certificate:</strong> ${printReady ? "Ready to print" : "No certificate ready"}</p>
+        <p>
+  <strong>Certificate:</strong>
+  ${
+    printReady
+      ? "Ready to print"
+      : payload?.reason === "LEGACY_PLACEMENT"
+        ? "Legacy placement recognized — no Sandman certificate"
+        : "No certificate ready"
+  }
+</p>
 
         ${
           printReady

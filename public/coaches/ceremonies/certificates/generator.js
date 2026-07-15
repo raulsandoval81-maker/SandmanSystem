@@ -342,6 +342,16 @@ const ENGINE_ENDPOINTS = {
     "https://us-central1-sandmandashboard.cloudfunctions.net/testCertificatePayloadEngine"
 };
 
+// Set only when the certificate was loaded from the backend engine.
+// Manual certificate mode remains available to the coach.
+let enginePayloadState = {
+  loaded: false,
+  printReady: true,
+  ceremonyEligible: true,
+  reason: null,
+  message: ""
+};
+
 function romanToNumber(value) {
   const map = {
     I: 1,
@@ -365,18 +375,91 @@ function numberToRoman(value) {
 }
 
 function resolveFoundryKey(programCode) {
-  return String(programCode || "").toLowerCase();
+  const raw = String(programCode || "")
+    .trim()
+    .toLowerCase();
+
+  if (
+    raw === "f8" ||
+    raw.includes("foundry8") ||
+    raw.includes("zero2hero") ||
+    raw.includes("youth")
+  ) {
+    return "f8";
+  }
+
+  if (
+    raw === "q2m" ||
+    raw === "adult" ||
+    raw.includes("quest2mastery") ||
+    raw.includes("mastery")
+  ) {
+    return "q2m";
+  }
+
+  // Reserved compatibility for the future Sandman Sports pathway.
+  if (
+    raw === "r2g" ||
+    raw.includes("road2greatness")
+  ) {
+    return "r2g";
+  }
+
+  return "f4";
 }
 
 function applyCertificatePayload(payload) {
-  if (!payload || !payload.printReady) {
-    console.warn("No printable certificate payload.", payload);
-    return;
+  enginePayloadState = {
+    loaded: true,
+    printReady: payload?.printReady === true,
+    ceremonyEligible: payload?.ceremonyEligible !== false,
+    reason: payload?.reason || null,
+    message: payload?.message || ""
+  };
+
+  if (
+    !payload ||
+    payload.printReady !== true ||
+    payload.ceremonyEligible === false
+  ) {
+    const message =
+      payload?.message ||
+      (
+        payload?.reason === "LEGACY_PLACEMENT"
+          ? "Legacy placement is recognized, but this stripe is not eligible for a Sandman certificate."
+          : "No printable certificate is ready."
+      );
+
+    console.warn("Certificate payload blocked.", payload);
+    alert(message);
+    return false;
   }
 
-  const foundryKey = resolveFoundryKey(payload.programCode);
-  const tierValue = String(payload.tier);
-  const stripeValue = numberToRoman(payload.stripe);
+  const foundryKey = resolveFoundryKey(
+    payload.programCode ||
+    payload.programName ||
+    payload.journey
+  );
+
+  const preset = CERTIFICATE_PRESETS[foundryKey];
+
+  if (!preset) {
+    throw new Error(
+      `Unsupported certificate program: ${payload.programCode || "unknown"}`
+    );
+  }
+
+  const tierNumber = Number(
+    String(payload.tier ?? 0).match(/\d+/)?.[0] ?? 0
+  );
+
+  const safeTier = preset.tiers[tierNumber]
+    ? tierNumber
+    : 0;
+
+  const stripeValue = numberToRoman(
+    Math.max(1, Math.min(4, Number(payload.stripe || 1)))
+  );
 
   fields.mode.value = "filled";
   fields.beltStyle.value = "v2";
@@ -390,25 +473,44 @@ function applyCertificatePayload(payload) {
   );
 
   populateTierOptions();
-
-  fields.tier.value = tierValue;
+  fields.tier.value = String(safeTier);
 
   populateStripeOptions();
 
-  fields.stripe.value = stripeValue;
+  const allowedStripes =
+    CERTIFICATE_PRESETS[foundryKey]
+      ?.tiers?.[safeTier]
+      ?.stripes || [];
 
-  fields.athleteName.value = payload.athleteName || "";
-  fields.academyName.value = "Lompoc Academy of Wrestling";
-  fields.coach.value = payload.coach || "Coach Sandoval";
+  fields.stripe.value = allowedStripes.includes(stripeValue)
+    ? stripeValue
+    : allowedStripes[0] || "I";
+
+  fields.athleteName.value =
+    payload.athleteName || "";
+
+  fields.academyName.value =
+    payload.academyName ||
+    payload.academy ||
+    payload.team ||
+    fields.academyName.value ||
+    "Sandman Academy";
+
+  fields.coach.value =
+    payload.coach ||
+    fields.coach.value ||
+    "Coach Sandoval";
 
   const date = payload.dateAwarded
     ? new Date(payload.dateAwarded)
     : new Date();
 
-  fields.date.value =
-    date.toLocaleDateString("en-US");
+  fields.date.value = Number.isNaN(date.getTime())
+    ? new Date().toLocaleDateString("en-US")
+    : date.toLocaleDateString("en-US");
 
   updateCertificate();
+  return true;
 }
 
 async function loadCertificatePayloadFromEngine(uid) {
@@ -427,9 +529,13 @@ async function loadCertificatePayloadFromEngine(uid) {
     throw new Error(data.error || "Engine returned failure.");
   }
 
-  applyCertificatePayload(data.payload);
+  const applied = applyCertificatePayload(data.payload);
 
-  console.log("Loaded certificate payload:", data);
+  if (applied) {
+    console.log("Loaded printable certificate payload:", data);
+  } else {
+    console.log("Certificate payload was not print eligible:", data);
+  }
 }
 
 function autoLoadFromQuery() {
@@ -725,6 +831,25 @@ Object.values(fields).forEach((field) => {
 });
 
 document.getElementById("printBtn").addEventListener("click", () => {
+  if (
+    enginePayloadState.loaded &&
+    (
+      enginePayloadState.printReady !== true ||
+      enginePayloadState.ceremonyEligible === false
+    )
+  ) {
+    alert(
+      enginePayloadState.message ||
+      (
+        enginePayloadState.reason === "LEGACY_PLACEMENT"
+          ? "Legacy placement is recognized, but this stripe is not eligible for a Sandman certificate."
+          : "No printable certificate is ready."
+      )
+    );
+
+    return;
+  }
+
   updateCertificate();
   window.print();
 });

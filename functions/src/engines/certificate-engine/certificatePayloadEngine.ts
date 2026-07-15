@@ -2,6 +2,15 @@ import { EngineAthlete } from "../athlete-engine/athleteNormalizer";
 import { evaluateProgression } from "../progression-engine/progressionEngine";
 import { evaluateRecognition } from "../recognition-engine/recognitionEngine";
 
+function normalizeTierNumber(value: any): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.max(0, value);
+  }
+
+  const match = String(value ?? "").match(/\d+/);
+  return match ? Number(match[0]) : 0;
+}
+
 function hasIssuedStripeCertificate(
   athlete: EngineAthlete,
   tier: number,
@@ -10,7 +19,7 @@ function hasIssuedStripeCertificate(
   return (athlete.certificates || []).some((cert: any) => {
     return (
       cert.type === "STRIPE" &&
-      Number(cert.tier) === Number(tier) &&
+      normalizeTierNumber(cert.tier) === normalizeTierNumber(tier) &&
       Number(cert.stripe) === Number(stripe)
     );
   });
@@ -25,32 +34,101 @@ function getLegacyXp(athlete: any): number {
   );
 }
 
+function getLegacyEntryStripe(athlete: any): number {
+  const explicit = Number(
+    athlete?.legacyEntryStripe ??
+    athlete?.legacy?.entryStripe ??
+    athlete?.legacyRecognitionVeto?.entryStripe ??
+    0
+  );
+
+  if (explicit > 0) {
+    return Math.min(4, Math.max(0, explicit));
+  }
+
+  // Compatibility fallback for older legacy records.
+  const legacyXp = getLegacyXp(athlete);
+
+  if (legacyXp <= 0) return 0;
+
+  const xpCap = Math.max(
+    1,
+    Number(
+      athlete?.xpCap ??
+      athlete?.tierCap ??
+      1000
+    )
+  );
+
+  return Math.min(
+    4,
+    Math.max(0, Math.floor((legacyXp / xpCap) * 4))
+  );
+}
+
+function isLegacyAthlete(athlete: any): boolean {
+  return (
+    athlete?.legacyAthlete === true ||
+    athlete?.legacy === true ||
+    getLegacyXp(athlete) > 0 ||
+    getLegacyEntryStripe(athlete) > 0 ||
+    athlete?.legacyRecognitionVeto?.enabled === true
+  );
+}
+
 function isLegacyStripeVetoed(
   athlete: any,
   tier: number,
   stripe: number
 ): boolean {
-  if (getLegacyXp(athlete) <= 0) return false;
-  if (Number(stripe) !== 1) return false;
+  if (!isLegacyAthlete(athlete)) return false;
+
+  const normalizedTier = normalizeTierNumber(tier);
+  const normalizedStripe = Number(stripe);
+
+  if (normalizedStripe <= 0) return false;
 
   const veto = athlete?.legacyRecognitionVeto;
 
-  if (veto?.enabled === true) {
-    return (
-      veto?.tiers?.[String(tier)]?.stripe1Vetoed === true ||
-      veto?.tiers?.[Number(tier)]?.stripe1Vetoed === true
+  const tierRule =
+    veto?.tiers?.[String(normalizedTier)] ??
+    veto?.tiers?.[normalizedTier];
+
+  // Explicit per-tier configuration wins.
+  if (veto?.enabled === true && tierRule) {
+    const highestVetoedStripe = Number(
+      tierRule.highestVetoedStripe ??
+      (tierRule.stripe1Vetoed === true ? 1 : 0)
     );
+
+    return normalizedStripe <= highestVetoedStripe;
   }
 
-  // fallback rule for older legacy records:
-  // legacy athletes do not receive Stripe I certificate in Tier 0 or Tier 1
-  return Number(tier) === 0 || Number(tier) === 1;
+  // Default doctrine:
+  // inherited placement is recognized, not ceremonially awarded.
+  const entryTier = normalizeTierNumber(
+    athlete?.legacyEntryTier ??
+    athlete?.legacy?.entryTier ??
+    0
+  );
+
+  if (normalizedTier !== entryTier) return false;
+
+  const legacyEntryStripe = getLegacyEntryStripe(athlete);
+
+  return normalizedStripe <= legacyEntryStripe;
 }
 
-function notReady(athlete: EngineAthlete, message: string) {
+function notReady(
+  athlete: EngineAthlete,
+  message: string,
+  reason: string = "NOT_READY"
+) {
   return {
     printReady: false,
+    ceremonyEligible: false,
     certificateType: "NONE",
+    reason,
     athleteName: athlete.name,
     message
   };
@@ -67,7 +145,9 @@ function stripePayload(
 ) {
   return {
     printReady: true,
+    ceremonyEligible: true,
     certificateType,
+    reason: null,
     title,
     subtitle,
     athleteName: athlete.name,
@@ -87,14 +167,16 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
   const progression = evaluateProgression(athlete);
   const recognition = evaluateRecognition(athlete);
   const stripeDecision = progression.stripeDecision;
+
   const currentStripe = Number(athlete.stripe || 0);
-  const currentTier = Number(athlete.tier || 0);
+  const currentTier = normalizeTierNumber(athlete.tier);
 
   if (currentStripe > 0) {
     if (isLegacyStripeVetoed(athlete, currentTier, currentStripe)) {
       return notReady(
         athlete,
-        "Legacy placement recognized. Stripe I certificate is vetoed for this tier; recognition opens after deeper Sandman-earned progress."
+        "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.",
+        "LEGACY_PLACEMENT"
       );
     }
 
@@ -105,18 +187,20 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
     );
 
     if (!recognition.stripeAward?.eligible) {
-  return notReady(
-    athlete,
-    recognition.nextAction
-  );
-}
+      return notReady(
+        athlete,
+        recognition.nextAction,
+        "RECOGNITION_NOT_ELIGIBLE"
+      );
+    }
 
-if (recognition.stripeAward?.completed) {
-  return notReady(
-    athlete,
-    recognition.stripeAward.message
-  );
-}
+    if (recognition.stripeAward?.completed) {
+      return notReady(
+        athlete,
+        recognition.stripeAward.message,
+        "CERTIFICATE_ALREADY_COMPLETED"
+      );
+    }
 
     if (!alreadyIssued) {
       return stripePayload(
@@ -137,7 +221,8 @@ if (recognition.stripeAward?.completed) {
     if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
       return notReady(
         athlete,
-        "Legacy placement recognized. Stripe I certificate is vetoed for this tier; recognition opens after deeper Sandman-earned progress."
+        "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.",
+        "LEGACY_PLACEMENT"
       );
     }
 
@@ -152,13 +237,17 @@ if (recognition.stripeAward?.completed) {
     );
   }
 
-  if (progression.certificateAction === "TESTING_ELIGIBLE_STRIPE_CERTIFICATE") {
+  if (
+    progression.certificateAction ===
+    "TESTING_ELIGIBLE_STRIPE_CERTIFICATE"
+  ) {
     const nextStripe = Number(stripeDecision?.nextStripe || 0);
 
     if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
       return notReady(
         athlete,
-        "Legacy placement recognized. Testing certificate is blocked until deeper Sandman-earned progress is recorded."
+        "Legacy placement recognized. Testing recognition opens after deeper Sandman-earned progress is recorded.",
+        "LEGACY_PLACEMENT"
       );
     }
 
@@ -169,7 +258,8 @@ if (recognition.stripeAward?.completed) {
       `Stripe ${nextStripe}`,
       "Testing Eligible",
       nextStripe,
-      stripeDecision?.message || "Testing eligible stripe certificate ready."
+      stripeDecision?.message ||
+        "Testing eligible stripe certificate ready."
     );
   }
 

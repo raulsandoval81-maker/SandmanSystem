@@ -26,10 +26,14 @@ const queue=document.getElementById("queue");
 
 queue.innerHTML="";
 
-data.queue.stripeAwards.forEach(item=>{
+data.queue.stripeAwards.forEach(item => {
 
-queue.innerHTML+=`
+  const legacy =
+    item.ceremonyEligible === false
+      ? '<div class="legacy-note">Legacy recognition only</div>'
+      : '';
 
+  queue.innerHTML += `
 <div class="queue-item">
 
 <strong>${item.athleteName}</strong><br>
@@ -37,8 +41,9 @@ queue.innerHTML+=`
 Tier ${item.decision.tier}
 Stripe ${item.decision.stripe}
 
-</div>
+${legacy}
 
+</div>
 `;
 
 });
