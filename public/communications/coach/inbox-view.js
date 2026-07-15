@@ -1,3 +1,19 @@
+// /communications/coach/inbox-view.js
+// ------------------------------------------------------------
+// Coach Join / Trial Thread
+//
+// Discipline-aware request review.
+// Supports legacy request fields:
+// - discipline
+// - programInterest
+// - interest
+// - sport
+// - art
+// - track
+//
+// Existing request and reply behavior is preserved.
+// ------------------------------------------------------------
+
 import {
   db,
   ensureSignedIn,
@@ -14,338 +30,1037 @@ import {
 
 await ensureSignedIn();
 
-const container = document.getElementById("thread");
-const replyBox = document.getElementById("reply-body");
-const replySubject = document.getElementById("reply-subject");
-const btnSend = document.getElementById("btn-send-reply");
-const btnMarkDone = document.getElementById("btn-mark-done");
-const statusEl = document.getElementById("status");
+/* =========================
+   DOM
+========================= */
 
-const nameEl = document.getElementById("vol-name");
-const athleteEl = document.getElementById("vol-athlete");
-const typeEl = document.getElementById("vol-type");
-const timeEl = document.getElementById("vol-time");
-const availabilityEl = document.getElementById("vol-availability");
+const container =
+  document.getElementById("thread");
 
-const btnGotIt = document.getElementById("btn-got-it");
-const btnReview = document.getElementById("btn-review");
-const btnApproveTrial = document.getElementById("btn-approve-trial");
-const btnApproveJoin = document.getElementById("btn-approve-join");
-const btnNoted = document.getElementById("btn-noted");
+const replyBox =
+  document.getElementById("reply-body");
 
-const params = new URLSearchParams(location.search);
-const id = params.get("id");
+const replySubject =
+  document.getElementById("reply-subject");
+
+const btnSend =
+  document.getElementById("btn-send-reply");
+
+const btnMarkDone =
+  document.getElementById("btn-mark-done");
+
+const statusEl =
+  document.getElementById("status");
+
+const nameEl =
+  document.getElementById("vol-name");
+
+const athleteEl =
+  document.getElementById("vol-athlete");
+
+const typeEl =
+  document.getElementById("vol-type");
+
+const timeEl =
+  document.getElementById("vol-time");
+
+const availabilityEl =
+  document.getElementById("vol-availability");
+
+const disciplineEl =
+  document.getElementById("vol-discipline");
+
+const btnGotIt =
+  document.getElementById("btn-got-it");
+
+const btnReview =
+  document.getElementById("btn-review");
+
+const btnApproveTrial =
+  document.getElementById(
+    "btn-approve-trial"
+  );
+
+const btnApproveJoin =
+  document.getElementById(
+    "btn-approve-join"
+  );
+
+const btnNoted =
+  document.getElementById("btn-noted");
+
+/* =========================
+   STATE
+========================= */
+
+const params =
+  new URLSearchParams(
+    window.location.search
+  );
+
+const id =
+  String(params.get("id") || "")
+    .trim();
 
 let sending = false;
 
-function esc(s = "") {
-  return String(s)
+/* =========================
+   HELPERS
+========================= */
+
+function esc(value = "") {
+  return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;");
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
 }
 
-function safeDate(ts) {
+function safeDate(timestamp) {
   try {
-    return ts?.toDate?.().toLocaleString() || "";
+    const date =
+      timestamp?.toDate?.() ||
+      (
+        timestamp
+          ? new Date(timestamp)
+          : null
+      );
+
+    if (
+      !date ||
+      Number.isNaN(date.getTime())
+    ) {
+      return "";
+    }
+
+    return date.toLocaleString();
   } catch {
     return "";
   }
 }
 
-function setStatus(msg = "", isError = false) {
+function setStatus(
+  message = "",
+  isError = false
+) {
   if (!statusEl) return;
-  statusEl.textContent = msg;
-  statusEl.style.color = isError ? "#fecaca" : "#ffdd48";
+
+  statusEl.textContent =
+    message;
+
+  statusEl.style.color =
+    isError
+      ? "#fecaca"
+      : "#ffdd48";
 }
 
 function scrollToBottom() {
   if (!container) return;
-  container.scrollTop = container.scrollHeight;
+
+  container.scrollTop =
+    container.scrollHeight;
 }
 
-function buildMsg(m = {}) {
-  const from = String(m.from || "").toLowerCase();
-  const fromName = m.fromName || (from === "coach" ? "Coach" : "Parent");
+function normalizeDiscipline(
+  value = ""
+) {
+  const raw =
+    String(value || "")
+      .trim()
+      .toLowerCase();
 
-  return `
-    <div class="msg ${esc(from || "parent")}">
-      <div class="meta">
-        ${esc(fromName)} • ${esc(safeDate(m.createdAt))}
-      </div>
-      <div class="body">${esc(m.body || "")}</div>
-    </div>
-  `;
+  if (raw.includes("kickbox")) {
+    return "kickboxing";
+  }
+
+  if (raw.includes("wrest")) {
+    return "wrestling";
+  }
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  if (raw.includes("box")) {
+    return "boxing";
+  }
+
+  return raw;
 }
-function getIntentLabel(entryType) {
-  if (entryType === "free_pass") return "1-Day Assessment";
-  if (entryType === "trial") return "3-Day Trial";
-  if (entryType === "join") return "Join Request";
+
+function getDiscipline(data = {}) {
+  return normalizeDiscipline(
+    data.discipline ||
+    data.programInterest ||
+    data.interest ||
+    data.sport ||
+    data.art ||
+    data.trackDiscipline ||
+    data.program ||
+    ""
+  );
+}
+
+function disciplineLabel(
+  value = ""
+) {
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling":
+      "Submission Grappling"
+  };
+
+  const normalized =
+    normalizeDiscipline(value);
+
+  if (labels[normalized]) {
+    return labels[normalized];
+  }
+
+  if (!normalized) {
+    return "General";
+  }
+
+  return normalized
+    .split("-")
+    .map(
+      (part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+    )
+    .join(" ");
+}
+
+function trackLabel(value = "") {
+  const raw =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (
+    raw === "foundry8" ||
+    raw === "f8"
+  ) {
+    return "Foundry 8";
+  }
+
+  if (
+    raw === "foundry4" ||
+    raw === "f4"
+  ) {
+    return "Foundry 4";
+  }
+
+  if (
+    raw.includes("zero2hero") ||
+    raw.includes("z2h")
+  ) {
+    return "Zero2Hero";
+  }
+
+  if (
+    raw.includes("path2legend") ||
+    raw.includes("p2l")
+  ) {
+    return "Path2Legend";
+  }
+
+  if (
+    raw.includes("quest2mastery") ||
+    raw.includes("q2m")
+  ) {
+    return "Quest2Mastery";
+  }
+
+  return value || "";
+}
+
+function getIntentLabel(
+  entryType = ""
+) {
+  const normalized =
+    String(entryType || "")
+      .trim()
+      .toLowerCase();
+
+  if (normalized === "free_pass") {
+    return "1-Day Assessment";
+  }
+
+  if (normalized === "trial") {
+    return "3-Day Trial";
+  }
+
+  if (normalized === "join") {
+    return "Join Request";
+  }
+
   return "Request";
 }
 
-function getTimeAgo(ts) {
+function getTimeAgo(timestamp) {
   try {
-    const date = ts?.toDate?.();
-    if (!date) return "";
+    const date =
+      timestamp?.toDate?.() ||
+      (
+        timestamp
+          ? new Date(timestamp)
+          : null
+      );
 
-    const diff = Date.now() - date.getTime();
-    const mins = Math.floor(diff / 60000);
+    if (
+      !date ||
+      Number.isNaN(date.getTime())
+    ) {
+      return "";
+    }
 
-    if (mins < 5) return "JUST NOW";
-    if (mins < 60) return `${mins}m ago`;
+    const difference =
+      Date.now() - date.getTime();
 
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours}h ago`;
+    const minutes =
+      Math.floor(
+        difference / 60000
+      );
 
-    const days = Math.floor(hours / 24);
+    if (minutes < 5) {
+      return "JUST NOW";
+    }
+
+    if (minutes < 60) {
+      return `${minutes}m ago`;
+    }
+
+    const hours =
+      Math.floor(minutes / 60);
+
+    if (hours < 24) {
+      return `${hours}h ago`;
+    }
+
+    const days =
+      Math.floor(hours / 24);
+
     return `${days}d ago`;
   } catch {
     return "";
   }
 }
 
-function paintSnapshot(d = {}) {
+/* =========================
+   MESSAGE RENDER
+========================= */
+
+function buildMsg(message = {}) {
+  const from =
+    String(message.from || "")
+      .trim()
+      .toLowerCase();
+
+  const fromName =
+    message.fromName ||
+    (
+      from === "coach"
+        ? "Coach"
+        : "Parent"
+    );
+
+  const subject =
+    String(
+      message.subject || ""
+    ).trim();
+
+  return `
+    <div class="msg ${esc(from || "parent")}">
+
+      <div class="meta">
+        ${esc(fromName)}
+        •
+        ${esc(safeDate(message.createdAt))}
+      </div>
+
+      ${
+        subject
+          ? `
+            <div
+              class="subject"
+              style="
+                margin-top:6px;
+                font-weight:900;
+              "
+            >
+              ${esc(subject)}
+            </div>
+          `
+          : ""
+      }
+
+      <div class="body">
+        ${esc(message.body || "")}
+      </div>
+
+    </div>
+  `;
+}
+
+/* =========================
+   REQUEST SNAPSHOT
+========================= */
+
+function paintSnapshot(data = {}) {
   if (nameEl) {
-    nameEl.textContent = d.parentName || "—";
+    nameEl.textContent =
+      data.parentName || "—";
   }
 
   if (athleteEl) {
-    const age = d.athleteAge ? ` (${d.athleteAge})` : "";
-    athleteEl.textContent = `${d.athleteName || "—"}${age}`;
+    const age =
+      data.athleteAge
+        ? ` (${data.athleteAge})`
+        : "";
+
+    athleteEl.textContent =
+      `${data.athleteName || "—"}${age}`;
   }
 
   if (typeEl) {
-    typeEl.textContent = getIntentLabel(d.entryType);
+    typeEl.textContent =
+      getIntentLabel(
+        data.entryType
+      );
 
-    typeEl.classList.remove("intent-high", "intent-mid", "intent-low");
+    typeEl.classList.remove(
+      "intent-high",
+      "intent-mid",
+      "intent-low"
+    );
 
-    if (d.entryType === "join") typeEl.classList.add("intent-high");
-    else if (d.entryType === "trial") typeEl.classList.add("intent-mid");
-    else typeEl.classList.add("intent-low");
+    if (
+      data.entryType === "join"
+    ) {
+      typeEl.classList.add(
+        "intent-high"
+      );
+    } else if (
+      data.entryType === "trial"
+    ) {
+      typeEl.classList.add(
+        "intent-mid"
+      );
+    } else {
+      typeEl.classList.add(
+        "intent-low"
+      );
+    }
   }
 
   if (timeEl) {
-    timeEl.textContent = getTimeAgo(d.createdAt) || "—";
+    timeEl.textContent =
+      getTimeAgo(
+        data.createdAt
+      ) || "—";
+  }
+
+  const discipline =
+    getDiscipline(data);
+
+  const disciplineName =
+    disciplineLabel(discipline);
+
+  if (disciplineEl) {
+    disciplineEl.textContent =
+      disciplineName;
   }
 
   if (availabilityEl) {
     const pieces = [];
 
-    if (d.track) {
+    const track =
+      trackLabel(
+        data.track ||
+        data.programTrack ||
+        data.journey ||
+        ""
+      );
+
+    if (track) {
+      pieces.push(track);
+    }
+
+    if (disciplineName) {
       pieces.push(
-        d.track === "foundry8"
-          ? "Foundry 8"
-          : d.track === "foundry4"
-          ? "Foundry 4"
-          : d.track
+        disciplineName
       );
     }
 
-    if (d.interest) {
-      pieces.push(d.interest);
+    if (
+      data.interest &&
+      normalizeDiscipline(
+        data.interest
+      ) !== discipline
+    ) {
+      pieces.push(
+        String(data.interest)
+      );
     }
 
-    availabilityEl.textContent = pieces.length
-      ? pieces.join(" • ")
-      : "—";
+    if (data.preferredDays) {
+      const preferredDays =
+        Array.isArray(
+          data.preferredDays
+        )
+          ? data.preferredDays.join(", ")
+          : String(
+              data.preferredDays
+            );
+
+      if (preferredDays) {
+        pieces.push(
+          preferredDays
+        );
+      }
+    }
+
+    availabilityEl.textContent =
+      pieces.length
+        ? pieces.join(" • ")
+        : "—";
   }
 }
 
-function getRootRequestBody(d = {}) {
+function getRootRequestBody(data = {}) {
+  const discipline =
+    disciplineLabel(
+      getDiscipline(data)
+    );
+
+  const track =
+    trackLabel(
+      data.track ||
+      data.programTrack ||
+      data.journey ||
+      ""
+    ) || "—";
+
+  const preferredDays =
+    Array.isArray(
+      data.preferredDays
+    )
+      ? data.preferredDays.join(", ")
+      : data.preferredDays || "—";
+
   return `
-Parent: ${d.parentName || "—"}${d.parentEmail ? ` (${d.parentEmail})` : ""}
-Athlete: ${d.athleteName || "—"}${d.athleteAge ? ` (${d.athleteAge})` : ""}
-Type: ${getIntentLabel(d.entryType)}
-Track: ${d.track || "—"}
+Parent: ${data.parentName || "—"}${data.parentEmail ? ` (${data.parentEmail})` : ""}
+Phone: ${data.phone || data.parentPhone || "—"}
+
+Athlete: ${data.athleteName || "—"}${data.athleteAge ? ` (${data.athleteAge})` : ""}
+School: ${data.school || "—"}
+
+Request: ${getIntentLabel(data.entryType)}
+Journey: ${track}
+Discipline: ${discipline}
+Preferred Days: ${preferredDays}
 
 Message:
-${d.message || "(none)"}
-`.trim();
+${data.message || "(none)"}
+  `.trim();
 }
+
+/* =========================
+   LOAD THREAD
+========================= */
+
 async function load() {
   if (!id) {
     if (container) {
-      container.innerHTML = `<div class="thread-empty">Missing join thread ID.</div>`;
+      container.innerHTML = `
+        <div class="thread-empty">
+          Missing join thread ID.
+        </div>
+      `;
     }
+
     return;
   }
 
-  const ref = doc(db, "paraParentInbox", id);
-  const snap = await getDoc(ref);
+  const requestRef =
+    doc(
+      db,
+      "paraParentInbox",
+      id
+    );
 
-  if (!snap.exists()) {
+  const requestSnap =
+    await getDoc(requestRef);
+
+  if (!requestSnap.exists()) {
     if (container) {
-      container.innerHTML = `<div class="thread-empty">Join request not found.</div>`;
+      container.innerHTML = `
+        <div class="thread-empty">
+          Join request not found.
+        </div>
+      `;
     }
+
     return;
   }
 
-  const d = snap.data() || {};
-  paintSnapshot(d);
+  const data =
+    requestSnap.data() || {};
 
-  await updateDoc(ref, {
-    coachHasUnread: false,
-    seenByCoach: true,
-    updatedAt: serverTimestamp()
-  }).catch(() => {});
+  paintSnapshot(data);
+
+  await updateDoc(
+    requestRef,
+    {
+      coachHasUnread: false,
+      seenByCoach: true,
+      updatedAt:
+        serverTimestamp()
+    }
+  ).catch(() => {});
 
   const rows = [];
-  const rootBody = getRootRequestBody(d);
 
-  const tRef = query(
-    collection(db, "paraParentInbox", id, "thread"),
-    orderBy("createdAt", "asc")
-  );
+  const rootBody =
+    getRootRequestBody(data);
 
-  const tSnap = await getDocs(tRef);
+  const threadQuery =
+    query(
+      collection(
+        db,
+        "paraParentInbox",
+        id,
+        "thread"
+      ),
+      orderBy(
+        "createdAt",
+        "asc"
+      )
+    );
 
-  if (tSnap.empty && rootBody) {
-    rows.push(buildMsg({
-      from: "parent",
-      fromName: d.parentName || "Parent",
-      body: rootBody,
-      createdAt: d.createdAt
-    }));
+  const threadSnap =
+    await getDocs(threadQuery);
+
+  if (
+    threadSnap.empty &&
+    rootBody
+  ) {
+    rows.push(
+      buildMsg({
+        from: "parent",
+        fromName:
+          data.parentName ||
+          "Parent",
+        body: rootBody,
+        createdAt:
+          data.createdAt
+      })
+    );
   }
 
-  tSnap.forEach((ds) => {
-    rows.push(buildMsg(ds.data() || {}));
-  });
+  threadSnap.forEach(
+    (document) => {
+      rows.push(
+        buildMsg(
+          document.data() || {}
+        )
+      );
+    }
+  );
 
   if (container) {
-    container.innerHTML = rows.length
-      ? rows.join("")
-      : `<div class="thread-empty">No messages yet.</div>`;
+    container.innerHTML =
+      rows.length
+        ? rows.join("")
+        : `
+          <div class="thread-empty">
+            No messages yet.
+          </div>
+        `;
   }
 
   scrollToBottom();
 }
 
-async function sendReply() {
-  if (sending || !id) return;
+/* =========================
+   SEND REPLY
+========================= */
 
-  const text = String(replyBox?.value || "").trim();
-  const subject = String(replySubject?.value || "").trim();
+async function sendReply() {
+  if (
+    sending ||
+    !id
+  ) {
+    return;
+  }
+
+  const text =
+    String(
+      replyBox?.value || ""
+    ).trim();
+
+  const subject =
+    String(
+      replySubject?.value || ""
+    ).trim();
 
   if (!text) {
-    setStatus("Reply message is empty.", true);
+    setStatus(
+      "Reply message is empty.",
+      true
+    );
+
     return;
   }
 
   sending = true;
-  if (btnSend) btnSend.disabled = true;
-  setStatus("Sending reply...");
+
+  if (btnSend) {
+    btnSend.disabled = true;
+  }
+
+  setStatus(
+    "Sending reply..."
+  );
 
   try {
-    const threadRef = collection(db, "paraParentInbox", id, "thread");
+    const threadRef =
+      collection(
+        db,
+        "paraParentInbox",
+        id,
+        "thread"
+      );
 
-    await addDoc(threadRef, {
-      from: "coach",
-      fromName: "Coach",
-      subject: subject || null,
-      body: text,
-      createdAt: serverTimestamp(),
-      seenByCoach: true,
-      seenByParent: false
-    });
+    await addDoc(
+      threadRef,
+      {
+        from: "coach",
+        fromName: "Coach",
+        subject:
+          subject || null,
+        body: text,
+        createdAt:
+          serverTimestamp(),
+        seenByCoach: true,
+        seenByParent: false
+      }
+    );
 
-    await updateDoc(doc(db, "paraParentInbox", id), {
-      parentHasUnread: true,
-      coachHasUnread: false,
-      seenByCoach: true,
-      seenByParent: false,
-      updatedAt: serverTimestamp()
-    });
+    await updateDoc(
+      doc(
+        db,
+        "paraParentInbox",
+        id
+      ),
+      {
+        parentHasUnread: true,
+        coachHasUnread: false,
+        seenByCoach: true,
+        seenByParent: false,
+        lastReplyFrom: "coach",
+        lastReplyAt:
+          serverTimestamp(),
+        updatedAt:
+          serverTimestamp()
+      }
+    );
 
-    if (replyBox) replyBox.value = "";
-    setStatus("Reply sent.");
+    if (replyBox) {
+      replyBox.value = "";
+    }
+
+    setStatus(
+      "Reply sent."
+    );
+
     await load();
+  } catch (error) {
+    console.error(
+      "[join inbox-view] send failed:",
+      error
+    );
 
-  } catch (err) {
-    console.error("[join inbox-view] send failed:", err);
-    setStatus("Reply failed.", true);
+    setStatus(
+      "Reply failed.",
+      true
+    );
   } finally {
     sending = false;
-    if (btnSend) btnSend.disabled = false;
+
+    if (btnSend) {
+      btnSend.disabled = false;
+    }
   }
 }
+
+/* =========================
+   STATUS ACTIONS
+========================= */
 
 async function markDone() {
   if (!id) return;
-  if (btnMarkDone) btnMarkDone.disabled = true;
-  setStatus("Closing request...");
+
+  if (btnMarkDone) {
+    btnMarkDone.disabled = true;
+  }
+
+  setStatus(
+    "Closing request..."
+  );
 
   try {
-    await updateDoc(doc(db, "paraParentInbox", id), {
-      status: "archived",
-      updatedAt: serverTimestamp()
-    });
+    await updateDoc(
+      doc(
+        db,
+        "paraParentInbox",
+        id
+      ),
+      {
+        status: "archived",
+        archivedAt:
+          serverTimestamp(),
+        updatedAt:
+          serverTimestamp()
+      }
+    );
 
-    setStatus("Request archived.");
+    setStatus(
+      "Request archived."
+    );
+
     await load();
-  } catch (err) {
-    console.error("[join inbox-view] archive failed:", err);
-    setStatus("Failed to archive request.", true);
+  } catch (error) {
+    console.error(
+      "[join inbox-view] archive failed:",
+      error
+    );
+
+    setStatus(
+      "Failed to archive request.",
+      true
+    );
   } finally {
-    if (btnMarkDone) btnMarkDone.disabled = false;
+    if (btnMarkDone) {
+      btnMarkDone.disabled =
+        false;
+    }
   }
 }
+
 async function approveTrial() {
   if (!id) return;
-  setStatus("Approving trial...");
 
-  await updateDoc(doc(db, "paraParentInbox", id), {
-    status: "approved_trial",
-    approvedAt: serverTimestamp()
-  });
+  if (btnApproveTrial) {
+    btnApproveTrial.disabled =
+      true;
+  }
 
-  setStatus("Trial approved.");
-  await load();
+  setStatus(
+    "Approving trial..."
+  );
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        "paraParentInbox",
+        id
+      ),
+      {
+        status:
+          "approved_trial",
+        approvedAt:
+          serverTimestamp(),
+        updatedAt:
+          serverTimestamp()
+      }
+    );
+
+    setStatus(
+      "Trial approved."
+    );
+
+    await load();
+  } catch (error) {
+    console.error(
+      "[join inbox-view] trial approval failed:",
+      error
+    );
+
+    setStatus(
+      "Trial approval failed.",
+      true
+    );
+  } finally {
+    if (btnApproveTrial) {
+      btnApproveTrial.disabled =
+        false;
+    }
+  }
 }
 
 async function approveJoin() {
   if (!id) return;
-  setStatus("Approving join...");
 
-  await updateDoc(doc(db, "paraParentInbox", id), {
-    status: "approved_join",
-    approvedAt: serverTimestamp()
-  });
+  if (btnApproveJoin) {
+    btnApproveJoin.disabled =
+      true;
+  }
 
-  setStatus("Join approved.");
-  await load();
+  setStatus(
+    "Approving join..."
+  );
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        "paraParentInbox",
+        id
+      ),
+      {
+        status:
+          "approved_join",
+        approvedAt:
+          serverTimestamp(),
+        updatedAt:
+          serverTimestamp()
+      }
+    );
+
+    setStatus(
+      "Join approved."
+    );
+
+    await load();
+  } catch (error) {
+    console.error(
+      "[join inbox-view] join approval failed:",
+      error
+    );
+
+    setStatus(
+      "Join approval failed.",
+      true
+    );
+  } finally {
+    if (btnApproveJoin) {
+      btnApproveJoin.disabled =
+        false;
+    }
+  }
 }
 
-btnApproveTrial?.addEventListener("click", approveTrial);
-btnApproveJoin?.addEventListener("click", approveJoin);
-btnSend?.addEventListener("click", async () => {
-  await sendReply();
-});
+/* =========================
+   EVENT BINDINGS
+========================= */
 
-btnMarkDone?.addEventListener("click", async () => {
-  await markDone();
-});
+btnApproveTrial?.addEventListener(
+  "click",
+  approveTrial
+);
 
-btnGotIt?.addEventListener("click", () => {
-  if (replyBox) replyBox.value = "Got it, thank you!";
-  if (replySubject && !replySubject.value.trim()) {
-    replySubject.value = "Join Request Follow-Up";
+btnApproveJoin?.addEventListener(
+  "click",
+  approveJoin
+);
+
+btnSend?.addEventListener(
+  "click",
+  sendReply
+);
+
+btnMarkDone?.addEventListener(
+  "click",
+  markDone
+);
+
+btnGotIt?.addEventListener(
+  "click",
+  () => {
+    if (replyBox) {
+      replyBox.value =
+        "Got it, thank you!";
+    }
+
+    if (
+      replySubject &&
+      !replySubject.value.trim()
+    ) {
+      replySubject.value =
+        "Join Request Follow-Up";
+    }
+  }
+);
+
+btnReview?.addEventListener(
+  "click",
+  () => {
+    if (replyBox) {
+      replyBox.value =
+        "I'll review this and get back to you shortly.";
+    }
+
+    if (
+      replySubject &&
+      !replySubject.value.trim()
+    ) {
+      replySubject.value =
+        "Request Under Review";
+    }
+  }
+);
+
+btnNoted?.addEventListener(
+  "click",
+  () => {
+    if (replyBox) {
+      replyBox.value =
+        "Noted. Thank you.";
+    }
+
+    if (
+      replySubject &&
+      !replySubject.value.trim()
+    ) {
+      replySubject.value =
+        "Join Request Update";
+    }
+  }
+);
+
+load().catch((error) => {
+  console.error(
+    "[join inbox-view] load failed:",
+    error
+  );
+
+  setStatus(
+    "Unable to load request.",
+    true
+  );
+
+  if (container) {
+    container.innerHTML = `
+      <div class="thread-empty">
+        Unable to load this request.
+      </div>
+    `;
   }
 });
-
-btnReview?.addEventListener("click", () => {
-  if (replyBox) replyBox.value = "I'll review this and get back to you shortly.";
-  if (replySubject && !replySubject.value.trim()) {
-    replySubject.value = "Request Under Review";
-  }
-});
-
-btnNoted?.addEventListener("click", () => {
-  if (replyBox) replyBox.value = "Noted. Thank you.";
-  if (replySubject && !replySubject.value.trim()) {
-    replySubject.value = "Join Request Update";
-  }
-});
-
-load();

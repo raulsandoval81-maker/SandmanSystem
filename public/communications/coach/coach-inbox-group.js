@@ -1,62 +1,115 @@
 // public/communications/coach-inbox-group.js
 // ------------------------------------------------------------
-// Para-Comms V1 — Load and group coach inbox
-// Source: paraCoachInbox (root docs only)
-// Groups: family -> athlete
-// Filters: archived/deleted hidden by default
+// Para-Comms — Group Unified Coach Threads
+//
+// Source:
+//   paraThreads/{athleteUid}
+//
+// Groups:
+//   family → athlete
+//
+// Unread truth:
+//   coachHasUnread === true
+//
+// Archived and deleted threads are hidden by default.
 // ------------------------------------------------------------
 
 import {
   collection,
   getDocs,
   query,
-  where,
   orderBy
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 /**
  * Returns:
+ *
  * {
  *   "Sandoval Family": {
  *     familyName: "Sandoval Family",
  *     totalUnread: 3,
- *     familyUnread: 3,              // unread items not tied to a specific athlete
- *     familyThreads: [ ... ],       // root docs without athleteUid
+ *     familyUnread: 0,
+ *     familyThreads: [],
  *     athletes: {
- *       "F8_0001": { athleteUid, athleteName, unread, threads:[...] }
+ *       "F8_0001": {
+ *         athleteUid: "F8_0001",
+ *         athleteName: "Athlete Name",
+ *         discipline: "wrestling",
+ *         unread: 1,
+ *         threads: [...]
+ *       }
  *     }
  *   }
  * }
  */
+
 export async function loadGroupedCoachInbox({
   db,
   includeArchived = false,
-  includeDeleted = false,
+  includeDeleted = false
 } = {}) {
+  if (!db) {
+    throw new Error(
+      "loadGroupedCoachInbox requires Firestore db."
+    );
+  }
+
   const families = {};
 
-  // Build query with minimal assumptions.
-  // NOTE: If you later add composite indexes, you can tighten these filters.
-  const constraints = [
-    orderBy("createdAt", "desc"),
-  ];
+  const qRef = query(
+    collection(db, "paraThreads"),
+    orderBy("updatedAt", "desc")
+  );
 
-  // Filter out archived/deleted in query when possible
-  // (Firestore doesn't support "!= true" well without indexes; safest is filter client-side)
-  const q = query(collection(db, "paraCoachInbox"), ...constraints);
-
-  const snap = await getDocs(q);
+  const snap = await getDocs(qRef);
 
   snap.forEach((docSnap) => {
-    const d = docSnap.data() || {};
+    const data = docSnap.data() || {};
 
-    // Client-side hides (V1-safe)
-    if (!includeArchived && d.archived === true) return;
-    if (!includeDeleted && d.deleted === true) return;
+    if (
+      !includeArchived &&
+      data.archived === true
+    ) {
+      return;
+    }
 
-    const familyName = d.familyName || "Family";
-    const athleteUid = d.athleteUid || d.athleteId || null;
-    const athleteName = d.athleteName || "(Athlete)";
+    if (
+      !includeDeleted &&
+      data.deleted === true
+    ) {
+      return;
+    }
+
+    const athleteUid = String(
+      data.athleteUid ||
+      data.athleteId ||
+      docSnap.id ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+    const athleteName =
+      data.athleteName ||
+      data.publicName ||
+      data.fullName ||
+      athleteUid ||
+      "(Athlete)";
+
+    const familyName =
+      data.familyName ||
+      data.parentLastName ||
+      data.guardianFamilyName ||
+      `${athleteName} Family`;
+
+    const discipline =
+      normalizeDiscipline(
+        data.discipline ||
+        data.primaryDiscipline ||
+        data.sport ||
+        data.art ||
+        ""
+      );
 
     if (!families[familyName]) {
       families[familyName] = {
@@ -64,50 +117,131 @@ export async function loadGroupedCoachInbox({
         totalUnread: 0,
         familyUnread: 0,
         familyThreads: [],
-        athletes: {},
+        athletes: {}
       };
     }
 
-    const fam = families[familyName];
+    const family =
+      families[familyName];
 
-    // Coach unread logic (pick one and stay consistent):
-    // - seen === false means coach hasn't opened
-    // You can also layer in "unreadForCoach" if you kept it.
     const unreadForCoach =
-      d.unreadForCoach === true || d.seen === false;
+      data.coachHasUnread === true;
 
-    const unread = unreadForCoach ? 1 : 0;
-    fam.totalUnread += unread;
+    const unreadCount =
+      unreadForCoach ? 1 : 0;
 
-    const baseThread = {
+    family.totalUnread +=
+      unreadCount;
+
+    const thread = {
       id: docSnap.id,
+      athleteUid,
+      athleteName,
+      discipline,
       unreadForCoach,
-      lastSender: d.lastSender || d.fromName || "",
-      lastReplyAt: d.lastReplyAt || d.createdAt || null,
-      createdAt: d.createdAt || null,
-      scope: athleteUid ? "athlete" : "family",
-      athleteUid: athleteUid || undefined,
-      data: d,
+
+      lastSender:
+        data.lastSender ||
+        data.lastReplyFrom ||
+        data.fromName ||
+        "",
+
+      lastBody:
+        data.lastBody ||
+        data.preview ||
+        "",
+
+      lastReplyAt:
+        data.lastReplyAt ||
+        data.updatedAt ||
+        data.createdAt ||
+        null,
+
+      createdAt:
+        data.createdAt ||
+        null,
+
+      scope:
+        athleteUid
+          ? "athlete"
+          : "family",
+
+      data
     };
 
-    // If tied to athlete, group under athlete
     if (athleteUid) {
-      if (!fam.athletes[athleteUid]) {
-        fam.athletes[athleteUid] = {
+      if (
+        !family.athletes[
+          athleteUid
+        ]
+      ) {
+        family.athletes[
+          athleteUid
+        ] = {
           athleteUid,
           athleteName,
+          discipline,
           unread: 0,
-          threads: [],
+          threads: []
         };
       }
-      fam.athletes[athleteUid].unread += unread;
-      fam.athletes[athleteUid].threads.push(baseThread);
+
+      const athleteGroup =
+        family.athletes[
+          athleteUid
+        ];
+
+      athleteGroup.unread +=
+        unreadCount;
+
+      athleteGroup.threads.push(
+        thread
+      );
     } else {
-      // No athleteUid => treat as family/general thread
-      fam.familyUnread += unread;
-      fam.familyThreads.push(baseThread);
+      family.familyUnread +=
+        unreadCount;
+
+      family.familyThreads.push(
+        thread
+      );
     }
   });
 
   return families;
+}
+
+function normalizeDiscipline(
+  value = ""
+) {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (raw.includes("kickbox")) {
+    return "kickboxing";
+  }
+
+  if (raw.includes("wrest")) {
+    return "wrestling";
+  }
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  if (raw.includes("box")) {
+    return "boxing";
+  }
+
+  return raw;
 }

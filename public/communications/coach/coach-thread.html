@@ -313,21 +313,34 @@
       </div>
     </section>
 
-    <section class="panel">
-      <label class="pc-label" for="reply-body">Reply</label>
-      <textarea id="reply-body" rows="5" placeholder="Write your reply here..."></textarea>
+<section id="reply-panel" class="panel">
 
-      <div class="btn-row">
-        <button id="btn-send-reply" class="btn btn-primary" type="button" style="flex:1;">Send Reply</button>
-      </div>
+  <label class="pc-label" for="reply-body">
+    Reply
+  </label>
 
-      <div class="reply-note">
-        Reply sends into the unified parent thread and should stay clear, direct, and coach-level.
-      </div>
-    </section>
+  <textarea
+    id="reply-body"
+    rows="5"
+    placeholder="Write your reply here..."
+  ></textarea>
 
+  <div class="btn-row">
+    <button
+      id="btn-send-reply"
+      class="btn btn-primary"
+      type="button"
+      style="flex:1;"
+    >
+      Send Reply
+    </button>
   </div>
 
+  <div class="reply-note">
+    Reply sends into the unified parent thread and should stay clear, direct, and coach-level.
+  </div>
+
+</section>
   <script type="module" src="/communications/coach/coach-thread.js"></script>
 </body>
 </html>

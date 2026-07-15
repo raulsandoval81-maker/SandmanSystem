@@ -28,6 +28,7 @@ const replyBox = document.getElementById("reply-body");
 const btnSendReply = document.getElementById("btn-send-reply");
 const btnArchive = document.getElementById("btn-archive");
 const btnDelete = document.getElementById("btn-delete");
+const replyPanel = document.getElementById("reply-panel");
 
 const qrSelect = document.getElementById("qr-select");
 const qrInsert = document.getElementById("qr-insert");
@@ -128,6 +129,10 @@ function enforceThreadLimit(windowCount, hasMoreThanLimit) {
   if (btnSendReply) btnSendReply.disabled = limitReached;
   if (qrSelect) qrSelect.disabled = limitReached;
   if (qrInsert) qrInsert.disabled = limitReached;
+
+  if (replyPanel) {
+    replyPanel.hidden = limitReached;
+  }
 
   const existingBanner = document.getElementById("thread-limit-banner");
 
@@ -329,6 +334,8 @@ if (btnSendReply && replyBox) {
     const threadCol = collection(db, ROOT_COLLECTION, athleteUid, "messages");
 
     btnSendReply.disabled = true;
+    replyBox.disabled = true;
+
     const old = btnSendReply.textContent;
     btnSendReply.textContent = "Sending…";
 
@@ -357,8 +364,13 @@ if (btnSendReply && replyBox) {
       console.error("[coach-thread] send reply error:", err);
       alert("Send failed. Check console.");
     } finally {
+      const limitReached =
+        currentWindowCount >= THREAD_LIMIT ||
+        currentHasMoreThanLimit;
+
+      replyBox.disabled = limitReached;
       btnSendReply.textContent = old || "Send Reply";
-      btnSendReply.disabled = replyBox?.disabled === true;
+      btnSendReply.disabled = limitReached;
     }
   });
 }
@@ -372,6 +384,9 @@ if (btnArchive) {
       await safeMergeUpdate(doc(db, ROOT_COLLECTION, athleteUid), {
         archived: true,
         archivedAt: serverTimestamp(),
+        parentHasUnread: false,
+        coachHasUnread: false,
+        seenByCoach: true,
         updatedAt: serverTimestamp()
       });
 
@@ -392,6 +407,9 @@ if (btnDelete) {
       await safeMergeUpdate(doc(db, ROOT_COLLECTION, athleteUid), {
         deleted: true,
         deletedAt: serverTimestamp(),
+        parentHasUnread: false,
+        coachHasUnread: false,
+        seenByCoach: true,
         updatedAt: serverTimestamp()
       });
 

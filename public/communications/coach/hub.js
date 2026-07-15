@@ -1,49 +1,75 @@
 // ----------------------------------------------------------
 // /communications/coach/hub.js
-// Coach Hub (V1): Unread + Recent + Open-by-ID
-// Reads unified parent threads: paraParentInbox
 //
-// FIXES:
-// - Uses correct browser path for coach thread page
-// - Adds error handling for unread/recent loaders
-// - Shows parentName cleanly; subject falls back to "Message"
+// Coach Communication Hub
+//
+// Reads established parent-athlete threads from:
+//   paraThreads/{athleteUid}
+//
+// Join and trial requests remain in:
+//   paraParentInbox
+//
+// Features:
+// - Unread threads
+// - Recent active threads
+// - Open thread by athlete ID
+// - Discipline labels
+// - Archived/deleted threads hidden
+// - Client-side sorting avoids composite-index dependency
 // ----------------------------------------------------------
 
 import {
   db,
   ensureSignedIn,
   collection,
-  getDocs,
-  query,
-  where,
-  orderBy,
-  limit
+  getDocs
 } from "/assets/js/firebase-init-para.js";
 
 await ensureSignedIn();
-// 🔒 CORE ENGINE — DO NOT RENAME
-// UI layer = /communications
-// Data layer = paraParentInbox (legacy)
-// Threads live under this collection
-// Renaming requires full migration (copy + update all refs)
-// ⚠️ Changing this breaks inbox + threads + unread state
-const ROOT = "paraParentInbox";
+
+/* =========================
+   CONFIG
+========================= */
+
+const ROOT = "paraThreads";
 
 const UNREAD_LIMIT = 8;
 const RECENT_LIMIT = 8;
 
-const openIdEl = document.getElementById("open-id");
-const btnOpen = document.getElementById("btn-open");
+/* =========================
+   DOM
+========================= */
 
-const statusEl = document.getElementById("status");
-const listEl = document.getElementById("list");
+const openIdEl =
+  document.getElementById("open-id");
 
-const status2El = document.getElementById("status2");
-const list2El = document.getElementById("list2");
+const btnOpen =
+  document.getElementById("btn-open");
 
-// ------------------------------
-function esc(s = "") {
-  return String(s)
+const statusEl =
+  document.getElementById("status");
+
+const listEl =
+  document.getElementById("list");
+
+const status2El =
+  document.getElementById("status2");
+
+const list2El =
+  document.getElementById("list2");
+
+/* =========================
+   STATE
+========================= */
+
+let threadRows = [];
+
+/* =========================
+   HELPERS
+========================= */
+
+function esc(value = "") {
+  return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -51,128 +77,451 @@ function esc(s = "") {
     .replaceAll("'", "&#39;");
 }
 
-function safeDate(ts) {
-  if (!ts) return "";
-  const d = ts.toDate ? ts.toDate() : ts;
+function dateFromValue(value) {
+  if (!value) return null;
+
   try {
-    return d.toLocaleString();
+    if (
+      typeof value.toDate === "function"
+    ) {
+      return value.toDate();
+    }
+
+    const date =
+      new Date(value);
+
+    return Number.isNaN(
+      date.getTime()
+    )
+      ? null
+      : date;
   } catch {
-    return "";
+    return null;
   }
 }
 
-function threadHref(id) {
-  return `/communications/coach/coach-thread.html?id=${encodeURIComponent(id)}`;
+function safeDate(value) {
+  const date =
+    dateFromValue(value);
+
+  return date
+    ? date.toLocaleString()
+    : "";
 }
 
-function makeCard(id, data, { unread = false } = {}) {
-  const parent = esc(data.parentName || "Parent/Guardian");
-  const email = esc(data.parentEmail || "");
-  const subject = esc(data.subject || "Message");
-  const body = esc(data.lastBody || "");
-  const when = safeDate(data.lastReplyAt || data.createdAt);
+function timestampValue(value) {
+  const date =
+    dateFromValue(value);
+
+  return date
+    ? date.getTime()
+    : 0;
+}
+
+function normalizeDiscipline(
+  value = ""
+) {
+  const raw =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (raw.includes("kickbox")) {
+    return "kickboxing";
+  }
+
+  if (raw.includes("wrest")) {
+    return "wrestling";
+  }
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  if (raw.includes("box")) {
+    return "boxing";
+  }
+
+  return raw;
+}
+
+function disciplineLabel(
+  value = ""
+) {
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling":
+      "Submission Grappling"
+  };
+
+  const normalized =
+    normalizeDiscipline(value);
+
+  if (labels[normalized]) {
+    return labels[normalized];
+  }
+
+  if (!normalized) {
+    return "General";
+  }
+
+  return normalized
+    .split("-")
+    .filter(Boolean)
+    .map(
+      (part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+    )
+    .join(" ");
+}
+
+function getThreadTime(data = {}) {
+  return (
+    data.lastReplyAt ||
+    data.updatedAt ||
+    data.createdAt ||
+    null
+  );
+}
+
+function threadHref(id) {
+  return (
+    `/communications/coach/coach-thread.html` +
+    `?athleteUid=${encodeURIComponent(id)}`
+  );
+}
+
+function isVisibleThread(
+  data = {}
+) {
+  return (
+    data.archived !== true &&
+    data.deleted !== true
+  );
+}
+
+/* =========================
+   CARD
+========================= */
+
+function makeCard(
+  id,
+  data = {},
+  {
+    unread = false
+  } = {}
+) {
+  const athleteName =
+    data.athleteName ||
+    data.publicName ||
+    data.fullName ||
+    id;
+
+  const parentName =
+    data.parentName ||
+    data.guardianName ||
+    data.familyName ||
+    "Parent/Guardian";
+
+  const subject =
+    data.subject ||
+    `${athleteName} Family Thread`;
+
+  const body =
+    data.lastBody ||
+    data.preview ||
+    "No message preview.";
+
+  const when =
+    safeDate(
+      getThreadTime(data)
+    );
+
+  const discipline =
+    disciplineLabel(
+      data.discipline ||
+      data.primaryDiscipline ||
+      data.sport ||
+      data.art ||
+      ""
+    );
+
+  const lastSender =
+    String(
+      data.lastSender ||
+      data.lastReplyFrom ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const senderLabel =
+    lastSender === "coach"
+      ? "Coach replied"
+      : lastSender === "parent"
+        ? "Parent replied"
+        : "";
 
   return `
-    <a class="card" href="${threadHref(id)}">
+    <a
+      class="card"
+      href="${threadHref(id)}"
+    >
       <div class="title">
-        ${subject}
-        ${unread ? `<span class="pill unread">UNREAD</span>` : ``}
+        ${esc(subject)}
+
+        ${
+          unread
+            ? `
+              <span class="pill unread">
+                UNREAD
+              </span>
+            `
+            : ""
+        }
       </div>
+
       <div class="sub">
-        ${parent}${email ? ` • ${email}` : ""}${when ? ` • ${esc(when)}` : ""}
+        ${esc(parentName)}
+        ·
+        ${esc(athleteName)}
+        ·
+        ${esc(discipline)}
+
+        ${
+          senderLabel
+            ? ` · ${esc(senderLabel)}`
+            : ""
+        }
+
+        ${
+          when
+            ? ` · ${esc(when)}`
+            : ""
+        }
       </div>
-      <div class="body">${body}</div>
+
+      <div class="body">
+        ${esc(body)}
+      </div>
     </a>
   `;
 }
 
-// ------------------------------
-// Unread
-// ------------------------------
-async function loadUnread() {
-  statusEl.textContent = "Loading…";
-  listEl.innerHTML = "";
+/* =========================
+   LOAD SOURCE
+========================= */
 
-  try {
-    const colRef = collection(db, ROOT);
-
-    const qRef = query(
-      colRef,
-      where("coachHasUnread", "==", true),
-      orderBy("lastReplyAt", "desc"),
-      limit(UNREAD_LIMIT)
+async function loadThreads() {
+  const snapshot =
+    await getDocs(
+      collection(db, ROOT)
     );
 
-    const snap = await getDocs(qRef);
+  threadRows =
+    snapshot.docs
+      .map((document) => ({
+        id: document.id,
+        data: document.data() || {}
+      }))
+      .filter((row) =>
+        isVisibleThread(row.data)
+      )
+      .sort((a, b) => {
+        return (
+          timestampValue(
+            getThreadTime(b.data)
+          ) -
+          timestampValue(
+            getThreadTime(a.data)
+          )
+        );
+      });
+}
 
-    if (snap.empty) {
-      statusEl.textContent = "No unread threads.";
-      return;
-    }
+/* =========================
+   UNREAD
+========================= */
 
-    statusEl.textContent = "";
-    listEl.innerHTML = snap.docs
-      .map(d => makeCard(d.id, d.data() || {}, { unread: true }))
+function renderUnread() {
+  if (
+    !statusEl ||
+    !listEl
+  ) {
+    return;
+  }
+
+  const unreadRows =
+    threadRows
+      .filter(
+        (row) =>
+          row.data.coachHasUnread === true
+      )
+      .slice(0, UNREAD_LIMIT);
+
+  if (!unreadRows.length) {
+    statusEl.textContent =
+      "No unread threads.";
+
+    listEl.innerHTML = "";
+
+    return;
+  }
+
+  statusEl.textContent = "";
+
+  listEl.innerHTML =
+    unreadRows
+      .map((row) =>
+        makeCard(
+          row.id,
+          row.data,
+          {
+            unread: true
+          }
+        )
+      )
       .join("");
-  } catch (err) {
-    console.error("[coach-hub] unread load failed:", err);
-    statusEl.textContent = "Failed to load unread threads.";
+}
+
+/* =========================
+   RECENT
+========================= */
+
+function renderRecent() {
+  if (
+    !status2El ||
+    !list2El
+  ) {
+    return;
+  }
+
+  const recentRows =
+    threadRows.slice(
+      0,
+      RECENT_LIMIT
+    );
+
+  if (!recentRows.length) {
+    status2El.textContent =
+      "No active threads yet.";
+
+    list2El.innerHTML = "";
+
+    return;
+  }
+
+  status2El.textContent = "";
+
+  list2El.innerHTML =
+    recentRows
+      .map((row) =>
+        makeCard(
+          row.id,
+          row.data,
+          {
+            unread:
+              row.data.coachHasUnread ===
+              true
+          }
+        )
+      )
+      .join("");
+}
+
+/* =========================
+   BOOT
+========================= */
+
+async function loadHub() {
+  if (statusEl) {
+    statusEl.textContent =
+      "Loading…";
+  }
+
+  if (status2El) {
+    status2El.textContent =
+      "Loading…";
+  }
+
+  if (listEl) {
     listEl.innerHTML = "";
   }
-}
 
-// ------------------------------
-// Recent
-// ------------------------------
-async function loadRecent() {
-  status2El.textContent = "Loading…";
-  list2El.innerHTML = "";
+  if (list2El) {
+    list2El.innerHTML = "";
+  }
 
   try {
-    const colRef = collection(db, ROOT);
+    await loadThreads();
 
-    const qRef = query(
-      colRef,
-      orderBy("lastReplyAt", "desc"),
-      limit(RECENT_LIMIT)
+    renderUnread();
+    renderRecent();
+  } catch (error) {
+    console.error(
+      "[coach-hub] thread load failed:",
+      error
     );
 
-    const snap = await getDocs(qRef);
+    if (statusEl) {
+      statusEl.textContent =
+        "Failed to load unread threads.";
+    }
 
-    if (snap.empty) {
-      status2El.textContent = "No threads yet.";
+    if (status2El) {
+      status2El.textContent =
+        "Failed to load recent threads.";
+    }
+  }
+}
+
+/* =========================
+   OPEN BY ATHLETE ID
+========================= */
+
+function openThreadById() {
+  const id =
+    String(
+      openIdEl?.value || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  if (!id) return;
+
+  window.location.href =
+    threadHref(id);
+}
+
+btnOpen?.addEventListener(
+  "click",
+  openThreadById
+);
+
+openIdEl?.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.key !== "Enter") {
       return;
     }
 
-    status2El.textContent = "";
-    list2El.innerHTML = snap.docs
-      .map(d => makeCard(d.id, d.data() || {}, { unread: false }))
-      .join("");
-  } catch (err) {
-    console.error("[coach-hub] recent load failed:", err);
-    status2El.textContent = "Failed to load recent threads.";
-    list2El.innerHTML = "";
+    event.preventDefault();
+    openThreadById();
   }
-}
+);
 
-// ------------------------------
-// Open by ID
-// ------------------------------
-btnOpen?.addEventListener("click", () => {
-  const id = (openIdEl?.value || "").trim();
-  if (!id) return;
-  window.location.href = threadHref(id);
-});
-
-openIdEl?.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") {
-    e.preventDefault();
-    btnOpen?.click();
-  }
-});
-
-// ------------------------------
-// Boot
-// ------------------------------
-loadUnread();
-loadRecent();
+await loadHub();

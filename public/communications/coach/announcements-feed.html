@@ -1,12 +1,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Announcements Feed • Coach</title>
+  <meta charset="utf-8" />
 
-  <link rel="stylesheet" href="/communications/shared/comms.css">
-  <link rel="icon" href="data:,">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Announcements Feed · Coach</title>
+
+  <link
+    rel="stylesheet"
+    href="/communications/shared/comms.css"
+  />
+
+  <link rel="icon" href="data:," />
 
   <style>
     :root{
@@ -20,11 +29,22 @@
       --hover:#1d2a4a;
     }
 
+    *{
+      box-sizing:border-box;
+    }
+
     body{
+      margin:0;
       background:var(--bg);
       color:var(--text);
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
     }
 
     .wrap{
@@ -34,17 +54,23 @@
     }
 
     .panel{
-      background:var(--panel);
+      padding:16px 18px;
       border:1px solid var(--line);
       border-radius:14px;
-      padding:16px 18px;
+      background:var(--panel);
       box-shadow:0 4px 14px rgba(0,0,0,.35);
     }
 
     h1{
-      margin:0 0 12px;
+      margin:0 0 8px;
       color:var(--gold);
       font-size:1.2rem;
+    }
+
+    .sub{
+      margin:0 0 14px;
+      color:var(--muted);
+      line-height:1.5;
     }
 
     .top{
@@ -55,16 +81,17 @@
     }
 
     .btn{
-      padding:10px 14px;
-      border-radius:10px;
-      border:1px solid var(--line);
-      background:var(--deep);
-      color:var(--text);
-      text-decoration:none;
       display:inline-flex;
       align-items:center;
       justify-content:center;
+      padding:10px 14px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--deep);
+      color:var(--text);
+      font:inherit;
       font-weight:700;
+      text-decoration:none;
       cursor:pointer;
     }
 
@@ -74,13 +101,15 @@
     }
 
     .card{
-      background:#0f172a;
+      margin:18px 0;
+      padding:20px 22px;
       border:1px solid #334155;
       border-radius:18px;
-      padding:20px 22px;
-      margin:18px 0;
+      background:#0f172a;
       box-shadow:0 6px 20px rgba(0,0,0,.35);
-      transition:transform .15s ease, box-shadow .15s ease;
+      transition:
+        transform .15s ease,
+        box-shadow .15s ease;
     }
 
     .card:hover{
@@ -90,18 +119,18 @@
 
     .card-head{
       display:flex;
-      justify-content:space-between;
       align-items:flex-start;
+      justify-content:space-between;
       gap:12px;
       margin-bottom:10px;
     }
 
     .title{
-      font-weight:900;
-      font-size:1.15rem;
       display:flex;
       align-items:center;
       gap:10px;
+      font-size:1.15rem;
+      font-weight:900;
     }
 
     .icon{
@@ -129,19 +158,19 @@
 
     .pill{
       display:inline-block;
+      margin-left:8px;
       padding:2px 8px;
       border-radius:999px;
-      font-size:.7rem;
-      font-weight:800;
       background:#334155;
       color:var(--text);
-      margin-left:8px;
+      font-size:.7rem;
+      font-weight:800;
     }
 
     .empty{
-      opacity:.75;
-      text-align:center;
       padding:18px;
+      text-align:center;
+      opacity:.75;
     }
 
     .status{
@@ -151,25 +180,112 @@
       font-size:.9rem;
       font-weight:700;
     }
+
+    .scope-note{
+      margin:12px 0 16px;
+      padding:12px 14px;
+      border:1px solid rgba(255,221,72,.2);
+      border-radius:12px;
+      background:rgba(255,221,72,.05);
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .scope-note strong{
+      color:var(--gold);
+    }
+
+    @media (max-width:640px){
+      .wrap{
+        padding:12px 10px 30px;
+      }
+
+      .panel{
+        padding:14px;
+      }
+
+      .top{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .btn{
+        width:100%;
+      }
+    }
   </style>
 </head>
+
 <body>
-  <div class="wrap">
-    <div class="panel">
-      <h1>Announcements Feed (Coach)</h1>
 
-      <div class="top">
-        <a class="btn" href="/communications/coach/broadcast.html">+ Post</a>
-        <a class="btn" href="/communications/coach/hub.html">Coach Home</a>
-        <button id="toggle-archived" class="btn" type="button">Show Archived</button>
-      </div>
+<main class="wrap">
 
-      <div id="status" class="status"></div>
-      <div id="feed"></div>
-      <div id="empty" class="empty" style="display:none;">No announcements yet.</div>
+  <section class="panel">
+
+    <h1>
+      Announcements Feed
+    </h1>
+
+    <p class="sub">
+      Review all active and archived coach broadcasts.
+    </p>
+
+    <div class="scope-note">
+      <strong>Coach view:</strong>
+      this feed shows every announcement.
+      Audience and discipline labels identify who each broadcast targets.
     </div>
-  </div>
 
-  <script type="module" src="/communications/coach/announcements-feed.js"></script>
+    <div class="top">
+
+      <a
+        class="btn"
+        href="/communications/coach/broadcast.html"
+      >
+        + Post Announcement
+      </a>
+
+      <a
+        class="btn"
+        href="/communications/coach/hub.html"
+      >
+        Coach Home
+      </a>
+
+      <button
+        id="toggle-archived"
+        class="btn"
+        type="button"
+      >
+        Show Archived
+      </button>
+
+    </div>
+
+    <div
+      id="status"
+      class="status"
+      aria-live="polite"
+    ></div>
+
+    <div id="feed"></div>
+
+    <div
+      id="empty"
+      class="empty"
+      style="display:none;"
+    >
+      No announcements yet.
+    </div>
+
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/communications/coach/announcements-feed.js"
+></script>
+
 </body>
 </html>

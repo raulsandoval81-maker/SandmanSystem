@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
   <title>Broadcast Console</title>
 
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="icon" href="data:,">
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link rel="icon" href="data:," />
 
   <style>
     :root{
@@ -19,11 +28,22 @@
       --muted:#9aa4b1;
     }
 
+    *{
+      box-sizing:border-box;
+    }
+
     body{
+      margin:0;
       background:var(--bg);
       color:var(--text);
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
     }
 
     .wrap{
@@ -43,12 +63,12 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      text-decoration:none;
       padding:10px 14px;
-      border-radius:12px;
       border:1px solid var(--line);
+      border-radius:12px;
       background:var(--deep);
       color:var(--text);
+      text-decoration:none;
       font-weight:800;
     }
 
@@ -64,26 +84,41 @@
     }
 
     .card{
-      background:var(--panel);
+      margin:16px 0;
+      padding:18px 20px;
       border:1px solid var(--line);
       border-radius:18px;
-      padding:18px 20px;
-      margin:16px 0;
+      background:var(--panel);
     }
 
-    h1{
-      color:var(--gold);
-      margin:0 0 8px;
-    }
-
+    h1,
     h2{
-      color:var(--gold);
       margin:0 0 10px;
+      color:var(--gold);
     }
 
     .sub{
-      color:var(--muted);
       margin:0;
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0,1fr)
+        );
+      gap:14px;
+    }
+
+    .field{
+      min-width:0;
+    }
+
+    .field-full{
+      grid-column:1 / -1;
     }
 
     label{
@@ -92,14 +127,32 @@
       font-weight:700;
     }
 
-    input, select, textarea{
+    input,
+    select,
+    textarea{
       width:100%;
-      padding:10px;
       margin-top:6px;
-      border-radius:12px;
+      padding:10px;
       border:1px solid var(--line);
+      border-radius:12px;
       background:var(--deep);
       color:var(--text);
+      font:inherit;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus{
+      outline:none;
+      border-color:var(--gold);
+      box-shadow:
+        0 0 0 2px rgba(255,221,72,.12);
+    }
+
+    select:disabled,
+    input:disabled{
+      opacity:.55;
+      cursor:not-allowed;
     }
 
     textarea{
@@ -110,10 +163,11 @@
     button{
       margin-top:14px;
       padding:10px 14px;
-      border-radius:12px;
       border:1px solid rgba(255,221,72,.5);
+      border-radius:12px;
       background:rgba(255,221,72,.12);
       color:var(--gold);
+      font:inherit;
       font-weight:800;
       cursor:pointer;
     }
@@ -124,14 +178,35 @@
       color:#fff;
     }
 
+    button:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    .scope-note{
+      margin:14px 0 2px;
+      padding:12px 14px;
+      border:1px solid rgba(255,221,72,.22);
+      border-radius:12px;
+      background:rgba(255,221,72,.05);
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .scope-note strong{
+      color:var(--gold);
+    }
+
     .feed-card{
-      background:#0f172a;
+      margin:16px 0;
+      padding:18px 20px;
       border:1px solid #334155;
       border-radius:18px;
-      padding:18px 20px;
-      margin:16px 0;
+      background:#0f172a;
       box-shadow:0 6px 20px rgba(0,0,0,.35);
-      transition:transform .15s ease, box-shadow .15s ease;
+      transition:
+        transform .15s ease,
+        box-shadow .15s ease;
     }
 
     .feed-card:hover{
@@ -141,8 +216,8 @@
 
     .feed-head{
       display:flex;
-      justify-content:space-between;
       align-items:flex-start;
+      justify-content:space-between;
       gap:12px;
       margin-bottom:10px;
     }
@@ -151,8 +226,8 @@
       display:flex;
       align-items:center;
       gap:10px;
-      font-weight:900;
       font-size:1.1rem;
+      font-weight:900;
     }
 
     .feed-icon{
@@ -160,15 +235,15 @@
     }
 
     .feed-tag{
+      padding:3px 10px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
       font-size:.72rem;
       font-weight:900;
       letter-spacing:.08em;
       text-transform:uppercase;
       opacity:.7;
-      padding:3px 10px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      background:rgba(255,255,255,.04);
     }
 
     .feed-body{
@@ -179,68 +254,297 @@
     .feed-foot{
       display:flex;
       justify-content:space-between;
+      gap:10px;
       font-size:.82rem;
       opacity:.6;
+    }
+
+    .feed-toolbar{
+      display:flex;
+      justify-content:flex-end;
+      margin:12px 0;
+    }
+
+    @media (max-width:700px){
+      .wrap{
+        padding:12px;
+      }
+
+      .card{
+        padding:16px;
+      }
+
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+
+      .field-full{
+        grid-column:auto;
+      }
+
+      .topbar{
+        display:grid;
+        grid-template-columns:1fr;
+      }
     }
   </style>
 </head>
 
 <body>
-  <main class="wrap">
-    <div class="topbar">
-      <a class="nav-btn active" href="/communications/coach/broadcast.html">Announcements</a>
-      <a class="nav-btn" href="/communications/coach/schedule.html">Schedule</a>
-      <a class="nav-btn" href="/communications/coach/hub.html">Hub</a>
+
+<main class="wrap">
+
+  <div class="topbar">
+
+    <a
+      class="nav-btn active"
+      href="/communications/coach/broadcast.html"
+    >
+      Announcements
+    </a>
+
+    <a
+      class="nav-btn"
+      href="/communications/coach/schedule.html"
+    >
+      Schedule
+    </a>
+
+    <a
+      class="nav-btn"
+      href="/communications/coach/hub.html"
+    >
+      Hub
+    </a>
+
+  </div>
+
+  <section class="card">
+
+    <h1>Broadcast Console</h1>
+
+    <p class="sub">
+      Post announcements to athletes and parents,
+      either system-wide or by combat discipline.
+    </p>
+
+  </section>
+
+  <section class="card">
+
+    <h2>Create Broadcast</h2>
+
+    <div
+      id="bc-status"
+      style="
+        min-height:22px;
+        opacity:.8;
+        margin-bottom:.5rem;
+      "
+      aria-live="polite"
+    ></div>
+
+    <div class="scope-note">
+      <strong>Audience</strong> decides who receives the announcement:
+      athletes, parents, or both.
+      <strong>Scope</strong> decides whether it applies to all disciplines
+      or one specific discipline.
     </div>
 
-    <section class="card">
-      <h1>Broadcast Console</h1>
-      <p class="sub">Post coach announcements to athletes and parents.</p>
-    </section>
+    <div class="form-grid">
 
-    <section class="card">
-      <h2>Create Broadcast</h2>
+      <div class="field">
 
-      <div id="bc-status" style="opacity:.75;margin-bottom:.5rem;"></div>
+        <label for="bc-category">
+          Category
+        </label>
 
-      <label>Category</label>
-      <select id="bc-category">
-        <option value="">Select category</option>
-        <option value="Strength">Strength</option>
-        <option value="Honor">Honor</option>
-        <option value="Practice Update">Practice Update</option>
-        <option value="Tournament Info">Tournament Info</option>
-        <option value="Schedule Change">Schedule Change</option>
-        <option value="Gear Reminder">Gear Reminder</option>
-        <option value="Team Announcement">Team Announcement</option>
-        <option value="Important Notice">Important Notice</option>
-        <option value="Other">Other</option>
-      </select>
+        <select id="bc-category">
+          <option value="">
+            Select category
+          </option>
 
-      <label>Custom Title</label>
-      <input id="bc-title" placeholder="Custom title…" />
+          <option value="Strength">
+            Strength
+          </option>
 
-      <label>Audience</label>
-      <select id="bc-audience-type">
-        <option value="all">All</option>
-        <option value="parents">Parents</option>
-        <option value="athletes">Athletes</option>
-      </select>
+          <option value="Honor">
+            Honor
+          </option>
 
-      <label>Message</label>
-      <textarea id="bc-message" rows="4"></textarea>
+          <option value="Practice Update">
+            Practice Update
+          </option>
 
-      <button id="bc-post">Post</button>
-    </section>
-<button id="toggle-archived" class="btn btn-dark btn-sm" type="button">
-  Show Archived
-</button>
-    <section class="card">
-      <h2>Live Broadcast Feed</h2>
-      <div id="bc-feed"></div>
-    </section>
-  </main>
+          <option value="Tournament Info">
+            Tournament Info
+          </option>
 
-  <script type="module" src="/communications/coach/broadcast.js"></script>
+          <option value="Schedule Change">
+            Schedule Change
+          </option>
+
+          <option value="Gear Reminder">
+            Gear Reminder
+          </option>
+
+          <option value="Team Announcement">
+            Team Announcement
+          </option>
+
+          <option value="Important Notice">
+            Important Notice
+          </option>
+
+          <option value="Other">
+            Other
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="bc-title">
+          Custom Title
+        </label>
+
+        <input
+          id="bc-title"
+          type="text"
+          placeholder="Custom title…"
+        />
+
+      </div>
+
+      <div class="field">
+
+        <label for="bc-audience-type">
+          Audience
+        </label>
+
+        <select id="bc-audience-type">
+          <option value="all">
+            Athletes + Parents
+          </option>
+
+          <option value="parents">
+            Parents Only
+          </option>
+
+          <option value="athletes">
+            Athletes Only
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="bc-scope">
+          Scope
+        </label>
+
+        <select id="bc-scope">
+          <option value="all">
+            All Disciplines
+          </option>
+
+          <option value="discipline">
+            Specific Discipline
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="bc-discipline">
+          Discipline
+        </label>
+
+        <select
+          id="bc-discipline"
+          disabled
+        >
+          <option value="">
+            Select discipline
+          </option>
+
+          <option value="wrestling">
+            Wrestling
+          </option>
+
+          <option value="boxing">
+            Boxing
+          </option>
+
+          <option value="kickboxing">
+            Kickboxing
+          </option>
+
+          <option value="mma">
+            MMA
+          </option>
+
+          <option value="submission-grappling">
+            Submission Grappling
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field field-full">
+
+        <label for="bc-message">
+          Message
+        </label>
+
+        <textarea
+          id="bc-message"
+          rows="4"
+          placeholder="Write the announcement..."
+        ></textarea>
+
+      </div>
+
+    </div>
+
+    <button
+      id="bc-post"
+      type="button"
+    >
+      Post
+    </button>
+
+  </section>
+
+  <div class="feed-toolbar">
+
+    <button
+      id="toggle-archived"
+      class="btn btn-dark btn-sm"
+      type="button"
+    >
+      Show Archived
+    </button>
+
+  </div>
+
+  <section class="card">
+
+    <h2>Live Broadcast Feed</h2>
+
+    <div id="bc-feed"></div>
+
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/communications/coach/broadcast.js"
+></script>
+
 </body>
 </html>

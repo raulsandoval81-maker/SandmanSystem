@@ -1,204 +1,553 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Coach Comms • Bilingual Builder</title>
 
-  <!-- Shared Coach Styling -->
-  <link rel="stylesheet" href="/communications/shared/comms.css" />
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Coach Comms · Bilingual Builder</title>
+
+  <link
+    rel="stylesheet"
+    href="/communications/shared/comms.css"
+  />
+
+  <link rel="icon" href="data:," />
 
   <style>
-    /* Hybrid Clean Panel Enhancements */
-    body {
-      background:#0a1833;
-      color:#f0f4f8;
-      font-family:system-ui, sans-serif;
+    :root{
+      --bg:#0a1833;
+      --panel:#111c35;
+      --deep:#0c152c;
+      --line:#27304a;
+      --gold:#ffdd48;
+      --text:#f0f4f8;
+      --muted:#9aa4b1;
     }
 
-    .wrap {
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
+    }
+
+    .wrap{
       max-width:860px;
       margin:0 auto;
       padding:24px 16px 60px;
     }
 
-    /* Main clean panel */
-    .pc-panel {
-      background:#111c35;
-      border:1px solid #27304a;
-      border-radius:14px;
-      padding:22px;
+    .pc-panel{
       margin-top:16px;
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--panel);
     }
 
-    h2.section-title {
+    h2.section-title{
       margin:0 0 12px;
+      color:var(--gold);
       font-size:1.25rem;
-      color:#ffdd48;
-      font-weight:600;
+      font-weight:700;
       letter-spacing:.02em;
     }
 
-    label {
-      display:block;
-      margin-top:14px;
-      font-size:.9rem;
-      font-weight:600;
-      color:#ffdd48;
+    .sub{
+      margin:0 0 16px;
+      color:var(--muted);
+      line-height:1.5;
     }
 
-    input, textarea {
+    .form-grid{
+      display:grid;
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .field{
+      min-width:0;
+    }
+
+    .field-full{
+      grid-column:1 / -1;
+    }
+
+    label{
+      display:block;
+      margin-top:14px;
+      color:var(--gold);
+      font-size:.9rem;
+      font-weight:700;
+    }
+
+    input,
+    textarea,
+    select{
       width:100%;
       margin-top:6px;
       padding:10px;
+      border:1px solid var(--line);
       border-radius:10px;
-      background:#0c152c;
-      border:1px solid #27304a;
-      color:#f0f4f8;
-      font-size:.95rem;
+      background:var(--deep);
+      color:var(--text);
+      font:inherit;
     }
 
-    textarea {
+    input:focus,
+    textarea:focus,
+    select:focus{
+      outline:none;
+      border-color:var(--gold);
+      box-shadow:
+        0 0 0 3px rgba(255,221,72,.14);
+    }
+
+    select:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    textarea{
       resize:vertical;
     }
 
-    /* Buttons */
-    .btn {
+    .btn{
       margin-top:10px;
       padding:10px 14px;
-      border-radius:10px;
-      cursor:pointer;
-      font-size:.9rem;
       border:none;
+      border-radius:10px;
+      font:inherit;
+      font-size:.9rem;
+      cursor:pointer;
       transition:.2s;
     }
 
-    .btn-dark {
+    .btn:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    .btn-dark{
       background:#152449;
       color:#fff;
     }
-    .btn-dark:hover {
+
+    .btn-dark:hover{
       background:#1c2f5c;
     }
 
-    .btn-brand {
-      background:#ffdd48;
+    .btn-brand{
+      background:var(--gold);
       color:#000;
-      font-weight:600;
+      font-weight:800;
     }
-    .btn-brand:hover {
+
+    .btn-brand:hover{
       background:#ffe979;
     }
 
-    /* Copy button row */
-    .pc-copy-grid {
+    .pc-copy-grid{
       display:flex;
       gap:10px;
-      margin-top:12px;
       flex-wrap:wrap;
+      margin-top:12px;
     }
-    .small { padding:8px 12px; }
 
-    /* Modal preview */
-    .pc-modal {
+    .small{
+      padding:8px 12px;
+    }
+
+    .scope-note{
+      margin:14px 0 4px;
+      padding:12px 14px;
+      border:1px solid rgba(255,221,72,.22);
+      border-radius:12px;
+      background:rgba(255,221,72,.05);
+      color:var(--muted);
+      line-height:1.5;
+    }
+
+    .scope-note strong{
+      color:var(--gold);
+    }
+
+    #pc-status{
+      min-height:22px;
+      margin-top:12px;
+      color:var(--gold);
+      font-weight:800;
+    }
+
+    .pc-modal{
       position:fixed;
-      top:0; left:0; right:0; bottom:0;
-      background:rgba(0,0,0,0.6);
+      inset:0;
       display:none;
       align-items:center;
       justify-content:center;
       padding:20px;
+      background:rgba(0,0,0,.65);
+      z-index:999;
     }
 
-    .pc-modal-box {
-      background:#111c35;
-      border:1px solid #27304a;
-      padding:20px;
-      border-radius:14px;
+    .pc-modal-box{
       width:100%;
       max-width:480px;
+      padding:20px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--panel);
     }
 
-    .pc-modal-box h2 {
-      color:#ffdd48;
+    .pc-modal-box h2{
       margin-top:0;
+      color:var(--gold);
     }
 
-    pre {
-      white-space:pre-wrap;
-      background:#0c152c;
-      padding:12px;
-      border-radius:10px;
-      border:1px solid #27304a;
+    pre{
       max-height:220px;
       overflow-y:auto;
       margin-bottom:10px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:var(--deep);
+      white-space:pre-wrap;
     }
 
-    .pc-modal-actions {
+    .confidence{
+      color:var(--muted);
+      line-height:1.4;
+    }
+
+    .pc-modal-actions{
       display:flex;
+      justify-content:flex-end;
       gap:12px;
       margin-top:10px;
-      justify-content:flex-end;
+    }
+
+    @media (max-width:700px){
+      .wrap{
+        padding:16px 10px 40px;
+      }
+
+      .pc-panel{
+        padding:16px;
+      }
+
+      .form-grid{
+        grid-template-columns:1fr;
+      }
+
+      .field-full{
+        grid-column:auto;
+      }
+
+      .pc-copy-grid{
+        display:grid;
+        grid-template-columns:1fr;
+      }
+
+      .pc-copy-grid .btn{
+        width:100%;
+      }
     }
   </style>
 </head>
 
 <body>
 
-  <!-- Header -->
-  <header class="pc-header">
-    <a class="pc-back" href="/communications/coach/index.html">← Back</a>
-    <h1>Bilingual Comms Builder</h1>
-    <a class="pc-home" href="/communications/coach/index.html">🏠</a>
-  </header>
+<header class="pc-header">
 
-  <div class="wrap">
+  <a
+    class="pc-back"
+    href="/communications/coach/index.html"
+  >
+    ← Back
+  </a>
 
-    <!-- Panel -->
-    <div class="pc-panel">
+  <h1>Bilingual Comms Builder</h1>
 
-      <h2 class="section-title">Message Composer</h2>
+  <a
+    class="pc-home"
+    href="/communications/coach/index.html"
+    aria-label="Coach Communications Home"
+  >
+    🏠
+  </a>
 
-      <label>Subject</label>
-      <input id="pc-subject" type="text" placeholder="Practice time change…" />
+</header>
 
-      <label>Message (EN)</label>
-      <textarea id="pc-en" rows="6" placeholder="Type English message…"></textarea>
-      <button id="btn-en-to-es" class="btn btn-dark">Translate EN → ES</button>
+<main class="wrap">
 
-      <label>Mensaje (ES)</label>
-      <textarea id="pc-es" rows="6" placeholder="Escriba su mensaje en español…"></textarea>
-      <button id="btn-es-to-en" class="btn btn-dark">Translate ES → EN</button>
+  <section class="pc-panel">
 
-      <div class="pc-copy-grid">
-        <button id="btn-copy-en" class="btn btn-dark small">Copy EN</button>
-        <button id="btn-copy-es" class="btn btn-dark small">Copy ES</button>
-        <button id="btn-copy-both" class="btn btn-brand small">Copy Both</button>
+    <h2 class="section-title">
+      Message Composer
+    </h2>
+
+    <p class="sub">
+      Create a bilingual message, choose its audience and discipline scope,
+      then copy it or post it directly to announcements.
+    </p>
+
+    <div class="scope-note">
+      <strong>Translation safeguard:</strong>
+      the built-in translator is a quick glossary tool, not a full translation engine.
+      Review every preview before applying or posting.
+    </div>
+
+    <div class="form-grid">
+
+      <div class="field field-full">
+
+        <label for="pc-subject">
+          Subject
+        </label>
+
+        <input
+          id="pc-subject"
+          type="text"
+          placeholder="Practice time change…"
+        />
+
       </div>
 
-      <button id="btn-post-bulletin" class="btn btn-brand" style="margin-top:18px;">
-        Post to Announcements
+      <div class="field">
+
+        <label for="pc-audience-type">
+          Audience
+        </label>
+
+        <select id="pc-audience-type">
+          <option value="all">
+            Athletes + Parents
+          </option>
+
+          <option value="parents">
+            Parents Only
+          </option>
+
+          <option value="athletes">
+            Athletes Only
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="pc-scope">
+          Scope
+        </label>
+
+        <select id="pc-scope">
+          <option value="all">
+            All Disciplines
+          </option>
+
+          <option value="discipline">
+            Specific Discipline
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field">
+
+        <label for="pc-discipline">
+          Discipline
+        </label>
+
+        <select
+          id="pc-discipline"
+          disabled
+        >
+          <option value="">
+            Select discipline
+          </option>
+
+          <option value="wrestling">
+            Wrestling
+          </option>
+
+          <option value="boxing">
+            Boxing
+          </option>
+
+          <option value="kickboxing">
+            Kickboxing
+          </option>
+
+          <option value="mma">
+            MMA
+          </option>
+
+          <option value="submission-grappling">
+            Submission Grappling
+          </option>
+        </select>
+
+      </div>
+
+      <div class="field field-full">
+
+        <label for="pc-en">
+          Message (English)
+        </label>
+
+        <textarea
+          id="pc-en"
+          rows="6"
+          placeholder="Type English message…"
+        ></textarea>
+
+        <button
+          id="btn-en-to-es"
+          class="btn btn-dark"
+          type="button"
+        >
+          Translate EN → ES
+        </button>
+
+      </div>
+
+      <div class="field field-full">
+
+        <label for="pc-es">
+          Mensaje (Español)
+        </label>
+
+        <textarea
+          id="pc-es"
+          rows="6"
+          placeholder="Escriba su mensaje en español…"
+        ></textarea>
+
+        <button
+          id="btn-es-to-en"
+          class="btn btn-dark"
+          type="button"
+        >
+          Translate ES → EN
+        </button>
+
+      </div>
+
+    </div>
+
+    <div class="pc-copy-grid">
+
+      <button
+        id="btn-copy-en"
+        class="btn btn-dark small"
+        type="button"
+      >
+        Copy EN
+      </button>
+
+      <button
+        id="btn-copy-es"
+        class="btn btn-dark small"
+        type="button"
+      >
+        Copy ES
+      </button>
+
+      <button
+        id="btn-copy-both"
+        class="btn btn-brand small"
+        type="button"
+      >
+        Copy Both
       </button>
 
     </div>
-  </div>
 
-  <!-- Modal -->
-  <div id="preview" class="pc-modal">
-    <div class="pc-modal-box">
-      <h2>Translation Preview</h2>
-      <pre id="preview-text"></pre>
-      <p id="preview-confidence" class="confidence"></p>
+    <button
+      id="btn-post-bulletin"
+      class="btn btn-brand"
+      type="button"
+      style="margin-top:18px;"
+    >
+      Post to Announcements
+    </button>
 
-      <div class="pc-modal-actions">
-        <button id="preview-apply" class="btn btn-brand">Apply</button>
-        <button id="preview-cancel" class="btn btn-dark">Cancel</button>
-      </div>
+    <div
+      id="pc-status"
+      aria-live="polite"
+    ></div>
+
+  </section>
+
+</main>
+
+<div
+  id="preview"
+  class="pc-modal"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="preview-title"
+>
+
+  <div class="pc-modal-box">
+
+    <h2 id="preview-title">
+      Translation Preview
+    </h2>
+
+    <pre id="preview-text"></pre>
+
+    <p
+      id="preview-confidence"
+      class="confidence"
+    ></p>
+
+    <div class="pc-modal-actions">
+
+      <button
+        id="preview-apply"
+        class="btn btn-brand"
+        type="button"
+      >
+        Apply
+      </button>
+
+      <button
+        id="preview-cancel"
+        class="btn btn-dark"
+        type="button"
+      >
+        Cancel
+      </button>
+
     </div>
+
   </div>
 
-  <!-- JS -->
-<script type="module" src="/communications/coach/bilingual-comms.js"></script>
+</div>
+
+<script
+  type="module"
+  src="/communications/coach/bilingual-comms.js"
+></script>
+
 </body>
 </html>
