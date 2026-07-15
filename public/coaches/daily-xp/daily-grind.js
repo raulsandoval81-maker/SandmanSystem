@@ -308,6 +308,13 @@ function applyFilterAndRender() {
   const q = String(searchEl?.value || "").toLowerCase().trim();
   const wantedJourney = String(journeyFilterEl?.value || "all").toLowerCase();
 
+  if (wantedJourney === "all") {
+    filtered = [];
+    render(filtered);
+    setStatus("Select a journey to begin.");
+    return;
+  }
+
   filtered = !q
     ? roster.slice()
     : roster.filter((a) => {
@@ -319,36 +326,77 @@ function applyFilterAndRender() {
       });
 
   filtered = filtered.filter((a) => {
-    if (wantedJourney === "all") return true;
-
     const journey = String(
       a.journey ||
+      a.ladderKey ||
       a.program ||
+      a.programTrack ||
+      ""
+    ).toLowerCase();
+
+    const discipline = String(
+      a.discipline ||
+      a.primaryDiscipline ||
+      a.sport ||
+      a.art ||
       a.track ||
       a.trackCode ||
       ""
     ).toLowerCase();
 
-    if (wantedJourney === "z2h") {
-      return journey.includes("z2h") ||
-        journey.includes("foundry8") ||
-        String(a.id || "").startsWith("F8_");
+    const athleteId = String(a.id || "").toUpperCase();
+
+    const isZ2H =
+      journey.includes("z2h") ||
+      journey.includes("zero2hero") ||
+      journey.includes("foundry8") ||
+      athleteId.startsWith("F8_");
+
+    const isP2L =
+      journey.includes("p2l") ||
+      journey.includes("path2legend") ||
+      journey.includes("path-to-legend");
+
+    const isQ2M =
+      journey.includes("q2m") ||
+      journey.includes("quest2mastery") ||
+      journey.includes("quest-to-mastery") ||
+      journey.includes("mastery");
+
+    const isWrestling =
+      discipline.includes("wrest");
+
+    const isBoxing =
+      discipline.includes("box");
+
+    const isKickboxing =
+      discipline.includes("kick");
+
+    const isMma =
+      discipline.includes("mma") ||
+      discipline.includes("mixed martial");
+
+    if (wantedJourney === "z2h-wrestling") {
+      return isZ2H && isWrestling;
     }
 
-    if (wantedJourney === "p2l") {
-      return journey.includes("p2l") ||
-        journey.includes("path") ||
-        journey.includes("wrestling") ||
-        journey.includes("boxing");
+    if (wantedJourney === "z2h-kickboxing") {
+      return isZ2H && isKickboxing;
     }
 
-    if (wantedJourney === "q2m") {
-      return journey.includes("q2m") ||
-        journey.includes("mastery") ||
-        journey.includes("mma");
+    if (wantedJourney === "p2l-wrestling") {
+      return isP2L && isWrestling;
     }
 
-    return true;
+    if (wantedJourney === "p2l-boxing") {
+      return isP2L && isBoxing;
+    }
+
+    if (wantedJourney === "q2m-mma") {
+      return isQ2M && isMma;
+    }
+
+    return false;
   });
 
 
@@ -361,10 +409,12 @@ function applyFilterAndRender() {
 render(filtered);
 
 const journeyLabels = {
-  all: "All Journeys",
-  z2h: "Zero2Hero",
-  p2l: "Path2Legend",
-  q2m: "Quest2Mastery"
+  all: "Select Program",
+  "z2h-wrestling": "Zero2Hero · Wrestling",
+  "z2h-kickboxing": "Zero2Hero · Kickboxing",
+  "p2l-wrestling": "Path2Legend · Wrestling",
+  "p2l-boxing": "Path2Legend · Boxing",
+  "q2m-mma": "Quest2Mastery · MMA"
 };
 
 setStatus(`Ready · ${journeyLabels[wantedJourney] || wantedJourney}`);
@@ -383,8 +433,7 @@ async function loadApprovedAttendance() {
   );
 
   if (snap.empty) {
-    setStatus("No approved attendance ready for Daily Grind.");
-    return;
+    return false;
   }
 
   const sessionDoc = snap.docs[0];
@@ -417,7 +466,7 @@ async function loadApprovedAttendance() {
 
   if (!presentIds.length) {
     setStatus("Approved attendance has no athletes.");
-    return;
+    return true;
   }
 
   filtered = roster.filter((a) =>
@@ -439,6 +488,18 @@ async function loadApprovedAttendance() {
     `Daily Grind loaded ${filtered.length} approved athlete(s) · ` +
     `${durationMinutes} minutes`
   );
+
+  return true;
+}
+
+async function initializeDailyGrind() {
+  const loadedSession = await loadApprovedAttendance();
+
+  if (loadedSession) {
+    return;
+  }
+
+  applyFilterAndRender();
 }
 
 function subscribe() {
@@ -463,7 +524,7 @@ function subscribe() {
         return rosterStatusOf(a) === "current";
       });
 
-      loadApprovedAttendance();
+      initializeDailyGrind();
     },
     (err) => {
       console.error(err);
