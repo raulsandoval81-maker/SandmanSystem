@@ -52,6 +52,41 @@ const SCHEMA_ONLY_CLASSES = [
   "kickboxing-60"
 ];
 
+// Session Builder owns the planned session duration.
+// Attendance preserves it; Daily Grind uses it to select
+// the appropriate coach-award range.
+const SESSION_DURATION_MINUTES = Object.freeze({
+  "quick-45": 45,
+  "standard-60": 60,
+  "kickboxing-60": 60,
+  "extended-90": 90,
+  "full-90": 90,
+  "standard-90": 90,
+  "extended-120": 120,
+  "full-120": 120,
+  "standard-120": 120
+});
+
+function durationMinutesForSchema(schema = "") {
+  const key = String(schema || "")
+    .trim()
+    .toLowerCase();
+
+  if (SESSION_DURATION_MINUTES[key]) {
+    return SESSION_DURATION_MINUTES[key];
+  }
+
+  // Compatibility fallback:
+  // accepts schema values such as custom-45, practice-90, etc.
+  const match = key.match(/(?:^|[-_])(45|60|90|120)(?:$|[-_])/);
+
+  if (match) {
+    return Number(match[1]);
+  }
+
+  return 60;
+}
+
 const RANK_LABELS = {
   Z2H: {
     T0: "Shadow",
@@ -77,7 +112,7 @@ const RANK_LABELS = {
     T1: "Warrior",
     T2: "Champion",
     T3: "Veteran",
-    T4: "Master"
+    T4: "Mastery"
   },
 
 };
@@ -355,9 +390,22 @@ const hybridData =
   const roomData =
     getRoomData(selectedSessionId);
 
+  const durationMinutes =
+    durationMinutesForSchema(selectedSchema);
+
   const payload = {
     schema:
       selectedSchema,
+
+    durationMinutes:
+      durationMinutes,
+
+    xpTimeScale:
+      durationMinutes >= 120
+        ? "two-hour"
+        : durationMinutes >= 90
+          ? "ninety-minute"
+          : "standard",
 
     executionMode:
       selectedMode,
@@ -390,6 +438,20 @@ const hybridData =
   localStorage.setItem(
     "sandman_clipboard_schema",
     selectedSchema
+  );
+
+  localStorage.setItem(
+    "sandman_session_duration_minutes",
+    String(durationMinutes)
+  );
+
+  localStorage.setItem(
+    "sandman_xp_time_scale",
+    durationMinutes >= 120
+      ? "two-hour"
+      : durationMinutes >= 90
+        ? "ninety-minute"
+        : "standard"
   );
 
   localStorage.setItem(

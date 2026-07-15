@@ -54,6 +54,47 @@ const refreshBtn = document.getElementById("refreshBtn");
 
 const btnGrind10 = document.getElementById("btnGrind10");
 const btnGrind5  = document.getElementById("btnGrind5");
+
+function ensureCombatAwardButton({
+  id,
+  award,
+  label,
+  anchor
+}) {
+  const existing = document.getElementById(id);
+  if (existing) return existing;
+
+  if (!anchor?.parentElement) return null;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.id = id;
+  button.className = anchor.className;
+  button.dataset.award = award;
+  button.textContent = label;
+
+  anchor.parentElement.insertBefore(
+    button,
+    anchor.nextSibling
+  );
+
+  return button;
+}
+
+const btnGrind15 = ensureCombatAwardButton({
+  id: "btnGrind15",
+  award: "GRIND_15",
+  label: "+15 Full-Time",
+  anchor: btnGrind10
+});
+
+const btnGrind20 = ensureCombatAwardButton({
+  id: "btnGrind20",
+  award: "GRIND_20",
+  label: "+20 Full-Time",
+  anchor: btnGrind15 || btnGrind10
+});
+
 const btnStr10   = document.getElementById("btnStr10");
 const btnStr5    = document.getElementById("btnStr5");
 const btnHon10   = document.getElementById("btnHon10");
@@ -61,6 +102,8 @@ const btnHon5    = document.getElementById("btnHon5");
 
 
 const ALL_PILLS = [
+  btnGrind20,
+  btnGrind15,
   btnGrind10,
   btnGrind5,
   btnStr10,
@@ -75,6 +118,55 @@ let awardedCount = 0;
 let awardedXP = 0;
 let unsub = null;
 let isSaving = false;
+
+let activeAttendanceSession = {
+  id: "",
+  schema: "",
+  durationMinutes: 60,
+  xpTimeScale: "standard",
+  academyId: "",
+  roomId: "",
+  sessionId: ""
+};
+
+function normalizeDurationMinutes(value, schema = "") {
+  const direct = Number(value);
+
+  if ([45, 60, 90, 120].includes(direct)) {
+    return direct;
+  }
+
+  const match = String(schema || "")
+    .toLowerCase()
+    .match(/(?:^|[-_])(45|60|90|120)(?:$|[-_])/);
+
+  if (match) {
+    return Number(match[1]);
+  }
+
+  const fallback = Number(
+    localStorage.getItem(
+      "sandman_session_duration_minutes"
+    )
+  );
+
+  return [45, 60, 90, 120].includes(fallback)
+    ? fallback
+    : 60;
+}
+
+function xpTimeScaleForDuration(durationMinutes) {
+  if (durationMinutes >= 120) return "two-hour";
+  if (durationMinutes >= 90) return "ninety-minute";
+  return "standard";
+}
+
+function sessionDurationLabel() {
+  const minutes =
+    Number(activeAttendanceSession.durationMinutes || 60);
+
+  return `${minutes}-minute session`;
+}
 
 function setStatus(msg) {
   if (pageStatusEl) pageStatusEl.textContent = msg;
@@ -305,7 +397,30 @@ async function loadApprovedAttendance() {
     return;
   }
 
-  const session = snap.docs[0].data() || {};
+  const sessionDoc = snap.docs[0];
+  const session = sessionDoc.data() || {};
+
+  const durationMinutes = normalizeDurationMinutes(
+    session.durationMinutes,
+    session.schema
+  );
+
+  activeAttendanceSession = {
+    id: sessionDoc.id,
+    schema: String(session.schema || ""),
+    durationMinutes,
+    xpTimeScale:
+      session.xpTimeScale ||
+      xpTimeScaleForDuration(durationMinutes),
+    academyId: String(session.academyId || ""),
+    roomId: String(session.roomId || ""),
+    sessionId: String(
+      session.sessionId ||
+      session.liveSessionId ||
+      sessionDoc.id
+    )
+  };
+
   const presentIds = Array.isArray(session.presentIds)
     ? session.presentIds
     : [];
@@ -321,14 +436,19 @@ async function loadApprovedAttendance() {
 
   render(filtered);
 
-  await updateDoc(
-  doc(db, "attendance_sessions", snap.docs[0].id),
-  {
-    readyForDailyGrind: false
-  }
-);
+  syncPillsToLane();
 
-  setStatus(`Daily Grind loaded ${filtered.length} approved athlete(s).`);
+  await updateDoc(
+    doc(db, "attendance_sessions", sessionDoc.id),
+    {
+      readyForDailyGrind: false
+    }
+  );
+
+  setStatus(
+    `Daily Grind loaded ${filtered.length} approved athlete(s) · ` +
+    `${durationMinutes} minutes`
+  );
 }
 
 function subscribe() {
@@ -375,9 +495,42 @@ function syncPillsToLane() {
   ALL_PILLS.forEach((b) => setPillVisible(b, false));
 
   if (lane === "combat") {
+    const duration =
+      Number(activeAttendanceSession.durationMinutes || 60);
+
+    if (duration >= 120) {
+      setPillVisible(btnGrind20, true);
+      setPillVisible(btnGrind10, true);
+
+      if (awardHintEl) {
+        awardHintEl.textContent =
+          `${sessionDurationLabel()} · +10 part-time / +20 full-time`;
+      }
+
+      return;
+    }
+
+    if (duration >= 90) {
+      setPillVisible(btnGrind15, true);
+      setPillVisible(btnGrind10, true);
+      setPillVisible(btnGrind5, true);
+
+      if (awardHintEl) {
+        awardHintEl.textContent =
+          `${sessionDurationLabel()} · +5 limited / +10 part-time / +15 full-time`;
+      }
+
+      return;
+    }
+
     setPillVisible(btnGrind10, true);
     setPillVisible(btnGrind5, true);
-    if (awardHintEl) awardHintEl.textContent = "Pick an award. Combat lane only.";
+
+    if (awardHintEl) {
+      awardHintEl.textContent =
+        `${sessionDurationLabel()} · +5 part-time / +10 full-time`;
+    }
+
     return;
   }
 
@@ -400,6 +553,12 @@ function syncPillsToLane() {
 }
 
 const AWARDS = Object.freeze({
+  GRIND_20: {
+    label: "+20 Daily Grind — Two-Hour Full-Time Work",
+    kind: "DAILY_GRIND",
+    amount: 20
+  },
+
   GRIND_15: {
     label: "+15 Daily Grind — Double Shift",
     kind: "DAILY_GRIND",
@@ -499,7 +658,21 @@ async function issueAwardForSelection(award) {
       lane,
       meta: {
         lane,
-        source: "daily-grind"
+        source: "daily-grind",
+        attendanceSessionId:
+          activeAttendanceSession.id,
+        sessionId:
+          activeAttendanceSession.sessionId,
+        schema:
+          activeAttendanceSession.schema,
+        durationMinutes:
+          activeAttendanceSession.durationMinutes,
+        xpTimeScale:
+          activeAttendanceSession.xpTimeScale,
+        academyId:
+          activeAttendanceSession.academyId,
+        roomId:
+          activeAttendanceSession.roomId
       }
     };
 
@@ -640,6 +813,8 @@ laneEl?.addEventListener("change", syncPillsToLane);
 syncPillsToLane();
 subscribe();
 
+bindPill(btnGrind20);
+bindPill(btnGrind15);
 bindPill(btnGrind10);
 bindPill(btnGrind5);
 bindPill(btnStr10);

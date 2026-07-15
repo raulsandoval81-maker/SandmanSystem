@@ -119,9 +119,11 @@ const LANE = Object.freeze({
 const KIND = Object.freeze({
   DAILY_GRIND: "DAILY_GRIND",
   ATTENDANCE: "ATTENDANCE",
-  
+
   ARENA_BATTLE: "ARENA/BATTLE",
+  ARENA_WEEKEND_BATTLE: "ARENA/WEEKEND_BATTLE",
   ARENA_PODIUM: "ARENA/PODIUM",
+  ARENA_SECOND_DIVISION: "ARENA/SECOND_DIVISION",
   ARENA_STYLEIQ: "ARENA/STYLEIQ",
 
   // Strength / Honor (coach-only)
@@ -206,8 +208,19 @@ function monthlyAttendanceCap(base: Base): number {
 
 function isArenaKind(
   kind: string
-): kind is typeof KIND.ARENA_BATTLE | typeof KIND.ARENA_PODIUM | typeof KIND.ARENA_STYLEIQ {
-  return kind === KIND.ARENA_BATTLE || kind === KIND.ARENA_PODIUM || kind === KIND.ARENA_STYLEIQ;
+): kind is
+  | typeof KIND.ARENA_BATTLE
+  | typeof KIND.ARENA_WEEKEND_BATTLE
+  | typeof KIND.ARENA_PODIUM
+  | typeof KIND.ARENA_SECOND_DIVISION
+  | typeof KIND.ARENA_STYLEIQ {
+  return (
+    kind === KIND.ARENA_BATTLE ||
+    kind === KIND.ARENA_WEEKEND_BATTLE ||
+    kind === KIND.ARENA_PODIUM ||
+    kind === KIND.ARENA_SECOND_DIVISION ||
+    kind === KIND.ARENA_STYLEIQ
+  );
 }
 
 function isStrengthKind(kind: string) {
@@ -236,7 +249,9 @@ function defaultAmountFor(kind: string): number {
   }
 
   if (kind === KIND.ARENA_BATTLE) return 10;
+  if (kind === KIND.ARENA_WEEKEND_BATTLE) return 15;
   if (kind === KIND.ARENA_PODIUM) return 5;
+  if (kind === KIND.ARENA_SECOND_DIVISION) return 5;
   if (kind === KIND.ARENA_STYLEIQ) return 5;
 
   if (kind === KIND.STRENGTH) return 10;
@@ -372,8 +387,10 @@ export const incrementXp = onCall(async (req) => {
           strength: 0,
           honor: 0,
 
-          // ✅ clear styleIQ per-tournament history
+          // Clear per-tournament arena history.
           styleByTournament: {},
+          weekendBattleByTournament: {},
+          secondDivisionByTournament: {},
 
           updatedAt: FieldValue.serverTimestamp(),
           devMode: true,
@@ -889,6 +906,76 @@ if (!alreadyUnlocked && canUnlockNow) {
       }
     }
 
+    // Weekend Battle once per tournament.
+    if (
+      isArenaKind(kind) &&
+      kind === KIND.ARENA_WEEKEND_BATTLE
+    ) {
+      const weekendBattleMap =
+        (monthly as any).weekendBattleByTournament &&
+        typeof (monthly as any).weekendBattleByTournament === "object"
+          ? (monthly as any).weekendBattleByTournament
+          : {};
+
+      if (weekendBattleMap[tournamentId]) {
+        return {
+          ok: true,
+          blocked: true,
+          reason: "WEEKEND_BATTLE_ALREADY_AWARDED_FOR_TOURNAMENT",
+          base,
+          tier,
+          cap,
+          beforeXp: beforeCombatTotal,
+          afterXp: beforeCombatTotal,
+          month: mKey,
+          tournamentId,
+        };
+      }
+
+      weekendBattleMap[tournamentId] = true;
+
+      tx.set(
+        monthlyRef,
+        { weekendBattleByTournament: weekendBattleMap },
+        { merge: true }
+      );
+    }
+
+    // Second Division once per tournament.
+    if (
+      isArenaKind(kind) &&
+      kind === KIND.ARENA_SECOND_DIVISION
+    ) {
+      const secondDivisionMap =
+        (monthly as any).secondDivisionByTournament &&
+        typeof (monthly as any).secondDivisionByTournament === "object"
+          ? (monthly as any).secondDivisionByTournament
+          : {};
+
+      if (secondDivisionMap[tournamentId]) {
+        return {
+          ok: true,
+          blocked: true,
+          reason: "SECOND_DIVISION_ALREADY_AWARDED_FOR_TOURNAMENT",
+          base,
+          tier,
+          cap,
+          beforeXp: beforeCombatTotal,
+          afterXp: beforeCombatTotal,
+          month: mKey,
+          tournamentId,
+        };
+      }
+
+      secondDivisionMap[tournamentId] = true;
+
+      tx.set(
+        monthlyRef,
+        { secondDivisionByTournament: secondDivisionMap },
+        { merge: true }
+      );
+    }
+
     // styleIQ once per tournament (keep enforced even in devMode)
     if (isArenaKind(kind) && kind === KIND.ARENA_STYLEIQ) {
       const styleMap =
@@ -945,7 +1032,9 @@ if (
 
 if (
   kind === KIND.ARENA_BATTLE ||
-  kind === KIND.ARENA_PODIUM
+  kind === KIND.ARENA_WEEKEND_BATTLE ||
+  kind === KIND.ARENA_PODIUM ||
+  kind === KIND.ARENA_SECOND_DIVISION
 ) {
   afterArena += delta;
 }

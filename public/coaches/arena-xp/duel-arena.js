@@ -35,14 +35,17 @@ const refreshBtn = document.getElementById("refreshBtn");
 const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
 
-const battleAllEl =
+// Dual scoring is additive:
+// SHOW +5, FORFEIT +5, WIN +10.
+// Existing HTML ids are retained for compatibility.
+const winAllEl =
   document.getElementById("battleAll") ||
   document.getElementById("fullAll");
 
 const forfeitAllEl =
   document.getElementById("forfeitAll");
 
-const noOppAllEl =
+const showAllEl =
   document.getElementById("noOppAll");
 
 const iqAllEl =
@@ -61,6 +64,19 @@ const sbXP = document.getElementById("sb-xp");
 const sbReceipts = document.getElementById("sb-receipts");
 
 const trackF8OnlyEl = document.getElementById("trackF8Only");
+
+// Clarify the additive dual doctrine in the existing UI.
+if (showAllEl) {
+  showAllEl.textContent = "+5 Show / Loss / No Match";
+}
+
+if (forfeitAllEl) {
+  forfeitAllEl.textContent = "+5 Forfeit";
+}
+
+if (winAllEl) {
+  winAllEl.textContent = "+10 Win";
+}
 
 /* -----------------------------
    State
@@ -310,9 +326,9 @@ function updateButtons() {
   const hasIQ = !!String(iqSelectEl?.value || "").trim();
   const locked = isSaving;
 
-  if (battleAllEl) battleAllEl.disabled = !hasEventId || locked;
+  if (winAllEl) winAllEl.disabled = !hasEventId || locked;
   if (forfeitAllEl) forfeitAllEl.disabled = !hasEventId || locked;
-  if (noOppAllEl) noOppAllEl.disabled = !hasEventId || locked;
+  if (showAllEl) showAllEl.disabled = !hasEventId || locked;
   if (iqAllEl) iqAllEl.disabled = !(hasEventId && hasIQ) || locked;
   if (sportsmanshipAllEl) sportsmanshipAllEl.disabled = !hasEventId || locked;
 }
@@ -325,11 +341,18 @@ function parseFunctionJson(raw) {
 }
 
 function mapArenaAward(kind) {
-  if (kind === "battle") {
+  if (kind === "show") {
     return {
-      serverKind: "ARENA/BATTLE",
-      amount: 10,
-      meta: {},
+      // Existing backend-compatible +5 arena receipt.
+      serverKind: "ARENA/NO_OPP_DAY",
+      amount: 5,
+      meta: {
+        duelLogic: true,
+        dualComponent: "SHOW",
+        outcomeCredit: "SHOW",
+        note:
+          "Base dual credit. Athlete attended, made weight, warmed up, and remained available. Covers loss, no match, or the base portion of a forfeit/win."
+      },
     };
   }
 
@@ -339,18 +362,27 @@ function mapArenaAward(kind) {
       amount: 5,
       meta: {
         duelLogic: true,
+        dualComponent: "FORFEIT",
+        outcomeCredit: "FORFEIT",
+        requiresShowCredit: true,
+        note:
+          "Additive dual credit. Award after SHOW +5 for a total of 10 XP."
       },
     };
   }
 
-  if (kind === "noOpp") {
+  if (kind === "win") {
     return {
-      serverKind: "ARENA/NO_OPP_DAY",
-      amount: 5,
+      // Existing battle kind is retained as the +10 competitive win receipt.
+      serverKind: "ARENA/BATTLE",
+      amount: 10,
       meta: {
         duelLogic: true,
+        dualComponent: "WIN",
+        outcomeCredit: "WIN",
+        requiresShowCredit: true,
         note:
-          "Dual-event only. Athlete attended, made weight, warmed up, remained available, but received no match opportunity through no fault of their own.",
+          "Additive dual credit. Award after SHOW +5 for a total of 15 XP."
       },
     };
   }
@@ -574,16 +606,16 @@ clearAllEl?.addEventListener("click", () => {
   setStatus("Selection cleared.", true);
 });
 
-battleAllEl?.addEventListener("click", () => {
-  bulkGive("battle", "+10 Battle");
+showAllEl?.addEventListener("click", () => {
+  bulkGive("show", "+5 Show / Loss / No Match");
 });
 
 forfeitAllEl?.addEventListener("click", () => {
-  bulkGive("forfeit", "+5 Forfeit Win");
+  bulkGive("forfeit", "+5 Forfeit");
 });
 
-noOppAllEl?.addEventListener("click", () => {
-  bulkGive("noOpp", "+5 NO_OPP_DAY");
+winAllEl?.addEventListener("click", () => {
+  bulkGive("win", "+10 Win");
 });
 
 iqAllEl?.addEventListener("click", () => {

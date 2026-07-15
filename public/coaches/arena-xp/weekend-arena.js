@@ -35,12 +35,26 @@ const refreshBtn = document.getElementById("refreshBtn");
 const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
 
-const fullAllEl = document.getElementById("fullAll");   // +10 Battle
+const fullAllEl = document.getElementById("fullAll");   // +15 Weekend Battle
 const partAllEl = document.getElementById("partAll");   // +5 Podium
-const styleAllEl = document.getElementById("styleAll"); // +5 Style/IQ
+const styleAllEl = document.getElementById("styleAll"); // +5 Second Division
 const sportsmanshipAllEl = document.getElementById("sportsmanshipAll");
 
 const iqSelectEl = document.getElementById("iqSelect");
+
+// Existing HTML ids remain for compatibility.
+// Coach-facing meaning is now Weekend Battle / Second Division.
+if (fullAllEl) {
+  fullAllEl.textContent = "+15 Battle";
+}
+
+if (partAllEl) {
+  partAllEl.textContent = "+5 Podium";
+}
+
+if (styleAllEl) {
+  styleAllEl.textContent = "+5 Second Division";
+}
 
 const sessionBar = document.getElementById("sessionBar");
 const sbLoaded = document.getElementById("sb-loaded");
@@ -268,12 +282,11 @@ function updateButtons() {
   syncTournament();
 
   const hasT = !!currentTournamentId;
-  const hasIQ = !!String(iqSelectEl?.value || "").trim();
   const locked = isSaving;
 
   if (fullAllEl) fullAllEl.disabled = !hasT || locked;
   if (partAllEl) partAllEl.disabled = !hasT || locked;
-  if (styleAllEl) styleAllEl.disabled = !(hasT && hasIQ) || locked;
+  if (styleAllEl) styleAllEl.disabled = !hasT || locked;
   if (sportsmanshipAllEl) sportsmanshipAllEl.disabled = !hasT || locked;
 }
 
@@ -285,17 +298,26 @@ function parseFunctionJson(raw) {
 }
 
 function buildPayload(uid, kind) {
-  if (!currentTournamentId) throw new Error("Tournament ID is required.");
+  if (!currentTournamentId) {
+    throw new Error("Tournament ID is required.");
+  }
+
+  const baseMeta = {
+    tournamentId: currentTournamentId,
+    eventId: currentTournamentId,
+    eventType: "weekend-tournament",
+    track: trackWanted(),
+    source: "weekend-arena",
+  };
 
   if (kind === "battle") {
     return {
       uid,
-      kind: "ARENA/BATTLE",
-      amount: 10,
+      kind: "ARENA/WEEKEND_BATTLE",
+      amount: 15,
       meta: {
-        tournamentId: currentTournamentId,
-        track: trackWanted(),
-        source: "weekend-arena",
+        ...baseMeta,
+        weekendComponent: "BATTLE",
       },
     };
   }
@@ -306,43 +328,39 @@ function buildPayload(uid, kind) {
       kind: "ARENA/PODIUM",
       amount: 5,
       meta: {
-        tournamentId: currentTournamentId,
-        track: trackWanted(),
-        source: "weekend-arena",
+        ...baseMeta,
+        weekendComponent: "PODIUM",
       },
     };
   }
 
-  if (kind === "style") {
-    const style = String(iqSelectEl?.value || "").trim();
-    if (!style) throw new Error("Pick a Match IQ style first.");
-
+  if (kind === "secondDivision") {
     return {
       uid,
-      kind: "ARENA/STYLEIQ",
+      kind: "ARENA/SECOND_DIVISION",
       amount: 5,
       meta: {
-        tournamentId: currentTournamentId,
-        style,
-        track: trackWanted(),
-        source: "weekend-arena",
+        ...baseMeta,
+        weekendComponent: "SECOND_DIVISION",
+        sameDay: true,
+        divisionNumber: 2,
       },
     };
   }
-    if (kind === "sportsmanship") {
+
+  if (kind === "sportsmanship") {
     return {
       uid,
       kind: "ARENA/SPORTSMANSHIP",
       amount: -5,
       meta: {
-        tournamentId: currentTournamentId,
-        track: trackWanted(),
-        source: "weekend-arena",
+        ...baseMeta,
+        weekendComponent: "SPORTSMANSHIP",
       },
     };
   }
 
-  throw new Error("Unknown kind: " + kind);
+  throw new Error("Unknown Weekend Arena kind: " + kind);
 }
 
 /* -----------------------------
@@ -359,34 +377,11 @@ async function giveToOne(id, kind) {
     localStorage.getItem("coachUid") ||
     "DEV_COACH";
 
-const serverKind =
-  kind === "battle" ? "ARENA/BATTLE" :
-  kind === "podium" ? "ARENA/PODIUM" :
-  kind === "style" ? "ARENA/STYLEIQ" :
-  kind === "sportsmanship" ? "ARENA/SPORTSMANSHIP" :
-  kind;
 
-const amount =
-  serverKind === "ARENA/BATTLE" ? 10 :
-  serverKind === "ARENA/PODIUM" ? 5 :
-  serverKind === "ARENA/STYLEIQ" ? 5 :
-  serverKind === "ARENA/SPORTSMANSHIP" ? -5 :
-  0;
-
-
-
-  const payload = {
-    uid: a.uidCode || a.uid || a.id,
-    kind: serverKind,
-    amount,
-    meta: {
-      tournamentId: String(currentTournamentId || "").trim(),
-      source: "arena",
-      ...(serverKind === "ARENA/STYLEIQ"
-        ? { matchIq: String(iqSelectEl?.value || "").trim() }
-        : {}),
-    },
-  };
+  const payload = buildPayload(
+    a.uidCode || a.uid || a.id,
+    kind
+  );
 
   const res = await fetch(XP_URL, {
     method: "POST",
@@ -449,11 +444,6 @@ async function bulkGive(kind, label) {
       throw new Error("Tournament ID required.");
     }
 
-    if (kind === "style" && !String(iqSelectEl?.value || "").trim()) {
-      throw new Error("Pick Match IQ first.");
-    }
-
-
     isSaving = true;
     updateButtons();
     setStatus(`Saving ${label} for ${ids.length}…`, true);
@@ -489,7 +479,6 @@ async function bulkGive(kind, label) {
 ----------------------------- */
 ["input", "change", "blur"].forEach((evt) => tourEl?.addEventListener(evt, updateButtons));
 ["input"].forEach((evt) => searchEl?.addEventListener(evt, load));
-["change"].forEach((evt) => iqSelectEl?.addEventListener(evt, updateButtons));
 
 refreshBtn?.addEventListener("click", () => load());
 
@@ -503,10 +492,21 @@ clearAllEl?.addEventListener("click", () => {
   setStatus("Selection cleared.", true);
 });
 
-fullAllEl?.addEventListener("click", () => bulkGive("battle", "+10 Battle"));
-partAllEl?.addEventListener("click", () => bulkGive("podium", "+5 Podium"));
-styleAllEl?.addEventListener("click", () => bulkGive("style", "+5 Style/IQ"));
-sportsmanshipAllEl?.addEventListener("click", () => bulkGive("sportsmanship", "-5 Sportsmanship"));
+fullAllEl?.addEventListener("click", () => {
+  bulkGive("battle", "+15 Battle");
+});
+
+partAllEl?.addEventListener("click", () => {
+  bulkGive("podium", "+5 Podium");
+});
+
+styleAllEl?.addEventListener("click", () => {
+  bulkGive("secondDivision", "+5 Second Division");
+});
+
+sportsmanshipAllEl?.addEventListener("click", () => {
+  bulkGive("sportsmanship", "-5 Sportsmanship");
+});
 
 
 /* -----------------------------

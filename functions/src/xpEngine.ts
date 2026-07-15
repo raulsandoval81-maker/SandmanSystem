@@ -58,7 +58,10 @@ const db = getFirestore();
 type Kind =
   | "ATTENDANCE"
   | "ARENA/BATTLE"
+  | "ARENA/WEEKEND_BATTLE"
   | "ARENA/PODIUM"
+  
+  | "ARENA/SECOND_DIVISION"
   | "ARENA/STYLEIQ"
   | "ARENA/EXTRA"
   | "ARENA/FORFEIT_WIN"
@@ -142,7 +145,9 @@ function inferBase(a: any): "F4" | "F8" | "ADULT" {
 function allowedKind(kind: string) {
   if (kind === "ATTENDANCE") return true;
   if (kind === "ARENA/BATTLE") return true;
+  if (kind === "ARENA/WEEKEND_BATTLE") return true;
   if (kind === "ARENA/PODIUM") return true;
+  if (kind === "ARENA/SECOND_DIVISION") return true;
   if (kind === "ARENA/STYLEIQ") return true;
   if (kind === "ARENA/EXTRA") return true;
   if (kind === "ARENA/FORFEIT_WIN") return true;
@@ -213,9 +218,29 @@ function normalizeAmount(kind: string, amount: number) {
     return amount;
   }
 
+  if (kind === "ARENA/WEEKEND_BATTLE") {
+    if (amount !== 15) {
+      throw new HttpsError(
+        "invalid-argument",
+        "ARENA/WEEKEND_BATTLE amount must be 15"
+      );
+    }
+    return amount;
+  }
+
   if (kind === "ARENA/PODIUM") {
     if (amount !== 5) {
       throw new HttpsError("invalid-argument", "ARENA/PODIUM amount must be 5");
+    }
+    return amount;
+  }
+
+  if (kind === "ARENA/SECOND_DIVISION") {
+    if (amount !== 5) {
+      throw new HttpsError(
+        "invalid-argument",
+        "ARENA/SECOND_DIVISION amount must be 5"
+      );
     }
     return amount;
   }
@@ -355,7 +380,9 @@ export async function runIncrementXp(coachUid: string, payload: any) {
       );
 
 let battleCount = 0;
+let weekendBattleCount = 0;
 let podiumCount = 0;
+let secondDivisionCount = 0;
 let extraCount = 0;
 let forfeitCount = 0;
 let noOppCount = 0;
@@ -372,7 +399,9 @@ let sportsmanshipCount = 0;
         const k = String(d.kind || "");
 
         if (k === "ARENA/BATTLE") battleCount += 1;
+        if (k === "ARENA/WEEKEND_BATTLE") weekendBattleCount += 1;
         if (k === "ARENA/PODIUM") podiumCount += 1;
+        if (k === "ARENA/SECOND_DIVISION") secondDivisionCount += 1;
         if (k === "ARENA/EXTRA") extraCount += 1;
         if (k === "ARENA/SPORTSMANSHIP") sportsmanshipCount += 1;
 if (k === "ARENA/FORFEIT_WIN") forfeitCount += 1;
@@ -390,6 +419,20 @@ if (k === "ARENA/NO_OPP_DAY") noOppCount += 1;
         };
       }
 
+      if (
+        kind === "ARENA/WEEKEND_BATTLE" &&
+        weekendBattleCount >= 1
+      ) {
+        return {
+          ok: true,
+          blocked: true,
+          reason: "ARENA_WEEKEND_BATTLE_LIMIT",
+          uid,
+          eventId,
+          weekendBattleCount,
+        };
+      }
+
       if (kind === "ARENA/PODIUM" && podiumCount >= 1) {
         return {
           ok: true,
@@ -398,6 +441,20 @@ if (k === "ARENA/NO_OPP_DAY") noOppCount += 1;
           uid,
           eventId,
           podiumCount,
+        };
+      }
+
+      if (
+        kind === "ARENA/SECOND_DIVISION" &&
+        secondDivisionCount >= 1
+      ) {
+        return {
+          ok: true,
+          blocked: true,
+          reason: "ARENA_SECOND_DIVISION_LIMIT",
+          uid,
+          eventId,
+          secondDivisionCount,
         };
       }
 
@@ -653,7 +710,8 @@ if (k === "ARENA/NO_OPP_DAY") noOppCount += 1;
 
     const shouldStampAttendance =
   kind === "ATTENDANCE" ||
-  kind === "ARENA/BATTLE";
+  kind === "ARENA/BATTLE" ||
+  kind === "ARENA/WEEKEND_BATTLE";
 
 if (shouldStampAttendance) {
   patch.lastAttendanceAt = now;

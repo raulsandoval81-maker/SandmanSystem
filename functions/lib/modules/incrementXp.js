@@ -105,7 +105,9 @@ const KIND = Object.freeze({
     DAILY_GRIND: "DAILY_GRIND",
     ATTENDANCE: "ATTENDANCE",
     ARENA_BATTLE: "ARENA/BATTLE",
+    ARENA_WEEKEND_BATTLE: "ARENA/WEEKEND_BATTLE",
     ARENA_PODIUM: "ARENA/PODIUM",
+    ARENA_SECOND_DIVISION: "ARENA/SECOND_DIVISION",
     ARENA_STYLEIQ: "ARENA/STYLEIQ",
     // Strength / Honor (coach-only)
     STRENGTH: "STRENGTH",
@@ -170,7 +172,11 @@ function monthlyAttendanceCap(base) {
     return XP[base].monthly.attendance;
 }
 function isArenaKind(kind) {
-    return kind === KIND.ARENA_BATTLE || kind === KIND.ARENA_PODIUM || kind === KIND.ARENA_STYLEIQ;
+    return (kind === KIND.ARENA_BATTLE ||
+        kind === KIND.ARENA_WEEKEND_BATTLE ||
+        kind === KIND.ARENA_PODIUM ||
+        kind === KIND.ARENA_SECOND_DIVISION ||
+        kind === KIND.ARENA_STYLEIQ);
 }
 function isStrengthKind(kind) {
     return kind === KIND.STRENGTH;
@@ -198,7 +204,11 @@ function defaultAmountFor(kind) {
     }
     if (kind === KIND.ARENA_BATTLE)
         return 10;
+    if (kind === KIND.ARENA_WEEKEND_BATTLE)
+        return 15;
     if (kind === KIND.ARENA_PODIUM)
+        return 5;
+    if (kind === KIND.ARENA_SECOND_DIVISION)
         return 5;
     if (kind === KIND.ARENA_STYLEIQ)
         return 5;
@@ -309,8 +319,10 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
                 arena: 0,
                 strength: 0,
                 honor: 0,
-                // ✅ clear styleIQ per-tournament history
+                // Clear per-tournament arena history.
                 styleByTournament: {},
+                weekendBattleByTournament: {},
+                secondDivisionByTournament: {},
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 devMode: true,
             }, { merge: true });
@@ -745,6 +757,54 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
                 }
             }
         }
+        // Weekend Battle once per tournament.
+        if (isArenaKind(kind) &&
+            kind === KIND.ARENA_WEEKEND_BATTLE) {
+            const weekendBattleMap = monthly.weekendBattleByTournament &&
+                typeof monthly.weekendBattleByTournament === "object"
+                ? monthly.weekendBattleByTournament
+                : {};
+            if (weekendBattleMap[tournamentId]) {
+                return {
+                    ok: true,
+                    blocked: true,
+                    reason: "WEEKEND_BATTLE_ALREADY_AWARDED_FOR_TOURNAMENT",
+                    base,
+                    tier,
+                    cap,
+                    beforeXp: beforeCombatTotal,
+                    afterXp: beforeCombatTotal,
+                    month: mKey,
+                    tournamentId,
+                };
+            }
+            weekendBattleMap[tournamentId] = true;
+            tx.set(monthlyRef, { weekendBattleByTournament: weekendBattleMap }, { merge: true });
+        }
+        // Second Division once per tournament.
+        if (isArenaKind(kind) &&
+            kind === KIND.ARENA_SECOND_DIVISION) {
+            const secondDivisionMap = monthly.secondDivisionByTournament &&
+                typeof monthly.secondDivisionByTournament === "object"
+                ? monthly.secondDivisionByTournament
+                : {};
+            if (secondDivisionMap[tournamentId]) {
+                return {
+                    ok: true,
+                    blocked: true,
+                    reason: "SECOND_DIVISION_ALREADY_AWARDED_FOR_TOURNAMENT",
+                    base,
+                    tier,
+                    cap,
+                    beforeXp: beforeCombatTotal,
+                    afterXp: beforeCombatTotal,
+                    month: mKey,
+                    tournamentId,
+                };
+            }
+            secondDivisionMap[tournamentId] = true;
+            tx.set(monthlyRef, { secondDivisionByTournament: secondDivisionMap }, { merge: true });
+        }
         // styleIQ once per tournament (keep enforced even in devMode)
         if (isArenaKind(kind) && kind === KIND.ARENA_STYLEIQ) {
             const styleMap = monthly.styleByTournament && typeof monthly.styleByTournament === "object"
@@ -788,7 +848,9 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
             afterDaily += delta;
         }
         if (kind === KIND.ARENA_BATTLE ||
-            kind === KIND.ARENA_PODIUM) {
+            kind === KIND.ARENA_WEEKEND_BATTLE ||
+            kind === KIND.ARENA_PODIUM ||
+            kind === KIND.ARENA_SECOND_DIVISION) {
             afterArena += delta;
         }
         if (kind === KIND.ARENA_STYLEIQ) {
