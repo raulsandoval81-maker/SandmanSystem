@@ -52,15 +52,21 @@
     localStorage.getItem("currentProgramTrack") ||
     "";
 
-  function withParams(base) {
-    const out = new URLSearchParams();
+    const discipline =
+  params.get("discipline") ||
+  localStorage.getItem(`sandman_active_discipline_${id}`) ||
+  "";
 
-    if (id) out.set("athleteId", id);
-    if (tier) out.set("tier", tier);
-    if (programTrack) out.set("programTrack", programTrack);
+function withParams(base) {
+  const out = new URLSearchParams();
 
-    return `${base}?${out.toString()}`;
-  }
+  if (id) out.set("athleteId", id);
+  if (tier) out.set("tier", tier);
+  if (programTrack) out.set("programTrack", programTrack);
+  if (discipline) out.set("discipline", discipline);
+
+  return `${base}?${out.toString()}`;
+}
 
   function wireNav() {
     const encoded = encodeURIComponent(id);

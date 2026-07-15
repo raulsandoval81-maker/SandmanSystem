@@ -1,86 +1,167 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Foundry 8 Leaderboard</title>
-  <link rel="stylesheet" href="/athletes/leaderboard/leaderboard.css"/>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Youth Leaderboard</title>
+
+  <link
+    rel="stylesheet"
+    href="/athletes/leaderboard/leaderboard.css"
+  />
+
+  <link rel="icon" href="data:," />
 </head>
 
 <body>
 
 <header class="athlete-sub-header">
   <div class="sub-header-inner">
-    <span class="brand">Sandman Combat System™</span>
+    <span class="brand">
+      Sandman Combat System™
+    </span>
 
     <div class="sub-nav">
-      <a id="nav-home" href="#" class="sub-btn home">Home</a>
-      <a href="/athletes/bulletin/index.html" class="sub-btn">Bulletin</a>
-      <a href="/athletes/arsenal/index.html" class="sub-btn">Arsenal</a>
-      <a href="/athletes/leaderboard/teen/index.html" class="sub-btn">Leaderboard</a>
+      <a
+        id="nav-home"
+        href="#"
+        class="sub-btn home"
+      >
+        Home
+      </a>
+
+      <a
+        href="/athletes/bulletin/index.html"
+        class="sub-btn"
+      >
+        Bulletin
+      </a>
+
+      <a
+        href="/athletes/arsenal/index.html"
+        class="sub-btn"
+      >
+        Arsenal
+      </a>
+
+      <a
+        href="/athletes/leaderboard/youth/index.html"
+        class="sub-btn"
+        aria-current="page"
+      >
+        Leaderboard
+      </a>
     </div>
   </div>
 </header>
 
-<div class="wrap">
+<main class="wrap">
 
-  <h1>Foundry 8 Leaderboard</h1>
+  <h1>Youth Leaderboard</h1>
 
   <div class="controls">
-    
-    <!-- public/private -->
-    <select id="mode-toggle">
-      <option value="private">Private</option>
-      <option value="public">Public</option>
+
+    <select
+      id="mode-toggle"
+      aria-label="Leaderboard visibility"
+    >
+      <option value="private">
+        Private
+      </option>
+
+      <option value="public">
+        Public
+      </option>
     </select>
 
-    <!-- scope -->
-    <select id="view-mode">
-      <option value="overall">Overall</option>
-      <option value="tier">Tier</option>
+    <select
+      id="view-mode"
+      aria-label="Leaderboard scope"
+    >
+      <option value="overall">
+        Overall
+      </option>
+
+      <option value="tier">
+        Tier
+      </option>
     </select>
 
-    <!-- ranking -->
-    <select id="rank-mode">
-      <option value="progression">Progression</option>
-      <option value="lifetime">Lifetime XP</option>
+    <select
+      id="rank-mode"
+      aria-label="Ranking mode"
+    >
+      <option value="progression">
+        Combat Progression
+      </option>
+
+      <option value="lifetime">
+        Lifetime XP
+      </option>
     </select>
 
   </div>
 
-  <h2 id="board-title">Top 8</h2>
-  <div id="top8-list"></div>
+  <h2 id="board-title">
+    Top 8
+  </h2>
 
-  <div id="private-zone-panel">
+  <div id="top8-list">
+    <div class="empty">
+      Loading leaderboard...
+    </div>
+  </div>
+
+  <section id="private-zone-panel">
     <h3>Your Zone</h3>
-    <div id="your-zone"></div>
-  </div>
 
-  <div id="next-target-panel">
+    <div id="your-zone">
+      <div class="empty">
+        Loading your zone...
+      </div>
+    </div>
+  </section>
+
+  <section id="next-target-panel">
     <h3>Next Target</h3>
-    <div id="next-target"></div>
-  </div>
 
-</div>
+    <div id="next-target">
+      <div class="empty">
+        Loading target...
+      </div>
+    </div>
+  </section>
+
+</main>
 
 <script>
-  window.LEADERBOARD_TRACK = "foundry8";
+  const params =
+    new URLSearchParams(window.location.search);
 
-  // 🔥 dynamic home link
-  const params = new URLSearchParams(window.location.search);
-  const id =
+  const athleteId =
     params.get("athleteId") ||
     params.get("id") ||
     localStorage.getItem("currentAthleteId") ||
+    sessionStorage.getItem("currentAthleteId") ||
     "";
 
-  const home = document.getElementById("nav-home");
-  if (home && id) {
-    home.href = `/athletes/hub/full-hub.html?id=${encodeURIComponent(id)}`;
+  const home =
+    document.getElementById("nav-home");
+
+  if (home && athleteId) {
+    home.href =
+      `/athletes/hub/full-hub.html?id=${encodeURIComponent(athleteId)}`;
   }
 </script>
 
-<script type="module" src="/athletes/leaderboard/leaderboard.app.js"></script>
+<script
+  type="module"
+  src="/athletes/leaderboard/leaderboard.app.js"
+></script>
 
 </body>
 </html>
