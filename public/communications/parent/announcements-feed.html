@@ -260,27 +260,42 @@
 
       <section class="hero">
         <p class="eyebrow">Parent Messages</p>
+
         <h1>Bulletin</h1>
+
         <p class="hero-sub">
           Coach updates, reminders, schedule notes, and important program announcements.
+        </p>
+
+        <p
+          id="announcement-scope"
+          class="hero-scope"
+          aria-live="polite"
+        >
+          Loading announcements…
         </p>
       </section>
 
       <div class="section-head">
         <p class="section-title">Latest Posts</p>
-        <span class="section-note">Pinned first, then newest to oldest</span>
+
+        <span class="section-note">
+          Pinned first, then newest to oldest
+        </span>
       </div>
 
-      <div id="pinnedShell" class="pin-shell">
-        <p class="pin-label">Pinned Notice</p>
-        <p class="pin-sub">Important updates stay at the top of the bulletin for quick parent visibility.</p>
+      <div id="empty" class="empty">
+        No bulletin posts yet.
       </div>
 
-      <div id="empty" class="empty">No bulletin posts yet.</div>
       <div id="feed"></div>
+
     </div>
   </div>
 
-  <script type="module" src="/communications/parent/announcements-feed.js"></script>
+  <script
+    type="module"
+    src="/communications/parent/announcements-feed.js"
+  ></script>
 </body>
 </html>
