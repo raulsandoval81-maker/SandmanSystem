@@ -1,8 +1,12 @@
 // /communications/shared/announcements-ui.js
-// Shared announcements renderer (Admin + Parent + Athlete)
+// Shared announcements renderer
+// Used by:
+// - Coach/Admin
+// - Parent
+// - Athlete
 
-export function esc(s = "") {
-  return String(s)
+export function esc(value = "") {
+  return String(value)
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
@@ -10,96 +14,461 @@ export function esc(s = "") {
     .replaceAll("'", "&#39;");
 }
 
-export function safeDate(ts) {
-  try { return ts?.toDate?.().toLocaleString?.() || ""; } catch { return ""; }
+export function safeDate(timestamp) {
+  try {
+    const date =
+      typeof timestamp?.toDate === "function"
+        ? timestamp.toDate()
+        : timestamp instanceof Date
+          ? timestamp
+          : timestamp
+            ? new Date(timestamp)
+            : null;
+
+    if (
+      !date ||
+      Number.isNaN(date.getTime())
+    ) {
+      return "";
+    }
+
+    return date.toLocaleString();
+  } catch {
+    return "";
+  }
 }
 
-export function getIconFromText(text = "") {
-  const t = String(text).toLowerCase();
-  if (t.includes("practice")) return "🤼";
-  if (t.includes("tournament")) return "🏆";
-  if (t.includes("schedule") || t.includes("change")) return "📅";
-  if (t.includes("gear")) return "🎒";
-  if (t.includes("transport")) return "🚗";
-  if (t.includes("urgent") || t.includes("notice") || t.includes("important")) return "⚠️";
-  if (t.includes("run") || t.includes("conditioning")) return "🏃";
-  if (t.includes("lift") || t.includes("strength")) return "🏋️";
+export function normalizeDiscipline(
+  value = ""
+) {
+  const raw =
+    String(value || "")
+      .trim()
+      .toLowerCase();
+
+  if (raw.includes("kickbox")) {
+    return "kickboxing";
+  }
+
+  if (raw.includes("wrest")) {
+    return "wrestling";
+  }
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  if (raw.includes("box")) {
+    return "boxing";
+  }
+
+  return raw;
+}
+
+export function disciplineLabel(
+  value = ""
+) {
+  const normalized =
+    normalizeDiscipline(value);
+
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling":
+      "Submission Grappling"
+  };
+
+  if (labels[normalized]) {
+    return labels[normalized];
+  }
+
+  if (!normalized) {
+    return "All Disciplines";
+  }
+
+  return normalized
+    .split("-")
+    .filter(Boolean)
+    .map(
+      (part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+    )
+    .join(" ");
+}
+
+export function audienceLabel(
+  value = "all"
+) {
+  const audience =
+    String(value || "all")
+      .trim()
+      .toLowerCase();
+
+  if (audience === "parents") {
+    return "Parents";
+  }
+
+  if (audience === "athletes") {
+    return "Athletes";
+  }
+
+  return "All";
+}
+
+export function scopeLabel(
+  announcement = {}
+) {
+  const scope =
+    String(
+      announcement.scope || "all"
+    )
+      .trim()
+      .toLowerCase();
+
+  if (
+    scope === "discipline" &&
+    announcement.discipline
+  ) {
+    return disciplineLabel(
+      announcement.discipline
+    );
+  }
+
+  return "All Disciplines";
+}
+
+export function getIconFromText(
+  text = ""
+) {
+  const normalized =
+    String(text || "")
+      .toLowerCase();
+
+  if (
+    normalized.includes("wrestling") ||
+    normalized.includes("practice")
+  ) {
+    return "🤼";
+  }
+
+  if (
+    normalized.includes("boxing")
+  ) {
+    return "🥊";
+  }
+
+  if (
+    normalized.includes("mma")
+  ) {
+    return "🥋";
+  }
+
+  if (
+    normalized.includes("tournament") ||
+    normalized.includes("competition")
+  ) {
+    return "🏆";
+  }
+
+  if (
+    normalized.includes("schedule") ||
+    normalized.includes("change") ||
+    normalized.includes("calendar")
+  ) {
+    return "📅";
+  }
+
+  if (
+    normalized.includes("gear") ||
+    normalized.includes("equipment")
+  ) {
+    return "🎒";
+  }
+
+  if (
+    normalized.includes("transport") ||
+    normalized.includes("ride") ||
+    normalized.includes("bus")
+  ) {
+    return "🚗";
+  }
+
+  if (
+    normalized.includes("urgent") ||
+    normalized.includes("notice") ||
+    normalized.includes("important")
+  ) {
+    return "⚠️";
+  }
+
+  if (
+    normalized.includes("run") ||
+    normalized.includes("conditioning")
+  ) {
+    return "🏃";
+  }
+
+  if (
+    normalized.includes("lift") ||
+    normalized.includes("strength")
+  ) {
+    return "🏋️";
+  }
+
+  if (
+    normalized.includes("honor") ||
+    normalized.includes("character")
+  ) {
+    return "🛡️";
+  }
+
   return "📣";
 }
 
-export function getAnnIcon(d) {
-  const basis = d?.category || d?.title || "";
+export function getAnnIcon(
+  announcement = {}
+) {
+  const basis = [
+    announcement.category,
+    announcement.title,
+    announcement.discipline
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return getIconFromText(basis);
 }
 
-export function renderAnnouncementCard(d, opts = {}) {
-  const aud = String(d.audienceType || "all").toLowerCase();
-  const icon = getAnnIcon(d);
+export function renderAnnouncementCard(
+  announcement = {},
+  options = {}
+) {
+  const icon =
+    getAnnIcon(announcement);
 
-  const showTeam = opts.showTeam !== false;
-  const showAudience = opts.showAudience !== false;
-  const showPinned = opts.showPinned !== false;
-  const showCategory = opts.showCategory !== false;
+  const showTeam =
+    options.showTeam !== false;
+
+  const showAudience =
+    options.showAudience !== false;
+
+  const showPinned =
+    options.showPinned !== false;
+
+  const showCategory =
+    options.showCategory !== false;
+
+  const showScope =
+    options.showScope !== false;
+
+  const pinned =
+    announcement.pinned === true;
+
+  const audience =
+    audienceLabel(
+      announcement.audienceType
+    );
+
+  const scope =
+    scopeLabel(
+      announcement
+    );
 
   const pinPill =
-    showPinned && d.pinned === true
-      ? `<span class="pill pill-pin" style="margin-left:8px;">PINNED</span>`
+    showPinned && pinned
+      ? `
+        <span
+          class="pill pill-pin"
+          style="margin-left:8px;"
+        >
+          PINNED
+        </span>
+      `
       : "";
 
   const categoryPill =
-    showCategory && d.category
-      ? `<span class="pill pill-dark" style="margin-left:8px;">${esc(d.category)}</span>`
+    showCategory &&
+    announcement.category
+      ? `
+        <span
+          class="pill pill-dark"
+        >
+          ${esc(announcement.category)}
+        </span>
+      `
       : "";
 
-  const audiencePill =
+  const scopePill =
+    showScope
+      ? `
+        <span
+          class="pill pill-dark"
+        >
+          ${esc(scope)}
+        </span>
+      `
+      : "";
+
+  const audienceTag =
     showAudience
-      ? `<div class="feed-tag">${esc(aud)}</div>`
-      : `<div class="feed-tag" style="display:none"></div>`;
+      ? `
+        <div class="feed-tag">
+          ${esc(audience)}
+        </div>
+      `
+      : "";
 
   const teamLine =
-    showTeam
-      ? `<span class="feed-team">${esc(d.teamId || "")}</span>`
-      : `<span class="feed-team" style="display:none"></span>`;
+    showTeam &&
+    announcement.teamId
+      ? `
+        <span class="feed-team">
+          ${esc(announcement.teamId)}
+        </span>
+      `
+      : "";
+
+  const createdAt =
+    safeDate(
+      announcement.createdAt
+    );
 
   return `
-    <div class="card feed-card">
+    <div class="card feed-card ${pinned ? "pinned" : ""}">
       <div class="feed-head">
         <div class="feed-title">
-          <span class="feed-icon">${esc(icon)}</span>
-          ${esc(d.title || "(no title)")}
+          <span class="feed-icon">
+            ${esc(icon)}
+          </span>
+
+          <span>
+            ${esc(
+              announcement.title ||
+              "(No title)"
+            )}
+          </span>
+
           ${pinPill}
         </div>
-        ${audiencePill}
+
+        ${audienceTag}
       </div>
 
-      <div style="margin-top:6px;">
-        ${categoryPill}
-      </div>
+      ${
+        categoryPill ||
+        scopePill
+          ? `
+            <div
+              class="feed-pills"
+              style="
+                display:flex;
+                flex-wrap:wrap;
+                gap:8px;
+                margin-top:6px;
+              "
+            >
+              ${categoryPill}
+              ${scopePill}
+            </div>
+          `
+          : ""
+      }
 
-      <div class="feed-body">${esc(d.message || "")}</div>
+      <div class="feed-body">
+        ${esc(
+          announcement.message || ""
+        )}
+      </div>
 
       <div class="feed-foot">
-        <span class="feed-date">${esc(safeDate(d.createdAt))}</span>
+        <span class="feed-date">
+          ${esc(createdAt)}
+        </span>
+
         ${teamLine}
       </div>
     </div>
   `;
 }
 
-export function sortPinnedThenNewest(items = []) {
-  const stampSeconds = (ts) => {
+export function sortPinnedThenNewest(
+  items = []
+) {
+  const timestampSeconds = (
+    timestamp
+  ) => {
     try {
-      if (typeof ts?.seconds === "number") return ts.seconds;
-      const d = ts?.toDate?.();
-      if (d instanceof Date) return Math.floor(d.getTime() / 1000);
+      if (
+        typeof timestamp?.seconds ===
+        "number"
+      ) {
+        return timestamp.seconds;
+      }
+
+      const date =
+        typeof timestamp?.toDate ===
+        "function"
+          ? timestamp.toDate()
+          : timestamp instanceof Date
+            ? timestamp
+            : timestamp
+              ? new Date(timestamp)
+              : null;
+
+      if (
+        date instanceof Date &&
+        !Number.isNaN(
+          date.getTime()
+        )
+      ) {
+        return Math.floor(
+          date.getTime() / 1000
+        );
+      }
+
       return 0;
-    } catch { return 0; }
+    } catch {
+      return 0;
+    }
   };
 
-  return [...items].sort((a, b) => {
-    const ap = a.pinned === true ? 1 : 0;
-    const bp = b.pinned === true ? 1 : 0;
-    if (bp !== ap) return bp - ap;
-    return stampSeconds(b.createdAt) - stampSeconds(a.createdAt);
-  });
+  return [...items].sort(
+    (a, b) => {
+      const aPinned =
+        a.pinned === true ? 1 : 0;
+
+      const bPinned =
+        b.pinned === true ? 1 : 0;
+
+      if (
+        bPinned !== aPinned
+      ) {
+        return (
+          bPinned - aPinned
+        );
+      }
+
+      return (
+        timestampSeconds(
+          b.createdAt
+        ) -
+        timestampSeconds(
+          a.createdAt
+        )
+      );
+    }
+  );
 }

@@ -1,26 +1,97 @@
-// Render message bubble (Level 3 Styling — Final)
-function appendMessage({ from, text, ts }) {
-  const wrap = document.createElement("div");
+// Render one message bubble safely.
+function appendMessage({
+  from = "parent",
+  fromName = "",
+  text = "",
+  ts = null
+}) {
+  if (!threadEl) return;
 
-  // left or right alignment
-  const isCoach = from === "coach";
-  wrap.className = `msg-block ${isCoach ? "msg-coach" : "msg-parent"}`;
+  const isCoach =
+    String(from).toLowerCase() === "coach";
 
-  const senderLabel = isCoach ? "Coach" : "You";
-  const timeLabel = ts ? ts.toLocaleString() : "";
+  const wrap =
+    document.createElement("div");
 
-  wrap.innerHTML = `
-    <div class="msg-header">
-      <span class="msg-sender">${senderLabel}</span>
-      <span class="msg-time">${timeLabel}</span>
-    </div>
-    <div class="msg-body">${text}</div>
-  `;
+  wrap.className =
+    `msg-block ${
+      isCoach
+        ? "msg-coach"
+        : "msg-parent"
+    }`;
+
+  const header =
+    document.createElement("div");
+
+  header.className =
+    "msg-header";
+
+  const sender =
+    document.createElement("span");
+
+  sender.className =
+    "msg-sender";
+
+  sender.textContent =
+    fromName ||
+    (isCoach ? "Coach" : "You");
+
+  const time =
+    document.createElement("span");
+
+  time.className =
+    "msg-time";
+
+  let date = null;
+
+  try {
+    if (
+      ts &&
+      typeof ts.toDate === "function"
+    ) {
+      date = ts.toDate();
+    } else if (ts instanceof Date) {
+      date = ts;
+    } else if (ts) {
+      const parsed =
+        new Date(ts);
+
+      if (
+        !Number.isNaN(
+          parsed.getTime()
+        )
+      ) {
+        date = parsed;
+      }
+    }
+  } catch {
+    date = null;
+  }
+
+  time.textContent =
+    date
+      ? date.toLocaleString()
+      : "";
+
+  const body =
+    document.createElement("div");
+
+  body.className =
+    "msg-body";
+
+  body.textContent =
+    String(text || "");
+
+  header.appendChild(sender);
+  header.appendChild(time);
+
+  wrap.appendChild(header);
+  wrap.appendChild(body);
 
   threadEl.appendChild(wrap);
 
-  // Auto-scroll to bottom on new message
-  setTimeout(() => {
-    threadEl.scrollTop = threadEl.scrollHeight;
-  }, 10);
+  requestAnimationFrame(() => {
+    threadEl.scrollTop =
+      threadEl.scrollHeight;
+  });
 }
