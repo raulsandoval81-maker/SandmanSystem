@@ -466,6 +466,24 @@ async function runIncrementXp(coachUid, payload) {
                     weekday: pacificWeekday,
                 };
             }
+            const athleteTier = String(a?.tier ||
+                a?.tierCode ||
+                "T0").toUpperCase();
+            if ((base === "F4" || base === "ADULT") &&
+                athleteTier === "T0" &&
+                amount > 10) {
+                return {
+                    ok: true,
+                    blocked: true,
+                    reason: "APPRENTICE_PRACTICE_XP_CEILING",
+                    uid,
+                    base,
+                    tier: athleteTier,
+                    attemptedAmount: amount,
+                    maxAllowed: 10,
+                    weekday: pacificWeekday,
+                };
+            }
             const todayDayKey = getPacificDayKeyFromTimestamp(now);
             const todayLogsSnap = await tx.get(db.collection("xpLogs")
                 .where("uid", "==", uid)
