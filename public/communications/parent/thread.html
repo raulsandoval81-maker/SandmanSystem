@@ -2,375 +2,395 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Parent Thread | Sandman Combat™</title>
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Message Thread</title>
+
+  <link
+    rel="stylesheet"
+    href="/communications/shared/comms.css"
+  />
+
   <link rel="icon" href="data:," />
 
   <style>
     :root{
       --bg:#0a1833;
       --panel:#111c35;
-      --panel-2:#0f1730;
+      --deep:#0f1a33;
       --line:#27304a;
-      --brand:#ffdd48;
+      --gold:#ffdd48;
       --text:#f0f4f8;
       --muted:#9aa4b1;
-      --soft:#cbd5e1;
-      --coach-border:rgba(255,221,72,.38);
-      --parent-border:rgba(203,213,225,.18);
+      --danger:#ff6b6b;
     }
 
-    *{ box-sizing:border-box; }
+    *{
+      box-sizing:border-box;
+    }
 
     body{
       margin:0;
       background:var(--bg);
       color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
     }
 
-    a{ color:inherit; text-decoration:none; }
-
-    .wrap{
-      max-width:920px;
-      margin:0 auto;
-      padding:20px 14px 40px;
-    }
-
-    .topbar{
+    .pc-header{
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
-      margin-bottom:14px;
-    }
-
-    .back-btn{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-      min-height:42px;
-      padding:0 14px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:#081327;
-      color:var(--text);
-      font-weight:800;
-    }
-
-    .back-btn:hover{
-      border-color:var(--brand);
-      color:var(--brand);
-    }
-
-    .page-shell{
-      background:linear-gradient(180deg,#10204a 0%, #0d1c42 100%);
-      border:1px solid var(--line);
-      border-radius:20px;
-      padding:18px;
-      box-shadow:0 10px 28px rgba(0,0,0,.28);
-    }
-
-    .page-head{
-      background:rgba(8,18,39,.38);
-      border:1px solid var(--line);
-      border-radius:16px;
-      padding:16px 16px 14px;
-      margin-bottom:14px;
-    }
-
-    .eyebrow{
-      margin:0 0 6px;
-      color:var(--brand);
-      font-size:.82rem;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .title{
-      margin:0;
-      font-size:2rem;
-      line-height:1.08;
-      font-weight:900;
-      color:#fff;
-    }
-
-    .sub{
-      margin:8px 0 0;
-      color:var(--soft);
-      font-size:.98rem;
-      line-height:1.45;
-    }
-
-    .thread-meta{
-      margin-top:14px;
-      padding-top:12px;
-      border-top:1px solid var(--line);
-      display:grid;
-      gap:6px;
-    }
-
-    .meta-row{
-      color:var(--soft);
-      font-size:.96rem;
-      line-height:1.35;
-    }
-
-    .meta-row strong{
-      color:#fff;
-    }
-
-    .summary-card{
-      display:none;
-      margin-top:14px;
-      padding:14px;
-      border-radius:16px;
-      background:rgba(255,221,72,.08);
-      border:1px solid rgba(255,221,72,.22);
-    }
-
-    .summary-title{
-      margin:0 0 10px;
-      color:var(--brand);
-      font-size:.84rem;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .summary-grid{
-      display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
-      gap:8px 14px;
-    }
-
-    .summary-item{
-      color:var(--soft);
-      font-size:.95rem;
-      line-height:1.35;
-    }
-
-    .summary-item strong{
-      color:#fff;
-    }
-
-    .thread-panel{
-      background:rgba(8,18,39,.26);
-      border:1px solid var(--line);
-      border-radius:18px;
-      padding:12px;
-    }
-
-    .thread-list{
-      display:flex;
-      flex-direction:column;
       gap:12px;
+      padding:14px 18px;
+      border-bottom:1px solid #1f2c45;
+      background:#0b1428;
+    }
+
+    .pc-header h1{
+      margin:0;
+      color:var(--gold);
+      font-size:1.3rem;
+      letter-spacing:.5px;
+    }
+
+    .pc-back,
+    .pc-home{
+      color:var(--gold);
+      text-decoration:none;
+      font-size:1rem;
+    }
+
+    .wrap{
+      max-width:760px;
+      margin:0 auto;
+      padding:20px;
+    }
+
+    .thread-context{
+      display:grid;
+      grid-template-columns:
+        repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:14px;
+      padding:12px 14px;
+      border:1px solid rgba(255,221,72,.22);
+      border-radius:12px;
+      background:rgba(255,221,72,.05);
+    }
+
+    .context-item{
+      min-width:0;
+    }
+
+    .context-label{
+      display:block;
+      margin-bottom:4px;
+      color:var(--muted);
+      font-size:.75rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .context-value{
+      color:var(--gold);
+      font-weight:900;
+      overflow-wrap:anywhere;
+    }
+
+    .thread-box{
       min-height:220px;
-      max-height:560px;
+      max-height:62vh;
       overflow:auto;
-      padding:4px;
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--deep);
       scroll-behavior:smooth;
     }
 
-    .thread-msg{
-      background:var(--panel);
-      border:1px solid var(--parent-border);
-      border-radius:16px;
-      padding:14px 14px 12px;
+    .msg-group{
+      margin-bottom:16px;
     }
 
-    .thread-msg.coach{
-      border-color:var(--coach-border);
-      background:linear-gradient(180deg,#142349 0%, #101d3e 100%);
-      box-shadow:0 0 0 1px rgba(255,221,72,.06) inset;
+    .msg-group.coach{
+      text-align:right;
     }
 
-    .thread-msg.parent{
-      background:linear-gradient(180deg,#101c39 0%, #0d1730 100%);
+    .msg-group.parent{
+      text-align:left;
     }
 
-    .from{
-      font-size:1rem;
+    .group-from{
+      margin-bottom:6px;
+      color:var(--gold);
+      font-size:.9rem;
       font-weight:900;
-      line-height:1.1;
-      margin:0 0 4px;
     }
 
-    .thread-msg.coach .from{
-      color:var(--brand);
-    }
-
-    .thread-msg.parent .from{
-      color:#fff;
-    }
-
-    .timestamp{
-      color:var(--muted);
-      font-size:.82rem;
-      font-weight:700;
+    .bubble-wrap{
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      gap:4px;
       margin-bottom:8px;
     }
 
-    .body{
-      color:#eef2f7;
-      font-size:1rem;
-      line-height:1.52;
-      white-space:pre-wrap;
-      word-break:break-word;
+    .msg-group.coach .bubble-wrap{
+      align-items:flex-end;
     }
 
-    .compose{
-      margin-top:14px;
-      background:rgba(8,18,39,.38);
+    .msg-bubble{
+      max-width:86%;
+      padding:11px 13px;
       border:1px solid var(--line);
-      border-radius:16px;
-      padding:12px;
-    }
-
-    .compose-label{
-      margin:0 0 8px;
-      color:#fff;
-      font-size:.95rem;
-      font-weight:900;
-    }
-
-    .compose-row{
-      display:flex;
-      gap:10px;
-      align-items:stretch;
-    }
-
-    .compose-box{
-      flex:1 1 auto;
-      min-height:56px;
-      max-height:160px;
-      resize:vertical;
       border-radius:14px;
-      border:1px solid #3a4a6a;
-      background:#f8fafc;
-      color:#111827;
-      padding:14px 15px;
+      background:#111c35;
+      color:#d8e1ee;
+      line-height:1.45;
+      text-align:left;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+    }
+
+    .msg-group.coach .msg-bubble{
+      border-color:#3b4d73;
+      background:#16233d;
+    }
+
+    .msg-stamp{
+      color:var(--muted);
+      font-size:.76rem;
+    }
+
+    .reply-box{
+      margin-top:20px;
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--deep);
+    }
+
+    .reply-box[hidden]{
+      display:none;
+    }
+
+    textarea{
+      width:100%;
+      min-height:120px;
+      padding:12px;
+      resize:vertical;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:#111c35;
+      color:#fff;
       font:inherit;
-      line-height:1.35;
       outline:none;
     }
 
-    .compose-box:focus{
-      border-color:var(--brand);
-      box-shadow:0 0 0 2px rgba(255,221,72,.18);
+    textarea:focus{
+      border-color:var(--gold);
+      box-shadow:
+        0 0 0 3px rgba(255,221,72,.16);
     }
 
-    .send-btn{
-      flex:0 0 auto;
-      min-width:92px;
-      border:none;
-      border-radius:14px;
-      background:var(--brand);
-      color:#111827;
-      font-size:1rem;
-      font-weight:900;
-      padding:0 18px;
-      cursor:pointer;
-    }
-
-    .send-btn:hover{
-      filter:brightness(1.03);
-    }
-
-    .send-btn:disabled{
+    textarea:disabled{
       opacity:.55;
       cursor:not-allowed;
     }
 
-    .card{
-      padding:18px;
-      border-radius:14px;
-      border:1px dashed #344665;
-      color:var(--muted);
-      text-align:center;
-      font-weight:700;
-      background:rgba(8,18,39,.18);
+    .btn-send{
+      width:100%;
+      margin-top:12px;
+      padding:12px;
+      border:0;
+      border-radius:10px;
+      background:var(--gold);
+      color:#111;
+      font:inherit;
+      font-size:1rem;
+      font-weight:800;
+      cursor:pointer;
     }
 
-    @media (max-width:640px){
-      .wrap{ padding:14px 10px 28px; }
-      .page-shell{ padding:12px; border-radius:16px; }
-      .page-head{ padding:14px 12px 12px; }
-      .title{ font-size:1.55rem; }
-      .summary-grid{ grid-template-columns:1fr; }
-      .compose-row{ flex-direction:column; }
-      .send-btn{
-        min-height:48px;
-        width:100%;
+    .btn-send:disabled{
+      opacity:.55;
+      cursor:not-allowed;
+    }
+
+    #reply-success,
+    #reply-error{
+      display:none;
+      margin:12px 0 0;
+      font-size:.95rem;
+      font-weight:800;
+      line-height:1.4;
+    }
+
+    #reply-success{
+      color:var(--gold);
+    }
+
+    #reply-error{
+      color:var(--danger);
+    }
+
+    .thread-note{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:.86rem;
+      line-height:1.45;
+    }
+
+    #thread-limit-banner{
+      background:#1e293b;
+      color:var(--gold);
+      padding:12px;
+      margin:12px 0;
+      border:1px solid #334155;
+      font-weight:700;
+      text-align:center;
+      border-radius:10px;
+    }
+
+    @media (max-width:620px){
+      .wrap{
+        padding:14px 10px 30px;
+      }
+
+      .thread-context{
+        grid-template-columns:1fr;
+      }
+
+      .msg-bubble{
+        max-width:96%;
       }
     }
   </style>
 </head>
+
 <body>
-  <main class="wrap">
-    <div class="topbar">
-      <a class="back-btn" href="/parent/index.html">← Back</a>
+
+<header class="pc-header">
+
+  <a
+    class="pc-back"
+    href="/communications/parent/index.html"
+  >
+    ← Back
+  </a>
+
+  <h1>Message Thread</h1>
+
+  <a
+    class="pc-home"
+    href="/communications/parent/index.html"
+    aria-label="Parent Home"
+  >
+    🏠
+  </a>
+
+</header>
+
+<main class="wrap">
+
+  <section class="thread-context">
+
+    <div class="context-item">
+
+      <span class="context-label">
+        Athlete
+      </span>
+
+      <span
+        id="thread-athlete"
+        class="context-value"
+      >
+        Loading…
+      </span>
+
     </div>
 
-    <section class="page-shell">
-      <header class="page-head" id="thread-head">
-        <p class="eyebrow" id="thread-eyebrow">Messages</p>
-        <h1 class="title" id="thread-page-title">Conversation</h1>
-        <p class="sub" id="thread-page-sub">Private parent ↔ coach messaging.</p>
+    <div class="context-item">
 
-        <div class="thread-meta">
-          <div class="meta-row"><strong>Thread:</strong> <span id="thread-title">Conversation</span></div>
-          <div class="meta-row"><strong>With:</strong> <span id="thread-with">Coach</span></div>
-        </div>
+      <span class="context-label">
+        Discipline
+      </span>
 
-        <div class="summary-card" id="volunteer-summary">
-          <p class="summary-title">Volunteer Assignment</p>
-          <div class="summary-grid">
-            <div class="summary-item"><strong>Parent:</strong> <span id="vol-parent">—</span></div>
-            <div class="summary-item"><strong>Athlete:</strong> <span id="vol-athlete">—</span></div>
-            <div class="summary-item"><strong>Role:</strong> <span id="vol-role">—</span></div>
-            <div class="summary-item"><strong>Status:</strong> <span id="vol-status">—</span></div>
-          </div>
-        </div>
-      </header>
+      <span
+        id="thread-discipline"
+        class="context-value"
+      >
+        Loading…
+      </span>
 
-      <section class="thread-panel">
-        <div class="thread-list" id="thread-messages">
-          <div class="card">Loading conversation...</div>
-        </div>
-      </section>
+    </div>
 
-      <section class="compose">
-        <p class="compose-label">Reply</p>
-        <div class="compose-row">
-          <textarea
-            id="reply-body"
-            class="compose-box"
-            placeholder="Write message..."
-            aria-label="Write message"
-          ></textarea>
-          <button id="btn-reply" class="send-btn" type="button">Send</button>
-        </div>
-      </section>
-    </section>
-  </main>
+  </section>
 
-  <script>
-    const params = new URLSearchParams(location.search);
-    const type = params.get("type");
+  <div
+    id="thread"
+    class="thread-box"
+  >
+    <p>Loading thread…</p>
+  </div>
 
-    if (type === "volunteer") {
-      document.getElementById("thread-eyebrow").textContent = "Volunteer";
-      document.getElementById("thread-page-title").textContent = "Volunteer Assignment";
-      document.getElementById("thread-page-sub").textContent = "Volunteer coordination with coach.";
+  <section
+    id="reply-panel"
+    class="reply-box"
+  >
 
-      document.getElementById("thread-title").textContent = "Volunteer Support";
-      document.getElementById("thread-with").textContent = "Coach";
+    <textarea
+      id="reply-text"
+      rows="4"
+      placeholder="Write your reply…"
+    ></textarea>
 
-      document.getElementById("volunteer-summary").style.display = "block";
-    }
-  </script>
-  <script type="module" src="/communications/parent/thread.js"></script>
+    <button
+      id="reply-send"
+      class="btn-send"
+      type="button"
+    >
+      Send Reply
+    </button>
+
+    <p
+      id="reply-success"
+      aria-live="polite"
+    >
+      Reply sent.
+    </p>
+
+    <p
+      id="reply-error"
+      aria-live="assertive"
+    ></p>
+
+    <div class="thread-note">
+      This conversation is limited to 12 total messages.
+      Once the limit is reached, contact the coach by phone
+      or arrange an in-person conversation.
+    </div>
+
+  </section>
+
+</main>
+
+<script
+  type="module"
+  src="/communications/parent/thread.js"
+></script>
+
 </body>
 </html>
