@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <title>Apprentice Safeguards · Sandman Doctrine</title>
+  <link rel="icon" href="data:," />
+
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#06080c;
+      --panel:#101720;
+      --panel-2:#141e2a;
+      --line:#28374a;
+      --text:#f4f7fb;
+      --muted:#9fb0c4;
+      --gold:#ffd633;
+      --green:#65d47d;
+      --red:#ff7a70;
+      --radius:18px;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at top,rgba(255,214,51,.09),transparent 34rem),
+        var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      line-height:1.65;
+    }
+
+    .wrap{
+      width:min(100% - 28px,980px);
+      margin:0 auto;
+      padding:24px 0 64px;
+    }
+
+    .top-nav{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:22px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:36px;
+      padding:.45rem .9rem;
+      border:1px solid #3a4b62;
+      border-radius:999px;
+      background:linear-gradient(180deg,#263244,#192332);
+      color:#dbeafe;
+      text-decoration:none;
+      font-size:.8rem;
+      font-weight:900;
+    }
+
+    .hero,
+    .section{
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      background:
+        linear-gradient(180deg,rgba(18,27,40,.97),rgba(8,12,18,.98));
+      box-shadow:0 18px 50px rgba(0,0,0,.28);
+    }
+
+    .hero{
+      padding:clamp(22px,5vw,42px);
+      margin-bottom:20px;
+    }
+
+    .eyebrow{
+      margin:0 0 8px;
+      color:var(--gold);
+      font-size:.78rem;
+      font-weight:1000;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(2rem,6vw,4rem);
+      line-height:1;
+      letter-spacing:-.045em;
+    }
+
+    .subtitle{
+      margin:16px 0 0;
+      max-width:760px;
+      color:var(--muted);
+      font-size:1.02rem;
+    }
+
+    .section{
+      padding:22px;
+      margin:16px 0;
+    }
+
+    h2{
+      margin:0 0 12px;
+      color:var(--gold);
+      font-size:1.3rem;
+    }
+
+    h3{
+      margin:18px 0 8px;
+      font-size:1rem;
+    }
+
+    p{
+      margin:8px 0;
+    }
+
+    ul{
+      margin:8px 0 8px 1.2rem;
+      padding:0;
+    }
+
+    li{
+      margin:.3rem 0;
+    }
+
+    pre{
+      overflow:auto;
+      margin:14px 0;
+      padding:15px;
+      border:1px solid rgba(255,255,255,.09);
+      border-radius:14px;
+      background:#05080d;
+      color:#e8eef7;
+      font:700 .88rem/1.55 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+      white-space:pre-wrap;
+    }
+
+    blockquote{
+      margin:16px 0;
+      padding:14px 16px;
+      border-left:4px solid var(--gold);
+      border-radius:0 12px 12px 0;
+      background:rgba(255,214,51,.07);
+      font-weight:850;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:14px 0;
+      overflow:hidden;
+      border-radius:12px;
+    }
+
+    th,
+    td{
+      padding:10px;
+      border:1px solid var(--line);
+      text-align:left;
+    }
+
+    th{
+      background:#151f2c;
+      color:#dbeafe;
+    }
+
+    td:nth-child(2),
+    td:nth-child(3),
+    th:nth-child(2),
+    th:nth-child(3){
+      text-align:right;
+    }
+
+    .locked-summary{
+      border-color:rgba(255,214,51,.42);
+      background:
+        linear-gradient(180deg,rgba(64,53,5,.35),rgba(8,12,18,.98));
+    }
+
+    .bottom-line{
+      border-color:rgba(101,212,125,.38);
+    }
+
+    .footer{
+      margin-top:26px;
+      color:var(--muted);
+      text-align:center;
+      font-size:.8rem;
+    }
+
+    @media (max-width:640px){
+      .wrap{
+        width:min(100% - 20px,980px);
+        padding-top:14px;
+      }
+
+      .hero,
+      .section{
+        padding:18px;
+      }
+
+      table{
+        font-size:.82rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<main class="wrap">
+
+  <nav class="top-nav">
+    <a class="pill" href="/admin/">← Admin</a>
+    <a class="pill" href="/admin/doctrine/">Doctrine Library</a>
+  </nav>
+
+  <header class="hero">
+    <p class="eyebrow">Sandman System · Current Doctrine</p>
+    <h1>Apprentice Safeguards</h1>
+    <p class="subtitle">
+      Apprentice is the calibration tier where Sandman teaches athletes how
+      verified work becomes progress, access, recognition, testing, and promotion.
+    </p>
+  </header>
+
+  <section class="section">
+    <h2>Core Purpose</h2>
+
+    <p>Apprentice is not merely the first rank.</p>
+    <p>It is the system’s <strong>calibration tier</strong>.</p>
+
+    <p>The athlete is learning:</p>
+
+    <ul>
+      <li>how Sandman measures work,</li>
+      <li>how consistency becomes XP,</li>
+      <li>how Strength and Honor enter the journey,</li>
+      <li>how recognition is earned,</li>
+      <li>and how testing and promotion remain controlled.</li>
+    </ul>
+
+    <p>The safeguards prevent three failures:</p>
+
+    <pre>Progress moving too fast
+Legacy placement being mistaken for Sandman achievement
+Coach convenience weakening the meaning of the rank</pre>
+  </section>
+
+  <section class="section">
+    <h2>1. Apprentice Pacing Safeguard</h2>
+
+    <pre>Apprentice — Tier 0
+XP Cap: 1000
+Stripes: 4</pre>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Milestone</th>
+          <th>XP</th>
+          <th>Progress</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Stripe 1</td><td>250</td><td>25%</td></tr>
+        <tr><td>Stripe 2</td><td>500</td><td>50%</td></tr>
+        <tr><td>Stripe 3</td><td>750</td><td>75%</td></tr>
+        <tr><td>Stripe 4</td><td>1000</td><td>100%</td></tr>
+      </tbody>
+    </table>
+
+    <pre>Approximately 100 meaningful practices to complete Apprentice</pre>
+
+    <p>
+      This is a target, not an automatic clock. Calendar time does not graduate
+      the athlete. Verified work does.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>2. Session-Time Safeguard</h2>
+
+    <pre>45–60 minutes
++5 part-time
++10 full-time</pre>
+
+    <pre>90 minutes
++5 limited participation
++10 part-time work
++15 full-time work</pre>
+
+    <pre>120 minutes
++10 part-time work
++20 full-time work</pre>
+
+    <blockquote>
+      Session length establishes the available range. The coach determines the earned amount.
+    </blockquote>
+
+    <p>
+      The clock does not automatically issue XP. Two hours present does not
+      automatically mean two hours of full-credit work.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>4. Apprentice Practice XP Ceiling</h2>
+
+    <p>
+      Apprentice practice awards are intentionally limited.
+    </p>
+
+    <pre>Apprentice
++5 meaningful participation
++10 full-credit work</pre>
+
+    <p>
+      The +15 practice award is not available during Apprentice.
+    </p>
+
+    <pre>Apprentice
++5
++10
+
+Warrior and above
++5
++10
++15</pre>
+
+    <p>
+      Apprentice is the calibration tier. The purpose is not to maximize
+      single-session rewards. The purpose is to establish consistency,
+      coach standards, and a verified Sandman work history.
+    </p>
+
+    <blockquote>
+      Higher effort during Apprentice is recognized through consistency,
+      not larger practice awards.
+    </blockquote>
+
+    <p>
+      Exceptional Apprentice athletes may progress faster by repeatedly
+      earning full-credit sessions. They do not bypass the calibration
+      period through inflated single-practice awards.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>4. Coach Judgment Safeguard</h2>
+
+    <p>XP is not a participation trophy.</p>
+
+    <p>The coach evaluates:</p>
+
+    <ul>
+      <li>attendance,</li>
+      <li>actual time worked,</li>
+      <li>effort,</li>
+      <li>engagement,</li>
+      <li>completion,</li>
+      <li>and whether the purpose of the session was fulfilled.</li>
+    </ul>
+
+    <p>
+      Controlled award choices prevent arbitrary awards, emotional over-rewarding,
+      accidental inflation, and inconsistent standards.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>5. New-Athlete Lane Safeguard</h2>
+
+    <pre>Start
+Combat open
+Strength locked
+Honor locked</pre>
+
+    <pre>Stripe 1
+Strength unlocks</pre>
+
+    <pre>Stripe 2
+Honor unlocks</pre>
+
+    <pre>Combat → Strength → Honor</pre>
+  </section>
+
+  <section class="section">
+    <h2>6. Legacy-Athlete Lane Safeguard</h2>
+
+    <pre>Legacy Apprentice
+Strength unlock: Stripe 2
+Honor unlock: Stripe 3</pre>
+
+    <pre>New Athlete
+Strength unlock: Stripe 1
+Honor unlock: Stripe 2</pre>
+
+    <p>
+      Prior experience is respected, but legacy placement does not instantly open
+      the whole Sandman system.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>7. Legacy Placement Safeguard</h2>
+
+    <p>Legacy XP affects starting position.</p>
+    <p>It does not manufacture a Sandman accomplishment.</p>
+
+    <pre>Legacy honors where the athlete came from.
+Sandman recognition honors what the athlete earns here.</pre>
+  </section>
+
+  <section class="section">
+    <h2>8. Legacy Ceremony Safeguard</h2>
+
+    <pre>Stripe 1 recognized internally
+No inherited Stripe 1 certificate</pre>
+
+    <pre>First Sandman-earned stripe
+First Sandman certificate</pre>
+
+    <p>This separates placement from ceremony.</p>
+  </section>
+
+  <section class="section">
+    <h2>9. Existing-Athlete Protection</h2>
+
+    <pre>Earned stripes remain earned.</pre>
+
+    <p>
+      Athletes continue toward the active threshold from their current position.
+      Protecting trust is more important than forcing a mathematically perfect migration.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>10. Stripe Safeguard</h2>
+
+    <pre>Stripe 1 — Entry milestone
+Stripe 2 — Midpoint development
+Stripe 3 — Advanced Apprentice development
+Stripe 4 — Tier completion / testing threshold</pre>
+
+    <p>
+      Stripe calculation follows verified XP. Stripe state should not move casually
+      or independently from progression.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>11. Testing Safeguard</h2>
+
+    <pre>ACTIVE
+  ↓
+TEMPLE
+  ↓
+ELIGIBLE
+  ↓
+TESTING
+  ↓
+PASS
+  ↓
+COOLDOWN
+  ↓
+PROMOTION</pre>
+
+    <blockquote>We do not promote on pass.</blockquote>
+
+    <pre>Pass confirms readiness.
+Cooldown protects the process.
+Promotion remains a separate coach action.</pre>
+  </section>
+
+  <section class="section">
+    <h2>12. Testing Threshold Safeguard</h2>
+
+    <pre>90% progress
+Temple / preparation stage</pre>
+
+    <pre>100% progress
+Testing eligible</pre>
+
+    <p>
+      The final section of Apprentice prepares the athlete for testing rather than
+      throwing them immediately into it.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>13. Cooldown Safeguard</h2>
+
+    <p>
+      Cooldown separates performance, confirmation, ceremony, and promotion.
+      It preserves the result, prepares recognition, prevents duplicate actions,
+      and keeps promotion intentional.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>14. Freeze Safeguard</h2>
+
+    <p>A failed test does not erase progress. It creates a controlled freeze.</p>
+
+    <ul>
+      <li>promotion is blocked,</li>
+      <li>premature retesting is blocked,</li>
+      <li>and deficiencies are corrected while the athlete remains Apprentice.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>15. Arena Safeguard</h2>
+
+    <h3>Dual Meet</h3>
+
+    <pre>Show / loss / no match   +5
+Forfeit                   +5 additive
+Win                      +10 additive</pre>
+
+    <h3>Weekend Tournament</h3>
+
+    <pre>Weekend Battle           +15
+Podium                     +5
+Second Division            +5
+Sportsmanship              -5</pre>
+
+    <p>
+      Competition recognizes competition experience. It does not replace a meaningful practice history.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>16. Discipline Safeguard</h2>
+
+    <pre>Path2Legend · Wrestling
+Path2Legend · Boxing</pre>
+
+    <p>
+      Journey and discipline must remain attached. Filtering only by Path2Legend
+      is insufficient because it mixes separate rosters.
+    </p>
+
+    <pre>Session Builder
+  journey + discipline + session
+        ↓
+Attendance
+        ↓
+Daily Grind
+        ↓
+Exact participating roster</pre>
+  </section>
+
+  <section class="section">
+    <h2>17. Separate-Lane Safeguard</h2>
+
+    <pre>Combat XP
+Strength XP
+Honor XP</pre>
+
+    <p>
+      Strength and Honor do not silently inflate Combat eligibility for teen/adult Apprentice athletes.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>18. Profile Safeguard</h2>
+
+    <p>The profile must use actual athlete state:</p>
+
+    <ul>
+      <li>legacy or new,</li>
+      <li>current stripe,</li>
+      <li>explicit unlocks,</li>
+      <li>journey,</li>
+      <li>discipline,</li>
+      <li>and coach/review mode.</li>
+    </ul>
+
+    <p>UI locks guide the athlete. Persisted state remains the authority.</p>
+  </section>
+
+  <section class="section">
+    <h2>19. Ceremony Safeguard</h2>
+
+    <pre>Progress detected
+  ↓
+Recognition eligibility evaluated
+  ↓
+Legacy veto checked
+  ↓
+Prior certificate history checked
+  ↓
+Certificate prepared
+  ↓
+Coach ceremony</pre>
+  </section>
+
+  <section class="section locked-summary">
+    <h2>20. Apprentice Doctrine — Locked Summary</h2>
+
+    <pre>Apprentice is 1000 XP.
+Apprentice contains four stripes.
+Progress is earned through verified experiences.
+Session length establishes the XP range.
+Apprentice practice awards are limited to +5 or +10.
+The +15 practice award begins at Warrior.
+Coach judgment determines the award.
+New athletes unlock Strength at Stripe 1.
+New athletes unlock Honor at Stripe 2.
+Legacy athletes unlock Strength at Stripe 2.
+Legacy athletes unlock Honor at Stripe 3.
+Legacy placement does not create a Sandman certificate.
+Earned stripes are protected.
+Stripe 4 creates testing eligibility, not automatic promotion.
+Passing does not equal promotion.
+Cooldown and freeze protect the progression process.
+Competition XP supports the journey but does not replace practice.
+Journey and discipline must travel together through the coach workflow.</pre>
+  </section>
+
+  <section class="section bottom-line">
+    <h2>Bottom Line</h2>
+
+    <blockquote>
+      Respect prior experience, protect earned recognition, slow down access,
+      verify the work, and keep promotion under system control.
+    </blockquote>
+
+    <p>
+      Apprentice teaches that progress is not granted because of reputation,
+      time served, talent, or coach preference.
+    </p>
+
+    <p>
+      It is earned, recorded, protected, and recognized in the proper order.
+    </p>
+  </section>
+
+  <footer class="footer">
+    Sandman System Doctrine · Apprentice Safeguards
+  </footer>
+
+</main>
+</body>
+</html>
