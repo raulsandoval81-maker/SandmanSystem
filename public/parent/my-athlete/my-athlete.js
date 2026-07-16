@@ -542,7 +542,10 @@ function renderAthlete(a = {}) {
     )
   );
 
-  // Current tier cap comes from stored athlete cap first, then ladder tier cap.
+  // SCORING LAW:
+  // Use the athlete's deployed tier cap first.
+  // Fall back to the canonical ladder cap only when no athlete cap exists.
+  // Percentage and stripe targets therefore adapt automatically when caps change.
 const xpCap = Math.max(
   1,
   Number(
@@ -621,10 +624,6 @@ const storedStripes = Number(
   );
 
   setText("stripeText", `Stripes: ${stripeCount}/${stripeMax}`);
-
-setText("summary-xp", `${xpPercent}%`);
-setText("summary-stripe", `${stripeCount}/${stripeMax}`);
-setText("summary-grind", summaryThird);
 
 setText(
   "xpText",

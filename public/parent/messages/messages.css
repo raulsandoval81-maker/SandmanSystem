@@ -12,3 +12,36 @@
   color:var(--gold);
   margin-bottom:6px;
 }
+.banner-card{
+  position:relative;
+  overflow:hidden;
+}
+
+.banner-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:6px;
+  background:var(--gold);
+}
+.communication-grid{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:14px;
+}
+
+.communication-tile{
+  min-height:190px;
+}
+
+@media (max-width:760px){
+  .communication-grid{
+    grid-template-columns:1fr;
+  }
+
+  .communication-tile{
+    min-height:auto;
+  }
+}

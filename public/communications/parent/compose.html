@@ -253,11 +253,21 @@
 
 <main class="wrap">
 
-  <h1>Message Coach</h1>
+  <h1>
+    <span class="en">Coach Conversation</span>
+    <span class="es">Conversación con el Entrenador</span>
+  </h1>
 
   <p class="intro">
-    Send a private message about questions, updates, absences,
-    or athlete support.
+    <span class="en">
+      Send a private message about questions, updates, absences,
+      or athlete support.
+    </span>
+
+    <span class="es">
+      Envíe un mensaje privado sobre preguntas, actualizaciones,
+      ausencias o apoyo para su atleta.
+    </span>
   </p>
 
   <section class="panel">
@@ -265,48 +275,72 @@
     <div class="context-card">
 
       <div class="context-item">
+
         <span class="context-label">
-          Athlete
+          <span class="en">Athlete</span>
+          <span class="es">Atleta</span>
         </span>
 
         <span
           id="pc-athlete"
           class="context-value"
         >
-          Loading…
+          <span class="en">Loading…</span>
+          <span class="es">Cargando…</span>
         </span>
+
       </div>
 
       <div class="context-item">
+
         <span class="context-label">
-          Discipline
+          <span class="en">Discipline</span>
+          <span class="es">Disciplina</span>
         </span>
 
         <span
           id="pc-discipline-label"
           class="context-value"
         >
-          Loading…
+          <span class="en">Loading…</span>
+          <span class="es">Cargando…</span>
         </span>
+
       </div>
 
     </div>
 
-    <label for="pc-name">
-      Your Name
-    </label>
+<label for="pc-name">
+  <span class="en">
+    Your Name
+    <span style="color:var(--gold)">*</span>
+  </span>
 
-    <input
-      id="pc-name"
-      type="text"
-      placeholder="Your full name…"
-      autocomplete="name"
-    />
+  <span class="es">
+    Su Nombre
+    <span style="color:var(--gold)">*</span>
+  </span>
+</label>
+
+<input
+  id="pc-name"
+  type="text"
+  placeholder="Your full name…"
+  data-placeholder-en="Your full name…"
+  data-placeholder-es="Su nombre completo…"
+  autocomplete="name"
+  required
+/>
 
     <label for="pc-email">
-      Your Email
-      <span style="color:var(--gold)">
-        *
+      <span class="en">
+        Your Email
+        <span style="color:var(--gold)">*</span>
+      </span>
+
+      <span class="es">
+        Su Correo Electrónico
+        <span style="color:var(--gold)">*</span>
       </span>
     </label>
 
@@ -317,24 +351,39 @@
       autocomplete="email"
       required
     />
+<label for="pc-subject">
+  <span class="en">
+    Subject
+    <span style="font-weight:400;">
+      (optional)
+    </span>
+  </span>
 
-    <label for="pc-subject">
-      Subject
-      <span style="font-weight:400;">
-        (optional)
-      </span>
-    </label>
+  <span class="es">
+    Asunto
+    <span style="font-weight:400;">
+      (opcional)
+    </span>
+  </span>
+</label>
 
     <input
       id="pc-subject"
       type="text"
       placeholder="Absence / Question / Update…"
+      data-placeholder-en="Absence / Question / Update…"
+      data-placeholder-es="Ausencia / Pregunta / Actualización…"
     />
 
     <label for="pc-body">
-      Message
-      <span style="color:var(--gold)">
-        *
+      <span class="en">
+        Message
+        <span style="color:var(--gold)">*</span>
+      </span>
+
+      <span class="es">
+        Mensaje
+        <span style="color:var(--gold)">*</span>
       </span>
     </label>
 
@@ -342,6 +391,8 @@
       id="pc-body"
       rows="7"
       placeholder="Type your message…"
+      data-placeholder-en="Type your message…"
+      data-placeholder-es="Escriba su mensaje…"
       required
     ></textarea>
 
@@ -352,7 +403,8 @@
         class="btn btn-send"
         type="button"
       >
-        Send
+        <span class="en">Send</span>
+        <span class="es">Enviar</span>
       </button>
 
       <button
@@ -360,7 +412,8 @@
         class="btn btn-cancel"
         type="button"
       >
-        Cancel
+        <span class="en">Cancel</span>
+        <span class="es">Cancelar</span>
       </button>
 
     </div>
@@ -370,7 +423,13 @@
       class="msg-ok"
       aria-live="polite"
     >
-      Message sent. Opening thread…
+      <span class="en">
+        Message sent. Opening conversation…
+      </span>
+
+      <span class="es">
+        Mensaje enviado. Abriendo la conversación…
+      </span>
     </p>
 
     <p
@@ -378,23 +437,37 @@
       class="msg-err"
       aria-live="assertive"
     >
-      Error — please try again.
+      <span class="en">
+        Error — please try again.
+      </span>
+
+      <span class="es">
+        Error — inténtelo nuevamente.
+      </span>
     </p>
 
     <div class="thread-note">
-      Conversations are limited to 12 total messages.
-      Once the limit is reached, contact the coach by phone
-      or arrange an in-person conversation.
+
+      <span class="en">
+        Conversations are limited to 6 messages in the app.
+        After 6 messages, continue the conversation by email.
+      </span>
+
+      <span class="es">
+        Las conversaciones están limitadas a 6 mensajes en la aplicación.
+        Después de 6 mensajes, continúe la conversación por correo electrónico.
+      </span>
+
     </div>
 
   </section>
 
 </main>
+<script src="/assets/js/parent-shell.js"></script>
 
 <script
   type="module"
   src="/communications/parent/compose.js"
 ></script>
-
 </body>
 </html>

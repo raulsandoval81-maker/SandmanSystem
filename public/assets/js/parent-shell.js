@@ -3,88 +3,210 @@ const themeBtns = document.querySelectorAll(".theme-btn");
 const toggle = document.getElementById("themeToggle");
 
 function setLang(lang) {
-  const normalized = lang === "sp" ? "es" : (lang || "en");
-  const isSpanish = normalized === "es";
+  const normalized =
+    lang === "sp"
+      ? "es"
+      : (lang || "en");
 
-  localStorage.setItem("lang", normalized);
-  document.body.classList.toggle("lang-es", isSpanish);
+  const isSpanish =
+    normalized === "es";
+
+  localStorage.setItem(
+    "lang",
+    normalized
+  );
+
+  document.body.classList.toggle(
+    "lang-es",
+    isSpanish
+  );
 
   langBtns.forEach((btn) => {
-    const btnLang = btn.dataset.lang === "sp" ? "es" : btn.dataset.lang;
-    btn.classList.toggle("active", btnLang === normalized);
+    const btnLang =
+      btn.dataset.lang === "sp"
+        ? "es"
+        : btn.dataset.lang;
+
+    btn.classList.toggle(
+      "active",
+      btnLang === normalized
+    );
   });
 
-  document.querySelectorAll(".en").forEach((el) => {
-    el.style.display = isSpanish ? "none" : "";
-  });
+  document
+    .querySelectorAll(".en")
+    .forEach((el) => {
+      el.style.display =
+        isSpanish ? "none" : "";
+    });
 
-  document.querySelectorAll(".es").forEach((el) => {
-    el.style.display = isSpanish ? "" : "none";
-  });
+  document
+    .querySelectorAll(".es")
+    .forEach((el) => {
+      el.style.display =
+        isSpanish ? "" : "none";
+    });
+
+  // Translate input and textarea placeholders.
+  document
+    .querySelectorAll(
+      "[data-placeholder-en], [data-placeholder-es]"
+    )
+    .forEach((el) => {
+      const placeholder =
+        isSpanish
+          ? el.dataset.placeholderEs
+          : el.dataset.placeholderEn;
+
+      if (placeholder) {
+        el.setAttribute(
+          "placeholder",
+          placeholder
+        );
+      }
+    });
+
+  document.documentElement.lang =
+    isSpanish ? "es" : "en";
 }
 
 function setTheme(theme) {
-  const normalized = theme === "day" ? "day" : "night";
-  const isDay = normalized === "day";
+  const normalized =
+    theme === "day"
+      ? "day"
+      : "night";
 
-  localStorage.setItem("parent-theme", normalized);
+  const isDay =
+    normalized === "day";
 
-  document.body.classList.toggle("day", isDay);
-  document.body.classList.toggle("theme-day", isDay);
-  document.body.classList.toggle("theme-night", !isDay);
+  localStorage.setItem(
+    "parent-theme",
+    normalized
+  );
+
+  document.body.classList.toggle(
+    "day",
+    isDay
+  );
+
+  document.body.classList.toggle(
+    "theme-day",
+    isDay
+  );
+
+  document.body.classList.toggle(
+    "theme-night",
+    !isDay
+  );
 
   themeBtns.forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.theme === normalized);
+    btn.classList.toggle(
+      "active",
+      btn.dataset.theme === normalized
+    );
   });
 
   if (toggle) {
-    toggle.textContent = isDay ? "🌙" : "☀️";
+    toggle.textContent =
+      isDay ? "🌙" : "☀️";
   }
 }
 
 function getParentAthleteUidFromUrl() {
-  const params = new URLSearchParams(window.location.search);
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
   return String(
     params.get("uid") ||
     params.get("id") ||
     params.get("athleteUid") ||
     ""
-  ).trim().toUpperCase();
+  )
+    .trim()
+    .toUpperCase();
 }
 
 function wireParentTabsGlobal() {
-  const athleteUid = getParentAthleteUidFromUrl();
+  const athleteUid =
+    getParentAthleteUidFromUrl();
+
   if (!athleteUid) return;
 
   document
-    .querySelectorAll(".hub-mark, .parent-tab, .parent-tabs a, .parent-subtabs a")
+    .querySelectorAll(
+      ".hub-mark, .parent-tab, .parent-tabs a, .parent-subtabs a"
+    )
     .forEach((a) => {
-      const href = a.getAttribute("href");
+      const href =
+        a.getAttribute("href");
+
       if (!href) return;
 
-      const url = new URL(href, window.location.origin);
-      url.searchParams.set("uid", athleteUid);
-      a.setAttribute("href", url.pathname + url.search);
+      const url =
+        new URL(
+          href,
+          window.location.origin
+        );
+
+      url.searchParams.set(
+        "uid",
+        athleteUid
+      );
+
+      a.setAttribute(
+        "href",
+        url.pathname + url.search
+      );
     });
 }
 
 function initParentShell() {
   langBtns.forEach((btn) => {
-    btn.addEventListener("click", () => setLang(btn.dataset.lang));
+    btn.addEventListener(
+      "click",
+      () => setLang(btn.dataset.lang)
+    );
   });
 
   themeBtns.forEach((btn) => {
-    btn.addEventListener("click", () => setTheme(btn.dataset.theme));
+    btn.addEventListener(
+      "click",
+      () => setTheme(btn.dataset.theme)
+    );
   });
 
-  toggle?.addEventListener("click", () => {
-    const isDay = document.body.classList.contains("day");
-    setTheme(isDay ? "night" : "day");
-  });
+  toggle?.addEventListener(
+    "click",
+    () => {
+      const isDay =
+        document.body.classList.contains(
+          "day"
+        );
 
-  setLang(localStorage.getItem("lang") || "en");
-  setTheme(localStorage.getItem("parent-theme") || "night");
+      setTheme(
+        isDay ? "night" : "day"
+      );
+    }
+  );
+
+  setLang(
+    localStorage.getItem("lang") ||
+    "en"
+  );
+
+  setTheme(
+    localStorage.getItem(
+      "parent-theme"
+    ) ||
+    "night"
+  );
+
   wireParentTabsGlobal();
 }
 
-document.addEventListener("DOMContentLoaded", initParentShell);
+document.addEventListener(
+  "DOMContentLoaded",
+  initParentShell
+);

@@ -48,9 +48,10 @@
     }
 
     .pc-header{
-      display:flex;
+      display:grid;
+      grid-template-columns:1fr auto 1fr;
       align-items:center;
-      justify-content:space-between;
+      justify-content:center;
       gap:12px;
       padding:14px 18px;
       border-bottom:1px solid #1f2c45;
@@ -64,11 +65,14 @@
       letter-spacing:.5px;
     }
 
-    .pc-back,
     .pc-home{
       color:var(--gold);
-      text-decoration:none;
+      text-decoration:underline;
+      text-underline-offset:3px;
       font-size:1rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-align:center;
     }
 
     .wrap{
@@ -277,6 +281,237 @@
         max-width:96%;
       }
     }
+
+/* =========================
+   Conversation Bubbles
+========================= */
+
+.msg-group{
+  display:flex;
+  flex-direction:column;
+  margin-bottom:24px;
+}
+
+.msg-group.parent{
+  align-items:flex-start;
+  text-align:left;
+}
+
+.msg-group.coach{
+  align-items:flex-end;
+  text-align:right;
+}
+
+.group-from{
+  margin-bottom:6px;
+  color:var(--gold);
+  font-size:.78rem;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.bubble-wrap{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  width:100%;
+  margin-bottom:8px;
+}
+
+.msg-group.parent .bubble-wrap{
+  align-items:flex-start;
+}
+
+.msg-group.coach .bubble-wrap{
+  align-items:flex-end;
+}
+
+.msg-bubble{
+  max-width:75%;
+  padding:14px 16px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  color:#fff;
+  font-size:.97rem;
+  line-height:1.6;
+  text-align:left;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  box-shadow:0 4px 10px rgba(0,0,0,.18);
+  transition:.15s ease;
+}
+
+.msg-group.parent .msg-bubble{
+  background:#13284d;
+  border-left:4px solid var(--gold);
+  border-bottom-left-radius:6px;
+}
+
+.msg-group.coach .msg-bubble{
+  background:#1b2b1b;
+  border-right:4px solid #7ee787;
+  border-bottom-right-radius:6px;
+}
+
+.msg-bubble:hover{
+  transform:translateY(-1px);
+  border-color:var(--gold);
+}
+
+.msg-stamp{
+  margin-top:5px;
+  color:var(--muted);
+  font-size:.72rem;
+}
+
+@media (max-width:620px){
+  .msg-bubble{
+    max-width:90%;
+  }
+}
+
+    /* =========================
+       Polished Conversation UI
+    ========================= */
+
+    .thread-box{
+      padding:20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.015),
+          rgba(255,255,255,0)
+        ),
+        var(--deep);
+    }
+
+    .msg-group{
+      display:flex;
+      flex-direction:column;
+      width:100%;
+      margin-bottom:24px;
+    }
+
+    .msg-group.parent{
+      align-items:flex-start;
+      text-align:left;
+    }
+
+    .msg-group.coach{
+      align-items:flex-end;
+      text-align:right;
+    }
+
+    .group-from{
+      margin-bottom:7px;
+      color:var(--gold);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .bubble-wrap{
+      display:flex;
+      flex-direction:column;
+      width:100%;
+      gap:4px;
+      margin-bottom:8px;
+    }
+
+    .msg-group.parent .bubble-wrap{
+      align-items:flex-start;
+    }
+
+    .msg-group.coach .bubble-wrap{
+      align-items:flex-end;
+    }
+
+    .msg-bubble{
+      max-width:76%;
+      padding:14px 16px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      color:#fff;
+      font-size:.97rem;
+      line-height:1.58;
+      text-align:left;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+      box-shadow:0 5px 14px rgba(0,0,0,.22);
+      transition:
+        transform .15s ease,
+        border-color .15s ease;
+    }
+
+    .msg-group.parent .msg-bubble{
+      background:#13284d;
+      border-left:4px solid var(--gold);
+      border-bottom-left-radius:6px;
+    }
+
+    .msg-group.coach .msg-bubble{
+      background:#18301f;
+      border-right:4px solid #7ee787;
+      border-bottom-right-radius:6px;
+    }
+
+    .msg-bubble:hover{
+      transform:translateY(-1px);
+      border-color:var(--gold);
+    }
+
+    .msg-stamp{
+      margin-top:5px;
+      color:var(--muted);
+      font-size:.71rem;
+      letter-spacing:.01em;
+    }
+
+    .reply-box{
+      margin-top:24px;
+      padding:20px;
+      border:1px solid var(--line);
+      border-top:3px solid var(--gold);
+      border-radius:16px;
+      background:#0d1730;
+      box-shadow:0 8px 20px rgba(0,0,0,.18);
+    }
+
+    .reply-box textarea{
+      min-height:125px;
+      background:#111c35;
+    }
+
+    .thread-note{
+      margin-top:14px;
+      padding:11px 12px;
+      border:1px solid rgba(255,221,72,.16);
+      border-radius:10px;
+      background:rgba(255,221,72,.04);
+    }
+
+    #thread-limit-banner{
+      border-color:rgba(255,221,72,.35);
+      background:#172238;
+      line-height:1.5;
+    }
+
+    @media (max-width:620px){
+      .thread-box{
+        padding:14px;
+      }
+
+      .msg-bubble{
+        max-width:90%;
+      }
+
+      .reply-box{
+        padding:16px;
+      }
+    }
+
   </style>
 </head>
 
@@ -284,22 +519,16 @@
 
 <header class="pc-header">
 
-  <a
-    class="pc-back"
-    href="/communications/parent/index.html"
-  >
-    ← Back
-  </a>
-
-  <h1>Message Thread</h1>
+  <div></div>
 
   <a
     class="pc-home"
-    href="/communications/parent/index.html"
-    aria-label="Parent Home"
+    href="/parent/index.html"
   >
-    🏠
+    PARENT HUB
   </a>
+
+  <div></div>
 
 </header>
 
@@ -310,14 +539,16 @@
     <div class="context-item">
 
       <span class="context-label">
-        Athlete
+        <span class="en">Athlete</span>
+        <span class="es">Atleta</span>
       </span>
 
       <span
         id="thread-athlete"
         class="context-value"
       >
-        Loading…
+        <span class="en">Loading…</span>
+        <span class="es">Cargando…</span>
       </span>
 
     </div>
@@ -325,14 +556,16 @@
     <div class="context-item">
 
       <span class="context-label">
-        Discipline
+        <span class="en">Discipline</span>
+        <span class="es">Disciplina</span>
       </span>
 
       <span
         id="thread-discipline"
         class="context-value"
       >
-        Loading…
+        <span class="en">Loading…</span>
+        <span class="es">Cargando…</span>
       </span>
 
     </div>
@@ -343,7 +576,10 @@
     id="thread"
     class="thread-box"
   >
-    <p>Loading thread…</p>
+    <p>
+      <span class="en">Loading conversation…</span>
+      <span class="es">Cargando conversación…</span>
+    </p>
   </div>
 
   <section
@@ -355,6 +591,8 @@
       id="reply-text"
       rows="4"
       placeholder="Write your reply…"
+      data-placeholder-en="Write your reply…"
+      data-placeholder-es="Escriba su respuesta…"
     ></textarea>
 
     <button
@@ -362,14 +600,16 @@
       class="btn-send"
       type="button"
     >
-      Send Reply
+      <span class="en">Send Reply</span>
+      <span class="es">Enviar Respuesta</span>
     </button>
 
     <p
       id="reply-success"
       aria-live="polite"
     >
-      Reply sent.
+      <span class="en">Reply sent.</span>
+      <span class="es">Respuesta enviada.</span>
     </p>
 
     <p
@@ -378,14 +618,22 @@
     ></p>
 
     <div class="thread-note">
-      This conversation is limited to 12 total messages.
-      Once the limit is reached, contact the coach by phone
-      or arrange an in-person conversation.
+      <span class="en">
+        This conversation is limited to 6 messages in the app.
+        Future replies must continue by email.
+      </span>
+
+      <span class="es">
+        Esta conversación está limitada a 6 mensajes en la aplicación.
+        Las respuestas futuras deben continuar por correo electrónico.
+      </span>
     </div>
 
   </section>
 
 </main>
+
+<script src="/assets/js/parent-shell.js"></script>
 
 <script
   type="module"

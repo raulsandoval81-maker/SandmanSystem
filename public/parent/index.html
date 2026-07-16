@@ -341,6 +341,13 @@
             <span class="en">Communication</span>
             <span class="es">Comunicación</span>
           </p>
+
+           <span
+    id="parentUnreadBadge"
+    class="parent-unread-badge"
+    aria-live="polite"
+  ></span>
+
           <h2 class="parent-tab-title">
             <span class="en">Messages</span>
             <span class="es">Mensajes</span>
@@ -358,26 +365,6 @@
     <span class="en">System Guide</span>
     <span class="es">Guía del Sistema</span>
   </h2>
-
-</a>
-
-        <a class="parent-tab" href="/parent/updates/index.html">
-  <p class="parent-tab-kicker">
-    <span class="en">Updates</span>
-    <span class="es">Actualizaciones</span>
-  </p>
-
-  <h2 class="parent-tab-title">
-    <span class="en">Parent Updates</span>
-    <span class="es">Actualizaciones</span>
-  </h2>
-
-  <p
-    id="parentUnreadBadge"
-    class="parent-unread-badge"
-  >
-   🔔 New Updates
-  </p>
 </a>
       </nav>
     </section>
@@ -411,7 +398,9 @@ async function loadUnreadBadge() {
     if (unread > 0) {
       badge.style.display = "inline-block";
       badge.textContent =
-        `${unread} New Update${unread === 1 ? "" : "s"}`;
+  unread === 1
+    ? "1 New Item"
+    : `${unread} New Items`;
     }
   } catch (err) {
     console.error(err);

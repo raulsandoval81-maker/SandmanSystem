@@ -18,17 +18,14 @@
 
 import {
   db,
-  auth,
+  functions,
+  httpsCallable,
   ensureSignedIn,
   collection,
   query,
-  where,
   orderBy,
   limit,
-  onSnapshot,
-  getDocs,
-  getDoc,
-  doc
+  onSnapshot
 } from "/assets/js/firebase-init-para.js";
 
 import {
@@ -59,7 +56,8 @@ const scopeLabelEl =
   document.getElementById(
     "announcement-scope"
   );
-
+const getMyAthleteCall =
+  httpsCallable(functions, "getMyAthlete");
 /* =========================
    STATE
 ========================= */
@@ -195,171 +193,79 @@ function getAthleteDiscipline(
    ATHLETE RESOLUTION
 ========================= */
 
-async function readAthlete(
-  athleteUid
-) {
-  if (!athleteUid) {
-    return null;
-  }
-
-  const athleteSnap =
-    await getDoc(
-      doc(
-        db,
-        "athletes",
-        athleteUid
-      )
-    );
-
-  if (!athleteSnap.exists()) {
-    return null;
-  }
-
-  return {
-    athleteUid,
-    ...(athleteSnap.data() || {})
-  };
-}
-
 async function resolveLinkedAthlete() {
-  const parentUid =
-    auth.currentUser?.uid || "";
+  const result =
+    await getMyAthleteCall({});
 
-  if (!parentUid) {
-    throw new Error(
-      "Parent sign-in required."
-    );
+  const data =
+    result?.data || {};
+
+  if (
+    data.ok !== true ||
+    data.linked !== true
+  ) {
+    return null;
   }
+
+  const athletes =
+    Array.isArray(data.athletes)
+      ? data.athletes
+      : [];
 
   const requestedAthleteUid =
     getRequestedAthleteUid();
 
-  /*
-    Prefer the athlete explicitly passed in the URL.
-  */
+  let athlete = null;
+
   if (requestedAthleteUid) {
-    const exactLinkQuery =
-      query(
-        collection(
-          db,
-          "parentAthleteLinks"
-        ),
-        where(
-          "parentUid",
-          "==",
-          parentUid
-        ),
-        where(
-          "athleteUid",
-          "==",
-          requestedAthleteUid
+    athlete = athletes.find((item) => {
+      const uid =
+        String(
+          item.athleteUid ||
+          item.id ||
+          item.uid ||
+          ""
         )
+          .trim()
+          .toUpperCase();
+
+      return (
+        uid ===
+        requestedAthleteUid
       );
-
-    const exactLinkSnap =
-      await getDocs(
-        exactLinkQuery
-      );
-
-    if (!exactLinkSnap.empty) {
-      const athlete =
-        await readAthlete(
-          requestedAthleteUid
-        );
-
-      if (athlete) {
-        return athlete;
-      }
-
-      return {
-        athleteUid:
-          requestedAthleteUid,
-        ...(
-          exactLinkSnap.docs[0]
-            .data() || {}
-        )
-      };
-    }
+    });
   }
 
-  /*
-    Otherwise, use the first linked athlete.
-  */
-  const linksQuery =
-    query(
-      collection(
-        db,
-        "parentAthleteLinks"
-      ),
-      where(
-        "parentUid",
-        "==",
-        parentUid
-      )
-    );
-
-  const linksSnap =
-    await getDocs(linksQuery);
-
-  if (!linksSnap.empty) {
-    const linkData =
-      linksSnap.docs[0]
-        .data() || {};
-
-    const athleteUid =
-      String(
-        linkData.athleteUid || ""
-      )
-        .trim()
-        .toUpperCase();
-
-    const athlete =
-      await readAthlete(
-        athleteUid
-      );
-
-    return {
-      ...linkData,
-      ...athlete,
-      athleteUid
-    };
+  if (!athlete) {
+    athlete =
+      data.athlete ||
+      athletes[0] ||
+      null;
   }
 
-  /*
-    Legacy fallback:
-    Find an athlete carrying parentUid directly.
-  */
-  const legacyQuery =
-    query(
-      collection(
-        db,
-        "athletes"
-      ),
-      where(
-        "parentUid",
-        "==",
-        parentUid
-      ),
-      limit(1)
-    );
-
-  const legacySnap =
-    await getDocs(
-      legacyQuery
-    );
-
-  if (!legacySnap.empty) {
-    const athleteDoc =
-      legacySnap.docs[0];
-
-    return {
-      athleteUid:
-        athleteDoc.id,
-      ...(athleteDoc.data() || {})
-    };
+  if (!athlete) {
+    return null;
   }
 
-  return null;
+  const athleteUid =
+    String(
+      athlete.athleteUid ||
+      athlete.id ||
+      athlete.uid ||
+      requestedAthleteUid ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  if (!athleteUid) {
+    return null;
+  }
+
+  return {
+    ...athlete,
+    athleteUid
+  };
 }
 
 /* =========================

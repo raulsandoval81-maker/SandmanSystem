@@ -49,6 +49,34 @@ function normalizeDiscipline(value = "") {
   return raw;
 }
 
+const DISCIPLINE_ROUTES = {
+  wrestling: {
+    youth: "/athletes/arsenal/combat/youth/index.html",
+    teen: "/athletes/arsenal/combat/teen/index.html"
+  },
+
+  boxing: {
+    youth: null,
+    teen: "/athletes/arsenal/combat/teen/index.html"
+  },
+
+  kickboxing: {
+    youth: "/athletes/arsenal/combat/youth/index.html",
+    teen: null
+  },
+
+  mma: {
+    youth: null,
+    teen: "/athletes/arsenal/combat/teen/index.html"
+  },
+
+  "submission-grappling": {
+    youth: null,
+    teen: null
+  }
+};
+
+
 function disciplineIdsOf(athlete = {}) {
   return Array.from(
     new Set(

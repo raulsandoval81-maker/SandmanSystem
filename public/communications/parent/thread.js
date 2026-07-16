@@ -14,25 +14,45 @@
 // - parent must be linked to the athlete
 // - parent open clears parentHasUnread
 // - coach messages are marked seenByParent
-// - hard conversation limit: 12 total messages
+// - hard conversation limit: 6 total messages
 // ------------------------------------------------------------
 
 import {
   db,
   auth,
+  httpsCallable,
+  functions,
   ensureSignedIn,
   doc,
   getDoc,
+  getDocs,
   updateDoc,
   collection,
   query,
   orderBy,
   limit,
-  getDocs,
   addDoc,
   serverTimestamp,
   onSnapshot
 } from "/assets/js/firebase-init-para.js";
+
+function logPermissionFailure(stage, error) {
+  console.error(`[parent-thread] ${stage} failed:`, error);
+
+  const code = String(error?.code || "");
+  const message = String(error?.message || "");
+
+  if (
+    code.includes("permission-denied") ||
+    message.toLowerCase().includes("insufficient permissions")
+  ) {
+    console.error(
+      `[parent-thread] PERMISSION TARGET: ${stage}`
+    );
+  }
+}
+
+
 
 await ensureSignedIn();
 
@@ -43,14 +63,21 @@ await ensureSignedIn();
 const THREAD_COLLECTION =
   "paraThreads";
 
-const THREAD_LIMIT = 12;
+const getMyAthleteCall =
+  httpsCallable(
+    functions,
+    "getMyAthlete"
+  );
+
+const THREAD_LIMIT_TOTAL = 6;
+const THREAD_LIMIT_PARENT_REPLIES = 5;
 
 const LIMIT_MESSAGE =
-  "This conversation has reached its 12-message limit. Please schedule a call or meet with the coach in person.";
+  "This conversation has reached the 6-message app limit. Future replies must continue by email.";
 
 const GROUP_WINDOW_MS =
   2 * 60 * 1000;
-
+  
 /* =========================
    URL
 ========================= */
@@ -104,13 +131,12 @@ const replyPanel =
   );
 
 if (!athleteUid) {
-  if (threadEl) {
-    threadEl.innerHTML =
-      `<p>Missing athlete ID.</p>`;
-  }
+  window.location.replace(
+    "/communications/parent/compose.html"
+  );
 
   throw new Error(
-    "[parent-thread] Missing athleteUid"
+    "[parent-thread] Missing athleteUid — redirecting to compose."
   );
 }
 
@@ -290,89 +316,50 @@ function scrollToBottom() {
    PARENT AUTHORIZATION
 ========================= */
 
-async function parentHasAthleteLink(
-  parentUid,
-  requestedAthleteUid
-) {
-  const linksQuery =
-    query(
-      collection(
-        db,
-        "parentAthleteLinks"
-      )
-    );
-
-  const snapshot =
-    await getDocs(linksQuery);
-
-  return snapshot.docs.some(
-    (document) => {
-      const data =
-        document.data() || {};
-
-      return (
-        String(
-          data.parentUid || ""
-        ) === String(parentUid) &&
-        String(
-          data.athleteUid || ""
-        )
-          .trim()
-          .toUpperCase() ===
-          requestedAthleteUid
-      );
-    }
-  );
-}
-
 async function authorizeParent() {
-  const parentUid =
-    auth.currentUser?.uid || "";
+  const result =
+    await getMyAthleteCall({});
 
-  if (!parentUid) {
-    throw new Error(
-      "Parent sign-in required."
-    );
-  }
-
-  const linked =
-    await parentHasAthleteLink(
-      parentUid,
-      athleteUid
-    );
-
-  if (linked) {
-    return;
-  }
-
-  /*
-    Legacy fallback for athletes that still carry
-    parentUid directly on the athlete document.
-  */
-  const athleteRef =
-    doc(
-      db,
-      "athletes",
-      athleteUid
-    );
-
-  const athleteSnap =
-    await getDoc(athleteRef);
-
-  if (!athleteSnap.exists()) {
-    throw new Error(
-      "Athlete not found."
-    );
-  }
-
-  const athlete =
-    athleteSnap.data() || {};
+  const data =
+    result?.data || {};
 
   if (
-    String(
-      athlete.parentUid || ""
-    ) !== String(parentUid)
+    data.ok !== true ||
+    data.linked !== true
   ) {
+    throw new Error(
+      "No athlete is linked to this parent account."
+    );
+  }
+
+  const athletes =
+    Array.isArray(data.athletes)
+      ? data.athletes
+      : [];
+
+  const candidates = [
+    ...athletes,
+    ...(data.athlete
+      ? [data.athlete]
+      : [])
+  ];
+
+  const authorized =
+    candidates.some((athlete) => {
+      const uid =
+        String(
+          athlete.athleteUid ||
+          athlete.id ||
+          athlete.uid ||
+          ""
+        )
+          .trim()
+          .toUpperCase();
+
+      return uid === athleteUid;
+    });
+
+  if (!authorized) {
     throw new Error(
       "This parent account is not linked to the athlete."
     );
@@ -432,7 +419,7 @@ function enforceLimitUI(
 
   threadLocked =
     currentMessageCount >=
-    THREAD_LIMIT;
+    THREAD_LIMIT_TOTAL;
 
   if (replyInput) {
     replyInput.disabled =
@@ -481,12 +468,9 @@ function appendMessage(
     from === "coach";
 
   const sender =
-    message.fromName ||
-    (
-      isCoach
-        ? "Coach"
-        : "Parent/Guardian"
-    );
+    isCoach
+      ? "Coach"
+      : "You";
 
   const date =
     toDate(
@@ -567,14 +551,26 @@ function appendMessage(
     "msg-stamp";
 
   stamp.textContent =
-    date.toLocaleString();
+    new Intl.DateTimeFormat(
+      document.documentElement.lang === "es"
+        ? "es-US"
+        : "en-US",
+      {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit"
+      }
+    ).format(date);
 
   if (
     isCoach &&
     message.seenByParent === true
   ) {
     stamp.textContent +=
-      " · Seen";
+      document.documentElement.lang === "es"
+        ? " · Visto"
+        : " · Seen";
   }
 
   const wrapper =
@@ -668,7 +664,10 @@ async function loadThreadRoot() {
     );
 
   const threadSnap =
-    await getDoc(threadRef);
+    await getDoc(threadRef).catch((error) => {
+      logPermissionFailure("thread root read", error);
+      throw error;
+    });
 
   if (!threadSnap.exists()) {
     threadEl.innerHTML =
@@ -731,7 +730,7 @@ async function listenToMessages(
         "asc"
       ),
       limit(
-        THREAD_LIMIT + 1
+        THREAD_LIMIT_TOTAL + 1
       )
     );
 
@@ -752,7 +751,7 @@ async function listenToMessages(
         resetGrouping();
 
         messages
-          .slice(0, THREAD_LIMIT)
+          .slice(0, THREAD_LIMIT_TOTAL)
           .forEach(
             appendMessage
           );
@@ -840,7 +839,7 @@ replyBtn?.addEventListener(
     if (
       threadLocked ||
       currentMessageCount >=
-        THREAD_LIMIT
+        THREAD_LIMIT_TOTAL
     ) {
       enforceLimitUI(
         currentMessageCount
@@ -872,7 +871,7 @@ replyBtn?.addEventListener(
             "desc"
           ),
           limit(
-            THREAD_LIMIT
+            THREAD_LIMIT_TOTAL
           )
         );
 
@@ -883,7 +882,7 @@ replyBtn?.addEventListener(
 
       if (
         countSnapshot.size >=
-        THREAD_LIMIT
+        THREAD_LIMIT_TOTAL
       ) {
         enforceLimitUI(
           countSnapshot.size
@@ -935,6 +934,9 @@ replyBtn?.addEventListener(
           athleteUid
         ),
         {
+          messageCount:
+            currentMessageCount + 1,
+
           lastBody:
             text.slice(0, 200),
           lastReplyAt:

@@ -195,3 +195,51 @@
     padding:14px;
   }
 }
+.banner-card{
+  border:2px solid var(--gold);
+  background:linear-gradient(
+    180deg,
+    rgba(244,212,77,.12),
+    var(--panel)
+  );
+  box-shadow:
+    0 0 0 1px rgba(244,212,77,.15),
+    0 12px 28px rgba(0,0,0,.28);
+}
+
+.banner-box{
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+}
+
+.banner-title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:var(--gold);
+  font-size:1.15rem;
+  font-weight:900;
+  letter-spacing:.03em;
+}
+
+#banner-text{
+  font-size:1rem;
+  line-height:1.7;
+  color:var(--text);
+  padding-top:6px;
+}
+.banner-card{
+  position:relative;
+  overflow:hidden;
+}
+
+.banner-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:6px;
+  background:var(--gold);
+}

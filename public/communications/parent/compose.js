@@ -19,22 +19,22 @@
 
 import {
   db,
-  auth,
+  functions,
+  httpsCallable,
   ensureSignedIn,
-  doc,
   setDoc,
-  getDoc,
-  getDocs,
-  query,
-  where,
-  collection,
   addDoc,
+  collection,
   serverTimestamp,
-  orderBy,
-  limit
+  doc,
+  getDoc
 } from "/assets/js/firebase-init-para.js";
 
-await ensureSignedIn();
+const currentUser = await ensureSignedIn();
+
+const getMyAthleteCall =
+  httpsCallable(functions, "getMyAthlete");
+
 
 /* =========================
    CONFIG
@@ -43,11 +43,10 @@ await ensureSignedIn();
 const THREAD_COLLECTION =
   "paraThreads";
 
-const THREAD_LIMIT = 12;
+const THREAD_LIMIT = 6;
 
 const THREAD_LIMIT_MESSAGE =
-  "This conversation has reached its text limit (12). Please schedule a call or meet with the coach in person.";
-
+  "This conversation has reached the 6-message app limit. Please continue by email.";
 /* =========================
    DOM
 ========================= */
@@ -278,589 +277,451 @@ function getAthleteIdFromUrl() {
    ATHLETE RESOLUTION
 ========================= */
 
-async function readAthlete(
-  athleteUid
-) {
-  if (!athleteUid) {
-    return null;
-  }
-
-  const athleteRef =
-    doc(
-      db,
-      "athletes",
-      athleteUid
-    );
-
-  const athleteSnap =
-    await getDoc(athleteRef);
-
-  if (!athleteSnap.exists()) {
-    return null;
-  }
-
-  return {
-    athleteUid,
-    ...(athleteSnap.data() || {})
-  };
-}
 
 async function resolveAthleteForParent(
-  parentUid,
-  requestedAthleteUid
+  requestedAthleteUid = ""
 ) {
-  /*
-    Prefer an exact parent-athlete link when
-    the URL specifies an athlete.
-  */
-  if (requestedAthleteUid) {
-    const exactLinkQuery =
-      query(
-        collection(
-          db,
-          "parentAthleteLinks"
-        ),
-        where(
-          "parentUid",
-          "==",
-          parentUid
-        ),
-        where(
-          "athleteUid",
-          "==",
-          requestedAthleteUid
-        )
-      );
+  const result =
+    await getMyAthleteCall({});
 
-    const exactLinkSnap =
-      await getDocs(
-        exactLinkQuery
-      );
+  const data =
+    result?.data || {};
 
-    if (!exactLinkSnap.empty) {
-      const linkData =
-        exactLinkSnap.docs[0]
-          .data() || {};
-
-      const athlete =
-        await readAthlete(
-          requestedAthleteUid
-        );
-
-      return {
-        ...athlete,
-        ...linkData,
-        athleteUid:
-          requestedAthleteUid
-      };
-    }
+  if (
+    data.ok !== true ||
+    data.linked !== true
+  ) {
+    return null;
   }
 
-  /*
-    If no athlete was requested, use the first
-    valid linked athlete.
-  */
-  const linksQuery =
-    query(
-      collection(
-        db,
-        "parentAthleteLinks"
-      ),
-      where(
-        "parentUid",
-        "==",
-        parentUid
+  const athletes =
+    Array.isArray(data.athletes)
+      ? data.athletes
+      : [];
+
+  const requested =
+    String(requestedAthleteUid || "")
+      .trim()
+      .toUpperCase();
+
+  let athlete = null;
+
+  if (requested) {
+    athlete = athletes.find(a => {
+      const uid = String(
+        a.athleteUid ||
+        a.id ||
+        a.uid ||
+        ""
       )
-    );
+      .trim()
+      .toUpperCase();
 
-  const linksSnap =
-    await getDocs(linksQuery);
-
-  if (!linksSnap.empty) {
-    const linkData =
-      linksSnap.docs[0]
-        .data() || {};
-
-    const linkedAthleteUid =
-      String(
-        linkData.athleteUid || ""
-      )
-        .trim()
-        .toUpperCase();
-
-    const athlete =
-      await readAthlete(
-        linkedAthleteUid
-      );
-
-    return {
-      ...athlete,
-      ...linkData,
-      athleteUid:
-        linkedAthleteUid
-    };
+      return uid === requested;
+    });
   }
 
-  /*
-    Legacy athlete document fallback.
-  */
-  if (requestedAthleteUid) {
-    const athlete =
-      await readAthlete(
-        requestedAthleteUid
-      );
-
-    if (
-      athlete &&
-      String(
-        athlete.parentUid || ""
-      ) === String(parentUid)
-    ) {
-      return athlete;
-    }
-  }
+if (requested && !athlete) {
+  console.error(
+    "[parent-compose] Unauthorized athlete requested:",
+    requested
+  );
 
   return null;
 }
 
-function getAthleteName(
-  athlete = {}
-) {
-  return String(
-    athlete.athleteName ||
-    athlete.publicName ||
-    athlete.fullName ||
-    athlete.name ||
-    athlete.displayName ||
-    athlete.athleteUid ||
-    ""
-  ).trim();
+if (!requested) {
+  athlete =
+    data.athlete ||
+    athletes[0] ||
+    null;
 }
 
-function getAthleteDiscipline(
-  athlete = {}
-) {
-  return normalizeDiscipline(
-    athlete.activeDiscipline ||
-    athlete.primaryDiscipline ||
-    athlete.discipline ||
-    athlete.sport ||
-    athlete.art ||
-    athlete.programInterest ||
+  if (!athlete) {
+    return null;
+  }
+
+  const athleteUid = String(
+    athlete.athleteUid ||
+    athlete.id ||
+    athlete.uid ||
     ""
-  );
+  )
+  .trim()
+  .toUpperCase();
+
+  return {
+    ...athlete,
+    athleteUid
+  };
+}
+/* =========================
+   PAGE INITIALIZATION
+========================= */
+
+async function initializeCompose() {
+  try {
+    showError(false);
+    showSuccess(false);
+    setSendingState(true);
+
+    const requestedAthleteUid =
+      getAthleteIdFromUrl();
+
+    const athlete =
+      await resolveAthleteForParent(
+        requestedAthleteUid
+      );
+
+    if (!athlete) {
+      if (athleteLabelEl) {
+        athleteLabelEl.textContent =
+          "No authorized athlete";
+      }
+
+      if (disciplineLabelEl) {
+        disciplineLabelEl.textContent =
+          "Unavailable";
+      }
+
+      showError(
+        true,
+        "We could not verify an athlete linked to this parent account."
+      );
+
+      return;
+    }
+
+    resolvedAthlete = athlete;
+
+    const athleteName =
+      athlete.publicName ||
+      athlete.fullName ||
+      athlete.name ||
+      athlete.athleteName ||
+      athlete.athleteUid;
+
+    const athleteDiscipline =
+      athlete.primaryDiscipline ||
+      athlete.discipline ||
+      athlete.sport ||
+      athlete.art ||
+      "";
+
+    if (athleteLabelEl) {
+      athleteLabelEl.textContent =
+        athleteName;
+    }
+
+    if (disciplineLabelEl) {
+      disciplineLabelEl.textContent =
+        disciplineLabel(
+          athleteDiscipline
+        );
+    }
+
+    setSendingState(false);
+
+    console.log(
+      "[parent-compose] athlete resolved:",
+      resolvedAthlete
+    );
+  } catch (err) {
+    console.error(
+      "[parent-compose] initialization failed:",
+      err
+    );
+
+    if (athleteLabelEl) {
+      athleteLabelEl.textContent =
+        "Unable to load";
+    }
+
+    if (disciplineLabelEl) {
+      disciplineLabelEl.textContent =
+        "Unavailable";
+    }
+
+    showError(
+      true,
+      "Unable to load your athlete information."
+    );
+  }
 }
 
 /* =========================
-   MESSAGE LIMIT
+   SEND MESSAGE
 ========================= */
 
-async function getThreadMessageCount(
-  athleteUid
-) {
-  const messagesQuery =
-    query(
-      collection(
-        db,
-        THREAD_COLLECTION,
-        athleteUid,
-        "messages"
-      ),
-      orderBy(
-        "createdAt",
-        "desc"
-      ),
-      limit(
-        THREAD_LIMIT + 1
+async function sendMessage() {
+  try {
+    showError(false);
+    showSuccess(false);
+    setSendingState(true);
+
+    if (!resolvedAthlete) {
+      throw new Error(
+        "Your athlete could not be verified."
+      );
+    }
+
+    const athleteUid = String(
+      resolvedAthlete.athleteUid ||
+      resolvedAthlete.id ||
+      resolvedAthlete.uid ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+    if (!athleteUid) {
+      throw new Error(
+        "Missing athlete identification."
+      );
+    }
+
+    const parentName =
+      String(nameEl?.value || "").trim();
+
+    const parentEmail =
+      String(emailEl?.value || "").trim();
+
+    const subject =
+      String(subjectEl?.value || "").trim();
+
+    const message =
+      String(bodyEl?.value || "").trim();
+
+    if (!parentName) {
+      throw new Error(
+        "Your name is required."
+      );
+    }
+
+    if (!parentEmail) {
+      throw new Error(
+        "Your email is required."
+      );
+    }
+
+    if (!message) {
+      throw new Error(
+        "Your message is required."
+      );
+    }
+
+const threadRef =
+  doc(
+    db,
+    THREAD_COLLECTION,
+    athleteUid
+  );
+
+let existingThreadSnap;
+
+try {
+  existingThreadSnap =
+    await getDoc(threadRef);
+} catch (error) {
+  console.error(
+    "[parent-compose] THREAD ROOT READ failed:",
+    error
+  );
+
+  throw error;
+}
+
+const existingThread =
+  existingThreadSnap.exists()
+    ? existingThreadSnap.data() || {}
+    : {};
+
+const currentCount =
+  Number(existingThread.messageCount || 0);
+
+if (currentCount >= THREAD_LIMIT) {
+  lockConversation();
+
+  throw new Error(
+    THREAD_LIMIT_MESSAGE
+  );
+}
+
+const discipline =
+  normalizeDiscipline(
+    resolvedAthlete.primaryDiscipline ||
+    resolvedAthlete.discipline ||
+    resolvedAthlete.sport ||
+    resolvedAthlete.art ||
+    ""
+  );
+
+const athleteName =
+  resolvedAthlete.publicName ||
+  resolvedAthlete.fullName ||
+  resolvedAthlete.name ||
+  resolvedAthlete.athleteName ||
+  athleteUid;
+
+const effectiveSubject =
+  subject || "Coach Conversation";
+
+const nextCount =
+  currentCount + 1;
+
+  
+try {
+  await setDoc(
+    threadRef,
+    {
+      athleteUid,
+      athleteName,
+      discipline,
+
+      parentUid:
+        currentUser?.uid || "",
+
+      parentName,
+      parentEmail,
+
+      subject:
+        existingThread.subject ||
+        effectiveSubject,
+
+      status: "open",
+      deleted: false,
+
+      messageCount:
+        nextCount,
+
+      lastBody:
+        message,
+
+      lastSenderRole:
+        "parent",
+
+      lastReplyAt:
+        serverTimestamp(),
+
+      updatedAt:
+        serverTimestamp(),
+
+      ...(
+        existingThreadSnap.exists()
+          ? {}
+          : {
+              createdAt:
+                serverTimestamp()
+            }
       )
-    );
+    },
+    {
+      merge: true
+    }
+  );
+} catch (error) {
+  console.error(
+    "[parent-compose] THREAD ROOT WRITE failed:",
+    error
+  );
 
-  const snapshot =
-    await getDocs(
-      messagesQuery
-    );
+  throw error;
+}
+/*
+  Add the first/new parent message.
+*/
+try {
+  await addDoc(
+    collection(
+      db,
+      THREAD_COLLECTION,
+      athleteUid,
+      "messages"
+    ),
+    {
+      athleteUid,
 
-  return snapshot.size;
+      from: "parent",
+
+      fromUid:
+        currentUser?.uid || "",
+
+      fromName:
+        parentName,
+
+      parentEmail,
+
+      subject:
+        effectiveSubject,
+
+      body:
+        message,
+
+      discipline,
+
+      createdAt:
+        serverTimestamp(),
+
+      seenByCoach:
+        false,
+
+      seenByParent:
+        true
+    }
+  );
+} catch (error) {
+  console.error(
+    "[parent-compose] MESSAGE WRITE failed:",
+    error
+  );
+
+  throw error;
 }
 
-async function enforceMessageLimit(
-  athleteUid
-) {
-  const count =
-    await getThreadMessageCount(
-      athleteUid
-    );
+showSuccess(
+  true,
+  "Message sent. Opening conversation…"
+);
 
-  if (count >= THREAD_LIMIT) {
-    lockConversation();
-    return false;
+window.location.assign(
+  `/communications/parent/thread.html?id=${encodeURIComponent(athleteUid)}`
+);
+
+} catch (err) {
+  console.error(
+    "[parent-compose] send failed:",
+    err
+  );
+
+  showError(
+    true,
+    err?.message ||
+    "Unable to send your message."
+  );
+
+  setSendingState(false);
+}
+}
+/* =========================
+   BUTTON EVENTS
+========================= */
+
+btnSend?.addEventListener(
+  "click",
+  sendMessage
+);
+
+btnCancel?.addEventListener(
+  "click",
+  () => {
+    window.location.assign(
+      "/parent/messages/index.html"
+    );
   }
-
-  return true;
-}
+);
 
 /* =========================
    BOOT
 ========================= */
 
-const currentUid =
-  auth.currentUser?.uid || null;
-
-if (!currentUid) {
-  showError(
-    true,
-    "You must be signed in."
-  );
-
-  throw new Error(
-    "[compose] Missing currentUid"
-  );
-}
-
-const requestedAthleteUid =
-  getAthleteIdFromUrl();
-
-resolvedAthlete =
-  await resolveAthleteForParent(
-    currentUid,
-    requestedAthleteUid
-  );
-
-if (
-  !resolvedAthlete?.athleteUid
-) {
-  showError(
-    true,
-    "No athlete linked to this parent account."
-  );
-
-  throw new Error(
-    "[compose] No linked athlete"
-  );
-}
-
-const athleteUid =
-  String(
-    resolvedAthlete.athleteUid || ""
-  )
-    .trim()
-    .toUpperCase();
-
-const athleteName =
-  getAthleteName(
-    resolvedAthlete
-  );
-
-const discipline =
-  getAthleteDiscipline(
-    resolvedAthlete
-  );
-
-if (!athleteUid) {
-  showError(
-    true,
-    "Could not resolve athlete thread."
-  );
-
-  throw new Error(
-    "[compose] Missing athleteUid"
-  );
-}
-
-/* =========================
-   PREFILL
-========================= */
-
-if (
-  nameEl &&
-  !nameEl.value.trim()
-) {
-  nameEl.value =
-    auth.currentUser
-      ?.displayName || "";
-}
-
-if (
-  emailEl &&
-  !emailEl.value.trim()
-) {
-  emailEl.value =
-    auth.currentUser
-      ?.email || "";
-}
-
-if (athleteLabelEl) {
-  athleteLabelEl.textContent =
-    athleteName || athleteUid;
-}
-
-if (disciplineLabelEl) {
-  disciplineLabelEl.textContent =
-    disciplineLabel(discipline);
-}
-
-/*
-  Lock immediately if the existing thread has
-  already reached the shared 12-message limit.
-*/
-try {
-  await enforceMessageLimit(
-    athleteUid
-  );
-} catch (error) {
-  console.error(
-    "[compose] message count check failed:",
-    error
-  );
-}
-
-/* =========================
-   SEND
-========================= */
-
-btnSend?.addEventListener(
-  "click",
-  async () => {
-    showSuccess(false);
-    showError(false, "");
-
-    if (threadLocked) {
-      showError(
-        true,
-        THREAD_LIMIT_MESSAGE
-      );
-
-      return;
-    }
-
-    const parentName =
-      String(
-        nameEl?.value || ""
-      ).trim() ||
-      auth.currentUser
-        ?.displayName ||
-      "Parent";
-
-    const parentEmail =
-      String(
-        emailEl?.value || ""
-      ).trim() ||
-      auth.currentUser
-        ?.email ||
-      "";
-
-    const subject =
-      String(
-        subjectEl?.value || ""
-      ).trim();
-
-    const body =
-      String(
-        bodyEl?.value || ""
-      ).trim();
-
-    if (!parentEmail) {
-      showError(
-        true,
-        "Parent email is required."
-      );
-
-      return;
-    }
-
-    if (!body) {
-      showError(
-        true,
-        "Message body is required."
-      );
-
-      return;
-    }
-
-    if (btnSend?.disabled) {
-      return;
-    }
-
-    setSendingState(true);
-
-    try {
-      /*
-        Recheck immediately before writing so the
-        parent and coach cannot cross the limit by
-        sending at nearly the same time.
-      */
-      const maySend =
-        await enforceMessageLimit(
-          athleteUid
-        );
-
-      if (!maySend) {
-        return;
-      }
-
-      const threadRef =
-        doc(
-          db,
-          THREAD_COLLECTION,
-          athleteUid
-        );
-
-      const messagesCollection =
-        collection(
-          db,
-          THREAD_COLLECTION,
-          athleteUid,
-          "messages"
-        );
-
-      const existingThreadSnap =
-        await getDoc(threadRef);
-
-      const threadPayload = {
-        athleteUid,
-        athleteName,
-
-        parentUid:
-          currentUid,
-
-        parentEmail,
-        parentName,
-
-        discipline,
-        primaryDiscipline:
-          discipline,
-
-        updatedAt:
-          serverTimestamp(),
-
-        lastBody:
-          body.slice(0, 200),
-
-        lastReplyAt:
-          serverTimestamp(),
-
-        lastReplyFrom:
-          "parent",
-
-        lastSender:
-          "parent",
-
-        coachHasUnread:
-          true,
-
-        parentHasUnread:
-          false,
-
-        seenByCoach:
-          false,
-
-        seenByParent:
-          true,
-
-        archived:
-          false,
-
-        deleted:
-          false,
-
-        status:
-          "open"
-      };
-
-      if (subject) {
-        threadPayload.subject =
-          subject;
-      }
-
-      if (
-        !existingThreadSnap.exists()
-      ) {
-        threadPayload.createdAt =
-          serverTimestamp();
-      }
-
-      await setDoc(
-        threadRef,
-        threadPayload,
-        {
-          merge: true
-        }
-      );
-
-      await addDoc(
-        messagesCollection,
-        {
-          body,
-          subject:
-            subject || null,
-
-          from:
-            "parent",
-
-          fromUid:
-            currentUid,
-
-          fromName:
-            parentName,
-
-          parentEmail,
-
-          athleteUid,
-          discipline,
-
-          createdAt:
-            serverTimestamp(),
-
-          seenByCoach:
-            false,
-
-          seenByParent:
-            true
-        }
-      );
-
-      showSuccess(
-        true,
-        "Message sent."
-      );
-
-      if (bodyEl) {
-        bodyEl.value = "";
-      }
-
-      window.setTimeout(
-        () => {
-          window.location.href =
-            `/communications/parent/thread.html?id=${escQS(athleteUid)}`;
-        },
-        300
-      );
-    } catch (error) {
-      console.error(
-        "[compose] send failed:",
-        error
-      );
-
-      showError(
-        true,
-        "Send failed. Check console."
-      );
-
-      setSendingState(false);
-      return;
-    }
-
-    setSendingState(false);
-  }
-);
-
-/* =========================
-   CANCEL
-========================= */
-
-btnCancel?.addEventListener(
-  "click",
-  () => {
-    window.history.back();
-  }
-);
+initializeCompose();

@@ -3,169 +3,63 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Parent Hub | Messages and Updates</title>
+
+  <title>Parent Hub | Communications</title>
 
   <link rel="stylesheet" href="/parent/parent.css"/>
   <link rel="icon" href="data:,">
+
   <style>
-    .parent-tabs{
-      display:grid;
-      grid-template-columns:repeat(4, 1fr);
-      gap:10px;
-      margin:18px 0 22px;
-    }
-
-    .parent-tab{
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
-      align-items:flex-start;
-      min-height:92px;
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:14px 16px;
-      box-shadow:var(--shadow);
-      text-decoration:none;
-      color:var(--text);
-      transition:.15s ease;
-    }
-
-    .parent-tab:hover{
-      border-color:var(--gold);
-      transform:translateY(-1px);
-    }
-
-    .parent-tab-kicker{
-      margin:0 0 6px;
-      color:var(--gold);
-      font-size:.72rem;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .parent-tab-title{
-      margin:0 0 4px;
-      font-size:1rem;
-      line-height:1.15;
-      font-weight:900;
-    }
-
-    .parent-tab-copy{
-      margin:0;
-      color:var(--muted);
-      font-size:.92rem;
-      line-height:1.35;
-    }
-
     .section-head{
       display:grid;
       gap:8px;
       margin-bottom:14px;
     }
 
-    .section-kicker{
-      margin:0;
-      color:var(--gold);
-      font-size:.78rem;
-      font-weight:900;
-      letter-spacing:.08em;
-      text-transform:uppercase;
-    }
-
-    .section-title{
-      margin:0;
-      font-size:1.55rem;
-      line-height:1.15;
-    }
-
-    .section-sub{
-      margin:0;
+    .section-note{
       color:var(--muted);
-      line-height:1.5;
+      font-size:.85rem;
+      font-weight:700;
     }
 
-    .page-sub-soft{
-      margin-top:10px;
-      max-width:720px;
-      color:var(--muted);
-      line-height:1.55;
-    }
-
-    .values-grid{
+    .communication-grid{
       display:grid;
-      grid-template-columns:1fr 1fr;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
       gap:14px;
     }
 
-    .value-card{
-      height:100%;
+    .communication-tile{
+      min-height:190px;
     }
 
-    .value-label{
-      margin:0 0 10px;
-      color:var(--gold);
-      font-size:.82rem;
-      font-weight:900;
-      letter-spacing:.06em;
-      text-transform:uppercase;
-    }
-
-    .card-copy{
-      margin:0;
-      color:var(--text);
-      line-height:1.6;
-    }
-
-    .theme-toggle{
-      width:38px;
-      height:38px;
-      border-radius:999px;
-      border:1px solid var(--line);
-      background:var(--panel);
-      color:var(--gold);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:18px;
-      cursor:pointer;
-      transition:.15s ease;
-      box-shadow:var(--shadow);
-    }
-
-    .theme-toggle:hover{
-      border-color:var(--gold);
+    .communication-tile .title{
+      margin-top:8px;
     }
 
     @media (max-width:760px){
-      .parent-tabs{
-        grid-template-columns:1fr 1fr;
-      }
-    }
-
-    @media (max-width:640px){
-      .values-grid{
+      .communication-grid{
         grid-template-columns:1fr;
+      }
+
+      .communication-tile{
+        min-height:auto;
       }
     }
   </style>
-
 </head>
 
 <body>
 
-
 <header class="topbar inner-topbar">
-  <div class="topbar-spacer"></div>
-
-  <div class="topbar-right">
-    <a href="/parent/index.html" class="hub-mark">
-      PARENT HUB
-    </a>
-  </div>
+  <a
+    href="/parent/index.html"
+    class="hub-mark"
+  >
+    PARENT HUB
+  </a>
 </header>
-  <main class="wrap">
+
+<main class="wrap">
 
   <section class="page-head">
     <p class="eyebrow">
@@ -174,207 +68,187 @@
     </p>
 
     <h1 class="page-title">
-      <span class="en">Messages / Questions / Updates</span>
-      <span class="es">Mensajes / Preguntas / Actualizaciones</span>
+      <span class="en">Communications</span>
+      <span class="es">Comunicaciones</span>
     </h1>
 
     <p class="page-sub">
-      <span class="en">Stay informed, follow updates, and use the right communication path when something needs attention.</span>
-      <span class="es">Manténgase informado, siga las actualizaciones y use el canal correcto de comunicación cuando algo necesite atención.</span>
+      <span class="en">
+        Follow your athlete’s updates, communicate privately with the coach,
+        and stay informed about the team.
+      </span>
+
+      <span class="es">
+        Siga las actualizaciones de su atleta, comuníquese en privado con el
+        entrenador y manténgase informado sobre el equipo.
+      </span>
     </p>
   </section>
-
-  <nav class="parent-tabs" aria-label="Parent hub navigation">
-    <a class="parent-tab" href="/parent/my-athlete/index.html">
-      <p class="parent-tab-kicker">
-        <span class="en">Progress</span>
-        <span class="es">Progreso</span>
-      </p>
-      <h2 class="parent-tab-title">
-        <span class="en">My Athlete</span>
-        <span class="es">Mi Atleta</span>
-      </h2>
-    </a>
-
-    <a class="parent-tab" href="/parent/schedule/index.html">
-      <p class="parent-tab-kicker">
-        <span class="en">Logistics</span>
-        <span class="es">Logística</span>
-      </p>
-      <h2 class="parent-tab-title">
-        <span class="en">Schedule</span>
-        <span class="es">Horario</span>
-      </h2>
-    </a>
-
-    <a class="parent-tab" href="/parent/messages/index.html">
-      <p class="parent-tab-kicker">
-        <span class="en">Communication</span>
-        <span class="es">Comunicación</span>
-      </p>
-      <h2 class="parent-tab-title">
-        <span class="en">Messages</span>
-        <span class="es">Mensajes</span>
-      </h2>
-    </a>
-
-    <a class="parent-tab" href="/parent/system/index.html">
-      <p class="parent-tab-kicker">
-        <span class="en">Culture</span>
-        <span class="es">Cultura</span>
-      </p>
-      <h2 class="parent-tab-title">
-        <span class="en">System</span>
-        <span class="es">Sistema</span>
-      </h2>
-    </a>
-  </nav>
 
   <div class="main">
 
     <section class="card">
       <div class="section-head">
         <h2 class="card__title">
-          <span class="en">Welcome</span>
-          <span class="es">Bienvenidos</span>
+          <span class="en">Stay Connected</span>
+          <span class="es">Manténgase Conectado</span>
         </h2>
 
         <span class="section-note">
-          <span class="en">Communication lane</span>
-          <span class="es">Canal de comunicación</span>
+          <span class="en">Three communication lanes</span>
+          <span class="es">Tres canales de comunicación</span>
         </span>
       </div>
 
       <ul class="list en">
-        <li>This page is the communication lane for Sandman families.</li>
-        <li>Use announcements for reminders, changes, and coach-wide updates.</li>
-        <li>Use direct messages for questions, absences, or private updates.</li>
+        <li>
+          <strong>Athlete Updates</strong>
+          are private updates connected to your athlete.
+        </li>
+
+        <li>
+          <strong>Coach Conversation</strong>
+          is your private communication thread with the coach.
+        </li>
+
+        <li>
+          <strong>Team Bulletin</strong>
+          contains announcements, reminders, and team-wide needs.
+        </li>
       </ul>
 
       <ul class="list es">
-        <li>Esta página es el espacio de comunicación para las familias de Sandman.</li>
-        <li>Use anuncios para recordatorios, cambios y avisos generales del entrenador.</li>
-        <li>Use mensajes directos para preguntas, ausencias o actualizaciones privadas.</li>
+        <li>
+          <strong>Actualizaciones del Atleta</strong>
+          contiene información privada relacionada con su atleta.
+        </li>
+
+        <li>
+          <strong>Conversación con el Entrenador</strong>
+          es su conversación privada con el entrenador.
+        </li>
+
+        <li>
+          <strong>Boletín del Equipo</strong>
+          contiene anuncios, recordatorios y necesidades del equipo.
+        </li>
       </ul>
-
-      <p class="small">
-        <span class="en">Tip: Switch EN/SP anytime using the buttons at the top.</span>
-        <span class="es">Consejo: Cambie EN/SP cuando quiera usando los botones arriba.</span>
-      </p>
     </section>
-      
-<section class="card">
-  <div class="section-head">
-    <h2 class="card__title">
-      <span class="en">Quick Tools</span>
-      <span class="es">Herramientas Rápidas</span>
-    </h2>
 
-    <span class="section-note">
-      <span class="en">Fast access</span>
-      <span class="es">Acceso rápido</span>
-    </span>
-  </div>
+    <section class="card">
+      <div class="section-head">
+        <h2 class="card__title">
+          <span class="en">Communication Center</span>
+          <span class="es">Centro de Comunicaciones</span>
+        </h2>
 
-  <div class="grid">
-
-    <a class="tile" href="/communications/parent/announcements-feed.html">
-      <div class="cat">
-        <span class="en">Announcements</span>
-        <span class="es">Anuncios</span>
+        <span class="section-note">
+          <span class="en">Choose a communication lane</span>
+          <span class="es">Elija un canal de comunicación</span>
+        </span>
       </div>
 
-      <div class="title">
-        <span class="en">Bulletin & Coach Updates</span>
-        <span class="es">Boletín y Avisos del Entrenador</span>
+      <div class="communication-grid">
+
+        <a
+          class="tile communication-tile"
+          href="/parent/updates/index.html"
+        >
+          <div class="cat">
+            <span class="en">Your Athlete</span>
+            <span class="es">Su Atleta</span>
+          </div>
+
+          <div class="title">
+            <span class="en">Athlete Updates</span>
+            <span class="es">Actualizaciones del Atleta</span>
+          </div>
+
+          <p class="sub">
+            <span class="en">
+              Review progress, attendance, XP, achievements,
+              coach feedback, and athlete notifications.
+            </span>
+
+            <span class="es">
+              Revise el progreso, la asistencia, XP, los logros,
+              los comentarios del entrenador y las notificaciones del atleta.
+            </span>
+          </p>
+        </a>
+
+        <a
+          class="tile communication-tile"
+          href="/communications/parent/compose.html"
+        >
+          <div class="cat">
+            <span class="en">Private</span>
+            <span class="es">Privado</span>
+          </div>
+
+          <div class="title">
+            <span class="en">Coach Conversation</span>
+            <span class="es">Conversación con el Entrenador</span>
+          </div>
+
+          <p class="sub">
+            <span class="en">
+              Start a new private conversation or continue
+              the athlete’s current conversation with the coach.
+            </span>
+
+            <span class="es">
+              Inicie una nueva conversación privada o continúe
+              la conversación actual del atleta con el entrenador.
+            </span>
+          </p>
+        </a>
+
+        <a
+          class="tile communication-tile"
+          href="/communications/parent/announcements-feed.html"
+        >
+          <div class="cat">
+            <span class="en">Team</span>
+            <span class="es">Equipo</span>
+          </div>
+
+          <div class="title">
+            <span class="en">Team Bulletin</span>
+            <span class="es">Boletín del Equipo</span>
+          </div>
+
+          <p class="sub">
+            <span class="en">
+              View announcements, schedule changes, tournament information,
+              volunteer requests, transportation needs, and team reminders.
+            </span>
+
+            <span class="es">
+              Vea anuncios, cambios de horario, información de torneos,
+              solicitudes de voluntarios, transporte y recordatorios del equipo.
+            </span>
+          </p>
+        </a>
+
       </div>
-
-      <p class="sub">
-        <span class="en">Reminders, changes, and important notices.</span>
-        <span class="es">Recordatorios, cambios y avisos importantes.</span>
-      </p>
-    </a>
-
-    <a class="tile" href="/communications/parent/compose.html">
-      <div class="cat">
-        <span class="en">Message Coach</span>
-        <span class="es">Mensaje al Entrenador</span>
-      </div>
-
-      <div class="title">
-        <span class="en">Questions for Coach</span>
-        <span class="es">Preguntas para el Entrenador</span>
-      </div>
-
-      <p class="sub">
-        <span class="en">Send short questions or private updates.</span>
-        <span class="es">Envíe preguntas o actualizaciones privadas.</span>
-      </p>
-    </a>
-
-    <a class="tile" href="/communications/parent/thread.html">
-      <div class="cat">
-        <span class="en">Thread</span>
-        <span class="es">Conversación</span>
-      </div>
-
-      <div class="title">
-        <span class="en">Active Conversations</span>
-        <span class="es">Conversación Activa</span>
-      </div>
-
-      <p class="sub">
-        <span class="en">Read replies and follow active message threads.</span>
-        <span class="es">Lea respuestas y siga conversaciones activas.</span>
-      </p>
-    </a>
-
-  </div>
-</section>
-
-<section class="card">
-  <div class="section-head">
-    <h2 class="card__title">
-      <span class="en">Communication Paths</span>
-      <span class="es">Caminos de Comunicación</span>
-    </h2>
-
-    <span class="section-note">
-      <span class="en">Special lanes</span>
-      <span class="es">Canales especiales</span>
-    </span>
-  </div>
-
-  <div class="grid">
-
-    <a class="tile" href="/communications/parent/volunteer.html">
-      <div class="cat">
-        <span class="en">Volunteer</span>
-        <span class="es">Voluntario</span>
-      </div>
-
-      <div class="title">
-        <span class="en">Volunteer to Help</span>
-        <span class="es">Ofrecer Ayuda</span>
-      </div>
-
-      <p class="sub">
-        <span class="en">Help with events, tournaments, and team activities.</span>
-        <span class="es">Ayude con eventos, torneos y actividades del equipo.</span>
-      </p>
-    </a>
-
-  </div>
-</section>
+    </section>
 
     <p class="footer-note">
-      <span class="en">Sandman Combat™ • Parent Messages</span>
-      <span class="es">Sandman Combat™ • Mensajes para Padres</span>
+      <span class="en">
+        Sandman Combat™ • Parent Communications
+      </span>
+
+      <span class="es">
+        Sandman Combat™ • Comunicaciones para Padres
+      </span>
     </p>
 
   </div>
 
 </main>
+
 <script src="/assets/js/parent-shell.js"></script>
+
 </body>
 </html>
