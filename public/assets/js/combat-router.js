@@ -9,14 +9,14 @@ export function routeCombat() {
   if (athleteId.startsWith("F4_")) {
     return {
       athleteId,
-      path: `/athletes/arsenal/combat/teen/index.html?id=${encodeURIComponent(athleteId)}`
+      path: `/athletes/arsenal/combat/p2l/wrestling/index.html?id=${encodeURIComponent(athleteId)}`
     };
   }
 
   if (athleteId.startsWith("F8_")) {
     return {
       athleteId,
-      path: `/athletes/arsenal/combat/youth/index.html?id=${encodeURIComponent(athleteId)}`
+      path: `/athletes/arsenal/combat/z2h/wrestling/index.html?id=${encodeURIComponent(athleteId)}`
     };
   }
 

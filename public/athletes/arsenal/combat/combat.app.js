@@ -51,23 +51,23 @@ function normalizeDiscipline(value = "") {
 
 const DISCIPLINE_ROUTES = {
   wrestling: {
-    youth: "/athletes/arsenal/combat/youth/index.html",
-    teen: "/athletes/arsenal/combat/teen/index.html"
+    youth: "/athletes/arsenal/combat/z2h/wrestling/index.html",
+    teen: "/athletes/arsenal/combat/p2l/wrestling/index.html"
   },
 
   boxing: {
     youth: null,
-    teen: "/athletes/arsenal/combat/teen/index.html"
+    teen: "/athletes/arsenal/combat/p2l/wrestling/index.html"
   },
 
   kickboxing: {
-    youth: "/athletes/arsenal/combat/youth/index.html",
+    youth: "/athletes/arsenal/combat/z2h/wrestling/index.html",
     teen: null
   },
 
   mma: {
     youth: null,
-    teen: "/athletes/arsenal/combat/teen/index.html"
+    teen: "/athletes/arsenal/combat/p2l/wrestling/index.html"
   },
 
   "submission-grappling": {
