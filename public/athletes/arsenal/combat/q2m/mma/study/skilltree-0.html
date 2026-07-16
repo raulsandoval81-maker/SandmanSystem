@@ -1,11 +1,257 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T0</title>
-</head>
-<body>
-<h1>Skill Tree Tier 0</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section
+  class="skilltree-page"
+  data-tier="0"
+  data-track="q2m"
+  data-discipline="mma"
+>
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Quest2Mastery • MMA</p>
+    <h1>Skill Tree - Tier 0 — Apprentice</h1>
+    <p class="skilltree-sub">20 skills • MMA Foundation + Standardization</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Foundation &amp; Movement</h2>
+
+    <h3>Skill 1 — Stance</h3>
+    <p>A — Build a balanced MMA stance</p>
+    <p>B — Protect striking and takedown lines</p>
+    <p>C — Stay ready to transition</p>
+
+    <h3>Skill 2 — Motion</h3>
+    <p>A — Move forward and backward</p>
+    <p>B — Circle without crossing feet</p>
+    <p>C — Maintain stance while moving</p>
+
+    <h3>Skill 3 — Distance</h3>
+    <p>A — Recognize striking range</p>
+    <p>B — Recognize clinch range</p>
+    <p>C — Enter and exit safely</p>
+
+    <h3>Skill 4 — Base</h3>
+    <p>A — Maintain balance</p>
+    <p>B — Resist displacement</p>
+    <p>C — Recover position</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Entry &amp; Clinch</h2>
+
+    <h3>Skill 5 — Entry</h3>
+    <p>A — Close distance behind protection</p>
+    <p>B — Establish contact safely</p>
+    <p>C — Finish in strong position</p>
+
+    <h3>Skill 6 — Wall</h3>
+    <p>A — Establish wall position</p>
+    <p>B — Control posture and hips</p>
+    <p>C — Exit or advance safely</p>
+
+    <h3>Skill 7 — Clinch</h3>
+    <p>A — Build inside position</p>
+    <p>B — Control posture</p>
+    <p>C — Create offense or separation</p>
+
+    <h3>Skill 8 — Sprawl</h3>
+    <p>A — Drive hips down</p>
+    <p>B — Move legs away from the attack</p>
+    <p>C — Recover to a scoring position</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Defense &amp; Striking</h2>
+
+    <h3>Skill 9 — Get Up</h3>
+    <p>A — Protect while grounded</p>
+    <p>B — Build a safe base</p>
+    <p>C — Return to standing position</p>
+
+    <h3>Skill 10 — Guard</h3>
+    <p>A — Protect the head</p>
+    <p>B — Protect the body</p>
+    <p>C — Return to guard after attacking</p>
+
+    <h3>Skill 11 — Strike Defense</h3>
+    <p>A — Recognize the incoming strike</p>
+    <p>B — Block, evade, or redirect</p>
+    <p>C — Recover ready to answer</p>
+
+    <h3>Skill 12 — Basic Combo</h3>
+    <p>A — Connect the first attack</p>
+    <p>B — Flow into the second attack</p>
+    <p>C — Finish balanced and protected</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Wrestling &amp; Ground Control</h2>
+
+    <h3>Skill 13 — Takedown</h3>
+    <p>A — Create the entry</p>
+    <p>B — Control the opponent's base</p>
+    <p>C — Finish into position</p>
+
+    <h3>Skill 14 — Top Control</h3>
+    <p>A — Control hips and posture</p>
+    <p>B — Maintain safe pressure</p>
+    <p>C — Prevent escape</p>
+
+    <h3>Skill 15 — Escape</h3>
+    <p>A — Protect from immediate danger</p>
+    <p>B — Create space</p>
+    <p>C — Recover guard or stand</p>
+
+    <h3>Skill 16 — Pressure</h3>
+    <p>A — Apply position before force</p>
+    <p>B — Maintain balance and control</p>
+    <p>C — Advance without losing position</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Performance &amp; Standard</h2>
+
+    <h3>Skill 17 — Conditioning</h3>
+    <p>A — Maintain effort through the round</p>
+    <p>B — Preserve technical structure</p>
+    <p>C — Finish the assigned work</p>
+
+    <h3>Skill 18 — Recovery</h3>
+    <p>A — Control breathing</p>
+    <p>B — Restore stance and awareness</p>
+    <p>C — Return ready to perform</p>
+
+    <h3>Skill 19 — Sparring Rules</h3>
+    <p>A — Understand permitted contact</p>
+    <p>B — Protect training partners</p>
+    <p>C — Follow the coach's command</p>
+
+    <h3>Skill 20 — Finish Standard</h3>
+    <p>A — Demonstrate complete fundamentals</p>
+    <p>B — Maintain control under pressure</p>
+    <p>C — Finish with discipline</p>
+  </article>
+</section>
+
+<script type="module">
+  import {
+    db,
+    doc,
+    getDoc
+  } from "/assets/js/firebase-init-para.js";
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const athleteId =
+    String(
+      params.get("id") ||
+      params.get("athleteId") ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const pageTier = "T0";
+  const pageDiscipline = "mma";
+
+  const branchHome =
+    "/athletes/arsenal/combat/q2m/mma/index.html";
+
+  function branchUrl() {
+    const out =
+      new URLSearchParams({
+        id: athleteId,
+        discipline: pageDiscipline
+      });
+
+    return `${branchHome}?${out.toString()}`;
+  }
+
+  if (!athleteId) {
+    document.body.innerHTML =
+      "<p>Missing athlete id.</p>";
+
+    throw new Error(
+      "Missing athlete id"
+    );
+  }
+
+  if (athleteId.startsWith("F8_")) {
+    window.location.replace(
+      branchUrl()
+    );
+
+    throw new Error(
+      "Wrong branch for F8 athlete"
+    );
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref =
+        doc(
+          db,
+          "athletes",
+          athleteId
+        );
+
+      const snap =
+        await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML =
+          "<p>Athlete not found.</p>";
+
+        return;
+      }
+
+      const athlete =
+        snap.data() || {};
+
+      const mma =
+        athlete.disciplines?.mma ||
+        athlete;
+
+      if (
+        athlete.active === false ||
+        athlete.rosterStatus === "suspended" ||
+        mma.state === "suspended"
+      ) {
+        document.body.innerHTML =
+          "<p>Account suspended. Please contact your coach.</p>";
+
+        return;
+      }
+
+      const actualTier =
+        String(
+          mma.tier ??
+          mma.tierCode ??
+          mma.currentTier ??
+          athlete.tier ??
+          "T0"
+        )
+          .trim()
+          .toUpperCase();
+
+      if (actualTier !== pageTier) {
+        window.location.replace(
+          branchUrl()
+        );
+      }
+    } catch (err) {
+      console.error(
+        "MMA skill tree guard error:",
+        err
+      );
+
+      document.body.innerHTML =
+        "<p>Unable to verify athlete access.</p>";
+    }
+  }
+
+  guardSkillTreePage();
+</script>

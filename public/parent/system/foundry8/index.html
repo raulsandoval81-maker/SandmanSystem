@@ -123,6 +123,30 @@
         font-size:2.5rem;
       }
     }
+    .future-card{
+  cursor:default;
+  opacity:.58;
+  filter:grayscale(.35);
+}
+
+.future-card:hover{
+  transform:none;
+  border-color:var(--line);
+  box-shadow:none;
+}
+
+.future-label{
+  display:inline-block;
+  margin-top:14px;
+  padding:6px 10px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  color:var(--muted);
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
   </style>
 </head>
 
@@ -130,7 +154,9 @@
 
   <header class="top-nav top-nav-simple">
     <div class="nav-top nav-top-center">
-      <a href="../index.html" class="nav-logo">Sandman Combat™</a>
+      <a href="../index.html" class="nav-logo">
+        Sandman Combat™
+      </a>
     </div>
 
     <nav class="site-nav" aria-label="Primary">
@@ -159,13 +185,18 @@
   <main>
 
     <section class="hero">
-      <div data-lang-block="en">
-        <div class="eyebrow">Foundry 8 · Zero2Hero</div>
 
-        <h1>Youth Wrestling Foundation</h1>
+      <div data-lang-block="en">
+        <div class="eyebrow">
+          Foundry 8 · Zero2Hero
+        </div>
+
+        <h1>
+          Ages 6–13 Progression
+        </h1>
 
         <p>
-          Foundry 8 is the youth foundation of Sandman Combat™. It gives young athletes a clear starting point, a structured path forward, and a training environment built around confidence, discipline, accountability, and earned growth.
+          Foundry 8 is the youth development phase of Sandman Combat™. Athletes progress through the Zero2Hero journey in Wrestling or Kickboxing, building technical skill, confidence, discipline, accountability, and composure through age-appropriate training.
         </p>
 
         <p>
@@ -173,40 +204,104 @@
         </p>
       </div>
 
-      <div data-lang-block="es" class="hidden-lang">
-        <div class="eyebrow">Foundry 8 · Zero2Hero</div>
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <div class="eyebrow">
+          Foundry 8 · Zero2Hero
+        </div>
 
-        <h1>Base De Lucha Juvenil</h1>
+        <h1>
+          Progresión Para Edades De 6 A 13 Años
+        </h1>
 
         <p>
-          Foundry 8 es la base juvenil de Sandman Combat™. Ofrece a los jóvenes atletas un punto de inicio claro, un camino estructurado y un ambiente de entrenamiento basado en confianza, disciplina, responsabilidad y crecimiento ganado.
+          Foundry 8 es la fase de desarrollo juvenil de Sandman Combat™. Los atletas avanzan por el camino Zero2Hero mediante Lucha o Kickboxing, desarrollando habilidad técnica, confianza, disciplina, responsabilidad y compostura con entrenamiento apropiado para su edad.
         </p>
 
         <p>
           Todos comienzan desde cero. Cada paso se gana.
         </p>
       </div>
+
     </section>
 
     <section class="grid">
 
-      <a class="card" href="/foundry8/youth.html">
+      <a class="card" href="/foundry8/wrestling.html">
         <div data-lang-block="en">
-          <h2>Youth Journey</h2>
+          <h2>Wrestling</h2>
 
           <p>
-            Learn how young athletes begin the Zero2Hero journey through wrestling-first development, structured coaching, and age-appropriate challenges.
+            Zero2Hero wrestling focused on movement, position, takedowns, control, confidence, discipline, and earned progression.
           </p>
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
-          <h2>Camino Juvenil</h2>
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Lucha</h2>
 
           <p>
-            Conoce cómo los jóvenes atletas comienzan el camino Zero2Hero mediante desarrollo basado primero en lucha, entrenamiento estructurado y desafíos apropiados para su edad.
+            Lucha Zero2Hero enfocada en movimiento, posición, derribos, control, confianza, disciplina y progreso ganado.
           </p>
         </div>
       </a>
+
+      <a class="card" href="/foundry8/kickboxing.html">
+        <div data-lang-block="en">
+          <h2>Kickboxing</h2>
+
+          <p>
+            Zero2Hero kickboxing focused on stance, movement, striking fundamentals, defense, coordination, confidence, and control.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Kickboxing</h2>
+
+          <p>
+            Kickboxing Zero2Hero enfocado en postura, movimiento, fundamentos de golpeo, defensa, coordinación, confianza y control.
+          </p>
+        </div>
+      </a>
+
+      <div
+        class="card future-card"
+        aria-disabled="true"
+      >
+        <div data-lang-block="en">
+          <h2>Boxing</h2>
+
+          <p>
+            A future Zero2Hero boxing pathway focused on youth footwork, defense, combinations, confidence, coordination, and technical development.
+          </p>
+
+          <span class="future-label">
+            Future
+          </span>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Boxeo</h2>
+
+          <p>
+            Futuro camino juvenil Zero2Hero enfocado en juego de pies, defensa, combinaciones, confianza, coordinación y desarrollo técnico.
+          </p>
+
+          <span class="future-label">
+            Futuro
+          </span>
+        </div>
+      </div>
 
     </section>
 

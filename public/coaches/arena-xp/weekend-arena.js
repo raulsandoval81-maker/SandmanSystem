@@ -454,7 +454,7 @@ function resolveRank(a = {}) {
     const map = {
       T0: "Shadow",
       T1: "Recruit",
-      T2: "Combatant",
+      T2: "Contender",
       T3: "Competitor",
       T4: "Warrior",
       T5: "Champion",
@@ -468,9 +468,10 @@ function resolveRank(a = {}) {
   if (base === "ADULT") {
     const map = {
       T0: "Apprentice",
-      T1: "Champion",
-      T2: "Veteran",
-      T3: "Master"
+      T1: "Warrior",
+      T2: "Champion",
+      T3: "Veteran",
+      T4: "Master"
     };
 
     return map[tier] || "Apprentice";

@@ -437,7 +437,7 @@ function formatJourneyLabel(value = "") {
     zero2hero: "Zero2Hero",
     path2legend: "Path2Legend",
     quest2mastery: "Quest2Mastery",
-    road2greatness: "Road2Greatness"
+    road2greatness: "Path2Legend"
   };
 
   return labels[key] || key || "—";

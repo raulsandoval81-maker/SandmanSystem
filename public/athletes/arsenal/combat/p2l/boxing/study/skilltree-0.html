@@ -1,11 +1,256 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T0</title>
-</head>
-<body>
-<h1>Skill Tree Tier 0</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section
+  class="skilltree-page"
+  data-tier="0"
+  data-track="p2l"
+  data-discipline="boxing"
+>
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 4 • Path2Legend • Boxing</p>
+    <h1>Skill Tree - Tier 0 — Apprentice</h1>
+    <p class="skilltree-sub">20 skills • Foundation + Standardization</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Foundation &amp; Movement</h2>
+
+    <h3>Skill 1 — Stance</h3>
+    <p>A — Balanced base</p>
+    <p>B — Chin protected</p>
+    <p>C — Ready to move</p>
+
+    <h3>Skill 2 — Guard</h3>
+    <p>A — Hands in position</p>
+    <p>B — Elbows protect the body</p>
+    <p>C — Return to guard</p>
+
+    <h3>Skill 3 — Footwork</h3>
+    <p>A — Step without crossing</p>
+    <p>B — Maintain stance</p>
+    <p>C — Control direction</p>
+
+    <h3>Skill 4 — Jab</h3>
+    <p>A — Straight path</p>
+    <p>B — Shoulder protects chin</p>
+    <p>C — Fast return</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Core Offense</h2>
+
+    <h3>Skill 5 — Cross</h3>
+    <p>A — Turn the hip</p>
+    <p>B — Drive through the target</p>
+    <p>C — Recover stance</p>
+
+    <h3>Skill 6 — Hook</h3>
+    <p>A — Elbow aligned</p>
+    <p>B — Rotate the body</p>
+    <p>C — Return to guard</p>
+
+    <h3>Skill 7 — Uppercut</h3>
+    <p>A — Load from position</p>
+    <p>B — Drive upward</p>
+    <p>C — Stay balanced</p>
+
+    <h3>Skill 8 — Defense Shell</h3>
+    <p>A — Cover the head</p>
+    <p>B — Protect the body</p>
+    <p>C — Stay ready to answer</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Defense &amp; Range</h2>
+
+    <h3>Skill 9 — Slip</h3>
+    <p>A — Move off center</p>
+    <p>B — Keep eyes forward</p>
+    <p>C — Return ready</p>
+
+    <h3>Skill 10 — Roll</h3>
+    <p>A — Bend through the legs</p>
+    <p>B — Travel under the punch</p>
+    <p>C — Exit in stance</p>
+
+    <h3>Skill 11 — Parry</h3>
+    <p>A — Small movement</p>
+    <p>B — Redirect the punch</p>
+    <p>C — Keep guard intact</p>
+
+    <h3>Skill 12 — Distance</h3>
+    <p>A — Recognize range</p>
+    <p>B — Enter safely</p>
+    <p>C — Exit under control</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Angles &amp; Combinations</h2>
+
+    <h3>Skill 13 — Angle Step</h3>
+    <p>A — Step off the center line</p>
+    <p>B — Keep stance integrity</p>
+    <p>C — Create a new attack lane</p>
+
+    <h3>Skill 14 — Combination 1</h3>
+    <p>A — Clean first strike</p>
+    <p>B — Connect the second strike</p>
+    <p>C — Finish in guard</p>
+
+    <h3>Skill 15 — Combination 2</h3>
+    <p>A — Maintain rhythm</p>
+    <p>B — Blend punches together</p>
+    <p>C — Exit safely</p>
+
+    <h3>Skill 16 — Heavy Bag</h3>
+    <p>A — Strike with structure</p>
+    <p>B — Maintain movement</p>
+    <p>C — Work through the round</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Application &amp; Standard</h2>
+
+    <h3>Skill 17 — Partner Drill</h3>
+    <p>A — Follow the drill</p>
+    <p>B — Control speed and contact</p>
+    <p>C — Work with discipline</p>
+
+    <h3>Skill 18 — Conditioning</h3>
+    <p>A — Maintain stance under fatigue</p>
+    <p>B — Keep technique clean</p>
+    <p>C — Finish the work</p>
+
+    <h3>Skill 19 — Controlled Sparring</h3>
+    <p>A — Use safe contact</p>
+    <p>B — Apply learned skills</p>
+    <p>C — Stay composed</p>
+
+    <h3>Skill 20 — Finish Standard</h3>
+    <p>A — Show complete fundamentals</p>
+    <p>B — Maintain control and effort</p>
+    <p>C — Finish with discipline</p>
+  </article>
+</section>
+
+<script type="module">
+  import {
+    db,
+    doc,
+    getDoc
+  } from "/assets/js/firebase-init-para.js";
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const athleteId =
+    String(
+      params.get("id") ||
+      params.get("athleteId") ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const pageTier = "T0";
+  const pageDiscipline = "boxing";
+
+  const branchHome =
+    "/athletes/arsenal/combat/p2l/boxing/index.html";
+
+  function branchUrl() {
+    const out =
+      new URLSearchParams({
+        id: athleteId,
+        discipline: pageDiscipline
+      });
+
+    return `${branchHome}?${out.toString()}`;
+  }
+
+  if (!athleteId) {
+    document.body.innerHTML =
+      "<p>Missing athlete id.</p>";
+
+    throw new Error(
+      "Missing athlete id"
+    );
+  }
+
+  if (athleteId.startsWith("F8_")) {
+    window.location.replace(
+      branchUrl()
+    );
+
+    throw new Error(
+      "Wrong branch for F8 athlete"
+    );
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref =
+        doc(
+          db,
+          "athletes",
+          athleteId
+        );
+
+      const snap =
+        await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML =
+          "<p>Athlete not found.</p>";
+
+        return;
+      }
+
+      const athlete =
+        snap.data() || {};
+
+      if (
+        athlete.active === false ||
+        athlete.rosterStatus === "suspended"
+      ) {
+        document.body.innerHTML =
+          "<p>Account suspended. Please contact your coach.</p>";
+
+        return;
+      }
+
+      const boxing =
+        athlete.disciplines?.boxing ||
+        athlete;
+
+      const actualTier =
+        String(
+          boxing.tier ??
+          boxing.tierCode ??
+          boxing.currentTier ??
+          athlete.tier ??
+          "T0"
+        )
+          .trim()
+          .toUpperCase();
+
+      if (actualTier !== pageTier) {
+        window.location.replace(
+          branchUrl()
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Boxing skill tree guard error:",
+        err
+      );
+
+      document.body.innerHTML =
+        "<p>Unable to verify athlete access.</p>";
+    }
+  }
+
+  guardSkillTreePage();
+</script>

@@ -1,11 +1,256 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T1</title>
-</head>
-<body>
-<h1>Skill Tree Tier 1</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section
+  class="skilltree-page"
+  data-tier="1"
+  data-track="p2l"
+  data-discipline="boxing"
+>
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Foundry 4 • Path2Legend • Boxing</p>
+    <h1>Skill Tree - Tier 1 — Warrior</h1>
+    <p class="skilltree-sub">20 skills • Movement + Countering</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Movement &amp; Position</h2>
+
+    <h3>Skill 1 — Ring Movement</h3>
+    <p>A — Move with balance</p>
+    <p>B — Control direction</p>
+    <p>C — Maintain stance</p>
+
+    <h3>Skill 2 — Double Jab</h3>
+    <p>A — First jab creates reaction</p>
+    <p>B — Second jab finds range</p>
+    <p>C — Recover to guard</p>
+
+    <h3>Skill 3 — Counter Jab</h3>
+    <p>A — Read the opening</p>
+    <p>B — Fire on time</p>
+    <p>C — Exit safely</p>
+
+    <h3>Skill 4 — Slip Counter</h3>
+    <p>A — Slip off center</p>
+    <p>B — Answer immediately</p>
+    <p>C — Stay balanced</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Defense &amp; Body Work</h2>
+
+    <h3>Skill 5 — Hook Defense</h3>
+    <p>A — Recognize the hook</p>
+    <p>B — Cover or roll</p>
+    <p>C — Return ready</p>
+
+    <h3>Skill 6 — Body Shot</h3>
+    <p>A — Change level</p>
+    <p>B — Drive through the target</p>
+    <p>C — Protect the head</p>
+
+    <h3>Skill 7 — Body Defense</h3>
+    <p>A — Close the elbow</p>
+    <p>B — Absorb or redirect</p>
+    <p>C — Recover position</p>
+
+    <h3>Skill 8 — Angle Attack</h3>
+    <p>A — Step outside the line</p>
+    <p>B — Create the opening</p>
+    <p>C — Attack from position</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Pressure &amp; Deception</h2>
+
+    <h3>Skill 9 — Pivot</h3>
+    <p>A — Plant with control</p>
+    <p>B — Turn around the opponent</p>
+    <p>C — Exit in stance</p>
+
+    <h3>Skill 10 — Pressure Step</h3>
+    <p>A — Close distance safely</p>
+    <p>B — Keep guard intact</p>
+    <p>C — Force a reaction</p>
+
+    <h3>Skill 11 — Feint</h3>
+    <p>A — Sell the first action</p>
+    <p>B — Read the response</p>
+    <p>C — Attack the opening</p>
+
+    <h3>Skill 12 — Reaction Drill</h3>
+    <p>A — See the cue</p>
+    <p>B — Respond correctly</p>
+    <p>C — Stay composed</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Flow &amp; Work Capacity</h2>
+
+    <h3>Skill 13 — Defense Chain</h3>
+    <p>A — Defend the first attack</p>
+    <p>B — Link the second defense</p>
+    <p>C — Return to offense</p>
+
+    <h3>Skill 14 — Three Punch Flow</h3>
+    <p>A — Connect all three punches</p>
+    <p>B — Maintain rhythm</p>
+    <p>C — Finish in guard</p>
+
+    <h3>Skill 15 — Partner Flow</h3>
+    <p>A — Match the drill</p>
+    <p>B — Maintain control</p>
+    <p>C — Build smooth exchanges</p>
+
+    <h3>Skill 16 — Conditioning Rounds</h3>
+    <p>A — Maintain pace</p>
+    <p>B — Preserve technique</p>
+    <p>C — Finish every round</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Timing &amp; Application</h2>
+
+    <h3>Skill 17 — Timing</h3>
+    <p>A — Recognize the moment</p>
+    <p>B — Fire without delay</p>
+    <p>C — Recover position</p>
+
+    <h3>Skill 18 — Distance Trap</h3>
+    <p>A — Invite the entry</p>
+    <p>B — Control range</p>
+    <p>C — Counter the commitment</p>
+
+    <h3>Skill 19 — Light Sparring</h3>
+    <p>A — Use controlled contact</p>
+    <p>B — Apply tier skills</p>
+    <p>C — Stay calm and aware</p>
+
+    <h3>Skill 20 — Finish Standard</h3>
+    <p>A — Show complete fundamentals</p>
+    <p>B — Maintain control under pressure</p>
+    <p>C — Finish with discipline</p>
+  </article>
+</section>
+
+<script type="module">
+  import {
+    db,
+    doc,
+    getDoc
+  } from "/assets/js/firebase-init-para.js";
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const athleteId =
+    String(
+      params.get("id") ||
+      params.get("athleteId") ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const pageTier = "T1";
+  const pageDiscipline = "boxing";
+
+  const branchHome =
+    "/athletes/arsenal/combat/p2l/boxing/index.html";
+
+  function branchUrl() {
+    const out =
+      new URLSearchParams({
+        id: athleteId,
+        discipline: pageDiscipline
+      });
+
+    return `${branchHome}?${out.toString()}`;
+  }
+
+  if (!athleteId) {
+    document.body.innerHTML =
+      "<p>Missing athlete id.</p>";
+
+    throw new Error(
+      "Missing athlete id"
+    );
+  }
+
+  if (athleteId.startsWith("F8_")) {
+    window.location.replace(
+      branchUrl()
+    );
+
+    throw new Error(
+      "Wrong branch for F8 athlete"
+    );
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref =
+        doc(
+          db,
+          "athletes",
+          athleteId
+        );
+
+      const snap =
+        await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML =
+          "<p>Athlete not found.</p>";
+
+        return;
+      }
+
+      const athlete =
+        snap.data() || {};
+
+      if (
+        athlete.active === false ||
+        athlete.rosterStatus === "suspended"
+      ) {
+        document.body.innerHTML =
+          "<p>Account suspended. Please contact your coach.</p>";
+
+        return;
+      }
+
+      const boxing =
+        athlete.disciplines?.boxing ||
+        athlete;
+
+      const actualTier =
+        String(
+          boxing.tier ??
+          boxing.tierCode ??
+          boxing.currentTier ??
+          athlete.tier ??
+          "T0"
+        )
+          .trim()
+          .toUpperCase();
+
+      if (actualTier !== pageTier) {
+        window.location.replace(
+          branchUrl()
+        );
+      }
+    } catch (err) {
+      console.error(
+        "Boxing skill tree guard error:",
+        err
+      );
+
+      document.body.innerHTML =
+        "<p>Unable to verify athlete access.</p>";
+    }
+  }
+
+  guardSkillTreePage();
+</script>
