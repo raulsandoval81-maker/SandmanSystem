@@ -512,6 +512,150 @@
       }
     }
 
+  
+    /* =========================
+       FINAL CHAT LAYOUT
+       Parent left • Coach right
+    ========================= */
+
+    .thread-box{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      min-height:260px;
+      padding:18px;
+    }
+
+    .msg-group{
+      display:flex !important;
+      flex-direction:column !important;
+      width:100% !important;
+      margin:0 !important;
+    }
+
+    .msg-group.parent{
+      align-items:flex-start !important;
+      text-align:left !important;
+    }
+
+    .msg-group.coach{
+      align-items:flex-end !important;
+      text-align:right !important;
+    }
+
+    .msg-group.parent .group-from{
+      align-self:flex-start !important;
+      text-align:left !important;
+    }
+
+    .msg-group.coach .group-from{
+      align-self:flex-end !important;
+      text-align:right !important;
+    }
+
+    .bubble-wrap{
+      display:flex !important;
+      flex-direction:column !important;
+      width:100% !important;
+      margin:0 !important;
+      gap:4px !important;
+    }
+
+    .msg-group.parent .bubble-wrap{
+      align-items:flex-start !important;
+    }
+
+    .msg-group.coach .bubble-wrap{
+      align-items:flex-end !important;
+    }
+
+    .msg-bubble{
+      width:auto !important;
+      min-width:120px;
+      max-width:68% !important;
+      padding:13px 15px !important;
+      border-radius:16px !important;
+      font-size:.96rem;
+      line-height:1.5;
+      text-align:left !important;
+      box-shadow:0 4px 12px rgba(0,0,0,.22);
+    }
+
+    .msg-group.parent .msg-bubble{
+      background:#183866 !important;
+      border:1px solid #315b91 !important;
+      border-left:4px solid var(--gold) !important;
+      border-bottom-left-radius:5px !important;
+      color:#fff !important;
+    }
+
+    .msg-group.coach .msg-bubble{
+      background:#294e31 !important;
+      border:1px solid #4f7957 !important;
+      border-right:4px solid #7ee787 !important;
+      border-bottom-right-radius:5px !important;
+      color:#fff !important;
+    }
+
+    .group-from{
+      margin:0 0 5px !important;
+      font-size:.72rem !important;
+      font-weight:900 !important;
+      letter-spacing:.07em;
+      text-transform:uppercase;
+    }
+
+    .msg-stamp{
+      margin-top:3px !important;
+      color:var(--muted) !important;
+      font-size:.69rem !important;
+    }
+
+    .reply-box{
+      margin-top:18px !important;
+      border-top:3px solid var(--gold) !important;
+    }
+
+    @media (max-width:620px){
+      .msg-bubble{
+        max-width:84% !important;
+      }
+    }
+    .btn-close-thread{
+  width:100%;
+  margin-top:10px;
+  padding:11px 14px;
+  border:1px solid rgba(255,221,72,.45);
+  border-radius:10px;
+  background:transparent;
+  color:var(--gold);
+  font:inherit;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn-close-thread:hover{
+  background:rgba(255,221,72,.08);
+}
+
+.btn-close-thread:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
+  
+    .thread-note a{
+      color:var(--gold);
+      font-weight:900;
+      text-decoration:underline;
+      text-underline-offset:3px;
+      overflow-wrap:anywhere;
+    }
+
+    .thread-note a:hover{
+      opacity:.88;
+    }
+
   </style>
 </head>
 
@@ -604,6 +748,15 @@
       <span class="es">Enviar Respuesta</span>
     </button>
 
+    <button
+  id="thread-close"
+  class="btn-close-thread"
+  type="button"
+>
+  <span class="en">End Conversation</span>
+  <span class="es">Finalizar Conversación</span>
+</button>
+
     <p
       id="reply-success"
       aria-live="polite"
@@ -617,15 +770,15 @@
       aria-live="assertive"
     ></p>
 
-    <div class="thread-note">
+    <div id="thread-policy-note" class="thread-note">
       <span class="en">
-        This conversation is limited to 6 messages in the app.
-        Future replies must continue by email.
+        Conversation limits and follow-up contact information
+        are set by your academy.
       </span>
 
       <span class="es">
-        Esta conversación está limitada a 6 mensajes en la aplicación.
-        Las respuestas futuras deben continuar por correo electrónico.
+        Los límites de conversación y la información de contacto
+        son establecidos por su academia.
       </span>
     </div>
 
@@ -637,7 +790,7 @@
 
 <script
   type="module"
-  src="/communications/parent/thread.js"
+  src="/communications/parent/thread.js?v=20260715-chat2"
 ></script>
 
 </body>

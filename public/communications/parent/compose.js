@@ -566,6 +566,17 @@ const athleteName =
 const effectiveSubject =
   subject || "Coach Conversation";
 
+const academyId =
+  String(
+    resolvedAthlete.academyId ||
+    resolvedAthlete.organizationId ||
+    resolvedAthlete.gymId ||
+    resolvedAthlete.teamId ||
+    "sandman-main"
+  )
+    .trim()
+    .toLowerCase();
+
 const nextCount =
   currentCount + 1;
 
@@ -577,6 +588,7 @@ try {
       athleteUid,
       athleteName,
       discipline,
+      academyId,
 
       parentUid:
         currentUser?.uid || "",

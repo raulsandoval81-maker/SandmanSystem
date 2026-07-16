@@ -514,6 +514,25 @@ match /interest_leads/{leadId} {
   allow delete: if isAdmin();
 }
 
+/* --------------------------------------
+   Academy Communication Settings
+---------------------------------------*/
+match /academySettings/{academyId} {
+  allow read: if request.auth != null;
+
+  allow create, update: if isCoachOrAdmin()
+    && request.resource.data.academyName is string
+    && request.resource.data.communicationEmail is string
+    && request.resource.data.replyToEmail is string
+    && request.resource.data.phone is string
+    && request.resource.data.messageLimit is int
+    && request.resource.data.messageLimit > 0
+    && request.resource.data.messageLimit <= 20
+    && request.resource.data.allowNewConversationAfterClose is bool
+    && request.resource.data.autoCloseAtLimit is bool;
+
+  allow delete: if isAdmin();
+}
 
     /* --------------------------------------
        DEFAULT CLOSED

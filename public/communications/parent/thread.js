@@ -69,11 +69,12 @@ const getMyAthleteCall =
     "getMyAthlete"
   );
 
-const THREAD_LIMIT_TOTAL = 6;
-const THREAD_LIMIT_PARENT_REPLIES = 5;
+const DEFAULT_THREAD_LIMIT = 6;
 
-const LIMIT_MESSAGE =
-  "This conversation has reached the 6-message app limit. Future replies must continue by email.";
+const closeThreadBtn =
+  document.getElementById(
+    "thread-close"
+  );
 
 const GROUP_WINDOW_MS =
   2 * 60 * 1000;
@@ -159,7 +160,18 @@ let currentMessageCount = 0;
 let threadLocked = false;
 
 let threadRoot = null;
+let activeConversationId = "";
 
+let academySettings = {
+  academyId: "sandman-main",
+  academyName: "Sandman Academy Of Combat",
+  communicationEmail: "contactsandmancombat@gmail.com",
+  replyToEmail: "contactsandmancombat@gmail.com",
+  phone: "",
+  messageLimit: DEFAULT_THREAD_LIMIT,
+  allowNewConversationAfterClose: true,
+  autoCloseAtLimit: true
+};
 /* =========================
    HELPERS
 ========================= */
@@ -366,6 +378,177 @@ async function authorizeParent() {
   }
 }
 
+
+/* =========================
+   ACADEMY SETTINGS
+========================= */
+
+function getThreadLimit() {
+  const parsed =
+    Number(
+      academySettings.messageLimit ||
+      DEFAULT_THREAD_LIMIT
+    );
+
+  if (!Number.isFinite(parsed)) {
+    return DEFAULT_THREAD_LIMIT;
+  }
+
+  return Math.max(
+    1,
+    Math.min(20, Math.trunc(parsed))
+  );
+}
+
+function getCommunicationEmail() {
+  return String(
+    academySettings.communicationEmail ||
+    academySettings.replyToEmail ||
+    ""
+  ).trim();
+}
+
+function getLimitMessage() {
+  const limit =
+    getThreadLimit();
+
+  const email =
+    getCommunicationEmail();
+
+  const isSpanish =
+    document.documentElement.lang === "es";
+
+  if (email) {
+    return isSpanish
+      ? `Esta conversación alcanzó el límite de ${limit} mensajes en la aplicación. Continúe por correo electrónico a ${email}.`
+      : `This conversation has reached the ${limit}-message app limit. Please continue by email at ${email}.`;
+  }
+
+  return isSpanish
+    ? `Esta conversación alcanzó el límite de ${limit} mensajes en la aplicación. Continúe por correo electrónico.`
+    : `This conversation has reached the ${limit}-message app limit. Please continue by email.`;
+}
+
+async function loadAcademySettings(
+  academyId = "sandman-main"
+) {
+  const normalizedAcademyId =
+    String(
+      academyId ||
+      "sandman-main"
+    )
+      .trim()
+      .toLowerCase();
+
+  try {
+    const settingsSnap =
+      await getDoc(
+        doc(
+          db,
+          "academySettings",
+          normalizedAcademyId
+        )
+      );
+
+    if (!settingsSnap.exists()) {
+      console.warn(
+        "[parent-thread] academy settings not found:",
+        normalizedAcademyId
+      );
+
+      return academySettings;
+    }
+
+    academySettings = {
+      ...academySettings,
+      academyId:
+        normalizedAcademyId,
+      ...(settingsSnap.data() || {})
+    };
+
+    console.log(
+      "[parent-thread] academy settings loaded:",
+      academySettings
+    );
+
+    return academySettings;
+  } catch (error) {
+    console.warn(
+      "[parent-thread] academy settings load failed:",
+      error
+    );
+
+    return academySettings;
+  }
+}
+
+function paintPolicyNote() {
+  const note =
+    document.getElementById(
+      "thread-policy-note"
+    );
+
+  if (!note) return;
+
+  const limit =
+    getThreadLimit();
+
+  const email =
+    getCommunicationEmail();
+
+  const isSpanish =
+    document.documentElement.lang === "es";
+
+  note.textContent = "";
+
+  const text =
+    isSpanish
+      ? `Esta conversación está limitada a ${limit} mensajes en la aplicación.`
+      : `This conversation is limited to ${limit} messages in the app.`;
+
+  note.appendChild(
+    document.createTextNode(text)
+  );
+
+  if (!email) {
+    const fallback =
+      isSpanish
+        ? " Después del límite, continúe por correo electrónico."
+        : " After the limit, continue by email.";
+
+    note.appendChild(
+      document.createTextNode(fallback)
+    );
+
+    return;
+  }
+
+  const continuation =
+    isSpanish
+      ? " Después del límite, continúe por correo electrónico a "
+      : " After the limit, continue by email at ";
+
+  note.appendChild(
+    document.createTextNode(
+      continuation
+    )
+  );
+
+  const link =
+    document.createElement("a");
+
+  link.href =
+    `mailto:${email}`;
+
+  link.textContent =
+    email;
+
+  note.appendChild(link);
+  note.appendChild(
+    document.createTextNode(".")
+  );
+}
+
 /* =========================
    LIMIT UI
 ========================= */
@@ -384,8 +567,58 @@ function ensureLimitBanner() {
   banner.id =
     "thread-limit-banner";
 
-  banner.textContent =
-    LIMIT_MESSAGE;
+  banner.textContent = "";
+
+  const limitMessage =
+    getLimitMessage();
+
+  const email =
+    getCommunicationEmail();
+
+  if (
+    email &&
+    limitMessage.includes(email)
+  ) {
+    const parts =
+      limitMessage.split(email);
+
+    banner.appendChild(
+      document.createTextNode(
+        parts[0]
+      )
+    );
+
+    const emailLink =
+      document.createElement("a");
+
+    emailLink.href =
+      `mailto:${email}`;
+
+    emailLink.textContent =
+      email;
+
+    emailLink.style.color =
+      "#ffdd48";
+
+    emailLink.style.fontWeight =
+      "900";
+
+    emailLink.style.textDecoration =
+      "underline";
+
+    banner.appendChild(
+      emailLink
+    );
+
+    banner.appendChild(
+      document.createTextNode(
+        parts.slice(1).join(email)
+      )
+    );
+  } else {
+    banner.textContent =
+      limitMessage;
+  }
 
   banner.style.cssText = `
     background:#1e293b;
@@ -419,7 +652,7 @@ function enforceLimitUI(
 
   threadLocked =
     currentMessageCount >=
-    THREAD_LIMIT_TOTAL;
+    getThreadLimit();
 
   if (replyInput) {
     replyInput.disabled =
@@ -681,6 +914,18 @@ async function loadThreadRoot() {
 
   threadRoot = root;
 
+  await loadAcademySettings(
+    root.academyId ||
+    "sandman-main"
+  );
+
+  paintPolicyNote();
+
+activeConversationId =
+  String(
+    root.activeConversationId || ""
+  ).trim();
+
   if (athleteNameEl) {
     athleteNameEl.textContent =
       root.athleteName ||
@@ -730,7 +975,7 @@ async function listenToMessages(
         "asc"
       ),
       limit(
-        THREAD_LIMIT_TOTAL + 1
+        getThreadLimit() + 1
       )
     );
 
@@ -751,7 +996,7 @@ async function listenToMessages(
         resetGrouping();
 
         messages
-          .slice(0, THREAD_LIMIT_TOTAL)
+          .slice(0, getThreadLimit())
           .forEach(
             appendMessage
           );
@@ -813,7 +1058,71 @@ async function boot() {
 }
 
 await boot();
+async function closeConversation() {
+  if (!threadRoot) return;
 
+  const confirmed =
+    window.confirm(
+      document.documentElement.lang === "es"
+        ? "¿Finalizar esta conversación? Podrá iniciar una nueva conversación después."
+        : "End this conversation? You can start a new conversation afterward."
+    );
+
+  if (!confirmed) return;
+
+  if (closeThreadBtn) {
+    closeThreadBtn.disabled = true;
+  }
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        THREAD_COLLECTION,
+        athleteUid
+      ),
+      {
+        status: "closed",
+        closedAt:
+          serverTimestamp(),
+        updatedAt:
+          serverTimestamp(),
+        parentHasUnread: false,
+        coachHasUnread: false
+      }
+    );
+
+    threadLocked = true;
+
+    if (replyPanel) {
+      replyPanel.hidden = true;
+    }
+
+    window.location.assign(
+      "/parent/messages/index.html"
+    );
+  } catch (error) {
+    console.error(
+      "[parent-thread] close failed:",
+      error
+    );
+
+    showError(
+      document.documentElement.lang === "es"
+        ? "No se pudo finalizar la conversación."
+        : "Unable to end the conversation."
+    );
+
+    if (closeThreadBtn) {
+      closeThreadBtn.disabled = false;
+    }
+  }
+}
+
+closeThreadBtn?.addEventListener(
+  "click",
+  closeConversation
+);
 /* =========================
    SEND
 ========================= */
@@ -839,7 +1148,7 @@ replyBtn?.addEventListener(
     if (
       threadLocked ||
       currentMessageCount >=
-        THREAD_LIMIT_TOTAL
+        getThreadLimit()
     ) {
       enforceLimitUI(
         currentMessageCount
@@ -871,7 +1180,7 @@ replyBtn?.addEventListener(
             "desc"
           ),
           limit(
-            THREAD_LIMIT_TOTAL
+            getThreadLimit()
           )
         );
 
@@ -882,7 +1191,7 @@ replyBtn?.addEventListener(
 
       if (
         countSnapshot.size >=
-        THREAD_LIMIT_TOTAL
+        getThreadLimit()
       ) {
         enforceLimitUI(
           countSnapshot.size
@@ -905,6 +1214,10 @@ replyBtn?.addEventListener(
           "messages"
         ),
         {
+
+          conversationId:
+  activeConversationId,
+  
           from: "parent",
           fromUid:
             auth.currentUser?.uid ||
