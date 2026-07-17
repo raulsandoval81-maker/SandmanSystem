@@ -42,6 +42,59 @@ function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
 }
 
+function normalizeDiscipline(value = "") {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (raw.includes("kickbox")) return "kickboxing";
+  if (raw.includes("wrest")) return "wrestling";
+  if (raw.includes("box")) return "boxing";
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  return raw;
+}
+
+function disciplineLabel(value = "") {
+  const labels = {
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling":
+      "Submission Grappling"
+  };
+
+  const normalized =
+    normalizeDiscipline(value);
+
+  return (
+    labels[normalized] ||
+    normalized
+      .split("-")
+      .filter(Boolean)
+      .map((part) =>
+        part.charAt(0).toUpperCase() +
+        part.slice(1)
+      )
+      .join(" ") ||
+    "Combat"
+  );
+}
+
 // =======================================
 // Exported helper for lane pages
 // =======================================
@@ -666,13 +719,117 @@ if (reviewMode) setAllDrops(true);
     return;
   }
 
-  const a = snap.data();
-console.log("Adult profile loaded", athleteId, a);
-const trackCode = normTrackCode(a);
+  const a = snap.data() || {};
+
+  const disciplineIds = Array.from(
+    new Set(
+      [
+        ...(Array.isArray(a.disciplineIds)
+          ? a.disciplineIds
+          : []),
+
+        ...Object.keys(a.disciplines || {}),
+
+        a.activeDiscipline,
+        a.primaryDiscipline,
+        a.discipline,
+        a.art,
+        a.sport
+      ]
+        .map(normalizeDiscipline)
+        .filter(Boolean)
+    )
+  );
+
+  const urlDiscipline =
+    normalizeDiscipline(
+      params.get("discipline") || ""
+    );
+
+  const storedDiscipline =
+    normalizeDiscipline(
+      localStorage.getItem(
+        `sandman_active_discipline_${athleteId}`
+      ) || ""
+    );
+
+  const preferredDiscipline =
+    normalizeDiscipline(
+      a.activeDiscipline ||
+      a.primaryDiscipline ||
+      a.discipline ||
+      a.art ||
+      a.sport ||
+      ""
+    );
+
+  let activeDiscipline = "";
+
+  if (disciplineIds.length === 1) {
+    activeDiscipline =
+      disciplineIds[0];
+  } else if (
+    urlDiscipline &&
+    disciplineIds.includes(urlDiscipline)
+  ) {
+    activeDiscipline =
+      urlDiscipline;
+  } else if (
+    preferredDiscipline &&
+    disciplineIds.includes(
+      preferredDiscipline
+    )
+  ) {
+    activeDiscipline =
+      preferredDiscipline;
+  } else if (
+    storedDiscipline &&
+    disciplineIds.includes(
+      storedDiscipline
+    )
+  ) {
+    activeDiscipline =
+      storedDiscipline;
+  } else {
+    activeDiscipline =
+      disciplineIds[0] ||
+      "wrestling";
+  }
+
+  const combat =
+    a.disciplines?.[activeDiscipline] ||
+    a;
+
+  localStorage.setItem(
+    "currentAthleteId",
+    athleteId
+  );
+
+  localStorage.setItem(
+    `sandman_active_discipline_${athleteId}`,
+    activeDiscipline
+  );
+
+  console.log(
+    "Adult profile discipline resolved:",
+    {
+      athleteId,
+      disciplineIds,
+      urlDiscipline,
+      storedDiscipline,
+      preferredDiscipline,
+      activeDiscipline,
+      combat
+    }
+  );
+
+  const trackCode =
+    normTrackCode(combat);
   if (
     a.active === false ||
     a.rosterStatus === "suspended" ||
-    a?.discipline?.state === "suspended"
+    combat?.state === "suspended" ||
+    combat?.status === "suspended"
   ) {
     document.body.innerHTML = `
       <main class="wrap" style="padding:40px;text-align:center;">
@@ -714,10 +871,28 @@ const trackCode = normTrackCode(a);
   const cityTxt = (a.city || "").trim();
   const stateTxt = (a.state || "").trim();
 
+  const defaultAcademy =
+    activeDiscipline === "boxing"
+      ? "Academy of Boxing"
+      : activeDiscipline === "kickboxing"
+        ? "Academy of Kickboxing"
+        : activeDiscipline === "mma"
+          ? "Academy of MMA"
+          : activeDiscipline === "submission-grappling"
+            ? "Academy of Submission Grappling"
+            : "Academy of Wrestling";
+
   const academy =
     (a.academy || "").trim() ||
-    (rawTeam && !rawTeam.toLowerCase().startsWith("sandman") ? rawTeam : "") ||
-    "Academy of Wrestling";
+    (
+      rawTeam &&
+      !rawTeam
+        .toLowerCase()
+        .startsWith("sandman")
+        ? rawTeam
+        : ""
+    ) ||
+    defaultAcademy;
 
   safeText("out-team", academy);
 
@@ -750,30 +925,62 @@ const trackCode = normTrackCode(a);
 // -----------------------------
 // Ladder + Journey
 // -----------------------------
-const ladder = getLadderForAthlete(a);
+const ladder =
+  getLadderForAthlete({
+    ...a,
+    ...combat,
+    discipline:
+      activeDiscipline,
+    primaryDiscipline:
+      activeDiscipline
+  });
 
-const journey = String(a.journey || "")
-  .trim()
-  .toLowerCase();
+const journeyRaw =
+  String(
+    combat.journey ||
+    combat.programTrack ||
+    combat.trackCode ||
+    a.journey ||
+    a.programTrack ||
+    a.trackCode ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
 
-let combatArcLabel = "⚔️ Combat · Path 2 Legend";
+const journeyLabel =
+  (
+    activeDiscipline === "mma" ||
+    journeyRaw.includes("q2m") ||
+    journeyRaw.includes("quest2mastery")
+  )
+    ? "Quest 2 Mastery"
+    : "Path 2 Legend";
 
-if (journey === "r2g") {
-  combatArcLabel = "🥊 Combat-Boxing · Path 2 Legend";
-} else if (journey === "q2m") {
-  combatArcLabel = "🥋 Combat-MMA · Quest 2 Mastery";
-}
+const combatArcLabel =
+  `${activeDiscipline === "mma" ? "🥋" :
+     activeDiscipline === "wrestling" ? "🤼" : "🥊"} ` +
+  `Combat-${disciplineLabel(activeDiscipline)} · ${journeyLabel}`;
 
-safeText("combatArcTitle", combatArcLabel);
+safeText(
+  "combatArcTitle",
+  combatArcLabel
+);
 
 let tierNum = 0;
 
-if (typeof a.tier === "number") {
-  tierNum = a.tier;
-} else if (typeof a.tier === "string") {
-  tierNum = Number(a.tier.replace(/[^\d]/g, "")) || 0;
-} else if (typeof a.rank === "string") {
-  tierNum = Number(a.rank.replace(/[^\d]/g, "")) || 0;
+if (typeof combat.tier === "number") {
+  tierNum = combat.tier;
+} else if (typeof combat.tier === "string") {
+  tierNum =
+    Number(
+      combat.tier.replace(/[^\d]/g, "")
+    ) || 0;
+} else if (typeof combat.rank === "string") {
+  tierNum =
+    Number(
+      combat.rank.replace(/[^\d]/g, "")
+    ) || 0;
 }
 
   // -----------------------------
@@ -784,6 +991,9 @@ if (typeof a.tier === "number") {
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
+    combat.xp ??
+    combat.xpTotal ??
+    combat.xpCombat ??
     a.xp ??
     a.xpTotal ??
     a.xpCombat ??
@@ -801,9 +1011,18 @@ if (typeof a.tier === "number") {
   // -----------------------------
   // Stripe info
   // -----------------------------
-  const storedTierNum = getStoredTierNum(a);
-  const storedStripes = getStoredStripes(a);
-  const storedXpCap = getStoredXpCap(a, ladder, storedTierNum);
+  const storedTierNum =
+    getStoredTierNum(combat);
+
+  const storedStripes =
+    getStoredStripes(combat);
+
+  const storedXpCap =
+    getStoredXpCap(
+      combat,
+      ladder,
+      storedTierNum
+    );
 
   const tierInfo = ladder?.[storedTierNum] || {};
   const req = unlockRules({ athlete: a });
@@ -812,15 +1031,15 @@ if (typeof a.tier === "number") {
   // Rank / Color display
   // -----------------------------
   const rankName =
-    a.rankName ||
-    a.tierName ||
-    a.rank ||
+    combat.rankName ||
+    combat.tierName ||
+    combat.rank ||
     tierInfo?.rank ||
     tierInfo?.name ||
     "Apprentice";
 
   const rankColor =
-    a.rankColor ||
+    combat.rankColor ||
     tierInfo?.color ||
     tierInfo?.rankColor ||
     "#ffffff";
@@ -854,11 +1073,22 @@ const BADGES = {
   t4: "f4-adult-master.png"
 };
 
-const currentTier = String(a.tier || "T0").toUpperCase();
+const currentTier =
+  String(
+    combat.tier || "T0"
+  ).toUpperCase();
 
-  const badges = Array.isArray(a.badges) && a.badges.length
-    ? a.badges
-    : [{ tier: a.tier || "T0", rankName }];
+  const badges =
+    Array.isArray(combat.badges) &&
+    combat.badges.length
+      ? combat.badges
+      : [
+          {
+            tier:
+              combat.tier || "T0",
+            rankName
+          }
+        ];
 
   // Past badges only
   const pastBadges = badges.filter(
@@ -881,10 +1111,12 @@ const currentTier = String(a.tier || "T0").toUpperCase();
 
   // Render current badge big
 
-  const currentTierNum = Math.max(
-  0,
-  (Number(String(a.tier || "T1").replace("T", "")) || 1) - 1
-);
+  const currentTierNum =
+    Number(
+      String(
+        combat.tier || "T0"
+      ).replace("T", "")
+    ) || 0;
   const currentFile = BADGES[`t${currentTierNum}`] || BADGES.t0;
   const currentImg = document.createElement("img");
   currentImg.src = `/assets/img/f4/${currentFile}`;
@@ -912,37 +1144,72 @@ const currentTier = String(a.tier || "T0").toUpperCase();
 // ===== NEW BELT RENDER =====
 
 
-function beltColorForAthlete(a = {}, rankName = "") {
-  const journey =
-  String(a.journey || a.program || a.track || "")
-    .trim()
-    .toLowerCase();
+function beltColorForAthlete(
+  discipline = "",
+  rankName = ""
+) {
+  const normalized =
+    normalizeDiscipline(discipline);
 
-  const rank = String(rankName || "").toLowerCase();
+  const rank =
+    String(rankName || "")
+      .trim()
+      .toLowerCase();
 
-const beltSets = {
-  r2g: {
-    apprentice: "belt-r2g-apprentice",
-    warrior: "belt-r2g-warrior",
-    champion: "belt-r2g-champion",
-    veteran: "belt-r2g-veteran",
-    craftsman: "belt-r2g-craftsman"
-  },
+  if (normalized === "mma") {
+    const q2mBelts = {
+      apprentice:
+        "belt-q2m-apprentice",
+      warrior:
+        "belt-q2m-warrior",
+      champion:
+        "belt-q2m-champion",
+      veteran:
+        "belt-q2m-veteran",
+      master:
+        "belt-q2m-master"
+    };
 
-  q2m: {
-    apprentice: "belt-q2m-apprentice",
-    warrior: "belt-q2m-warrior",
-    champion: "belt-q2m-champion",
-    veteran: "belt-q2m-veteran",
-    master: "belt-q2m-master"
+    return (
+      q2mBelts[rank] ||
+      q2mBelts.apprentice
+    );
   }
-};
-  const belts = beltSets[journey] ?? beltSets.r2g;
 
-  return belts[rank] ?? belts.apprentice;
+  const isStriking =
+    normalized === "boxing" ||
+    normalized === "kickboxing";
+
+  const p2lBelts = {
+    apprentice:
+      isStriking
+        ? "belt-p2l-apprentice-gray"
+        : "belt-p2l-apprentice",
+
+    warrior:
+      "belt-p2l-warrior",
+
+    champion:
+      "belt-p2l-champion",
+
+    veteran:
+      "belt-p2l-veteran",
+
+    legend:
+      "belt-p2l-legend"
+  };
+
+  return (
+    p2lBelts[rank] ||
+    p2lBelts.apprentice
+  );
 }
 
-const mappedColor = beltColorForAthlete(a, rankName);
+const mappedColor =
+  beltColorForAthlete(
+    activeDiscipline,
+    rankName
+  );
 safeHTML(
   "rankBar",
   renderDigitalBelt({
@@ -965,7 +1232,7 @@ if (xpEl) {
 applyLaneLocks({
   tierName: rankName,
   stripesEarned: displayStripes,
-  athlete: a,
+  athlete: a
 });
   // -----------------------------
   // Strength / Honor

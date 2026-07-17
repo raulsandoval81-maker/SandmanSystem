@@ -51,6 +51,32 @@ function pct(xp = 0, cap = 1) {
   return Math.max(0, Math.min(100, Math.round((safeXp / safeCap) * 100)));
 }
 
+function normalizeDiscipline(value = "") {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (raw.includes("kickbox")) return "kickboxing";
+  if (raw.includes("wrest")) return "wrestling";
+  if (raw.includes("box")) return "boxing";
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  return raw;
+}
+
 function getStoredTierNum(A) {
   if (typeof A?.tier === "number") return A.tier;
   if (typeof A?.tier === "string") {
@@ -110,36 +136,101 @@ async function load() {
   // Multi-discipline Combat resolver.
   // Identity stays on A. Combat progression comes from combat.
   const disciplineIds = Array.from(
-    new Set([
-      ...(Array.isArray(A.disciplineIds) ? A.disciplineIds : []),
-      ...Object.keys(A.disciplines || {}),
-      A.activeDiscipline,
-      A.primaryDiscipline,
-      A.discipline,
-      A.art
-    ]
-      .map((value) => String(value || "").trim().toLowerCase())
-      .filter(Boolean))
+    new Set(
+      [
+        ...(Array.isArray(A.disciplineIds)
+          ? A.disciplineIds
+          : []),
+
+        ...Object.keys(A.disciplines || {}),
+
+        A.activeDiscipline,
+        A.primaryDiscipline,
+        A.discipline,
+        A.art,
+        A.sport
+      ]
+        .map(normalizeDiscipline)
+        .filter(Boolean)
+    )
   );
 
-  const requestedDiscipline =
-    params.get("discipline") ||
-    localStorage.getItem(`sandman_active_discipline_${id}`);
+  const urlDiscipline =
+    normalizeDiscipline(
+      params.get("discipline") || ""
+    );
 
-  const normalizedRequested =
-    String(requestedDiscipline || "").trim().toLowerCase();
+  const storedDiscipline =
+    normalizeDiscipline(
+      localStorage.getItem(
+        `sandman_active_discipline_${id}`
+      ) || ""
+    );
 
-  const activeDiscipline =
-    normalizedRequested && disciplineIds.includes(normalizedRequested)
-      ? normalizedRequested
-      : String(
-          A.activeDiscipline ||
-          disciplineIds[0] ||
-          A.primaryDiscipline ||
-          A.discipline ||
-          A.art ||
-          "wrestling"
-        ).trim().toLowerCase();
+  const preferredDiscipline =
+    normalizeDiscipline(
+      A.activeDiscipline ||
+      A.primaryDiscipline ||
+      A.discipline ||
+      A.art ||
+      A.sport ||
+      ""
+    );
+
+  let activeDiscipline = "";
+
+  if (disciplineIds.length === 1) {
+    activeDiscipline =
+      disciplineIds[0];
+  } else if (
+    urlDiscipline &&
+    disciplineIds.includes(urlDiscipline)
+  ) {
+    activeDiscipline =
+      urlDiscipline;
+  } else if (
+    preferredDiscipline &&
+    disciplineIds.includes(
+      preferredDiscipline
+    )
+  ) {
+    activeDiscipline =
+      preferredDiscipline;
+  } else if (
+    storedDiscipline &&
+    disciplineIds.includes(
+      storedDiscipline
+    )
+  ) {
+    activeDiscipline =
+      storedDiscipline;
+  } else {
+    activeDiscipline =
+      disciplineIds[0] ||
+      "wrestling";
+  }
+
+  localStorage.setItem(
+    "currentAthleteId",
+    id
+  );
+
+  localStorage.setItem(
+    `sandman_active_discipline_${id}`,
+    activeDiscipline
+  );
+
+  console.log(
+    "Mini profile discipline resolved:",
+    {
+      athleteId: id,
+      urlDiscipline,
+      storedDiscipline,
+      preferredDiscipline,
+      disciplineIds,
+      activeDiscipline
+    }
+  );
 
   const combat =
     A.disciplines?.[activeDiscipline] || A;

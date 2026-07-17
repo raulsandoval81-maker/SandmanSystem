@@ -172,7 +172,11 @@
     ) {
       window.location.replace(
         buildUrl(
-          "/athletes/arsenal/combat/p2l/wrestling/index.html"
+          discipline === "boxing"
+          ? "/athletes/arsenal/combat/p2l/boxing/index.html"
+          : discipline === "mma"
+            ? "/athletes/arsenal/combat/q2m/mma/index.html"
+            : "/athletes/arsenal/combat/p2l/wrestling/index.html"
         )
       );
     } else if (

@@ -236,6 +236,33 @@ function renderBadges(
    PANELS
 ========================= */
 
+function getYouthCombatRoute(
+  discipline = ""
+) {
+  const normalized =
+    normalizeDiscipline(discipline);
+
+  const routes = {
+    wrestling:
+      "/athletes/arsenal/combat/z2h/wrestling/index.html",
+
+    kickboxing:
+      "/athletes/arsenal/combat/z2h/kickboxing/index.html",
+
+    /*
+      Foundry 8 Boxing remains a future pathway.
+      Do not route athletes into an active Boxing Arsenal yet.
+    */
+    boxing: null,
+
+    mma: null,
+
+    "submission-grappling": null
+  };
+
+  return routes[normalized] || null;
+}
+
 function showCombatPanel() {
   if (
     !panelEyebrow ||
@@ -265,18 +292,38 @@ function showCombatPanel() {
 function openCombat() {
   if (!athleteId) return;
 
-  const id =
-    encodeURIComponent(athleteId);
-
-  const discipline =
-    encodeURIComponent(
+  const route =
+    getYouthCombatRoute(
       activeDiscipline
     );
 
+  if (!route) {
+    console.warn(
+      "Youth Combat Arsenal unavailable:",
+      {
+        athleteId,
+        activeDiscipline
+      }
+    );
+
+    renderEmpty(
+      `${disciplineLabel(activeDiscipline)} is not available yet.`
+    );
+
+    return;
+  }
+
+  const query =
+    new URLSearchParams();
+
+  query.set("id", athleteId);
+  query.set(
+    "discipline",
+    activeDiscipline
+  );
+
   window.location.href =
-    `/athletes/arsenal/combat/youth/` +
-    `?id=${id}` +
-    `&discipline=${discipline}`;
+    `${route}?${query.toString()}`;
 }
 
 function openStrength() {

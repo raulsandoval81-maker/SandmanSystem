@@ -115,8 +115,13 @@ function activityLaneLabel(item = {}) {
 }
 
 function renderActivityItem(item = {}) {
-  const amount =
-    Number(item.amount || 0);
+const amount =
+  Number(
+    item.amount ??
+    item.delta ??
+    item.xp ??
+    0
+  );
 
   const sign =
     amount > 0 ? "+" : "";

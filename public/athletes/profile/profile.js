@@ -37,6 +37,32 @@ function clamp(n, a, b) {
   return Math.max(a, Math.min(b, n));
 }
 
+function normalizeDiscipline(value = "") {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (raw.includes("kickbox")) return "kickboxing";
+  if (raw.includes("wrest")) return "wrestling";
+  if (raw.includes("box")) return "boxing";
+
+  if (
+    raw === "mma" ||
+    raw.includes("mixed martial")
+  ) {
+    return "mma";
+  }
+
+  if (
+    raw.includes("submission") ||
+    raw.includes("grappling")
+  ) {
+    return "submission-grappling";
+  }
+
+  return raw;
+}
+
 // =======================================
 // Exported helper for lane pages
 // =======================================
@@ -668,34 +694,61 @@ const a = snap.data();
 // Multi-discipline Combat resolver.
 // Shared athlete data continues to come from `a`.
 const disciplineIds = Array.from(
-  new Set([
-    ...(Array.isArray(a.disciplineIds) ? a.disciplineIds : []),
-    ...Object.keys(a.disciplines || {})
-  ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))
+  new Set(
+    [
+      ...(Array.isArray(a.disciplineIds)
+        ? a.disciplineIds
+        : []),
+
+      ...Object.keys(a.disciplines || {}),
+
+      a.activeDiscipline,
+      a.primaryDiscipline,
+      a.discipline,
+      a.art,
+      a.sport
+    ]
+      .map(normalizeDiscipline)
+      .filter(Boolean)
+  )
 );
 
 const requestedDiscipline =
-  params.get("discipline") ||
-  localStorage.getItem(`sandman_active_discipline_${athleteId}`);
+  normalizeDiscipline(
+    params.get("discipline") ||
+    localStorage.getItem(
+      `sandman_active_discipline_${athleteId}`
+    ) ||
+    ""
+  );
+
+const preferredDiscipline =
+  normalizeDiscipline(
+    a.activeDiscipline ||
+    a.primaryDiscipline ||
+    a.discipline ||
+    a.art ||
+    a.sport ||
+    ""
+  );
 
 const activeDiscipline =
-  String(
-    (
-      requestedDiscipline &&
-      disciplineIds.includes(
-        String(requestedDiscipline).trim().toLowerCase()
+  disciplineIds.length === 1
+    ? disciplineIds[0]
+    : (
+        requestedDiscipline &&
+        disciplineIds.includes(requestedDiscipline)
       )
-    )
-      ? requestedDiscipline
-      : (
-          a.activeDiscipline ||
-          disciplineIds[0] ||
-          a.primaryDiscipline ||
-          a.discipline ||
-          a.art ||
-          "wrestling"
-        )
-  ).trim().toLowerCase();
+        ? requestedDiscipline
+        : (
+            preferredDiscipline &&
+            disciplineIds.includes(preferredDiscipline)
+          )
+            ? preferredDiscipline
+            : (
+                disciplineIds[0] ||
+                "wrestling"
+              );
 
 const combat =
   a.disciplines?.[activeDiscipline] || a;
@@ -784,23 +837,60 @@ const art = String(
   "wrestling"
 ).toLowerCase();
 
-let combatArcLabel = "⚔️ Combat-Wrestling · Path 2 Legend";
+const journeyRaw =
+  String(
+    combat.journey ||
+    combat.programTrack ||
+    combat.trackCode ||
+    a.journey ||
+    a.programTrack ||
+    a.trackCode ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+let journeyLabel = "Path 2 Legend";
+
+if (
+  journeyRaw.includes("q2m") ||
+  journeyRaw.includes("quest2mastery")
+) {
+  journeyLabel = "Quest 2 Mastery";
+} else if (
+  journeyRaw.includes("z2h") ||
+  journeyRaw.includes("zero2hero")
+) {
+  journeyLabel = "Zero 2 Hero";
+}
+
+let combatArcLabel =
+  `⚔️ Combat-Wrestling · ${journeyLabel}`;
 
 switch (art) {
   case "boxing":
-    combatArcLabel = "🥊 Combat-Boxing · Path 2 Legend";
+    combatArcLabel =
+      `🥊 Combat-Boxing · ${journeyLabel}`;
     break;
 
   case "kickboxing":
-    combatArcLabel = "🥊 Combat-Kickboxing · Path 2 Legend";
+    combatArcLabel =
+      `🥊 Combat-Kickboxing · ${journeyLabel}`;
+    break;
+
+  case "mma":
+    combatArcLabel =
+      `🥋 Combat-MMA · ${journeyLabel}`;
     break;
 
   case "submission-grappling":
-    combatArcLabel = "🤼 Combat-Submission Grappling · Path 2 Legend";
+    combatArcLabel =
+      `🤼 Combat-Submission Grappling · ${journeyLabel}`;
     break;
 
   default:
-    combatArcLabel = "⚔️ Combat-Wrestling · Path 2 Legend";
+    combatArcLabel =
+      `⚔️ Combat-Wrestling · ${journeyLabel}`;
     break;
 }
 

@@ -56,18 +56,19 @@ const DISCIPLINE_ROUTES = {
   },
 
   boxing: {
+    // Foundry 8 boxing remains a future pathway.
     youth: null,
-    teen: "/athletes/arsenal/combat/p2l/wrestling/index.html"
+    teen: "/athletes/arsenal/combat/p2l/boxing/index.html"
   },
 
   kickboxing: {
-    youth: "/athletes/arsenal/combat/z2h/wrestling/index.html",
+    youth: "/athletes/arsenal/combat/z2h/kickboxing/index.html",
     teen: null
   },
 
   mma: {
     youth: null,
-    teen: "/athletes/arsenal/combat/p2l/wrestling/index.html"
+    teen: "/athletes/arsenal/combat/q2m/mma/index.html"
   },
 
   "submission-grappling": {
@@ -76,6 +77,44 @@ const DISCIPLINE_ROUTES = {
   }
 };
 
+
+function getAthleteAgeGroup(athlete = {}) {
+  const profileType = String(
+    athlete.profileType ||
+    athlete.foundry ||
+    athlete.programType ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (
+    athleteId.startsWith("F8_") ||
+    profileType.includes("f8") ||
+    profileType.includes("foundry8") ||
+    profileType.includes("youth")
+  ) {
+    return "youth";
+  }
+
+  return "teen";
+}
+
+function getDisciplineRoute(
+  athlete = {},
+  discipline = ""
+) {
+  const normalized =
+    normalizeDiscipline(discipline);
+
+  const ageGroup =
+    getAthleteAgeGroup(athlete);
+
+  return (
+    DISCIPLINE_ROUTES[normalized]?.[ageGroup] ||
+    null
+  );
+}
 
 function disciplineIdsOf(athlete = {}) {
   return Array.from(
@@ -292,20 +331,25 @@ async function loadCombatUnlocks() {
   const athlete =
     athleteSnap.data() || {};
 
-  activeDiscipline =
-    resolveActiveDiscipline(
-      athlete,
-      params.get("discipline") ||
-      localStorage.getItem(
-        `sandman_active_discipline_${athleteId}`
-      )
+  const athleteDisciplines =
+    disciplineIdsOf(athlete);
+
+  const requestedDiscipline =
+    params.get("discipline");
+
+  const storedDiscipline =
+    localStorage.getItem(
+      `sandman_active_discipline_${athleteId}`
     );
 
-  const combat =
-    combatForDiscipline(
-      athlete,
-      activeDiscipline
-    );
+  activeDiscipline =
+    athleteDisciplines.length === 1
+      ? athleteDisciplines[0]
+      : resolveActiveDiscipline(
+          athlete,
+          requestedDiscipline ||
+          storedDiscipline
+        );
 
   localStorage.setItem(
     "currentAthleteId",
@@ -316,6 +360,79 @@ async function loadCombatUnlocks() {
     `sandman_active_discipline_${athleteId}`,
     activeDiscipline
   );
+
+const disciplineRoute =
+  getDisciplineRoute(
+    athlete,
+    activeDiscipline
+  );
+
+if (!disciplineRoute) {
+  console.warn(
+    "No Combat Arsenal route available:",
+    {
+      athleteId,
+      activeDiscipline,
+      ageGroup:
+        getAthleteAgeGroup(athlete)
+    }
+  );
+
+  lockCard(
+    "card-v0",
+    `${activeDiscipline} Combat Arsenal is not available yet.`
+  );
+
+  lockCard(
+    "card-v2",
+    `${activeDiscipline} Combat Arsenal is not available yet.`
+  );
+
+  return;
+}
+
+const currentPath =
+  window.location.pathname.replace(
+    /\/+$/,
+    ""
+  );
+
+const targetPath =
+  disciplineRoute.replace(
+    /\/+$/,
+    ""
+  );
+
+if (currentPath !== targetPath) {
+  window.location.replace(
+    withContext(disciplineRoute)
+  );
+
+  return;
+}
+
+/*
+  Everything below this point belongs only
+  to legacy Wrestling ShadowTrainer content.
+*/
+if (activeDiscipline !== "wrestling") {
+  console.log(
+    "Sport-specific Combat Arsenal loaded:",
+    {
+      athleteId,
+      activeDiscipline,
+      disciplineRoute
+    }
+  );
+
+  return;
+}
+
+  const combat =
+    combatForDiscipline(
+      athlete,
+      activeDiscipline
+    );
 
   const stripe =
     getStripeCount(combat);
@@ -335,20 +452,6 @@ async function loadCombatUnlocks() {
     Existing ShadowTrainer content is wrestling-specific.
     Never expose these links to boxing, kickboxing, or MMA.
   */
-  if (activeDiscipline !== "wrestling") {
-    lockCard(
-      "card-v0",
-      `${activeDiscipline} Combat Arsenal is being prepared.`
-    );
-
-    lockCard(
-      "card-v2",
-      `${activeDiscipline} Combat Arsenal is being prepared.`
-    );
-
-    return;
-  }
-
   // Youth Wrestling begins at V0.
   if (athleteId.startsWith("F8_")) {
     unlockCard(

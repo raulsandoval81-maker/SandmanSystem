@@ -1,762 +1,117 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-
+  <meta charset="utf-8">
   <meta
     name="viewport"
     content="width=device-width,initial-scale=1"
-  />
-
-  <title>Youth Combat Tree</title>
-
-  <link
-    rel="stylesheet"
-    href="/athletes/arsenal/combat/combat.css"
-  />
-
-  <link rel="icon" href="data:," />
-
-  <style>
-    :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --line:#27304a;
-      --gold:#ffdd48;
-      --text:#f0f4f8;
-      --muted:#9aa4b1;
-    }
-
-    *{
-      box-sizing:border-box;
-    }
-
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-
-    .wrap{
-      max-width:980px;
-      margin:0 auto;
-      padding:24px 16px 72px;
-    }
-
-    .header{
-      display:flex;
-      justify-content:flex-start;
-      margin-bottom:12px;
-    }
-
-    .back-btn{
-      padding:9px 13px;
-      border:1px solid var(--line);
-      border-radius:9px;
-      background:#1d2a4a;
-      color:var(--text);
-      font:inherit;
-      font-weight:800;
-      cursor:pointer;
-    }
-
-    .back-btn:hover{
-      border-color:var(--gold);
-    }
-
-    .hero{
-      padding:18px 20px;
-      margin-bottom:14px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:var(--panel);
-      text-align:center;
-    }
-
-    .hero h1{
-      margin:0;
-      color:var(--gold);
-      font-size:clamp(1.25rem,4vw,2rem);
-      text-transform:uppercase;
-      letter-spacing:.05em;
-    }
-
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-      gap:14px;
-    }
-
-    .tier-card{
-      position:relative;
-      padding:16px;
-      border:1px solid var(--line);
-      border-top:4px solid;
-      border-radius:14px;
-      background:var(--panel);
-      transition:.2s ease;
-    }
-
-    .tier-card:hover{
-      transform:translateY(-2px);
-    }
-
-    .tier-card.locked{
-      opacity:.55;
-    }
-
-    .tier-card[hidden]{
-      display:none;
-    }
-
-    .tier-card.current-tier{
-      box-shadow:
-        0 0 0 2px rgba(255,221,72,.35),
-        0 12px 28px rgba(0,0,0,.28);
-    }
-
-    .tier-card.current-tier::before{
-      content:"CURRENT TIER";
-      display:inline-block;
-      margin-bottom:10px;
-      padding:4px 8px;
-      border-radius:999px;
-      background:var(--gold);
-      color:#111;
-      font-size:.68rem;
-      font-weight:900;
-      letter-spacing:.08em;
-    }
-
-    .tier-card.next-tier::before{
-      content:"NEXT TIER";
-      display:inline-block;
-      margin-bottom:10px;
-      padding:4px 8px;
-      border:1px solid var(--line);
-      border-radius:999px;
-      color:var(--muted);
-      font-size:.68rem;
-      font-weight:900;
-      letter-spacing:.08em;
-    }
-
-    .tier-rank{
-      margin-bottom:4px;
-      font-size:1.1rem;
-      font-weight:900;
-    }
-
-    .tier-num{
-      margin-bottom:6px;
-      font-size:.85rem;
-      opacity:.7;
-    }
-
-    .tier-desc{
-      margin-bottom:12px;
-      font-size:.92rem;
-      line-height:1.4;
-      opacity:.85;
-    }
-
-    .actions{
-      display:flex;
-      gap:8px;
-    }
-
-    .btn{
-      flex:1;
-      padding:8px;
-      border:none;
-      border-radius:8px;
-      font-size:.85rem;
-      font-weight:800;
-      text-align:center;
-      text-decoration:none;
-      cursor:pointer;
-    }
-
-    .btn-train{
-      background:var(--gold);
-      color:#111;
-    }
-
-    .btn-study{
-      border:1px solid var(--line);
-      background:#1d2a4a;
-      color:var(--text);
-    }
-
-    .shadow{
-      border-top-color:#d8dbe2;
-    }
-
-    .recruit{
-      border-top-color:#f1c84a;
-    }
-
-    .combatant{
-      border-top-color:#e38b2c;
-    }
-
-    .competitor{
-      border-top-color:#4bb36a;
-    }
-
-    .warrior{
-      border-top-color:#4a7ff1;
-    }
-
-    .champion{
-      border-top-color:#8a58d6;
-    }
-
-    .commander{
-      border-top-color:#8c5a3c;
-    }
-
-    .hero-tier{
-      border-top-color:#d4af37;
-      background:#000;
-      color:#d4af37;
-    }
-
-    #tier-lock-modal{
-      position:fixed;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      padding:18px;
-      background:rgba(0,0,0,.7);
-      z-index:999;
-    }
-
-    .tier-lock-box{
-      width:min(360px,100%);
-      padding:20px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:var(--panel);
-      text-align:center;
-    }
-
-    .tier-lock-box h3{
-      margin:0 0 10px;
-      color:var(--gold);
-    }
-
-    .tier-lock-box p{
-      color:var(--muted);
-    }
-
-    .tier-lock-close{
-      margin-top:14px;
-      padding:8px 12px;
-      border:1px solid var(--line);
-      border-radius:8px;
-      background:#1d2a4a;
-      color:var(--text);
-      cursor:pointer;
-    }
-  </style>
+  >
+  <title>Redirecting…</title>
+  <meta name="robots" content="noindex">
 </head>
-
 <body>
+  <p>Redirecting to the current Combat Arsenal…</p>
 
-<div class="wrap">
-
-  <header class="header">
-    <button
-      id="backBtn"
-      class="back-btn"
-      type="button"
-    >
-      ← Back
-    </button>
-  </header>
-
-  <header class="hero">
-    <h1 class="title">
-      Zero to Hero — Combat Skills Tree
-    </h1>
-  </header>
-
-  <section class="grid">
-
-    <article
-      class="tier-card shadow"
-      data-tier="T0"
-    >
-      <div class="tier-rank">Shadow</div>
-      <div class="tier-num">Tier 0</div>
-
-      <p class="tier-desc">
-        Build movement, body awareness, stance, control,
-        and first identity in your discipline.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t0.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-0.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card recruit"
-      data-tier="T1"
-    >
-      <div class="tier-rank">Recruit</div>
-      <div class="tier-num">Tier 1</div>
-
-      <p class="tier-desc">
-        Develop simple reactions and first chains under movement.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t1.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-1.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card combatant"
-      data-tier="T2"
-    >
-      <div class="tier-rank">Contender</div>
-      <div class="tier-num">Tier 2</div>
-
-      <p class="tier-desc">
-        Build pressure and repeat clean action.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t2.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-2.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card competitor"
-      data-tier="T3"
-    >
-      <div class="tier-rank">Competitor</div>
-      <div class="tier-num">Tier 3</div>
-
-      <p class="tier-desc">
-        Perform under pressure and compete with intent.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t3.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-3.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card warrior"
-      data-tier="T4"
-    >
-      <div class="tier-rank">Warrior</div>
-      <div class="tier-num">Tier 4</div>
-
-      <p class="tier-desc">
-        Perform with control and confidence.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t4.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-4.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card champion"
-      data-tier="T5"
-    >
-      <div class="tier-rank">Champion</div>
-      <div class="tier-num">Tier 5</div>
-
-      <p class="tier-desc">
-        Sharpen execution and finish with discipline.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t5.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-5.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card commander"
-      data-tier="T6"
-    >
-      <div class="tier-rank">Commander</div>
-      <div class="tier-num">Tier 6</div>
-
-      <p class="tier-desc">
-        Lead the room and control the contest.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t6.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-6.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-    <article
-      class="tier-card hero-tier"
-      data-tier="T7"
-    >
-      <div class="tier-rank">Hero</div>
-      <div class="tier-num">Tier 7</div>
-
-      <p class="tier-desc">
-        Represent the system with discipline and identity.
-      </p>
-
-      <div class="actions">
-        <a
-          class="btn btn-train"
-          href="/athletes/arsenal/combat/youth/train/t7.html"
-        >
-          Train
-        </a>
-
-        <a
-          class="btn btn-study"
-          href="/athletes/arsenal/combat/youth/study/skilltree-7.html"
-        >
-          Skill Tree
-        </a>
-      </div>
-    </article>
-
-  </section>
-
-  <div id="tier-lock-modal">
-    <div class="tier-lock-box">
-      <h3>Locked</h3>
-
-      <p id="tier-lock-message"></p>
-
-      <button
-        class="tier-lock-close"
-        type="button"
-        onclick="closeTierLock()"
-      >
-        Close
-      </button>
-    </div>
-  </div>
-
-</div>
-
-<script>
-  const tierMessages = {
-    T1: "Earn it through your daily grind.",
-    T2: "Build the habits first.",
-    T3: "Control before power.",
-    T4: "Stay sharp under pressure.",
-    T5: "Execution matters now.",
-    T6: "Lead with discipline.",
-    T7: "You’ve earned it."
-  };
-
-  function openTierLock(tier) {
-    const message =
-      document.getElementById(
-        "tier-lock-message"
+  <script>
+    const params =
+      new URLSearchParams(
+        window.location.search
       );
 
-    const modal =
-      document.getElementById(
-        "tier-lock-modal"
+    const athleteId = String(
+      params.get("athleteId") ||
+      params.get("id") ||
+      localStorage.getItem(
+        "currentAthleteId"
+      ) ||
+      sessionStorage.getItem(
+        "currentAthleteId"
+      ) ||
+      ""
+    )
+      .trim()
+      .toUpperCase();
+
+    function normalizeDiscipline(
+      value = ""
+    ) {
+      const raw =
+        String(value || "")
+          .trim()
+          .toLowerCase();
+
+      if (raw.includes("kickbox")) {
+        return "kickboxing";
+      }
+
+      if (raw.includes("wrest")) {
+        return "wrestling";
+      }
+
+      if (
+        raw === "mma" ||
+        raw.includes("mixed martial")
+      ) {
+        return "mma";
+      }
+
+      if (raw.includes("box")) {
+        return "boxing";
+      }
+
+      return raw;
+    }
+
+    const routes = {
+      "wrestling": "/athletes/arsenal/combat/z2h/wrestling/index.html",
+      "kickboxing": "/athletes/arsenal/combat/z2h/kickboxing/index.html",
+      "boxing": "/athletes/arsenal/combat/z2h/boxing/index.html"
+    };
+
+    const requestedDiscipline =
+      normalizeDiscipline(
+        params.get("discipline") ||
+        localStorage.getItem(
+          `sandman_active_discipline_${athleteId}`
+        ) ||
+        ""
       );
 
-    if (message) {
-      message.textContent =
-        tierMessages[tier] ||
-        "Locked.";
-    }
+    const discipline =
+      routes[requestedDiscipline]
+        ? requestedDiscipline
+        : "wrestling";
 
-    if (modal) {
-      modal.style.display =
-        "flex";
-    }
-  }
+    const target =
+      routes[discipline];
 
-  function closeTierLock() {
-    const modal =
-      document.getElementById(
-        "tier-lock-modal"
+    if (athleteId) {
+      localStorage.setItem(
+        "currentAthleteId",
+        athleteId
       );
 
-    if (modal) {
-      modal.style.display =
-        "none";
-    }
-  }
-</script>
-
-<script type="module">
-  import {
-    lockTierView
-  } from "/assets/js/combat-lock.js";
-
-  const params =
-    new URLSearchParams(
-      window.location.search
-    );
-
-  const athleteId = String(
-    params.get("athleteId") ||
-    params.get("id") ||
-    localStorage.getItem("currentAthleteId") ||
-    sessionStorage.getItem("currentAthleteId") ||
-    ""
-  )
-    .trim()
-    .toUpperCase();
-
-  const discipline =
-    params.get("discipline") ||
-    localStorage.getItem(
-      `sandman_active_discipline_${athleteId}`
-    ) ||
-    "";
-
-  if (!athleteId) {
-    throw new Error(
-      "Missing athlete ID"
-    );
-  }
-
-  function buildUrl(base) {
-    const out =
-      new URLSearchParams();
-
-    out.set("id", athleteId);
-
-    if (discipline) {
-      out.set(
-        "discipline",
+      localStorage.setItem(
+        `sandman_active_discipline_${athleteId}`,
         discipline
       );
     }
 
-    return `${base}?${out.toString()}`;
-  }
+    const out =
+      new URLSearchParams();
 
-  function showCurrentAndNextTier() {
-    const cards =
-      Array.from(
-        document.querySelectorAll(
-          ".tier-card"
-        )
-      );
-
-    if (!cards.length) {
-      return;
+    if (athleteId) {
+      out.set("id", athleteId);
     }
 
-    /*
-      lockTierView unlocks the athlete's current tier
-      and all earlier tiers.
-
-      The highest unlocked card is therefore the
-      athlete's current tier.
-    */
-    let currentIndex = -1;
-
-    cards.forEach((card, index) => {
-      if (
-        !card.classList.contains(
-          "locked"
-        )
-      ) {
-        currentIndex = index;
-      }
-    });
-
-    if (currentIndex < 0) {
-      currentIndex = 0;
-    }
-
-    const nextIndex =
-      currentIndex < cards.length - 1
-        ? currentIndex + 1
-        : -1;
-
-    cards.forEach((card, index) => {
-      const shouldShow =
-        index === currentIndex ||
-        index === nextIndex;
-
-      card.hidden =
-        !shouldShow;
-
-      card.classList.toggle(
-        "current-tier",
-        index === currentIndex
-      );
-
-      card.classList.toggle(
-        "next-tier",
-        index === nextIndex
-      );
-    });
-  }
-
-  const backBtn =
-    document.getElementById(
-      "backBtn"
+    out.set(
+      "discipline",
+      discipline
     );
 
-  if (backBtn) {
-    backBtn.addEventListener(
-      "click",
-      () => {
-        window.location.href =
-          buildUrl(
-            "/athletes/arsenal/mini-arsenal.html"
-          );
-      }
-    );
-  }
-
-  if (athleteId.startsWith("F4_")) {
     window.location.replace(
-      buildUrl(
-        "/athletes/arsenal/combat/teen/index.html"
-      )
+      `${target}?${out.toString()}`
     );
-
-    throw new Error(
-      "F4 redirected to teen Combat"
-    );
-  }
-
-  document
-    .querySelectorAll(
-      ".actions a"
-    )
-    .forEach((link) => {
-      const href =
-        link.getAttribute(
-          "href"
-        ) || "";
-
-      link.setAttribute(
-        "href",
-        buildUrl(href)
-      );
-    });
-
-  await lockTierView(athleteId);
-
-  showCurrentAndNextTier();
-
-  document
-    .querySelectorAll(
-      ".tier-card.locked"
-    )
-    .forEach((card) => {
-      const tier =
-        card.dataset.tier;
-
-      card
-        .querySelectorAll("a")
-        .forEach((link) => {
-          link.addEventListener(
-            "click",
-            (event) => {
-              event.preventDefault();
-              openTierLock(tier);
-            }
-          );
-        });
-    });
-</script>
-
+  </script>
 </body>
 </html>

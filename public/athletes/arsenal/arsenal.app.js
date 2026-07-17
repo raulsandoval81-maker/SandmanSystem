@@ -343,18 +343,84 @@ async function loadUnlocks() {
     const athlete =
       athleteSnap.data() || {};
 
-    const requestedDiscipline =
-      params.get("discipline") ||
-      localStorage.getItem(
-        `sandman_active_discipline_${athleteId}`
-      ) ||
-      "";
-
-    const activeDiscipline =
-      resolveActiveDiscipline(
-        athlete,
-        requestedDiscipline
+    const urlDiscipline =
+      normalizeDiscipline(
+        params.get("discipline") || ""
       );
+
+    const storedDiscipline =
+      normalizeDiscipline(
+        localStorage.getItem(
+          `sandman_active_discipline_${athleteId}`
+        ) || ""
+      );
+
+    const athleteDisciplines =
+      disciplineIdsOf(athlete);
+
+    const preferredDiscipline =
+      normalizeDiscipline(
+        athlete.activeDiscipline ||
+        athlete.primaryDiscipline ||
+        athlete.discipline ||
+        athlete.art ||
+        athlete.sport ||
+        ""
+      );
+
+    let activeDiscipline = "";
+
+    /*
+      Routing priority:
+
+      1. A single registered discipline is authoritative.
+      2. An explicit URL discipline is allowed when registered.
+      3. The athlete's preferred discipline.
+      4. Stored browser choice for multi-discipline athletes.
+      5. First registered discipline.
+    */
+    if (athleteDisciplines.length === 1) {
+      activeDiscipline =
+        athleteDisciplines[0];
+    } else if (
+      urlDiscipline &&
+      athleteDisciplines.includes(urlDiscipline)
+    ) {
+      activeDiscipline =
+        urlDiscipline;
+    } else if (
+      preferredDiscipline &&
+      athleteDisciplines.includes(
+        preferredDiscipline
+      )
+    ) {
+      activeDiscipline =
+        preferredDiscipline;
+    } else if (
+      storedDiscipline &&
+      athleteDisciplines.includes(
+        storedDiscipline
+      )
+    ) {
+      activeDiscipline =
+        storedDiscipline;
+    } else {
+      activeDiscipline =
+        athleteDisciplines[0] ||
+        "wrestling";
+    }
+
+    console.log(
+      "Arsenal discipline resolved:",
+      {
+        athleteId,
+        urlDiscipline,
+        storedDiscipline,
+        preferredDiscipline,
+        athleteDisciplines,
+        activeDiscipline
+      }
+    );
 
     const combat =
       combatForDiscipline(
