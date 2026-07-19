@@ -8,11 +8,11 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Connect | Sandman Combat Academy</title>
+  <title>Start Your Journey | Sandman Combat Academy</title>
 
   <meta
     name="description"
-    content="Join the Sandman Combat Academy interest list."
+    content="Connect with Sandman Combat Academy and request information about available programs."
   />
 
   <link
@@ -20,15 +20,121 @@
     href="/assets/css/site.css"
   />
 
-<link
-  rel="stylesheet"
-  href="./interest.css"
-/>
+  <link
+    rel="stylesheet"
+    href="./interest.css"
+  />
+
+  <style>
+    .language-switcher {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .language-btn {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      font-size: 0.85rem;
+      font-weight: 700;
+      padding: 8px 14px;
+      transition:
+        background 160ms ease,
+        border-color 160ms ease,
+        transform 160ms ease;
+    }
+
+    .language-btn:hover {
+      transform: translateY(-1px);
+      border-color: rgba(250, 204, 21, 0.55);
+    }
+
+    .language-btn[aria-pressed="true"] {
+      background: #facc15;
+      border-color: #facc15;
+      color: #111;
+    }
+
+    [data-lang] {
+      display: none;
+    }
+
+    html[lang="en"] [data-lang="en"],
+    html[lang="es"] [data-lang="es"] {
+      display: initial;
+    }
+
+    html[lang="en"] option[data-lang="en"],
+    html[lang="es"] option[data-lang="es"] {
+      display: block;
+    }
+
+    html[lang="en"] option[data-lang="es"],
+    html[lang="es"] option[data-lang="en"] {
+      display: none;
+    }
+
+    .intent-notice {
+      display: none;
+      margin-bottom: 24px;
+      border: 1px solid rgba(250, 204, 21, 0.25);
+      border-radius: 14px;
+      background: rgba(250, 204, 21, 0.08);
+      padding: 18px;
+    }
+
+    .intent-notice p {
+      margin: 0.5rem 0 0;
+    }
+
+    .required-note {
+      margin-top: 12px;
+      opacity: 0.72;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    .connect-footer a::before {
+      content: "← ";
+    }
+  </style>
 </head>
 
 <body>
   <main class="connect-page">
     <section class="connect-shell">
+
+      <div
+        class="language-switcher"
+        role="group"
+        aria-label="Language selection"
+      >
+        <button
+          id="languageEnglish"
+          class="language-btn"
+          type="button"
+          data-set-language="en"
+          aria-pressed="true"
+        >
+          English
+        </button>
+
+        <button
+          id="languageSpanish"
+          class="language-btn"
+          type="button"
+          data-set-language="es"
+          aria-pressed="false"
+        >
+          Español
+        </button>
+      </div>
 
       <header class="connect-hero">
         <p class="eyebrow">
@@ -36,47 +142,83 @@
         </p>
 
         <h1>
-          Connect With Us
+          <span data-lang="en">
+            Start Your Journey
+          </span>
+
+          <span data-lang="es">
+            Comienza Tu Camino
+          </span>
         </h1>
 
         <p class="hero-copy">
-          Tell us a little about your athlete or family.
-          A Sandman coach will review your information,
-          schedule an Academy Introduction, and send your
-          appointment details by email.
+          <span data-lang="en">
+            We would love to learn more about you and your
+            family. Complete the form below, and a Sandman
+            coach will personally review your information,
+            answer your questions, and help you find the
+            program that is right for you.
+          </span>
+
+          <span data-lang="es">
+            Nos gustaría conocer más sobre ti y tu familia.
+            Completa el formulario y un entrenador de Sandman
+            revisará personalmente tu información, responderá
+            tus preguntas y te ayudará a encontrar el programa
+            adecuado para ti.
+          </span>
         </p>
       </header>
 
       <div
         id="intentNotice"
-        class="form-section"
-        style="
-          margin-bottom:24px;
-          border:1px solid rgba(250,204,21,.25);
-          background:rgba(250,204,21,.08);
-          border-radius:14px;
-          padding:18px;
-          display:none;
-        "
+        class="form-section intent-notice"
       >
-        <strong>Selected Membership</strong>
-        <p id="intentText" style="margin:.5rem 0 0;"></p>
-      </div>
+        <strong>
+          <span data-lang="en">
+            Selected Program
+          </span>
 
+          <span data-lang="es">
+            Programa Seleccionado
+          </span>
+        </strong>
+
+        <p id="intentText"></p>
+      </div>
 
       <form
         id="interestForm"
         class="interest-form"
         novalidate
       >
+        <input
+          id="preferredLanguage"
+          name="preferredLanguage"
+          type="hidden"
+          value="en"
+        />
+
         <section class="form-section">
           <h2>
-            Parent or Guardian
+            <span data-lang="en">
+              Parent or Guardian
+            </span>
+
+            <span data-lang="es">
+              Padre, Madre o Tutor
+            </span>
           </h2>
 
           <div class="field">
             <label for="parentName">
-              Parent or Guardian Name
+              <span data-lang="en">
+                Parent or Guardian Name
+              </span>
+
+              <span data-lang="es">
+                Nombre del Padre, Madre o Tutor
+              </span>
             </label>
 
             <input
@@ -91,25 +233,44 @@
 
         <section class="form-section">
           <h2>
-            Athlete Information
+            <span data-lang="en">
+              Athlete
+            </span>
+
+            <span data-lang="es">
+              Atleta
+            </span>
           </h2>
 
           <div class="field">
             <label for="athleteName">
-              Athlete Name
+              <span data-lang="en">
+                Athlete Name
+              </span>
+
+              <span data-lang="es">
+                Nombre del Atleta
+              </span>
             </label>
 
             <input
               id="athleteName"
               name="athleteName"
               type="text"
+              autocomplete="name"
               required
             />
           </div>
 
           <div class="field">
             <label for="athleteAge">
-              Athlete Age
+              <span data-lang="en">
+                Athlete Age
+              </span>
+
+              <span data-lang="es">
+                Edad del Atleta
+              </span>
             </label>
 
             <input
@@ -126,12 +287,24 @@
 
         <section class="form-section">
           <h2>
-            Contact Information
+            <span data-lang="en">
+              Contact Details
+            </span>
+
+            <span data-lang="es">
+              Información de Contacto
+            </span>
           </h2>
 
           <div class="field">
             <label for="phone">
-              Phone Number
+              <span data-lang="en">
+                Phone Number
+              </span>
+
+              <span data-lang="es">
+                Número de Teléfono
+              </span>
             </label>
 
             <input
@@ -146,7 +319,13 @@
 
           <div class="field">
             <label for="email">
-              Email Address
+              <span data-lang="en">
+                Email Address
+              </span>
+
+              <span data-lang="es">
+                Correo Electrónico
+              </span>
             </label>
 
             <input
@@ -161,7 +340,13 @@
 
           <div class="field">
             <label for="city">
-              City
+              <span data-lang="en">
+                City
+              </span>
+
+              <span data-lang="es">
+                Ciudad
+              </span>
             </label>
 
             <input
@@ -173,15 +358,26 @@
           </div>
         </section>
 
-
         <section class="form-section">
           <h2>
-            Preferred Academy Location
+            <span data-lang="en">
+              Academy Preferences
+            </span>
+
+            <span data-lang="es">
+              Preferencias de la Academia
+            </span>
           </h2>
 
           <div class="field">
             <label for="preferredLocation">
-              Where would you prefer to meet?
+              <span data-lang="en">
+                Where would you prefer to meet?
+              </span>
+
+              <span data-lang="es">
+                ¿Dónde prefieres reunirte?
+              </span>
             </label>
 
             <select
@@ -189,8 +385,18 @@
               name="preferredLocation"
               required
             >
-              <option value="">
+              <option
+                value=""
+                data-lang="en"
+              >
                 Select a location
+              </option>
+
+              <option
+                value=""
+                data-lang="es"
+              >
+                Selecciona una ubicación
               </option>
 
               <option value="lompoc">
@@ -201,21 +407,31 @@
                 Solvang
               </option>
 
-              <option value="either">
+              <option
+                value="either"
+                data-lang="en"
+              >
                 Either Location
+              </option>
+
+              <option
+                value="either"
+                data-lang="es"
+              >
+                Cualquiera de las Dos
               </option>
             </select>
           </div>
-        </section>
-
-        <section class="form-section">
-          <h2>
-            Preferred Meeting Availability
-          </h2>
 
           <div class="field">
             <label for="preferredMeetingWindow">
-              Best time to meet
+              <span data-lang="en">
+                What is the best time to meet?
+              </span>
+
+              <span data-lang="es">
+                ¿Cuál es el mejor horario para reunirse?
+              </span>
             </label>
 
             <select
@@ -223,42 +439,113 @@
               name="preferredMeetingWindow"
               required
             >
-              <option value="">
+              <option
+                value=""
+                data-lang="en"
+              >
                 Select one
               </option>
 
-              <option value="weekday-afternoon">
+              <option
+                value=""
+                data-lang="es"
+              >
+                Selecciona una opción
+              </option>
+
+              <option
+                value="weekday-afternoon"
+                data-lang="en"
+              >
                 Weekday Afternoon (2:00 PM – 6:00 PM)
               </option>
 
-              <option value="weekday-evening">
+              <option
+                value="weekday-afternoon"
+                data-lang="es"
+              >
+                Tarde Entre Semana (2:00 PM – 6:00 PM)
+              </option>
+
+              <option
+                value="weekday-evening"
+                data-lang="en"
+              >
                 Weekday Evening (5:00 PM – 9:00 PM)
               </option>
 
-              <option value="saturday-morning">
+              <option
+                value="weekday-evening"
+                data-lang="es"
+              >
+                Noche Entre Semana (5:00 PM – 9:00 PM)
+              </option>
+
+              <option
+                value="saturday-morning"
+                data-lang="en"
+              >
                 Saturday Morning (8:00 AM – 12:00 PM)
               </option>
 
-              <option value="saturday-afternoon">
+              <option
+                value="saturday-morning"
+                data-lang="es"
+              >
+                Sábado por la Mañana (8:00 AM – 12:00 PM)
+              </option>
+
+              <option
+                value="saturday-afternoon"
+                data-lang="en"
+              >
                 Saturday Afternoon (12:00 PM – 4:00 PM)
               </option>
 
-              <option value="flexible">
+              <option
+                value="saturday-afternoon"
+                data-lang="es"
+              >
+                Sábado por la Tarde (12:00 PM – 4:00 PM)
+              </option>
+
+              <option
+                value="flexible"
+                data-lang="en"
+              >
                 Flexible
+              </option>
+
+              <option
+                value="flexible"
+                data-lang="es"
+              >
+                Horario Flexible
               </option>
             </select>
           </div>
         </section>
 
-
         <section class="form-section">
           <h2>
-            Program Interest
+            <span data-lang="en">
+              Program Interest
+            </span>
+
+            <span data-lang="es">
+              Programa de Interés
+            </span>
           </h2>
 
           <div class="field">
             <label for="programInterest">
-              Which program interests you?
+              <span data-lang="en">
+                Which program would you like to learn more about?
+              </span>
+
+              <span data-lang="es">
+                ¿Sobre qué programa te gustaría recibir más información?
+              </span>
             </label>
 
             <select
@@ -266,28 +553,102 @@
               name="programInterest"
               required
             >
-              <option value="">
+              <option
+                value=""
+                data-lang="en"
+              >
                 Select a program
               </option>
 
-              <option value="z2h-wrestling">
+              <option
+                value=""
+                data-lang="es"
+              >
+                Selecciona un programa
+              </option>
+
+              <option
+                value="z2h-wrestling"
+                data-lang="en"
+              >
                 Zero2Hero Wrestling · Ages 6–13
               </option>
 
-              <option value="z2h-kickboxing">
+              <option
+                value="z2h-wrestling"
+                data-lang="es"
+              >
+                Zero2Hero Lucha · Edades 6–13
+              </option>
+
+              <option
+                value="z2h-kickboxing"
+                data-lang="en"
+              >
                 Zero2Hero Kickboxing · Ages 6–13
               </option>
 
-              <option value="p2l-wrestling">
+              <option
+                value="z2h-kickboxing"
+                data-lang="es"
+              >
+                Zero2Hero Kickboxing · Edades 6–13
+              </option>
+
+              <option
+                value="p2l-wrestling"
+                data-lang="en"
+              >
                 Path2Legend Wrestling · Ages 14+
               </option>
 
-              <option value="p2l-boxing">
+              <option
+                value="p2l-wrestling"
+                data-lang="es"
+              >
+                Path2Legend Lucha · Edades 14+
+              </option>
+
+              <option
+                value="p2l-boxing"
+                data-lang="en"
+              >
                 Path2Legend Boxing · Ages 14+
               </option>
 
-              <option value="learning-more">
+              <option
+                value="p2l-boxing"
+                data-lang="es"
+              >
+                Path2Legend Boxeo · Edades 14+
+              </option>
+
+              <option
+  value="hiit-fit"
+  data-lang="en"
+>
+  HIIT Fit · Everyday Fitness · Ages 12+
+</option>
+
+<option
+  value="hiit-fit"
+  data-lang="es"
+>
+  HIIT Fit · Acondicionamiento Físico · Edades 12+
+</option>
+
+              <option
+                value="learning-more"
+                data-lang="en"
+              >
                 Just Learning More
+              </option>
+
+              <option
+                value="learning-more"
+                data-lang="es"
+              >
+                Solo Quiero Más Información
               </option>
             </select>
           </div>
@@ -295,12 +656,24 @@
 
         <section class="form-section">
           <h2>
-            Experience
+            <span data-lang="en">
+              Experience
+            </span>
+
+            <span data-lang="es">
+              Experiencia
+            </span>
           </h2>
 
           <div class="field">
             <label for="experience">
-              Current experience level
+              <span data-lang="en">
+                What best describes the athlete's experience?
+              </span>
+
+              <span data-lang="es">
+                ¿Qué opción describe mejor la experiencia del atleta?
+              </span>
             </label>
 
             <select
@@ -308,20 +681,60 @@
               name="experience"
               required
             >
-              <option value="">
+              <option
+                value=""
+                data-lang="en"
+              >
                 Select experience level
               </option>
 
-              <option value="brand-new">
+              <option
+                value=""
+                data-lang="es"
+              >
+                Selecciona el nivel de experiencia
+              </option>
+
+              <option
+                value="brand-new"
+                data-lang="en"
+              >
                 Brand New
               </option>
 
-              <option value="some-experience">
+              <option
+                value="brand-new"
+                data-lang="es"
+              >
+                Sin Experiencia
+              </option>
+
+              <option
+                value="some-experience"
+                data-lang="en"
+              >
                 Some Experience
               </option>
 
-              <option value="experienced-competitor">
+              <option
+                value="some-experience"
+                data-lang="es"
+              >
+                Algo de Experiencia
+              </option>
+
+              <option
+                value="experienced-competitor"
+                data-lang="en"
+              >
                 Experienced Competitor
+              </option>
+
+              <option
+                value="experienced-competitor"
+                data-lang="es"
+              >
+                Competidor con Experiencia
               </option>
             </select>
           </div>
@@ -329,12 +742,24 @@
 
         <section class="form-section">
           <h2>
-            Referral
+            <span data-lang="en">
+              How Did You Hear About Us?
+            </span>
+
+            <span data-lang="es">
+              ¿Cómo Supiste de Nosotros?
+            </span>
           </h2>
 
           <div class="field">
             <label for="referralSource">
-              How did you hear about us?
+              <span data-lang="en">
+                Select the option that best applies
+              </span>
+
+              <span data-lang="es">
+                Selecciona la opción que corresponda
+              </span>
             </label>
 
             <select
@@ -342,36 +767,116 @@
               name="referralSource"
               required
             >
-              <option value="">
+              <option
+                value=""
+                data-lang="en"
+              >
                 Select one
               </option>
 
-              <option value="tournament">
+              <option
+                value=""
+                data-lang="es"
+              >
+                Selecciona una opción
+              </option>
+
+              <option
+                value="tournament"
+                data-lang="en"
+              >
                 Tournament or Event
               </option>
 
-              <option value="friend-family">
+              <option
+                value="tournament"
+                data-lang="es"
+              >
+                Torneo o Evento
+              </option>
+
+              <option
+                value="friend-family"
+                data-lang="en"
+              >
                 Friend or Family
               </option>
 
-              <option value="school">
+              <option
+                value="friend-family"
+                data-lang="es"
+              >
+                Amigo o Familiar
+              </option>
+
+              <option
+                value="school"
+                data-lang="en"
+              >
                 School
               </option>
 
-              <option value="social-media">
+              <option
+                value="school"
+                data-lang="es"
+              >
+                Escuela
+              </option>
+
+              <option
+                value="social-media"
+                data-lang="en"
+              >
                 Social Media
               </option>
 
-              <option value="website">
+              <option
+                value="social-media"
+                data-lang="es"
+              >
+                Redes Sociales
+              </option>
+
+              <option
+                value="website"
+                data-lang="en"
+              >
                 Website
               </option>
 
-              <option value="flyer">
+              <option
+                value="website"
+                data-lang="es"
+              >
+                Sitio Web
+              </option>
+
+              <option
+                value="flyer"
+                data-lang="en"
+              >
                 Flyer or QR Code
               </option>
 
-              <option value="other">
+              <option
+                value="flyer"
+                data-lang="es"
+              >
+                Volante o Código QR
+              </option>
+
+              <option
+                value="other"
+                data-lang="en"
+              >
                 Other
+              </option>
+
+              <option
+                value="other"
+                data-lang="es"
+              >
+                Otro
               </option>
             </select>
           </div>
@@ -379,14 +884,35 @@
 
         <section class="form-section">
           <h2>
-            Additional Notes
+            <span data-lang="en">
+              Anything Else?
+            </span>
+
+            <span data-lang="es">
+              ¿Algo Más?
+            </span>
           </h2>
 
           <div class="field">
             <label for="notes">
-              Anything you would like us to know?
+              <span data-lang="en">
+                Is there anything you would like us to know
+                before we contact you?
+              </span>
+
+              <span data-lang="es">
+                ¿Hay algo que te gustaría que supiéramos antes
+                de comunicarnos contigo?
+              </span>
+
               <span class="optional">
-                Optional
+                <span data-lang="en">
+                  Optional
+                </span>
+
+                <span data-lang="es">
+                  Opcional
+                </span>
               </span>
             </label>
 
@@ -411,34 +937,189 @@
           class="submit-btn"
           type="submit"
         >
-          Connect With Us
+          <span data-lang="en">
+            Request Information
+          </span>
+
+          <span data-lang="es">
+            Solicitar Información
+          </span>
         </button>
 
         <p class="privacy-note">
-          By submitting this form, you agree that a Sandman
-          coach may contact you to answer questions, schedule
-          your Academy Introduction, discuss programs, and
-          guide you through enrollment if you choose to move
-          forward.
+          <span data-lang="en">
+            By submitting this form, you authorize a Sandman
+            coach to contact you about our programs, answer
+            your questions, and help determine the best path
+            for you or your athlete. There is no obligation
+            to enroll.
+          </span>
+
+          <span data-lang="es">
+            Al enviar este formulario, autorizas a un entrenador
+            de Sandman a comunicarse contigo sobre nuestros
+            programas, responder tus preguntas y ayudarte a
+            determinar el mejor camino para ti o tu atleta.
+            No existe ninguna obligación de inscribirse.
+          </span>
+        </p>
+
+        <p class="required-note">
+          <span data-lang="en">
+            All required information is used only to respond
+            to your request and guide the Academy introduction.
+          </span>
+
+          <span data-lang="es">
+            La información requerida se utiliza únicamente
+            para responder a tu solicitud y guiar la
+            introducción a la Academia.
+          </span>
         </p>
       </form>
 
       <footer class="connect-footer">
         <a href="/">
-          Return to Sandman Combat
+          <span data-lang="en">
+            Return to Sandman Combat
+          </span>
+
+          <span data-lang="es">
+            Volver a Sandman Combat
+          </span>
         </a>
 
         <p>
-         Combat = Character
+          <span data-lang="en">
+            Combat = Character
+          </span>
+
+          <span data-lang="es">
+            Combate = Carácter
+          </span>
         </p>
       </footer>
 
     </section>
   </main>
 
-<script
-  type="module"
-  src="./interest.js"
-></script>
+  <script
+    type="module"
+    src="./interest.js"
+  ></script>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const languageInput =
+        document.getElementById("preferredLanguage");
+
+      const languageButtons = Array.from(
+        document.querySelectorAll("[data-set-language]")
+      );
+
+      const bilingualSelects = Array.from(
+        document.querySelectorAll("select")
+      );
+
+      function updateSelectOptions(language) {
+        bilingualSelects.forEach((select) => {
+          const selectedValue = select.value;
+
+          Array.from(select.options).forEach((option) => {
+            const optionLanguage =
+              option.dataset.lang;
+
+            if (!optionLanguage) {
+              option.hidden = false;
+              option.disabled = false;
+              return;
+            }
+
+            const isActive =
+              optionLanguage === language;
+
+            option.hidden = !isActive;
+            option.disabled = !isActive;
+          });
+
+          const matchingOption = Array.from(
+            select.options
+          ).find((option) => {
+            return (
+              !option.disabled &&
+              option.value === selectedValue
+            );
+          });
+
+          if (matchingOption) {
+            select.value = selectedValue;
+            return;
+          }
+
+          select.value = "";
+        });
+      }
+
+      function setLanguage(language) {
+        const safeLanguage =
+          language === "es" ? "es" : "en";
+
+        root.lang = safeLanguage;
+
+        if (languageInput) {
+          languageInput.value = safeLanguage;
+        }
+
+        languageButtons.forEach((button) => {
+          const isActive =
+            button.dataset.setLanguage === safeLanguage;
+
+          button.setAttribute(
+            "aria-pressed",
+            String(isActive)
+          );
+        });
+
+        updateSelectOptions(safeLanguage);
+
+        try {
+          localStorage.setItem(
+            "sandmanPublicLanguage",
+            safeLanguage
+          );
+        } catch (error) {
+          console.warn(
+            "Could not save language preference.",
+            error
+          );
+        }
+      }
+
+      languageButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          setLanguage(
+            button.dataset.setLanguage
+          );
+        });
+      });
+
+      let savedLanguage = "en";
+
+      try {
+        savedLanguage =
+          localStorage.getItem(
+            "sandmanPublicLanguage"
+          ) || "en";
+      } catch (error) {
+        console.warn(
+          "Could not read language preference.",
+          error
+        );
+      }
+
+      setLanguage(savedLanguage);
+    })();
+  </script>
 </body>
 </html>

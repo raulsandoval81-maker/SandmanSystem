@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Path2Legend Boxing | Sandman Combat™</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../parent.css" />
+
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  img{
+    max-width:100%;
+    height:auto;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:1050px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    padding:48px 30px;
+    margin-bottom:28px;
+
+    background:linear-gradient(to bottom,#1f2937,#111827);
+
+    border:1px solid #263244;
+    border-radius:24px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+  }
+
+  body.day-mode .hero{
+    background:linear-gradient(to bottom,#ffffff,#f3e7cf);
+    border-color:#d7c7a2;
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    margin-bottom:10px;
+    color:var(--heading-accent);
+    font-size:.78rem;
+    font-weight:800;
+    letter-spacing:.16em;
+    text-transform:uppercase;
+  }
+
+  h1{
+    margin:0 0 12px;
+    color:var(--heading);
+    font-size:clamp(2.5rem,5vw,4.5rem);
+    line-height:1;
+  }
+
+  .journey{
+    margin:0 0 20px;
+    color:var(--heading-accent);
+    font-size:1.1rem;
+    font-weight:800;
+  }
+
+  .lead{
+    max-width:780px;
+    margin:0 0 14px;
+    color:var(--hero-muted);
+    font-size:1.05rem;
+    line-height:1.75;
+  }
+
+  /* ===== Journey Poster ===== */
+
+  .journey-visual{
+    width:100%;
+    margin:32px 0;
+
+    overflow:hidden;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+    border-radius:22px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.30);
+  }
+
+  body.day-mode .journey-visual{
+    background:#ffffff;
+    border-color:#d7c7a2;
+  }
+
+  .journey-visual img{
+    display:block;
+    width:100%;
+    max-width:100%;
+    height:auto;
+    object-fit:contain;
+  }
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+    gap:18px;
+    margin-top:28px;
+  }
+
+  .card{
+    padding:22px;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+  }
+
+  body.day-mode .card{
+    background:#ffffff;
+    border-color:#d7c7a2;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card h2,
+  .card h3{
+    margin:0 0 10px;
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .card h2,
+  body.day-mode .card h3{
+    color:var(--heading);
+  }
+
+  .card p,
+  .card li{
+    color:var(--muted);
+    line-height:1.65;
+  }
+
+  .card ul{
+    margin:0;
+    padding-left:18px;
+  }
+
+  .pillar-label{
+    display:block;
+    margin-bottom:6px;
+    color:var(--heading);
+    font-weight:900;
+  }
+
+  .quote{
+    margin-top:30px;
+    padding:24px;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+    border-left:4px solid var(--heading-accent);
+    border-radius:16px;
+
+    color:var(--text);
+    font-size:1.04rem;
+    line-height:1.8;
+  }
+
+  body.day-mode .quote{
+    background:#ffffff;
+    border-color:#d7c7a2;
+  }
+
+  .quote strong{
+    display:block;
+    color:var(--heading);
+    font-size:1.2rem;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  /* ===== Tablet ===== */
+
+  @media (max-width:768px){
+
+    main{
+      padding:32px 16px 72px;
+    }
+
+    .hero{
+      padding:38px 24px;
+    }
+
+    .journey-visual{
+      margin:24px 0;
+      border-radius:18px;
+    }
+
+  }
+
+  /* ===== Phone ===== */
+
+  @media (max-width:640px){
+
+    main{
+      padding:24px 14px 64px;
+    }
+
+    .hero{
+      padding:30px 18px;
+      border-radius:18px;
+    }
+
+    h1{
+      font-size:2.3rem;
+    }
+
+    .journey-visual{
+      margin:20px 0;
+      border-radius:14px;
+    }
+
+    .grid{
+      grid-template-columns:1fr;
+    }
+
+  }
+
+  /* ==========================
+     Training Gallery
+     ========================== */
+
+  .gallery{
+    margin-top:34px;
+  }
+
+  .gallery-heading{
+    margin:0 0 18px;
+    color:var(--heading);
+    font-size:clamp(1.6rem,3vw,2.25rem);
+  }
+
+  .gallery-grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+  }
+
+  .gallery-grid figure{
+    margin:0;
+    overflow:hidden;
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:18px;
+    box-shadow:0 12px 28px rgba(0,0,0,.24);
+  }
+
+  body.day-mode .gallery-grid figure{
+    background:#ffffff;
+    border-color:#d7c7a2;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .gallery-grid img{
+    display:block;
+    width:100%;
+    aspect-ratio:4 / 3;
+    object-fit:cover;
+  }
+
+  @media (max-width:640px){
+    .gallery-grid{
+      grid-template-columns:1fr;
+    }
+
+    .gallery-grid figure{
+      border-radius:14px;
+    }
+  }
+
+</style>
+</head>
+
+<body>
+
+  <header class="top-nav top-nav-simple">
+    <div class="nav-top nav-top-center">
+      <a
+        href="../index.html"
+        class="nav-logo"
+      >
+        Sandman Combat™
+      </a>
+    </div>
+
+  </header>
+
+  <main>
+
+<section
+  class="journey-visual"
+  aria-label="Path2Legend Boxing Journey"
+>
+  <img
+    src="../assets/images/journeys/path2legendstriking.png"
+    alt="Path2Legend Boxing journey from Apprentice to Legend"
+  />
+</section>
+    
+    <section class="grid">
+
+      <article class="card">
+
+        <div data-lang-block="en">
+
+          <h2>
+            The Journey
+          </h2>
+
+          <ul>
+            <li>Structured technical development</li>
+            <li>Footwork, defense, combinations, and ringcraft</li>
+            <li>Coach-guided advancement</li>
+            <li>Progress earned through consistent work</li>
+            <li>Long-term development from Apprentice to Legend</li>
+          </ul>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <h2>
+            El Camino
+          </h2>
+
+          <ul>
+            <li>Desarrollo técnico estructurado</li>
+            <li>Juego de pies, defensa, combinaciones y dominio del ring</li>
+            <li>Avance guiado por el coach</li>
+            <li>Progreso ganado mediante trabajo constante</li>
+            <li>Desarrollo a largo plazo de Aprendiz a Leyenda</li>
+          </ul>
+
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+
+          <h2>
+            Three Pillars
+          </h2>
+
+          <p>
+            <span class="pillar-label">
+              Combat
+            </span>
+
+            Boxing technique, tactics, ring intelligence, and competition readiness.
+          </p>
+
+          <p>
+            <span class="pillar-label">
+              Strength
+            </span>
+
+            Athletic development, conditioning, durability, and physical confidence.
+          </p>
+
+          <p>
+            <span class="pillar-label">
+              Honor
+            </span>
+
+            Discipline, accountability, respect, character, and leadership.
+          </p>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <h2>
+            Tres Pilares
+          </h2>
+
+          <p>
+            <span class="pillar-label">
+              Combate
+            </span>
+
+            Técnica de boxeo, táctica, inteligencia en el ring y preparación competitiva.
+          </p>
+
+          <p>
+            <span class="pillar-label">
+              Fuerza
+            </span>
+
+            Desarrollo atlético, acondicionamiento, resistencia y confianza física.
+          </p>
+
+          <p>
+            <span class="pillar-label">
+              Honor
+            </span>
+
+            Disciplina, responsabilidad, respeto, carácter y liderazgo.
+          </p>
+
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+
+          <h2>
+            The Standard
+          </h2>
+
+          <p>
+            Skill matters, but character matters more. Every athlete is expected to train with purpose, remain coachable, protect training partners, and earn every step forward.
+          </p>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <h2>
+            El Estándar
+          </h2>
+
+          <p>
+            La habilidad importa, pero el carácter importa más. Se espera que cada atleta entrene con propósito, acepte la enseñanza, proteja a sus compañeros y gane cada paso hacia adelante.
+          </p>
+
+        </div>
+
+      </article>
+
+    </section>
+
+    
+    <section class="gallery">
+
+      <div data-lang-block="en">
+        <h2>Training Gallery</h2>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <h2>Galería de Entrenamiento</h2>
+      </div>
+
+      <div class="gallery-grid">
+
+        <img src="../assets/images/foundry4/boxing/01.jpg" alt="">
+        <img src="../assets/images/foundry4/boxing/02.jpg" alt="">
+        <img src="../assets/images/foundry4/boxing/03.jpg" alt="">
+        <img src="../assets/images/foundry4/boxing/04.jpg" alt="">
+
+      </div>
+
+    </section>
+
+
+    <!-- Training Gallery -->
+
+    <section class="gallery">
+
+      <div data-lang-block="en">
+        <h2 class="gallery-heading">
+          Boxing Training Gallery
+        </h2>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <h2 class="gallery-heading">
+          Galería de Entrenamiento de Boxeo
+        </h2>
+      </div>
+
+      <div class="gallery-grid">
+
+        <figure>
+          <img
+            src="../assets/images/foundry4/boxing/boxing-01.jpg"
+            alt="Path2Legend boxing training"
+            loading="lazy"
+          />
+        </figure>
+
+        <figure>
+          <img
+            src="../assets/images/foundry4/boxing/boxing-02.jpg"
+            alt="Path2Legend boxing practice"
+            loading="lazy"
+          />
+        </figure>
+
+        <figure>
+          <img
+            src="../assets/images/foundry4/boxing/boxing-03.jpg"
+            alt="Path2Legend boxing drill"
+            loading="lazy"
+          />
+        </figure>
+
+        <figure>
+          <img
+            src="../assets/images/foundry4/boxing/boxing-04.jpg"
+            alt="Path2Legend boxing athletes"
+            loading="lazy"
+          />
+        </figure>
+
+      </div>
+
+    </section>
+
+<div class="quote">
+
+      <span data-lang-block="en">
+        <strong>
+          Every legend begins as an apprentice.
+        </strong>
+
+        Train with purpose. Earn every step.
+      </span>
+
+      <span
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <strong>
+          Cada leyenda comienza como aprendiz.
+        </strong>
+
+        Entrena con propósito. Gana cada paso.
+      </span>
+
+    </div>
+
+  </main>
+
+</body>
+</html>

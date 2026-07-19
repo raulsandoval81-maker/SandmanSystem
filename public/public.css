@@ -845,3 +845,12 @@ body.subpage .lang-toggle,
 body.subpage .theme-toggle{
   display:none !important;
 }
+.nav-top{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.nav-logo{
+    margin:0 auto;
+}

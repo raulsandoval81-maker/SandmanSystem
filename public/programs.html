@@ -119,6 +119,115 @@
 
     .note-strip strong{ color:var(--brand); }
   </style>
+
+  <style id="program-anchor-scroll">
+    #zero2hero,
+    #path2legend,
+    #fitness {
+      scroll-margin-top: 150px;
+    }
+    .hero-hiit{
+    margin:2rem 0;
+    padding:2.5rem 2rem;
+    border:1px solid var(--line);
+    border-radius:18px;
+
+    background:
+      linear-gradient(
+        145deg,
+        rgba(255,196,0,.08),
+        rgba(22,35,55,.95)
+      );
+
+    text-align:center;
+}
+
+.hero-hiit h2{
+    font-size:2.3rem;
+    color:var(--brand);
+    margin:.5rem 0;
+}
+
+.hero-hiit .hero-sub{
+    font-size:1.3rem;
+    font-weight:700;
+    margin-bottom:1rem;
+}
+
+.hero-highlights{
+    display:flex;
+    justify-content:center;
+    gap:.75rem;
+    flex-wrap:wrap;
+    margin-top:1.5rem;
+}
+
+.hero-highlights span{
+    padding:.55rem 1rem;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.05);
+    font-weight:700;
+}.hiit-fit-block{
+  overflow:hidden;
+  border:1px solid rgba(255,70,55,.6);
+  border-radius:18px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(226,0,0,.96) 0%,
+      rgba(125,17,17,.92) 36%,
+      rgba(28,31,38,.98) 100%
+    );
+  box-shadow:0 18px 40px rgba(0,0,0,.32);
+}
+
+.hiit-fit-hero{
+  padding:2rem 1.5rem 1.6rem;
+}
+
+.hiit-fit-hero h2{
+  margin:.35rem 0 .45rem;
+  font-size:2rem;
+}
+
+.hiit-fit-hero p:last-child{
+  margin-bottom:0;
+  line-height:1.65;
+}
+
+.hiit-fit-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1rem;
+  padding:0 1.5rem 1.5rem;
+}
+
+.hiit-fit-card{
+  padding:1.1rem;
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:14px;
+  background:rgba(10,14,20,.48);
+}
+
+.hiit-fit-card h3{
+  margin:0 0 .55rem;
+  color:var(--brand);
+}
+
+.hiit-fit-card p{
+  margin:0;
+  color:var(--muted);
+  line-height:1.55;
+}
+
+@media (max-width:760px){
+  .hiit-fit-grid{
+    grid-template-columns:1fr;
+  }
+}
+  </style>
+
 </head>
 
 <body class="subpage">
@@ -189,7 +298,7 @@
     </section>
 
     <section class="section">
-      <div data-lang-block="en">
+    <div data-lang-block="en">
         <h2 class="section-title">Programs &amp; Journeys</h2>
       </div>
 
@@ -197,8 +306,8 @@
         <h2 class="section-title">Programas y Caminos</h2>
       </div>
 
-      <article class="panel">
-        <div data-lang-block="en">
+     <article class="panel" id="zero2hero">
+      <div data-lang-block="en">
           <div class="panel-head">
             <span class="pill-tag">Youth · Ages 6–13</span>
           </div>
@@ -297,7 +406,7 @@
         </div>
       </article>
 
-      <article class="panel">
+    <article class="panel" id="path2legend">
         <div data-lang-block="en">
           <div class="panel-head">
             <span class="pill-tag">Teen / Adult · Ages 14+</span>
@@ -362,7 +471,6 @@
             <li><strong>Wrestling</strong> — advanced skills, pressure, leadership, and competition readiness</li>
             <li><strong>Boxing</strong> — timing, footwork, conditioning, pressure, and composure</li>
             <li class="program-coming-soon"><strong>Kickboxing</strong> — Coming Soon</li>
-            <li class="program-coming-soon"><strong>Submission Grappling</strong> — Coming Soon</li>
           </ul>
 
           <div class="purpose">
@@ -448,58 +556,174 @@
       </article>
     </section>
 
-    <section class="section">
-      <article class="panel">
-        <div data-lang-block="en">
-          <h2 class="section-title">
-            Everyone Starts at Zero • Every Step is Earned • Heroes Build Heroes
-          </h2>
+<section class="section">
+  <article class="panel">
+    <div data-lang-block="en">
+      <h2 class="section-title">
+        Everyone Starts at Zero.<br>
+        Every Step is Earned.
+      </h2>
 
-          <p class="lead">
-            Sandman Academy™ is more than a place to train. It is a community built on discipline, respect, accountability, and continuous growth.
-          </p>
+      <p class="lead">
+        Sandman Academy™ is more than a place to train. It is a community built on
+        discipline, respect, accountability, and continuous growth.
+      </p>
 
-          <p class="lead">
-            We believe every athlete deserves a clear path forward, coaches who genuinely care, and standards that inspire them to become their best.
-          </p>
+      <p class="lead">
+        Whether your goal is confidence, competition, fitness, or personal growth,
+        every program follows a clear path designed to help you improve—one earned
+        step at a time.
+      </p>
 
-          <p class="lead">
-            Whether your goal is confidence, competition, fitness, or personal growth, you will be challenged, supported, and encouraged every step of the way.
-          </p>
-        </div>
+      <p class="lead">
+        From Zero2Hero™, Path2Legend™, and HIIT Fit™ to future programs,
+        every journey begins with the same philosophy:
+      </p>
 
-        <div data-lang-block="es" class="hidden-lang">
-          <h2 class="section-title">
-            Todos Comienzan Desde Cero • Cada Paso Se Gana • Los Héroes Crean Héroes
-          </h2>
+    </div>
 
-          <p class="lead">
-            Academia Sandman™ es mucho más que un lugar para entrenar. Es una comunidad construida sobre disciplina, respeto, responsabilidad y crecimiento constante.
-          </p>
+    <div data-lang-block="es" class="hidden-lang">
+      <h2 class="section-title">
+        Todos Comienzan Desde Cero.<br>
+        Cada Paso Se Gana.
+      </h2>
 
-          <p class="lead">
-            Creemos que cada atleta merece un camino claro, entrenadores que realmente se preocupan por su desarrollo y estándares que lo inspiren a dar lo mejor de sí.
-          </p>
+      <p class="lead">
+        Academia Sandman™ es mucho más que un lugar para entrenar. Es una comunidad
+        construida sobre disciplina, respeto, responsabilidad y crecimiento continuo.
+      </p>
 
-          <p class="lead">
-            Ya sea que tu meta sea ganar confianza, competir, mejorar tu condición física o crecer como persona, aquí encontrarás apoyo y motivación en cada paso del camino.
-          </p>
-        </div>
+      <p class="lead">
+        Ya sea que tu meta sea desarrollar confianza, competir, mejorar tu condición
+        física o crecer como persona, cada programa sigue un camino claro diseñado
+        para ayudarte a mejorar, paso a paso.
+      </p>
+
+      <p class="lead">
+        Desde Zero2Hero™, Path2Legend™ y HIIT Fit™ hasta los futuros programas,
+        cada recorrido comienza con la misma filosofía:
+      </p>
+
+    </div>
+  </article>
+
+  <div class="note-strip">
+    <div data-lang-block="en">
+      <strong>Program Identity Notice:</strong>
+      All program names, logos, badge designs, colors, progression marks, and
+      visual elements are part of the Sandman System™ identity.
+    </div>
+
+    <div data-lang-block="es" class="hidden-lang">
+      <strong>Aviso de identidad del programa:</strong>
+      Todos los nombres de programas, logotipos, diseños de insignias, colores,
+      marcas de progresión y elementos visuales forman parte de la identidad de
+      Sandman System™.
+    </div>
+  </div>
+</section>
+
+    <section id="fitness" class="section program-section program-anchor">
+  <div class="hiit-fit-block">
+
+    <div class="hiit-fit-hero" data-lang-block="en">
+      <p class="eyebrow">Everyday Fitness • Ages 12+</p>
+
+      <h2>HIIT Fit</h2>
+
+      <p class="hero-sub">
+        Build Strength. Build Confidence. Build Better Habits.
+      </p>
+
+      <p>
+        HIIT Fit combines boxing, kickboxing, strength, and conditioning
+        into coach-led 45-minute classes designed for everyday people.
+        Whether your goal is weight loss, better fitness, or simply moving
+        more, HIIT Fit offers a fun and supportive path toward a healthier
+        lifestyle. No combat experience is required.
+      </p>
+    </div>
+
+    <div class="hiit-fit-hero hidden-lang" data-lang-block="es">
+      <p class="eyebrow">Acondicionamiento Diario • Edades 12+</p>
+
+      <h2>HIIT Fit</h2>
+
+      <p class="hero-sub">
+        Desarrolla Fuerza. Confianza. Mejores Hábitos.
+      </p>
+
+      <p>
+        HIIT Fit combina boxeo, kickboxing, fuerza y acondicionamiento
+        en clases de 45 minutos dirigidas por un entrenador y diseñadas
+        para personas de todos los niveles. No se requiere experiencia
+        en deportes de combate.
+      </p>
+    </div>
+
+    <div class="hiit-fit-grid" data-lang-block="en">
+      <article class="hiit-fit-card">
+        <h3>HIIT Fit: Boxing</h3>
+
+        <p>
+          Boxing-inspired movement, bag work, footwork, and conditioning
+          in a fun, non-contact fitness environment.
+        </p>
       </article>
 
-      <div class="note-strip">
-        <div data-lang-block="en">
-          <strong>Program Identity Notice:</strong>
-          All program names, logos, badge designs, colors, progression marks, and visual elements are part of the Sandman System™ identity.
-        </div>
+      <article class="hiit-fit-card">
+        <h3>HIIT Fit: Kickboxing</h3>
 
-        <div data-lang-block="es" class="hidden-lang">
-          <strong>Aviso de identidad del programa:</strong>
-          Todos los nombres de programas, logotipos, diseños de insignias, colores, marcas de progresión y elementos visuales forman parte de la identidad de Sandman System™.
-        </div>
-      </div>
-    </section>
+        <p>
+          Kickboxing combinations, movement, and high-energy conditioning
+          designed to improve fitness without sparring.
+        </p>
+      </article>
 
+      <article class="hiit-fit-card">
+        <h3>HIIT Fit: Strength</h3>
+
+        <p>
+          Functional strength, athletic movement, and total-body
+          conditioning delivered in a focused 45-minute session.
+        </p>
+      </article>
+    </div>
+
+    <div
+      class="hiit-fit-grid hidden-lang"
+      data-lang-block="es"
+    >
+      <article class="hiit-fit-card">
+        <h3>HIIT Fit: Boxeo</h3>
+
+        <p>
+          Movimiento, trabajo de saco, desplazamiento y acondicionamiento
+          inspirado en el boxeo, sin contacto.
+        </p>
+      </article>
+
+      <article class="hiit-fit-card">
+        <h3>HIIT Fit: Kickboxing</h3>
+
+        <p>
+          Combinaciones, movimiento y acondicionamiento de alta energía
+          sin combate ni contacto.
+        </p>
+      </article>
+
+      <article class="hiit-fit-card">
+        <h3>HIIT Fit: Fuerza</h3>
+
+        <p>
+          Fuerza funcional, movimiento atlético y acondicionamiento
+          de cuerpo completo.
+        </p>
+      </article>
+    </div>
+
+  </div>
+</section>
   </main>
 </body>
 </html>

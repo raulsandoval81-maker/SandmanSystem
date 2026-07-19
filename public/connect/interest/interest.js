@@ -6,14 +6,37 @@ import {
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
-const form = document.getElementById("interestForm");
-const submitBtn = document.getElementById("submitBtn");
-const formStatus = document.getElementById("formStatus");
+const form =
+  document.getElementById("interestForm");
 
-function setStatus(message = "", type = "") {
+const submitBtn =
+  document.getElementById("submitBtn");
+
+const formStatus =
+  document.getElementById("formStatus");
+
+const intentNotice =
+  document.getElementById("intentNotice");
+
+const intentText =
+  document.getElementById("intentText");
+
+function currentLanguage() {
+  return document.documentElement.lang === "es"
+    ? "es"
+    : "en";
+}
+
+function message(en, es) {
+  return currentLanguage() === "es"
+    ? es
+    : en;
+}
+
+function setStatus(text = "", type = "") {
   if (!formStatus) return;
 
-  formStatus.textContent = message;
+  formStatus.textContent = text;
   formStatus.className = "form-status";
 
   if (type) {
@@ -21,13 +44,39 @@ function setStatus(message = "", type = "") {
   }
 }
 
-function setSubmitting(isSubmitting) {
+function renderSubmitButton(isSubmitting = false) {
   if (!submitBtn) return;
 
+  const language = currentLanguage();
+
   submitBtn.disabled = isSubmitting;
-  submitBtn.textContent = isSubmitting
-    ? "Sending..."
-    : "Join the Interest List";
+  submitBtn.setAttribute(
+    "aria-busy",
+    String(isSubmitting)
+  );
+
+  if (isSubmitting) {
+    submitBtn.textContent =
+      language === "es"
+        ? "Enviando..."
+        : "Sending...";
+
+    return;
+  }
+
+  submitBtn.innerHTML = `
+    <span data-lang="en">
+      Request Information
+    </span>
+
+    <span data-lang="es">
+      Solicitar Información
+    </span>
+  `;
+}
+
+function setSubmitting(isSubmitting) {
+  renderSubmitButton(isSubmitting);
 }
 
 function clean(value = "") {
@@ -46,134 +95,283 @@ function readForm() {
   const formData = new FormData(form);
 
   return {
-    parentName: clean(formData.get("parentName")),
-    athleteName: clean(formData.get("athleteName")),
-    athleteAge: Number(formData.get("athleteAge") || 0),
-    phone: normalizePhone(formData.get("phone")),
-    email: normalizeEmail(formData.get("email")),
-    city: clean(formData.get("city")),
-    preferredLocation: clean(formData.get("preferredLocation")),
-    programInterest: clean(formData.get("programInterest")),
-    experience: clean(formData.get("experience")),
-    referralSource: clean(formData.get("referralSource")),
-    preferredMeetingWindow: clean(formData.get("preferredMeetingWindow")),
+    parentName:
+      clean(formData.get("parentName")),
+
+    athleteName:
+      clean(formData.get("athleteName")),
+
+    athleteAge:
+      Number(formData.get("athleteAge") || 0),
+
+    phone:
+      normalizePhone(formData.get("phone")),
+
+    email:
+      normalizeEmail(formData.get("email")),
+
+    city:
+      clean(formData.get("city")),
+
+    preferredLocation:
+      clean(formData.get("preferredLocation")),
+
+    preferredMeetingWindow:
+      clean(
+        formData.get("preferredMeetingWindow")
+      ),
+
+    programInterest:
+      clean(formData.get("programInterest")),
+
+    experience:
+      clean(formData.get("experience")),
+
+    referralSource:
+      clean(formData.get("referralSource")),
+
+    preferredLanguage:
+      clean(
+        formData.get("preferredLanguage")
+      ) || currentLanguage(),
+
     intent:
-      clean(new URLSearchParams(window.location.search).get("intent")) ||
-      "general",
-    notes: clean(formData.get("notes"))
+      clean(
+        new URLSearchParams(
+          window.location.search
+        ).get("intent")
+      ) || "general",
+
+    notes:
+      clean(formData.get("notes"))
   };
 }
 
 function validateLead(lead = {}) {
   if (!lead.parentName) {
-    return "Enter the parent or guardian name.";
+    return message(
+      "Enter the parent or guardian name.",
+      "Ingresa el nombre del padre, madre o tutor."
+    );
   }
 
   if (!lead.athleteName) {
-    return "Enter the athlete name.";
+    return message(
+      "Enter the athlete name.",
+      "Ingresa el nombre del atleta."
+    );
   }
 
-  if (!Number.isFinite(lead.athleteAge) || lead.athleteAge < 3 || lead.athleteAge > 99) {
-    return "Enter a valid athlete age.";
+  if (
+    !Number.isFinite(lead.athleteAge) ||
+    lead.athleteAge < 3 ||
+    lead.athleteAge > 99
+  ) {
+    return message(
+      "Enter a valid athlete age.",
+      "Ingresa una edad válida para el atleta."
+    );
   }
 
   if (!lead.phone) {
-    return "Enter a phone number.";
+    return message(
+      "Enter a phone number.",
+      "Ingresa un número de teléfono."
+    );
   }
 
-  if (!lead.email || !lead.email.includes("@")) {
-    return "Enter a valid email address.";
+  if (
+    !lead.email ||
+    !lead.email.includes("@")
+  ) {
+    return message(
+      "Enter a valid email address.",
+      "Ingresa un correo electrónico válido."
+    );
   }
 
   if (!lead.preferredLocation) {
-    return "Select a preferred academy location.";
+    return message(
+      "Select a preferred academy location.",
+      "Selecciona una ubicación preferida."
+    );
+  }
+
+  if (!lead.preferredMeetingWindow) {
+    return message(
+      "Select your preferred meeting availability.",
+      "Selecciona tu horario preferido para reunirte."
+    );
   }
 
   if (!lead.programInterest) {
-    return "Select a program.";
+    return message(
+      "Select a program.",
+      "Selecciona un programa."
+    );
   }
 
   if (!lead.experience) {
-    return "Select an experience level.";
+    return message(
+      "Select an experience level.",
+      "Selecciona un nivel de experiencia."
+    );
   }
 
   if (!lead.referralSource) {
-    return "Tell us how you heard about Sandman Combat.";
+    return message(
+      "Tell us how you heard about Sandman Combat.",
+      "Indícanos cómo supiste de Sandman Combat."
+    );
   }
 
   return "";
 }
 
-form?.addEventListener("submit", async (event) => {
-  event.preventDefault();
+form?.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
 
-  setStatus("");
+    setStatus("");
 
-  const lead = readForm();
-  const validationError = validateLead(lead);
+    const lead = readForm();
+    const validationError =
+      validateLead(lead);
 
-  if (validationError) {
-    setStatus(validationError, "error");
-    return;
+    if (validationError) {
+      setStatus(
+        validationError,
+        "error"
+      );
+
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      await ensureSignedIn();
+
+      await addDoc(
+        collection(
+          db,
+          "interest_leads"
+        ),
+        {
+          ...lead,
+
+          status: "new",
+          source: "public-connect-form",
+
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+
+          contactedAt: null,
+          appointmentScheduledAt: null,
+          enrolledAt: null,
+
+          coachNotes: "",
+          assignedCoachUid: ""
+        }
+      );
+
+      const thanksUrl =
+        lead.preferredLanguage === "es"
+          ? "/connect/thanks/contact.html?lang=es"
+          : "/connect/thanks/contact.html?lang=en";
+
+      window.location.href = thanksUrl;
+    } catch (error) {
+      console.error(
+        "[connect] submission failed:",
+        error
+      );
+
+      setStatus(
+        message(
+          "We could not submit your information. Please try again.",
+          "No pudimos enviar tu información. Inténtalo de nuevo."
+        ),
+        "error"
+      );
+
+      setSubmitting(false);
+    }
   }
+);
 
-  setSubmitting(true);
+console.log(
+  "[interest] interest.js loaded"
+);
 
-  try {
-    await ensureSignedIn();
+// -------------------- Intent --------------------
 
-    await addDoc(
-      collection(db, "interest_leads"),
-      {
-        ...lead,
-
-        status: "new",
-        source: "public-connect-form",
-
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp(),
-
-        contactedAt: null,
-        appointmentScheduledAt: null,
-        enrolledAt: null,
-
-        coachNotes: "",
-        assignedCoachUid: ""
-      }
-    );
-
-    window.location.href = "/connect/thanks/contact.html";
-  } catch (error) {
-    console.error("[connect] submission failed:", error);
-
-    setStatus(
-      "We could not submit your information. Please try again.",
-      "error"
-    );
-
-    setSubmitting(false);
-  }
-});
-
-console.log("[interest] interest.js loaded");
-// -------------------- Membership Intent --------------------
 const intentLabels = {
-  "academy-introduction": "Academy Introduction",
-  "trial": "2-Day Trial",
-  "membership": "Monthly Membership",
-  "unlimited": "Unlimited Athlete Membership",
-  "family-wellness": "Family Wellness Membership"
+  "academy-introduction": {
+    en: "Academy Introduction",
+    es: "Introducción a la Academia"
+  },
+
+  "trial": {
+    en: "Program Introduction",
+    es: "Introducción al Programa"
+  },
+
+  "membership": {
+    en: "Program Information",
+    es: "Información del Programa"
+  },
+
+  "unlimited": {
+    en: "Program Information",
+    es: "Información del Programa"
+  },
+
+  "family-wellness": {
+    en: "Family Program Information",
+    es: "Información del Programa Familiar"
+  }
 };
 
 const selectedIntent =
-  new URLSearchParams(window.location.search).get("intent");
+  new URLSearchParams(
+    window.location.search
+  ).get("intent");
 
-if (selectedIntent && intentLabels[selectedIntent]) {
-  const box = document.getElementById("intentNotice");
-  const text = document.getElementById("intentText");
+function renderIntent() {
+  const selectedLabel =
+    intentLabels[selectedIntent];
 
-  if (box && text) {
-    box.style.display = "block";
-    text.textContent = intentLabels[selectedIntent];
+  if (
+    !selectedLabel ||
+    !intentNotice ||
+    !intentText
+  ) {
+    return;
   }
+
+  intentNotice.style.display = "block";
+
+  intentText.textContent =
+    selectedLabel[currentLanguage()];
 }
+
+renderIntent();
+
+document
+  .querySelectorAll(
+    "[data-set-language]"
+  )
+  .forEach((button) => {
+    button.addEventListener(
+      "click",
+      () => {
+        window.setTimeout(() => {
+          renderSubmitButton(false);
+          renderIntent();
+          setStatus("");
+        }, 0);
+      }
+    );
+  });

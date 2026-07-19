@@ -1,0 +1,433 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Foundry 8 | Sandman Combat™</title>
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="stylesheet" href="../public.css" />
+  <script src="../assets/js/public-shell.js" defer></script>
+
+
+<style>
+  *{
+    box-sizing:border-box;
+  }
+
+  img{
+    display:block;
+    max-width:100%;
+    height:auto;
+  }
+
+  body{
+    background:var(--bg);
+    color:var(--text);
+  }
+
+  main{
+    max-width:980px;
+    margin:0 auto;
+    padding:40px 20px 80px;
+  }
+
+  .hero{
+    background:linear-gradient(to bottom,#1f2937,#111827);
+    border:1px solid #263244;
+    border-radius:24px;
+    padding:48px 30px;
+    margin-bottom:28px;
+    box-shadow:0 20px 40px rgba(0,0,0,.35);
+  }
+
+  body.day-mode .hero{
+    background:linear-gradient(to bottom,#ffffff,#f3e7cf);
+    border:1px solid #d7c7a2;
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  .eyebrow{
+    color:var(--heading-accent);
+    text-transform:uppercase;
+    letter-spacing:.16em;
+    font-size:.78rem;
+    font-weight:800;
+    margin-bottom:10px;
+  }
+
+  h1{
+    margin:0 0 14px;
+    color:var(--heading);
+    font-size:clamp(2.5rem,5vw,4.5rem);
+    line-height:1;
+  }
+
+  .hero p{
+    max-width:720px;
+    color:var(--hero-muted);
+    line-height:1.75;
+    font-size:1.05rem;
+  }
+
+  /* =========================
+     Zero2Hero Journey Poster
+     ========================= */
+
+  .journey-visual{
+    width:100%;
+    margin:28px 0;
+    overflow:hidden;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+    border-radius:22px;
+
+    box-shadow:0 20px 40px rgba(0,0,0,.32);
+  }
+
+  body.day-mode .journey-visual{
+    background:#ffffff;
+    border-color:#d7c7a2;
+  }
+
+  .journey-visual img{
+    width:100%;
+    height:auto;
+  }
+
+  /* =========================
+     Discipline Cards
+     ========================= */
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:18px;
+    margin-top:28px;
+  }
+
+  .card{
+    position:relative;
+    overflow:hidden;
+
+    display:block;
+
+    text-decoration:none;
+
+    background:var(--panel);
+
+    border:1px solid var(--line);
+    border-radius:18px;
+
+    padding:22px;
+
+    transition:
+      transform .18s ease,
+      border-color .18s ease,
+      box-shadow .18s ease;
+  }
+
+  body.day-mode .card{
+    background:#ffffff;
+    border:1px solid #d7c7a2;
+    box-shadow:0 8px 18px rgba(0,0,0,.08);
+  }
+
+  .card:hover{
+    transform:translateY(-3px);
+
+    border-color:#dc2626;
+
+    box-shadow:
+      0 10px 28px rgba(0,0,0,.28),
+      0 0 18px rgba(220,38,38,.18);
+  }
+
+  .card h2{
+    margin:0 0 10px;
+    color:var(--heading-accent);
+  }
+
+  body.day-mode .card h2{
+    color:var(--heading);
+  }
+
+  .card p{
+    margin:0;
+    color:var(--muted);
+    line-height:1.65;
+  }
+
+  /* =========================
+     Future Programs
+     ========================= */
+
+  .future-card{
+    cursor:default;
+    opacity:.58;
+    filter:grayscale(.35);
+  }
+
+  .future-card:hover{
+    transform:none;
+    border-color:var(--line);
+    box-shadow:none;
+  }
+
+  .future-label{
+    display:inline-block;
+    margin-top:14px;
+    padding:6px 10px;
+
+    border:1px solid var(--line);
+    border-radius:999px;
+
+    color:var(--muted);
+
+    font-size:.78rem;
+    font-weight:800;
+
+    letter-spacing:.08em;
+    text-transform:uppercase;
+  }
+
+  .discipline-heading{
+    margin:34px 0 18px;
+  }
+
+  .discipline-heading h2{
+    margin:0 0 8px;
+    color:var(--heading);
+    font-size:clamp(1.65rem,3vw,2.35rem);
+  }
+
+  .discipline-heading p{
+    max-width:720px;
+    margin:0;
+    color:var(--muted);
+    line-height:1.65;
+  }
+
+  .hidden-lang{
+    display:none !important;
+  }
+
+  /* =========================
+     Tablet
+     ========================= */
+
+  @media (max-width:768px){
+
+    main{
+      padding:32px 16px 72px;
+    }
+
+    .hero{
+      padding:38px 24px;
+    }
+
+    .journey-visual{
+      margin:22px 0;
+      border-radius:18px;
+    }
+
+  }
+
+  /* =========================
+     Phone
+     ========================= */
+
+  @media (max-width:640px){
+
+    main{
+      padding:24px 14px 64px;
+    }
+
+    .hero{
+      padding:30px 18px;
+      border-radius:18px;
+    }
+
+    h1{
+      font-size:2.3rem;
+    }
+
+    .hero p{
+      font-size:1rem;
+    }
+
+    .journey-visual{
+      margin:18px 0;
+      border-radius:14px;
+    }
+
+    .grid{
+      grid-template-columns:1fr;
+    }
+
+    .card{
+      padding:18px;
+    }
+
+  }
+
+</style>
+</head>
+<body>
+
+  <header class="top-nav top-nav-simple">
+    <div class="nav-top nav-top-center">
+      <a href="../index.html" class="nav-logo">
+        Sandman Combat™
+      </a>
+    </div>
+  </header>
+
+  <main>
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+        <div class="eyebrow">
+          Foundry 8 • Ages 6–13
+        </div>
+
+        <h1>
+          Zero2Hero
+        </h1>
+
+        <p>
+          Foundry 8 is the youth development phase of Sandman Combat™. Athletes progress through the Zero2Hero journey in Wrestling or Kickboxing, building technical skill, confidence, discipline, accountability, and composure through age-appropriate training.
+        </p>
+
+        <p>
+          Every athlete starts at zero. Every step is earned.
+        </p>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <div class="eyebrow">
+          Foundry 8 • Edades 6–13
+        </div>
+
+        <h1>
+          Zero2Hero
+        </h1>
+
+        <p>
+          Foundry 8 es la fase de desarrollo juvenil de Sandman Combat™. Los atletas avanzan por el camino Zero2Hero mediante Lucha o Kickboxing, desarrollando habilidad técnica, confianza, disciplina, responsabilidad y compostura con entrenamiento apropiado para su edad.
+        </p>
+
+        <p>
+          Todos comienzan desde cero. Cada paso se gana.
+        </p>
+      </div>
+
+    </section>
+
+    <section
+      class="journey-visual"
+      aria-label="Zero2Hero Journey"
+    >
+      <img
+        src="../assets/images/journeys/zero2herojourney.png"
+        alt="Zero2Hero youth journey from Shadow to Hero"
+      />
+    </section>
+
+    <section class="discipline-heading">
+
+      <div data-lang-block="en">
+
+        <h2>
+          Choose Your Discipline
+        </h2>
+
+        <p>
+          Select Wrestling or Kickboxing to explore the Zero2Hero
+          training standard, discipline focus, and athlete journey.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <h2>
+          Elige Tu Disciplina
+        </h2>
+
+        <p>
+          Selecciona Lucha o Kickboxing para conocer el estándar
+          de entrenamiento, el enfoque de la disciplina y el camino
+          Zero2Hero.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="grid">
+
+      <a class="card" href="/foundry8/wrestling.html">
+        <div data-lang-block="en">
+          <h2>Wrestling</h2>
+
+          <p>
+            Zero2Hero Wrestling develops movement, position, takedowns,
+            control, confidence, discipline, and earned progression.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Lucha</h2>
+
+          <p>
+            Lucha Zero2Hero desarrolla movimiento, posición, derribos,
+            control, confianza, disciplina y progreso ganado.
+          </p>
+        </div>
+      </a>
+
+      <a class="card" href="/foundry8/kickboxing.html">
+        <div data-lang-block="en">
+          <h2>Kickboxing</h2>
+
+          <p>
+            Zero2Hero Kickboxing develops stance, movement, striking
+            fundamentals, defense, coordination, confidence, and control.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Kickboxing</h2>
+
+          <p>
+            Kickboxing Zero2Hero desarrolla postura, movimiento,
+            fundamentos de golpeo, defensa, coordinación, confianza
+            y control.
+          </p>
+        </div>
+      </a>
+
+    </section>
+
+  </main>
+
+</body>
+
+</html>
