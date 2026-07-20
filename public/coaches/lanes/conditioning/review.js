@@ -344,8 +344,9 @@ function renderCard({ athleteId, athleteName, key, entry }) {
             data-act="approve"
             data-id="${esc(athleteId)}"
             data-key="${esc(key)}"
-            style="${btnStyle("ok")}"
-          >Approve</button>
+            ${awardLocked ? "disabled data-award-locked" : ""}
+            style="${btnStyle("brand")}opacity:${awardLocked ? ".4" : "1"};"
+          >Approve (+5 XP)</button>
 
           <button
             data-act="revision"
@@ -353,16 +354,6 @@ function renderCard({ athleteId, athleteName, key, entry }) {
             data-key="${esc(key)}"
             style="${btnStyle("danger")}"
           >Needs Revision</button>
-
-          <span style="flex:1;"></span>
-
-          <button
-            data-act="xp5"
-            data-id="${esc(athleteId)}"
-            data-key="${esc(key)}"
-            ${awardLocked ? "disabled data-award-locked" : ""}
-            style="${btnStyle("brand")}opacity:${awardLocked ? ".4" : "1"};"
-          >Award +5</button>
         </div>
 
         <div id="msg_${safeId}" style="opacity:.75;font-size:.9rem;"></div>
@@ -533,44 +524,7 @@ async function loadSubmissions() {
           const sessionN = Number(currentEntry?.sessionN || 0);
 
           if (act === "approve") {
-            await writeLaneHistory({
-              athleteId,
-              athleteName: currentName,
-              key,
-              entry: {
-                ...currentEntry,
-                coachNote,
-              },
-              coachNote,
-            });
 
-            await patchSession({
-              athleteId,
-              key,
-              patch: {
-                status: "closed",
-                coachNote,
-                closedAt: serverTimestamp(),
-              },
-            });
-
-            if (msgEl) msgEl.textContent = "Approved and archived.";
-          }
-
-          if (act === "revision") {
-            await patchSession({
-              athleteId,
-              key,
-              patch: {
-                status: "needs_revision",
-                coachNote,
-              },
-            });
-
-            if (msgEl) msgEl.textContent = "Marked revision.";
-          }
-
-          if (act === "xp5") {
             const amt = 5;
 
             await awardXp({
@@ -609,8 +563,25 @@ async function loadSubmissions() {
               },
             });
 
-            if (msgEl) msgEl.textContent = "Awarded +5 and closed.";
+            if (msgEl)
+                msgEl.textContent = "Approved, awarded +5, and archived.";
+
           }
+
+          if (act === "revision") {
+            await patchSession({
+              athleteId,
+              key,
+              patch: {
+                status: "needs_revision",
+                coachNote,
+              },
+            });
+
+            if (msgEl) msgEl.textContent = "Marked revision.";
+          }
+
+          
 
           await loadSubmissions();
         } catch (err) {
