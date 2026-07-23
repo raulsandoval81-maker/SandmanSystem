@@ -6,6 +6,7 @@ const athleteId = (params.get("id") || "").trim().toUpperCase();
 const preseasonBtn = document.getElementById("strength-preseason");
 const inseasonBtn = document.getElementById("strength-inseason");
 const postseasonBtn = document.getElementById("strength-postseason");
+const conditioningBtn = document.getElementById("strength-conditioning");
 
 const isTeen = athleteId.startsWith("F4");
 const isYouth = athleteId.startsWith("F8");
@@ -18,6 +19,7 @@ async function fetchJson(url) {
 
 function lockTile(el, label) {
   if (!el) return;
+
   el.removeAttribute("href");
   el.classList.add("locked");
   el.setAttribute("aria-disabled", "true");
@@ -28,6 +30,7 @@ function lockTile(el, label) {
 
 function openTile(el, href, label) {
   if (!el) return;
+
   el.classList.remove("locked");
   el.removeAttribute("aria-disabled");
   el.href = href;
@@ -40,6 +43,7 @@ async function initStrengthMenu() {
   lockTile(preseasonBtn, "Preseason 🔒");
   lockTile(inseasonBtn, "In-Season 🔒");
   lockTile(postseasonBtn, "Postseason 🔒");
+  lockTile(conditioningBtn, "Conditioning 🔒");
 
   if (!athleteId) {
     console.warn("Missing athlete id on Strength menu page.");
@@ -50,25 +54,67 @@ async function initStrengthMenu() {
     const status = await fetchJson("/vault/system-status.json");
     const strength = status?.strength || {};
 
-    const activePhase = String(strength.seasonPhase || "preseason")
+    const activePhase = String(
+      strength.seasonPhase || "preseason"
+    )
       .trim()
       .toLowerCase();
 
-    console.log("Strength phase:", activePhase, "| teen:", isTeen, "| youth:", isYouth);
+    console.log(
+      "Strength phase:",
+      activePhase,
+      "| teen:",
+      isTeen,
+      "| youth:",
+      isYouth
+    );
 
-    const preseasonHref = `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`;
-    const inseasonHref = `/athletes/arsenal/strength/inseason.html?id=${encodeURIComponent(athleteId)}`;
-const postseasonHref = `/athletes/arsenal/strength/postseason.html?id=${encodeURIComponent(athleteId)}`;
-    // Youth = one shared XP bar, but still only coach-open phase should open
-    // Teens = separate Strength XP bar, same coach-open phase rule
+    const preseasonHref =
+      `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`;
+
+    const inseasonHref =
+      `/athletes/arsenal/strength/inseason.html?id=${encodeURIComponent(athleteId)}`;
+
+    const postseasonHref =
+      `/athletes/arsenal/strength/postseason.html?id=${encodeURIComponent(athleteId)}`;
+
+    // F4 only
+    if (isTeen) {
+      const conditioningHref =
+        `/athletes/lanes/f4-conditioning/?id=${encodeURIComponent(athleteId)}`;
+
+      openTile(
+        conditioningBtn,
+        conditioningHref,
+        "Conditioning"
+      );
+    }
+
+    // Coach-controlled seasonal access
     if (activePhase === "preseason") {
-      openTile(preseasonBtn, preseasonHref, "Preseason");
+      openTile(
+        preseasonBtn,
+        preseasonHref,
+        "Preseason"
+      );
     } else if (activePhase === "inseason") {
-      openTile(inseasonBtn, inseasonHref, "In-Season");
+      openTile(
+        inseasonBtn,
+        inseasonHref,
+        "In-Season"
+      );
     } else if (activePhase === "postseason") {
-      openTile(postseasonBtn, postseasonHref, "Postseason");
+      openTile(
+        postseasonBtn,
+        postseasonHref,
+        "Postseason"
+      );
     } else {
-      openTile(preseasonBtn, preseasonHref, "Preseason");
+      openTile(
+        preseasonBtn,
+        preseasonHref,
+        "Preseason"
+      );
     }
 
   } catch (err) {
@@ -79,6 +125,15 @@ const postseasonHref = `/athletes/arsenal/strength/postseason.html?id=${encodeUR
       `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`,
       "Preseason"
     );
+
+    // Still expose Conditioning for F4 even if status.json fails
+    if (isTeen) {
+      openTile(
+        conditioningBtn,
+        `/athletes/lanes/f4-conditioning/?id=${encodeURIComponent(athleteId)}`,
+        "Conditioning"
+      );
+    }
   }
 }
 

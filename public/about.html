@@ -29,6 +29,95 @@
         grid-template-columns:repeat(2,1fr);
       }
     }
+  
+    /* About page spacing polish */
+    body.subpage .section{
+      padding-top:1.6rem;
+      padding-bottom:1.6rem;
+    }
+
+    body.subpage .section + .section{
+      margin-top:0;
+    }
+
+    .hero-box{
+      padding-bottom:.25rem;
+    }
+
+    .hero-box .lead{
+      margin-top:.55rem;
+      margin-bottom:.55rem;
+    }
+
+    .hero-box .actions{
+      margin-top:1rem;
+    }
+
+    .panel{
+      padding:1.35rem;
+    }
+
+    .panel .lead,
+    .card .lead{
+      margin-top:.5rem;
+      margin-bottom:.5rem;
+    }
+
+    .panel .section-title,
+    .section > div > h2{
+      margin-bottom:.65rem;
+    }
+
+    .pillar-grid{
+      gap:.8rem;
+      margin-top:1rem;
+    }
+
+    .pillar-card{
+      padding:1.05rem;
+    }
+
+    .pillar-card h3{
+      margin-top:0;
+      margin-bottom:.4rem;
+    }
+
+    .pillar-card p{
+      margin:0;
+      line-height:1.55;
+    }
+
+    .grid-2{
+      gap:.8rem;
+      margin-top:.8rem;
+    }
+
+    .card{
+      padding:1.2rem;
+    }
+
+    .card h3{
+      margin-top:0;
+      margin-bottom:.55rem;
+    }
+
+    .diff-list{
+      margin-top:.7rem;
+      margin-bottom:0;
+    }
+
+    @media (max-width:640px){
+      body.subpage .section{
+        padding-top:1.2rem;
+        padding-bottom:1.2rem;
+      }
+
+      .panel,
+      .card{
+        padding:1rem;
+      }
+    }
+
   </style>
   </head>
   <body class="subpage">
@@ -126,6 +215,90 @@
     </div>
 
   </div>
+
+      <article class="panel">
+
+        <div data-lang-block="en">
+          <h2 class="section-title">More Than Competition</h2>
+
+          <p class="lead">
+            Competition is an important proving ground, but it is not the only
+            measure of growth.
+          </p>
+
+          <div class="pillar-grid">
+            <div class="pillar-card">
+              <h3>Combat</h3>
+
+              <p>
+                Develop skill, awareness, confidence, composure, and the ability
+                to perform under pressure.
+              </p>
+            </div>
+
+            <div class="pillar-card">
+              <h3>Strength</h3>
+
+              <p>
+                Build the body through conditioning, movement, durability,
+                consistency, and physical preparation.
+              </p>
+            </div>
+
+            <div class="pillar-card">
+              <h3>Honor</h3>
+
+              <p>
+                Develop responsibility, humility, discipline, respect, and the
+                character to become someone others can depend on.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2 class="section-title">Más Que Competencia</h2>
+
+          <p class="lead">
+            La competencia es una prueba importante, pero no es la única medida
+            del crecimiento.
+          </p>
+
+          <div class="pillar-grid">
+            <div class="pillar-card">
+              <h3>Combate</h3>
+
+              <p>
+                Desarrolla habilidad, conciencia, confianza, compostura y la
+                capacidad de rendir bajo presión.
+              </p>
+            </div>
+
+            <div class="pillar-card">
+              <h3>Fuerza</h3>
+
+              <p>
+                Desarrolla el cuerpo mediante condición física, movimiento,
+                resistencia, constancia y preparación.
+              </p>
+            </div>
+
+            <div class="pillar-card">
+              <h3>Honor</h3>
+
+              <p>
+                Desarrolla responsabilidad, humildad, disciplina, respeto y el
+                carácter para convertirse en alguien en quien otros puedan confiar.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </article>
+
 </section>
 
   <section class="section">
@@ -287,40 +460,7 @@
 
       </article>
 
-      <article class="card">
-
-        <div data-lang-block="en">
-          <h3>Our Promise</h3>
-
-          <p class="lead">
-            We are committed to creating an environment where athletes feel challenged, supported, and inspired to become the best version of themselves.
-          </p>
-
-          <p class="lead">
-            Whether you're here to build confidence, compete, improve your fitness, or simply try something new, you'll be welcomed into a community that values effort, discipline, and respect.
-          </p>
-          <h1>Combat = Character.</h1>
-        </div>
-
-        <div data-lang-block="es" class="hidden-lang">
-          <h3>Nuestra Promesa</h3>
-
-          <p class="lead">
-            Estamos comprometidos a crear un ambiente donde cada atleta pueda crecer con apoyo, desafío y propósito.
-          </p>
-
-          <p class="lead">
-            Ya sea que busques confianza, competir, mejorar tu condición física o comenzar un nuevo camino, encontrarás una comunidad basada en esfuerzo, disciplina y respeto.
-          </p>
-          <h1>Combate = Carácter.</h1>
-
-        </div>
-
-      </article>
-
-    </div>
-
-  </section>
+</section>
 
 </main>
 </body>

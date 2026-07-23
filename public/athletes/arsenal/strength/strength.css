@@ -1,0 +1,150 @@
+/* ==========================================
+   Strength Menu
+========================================== */
+
+.chapter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 20px;
+  margin-top: 24px;
+}
+
+.chapter-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  min-height: 170px;
+  padding: 24px;
+
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+
+  background: #161b22;
+
+  color: #fff;
+  text-decoration: none;
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.chapter-card:hover {
+  transform: translateY(-4px);
+
+  border-color: #d4af37;
+
+  box-shadow:
+    0 8px 22px rgba(0,0,0,.30);
+}
+
+.chapter-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.chapter-card p {
+  margin: 0;
+  color: #b6bcc8;
+  line-height: 1.45;
+}
+
+.chapter-card.locked {
+  opacity: .45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.chapter-card.locked:hover {
+  transform: none;
+  box-shadow: none;
+}
+/* ==========================================
+   Strength Track Cards
+   ========================================== */
+
+.track-card{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+
+  width:100%;
+  min-height:120px;
+
+  margin:0 0 18px;
+  padding:24px 28px;
+
+  border-radius:18px;
+
+  background:linear-gradient(
+    180deg,
+    #163b91 0%,
+    #102d72 100%
+  );
+
+  border:1px solid rgba(255,255,255,.08);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 10px 24px rgba(0,0,0,.35);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+
+  cursor:pointer;
+}
+
+.track-card:hover{
+  transform:translateY(-2px);
+
+  border-color:rgba(250,204,21,.35);
+
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 16px 36px rgba(0,0,0,.45);
+}
+
+.track-card.locked{
+  opacity:.88;
+}
+
+.track-card .card-content{
+  display:flex;
+  flex-direction:column;
+}
+
+.track-card h3{
+  margin:0 0 8px;
+
+  color:#fff;
+
+  font-size:1.55rem;
+  font-weight:800;
+}
+
+.track-card p{
+  margin:0;
+
+  color:#cbd5e1;
+
+  font-size:1rem;
+  line-height:1.45;
+}
+
+.track-card .card-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width:52px;
+  height:52px;
+
+  font-size:2rem;
+
+  color:#facc15;
+}

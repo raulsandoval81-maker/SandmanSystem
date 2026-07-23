@@ -3,6 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
   <title>Honor · Athlete Arsenal</title>
 
   <link rel="stylesheet" href="/athletes/arsenal/arsenal.css"/>
@@ -10,45 +11,102 @@
 </head>
 
 <body>
-  <div class="wrap">
 
-    <header class="header">
-      <button class="back-btn" type="button" onclick="history.back()">← Back</button>
-      <h1 class="title">Honor Development Track</h1>
-    </header>
+<div class="wrap">
 
-    <section class="lane-block">
+  <header class="header">
+    <button class="back-btn" type="button" onclick="history.back()">
+      ← Back
+    </button>
 
-      <div class="lane-name">Honor</div>
+    <h1 class="title">
+      Honor Development Track
+    </h1>
+  </header>
 
-      <p class="lane-desc">
-        Honor develops the character behind the athlete.
-        Progress expands from self-discipline to responsibility for teammates
-        and finally to leadership within the team.
-      </p>
+  <section class="lane-block">
 
-      <div class="chapter-grid">
+    <div class="lane-name">
+      Honor
+    </div>
 
-        <a id="honor-self" class="chapter-tile" href="/athletes/arsenal/honor/self.html">
-          <span class="chapter-title">Self</span>
-        </a>
+    <p class="lane-desc">
+      Honor develops the character behind the athlete.
+      Progress expands from self-discipline to responsibility for teammates
+      and finally to leadership within the team.
+    </p>
 
-        <a id="honor-teammates" class="chapter-tile locked" aria-disabled="true"
-           href="/athletes/arsenal/honor/teammates.html">
-          <span class="chapter-title">Teammates 🔒</span>
-        </a>
+    <div class="chapter-grid">
 
-        <a id="honor-team" class="chapter-tile locked" aria-disabled="true"
-           href="/athletes/arsenal/honor/team.html">
-          <span class="chapter-title">Team 🔒</span>
-        </a>
+      <!-- Self -->
 
-      </div>
+      <a
+        id="honor-self"
+        class="track-card"
+        href="/athletes/arsenal/honor/self.html"
+      >
+        <div class="card-content">
+          <div class="chapter-title">Self</div>
 
-    </section>
+          <p>
+            Build discipline, integrity, accountability, and personal responsibility.
+          </p>
+        </div>
 
-  </div>
+        <div class="card-icon">
+          →
+        </div>
+      </a>
 
-  <script type="module" src="/athletes/arsenal/honor/honor.app.js"></script>
+      <!-- Teammates -->
+
+      <a
+        id="honor-teammates"
+        class="track-card locked"
+        href="/athletes/arsenal/honor/teammates.html"
+        aria-disabled="true"
+      >
+        <div class="card-content">
+          <div class="chapter-title">Teammates</div>
+
+          <p>
+            Learn to encourage, support, and strengthen the people around you.
+          </p>
+        </div>
+
+        <div class="card-icon">
+          🔒
+        </div>
+      </a>
+
+      <!-- Team -->
+
+      <a
+        id="honor-team"
+        class="track-card locked"
+        href="/athletes/arsenal/honor/team.html"
+        aria-disabled="true"
+      >
+        <div class="card-content">
+          <div class="chapter-title">Team</div>
+
+          <p>
+            Lead by example and build a championship culture.
+          </p>
+        </div>
+
+        <div class="card-icon">
+          🔒
+        </div>
+      </a>
+
+    </div>
+
+  </section>
+
+</div>
+
+<script type="module" src="/athletes/arsenal/honor/honor.app.js"></script>
+
 </body>
 </html>
