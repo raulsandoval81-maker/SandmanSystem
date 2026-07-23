@@ -1,10 +1,34 @@
 {
+  "lane": "conditioning",
+  "foundry": "f4",
+  "segmentId": "segment1",
+  "segmentTitle": "Build the Athlete",
   "sessions": [
     {
       "n": 1,
-      "title": "Conditioning Session 1",
-      "level": "INTERMEDIATE",
-      "interval": { "workSec": 45, "restSec": 15 },
+      "title": "Discipline Under Fatigue",
+      "lesson": "Discipline Under Fatigue",
+      "focus": "Consistency",
+      "objective": "Build consistency while maintaining controlled movement and honest effort.",
+      "competency": "Training Discipline",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops consistency. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing consistency under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
       "rounds": 4,
       "movesPerCycle": 6,
       "sequence": [
@@ -15,17 +39,38 @@
         "Bear Crawl",
         "Jump Lunges"
       ],
-      "prompt": "Stay sharp. No lazy reps.",
+      "prompt": "Move with control, pace the work, and finish every round.",
       "questions": [
-        "Did you complete all rounds?",
-        "What broke down first?"
+        "When did consistency become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
       ]
     },
     {
       "n": 2,
-      "title": "Conditioning Session 2",
-      "level": "ADVANCED",
-      "interval": { "workSec": 50, "restSec": 10 },
+      "title": "Control the Pace",
+      "lesson": "Control the Pace",
+      "focus": "Energy Management",
+      "objective": "Build energy management while maintaining controlled movement and honest effort.",
+      "competency": "Pacing",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops energy management. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing energy management under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
       "rounds": 5,
       "movesPerCycle": 6,
       "sequence": [
@@ -34,32 +79,1599 @@
         "Push-ups",
         "Mountain Climbers",
         "Bear Crawl",
-        "Plank"
+        "Front Plank"
       ],
-      "prompt": "Control pace. No breaks.",
+      "prompt": "Move with control, pace the work, and finish every round.",
       "questions": [
-        "Did you complete all rounds?",
-        "Where did you lose pace?"
+        "When did energy management become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
       ]
     },
     {
       "n": 3,
-      "title": "Conditioning Session 3",
-      "level": "ELITE",
-      "interval": { "workSec": 60, "restSec": 0 },
+      "title": "Mental Fortitude",
+      "lesson": "Mental Fortitude",
+      "focus": "Resilience",
+      "objective": "Build resilience while maintaining controlled movement and honest effort.",
+      "competency": "Mental Fortitude",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Perseverance",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops resilience. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing resilience under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Reverse Lunges",
+        "Push-ups",
+        "Sit-ups",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did resilience become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 4,
+      "title": "Own the Standard",
+      "lesson": "Own the Standard",
+      "focus": "Accountability",
+      "objective": "Build accountability while maintaining controlled movement and honest effort.",
+      "competency": "Personal Accountability",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Responsibility",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops accountability. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing accountability under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 40,
+        "restSec": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Air Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did accountability become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 5,
+      "title": "Quality Before Speed",
+      "lesson": "Quality Before Speed",
+      "focus": "Movement Quality",
+      "objective": "Build movement quality while maintaining controlled movement and honest effort.",
+      "competency": "Technical Control",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops movement quality. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing movement quality under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Air Squats",
+        "Push-ups",
+        "Walking Lunges",
+        "Plank Shoulder Taps",
+        "Dead Bug",
+        "Bear Crawl"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did movement quality become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 6,
+      "title": "Consistent Effort",
+      "lesson": "Consistent Effort",
+      "focus": "Work Ethic",
+      "objective": "Build work ethic while maintaining controlled movement and honest effort.",
+      "competency": "Repeatable Effort",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Commitment",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops work ethic. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing work ethic under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 40,
+        "restSec": 20
+      },
       "rounds": 5,
       "movesPerCycle": 5,
       "sequence": [
-        "Burpees",
+        "Skater Hops",
         "Push-ups",
-        "Squats",
-        "Sit-ups",
-        "Mountain Climbers"
+        "Alternating Lunges",
+        "Mountain Climbers",
+        "Hollow Hold"
       ],
-      "prompt": "EMOM. No rest. Stay disciplined.",
+      "prompt": "Move with control, pace the work, and finish every round.",
       "questions": [
-        "Did you hold pace every minute?",
-        "Where did you break mentally?"
+        "When did work ethic become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 7,
+      "title": "Breathing Under Pressure",
+      "lesson": "Breathing Under Pressure",
+      "focus": "Recovery and Composure",
+      "objective": "Build recovery and composure while maintaining controlled movement and honest effort.",
+      "competency": "Breath Control",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Self-Control",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops recovery and composure. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing recovery and composure under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Air Squats",
+        "Plank Shoulder Taps",
+        "Sit-ups",
+        "Bear Crawl",
+        "High Knees"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did recovery and composure become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 8,
+      "title": "Controlled Recovery",
+      "lesson": "Controlled Recovery",
+      "focus": "Readiness",
+      "objective": "Build readiness while maintaining controlled movement and honest effort.",
+      "competency": "Active Recovery",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Patience",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops readiness. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing readiness under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 20
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Reverse Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Front Plank",
+        "Burpees"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did readiness become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 9,
+      "title": "Finish Every Round",
+      "lesson": "Finish Every Round",
+      "focus": "Finishing Ability",
+      "objective": "Build finishing ability while maintaining controlled movement and honest effort.",
+      "competency": "Task Completion",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops finishing ability. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your foundation by practicing finishing ability under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Push-ups",
+        "Air Squats",
+        "Sit-ups",
+        "Burpees",
+        "Bear Crawl",
+        "Jump Lunges"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did finishing ability become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 10,
+      "title": "Foundations Assessment",
+      "lesson": "Foundations Assessment",
+      "focus": "Integration",
+      "objective": "Build integration while maintaining controlled movement and honest effort.",
+      "competency": "Foundational Conditioning",
+      "successStandard": "Complete every round with sound technique, appropriate pacing, and no unnecessary breaks.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Standards come before intensity.",
+        "body": "This session develops integration. Your goal is to protect movement quality, control your effort, and complete the work honestly from beginning to end."
+      },
+      "coachReminder": "Treat the assessment honestly. Let your habits\u2014not emotion\u2014set the standard.",
+      "closingMessage": {
+        "title": "Assessment Complete",
+        "body": "You strengthened your foundation by practicing integration under controlled fatigue.",
+        "signature": "Build the standard."
+      },
+      "level": "FOUNDATIONS",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Jump Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Move with control, pace the work, and finish every round.",
+      "questions": [
+        "When did integration become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 11,
+      "title": "Build the Engine",
+      "lesson": "Build the Engine",
+      "focus": "Aerobic Capacity",
+      "objective": "Increase aerobic capacity across repeated rounds without a major decline in technique.",
+      "competency": "Sustained Work",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Industry",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops aerobic capacity. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Reverse Lunges",
+        "Push-ups",
+        "Sit-ups",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did aerobic capacity become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 12,
+      "title": "Repeatable Effort",
+      "lesson": "Repeatable Effort",
+      "focus": "Consistency Under Volume",
+      "objective": "Increase consistency under volume across repeated rounds without a major decline in technique.",
+      "competency": "Work Repetition",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Reliability",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops consistency under volume. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Air Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did consistency under volume become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 13,
+      "title": "Stay in Motion",
+      "lesson": "Stay in Motion",
+      "focus": "Continuous Work",
+      "objective": "Increase continuous work across repeated rounds without a major decline in technique.",
+      "competency": "Movement Continuity",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops continuous work. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Air Squats",
+        "Push-ups",
+        "Walking Lunges",
+        "Plank Shoulder Taps",
+        "Dead Bug",
+        "Bear Crawl"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did continuous work become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 14,
+      "title": "Volume Over Comfort",
+      "lesson": "Volume Over Comfort",
+      "focus": "Training Volume",
+      "objective": "Increase training volume across repeated rounds without a major decline in technique.",
+      "competency": "Volume Tolerance",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Fortitude",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops training volume. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 5,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Skater Hops",
+        "Push-ups",
+        "Alternating Lunges",
+        "Mountain Climbers",
+        "Hollow Hold"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did training volume become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 15,
+      "title": "Strong Under Fatigue",
+      "lesson": "Strong Under Fatigue",
+      "focus": "Strength Endurance",
+      "objective": "Increase strength endurance across repeated rounds without a major decline in technique.",
+      "competency": "Postural Endurance",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops strength endurance. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Air Squats",
+        "Plank Shoulder Taps",
+        "Sit-ups",
+        "Bear Crawl",
+        "High Knees"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did strength endurance become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 16,
+      "title": "Efficient Movement",
+      "lesson": "Efficient Movement",
+      "focus": "Economy of Motion",
+      "objective": "Increase economy of motion across repeated rounds without a major decline in technique.",
+      "competency": "Movement Efficiency",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Precision",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops economy of motion. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Reverse Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Front Plank",
+        "Burpees"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did economy of motion become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 17,
+      "title": "Pace With Purpose",
+      "lesson": "Pace With Purpose",
+      "focus": "Strategic Effort",
+      "objective": "Increase strategic effort across repeated rounds without a major decline in technique.",
+      "competency": "Effort Distribution",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Wisdom",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops strategic effort. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Push-ups",
+        "Air Squats",
+        "Sit-ups",
+        "Burpees",
+        "Bear Crawl",
+        "Jump Lunges"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did strategic effort become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 18,
+      "title": "Endurance Mindset",
+      "lesson": "Endurance Mindset",
+      "focus": "Long-Duration Focus",
+      "objective": "Increase long-duration focus across repeated rounds without a major decline in technique.",
+      "competency": "Sustained Attention",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Patience",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops long-duration focus. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Jump Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did long-duration focus become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 19,
+      "title": "Push the Threshold",
+      "lesson": "Push the Threshold",
+      "focus": "Threshold Development",
+      "objective": "Increase threshold development across repeated rounds without a major decline in technique.",
+      "competency": "Controlled Intensity",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Courage",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops threshold development. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Reverse Lunges",
+        "Push-ups",
+        "Sit-ups",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did threshold development become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 20,
+      "title": "Capacity Assessment",
+      "lesson": "Capacity Assessment",
+      "focus": "Work Capacity Integration",
+      "objective": "Increase work capacity integration across repeated rounds without a major decline in technique.",
+      "competency": "Capacity Performance",
+      "successStandard": "Sustain useful output across all rounds while preserving movement quality and breathing control.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Capacity is built through repeatable work.",
+        "body": "This session develops work capacity integration. Strong athletes learn to produce useful work repeatedly without allowing volume to destroy technique or decision-making."
+      },
+      "coachReminder": "Treat the assessment honestly. Let your habits\u2014not emotion\u2014set the standard.",
+      "closingMessage": {
+        "title": "Assessment Complete",
+        "body": "You expanded your work capacity by repeating disciplined effort without abandoning your standards.",
+        "signature": "Repeat what works."
+      },
+      "level": "WORK_CAPACITY",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Air Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Produce steady output and make each round repeatable.",
+      "questions": [
+        "When did work capacity integration become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 21,
+      "title": "Pressure Changes Nothing",
+      "lesson": "Pressure Changes Nothing",
+      "focus": "Composure Under Stress",
+      "objective": "Demonstrate composure under stress when fatigue and discomfort begin to affect decisions.",
+      "competency": "Pressure Control",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops composure under stress. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Air Squats",
+        "Push-ups",
+        "Walking Lunges",
+        "Plank Shoulder Taps",
+        "Dead Bug",
+        "Bear Crawl"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did composure under stress become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 22,
+      "title": "Calm Under Fatigue",
+      "lesson": "Calm Under Fatigue",
+      "focus": "Emotional Regulation",
+      "objective": "Demonstrate emotional regulation when fatigue and discomfort begin to affect decisions.",
+      "competency": "Emotional Control",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Self-Control",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops emotional regulation. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 6,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Skater Hops",
+        "Push-ups",
+        "Alternating Lunges",
+        "Mountain Climbers",
+        "Hollow Hold"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did emotional regulation become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 23,
+      "title": "Recover and Respond",
+      "lesson": "Recover and Respond",
+      "focus": "Response After Fatigue",
+      "objective": "Demonstrate response after fatigue when fatigue and discomfort begin to affect decisions.",
+      "competency": "Recovery Response",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Resilience",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops response after fatigue. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Air Squats",
+        "Plank Shoulder Taps",
+        "Sit-ups",
+        "Bear Crawl",
+        "High Knees"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did response after fatigue become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 24,
+      "title": "One More Round",
+      "lesson": "One More Round",
+      "focus": "Extended Effort",
+      "objective": "Demonstrate extended effort when fatigue and discomfort begin to affect decisions.",
+      "competency": "Effort Extension",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Perseverance",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops extended effort. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Reverse Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Front Plank",
+        "Burpees"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did extended effort become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 25,
+      "title": "Refuse to Quit",
+      "lesson": "Refuse to Quit",
+      "focus": "Commitment Under Distress",
+      "objective": "Demonstrate commitment under distress when fatigue and discomfort begin to affect decisions.",
+      "competency": "Task Persistence",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops commitment under distress. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Push-ups",
+        "Air Squats",
+        "Sit-ups",
+        "Burpees",
+        "Bear Crawl",
+        "Jump Lunges"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did commitment under distress become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 26,
+      "title": "Discipline Over Emotion",
+      "lesson": "Discipline Over Emotion",
+      "focus": "Decision-Making",
+      "objective": "Demonstrate decision-making when fatigue and discomfort begin to affect decisions.",
+      "competency": "Behavioral Discipline",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops decision-making. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Jump Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did decision-making become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 27,
+      "title": "Composure Wins",
+      "lesson": "Composure Wins",
+      "focus": "Poise Under Pressure",
+      "objective": "Demonstrate poise under pressure when fatigue and discomfort begin to affect decisions.",
+      "competency": "Competitive Composure",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Temperance",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops poise under pressure. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Reverse Lunges",
+        "Push-ups",
+        "Sit-ups",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did poise under pressure become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 28,
+      "title": "Stay Present",
+      "lesson": "Stay Present",
+      "focus": "Present-Moment Focus",
+      "objective": "Demonstrate present-moment focus when fatigue and discomfort begin to affect decisions.",
+      "competency": "Attention Control",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Focus",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops present-moment focus. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 8,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Air Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did present-moment focus become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 29,
+      "title": "Finish What You Start",
+      "lesson": "Finish What You Start",
+      "focus": "Completion Under Pressure",
+      "objective": "Demonstrate completion under pressure when fatigue and discomfort begin to affect decisions.",
+      "competency": "Completion Discipline",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Honor",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops completion under pressure. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Air Squats",
+        "Push-ups",
+        "Walking Lunges",
+        "Plank Shoulder Taps",
+        "Dead Bug",
+        "Bear Crawl"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did completion under pressure become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 30,
+      "title": "Resilience Assessment",
+      "lesson": "Resilience Assessment",
+      "focus": "Resilience Integration",
+      "objective": "Demonstrate resilience integration when fatigue and discomfort begin to affect decisions.",
+      "competency": "Resilient Performance",
+      "successStandard": "Remain engaged through the final interval and respond to fatigue with disciplined action.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Pressure reveals the habits you trained.",
+        "body": "This session develops resilience integration. Discomfort is expected. The standard is to stay composed, remain present, and continue making disciplined choices."
+      },
+      "coachReminder": "Treat the assessment honestly. Let your habits\u2014not emotion\u2014set the standard.",
+      "closingMessage": {
+        "title": "Assessment Complete",
+        "body": "You developed resilience by continuing to make useful decisions after the session became uncomfortable.",
+        "signature": "Stay in the fight."
+      },
+      "level": "RESILIENCE",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 7,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Skater Hops",
+        "Push-ups",
+        "Alternating Lunges",
+        "Mountain Climbers",
+        "Hollow Hold"
+      ],
+      "prompt": "Stay present, manage discomfort, and complete the next disciplined action.",
+      "questions": [
+        "When did resilience integration become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 31,
+      "title": "Perform With Purpose",
+      "lesson": "Perform With Purpose",
+      "focus": "Intentional Performance",
+      "objective": "Apply intentional performance in a demanding performance-focused conditioning session.",
+      "competency": "Performance Intent",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Purpose",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops intentional performance. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Air Squats",
+        "Plank Shoulder Taps",
+        "Sit-ups",
+        "Bear Crawl",
+        "High Knees"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did intentional performance become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 32,
+      "title": "Lead by Example",
+      "lesson": "Lead by Example",
+      "focus": "Leadership Through Action",
+      "objective": "Apply leadership through action in a demanding performance-focused conditioning session.",
+      "competency": "Visible Leadership",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Leadership",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops leadership through action. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Reverse Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Front Plank",
+        "Burpees"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did leadership through action become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 33,
+      "title": "Execute Under Pressure",
+      "lesson": "Execute Under Pressure",
+      "focus": "Pressure Execution",
+      "objective": "Apply pressure execution in a demanding performance-focused conditioning session.",
+      "competency": "Technical Execution",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Courage",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops pressure execution. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Push-ups",
+        "Air Squats",
+        "Sit-ups",
+        "Burpees",
+        "Bear Crawl",
+        "Jump Lunges"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did pressure execution become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 34,
+      "title": "Precision Under Fatigue",
+      "lesson": "Precision Under Fatigue",
+      "focus": "Technical Accuracy",
+      "objective": "Apply technical accuracy in a demanding performance-focused conditioning session.",
+      "competency": "Precision Endurance",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops technical accuracy. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Jump Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did technical accuracy become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 35,
+      "title": "Compete Every Round",
+      "lesson": "Compete Every Round",
+      "focus": "Competitive Consistency",
+      "objective": "Apply competitive consistency in a demanding performance-focused conditioning session.",
+      "competency": "Competitive Effort",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops competitive consistency. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Reverse Lunges",
+        "Push-ups",
+        "Sit-ups",
+        "Bear Crawl",
+        "Front Plank"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did competitive consistency become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 36,
+      "title": "Finish Strong",
+      "lesson": "Finish Strong",
+      "focus": "Late-Session Performance",
+      "objective": "Apply late-session performance in a demanding performance-focused conditioning session.",
+      "competency": "Finishing Power",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops late-session performance. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 8,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Air Squats",
+        "Push-ups",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did late-session performance become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 37,
+      "title": "Championship Standard",
+      "lesson": "Championship Standard",
+      "focus": "Elite Habits",
+      "objective": "Apply elite habits in a demanding performance-focused conditioning session.",
+      "competency": "Standard Maintenance",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops elite habits. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Air Squats",
+        "Push-ups",
+        "Walking Lunges",
+        "Plank Shoulder Taps",
+        "Dead Bug",
+        "Bear Crawl"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did elite habits become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 38,
+      "title": "Complete Athlete",
+      "lesson": "Complete Athlete",
+      "focus": "Integrated Readiness",
+      "objective": "Apply integrated readiness in a demanding performance-focused conditioning session.",
+      "competency": "Whole-Athlete Capacity",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Balance",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops integrated readiness. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 8,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Skater Hops",
+        "Push-ups",
+        "Alternating Lunges",
+        "Mountain Climbers",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did integrated readiness become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 39,
+      "title": "Final Preparation",
+      "lesson": "Final Preparation",
+      "focus": "Readiness and Strategy",
+      "objective": "Apply readiness and strategy in a demanding performance-focused conditioning session.",
+      "competency": "Performance Preparation",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Responsibility",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops readiness and strategy. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Protect movement quality. Adjust pace before allowing technique to break.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Air Squats",
+        "Plank Shoulder Taps",
+        "Sit-ups",
+        "Bear Crawl",
+        "High Knees"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did readiness and strategy become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
+      ]
+    },
+    {
+      "n": 40,
+      "title": "Final Performance Assessment",
+      "lesson": "Final Performance Assessment",
+      "focus": "Total Integration",
+      "objective": "Apply total integration in a demanding performance-focused conditioning session.",
+      "competency": "Segment Performance",
+      "successStandard": "Execute the complete session with composure, precision, and a strong finish.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Preparation must become performance.",
+        "body": "This session develops total integration. Bring together pacing, technical control, recovery, resilience, and intent so preparation can hold up under pressure."
+      },
+      "coachReminder": "Treat the assessment honestly. Let your habits\u2014not emotion\u2014set the standard.",
+      "closingMessage": {
+        "title": "Assessment Complete",
+        "body": "You practiced turning preparation into performance while protecting the standards of a complete athlete.",
+        "signature": "Perform with purpose."
+      },
+      "level": "PERFORMANCE",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Rope or Invisible Rope",
+        "Reverse Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Front Plank",
+        "Burpees"
+      ],
+      "prompt": "Execute with precision, composure, and intent from start to finish.",
+      "questions": [
+        "When did total integration become most difficult?",
+        "How did fatigue affect your movement, breathing, or decisions?",
+        "What specific adjustment will improve your next session?"
       ]
     }
   ]
