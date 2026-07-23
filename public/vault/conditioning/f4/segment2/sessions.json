@@ -1,0 +1,1678 @@
+{
+  "lane": "conditioning",
+  "foundry": "f4",
+  "segmentId": "segment2",
+  "segmentTitle": "Challenge the Athlete",
+  "sessions": [
+    {
+      "n": 41,
+      "title": "Bigger Engine",
+      "lesson": "Bigger Engine",
+      "focus": "Capacity Expansion",
+      "objective": "Develop capacity expansion while maintaining technical standards.",
+      "competency": "Sustained Work",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Industry",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 42,
+      "title": "Sustainable Power",
+      "lesson": "Sustainable Power",
+      "focus": "Capacity Expansion",
+      "objective": "Develop capacity expansion while maintaining technical standards.",
+      "competency": "Repeatable Output",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 43,
+      "title": "Efficient Recovery",
+      "lesson": "Efficient Recovery",
+      "focus": "Recovery",
+      "objective": "Develop recovery while maintaining technical standards.",
+      "competency": "Recovery Efficiency",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Patience",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 44,
+      "title": "Longer Work",
+      "lesson": "Longer Work",
+      "focus": "Endurance",
+      "objective": "Develop endurance while maintaining technical standards.",
+      "competency": "Extended Capacity",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 45,
+      "title": "Repeat the Standard",
+      "lesson": "Repeat the Standard",
+      "focus": "Consistency",
+      "objective": "Develop consistency while maintaining technical standards.",
+      "competency": "Consistency Under Fatigue",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 46,
+      "title": "Build the Base",
+      "lesson": "Build the Base",
+      "focus": "Aerobic Capacity",
+      "objective": "Develop aerobic capacity while maintaining technical standards.",
+      "competency": "Aerobic Development",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Commitment",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 47,
+      "title": "Tempo Control",
+      "lesson": "Tempo Control",
+      "focus": "Pacing",
+      "objective": "Develop pacing while maintaining technical standards.",
+      "competency": "Pace Management",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 5,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 48,
+      "title": "Aerobic Discipline",
+      "lesson": "Aerobic Discipline",
+      "focus": "Endurance",
+      "objective": "Develop endurance while maintaining technical standards.",
+      "competency": "Breathing Control",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Self-Control",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 49,
+      "title": "Never Coast",
+      "lesson": "Never Coast",
+      "focus": "Intensity",
+      "objective": "Develop intensity while maintaining technical standards.",
+      "competency": "Continuous Effort",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 50,
+      "title": "Capacity Assessment",
+      "lesson": "Capacity Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining technical standards.",
+      "competency": "Capacity Evaluation",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "CAPACITY",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 51,
+      "title": "Push the Threshold",
+      "lesson": "Push the Threshold",
+      "focus": "Threshold",
+      "objective": "Develop threshold while maintaining technical standards.",
+      "competency": "Threshold Development",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Courage",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 6,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 52,
+      "title": "Controlled Suffering",
+      "lesson": "Controlled Suffering",
+      "focus": "Threshold",
+      "objective": "Develop threshold while maintaining technical standards.",
+      "competency": "Mental Toughness",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Perseverance",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 53,
+      "title": "Work Beyond Comfort",
+      "lesson": "Work Beyond Comfort",
+      "focus": "Threshold",
+      "objective": "Develop threshold while maintaining technical standards.",
+      "competency": "Expanded Capacity",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Fortitude",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 54,
+      "title": "Hold the Standard",
+      "lesson": "Hold the Standard",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining technical standards.",
+      "competency": "Execution Under Fatigue",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 55,
+      "title": "Manage the Burn",
+      "lesson": "Manage the Burn",
+      "focus": "Recovery",
+      "objective": "Develop recovery while maintaining technical standards.",
+      "competency": "Fatigue Management",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Patience",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 56,
+      "title": "Recover Faster",
+      "lesson": "Recover Faster",
+      "focus": "Recovery",
+      "objective": "Develop recovery while maintaining technical standards.",
+      "competency": "Recovery Speed",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Wisdom",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 57,
+      "title": "Stay Technical",
+      "lesson": "Stay Technical",
+      "focus": "Technique",
+      "objective": "Develop technique while maintaining technical standards.",
+      "competency": "Technique Under Fatigue",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Precision",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 58,
+      "title": "Pressure Doesn't Decide",
+      "lesson": "Pressure Doesn't Decide",
+      "focus": "Pressure",
+      "objective": "Develop pressure while maintaining technical standards.",
+      "competency": "Decision Making",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 59,
+      "title": "Finish Under Fatigue",
+      "lesson": "Finish Under Fatigue",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining technical standards.",
+      "competency": "Finish Strength",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 5,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 60,
+      "title": "Threshold Assessment",
+      "lesson": "Threshold Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining technical standards.",
+      "competency": "Threshold Evaluation",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "THRESHOLD",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 61,
+      "title": "Match Pace",
+      "lesson": "Match Pace",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Match Conditioning",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 62,
+      "title": "Overtime",
+      "lesson": "Overtime",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Extended Performance",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 63,
+      "title": "Tournament Ready",
+      "lesson": "Tournament Ready",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Tournament Capacity",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Preparation",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 6,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 64,
+      "title": "Fast Recovery",
+      "lesson": "Fast Recovery",
+      "focus": "Recovery",
+      "objective": "Develop recovery while maintaining technical standards.",
+      "competency": "Between Round Recovery",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Self-Control",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 65,
+      "title": "Pressure Rounds",
+      "lesson": "Pressure Rounds",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Pressure Performance",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Courage",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 66,
+      "title": "Constant Output",
+      "lesson": "Constant Output",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Sustained Intensity",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 67,
+      "title": "Championship Pace",
+      "lesson": "Championship Pace",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Elite Conditioning",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 68,
+      "title": "Late Match Focus",
+      "lesson": "Late Match Focus",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Focus Under Fatigue",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Focus",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 69,
+      "title": "Dominate the Finish",
+      "lesson": "Dominate the Finish",
+      "focus": "Competition",
+      "objective": "Develop competition while maintaining technical standards.",
+      "competency": "Finishing Ability",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 70,
+      "title": "Competition Assessment",
+      "lesson": "Competition Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining technical standards.",
+      "competency": "Competition Readiness",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "COMPETITION",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 71,
+      "title": "Adapt and Overcome",
+      "lesson": "Adapt and Overcome",
+      "focus": "Adaptability",
+      "objective": "Develop adaptability while maintaining technical standards.",
+      "competency": "Adaptive Performance",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Resilience",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 5,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 72,
+      "title": "Unexpected Pressure",
+      "lesson": "Unexpected Pressure",
+      "focus": "Adaptability",
+      "objective": "Develop adaptability while maintaining technical standards.",
+      "competency": "Composure",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 73,
+      "title": "Controlled Chaos",
+      "lesson": "Controlled Chaos",
+      "focus": "Adaptability",
+      "objective": "Develop adaptability while maintaining technical standards.",
+      "competency": "Decision Speed",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Wisdom",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 74,
+      "title": "Decision Under Fatigue",
+      "lesson": "Decision Under Fatigue",
+      "focus": "Adaptability",
+      "objective": "Develop adaptability while maintaining technical standards.",
+      "competency": "Decision Making",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Judgment",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 75,
+      "title": "Tactical Recovery",
+      "lesson": "Tactical Recovery",
+      "focus": "Recovery",
+      "objective": "Develop recovery while maintaining technical standards.",
+      "competency": "Recovery Strategy",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Patience",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 6,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 76,
+      "title": "Mental Reset",
+      "lesson": "Mental Reset",
+      "focus": "Mindset",
+      "objective": "Develop mindset while maintaining technical standards.",
+      "competency": "Mental Recovery",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Self-Control",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 77,
+      "title": "Leadership Under Stress",
+      "lesson": "Leadership Under Stress",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining technical standards.",
+      "competency": "Leadership",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Leadership",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 45,
+        "restSec": 15
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 78,
+      "title": "Never Break Standards",
+      "lesson": "Never Break Standards",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining technical standards.",
+      "competency": "Consistency",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Honor",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 79,
+      "title": "Elite Consistency",
+      "lesson": "Elite Consistency",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining technical standards.",
+      "competency": "Elite Habits",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 5,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    },
+    {
+      "n": 80,
+      "title": "Segment Assessment",
+      "lesson": "Segment Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining technical standards.",
+      "competency": "Segment Mastery",
+      "successStandard": "Complete every round with disciplined effort and sound technique.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Pressure creates opportunity.",
+        "body": "Today's objective is to protect your standards while workload increases."
+      },
+      "coachReminder": "Control breathing before increasing speed.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You improved by maintaining discipline under increasing demand.",
+        "signature": "Heroes Build Heroes."
+      },
+      "level": "ADAPTATION",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Front Plank"
+      ],
+      "prompt": "Protect technique while increasing capacity.",
+      "questions": [
+        "Where did fatigue first affect performance?",
+        "What adjustment helped you recover?",
+        "What will you improve next session?"
+      ]
+    }
+  ]
+}

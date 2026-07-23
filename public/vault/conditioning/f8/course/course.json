@@ -1,0 +1,53 @@
+{
+  "courseId": "STR-F8",
+  "title": "Foundry 8 Conditioning Course",
+  "journey": "zero2hero",
+  "foundry": "f8",
+  "pillar": "strength",
+  "delivery": "remote",
+  "method": "progressive-tabata",
+  "lessonCount": 40,
+  "progressionMode": "sequential",
+  "releaseMode": "completion",
+  "doctrine": {
+    "purpose": "Teach children how to train.",
+    "rule": "Lessons are earned, not scheduled.",
+    "framework": [
+      "focus",
+      "objective",
+      "coachMessage",
+      "mission",
+      "reflection"
+    ]
+  },
+  "segments": [
+    {
+      "id": "segment-1",
+      "title": "Foundations",
+      "lessonStart": 1,
+      "lessonEnd": 10,
+      "theme": "Learn to Move"
+    },
+    {
+      "id": "segment-2",
+      "title": "Builders",
+      "lessonStart": 11,
+      "lessonEnd": 20,
+      "theme": "Learn to Work"
+    },
+    {
+      "id": "segment-3",
+      "title": "Leaders",
+      "lessonStart": 21,
+      "lessonEnd": 30,
+      "theme": "Learn to Lead"
+    },
+    {
+      "id": "segment-4",
+      "title": "Heroes",
+      "lessonStart": 31,
+      "lessonEnd": 40,
+      "theme": "Learn to Finish"
+    }
+  ]
+}

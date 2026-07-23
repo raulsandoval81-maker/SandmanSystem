@@ -285,11 +285,98 @@ async function loadConditioningSession() {
     const questions = Array.isArray(session?.questions) ? session.questions : [];
     const sequence = Array.isArray(session?.sequence) ? session.sequence : [];
 
+
+    const lesson = session.lesson || session.title || "";
+const focus = session.focus || "";
+const virtue = session.virtue || "";
+const objective = session.objective || "";
+const competency = session.competency || "";
+const successStandard = session.successStandard || "";
+
+const coachHeadline = session?.coachMessage?.headline || "";
+const coachBody = session?.coachMessage?.body || "";
+
+const coachReminder = session.coachReminder || "";
+
+const closingTitle =
+  session?.closingMessage?.title || "";
+
+const closingBody =
+  session?.closingMessage?.body || "";
+
     container.innerHTML = `
       <div class="lane-card">
-        <div style="font-weight:900;font-size:1.1rem;">
-          ${esc(session.title || `Conditioning Session ${sessionN}`)}
-        </div>
+
+<div style="font-size:.82rem;
+font-weight:800;
+letter-spacing:.08em;
+opacity:.65;">
+LESSON ${sessionN}
+</div>
+
+<div style="
+margin-top:.2rem;
+font-size:1.6rem;
+font-weight:900;">
+${esc(lesson)}
+</div>
+
+<div style="
+margin-top:.25rem;
+font-size:1rem;
+color:#ffd633;
+font-weight:700;">
+${esc(virtue)}
+</div>
+${
+focus
+? `
+<div style="
+margin-top:.35rem;
+font-size:.95rem;
+opacity:.8;
+font-style:italic;">
+Focus: ${esc(focus)}
+</div>
+`
+: ""
+}
+${
+coachHeadline || coachBody
+? `
+<div style="
+margin-top:1rem;
+padding:1rem;
+border:1px solid #2a3445;
+border-radius:12px;
+background:#10161f;">
+
+<div style="
+font-size:.82rem;
+font-weight:800;
+letter-spacing:.06em;
+opacity:.7;">
+MISSION BRIEF
+</div>
+
+<div style="
+margin-top:.35rem;
+font-size:1.05rem;
+font-weight:800;">
+${esc(coachHeadline)}
+</div>
+
+<div style="
+margin-top:.5rem;
+line-height:1.6;
+opacity:.92;">
+${esc(coachBody)}
+</div>
+
+</div>
+`
+: ""
+}
 
         <div style="margin-top:.35rem;opacity:.72;font-size:.92rem;">
           F8 Conditioning · Session ${esc(String(sessionN))}
@@ -312,6 +399,68 @@ async function loadConditioningSession() {
             `
             : ""
         }
+
+        ${
+objective
+? `
+<div style="margin-top:1rem;">
+  <div style="font-weight:800;">Objective</div>
+  <div style="margin-top:.3rem;line-height:1.6;">
+    ${esc(objective)}
+  </div>
+</div>
+`
+: ""
+}
+
+${
+competency
+? `
+<div style="margin-top:.8rem;">
+  <div style="font-weight:800;">Today's Skill</div>
+  <div style="margin-top:.3rem;line-height:1.6;">
+    ${esc(competency)}
+  </div>
+</div>
+`
+: ""
+}
+
+${
+successStandard
+? `
+<div style="margin-top:.8rem;">
+  <div style="font-weight:800;">Success Standard</div>
+  <div style="margin-top:.3rem;line-height:1.6;">
+    ${esc(successStandard)}
+  </div>
+</div>
+`
+: ""
+}
+
+${
+coachReminder
+? `
+<div style="
+margin-top:1rem;
+padding:.8rem;
+border-left:4px solid #ffd633;
+background:#10161f;
+border-radius:8px;">
+
+<div style="font-weight:800;">
+Coach Reminder
+</div>
+
+<div style="margin-top:.35rem;">
+${esc(coachReminder)}
+</div>
+
+</div>
+`
+: ""
+}
 
         <div style="margin-top:.7rem;padding:.9rem;border:1px solid #1f2937;border-radius:12px;background:#0b1017;">
           <div style="font-weight:900;margin-bottom:.35rem;">Session Plan</div>
@@ -409,6 +558,51 @@ async function loadConditioningSession() {
           }
         </div>
       </div>
+
+      ${
+isApproved && (closingTitle || closingBody)
+? `
+<div class="lane-card" style="margin-top:14px;">
+
+  <div style="
+    font-size:.82rem;
+    font-weight:800;
+    letter-spacing:.08em;
+    opacity:.65;">
+    MISSION COMPLETE
+  </div>
+
+  ${
+    closingTitle
+      ? `
+      <div style="
+        margin-top:.3rem;
+        font-size:1.35rem;
+        font-weight:900;
+        color:#ffd633;">
+        ${esc(closingTitle)}
+      </div>
+      `
+      : ""
+  }
+
+  ${
+    closingBody
+      ? `
+      <div style="
+        margin-top:.75rem;
+        line-height:1.7;
+        opacity:.92;">
+        ${esc(closingBody)}
+      </div>
+      `
+      : ""
+  }
+
+</div>
+`
+: ""
+}
     `;
 
     if (questions.length && existingBody) {

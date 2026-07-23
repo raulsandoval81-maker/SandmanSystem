@@ -1,0 +1,1052 @@
+{
+  "journey": "F8",
+  "pillar": "conditioning",
+  "segment": 2,
+  "audience": "youth",
+  "ageRange": "6-13",
+  "sessionRange": "41-80",
+  "sessionCount": 40,
+  "sessions": [
+    {
+      "n": 41,
+      "title": "Forward and Back",
+      "level": "Movement Patterns",
+      "focus": "Forward and backward movement with posture",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Forward shuffle",
+        "Backward shuffle",
+        "Forward step and freeze",
+        "Backward step and freeze",
+        "Fast feet",
+        "Stance reset"
+      ],
+      "prompt": "Move forward and backward without letting your posture collapse.",
+      "questions": [
+        "Could you move backward without standing too tall?",
+        "Which direction felt easier?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong athletes move forward and backward with control."
+    },
+    {
+      "n": 42,
+      "title": "Side-to-Side Control",
+      "level": "Movement Patterns",
+      "focus": "Lateral movement without crossing the feet",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Lateral shuffle right",
+        "Lateral shuffle left",
+        "Side step and stick",
+        "Skater step",
+        "Wide stance hold",
+        "Fast feet freeze"
+      ],
+      "prompt": "Stay low, keep your feet apart, and move side to side with control.",
+      "questions": [
+        "Did your feet stay apart?",
+        "Which side was more controlled?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Side-to-side control protects your base."
+    },
+    {
+      "n": 43,
+      "title": "Turn and Reset",
+      "level": "Movement Patterns",
+      "focus": "Controlled turning and stance recovery",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Quarter turn right",
+        "Quarter turn left",
+        "Half turn and stance",
+        "Circle step",
+        "Turn and balance",
+        "Stance reset"
+      ],
+      "prompt": "Turn quickly, then rebuild your stance.",
+      "questions": [
+        "How quickly could you rebuild your stance?",
+        "Which turn needed more practice?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Turn fast. Reset strong."
+    },
+    {
+      "n": 44,
+      "title": "Stop the Momentum",
+      "level": "Movement Patterns",
+      "focus": "Deceleration and stopping safely",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jog and stop",
+        "Shuffle and stop",
+        "Hop and stick",
+        "Backpedal and freeze",
+        "Squat hold",
+        "Breathing reset"
+      ],
+      "prompt": "Speed up with purpose and stop under control.",
+      "questions": [
+        "Could you stop without extra steps?",
+        "What helped you control momentum?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Control the stop, not just the speed."
+    },
+    {
+      "n": 45,
+      "title": "Diagonal Movement",
+      "level": "Movement Patterns",
+      "focus": "Diagonal movement and spatial awareness",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Diagonal step right",
+        "Diagonal step left",
+        "Diagonal back step",
+        "Cross-body reach",
+        "Skater step",
+        "Center stance"
+      ],
+      "prompt": "Use the whole floor. Move diagonally and return to center.",
+      "questions": [
+        "Which diagonal was easiest?",
+        "Could you return to center accurately?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Great movement uses every direction."
+    },
+    {
+      "n": 46,
+      "title": "Circle and Square",
+      "level": "Movement Patterns",
+      "focus": "Changing between circular and square movement",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Circle right",
+        "Circle left",
+        "Square step pattern",
+        "Corner turn",
+        "Fast feet",
+        "Stance reset"
+      ],
+      "prompt": "Circle smoothly, then square your movement when called.",
+      "questions": [
+        "Was circling or square movement harder?",
+        "How did you keep your balance?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Own the circle and the square."
+    },
+    {
+      "n": 47,
+      "title": "Quick Feet Patterns",
+      "level": "Movement Patterns",
+      "focus": "Foot speed with clean patterns",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "In-out feet",
+        "Forward-back feet",
+        "Side-to-side feet",
+        "Quick toe taps",
+        "Fast feet freeze",
+        "March reset"
+      ],
+      "prompt": "Move your feet quickly without letting the pattern become sloppy.",
+      "questions": [
+        "Which foot pattern was hardest?",
+        "Did speed affect your control?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Quick feet still need discipline."
+    },
+    {
+      "n": 48,
+      "title": "Balance After Speed",
+      "level": "Movement Patterns",
+      "focus": "Regaining balance after quick movement",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast feet to balance",
+        "Shuffle to balance",
+        "Hop to balance",
+        "Turn to balance",
+        "Single-leg hold right",
+        "Single-leg hold left"
+      ],
+      "prompt": "Speed is useful only when you can recover your balance.",
+      "questions": [
+        "How quickly did you regain balance?",
+        "Which movement caused the most wobble?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Recover your balance and stay ready."
+    },
+    {
+      "n": 49,
+      "title": "Movement Memory",
+      "level": "Movement Patterns",
+      "focus": "Remembering and repeating movement patterns",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Forward-back-side pattern",
+        "Circle-step-freeze pattern",
+        "Squat-reach-step pattern",
+        "Hop-stick-turn pattern",
+        "Bear crawl pattern",
+        "Stance reset"
+      ],
+      "prompt": "Remember the order and complete each pattern with control.",
+      "questions": [
+        "Could you remember every pattern?",
+        "What helped you stay focused?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Focus turns patterns into skill."
+    },
+    {
+      "n": 50,
+      "title": "Movement Pattern Checkpoint",
+      "level": "Movement Patterns",
+      "focus": "Reviewing direction change, posture, and control",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Forward shuffle",
+        "Lateral shuffle",
+        "Turn and reset",
+        "Jog and stop",
+        "Diagonal step",
+        "Balance freeze"
+      ],
+      "prompt": "Show clean direction changes, posture, and balance.",
+      "questions": [
+        "Which movement pattern improved most?",
+        "What still needs practice?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Movement-pattern checkpoint earned."
+    },
+    {
+      "n": 51,
+      "title": "Reaction Steps",
+      "level": "Athletic Skills",
+      "focus": "Reacting quickly while staying balanced",
+      "interval": {
+        "work": 30,
+        "rest": 30
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast feet on command",
+        "Drop to stance",
+        "Lateral reaction step",
+        "Forward reaction step",
+        "Sprawl step-back",
+        "Balance freeze"
+      ],
+      "prompt": "React quickly, but finish every reaction in a strong position.",
+      "questions": [
+        "Which cue produced your fastest reaction?",
+        "Did you finish in balance?"
+      ],
+      "closingMessage": "MISSION COMPLETE — React fast and finish strong."
+    },
+    {
+      "n": 52,
+      "title": "Rhythm Builder",
+      "level": "Athletic Skills",
+      "focus": "Moving with rhythm and coordination",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Step clap rhythm",
+        "March knee rhythm",
+        "Squat reach rhythm",
+        "Lateral step rhythm",
+        "Mountain climber rhythm",
+        "Breathing rhythm"
+      ],
+      "prompt": "Find the rhythm and let your whole body move together.",
+      "questions": [
+        "Which movement had the best rhythm?",
+        "Did rhythm make the movement easier?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Rhythm improves coordination."
+    },
+    {
+      "n": 53,
+      "title": "Timing the Move",
+      "level": "Athletic Skills",
+      "focus": "Starting movement at the right moment",
+      "interval": {
+        "work": 30,
+        "rest": 30
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Wait then go",
+        "Pause squat then jump",
+        "Hold stance then shuffle",
+        "Plank pause then stand",
+        "Knee drive on cue",
+        "Freeze on cue"
+      ],
+      "prompt": "Do not move too early. Wait, then act with purpose.",
+      "questions": [
+        "Was waiting harder than moving?",
+        "How did timing improve the movement?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Timing makes movement smarter."
+    },
+    {
+      "n": 54,
+      "title": "Fast Hands Fast Feet",
+      "level": "Athletic Skills",
+      "focus": "Coordinating upper- and lower-body speed",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Cross-body punches",
+        "Fast feet",
+        "High-knee hand taps",
+        "Bear plank shoulder taps",
+        "Shadow movement",
+        "Stance reset"
+      ],
+      "prompt": "Keep your hands and feet coordinated at higher speed.",
+      "questions": [
+        "Could your hands and feet stay coordinated?",
+        "Which movement required the most focus?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Fast hands and feet can work together."
+    },
+    {
+      "n": 55,
+      "title": "Body Awareness",
+      "level": "Athletic Skills",
+      "focus": "Knowing body position during movement",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Eyes-closed balance setup",
+        "Body scan stance",
+        "Reach and return",
+        "Turn and locate",
+        "Crawl and stop",
+        "Breathing reset"
+      ],
+      "prompt": "Know where your body is before, during, and after each movement.",
+      "questions": [
+        "When did you lose awareness of your body?",
+        "What helped you regain control?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Awareness creates better movement."
+    },
+    {
+      "n": 56,
+      "title": "Mirror Mission",
+      "level": "Athletic Skills",
+      "focus": "Matching another athlete's movement",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Mirror forward-back",
+        "Mirror lateral",
+        "Mirror level change",
+        "Mirror circle",
+        "Mirror freeze",
+        "Stance reset"
+      ],
+      "prompt": "Match the movement without guessing or rushing.",
+      "questions": [
+        "Was it easier to lead or follow?",
+        "How did you avoid guessing?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Mirror, adjust, improve."
+    },
+    {
+      "n": 57,
+      "title": "Color Call Challenge",
+      "level": "Athletic Skills",
+      "focus": "Responding to visual or verbal cues",
+      "interval": {
+        "work": 30,
+        "rest": 30
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Color call step",
+        "Number call squat",
+        "Direction call shuffle",
+        "Level call drop",
+        "Freeze call",
+        "Breathing reset"
+      ],
+      "prompt": "Listen or look for the cue, then respond with control.",
+      "questions": [
+        "Which cue was easiest to follow?",
+        "Did you react before the cue?"
+      ],
+      "closingMessage": "MISSION COMPLETE — See the cue. Make the move."
+    },
+    {
+      "n": 58,
+      "title": "Tempo Switch",
+      "level": "Athletic Skills",
+      "focus": "Changing movement tempo on command",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Slow march",
+        "Medium jog",
+        "Fast feet",
+        "Slow squat",
+        "Quick shuffle",
+        "Controlled plank"
+      ],
+      "prompt": "Great athletes can move fast, slow, and everything between.",
+      "questions": [
+        "Which tempo was hardest?",
+        "Could you change pace immediately?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Control every speed."
+    },
+    {
+      "n": 59,
+      "title": "Eyes Up Movement",
+      "level": "Athletic Skills",
+      "focus": "Maintaining awareness while moving",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Forward shuffle eyes up",
+        "Lateral shuffle eyes up",
+        "Circle step eyes up",
+        "Floor touch eyes up",
+        "Backpedal eyes up",
+        "Stance reset"
+      ],
+      "prompt": "Keep your eyes up and stay aware of the space around you.",
+      "questions": [
+        "Did your eyes stay up?",
+        "How did awareness affect your movement?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Eyes up. Body ready."
+    },
+    {
+      "n": 60,
+      "title": "Athletic Skills Checkpoint",
+      "level": "Athletic Skills",
+      "focus": "Reviewing reaction, rhythm, timing, and awareness",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Reaction step",
+        "Rhythm squat",
+        "Timing jump",
+        "Fast hands fast feet",
+        "Mirror movement",
+        "Eyes up shuffle"
+      ],
+      "prompt": "Show reaction, rhythm, timing, and awareness.",
+      "questions": [
+        "Which athletic skill improved most?",
+        "Which skill needs more work?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Athletic-skills checkpoint earned."
+    },
+    {
+      "n": 61,
+      "title": "Crawl and Reach",
+      "level": "Strength Through Movement",
+      "focus": "Whole-body crawling strength",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Bear crawl reach",
+        "Crab walk reach",
+        "Low crawl",
+        "Inchworm",
+        "Bear plank shoulder tap",
+        "Child's pose reset"
+      ],
+      "prompt": "Reach while crawling without letting your hips twist.",
+      "questions": [
+        "Which crawl required the most strength?",
+        "Could you keep your hips controlled?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Crawling builds total-body strength."
+    },
+    {
+      "n": 62,
+      "title": "Strong Carry Shapes",
+      "level": "Strength Through Movement",
+      "focus": "Bracing the body in carry positions",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Front carry hold",
+        "Bear-hug hold",
+        "Overhead reach hold",
+        "Suitcase hold right",
+        "Suitcase hold left",
+        "March in place"
+      ],
+      "prompt": "Build strong body shapes and keep your posture tall.",
+      "questions": [
+        "Which carry shape was hardest?",
+        "How did bracing improve your posture?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong shapes create strong athletes."
+    },
+    {
+      "n": 63,
+      "title": "Single-Leg Builder",
+      "level": "Strength Through Movement",
+      "focus": "Single-leg strength and balance",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Split squat right",
+        "Split squat left",
+        "Single-leg hinge right",
+        "Single-leg hinge left",
+        "Step-up knee drive",
+        "Calf raise"
+      ],
+      "prompt": "Control one leg at a time and own every position.",
+      "questions": [
+        "Which leg was stronger today?",
+        "What helped you balance?"
+      ],
+      "closingMessage": "MISSION COMPLETE — One-leg control builds athletic strength."
+    },
+    {
+      "n": 64,
+      "title": "Core While Moving",
+      "level": "Strength Through Movement",
+      "focus": "Maintaining trunk control during movement",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Bird dog",
+        "Bear crawl",
+        "Plank walk",
+        "Dead bug",
+        "Slow mountain climber",
+        "Tall-kneeling reach"
+      ],
+      "prompt": "Keep your core steady while the rest of your body moves.",
+      "questions": [
+        "Which movement challenged your core most?",
+        "Could you stay steady while moving?"
+      ],
+      "closingMessage": "MISSION COMPLETE — A steady core guides every movement."
+    },
+    {
+      "n": 65,
+      "title": "Low Position Strength",
+      "level": "Strength Through Movement",
+      "focus": "Strength and endurance in low positions",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Athletic stance hold",
+        "Wall sit",
+        "Bear plank",
+        "Low lateral step",
+        "Duck walk",
+        "Squat pulse"
+      ],
+      "prompt": "Stay strong in low positions without losing posture.",
+      "questions": [
+        "Which low position was hardest to hold?",
+        "Did your posture change when tired?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Low positions build durable strength."
+    },
+    {
+      "n": 66,
+      "title": "Push Pull Brace",
+      "level": "Strength Through Movement",
+      "focus": "Upper-body strength with core stability",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Wall push-up",
+        "Knee push-up",
+        "Superman pull",
+        "Plank shoulder tap",
+        "Crab press",
+        "Bear plank hold"
+      ],
+      "prompt": "Push, pull, and brace as one connected body.",
+      "questions": [
+        "Which push or pull felt strongest?",
+        "How did your core help?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Push, pull, and brace together."
+    },
+    {
+      "n": 67,
+      "title": "Balance Under Fatigue",
+      "level": "Strength Through Movement",
+      "focus": "Maintaining balance when tired",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Single-leg balance right",
+        "Single-leg balance left",
+        "Skater step and freeze",
+        "Lunge and balance",
+        "Hop and stick",
+        "Stance reset"
+      ],
+      "prompt": "When fatigue arrives, slow down enough to keep your balance.",
+      "questions": [
+        "When did balance become difficult?",
+        "How did you adjust?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Keep your balance when the work gets hard."
+    },
+    {
+      "n": 68,
+      "title": "Ground Movement Flow",
+      "level": "Strength Through Movement",
+      "focus": "Connecting ground movements smoothly",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Plank to stance",
+        "Sit-through practice",
+        "Bear crawl turn",
+        "Crab reach",
+        "Kneel to stand",
+        "Sprawl step-back"
+      ],
+      "prompt": "Connect each ground movement without rushing.",
+      "questions": [
+        "Which transition was smoothest?",
+        "Where did you rush?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Ground movement becomes skill through control."
+    },
+    {
+      "n": 69,
+      "title": "Whole-Body Strength",
+      "level": "Strength Through Movement",
+      "focus": "Coordinating strength across the whole body",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat to reach",
+        "Push-up choice",
+        "Bear crawl",
+        "Reverse lunge",
+        "Plank to stance",
+        "Fast feet"
+      ],
+      "prompt": "Use your legs, arms, and core together.",
+      "questions": [
+        "Which movement used the whole body best?",
+        "Could you stay coordinated?"
+      ],
+      "closingMessage": "MISSION COMPLETE — The whole body works as one."
+    },
+    {
+      "n": 70,
+      "title": "Strength Through Movement Checkpoint",
+      "level": "Strength Through Movement",
+      "focus": "Reviewing strength, posture, and movement quality",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Crawl and reach",
+        "Carry shape march",
+        "Single-leg hinge",
+        "Low stance hold",
+        "Push-up choice",
+        "Ground flow"
+      ],
+      "prompt": "Show strong positions and quality movement from start to finish.",
+      "questions": [
+        "Which strength skill improved most?",
+        "What position still needs work?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strength-through-movement checkpoint earned."
+    },
+    {
+      "n": 71,
+      "title": "Mission: Four Corners",
+      "level": "Mission Challenge",
+      "focus": "Navigating space with direction changes",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Forward corner",
+        "Right corner",
+        "Backward corner",
+        "Left corner",
+        "Diagonal center return",
+        "Stance reset"
+      ],
+      "prompt": "Own every corner and return to a ready position.",
+      "questions": [
+        "Which corner was hardest to reach?",
+        "Could you return to center every time?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Every corner belongs to you."
+    },
+    {
+      "n": 72,
+      "title": "Mission: React and Recover",
+      "level": "Mission Challenge",
+      "focus": "Reacting quickly and rebuilding position",
+      "interval": {
+        "work": 35,
+        "rest": 25
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Reaction step",
+        "Sprawl step-back",
+        "Balance freeze",
+        "Plank to stance",
+        "Fast feet",
+        "Breathing reset"
+      ],
+      "prompt": "React, recover, and rebuild your stance.",
+      "questions": [
+        "How quickly did you recover?",
+        "Which reaction needed better control?"
+      ],
+      "closingMessage": "MISSION COMPLETE — React. Recover. Return ready."
+    },
+    {
+      "n": 73,
+      "title": "Mission: Keep the Base",
+      "level": "Mission Challenge",
+      "focus": "Protecting stance and balance under pressure",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Athletic stance",
+        "Lateral shuffle",
+        "Level change",
+        "Turn and reset",
+        "Wall sit",
+        "Balance hold"
+      ],
+      "prompt": "Protect your base even when the mission gets difficult.",
+      "questions": [
+        "Did you keep your base when tired?",
+        "What caused you to lose position?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Protect your base under pressure."
+    },
+    {
+      "n": 74,
+      "title": "Mission: Power and Control",
+      "level": "Mission Challenge",
+      "focus": "Producing force and controlling the landing",
+      "interval": {
+        "work": 30,
+        "rest": 30
+      },
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat jump and stick",
+        "Broad jump and stick",
+        "Lateral hop and stick",
+        "Knee drive right",
+        "Knee drive left",
+        "Stance reset"
+      ],
+      "prompt": "Create power, then control the result.",
+      "questions": [
+        "Which movement felt most powerful?",
+        "Were your landings controlled?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Power and control belong together."
+    },
+    {
+      "n": 75,
+      "title": "Mission: Move on Command",
+      "level": "Mission Challenge",
+      "focus": "Listening and moving with discipline",
+      "interval": {
+        "work": 40,
+        "rest": 20
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Move on forward",
+        "Move on back",
+        "Move on side",
+        "Move on turn",
+        "Move on level",
+        "Freeze on command"
+      ],
+      "prompt": "Listen closely and move only when called.",
+      "questions": [
+        "Did you listen before moving?",
+        "Which command was hardest to follow?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Discipline begins with listening."
+    },
+    {
+      "n": 76,
+      "title": "Mission: Team Pace",
+      "level": "Mission Challenge",
+      "focus": "Matching a sustainable work pace",
+      "interval": {
+        "work": 45,
+        "rest": 15
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Steady jog",
+        "Bodyweight squat",
+        "Bear crawl",
+        "Step jack",
+        "Reverse lunge",
+        "Plank hold"
+      ],
+      "prompt": "Match the pace of the mission and stay consistent.",
+      "questions": [
+        "Could you keep the same pace each round?",
+        "When did you begin to fade?"
+      ],
+      "closingMessage": "MISSION COMPLETE — A steady team pace builds capacity."
+    },
+    {
+      "n": 77,
+      "title": "Mission: Stay Composed",
+      "level": "Mission Challenge",
+      "focus": "Controlling breathing during difficult work",
+      "interval": {
+        "work": 45,
+        "rest": 15
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast feet",
+        "Squat to reach",
+        "Mountain climbers",
+        "Bear crawl",
+        "Push-up choice",
+        "Box breathing"
+      ],
+      "prompt": "Stay calm while your body works hard.",
+      "questions": [
+        "Could you calm your breathing during rest?",
+        "What helped you stay composed?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Composure keeps you in control."
+    },
+    {
+      "n": 78,
+      "title": "Mission: Strong Final Round",
+      "level": "Mission Challenge",
+      "focus": "Finishing with quality under fatigue",
+      "interval": {
+        "work": 45,
+        "rest": 15
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Lateral shuffle",
+        "Squat jump and stick",
+        "Plank to stance",
+        "Reverse lunge",
+        "Fast feet",
+        "Bear plank"
+      ],
+      "prompt": "Finish the final round with the same quality as the first.",
+      "questions": [
+        "Did your final round stay clean?",
+        "What helped you finish strong?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong athletes finish with quality."
+    },
+    {
+      "n": 79,
+      "title": "Mission: Full Skill Circuit",
+      "level": "Mission Challenge",
+      "focus": "Combining Segment 2 movement skills",
+      "interval": {
+        "work": 45,
+        "rest": 15
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Reaction step",
+        "Diagonal movement",
+        "Mirror footwork",
+        "Single-leg strength",
+        "Ground movement flow",
+        "Composure breathing"
+      ],
+      "prompt": "Combine everything you learned into one complete mission.",
+      "questions": [
+        "Which skill connected best with another skill?",
+        "What was the hardest part of the circuit?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Segment 2 skills connected."
+    },
+    {
+      "n": 80,
+      "title": "Segment Two Challenge",
+      "level": "Mission Challenge",
+      "focus": "Demonstrating complete Segment 2 competency",
+      "interval": {
+        "work": 45,
+        "rest": 15
+      },
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Forward-back movement",
+        "Lateral movement",
+        "Reaction and timing",
+        "Strength through movement",
+        "Power and control",
+        "Mission finish"
+      ],
+      "prompt": "Show balance, movement skill, strength, awareness, and composure.",
+      "questions": [
+        "What is your strongest Segment 2 skill?",
+        "What will you improve in Segment 3?",
+        "How did you show discipline today?"
+      ],
+      "closingMessage": "MISSION COMPLETE — F8 CONDITIONING SEGMENT 2 COMPLETE."
+    }
+  ]
+}

@@ -1,0 +1,1688 @@
+{
+  "lane": "conditioning",
+  "foundry": "f4",
+  "segmentId": "segment3",
+  "segmentTitle": "Forge the Competitor",
+  "sessions": [
+    {
+      "n": 81,
+      "title": "Competition Begins in Practice",
+      "lesson": "Competition Begins in Practice",
+      "focus": "Competition Readiness",
+      "objective": "Develop competition readiness while maintaining elite execution.",
+      "competency": "Competitive Preparation",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Commitment",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 82,
+      "title": "Pressure Is a Privilege",
+      "lesson": "Pressure Is a Privilege",
+      "focus": "Competition Readiness",
+      "objective": "Develop competition readiness while maintaining elite execution.",
+      "competency": "Composure Under Pressure",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Courage",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 83,
+      "title": "Execute the Plan",
+      "lesson": "Execute the Plan",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining elite execution.",
+      "competency": "Game Plan Execution",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 84,
+      "title": "Control the First Minute",
+      "lesson": "Control the First Minute",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining elite execution.",
+      "competency": "Fast Starts",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 85,
+      "title": "Stay Present",
+      "lesson": "Stay Present",
+      "focus": "Focus",
+      "objective": "Develop focus while maintaining elite execution.",
+      "competency": "Present-Moment Awareness",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Focus",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 86,
+      "title": "Composed Under Fire",
+      "lesson": "Composed Under Fire",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining elite execution.",
+      "competency": "Emotional Control",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Self-Control",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 87,
+      "title": "Win the Small Battles",
+      "lesson": "Win the Small Battles",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining elite execution.",
+      "competency": "Incremental Success",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 88,
+      "title": "Finish Every Exchange",
+      "lesson": "Finish Every Exchange",
+      "focus": "Execution",
+      "objective": "Develop execution while maintaining elite execution.",
+      "competency": "Relentless Finish",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 89,
+      "title": "Championship Habits",
+      "lesson": "Championship Habits",
+      "focus": "Habits",
+      "objective": "Develop habits while maintaining elite execution.",
+      "competency": "Elite Habits",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 90,
+      "title": "Competition Readiness Assessment",
+      "lesson": "Competition Readiness Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining elite execution.",
+      "competency": "Competition Readiness",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "COMPETITION",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 91,
+      "title": "Perform Without Emotion",
+      "lesson": "Perform Without Emotion",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Emotional Regulation",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Temperance",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 92,
+      "title": "Precision Under Fatigue",
+      "lesson": "Precision Under Fatigue",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Technical Precision",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Precision",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 93,
+      "title": "Confidence Through Preparation",
+      "lesson": "Confidence Through Preparation",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Prepared Confidence",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Confidence",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 94,
+      "title": "Stay Dangerous",
+      "lesson": "Stay Dangerous",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Constant Threat",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Resolve",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 95,
+      "title": "Pressure Never Stops",
+      "lesson": "Pressure Never Stops",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Continuous Performance",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Fortitude",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 96,
+      "title": "Adapt Faster",
+      "lesson": "Adapt Faster",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Rapid Adaptation",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Wisdom",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 97,
+      "title": "Tactical Discipline",
+      "lesson": "Tactical Discipline",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Tactical Execution",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 98,
+      "title": "Trust Your Training",
+      "lesson": "Trust Your Training",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Automatic Execution",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Trust",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 99,
+      "title": "Finish Like a Champion",
+      "lesson": "Finish Like a Champion",
+      "focus": "Performance",
+      "objective": "Develop performance while maintaining elite execution.",
+      "competency": "Elite Finish",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Determination",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 100,
+      "title": "Performance Assessment",
+      "lesson": "Performance Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining elite execution.",
+      "competency": "Performance Evaluation",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "PERFORMANCE",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 101,
+      "title": "Lead Yourself First",
+      "lesson": "Lead Yourself First",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Self Leadership",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Leadership",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 102,
+      "title": "Raise the Standard",
+      "lesson": "Raise the Standard",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Standard Setting",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Honor",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 103,
+      "title": "Build the Team",
+      "lesson": "Build the Team",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Team Building",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Service",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 104,
+      "title": "Calm Creates Confidence",
+      "lesson": "Calm Creates Confidence",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Composed Leadership",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Composure",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 105,
+      "title": "Protect the Culture",
+      "lesson": "Protect the Culture",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Culture Building",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Honor",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 106,
+      "title": "Leadership Through Action",
+      "lesson": "Leadership Through Action",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Leading by Example",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Leadership",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 107,
+      "title": "Earn Their Trust",
+      "lesson": "Earn Their Trust",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Trustworthiness",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 108,
+      "title": "Leave the Room Better",
+      "lesson": "Leave the Room Better",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Positive Influence",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Service",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 109,
+      "title": "Heroes Build Heroes",
+      "lesson": "Heroes Build Heroes",
+      "focus": "Leadership",
+      "objective": "Develop leadership while maintaining elite execution.",
+      "competency": "Mentorship",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Honor",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 110,
+      "title": "Leadership Assessment",
+      "lesson": "Leadership Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining elite execution.",
+      "competency": "Leadership Evaluation",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "LEADERSHIP",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 111,
+      "title": "Pursue Excellence",
+      "lesson": "Pursue Excellence",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Continuous Improvement",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 112,
+      "title": "Compete Against Yesterday",
+      "lesson": "Compete Against Yesterday",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Personal Growth",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Humility",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 113,
+      "title": "Discipline Never Ends",
+      "lesson": "Discipline Never Ends",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Lifelong Discipline",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Discipline",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 114,
+      "title": "Pressure Reveals Character",
+      "lesson": "Pressure Reveals Character",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Character Under Pressure",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Character",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 115,
+      "title": "Complete Athlete",
+      "lesson": "Complete Athlete",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Integrated Development",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Balance",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 116,
+      "title": "Legacy Through Action",
+      "lesson": "Legacy Through Action",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Legacy",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Honor",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "EMOM",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 117,
+      "title": "Earn Every Victory",
+      "lesson": "Earn Every Victory",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Earned Success",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Burpees",
+        "Push-ups",
+        "Air Squats",
+        "Bear Crawl",
+        "Mountain Climbers",
+        "Front Plank"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 118,
+      "title": "Build the Next Generation",
+      "lesson": "Build the Next Generation",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Teaching Others",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Service",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 55,
+        "restSec": 5
+      },
+      "rounds": 7,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Lunges",
+        "Push-ups",
+        "High Knees",
+        "Sit-ups",
+        "Bear Crawl",
+        "Burpees"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 119,
+      "title": "Live the Standard",
+      "lesson": "Live the Standard",
+      "focus": "Mastery",
+      "objective": "Develop mastery while maintaining elite execution.",
+      "competency": "Daily Excellence",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Excellence",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "INTERVAL",
+      "interval": {
+        "workSec": 60,
+        "restSec": 0
+      },
+      "rounds": 8,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Tempo Squats",
+        "Walking Lunges",
+        "Push-ups",
+        "Dead Bug",
+        "Plank",
+        "Sprint in Place"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    },
+    {
+      "n": 120,
+      "title": "Segment III Final Assessment",
+      "lesson": "Segment III Final Assessment",
+      "focus": "Integration",
+      "objective": "Develop integration while maintaining elite execution.",
+      "competency": "Mastery Evaluation",
+      "successStandard": "Complete every round with composure, precision, and disciplined effort.",
+      "virtue": "Integrity",
+      "coachMessage": {
+        "headline": "Champions execute under pressure.",
+        "body": "Protect your standards. Performance is earned one disciplined decision at a time."
+      },
+      "coachReminder": "Stay technical. Fatigue is never permission for sloppy movement.",
+      "closingMessage": {
+        "title": "Mission Complete",
+        "body": "You strengthened your competitive mindset through disciplined execution.",
+        "signature": "Strength and Honor."
+      },
+      "level": "MASTERY",
+      "format": "ASSESSMENT",
+      "interval": {
+        "workSec": 50,
+        "restSec": 10
+      },
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Hops",
+        "Mountain Climbers",
+        "Push-ups",
+        "Air Squats",
+        "Burpees",
+        "Hollow Hold"
+      ],
+      "prompt": "Execute every repetition like it matters.",
+      "questions": [
+        "What challenged your composure today?",
+        "How did you respond to pressure?",
+        "What standard will you carry into the next session?"
+      ]
+    }
+  ]
+}

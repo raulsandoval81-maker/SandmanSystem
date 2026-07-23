@@ -1,0 +1,931 @@
+{
+  "journey": "F8",
+  "pillar": "conditioning",
+  "segment": 3,
+  "audience": "youth",
+  "ageRange": "6-13",
+  "sessionRange": "81-120",
+  "sessionCount": 40,
+  "sessions": [
+    {
+      "n": 81,
+      "title": "Quick Feet, Quiet Body",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet",
+        "Lateral Line Hops",
+        "Forward-Back Line Hops",
+        "Skater Steps",
+        "High-Knee Run",
+        "Athletic Stance Hold"
+      ],
+      "prompt": "Mission: Move quickly without losing control. Speed is not wild movement. Keep your chest steady, land softly, and make every step intentional. Course: complete each movement with fast feet and clean posture. Slow down only enough to restore form.",
+      "questions": [
+        "What helped you stay controlled while moving fast?",
+        "Which movement challenged your foot speed most?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Speed begins with control.",
+      "focus": "Foot speed and body control"
+    },
+    {
+      "n": 82,
+      "title": "Change Direction",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Lateral Shuffle",
+        "Drop Step",
+        "Forward Sprint in Place",
+        "Backpedal Steps",
+        "Quarter-Turn Hops",
+        "Athletic Stance Hold"
+      ],
+      "prompt": "Mission: Learn to stop, redirect, and move again. Good athletes do not only move fast in one direction. Course: stay low, plant with control, and push the floor away when changing direction.",
+      "questions": [
+        "Did you stay balanced when changing direction?",
+        "Where did you feel the strongest push from the ground?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Control the stop, then own the next move.",
+      "focus": "Change of direction"
+    },
+    {
+      "n": 83,
+      "title": "Reaction Ready",
+      "level": 3,
+      "interval": "30/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet to Freeze",
+        "Sprawl to Stance",
+        "Lateral Step to Hold",
+        "Knee Drive Switch",
+        "Quarter Turn to Stance",
+        "Shadow Reaction Steps"
+      ],
+      "prompt": "Mission: React without panicking. Fast reactions come from readiness, not rushing. Course: begin every movement in an athletic position, respond sharply, and finish under control.",
+      "questions": [
+        "What position made you feel most ready?",
+        "Did you react faster when you stayed relaxed?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Ready athletes react with purpose.",
+      "focus": "Reaction speed"
+    },
+    {
+      "n": 84,
+      "title": "Agility Ladder Without a Ladder",
+      "level": 3,
+      "interval": "35/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "In-In-Out-Out Steps",
+        "Icky Shuffle Pattern",
+        "Two-Foot Forward Hops",
+        "Lateral Quick Steps",
+        "Single-Step Switches",
+        "Fast Feet Finish"
+      ],
+      "prompt": "Mission: Train precise foot patterns using an imaginary ladder. Course: keep steps small, eyes forward, and rhythm steady. Accuracy comes before speed; once the pattern is clean, increase the pace.",
+      "questions": [
+        "Which foot pattern became smoother with practice?",
+        "Did speed improve after accuracy improved?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Precision creates speed.",
+      "focus": "Footwork precision"
+    },
+    {
+      "n": 85,
+      "title": "Balance at Speed",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Skater Bound to Stick",
+        "Single-Leg Knee Drive",
+        "Lateral Hop to Hold",
+        "Forward Hop to Hold",
+        "Split-Stance Switch",
+        "Single-Leg Balance Reach"
+      ],
+      "prompt": "Mission: Move fast and regain balance immediately. Course: explode into the movement, then own the landing. Your body should become still before the next repetition.",
+      "questions": [
+        "Which landing was hardest to control?",
+        "What did you do to regain balance faster?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Speed matters more when you can stop it.",
+      "focus": "Dynamic balance"
+    },
+    {
+      "n": 86,
+      "title": "Low and Fast",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Low Lateral Shuffle",
+        "Bear Crawl Steps",
+        "Duck Walk Steps",
+        "Low Stance Punch-Out",
+        "Sprawl to Low Stance",
+        "Wall Sit"
+      ],
+      "prompt": "Mission: Stay athletic while working close to the ground. Course: bend through the hips and knees, keep your chest proud, and maintain quick feet without standing tall.",
+      "questions": [
+        "How did staying low affect your legs?",
+        "Where could a low position help you in combat?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong positions make fast movement useful.",
+      "focus": "Low-position agility"
+    },
+    {
+      "n": 87,
+      "title": "Angle Maker",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Diagonal Step-Out",
+        "Pivot and Reset",
+        "Lateral Shuffle to Angle",
+        "V-Step Pattern",
+        "Quarter-Turn Squat",
+        "Shadow Circle Steps"
+      ],
+      "prompt": "Mission: Create angles instead of moving only forward and backward. Course: step off the center line, turn your hips, and reset in a position ready to move again.",
+      "questions": [
+        "Which angle felt most natural?",
+        "How can creating an angle improve offense or defense?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Better angles create better opportunities.",
+      "focus": "Angular movement"
+    },
+    {
+      "n": 88,
+      "title": "Acceleration",
+      "level": 3,
+      "interval": "30/20",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "March to Sprint",
+        "Falling Start Steps",
+        "Three-Step Burst",
+        "Knee Drive Run",
+        "Mountain Climber Burst",
+        "Athletic Reset"
+      ],
+      "prompt": "Mission: Learn to build speed quickly. Course: drive the ground backward, lean slightly forward, and use powerful first steps. Every burst begins from a stable start.",
+      "questions": [
+        "What made your first three steps stronger?",
+        "Did your arms help you accelerate?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Powerful starts create separation.",
+      "focus": "Acceleration mechanics"
+    },
+    {
+      "n": 89,
+      "title": "Deceleration",
+      "level": 3,
+      "interval": "35/20",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet to Squat Stop",
+        "Forward Steps to Stick",
+        "Lateral Shuffle to Stop",
+        "Skater Bound to Hold",
+        "Quarter Turn to Freeze",
+        "Athletic Stance Hold"
+      ],
+      "prompt": "Mission: Learn to slow down safely and efficiently. Course: lower your hips, use short control steps, and absorb force quietly. Do not let your knees collapse inward.",
+      "questions": [
+        "How did lowering your hips improve your stop?",
+        "Which direction was hardest to decelerate from?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Great movers know how to stop.",
+      "focus": "Deceleration control"
+    },
+    {
+      "n": 90,
+      "title": "Speed and Agility Test",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet",
+        "Lateral Shuffle",
+        "Skater Bound",
+        "Quarter-Turn Hop",
+        "Sprawl to Stance",
+        "Sprint in Place"
+      ],
+      "prompt": "Mission: Demonstrate the speed and agility skills from Lessons 81 through 89. Course: move quickly, change direction cleanly, land under control, and maintain posture through every round.",
+      "questions": [
+        "Which speed skill improved most during this block?",
+        "What is one agility skill you still need to sharpen?"
+      ],
+      "closingMessage": "MISSION COMPLETE — You are faster because you are more controlled.",
+      "focus": "Speed and agility integration"
+    },
+    {
+      "n": 91,
+      "title": "Power Starts at the Ground",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat Jump",
+        "Broad Jump Stick",
+        "Split-Stance Drive",
+        "Power Step-Up Motion",
+        "Knee Drive",
+        "Plank Push"
+      ],
+      "prompt": "Mission: Produce force through the ground. Power begins with a strong connection between your feet and the floor. Course: load under control, drive hard, and land softly.",
+      "questions": [
+        "Where did you feel force begin during your jumps?",
+        "How did a stronger push change the movement?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Power begins from the ground up.",
+      "focus": "Force production"
+    },
+    {
+      "n": 92,
+      "title": "Coordinate the Chain",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat to Reach",
+        "Lunge to Knee Drive",
+        "Plank Shoulder Tap",
+        "Cross-Body Mountain Climber",
+        "Skater with Arm Drive",
+        "Bear Crawl"
+      ],
+      "prompt": "Mission: Connect the upper and lower body. Athletic power is strongest when the whole body works in sequence. Course: move smoothly from feet, through hips and trunk, into the arms.",
+      "questions": [
+        "Which movement required the most coordination?",
+        "Did slowing down help your body connect better?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Connected movement creates usable power.",
+      "focus": "Whole-body coordination"
+    },
+    {
+      "n": 93,
+      "title": "Rotational Power",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Rotational Squat Reach",
+        "Standing Hip Turn",
+        "Cross-Body Knee Drive",
+        "Plank Hip Rotation",
+        "Lateral Lunge Twist",
+        "Shadow Power Turn"
+      ],
+      "prompt": "Mission: Learn to create and control rotation. Course: turn from the hips, brace through the middle, and keep the knees aligned. Rotation should travel through the body, not leak through loose posture.",
+      "questions": [
+        "Did your rotation begin from the hips or shoulders?",
+        "Where can rotational power help in combat?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong rotation connects the ground to the hands.",
+      "focus": "Rotational power"
+    },
+    {
+      "n": 94,
+      "title": "Brace Before You Move",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Dead Bug",
+        "Plank",
+        "Bear Plank Shoulder Tap",
+        "Split-Stance Hold",
+        "Squat Hold with Reach",
+        "Slow Mountain Climber"
+      ],
+      "prompt": "Mission: Create a stable center before producing movement. Course: tighten the trunk as if preparing for contact, breathe behind the brace, and prevent unnecessary twisting.",
+      "questions": [
+        "Which cue helped you brace most effectively?",
+        "How did bracing improve your movement control?"
+      ],
+      "closingMessage": "MISSION COMPLETE — A stable center protects and transfers power.",
+      "focus": "Bracing"
+    },
+    {
+      "n": 95,
+      "title": "Explode and Stick",
+      "level": 3,
+      "interval": "35/25",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jump Squat to Hold",
+        "Lateral Bound to Stick",
+        "Split Jump to Freeze",
+        "Broad Jump to Hold",
+        "Knee Drive Hop",
+        "Athletic Landing"
+      ],
+      "prompt": "Mission: Express power without losing control. Course: explode with intent, then become completely still on every landing. Power is incomplete if you cannot control the finish.",
+      "questions": [
+        "Which explosive movement was easiest to control?",
+        "What changed when you focused on landing quietly?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Own the explosion and the landing.",
+      "focus": "Explosive control"
+    },
+    {
+      "n": 96,
+      "title": "Single-Leg Power",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Reverse Lunge to Knee Drive",
+        "Single-Leg Hop to Stick",
+        "Skater Bound",
+        "Split-Stance Pulse",
+        "Single-Leg Calf Raise",
+        "Balance Reach"
+      ],
+      "prompt": "Mission: Build force and stability one leg at a time. Course: keep the knee tracking over the foot, drive through the whole foot, and control every landing.",
+      "questions": [
+        "Which side felt more powerful?",
+        "Which side needed more balance and control?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong athletes build both sides.",
+      "focus": "Unilateral power"
+    },
+    {
+      "n": 97,
+      "title": "Upper-Body Power Without Equipment",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Explosive Incline Push-Up",
+        "Plank Pop-Up",
+        "Power Punches",
+        "Bear Plank Push-Back",
+        "Shoulder Tap Push-Up",
+        "Fast Arm Drive"
+      ],
+      "prompt": "Mission: Produce quick force through the upper body. Course: brace first, press the ground away, and keep shoulders connected to the trunk. Speed never replaces alignment.",
+      "questions": [
+        "How did bracing affect your pushing power?",
+        "Which movement required the best shoulder control?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Fast hands need a strong foundation.",
+      "focus": "Upper-body power"
+    },
+    {
+      "n": 98,
+      "title": "Rhythm Creates Power",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Pogo Hops",
+        "Alternating Knee Drives",
+        "Skater Rhythm Steps",
+        "Squat-Pulse-Jump",
+        "Cross-Body Step",
+        "Fast Feet to Power Step"
+      ],
+      "prompt": "Mission: Use rhythm to organize powerful movement. Course: find a repeatable tempo, stay relaxed between efforts, and strike the ground with consistent timing.",
+      "questions": [
+        "Which movement improved when you found a rhythm?",
+        "How can rhythm help conserve energy?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Good rhythm makes power repeatable.",
+      "focus": "Rhythm and timing"
+    },
+    {
+      "n": 99,
+      "title": "Power Under Control",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat Jump",
+        "Rotational Step",
+        "Lunge Knee Drive",
+        "Explosive Push-Up Variation",
+        "Skater Bound",
+        "Plank Brace"
+      ],
+      "prompt": "Mission: Combine power, balance, and coordination. Course: attack each repetition with intent while maintaining clean positions. Do not chase speed at the expense of form.",
+      "questions": [
+        "Which movement showed your best power and control?",
+        "When did fatigue begin to affect coordination?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Real power remains organized.",
+      "focus": "Controlled power"
+    },
+    {
+      "n": 100,
+      "title": "Power and Coordination Test",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Broad Jump Stick",
+        "Rotational Squat Reach",
+        "Reverse Lunge Knee Drive",
+        "Plank Shoulder Tap",
+        "Skater Bound",
+        "Power Punches"
+      ],
+      "prompt": "Mission: Demonstrate the athletic skills from Lessons 91 through 99. Course: produce force from the ground, coordinate the whole body, brace through every movement, and finish with control.",
+      "questions": [
+        "Which power skill improved most?",
+        "What coordination challenge still deserves work?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Your power is becoming athletic skill.",
+      "focus": "Power and coordination integration"
+    },
+    {
+      "n": 101,
+      "title": "Form Under Fatigue",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat",
+        "Push-Up Variation",
+        "Mountain Climber",
+        "Reverse Lunge",
+        "Fast Feet",
+        "Plank"
+      ],
+      "prompt": "Mission: Maintain movement quality as fatigue rises. Course: use the same standards in the final round as the first. Reduce speed before allowing form to collapse.",
+      "questions": [
+        "Which movement lost quality first?",
+        "What adjustment helped restore your form?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Fatigue tests the habits you built.",
+      "focus": "Movement quality under fatigue"
+    },
+    {
+      "n": 102,
+      "title": "Control Your Breathing",
+      "level": 3,
+      "interval": "50/10",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jumping Jack",
+        "Bodyweight Squat",
+        "High Knees",
+        "Alternating Lunge",
+        "Plank Walkout",
+        "Boxer Bounce"
+      ],
+      "prompt": "Mission: Use breathing to stay composed during hard work. Course: avoid holding your breath, exhale during effort, and use the short recovery to regain control.",
+      "questions": [
+        "When did your breathing become hardest to control?",
+        "Which breathing strategy helped you recover fastest?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Control the breath, control the effort.",
+      "focus": "Breathing under pressure"
+    },
+    {
+      "n": 103,
+      "title": "Pace the Mission",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Marching High Knees",
+        "Tempo Squat",
+        "Step-Back Burpee",
+        "Lateral Shuffle",
+        "Bear Crawl Steps",
+        "Shadow Boxing"
+      ],
+      "prompt": "Mission: Choose a pace you can sustain. Course: begin at a controlled effort, avoid sprinting too early, and finish each round with enough quality to continue.",
+      "questions": [
+        "Did you begin too fast, too slow, or just right?",
+        "How did pacing affect your final round?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Smart pacing keeps strength available.",
+      "focus": "Pacing"
+    },
+    {
+      "n": 104,
+      "title": "Recover While Moving",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet",
+        "Active Recovery March",
+        "Skater Step",
+        "Active Recovery Bounce",
+        "Mountain Climber",
+        "Athletic Walk"
+      ],
+      "prompt": "Mission: Learn to lower effort without stopping completely. Course: use lighter movements to regain breathing, relax the shoulders, and prepare for the next hard effort.",
+      "questions": [
+        "Which active-recovery movement helped most?",
+        "Could you feel your breathing settle while still moving?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Recovery is a skill, not an accident.",
+      "focus": "Active recovery"
+    },
+    {
+      "n": 105,
+      "title": "Composure Under Pressure",
+      "level": 3,
+      "interval": "40/10",
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Sprawl",
+        "Fast Feet",
+        "Push-Up Variation",
+        "Lateral Shuffle",
+        "Squat Jump",
+        "Plank Hold"
+      ],
+      "prompt": "Mission: Stay calm while the work becomes uncomfortable. Course: keep your face relaxed, breathe with purpose, and make one clean decision at a time.",
+      "questions": [
+        "What helped you remain calm when fatigue increased?",
+        "Did rushing improve or hurt your performance?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Pressure reveals the quality of your habits.",
+      "focus": "Composure"
+    },
+    {
+      "n": 106,
+      "title": "Finish the Round",
+      "level": 3,
+      "interval": "50/10",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Alternating Reverse Lunge",
+        "Mountain Climber",
+        "Squat Thrust",
+        "Power Punches",
+        "Wall Sit"
+      ],
+      "prompt": "Mission: Build the discipline to work until the round is complete. Course: do not quit early. Adjust the pace or movement version, but continue with clean effort.",
+      "questions": [
+        "What did you tell yourself when you wanted to stop?",
+        "How did you adapt without quitting?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Champions finish what they start.",
+      "focus": "Finishing discipline"
+    },
+    {
+      "n": 107,
+      "title": "Decision Making While Tired",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet to Freeze",
+        "Sprawl to Stance",
+        "Squat to Knee Drive",
+        "Lateral Shuffle to Pivot",
+        "Plank to Athletic Stance",
+        "Shadow Choice Steps"
+      ],
+      "prompt": "Mission: Make clean movement choices while tired. Course: recognize the pattern, respond under control, and reset before the next decision.",
+      "questions": [
+        "Which decision became harder under fatigue?",
+        "What helped you avoid careless movement?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Clear decisions matter most under pressure.",
+      "focus": "Decision making under fatigue"
+    },
+    {
+      "n": 108,
+      "title": "Repeatable Effort",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jumping Jack",
+        "Squat",
+        "Push-Up Variation",
+        "Skater Step",
+        "Mountain Climber",
+        "Plank"
+      ],
+      "prompt": "Mission: Produce nearly the same quality in every round. Course: choose an effort you can repeat, track your form, and avoid one great round followed by collapse.",
+      "questions": [
+        "Were your first and final rounds similar?",
+        "What pace made your effort repeatable?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Consistency turns effort into capacity.",
+      "focus": "Repeatability"
+    },
+    {
+      "n": 109,
+      "title": "Pressure Circuit",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Sprawl to Stance",
+        "Lateral Shuffle",
+        "Squat Jump",
+        "Push-Up Variation",
+        "Bear Crawl",
+        "Fast Feet"
+      ],
+      "prompt": "Mission: Combine breathing, pacing, composure, and movement quality. Course: stay organized as the work periods lengthen. Protect technique first, then maintain intensity.",
+      "questions": [
+        "Which pressure skill helped you most?",
+        "Where did your technique begin to break down?"
+      ],
+      "closingMessage": "MISSION COMPLETE — You can perform without surrendering your standards.",
+      "focus": "Pressure performance"
+    },
+    {
+      "n": 110,
+      "title": "Performance Under Pressure Test",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Reverse Lunge Knee Drive",
+        "Sprawl",
+        "Push-Up Variation",
+        "Skater Bound",
+        "Plank"
+      ],
+      "prompt": "Mission: Demonstrate your ability to perform under fatigue. Course: control breathing, pace wisely, make clean decisions, and finish every round with purpose.",
+      "questions": [
+        "Which pressure skill improved most?",
+        "What standard will you protect in future hard sessions?"
+      ],
+      "closingMessage": "MISSION COMPLETE — You stayed capable when the work became difficult.",
+      "focus": "Performance under pressure integration"
+    },
+    {
+      "n": 111,
+      "title": "Champion Mission: Control",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet to Freeze",
+        "Skater Bound to Stick",
+        "Squat Hold",
+        "Plank Shoulder Tap",
+        "Lateral Shuffle to Stop",
+        "Single-Leg Balance"
+      ],
+      "prompt": "Mission: Prove that you can control your body at every speed. Course: move sharply, stop completely, and keep alignment through every repetition.",
+      "questions": [
+        "Where did you show your best control?",
+        "What movement still needs more ownership?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Control is the foundation of every athletic skill.",
+      "focus": "Total body control"
+    },
+    {
+      "n": 112,
+      "title": "Champion Mission: Power",
+      "level": 3,
+      "interval": "40/20",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat Jump",
+        "Broad Jump Stick",
+        "Rotational Step",
+        "Reverse Lunge Knee Drive",
+        "Explosive Push-Up Variation",
+        "Power Punches"
+      ],
+      "prompt": "Mission: Produce force with purpose. Course: brace first, drive from the ground, connect the whole body, and control the finish.",
+      "questions": [
+        "Which movement showed your greatest power?",
+        "How did control make your power more useful?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Power is force guided by skill.",
+      "focus": "Integrated power"
+    },
+    {
+      "n": 113,
+      "title": "Champion Mission: Agility",
+      "level": 3,
+      "interval": "40/15",
+      "rounds": 6,
+      "movesPerCycle": 6,
+      "sequence": [
+        "In-In-Out-Out Steps",
+        "Lateral Shuffle",
+        "Drop Step",
+        "V-Step Pattern",
+        "Quarter-Turn Hop",
+        "Sprawl to Stance"
+      ],
+      "prompt": "Mission: Move quickly in every direction. Course: stay low, use precise feet, create angles, and reset in an athletic position.",
+      "questions": [
+        "Which direction felt fastest?",
+        "Which change of direction needs more practice?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Agility is speed with choices.",
+      "focus": "Integrated agility"
+    },
+    {
+      "n": 114,
+      "title": "Champion Mission: Resilience",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Jumping Jack",
+        "Bodyweight Squat",
+        "Mountain Climber",
+        "Alternating Lunge",
+        "Bear Crawl Steps",
+        "Plank"
+      ],
+      "prompt": "Mission: Continue working with discipline as fatigue builds. Course: control breathing, adjust pace when needed, and refuse to abandon movement quality.",
+      "questions": [
+        "When was the mission hardest?",
+        "How did you continue without losing your standards?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Resilience means continuing with purpose.",
+      "focus": "Resilience"
+    },
+    {
+      "n": 115,
+      "title": "Champion Mission: Balance",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Single-Leg Knee Drive",
+        "Lateral Hop to Stick",
+        "Reverse Lunge Hold",
+        "Bear Plank Shoulder Tap",
+        "Skater Bound",
+        "Balance Reach"
+      ],
+      "prompt": "Mission: Own your position before creating the next movement. Course: stabilize the foot, knee, hips, and trunk before increasing speed.",
+      "questions": [
+        "Which side showed better balance?",
+        "What helped you become still faster?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Balance lets strength and speed work together.",
+      "focus": "Integrated balance"
+    },
+    {
+      "n": 116,
+      "title": "Champion Mission: Coordination",
+      "level": 3,
+      "interval": "45/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Cross-Body Mountain Climber",
+        "Squat to Reach",
+        "Lunge to Knee Drive",
+        "Plank to Stance",
+        "Skater with Arm Drive",
+        "Shadow Combination Steps"
+      ],
+      "prompt": "Mission: Connect multiple body parts into one efficient action. Course: move in sequence, stay relaxed, and let rhythm organize each pattern.",
+      "questions": [
+        "Which pattern required the most concentration?",
+        "How did rhythm improve coordination?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Coordination turns separate movements into athletic skill.",
+      "focus": "Integrated coordination"
+    },
+    {
+      "n": 117,
+      "title": "Champion Mission: Recovery",
+      "level": 3,
+      "interval": "50/10",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "High Knees",
+        "Active Recovery March",
+        "Squat Thrust",
+        "Boxer Bounce",
+        "Mountain Climber",
+        "Athletic Walk"
+      ],
+      "prompt": "Mission: Recover quickly between demanding efforts. Course: lower tension, control breathing, keep moving, and prepare the body for the next round.",
+      "questions": [
+        "How quickly could you regain control of your breathing?",
+        "Which recovery strategy will you use again?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Strong athletes know how to restore themselves.",
+      "focus": "Recovery skill"
+    },
+    {
+      "n": 118,
+      "title": "Champion Mission: Standards",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 4,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Squat",
+        "Push-Up Variation",
+        "Reverse Lunge",
+        "Sprawl to Stance",
+        "Skater Bound",
+        "Plank"
+      ],
+      "prompt": "Mission: Protect your standards from the first repetition to the last. Course: use full attention, honest effort, and correct movement even when nobody is watching.",
+      "questions": [
+        "Which standard did you protect best?",
+        "Where were you tempted to take an easier shortcut?"
+      ],
+      "closingMessage": "MISSION COMPLETE — Your standards reveal who you are becoming.",
+      "focus": "Standards under fatigue"
+    },
+    {
+      "n": 119,
+      "title": "Champion Mission: Complete Athlete",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet",
+        "Squat Jump",
+        "Lateral Shuffle",
+        "Push-Up Variation",
+        "Sprawl to Stance",
+        "Plank"
+      ],
+      "prompt": "Mission: Combine speed, power, agility, conditioning, and control. Course: transition cleanly, breathe with purpose, and use every lesson learned throughout the program.",
+      "questions": [
+        "Which athletic quality felt strongest?",
+        "Which quality will be your next development goal?"
+      ],
+      "closingMessage": "MISSION COMPLETE — The complete athlete is built one skill at a time.",
+      "focus": "Complete athletic integration"
+    },
+    {
+      "n": 120,
+      "title": "Final Mission: Ready for What Comes Next",
+      "level": 3,
+      "interval": "60/15",
+      "rounds": 5,
+      "movesPerCycle": 6,
+      "sequence": [
+        "Fast Feet to Freeze",
+        "Broad Jump Stick",
+        "Lateral Shuffle to Pivot",
+        "Sprawl to Stance",
+        "Mountain Climber",
+        "Champion Plank"
+      ],
+      "prompt": "Mission: Complete the final Foundry 8 Conditioning mission. Course: demonstrate control, speed, power, coordination, pacing, resilience, and honest effort. This is not the end of training. It is proof that you are ready for the next challenge.",
+      "questions": [
+        "What skill changed most from Lesson 81 to Lesson 120?",
+        "What does being ready for the next challenge mean to you?"
+      ],
+      "closingMessage": "MISSION COMPLETE — You did not merely finish workouts. You built skills that will carry forward.",
+      "focus": "Foundry 8 conditioning completion"
+    }
+  ]
+}

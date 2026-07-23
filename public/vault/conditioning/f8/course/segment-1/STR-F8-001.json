@@ -1,0 +1,57 @@
+{
+  "id": "STR-F8-001",
+  "lessonNumber": 1,
+  "segment": 1,
+  "title": "Show Up",
+  "foundry": "f8",
+  "journey": "zero2hero",
+  "pillar": "strength",
+  "status": "active",
+
+  "focus": "Foundation",
+
+  "objective": "Complete every round with good effort while practicing quality movement and control.",
+
+  "competency": "Finish a structured conditioning lesson from beginning to end.",
+
+  "successStandard": "The athlete completes every round while maintaining safe, controlled movement.",
+
+  "virtue": "Commitment",
+
+  "coachMessage": {
+    "headline": "Every hero starts at zero.",
+    "body": "You do not have to be the strongest or the fastest. You only have to take the first step. Heroes are not born. Heroes are built."
+  },
+
+  "missionId": "TAB-F8-001",
+
+  "reflection": {
+    "primaryQuestion": "Did you finish every round?",
+    "responseType": "choice",
+    "options": [
+      "Yes",
+      "Almost",
+      "Not yet"
+    ],
+    "followUpQuestions": [
+      "Which movement was the hardest?",
+      "What will you do better next time?"
+    ]
+  },
+
+"closingMessage": {
+  "headline": "Mission Complete",
+  "body": "Today you showed up. Tomorrow we build again."},
+
+  "unlock": {
+    "type": "previous-completion",
+    "previousLessonId": null
+  },
+
+  "completion": {
+    "requiresSubmission": true,
+    "requiresCoachApproval": true,
+    "xpAward": 5,
+    "unlocksLessonId": "STR-F8-002"
+  }
+}
