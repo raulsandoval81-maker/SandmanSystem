@@ -21,6 +21,51 @@ const intentNotice =
 const intentText =
   document.getElementById("intentText");
 
+const athleteAge =
+  document.getElementById("athleteAge");
+
+const programInterest =
+  document.getElementById("programInterest");
+
+const PROGRAMS = [
+  {
+    value: "zero2hero-wrestling",
+    min: 6,
+    max: 13,
+    en: "Zero2Hero Wrestling · Ages 6–13",
+    es: "Zero2Hero Lucha · Edades 6–13"
+  },
+  {
+    value: "zero2hero-kickboxing",
+    min: 6,
+    max: 13,
+    en: "Zero2Hero Kickboxing · Ages 6–13",
+    es: "Zero2Hero Kickboxing · Edades 6–13"
+  },
+  {
+    value: "path2legend-wrestling",
+    min: 14,
+    max: null,
+    en: "Path2Legend Wrestling · Ages 14+",
+    es: "Path2Legend Lucha · 14+"
+  },
+  {
+    value: "path2legend-boxing",
+    min: 14,
+    max: null,
+    en: "Path2Legend Boxing · Ages 14+",
+    es: "Path2Legend Boxeo · 14+"
+  },
+    {
+    value: "fitness",
+    min: 12,
+    max: null,
+    en: "Everyday Fitness · Ages 12+",
+    es: "Fitness Diario · 12+"
+  }
+
+];
+
 function currentLanguage() {
   return document.documentElement.lang === "es"
     ? "es"
@@ -103,6 +148,17 @@ function readForm() {
 
     athleteAge:
       Number(formData.get("athleteAge") || 0),
+
+    shirtSize:
+      clean(formData.get("shirtSize")),
+
+    preferredDiscipline:
+      clean(
+        formData.get("preferredDiscipline")
+      ),
+
+    primaryGoal:
+      clean(formData.get("primaryGoal")),
 
     phone:
       normalizePhone(formData.get("phone")),
@@ -356,7 +412,72 @@ function renderIntent() {
   intentText.textContent =
     selectedLabel[currentLanguage()];
 }
+function updatePrograms() {
 
+  if (!athleteAge || !programInterest) return;
+
+  const age = Number(athleteAge.value);
+
+  programInterest.innerHTML = "";
+
+  if (!Number.isFinite(age) || age < 3) {
+
+    const option = document.createElement("option");
+
+    option.value = "";
+
+    option.textContent =
+      currentLanguage() === "es"
+        ? "Selecciona la edad primero"
+        : "Select athlete age first";
+
+    programInterest.appendChild(option);
+
+    return;
+  }
+
+  const available = PROGRAMS.filter(program => {
+
+    const max =
+      program.max === null
+        ? Infinity
+        : program.max;
+
+    return age >= program.min && age <= max;
+  });
+
+  if (!available.length) {
+  const option =
+    document.createElement("option");
+
+  option.value = "";
+
+  option.textContent =
+    currentLanguage() === "es"
+      ? "No hay un programa estándar para esta edad"
+      : "No standard program is available for this age";
+
+  programInterest.appendChild(option);
+
+  return;
+}
+
+  available.forEach(program => {
+
+    const option = document.createElement("option");
+
+    option.value = program.value;
+
+    option.textContent =
+      currentLanguage() === "es"
+        ? program.es
+        : program.en;
+
+    programInterest.appendChild(option);
+
+  });
+
+}
 renderIntent();
 
 document
@@ -370,8 +491,15 @@ document
         window.setTimeout(() => {
           renderSubmitButton(false);
           renderIntent();
+          updatePrograms();
           setStatus("");
         }, 0);
       }
     );
   });
+
+athleteAge?.addEventListener(
+  "input",
+  updatePrograms
+);
+updatePrograms();

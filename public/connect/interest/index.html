@@ -283,6 +283,157 @@
               required
             />
           </div>
+          <div class="field">
+  <label for="shirtSize">
+    <span data-lang="en">
+      Athlete T-Shirt Size
+    </span>
+
+    <span data-lang="es">
+      Talla de Camiseta del Atleta
+    </span>
+
+    <span class="optional">
+      <span data-lang="en">
+        Optional
+      </span>
+
+      <span data-lang="es">
+        Opcional
+      </span>
+    </span>
+  </label>
+
+  <select
+    id="shirtSize"
+    name="shirtSize"
+  >
+<option
+  value=""
+  data-lang="en"
+>
+  Select size
+</option>
+
+<option
+  value=""
+  data-lang="es"
+>
+  Selecciona una talla
+</option>
+
+    <option>Youth XS</option>
+    <option>Youth S</option>
+    <option>Youth M</option>
+    <option>Youth L</option>
+    <option>Youth XL</option>
+
+    <option>Adult XS</option>
+    <option>Adult S</option>
+    <option>Adult M</option>
+    <option>Adult L</option>
+    <option>Adult XL</option>
+    <option>Adult 2XL</option>
+    <option>Adult 3XL</option>
+  </select>
+</div>
+
+<div class="field">
+  <label for="preferredDiscipline">
+    <span data-lang="en">
+      Most Interested In
+    </span>
+
+    <span data-lang="es">
+      Más Interesado En
+    </span>
+
+    <span class="optional">
+      <span data-lang="en">
+        Optional
+      </span>
+
+      <span data-lang="es">
+        Opcional
+      </span>
+    </span>
+  </label>
+
+  <select
+    id="preferredDiscipline"
+    name="preferredDiscipline"
+  >
+<option
+  value=""
+  data-lang="en"
+>
+  I'm Not Sure Yet
+</option>
+
+<option
+  value=""
+  data-lang="es"
+>
+  Aún No Estoy Seguro
+</option>
+
+<option
+  value="wrestling"
+  data-lang="en"
+>
+  Wrestling
+</option>
+
+<option
+  value="wrestling"
+  data-lang="es"
+>
+  Lucha
+</option>
+
+<option
+  value="kickboxing"
+  data-lang="en"
+>
+  Kickboxing
+</option>
+
+<option
+  value="kickboxing"
+  data-lang="es"
+>
+  Kickboxing
+</option>
+
+<option
+  value="boxing"
+  data-lang="en"
+>
+  Boxing
+</option>
+
+<option
+  value="boxing"
+  data-lang="es"
+>
+  Boxeo
+</option>
+
+<option
+  value="fitness"
+  data-lang="en"
+>
+  Fitness
+</option>
+
+<option
+  value="fitness"
+  data-lang="es"
+>
+  Acondicionamiento Físico
+</option>
+</select>
+</div>
         </section>
 
         <section class="form-section">
@@ -548,111 +699,153 @@
               </span>
             </label>
 
-            <select
-              id="programInterest"
-              name="programInterest"
-              required
-            >
-              <option
-                value=""
-                data-lang="en"
-              >
-                Select a program
-              </option>
-
-              <option
-                value=""
-                data-lang="es"
-              >
-                Selecciona un programa
-              </option>
-
-              <option
-                value="z2h-wrestling"
-                data-lang="en"
-              >
-                Zero2Hero Wrestling · Ages 6–13
-              </option>
-
-              <option
-                value="z2h-wrestling"
-                data-lang="es"
-              >
-                Zero2Hero Lucha · Edades 6–13
-              </option>
-
-              <option
-                value="z2h-kickboxing"
-                data-lang="en"
-              >
-                Zero2Hero Kickboxing · Ages 6–13
-              </option>
-
-              <option
-                value="z2h-kickboxing"
-                data-lang="es"
-              >
-                Zero2Hero Kickboxing · Edades 6–13
-              </option>
-
-              <option
-                value="p2l-wrestling"
-                data-lang="en"
-              >
-                Path2Legend Wrestling · Ages 14+
-              </option>
-
-              <option
-                value="p2l-wrestling"
-                data-lang="es"
-              >
-                Path2Legend Lucha · Edades 14+
-              </option>
-
-              <option
-                value="p2l-boxing"
-                data-lang="en"
-              >
-                Path2Legend Boxing · Ages 14+
-              </option>
-
-              <option
-                value="p2l-boxing"
-                data-lang="es"
-              >
-                Path2Legend Boxeo · Edades 14+
-              </option>
-
-              <option
-  value="hiit-fit"
-  data-lang="en"
+           <select
+  id="programInterest"
+  name="programInterest"
+  required
 >
-  HIIT Fit · Everyday Fitness · Ages 12+
-</option>
-
-<option
-  value="hiit-fit"
-  data-lang="es"
->
-  HIIT Fit · Acondicionamiento Físico · Edades 12+
-</option>
-
-              <option
-                value="learning-more"
-                data-lang="en"
-              >
-                Just Learning More
-              </option>
-
-              <option
-                value="learning-more"
-                data-lang="es"
-              >
-                Solo Quiero Más Información
-              </option>
-            </select>
+  <option value="">
+    Select athlete age first
+  </option>
+</select> 
           </div>
         </section>
+        <section class="form-section">
+  <h2>
+    <span data-lang="en">
+      Primary Goal
+    </span>
+
+    <span data-lang="es">
+      Objetivo Principal
+    </span>
+  </h2>
+
+  <div class="field">
+    <label for="primaryGoal">
+      <span data-lang="en">
+        What is your primary goal?
+      </span>
+
+      <span data-lang="es">
+        ¿Cuál es tu objetivo principal?
+      </span>
+
+      <span class="optional">
+        <span data-lang="en">
+          Optional
+        </span>
+
+        <span data-lang="es">
+          Opcional
+        </span>
+      </span>
+    </label>
+
+<select
+  id="primaryGoal"
+  name="primaryGoal"
+>
+  <option
+    value=""
+    data-lang="en"
+  >
+    Select one
+  </option>
+
+  <option
+    value=""
+    data-lang="es"
+  >
+    Selecciona una opción
+  </option>
+
+  <option
+    value="confidence"
+    data-lang="en"
+  >
+    Build Confidence
+  </option>
+
+  <option
+    value="confidence"
+    data-lang="es"
+  >
+    Desarrollar Confianza
+  </option>
+
+  <option
+    value="self-defense"
+    data-lang="en"
+  >
+    Learn Self-Defense
+  </option>
+
+  <option
+    value="self-defense"
+    data-lang="es"
+  >
+    Aprender Defensa Personal
+  </option>
+
+  <option
+    value="competition"
+    data-lang="en"
+  >
+    Competition
+  </option>
+
+  <option
+    value="competition"
+    data-lang="es"
+  >
+    Competencia
+  </option>
+
+  <option
+    value="fitness"
+    data-lang="en"
+  >
+    Fitness &amp; Health
+  </option>
+
+  <option
+    value="fitness"
+    data-lang="es"
+  >
+    Acondicionamiento Físico y Salud
+  </option>
+
+  <option
+    value="character"
+    data-lang="en"
+  >
+    Character &amp; Discipline
+  </option>
+
+  <option
+    value="character"
+    data-lang="es"
+  >
+    Carácter y Disciplina
+  </option>
+
+  <option
+    value="exploring"
+    data-lang="en"
+  >
+    Just Exploring
+  </option>
+
+  <option
+    value="exploring"
+    data-lang="es"
+  >
+    Solo Estoy Explorando
+  </option>
+</select>
+  </div>
+</section>
 
         <section class="form-section">
           <h2>
@@ -989,15 +1182,15 @@
           </span>
         </a>
 
-        <p>
-          <span data-lang="en">
-            Combat = Character
-          </span>
+<p>
+  <span data-lang="en">
+    Heroes Build Heroes
+  </span>
 
-          <span data-lang="es">
-            Combate = Carácter
-          </span>
-        </p>
+  <span data-lang="es">
+    Los Héroes Forman Héroes
+  </span>
+</p>
       </footer>
 
     </section>

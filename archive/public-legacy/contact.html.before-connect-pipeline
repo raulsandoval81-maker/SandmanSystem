@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Contact | Sandman Combat™</title>
+
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="stylesheet" href="public.css" />
+  <script src="assets/js/public-shell.js" defer></script>
+
+
+<style>
+  .hero h1{
+    margin-bottom:.5rem;
+  }
+
+  .hero-sub{
+    margin:0;
+  }
+
+  .hero-tag{
+    margin-top:.75rem;
+  }
+
+  .hero-link{
+    color:var(--brand);
+    text-decoration:none;
+    font-weight:900;
+  }
+
+  .contact-card{
+    border:1px solid var(--line);
+    border-radius:14px;
+    background:linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.03),
+      rgba(0,0,0,0.12)
+    );
+    padding:1rem;
+    height:100%;
+  }
+
+  body.day-mode .contact-card{
+    background:linear-gradient(
+      to bottom,
+      rgba(255,255,255,0.65),
+      rgba(236,225,198,0.55)
+    );
+  }
+
+  .contact-line{
+    display:flex;
+    align-items:flex-start;
+    justify-content:space-between;
+    gap:1rem;
+    padding:.65rem 0;
+    border-bottom:1px solid rgba(255,255,255,.06);
+    flex-wrap:wrap;
+  }
+
+  body.day-mode .contact-line{
+    border-bottom:1px solid rgba(166,124,0,.16);
+  }
+
+  .contact-line:last-child{
+    border-bottom:none;
+  }
+
+  .k{
+    color:var(--muted);
+    font-weight:900;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    font-size:.75rem;
+  }
+
+  .v{
+    color:var(--text);
+    font-weight:800;
+  }
+
+  .helper-note{
+    margin-top:1rem;
+    color:var(--muted);
+    font-size:.92rem;
+    line-height:1.55;
+  }
+</style>
+</head>
+
+<body class="subpage">
+  <header class="top-nav top-nav-simple">
+    <div class="nav-top nav-top-center">
+      <a href="index.html" class="nav-logo">Sandman Combat™</a>
+    </div>
+
+    <nav class="site-nav" aria-label="Primary">
+      <a href="index.html">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
+      <a href="overview.html">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
+      <a href="programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
+      <a href="about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section class="section">
+      <div class="hero">
+        <div data-lang-block="en">
+          <div class="hero-kicker">Contact</div>
+          <h1>Have a Question?</h1>
+          <p class="hero-sub">Request an invite to begin, or message Coach Sandoval directly.</p>
+          <p class="hero-tag">
+            For training structure and age groups, see
+            <a href="programs.html" class="hero-link">Programs</a>.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <div class="hero-kicker">Contacto</div>
+          <h1>¿Tienes una pregunta?</h1>
+          <p class="hero-sub">Solicita una invitación para comenzar o envía un mensaje directamente al Coach Sandoval.</p>
+          <p class="hero-tag">
+            Para ver la estructura del entrenamiento y los grupos por edad, visita
+            <a href="programs.html" class="hero-link">Programas</a>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="grid">
+        <article class="panel col-6">
+          <div data-lang-block="en">
+            <span class="pill-tag">Start Here</span>
+            <h2 class="panel-title">Two Clear Paths</h2>
+            <p class="panel-sub">
+              Public pages do not create athlete accounts automatically. Coach reviews requests and sends the official next step when appropriate.
+            </p>
+
+            <div class="row-actions">
+              <a class="btn btn-primary" href="join.html">Request an Invite</a>
+              <a class="btn btn-ghost" href="message.html">Message Coach Sandoval</a>
+            </div>
+
+            <p class="helper-note">
+              Use the invite path if you are ready to begin. Use the message path if you just need answers first.
+            </p>
+          </div>
+
+          <div data-lang-block="es" class="hidden-lang">
+            <span class="pill-tag">Comienza aquí</span>
+            <h2 class="panel-title">Dos caminos claros</h2>
+            <p class="panel-sub">
+              Las páginas públicas no crean cuentas de atletas automáticamente. El Coach revisa las solicitudes y envía el siguiente paso oficial cuando corresponde.
+            </p>
+
+            <div class="row-actions">
+              <a class="btn btn-primary" href="join.html">Solicitar una invitación</a>
+              <a class="btn btn-ghost" href="message.html">Mensaje al Coach Sandoval</a>
+            </div>
+
+            <p class="helper-note">
+              Usa la invitación si ya estás listo para comenzar. Usa el mensaje si primero solo necesitas respuestas.
+            </p>
+          </div>
+        </article>
+
+        <div class="col-6">
+          <div class="contact-card">
+            <div data-lang-block="en">
+              <div class="contact-line">
+                <div class="k">Fastest Path</div>
+                <div class="v">Request Invite → Review → Next Step</div>
+              </div>
+              <div class="contact-line">
+                <div class="k">Questions</div>
+                <div class="v">Message Coach Sandoval</div>
+              </div>
+              <div class="contact-line">
+                <div class="k">Best Use</div>
+                <div class="v">General questions, interest, or next steps</div>
+              </div>
+              <div class="contact-line">
+                <div class="k">Note</div>
+                <div class="v">Do not send sensitive personal information through public forms</div>
+              </div>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <div class="contact-line">
+                <div class="k">Ruta más rápida</div>
+                <div class="v">Solicitar invitación → Revisión → Siguiente paso</div>
+              </div>
+              <div class="contact-line">
+                <div class="k">Preguntas</div>
+                <div class="v">Mensaje al Coach Sandoval</div>
+              </div>
+              <div class="contact-line">
+                <div class="k">Mejor uso</div>
+                <div class="v">Preguntas generales, interés o próximos pasos</div>
+              </div>
+              <div class="contact-line">
+                <div class="k">Nota</div>
+                <div class="v">No envíes información personal sensible por formularios públicos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
