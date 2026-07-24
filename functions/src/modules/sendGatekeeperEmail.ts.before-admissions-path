@@ -19,8 +19,6 @@ type AppointmentLead = {
   athleteName?: string;
   lang?: Language;
 
-  admissionsPath?: "new" | "assessment";
-
   appointmentDate?: string;
   appointmentTime?: string;
   appointmentLocation?: AppointmentLocation;
@@ -199,11 +197,6 @@ function buildAppointmentEmail(
       lead.appointmentNotes
     );
 
-  const admissionsPath =
-    lead.admissionsPath === "assessment"
-      ? "assessment"
-      : "new";
-
   if (
     !appointmentDate ||
     !appointmentTime ||
@@ -245,25 +238,6 @@ function buildAppointmentEmail(
     getLocationAddress(
       appointmentLocation
     );
-
-
-  const startingPathMessage =
-    admissionsPath === "assessment"
-      ? `Your athlete is scheduled for a Placement Assessment.
-
-During your visit, the coach will observe your athlete, evaluate their current experience, and recommend the most appropriate starting point within the Sandman System.`
-      : `Your athlete is beginning as a New Athlete.
-
-During your visit, your athlete will meet the coach, observe or participate as appropriate, and receive an introduction to the academy before beginning their journey.`;
-
-  const startingPathMessageEs =
-    admissionsPath === "assessment"
-      ? `Tu atleta asistirá a una Evaluación de Colocación.
-
-Durante la visita, el coach observará a tu atleta, evaluará su experiencia actual y recomendará el punto de inicio más apropiado dentro del Sistema Sandman.`
-      : `Tu atleta comenzará como Atleta Nuevo.
-
-Durante la visita, tu atleta conocerá al coach, observará o participará según corresponda y recibirá una introducción a la academia antes de comenzar su trayectoria.`;
 
   if (lang === "es") {
     return {
@@ -330,12 +304,6 @@ NOTAS DEL COACH
 ${appointmentNotes}
 
 ` : ""}--------------------------------------------------
-
-TU CAMINO DE INICIO
-
-${startingPathMessageEs}
-
---------------------------------------------------
 
 ¿NECESITAS REPROGRAMAR?
 
@@ -421,12 +389,6 @@ ${appointmentNotes}
 
 ` : ""}--------------------------------------------------
 
-YOUR STARTING PATH
-
-${startingPathMessage}
-
---------------------------------------------------
-
 NEED TO RESCHEDULE?
 
 If this appointment no longer works for your family, simply reply to this email and we will be happy to help you find another time.
@@ -471,10 +433,12 @@ export const sendGatekeeperEmail =
         context
       ) => {
         const before =
-          (change.before.data() as AppointmentLead);
+          change.before.data()
+            as AppointmentLead;
 
         const after =
-          (change.after.data() as AppointmentLead);
+          change.after.data()
+            as AppointmentLead;
 
         const beforeStatus =
           clean(

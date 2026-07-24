@@ -73,7 +73,9 @@ function formatAppointmentDate(value, lang) {
     const month = Number(match[2]);
     const day = Number(match[3]);
     const date = new Date(Date.UTC(year, month - 1, day, 12));
-    return new Intl.DateTimeFormat(lang === "es" ? "es-US" : "en-US", {
+    return new Intl.DateTimeFormat(lang === "es"
+        ? "es-US"
+        : "en-US", {
         weekday: "long",
         month: "long",
         day: "numeric",
@@ -116,6 +118,9 @@ function buildAppointmentEmail(lead) {
     const appointmentLocation = clean(lead.appointmentLocation);
     const appointmentCoach = clean(lead.appointmentCoach);
     const appointmentNotes = clean(lead.appointmentNotes);
+    const admissionsPath = lead.admissionsPath === "assessment"
+        ? "assessment"
+        : "new";
     if (!appointmentDate ||
         !appointmentTime ||
         !appointmentLocation ||
@@ -129,12 +134,34 @@ function buildAppointmentEmail(lead) {
     const formattedTime = formatAppointmentTime(appointmentTime);
     const academyName = getLocationName(appointmentLocation);
     const academyAddress = getLocationAddress(appointmentLocation);
+    const startingPathMessage = admissionsPath === "assessment"
+        ? `Your athlete is scheduled for a Placement Assessment.
+
+During your visit, the coach will observe your athlete, evaluate their current experience, and recommend the most appropriate starting point within the Sandman System.`
+        : `Your athlete is beginning as a New Athlete.
+
+During your visit, your athlete will meet the coach, observe or participate as appropriate, and receive an introduction to the academy before beginning their journey.`;
+    const startingPathMessageEs = admissionsPath === "assessment"
+        ? `Tu atleta asistirá a una Evaluación de Colocación.
+
+Durante la visita, el coach observará a tu atleta, evaluará su experiencia actual y recomendará el punto de inicio más apropiado dentro del Sistema Sandman.`
+        : `Tu atleta comenzará como Atleta Nuevo.
+
+Durante la visita, tu atleta conocerá al coach, observará o participará según corresponda y recibirá una introducción a la academia antes de comenzar su trayectoria.`;
     if (lang === "es") {
         return {
-            subject: "Sandman Combat — Tu Introducción a la Academia Está Programada",
+            subject: "Sandman Combat — Tu Cita de Admisión Está Programada",
             text: `Hola ${parentName}:
 
-Tu Introducción a la Academia de Sandman Combat ha sido programada.
+Gracias por programar tu Cita de Admisión con Sandman Combat.
+
+Esperamos conocer a tu familia, aprender más sobre tu atleta y escuchar cuáles son sus metas.
+
+En Sandman Combat creemos que cada atleta merece un comienzo apropiado y que cada familia merece una conversación con el coach antes de comenzar.
+
+--------------------------------------------------
+
+TU CITA DE ADMISIÓN
 
 Atleta:
 ${athleteName}
@@ -154,22 +181,71 @@ ${academyName}
 Dirección:
 ${academyAddress}
 
-Por favor llega aproximadamente 10 minutos antes.
+--------------------------------------------------
 
-Durante la cita conoceremos tus metas, responderemos tus preguntas, explicaremos cómo funciona Sandman Combat y hablaremos sobre el próximo paso apropiado para tu atleta o familia.
+QUÉ PUEDES ESPERAR
 
-${appointmentNotes ? `Notas del coach:\n${appointmentNotes}\n\n` : ""}Si esta cita ya no funciona para tu familia, responde a este correo electrónico para que podamos reprogramarla.
+Durante la Cita de Admisión, tu familia tendrá la oportunidad de conocer al coach, aprender sobre los estándares de la academia, hablar sobre sus metas y hacer preguntas.
+
+Dependiendo de la experiencia del atleta y del propósito de la cita, la visita también puede incluir la observación o participación en una práctica en vivo.
+
+Antes de concluir, habrá tiempo para compartir pensamientos finales, comentarios o preocupaciones y hablar sobre el próximo paso apropiado.
+
+--------------------------------------------------
+
+CÓMO PREPARARTE PARA TU VISITA
+
+• Por favor llega puntualmente a tu cita.
+
+• Si tu atleta participará en una práctica o evaluación, debe usar ropa deportiva cómoda.
+
+• Trae una botella de agua si tu atleta participará.
+
+• Te invitamos a traer cualquier pregunta que desees conversar con el coach.
+
+${appointmentNotes ? `--------------------------------------------------
+
+NOTAS DEL COACH
+
+${appointmentNotes}
+
+` : ""}--------------------------------------------------
+
+TU CAMINO DE INICIO
+
+${startingPathMessageEs}
+
+--------------------------------------------------
+
+¿NECESITAS REPROGRAMAR?
+
+Si esta cita ya no funciona para tu familia, simplemente responde a este correo electrónico y con gusto te ayudaremos a encontrar otro horario.
+
+Agradecemos la oportunidad de conocer a tu familia.
+
+Ya sea que tu atleta esté comenzando por primera vez o llegue con experiencia previa, nuestro objetivo es proporcionar el comienzo correcto y el camino adecuado.
+
+Esperamos conocerte.
 
 Combat = Character
 
-— Sandman Combat Academy`
+— Coach Sandoval
+Sandman Combat Academy`
         };
     }
     return {
-        subject: "Sandman Combat — Your Academy Introduction Is Scheduled",
+        subject: "Sandman Combat — Your Admissions Appointment Is Scheduled",
         text: `Hello ${parentName},
 
-Your Sandman Combat Academy Introduction has been scheduled.
+Thank you for scheduling your Sandman Combat Admissions Appointment.
+
+We look forward to meeting your family, learning more about your athlete, and hearing about your goals.
+
+At Sandman Combat, we believe every athlete deserves a proper beginning and every family deserves a conversation with the coach before training begins.
+
+--------------------------------------------------
+
+YOUR ADMISSIONS APPOINTMENT
 
 Athlete:
 ${athleteName}
@@ -189,15 +265,58 @@ ${academyName}
 Address:
 ${academyAddress}
 
-Please arrive approximately 10 minutes early.
+--------------------------------------------------
 
-During the appointment, we will learn about your goals, answer your questions, explain how Sandman Combat works, and discuss the appropriate next step for your athlete or family.
+WHAT TO EXPECT
 
-${appointmentNotes ? `Coach Notes:\n${appointmentNotes}\n\n` : ""}If this appointment no longer works for your family, please reply to this email so we can reschedule it.
+During your Admissions Appointment, your family will have an opportunity to meet the coach, learn about academy standards, discuss your goals, and ask questions.
+
+Your coach will guide your family through the Admissions Appointment and explain the appropriate next steps based on your athlete's goals and experience.
+
+Before your appointment concludes, there will be time for final thoughts, remaining questions, and a discussion of the appropriate next steps
+
+--------------------------------------------------
+
+PREPARING FOR YOUR VISIT
+
+• Please arrive on time for your scheduled appointment.
+
+• If your athlete will participate in a practice or assessment, please wear comfortable athletic clothing.
+
+• If your athlete is participating in practice, please have them wear a plain white T-shirt.
+
+• Bring a water bottle if your athlete will be participating.
+
+• We encourage you to bring any questions you would like to discuss with the coach.
+
+${appointmentNotes ? `--------------------------------------------------
+
+COACH NOTES
+
+${appointmentNotes}
+
+` : ""}--------------------------------------------------
+
+YOUR STARTING PATH
+
+${startingPathMessage}
+
+--------------------------------------------------
+
+NEED TO RESCHEDULE?
+
+If this appointment no longer works for your family, simply reply to this email and we will be happy to help you find another time.
+
+We appreciate the opportunity to meet your family.
+
+Whether your athlete is beginning for the first time or arriving with previous experience, our goal is to provide the right beginning and the right path forward.
+
+We look forward to meeting you.
 
 Combat = Character
 
-— Sandman Combat Academy`
+— Coach Sandoval
+Sandman Combat Academy`
     };
 }
 async function markConfirmationFailed(ref, message) {
@@ -212,8 +331,10 @@ exports.sendGatekeeperEmail = functions.firestore
     .onUpdate(async (change, context) => {
     const before = change.before.data();
     const after = change.after.data();
-    const beforeStatus = clean(before.appointmentConfirmationStatus);
-    const afterStatus = clean(after.appointmentConfirmationStatus);
+    const beforeStatus = clean(before
+        .appointmentConfirmationStatus);
+    const afterStatus = clean(after
+        .appointmentConfirmationStatus);
     if (afterStatus !== "pending") {
         return;
     }
@@ -227,7 +348,9 @@ exports.sendGatekeeperEmail = functions.firestore
         await markConfirmationFailed(change.after.ref, "Missing parent email address.");
         return;
     }
-    const resendKey = functions.config().resend?.key;
+    const resendKey = functions
+        .config()
+        .resend?.key;
     if (!resendKey) {
         console.error("[gatekeeper] Missing Resend API key");
         await markConfirmationFailed(change.after.ref, "Missing Resend API key.");
@@ -236,7 +359,9 @@ exports.sendGatekeeperEmail = functions.firestore
     try {
         const email = buildAppointmentEmail(after);
         const resend = new resend_1.Resend(resendKey);
-        const result = await resend.emails.send({
+        const result = await resend
+            .emails
+            .send({
             from: "Sandman Combat <join@sandmancombat.com>",
             to: parentEmail,
             subject: email.subject,

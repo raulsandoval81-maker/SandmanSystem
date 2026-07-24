@@ -467,14 +467,18 @@ export const sendGatekeeperEmail =
     )
     .onUpdate(
       async (
-        change,
-        context
-      ) => {
+        change: functions.Change<
+          functions.firestore.QueryDocumentSnapshot
+        >,
+        context: functions.EventContext
+      ): Promise<void> => {
         const before =
-          (change.before.data() as AppointmentLead);
+          change.before.data()
+            as AppointmentLead;
 
         const after =
-          (change.after.data() as AppointmentLead);
+          change.after.data()
+            as AppointmentLead;
 
         const beforeStatus =
           clean(

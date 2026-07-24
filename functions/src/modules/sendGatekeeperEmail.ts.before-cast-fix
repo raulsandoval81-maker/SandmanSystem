@@ -471,10 +471,12 @@ export const sendGatekeeperEmail =
         context
       ) => {
         const before =
-          (change.before.data() as AppointmentLead);
+          change.before.data()
+            as AppointmentLead;
 
         const after =
-          (change.after.data() as AppointmentLead);
+          change.after.data()
+            as AppointmentLead;
 
         const beforeStatus =
           clean(
