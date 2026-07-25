@@ -72,19 +72,27 @@ function setStatus(message = "", isError = false) {
 
 function labelForProgram(program = "") {
   const labels = {
+    "zero2hero-wrestling": "Zero2Hero Wrestling",
     "z2h-wrestling": "Zero2Hero Wrestling",
+
+    "zero2hero-kickboxing": "Zero2Hero Kickboxing",
     "z2h-kickboxing": "Zero2Hero Kickboxing",
+
+    "path2legend-wrestling": "Path2Legend Wrestling",
     "p2l-wrestling": "Path2Legend Wrestling",
+
+    "path2legend-boxing": "Path2Legend Boxing",
     "p2l-boxing": "Path2Legend Boxing",
+
+    fitness: "Everyday Fitness",
     "learning-more": "Just Learning More"
   };
-
   return labels[program] || program || "—";
 }
 
 function labelForIntent(intent = "") {
   const labels = {
-    "academy-introduction": "Academy Introduction",
+    "academy-introduction": "Admissions Appointment",
     trial: "2-Day Trial",
     membership: "Monthly Membership",
     unlimited: "Unlimited Athlete Membership",
@@ -105,6 +113,15 @@ function labelForLocation(location = "") {
   return labels[location] || location || "—";
 }
 
+
+function labelForAdmissionsPath(value = "") {
+  const labels = {
+    new: "New Athlete",
+    assessment: "Placement Assessment"
+  };
+
+  return labels[value] || "—";
+}
 function formatAppointmentDate(dateValue = "") {
   if (!dateValue) return "—";
 
@@ -121,7 +138,6 @@ function formatAppointmentTime(timeValue = "") {
   const [hourRaw, minuteRaw] = timeValue.split(":");
   const hour = Number(hourRaw);
   const minute = Number(minuteRaw);
-
   if (!Number.isFinite(hour) || !Number.isFinite(minute)) {
     return timeValue;
   }
@@ -136,6 +152,55 @@ function formatAppointmentTime(timeValue = "") {
     hour: "numeric",
     minute: "2-digit"
   });
+}
+
+function labelForConfirmationStatus(value = "") {
+  const labels = {
+    pending: "Confirmation Pending",
+    sent: "Confirmation Sent",
+    confirmed: "Confirmed",
+    declined: "Declined",
+    cancelled: "Cancelled"
+  };
+
+  return labels[value] || "Confirmation Pending";
+}
+
+function labelForMeetingWindow(value = "") {
+  const labels = {
+    "weekday-afternoon":
+      "Weekday Afternoon (2:00 PM – 6:00 PM)",
+
+    "weekday-evening":
+      "Weekday Evening (5:00 PM – 9:00 PM)",
+
+    "saturday-morning":
+      "Saturday Morning (8:00 AM – 12:00 PM)",
+
+    "saturday-afternoon":
+      "Saturday Afternoon (12:00 PM – 4:00 PM)",
+
+    flexible:
+      "Flexible"
+  };
+
+  return labels[value] || value || "—";
+}
+function labelForPrimaryGoal(value = "") {
+  const labels = {
+    fitness: "Fitness",
+    competition: "Competition",
+    confidence: "Confidence",
+    selfdefense: "Self-Defense",
+    "self-defense": "Self-Defense",
+    discipline: "Discipline",
+    fun: "Fun",
+    health: "Health",
+    weightloss: "Weight Loss",
+    "weight-loss": "Weight Loss"
+  };
+
+  return labels[value] || value || "—";
 }
 
 async function requireAdminUser() {
@@ -172,46 +237,106 @@ async function loadSelectedLead() {
   };
 
   if (selectedLeadSummary) {
-    selectedLeadSummary.innerHTML = `
-      <div class="appointment-card">
-        <h3>
-          ${esc(selectedLead.athleteName || "Unnamed Athlete")}
-        </h3>
+selectedLeadSummary.innerHTML = `
+<div class="appointment-card">
 
-        <p>
-          Parent or Guardian:
-          <strong>${esc(selectedLead.parentName || "—")}</strong>
-        </p>
+  <h4>Athlete Information</h4>
 
-        <p>
-          Journey:
-          <strong>
-            ${esc(labelForProgram(selectedLead.programInterest))}
-          </strong>
-        </p>
+  <p>
+    <strong>Athlete:</strong>
+    ${esc(selectedLead.athleteName || "—")}
+  </p>
 
-        <p>
-          Membership Interest:
-          <strong>
-            ${esc(labelForIntent(selectedLead.intent))}
-          </strong>
-        </p>
+  <p>
+    <strong>Parent / Guardian:</strong>
+    ${esc(selectedLead.parentName || "—")}
+  </p>
 
-        <p>
-          Preferred Academy:
-          <strong>
-            ${esc(labelForLocation(selectedLead.preferredLocation))}
-          </strong>
-        </p>
+  <p>
+    <strong>Age:</strong>
+    ${esc(selectedLead.athleteAge || "—")}
+  </p>
 
-        <p>
-          Preferred Meeting Window:
-          <strong>
-            ${esc(selectedLead.preferredMeetingWindow || "—")}
-          </strong>
-        </p>
-      </div>
-    `;
+  <p>
+    <strong>Academy Shirt Size:</strong>
+    ${esc(selectedLead.shirtSize || "—")}
+  </p>
+
+    <p>
+      <strong>Phone:</strong>
+      ${esc(selectedLead.phone || "—")}
+    </p>
+
+    <p>
+      <strong>Email:</strong>
+      ${esc(selectedLead.email || "—")}
+    </p>
+
+    <p>
+      <strong>City:</strong>
+      ${esc(selectedLead.city || "—")}
+    </p>
+
+    <hr>
+
+    <h4>Program & Enrollment</h4>
+
+    <p>
+      <strong>Journey:</strong>
+      ${esc(labelForProgram(selectedLead.programInterest))}
+    </p>
+
+    <p>
+      <strong>Membership Interest:</strong>
+      ${esc(labelForIntent(selectedLead.intent))}
+    </p>
+
+<p>
+  <strong>Primary Goal:</strong>
+  ${esc(labelForPrimaryGoal(selectedLead.primaryGoal))}
+</p>
+
+<p>
+<strong>Starting Path:</strong>
+${esc(labelForAdmissionsPath(selectedLead.admissionsPath))}
+</p>
+    <hr>
+
+    <h4>Family Preferences</h4>
+
+    <p>
+      <strong>Preferred Academy:</strong>
+      ${esc(labelForLocation(selectedLead.preferredLocation))}
+    </p>
+
+    <p>
+      <strong>Preferred Meeting Window:</strong>
+      ${esc(labelForMeetingWindow(selectedLead.preferredMeetingWindow))}
+    </p>
+
+    <p>
+      <strong>Referral Source:</strong>
+      ${esc(selectedLead.referralSource || "—")}
+    </p>
+
+
+    ${
+      selectedLead.notes
+        ? `
+          <hr>
+
+          <h4>Parent Notes</h4>
+
+          <p>
+            ${esc(selectedLead.notes)}
+          </p>
+        `
+        : ""
+    }
+
+  </div>
+`;
+
   }
 
   if (appointmentLocation) {
@@ -223,6 +348,24 @@ async function loadSelectedLead() {
         ? preferred
         : "";
   }
+
+  appointmentDate.value =
+  selectedLead.appointmentDate || "";
+
+appointmentTime.value =
+  selectedLead.appointmentTime || "";
+
+appointmentLocation.value =
+  selectedLead.appointmentLocation ||
+  selectedLead.preferredLocation ||
+  "";
+
+appointmentCoach.value =
+  selectedLead.appointmentCoach ||
+  "Coach Sandoval";
+
+appointmentNotes.value =
+  selectedLead.appointmentNotes || "";
 
   if (schedulePanel) {
     schedulePanel.hidden = false;
@@ -273,85 +416,108 @@ async function loadAppointments() {
 
     appointmentList.innerHTML =
       appointments
-        .map((lead) => `
-          <article
-            class="appointment-card"
-            data-id="${esc(lead.id)}"
-          >
-            <h2>
-              ${esc(lead.athleteName || "Unnamed Athlete")}
-            </h2>
+.map((lead) => `
+  <article
+    class="appointment-card"
+    data-id="${esc(lead.id)}"
+  >
+    <header class="appointment-card-head">
+      <div>
+        <h2>
+          ${esc(lead.athleteName || "Unnamed Athlete")}
+        </h2>
 
-            <div class="appointment-sub">
-              Parent or Guardian:
-              ${esc(lead.parentName || "—")}
-            </div>
+        <div class="appointment-sub">
+          Parent or Guardian:
+          ${esc(lead.parentName || "—")}
+        </div>
+      </div>
 
-            <div class="appointment-grid">
-              <div>
-                <span class="field-label">Journey</span>
-                <div class="field-value">
-                  ${esc(labelForProgram(lead.programInterest))}
-                </div>
-              </div>
+      <span class="status-badge">
+        ${esc(
+          labelForConfirmationStatus(
+            lead.appointmentConfirmationStatus
+          )
+        )}
+      </span>
+    </header>
 
-              <div>
-                <span class="field-label">Membership</span>
-                <div class="field-value">
-                  ${esc(labelForIntent(lead.intent))}
-                </div>
-              </div>
+    <div class="appointment-grid">
 
-              <div>
-                <span class="field-label">Date</span>
-                <div class="field-value">
-                  ${esc(formatAppointmentDate(lead.appointmentDate))}
-                </div>
-              </div>
+      <div>
+        <span class="field-label">Date</span>
+        <div class="field-value">
+          ${esc(formatAppointmentDate(lead.appointmentDate))}
+        </div>
+      </div>
 
-              <div>
-                <span class="field-label">Time</span>
-                <div class="field-value">
-                  ${esc(formatAppointmentTime(lead.appointmentTime))}
-                </div>
-              </div>
+      <div>
+        <span class="field-label">Time</span>
+        <div class="field-value">
+          ${esc(formatAppointmentTime(lead.appointmentTime))}
+        </div>
+      </div>
 
-              <div>
-                <span class="field-label">Academy</span>
-                <div class="field-value">
-                  ${esc(labelForLocation(lead.appointmentLocation))}
-                </div>
-              </div>
+      <div>
+        <span class="field-label">Academy</span>
+        <div class="field-value">
+          ${esc(labelForLocation(lead.appointmentLocation))}
+        </div>
+      </div>
 
-              <div>
-                <span class="field-label">Coach</span>
-                <div class="field-value">
-                  ${esc(lead.appointmentCoach || "—")}
-                </div>
-              </div>
+      <div>
+        <span class="field-label">Coach</span>
+        <div class="field-value">
+          ${esc(lead.appointmentCoach || "—")}
+        </div>
+      </div>
 
-              <div>
-                <span class="field-label">Phone</span>
-                <div class="field-value">
-                  ${esc(lead.phone || "—")}
-                </div>
-              </div>
+      <div>
+        <span class="field-label">Journey</span>
+        <div class="field-value">
+          ${esc(labelForProgram(lead.programInterest))}
+        </div>
+      </div>
 
-              <div>
-                <span class="field-label">Email</span>
-                <div class="field-value">
-                  ${esc(lead.email || "—")}
-                </div>
-              </div>
-            </div>
-          </article>
-        `)
-        .join("");
+      <div>
+      <span class="field-label">Starting Path</span>
+        <div class="field-value">
+          ${esc(labelForAdmissionsPath(lead.admissionsPath))}
+        </div>
+      </div>
 
-    setStatus(
-      `${appointments.length} appointments loaded.`
-    );
-  } catch (error) {
+      <div>
+        <span class="field-label">Primary Goal</span>
+        <div class="field-value">
+        ${esc(labelForPrimaryGoal(lead.primaryGoal))}
+        </div>
+      </div>
+
+    </div>
+
+    <div class="lead-actions">
+      <a
+        class="save-btn"
+        href="/connect/appointments/?leadId=${esc(lead.id)}"
+      >
+        Review Appointment
+      </a>
+    </div>
+  </article>
+`)
+
+      .join("");
+
+const appointmentLabel =
+  appointments.length === 1
+    ? "appointment"
+    : "appointments";
+
+setStatus(
+  `${appointments.length} ${appointmentLabel} loaded.`
+);
+
+    } catch (error) {
     console.error(
       "[appointments] load failed:",
       error
@@ -419,8 +585,8 @@ scheduleForm?.addEventListener(
   doc(db, "interest_leads", selectedLeadId),
   {
     // New separated lifecycle fields
-    leadStatus: "contacted",
-    status: "contacted",
+leadStatus: "appointment_scheduled",
+status: "appointment_scheduled",
 
     appointmentStatus: "scheduled",
 
@@ -455,16 +621,24 @@ scheduleForm?.addEventListener(
     updatedAt: serverTimestamp()
   }
 );
+
+selectedLead.leadStatus = "appointment_scheduled";
+selectedLead.status = "appointment_scheduled";
+selectedLead.appointmentStatus = "scheduled";
+
+selectedLead.appointmentDate = dateValue;
+selectedLead.appointmentTime = timeValue;
+selectedLead.appointmentLocation = locationValue;
+selectedLead.appointmentCoach = coachValue;
+selectedLead.appointmentNotes = notesValue;
+
 setStatus(
   "Appointment scheduled. Confirmation is pending."
 );
-      await loadAppointments();
 
-      scheduleForm.reset();
+await loadAppointments();
 
-      if (appointmentCoach) {
-        appointmentCoach.value = "Coach Sandoval";
-      }
+
     } catch (error) {
       console.error(
         "[appointments] schedule failed:",
@@ -478,8 +652,10 @@ setStatus(
       );
     } finally {
       scheduleBtn.disabled = false;
-      scheduleBtn.textContent =
-        "Schedule & Send Confirmation";
+scheduleBtn.textContent =
+  selectedLead.appointmentStatus === "scheduled"
+    ? "Update & Send Confirmation"
+    : "Schedule & Send Confirmation";
     }
   }
 );

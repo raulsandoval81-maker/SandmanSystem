@@ -4,6 +4,7 @@ import {
   getDocs,
   doc,
   updateDoc,
+  deleteDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
 
@@ -71,14 +72,41 @@ function labelForStatus(status = "new") {
 
 function labelForProgram(program = "") {
   const labels = {
+    "zero2hero-wrestling": "Zero2Hero Wrestling",
     "z2h-wrestling": "Zero2Hero Wrestling",
+
+    "zero2hero-kickboxing": "Zero2Hero Kickboxing",
     "z2h-kickboxing": "Zero2Hero Kickboxing",
+
+    "path2legend-wrestling": "Path2Legend Wrestling",
     "p2l-wrestling": "Path2Legend Wrestling",
+
+    "path2legend-boxing": "Path2Legend Boxing",
     "p2l-boxing": "Path2Legend Boxing",
+
+    fitness: "Everyday Fitness",
     "learning-more": "Just Learning More"
   };
 
   return labels[program] || program || "—";
+}
+
+function labelForMeetingWindow(value = "") {
+  const labels = {
+    "weekday-afternoon":
+      "Weekday Afternoon (2:00 PM – 6:00 PM)",
+
+    "weekday-evening":
+      "Weekday Evening (5:00 PM – 9:00 PM)",
+
+    "saturday-morning":
+      "Saturday Morning (8:00 AM – 12:00 PM)",
+
+    "saturday-afternoon":
+      "Saturday Afternoon (12:00 PM – 4:00 PM)"
+  };
+
+  return labels[value] || value || "—";
 }
 
 function updateCounts() {
@@ -180,6 +208,14 @@ function statusOptions(selected = "new") {
     })
     .join("");
 }
+function labelForAdmissionsPath(value = "") {
+  const labels = {
+    new: "New Athlete",
+    assessment: "Placement Assessment"
+  };
+
+  return labels[value] || "—";
+}
 
 function render() {
   if (!leadList) return;
@@ -238,13 +274,6 @@ function render() {
             </div>
 
             <div>
-              <span class="field-label">Membership</span>
-              <div class="field-value">
-                ${esc(lead.intent || "General")}
-              </div>
-            </div>
-
-            <div>
               <span class="field-label">Preferred Academy</span>
               <div class="field-value">
                 ${esc(lead.preferredLocation || "—")}
@@ -254,15 +283,15 @@ function render() {
             <div>
               <span class="field-label">Meeting Window</span>
               <div class="field-value">
-                ${esc(lead.preferredMeetingWindow || "—")}
+              ${esc(labelForMeetingWindow(lead.preferredMeetingWindow))}
               </div>
             </div>
 
             <div>
-              <span class="field-label">Experience</span>
-              <div class="field-value">
-                ${esc(lead.experience || "—")}
-              </div>
+<span class="field-label">Starting Path</span>
+<div class="field-value">
+  ${esc(labelForAdmissionsPath(lead.admissionsPath))}
+</div>
             </div>
 
             <div>
@@ -272,66 +301,36 @@ function render() {
               </div>
             </div>
 
-            <div>
-              <span class="field-label">Phone</span>
-              <div class="field-value">
-                ${esc(lead.phone || "—")}
-              </div>
-            </div>
-
-            <div>
-              <span class="field-label">Email</span>
-              <div class="field-value">
-                ${esc(lead.email || "—")}
-              </div>
-            </div>
-
-            <div>
-              <span class="field-label">City</span>
-              <div class="field-value">
-                ${esc(lead.city || "—")}
-              </div>
-            </div>
-
-            <div>
-              <span class="field-label">Referral</span>
-              <div class="field-value">
-                ${esc(lead.referralSource || "—")}
-              </div>
-            </div>
-
           </div>
 
-          ${
-            lead.notes
-              ? `
-                <div class="lead-notes">
-                  ${esc(lead.notes)}
-                </div>
-              `
-              : ""
-          }
+<div class="lead-actions">
+  <select data-status-select="${esc(lead.id)}">
+    ${statusOptions(status)}
+  </select>
 
-          <div class="lead-actions">
-            <select data-status-select="${esc(lead.id)}">
-              ${statusOptions(status)}
-            </select>
+  <button
+    class="save-btn"
+    type="button"
+    data-save-status="${esc(lead.id)}"
+  >
+    Save Status
+  </button>
 
-            <button
-              class="save-btn"
-              type="button"
-              data-save-status="${esc(lead.id)}"
-            >
-              Save Status
-            </button>
+  <a
+    class="save-btn"
+    href="/connect/appointments/?leadId=${esc(lead.id)}"
+  >
+    Schedule Appointment
+  </a>
 
-            <a
-              class="save-btn"
-              href="/connect/appointments/?leadId=${esc(lead.id)}"
-            >
-              Schedule Appointment
-            </a>
-          </div>
+  <button
+    class="save-btn delete-btn"
+    type="button"
+    data-delete-lead="${esc(lead.id)}"
+  >
+    Delete Lead
+  </button>
+</div>
 
         </article>
       `;
@@ -377,6 +376,32 @@ async function loadLeads() {
       true
     );
   }
+}
+async function deleteLead(leadId) {
+
+  const ok = confirm(
+    "Delete this lead permanently?\n\nThis cannot be undone."
+  );
+
+  if (!ok) return;
+
+  try {
+
+    await deleteDoc(
+      doc(db, "interest_leads", leadId)
+    );
+
+    alert("Lead deleted.");
+
+    loadLeads();
+
+  } catch (err) {
+
+    console.error(err);
+
+    alert("Unable to delete lead.");
+  }
+
 }
 
 async function saveStatus(leadId) {
@@ -440,6 +465,8 @@ async function saveStatus(leadId) {
       updates.closedAt =
         serverTimestamp();
     }
+
+
 
     await updateDoc(
       doc(db, "interest_leads", leadId),
@@ -506,12 +533,23 @@ programFilter?.addEventListener("change", render);
 refreshBtn?.addEventListener("click", loadLeads);
 
 leadList?.addEventListener("click", (event) => {
-  const button =
+
+  const saveButton =
     event.target.closest("[data-save-status]");
 
-  if (!button) return;
+  if (saveButton) {
+    saveStatus(saveButton.dataset.saveStatus);
+    return;
+  }
 
-  saveStatus(button.dataset.saveStatus);
+  const deleteButton =
+    event.target.closest("[data-delete-lead]");
+
+  if (deleteButton) {
+    deleteLead(deleteButton.dataset.deleteLead);
+    return;
+  }
+
 });
 
 await loadLeads();

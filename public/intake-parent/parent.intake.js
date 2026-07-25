@@ -169,6 +169,27 @@ function validateFormBasics() {
   };
 }
 
+async function prefillFromLead(connectLeadId) {
+  if (!connectLeadId) return;
+
+  const snap = await getDoc(
+    doc(db, "interest_leads", connectLeadId)
+  );
+
+  if (!snap.exists()) return;
+
+  const lead = snap.data();
+
+  $("athleteName").value = lead.athleteName || "";
+  $("parentEmail").value = lead.email || "";
+  $("parentPhone").value = lead.phone || "";
+
+  // Optional if you collected these:
+  // $("team").value = lead.team || "";
+  // $("city").value = lead.city || "";
+  // $("state").value = lead.state || "";
+}
+
 // -------------------- Firestore write --------------------
 // ✅ write to intakes/{tokenId} (canonical id from verifier)
 async function writeIntake(tokenId, payload) {
@@ -424,9 +445,7 @@ function formatDisciplineLabel(value = "") {
   return labels[key] || key || "—";
 }
 
-async function applyInviteModeUI() {
-  const invite =
-    await requireValidInvite();
+async function applyInviteModeUI(invite) {
 
   const token =
     invite?.token || {};
@@ -526,9 +545,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       "#fbbf24"
     );
   } else {
-    try {
-      await applyInviteModeUI();
-    } catch (err) {
+
+
+try {
+const invite = await requireValidInvite();
+
+await applyInviteModeUI(invite);
+
+await prefillFromLead(
+  invite.token.connectLeadId || null
+);
+
+} catch (err) {
       console.error(
         "[intake-parent] invite mode UI failed:",
         err

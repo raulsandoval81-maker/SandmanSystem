@@ -24,6 +24,9 @@ const intentText =
 const athleteAge =
   document.getElementById("athleteAge");
 
+const preferredDiscipline =
+  document.getElementById("preferredDiscipline");
+
 const programInterest =
   document.getElementById("programInterest");
 
@@ -111,11 +114,11 @@ function renderSubmitButton(isSubmitting = false) {
 
   submitBtn.innerHTML = `
     <span data-lang="en">
-      Request Information
+      Request an Admissions Appointment
     </span>
 
     <span data-lang="es">
-      Solicitar Información
+      Solicitar una Cita de Admisión
     </span>
   `;
 }
@@ -180,8 +183,8 @@ function readForm() {
     programInterest:
       clean(formData.get("programInterest")),
 
-    experience:
-      clean(formData.get("experience")),
+    admissionsPath:
+      clean(formData.get("admissionsPath")),
 
     referralSource:
       clean(formData.get("referralSource")),
@@ -267,10 +270,14 @@ function validateLead(lead = {}) {
     );
   }
 
-  if (!lead.experience) {
+  if (
+    !["new", "assessment"].includes(
+      lead.admissionsPath
+    )
+  ) {
     return message(
-      "Select an experience level.",
-      "Selecciona un nivel de experiencia."
+      "Choose how the athlete would like to begin.",
+      "Elige cómo le gustaría comenzar al atleta."
     );
   }
 
@@ -365,8 +372,8 @@ console.log(
 
 const intentLabels = {
   "academy-introduction": {
-    en: "Academy Introduction",
-    es: "Introducción a la Academia"
+    en: "Admissions Appointment",
+    es: "Cita de Admisión"
   },
 
   "trial": {
@@ -413,71 +420,103 @@ function renderIntent() {
     selectedLabel[currentLanguage()];
 }
 function updatePrograms() {
-
   if (!athleteAge || !programInterest) return;
 
   const age = Number(athleteAge.value);
+  const previousValue =
+    programInterest.value;
 
   programInterest.innerHTML = "";
 
-  if (!Number.isFinite(age) || age < 3) {
+  function addOption(value, en, es) {
+    const option =
+      document.createElement("option");
 
-    const option = document.createElement("option");
-
-    option.value = "";
+    option.value = value;
 
     option.textContent =
       currentLanguage() === "es"
-        ? "Selecciona la edad primero"
-        : "Select athlete age first";
+        ? es
+        : en;
 
     programInterest.appendChild(option);
+  }
 
+  // Default state
+  addOption(
+    "",
+    "Select a program",
+    "Selecciona un programa"
+  );
+
+  if (
+    !Number.isFinite(age) ||
+    age < 6
+  ) {
+    programInterest.value = "";
     return;
   }
 
-  const available = PROGRAMS.filter(program => {
+  const availablePrograms = [];
 
-    const max =
-      program.max === null
-        ? Infinity
-        : program.max;
+  if (age >= 6 && age <= 13) {
+    availablePrograms.push(
+      {
+        value: "zero2hero-wrestling",
+        en: "Zero2Hero Wrestling · Ages 6–13",
+        es: "Zero2Hero Lucha · Edades 6–13"
+      },
+      {
+        value: "zero2hero-kickboxing",
+        en: "Zero2Hero Kickboxing · Ages 6–13",
+        es: "Zero2Hero Kickboxing · Edades 6–13"
+      }
+    );
+  }
 
-    return age >= program.min && age <= max;
+  if (age >= 12) {
+    availablePrograms.push({
+      value: "fitness",
+      en: "Everyday Fitness · Ages 12+",
+      es: "Fitness Diario · 12+"
+    });
+  }
+
+  if (age >= 14) {
+    availablePrograms.push(
+      {
+        value: "path2legend-wrestling",
+        en: "Path2Legend Wrestling · Ages 14+",
+        es: "Path2Legend Lucha · 14+"
+      },
+      {
+        value: "path2legend-boxing",
+        en: "Path2Legend Boxing · Ages 14+",
+        es: "Path2Legend Boxeo · 14+"
+      }
+    );
+  }
+
+  availablePrograms.forEach((program) => {
+    addOption(
+      program.value,
+      program.en,
+      program.es
+    );
   });
 
-  if (!available.length) {
-  const option =
-    document.createElement("option");
+  const previousStillValid =
+    availablePrograms.some(
+      (program) =>
+        program.value === previousValue
+    );
 
-  option.value = "";
-
-  option.textContent =
-    currentLanguage() === "es"
-      ? "No hay un programa estándar para esta edad"
-      : "No standard program is available for this age";
-
-  programInterest.appendChild(option);
-
-  return;
+  programInterest.value =
+    previousStillValid
+      ? previousValue
+      : "";
 }
 
-  available.forEach(program => {
-
-    const option = document.createElement("option");
-
-    option.value = program.value;
-
-    option.textContent =
-      currentLanguage() === "es"
-        ? program.es
-        : program.en;
-
-    programInterest.appendChild(option);
-
-  });
-
-}
 renderIntent();
 
 document
@@ -502,4 +541,5 @@ athleteAge?.addEventListener(
   "input",
   updatePrograms
 );
+
 updatePrograms();

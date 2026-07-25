@@ -19,7 +19,7 @@ type AppointmentLead = {
   athleteName?: string;
   lang?: Language;
 
-  admissionsPath?: "new" | "assessment";
+  admissionsPath?: AdmissionsPath;
 
   appointmentDate?: string;
   appointmentTime?: string;
@@ -470,11 +470,11 @@ export const sendGatekeeperEmail =
         change,
         context
       ) => {
-        const before =
-          (change.before.data() as AppointmentLead);
+const before =
+  change.before.data() as AppointmentLead;
 
-        const after =
-          (change.after.data() as AppointmentLead);
+const after =
+  change.after.data() as AppointmentLead;
 
         const beforeStatus =
           clean(

@@ -71,7 +71,7 @@ function setApprovedUI(on, uid = "") {
   const openBtn = $("open-link");
   const approveBtn = $("btn-approve");
 
-  
+
 
   if (modal) modal.classList.toggle("hidden", !on);
 
@@ -766,7 +766,7 @@ function applyAgeGuardrails() {
   const z2h = $("btn-mint-z2h");
   const p2l = $("btn-mint-p2l");
   const q2m = $("btn-mint-q2m");
-  
+
   if (q2m) {
   q2m.hidden = true;
   q2m.disabled = true;
@@ -1120,6 +1120,7 @@ workflowVersion:
 
     const res = await approveAndActivate(payload);
 
+
     const data = res?.data || {};
     const uid = data.uid;
 
@@ -1185,6 +1186,10 @@ if (programTrack === "quest2mastery") {
 
     setApprovedUI(true, uid);
     openSuccessModal(uid);
+
+    window.location.assign(
+      "/connect/thanks/welcome.html"
+    );
 
   } catch (err) {
     console.error("[approveAthlete] approveAndActivate failed:", err);

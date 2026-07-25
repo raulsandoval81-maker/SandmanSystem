@@ -12,209 +12,336 @@
 
   <meta
     name="description"
-    content="Thank you for joining the Sandman Combat Academy interest list."
+    content="Thank you for contacting Sandman Combat Academy."
   />
+<link
+  rel="stylesheet"
+  href="/assets/css/site.css"
+/>
 
-  <link
-    rel="stylesheet"
-    href="/assets/css/site.css"
-  />
+<style>
+  :root{
+    --bg:#090909;
+    --panel:#141414;
+    --gold:#facc15;
+    --red:#7a1111;
+    --text:#f4f4f5;
+    --muted:#b8bcc4;
+    --border:#2a2a2a;
+  }
 
-  <style>
-    :root{
-      --bg:#090909;
-      --panel:#141414;
-      --gold:#facc15;
-      --red:#7a1111;
-      --text:#f4f4f5;
-      --muted:#b8bcc4;
-      --border:#2a2a2a;
-    }
+  *{
+    box-sizing:border-box;
+  }
 
-    *{
-      box-sizing:border-box;
-    }
+  html{
+    background:var(--bg);
+  }
 
-    body{
-      margin:0;
-      min-height:100vh;
-      background:
-        radial-gradient(
-          circle at top,
-          rgba(250,204,21,.12),
-          transparent 34%
-        ),
-        var(--bg);
-      color:var(--text);
-      font-family:
-        Inter,
-        system-ui,
-        -apple-system,
-        BlinkMacSystemFont,
-        "Segoe UI",
-        sans-serif;
-    }
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(250,204,21,.12),
+        transparent 34%
+      ),
+      var(--bg);
+    color:var(--text);
+    font-family:
+      Inter,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+  }
 
+  [data-lang]{
+    display:none;
+  }
+
+  html[lang="en"] [data-lang="en"],
+  html[lang="es"] [data-lang="es"]{
+    display:inline;
+  }
+
+  .page{
+    min-height:100vh;
+    display:grid;
+    place-items:center;
+    padding:32px 16px;
+  }
+
+  .card{
+    width:100%;
+    max-width:720px;
+    padding:34px 26px;
+    text-align:center;
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:22px;
+    box-shadow:0 22px 50px rgba(0,0,0,.5);
+  }
+
+  .eyebrow{
+    margin:0 0 10px;
+    color:var(--gold);
+    font-size:.78rem;
+    font-weight:900;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+  }
+
+  h1{
+    margin:0 0 16px;
+    color:#fff;
+    font-size:clamp(2rem,6vw,3.4rem);
+    line-height:1.05;
+  }
+
+  .lead{
+    max-width:600px;
+    margin:0 auto 12px;
+    color:var(--muted);
+    font-size:1.04rem;
+    line-height:1.65;
+  }
+
+  .steps{
+    margin:28px 0;
+    padding:22px;
+    text-align:left;
+    background:rgba(255,255,255,.035);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:16px;
+  }
+
+  .steps h2{
+    margin:0 0 16px;
+    color:#fff;
+    font-size:1.12rem;
+  }
+
+  .steps p{
+    margin:0;
+    color:#d7dbe2;
+    line-height:1.6;
+  }
+
+  .steps p + p{
+    margin-top:14px;
+  }
+
+  .steps strong{
+    color:#fff;
+  }
+
+  .actions{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+
+  .btn{
+    display:inline-flex;
+    justify-content:center;
+    align-items:center;
+    min-width:190px;
+    padding:12px 20px;
+    border-radius:999px;
+    color:#fff;
+    font-weight:800;
+    text-decoration:none;
+    transition:
+      transform .2s ease,
+      filter .2s ease;
+  }
+
+  .btn:hover{
+    filter:brightness(1.08);
+    transform:translateY(-1px);
+  }
+
+  .btn:focus-visible{
+    outline:3px solid rgba(250,204,21,.35);
+    outline-offset:3px;
+  }
+
+  .btn-primary{
+    background:var(--red);
+    border:1px solid #941b1b;
+  }
+
+  .motto{
+    margin:26px 0 0;
+    color:var(--gold);
+    font-weight:800;
+    letter-spacing:.08em;
+  }
+
+  @media (max-width:600px){
     .page{
-      min-height:100vh;
-      display:grid;
-      place-items:center;
-      padding:32px 16px;
+      padding:18px 12px;
     }
 
     .card{
-      width:100%;
-      max-width:720px;
-      padding:34px 26px;
-      text-align:center;
-      background:var(--panel);
-      border:1px solid var(--border);
-      border-radius:22px;
-      box-shadow:0 22px 50px rgba(0,0,0,.5);
-    }
-
-    .eyebrow{
-      margin:0 0 10px;
-      color:var(--gold);
-      font-size:.78rem;
-      font-weight:900;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-    }
-
-    h1{
-      margin:0 0 16px;
-      color:#fff;
-      font-size:clamp(2rem,6vw,3.4rem);
+      padding:26px 18px;
+      border-radius:18px;
     }
 
     .lead{
-      max-width:600px;
-      margin:0 auto 12px;
-      color:var(--muted);
-      font-size:1.04rem;
-      line-height:1.65;
+      font-size:.98rem;
     }
 
     .steps{
-      margin:28px 0;
-      padding:20px;
-      text-align:left;
-      background:rgba(255,255,255,.035);
-      border:1px solid rgba(255,255,255,.08);
-      border-radius:16px;
-    }
-
-    .steps h2{
-      margin:0 0 14px;
-      color:#fff;
-      font-size:1.1rem;
-    }
-
-    .steps p{
-      margin:10px 0;
-      color:#d7dbe2;
-      line-height:1.55;
-    }
-
-    .actions{
-      display:flex;
-      justify-content:center;
-      gap:12px;
-      flex-wrap:wrap;
+      margin:24px 0;
+      padding:18px;
     }
 
     .btn{
-      display:inline-flex;
-      justify-content:center;
-      align-items:center;
-      min-width:190px;
-      padding:12px 20px;
-      border-radius:999px;
-      color:#fff;
-      font-weight:800;
-      text-decoration:none;
-      transition:
-        transform .2s ease,
-        filter .2s ease;
+      width:100%;
     }
-
-    .btn:hover{
-      filter:brightness(1.08);
-      transform:translateY(-1px);
-    }
-
-    .btn-primary{
-      background:var(--red);
-      border:1px solid #941b1b;
-    }
-
-    .motto{
-      margin:26px 0 0;
-      color:var(--gold);
-      font-weight:800;
-      letter-spacing:.08em;
-    }
-  </style>
+  }
+</style>
 </head>
 
 <body>
   <main class="page">
     <section class="card">
 
-<p class="eyebrow">
-  Sandman Combat Academy
+      <p class="eyebrow">
+        Sandman Combat Academy
+      </p>
+
+      <h1>
+        <span data-lang="en">Thank You!</span>
+        <span data-lang="es">¡Gracias!</span>
+      </h1>
+
+      <p class="lead">
+        <span data-lang="en">
+          We have received your information.
+        </span>
+
+        <span data-lang="es">
+          Hemos recibido tu información.
+        </span>
+      </p>
+
+      <section class="steps">
+
+        <h2>
+          <span data-lang="en">What Happens Next</span>
+          <span data-lang="es">¿Qué Sigue?</span>
+        </h2>
+
+        <p>
+          <span data-lang="en">
+            ✓ We review your athlete's information, goals, program
+            interests, preferred location, availability, and
+            experience.
+          </span>
+
+          <span data-lang="es">
+            ✓ Revisamos la información del atleta, sus objetivos,
+            programas de interés, ubicación preferida,
+            disponibilidad y experiencia.
+          </span>
+        </p>
+
+        <p>
+
+<span data-lang="en">
+  ✓ A Sandman coach personally reviews your request, schedules,
+  and confirms your <strong>Admissions Appointment</strong>.
+</span>
+
+<span data-lang="es">
+  ✓ Un entrenador de Sandman revisará personalmente tu solicitud,
+  programará y confirmará tu
+  <strong>Cita de Admisión</strong>.
+</span>
+        </p>
+
+<p>
+  <span data-lang="en">
+    ✓ Watch for your confirmation email with your appointment
+    details and everything you need to know before your visit.
+  </span>
+
+  <span data-lang="es">
+    ✓ Revisa tu correo electrónico para recibir la confirmación
+    de tu cita con los detalles y todo lo que necesitas saber
+    antes de tu visita.
+  </span>
 </p>
 
-<h1>
-  Thank You!
-</h1>
+<p>
+  <span data-lang="en">
+    ✓ During your <strong>Admissions Appointment</strong>,
+    we'll get to know your athlete, answer your questions, discuss
+    your family's goals, and recommend the program that best fits
+    your athlete's current stage of development.
+  </span>
 
-<p class="lead">
-  We have received your information. A Sandman coach will
-  review your submission and prepare the appropriate next step.
+  <span data-lang="es">
+    ✓ Durante tu <strong>Cita de Admisión</strong>,
+    conoceremos a tu atleta, responderemos tus preguntas,
+    hablaremos sobre los objetivos de tu familia y
+    recomendaremos el programa que mejor se adapte a la etapa
+    actual de desarrollo de tu atleta.
+  </span>
 </p>
 
-<section class="steps">
-  <h2>
-    What Happens Next
-  </h2>
+      </section>
 
-  <p>
-    ✓ We review your program interest, athlete information,
-    preferred location, availability, and current experience.
-  </p>
+      <p class="lead">
+        <span data-lang="en">
+          There is no obligation to enroll. Our goal is simply to
+          help your family find the right beginning.
+        </span>
 
-  <p>
-    ✓ A Sandman coach reviews the request and schedules an
-    Academy Introduction.
-  </p>
-
-  <p>
-    ✓ Please watch your email for your appointment date, time,
-    location, coach information, and arrival instructions.
-  </p>
-
-  <p>
-    ✓ During the appointment, we will learn about your goals,
-    answer your questions, and determine the appropriate next step.
-  </p>
-</section>
+        <span data-lang="es">
+          No existe ninguna obligación de inscribirse. Nuestro
+          objetivo es ayudar a tu familia a encontrar el comienzo
+          adecuado.
+        </span>
+      </p>
 
       <div class="actions">
         <a
           class="btn btn-primary"
           href="/"
         >
-          Explore Sandman Combat
+          <span data-lang="en">Return to Home</span>
+          <span data-lang="es">Volver al Inicio</span>
         </a>
       </div>
 
       <p class="motto">
-        Combat = Character
+        <span data-lang="en">Combat = Character</span>
+        <span data-lang="es">Combate = Carácter</span>
       </p>
 
     </section>
-  </main>
+</main>
+
+  <script>
+    function setLanguage(language) {
+      document.documentElement.lang =
+        language === "es"
+          ? "es"
+          : "en";
+    }
+
+    const params =
+      new URLSearchParams(window.location.search);
+
+    setLanguage(params.get("lang"));
+  </script>
+
 </body>
 </html>
