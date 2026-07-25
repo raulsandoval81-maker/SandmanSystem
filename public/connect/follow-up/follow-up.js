@@ -20,7 +20,89 @@ const appointmentCards =
     ".appointment-card"
   );
 
-function setText(id, value = "—") {
+const languageBlocks = [
+  ...document.querySelectorAll(
+    "[data-lang-block]"
+  )
+];
+
+const savedLang =
+  localStorage.getItem(
+    "sandman-public-lang"
+  ) === "es"
+    ? "es"
+    : "en";
+
+const COPY = {
+  en: {
+    pageTitle:
+      "Admissions Appointment | Sandman Combat",
+
+    missingLink:
+      "This appointment link is missing or invalid. Please refer to your Admissions Appointment confirmation email. To ask a question or request a change, reply directly to that email.",
+
+    loading:
+      "Loading appointment details...",
+
+    unavailable:
+      "This appointment link is unavailable or has expired. Please refer to your confirmation email or reply directly to that email for assistance.",
+
+    loadError:
+      "We could not load this appointment right now. Please use the details in your confirmation email or reply directly to that email for assistance.",
+
+    placementAssessment:
+      "Placement Assessment",
+
+    newAthlete:
+      "New Athlete",
+
+    defaultAcademy:
+      "Sandman Combat Academy",
+
+    defaultAddress:
+      "Please refer to your confirmation email.",
+
+    defaultNotes:
+      "Please arrive on time for your scheduled appointment."
+  },
+
+  es: {
+    pageTitle:
+      "Cita de Admisiones | Sandman Combat",
+
+    missingLink:
+      "Este enlace de cita no está disponible o no es válido. Consulta tu correo de confirmación de la cita de admisiones. Para hacer una pregunta o solicitar un cambio, responde directamente a ese correo.",
+
+    loading:
+      "Cargando los detalles de la cita...",
+
+    unavailable:
+      "Este enlace de cita no está disponible o ha vencido. Consulta tu correo de confirmación o responde directamente a ese correo para recibir ayuda.",
+
+    loadError:
+      "No pudimos cargar esta cita en este momento. Utiliza los detalles incluidos en tu correo de confirmación o responde directamente a ese correo para recibir ayuda.",
+
+    placementAssessment:
+      "Evaluación de Colocación",
+
+    newAthlete:
+      "Atleta Nuevo",
+
+    defaultAcademy:
+      "Academia Sandman Combat",
+
+    defaultAddress:
+      "Consulta tu correo de confirmación.",
+
+    defaultNotes:
+      "Por favor llega puntualmente a tu cita programada."
+  }
+};
+
+function setText(
+  id,
+  value = "—"
+) {
   const element =
     document.getElementById(id);
 
@@ -56,7 +138,61 @@ function showAppointmentDetails() {
   });
 }
 
-function getAcademyDetails(location = "") {
+function showLanguage(
+  lang = "en"
+) {
+  const activeLang =
+    lang === "es"
+      ? "es"
+      : "en";
+
+  languageBlocks.forEach((node) => {
+    const nodeLang =
+      node.getAttribute(
+        "data-lang-block"
+      );
+
+    node.classList.toggle(
+      "hidden-lang",
+      nodeLang !== activeLang
+    );
+  });
+
+  localStorage.setItem(
+    "sandman-public-lang",
+    activeLang
+  );
+
+  document.documentElement.lang =
+    activeLang;
+}
+
+function applyLanguage(
+  lang = "en"
+) {
+  const activeLang =
+    lang === "es"
+      ? "es"
+      : "en";
+
+  const copy =
+    COPY[activeLang] || COPY.en;
+
+  document.title =
+    copy.pageTitle;
+
+  showLanguage(
+    activeLang
+  );
+}
+
+function getAcademyDetails(
+  location = "",
+  lang = "en"
+) {
+  const copy =
+    COPY[lang] || COPY.en;
+
   if (location === "lompoc") {
     return {
       name: "Lompoc",
@@ -80,8 +216,8 @@ function getAcademyDetails(location = "") {
   }
 
   return {
-    name: "Sandman Combat Academy",
-    address: "Please refer to your confirmation email."
+    name: copy.defaultAcademy,
+    address: copy.defaultAddress
   };
 }
 
@@ -158,17 +294,18 @@ function formatAppointmentTime(
 
 async function loadAppointment() {
   hideAppointmentDetails();
+  applyLanguage(savedLang);
 
   if (!token) {
     setStatus(
-      "This appointment link is missing or invalid. Please refer to your Admissions Appointment confirmation email. To ask a question or request a change, reply directly to that email.",
+      COPY[savedLang].missingLink,
       true
     );
     return;
   }
 
   setStatus(
-    "Loading appointment details..."
+    COPY[savedLang].loading
   );
 
   try {
@@ -184,7 +321,7 @@ async function loadAppointment() {
 
     if (!followUpSnap.exists()) {
       setStatus(
-        "This appointment link is unavailable or has expired. Please refer to your confirmation email or reply directly to that email for assistance.",
+        COPY[savedLang].unavailable,
         true
       );
       return;
@@ -193,32 +330,42 @@ async function loadAppointment() {
     const data =
       followUpSnap.data();
 
+    const lang =
+      data.lang === "es"
+        ? "es"
+        : "en";
+
+    const copy =
+      COPY[lang];
+
+    applyLanguage(lang);
+
+    setStatus(
+      copy.loading
+    );
+
     const academy =
       getAcademyDetails(
         String(
           data.appointmentLocation || ""
-        ).trim()
+        ).trim(),
+        lang
       );
 
-const lang =
-  data.lang === "es"
-    ? "es"
-    : "en";
+    const startingPath =
+      data.admissionsPath === "assessment"
+        ? copy.placementAssessment
+        : copy.newAthlete;
 
-const startingPath =
-  data.admissionsPath === "assessment"
-    ? "Placement Assessment"
-    : "New Athlete";
+    setText(
+      "athleteName",
+      data.athleteName
+    );
 
-setText(
-  "athleteName",
-  data.athleteName
-);
-
-setText(
-  "startingPath",
-  startingPath
-);
+    setText(
+      "startingPath",
+      startingPath
+    );
 
     setText(
       "appointmentDate",
@@ -253,7 +400,7 @@ setText(
     setText(
       "coachNotes",
       data.appointmentNotes ||
-        "Please arrive approximately 10 minutes early."
+        copy.defaultNotes
     );
 
     showAppointmentDetails();
@@ -265,7 +412,7 @@ setText(
     );
 
     setStatus(
-      "We could not load this appointment right now. Please use the details in your confirmation email or reply directly to that email for assistance.",
+      COPY[savedLang].loadError,
       true
     );
   }
