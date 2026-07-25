@@ -35,15 +35,15 @@ const PROGRAMS = [
     value: "zero2hero-wrestling",
     min: 6,
     max: 13,
-    en: "Zero2Hero Wrestling · Ages 6–13",
-    es: "Zero2Hero Lucha · Edades 6–13"
+    en: "Zero2Hero Wrestling · Ages 7–13",
+    es: "Zero2Hero Lucha · Edades 7–13"
   },
   {
     value: "zero2hero-kickboxing",
     min: 6,
     max: 13,
-    en: "Zero2Hero Kickboxing · Ages 6–13",
-    es: "Zero2Hero Kickboxing · Edades 6–13"
+    en: "Zero2Hero Kickboxing · Ages 7–13",
+    es: "Zero2Hero Kickboxing · Edades 7–13"
   },
   {
     value: "path2legend-wrestling",
@@ -463,13 +463,13 @@ function updatePrograms() {
     availablePrograms.push(
       {
         value: "zero2hero-wrestling",
-        en: "Zero2Hero Wrestling · Ages 6–13",
-        es: "Zero2Hero Lucha · Edades 6–13"
+        en: "Zero2Hero Wrestling · Ages 7–13",
+        es: "Zero2Hero Lucha · Edades 7–13"
       },
       {
         value: "zero2hero-kickboxing",
-        en: "Zero2Hero Kickboxing · Ages 6–13",
-        es: "Zero2Hero Kickboxing · Edades 6–13"
+        en: "Zero2Hero Kickboxing · Ages 7–13",
+        es: "Zero2Hero Kickboxing · Edades 7–13"
       }
     );
   }
