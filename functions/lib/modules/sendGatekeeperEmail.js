@@ -373,7 +373,7 @@ exports.sendGatekeeperEmail = functions.firestore
     try {
         const token = (0, crypto_1.randomBytes)(32)
             .toString("hex");
-        const followUpUrl = `https://www.sandmancombat.com/connect/follow-up/?token=${token}`;
+        const followUpUrl = `https://sandmancombat.com/connect/follow-up/?token=${token}`;
         const followUpRef = admin
             .firestore()
             .collection("follow_up")

@@ -562,7 +562,7 @@ const token =
     .toString("hex");
 
 const followUpUrl =
-  `https://www.sandmancombat.com/connect/follow-up/?token=${token}`;
+  `https://sandmancombat.com/connect/follow-up/?token=${token}`;
 
 const followUpRef =
   admin
