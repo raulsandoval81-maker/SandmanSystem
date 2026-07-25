@@ -545,7 +545,7 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if(tok){ $('token-view').textContent = tok; }
 
   document.querySelectorAll('.section-hdr.open').forEach(h=>{
-    const id=h.getAttribute('data-acc'); const body=id?document.getElementById(id):h.nextElementSibling; 
+    const id=h.getAttribute('data-acc'); const body=id?document.getElementById(id):h.nextElementSibling;
     body && (body.classList.add('open'), body.style.maxHeight = body.scrollHeight+'px');
   });
 

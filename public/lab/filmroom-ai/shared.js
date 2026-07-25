@@ -3,14 +3,14 @@
    Version: 0.1  (Safe skeleton)
    =========================================================== */
 
-import { 
+import {
   db,
   doc,
   getDoc,
   setDoc,
   collection,
   addDoc,
-  serverTimestamp 
+  serverTimestamp
 } from "/assets/js/firebase-init.js";
 
 /* -----------------------------------------------------------

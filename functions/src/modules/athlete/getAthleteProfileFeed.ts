@@ -118,7 +118,7 @@ function activityLabel(item: any): string {
   if (lane === "arena" || kind.includes("ARENA")) {
     return "Arena Work";
   }
-  
+
   return (
     item?.note ||
     item?.kind ||

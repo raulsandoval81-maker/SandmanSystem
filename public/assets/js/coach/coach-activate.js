@@ -288,7 +288,7 @@ console.log("[OK] coach-activate.js loaded");
     sel.innerHTML = '';
     (window.TIERS[track] || []).forEach(([val, label]) => {
       const opt = document.createElement('option');
-      opt.value = val; 
+      opt.value = val;
       opt.textContent = label;
       sel.appendChild(opt);
     });

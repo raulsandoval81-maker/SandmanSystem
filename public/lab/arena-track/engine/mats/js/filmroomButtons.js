@@ -36,7 +36,7 @@ window.refreshFilmroom = function () {
   jumpBox.innerHTML = ""; // clear
 
   // Build unique cleaned events
-  const clean = eventLog.filter(ev => 
+  const clean = eventLog.filter(ev =>
     ev.videoTime !== null &&
     ev.videoTime !== undefined &&
     !isNaN(ev.videoTime)

@@ -235,7 +235,7 @@ async function startSession() {
   const practiceType = getPracticeType();
   const coach = $("coachName")?.value?.trim() || "Coach";
   const notes = $("practiceNotes")?.value?.trim() || "";
-  
+
 
   sessionRef = await addDoc(collection(db, "attendance_sessions"), {
     sessionDateKey: todayKey(),

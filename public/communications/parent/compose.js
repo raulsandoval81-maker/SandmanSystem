@@ -580,7 +580,7 @@ const academyId =
 const nextCount =
   currentCount + 1;
 
-  
+
 try {
   await setDoc(
     threadRef,

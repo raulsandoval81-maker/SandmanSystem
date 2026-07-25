@@ -13,8 +13,8 @@ export function applyTiebreakers(list) {
     const aBeatB = a.matchResults[b.id];
     const bBeatA = b.matchResults[a.id];
     if (aBeatB && bBeatA) {
-      if (aBeatB.for > aBeatB.against) return -1; 
-      if (bBeatA.for > bBeatA.against) return 1;  
+      if (aBeatB.for > aBeatB.against) return -1;
+      if (bBeatA.for > bBeatA.against) return 1;
     }
 
     // 3 — most pins

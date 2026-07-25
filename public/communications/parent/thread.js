@@ -78,7 +78,7 @@ const closeThreadBtn =
 
 const GROUP_WINDOW_MS =
   2 * 60 * 1000;
-  
+
 /* =========================
    URL
 ========================= */
@@ -1217,7 +1217,7 @@ replyBtn?.addEventListener(
 
           conversationId:
   activeConversationId,
-  
+
           from: "parent",
           fromUid:
             auth.currentUser?.uid ||

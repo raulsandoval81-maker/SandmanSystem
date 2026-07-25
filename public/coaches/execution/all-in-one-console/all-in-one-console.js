@@ -1079,7 +1079,7 @@ function stopInlinePractice(finished = false) {
   }
     // 🔥 ADD THIS
   broadcastRunState();
-  
+
 }
 
 window.openTimerWindow = function () {

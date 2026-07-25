@@ -1,6 +1,6 @@
 // public/assets/js/athlete-logs.js   (rename from coaches-athlete.js if you want)
 import { db } from "./firebase-init.js";
-import { collection, addDoc, getDocs } 
+import { collection, addDoc, getDocs }
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // collection ref

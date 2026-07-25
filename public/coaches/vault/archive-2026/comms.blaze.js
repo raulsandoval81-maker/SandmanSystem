@@ -10,10 +10,10 @@
 // ---------------------------------------------------------
 // FIREBASE INIT  (must be at the top, unified!)
 // ---------------------------------------------------------
-import { initializeApp } 
+import { initializeApp }
   from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
 
-import { 
+import {
   getFirestore,
   collection,
   addDoc,

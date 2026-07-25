@@ -1,6 +1,6 @@
 // xp.timeline.v2.js
 import { app, db } from '/assets/js/firebase-init.js';
-import { collection, query, orderBy, limit, getDocs } 
+import { collection, query, orderBy, limit, getDocs }
   from 'https://www.gstatic.com/firebasejs/10.12.3/firebase-firestore.js';
 
 // ----------------- Timeline -----------------
@@ -43,7 +43,7 @@ function renderLadderSnippet(name) {
   const tiers = [0, 200, 600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200];
 
   // TODO: replace with real XP total for this athlete
-  const xpTotal = 750;  
+  const xpTotal = 750;
 
   // Build track
   const track = document.createElement('div');

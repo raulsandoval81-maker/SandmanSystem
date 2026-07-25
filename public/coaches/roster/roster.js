@@ -490,7 +490,7 @@ p2l: {
       data.trackCode ||
       ""
     ).toLowerCase();
-    
+
 const journeyKey =
   id.startsWith("F8_") ||
   rawJourney.includes("z2h") ||

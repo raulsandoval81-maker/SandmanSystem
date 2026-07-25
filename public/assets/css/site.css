@@ -156,9 +156,9 @@ nav a {
   background: rgba(255,255,255,.07);
 }
 nav a:hover { text-decoration: underline; }
-nav a.active { 
-  font-weight: 700; 
-  text-decoration: underline; 
+nav a.active {
+  font-weight: 700;
+  text-decoration: underline;
   background: rgba(255,255,255,.12);
 }
 .site-nav a,
@@ -167,11 +167,11 @@ nav a.active {
 
 
 /* Footer (optional) */
-footer { 
-  max-width: 1100px; 
-  margin: 0 auto 24px; 
-  color: #cfcfcf; 
-  font-size: 14px; 
+footer {
+  max-width: 1100px;
+  margin: 0 auto 24px;
+  color: #cfcfcf;
+  font-size: 14px;
 }
 .btn-gold {
   display:inline-block;
@@ -202,13 +202,13 @@ footer {
 /* kill the default purple visited links */
 
 a,
-a:visited { 
-  color: var(--gold); 
-  text-decoration: none; 
+a:visited {
+  color: var(--gold);
+  text-decoration: none;
 }
-a:hover { 
+a:hover {
   color: #fff; /* or var(--matte-black) if preferred */
-  text-decoration: underline; 
+  text-decoration: underline;
 }
 
 
@@ -605,7 +605,7 @@ nav {
 }
 .footer-button { margin-bottom: 10px; } /* space above copyright */
 /* Sub‑Hero (slim variant) */
-.hero.hero--slim { 
+.hero.hero--slim {
   padding-block: 56px;           /* smaller than full hero */
   background-image: none;        /* keeps it clean on subpages */
   border-bottom: 1px solid rgba(0,0,0,.08);
@@ -613,7 +613,7 @@ nav {
 .sub-hero-subtitle { margin-top: 6px; opacity: .9; }
 .sub-hero-meta { margin-top: 10px; font-size: .95rem; opacity: .7; }
 /* Sub‑Hero (slim variant) */
-.hero.hero--slim { 
+.hero.hero--slim {
   padding-block: 56px;
   background-image: none;
   border-bottom: 1px solid rgba(0,0,0,.08);
@@ -663,7 +663,7 @@ nav {
 body{ background:var(--sand-black); color:var(--sand-text); }
 
 /* ===== Header / Nav ===== */
-.site-header{ 
+.site-header{
   background: var(--sand-black);
   border-bottom:1px solid rgba(255,255,255,.07);
   position: sticky; top:0; z-index:50;
@@ -821,12 +821,12 @@ body{ background:var(--sand-black); color:var(--sand-text); }
 }
 
 /* Nav hover / active underline = Red */
-.site-nav .nav-link:hover { 
-  color: var(--sand-yellow); 
-  border-bottom: 2px solid var(--sand-red); 
+.site-nav .nav-link:hover {
+  color: var(--sand-yellow);
+  border-bottom: 2px solid var(--sand-red);
 }
 .site-nav .nav-link.active {
-  color: var(--sand-yellow); 
+  color: var(--sand-yellow);
   border-bottom: 2px solid var(--sand-red);
 }
 /* ========== ALL-HAMBURGER HEADER ========== */
@@ -1077,12 +1077,12 @@ body {
 }
 
 /* Optional hover effect if clickable */
-.subtitle a, 
+.subtitle a,
 .tagline a {
   color: #b22222;
   text-decoration: none;
 }
-.subtitle a:hover, 
+.subtitle a:hover,
 .tagline a:hover {
   text-decoration: underline;
 }
@@ -1247,7 +1247,7 @@ h1,h2,h3 { margin:0 0 .5rem; }
 }
 
 /* Trash button */
-.xp-card .deleteBtn 
+.xp-card .deleteBtn
 /* Make inline controls solid and stable on hover/press/focus */
 #addXPBtn,
 #loadLatestBtn,
@@ -1294,7 +1294,7 @@ h1,h2,h3 { margin:0 0 .5rem; }
   display:inline-flex; align-items:center; justify-content:center;
   gap:.5rem; padding:.55rem .9rem;
   border-radius:12px; border:1px solid rgba(0,0,0,.25);
-  background:#2f333b; color:#fff; 
+  background:#2f333b; color:#fff;
   box-shadow:0 2px 0 rgba(0,0,0,.25);
   cursor:pointer; user-select:none; text-decoration:none;
   transition:transform .05s ease, filter .08s ease, opacity .2s ease;
@@ -1466,7 +1466,7 @@ form.intake-grid .full { grid-column: 1 / -1; }
 /* ====== HUB COLOR STYLES ====== */
 /* --- Readability boost for landing/hero areas --- */
 
-/* Works for your <section class="poster"> hero. 
+/* Works for your <section class="poster"> hero.
    If a page uses <section class="landing"> it will also match. */
 .poster, .landing {
   position: relative;
@@ -1489,14 +1489,14 @@ form.intake-grid .full { grid-column: 1 / -1; }
   pointer-events: none;
   z-index: 0;
 }
-.landing h1, 
+.landing h1,
 .landing p {
   color: #fff !important;
   text-shadow: 0 0 6px rgba(0,0,0,0.7);
 }
 
 /* Make sure the actual text sits above the overlay */
-.poster > *, 
+.poster > *,
 .landing > * {
   position: relative;
   z-index: 1;
@@ -2794,7 +2794,7 @@ input{ width:100%; background:#0e1117; color:#e5e7eb; border:1px solid #2a3140; 
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 .how-it-works h3 {
-  color: #111; 
+  color: #111;
   font-weight: 800;
 }
 /* How it Works box */

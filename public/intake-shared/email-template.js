@@ -4,7 +4,7 @@
 // ===============================================
 
 export function buildOnboardingEmail(onboardingUrl, athleteName = "your athlete") {
-  
+
   const subject = `Welcome to the Sandman Combat System — Begin Your Path`;
 
   const body = `

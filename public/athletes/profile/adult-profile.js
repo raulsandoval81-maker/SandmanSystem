@@ -1124,7 +1124,7 @@ const currentTier =
   currentImg.alt = `${rankName} current badge`;
 
   badgeRow.appendChild(currentImg);
-}  
+}
 
   // -----------------------------
   // Belt bar UI

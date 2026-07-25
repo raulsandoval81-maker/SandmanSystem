@@ -145,9 +145,9 @@ footer{
   transform: translateY(-2px);
   box-shadow: 0 12px 32px rgba(0,0,0,.5), 0 0 0 1px rgba(255,255,255,.15) inset;
 }
-/* ========== HOME-PAGE-ONLY HOOK ========== 
-   Add class="home" on the <body> of the home page 
-   if you want to target home-specific tweaks later. 
+/* ========== HOME-PAGE-ONLY HOOK ==========
+   Add class="home" on the <body> of the home page
+   if you want to target home-specific tweaks later.
 */
 .home .container {
   padding-top: 80px;         /* breathing room under header */
@@ -208,7 +208,7 @@ footer{
   text-align: center;
   color: white;
   background: linear-gradient(
-      rgba(0, 0, 0, 0.6), 
+      rgba(0, 0, 0, 0.6),
       rgba(0, 0, 0, 0.6)
     ),
     url('/images/hero-bg.jpg') center/cover no-repeat;

@@ -1,6 +1,6 @@
 import { db } from "../firebase-init.js";
 
-/* 
+/*
 saveMatch({
   eventId,
   bracketId,

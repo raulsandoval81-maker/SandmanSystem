@@ -15,7 +15,7 @@ export const SCORING_RULES = {
   choiceBottom: { label: "Choice: Bottom", points: 0 },
   choiceNeutral: { label: "Choice: Neutral", points: 0 },
   choiceDefer: { label: "Choice: Defer", points: 0 }
-  
+
 };export const REF_PROGRESSIONS = {
   caution: [0, 1, 1, 2, "DQ"],
   stall:   [0, 1, 1, 2, "DQ"],

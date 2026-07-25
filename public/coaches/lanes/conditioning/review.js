@@ -581,7 +581,7 @@ async function loadSubmissions() {
             if (msgEl) msgEl.textContent = "Marked revision.";
           }
 
-          
+
 
           await loadSubmissions();
         } catch (err) {

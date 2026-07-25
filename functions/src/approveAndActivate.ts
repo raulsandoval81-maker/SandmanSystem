@@ -371,7 +371,7 @@ const safePriorExperienceValidation =
     if (foundry !== "f4" && foundry !== "f8") {
       throw new HttpsError("invalid-argument", `Invalid foundry: ${foundryRaw}`);
     }
-    
+
 
     const lane = String(mint?.lane || "CB").trim().toUpperCase() || "CB";
     const expPlan = buildExperiencePlan(experience?.years);
@@ -385,7 +385,7 @@ const safePriorExperienceValidation =
     const hasLegacy = expPlan.total > 0;
     const hasAdjustment = adjustmentAmount > 0;
 
-    
+
 
     if (mode === "add_sport") {
       if (!existingAthleteUid) {
@@ -951,7 +951,7 @@ priorExperienceValidation: safePriorExperienceValidation,
         rankName: starter.rankName,
         rankColor: starter.rankColor,
         xpCap: starter.xpCap,
-        
+
         track: safeProgramTrack,
         trackCode,
 
@@ -1226,9 +1226,9 @@ if (
         updatedAt:
           FieldValue.serverTimestamp(),
 
-          
+
       },
-      
+
       { merge: true }
     );
 }

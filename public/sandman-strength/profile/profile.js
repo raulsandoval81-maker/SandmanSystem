@@ -275,7 +275,7 @@ if (metaRightEl) {
 // MAIN
 // ===============================
 (async () => {
-  
+
   const ref = doc(db, "athletes", athleteId);
   const snap = await getDoc(ref);
 

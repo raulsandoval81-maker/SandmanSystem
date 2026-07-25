@@ -100,7 +100,7 @@ db.collection("events")
       const ev = doc.data();
       timeline.innerHTML += `
         <div class="timeline-item">
-          ${new Date(ev.ts).toLocaleTimeString()} — 
+          ${new Date(ev.ts).toLocaleTimeString()} —
           ${ev.text}
         </div>
       `;

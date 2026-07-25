@@ -328,7 +328,7 @@ export const incrementXp = onCall(async (req) => {
   const logRef = db.collection("xp_logs").doc();
 
   const result = await db.runTransaction(async (tx) => {
-    
+
     const athleteSnap = await tx.get(athleteRef);
     if (!athleteSnap.exists) throw new HttpsError("not-found", `Athlete not found: ${uid}`);
 
@@ -337,7 +337,7 @@ export const incrementXp = onCall(async (req) => {
     const tier = normalizeTier(athlete);
     const devRun = isDevKind(kind);
 
-    
+
 
     // ------------------------
     // DEV: PROMOTE TIER (test only)
@@ -1102,7 +1102,7 @@ const stripeCount = stripeCountForCombatTotal(afterCombatTotal, cap);
       xpFightIQ: afterFightIQ,
       stripeCount,
     };
-    
+
 
     // ✅ F4: always store lanes
     if (base === "F4" || base === "ADULT") {

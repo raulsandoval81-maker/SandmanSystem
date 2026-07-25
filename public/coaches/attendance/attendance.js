@@ -29,7 +29,7 @@ function athleteName(a = {}) {
 function athleteProgram(a = {}) {
   return String(a.program || a.journey || a.track || a.trackCode || a.ladderKey || "").toLowerCase();
 }
-  
+
 function todayLabel() {
   return new Date().toLocaleDateString(undefined, {
     month: "short",

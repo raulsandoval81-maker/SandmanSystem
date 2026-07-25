@@ -432,7 +432,7 @@ textarea{width:100%}
         </div>
         <div id="qr-log" class="muted" style="margin-top:8px;"></div>
       </section>
- 
+
 
       <!-- Coach Calendar -->
       <section class="card" id="coach-cal">
@@ -598,7 +598,7 @@ textarea{width:100%}
   </button>
 
   <div class="section-body" id="coach-monthly-body">
-    
+
     <!-- Leadership Console -->
     <div class="card">
       <h3>Leadership Console (separate from Combat)</h3>
@@ -712,7 +712,7 @@ textarea{width:100%}
       </div>
       <ul id="ca-feed" class="feed"></ul>
     </div>
-  
+
 
 
     <div class="card">
@@ -852,7 +852,7 @@ textarea{width:100%}
 
 
       <!-- Badges / Streaks (Final choice = C) -->
-      
+
       <div class="card" id="ath-streaks">
         <h3>Badges &amp; Streaks</h3>
         <div class="row chips">
@@ -1237,13 +1237,13 @@ textarea{width:100%}
   </pre>
 </section>
 <script type="module">
-  
+
 /* ===== Minimal DB shim (dev only; replace with Firestore later) ===== */
 if (!window.DB) {
   const stores = { athletes:new Map(), events:new Map(), logs:new Map(), intakes:new Map(), messages_threads:new Map(), messages_items:new Map() };
   const gen = (p)=>p + "_" + Math.random().toString(36).slice(2,8);
   window.DB = {
-    
+
     async add(col, obj){const id = obj.id && obj.id!==""? obj.id: gen(col); const rec = {...obj, id};if (!stores[col]) stores[col] = new Map();
  stores[col].set(id, rec); return rec;},
     async set(col, id, patch){const cur = stores[col].get(id)||{id}; const nxt = {...cur, ...patch}; stores[col].set(id, nxt); return nxt;},
@@ -1351,7 +1351,7 @@ async function piSubmit(){
 DB.query('intakes', x=>true).then(rows => console.table(rows))
 
   // Mint UID if you didn’t pre-assign one
-  const uid = (window.mintUid ? mintUid('F8') : `F8-${Math.random().toString(36).slice(2,6)}`); 
+  const uid = (window.mintUid ? mintUid('F8') : `F8-${Math.random().toString(36).slice(2,6)}`);
   const token = (crypto?.randomUUID?.() || Math.random().toString(36).slice(2));
 
   const intake = {
@@ -1572,7 +1572,7 @@ document.addEventListener('DOMContentLoaded', loadParentCorner);
 <!-- ✅ DROP 3 — SCRIPT SECTION (start) -->
 <!-- ================== SCRIPT SECTION START ================== -->
 
-/* 
+/*
 ============================================================
 = Sandman Test Firebase v2 (spec build, cleaned)           =
 = Coach + Athlete + Parent unified console                 =
@@ -1935,7 +1935,7 @@ function skSchedule(){
 document.addEventListener('DOMContentLoaded', ()=>{
   addGlobal('All panels and stubs initialized.');
 });
-  
+
 
 
 /* ---------- Tabs ---------- */

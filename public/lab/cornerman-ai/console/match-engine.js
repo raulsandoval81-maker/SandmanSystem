@@ -747,7 +747,7 @@ document.querySelectorAll("[data-code]").forEach(btn => {
 function renderAll() {
   updateClock();
   updateScores();
-  updatePositionIndicator(); // 
+  updatePositionIndicator(); //
    if (consoleMode === "compact") {
     updateCompactVisibility();
   }

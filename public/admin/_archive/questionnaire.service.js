@@ -32,7 +32,7 @@ loadAthletes();
 // ===== Load One Athlete's Responses =====
 async function loadResponse(uid, profile){
   selectedId = uid;
-  
+
   const path = `athletes/${uid}/questionnaires`;
 
   const f8 = await db.collection(path).doc("destiny").get();

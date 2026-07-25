@@ -574,11 +574,11 @@ if (isFoundry8(athleteId)) {
 
     container.innerHTML = `
 
-    
+
       <div class="lane-card">
 
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">
-  
+
   <div style="font-weight:900;font-size:1.1rem;">
     ${esc(session.title || `Iron Room - Session ${sessionN}`)}
   </div>

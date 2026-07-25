@@ -3,7 +3,7 @@
 // Leaderboard (Firestore)
 // ---------------------------------
 import { db } from "../firebase-init.js";
-import { collection, query, where, orderBy, getDocs } 
+import { collection, query, where, orderBy, getDocs }
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ---- DOM hooks

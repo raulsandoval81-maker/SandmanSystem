@@ -227,7 +227,7 @@ function cardAllowedForSession(card) {
 
   addBtn.replaceWith(link);
 }
- 
+
   document.addEventListener("DOMContentLoaded", () => {
     replaceSaveToBankWithClipboardLink();
   });
@@ -388,6 +388,6 @@ feedback(
   assignBtn,
   "success",
   assignBtn.dataset.originalText || assignBtn.textContent
-); 
+);
   });
 })();

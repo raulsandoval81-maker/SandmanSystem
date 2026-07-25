@@ -295,7 +295,7 @@ function render(list) {
     const uid = a.uid || a.id;
     const name = a.publicName || a.fullName || uid;
     const track = a.track || a.trackCode || "—";
-    const tier = resolveRank(a); 
+    const tier = resolveRank(a);
     const xp = a.xp ?? 0;
     const cap = xpCapForAthlete(a);
 

@@ -60,7 +60,7 @@ type Kind =
   | "ARENA/BATTLE"
   | "ARENA/WEEKEND_BATTLE"
   | "ARENA/PODIUM"
-  
+
   | "ARENA/SECOND_DIVISION"
   | "ARENA/STYLEIQ"
   | "ARENA/EXTRA"
@@ -840,7 +840,7 @@ return {
     currentState,
     nextState,
      },
-    }; 
+    };
   });
 
 if (out.kind === "ATTENDANCE") {

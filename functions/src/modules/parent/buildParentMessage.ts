@@ -86,7 +86,7 @@ case PARENT_SIGNAL_TYPES.DAILY_GRIND_LOGGED: {
     message:
       `${athleteName} has earned all 4 required stripes and is now eligible for testing.\n\nEvery step was earned.`,
   };
-  
+
     case PARENT_SIGNAL_TYPES.TEST_SCHEDULED:
       return {
         title: "Testing Scheduled",

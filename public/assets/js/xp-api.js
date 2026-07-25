@@ -82,7 +82,7 @@ function assertAmount(payload) {
       payload.amount = amt;
     }
     return;
-  }  
+  }
     /* =========================
      Prestige kinds (25/50/75)
   ========================= */

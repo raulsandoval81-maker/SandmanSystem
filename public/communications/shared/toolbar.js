@@ -64,7 +64,7 @@ const isParentPage =
   path.includes("/coach/parent-landing") ||  // QR parent landing page
   path.includes("/coach/parent/");           // any future /coach/parent/... pages
 
-  
+
 // Add a class so CSS can treat parents differently
 if (isParentPage) {
   toolbar.classList.add("parent-toolbar");

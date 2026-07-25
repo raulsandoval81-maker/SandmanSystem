@@ -4,13 +4,13 @@
    Maps UI buttons → scoring-engine-2026.js functions
    ============================================================ */
 
-import { 
-  applyScore, 
-  applyPenalty, 
+import {
+  applyScore,
+  applyPenalty,
   applyCP1,
   stepOut,
   nextPeriod,
-  endMatch 
+  endMatch
 } from "./scoring-engine-2026.js";
 
 import { fireToAll } from "./event-sync.js";

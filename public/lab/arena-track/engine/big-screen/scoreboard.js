@@ -33,7 +33,7 @@ const greenFallEl  = $("green-fall-time");
 const flashEl      = $("flash");
 
 // Detect mode
-const IS_PRO = !!redNameEl;  
+const IS_PRO = !!redNameEl;
 console.log("Scoreboard Mode:", IS_PRO ? "PRO" : "FREE");
 
 // ---------------------------
@@ -61,8 +61,8 @@ let state = {
   ref: "0:00",
   blood: "0:00",
   inj: "0:00",
-  winner: "",     
-  method: "",     
+  winner: "",
+  method: "",
   fallTimeRed: "",
   fallTimeGreen: "",
   redName: "",

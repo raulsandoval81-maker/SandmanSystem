@@ -683,7 +683,7 @@ async function runRound5() {
        coachCall("call", "Old school stand-up");
 
       } else if (move === "oldSchool") {
-        
+
        setCoachFeed("Stand-up");
        coachCall("call", "Stand-up");
       } else {

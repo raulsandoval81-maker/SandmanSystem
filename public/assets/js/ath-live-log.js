@@ -1,5 +1,5 @@
 import { db, FIREBASE_OPEN } from "./firebase-init.js";
-import { collection, addDoc, getDocs, query, orderBy, serverTimestamp } 
+import { collection, addDoc, getDocs, query, orderBy, serverTimestamp }
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 const QA = db ? collection(db, "coachesQA") : null;

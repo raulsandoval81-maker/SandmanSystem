@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     ],
 
-    
+
 
     shortTime: "Short time",
     restLabel: "SHADOW ROPE"

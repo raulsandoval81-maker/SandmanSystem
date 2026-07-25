@@ -62,7 +62,7 @@ async function loadChangelog() {
 
     // meta
     const lastMod = res.headers.get("Last-Modified");
-    metaEl.textContent = lastMod ? `Source: sidekick-changelog.md • Last updated ${new Date(lastMod).toLocaleString()}` 
+    metaEl.textContent = lastMod ? `Source: sidekick-changelog.md • Last updated ${new Date(lastMod).toLocaleString()}`
                                  : `Source: sidekick-changelog.md`;
   } catch (err) {
     contentEl.innerHTML = `<p style="color:#b00020"><strong>Failed to load changelog.</strong> ${String(err)}</p>`;

@@ -254,7 +254,7 @@ async function loadStrengthSession() {
   if (!athleteId) fatalMissingId();
 
   sessionN = await resolveAssignedSession(ACTIVE_LANE, 1);
- 
+
   const backLink = document.querySelector("a.btn-back");
   if (backLink) {
     backLink.href = `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`;
