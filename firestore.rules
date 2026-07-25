@@ -513,7 +513,21 @@ match /interest_leads/{leadId} {
 
   allow delete: if isAdmin();
 }
+/* --------------------------------------
+   Admissions Follow-Up
+---------------------------------------*/
+match /follow_up/{token} {
 
+  // Allow a family to read only a single follow-up
+  // document when they have the secure token.
+  allow get: if token.size() == 64;
+
+  // Never allow listing the collection.
+  allow list: if false;
+
+  // Public clients cannot create, modify, or delete.
+  allow create, update, delete: if false;
+}
 /* --------------------------------------
    Academy Communication Settings
 ---------------------------------------*/

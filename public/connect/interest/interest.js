@@ -319,7 +319,7 @@ form?.addEventListener(
       await addDoc(
         collection(
           db,
-          "interest_leads"
+          ""
         ),
         {
           ...lead,

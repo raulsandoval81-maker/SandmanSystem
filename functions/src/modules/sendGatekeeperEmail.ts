@@ -252,8 +252,7 @@ function buildAppointmentEmail(
   const startingPathMessage =
     admissionsPath === "assessment"
       ? `Your athlete is scheduled for a Placement Assessment.
-
-During your visit, the coach will observe your athlete, evaluate their current experience, and recommend the most appropriate starting point within the Sandman System.`
+During your visit, the coach will observe your athlete, evaluate their current experience, and determine the most appropriate starting point within the Sandman System.`
       : `Your athlete is beginning as a New Athlete.
 
 During your visit, your athlete will meet the coach, observe or participate as appropriate, and receive an introduction to the academy before beginning their journey.`;
@@ -315,11 +314,11 @@ Antes de concluir, habrá tiempo para compartir pensamientos finales, comentario
 
 --------------------------------------------------
 
-CÓMO PREPARARTE PARA TU VISITA
-
-• Por favor llega puntualmente a tu cita.
+• Por favor llega puntualmente a tu cita programada.
 
 • Si tu atleta participará en una práctica o evaluación, debe usar ropa deportiva cómoda.
+
+• Si tu atleta participará en la práctica, por favor haz que use una camiseta blanca sin logotipos.
 
 • Trae una botella de agua si tu atleta participará.
 
@@ -406,7 +405,7 @@ During your Admissions Appointment, your family will have an opportunity to meet
 
 Your coach will guide your family through the Admissions Appointment and explain the appropriate next steps based on your athlete's goals and experience.
 
-Before your appointment concludes, there will be time for final thoughts, remaining questions, and a discussion of the appropriate next steps
+Before your appointment concludes, there will be time for final thoughts, remaining questions, and a discussion of the appropriate next steps.
 
 --------------------------------------------------
 
@@ -436,7 +435,7 @@ ${startingPathMessage}
 
 ADMISSIONS FOLLOW-UP
 
-You can review your appointment details and visit instructions here:
+You can review your appointment details and visit instructions at any time using the secure link below:
 
 ${followUpUrl}
 

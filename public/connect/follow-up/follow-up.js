@@ -200,15 +200,25 @@ async function loadAppointment() {
         ).trim()
       );
 
-    const lang =
-      data.lang === "es"
-        ? "es"
-        : "en";
+const lang =
+  data.lang === "es"
+    ? "es"
+    : "en";
 
-    setText(
-      "athleteName",
-      data.athleteName
-    );
+const startingPath =
+  data.admissionsPath === "assessment"
+    ? "Placement Assessment"
+    : "New Athlete";
+
+setText(
+  "athleteName",
+  data.athleteName
+);
+
+setText(
+  "startingPath",
+  startingPath
+);
 
     setText(
       "appointmentDate",
