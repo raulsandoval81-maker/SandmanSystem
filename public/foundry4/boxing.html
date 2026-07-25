@@ -8,507 +8,614 @@
   />
 
   <title>Path2Legend Boxing | Sandman Combat™</title>
+
   <link rel="stylesheet" href="../assets/css/site.css" />
-  <link rel="stylesheet" href="../parent.css" />
+  <link rel="stylesheet" href="../public.css" />
+  <script src="../assets/js/public-shell.js" defer></script>
 
-<style>
-  *{
-    box-sizing:border-box;
-  }
+  <style>
+    *{
+      box-sizing:border-box;
+    }
 
-  img{
-    max-width:100%;
-    height:auto;
-  }
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
 
-  body{
-    background:var(--bg);
-    color:var(--text);
-  }
-
-  main{
-    max-width:1050px;
-    margin:0 auto;
-    padding:40px 20px 80px;
-  }
-
-  .hero{
-    padding:48px 30px;
-    margin-bottom:28px;
-
-    background:linear-gradient(to bottom,#1f2937,#111827);
-
-    border:1px solid #263244;
-    border-radius:24px;
-
-    box-shadow:0 20px 40px rgba(0,0,0,.35);
-  }
-
-  body.day-mode .hero{
-    background:linear-gradient(to bottom,#ffffff,#f3e7cf);
-    border-color:#d7c7a2;
-    box-shadow:0 10px 24px rgba(0,0,0,.10);
-  }
-
-  .eyebrow{
-    margin-bottom:10px;
-    color:var(--heading-accent);
-    font-size:.78rem;
-    font-weight:800;
-    letter-spacing:.16em;
-    text-transform:uppercase;
-  }
-
-  h1{
-    margin:0 0 12px;
-    color:var(--heading);
-    font-size:clamp(2.5rem,5vw,4.5rem);
-    line-height:1;
-  }
-
-  .journey{
-    margin:0 0 20px;
-    color:var(--heading-accent);
-    font-size:1.1rem;
-    font-weight:800;
-  }
-
-  .lead{
-    max-width:780px;
-    margin:0 0 14px;
-    color:var(--hero-muted);
-    font-size:1.05rem;
-    line-height:1.75;
-  }
-
-  /* ===== Journey Poster ===== */
-
-  .journey-visual{
-    width:100%;
-    margin:32px 0;
-
-    overflow:hidden;
-
-    background:var(--panel);
-
-    border:1px solid var(--line);
-    border-radius:22px;
-
-    box-shadow:0 20px 40px rgba(0,0,0,.30);
-  }
-
-  body.day-mode .journey-visual{
-    background:#ffffff;
-    border-color:#d7c7a2;
-  }
-
-  .journey-visual img{
-    display:block;
-    width:100%;
-    max-width:100%;
-    height:auto;
-    object-fit:contain;
-  }
-
-  .grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
-    gap:18px;
-    margin-top:28px;
-  }
-
-  .card{
-    padding:22px;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:18px;
-  }
-
-  body.day-mode .card{
-    background:#ffffff;
-    border-color:#d7c7a2;
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-  }
-
-  .card h2,
-  .card h3{
-    margin:0 0 10px;
-    color:var(--heading-accent);
-  }
-
-  body.day-mode .card h2,
-  body.day-mode .card h3{
-    color:var(--heading);
-  }
-
-  .card p,
-  .card li{
-    color:var(--muted);
-    line-height:1.65;
-  }
-
-  .card ul{
-    margin:0;
-    padding-left:18px;
-  }
-
-  .pillar-label{
-    display:block;
-    margin-bottom:6px;
-    color:var(--heading);
-    font-weight:900;
-  }
-
-  .quote{
-    margin-top:30px;
-    padding:24px;
-
-    background:var(--panel);
-
-    border:1px solid var(--line);
-    border-left:4px solid var(--heading-accent);
-    border-radius:16px;
-
-    color:var(--text);
-    font-size:1.04rem;
-    line-height:1.8;
-  }
-
-  body.day-mode .quote{
-    background:#ffffff;
-    border-color:#d7c7a2;
-  }
-
-  .quote strong{
-    display:block;
-    color:var(--heading);
-    font-size:1.2rem;
-  }
-
-  .hidden-lang{
-    display:none !important;
-  }
-
-  /* ===== Tablet ===== */
-
-  @media (max-width:768px){
+    body{
+      background:var(--bg);
+      color:var(--text);
+    }
 
     main{
-      padding:32px 16px 72px;
+      width:min(1050px,calc(100% - 32px));
+      margin:0 auto;
+      padding:42px 0 84px;
     }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .eyebrow{
+      margin:0 0 .65rem;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    /* Shirt progression */
+
+    .progression{
+      margin:0 0 28px;
+    }
+
+    .progression figure{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 18px 38px rgba(0,0,0,.28);
+    }
+
+    body.day-mode .progression figure{
+      background:#fff;
+      border-color:#d7c7a2;
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .progression img{
+      width:100%;
+    }
+
+    /* Hero */
 
     .hero{
-      padding:38px 24px;
+      padding:clamp(2rem,5vw,3.3rem);
+      border:1px solid #263244;
+      border-radius:24px;
+      background:
+        radial-gradient(circle at top,rgba(250,204,21,.10),transparent 36%),
+        linear-gradient(180deg,#1f2937 0%,#111827 100%);
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
     }
 
-    .journey-visual{
-      margin:24px 0;
+    body.day-mode .hero{
+      background:
+        radial-gradient(circle at top,rgba(173,123,35,.11),transparent 40%),
+        linear-gradient(180deg,#fff 0%,#f3e7cf 100%);
+      border-color:#d7c7a2;
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 .8rem;
+      color:var(--heading);
+      font-size:clamp(2.35rem,6vw,4.4rem);
+      line-height:1.02;
+    }
+
+    .journey{
+      margin:0 0 1.15rem;
+      color:var(--heading-accent);
+      font-size:1.08rem;
+      font-weight:900;
+    }
+
+    .lead{
+      max-width:790px;
+      margin:0 0 .75rem;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.72;
+    }
+
+    /* Shared panels */
+
+    .panel{
+      margin-top:28px;
+      padding:clamp(1.35rem,4vw,2rem);
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:20px;
+    }
+
+    body.day-mode .panel{
+      background:#fff;
+      border-color:#d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .panel h2{
+      margin:0 0 .9rem;
+      color:var(--heading);
+      font-size:clamp(1.7rem,3.5vw,2.35rem);
+      line-height:1.15;
+    }
+
+    .panel p,
+    .panel li{
+      color:var(--muted);
+      line-height:1.68;
+    }
+
+    .panel p{
+      margin:.55rem 0 0;
+    }
+
+    .progression-note{
+      margin-top:1rem !important;
+      color:var(--heading-accent) !important;
+      font-weight:900;
+    }
+
+    /* Program content */
+
+    .program-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:1.45rem;
+      background:var(--panel);
+      border:1px solid var(--line);
       border-radius:18px;
     }
 
-  }
-
-  /* ===== Phone ===== */
-
-  @media (max-width:640px){
-
-    main{
-      padding:24px 14px 64px;
+    body.day-mode .card{
+      background:#fff;
+      border-color:#d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
     }
 
-    .hero{
-      padding:30px 18px;
-      border-radius:18px;
+    .card h2{
+      margin:0 0 .8rem;
+      color:var(--heading-accent);
+      font-size:1.55rem;
     }
 
-    h1{
-      font-size:2.3rem;
+    body.day-mode .card h2{
+      color:var(--heading);
     }
 
-    .journey-visual{
-      margin:20px 0;
-      border-radius:14px;
+    .card ul{
+      margin:0;
+      padding-left:1.15rem;
     }
 
-    .grid{
-      grid-template-columns:1fr;
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
     }
 
-  }
+    .card li + li{
+      margin-top:.35rem;
+    }
 
-  /* ==========================
-     Training Gallery
-     ========================== */
+    /* Pillars */
 
-  .gallery{
-    margin-top:34px;
-  }
+    .pillars{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:1.1rem;
+    }
 
-  .gallery-heading{
-    margin:0 0 18px;
-    color:var(--heading);
-    font-size:clamp(1.6rem,3vw,2.25rem);
-  }
+    .pillar{
+      padding:1.15rem;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:rgba(255,255,255,.018);
+    }
 
-  .gallery-grid{
-    display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:16px;
-  }
+    body.day-mode .pillar{
+      background:#fbf8f1;
+      border-color:#dfd2b6;
+    }
 
-  .gallery-grid figure{
-    margin:0;
-    overflow:hidden;
-    background:var(--panel);
-    border:1px solid var(--line);
-    border-radius:18px;
-    box-shadow:0 12px 28px rgba(0,0,0,.24);
-  }
+    .pillar h3{
+      margin:0 0 .55rem;
+      color:var(--heading-accent);
+      font-size:1.15rem;
+    }
 
-  body.day-mode .gallery-grid figure{
-    background:#ffffff;
-    border-color:#d7c7a2;
-    box-shadow:0 8px 18px rgba(0,0,0,.08);
-  }
+    .pillar p{
+      margin:0;
+    }
 
-  .gallery-grid img{
-    display:block;
-    width:100%;
-    aspect-ratio:4 / 3;
-    object-fit:cover;
-  }
+    /* Standard */
 
-  @media (max-width:640px){
+    .standard{
+      border-left:4px solid var(--heading-accent);
+    }
+
+    .standard strong{
+      display:block;
+      margin-bottom:.45rem;
+      color:var(--heading);
+      font-size:1.22rem;
+    }
+
+    /* Gallery */
+
+    .gallery{
+      margin-top:34px;
+    }
+
+    .gallery-heading{
+      margin:0 0 18px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,3.5vw,2.35rem);
+    }
+
     .gallery-grid{
-      grid-template-columns:1fr;
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
     }
 
     .gallery-grid figure{
-      border-radius:14px;
+      margin:0;
+      overflow:hidden;
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:0 12px 28px rgba(0,0,0,.22);
     }
-  }
 
-</style>
+    body.day-mode .gallery-grid figure{
+      background:#fff;
+      border-color:#d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .gallery-grid img{
+      width:100%;
+      aspect-ratio:4 / 3;
+      object-fit:cover;
+    }
+
+    /* CTA */
+
+    .cta{
+      margin-top:34px;
+      padding:clamp(1.7rem,5vw,2.7rem);
+      text-align:center;
+      border:1px solid rgba(250,204,21,.30);
+      border-radius:22px;
+      background:
+        radial-gradient(circle at top,rgba(250,204,21,.12),transparent 40%),
+        linear-gradient(180deg,#171717 0%,#090909 100%);
+      box-shadow:0 18px 38px rgba(0,0,0,.28);
+    }
+
+    .cta h2{
+      margin:0 0 .75rem;
+      color:#fff;
+      font-size:clamp(1.85rem,4vw,2.7rem);
+    }
+
+    .cta p{
+      max-width:680px;
+      margin:0 auto 1.25rem;
+      color:#d4d4d8;
+      line-height:1.65;
+    }
+
+    .cta .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+    }
+
+    @media (max-width:760px){
+      main{
+        width:min(100% - 24px,1050px);
+        padding:28px 0 68px;
+      }
+
+      .hero{
+        border-radius:19px;
+      }
+
+      .program-grid,
+      .pillars,
+      .gallery-grid{
+        grid-template-columns:1fr;
+      }
+
+      .progression figure,
+      .panel,
+      .card,
+      .gallery-grid figure,
+      .cta{
+        border-radius:16px;
+      }
+    }
+
+    @media (max-width:420px){
+      main{
+        width:min(100% - 20px,1050px);
+      }
+
+      .hero{
+        padding:1.6rem 1rem;
+      }
+
+      .hero h1{
+        font-size:2.15rem;
+      }
+
+      .lead{
+        font-size:1rem;
+      }
+
+      .panel,
+      .card{
+        padding:1.1rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
-
   <header class="top-nav top-nav-simple">
     <div class="nav-top nav-top-center">
-      <a
-        href="../index.html"
-        class="nav-logo"
-      >
+      <a href="../index.html" class="nav-logo">
         Sandman Combat™
       </a>
     </div>
-
   </header>
 
   <main>
-
-<section
-  class="journey-visual"
-  aria-label="Path2Legend Boxing Journey"
->
-  <img
-    src="../assets/images/journeys/path2legendstriking.png"
-    alt="Path2Legend Boxing journey from Apprentice to Legend"
-  />
-</section>
-
-    <section class="grid">
-
-      <article class="card">
-
-        <div data-lang-block="en">
-
-          <h2>
-            The Journey
-          </h2>
-
-          <ul>
-            <li>Structured technical development</li>
-            <li>Footwork, defense, combinations, and ringcraft</li>
-            <li>Coach-guided advancement</li>
-            <li>Progress earned through consistent work</li>
-            <li>Long-term development from Apprentice to Legend</li>
-          </ul>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <h2>
-            El Camino
-          </h2>
-
-          <ul>
-            <li>Desarrollo técnico estructurado</li>
-            <li>Juego de pies, defensa, combinaciones y dominio del ring</li>
-            <li>Avance guiado por el coach</li>
-            <li>Progreso ganado mediante trabajo constante</li>
-            <li>Desarrollo a largo plazo de Aprendiz a Leyenda</li>
-          </ul>
-
-        </div>
-
-      </article>
-
-      <article class="card">
-
-        <div data-lang-block="en">
-
-          <h2>
-            Three Pillars
-          </h2>
-
-          <p>
-            <span class="pillar-label">
-              Combat
-            </span>
-
-            Boxing technique, tactics, ring intelligence, and competition readiness.
-          </p>
-
-          <p>
-            <span class="pillar-label">
-              Strength
-            </span>
-
-            Athletic development, conditioning, durability, and physical confidence.
-          </p>
-
-          <p>
-            <span class="pillar-label">
-              Honor
-            </span>
-
-            Discipline, accountability, respect, character, and leadership.
-          </p>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <h2>
-            Tres Pilares
-          </h2>
-
-          <p>
-            <span class="pillar-label">
-              Combate
-            </span>
-
-            Técnica de boxeo, táctica, inteligencia en el ring y preparación competitiva.
-          </p>
-
-          <p>
-            <span class="pillar-label">
-              Fuerza
-            </span>
-
-            Desarrollo atlético, acondicionamiento, resistencia y confianza física.
-          </p>
-
-          <p>
-            <span class="pillar-label">
-              Honor
-            </span>
-
-            Disciplina, responsabilidad, respeto, carácter y liderazgo.
-          </p>
-
-        </div>
-
-      </article>
-
-      <article class="card">
-
-        <div data-lang-block="en">
-
-          <h2>
-            The Standard
-          </h2>
-
-          <p>
-            Skill matters, but character matters more. Every athlete is expected to train with purpose, remain coachable, protect training partners, and earn every step forward.
-          </p>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <h2>
-            El Estándar
-          </h2>
-
-          <p>
-            La habilidad importa, pero el carácter importa más. Se espera que cada atleta entrene con propósito, acepte la enseñanza, proteja a sus compañeros y gane cada paso hacia adelante.
-          </p>
-
-        </div>
-
-      </article>
-
+    <section class="progression">
+      <figure>
+        <img
+          src="../assets/img/f4/f4-shirt-progression-boxing.png"
+          alt="Path2Legend Boxing shirt progression from Apprentice to Legend"
+        />
+      </figure>
     </section>
 
-
-    <section class="gallery">
-
+    <section class="hero">
       <div data-lang-block="en">
-        <h2>Training Gallery</h2>
+        <p class="eyebrow">Foundry 4 • Ages 14+</p>
+        <h1>Path2Legend Boxing</h1>
+        <p class="journey">The Boxing Discipline</p>
+
+        <p class="lead">
+          Path2Legend Boxing is Sandman Combat's structured striking
+          program for athletes ages 14 and older.
+        </p>
+
+        <p class="lead">
+          Athletes develop footwork, defense, combinations, ring
+          intelligence, conditioning, discipline, and character
+          through coach-guided training.
+        </p>
       </div>
 
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-        <h2>Galería de Entrenamiento</h2>
+      <div data-lang-block="es" class="hidden-lang">
+        <p class="eyebrow">Foundry 4 • Edades 14+</p>
+        <h1>Boxeo Path2Legend</h1>
+        <p class="journey">La Disciplina De Boxeo</p>
+
+        <p class="lead">
+          Boxeo Path2Legend es el programa estructurado de golpeo
+          de Sandman Combat para atletas de 14 años en adelante.
+        </p>
+
+        <p class="lead">
+          Los atletas desarrollan juego de pies, defensa, combinaciones,
+          inteligencia en el ring, acondicionamiento, disciplina y
+          carácter mediante entrenamiento guiado por el coach.
+        </p>
       </div>
-
-      <div class="gallery-grid">
-
-        <img src="../assets/images/foundry4/boxing/01.jpg" alt="">
-        <img src="../assets/images/foundry4/boxing/02.jpg" alt="">
-        <img src="../assets/images/foundry4/boxing/03.jpg" alt="">
-        <img src="../assets/images/foundry4/boxing/04.jpg" alt="">
-
-      </div>
-
     </section>
 
+    <section class="panel">
+      <div data-lang-block="en">
+        <p class="eyebrow">THE PATH2LEGEND JOURNEY</p>
+        <h2>How Shirt Progression Works</h2>
 
-    <!-- Training Gallery -->
+        <p>
+          Every athlete begins as an Apprentice and advances through
+          the Path2Legend journey by developing skill, training
+          consistently, and meeting the standards of the program.
+        </p>
+
+        <p>
+          Shirt colors make each stage visible during practice.
+          Every new color represents greater ability, responsibility,
+          composure, and leadership.
+        </p>
+
+        <p class="progression-note">
+          Advancement is earned. It is never based on attendance alone.
+        </p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <p class="eyebrow">EL CAMINO PATH2LEGEND</p>
+        <h2>Cómo Funciona La Progresión De Camisetas</h2>
+
+        <p>
+          Cada atleta comienza como Aprendiz y avanza por el camino
+          Path2Legend al desarrollar habilidades, entrenar con constancia
+          y cumplir con los estándares del programa.
+        </p>
+
+        <p>
+          Los colores de las camisetas hacen visible cada etapa durante
+          la práctica. Cada nuevo color representa mayor habilidad,
+          responsabilidad, compostura y liderazgo.
+        </p>
+
+        <p class="progression-note">
+          El avance se gana. Nunca se basa únicamente en la asistencia.
+        </p>
+      </div>
+    </section>
+
+    <section class="program-grid">
+      <article class="card">
+        <div data-lang-block="en">
+          <h2>Boxing Focus</h2>
+          <ul>
+            <li>Stance, balance, and efficient movement</li>
+            <li>Footwork and distance management</li>
+            <li>Defense, counters, and combinations</li>
+            <li>Timing, rhythm, and ring intelligence</li>
+            <li>Conditioning and controlled application</li>
+            <li>Safe, purposeful partner training</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Enfoque De Boxeo</h2>
+          <ul>
+            <li>Postura, equilibrio y movimiento eficiente</li>
+            <li>Juego de pies y manejo de la distancia</li>
+            <li>Defensa, contragolpes y combinaciones</li>
+            <li>Tiempo, ritmo e inteligencia en el ring</li>
+            <li>Acondicionamiento y aplicación controlada</li>
+            <li>Entrenamiento seguro y con propósito</li>
+          </ul>
+        </div>
+      </article>
+
+      <article class="card">
+        <div data-lang-block="en">
+          <h2>Program Standards</h2>
+          <ul>
+            <li>Listen and remain coachable</li>
+            <li>Train with discipline and self-control</li>
+            <li>Protect every training partner</li>
+            <li>Give honest effort every session</li>
+            <li>Attend consistently</li>
+            <li>Earn every step forward</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Estándares Del Programa</h2>
+          <ul>
+            <li>Escuchar y aceptar la enseñanza</li>
+            <li>Entrenar con disciplina y autocontrol</li>
+            <li>Proteger a cada compañero de entrenamiento</li>
+            <li>Dar un esfuerzo honesto en cada sesión</li>
+            <li>Asistir con constancia</li>
+            <li>Ganar cada paso hacia adelante</li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div data-lang-block="en">
+        <p class="eyebrow">WHOLE-ATHLETE DEVELOPMENT</p>
+        <h2>Three Pillars</h2>
+
+        <div class="pillars">
+          <article class="pillar">
+            <h3>Combat</h3>
+            <p>
+              Boxing technique, tactics, ring intelligence,
+              defense, combinations, and competition readiness.
+            </p>
+          </article>
+
+          <article class="pillar">
+            <h3>Strength</h3>
+            <p>
+              Athletic development, conditioning, durability,
+              coordination, and physical confidence.
+            </p>
+          </article>
+
+          <article class="pillar">
+            <h3>Honor</h3>
+            <p>
+              Discipline, accountability, respect, humility,
+              character, and leadership.
+            </p>
+          </article>
+        </div>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <p class="eyebrow">DESARROLLO INTEGRAL DEL ATLETA</p>
+        <h2>Tres Pilares</h2>
+
+        <div class="pillars">
+          <article class="pillar">
+            <h3>Combate</h3>
+            <p>
+              Técnica de boxeo, táctica, inteligencia en el ring,
+              defensa, combinaciones y preparación competitiva.
+            </p>
+          </article>
+
+          <article class="pillar">
+            <h3>Fuerza</h3>
+            <p>
+              Desarrollo atlético, acondicionamiento, durabilidad,
+              coordinación y confianza física.
+            </p>
+          </article>
+
+          <article class="pillar">
+            <h3>Honor</h3>
+            <p>
+              Disciplina, responsabilidad, respeto, humildad,
+              carácter y liderazgo.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel standard">
+      <div data-lang-block="en">
+        <strong>The Standard</strong>
+        <p>
+          Skill matters, but character matters more. Every athlete is
+          expected to train with purpose, remain coachable, protect
+          training partners, control their power, and earn every step forward.
+        </p>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <strong>El Estándar</strong>
+        <p>
+          La habilidad importa, pero el carácter importa más. Se espera
+          que cada atleta entrene con propósito, acepte la enseñanza,
+          proteja a sus compañeros, controle su fuerza y gane cada paso
+          hacia adelante.
+        </p>
+      </div>
+    </section>
 
     <section class="gallery">
-
       <div data-lang-block="en">
+        <h2 class="gallery-heading">Boxing Training Gallery</h2>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
         <h2 class="gallery-heading">
-          Boxing Training Gallery
+          Galería De Entrenamiento De Boxeo
         </h2>
       </div>
 
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-        <h2 class="gallery-heading">
-          Galería de Entrenamiento de Boxeo
-        </h2>
-      </div>
-
       <div class="gallery-grid">
-
         <figure>
           <img
             src="../assets/images/foundry4/boxing/boxing-01.jpg"
@@ -540,35 +647,34 @@
             loading="lazy"
           />
         </figure>
-
       </div>
-
     </section>
 
-<div class="quote">
+    <section class="cta">
+      <div data-lang-block="en">
+        <p class="eyebrow">READY TO BEGIN?</p>
+        <h2>Start The Path2Legend Journey</h2>
+        <p>
+          Tell us about your athlete and learn whether
+          Path2Legend Boxing is the right fit.
+        </p>
+        <a class="btn btn-primary" href="../connect/interest/">
+          Contact Sandman
+        </a>
+      </div>
 
-      <span data-lang-block="en">
-        <strong>
-          Every legend begins as an apprentice.
-        </strong>
-
-        Train with purpose. Earn every step.
-      </span>
-
-      <span
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-        <strong>
-          Cada leyenda comienza como aprendiz.
-        </strong>
-
-        Entrena con propósito. Gana cada paso.
-      </span>
-
-    </div>
-
+      <div data-lang-block="es" class="hidden-lang">
+        <p class="eyebrow">¿LISTO PARA COMENZAR?</p>
+        <h2>Comienza El Camino Path2Legend</h2>
+        <p>
+          Cuéntanos sobre tu atleta y descubre si
+          Boxeo Path2Legend es una buena opción.
+        </p>
+        <a class="btn btn-primary" href="../connect/interest/">
+          Contactar A Sandman
+        </a>
+      </div>
+    </section>
   </main>
-
 </body>
 </html>
