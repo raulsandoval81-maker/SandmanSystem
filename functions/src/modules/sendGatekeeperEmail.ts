@@ -1,4 +1,6 @@
 import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+import { randomBytes } from "crypto";
 import { Resend } from "resend";
 
 type AppointmentLocation =
@@ -9,7 +11,7 @@ type Language =
   | "en"
   | "es";
 
-  type AdmissionsPath =
+type AdmissionsPath =
   | "new"
   | "assessment";
 
@@ -153,9 +155,9 @@ function formatAppointmentTime(
 
   return `${hour}:${minute} ${period}`;
 }
-
 function buildAppointmentEmail(
-  lead: AppointmentLead
+  lead: AppointmentLead,
+  followUpUrl: string
 ): AppointmentEmail {
   const lang: Language =
     lead.lang === "es"
@@ -335,6 +337,13 @@ TU CAMINO DE INICIO
 
 ${startingPathMessageEs}
 
+
+SEGUIMIENTO DE ADMISIÓN
+
+Puedes revisar los detalles de tu cita y las instrucciones para tu visita aquí:
+
+${followUpUrl}
+
 --------------------------------------------------
 
 ¿NECESITAS REPROGRAMAR?
@@ -425,8 +434,13 @@ YOUR STARTING PATH
 
 ${startingPathMessage}
 
---------------------------------------------------
+ADMISSIONS FOLLOW-UP
 
+You can review your appointment details and visit instructions here:
+
+${followUpUrl}
+
+--------------------------------------------------
 NEED TO RESCHEDULE?
 
 If this appointment no longer works for your family, simply reply to this email and we will be happy to help you find another time.
@@ -543,10 +557,62 @@ const after =
         }
 
         try {
-          const email =
-            buildAppointmentEmail(
-              after
-            );
+const token =
+  randomBytes(32)
+    .toString("hex");
+
+const followUpUrl =
+  `https://www.sandmancombat.com/connect/follow-up/?token=${token}`;
+
+const followUpRef =
+  admin
+    .firestore()
+    .collection("follow_up")
+    .doc(token);
+
+await followUpRef.set({
+  status: "appointment",
+
+  athleteName:
+    clean(after.athleteName),
+
+  lang:
+    after.lang === "es"
+      ? "es"
+      : "en",
+
+  admissionsPath:
+    after.admissionsPath === "assessment"
+      ? "assessment"
+      : "new",
+
+  appointmentDate:
+    clean(after.appointmentDate),
+
+  appointmentTime:
+    clean(after.appointmentTime),
+
+  appointmentLocation:
+    clean(after.appointmentLocation),
+
+  appointmentCoach:
+    clean(after.appointmentCoach),
+
+  appointmentNotes:
+    clean(after.appointmentNotes),
+
+  createdAt:
+    admin.firestore.FieldValue.serverTimestamp(),
+
+  updatedAt:
+    admin.firestore.FieldValue.serverTimestamp()
+});
+
+const email =
+  buildAppointmentEmail(
+    after,
+    followUpUrl
+  );
 
           const resend =
             new Resend(
@@ -586,6 +652,12 @@ const after =
 
             appointmentConfirmationError:
               "",
+
+            appointmentFollowUpToken:
+               token,
+
+            appointmentFollowUpUrl:
+               followUpUrl,
 
             appointmentEmailId:
               result.data?.id || ""

@@ -35,6 +35,8 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendGatekeeperEmail = void 0;
 const functions = __importStar(require("firebase-functions"));
+const admin = __importStar(require("firebase-admin"));
+const crypto_1 = require("crypto");
 const resend_1 = require("resend");
 function clean(value) {
     return String(value ?? "").trim();
@@ -101,7 +103,7 @@ function formatAppointmentTime(value) {
     hour = hour % 12 || 12;
     return `${hour}:${minute} ${period}`;
 }
-function buildAppointmentEmail(lead) {
+function buildAppointmentEmail(lead, followUpUrl) {
     const lang = lead.lang === "es"
         ? "es"
         : "en";
@@ -215,6 +217,13 @@ TU CAMINO DE INICIO
 
 ${startingPathMessageEs}
 
+
+SEGUIMIENTO DE ADMISIÓN
+
+Puedes revisar los detalles de tu cita y las instrucciones para tu visita aquí:
+
+${followUpUrl}
+
 --------------------------------------------------
 
 ¿NECESITAS REPROGRAMAR?
@@ -301,8 +310,13 @@ YOUR STARTING PATH
 
 ${startingPathMessage}
 
---------------------------------------------------
+ADMISSIONS FOLLOW-UP
 
+You can review your appointment details and visit instructions here:
+
+${followUpUrl}
+
+--------------------------------------------------
 NEED TO RESCHEDULE?
 
 If this appointment no longer works for your family, simply reply to this email and we will be happy to help you find another time.
@@ -357,7 +371,31 @@ exports.sendGatekeeperEmail = functions.firestore
         return;
     }
     try {
-        const email = buildAppointmentEmail(after);
+        const token = (0, crypto_1.randomBytes)(32)
+            .toString("hex");
+        const followUpUrl = `https://www.sandmancombat.com/connect/follow-up/?token=${token}`;
+        const followUpRef = admin
+            .firestore()
+            .collection("follow_up")
+            .doc(token);
+        await followUpRef.set({
+            status: "appointment",
+            athleteName: clean(after.athleteName),
+            lang: after.lang === "es"
+                ? "es"
+                : "en",
+            admissionsPath: after.admissionsPath === "assessment"
+                ? "assessment"
+                : "new",
+            appointmentDate: clean(after.appointmentDate),
+            appointmentTime: clean(after.appointmentTime),
+            appointmentLocation: clean(after.appointmentLocation),
+            appointmentCoach: clean(after.appointmentCoach),
+            appointmentNotes: clean(after.appointmentNotes),
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        const email = buildAppointmentEmail(after, followUpUrl);
         const resend = new resend_1.Resend(resendKey);
         const result = await resend
             .emails
@@ -375,6 +413,8 @@ exports.sendGatekeeperEmail = functions.firestore
             appointmentConfirmationStatus: "sent",
             appointmentConfirmationSentAt: new Date(),
             appointmentConfirmationError: "",
+            appointmentFollowUpToken: token,
+            appointmentFollowUpUrl: followUpUrl,
             appointmentEmailId: result.data?.id || ""
         });
         console.log("[gatekeeper] Appointment confirmation sent:", {
