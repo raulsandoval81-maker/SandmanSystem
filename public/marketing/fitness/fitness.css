@@ -647,3 +647,31 @@ body .fitness-page .btn.btn-primary:focus-visible{
 .cold-iron-schedule-card {
   margin-top: 22px;
 }
+/* New fitness program pages */
+.fitness-page .fitness-hero-copy,
+.fitness-page .fitness-panel > [data-lang-block],
+.fitness-page .fitness-cta > [data-lang-block] {
+  text-align: center;
+}
+
+.fitness-page .fitness-hero-copy .eyebrow,
+.fitness-page .fitness-panel .eyebrow,
+.fitness-page .fitness-cta .eyebrow {
+  text-align: center;
+}
+
+.fitness-page .fitness-panel ul,
+.fitness-page .fitness-panel .fitness-list {
+  display: inline-block;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.fitness-page .fitness-panel .btn,
+.fitness-page .fitness-cta .btn {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
