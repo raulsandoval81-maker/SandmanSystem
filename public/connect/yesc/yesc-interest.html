@@ -1,0 +1,1176 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>
+    YESC Interest Inbox
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="../../assets/css/site.css"
+  />
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(45,212,191,.10),
+          transparent 32%
+        ),
+        #07111d;
+      color:#f8fafc;
+    }
+
+    .inbox-page{
+      width:min(1100px,calc(100% - 28px));
+      margin:0 auto;
+      padding:28px 0 80px;
+    }
+
+    .inbox-header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:20px;
+      margin-bottom:18px;
+      padding:26px;
+      border:1px solid #2b4257;
+      border-radius:20px;
+      background:#101d2c;
+    }
+
+    .eyebrow{
+      margin:0 0 8px;
+      color:#2dd4bf;
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0;
+      color:#facc15;
+      font-size:clamp(2rem,5vw,3.5rem);
+    }
+
+    .header-copy{
+      margin:10px 0 0;
+      color:#bec9d4;
+      line-height:1.55;
+    }
+
+    .refresh-btn{
+      min-height:44px;
+      padding:0 18px;
+      border:0;
+      border-radius:10px;
+      background:#2dd4bf;
+      color:#042f2e;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .refresh-btn:disabled{
+      cursor:wait;
+      opacity:.65;
+    }
+
+    /* Tabs */
+
+    .inbox-tabs{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:10px;
+      margin-bottom:16px;
+      padding:8px;
+      border:1px solid #2b4257;
+      border-radius:16px;
+      background:#101d2c;
+    }
+
+    .inbox-tab{
+      min-height:46px;
+      border:1px solid transparent;
+      border-radius:11px;
+      background:transparent;
+      color:#bec9d4;
+      font:inherit;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .inbox-tab.is-active{
+      border-color:#2dd4bf;
+      background:rgba(45,212,191,.14);
+      color:#5eead4;
+    }
+
+    .tab-count{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:25px;
+      height:25px;
+      margin-left:7px;
+      padding:0 7px;
+      border-radius:999px;
+      background:#081522;
+      color:#f8fafc;
+      font-size:.75rem;
+    }
+
+    /* Status */
+
+    .status{
+      min-height:24px;
+      margin:0 0 16px;
+      padding:12px 14px;
+      border-radius:12px;
+      background:#17283a;
+      color:#bec9d4;
+      font-weight:700;
+    }
+
+    /* Cards */
+
+    .inquiry-list{
+      display:grid;
+      gap:16px;
+    }
+
+    .inquiry-card{
+      padding:22px;
+      border:1px solid #2b4257;
+      border-radius:18px;
+      background:#101d2c;
+    }
+
+    .inquiry-card.status-contacted{
+      border-color:#365b62;
+    }
+
+    .inquiry-card.status-converted{
+      border-color:#2f855a;
+    }
+
+    .inquiry-card.status-closed{
+      opacity:.76;
+    }
+
+    .card-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:16px;
+    }
+
+    .inquiry-card h2{
+      margin:0;
+      font-size:1.35rem;
+    }
+
+    .program{
+      display:inline-block;
+      margin-top:7px;
+      color:#2dd4bf;
+      font-weight:900;
+    }
+
+    .status-pill{
+      padding:7px 11px;
+      border-radius:999px;
+      background:#17283a;
+      color:#bec9d4;
+      font-size:.75rem;
+      font-weight:900;
+      text-transform:uppercase;
+    }
+
+    .status-pill.new{
+      background:rgba(45,212,191,.14);
+      color:#5eead4;
+    }
+
+    .status-pill.contacted{
+      background:rgba(96,165,250,.16);
+      color:#93c5fd;
+    }
+
+    .status-pill.converted{
+      background:rgba(74,222,128,.16);
+      color:#86efac;
+    }
+
+    .status-pill.closed{
+      background:rgba(148,163,184,.14);
+      color:#cbd5e1;
+    }
+
+    .details-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .detail{
+      min-width:0;
+      padding:12px;
+      border-radius:12px;
+      background:#081522;
+    }
+
+    .detail-label{
+      display:block;
+      margin-bottom:4px;
+      color:#8fa3b6;
+      font-size:.73rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .detail-value{
+      color:#f8fafc;
+      overflow-wrap:anywhere;
+    }
+
+    .message{
+      margin-top:14px;
+      padding:14px;
+      border-left:3px solid #2dd4bf;
+      background:#081522;
+      color:#d7e0e8;
+      line-height:1.6;
+      white-space:pre-wrap;
+    }
+
+    /* Actions */
+
+    .card-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .action-link,
+    .lead-action{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:0 14px;
+      border-radius:10px;
+      font:inherit;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    .action-link{
+      border:0;
+      background:#2dd4bf;
+      color:#042f2e;
+    }
+
+    .action-link.secondary{
+      background:#24384c;
+      color:#f8fafc;
+    }
+
+    .lead-action{
+      border:1px solid #3c566f;
+      background:transparent;
+      color:#f8fafc;
+      cursor:pointer;
+    }
+
+    .lead-action.convert{
+      border-color:#2f855a;
+      color:#86efac;
+    }
+
+    .lead-action.close{
+      border-color:#64748b;
+      color:#cbd5e1;
+    }
+
+    .lead-action.restore{
+      border-color:#2dd4bf;
+      color:#5eead4;
+    }
+
+    .lead-action:disabled{
+      cursor:wait;
+      opacity:.55;
+    }
+
+    .empty-state{
+      padding:42px 20px;
+      border:1px dashed #3b536a;
+      border-radius:18px;
+      text-align:center;
+      color:#bec9d4;
+    }
+
+    @media (max-width:700px){
+      .inbox-header,
+      .card-top{
+        flex-direction:column;
+      }
+
+      .refresh-btn{
+        width:100%;
+      }
+
+      .details-grid{
+        grid-template-columns:1fr;
+      }
+
+      .action-link,
+      .lead-action{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<main class="inbox-page">
+
+  <header class="inbox-header">
+
+    <div>
+      <p class="eyebrow">
+        Youth Empowered Sports Club
+      </p>
+
+      <h1>
+        YESC Interest Inbox
+      </h1>
+
+      <p class="header-copy">
+        New inquiries submitted through the YESC contact form.
+      </p>
+    </div>
+
+    <button
+      id="refreshButton"
+      class="refresh-btn"
+      type="button"
+    >
+      Refresh
+    </button>
+
+  </header>
+
+  <nav
+    class="inbox-tabs"
+    aria-label="Inquiry views"
+  >
+
+    <button
+      class="inbox-tab is-active"
+      type="button"
+      data-view="active"
+    >
+      Active
+
+      <span
+        id="activeCount"
+        class="tab-count"
+      >
+        0
+      </span>
+    </button>
+
+    <button
+      class="inbox-tab"
+      type="button"
+      data-view="archive"
+    >
+      Archive
+
+      <span
+        id="archiveCount"
+        class="tab-count"
+      >
+        0
+      </span>
+    </button>
+
+  </nav>
+
+  <p
+    id="pageStatus"
+    class="status"
+    role="status"
+    aria-live="polite"
+  >
+    Loading inquiries…
+  </p>
+
+  <section
+    id="inquiryList"
+    class="inquiry-list"
+  ></section>
+
+</main>
+
+<script type="module">
+
+
+
+import {
+  db,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  limit,
+  doc,
+  updateDoc,
+  deleteDoc,
+  serverTimestamp,
+  ensureSignedIn
+} from "../../assets/js/firebase-init.js";
+
+const inquiryList =
+  document.getElementById("inquiryList");
+
+const pageStatus =
+  document.getElementById("pageStatus");
+
+const refreshButton =
+  document.getElementById("refreshButton");
+
+const activeCount =
+  document.getElementById("activeCount");
+
+const archiveCount =
+  document.getElementById("archiveCount");
+
+const tabButtons =
+  Array.from(
+    document.querySelectorAll(".inbox-tab")
+  );
+
+let allInquiries = [];
+let currentView = "active";
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function formatProgram(value = "") {
+  const labels = {
+    "hiit-kickboxing":
+      "HIIT Kickboxing",
+
+    "hiit-boxing":
+      "HIIT Boxing",
+
+    "hiit-strength":
+      "HIIT Strength",
+
+    "kid-fit-boxing":
+      "Kid Fit Boxing",
+
+    "teen-fit":
+      "Teen Fit",
+
+    "cold-iron-powerlifting":
+      "Cold Iron Barbell Powerlifting",
+
+    "skills-room":
+      "Skills Room",
+
+    "room-to-grow":
+      "Room to Grow",
+
+    "general-yesc":
+      "General YESC Information"
+  };
+
+  return labels[value] || value || "Not selected";
+}
+
+function formatContact(value = "") {
+  const labels = {
+    text: "Text Message",
+    phone: "Phone Call",
+    email: "Email"
+  };
+
+  return labels[value] || value || "Not selected";
+}
+
+function formatDate(timestamp) {
+  if (!timestamp) {
+    return "Date unavailable";
+  }
+
+  const date =
+    typeof timestamp.toDate === "function"
+      ? timestamp.toDate()
+      : new Date(timestamp);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Date unavailable";
+  }
+
+  return date.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function phoneHref(phone = "") {
+  return String(phone)
+    .replace(/[^\d+]/g, "");
+}
+
+function normalizeStatus(value = "") {
+  const allowed = [
+    "new",
+    "contacted",
+    "converted",
+    "closed"
+  ];
+
+  return allowed.includes(value)
+    ? value
+    : "new";
+}
+
+function actionButtons(
+  documentId,
+  status
+) {
+  if (status === "new") {
+    return `
+      <button
+        class="lead-action"
+        type="button"
+        data-document-id="${documentId}"
+        data-next-status="contacted"
+      >
+        Mark Contacted
+      </button>
+
+      <button
+        class="lead-action convert"
+        type="button"
+        data-document-id="${documentId}"
+        data-next-status="converted"
+      >
+        Mark Converted
+      </button>
+
+      <button
+        class="lead-action close"
+        type="button"
+        data-document-id="${documentId}"
+        data-next-status="closed"
+      >
+        Close Lead
+      </button>
+    `;
+  }
+
+  if (status === "contacted") {
+    return `
+      <button
+        class="lead-action convert"
+        type="button"
+        data-document-id="${documentId}"
+        data-next-status="converted"
+      >
+        Mark Converted
+      </button>
+
+      <button
+        class="lead-action close"
+        type="button"
+        data-document-id="${documentId}"
+        data-next-status="closed"
+      >
+        Close Lead
+      </button>
+
+      <button
+        class="lead-action restore"
+        type="button"
+        data-document-id="${documentId}"
+        data-next-status="new"
+      >
+        Return To Active
+      </button>
+
+      <button
+        class="lead-action delete"
+        type="button"
+        data-document-id="${documentId}"
+        data-delete-lead="true"
+      >
+        Delete Permanently
+      </button>
+    `;
+  }
+
+  return `
+    <button
+      class="lead-action restore"
+      type="button"
+      data-document-id="${documentId}"
+      data-next-status="new"
+    >
+      Return To Active
+    </button>
+
+    <button
+      class="lead-action delete"
+      type="button"
+      data-document-id="${documentId}"
+      data-delete-lead="true"
+    >
+      Delete Permanently
+    </button>
+  `;
+}
+
+function renderInquiry(item) {
+  const inquiry = item.data;
+  const documentId = item.id;
+
+  const contactName =
+    escapeHtml(
+      inquiry.contactName ||
+      "Unknown contact"
+    );
+
+  const participantName =
+    escapeHtml(
+      inquiry.participantName ||
+      "Not provided"
+    );
+
+  const participantAge =
+    escapeHtml(
+      inquiry.participantAge ??
+      "Not provided"
+    );
+
+  const email =
+    escapeHtml(inquiry.email || "");
+
+  const phone =
+    escapeHtml(inquiry.phone || "");
+
+  const preferredContact =
+    escapeHtml(
+      formatContact(
+        inquiry.preferredContact
+      )
+    );
+
+  const message =
+    escapeHtml(
+      inquiry.message ||
+      "No additional message."
+    );
+
+  const program =
+    escapeHtml(
+      formatProgram(
+        inquiry.programInterest
+      )
+    );
+
+  const status =
+    normalizeStatus(inquiry.status);
+
+  const card =
+    document.createElement("article");
+
+  card.className =
+    `inquiry-card status-${status}`;
+
+  card.innerHTML = `
+    <div class="card-top">
+
+      <div>
+        <h2>${contactName}</h2>
+
+        <span class="program">
+          ${program}
+        </span>
+      </div>
+
+      <span class="status-pill ${status}">
+        ${escapeHtml(status)}
+      </span>
+
+    </div>
+
+    <div class="details-grid">
+
+      <div class="detail">
+        <span class="detail-label">
+          Participant
+        </span>
+
+        <span class="detail-value">
+          ${participantName}
+        </span>
+      </div>
+
+      <div class="detail">
+        <span class="detail-label">
+          Age
+        </span>
+
+        <span class="detail-value">
+          ${participantAge}
+        </span>
+      </div>
+
+      <div class="detail">
+        <span class="detail-label">
+          Email
+        </span>
+
+        <span class="detail-value">
+          ${email || "Not provided"}
+        </span>
+      </div>
+
+      <div class="detail">
+        <span class="detail-label">
+          Phone
+        </span>
+
+        <span class="detail-value">
+          ${phone || "Not provided"}
+        </span>
+      </div>
+
+      <div class="detail">
+        <span class="detail-label">
+          Preferred Contact
+        </span>
+
+        <span class="detail-value">
+          ${preferredContact}
+        </span>
+      </div>
+
+      <div class="detail">
+        <span class="detail-label">
+          Submitted
+        </span>
+
+        <span class="detail-value">
+          ${escapeHtml(
+            formatDate(inquiry.createdAt)
+          )}
+        </span>
+      </div>
+
+    </div>
+
+    <div class="message">
+      ${message}
+    </div>
+
+    <div class="card-actions">
+
+      ${
+        phone
+          ? `
+            <a
+              class="action-link"
+              href="tel:${phoneHref(inquiry.phone)}"
+            >
+              Call
+            </a>
+
+            <a
+              class="action-link secondary"
+              href="sms:${phoneHref(inquiry.phone)}"
+            >
+              Text
+            </a>
+          `
+          : ""
+      }
+
+      ${
+        email
+          ? `
+            <a
+              class="action-link secondary"
+              href="mailto:${email}"
+            >
+              Email
+            </a>
+          `
+          : ""
+      }
+
+      ${actionButtons(
+        documentId,
+        status
+      )}
+
+    </div>
+  `;
+
+  return card;
+}
+
+function filteredInquiries() {
+  if (currentView === "active") {
+    return allInquiries.filter(
+      (item) =>
+        normalizeStatus(item.data.status)
+        === "new"
+    );
+  }
+
+  return allInquiries.filter(
+    (item) =>
+      normalizeStatus(item.data.status)
+      !== "new"
+  );
+}
+
+function updateCounts() {
+  const activeTotal =
+    allInquiries.filter(
+      (item) =>
+        normalizeStatus(item.data.status)
+        === "new"
+    ).length;
+
+  const archiveTotal =
+    allInquiries.length - activeTotal;
+
+  activeCount.textContent =
+    String(activeTotal);
+
+  archiveCount.textContent =
+    String(archiveTotal);
+}
+
+function renderCurrentView() {
+  inquiryList.innerHTML = "";
+
+  updateCounts();
+
+  const inquiries =
+    filteredInquiries();
+
+  if (!inquiries.length) {
+    inquiryList.innerHTML = `
+      <div class="empty-state">
+        ${
+          currentView === "active"
+            ? "No active YESC inquiries."
+            : "No archived YESC inquiries."
+        }
+      </div>
+    `;
+
+    pageStatus.textContent =
+      currentView === "active"
+        ? "Active inbox is clear."
+        : "Archive is empty.";
+
+    return;
+  }
+
+  inquiries.forEach((item) => {
+    inquiryList.appendChild(
+      renderInquiry(item)
+    );
+  });
+
+  pageStatus.textContent =
+    `${inquiries.length} ${
+      currentView === "active"
+        ? "active"
+        : "archived"
+    } inquiry${
+      inquiries.length === 1
+        ? ""
+        : "ies"
+    }.`;
+}
+
+async function updateLeadStatus(
+  documentId,
+  nextStatus,
+  button
+) {
+  button.disabled = true;
+
+  const changes = {
+    status: nextStatus,
+    updatedAt: serverTimestamp()
+  };
+
+  if (nextStatus === "contacted") {
+    changes.contactedAt =
+      serverTimestamp();
+  }
+
+  if (nextStatus === "converted") {
+    changes.convertedAt =
+      serverTimestamp();
+  }
+
+  if (nextStatus === "closed") {
+    changes.closedAt =
+      serverTimestamp();
+  }
+
+  try {
+    await updateDoc(
+      doc(
+        db,
+        "yescInterest",
+        documentId
+      ),
+      changes
+    );
+
+    const localItem =
+      allInquiries.find(
+        (item) =>
+          item.id === documentId
+      );
+
+    if (localItem) {
+      localItem.data.status =
+        nextStatus;
+    }
+
+    renderCurrentView();
+
+  } catch (error) {
+    console.error(
+      "Unable to update YESC inquiry:",
+      error
+    );
+
+    pageStatus.textContent =
+      "Unable to update the inquiry. Check Firestore permissions.";
+
+    button.disabled = false;
+  }
+}
+
+async function deleteLead(
+  documentId,
+  button
+) {
+  const confirmed =
+    window.confirm(
+      "Permanently delete this archived inquiry? This cannot be undone."
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  button.disabled = true;
+
+  try {
+    await deleteDoc(
+      doc(
+        db,
+        "yescInterest",
+        documentId
+      )
+    );
+
+    allInquiries =
+      allInquiries.filter(
+        (item) =>
+          item.id !== documentId
+      );
+
+    renderCurrentView();
+
+  } catch (error) {
+    console.error(
+      "Unable to delete YESC inquiry:",
+      error
+    );
+
+    pageStatus.textContent =
+      "Unable to delete the inquiry. Check Firestore permissions.";
+
+    button.disabled = false;
+  }
+}
+
+async function loadInquiries() {
+  pageStatus.textContent =
+    "Loading inquiries…";
+
+  inquiryList.innerHTML = "";
+
+  refreshButton.disabled = true;
+
+  try {
+    await ensureSignedIn();
+
+    const inquiriesQuery =
+      query(
+        collection(
+          db,
+          "yescInterest"
+        ),
+        orderBy(
+          "createdAt",
+          "desc"
+        ),
+        limit(200)
+      );
+
+    const snapshot =
+      await getDocs(inquiriesQuery);
+
+    allInquiries =
+      snapshot.docs.map(
+        (documentSnapshot) => ({
+          id: documentSnapshot.id,
+          data: documentSnapshot.data()
+        })
+      );
+
+    renderCurrentView();
+
+  } catch (error) {
+    console.error(
+      "Unable to load YESC inquiries:",
+      error
+    );
+
+    pageStatus.textContent =
+      "Unable to load inquiries. Check your login and Firestore permissions.";
+
+  } finally {
+    refreshButton.disabled = false;
+  }
+}
+
+inquiryList.addEventListener(
+  "click",
+  (event) => {
+    const deleteButton =
+      event.target.closest(
+        "[data-delete-lead]"
+      );
+
+    if (deleteButton) {
+      const documentId =
+        deleteButton.dataset.documentId;
+
+      if (documentId) {
+        deleteLead(
+          documentId,
+          deleteButton
+        );
+      }
+
+      return;
+    }
+
+    const actionButton =
+      event.target.closest(
+        ".lead-action"
+      );
+
+    if (!actionButton) {
+      return;
+    }
+
+    const documentId =
+      actionButton.dataset.documentId;
+
+    const nextStatus =
+      actionButton.dataset.nextStatus;
+
+    if (
+      !documentId ||
+      !nextStatus
+    ) {
+      return;
+    }
+
+    updateLeadStatus(
+      documentId,
+      nextStatus,
+      actionButton
+    );
+  }
+);
+
+tabButtons.forEach((button) => {
+  button.addEventListener(
+    "click",
+    () => {
+      currentView =
+        button.dataset.view;
+
+      tabButtons.forEach(
+        (tab) => {
+          tab.classList.toggle(
+            "is-active",
+            tab === button
+          );
+        }
+      );
+
+      renderCurrentView();
+    }
+  );
+});
+
+refreshButton.addEventListener(
+  "click",
+  loadInquiries
+);
+
+loadInquiries();
+
+</script>
+</body>
+</html>

@@ -513,6 +513,125 @@ match /interest_leads/{leadId} {
 
   allow delete: if isAdmin();
 }
+
+/* --------------------------------------
+   YESC Interest Leads
+---------------------------------------*/
+match /yescInterest/{leadId} {
+
+  // Public YESC form may create a new inquiry.
+  allow create: if
+    request.resource.data.keys().hasOnly([
+      "organization",
+      "pipeline",
+      "source",
+      "status",
+      "contactName",
+      "email",
+      "phone",
+      "preferredContact",
+      "participantName",
+      "participantAge",
+      "programInterest",
+      "message",
+      "language",
+      "pagePath",
+      "createdAt"
+    ])
+
+    && request.resource.data.organization == "YESC"
+    && request.resource.data.pipeline == "yesc"
+    && request.resource.data.source == "marketing-fitness"
+    && request.resource.data.status == "new"
+
+    && request.resource.data.contactName is string
+    && request.resource.data.contactName.size() > 0
+    && request.resource.data.contactName.size() <= 120
+
+    && request.resource.data.email is string
+    && request.resource.data.email.size() > 3
+    && request.resource.data.email.size() <= 254
+
+    && request.resource.data.phone is string
+    && request.resource.data.phone.size() > 0
+    && request.resource.data.phone.size() <= 40
+
+    && request.resource.data.preferredContact in [
+      "text",
+      "phone",
+      "email"
+    ]
+
+    && request.resource.data.participantName is string
+    && request.resource.data.participantName.size() > 0
+    && request.resource.data.participantName.size() <= 120
+
+    && request.resource.data.participantAge is int
+    && request.resource.data.participantAge >= 5
+    && request.resource.data.participantAge <= 100
+
+    && request.resource.data.programInterest is string
+    && request.resource.data.programInterest.size() > 0
+    && request.resource.data.programInterest.size() <= 120
+
+    && request.resource.data.message is string
+    && request.resource.data.message.size() <= 1200
+
+    && request.resource.data.language in [
+      "en",
+      "es"
+    ]
+
+    && request.resource.data.pagePath is string
+    && request.resource.data.createdAt is timestamp;
+
+  // Only coaches and admins may view submissions.
+  allow get, list: if isCoachOrAdmin();
+
+  // Coaches and admins may update workflow fields.
+  allow update: if isCoachOrAdmin()
+
+    && request.resource.data
+      .diff(resource.data)
+      .changedKeys()
+      .hasOnly([
+        "status",
+        "contactedAt",
+        "convertedAt",
+        "closedAt",
+        "updatedAt"
+      ])
+
+    && request.resource.data.status in [
+      "new",
+      "contacted",
+      "converted",
+      "closed"
+    ]
+
+    && (
+      !("contactedAt" in request.resource.data)
+      || request.resource.data.contactedAt == null
+      || request.resource.data.contactedAt is timestamp
+    )
+
+    && (
+      !("convertedAt" in request.resource.data)
+      || request.resource.data.convertedAt == null
+      || request.resource.data.convertedAt is timestamp
+    )
+
+    && (
+      !("closedAt" in request.resource.data)
+      || request.resource.data.closedAt == null
+      || request.resource.data.closedAt is timestamp
+    )
+
+    && request.resource.data.updatedAt is timestamp;
+
+  // Only admins may permanently delete submissions.
+allow delete: if isCoachOrAdmin();
+}
 /* --------------------------------------
    Admissions Follow-Up
 ---------------------------------------*/

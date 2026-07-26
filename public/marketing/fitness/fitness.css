@@ -421,3 +421,81 @@ body.day-mode .fitness-cta{
     padding:1rem;
   }
 }
+/* YESC fitness buttons */
+.fitness-page .btn-primary,
+.fitness-shell .btn-primary,
+.fitness-cta .btn-primary,
+.fitness-card .btn-primary{
+  background: linear-gradient(
+    180deg,
+    #59f0d0 0%,
+    #45dfbf 100%
+  );
+  color: #08241f;
+  border: 1px solid rgba(89,240,208,.45);
+  box-shadow: 0 10px 24px rgba(69,223,191,.18);
+}
+
+.fitness-page .btn-primary:hover,
+.fitness-shell .btn-primary:hover,
+.fitness-cta .btn-primary:hover,
+.fitness-card .btn-primary:hover{
+  background: linear-gradient(
+    180deg,
+    #73f5d9 0%,
+    #52e7c7 100%
+  );
+  color: #041a16;
+  transform: translateY(-1px);
+}
+
+.fitness-page .btn-primary:active,
+.fitness-shell .btn-primary:active,
+.fitness-cta .btn-primary:active,
+.fitness-card .btn-primary:active{
+  transform: translateY(0);
+}
+/* YESC button color override */
+
+body .fitness-page .btn.btn-primary{
+  background:#4fe3c1 !important;
+  background-image:none !important;
+  border-color:#4fe3c1 !important;
+  color:#06241e !important;
+  box-shadow:
+    0 8px 20px rgba(79,227,193,.22) !important;
+}
+
+body .fitness-page .btn.btn-primary:hover{
+  background:#66ebcf !important;
+  background-image:none !important;
+  border-color:#66ebcf !important;
+  color:#041b17 !important;
+}
+
+body .fitness-page .btn.btn-primary:focus-visible{
+  outline:3px solid rgba(79,227,193,.35);
+  outline-offset:3px;
+}
+/* Center and tighten the top YESC navigation */
+
+.top-nav.top-nav-simple{
+  padding:10px 16px 8px;
+}
+
+.top-nav .nav-top,
+.top-nav .nav-top-center{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  width:100%;
+  max-width:1100px;
+  margin:0 auto;
+  text-align:center;
+}
+
+.top-nav .nav-logo{
+  display:block;
+  margin:0 auto;
+  text-align:center;
+}
