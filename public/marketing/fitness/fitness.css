@@ -511,3 +511,18 @@ body .fitness-page .btn.btn-primary:focus-visible{
   margin: 0 auto;
   text-align: center;
 }
+.schedule-link-panel .btn {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+.schedule-link-panel .btn {
+  display: flex;
+  width: 100%;
+  min-height: 58px;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
