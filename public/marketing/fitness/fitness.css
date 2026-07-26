@@ -499,3 +499,15 @@ body .fitness-page .btn.btn-primary:focus-visible{
   margin:0 auto;
   text-align:center;
 }
+.top-nav-simple .nav-top-center {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.top-nav-simple .nav-top-center .nav-logo {
+  margin: 0 auto;
+  text-align: center;
+}
