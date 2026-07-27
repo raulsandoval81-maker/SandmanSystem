@@ -16,6 +16,13 @@ import {
 
 const $ = (id) => document.getElementById(id);
 
+// ======================================
+// Configuration
+// ======================================
+const INVITE_HOURS = 48;
+const RECENT_APPROVED_LIMIT = 3;
+const PENDING_LIMIT = 8;
+
 const intakeParams =
   new URLSearchParams(window.location.search);
 
@@ -181,7 +188,7 @@ function renderApprovedCard({ uid, name, city, state, parentEmail }) {
 $("btn-make-token")?.addEventListener("click", async () => {
   try {
     const newTokenId = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-    const exp = Date.now() + 48 * 60 * 60 * 1000;
+    const exp = Date.now() + INVITE_HOURS * 60 * 60 * 1000;
 
     const existingAthlete =
       await loadExistingAthleteForAddSport();
@@ -236,7 +243,7 @@ $("btn-make-token")?.addEventListener("click", async () => {
       $("invite-status").textContent =
         intakeMode === "add_sport"
           ? `✓ Add-sport invite created for ${existingAthlete?.name || existingAthleteUid}.`
-          : "✓ New-athlete invite created (48h).";
+          : `✓ New-athlete invite created (${INVITE_HOURS}h).`;
     }
   } catch (err) {
     console.error(err);
@@ -304,7 +311,7 @@ function loadPendingLive() {
     collection(db, "intakes"),
     where("approvedUid", "==", null),
     orderBy("createdAt", "desc"),
-    limit(25)
+    limit(PENDING_LIMIT)
   );
 
   unsubPending = onSnapshot(
@@ -365,7 +372,7 @@ function wireApprovedButtons() {
       const uid = btn.dataset.parentUid;
       if (!uid) return;
 
-const parentUrl = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
+      const parentUrl = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
       window.open(parentUrl, "_blank", "noopener");
     });
   });
@@ -379,7 +386,7 @@ async function loadApproved() {
     const qy = query(
       collection(db, "athletes"),
       orderBy("createdAt", "desc"),
-      limit(7)
+      limit(RECENT_APPROVED_LIMIT)
     );
 
     const snaps = await getDocs(qy);
