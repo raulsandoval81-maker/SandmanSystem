@@ -47,6 +47,34 @@ const WAIVER_URL_ES =
   "/waiver/sandman-waiver-heavy-es.pdf";
 let waiverViewed = false;
 
+let leadLanguagePreference = null;
+
+function normalizeLanguagePreference(value = "") {
+  const language = String(value || "")
+    .trim()
+    .toLowerCase();
+
+  if (
+    language === "es" ||
+    language === "spanish" ||
+    language === "español" ||
+    language === "espanol"
+  ) {
+    return "es";
+  }
+
+  if (
+    language === "en" ||
+    language === "english" ||
+    language === "inglés" ||
+    language === "ingles"
+  ) {
+    return "en";
+  }
+
+  return null;
+}
+
 // -------------------- Waiver gating --------------------
 function waiverAgreementOK() {
   return (
@@ -179,6 +207,13 @@ async function prefillFromLead(connectLeadId) {
   if (!snap.exists()) return;
 
   const lead = snap.data();
+
+  leadLanguagePreference = normalizeLanguagePreference(
+    lead.languagePreference ||
+    lead.preferredLanguage ||
+    lead.language ||
+    ""
+  );
 
   $("athleteName").value = lead.athleteName || "";
   $("parentEmail").value = lead.email || "";
@@ -322,6 +357,10 @@ workflowVersion:
       parent: {
         email: v.email,
         phoneDigits: v.phoneDigits,
+        languagePreference:
+          leadLanguagePreference ||
+          normalizeLanguagePreference(token.languagePreference) ||
+          null,
       },
 
       location: {
