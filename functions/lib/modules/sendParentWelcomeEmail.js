@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendParentWelcomeEmail = sendParentWelcomeEmail;
 const resend_1 = require("./email/resend");
 const PARENT_HUB_URL = "https://www.sandmancombat.com/parent/";
+const WELCOME_PAGE_URL = "https://www.sandmancombat.com/thanks/welcome.html";
 function clean(value) {
     return String(value ?? "").trim();
 }
@@ -46,6 +47,9 @@ async function sendParentWelcomeEmail(input) {
             parentHub: "PORTAL DE PADRES",
             openHub: "Abrir Portal de Padres",
             hubText: "El Portal de Padres es donde puede consultar información importante y mantenerse conectado con el camino de su atleta en Sandman.",
+            welcomeHeading: "Bienvenido a la Academia",
+            welcomeText: "Conozca qué esperar, cómo mantenerse conectado y cómo comienza el camino de su atleta en Sandman.",
+            openWelcome: "Ver Bienvenida a la Academia",
             profileHeading: "Acerca de los Perfiles de Atleta",
             profileIntro: "Los perfiles de atleta son presentados personalmente por el entrenador.",
             profilePermission: "Los atletas menores de 14 años requieren permiso de sus padres o tutores antes de que el entrenador les proporcione acceso a su perfil y proceso de incorporación.",
@@ -60,6 +64,9 @@ async function sendParentWelcomeEmail(input) {
             parentHub: "PARENT HUB",
             openHub: "Open Parent Hub",
             hubText: "Your Parent Hub is where you can view important information and stay connected to your athlete's Sandman journey.",
+            welcomeHeading: "Welcome to the Academy",
+            welcomeText: "Learn what to expect, how to stay connected, and how your athlete's Sandman journey begins.",
+            openWelcome: "View Academy Welcome",
             profileHeading: "About Athlete Profiles",
             profileIntro: "Athlete profiles are personally introduced by the coach.",
             profilePermission: "Athletes under age 14 require parent permission before the coach provides access to their athlete profile and onboarding.",
@@ -81,6 +88,11 @@ ${PARENT_HUB_URL}
 
 ${copy.hubText}
 
+${copy.welcomeHeading.toUpperCase()}
+${WELCOME_PAGE_URL}
+
+${copy.welcomeText}
+
 ${copy.profileHeading.toUpperCase()}
 
 ${copy.profileIntro}
@@ -101,6 +113,9 @@ ${PARENT_HUB_URL}
     const safeAthleteId = escapeHtml(copy.athleteId);
     const safeOpenHub = escapeHtml(copy.openHub);
     const safeHubText = escapeHtml(copy.hubText);
+    const safeWelcomeHeading = escapeHtml(copy.welcomeHeading);
+    const safeWelcomeText = escapeHtml(copy.welcomeText);
+    const safeOpenWelcome = escapeHtml(copy.openWelcome);
     const safeProfileHeading = escapeHtml(copy.profileHeading);
     const safeProfileIntro = escapeHtml(copy.profileIntro);
     const safeProfilePermission = escapeHtml(copy.profilePermission);
@@ -238,6 +253,52 @@ ${PARENT_HUB_URL}
         ">
           ${safeHubText}
         </p>
+
+        <div style="
+          margin:26px 0;
+          padding:22px;
+          background:#18181b;
+          border:1px solid #3f3f46;
+          border-radius:14px;
+          text-align:center;
+        ">
+          <div style="
+            margin-bottom:8px;
+            color:#facc15;
+            font-size:12px;
+            font-weight:800;
+            letter-spacing:1.6px;
+            text-transform:uppercase;
+          ">
+            ${safeWelcomeHeading}
+          </div>
+
+          <p style="
+            margin:0 0 18px;
+            color:#d4d4d8;
+            font-size:15px;
+            line-height:1.7;
+          ">
+            ${safeWelcomeText}
+          </p>
+
+          <a
+            href="${WELCOME_PAGE_URL}"
+            style="
+              display:inline-block;
+              padding:12px 20px;
+              background:transparent;
+              color:#facc15;
+              border:1px solid #facc15;
+              border-radius:10px;
+              font-size:15px;
+              font-weight:800;
+              text-decoration:none;
+            "
+          >
+            ${safeOpenWelcome}
+          </a>
+        </div>
 
         <div style="
           padding:20px;

@@ -14,9 +14,6 @@ const statusEl =
 const submitButton =
   document.getElementById("yescSubmitButton");
 
-const successEl =
-  document.getElementById("yescSuccess");
-
 function clean(value = "") {
   return String(value).trim();
 }
@@ -173,10 +170,11 @@ form?.addEventListener(
         lead
       );
 
-      form.hidden = true;
-      successEl.hidden = false;
+      const language =
+        currentLanguage();
 
-      setStatus("");
+      window.location.href =
+        `/yesc/interest-respond.html?lang=${language}`;
 
     } catch (error) {
       console.error(
