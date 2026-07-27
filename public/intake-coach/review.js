@@ -1073,11 +1073,13 @@ workflowVersion:
       fullName: ($("s-firstlast")?.textContent || "").trim(),
       publicName,
 
-      parent: {
-        email: parentEmail || null,
-        phoneDigits: parentPhoneDigits || null,
-        name: parentName || null,
-      },
+parent: {
+  email: parentEmail || null,
+  phoneDigits: parentPhoneDigits || null,
+  name: parentName || null,
+  languagePreference:
+    s.parent?.languagePreference || null,
+},
 
       team: {
         name: team || intakeTeamName || null,

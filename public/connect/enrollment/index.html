@@ -1,29 +1,47 @@
 <!doctype html>
+
 <html lang="en">
 <head>
   <meta charset="utf-8">
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1"
 
-  <meta
-    http-equiv="refresh"
-    content="0; url=/intake-coach/"
-  >
+>
 
   <title>Opening Coach Intake</title>
 
   <script>
-    window.location.replace("/intake-coach/");
+    const query = window.location.search || "";
+    const destination = `/intake-coach/${query}`;
+
+    window.location.replace(destination);
   </script>
+
+  <noscript>
+    <meta
+      http-equiv="refresh"
+      content="0; url=/intake-coach/"
+    >
+  </noscript>
 </head>
 
 <body>
   <p>
     Opening Coach Intake…
-    <a href="/intake-coach/">Continue</a>
+    <a id="continueLink" href="/intake-coach/">Continue</a>
   </p>
+
+  <script>
+    const continueLink =
+      document.getElementById("continueLink");
+
+    if (continueLink) {
+      continueLink.href =
+        `/intake-coach/${window.location.search || ""}`;
+    }
+  </script>
+
 </body>
 </html>
