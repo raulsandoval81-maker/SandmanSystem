@@ -347,3 +347,16 @@ textarea:focus{
   border-color:#be123c;
   color:#fda4af;
 }
+/* YESC response page — preserve campaign identity */
+.yesc-response-page .btn-primary {
+  background: #0f8b8d;
+  border-color: #0f8b8d;
+  color: #fff;
+}
+
+.yesc-response-page .btn-primary:hover,
+.yesc-response-page .btn-primary:focus {
+  background: #0b6f71;
+  border-color: #0b6f71;
+  color: #fff;
+}

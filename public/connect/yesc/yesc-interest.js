@@ -20,7 +20,9 @@ function clean(value = "") {
 
 function currentLanguage() {
   const params =
-    new URLSearchParams(window.location.search);
+    new URLSearchParams(
+      window.location.search
+    );
 
   const queryLanguage =
     params.get("lang");
@@ -43,14 +45,18 @@ function setStatus(message, type = "") {
   statusEl.className = "form-status";
 
   if (type) {
-    statusEl.classList.add(`is-${type}`);
+    statusEl.classList.add(
+      `is-${type}`
+    );
   }
 }
 
 function buildLead(formData) {
   const participantAge =
     Number.parseInt(
-      clean(formData.get("participantAge")),
+      clean(
+        formData.get("participantAge")
+      ),
       10
     );
 
@@ -61,20 +67,29 @@ function buildLead(formData) {
     status: "new",
 
     contactName:
-      clean(formData.get("contactName")),
+      clean(
+        formData.get("contactName")
+      ),
 
     email:
-      clean(formData.get("email"))
-        .toLowerCase(),
+      clean(
+        formData.get("email")
+      ).toLowerCase(),
 
     phone:
-      clean(formData.get("phone")),
+      clean(
+        formData.get("phone")
+      ),
 
     preferredContact:
-      clean(formData.get("preferredContact")),
+      clean(
+        formData.get("preferredContact")
+      ),
 
     participantName:
-      clean(formData.get("participantName")),
+      clean(
+        formData.get("participantName")
+      ),
 
     participantAge:
       Number.isFinite(participantAge)
@@ -82,10 +97,14 @@ function buildLead(formData) {
         : null,
 
     programInterest:
-      clean(formData.get("programInterest")),
+      clean(
+        formData.get("programInterest")
+      ),
 
     message:
-      clean(formData.get("message")),
+      clean(
+        formData.get("message")
+      ),
 
     language:
       currentLanguage(),
@@ -99,38 +118,78 @@ function buildLead(formData) {
 }
 
 function validateLead(lead) {
+  const isSpanish =
+    currentLanguage() === "es";
+
   if (!lead.contactName) {
-    return "Please enter your name.";
+    return isSpanish
+      ? "Ingresa tu nombre."
+      : "Please enter your name.";
   }
 
   if (
     !lead.email ||
     !lead.email.includes("@")
   ) {
-    return "Please enter a valid email address.";
+    return isSpanish
+      ? "Ingresa un correo electrónico válido."
+      : "Please enter a valid email address.";
   }
 
   if (!lead.phone) {
-    return "Please enter a phone number.";
+    return isSpanish
+      ? "Ingresa un número de teléfono."
+      : "Please enter a phone number.";
   }
 
   if (!lead.preferredContact) {
-    return "Please choose a preferred contact method.";
+    return isSpanish
+      ? "Elige un método de contacto preferido."
+      : "Please choose a preferred contact method.";
   }
 
   if (!lead.participantName) {
-    return "Please enter the participant name.";
+    return isSpanish
+      ? "Ingresa el nombre del participante."
+      : "Please enter the participant name.";
   }
 
-  if (!Number.isFinite(lead.participantAge)) {
-    return "Please enter the participant age.";
+  if (
+    !Number.isFinite(
+      lead.participantAge
+    )
+  ) {
+    return isSpanish
+      ? "Ingresa la edad del participante."
+      : "Please enter the participant age.";
   }
 
   if (!lead.programInterest) {
-    return "Please choose a program.";
+    return isSpanish
+      ? "Elige un programa."
+      : "Please choose a program.";
   }
 
   return "";
+}
+
+function createTimeout(
+  milliseconds = 12000
+) {
+  return new Promise(
+    (_, reject) => {
+      window.setTimeout(
+        () => {
+          reject(
+            new Error(
+              "YESC inquiry submission timed out."
+            )
+          );
+        },
+        milliseconds
+      );
+    }
+  );
 }
 
 form?.addEventListener(
@@ -156,7 +215,9 @@ form?.addEventListener(
       return;
     }
 
-    submitButton.disabled = true;
+    if (submitButton) {
+      submitButton.disabled = true;
+    }
 
     setStatus(
       currentLanguage() === "es"
@@ -165,16 +226,26 @@ form?.addEventListener(
     );
 
     try {
-      await addDoc(
-        collection(db, "yescInterest"),
-        lead
-      );
+      const writePromise =
+        addDoc(
+          collection(
+            db,
+            "yescInterest"
+          ),
+          lead
+        );
+
+      await Promise.race([
+        writePromise,
+        createTimeout()
+      ]);
 
       const language =
         currentLanguage();
 
-      window.location.href =
-        `/yesc/interest-respond.html?lang=${language}`;
+      window.location.assign(
+        `/connect/yesc/interest-respond.html?lang=${language}`
+      );
 
     } catch (error) {
       console.error(
@@ -182,14 +253,26 @@ form?.addEventListener(
         error
       );
 
+      const timedOut =
+        error instanceof Error &&
+        error.message.includes(
+          "timed out"
+        );
+
       setStatus(
         currentLanguage() === "es"
-          ? "No pudimos enviar tu consulta. Inténtalo de nuevo."
-          : "We could not send your inquiry. Please try again.",
+          ? timedOut
+            ? "La solicitud tardó demasiado. Inténtalo de nuevo."
+            : "No pudimos enviar tu consulta. Inténtalo de nuevo."
+          : timedOut
+            ? "The submission took too long. Please try again."
+            : "We could not send your inquiry. Please try again.",
         "error"
       );
 
-      submitButton.disabled = false;
+      if (submitButton) {
+        submitButton.disabled = false;
+      }
     }
   }
 );

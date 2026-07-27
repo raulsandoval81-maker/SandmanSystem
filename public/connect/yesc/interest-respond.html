@@ -21,15 +21,16 @@
   />
 
   <style>
-    :root{
-      --bg:#090909;
-      --panel:#141414;
-      --gold:#facc15;
-      --red:#7a1111;
-      --text:#f4f4f5;
-      --muted:#b8bcc4;
-      --border:#2a2a2a;
-    }
+:root{
+  --bg:#090909;
+  --panel:#141414;
+  --gold:#facc15;
+  --teal:#2dd4bf;
+  --teal-dark:#159a9c;
+  --text:#f4f4f5;
+  --muted:#b8bcc4;
+  --border:#2a2a2a;
+}
 
     *{
       box-sizing:border-box;
@@ -179,10 +180,20 @@
       outline-offset:3px;
     }
 
+
     .btn-primary{
-      background:var(--red);
-      border:1px solid #941b1b;
-    }
+  background:var(--teal);
+  border:1px solid var(--teal);
+  color:#042f2e;
+  box-shadow:0 10px 26px rgba(45,212,191,.24);
+}
+
+.btn-primary:hover,
+.btn-primary:focus{
+  background:#5eead4;
+  border-color:#5eead4;
+  color:#042f2e;
+}
 
     .motto{
       margin:26px 0 0;
@@ -214,6 +225,53 @@
         width:100%;
       }
     }
+
+
+body.yesc-response-page .btn.btn-primary:hover,
+body.yesc-response-page .btn.btn-primary:focus {
+  background: #117f81 !important;
+  border-color: #117f81 !important;
+  color: #ffffff !important;
+  transform: translateY(-1px);
+}
+
+.btn-yesc{
+  background:#2dd4bf !important;
+  border:1px solid #2dd4bf !important;
+  color:#042f2e !important;
+  box-shadow:0 10px 26px rgba(45,212,191,.24);
+}
+
+.btn-yesc:hover,
+.btn-yesc:focus{
+  background:#5eead4 !important;
+  border-color:#5eead4 !important;
+  color:#042f2e !important;
+}
+
+@media (max-width:600px){
+  .page{
+    padding:18px 12px;
+  }
+
+  .card{
+    padding:26px 18px;
+    border-radius:18px;
+  }
+
+  .lead{
+    font-size:.98rem;
+  }
+
+  .steps{
+    margin:24px 0;
+    padding:18px;
+  }
+
+  .btn{
+    width:100%;
+  }
+}
   </style>
 </head>
 
@@ -308,13 +366,13 @@
           <span data-lang="en">
             ✓ There is no obligation to enroll. Our goal is to help
             your family understand the available options and decide
-            whether YES Club is the right fit.
+            whether YESC is the right fit.
           </span>
 
           <span data-lang="es">
             ✓ No existe ninguna obligación de inscribirse. Nuestro
             objetivo es ayudar a tu familia a comprender las opciones
-            disponibles y decidir si YES Club es la opción adecuada.
+            disponibles y decidir si YESCS Club es la opción adecuada.
           </span>
         </p>
 
@@ -322,7 +380,7 @@
 
       <p class="privacy-note">
         <span data-lang="en">
-          By submitting an interest form, you authorize a YES Club
+          By submitting an interest form, you authorize a YESC 
           representative to contact you about programs, scheduling,
           enrollment, and related opportunities. Your information
           will only be used to respond to your request.
@@ -330,7 +388,7 @@
 
         <span data-lang="es">
           Al enviar un formulario de interés, autorizas a un
-          representante de YES Club a comunicarse contigo sobre
+          representante de YESC a comunicarse contigo sobre
           programas, horarios, inscripción y oportunidades
           relacionadas. Tu información solo se utilizará para
           responder a tu solicitud.
@@ -338,14 +396,21 @@
       </p>
 
       <div class="actions">
-        <a
-          class="btn btn-primary"
-          href="/yesc/"
-        >
-          <span data-lang="en">Return to YES Club</span>
-          <span data-lang="es">Volver a YES Club</span>
-        </a>
-      </div>
+<a
+  class="btn btn-yesc"
+  href="https://youthempoweredsports.com"
+  target="_blank"
+  rel="noopener"
+>
+        <span data-lang="en">
+    Visit Youth Empowered
+  </span>
+
+  <span data-lang="es">
+    Visitar Youth Empowered
+  </span>
+</a>
+    </div>
 
       <p class="motto">
         <span data-lang="en">Programs That Serve the Community</span>
