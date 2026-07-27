@@ -7,6 +7,7 @@ exports.approveIntakeCall = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
+const sendParentWelcomeEmail_1 = require("./sendParentWelcomeEmail");
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp();
 }
@@ -31,7 +32,7 @@ exports.approveIntakeCall = (0, https_1.onCall)(async (req) => {
             const user = await firebase_admin_1.default.auth().getUserByEmail(parentEmail);
             parentUid = user.uid;
         }
-        catch (err) {
+        catch {
             parentUid = "";
         }
     }
@@ -66,11 +67,57 @@ exports.approveIntakeCall = (0, https_1.onCall)(async (req) => {
             updatedAt: firestore_1.FieldValue.serverTimestamp(),
         }, { merge: true });
     }
+    //
+    // Parent Welcome Email
+    //
+    let welcomeEmailSent = false;
+    let welcomeEmailError = null;
+    if (parentEmail) {
+        try {
+            await (0, sendParentWelcomeEmail_1.sendParentWelcomeEmail)({
+                parentEmail,
+                parentName: intake.parent?.name ||
+                    intake.parentName ||
+                    "",
+                athleteName: intake.athlete?.name ||
+                    intake.athleteName ||
+                    "",
+                athleteUid: String(approvedUid),
+                lang: intake.lang === "es" ||
+                    intake.language === "es" ||
+                    intake.languagePreference === "es" ||
+                    intake.parent?.lang === "es" ||
+                    intake.parent?.language === "es" ||
+                    intake.parent?.languagePreference === "es"
+                    ? "es"
+                    : "en",
+            });
+            welcomeEmailSent = true;
+            await intakeRef.update({
+                welcomeEmailStatus: "sent",
+                welcomeEmailSentAt: firestore_1.FieldValue.serverTimestamp(),
+                welcomeEmailError: null,
+            });
+        }
+        catch (err) {
+            welcomeEmailError =
+                err instanceof Error
+                    ? err.message
+                    : String(err);
+            console.error("[approveIntakeCall] Parent welcome email failed:", welcomeEmailError);
+            await intakeRef.update({
+                welcomeEmailStatus: "failed",
+                welcomeEmailError,
+            });
+        }
+    }
     return {
         ok: true,
         intakeId,
         approvedUid,
         parentLinked: !!parentUid,
         parentUid: parentUid || null,
+        welcomeEmailSent,
+        welcomeEmailError,
     };
 });

@@ -5,6 +5,8 @@ import {
 } from "firebase-admin/firestore";
 import admin from "firebase-admin";
 
+import { sendParentWelcomeEmail } from "./sendParentWelcomeEmail";
+
 if (!admin.apps.length) {
   admin.initializeApp();
 }
@@ -44,7 +46,7 @@ export const approveIntakeCall = onCall(async (req) => {
         await admin.auth().getUserByEmail(parentEmail);
 
       parentUid = user.uid;
-    } catch (err) {
+    } catch {
       parentUid = "";
     }
   }
@@ -89,11 +91,75 @@ export const approveIntakeCall = onCall(async (req) => {
     );
   }
 
+  //
+  // Parent Welcome Email
+  //
+
+  let welcomeEmailSent = false;
+  let welcomeEmailError: string | null = null;
+
+  if (parentEmail) {
+    try {
+      await sendParentWelcomeEmail({
+        parentEmail,
+
+        parentName:
+          intake.parent?.name ||
+          intake.parentName ||
+          "",
+
+        athleteName:
+          intake.athlete?.name ||
+          intake.athleteName ||
+          "",
+
+        athleteUid:
+          String(approvedUid),
+
+        lang:
+          intake.lang === "es" ||
+          intake.language === "es" ||
+          intake.languagePreference === "es" ||
+          intake.parent?.lang === "es" ||
+          intake.parent?.language === "es" ||
+          intake.parent?.languagePreference === "es"
+            ? "es"
+            : "en",
+      });
+
+      welcomeEmailSent = true;
+
+      await intakeRef.update({
+        welcomeEmailStatus: "sent",
+        welcomeEmailSentAt:
+          FieldValue.serverTimestamp(),
+        welcomeEmailError: null,
+      });
+    } catch (err) {
+      welcomeEmailError =
+        err instanceof Error
+          ? err.message
+          : String(err);
+
+      console.error(
+        "[approveIntakeCall] Parent welcome email failed:",
+        welcomeEmailError
+      );
+
+      await intakeRef.update({
+        welcomeEmailStatus: "failed",
+        welcomeEmailError,
+      });
+    }
+  }
+
   return {
     ok: true,
     intakeId,
     approvedUid,
     parentLinked: !!parentUid,
     parentUid: parentUid || null,
+    welcomeEmailSent,
+    welcomeEmailError,
   };
 });
