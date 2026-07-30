@@ -16,7 +16,8 @@
     "firebase-admin": "^12.5.0",
     "firebase-functions": "^4.7.3",
     "react": "^19.2.5",
-    "resend": "^6.12.2"
+    "resend": "^6.12.2",
+    "stripe": "^22.3.2"
   },
   "devDependencies": {
     "@types/busboy": "^1.5.4",
