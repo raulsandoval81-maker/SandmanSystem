@@ -1054,3 +1054,53 @@ html[data-theme="light"] .site-nav a:focus-visible {
     grid-column:auto;
   }
 }
+.journeys-intro{
+  padding:clamp(3rem,7vw,5.5rem) 1.25rem;
+  background:
+    radial-gradient(circle at top,rgba(212,175,55,.08),transparent 42%),
+    #070707;
+}
+
+.journeys-intro__inner{
+  max-width:850px;
+  text-align:center;
+}
+
+.journeys-intro h2{
+  margin:0;
+  color:#fff;
+  font-size:clamp(2.2rem,6vw,4.6rem);
+  line-height:1;
+  letter-spacing:-.04em;
+  text-transform:uppercase;
+}
+
+.journeys-intro .journey-eyebrow{
+  text-align:center;
+}
+
+.journeys-intro .standard-intro{
+  margin:1.2rem auto 0;
+  text-align:center;
+}
+.badge-collection{
+  display:flex;
+  gap:1rem;
+  width:100%;
+  margin-top:1.5rem;
+  padding:.25rem .25rem 1rem;
+  overflow-x:auto;
+  overscroll-behavior-inline:contain;
+  scroll-snap-type:inline mandatory;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(212,175,55,.55) rgba(255,255,255,.04);
+  -webkit-overflow-scrolling:touch;
+}
+
+/* Center shorter badge rows on desktop */
+@media (min-width:900px){
+  .journey-path2legend .badge-collection,
+  .journey-quest2mastery .badge-collection{
+    justify-content:center;
+  }
+}
