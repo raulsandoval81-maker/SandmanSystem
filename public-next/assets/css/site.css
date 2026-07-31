@@ -1002,10 +1002,11 @@ html[data-theme="light"] .site-nav a:focus-visible {
 }
 
 .site-footer__seal-image{
-  width:84px;
-  height:84px;
+  width:68px;
+  height:68px;
   object-fit:contain;
   justify-self:center;
+  margin:4px auto 8px;
 }
 
 .site-footer__legal{
@@ -1130,11 +1131,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
     margin:.15rem auto;
   }
 
-  .site-footer__seal-image{
-    width:64px;
-    height:auto;
-  }
-
   .site-footer__headquarters{
     margin-top:.25rem;
     padding-top:.75rem;
@@ -1209,11 +1205,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
     margin:0;
   }
 
-  .site-footer__seal-image{
-    width:46px;
-    height:auto;
-    margin:0;
-  }
 
   .site-footer__seal{
     grid-area:motto;
@@ -1320,12 +1311,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
     justify-content:center;
   }
 
-  .site-footer__seal-image{
-    width:48px;
-    height:auto;
-    margin:0;
-  }
-
   .site-footer__headquarters{
     grid-area:headquarters;
 
@@ -1421,12 +1406,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
     padding:0 !important;
   }
 
-  .site-footer__seal-image{
-    display:block !important;
-    width:42px !important;
-    height:auto !important;
-    margin:0 !important;
-  }
 
   /* EAST */
   .site-footer__headquarters{
@@ -1545,12 +1524,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
     padding:0 !important;
   }
 
-  .site-footer__seal-image{
-    width:38px !important;
-    height:38px !important;
-    margin:0 !important;
-    object-fit:contain !important;
-  }
 
   .site-footer__headquarters{
     grid-area:headquarters !important;
@@ -1634,12 +1607,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
 
   .site-footer__logo{
     grid-area:logo !important;
-    margin:0 !important;
-  }
-
-  .site-footer__seal-image{
-    width:36px !important;
-    height:36px !important;
     margin:0 !important;
   }
 
@@ -1731,12 +1698,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
     padding:0 !important;
   }
 
-  .site-footer__seal-image{
-    width:48px !important;
-    height:48px !important;
-    margin:0 !important;
-    object-fit:contain !important;
-  }
 
   .site-footer__headquarters{
     grid-area:headquarters !important;
@@ -1792,12 +1753,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
   align-items:center;
 }
 
-.site-footer__seal-image{
-  width:56px;   /* was around 48px */
-  height:auto;
-  display:block;
-  margin:0 auto;
-}
 .site-footer__logo{
   grid-area:logo;
   display:flex;
@@ -1810,15 +1765,6 @@ html[data-theme="light"] .site-nav a:focus-visible {
   margin:0 auto;
 }
 
-.site-footer__seal-image{
-  display:block !important;
-
-  width:72px !important;
-  max-width:none !important;
-  height:auto !important;
-
-  margin:0 auto !important;
-}
 /* =========================================
    ORIGINS + IMPACT HERO — MOBILE FIX
 ========================================= */
