@@ -1160,3 +1160,213 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+/* ==================================================
+   HOMEPAGE HERO — CENTER ON DESKTOP
+================================================== */
+
+.hero-panel{
+  width:100%;
+  display:flex;
+  justify-content:center;
+  overflow:hidden;
+}
+
+.home-hero__image{
+  display:block;
+  width:100%;
+  max-width:1536px;
+  height:auto;
+  margin:0 auto;
+}
+
+
+/* ==================================================
+   PHONE PORTRAIT — SHORT, COMPACT FOOTER
+================================================== */
+
+@media (max-width:768px) and (orientation:portrait){
+
+  .site-footer{
+    padding:.9rem .85rem .65rem;
+  }
+
+  .site-footer__inner{
+    width:100%;
+    display:grid;
+
+    grid-template-columns:52px minmax(0,1fr);
+    grid-template-areas:
+      "logo motto"
+      "headquarters headquarters"
+      "legal legal";
+
+    align-items:center;
+    gap:.45rem .75rem;
+  }
+
+  .site-footer__logo{
+    grid-area:logo;
+    margin:0;
+  }
+
+  .site-footer__seal-image{
+    width:46px;
+    height:auto;
+    margin:0;
+  }
+
+  .site-footer__seal{
+    grid-area:motto;
+    margin:0;
+    text-align:left;
+  }
+
+  .site-footer__seal p{
+    margin:0;
+    font-size:.76rem;
+    line-height:1.15;
+    letter-spacing:.08em;
+  }
+
+  .site-footer__headquarters{
+    grid-area:headquarters;
+
+    margin:.15rem 0 0;
+    padding:.55rem 0 0;
+
+    border-top:1px solid rgba(255,255,255,.1);
+    text-align:center;
+  }
+
+  .site-footer__headquarters strong{
+    display:block;
+    margin:0 0 .2rem;
+    font-size:.74rem;
+    letter-spacing:.12em;
+  }
+
+  .site-footer__headquarters p{
+    margin:0;
+    font-size:.8rem;
+    line-height:1.25;
+  }
+
+  .site-footer__headquarters small{
+    display:block;
+    margin-top:.2rem;
+    font-size:.7rem;
+    line-height:1.2;
+  }
+
+  .site-footer__legal{
+    grid-area:legal;
+
+    margin:0;
+    padding-top:.45rem;
+
+    display:flex;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:.15rem .35rem;
+
+    border-top:1px solid rgba(255,255,255,.08);
+    font-size:.64rem;
+    line-height:1.2;
+  }
+
+}
+
+
+/* ==================================================
+   PHONE LANDSCAPE — WEST TO EAST FOOTER
+================================================== */
+
+@media (max-height:600px) and (orientation:landscape){
+
+  .site-footer{
+    padding:.75rem 1rem .55rem;
+  }
+
+  .site-footer__inner{
+    width:min(1100px,100%);
+    margin:0 auto;
+
+    display:grid;
+    grid-template-columns:minmax(0,1fr) 60px minmax(0,1fr);
+    grid-template-areas:
+      "motto logo headquarters"
+      "legal legal legal";
+
+    align-items:center;
+    gap:.55rem 1.25rem;
+  }
+
+  .site-footer__seal{
+    grid-area:motto;
+    margin:0;
+    text-align:left;
+  }
+
+  .site-footer__seal p{
+    margin:0;
+    font-size:.72rem;
+    line-height:1.15;
+  }
+
+  .site-footer__logo{
+    grid-area:logo;
+    margin:0;
+    display:flex;
+    justify-content:center;
+  }
+
+  .site-footer__seal-image{
+    width:48px;
+    height:auto;
+    margin:0;
+  }
+
+  .site-footer__headquarters{
+    grid-area:headquarters;
+
+    margin:0;
+    padding:0;
+
+    border:0;
+    text-align:right;
+  }
+
+  .site-footer__headquarters strong{
+    display:block;
+    margin:0 0 .15rem;
+    font-size:.68rem;
+  }
+
+  .site-footer__headquarters p{
+    margin:0;
+    font-size:.72rem;
+    line-height:1.2;
+  }
+
+  .site-footer__headquarters small{
+    display:block;
+    margin-top:.15rem;
+    font-size:.62rem;
+  }
+
+  .site-footer__legal{
+    grid-area:legal;
+
+    margin:0;
+    padding-top:.4rem;
+
+    display:flex;
+    justify-content:center;
+    gap:.35rem;
+
+    border-top:1px solid rgba(255,255,255,.08);
+    font-size:.6rem;
+    line-height:1.1;
+  }
+
+}
