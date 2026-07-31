@@ -1906,3 +1906,78 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+/* ==========================================
+   HERO → CONTENT SPACING
+   Standard spacing for all public pages
+========================================== */
+
+.about-hero,
+.journeys-hero,
+.system-hero,
+.origins-hero,
+.impact-hero,
+.library-hero,
+.connect-hero{
+  margin-bottom:20px;
+}
+
+.about-section:first-of-type,
+.journeys-section:first-of-type,
+.system-section:first-of-type,
+.origins-section:first-of-type,
+.impact-section:first-of-type,
+.library-section:first-of-type,
+.connect-section:first-of-type{
+  padding-top:28px;
+}
+
+@media (max-width:768px){
+
+  .about-hero,
+  .journeys-hero,
+  .system-hero,
+  .origins-hero,
+  .impact-hero,
+  .library-hero,
+  .connect-hero{
+    margin-bottom:8px;
+  }
+
+  .about-section:first-of-type,
+  .journeys-section:first-of-type,
+  .system-section:first-of-type,
+  .origins-section:first-of-type,
+  .impact-section:first-of-type,
+  .library-section:first-of-type,
+  .connect-section:first-of-type{
+    padding-top:12px;
+  }
+
+}
+/* ==========================================
+   MOBILE HERO → CONTENT SPACING
+========================================== */
+
+@media (max-width:768px){
+
+  .about-hero,
+  .journeys-hero,
+  .system-hero,
+  .origins-hero,
+  .impact-hero,
+  .library-hero,
+  .connect-hero{
+    margin-bottom:6px;
+  }
+
+  .about-section:first-of-type,
+  .journeys-section:first-of-type,
+  .system-section:first-of-type,
+  .origins-section:first-of-type,
+  .impact-section:first-of-type,
+  .library-section:first-of-type,
+  .connect-section:first-of-type{
+    padding-top:8px;
+  }
+
+}
