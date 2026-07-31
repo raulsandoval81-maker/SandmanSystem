@@ -145,3 +145,31 @@ html[data-theme="light"] .home-hero__image {
     object-position: center top;
   }
 }
+/* =========================================
+   MOBILE HERO SPACING
+========================================= */
+
+@media (max-width: 768px) and (orientation: portrait) {
+
+  .hero-panel{
+    padding-top: 1rem;
+  }
+
+}
+/* ==========================================
+   Header → Hero Divider
+========================================== */
+
+.hero-divider{
+  width:100%;
+  height:20px;
+
+  background:#050505;
+
+  border-top:1px solid rgba(255,255,255,.05);
+  border-bottom:1px solid rgba(212,175,55,.15);
+
+  box-shadow:
+    inset 0 8px 12px rgba(0,0,0,.35),
+    inset 0 -8px 12px rgba(0,0,0,.35);
+}
