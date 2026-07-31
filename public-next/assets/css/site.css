@@ -1679,3 +1679,110 @@ html[data-theme="light"] .site-nav a:focus-visible {
     font-size:.46rem !important;
   }
 }
+/* ==================================================
+   FOOTER — DESKTOP MATCHES MOBILE
+================================================== */
+
+@media (min-width:769px){
+
+  .site-footer{
+    padding:.8rem 1rem .55rem !important;
+  }
+
+  .site-footer__brand{
+    display:none !important;
+  }
+
+  .site-footer__inner{
+    width:min(1180px,100%) !important;
+    margin:0 auto !important;
+
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 56px minmax(0,1.35fr) !important;
+    grid-template-areas:
+      "motto logo headquarters"
+      "legal legal legal" !important;
+
+    align-items:center !important;
+    gap:.5rem 1rem !important;
+  }
+
+  .site-footer__seal{
+    grid-area:motto !important;
+    min-width:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    text-align:left !important;
+  }
+
+  .site-footer__seal p{
+    margin:0 !important;
+    font-size:.72rem !important;
+    line-height:1.15 !important;
+    letter-spacing:.08em !important;
+  }
+
+  .site-footer__logo{
+    grid-area:logo !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .site-footer__seal-image{
+    width:48px !important;
+    height:48px !important;
+    margin:0 !important;
+    object-fit:contain !important;
+  }
+
+  .site-footer__headquarters{
+    grid-area:headquarters !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    text-align:right !important;
+  }
+
+  .site-footer__headquarters strong{
+    margin:0 0 .12rem !important;
+    font-size:.66rem !important;
+    line-height:1.1 !important;
+    letter-spacing:.08em !important;
+  }
+
+  .site-footer__headquarters p{
+    margin:0 !important;
+    font-size:.72rem !important;
+    line-height:1.2 !important;
+  }
+
+  .site-footer__headquarters small{
+    margin-top:.12rem !important;
+    font-size:.62rem !important;
+    line-height:1.15 !important;
+  }
+
+  .site-footer__legal{
+    grid-area:legal !important;
+    grid-column:auto !important;
+
+    display:flex !important;
+    flex-direction:row !important;
+    justify-content:center !important;
+    flex-wrap:wrap !important;
+
+    margin:.1rem 0 0 !important;
+    padding:.35rem 0 0 !important;
+    gap:.15rem .35rem !important;
+
+    border-top:1px solid rgba(255,255,255,.08) !important;
+
+    font-size:.56rem !important;
+    line-height:1.1 !important;
+    text-align:center !important;
+  }
+
+}
