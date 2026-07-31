@@ -1874,3 +1874,30 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+
+/* =========================================
+   SHARED HEADER → HERO DIVIDER
+========================================= */
+
+.site-hero-divider{
+  width:100%;
+  height:28px;
+  background:
+    linear-gradient(
+      180deg,
+      #050505 0%,
+      #090909 72%,
+      #050505 100%
+    );
+  border-top:1px solid rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(212,175,55,.28);
+  box-shadow:
+    inset 0 8px 14px rgba(0,0,0,.35),
+    inset 0 -8px 14px rgba(0,0,0,.35);
+}
+
+@media (max-width:768px){
+  .site-hero-divider{
+    height:24px;
+  }
+}
