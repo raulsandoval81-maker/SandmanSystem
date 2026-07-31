@@ -1104,3 +1104,59 @@ html[data-theme="light"] .site-nav a:focus-visible {
     justify-content:center;
   }
 }
+/* =========================================
+   MOBILE FOOTER COMPRESSION
+========================================= */
+
+@media (max-width: 768px){
+
+  .site-footer{
+    padding:1.4rem 1rem 1rem;
+  }
+
+  .site-footer__inner{
+    gap:.75rem;
+  }
+
+  .site-footer__seal{
+    margin:0;
+  }
+
+  .site-footer__seal p{
+    margin:0;
+  }
+
+  .site-footer__logo{
+    margin:.15rem auto;
+  }
+
+  .site-footer__seal-image{
+    width:64px;
+    height:auto;
+  }
+
+  .site-footer__headquarters{
+    margin-top:.25rem;
+    padding-top:.75rem;
+  }
+
+  .site-footer__headquarters strong{
+    margin-bottom:.25rem;
+  }
+
+  .site-footer__headquarters p{
+    margin:.2rem 0;
+    line-height:1.35;
+  }
+
+  .site-footer__headquarters small{
+    margin-top:.25rem;
+  }
+
+  .site-footer__legal{
+    margin-top:.6rem;
+    padding-top:.6rem;
+    gap:.25rem;
+  }
+
+}
