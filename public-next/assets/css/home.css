@@ -157,19 +157,19 @@ html[data-theme="light"] .home-hero__image {
 
 }
 /* ==========================================
-   Header → Hero Divider
+   Header → Hero Transition
 ========================================== */
 
 .hero-divider{
+  display:block;
   width:100%;
-  height:20px;
-
-  background:#050505;
-
-  border-top:1px solid rgba(255,255,255,.05);
-  border-bottom:1px solid rgba(212,175,55,.15);
-
-  box-shadow:
-    inset 0 8px 12px rgba(0,0,0,.35),
-    inset 0 -8px 12px rgba(0,0,0,.35);
+  height:36px;
+  background:
+    linear-gradient(
+      180deg,
+      #050505 0%,
+      #090909 70%,
+      #050505 100%
+    );
+  border-bottom:1px solid rgba(212,175,55,.35);
 }
