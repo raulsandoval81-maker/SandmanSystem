@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Journeys | Sandman Combat™</title>
+  <meta name="description" content="Explore the Zero2Hero™, Path2Legend™, and Quest2Mastery™ journeys powered by the Sandman System™." />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+
+
+  <style>
+    :root{
+      --page-bg:#050505;
+      --panel:#111;
+      --text:#f5f5f5;
+      --muted:#c4c4c8;
+      --gold:#d4af37;
+      --silver:#c8c8cc;
+      --line:rgba(255,255,255,.11);
+    }
+
+    body.journeys-page{
+      margin:0;
+      background:var(--page-bg);
+      color:var(--text);
+    }
+
+    .hidden-lang{display:none!important}
+    .journeys-main{width:100%;overflow:hidden}
+
+    .journeys-hero,
+    .journeys-hero img{
+      display:block;
+      width:100%;
+      margin:0;
+      padding:0;
+    }
+
+    .journeys-hero img{height:auto}
+
+    .journeys-section{
+      padding:clamp(4rem,8vw,7rem) 1.25rem;
+      background:
+        radial-gradient(circle at top,rgba(212,175,55,.06),transparent 38%),
+        linear-gradient(180deg,#090909 0%,#050505 100%);
+    }
+
+    .journeys-section:nth-of-type(even){
+      background:
+        radial-gradient(circle at top,rgba(255,255,255,.035),transparent 35%),
+        linear-gradient(180deg,#0d0d0d 0%,#070707 100%);
+    }
+
+    .journeys-wrap{
+      width:min(1180px,100%);
+      margin:0 auto;
+    }
+
+    .journey-heading{
+      max-width:850px;
+      margin:0 auto 2.5rem;
+      text-align:center;
+    }
+
+    .journey-eyebrow{
+      margin:0 0 .75rem;
+      color:var(--gold);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.2em;
+      text-transform:uppercase;
+    }
+
+    .journey-heading h2,
+    .standard-wrap h2,
+    .journeys-cta h2{
+      margin:0;
+      color:#fff;
+      text-transform:uppercase;
+      letter-spacing:-.045em;
+    }
+
+    .journey-heading h2{
+      font-size:clamp(2.4rem,7vw,5rem);
+      line-height:.96;
+    }
+
+    .journey-heading p{
+      max-width:720px;
+      margin:1.2rem auto 0;
+      color:var(--muted);
+      font-size:clamp(1rem,2vw,1.18rem);
+      line-height:1.75;
+    }
+
+    .journey-age{
+      display:inline-flex;
+      margin-top:1.1rem;
+      padding:.55rem 1rem;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+      color:#fff;
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .badge-collection{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(132px,1fr));
+      gap:1rem;
+    }
+
+    .badge-card{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      padding:1.05rem .75rem 1rem;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+      box-shadow:0 18px 45px rgba(0,0,0,.22);
+      text-align:center;
+    }
+
+    .badge-card img{
+      display:block;
+      width:min(150px,100%);
+      aspect-ratio:1;
+      object-fit:contain;
+      filter:drop-shadow(0 14px 20px rgba(0,0,0,.5));
+    }
+
+    .badge-card h3{
+      margin:.9rem 0 0;
+      color:#fff;
+      font-size:1rem;
+      line-height:1.2;
+      text-transform:uppercase;
+    }
+
+    .journey-note{
+      max-width:860px;
+      margin:2rem auto 0;
+      color:var(--muted);
+      text-align:center;
+      font-size:.96rem;
+      line-height:1.7;
+    }
+
+    .journey-zero2hero{
+      border-top:1px solid rgba(200,200,204,.28);
+    }
+
+    .journey-zero2hero .journey-eyebrow{color:var(--silver)}
+    .journey-zero2hero .badge-card{border-color:rgba(200,200,204,.18)}
+    .journey-path2legend .badge-card,
+    .journey-quest2mastery .badge-card{border-color:rgba(212,175,55,.2)}
+
+    .standard-section{
+      padding:clamp(4.5rem,9vw,8rem) 1.25rem;
+      background:
+        radial-gradient(circle at center top,rgba(212,175,55,.15),transparent 42%),
+        linear-gradient(180deg,#0b0b0b 0%,#050505 100%);
+    }
+
+    .standard-wrap{
+      width:min(1040px,100%);
+      margin:0 auto;
+      text-align:center;
+    }
+
+    .standard-shield{
+      display:block;
+      width:min(360px,72vw);
+      height:auto;
+      margin:0 auto 2rem;
+      filter:drop-shadow(0 20px 45px rgba(0,0,0,.55));
+    }
+
+    .standard-wrap h2{
+      font-size:clamp(2.6rem,7vw,5.2rem);
+      line-height:.95;
+    }
+
+    .standard-intro{
+      max-width:760px;
+      margin:1.25rem auto 0;
+      color:var(--muted);
+      font-size:clamp(1rem,2vw,1.18rem);
+      line-height:1.75;
+    }
+
+    .standard-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+      margin-top:2.5rem;
+      text-align:left;
+    }
+
+    .standard-card{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid rgba(212,175,55,.2);
+      border-radius:22px;
+      background:linear-gradient(180deg,rgba(212,175,55,.07),rgba(255,255,255,.02));
+    }
+
+    .standard-card h3{
+      margin:0 0 .8rem;
+      color:var(--gold);
+      font-size:1.4rem;
+      text-transform:uppercase;
+    }
+
+    .standard-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .journeys-cta{
+      padding:clamp(4rem,8vw,7rem) 1.25rem;
+      text-align:center;
+      background:
+        radial-gradient(circle at center,rgba(212,175,55,.13),transparent 47%),
+        #050505;
+    }
+
+    .journeys-cta-inner{
+      width:min(780px,100%);
+      margin:0 auto;
+    }
+
+    .journeys-cta h2{
+      font-size:clamp(2.2rem,6vw,4.4rem);
+      line-height:1;
+    }
+
+    .journeys-cta p{
+      margin:1.2rem auto 0;
+      color:var(--muted);
+      font-size:1.08rem;
+      line-height:1.7;
+    }
+
+    .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:52px;
+      margin-top:2rem;
+      padding:.9rem 1.8rem;
+      border:1px solid var(--gold);
+      border-radius:999px;
+      background:var(--gold);
+      color:#050505;
+      font-weight:900;
+      text-decoration:none;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      transition:transform 180ms ease,background-color 180ms ease,color 180ms ease;
+    }
+
+    .journeys-cta-button:hover,
+    .journeys-cta-button:focus-visible{
+      transform:translateY(-2px);
+      background:transparent;
+      color:var(--gold);
+    }
+
+    @media(min-width:780px){
+      .standard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+    }
+
+    @media(max-width:640px){
+      .journeys-section,
+      .standard-section,
+      .journeys-cta{
+        padding-right:1rem;
+        padding-left:1rem;
+      }
+
+      .badge-collection{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+        gap:.8rem;
+      }
+
+      .badge-card{
+        padding:.85rem .55rem;
+        border-radius:16px;
+      }
+
+      .badge-card h3{font-size:.86rem}
+      .standard-card{border-radius:18px}
+    }
+  </style>
+</head>
+
+<body class="journeys-page">
+
+    <!-- Shared site navigation -->
+    <div
+      id="navigation"
+      data-component="/components/navigation.html"
+    ></div>
+
+  <main class="journeys-main">
+
+    <section class="journeys-hero" aria-label="Three Sandman journeys">
+      <img
+        src="/assets/img/pages/journeys/hero-en.png"
+        alt="Three Journeys. One Mission. Zero2Hero, Path2Legend, and Quest2Mastery."
+        data-lang-block="en"
+      />
+
+      <img
+        src="/assets/img/pages/journeys/hero-es.png"
+        alt="Tres Caminos. Una Misión. Zero2Hero, Path2Legend y Quest2Mastery."
+        data-lang-block="es"
+        class="hidden-lang"
+      />
+    </section>
+
+    <section class="journeys-section journey-zero2hero">
+      <div class="journeys-wrap">
+        <header class="journey-heading">
+          <div data-lang-block="en">
+            <p class="journey-eyebrow">Youth Journey</p>
+            <h2>Zero2Hero™</h2>
+            <span class="journey-age">Ages 7–13</span>
+            <p>
+              Build confidence, discipline, coordination, and strong combat
+              fundamentals through structured, age-appropriate training.
+            </p>
+          </div>
+
+          <div data-lang-block="es" class="hidden-lang">
+            <p class="journey-eyebrow">Camino Juvenil</p>
+            <h2>Zero2Hero™</h2>
+            <span class="journey-age">Edades 7–13</span>
+            <p>
+              Desarrolla confianza, disciplina, coordinación y fundamentos
+              sólidos de combate mediante entrenamiento estructurado y
+              apropiado para la edad.
+            </p>
+          </div>
+        </header>
+
+        <div class="badge-collection" role="list" aria-label="Zero2Hero badge progression">
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-shadow-white-silver.png" alt="Shadow badge" loading="lazy" />
+            <h3>Shadow</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-recruit-silver.png" alt="Recruit badge" loading="lazy" />
+            <h3>Recruit</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-contender-silver.png" alt="Contender badge" loading="lazy" />
+            <h3>Contender</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-competitor-silver.png" alt="Competitor badge" loading="lazy" />
+            <h3>Competitor</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-warrior-silver.png" alt="Warrior badge" loading="lazy" />
+            <h3>Warrior</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-champion-silver.png" alt="Champion badge" loading="lazy" />
+            <h3>Champion</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-commander-silver.png" alt="Commander badge" loading="lazy" />
+            <h3>Commander</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry8/badge-hero-silver.png" alt="Hero badge" loading="lazy" />
+            <h3>Hero</h3>
+          </article>
+        </div>
+
+        <p class="journey-note" data-lang-block="en">
+          Every badge represents earned growth. Athletes advance through
+          consistency, preparation, character, and demonstrated development.
+        </p>
+
+        <p class="journey-note hidden-lang" data-lang-block="es">
+          Cada insignia representa crecimiento ganado. Los atletas avanzan por
+          medio de constancia, preparación, carácter y desarrollo demostrado.
+        </p>
+      </div>
+    </section>
+
+    <section class="journeys-section journey-path2legend">
+      <div class="journeys-wrap">
+        <header class="journey-heading">
+          <div data-lang-block="en">
+            <p class="journey-eyebrow">Teen &amp; Adult Journey</p>
+            <h2>Path2Legend™</h2>
+            <span class="journey-age">Ages 14+</span>
+            <p>
+              Train with purpose, compete with integrity, and develop the skill,
+              discipline, responsibility, and leadership expected of a legend.
+            </p>
+          </div>
+
+          <div data-lang-block="es" class="hidden-lang">
+            <p class="journey-eyebrow">Camino Adolescente y Adulto</p>
+            <h2>Path2Legend™</h2>
+            <span class="journey-age">Edades 14+</span>
+            <p>
+              Entrena con propósito, compite con integridad y desarrolla la
+              habilidad, disciplina, responsabilidad y liderazgo de una leyenda.
+            </p>
+          </div>
+        </header>
+
+        <div class="badge-collection" role="list" aria-label="Path2Legend badge progression">
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-apprentice-white-gold.png" alt="Apprentice badge" loading="lazy" />
+            <h3>Apprentice</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-warrior-gold.png" alt="Warrior badge" loading="lazy" />
+            <h3>Warrior</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-champion-gold.png" alt="Champion badge" loading="lazy" />
+            <h3>Champion</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-veteran-gold.png" alt="Veteran badge" loading="lazy" />
+            <h3>Veteran</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-legend-gold.png" alt="Legend badge" loading="lazy" />
+            <h3>Legend</h3>
+          </article>
+        </div>
+
+        <p class="journey-note" data-lang-block="en">
+          Path2Legend™ establishes a long-term standard for athletes who are
+          prepared to accept greater responsibility in training, competition,
+          leadership, and life.
+        </p>
+
+        <p class="journey-note hidden-lang" data-lang-block="es">
+          Path2Legend™ establece un estándar de largo plazo para atletas
+          preparados para aceptar mayor responsabilidad en el entrenamiento,
+          la competencia, el liderazgo y la vida.
+        </p>
+      </div>
+    </section>
+
+    <section class="journeys-section journey-quest2mastery">
+      <div class="journeys-wrap">
+        <header class="journey-heading">
+          <div data-lang-block="en">
+            <p class="journey-eyebrow">Advanced Journey</p>
+            <h2>Quest2Mastery™</h2>
+            <span class="journey-age">Ages 16+</span>
+            <p>
+              Pursue mastery through advanced mixed martial arts, submission
+              grappling, disciplined preparation, and lifelong learning.
+            </p>
+          </div>
+
+          <div data-lang-block="es" class="hidden-lang">
+            <p class="journey-eyebrow">Camino Avanzado</p>
+            <h2>Quest2Mastery™</h2>
+            <span class="journey-age">Edades 16+</span>
+            <p>
+              Persigue la maestría mediante artes marciales mixtas avanzadas,
+              grappling de sumisión, preparación disciplinada y aprendizaje
+              continuo.
+            </p>
+          </div>
+        </header>
+
+        <div class="badge-collection" role="list" aria-label="Quest2Mastery badge progression">
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-apprentice-white-gold.png" alt="Apprentice badge" loading="lazy" />
+            <h3>Apprentice</h3>
+          </article>
+
+                    <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-warrior-gold.png" alt="Warrior badge" loading="lazy" />
+            <h3>Warrior</h3>
+          </article>
+
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-champion-gold.png" alt="Champion badge" loading="lazy" />
+            <h3>Champion</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-veteran-gold.png" alt="Veteran badge" loading="lazy" />
+            <h3>Veteran</h3>
+          </article>
+
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/foundry4/badge-master-gold.png" alt="Master badge" loading="lazy" />
+            <h3>Master</h3>
+          </article>
+        </div>
+
+        <p class="journey-note" data-lang-block="en">
+          Quest2Mastery™ is an advanced path for athletes committed to
+          technical depth, complete preparation, high standards, and continued
+          growth.
+        </p>
+
+        <p class="journey-note hidden-lang" data-lang-block="es">
+          Quest2Mastery™ es un camino avanzado para atletas comprometidos con
+          profundidad técnica, preparación completa, estándares elevados y
+          crecimiento continuo.
+        </p>
+      </div>
+    </section>
+
+    <section class="standard-section">
+      <div class="standard-wrap">
+        <img
+          class="standard-shield"
+          src="/assets/img/pages/journeys/sandman-shield.png"
+          alt="Sandman Combat shield"
+          loading="lazy"
+        />
+
+        <div data-lang-block="en">
+          <p class="journey-eyebrow">The Sandman Standard</p>
+          <h2>Different Paths. One Standard.</h2>
+          <p class="standard-intro">
+            Every athlete begins from a different place. Every journey demands
+            something different. The commitment to discipline, consistency,
+            accountability, and character never changes.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <p class="journey-eyebrow">El Estándar Sandman</p>
+          <h2>Caminos Distintos. Un Solo Estándar.</h2>
+          <p class="standard-intro">
+            Cada atleta comienza desde un lugar distinto. Cada camino exige algo
+            diferente. El compromiso con la disciplina, constancia,
+            responsabilidad y carácter nunca cambia.
+          </p>
+        </div>
+
+        <div class="standard-grid">
+          <article class="standard-card">
+            <div data-lang-block="en">
+              <h3>One Standard</h3>
+              <p>
+                Progress is earned through disciplined work, preparation,
+                consistency, accountability, and demonstrated growth.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Un Estándar</h3>
+              <p>
+                El progreso se gana mediante trabajo disciplinado, preparación,
+                constancia, responsabilidad y crecimiento demostrado.
+              </p>
+            </div>
+          </article>
+
+          <article class="standard-card">
+            <div data-lang-block="en">
+              <h3>One Community</h3>
+              <p>
+                We challenge one another, support one another, celebrate growth,
+                and refuse to leave teammates behind. Heroes Build Heroes.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Una Comunidad</h3>
+              <p>
+                Nos desafiamos, nos apoyamos, celebramos el crecimiento y nos
+                negamos a dejar atrás a nuestros compañeros. Los Héroes Forman
+                Héroes.
+              </p>
+            </div>
+          </article>
+
+          <article class="standard-card">
+            <div data-lang-block="en">
+              <h3>One Purpose</h3>
+              <p>
+                We develop athletes who become dependable leaders in their
+                homes, schools, workplaces, teams, and communities.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Un Propósito</h3>
+              <p>
+                Desarrollamos atletas que se convierten en líderes confiables en
+                sus hogares, escuelas, trabajos, equipos y comunidades.
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="journeys-cta">
+      <div class="journeys-cta-inner">
+        <div data-lang-block="en">
+          <p class="journey-eyebrow">Everyone Starts Somewhere</p>
+          <h2>Choose Your Journey.</h2>
+          <p>
+            Your starting point may be different. Your goals may be different.
+            The standard remains the same. Take the first earned step.
+          </p>
+          <a class="journeys-cta-button" href="/connect/interest/">
+            Start Your Journey
+          </a>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <p class="journey-eyebrow">Todos Comienzan en Algún Lugar</p>
+          <h2>Elige Tu Camino.</h2>
+          <p>
+            Tu punto de partida puede ser diferente. Tus metas pueden ser
+            diferentes. El estándar permanece igual. Da el primer paso ganado.
+          </p>
+          <a class="journeys-cta-button" href="/connect/interest/">
+            Comienza Tu Camino
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+    <!-- Shared site footer -->
+    <div
+      id="footer"
+      data-component="/components/footer.html"
+    ></div>
+    <script src="/assets/js/component-loader.js" defer></script>
+    <script src="/assets/js/language.js" defer></script>
+    <script src="/assets/js/theme.js" defer></script>
+    <script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>

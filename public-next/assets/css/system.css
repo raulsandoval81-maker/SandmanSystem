@@ -1,0 +1,60 @@
+.system-page{
+    background:#050505;
+}
+
+.system-hero{
+    width:100%;
+}
+
+.system-hero img{
+    display:block;
+    width:100%;
+    height:auto;
+}
+
+.pillar-section{
+    max-width:1100px;
+    margin:70px auto;
+    padding:0 24px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:28px;
+}
+
+.pillar-card{
+    background:#121212;
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:18px;
+    padding:32px;
+}
+
+.pillar-card h2{
+    margin-bottom:16px;
+    text-align:center;
+}
+
+.pillar-card p{
+    line-height:1.8;
+    text-align:center;
+    color:#cfcfcf;
+}
+
+.system-cta{
+    max-width:760px;
+    margin:80px auto 100px;
+    padding:0 24px;
+    text-align:center;
+}
+
+.system-cta h2{
+    margin-bottom:18px;
+}
+
+.system-cta p{
+    margin-bottom:32px;
+    color:#cfcfcf;
+}
+
+.system-cta .btn-primary{
+    display:inline-block;
+}

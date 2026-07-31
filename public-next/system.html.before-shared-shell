@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Sandman System | Sandman Combat</title>
+
+  <meta
+    name="description"
+    content="Discover the Sandman Method™—a complete development system built on Combat, Strength, and Honor."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/css/system.css" />
+
+</head>
+
+<body>
+
+<header class="top-nav"></header>
+
+<main class="system-page">
+
+  <!-- HERO -->
+
+  <section class="system-hero">
+
+    <img
+      src="/assets/img/pages/system/hero-system-en.png"
+      alt="The Sandman Method"
+      data-lang-block="en"
+    />
+
+    <img
+      src="/assets/img/pages/system/hero-system-es.png"
+      alt="El Método Sandman"
+      data-lang-block="es"
+      class="hidden-lang"
+    />
+
+  </section>
+
+  <!-- THREE PILLARS -->
+
+  <section class="pillar-section">
+
+    <div class="pillar-card">
+
+      <h2 data-lang-block="en">Combat</h2>
+      <h2 data-lang-block="es" class="hidden-lang">Combate</h2>
+
+      <p data-lang-block="en">
+        Combat is the classroom. Athletes develop confidence,
+        resilience, and technical skill through structured
+        combat sports instruction.
+      </p>
+
+      <p data-lang-block="es" class="hidden-lang">
+        El combate es el aula. Los atletas desarrollan confianza,
+        resiliencia y habilidades técnicas mediante una formación
+        estructurada en deportes de combate.
+      </p>
+
+    </div>
+
+    <div class="pillar-card">
+
+      <h2 data-lang-block="en">Strength</h2>
+      <h2 data-lang-block="es" class="hidden-lang">Fuerza</h2>
+
+      <p data-lang-block="en">
+        Strength is the forge. Conditioning, mobility,
+        speed, and strength training prepare athletes
+        for competition—and for life.
+      </p>
+
+      <p data-lang-block="es" class="hidden-lang">
+        La fuerza es la forja. El acondicionamiento,
+        la movilidad, la velocidad y el entrenamiento
+        físico preparan a los atletas para competir
+        y para la vida.
+      </p>
+
+    </div>
+
+    <div class="pillar-card">
+
+      <h2 data-lang-block="en">Honor</h2>
+      <h2 data-lang-block="es" class="hidden-lang">Honor</h2>
+
+      <p data-lang-block="en">
+        Honor is the foundation. Discipline,
+        accountability, leadership, and respect
+        guide every decision on and off the mat.
+      </p>
+
+      <p data-lang-block="es" class="hidden-lang">
+        El honor es el fundamento. La disciplina,
+        la responsabilidad, el liderazgo y el respeto
+        guían cada decisión dentro y fuera del gimnasio.
+      </p>
+
+    </div>
+
+  </section>
+
+  <!-- CTA -->
+
+  <section class="system-cta">
+
+    <h2 data-lang-block="en">
+      Ready to Begin?
+    </h2>
+
+    <h2 data-lang-block="es" class="hidden-lang">
+      ¿Listo para Comenzar?
+    </h2>
+
+    <p data-lang-block="en">
+      Every athlete starts somewhere.
+      Every journey begins with one step.
+    </p>
+
+    <p data-lang-block="es" class="hidden-lang">
+      Todo atleta comienza en algún lugar.
+      Todo viaje comienza con un primer paso.
+    </p>
+
+    <a
+      href="/journeys.html"
+      class="btn-primary"
+      data-lang-block="en"
+    >
+      Explore the Journeys
+    </a>
+
+    <a
+      href="/journeys.html"
+      class="btn-primary hidden-lang"
+      data-lang-block="es"
+    >
+      Explorar los Recorridos
+    </a>
+
+  </section>
+
+</main>
+
+<footer>
+<script src="/assets/js/language.js" defer></script>
+<script src="/assets/js/theme.js" defer></script>
+<script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>
