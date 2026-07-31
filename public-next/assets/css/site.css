@@ -341,7 +341,6 @@ main {
   min-width: 120px;
   text-align: center;
 }
-
 .site-footer__seal-image {
   display: block;
   width: 72px;
@@ -393,6 +392,7 @@ main {
   text-align: center;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
+
 
 @media (max-width: 760px) {
   .site-footer {
@@ -1797,4 +1797,25 @@ html[data-theme="light"] .site-nav a:focus-visible {
   height:auto;
   display:block;
   margin:0 auto;
+}
+.site-footer__logo{
+  grid-area:logo;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  width:72px;
+  height:72px;
+
+  margin:0 auto;
+}
+
+.site-footer__seal-image{
+  display:block !important;
+
+  width:72px !important;
+  max-width:none !important;
+  height:auto !important;
+
+  margin:0 auto !important;
 }
