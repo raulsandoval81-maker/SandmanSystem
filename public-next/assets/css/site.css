@@ -1786,3 +1786,15 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+.site-footer__logo{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+
+.site-footer__seal-image{
+  width:56px;   /* was around 48px */
+  height:auto;
+  display:block;
+  margin:0 auto;
+}
