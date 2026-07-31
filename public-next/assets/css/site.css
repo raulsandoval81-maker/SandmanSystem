@@ -1370,3 +1370,112 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+/* ==================================================
+   MOBILE FOOTER — FINAL OVERRIDE
+   West → Center → East
+================================================== */
+
+@media (max-width:768px){
+
+  .site-footer{
+    padding:.7rem .65rem .5rem !important;
+  }
+
+  .site-footer__inner{
+    width:100% !important;
+    max-width:none !important;
+    margin:0 auto !important;
+
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) 48px minmax(0,1.35fr) !important;
+    grid-template-areas:
+      "motto logo headquarters"
+      "legal legal legal" !important;
+
+    align-items:center !important;
+    gap:.45rem .6rem !important;
+  }
+
+  /* WEST */
+  .site-footer__seal{
+    grid-area:motto !important;
+    margin:0 !important;
+    padding:0 !important;
+    text-align:left !important;
+  }
+
+  .site-footer__seal p{
+    margin:0 !important;
+    font-size:.68rem !important;
+    line-height:1.15 !important;
+    letter-spacing:.06em !important;
+  }
+
+  /* CENTER */
+  .site-footer__logo{
+    grid-area:logo !important;
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .site-footer__seal-image{
+    display:block !important;
+    width:42px !important;
+    height:auto !important;
+    margin:0 !important;
+  }
+
+  /* EAST */
+  .site-footer__headquarters{
+    grid-area:headquarters !important;
+    margin:0 !important;
+    padding:0 !important;
+    border:0 !important;
+    text-align:right !important;
+  }
+
+  .site-footer__headquarters strong{
+    display:block !important;
+    margin:0 0 .12rem !important;
+    font-size:.62rem !important;
+    line-height:1.1 !important;
+    letter-spacing:.08em !important;
+  }
+
+  .site-footer__headquarters p{
+    margin:0 !important;
+    font-size:.66rem !important;
+    line-height:1.2 !important;
+  }
+
+  .site-footer__headquarters small{
+    display:block !important;
+    margin-top:.12rem !important;
+    font-size:.57rem !important;
+    line-height:1.15 !important;
+  }
+
+  /* BOTTOM LEGAL LINE */
+  .site-footer__legal{
+    grid-area:legal !important;
+
+    display:flex !important;
+    justify-content:center !important;
+    align-items:center !important;
+    flex-wrap:wrap !important;
+
+    margin:.15rem 0 0 !important;
+    padding:.35rem 0 0 !important;
+    gap:.15rem .3rem !important;
+
+    border-top:1px solid rgba(255,255,255,.08) !important;
+
+    font-size:.56rem !important;
+    line-height:1.1 !important;
+    text-align:center !important;
+  }
+
+}
