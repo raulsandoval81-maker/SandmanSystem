@@ -1927,3 +1927,10 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+.sandman-crest{
+  display:block;
+  width:68px;
+  height:68px;
+  margin:4px auto 8px;
+  object-fit:contain;
+}
