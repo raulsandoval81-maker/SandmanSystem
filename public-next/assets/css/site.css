@@ -902,3 +902,56 @@ html[data-theme="light"] .site-nav a:hover,
 html[data-theme="light"] .site-nav a:focus-visible {
   color: #8b6d00;
 }
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  overflow: hidden;
+  border-radius: 50%;
+}
+
+.theme-toggle img,
+.theme-toggle svg,
+.theme-toggle__icon {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: none;
+  opacity: 1;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+.theme-toggle::before,
+.theme-toggle::after {
+  box-shadow: none;
+  filter: none;
+}
+.site-footer__headquarters{
+  margin:1.5rem 0;
+  text-align:center;
+  line-height:1.6;
+}
+
+.site-footer__headquarters strong{
+  display:block;
+  margin-bottom:.35rem;
+  color:var(--brand);
+  font-size:.9rem;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+.site-footer__headquarters p{
+  margin:.35rem 0;
+}
+
+.site-footer__headquarters small{
+  display:block;
+  margin-top:.4rem;
+  color:var(--muted);
+}
