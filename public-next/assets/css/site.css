@@ -1819,3 +1819,47 @@ html[data-theme="light"] .site-nav a:focus-visible {
 
   margin:0 auto !important;
 }
+/* =========================================
+   ORIGINS + IMPACT HERO — MOBILE FIX
+========================================= */
+
+@media (max-width: 768px){
+
+  .origins-hero,
+  .impact-hero{
+    width:100%;
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+
+  .origins-hero img,
+  .impact-hero img{
+    display:block;
+    width:100%;
+    max-width:none;
+    height:auto;
+    object-fit:contain;
+    object-position:center top;
+    margin:0 auto;
+  }
+
+}
+@media (max-width: 768px){
+
+  .origins-page .page-hero,
+  .impact-page .page-hero{
+    height:auto;
+    min-height:0;
+    overflow:visible;
+  }
+
+  .origins-page .page-hero img,
+  .impact-page .page-hero img{
+    width:100%;
+    height:auto;
+    object-fit:contain;
+    object-position:center top;
+  }
+
+}
