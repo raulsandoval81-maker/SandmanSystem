@@ -350,3 +350,70 @@
     width: 100%;
   }
 }
+
+.belief-equation{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.35em;
+
+  margin:0 auto 1.5rem;
+
+  color:#fff;
+  font-size:clamp(2rem,8vw,4.6rem);
+  font-weight:900;
+  line-height:.95;
+  letter-spacing:-.04em;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.belief-equation__equals{
+  color:#d4af37;
+  flex:0 0 auto;
+}
+
+@media (max-width:600px){
+  .belief-equation{
+    gap:.22em;
+    font-size:clamp(1.85rem,9vw,2.8rem);
+    letter-spacing:-.05em;
+  }
+}
+.belief-equation{
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+
+  width:100%;
+  max-width:100%;
+  margin:0 auto 1.5rem;
+
+  gap:.22em;
+  white-space:nowrap;
+
+  font-size:clamp(1.55rem,5.5vw,4.5rem);
+  font-weight:900;
+  line-height:1;
+  letter-spacing:-.045em;
+  text-align:center;
+}
+
+.belief-equation > span{
+  display:inline-block;
+  flex:0 0 auto;
+}
+
+.belief-equation__equals{
+  color:#d4af37;
+}
+
+@media (max-width:600px){
+  .belief-equation{
+    gap:.16em;
+    font-size:clamp(1.35rem,7.2vw,2.25rem);
+    letter-spacing:-.055em;
+  }
+}
