@@ -510,3 +510,56 @@
     object-position: center top !important;
   }
 }
+/* =========================================================
+   JOURNEYS — PHONE-ONLY DARK TEXT REPAIR
+========================================================= */
+
+@media (max-width:768px){
+
+  .journeys-page,
+  .journey-section,
+  .journeys-intro,
+  .journeys-fitness,
+  .journey-content,
+  .journey-details-grid article,
+  .rank-panel,
+  .fitness-note,
+  .journey-index-card{
+    --text:#f5f5f5 !important;
+    --text-soft:#d0d0d4 !important;
+    --muted:rgba(255,255,255,.72) !important;
+  }
+
+  .journeys-page h1,
+  .journeys-page h2,
+  .journeys-page h3,
+  .journey-section h1,
+  .journey-section h2,
+  .journey-section h3,
+  .journey-content h1,
+  .journey-content h2,
+  .journey-content h3,
+  .journey-details-grid h3,
+  .rank-panel-title{
+    color:#f5f5f5 !important;
+  }
+
+  .journeys-page p,
+  .journey-section p,
+  .journey-content p,
+  .journey-tagline,
+  .journey-details-grid p,
+  .journey-details-grid li,
+  .rank-panel p,
+  .fitness-note p{
+    color:rgba(245,245,245,.8) !important;
+  }
+
+  .journey-details-grid article,
+  .rank-panel,
+  .fitness-note,
+  .journey-index-card{
+    background:#111113 !important;
+    color:#f5f5f5 !important;
+  }
+}
