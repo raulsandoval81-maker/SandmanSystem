@@ -187,7 +187,7 @@
   height: auto;
   max-height: none;
   margin: 0 auto;
-  object-fit: contain;
+  object-fit: fill;
   object-position: center top;
 }
 
