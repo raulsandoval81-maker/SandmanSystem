@@ -414,3 +414,66 @@
   }
 
 }
+/* ==========================================
+   EVERYDAY FITNESS INTRO
+========================================== */
+
+.journeys-fitness .journeys-heading{
+  max-width:760px;
+  margin:0 auto 2rem;
+  text-align:center;
+}
+
+.journeys-fitness .journeys-eyebrow{
+  color:var(--color-gold);
+  letter-spacing:.18em;
+  text-transform:uppercase;
+  margin-bottom:.75rem;
+}
+
+.journeys-fitness .journeys-heading h2{
+  margin:0 0 1rem;
+  font-size:clamp(2rem,4vw,3rem);
+  font-weight:800;
+  color:#fff;
+}
+
+.journeys-fitness .journeys-heading p:last-child{
+  max-width:640px;
+  margin:0 auto;
+  font-size:1.1rem;
+  line-height:1.8;
+  color:rgba(255,255,255,.78);
+}
+
+.journeys-fitness__hero{
+  display:block;
+  width:100%;
+  max-width:1100px;
+  margin:2.5rem auto 0;
+  border-radius:16px;
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+
+@media (max-width:768px){
+
+  .journeys-fitness .journeys-heading{
+    margin-bottom:1.5rem;
+  }
+
+  .journeys-fitness .journeys-heading h2{
+    font-size:2rem;
+  }
+
+  .journeys-fitness .journeys-heading p:last-child{
+    font-size:1rem;
+    line-height:1.7;
+    padding:0 .5rem;
+  }
+
+  .journeys-fitness__hero{
+    margin-top:1.5rem;
+    border-radius:12px;
+  }
+
+}
