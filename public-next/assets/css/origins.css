@@ -1091,7 +1091,7 @@
   }
 
   .origins-hero > [data-lang-block] {
-    width: 100%;
+    width: 96%;
     height: auto;
     margin: 0;
     padding: 0;
@@ -1104,7 +1104,7 @@
     right: auto;
 
     display: block;
-    width: 100%;
+    width: 90%;
     max-width: none;
     height: auto;
     min-height: 0;
