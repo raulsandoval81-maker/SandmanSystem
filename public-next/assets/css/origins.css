@@ -1073,3 +1073,46 @@
   }
 
 }
+/* =========================================================
+   ORIGINS HERO — PORTRAIT PHONE
+========================================================= */
+
+@media (max-width:768px) and (orientation:portrait){
+
+  .origins-hero{
+    display:flex !important;
+    justify-content:center !important;
+    align-items:flex-start !important;
+
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+
+    margin:0 !important;
+    padding:28px 0 0 !important;
+
+    overflow:hidden !important;
+    background:#000 !important;
+  }
+
+  .origins-hero > div{
+    width:100% !important;
+    height:auto !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .origins-hero__image{
+    display:block !important;
+
+    width:116% !important;
+    max-width:none !important;
+    height:auto !important;
+
+    margin:0 0 0 50% !important;
+    transform:translateX(-50%) !important;
+
+    object-fit:contain !important;
+    object-position:center top !important;
+  }
+}
