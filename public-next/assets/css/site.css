@@ -1952,3 +1952,70 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+/* =========================================================
+   PUBLIC HERO POSTERS — PORTRAIT PHONE FIX
+   Fill the hero vertically without leaving empty black space
+========================================================= */
+
+@media (max-width: 768px) and (orientation: portrait){
+
+  .hero-panel,
+  .about-hero,
+  .journeys-hero,
+  .system-hero,
+  .origins-hero,
+  .impact-hero,
+  .library-hero,
+  .connect-hero{
+    width:100% !important;
+    height:64svh !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:0 !important;
+    overflow:hidden !important;
+    background:#000;
+  }
+
+  .hero-panel > div,
+  .about-hero > div,
+  .journeys-hero > div,
+  .system-hero > div,
+  .origins-hero > div,
+  .impact-hero > div,
+  .library-hero > div,
+  .connect-hero > div{
+    width:100% !important;
+    height:100% !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .home-hero__image,
+  .about-hero img,
+  .journeys-hero img,
+  .system-hero img,
+  .origins-hero__image,
+  .impact-hero__image,
+  .library-hero img,
+  .connect-hero img{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-width:none !important;
+    margin:0 !important;
+    object-fit:cover !important;
+    object-position:center top !important;
+  }
+
+  /* Keep the first content block close to the hero */
+  .about-hero + section,
+  .journeys-hero + section,
+  .system-hero + section,
+  .origins-hero + section,
+  .impact-hero + section,
+  .library-hero + section,
+  .connect-hero + section{
+    margin-top:0 !important;
+    padding-top:24px !important;
+  }
+}
