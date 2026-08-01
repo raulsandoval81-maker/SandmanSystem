@@ -1,61 +1,44 @@
 /* =========================================================
    Sandman Combat — Public Next Journeys
+   Page-specific styles only
+========================================================= */
+
+/* =========================================================
+   HERO POSTER
 ========================================================= */
 
 .journeys-hero {
-  position: relative;
-  display: grid;
-  min-height: 760px;
-  align-items: end;
-  overflow: hidden;
-  background: #050505;
-}
-
-.journeys-hero-media,
-.journeys-hero-overlay {
-  position: absolute;
-  inset: 0;
-}
-
-.journeys-hero-media img {
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.journeys-hero-overlay {
-  background:
-    linear-gradient(90deg, rgba(0,0,0,.92), rgba(0,0,0,.58) 55%, rgba(0,0,0,.18)),
-    linear-gradient(0deg, rgba(0,0,0,.94), transparent 58%);
-}
-
-.journeys-hero-content {
-  position: relative;
-  z-index: 2;
-  padding-top: 10rem;
-  padding-bottom: 6rem;
-}
-
-.journeys-hero h1 {
-  max-width: 980px;
+  min-height: 0;
   margin: 0;
-  color: #fff;
-  font-size: clamp(3.4rem, 8vw, 7.4rem);
-  line-height: .92;
-  letter-spacing: -.055em;
+  padding: 0;
+  overflow: hidden;
+  background: #000;
 }
 
-.journeys-hero h1 strong {
-  color: var(--brand-red-bright, #d11f27);
+.journeys-hero > [data-lang-block] {
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.hero-lead {
-  max-width: 760px;
-  margin-top: 1.5rem;
-  color: rgba(255,255,255,.84);
-  font-size: clamp(1.08rem, 2vw, 1.4rem);
-  line-height: 1.65;
+.journeys-hero__image,
+.journeys-hero > [data-lang-block] > img {
+  position: static;
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  margin: 0 auto;
+  transform: none;
+  object-fit: contain;
+  object-position: center top;
 }
+
+/* =========================================================
+   JOURNEY INDEX
+========================================================= */
 
 .journey-index {
   padding-top: 1.5rem;
@@ -65,19 +48,21 @@
 
 .journey-index-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: .8rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.8rem;
 }
 
 .journey-index-card {
   display: grid;
-  gap: .35rem;
+  gap: 0.35rem;
   padding: 1rem 1.15rem;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
   border-radius: 16px;
   background: var(--surface, #111113);
   text-decoration: none;
-  transition: transform .2s ease, border-color .2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 .journey-index-card:hover {
@@ -107,11 +92,15 @@
 }
 
 .journey-index-age {
-  font-size: .69rem;
+  font-size: 0.69rem;
   font-weight: 900;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
+
+/* =========================================================
+   JOURNEY SECTIONS
+========================================================= */
 
 .journey-section {
   position: relative;
@@ -123,26 +112,38 @@
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: .22;
+  opacity: 0.22;
 }
 
 .journey-silver::before {
-  background: radial-gradient(circle at 18% 35%, rgba(213,219,225,.28), transparent 28%);
+  background: radial-gradient(
+    circle at 18% 35%,
+    rgba(213, 219, 225, 0.28),
+    transparent 28%
+  );
 }
 
 .journey-gold::before {
-  background: radial-gradient(circle at 82% 35%, rgba(212,177,71,.22), transparent 30%);
+  background: radial-gradient(
+    circle at 82% 35%,
+    rgba(212, 177, 71, 0.22),
+    transparent 30%
+  );
 }
 
 .journey-fitness::before {
-  background: radial-gradient(circle at 18% 35%, rgba(181,18,25,.2), transparent 30%);
+  background: radial-gradient(
+    circle at 18% 35%,
+    rgba(181, 18, 25, 0.2),
+    transparent 30%
+  );
 }
 
 .journey-layout {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: minmax(0,.88fr) minmax(0,1.12fr);
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
   gap: clamp(2rem, 7vw, 7rem);
   align-items: center;
 }
@@ -155,12 +156,13 @@
   position: relative;
   overflow: hidden;
   min-height: 620px;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
   border-radius: 26px;
   background: #080808;
 }
 
 .journey-media img {
+  display: block;
   width: 100%;
   height: 100%;
   min-height: inherit;
@@ -171,55 +173,55 @@
   position: absolute;
   top: 1.25rem;
   right: 1.25rem;
-  padding: .55rem .85rem;
-  border: 1px solid rgba(212,177,71,.7);
+  padding: 0.55rem 0.85rem;
+  border: 1px solid rgba(212, 177, 71, 0.7);
   border-radius: 999px;
-  background: rgba(0,0,0,.76);
+  background: rgba(0, 0, 0, 0.76);
   color: #e2c568;
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: .12em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
 .journey-label {
-  margin: 0 0 .65rem;
+  margin: 0 0 0.65rem;
   color: var(--brand-red-bright, #d11f27);
-  font-size: .74rem;
+  font-size: 0.74rem;
   font-weight: 900;
-  letter-spacing: .15em;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
 }
 
 .journey-content h2 {
   margin: 0;
   font-size: clamp(2.7rem, 6vw, 5.7rem);
-  line-height: .95;
-  letter-spacing: -.045em;
+  line-height: 0.95;
+  letter-spacing: -0.045em;
 }
 
 .journey-tagline {
-  margin: .8rem 0 1.7rem;
+  margin: 0.8rem 0 1.7rem;
   color: var(--text-soft, #d4d4d7);
   font-size: clamp(1.05rem, 2vw, 1.3rem);
 }
 
 .journey-details-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap: .8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
   margin: 1.7rem 0;
 }
 
 .journey-details-grid article {
   padding: 1.15rem;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
   border-radius: 16px;
-  background: rgba(255,255,255,.018);
+  background: rgba(255, 255, 255, 0.018);
 }
 
 .journey-details-grid h3 {
-  margin: 0 0 .75rem;
+  margin: 0 0 0.75rem;
   font-size: 1rem;
 }
 
@@ -230,45 +232,49 @@
 }
 
 .journey-details-grid li + li {
-  margin-top: .35rem;
+  margin-top: 0.35rem;
 }
+
+/* =========================================================
+   RANKS + FITNESS NOTES
+========================================================= */
 
 .rank-panel,
 .fitness-note {
   padding: 1.15rem;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
   border-radius: 16px;
   background: var(--surface, #111113);
 }
 
 .rank-panel-title {
-  margin: 0 0 .8rem;
+  margin: 0 0 0.8rem;
   color: var(--text-soft, #d4d4d7);
-  font-size: .72rem;
+  font-size: 0.72rem;
   font-weight: 900;
-  letter-spacing: .14em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
 .rank-flow {
   display: flex;
   flex-wrap: wrap;
-  gap: .5rem;
+  gap: 0.5rem;
 }
 
 .rank-flow span {
-  padding: .45rem .65rem;
-  border: 1px solid var(--line, rgba(255,255,255,.12));
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
   border-radius: 999px;
-  font-size: .79rem;
+  font-size: 0.79rem;
 }
 
 .journey-silver .rank-flow span {
-  border-color: rgba(204,210,216,.48);
+  border-color: rgba(204, 210, 216, 0.48);
 }
 
 .journey-gold .rank-flow span {
-  border-color: rgba(212,177,71,.48);
+  border-color: rgba(212, 177, 71, 0.48);
 }
 
 .fitness-note strong {
@@ -278,6 +284,10 @@
 .fitness-note p {
   margin-bottom: 0;
 }
+
+/* =========================================================
+   EARNED STANDARD
+========================================================= */
 
 .earned-standard {
   background: linear-gradient(100deg, #f2f2f2, #dcdcdc);
@@ -298,7 +308,7 @@
 
 .earned-standard-grid {
   display: grid;
-  grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr);
+  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
   gap: clamp(2rem, 7vw, 7rem);
 }
 
@@ -306,22 +316,26 @@
   color: #2e2e2e;
 }
 
+/* =========================================================
+   AVAILABILITY + CTA PANELS
+========================================================= */
+
 .availability-panel,
 .final-cta-panel {
   display: grid;
-  grid-template-columns: minmax(0,1fr) minmax(0,1fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: clamp(2rem, 6vw, 5rem);
   align-items: center;
   padding: clamp(1.6rem, 4vw, 3rem);
-  border: 1px solid rgba(181,18,25,.48);
+  border: 1px solid rgba(181, 18, 25, 0.48);
   border-radius: 24px;
   background:
-    linear-gradient(110deg, rgba(181,18,25,.13), transparent),
+    linear-gradient(110deg, rgba(181, 18, 25, 0.13), transparent),
     var(--surface, #111113);
 }
 
 .availability-panel .button {
-  margin-top: .8rem;
+  margin-top: 0.8rem;
 }
 
 .final-cta {
@@ -329,16 +343,75 @@
 }
 
 .final-cta-panel {
-  grid-template-columns: minmax(0,1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
 }
 
 .final-cta-panel p {
   margin-bottom: 0;
 }
 
+/* =========================================================
+   EVERYDAY FITNESS
+========================================================= */
+
+.journeys-fitness {
+  padding: clamp(4rem, 8vw, 7rem) 1.25rem;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(212, 175, 55, 0.06),
+      transparent 45%
+    ),
+    linear-gradient(180deg, #07111f 0%, #03070d 100%);
+}
+
+.journeys-fitness .journeys-heading {
+  max-width: 760px;
+  margin: 0 auto 2rem;
+  text-align: center;
+}
+
+.journeys-fitness .journeys-eyebrow {
+  margin-bottom: 0.75rem;
+  color: var(--color-gold, #d4af37);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.journeys-fitness .journeys-heading h2 {
+  margin: 0 0 1rem;
+  color: #fff;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 800;
+}
+
+.journeys-fitness .journeys-heading p:last-child {
+  max-width: 640px;
+  margin: 0 auto;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1.1rem;
+  line-height: 1.8;
+}
+
+.journeys-fitness__hero {
+  display: block;
+  width: 100%;
+  max-width: 1100px;
+  height: auto;
+  margin: 2.5rem auto 0;
+  overflow: hidden;
+  border-radius: 16px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+/* =========================================================
+   RESPONSIVE — TABLET
+========================================================= */
+
 @media (max-width: 1050px) {
   .journey-index-grid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .journey-layout,
@@ -356,15 +429,11 @@
   }
 }
 
-@media (max-width: 700px) {
-  .journeys-hero {
-    min-height: 700px;
-  }
+/* =========================================================
+   RESPONSIVE — MOBILE
+========================================================= */
 
-  .journeys-hero h1 {
-    font-size: clamp(3.1rem, 15vw, 5rem);
-  }
-
+@media (max-width: 768px) {
   .journey-index-grid,
   .journey-details-grid,
   .final-cta-panel {
@@ -378,179 +447,66 @@
   .final-cta-panel .button {
     width: 100%;
   }
+
+  .journeys-fitness {
+    padding: 3rem 1rem;
+  }
+
+  .journeys-fitness .journeys-heading {
+    margin-bottom: 1.5rem;
+  }
+
+  .journeys-fitness .journeys-heading h2 {
+    font-size: 2rem;
+  }
+
+  .journeys-fitness .journeys-heading p:last-child {
+    padding: 0 0.5rem;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .journeys-fitness__hero {
+    margin-top: 1.5rem;
+    border-radius: 12px;
+  }
 }
+
 /* =========================================================
-   EVERYDAY FITNESS
+   RESPONSIVE — PORTRAIT PHONE HERO
+   Natural 100% width, centered, no transform drift
 ========================================================= */
 
-.journeys-fitness{
-  padding:clamp(4rem,8vw,7rem) 1.25rem;
-  background:
-    radial-gradient(circle at top,
-      rgba(212,175,55,.06),
-      transparent 45%),
-    linear-gradient(180deg,#07111f 0%,#03070d 100%);
-  border-top:1px solid rgba(212,175,55,.15);
-}
-
-.journeys-fitness__hero{
-  display:block;
-  width:min(1100px,100%);
-  margin:2.5rem auto 0;
-  border-radius:18px;
-  overflow:hidden;
-  box-shadow:0 24px 60px rgba(0,0,0,.45);
-}
-
-@media (max-width:768px){
-
-  .journeys-fitness{
-    padding:3rem 1rem;
+@media (max-width: 768px) and (orientation: portrait) {
+  .journeys-hero {
+    width: 100% !important;
+    min-height: 0 !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 28px 0 0 !important;
+    overflow: hidden !important;
+    background: #000 !important;
   }
 
-  .journeys-fitness__hero{
-    margin-top:1.5rem;
-    border-radius:12px;
+  .journeys-hero > [data-lang-block] {
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
   }
 
-}
-/* ==========================================
-   EVERYDAY FITNESS INTRO
-========================================== */
-
-.journeys-fitness .journeys-heading{
-  max-width:760px;
-  margin:0 auto 2rem;
-  text-align:center;
-}
-
-.journeys-fitness .journeys-eyebrow{
-  color:var(--color-gold);
-  letter-spacing:.18em;
-  text-transform:uppercase;
-  margin-bottom:.75rem;
-}
-
-.journeys-fitness .journeys-heading h2{
-  margin:0 0 1rem;
-  font-size:clamp(2rem,4vw,3rem);
-  font-weight:800;
-  color:#fff;
-}
-
-.journeys-fitness .journeys-heading p:last-child{
-  max-width:640px;
-  margin:0 auto;
-  font-size:1.1rem;
-  line-height:1.8;
-  color:rgba(255,255,255,.78);
-}
-
-.journeys-fitness__hero{
-  display:block;
-  width:100%;
-  max-width:1100px;
-  margin:2.5rem auto 0;
-  border-radius:16px;
-  box-shadow:0 24px 60px rgba(0,0,0,.45);
-}
-
-@media (max-width:768px){
-
-  .journeys-fitness .journeys-heading{
-    margin-bottom:1.5rem;
-  }
-
-  .journeys-fitness .journeys-heading h2{
-    font-size:2rem;
-  }
-
-  .journeys-fitness .journeys-heading p:last-child{
-    font-size:1rem;
-    line-height:1.7;
-    padding:0 .5rem;
-  }
-
-  .journeys-fitness__hero{
-    margin-top:1.5rem;
-    border-radius:12px;
-  }
-
-}
-/* =========================================================
-   JOURNEYS HERO — PORTRAIT PHONE
-========================================================= */
-
-@media (max-width:768px) and (orientation:portrait){
-
-  .journeys-hero{
-    display:block !important;
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-    margin:0 !important;
-    padding:28px 0 0 !important;
-    overflow:hidden !important;
-    background:#000 !important;
-  }
-
-  .journeys-hero > [data-lang-block]{
-    width:100% !important;
-    height:auto !important;
-    margin:0 !important;
-    padding:0 !important;
-    overflow:hidden !important;
-  }
-
-  .journeys-hero img,
-  .journeys-hero__image{
-    position:relative !important;
-    left:50% !important;
-
-    display:block !important;
-    width:100% !important;
-    max-width:none !important;
-    height:auto !important;
-
-    margin:0 !important;
-    transform:translateX(-50%) !important;
-
-    object-fit:contain !important;
-    object-position:center top !important;
-  }
-}
-@media (max-width:768px) and (orientation:portrait){
-
-  .journeys-hero,
-  .system-hero{
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-    margin:0 !important;
-    padding:28px 0 0 !important;
-    overflow:hidden !important;
-    background:#000 !important;
-  }
-
-  .journeys-hero > div,
-  .system-hero > div{
-    width:100% !important;
-    height:auto !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  .journeys-hero img,
   .journeys-hero__image,
-  .system-hero img,
-  .system-hero__image{
-    display:block !important;
-    width:100% !important;
-    max-width:none !important;
-    height:auto !important;
-    margin:0 auto !important;
-    transform:none !important;
-    object-fit:contain !important;
-    object-position:center top !important;
+  .journeys-hero > [data-lang-block] > img {
+    position: static !important;
+    left: auto !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    transform: none !important;
+    object-fit: contain !important;
+    object-position: center top !important;
   }
 }
