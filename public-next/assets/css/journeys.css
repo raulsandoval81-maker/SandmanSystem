@@ -508,13 +508,48 @@
     left:50% !important;
 
     display:block !important;
-    width:110% !important;
+    width:100% !important;
     max-width:none !important;
     height:auto !important;
 
     margin:0 !important;
     transform:translateX(-50%) !important;
 
+    object-fit:contain !important;
+    object-position:center top !important;
+  }
+}
+@media (max-width:768px) and (orientation:portrait){
+
+  .journeys-hero,
+  .system-hero{
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:28px 0 0 !important;
+    overflow:hidden !important;
+    background:#000 !important;
+  }
+
+  .journeys-hero > div,
+  .system-hero > div{
+    width:100% !important;
+    height:auto !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .journeys-hero img,
+  .journeys-hero__image,
+  .system-hero img,
+  .system-hero__image{
+    display:block !important;
+    width:100% !important;
+    max-width:none !important;
+    height:auto !important;
+    margin:0 auto !important;
+    transform:none !important;
     object-fit:contain !important;
     object-position:center top !important;
   }
