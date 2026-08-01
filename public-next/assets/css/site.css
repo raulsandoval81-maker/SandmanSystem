@@ -2053,3 +2053,53 @@ html[data-theme="light"] .site-nav a:focus-visible {
     height:42px;
   }
 }
+/* =========================================================
+   JOURNEYS + SYSTEM HERO — PORTRAIT PHONE ENLARGEMENT
+   Use natural image height and a controlled zoom.
+========================================================= */
+
+@media (max-width:768px) and (orientation:portrait){
+
+  .journeys-hero,
+  .system-hero{
+    width:100% !important;
+    height:auto !important;
+    min-height:0 !important;
+    margin:0 !important;
+    padding:28px 0 0 !important;
+    overflow:hidden !important;
+    background:#000;
+  }
+
+  .journeys-hero > div,
+  .system-hero > div{
+    width:100% !important;
+    height:auto !important;
+    margin:0 !important;
+    padding:0 !important;
+  }
+
+  .journeys-hero img,
+  .system-hero img,
+  .journeys-hero__image,
+  .system-hero__image{
+    display:block !important;
+
+    /* Controlled zoom without distorting the artwork */
+    width:110% !important;
+    max-width:none !important;
+    height:auto !important;
+
+    margin:0 0 0 50% !important;
+    transform:translateX(-50%) !important;
+
+    object-fit:initial !important;
+    object-position:initial !important;
+  }
+
+  .journeys-hero + section,
+  .system-hero + section{
+    margin-top:0 !important;
+    padding-top:24px !important;
+  }
+}
