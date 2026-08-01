@@ -379,3 +379,38 @@
     width: 100%;
   }
 }
+/* =========================================================
+   EVERYDAY FITNESS
+========================================================= */
+
+.journeys-fitness{
+  padding:clamp(4rem,8vw,7rem) 1.25rem;
+  background:
+    radial-gradient(circle at top,
+      rgba(212,175,55,.06),
+      transparent 45%),
+    linear-gradient(180deg,#07111f 0%,#03070d 100%);
+  border-top:1px solid rgba(212,175,55,.15);
+}
+
+.journeys-fitness__hero{
+  display:block;
+  width:min(1100px,100%);
+  margin:2.5rem auto 0;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,.45);
+}
+
+@media (max-width:768px){
+
+  .journeys-fitness{
+    padding:3rem 1rem;
+  }
+
+  .journeys-fitness__hero{
+    margin-top:1.5rem;
+    border-radius:12px;
+  }
+
+}
