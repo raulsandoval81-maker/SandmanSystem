@@ -1,0 +1,419 @@
+/* =========================================================
+   Sandman Combat — Public Next About
+   File: public-next/assets/css/about.css
+========================================================= */
+
+.about-hero,
+.about-story-art {
+  background: #050505;
+}
+
+.about-image-frame {
+  width: 100%;
+  overflow: hidden;
+}
+
+.about-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+.about-opening {
+  position: relative;
+  overflow: hidden;
+}
+
+.about-opening::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 5px;
+  background: var(--brand-red, #b51219);
+}
+
+.opening-grid,
+.story-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: start;
+}
+
+.opening-grid h2,
+.story-grid h2 {
+  max-width: 12ch;
+}
+
+.opening-copy,
+.story-copy {
+  max-width: 760px;
+}
+
+.origin-section {
+  background:
+    radial-gradient(circle at 86% 38%, rgba(181, 18, 25, 0.15), transparent 34%),
+    var(--surface-deep, #0b0b0c);
+}
+
+.mission-vision-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+}
+
+.purpose-card {
+  min-height: 360px;
+  padding: clamp(1.8rem, 5vw, 4rem);
+}
+
+.purpose-card:first-child {
+  border-right: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+}
+
+.purpose-card h2 {
+  margin-bottom: 1.25rem;
+  font-size: clamp(2.1rem, 5vw, 4rem);
+}
+
+.purpose-card p:last-child {
+  max-width: 620px;
+  color: var(--text-soft, #d6d6d8);
+  font-size: clamp(1.02rem, 1.8vw, 1.2rem);
+  line-height: 1.75;
+}
+
+.philosophy-section {
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0.96), rgba(224, 224, 224, 0.93));
+  color: #111;
+}
+
+.philosophy-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 0.55fr) minmax(0, 1.45fr);
+  gap: clamp(2rem, 7vw, 7rem);
+  align-items: center;
+}
+
+.philosophy-mark {
+  display: grid;
+  width: min(280px, 74vw);
+  aspect-ratio: 1;
+  place-items: center;
+  border: 14px solid rgba(0, 0, 0, 0.82);
+  border-radius: 50%;
+  font-size: clamp(4rem, 12vw, 9rem);
+  font-weight: 900;
+}
+
+.philosophy-section .eyebrow {
+  color: #b51219;
+}
+
+.philosophy-copy h2 {
+  margin-bottom: 1.4rem;
+  color: #111;
+  font-size: clamp(2.2rem, 5vw, 4.9rem);
+  line-height: 0.96;
+}
+
+.philosophy-copy h2 strong {
+  color: #b51219;
+}
+
+.philosophy-copy p {
+  max-width: 780px;
+  color: #252525;
+}
+
+.philosophy-close {
+  color: #b51219 !important;
+  font-weight: 900;
+}
+
+.standards-section {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.018), rgba(255, 255, 255, 0.018)),
+    var(--surface-deep, #0b0b0c);
+}
+
+.standard-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 2.5rem;
+  border-top: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+}
+
+.standard-card {
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  border-right: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+}
+
+.standard-card:last-child {
+  border-right: 0;
+}
+
+.standard-number {
+  display: block;
+  margin-bottom: 2.5rem;
+  color: var(--brand-red-bright, #d11f27);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.standard-card h3 {
+  min-height: 2.4em;
+  margin: 0 0 1rem;
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+}
+
+.standard-card p {
+  margin: 0;
+  color: var(--text-soft, #d6d6d8);
+  line-height: 1.7;
+}
+
+.founder-section {
+  position: relative;
+  overflow: hidden;
+}
+
+.founder-section::after {
+  content: "";
+  position: absolute;
+  right: -130px;
+  bottom: -130px;
+  width: 420px;
+  aspect-ratio: 1;
+  border: 1px solid rgba(181, 18, 25, 0.3);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 55px rgba(181, 18, 25, 0.04),
+    0 0 0 110px rgba(181, 18, 25, 0.025);
+  pointer-events: none;
+}
+
+.founder-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(260px, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(2.5rem, 7vw, 7rem);
+  align-items: center;
+}
+
+.founder-portrait {
+  display: grid;
+  min-height: 510px;
+  place-items: center;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(181, 18, 25, 0.22), transparent 36%),
+    linear-gradient(145deg, #151517, #080809);
+}
+
+.founder-monogram {
+  display: grid;
+  width: 190px;
+  aspect-ratio: 1;
+  place-items: center;
+  border: 2px solid rgba(205, 31, 39, 0.75);
+  border-radius: 50%;
+  color: #f4f4f4;
+  font-size: 4rem;
+  font-weight: 950;
+  letter-spacing: -0.08em;
+}
+
+.founder-copy {
+  max-width: 760px;
+}
+
+.founder-copy h2 {
+  margin-bottom: 1rem;
+  font-size: clamp(2.5rem, 6vw, 5rem);
+}
+
+.founder-signoff {
+  color: var(--brand-red-bright, #d11f27) !important;
+  font-weight: 900;
+}
+
+.future-section {
+  padding-top: clamp(2rem, 6vw, 5rem);
+}
+
+.future-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: center;
+  padding: clamp(1.75rem, 5vw, 3.75rem);
+  border: 1px solid rgba(205, 31, 39, 0.55);
+  border-radius: 24px;
+  background:
+    linear-gradient(110deg, rgba(181, 18, 25, 0.15), rgba(255, 255, 255, 0.018)),
+    var(--surface, #101012);
+}
+
+.future-panel h2 {
+  margin-bottom: 0.75rem;
+}
+
+.future-panel p {
+  max-width: 850px;
+  margin: 0;
+  color: var(--text-soft, #d6d6d8);
+}
+
+@media (max-width: 1050px) {
+  .standard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .standard-card:nth-child(2) {
+    border-right: 0;
+  }
+
+  .standard-card:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  }
+}
+
+@media (max-width: 900px) {
+  .opening-grid,
+  .story-grid,
+  .philosophy-grid,
+  .founder-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .opening-grid h2,
+  .story-grid h2 {
+    max-width: none;
+  }
+
+  .mission-vision-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .purpose-card:first-child {
+    border-right: 0;
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  }
+
+  .philosophy-mark {
+    width: min(220px, 65vw);
+  }
+
+  .founder-portrait {
+    min-height: 360px;
+  }
+
+  .future-panel {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 650px) {
+  .about-hero .about-image {
+    min-height: 500px;
+    object-position: 60% center;
+  }
+
+  .about-story-art .about-image {
+    min-height: 720px;
+    object-position: center top;
+  }
+
+  .standard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .standard-card,
+  .standard-card:nth-child(2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--line, rgba(255, 255, 255, 0.12));
+  }
+
+  .standard-card:last-child {
+    border-bottom: 0;
+  }
+
+  .future-panel .button {
+    width: 100%;
+  }
+}
+
+.belief-equation{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.35em;
+
+  margin:0 auto 1.5rem;
+
+  color:#fff;
+  font-size:clamp(2rem,8vw,4.6rem);
+  font-weight:900;
+  line-height:.95;
+  letter-spacing:-.04em;
+  text-align:center;
+  white-space:nowrap;
+}
+
+.belief-equation__equals{
+  color:#d4af37;
+  flex:0 0 auto;
+}
+
+@media (max-width:600px){
+  .belief-equation{
+    gap:.22em;
+    font-size:clamp(1.85rem,9vw,2.8rem);
+    letter-spacing:-.05em;
+  }
+}
+.belief-equation{
+  display:flex;
+  flex-direction:row;
+  flex-wrap:nowrap;
+  align-items:center;
+  justify-content:center;
+
+  width:100%;
+  max-width:100%;
+  margin:0 auto 1.5rem;
+
+  gap:.22em;
+  white-space:nowrap;
+
+  font-size:clamp(1.55rem,5.5vw,4.5rem);
+  font-weight:900;
+  line-height:1;
+  letter-spacing:-.045em;
+  text-align:center;
+}
+
+.belief-equation > span{
+  display:inline-block;
+  flex:0 0 auto;
+}
+
+.belief-equation__equals{
+  color:#d4af37;
+}
+
+@media (max-width:600px){
+  .belief-equation{
+    gap:.16em;
+    font-size:clamp(1.35rem,7.2vw,2.25rem);
+    letter-spacing:-.055em;
+  }
+}

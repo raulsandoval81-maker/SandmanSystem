@@ -1,582 +1,63 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+  <title>Sandman Combat</title>
   <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
+    name="description"
+    content="Combat Is the Classroom. Character Is the Curriculum."
   />
 
-  <title>Home | Sandman Combat™</title>
-
-  <link
-    rel="stylesheet"
-    href="/assets/css/site.css"
-  />
-
-  <link
-    rel="stylesheet"
-    href="/public.css"
-  />
-
-  <script
-    src="/assets/js/public-shell.js"
-    defer
-  ></script>
-
-<style>
-  .hero{
-    text-align:center;
-    margin-bottom:1rem;
-    padding-top:10px;
-    padding-bottom:18px;
-  }
-
-  .hero img,
-  .hero-logo,
-  .sandman-crest{
-    display:block;
-    width:100%;
-    max-width:300px;
-    height:auto;
-    margin:8px auto 10px !important;
-  }
-
-  .hero-sub{
-    max-width:760px;
-    margin:10px auto 2rem;
-    line-height:1.7;
-    font-size:1.15rem;
-  }
-
-  .hero p,
-  .hero .tagline{
-    margin-top:0 !important;
-    margin-bottom:8px !important;
-  }
-
-  .hero-actions{
-    display:flex;
-    justify-content:center;
-    gap:12px;
-    flex-wrap:wrap;
-    margin-top:18px;
-  }
-
-  .hero-actions .btn{
-    margin-top:0;
-  }
-
-  .hq-sub{
-    margin:0 0 .75rem;
-    font-size:.98rem;
-    font-weight:700;
-    color:#f3f4f6;
-    opacity:.95;
-  }
-
-  body.day-mode .hq-sub{
-    color:#1c2430;
-  }
-
-  .section-kicker{
-    margin:.25rem 0 1rem;
-    color:#fff;
-    font-size:.95rem;
-    font-weight:700;
-    letter-spacing:1px;
-    text-transform:uppercase;
-    opacity:.9;
-  }
-
-  body.day-mode .section-kicker{
-    color:#1c2430;
-  }
-
-  /* Program cards */
-  .journey-strip{
-    display:grid;
-    grid-template-columns:repeat(3, minmax(0, 1fr));
-    gap:14px;
-    max-width:1100px;
-    margin:0 auto;
-  }
-
-  .journey-card,
-  .journey-card:link,
-  .journey-card:visited,
-  .journey-card:hover,
-  .journey-card:active{
-    display:block;
-    padding:1.6rem;
-    border:1px solid var(--line);
-    border-radius:16px;
-    background:rgba(255,255,255,.035);
-    color:inherit;
-    text-decoration:none !important;
-
-    transition:
-      transform .18s ease,
-      border-color .18s ease,
-      box-shadow .18s ease,
-      background .18s ease;
-  }
-
-  .journey-card *{
-    text-decoration:none !important;
-  }
-
-  .journey-card:hover,
-  .journey-card:focus-visible{
-    transform:translateY(-3px);
-    border-color:var(--brand);
-    background:rgba(255,255,255,.06);
-    box-shadow:0 14px 28px rgba(0,0,0,.18);
-  }
-
-  .journey-card:focus-visible{
-    outline:3px solid var(--brand);
-    outline-offset:3px;
-  }
-
-  .journey-card strong{
-    display:block;
-    margin-bottom:.35rem;
-    color:#fff;
-    font-size:1.6rem;
-    font-weight:800;
-    line-height:1.2;
-  }
-
-  .journey-card span{
-    display:block;
-    margin-bottom:.9rem;
-    color:#f4c430;
-    font-size:.95rem;
-    font-weight:700;
-    letter-spacing:.05em;
-    text-transform:uppercase;
-  }
-
-  .journey-card p{
-    margin:.4rem 0;
-    font-size:1.05rem;
-    line-height:1.45;
-  }
-
-  body.day-mode .journey-card strong{
-    color:#1c2430;
-  }
-
-  /* How Families Get Started */
-  .family-start{
-    margin-top:28px;
-    text-align:left;
-  }
-
-  .family-start h2,
-  .family-start .lead{
-    text-align:center;
-  }
-
-  .family-start .lead{
-    max-width:760px;
-    margin:0 auto 22px;
-    line-height:1.65;
-  }
-
-  .process-list{
-    display:grid;
-    gap:14px;
-    max-width:900px;
-    margin:0 auto;
-  }
-
-  .process-card{
-    display:grid;
-    grid-template-columns:48px minmax(0, 1fr);
-    gap:14px;
-    align-items:start;
-    padding:18px;
-    border:1px solid var(--line);
-    border-radius:16px;
-    background:rgba(255,255,255,.035);
-  }
-
-  .process-number{
-    display:grid;
-    place-items:center;
-    width:42px;
-    height:42px;
-    border-radius:50%;
-    background:var(--brand);
-    color:#111;
-    font-weight:900;
-    line-height:1;
-  }
-
-  .process-card h3{
-    margin:0 0 6px;
-  }
-
-  .process-card p{
-    margin:0;
-    line-height:1.6;
-  }
-
-  .family-actions{
-    display:flex;
-    justify-content:center;
-    margin-top:24px;
-  }
-
-  @media(max-width:900px){
-    .journey-strip{
-      grid-template-columns:1fr;
-    }
-  }
-
-  @media(max-width:640px){
-    .hero-sub{
-      font-size:1rem;
-    }
-
-    .hero-actions{
-      flex-direction:column;
-    }
-
-    .hero-actions .btn{
-      width:100%;
-    }
-
-    .journey-card{
-      padding:1.35rem 1.1rem;
-    }
-
-    .journey-card strong{
-      font-size:1.35rem;
-    }
-
-    .process-card{
-      grid-template-columns:40px minmax(0, 1fr);
-      padding:16px;
-    }
-
-    .process-number{
-      width:36px;
-      height:36px;
-    }
-  }
-</style>
-
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/css/home.css" />
 </head>
 
 <body>
-  <header class="top-nav">
-    <div class="nav-top">
-      <div
-        class="lang-toggle"
-        role="group"
-        aria-label="Language toggle"
-      >
-        <button
-          type="button"
-          class="lang-btn is-active"
-          data-lang="en"
-        >
-          EN
-        </button>
 
-        <button
-          type="button"
-          class="lang-btn"
-          data-lang="es"
-        >
-          ES
-        </button>
-      </div>
+  <!-- Shared site navigation -->
+<div
+  id="navigation"
+  data-component="/components/navigation.html"
+></div>
 
-      <a
-        href="/index.html"
-        class="nav-logo"
-      >
-        Sandman Academy™
-      </a>
-
-      <button
-        type="button"
-        class="theme-toggle"
-        aria-label="Toggle theme"
-      >
-        ☾
-      </button>
-    </div>
-
-    <nav
-      class="site-nav"
-      aria-label="Primary"
-    >
-      <a
-        href="/index.html"
-        aria-current="page"
-      >
-        <span data-lang-block="en">Home</span>
-        <span data-lang-block="es" class="hidden-lang">Inicio</span>
-      </a>
-
-      <a href="/overview.html">
-        <span data-lang-block="en">Overview</span>
-        <span data-lang-block="es" class="hidden-lang">Resumen</span>
-      </a>
-
-      <a href="/programs.html">
-        <span data-lang-block="en">Programs</span>
-        <span data-lang-block="es" class="hidden-lang">Programas</span>
-      </a>
-
-      <a href="/about.html">
-        <span data-lang-block="en">About</span>
-        <span data-lang-block="es" class="hidden-lang">Acerca</span>
-      </a>
-    </nav>
-  </header>
-
-  <main class="wrap">
-    <section class="hero hero-panel">
-      <div data-lang-block="en">
-        <p class="hq-sub">
-          Everyone Starts at Zero. Every Step Is Earned.
-        </p>
-      </div>
-
-      <div data-lang-block="es" class="hidden-lang">
-        <p class="hq-sub">
-          Todos Comienzan Desde Cero. Cada Paso Se Gana.
-        </p>
-      </div>
-
-      <img
-        src="/assets/images/logos/Sandman-Combat.png"
-        alt="Sandman Combat Academy crest"
-        class="sandman-crest"
-      />
-
-      <div data-lang-block="en">
-
-     <p class="hero-sub" data-lang-block="en">
-  Programs for youth, teens, and adults—from structured combat progression
-  to coach-led fitness classes—built on clear standards and expert coaching.
-</p>
-
-<p class="hero-sub hidden-lang" data-lang-block="es">
-  Programas para jóvenes, adolescentes y adultos: desde la progresión
-  estructurada en deportes de combate hasta clases de acondicionamiento
-  dirigidas por entrenadores, basados en estándares claros y enseñanza experta.
-</p>
-      </div>
+<div class="site-hero-divider" aria-hidden="true"></div>
 
 
-<section
-  class="journey-strip"
-  aria-label="Sandman programs"
->
+  <main>
 
-  <a class="journey-card" href="/programs.html#zero2hero">
-    <div data-lang-block="en">
-      <strong>Zero2Hero™</strong>
-      <span>Ages 7–13</span>
-      <p>Wrestling Progression </p>
-      <p>Kickboxing Progression </p>
-    </div>
+  <section
+    class="hero-panel"
+    data-lang-block="en"
+  >
+    <img
+      src="/assets/img/pages/home/hero-home-env2.png"
+      alt="Sandman Academy homepage"
+      class="home-hero__image"
+    />
+  </section>
 
-    <div data-lang-block="es" class="hidden-lang">
-      <strong>Zero2Hero™</strong>
-      <span>Edades 7–13</span>
-      <p>Progresión de Lucha</p>
-      <p>Progresión de Kickboxing</p>
-    </div>
-  </a>
+  <section
+    class="hero-panel hidden-lang"
+    data-lang-block="es"
+  >
+    <img
+      src="/assets/img/pages/home/hero-home-esv2.png"
+      alt="Página principal de Sandman Academy"
+      class="home-hero__image"
+    />
+  </section>
 
-  <a class="journey-card" href="/programs.html#path2legend">
-    <div data-lang-block="en">
-      <strong>Path2Legend™</strong>
-      <span>Ages 14+</span>
-      <p>Wrestling Progression </p>
-      <p>Boxing Progression </p>
-    </div>
+</main>    <!-- Shared site footer -->
+    <div
+      id="footer"
+      data-component="/components/footer.html"
+    ></div>
+    <script src="/assets/js/component-loader.js" defer></script>
+    <script src="/assets/js/language.js" defer></script>
+    <script src="/assets/js/theme.js" defer></script>
+    <script src="/assets/js/navigation.js" defer></script>
 
-    <div data-lang-block="es" class="hidden-lang">
-      <strong>Path2Legend™</strong>
-      <span>Edades 14+</span>
-      <p>Progresión de Lucha</p>
-      <p>Progresión de Boxeo</p>
-    </div>
-  </a>
-
-  <a class="journey-card" href="/programs.html#fitness">
-    <div data-lang-block="en">
-      <strong>Everyday Fitness Classes</strong>
-      <span>Ages 12+</span>
-      <p>HIIT Fit: Boxing</p>
-      <p>HIIT Fit: Kickboxing</p>
-      <p>HIIT Fit: Strength</p>
-    </div>
-
-    <div data-lang-block="es" class="hidden-lang">
-      <strong>Clases Diarias de Acondicionamiento</strong>
-      <span>Edades 12+</span>
-      <p>HIIT Fit: Boxeo</p>
-      <p>HIIT Fit: Kickboxing</p>
-      <p>HIIT Fit: Fuerza</p>
-    </div>
-  </a>
-
-</section>
-
-    </section>
-
-
-    <section class="section family-start">
-      <div data-lang-block="en">
-        <h2>How Families Get Started</h2>
-
-<p class="lead">
-Getting started is simple. Our coach-guided process helps every family
-learn about Sandman, experience the academy, and determine whether it's
-the right fit before enrollment.
-</p>
-        <div class="process-list">
-          <article class="process-card">
-            <span class="process-number">1</span>
-
-            <div>
-              <h3>Explore Sandman</h3>
-
-              <p>
-                Learn about our philosophy, journeys, programs, and expectations.
-              </p>
-            </div>
-          </article>
-
-          <article class="process-card">
-            <span class="process-number">2</span>
-
-            <div>
-              <h3>Complete the Interest Form</h3>
-
-              <p>
-                Submit your information to request a complimentary one-day trial
-                and introductory appointment for your athlete.
-              </p>
-            </div>
-          </article>
-
-          <article class="process-card">
-            <span class="process-number">3</span>
-
-            <div>
-              <h3>Receive Your Confirmation</h3>
-
-              <p>
-                Our coaching staff will review your submission and confirm your
-                appointment and complimentary one-day trial by email, along with
-                everything you need before your visit.
-              </p>
-            </div>
-          </article>
-
-          <article class="process-card">
-            <span class="process-number">4</span>
-
-            <div>
-              <h3>Begin Your Journey</h3>
-
-              <p>
-                Attend your scheduled appointment and complimentary one-day trial.
-                If Sandman is the right fit, we will complete enrollment and
-                welcome your athlete into the academy.
-              </p>
-            </div>
-          </article>
-        </div>
-      </div>
-
-      <div data-lang-block="es" class="hidden-lang">
-        <h2>Cómo Comienzan las Familias</h2>
-
-<p class="lead">
-Comenzar es sencillo. Nuestro proceso guiado por entrenadores ayuda a
-cada familia a conocer Sandman, vivir la experiencia de la academia y
-determinar si es el lugar adecuado antes de la inscripción.
-</p>
-
-        <div class="process-list">
-          <article class="process-card">
-            <span class="process-number">1</span>
-
-            <div>
-              <h3>Conoce Sandman</h3>
-
-              <p>
-                Aprende sobre nuestra filosofía, caminos, programas y expectativas.
-              </p>
-            </div>
-          </article>
-
-          <article class="process-card">
-            <span class="process-number">2</span>
-
-            <div>
-              <h3>Completa el Formulario de Interés</h3>
-
-              <p>
-                Envía tu información para solicitar una prueba gratuita de un día
-                y una cita de introducción para tu atleta.
-              </p>
-            </div>
-          </article>
-
-          <article class="process-card">
-            <span class="process-number">3</span>
-
-            <div>
-              <h3>Recibe tu Confirmación</h3>
-
-              <p>
-                Nuestro equipo de entrenadores revisará tu solicitud y confirmará
-                por correo electrónico tu cita y prueba gratuita de un día, junto
-                con toda la información necesaria antes de tu visita.
-              </p>
-            </div>
-          </article>
-
-          <article class="process-card">
-            <span class="process-number">4</span>
-
-            <div>
-              <h3>Comienza tu Camino</h3>
-
-              <p>
-                Asiste a tu cita programada y prueba gratuita de un día. Si Sandman
-                es el lugar adecuado para tu familia, completaremos la inscripción
-                y daremos la bienvenida a tu atleta a la academia.
-              </p>
-            </div>
-
-
-          </article>
-        </div>
-      </div>
-            <div class="family-actions">
-        <a class="btn btn-primary" href="/connect/interest/">
-          <span data-lang-block="en">Connect With Us</span>
-          <span data-lang-block="es" class="hidden-lang">
-            Conéctate con Nosotros
-          </span>
-        </a>
-      </div>
-    </section>
-  </main>
 </body>
 </html>

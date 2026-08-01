@@ -1,31 +1,90 @@
-/* ===================================================== */
-/* SANDMAN HYBRID THEME ENGINE v1                        */
-/* ===================================================== */
+(() => {
+  const STORAGE_KEY = "sandman-theme";
 
-const root = document.documentElement;
+  function getPreferredTheme() {
+    const savedTheme = localStorage.getItem(STORAGE_KEY);
 
-/* Auto-mode defaults */
-export function setAutoTheme(pageMode) {
-  // pageMode = "day" or "night"
-  root.dataset.theme = pageMode;
-  localStorage.setItem("sandman-theme-auto", pageMode);
-}
+    if (savedTheme === "light" || savedTheme === "dark") {
+      return savedTheme;
+    }
 
-/* Manual override */
-export function setManualTheme(theme) {
-  root.dataset.theme = theme;
-  localStorage.setItem("sandman-theme-override", theme);
-}
-
-/* Called on every page load */
-export function initTheme(defaultMode) {
-  const override = localStorage.getItem("sandman-theme-override");
-
-  if (override) {
-    root.dataset.theme = override;
-  } else {
-    // run auto
-    root.dataset.theme = defaultMode;
-    localStorage.setItem("sandman-theme-auto", defaultMode);
+    return window.matchMedia(
+      "(prefers-color-scheme: light)"
+    ).matches
+      ? "light"
+      : "dark";
   }
-}
+
+  function applyTheme(theme) {
+    const selectedTheme =
+      theme === "light" ? "light" : "dark";
+
+    document.documentElement.dataset.theme =
+      selectedTheme;
+
+    document
+      .querySelectorAll("[data-theme-toggle]")
+      .forEach((button) => {
+        button.textContent =
+          selectedTheme === "dark" ? "☀" : "☾";
+
+        button.setAttribute(
+          "aria-label",
+          selectedTheme === "dark"
+            ? "Switch to light theme"
+            : "Switch to dark theme"
+        );
+      });
+
+    localStorage.setItem(
+      STORAGE_KEY,
+      selectedTheme
+    );
+  }
+
+  function initializeTheme() {
+    applyTheme(
+      document.documentElement.dataset.theme ||
+        getPreferredTheme()
+    );
+
+    document
+      .querySelectorAll("[data-theme-toggle]")
+      .forEach((button) => {
+        if (button.dataset.themeReady === "true") {
+          return;
+        }
+
+        button.dataset.themeReady = "true";
+
+        button.addEventListener("click", () => {
+          const currentTheme =
+            document.documentElement.dataset.theme ===
+            "light"
+              ? "light"
+              : "dark";
+
+          applyTheme(
+            currentTheme === "dark"
+              ? "light"
+              : "dark"
+          );
+        });
+      });
+  }
+
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializeTheme
+  );
+
+  document.addEventListener(
+    "sandman:component-loaded",
+    initializeTheme
+  );
+
+  document.addEventListener(
+    "sandman:components-ready",
+    initializeTheme
+  );
+})();

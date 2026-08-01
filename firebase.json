@@ -6,7 +6,7 @@
   "hosting": {
     "target": "sandman",
     "public": "public",
-    "cleanUrls": true,
+    "cleanUrls": false,
     "ignore": [
       "firebase.json",
       "**/.*",
