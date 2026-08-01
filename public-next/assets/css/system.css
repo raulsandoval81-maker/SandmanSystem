@@ -1,104 +1,237 @@
+/* =========================================================
+   Sandman Combat — Public Next System Page
+   system.css
+========================================================= */
+
+/* =========================================================
+   1. PAGE FOUNDATION
+========================================================= */
+
 .system-page{
-    background:#050505;
+  background:#050505;
 }
+
+/* =========================================================
+   2. SYSTEM HERO
+========================================================= */
 
 .system-hero{
-    width:100%;
+  width:100%;
+  margin:0;
+  overflow:hidden;
+  background:#000;
 }
 
-.system-hero img{
-    display:block;
-    width:100%;
-    height:auto;
+.system-hero > [data-lang-block]{
+  width:100%;
+  margin:0;
+  padding:0;
 }
+
+.system-hero img,
+.system-hero__image{
+  display:block;
+  width:100%;
+  max-width:1536px;
+  height:auto;
+  margin:0 auto;
+  object-fit:contain;
+  object-position:center top;
+}
+
+/* =========================================================
+   3. PILLARS
+========================================================= */
 
 .pillar-section{
-    max-width:1100px;
-    margin:70px auto;
-    padding:0 24px;
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:28px;
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:28px;
+
+  width:min(1100px,calc(100% - 48px));
+  margin:70px auto;
 }
 
 .pillar-card{
-    background:#121212;
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:18px;
-    padding:32px;
+  padding:32px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  background:#121212;
 }
 
 .pillar-card h2{
-    margin-bottom:16px;
-    text-align:center;
+  margin:0 0 16px;
+  text-align:center;
 }
 
 .pillar-card p{
-    line-height:1.8;
-    text-align:center;
-    color:#cfcfcf;
+  margin:0;
+  color:#cfcfcf;
+  line-height:1.8;
+  text-align:center;
 }
 
+/* =========================================================
+   4. SYSTEM CTA
+========================================================= */
+
 .system-cta{
-    max-width:760px;
-    margin:80px auto 100px;
-    padding:0 24px;
-    text-align:center;
+  width:min(760px,calc(100% - 48px));
+  margin:80px auto 100px;
+  text-align:center;
 }
 
 .system-cta h2{
-    margin-bottom:18px;
+  margin:0 0 18px;
 }
 
 .system-cta p{
-    margin-bottom:32px;
-    color:#cfcfcf;
+  margin:0 0 32px;
+  color:#cfcfcf;
 }
 
-.system-cta .btn-primary{
-    display:inline-block;
+.system-cta .btn-primary,
+.system-cta .button,
+.system-cta .button--primary{
+  display:inline-flex;
 }
+
 /* =========================================================
-   SYSTEM HERO — PORTRAIT PHONE
+   5. MEASURED PROGRESSION
+========================================================= */
+
+.system-section--progression{
+  padding:clamp(4rem,8vw,7rem) 1.25rem;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(7,17,31,.96) 0%,
+      rgba(3,7,13,.98) 100%
+    );
+  border-top:1px solid rgba(212,175,55,.16);
+  border-bottom:1px solid rgba(212,175,55,.16);
+}
+
+.system-progression-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:1.25rem;
+  margin-top:2.5rem;
+}
+
+.system-progression-card{
+  padding:1.75rem;
+  border:1px solid rgba(255,255,255,.09);
+  border-radius:14px;
+  background:rgba(255,255,255,.035);
+}
+
+.system-progression-card h3{
+  margin:0 0 .8rem;
+  color:#d4af37;
+  font-size:1rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+.system-progression-card p{
+  margin:0;
+  color:rgba(255,255,255,.74);
+  line-height:1.65;
+}
+
+.system-progression-statement{
+  max-width:760px;
+  margin:2.5rem auto 0;
+  color:#fff;
+  font-size:clamp(1.2rem,2.8vw,1.8rem);
+  font-weight:800;
+  line-height:1.3;
+  text-align:center;
+}
+
+/* =========================================================
+   6. TABLET
+========================================================= */
+
+@media (max-width:900px){
+  .system-progression-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* =========================================================
+   7. MOBILE
+========================================================= */
+
+@media (max-width:768px){
+  .pillar-section{
+    width:min(100% - 32px,1100px);
+    margin:48px auto;
+    gap:18px;
+  }
+
+  .pillar-card{
+    padding:24px;
+  }
+
+  .system-cta{
+    width:min(100% - 32px,760px);
+    margin:56px auto 72px;
+  }
+
+  .system-section--progression{
+    padding:3.25rem 1rem;
+  }
+
+  .system-progression-grid{
+    gap:.9rem;
+    margin-top:1.75rem;
+  }
+
+  .system-progression-card{
+    padding:1.25rem;
+  }
+
+  .system-progression-statement{
+    margin-top:1.75rem;
+  }
+}
+
+/* =========================================================
+   8. PORTRAIT PHONE HERO
+   Natural width, centered, no zoom, no sideways transform.
 ========================================================= */
 
 @media (max-width:768px) and (orientation:portrait){
-
   .system-hero{
-    display:flex !important;
-    justify-content:center !important;
-    align-items:flex-start !important;
-
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-
-    margin:0 !important;
-    padding:28px 0 0 !important;
-
-    overflow:hidden !important;
-    background:#000 !important;
+    display:block;
+    width:100%;
+    height:auto;
+    min-height:0;
+    margin:0;
+    padding:28px 0 0;
+    overflow:hidden;
+    background:#000;
   }
 
-  .system-hero > div{
-    width:100% !important;
-    height:auto !important;
-    margin:0 !important;
-    padding:0 !important;
+  .system-hero > [data-lang-block]{
+    width:100%;
+    height:auto;
+    margin:0;
+    padding:0;
+    overflow:hidden;
   }
 
   .system-hero img,
   .system-hero__image{
-    display:block !important;
-
-    width:116% !important;
-    max-width:none !important;
-    height:auto !important;
-
-    margin:0 0 0 50% !important;
-    transform:translateX(-50%) !important;
-
-    object-fit:contain !important;
-    object-position:center top !important;
+    display:block;
+    width:100%;
+    max-width:none;
+    height:auto;
+    margin:0 auto;
+    transform:none;
+    object-fit:contain;
+    object-position:center top;
   }
 }
