@@ -2003,7 +2003,7 @@ html[data-theme="light"] .site-nav a:focus-visible {
     height:100% !important;
     max-width:none !important;
     margin:0 !important;
-    object-fit:cover !important;
+    object-fit:contain !important;
     object-position:center top !important;
   }
 
@@ -2018,4 +2018,25 @@ html[data-theme="light"] .site-nav a:focus-visible {
     margin-top:0 !important;
     padding-top:24px !important;
   }
+}
+@media (max-width:768px) and (orientation:portrait){
+
+  .home-hero__image,
+  .about-hero img,
+  .journeys-hero img,
+  .system-hero img,
+  .origins-hero__image,
+  .impact-hero__image,
+  .library-hero img,
+  .connect-hero img{
+    display:block !important;
+    width:100% !important;
+    height:100% !important;
+    max-width:none !important;
+    margin:0 auto !important;
+    object-fit:contain !important;
+    object-position:center center !important;
+    background:#000;
+  }
+
 }
