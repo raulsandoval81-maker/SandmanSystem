@@ -2040,3 +2040,25 @@ html[data-theme="light"] .site-nav a:focus-visible {
   }
 
 }
+/* =========================================================
+   HERO HEADER SPACER
+========================================================= */
+
+.hero-header-spacer{
+  width:100%;
+  background:#000;
+  border-top:1px solid rgba(212,175,55,.15);
+  border-bottom:2px solid rgba(212,175,55,.65);
+}
+
+@media (min-width:769px){
+  .hero-header-spacer{
+    height:20px;
+  }
+}
+
+@media (max-width:768px){
+  .hero-header-spacer{
+    height:42px;
+  }
+}
