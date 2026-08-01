@@ -624,12 +624,6 @@
     line-height: 1.68;
   }
 
-  .impact-hero__image {
-    min-height: 500px;
-    object-fit: cover;
-    object-position: center top;
-  }
-
   .impact-statement {
     padding: 24px;
   }
@@ -687,10 +681,6 @@
 ========================================================== */
 
 @media (max-width: 420px) {
-
-  .impact-hero__image {
-    min-height: 450px;
-  }
 
   .impact-eyebrow {
     letter-spacing: 0.15em;
@@ -773,90 +763,38 @@
   }
 
 }
-/* =========================================================
+
+
+/* ==========================================================
    IMPACT HERO — PORTRAIT PHONE
-========================================================= */
+========================================================== */
 
 @media (max-width:768px) and (orientation:portrait){
 
   .impact-hero{
-    display:flex !important;
-    justify-content:center !important;
-    align-items:flex-start !important;
-
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-
-    margin:0 !important;
-    padding:28px 0 0 !important;
-
-    overflow:hidden !important;
-    background:#000 !important;
-  }
-
-  .impact-hero > div{
-    width:100% !important;
-    height:auto !important;
-    margin:0 !important;
-    padding:0 !important;
-  }
-
-  .impact-hero__image{
-    display:block !important;
-
-    width:116% !important;
-    max-width:none !important;
-    height:auto !important;
-
-    margin:0 0 0 50% !important;
-    transform:translateX(-50%) !important;
-
-    object-fit:contain !important;
-    object-position:center top !important;
-  }
-}
-/* =========================================================
-   IMPACT HERO — PORTRAIT PHONE FIX
-========================================================= */
-
-@media (max-width:768px) and (orientation:portrait){
-
-  .impact-hero{
-    display:block !important;
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
-    margin:0 !important;
-    padding:28px 0 0 !important;
-    overflow:hidden !important;
-    background:#000 !important;
+    display:block;
+    width:100%;
+    margin:0;
+    padding:28px 0 0;
+    overflow:hidden;
+    background:#000;
   }
 
   .impact-hero > [data-lang-block]{
-    width:100% !important;
-    height:auto !important;
-    margin:0 !important;
-    padding:0 !important;
-    overflow:hidden !important;
+    width:100%;
+    margin:0;
+    padding:0;
   }
 
   .impact-hero__image{
-    position:static !important;
-    left:auto !important;
-    right:auto !important;
-
-    display:block !important;
-    width:96% !important;
-    max-width:none !important;
-    height:auto !important;
-    min-height:0 !important;
-
-    margin:0 auto !important;
-    padding:0 !important;
-    transform:none !important;
-
-    object-fit:contain !important;
-    object-position:center top !important;
+    display:block;
+    width:100%;
+    height:auto;
+    margin:0 auto;
+    max-width:none;
+    min-height:0;
+    transform:none;
+    object-fit:contain;
+    object-position:center top;
   }
 }
