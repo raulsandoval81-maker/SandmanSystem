@@ -543,3 +543,78 @@
   }
 
 }
+/* ==========================================================
+   CONNECT PAGE — MOBILE LAYOUT REPAIR
+========================================================== */
+
+@media (max-width: 768px){
+
+  .connect-container{
+    width:min(calc(100% - 28px), var(--connect-container)) !important;
+    margin-inline:auto !important;
+  }
+
+  /* Stack every multi-column Connect block */
+  .connect-fit-grid,
+  .connect-faq-grid,
+  .connect-story-grid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:18px !important;
+    width:100% !important;
+  }
+
+  /* Prevent cards from being squeezed into narrow columns */
+  .connect-fit-card,
+  .connect-faq-card,
+  .connect-note-card{
+    width:100% !important;
+    min-width:0 !important;
+    max-width:none !important;
+    min-height:0 !important;
+  }
+
+  .connect-fit-card{
+    padding:26px !important;
+  }
+
+  .connect-fit-card__number{
+    margin-bottom:28px !important;
+  }
+
+  .connect-faq-card{
+    padding:24px !important;
+  }
+
+  .connect-note-card{
+    padding:28px !important;
+  }
+
+  /* Restore normal text flow */
+  .connect-page h1,
+  .connect-page h2,
+  .connect-page h3,
+  .connect-page p,
+  .connect-page blockquote{
+    width:auto !important;
+    max-width:100% !important;
+    min-width:0 !important;
+    word-break:normal !important;
+    overflow-wrap:break-word !important;
+    white-space:normal !important;
+  }
+
+  .connect-story-copy{
+    width:100% !important;
+    min-width:0 !important;
+  }
+
+  .connect-heading{
+    width:100% !important;
+    max-width:100% !important;
+  }
+
+  .connect-section{
+    overflow:hidden !important;
+  }
+}
