@@ -1,6 +1,6 @@
 ========================================
 SANDMAN SYSTEM — REPOSITORY AUDIT
-Generated: Mon Jul 27 07:16:09 PDT 2026
+Generated: Fri Jul 31 17:13:38 PDT 2026
 ========================================
 
 === LOCATION ===
@@ -11,61 +11,66 @@ On branch main
 Your branch is up to date with 'origin/main'.
 
 Changes not staged for commit:
-  (use "git add <file>..." to update what will be committed)
+  (use "git add/rm <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   public/connect/yesc/interest-respond.html
-	modified:   public/connect/yesc/yesc-interest.js
-	modified:   public/connect/yesc/yesc.css
+	deleted:    clean-site-footer-css.py
+	deleted:    public-next/about.html.before-shared-shell
+	deleted:    public-next/connect.html.before-shared-shell
+	deleted:    public-next/impact.html.before-shared-shell
+	deleted:    public-next/index.html.before-shared-shell
+	deleted:    public-next/journeys.html.before-shared-shell
+	deleted:    public-next/library.html.before-shared-shell
+	deleted:    public-next/origins.html.before-shared-shell
+	deleted:    public-next/system.html.before-shared-shell
+	modified:   sandman-system-audit.txt
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
-	build-sandman-audit.sh
-	sandman-system-audit.txt
+	sandman-audit-20260731-171338.txt
 
 no changes added to commit (use "git add" and/or "git commit -a")
 
 === RECENT COMMITS ===
-31ddd75 (HEAD -> main, origin/main) Refactor YESC inquiry response flow and polish parent communications
-0b6b9ee Update Foundry program pages
-6042419 Polish admissions and intake flow
-675bc16 Update compiled gatekeeper email
-72db7b0 Send parent welcome email after intake approval
-2a558e4 Carry language preference into parent intake
-d6a685d Polish coach intake maintenance
-5e455b4 Polish gatekeeper appointment email
-97ee670 Update fitness branding and fix Foundry asset paths
-97f7152 Merge TeenFIT and TeenFIT Boxing page
-967c56f Separate KidFIT and combine TeenFIT boxing card
-3f25941 Add updated YESC fitness graphics
-e050c2b Order fitness cards by weekly schedule
-804239c Remove temporary fitness page backups
-738cdaf Add JumpStart Preschool and TeenFIT Boxing cards
+24786ec (HEAD -> main, origin/main) Refine mobile hero layout and remove obsolete system hero
+f22dcb9 Refine mobile hero spacing and footer layout
+95a7b4f Fix transparent footer crest asset path
+b6ed63a Add transparent Sandman crest to public-next assets
+55e97af Use transparent Sandman crest in shared footer
+f685ef5 Refine footer shield sizing
+78fa932 Tighten mobile hero to content spacing
+3b8e866 Standardize header to hero transition across public pages
+c30ae32 Standardize header to hero transition across public pages
+d06ee81 Standardize header to hero transition across public pages
+d6b0645 Fix Origins and Impact hero framing
+59c965e Fix Origins and Impact mobile hero framing
+8c63f76 Strengthen homepage hero separation
+d857bcb Add header to hero transition band
+e8d5b2e Refine About page belief equation
 
 === ROOT FILES ===
+./.DS_Store
 ./.firebaserc
 ./.gitignore
 ./README-COACHTOOLS.md
 ./README-SANDMAN.md
 ./build-sandman-audit.sh
-./emu-debug.txt
 ./favicon.ico
 ./firebase.json
+./firebase.preview.json
 ./firestore-debug.log
 ./firestore.indexes.json
 ./firestore.rules
+./fix-journey-disciplines-v2.py
+./fix-program-availability.py
 ./make_waiver_v3.py
 ./package-lock.json
 ./package.json
+./polish-about-page.py
+./polish-programs-order.py
+./sandman-audit-20260731-171338.txt
 ./sandman-system-audit.txt
 ./storage.rules
-./t0-shadow.png
-./t1-recruit.png
-./t2-combatant.png
-./t3-competitor.png
-./t4-warrior.png
-./t5-champion.png
-./t6-commander.png
-./t7-hero.png
+./update-journey-disciplines.py
 
 === TOP-LEVEL DIRECTORIES ===
 .
@@ -87,6 +92,11 @@ e050c2b Order fitness cards by weekly schedule
 ./functions/src
 ./functions/xp
 ./public
+./public-next
+./public-next/assets
+./public-next/components
+./public-next/docs
+./public-next/tools
 ./public/DOCS
 ./public/HQ
 ./public/REPO
@@ -115,6 +125,7 @@ e050c2b Order fitness cards by weekly schedule
 ./public/marketing
 ./public/mat
 ./public/parent
+./public/public-next
 ./public/qr
 ./public/sandbox
 ./public/sandman-strength
@@ -131,6 +142,7 @@ e050c2b Order fitness cards by weekly schedule
 ./public/wedsite
 
 === PUBLIC APPLICATION FILES ===
+public/.DS_Store
 public/404.html
 public/DOCS/ARCHITECTURE/SANDMAN_ARCHITECTURE_MAP.md
 public/DOCS/PUBLIC_CHECKLIST.md
@@ -154,6 +166,7 @@ public/REPO/storage.rules
 public/_Cloud-Functions_OLD/index.js
 public/_Cloud-Functions_OLD/package.json
 public/about.html
+public/admin/.DS_Store
 public/admin/_archive/dashboard.html
 public/admin/_archive/questionnaire.css
 public/admin/_archive/questionnaire.html
@@ -189,6 +202,7 @@ public/admin/system/xp-master-log.html
 public/arena/fight-night.css
 public/arena/fight-night.html
 public/arena/fight-night.js
+public/assets/.DS_Store
 public/assets/audio/buzzer.mp3
 public/assets/css/badges.css
 public/assets/css/belts.css
@@ -204,6 +218,7 @@ public/assets/css/skilltree.css
 public/assets/css/theme.css
 public/assets/css/themes/lompoc.css
 public/assets/css/xp-bar-mini.css
+public/assets/img/.DS_Store
 public/assets/includes/footer.html
 public/assets/includes/header.html
 public/assets/includes/header_min.html
@@ -373,6 +388,7 @@ public/athlete-onboarding/step-8.html
 public/athlete-onboarding/step-8.js
 public/athlete-onboarding/step-9.html
 public/athlete-onboarding/step-9.js
+public/athletes/.DS_Store
 public/athletes/_archive/ai-tutor.js
 public/athletes/_archive/athlete-live-service.js
 public/athletes/_archive/athlete-profile.html
@@ -475,6 +491,7 @@ public/brackets/RRMatrix.js
 public/brackets/RRScoring.js
 public/brackets/RRTiebreak.js
 public/brackets/bracketWriter.js
+public/coaches/.DS_Store
 public/coaches/README.md
 public/coaches/_archive/coaches-command-center.css
 public/coaches/_archive/coaches-command-center.html
@@ -510,6 +527,7 @@ public/coaches/attendance/attendance.js
 public/coaches/attendance/index.html
 public/coaches/attendance/session.html
 public/coaches/attendance/session.js
+public/coaches/cards/.DS_Store
 public/coaches/cards/_template.html
 public/coaches/cards/adult/index.html
 public/coaches/cards/card-actions.js
@@ -524,6 +542,7 @@ public/coaches/cards/master/master-inject.js
 public/coaches/cards/mat-talk/index.html
 public/coaches/cards/shared/card-hub.css
 public/coaches/cards/shared/execution.css
+public/coaches/cards/teen/.DS_Store
 public/coaches/cards/teen/index.html
 public/coaches/cards/youth/index.html
 public/coaches/ceremonies/awards.html
@@ -560,6 +579,7 @@ public/coaches/daily-xp/daily-grind.css
 public/coaches/daily-xp/daily-grind.js
 public/coaches/daily-xp/daily-grind.stamps.js
 public/coaches/daily-xp/index.html
+public/coaches/execution/.DS_Store
 public/coaches/execution/all-in-one-console/all-in-one-console.css
 public/coaches/execution/all-in-one-console/all-in-one-console.js
 public/coaches/execution/all-in-one-console/all-in-one-console.theme.js
@@ -720,6 +740,7 @@ public/coaches/vault/sign-in.html
 public/coaches/xp/index.html
 public/coaches/xp/xp-logs.html
 public/coaches/xp/xp.reports.html
+public/communications/.DS_Store
 public/communications/404.html
 public/communications/athlete/_archive/inbox.html
 public/communications/athlete/_archive/inbox.js
@@ -785,6 +806,7 @@ public/communications/shared/para-unread-badge.js
 public/communications/shared/system-ping-events.js
 public/communications/shared/toolbar.css
 public/communications/shared/toolbar.js
+public/connect/.DS_Store
 public/connect/_archive/follow-up/follow-up.css
 public/connect/_archive/follow-up/follow-up.js
 public/connect/_archive/follow-up/index.html
@@ -804,7 +826,6 @@ public/connect/leads/index.html
 public/connect/leads/leads.css
 public/connect/leads/leads.js
 public/connect/thanks/contact.html
-public/connect/thanks/interest.html
 public/connect/thanks/not-enrolled.html
 public/connect/thanks/volunteer.html
 public/connect/thanks/welcome.html
@@ -871,6 +892,7 @@ public/director/directorTeamBoard.js
 public/director/multi-mat-director.css
 public/director/multi-mat-director.html
 public/director/multi-mat-director.js
+public/events/.DS_Store
 public/events/brackets/bracket.css
 public/events/brackets/bracket.html
 public/events/brackets/bracket.js
@@ -914,6 +936,7 @@ public/intake-shared/token.js
 public/intake-shared/validators.js
 public/intake-shared/waiver.pdf
 public/join.html
+public/lab/.DS_Store
 public/lab/README.md
 public/lab/_shared/field.css
 public/lab/arena-track/README.md
@@ -1071,6 +1094,7 @@ public/live/mat-view.html
 public/live/mat-view.js
 public/login.html
 public/manifest.json
+public/marketing/.DS_Store
 public/marketing/fitness/dawn-patrol.html
 public/marketing/fitness/fitness.css
 public/marketing/fitness/hitfit.html
@@ -1094,6 +1118,7 @@ public/mat/match-queue.html
 public/mat/match-queue.js
 public/message.html
 public/overview.html
+public/parent/.DS_Store
 public/parent/auth.html
 public/parent/auth.js
 public/parent/index.html
@@ -1128,6 +1153,7 @@ public/parent/test-coach-note.html
 public/parent/updates/index.html
 public/parent/updates/updates.js
 public/programs.html
+public/programs.html.before-availability-fix-20260729-205701
 public/public.css
 public/qr/c.html
 public/qr/m.html
@@ -1160,6 +1186,7 @@ public/strength/index.html
 public/strength/strength.service.js
 public/style.css
 public/sw.js
+public/system/.DS_Store
 public/system/communications-architecture.md
 public/system/console.html
 public/system/intake/README.md
@@ -1195,6 +1222,7 @@ public/tools/timeline.html
 public/tools/tools.service.js
 public/tools/xp-table.html
 public/tools/xp.html
+public/vault/.DS_Store
 public/vault/_schemas/session.schema.js
 public/vault/_schemas/submission.schema.js
 public/vault/_shared/approval-rubric.js
@@ -1249,6 +1277,7 @@ public/waiver/waiver-embed.html
 public/waiver/waiver-hub.html
 
 === CLOUD FUNCTIONS ===
+functions/.DS_Store
 functions/firestore-debug.log
 functions/package-lock.json
 functions/package.json
@@ -1258,8 +1287,18 @@ functions/scripts/_archive/migrate-onboarding.mjs
 functions/scripts/_archive/repair-max-merge.js
 functions/scripts/add-card-metadata.js
 functions/scripts/backfill-athlete-testing.ts
+functions/src/.DS_Store
 functions/src/admin.ts
 functions/src/approveAndActivate.ts
+functions/src/billing/billingCollections.ts
+functions/src/billing/billingTypes.ts
+functions/src/billing/checkout.ts
+functions/src/billing/checkoutCall.ts
+functions/src/billing/customer.ts
+functions/src/billing/membershipStatus.ts
+functions/src/billing/stripeClient.ts
+functions/src/billing/subscriptions.ts
+functions/src/billing/webhook.ts
 functions/src/bootstrap.ts
 functions/src/config/collections.ts
 functions/src/engines/athlete-engine/athleteLoader.ts
@@ -1458,6 +1497,8 @@ functions/src/index.ts:141:export {
 functions/src/index.ts:149:export {
 functions/src/index.ts:154:export {
 functions/src/index.ts:158:export {
+functions/src/index.ts:165:export {
+functions/src/index.ts:169:export {
 functions/src/modules/promotion/rankMeta.ts:1:export type Base = "F4" | "F8";
 functions/src/modules/promotion/rankMeta.ts:3:export type ProgramKind =
 functions/src/modules/promotion/rankMeta.ts:11:export type RankMetaEntry = {
@@ -1529,6 +1570,22 @@ functions/src/services/addDisciplineToAthlete.ts:28:export type AddDisciplineRes
 functions/src/services/addDisciplineToAthlete.ts:105:export async function addDisciplineToAthlete(
 functions/src/services/recognitionService.ts:7:export interface PersistRecognitionRequest extends AwardRecognitionRequest {
 functions/src/services/recognitionService.ts:11:export async function persistRecognitionAward(
+functions/src/billing/billingTypes.ts:1:export type MembershipStatus =
+functions/src/billing/billingTypes.ts:9:export interface BillingRecord {
+functions/src/billing/customer.ts:3:export interface CreateCustomerInput {
+functions/src/billing/customer.ts:9:export async function createStripeCustomer(
+functions/src/billing/stripeClient.ts:4:export const STRIPE_SECRET_KEY =
+functions/src/billing/stripeClient.ts:7:export const STRIPE_WEBHOOK_SECRET =
+functions/src/billing/stripeClient.ts:12:export function getStripe(): Stripe {
+functions/src/billing/checkout.ts:5:export interface CreateCheckoutInput {
+functions/src/billing/checkout.ts:15:export interface CreateCheckoutResult {
+functions/src/billing/checkout.ts:21:export async function createSubscriptionCheckout(
+functions/src/billing/checkoutCall.ts:38:export const createBillingCheckoutCall =
+functions/src/billing/billingCollections.ts:1:export const BILLING_COLLECTIONS = {
+functions/src/billing/membershipStatus.ts:3:export function normalizeMembershipStatus(
+functions/src/billing/subscriptions.ts:29:export interface SubscriptionSyncResult {
+functions/src/billing/subscriptions.ts:38:export async function syncStripeSubscription(
+functions/src/billing/webhook.ts:259:export const stripeBillingWebhook =
 functions/src/bootstrap.ts:8:export const db = getFirestore();
 
 === FIREBASE CONFIGURATION ===
@@ -2401,7 +2458,8 @@ service firebase.storage {
     "firebase-admin": "^12.5.0",
     "firebase-functions": "^4.7.3",
     "react": "^19.2.5",
-    "resend": "^6.12.2"
+    "resend": "^6.12.2",
+    "stripe": "^22.3.2"
   },
   "devDependencies": {
     "@types/busboy": "^1.5.4",
@@ -2972,7 +3030,7 @@ public/connect/appointments/appointments.js:97:    membership: "Monthly Membersh
 public/connect/appointments/appointments.js:98:    unlimited: "Unlimited Athlete Membership",
 public/connect/appointments/appointments.js:99:    "family-wellness": "Family Wellness Membership",
 public/connect/appointments/appointments.js:290:      <strong>Membership Interest:</strong>
-public/connect/thanks/contact.html:308:    to enroll, and no payment is required today.
+public/connect/thanks/contact.html:307:    to enroll, and no payment is required today.
 public/connect/_archive/follow-up/index.html:261:          time with a Sandman coach. No payment is required today.
 public/data/athlete-weekly.json:4:    "XP streak: 3+ sessions this week earns a stripe.",
 public/data/athlete-weekly-archive.json:2:  { "week": "2025-08-20", "title": "Build the streak", "summary": "3 sessions = stripe eligibility.", "link": "#" },
@@ -3397,9 +3455,13 @@ public/vault/strength/segment2/segment2.meta.json:7:  "unlockStripe": 2,
 public/vault/strength/segment1/segment1.meta.json:7:  "unlockStripe": 2,
 public/vault/index.json:9:      "unlockStripe": 2,
 public/vault/index.json:26:      "unlockStripe": 3,
-functions/package-lock.json:2766:    "node_modules/standardwebhooks": {
-functions/package-lock.json:2768:      "resolved": "https://registry.npmjs.org/standardwebhooks/-/standardwebhooks-1.0.0.tgz",
-functions/package-lock.json:2904:        "standardwebhooks": "1.0.0",
+functions/package-lock.json:16:        "stripe": "^22.3.2"
+functions/package-lock.json:2767:    "node_modules/standardwebhooks": {
+functions/package-lock.json:2769:      "resolved": "https://registry.npmjs.org/standardwebhooks/-/standardwebhooks-1.0.0.tgz",
+functions/package-lock.json:2879:    "node_modules/stripe": {
+functions/package-lock.json:2881:      "resolved": "https://registry.npmjs.org/stripe/-/stripe-22.3.2.tgz",
+functions/package-lock.json:2922:        "standardwebhooks": "1.0.0",
+functions/package.json:20:    "stripe": "^22.3.2"
 functions/scripts/_archive/inspect-max-merge.js:44:      stripeCount: data.stripeCount,
 functions/scripts/_archive/repair-max-merge.js:82:    stripeCount:
 functions/scripts/_archive/repair-max-merge.js:83:      Number(data.stripeCount || 0),
@@ -3651,6 +3713,11 @@ functions/src/approveAndActivate.ts:924:      const stripeCount = computeStartin
 functions/src/approveAndActivate.ts:983:        stripeCount,
 functions/src/approveAndActivate.ts:1156:        stripeCount,
 functions/src/index.ts:78:export { testStripeEngine } from "./modules/testStripeEngine";
+functions/src/index.ts:162:   BILLING
+functions/src/index.ts:166:  createBillingCheckoutCall,
+functions/src/index.ts:167:} from "./billing/checkoutCall";
+functions/src/index.ts:170:  stripeBillingWebhook,
+functions/src/index.ts:171:} from "./billing/webhook";
 functions/src/modules/testAthleteNormalizer.ts:25:    stripeCount: 0,
 functions/src/modules/sendGatekeeperEmail.ts:377:                    : "A $25 Admissions Appointment Reservation secures dedicated time with a Sandman coach. No payment is required today."}
 functions/src/modules/sendGatekeeperEmail.ts:599:A $25 Admissions Appointment Reservation secures dedicated time with a Sandman coach. No payment is required today.
@@ -3711,6 +3778,258 @@ functions/src/modules/incrementXp.ts:1342:if (result.earnedStripe) {
 functions/src/modules/incrementXp.ts:1347:    stripeCount: result.stripeCount,
 functions/src/services/addDisciplineToAthlete.ts:349:        stripeCount: 0,
 functions/src/services/addDisciplineToAthlete.ts:485:          stripeCount: 0,
+functions/src/billing/billingTypes.ts:1:export type MembershipStatus =
+functions/src/billing/billingTypes.ts:9:export interface BillingRecord {
+functions/src/billing/billingTypes.ts:12:  stripeCustomerId: string | null;
+functions/src/billing/billingTypes.ts:13:  stripeSubscriptionId: string | null;
+functions/src/billing/billingTypes.ts:14:  stripePriceId: string | null;
+functions/src/billing/billingTypes.ts:16:  membershipStatus: MembershipStatus;
+functions/src/billing/customer.ts:1:import { getStripe } from "./stripeClient";
+functions/src/billing/customer.ts:9:export async function createStripeCustomer(
+functions/src/billing/customer.ts:12:  const stripe = getStripe();
+functions/src/billing/customer.ts:14:  const customer = await stripe.customers.create({
+functions/src/billing/stripeClient.ts:1:import Stripe from "stripe";
+functions/src/billing/stripeClient.ts:4:export const STRIPE_SECRET_KEY =
+functions/src/billing/stripeClient.ts:5:  defineSecret("STRIPE_SECRET_KEY");
+functions/src/billing/stripeClient.ts:7:export const STRIPE_WEBHOOK_SECRET =
+functions/src/billing/stripeClient.ts:8:  defineSecret("STRIPE_WEBHOOK_SECRET");
+functions/src/billing/stripeClient.ts:10:let stripe: Stripe | null = null;
+functions/src/billing/stripeClient.ts:12:export function getStripe(): Stripe {
+functions/src/billing/stripeClient.ts:13:  if (!stripe) {
+functions/src/billing/stripeClient.ts:14:    const key = STRIPE_SECRET_KEY.value();
+functions/src/billing/stripeClient.ts:18:        "Missing STRIPE_SECRET_KEY"
+functions/src/billing/stripeClient.ts:22:    stripe = new Stripe(key);
+functions/src/billing/stripeClient.ts:25:  return stripe;
+functions/src/billing/checkout.ts:1:import Stripe from "stripe";
+functions/src/billing/checkout.ts:2:import { getStripe } from "./stripeClient";
+functions/src/billing/checkout.ts:3:import { createStripeCustomer } from "./customer";
+functions/src/billing/checkout.ts:5:export interface CreateCheckoutInput {
+functions/src/billing/checkout.ts:10:  stripeCustomerId?: string | null;
+functions/src/billing/checkout.ts:15:export interface CreateCheckoutResult {
+functions/src/billing/checkout.ts:16:  checkoutSessionId: string;
+functions/src/billing/checkout.ts:17:  checkoutUrl: string;
+functions/src/billing/checkout.ts:18:  stripeCustomerId: string;
+functions/src/billing/checkout.ts:21:export async function createSubscriptionCheckout(
+functions/src/billing/checkout.ts:22:  input: CreateCheckoutInput
+functions/src/billing/checkout.ts:23:): Promise<CreateCheckoutResult> {
+functions/src/billing/checkout.ts:24:  const stripe = getStripe();
+functions/src/billing/checkout.ts:26:  let stripeCustomerId = input.stripeCustomerId ?? null;
+functions/src/billing/checkout.ts:28:  if (!stripeCustomerId) {
+functions/src/billing/checkout.ts:29:    stripeCustomerId = await createStripeCustomer({
+functions/src/billing/checkout.ts:36:  const session: Stripe.Checkout.Session =
+functions/src/billing/checkout.ts:37:    await stripe.checkout.sessions.create({
+functions/src/billing/checkout.ts:38:      mode: "subscription",
+functions/src/billing/checkout.ts:40:      customer: stripeCustomerId,
+functions/src/billing/checkout.ts:50:        `${input.successUrl}?session_id={CHECKOUT_SESSION_ID}`,
+functions/src/billing/checkout.ts:60:      subscription_data: {
+functions/src/billing/checkout.ts:71:      "Stripe did not return a Checkout Session URL."
+functions/src/billing/checkout.ts:76:    checkoutSessionId: session.id,
+functions/src/billing/checkout.ts:77:    checkoutUrl: session.url,
+functions/src/billing/checkout.ts:78:    stripeCustomerId,
+functions/src/billing/checkoutCall.ts:12:  createSubscriptionCheckout,
+functions/src/billing/checkoutCall.ts:13:} from "./checkout";
+functions/src/billing/checkoutCall.ts:16:  STRIPE_SECRET_KEY,
+functions/src/billing/checkoutCall.ts:17:} from "./stripeClient";
+functions/src/billing/checkoutCall.ts:38:export const createBillingCheckoutCall =
+functions/src/billing/checkoutCall.ts:41:      secrets: [STRIPE_SECRET_KEY],
+functions/src/billing/checkoutCall.ts:47:        "You must be signed in to begin billing checkout."
+functions/src/billing/checkoutCall.ts:72:        "Family setup is required before billing can begin."
+functions/src/billing/checkoutCall.ts:104:        "You do not have access to this family billing account."
+functions/src/billing/checkoutCall.ts:117:        family.billingEmail ||
+functions/src/billing/checkoutCall.ts:122:    const stripePriceId =
+functions/src/billing/checkoutCall.ts:124:        family.stripePriceId ||
+functions/src/billing/checkoutCall.ts:125:        family.billing?.stripePriceId
+functions/src/billing/checkoutCall.ts:128:    const stripeCustomerId =
+functions/src/billing/checkoutCall.ts:130:        family.stripeCustomerId ||
+functions/src/billing/checkoutCall.ts:131:        family.billing?.stripeCustomerId
+functions/src/billing/checkoutCall.ts:137:        "The family record is missing a billing name."
+functions/src/billing/checkoutCall.ts:144:        "The family record is missing a valid billing email."
+functions/src/billing/checkoutCall.ts:148:    if (!stripePriceId) {
+functions/src/billing/checkoutCall.ts:151:        "A membership plan must be assigned before checkout."
+functions/src/billing/checkoutCall.ts:162:        await createSubscriptionCheckout({
+functions/src/billing/checkoutCall.ts:166:          priceId: stripePriceId,
+functions/src/billing/checkoutCall.ts:167:          stripeCustomerId,
+functions/src/billing/checkoutCall.ts:169:            `${publicBaseUrl}/billing/success/`,
+functions/src/billing/checkoutCall.ts:171:            `${publicBaseUrl}/billing/cancel/`,
+functions/src/billing/checkoutCall.ts:176:          stripeCustomerId:
+functions/src/billing/checkoutCall.ts:177:            result.stripeCustomerId,
+functions/src/billing/checkoutCall.ts:179:          billing: {
+functions/src/billing/checkoutCall.ts:180:            stripeCustomerId:
+functions/src/billing/checkoutCall.ts:181:              result.stripeCustomerId,
+functions/src/billing/checkoutCall.ts:183:            pendingCheckoutSessionId:
+functions/src/billing/checkoutCall.ts:184:              result.checkoutSessionId,
+functions/src/billing/checkoutCall.ts:186:            checkoutStartedAt:
+functions/src/billing/checkoutCall.ts:189:            checkoutStartedBy:
+functions/src/billing/checkoutCall.ts:202:        checkoutSessionId:
+functions/src/billing/checkoutCall.ts:203:          result.checkoutSessionId,
+functions/src/billing/checkoutCall.ts:204:        checkoutUrl:
+functions/src/billing/checkoutCall.ts:205:          result.checkoutUrl,
+functions/src/billing/checkoutCall.ts:209:        "[createBillingCheckoutCall] Checkout failed:",
+functions/src/billing/checkoutCall.ts:217:          : "Unable to create billing checkout."
+functions/src/billing/billingCollections.ts:1:export const BILLING_COLLECTIONS = {
+functions/src/billing/billingCollections.ts:3:  memberships: "memberships",
+functions/src/billing/billingCollections.ts:4:  billingEvents: "billingEvents"
+functions/src/billing/membershipStatus.ts:1:import { MembershipStatus } from "./billingTypes";
+functions/src/billing/membershipStatus.ts:3:export function normalizeMembershipStatus(
+functions/src/billing/membershipStatus.ts:4:  stripeStatus: string | null | undefined
+functions/src/billing/membershipStatus.ts:5:): MembershipStatus {
+functions/src/billing/membershipStatus.ts:6:  switch (stripeStatus) {
+functions/src/billing/subscriptions.ts:6:import Stripe from "stripe";
+functions/src/billing/subscriptions.ts:8:import { BILLING_COLLECTIONS } from "./billingCollections";
+functions/src/billing/subscriptions.ts:9:import { normalizeMembershipStatus } from "./membershipStatus";
+functions/src/billing/subscriptions.ts:15:function stripeId(
+functions/src/billing/subscriptions.ts:29:export interface SubscriptionSyncResult {
+functions/src/billing/subscriptions.ts:31:  stripeCustomerId: string | null;
+functions/src/billing/subscriptions.ts:32:  stripeSubscriptionId: string;
+functions/src/billing/subscriptions.ts:33:  membershipStatus: ReturnType<
+functions/src/billing/subscriptions.ts:34:    typeof normalizeMembershipStatus
+functions/src/billing/subscriptions.ts:38:export async function syncStripeSubscription(
+functions/src/billing/subscriptions.ts:39:  subscription: Stripe.Subscription,
+functions/src/billing/subscriptions.ts:41:): Promise<SubscriptionSyncResult | null> {
+functions/src/billing/subscriptions.ts:43:    cleanString(subscription.metadata?.familyId);
+functions/src/billing/subscriptions.ts:47:      "[syncStripeSubscription] Missing familyId:",
+functions/src/billing/subscriptions.ts:49:        subscriptionId: subscription.id,
+functions/src/billing/subscriptions.ts:57:  const stripeCustomerId =
+functions/src/billing/subscriptions.ts:58:    stripeId(subscription.customer);
+functions/src/billing/subscriptions.ts:61:    subscription.items.data[0];
+functions/src/billing/subscriptions.ts:63:  const stripePriceId =
+functions/src/billing/subscriptions.ts:73:const membershipStatus =
+functions/src/billing/subscriptions.ts:74:  normalizeMembershipStatus(
+functions/src/billing/subscriptions.ts:75:    subscription.status
+functions/src/billing/subscriptions.ts:82:      .collection(BILLING_COLLECTIONS.families)
+functions/src/billing/subscriptions.ts:85:  const membershipRef =
+functions/src/billing/subscriptions.ts:88:        BILLING_COLLECTIONS.memberships
+functions/src/billing/subscriptions.ts:100:      stripeCustomerId,
+functions/src/billing/subscriptions.ts:102:      "billing.stripeCustomerId":
+functions/src/billing/subscriptions.ts:103:        stripeCustomerId,
+functions/src/billing/subscriptions.ts:105:      "billing.stripeSubscriptionId":
+functions/src/billing/subscriptions.ts:106:        subscription.id,
+functions/src/billing/subscriptions.ts:108:      "billing.stripePriceId":
+functions/src/billing/subscriptions.ts:109:        stripePriceId,
+functions/src/billing/subscriptions.ts:111:      "billing.stripeSubscriptionStatus":
+functions/src/billing/subscriptions.ts:112:        subscription.status,
+functions/src/billing/subscriptions.ts:114:      "billing.membershipStatus":
+functions/src/billing/subscriptions.ts:115:        membershipStatus,
+functions/src/billing/subscriptions.ts:117:      "billing.currentPeriodEnd":
+functions/src/billing/subscriptions.ts:120:      "billing.cancelAtPeriodEnd":
+functions/src/billing/subscriptions.ts:121:        subscription.cancel_at_period_end,
+functions/src/billing/subscriptions.ts:123:      "billing.lastStripeEventType":
+functions/src/billing/subscriptions.ts:126:      "billing.lastStripeEventAt":
+functions/src/billing/subscriptions.ts:136:    membershipRef,
+functions/src/billing/subscriptions.ts:140:      stripeCustomerId,
+functions/src/billing/subscriptions.ts:141:      stripeSubscriptionId:
+functions/src/billing/subscriptions.ts:142:        subscription.id,
+functions/src/billing/subscriptions.ts:143:      stripePriceId,
+functions/src/billing/subscriptions.ts:145:      membershipStatus,
+functions/src/billing/subscriptions.ts:147:      stripeSubscriptionStatus:
+functions/src/billing/subscriptions.ts:148:        subscription.status,
+functions/src/billing/subscriptions.ts:153:        subscription.cancel_at_period_end,
+functions/src/billing/subscriptions.ts:155:      lastStripeEventType:
+functions/src/billing/subscriptions.ts:158:      lastStripeEventAt:
+functions/src/billing/subscriptions.ts:174:    stripeCustomerId,
+functions/src/billing/subscriptions.ts:175:    stripeSubscriptionId:
+functions/src/billing/subscriptions.ts:176:      subscription.id,
+functions/src/billing/subscriptions.ts:177:    membershipStatus,
+functions/src/billing/webhook.ts:8:import Stripe from "stripe";
+functions/src/billing/webhook.ts:11:  getStripe,
+functions/src/billing/webhook.ts:12:  STRIPE_SECRET_KEY,
+functions/src/billing/webhook.ts:13:  STRIPE_WEBHOOK_SECRET,
+functions/src/billing/webhook.ts:14:} from "./stripeClient";
+functions/src/billing/webhook.ts:16:import { BILLING_COLLECTIONS } from "./billingCollections";
+functions/src/billing/webhook.ts:19:  syncStripeSubscription,
+functions/src/billing/webhook.ts:20:} from "./subscriptions";
+functions/src/billing/webhook.ts:27:  object: Stripe.Event.Data.Object
+functions/src/billing/webhook.ts:42:  object: Stripe.Event.Data.Object
+functions/src/billing/webhook.ts:52:async function recordBillingEvent(
+functions/src/billing/webhook.ts:53:  event: Stripe.Event,
+functions/src/billing/webhook.ts:59:    .collection(BILLING_COLLECTIONS.billingEvents)
+functions/src/billing/webhook.ts:63:        stripeEventId: event.id,
+functions/src/billing/webhook.ts:66:        stripeObjectId:
+functions/src/billing/webhook.ts:90:      .collection(BILLING_COLLECTIONS.billingEvents)
+functions/src/billing/webhook.ts:100:async function handleCheckoutCompleted(
+functions/src/billing/webhook.ts:101:  session: Stripe.Checkout.Session
+functions/src/billing/webhook.ts:111:      "[stripeWebhook] Checkout completed without familyId:",
+functions/src/billing/webhook.ts:118:  const stripeCustomerId =
+functions/src/billing/webhook.ts:123:  const stripeSubscriptionId =
+functions/src/billing/webhook.ts:124:    typeof session.subscription === "string"
+functions/src/billing/webhook.ts:125:      ? session.subscription
+functions/src/billing/webhook.ts:126:      : session.subscription?.id || null;
+functions/src/billing/webhook.ts:132:      .collection(BILLING_COLLECTIONS.families)
+functions/src/billing/webhook.ts:137:      stripeCustomerId,
+functions/src/billing/webhook.ts:139:      billing: {
+functions/src/billing/webhook.ts:140:        stripeCustomerId,
+functions/src/billing/webhook.ts:141:        stripeSubscriptionId,
+functions/src/billing/webhook.ts:143:        membershipStatus: "pending",
+functions/src/billing/webhook.ts:145:        checkoutCompletedAt:
+functions/src/billing/webhook.ts:148:        pendingCheckoutSessionId:
+functions/src/billing/webhook.ts:151:        lastStripeEventType:
+functions/src/billing/webhook.ts:152:          "checkout.session.completed",
+functions/src/billing/webhook.ts:154:        lastStripeEventAt:
+functions/src/billing/webhook.ts:167:async function handleSubscriptionChanged(
+functions/src/billing/webhook.ts:168:  subscription: Stripe.Subscription,
+functions/src/billing/webhook.ts:172:    await syncStripeSubscription(
+functions/src/billing/webhook.ts:173:      subscription,
+functions/src/billing/webhook.ts:180:async function handleInvoiceEvent(
+functions/src/billing/webhook.ts:181:  invoice: Stripe.Invoice,
+functions/src/billing/webhook.ts:184:  const subscriptionDetails =
+functions/src/billing/webhook.ts:185:    invoice.parent?.subscription_details;
+functions/src/billing/webhook.ts:189:      invoice.metadata?.familyId ||
+functions/src/billing/webhook.ts:190:      subscriptionDetails?.metadata?.familyId
+functions/src/billing/webhook.ts:193:  const stripeCustomerId =
+functions/src/billing/webhook.ts:194:    typeof invoice.customer === "string"
+functions/src/billing/webhook.ts:195:      ? invoice.customer
+functions/src/billing/webhook.ts:196:      : invoice.customer?.id || null;
+functions/src/billing/webhook.ts:202:      "[stripeWebhook] Invoice event without familyId:",
+functions/src/billing/webhook.ts:203:      invoice.id
+functions/src/billing/webhook.ts:211:      .collection(BILLING_COLLECTIONS.families)
+functions/src/billing/webhook.ts:214:  const paymentSucceeded =
+functions/src/billing/webhook.ts:215:    eventType === "invoice.payment_succeeded";
+functions/src/billing/webhook.ts:219:      stripeCustomerId,
+functions/src/billing/webhook.ts:221:      billing: {
+functions/src/billing/webhook.ts:222:        stripeCustomerId,
+functions/src/billing/webhook.ts:224:        lastInvoiceId:
+functions/src/billing/webhook.ts:225:          invoice.id,
+functions/src/billing/webhook.ts:227:        lastInvoiceStatus:
+functions/src/billing/webhook.ts:228:          invoice.status || null,
+functions/src/billing/webhook.ts:230:        lastPaymentSucceeded:
+functions/src/billing/webhook.ts:231:          paymentSucceeded,
+functions/src/billing/webhook.ts:233:        lastPaymentAt:
+functions/src/billing/webhook.ts:234:          paymentSucceeded
+functions/src/billing/webhook.ts:238:        lastPaymentFailureAt:
+functions/src/billing/webhook.ts:239:          paymentSucceeded
+functions/src/billing/webhook.ts:243:        lastStripeEventType:
+functions/src/billing/webhook.ts:246:        lastStripeEventAt:
+functions/src/billing/webhook.ts:259:export const stripeBillingWebhook =
+functions/src/billing/webhook.ts:263:        STRIPE_SECRET_KEY,
+functions/src/billing/webhook.ts:264:        STRIPE_WEBHOOK_SECRET,
+functions/src/billing/webhook.ts:276:const webhookSecret =
+functions/src/billing/webhook.ts:277:  STRIPE_WEBHOOK_SECRET.value();
+functions/src/billing/webhook.ts:278:    if (!webhookSecret) {
+functions/src/billing/webhook.ts:280:        "[stripeBillingWebhook] Missing STRIPE_WEBHOOK_SECRET"
+functions/src/billing/webhook.ts:285:        .send("Webhook configuration error");
+functions/src/billing/webhook.ts:291:      req.headers["stripe-signature"];
+functions/src/billing/webhook.ts:296:        .send("Missing Stripe signature");
+functions/src/billing/webhook.ts:301:    let event: Stripe.Event;
+functions/src/billing/webhook.ts:305:        getStripe().webhooks.constructEvent(
+functions/src/billing/webhook.ts:308:          webhookSecret
+functions/src/billing/webhook.ts:312:        "[stripeBillingWebhook] Invalid signature:",
+functions/src/billing/webhook.ts:318:        .send("Invalid webhook signature");
+functions/src/billing/webhook.ts:340:        case "checkout.session.completed":
+functions/src/billing/webhook.ts:342:            await handleCheckoutCompleted(
+functions/src/billing/webhook.ts:343:              event.data.object as Stripe.Checkout.Session
+functions/src/billing/webhook.ts:347:        case "customer.subscription.created":
+functions/src/billing/webhook.ts:348:        case "customer.subscription.updated":
+functions/src/billing/webhook.ts:349:        case "customer.subscription.deleted":
+functions/src/billing/webhook.ts:351:            await handleSubscriptionChanged(
+functions/src/billing/webhook.ts:352:              event.data.object as Stripe.Subscription,
+functions/src/billing/webhook.ts:357:        case "invoice.payment_succeeded":
+functions/src/billing/webhook.ts:358:        case "invoice.payment_failed":
+functions/src/billing/webhook.ts:360:            await handleInvoiceEvent(
+functions/src/billing/webhook.ts:361:              event.data.object as Stripe.Invoice,
+functions/src/billing/webhook.ts:373:            "[stripeBillingWebhook] Ignored event:",
+functions/src/billing/webhook.ts:378:      await recordBillingEvent(
+functions/src/billing/webhook.ts:391:        "[stripeBillingWebhook] Processing failed:",
+functions/src/billing/webhook.ts:401:        .send("Webhook processing failed");
 
 === FIRESTORE WRITES ===
 public/athletes/arsenal/strength/inseason/session/session.js:8:  setDoc,
@@ -4234,7 +4553,7 @@ public/public.css:361:  grid-template-columns:repeat(12,1fr);
 public/public.css:372:  grid-template-columns:1fr;
 public/public.css:757:    grid-template-columns:repeat(4,minmax(0,1fr));
 public/public.css:764:    grid-template-columns:repeat(2,1fr);
-public/about.html:32:      grid-template-columns:repeat(2,minmax(0,1fr));
+public/about.html:30:      grid-template-columns:repeat(2,minmax(0,1fr));
 public/HQ/volunteer-intake.html:16:<!-- Placeholder for future Firebase form -->
 public/HQ/volunteer-intake.html:17:<p><em>Form coming soon. Please check back.</em></p>
 public/director/multi-mat-director.css:71:  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -4243,10 +4562,9 @@ public/programs.html:201:  grid-template-columns:repeat(3,minmax(0,1fr));
 public/programs.html:226:    grid-template-columns:1fr;
 public/programs.html:286:          El Sandman System™ impulsa todos los programas de Sandman Combat™ mediante una progresión estructurada, estándares claros y logros ganados con esfuerzo.
 public/programs.html:291:          Todos comienzan desde cero. Cada paso se gana.
-public/programs.html:473:            <li class="program-coming-soon"><strong>Kickboxing</strong> — Coming Soon</li>
-public/programs.html:525:        Todos Comienzan Desde Cero.<br>
-public/programs.html:557:      Todos los nombres de programas, logotipos, diseños de insignias, colores,
-public/programs.html:597:        para personas de todos los niveles. No se requiere experiencia
+public/programs.html:723:        para personas de todos los niveles. No se requiere experiencia
+public/programs.html:841:        Todos Comienzan Desde Cero.<br>
+public/programs.html:935:      Todos los nombres de programas, logotipos, diseños de insignias, colores,
 public/coaches/attendance/attendance.css:39:  grid-template-columns:repeat(3,minmax(0,1fr));
 public/coaches/attendance/attendance.css:112:  grid-template-columns:auto 1fr;
 public/coaches/attendance/attendance.css:152:    grid-template-columns:1fr;
@@ -5564,7 +5882,7 @@ public/connect/leads/leads.css:314:    grid-template-columns:1fr 1fr;
 public/connect/leads/leads.css:318:    grid-template-columns:1fr;
 public/connect/leads/leads.css:326:    grid-template-columns:1fr;
 public/connect/connect-hub.css:71:grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-public/connect/thanks/contact.html:277:    de tu cita con los detalles y todo lo que necesitas saber
+public/connect/thanks/contact.html:276:    de tu cita con los detalles y todo lo que necesitas saber
 public/connect/_archive/follow-up/index.html:476:          método principal de comunicación con Sandman Combat Academy.
 public/connect/_archive/follow-up/follow-up.css:125:    grid-template-columns:
 public/data/schemas/combat.schema.json:15:        "currentCycleAttempts": { "type": "integer", "minimum": 0 },
@@ -6366,7 +6684,9 @@ public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-boxing/t0/skill-05-cross.h
 public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-boxing/t0/skill-12-distance.html
 public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-boxing/t0/skill-11-parry.html
 public/coaches/cards/_archive/teen_BACKUP_indexes/index.html
+public/coaches/cards/_archive/teen_BACKUP_indexes/.DS_Store
 public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-kickboxing/index.html
+public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-kickboxing/.DS_Store
 public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-kickboxing/t2/skill-14-defense-reset.html
 public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-kickboxing/t2/index.html
 public/coaches/cards/_archive/teen_BACKUP_indexes/p2l-kickboxing/t2/skill-18-fatigue-control.html
@@ -6652,6 +6972,7 @@ public/coaches/vault/archive-2026/comms.blaze.js
 public/coaches/vault/archive-2026/comms.blaze.css
 public/coaches/vault/archive-2026/comms.blaze.html
 public/coaches/vault/archive-2026/hs-coach-outlline.html
+public/programs.html.before-availability-fix-20260729-205701
 public/admin/_archive/questionnaire.html
 public/admin/_archive/questionnaire.css
 public/admin/_archive/dashboard.html
@@ -6669,6 +6990,13 @@ public/connect/_archive/follow-up/index.html
 public/connect/_archive/follow-up/follow-up.css
 public/data/athlete-weekly-archive.json
 public/data/coach-weekly-archive.json
+public/assets/images/badges/foundry4/badge-master-gold.png
+public/assets/images/badges/foundry4/badge-legend-gold.png
+public/assets/images/badges/foundry4/badge-apprentice-white-gold.png
+public/assets/images/badges/foundry4/badge-champion-gold.png
+public/assets/images/badges/foundry4/badge-warrior-gold.png
+public/assets/images/badges/foundry4/badge-veteran-gold.png
+public/assets/images/badges/foundry4/badge-apprentice-gray-gold.png
 public/assets/js/placeholder-tournament.js
 public/assets/js/parent-weekly-archive.js
 public/assets/js/placeholder-xp-reports.js
@@ -6703,6 +7031,18 @@ functions/node_modules/google-gax/build/protos/google/protobuf/editions/golden/e
 functions/node_modules/google-gax/build/protos/google/protobuf/editions/golden/editions_transform_proto3_utf8_disabled.proto
 functions/node_modules/google-gax/build/protos/google/protobuf/editions/golden/simple_proto2_import.proto
 functions/node_modules/google-gax/build/protos/google/protobuf/editions/golden/editions_transform_proto2_lite.proto
+functions/node_modules/stripe/esm/resources/Issuing/Cardholders.d.ts
+functions/node_modules/stripe/esm/resources/Issuing/Cardholders.js
+functions/node_modules/stripe/esm/resources/Issuing/Cardholders.js.map
+functions/node_modules/stripe/esm/resources/Reserve/Holds.js.map
+functions/node_modules/stripe/esm/resources/Reserve/Holds.js
+functions/node_modules/stripe/esm/resources/Reserve/Holds.d.ts
+functions/node_modules/stripe/cjs/resources/Issuing/Cardholders.d.ts
+functions/node_modules/stripe/cjs/resources/Issuing/Cardholders.js
+functions/node_modules/stripe/cjs/resources/Issuing/Cardholders.js.map
+functions/node_modules/stripe/cjs/resources/Reserve/Holds.js.map
+functions/node_modules/stripe/cjs/resources/Reserve/Holds.js
+functions/node_modules/stripe/cjs/resources/Reserve/Holds.d.ts
 functions/scripts/_archive/inspect-max-merge.js
 functions/scripts/_archive/migrate-athlete-profile-routing.js
 functions/scripts/_archive/migrate-onboarding.mjs

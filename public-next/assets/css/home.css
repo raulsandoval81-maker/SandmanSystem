@@ -1,12 +1,13 @@
-/* =========================================================
-   Sandman Combat — Homepage
-   home.css
-   ========================================================= */
+/* ==========================================================
+   Sandman Combat
+   Home Page
+   public-next/assets/css/home.css
+========================================================== */
 
 
-/* =========================================================
+/* ==========================================================
    PAGE THEME
-========================================================= */
+========================================================== */
 
 :root,
 html[data-theme="dark"] {
@@ -23,15 +24,15 @@ html[data-theme="light"] {
   --home-text: #111111;
 }
 
+
+/* ==========================================================
+   PAGE
+========================================================== */
+
 body {
   background: var(--home-bg);
   color: var(--home-text);
 }
-
-
-/* =========================================================
-   HOMEPAGE MAIN
-========================================================= */
 
 main {
   width: 100%;
@@ -41,18 +42,18 @@ main {
 }
 
 
-/* =========================================================
-   HOMEPAGE HERO
-========================================================= */
+/* ==========================================================
+   HERO
+========================================================== */
 
 .hero-panel {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+
   width: 100%;
   margin: 0;
   padding: 0;
-
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
 
   overflow: hidden;
 }
@@ -65,22 +66,21 @@ main {
   height: auto;
 
   margin: 0 auto;
-  padding: 0;
 }
 
 
-/* =========================================================
-   LANGUAGE VISIBILITY
-========================================================= */
+/* ==========================================================
+   LANGUAGE
+========================================================== */
 
 .hidden-lang {
   display: none !important;
 }
 
 
-/* =========================================================
-   LIGHT THEME IMAGE TREATMENT
-========================================================= */
+/* ==========================================================
+   LIGHT MODE IMAGE TWEAK
+========================================================== */
 
 html[data-theme="light"] .home-hero__image {
   filter:
@@ -89,81 +89,16 @@ html[data-theme="light"] .home-hero__image {
 }
 
 
-/* =========================================================
-   TABLET
-========================================================= */
+/* ==========================================================
+   HEADER → HERO DIVIDER
+========================================================== */
 
-@media (max-width: 900px) {
-  .hero-panel {
-    width: 100%;
-  }
+.hero-divider {
+  display: block;
 
-  .home-hero__image {
-    width: 100%;
-    max-width: none;
-  }
-}
+  width: 100%;
+  height: 36px;
 
-
-/* =========================================================
-   PHONE PORTRAIT
-========================================================= */
-
-@media (max-width: 768px) and (orientation: portrait) {
-  .hero-panel {
-    width: 100%;
-    min-height: 0;
-  }
-
-  .home-hero__image {
-    width: 100%;
-    max-width: none;
-    height: auto;
-
-    object-fit: contain;
-    object-position: center top;
-  }
-}
-
-
-/* =========================================================
-   PHONE LANDSCAPE
-========================================================= */
-
-@media (max-height: 600px) and (orientation: landscape) {
-  .hero-panel {
-    width: 100%;
-    min-height: 0;
-  }
-
-  .home-hero__image {
-    width: 100%;
-    max-width: none;
-    height: auto;
-
-    object-fit: contain;
-    object-position: center top;
-  }
-}
-/* =========================================
-   MOBILE HERO SPACING
-========================================= */
-
-@media (max-width: 768px) and (orientation: portrait) {
-
-  .hero-panel{
-    padding-top: 1rem;
-  }
-
-}
-/* ==========================================
-   Header → Hero Transition
-========================================== */
-
-.hero-divider{
-  display:block;
-  width:100%;
-  height:36px;
   background:
     linear-gradient(
       180deg,
@@ -171,5 +106,77 @@ html[data-theme="light"] .home-hero__image {
       #090909 70%,
       #050505 100%
     );
-  border-bottom:1px solid rgba(212,175,55,.35);
+
+  border-bottom: 1px solid rgba(212,175,55,.35);
+}
+
+
+/* ==========================================================
+   TABLET
+========================================================== */
+
+@media (max-width:900px) {
+
+  .hero-panel {
+    width: 100%;
+  }
+
+  .home-hero__image {
+    width: 100%;
+    max-width: none;
+  }
+
+}
+
+
+/* ==========================================================
+   PHONE PORTRAIT
+========================================================== */
+
+@media (max-width:768px) and (orientation:portrait) {
+
+  .hero-panel {
+    width: 100%;
+    min-height: 0;
+    padding-top: 1rem;
+  }
+
+  .home-hero__image {
+    display: block;
+
+    width: 100%;
+    max-width: none;
+    height: auto;
+
+    margin: 0 auto;
+
+    object-fit: contain;
+    object-position: center top;
+  }
+
+}
+
+
+/* ==========================================================
+   PHONE LANDSCAPE
+========================================================== */
+
+@media (max-height:600px) and (orientation:landscape) {
+
+  .hero-panel {
+    width: 100%;
+    min-height: 0;
+  }
+
+  .home-hero__image {
+    display: block;
+
+    width: 100%;
+    max-width: none;
+    height: auto;
+
+    object-fit: contain;
+    object-position: center top;
+  }
+
 }
