@@ -2086,7 +2086,7 @@ html[data-theme="light"] .site-nav a:focus-visible {
     display:block !important;
 
     /* Controlled zoom without distorting the artwork */
-    width:110% !important;
+    width:116% !important;
     max-width:none !important;
     height:auto !important;
 
