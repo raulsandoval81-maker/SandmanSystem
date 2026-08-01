@@ -618,3 +618,58 @@
     overflow:hidden !important;
   }
 }
+/* =========================================================
+   CONNECT PAGE — PHONE LIGHT-MODE CONTRAST REPAIR
+========================================================= */
+
+@media (max-width:768px){
+
+  html[data-theme="light"] .connect-page,
+  html[data-theme="light"] .connect-section{
+    color:#111318 !important;
+  }
+
+  html[data-theme="light"] .connect-page h1,
+  html[data-theme="light"] .connect-page h2,
+  html[data-theme="light"] .connect-page h3,
+  html[data-theme="light"] .connect-section h1,
+  html[data-theme="light"] .connect-section h2,
+  html[data-theme="light"] .connect-section h3{
+    color:#111318 !important;
+  }
+
+  html[data-theme="light"] .connect-page p,
+  html[data-theme="light"] .connect-section p,
+  html[data-theme="light"] .connect-page blockquote,
+  html[data-theme="light"] .connect-section blockquote{
+    color:#3e4650 !important;
+  }
+
+  html[data-theme="light"] .connect-fit-card,
+  html[data-theme="light"] .connect-faq-card,
+  html[data-theme="light"] .connect-note-card,
+  html[data-theme="light"] .connect-statement{
+    color:#111318 !important;
+    background:#ffffff !important;
+  }
+
+  html[data-theme="light"] .connect-fit-card h3,
+  html[data-theme="light"] .connect-faq-card h3,
+  html[data-theme="light"] .connect-note-card h3,
+  html[data-theme="light"] .connect-statement strong{
+    color:#111318 !important;
+  }
+
+  html[data-theme="light"] .connect-fit-card p,
+  html[data-theme="light"] .connect-faq-card p,
+  html[data-theme="light"] .connect-note-card p{
+    color:#3e4650 !important;
+  }
+
+  /* Keep gold eyebrow labels visible */
+  html[data-theme="light"] .connect-eyebrow,
+  html[data-theme="light"] .connect-fit-card__number,
+  html[data-theme="light"] .connect-note-card__label{
+    color:#a87300 !important;
+  }
+}
