@@ -823,3 +823,118 @@ html[data-theme="light"] .site-nav a:focus-visible{
     font-size:.46rem;
   }
 }
+/* =========================================================
+   DARK CTA + CLOSING SECTIONS
+   Prevent light-theme text washout above the footer
+========================================================= */
+
+.about-cta,
+.journeys-cta,
+.system-cta,
+.origins-cta,
+.impact-cta,
+.library-cta,
+.connect-cta,
+.final-cta,
+.origins-closing,
+.impact-closing,
+.library-closing,
+.connect-closing,
+.system-section--progression{
+  color:#f5f7fa !important;
+}
+
+.about-cta h1,
+.about-cta h2,
+.about-cta h3,
+.journeys-cta h1,
+.journeys-cta h2,
+.journeys-cta h3,
+.system-cta h1,
+.system-cta h2,
+.system-cta h3,
+.origins-cta h1,
+.origins-cta h2,
+.origins-cta h3,
+.impact-cta h1,
+.impact-cta h2,
+.impact-cta h3,
+.library-cta h1,
+.library-cta h2,
+.library-cta h3,
+.connect-cta h1,
+.connect-cta h2,
+.connect-cta h3,
+.final-cta h1,
+.final-cta h2,
+.final-cta h3,
+.origins-closing h1,
+.origins-closing h2,
+.impact-closing h1,
+.impact-closing h2,
+.library-closing h1,
+.library-closing h2,
+.connect-closing h1,
+.connect-closing h2,
+.system-section--progression h1,
+.system-section--progression h2,
+.system-section--progression h3{
+  color:#f5f7fa !important;
+}
+
+.about-cta p,
+.journeys-cta p,
+.system-cta p,
+.origins-cta p,
+.impact-cta p,
+.library-cta p,
+.connect-cta p,
+.final-cta p,
+.origins-closing p,
+.impact-closing p,
+.library-closing p,
+.connect-closing p,
+.system-section--progression p{
+  color:rgba(245,247,250,.78) !important;
+}
+
+/* Eyebrows keep their page accent colors */
+.about-cta .about-eyebrow,
+.journeys-cta .journeys-eyebrow,
+.system-cta .system-eyebrow,
+.origins-cta .origins-eyebrow,
+.impact-cta .impact-eyebrow,
+.library-cta .library-eyebrow,
+.connect-cta .connect-eyebrow{
+  opacity:1 !important;
+}
+
+/* Keep CTA statements readable */
+.about-cta__statement,
+.system-cta__statement,
+.origins-cta__statement,
+.impact-cta__statement,
+.library-cta__statement,
+.connect-cta__statement{
+  color:#f5f7fa !important;
+}
+/* Keep cinematic CTA sections dark in light mode */
+
+html[data-theme="light"] .about-cta,
+html[data-theme="light"] .journeys-cta,
+html[data-theme="light"] .system-cta,
+html[data-theme="light"] .origins-cta,
+html[data-theme="light"] .impact-cta,
+html[data-theme="light"] .library-cta,
+html[data-theme="light"] .connect-cta,
+html[data-theme="light"] .final-cta,
+html[data-theme="light"] .origins-closing,
+html[data-theme="light"] .impact-closing,
+html[data-theme="light"] .library-closing,
+html[data-theme="light"] .connect-closing,
+html[data-theme="light"] .system-section--progression{
+  --text:#f5f7fa;
+  --text-soft:#c7ccd4;
+  --muted:rgba(255,255,255,.64);
+  --line:rgba(255,255,255,.12);
+}
