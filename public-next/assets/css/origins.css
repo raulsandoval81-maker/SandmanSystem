@@ -154,6 +154,8 @@
 .origins-hero {
   position: relative;
   width: 100%;
+  margin: 0;
+  overflow: hidden;
   background: #000;
   border-bottom: 1px solid var(--origins-line);
 }
@@ -172,16 +174,21 @@
     );
 }
 
-.origins-hero > div {
+.origins-hero > [data-lang-block] {
   width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
 .origins-hero__image {
   display: block;
   width: 100%;
+  max-width: 1536px;
   height: auto;
   max-height: none;
-  object-fit: cover;
+  margin: 0 auto;
+  object-fit: contain;
+  object-position: center top;
 }
 
 
@@ -897,12 +904,6 @@
     line-height: 1.68;
   }
 
-  .origins-hero__image {
-    min-height: 520px;
-    object-fit: cover;
-    object-position: center top;
-  }
-
   .origins-statement {
     padding: 24px;
   }
@@ -983,10 +984,6 @@
 ========================================================== */
 
 @media (max-width: 420px) {
-
-  .origins-hero__image {
-    min-height: 460px;
-  }
 
   .origins-eyebrow {
     letter-spacing: 0.16em;
@@ -1073,46 +1070,50 @@
   }
 
 }
-/* =========================================================
-   ORIGINS HERO — PORTRAIT PHONE
-========================================================= */
 
-@media (max-width:768px) and (orientation:portrait){
 
-  .origins-hero{
-    display:flex !important;
-    justify-content:center !important;
-    align-items:flex-start !important;
+/* ==========================================================
+   PORTRAIT PHONE HERO
+   Natural width, centered, no zoom, no forced height.
+========================================================== */
 
-    width:100% !important;
-    height:auto !important;
-    min-height:0 !important;
+@media (max-width: 768px) and (orientation: portrait) {
 
-    margin:0 !important;
-    padding:28px 0 0 !important;
-
-    overflow:hidden !important;
-    background:#000 !important;
+  .origins-hero {
+    display: block;
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    margin: 0;
+    padding: 28px 0 0;
+    overflow: hidden;
+    background: #000;
   }
 
-  .origins-hero > div{
-    width:100% !important;
-    height:auto !important;
-    margin:0 !important;
-    padding:0 !important;
+  .origins-hero > [data-lang-block] {
+    width: 100%;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
   }
 
-  .origins-hero__image{
-    display:block !important;
+  .origins-hero__image {
+    position: static;
+    left: auto;
+    right: auto;
 
-    width:100% !important;
-    max-width:none !important;
-    height:auto !important;
+    display: block;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    min-height: 0;
 
-    margin:0 0 0 50% !important;
-    transform:translateX(-50%) !important;
+    margin: 0 auto;
+    padding: 0;
+    transform: none;
 
-    object-fit:contain !important;
-    object-position:center top !important;
+    object-fit: contain;
+    object-position: center top;
   }
 }
