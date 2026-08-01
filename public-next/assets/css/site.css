@@ -1934,3 +1934,21 @@ html[data-theme="light"] .site-nav a:focus-visible {
   margin:4px auto 8px;
   object-fit:contain;
 }
+@media (max-width: 768px){
+
+  .about-hero img,
+  .journeys-hero img,
+  .system-hero img,
+  .origins-hero img,
+  .impact-hero img,
+  .library-hero img,
+  .connect-hero img{
+    width:100%;
+    height:auto;
+    min-height:72vh;
+    object-fit:contain;
+    object-position:center top;
+    background:#000;
+  }
+
+}
