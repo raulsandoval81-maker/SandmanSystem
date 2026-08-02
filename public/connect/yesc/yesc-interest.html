@@ -963,7 +963,7 @@ async function updateLeadStatus(
     await updateDoc(
       doc(
         db,
-        "yescInterest",
+        "interest_leads",
         documentId
       ),
       changes
@@ -1014,7 +1014,7 @@ async function deleteLead(
     await deleteDoc(
       doc(
         db,
-        "yescInterest",
+        "interest_leads",
         documentId
       )
     );
@@ -1055,7 +1055,7 @@ async function loadInquiries() {
       query(
         collection(
           db,
-          "yescInterest"
+          "interest_leads"
         ),
         orderBy(
           "createdAt",
@@ -1068,12 +1068,17 @@ async function loadInquiries() {
       await getDocs(inquiriesQuery);
 
     allInquiries =
-      snapshot.docs.map(
-        (documentSnapshot) => ({
-          id: documentSnapshot.id,
-          data: documentSnapshot.data()
-        })
-      );
+      snapshot.docs
+        .map(
+          (documentSnapshot) => ({
+            id: documentSnapshot.id,
+            data: documentSnapshot.data()
+          })
+        )
+        .filter(
+          (item) =>
+            item.data.pipeline === "yesc"
+        );
 
     renderCurrentView();
 
