@@ -2,32 +2,48 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
 
-  <title>Sandman Combat</title>
+  <title>Sandman Academy of Combat &amp; Fitness™</title>
 
   <meta
     name="description"
-    content="Combat Is the Classroom. Character Is the Curriculum."
+    content="Combat Is the Classroom. Character Is the Curriculum. Explore wrestling, boxing, Muay Thai, MMA, submission grappling, and fitness at Sandman Academy."
   />
 
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/assets/css/home.css" />
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/home.css"
+  />
 </head>
 
 <body>
 
   <!-- Shared site navigation -->
+
   <div
     id="navigation"
     data-component="/components/navigation.html"
   ></div>
 
-  <div class="site-hero-divider" aria-hidden="true"></div>
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
 
   <main>
 
-    <!-- ENGLISH HERO -->
+    <!-- =====================================================
+         PRIMARY HERO — ENGLISH
+    ====================================================== -->
 
     <section
       class="hero-panel hero-panel--interactive"
@@ -36,8 +52,9 @@
 
       <img
         src="/assets/img/pages/home/hero-home-env2.png"
-        alt="Sandman Academy homepage"
+        alt="Sandman Academy athletes training in wrestling"
         class="home-hero__image"
+        loading="eager"
       />
 
       <!-- Start Your Journey -->
@@ -56,10 +73,46 @@
         aria-label="Watch Our Story"
       ></a>
 
+            <!-- Watch Our Story -->
+
+      <a
+        class="home-hotspot home-hotspot-origins"
+        href="/origins.html"
+        aria-label="Watch Our Story"
+      ></a>
+
+      <!-- Combat Philosophy -->
+
+      <a
+        class="home-hotspot home-hotspot-combat"
+        href="/pillars/combat.html"
+        aria-label="Explore the Combat philosophy"
+      ></a>
+
+      <!-- Strength Philosophy -->
+
+      <a
+        class="home-hotspot home-hotspot-strength"
+        href="/pillars/strength.html"
+        aria-label="Explore the Strength philosophy"
+      ></a>
+
+      <!-- Honor Philosophy -->
+
+      <a
+        class="home-hotspot home-hotspot-honor"
+        href="/pillars/honor.html"
+        aria-label="Explore the Honor philosophy"
+      ></a>
+
+    </section>
+
     </section>
 
 
-    <!-- SPANISH HERO -->
+    <!-- =====================================================
+         PRIMARY HERO — SPANISH
+    ====================================================== -->
 
     <section
       class="hero-panel hero-panel--interactive hidden-lang"
@@ -68,8 +121,9 @@
 
       <img
         src="/assets/img/pages/home/hero-home-esv2.png"
-        alt="Página principal de Sandman Academy"
+        alt="Atletas de Sandman Academy entrenando lucha"
         class="home-hero__image"
+        loading="eager"
       />
 
       <!-- Comienza Tu Camino -->
@@ -88,14 +142,86 @@
         aria-label="Conoce Nuestra Historia"
       ></a>
 
+            <!-- Filosofía de Combate -->
+
+      <a
+        class="home-hotspot home-hotspot-combat"
+        href="/pillars/combat.html"
+        aria-label="Explora la filosofía de Combate"
+      ></a>
+
+      <!-- Filosofía de Fuerza -->
+
+      <a
+        class="home-hotspot home-hotspot-strength"
+        href="/pillars/strength.html"
+        aria-label="Explora la filosofía de Fuerza"
+      ></a>
+
+      <!-- Filosofía de Honor -->
+
+      <a
+        class="home-hotspot home-hotspot-honor"
+        href="/pillars/honor.html"
+        aria-label="Explora la filosofía de Honor"
+      ></a>
+
     </section>
-<section class="home-flag-band">
-  <img
-    src="/assets/img/pages/home/home-flag-band.png"
-    alt=""
-  />
-</section>
+
+
+    <!-- =====================================================
+         MANY PATHS — ENGLISH
+    ====================================================== -->
+
+    <section
+      class="home-many-paths"
+      data-lang-block="en"
+    >
+        <img
+          src="/assets/img/pages/home/home-many-paths-hero-en-v1.png"
+          alt="Boxing, Muay Thai, MMA, submission grappling, and fitness at Sandman Academy"
+          class="home-many-paths__image"
+          loading="lazy"
+        />
+      </a>
+    </section>
+
+
+    <!-- =====================================================
+         MANY PATHS — SPANISH
+    ====================================================== -->
+
+    <section
+      class="home-many-paths hidden-lang"
+      data-lang-block="es"
+    >
+        <img
+          src="/assets/img/pages/home/home-many-paths-hero-es-v1.png"
+          alt="Boxeo, Muay Thai, MMA, grappling y acondicionamiento físico en Sandman Academy"
+          class="home-many-paths__image"
+          loading="lazy"
+        />
+      </a>
+    </section>
+
+
+    <!-- =====================================================
+         AMERICAN FLAG BAND
+    ====================================================== -->
+
+    <section
+      class="home-flag-band"
+      aria-hidden="true"
+    >
+      <img
+        src="/assets/img/pages/home/home-flag-band.png"
+        alt=""
+        loading="lazy"
+      />
+    </section>
+
   </main>
+
 
   <!-- Shared footer -->
 
@@ -104,10 +230,28 @@
     data-component="/components/footer.html"
   ></div>
 
-  <script src="/assets/js/component-loader.js" defer></script>
-  <script src="/assets/js/language.js" defer></script>
-  <script src="/assets/js/theme.js" defer></script>
-  <script src="/assets/js/navigation.js" defer></script>
+
+  <!-- Shared scripts -->
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
 
 </body>
 </html>

@@ -93,9 +93,14 @@ main{
 /* ==========================================================
    INTERACTIVE HERO
 ========================================================== */
+.home-hero__image{
+  display:block;
 
-.hero-panel--interactive{
-  position:relative;
+  width:100%;
+  max-width:none;
+  height:auto;
+
+  margin:0;
 }
 
 .home-hotspot{
@@ -111,7 +116,25 @@ main{
   z-index:20;
 }
 
+/* ==========================================================
+   HOME HERO — PRIMARY CTA HOTSPOTS
+========================================================== */
 
+.home-hotspot-journeys{
+  left:1%;
+  top:70%;
+  width:25%;
+  height:6%;
+  z-index:30;
+}
+
+.home-hotspot-origins{
+  left:28%;
+  top:70%;
+  width:24%;
+  height:6%;
+  z-index:30;
+}
 /* ==========================================================
    LANGUAGE
 ========================================================== */
@@ -279,4 +302,80 @@ html[data-theme="light"] .home-hero__image{
 .home-flag-band img{
     height:48px;
 }
+}
+/* =====================================================
+   HOME — MANY PATHS
+====================================================== */
+
+.home-many-paths{
+  width:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+  background:#000;
+  border-top:2px solid rgba(212,175,55,.72);
+  border-bottom:2px solid rgba(212,175,55,.72);
+}
+
+.home-many-paths__link{
+  display:block;
+  width:100%;
+  text-decoration:none;
+}
+
+.home-many-paths__image{
+  display:block;
+  width:100%;
+  height:auto;
+  margin:0;
+}
+
+.home-many-paths__link:hover
+.home-many-paths__image{
+  filter:brightness(1.04);
+}
+
+.home-many-paths__link:focus-visible{
+  outline:3px solid #d4af37;
+  outline-offset:-3px;
+}
+
+@media (max-width:760px){
+  .home-many-paths{
+    border-top-width:1px;
+    border-bottom-width:1px;
+  }
+
+  .home-many-paths__image{
+    width:100%;
+    max-width:none;
+  }
+}
+/* =====================================================
+   HOME HERO — COMBAT / STRENGTH / HONOR HOTSPOTS
+====================================================== */
+
+.home-hotspot-combat,
+.home-hotspot-strength,
+.home-hotspot-honor{
+  position:absolute;
+  top:74%;
+  height:23%;
+  z-index:6;
+  display:block;
+}
+
+.home-hotspot-combat{
+  left:0;
+  width:33.333%;
+}
+
+.home-hotspot-strength{
+  left:33.333%;
+  width:33.333%;
+}
+
+.home-hotspot-honor{
+  left:66.666%;
+  width:33.334%;
 }
