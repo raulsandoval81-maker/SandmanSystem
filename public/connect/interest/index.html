@@ -174,6 +174,72 @@
         min-height: 86px;
       }
     }
+  .registrant-role-options {
+      display: grid;
+      grid-template-columns: repeat(
+        2,
+        minmax(0, 1fr)
+      );
+      gap: 12px;
+    }
+
+    .registrant-role-option {
+      position: relative;
+      display: block;
+      cursor: pointer;
+    }
+
+    .registrant-role-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .registrant-role-option > span {
+      display: block;
+      min-height: 108px;
+      padding: 18px;
+      border: 1px solid
+        rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      background:
+        rgba(255, 255, 255, 0.04);
+      text-align: center;
+      transition:
+        border-color 160ms ease,
+        background 160ms ease,
+        transform 160ms ease;
+    }
+
+    .registrant-role-option:hover > span {
+      transform: translateY(-1px);
+      border-color:
+        rgba(250, 204, 21, 0.55);
+    }
+
+    .registrant-role-option input:checked +
+    span {
+      border-color: #facc15;
+      background:
+        rgba(250, 204, 21, 0.12);
+    }
+
+    .registrant-role-option strong,
+    .registrant-role-option small {
+      display: block;
+    }
+
+    .registrant-role-option small {
+      margin-top: 7px;
+      opacity: 0.72;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 680px) {
+      .registrant-role-options {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
 
@@ -388,6 +454,99 @@
         <section class="form-section">
           <h2>
             <span data-lang="en">
+              Who Is Completing This Form?
+            </span>
+
+            <span data-lang="es">
+              ¿Quién Está Completando Este Formulario?
+            </span>
+          </h2>
+
+          <div class="field">
+            <label>
+              <span data-lang="en">
+                Select the option that best applies.
+              </span>
+
+              <span data-lang="es">
+                Selecciona la opción que corresponda.
+              </span>
+            </label>
+
+            <div class="registrant-role-options">
+              <label class="registrant-role-option">
+                <input
+                  type="radio"
+                  name="registrantRole"
+                  value="parent-guardian"
+                  checked
+                />
+
+                <span>
+                  <strong>
+                    <span data-lang="en">
+                      Parent or Guardian
+                    </span>
+
+                    <span data-lang="es">
+                      Padre, Madre o Tutor
+                    </span>
+                  </strong>
+
+                  <small>
+                    <span data-lang="en">
+                      I am completing this form for an athlete.
+                    </span>
+
+                    <span data-lang="es">
+                      Estoy completando este formulario para un atleta.
+                    </span>
+                  </small>
+                </span>
+              </label>
+
+              <label class="registrant-role-option">
+                <input
+                  type="radio"
+                  name="registrantRole"
+                  value="adult-athlete"
+                />
+
+                <span>
+                  <strong>
+                    <span data-lang="en">
+                      Adult Athlete, Age 18+
+                    </span>
+
+                    <span data-lang="es">
+                      Atleta Adulto, Mayor de 18 Años
+                    </span>
+                  </strong>
+
+                  <small>
+                    <span data-lang="en">
+                      I am registering myself.
+                    </span>
+
+                    <span data-lang="es">
+                      Me estoy registrando personalmente.
+                    </span>
+                  </small>
+                </span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <section
+          id="guardianInformationSection"
+          class="form-section"
+        >
+          <h2>
+            <span
+              id="guardianHeadingEnglish"
+              data-lang="en"
+            >
               Parent or Guardian
             </span>
 
@@ -397,7 +556,10 @@
           </h2>
 
           <div class="field">
-            <label for="parentName">
+            <label
+              id="parentNameLabel"
+              for="parentName"
+            >
               <span data-lang="en">
                 Parent or Guardian Name
               </span>
@@ -428,7 +590,10 @@
             </span>
           </h2>
 
-          <div class="field">
+          <div
+            id="athleteNameField"
+            class="field"
+          >
             <label for="athleteName">
               <span data-lang="en">
                 Athlete Name

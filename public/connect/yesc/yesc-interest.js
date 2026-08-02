@@ -14,6 +14,24 @@ const statusEl =
 const submitButton =
   document.getElementById("yescSubmitButton");
 
+const yescContactName =
+  document.getElementById("contactName");
+
+const yescParticipantName =
+  document.getElementById("participantName");
+
+const yescParticipantNameField =
+  document.getElementById(
+    "yescParticipantNameField"
+  );
+
+const registrantRoleInputs =
+  Array.from(
+    document.querySelectorAll(
+      'input[name="registrantRole"]'
+    )
+  );
+
 function clean(value = "") {
   return String(value).trim();
 }
@@ -52,6 +70,26 @@ function setStatus(message, type = "") {
 }
 
 function buildLead(formData) {
+  const registrantRole =
+    clean(
+      formData.get("registrantRole")
+    ) || "parent-guardian";
+
+  const contactName =
+    clean(
+      formData.get("contactName")
+    );
+
+  const enteredParticipantName =
+    clean(
+      formData.get("participantName")
+    );
+
+  const participantName =
+    registrantRole === "adult-athlete"
+      ? contactName
+      : enteredParticipantName;
+
   const participantAge =
     Number.parseInt(
       clean(
@@ -66,10 +104,17 @@ function buildLead(formData) {
     source: "marketing-fitness",
     status: "new",
 
-    contactName:
-      clean(
-        formData.get("contactName")
-      ),
+    registrantRole,
+
+    registrantName:
+      contactName,
+
+    contactName,
+
+    parentName:
+      registrantRole === "parent-guardian"
+        ? contactName
+        : "",
 
     email:
       clean(
@@ -86,10 +131,10 @@ function buildLead(formData) {
         formData.get("preferredContact")
       ),
 
-    participantName:
-      clean(
-        formData.get("participantName")
-      ),
+    participantName,
+
+    athleteName:
+      participantName,
 
     participantAge:
       Number.isFinite(participantAge)
@@ -148,7 +193,11 @@ function validateLead(lead) {
       : "Please choose a preferred contact method.";
   }
 
-  if (!lead.participantName) {
+  if (
+    lead.registrantRole ===
+      "parent-guardian" &&
+    !lead.participantName
+  ) {
     return isSpanish
       ? "Ingresa el nombre del participante."
       : "Please enter the participant name.";
@@ -191,6 +240,64 @@ function createTimeout(
     }
   );
 }
+
+function getRegistrantRole() {
+  const selected =
+    registrantRoleInputs.find(
+      (input) => input.checked
+    );
+
+  return selected?.value === "adult-athlete"
+    ? "adult-athlete"
+    : "parent-guardian";
+}
+
+function updateRegistrantRoleUI() {
+  const isAdultAthlete =
+    getRegistrantRole() ===
+    "adult-athlete";
+
+  if (yescParticipantNameField) {
+    yescParticipantNameField.hidden =
+      isAdultAthlete;
+  }
+
+  if (yescParticipantName) {
+    yescParticipantName.required =
+      !isAdultAthlete;
+
+    yescParticipantName.disabled =
+      isAdultAthlete;
+
+    if (isAdultAthlete) {
+      yescParticipantName.value =
+        yescContactName?.value || "";
+    }
+  }
+}
+
+registrantRoleInputs.forEach((input) => {
+  input.addEventListener(
+    "change",
+    updateRegistrantRoleUI
+  );
+});
+
+yescContactName?.addEventListener(
+  "input",
+  () => {
+    if (
+      getRegistrantRole() ===
+        "adult-athlete" &&
+      yescParticipantName
+    ) {
+      yescParticipantName.value =
+        yescContactName.value;
+    }
+  }
+);
+
+updateRegistrantRoleUI();
 
 form?.addEventListener(
   "submit",

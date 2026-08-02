@@ -23,6 +23,25 @@ const submitBtn =
 const formStatus =
   document.getElementById("formStatus");
 
+const parentNameInput =
+  document.getElementById("parentName");
+
+const athleteNameInput =
+  document.getElementById("athleteName");
+
+const athleteNameField =
+  document.getElementById("athleteNameField");
+
+const parentNameLabel =
+  document.getElementById("parentNameLabel");
+
+const registrantRoleInputs =
+  Array.from(
+    document.querySelectorAll(
+      'input[name="registrantRole"]'
+    )
+  );
+
 const intentNotice =
   document.getElementById("intentNotice");
 
@@ -196,6 +215,26 @@ function normalizePhone(value = "") {
 function readForm() {
   const formData = new FormData(form);
 
+  const registrantRole =
+    clean(
+      formData.get("registrantRole")
+    ) || "parent-guardian";
+
+  const enteredRegistrantName =
+    clean(
+      formData.get("parentName")
+    );
+
+  const enteredAthleteName =
+    clean(
+      formData.get("athleteName")
+    );
+
+  const resolvedAthleteName =
+    registrantRole === "adult-athlete"
+      ? enteredRegistrantName
+      : enteredAthleteName;
+
   const selectedProgram =
   PROGRAMS.find(
     (program) =>
@@ -225,11 +264,18 @@ function readForm() {
     academyId,
     interestType,
 
+    registrantRole,
+
+    registrantName:
+      enteredRegistrantName,
+
     parentName:
-      clean(formData.get("parentName")),
+      registrantRole === "parent-guardian"
+        ? enteredRegistrantName
+        : "",
 
     athleteName:
-      clean(formData.get("athleteName")),
+      resolvedAthleteName,
 
     athleteAge:
       Number(formData.get("athleteAge") || 0),
@@ -291,10 +337,14 @@ function readForm() {
 }
 
 function validateLead(lead = {}) {
-  if (!lead.parentName) {
+  if (!lead.registrantName) {
     return message(
-      "Enter the parent or guardian name.",
-      "Ingresa el nombre del padre, madre o tutor."
+      lead.registrantRole === "adult-athlete"
+        ? "Enter your name."
+        : "Enter the parent or guardian name.",
+      lead.registrantRole === "adult-athlete"
+        ? "Ingresa tu nombre."
+        : "Ingresa el nombre del padre, madre o tutor."
     );
   }
 
@@ -502,7 +552,11 @@ form?.addEventListener(
       }
 
       window.location.assign(
-        `/connect/thanks/?lang=${language}`
+        "/connect/thanks/" +
+        `?lang=${encodeURIComponent(language)}` +
+        `&registrantRole=${encodeURIComponent(
+          lead.registrantRole
+        )}`
       );
     } catch (error) {
       console.error(
@@ -577,6 +631,67 @@ function renderIntent() {
 
   intentText.textContent =
     selectedLabel[currentLanguage()];
+}
+
+function getRegistrantRole() {
+  const selected =
+    registrantRoleInputs.find(
+      (input) => input.checked
+    );
+
+  return selected?.value === "adult-athlete"
+    ? "adult-athlete"
+    : "parent-guardian";
+}
+
+function updateRegistrantRoleUI() {
+  const role =
+    getRegistrantRole();
+
+  const isAdultAthlete =
+    role === "adult-athlete";
+
+  if (athleteNameField) {
+    athleteNameField.hidden =
+      isAdultAthlete;
+  }
+
+  if (athleteNameInput) {
+    athleteNameInput.required =
+      !isAdultAthlete;
+
+    athleteNameInput.disabled =
+      isAdultAthlete;
+
+    if (isAdultAthlete) {
+      athleteNameInput.value =
+        parentNameInput?.value || "";
+    }
+  }
+
+  if (parentNameLabel) {
+    parentNameLabel
+      .querySelectorAll(
+        '[data-lang="en"]'
+      )
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Your Name"
+            : "Parent or Guardian Name";
+      });
+
+    parentNameLabel
+      .querySelectorAll(
+        '[data-lang="es"]'
+      )
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Tu Nombre"
+            : "Nombre del Padre, Madre o Tutor";
+      });
+  }
 }
 
 function getSelectedInterestType() {
@@ -779,6 +894,29 @@ interestTypeInputs.forEach((input) => {
     updateInterestTypeUI
   );
 });
+
+registrantRoleInputs.forEach((input) => {
+  input.addEventListener(
+    "change",
+    updateRegistrantRoleUI
+  );
+});
+
+parentNameInput?.addEventListener(
+  "input",
+  () => {
+    if (
+      getRegistrantRole() ===
+      "adult-athlete" &&
+      athleteNameInput
+    ) {
+      athleteNameInput.value =
+        parentNameInput.value;
+    }
+  }
+);
+
+updateRegistrantRoleUI();
 
 syncInterestTypeFromUrl();
 updateInterestTypeUI();
