@@ -153,7 +153,7 @@ export {
 
 export {
   sendGatekeeperEmail,
-} from "./modules/sendGatekeeperEmail";
+} from "./modules/gatekeeper/sendGatekeeperEmail";
 
 export {
   retestAthlete,
