@@ -337,7 +337,7 @@ form?.addEventListener(
         addDoc(
           collection(
             db,
-            "yescInterest"
+            "interest_leads"
           ),
           lead
         );
