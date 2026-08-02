@@ -392,7 +392,7 @@
   margin:0 auto 1.5rem;
 
   gap:.22em;
-  white-space:nowrap;
+  white-space:normal;
 
   font-size:clamp(1.55rem,5.5vw,4.5rem);
   font-weight:900;
@@ -489,4 +489,79 @@
     line-height:1.9;
     max-width:760px;
     margin:0 auto 2rem;
+}
+/* Mobile fix */
+
+/* Mobile */
+@media (max-width: 600px){
+
+  .belief-equation{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    gap:.1em;
+
+    font-size:clamp(1.8rem,8vw,2.8rem);
+    line-height:.95;
+
+    white-space:normal;
+    text-align:center;
+  }
+
+  .belief-equation > span{
+    display:block;
+  }
+
+  .belief-equation__equals{
+    color:#d4af37;
+    line-height:.8;
+  }
+
+}
+/* ==========================================================
+   ABOUT BELIEF — DESKTOP WIDTH / TITLE FIX
+========================================================== */
+
+.about-belief{
+  width:min(1180px, calc(100% - 48px));
+  max-width:1180px;
+
+  margin-inline:auto;
+  padding-inline:clamp(32px, 6vw, 80px);
+
+  overflow:hidden;
+}
+
+.about-belief .belief-equation{
+  width:100%;
+  max-width:100%;
+
+  margin-inline:auto;
+
+  font-size:clamp(3rem, 6vw, 6.4rem);
+  line-height:.94;
+
+  white-space:normal;
+  text-wrap:balance;
+  overflow-wrap:normal;
+
+  text-align:center;
+}
+@media (max-width:768px){
+
+  .about-belief{
+    width:calc(100% - 28px);
+    padding:52px 24px;
+  }
+
+  .about-belief .belief-equation{
+    font-size:clamp(3rem, 13vw, 5rem);
+    line-height:1.05;
+  }
+
+  .about-belief .belief-equation span{
+    display:block;
+  }
 }

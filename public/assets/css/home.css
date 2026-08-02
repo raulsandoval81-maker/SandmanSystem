@@ -1,7 +1,7 @@
 /* ==========================================================
    Sandman Combat
    Home Page
-   public-next/assets/css/home.css
+   public/assets/css/home.css
 ========================================================== */
 
 
@@ -10,18 +10,18 @@
 ========================================================== */
 
 :root,
-html[data-theme="dark"] {
-  color-scheme: dark;
+html[data-theme="dark"]{
+  color-scheme:dark;
 
-  --home-bg: #050505;
-  --home-text: #f5f5f5;
+  --home-bg:#050505;
+  --home-text:#f5f5f5;
 }
 
-html[data-theme="light"] {
-  color-scheme: light;
+html[data-theme="light"]{
+  color-scheme:light;
 
-  --home-bg: #f4f1ea;
-  --home-text: #111111;
+  --home-bg:#f4f1ea;
+  --home-text:#111111;
 }
 
 
@@ -29,16 +29,34 @@ html[data-theme="light"] {
    PAGE
 ========================================================== */
 
-body {
-  background: var(--home-bg);
-  color: var(--home-text);
+body{
+  background:var(--home-bg);
+  color:var(--home-text);
 }
 
-main {
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
+main{
+  width:100%;
+  margin:0;
+  padding:0;
+  overflow:hidden;
+}
+
+
+/* ==========================================================
+   HEADER → HERO BAND
+========================================================== */
+
+.site-hero-divider{
+  width:100%;
+  height:34px;
+
+  margin:0;
+  padding:0;
+
+  background:#000;
+
+  border-top:2px solid #d4af37;
+  border-bottom:2px solid #d4af37;
 }
 
 
@@ -46,26 +64,51 @@ main {
    HERO
 ========================================================== */
 
-.hero-panel {
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
+.hero-panel{
+  position:relative;
 
-  width: 100%;
-  margin: 0;
-  padding: 0;
+  display:flex;
+  justify-content:center;
+  align-items:flex-start;
 
-  overflow: hidden;
+  width:100%;
+
+  margin:0;
+  padding:0;
+
+  overflow:hidden;
 }
 
-.home-hero__image {
-  display: block;
+.home-hero__image{
+  display:block;
 
-  width: 100%;
-  max-width: 1536px;
-  height: auto;
+  width:100%;
+  max-width:1536px;
+  height:auto;
 
-  margin: 0 auto;
+  margin:0 auto;
+}
+
+
+/* ==========================================================
+   INTERACTIVE HERO
+========================================================== */
+
+.hero-panel--interactive{
+  position:relative;
+}
+
+.home-hotspot{
+  position:absolute;
+  display:block;
+
+  background:transparent;
+  border:0;
+
+  text-indent:-9999px;
+  overflow:hidden;
+
+  z-index:20;
 }
 
 
@@ -73,16 +116,16 @@ main {
    LANGUAGE
 ========================================================== */
 
-.hidden-lang {
-  display: none !important;
+.hidden-lang{
+  display:none !important;
 }
 
 
 /* ==========================================================
-   LIGHT MODE IMAGE TWEAK
+   LIGHT MODE
 ========================================================== */
 
-html[data-theme="light"] .home-hero__image {
+html[data-theme="light"] .home-hero__image{
   filter:
     brightness(1.02)
     contrast(1.02);
@@ -90,24 +133,51 @@ html[data-theme="light"] .home-hero__image {
 
 
 /* ==========================================================
-   HEADER → HERO DIVIDER
+   FLAG FRAME
+   Black buffer outside both gold lines
 ========================================================== */
 
-.hero-divider {
-  display: block;
+.home-flag-band{
+  width:100%;
 
-  width: 100%;
-  height: 36px;
+  margin:0;
+  padding:20px 0;
 
-  background:
-    linear-gradient(
-      180deg,
-      #050505 0%,
-      #090909 70%,
-      #050505 100%
-    );
+  background:#000;
+  border:15;
 
-  border-bottom: 1px solid rgba(212,175,55,.35);
+  overflow:hidden;
+  line-height:0;
+}
+
+.home-flag-band img{
+  display:block;
+
+  width:100%;
+  height:56px;
+
+  margin:0;
+  padding:0;
+
+  object-fit:cover;
+  object-position:center;
+
+  border-top:2px solid #d4af37;
+  border-bottom:2px solid #d4af37;
+
+  box-sizing:border-box;
+}
+/* ==========================================================
+   FOOTER
+========================================================== */
+
+#footer{
+  margin:0;
+  padding:0;
+}
+
+#footer .site-footer{
+  margin-top:0;
 }
 
 
@@ -115,15 +185,15 @@ html[data-theme="light"] .home-hero__image {
    TABLET
 ========================================================== */
 
-@media (max-width:900px) {
+@media (max-width:900px){
 
-  .hero-panel {
-    width: 100%;
+  .hero-panel{
+    width:100%;
   }
 
-  .home-hero__image {
-    width: 100%;
-    max-width: none;
+  .home-hero__image{
+    width:100%;
+    max-width:none;
   }
 
 }
@@ -133,50 +203,80 @@ html[data-theme="light"] .home-hero__image {
    PHONE PORTRAIT
 ========================================================== */
 
-@media (max-width:768px) and (orientation:portrait) {
+@media (max-width:768px) and (orientation:portrait){
 
-  .hero-panel {
-    width: 100%;
-    min-height: 0;
-    padding-top: 1rem;
+  .hero-panel{
+    position:relative;
+    width:100%;
+    margin:0;
+    padding:0;
+    overflow:visible;
   }
 
-  .home-hero__image {
-    display: block;
-
-    width: 100%;
-    max-width: none;
-    height: auto;
-
-    margin: 0 auto;
-
-    object-fit: contain;
-    object-position: center top;
+  .home-hero__image{
+    display:block;
+    width:100%;
+    max-width:none;
+    height:auto;
+    margin:0;
+    object-fit:contain;
+    object-position:center top;
   }
 
+  .home-hotspot-journeys{
+    left:1%;
+    top:70%;
+    width:25%;
+    height:6%;
+    z-index:30;
+  }
+
+  .home-hotspot-origins{
+    left:28%;
+    top:70%;
+    width:24%;
+    height:6%;
+    z-index:30;
+  }
+
+.home-flag-band{
+    padding:6px 0;
 }
 
+.home-flag-band img{
+    height:54px;
+}
+}
 
 /* ==========================================================
    PHONE LANDSCAPE
 ========================================================== */
 
-@media (max-height:600px) and (orientation:landscape) {
+@media (max-height:600px) and (orientation:landscape){
 
-  .hero-panel {
-    width: 100%;
-    min-height: 0;
+  .hero-panel{
+    position:relative;
+    width:100%;
+    margin:0;
+    padding:0;
+    overflow:visible;
   }
 
-  .home-hero__image {
-    display: block;
-
-    width: 100%;
-    max-width: none;
-    height: auto;
-
-    object-fit: contain;
-    object-position: center top;
+  .home-hero__image{
+    display:block;
+    width:100%;
+    max-width:100%;
+    height:auto;
+    margin:0;
+    object-fit:contain;
+    object-position:center top;
   }
 
+.home-flag-band{
+    padding:5px 0;
+}
+
+.home-flag-band img{
+    height:48px;
+}
 }

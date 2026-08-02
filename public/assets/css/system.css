@@ -235,3 +235,88 @@
     object-position:center top;
   }
 }
+.system-hotspot-wrap{
+    position:relative;
+}
+
+.pillar-hotspot{
+    position:absolute;
+    display:block;
+}
+
+.combat{
+    left:8%;
+    top:20%;
+    width:24%;
+    height:60%;
+}
+
+.strength{
+    left:38%;
+    top:20%;
+    width:24%;
+    height:60%;
+}
+
+.honor{
+    left:68%;
+    top:20%;
+    width:24%;
+    height:60%;
+}
+/* ==========================================================
+   SYSTEM PAGE
+   PILLAR HOTSPOTS
+========================================================== */
+
+.pillar-hotspot{
+  position:absolute;
+  display:block;
+
+  background:transparent;
+  border:0;
+
+  text-indent:-9999px;
+  overflow:hidden;
+
+  z-index:30;
+}
+
+/* =========================
+   COMBAT
+========================= */
+
+.pillar-hotspot.combat{
+
+  left:9%;
+  top:34%;
+
+  width:22%;
+  height:52%;
+}
+
+/* =========================
+   STRENGTH
+========================= */
+
+.pillar-hotspot.strength{
+
+  left:39%;
+  top:34%;
+
+  width:22%;
+  height:52%;
+}
+
+/* =========================
+   HONOR
+========================= */
+
+.pillar-hotspot.honor{
+
+  left:69%;
+  top:34%;
+
+  width:22%;
+  height:52%;
+}

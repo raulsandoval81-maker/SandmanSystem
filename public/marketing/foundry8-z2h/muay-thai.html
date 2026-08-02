@@ -1,0 +1,1010 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Zero2Hero Muay Thai | Sandman Combat™</title>
+
+  <meta
+    name="description"
+    content="Learn about Zero2Hero Muay Thai for athletes ages 7–13, including its history, training focus, earned progression, and athlete-development purpose."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/public.css" />
+
+  <script src="/assets/js/public-shell.js" defer></script>
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+
+    main{
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .eyebrow{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .progression-top{
+      margin:0 0 28px;
+    }
+
+    .progression-top figure{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .progression-top img{
+      width:100%;
+    }
+
+    .hero{
+      padding:clamp(2rem,5vw,3.5rem);
+      margin-bottom:28px;
+      border:1px solid #263244;
+      border-radius:24px;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(220,38,38,.16),
+          transparent 38%
+        ),
+        linear-gradient(
+          180deg,
+          #1f2937 0%,
+          #111827 100%
+        );
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+
+    body.day-mode .hero{
+      border-color:#d7c7a2;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(173,123,35,.12),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .hero-subtitle{
+      margin:0 0 18px;
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:900;
+    }
+
+    .hero p{
+      max-width:790px;
+      margin:.75rem 0 0;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.75;
+    }
+
+    .availability{
+      display:inline-block;
+      margin-top:18px;
+      padding:7px 12px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      border:1px solid var(--line);
+      border-radius:999px;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }
+
+    body.day-mode .panel{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,4vw,2.5rem);
+      line-height:1.15;
+    }
+
+    .panel p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .panel p:last-child{
+      margin-bottom:0;
+    }
+
+    .visual-section{
+      margin-top:28px;
+    }
+
+    .visual-heading{
+      margin-bottom:14px;
+    }
+
+    .visual-heading h2{
+      margin:0 0 8px;
+      color:var(--heading);
+      font-size:clamp(1.55rem,4vw,2.2rem);
+    }
+
+    .visual-heading p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+    }
+
+    body.day-mode .card{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .card h2,
+    .card h3{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+    }
+
+    body.day-mode .card h2,
+    body.day-mode .card h3{
+      color:var(--heading);
+    }
+
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .card ul{
+      margin:0;
+      padding-left:20px;
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .fact{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+    }
+
+    .fact strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--heading-accent);
+    }
+
+    .fact span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .quote{
+      margin-top:30px;
+      padding:26px;
+      border:1px solid var(--line);
+      border-left:4px solid var(--heading-accent);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      font-size:1.05rem;
+      line-height:1.8;
+    }
+
+    body.day-mode .quote{
+      border-color:#d7c7a2;
+      background:#ffffff;
+    }
+
+    .quote strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--heading);
+      font-size:1.25rem;
+    }
+
+    @media (max-width:780px){
+      .content-grid,
+      .facts{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      main{
+        width:min(100% - 28px,1050px);
+        padding:24px 0 64px;
+      }
+
+      .hero{
+        padding:32px 20px;
+        border-radius:18px;
+      }
+
+      .panel,
+      .progression-top figure{
+        border-radius:16px;
+      }
+
+      .card{
+        padding:18px;
+      }
+    }
+  
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <main>
+
+    <section class="progression-top">
+      <figure>
+        <img
+          src="/assets/img/f8/f8-shirt-progression-muay-thai.png"
+          alt="Zero2Hero Muay Thai shirt progression from Shadow to Hero"
+        />
+      </figure>
+    </section>
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Foundry 8 • Zero2Hero™ • Ages 7–13
+        </p>
+
+        <h1>Muay Thai</h1>
+
+        <p class="hero-subtitle">
+          Balance. Timing. Control. Courage.
+        </p>
+
+        <p>
+          Zero2Hero Muay Thai introduces young athletes to one of the world’s
+          most respected striking arts through safe, structured, and
+          age-appropriate instruction. Athletes develop movement, balance,
+          coordination, defensive awareness, self-control, confidence, and
+          character while learning foundational punches, kicks, knees, and
+          partner responsibility.
+        </p>
+
+        <span class="availability">
+          Available at selected academies
+        </span>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Foundry 8 • Zero2Hero™ • Edades 7–13
+        </p>
+
+        <h1>Muay Thai</h1>
+
+        <p class="hero-subtitle">
+          Equilibrio. Tiempo. Control. Valor.
+        </p>
+
+        <p>
+          Muay Thai Zero2Hero introduce a los jóvenes atletas a una de las
+          artes de golpeo más respetadas del mundo mediante enseñanza segura,
+          estructurada y apropiada para su edad. Los atletas desarrollan
+          movimiento, equilibrio, coordinación, conciencia defensiva,
+          autocontrol, confianza y carácter mientras aprenden fundamentos de
+          puños, patadas, rodillas y responsabilidad con sus compañeros.
+        </p>
+
+        <span class="availability">
+          Disponible en academias seleccionadas
+        </span>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Discipline Overview
+        </p>
+
+        <h2 class="section-title">
+          What Is Muay Thai?
+        </h2>
+
+        <p>
+          Muay Thai is a striking art from Thailand known for combining
+          punches, kicks, knees, elbows, movement, defense, and clinch control.
+          It is often called the art of eight limbs because athletes learn to
+          use multiple striking tools while maintaining balance, timing, and
+          composure.
+        </p>
+
+        <p>
+          Youth Muay Thai at Sandman Combat™ is taught progressively and with
+          control. Training emphasizes sound technique, coordination, safe
+          partner work, defensive responsibility, and respect rather than
+          uncontrolled contact.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Resumen De La Disciplina
+        </p>
+
+        <h2 class="section-title">
+          ¿Qué Es El Muay Thai?
+        </h2>
+
+        <p>
+          El Muay Thai es un arte de golpeo originario de Tailandia conocido
+          por combinar puños, patadas, rodillas, codos, movimiento, defensa y
+          control en el clinch. Con frecuencia se le llama el arte de las ocho
+          extremidades porque enseña a utilizar varias herramientas de golpeo
+          manteniendo equilibrio, tiempo y compostura.
+        </p>
+
+        <p>
+          El Muay Thai juvenil en Sandman Combat™ se enseña de forma
+          progresiva y controlada. El entrenamiento enfatiza técnica correcta,
+          coordinación, trabajo seguro con compañeros, responsabilidad
+          defensiva y respeto, no contacto sin control.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          The Sandman Purpose
+        </p>
+
+        <h2 class="section-title">
+          Why We Teach Muay Thai
+        </h2>
+
+        <p>
+          We teach Muay Thai because it asks young athletes to coordinate the
+          entire body while thinking clearly under pressure. Every movement
+          requires balance, timing, patience, discipline, and awareness of the
+          person training across from them.
+        </p>
+
+        <p>
+          Proper Muay Thai training teaches athletes that power must be guided
+          by control. They learn to protect their partners, manage emotions,
+          accept correction, continue through difficulty, and use growing
+          capability responsibly. Those lessons support the Sandman pillars
+          of Combat, Strength, and Honor.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          El Propósito Sandman
+        </p>
+
+        <h2 class="section-title">
+          Por Qué Enseñamos Muay Thai
+        </h2>
+
+        <p>
+          Enseñamos Muay Thai porque exige que los jóvenes atletas coordinen
+          todo el cuerpo mientras piensan con claridad bajo presión. Cada
+          movimiento requiere equilibrio, tiempo, paciencia, disciplina y
+          conciencia de la persona que entrena frente a ellos.
+        </p>
+
+        <p>
+          El entrenamiento correcto de Muay Thai enseña que el poder debe ser
+          guiado por el control. Los atletas aprenden a proteger a sus
+          compañeros, manejar sus emociones, aceptar correcciones, continuar
+          ante la dificultad y usar su creciente capacidad con
+          responsabilidad. Esas lecciones apoyan los pilares Sandman de
+          Combate, Fuerza y Honor.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <p class="eyebrow">Earned Progression</p>
+          <h2>Zero2Hero Progression</h2>
+          <p>
+            Athletes advance from Shadow to Hero through consistent training,
+            coach evaluation, testing, technical development, and demonstrated
+            growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">Progreso Ganado</p>
+          <h2>Progresión Zero2Hero</h2>
+          <p>
+            Los atletas avanzan de Shadow a Hero mediante entrenamiento
+            constante, evaluación del coach, pruebas, desarrollo técnico y
+            crecimiento demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Short History
+        </p>
+
+        <h2 class="section-title">
+          The Story of Muay Thai
+        </h2>
+
+        <p>
+          Muay Thai developed in Thailand from older battlefield and
+          hand-to-hand traditions. Over time, it evolved into a regulated
+          national sport with formal training camps, stadium competition,
+          timed rounds, gloves, referees, and established rules.
+        </p>
+
+        <p>
+          Modern Muay Thai is practiced around the world for competition,
+          fitness, self-development, and preparation for mixed martial arts.
+          Its combination of balance, rhythm, conditioning, defense, and
+          full-body coordination makes it one of the most complete striking
+          systems in combat sports.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Historia Breve
+        </p>
+
+        <h2 class="section-title">
+          La Historia Del Muay Thai
+        </h2>
+
+        <p>
+          El Muay Thai se desarrolló en Tailandia a partir de antiguas
+          tradiciones de combate y defensa cuerpo a cuerpo. Con el tiempo,
+          evolucionó hasta convertirse en un deporte nacional regulado con
+          campamentos formales, competencia en estadios, asaltos, guantes,
+          árbitros y reglas establecidas.
+        </p>
+
+        <p>
+          El Muay Thai moderno se practica en todo el mundo para competencia,
+          condición física, desarrollo personal y preparación para las artes
+          marciales mixtas. Su combinación de equilibrio, ritmo,
+          acondicionamiento, defensa y coordinación de todo el cuerpo lo
+          convierte en uno de los sistemas de golpeo más completos de los
+          deportes de combate.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Interesting Facts
+        </p>
+
+        <h2 class="section-title">
+          Did You Know?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>The Art of Eight Limbs</strong>
+            <span>
+              Muay Thai is known for using punches, kicks, knees, and elbows
+              as part of one connected striking system.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Balance Creates Power</strong>
+            <span>
+              Effective striking depends on posture, foot placement, timing,
+              and the ability to recover safely after every technique.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Respect Is Built In</strong>
+            <span>
+              Traditional Muay Thai culture places strong value on respect for
+              coaches, training partners, opponents, and the discipline itself.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Datos Interesantes
+        </p>
+
+        <h2 class="section-title">
+          ¿Sabías Que?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>El Arte De Las Ocho Extremidades</strong>
+            <span>
+              El Muay Thai es conocido por utilizar puños, patadas, rodillas y
+              codos como parte de un solo sistema de golpeo.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>El Equilibrio Crea Poder</strong>
+            <span>
+              El golpeo eficaz depende de postura, colocación de los pies,
+              tiempo y capacidad de recuperarse con seguridad después de cada
+              técnica.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>El Respeto Es Parte Del Arte</strong>
+            <span>
+              La cultura tradicional del Muay Thai valora profundamente el
+              respeto por coaches, compañeros, oponentes y la disciplina.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="content-grid">
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Technical Skills</h2>
+          <ul>
+            <li>Stance, posture, and balance</li>
+            <li>Footwork and distance management</li>
+            <li>Punching fundamentals</li>
+            <li>Kicking fundamentals</li>
+            <li>Knee-strike fundamentals</li>
+            <li>Defense, blocking, and controlled combinations</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Habilidades Técnicas</h2>
+          <ul>
+            <li>Postura, posición y equilibrio</li>
+            <li>Juego de pies y manejo de distancia</li>
+            <li>Fundamentos de puños</li>
+            <li>Fundamentos de patadas</li>
+            <li>Fundamentos de golpes de rodilla</li>
+            <li>Defensa, bloqueos y combinaciones controladas</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Physical Development</h2>
+          <ul>
+            <li>Coordination</li>
+            <li>Balance</li>
+            <li>Agility</li>
+            <li>Mobility</li>
+            <li>Conditioning</li>
+            <li>Full-body awareness</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Físico</h2>
+          <ul>
+            <li>Coordinación</li>
+            <li>Equilibrio</li>
+            <li>Agilidad</li>
+            <li>Movilidad</li>
+            <li>Acondicionamiento</li>
+            <li>Conciencia de todo el cuerpo</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Character Development</h2>
+          <ul>
+            <li>Confidence</li>
+            <li>Discipline</li>
+            <li>Respect</li>
+            <li>Patience</li>
+            <li>Self-control</li>
+            <li>Responsibility</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Del Carácter</h2>
+          <ul>
+            <li>Confianza</li>
+            <li>Disciplina</li>
+            <li>Respeto</li>
+            <li>Paciencia</li>
+            <li>Autocontrol</li>
+            <li>Responsabilidad</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Training Focus</h2>
+          <ul>
+            <li>Movement and balance drills</li>
+            <li>Shadowboxing</li>
+            <li>Bag work</li>
+            <li>Pad work</li>
+            <li>Defensive drills</li>
+            <li>Safe, controlled partner exercises</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Enfoque Del Entrenamiento</h2>
+          <ul>
+            <li>Ejercicios de movimiento y equilibrio</li>
+            <li>Boxeo de sombra</li>
+            <li>Trabajo de saco</li>
+            <li>Trabajo con paos</li>
+            <li>Ejercicios defensivos</li>
+            <li>Ejercicios seguros y controlados con compañeros</li>
+          </ul>
+        </div>
+
+      </article>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Athlete Fit
+        </p>
+
+        <h2 class="section-title">
+          Who Is Muay Thai For?
+        </h2>
+
+        <p>
+          Zero2Hero Muay Thai can serve first-time athletes, energetic
+          children, multi-sport athletes, future competitors, and young people
+          who need a structured way to develop coordination, confidence,
+          discipline, physical fitness, awareness, and self-control.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Perfil Del Atleta
+        </p>
+
+        <h2 class="section-title">
+          ¿Para Quién Es El Muay Thai?
+        </h2>
+
+        <p>
+          Muay Thai Zero2Hero puede beneficiar a atletas principiantes, niños
+          con mucha energía, atletas de varios deportes, futuros competidores
+          y jóvenes que necesitan una manera estructurada de desarrollar
+          coordinación, confianza, disciplina, condición física, conciencia y
+          autocontrol.
+        </p>
+
+      </div>
+
+    </section>
+
+    <div class="quote">
+
+      <span data-lang-block="en">
+        <strong>Every hero begins in the shadows.</strong>
+        Start at zero. Learn with discipline. Earn every step.
+      </span>
+
+      <span
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <strong>Cada héroe comienza en las sombras.</strong>
+        Comienza desde cero. Aprende con disciplina. Gana cada paso.
+      </span>
+
+    </div>
+
+  </main>
+
+</body>
+</html>

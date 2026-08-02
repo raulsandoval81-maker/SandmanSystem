@@ -11,10 +11,10 @@ type ParentWelcomeEmailInput = {
 };
 
 const PARENT_HUB_URL =
-  "https://www.sandmancombat.com/parent/";
+  "https://sandmancombat.com/parent/";
 
 const WELCOME_PAGE_URL =
-  "https://www.sandmancombat.com/thanks/welcome.html";
+  "https://sandmancombat.com/thanks/welcome.html";
 
 function clean(value: unknown): string {
   return String(value ?? "").trim();

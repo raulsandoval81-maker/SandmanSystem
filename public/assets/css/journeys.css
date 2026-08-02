@@ -563,3 +563,135 @@
     color:#f5f5f5 !important;
   }
 }
+/* =========================================================
+   JOURNEYS HERO HOTSPOTS
+========================================================= */
+
+.journeys-hotspot-wrap{
+  position:relative;
+  width:100%;
+  margin:0;
+  padding:0;
+}
+
+.journeys-hotspot-wrap img{
+  display:block;
+  width:100%;
+  height:auto;
+}
+
+.journey-hotspot{
+  position:absolute;
+  display:block;
+  z-index:30;
+
+  background:transparent;
+  border:0;
+
+  overflow:hidden;
+  text-indent:-9999px;
+}
+
+/* ZERO2HERO — LEFT */
+
+.journey-hotspot.z2h{
+  left:6%;
+  top:18%;
+  width:28%;
+  height:62%;
+}
+
+/* PATH2LEGEND — CENTER */
+
+.journey-hotspot.p2l{
+  left:36%;
+  top:18%;
+  width:28%;
+  height:62%;
+}
+
+/* QUEST2MASTERY — RIGHT */
+
+.journey-hotspot.q2m{
+  left:66%;
+  top:18%;
+  width:28%;
+  height:62%;
+}
+
+
+/* =========================================================
+   JOURNEYS HOTSPOTS — PHONE
+========================================================= */
+
+@media (max-width:768px){
+
+  .journey-hotspot.z2h{
+    left:1%;
+    top:12%;
+    width:32%;
+    height:76%;
+  }
+
+  .journey-hotspot.p2l{
+    left:34%;
+    top:12%;
+    width:32%;
+    height:76%;
+  }
+
+  .journey-hotspot.q2m{
+    left:67%;
+    top:12%;
+    width:32%;
+    height:76%;
+  }
+
+}
+/* ==========================================================
+   JOURNEYS HOTSPOTS
+========================================================== */
+
+.journeys-hotspot-wrap{
+    position:relative;
+}
+
+.journey-hotspot{
+    position:absolute;
+    display:block;
+
+    background:transparent;
+    border:0;
+
+    z-index:30;
+}
+
+/* Zero2Hero */
+
+.journey-hotspot.z2h{
+    left:3%;
+    top:14%;
+
+    width:29%;
+    height:74%;
+}
+
+/* Path2Legend */
+
+.journey-hotspot.p2l{
+    left:35.5%;
+    top:14%;
+
+    width:29%;
+    height:74%;
+}
+
+/* Quest2Mastery */
+
+.journey-hotspot.q2m{
+    left:68%;
+    top:14%;
+
+    width:29%;
+    height:74%;
+}

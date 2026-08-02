@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Marketing Toolkit | Sandman Combat™</title>
+  <meta
+    name="description"
+    content="Coach-facing Sandman Combat marketing toolkit for quickly copying and sharing journey and discipline links."
+  />
+
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/public-shell.js" defer></script>
+
+  <style>
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    button{font:inherit}
+
+    .marketing-hub{
+      width:min(1100px,calc(100% - 32px));
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .marketing-hero{
+      margin-bottom:40px;
+      padding:42px 24px;
+      border:1px solid var(--line);
+      border-radius:24px;
+      text-align:center;
+      background:
+        linear-gradient(
+          145deg,
+          rgba(139,0,0,.88),
+          rgba(15,23,36,.98) 58%
+        );
+      box-shadow:var(--shadow);
+    }
+
+    .marketing-hero-image{
+      display:block;
+      width:100%;
+      max-width:1100px;
+      margin:0 auto 28px;
+      border-radius:24px;
+      box-shadow:0 18px 45px rgba(0,0,0,.35);
+    }
+
+    .marketing-hero__eyebrow,
+    .share-section__eyebrow{
+      margin:0 0 10px;
+      color:var(--brand);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    .marketing-hero h1{
+      margin:0;
+      font-size:clamp(2rem,6vw,4rem);
+      line-height:1;
+    }
+
+    .marketing-hero p{
+      max-width:720px;
+      margin:18px auto 0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .share-section + .share-section{
+      margin-top:42px;
+    }
+
+    .share-section__heading{
+      margin-bottom:18px;
+    }
+
+    .share-section__heading h2{
+      margin:0;
+      color:var(--heading);
+      font-size:clamp(1.8rem,4vw,2.8rem);
+      line-height:1.05;
+    }
+
+    .share-section__heading p{
+      max-width:760px;
+      margin:12px 0 0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .copy-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+    }
+
+    .copy-card{
+      position:relative;
+      display:flex;
+      flex-direction:column;
+      width:100%;
+      min-height:230px;
+      padding:28px;
+      overflow:hidden;
+      color:var(--text);
+      text-align:left;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:
+        linear-gradient(
+          160deg,
+          rgba(255,255,255,.055),
+          rgba(0,0,0,.24)
+        ),
+        var(--panel);
+      box-shadow:var(--shadow);
+      cursor:pointer;
+      transition:
+        transform .18s ease,
+        border-color .18s ease;
+    }
+
+    .copy-card:hover,
+    .copy-card:focus-visible{
+      transform:translateY(-3px);
+      border-color:var(--brand);
+      outline:none;
+    }
+
+    .copy-card:active{
+      transform:translateY(0);
+    }
+
+    .copy-card__group{
+      margin:0 0 24px;
+      color:var(--brand);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    .copy-card h3{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(1.45rem,3vw,2.1rem);
+      line-height:1.1;
+    }
+
+    .copy-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .copy-card__meta{
+      margin-top:12px;
+      color:var(--brand);
+      font-size:.82rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .copy-card__action{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-top:auto;
+      padding-top:28px;
+      color:var(--heading);
+      font-weight:900;
+    }
+
+    .copy-card__action::after{
+      content:"⧉";
+      color:var(--brand);
+      font-size:1.15rem;
+    }
+
+    .copy-card.is-copied{
+      border-color:#4ade80;
+    }
+
+    .copy-card.is-copied .copy-card__action{
+      color:#4ade80;
+    }
+
+    .copy-card.is-copied .copy-card__action::after{
+      content:"✓";
+      color:#4ade80;
+    }
+
+    .toolkit-note{
+      margin-top:30px;
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+      color:var(--muted);
+      line-height:1.6;
+    }
+
+    .toolkit-note strong{
+      color:var(--brand);
+    }
+
+    .copy-status{
+      position:fixed;
+      right:18px;
+      bottom:18px;
+      z-index:1000;
+      max-width:min(380px,calc(100% - 36px));
+      padding:14px 18px;
+      color:#07120a;
+      background:#4ade80;
+      border-radius:14px;
+      box-shadow:0 18px 40px rgba(0,0,0,.35);
+      font-size:.92rem;
+      font-weight:900;
+      line-height:1.4;
+      opacity:0;
+      pointer-events:none;
+      transform:translateY(12px);
+      transition:
+        opacity .18s ease,
+        transform .18s ease;
+    }
+
+    .copy-status.is-visible{
+      opacity:1;
+      transform:translateY(0);
+    }
+
+    .copy-status.is-error{
+      color:#fff;
+      background:#b91c1c;
+    }
+
+
+    /* =====================================================
+       FORCE COACH TOOLKIT DARK MODE
+       This private coach-facing page stays dark even when the
+       public site's saved theme is set to day mode.
+    ====================================================== */
+
+    body.subpage,
+    body.subpage.day-mode{
+      --bg:#050505;
+      --text:#f5f5f5;
+      --heading:#ffffff;
+      --muted:#c9c9cf;
+      --brand:#d4af37;
+      --line:rgba(255,255,255,.14);
+      --panel:#111113;
+      --panel-2:#18181b;
+      --shadow:0 18px 42px rgba(0,0,0,.34);
+
+      background:#050505;
+      color:#f5f5f5;
+    }
+
+    body.subpage.day-mode .marketing-hero,
+    body.subpage.day-mode .copy-card,
+    body.subpage.day-mode .toolkit-note{
+      color:#f5f5f5;
+    }
+
+    body.subpage.day-mode .copy-card{
+      border-color:rgba(255,255,255,.14);
+      background:
+        linear-gradient(
+          160deg,
+          rgba(255,255,255,.055),
+          rgba(0,0,0,.24)
+        ),
+        #111113;
+      box-shadow:0 18px 42px rgba(0,0,0,.34);
+    }
+
+    body.subpage.day-mode .copy-card:hover,
+    body.subpage.day-mode .copy-card:focus-visible{
+      border-color:#d4af37;
+    }
+
+    body.subpage.day-mode .toolkit-note{
+      border-color:rgba(255,255,255,.14);
+      background:#18181b;
+    }
+
+    body.subpage.day-mode .top-nav{
+      background:#0b0b0c;
+      border-color:rgba(255,255,255,.12);
+    }
+
+    body.subpage.day-mode .nav-logo{
+      color:#ffffff;
+    }
+
+    @media (max-width:760px){
+      .marketing-hub{
+        width:min(100% - 20px,1100px);
+        padding-top:20px;
+      }
+
+      .marketing-hero{
+        padding:32px 18px;
+      }
+
+      .marketing-hero-image{
+        border-radius:18px;
+      }
+
+      .copy-grid{
+        grid-template-columns:1fr;
+      }
+
+      .copy-card{
+        min-height:215px;
+      }
+    }
+  </style>
+</head>
+
+<body class="subpage">
+
+  <main class="marketing-hub">
+
+    <section class="marketing-hero">
+      <img
+        src="/assets/images/coaches/coach-marketing-toolkit-v1.png"
+        alt="Coach Marketing Toolkit"
+        class="marketing-hero-image"
+        loading="eager"
+      />
+
+      <p class="marketing-hero__eyebrow">Coach Share Tool</p>
+      <h1>Marketing Library</h1>
+
+      <p>
+        Tap any card once to copy the correct Sandman link. Use a journey
+        link when a family is still exploring. Use a discipline link when
+        they already know what they want to learn about.
+      </p>
+    </section>
+
+
+    <section class="share-section" aria-labelledby="discipline-links-title">
+      <div class="share-section__heading">
+        <p class="share-section__eyebrow">Direct Information</p>
+        <h2 id="discipline-links-title">Discipline Links</h2>
+        <p>
+          Send a direct page when the prospective athlete or family already
+          knows which discipline they want to explore.
+        </p>
+      </div>
+
+      <div class="copy-grid">
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry8-z2h/wrestling.html"
+          data-copy-name="Zero2Hero Youth Wrestling"
+        >
+          <span class="copy-card__group">Foundry 8 · Zero2Hero™</span>
+          <h3>Youth Wrestling</h3>
+          <p>
+            Folkstyle and freestyle wrestling through structured youth
+            development, technical growth, competition, and character.
+          </p>
+          <span class="copy-card__meta">Ages 7–13</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry8-z2h/boxing.html"
+          data-copy-name="Zero2Hero Youth Boxing"
+        >
+          <span class="copy-card__group">Foundry 8 · Zero2Hero™</span>
+          <h3>Youth Boxing</h3>
+          <p>
+            Stance, footwork, punching fundamentals, defense, timing,
+            coordination, controlled training, and earned confidence.
+          </p>
+          <span class="copy-card__meta">Ages 7–13 · Select Academies</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry8-z2h/muay-thai.html"
+          data-copy-name="Zero2Hero Youth Muay Thai"
+        >
+          <span class="copy-card__group">Foundry 8 · Zero2Hero™</span>
+          <h3>Youth Muay Thai</h3>
+          <p>
+            Safe, age-appropriate development through movement, punches,
+            kicks, knees, balance, defense, discipline, and control.
+          </p>
+          <span class="copy-card__meta">Ages 7–13 · Select Academies</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry4-p2l/wrestling.html"
+          data-copy-name="Path2Legend Wrestling"
+        >
+          <span class="copy-card__group">Foundry 4 · Path2Legend™</span>
+          <h3>Teen &amp; Adult Wrestling</h3>
+          <p>
+            Folkstyle, freestyle, and Greco-Roman wrestling with advanced
+            technical development, strategy, competition, and leadership.
+          </p>
+          <span class="copy-card__meta">Ages 14+</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry4-p2l/boxing.html"
+          data-copy-name="Path2Legend Boxing"
+        >
+          <span class="copy-card__group">Foundry 4 · Path2Legend™</span>
+           <h3>Teen &amp; Adult Boxing</h3>
+          <p>
+            Advanced footwork, defense, combinations, ring intelligence,
+            conditioning, tactical development, and composure.
+          </p>
+          <span class="copy-card__meta">Ages 14+ · Select Academies</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry4-p2l/muay-thai.html"
+          data-copy-name="Path2Legend Muay Thai"
+        >
+          <span class="copy-card__group">Foundry 4 · Path2Legend™</span>
+           <h3>Teen &amp; Adult Muay-Thai</h3>
+          <p>
+            Advanced striking, combinations, defense, clinch control,
+            conditioning, tactical decision-making, and leadership.
+          </p>
+          <span class="copy-card__meta">Ages 14+ · Select Academies</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry4-q2m/mma.html"
+          data-copy-name="Quest2Mastery MMA"
+        >
+          <span class="copy-card__group">Quest2Mastery™</span>
+          <h3>Adult Mixed Martial Arts</h3>
+          <p>
+            Integrated striking, wrestling, clinch work, grappling,
+            transitions, ground control, and tactical combat development.
+          </p>
+          <span class="copy-card__meta">Ages 16+ · Participating Academies</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry4-q2m/submission-grappling.html"
+          data-copy-name="Quest2Mastery Submission Grappling"
+        >
+          <span class="copy-card__group">Quest2Mastery™</span>
+          <h3>Adult Submission Grappling</h3>
+          <p>
+            No-gi takedowns, positional control, guard systems, submissions,
+            escapes, transitions, and live grappling.
+          </p>
+          <span class="copy-card__meta">Ages 16+ · Participating Academies</span>
+          <span class="copy-card__action">Tap to Copy Direct Link</span>
+        </button>
+
+      </div>
+    </section>
+        <section class="share-section" aria-labelledby="journey-links-title">
+      <div class="share-section__heading">
+        <p class="share-section__eyebrow">Broad Introduction</p>
+        <h2 id="journey-links-title">Journey Links</h2>
+        <p>
+          Send one of these three index pages when a family needs to compare
+          the disciplines available inside a complete Sandman journey.
+        </p>
+      </div>
+
+      <div class="copy-grid">
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry8-z2h/"
+          data-copy-name="Zero2Hero™"
+        >
+          <span class="copy-card__group">Foundry 8</span>
+          <h3>Zero2Hero™</h3>
+          <p>
+            Youth journey featuring Wrestling, Boxing, and Muay Thai through
+            structured development and earned progression.
+          </p>
+          <span class="copy-card__meta">Ages 7–13</span>
+          <span class="copy-card__action">Tap to Copy Journey Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="marketing/foundry4-p2l/"
+          data-copy-name="Path2Legend™"
+        >
+          <span class="copy-card__group">Foundry 4</span>
+          <h3>Path2Legend™</h3>
+          <p>
+            Teen and adult journey featuring Wrestling, Boxing, and Muay Thai
+            with deeper technical, competitive, and leadership development.
+          </p>
+          <span class="copy-card__meta">Ages 14+</span>
+          <span class="copy-card__action">Tap to Copy Journey Link</span>
+        </button>
+
+        <button
+          class="copy-card"
+          type="button"
+          data-copy-url="https://sandmancombat.com/marketing/foundry4-q2m/"
+          data-copy-name="Quest2Mastery™"
+        >
+          <span class="copy-card__group">Quest2Mastery</span>
+          <h3>Quest2Mastery™</h3>
+          <p>
+            Advanced journey featuring Mixed Martial Arts and Submission
+            Grappling through integrated, long-term mastery.
+          </p>
+          <span class="copy-card__meta">Ages 16+</span>
+          <span class="copy-card__action">Tap to Copy Journey Link</span>
+        </button>
+        <button
+  class="copy-card"
+  type="button"
+  data-copy-url="https://sandmancombat.com/marketing/fitness/"
+  data-copy-name="HIIT FIT"
+>
+  <span class="copy-card__group">HIIT FIT</span>
+
+  <h3>HIIT FIT</h3>
+
+  <p>
+    Boxing Fitness, Kickboxing Fitness, and Strength Fitness designed
+    to improve conditioning, movement, confidence, and everyday health.
+  </p>
+
+  <span class="copy-card__meta">
+    Ages 12+
+  </span>
+
+  <span class="copy-card__action">
+    Tap to Copy Journey Link
+  </span>
+</button>
+
+      </div>
+    </section>
+
+
+    <aside class="toolkit-note">
+      <strong>Coach Use:</strong>
+      Tap once to copy. Open Messages, email, or your preferred app and paste
+      the link directly into the conversation.
+    </aside>
+
+  </main>
+
+  <div
+    id="copy-status"
+    class="copy-status"
+    role="status"
+    aria-live="polite"
+  ></div>
+
+  <script>
+    (() => {
+      const buttons = document.querySelectorAll("[data-copy-url]");
+      const status = document.getElementById("copy-status");
+
+      let statusTimer = null;
+      let cardTimer = null;
+
+      function showStatus(message, isError = false){
+        window.clearTimeout(statusTimer);
+
+        status.textContent = message;
+        status.classList.toggle("is-error", isError);
+        status.classList.add("is-visible");
+
+        statusTimer = window.setTimeout(() => {
+          status.classList.remove("is-visible");
+        }, 2200);
+      }
+
+      async function copyText(text){
+        if(navigator.clipboard && window.isSecureContext){
+          await navigator.clipboard.writeText(text);
+          return;
+        }
+
+        const textArea = document.createElement("textarea");
+
+        textArea.value = text;
+        textArea.setAttribute("readonly", "");
+        textArea.style.position = "fixed";
+        textArea.style.top = "-9999px";
+        textArea.style.left = "-9999px";
+
+        document.body.appendChild(textArea);
+        textArea.select();
+        textArea.setSelectionRange(0, textArea.value.length);
+
+        const copied = document.execCommand("copy");
+
+        document.body.removeChild(textArea);
+
+        if(!copied){
+          throw new Error("Copy command failed.");
+        }
+      }
+
+      buttons.forEach((button) => {
+        const action = button.querySelector(".copy-card__action");
+        action.dataset.originalText = action.textContent;
+
+        button.addEventListener("click", async () => {
+          const url = button.dataset.copyUrl;
+          const name = button.dataset.copyName || "Link";
+
+          try{
+            await copyText(url);
+
+            buttons.forEach((item) => {
+              item.classList.remove("is-copied");
+              const itemAction = item.querySelector(".copy-card__action");
+              itemAction.textContent = itemAction.dataset.originalText;
+            });
+
+            button.classList.add("is-copied");
+            action.textContent = "Copied";
+
+            showStatus(name + " link copied.");
+
+            window.clearTimeout(cardTimer);
+
+            cardTimer = window.setTimeout(() => {
+              button.classList.remove("is-copied");
+              action.textContent = action.dataset.originalText;
+            }, 1800);
+          }catch(error){
+            console.error(error);
+            showStatus("Could not copy the link.", true);
+          }
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>

@@ -2,8 +2,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendParentWelcomeEmail = sendParentWelcomeEmail;
 const resend_1 = require("./email/resend");
-const PARENT_HUB_URL = "https://www.sandmancombat.com/parent/";
-const WELCOME_PAGE_URL = "https://www.sandmancombat.com/thanks/welcome.html";
+const PARENT_HUB_URL = "https://sandmancombat.com/parent/";
+const WELCOME_PAGE_URL = "https://sandmancombat.com/thanks/welcome.html";
 function clean(value) {
     return String(value ?? "").trim();
 }
