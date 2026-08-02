@@ -38,6 +38,16 @@ const preferredDiscipline =
 const programInterest =
   document.getElementById("programInterest");
 
+const combatProgramSection =
+  document.getElementById("combatProgramSection");
+
+const interestTypeInputs =
+  Array.from(
+    document.querySelectorAll(
+      'input[name="interestType"]'
+    )
+  );
+
 const PROGRAMS = [
   {
     value: "zero2hero-wrestling",
@@ -208,11 +218,7 @@ function readForm() {
       clean(formData.get("interestType")) ||
       clean(params.get("interest")) ||
       clean(params.get("intent")) ||
-      (
-        selectedProgram
-          ? "combat"
-          : "combat"
-      )
+      "combat"
     );
 
   return {
@@ -234,8 +240,8 @@ function readForm() {
     programInterest:
       clean(formData.get("programInterest")),
 
-      journey:
-    selectedProgram?.journey || "",
+    journey:
+      selectedProgram?.journey || "",
 
     preferredDiscipline:
       selectedProgram?.discipline || "",
@@ -573,6 +579,78 @@ function renderIntent() {
     selectedLabel[currentLanguage()];
 }
 
+function getSelectedInterestType() {
+  const selected =
+    interestTypeInputs.find(
+      (input) => input.checked
+    );
+
+  return normalizeInterestType(
+    selected?.value || "combat"
+  );
+}
+
+function syncInterestTypeFromUrl() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const requestedInterest =
+    normalizeInterestType(
+      params.get("interest") || "combat"
+    );
+
+  const matchingInput =
+    interestTypeInputs.find(
+      (input) =>
+        input.value === requestedInterest
+    );
+
+  if (matchingInput) {
+    matchingInput.checked = true;
+  }
+}
+
+function updateInterestTypeUI() {
+  const interestType =
+    getSelectedInterestType();
+
+  const needsCombatProgram =
+    interestType === "combat" ||
+    interestType === "both";
+
+  if (combatProgramSection) {
+    combatProgramSection.hidden =
+      !needsCombatProgram;
+  }
+
+  if (programInterest) {
+    programInterest.required =
+      needsCombatProgram;
+
+    programInterest.disabled =
+      !needsCombatProgram;
+
+    if (!needsCombatProgram) {
+      programInterest.value = "";
+    }
+  }
+
+  if (preferredDiscipline) {
+    preferredDiscipline.disabled =
+      !needsCombatProgram;
+
+    if (!needsCombatProgram) {
+      preferredDiscipline.value = "";
+    }
+  }
+
+  if (needsCombatProgram) {
+    updatePrograms();
+  }
+}
+
 function updatePrograms() {
   if (!athleteAge || !programInterest) return;
 
@@ -694,6 +772,16 @@ programInterest?.addEventListener(
   "change",
   syncPreferredDiscipline
 );
+
+interestTypeInputs.forEach((input) => {
+  input.addEventListener(
+    "change",
+    updateInterestTypeUI
+  );
+});
+
+syncInterestTypeFromUrl();
+updateInterestTypeUI();
 
 renderIntent();
 

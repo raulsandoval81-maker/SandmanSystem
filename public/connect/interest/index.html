@@ -103,6 +103,77 @@
     .connect-footer a::before {
       content: "← ";
     }
+
+    .interest-type-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .interest-type-option {
+      position: relative;
+    }
+
+    .interest-type-option input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .interest-type-card {
+      display: flex;
+      min-height: 104px;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      padding: 18px 14px;
+      text-align: center;
+      transition:
+        border-color 160ms ease,
+        background 160ms ease,
+        transform 160ms ease;
+    }
+
+    .interest-type-card:hover {
+      transform: translateY(-1px);
+      border-color: rgba(250, 204, 21, 0.55);
+    }
+
+    .interest-type-option input:checked +
+    .interest-type-card {
+      border-color: #facc15;
+      background: rgba(250, 204, 21, 0.12);
+      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.18);
+    }
+
+    .interest-type-title {
+      display: block;
+      font-weight: 800;
+    }
+
+    .interest-type-description {
+      display: block;
+      margin-top: 5px;
+      font-size: 0.82rem;
+      opacity: 0.72;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 680px) {
+      .interest-type-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .interest-type-card {
+        min-height: 86px;
+      }
+    }
   </style>
 </head>
 
@@ -202,6 +273,121 @@
         <section class="form-section">
           <h2>
             <span data-lang="en">
+              What Are You Looking For?
+            </span>
+
+            <span data-lang="es">
+              ¿Qué Estás Buscando?
+            </span>
+          </h2>
+
+          <div
+            class="interest-type-grid"
+            role="radiogroup"
+            aria-label="Program category"
+          >
+            <label class="interest-type-option">
+              <input
+                type="radio"
+                name="interestType"
+                value="combat"
+                checked
+              />
+
+              <span class="interest-type-card">
+                <span>
+                  <span class="interest-type-title">
+                    <span data-lang="en">
+                      Combat
+                    </span>
+
+                    <span data-lang="es">
+                      Combate
+                    </span>
+                  </span>
+
+                  <span class="interest-type-description">
+                    <span data-lang="en">
+                      Wrestling, boxing, Muay Thai, MMA, or grappling
+                    </span>
+
+                    <span data-lang="es">
+                      Lucha, boxeo, Muay Thai, MMA o grappling
+                    </span>
+                  </span>
+                </span>
+              </span>
+            </label>
+
+            <label class="interest-type-option">
+              <input
+                type="radio"
+                name="interestType"
+                value="fitness"
+              />
+
+              <span class="interest-type-card">
+                <span>
+                  <span class="interest-type-title">
+                    <span data-lang="en">
+                      Fitness
+                    </span>
+
+                    <span data-lang="es">
+                      Acondicionamiento
+                    </span>
+                  </span>
+
+                  <span class="interest-type-description">
+                    <span data-lang="en">
+                      Youth fitness, strength, conditioning, or wellness
+                    </span>
+
+                    <span data-lang="es">
+                      Fitness juvenil, fuerza, acondicionamiento o bienestar
+                    </span>
+                  </span>
+                </span>
+              </span>
+            </label>
+
+            <label class="interest-type-option">
+              <input
+                type="radio"
+                name="interestType"
+                value="both"
+              />
+
+              <span class="interest-type-card">
+                <span>
+                  <span class="interest-type-title">
+                    <span data-lang="en">
+                      Both
+                    </span>
+
+                    <span data-lang="es">
+                      Ambos
+                    </span>
+                  </span>
+
+                  <span class="interest-type-description">
+                    <span data-lang="en">
+                      Combat and fitness support
+                    </span>
+
+                    <span data-lang="es">
+                      Apoyo de combate y acondicionamiento
+                    </span>
+                  </span>
+                </span>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="form-section">
+          <h2>
+            <span data-lang="en">
               Parent or Guardian
             </span>
 
@@ -277,7 +463,7 @@
               id="athleteAge"
               name="athleteAge"
               type="number"
-              min="3"
+              min="7"
               max="99"
               inputmode="numeric"
               required
@@ -336,103 +522,6 @@
     <option>Adult 2XL</option>
     <option>Adult 3XL</option>
   </select>
-</div>
-
-<div class="field">
-  <label for="preferredDiscipline">
-    <span data-lang="en">
-      Most Interested In
-    </span>
-
-    <span data-lang="es">
-      Más Interesado En
-    </span>
-
-    <span class="optional">
-      <span data-lang="en">
-        Optional
-      </span>
-
-      <span data-lang="es">
-        Opcional
-      </span>
-    </span>
-  </label>
-
-  <select
-    id="preferredDiscipline"
-    name="preferredDiscipline"
-  >
-<option
-  value=""
-  data-lang="en"
->
-  I'm Not Sure Yet
-</option>
-
-<option
-  value=""
-  data-lang="es"
->
-  Aún No Estoy Seguro
-</option>
-
-<option
-  value="wrestling"
-  data-lang="en"
->
-  Wrestling
-</option>
-
-<option
-  value="wrestling"
-  data-lang="es"
->
-  Lucha
-</option>
-
-<option
-  value="kickboxing"
-  data-lang="en"
->
-  Kickboxing
-</option>
-
-<option
-  value="kickboxing"
-  data-lang="es"
->
-  Kickboxing
-</option>
-
-<option
-  value="boxing"
-  data-lang="en"
->
-  Boxing
-</option>
-
-<option
-  value="boxing"
-  data-lang="es"
->
-  Boxeo
-</option>
-
-<option
-  value="fitness"
-  data-lang="en"
->
-  Fitness
-</option>
-
-<option
-  value="fitness"
-  data-lang="es"
->
-  Acondicionamiento Físico
-</option>
-</select>
 </div>
         </section>
 
@@ -677,10 +766,13 @@
           </div>
         </section>
 
-        <section class="form-section">
+        <section
+          id="combatProgramSection"
+          class="form-section"
+        >
           <h2>
             <span data-lang="en">
-              Program Interest
+              Combat Program Interest
             </span>
 
             <span data-lang="es">
@@ -702,7 +794,6 @@
            <select
   id="programInterest"
   name="programInterest"
-  required
 >
   <option value="">
     Select athlete age first
@@ -1103,7 +1194,7 @@
             ></textarea>
           </div>
         </section>
-    </section>
+
         <div
           id="formStatus"
           class="form-status"
