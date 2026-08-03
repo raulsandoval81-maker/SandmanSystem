@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admissions Requests | Sandman Combat</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/connect/admissions-requests/admissions-requests.css">
+  <link rel="icon" href="data:,">
+</head>
+<body>
+  <main class="requests-page">
+    <header class="requests-header">
+      <div><p class="eyebrow">Sandman Connect</p><h1>Admissions Requests</h1><p>Review requested intros, promotional visits, and approved Open Practice access.</p></div>
+      <div class="header-actions"><a class="btn" href="/connect/try-a-class/">Open Public Form</a><a class="btn" href="/connect/">Connect Hub</a><button id="refreshBtn" class="btn btn-primary" type="button">Refresh</button></div>
+    </header>
+    <section class="summary-grid"><article class="summary-card"><span>All</span><strong id="countAll">0</strong></article><article class="summary-card"><span>New</span><strong id="countNew">0</strong></article><article class="summary-card"><span>Approved</span><strong id="countApproved">0</strong></article><article class="summary-card"><span>Scheduled</span><strong id="countScheduled">0</strong></article></section>
+    <section class="toolbar"><label>Search<input id="searchInput" type="search" placeholder="Search contact, athlete, email, phone, or program..."></label><label>Request Type<select id="typeFilter"><option value="all">All Types</option><option value="REQUESTED_INTRO">Requested Intro</option><option value="PROMOTIONAL_INTRO">Promotional Intro</option><option value="OPEN_PRACTICE">Open Practice</option></select></label><label>Status<select id="statusFilter"><option value="all">All Statuses</option><option value="new">New</option><option value="under_review">Under Review</option><option value="approved">Approved</option><option value="declined">Declined</option><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="proposal_ready">Proposal Ready</option><option value="enrolled">Enrolled</option><option value="closed">Closed</option></select></label></section>
+    <p id="pageStatus" class="page-status" role="status" aria-live="polite"></p>
+    <section id="requestList" class="request-list"></section>
+  </main>
+  <script type="module" src="/connect/admissions-requests/admissions-requests.js"></script>
+</body>
+</html>

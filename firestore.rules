@@ -515,6 +515,16 @@ match /interest_leads/{leadId} {
 }
 
 /* --------------------------------------
+   Admissions Requests
+---------------------------------------*/
+match /admissions_requests/{requestId} {
+  allow create: if true;
+  allow get, list: if isCoachOrAdmin();
+  allow update: if isCoachOrAdmin();
+  allow delete: if isAdmin();
+}
+
+/* --------------------------------------
    Admissions Appointments
 ---------------------------------------*/
 match /admissions_appointments/{appointmentId} {
