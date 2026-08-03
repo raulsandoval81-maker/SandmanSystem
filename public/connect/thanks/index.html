@@ -58,8 +58,14 @@
       sans-serif;
   }
 
+  [data-lang],
   [data-response]{
     display:none;
+  }
+
+  html[lang="en"] [data-lang="en"],
+  html[lang="es"] [data-lang="es"]{
+    display:inline;
   }
 
   html[lang="en"][data-audience="family"]

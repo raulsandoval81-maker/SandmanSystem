@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  setDoc,
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
@@ -372,6 +373,169 @@ appointmentNotes.value =
   }
 }
 
+async function migrateLegacyAppointments() {
+  const legacySnapshot =
+    await getDocs(
+      collection(db, "interest_leads")
+    );
+
+  const legacyAppointments =
+    legacySnapshot.docs
+      .map((leadDoc) => ({
+        id: leadDoc.id,
+        ...leadDoc.data()
+      }))
+      .filter((lead) => {
+        const appointmentStatus =
+          lead.appointmentStatus ||
+          lead.appointment?.status ||
+          "";
+
+        return (
+          appointmentStatus === "scheduled" ||
+          lead.status === "appointment_scheduled"
+        );
+      });
+
+  let migratedCount = 0;
+
+  for (const lead of legacyAppointments) {
+    const appointmentRef =
+      doc(
+        db,
+        "admissions_appointments",
+        lead.id
+      );
+
+    const existingAppointment =
+      await getDoc(appointmentRef);
+
+    if (existingAppointment.exists()) {
+      continue;
+    }
+
+    await setDoc(
+      appointmentRef,
+      {
+        appointmentId: lead.id,
+        leadId: lead.id,
+
+        participantName:
+          lead.athleteName || "",
+
+        athleteName:
+          lead.athleteName || "",
+
+        parentName:
+          lead.parentName || "",
+
+        registrantRole:
+          lead.registrantRole || "",
+
+        athleteAge:
+          lead.athleteAge || "",
+
+        email:
+          lead.email || "",
+
+        phone:
+          lead.phone || "",
+
+        city:
+          lead.city || "",
+
+        shirtSize:
+          lead.shirtSize || "",
+
+        programInterest:
+          lead.programInterest || "",
+
+        intent:
+          lead.intent || "",
+
+        primaryGoal:
+          lead.primaryGoal || "",
+
+        admissionsPath:
+          lead.admissionsPath || "new",
+
+        preferredLocation:
+          lead.preferredLocation || "",
+
+        preferredMeetingWindow:
+          lead.preferredMeetingWindow || "",
+
+        referralSource:
+          lead.referralSource || "",
+
+        leadNotes:
+          lead.notes || "",
+
+        appointmentDate:
+          lead.appointmentDate ||
+          lead.appointment?.date ||
+          "",
+
+        appointmentTime:
+          lead.appointmentTime ||
+          lead.appointment?.time ||
+          "",
+
+        appointmentLocation:
+          lead.appointmentLocation ||
+          lead.appointment?.location ||
+          "",
+
+        appointmentCoach:
+          lead.appointmentCoach ||
+          lead.appointment?.coachName ||
+          "",
+
+        appointmentNotes:
+          lead.appointmentNotes ||
+          lead.appointment?.notes ||
+          "",
+
+        appointmentStatus:
+          lead.appointmentStatus ||
+          lead.appointment?.status ||
+          "scheduled",
+
+        status:
+          lead.appointmentStatus ||
+          lead.appointment?.status ||
+          "scheduled",
+
+        appointmentConfirmationStatus:
+          lead.appointmentConfirmationStatus ||
+          "pending",
+
+        enrollmentStatus:
+          lead.enrollmentStatus ||
+          "not_started",
+
+        athleteStatus:
+          lead.athleteStatus ||
+          "none",
+
+        migratedFromLegacyLead: true,
+        migratedAt: serverTimestamp(),
+
+        createdAt:
+          lead.appointmentScheduledAt ||
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
+      }
+    );
+
+    migratedCount += 1;
+  }
+
+  return migratedCount;
+}
+
 async function loadAppointments() {
   if (!appointmentList) return;
 
@@ -380,28 +544,41 @@ async function loadAppointments() {
   try {
     await requireAdminUser();
 
+    const migratedCount =
+      await migrateLegacyAppointments();
+
+    if (migratedCount > 0) {
+      console.info(
+        `[appointments] migrated ${migratedCount} legacy appointment records`
+      );
+    }
+
     const snapshot =
       await getDocs(
-        collection(db, "interest_leads")
+        collection(
+          db,
+          "admissions_appointments"
+        )
       );
 
     const appointments =
       snapshot.docs
-        .map((leadDoc) => ({
-          id: leadDoc.id,
-          ...leadDoc.data()
+        .map((appointmentDoc) => ({
+          id: appointmentDoc.id,
+          ...appointmentDoc.data()
         }))
-.filter((lead) => {
-  const appointmentStatus =
-    lead.appointmentStatus ||
-    lead.appointment?.status ||
-    "";
+        .filter((appointment) => {
+          const appointmentStatus =
+            appointment.appointmentStatus ||
+            appointment.status ||
+            appointment.appointment?.status ||
+            "";
 
-  return (
-    appointmentStatus === "scheduled" ||
-    lead.status === "appointment_scheduled"
-  );
-});
+          return (
+            appointmentStatus === "scheduled" ||
+            appointmentStatus === "confirmed"
+          );
+        });
 
     if (!appointments.length) {
       appointmentList.innerHTML = `
@@ -581,12 +758,121 @@ scheduleForm?.addEventListener(
       await requireAdminUser();
 
 
+  const appointmentRef =
+    doc(
+      db,
+      "admissions_appointments",
+      selectedLeadId
+    );
+
+  await setDoc(
+    appointmentRef,
+    {
+      appointmentId: selectedLeadId,
+      leadId: selectedLeadId,
+
+      participantName:
+        selectedLead.athleteName || "",
+
+      athleteName:
+        selectedLead.athleteName || "",
+
+      parentName:
+        selectedLead.parentName || "",
+
+      registrantRole:
+        selectedLead.registrantRole || "",
+
+      athleteAge:
+        selectedLead.athleteAge || "",
+
+      email:
+        selectedLead.email || "",
+
+      phone:
+        selectedLead.phone || "",
+
+      city:
+        selectedLead.city || "",
+
+      shirtSize:
+        selectedLead.shirtSize || "",
+
+      programInterest:
+        selectedLead.programInterest || "",
+
+      intent:
+        selectedLead.intent || "",
+
+      primaryGoal:
+        selectedLead.primaryGoal || "",
+
+      admissionsPath:
+        selectedLead.admissionsPath || "new",
+
+      preferredLocation:
+        selectedLead.preferredLocation || "",
+
+      preferredMeetingWindow:
+        selectedLead.preferredMeetingWindow || "",
+
+      referralSource:
+        selectedLead.referralSource || "",
+
+      leadNotes:
+        selectedLead.notes || "",
+
+      appointmentDate: dateValue,
+      appointmentTime: timeValue,
+      appointmentLocation: locationValue,
+      appointmentCoach: coachValue,
+      appointmentNotes: notesValue,
+
+      appointmentStatus: "scheduled",
+      status: "scheduled",
+
+      appointment: {
+        date: dateValue,
+        time: timeValue,
+        location: locationValue,
+        coachName: coachValue,
+        notes: notesValue,
+        status: "scheduled"
+      },
+
+      appointmentConfirmationStatus:
+        "pending",
+
+      enrollmentStatus:
+        selectedLead.enrollmentStatus ||
+        "not_started",
+
+      athleteStatus:
+        selectedLead.athleteStatus ||
+        "none",
+
+      createdAt:
+        selectedLead.appointmentFileCreatedAt ||
+        serverTimestamp(),
+
+      updatedAt:
+        serverTimestamp()
+    },
+    {
+      merge: true
+    }
+  );
+
   await updateDoc(
   doc(db, "interest_leads", selectedLeadId),
   {
-    // New separated lifecycle fields
-leadStatus: "appointment_scheduled",
-status: "appointment_scheduled",
+    appointmentId: selectedLeadId,
+
+    processedToAppointment: true,
+    processedAt: serverTimestamp(),
+
+    leadStatus: "appointment_scheduled",
+    status: "appointment_scheduled",
 
     appointmentStatus: "scheduled",
 
@@ -633,7 +919,7 @@ selectedLead.appointmentCoach = coachValue;
 selectedLead.appointmentNotes = notesValue;
 
 setStatus(
-  "Appointment scheduled. Confirmation is pending."
+  "Appointment processed and scheduled. Confirmation is pending."
 );
 
 await loadAppointments();

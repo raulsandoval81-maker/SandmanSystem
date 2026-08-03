@@ -515,6 +515,20 @@ match /interest_leads/{leadId} {
 }
 
 /* --------------------------------------
+   Admissions Appointments
+---------------------------------------*/
+match /admissions_appointments/{appointmentId} {
+
+  // Appointment files are created and managed
+  // only by authenticated Sandman staff.
+  allow get, list: if isCoachOrAdmin();
+
+  allow create, update: if isCoachOrAdmin();
+
+  allow delete: if isAdmin();
+}
+
+/* --------------------------------------
    YESC Interest Leads
 ---------------------------------------*/
 match /yescInterest/{leadId} {
