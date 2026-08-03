@@ -561,6 +561,11 @@ async function loadAppointments() {
         )
       );
 
+    const today =
+      new Date();
+
+    today.setHours(0, 0, 0, 0);
+
     const appointments =
       snapshot.docs
         .map((appointmentDoc) => ({
@@ -574,20 +579,60 @@ async function loadAppointments() {
             appointment.appointment?.status ||
             "";
 
+          if (
+            appointmentStatus !== "scheduled" &&
+            appointmentStatus !== "confirmed"
+          ) {
+            return false;
+          }
+
+          const dateValue =
+            appointment.appointmentDate ||
+            appointment.appointment?.date ||
+            "";
+
+          if (!dateValue) {
+            return false;
+          }
+
+          const appointmentDay =
+            new Date(`${dateValue}T12:00:00`);
+
+          if (
+            !Number.isFinite(
+              appointmentDay.getTime()
+            )
+          ) {
+            return false;
+          }
+
+          appointmentDay.setHours(0, 0, 0, 0);
+
+          return appointmentDay >= today;
+        })
+        .sort((a, b) => {
+          const aDateTime =
+            `${a.appointmentDate || ""}T` +
+            `${a.appointmentTime || "00:00"}`;
+
+          const bDateTime =
+            `${b.appointmentDate || ""}T` +
+            `${b.appointmentTime || "00:00"}`;
+
           return (
-            appointmentStatus === "scheduled" ||
-            appointmentStatus === "confirmed"
+            new Date(aDateTime).getTime() -
+            new Date(bDateTime).getTime()
           );
         });
 
     if (!appointments.length) {
       appointmentList.innerHTML = `
         <div class="empty">
-          No appointments are currently scheduled.
+          No upcoming appointments are currently scheduled.
         </div>
       `;
 
-      setStatus("0 appointments loaded.");
+      setStatus("0 upcoming appointments.");
       return;
     }
 
