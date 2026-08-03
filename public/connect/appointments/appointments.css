@@ -154,3 +154,115 @@ h1{
     padding:22px 13px 50px;
   }
 }
+/* ======================================
+   Admissions Appointment Form
+====================================== */
+
+#scheduleForm {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 18px 20px;
+  margin-top: 24px;
+}
+
+#scheduleForm label {
+  display: block;
+  margin: 0 0 -10px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-muted, #6b7280);
+}
+
+#scheduleForm input,
+#scheduleForm select,
+#scheduleForm textarea {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 12px;
+  background: var(--surface, #ffffff);
+  color: var(--text, #18181b);
+  font: inherit;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    background-color 160ms ease;
+}
+
+#scheduleForm input,
+#scheduleForm select {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+#scheduleForm textarea {
+  min-height: 112px;
+  padding: 14px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+#scheduleForm input:focus,
+#scheduleForm select:focus,
+#scheduleForm textarea:focus {
+  outline: none;
+  border-color: #d4af37;
+  box-shadow:
+    0 0 0 3px rgba(212, 175, 55, 0.16);
+}
+
+#scheduleForm label[for="appointmentNotes"],
+#scheduleForm #appointmentNotes,
+#scheduleForm #scheduleBtn {
+  grid-column: 1 / -1;
+}
+
+#scheduleForm .optional {
+  margin-left: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--text-muted, #6b7280);
+}
+
+#scheduleForm #scheduleBtn {
+  min-height: 52px;
+  margin-top: 4px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+#schedulePanel {
+  overflow: hidden;
+}
+
+#schedulePanel > h2 {
+  margin-bottom: 20px;
+}
+
+@media (max-width: 700px) {
+  #scheduleForm {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  #scheduleForm label[for="appointmentNotes"],
+  #scheduleForm #appointmentNotes,
+  #scheduleForm #scheduleBtn {
+    grid-column: auto;
+  }
+
+  #scheduleForm input,
+  #scheduleForm select {
+    min-height: 52px;
+  }
+
+  #scheduleForm #scheduleBtn {
+    width: 100%;
+  }
+}
