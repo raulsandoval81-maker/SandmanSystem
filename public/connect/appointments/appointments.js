@@ -717,15 +717,24 @@ async function loadAppointments() {
 
     </div>
 
-    <div class="lead-actions">
-      <a
-        class="save-btn"
-        href="/connect/appointments/?leadId=${esc(lead.id)}"
-      >
-        Review Appointment
-      </a>
-    </div>
-  </article>
+<div class="lead-actions">
+  <a
+    class="save-btn"
+    href="/connect/appointments/?leadId=${esc(lead.id)}"
+  >
+    Review Appointment
+  </a>
+
+  <a
+    class="save-btn"
+    href="/connect/admissions/?appointmentId=${encodeURIComponent(
+      lead.id
+    )}"
+  >
+    Open Admissions
+  </a>
+</div>
+    </article>
 `)
 
       .join("");
