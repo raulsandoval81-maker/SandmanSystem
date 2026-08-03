@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Sandman Login</title>
+</head>
+
+<body>
+  <script>
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const returnUrl =
+      params.get("returnUrl") ||
+      params.get("next") ||
+      "";
+
+    const isStaffRoute =
+      returnUrl.startsWith("/connect/") ||
+      returnUrl.startsWith("/admin/") ||
+      returnUrl.startsWith("/coaches/");
+
+    const loginPath =
+      isStaffRoute
+        ? "/admin/auth/login.html"
+        : "/parent/auth.html";
+
+    const destination =
+      returnUrl
+        ? `${loginPath}?returnUrl=${encodeURIComponent(
+            returnUrl
+          )}`
+        : loginPath;
+
+    window.location.replace(destination);
+  </script>
+
+  <p>Redirecting to secure login…</p>
+</body>
+</html>
