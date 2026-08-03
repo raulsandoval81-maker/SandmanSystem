@@ -12,8 +12,26 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail,
   onAuthStateChanged,
-  signOut
+  signOut,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  setPersistence
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+
+const keepSignedIn =
+  document.getElementById("keepSignedIn");
+
+async function applyAuthPersistence() {
+  await setPersistence(
+    auth,
+    keepSignedIn?.checked
+      ? browserLocalPersistence
+      : browserSessionPersistence
+  );
+}
+
+
 
 const $ = (id) =>
   document.getElementById(id);
@@ -279,6 +297,8 @@ loginForm.addEventListener(
       setStatus(
         "Signing in..."
       );
+
+      await applyAuthPersistence();
 
       const credential =
         await signInWithEmailAndPassword(

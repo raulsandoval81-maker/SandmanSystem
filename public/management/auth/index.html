@@ -18,6 +18,48 @@
     rel="stylesheet"
     href="/assets/css/portal-auth.css"
   />
+<style>
+    .remember-row {
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 10px !important;
+      margin: 4px 0 16px !important;
+      color: #374151 !important;
+      cursor: pointer !important;
+    }
+
+    .remember-row input {
+      width: 18px !important;
+      height: 18px !important;
+      min-height: 18px !important;
+      margin: 2px 0 0 !important;
+      padding: 0 !important;
+      flex: 0 0 18px !important;
+      accent-color: #d4af37 !important;
+      box-shadow: none !important;
+    }
+
+    .remember-row span {
+      display: block !important;
+      line-height: 1.35 !important;
+    }
+
+    .remember-row strong {
+      display: block !important;
+      color: #111827 !important;
+      font-size: 0.9rem !important;
+      font-weight: 900 !important;
+    }
+
+    .remember-row small {
+      display: block !important;
+      margin-top: 3px !important;
+      color: #6b7280 !important;
+      font-size: 0.78rem !important;
+      font-weight: 500 !important;
+      line-height: 1.4 !important;
+    }
+</style>
 </head>
 
 <body>
@@ -59,6 +101,24 @@
       placeholder="Password"
     />
 
+    <label class="remember-row" for="keepSignedIn">
+      <input
+        id="keepSignedIn"
+        type="checkbox"
+      />
+
+      <span>
+        <strong>Keep me signed in on this device</strong>
+
+        <small>
+          Leave unchecked on shared devices or when you regularly
+          use more than one Sandman account.
+        </small>
+      </span>
+    </label>
+
+
+
     <button
       id="loginBtn"
       type="button"
@@ -98,8 +158,26 @@
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
       onAuthStateChanged,
-      signOut
-    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+      signOut,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  setPersistence
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+
+const keepSignedIn =
+  document.getElementById("keepSignedIn");
+
+async function applyAuthPersistence() {
+  await setPersistence(
+    auth,
+    keepSignedIn?.checked
+      ? browserLocalPersistence
+      : browserSessionPersistence
+  );
+}
+
+
 
     const emailEl =
       document.getElementById("email");
@@ -245,6 +323,8 @@
         try {
           setBusy(true);
           setStatus("Signing in...");
+
+          await applyAuthPersistence();
 
           const credential =
             await signInWithEmailAndPassword(
