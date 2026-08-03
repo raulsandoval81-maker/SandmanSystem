@@ -1,0 +1,1160 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Prospect Calculator | Sandman Combat</title>
+
+  <style>
+    :root {
+      --bg: #090a0d;
+      --panel: #12151b;
+      --panel-soft: #181c24;
+      --border: #2a303b;
+      --text: #f4f4f5;
+      --muted: #a5acb8;
+      --gold: #d4ad37;
+      --gold-dark: #8b6a00;
+      --cream: #f2ead2;
+      --success: #91c499;
+      --danger: #e58a8a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212, 173, 55, 0.12),
+          transparent 34rem
+        ),
+        var(--bg);
+      color: var(--text);
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 28px 0 54px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+
+    .eyebrow {
+      margin: 0 0 7px;
+      color: var(--gold);
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      line-height: 1.04;
+    }
+
+    .lead {
+      max-width: 760px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .back-link {
+      color: var(--gold);
+      text-decoration: none;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+
+    .totals {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .metric {
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,0.04),
+          rgba(255,255,255,0.01)
+        ),
+        var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px;
+    }
+
+    .metric-label {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .metric-value {
+      margin-top: 5px;
+      color: var(--gold);
+      font-size: clamp(1.8rem, 4vw, 2.7rem);
+      font-weight: 900;
+      letter-spacing: -0.04em;
+    }
+
+    .metric-note {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.78rem;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns:
+        minmax(0, 1.05fr)
+        minmax(0, 0.95fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 20px;
+    }
+
+    .card h2 {
+      margin: 0 0 17px;
+      font-size: 1.05rem;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
+    .field {
+      display: grid;
+      gap: 7px;
+    }
+
+    .field + .field {
+      margin-top: 13px;
+    }
+
+    label,
+    .label {
+      color: #e7e9ed;
+      font-size: 0.88rem;
+      font-weight: 720;
+    }
+
+    select,
+    input[type="number"],
+    input[type="text"] {
+      width: 100%;
+      min-height: 44px;
+      border: 1px solid #343b48;
+      border-radius: 11px;
+      background: #0b0d11;
+      color: var(--text);
+      padding: 10px 12px;
+      outline: none;
+    }
+
+    select:focus,
+    input:focus {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(212,173,55,0.14);
+    }
+
+    .help {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.4;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-top: 14px;
+      color: #e4e7eb;
+      font-size: 0.86rem;
+      line-height: 1.4;
+    }
+
+    .check-row input {
+      width: 18px;
+      height: 18px;
+      margin: 1px 0 0;
+      accent-color: var(--gold);
+      flex: 0 0 auto;
+    }
+
+    .breakdown {
+      display: grid;
+      gap: 0;
+    }
+
+    .line {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      color: #e5e7eb;
+      font-size: 0.9rem;
+    }
+
+    .line span:last-child {
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .line.credit span:last-child {
+      color: var(--success);
+    }
+
+    .line.total {
+      padding-top: 15px;
+      border-bottom: 0;
+      color: var(--gold);
+      font-size: 1rem;
+      font-weight: 900;
+    }
+
+    .section-divider {
+      height: 1px;
+      margin: 16px 0;
+      background: var(--border);
+    }
+
+    .summary {
+      background: var(--cream);
+      color: #1e1e1e;
+      border-radius: 16px;
+      padding: 18px;
+    }
+
+    .summary h2 {
+      margin-bottom: 10px;
+      color: var(--gold-dark);
+    }
+
+    .summary p {
+      margin: 0;
+      line-height: 1.55;
+    }
+
+    .summary p + p {
+      margin-top: 9px;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .button {
+      min-height: 42px;
+      border: 1px solid var(--gold);
+      border-radius: 10px;
+      background: var(--gold);
+      color: #171717;
+      padding: 10px 15px;
+      font-weight: 850;
+      cursor: pointer;
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--gold);
+    }
+
+    .assumptions {
+      margin: 0;
+      padding-left: 19px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.55;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media print {
+      body {
+        background: #fff;
+        color: #111;
+      }
+
+      .page {
+        width: 100%;
+        padding: 0;
+      }
+
+      .back-link,
+      .actions,
+      .assumption-card {
+        display: none !important;
+      }
+
+      .metric,
+      .card {
+        break-inside: avoid;
+        background: #fff;
+        color: #111;
+        border-color: #aaa;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      select,
+      input {
+        border-color: #aaa;
+        color: #111;
+        background: #fff;
+      }
+
+      .line {
+        color: #111;
+        border-color: #ccc;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .workspace,
+      .totals {
+        grid-template-columns: 1fr;
+      }
+
+      .topbar {
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Sandman Admissions</p>
+
+        <h1>Prospective Member Calculator</h1>
+
+        <p class="lead">
+          Compare enrollment, monthly training, annual renewal,
+          optional services, promotions, credits, and approved support.
+        </p>
+      </div>
+
+      <a
+        class="back-link"
+        href="/connect/admissions/"
+      >
+        ← Admissions
+      </a>
+    </header>
+
+    <section class="totals">
+      <article class="metric">
+        <div class="metric-label">Due at enrollment</div>
+        <div id="dueNow" class="metric-value">$75</div>
+        <div class="metric-note">
+          One-time charges after credits
+        </div>
+      </article>
+
+      <article class="metric">
+        <div class="metric-label">Monthly family balance</div>
+        <div id="monthlyTotal" class="metric-value">$80</div>
+        <div class="metric-note">
+          Recurring training membership
+        </div>
+      </article>
+
+      <article class="metric">
+        <div class="metric-label">Annual renewal estimate</div>
+        <div id="annualTotal" class="metric-value">$100</div>
+        <div class="metric-note">
+          Future discipline registrations
+        </div>
+      </article>
+    </section>
+
+    <section class="workspace">
+      <div class="stack">
+        <article class="card">
+          <h2>Prospect</h2>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="prospectName">Family or prospect name</label>
+              <input
+                id="prospectName"
+                type="text"
+                placeholder="Optional"
+              />
+            </div>
+
+            <div class="field">
+              <label for="plan">Membership type</label>
+
+              <select id="plan">
+                <option value="standard">
+                  Standard athlete / family
+                </option>
+
+                <option value="unlimited">
+                  Unlimited athlete
+                </option>
+
+                <option value="fitness">
+                  Fitness membership
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-top:13px;">
+            <div class="field">
+              <label for="athletes">Number of athletes</label>
+
+              <select id="athletes">
+                <option value="1">1 athlete</option>
+                <option value="2">2 athletes</option>
+                <option value="3">3 athletes</option>
+                <option value="4">4 athletes</option>
+              </select>
+            </div>
+
+            <div class="field" id="disciplineField">
+              <label for="disciplines">
+                Competitive registrations
+              </label>
+
+              <select id="disciplines">
+                <option value="1">1 registration</option>
+                <option value="2">2 registrations</option>
+                <option value="3">3 registrations</option>
+                <option value="4">4 registrations</option>
+                <option value="5">5 registrations</option>
+                <option value="6">6 registrations</option>
+                <option value="7">7 registrations</option>
+                <option value="8">8 registrations</option>
+              </select>
+
+              <p class="help">
+                Two siblings in wrestling equals two registrations.
+              </p>
+            </div>
+          </div>
+
+          <label class="check-row">
+            <input
+              id="admissionsCredit"
+              type="checkbox"
+              checked
+            />
+
+            <span>
+              Apply the $25 admissions credit to enrollment
+            </span>
+          </label>
+
+          <label class="check-row">
+            <input
+              id="creditPerAthlete"
+              type="checkbox"
+            />
+
+            <span>
+              Apply one $25 admissions credit per athlete
+            </span>
+          </label>
+        </article>
+
+        <article class="card">
+          <h2>Optional services and adjustments</h2>
+
+          <div class="field">
+            <label for="extra">Optional service</label>
+
+            <select id="extra">
+              <option value="none">None</option>
+              <option value="fitness-dropin">
+                Fitness drop-in — $15
+              </option>
+              <option value="private-30">
+                Private lesson — 30 minutes — $25
+              </option>
+              <option value="private-60">
+                Private lesson — 60 minutes — $50
+              </option>
+              <option value="private-90">
+                Private lesson — 90 minutes — $70
+              </option>
+              <option value="semi-private">
+                Semi-private — 90 minutes — $60 total
+              </option>
+            </select>
+          </div>
+
+          <label class="check-row">
+            <input
+              id="privatePromo"
+              type="checkbox"
+            />
+
+            <span>
+              Apply eligible private-session promotion
+              (-$10 per athlete)
+            </span>
+          </label>
+
+          <label class="check-row">
+            <input
+              id="fitnessCredit"
+              type="checkbox"
+            />
+
+            <span>
+              Credit a $15 fitness drop-in toward the first
+              fitness month
+            </span>
+          </label>
+
+          <div class="grid-2" style="margin-top:15px;">
+            <div class="field">
+              <label for="support">
+                Enrollment support
+              </label>
+
+              <input
+                id="support"
+                type="number"
+                min="0"
+                step="5"
+                value="0"
+              />
+
+              <p class="help">
+                Coach-approved scholarship or hardship adjustment.
+              </p>
+            </div>
+
+            <div class="field">
+              <label for="sponsorMonthly">
+                Monthly sponsor amount
+              </label>
+
+              <input
+                id="sponsorMonthly"
+                type="number"
+                min="0"
+                step="5"
+                value="0"
+              />
+
+              <p class="help">
+                Reduces the family’s monthly balance.
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div class="stack">
+        <article class="card">
+          <h2>Pricing breakdown</h2>
+
+          <div id="breakdown" class="breakdown"></div>
+        </article>
+
+        <article class="summary">
+          <h2>Prospect summary</h2>
+
+          <div id="summary"></div>
+
+          <div class="actions">
+            <button
+              id="printButton"
+              class="button"
+              type="button"
+            >
+              Print proposal
+            </button>
+
+            <button
+              id="resetButton"
+              class="button secondary"
+              type="button"
+            >
+              Reset
+            </button>
+          </div>
+        </article>
+
+        <article class="card assumption-card">
+          <h2>Working assumptions</h2>
+
+          <ul class="assumptions">
+            <li>
+              Standard family ladder:
+              $80, $120, $140, and $160.
+            </li>
+
+            <li>
+              Unlimited is $120 monthly for one athlete.
+            </li>
+
+            <li>
+              Fitness is $60 monthly.
+            </li>
+
+            <li>
+              Competitive enrollment is $100 per registration.
+            </li>
+
+            <li>
+              Annual renewal is $100 per registration.
+            </li>
+
+            <li>
+              Monthly dues, enrollment, and renewal stay separate.
+            </li>
+
+            <li>
+              Current admissions credit is applied to enrollment.
+            </li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const familyMonthly = {
+      1: 80,
+      2: 120,
+      3: 140,
+      4: 160
+    };
+
+    const extras = {
+      "none": {
+        label: "No optional service",
+        amount: 0,
+        promoEligible: false
+      },
+
+      "fitness-dropin": {
+        label: "Fitness drop-in",
+        amount: 15,
+        promoEligible: false
+      },
+
+      "private-30": {
+        label: "Private lesson — 30 minutes",
+        amount: 25,
+        promoEligible: false
+      },
+
+      "private-60": {
+        label: "Private lesson — 60 minutes",
+        amount: 50,
+        promoEligible: true
+      },
+
+      "private-90": {
+        label: "Private lesson — 90 minutes",
+        amount: 70,
+        promoEligible: true
+      },
+
+      "semi-private": {
+        label: "Semi-private lesson — 90 minutes",
+        amount: 60,
+        promoEligible: false
+      }
+    };
+
+    const elements = {
+      prospectName:
+        document.getElementById("prospectName"),
+
+      plan:
+        document.getElementById("plan"),
+
+      athletes:
+        document.getElementById("athletes"),
+
+      disciplines:
+        document.getElementById("disciplines"),
+
+      disciplineField:
+        document.getElementById("disciplineField"),
+
+      admissionsCredit:
+        document.getElementById("admissionsCredit"),
+
+      creditPerAthlete:
+        document.getElementById("creditPerAthlete"),
+
+      extra:
+        document.getElementById("extra"),
+
+      privatePromo:
+        document.getElementById("privatePromo"),
+
+      fitnessCredit:
+        document.getElementById("fitnessCredit"),
+
+      support:
+        document.getElementById("support"),
+
+      sponsorMonthly:
+        document.getElementById("sponsorMonthly"),
+
+      dueNow:
+        document.getElementById("dueNow"),
+
+      monthlyTotal:
+        document.getElementById("monthlyTotal"),
+
+      annualTotal:
+        document.getElementById("annualTotal"),
+
+      breakdown:
+        document.getElementById("breakdown"),
+
+      summary:
+        document.getElementById("summary"),
+
+      printButton:
+        document.getElementById("printButton"),
+
+      resetButton:
+        document.getElementById("resetButton")
+    };
+
+    function money(value) {
+      const rounded = Math.max(
+        0,
+        Math.round(Number(value) || 0)
+      );
+
+      return `$${rounded.toLocaleString()}`;
+    }
+
+    function breakdownLine(
+      label,
+      amount,
+      options = {}
+    ) {
+      const {
+        credit = false,
+        total = false
+      } = options;
+
+      const line =
+        document.createElement("div");
+
+      line.className = [
+        "line",
+        credit ? "credit" : "",
+        total ? "total" : ""
+      ]
+        .filter(Boolean)
+        .join(" ");
+
+      const labelSpan =
+        document.createElement("span");
+
+      const amountSpan =
+        document.createElement("span");
+
+      labelSpan.textContent = label;
+
+      amountSpan.textContent =
+        `${credit ? "-" : ""}${money(Math.abs(amount))}`;
+
+      line.append(labelSpan, amountSpan);
+
+      return line;
+    }
+
+    function calculate() {
+      const plan = elements.plan.value;
+
+      let athleteCount =
+        Number(elements.athletes.value);
+
+      let registrationCount =
+        Number(elements.disciplines.value);
+
+      const selectedExtra =
+        extras[elements.extra.value];
+
+      if (plan === "unlimited") {
+        athleteCount = 1;
+        elements.athletes.value = "1";
+        elements.athletes.disabled = true;
+      } else {
+        elements.athletes.disabled = false;
+      }
+
+      const isFitness =
+        plan === "fitness";
+
+      elements.disciplineField.classList.toggle(
+        "hidden",
+        isFitness
+      );
+
+      elements.admissionsCredit.disabled =
+        isFitness;
+
+      elements.creditPerAthlete.disabled =
+        isFitness;
+
+      if (isFitness) {
+        registrationCount = 0;
+      }
+
+      let monthlyBase = 0;
+
+      if (plan === "standard") {
+        monthlyBase =
+          familyMonthly[athleteCount] || 0;
+      }
+
+      if (plan === "unlimited") {
+        monthlyBase = 120;
+      }
+
+      if (plan === "fitness") {
+        monthlyBase = 60;
+      }
+
+      const enrollmentBase =
+        isFitness
+          ? 0
+          : registrationCount * 100;
+
+      const annualRenewal =
+        isFitness
+          ? 0
+          : registrationCount * 100;
+
+      let admissionsCredit = 0;
+
+      if (
+        !isFitness &&
+        elements.admissionsCredit.checked
+      ) {
+        admissionsCredit =
+          elements.creditPerAthlete.checked
+            ? athleteCount * 25
+            : 25;
+      }
+
+      let privatePromotion = 0;
+
+      if (
+        elements.privatePromo.checked &&
+        selectedExtra.promoEligible
+      ) {
+        privatePromotion = 10;
+      }
+
+      let dropInCredit = 0;
+
+      if (
+        isFitness &&
+        elements.fitnessCredit.checked
+      ) {
+        dropInCredit = 15;
+      }
+
+      const support =
+        Math.max(
+          0,
+          Number(elements.support.value) || 0
+        );
+
+      const sponsoredMonthly =
+        Math.max(
+          0,
+          Number(elements.sponsorMonthly.value) || 0
+        );
+
+      const dueNow =
+        Math.max(
+          0,
+          enrollmentBase +
+          selectedExtra.amount -
+          admissionsCredit -
+          privatePromotion -
+          dropInCredit -
+          support
+        );
+
+      const monthlyBalance =
+        Math.max(
+          0,
+          monthlyBase - sponsoredMonthly
+        );
+
+      elements.dueNow.textContent =
+        money(dueNow);
+
+      elements.monthlyTotal.textContent =
+        money(monthlyBalance);
+
+      elements.annualTotal.textContent =
+        money(annualRenewal);
+
+      elements.breakdown.innerHTML = "";
+
+      if (enrollmentBase > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            `Competitive enrollment (${registrationCount} × $100)`,
+            enrollmentBase
+          )
+        );
+      }
+
+      if (selectedExtra.amount > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            selectedExtra.label,
+            selectedExtra.amount
+          )
+        );
+      }
+
+      if (admissionsCredit > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            "Admissions credit",
+            admissionsCredit,
+            { credit: true }
+          )
+        );
+      }
+
+      if (privatePromotion > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            "Private-session promotion",
+            privatePromotion,
+            { credit: true }
+          )
+        );
+      }
+
+      if (dropInCredit > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            "Fitness drop-in credit",
+            dropInCredit,
+            { credit: true }
+          )
+        );
+      }
+
+      if (support > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            "Approved enrollment support",
+            support,
+            { credit: true }
+          )
+        );
+      }
+
+      elements.breakdown.append(
+        breakdownLine(
+          "Due at enrollment",
+          dueNow,
+          { total: true }
+        )
+      );
+
+      elements.breakdown.append(
+        document.createElement("div")
+      ).className = "section-divider";
+
+      elements.breakdown.append(
+        breakdownLine(
+          "Base monthly membership",
+          monthlyBase
+        )
+      );
+
+      if (sponsoredMonthly > 0) {
+        elements.breakdown.append(
+          breakdownLine(
+            "Sponsored monthly amount",
+            sponsoredMonthly,
+            { credit: true }
+          )
+        );
+      }
+
+      elements.breakdown.append(
+        breakdownLine(
+          "Monthly family balance",
+          monthlyBalance,
+          { total: true }
+        )
+      );
+
+      elements.breakdown.append(
+        document.createElement("div")
+      ).className = "section-divider";
+
+      elements.breakdown.append(
+        breakdownLine(
+          "Annual renewal estimate",
+          annualRenewal,
+          { total: true }
+        )
+      );
+
+      const planLabel = {
+        standard: "Standard",
+        unlimited: "Unlimited",
+        fitness: "Fitness"
+      }[plan];
+
+      const name =
+        elements.prospectName.value.trim();
+
+      const nameLine =
+        name
+          ? `<p><strong>${name}</strong></p>`
+          : "";
+
+      const registrationText =
+        registrationCount === 0
+          ? "No competitive registration is included."
+          : `${registrationCount} competitive registration${
+              registrationCount === 1 ? "" : "s"
+            } included.`;
+
+      elements.summary.innerHTML = `
+        ${nameLine}
+
+        <p>
+          <strong>${planLabel} option</strong>
+          for ${athleteCount}
+          athlete${athleteCount === 1 ? "" : "s"}.
+          ${registrationText}
+        </p>
+
+        <p>
+          Estimated enrollment balance:
+          <strong>${money(dueNow)}</strong>.
+          Estimated monthly family balance:
+          <strong>${money(monthlyBalance)}</strong>.
+          Estimated annual renewal:
+          <strong>${money(annualRenewal)}</strong>.
+        </p>
+      `;
+    }
+
+    function resetCalculator() {
+      elements.prospectName.value = "";
+      elements.plan.value = "standard";
+      elements.athletes.value = "1";
+      elements.disciplines.value = "1";
+      elements.admissionsCredit.checked = true;
+      elements.creditPerAthlete.checked = false;
+      elements.extra.value = "none";
+      elements.privatePromo.checked = false;
+      elements.fitnessCredit.checked = false;
+      elements.support.value = "0";
+      elements.sponsorMonthly.value = "0";
+
+      calculate();
+    }
+
+    document
+      .querySelectorAll("input, select")
+      .forEach((control) => {
+        control.addEventListener(
+          "input",
+          calculate
+        );
+
+        control.addEventListener(
+          "change",
+          calculate
+        );
+      });
+
+    elements.printButton.addEventListener(
+      "click",
+      () => window.print()
+    );
+
+    elements.resetButton.addEventListener(
+      "click",
+      resetCalculator
+    );
+
+    calculate();
+  </script>
+</body>
+</html>
