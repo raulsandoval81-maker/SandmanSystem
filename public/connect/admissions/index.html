@@ -1,0 +1,291 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Admissions Decision | Sandman Connect</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/connect/admissions/admissions.css"
+  />
+</head>
+
+<body>
+  <main class="admissions-page">
+
+    <header class="admissions-header">
+      <div>
+        <p class="eyebrow">
+          Sandman Connect
+        </p>
+
+        <h1>
+          Admissions Decision
+        </h1>
+
+        <p>
+          Record the Admissions Appointment outcome,
+          coach recommendation, and next step before
+          enrollment begins.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <a
+          class="btn"
+          href="/connect/appointments/"
+        >
+          Back to Appointments
+        </a>
+
+        <button
+          id="refreshBtn"
+          class="btn btn-primary"
+          type="button"
+        >
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <p
+      id="pageStatus"
+      class="page-status"
+      aria-live="polite"
+    ></p>
+
+    <section
+      id="appointmentSummary"
+      class="info-card"
+      hidden
+    ></section>
+
+    <section
+      id="decisionPanel"
+      class="info-card"
+      hidden
+    >
+      <h2>
+        Record Admissions Outcome
+      </h2>
+
+      <form id="admissionsForm">
+
+        <div class="form-field">
+          <label for="appointmentOutcome">
+            Appointment Outcome
+          </label>
+
+          <select
+            id="appointmentOutcome"
+            required
+          >
+            <option value="">
+              Select outcome
+            </option>
+
+            <option value="completed">
+              Completed
+            </option>
+
+            <option value="no-show">
+              No-Show
+            </option>
+
+            <option value="cancelled">
+              Cancelled
+            </option>
+
+            <option value="rescheduled">
+              Rescheduled
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="enrollmentDecision">
+            Enrollment Decision
+          </label>
+
+          <select
+            id="enrollmentDecision"
+            required
+          >
+            <option value="">
+              Select decision
+            </option>
+
+            <option value="ready-to-enroll">
+              Ready to Enroll
+            </option>
+
+            <option value="follow-up">
+              Follow-Up Required
+            </option>
+
+            <option value="not-enrolling">
+              Not Enrolling
+            </option>
+
+            <option value="undecided">
+              Undecided
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="recommendedJourney">
+            Recommended Journey
+          </label>
+
+          <select id="recommendedJourney">
+            <option value="">
+              No recommendation yet
+            </option>
+
+            <option value="zero2hero">
+              Zero2Hero
+            </option>
+
+            <option value="path2legend">
+              Path2Legend
+            </option>
+
+            <option value="quest2mastery">
+              Quest2Mastery
+            </option>
+
+            <option value="everyday-fitness">
+              Everyday Fitness
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="recommendedDiscipline">
+            Recommended Discipline
+          </label>
+
+          <input
+            id="recommendedDiscipline"
+            type="text"
+            placeholder="Example: Boxing"
+          />
+        </div>
+
+        <div class="form-field">
+          <label for="recommendedStartingPath">
+            Recommended Starting Path
+          </label>
+
+          <select id="recommendedStartingPath">
+            <option value="">
+              No recommendation yet
+            </option>
+
+            <option value="new">
+              New Athlete
+            </option>
+
+            <option value="assessment">
+              Placement Assessment
+            </option>
+          </select>
+        </div>
+
+        <div class="form-field">
+          <label for="followUpDate">
+            Follow-Up Date
+            <span class="optional">
+              Optional
+            </span>
+          </label>
+
+          <input
+            id="followUpDate"
+            type="date"
+          />
+        </div>
+
+        <div class="form-field form-field-wide">
+          <label for="coachAssessment">
+            Coach Assessment
+          </label>
+
+          <textarea
+            id="coachAssessment"
+            rows="5"
+            placeholder="Readiness, experience, goals, fit, and recommended path."
+          ></textarea>
+        </div>
+
+        <div class="form-field form-field-wide">
+          <label for="privateNotes">
+            Private Admissions Notes
+            <span class="optional">
+              Optional
+            </span>
+          </label>
+
+          <textarea
+            id="privateNotes"
+            rows="4"
+            placeholder="Internal notes not included in family communications."
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button
+            id="saveDecisionBtn"
+            class="btn btn-primary"
+            type="submit"
+          >
+            Save Admissions Decision
+          </button>
+
+          <a
+            id="continueToEnrollmentBtn"
+            class="btn"
+            href="/connect/enrollment/"
+            hidden
+          >
+            Continue to Enrollment
+          </a>
+
+          <a
+            id="notEnrollingBtn"
+            class="btn"
+            href="/connect/thanks/not-enrolled.html"
+            hidden
+          >
+            Open Not Enrolled Page
+          </a>
+        </div>
+
+      </form>
+    </section>
+
+  </main>
+
+  <script
+    type="module"
+    src="/connect/admissions/admissions.js"
+  ></script>
+</body>
+</html>
