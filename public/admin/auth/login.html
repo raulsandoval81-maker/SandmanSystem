@@ -88,88 +88,194 @@
     <div id="status" class="status"></div>
   </div>
 
-  <script type="module">
-    import { auth } from "/assets/js/firebase-init.js";
-    import {
-      signInWithEmailAndPassword,
-      sendPasswordResetEmail,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+<script type="module">
+  import { auth } from "/assets/js/firebase-init.js";
 
-    const statusEl = document.getElementById("status");
-    const emailEl = document.getElementById("email");
-    const passwordEl = document.getElementById("password");
-    const loginBtn = document.getElementById("loginBtn");
-    const resetBtn = document.getElementById("resetBtn");
+  import {
+    signInWithEmailAndPassword,
+    sendPasswordResetEmail,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-    function setStatus(msg, isError = false) {
-      statusEl.textContent = msg;
-      statusEl.classList.toggle("error", isError);
+  const statusEl =
+    document.getElementById("status");
+
+  const emailEl =
+    document.getElementById("email");
+
+  const passwordEl =
+    document.getElementById("password");
+
+  const loginBtn =
+    document.getElementById("loginBtn");
+
+  const resetBtn =
+    document.getElementById("resetBtn");
+
+  const params =
+    new URLSearchParams(window.location.search);
+
+  const requestedReturnUrl =
+    params.get("returnUrl") ||
+    params.get("next") ||
+    "";
+
+  function getSafeReturnUrl() {
+    if (
+      requestedReturnUrl &&
+      requestedReturnUrl.startsWith("/") &&
+      !requestedReturnUrl.startsWith("//")
+    ) {
+      return requestedReturnUrl;
     }
 
-    loginBtn.addEventListener("click", async () => {
-      const email = emailEl.value.trim();
-      const password = passwordEl.value.trim();
+    return "/admin/hub.html";
+  }
+
+  function setStatus(
+    message,
+    isError = false
+  ) {
+    statusEl.textContent = message;
+
+    statusEl.classList.toggle(
+      "error",
+      isError
+    );
+  }
+
+  function redirectAfterLogin() {
+    window.location.replace(
+      getSafeReturnUrl()
+    );
+  }
+
+  loginBtn.addEventListener(
+    "click",
+    async () => {
+      const email =
+        emailEl.value.trim();
+
+      const password =
+        passwordEl.value.trim();
 
       if (!email || !password) {
-        setStatus("Enter email and password", true);
+        setStatus(
+          "Enter email and password",
+          true
+        );
+
         return;
       }
 
       try {
         setStatus("Signing in...");
+
         loginBtn.disabled = true;
         resetBtn.disabled = true;
 
-        const res = await signInWithEmailAndPassword(auth, email, password);
+        const result =
+          await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+          );
 
-        console.log("SIGNED IN:", res.user.uid, res.user.email);
-        setStatus("Success. Redirecting...");
+        console.log(
+          "SIGNED IN:",
+          result.user.uid,
+          result.user.email
+        );
 
-        setTimeout(() => {
-          window.location.href = "/admin/hub.html";
-        }, 500);
-      } catch (err) {
-        console.error(err);
-        setStatus(err.message, true);
+        setStatus(
+          "Success. Redirecting..."
+        );
+
+        setTimeout(
+          redirectAfterLogin,
+          300
+        );
+      } catch (error) {
+        console.error(error);
+
+        setStatus(
+          error.message,
+          true
+        );
       } finally {
         loginBtn.disabled = false;
         resetBtn.disabled = false;
       }
-    });
+    }
+  );
 
-    resetBtn.addEventListener("click", async () => {
-      const email = emailEl.value.trim();
+  passwordEl.addEventListener(
+    "keydown",
+    (event) => {
+      if (event.key === "Enter") {
+        loginBtn.click();
+      }
+    }
+  );
+
+  resetBtn.addEventListener(
+    "click",
+    async () => {
+      const email =
+        emailEl.value.trim();
 
       if (!email) {
-        setStatus("Enter your email first", true);
+        setStatus(
+          "Enter your email first",
+          true
+        );
+
         return;
       }
 
       try {
-        setStatus("Sending reset email...");
+        setStatus(
+          "Sending reset email..."
+        );
+
         loginBtn.disabled = true;
         resetBtn.disabled = true;
 
-        await sendPasswordResetEmail(auth, email);
+        await sendPasswordResetEmail(
+          auth,
+          email
+        );
 
-        setStatus("Password reset email sent. Check inbox and spam.");
-      } catch (err) {
-        console.error(err);
-        setStatus(err.message, true);
+        setStatus(
+          "Password reset email sent. Check inbox and spam."
+        );
+      } catch (error) {
+        console.error(error);
+
+        setStatus(
+          error.message,
+          true
+        );
       } finally {
         loginBtn.disabled = false;
         resetBtn.disabled = false;
       }
-    });
+    }
+  );
 
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        console.log("Already signed in:", user.email);
-        window.location.href = "/admin/hub.html";
-      }
-    });
-  </script>
+  onAuthStateChanged(
+    auth,
+    (user) => {
+      if (!user) return;
 
+      console.log(
+        "Already signed in:",
+        user.email
+      );
+
+      redirectAfterLogin();
+    }
+  );
+</script>
 </body>
 </html>
