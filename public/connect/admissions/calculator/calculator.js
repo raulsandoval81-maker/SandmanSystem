@@ -1,18 +1,32 @@
-const familyMonthly = {
-      1:80,
-      2:120,
-      3:140,
-      4:160
-    };
 
-    const extras = {
-      "none":{label:"No optional service",amount:0,promoEligible:false},
-      "fitness-dropin":{label:"Fitness drop-in",amount:15,promoEligible:false},
-      "private-30":{label:"Private lesson — 30 minutes",amount:25,promoEligible:false},
-      "private-60":{label:"Private lesson — 60 minutes",amount:50,promoEligible:true},
-      "private-90":{label:"Private lesson — 90 minutes",amount:70,promoEligible:true},
-      "semi-private":{label:"Semi-private lesson — 90 minutes",amount:60,promoEligible:false}
-    };
+// --------------------------------------------------
+// Admissions Request (Phase 1)
+// --------------------------------------------------
+
+const params = new URLSearchParams(window.location.search);
+const requestId = params.get("requestId");
+
+console.log("Admissions Request:", requestId);
+
+// --------------------------------------------------
+// Calculator
+// --------------------------------------------------
+
+const familyMonthly = {
+  1: 80,
+  2: 120,
+  3: 140,
+  4: 160
+};
+
+const extras = {
+  "none": { label:"No optional service", amount:0, promoEligible:false },
+  "fitness-dropin": { label:"Fitness drop-in", amount:15, promoEligible:false },
+  "private-30": { label:"Private lesson — 30 minutes", amount:25, promoEligible:false },
+  "private-60": { label:"Private lesson — 60 minutes", amount:50, promoEligible:true },
+  "private-90": { label:"Private lesson — 90 minutes", amount:70, promoEligible:true },
+  "semi-private": { label:"Semi-private lesson — 90 minutes", amount:60, promoEligible:false }
+};
 
     const el = {
       familyName:document.getElementById("familyName"),
