@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>First-Time Access | Sandman</title>
+
+  <link
+    rel="stylesheet"
+    href="/access/first-time/first-time.css"
+  >
+</head>
+
+<body>
+  <main class="access-shell">
+
+    <section class="access-card">
+
+      <a
+        class="brand"
+        href="/"
+      >
+        Sandman System™
+      </a>
+
+      <p class="eyebrow">
+        Controlled Account Activation
+      </p>
+
+      <h1 id="pageTitle">
+        First-Time Access
+      </h1>
+
+      <p
+        class="intro"
+        id="pageIntro"
+      >
+        Choose the access type connected to your Sandman role.
+      </p>
+
+      <div class="role-grid">
+
+        <button
+          class="role-card"
+          type="button"
+          data-role="parent"
+        >
+          <strong>Parent</strong>
+
+          <span>
+            Activate access connected to an existing
+            athlete or family record.
+          </span>
+        </button>
+
+        <button
+          class="role-card"
+          type="button"
+          data-role="athlete"
+        >
+          <strong>Athlete</strong>
+
+          <span>
+            Activate access connected to an existing
+            Sandman athlete record.
+          </span>
+        </button>
+
+        <button
+          class="role-card"
+          type="button"
+          data-role="coach"
+        >
+          <strong>Coach</strong>
+
+          <span>
+            Accept an approved Sandman coaching
+            invitation.
+          </span>
+        </button>
+
+        <button
+          class="role-card"
+          type="button"
+          data-role="management"
+        >
+          <strong>Management</strong>
+
+          <span>
+            Set up initial System Admin access or accept
+            an approved management invitation.
+          </span>
+        </button>
+
+      </div>
+
+      <section
+        class="activation-panel"
+        id="activationPanel"
+        hidden
+      >
+
+        <h2 id="activationTitle">
+          Account Activation
+        </h2>
+
+        <p id="activationDescription"></p>
+
+        <div class="notice">
+          <strong>
+            Controlled access
+          </strong>
+
+          <span id="activationNotice">
+            Sandman accounts must be connected to an
+            approved record, invitation, or initial
+            System Admin setup.
+          </span>
+        </div>
+
+        <a
+          class="primary-action"
+          id="continueLink"
+          href="/login/"
+        >
+          Continue
+        </a>
+
+      </section>
+
+      <a
+        class="back-link"
+        href="/login/"
+      >
+        ← Choose a different role
+      </a>
+
+    </section>
+
+  </main>
+
+  <script
+    type="module"
+    src="/access/first-time/first-time.js"
+  ></script>
+</body>
+</html>
