@@ -73,11 +73,21 @@
       color: #f87171;
     }
   </style>
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/portal-auth.css"
+  />
 </head>
 <body>
 
-  <div class="card">
-    <h1>Admin Login</h1>
+  <main class="card">
+    <p class="kicker">Administrators' Portal</p>
+    <h1>Admin Access</h1>
+
+    <p class="sub">
+      Sign in with an approved administrator account.
+    </p>
 
     <input id="email" type="email" placeholder="Email" value="coach@sandmancombat.com" />
     <input id="password" type="password" placeholder="Password" />
@@ -86,7 +96,10 @@
     <button id="resetBtn" class="link-btn" type="button">Forgot Password?</button>
 
     <div id="status" class="status"></div>
-  </div>
+    <a class="back-link" href="/login/">
+      ← Choose a different role
+    </a>
+  </main>
 
 <script type="module">
   import { auth } from "/assets/js/firebase-init.js";
