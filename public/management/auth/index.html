@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Management Access | Sandman Combat™</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/portal-auth.css"
+  />
+</head>
+
+<body>
+  <main class="card">
+
+    <p class="kicker">
+      Management Portal
+    </p>
+
+    <h1>
+      Management Access
+    </h1>
+
+    <p class="sub">
+      Sign in with an approved Location Manager,
+      Program Manager, or System Admin account.
+    </p>
+
+    <label for="email">
+      Email
+    </label>
+
+    <input
+      id="email"
+      type="email"
+      inputmode="email"
+      autocomplete="username"
+      placeholder="manager@example.com"
+    />
+
+    <label for="password">
+      Password
+    </label>
+
+    <input
+      id="password"
+      type="password"
+      autocomplete="current-password"
+      placeholder="Password"
+    />
+
+    <button
+      id="loginBtn"
+      type="button"
+    >
+      Sign In
+    </button>
+
+    <button
+      id="resetBtn"
+      class="link-btn"
+      type="button"
+    >
+      Forgot Password?
+    </button>
+
+    <div
+      id="status"
+      class="status"
+      aria-live="polite"
+    ></div>
+
+    <a
+      class="back-link"
+      href="/login/"
+    >
+      ← Choose a different role
+    </a>
+
+  </main>
+
+  <script type="module">
+    import {
+      auth
+    } from "/assets/js/firebase-init.js";
+
+    import {
+      signInWithEmailAndPassword,
+      sendPasswordResetEmail,
+      onAuthStateChanged,
+      signOut
+    } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+    const emailEl =
+      document.getElementById("email");
+
+    const passwordEl =
+      document.getElementById("password");
+
+    const loginBtn =
+      document.getElementById("loginBtn");
+
+    const resetBtn =
+      document.getElementById("resetBtn");
+
+    const statusEl =
+      document.getElementById("status");
+
+    const params =
+      new URLSearchParams(window.location.search);
+
+    const requestedReturnUrl =
+      params.get("returnUrl") ||
+      params.get("next") ||
+      "";
+
+    let checkingAccess = false;
+
+    function setStatus(
+      message = "",
+      isError = false
+    ) {
+      statusEl.textContent = message;
+
+      statusEl.classList.toggle(
+        "error",
+        isError
+      );
+    }
+
+    function setBusy(isBusy) {
+      emailEl.disabled = isBusy;
+      passwordEl.disabled = isBusy;
+      loginBtn.disabled = isBusy;
+      resetBtn.disabled = isBusy;
+    }
+
+    function getSafeReturnUrl() {
+      if (
+        requestedReturnUrl.startsWith("/management/") &&
+        !requestedReturnUrl.startsWith("//")
+      ) {
+        return requestedReturnUrl;
+      }
+
+      return "/management/hub/";
+    }
+
+    async function hasManagementAccess(user) {
+      const token =
+        await user.getIdTokenResult(true);
+
+      const claims =
+        token.claims || {};
+
+      return (
+        claims.manager === true ||
+        claims.admin === true
+      );
+    }
+
+    async function finishLogin(user) {
+      if (
+        !user ||
+        checkingAccess
+      ) {
+        return;
+      }
+
+      checkingAccess = true;
+      setBusy(true);
+
+      try {
+        setStatus(
+          "Checking Management access..."
+        );
+
+        const authorized =
+          await hasManagementAccess(user);
+
+        if (!authorized) {
+          await signOut(auth);
+
+          setStatus(
+            "This account does not have Management access.",
+            true
+          );
+
+          return;
+        }
+
+        setStatus(
+          "Access approved. Opening Management..."
+        );
+
+        window.location.replace(
+          getSafeReturnUrl()
+        );
+      } catch (error) {
+        console.error(
+          "[management-login] access check failed:",
+          error
+        );
+
+        setStatus(
+          "Unable to verify Management access.",
+          true
+        );
+      } finally {
+        checkingAccess = false;
+        setBusy(false);
+      }
+    }
+
+    loginBtn.addEventListener(
+      "click",
+      async () => {
+        const email =
+          emailEl.value
+            .trim()
+            .toLowerCase();
+
+        const password =
+          passwordEl.value;
+
+        if (!email || !password) {
+          setStatus(
+            "Enter email and password.",
+            true
+          );
+
+          return;
+        }
+
+        try {
+          setBusy(true);
+          setStatus("Signing in...");
+
+          const credential =
+            await signInWithEmailAndPassword(
+              auth,
+              email,
+              password
+            );
+
+          await finishLogin(
+            credential.user
+          );
+        } catch (error) {
+          console.error(
+            "[management-login] sign-in failed:",
+            error
+          );
+
+          setStatus(
+            "Sign-in failed. Check your email and password.",
+            true
+          );
+
+          setBusy(false);
+        }
+      }
+    );
+
+    passwordEl.addEventListener(
+      "keydown",
+      (event) => {
+        if (event.key === "Enter") {
+          loginBtn.click();
+        }
+      }
+    );
+
+    resetBtn.addEventListener(
+      "click",
+      async () => {
+        const email =
+          emailEl.value
+            .trim()
+            .toLowerCase();
+
+        if (!email) {
+          setStatus(
+            "Enter your email first.",
+            true
+          );
+
+          return;
+        }
+
+        try {
+          setBusy(true);
+
+          setStatus(
+            "Sending password reset email..."
+          );
+
+          await sendPasswordResetEmail(
+            auth,
+            email
+          );
+
+          setStatus(
+            "Password reset email sent."
+          );
+        } catch (error) {
+          console.error(
+            "[management-login] reset failed:",
+            error
+          );
+
+          setStatus(
+            "Unable to send password reset email.",
+            true
+          );
+        } finally {
+          setBusy(false);
+        }
+      }
+    );
+
+    onAuthStateChanged(
+      auth,
+      async (user) => {
+        if (!user) {
+          return;
+        }
+
+        emailEl.value =
+          user.email || "";
+
+        await finishLogin(user);
+      }
+    );
+  </script>
+</body>
+</html>
