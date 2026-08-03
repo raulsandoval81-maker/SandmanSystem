@@ -1,0 +1,382 @@
+:root{
+      --bg:#08090c;
+      --panel:#11141a;
+      --panel-2:#171b23;
+      --border:#2b313d;
+      --text:#f3f4f6;
+      --muted:#a8afba;
+      --gold:#d4ad37;
+      --gold-dark:#8b6a00;
+      --cream:#f3ecd8;
+      --green:#8bc59a;
+      --red:#e08f8f;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(circle at top,rgba(212,173,55,.12),transparent 32rem),
+        var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    }
+
+    button,input,select,textarea{font:inherit}
+
+    .page{
+      width:min(1240px,calc(100% - 28px));
+      margin:0 auto;
+      padding:28px 0 56px;
+    }
+
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      gap:18px;
+      align-items:flex-start;
+      margin-bottom:22px;
+    }
+
+    .eyebrow{
+      margin:0 0 7px;
+      color:var(--gold);
+      font-size:.78rem;
+      font-weight:850;
+      letter-spacing:.14em;
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0;
+      font-size:clamp(1.9rem,4vw,3.2rem);
+      line-height:1.03;
+    }
+
+    h2,h3{margin:0}
+
+    .lead{
+      max-width:780px;
+      margin:10px 0 0;
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .back-link{
+      color:var(--gold);
+      text-decoration:none;
+      font-weight:800;
+      white-space:nowrap;
+    }
+
+    .metric-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:14px;
+      margin-bottom:18px;
+    }
+
+    .metric{
+      background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.01)),var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:17px;
+    }
+
+    .metric-label{
+      color:var(--muted);
+      font-size:.82rem;
+    }
+
+    .metric-value{
+      margin-top:4px;
+      color:var(--gold);
+      font-size:clamp(1.65rem,3vw,2.45rem);
+      font-weight:900;
+      letter-spacing:-.04em;
+    }
+
+    .metric-note{
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.74rem;
+      line-height:1.35;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns:minmax(0,1.15fr) minmax(340px,.85fr);
+      gap:18px;
+      align-items:start;
+    }
+
+    .stack{display:grid;gap:18px}
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:18px;
+      padding:20px;
+    }
+
+    .card-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:16px;
+    }
+
+    .card-head p{
+      margin:4px 0 0;
+      color:var(--muted);
+      font-size:.8rem;
+    }
+
+    .grid-2{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:13px;
+    }
+
+    .field{
+      display:grid;
+      gap:7px;
+    }
+
+    label,.label{
+      color:#e8eaee;
+      font-size:.86rem;
+      font-weight:730;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea{
+      width:100%;
+      min-height:44px;
+      border:1px solid #363d49;
+      border-radius:11px;
+      background:#0b0d11;
+      color:var(--text);
+      padding:10px 12px;
+      outline:none;
+    }
+
+    textarea{
+      min-height:92px;
+      resize:vertical;
+    }
+
+    input:focus,select:focus,textarea:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 3px rgba(212,173,55,.14);
+    }
+
+    .help{
+      margin:0;
+      color:var(--muted);
+      font-size:.74rem;
+      line-height:1.4;
+    }
+
+    .button{
+      min-height:42px;
+      border:1px solid var(--gold);
+      border-radius:10px;
+      background:var(--gold);
+      color:#171717;
+      padding:10px 15px;
+      font-weight:850;
+      cursor:pointer;
+    }
+
+    .button.secondary{
+      background:transparent;
+      color:var(--gold);
+    }
+
+    .button.danger{
+      border-color:#6f3232;
+      background:transparent;
+      color:#efaaaa;
+    }
+
+    .button.small{
+      min-height:36px;
+      padding:8px 11px;
+      font-size:.82rem;
+    }
+
+    .athlete-list{
+      display:grid;
+      gap:14px;
+    }
+
+    .athlete-card{
+      background:var(--panel-2);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .athlete-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      margin-bottom:14px;
+    }
+
+    .athlete-title{
+      font-size:1rem;
+      font-weight:850;
+    }
+
+    .discipline-box{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:9px;
+      margin-top:12px;
+    }
+
+    .check-row{
+      display:flex;
+      align-items:flex-start;
+      gap:9px;
+      padding:10px;
+      border:1px solid #303744;
+      border-radius:11px;
+      background:#0d1015;
+      color:#e7e9ed;
+      font-size:.82rem;
+      line-height:1.35;
+    }
+
+    .check-row input{
+      width:17px;
+      height:17px;
+      margin:1px 0 0;
+      accent-color:var(--gold);
+      flex:0 0 auto;
+    }
+
+    .summary-box{
+      background:var(--cream);
+      color:#1d1d1d;
+      border-radius:16px;
+      padding:18px;
+    }
+
+    .summary-box h2{
+      color:var(--gold-dark);
+      margin-bottom:10px;
+    }
+
+    .summary-box p{
+      margin:0;
+      line-height:1.5;
+    }
+
+    .summary-box p+p{margin-top:8px}
+
+    .breakdown{
+      display:grid;
+      gap:0;
+    }
+
+    .line{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      padding:10px 0;
+      border-bottom:1px solid var(--border);
+      font-size:.88rem;
+    }
+
+    .line span:last-child{
+      font-weight:850;
+      white-space:nowrap;
+    }
+
+    .line.credit span:last-child{color:var(--green)}
+
+    .line.total{
+      border-bottom:0;
+      color:var(--gold);
+      font-size:1rem;
+      font-weight:900;
+      padding-top:14px;
+    }
+
+    .divider{
+      height:1px;
+      background:var(--border);
+      margin:15px 0;
+    }
+
+    .compare-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .compare-card{
+      background:#0d1015;
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:14px;
+    }
+
+    .compare-card strong{
+      display:block;
+      margin-bottom:5px;
+      color:var(--gold);
+    }
+
+    .compare-card p{
+      margin:0;
+      color:var(--muted);
+      font-size:.82rem;
+      line-height:1.45;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:16px;
+    }
+
+    .hidden{display:none!important}
+
+    @media(max-width:920px){
+      .layout{grid-template-columns:1fr}
+      .metric-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+    }
+
+    @media(max-width:620px){
+      .topbar{flex-direction:column}
+      .metric-grid,.grid-2,.discipline-box,.compare-grid{grid-template-columns:1fr}
+    }
+
+    @media print{
+      body{background:#fff;color:#111}
+      .page{width:100%;padding:0}
+      .back-link,.actions,.remove-athlete,.add-athlete,.calculator-controls{display:none!important}
+      .card,.metric,.athlete-card,.compare-card{
+        background:#fff!important;
+        color:#111!important;
+        border-color:#aaa!important;
+        break-inside:avoid;
+      }
+      input,select,textarea{
+        background:#fff!important;
+        color:#111!important;
+        border-color:#aaa!important;
+      }
+      .layout{grid-template-columns:1fr 1fr}
+      .line{border-color:#ccc;color:#111}
+    }
