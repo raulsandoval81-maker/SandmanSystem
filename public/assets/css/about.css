@@ -565,3 +565,160 @@
     display:block;
   }
 }
+
+/* ==========================================================
+   ABOUT BELIEF SIGNATURE
+========================================================== */
+
+.about-belief__signature{
+  margin-top:1.4rem !important;
+  color:var(--heading-accent, #d4af37) !important;
+  font-weight:900;
+  letter-spacing:.035em;
+}
+
+/* ==========================================================
+   COMBAT = CHARACTER — BELIEF PANEL
+========================================================== */
+
+.character-panel{
+  max-width: 920px;
+  margin-inline: auto;
+  padding: clamp(2.25rem, 5vw, 4rem)
+           clamp(1.25rem, 5vw, 4.5rem);
+
+  border: 1px solid rgba(212, 175, 55, .48);
+  border-radius: 28px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.025),
+      rgba(255,255,255,0)
+    ),
+    rgba(5, 7, 10, .88);
+
+  box-shadow:
+    0 24px 70px rgba(0,0,0,.42),
+    inset 0 1px 0 rgba(255,255,255,.035);
+
+  text-align: center;
+}
+
+
+/* Small doctrine label */
+
+.character-panel .about-eyebrow{
+  margin: 0 0 1.15rem;
+
+  color: #d6b55f;
+  font-size: clamp(.72rem, 1.2vw, .86rem);
+  font-weight: 800;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+}
+
+
+/* Equation */
+
+.character-panel .belief-equation{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(.6rem, 2vw, 1.35rem);
+  flex-wrap: wrap;
+
+  margin: 0 0 1.8rem;
+
+  color: #f3f0e8;
+  font-size: clamp(2rem, 5.2vw, 4.35rem);
+  font-weight: 950;
+  line-height: .95;
+  letter-spacing: -.035em;
+  text-transform: uppercase;
+
+  text-shadow:
+    0 2px 0 rgba(255,255,255,.06),
+    0 10px 30px rgba(0,0,0,.45);
+}
+
+.character-panel .belief-equation__equals{
+  color: #d6b55f;
+  font-size: .82em;
+}
+
+
+/* Creed statement */
+
+.character-panel .character-statement{
+  max-width: 760px;
+  margin: 0 auto;
+
+  color: rgba(246, 241, 229, .9);
+
+  font-family:
+    Georgia,
+    "Times New Roman",
+    serif;
+
+  font-size: clamp(1.04rem, 1.7vw, 1.28rem);
+  font-weight: 400;
+  font-style: italic;
+  line-height: 1.78;
+  letter-spacing: .006em;
+
+  text-wrap: balance;
+}
+
+
+/* Academy signature */
+
+.character-panel .character-closing{
+  margin: 1.7rem 0 0;
+
+  color: #d6b55f;
+
+  font-family:
+    "Brush Script MT",
+    "Segoe Script",
+    "Apple Chancery",
+    cursive;
+
+  font-size: clamp(1.35rem, 2.6vw, 2rem);
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: .01em;
+}
+
+
+/* Mobile */
+
+@media (max-width: 640px){
+
+  .character-panel{
+    padding: 2.25rem 1.15rem;
+    border-radius: 22px;
+  }
+
+  .character-panel .belief-equation{
+    gap: .45rem;
+    font-size: clamp(1.8rem, 10vw, 2.65rem);
+  }
+
+  .character-panel .character-statement{
+    font-size: 1rem;
+    line-height: 1.68;
+  }
+
+  .character-panel .character-closing{
+    font-size: 1.45rem;
+  }
+
+}
+.character-panel .character-statement{
+  font-weight: 400;
+}
+.character-panel .character-closing{
+  color: #d6b55f;
+  font-size: clamp(1.2rem, 2vw, 1.65rem);
+}
