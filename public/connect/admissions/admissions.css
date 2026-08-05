@@ -250,3 +250,77 @@
     width: 100%;
   }
 }
+/* Admissions action buttons */
+
+.form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.form-actions .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 12px 18px;
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 10px;
+
+  background: #1f1f1f;
+  color: #ffffff;
+
+  font-weight: 700;
+  line-height: 1.2;
+  text-decoration: none;
+
+  cursor: pointer;
+}
+
+.form-actions .btn:hover,
+.form-actions .btn:focus-visible {
+  border-color: #ffffff;
+  background: #303030;
+  color: #ffffff;
+}
+
+.form-actions .btn-primary {
+  border-color: #ffffff;
+  background: #ffffff;
+  color: #111111;
+}
+
+.form-actions .btn-primary:hover,
+.form-actions .btn-primary:focus-visible {
+  background: #d9d9d9;
+  color: #111111;
+}
+
+#openProposalBtn {
+  border-color: #d4af37;
+  background: #d4af37;
+  color: #111111;
+}
+
+#openProposalBtn:hover,
+#openProposalBtn:focus-visible {
+  border-color: #f0cf63;
+  background: #f0cf63;
+  color: #111111;
+}
+
+.form-actions [hidden] {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn {
+    width: 100%;
+  }
+}

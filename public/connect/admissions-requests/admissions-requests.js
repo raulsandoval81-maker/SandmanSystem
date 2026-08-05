@@ -213,7 +213,7 @@ function buildLoginUrl() {
     window.location.search;
 
   return (
-    "/management/auth/?returnTo=" +
+    "/management/auth/?returnUrl=" +
     encodeURIComponent(returnTo)
   );
 }

@@ -15,9 +15,20 @@
     content="noindex,nofollow"
   />
 
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/public.css"
+  />
+
   <style>
     :root {
       color-scheme: dark;
+
       font-family:
         Inter,
         system-ui,
@@ -34,9 +45,7 @@
     body {
       min-height: 100vh;
       margin: 0;
-      padding: 24px;
-      display: grid;
-      place-items: center;
+
       background:
         radial-gradient(
           circle at top,
@@ -44,7 +53,102 @@
           #0b1220 45%,
           #020617 100%
         );
+
       color: #f8fafc;
+    }
+
+    .hidden-lang {
+      display: none !important;
+    }
+
+    /* =========================================
+       MINIMAL SANDMAN HEADER
+    ========================================= */
+
+    .journey-minimal-header {
+      display: grid;
+
+      grid-template-columns:
+        52px minmax(0, 1fr) 52px;
+
+      align-items: center;
+      gap: 12px;
+
+      width: 100%;
+      min-height: 82px;
+
+      margin: 0;
+      padding: 12px 18px;
+
+      background:
+        var(--panel, #111113);
+
+      border-bottom:
+        1px solid rgba(212, 175, 55, 0.45);
+    }
+
+    .journey-header-title {
+      text-align: center;
+
+      color:
+        var(--heading, #ffffff);
+
+      font-size:
+        clamp(0.9rem, 2.5vw, 1.15rem);
+
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .journey-header-control {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 48px;
+      height: 48px;
+
+      margin: 0;
+      padding: 0;
+
+      color:
+        var(--heading-accent, #d4af37);
+
+      background: transparent;
+
+      border:
+        1px solid rgba(212, 175, 55, 0.55);
+
+      border-radius: 50%;
+
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 900;
+
+      cursor: pointer;
+    }
+
+    .journey-header-control:hover,
+    .journey-header-control:focus-visible {
+      background:
+        rgba(212, 175, 55, 0.08);
+
+      outline: none;
+    }
+
+    /* =========================================
+       LOGIN PAGE
+    ========================================= */
+
+    .login-page-main {
+      min-height: calc(100vh - 82px);
+
+      padding: 24px;
+
+      display: grid;
+      place-items: center;
     }
 
     .login-shell {
@@ -58,7 +162,9 @@
 
     .eyebrow {
       margin: 0 0 8px;
+
       color: #facc15;
+
       font-size: 0.78rem;
       font-weight: 900;
       letter-spacing: 0.14em;
@@ -67,35 +173,52 @@
 
     h1 {
       margin: 0;
-      font-size: clamp(2rem, 5vw, 3.5rem);
+
+      color: #f8fafc;
+
+      font-size:
+        clamp(2rem, 5vw, 3.5rem);
+
       line-height: 1.05;
     }
 
     .intro {
       max-width: 650px;
+
       margin: 14px auto 0;
+
       color: #cbd5e1;
+
       line-height: 1.6;
     }
 
     .role-grid {
       display: grid;
+
       grid-template-columns:
         repeat(2, minmax(0, 1fr));
+
       gap: 16px;
     }
 
     .role-card {
       display: flex;
       min-height: 178px;
+
       padding: 24px;
+
       flex-direction: column;
       justify-content: space-between;
+
       border: 1px solid #334155;
       border-radius: 18px;
-      background: rgba(15, 23, 42, 0.92);
+
+      background:
+        rgba(15, 23, 42, 0.92);
+
       color: inherit;
       text-decoration: none;
+
       transition:
         transform 160ms ease,
         border-color 160ms ease,
@@ -105,16 +228,22 @@
     .role-card:hover,
     .role-card:focus-visible {
       transform: translateY(-3px);
+
       border-color: #facc15;
+
       outline: none;
+
       box-shadow:
         0 18px 38px rgba(0, 0, 0, 0.34);
     }
 
     .role-label {
       display: block;
+
       margin-bottom: 9px;
+
       color: #facc15;
+
       font-size: 0.75rem;
       font-weight: 900;
       letter-spacing: 0.1em;
@@ -123,33 +252,124 @@
 
     .role-card h2 {
       margin: 0 0 8px;
+
+      color: #f8fafc;
+
       font-size: 1.4rem;
     }
 
     .role-card p {
       margin: 0;
+
       color: #cbd5e1;
+
       line-height: 1.55;
     }
 
     .continue-label {
       margin-top: 18px;
+
       color: #facc15;
+
       font-size: 0.88rem;
       font-weight: 850;
     }
 
     .login-note {
-      margin: 22px auto 0;
       max-width: 680px;
+
+      margin: 22px auto 0;
+
       color: #94a3b8;
+
       font-size: 0.9rem;
       line-height: 1.55;
       text-align: center;
     }
 
+    /* =========================================
+       LIGHT MODE
+    ========================================= */
+
+    body.day-mode {
+      background:
+        radial-gradient(
+          circle at top,
+          #ffffff 0,
+          #f3e7cf 48%,
+          #e7d6b5 100%
+        );
+
+      color: #171717;
+    }
+
+    body.day-mode .journey-minimal-header {
+      background: #ffffff;
+
+      border-bottom-color:
+        rgba(173, 123, 35, 0.48);
+    }
+
+    body.day-mode .journey-header-title {
+      color: #171717;
+    }
+
+    body.day-mode .journey-header-control {
+      color: #8a6118;
+
+      border-color:
+        rgba(173, 123, 35, 0.6);
+    }
+
+    body.day-mode h1,
+    body.day-mode .role-card h2 {
+      color: #171717;
+    }
+
+    body.day-mode .intro {
+      color: #374151;
+    }
+
+    body.day-mode .role-card {
+      border-color: #d7c7a2;
+
+      background:
+        rgba(255, 255, 255, 0.94);
+
+      color: #171717;
+
+      box-shadow:
+        0 10px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    body.day-mode .role-card p {
+      color: #374151;
+    }
+
+    body.day-mode .login-note {
+      color: #4b5563;
+    }
+
+    body.day-mode .eyebrow,
+    body.day-mode .role-label,
+    body.day-mode .continue-label {
+      color: #8a6118;
+    }
+
+    body.day-mode .role-card:hover,
+    body.day-mode .role-card:focus-visible {
+      border-color: #ad7b23;
+
+      box-shadow:
+        0 16px 30px rgba(91, 63, 17, 0.14);
+    }
+
+    /* =========================================
+       RESPONSIVE
+    ========================================= */
+
     @media (max-width: 680px) {
-      body {
+      .login-page-main {
         padding: 16px;
       }
 
@@ -161,216 +381,580 @@
         min-height: 150px;
       }
     }
+
+    @media (max-width: 520px) {
+      .journey-minimal-header {
+        grid-template-columns:
+          48px minmax(0, 1fr) 48px;
+
+        gap: 8px;
+        min-height: 76px;
+        padding: 10px 12px;
+      }
+
+      .journey-header-control {
+        width: 44px;
+        height: 44px;
+      }
+
+      .journey-header-title {
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+      }
+
+      .login-page-main {
+        min-height: calc(100vh - 76px);
+      }
+    }
   </style>
 </head>
 
 <body>
-  <main class="login-shell">
 
-    <header class="login-header">
-      <p class="eyebrow">
-        Sandman System
-      </p>
+  <header class="journey-minimal-header">
 
-      <h1>
-        Who Are You Entering As?
-      </h1>
-
-      <p class="intro">
-        Your phone may remember your account, password, or passkey.
-        Sandman will still ask which workspace you want to enter.
-      </p>
-    </header>
-
-    <section
-      class="role-grid"
-      aria-label="Choose your Sandman role"
+    <button
+      class="journey-header-control"
+      type="button"
+      data-theme-toggle
+      aria-label="Toggle theme"
     >
+      ◐
+    </button>
 
-      <a
-        id="parentLogin"
-        class="role-card"
-        href="/parent/auth.html"
-      >
-        <div>
-          <span class="role-label">
-            Family Access
-          </span>
+    <div class="journey-header-title">
+      Sandman Academy of Combat &amp; Fitness
+    </div>
 
-          <h2>
-            Parent
-          </h2>
+    <button
+      class="journey-header-control"
+      type="button"
+      data-language-toggle
+      aria-label="Toggle language"
+    >
+      ES
+    </button>
 
-          <p>
-            View your athlete, family communication,
-            schedules, and parent tools.
+  </header>
+
+  <main class="login-page-main">
+
+    <div class="login-shell">
+
+      <header class="login-header">
+
+        <div data-lang-block="en">
+          <p class="eyebrow">
+            Sandman System
+          </p>
+
+          <h1>
+            Who Are You Entering As?
+          </h1>
+
+          <p class="intro">
+            Your phone may remember your account, password,
+            or passkey. Sandman will still ask which workspace
+            you want to enter.
           </p>
         </div>
 
-        <span class="continue-label">
-          Continue as Parent →
-        </span>
-      </a>
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">
+            Sistema Sandman
+          </p>
 
-      <a
-        id="athleteLogin"
-        class="role-card"
-        href="/athletes/auth/"
-      >
-        <div>
-          <span class="role-label">
-            Athlete Access
-          </span>
+          <h1>
+            ¿Cómo Vas a Ingresar?
+          </h1>
 
-          <h2>
-            Athlete
-          </h2>
-
-          <p>
-            Open athlete onboarding, profile,
-            progression, and training access.
+          <p class="intro">
+            Tu teléfono puede recordar tu cuenta, contraseña
+            o clave de acceso. Sandman todavía te pedirá que
+            elijas el espacio de trabajo al que deseas ingresar.
           </p>
         </div>
 
-        <span class="continue-label">
-          Continue as Athlete →
-        </span>
-      </a>
+      </header>
 
-      <a
-        id="coachLogin"
-        class="role-card"
-        href="/coaches/auth/login.html"
+      <section
+        class="role-grid"
+        aria-label="Choose your Sandman role"
+        data-role-grid
       >
-        <div>
-          <span class="role-label">
-            Staff Access
+
+        <a
+          id="parentLogin"
+          class="role-card"
+          href="/parent/auth.html"
+        >
+          <div>
+
+            <span
+              class="role-label"
+              data-lang-block="en"
+            >
+              Family Access
+            </span>
+
+            <span
+              class="role-label hidden-lang"
+              data-lang-block="es"
+            >
+              Acceso Familiar
+            </span>
+
+            <h2 data-lang-block="en">
+              Parent
+            </h2>
+
+            <h2
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Padre o Madre
+            </h2>
+
+            <p data-lang-block="en">
+              View your athlete, family communication,
+              schedules, and parent tools.
+            </p>
+
+            <p
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Consulta la información de tu atleta,
+              comunicaciones familiares, horarios y
+              herramientas para padres.
+            </p>
+
+          </div>
+
+          <span
+            class="continue-label"
+            data-lang-block="en"
+          >
+            Continue as Parent →
           </span>
 
-          <h2>
-            Coach
-          </h2>
+          <span
+            class="continue-label hidden-lang"
+            data-lang-block="es"
+          >
+            Continuar como Padre o Madre →
+          </span>
+        </a>
 
-          <p>
-            Open coaching tools, athlete management,
-            practice operations, and curriculum.
-          </p>
-        </div>
+        <a
+          id="athleteLogin"
+          class="role-card"
+          href="/athletes/auth/"
+        >
+          <div>
 
-        <span class="continue-label">
-          Continue as Coach →
-        </span>
-      </a>
+            <span
+              class="role-label"
+              data-lang-block="en"
+            >
+              Athlete Access
+            </span>
 
-      <a
-        id="managementLogin"
-        class="role-card"
-        href="/management/auth/"
-      >
-        <div>
-          <span class="role-label">
-            System Access
+            <span
+              class="role-label hidden-lang"
+              data-lang-block="es"
+            >
+              Acceso del Atleta
+            </span>
+
+            <h2 data-lang-block="en">
+              Athlete
+            </h2>
+
+            <h2
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Atleta
+            </h2>
+
+            <p data-lang-block="en">
+              Open athlete onboarding, profile,
+              progression, and training access.
+            </p>
+
+            <p
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Abre la incorporación, perfil, progresión
+              y acceso de entrenamiento del atleta.
+            </p>
+
+          </div>
+
+          <span
+            class="continue-label"
+            data-lang-block="en"
+          >
+            Continue as Athlete →
           </span>
 
-          <h2>
-            Management
-          </h2>
+          <span
+            class="continue-label hidden-lang"
+            data-lang-block="es"
+          >
+            Continuar como Atleta →
+          </span>
+        </a>
 
-          <p>
-            Open admissions, Gatekeeper, staff,
-            billing, and managementistrative controls.
-          </p>
-        </div>
+        <a
+          id="coachLogin"
+          class="role-card"
+          href="/coaches/auth/login.html"
+        >
+          <div>
 
-        <span class="continue-label">
-          Continue as Management →
-        </span>
-      </a>
+            <span
+              class="role-label"
+              data-lang-block="en"
+            >
+              Staff Access
+            </span>
 
-    </section>
+            <span
+              class="role-label hidden-lang"
+              data-lang-block="es"
+            >
+              Acceso del Personal
+            </span>
 
-    <p class="login-note">
-      People with more than one role can return to this page
-      and choose a different workspace without changing the public login link.
-    </p>
+            <h2 data-lang-block="en">
+              Coach
+            </h2>
+
+            <h2
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Entrenador
+            </h2>
+
+            <p data-lang-block="en">
+              Open coaching tools, athlete management,
+              practice operations, and curriculum.
+            </p>
+
+            <p
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Abre herramientas de entrenamiento,
+              gestión de atletas, operaciones de práctica
+              y currículo.
+            </p>
+
+          </div>
+
+          <span
+            class="continue-label"
+            data-lang-block="en"
+          >
+            Continue as Coach →
+          </span>
+
+          <span
+            class="continue-label hidden-lang"
+            data-lang-block="es"
+          >
+            Continuar como Entrenador →
+          </span>
+        </a>
+
+        <a
+          id="managementLogin"
+          class="role-card"
+          href="/management/auth/"
+        >
+          <div>
+
+            <span
+              class="role-label"
+              data-lang-block="en"
+            >
+              Management Access
+            </span>
+
+            <span
+              class="role-label hidden-lang"
+              data-lang-block="es"
+            >
+              Acceso de Gestión
+            </span>
+
+            <h2 data-lang-block="en">
+              Management
+            </h2>
+
+            <h2
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Gestión
+            </h2>
+
+            <p data-lang-block="en">
+              Open admissions, Gatekeeper, staff,
+              billing, and management controls.
+            </p>
+
+            <p
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Abre admisiones, Gatekeeper, personal,
+              facturación y controles de gestión.
+            </p>
+
+          </div>
+
+          <span
+            class="continue-label"
+            data-lang-block="en"
+          >
+            Continue as Management →
+          </span>
+
+          <span
+            class="continue-label hidden-lang"
+            data-lang-block="es"
+          >
+            Continuar a Gestión →
+          </span>
+        </a>
+
+        <a
+          id="adminLogin"
+          class="role-card"
+          href="/admin/auth/login.html"
+        >
+          <div>
+
+            <span
+              class="role-label"
+              data-lang-block="en"
+            >
+              System Access
+            </span>
+
+            <span
+              class="role-label hidden-lang"
+              data-lang-block="es"
+            >
+              Acceso del Sistema
+            </span>
+
+            <h2 data-lang-block="en">
+              Admin
+            </h2>
+
+            <h2
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Administrador
+            </h2>
+
+            <p data-lang-block="en">
+              Open admissions, Gatekeeper, staff,
+              billing, and administrative controls.
+            </p>
+
+            <p
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Abre admisiones, Gatekeeper, personal,
+              facturación y controles administrativos.
+            </p>
+
+          </div>
+
+          <span
+            class="continue-label"
+            data-lang-block="en"
+          >
+            Continue as Admin →
+          </span>
+
+          <span
+            class="continue-label hidden-lang"
+            data-lang-block="es"
+          >
+            Continuar como Administrador →
+          </span>
+        </a>
+
+      </section>
+
+      <p
+        class="login-note"
+        data-lang-block="en"
+      >
+        People with more than one role can return to this
+        page and choose a different workspace without
+        changing the public login link.
+      </p>
+
+      <p
+        class="login-note hidden-lang"
+        data-lang-block="es"
+      >
+        Las personas con más de una función pueden regresar
+        a esta página y elegir otro espacio de trabajo sin
+        cambiar el enlace público de inicio de sesión.
+      </p>
+
+    </div>
 
   </main>
 
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
   <script>
-    const params =
-      new URLSearchParams(window.location.search);
+    (() => {
+      const params =
+        new URLSearchParams(window.location.search);
 
-    const requestedReturnUrl =
-      params.get("returnUrl") ||
-      params.get("next") ||
-      "";
+      const requestedReturnUrl =
+        params.get("returnUrl") ||
+        params.get("next") ||
+        "";
 
-    const safeReturnUrl =
-      requestedReturnUrl.startsWith("/") &&
-      !requestedReturnUrl.startsWith("//")
-        ? requestedReturnUrl
-        : "";
+      const safeReturnUrl =
+        requestedReturnUrl.startsWith("/") &&
+        !requestedReturnUrl.startsWith("//")
+          ? requestedReturnUrl
+          : "";
 
-    function addParameter(
-      elementId,
-      parameterName,
-      returnUrl
-    ) {
-      if (!returnUrl) return;
-
-      const link =
-        document.getElementById(elementId);
-
-      if (!link) return;
-
-      const url =
-        new URL(
-          link.getAttribute("href"),
-          window.location.origin
-        );
-
-      url.searchParams.set(
+      function addParameter(
+        elementId,
         parameterName,
         returnUrl
+      ) {
+        if (!returnUrl) return;
+
+        const link =
+          document.getElementById(elementId);
+
+        if (!link) return;
+
+        const url =
+          new URL(
+            link.getAttribute("href"),
+            window.location.origin
+          );
+
+        url.searchParams.set(
+          parameterName,
+          returnUrl
+        );
+
+        link.href =
+          url.pathname + url.search;
+      }
+
+      if (
+        safeReturnUrl.startsWith("/admin/") ||
+        safeReturnUrl.startsWith("/connect/")
+      ) {
+        addParameter(
+          "adminLogin",
+          "returnUrl",
+          safeReturnUrl
+        );
+      }
+
+      if (
+        safeReturnUrl.startsWith("/management/")
+      ) {
+        addParameter(
+          "managementLogin",
+          "returnUrl",
+          safeReturnUrl
+        );
+      }
+
+      if (
+        safeReturnUrl.startsWith("/coaches/")
+      ) {
+        addParameter(
+          "coachLogin",
+          "returnUrl",
+          safeReturnUrl
+        );
+      }
+
+      if (
+        safeReturnUrl.startsWith("/parent/")
+      ) {
+        addParameter(
+          "parentLogin",
+          "next",
+          safeReturnUrl
+        );
+      }
+
+      if (
+        safeReturnUrl.startsWith("/athletes/") ||
+        safeReturnUrl.startsWith(
+          "/athlete-onboarding/"
+        )
+      ) {
+        addParameter(
+          "athleteLogin",
+          "next",
+          safeReturnUrl
+        );
+      }
+
+      function updateRoleGridLabel(language) {
+        const roleGrid =
+          document.querySelector("[data-role-grid]");
+
+        if (!roleGrid) return;
+
+        roleGrid.setAttribute(
+          "aria-label",
+          language === "es"
+            ? "Elige tu función en Sandman"
+            : "Choose your Sandman role"
+        );
+      }
+
+      document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+          updateRoleGridLabel(
+            document.documentElement.lang
+          );
+        }
       );
 
-      link.href =
-        url.pathname + url.search;
-    }
-
-
-    if (
-      safeReturnUrl.startsWith("/coaches/")
-    ) {
-      addParameter(
-        "coachLogin",
-        "returnUrl",
-        safeReturnUrl
+      document.addEventListener(
+        "sandman:language-changed",
+        (event) => {
+          updateRoleGridLabel(
+            event.detail?.language
+          );
+        }
       );
-    }
-
-    if (
-      safeReturnUrl.startsWith("/parent/")
-    ) {
-      addParameter(
-        "parentLogin",
-        "next",
-        safeReturnUrl
-      );
-    }
-
-    if (
-      safeReturnUrl.startsWith("/athletes/") ||
-      safeReturnUrl.startsWith(
-        "/athlete-onboarding/"
-      )
-    ) {
-      addParameter(
-        "athleteLogin",
-        "next",
-        safeReturnUrl
-      );
-    }
+    })();
   </script>
+
 </body>
 </html>

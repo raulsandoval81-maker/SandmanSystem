@@ -724,16 +724,15 @@ async function loadAppointments() {
   >
     Review Appointment
   </a>
-
-  <a
-    class="save-btn"
-    href="/connect/admissions/?appointmentId=${encodeURIComponent(
-      lead.id
-    )}"
-  >
-    Open Admissions
-  </a>
-</div>
+<a
+  class="save-btn save-btn--admissions"
+  href="/connect/admissions/?appointmentId=${encodeURIComponent(
+    lead.id
+  )}"
+>
+  Open Admissions →
+</a>
+  </div>
     </article>
 `)
 

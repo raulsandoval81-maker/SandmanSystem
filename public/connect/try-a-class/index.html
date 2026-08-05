@@ -1,92 +1,985 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
   <title>Try a Class | Sandman Combat</title>
-  <meta name="description" content="Request an introductory class, promotional visit, or approved Open Practice with Sandman Combat.">
-  <link rel="stylesheet" href="/assets/css/site.css">
-  <link rel="stylesheet" href="/connect/try-a-class/try-a-class.css">
-  <link rel="icon" href="data:,">
+
+  <meta
+    name="description"
+    content="Request an introductory class, promotional visit, or approved Open Practice with Sandman Combat."
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/public.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/connect/try-a-class/try-a-class.css"
+  />
+
+  <link rel="icon" href="data:," />
+
+  <style>
+    /* =========================================
+       MINIMAL SANDMAN HEADER
+    ========================================= */
+
+    .journey-minimal-header {
+      display: grid;
+      grid-template-columns:
+        52px minmax(0, 1fr) 52px;
+      align-items: center;
+      gap: 12px;
+
+      width: 100%;
+      min-height: 82px;
+
+      margin: 0;
+      padding: 12px 18px;
+
+      background: var(--panel, #111113);
+
+      border-bottom:
+        1px solid rgba(212, 175, 55, 0.45);
+    }
+
+    .journey-header-title {
+      text-align: center;
+
+      color: var(--heading, #ffffff);
+
+      font-size:
+        clamp(0.9rem, 2.5vw, 1.15rem);
+
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      line-height: 1.15;
+      text-transform: uppercase;
+    }
+
+    .journey-header-control {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      width: 48px;
+      height: 48px;
+
+      margin: 0;
+      padding: 0;
+
+      color:
+        var(--heading-accent, #d4af37);
+
+      background: transparent;
+
+      border:
+        1px solid rgba(212, 175, 55, 0.55);
+
+      border-radius: 50%;
+
+      font: inherit;
+      font-size: 0.9rem;
+      font-weight: 900;
+
+      cursor: pointer;
+    }
+
+    .journey-header-control:hover,
+    .journey-header-control:focus-visible {
+      background:
+        rgba(212, 175, 55, 0.08);
+
+      outline: none;
+    }
+
+    body.day-mode .journey-minimal-header {
+      background: #ffffff;
+
+      border-bottom-color:
+        rgba(173, 123, 35, 0.48);
+    }
+
+    body.day-mode .journey-header-title {
+      color: #171717;
+    }
+
+    body.day-mode .journey-header-control {
+      color: #8a6118;
+
+      border-color:
+        rgba(173, 123, 35, 0.6);
+    }
+
+    .hidden-lang {
+      display: none !important;
+    }
+
+    @media (max-width: 520px) {
+      .journey-minimal-header {
+        grid-template-columns:
+          48px minmax(0, 1fr) 48px;
+
+        gap: 8px;
+        min-height: 76px;
+        padding: 10px 12px;
+      }
+
+      .journey-header-control {
+        width: 44px;
+        height: 44px;
+      }
+
+      .journey-header-title {
+        font-size: 0.82rem;
+        letter-spacing: 0.04em;
+      }
+    }
+  </style>
 </head>
+
 <body>
+
+  <header class="journey-minimal-header">
+
+    <button
+      class="journey-header-control"
+      type="button"
+      data-theme-toggle
+      aria-label="Toggle theme"
+    >
+      ◐
+    </button>
+
+    <div class="journey-header-title">
+      Sandman Academy of Combat &amp; Fitness
+    </div>
+
+    <button
+      class="journey-header-control"
+      type="button"
+      data-language-toggle
+      aria-label="Toggle language"
+    >
+      ES
+    </button>
+
+  </header>
+
   <main class="request-page">
+
     <header class="request-hero">
-      <p class="eyebrow">Sandman Admissions</p>
-      <h1>Try a Class</h1>
-      <p>Choose the entry path that best fits your family. Every request is reviewed before a class is confirmed.</p>
+
+      <div data-lang-block="en">
+        <p class="eyebrow">
+          Sandman Admissions
+        </p>
+
+        <h1>
+          Try a Class
+        </h1>
+
+        <p>
+          Choose the entry path that best fits your family.
+          Every request is reviewed before a class is confirmed.
+        </p>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <p class="eyebrow">
+          Admisiones Sandman
+        </p>
+
+        <h1>
+          Prueba una Clase
+        </h1>
+
+        <p>
+          Elige la opción de ingreso que mejor se adapte a tu
+          familia. Cada solicitud se revisa antes de confirmar
+          una clase.
+        </p>
+      </div>
+
     </header>
 
-    <section class="entry-grid" aria-label="Class entry options">
+    <section
+      class="entry-grid"
+      aria-label="Class entry options"
+    >
+
       <label class="entry-card">
-        <input type="radio" name="entryType" value="REQUESTED_INTRO" form="admissionsRequestForm" checked>
-        <span class="entry-card__title">Requested Intro</span>
-        <span class="entry-card__price">$25</span>
-        <span class="entry-card__copy">Attend one class. The paid $25 is credited toward enrollment if you join.</span>
+
+        <input
+          type="radio"
+          name="entryType"
+          value="REQUESTED_INTRO"
+          form="admissionsRequestForm"
+          checked
+        />
+
+        <span
+          class="entry-card__title"
+          data-lang-block="en"
+        >
+          Requested Intro
+        </span>
+
+        <span
+          class="entry-card__title hidden-lang"
+          data-lang-block="es"
+        >
+          Introducción Solicitada
+        </span>
+
+        <span class="entry-card__price">
+          $25
+        </span>
+
+        <span
+          class="entry-card__copy"
+          data-lang-block="en"
+        >
+          Attend one class. The paid $25 is credited
+          toward enrollment if you join.
+        </span>
+
+        <span
+          class="entry-card__copy hidden-lang"
+          data-lang-block="es"
+        >
+          Asiste a una clase. Los $25 pagados se acreditan
+          a la inscripción si decides unirte.
+        </span>
+
       </label>
 
       <label class="entry-card">
-        <input type="radio" name="entryType" value="PROMOTIONAL_INTRO" form="admissionsRequestForm">
-        <span class="entry-card__title">Promotional Intro</span>
-        <span class="entry-card__price">Complimentary</span>
-        <span class="entry-card__copy">Available during approved promotions. Includes a $25 enrollment discount.</span>
+
+        <input
+          type="radio"
+          name="entryType"
+          value="PROMOTIONAL_INTRO"
+          form="admissionsRequestForm"
+        />
+
+        <span
+          class="entry-card__title"
+          data-lang-block="en"
+        >
+          Promotional Intro
+        </span>
+
+        <span
+          class="entry-card__title hidden-lang"
+          data-lang-block="es"
+        >
+          Introducción Promocional
+        </span>
+
+        <span
+          class="entry-card__price"
+          data-lang-block="en"
+        >
+          Complimentary
+        </span>
+
+        <span
+          class="entry-card__price hidden-lang"
+          data-lang-block="es"
+        >
+          Sin Costo
+        </span>
+
+        <span
+          class="entry-card__copy"
+          data-lang-block="en"
+        >
+          Available during approved promotions.
+          Includes a $25 enrollment discount.
+        </span>
+
+        <span
+          class="entry-card__copy hidden-lang"
+          data-lang-block="es"
+        >
+          Disponible durante promociones aprobadas.
+          Incluye un descuento de $25 en la inscripción.
+        </span>
+
       </label>
 
       <label class="entry-card">
-        <input type="radio" name="entryType" value="OPEN_PRACTICE" form="admissionsRequestForm">
-        <span class="entry-card__title">Open Practice</span>
-        <span class="entry-card__price">By Approval</span>
-        <span class="entry-card__copy">Complimentary by coach invitation, approved request, or system approval. No enrollment credit or discount.</span>
+
+        <input
+          type="radio"
+          name="entryType"
+          value="OPEN_PRACTICE"
+          form="admissionsRequestForm"
+        />
+
+        <span
+          class="entry-card__title"
+          data-lang-block="en"
+        >
+          Open Practice
+        </span>
+
+        <span
+          class="entry-card__title hidden-lang"
+          data-lang-block="es"
+        >
+          Práctica Abierta
+        </span>
+
+        <span
+          class="entry-card__price"
+          data-lang-block="en"
+        >
+          By Approval
+        </span>
+
+        <span
+          class="entry-card__price hidden-lang"
+          data-lang-block="es"
+        >
+          Con Aprobación
+        </span>
+
+        <span
+          class="entry-card__copy"
+          data-lang-block="en"
+        >
+          Complimentary by coach invitation, approved
+          request, or system approval. No enrollment
+          credit or discount.
+        </span>
+
+        <span
+          class="entry-card__copy hidden-lang"
+          data-lang-block="es"
+        >
+          Sin costo por invitación del entrenador,
+          solicitud aprobada o aprobación del sistema.
+          No incluye crédito ni descuento de inscripción.
+        </span>
+
       </label>
+
     </section>
 
-    <form id="admissionsRequestForm" class="request-form" novalidate>
+    <form
+      id="admissionsRequestForm"
+      class="request-form"
+      novalidate
+    >
+
       <section class="form-section">
-        <h2>Contact</h2>
+
+        <h2 data-lang-block="en">
+          Contact
+        </h2>
+
+        <h2
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          Contacto
+        </h2>
+
         <div class="form-grid">
-          <label>Parent or adult participant<input id="contactName" name="contactName" type="text" autocomplete="name" required></label>
-          <label>Email<input id="email" name="email" type="email" autocomplete="email" required></label>
-          <label>Phone<input id="phone" name="phone" type="tel" autocomplete="tel" required></label>
-          <label>Preferred contact<select id="preferredContact" name="preferredContact" required><option value="text">Text</option><option value="phone">Phone</option><option value="email">Email</option></select></label>
+
+          <label>
+            <span data-lang-block="en">
+              Parent or adult participant
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Padre, madre o participante adulto
+            </span>
+
+            <input
+              id="contactName"
+              name="contactName"
+              type="text"
+              autocomplete="name"
+              required
+            />
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Email
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Correo electrónico
+            </span>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+            />
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Phone
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Teléfono
+            </span>
+
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autocomplete="tel"
+              required
+            />
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Preferred contact
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Método de contacto preferido
+            </span>
+
+            <select
+              id="preferredContact"
+              name="preferredContact"
+              required
+            >
+              <option
+                value="text"
+                data-label-en="Text"
+                data-label-es="Mensaje de texto"
+              >
+                Text
+              </option>
+
+              <option
+                value="phone"
+                data-label-en="Phone"
+                data-label-es="Teléfono"
+              >
+                Phone
+              </option>
+
+              <option
+                value="email"
+                data-label-en="Email"
+                data-label-es="Correo electrónico"
+              >
+                Email
+              </option>
+            </select>
+          </label>
+
         </div>
+
       </section>
 
       <section class="form-section">
-        <h2>Athlete</h2>
+
+        <h2 data-lang-block="en">
+          Athlete
+        </h2>
+
+        <h2
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          Atleta
+        </h2>
+
         <div class="form-grid">
-          <label>Athlete name<input id="athleteName" name="athleteName" type="text" required></label>
-          <label>Athlete age<input id="athleteAge" name="athleteAge" type="number" min="3" max="99" required></label>
-          <label>Journey / program<select id="programInterest" name="programInterest" required>
-            <option value="">Choose one</option>
-            <option value="zero2hero-wrestling">Zero2Hero Wrestling</option>
-            <option value="zero2hero-boxing">Zero2Hero Boxing</option>
-            <option value="zero2hero-muay-thai">Zero2Hero Muay Thai</option>
-            <option value="path2legend-wrestling">Path2Legend Wrestling</option>
-            <option value="path2legend-boxing">Path2Legend Boxing</option>
-            <option value="path2legend-muay-thai">Path2Legend Muay Thai</option>
-            <option value="quest2mastery-mma">Quest2Mastery MMA</option>
-            <option value="quest2mastery-submission-grappling">Quest2Mastery Submission Grappling</option>
-            <option value="fitness">Everyday Fitness</option>
-            <option value="not-sure">Not Sure</option>
-          </select></label>
-          <label>Experience level<select id="experienceLevel" name="experienceLevel" required><option value="none">No prior experience</option><option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced / competitive</option></select></label>
-          <label>Preferred day<input id="preferredDay" name="preferredDay" type="text" placeholder="Example: Tuesday or Thursday"></label>
-          <label>Preferred location<select id="location" name="location" required><option value="solvang">Solvang</option><option value="lompoc">Lompoc</option><option value="not-sure">Not Sure</option></select></label>
+
+          <label>
+            <span data-lang-block="en">
+              Athlete name
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Nombre del atleta
+            </span>
+
+            <input
+              id="athleteName"
+              name="athleteName"
+              type="text"
+              required
+            />
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Athlete age
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Edad del atleta
+            </span>
+
+            <input
+              id="athleteAge"
+              name="athleteAge"
+              type="number"
+              min="3"
+              max="99"
+              required
+            />
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Journey / program
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Camino / programa
+            </span>
+
+            <select
+              id="programInterest"
+              name="programInterest"
+              required
+            >
+              <option
+                value=""
+                data-label-en="Choose one"
+                data-label-es="Elige uno"
+              >
+                Choose one
+              </option>
+
+              <option
+                value="zero2hero-wrestling"
+                data-label-en="Zero2Hero Wrestling"
+                data-label-es="Lucha Zero2Hero"
+              >
+                Zero2Hero Wrestling
+              </option>
+
+              <option
+                value="zero2hero-boxing"
+                data-label-en="Zero2Hero Boxing"
+                data-label-es="Boxeo Zero2Hero"
+              >
+                Zero2Hero Boxing
+              </option>
+
+              <option
+                value="zero2hero-muay-thai"
+                data-label-en="Zero2Hero Muay Thai"
+                data-label-es="Muay Thai Zero2Hero"
+              >
+                Zero2Hero Muay Thai
+              </option>
+
+              <option
+                value="path2legend-wrestling"
+                data-label-en="Path2Legend Wrestling"
+                data-label-es="Lucha Path2Legend"
+              >
+                Path2Legend Wrestling
+              </option>
+
+              <option
+                value="path2legend-boxing"
+                data-label-en="Path2Legend Boxing"
+                data-label-es="Boxeo Path2Legend"
+              >
+                Path2Legend Boxing
+              </option>
+
+              <option
+                value="path2legend-muay-thai"
+                data-label-en="Path2Legend Muay Thai"
+                data-label-es="Muay Thai Path2Legend"
+              >
+                Path2Legend Muay Thai
+              </option>
+
+              <option
+                value="quest2mastery-mma"
+                data-label-en="Quest2Mastery MMA"
+                data-label-es="MMA Quest2Mastery"
+              >
+                Quest2Mastery MMA
+              </option>
+
+              <option
+                value="quest2mastery-submission-grappling"
+                data-label-en="Quest2Mastery Submission Grappling"
+                data-label-es="Submission Grappling Quest2Mastery"
+              >
+                Quest2Mastery Submission Grappling
+              </option>
+
+              <option
+                value="fitness"
+                data-label-en="Everyday Fitness"
+                data-label-es="Acondicionamiento Diario"
+              >
+                Everyday Fitness
+              </option>
+
+              <option
+                value="not-sure"
+                data-label-en="Not Sure"
+                data-label-es="No Estoy Seguro"
+              >
+                Not Sure
+              </option>
+            </select>
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Experience level
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Nivel de experiencia
+            </span>
+
+            <select
+              id="experienceLevel"
+              name="experienceLevel"
+              required
+            >
+              <option
+                value="none"
+                data-label-en="No prior experience"
+                data-label-es="Sin experiencia previa"
+              >
+                No prior experience
+              </option>
+
+              <option
+                value="beginner"
+                data-label-en="Beginner"
+                data-label-es="Principiante"
+              >
+                Beginner
+              </option>
+
+              <option
+                value="intermediate"
+                data-label-en="Intermediate"
+                data-label-es="Intermedio"
+              >
+                Intermediate
+              </option>
+
+              <option
+                value="advanced"
+                data-label-en="Advanced / competitive"
+                data-label-es="Avanzado / competitivo"
+              >
+                Advanced / competitive
+              </option>
+            </select>
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Preferred day
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Día preferido
+            </span>
+
+            <input
+              id="preferredDay"
+              name="preferredDay"
+              type="text"
+              placeholder="Example: Tuesday or Thursday"
+              data-placeholder-en="Example: Tuesday or Thursday"
+              data-placeholder-es="Ejemplo: martes o jueves"
+            />
+          </label>
+
+          <label>
+            <span data-lang-block="en">
+              Preferred location
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Ubicación preferida
+            </span>
+
+            <select
+              id="location"
+              name="location"
+              required
+            >
+              <option
+                value="solvang"
+                data-label-en="Solvang"
+                data-label-es="Solvang"
+              >
+                Solvang
+              </option>
+
+              <option
+                value="lompoc"
+                data-label-en="Lompoc"
+                data-label-es="Lompoc"
+              >
+                Lompoc
+              </option>
+
+              <option
+                value="not-sure"
+                data-label-en="Not Sure"
+                data-label-es="No Estoy Seguro"
+              >
+                Not Sure
+              </option>
+            </select>
+          </label>
+
         </div>
+
       </section>
 
       <section class="form-section">
-        <h2>Message</h2>
-        <label>Tell us what you are looking for<textarea id="message" name="message" rows="6" placeholder="Goals, concerns, prior experience, or anything the coach should know."></textarea></label>
-        <label class="consent-row"><input id="contactConsent" name="contactConsent" type="checkbox" required><span>I give Sandman permission to contact me about this request.</span></label>
-        <p id="entryNotice" class="entry-notice"></p>
-        <p id="formStatus" class="form-status" role="status" aria-live="polite"></p>
-        <button id="submitBtn" class="submit-btn" type="submit">Submit Request</button>
+
+        <h2 data-lang-block="en">
+          Message
+        </h2>
+
+        <h2
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          Mensaje
+        </h2>
+
+        <label>
+          <span data-lang-block="en">
+            Tell us what you are looking for
+          </span>
+
+          <span
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            Cuéntanos qué estás buscando
+          </span>
+
+          <textarea
+            id="message"
+            name="message"
+            rows="6"
+            placeholder="Goals, concerns, prior experience, or anything the coach should know."
+            data-placeholder-en="Goals, concerns, prior experience, or anything the coach should know."
+            data-placeholder-es="Metas, inquietudes, experiencia previa o cualquier información que el entrenador deba conocer."
+          ></textarea>
+        </label>
+
+        <label class="consent-row">
+
+          <input
+            id="contactConsent"
+            name="contactConsent"
+            type="checkbox"
+            required
+          />
+
+          <span data-lang-block="en">
+            I give Sandman permission to contact me
+            about this request.
+          </span>
+
+          <span
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            Autorizo a Sandman a comunicarse conmigo
+            acerca de esta solicitud.
+          </span>
+
+        </label>
+
+        <p
+          id="entryNotice"
+          class="entry-notice"
+        ></p>
+
+        <p
+          id="formStatus"
+          class="form-status"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <button
+          id="submitBtn"
+          class="submit-btn"
+          type="submit"
+        >
+          <span data-lang-block="en">
+            Submit Request
+          </span>
+
+          <span
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            Enviar Solicitud
+          </span>
+        </button>
+
       </section>
+
     </form>
 
-    <p class="back-link"><a href="/connect.html">Return to Connect</a></p>
+    <p class="back-link">
+
+      <a href="/connect/">
+
+        <span data-lang-block="en">
+          Return to Connect
+        </span>
+
+        <span
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          Regresar a Conectar
+        </span>
+
+      </a>
+
+    </p>
+
   </main>
-  <script type="module" src="/connect/try-a-class/try-a-class.js"></script>
+
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
+  <script
+    type="module"
+    src="/connect/try-a-class/try-a-class.js"
+  ></script>
+
+  <script>
+    (() => {
+      function updateTranslatedFields(language) {
+        const selectedLanguage =
+          language === "es" ? "es" : "en";
+
+        document
+          .querySelectorAll(
+            "[data-label-en][data-label-es]"
+          )
+          .forEach((element) => {
+            element.textContent =
+              selectedLanguage === "es"
+                ? element.dataset.labelEs
+                : element.dataset.labelEn;
+          });
+
+        document
+          .querySelectorAll(
+            "[data-placeholder-en][data-placeholder-es]"
+          )
+          .forEach((element) => {
+            element.placeholder =
+              selectedLanguage === "es"
+                ? element.dataset.placeholderEs
+                : element.dataset.placeholderEn;
+          });
+
+        const entryGrid =
+          document.querySelector(".entry-grid");
+
+        if (entryGrid) {
+          entryGrid.setAttribute(
+            "aria-label",
+            selectedLanguage === "es"
+              ? "Opciones de ingreso a clase"
+              : "Class entry options"
+          );
+        }
+      }
+
+      document.addEventListener(
+        "DOMContentLoaded",
+        () => {
+          updateTranslatedFields(
+            document.documentElement.lang
+          );
+        }
+      );
+
+      document.addEventListener(
+        "sandman:language-changed",
+        (event) => {
+          updateTranslatedFields(
+            event.detail?.language
+          );
+        }
+      );
+    })();
+  </script>
+
 </body>
 </html>

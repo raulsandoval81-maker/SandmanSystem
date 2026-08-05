@@ -22,6 +22,9 @@ const appointmentSummary =
 const decisionPanel =
   document.getElementById("decisionPanel");
 
+const openProposalBtn =
+  document.getElementById("openProposalBtn");
+
 const pageStatus =
   document.getElementById("pageStatus");
 
@@ -352,6 +355,14 @@ function updateActionLinks() {
     `?appointmentId=${encodeURIComponent(
       appointmentId
     )}`;
+
+if (openProposalBtn) {
+  openProposalBtn.href =
+    "/connect/admissions/calculator/" +
+    `?appointmentId=${encodeURIComponent(
+      appointmentId
+    )}`;
+}
 
   if (continueToEnrollmentBtn) {
     continueToEnrollmentBtn.href =

@@ -26,13 +26,7 @@
     rel="stylesheet"
     href="/marketing/fitness/fitness.css"
   />
-
-  <script
-    src="../../assets/js/public-shell.js"
-    defer
-  ></script>
-
-  <style>
+<style>
 
     /* =====================================================
        MARKETING CONNECT CTA STYLES
@@ -163,21 +157,10 @@
 
 <body>
 
-<header class="top-nav top-nav-simple">
-
-  <div class="nav-top nav-top-center">
-
-    <a
-      href="/marketing/fitness/"
-      class="nav-logo"
-    >
-      Fitness Programs
-    </a>
-
-  </div>
-
-</header>
-
+<div
+    id="navigation"
+    data-component="/components/fitness-navigation.html"
+  ></div>
 <main class="fitness-page">
 
   <section class="fitness-splash">
@@ -501,6 +484,20 @@
     </section>
 
   </main>
+
+
+
+<div
+    id="footer"
+    data-component="/components/fitness-footer.html"
+  ></div>
+
+
+
+<script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
 
 </body>
 </html>

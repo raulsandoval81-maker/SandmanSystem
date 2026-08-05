@@ -692,6 +692,22 @@ match /academySettings/{academyId} {
 }
 
     /* --------------------------------------
+       Proposals
+    ---------------------------------------*/
+    match /proposals/{proposalId} {
+      allow get, list: if isCoachOrAdmin();
+
+      // Proposal mutations are performed through
+      // trusted Cloud Functions, not browser clients.
+      allow create, update, delete: if false;
+
+      match /history/{historyId} {
+        allow get, list: if isCoachOrAdmin();
+        allow create, update, delete: if false;
+      }
+    }
+
+    /* --------------------------------------
        DEFAULT CLOSED
     ---------------------------------------*/
     match /{document=**} {

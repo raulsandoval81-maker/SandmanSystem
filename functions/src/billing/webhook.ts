@@ -97,6 +97,152 @@ async function eventAlreadyProcessed(
   );
 }
 
+async function handleProposalCheckoutCompleted(
+  session: Stripe.Checkout.Session
+): Promise<string | null> {
+  const proposalId =
+    cleanString(session.metadata?.proposalId);
+
+  if (!proposalId) {
+    return null;
+  }
+
+  if (
+    cleanString(session.metadata?.source) !==
+    "admissions_proposal"
+  ) {
+    console.warn(
+      "[stripeWebhook] Proposal checkout has unexpected source:",
+      {
+        proposalId,
+        sessionId: session.id,
+      }
+    );
+
+    return null;
+  }
+
+  if (session.payment_status !== "paid") {
+    console.warn(
+      "[stripeWebhook] Proposal checkout completed without confirmed payment:",
+      {
+        proposalId,
+        sessionId: session.id,
+        paymentStatus: session.payment_status,
+      }
+    );
+
+    return proposalId;
+  }
+
+  const stripeCustomerId =
+    typeof session.customer === "string"
+      ? session.customer
+      : session.customer?.id || null;
+
+  const stripeSubscriptionId =
+    typeof session.subscription === "string"
+      ? session.subscription
+      : session.subscription?.id || null;
+
+  const db = getFirestore();
+
+  const proposalRef =
+    db
+      .collection("proposals")
+      .doc(proposalId);
+
+  await db.runTransaction(
+    async (tx) => {
+      const proposalSnap =
+        await tx.get(proposalRef);
+
+      if (!proposalSnap.exists) {
+        throw new Error(
+          `Proposal ${proposalId} was not found.`
+        );
+      }
+
+      const proposal =
+        proposalSnap.data() || {};
+
+      const currentStatus =
+        cleanString(proposal.status);
+
+      if (currentStatus === "PAID") {
+        return;
+      }
+
+      if (currentStatus !== "LOCKED") {
+        throw new Error(
+          `Proposal ${proposalId} must be LOCKED before payment.`
+        );
+      }
+
+      const historyRef =
+        proposalRef
+          .collection("history")
+          .doc();
+
+      tx.update(
+        proposalRef,
+        {
+          status:
+            "PAID",
+
+          stripeCheckoutSessionId:
+            session.id,
+
+          stripeCustomerId,
+          stripeSubscriptionId,
+
+          paymentStatus:
+            session.payment_status,
+
+          paidAt:
+            FieldValue.serverTimestamp(),
+
+          pendingCheckoutSessionId:
+            FieldValue.delete(),
+
+          updatedAt:
+            FieldValue.serverTimestamp(),
+        }
+      );
+
+      tx.create(
+        historyRef,
+        {
+          proposalId,
+
+          event:
+            "STATUS_CHANGED",
+
+          fromStatus:
+            "LOCKED",
+
+          toStatus:
+            "PAID",
+
+          createdBy:
+            "stripe",
+
+          createdByName:
+            "Stripe Webhook",
+
+          stripeCheckoutSessionId:
+            session.id,
+
+          createdAt:
+            FieldValue.serverTimestamp(),
+        }
+      );
+    }
+  );
+
+  return proposalId;
+}
+
 async function handleCheckoutCompleted(
   session: Stripe.Checkout.Session
 ): Promise<string | null> {
@@ -337,12 +483,30 @@ const webhookSecret =
       let familyId: string | null = null;
 
       switch (event.type) {
-        case "checkout.session.completed":
-          familyId =
-            await handleCheckoutCompleted(
-              event.data.object as Stripe.Checkout.Session
+        case "checkout.session.completed": {
+          const session =
+            event.data.object as Stripe.Checkout.Session;
+
+          const proposalId =
+            cleanString(
+              session.metadata?.proposalId
             );
+
+          if (proposalId) {
+            await handleProposalCheckoutCompleted(
+              session
+            );
+
+            familyId = null;
+          } else {
+            familyId =
+              await handleCheckoutCompleted(
+                session
+              );
+          }
+
           break;
+        }
 
         case "customer.subscription.created":
         case "customer.subscription.updated":

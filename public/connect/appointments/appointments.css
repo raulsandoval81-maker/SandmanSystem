@@ -266,3 +266,45 @@ h1{
     width: 100%;
   }
 }
+
+/* Make the forward workflow action unmistakable */
+
+.lead-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.lead-actions .save-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 11px 16px;
+  text-decoration: none;
+}
+
+.lead-actions .save-btn--admissions {
+  border-color: #d4af37;
+  background: #d4af37;
+  color: #111111;
+  font-weight: 800;
+}
+
+.lead-actions .save-btn--admissions:hover,
+.lead-actions .save-btn--admissions:focus-visible {
+  border-color: #f0cf63;
+  background: #f0cf63;
+  color: #111111;
+}
+
+@media (max-width: 640px) {
+  .lead-actions {
+    flex-direction: column;
+  }
+
+  .lead-actions .save-btn {
+    width: 100%;
+  }
+}

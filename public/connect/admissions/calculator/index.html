@@ -21,9 +21,13 @@
         </p>
       </div>
 
-      <a class="back-link" href="/connect/admissions/">
-        ← Admissions
-      </a>
+<a
+  id="backToProposalBtn"
+  class="back-link"
+  href="/connect/admissions/"
+>
+  ← Admissions
+</a>
     </header>
 
     <section class="metric-grid">
@@ -194,15 +198,67 @@
           <h2>Prospect summary</h2>
           <div id="summary"></div>
 
-          <div class="actions">
-            <button id="printButton" class="button" type="button">
-              Print proposal
-            </button>
 
-            <button id="resetButton" class="button secondary" type="button">
-              Reset
-            </button>
-          </div>
+<div class="actions">
+  <button
+    id="printButton"
+    class="button"
+    type="button"
+  >
+    Print proposal
+  </button>
+
+  <button
+    id="saveDraftButton"
+    class="button secondary"
+    type="button"
+  >
+    Save Draft
+  </button>
+
+  <button
+    id="submitReviewButton"
+    class="button"
+    type="button"
+  >
+    Submit for Review
+  </button>
+
+  <button
+    id="approveProposalButton"
+    class="button"
+    type="button"
+    hidden
+  >
+    Approve Proposal
+  </button>
+
+  <button
+    id="lockProposalButton"
+    class="button"
+    type="button"
+    hidden
+  >
+    Lock Proposal
+  </button>
+
+  <button
+    id="checkoutProposalButton"
+    class="button"
+    type="button"
+    hidden
+  >
+    Begin Checkout
+  </button>
+
+  <button
+    id="resetButton"
+    class="button secondary"
+    type="button"
+  >
+    Reset
+  </button>
+</div>
         </article>
       </div>
     </section>
@@ -296,6 +352,6 @@
     </article>
   </template>
 
-    <script src="./calculator.js"></script>
+    <script type="module" src="./calculator.js"></script>
 </body>
 </html>

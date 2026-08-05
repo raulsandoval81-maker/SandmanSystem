@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.createProposalCheckout = exports.lockProposal = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -145,7 +145,7 @@ Object.defineProperty(exports, "onboardingConfirmStep1", { enumerable: true, get
 var forms_1 = require("./handlers/forms");
 Object.defineProperty(exports, "submitContact", { enumerable: true, get: function () { return forms_1.submitContact; } });
 Object.defineProperty(exports, "submitVolunteer", { enumerable: true, get: function () { return forms_1.submitVolunteer; } });
-var sendGatekeeperEmail_1 = require("./modules/sendGatekeeperEmail");
+var sendGatekeeperEmail_1 = require("./modules/gatekeeper/sendGatekeeperEmail");
 Object.defineProperty(exports, "sendGatekeeperEmail", { enumerable: true, get: function () { return sendGatekeeperEmail_1.sendGatekeeperEmail; } });
 var retestAthlete_1 = require("./modules/retestAthlete");
 Object.defineProperty(exports, "retestAthlete", { enumerable: true, get: function () { return retestAthlete_1.retestAthlete; } });
@@ -156,3 +156,18 @@ var checkoutCall_1 = require("./billing/checkoutCall");
 Object.defineProperty(exports, "createBillingCheckoutCall", { enumerable: true, get: function () { return checkoutCall_1.createBillingCheckoutCall; } });
 var webhook_1 = require("./billing/webhook");
 Object.defineProperty(exports, "stripeBillingWebhook", { enumerable: true, get: function () { return webhook_1.stripeBillingWebhook; } });
+/* =========================
+   PROPOSALS
+========================= */
+var createProposalDraft_1 = require("./proposals/createProposalDraft");
+Object.defineProperty(exports, "createProposalDraft", { enumerable: true, get: function () { return createProposalDraft_1.createProposalDraft; } });
+var updateProposalDraft_1 = require("./proposals/updateProposalDraft");
+Object.defineProperty(exports, "updateProposalDraft", { enumerable: true, get: function () { return updateProposalDraft_1.updateProposalDraft; } });
+var submitProposalForReview_1 = require("./proposals/submitProposalForReview");
+Object.defineProperty(exports, "submitProposalForReview", { enumerable: true, get: function () { return submitProposalForReview_1.submitProposalForReview; } });
+var approveProposal_1 = require("./proposals/approveProposal");
+Object.defineProperty(exports, "approveProposal", { enumerable: true, get: function () { return approveProposal_1.approveProposal; } });
+var lockProposal_1 = require("./proposals/lockProposal");
+Object.defineProperty(exports, "lockProposal", { enumerable: true, get: function () { return lockProposal_1.lockProposal; } });
+var createProposalCheckout_1 = require("./proposals/createProposalCheckout");
+Object.defineProperty(exports, "createProposalCheckout", { enumerable: true, get: function () { return createProposalCheckout_1.createProposalCheckout; } });

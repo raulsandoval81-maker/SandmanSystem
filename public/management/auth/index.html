@@ -243,16 +243,29 @@ async function applyAuthPersistence() {
       resetBtn.disabled = isBusy;
     }
 
-    function getSafeReturnUrl() {
-      if (
-        requestedReturnUrl.startsWith("/management/") &&
-        !requestedReturnUrl.startsWith("//")
-      ) {
-        return requestedReturnUrl;
-      }
+function getSafeReturnUrl() {
+  const isSafeManagementPath =
+    requestedReturnUrl.startsWith(
+      "/management/"
+    );
 
-      return "/management/hub/";
-    }
+  const isSafeProspectBuilderPath =
+    requestedReturnUrl.startsWith(
+      "/connect/admissions/calculator/"
+    );
+
+  if (
+    !requestedReturnUrl.startsWith("//") &&
+    (
+      isSafeManagementPath ||
+      isSafeProspectBuilderPath
+    )
+  ) {
+    return requestedReturnUrl;
+  }
+
+  return "/management/hub/";
+}
 
     async function hasManagementAccess(user) {
       const token =

@@ -9,17 +9,17 @@
   />
 
   <title>
-    Fitness Programs | YESC
+    Everyday Fitness | Youth Empowered Sports Club
   </title>
 
   <meta
     name="description"
-    content="Explore HIIT fitness classes, progressive powerlifting, and the training spaces of Youth Empowered Sports Club."
+    content="Explore Everyday Fitness programs, youth movement, HIIT training, powerlifting, and community wellness through Youth Empowered Sports Club."
   />
 
   <link
     rel="stylesheet"
-    href="../../assets/css/site.css"
+    href="/assets/css/site.css"
   />
 
   <link
@@ -27,20 +27,295 @@
     href="/marketing/fitness/fitness.css"
   />
 
-  <script
-    src="../../assets/js/public-shell.js"
-    defer
-  ></script>
+  <link rel="icon" href="data:," />
 
   <style>
-
     /* =====================================================
-       MARKETING CONNECT CTA STYLES
+       FITNESS LANDING PAGE
     ====================================================== */
 
-    .marketing-connect-cta{
+    .fitness-page{
       width:100%;
-      margin-top:34px;
+      margin:0;
+      padding:0;
+    }
+
+    .fitness-landing-hero{
+      width:100%;
+      margin:0;
+      padding:0;
+
+      background:#000;
+      border-bottom:2px solid rgba(212,175,55,.72);
+
+      overflow:hidden;
+      line-height:0;
+    }
+
+    .fitness-landing-hero img{
+      display:block;
+
+      width:100%;
+      height:auto;
+
+      margin:0;
+    }
+
+    .fitness-shell{
+      width:min(1180px, calc(100% - 32px));
+      margin:0 auto;
+      padding:clamp(2rem, 5vw, 4rem) 0;
+    }
+
+    .fitness-hero{
+      max-width:820px;
+
+      margin:0 auto clamp(2rem, 5vw, 3.5rem);
+
+      text-align:center;
+    }
+
+    .fitness-hero h1{
+      margin:.35rem 0 1rem;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(2.35rem, 7vw, 4.8rem);
+      line-height:.98;
+      letter-spacing:-.035em;
+    }
+
+    .fitness-hero .hero-copy{
+      max-width:700px;
+
+      margin:0 auto;
+
+      color:var(--muted, #d4d4d8);
+
+      font-size:clamp(1rem, 2vw, 1.15rem);
+      line-height:1.75;
+    }
+
+    .fitness-panel{
+      margin:0 0 clamp(2rem, 5vw, 3.5rem);
+      padding:clamp(1.5rem, 4vw, 2.6rem);
+
+      border:1px solid rgba(212,175,55,.34);
+      border-radius:22px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(24,24,27,.98),
+          rgba(9,9,11,.98)
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.26);
+    }
+
+    .fitness-panel h2{
+      margin:.35rem 0 1rem;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(1.8rem, 4vw, 2.8rem);
+      line-height:1.08;
+    }
+
+    .fitness-panel p{
+      color:var(--muted, #d4d4d8);
+      line-height:1.75;
+    }
+
+    .fitness-facilities-visual{
+      margin:1.75rem 0 0;
+
+      overflow:hidden;
+
+      border:1px solid rgba(212,175,55,.32);
+      border-radius:18px;
+
+      background:#000;
+    }
+
+    .fitness-facilities-visual img{
+      display:block;
+
+      width:100%;
+      height:auto;
+    }
+
+    .room-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:16px;
+
+      margin-top:1.8rem;
+    }
+
+    .room-card{
+      min-width:0;
+      padding:1.25rem;
+
+      border:1px solid rgba(212,175,55,.25);
+      border-radius:16px;
+
+      background:rgba(255,255,255,.025);
+    }
+
+    .room-card h3{
+      margin:0 0 .65rem;
+
+      color:#d4af37;
+
+      font-size:1.1rem;
+    }
+
+    .room-card p{
+      margin:0;
+    }
+
+    .yesc-statement{
+      margin:1.8rem 0 0 !important;
+
+      color:#d4af37 !important;
+
+      font-weight:900;
+      text-align:center;
+      letter-spacing:.04em;
+    }
+
+    .fitness-section-header{
+      max-width:760px;
+
+      margin:0 auto 1.8rem;
+
+      text-align:center;
+    }
+
+    .fitness-section-header h2{
+      margin:.35rem 0 .8rem;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(2rem, 5vw, 3.25rem);
+      line-height:1.05;
+    }
+
+    .fitness-section-header p{
+      margin:0;
+
+      color:var(--muted, #d4d4d8);
+      line-height:1.7;
+    }
+
+    .fitness-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:18px;
+
+      margin-bottom:clamp(2rem, 5vw, 3.5rem);
+    }
+
+    .fitness-card{
+      min-width:0;
+      padding:clamp(1.35rem, 3vw, 2rem);
+
+      border:1px solid rgba(212,175,55,.28);
+      border-radius:18px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(24,24,27,.98),
+          rgba(9,9,11,.98)
+        );
+
+      box-shadow:0 14px 30px rgba(0,0,0,.22);
+    }
+
+    .fitness-card h2{
+      margin:.3rem 0 .65rem;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(1.45rem, 3vw, 2rem);
+      line-height:1.1;
+    }
+
+    .fitness-card p,
+    .fitness-card li{
+      color:var(--muted, #d4d4d8);
+      line-height:1.65;
+    }
+
+    .fitness-card ul{
+      margin:1rem 0 1.35rem;
+      padding-left:1.2rem;
+    }
+
+    .card-kicker,
+    .facility-label,
+    .eyebrow{
+      margin:0;
+
+      color:#d4af37 !important;
+
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .facility-label{
+      margin-bottom:.8rem;
+      letter-spacing:.06em;
+    }
+
+    .btn,
+    .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+      padding:13px 23px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .btn:hover,
+    .btn:focus-visible,
+    .journeys-cta-button:hover,
+    .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    .schedule-link-panel{
+      text-align:center;
+    }
+
+    .fitness-cta{
+      margin:0;
       padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
 
       text-align:center;
@@ -63,63 +338,64 @@
       box-shadow:0 18px 38px rgba(0,0,0,.30);
     }
 
-    .marketing-connect-cta h2{
-      margin:0 0 .8rem;
+    .fitness-cta h2{
+      margin:.35rem 0 .8rem;
 
-      color:#ffffff;
+      color:#fff;
 
-      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      font-size:clamp(1.9rem, 4vw, 2.8rem);
       line-height:1.1;
     }
 
-    .marketing-connect-cta p{
+    .fitness-cta p{
       max-width:700px;
 
       margin:0 auto 1.45rem;
 
       color:#d4d4d8;
 
-      font-size:1rem;
       line-height:1.7;
     }
 
-    .marketing-connect-cta .journeys-cta-button{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
+    /* =====================================================
+       LIGHT MODE
+    ====================================================== */
 
-      min-height:50px;
-
-      padding:13px 24px;
-
-      color:#090909;
-      background:#d4af37;
-
-      border:1px solid #e7c968;
-      border-radius:999px;
-
-      font-weight:900;
-      line-height:1.2;
-      text-align:center;
-      text-decoration:none;
-
-      transition:
-        transform .18s ease,
-        background-color .18s ease,
-        box-shadow .18s ease;
+    body.day-mode .fitness-hero h1,
+    body.day-mode .fitness-panel h2,
+    body.day-mode .fitness-section-header h2,
+    body.day-mode .fitness-card h2{
+      color:#171717;
     }
 
-    .marketing-connect-cta .journeys-cta-button:hover,
-    .marketing-connect-cta .journeys-cta-button:focus-visible{
-      background:#e2c25a;
-
-      box-shadow:0 10px 28px rgba(212,175,55,.24);
-
-      transform:translateY(-2px);
-      outline:none;
+    body.day-mode .fitness-hero .hero-copy,
+    body.day-mode .fitness-panel p,
+    body.day-mode .fitness-section-header p,
+    body.day-mode .fitness-card p,
+    body.day-mode .fitness-card li{
+      color:#374151;
     }
 
-    body.day-mode .marketing-connect-cta{
+    body.day-mode .fitness-panel,
+    body.day-mode .fitness-card{
+      border-color:#d7c7a2;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.98),
+          rgba(243,231,207,.98)
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.09);
+    }
+
+    body.day-mode .room-card{
+      border-color:#d7c7a2;
+      background:rgba(255,255,255,.72);
+    }
+
+    body.day-mode .fitness-cta{
       border-color:#c9aa61;
 
       background:
@@ -130,953 +406,900 @@
         ),
         linear-gradient(
           180deg,
-          #ffffff 0%,
+          #fff 0%,
           #f3e7cf 100%
         );
 
       box-shadow:0 10px 24px rgba(0,0,0,.10);
     }
 
-    body.day-mode .marketing-connect-cta h2{
+    body.day-mode .fitness-cta h2{
       color:#171717;
     }
 
-    body.day-mode .marketing-connect-cta p{
+    body.day-mode .fitness-cta p{
       color:#4b5563;
     }
 
-    @media (max-width:640px){
-      .marketing-connect-cta{
-        margin-top:28px;
-        padding:2rem 1rem;
-        border-radius:17px;
-      }
+    /* =====================================================
+       RESPONSIVE
+    ====================================================== */
 
-      .marketing-connect-cta .journeys-cta-button{
-        width:100%;
-        max-width:340px;
+    @media (max-width:820px){
+      .room-grid,
+      .fitness-grid{
+        grid-template-columns:1fr;
       }
     }
 
+    @media (max-width:640px){
+      .fitness-shell{
+        width:min(100% - 20px, 1180px);
+        padding:1.75rem 0;
+      }
+
+      .fitness-panel,
+      .fitness-card,
+      .fitness-cta{
+        border-radius:16px;
+      }
+
+      .fitness-cta{
+        padding:2rem 1rem;
+      }
+
+      .btn,
+      .journeys-cta-button{
+        width:100%;
+      }
+    }
   </style>
 </head>
 
-<body>
-
-<header class="top-nav top-nav-simple">
-
-  <div class="nav-top nav-top-center">
-
-<a
-  href="./"
-  class="nav-logo"
->
-  YESC — Youth Empowered Sports Club
-</a>
-  </div>
-
-</header>
-
-<main class="fitness-page">
-
-  <section class="fitness-splash">
-
-    <img
-      src="../../assets/img/marketing/fitness/fitness-splash.png"
-      alt="YESC Youth Empowered Sports Club with the Open Mat Room, Cold Iron Barbell, and Room to Grow"
-    />
-
-  </section>
-
-  <section class="fitness-shell">
-
-    <header class="fitness-hero">
-
-      <div data-lang-block="en">
-
-        <p class="eyebrow">
-          Youth Empowered Sports Club
-        </p>
-
-        <h1>
-          Choose Your Path
-        </h1>
-
-        <p class="hero-copy">
-          Build fitness, develop strength, learn new skills, or train
-          for competition. Choose the path that best matches your goals.
-        </p>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-
-        <p class="eyebrow">
-          Youth Empowered Sports Club
-        </p>
-
-        <h1>
-          Elige Tu Camino
-        </h1>
-
-        <p class="hero-copy">
-          Mejora tu condición física, desarrolla fuerza, aprende nuevas
-          habilidades o entrena para competir. Elige el camino que mejor
-          se adapte a tus objetivos.
-        </p>
-
-      </div>
-
-    </header>
-
-    <section class="fitness-panel yesc-intro">
-
-      <div data-lang-block="en">
-
-        <p class="eyebrow">
-          One Place. Three Ways To Grow.
-        </p>
-
-        <h2>
-          More Than A Place To Exercise
-        </h2>
-
-        <p>
-          YESC — Youth Empowered Sports Club — is a community-centered
-          training and development space built to help young people and
-          families grow through movement, strength, education, and
-          meaningful relationships.
-        </p>
-
-        <p>
-          Each room serves a different purpose. Together, they create
-          one environment where athletes and families can strengthen
-          the body, develop the mind, and build confidence for life.
-        </p>
-
-        <div class="room-grid">
-
-
-          <article class="room-card">
-
-            <h3>
-              Open Mat Room
-            </h3>
-
-            <p>
-              Coordination, balance, movement, strength, confidence,
-              and character.
-            </p>
-
-          </article>
-
-          <article class="room-card">
-
-            <h3>
-              Cold Iron Barbell
-            </h3>
-
-            <p>
-              Strength development, powerlifting, team training, and
-              competition.
-            </p>
-
-          </article>
-
-          <article class="room-card">
-
-            <h3>
-              Room to Grow
-            </h3>
-
-            <p>
-              Education, mentoring, leadership, goal setting, and
-              personal development.
-            </p>
-
-          </article>
-
-        </div>
-
-        <p class="yesc-statement">
-          Strong bodies. Strong minds. Stronger together.
-        </p>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-
-        <p class="eyebrow">
-          Un Lugar. Tres Formas De Crecer.
-        </p>
-
-        <h2>
-          Más Que Un Lugar Para Hacer Ejercicio
-        </h2>
-
-        <p>
-          YESC — Youth Empowered Sports Club — es un espacio comunitario
-          de entrenamiento y desarrollo creado para ayudar a jóvenes y
-          familias a crecer mediante el movimiento, la fuerza, la
-          educación y relaciones significativas.
-        </p>
-
-        <p>
-          Cada salón tiene un propósito diferente. Juntos crean un
-          ambiente donde los atletas y las familias pueden fortalecer
-          el cuerpo, desarrollar la mente y construir confianza para
-          la vida.
-        </p>
-
-        <div class="room-grid">
-
-          <article class="room-card">
-
-            <h3>
-              Open Mat Room
-            </h3>
-
-            <p>
-              Coordinación, equilibrio, movimiento, fuerza, confianza
-              y carácter.
-            </p>
-
-          </article>
-
-          <article class="room-card">
-
-            <h3>
-              Cold Iron Barbell
-            </h3>
-
-            <p>
-              Desarrollo de fuerza, powerlifting, entrenamiento en
-              equipo y competencia.
-            </p>
-
-          </article>
-
-          <article class="room-card">
-
-            <h3>
-              Room to Grow
-            </h3>
-
-            <p>
-              Educación, mentoría, liderazgo, establecimiento de metas
-              y desarrollo personal.
-            </p>
-
-          </article>
-
-        </div>
-
-        <p class="yesc-statement">
-          Cuerpos fuertes. Mentes fuertes. Más fuertes juntos.
-        </p>
-
-      </div>
-
+<body class="fitness-index-page">
+
+  <!-- Shared Everyday Fitness navigation -->
+
+  <div
+    id="navigation"
+    data-component="/components/fitness-navigation.html"
+  ></div>
+
+  <main class="fitness-page">
+
+    <!-- =====================================================
+         EVERYDAY FITNESS HERO — ENGLISH
+    ====================================================== -->
+
+    <section
+      class="fitness-landing-hero"
+      data-lang-block="en"
+    >
+      <img
+        src="/assets/img/pages/journeys/journeys-fitness-en.png"
+        alt="Everyday Fitness programs including HIIT, strength, KidFIT, TeenFIT, and powerlifting"
+        loading="eager"
+      />
     </section>
 
-    <section class="fitness-grid">
+    <!-- =====================================================
+         EVERYDAY FITNESS HERO — SPANISH
+    ====================================================== -->
 
-<article class="fitness-card">
-
-        <div data-lang-block="en">
-
-          <p class="card-kicker">
-            Morning Movement
-          </p>
-
-          <h2>
-            JumpStart Fitness
-          </h2>
-
-          <p class="facility-label">
-            YESC — Youth Empowered Sports Club
-          </p>
-
-          <p>
-            A coach-led morning class built around movement,
-            coordination, balance, strength, and positive energy.
-          </p>
-
-          <ul>
-            <li>Monday and Thursday mornings</li>
-            <li>Movement and mobility</li>
-            <li>Balance and coordination</li>
-            <li>Beginner-friendly strength and conditioning</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/jumpstart-fitness.html"
-          >
-            Explore JumpStart Fitness
-          </a>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <p class="card-kicker">
-            Movimiento Matutino
-          </p>
-
-          <h2>
-            JumpStart Fitness
-          </h2>
-
-          <p class="facility-label">
-            YESC — Youth Empowered Sports Club
-          </p>
-
-          <p>
-            Una clase matutina dirigida por un coach que combina
-            movimiento, coordinación, equilibrio, fuerza y energía.
-          </p>
-
-          <ul>
-            <li>Lunes y jueves por la mañana</li>
-            <li>Movimiento y movilidad</li>
-            <li>Equilibrio y coordinación</li>
-            <li>Fuerza y acondicionamiento para principiantes</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/jumpstart-fitness.html"
-          >
-            Explorar JumpStart Fitness
-          </a>
-
-        </div>
-
-      </article>
-
-<article class="fitness-card">
-
-  <div data-lang-block="en">
-
-    <p class="card-kicker">
-      Early-Morning Conditioning
-    </p>
-
-    <h2>
-      Dawn Patrol
-    </h2>
-
-    <p class="facility-label">
-      YESC — Youth Empowered Sports Club
-    </p>
-
-    <p>
-      Early-morning Tabata-style workouts built around short intervals,
-      full-body conditioning, strength, and endurance.
-    </p>
-
-    <ul>
-      <li>Tuesday and Friday</li>
-      <li>6:00–6:45 AM</li>
-      <li>Tabata-style intervals</li>
-      <li>Full-body conditioning, strength, and endurance</li>
-    </ul>
-
-    <a
-      class="btn btn-primary"
-      href="/marketing/fitness/dawn-patrol.html"
+    <section
+      class="fitness-landing-hero hidden-lang"
+      data-lang-block="es"
     >
-      Explore Dawn Patrol
-    </a>
-
-  </div>
-
-  <div
-    data-lang-block="es"
-    class="hidden-lang"
-  >
-
-    <p class="card-kicker">
-      Acondicionamiento Temprano
-    </p>
-
-    <h2>
-      Dawn Patrol
-    </h2>
-
-    <p class="facility-label">
-      YESC — Youth Empowered Sports Club
-    </p>
-
-    <p>
-      Entrenamientos estilo Tabata por la mañana con intervalos cortos,
-      acondicionamiento de cuerpo completo, fuerza y resistencia.
-    </p>
-
-    <ul>
-      <li>Martes y viernes</li>
-      <li>6:00–6:45 AM</li>
-      <li>Intervalos estilo Tabata</li>
-      <li>Acondicionamiento completo, fuerza y resistencia</li>
-    </ul>
-
-    <a
-      class="btn btn-primary"
-      href="/marketing/fitness/dawn-patrol.html"
-    >
-      Explorar Dawn Patrol
-    </a>
-
-  </div>
-
-</article>
-
-<article class="fitness-card">
-
-  <div data-lang-block="en">
-
-    <p class="card-kicker">
-      Youth Fitness
-    </p>
-
-    <h2>
-      KidFIT
-    </h2>
-
-    <p class="facility-label">
-      YESC — Youth Empowered Sports Club
-    </p>
-
-    <p>
-      Movement, strength, coordination, conditioning, and
-      confidence-building for younger athletes.
-    </p>
-
-    <ul>
-      <li>Age-appropriate strength training</li>
-      <li>Balance and coordination</li>
-      <li>Movement fundamentals</li>
-      <li>Fitness and confidence</li>
-    </ul>
-
-    <a
-      class="btn btn-primary"
-      href="/marketing/fitness/youth-fitness.html"
-    >
-      Explore KidFIT
-    </a>
-
-  </div>
-
-  <div
-    data-lang-block="es"
-    class="hidden-lang"
-  >
-
-    <p class="card-kicker">
-      Fitness Infantil
-    </p>
-
-    <h2>
-      KidFIT
-    </h2>
-
-    <p class="facility-label">
-      YESC — Youth Empowered Sports Club
-    </p>
-
-    <p>
-      Movimiento, fuerza, coordinación, acondicionamiento y confianza
-      para atletas jóvenes.
-    </p>
-
-    <ul>
-      <li>Fuerza apropiada para la edad</li>
-      <li>Equilibrio y coordinación</li>
-      <li>Fundamentos de movimiento</li>
-      <li>Fitness y confianza</li>
-    </ul>
-
-    <a
-      class="btn btn-primary"
-      href="/marketing/fitness/youth-fitness.html"
-    >
-      Explorar KidFIT
-    </a>
-
-  </div>
-
-</article>
-
-<article class="fitness-card">
-
-  <div data-lang-block="en">
-
-    <p class="card-kicker">
-      Teen Fitness • Light • Non-Contact
-    </p>
-
-    <h2>
-      TeenFIT + TeenFIT Boxing
-    </h2>
-
-    <p class="facility-label">
-      YESC — Youth Empowered Sports Club
-    </p>
-
-    <p>
-      Teen fitness combining strength, movement, conditioning, and
-      optional light, non-contact bag and mitt work.
-    </p>
-
-    <ul>
-      <li>Teen strength and conditioning</li>
-      <li>Movement and coordination</li>
-      <li>Light bag and mitt work</li>
-      <li>Non-contact fitness training</li>
-    </ul>
-
-    <a
-      class="btn btn-primary"
-      href="/marketing/fitness/teenfit-boxing.html"
-    >
-      Explore TeenFIT
-    </a>
-
-  </div>
-
-  <div
-    data-lang-block="es"
-    class="hidden-lang"
-  >
-
-    <p class="card-kicker">
-      Fitness Juvenil • Ligero • Sin Contacto
-    </p>
-
-    <h2>
-      TeenFIT + TeenFIT Boxing
-    </h2>
-
-    <p class="facility-label">
-      YESC — Youth Empowered Sports Club
-    </p>
-
-    <p>
-      Fitness para adolescentes que combina fuerza, movimiento,
-      acondicionamiento y trabajo ligero sin contacto con costal y
-      manoplas.
-    </p>
-
-    <ul>
-      <li>Fuerza y acondicionamiento juvenil</li>
-      <li>Movimiento y coordinación</li>
-      <li>Trabajo ligero con costal y manoplas</li>
-      <li>Entrenamiento de fitness sin contacto</li>
-    </ul>
-
-    <a
-      class="btn btn-primary"
-      href="/marketing/fitness/teenfit-boxing.html"
-    >
-      Explorar TeenFIT
-    </a>
-
-  </div>
-
-</article>
-
-<article class="fitness-card">
-
-        <div data-lang-block="en">
-
-          <p class="card-kicker">
-            45-Minute Classes
-          </p>
-
-          <h2>
-            HIIT Fitness
-          </h2>
-
-          <p class="facility-label">
-            YESC — Youth Empowered Sports Club
-          </p>
-
-          <p>
-            Fast-moving, coach-led classes built around interval
-            training, conditioning, strength, movement, and sustained
-            effort.
-          </p>
-
-          <ul>
-            <li>HIIT Kickboxing</li>
-            <li>HIIT Strength</li>
-            <li>HIIT Boxing</li>
-            <li>Beginner-friendly and non-contact</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/hitfit.html"
-          >
-            Explore HIIT Fitness
-          </a>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <p class="card-kicker">
-            Clases De 45 Minutos
-          </p>
-
-          <h2>
-            Fitness HIIT
-          </h2>
-
-          <p class="facility-label">
-            YESC — Youth Empowered Sports Club
-          </p>
-
-          <p>
-            Clases dinámicas dirigidas por un coach que combinan
-            intervalos, acondicionamiento, fuerza, movimiento y
-            esfuerzo sostenido.
-          </p>
-
-          <ul>
-            <li>Kickboxing HIIT</li>
-            <li>Fuerza HIIT</li>
-            <li>Boxeo HIIT</li>
-            <li>Para principiantes y sin contacto</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/hitfit.html"
-          >
-            Explorar Fitness HIIT
-          </a>
-
-        </div>
-
-      </article>
-
-<article class="fitness-card">
-
-        <div data-lang-block="en">
-
-          <p class="card-kicker">
-            Ages 3–5
-          </p>
-
-          <h2>
-            Preschool Playtime
-          </h2>
-
-          <p class="facility-label">
-            YESC — Youth Empowered Sports Club
-          </p>
-
-          <p>
-            A playful introduction to movement, coordination,
-            confidence, listening, and learning through activity.
-          </p>
-
-          <ul>
-            <li>Move, play, and learn</li>
-            <li>Balance and coordination</li>
-            <li>Running, jumping, crawling, and throwing</li>
-            <li>Confidence through guided play</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/preschool-playtime.html"
-          >
-            Explore Preschool Playtime
-          </a>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <p class="card-kicker">
-            Edades 3–5
-          </p>
-
-          <h2>
-            Juego Preescolar
-          </h2>
-
-          <p class="facility-label">
-            YESC — Youth Empowered Sports Club
-          </p>
-
-          <p>
-            Una introducción divertida al movimiento, coordinación,
-            confianza, escucha y aprendizaje mediante la actividad.
-          </p>
-
-          <ul>
-            <li>Moverse, jugar y aprender</li>
-            <li>Equilibrio y coordinación</li>
-            <li>Correr, saltar, gatear y lanzar</li>
-            <li>Confianza mediante el juego guiado</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/preschool-playtime.html"
-          >
-            Explorar Juego Preescolar
-          </a>
-
-        </div>
-
-      </article>
-
-<article class="fitness-card">
-
-        <div data-lang-block="en">
-
-          <p class="card-kicker">
-            Progressive Team Training
-          </p>
-
-          <h2>
-            Powerlifting
-          </h2>
-
-          <p class="facility-label">
-            YESC — Cold Iron Barbell
-          </p>
-
-          <p>
-            Structured strength training built around progressive
-            learning, coached development, team standards, and
-            competition opportunities.
-          </p>
-
-          <ul>
-            <li>Squat, bench press, and deadlift</li>
-            <li>Technique and safe progression</li>
-            <li>Coach-guided development</li>
-            <li>Team training and competition</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/powerlifting.html"
-          >
-            Explore Powerlifting
-          </a>
-
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-
-          <p class="card-kicker">
-            Entrenamiento Progresivo En Equipo
-          </p>
-
-          <h2>
-            Powerlifting
-          </h2>
-
-          <p class="facility-label">
-            YESC — Cold Iron Barbell
-          </p>
-
-          <p>
-            Entrenamiento estructurado de fuerza basado en aprendizaje
-            progresivo, desarrollo guiado por coaches, estándares de
-            equipo y oportunidades de competencia.
-          </p>
-
-          <ul>
-            <li>Sentadilla, press de banca y peso muerto</li>
-            <li>Técnica y progresión segura</li>
-            <li>Desarrollo guiado por coaches</li>
-            <li>Entrenamiento en equipo y competencia</li>
-          </ul>
-
-          <a
-            class="btn btn-primary"
-            href="/marketing/fitness/powerlifting.html"
-          >
-            Explorar Powerlifting
-          </a>
-
-        </div>
-
-      </article>
-
-</section>
-<section class="fitness-panel schedule-link-panel">
-
-  <div data-lang-block="en">
-
-    <p class="eyebrow">
-      Plan Your Week
-    </p>
-
-    <h2>
-      Schedule & Calendar
-    </h2>
-
-    <p>
-      View weekly class times, upcoming events, closures, assessments,
-      and competition dates.
-    </p>
-
-<a
-  class="btn btn-primary"
-  href="/marketing/fitness/schedule.html"
->
-  View Schedule & Calendar
-</a>
-</div>
-
-  <div
-    data-lang-block="es"
-    class="hidden-lang"
-  >
-
-    <p class="eyebrow">
-      Planea Tu Semana
-    </p>
-
-    <h2>
-      Horario Y Calendario
-    </h2>
-
-    <p>
-      Consulta los horarios semanales, próximos eventos, cierres,
-      evaluaciones y fechas de competencia.
-    </p>
-
-<a
-  class="btn btn-primary"
-  href="/marketing/fitness/schedule.html"
->
-  Ver Horario Y Calendario
-</a>
-</div>
-
-</section>
-
-    <section class="fitness-cta">
-
-      <div data-lang-block="en">
-
-        <p class="eyebrow">
-          Not Sure Where To Begin?
-        </p>
-
-        <h2>
-          Tell Us What You Are Looking For
-        </h2>
-
-<p>
-  Start with a $15 drop-in. If you join, the $15 is credited
-  toward your first month.
-</p>
-
-<a
-  class="btn btn-primary"
-  href="../../connect/yesc/"
->
-  Book Your First Class
-</a>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-
-        <p class="eyebrow">
-          ¿No Sabes Por Dónde Empezar?
-        </p>
-
-        <h2>
-          Cuéntanos Qué Estás Buscando
-        </h2>
-
-<p>
-  Comienza con una clase de $15. Si te inscribes, los $15 se
-  aplican a tu primer mes.
-</p>
-
-<a
-  class="btn btn-primary"
-  href="../../connect/yesc/?lang=es"
->
-  Reserva Tu Primera Clase
-</a>
-
-      </div>
-
+      <img
+        src="/assets/img/pages/journeys/journeys-fitness-es.png"
+        alt="Programas de Fitness Diario incluyendo HIIT, fuerza, KidFIT, TeenFIT y powerlifting"
+        loading="eager"
+      />
     </section>
 
-<section class="marketing-connect-cta">
+    <div class="fitness-shell">
 
-  <div data-lang-block="en">
+      <!-- =====================================================
+           INTRODUCTION
+      ====================================================== -->
 
-    <h2>Ready to Begin?</h2>
+      <header class="fitness-hero">
 
-    <p>
-      Whether you're starting your fitness journey or looking for a new
-      challenge, HIIT FIT™ offers structured, high-energy training designed
-      to help you move, feel, and perform at your best.
-    </p>
+        <div data-lang-block="en">
 
-    <a class="journeys-cta-button" href="/connect/interest/">
-      Connect With Us
-    </a>
+          <p class="eyebrow">
+            Youth Empowered Sports Club
+          </p>
 
-  </div>
+          <h1>
+            Find Your Program
+          </h1>
 
-  <div data-lang-block="es" class="hidden-lang">
+          <p class="hero-copy">
+            Build fitness, develop strength, learn new skills,
+            or train for competition. Choose the program that
+            best matches your goals and stage of life.
+          </p>
 
-    <h2>¿Listo para Comenzar?</h2>
+        </div>
 
-    <p>
-      Ya sea que estés comenzando tu camino hacia una mejor condición física
-      o buscando un nuevo desafío, HIIT FIT™ ofrece entrenamiento
-      estructurado y de alta energía para ayudarte a sentirte y rendir mejor.
-    </p>
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
 
-    <a class="journeys-cta-button" href="/connect/interest/">
-      Conéctate con Nosotros
-    </a>
+          <p class="eyebrow">
+            Youth Empowered Sports Club
+          </p>
 
-  </div>
+          <h1>
+            Encuentra Tu Programa
+          </h1>
 
-</section>
+          <p class="hero-copy">
+            Mejora tu condición física, desarrolla fuerza,
+            aprende nuevas habilidades o entrena para competir.
+            Elige el programa que mejor se adapte a tus metas
+            y etapa de vida.
+          </p>
 
-</main>
+        </div>
+
+      </header>
+
+      <!-- =====================================================
+           FACILITIES
+      ====================================================== -->
+
+      <section
+        id="facilities"
+        class="fitness-panel yesc-intro"
+      >
+
+        <div data-lang-block="en">
+
+          <p class="eyebrow">
+            One Place. Three Ways to Grow.
+          </p>
+
+          <h2>
+            More Than a Place to Exercise
+          </h2>
+
+          <p>
+            Youth Empowered Sports Club is a community-centered
+            training and development environment built to help
+            young people and families grow through movement,
+            strength, education, and meaningful relationships.
+          </p>
+
+          <p>
+            Each room serves a different purpose. Together, they
+            create one environment where athletes and families
+            can strengthen the body, develop the mind, and build
+            confidence for life.
+          </p>
+
+          <div class="fitness-facilities-visual">
+            <img
+              src="/assets/img/marketing/fitness/fitness-splash.png"
+              alt="Youth Empowered Sports Club facilities including the Open Mat Room, Cold Iron Barbell, and Room to Grow"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="room-grid">
+
+            <article class="room-card">
+              <h3>Open Mat Room</h3>
+
+              <p>
+                Coordination, balance, movement, strength,
+                confidence, and character.
+              </p>
+            </article>
+
+            <article class="room-card">
+              <h3>Cold Iron Barbell</h3>
+
+              <p>
+                Strength development, powerlifting, team
+                training, and competition.
+              </p>
+            </article>
+
+            <article class="room-card">
+              <h3>Room to Grow</h3>
+
+              <p>
+                Education, mentoring, leadership, goal setting,
+                and personal development.
+              </p>
+            </article>
+
+          </div>
+
+          <p class="yesc-statement">
+            Strong bodies. Strong minds. Stronger together.
+          </p>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <p class="eyebrow">
+            Un Lugar. Tres Formas de Crecer.
+          </p>
+
+          <h2>
+            Más Que un Lugar Para Hacer Ejercicio
+          </h2>
+
+          <p>
+            Youth Empowered Sports Club es un ambiente comunitario
+            de entrenamiento y desarrollo creado para ayudar a
+            jóvenes y familias a crecer mediante el movimiento,
+            la fuerza, la educación y relaciones significativas.
+          </p>
+
+          <p>
+            Cada salón tiene un propósito diferente. Juntos crean
+            un ambiente donde los atletas y las familias pueden
+            fortalecer el cuerpo, desarrollar la mente y construir
+            confianza para la vida.
+          </p>
+
+          <div class="fitness-facilities-visual">
+            <img
+              src="/assets/img/marketing/fitness/fitness-splash.png"
+              alt="Instalaciones de Youth Empowered Sports Club incluyendo Open Mat Room, Cold Iron Barbell y Room to Grow"
+              loading="lazy"
+            />
+          </div>
+
+          <div class="room-grid">
+
+            <article class="room-card">
+              <h3>Open Mat Room</h3>
+
+              <p>
+                Coordinación, equilibrio, movimiento, fuerza,
+                confianza y carácter.
+              </p>
+            </article>
+
+            <article class="room-card">
+              <h3>Cold Iron Barbell</h3>
+
+              <p>
+                Desarrollo de fuerza, powerlifting,
+                entrenamiento en equipo y competencia.
+              </p>
+            </article>
+
+            <article class="room-card">
+              <h3>Room to Grow</h3>
+
+              <p>
+                Educación, mentoría, liderazgo,
+                establecimiento de metas y desarrollo personal.
+              </p>
+            </article>
+
+          </div>
+
+          <p class="yesc-statement">
+            Cuerpos fuertes. Mentes fuertes. Más fuertes juntos.
+          </p>
+
+        </div>
+
+      </section>
+
+      <!-- =====================================================
+           PROGRAMS
+      ====================================================== -->
+
+      <section id="programs">
+
+        <header class="fitness-section-header">
+
+          <div data-lang-block="en">
+            <p class="eyebrow">
+              Everyday Fitness
+            </p>
+
+            <h2>
+              Choose Your Program
+            </h2>
+
+            <p>
+              Programs are designed for different ages, goals,
+              schedules, and experience levels.
+            </p>
+          </div>
+
+          <div
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            <p class="eyebrow">
+              Fitness Diario
+            </p>
+
+            <h2>
+              Elige Tu Programa
+            </h2>
+
+            <p>
+              Los programas están diseñados para diferentes
+              edades, metas, horarios y niveles de experiencia.
+            </p>
+          </div>
+
+        </header>
+
+        <div class="fitness-grid">
+
+          <!-- JumpStart Fitness -->
+
+          <article class="fitness-card">
+
+            <div data-lang-block="en">
+              <p class="card-kicker">Morning Movement</p>
+              <h2>JumpStart Fitness</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                A coach-led morning class built around movement,
+                coordination, balance, strength, and positive energy.
+              </p>
+
+              <ul>
+                <li>Monday and Thursday mornings</li>
+                <li>Movement and mobility</li>
+                <li>Balance and coordination</li>
+                <li>Beginner-friendly strength and conditioning</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/jumpstart-fitness.html"
+              >
+                Explore JumpStart Fitness
+              </a>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <p class="card-kicker">Movimiento Matutino</p>
+              <h2>JumpStart Fitness</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Una clase matutina dirigida por un coach que
+                combina movimiento, coordinación, equilibrio,
+                fuerza y energía positiva.
+              </p>
+
+              <ul>
+                <li>Lunes y jueves por la mañana</li>
+                <li>Movimiento y movilidad</li>
+                <li>Equilibrio y coordinación</li>
+                <li>Fuerza y acondicionamiento para principiantes</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/jumpstart-fitness.html"
+              >
+                Explorar JumpStart Fitness
+              </a>
+            </div>
+
+          </article>
+
+          <!-- KidFIT -->
+
+          <article class="fitness-card">
+
+            <div data-lang-block="en">
+              <p class="card-kicker">Youth Fitness</p>
+              <h2>KidFIT</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Movement, strength, coordination, conditioning,
+                and confidence-building for younger athletes.
+              </p>
+
+              <ul>
+                <li>Age-appropriate strength training</li>
+                <li>Balance and coordination</li>
+                <li>Movement fundamentals</li>
+                <li>Fitness and confidence</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/youth-fitness.html"
+              >
+                Explore KidFIT
+              </a>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <p class="card-kicker">Fitness Infantil</p>
+              <h2>KidFIT</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Movimiento, fuerza, coordinación,
+                acondicionamiento y confianza para atletas jóvenes.
+              </p>
+
+              <ul>
+                <li>Fuerza apropiada para la edad</li>
+                <li>Equilibrio y coordinación</li>
+                <li>Fundamentos de movimiento</li>
+                <li>Fitness y confianza</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/youth-fitness.html"
+              >
+                Explorar KidFIT
+              </a>
+            </div>
+
+          </article>
+
+          <!-- TeenFIT -->
+
+          <article class="fitness-card">
+
+            <div data-lang-block="en">
+              <p class="card-kicker">
+                Teen Fitness • Light • Non-Contact
+              </p>
+
+              <h2>
+                TeenFIT + TeenFIT Boxing
+              </h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Teen fitness combining strength, movement,
+                conditioning, and optional light, non-contact
+                bag and mitt work.
+              </p>
+
+              <ul>
+                <li>Teen strength and conditioning</li>
+                <li>Movement and coordination</li>
+                <li>Light bag and mitt work</li>
+                <li>Non-contact fitness training</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/teenfit-boxing.html"
+              >
+                Explore TeenFIT
+              </a>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <p class="card-kicker">
+                Fitness Juvenil • Ligero • Sin Contacto
+              </p>
+
+              <h2>
+                TeenFIT + TeenFIT Boxing
+              </h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Fitness para adolescentes que combina fuerza,
+                movimiento, acondicionamiento y trabajo ligero
+                sin contacto con costal y manoplas.
+              </p>
+
+              <ul>
+                <li>Fuerza y acondicionamiento juvenil</li>
+                <li>Movimiento y coordinación</li>
+                <li>Trabajo ligero con costal y manoplas</li>
+                <li>Entrenamiento sin contacto</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/teenfit-boxing.html"
+              >
+                Explorar TeenFIT
+              </a>
+            </div>
+
+          </article>
+
+          <!-- HIIT Fitness -->
+
+          <article class="fitness-card">
+
+            <div data-lang-block="en">
+              <p class="card-kicker">45-Minute Classes</p>
+              <h2>HIIT Fitness</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Fast-moving, coach-led classes built around
+                interval training, conditioning, strength,
+                movement, and sustained effort.
+              </p>
+
+              <ul>
+                <li>HIIT Kickboxing</li>
+                <li>HIIT Strength</li>
+                <li>HIIT Boxing</li>
+                <li>Beginner-friendly and non-contact</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/hitfit.html"
+              >
+                Explore HIIT Fitness
+              </a>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <p class="card-kicker">Clases de 45 Minutos</p>
+              <h2>Fitness HIIT</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Clases dinámicas dirigidas por un coach que
+                combinan intervalos, acondicionamiento, fuerza,
+                movimiento y esfuerzo sostenido.
+              </p>
+
+              <ul>
+                <li>Kickboxing HIIT</li>
+                <li>Fuerza HIIT</li>
+                <li>Boxeo HIIT</li>
+                <li>Para principiantes y sin contacto</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/hitfit.html"
+              >
+                Explorar Fitness HIIT
+              </a>
+            </div>
+
+          </article>
+
+          <!-- Preschool Playtime -->
+
+          <article class="fitness-card">
+
+            <div data-lang-block="en">
+              <p class="card-kicker">Ages 3–5</p>
+              <h2>Preschool Playtime</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                A playful introduction to movement, coordination,
+                confidence, listening, and learning through activity.
+              </p>
+
+              <ul>
+                <li>Move, play, and learn</li>
+                <li>Balance and coordination</li>
+                <li>Running, jumping, crawling, and throwing</li>
+                <li>Confidence through guided play</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/preschool-playtime.html"
+              >
+                Explore Preschool Playtime
+              </a>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <p class="card-kicker">Edades 3–5</p>
+              <h2>Juego Preescolar</h2>
+
+              <p class="facility-label">
+                Youth Empowered Sports Club
+              </p>
+
+              <p>
+                Una introducción divertida al movimiento,
+                coordinación, confianza, escucha y aprendizaje
+                mediante la actividad.
+              </p>
+
+              <ul>
+                <li>Moverse, jugar y aprender</li>
+                <li>Equilibrio y coordinación</li>
+                <li>Correr, saltar, gatear y lanzar</li>
+                <li>Confianza mediante el juego guiado</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/preschool-playtime.html"
+              >
+                Explorar Juego Preescolar
+              </a>
+            </div>
+
+          </article>
+
+          <!-- Powerlifting -->
+
+          <article class="fitness-card">
+
+            <div data-lang-block="en">
+              <p class="card-kicker">
+                Progressive Team Training
+              </p>
+
+              <h2>Powerlifting</h2>
+
+              <p class="facility-label">
+                YESC — Cold Iron Barbell
+              </p>
+
+              <p>
+                Structured strength training built around
+                progressive learning, coached development,
+                team standards, and competition opportunities.
+              </p>
+
+              <ul>
+                <li>Squat, bench press, and deadlift</li>
+                <li>Technique and safe progression</li>
+                <li>Coach-guided development</li>
+                <li>Team training and competition</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/powerlifting.html"
+              >
+                Explore Powerlifting
+              </a>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <p class="card-kicker">
+                Entrenamiento Progresivo en Equipo
+              </p>
+
+              <h2>Powerlifting</h2>
+
+              <p class="facility-label">
+                YESC — Cold Iron Barbell
+              </p>
+
+              <p>
+                Entrenamiento estructurado de fuerza basado
+                en aprendizaje progresivo, desarrollo guiado
+                por coaches, estándares de equipo y competencia.
+              </p>
+
+              <ul>
+                <li>Sentadilla, press de banca y peso muerto</li>
+                <li>Técnica y progresión segura</li>
+                <li>Desarrollo guiado por coaches</li>
+                <li>Entrenamiento en equipo y competencia</li>
+              </ul>
+
+              <a
+                class="btn btn-primary"
+                href="/marketing/fitness/powerlifting.html"
+              >
+                Explorar Powerlifting
+              </a>
+            </div>
+
+          </article>
+
+        </div>
+
+      </section>
+
+      <!-- =====================================================
+           SCHEDULE
+      ====================================================== -->
+
+      <section
+        id="schedule"
+        class="fitness-panel schedule-link-panel"
+      >
+
+        <div data-lang-block="en">
+          <p class="eyebrow">Plan Your Week</p>
+          <h2>Schedule &amp; Calendar</h2>
+
+          <p>
+            View weekly class times, upcoming events, closures,
+            assessments, and competition dates.
+          </p>
+
+          <a
+            class="btn btn-primary"
+            href="/marketing/fitness/schedule.html"
+          >
+            View Schedule &amp; Calendar
+          </a>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">Planea Tu Semana</p>
+          <h2>Horario y Calendario</h2>
+
+          <p>
+            Consulta los horarios semanales, próximos eventos,
+            cierres, evaluaciones y fechas de competencia.
+          </p>
+
+          <a
+            class="btn btn-primary"
+            href="/marketing/fitness/schedule.html"
+          >
+            Ver Horario y Calendario
+          </a>
+        </div>
+
+      </section>
+
+      <!-- =====================================================
+           CONTACT / ADMISSIONS
+      ====================================================== -->
+
+      <section
+        id="contact"
+        class="fitness-cta"
+      >
+
+        <div data-lang-block="en">
+          <p class="eyebrow">
+            Not Sure Where to Begin?
+          </p>
+
+          <h2>
+            Tell Us What You Are Looking For
+          </h2>
+
+          <p>
+            Start with a $15 drop-in. If you join, the $15
+            is credited toward your first month.
+          </p>
+
+          <a
+            class="btn btn-primary"
+            href="/connect/yesc/"
+          >
+            Book Your First Class
+          </a>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">
+            ¿No Sabes Por Dónde Empezar?
+          </p>
+
+          <h2>
+            Cuéntanos Qué Estás Buscando
+          </h2>
+
+          <p>
+            Comienza con una clase de $15. Si te inscribes,
+            los $15 se aplican a tu primer mes.
+          </p>
+
+          <a
+            class="btn btn-primary"
+            href="/connect/yesc/?lang=es"
+          >
+            Reserva Tu Primera Clase
+          </a>
+        </div>
+
+      </section>
+
+    </div>
+
+  </main>
+
+  <!-- Shared Everyday Fitness footer -->
+
+  <div
+    id="footer"
+    data-component="/components/fitness-footer.html"
+  ></div>
+
+  <!-- Shared scripts -->
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
 
 </body>
 </html>

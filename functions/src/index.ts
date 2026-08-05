@@ -169,3 +169,31 @@ export {
 export {
   stripeBillingWebhook,
 } from "./billing/webhook";
+
+/* =========================
+   PROPOSALS
+========================= */
+
+export {
+  createProposalDraft,
+} from "./proposals/createProposalDraft";
+
+export {
+  updateProposalDraft,
+} from "./proposals/updateProposalDraft";
+
+export {
+  submitProposalForReview,
+} from "./proposals/submitProposalForReview";
+
+export {
+  approveProposal,
+} from "./proposals/approveProposal";
+
+export {
+  lockProposal,
+} from "./proposals/lockProposal";
+
+export {
+  createProposalCheckout,
+} from "./proposals/createProposalCheckout";

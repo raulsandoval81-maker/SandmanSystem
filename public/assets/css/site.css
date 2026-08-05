@@ -938,3 +938,16 @@ html[data-theme="light"] .system-section--progression{
   --muted:rgba(255,255,255,.64);
   --line:rgba(255,255,255,.12);
 }
+/* Everyday Fitness — alternative path after main story */
+.site-nav__fitness{
+  margin-top:10px;
+  padding-top:14px;
+  border-top:1px solid rgba(212,175,55,.38);
+  color:var(--heading-accent, #d4af37);
+  font-weight:900;
+}
+
+.site-nav__fitness:hover,
+.site-nav__fitness:focus-visible{
+  color:#f0cf68;
+}

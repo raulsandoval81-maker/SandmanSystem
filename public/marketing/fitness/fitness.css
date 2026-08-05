@@ -1,3 +1,64 @@
+/* ==========================================================
+   Everyday Fitness
+   Shared Fitness Styles
+   public/marketing/fitness/fitness.css
+========================================================== */
+
+
+/* ==========================================================
+   THEME VARIABLES
+========================================================== */
+
+:root,
+html[data-theme="dark"]{
+  color-scheme:dark;
+
+  --fitness-bg:#05080c;
+  --fitness-panel:#101923;
+  --fitness-panel-soft:#172334;
+
+  --fitness-heading:#ffffff;
+  --fitness-text:#f4f4f5;
+  --fitness-muted:#d1d5db;
+
+  --fitness-accent:#2dd4bf;
+  --fitness-accent-soft:#59f0d0;
+  --fitness-accent-dark:#08241f;
+
+  --fitness-line:rgba(45,212,191,.28);
+  --fitness-line-soft:rgba(255,255,255,.08);
+
+  --fitness-shadow:
+    0 18px 38px rgba(0,0,0,.28);
+}
+
+html[data-theme="light"]{
+  color-scheme:light;
+
+  --fitness-bg:#f4f1ea;
+  --fitness-panel:#ffffff;
+  --fitness-panel-soft:#edf4f4;
+
+  --fitness-heading:#171717;
+  --fitness-text:#202124;
+  --fitness-muted:#374151;
+
+  --fitness-accent:#0f766e;
+  --fitness-accent-soft:#14b8a6;
+  --fitness-accent-dark:#ffffff;
+
+  --fitness-line:#c6d3d5;
+  --fitness-line-soft:rgba(17,24,39,.12);
+
+  --fitness-shadow:
+    0 10px 24px rgba(0,0,0,.10);
+}
+
+
+/* ==========================================================
+   RESET
+========================================================== */
+
 *{
   box-sizing:border-box;
 }
@@ -8,8 +69,9 @@ html{
 
 body{
   margin:0;
-  background:var(--bg);
-  color:var(--text);
+
+  background:var(--fitness-bg);
+  color:var(--fitness-text);
 }
 
 img{
@@ -22,149 +84,176 @@ img{
   display:none !important;
 }
 
-/* Page shell */
+
+/* ==========================================================
+   PAGE SHELL
+========================================================== */
 
 .fitness-page{
   min-height:100vh;
+
+  background:var(--fitness-bg);
+  color:var(--fitness-text);
 }
 
 .fitness-shell{
-  width:min(1050px,calc(100% - 32px));
+  width:min(1050px, calc(100% - 32px));
+
   margin:0 auto;
   padding:0 0 84px;
 }
 
-/* Shared text */
 
-.eyebrow{
+/* ==========================================================
+   SHARED TEXT
+========================================================== */
+
+.eyebrow,
+.card-kicker{
   margin:0 0 .65rem;
-  color:var(--heading-accent);
+
+  color:var(--fitness-accent);
+
   font-size:.78rem;
   font-weight:900;
-  letter-spacing:.16em;
+  letter-spacing:.14em;
   text-transform:uppercase;
 }
 
 .hero-copy{
   max-width:780px;
+
   margin:0;
-  color:var(--hero-muted);
+
+  color:var(--fitness-muted);
+
   font-size:1.05rem;
   line-height:1.72;
 }
 
-.card-kicker{
-  margin:0 0 .45rem;
-  color:var(--heading-accent);
-  font-size:.76rem;
-  font-weight:900;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-}
-
 .facility-label{
   margin:.1rem 0 1rem !important;
-  color:var(--heading-accent) !important;
-  font-weight:800;
+
+  color:var(--fitness-accent) !important;
+
+  font-weight:850;
 }
 
-.progression-note{
-  margin-top:1.15rem !important;
-  color:var(--heading-accent) !important;
-  font-weight:900;
-}
-
+.progression-note,
 .yesc-statement{
-  margin-top:1.4rem !important;
-  color:var(--heading-accent) !important;
+  margin-top:1.25rem !important;
+
+  color:var(--fitness-accent) !important;
+
   font-weight:900;
   letter-spacing:.04em;
 }
 
-/* Splash image */
+h1,
+h2,
+h3,
+h4{
+  color:var(--fitness-heading);
+}
+
+p,
+li{
+  color:var(--fitness-muted);
+}
+
+
+/* ==========================================================
+   SPLASH IMAGE
+========================================================== */
 
 .fitness-splash{
-  width:min(1050px,calc(100% - 32px));
+  width:min(1050px, calc(100% - 32px));
+
   margin:28px auto;
 }
 
 .fitness-splash img{
   width:100%;
-  border:1px solid var(--line);
+
+  border:1px solid var(--fitness-line);
   border-radius:22px;
-  background:var(--panel);
-  box-shadow:0 18px 38px rgba(0,0,0,.28);
+
+  background:var(--fitness-panel);
+
+  box-shadow:var(--fitness-shadow);
 }
 
-body.day-mode .fitness-splash img{
-  border-color:#d7c7a2;
-  background:#fff;
-  box-shadow:0 10px 24px rgba(0,0,0,.10);
-}
 
-/* Hero */
+/* ==========================================================
+   HERO
+========================================================== */
 
 .fitness-hero{
-  padding:clamp(2rem,5vw,3.3rem);
-  border:1px solid #263244;
+  padding:clamp(2rem, 5vw, 3.3rem);
+
+  border:1px solid var(--fitness-line);
   border-radius:24px;
+
   background:
     radial-gradient(
       circle at top,
-      rgba(16,185,180,.15),
-      transparent 38%
+      rgba(45,212,191,.15),
+      transparent 40%
     ),
     linear-gradient(
       180deg,
-      #172334 0%,
-      #0b1320 100%
+      var(--fitness-panel-soft) 0%,
+      var(--fitness-panel) 100%
     );
-  box-shadow:0 20px 42px rgba(0,0,0,.34);
+
+  box-shadow:var(--fitness-shadow);
 }
 
 .fitness-hero h1{
   margin:0 0 .9rem;
-  color:var(--heading);
-  font-size:clamp(2.35rem,6vw,4.4rem);
+
+  color:var(--fitness-heading);
+
+  font-size:clamp(2.35rem, 6vw, 4.4rem);
   line-height:1.02;
 }
 
-body.day-mode .fitness-hero{
-  border-color:#c6d3d5;
-  background:
-    radial-gradient(
-      circle at top,
-      rgba(13,148,136,.12),
-      transparent 42%
-    ),
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #edf4f4 100%
-    );
-  box-shadow:0 10px 24px rgba(0,0,0,.10);
-}
 
-/* Shared panels */
+/* ==========================================================
+   SHARED PANELS
+========================================================== */
 
 .fitness-panel{
   margin-top:28px;
-  padding:clamp(1.35rem,4vw,2rem);
-  background:var(--panel);
-  border:1px solid var(--line);
+  padding:clamp(1.35rem, 4vw, 2rem);
+
+  background:var(--fitness-panel);
+
+  border:1px solid var(--fitness-line);
   border-radius:20px;
+
+  color:var(--fitness-text);
+
+  box-shadow:var(--fitness-shadow);
 }
 
 .fitness-panel h2{
   margin:0 0 .9rem;
-  color:var(--heading);
-  font-size:clamp(1.7rem,3.5vw,2.35rem);
+
+  color:var(--fitness-heading);
+
+  font-size:clamp(1.7rem, 3.5vw, 2.35rem);
   line-height:1.15;
+}
+
+.fitness-panel h3{
+  color:var(--fitness-heading);
 }
 
 .fitness-panel p,
 .fitness-panel li{
-  color:var(--muted);
+  color:var(--fitness-muted);
+
   line-height:1.68;
 }
 
@@ -181,32 +270,37 @@ body.day-mode .fitness-hero{
   margin-top:.4rem;
 }
 
-body.day-mode .fitness-panel{
-  background:#fff;
-  border-color:#c9d6d8;
-  box-shadow:0 8px 18px rgba(0,0,0,.08);
-}
 
-/* Fitness cards */
+/* ==========================================================
+   FITNESS CARDS
+========================================================== */
 
 .fitness-grid{
   display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
+  grid-template-columns:repeat(2, minmax(0,1fr));
   gap:18px;
+
   margin-top:28px;
 }
 
 .class-grid{
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(3, minmax(0,1fr));
 }
 
 .fitness-card{
   display:flex;
   min-width:0;
+
   padding:1.5rem;
-  background:var(--panel);
-  border:1px solid var(--line);
+
+  background:var(--fitness-panel);
+
+  border:1px solid var(--fitness-line);
   border-radius:18px;
+
+  color:var(--fitness-text);
+
+  box-shadow:var(--fitness-shadow);
 }
 
 .fitness-card > div{
@@ -217,14 +311,17 @@ body.day-mode .fitness-panel{
 
 .fitness-card h2{
   margin:0 0 .8rem;
-  color:var(--heading);
+
+  color:var(--fitness-heading);
+
   font-size:1.65rem;
   line-height:1.15;
 }
 
 .fitness-card p,
 .fitness-card li{
-  color:var(--muted);
+  color:var(--fitness-muted);
+
   line-height:1.65;
 }
 
@@ -246,13 +343,10 @@ body.day-mode .fitness-panel{
   margin-top:auto;
 }
 
-body.day-mode .fitness-card{
-  background:#fff;
-  border-color:#c9d6d8;
-  box-shadow:0 8px 18px rgba(0,0,0,.08);
-}
 
-/* YESC room overview */
+/* ==========================================================
+   YESC ROOM OVERVIEW
+========================================================== */
 
 .yesc-intro{
   margin-top:28px;
@@ -260,65 +354,84 @@ body.day-mode .fitness-card{
 
 .room-grid{
   display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
+  grid-template-columns:repeat(3, minmax(0,1fr));
   gap:14px;
+
   margin-top:1.25rem;
 }
 
 .room-card{
   padding:1.15rem;
-  border:1px solid var(--line);
+
+  border:1px solid var(--fitness-line);
   border-radius:16px;
-  background:rgba(255,255,255,.025);
+
+  background:
+    rgba(255,255,255,.025);
+}
+
+html[data-theme="light"] .room-card{
+  background:#f4f8f8;
 }
 
 .room-card h3{
   margin:0 0 .55rem;
-  color:var(--heading-accent);
+
+  color:var(--fitness-accent);
+
   font-size:1.15rem;
 }
 
 .room-card p{
   margin:0;
+
+  color:var(--fitness-muted);
 }
 
-body.day-mode .room-card{
-  background:#f4f8f8;
-  border-color:#cfdbdd;
-}
 
-/* CTA */
+/* ==========================================================
+   CTA
+========================================================== */
 
 .fitness-cta{
   margin-top:34px;
-  padding:clamp(1.7rem,5vw,2.7rem);
+  padding:clamp(1.7rem, 5vw, 2.7rem);
+
   text-align:center;
-  border:1px solid rgba(20,184,166,.34);
+
+  border:1px solid var(--fitness-line);
   border-radius:22px;
+
   background:
     radial-gradient(
       circle at top,
-      rgba(20,184,166,.16),
+      rgba(45,212,191,.16),
       transparent 42%
     ),
     linear-gradient(
       180deg,
-      #101b27 0%,
-      #070d13 100%
+      var(--fitness-panel-soft) 0%,
+      var(--fitness-panel) 100%
     );
-  box-shadow:0 18px 38px rgba(0,0,0,.28);
+
+  box-shadow:var(--fitness-shadow);
 }
 
 .fitness-cta h2{
   margin:0 0 .75rem;
-  color:#fff;
-  font-size:clamp(1.85rem,4vw,2.7rem);
+
+  color:var(--fitness-heading);
+
+  font-size:clamp(1.85rem, 4vw, 2.7rem);
 }
 
 .fitness-cta p{
   max-width:680px;
+
   margin:0 auto 1.25rem;
-  color:#d4d4d8;
+
+  color:var(--fitness-muted);
+
   line-height:1.65;
 }
 
@@ -328,47 +441,384 @@ body.day-mode .room-card{
   justify-content:center;
 }
 
-body.day-mode .fitness-cta{
-  border-color:#9fc7c5;
+
+/* ==========================================================
+   BUTTONS
+========================================================== */
+
+.fitness-page .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  min-height:46px;
+
+  padding:.8rem 1.15rem;
+
+  border-radius:12px;
+
+  font-weight:900;
+  text-align:center;
+  text-decoration:none;
+
+  transition:
+    transform .18s ease,
+    background-color .18s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
+}
+
+.fitness-page .btn.btn-primary,
+.fitness-shell .btn.btn-primary,
+.fitness-card .btn.btn-primary,
+.fitness-cta .btn.btn-primary{
+  color:#06241e !important;
+
+  background:#4fe3c1 !important;
+  background-image:none !important;
+
+  border:1px solid #4fe3c1 !important;
+
+  box-shadow:
+    0 8px 20px rgba(79,227,193,.22) !important;
+}
+
+.fitness-page .btn.btn-primary:hover,
+.fitness-shell .btn.btn-primary:hover,
+.fitness-card .btn.btn-primary:hover,
+.fitness-cta .btn.btn-primary:hover{
+  color:#041b17 !important;
+
+  background:#66ebcf !important;
+  background-image:none !important;
+
+  border-color:#66ebcf !important;
+
+  transform:translateY(-1px);
+}
+
+.fitness-page .btn.btn-primary:active{
+  transform:translateY(0);
+}
+
+.fitness-page .btn.btn-primary:focus-visible{
+  outline:3px solid rgba(79,227,193,.35);
+  outline-offset:3px;
+}
+
+
+/* ==========================================================
+   SCHEDULE LINK PANEL
+========================================================== */
+
+.schedule-link-panel{
+  text-align:center;
+}
+
+.schedule-link-panel .btn{
+  display:flex;
+
+  width:100%;
+  min-height:58px;
+
+  justify-content:center;
+  align-items:center;
+
+  text-align:center;
+}
+
+
+/* ==========================================================
+   SCHEDULE GRID
+========================================================== */
+
+.schedule-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:22px;
+
+  margin-top:30px;
+}
+
+.schedule-card{
+  position:relative;
+
+  display:flex;
+  min-height:100%;
+
+  padding:26px;
+
+  flex-direction:column;
+
+  overflow:hidden;
+
+  border:1px solid var(--fitness-line);
+  border-radius:20px;
+
   background:
-    radial-gradient(
-      circle at top,
-      rgba(20,184,166,.13),
-      transparent 44%
-    ),
     linear-gradient(
-      180deg,
-      #164e4a 0%,
-      #0f3735 100%
+      145deg,
+      var(--fitness-panel-soft),
+      var(--fitness-panel)
+    );
+
+  box-shadow:var(--fitness-shadow);
+}
+
+.schedule-card::before{
+  content:"";
+
+  position:absolute;
+  top:0;
+  left:0;
+
+  width:100%;
+  height:4px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #2dd4bf
     );
 }
 
-/* Buttons */
-
-.fitness-page .btn{
-  min-height:46px;
-  padding:.8rem 1.15rem;
-  border-radius:12px;
-  font-weight:900;
-  text-decoration:none;
+.schedule-card .card-kicker{
+  margin:0 0 8px;
 }
 
-/* Mobile */
+.schedule-card h3{
+  margin:0 0 20px;
+
+  color:var(--fitness-heading);
+
+  font-size:clamp(1.45rem, 2vw, 1.8rem);
+}
+
+.schedule-card p{
+  margin:8px 0;
+
+  color:var(--fitness-muted);
+
+  line-height:1.55;
+}
+
+.schedule-card p strong{
+  color:var(--fitness-heading);
+}
+
+.schedule-card .btn{
+  width:100%;
+
+  margin-top:auto;
+  padding-top:14px;
+  padding-bottom:14px;
+
+  text-align:center;
+}
+
+
+/* ==========================================================
+   DAY SCHEDULE
+========================================================== */
+
+.day-schedule-grid{
+  align-items:stretch;
+}
+
+.day-schedule-card{
+  min-height:100%;
+}
+
+.class-time-list{
+  display:grid;
+  gap:10px;
+
+  margin:18px 0;
+}
+
+.class-time-list p{
+  display:grid;
+  gap:3px;
+
+  margin:0;
+  padding:12px 0;
+
+  border-bottom:
+    1px solid var(--fitness-line-soft);
+}
+
+.class-time-list p:last-child{
+  border-bottom:0;
+}
+
+.class-time-list strong{
+  color:var(--fitness-accent);
+}
+
+.schedule-note{
+  font-size:.92rem;
+  font-style:italic;
+  opacity:.84;
+}
+
+.cold-iron-schedule-card{
+  margin-top:22px;
+}
+
+
+/* ==========================================================
+   FITNESS PROGRAM CHILD PAGES
+========================================================== */
+
+.fitness-page .fitness-hero-copy,
+.fitness-page .fitness-panel > [data-lang-block],
+.fitness-page .fitness-cta > [data-lang-block]{
+  text-align:center;
+}
+
+.fitness-page .fitness-hero-copy .eyebrow,
+.fitness-page .fitness-panel .eyebrow,
+.fitness-page .fitness-cta .eyebrow{
+  text-align:center;
+}
+
+.fitness-page .fitness-panel ul,
+.fitness-page .fitness-panel .fitness-list{
+  display:inline-block;
+
+  margin-left:auto;
+  margin-right:auto;
+
+  text-align:left;
+}
+
+.fitness-page .fitness-panel .btn,
+.fitness-page .fitness-cta .btn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  text-align:center;
+}
+
+
+/* ==========================================================
+   CURRENT THEME ENGINE COMPATIBILITY
+========================================================== */
+
+html[data-theme="light"] body,
+html[data-theme="light"] .fitness-page,
+html[data-theme="light"] main{
+  background:var(--fitness-bg);
+  color:var(--fitness-text);
+}
+
+html[data-theme="light"] .fitness-hero,
+html[data-theme="light"] .fitness-panel,
+html[data-theme="light"] .fitness-card,
+html[data-theme="light"] .schedule-card,
+html[data-theme="light"] .program-panel,
+html[data-theme="light"] .content-panel{
+  background:
+    linear-gradient(
+      180deg,
+      var(--fitness-panel) 0%,
+      var(--fitness-panel-soft) 100%
+    );
+
+  border-color:var(--fitness-line);
+
+  color:var(--fitness-text);
+
+  box-shadow:var(--fitness-shadow);
+}
+
+html[data-theme="light"] h1,
+html[data-theme="light"] h2,
+html[data-theme="light"] h3,
+html[data-theme="light"] h4{
+  color:var(--fitness-heading);
+}
+
+html[data-theme="light"] p,
+html[data-theme="light"] li,
+html[data-theme="light"] .hero-copy,
+html[data-theme="light"] .program-copy,
+html[data-theme="light"] .section-copy,
+html[data-theme="light"] .fitness-copy,
+html[data-theme="light"] .muted,
+html[data-theme="light"] .subtle{
+  color:var(--fitness-muted);
+}
+
+html[data-theme="light"] .eyebrow,
+html[data-theme="light"] .card-kicker,
+html[data-theme="light"] .facility-label,
+html[data-theme="light"] .progression-note,
+html[data-theme="light"] .yesc-statement{
+  color:var(--fitness-accent) !important;
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea{
+  color:#171717;
+  background:#ffffff;
+
+  border-color:#b8c7ca;
+}
+
+html[data-theme="light"] input::placeholder,
+html[data-theme="light"] textarea::placeholder{
+  color:#6b7280;
+}
+
+
+/* ==========================================================
+   LEGACY THEME FALLBACK
+   Supports pages still using body.day-mode
+========================================================== */
+
+body.day-mode{
+  --fitness-bg:#f4f1ea;
+  --fitness-panel:#ffffff;
+  --fitness-panel-soft:#edf4f4;
+
+  --fitness-heading:#171717;
+  --fitness-text:#202124;
+  --fitness-muted:#374151;
+
+  --fitness-accent:#0f766e;
+  --fitness-line:#c6d3d5;
+  --fitness-line-soft:rgba(17,24,39,.12);
+
+  --fitness-shadow:
+    0 10px 24px rgba(0,0,0,.10);
+}
+
+
+/* ==========================================================
+   MOBILE
+========================================================== */
 
 @media (max-width:900px){
+
   .class-grid{
     grid-template-columns:1fr;
   }
+
 }
 
 @media (max-width:760px){
+
   .fitness-shell{
-    width:min(100% - 24px,1050px);
+    width:min(100% - 24px, 1050px);
     padding-bottom:68px;
   }
 
   .fitness-splash{
-    width:min(100% - 24px,1050px);
+    width:min(100% - 24px, 1050px);
     margin:20px auto;
   }
 
@@ -376,28 +826,32 @@ body.day-mode .fitness-cta{
   .fitness-hero,
   .fitness-panel,
   .fitness-card,
-  .fitness-cta{
+  .fitness-cta,
+  .schedule-card{
     border-radius:16px;
   }
 
   .fitness-grid,
-  .room-grid{
+  .room-grid,
+  .schedule-grid{
     grid-template-columns:1fr;
   }
 
   .fitness-card .btn{
     width:100%;
-    justify-content:center;
   }
+
+  .schedule-card{
+    padding:22px;
+  }
+
 }
 
 @media (max-width:420px){
-  .fitness-shell{
-    width:min(100% - 20px,1050px);
-  }
 
+  .fitness-shell,
   .fitness-splash{
-    width:min(100% - 20px,1050px);
+    width:min(100% - 20px, 1050px);
   }
 
   .fitness-hero{
@@ -420,258 +874,323 @@ body.day-mode .fitness-cta{
   .room-card{
     padding:1rem;
   }
+
 }
-/* YESC fitness buttons */
-.fitness-page .btn-primary,
-.fitness-shell .btn-primary,
-.fitness-cta .btn-primary,
-.fitness-card .btn-primary{
-  background: linear-gradient(
-    180deg,
-    #59f0d0 0%,
-    #45dfbf 100%
-  );
-  color: #08241f;
-  border: 1px solid rgba(89,240,208,.45);
-  box-shadow: 0 10px 24px rgba(69,223,191,.18);
+/* ==========================================================
+   FITNESS FOOTER CONTRAST FIX
+========================================================== */
+
+.fitness-page #footer,
+.fitness-page #footer footer,
+.fitness-page .site-footer,
+.fitness-page .fitness-footer{
+  background:#071017;
+  color:#f4f4f5;
 }
 
-.fitness-page .btn-primary:hover,
-.fitness-shell .btn-primary:hover,
-.fitness-cta .btn-primary:hover,
-.fitness-card .btn-primary:hover{
-  background: linear-gradient(
-    180deg,
-    #73f5d9 0%,
-    #52e7c7 100%
-  );
-  color: #041a16;
-  transform: translateY(-1px);
+.fitness-page #footer h2,
+.fitness-page #footer h3,
+.fitness-page #footer strong,
+.fitness-page .site-footer h2,
+.fitness-page .site-footer h3,
+.fitness-page .site-footer strong,
+.fitness-page .fitness-footer h2,
+.fitness-page .fitness-footer h3,
+.fitness-page .fitness-footer strong{
+  color:#ffffff;
 }
 
-.fitness-page .btn-primary:active,
-.fitness-shell .btn-primary:active,
-.fitness-cta .btn-primary:active,
-.fitness-card .btn-primary:active{
-  transform: translateY(0);
-}
-/* YESC button color override */
-
-body .fitness-page .btn.btn-primary{
-  background:#4fe3c1 !important;
-  background-image:none !important;
-  border-color:#4fe3c1 !important;
-  color:#06241e !important;
-  box-shadow:
-    0 8px 20px rgba(79,227,193,.22) !important;
+.fitness-page #footer p,
+.fitness-page #footer span,
+.fitness-page #footer small,
+.fitness-page #footer li,
+.fitness-page .site-footer p,
+.fitness-page .site-footer span,
+.fitness-page .site-footer small,
+.fitness-page .site-footer li,
+.fitness-page .fitness-footer p,
+.fitness-page .fitness-footer span,
+.fitness-page .fitness-footer small,
+.fitness-page .fitness-footer li{
+  color:#d1d5db;
 }
 
-body .fitness-page .btn.btn-primary:hover{
-  background:#66ebcf !important;
-  background-image:none !important;
-  border-color:#66ebcf !important;
-  color:#041b17 !important;
+.fitness-page #footer a,
+.fitness-page .site-footer a,
+.fitness-page .fitness-footer a{
+  color:#59f0d0;
 }
 
-body .fitness-page .btn.btn-primary:focus-visible{
-  outline:3px solid rgba(79,227,193,.35);
-  outline-offset:3px;
-}
-/* Center and tighten the top YESC navigation */
-
-.top-nav.top-nav-simple{
-  padding:10px 16px 8px;
+.fitness-page #footer a:hover,
+.fitness-page .site-footer a:hover,
+.fitness-page .fitness-footer a:hover{
+  color:#8af7df;
 }
 
-.top-nav .nav-top,
-.top-nav .nav-top-center{
-  display:flex;
-  justify-content:center;
-  align-items:center;
+.fitness-page #footer,
+.fitness-page .site-footer,
+.fitness-page .fitness-footer{
+  border-top:1px solid rgba(45,212,191,.28);
+}
+
+/* ==========================================================
+   FITNESS INDEX FOOTER — ISOLATED REPAIR
+========================================================== */
+
+body.fitness-index-page #footer{
   width:100%;
-  max-width:1100px;
-  margin:0 auto;
-  text-align:center;
+  margin:0;
+  padding:0;
+
+  background:#071017;
+  color:#f4f4f5;
+
+  border-top:1px solid rgba(45,212,191,.30);
 }
 
-.top-nav .nav-logo{
-  display:block;
-  margin:0 auto;
-  text-align:center;
-}
-.top-nav-simple .nav-top-center {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
+body.fitness-index-page #footer .site-footer{
+  width:100%;
+  margin:0;
+  padding:0;
 
-.top-nav-simple .nav-top-center .nav-logo {
-  margin: 0 auto;
-  text-align: center;
-}
-.schedule-link-panel .btn {
-  display: flex;
-  width: 100%;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-.schedule-link-panel .btn {
-  display: flex;
-  width: 100%;
-  min-height: 58px;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
-}
-.schedule-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 22px;
-  margin-top: 30px;
-}
-
-.schedule-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  min-height: 100%;
-  padding: 26px;
-  overflow: hidden;
-  border: 1px solid rgba(45, 212, 191, 0.28);
-  border-radius: 20px;
   background:
-    linear-gradient(
-      145deg,
-      rgba(17, 24, 39, 0.96),
-      rgba(3, 12, 18, 0.96)
-    );
-  box-shadow:
-    0 18px 40px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    radial-gradient(
+      circle at top,
+      rgba(45,212,191,.09),
+      transparent 36%
+    ),
+    #071017;
+
+  color:#f4f4f5;
 }
 
-.schedule-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 4px;
-  background: linear-gradient(
-    90deg,
-    #2563eb,
-    #2dd4bf
-  );
+body.fitness-index-page #footer .site-footer__inner{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,.8fr);
+  gap:48px;
+  align-items:start;
+
+  width:min(1100px,calc(100% - 40px));
+  margin:0 auto;
+  padding:48px 0 34px;
 }
 
-.schedule-card .card-kicker {
-  margin: 0 0 8px;
-  color: #2dd4bf;
-  font-size: 0.78rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+body.fitness-index-page #footer .site-footer__brand,
+body.fitness-index-page #footer .site-footer__contact{
+  min-width:0;
 }
 
-.schedule-card h3 {
-  margin: 0 0 20px;
-  font-size: clamp(1.45rem, 2vw, 1.8rem);
+body.fitness-index-page #footer h2,
+body.fitness-index-page #footer h3{
+  margin:0 0 12px;
+  color:#ffffff;
 }
 
-.schedule-card p {
-  margin: 8px 0;
-  color: #d1d5db;
-  line-height: 1.55;
+body.fitness-index-page #footer h2{
+  font-size:clamp(1.55rem,3vw,2.2rem);
 }
 
-.schedule-card p strong {
-  color: #ffffff;
+body.fitness-index-page #footer h3{
+  font-size:1rem;
+  line-height:1.4;
 }
 
-.schedule-card .btn {
-  width: 100%;
-  margin-top: auto;
-  padding-top: 14px;
-  padding-bottom: 14px;
-  text-align: center;
+body.fitness-index-page #footer p,
+body.fitness-index-page #footer span,
+body.fitness-index-page #footer small{
+  color:#d1d5db;
 }
 
-@media (max-width: 760px) {
-  .schedule-grid {
-    grid-template-columns: 1fr;
+body.fitness-index-page #footer p{
+  margin:8px 0 0;
+  line-height:1.65;
+}
+
+body.fitness-index-page #footer .site-footer__bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+
+  width:min(1100px,calc(100% - 40px));
+  margin:0 auto;
+  padding:22px 0 28px;
+
+  border-top:1px solid rgba(255,255,255,.10);
+}
+
+body.fitness-index-page #footer .site-footer__bottom p{
+  margin:0;
+  text-align:right;
+}
+
+body.fitness-index-page #footer a,
+body.fitness-index-page #footer .site-footer__combat-link{
+  color:#59f0d0;
+  font-weight:850;
+  text-decoration:none;
+}
+
+body.fitness-index-page #footer a:hover,
+body.fitness-index-page #footer a:focus-visible{
+  color:#8af7df;
+  text-decoration:underline;
+}
+
+@media (max-width:700px){
+
+  body.fitness-index-page #footer .site-footer__inner{
+    grid-template-columns:1fr;
+    gap:28px;
+
+    width:min(100% - 28px,1100px);
+    padding:36px 0 28px;
+
+    text-align:center;
   }
 
-  .schedule-card {
-    padding: 22px;
+  body.fitness-index-page #footer .site-footer__bottom{
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+
+    width:min(100% - 28px,1100px);
+    padding:20px 0 26px;
+
+    text-align:center;
   }
-}
-.day-schedule-grid {
-  align-items: stretch;
+
+  body.fitness-index-page #footer .site-footer__bottom p{
+    text-align:center;
+  }
+
 }
 
-.day-schedule-card {
-  min-height: 100%;
+/* ==========================================================
+   FITNESS INDEX FOOTER — CONTRAST AND STACKING FIX
+========================================================== */
+
+body.fitness-index-page #footer{
+  width:100%;
+  margin:0;
+  padding:0;
+  background:#071017;
+  border-top:1px solid rgba(45,212,191,.30);
 }
 
-.class-time-list {
-  display: grid;
-  gap: 10px;
-  margin: 18px 0;
+body.fitness-index-page #footer .site-footer{
+  width:100%;
+  margin:0;
+  padding:0;
+  background:
+    radial-gradient(
+      circle at top,
+      rgba(45,212,191,.09),
+      transparent 36%
+    ),
+    #071017;
+  color:#f4f4f5;
 }
 
-.class-time-list p {
-  display: grid;
-  gap: 3px;
-  margin: 0;
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+body.fitness-index-page #footer .site-footer__inner{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(280px,.85fr);
+  gap:48px;
+  align-items:start;
+
+  width:min(1100px,calc(100% - 40px));
+  margin:0 auto;
+  padding:48px 0 34px;
 }
 
-.class-time-list p:last-child {
-  border-bottom: 0;
+body.fitness-index-page #footer .site-footer__brand,
+body.fitness-index-page #footer .site-footer__contact{
+  min-width:0;
 }
 
-.class-time-list strong {
-  color: #2dd4bf;
+body.fitness-index-page #footer h2,
+body.fitness-index-page #footer h3{
+  margin:0 0 12px;
+  color:#ffffff;
 }
 
-.schedule-note {
-  font-size: 0.92rem;
-  font-style: italic;
-  opacity: 0.82;
+body.fitness-index-page #footer h2{
+  font-size:clamp(1.55rem,3vw,2.2rem);
 }
 
-.cold-iron-schedule-card {
-  margin-top: 22px;
-}
-/* New fitness program pages */
-.fitness-page .fitness-hero-copy,
-.fitness-page .fitness-panel > [data-lang-block],
-.fitness-page .fitness-cta > [data-lang-block] {
-  text-align: center;
+body.fitness-index-page #footer h3{
+  font-size:1rem;
+  line-height:1.4;
 }
 
-.fitness-page .fitness-hero-copy .eyebrow,
-.fitness-page .fitness-panel .eyebrow,
-.fitness-page .fitness-cta .eyebrow {
-  text-align: center;
+body.fitness-index-page #footer p,
+body.fitness-index-page #footer span,
+body.fitness-index-page #footer small{
+  color:#d1d5db;
 }
 
-.fitness-page .fitness-panel ul,
-.fitness-page .fitness-panel .fitness-list {
-  display: inline-block;
-  margin-left: auto;
-  margin-right: auto;
-  text-align: left;
+body.fitness-index-page #footer p{
+  margin:8px 0 0;
+  line-height:1.65;
 }
 
-.fitness-page .fitness-panel .btn,
-.fitness-page .fitness-cta .btn {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  text-align: center;
+body.fitness-index-page #footer .site-footer__bottom{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:24px;
+
+  width:min(1100px,calc(100% - 40px));
+  margin:0 auto;
+  padding:22px 0 28px;
+
+  border-top:1px solid rgba(255,255,255,.10);
+}
+
+body.fitness-index-page #footer .site-footer__bottom p{
+  margin:0;
+  text-align:right;
+}
+
+body.fitness-index-page #footer a,
+body.fitness-index-page #footer .site-footer__combat-link{
+  color:#59f0d0;
+  font-weight:850;
+  text-decoration:none;
+}
+
+body.fitness-index-page #footer a:hover,
+body.fitness-index-page #footer a:focus-visible{
+  color:#8af7df;
+  text-decoration:underline;
+}
+
+@media (max-width:700px){
+
+  body.fitness-index-page #footer .site-footer__inner{
+    grid-template-columns:1fr;
+    gap:28px;
+
+    width:min(100% - 28px,1100px);
+    padding:36px 0 28px;
+
+    text-align:center;
+  }
+
+  body.fitness-index-page #footer .site-footer__bottom{
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:14px;
+
+    width:min(100% - 28px,1100px);
+    padding:20px 0 26px;
+
+    text-align:center;
+  }
+
+  body.fitness-index-page #footer .site-footer__bottom p{
+    text-align:center;
+  }
 }
