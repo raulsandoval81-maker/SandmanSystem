@@ -85,3 +85,15 @@ serviceAccount*.json
 .LSOverride
 ._*
 
+
+# Local backup files
+backups/
+public/*.before-*
+
+# One-use maintenance scripts
+add-marketing-shared-shell.py
+fix-p2l-discipline-headers.py
+fix-q2m-discipline-headers.py
+fix-z2h-discipline-headers.py
+move-boxing-poster.py
+split-prospect-builder.py
