@@ -1117,3 +1117,91 @@
     object-position: center top;
   }
 }
+/* =========================================================
+   ORIGINS — TRADITION AND PROGRESS
+========================================================= */
+
+.origins-story-grid--tradition {
+  align-items: center;
+  gap: clamp(2rem, 5vw, 4.5rem);
+}
+
+.origins-statement--tradition {
+  margin: 1.75rem 0;
+  padding: clamp(1.35rem, 3vw, 2rem);
+}
+
+.origins-statement--tradition p {
+  margin: 0 0 0.6rem;
+}
+
+.origins-statement--tradition strong {
+  display: block;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.origins-photo-card--tradition {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.origins-photo-card--tradition img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  object-fit: contain;
+}
+
+.origins-photo-card--tradition figcaption {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .origins-story-grid--tradition {
+    grid-template-columns: 1fr;
+  }
+
+  .origins-photo-card--tradition {
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .origins-section--tradition .origins-container {
+    width: calc(100% - 1.5rem);
+  }
+
+  .origins-statement--tradition {
+    margin: 1.4rem 0;
+    padding: 1.35rem 1.2rem;
+    border-radius: 1.4rem;
+  }
+
+  .origins-statement--tradition p {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+
+  .origins-statement--tradition strong {
+    font-size: clamp(1.3rem, 6.5vw, 1.8rem);
+  }
+
+  .origins-photo-card--tradition {
+    width: calc(100% + 1.5rem);
+    margin-left: -0.75rem;
+    margin-right: -0.75rem;
+  }
+
+  .origins-photo-card--tradition img {
+    width: 100%;
+  }
+}
