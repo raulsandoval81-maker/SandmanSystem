@@ -1,4 +1,4 @@
-<!doctype html>
+!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
@@ -8,12 +8,11 @@
 
   <meta
     name="description"
-    content="Explore the Sandman Combat Library for athlete education, parent guidance, coaching insight, performance principles, and character development."
+    content="Discover the knowledge, member resources, coach development, certification, and connected systems behind Sandman Combat."
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/assets/css/library.css" />
-
 </head>
 
 <body>
@@ -21,12 +20,14 @@
   <!-- ======================================================
        SITE HEADER
   ======================================================= -->
-<div
-  id="navigation"
-  data-component="/components/navigation.html"
-></div>
 
-<div class="site-hero-divider" aria-hidden="true"></div>
+  <div
+    id="navigation"
+    data-component="/components/navigation.html"
+  ></div>
+
+  <div class="site-hero-divider" aria-hidden="true"></div>
+  <div class="hero-transition-band" aria-hidden="true"></div>
 
 
   <!-- ======================================================
@@ -39,32 +40,60 @@
          LIBRARY POSTER
     ===================================================== -->
 
-    <section
-      class="library-hero"
-      aria-label="Sandman Combat Library"
-    >
+<section
+  class="library-hero"
+  aria-label="Sandman Combat Library"
+>
+  <div data-lang-block="en" class="library-hero__panel">
 
-      <div data-lang-block="en">
-        <img
-          src="/assets/img/pages/library/hero-library-en.png"
-          alt="Sandman Combat Library knowledge and resource center."
-          class="library-hero__image"
-        />
-      </div>
+    <img
+      src="/assets/img/pages/library/hero-library-en.png"
+      alt="Sandman Combat Library, member resources, coach development, and Sandman Management OS."
+      class="library-hero__image"
+    />
 
-      <div data-lang-block="es" class="hidden-lang">
-        <img
-          src="/assets/img/pages/library/hero-library-es.png"
-          alt="Biblioteca y centro de recursos de Sandman Combat."
-          class="library-hero__image"
-        />
-      </div>
+    <a
+      class="library-hero__hotspot library-hero__hotspot--login"
+      href="/login/"
+      aria-label="Access your Sandman member portal"
+    ></a>
 
-    </section>
+    <a
+      class="library-hero__hotspot library-hero__hotspot--start"
+      href="/connect/interest/"
+      aria-label="Start your Sandman journey"
+    ></a>
 
+  </div>
+
+  <div
+    data-lang-block="es"
+    class="library-hero__panel hidden-lang"
+  >
+
+    <img
+      src="/assets/img/pages/library/hero-library-es.png"
+      alt="Biblioteca Sandman Combat, recursos para miembros, desarrollo de entrenadores y Sandman Management OS."
+      class="library-hero__image"
+    />
+
+    <a
+      class="library-hero__hotspot library-hero__hotspot--login"
+      href="/login/"
+      aria-label="Accede a tu portal de miembro Sandman"
+    ></a>
+
+    <a
+      class="library-hero__hotspot library-hero__hotspot--start"
+      href="/connect/interest/"
+      aria-label="Inicia tu trayectoria Sandman"
+    ></a>
+
+  </div>
+</section>
 
     <!-- ====================================================
-         INTRODUCTION
+         PURPOSE
     ===================================================== -->
 
     <section class="library-section library-section--intro">
@@ -73,28 +102,30 @@
         <div data-lang-block="en">
 
           <p class="library-eyebrow">
-            Built for Real Questions
+            The Knowledge Behind the System
           </p>
 
           <h1>
-            Learn What You Need for the Next Step
+            More Than a Place to Train
           </h1>
 
           <p class="library-lead">
-            Athletes, parents, and coaches do not always need more
-            information. They need the right information at the right time.
+            Sandman is supported by a deeper system of curriculum,
+            progression, communication, education, leadership, and
+            role-specific tools.
           </p>
 
           <p>
-            The Sandman Library is designed to make complex parts of
-            training easier to understand. Each resource should help someone
-            make a better decision, prepare for a challenge, or approach the
-            journey with greater confidence.
+            The public Library introduces the thinking behind the work.
+            Once athletes, families, coaches, and management become part of
+            the community, they gain access to deeper resources through their
+            secure member portals.
           </p>
 
           <div class="library-statement">
             <strong>
-              Knowledge becomes valuable when it improves action.
+              Knowledge makes the system teachable. Shared standards make it
+              consistent. Community allows it to grow.
             </strong>
           </div>
 
@@ -103,29 +134,31 @@
         <div data-lang-block="es" class="hidden-lang">
 
           <p class="library-eyebrow">
-            Creada para Preguntas Reales
+            El Conocimiento Detrás del Sistema
           </p>
 
           <h1>
-            Aprende lo Necesario para Dar el Siguiente Paso
+            Más que un Lugar para Entrenar
           </h1>
 
           <p class="library-lead">
-            Los atletas, padres y entrenadores no siempre necesitan más
-            información. Necesitan la información correcta en el momento
-            correcto.
+            Sandman está respaldado por un sistema más profundo de currículo,
+            progresión, comunicación, educación, liderazgo y herramientas
+            específicas para cada función.
           </p>
 
           <p>
-            La Biblioteca Sandman está diseñada para facilitar la comprensión
-            de las partes más complejas del entrenamiento. Cada recurso debe
-            ayudar a alguien a tomar una mejor decisión, prepararse para un
-            desafío o avanzar con mayor confianza.
+            La Biblioteca pública presenta las ideas que guían el trabajo.
+            Cuando atletas, familias, entrenadores y personal de gestión pasan
+            a formar parte de la comunidad, obtienen acceso a recursos más
+            profundos mediante sus portales seguros.
           </p>
 
           <div class="library-statement">
             <strong>
-              El conocimiento adquiere valor cuando mejora la acción.
+              El conocimiento hace que el sistema pueda enseñarse. Los
+              estándares compartidos lo mantienen consistente. La comunidad
+              permite que crezca.
             </strong>
           </div>
 
@@ -136,131 +169,7 @@
 
 
     <!-- ====================================================
-         HOW TO USE THE LIBRARY
-    ===================================================== -->
-
-    <section class="library-section library-section--process">
-      <div class="library-container">
-
-        <div data-lang-block="en">
-
-          <div class="library-heading">
-            <p class="library-eyebrow">
-              A Simple Learning Process
-            </p>
-
-            <h2>
-              Read. Apply. Reflect.
-            </h2>
-
-            <p>
-              The Library is not meant to be consumed all at once.
-              Start with the challenge in front of you and use what helps.
-            </p>
-          </div>
-
-          <div class="library-process-grid">
-
-            <article class="library-process-card">
-              <span class="library-process-card__number">01</span>
-
-              <h3>Choose the Question</h3>
-
-              <p>
-                Begin with something specific: confidence, preparation,
-                recovery, communication, leadership, or competition.
-              </p>
-            </article>
-
-            <article class="library-process-card">
-              <span class="library-process-card__number">02</span>
-
-              <h3>Use One Idea</h3>
-
-              <p>
-                Select one principle or action you can put into practice
-                immediately instead of trying to change everything.
-              </p>
-            </article>
-
-            <article class="library-process-card">
-              <span class="library-process-card__number">03</span>
-
-              <h3>Review the Result</h3>
-
-              <p>
-                Pay attention to what improved, what remained difficult,
-                and what your next question should be.
-              </p>
-            </article>
-
-          </div>
-
-        </div>
-
-        <div data-lang-block="es" class="hidden-lang">
-
-          <div class="library-heading">
-            <p class="library-eyebrow">
-              Un Proceso Sencillo de Aprendizaje
-            </p>
-
-            <h2>
-              Lee. Aplica. Reflexiona.
-            </h2>
-
-            <p>
-              La Biblioteca no está diseñada para consumirse de una sola vez.
-              Comienza con el desafío que tienes enfrente y utiliza lo que
-              pueda ayudarte.
-            </p>
-          </div>
-
-          <div class="library-process-grid">
-
-            <article class="library-process-card">
-              <span class="library-process-card__number">01</span>
-
-              <h3>Elige la Pregunta</h3>
-
-              <p>
-                Comienza con algo específico: confianza, preparación,
-                recuperación, comunicación, liderazgo o competencia.
-              </p>
-            </article>
-
-            <article class="library-process-card">
-              <span class="library-process-card__number">02</span>
-
-              <h3>Utiliza Una Idea</h3>
-
-              <p>
-                Selecciona un principio o una acción que puedas poner en
-                práctica de inmediato en lugar de intentar cambiarlo todo.
-              </p>
-            </article>
-
-            <article class="library-process-card">
-              <span class="library-process-card__number">03</span>
-
-              <h3>Evalúa el Resultado</h3>
-
-              <p>
-                Observa qué mejoró, qué continuó siendo difícil y cuál debe
-                ser tu siguiente pregunta.
-              </p>
-            </article>
-
-          </div>
-
-        </div>
-
-      </div>
-    </section>
-
-
-    <!-- ====================================================
-         RESOURCE PATHWAYS
+         CONNECTED ROLES
     ===================================================== -->
 
     <section class="library-section library-section--pathways">
@@ -270,100 +179,56 @@
 
           <div class="library-heading">
             <p class="library-eyebrow">
-              Find Your Starting Point
+              One Community. Different Responsibilities.
             </p>
 
             <h2>
-              Different Roles. Different Needs.
+              Different Roles. One Connected System.
             </h2>
 
             <p>
-              Everyone supports athlete development from a different
-              position. The best resource depends on the responsibility
-              you carry today.
+              Every person supports the mission from a different position.
+              Sandman gives each role the information, tools, and support
+              needed to contribute with clarity.
             </p>
           </div>
 
-          <div class="library-pathway-grid">
+          <div class="library-collection-grid">
 
-            <article class="library-pathway-card">
-
-              <span class="library-pathway-card__label">
-                Athlete Path
-              </span>
-
-              <h3>
-                Understand Your Development
-              </h3>
-
+            <article class="library-collection-card">
+              <h3>Athlete Development</h3>
               <p>
-                Learn how to prepare, respond to setbacks, build consistency,
-                communicate with coaches, and take greater ownership of your
-                progress.
+                Progression, skills, schedules, mindset, strength,
+                preparation, and development tools that help athletes take
+                ownership of their journey.
               </p>
-
-              <a
-                href="/library/athletes/"
-                class="library-link"
-              >
-                Athlete Resources
-                <span aria-hidden="true">→</span>
-              </a>
-
             </article>
 
-
-            <article class="library-pathway-card">
-
-              <span class="library-pathway-card__label">
-                Family Path
-              </span>
-
-              <h3>
-                Support Without Taking Over
-              </h3>
-
+            <article class="library-collection-card">
+              <h3>Family Support</h3>
               <p>
-                Learn how to encourage effort, manage competition emotions,
-                communicate with coaches, and help your athlete build
-                independence.
+                Communication, progress visibility, policies, safety,
+                competition guidance, and practical support for the athlete’s
+                journey.
               </p>
-
-              <a
-                href="/library/parents/"
-                class="library-link"
-              >
-                Parent Resources
-                <span aria-hidden="true">→</span>
-              </a>
-
             </article>
 
-
-            <article class="library-pathway-card">
-
-              <span class="library-pathway-card__label">
-                Coach Path
-              </span>
-
-              <h3>
-                Lead the Whole Athlete
-              </h3>
-
+            <article class="library-collection-card">
+              <h3>Coach Development</h3>
               <p>
-                Explore teaching principles, practice culture, athlete
-                communication, accountability, progression, and leadership
-                beyond technical instruction.
+                Curriculum, practice tools, progression standards, testing,
+                leadership resources, certification, mentorship, and
+                continuing education.
               </p>
+            </article>
 
-              <a
-                href="/library/coaches/"
-                class="library-link"
-              >
-                Coach Resources
-                <span aria-hidden="true">→</span>
-              </a>
-
+            <article class="library-collection-card">
+              <h3>Management and Operations</h3>
+              <p>
+                Systems for supporting people, maintaining standards,
+                overseeing operations, and helping the mission grow
+                responsibly.
+              </p>
             </article>
 
           </div>
@@ -374,100 +239,56 @@
 
           <div class="library-heading">
             <p class="library-eyebrow">
-              Encuentra Tu Punto de Partida
+              Una Comunidad. Diferentes Responsabilidades.
             </p>
 
             <h2>
-              Diferentes Funciones. Diferentes Necesidades.
+              Diferentes Funciones. Un Sistema Conectado.
             </h2>
 
             <p>
-              Cada persona apoya el desarrollo del atleta desde una posición
-              diferente. El mejor recurso depende de la responsabilidad que
-              tienes hoy.
+              Cada persona apoya la misión desde una posición diferente.
+              Sandman brinda a cada función la información, las herramientas
+              y el apoyo necesarios para contribuir con claridad.
             </p>
           </div>
 
-          <div class="library-pathway-grid">
+          <div class="library-collection-grid">
 
-            <article class="library-pathway-card">
-
-              <span class="library-pathway-card__label">
-                Trayectoria del Atleta
-              </span>
-
-              <h3>
-                Comprende Tu Desarrollo
-              </h3>
-
+            <article class="library-collection-card">
+              <h3>Desarrollo del Atleta</h3>
               <p>
-                Aprende a prepararte, responder a las dificultades, crear
-                consistencia, comunicarte con tus entrenadores y asumir mayor
-                responsabilidad sobre tu progreso.
+                Progresión, habilidades, calendarios, mentalidad, fuerza,
+                preparación y herramientas que ayudan al atleta a asumir
+                responsabilidad sobre su trayectoria.
               </p>
-
-              <a
-                href="/library/athletes/"
-                class="library-link"
-              >
-                Recursos para Atletas
-                <span aria-hidden="true">→</span>
-              </a>
-
             </article>
 
-
-            <article class="library-pathway-card">
-
-              <span class="library-pathway-card__label">
-                Trayectoria Familiar
-              </span>
-
-              <h3>
-                Apoya Sin Tomar el Control
-              </h3>
-
+            <article class="library-collection-card">
+              <h3>Apoyo Familiar</h3>
               <p>
-                Aprende a fomentar el esfuerzo, manejar las emociones de la
-                competencia, comunicarte con los entrenadores y ayudar a tu
-                atleta a desarrollar independencia.
+                Comunicación, visibilidad del progreso, políticas, seguridad,
+                orientación para competencias y apoyo práctico para la
+                trayectoria del atleta.
               </p>
-
-              <a
-                href="/library/parents/"
-                class="library-link"
-              >
-                Recursos para Padres
-                <span aria-hidden="true">→</span>
-              </a>
-
             </article>
 
-
-            <article class="library-pathway-card">
-
-              <span class="library-pathway-card__label">
-                Trayectoria del Entrenador
-              </span>
-
-              <h3>
-                Lidera al Atleta Completo
-              </h3>
-
+            <article class="library-collection-card">
+              <h3>Desarrollo de Entrenadores</h3>
               <p>
-                Explora principios de enseñanza, cultura de práctica,
-                comunicación, responsabilidad, progresión y liderazgo más
-                allá de la instrucción técnica.
+                Currículo, herramientas de práctica, estándares de progresión,
+                evaluaciones, liderazgo, certificación, mentoría y educación
+                continua.
               </p>
+            </article>
 
-              <a
-                href="/library/coaches/"
-                class="library-link"
-              >
-                Recursos para Entrenadores
-                <span aria-hidden="true">→</span>
-              </a>
-
+            <article class="library-collection-card">
+              <h3>Gestión y Operaciones</h3>
+              <p>
+                Sistemas para apoyar a las personas, mantener estándares,
+                dirigir operaciones y ayudar a que la misión crezca de manera
+                responsable.
+              </p>
             </article>
 
           </div>
@@ -479,7 +300,7 @@
 
 
     <!-- ====================================================
-         FROM KNOWLEDGE TO PRACTICE
+         MEMBER EXPERIENCE
     ===================================================== -->
 
     <section class="library-section library-section--practice">
@@ -488,32 +309,33 @@
         <div data-lang-block="en">
 
           <p class="library-eyebrow">
-            Beyond Reading
+            The Work Continues Inside
           </p>
 
           <h2>
-            The Lesson Must Reach the Mat
+            Beyond Practice. Beyond the Mat.
           </h2>
 
           <p class="library-lead">
-            Articles can introduce an idea. Development still requires
-            practice, coaching, repetition, and accountability.
+            The public Library shows the thinking behind Sandman. The member
+            portals are where the deeper work happens.
           </p>
 
           <p>
-            The Library supports the Sandman experience, but it does not
-            replace it. Real growth happens when knowledge is tested through
-            action and reinforced over time.
+            Athletes track progress and continue development. Families stay
+            informed and supported. Coaches teach through shared curriculum
+            and standards. Management helps the entire system remain
+            organized, accountable, and ready to grow.
           </p>
 
           <div class="library-practice-line">
-            <span>Learn</span>
+            <span>Understand</span>
             <span aria-hidden="true">→</span>
-            <span>Practice</span>
+            <span>Apply</span>
             <span aria-hidden="true">→</span>
-            <span>Receive Feedback</span>
+            <span>Receive Support</span>
             <span aria-hidden="true">→</span>
-            <span>Improve</span>
+            <span>Grow</span>
           </div>
 
         </div>
@@ -521,32 +343,35 @@
         <div data-lang-block="es" class="hidden-lang">
 
           <p class="library-eyebrow">
-            Más Allá de la Lectura
+            El Trabajo Continúa Adentro
           </p>
 
           <h2>
-            La Lección Debe Llegar al Tapiz
+            Más Allá de la Práctica. Más Allá del Tapiz.
           </h2>
 
           <p class="library-lead">
-            Los artículos pueden presentar una idea. El desarrollo todavía
-            requiere práctica, entrenamiento, repetición y responsabilidad.
+            La Biblioteca pública muestra las ideas detrás de Sandman. Los
+            portales para miembros son el lugar donde ocurre el trabajo más
+            profundo.
           </p>
 
           <p>
-            La Biblioteca apoya la experiencia Sandman, pero no la reemplaza.
-            El crecimiento real sucede cuando el conocimiento se pone a
-            prueba mediante la acción y se refuerza con el tiempo.
+            Los atletas siguen su progreso y continúan desarrollándose. Las
+            familias se mantienen informadas y apoyadas. Los entrenadores
+            enseñan mediante currículo y estándares compartidos. Gestión ayuda
+            a mantener todo el sistema organizado, responsable y preparado
+            para crecer.
           </p>
 
           <div class="library-practice-line">
-            <span>Aprende</span>
+            <span>Comprende</span>
             <span aria-hidden="true">→</span>
-            <span>Practica</span>
+            <span>Aplica</span>
             <span aria-hidden="true">→</span>
-            <span>Recibe Orientación</span>
+            <span>Recibe Apoyo</span>
             <span aria-hidden="true">→</span>
-            <span>Mejora</span>
+            <span>Crece</span>
           </div>
 
         </div>
@@ -556,7 +381,7 @@
 
 
     <!-- ====================================================
-         GROWING COLLECTION
+         COACH CERTIFICATION AND NETWORK
     ===================================================== -->
 
     <section class="library-section library-section--collection">
@@ -566,53 +391,61 @@
 
           <div class="library-heading">
             <p class="library-eyebrow">
-              A Growing Collection
+              Coaches Who Grow Together
             </p>
 
             <h2>
-              Built to Expand With the Mission
+              Certification, Mentorship, and Network
             </h2>
 
             <p>
-              The Sandman Library will continue to grow as new lessons,
-              questions, experiences, and resources emerge.
+              Sandman cannot grow through curriculum alone. It grows by
+              developing coaches who understand the mission, teach the
+              standards consistently, and continue learning from one another.
             </p>
           </div>
 
           <div class="library-collection-grid">
 
             <article class="library-collection-card">
-              <h3>Written Guides</h3>
+              <h3>Shared Curriculum</h3>
               <p>
-                Clear explanations for common questions faced by athletes,
-                families, and coaches.
+                A structured teaching foundation that helps coaches deliver a
+                consistent athlete experience.
               </p>
             </article>
 
             <article class="library-collection-card">
-              <h3>Video Lessons</h3>
+              <h3>Coach Certification</h3>
               <p>
-                Visual instruction, coaching conversations, demonstrations,
-                and educational breakdowns.
+                A development pathway for understanding the system,
+                demonstrating readiness, and representing the mission.
               </p>
             </article>
 
             <article class="library-collection-card">
-              <h3>Downloadable Tools</h3>
+              <h3>Mentorship</h3>
               <p>
-                Checklists, worksheets, planning tools, reflection pages,
-                and competition resources.
+                Practical guidance from experienced coaches who understand the
+                demands of teaching, leading, and building people.
               </p>
             </article>
 
             <article class="library-collection-card">
-              <h3>Historical Material</h3>
+              <h3>Professional Network</h3>
               <p>
-                Original notes, archived lessons, doctrine development,
-                and records from the Sandman journey.
+                A connected coaching community built to exchange ideas, share
+                experience, collaborate, and strengthen the standard.
               </p>
             </article>
 
+          </div>
+
+          <div class="library-statement">
+            <strong>
+              Knowledge makes the system teachable. Certification keeps it
+              consistent. Community makes it stronger.
+            </strong>
           </div>
 
         </div>
@@ -621,53 +454,63 @@
 
           <div class="library-heading">
             <p class="library-eyebrow">
-              Una Colección en Crecimiento
+              Entrenadores que Crecen Juntos
             </p>
 
             <h2>
-              Creada para Crecer con la Misión
+              Certificación, Mentoría y Red Profesional
             </h2>
 
             <p>
-              La Biblioteca Sandman seguirá creciendo a medida que surjan
-              nuevas lecciones, preguntas, experiencias y recursos.
+              Sandman no puede crecer solamente mediante un currículo. Crece
+              al desarrollar entrenadores que comprenden la misión, enseñan
+              los estándares con consistencia y continúan aprendiendo unos de
+              otros.
             </p>
           </div>
 
           <div class="library-collection-grid">
 
             <article class="library-collection-card">
-              <h3>Guías Escritas</h3>
+              <h3>Currículo Compartido</h3>
               <p>
-                Explicaciones claras para preguntas comunes de atletas,
-                familias y entrenadores.
+                Una base estructurada de enseñanza que ayuda a los
+                entrenadores a ofrecer una experiencia consistente.
               </p>
             </article>
 
             <article class="library-collection-card">
-              <h3>Lecciones en Video</h3>
+              <h3>Certificación de Entrenadores</h3>
               <p>
-                Instrucción visual, conversaciones de entrenamiento,
-                demostraciones y análisis educativos.
+                Una trayectoria para comprender el sistema, demostrar
+                preparación y representar la misión.
               </p>
             </article>
 
             <article class="library-collection-card">
-              <h3>Herramientas Descargables</h3>
+              <h3>Mentoría</h3>
               <p>
-                Listas, hojas de trabajo, herramientas de planificación,
-                páginas de reflexión y recursos de competencia.
+                Orientación práctica de entrenadores con experiencia en las
+                exigencias de enseñar, liderar y formar personas.
               </p>
             </article>
 
             <article class="library-collection-card">
-              <h3>Material Histórico</h3>
+              <h3>Red Profesional</h3>
               <p>
-                Notas originales, lecciones archivadas, desarrollo de
-                doctrina y registros de la trayectoria Sandman.
+                Una comunidad conectada para intercambiar ideas, compartir
+                experiencia, colaborar y fortalecer el estándar.
               </p>
             </article>
 
+          </div>
+
+          <div class="library-statement">
+            <strong>
+              El conocimiento hace que el sistema pueda enseñarse. La
+              certificación lo mantiene consistente. La comunidad lo hace más
+              fuerte.
+            </strong>
           </div>
 
         </div>
@@ -677,7 +520,7 @@
 
 
     <!-- ====================================================
-         LIBRARY PROMISE
+         KNOWLEDGE TO ACTION
     ===================================================== -->
 
     <section class="library-section library-section--promise">
@@ -686,22 +529,22 @@
         <div data-lang-block="en">
 
           <p class="library-eyebrow">
-            Our Responsibility
+            Knowledge Must Become Action
           </p>
 
           <h2>
-            Clear Enough to Use. Strong Enough to Trust.
+            The Lesson Must Reach the Mat
           </h2>
 
-          <p>
-            Resources should be practical, honest, and connected to real
-            coaching experience. We do not publish material simply to fill
-            a page.
+          <p class="library-lead">
+            Resources can introduce an idea. Development still requires
+            practice, coaching, repetition, feedback, and accountability.
           </p>
 
           <p>
-            Every addition should help someone understand the journey more
-            clearly or take the next step with greater purpose.
+            Sandman connects knowledge to action so athletes, families,
+            coaches, and leaders can understand the next step and carry it
+            forward with purpose.
           </p>
 
         </div>
@@ -709,22 +552,23 @@
         <div data-lang-block="es" class="hidden-lang">
 
           <p class="library-eyebrow">
-            Nuestra Responsabilidad
+            El Conocimiento Debe Convertirse en Acción
           </p>
 
           <h2>
-            Suficientemente Claro para Usar. Suficientemente Sólido para Confiar.
+            La Lección Debe Llegar al Tapiz
           </h2>
 
-          <p>
-            Los recursos deben ser prácticos, honestos y conectados con
-            experiencia real de entrenamiento. No publicamos contenido
-            solamente para llenar una página.
+          <p class="library-lead">
+            Los recursos pueden presentar una idea. El desarrollo todavía
+            requiere práctica, entrenamiento, repetición, retroalimentación y
+            responsabilidad.
           </p>
 
           <p>
-            Cada nueva adición debe ayudar a alguien a comprender mejor la
-            trayectoria o dar el siguiente paso con mayor propósito.
+            Sandman conecta el conocimiento con la acción para que atletas,
+            familias, entrenadores y líderes comprendan el siguiente paso y
+            lo lleven adelante con propósito.
           </p>
 
         </div>
@@ -732,60 +576,56 @@
       </div>
     </section>
 
+<!-- ====================================================
+     MESSAGE US CALL TO ACTION
+===================================================== -->
 
-    <!-- ====================================================
-         CALL TO ACTION
-    ===================================================== -->
-
-<section class="library-cta">
+<section class="library-message-cta">
   <div class="library-container">
 
     <div data-lang-block="en">
 
-      <p class="library-eyebrow">
-        Ready to Take the Next Step?
+      <p class="library-message-cta__eyebrow">
+        Still Have Questions?
       </p>
 
       <h2>
-        Connect With Us
+        Message Us.
       </h2>
 
-      <p>
-        Knowledge is only the beginning. Let us help you find the right
-        program, answer your questions, and take the next step with
-        confidence.
+      <p class="library-message-cta__copy">
+        Reach out directly and let us help you understand the right next step.
       </p>
 
       <a
-        href="/connect/interest/"
-        class="button button--primary"
+        href="/connect/message.html"
+        class="library-message-cta__button"
       >
-        Connect With Us
+        Message Us
       </a>
 
     </div>
 
     <div data-lang-block="es" class="hidden-lang">
 
-      <p class="library-eyebrow">
-        ¿Listo para Dar el Siguiente Paso?
+      <p class="library-message-cta__eyebrow">
+        ¿Todavía Tienes Preguntas?
       </p>
 
       <h2>
-        Conecta con Nosotros
+        Envíanos un Mensaje.
       </h2>
 
-      <p>
-        El conocimiento es solo el comienzo. Permítenos ayudarte a encontrar
-        el programa adecuado, responder tus preguntas y dar el siguiente paso
-        con confianza.
+      <p class="library-message-cta__copy">
+        Comunícate directamente y permítenos ayudarte a comprender el siguiente
+        paso correcto.
       </p>
 
       <a
-        href="/connect/interest/"
-        class="button button--primary"
+        href="/connect/message.html"
+        class="library-message-cta__button"
       >
-        Conecta con Nosotros
+        Envíanos un Mensaje
       </a>
 
     </div>
@@ -801,13 +641,13 @@
       <div class="library-container">
 
         <div data-lang-block="en">
-          <p>Learn with purpose.</p>
-          <h2>Build Through Action.</h2>
+          <p>Knowledge creates possibility.</p>
+          <h2>People Bring the System to Life.</h2>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
-          <p>Aprende con propósito.</p>
-          <h2>Construye Mediante la Acción.</h2>
+          <p>El conocimiento crea posibilidades.</p>
+          <h2>Las Personas Dan Vida al Sistema.</h2>
         </div>
 
       </div>
@@ -820,15 +660,15 @@
        SITE FOOTER
   ======================================================= -->
 
-    <!-- Shared site footer -->
-    <div
-      id="footer"
-      data-component="/components/footer.html"
-    ></div>
-    <script src="/assets/js/component-loader.js" defer></script>
-    <script src="/assets/js/language.js" defer></script>
-    <script src="/assets/js/theme.js" defer></script>
-    <script src="/assets/js/navigation.js" defer></script>
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
 
 </body>
 </html>

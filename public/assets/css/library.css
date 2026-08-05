@@ -663,8 +663,10 @@
   }
 
   .library-hero__image {
-    min-height: 500px;
-    object-fit: cover;
+    width: 100%;
+    min-height: 0;
+    height: auto;
+    object-fit: contain;
     object-position: center top;
   }
 
@@ -724,7 +726,8 @@
 @media (max-width: 420px) {
 
   .library-hero__image {
-    min-height: 450px;
+    min-height: 0;
+    height: auto;
   }
 
   .library-eyebrow {
@@ -799,4 +802,164 @@
     box-shadow: none;
   }
 
+}
+/* Remove the fade over the bottom of the Library PNG */
+.library-hero::after {
+  display: none !important;
+}
+
+/* =========================================================
+   LIBRARY HERO HOTSPOTS
+========================================================= */
+
+.library-hero__panel {
+  position: relative;
+  width: 100%;
+}
+
+.library-hero__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.library-hero__hotspot {
+  position: absolute;
+  z-index: 4;
+  display: block;
+  border-radius: 999px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.library-hero__hotspot:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+/*
+  Based on the current 1024 × 1536 poster.
+  Adjust slightly after testing on the live page.
+*/
+
+.library-hero__hotspot--login {
+  left: 12%;
+  bottom: 0.8%;
+  width: 28%;
+  height: 2.4%;
+}
+
+.library-hero__hotspot--start {
+  right: 12%;
+  bottom: 0.8%;
+  width: 28%;
+  height: 2.4%;
+}
+
+/* =========================================================
+   LIBRARY — MESSAGE CTA
+========================================================= */
+
+.library-message-cta {
+  position: relative;
+  padding: clamp(4.5rem, 9vw, 7rem) 1.25rem;
+  text-align: center;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(255, 255, 255, 0.035),
+      transparent 58%
+    ),
+    #11161d;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+
+.library-message-cta [data-lang-block] {
+  width: 100%;
+}
+
+.library-message-cta .library-heading {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.library-message-cta .library-heading p {
+  margin-inline: auto;
+}
+
+.library-message-cta .library-container {
+  width: min(100%, 900px);
+  margin-inline: auto;
+}
+
+.library-message-cta .library-message-cta__eyebrow {
+  margin: 0 0 1rem;
+  color: #d4af37;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.library-message-cta h2 {
+  margin: 0;
+  color: #ffffff;
+  font-size: clamp(2.4rem, 7vw, 4.8rem);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.library-message-cta .library-message-cta__copy {
+  max-width: 720px;
+  margin: 1.6rem auto 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  line-height: 1.7;
+}
+
+.library-message-cta__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 460px);
+  min-height: 58px;
+  margin-top: 2.25rem;
+  padding: 1rem 2rem;
+  border-radius: 999px;
+  background: #d4af37;
+  color: #111111;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow:
+    0 12px 30px rgba(212, 175, 55, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    filter 160ms ease;
+}
+
+.library-message-cta__button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.04);
+  box-shadow:
+    0 16px 36px rgba(212, 175, 55, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.library-message-cta__button:focus-visible {
+  outline: 3px solid #ffffff;
+  outline-offset: 4px;
+}
+
+@media (max-width: 640px) {
+  .library-message-cta {
+    padding-block: 4rem;
+  }
+
+  .library-message-cta__button {
+    width: min(100%, 340px);
+  }
 }
