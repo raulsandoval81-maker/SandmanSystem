@@ -617,88 +617,59 @@
 
           <div class="message-form__grid">
 
+            <select
+  id="preferredLocation"
+  name="preferredLocation"
+  required
+>
+  <option value="">
+    Choose one
+  </option>
+
+  <option value="solvang">
+    Solvang Location
+  </option>
+
+  <option value="lompoc">
+    Lompoc Location
+  </option>
+
+  <option value="system-team">
+    System Team
+  </option>
+
+  <option value="not-sure">
+    Not Sure
+  </option>
+</select>
+
+<select
+  id="preferredLocation"
+  name="preferredLocation"
+  required
+>
+  <option value="">
+    Elige una opción
+  </option>
+
+  <option value="solvang">
+    Ubicación de Solvang
+  </option>
+
+  <option value="lompoc">
+    Ubicación de Lompoc
+  </option>
+
+  <option value="system-team">
+    Equipo del Sistema
+  </option>
+
+  <option value="not-sure">
+    No Estoy Seguro
+  </option>
+</select>
+
             <div class="message-field">
-              <label for="preferredOrganization">
-                <span data-lang-block="en">
-                  Organization You Are Trying to Reach
-                </span>
-
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Organización con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
-                id="preferredOrganization"
-                name="preferredOrganization"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
-
-                <option value="sandman-academy">
-                  Sandman Academy of Combat &amp; Fitness
-                </option>
-
-                <option value="yesc">
-                  Youth Empowered Sports Club
-                </option>
-
-                <option value="other-organization">
-                  Another Organization
-                </option>
-
-                <option value="not-sure">
-                  Not Sure
-                </option>
-              </select>
-            </div>
-
-            <div class="message-field">
-              <label for="preferredLocation">
-                <span data-lang-block="en">
-                  Location You Are Trying to Reach
-                </span>
-
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Ubicación con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
-                id="preferredLocation"
-                name="preferredLocation"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
-
-                <option value="solvang">
-                  Solvang Location
-                </option>
-
-                <option value="lompoc">
-                  Lompoc Location
-                </option>
-
-                <option value="system-team">
-                  System Team
-                </option>
-
-                <option value="not-sure">
-                  Not Sure
-                </option>
-              </select>
-            </div>
-<div class="message-field">
               <label for="contactName">
                 <span data-lang-block="en">
                   Your Name

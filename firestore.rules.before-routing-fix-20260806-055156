@@ -1022,29 +1022,11 @@ match /academySettings/{academyId} {
             && request.resource.data.assignedAdminUid ==
               request.auth.uid
 
-            && (
-              request.resource.data.assignedManagerUid == null
-              ||
-              (
-                request.resource.data.assignedManagerUid is string
-                && request.resource.data.assignedManagerUid.size() > 0
-              )
-            )
+            && request.resource.data.assignedManagerUid
+              is string
 
-            && (
-              (
-                request.resource.data.assignedManagerUid == null
-                && request.resource.data.assignmentStatus ==
-                  "PENDING_MANAGEMENT"
-              )
-              ||
-              (
-                request.resource.data.assignedManagerUid is string
-                && request.resource.data.assignedManagerUid.size() > 0
-                && request.resource.data.assignmentStatus ==
-                  "ASSIGNED"
-              )
-            )
+            && request.resource.data.assignedManagerUid
+              .size() > 0
 
             && request.resource.data.assignedCoachUid == null
           )

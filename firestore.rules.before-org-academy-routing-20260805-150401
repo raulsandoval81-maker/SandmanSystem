@@ -745,17 +745,9 @@ match /academySettings/{academyId} {
           "phone",
           "topic",
           "message",
-          "preferredOrganization",
-          "preferredLocation",
           "contactConsent",
           "language",
           "pagePath",
-
-          "organizationId",
-          "organizationName",
-
-          "academyId",
-          "academyName",
 
           "locationId",
           "locationName",
@@ -781,7 +773,7 @@ match /academySettings/{academyId} {
           "updatedAt"
         ])
 
-        && request.resource.data.organization == "sandman-system"
+        && request.resource.data.organization == "sandman-academy"
         && request.resource.data.pipeline == "general-messaging"
         && request.resource.data.source == "public-message-page"
 
@@ -795,7 +787,7 @@ match /academySettings/{academyId} {
            "MANAGEMENT_TRIAGE"
 
         && request.resource.data.routingPolicy ==
-           "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER"
+           "ADMIN_TO_LOCATION_MANAGER"
 
         && request.resource.data.requiredManagerLevel ==
            "LOCATION_MANAGER"
@@ -822,35 +814,8 @@ match /academySettings/{academyId} {
         && request.resource.data.message.size() > 0
         && request.resource.data.message.size() <= 4000
 
-
-        && request.resource.data.preferredOrganization
-           is string
-
-        && request.resource.data.preferredOrganization in [
-          "sandman-academy",
-          "yesc",
-          "other-organization",
-          "not-sure"
-        ]
-
-        && request.resource.data.preferredLocation
-           is string
-
-        && request.resource.data.preferredLocation in [
-          "solvang",
-          "lompoc",
-          "system-team",
-          "not-sure"
-        ]
-
         && request.resource.data.contactConsent == true
         && request.resource.data.language in ["en", "es"]
-
-        && request.resource.data.organizationId == null
-        && request.resource.data.organizationName == ""
-
-        && request.resource.data.academyId == null
-        && request.resource.data.academyName == ""
 
         && request.resource.data.locationId == null
         && request.resource.data.locationName == ""
@@ -881,7 +846,7 @@ match /academySettings/{academyId} {
        * Coach visibility remains enabled for the working
        * receiver until assignment scoping is activated.
        */
-      allow get, list: if isAdmin();
+      allow get, list: if isCoachOrAdmin();
 
       /*
        * Admin controls routing, assignment, location,
@@ -897,12 +862,6 @@ match /academySettings/{academyId} {
             "routingStage",
             "nextRoutingStage",
             "assignmentStatus",
-
-            "organizationId",
-            "organizationName",
-
-            "academyId",
-            "academyName",
 
             "locationId",
             "locationName",
@@ -988,31 +947,6 @@ match /academySettings/{academyId} {
             && request.resource.data.assignmentStatus ==
               "PENDING_MANAGEMENT"
 
-            /*
-             * Organization and location are both required.
-             * Academy is optional because YESC or another
-             * organization may route directly to a location.
-             */
-            && request.resource.data.organizationId is string
-            && request.resource.data.organizationId.size() > 0
-
-            && request.resource.data.organizationName is string
-            && request.resource.data.organizationName.size() > 0
-
-            && (
-              (
-                request.resource.data.academyId == null
-                && request.resource.data.academyName == ""
-              )
-              ||
-              (
-                request.resource.data.academyId is string
-                && request.resource.data.academyId.size() > 0
-                && request.resource.data.academyName is string
-                && request.resource.data.academyName.size() > 0
-              )
-            )
-
             && request.resource.data.locationId is string
             && request.resource.data.locationId.size() > 0
 
@@ -1022,29 +956,11 @@ match /academySettings/{academyId} {
             && request.resource.data.assignedAdminUid ==
               request.auth.uid
 
-            && (
-              request.resource.data.assignedManagerUid == null
-              ||
-              (
-                request.resource.data.assignedManagerUid is string
-                && request.resource.data.assignedManagerUid.size() > 0
-              )
-            )
+            && request.resource.data.assignedManagerUid
+              is string
 
-            && (
-              (
-                request.resource.data.assignedManagerUid == null
-                && request.resource.data.assignmentStatus ==
-                  "PENDING_MANAGEMENT"
-              )
-              ||
-              (
-                request.resource.data.assignedManagerUid is string
-                && request.resource.data.assignedManagerUid.size() > 0
-                && request.resource.data.assignmentStatus ==
-                  "ASSIGNED"
-              )
-            )
+            && request.resource.data.assignedManagerUid
+              .size() > 0
 
             && request.resource.data.assignedCoachUid == null
           )

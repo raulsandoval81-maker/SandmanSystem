@@ -1,0 +1,606 @@
+/* =========================================================
+   RECEPTION — SYSTEM ADMIN INTAKE DESK
+========================================================= */
+
+:root {
+  --reception-bg: #080808;
+  --reception-panel: rgba(255, 255, 255, 0.035);
+  --reception-panel-strong: rgba(255, 255, 255, 0.055);
+  --reception-border: rgba(255, 255, 255, 0.11);
+  --reception-border-strong: rgba(201, 161, 74, 0.38);
+  --reception-text: #f4f4f4;
+  --reception-muted: #a9a9a9;
+  --reception-gold: #c9a14a;
+  --reception-danger: #ff7d7d;
+  --reception-success: #8fd6a2;
+  --reception-radius: 22px;
+  --reception-shadow: 0 20px 60px rgba(0, 0, 0, 0.28);
+}
+
+
+/* =========================================================
+   PAGE
+========================================================= */
+
+.reception-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      circle at 15% 0%,
+      rgba(201, 161, 74, 0.08),
+      transparent 30%
+    ),
+    var(--reception-bg);
+  color: var(--reception-text);
+}
+
+.reception-shell {
+  width: min(1500px, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: clamp(2rem, 5vw, 4.5rem) 0 5rem;
+}
+
+.reception-eyebrow {
+  margin: 0 0 0.6rem;
+  color: var(--reception-gold);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+
+/* =========================================================
+   HEADER
+========================================================= */
+
+.reception-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.reception-header h1 {
+  margin: 0;
+  font-size: clamp(2.4rem, 6vw, 5rem);
+  line-height: 0.95;
+}
+
+.reception-header__description {
+  max-width: 760px;
+  margin: 1rem 0 0;
+  color: var(--reception-muted);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+.reception-header__actions {
+  flex-shrink: 0;
+}
+
+
+/* =========================================================
+   SUMMARY
+========================================================= */
+
+.reception-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reception-summary-card {
+  padding: 1.15rem 1.2rem;
+  border: 1px solid var(--reception-border);
+  border-radius: 18px;
+  background: var(--reception-panel);
+  box-shadow: var(--reception-shadow);
+}
+
+.reception-summary-card__label {
+  display: block;
+  margin-bottom: 0.55rem;
+  color: var(--reception-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.reception-summary-card__value {
+  display: block;
+  font-size: 2rem;
+  line-height: 1;
+}
+
+
+/* =========================================================
+   FILTERS
+========================================================= */
+
+.reception-filters {
+  display: grid;
+  grid-template-columns:
+    minmax(150px, 0.8fr)
+    minmax(170px, 1fr)
+    minmax(210px, 1.2fr)
+    minmax(170px, 1fr)
+    minmax(240px, 1.5fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  border: 1px solid var(--reception-border);
+  border-radius: var(--reception-radius);
+  background: var(--reception-panel);
+}
+
+.reception-filter {
+  min-width: 0;
+}
+
+.reception-filter label,
+.reception-field label {
+  display: block;
+  margin-bottom: 0.45rem;
+  color: var(--reception-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.reception-filter select,
+.reception-filter input,
+.reception-field select,
+.reception-field textarea {
+  width: 100%;
+  min-height: 46px;
+  padding: 0.78rem 0.9rem;
+  border: 1px solid var(--reception-border);
+  border-radius: 12px;
+  background: #111;
+  color: var(--reception-text);
+  font: inherit;
+}
+
+.reception-filter input::placeholder,
+.reception-field textarea::placeholder {
+  color: #777;
+}
+
+.reception-filter select:focus,
+.reception-filter input:focus,
+.reception-field select:focus,
+.reception-field textarea:focus {
+  outline: 2px solid rgba(201, 161, 74, 0.35);
+  outline-offset: 2px;
+  border-color: var(--reception-border-strong);
+}
+
+
+/* =========================================================
+   WORKSPACE
+========================================================= */
+
+.reception-workspace {
+  display: grid;
+  grid-template-columns: minmax(330px, 0.9fr) minmax(0, 1.7fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.reception-queue,
+.reception-detail {
+  min-width: 0;
+  border: 1px solid var(--reception-border);
+  border-radius: var(--reception-radius);
+  background: var(--reception-panel);
+  box-shadow: var(--reception-shadow);
+}
+
+.reception-queue {
+  position: sticky;
+  top: 1rem;
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+}
+
+.reception-detail {
+  min-height: 650px;
+}
+
+.reception-panel-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.2rem 1.25rem;
+  border-bottom: 1px solid var(--reception-border);
+}
+
+.reception-panel-heading h2,
+.reception-panel-heading h3 {
+  margin: 0;
+}
+
+.reception-panel-heading__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding-inline: 0.6rem;
+  border: 1px solid var(--reception-border-strong);
+  border-radius: 999px;
+  color: var(--reception-gold);
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   QUEUE STATES
+========================================================= */
+
+.reception-state {
+  padding: 2rem 1.25rem;
+  color: var(--reception-muted);
+  text-align: center;
+}
+
+.reception-state--error {
+  color: var(--reception-danger);
+}
+
+.reception-message-list {
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.reception-message-list::-webkit-scrollbar {
+  width: 10px;
+}
+
+.reception-message-list::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  background-clip: padding-box;
+}
+
+
+/* =========================================================
+   MESSAGE CARDS
+========================================================= */
+
+.reception-message-card {
+  display: block;
+  width: 100%;
+  padding: 1.15rem 1.25rem;
+  border: 0;
+  border-bottom: 1px solid var(--reception-border);
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.reception-message-card:hover,
+.reception-message-card:focus-visible {
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.reception-message-card.is-selected {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(201, 161, 74, 0.13),
+      rgba(201, 161, 74, 0.035)
+    );
+  box-shadow: inset 3px 0 0 var(--reception-gold);
+}
+
+.reception-message-card__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.55rem;
+}
+
+.reception-message-card__name {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reception-message-card__time {
+  flex-shrink: 0;
+  color: var(--reception-muted);
+  font-size: 0.75rem;
+}
+
+.reception-message-card__topic {
+  margin: 0 0 0.45rem;
+  color: var(--reception-gold);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.reception-message-card__preview {
+  display: -webkit-box;
+  margin: 0;
+  overflow: hidden;
+  color: var(--reception-muted);
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.reception-message-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.75rem;
+}
+
+.reception-message-card__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.7rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid var(--reception-border);
+  border-radius: 999px;
+  color: var(--reception-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   DETAIL
+========================================================= */
+
+.reception-detail-empty {
+  display: grid;
+  place-content: center;
+  min-height: 650px;
+  padding: 3rem;
+  text-align: center;
+}
+
+.reception-detail-empty h2 {
+  margin: 0;
+}
+
+.reception-detail-empty p:last-child {
+  max-width: 520px;
+  color: var(--reception-muted);
+  line-height: 1.7;
+}
+
+.reception-detail-card {
+  padding: clamp(1.25rem, 3vw, 2rem);
+}
+
+.reception-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1px solid var(--reception-border);
+}
+
+.reception-detail-header h2 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.8rem);
+}
+
+.reception-detail-header__meta {
+  margin: 0.7rem 0 0;
+  color: var(--reception-muted);
+}
+
+.reception-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2rem;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--reception-border-strong);
+  border-radius: 999px;
+  color: var(--reception-gold);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.reception-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 1.4rem 0;
+}
+
+.reception-detail-grid > div {
+  min-width: 0;
+  padding: 1rem;
+  border: 1px solid var(--reception-border);
+  border-radius: 14px;
+  background: var(--reception-panel-strong);
+}
+
+.reception-detail-grid dt {
+  margin-bottom: 0.4rem;
+  color: var(--reception-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.reception-detail-grid dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.reception-detail-grid a {
+  color: var(--reception-text);
+}
+
+.reception-message-body {
+  margin-bottom: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--reception-border);
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.reception-message-body h3 {
+  margin: 0 0 0.8rem;
+}
+
+.reception-message-body p {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.75;
+}
+
+
+/* =========================================================
+   ROUTING FORM
+========================================================= */
+
+.reception-routing-form {
+  border: 1px solid var(--reception-border-strong);
+  border-radius: 18px;
+  overflow: hidden;
+  background: rgba(201, 161, 74, 0.025);
+}
+
+.reception-routing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  padding: 1.25rem;
+}
+
+.reception-field--full {
+  grid-column: 1 / -1;
+}
+
+.reception-field textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.reception-routing-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  padding: 0 1.25rem 1.25rem;
+}
+
+.reception-form-status {
+  min-height: 1.5rem;
+  margin: 0;
+  padding: 0 1.25rem 1.25rem;
+  color: var(--reception-muted);
+}
+
+.reception-form-status.is-success {
+  color: var(--reception-success);
+}
+
+.reception-form-status.is-error {
+  color: var(--reception-danger);
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 1180px) {
+  .reception-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reception-filters {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reception-filter--search {
+    grid-column: span 2;
+  }
+
+  .reception-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .reception-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .reception-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .reception-queue {
+    position: static;
+    max-height: none;
+  }
+
+  .reception-message-list {
+    max-height: 520px;
+  }
+
+  .reception-detail {
+    min-height: 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .reception-shell {
+    width: min(100% - 1rem, 1500px);
+    padding-top: 1.25rem;
+  }
+
+  .reception-summary,
+  .reception-filters,
+  .reception-detail-grid,
+  .reception-routing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .reception-filter--search,
+  .reception-field--full {
+    grid-column: auto;
+  }
+
+  .reception-detail-header {
+    flex-direction: column;
+  }
+
+  .reception-routing-actions {
+    flex-direction: column;
+  }
+
+  .reception-routing-actions .button,
+  .reception-header__actions,
+  .reception-header__actions .button {
+    width: 100%;
+  }
+}

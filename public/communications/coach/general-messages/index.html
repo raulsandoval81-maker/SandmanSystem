@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>General Messages | Sandman Coach</title>
+  <meta name="description" content="Coach inbox for public Sandman messages." />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/communications/coach/general-messages/general-messages.css" />
+  <link rel="icon" href="data:," />
+</head>
+<body>
+  <div id="navigation" data-component="/components/navigation.html"></div>
+
+  <main class="general-messages-page">
+    <header class="general-messages-hero">
+      <div>
+        <p class="general-messages-eyebrow">Coach Communication</p>
+        <h1>General Messages</h1>
+        <p>Review messages submitted through the public Message Us page, add internal notes, and move each conversation through the response pipeline.</p>
+      </div>
+
+      <a class="general-messages-back" href="/communications/coach/">Back to Coach Communications</a>
+    </header>
+
+    <section class="general-messages-summary" aria-label="Message summary">
+      <article class="summary-card"><span>New</span><strong id="countNew">0</strong></article>
+      <article class="summary-card"><span>Reviewing</span><strong id="countReviewing">0</strong></article>
+      <article class="summary-card"><span>Responded</span><strong id="countResponded">0</strong></article>
+      <article class="summary-card"><span>Closed</span><strong id="countClosed">0</strong></article>
+    </section>
+
+    <section class="general-messages-toolbar">
+      <div class="filter-group" aria-label="Filter messages">
+        <button class="filter-button is-active" type="button" data-filter="ALL">All</button>
+        <button class="filter-button" type="button" data-filter="NEW">New</button>
+        <button class="filter-button" type="button" data-filter="REVIEWING">Reviewing</button>
+        <button class="filter-button" type="button" data-filter="RESPONDED">Responded</button>
+        <button class="filter-button" type="button" data-filter="CLOSED">Closed</button>
+      </div>
+      <button id="refreshMessages" class="refresh-button" type="button">Refresh</button>
+    </section>
+
+    <p id="pageStatus" class="general-messages-status" role="status" aria-live="polite">Loading messages...</p>
+    <section id="messagesList" class="general-messages-list" aria-label="General messages"></section>
+  </main>
+
+  <template id="messageCardTemplate">
+    <article class="message-card">
+      <div class="message-card__top">
+        <div>
+          <p class="message-card__topic"></p>
+          <h2 class="message-card__name"></h2>
+        </div>
+        <span class="message-card__status"></span>
+      </div>
+
+      <dl class="message-card__meta">
+        <div><dt>Email</dt><dd><a class="message-card__email" href="#"></a></dd></div>
+        <div><dt>Phone</dt><dd><a class="message-card__phone" href="#"></a></dd></div>
+        <div><dt>Received</dt><dd class="message-card__date"></dd></div>
+        <div><dt>Language</dt><dd class="message-card__language"></dd></div>
+      </dl>
+
+      <div class="message-card__message-wrap">
+        <h3>Message</h3>
+        <p class="message-card__message"></p>
+      </div>
+
+      <label class="message-card__notes-label">
+        Coach Notes
+        <textarea class="message-card__notes" rows="4" placeholder="Add internal notes for this message."></textarea>
+      </label>
+
+      <div class="message-card__actions">
+        <label>
+          Status
+          <select class="message-card__status-select">
+            <option value="NEW">New</option>
+            <option value="REVIEWING">Reviewing</option>
+            <option value="RESPONDED">Responded</option>
+            <option value="CLOSED">Closed</option>
+          </select>
+        </label>
+        <button class="message-card__save" type="button">Save Changes</button>
+      </div>
+
+      <p class="message-card__save-status" role="status" aria-live="polite"></p>
+    </article>
+  </template>
+
+  <div id="footer" data-component="/components/footer.html"></div>
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
+  <script type="module" src="/communications/coach/general-messages/general-messages.js"></script>
+</body>
+</html>

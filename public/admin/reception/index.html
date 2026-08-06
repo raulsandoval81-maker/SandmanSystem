@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Reception | Sandman System Admin</title>
+
+  <meta
+    name="description"
+    content="System Admin reception desk for reviewing, routing, and managing incoming public messages."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/admin/reception/reception.css" />
+</head>
+
+<body class="reception-page">
+
+  <!-- ======================================================
+       SHARED NAVIGATION
+  ======================================================= -->
+
+  <div
+    id="navigation"
+    data-component="/components/navigation.html"
+  ></div>
+
+  <div class="site-hero-divider" aria-hidden="true"></div>
+
+
+  <!-- ======================================================
+       MAIN CONTENT
+  ======================================================= -->
+
+  <main class="reception-shell">
+
+    <!-- ====================================================
+         PAGE HEADER
+    ===================================================== -->
+
+    <header class="reception-header">
+      <div>
+        <p class="reception-eyebrow">
+          System Administration
+        </p>
+
+        <h1>
+          Reception
+        </h1>
+
+        <p class="reception-header__description">
+          Review incoming messages, confirm the correct organization and
+          location, and route each request to the appropriate manager.
+        </p>
+      </div>
+
+      <div class="reception-header__actions">
+        <button
+          id="refreshMessagesButton"
+          class="button button--secondary"
+          type="button"
+        >
+          Refresh Messages
+        </button>
+      </div>
+    </header>
+
+
+    <!-- ====================================================
+         STATUS SUMMARY
+    ===================================================== -->
+
+    <section
+      class="reception-summary"
+      aria-label="Message status summary"
+    >
+      <article class="reception-summary-card">
+        <span class="reception-summary-card__label">
+          New
+        </span>
+
+        <strong
+          id="newMessageCount"
+          class="reception-summary-card__value"
+        >
+          0
+        </strong>
+      </article>
+
+      <article class="reception-summary-card">
+        <span class="reception-summary-card__label">
+          Needs Routing
+        </span>
+
+        <strong
+          id="needsRoutingCount"
+          class="reception-summary-card__value"
+        >
+          0
+        </strong>
+      </article>
+
+      <article class="reception-summary-card">
+        <span class="reception-summary-card__label">
+          Assigned
+        </span>
+
+        <strong
+          id="assignedMessageCount"
+          class="reception-summary-card__value"
+        >
+          0
+        </strong>
+      </article>
+
+      <article class="reception-summary-card">
+        <span class="reception-summary-card__label">
+          Waiting
+        </span>
+
+        <strong
+          id="waitingMessageCount"
+          class="reception-summary-card__value"
+        >
+          0
+        </strong>
+      </article>
+
+      <article class="reception-summary-card">
+        <span class="reception-summary-card__label">
+          Closed
+        </span>
+
+        <strong
+          id="closedMessageCount"
+          class="reception-summary-card__value"
+        >
+          0
+        </strong>
+      </article>
+    </section>
+
+
+    <!-- ====================================================
+         FILTERS
+    ===================================================== -->
+
+    <section
+      class="reception-filters"
+      aria-label="Message filters"
+    >
+      <div class="reception-filter">
+        <label for="statusFilter">
+          Status
+        </label>
+
+        <select id="statusFilter">
+          <option value="ACTIVE" selected>
+            Active Messages
+          </option>
+
+          <option value="ADMIN_REVIEW">
+            New / Admin Review
+          </option>
+
+          <option value="MANAGEMENT_TRIAGE">
+            Needs Management
+          </option>
+
+          <option value="ASSIGNED">
+            Assigned
+          </option>
+
+          <option value="WAITING">
+            Waiting for Response
+          </option>
+
+          <option value="RESPONDED">
+            Responded
+          </option>
+
+          <option value="CLOSED">
+            Closed
+          </option>
+
+          <option value="ALL">
+            All Messages
+          </option>
+        </select>
+      </div>
+
+      <div class="reception-filter">
+        <label for="topicFilter">
+          Topic
+        </label>
+
+        <select id="topicFilter">
+          <option value="ALL" selected>
+            All Topics
+          </option>
+
+          <option value="general-question">
+            General Question
+          </option>
+
+          <option value="promotions">
+            Promotions
+          </option>
+
+          <option value="clinics-near-me">
+            Clinics Near Me
+          </option>
+
+          <option value="traveling-clinic">
+            Traveling Clinic Request
+          </option>
+
+          <option value="partnership">
+            Partnership
+          </option>
+
+          <option value="other">
+            Other
+          </option>
+        </select>
+      </div>
+
+      <div class="reception-filter">
+        <label for="organizationFilter">
+          Organization
+        </label>
+
+        <select id="organizationFilter">
+          <option value="ALL" selected>
+            All Organizations
+          </option>
+
+          <option value="UNASSIGNED">
+            Unassigned
+          </option>
+
+          <option value="sandman-academy">
+            Sandman Academy
+          </option>
+
+          <option value="yesc">
+            Youth Empowered Sports Club
+          </option>
+
+          <option value="other-organization">
+            Other Organization
+          </option>
+        </select>
+      </div>
+
+      <div class="reception-filter">
+        <label for="locationFilter">
+          Location
+        </label>
+
+        <select id="locationFilter">
+          <option value="ALL" selected>
+            All Locations
+          </option>
+
+          <option value="UNASSIGNED">
+            Unassigned
+          </option>
+
+          <option value="solvang">
+            Solvang
+          </option>
+
+          <option value="lompoc">
+            Lompoc
+          </option>
+
+          <option value="system-team">
+            System Team
+          </option>
+        </select>
+      </div>
+
+      <div class="reception-filter reception-filter--search">
+        <label for="messageSearch">
+          Search
+        </label>
+
+        <input
+          id="messageSearch"
+          type="search"
+          placeholder="Name, email, topic, or message"
+          autocomplete="off"
+        />
+      </div>
+    </section>
+
+
+    <!-- ====================================================
+         WORKSPACE
+    ===================================================== -->
+
+    <section class="reception-workspace">
+
+      <!-- MESSAGE QUEUE -->
+      <aside
+        class="reception-queue"
+        aria-label="Incoming message queue"
+      >
+        <div class="reception-panel-heading">
+          <div>
+            <p class="reception-eyebrow">
+              Incoming
+            </p>
+
+            <h2>
+              Message Queue
+            </h2>
+          </div>
+
+          <span
+            id="visibleMessageCount"
+            class="reception-panel-heading__count"
+          >
+            0
+          </span>
+        </div>
+
+        <div
+          id="receptionLoadingState"
+          class="reception-state"
+        >
+          Loading messages…
+        </div>
+
+        <div
+          id="receptionEmptyState"
+          class="reception-state"
+          hidden
+        >
+          No messages match the current filters.
+        </div>
+
+        <div
+          id="receptionErrorState"
+          class="reception-state reception-state--error"
+          hidden
+        >
+          Reception could not load the message queue.
+        </div>
+
+        <div
+          id="messageQueue"
+          class="reception-message-list"
+          hidden
+        ></div>
+      </aside>
+
+
+      <!-- MESSAGE DETAIL -->
+      <section
+        class="reception-detail"
+        aria-label="Selected message"
+      >
+        <div
+          id="messageDetailEmpty"
+          class="reception-detail-empty"
+        >
+          <p class="reception-eyebrow">
+            Message Review
+          </p>
+
+          <h2>
+            Select a Message
+          </h2>
+
+          <p>
+            Choose a message from the queue to review its details and routing
+            information.
+          </p>
+        </div>
+
+        <article
+          id="messageDetail"
+          class="reception-detail-card"
+          hidden
+        >
+          <header class="reception-detail-header">
+            <div>
+              <p
+                id="detailTopic"
+                class="reception-eyebrow"
+              >
+                General Question
+              </p>
+
+              <h2 id="detailContactName">
+                Contact Name
+              </h2>
+
+              <p
+                id="detailSubmittedAt"
+                class="reception-detail-header__meta"
+              >
+                Submitted date
+              </p>
+            </div>
+
+            <span
+              id="detailStatusBadge"
+              class="reception-status-badge"
+            >
+              New
+            </span>
+          </header>
+
+          <dl class="reception-detail-grid">
+            <div>
+              <dt>Email</dt>
+              <dd>
+                <a id="detailEmail" href="#">
+                  —
+                </a>
+              </dd>
+            </div>
+
+            <div>
+              <dt>Phone</dt>
+              <dd>
+                <a id="detailPhone" href="#">
+                  —
+                </a>
+              </dd>
+            </div>
+
+            <div>
+              <dt>Preferred Organization</dt>
+              <dd id="detailPreferredOrganization">
+                —
+              </dd>
+            </div>
+
+            <div>
+              <dt>Preferred Location</dt>
+              <dd id="detailPreferredLocation">
+                —
+              </dd>
+            </div>
+
+            <div>
+              <dt>Language</dt>
+              <dd id="detailLanguage">
+                —
+              </dd>
+            </div>
+
+            <div>
+              <dt>Source</dt>
+              <dd id="detailSource">
+                —
+              </dd>
+            </div>
+          </dl>
+
+          <section class="reception-message-body">
+            <h3>
+              Message
+            </h3>
+
+            <p id="detailMessage">
+              —
+            </p>
+          </section>
+
+
+          <!-- ==============================================
+               ROUTING FORM
+          =============================================== -->
+
+          <form
+            id="routingForm"
+            class="reception-routing-form"
+          >
+            <input
+              id="selectedMessageId"
+              type="hidden"
+            />
+
+            <div class="reception-panel-heading">
+              <div>
+                <p class="reception-eyebrow">
+                  Admin Routing
+                </p>
+
+                <h3>
+                  Assign the Request
+                </h3>
+              </div>
+            </div>
+
+            <div class="reception-routing-grid">
+
+              <div class="reception-field">
+                <label for="routingOrganization">
+                  Organization / Academy
+                </label>
+
+                <select
+                  id="routingOrganization"
+                  required
+                >
+                  <option value="">
+                    Choose organization
+                  </option>
+
+                  <option value="sandman-academy">
+                    Sandman Academy
+                  </option>
+
+                  <option value="yesc">
+                    Youth Empowered Sports Club
+                  </option>
+
+                  <option value="other-organization">
+                    Other Organization
+                  </option>
+                </select>
+              </div>
+
+              <div class="reception-field">
+                <label for="routingLocation">
+                  Location
+                </label>
+
+                <select
+                  id="routingLocation"
+                  required
+                >
+                  <option value="">
+                    Choose location
+                  </option>
+
+                  <option value="solvang">
+                    Solvang
+                  </option>
+
+                  <option value="lompoc">
+                    Lompoc
+                  </option>
+
+                  <option value="system-team">
+                    System Team
+                  </option>
+                </select>
+              </div>
+
+              <div class="reception-field">
+                <label for="routingManager">
+                  Location Manager
+                </label>
+
+                <select
+                  id="routingManager"
+                  required
+                >
+                  <option value="">
+                    Choose manager
+                  </option>
+                </select>
+              </div>
+
+              <div class="reception-field">
+                <label for="routingPriority">
+                  Priority
+                </label>
+
+                <select id="routingPriority">
+                  <option value="NORMAL" selected>
+                    Normal
+                  </option>
+
+                  <option value="HIGH">
+                    High
+                  </option>
+
+                  <option value="URGENT">
+                    Urgent
+                  </option>
+                </select>
+              </div>
+
+              <div class="reception-field reception-field--full">
+                <label for="managementNotes">
+                  Management Notes
+                </label>
+
+                <textarea
+                  id="managementNotes"
+                  rows="4"
+                  maxlength="2000"
+                  placeholder="Add internal routing notes"
+                ></textarea>
+              </div>
+
+            </div>
+
+            <div class="reception-routing-actions">
+              <button
+                id="routeMessageButton"
+                class="button button--primary"
+                type="submit"
+              >
+                Route to Manager
+              </button>
+
+              <button
+                id="markRespondedButton"
+                class="button button--secondary"
+                type="button"
+              >
+                Mark Responded
+              </button>
+
+              <button
+                id="closeMessageButton"
+                class="button button--secondary"
+                type="button"
+              >
+                Close Message
+              </button>
+            </div>
+
+            <p
+              id="routingFormStatus"
+              class="reception-form-status"
+              role="status"
+              aria-live="polite"
+            ></p>
+          </form>
+        </article>
+      </section>
+
+    </section>
+
+  </main>
+
+
+  <!-- ======================================================
+       SHARED FOOTER
+  ======================================================= -->
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <!-- ======================================================
+       SHARED SCRIPTS
+  ======================================================= -->
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
+  <script
+    type="module"
+    src="/admin/reception/reception.js"
+  ></script>
+
+</body>
+</html>

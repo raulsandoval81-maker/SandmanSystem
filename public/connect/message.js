@@ -16,14 +16,19 @@ function clean(value) {
 }
 
 function currentLanguage() {
-  return document.documentElement.lang === "es" ? "es" : "en";
+  return document.documentElement.lang === "es"
+    ? "es"
+    : "en";
 }
 
 function setStatus(message, type = "") {
   if (!statusEl) return;
 
   statusEl.textContent = message;
-  statusEl.classList.remove("is-error", "is-success");
+  statusEl.classList.remove(
+    "is-error",
+    "is-success"
+  );
 
   if (type === "error") {
     statusEl.classList.add("is-error");
@@ -42,97 +47,180 @@ function syncLanguage() {
 
 syncLanguage();
 
-const languageObserver = new MutationObserver(syncLanguage);
+const languageObserver = new MutationObserver(
+  syncLanguage
+);
 
-languageObserver.observe(document.documentElement, {
-  attributes: true,
-  attributeFilter: ["lang"]
-});
-
-form?.addEventListener("submit", async (event) => {
-  event.preventDefault();
-
-  if (!form.reportValidity()) {
-    setStatus(
-      currentLanguage() === "es"
-        ? "Completa los campos requeridos."
-        : "Please complete the required fields.",
-      "error"
-    );
-    return;
+languageObserver.observe(
+  document.documentElement,
+  {
+    attributes: true,
+    attributeFilter: ["lang"]
   }
+);
 
-  submitBtn.disabled = true;
+form?.addEventListener(
+  "submit",
+  async (event) => {
+    event.preventDefault();
 
-  setStatus(
-    currentLanguage() === "es"
-      ? "Enviando tu mensaje..."
-      : "Sending your message..."
-  );
+    if (!form.reportValidity()) {
+      setStatus(
+        currentLanguage() === "es"
+          ? "Completa los campos requeridos."
+          : "Please complete the required fields.",
+        "error"
+      );
 
-  try {
-    await ensureSignedIn();
+      return;
+    }
 
-    const payload = {
-      organization: "sandman-academy",
-      pipeline: "general-messaging",
-      source: "public-message-page",
-
-      status: "NEW",
-      messageStatus: "NEW",
-
-      contactName: clean(form.contactName?.value),
-      email: clean(form.email?.value).toLowerCase(),
-      phone: clean(form.phone?.value),
-      topic: clean(form.messageTopic?.value),
-      message: clean(form.message?.value),
-
-      contactConsent: Boolean(form.contactConsent?.checked),
-
-      language: currentLanguage(),
-      pagePath: window.location.pathname,
-
-      assignedCoachUid: null,
-      assignedManagerUid: null,
-
-      coachNotes: "",
-      managementNotes: "",
-
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    const result = await addDoc(
-      collection(db, "general_messages"),
-      payload
-    );
-
-    sessionStorage.setItem(
-      "sandmanGeneralMessageId",
-      result.id
-    );
-
-    form.reset();
-    syncLanguage();
+    if (submitBtn) {
+      submitBtn.disabled = true;
+    }
 
     setStatus(
       currentLanguage() === "es"
-        ? "Mensaje recibido. Nuestro equipo lo revisará pronto."
-        : "Message received. Our team will review it soon.",
-      "success"
+        ? "Enviando tu mensaje..."
+        : "Sending your message..."
     );
 
-  } catch (error) {
-    console.error("[general-message] submission failed:", error);
+    try {
+      await ensureSignedIn();
 
-    setStatus(
-      currentLanguage() === "es"
-        ? "No pudimos enviar tu mensaje. Inténtalo de nuevo."
-        : "We could not send your message. Please try again.",
-      "error"
-    );
+      const payload = {
+        organization: "sandman-system",
+        pipeline: "general-messaging",
+        source: "public-message-page",
 
-  } finally {
-    submitBtn.disabled = false;
+        status: "NEW",
+        messageStatus: "NEW",
+
+        contactName: clean(
+          form.contactName?.value
+        ),
+
+        email: clean(
+          form.email?.value
+        ).toLowerCase(),
+
+        phone: clean(
+          form.phone?.value
+        ),
+
+        topic: clean(
+          form.messageTopic?.value
+        ),
+
+        message: clean(
+          form.message?.value
+        ),
+
+        /*
+         * Public routing preferences.
+         *
+         * These help System Admin identify the intended
+         * organization and location. They do not create
+         * the official routing assignment.
+         */
+        preferredOrganization: clean(
+          form.preferredOrganization?.value
+        ),
+
+        preferredLocation: clean(
+          form.preferredLocation?.value
+        ),
+
+        contactConsent: Boolean(
+          form.contactConsent?.checked
+        ),
+
+        language: currentLanguage(),
+        pagePath: window.location.pathname,
+
+        routingStage: "ADMIN_REVIEW",
+        nextRoutingStage: "MANAGEMENT_TRIAGE",
+
+        routingPolicy:
+          "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
+
+        requiredManagerLevel:
+          "LOCATION_MANAGER",
+
+        assignmentStatus: "UNASSIGNED",
+
+        /*
+         * Official routing remains empty until
+         * System Admin reviews the request.
+         */
+        organizationId: null,
+        organizationName: "",
+
+        academyId: null,
+        academyName: "",
+
+        locationId: null,
+        locationName: "",
+
+        assignedAdminUid: null,
+        assignedManagerUid: null,
+        assignedCoachUid: null,
+
+        respondedByUid: null,
+        respondedByRole: null,
+        respondedAt: null,
+
+        closedByUid: null,
+        closedAt: null,
+
+        escalated: false,
+        escalationReason: "",
+
+        coachNotes: "",
+        managementNotes: "",
+
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      const result = await addDoc(
+        collection(
+          db,
+          "general_messages"
+        ),
+        payload
+      );
+
+      sessionStorage.setItem(
+        "sandmanGeneralMessageId",
+        result.id
+      );
+
+      form.reset();
+      syncLanguage();
+
+      setStatus(
+        currentLanguage() === "es"
+          ? "Mensaje recibido. Nuestro equipo del sistema lo dirigirá a la organización y al gerente local correspondientes."
+          : "Message received. Our system team will route it to the appropriate organization and local manager.",
+        "success"
+      );
+    } catch (error) {
+      console.error(
+        "[general-message] submission failed:",
+        error
+      );
+
+      setStatus(
+        currentLanguage() === "es"
+          ? "No pudimos enviar tu mensaje. Inténtalo de nuevo."
+          : "We could not send your message. Please try again.",
+        "error"
+      );
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+      }
+    }
   }
-});
+);

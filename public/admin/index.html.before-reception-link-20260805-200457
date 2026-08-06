@@ -30,20 +30,6 @@
     </a>
   </div>
 
-  <!-- OPERATIONS -->
-  <div class="section-title">Operations</div>
-  <div class="grid">
-    <a class="card" href="/admin/reception/">
-      <h2>Reception</h2>
-      <p>Public messages, routing, and follow-up</p>
-    </a>
-
-    <a class="card" href="/admin/gatekeeper/">
-      <h2>Gatekeeper</h2>
-      <p>Access review and system approvals</p>
-    </a>
-  </div>
-
   <!-- SYSTEM -->
   <div class="section-title">System</div>
   <div class="grid">

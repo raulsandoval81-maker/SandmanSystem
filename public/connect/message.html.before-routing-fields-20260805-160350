@@ -617,62 +617,7 @@
 
           <div class="message-form__grid">
 
-            <div class="message-field">
-              <label for="preferredOrganization">
-                <span data-lang-block="en">
-                  Organization You Are Trying to Reach
-                </span>
-
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Organización con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
-                id="preferredOrganization"
-                name="preferredOrganization"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
-
-                <option value="sandman-academy">
-                  Sandman Academy of Combat &amp; Fitness
-                </option>
-
-                <option value="yesc">
-                  Youth Empowered Sports Club
-                </option>
-
-                <option value="other-organization">
-                  Another Organization
-                </option>
-
-                <option value="not-sure">
-                  Not Sure
-                </option>
-              </select>
-            </div>
-
-            <div class="message-field">
-              <label for="preferredLocation">
-                <span data-lang-block="en">
-                  Location You Are Trying to Reach
-                </span>
-
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Ubicación con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
+            <select
                 id="preferredLocation"
                 name="preferredLocation"
                 required
@@ -697,8 +642,10 @@
                   Not Sure
                 </option>
               </select>
-            </div>
-<div class="message-field">
+
+
+
+            <div class="message-field">
               <label for="contactName">
                 <span data-lang-block="en">
                   Your Name
