@@ -46,28 +46,42 @@ exports.approveProposal = (0, https_1.onCall)(async (req) => {
             if (currentStatus !== "REVIEW") {
                 throw new https_1.HttpsError("failed-precondition", "Only REVIEW proposals may be approved.");
             }
+            const lockedSnapshot = {
+                proposalId,
+                prospect: proposal.prospect || {},
+                coach: proposal.coach || {},
+                athletes: Array.isArray(proposal.athletes)
+                    ? proposal.athletes
+                    : [],
+                pricing: proposal.pricing || {},
+                agreement: proposal.agreement || {},
+                internalNotes: proposal.internalNotes || null,
+            };
             const historyRef = proposalRef
                 .collection("history")
                 .doc();
             tx.update(proposalRef, {
-                status: "APPROVED",
+                status: "READY_FOR_CHECKOUT",
+                lockedSnapshot,
                 updatedBy: callerUid,
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 approvedBy: callerUid,
                 approvedAt: firestore_1.FieldValue.serverTimestamp(),
+                lockedBy: callerUid,
+                lockedAt: firestore_1.FieldValue.serverTimestamp(),
             });
             tx.create(historyRef, {
                 proposalId,
                 event: "STATUS_CHANGED",
                 fromStatus: "REVIEW",
-                toStatus: "APPROVED",
+                toStatus: "READY_FOR_CHECKOUT",
                 createdBy: callerUid,
                 createdByName: coachName,
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
             });
             return {
                 proposalId,
-                status: "APPROVED",
+                status: "READY_FOR_CHECKOUT",
             };
         });
         return {

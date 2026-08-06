@@ -200,7 +200,6 @@ const extras = {
       saveDraftButton:document.getElementById("saveDraftButton"),
       submitReviewButton:document.getElementById("submitReviewButton"),
       approveProposalButton:document.getElementById("approveProposalButton"),
-      lockProposalButton:document.getElementById("lockProposalButton"),
       checkoutProposalButton:document.getElementById("checkoutProposalButton"),
       resetButton:document.getElementById("resetButton")
     };
@@ -739,177 +738,101 @@ const extras = {
       }
     }
 
-    async function approveCurrentProposal() {
-      if (!proposalId) {
-        alert("No proposal ID was supplied.");
-        return;
-      }
+async function approveCurrentProposal() {
+  if (!proposalId) {
+    alert("No proposal ID was supplied.");
+    return;
+  }
 
-      const confirmed =
-        window.confirm(
-          `Approve ${proposalId}?`
-        );
+  const confirmed =
+    window.confirm(
+      `Approve ${proposalId} and prepare it for checkout?`
+    );
 
-      if (!confirmed) {
-        return;
-      }
+  if (!confirmed) {
+    return;
+  }
 
-      const user =
-        await requireStaffSession();
+  const user =
+    await requireStaffSession();
 
-      if (!user) {
-        return;
-      }
+  if (!user) {
+    return;
+  }
 
-      const originalText =
-        el.approveProposalButton.textContent;
+  const originalText =
+    el.approveProposalButton.textContent;
 
-      el.approveProposalButton.disabled = true;
-      el.approveProposalButton.textContent =
-        "Approving…";
+  el.approveProposalButton.disabled = true;
+  el.approveProposalButton.textContent =
+    "Approving…";
 
-      try {
-        const approve =
-          httpsCallable(
-            functions,
-            "approveProposal"
-          );
+  try {
+    const approve =
+      httpsCallable(
+        functions,
+        "approveProposal"
+      );
 
-        const response =
-          await approve({
-            proposalId,
+    const response =
+      await approve({
+        proposalId,
 
-            coachName:
-              el.coachName.value.trim() ||
-              null
-          });
+        coachName:
+          el.coachName.value.trim() ||
+          null
+      });
 
-        if (
-          response.data?.status !== "APPROVED"
-        ) {
-          throw new Error(
-            "APPROVED status was not returned."
-          );
-        }
-
-        el.saveDraftButton.textContent =
-          `${proposalId} — APPROVED`;
-
-        el.submitReviewButton.textContent =
-          "Submitted for Review";
-
-        el.approveProposalButton.disabled = true;
-        el.approveProposalButton.textContent =
-          "Proposal Approved";
-
-        alert(
-          `Proposal ${proposalId} approved successfully.`
-        );
-      } catch (error) {
-        console.error(
-          "Approve proposal failed:",
-          error
-        );
-
-        el.approveProposalButton.disabled = false;
-        el.approveProposalButton.textContent =
-          originalText;
-
-        alert(
-          error?.message ||
-          "Unable to approve the proposal."
-        );
-      }
+    if (
+      response.data?.status !==
+      "READY_FOR_CHECKOUT"
+    ) {
+      throw new Error(
+        "READY_FOR_CHECKOUT status was not returned."
+      );
     }
 
-    async function lockCurrentProposal() {
-      if (!proposalId) {
-        alert("No proposal ID was supplied.");
-        return;
-      }
+    el.saveDraftButton.textContent =
+      `${proposalId} — READY_FOR_CHECKOUT`;
 
-      const confirmed =
-        window.confirm(
-          `Lock ${proposalId}? This freezes the approved quote.`
-        );
+    el.submitReviewButton.textContent =
+      "Submitted for Review";
 
-      if (!confirmed) {
-        return;
-      }
+    el.approveProposalButton.hidden = true;
+    el.approveProposalButton.disabled = true;
+    el.approveProposalButton.textContent =
+      "Proposal Approved";
 
-      const user =
-        await requireStaffSession();
+    el.checkoutProposalButton.hidden = false;
+    el.checkoutProposalButton.disabled = false;
+    el.checkoutProposalButton.textContent =
+      "Begin Checkout";
 
-      if (!user) {
-        return;
-      }
+    alert(
+      `Proposal ${proposalId} approved and ready for checkout.`
+    );
+  } catch (error) {
+    console.error(
+      "Approve proposal failed:",
+      error
+    );
 
-      const originalText =
-        el.lockProposalButton.textContent;
+    el.approveProposalButton.disabled = false;
+    el.approveProposalButton.textContent =
+      originalText;
 
-      el.lockProposalButton.disabled = true;
-      el.lockProposalButton.textContent =
-        "Locking…";
+    alert(
+      error?.message ||
+      "Unable to approve the proposal."
+    );
+  }
+}
 
-      try {
-        const lock =
-          httpsCallable(
-            functions,
-            "lockProposal"
-          );
-
-        const response =
-          await lock({
-            proposalId,
-
-            coachName:
-              el.coachName.value.trim() ||
-              null
-          });
-
-        if (
-          response.data?.status !== "LOCKED"
-        ) {
-          throw new Error(
-            "LOCKED status was not returned."
-          );
-        }
-
-        el.saveDraftButton.textContent =
-          `${proposalId} — LOCKED`;
-
-        el.approveProposalButton.hidden = true;
-        el.approveProposalButton.disabled = true;
-
-        el.lockProposalButton.disabled = true;
-        el.lockProposalButton.textContent =
-          "Proposal Locked";
-
-        alert(
-          `Proposal ${proposalId} locked successfully.`
-        );
-      } catch (error) {
-        console.error(
-          "Lock proposal failed:",
-          error
-        );
-
-        el.lockProposalButton.disabled = false;
-        el.lockProposalButton.textContent =
-          originalText;
-
-        alert(
-          error?.message ||
-          "Unable to lock the proposal."
-        );
-      }
-    }
-
-    async function beginProposalCheckout() {
-      if (!proposalId) {
-        alert("No proposal ID was supplied.");
-        return;
-      }
+async function beginProposalCheckout() {
+  if (!proposalId) {
+    alert("No proposal ID was supplied.");
+    return;
+  }
 
       const confirmed =
         window.confirm(
@@ -1121,37 +1044,38 @@ const extras = {
             ? "Submitted for Review"
             : proposalStatus;
 
+        const canApprove =
+          proposalStatus === "REVIEW";
+
+        const canBeginCheckout =
+          proposalStatus ===
+          "READY_FOR_CHECKOUT";
+
+        const checkoutExists =
+          proposalStatus ===
+          "CHECKOUT_CREATED";
+
         el.approveProposalButton.hidden =
-          proposalStatus !== "REVIEW";
+          !canApprove;
 
         el.approveProposalButton.disabled =
-          proposalStatus !== "REVIEW";
+          !canApprove;
 
         el.approveProposalButton.textContent =
-          proposalStatus === "APPROVED"
-            ? "Proposal Approved"
-            : "Approve Proposal";
-
-        el.lockProposalButton.hidden =
-          proposalStatus !== "APPROVED";
-
-        el.lockProposalButton.disabled =
-          proposalStatus !== "APPROVED";
-
-        el.lockProposalButton.textContent =
-          proposalStatus === "LOCKED"
-            ? "Proposal Locked"
-            : "Lock Proposal";
+          "Approve Proposal";
 
         el.checkoutProposalButton.hidden =
-          proposalStatus !== "LOCKED";
+          !canBeginCheckout &&
+          !checkoutExists;
 
         el.checkoutProposalButton.disabled =
-          proposalStatus !== "LOCKED";
+          !canBeginCheckout;
 
         el.checkoutProposalButton.textContent =
-          "Begin Checkout";
-      }
+          checkoutExists
+            ? "Checkout Created"
+            : "Begin Checkout";
+          }
 
       console.log(
         "Proposal loaded:",
@@ -1183,7 +1107,6 @@ const extras = {
     el.saveDraftButton.addEventListener("click",saveProposalDraft);
     el.submitReviewButton.addEventListener("click",submitForReview);
     el.approveProposalButton.addEventListener("click",approveCurrentProposal);
-    el.lockProposalButton.addEventListener("click",lockCurrentProposal);
     el.checkoutProposalButton.addEventListener("click",beginProposalCheckout);
     el.resetButton.addEventListener("click",reset);
 

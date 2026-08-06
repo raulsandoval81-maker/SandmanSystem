@@ -27,6 +27,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     if (!req.auth) {
         throw new https_1.HttpsError("unauthenticated", "You must be signed in to create proposal checkout.");
     }
+    const actorUid = req.auth.uid;
     const token = req.auth.token;
     if (!hasCoachAccess(token)) {
         throw new https_1.HttpsError("permission-denied", "Coach or administrator access is required.");
@@ -44,8 +45,9 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
     }
     const proposal = proposalSnap.data() || {};
-    if (cleanString(proposal.status) !== "LOCKED") {
-        throw new https_1.HttpsError("failed-precondition", "Only LOCKED proposals may begin checkout.");
+    if (cleanString(proposal.status) !==
+        "READY_FOR_CHECKOUT") {
+        throw new https_1.HttpsError("failed-precondition", "Only READY_FOR_CHECKOUT proposals may begin checkout.");
     }
     const snapshot = proposal.lockedSnapshot &&
         typeof proposal.lockedSnapshot === "object"
@@ -99,6 +101,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         const stripe = (0, stripeClient_1.getStripe)();
         const session = await stripe.checkout.sessions.create({
             mode: "subscription",
+            payment_method_types: ["card"],
             line_items: lineItems,
             customer_email: email && email.includes("@")
                 ? email
@@ -117,21 +120,59 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 },
             },
             allow_promotion_codes: false,
+        }, {
+            idempotencyKey: `proposal-checkout-${proposalId}`,
         });
         if (!session.url) {
             throw new Error("Stripe did not return a Checkout Session URL.");
         }
-        await proposalRef.update({
-            pendingCheckoutSessionId: session.id,
-            checkoutStartedAt: firestore_1.FieldValue.serverTimestamp(),
-            checkoutStartedBy: req.auth.uid,
-            updatedAt: firestore_1.FieldValue.serverTimestamp(),
-            updatedBy: req.auth.uid,
+        await db.runTransaction(async (tx) => {
+            const currentSnap = await tx.get(proposalRef);
+            if (!currentSnap.exists) {
+                throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
+            }
+            const currentProposal = currentSnap.data() || {};
+            const currentStatus = cleanString(currentProposal.status);
+            const currentSessionId = cleanString(currentProposal
+                .pendingCheckoutSessionId);
+            if (currentStatus ===
+                "CHECKOUT_CREATED" &&
+                currentSessionId === session.id) {
+                return;
+            }
+            if (currentStatus !==
+                "READY_FOR_CHECKOUT") {
+                throw new https_1.HttpsError("failed-precondition", `Proposal ${proposalId} is no longer ready for checkout.`);
+            }
+            const historyRef = proposalRef
+                .collection("history")
+                .doc();
+            tx.update(proposalRef, {
+                status: "CHECKOUT_CREATED",
+                pendingCheckoutSessionId: session.id,
+                checkoutStartedAt: firestore_1.FieldValue.serverTimestamp(),
+                checkoutStartedBy: actorUid,
+                updatedAt: firestore_1.FieldValue.serverTimestamp(),
+                updatedBy: actorUid,
+            });
+            tx.create(historyRef, {
+                proposalId,
+                event: "STATUS_CHANGED",
+                fromStatus: "READY_FOR_CHECKOUT",
+                toStatus: "CHECKOUT_CREATED",
+                createdBy: actorUid,
+                createdByName: cleanString(snapshot.coach &&
+                    typeof snapshot.coach ===
+                        "object"
+                    ? snapshot.coach.name
+                    : "") || null,
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+            });
         });
         return {
             ok: true,
             proposalId,
-            status: "LOCKED",
+            status: "CHECKOUT_CREATED",
             checkoutSessionId: session.id,
             checkoutUrl: session.url,
         };

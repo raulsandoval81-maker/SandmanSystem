@@ -173,12 +173,25 @@ async function handleProposalCheckoutCompleted(
         return;
       }
 
-      if (currentStatus !== "LOCKED") {
-        throw new Error(
-          `Proposal ${proposalId} must be LOCKED before payment.`
-        );
-      }
+if (currentStatus !== "CHECKOUT_CREATED") {
+  throw new Error(
+    `Proposal ${proposalId} must be CHECKOUT_CREATED before payment.`
+  );
+}
 
+const pendingCheckoutSessionId =
+  cleanString(
+    proposal.pendingCheckoutSessionId
+  );
+
+if (
+  !pendingCheckoutSessionId ||
+  pendingCheckoutSessionId !== session.id
+) {
+  throw new Error(
+    `Stripe Checkout Session ${session.id} does not match proposal ${proposalId}.`
+  );
+}
       const historyRef =
         proposalRef
           .collection("history")
@@ -218,8 +231,8 @@ async function handleProposalCheckoutCompleted(
           event:
             "STATUS_CHANGED",
 
-          fromStatus:
-            "LOCKED",
+fromStatus:
+  "CHECKOUT_CREATED",
 
           toStatus:
             "PAID",

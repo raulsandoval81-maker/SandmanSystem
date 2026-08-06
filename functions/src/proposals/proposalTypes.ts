@@ -1,8 +1,8 @@
 export const PROPOSAL_STATUSES = [
   "DRAFT",
   "REVIEW",
-  "APPROVED",
-  "LOCKED",
+  "READY_FOR_CHECKOUT",
+  "CHECKOUT_CREATED",
   "PAID",
   "VOID",
 ] as const;

@@ -103,6 +103,30 @@ export const approveProposal =
               );
             }
 
+            const lockedSnapshot = {
+              proposalId,
+
+              prospect:
+                proposal.prospect || {},
+
+              coach:
+                proposal.coach || {},
+
+              athletes:
+                Array.isArray(proposal.athletes)
+                  ? proposal.athletes
+                  : [],
+
+              pricing:
+                proposal.pricing || {},
+
+              agreement:
+                proposal.agreement || {},
+
+              internalNotes:
+                proposal.internalNotes || null,
+            };
+
             const historyRef =
               proposalRef
                 .collection("history")
@@ -112,7 +136,9 @@ export const approveProposal =
               proposalRef,
               {
                 status:
-                  "APPROVED",
+                  "READY_FOR_CHECKOUT",
+
+                lockedSnapshot,
 
                 updatedBy:
                   callerUid,
@@ -124,6 +150,12 @@ export const approveProposal =
                   callerUid,
 
                 approvedAt:
+                  FieldValue.serverTimestamp(),
+
+                lockedBy:
+                  callerUid,
+
+                lockedAt:
                   FieldValue.serverTimestamp(),
               }
             );
@@ -140,7 +172,7 @@ export const approveProposal =
                   "REVIEW",
 
                 toStatus:
-                  "APPROVED",
+                  "READY_FOR_CHECKOUT",
 
                 createdBy:
                   callerUid,
@@ -156,7 +188,7 @@ export const approveProposal =
             return {
               proposalId,
               status:
-                "APPROVED" as const,
+                "READY_FOR_CHECKOUT" as const,
             };
           }
         );

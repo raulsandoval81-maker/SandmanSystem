@@ -190,9 +190,6 @@ export {
   approveProposal,
 } from "./proposals/approveProposal";
 
-export {
-  lockProposal,
-} from "./proposals/lockProposal";
 
 export {
   createProposalCheckout,
