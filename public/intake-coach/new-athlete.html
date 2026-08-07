@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Paper Intake | Sandman Enrollment</title>
+  <title>Coach Athlete Intake | Sandman Enrollment</title>
   <link rel="icon" href="data:," />
 <link rel="stylesheet" href="/assets/css/site.css" />
 <link rel="stylesheet" href="/intake-shared/shared.css" />
@@ -245,24 +245,24 @@
   <main class="wrap">
     <section class="card">
       <div class="eyebrow">Sandman Enrollment</div>
-      <h1>Enter Returned Paper Intake</h1>
+      <h1>Coach Athlete Intake</h1>
 
       <p class="muted">
-        Use this form only after a parent or guardian has completed and returned
-        the paper enrollment intake and waiver. Whenever possible, use the online
-        parent intake link instead.
+        Use this page to enter a returned paper intake or manually create an athlete
+        when online intake is unavailable. Use the standard online intake whenever
+        possible.
       </p>
 
       <div class="actions">
         <a class="btn brand" href="/intake-coach/">
-          Send Parent Intake Link
+          Back to Coach Intake
         </a>
       </div>
 
       <form id="newAthleteForm" class="form-grid">
 
         <section class="full mini-panel workflow-panel">
-          <div class="eyebrow">Choose Workflow</div>
+          <div class="eyebrow">Athlete Action</div>
 
           <h2 id="workflowHeading" class="mode-heading">
             Create New Athlete
@@ -284,7 +284,7 @@
               </span>
 
               <span class="workflow-mode-copy">
-                New human, new athlete UID, first discipline, parent and safety information.
+                Create a new athlete identity, first discipline, and enrollment record.
               </span>
             </button>
 
@@ -299,7 +299,7 @@
               </span>
 
               <span class="workflow-mode-copy">
-                Existing athlete, same UID, new Combat discipline. Strength and Honor stay shared.
+                Keep the existing athlete identity and add one new Combat discipline.
               </span>
             </button>
           </div>
@@ -360,11 +360,11 @@
             </option>
 
             <option value="zero2hero">
-              Zero2Hero · Youth Wrestling
+              Zero2Hero · Wrestling
             </option>
 
             <option value="zero2hero-kickboxing">
-              Zero2Hero · Youth Kickboxing
+              Zero2Hero · Muay Thai
             </option>
 
             <option value="quest2mastery">
@@ -433,7 +433,7 @@
         </label>
 
         <div class="full mini-panel">
-          <div class="eyebrow">Parent or Guardian</div>
+          <div class="eyebrow">Parent / Guardian Information</div>
         </div>
 
         <label>
@@ -500,10 +500,11 @@
         </label>
 
         <div class="full mini-panel">
-          <div class="eyebrow">Returned Paper Waiver</div>
+          <div class="eyebrow">Paper Waiver Verification</div>
 
           <p class="muted">
-            Enter the signer and date exactly as recorded on the returned paper waiver.
+            Confirm the signer and signature date exactly as shown on the returned
+            Sandman Participation Waiver.
           </p>
         </div>
 
@@ -562,7 +563,7 @@
         </label>
 
         <label>
-          Paper Training / Late Entry XP
+          Starting XP Adjustment
           <input id="startingXp" type="number" min="0" step="5" value="0" />
         </label>
 
@@ -579,7 +580,7 @@
         <div class="actions full">
           <button id="submitBtn" class="btn brand" type="submit">
             <span id="submitBtnLabel">
-              Verify Paper Intake &amp; Create Athlete
+              Create Athlete
             </span>
           </button>
 

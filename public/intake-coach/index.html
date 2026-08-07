@@ -16,8 +16,8 @@
 
   <main class="wrap">
 
-    <h1>Coach • Intake Console</h1>
-    <p class="muted">Parent → Coach → Mint → Athlete</p>
+    <h1>Coach Intake Console</h1>
+    <p class="muted">Invite → Intake → Review → Activate</p>
 <!-- =========================
      SELECTED CONNECT LEAD
 ========================== -->
@@ -44,22 +44,54 @@
 </section>
 
     <!-- =========================
-         PARENT INVITE
+         START INTAKE
     ========================== -->
     <section class="card">
-      <h3>Parent Invite</h3>
+      <div class="card-head">
+        <div>
+          <h3>Start Intake</h3>
 
-      <p class="small muted">
-        Generate a 48-hour intake token and share it with families.
-      </p>
+          <p class="small muted">
+            Generate a secure 48-hour intake link for the person completing enrollment.
+          </p>
+        </div>
 
-      <div class="row">
+        <span class="status-pill">48 Hours</span>
+      </div>
+
+      <div class="workflow-mode-grid">
+
         <button
           id="btn-make-token"
-          class="solid-blue"
+          class="workflow-mode-btn"
+          type="button"
         >
-          Generate Token
+          <span class="workflow-mode-title">
+            Parent / Guardian
+          </span>
+
+          <span class="workflow-mode-copy">
+            Use when a parent or legal guardian is completing intake for an athlete.
+          </span>
         </button>
+
+        <button
+          id="btn-make-athlete-token"
+          class="workflow-mode-btn"
+          type="button"
+        >
+          <span class="workflow-mode-title">
+            Adult Athlete
+          </span>
+
+          <span class="workflow-mode-copy">
+            Use when an adult athlete is completing and signing their own intake.
+          </span>
+        </button>
+
+      </div>
+
+      <div class="row" style="margin-top:14px;">
 
         <input
           id="invite-link"
@@ -72,28 +104,37 @@
         <button
           id="btn-copy-token"
           class="outline-blue small"
+          type="button"
         >
-          Copy
+          Copy Link
         </button>
+
       </div>
 
       <div class="row">
+
         <button
           id="btn-open-qr"
           class="outline-blue small"
+          type="button"
         >
-          QR / Open Join Page
+          Open / QR
         </button>
 
-        <span class="small muted">
-          Opens parent intake:
-          /intake-parent/?invite=…
+        <span
+          id="invite-route-label"
+          class="small muted"
+        >
+          Choose who will complete the intake.
         </span>
+
       </div>
 
       <div
         id="invite-status"
         class="small muted"
+        role="status"
+        aria-live="polite"
       ></div>
     </section>
 
@@ -104,7 +145,7 @@
       <h3>Pending Intakes</h3>
 
       <p class="muted small">
-        Families who completed intake will show here.
+        Submitted intakes waiting for coach review appear here.
       </p>
 
       <div class="row">
@@ -135,10 +176,10 @@
          RECENT APPROVALS
     ========================== -->
     <section class="card">
-      <h3>Recently Approved</h3>
+      <h3>Recently Activated</h3>
 
       <p class="small muted">
-        Last 3 coach approvals.
+        Last 3 athletes activated through intake.
       </p>
 
       <div
@@ -150,7 +191,7 @@
     </section>
 
     <footer class="footer small muted">
-      Sandman Systems™ — Coach Intake Console
+      Sandman System™ — Coach Intake Console
     </footer>
 
 
@@ -249,4 +290,4 @@
   ></script>
 
 </body>
-</html>
+</html>\n

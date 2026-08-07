@@ -720,8 +720,32 @@ paintMintUI({
   const city  = s.location?.city ?? "—";
   const state = s.location?.state ?? "—";
 
-  const parentEmail = s.parent?.email ?? "—";
-  const parentPhone = s.parent?.phoneDigits ?? "—";
+  const contactEmail =
+    s.parent?.email ??
+    s.athlete?.email ??
+    "—";
+
+  const contactPhone =
+    s.parent?.phoneDigits ??
+    s.athlete?.phoneDigits ??
+    "—";
+
+  const intakeAudience =
+    s.intakeAudience ||
+    (
+      s.source === "intake-athlete-ui"
+        ? "adult_athlete"
+        : s.source === "intake-parent-ui"
+          ? "parent_guardian"
+          : null
+    );
+
+  const completedByLabel =
+    intakeAudience === "adult_athlete"
+      ? "Adult Athlete"
+      : intakeAudience === "parent_guardian"
+        ? "Parent / Guardian"
+        : "—";
 
   const emerName  = s.emergency?.name ?? "—";
   const emerPhone = s.emergency?.phoneDigits ?? "—";
@@ -733,8 +757,18 @@ paintMintUI({
 
   if ($("s-city")) $("s-city").textContent = city;
   if ($("s-state")) $("s-state").textContent = state;
-  if ($("s-email")) $("s-email").textContent = parentEmail;
-  if ($("s-phone")) $("s-phone").textContent = parentPhone;
+  if ($("s-email")) {
+    $("s-email").textContent = contactEmail;
+  }
+
+  if ($("s-phone")) {
+    $("s-phone").textContent = contactPhone;
+  }
+
+  if ($("s-completed-by")) {
+    $("s-completed-by").textContent =
+      completedByLabel;
+  }
   if ($("s-emer")) $("s-emer").textContent = `${emerName} (${emerPhone})`;
   if ($("s-med")) $("s-med").textContent = medical;
 
@@ -990,9 +1024,41 @@ async function approveAthlete() {
 
     const publicName = `${initial}. ${last}`.trim();
 
-    const parentEmail = String(s.parent?.email || "").trim().toLowerCase();
-    const parentPhoneDigits = String(s.parent?.phoneDigits || "").trim();
-    const parentName = String(s.parent?.name || s.waiver?.signatureName || "").trim();
+    const intakeAudience =
+      s.intakeAudience ||
+      (
+        s.source === "intake-athlete-ui"
+          ? "adult_athlete"
+          : "parent_guardian"
+      );
+
+    const contactEmail =
+      String(
+        s.parent?.email ??
+        s.athlete?.email ??
+        ""
+      )
+        .trim()
+        .toLowerCase();
+
+    const contactPhoneDigits =
+      String(
+        s.parent?.phoneDigits ??
+        s.athlete?.phoneDigits ??
+        ""
+      ).trim();
+
+    const contactName =
+      String(
+        s.parent?.name ??
+        s.waiver?.signatureName ??
+        `${s.athlete?.first || s.first || ""} ${s.athlete?.last || s.last || ""}`
+      ).trim();
+
+    const contactLanguagePreference =
+      s.parent?.languagePreference ??
+      s.athlete?.languagePreference ??
+      null;
 
     const intakeTeamName = String(s.location?.team || "").trim();
     const teamIdFromIntake =
@@ -1073,13 +1139,44 @@ workflowVersion:
       fullName: ($("s-firstlast")?.textContent || "").trim(),
       publicName,
 
-parent: {
-  email: parentEmail || null,
-  phoneDigits: parentPhoneDigits || null,
-  name: parentName || null,
-  languagePreference:
-    s.parent?.languagePreference || null,
-},
+      intakeAudience,
+
+      contact: {
+        role:
+          intakeAudience === "adult_athlete"
+            ? "athlete"
+            : "parent_guardian",
+
+        email:
+          contactEmail || null,
+
+        phoneDigits:
+          contactPhoneDigits || null,
+
+        name:
+          contactName || null,
+
+        languagePreference:
+          contactLanguagePreference,
+      },
+
+      ...(intakeAudience === "parent_guardian"
+        ? {
+            parent: {
+              email:
+                contactEmail || null,
+
+              phoneDigits:
+                contactPhoneDigits || null,
+
+              name:
+                contactName || null,
+
+              languagePreference:
+                contactLanguagePreference,
+            },
+          }
+        : {}),
 
       team: {
         name: team || intakeTeamName || null,

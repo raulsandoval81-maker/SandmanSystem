@@ -17,8 +17,8 @@
     <header class="page-head review-hero" id="reviewHero">
       <div>
         <p class="eyebrow">Sandman Enrollment</p>
-        <h1 id="reviewPageTitle">Review & Activate Athlete</h1>
-        <p id="reviewPageSubtitle" class="muted small">Review the athlete, choose the correct journey, confirm placement, and activate the profile.</p>
+        <h1 id="reviewPageTitle">Coach Review</h1>
+        <p id="reviewPageSubtitle" class="muted small">Review the intake, confirm placement, and activate the athlete.</p>
       </div>
     </header>
 
@@ -30,7 +30,13 @@
         <section class="card" aria-labelledby="submitted-title">
           <div class="card-head">
             <h3 id="submitted-title">Athlete Information</h3>
-            <span class="status-pill">Parent Intake</span>
+            <div class="intake-origin">
+              <span class="status-pill">Submitted Intake</span>
+              <div class="small muted">
+                Completed By:
+                <strong id="s-completed-by">—</strong>
+              </div>
+            </div>
           </div>
 
           <div class="info-grid two">
@@ -54,14 +60,14 @@
               <div class="value" id="s-state">—</div>
             </div>
             <div class="stat">
-              <div class="label">Parent Email</div>
+              <div class="label">Contact Email</div>
               <div class="value small" id="s-email">—</div>
             </div>
           </div>
 
           <div class="info-grid two">
             <div class="stat">
-              <div class="label">Parent Phone</div>
+              <div class="label">Contact Phone</div>
               <div class="value" id="s-phone">—</div>
             </div>
             <div class="stat">
@@ -78,8 +84,8 @@
 
         <section class="card" aria-labelledby="confirm-title">
           <div class="card-head">
-            <h3 id="confirm-title">Coach Review</h3>
-            <span class="status-pill">Edit Safe</span>
+            <h3 id="confirm-title">Review &amp; Corrections</h3>
+            <span class="status-pill">Coach Editable</span>
           </div>
 
           <div class="form-grid two">
@@ -177,6 +183,115 @@
       <div class="review-stack">
 
 
+        <!-- COACH DECISION FLOW -->
+
+        
+
+        <section class="card mint-card" id="journeyPickerCard" aria-labelledby="mint-title">
+          <div class="card-head">
+            <h3 id="mint-title">Select Journey</h3>
+            <span class="status-pill gold">Choose Journey</span>
+          </div>
+
+          <div class="mint-grid">
+
+            <button type="button" class="mint-track-btn" id="btn-mint-z2h">
+              <span class="mint-track-name">Zero2Hero Wrestling</span>
+              <span class="mint-track-meta">Ages 7–13 • Wrestling</span>
+              <span class="mint-track-sub">Foundry 8</span>
+            </button>
+
+            <button type="button" class="mint-track-btn" id="btn-mint-p2l">
+              <span class="mint-track-name">Path2Legend Wrestling</span>
+              <span class="mint-track-meta">Ages 14+ • Wrestling</span>
+              <span class="mint-track-sub">Foundry 4</span>
+            </button>
+
+<button type="button" class="mint-track-btn" id="btn-mint-boxing">
+  <span class="mint-track-name">Path2Legend Boxing</span>
+  <span class="mint-track-meta">Ages 14+ • Boxing</span>
+  <span class="mint-track-sub">Foundry 4</span>
+</button>
+
+<button
+  type="button"
+  class="mint-track-btn"
+  id="btn-mint-z2h-muay-thai"
+  disabled
+  aria-disabled="true"
+  title="Placement option not wired yet"
+>
+  <span class="mint-track-name">Zero2Hero Muay Thai</span>
+  <span class="mint-track-meta">Ages 7–13 • Muay Thai</span>
+  <span class="mint-track-sub">Foundry 8 • Coming Soon</span>
+</button>
+
+<button
+  type="button"
+  class="mint-track-btn"
+  id="btn-mint-p2l-muay-thai"
+  disabled
+  aria-disabled="true"
+  title="Placement option not wired yet"
+>
+  <span class="mint-track-name">Path2Legend Muay Thai</span>
+  <span class="mint-track-meta">Ages 14+ • Muay Thai</span>
+  <span class="mint-track-sub">Foundry 4 • Coming Soon</span>
+</button>
+
+
+          </div>
+
+          <div class="field uid-field">
+            <label for="c-uid">UID</label>
+            <input id="c-uid" class="mono small" placeholder="UID appears…" readonly>
+          </div>
+
+          <input id="c-track" type="hidden">
+          <input id="c-tier" type="hidden">
+          <input id="c-rank" type="hidden">
+          <input id="c-program-track" type="hidden">
+
+          <div class="info-grid three">
+            <div class="stat">
+              <div class="label">Track</div>
+              <div class="value" id="m-track">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Tier_Rank</div>
+              <div class="value" id="m-rank">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Padlock</div>
+              <div class="value mono" id="m-padlock">—</div>
+            </div>
+          </div>
+        </section>
+
+        
+
+        <section class="card" id="mint-box" aria-labelledby="minttag-title">
+          <div class="card-head">
+            <h3 id="minttag-title">Athlete Identity</h3>
+            <span class="status-pill">Identity</span>
+          </div>
+
+          <div class="form-grid one">
+            <div class="field">
+              <label for="mint-virtue">Virtue</label>
+              <select id="mint-virtue"></select>
+            </div>
+
+            <div class="field">
+              <label for="mint-tag-output">Mint Tag</label>
+              <input id="mint-tag-output" readonly />
+            </div>
+          </div>
+        </section>
+
+        
+
+
         <section
           class="card"
           id="addDisciplineSummaryCard"
@@ -224,92 +339,19 @@
           </div>
 
           <p class="muted small">
-            This adds Combat progression to the existing athlete. Strength, Honor, parent access, and athlete identity remain shared.
+            Adds the selected Combat discipline to the existing athlete. Identity, Strength, Honor, and account access remain shared.
           </p>
         </section>
 
-        <section class="card" id="mint-box" aria-labelledby="minttag-title">
-          <div class="card-head">
-            <h3 id="minttag-title">Athlete Identity</h3>
-            <span class="status-pill">Identity</span>
-          </div>
-
-          <div class="form-grid one">
-            <div class="field">
-              <label for="mint-virtue">Virtue</label>
-              <select id="mint-virtue"></select>
-            </div>
-
-            <div class="field">
-              <label for="mint-tag-output">Mint Tag</label>
-              <input id="mint-tag-output" readonly />
-            </div>
-          </div>
-        </section>
-
-        <section class="card mint-card" id="journeyPickerCard" aria-labelledby="mint-title">
-          <div class="card-head">
-            <h3 id="mint-title">Select Journey</h3>
-            <span class="status-pill gold">Choose Journey</span>
-          </div>
-
-          <div class="mint-grid">
-
-            <button type="button" class="mint-track-btn" id="btn-mint-z2h">
-              <span class="mint-track-name">Zero2Hero Wrestling</span>
-              <span class="mint-track-meta">Ages 7–13 • Wrestling</span>
-              <span class="mint-track-sub">Foundry 8</span>
-            </button>
-
-            <button type="button" class="mint-track-btn" id="btn-mint-p2l">
-              <span class="mint-track-name">Path2Legend Wrestling</span>
-              <span class="mint-track-meta">Ages 14+ • Wrestling</span>
-              <span class="mint-track-sub">Foundry 4</span>
-            </button>
-
-<button type="button" class="mint-track-btn" id="btn-mint-boxing">
-  <span class="mint-track-name">Path2Legend Wrestling Boxing</span>
-  <span class="mint-track-meta">Ages 14+ • Boxing</span>
-  <span class="mint-track-sub">Foundry 4</span>
-</button>
-
-
-
-          </div>
-
-          <div class="field uid-field">
-            <label for="c-uid">UID</label>
-            <input id="c-uid" class="mono small" placeholder="UID appears…" readonly>
-          </div>
-
-          <input id="c-track" type="hidden">
-          <input id="c-tier" type="hidden">
-          <input id="c-rank" type="hidden">
-          <input id="c-program-track" type="hidden">
-
-          <div class="info-grid three">
-            <div class="stat">
-              <div class="label">Track</div>
-              <div class="value" id="m-track">—</div>
-            </div>
-            <div class="stat">
-              <div class="label">Tier_Rank</div>
-              <div class="value" id="m-rank">—</div>
-            </div>
-            <div class="stat">
-              <div class="label">Padlock</div>
-              <div class="value mono" id="m-padlock">—</div>
-            </div>
-          </div>
-        </section>
+        
 
         <section class="card" id="adjustmentCard" aria-labelledby="adjust-title">
           <div class="card-head">
-            <h3 id="adjust-title">Administrative Adjustment</h3>
+            <h3 id="adjust-title">Coach Adjustment</h3>
             <span class="status-pill danger">Optional</span>
           </div>
 
-          <p class="muted small">Only use for delays or corrections. Leave blank for normal approval.</p>
+          <p class="muted small">Optional corrections before activation. Leave blank for a standard approval.</p>
 
           <div class="form-grid two">
             <div class="field">
@@ -324,15 +366,17 @@
           </div>
         </section>
 
-        <section class="card" id="parentConnectionCard" aria-labelledby="legacy-title">
+        
+
+        <section class="card" id="parentConnectionCard" hidden aria-labelledby="legacy-title">
 
   <div class="card-head">
-    <h3 id="legacy-title">Connect Parent</h3>
-    <span class="status-pill gold">Legacy</span>
+    <h3 id="legacy-title">Parent / Guardian Connection</h3>
+    <span class="status-pill gold">Optional Access</span>
   </div>
 
   <p class="muted small">
-    Use when an athlete was created before the parent joined. This gives the parent access without creating or changing the athlete profile.
+    Use only when parent or guardian access is added after activation. This adds authorized access without changing the athlete profile, journey, progression, XP, or enrollment status.
   </p>
 
   <div class="field">
@@ -364,8 +408,10 @@
 
 </section>
 
+        
+
         <section class="card approve-card" id="approveCard" aria-labelledby="approve-title">
-          <h3 id="approve-title">Approve & Activate Profile</h3>
+          <h3 id="approve-title">Approve &amp; Activate</h3>
 
           <div class="approve-actions">
             <button type="button" id="btn-approve" class="solid-blue">Approve & Activate</button>
@@ -419,4 +465,4 @@
 
   <script type="module" src="./review.js"></script>
 </body>
-</html>
+</html>\n

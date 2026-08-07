@@ -73,8 +73,16 @@ function esc(value = "") {
     .replaceAll("'", "&#39;");
 }
 
-function inviteUrlForToken(tokenId) {
-  return `${location.origin}/intake-parent/?invite=${encodeURIComponent(tokenId)}`;
+function inviteUrlForToken(
+  tokenId,
+  intakeAudience = "parent_guardian"
+) {
+  const route =
+    intakeAudience === "adult_athlete"
+      ? "/intake-athlete/"
+      : "/intake-parent/";
+
+  return `${location.origin}${route}?invite=${encodeURIComponent(tokenId)}`;
 }
 
 async function loadExistingAthleteForAddSport() {
@@ -182,77 +190,150 @@ function renderApprovedCard({ uid, name, city, state, parentEmail }) {
 }
 
 // ------------------------------------------------------
-// 1) Generate Token (48 hours)
-//   Writes to: intakeTokens/{token}
+// 1) Generate Intake Token (48 hours)
+//   Parent / Guardian and Adult Athlete share:
+//   token collection → intake collection → coach review
 // ------------------------------------------------------
-$("btn-make-token")?.addEventListener("click", async () => {
+async function generateIntakeInvite(
+  intakeAudience = "parent_guardian"
+) {
   try {
-    const newTokenId = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
-    const exp = Date.now() + INVITE_HOURS * 60 * 60 * 1000;
+    const normalizedAudience =
+      intakeAudience === "adult_athlete"
+        ? "adult_athlete"
+        : "parent_guardian";
+
+    const newTokenId =
+      crypto.randomUUID()
+        .replace(/-/g, "")
+        .slice(0, 16);
+
+    const exp =
+      Date.now() +
+      INVITE_HOURS * 60 * 60 * 1000;
 
     const existingAthlete =
       await loadExistingAthleteForAddSport();
 
-    await setDoc(doc(db, "intakeTokens", newTokenId), {
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-      exp,
-      used: false,
-      status: "invited",
-      mode:
-        intakeMode === "add_sport"
-          ? "add_sport"
-          : "new_athlete",
+    await setDoc(
+      doc(db, "intakeTokens", newTokenId),
+      {
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        exp,
+        used: false,
+        status: "invited",
 
-      existingAthleteUid:
-        intakeMode === "add_sport"
-          ? existingAthleteUid
-          : "",
+        mode:
+          intakeMode === "add_sport"
+            ? "add_sport"
+            : "new_athlete",
 
-      forTrack:
-        intakeMode === "add_sport"
-          ? requestedTrack
-          : null,
+        intakeAudience:
+          normalizedAudience,
 
-      forLane:
-        intakeMode === "add_sport"
-          ? requestedLane
-          : null,
+        intakeRoute:
+          normalizedAudience === "adult_athlete"
+            ? "athlete"
+            : "parent",
 
-      requestedTrackCode:
-        intakeMode === "add_sport"
-          ? requestedTrack
-          : null,
+        existingAthleteUid:
+          intakeMode === "add_sport"
+            ? existingAthleteUid
+            : "",
 
-      requestedDiscipline:
-        intakeMode === "add_sport"
-          ? requestedLane
-          : null,
+        forTrack:
+          intakeMode === "add_sport"
+            ? requestedTrack
+            : null,
 
-      existingAthleteName:
-        existingAthlete?.name || null,
+        forLane:
+          intakeMode === "add_sport"
+            ? requestedLane
+            : null,
 
-      source: "coach_intake",
-      workflowVersion: "add-sport-v1",
-    });
+        requestedTrackCode:
+          intakeMode === "add_sport"
+            ? requestedTrack
+            : null,
 
-    const inviteUrl = inviteUrlForToken(newTokenId);
+        requestedDiscipline:
+          intakeMode === "add_sport"
+            ? requestedLane
+            : null,
 
-    if ($("invite-link")) $("invite-link").value = inviteUrl;
-    if ($("invite-status")) {
-      $("invite-status").textContent =
-        intakeMode === "add_sport"
-          ? `✓ Add-sport invite created for ${existingAthlete?.name || existingAthleteUid}.`
-          : `✓ New-athlete invite created (${INVITE_HOURS}h).`;
+        existingAthleteName:
+          existingAthlete?.name || null,
+
+        source: "coach_intake",
+        workflowVersion:
+          intakeMode === "add_sport"
+            ? "add-sport-v1"
+            : "intake-v2",
+      }
+    );
+
+    const inviteUrl =
+      inviteUrlForToken(
+        newTokenId,
+        normalizedAudience
+      );
+
+    if ($("invite-link")) {
+      $("invite-link").value =
+        inviteUrl;
     }
+
+    if ($("invite-route-label")) {
+      $("invite-route-label").textContent =
+        normalizedAudience === "adult_athlete"
+          ? "Adult Athlete Intake → /intake-athlete/"
+          : "Parent / Guardian Intake → /intake-parent/";
+    }
+
+    if ($("invite-status")) {
+      if (intakeMode === "add_sport") {
+        $("invite-status").textContent =
+          `✓ Add-discipline intake created for ${
+            existingAthlete?.name ||
+            existingAthleteUid
+          }.`;
+      } else {
+        $("invite-status").textContent =
+          normalizedAudience === "adult_athlete"
+            ? `✓ Adult athlete intake created (${INVITE_HOURS}h).`
+            : `✓ Parent / guardian intake created (${INVITE_HOURS}h).`;
+      }
+    }
+
   } catch (err) {
     console.error(err);
+
     if ($("invite-status")) {
       $("invite-status").textContent =
-        `⚠ ${err?.message || "Error creating token."}`;
+        `⚠ ${
+          err?.message ||
+          "Error creating intake invite."
+        }`;
     }
   }
-});
+}
+
+$("btn-make-token")
+  ?.addEventListener(
+    "click",
+    () => generateIntakeInvite(
+      "parent_guardian"
+    )
+  );
+
+$("btn-make-athlete-token")
+  ?.addEventListener(
+    "click",
+    () => generateIntakeInvite(
+      "adult_athlete"
+    )
+  );
 
 // ------------------------------------------------------
 // 2) Copy Link
@@ -276,7 +357,7 @@ $("btn-copy-token")?.addEventListener("click", async () => {
 });
 
 // ------------------------------------------------------
-// 3) Open Parent Intake
+// 3) Open Generated Intake
 // ------------------------------------------------------
 $("btn-open-qr")?.addEventListener("click", () => {
   const url = $("invite-link")?.value;
@@ -535,4 +616,4 @@ $("btn-start-add-discipline")?.addEventListener("click", () => {
 
   loadPendingLive();
   loadApproved();
-})();
+})();\n
