@@ -7,11 +7,11 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Athlete Intake | Sandman Combat</title>
+  <title>Adult Athlete Intake | Sandman Combat</title>
 
   <link
     rel="stylesheet"
-    href="/intake-parent/parent.intake.css"
+    href="/intake-athlete/athlete.intake.css"
   />
 
   <link
@@ -23,10 +23,6 @@
 <body>
 
   <main class="wrap">
-
-    <!-- ==================================================
-         LANGUAGE
-    =================================================== -->
 
     <div
       class="language-switcher"
@@ -55,10 +51,6 @@
     </div>
 
 
-    <!-- ==================================================
-         PAGE HEADER
-    =================================================== -->
-
     <header class="intake-header">
 
       <p class="eyebrow">
@@ -78,7 +70,7 @@
           id="intakePageTitle"
           data-lang="en"
         >
-          Athlete Intake
+          Adult Athlete Intake
         </span>
 
         <span
@@ -86,20 +78,14 @@
           data-lang="es"
           hidden
         >
-          Registro del Atleta
+          Registro del Atleta Adulto
         </span>
 
       </h1>
 
 
-      
-
     </header>
 
-
-    <!-- ==================================================
-         EXISTING ATHLETE / ADD DISCIPLINE MODE
-    =================================================== -->
 
     <section
       id="intakeModeBanner"
@@ -139,11 +125,11 @@
       >
 
         <span data-lang="en">
-          This intake will add a new combat discipline to an existing Sandman athlete profile.
+          This intake will add a new combat discipline to your existing Sandman athlete profile.
         </span>
 
         <span data-lang="es" hidden>
-          Este registro agregará una nueva disciplina de combate al perfil existente del atleta en Sandman.
+          Este registro agregará una nueva disciplina de combate a su perfil existente de atleta en Sandman.
         </span>
 
       </p>
@@ -189,30 +175,30 @@
     </section>
 
 
-    <!-- ==================================================
-         PLACEMENT NOTE
-    =================================================== -->
+    <p
+      id="placementNote"
+      class="placement-note"
+    >
 
-    
+      <span data-lang="en">
+        Your coach will review your age, experience, and goals before confirming the appropriate training path.
+      </span>
 
+      <span data-lang="es" hidden>
+        Su entrenador revisará su edad, experiencia y metas antes de confirmar el camino de entrenamiento adecuado.
+      </span>
 
-    <!-- ==================================================
-         FORM
-    =================================================== -->
+    </p>
+
 
     <form id="intakeForm">
 
-
-      <!-- ==================================================
-           STEP 1 — ATHLETE INFORMATION
-      =================================================== -->
 
       <section class="intake-card">
 
         <div class="section-head">
 
           <p class="eyebrow">
-
             <span data-lang="en">
               Step 1
             </span>
@@ -220,18 +206,17 @@
             <span data-lang="es" hidden>
               Paso 1
             </span>
-
           </p>
 
 
           <h2>
 
             <span data-lang="en">
-              Athlete Information
+              Your Information
             </span>
 
             <span data-lang="es" hidden>
-              Información del Atleta
+              Su Información
             </span>
 
           </h2>
@@ -239,16 +224,14 @@
         </div>
 
 
-        <!-- ATHLETE NAME -->
-
         <label for="athleteName">
 
           <span data-lang="en">
-            Athlete First & Last Name
+            First & Last Name
           </span>
 
           <span data-lang="es" hidden>
-            Nombre y Apellido del Atleta
+            Nombre y Apellido
           </span>
 
         </label>
@@ -261,8 +244,6 @@
           placeholder="e.g., Jordan Rivera"
         />
 
-
-        <!-- DOB -->
 
         <label for="dob">
 
@@ -283,7 +264,6 @@
         />
 
 
-        <!-- CITY -->
 
         <label for="city">
 
@@ -304,8 +284,6 @@
           autocomplete="address-level2"
         />
 
-
-        <!-- STATE -->
 
         <label for="state">
 
@@ -332,10 +310,6 @@
       </section>
 
 
-      <!-- ==================================================
-           STEP 2 — PARENT / GUARDIAN CONTACT
-      =================================================== -->
-
       <section class="intake-card">
 
         <div class="section-head">
@@ -356,11 +330,11 @@
           <h2>
 
             <span data-lang="en">
-              Parent / Guardian Contact
+              Contact Information
             </span>
 
             <span data-lang="es" hidden>
-              Contacto del Padre o Tutor
+              Información de Contacto
             </span>
 
           </h2>
@@ -368,9 +342,7 @@
         </div>
 
 
-        <!-- EMAIL -->
-
-        <label for="parentEmail">
+        <label for="athleteEmail">
 
           <span data-lang="en">
             Your Email
@@ -384,16 +356,14 @@
 
         <input
           type="email"
-          id="parentEmail"
+          id="athleteEmail"
           required
           autocomplete="email"
           placeholder="name@example.com"
         />
 
 
-        <!-- PHONE -->
-
-        <label for="parentPhone">
+        <label for="athletePhone">
 
           <span data-lang="en">
             Your Phone
@@ -407,7 +377,7 @@
 
         <input
           type="tel"
-          id="parentPhone"
+          id="athletePhone"
           required
           autocomplete="tel"
           inputmode="tel"
@@ -416,10 +386,6 @@
 
       </section>
 
-
-      <!-- ==================================================
-           STEP 3 — EMERGENCY & MEDICAL
-      =================================================== -->
 
       <section class="intake-card">
 
@@ -453,8 +419,6 @@
         </div>
 
 
-        <!-- EMERGENCY CONTACT -->
-
         <label for="emergencyName">
 
           <span data-lang="en">
@@ -475,8 +439,6 @@
           placeholder="Full name"
         />
 
-
-        <!-- EMERGENCY PHONE -->
 
         <label for="emergencyPhone">
 
@@ -500,8 +462,6 @@
         />
 
 
-        <!-- MEDICAL -->
-
         <label for="medical">
 
           <span data-lang="en">
@@ -522,15 +482,12 @@
       </section>
 
 
-      <!-- ==================================================
-           STEP 4 — WAIVER & CERTIFICATION
-      =================================================== -->
-
       <section class="intake-card waiver-block">
 
         <div class="section-head">
 
           <p class="eyebrow">
+
             <span data-lang="en">
               Step 4
             </span>
@@ -538,9 +495,12 @@
             <span data-lang="es" hidden>
               Paso 4
             </span>
+
           </p>
 
+
           <h2 class="waiver-title">
+
             <span data-lang="en">
               Waiver & Release
             </span>
@@ -548,6 +508,7 @@
             <span data-lang="es" hidden>
               Exención y Autorización
             </span>
+
           </h2>
 
         </div>
@@ -556,11 +517,11 @@
         <p class="muted">
 
           <span data-lang="en">
-            Please review the Sandman Participation Waiver before continuing.
+            Please review the waiver before signing.
           </span>
 
           <span data-lang="es" hidden>
-            Revise la Exención de Participación de Sandman antes de continuar.
+            Revise la exención antes de firmar.
           </span>
 
         </p>
@@ -575,6 +536,7 @@
           >
             English Waiver
           </button>
+
 
           <button
             id="openWaiverBtnEs"
@@ -594,12 +556,12 @@
 
           <span data-lang="en">
             Status:
-            <strong>Not Reviewed</strong>
+            <strong>Not Viewed</strong>
           </span>
 
           <span data-lang="es" hidden>
             Estado:
-            <strong>No Revisado</strong>
+            <strong>No Visto</strong>
           </span>
 
         </p>
@@ -613,82 +575,32 @@
             disabled
           />
 
+
           <span data-lang="en">
-            I have read and understand the Sandman Participation Waiver.
+            I have read and agree to the waiver.
           </span>
 
           <span data-lang="es" hidden>
-            He leído y comprendo la Exención de Participación de Sandman.
+            He leído y acepto la exención.
           </span>
 
         </label>
 
 
-        <div class="certification-block">
-
-          <h3>
-            <span data-lang="en">
-              Certification
-            </span>
-
-            <span data-lang="es" hidden>
-              Certificación
-            </span>
-          </h3>
-
-          <p class="muted">
-            <span data-lang="en">
-              I certify that I am the parent or legal guardian of this athlete and am authorized to sign on their behalf.
-            </span>
-
-            <span data-lang="es" hidden>
-              Certifico que soy el padre, madre o tutor legal de este atleta y estoy autorizado para firmar en su nombre.
-            </span>
-          </p>
-
-        </div>
-
-
-        <label for="signatureParent">
+        <label for="signatureAthlete">
 
           <span data-lang="en">
-            Electronic Signature
+            Athlete Signature
           </span>
 
           <span data-lang="es" hidden>
-            Firma Electrónica
-          </span>
-
-        </label>
-
-        <p class="muted small">
-
-          <span data-lang="en">
-            Type your full legal name below. By typing your name,
-            you acknowledge that it serves as your electronic signature.
-          </span>
-
-          <span data-lang="es" hidden>
-            Escriba su nombre legal completo a continuación.
-            Al escribir su nombre, reconoce que sirve como su firma electrónica.
-          </span>
-
-        </p>
-
-        <label for="signatureParent" class="small muted">
-
-          <span data-lang="en">
-            Parent / Guardian Signature
-          </span>
-
-          <span data-lang="es" hidden>
-            Firma del Padre o Tutor
+            Firma del Atleta
           </span>
 
         </label>
 
         <input
-          id="signatureParent"
+          id="signatureAthlete"
           type="text"
           disabled
           autocomplete="name"
@@ -717,78 +629,16 @@
       </section>
 
 
-      <!-- ==================================================
-           STEP 5 — REVIEW & SUBMIT
-      =================================================== -->
-
       <section class="submit-card">
-
-        <div class="section-head">
-
-          <p class="eyebrow">
-            <span data-lang="en">
-              Step 5
-            </span>
-
-            <span data-lang="es" hidden>
-              Paso 5
-            </span>
-          </p>
-
-          <h2>
-            <span data-lang="en">
-              Review & Submit
-            </span>
-
-            <span data-lang="es" hidden>
-              Revisar y Enviar
-            </span>
-          </h2>
-
-        </div>
-
-
-        <div class="completion-list">
-
-          <div>
-            <span aria-hidden="true">✓</span>
-            <span data-lang="en">Athlete Information</span>
-            <span data-lang="es" hidden>Información del Atleta</span>
-          </div>
-
-          <div>
-            <span aria-hidden="true">✓</span>
-            <span data-lang="en">Contact Information</span>
-            <span data-lang="es" hidden>Información de Contacto</span>
-          </div>
-
-          <div>
-            <span aria-hidden="true">✓</span>
-            <span data-lang="en">Emergency & Medical</span>
-            <span data-lang="es" hidden>Emergencia y Datos Médicos</span>
-          </div>
-
-          <div>
-            <span aria-hidden="true">✓</span>
-            <span data-lang="en">Waiver & Certification</span>
-            <span data-lang="es" hidden>Exención y Certificación</span>
-          </div>
-
-        </div>
-
 
         <p class="submit-note">
 
           <span data-lang="en">
-            Please review the information above before submitting.
-            Once submitted, your coach will review the intake and
-            complete the next step in your enrollment.
+            Review your information before submitting.
           </span>
 
           <span data-lang="es" hidden>
-            Revise la información anterior antes de enviarla.
-            Una vez enviada, su entrenador revisará el registro
-            y completará el siguiente paso de su inscripción.
+            Revise su información antes de enviarla.
           </span>
 
         </p>
@@ -805,7 +655,7 @@
             id="submitLabelEn"
             data-lang="en"
           >
-            Complete Intake
+            Submit Athlete Intake
           </span>
 
           <span
@@ -813,7 +663,7 @@
             data-lang="es"
             hidden
           >
-            Completar Registro
+            Enviar Registro del Atleta
           </span>
 
         </button>
@@ -823,32 +673,24 @@
     </form>
 
 
-    <!-- ==================================================
-         FOOTER
-    =================================================== -->
-
     <footer class="footer">
 
       <span data-lang="en">
         Built in the Shadows.
         <br />
-        Sandman Combat™ — Athlete Intake
+        Sandman Combat™ — Adult Athlete Intake
       </span>
 
       <span data-lang="es" hidden>
         Forjado en las Sombras.
         <br />
-        Sandman Combat™ — Registro del Atleta
+        Sandman Combat™ — Registro del Atleta Adulto
       </span>
 
     </footer>
 
   </main>
 
-
-  <!-- ==================================================
-       LANGUAGE TOGGLE
-  =================================================== -->
 
   <script>
     (() => {
@@ -949,13 +791,9 @@
   </script>
 
 
-  <!-- ==================================================
-       PARENT INTAKE
-  =================================================== -->
-
   <script
     type="module"
-    src="/intake-parent/parent.intake.js"
+    src="/intake-athlete/athlete.intake.js"
   ></script>
 
 </body>

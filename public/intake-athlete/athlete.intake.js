@@ -1,12 +1,12 @@
-// /intake-parent/parent.intake.js
-// Parent Intake (Split v2) — token-gated submit + waiver unlock
+// /intake-athlete/athlete.intake.js
+// Adult Athlete Intake (Split v1) — token-gated submit + waiver unlock
 // Required HTML IDs:
-// parentEmail, parentPhone
+// athleteEmail, athletePhone
 // athleteName, dob
 // city, state
 // emergencyName, emergencyPhone
 // medical
-// openWaiverBtnEn, openWaiverBtnEs, waiverStatus, waiverCheck, signatureParent, signatureDate, submitBtn
+// openWaiverBtnEn, openWaiverBtnEs, waiverStatus, waiverCheck, signatureAthlete, signatureDate, submitBtn
 // intakeForm
 
 import {
@@ -79,7 +79,7 @@ function waiverAgreementOK() {
   return (
     waiverViewed &&
     !!$("waiverCheck")?.checked &&
-    !!val("signatureParent") &&
+    !!val("signatureAthlete") &&
     !!val("signatureDate")
   );
 }
@@ -93,7 +93,7 @@ function markWaiverViewed() {
   setWaiverStatusStrong("Viewed");
 
   setDisabled("waiverCheck", false);
-  setDisabled("signatureParent", false);
+  setDisabled("signatureAthlete", false);
 
   const todayISO = new Date().toISOString().slice(0, 10);
   const dateEl = $("signatureDate");
@@ -136,9 +136,9 @@ function fail(msg, focusId) {
 }
 
 function validateFormBasics() {
-  // parent
-  const email = val("parentEmail");
-  const phoneDigits = normalizePhoneDigits10(val("parentPhone"));
+  // athlete contact
+  const email = val("athleteEmail");
+  const phoneDigits = normalizePhoneDigits10(val("athletePhone"));
 
   // athlete
   const full = val("athleteName");
@@ -155,9 +155,9 @@ function validateFormBasics() {
   // medical
   const medical = val("medical");
 
-  if (!validateEmail(email)) fail("Enter a valid parent email.", "parentEmail");
+  if (!validateEmail(email)) fail("Enter a valid athlete email.", "athleteEmail");
   if (!validateUSPhone10(phoneDigits))
-    fail("Enter a valid 10-digit parent phone.", "parentPhone");
+    fail("Enter a valid 10-digit athlete phone.", "athletePhone");
 
   if (!full) fail("Enter athlete first & last name.", "athleteName");
   const { first, last } = splitFullName(full);
@@ -212,8 +212,8 @@ async function prefillFromLead(connectLeadId) {
   );
 
   $("athleteName").value = lead.athleteName || "";
-  $("parentEmail").value = lead.email || "";
-  $("parentPhone").value = lead.phone || "";
+  $("athleteEmail").value = lead.email || "";
+  $("athletePhone").value = lead.phone || "";
 
   // Optional if you collected these:
   // $("city").value = lead.city || "";
@@ -284,9 +284,9 @@ async function handleSubmit(e) {
     const v = validateFormBasics();
 
     // 3) signature
-    const sign = titleCase(val("signatureParent"));
+    const sign = titleCase(val("signatureAthlete"));
     const signDate = val("signatureDate");
-    if (!sign) fail("Type your full name as signature.", "signatureParent");
+    if (!sign) fail("Type your full name as signature.", "signatureAthlete");
     if (!signDate) fail("Select today’s date.", "signatureDate");
 
     // 4) payload (canonical)
@@ -347,9 +347,6 @@ async function handleSubmit(e) {
         first: titleCase(v.first),
         last: titleCase(v.last),
         dob: v.dob,
-      },
-
-      parent: {
         email: v.email,
         phoneDigits: v.phoneDigits,
         languagePreference:
@@ -383,7 +380,7 @@ async function handleSubmit(e) {
       approvedUid: null,
 
       // ---- system ----
-      source: "intake-parent-ui",
+      source: "intake-athlete-ui",
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     };
@@ -410,10 +407,10 @@ async function handleSubmit(e) {
       $("openWaiverBtnEs").disabled = false;
     }
 
-    console.log("[intake-parent] submitted:", tokenId, intake);
-    window.location.href = "/intake-parent/thanks.html";
+    console.log("[intake-athlete] submitted:", tokenId, intake);
+    window.location.href = "/intake-athlete/thanks.html";
   } catch (err) {
-    console.error("[intake-parent] submit error:", err);
+    console.error("[intake-athlete] submit error:", err);
     btn?.removeAttribute("disabled");
     setWaiverStatusStrong(`⚠ ${err?.message || err}`, "#fbbf24");
   }
@@ -422,7 +419,7 @@ async function handleSubmit(e) {
 // -------------------- Wiring --------------------
 function wireWaiver() {
   setDisabled("waiverCheck", true);
-  setDisabled("signatureParent", true);
+  setDisabled("signatureAthlete", true);
   setDisabled("signatureDate", true);
   setDisabled("submitBtn", true);
 
@@ -433,14 +430,14 @@ function wireWaiver() {
       !!$("waiverCheck")?.checked;
 
     setDisabled(
-      "signatureParent",
+      "signatureAthlete",
       !checked
     );
 
     maybeUnlockSubmit();
   });
 
-["signatureParent", "signatureDate"].forEach((id) => {
+["signatureAthlete", "signatureDate"].forEach((id) => {
 
   const el = $(id);
 
@@ -536,7 +533,7 @@ async function applyInviteModeUI(invite) {
 
   if ($("placementNote")) {
     $("placementNote").innerHTML = `
-      Confirm the athlete and parent information below. The coach will attach
+      Confirm your information below. The coach will attach
       <strong>${formatDisciplineLabel(discipline)}</strong>
       to the athlete's existing Sandman profile.
       <span class="lang-alt-block">
@@ -563,7 +560,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await ensureSignedIn();
   } catch (e) {
-    console.error("[intake-parent] ensureSignedIn failed:", e);
+    console.error("[intake-athlete] ensureSignedIn failed:", e);
     setWaiverStatusStrong("⚠ Auth failed (cannot submit).", "#fbbf24");
     setDisabled("submitBtn", true);
     return;
@@ -589,7 +586,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
     } catch (err) {
       console.error(
-        "[intake-parent] invite mode UI failed:",
+        "[intake-athlete] invite mode UI failed:",
         err
       );
 
@@ -601,7 +598,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   wireWaiver();
-  wirePhoneSanitizer("parentPhone");
+  wirePhoneSanitizer("athletePhone");
   wirePhoneSanitizer("emergencyPhone");
 
   $("intakeForm")?.addEventListener("submit", handleSubmit);
