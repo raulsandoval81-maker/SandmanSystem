@@ -3,9 +3,14 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import {
-  onAuthStateChanged,
   signOut
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+
+import {
+  managementLoginUrl,
+  requireManagement
+} from "/management/shared/guards/management-guard.js";
+
 
 const managerIdentity =
   document.getElementById("managerIdentity");
@@ -25,10 +30,18 @@ const statusEl =
 const signOutBtn =
   document.getElementById("signOutBtn");
 
+
+function clean(value) {
+  return String(value ?? "").trim();
+}
+
+
 function setStatus(
   message = "",
   isError = false
 ) {
+  if (!statusEl) return;
+
   statusEl.textContent = message;
 
   statusEl.classList.toggle(
@@ -37,129 +50,124 @@ function setStatus(
   );
 }
 
+
 function formatScope(
-  value,
+  values,
   fallback
 ) {
   if (
-    Array.isArray(value) &&
-    value.length
+    Array.isArray(values) &&
+    values.length
   ) {
-    return value.join(", ");
-  }
-
-  if (
-    typeof value === "string" &&
-    value.trim()
-  ) {
-    return value.trim();
+    return values.join(", ");
   }
 
   return fallback;
 }
 
-async function verifyManagementUser(
-  user
-) {
-  const token =
-    await user.getIdTokenResult(true);
 
-  const claims =
-    token.claims || {};
+function displayName(context) {
+  return (
+    clean(context.staff.fullName) ||
+    clean(context.staff.displayName) ||
+    clean(context.user.email) ||
+    "Approved Management Account"
+  );
+}
 
-  const isSystemAdmin =
-    claims.admin === true;
 
-  const isManager =
-    claims.manager === true;
+function renderManagementContext(context) {
+  managerIdentity.textContent =
+    `${displayName(context)} — ${
+      context.user.email || "Authenticated"
+    }`;
 
-  if (
-    !isSystemAdmin &&
-    !isManager
-  ) {
-    throw new Error(
-      "Management permission required."
+  if (context.isSystemAdmin) {
+    locationScope.textContent =
+      "All locations";
+
+    programScope.textContent =
+      "All programs";
+
+    accessScope.textContent =
+      "System Admin Oversight";
+
+    setStatus(
+      "System Admin oversight access verified."
     );
+
+    return;
   }
 
-  managerIdentity.textContent =
-    user.email || "Approved Management Account";
-
   locationScope.textContent =
-    isSystemAdmin
-      ? "All locations"
-      : formatScope(
-          claims.locationIds ||
-          claims.locations,
-          "Assigned locations"
-        );
+    formatScope(
+      context.scope.locationIds,
+      "No location assignment"
+    );
 
   programScope.textContent =
-    isSystemAdmin
-      ? "All programs"
-      : formatScope(
-          claims.programIds ||
-          claims.programs,
-          "Assigned programs"
-        );
+    formatScope(
+      context.scope.programIds,
+      "All assigned-location programs"
+    );
 
   accessScope.textContent =
-    isSystemAdmin
-      ? "System Admin"
-      : "Location / Program Manager";
+    "Operational Management";
 
   setStatus(
     "Management access verified."
   );
 }
 
-onAuthStateChanged(
-  auth,
-  async (user) => {
-    if (!user) {
-      const destination =
-        "/management/auth/" +
-        "?returnUrl=" +
-        encodeURIComponent(
-          window.location.pathname +
-          window.location.search
+
+async function startManagementHub() {
+  try {
+    const context =
+      await requireManagement();
+
+    renderManagementContext(context);
+
+    console.log(
+      "[management-hub] access granted:",
+      {
+        uid: context.user.uid,
+        email: context.user.email,
+        role: context.role,
+        scope: context.scope
+      }
+    );
+
+  } catch (error) {
+    console.error(
+      "[management-hub] access denied:",
+      error
+    );
+
+    setStatus(
+      error?.message ||
+      "Management access could not be verified.",
+      true
+    );
+
+    const noAuthenticatedUser =
+      !auth.currentUser ||
+      auth.currentUser.isAnonymous;
+
+    window.setTimeout(
+      () => {
+        window.location.replace(
+          noAuthenticatedUser
+            ? managementLoginUrl()
+            : "/login/"
         );
-
-      window.location.replace(
-        destination
-      );
-
-      return;
-    }
-
-    try {
-      await verifyManagementUser(
-        user
-      );
-    } catch (error) {
-      console.error(
-        "[management-hub] access denied:",
-        error
-      );
-
-      setStatus(
-        "This account does not have Management access.",
-        true
-      );
-
-      setTimeout(
-        () => {
-          window.location.replace(
-            "/login/"
-          );
-        },
-        1200
-      );
-    }
+      },
+      1200
+    );
   }
-);
+}
 
-signOutBtn.addEventListener(
+
+signOutBtn?.addEventListener(
   "click",
   async () => {
     await signOut(auth);
@@ -169,3 +177,6 @@ signOutBtn.addEventListener(
     );
   }
 );
+
+
+void startManagementHub();

@@ -459,7 +459,7 @@ match /messages/{messageId} {
       allow get: if request.auth != null
         && request.auth.uid == userId;
 
-      allow list: if isAdmin();
+      allow list: if isAdminOrManagement();
       allow create, update, delete: if isAdmin();
     }
 
@@ -985,8 +985,10 @@ match /academySettings/{academyId} {
             && request.resource.data.nextRoutingStage ==
               "COACH_ASSIGNED"
 
-            && request.resource.data.assignmentStatus ==
-              "PENDING_MANAGEMENT"
+            && request.resource.data.assignmentStatus in [
+              "PENDING_MANAGEMENT",
+              "ASSIGNED"
+            ]
 
             /*
              * Organization and location are both required.
@@ -1049,6 +1051,92 @@ match /academySettings/{academyId} {
             && request.resource.data.assignedCoachUid == null
           )
         );
+
+      /*
+       * Management Inbox access and coach assignment.
+       *
+       * System Admin retains full Reception oversight.
+       * Operational Management sees messages assigned
+       * to them or pending within their location scope.
+       */
+      allow get, list: if isManagement()
+        && (
+          resource.data.assignedManagerUid ==
+            request.auth.uid
+          ||
+          (
+            resource.data.assignedManagerUid == null
+            && resource.data.assignmentStatus ==
+              "PENDING_MANAGEMENT"
+            && managementHasLocation(
+              resource.data.locationId
+            )
+          )
+        );
+
+      allow update: if isManagement()
+
+        && (
+          resource.data.assignedManagerUid ==
+            request.auth.uid
+          ||
+          (
+            resource.data.assignedManagerUid == null
+            && resource.data.assignmentStatus ==
+              "PENDING_MANAGEMENT"
+            && managementHasLocation(
+              resource.data.locationId
+            )
+          )
+        )
+
+        && request.resource.data
+          .diff(resource.data)
+          .changedKeys()
+          .hasOnly([
+            "assignedManagerUid",
+            "assignedCoachUid",
+            "routingStage",
+            "nextRoutingStage",
+            "assignmentStatus",
+            "status",
+            "messageStatus",
+            "managementNotes",
+            "updatedAt"
+          ])
+
+        && request.resource.data.assignedManagerUid ==
+          request.auth.uid
+
+        && request.resource.data.assignedCoachUid
+          is string
+
+        && request.resource.data.assignedCoachUid
+          .size() > 0
+
+        && request.resource.data.routingStage ==
+          "COACH_ASSIGNED"
+
+        && request.resource.data.nextRoutingStage ==
+          "COACH_REVIEWING"
+
+        && request.resource.data.assignmentStatus ==
+          "ASSIGNED"
+
+        && request.resource.data.status ==
+          "ASSIGNED"
+
+        && request.resource.data.messageStatus ==
+          "ASSIGNED"
+
+        && request.resource.data.managementNotes
+          is string
+
+        && request.resource.data.managementNotes
+          .size() <= 4000
+
+        && request.resource.data.updatedAt
+          is timestamp;
 
       /*
        * Current coach receiver behavior.
@@ -1149,8 +1237,54 @@ match /academySettings/{academyId} {
       return staffRole() == "admin";
     }
 
+    function isManagement() {
+      return staffRole() in [
+        "management",
+        "manager",
+        "location_manager"
+      ];
+    }
+
+    function isAdminOrManagement() {
+      return isAdmin() || isManagement();
+    }
+
     function isCoachOrAdmin() {
       return staffRole() in ["admin", "coach"];
+    }
+
+    function isOperationalStaff() {
+      return staffRole() in [
+        "admin",
+        "management",
+        "manager",
+        "location_manager",
+        "coach"
+      ];
+    }
+
+    function managementHasLocation(locationId) {
+      return isManagement()
+        && locationId is string
+        && (
+          (
+            get(
+              /databases/$(database)/documents/staff/$(request.auth.uid)
+            ).data.locationIds is list
+            && locationId in get(
+              /databases/$(database)/documents/staff/$(request.auth.uid)
+            ).data.locationIds
+          )
+          ||
+          (
+            get(
+              /databases/$(database)/documents/staff/$(request.auth.uid)
+            ).data.locationId is string
+            && get(
+              /databases/$(database)/documents/staff/$(request.auth.uid)
+            ).data.locationId == locationId
+          )
+        );
     }
 
     function lockVal(locks, key) {

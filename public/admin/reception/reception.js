@@ -146,6 +146,7 @@ const routingFormStatus =
 let adminUser = null;
 let allMessages = [];
 let selectedMessage = null;
+let managerDirectory = [];
 
 
 /* =========================================================
@@ -336,6 +337,7 @@ function updateSummary() {
 
     if (
       status === "CLOSED" ||
+      stage === "CLOSED" ||
       message.closedAt
     ) {
       counts.closed += 1;
@@ -349,24 +351,36 @@ function updateSummary() {
       counts.waiting += 1;
     }
 
-    if (
-      stage === "ADMIN_REVIEW" ||
-      status === "NEW"
-    ) {
+    /*
+     * New means the message is still waiting for
+     * System Admin review.
+     */
+    if (stage === "ADMIN_REVIEW") {
       counts.new += 1;
     }
 
+    /*
+     * Needs Routing means Admin has not yet selected
+     * both an organization and a location.
+     *
+     * MANAGEMENT_TRIAGE is no longer counted here,
+     * because that message has already been routed.
+     */
     if (
-      assignment === "UNASSIGNED" ||
-      assignment === "NEEDS_MANAGER" ||
-      stage === "MANAGEMENT_TRIAGE"
+      !clean(message.organizationId) ||
+      !clean(message.locationId)
     ) {
       counts.needsRouting += 1;
     }
 
+    /*
+     * Assigned means a specific manager UID exists.
+     * Merely entering MANAGEMENT_TRIAGE does not mean
+     * a manager has been assigned yet.
+     */
     if (
-      assignment === "ASSIGNED" ||
-      clean(message.assignedManagerUid)
+      assignment === "ASSIGNED" &&
+      Boolean(clean(message.assignedManagerUid))
     ) {
       counts.assigned += 1;
     }
@@ -748,34 +762,95 @@ function renderDetail() {
   setFormStatus("");
 }
 
+async function loadManagerDirectory() {
+  const snapshot = await getDocs(
+    collection(db, "staff")
+  );
+
+  managerDirectory = snapshot.docs
+    .map((staffDoc) => ({
+      id: staffDoc.id,
+      ...staffDoc.data()
+    }))
+    .filter((staff) => {
+      const role = clean(staff.role).toLowerCase();
+      const status = clean(staff.status).toLowerCase();
+
+      return (
+        status === "active" &&
+        [
+          "management",
+          "manager",
+          "location_manager"
+        ].includes(role)
+      );
+    })
+    .sort((a, b) => {
+      const nameA = clean(
+        a.fullName || a.displayName || a.email
+      );
+
+      const nameB = clean(
+        b.fullName || b.displayName || b.email
+      );
+
+      return nameA.localeCompare(nameB);
+    });
+}
+
 function prepareManagerField(message) {
   routingManager.replaceChildren();
 
-  const option = document.createElement("option");
+  const queueOption =
+    document.createElement("option");
+
+  queueOption.value = "UNASSIGNED";
+  queueOption.textContent =
+    "Send to location management queue";
+
+  routingManager.appendChild(queueOption);
+
+  for (const manager of managerDirectory) {
+    const option =
+      document.createElement("option");
+
+    option.value = manager.id;
+
+    const name = clean(
+      manager.fullName ||
+      manager.displayName ||
+      manager.email ||
+      manager.id
+    );
+
+    const email = clean(manager.email);
+
+    option.textContent = email && email !== name
+      ? `${name} — ${email}`
+      : name;
+
+    routingManager.appendChild(option);
+  }
 
   const assignedUid =
     clean(message.assignedManagerUid);
 
-  if (assignedUid) {
-    option.value = assignedUid;
-    option.textContent =
-      `Assigned Manager (${assignedUid})`;
+  const assignedExists =
+    assignedUid &&
+    managerDirectory.some(
+      (manager) => manager.id === assignedUid
+    );
+
+  if (assignedExists) {
+    routingManager.value = assignedUid;
   } else {
-    option.value = "UNASSIGNED";
-    option.textContent =
-      "Assign manager from management queue";
+    routingManager.value = "UNASSIGNED";
   }
 
-  routingManager.appendChild(option);
-
-  /*
-   * Manager-directory integration comes next.
-   * Until then, Reception sends the message into the
-   * correct organization/location management queue.
-   */
   routingManager.required = false;
+
   routeMessageButton.textContent =
-    assignedUid
+    assignedExists
       ? "Update Routing"
       : "Send to Management Queue";
 }
@@ -893,7 +968,9 @@ routingStage: "MANAGEMENT_TRIAGE",
 
 nextRoutingStage: "COACH_ASSIGNED",
 
-assignmentStatus: "PENDING_MANAGEMENT",
+assignmentStatus: managerUid
+        ? "ASSIGNED"
+        : "PENDING_MANAGEMENT",
       requiredManagerLevel:
         "LOCATION_MANAGER",
 
@@ -1076,6 +1153,8 @@ async function loadMessages() {
 
   try {
     adminUser = await requireAdmin();
+
+    await loadManagerDirectory();
 
     const messagesQuery = query(
       collection(db, "general_messages"),

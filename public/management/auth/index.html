@@ -171,9 +171,12 @@
   </main>
 
   <script type="module">
-    import {
-      auth
-    } from "/assets/js/firebase-init.js";
+import {
+  auth,
+  db,
+  doc,
+  getDoc
+} from "/assets/js/firebase-init.js";
 
     import {
       signInWithEmailAndPassword,
@@ -268,18 +271,43 @@ function getSafeReturnUrl() {
   return "/management/hub/";
 }
 
-    async function hasManagementAccess(user) {
-      const token =
-        await user.getIdTokenResult(true);
+async function hasManagementAccess(user) {
+  const staffRef = doc(
+    db,
+    "staff",
+    user.uid
+  );
 
-      const claims =
-        token.claims || {};
+  const staffSnapshot =
+    await getDoc(staffRef);
 
-      return (
-        claims.manager === true ||
-        claims.admin === true
-      );
-    }
+  if (!staffSnapshot.exists()) {
+    return false;
+  }
+
+  const staff =
+    staffSnapshot.data();
+
+  const role =
+    String(staff.role || "")
+      .trim()
+      .toLowerCase();
+
+  const status =
+    String(staff.status || "")
+      .trim()
+      .toLowerCase();
+
+  return (
+    status === "active" &&
+    [
+      "admin",
+      "management",
+      "manager",
+      "location_manager"
+    ].includes(role)
+  );
+}
 
     async function finishLogin(user) {
       if (
