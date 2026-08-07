@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Management Hub | Sandman Combat™</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/management/hub/management.css"
+  />
+</head>
+
+<body>
+  <header class="management-header">
+    <div>
+      <p class="eyebrow">
+        Sandman System
+      </p>
+
+      <h1>
+        Management Hub
+      </h1>
+
+      <p id="managerIdentity" class="identity">
+        Verifying access...
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a
+        class="button button-secondary"
+        href="/login/"
+      >
+        Switch Workspace
+      </a>
+
+      <button
+        id="signOutBtn"
+        class="button button-secondary"
+        type="button"
+      >
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+  <main class="management-wrap">
+
+    <section class="scope-card">
+      <div>
+        <p class="section-label">
+          Assigned Scope
+        </p>
+
+        <h2>
+          Your Management Area
+        </h2>
+      </div>
+
+      <div class="scope-grid">
+        <div>
+          <span class="scope-title">
+            Locations
+          </span>
+
+          <p id="locationScope">
+            Loading...
+          </p>
+        </div>
+
+        <div>
+          <span class="scope-title">
+            Programs
+          </span>
+
+          <p id="programScope">
+            Loading...
+          </p>
+        </div>
+
+        <div>
+          <span class="scope-title">
+            Access Level
+          </span>
+
+          <p id="accessScope">
+            Loading...
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="management-grid">
+
+      <a
+        class="management-card"
+        href="/connect/admissions-requests/"
+      >
+        <span class="card-label">
+          Pipeline
+        </span>
+
+        <h2>
+          Leads
+        </h2>
+
+        <p>
+          Review prospective participants assigned
+          to your location or program.
+        </p>
+      </a>
+
+      <a
+        class="management-card"
+        href="/connect/appointments/"
+      >
+        <span class="card-label">
+          Admissions
+        </span>
+
+        <h2>
+          Appointments
+        </h2>
+
+        <p>
+          Schedule and review upcoming admissions
+          appointments within your assigned scope.
+        </p>
+      </a>
+
+      <div
+        class="management-card management-card--pending"
+      >
+        <span class="card-label">
+          Participants
+        </span>
+
+        <h2>
+          Members
+        </h2>
+
+        <p>
+          Manage active fitness participants,
+          athletes, and membership status.
+        </p>
+
+        <span class="coming-soon">
+          Management module pending
+        </span>
+      </div>
+
+      <div
+        class="management-card management-card--pending"
+      >
+        <span class="card-label">
+          Operations
+        </span>
+
+        <h2>
+          Schedule
+        </h2>
+
+        <p>
+          Manage classes, instructors, rooms,
+          and program availability.
+        </p>
+
+        <span class="coming-soon">
+          Management module pending
+        </span>
+      </div>
+
+      <div
+        class="management-card management-card--pending"
+      >
+        <span class="card-label">
+          Operations
+        </span>
+
+        <h2>
+          Attendance
+        </h2>
+
+        <p>
+          Review participation and attendance
+          for assigned programs.
+        </p>
+
+        <span class="coming-soon">
+          Management module pending
+        </span>
+      </div>
+
+      <div
+        class="management-card management-card--pending"
+      >
+        <span class="card-label">
+          Intelligence
+        </span>
+
+        <h2>
+          Reports
+        </h2>
+
+        <p>
+          View location and program performance
+          without exposing system-wide administration.
+        </p>
+
+        <span class="coming-soon">
+          Management module pending
+        </span>
+      </div>
+
+    </section>
+
+    <p
+      id="status"
+      class="status"
+      aria-live="polite"
+    ></p>
+
+  </main>
+
+  <script
+    type="module"
+    src="/management/hub/management.js"
+  ></script>
+</body>
+</html>
