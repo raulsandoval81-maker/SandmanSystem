@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <meta
+    name="description"
+    content="Verify your Sandman Academy enrollment payment."
+  >
+
+  <title>Payment Verification | Sandman Academy</title>
+
+  <link
+    rel="stylesheet"
+    href="/connect/enrollment/enrollment.css"
+  >
+</head>
+
+<body>
+  <main class="enrollment-shell">
+    <header class="enrollment-header">
+      <a
+        class="enrollment-brand"
+        href="/"
+        aria-label="Return to Sandman Academy"
+      >
+        Sandman Academy
+      </a>
+
+      <p class="enrollment-eyebrow">
+        Secure Enrollment
+      </p>
+
+      <h1>Verifying Your Payment</h1>
+
+      <p class="enrollment-intro">
+        Stripe has returned you to Sandman Academy. We are securely verifying
+        the Checkout Session before continuing your enrollment.
+      </p>
+    </header>
+
+    <section
+      id="verificationLoading"
+      class="enrollment-state"
+      aria-live="polite"
+    >
+      <h2>Payment Verification in Progress</h2>
+
+      <p>
+        Please keep this page open while we confirm the payment with Stripe.
+      </p>
+    </section>
+
+    <section
+      id="verificationSuccess"
+      class="enrollment-state"
+      aria-live="polite"
+      hidden
+    >
+      <p class="enrollment-step-label">
+        Payment Verified
+      </p>
+
+      <h2>Your Payment Is Confirmed</h2>
+
+      <p>
+        Your payment requirement has been completed successfully.
+      </p>
+
+      <p>
+        Enrollment still requires coach confirmation before Parent Intake
+        becomes available.
+      </p>
+
+      <div class="enrollment-actions">
+        <button
+          id="returnToEnrollmentButton"
+          class="enrollment-button enrollment-button--primary"
+          type="button"
+        >
+          Return to Enrollment
+        </button>
+      </div>
+    </section>
+
+    <section
+      id="verificationPending"
+      class="enrollment-state"
+      aria-live="polite"
+      hidden
+    >
+      <p class="enrollment-step-label">
+        Verification Pending
+      </p>
+
+      <h2>Payment Is Still Processing</h2>
+
+      <p>
+        Stripe returned the Checkout Session, but final payment verification
+        is not complete yet.
+      </p>
+
+      <p>
+        You may try verification again or return to your secure enrollment
+        page.
+      </p>
+
+      <div class="enrollment-actions">
+        <button
+          id="retryVerificationButton"
+          class="enrollment-button enrollment-button--secondary"
+          type="button"
+        >
+          Verify Again
+        </button>
+
+        <button
+          id="returnFromPendingButton"
+          class="enrollment-button enrollment-button--primary"
+          type="button"
+        >
+          Return to Enrollment
+        </button>
+      </div>
+    </section>
+
+    <section
+      id="verificationError"
+      class="enrollment-state enrollment-state--error"
+      aria-live="assertive"
+      hidden
+    >
+      <h2>Payment Could Not Be Verified</h2>
+
+      <p id="verificationErrorMessage">
+        We could not verify this Checkout Session.
+      </p>
+
+      <p>
+        Do not submit another payment unless your enrollment page shows that
+        payment is still required. If the problem continues, contact your
+        coach.
+      </p>
+
+      <div class="enrollment-actions">
+        <button
+          id="retryAfterErrorButton"
+          class="enrollment-button enrollment-button--secondary"
+          type="button"
+        >
+          Try Verification Again
+        </button>
+
+        <button
+          id="returnAfterErrorButton"
+          class="enrollment-button enrollment-button--primary"
+          type="button"
+        >
+          Return to Enrollment
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <script src="/intake-shared/fire.js"></script>
+  <script src="/connect/enrollment/enrollment.config.js"></script>
+  <script src="/connect/enrollment/enrollment.service.js"></script>
+  <script src="/connect/enrollment/enrollment-success/enrollment-success.js"></script>
+</body>
+</html>

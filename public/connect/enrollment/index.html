@@ -1,47 +1,414 @@
-<!doctype html>
-
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1"
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
 
->
+  <meta
+    name="description"
+    content="Complete your Sandman Academy enrollment."
+  >
 
-  <title>Opening Coach Intake</title>
+  <title>Enrollment | Sandman Academy</title>
 
-  <script>
-    const query = window.location.search || "";
-    const destination = `/intake-coach/${query}`;
-
-    window.location.replace(destination);
-  </script>
-
-  <noscript>
-    <meta
-      http-equiv="refresh"
-      content="0; url=/intake-coach/"
-    >
-  </noscript>
+  <link
+    rel="stylesheet"
+    href="/connect/enrollment/enrollment.css"
+  >
 </head>
 
 <body>
-  <p>
-    Opening Coach Intake…
-    <a id="continueLink" href="/intake-coach/">Continue</a>
-  </p>
+  <main class="enrollment-shell">
+    <header class="enrollment-header">
+      <a
+        class="enrollment-brand"
+        href="/"
+        aria-label="Return to Sandman Academy"
+      >
+        Sandman Academy
+      </a>
 
-  <script>
-    const continueLink =
-      document.getElementById("continueLink");
+      <p class="enrollment-eyebrow">
+        Secure Enrollment
+      </p>
 
-    if (continueLink) {
-      continueLink.href =
-        `/intake-coach/${window.location.search || ""}`;
-    }
-  </script>
+      <h1>Complete Your Enrollment</h1>
 
+      <p class="enrollment-intro">
+        Review your program, confirm your agreement, and complete the
+        remaining steps before Intake and athlete activation.
+      </p>
+    </header>
+
+    <section
+      id="enrollmentLoading"
+      class="enrollment-state"
+      aria-live="polite"
+    >
+      <h2>Loading Enrollment</h2>
+      <p>We are securely loading your enrollment information.</p>
+    </section>
+
+    <section
+      id="enrollmentError"
+      class="enrollment-state enrollment-state--error"
+      aria-live="assertive"
+      hidden
+    >
+      <h2>Enrollment Unavailable</h2>
+
+      <p id="enrollmentErrorMessage">
+        We could not load this enrollment.
+      </p>
+
+      <p>
+        Check that you opened the complete secure enrollment link. If the
+        problem continues, contact your coach.
+      </p>
+    </section>
+
+    <section
+      id="enrollmentApp"
+      class="enrollment-app"
+      hidden
+    >
+      <nav
+        class="enrollment-progress"
+        aria-label="Enrollment progress"
+      >
+        <ol>
+          <li data-step="summary" aria-current="step">
+            <span>1</span>
+            Review
+          </li>
+
+          <li data-step="agreement">
+            <span>2</span>
+            Agreement
+          </li>
+
+          <li data-step="payment">
+            <span>3</span>
+            Payment
+          </li>
+
+          <li data-step="confirmation">
+            <span>4</span>
+            Confirmation
+          </li>
+
+          <li data-step="intake">
+            <span>5</span>
+            Intake
+          </li>
+        </ol>
+      </nav>
+
+      <section
+        id="summaryPanel"
+        class="enrollment-panel"
+        data-panel="summary"
+      >
+        <div class="enrollment-panel__heading">
+          <p class="enrollment-step-label">Step 1</p>
+          <h2>Enrollment Summary</h2>
+
+          <p>
+            Confirm that the family, athlete, program, and billing
+            information below matches the proposal you approved.
+          </p>
+        </div>
+
+        <div class="enrollment-summary-grid">
+          <article class="enrollment-card">
+            <h3>Family</h3>
+
+            <dl>
+              <div>
+                <dt>Family</dt>
+                <dd id="familyName">—</dd>
+              </div>
+
+              <div>
+                <dt>Primary contact</dt>
+                <dd id="primaryContactName">—</dd>
+              </div>
+            </dl>
+          </article>
+
+          <article class="enrollment-card">
+            <h3>Athletes and Programs</h3>
+
+            <div id="athleteList">
+              <p>Program information will appear here.</p>
+            </div>
+          </article>
+
+          <article class="enrollment-card">
+            <h3>Billing</h3>
+
+            <dl>
+              <div>
+                <dt>Due now</dt>
+                <dd id="dueNowAmount">—</dd>
+              </div>
+
+              <div>
+                <dt>Monthly responsibility</dt>
+                <dd id="monthlyAmount">—</dd>
+              </div>
+
+              <div>
+                <dt>Annual renewal</dt>
+                <dd id="annualRenewalAmount">—</dd>
+              </div>
+
+              <div>
+                <dt>Funding route</dt>
+                <dd id="fundingRoute">—</dd>
+              </div>
+            </dl>
+          </article>
+        </div>
+
+        <div class="enrollment-actions">
+          <button
+            id="continueToAgreementButton"
+            class="enrollment-button enrollment-button--primary"
+            type="button"
+          >
+            Continue to Agreement
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="agreementPanel"
+        class="enrollment-panel"
+        data-panel="agreement"
+        hidden
+      >
+        <div class="enrollment-panel__heading">
+          <p class="enrollment-step-label">Step 2</p>
+          <h2>Standards and Pledge</h2>
+
+          <p>
+            Enrollment means joining a standards-based academy built on
+            Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div class="enrollment-card">
+          <h3>House Standards</h3>
+
+          <ul class="enrollment-standards">
+            <li>Show up prepared and on time.</li>
+            <li>Give focused and honest effort.</li>
+            <li>Respect coaches, teammates, opponents, and families.</li>
+            <li>Protect the safety and dignity of everyone in the academy.</li>
+            <li>Represent the academy with discipline and honor.</li>
+          </ul>
+        </div>
+
+        <form id="agreementForm">
+          <div class="enrollment-card">
+            <h3>Enrollment Pledge</h3>
+
+            <label class="enrollment-checkbox">
+              <input
+                id="standardsAccepted"
+                name="standardsAccepted"
+                type="checkbox"
+                required
+              >
+
+              <span>
+                I have reviewed and accept the academy standards.
+              </span>
+            </label>
+
+            <label class="enrollment-checkbox">
+              <input
+                id="proposalAccepted"
+                name="proposalAccepted"
+                type="checkbox"
+                required
+              >
+
+              <span>
+                I confirm that the athlete, program, and billing selections
+                shown in this enrollment match the approved proposal.
+              </span>
+            </label>
+
+            <label class="enrollment-field">
+              <span>Parent or responsible party</span>
+
+              <input
+                id="agreementSignerName"
+                name="signerName"
+                type="text"
+                autocomplete="name"
+                required
+              >
+            </label>
+
+            <label class="enrollment-field">
+              <span>Type your full name as your digital pledge</span>
+
+              <input
+                id="agreementSignature"
+                name="signature"
+                type="text"
+                autocomplete="off"
+                required
+              >
+            </label>
+          </div>
+
+          <div class="enrollment-actions">
+            <button
+              id="backToSummaryButton"
+              class="enrollment-button enrollment-button--secondary"
+              type="button"
+            >
+              Back
+            </button>
+
+            <button
+              id="saveAgreementButton"
+              class="enrollment-button enrollment-button--primary"
+              type="submit"
+            >
+              Accept and Continue
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section
+        id="paymentPanel"
+        class="enrollment-panel"
+        data-panel="payment"
+        hidden
+      >
+        <div class="enrollment-panel__heading">
+          <p class="enrollment-step-label">Step 3</p>
+          <h2>Payment</h2>
+        </div>
+
+        <div class="enrollment-card">
+          <p id="paymentMessage">
+            Your locked billing summary is ready for payment.
+          </p>
+
+          <p
+            id="paymentStatus"
+            class="enrollment-status"
+            aria-live="polite"
+          >
+            Payment not started
+          </p>
+        </div>
+
+        <div class="enrollment-actions">
+          <button
+            id="backToAgreementButton"
+            class="enrollment-button enrollment-button--secondary"
+            type="button"
+          >
+            Back
+          </button>
+
+          <button
+            id="checkoutButton"
+            class="enrollment-button enrollment-button--primary"
+            type="button"
+          >
+            Continue to Secure Checkout
+          </button>
+        </div>
+      </section>
+
+      <section
+        id="confirmationPanel"
+        class="enrollment-panel"
+        data-panel="confirmation"
+        hidden
+      >
+        <div class="enrollment-panel__heading">
+          <p class="enrollment-step-label">Step 4</p>
+          <h2>Coach Confirmation</h2>
+        </div>
+
+        <div class="enrollment-card">
+          <p id="confirmationMessage">
+            Payment has been verified. Your coach must now confirm the
+            enrollment before Parent Intake is unlocked.
+          </p>
+
+          <p
+            id="confirmationStatus"
+            class="enrollment-status"
+            aria-live="polite"
+          >
+            Awaiting coach confirmation
+          </p>
+        </div>
+
+      </section>
+
+      <section
+        id="intakePanel"
+        class="enrollment-panel"
+        data-panel="intake"
+        hidden
+      >
+        <div class="enrollment-panel__heading">
+          <p class="enrollment-step-label">Step 5</p>
+          <h2>Parent Intake</h2>
+        </div>
+
+        <div class="enrollment-card">
+          <p>
+            Enrollment is confirmed. Continue to the existing Parent Intake
+            to provide contact, emergency, medical, waiver, and signature
+            information.
+          </p>
+
+          <p>
+            Athlete placement and final activation remain under coach
+            approval.
+          </p>
+        </div>
+
+        <div class="enrollment-actions">
+          <button
+            id="openParentIntakeButton"
+            class="enrollment-button enrollment-button--primary"
+            type="button"
+          >
+            Continue to Parent Intake
+          </button>
+        </div>
+      </section>
+
+      <p
+        id="enrollmentNotice"
+        class="enrollment-notice"
+        aria-live="polite"
+        hidden
+      ></p>
+    </section>
+  </main>
+
+  <script src="/intake-shared/fire.js"></script>
+  <script src="/connect/enrollment/enrollment.config.js"></script>
+  <script src="/connect/enrollment/enrollment.service.js"></script>
+  <script src="/connect/enrollment/enrollment.js"></script>
 </body>
 </html>
