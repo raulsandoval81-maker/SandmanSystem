@@ -243,7 +243,8 @@ async function handleSubmit(e) {
 
   try {
     // 0) token must be valid + not expired
-    const { token, tokenId, exp } = await requireValidInvite();
+    const { rawToken, token, tokenId, exp } =
+      await requireValidInvite();
 
     const connectLeadId =
       token.connectLeadId || null;
@@ -334,7 +335,7 @@ async function handleSubmit(e) {
 
       // ---- token + lifecycle ----
       tokenId,
-      tokenRaw: token,
+      tokenRaw: rawToken,
       exp: exp ?? null,
 
       // ---- ROOT MIRRORS ----

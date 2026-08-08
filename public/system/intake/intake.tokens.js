@@ -50,6 +50,23 @@ export async function verifyToken(input) {
   return {
     valid: true,
     tokenId,
+    exp: expMs ?? null,
+    token: {
+      mode: data.mode ?? "new_athlete",
+      intakeAudience: data.intakeAudience ?? "parent_guardian",
+      intakeRoute: data.intakeRoute ?? "parent",
+      connectLeadId: data.connectLeadId ?? null,
+      existingAthleteUid: data.existingAthleteUid ?? null,
+      existingAthleteName: data.existingAthleteName ?? null,
+      forTrack: data.forTrack ?? null,
+      forLane: data.forLane ?? null,
+      requestedTrackCode: data.requestedTrackCode ?? null,
+      requestedDiscipline: data.requestedDiscipline ?? null,
+      languagePreference: data.languagePreference ?? null,
+      source: data.source ?? null,
+      workflowVersion: data.workflowVersion ?? null,
+      intakeId: data.intakeId ?? null,
+    },
     forTrack: data.forTrack ?? null,
     forLane: data.forLane ?? null,
     // optional pass-throughs if you add them later

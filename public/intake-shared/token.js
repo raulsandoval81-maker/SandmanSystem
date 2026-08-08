@@ -57,7 +57,8 @@ export async function requireValidInvite(token) {
   if (!tokenId) throw new Error("Invite token format not recognized.");
 
   return {
-    token: raw,
+    rawToken: raw,
+    token: res?.token || {},
     tokenId,
     exp: res?.exp ?? null,
     forTrack: res?.forTrack ?? null,
