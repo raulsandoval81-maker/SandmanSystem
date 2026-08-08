@@ -1,13 +1,13 @@
 :root{
   --bg:#090909;
-  --panel:#131313;
-  --panel2:#1b1b1b;
+--panel:#0d0d0d;
+--panel2:#141414;
 
   --gold:#facc15;
   --red:#7a1111;
   --red-dark:#5b0b0b;
 
-  --border:#2a2a2a;
+ --border:#3b3320;
 
   --text:#f3f4f6;
   --muted:#b8bcc4;
@@ -20,7 +20,7 @@
 body{
   margin:0;
   background:
-    radial-gradient(circle at top,#2d2204 0,#090909 40%),
+    radial-gradient(circle at top,#171100 0%, #090909 45%),
     #090909;
 
   color:var(--text);
@@ -39,7 +39,7 @@ body{
 
 .connect-shell{
   width:100%;
-  max-width:820px;
+  max-width:960px;
   margin:auto;
 }
 

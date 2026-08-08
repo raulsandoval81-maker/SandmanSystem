@@ -492,6 +492,77 @@
         text-align: center;
       }
     }
+    /* ======================================================
+   MESSAGE PAGE — LAPTOP / DESKTOP WIDTH REPAIR
+====================================================== */
+
+.message-page {
+  width: 100%;
+}
+
+.message-container {
+  width: min(calc(100% - 48px), 1180px);
+  margin-inline: auto;
+}
+
+.message-intro,
+.message-form-section {
+  width: 100%;
+  max-width: none;
+}
+
+.message-intro {
+  padding: clamp(32px, 5vw, 64px);
+}
+
+.message-form-card {
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+  padding: clamp(28px, 4vw, 52px);
+}
+
+/* Two-column form on laptops and larger screens */
+@media (min-width: 850px) {
+  .message-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 24px;
+  }
+
+  .message-form-field--full,
+  .message-form-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Wider presentation on normal laptops */
+@media (min-width: 1100px) {
+  .message-container {
+    width: min(calc(100% - 72px), 1280px);
+  }
+
+  .message-form-card {
+    max-width: 980px;
+  }
+}
+
+/* Keep phone layout stacked */
+@media (max-width: 849px) {
+  .message-container {
+    width: min(calc(100% - 28px), 720px);
+  }
+
+  .message-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .message-form-card {
+    padding: 24px;
+  }
+}
   </style>
 </head>
 

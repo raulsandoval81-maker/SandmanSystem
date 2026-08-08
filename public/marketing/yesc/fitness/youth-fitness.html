@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    KidFIT | YESC
+  </title>
+
+  <meta
+    name="description"
+    content="KidFIT combines movement, coordination, age-appropriate strength, conditioning, confidence, and healthy training habits."
+  >
+
+  <link
+    rel="stylesheet"
+    href="../../assets/css/site.css"
+  >
+
+  <link
+    rel="stylesheet"
+    href="./fitness.css"
+  >
+<style>
+
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div
+    id="navigation"
+    data-component="/components/fitness-navigation.html"
+  ></div>
+<main class="fitness-page">
+
+  <section class="fitness-hero">
+
+    <img
+      class="fitness-hero-image"
+      src="../../assets/img/marketing/fitness/youth-fitness-splash.png"
+      alt="KidFIT movement, coordination, strength, and boxing fitness for kids"
+    >
+
+    <div
+      class="fitness-hero-copy"
+      data-lang-block="en"
+    >
+
+      <p class="eyebrow">
+        Youth Fitness
+      </p>
+
+      <h1>
+        KidFIT
+      </h1>
+
+      <p class="lead">
+        Age-appropriate fitness that helps kids build stronger bodies,
+        better coordination, greater confidence, and healthy training
+        habits.
+      </p>
+
+      <a
+        class="btn btn-primary"
+        href="../../connect/yesc/?interest=kid-fit"
+      >
+        Book Your First Class
+      </a>
+
+    </div>
+
+    <div
+      class="fitness-hero-copy hidden-lang"
+      data-lang-block="es"
+    >
+
+      <p class="eyebrow">
+        Fitness Infantil
+      </p>
+
+      <h1>
+        KidFIT
+      </h1>
+
+      <p class="lead">
+        Fitness apropiado para la edad que ayuda a los niños a
+        desarrollar cuerpos fuertes, mejor coordinación, mayor
+        confianza y hábitos saludables.
+      </p>
+
+      <a
+        class="btn btn-primary"
+        href="../../connect/yesc/?interest=kid-fit"
+      >
+        Reserva Tu Primera Clase
+      </a>
+
+    </div>
+
+  </section>
+
+  <section class="section">
+
+    <article class="panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Built For Kids
+        </p>
+
+        <h2 class="section-title">
+          Movement, Strength, And Confidence
+        </h2>
+
+        <p class="lead">
+          KidFIT introduces young athletes to structured movement,
+          coordination, age-appropriate strength, conditioning, and
+          healthy training habits.
+        </p>
+
+        <ul class="fitness-list">
+          <li>Movement fundamentals</li>
+          <li>Balance and coordination</li>
+          <li>Age-appropriate strength</li>
+          <li>Conditioning and endurance</li>
+          <li>Confidence and healthy habits</li>
+        </ul>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Diseñado Para Niños
+        </p>
+
+        <h2 class="section-title">
+          Movimiento, Fuerza Y Confianza
+        </h2>
+
+        <p class="lead">
+          KidFIT presenta a los jóvenes atletas el movimiento
+          estructurado, la coordinación, la fuerza apropiada para la
+          edad, el acondicionamiento y hábitos saludables.
+        </p>
+
+        <ul class="fitness-list">
+          <li>Fundamentos de movimiento</li>
+          <li>Equilibrio y coordinación</li>
+          <li>Fuerza apropiada para la edad</li>
+          <li>Acondicionamiento y resistencia</li>
+          <li>Confianza y hábitos saludables</li>
+        </ul>
+
+      </div>
+
+    </article>
+
+  </section>
+
+  <section class="section">
+
+    <article class="panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Fitness, Not Combat
+        </p>
+
+        <h2 class="section-title">
+          Built For Movement, Strength, And Confidence
+        </h2>
+
+        <p class="lead">
+          KidFIT uses structured movement and light boxing-based fitness
+          methods without placing participants into the Sandman combat
+          progression system.
+        </p>
+
+        <p>
+          The program is designed for fitness, strength, conditioning,
+          coordination, confidence, and healthy physical development.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Fitness, No Combate
+        </p>
+
+        <h2 class="section-title">
+          Movimiento, Fuerza Y Confianza
+        </h2>
+
+        <p class="lead">
+          KidFIT utiliza movimiento estructurado y métodos ligeros de
+          fitness de boxeo sin colocar a los participantes dentro del
+          sistema de progresión de combate Sandman.
+        </p>
+
+        <p>
+          El programa está diseñado para fitness, fuerza,
+          acondicionamiento, coordinación, confianza y desarrollo
+          físico saludable.
+        </p>
+
+      </div>
+
+    </article>
+
+  </section>
+
+  <section class="section">
+
+    <article class="panel fitness-cta">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Ready To Get Started?
+        </p>
+
+        <h2>
+          Book A $15 First Class
+        </h2>
+
+        <p>
+          The $15 is credited toward your first month when you join.
+        </p>
+
+        <a
+          class="btn btn-primary"
+          href="../../connect/yesc/?interest=kid-fit"
+        >
+          Book Your First Class
+        </a>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          ¿Listo Para Comenzar?
+        </p>
+
+        <h2>
+          Reserva Una Primera Clase De $15
+        </h2>
+
+        <p>
+          Los $15 se aplican a tu primer mes cuando te inscribes.
+        </p>
+
+        <a
+          class="btn btn-primary"
+          href="../../connect/yesc/?interest=kid-fit"
+        >
+          Reserva Tu Primera Clase
+        </a>
+
+      </div>
+
+    </article>
+
+  </section>
+
+</main>
+
+
+
+<div
+    id="footer"
+    data-component="/components/fitness-footer.html"
+  ></div>
+
+
+
+<script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>

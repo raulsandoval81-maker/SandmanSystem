@@ -161,17 +161,7 @@
 }
 
 .connect-hero::after {
-  position: absolute;
-  inset: auto 0 0;
-  height: 16%;
-  pointer-events: none;
-  content: "";
-  background:
-    linear-gradient(
-      to bottom,
-      transparent,
-      var(--connect-bg)
-    );
+    display: none;
 }
 
 .connect-hero > div {
@@ -779,4 +769,61 @@
   .connect-opportunities-grid {
     grid-template-columns: 1fr;
   }
+}
+.connect-hero {
+  position: relative;
+  display: inline-block;
+}
+
+.connect-hero__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.connect-hotspot {
+  position: absolute;
+  display: block;
+}
+
+
+/* ======================================================
+   CONNECT HERO
+====================================================== */
+
+.connect-hero {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background: transparent;
+}
+
+.connect-hero__wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.connect-hero__image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.connect-hotspot--journey {
+  position: absolute;
+
+  left: 33%;
+  top: 88%;
+
+  width: 31%;
+  height: 8%;
+
+  z-index: 20;
+  cursor: pointer;
+}
+
+.connect-hero__wrapper > .hidden-lang {
+  display: none !important;
 }

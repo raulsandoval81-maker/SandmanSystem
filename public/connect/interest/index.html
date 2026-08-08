@@ -142,12 +142,16 @@
       border-color: rgba(250, 204, 21, 0.55);
     }
 
-    .interest-type-option input:checked +
-    .interest-type-card {
-      border-color: #facc15;
-      background: rgba(250, 204, 21, 0.12);
-      box-shadow: 0 0 0 1px rgba(250, 204, 21, 0.18);
-    }
+.interest-type-option input:checked +
+.interest-type-card{
+    background:#0b0b0b;
+
+    border:2px solid #facc15;
+
+    box-shadow:
+        0 0 0 1px rgba(250,204,21,.22),
+        0 12px 28px rgba(0,0,0,.45);
+}
 
     .interest-type-title {
       display: block;
@@ -240,72 +244,107 @@
         grid-template-columns: 1fr;
       }
     }
+    .connect-hero{
+    background:#050505;
+    border-radius:18px;
+    padding:40px 32px;
+    margin-bottom:32px;
+}
+.connect-hero__top{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+    margin-bottom:18px;
+}
+.language-btn{
+    min-width:42px;
+    height:30px;
+    padding:0 12px;
+    border-radius:16px;
+    font-size:.78rem;
+}
+.eyebrow{
+    margin:0;
+    color:#facc15;
+    font-size:.82rem;
+    font-weight:700;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+}
+.connect-hero h1{
+    margin:0 0 14px;
+    line-height:1.1;
+}
   </style>
-</head>
 
-<body>
-  <main class="connect-page">
-    <section class="connect-shell">
+<header class="connect-hero">
 
-      <div
-        class="language-switcher"
-        role="group"
-        aria-label="Language selection"
+  <div class="connect-hero__top">
+
+    <p class="eyebrow">
+      Sandman Combat Academy
+    </p>
+
+    <div
+      class="language-switcher"
+      role="group"
+      aria-label="Language selection"
+    >
+      <button
+        id="languageEnglish"
+        class="language-btn"
+        type="button"
+        data-set-language="en"
+        aria-pressed="true"
       >
-        <button
-          id="languageEnglish"
-          class="language-btn"
-          type="button"
-          data-set-language="en"
-          aria-pressed="true"
-        >
-          English
-        </button>
+        EN
+      </button>
 
-        <button
-          id="languageSpanish"
-          class="language-btn"
-          type="button"
-          data-set-language="es"
-          aria-pressed="false"
-        >
-          Español
-        </button>
-      </div>
+      <button
+        id="languageSpanish"
+        class="language-btn"
+        type="button"
+        data-set-language="es"
+        aria-pressed="false"
+      >
+        ES
+      </button>
+    </div>
 
-      <header class="connect-hero">
-        <p class="eyebrow">
-          Sandman Combat Academy
-        </p>
+  </div>
 
-        <h1>
-<span data-lang="en">
-  Request an Admissions Appointment
-</span>
+  <h1>
 
-<span data-lang="es">
-  Solicitar una Cita de Admisión
-</span>
-        </h1>
+    <span data-lang="en">
+      Start Your Admissions Journey
+    </span>
 
-        <p class="hero-copy">
-          <span data-lang="en">
-            We would love to learn more about you and your
-            family. Complete the form below, and a Sandman
-            coach will personally review your information,
-            answer your questions, and help you find the
-            program that is right for you.
-          </span>
+    <span data-lang="es">
+      Comienza Tu Proceso de Admisión
+    </span>
 
-          <span data-lang="es">
-            Nos gustaría conocer más sobre ti y tu familia.
-            Completa el formulario y un entrenador de Sandman
-            revisará personalmente tu información, responderá
-            tus preguntas y te ayudará a encontrar el programa
-            adecuado para ti.
-          </span>
-        </p>
-      </header>
+  </h1>
+
+  <p class="hero-copy">
+
+    <span data-lang="en">
+      We'd love to learn more about you and your family.
+      Complete the form below and our admissions team will
+      review your information, answer your questions, and
+      help guide you to the right program.
+    </span>
+
+    <span data-lang="es">
+      Nos gustaría conocer más sobre ti y tu familia.
+      Completa el formulario y nuestro equipo de admisiones
+      revisará tu información, responderá tus preguntas y
+      te ayudará a encontrar el programa adecuado para ti.
+    </span>
+
+  </p>
+
+</header>
 
       <div
         id="intentNotice"
@@ -347,109 +386,81 @@
             </span>
           </h2>
 
-          <div
-            class="interest-type-grid"
-            role="radiogroup"
-            aria-label="Program category"
-          >
-            <label class="interest-type-option">
-              <input
-                type="radio"
-                name="interestType"
-                value="combat"
-                checked
-              />
 
-              <span class="interest-type-card">
-                <span>
-                  <span class="interest-type-title">
-                    <span data-lang="en">
-                      Combat
-                    </span>
+<div
+  class="interest-type-grid"
+  role="radiogroup"
+  aria-label="Program category"
+>
 
-                    <span data-lang="es">
-                      Combate
-                    </span>
-                  </span>
+  <label class="interest-type-option">
+    <input
+      type="radio"
+      name="interestType"
+      value="combat"
+      checked
+    />
 
-                  <span class="interest-type-description">
-                    <span data-lang="en">
-                      Wrestling, boxing, Muay Thai, MMA, or grappling
-                    </span>
+    <span class="interest-type-card">
+      <span>
+        <span class="interest-type-title">
+          <span data-lang="en">
+            Sandman Combat
+          </span>
 
-                    <span data-lang="es">
-                      Lucha, boxeo, Muay Thai, MMA o grappling
-                    </span>
-                  </span>
-                </span>
-              </span>
-            </label>
+          <span data-lang="es">
+            Sandman Combat
+          </span>
+        </span>
+      </span>
+    </span>
+  </label>
 
-            <label class="interest-type-option">
-              <input
-                type="radio"
-                name="interestType"
-                value="fitness"
-              />
+  <label class="interest-type-option">
+    <input
+      type="radio"
+      name="interestType"
+      value="fitness"
+    />
 
-              <span class="interest-type-card">
-                <span>
-                  <span class="interest-type-title">
-                    <span data-lang="en">
-                      Fitness
-                    </span>
+    <span class="interest-type-card">
+      <span>
+        <span class="interest-type-title">
+          <span data-lang="en">
+            Sandman Fitness
+          </span>
 
-                    <span data-lang="es">
-                      Acondicionamiento
-                    </span>
-                  </span>
+          <span data-lang="es">
+            Sandman Fitness
+          </span>
+        </span>
+      </span>
+    </span>
+  </label>
 
-                  <span class="interest-type-description">
-                    <span data-lang="en">
-                      Youth fitness, strength, conditioning, or wellness
-                    </span>
+  <label class="interest-type-option">
+    <input
+      type="radio"
+      name="interestType"
+      value="both"
+    />
 
-                    <span data-lang="es">
-                      Fitness juvenil, fuerza, acondicionamiento o bienestar
-                    </span>
-                  </span>
-                </span>
-              </span>
-            </label>
+    <span class="interest-type-card">
+      <span>
+        <span class="interest-type-title">
+          <span data-lang="en">
+            Sandman Combat &amp; Fitness
+          </span>
 
-            <label class="interest-type-option">
-              <input
-                type="radio"
-                name="interestType"
-                value="both"
-              />
+          <span data-lang="es">
+            Sandman Combat &amp; Fitness
+          </span>
+        </span>
+      </span>
+    </span>
+  </label>
 
-              <span class="interest-type-card">
-                <span>
-                  <span class="interest-type-title">
-                    <span data-lang="en">
-                      Both
-                    </span>
-
-                    <span data-lang="es">
-                      Ambos
-                    </span>
-                  </span>
-
-                  <span class="interest-type-description">
-                    <span data-lang="en">
-                      Combat and fitness support
-                    </span>
-
-                    <span data-lang="es">
-                      Apoyo de combate y acondicionamiento
-                    </span>
-                  </span>
-                </span>
-              </span>
-            </label>
-          </div>
-        </section>
+</div>
 
         <section class="form-section">
           <h2>
@@ -1164,12 +1175,12 @@
 
   <p class="help-text">
 
-<span data-lang="en">
-  Athletes requesting a Placement Assessment may earn an advanced starting placement based on the coach's evaluation. Placement is earned and never guaranteed.
+<span data-lang="en">Placement is based on the coach's evaluation and is never guaranteed.
+  Athletes requesting a Placement Assessment may earn an advanced starting placement based on the coach's evaluation.
 </span>
 
 <span data-lang="es">
-  Los atletas que soliciten una Evaluación de Ubicación podrán obtener una ubicación inicial avanzada según la evaluación del entrenador. La ubicación se gana y nunca está garantizada.
+  Los atletas que soliciten una Evaluación de Ubicación podrán obtener una ubicación inicial avanzada según la evaluación del entrenador.
 </span>
 
   </p>

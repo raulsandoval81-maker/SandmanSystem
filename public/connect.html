@@ -8,12 +8,11 @@
 
   <meta
     name="description"
-    content="Connect with Sandman Combat, learn about the academy, meet the coaching team, and take the first step toward enrollment."
+    content="Connect with Sandman Combat, learn about coach-guided admissions, explore current opportunities, and begin your journey."
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/assets/css/connect.css" />
-
 </head>
 
 <body>
@@ -21,12 +20,16 @@
   <!-- ======================================================
        SITE HEADER
   ======================================================= -->
-<div
-  id="navigation"
-  data-component="/components/navigation.html"
-></div>
 
-<div class="site-hero-divider" aria-hidden="true"></div>
+  <div
+    id="navigation"
+    data-component="/components/navigation.html"
+  ></div>
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
 
 
   <!-- ======================================================
@@ -34,6 +37,7 @@
   ======================================================= -->
 
   <main class="connect-page">
+
 
     <!-- ====================================================
          CONNECT HERO
@@ -43,34 +47,48 @@
       class="connect-hero"
       aria-label="Connect with Sandman Combat"
     >
+      <div class="connect-hero__wrapper">
 
-      <div data-lang-block="en">
-        <img
-          src="/assets/img/pages/connect/hero-connect-en.png"
-          alt="Connect with Sandman Combat and begin your journey."
-          class="connect-hero__image"
-        />
+        <div data-lang-block="en">
+          <img
+            src="/assets/img/pages/connect/hero-connect-en.png"
+            alt="Connect with Sandman Combat and begin your journey."
+            class="connect-hero__image"
+          />
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <img
+            src="/assets/img/pages/connect/hero-connect-es.png"
+            alt="Conéctate con Sandman Combat y comienza tu trayectoria."
+            class="connect-hero__image"
+          />
+        </div>
+
+        <a
+          href="/connect/interest/"
+          class="connect-hotspot connect-hotspot--journey"
+          aria-label="Start My Journey"
+        ></a>
+
       </div>
-
-      <div data-lang-block="es" class="hidden-lang">
-        <img
-          src="/assets/img/pages/connect/hero-connect-es.png"
-          alt="Conéctate con Sandman Combat y comienza tu trayectoria."
-          class="connect-hero__image"
-        />
-      </div>
-
     </section>
 
 
     <!-- ====================================================
-         JOIN PATH
+         COACH-GUIDED ENROLLMENT
     ===================================================== -->
 
     <section class="connect-section connect-section--join">
       <div class="connect-container">
 
+        <!-- ENGLISH -->
+
         <div data-lang-block="en">
+
           <p class="connect-eyebrow">
             Coach-Guided Enrollment
           </p>
@@ -84,20 +102,22 @@
           </p>
 
           <p>
-            Complete the Interest Form so our admissions team can review your
-            athlete’s age, experience, goals, preferred program, and location,
-            then guide your family toward the appropriate next step.
+            Complete the Interest Form through the
+            <strong>Start My Journey</strong> button above.
+            Our admissions team will review your details and contact you
+            to schedule an admissions appointment.
           </p>
 
-          <a
-            href="/connect/interest/"
-            class="button button--primary"
-          >
-            Complete the Interest Form
-          </a>
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
+
+        <!-- SPANISH -->
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
           <p class="connect-eyebrow">
             Inscripción Guiada
           </p>
@@ -107,69 +127,233 @@
           </h1>
 
           <p class="connect-lead">
-            Cada atleta comienza desde un lugar diferente.
+            Cada atleta comienza de manera diferente.
           </p>
 
           <p>
-            Completa el Formulario de Interés para que nuestro equipo de
-            admisiones revise la edad, experiencia, metas, programa preferido
-            y ubicación de tu atleta, y guíe a tu familia hacia el siguiente
-            paso adecuado.
+            Completa el Formulario de Interés mediante el botón
+            <strong>Comienza Tu Trayectoria</strong> que aparece arriba.
+            Nuestro equipo de admisiones revisará tus datos y se comunicará
+            contigo para programar una cita de admisión.
           </p>
 
-          <a
-            href="/connect/interest/"
-            class="button button--primary"
-          >
-            Completar el Formulario de Interés
-          </a>
         </div>
 
       </div>
     </section>
 
+
+    <!-- ====================================================
+         COMMON QUESTIONS
+    ===================================================== -->
+
+    <section class="connect-section connect-section--faq">
+      <div class="connect-container">
+
+        <!-- ENGLISH -->
+
+        <div data-lang-block="en">
+
+          <div class="connect-heading connect-heading--centered">
+
+            <p class="connect-eyebrow">
+              Before You Begin
+            </p>
+
+            <h2>
+              Common Questions
+            </h2>
+
+            <p>
+              A few things families commonly want to know before beginning
+              the admissions process.
+            </p>
+
+          </div>
+
+
+          <div class="connect-faq-grid">
+
+            <article class="connect-faq-card">
+
+              <h3>
+                Does my athlete need experience?
+              </h3>
+
+              <p>
+                No. Many athletes begin with little or no combat-sports
+                experience. Placement is based on age, readiness, goals,
+                availability, and the recommended starting point.
+              </p>
+
+            </article>
+
+
+            <article class="connect-faq-card">
+
+              <h3>
+                Can parents observe practice?
+              </h3>
+
+              <p>
+                Practices are closed sessions. Parents may have limited
+                access while a new athlete becomes comfortable, but ongoing
+                observation is not standard. The current policy will be
+                explained before the admissions appointment.
+              </p>
+
+            </article>
+
+
+            <article class="connect-faq-card">
+
+              <h3>
+                What are the membership fees?
+              </h3>
+
+              <p>
+                Membership options are organized around different needs,
+                goals, and levels of participation. Available programs,
+                billing options, and enrollment costs are explained during
+                the admissions process.
+              </p>
+
+            </article>
+
+          </div>
+        </div>
+
+
+        <!-- SPANISH -->
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <div class="connect-heading connect-heading--centered">
+
+            <p class="connect-eyebrow">
+              Antes de Comenzar
+            </p>
+
+            <h2>
+              Preguntas Frecuentes
+            </h2>
+
+            <p>
+              Algunas de las preguntas más comunes que las familias tienen
+              antes de comenzar el proceso de admisión.
+            </p>
+
+          </div>
+
+
+          <div class="connect-faq-grid">
+
+            <article class="connect-faq-card">
+
+              <h3>
+                ¿Mi atleta necesita experiencia?
+              </h3>
+
+              <p>
+                No. Muchos atletas comienzan con poca o ninguna experiencia
+                en deportes de combate. La colocación depende de la edad,
+                preparación, metas, disponibilidad y el punto de partida
+                recomendado.
+              </p>
+
+            </article>
+
+
+            <article class="connect-faq-card">
+
+              <h3>
+                ¿Pueden los padres observar la práctica?
+              </h3>
+
+              <p>
+                Las prácticas son sesiones cerradas. Los padres pueden tener
+                acceso limitado mientras un atleta nuevo se adapta, pero la
+                observación continua no es lo habitual. La política actual
+                se explicará antes de la cita de admisión.
+              </p>
+
+            </article>
+
+
+            <article class="connect-faq-card">
+
+              <h3>
+                ¿Cuáles son las cuotas de membresía?
+              </h3>
+
+              <p>
+                Las opciones de membresía están organizadas según diferentes
+                necesidades, metas y niveles de participación. Los programas,
+                opciones de pago y costos de inscripción se explican durante
+                el proceso de admisión.
+              </p>
+
+            </article>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
 <!-- ====================================================
-     PROMOTIONS & OPPORTUNITIES
+     OFFERS & OPPORTUNITIES
 ===================================================== -->
 
 <section class="connect-section connect-section--opportunities">
   <div class="connect-container">
 
-    <!-- ENGLISH -->
+    <!-- ====================================================
+         ENGLISH
+    ===================================================== -->
+
     <div data-lang-block="en">
 
       <div class="connect-heading connect-heading--centered">
+
         <p class="connect-eyebrow">
           Promotions & Opportunities
         </p>
 
         <h2>
-          Explore What Is Available
+          Current Offers & Opportunities
         </h2>
 
         <p>
-          Discover current enrollment offers, upcoming clinics, camps,
-          special events, and opportunities to bring Sandman training
-          to your organization.
+          Explore current enrollment opportunities or bring Sandman
+          Combat to your school, club, or community.
         </p>
+
       </div>
 
       <div class="connect-opportunities-grid">
 
-        <!-- CURRENT PROMOTIONS -->
+        <!-- FOUNDING ENROLLMENT -->
+
         <article class="connect-opportunity-card">
+
           <span class="connect-opportunity-card__label">
-            Enrollment Offers
+            Founding Enrollment
           </span>
 
           <h3>
-            Current Promotions
+            Be Among the First 100
           </h3>
 
           <p>
-            There are no active promotions at this time. New enrollment
-            offers and special opportunities may be added throughout the
-            year, so check back for future updates.
+            Be among the first 100 athletes to join Sandman Combat,
+            help build the academy from the beginning, and lock in
+            Founding Member pricing for your first year while
+            enrollment remains available.
           </p>
 
           <a
@@ -178,98 +362,87 @@
           >
             Start Your Journey
           </a>
+
         </article>
 
 
-        <!-- CLINICS NEAR YOU -->
+        <!-- SANDMAN SERIES OF CLINICS -->
+
         <article class="connect-opportunity-card">
+
           <span class="connect-opportunity-card__label">
-            Camps • Clinics • Special Events
+            Combat • Development • Community
           </span>
 
           <h3>
-            Find Clinics Near You
+            Sandman Series of Clinics
           </h3>
 
           <p>
-            Explore upcoming clinics, camps, workshops, and special training
-            opportunities hosted at Sandman locations or with participating
-            community partners.
+            Bring Sandman Combat to your school, club, or community.
+            We offer Wrestling, Boxing, Muay Thai, and MMA clinics for
+            athletes, teams, coaches, camps, and special events.
           </p>
 
           <a
             href="/connect/message.html"
             class="button button--secondary"
           >
-            Ask About Nearby Clinics
+            Request a Clinic
           </a>
-        </article>
 
-
-        <!-- TRAVELING CLINICS -->
-        <article class="connect-opportunity-card">
-          <span class="connect-opportunity-card__label">
-            Mobile Clinics • Partner Events • Group Training
-          </span>
-
-          <h3>
-            We Can Travel to You
-          </h3>
-
-          <p>
-            Schools, clubs, gyms, community organizations, and private groups
-            may request a Sandman clinic at their location. Availability,
-            travel distance, group size, and program format are reviewed
-            before approval.
-          </p>
-
-          <a
-            href="/connect/message.html"
-            class="button button--secondary"
-          >
-            Request a Traveling Clinic
-          </a>
         </article>
 
       </div>
+
     </div>
 
 
-    <!-- SPANISH -->
-    <div data-lang-block="es" class="hidden-lang">
+    <!-- ====================================================
+         SPANISH
+    ===================================================== -->
+
+    <div
+      data-lang-block="es"
+      class="hidden-lang"
+    >
 
       <div class="connect-heading connect-heading--centered">
+
         <p class="connect-eyebrow">
           Promociones y Oportunidades
         </p>
 
         <h2>
-          Explora Lo Que Está Disponible
+          Ofertas y Oportunidades Actuales
         </h2>
 
         <p>
-          Conoce las ofertas actuales de inscripción, próximas clínicas,
-          campamentos, eventos especiales y oportunidades para llevar el
-          entrenamiento de Sandman a tu organización.
+          Explora las oportunidades actuales de inscripción o lleva
+          Sandman Combat a tu escuela, club o comunidad.
         </p>
+
       </div>
 
       <div class="connect-opportunities-grid">
 
-        <!-- PROMOCIONES ACTUALES -->
+        <!-- INSCRIPCIÓN FUNDADORA -->
+
         <article class="connect-opportunity-card">
+
           <span class="connect-opportunity-card__label">
-            Ofertas de Inscripción
+            Inscripción Fundadora
           </span>
 
           <h3>
-            Promociones Actuales
+            Sé Uno de los Primeros 100
           </h3>
 
           <p>
-            No hay promociones activas en este momento. Durante el año
-            pueden agregarse nuevas ofertas de inscripción y oportunidades
-            especiales. Vuelve pronto para conocer futuras novedades.
+            Forma parte de los primeros 100 atletas en unirse a
+            Sandman Combat, ayuda a construir la academia desde el
+            principio y asegura la tarifa de Miembro Fundador durante
+            tu primer año, mientras haya cupos disponibles.
           </p>
 
           <a
@@ -278,197 +451,40 @@
           >
             Comienza Tu Trayectoria
           </a>
+
         </article>
 
 
-        <!-- CLÍNICAS CERCA DE TI -->
+        <!-- SERIE DE CLÍNICAS SANDMAN -->
+
         <article class="connect-opportunity-card">
+
           <span class="connect-opportunity-card__label">
-            Campamentos • Clínicas • Eventos Especiales
+            Combate • Desarrollo • Comunidad
           </span>
 
           <h3>
-            Encuentra Clínicas Cerca de Ti
+            Serie de Clínicas Sandman
           </h3>
 
           <p>
-            Explora próximas clínicas, campamentos, talleres y oportunidades
-            especiales de entrenamiento organizadas en ubicaciones de Sandman
-            o con organizaciones comunitarias participantes.
+            Lleva Sandman Combat a tu escuela, club o comunidad.
+            Ofrecemos clínicas de Lucha, Boxeo, Muay Thai y MMA para
+            atletas, equipos, entrenadores, campamentos y eventos
+            especiales.
           </p>
 
           <a
             href="/connect/message.html"
             class="button button--secondary"
           >
-            Preguntar por Clínicas Cercanas
+            Solicitar una Clínica
           </a>
-        </article>
 
-
-        <!-- CLÍNICAS MÓVILES -->
-        <article class="connect-opportunity-card">
-          <span class="connect-opportunity-card__label">
-            Clínicas Móviles • Eventos Asociados • Entrenamiento Grupal
-          </span>
-
-          <h3>
-            Podemos Viajar Hasta Ti
-          </h3>
-
-          <p>
-            Escuelas, clubes, gimnasios, organizaciones comunitarias y grupos
-            privados pueden solicitar una clínica de Sandman en su ubicación.
-            La disponibilidad, distancia de viaje, tamaño del grupo y formato
-            del programa se revisan antes de aprobar la solicitud.
-          </p>
-
-          <a
-            href="/connect/message.html"
-            class="button button--secondary"
-          >
-            Solicitar una Clínica Móvil
-          </a>
         </article>
 
       </div>
-    </div>
 
-  </div>
-</section>
-
-
-    <!-- ====================================================
-     COMMON QUESTIONS
-===================================================== -->
-
-<section class="connect-section connect-section--faq">
-  <div class="connect-container">
-
-    <div data-lang-block="en">
-      <div class="connect-heading">
-        <p class="connect-eyebrow">
-          Before You Begin
-        </p>
-
-        <h2>
-          Common Questions
-        </h2>
-      </div>
-
-      <div class="connect-faq-grid">
-
-        <article class="connect-faq-card">
-          <h3>Does my athlete need experience?</h3>
-
-          <p>
-            No. Many athletes begin with little or no combat-sports
-            experience. Placement is based on age, readiness, goals,
-            and availability.
-          </p>
-        </article>
-
-        <article class="connect-faq-card">
-          <h3>Are we required to enroll?</h3>
-
-          <p>
-            No. The admissions process helps your family and our team
-            determine whether the program is the right fit.
-          </p>
-        </article>
-
-<article class="connect-faq-card">
-  <h3>Can parents observe practice?</h3>
-
-  <p>
-Practices are closed sessions. Parents may have limited access while a new athlete gets comfortable, but ongoing observation is not standard. We will explain the current policy before your appointment.
-  </p>
-</article>
-
-        <article class="connect-faq-card">
-          <h3>What are the membership fees?</h3>
-
-          <p>
-            Membership options are organized into tiers built for different
-            needs, goals, and levels of participation. We explain the available
-            options during the admissions process and help each family choose
-            the best fit.
-          </p>
-        </article>
-
-        <article class="connect-faq-card">
-          <h3>When can training begin?</h3>
-
-          <p>
-            Start dates depend on program availability, completed
-            enrollment requirements, and recommended placement.
-          </p>
-        </article>
-
-      </div>
-    </div>
-
-    <div data-lang-block="es" class="hidden-lang">
-      <div class="connect-heading">
-        <p class="connect-eyebrow">
-          Antes de Comenzar
-        </p>
-
-        <h2>
-          Preguntas Frecuentes
-        </h2>
-      </div>
-
-      <div class="connect-faq-grid">
-
-        <article class="connect-faq-card">
-          <h3>¿Mi atleta necesita experiencia?</h3>
-
-          <p>
-            No. Muchos atletas comienzan con poca o ninguna experiencia
-            en deportes de combate. La colocación depende de la edad,
-            preparación, metas y disponibilidad.
-          </p>
-        </article>
-
-        <article class="connect-faq-card">
-          <h3>¿Estamos obligados a inscribirnos?</h3>
-
-          <p>
-            No. El proceso de admisión ayuda a tu familia y a nuestro
-            equipo a determinar si el programa es adecuado.
-          </p>
-        </article>
-
-
-        <article class="connect-faq-card">
-  <h3>¿Pueden los padres observar la práctica?</h3>
-
-  <p>
-Las prácticas son sesiones cerradas. Los padres pueden tener acceso limitado mientras un atleta nuevo se adapta, pero la observación continua no es lo habitual. Explicaremos la política actual antes de tu cita.
-  </p>
-</article>
-        <article class="connect-faq-card">
-          <h3>¿Cuáles son las cuotas de membresía?</h3>
-
-          <p>
-            Las opciones de membresía están organizadas en niveles diseñados
-            para diferentes necesidades, metas y niveles de participación.
-            Durante el proceso de admisión, explicamos las opciones disponibles
-            y ayudamos a cada familia a elegir la más adecuada.
-          </p>
-        </article>
-
-        <article class="connect-faq-card">
-          <h3>¿Cuándo puede comenzar el entrenamiento?</h3>
-
-          <p>
-            Las fechas de inicio dependen de la disponibilidad, los
-            requisitos de inscripción y la colocación recomendada.
-          </p>
-        </article>
-
-      </div>
     </div>
 
   </div>
@@ -481,43 +497,51 @@ Las prácticas son sesiones cerradas. Los padres pueden tener acceso limitado mi
     <section class="connect-section connect-section--contact">
       <div class="connect-container">
 
+        <!-- ENGLISH -->
+
         <div data-lang-block="en">
+
           <div class="connect-heading connect-heading--centered">
+
             <p class="connect-eyebrow">
               General Questions
             </p>
 
             <h2>
-              Send Us a Message
+              Message Us
             </h2>
 
             <p>
               Have a question about programs, locations, promotions,
-              partnerships, appointments, or the admissions process?
-              Send us a message and our system team will route it to the
-              appropriate organization or local manager.
+              partnerships, appointments, clinics, or the admissions process?
+              Send us a message and our team will help direct your inquiry.
             </p>
+
           </div>
 
+
           <div class="connect-actions">
+
             <a
               href="/connect/message.html"
               class="button button--secondary"
             >
-              Send a Message
+              Message Us
             </a>
 
-            <a
-              href="/connect/interest/"
-              class="button button--primary"
-            >
-              Complete the Interest Form
-            </a>
           </div>
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
+
+        <!-- SPANISH -->
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
           <div class="connect-heading connect-heading--centered">
+
             <p class="connect-eyebrow">
               Preguntas Generales
             </p>
@@ -528,32 +552,28 @@ Las prácticas son sesiones cerradas. Los padres pueden tener acceso limitado mi
 
             <p>
               ¿Tienes preguntas sobre programas, ubicaciones, promociones,
-              alianzas, citas o el proceso de admisión? Envíanos un mensaje
-              y nuestro equipo del sistema lo dirigirá a la organización o
-              al gerente local correspondiente.
+              alianzas, citas, clínicas o el proceso de admisión?
+              Envíanos un mensaje y nuestro equipo ayudará a dirigir
+              tu consulta.
             </p>
+
           </div>
 
+
           <div class="connect-actions">
+
             <a
               href="/connect/message.html"
               class="button button--secondary"
             >
-              Enviar un Mensaje
+              Envíanos un Mensaje
             </a>
 
-            <a
-              href="/connect/interest/"
-              class="button button--primary"
-            >
-              Completar el Formulario de Interés
-            </a>
           </div>
         </div>
 
       </div>
     </section>
-
 
   </main>
 
@@ -562,15 +582,20 @@ Las prácticas son sesiones cerradas. Los padres pueden tener acceso limitado mi
        SITE FOOTER
   ======================================================= -->
 
-    <!-- Shared site footer -->
-    <div
-      id="footer"
-      data-component="/components/footer.html"
-    ></div>
-    <script src="/assets/js/component-loader.js" defer></script>
-    <script src="/assets/js/language.js" defer></script>
-    <script src="/assets/js/theme.js" defer></script>
-    <script src="/assets/js/navigation.js" defer></script>
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <!-- ======================================================
+       SCRIPTS
+  ======================================================= -->
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
 
 </body>
 </html>
