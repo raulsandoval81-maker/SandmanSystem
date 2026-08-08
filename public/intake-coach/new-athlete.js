@@ -1343,7 +1343,6 @@ form.addEventListener("submit", async (e) => {
     });
 
     form.reset();
-    $("team").value = "LAW";
     syncFromProgramTrack();
 
   } catch (err) {
