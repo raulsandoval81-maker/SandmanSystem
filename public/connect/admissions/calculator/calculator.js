@@ -25,9 +25,9 @@ const requestId =
 const appointmentId =
   params.get("appointmentId") || "";
 
-const proposalId =
+let proposalId =
   params.get("proposalId") || "";
-
+  
 const backToProposalBtn =
   document.getElementById(
     "backToProposalBtn"
@@ -377,7 +377,28 @@ const extras = {
       submitReviewButton:document.getElementById("submitReviewButton"),
       approveProposalButton:document.getElementById("approveProposalButton"),
       checkoutProposalButton:document.getElementById("checkoutProposalButton"),
-      resetButton:document.getElementById("resetButton")
+      resetButton:document.getElementById("resetButton"),
+
+      proposalWorkflow:
+        document.getElementById("proposalWorkflow"),
+
+      proposalWorkflowStage:
+        document.getElementById("proposalWorkflowStage"),
+
+      proposalWorkflowId:
+        document.getElementById("proposalWorkflowId"),
+
+      proposalWorkflowSteps:
+        document.getElementById("proposalWorkflowSteps"),
+
+      proposalWorkflowNext:
+        document.getElementById("proposalWorkflowNext"),
+
+      proposalWorkflowRoute:
+        document.getElementById("proposalWorkflowRoute"),
+
+      proposalWorkflowRouteLink:
+        document.getElementById("proposalWorkflowRouteLink")
     };
 
     function money(value){
@@ -902,10 +923,13 @@ const extras = {
         "Saving…";
 
       try {
-        const functionName =
-          proposalId
-            ? "updateProposalDraft"
-            : "createProposalDraft";
+const isExistingProposal =
+  Boolean(proposalId);
+
+const functionName =
+  isExistingProposal
+    ? "updateProposalDraft"
+    : "createProposalDraft";
 
         const saveDraft =
           httpsCallable(
@@ -964,16 +988,38 @@ const extras = {
           );
         }
 
+        // The first save creates the proposal ID.
+// Keep that ID in the active Builder session so
+// subsequent saves update the same proposal and
+// Submit for Review can advance it to REVIEW.
+proposalId = savedProposalId;
+
+// Preserve the proposal in the URL without
+// reloading the Prospect Builder.
+const proposalUrl =
+  new URL(window.location.href);
+
+proposalUrl.searchParams.set(
+  "proposalId",
+  savedProposalId
+);
+
+window.history.replaceState(
+  {},
+  "",
+  proposalUrl
+);
+
         el.saveDraftButton.disabled = false;
         el.saveDraftButton.textContent =
           `Saved ${savedProposalId}`;
 
-        alert(
-          proposalId
-            ? `Proposal draft ${savedProposalId} updated successfully.`
-            : `Proposal draft ${savedProposalId} created successfully.`
-        );
-      } catch (error) {
+alert(
+  isExistingProposal
+    ? `Proposal draft ${savedProposalId} updated successfully.`
+    : `Proposal draft ${savedProposalId} created successfully.`
+);
+        } catch (error) {
         console.error(
           "Save proposal draft failed:",
           error
@@ -1053,6 +1099,10 @@ const extras = {
         el.submitReviewButton.disabled = true;
         el.submitReviewButton.textContent =
           "Submitted for Review";
+
+        renderProposalWorkflow(
+          "REVIEW"
+        );
 
         alert(
           `Proposal ${proposalId} submitted for review successfully.`
@@ -1144,6 +1194,10 @@ async function approveCurrentProposal() {
     el.checkoutProposalButton.textContent =
       "Begin Checkout";
 
+    renderProposalWorkflow(
+      "READY_FOR_CHECKOUT"
+    );
+
     alert(
       `Proposal ${proposalId} approved and ready for checkout.`
     );
@@ -1229,6 +1283,185 @@ async function beginProposalCheckout() {
           error?.message ||
           "Unable to begin Stripe checkout."
         );
+      }
+    }
+
+
+    function renderProposalWorkflow(
+      status = "BUILDING"
+    ) {
+      const normalized =
+        String(status || "BUILDING")
+          .toUpperCase();
+
+      const steps = [
+        "Admissions Decision",
+        "Proposal Draft",
+        "Review",
+        "Approval",
+        "Checkout",
+        "Enrollment"
+      ];
+
+      const stageIndex = {
+        BUILDING: 1,
+        DRAFT: 1,
+        REVIEW: 2,
+        READY_FOR_CHECKOUT: 4,
+        CHECKOUT_CREATED: 4,
+        PAYMENT_PENDING: 4,
+        PAID: 5,
+        LOCKED: 5
+      }[normalized] ?? 1;
+
+      const stageLabels = {
+        BUILDING: "Building Proposal",
+        DRAFT: "Proposal Draft",
+        REVIEW: "Needs Review",
+        READY_FOR_CHECKOUT: "Checkout Ready",
+        CHECKOUT_CREATED: "Checkout Created",
+        PAYMENT_PENDING: "Payment Pending",
+        PAID: "Payment Complete",
+        LOCKED: "Locked"
+      };
+
+      const nextText = {
+        BUILDING:
+          "Save the proposal when the family configuration is ready.",
+
+        DRAFT:
+          "Review the family configuration, then submit this proposal for review.",
+
+        REVIEW:
+          "Review the proposal and approve it when the family offer is ready.",
+
+        READY_FOR_CHECKOUT:
+          "Begin checkout for this approved proposal.",
+
+        CHECKOUT_CREATED:
+          "Checkout has been created. Complete the payment step.",
+
+        PAYMENT_PENDING:
+          "Payment is pending. No additional proposal action is needed yet.",
+
+        PAID:
+          "Payment is complete. Continue to Enrollment.",
+
+        LOCKED:
+          "This proposal is locked and no longer editable."
+      };
+
+      if (el.proposalWorkflowStage) {
+        el.proposalWorkflowStage.textContent =
+          stageLabels[normalized] ||
+          normalized;
+      }
+
+      if (el.proposalWorkflowId) {
+        el.proposalWorkflowId.textContent =
+          proposalId || "";
+      }
+
+      if (el.proposalWorkflowNext) {
+        el.proposalWorkflowNext.textContent =
+          nextText[normalized] ||
+          "Continue with the next proposal step.";
+      }
+
+      if (el.proposalWorkflowSteps) {
+        el.proposalWorkflowSteps.innerHTML =
+          steps
+            .map((step, index) => {
+              const complete =
+                index < stageIndex;
+
+              const current =
+                index === stageIndex;
+
+              const symbol =
+                complete
+                  ? "✓"
+                  : current
+                    ? "→"
+                    : "○";
+
+              const className =
+                current
+                  ? "is-current"
+                  : complete
+                    ? "is-complete"
+                    : "";
+
+              return `
+                <span class="${className}">
+                  ${symbol} ${step}
+                </span>
+              `;
+            })
+            .join("");
+      }
+
+      const showQueueRoute =
+        normalized === "REVIEW" ||
+        normalized === "READY_FOR_CHECKOUT" ||
+        normalized === "CHECKOUT_CREATED" ||
+        normalized === "PAYMENT_PENDING" ||
+        normalized === "PAID" ||
+        normalized === "LOCKED";
+
+      if (el.proposalWorkflowRoute) {
+        el.proposalWorkflowRoute.hidden =
+          !showQueueRoute;
+      }
+
+      if (el.proposalWorkflowRouteLink) {
+        el.proposalWorkflowRouteLink.href =
+          "/connect/proposals/";
+      }
+
+      if (normalized === "BUILDING") {
+        el.saveDraftButton.hidden = false;
+        el.submitReviewButton.hidden = false;
+        el.approveProposalButton.hidden = true;
+        el.checkoutProposalButton.hidden = true;
+        el.resetButton.hidden = false;
+      }
+
+      if (normalized === "DRAFT") {
+        el.saveDraftButton.hidden = false;
+        el.submitReviewButton.hidden = false;
+        el.approveProposalButton.hidden = true;
+        el.checkoutProposalButton.hidden = true;
+        el.resetButton.hidden = false;
+      }
+
+      if (normalized === "REVIEW") {
+        el.saveDraftButton.hidden = true;
+        el.submitReviewButton.hidden = true;
+        el.approveProposalButton.hidden = false;
+        el.checkoutProposalButton.hidden = true;
+        el.resetButton.hidden = true;
+      }
+
+      if (normalized === "READY_FOR_CHECKOUT") {
+        el.saveDraftButton.hidden = true;
+        el.submitReviewButton.hidden = true;
+        el.approveProposalButton.hidden = true;
+        el.checkoutProposalButton.hidden = false;
+        el.resetButton.hidden = true;
+      }
+
+      if (
+        normalized === "CHECKOUT_CREATED" ||
+        normalized === "PAYMENT_PENDING" ||
+        normalized === "PAID" ||
+        normalized === "LOCKED"
+      ) {
+        el.saveDraftButton.hidden = true;
+        el.submitReviewButton.hidden = true;
+        el.approveProposalButton.hidden = true;
+        el.checkoutProposalButton.hidden = true;
+        el.resetButton.hidden = true;
       }
     }
 
@@ -1353,6 +1586,10 @@ async function beginProposalCheckout() {
         String(
           proposal.status || "DRAFT"
         ).toUpperCase();
+
+      renderProposalWorkflow(
+        proposalStatus
+      );
 
       if (proposalStatus === "DRAFT") {
         el.saveDraftButton.disabled = false;
@@ -1509,6 +1746,10 @@ async function beginProposalCheckout() {
       });
 
       calculate();
+
+      renderProposalWorkflow(
+        "BUILDING"
+      );
 
       console.log(
         "Prospect Builder prefilled from appointment:",
@@ -2005,4 +2246,8 @@ async function beginProposalCheckout() {
       addAthlete({
         disciplines: ["wrestling"]
       });
+
+      renderProposalWorkflow(
+        "BUILDING"
+      );
     }

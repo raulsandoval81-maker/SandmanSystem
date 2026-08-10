@@ -8,6 +8,10 @@ import {
   getFirestore,
 } from "firebase-admin/firestore";
 
+import {
+  requireProposalStaffAccess,
+} from "./proposalAccess";
+
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -19,17 +23,6 @@ function nullableString(
   return cleaned || null;
 }
 
-function hasCoachAccess(
-  token: Record<string, unknown>
-): boolean {
-  return (
-    token.admin === true ||
-    token.coach === true ||
-    token.role === "admin" ||
-    token.role === "coach"
-  );
-}
-
 export const submitProposalForReview =
   onCall(async (req) => {
     if (!req.auth) {
@@ -39,15 +32,10 @@ export const submitProposalForReview =
       );
     }
 
-    const token =
-      req.auth.token as Record<string, unknown>;
-
-    if (!hasCoachAccess(token)) {
-      throw new HttpsError(
-        "permission-denied",
-        "Coach or administrator access is required."
+    const staffAccess =
+      await requireProposalStaffAccess(
+        req.auth.uid
       );
-    }
 
     const proposalId =
       cleanString(req.data?.proposalId);
@@ -65,7 +53,7 @@ export const submitProposalForReview =
     const coachName =
       nullableString(
         req.data?.coachName ||
-        token.name
+        staffAccess.fullName
       );
 
     const db =

@@ -4,14 +4,9 @@ exports.createProposalCheckout = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const stripeClient_1 = require("../billing/stripeClient");
+const proposalAccess_1 = require("./proposalAccess");
 function cleanString(value) {
     return String(value ?? "").trim();
-}
-function hasCoachAccess(token) {
-    return (token.admin === true ||
-        token.coach === true ||
-        token.role === "admin" ||
-        token.role === "coach");
 }
 function toCents(value) {
     const dollars = Number(value);
@@ -28,10 +23,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         throw new https_1.HttpsError("unauthenticated", "You must be signed in to create proposal checkout.");
     }
     const actorUid = req.auth.uid;
-    const token = req.auth.token;
-    if (!hasCoachAccess(token)) {
-        throw new https_1.HttpsError("permission-denied", "Coach or administrator access is required.");
-    }
+    await (0, proposalAccess_1.requireProposalStaffAccess)(req.auth.uid);
     const proposalId = cleanString(req.data?.proposalId);
     if (!proposalId) {
         throw new https_1.HttpsError("invalid-argument", "proposalId is required.");

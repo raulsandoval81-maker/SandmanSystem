@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateProposalDraft = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const proposalAccess_1 = require("./proposalAccess");
 function cleanString(value) {
     return String(value ?? "").trim();
 }
@@ -13,20 +14,11 @@ function nullableString(value) {
     const cleaned = cleanString(value);
     return cleaned || null;
 }
-function hasCoachAccess(token) {
-    return (token.admin === true ||
-        token.coach === true ||
-        token.role === "admin" ||
-        token.role === "coach");
-}
 exports.updateProposalDraft = (0, https_1.onCall)(async (req) => {
     if (!req.auth) {
         throw new https_1.HttpsError("unauthenticated", "You must be signed in to update a proposal.");
     }
-    const token = req.auth.token;
-    if (!hasCoachAccess(token)) {
-        throw new https_1.HttpsError("permission-denied", "Coach or administrator access is required.");
-    }
+    const staffAccess = await (0, proposalAccess_1.requireProposalStaffAccess)(req.auth.uid);
     const data = req.data || {};
     const proposalId = cleanString(data.proposalId);
     if (!proposalId) {
@@ -44,7 +36,7 @@ exports.updateProposalDraft = (0, https_1.onCall)(async (req) => {
         ? data.agreement
         : {};
     const coachName = nullableString(data.coach?.name ||
-        token.name);
+        staffAccess.fullName);
     const callerUid = req.auth.uid;
     const db = (0, firestore_1.getFirestore)();
     const proposalRef = db

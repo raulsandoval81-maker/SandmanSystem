@@ -12,6 +12,10 @@ import {
   ProposalDraft,
 } from "./proposalTypes";
 
+import {
+  requireProposalStaffAccess,
+} from "./proposalAccess";
+
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -31,17 +35,6 @@ function pad6(value: number): string {
   return String(value).padStart(6, "0");
 }
 
-function hasCoachAccess(
-  token: Record<string, unknown>
-): boolean {
-  return (
-    token.admin === true ||
-    token.coach === true ||
-    token.role === "admin" ||
-    token.role === "coach"
-  );
-}
-
 export const createProposalDraft =
   onCall(async (req) => {
     if (!req.auth) {
@@ -51,15 +44,10 @@ export const createProposalDraft =
       );
     }
 
-    const token =
-      req.auth.token as Record<string, unknown>;
-
-    if (!hasCoachAccess(token)) {
-      throw new HttpsError(
-        "permission-denied",
-        "Coach or administrator access is required."
+    const staffAccess =
+      await requireProposalStaffAccess(
+        req.auth.uid
       );
-    }
 
     const data = req.data || {};
 
@@ -105,7 +93,7 @@ export const createProposalDraft =
     const coachName =
       nullableString(
         data.coach?.name ||
-        token.name
+        staffAccess.fullName
       );
 
     const athletes =

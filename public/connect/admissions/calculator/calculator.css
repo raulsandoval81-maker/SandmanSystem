@@ -916,3 +916,123 @@
     text-decoration:none !important;
   }
 }
+
+/* ==================================================
+   PROPOSAL WORKFLOW GUIDANCE
+   ================================================== */
+
+.proposal-workflow {
+  margin: 24px 0 18px;
+  padding: 20px;
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 16px;
+  background: rgba(255,255,255,.045);
+}
+
+.proposal-workflow__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.proposal-workflow__eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  font-size: .72rem;
+  font-weight: 800;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  opacity: .62;
+}
+
+.proposal-workflow h3 {
+  margin: 0;
+  font-size: 1.35rem;
+  line-height: 1.15;
+}
+
+.proposal-workflow__id {
+  font-size: .82rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  opacity: .72;
+}
+
+.proposal-workflow__steps {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.proposal-workflow__steps span {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  padding: 9px 11px;
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 10px;
+  font-size: .78rem;
+  font-weight: 700;
+  opacity: .48;
+}
+
+.proposal-workflow__steps span.is-complete {
+  opacity: .76;
+}
+
+.proposal-workflow__steps span.is-current {
+  border-color: rgba(255,255,255,.42);
+  background: rgba(255,255,255,.09);
+  opacity: 1;
+}
+
+.proposal-workflow__next {
+  padding: 15px 16px;
+  border-left: 3px solid currentColor;
+  background: rgba(255,255,255,.04);
+}
+
+.proposal-workflow__next p {
+  margin: 0;
+  font-size: .95rem;
+  line-height: 1.5;
+}
+
+.proposal-workflow__route {
+  margin-top: 14px;
+}
+
+.proposal-workflow__route[hidden] {
+  display: none !important;
+}
+
+@media (max-width: 720px) {
+  .proposal-workflow {
+    padding: 16px;
+  }
+
+  .proposal-workflow__top {
+    display: block;
+  }
+
+  .proposal-workflow__id {
+    display: block;
+    margin-top: 8px;
+  }
+
+  .proposal-workflow__steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Make state-controlled hidden actions stay hidden. */
+
+.actions button[hidden],
+.actions a[hidden] {
+  display: none !important;
+}
+

@@ -2,14 +2,27 @@ import {
   auth,
   db,
   doc,
-  getDoc
+  getDoc,
+  collection,
+  getDocs
 } from "/assets/js/firebase-init.js";
+
+/* ==================================================
+   Route Context
+   ================================================== */
 
 const params =
   new URLSearchParams(window.location.search);
 
 const appointmentId =
   params.get("appointmentId") || "";
+
+let proposalId =
+  params.get("proposalId") || "";
+  
+/* ==================================================
+   Existing Appointment Context Elements
+   ================================================== */
 
 const appointmentContext =
   document.getElementById(
@@ -30,7 +43,11 @@ const openProspectBuilderBtn =
   document.getElementById(
     "openProspectBuilderBtn"
   );
-  
+
+/* ==================================================
+   General Helpers
+   ================================================== */
+
 function esc(value = "") {
   return String(value)
     .replaceAll("&", "&amp;")
@@ -41,12 +58,104 @@ function esc(value = "") {
 }
 
 function displayValue(value) {
-  return value === undefined ||
+  return (
+    value === undefined ||
     value === null ||
     value === ""
+  )
     ? "—"
     : value;
 }
+
+function money(value) {
+  const amount =
+    Number(value || 0);
+
+  return new Intl.NumberFormat(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0
+    }
+  ).format(
+    Number.isFinite(amount)
+      ? amount
+      : 0
+  );
+}
+
+function timestampToMillis(value) {
+  if (!value) {
+    return 0;
+  }
+
+  if (
+    typeof value.toMillis ===
+    "function"
+  ) {
+    return value.toMillis();
+  }
+
+  if (
+    typeof value.toDate ===
+    "function"
+  ) {
+    return value
+      .toDate()
+      .getTime();
+  }
+
+  const date =
+    new Date(value);
+
+  return Number.isFinite(
+    date.getTime()
+  )
+    ? date.getTime()
+    : 0;
+}
+
+function formatTimestamp(value) {
+  const millis =
+    timestampToMillis(value);
+
+  if (!millis) {
+    return "—";
+  }
+
+  return new Date(
+    millis
+  ).toLocaleString(
+    [],
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit"
+    }
+  );
+}
+
+function formatDate(value = "") {
+  if (!value) {
+    return "—";
+  }
+
+  const date =
+    new Date(`${value}T12:00:00`);
+
+  return Number.isFinite(
+    date.getTime()
+  )
+    ? date.toLocaleDateString()
+    : value;
+}
+
+/* ==================================================
+   Labels
+   ================================================== */
 
 function labelForLocation(value = "") {
   const labels = {
@@ -60,7 +169,11 @@ function labelForLocation(value = "") {
       "Either Location"
   };
 
-  return labels[value] || value || "—";
+  return (
+    labels[value] ||
+    value ||
+    "—"
+  );
 }
 
 function labelForProgram(value = "") {
@@ -93,7 +206,11 @@ function labelForProgram(value = "") {
       "Everyday Fitness"
   };
 
-  return labels[value] || value || "—";
+  return (
+    labels[value] ||
+    value ||
+    "—"
+  );
 }
 
 function labelForJourney(value = "") {
@@ -107,11 +224,18 @@ function labelForJourney(value = "") {
     quest2mastery:
       "Quest2Mastery",
 
+    fitness:
+      "Everyday Fitness",
+
     "everyday-fitness":
       "Everyday Fitness"
   };
 
-  return labels[value] || value || "—";
+  return (
+    labels[value] ||
+    value ||
+    "—"
+  );
 }
 
 function labelForPrimaryGoal(value = "") {
@@ -150,7 +274,11 @@ function labelForPrimaryGoal(value = "") {
       "Weight Loss"
   };
 
-  return labels[value] || value || "—";
+  return (
+    labels[value] ||
+    value ||
+    "—"
+  );
 }
 
 function labelForStartingPath(value = "") {
@@ -162,25 +290,879 @@ function labelForStartingPath(value = "") {
       "Placement Assessment"
   };
 
-  return labels[value] || value || "—";
+  return (
+    labels[value] ||
+    value ||
+    "—"
+  );
 }
 
-function formatDate(value = "") {
-  if (!value) {
-    return "—";
+function labelForStatus(value = "") {
+  const labels = {
+    DRAFT:
+      "Draft",
+
+    REVIEW:
+      "Needs Review",
+
+    APPROVED:
+      "Approved",
+
+    LOCKED:
+      "Locked",
+
+    READY_FOR_CHECKOUT:
+      "Checkout Ready",
+
+    CHECKOUT_CREATED:
+      "Checkout Created",
+
+    PAYMENT_PENDING:
+      "Payment Pending",
+
+    PAID:
+      "Paid",
+
+    VOID:
+      "Void"
+  };
+
+  return (
+    labels[value] ||
+    value ||
+    "Unknown"
+  );
+}
+
+/* ==================================================
+   Authentication
+   ================================================== */
+
+async function requireStaffUser() {
+  if (
+    typeof auth.authStateReady ===
+    "function"
+  ) {
+    await auth.authStateReady();
   }
 
-  const date =
-    new Date(`${value}T12:00:00`);
+  const user =
+    auth.currentUser;
 
-  return Number.isFinite(
-    date.getTime()
-  )
-    ? date.toLocaleDateString()
-    : value;
+  if (!user) {
+    const returnUrl =
+      window.location.pathname +
+      window.location.search;
+
+    window.location.replace(
+      "/management/auth/?returnUrl=" +
+      encodeURIComponent(
+        returnUrl
+      )
+    );
+
+    return null;
+  }
+
+  return user;
 }
 
-function buildTalkingPoints(appointment) {
+/* ==================================================
+   Proposal Queue DOM
+   ================================================== */
+
+function ensureProposalQueue() {
+  let queue =
+    document.getElementById(
+      "proposalQueue"
+    );
+
+  if (queue) {
+    return queue;
+  }
+
+  queue =
+    document.createElement(
+      "section"
+    );
+
+  queue.id =
+    "proposalQueue";
+
+  queue.className =
+    "proposal-queue";
+
+  const existingContext =
+    appointmentContext;
+
+  if (
+    existingContext &&
+    existingContext.parentNode
+  ) {
+    existingContext.parentNode.insertBefore(
+      queue,
+      existingContext
+    );
+  } else {
+    const main =
+      document.querySelector("main") ||
+      document.querySelector(".page") ||
+      document.body;
+
+    main.appendChild(
+      queue
+    );
+  }
+
+  return queue;
+}
+
+function proposalQueueStyles() {
+  if (
+    document.getElementById(
+      "proposalQueueStyles"
+    )
+  ) {
+    return;
+  }
+
+  const style =
+    document.createElement(
+      "style"
+    );
+
+  style.id =
+    "proposalQueueStyles";
+
+  style.textContent = `
+    .proposal-queue{
+      display:grid;
+      gap:24px;
+      margin-top:24px;
+    }
+
+    .proposal-queue-header{
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .proposal-queue-header h2{
+      margin:0;
+    }
+
+    .proposal-queue-header p{
+      margin:6px 0 0;
+      opacity:.75;
+      line-height:1.5;
+    }
+
+    .proposal-queue-counts{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+
+    .proposal-count{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      min-height:34px;
+      padding:7px 10px;
+      border:1px solid rgba(255,255,255,.16);
+      border-radius:999px;
+      font-size:.82rem;
+      font-weight:700;
+    }
+
+    .proposal-group{
+      display:grid;
+      gap:12px;
+    }
+
+    .proposal-group-head{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:end;
+      border-bottom:1px solid rgba(255,255,255,.12);
+      padding-bottom:8px;
+    }
+
+    .proposal-group-head h3{
+      margin:0;
+      font-size:1.05rem;
+    }
+
+    .proposal-group-head span{
+      opacity:.65;
+      font-size:.82rem;
+    }
+
+    .proposal-list{
+      display:grid;
+      gap:12px;
+    }
+
+    .proposal-card{
+      display:grid;
+      gap:14px;
+      padding:18px;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:16px;
+      background:rgba(255,255,255,.035);
+    }
+
+    .proposal-card-top{
+      display:flex;
+      justify-content:space-between;
+      gap:14px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .proposal-card-id{
+      display:block;
+      margin-bottom:4px;
+      opacity:.65;
+      font-size:.74rem;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .proposal-card h4{
+      margin:0;
+      font-size:1.15rem;
+    }
+
+    .proposal-status{
+      display:inline-flex;
+      align-items:center;
+      min-height:30px;
+      padding:6px 9px;
+      border:1px solid currentColor;
+      border-radius:999px;
+      font-size:.75rem;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .proposal-card-grid{
+      display:grid;
+      grid-template-columns:
+        repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .proposal-card-grid div{
+      min-width:0;
+    }
+
+    .proposal-card-grid small{
+      display:block;
+      margin-bottom:3px;
+      opacity:.6;
+      font-size:.7rem;
+      font-weight:800;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .proposal-card-grid strong{
+      display:block;
+      line-height:1.35;
+      overflow-wrap:anywhere;
+    }
+
+    .proposal-athletes{
+      display:grid;
+      gap:5px;
+      font-size:.88rem;
+      line-height:1.4;
+    }
+
+    .proposal-card-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .proposal-open-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:9px 14px;
+      border-radius:9px;
+      background:#d4ad37;
+      color:#111;
+      font-weight:850;
+      text-decoration:none;
+    }
+
+    .proposal-empty{
+      padding:16px;
+      border:1px dashed rgba(255,255,255,.16);
+      border-radius:14px;
+      opacity:.7;
+    }
+
+    .proposal-error{
+      padding:16px;
+      border:1px solid rgba(224,143,143,.45);
+      border-radius:14px;
+    }
+
+    @media(max-width:800px){
+      .proposal-card-grid{
+        grid-template-columns:
+          repeat(2,minmax(0,1fr));
+      }
+    }
+
+    @media(max-width:520px){
+      .proposal-card-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  `;
+
+  document.head.appendChild(
+    style
+  );
+}
+
+/* ==================================================
+   Proposal Data Helpers
+   ================================================== */
+
+function getFamilyName(proposal) {
+  return (
+    proposal.prospect?.familyName ||
+    proposal.prospect?.primaryContactName ||
+    "Unnamed Family"
+  );
+}
+
+function getCoachName(proposal) {
+  return (
+    proposal.coach?.name ||
+    "—"
+  );
+}
+
+function getMonthlyBalance(proposal) {
+  const pricing =
+    proposal.pricing || {};
+
+  return Number(
+    pricing.monthlyBalance ??
+    pricing.monthlyTotal ??
+    pricing.monthly ??
+    0
+  );
+}
+
+function getDueNow(proposal) {
+  const pricing =
+    proposal.pricing || {};
+
+  return Number(
+    pricing.dueNow ??
+    pricing.enrollmentBalance ??
+    pricing.enrollmentTotal ??
+    0
+  );
+}
+
+function athleteSummaryHtml(
+  proposal
+) {
+  const athletes =
+    Array.isArray(
+      proposal.athletes
+    )
+      ? proposal.athletes
+      : [];
+
+  if (!athletes.length) {
+    return `
+      <span>
+        No athletes attached
+      </span>
+    `;
+  }
+
+  return athletes
+    .map((athlete) => {
+      const name =
+        athlete.name ||
+        "Athlete";
+
+      const journey =
+        labelForJourney(
+          athlete.journey
+        );
+
+      const planLabels = {
+        standard:
+          "Combat",
+
+        combo:
+          "Combat + Fitness",
+
+        fitness:
+          "Everyday Fitness"
+      };
+
+      const plan =
+        planLabels[
+          athlete.plan
+        ] ||
+        athlete.plan ||
+        "Membership";
+
+      return `
+        <span>
+          <strong>${esc(name)}</strong>
+          ·
+          ${esc(journey)}
+          ·
+          ${esc(plan)}
+        </span>
+      `;
+    })
+    .join("");
+}
+
+function actionLabel(
+  status
+) {
+  switch (status) {
+    case "REVIEW":
+      return "Review Proposal";
+
+    case "DRAFT":
+      return "Continue Draft";
+
+    case "READY_FOR_CHECKOUT":
+      return "Open Checkout-Ready Proposal";
+
+    case "APPROVED":
+      return "Open Approved Proposal";
+
+    case "LOCKED":
+      return "Open Locked Proposal";
+
+    case "PAID":
+      return "View Paid Proposal";
+
+    default:
+      return "Open Proposal";
+  }
+}
+
+function proposalCardHtml(
+  proposal
+) {
+  const id =
+    proposal.proposalId ||
+    proposal.id;
+
+  const status =
+    proposal.status ||
+    "UNKNOWN";
+
+  const familyName =
+    getFamilyName(
+      proposal
+    );
+
+  const coachName =
+    getCoachName(
+      proposal
+    );
+
+  const monthly =
+    getMonthlyBalance(
+      proposal
+    );
+
+  const dueNow =
+    getDueNow(
+      proposal
+    );
+
+  const updated =
+    proposal.updatedAt ||
+    proposal.createdAt;
+
+  const href =
+    "/connect/admissions/calculator/" +
+    `?proposalId=${encodeURIComponent(
+      id
+    )}`;
+
+  return `
+    <article
+      class="proposal-card"
+      data-proposal-id="${esc(id)}"
+      data-status="${esc(status)}"
+    >
+      <div class="proposal-card-top">
+        <div>
+          <span class="proposal-card-id">
+            ${esc(id)}
+          </span>
+
+          <h4>
+            ${esc(familyName)}
+          </h4>
+        </div>
+
+        <span class="proposal-status">
+          ${esc(
+            labelForStatus(
+              status
+            )
+          )}
+        </span>
+      </div>
+
+      <div class="proposal-athletes">
+        ${athleteSummaryHtml(
+          proposal
+        )}
+      </div>
+
+      <div class="proposal-card-grid">
+        <div>
+          <small>
+            Monthly
+          </small>
+
+          <strong>
+            ${money(monthly)}
+          </strong>
+        </div>
+
+        <div>
+          <small>
+            Due at Enrollment
+          </small>
+
+          <strong>
+            ${money(dueNow)}
+          </strong>
+        </div>
+
+        <div>
+          <small>
+            Coach
+          </small>
+
+          <strong>
+            ${esc(coachName)}
+          </strong>
+        </div>
+
+        <div>
+          <small>
+            Last Updated
+          </small>
+
+          <strong>
+            ${esc(
+              formatTimestamp(
+                updated
+              )
+            )}
+          </strong>
+        </div>
+      </div>
+
+      <div class="proposal-card-actions">
+        <a
+          class="proposal-open-btn"
+          href="${href}"
+        >
+          ${esc(
+            actionLabel(
+              status
+            )
+          )}
+        </a>
+      </div>
+    </article>
+  `;
+}
+
+/* ==================================================
+   Proposal Queue Grouping
+   ================================================== */
+
+const proposalGroups = [
+  {
+    key:
+      "REVIEW",
+
+    title:
+      "Needs Review",
+
+    description:
+      "Submitted proposals awaiting review and approval."
+  },
+
+  {
+    key:
+      "DRAFT",
+
+    title:
+      "Drafts",
+
+    description:
+      "Working proposals that have not yet been submitted."
+  },
+
+  {
+    key:
+      "READY_FOR_CHECKOUT",
+
+    title:
+      "Checkout Ready",
+
+    description:
+      "Approved proposals ready for the payment and enrollment handoff."
+  },
+
+  {
+    key:
+      "OTHER",
+
+    title:
+      "Other / Completed",
+
+    description:
+      "Approved, paid, locked, void, or other proposal states."
+  }
+];
+
+function proposalGroupKey(
+  proposal
+) {
+  const status =
+    proposal.status || "";
+
+  if (
+    status === "REVIEW" ||
+    status === "DRAFT" ||
+    status ===
+      "READY_FOR_CHECKOUT"
+  ) {
+    return status;
+  }
+
+  return "OTHER";
+}
+
+/* ==================================================
+   Load Proposal Queue
+   ================================================== */
+
+async function loadProposalQueue() {
+  proposalQueueStyles();
+
+  const queue =
+    ensureProposalQueue();
+
+  queue.innerHTML = `
+    <div class="proposal-queue-header">
+      <div>
+        <h2>
+          Proposal Queue
+        </h2>
+
+        <p>
+          Review drafts, submitted proposals,
+          approvals, and checkout-ready offers.
+        </p>
+      </div>
+
+      <div
+        id="proposalQueueCounts"
+        class="proposal-queue-counts"
+      >
+        Loading…
+      </div>
+    </div>
+
+    <div id="proposalQueueBody">
+      Loading proposals…
+    </div>
+  `;
+
+  if (appointmentContext) {
+    appointmentContext.hidden =
+      true;
+  }
+
+  const snapshot =
+    await getDocs(
+      collection(
+        db,
+        "proposals"
+      )
+    );
+
+  const proposals =
+    snapshot.docs
+      .map((snapshotDoc) => ({
+        id:
+          snapshotDoc.id,
+
+        ...snapshotDoc.data()
+      }))
+      .sort(
+        (a, b) =>
+          timestampToMillis(
+            b.updatedAt ||
+            b.createdAt
+          ) -
+          timestampToMillis(
+            a.updatedAt ||
+            a.createdAt
+          )
+      );
+
+  const counts =
+    {
+      REVIEW: 0,
+      DRAFT: 0,
+      READY_FOR_CHECKOUT: 0,
+      OTHER: 0
+    };
+
+  proposals.forEach(
+    (proposal) => {
+      counts[
+        proposalGroupKey(
+          proposal
+        )
+      ] += 1;
+    }
+  );
+
+  const countsEl =
+    document.getElementById(
+      "proposalQueueCounts"
+    );
+
+  if (countsEl) {
+    countsEl.innerHTML = `
+      <span class="proposal-count">
+        ${proposals.length}
+        Total
+      </span>
+
+      <span class="proposal-count">
+        ${counts.REVIEW}
+        Review
+      </span>
+
+      <span class="proposal-count">
+        ${counts.DRAFT}
+        Draft
+      </span>
+
+      <span class="proposal-count">
+        ${counts.READY_FOR_CHECKOUT}
+        Checkout Ready
+      </span>
+    `;
+  }
+
+  const body =
+    document.getElementById(
+      "proposalQueueBody"
+    );
+
+  if (!body) {
+    return;
+  }
+
+  if (!proposals.length) {
+    body.innerHTML = `
+      <div class="proposal-empty">
+        No proposals have been created yet.
+      </div>
+    `;
+
+    return;
+  }
+
+  body.innerHTML =
+    proposalGroups
+      .map((group) => {
+        const records =
+          proposals.filter(
+            (proposal) =>
+              proposalGroupKey(
+                proposal
+              ) === group.key
+          );
+
+        return `
+          <section class="proposal-group">
+            <div class="proposal-group-head">
+              <div>
+                <h3>
+                  ${esc(group.title)}
+                </h3>
+
+                <span>
+                  ${esc(
+                    group.description
+                  )}
+                </span>
+              </div>
+
+              <strong>
+                ${records.length}
+              </strong>
+            </div>
+
+            <div class="proposal-list">
+              ${
+                records.length
+                  ? records
+                      .map(
+                        proposalCardHtml
+                      )
+                      .join("")
+                  : `
+                    <div class="proposal-empty">
+                      No proposals in this stage.
+                    </div>
+                  `
+              }
+            </div>
+          </section>
+        `;
+      })
+      .join("");
+}
+
+/* ==================================================
+   Appointment Handoff
+   ================================================== */
+
+function buildTalkingPoints(
+  appointment
+) {
   const athleteName =
     appointment.athleteName ||
     appointment.participantName ||
@@ -211,14 +1193,13 @@ function buildTalkingPoints(appointment) {
       appointment.admissionsPath
     );
 
-
   const coachAssessment =
     appointment.coachAssessment ||
     "No coach assessment has been recorded yet.";
 
   const nextStep =
     appointment.enrollmentDecision ===
-    "ready-to-enroll"
+      "ready-to-enroll"
       ? "Work through program and billing options, select the best fit, and finalize the proposal."
       : appointment.enrollmentDecision ===
         "follow-up"
@@ -235,7 +1216,10 @@ function buildTalkingPoints(appointment) {
       </h3>
 
       <p>
-        <strong>Why they came in:</strong>
+        <strong>
+          Why they came in:
+        </strong>
+
         ${esc(
           primaryGoal !== "—"
             ? primaryGoal
@@ -244,83 +1228,94 @@ function buildTalkingPoints(appointment) {
       </p>
 
       <p>
-        <strong>Current interest:</strong>
-        ${esc(programInterest)}
+        <strong>
+          Current interest:
+        </strong>
+
+        ${esc(
+          programInterest
+        )}
       </p>
 
       <p>
-        <strong>Coach recommendation:</strong>
-        ${esc(recommendedJourney)}
+        <strong>
+          Coach recommendation:
+        </strong>
+
+        ${esc(
+          recommendedJourney
+        )}
         ·
-        ${esc(recommendedDiscipline)}
+        ${esc(
+          recommendedDiscipline
+        )}
       </p>
 
       <p>
-        <strong>Starting path:</strong>
-        ${esc(startingPath)}
+        <strong>
+          Starting path:
+        </strong>
+
+        ${esc(
+          startingPath
+        )}
       </p>
 
       <p>
-        <strong>Coach observation:</strong>
-        ${esc(coachAssessment)}
+        <strong>
+          Coach observation:
+        </strong>
+
+        ${esc(
+          coachAssessment
+        )}
       </p>
 
       <p>
-        <strong>Conversation focus:</strong>
-        Help ${esc(athleteName)} and the family compare
-        the available options and identify the best fit.
+        <strong>
+          Conversation focus:
+        </strong>
+
+        Help ${esc(
+          athleteName
+        )} and the family compare
+        the available options and
+        identify the best fit.
       </p>
 
       <p>
-        <strong>Recommended next step:</strong>
-        ${esc(nextStep)}
+        <strong>
+          Recommended next step:
+        </strong>
+
+        ${esc(
+          nextStep
+        )}
       </p>
     </div>
   `;
 }
 
-async function requireStaffUser() {
-  if (
-    typeof auth.authStateReady ===
-    "function"
-  ) {
-    await auth.authStateReady();
-  }
-
-  const user =
-    auth.currentUser;
-
-  if (!user) {
-    const returnUrl =
-      window.location.pathname +
-      window.location.search;
-
-    window.location.replace(
-      "/management/auth/?returnUrl=" +
-      encodeURIComponent(returnUrl)
-    );
-
-    return null;
-  }
-
-  return user;
-}
-
 async function loadAppointmentContext() {
   if (!appointmentId) {
-    if (appointmentContextStatus) {
-      appointmentContextStatus.textContent =
-        "No appointment was handed into this proposal.";
-    }
-
-    if (appointmentContext) {
-      appointmentContext.hidden = false;
-    }
-
     return;
   }
 
-  if (openProspectBuilderBtn) {
+  const queue =
+    document.getElementById(
+      "proposalQueue"
+    );
+
+  if (queue) {
+    queue.hidden =
+      true;
+  }
+
+  if (
+    openProspectBuilderBtn
+  ) {
+    openProspectBuilderBtn.hidden = false;
+
     openProspectBuilderBtn.href =
       "/connect/admissions/calculator/" +
       `?appointmentId=${encodeURIComponent(
@@ -357,7 +1352,7 @@ async function loadAppointmentContext() {
 
   const parentName =
     appointment.registrantRole ===
-    "adult-athlete"
+      "adult-athlete"
       ? "Adult athlete"
       : appointment.parentName ||
         "—";
@@ -427,7 +1422,9 @@ async function loadAppointmentContext() {
       ).trim()
     );
 
-  if (appointmentContextDetails) {
+  if (
+    appointmentContextDetails
+  ) {
     appointmentContextDetails.innerHTML = `
       <div>
         <h3>
@@ -435,17 +1432,30 @@ async function loadAppointmentContext() {
         </h3>
 
         <p>
-          <strong>Athlete:</strong>
-          ${esc(athleteName)}
+          <strong>
+            Athlete:
+          </strong>
+
+          ${esc(
+            athleteName
+          )}
         </p>
 
         <p>
-          <strong>Parent / Guardian:</strong>
-          ${esc(parentName)}
+          <strong>
+            Parent / Guardian:
+          </strong>
+
+          ${esc(
+            parentName
+          )}
         </p>
 
         <p>
-          <strong>Age:</strong>
+          <strong>
+            Age:
+          </strong>
+
           ${esc(
             displayValue(
               appointment.athleteAge
@@ -454,7 +1464,10 @@ async function loadAppointmentContext() {
         </p>
 
         <p>
-          <strong>Phone:</strong>
+          <strong>
+            Phone:
+          </strong>
+
           ${esc(
             displayValue(
               appointment.phone
@@ -463,7 +1476,10 @@ async function loadAppointmentContext() {
         </p>
 
         <p>
-          <strong>Email:</strong>
+          <strong>
+            Email:
+          </strong>
+
           ${esc(
             displayValue(
               appointment.email
@@ -472,7 +1488,10 @@ async function loadAppointmentContext() {
         </p>
 
         <p>
-          <strong>Athlete T-Shirt Size:</strong>
+          <strong>
+            Athlete T-Shirt Size:
+          </strong>
+
           ${esc(
             displayValue(
               appointment.shirtSize
@@ -487,33 +1506,63 @@ async function loadAppointmentContext() {
         </h3>
 
         <p>
-          <strong>Program Interest:</strong>
-          ${esc(programInterest)}
+          <strong>
+            Program Interest:
+          </strong>
+
+          ${esc(
+            programInterest
+          )}
         </p>
 
         <p>
-          <strong>Primary Goal:</strong>
-          ${esc(primaryGoal)}
+          <strong>
+            Primary Goal:
+          </strong>
+
+          ${esc(
+            primaryGoal
+          )}
         </p>
 
         <p>
-          <strong>Starting Path:</strong>
-          ${esc(startingPath)}
+          <strong>
+            Starting Path:
+          </strong>
+
+          ${esc(
+            startingPath
+          )}
         </p>
 
         <p>
-          <strong>Academy:</strong>
-          ${esc(appointmentLocation)}
+          <strong>
+            Academy:
+          </strong>
+
+          ${esc(
+            appointmentLocation
+          )}
         </p>
 
         <p>
-          <strong>Appointment Date:</strong>
-          ${esc(appointmentDate)}
+          <strong>
+            Appointment Date:
+          </strong>
+
+          ${esc(
+            appointmentDate
+          )}
         </p>
 
         <p>
-          <strong>Coach:</strong>
-          ${esc(coachName)}
+          <strong>
+            Coach:
+          </strong>
+
+          ${esc(
+            coachName
+          )}
         </p>
       </div>
 
@@ -523,32 +1572,60 @@ async function loadAppointmentContext() {
         </h3>
 
         <p>
-          <strong>Recommended Journey:</strong>
-          ${esc(recommendedJourney)}
+          <strong>
+            Recommended Journey:
+          </strong>
+
+          ${esc(
+            recommendedJourney
+          )}
         </p>
 
         <p>
-          <strong>Recommended Discipline:</strong>
-          ${esc(recommendedDiscipline)}
+          <strong>
+            Recommended Discipline:
+          </strong>
+
+          ${esc(
+            recommendedDiscipline
+          )}
         </p>
 
         <p>
-          <strong>Coach Assessment:</strong>
-          ${esc(coachAssessment)}
+          <strong>
+            Coach Assessment:
+          </strong>
+
+          ${esc(
+            coachAssessment
+          )}
         </p>
 
         <p>
-          <strong>Appointment Notes:</strong>
-          ${esc(appointmentNotes)}
+          <strong>
+            Appointment Notes:
+          </strong>
+
+          ${esc(
+            appointmentNotes
+          )}
         </p>
 
         <p>
-          <strong>Original Family Notes:</strong>
-          ${esc(leadNotes)}
+          <strong>
+            Original Family Notes:
+          </strong>
+
+          ${esc(
+            leadNotes
+          )}
         </p>
 
         <p>
-          <strong>Private Admissions Notes:</strong>
+          <strong>
+            Private Admissions Notes:
+          </strong>
+
           ${
             hasPrivateNotes
               ? "Available to authorized staff"
@@ -557,41 +1634,111 @@ async function loadAppointmentContext() {
         </p>
       </div>
 
-      ${buildTalkingPoints(appointment)}
+      ${buildTalkingPoints(
+        appointment
+      )}
     `;
   }
 
-  if (appointmentContextStatus) {
+  if (
+    appointmentContextStatus
+  ) {
     appointmentContextStatus.textContent =
       `Appointment handoff loaded: ${appointment.id}`;
   }
 
-  if (appointmentContext) {
-    appointmentContext.hidden = false;
+  if (
+    appointmentContext
+  ) {
+    appointmentContext.hidden =
+      false;
   }
 }
 
+/* ==================================================
+   Optional proposalId redirect
+   ================================================== */
+
+function redirectProposalId() {
+  if (
+    !proposalId
+  ) {
+    return false;
+  }
+
+  window.location.replace(
+    "/connect/admissions/calculator/" +
+    `?proposalId=${encodeURIComponent(
+      proposalId
+    )}`
+  );
+
+  return true;
+}
+
+/* ==================================================
+   Start
+   ================================================== */
 
 try {
   const user =
     await requireStaffUser();
 
-  if (user) {
+  if (!user) {
+    // Redirect already handled.
+  } else if (
+    redirectProposalId()
+  ) {
+    // Redirecting into Prospect Builder.
+  } else if (
+    appointmentId
+  ) {
     await loadAppointmentContext();
+  } else {
+    await loadProposalQueue();
   }
 } catch (error) {
   console.error(
-    "[proposals] appointment handoff failed:",
+    "[proposals] failed:",
     error
   );
 
-  if (appointmentContextStatus) {
-    appointmentContextStatus.textContent =
-      error?.message ||
-      "Unable to load appointment context.";
-  }
+  if (
+    appointmentId
+  ) {
+    if (
+      appointmentContextStatus
+    ) {
+      appointmentContextStatus.textContent =
+        error?.message ||
+        "Unable to load appointment context.";
+    }
 
-  if (appointmentContext) {
-    appointmentContext.hidden = false;
+    if (
+      appointmentContext
+    ) {
+      appointmentContext.hidden =
+        false;
+    }
+  } else {
+    proposalQueueStyles();
+
+    const queue =
+      ensureProposalQueue();
+
+    queue.innerHTML = `
+      <div class="proposal-error">
+        <strong>
+          Unable to load proposals.
+        </strong>
+
+        <p>
+          ${esc(
+            error?.message ||
+            "Proposal queue could not be loaded."
+          )}
+        </p>
+      </div>
+    `;
   }
 }

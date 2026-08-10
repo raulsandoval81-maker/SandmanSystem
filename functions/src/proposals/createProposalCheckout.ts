@@ -13,19 +13,12 @@ import {
   getStripe,
 } from "../billing/stripeClient";
 
+import {
+  requireProposalStaffAccess,
+} from "./proposalAccess";
+
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
-}
-
-function hasCoachAccess(
-  token: Record<string, unknown>
-): boolean {
-  return (
-    token.admin === true ||
-    token.coach === true ||
-    token.role === "admin" ||
-    token.role === "coach"
-  );
 }
 
 function toCents(value: unknown): number {
@@ -57,15 +50,9 @@ export const createProposalCheckout =
       const actorUid =
         req.auth.uid;
 
-      const token =
-        req.auth.token as Record<string, unknown>;
-
-      if (!hasCoachAccess(token)) {
-        throw new HttpsError(
-          "permission-denied",
-          "Coach or administrator access is required."
-        );
-      }
+      await requireProposalStaffAccess(
+        req.auth.uid
+      );
 
       const proposalId =
         cleanString(req.data?.proposalId);

@@ -223,7 +223,59 @@
     Print proposal
   </button>
 
-  <button
+  
+      <section
+        id="proposalWorkflow"
+        class="proposal-workflow"
+      >
+        <div class="proposal-workflow__top">
+          <div>
+            <span class="proposal-workflow__eyebrow">
+              Current Stage
+            </span>
+
+            <h3 id="proposalWorkflowStage">
+              Building Proposal
+            </h3>
+          </div>
+
+          <span
+            id="proposalWorkflowId"
+            class="proposal-workflow__id"
+          ></span>
+        </div>
+
+        <div
+          id="proposalWorkflowSteps"
+          class="proposal-workflow__steps"
+        ></div>
+
+        <div class="proposal-workflow__next">
+          <span class="proposal-workflow__eyebrow">
+            Next Step
+          </span>
+
+          <p id="proposalWorkflowNext">
+            Save the proposal when the family configuration is ready.
+          </p>
+        </div>
+
+        <div
+          id="proposalWorkflowRoute"
+          class="proposal-workflow__route"
+          hidden
+        >
+          <a
+            id="proposalWorkflowRouteLink"
+            class="button secondary"
+            href="/connect/proposals/"
+          >
+            Go to Proposal Queue
+          </a>
+        </div>
+      </section>
+
+<button
     id="saveDraftButton"
     class="button secondary"
     type="button"
@@ -304,6 +356,15 @@
       <div id="printAthleteSummary"></div>
     </section>
 
+    <section
+      id="printMembershipDetails"
+      class="print-membership-details"
+    >
+      <h2>Membership Details</h2>
+
+      <div id="printMembershipDetailContent"></div>
+    </section>
+
     <section class="print-financial-grid">
       <article>
         <span>Due at Enrollment</span>
@@ -334,15 +395,6 @@
         <strong id="printAnnualRenewal">$0</strong>
         <small>Annual renewal</small>
       </article>
-    </section>
-
-    <section
-      id="printMembershipDetails"
-      class="print-membership-details"
-    >
-      <h2>Membership Details</h2>
-
-      <div id="printMembershipDetailContent"></div>
     </section>
 
     <section
