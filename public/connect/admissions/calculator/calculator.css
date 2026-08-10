@@ -365,7 +365,14 @@
     @media print{
       body{background:#fff;color:#111}
       .page{width:100%;padding:0}
-      .back-link,.actions,.remove-athlete,.add-athlete,.calculator-controls{display:none!important}
+      .back-link,
+      .actions,
+      .remove-athlete,
+      .add-athlete,
+      .calculator-controls,
+      .management-only{
+        display:none!important;
+      }
       .card,.metric,.athlete-card,.compare-card{
         background:#fff!important;
         color:#111!important;
@@ -380,3 +387,532 @@
       .layout{grid-template-columns:1fr 1fr}
       .line{border-color:#ccc;color:#111}
     }
+.family-savings{
+  margin-top:12px;
+  font-weight:800;
+}
+
+@media print{
+  .family-savings{
+    display:block !important;
+    font-size:1.05rem;
+    font-weight:900;
+    margin-top:10px;
+  }
+}
+
+/* ==================================================
+   Family Membership Proposal
+   ================================================== */
+
+.family-print-proposal{
+  display:none;
+}
+
+@media print{
+
+  @page{
+    size:letter;
+    margin:.45in;
+  }
+
+  body{
+    background:#fff!important;
+    color:#111!important;
+  }
+
+  /*
+   * The interactive Management Builder does not print.
+   */
+  .page{
+    display:none!important;
+  }
+
+  /*
+   * Only the family proposal prints.
+   */
+  .family-print-proposal{
+    display:block!important;
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding:0;
+    color:#111;
+    background:#fff;
+    font-family:
+      Arial,
+      Helvetica,
+      sans-serif;
+  }
+
+  .print-proposal-header{
+    border-bottom:3px solid #111;
+    padding-bottom:14px;
+    margin-bottom:20px;
+  }
+
+  .print-brand{
+    margin:0 0 5px;
+    font-size:11px;
+    font-weight:800;
+    letter-spacing:1.4px;
+  }
+
+  .print-proposal-header h1{
+    margin:0;
+    font-size:27px;
+    line-height:1.05;
+  }
+
+  .print-motto{
+    margin:6px 0 0;
+    font-size:12px;
+    font-weight:700;
+  }
+
+  .print-family{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:14px;
+    margin-bottom:20px;
+  }
+
+  .print-family div{
+    border:1px solid #bbb;
+    padding:11px 13px;
+  }
+
+  .print-family span,
+  .print-financial-grid span{
+    display:block;
+    margin-bottom:4px;
+    font-size:9px;
+    font-weight:800;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+  }
+
+  .print-family strong{
+    display:block;
+    font-size:14px;
+    overflow-wrap:anywhere;
+  }
+
+  .print-athletes{
+    margin-bottom:20px;
+  }
+
+  .print-athletes h2,
+  .print-recommendation h2{
+    margin:0 0 9px;
+    font-size:15px;
+  }
+
+  .print-athlete{
+    display:grid;
+    grid-template-columns:
+      1.25fr
+      1fr
+      1.35fr
+      1.4fr;
+    gap:10px;
+    align-items:start;
+    padding:10px 0;
+    border-top:1px solid #ccc;
+    font-size:11px;
+    break-inside:avoid;
+  }
+
+  .print-athlete:last-child{
+    border-bottom:1px solid #ccc;
+  }
+
+  .print-athlete strong,
+  .print-athlete span{
+    overflow-wrap:anywhere;
+  }
+
+  .print-financial-grid{
+    display:grid;
+    grid-template-columns:
+      repeat(4,minmax(0,1fr));
+    gap:9px;
+    margin:20px 0;
+  }
+
+  .print-financial-grid article{
+    min-height:82px;
+    padding:11px;
+    border:1px solid #999;
+    break-inside:avoid;
+  }
+
+  .print-financial-grid strong{
+    display:block;
+    margin:4px 0;
+    font-size:22px;
+    line-height:1;
+  }
+
+  .print-financial-grid small{
+    display:block;
+    font-size:9px;
+    line-height:1.35;
+  }
+
+  .print-savings-card{
+    border:2px solid #111!important;
+  }
+
+  .print-savings-card strong{
+    font-size:25px;
+  }
+
+  .print-recommendation{
+    margin-top:18px;
+    padding:14px;
+    border:1px solid #bbb;
+    break-inside:avoid;
+  }
+
+  .print-recommendation p{
+    margin:0;
+    font-size:11px;
+    line-height:1.5;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+
+  .print-proposal-footer{
+    display:flex;
+    justify-content:space-between;
+    gap:20px;
+    margin-top:24px;
+    padding-top:10px;
+    border-top:1px solid #999;
+    font-size:9px;
+  }
+}
+/* ==================================================
+   FAMILY PRINT PROPOSAL
+   ================================================== */
+
+.family-print-proposal{
+  display:none;
+}
+
+@media print{
+
+  @page{
+    size:letter;
+    margin:.4in;
+  }
+
+  html,
+  body{
+    background:#fff !important;
+    color:#111 !important;
+  }
+
+  body{
+    font-family:
+      Arial,
+      Helvetica,
+      sans-serif;
+  }
+
+  /* Management Builder never prints */
+  .page{
+    display:none !important;
+  }
+
+  /* Dedicated proposal only */
+  .family-print-proposal{
+    display:block !important;
+    width:100%;
+    max-width:none;
+    margin:0;
+    padding:0;
+    background:#fff;
+    color:#111;
+  }
+
+  /* ------------------------------
+     HEADER
+     ------------------------------ */
+
+  .print-proposal-header{
+    margin:0 0 16px;
+    padding:0 0 12px;
+    border-bottom:3px solid #111;
+  }
+
+  .print-brand{
+    margin:0 0 4px;
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    text-transform:uppercase;
+  }
+
+  .print-proposal-header h1{
+    margin:0;
+    font-size:25px;
+    line-height:1.05;
+  }
+
+  .print-motto{
+    margin:5px 0 0;
+    font-size:11px;
+    font-weight:700;
+  }
+
+  /* ------------------------------
+     FAMILY + COACH
+     ------------------------------ */
+
+  .print-family{
+    display:grid;
+    grid-template-columns:1.4fr 1fr;
+    gap:10px;
+    margin-bottom:15px;
+  }
+
+  .print-family div{
+    padding:9px 11px;
+    border:1px solid #bbb;
+    border-radius:6px;
+  }
+
+  .print-family span{
+    display:block;
+    margin-bottom:3px;
+    font-size:8px;
+    font-weight:900;
+    letter-spacing:.8px;
+    text-transform:uppercase;
+  }
+
+  .print-family strong{
+    display:block;
+    font-size:13px;
+    line-height:1.3;
+    overflow-wrap:anywhere;
+  }
+
+  /* ------------------------------
+     ATHLETE / RECOMMENDED MEMBERSHIP
+     ------------------------------ */
+
+  .print-athletes{
+    margin-bottom:15px;
+  }
+
+  .print-athletes h2,
+  .print-membership-details h2,
+  .print-recommendation h2{
+    margin:0 0 8px;
+    font-size:14px;
+    line-height:1.2;
+  }
+
+  .print-athlete{
+    display:grid;
+    grid-template-columns:
+      1.25fr
+      .9fr
+      1fr
+      1fr
+      1.35fr;
+    gap:8px;
+    padding:9px 0;
+    border-top:1px solid #ccc;
+    font-size:10px;
+    break-inside:avoid;
+  }
+
+  .print-athlete:last-child{
+    border-bottom:1px solid #ccc;
+  }
+
+  .print-athlete div{
+    min-width:0;
+  }
+
+  .print-athlete small{
+    display:block;
+    margin-bottom:2px;
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.6px;
+    text-transform:uppercase;
+  }
+
+  .print-athlete strong,
+  .print-athlete span{
+    display:block;
+    line-height:1.3;
+    overflow-wrap:anywhere;
+  }
+
+  /* ------------------------------
+     FINANCIAL HIGHLIGHTS
+     ------------------------------ */
+
+  .print-financial-grid{
+    display:grid;
+    grid-template-columns:
+      repeat(4,minmax(0,1fr));
+    gap:8px;
+    margin:16px 0;
+  }
+
+  .print-financial-grid article{
+    min-height:74px;
+    padding:10px;
+    border:1px solid #999;
+    border-radius:6px;
+    break-inside:avoid;
+  }
+
+  .print-financial-grid span{
+    display:block;
+    margin-bottom:4px;
+    font-size:7px;
+    font-weight:900;
+    letter-spacing:.7px;
+    text-transform:uppercase;
+  }
+
+  .print-financial-grid strong{
+    display:block;
+    margin:3px 0 4px;
+    font-size:21px;
+    line-height:1;
+  }
+
+  .print-financial-grid small{
+    display:block;
+    font-size:8px;
+    line-height:1.35;
+  }
+
+  .print-savings-card{
+    border:2px solid #111 !important;
+  }
+
+  .print-savings-card strong{
+    font-size:24px;
+  }
+
+  /* ------------------------------
+     MEMBERSHIP DETAILS
+     ------------------------------ */
+
+  .print-membership-details{
+    margin-top:15px;
+    break-inside:avoid;
+  }
+
+  #printMembershipDetailContent{
+    display:grid;
+    gap:10px;
+  }
+
+  .print-detail-card{
+    padding:11px 12px;
+    border:1px solid #bbb;
+    border-radius:6px;
+    break-inside:avoid;
+  }
+
+  .print-detail-card h3{
+    margin:0 0 7px;
+    font-size:13px;
+  }
+
+  .print-detail-row{
+    display:grid;
+    grid-template-columns:
+      minmax(0,1fr)
+      auto;
+    gap:14px;
+    align-items:start;
+    padding:4px 0;
+    border-bottom:1px dotted #ccc;
+    font-size:9px;
+    line-height:1.35;
+  }
+
+  .print-detail-row:last-child{
+    border-bottom:0;
+  }
+
+  .print-detail-row span{
+    min-width:0;
+  }
+
+  .print-detail-row strong{
+    text-align:right;
+    white-space:nowrap;
+  }
+
+  /* Make the value proposition visually obvious */
+  .print-detail-row:nth-of-type(4) strong,
+  .print-detail-row:nth-of-type(5) strong{
+    font-weight:900;
+  }
+
+  /* ------------------------------
+     COACH RECOMMENDATION
+     ------------------------------ */
+
+  .print-recommendation{
+    margin-top:15px;
+    padding:11px 12px;
+    border:1px solid #bbb;
+    border-radius:6px;
+    break-inside:avoid;
+  }
+
+  .print-recommendation p{
+    margin:0;
+    font-size:9.5px;
+    line-height:1.45;
+    white-space:pre-wrap;
+    overflow-wrap:anywhere;
+  }
+
+  /* ------------------------------
+     FOOTER
+     ------------------------------ */
+
+  .print-proposal-footer{
+    display:flex;
+    justify-content:space-between;
+    gap:16px;
+    margin-top:18px;
+    padding-top:9px;
+    border-top:1px solid #999;
+    font-size:8px;
+  }
+
+  /* ------------------------------
+     GENERAL PRINT CONTROL
+     ------------------------------ */
+
+  .print-proposal-header,
+  .print-family,
+  .print-financial-grid,
+  .print-athletes,
+  .print-membership-details,
+  .print-recommendation,
+  .print-proposal-footer{
+    break-inside:avoid;
+  }
+
+  a{
+    color:#111 !important;
+    text-decoration:none !important;
+  }
+}

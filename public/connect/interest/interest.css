@@ -1,27 +1,50 @@
 :root{
-  --bg:#090909;
---panel:#0d0d0d;
---panel2:#141414;
+  --bg:#080808;
+  --panel:#0d0d0d;
+  --panel-soft:#121212;
+  --panel-raised:#171717;
 
   --gold:#facc15;
+  --gold-soft:rgba(250,204,21,.12);
+  --gold-glow:rgba(250,204,21,.18);
+
   --red:#7a1111;
-  --red-dark:#5b0b0b;
+  --red-hover:#8d1717;
 
- --border:#3b3320;
+  --border:#303030;
+  --border-soft:rgba(255,255,255,.08);
 
-  --text:#f3f4f6;
-  --muted:#b8bcc4;
+  --text:#f5f5f5;
+  --muted:#b7bbc3;
+
+  --radius-sm:12px;
+  --radius-md:16px;
+  --radius-lg:22px;
 }
+
+
+/* =========================================
+   RESET
+========================================= */
 
 *{
   box-sizing:border-box;
 }
 
+html{
+  background:var(--bg);
+}
+
 body{
   margin:0;
+
   background:
-    radial-gradient(circle at top,#171100 0%, #090909 45%),
-    #090909;
+    radial-gradient(
+      circle at top,
+      #171100 0,
+      #0b0b0b 32rem,
+      var(--bg) 55rem
+    );
 
   color:var(--text);
 
@@ -29,8 +52,15 @@ body{
     Inter,
     system-ui,
     -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
 }
+
+
+/* =========================================
+   PAGE SHELL
+========================================= */
 
 .connect-page{
   min-height:100vh;
@@ -40,12 +70,17 @@ body{
 .connect-shell{
   width:100%;
   max-width:960px;
-  margin:auto;
+  margin:0 auto;
 }
 
+
+/* =========================================
+   HERO
+========================================= */
+
 .connect-hero{
+  margin:0 auto 34px;
   text-align:center;
-  margin-bottom:34px;
 }
 
 .eyebrow{
@@ -60,44 +95,121 @@ body{
 }
 
 .connect-hero h1{
-  margin:0 0 14px;
+  margin:0 0 18px;
 
   color:#fff;
 
   font-size:clamp(2rem,6vw,3.4rem);
+  line-height:1.05;
 }
 
 .hero-copy{
-  max-width:620px;
-  margin:auto;
+  width:100%;
+  max-width:720px;
+
+  margin:0 auto;
 
   color:var(--muted);
 
+  font-size:1rem;
   line-height:1.7;
-  font-size:1.05rem;
+
+  text-align:left;
 }
+
+.hero-copy p{
+  margin:0 0 18px;
+}
+
+.hero-copy p:last-child{
+  margin-bottom:0;
+}
+
+
+/* =========================================
+   ADMISSIONS PATH GUIDE
+========================================= */
+
+.admissions-path-guide{
+  display:grid;
+  gap:10px;
+
+  margin:20px 0;
+  padding:0;
+
+  list-style:none;
+}
+
+.admissions-path-guide li{
+  position:relative;
+
+  padding:12px 14px 12px 42px;
+
+  background:rgba(255,255,255,.025);
+
+  border:1px solid var(--border-soft);
+  border-radius:var(--radius-sm);
+
+  color:#d9dce1;
+
+  line-height:1.5;
+}
+
+.admissions-path-guide li::before{
+  content:"✓";
+
+  position:absolute;
+  top:12px;
+  left:15px;
+
+  color:var(--gold);
+
+  font-weight:900;
+}
+
+.admissions-path-guide strong{
+  color:#fff;
+}
+
+
+/* =========================================
+   MAIN FORM
+========================================= */
 
 .interest-form{
   display:flex;
   flex-direction:column;
-  gap:24px;
+  gap:26px;
 
   padding:28px;
 
   background:var(--panel);
 
   border:1px solid var(--border);
-
-  border-radius:22px;
+  border-radius:var(--radius-lg);
 
   box-shadow:
     0 20px 45px rgba(0,0,0,.45);
 }
 
+
+/* =========================================
+   FORM SECTIONS
+========================================= */
+
 .form-section{
   display:flex;
   flex-direction:column;
   gap:14px;
+
+  padding-top:22px;
+
+  border-top:1px solid var(--border-soft);
+}
+
+.form-section:first-child{
+  padding-top:0;
+  border-top:none;
 }
 
 .form-section h2{
@@ -106,7 +218,14 @@ body{
   color:var(--gold);
 
   font-size:1rem;
+  font-weight:850;
+  letter-spacing:.015em;
 }
+
+
+/* =========================================
+   STANDARD FIELDS
+========================================= */
 
 .field{
   display:flex;
@@ -131,19 +250,28 @@ textarea{
 
   padding:14px 16px;
 
-  border-radius:12px;
-
-  border:1px solid #3b3b3b;
-
-  background:var(--panel2);
-
   color:#fff;
 
+  background:var(--panel-soft);
+
+  border:1px solid #3b3b3b;
+  border-radius:var(--radius-sm);
+
+  font:inherit;
   font-size:1rem;
 
   outline:none;
 
-  transition:.2s;
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background .18s ease;
+}
+
+input:hover,
+select:hover,
+textarea:hover{
+  border-color:#505050;
 }
 
 input:focus,
@@ -151,48 +279,316 @@ select:focus,
 textarea:focus{
   border-color:var(--gold);
 
+  background:#151515;
+
   box-shadow:
-    0 0 0 3px rgba(250,204,21,.18);
+    0 0 0 3px var(--gold-glow);
 }
 
 textarea{
   resize:vertical;
 }
 
-.submit-btn{
-  margin-top:10px;
 
-  width:100%;
+/* =========================================
+   PROGRAM CHOICE GRID
+========================================= */
 
-  padding:16px;
+.interest-type-grid{
+  display:grid;
 
-  border:none;
+  grid-template-columns:
+    repeat(3,minmax(0,1fr));
 
-  border-radius:999px;
+  gap:14px;
+}
 
-  background:var(--red);
+
+/* =========================================
+   PROGRAM CHOICE CARD
+========================================= */
+
+.interest-type-option{
+  position:relative;
+  display:block;
+
+  cursor:pointer;
+}
+
+.interest-type-option input{
+  position:absolute;
+
+  width:1px;
+  height:1px;
+
+  opacity:0;
+  pointer-events:none;
+}
+
+.interest-type-card{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  min-height:145px;
+
+  padding:20px 16px;
+
+  text-align:center;
+
+  background:var(--panel-raised);
+
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
+}
+
+.interest-type-card:hover{
+  transform:translateY(-2px);
+
+  background:#1a1a1a;
+
+  border-color:#686868;
+}
+
+
+/* =========================================
+   PROGRAM CARD ICON
+========================================= */
+
+.interest-type-icon{
+  display:block;
+  width:auto;
+  height:auto;
+
+  margin:0 auto 12px;
+
+  font-size:2rem;
+  line-height:1;
+
+  color:inherit;
+}
+
+
+
+
+.interest-type-icon--combo{
+  font-size:1.75rem;
+  white-space:nowrap;
+}
+
+/* =========================================
+   PROGRAM CARD TEXT
+========================================= */
+
+.interest-type-title{
+  display:block;
+
+  margin-bottom:7px;
 
   color:#fff;
 
   font-size:1rem;
-  font-weight:800;
+  font-weight:900;
+}
+
+.interest-type-description{
+  display:block;
+
+  color:var(--muted);
+
+  font-size:.86rem;
+  line-height:1.45;
+}
+
+
+/* =========================================
+   SELECTED PROGRAM CARD
+   NO BROWN FILL
+========================================= */
+
+.interest-type-option
+input:checked
++
+.interest-type-card{
+  background:#161616 !important;
+
+  border-color:var(--gold) !important;
+
+  box-shadow:
+    0 0 0 1px rgba(250,204,21,.18),
+    0 8px 26px rgba(0,0,0,.32),
+    0 0 22px rgba(250,204,21,.08) !important;
+
+  transform:translateY(-1px);
+}
+
+.interest-type-option
+input:checked
++
+.interest-type-card
+.interest-type-title{
+  color:var(--gold);
+}
+
+.interest-type-option
+input:focus-visible
++
+.interest-type-card{
+  outline:3px solid var(--gold-glow);
+  outline-offset:3px;
+}
+/* =========================================
+   REGISTRANT ROLE OPTIONS
+========================================= */
+
+.registrant-role-options{
+  display:grid;
+  grid-template-columns:
+    repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.registrant-role-option{
+  position:relative;
+  display:block;
+  cursor:pointer;
+}
+
+.registrant-role-option input{
+  position:absolute;
+  width:1px;
+  height:1px;
+  opacity:0;
+  pointer-events:none;
+}
+
+.registrant-role-option > span{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  min-height:120px;
+  padding:18px;
+
+  background:var(--panel-raised);
+
+  border:1px solid var(--border);
+  border-radius:var(--radius-md);
+
+  text-align:center;
+
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
+}
+
+.registrant-role-option:hover > span{
+  transform:translateY(-2px);
+  background:#1a1a1a;
+  border-color:#686868;
+}
+
+.registrant-role-option
+input:checked
++
+span{
+  background:#161616;
+  border-color:var(--gold);
+
+  box-shadow:
+    0 0 0 1px rgba(250,204,21,.18),
+    0 8px 24px rgba(0,0,0,.28),
+    0 0 20px rgba(250,204,21,.07);
+}
+
+.registrant-role-option
+input:focus-visible
++
+span{
+  outline:3px solid var(--gold-glow);
+  outline-offset:3px;
+}
+
+.registrant-role-option strong,
+.registrant-role-option small{
+  display:block;
+}
+
+.registrant-role-option strong{
+  color:#fff;
+  font-weight:900;
+}
+
+.registrant-role-option small{
+  margin-top:7px;
+  color:var(--muted);
+  opacity:1;
+  line-height:1.45;
+}
+
+
+/* =========================================
+   SUBMIT
+========================================= */
+
+.submit-btn{
+  width:100%;
+
+  margin-top:10px;
+  padding:16px;
+
+  color:#fff;
+
+  background:var(--red);
+
+  border:none;
+  border-radius:999px;
+
+  font-size:1rem;
+  font-weight:850;
 
   cursor:pointer;
 
-  transition:.18s;
+  transition:
+    transform .16s ease,
+    background .16s ease,
+    box-shadow .16s ease;
 }
 
 .submit-btn:hover{
-  background:#8d1717;
+  background:var(--red-hover);
+
+  transform:translateY(-1px);
+
+  box-shadow:
+    0 10px 24px rgba(122,17,17,.22);
 }
 
 .submit-btn:disabled{
   opacity:.6;
   cursor:not-allowed;
+  transform:none;
 }
+
+
+/* =========================================
+   STATUS
+========================================= */
 
 .form-status{
   min-height:24px;
+
+  margin:0;
 
   font-weight:700;
 }
@@ -205,6 +601,11 @@ textarea{
   color:#65d66b;
 }
 
+
+/* =========================================
+   PRIVACY
+========================================= */
+
 .privacy-note{
   margin:0;
 
@@ -215,6 +616,11 @@ textarea{
   font-size:.9rem;
   line-height:1.6;
 }
+
+
+/* =========================================
+   FOOTER
+========================================= */
 
 .connect-footer{
   margin:36px 0;
@@ -240,23 +646,217 @@ textarea{
   color:#777;
 }
 
-@media (max-width:640px){
 
-  .interest-form{
-    padding:22px;
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width:760px){
+
+  .interest-type-grid{
+    grid-template-columns:1fr;
   }
+
+}
+
+
+@media (max-width:640px){
 
   .connect-page{
     padding:24px 14px;
   }
 
-}
-.form-section{
-  padding-top:.5rem;
-  border-top:1px solid rgba(255,255,255,.05);
+  .interest-form{
+    padding:22px 18px;
+  }
+
+  .registrant-role-options{
+    grid-template-columns:1fr;
+  }
+
+  .hero-copy{
+    font-size:.96rem;
+  }
+
 }
 
-.form-section:first-child{
-  border-top:none;
-  padding-top:0;
+@media (max-width:420px){
+
+  .connect-page{
+    padding-left:10px;
+    padding-right:10px;
+  }
+
+  .interest-form{
+    padding:20px 14px;
+  }
+
 }
+/* =========================================
+   HERO TOP / LANGUAGE CONTROLS
+========================================= */
+
+.connect-hero{
+  background:#050505;
+  border-radius:18px;
+  padding:40px 32px;
+  margin-bottom:32px;
+}
+
+.connect-hero__top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:16px;
+  margin-bottom:18px;
+}
+
+.connect-hero__top .eyebrow{
+  margin:0;
+}
+
+.language-switcher{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+}
+
+.language-btn{
+  appearance:none;
+
+  min-width:42px;
+  height:30px;
+  padding:0 12px;
+
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:16px;
+
+  background:rgba(255,255,255,.05);
+  color:inherit;
+
+  cursor:pointer;
+
+  font:inherit;
+  font-size:.78rem;
+  font-weight:700;
+
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.language-btn:hover{
+  transform:translateY(-1px);
+  border-color:rgba(250,204,21,.55);
+}
+
+.language-btn[aria-pressed="true"]{
+  background:var(--gold);
+  border-color:var(--gold);
+  color:#111;
+}
+
+
+/* =========================================
+   BILINGUAL VISIBILITY
+========================================= */
+
+[data-lang]{
+  display:none;
+}
+
+html[lang="en"] [data-lang="en"],
+html[lang="es"] [data-lang="es"]{
+  display:initial;
+}
+
+html[lang="en"] option[data-lang="en"],
+html[lang="es"] option[data-lang="es"]{
+  display:block;
+}
+
+html[lang="en"] option[data-lang="es"],
+html[lang="es"] option[data-lang="en"]{
+  display:none;
+}
+
+
+/* =========================================
+   FORM HELPERS
+========================================= */
+
+.intent-notice{
+  display:none;
+
+  margin-bottom:24px;
+  padding:18px;
+
+  border:1px solid rgba(250,204,21,.25);
+  border-radius:14px;
+
+  background:rgba(250,204,21,.08);
+}
+
+.intent-notice p{
+  margin:.5rem 0 0;
+}
+
+.required-note{
+  margin-top:12px;
+
+  opacity:.72;
+
+  font-size:.85rem;
+  text-align:center;
+}
+
+.help-text{
+  margin:0;
+
+  color:var(--muted);
+
+  font-size:.88rem;
+  line-height:1.55;
+}
+
+[hidden]{
+  display:none !important;
+}
+
+.connect-footer a::before{
+  content:"← ";
+}
+
+
+/* =========================================
+   HERO MOBILE
+========================================= */
+
+@media (max-width:640px){
+
+  .connect-hero{
+    padding:28px 20px;
+  }
+
+  .connect-hero__top{
+    align-items:flex-start;
+  }
+
+}
+.interest-type-option
+input:checked
++
+.interest-type-card
+.interest-type-title{
+  color:var(--gold);
+}
+.registrant-role-option
+input:checked
++
+span
+strong{
+  color:var(--gold);
+}
+
+

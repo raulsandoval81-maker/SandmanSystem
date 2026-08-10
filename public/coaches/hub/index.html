@@ -1,36 +1,85 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Sandman | Coaches Hub</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="../assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/hub/hub.css" />
-  <link rel="icon" href="data:,">
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Sandman Coaches Hub</title>
+
+  <meta
+    name="description"
+    content="Sandman Coaches Hub—mission, standards, and entry into the Coach System."
+  >
+
+  <link rel="stylesheet" href="./hub.css">
+
+  <script src="./hub.js" defer></script>
 </head>
 
-<body data-theme="night">
+<body>
+
   <header class="coach-header">
-    <div class="coach-header__top">
+    <div class="coach-header__inner">
 
       <div class="coach-header__left">
-        <button id="langEN" class="toggle-pill active" type="button">EN</button>
-        <button id="langES" class="toggle-pill" type="button">ES</button>
+        <button
+          id="langEN"
+          class="toggle-pill active"
+          type="button"
+          aria-label="Use English"
+          aria-pressed="true"
+        >
+          EN
+        </button>
+
+        <button
+          id="langES"
+          class="toggle-pill"
+          type="button"
+          aria-label="Usar español"
+          aria-pressed="false"
+        >
+          ES
+        </button>
       </div>
 
       <div class="coach-header__center">
-        <a href="/coaches/hub/index.html" class="coach-brand">
-          <span data-en="Sandman Combat System™" data-es="Sandman Combat System™">
+        <a
+          class="coach-brand"
+          href="/coaches/hub/index.html"
+          aria-label="Sandman Coaches Hub"
+        >
+          <span
+            data-en="Sandman Combat System™"
+            data-es="Sandman Combat System™"
+          >
             Sandman Combat System™
           </span>
         </a>
-        <div class="coach-sub" data-en="Coaches Hub" data-es="Centro de Entrenadores">
+
+        <div
+          class="coach-sub"
+          data-en="Coaches Hub"
+          data-es="Centro de Entrenadores"
+        >
           Coaches Hub
         </div>
       </div>
 
       <div class="coach-header__right">
-        <button id="themeToggle" class="toggle-pill" type="button">🌙</button>
+        <button
+          id="themeToggle"
+          class="toggle-pill"
+          type="button"
+          aria-label="Switch to light theme"
+          title="Change theme"
+        >
+          ☀️
+        </button>
       </div>
 
     </div>
@@ -38,85 +87,27 @@
     <div class="coach-header__line"></div>
   </header>
 
-  <main class="coach-wrap">
+  <main class="coach-hub-main">
 
-<section class="coach-card coach-card--workflow">
-<h3 data-en="TODAY'S MISSION" data-es="MISIÓN DE HOY">
-  TODAY'S MISSION
-</h3>
+    <picture class="coach-hub-art">
+      <img
+        id="coachHubImage"
+        src="/assets/images/sandman-coaches-hub-en.png"
+        alt="Sandman Coaches Hub mission, creed, code, goal, and standards"
+        loading="eager"
+      >
+    </picture>
 
-  <p
-    data-en="Start with the plan. Take attendance. Run practice. Award XP. Leave notes."
-    data-es="Empieza con el plan. Toma asistencia. Dirige la práctica. Otorga XP. Deja notas."
-  >
-    Start with the plan. Run practice. Take attendance.  Award XP. Leave notes.
-  </p>
-
-</section>
-
-
-<!-- CREED / CODE / GOAL / MISSION -->
-<section class="coach-card">
-  <h3 data-en="CREED" data-es="CREDO">CREED</h3>
-  <p
-    data-en="Hold the standard. What you allow becomes the room."
-    data-es="Mantén el estándar. Lo que permites se convierte en el ambiente."
-  >
-    Hold the standard. What you allow becomes the room.
-  </p>
-</section>
-
-<section class="coach-card">
-  <h3 data-en="CODE" data-es="CÓDIGO">CODE</h3>
-  <p
-    data-en="Respect all. Hold each other accountable. Protect the room."
-    data-es="Respeto a todos. Responsabilidad mutua. Protege el grupo."
-  >
-    Respect all. Hold each other accountable. Protect the room.
-  </p>
-</section>
-
-<section class="coach-card">
-  <h3 data-en="GOAL" data-es="OBJETIVO">GOAL</h3>
-  <p
-    data-en="Coach the moment. Every rep matters."
-    data-es="Entrena el momento. Cada repetición importa."
-  >
-    Coach the moment. Every rep matters.
-  </p>
-</section>
-
-<section class="coach-card">
-  <h3 data-en="MISSION" data-es="MISIÓN">MISSION</h3>
-  <p
-    data-en="Build athletes. Build people."
-    data-es="Forma atletas. Forma personas."
-  >
-    Build athletes. Build people.
-  </p>
-</section>
-
-<section class="coach-actions coach-actions--bottom">
-
-  <a class="nav-pill" href="/coaches/execution/index.html"
-    data-en="Execution" data-es="Ejecución">
-    Execution
-  </a>
-
-  <a class="nav-pill" href="/coaches/index.html"
-    data-en="Coaches Index" data-es="Índice De Entrenadores">
-    Coaches Index
-  </a>
-
-  <a class="nav-pill" href="/coaches/safety/index.html"
-    data-en="Safety" data-es="Seguridad">
-    Safety
-  </a>
-
-</section>
+    <a
+      class="enter-coach-system"
+      href="/coaches/index.html"
+      data-en="Enter Coach System"
+      data-es="Entrar al Sistema de Entrenadores"
+    >
+      Enter Coach System
+    </a>
 
   </main>
 
-  <script src="/coaches/hub/hub.js"></script>
 </body>
 </html>

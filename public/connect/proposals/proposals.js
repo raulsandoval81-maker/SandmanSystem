@@ -472,7 +472,7 @@ async function loadAppointmentContext() {
         </p>
 
         <p>
-          <strong>Academy Shirt Size:</strong>
+          <strong>Athlete T-Shirt Size:</strong>
           ${esc(
             displayValue(
               appointment.shirtSize

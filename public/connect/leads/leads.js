@@ -1,5 +1,6 @@
 import {
   db,
+  auth,
   collection,
   getDocs,
   doc,
@@ -75,8 +76,8 @@ function labelForProgram(program = "") {
     "zero2hero-wrestling": "Zero2Hero Wrestling",
     "z2h-wrestling": "Zero2Hero Wrestling",
 
-    "zero2hero-kickboxing": "Zero2Hero Kickboxing",
-    "z2h-kickboxing": "Zero2Hero Kickboxing",
+    "zero2hero-kickboxing": "Zero2Hero Muay Thai",
+    "z2h-kickboxing": "Zero2Hero Muay Thai",
 
     "path2legend-wrestling": "Path2Legend Wrestling",
     "p2l-wrestling": "Path2Legend Wrestling",
@@ -337,6 +338,53 @@ function render() {
     })
     .join("");
 }
+function buildLoginUrl() {
+  const returnTo =
+    window.location.pathname +
+    window.location.search;
+
+  return (
+    "/management/auth/?returnUrl=" +
+    encodeURIComponent(returnTo)
+  );
+}
+
+function redirectToStaffLogin() {
+  window.location.href =
+    buildLoginUrl();
+}
+
+async function waitForAuthState() {
+  for (
+    let attempt = 0;
+    attempt < 12;
+    attempt += 1
+  ) {
+    if (auth.currentUser) {
+      return auth.currentUser;
+    }
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    });
+  }
+
+  return auth.currentUser || null;
+}
+
+async function requireStaffSession() {
+  setStatus("Checking staff session...");
+
+  const user =
+    await waitForAuthState();
+
+  if (!user) {
+    redirectToStaffLogin();
+    return false;
+  }
+
+  return true;
+}
 
 async function loadLeads() {
   setStatus("Loading leads...");
@@ -552,4 +600,8 @@ leadList?.addEventListener("click", (event) => {
 
 });
 
-await loadLeads();
+if (
+  await requireStaffSession()
+) {
+  await loadLeads();
+}

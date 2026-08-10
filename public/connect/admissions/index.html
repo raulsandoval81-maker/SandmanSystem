@@ -120,7 +120,7 @@
 
         <div class="form-field">
           <label for="enrollmentDecision">
-            Enrollment Decision
+            Family Decision
           </label>
 
           <select
@@ -182,11 +182,11 @@
             Recommended Discipline
           </label>
 
-          <input
-            id="recommendedDiscipline"
-            type="text"
-            placeholder="Example: Boxing"
-          />
+          <select id="recommendedDiscipline">
+            <option value="">
+              No recommendation yet
+            </option>
+          </select>
         </div>
 
         <div class="form-field">
@@ -209,12 +209,9 @@
           </select>
         </div>
 
-        <div class="form-field">
+        <div id="followUpField" class="form-field" hidden>
           <label for="followUpDate">
             Follow-Up Date
-            <span class="optional">
-              Optional
-            </span>
           </label>
 
           <input
@@ -262,18 +259,9 @@
           <a
             id="openProposalBtn"
             class="btn"
-            href="/connect/proposals/"
+            href="#" aria-disabled="true"
           >
             Open Prospect Builder
-          </a>
-
-          <a
-            id="continueToEnrollmentBtn"
-            class="btn"
-            href="/connect/enrollment/"
-            hidden
-          >
-            Continue to Enrollment
           </a>
 
           <a

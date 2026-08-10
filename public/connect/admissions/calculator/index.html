@@ -34,7 +34,7 @@
       <article class="metric">
         <div class="metric-label">Due at enrollment</div>
         <div id="dueNow" class="metric-value">$75</div>
-        <div class="metric-note">One-time enrollment after credits</div>
+        <div class="metric-note">One-time onboarding after approved credits</div>
       </article>
 
       <article class="metric">
@@ -43,16 +43,16 @@
         <div class="metric-note">Recurring training membership</div>
       </article>
 
-      <article class="metric">
+      <article class="metric management-only">
         <div class="metric-label">Projected first-year total</div>
         <div id="firstYearTotal" class="metric-value">$1,035</div>
-        <div class="metric-note">Enrollment + 12 months after agreement adjustments</div>
+        <div class="metric-note">Management planning total — not shown on family proposal</div>
       </article>
 
       <article class="metric">
         <div class="metric-label">Next annual renewal</div>
-        <div id="annualTotal" class="metric-value">$100</div>
-        <div class="metric-note">Future discipline renewals</div>
+        <div id="annualTotal" class="metric-value">$50</div>
+        <div class="metric-note">Annual athlete renewal</div>
       </article>
     </section>
 
@@ -168,29 +168,44 @@
         <article class="card">
           <div class="card-head">
             <div>
-              <h2>Standard vs Unlimited</h2>
-              <p>Quick comparison using the current family configuration.</p>
+              <h2>Founding Year Memberships</h2>
+              <p>
+                Current Combat, Fitness, and combined
+                membership pricing.
+              </p>
             </div>
           </div>
 
           <div class="compare-grid">
             <div class="compare-card">
-              <strong id="standardCompare">$80 / month</strong>
-              <p>Current family ladder based on athlete count.</p>
+              <strong id="standardCompare">$80 Combat</strong>
+              <p>
+                Family ladder:
+                $80 / $120 / $140 / $160,
+                then +$20 per additional athlete.
+              </p>
             </div>
 
             <div class="compare-card">
-              <strong id="unlimitedCompare">$120 / month</strong>
-              <p>Unlimited pricing is athlete-specific, not a whole-family plan.</p>
+              <strong id="unlimitedCompare">
+                $140 / $120 Combo
+              </strong>
+
+              <p>
+                Combat + Fitness:
+                $140 month-to-month or $120 with a
+                12-month agreement + autopay.
+              </p>
             </div>
           </div>
 
           <p class="help" style="margin-top:12px;">
-            Working agreement adjustments:
-            $10 off Standard/Family,
-            $10 off each Unlimited athlete,
-            and $5 off each Fitness athlete.
-            Enrollment and annual registration are not discounted.
+            Founding Year Combat and Everyday Fitness
+            keep their standard rates regardless of commitment.
+            The current agreement benefit applies to the
+            Combat + Fitness package:
+            $140 month-to-month or $120 with a
+            12-month agreement + autopay.
           </p>
         </article>
 
@@ -255,6 +270,101 @@
     </section>
   </main>
 
+  <section
+    id="familyPrintProposal"
+    class="family-print-proposal"
+    aria-hidden="true"
+  >
+    <header class="print-proposal-header">
+      <p class="print-brand">
+        SANDMAN ACADEMY OF COMBAT & FITNESS
+      </p>
+
+      <h1>Membership Proposal</h1>
+
+      <p class="print-motto">
+        Combat = Character
+      </p>
+    </header>
+
+    <section class="print-family">
+      <div>
+        <span>Family / Prospect</span>
+        <strong id="printFamilyName">—</strong>
+      </div>
+
+      <div>
+        <span>Coach</span>
+        <strong id="printCoachName">—</strong>
+      </div>
+    </section>
+
+    <section class="print-athletes">
+      <h2>Recommended Membership</h2>
+      <div id="printAthleteSummary"></div>
+    </section>
+
+    <section class="print-financial-grid">
+      <article>
+        <span>Due at Enrollment</span>
+        <strong id="printDueNow">$0</strong>
+        <small>One-time onboarding</small>
+      </article>
+
+      <article>
+        <span>Monthly Membership</span>
+        <strong id="printMonthly">$0</strong>
+        <small>Recurring membership</small>
+      </article>
+
+      <article
+        id="printSavingsCard"
+        class="print-savings-card"
+        hidden
+      >
+        <span>You Save</span>
+        <strong id="printSavings">$0</strong>
+        <small id="printSavingsNote">
+          Over 12 months
+        </small>
+      </article>
+
+      <article>
+        <span>Annual Athlete Renewal</span>
+        <strong id="printAnnualRenewal">$0</strong>
+        <small>Annual renewal</small>
+      </article>
+    </section>
+
+    <section
+      id="printMembershipDetails"
+      class="print-membership-details"
+    >
+      <h2>Membership Details</h2>
+
+      <div id="printMembershipDetailContent"></div>
+    </section>
+
+    <section
+      id="printRecommendationSection"
+      class="print-recommendation"
+      hidden
+    >
+      <h2>Coach Recommendation</h2>
+      <p id="printRecommendation"></p>
+    </section>
+
+    <footer class="print-proposal-footer">
+      <strong>
+        Sandman Academy of Combat & Fitness™
+      </strong>
+
+      <span>
+        Heroes Build Heroes™
+      </span>
+    </footer>
+  </section>
+
   <template id="athleteTemplate">
     <article class="athlete-card">
       <div class="athlete-head">
@@ -285,17 +395,30 @@
         <div class="field">
           <label>Monthly plan</label>
           <select class="athlete-plan">
-            <option value="standard">Standard / family rate</option>
-            <option value="unlimited">Unlimited athlete — $120</option>
-            <option value="fitness">Fitness — $60</option>
+            <option value="standard">
+              Combat — Founding Year
+            </option>
+
+            <option value="fitness">
+              Everyday Fitness — $60
+            </option>
+
+            <option value="combo">
+              Combat + Fitness
+            </option>
           </select>
         </div>
 
         <div class="field">
           <label>Billing commitment</label>
           <select class="billing-term">
-            <option value="month-to-month">Month-to-month</option>
-            <option value="annual">12-month agreement</option>
+            <option value="month-to-month">
+              Month-to-month
+            </option>
+
+            <option value="annual">
+              12-month agreement + autopay
+            </option>
           </select>
         </div>
       </div>
@@ -304,8 +427,13 @@
         <div class="field">
           <label>Admissions credit</label>
           <select class="admissions-credit">
-            <option value="25">$25 credit applied</option>
-            <option value="0">No credit</option>
+            <option value="0">
+              No credit
+            </option>
+
+            <option value="25">
+              Approved $25 credit
+            </option>
           </select>
         </div>
 

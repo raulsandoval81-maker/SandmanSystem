@@ -1,6 +1,10 @@
 import * as functions from "firebase-functions";
 
 import {
+  getFirestore
+} from "firebase-admin/firestore";
+
+import {
   Resend
 } from "resend";
 
@@ -31,11 +35,11 @@ export const sendGatekeeperEmail =
         change,
         context
       ) => {
-const before =
-  change.before.data() as AppointmentLead;
+        const before =
+          change.before.data() as AppointmentLead;
 
-const after =
-  change.after.data() as AppointmentLead;
+        const after =
+          change.after.data() as AppointmentLead;
 
         const beforeStatus =
           clean(
@@ -49,12 +53,23 @@ const after =
               .appointmentConfirmationStatus
           );
 
+        /*
+         * Gatekeeper only sends when the
+         * confirmation state enters "pending".
+         */
         if (
           afterStatus !== "pending"
         ) {
           return;
         }
 
+        /*
+         * Prevent duplicate sends.
+         *
+         * If the document was already pending
+         * before this update, Gatekeeper does
+         * nothing.
+         */
         if (
           beforeStatus === "pending"
         ) {
@@ -66,12 +81,27 @@ const after =
             context.params.leadId
           );
 
+        const appointmentRef =
+          getFirestore()
+            .collection(
+              "admissions_appointments"
+            )
+            .doc(
+              leadId
+            );
+
         const parentEmail =
           clean(
             after.email
           ).toLowerCase();
 
+        /*
+         * Missing recipient email
+         */
         if (!parentEmail) {
+          const message =
+            "Missing parent email address.";
+
           console.error(
             "[gatekeeper] Missing parent email:",
             leadId
@@ -79,7 +109,12 @@ const after =
 
           await markConfirmationFailed(
             change.after.ref,
-            "Missing parent email address."
+            message
+          );
+
+          await markConfirmationFailed(
+            appointmentRef,
+            message
           );
 
           return;
@@ -90,63 +125,89 @@ const after =
             .config()
             .resend?.key;
 
+        /*
+         * Missing Resend configuration
+         */
         if (!resendKey) {
+          const message =
+            "Missing Resend API key.";
+
           console.error(
             "[gatekeeper] Missing Resend API key"
           );
 
           await markConfirmationFailed(
             change.after.ref,
-            "Missing Resend API key."
+            message
+          );
+
+          await markConfirmationFailed(
+            appointmentRef,
+            message
           );
 
           return;
         }
 
         try {
-const email =
-  buildAppointmentEmail(
-    after
-  );
+          const email =
+            buildAppointmentEmail(
+              after
+            );
 
           const resend =
             new Resend(
               resendKey
             );
 
-const result =
-  await resend
-    .emails
-    .send({
-      from:
-        "Sandman Combat <join@sandmancombat.com>",
+          const result =
+            await resend
+              .emails
+              .send({
+                from:
+                  "Sandman Combat <join@sandmancombat.com>",
 
-      replyTo:
-        "joinsandmancombat@gmail.com",
+                replyTo:
+                  "joinsandmancombat@gmail.com",
 
-      to:
-        parentEmail,
+                to:
+                  parentEmail,
 
-      subject:
-        email.subject,
+                subject:
+                  email.subject,
 
-      text:
-        email.text,
+                text:
+                  email.text,
 
-      html:
-        email.html
-    });
+                html:
+                  email.html
+              });
 
-            if (result.error) {
+          if (result.error) {
             throw new Error(
               result.error.message ||
               "Resend rejected the appointment email."
             );
           }
 
+          const emailId =
+            result.data?.id || "";
+
+          /*
+           * Synchronize BOTH records.
+           *
+           * interest_leads drives Gatekeeper.
+           * admissions_appointments drives the
+           * Management appointment workspace.
+           */
           await markConfirmationSent(
             change.after.ref,
-            result.data?.id || ""
+            emailId
+          );
+
+          await markConfirmationSent(
+            appointmentRef,
+            emailId
           );
 
           console.log(
@@ -154,16 +215,20 @@ const result =
             {
               leadId,
               parentEmail,
+
               appointmentDate:
                 after.appointmentDate,
+
               appointmentTime:
                 after.appointmentTime,
+
               appointmentLocation:
                 after.appointmentLocation,
+
               appointmentCoach:
                 after.appointmentCoach,
-              emailId:
-                result.data?.id || ""
+
+              emailId
             }
           );
         } catch (
@@ -180,8 +245,17 @@ const result =
             error
           );
 
+          /*
+           * Keep Management and the lead
+           * record synchronized on failure too.
+           */
           await markConfirmationFailed(
             change.after.ref,
+            message
+          );
+
+          await markConfirmationFailed(
+            appointmentRef,
             message
           );
         }

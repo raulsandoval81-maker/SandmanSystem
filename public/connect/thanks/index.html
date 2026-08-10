@@ -8,392 +8,478 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Thank You | Sandman Combat Academy</title>
+  <title>
+    Thank You | Sandman Academy of Combat & Fitness
+  </title>
 
   <meta
     name="description"
-    content="Thank you for contacting Sandman Combat Academy."
+    content="Thank you for contacting Sandman Academy of Combat & Fitness."
   />
-<link
-  rel="stylesheet"
-  href="/assets/css/site.css"
-/>
 
-<style>
-  :root{
-    --bg:#090909;
-    --panel:#141414;
-    --gold:#facc15;
-    --red:#7a1111;
-    --text:#f4f4f5;
-    --muted:#b8bcc4;
-    --border:#2a2a2a;
-  }
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
 
-  *{
-    box-sizing:border-box;
-  }
+  <style>
+    :root{
+      --bg:#090909;
+      --panel:#141414;
+      --gold:#facc15;
+      --red:#7a1111;
+      --text:#f4f4f5;
+      --muted:#b8bcc4;
+      --border:#2a2a2a;
+    }
 
-  html{
-    background:var(--bg);
-  }
+    *{
+      box-sizing:border-box;
+    }
 
-  body{
-    margin:0;
-    min-height:100vh;
-    background:
-      radial-gradient(
-        circle at top,
-        rgba(250,204,21,.12),
-        transparent 34%
-      ),
-      var(--bg);
-    color:var(--text);
-    font-family:
-      Inter,
-      system-ui,
-      -apple-system,
-      BlinkMacSystemFont,
-      "Segoe UI",
-      sans-serif;
-  }
+    html{
+      background:var(--bg);
+    }
 
-  [data-lang],
-  [data-response]{
-    display:none;
-  }
+    body{
+      margin:0;
+      min-height:100vh;
 
-  html[lang="en"] [data-lang="en"],
-  html[lang="es"] [data-lang="es"]{
-    display:inline;
-  }
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(250,204,21,.12),
+          transparent 34%
+        ),
+        var(--bg);
 
-  html[lang="en"][data-audience="family"]
-    [data-response="en-family"],
-  html[lang="en"][data-audience="adult"]
-    [data-response="en-adult"],
-  html[lang="es"][data-audience="family"]
-    [data-response="es-family"],
-  html[lang="es"][data-audience="adult"]
-    [data-response="es-adult"]{
-    display:inline;
-  }
+      color:var(--text);
 
-  .page{
-    min-height:100vh;
-    display:grid;
-    place-items:center;
-    padding:32px 16px;
-  }
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
 
-  .card{
-    width:100%;
-    max-width:720px;
-    padding:34px 26px;
-    text-align:center;
-    background:var(--panel);
-    border:1px solid var(--border);
-    border-radius:22px;
-    box-shadow:0 22px 50px rgba(0,0,0,.5);
-  }
+    [data-lang],
+    [data-response]{
+      display:none;
+    }
 
-  .eyebrow{
-    margin:0 0 10px;
-    color:var(--gold);
-    font-size:.78rem;
-    font-weight:900;
-    letter-spacing:.18em;
-    text-transform:uppercase;
-  }
+    html[lang="en"] [data-lang="en"],
+    html[lang="es"] [data-lang="es"]{
+      display:inline;
+    }
 
-  h1{
-    margin:0 0 16px;
-    color:#fff;
-    font-size:clamp(2rem,6vw,3.4rem);
-    line-height:1.05;
-  }
+    html[lang="en"][data-audience="family"]
+      [data-response="en-family"],
+    html[lang="en"][data-audience="adult"]
+      [data-response="en-adult"],
+    html[lang="es"][data-audience="family"]
+      [data-response="es-family"],
+    html[lang="es"][data-audience="adult"]
+      [data-response="es-adult"]{
+      display:inline;
+    }
 
-  .lead{
-    max-width:600px;
-    margin:0 auto 12px;
-    color:var(--muted);
-    font-size:1.04rem;
-    line-height:1.65;
-  }
-
-  .steps{
-    margin:28px 0;
-    padding:22px;
-    text-align:left;
-    background:rgba(255,255,255,.035);
-    border:1px solid rgba(255,255,255,.08);
-    border-radius:16px;
-  }
-
-  .steps h2{
-    margin:0 0 16px;
-    color:#fff;
-    font-size:1.12rem;
-  }
-
-  .steps p{
-    margin:0;
-    color:#d7dbe2;
-    line-height:1.6;
-  }
-
-  .steps p + p{
-    margin-top:14px;
-  }
-
-  .steps strong{
-    color:#fff;
-  }
-
-  .actions{
-    display:flex;
-    justify-content:center;
-    gap:12px;
-    flex-wrap:wrap;
-  }
-
-  .btn{
-    display:inline-flex;
-    justify-content:center;
-    align-items:center;
-    min-width:190px;
-    padding:12px 20px;
-    border-radius:999px;
-    color:#fff;
-    font-weight:800;
-    text-decoration:none;
-    transition:
-      transform .2s ease,
-      filter .2s ease;
-  }
-
-  .btn:hover{
-    filter:brightness(1.08);
-    transform:translateY(-1px);
-  }
-
-  .btn:focus-visible{
-    outline:3px solid rgba(250,204,21,.35);
-    outline-offset:3px;
-  }
-
-  .btn-primary{
-    background:var(--red);
-    border:1px solid #941b1b;
-  }
-
-  .motto{
-    margin:26px 0 0;
-    color:var(--gold);
-    font-weight:800;
-    letter-spacing:.08em;
-  }
-
-  @media (max-width:600px){
     .page{
-      padding:18px 12px;
+      min-height:100vh;
+
+      display:grid;
+      place-items:center;
+
+      padding:32px 16px;
     }
 
     .card{
-      padding:26px 18px;
-      border-radius:18px;
+      width:100%;
+      max-width:720px;
+
+      padding:34px 26px;
+
+      text-align:center;
+
+      background:var(--panel);
+
+      border:1px solid var(--border);
+      border-radius:22px;
+
+      box-shadow:
+        0 22px 50px rgba(0,0,0,.5);
+    }
+
+    .eyebrow{
+      margin:0 0 10px;
+
+      color:var(--gold);
+
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.18em;
+
+      text-transform:uppercase;
+    }
+
+    h1{
+      margin:0 0 16px;
+
+      color:#fff;
+
+      font-size:clamp(2rem,6vw,3.4rem);
+      line-height:1.05;
     }
 
     .lead{
-      font-size:.98rem;
+      max-width:600px;
+
+      margin:0 auto;
+
+      color:var(--muted);
+
+      font-size:1.04rem;
+      line-height:1.65;
     }
 
     .steps{
-      margin:24px 0;
-      padding:18px;
+      margin:28px 0;
+      padding:22px;
+
+      text-align:left;
+
+      background:
+        rgba(255,255,255,.035);
+
+      border:
+        1px solid rgba(255,255,255,.08);
+
+      border-radius:16px;
+    }
+
+    .steps h2{
+      margin:0 0 18px;
+
+      color:#fff;
+
+      font-size:1.12rem;
+    }
+
+    .steps p{
+      margin:0;
+
+      color:#d7dbe2;
+
+      line-height:1.65;
+    }
+
+    .steps p + p{
+      margin-top:16px;
+    }
+
+    .actions{
+      display:flex;
+      justify-content:center;
+
+      gap:12px;
+
+      flex-wrap:wrap;
     }
 
     .btn{
-      width:100%;
+      display:inline-flex;
+
+      justify-content:center;
+      align-items:center;
+
+      min-width:190px;
+
+      padding:12px 20px;
+
+      border-radius:999px;
+
+      color:#fff;
+
+      font-weight:800;
+
+      text-decoration:none;
+
+      transition:
+        transform .2s ease,
+        filter .2s ease;
     }
-  }
-.privacy-note{
-  max-width:620px;
-  margin:0 auto 26px;
-  color:var(--muted);
-  font-size:.88rem;
-  line-height:1.65;
-}
-</style>
+
+    .btn:hover{
+      filter:brightness(1.08);
+      transform:translateY(-1px);
+    }
+
+    .btn:focus-visible{
+      outline:
+        3px solid rgba(250,204,21,.35);
+
+      outline-offset:3px;
+    }
+
+    .btn-primary{
+      background:var(--red);
+      border:1px solid #941b1b;
+    }
+
+    .motto{
+      margin:26px 0 0;
+
+      color:var(--gold);
+
+      font-weight:800;
+      letter-spacing:.08em;
+    }
+
+    @media (max-width:600px){
+      .page{
+        padding:18px 12px;
+      }
+
+      .card{
+        padding:26px 18px;
+        border-radius:18px;
+      }
+
+      .lead{
+        font-size:.98rem;
+      }
+
+      .steps{
+        margin:24px 0;
+        padding:18px;
+      }
+
+      .btn{
+        width:100%;
+      }
+    }
+  </style>
 </head>
 
 <body>
+
   <main class="page">
+
     <section class="card">
 
       <p class="eyebrow">
-        Sandman Combat Academy
+        Sandman Academy of Combat & Fitness
       </p>
 
-      <h1>
-        <span data-lang="en">Thank You!</span>
-        <span data-lang="es">¡Gracias!</span>
-      </h1>
+<h1>
+  <span data-lang="en">
+    Thank You!
+  </span>
 
+  <span data-lang="es">
+    ¡Gracias!
+  </span>
+</h1>
 
 <p class="lead">
   <span data-response="en-family">
-    Thank you for contacting Sandman Combat Academy. We've received your request and look forward to meeting you and your family.
+    We've received your request and look forward
+    to meeting you and your athlete.
   </span>
 
   <span data-response="en-adult">
-    Thank you for contacting Sandman Combat Academy. We've received your request and look forward to meeting you.
+    We've received your request and look forward
+    to meeting you.
   </span>
 
   <span data-response="es-family">
-    Gracias por comunicarte con Sandman Combat Academy. Hemos recibido tu solicitud y esperamos conocerte a ti y a tu familia.
+    Hemos recibido tu solicitud y esperamos
+    conocerte a ti y a tu atleta.
   </span>
 
   <span data-response="es-adult">
-    Gracias por comunicarte con Sandman Combat Academy. Hemos recibido tu solicitud y esperamos conocerte.
+    Hemos recibido tu solicitud y esperamos
+    conocerte.
   </span>
 </p>
-
       <section class="steps">
 
         <h2>
-          <span data-lang="en">What Happens Next</span>
-          <span data-lang="es">¿Qué Sigue?</span>
-        </h2>
+          <span data-lang="en">
+            What Happens Next
+          </span>
 
-        
+          <span data-lang="es">
+            ¿Qué Sigue?
+          </span>
+        </h2>
 
         <p>
           <span data-response="en-family">
-            ✓ We carefully review your athlete's information, goals, preferred location, and availability to determine the program that best fits their current stage of development.
+            ✓ A Sandman coach will review your request
+            and preferred days and times, determine the
+            best meeting time for your family and our
+            staff, and contact you to confirm your visit.
+            Watch for your confirmation email with your
+            visit details and next steps.
           </span>
 
           <span data-response="en-adult">
-            ✓ We carefully review your information, goals, preferred location, and availability to determine the program that best fits your current stage of development.
+            ✓ A Sandman coach will review your request
+            and preferred days and times, determine the
+            best meeting time for you and our staff,
+            and contact you to confirm your visit.
+            Watch for your confirmation email with your
+            visit details and next steps.
           </span>
 
           <span data-response="es-family">
-            ✓ Revisamos cuidadosamente la información de tu atleta, sus objetivos, la ubicación preferida y la disponibilidad para determinar el programa que mejor se adapte a su etapa actual de desarrollo.
+            ✓ Un entrenador de Sandman revisará tu
+            solicitud y tus días y horarios preferidos,
+            determinará el mejor horario para tu familia
+            y nuestro personal, y se comunicará contigo
+            para confirmar tu visita. Revisa tu correo
+            electrónico para recibir la confirmación con
+            los detalles de tu visita y los próximos pasos.
           </span>
 
           <span data-response="es-adult">
-            ✓ Revisamos cuidadosamente tu información, tus objetivos, la ubicación preferida y tu disponibilidad para determinar el programa que mejor se adapte a tu etapa actual de desarrollo.
+            ✓ Un entrenador de Sandman revisará tu
+            solicitud y tus días y horarios preferidos,
+            determinará el mejor horario para ti y nuestro
+            personal, y se comunicará contigo para
+            confirmar tu visita. Revisa tu correo
+            electrónico para recibir la confirmación con
+            los detalles de tu visita y los próximos pasos.
           </span>
         </p>
 
         <p>
+          <span data-response="en-family">
+            ✓ Your visit will include a complimentary
+            class and Admissions Appointment. Your coach
+            will guide the order of the visit based on
+            your athlete's experience and the day's
+            training schedule. New athletes are often
+            scheduled near the end of practice so your
+            family can meet with the coach first.
+            Athletes requesting a Placement Assessment
+            may train first so the coach can evaluate
+            their current level before meeting with
+            your family.
+          </span>
 
-  <span data-lang="en">
-    ✓ A Sandman coach will personally review your request and contact
-    you to schedule and confirm your
-    <strong>Admissions Appointment</strong>.
-  </span>
-</p>
+          <span data-response="en-adult">
+            ✓ Your visit will include a complimentary
+            class and Admissions Appointment. Your coach
+            will guide the order of the visit based on
+            your experience and the day's training
+            schedule. New athletes are often scheduled
+            near the end of practice so you can meet
+            with the coach first. If you requested a
+            Placement Assessment, you may train first
+            so the coach can evaluate your current level
+            before meeting with you.
+          </span>
 
-<p>
-  <span data-lang="en">
-    ✓ Watch for your confirmation email with your appointment
-    details and everything you need to know before your visit.
-  </span>
+          <span data-response="es-family">
+            ✓ Tu visita incluirá una clase de cortesía
+            y una Cita de Admisión. Tu entrenador guiará
+            el orden de la visita según la experiencia
+            de tu atleta y el horario de entrenamiento
+            de ese día. Los atletas nuevos suelen
+            programarse cerca del final de la práctica
+            para que tu familia pueda reunirse primero
+            con el entrenador. Los atletas que solicitan
+            una Evaluación de Colocación pueden entrenar
+            primero para que el entrenador evalúe su
+            nivel actual antes de reunirse con tu familia.
+          </span>
 
-  <span data-lang="es">
-    ✓ Revisa tu correo electrónico para recibir la confirmación
-    de tu cita con los detalles y todo lo que necesitas saber
-    antes de tu visita.
-  </span>
-</p>
+          <span data-response="es-adult">
+            ✓ Tu visita incluirá una clase de cortesía
+            y una Cita de Admisión. Tu entrenador guiará
+            el orden de la visita según tu experiencia
+            y el horario de entrenamiento de ese día.
+            Los atletas nuevos suelen programarse cerca
+            del final de la práctica para que puedas
+            reunirte primero con el entrenador. Si
+            solicitaste una Evaluación de Colocación,
+            puedes entrenar primero para que el entrenador
+            evalúe tu nivel actual antes de reunirse contigo.
+          </span>
+        </p>
 
-<p>
-  <span data-response="en-family">
-    ✓ During your <strong>Admissions Appointment</strong>,
-    we'll get to know your athlete, answer your questions, discuss
-    your family's goals, and recommend the program that best fits
-    your athlete's current stage of development.
-  </span>
+        <p>
+          <span data-response="en-family">
+            ✓ During your visit, you'll have time to
+            ask questions and discuss your athlete's
+            goals, program options, and membership
+            options with the coach. If you decide to
+            continue after the visit, we'll help your
+            family with the appropriate next steps.
+          </span>
 
-  <span data-response="en-adult">
-    ✓ During your <strong>Admissions Appointment</strong>,
-    we'll get to know you, answer your questions, discuss your goals,
-    and recommend the program that best fits your current stage of development.
-  </span>
+          <span data-response="en-adult">
+            ✓ During your visit, you'll have time to
+            ask questions and discuss your goals,
+            program options, and membership options
+            with the coach. If you decide to continue
+            after the visit, we'll help you with the
+            appropriate next steps.
+          </span>
 
-  <span data-response="es-family">
-    ✓ Durante tu <strong>Cita de Admisión</strong>,
-    conoceremos a tu atleta, responderemos tus preguntas,
-    hablaremos sobre los objetivos de tu familia y
-    recomendaremos el programa que mejor se adapte a la etapa
-    actual de desarrollo de tu atleta.
-  </span>
+          <span data-response="es-family">
+            ✓ Durante tu visita, tendrás tiempo para
+            hacer preguntas y conversar con el entrenador
+            sobre las metas de tu atleta, las opciones
+            de programas y las opciones de membresía.
+            Si decides continuar después de la visita,
+            ayudaremos a tu familia con los próximos
+            pasos apropiados.
+          </span>
 
-  <span data-response="es-adult">
-    ✓ Durante tu <strong>Cita de Admisión</strong>,
-    te conoceremos, responderemos tus preguntas, hablaremos sobre
-    tus objetivos y recomendaremos el programa que mejor se adapte
-    a tu etapa actual de desarrollo.
-  </span>
-</p>
+          <span data-response="es-adult">
+            ✓ Durante tu visita, tendrás tiempo para
+            hacer preguntas y conversar con el entrenador
+            sobre tus metas, las opciones de programas
+            y las opciones de membresía. Si decides
+            continuar después de la visita, te ayudaremos
+            con los próximos pasos apropiados.
+          </span>
+        </p>
 
       </section>
-
-<p class="privacy-note">
-  <span data-response="en-family">
-    By submitting this form, you authorize a Sandman
-    coach to contact you about our programs, answer
-    your questions, and help determine the best path
-    for you or your athlete. There is no obligation
-    to enroll, and no payment is required today.
-  </span>
-
-  <span data-response="en-adult">
-    By submitting this form, you authorize a Sandman
-    coach to contact you about our programs, answer
-    your questions, and help determine the best path
-    for you. There is no obligation to enroll, and no
-    payment is required today.
-  </span>
-
-  <span data-response="es-family">
-    Al enviar este formulario, autorizas a un coach
-    de Sandman a comunicarse contigo sobre nuestros
-    programas, responder tus preguntas y ayudarte a
-    determinar el mejor camino para ti o tu atleta.
-    No existe ninguna obligación de inscribirse y no
-    se requiere ningún pago hoy.
-  </span>
-
-  <span data-response="es-adult">
-    Al enviar este formulario, autorizas a un coach
-    de Sandman a comunicarse contigo sobre nuestros
-    programas, responder tus preguntas y ayudarte a
-    determinar el mejor camino para ti. No existe
-    ninguna obligación de inscribirse y no se requiere
-    ningún pago hoy.
-  </span>
-</p>
-      
 
       <div class="actions">
         <a
           class="btn btn-primary"
           href="/"
         >
-          <span data-lang="en">Return to Home</span>
-          <span data-lang="es">Volver al Inicio</span>
+          <span data-lang="en">
+            Return to Home
+          </span>
+
+          <span data-lang="es">
+            Volver al Inicio
+          </span>
         </a>
       </div>
 
       <p class="motto">
-        <span data-lang="en">Combat = Character</span>
-        <span data-lang="es">Combate = Carácter</span>
+        <span data-lang="en">
+          Combat = Character
+        </span>
+
+        <span data-lang="es">
+          Combate = Carácter
+        </span>
       </p>
 
     </section>
-</main>
+
+  </main>
 
   <script>
     function setLanguage(language) {
@@ -411,7 +497,9 @@
     }
 
     const params =
-      new URLSearchParams(window.location.search);
+      new URLSearchParams(
+        window.location.search
+      );
 
     setLanguage(
       params.get("lang")

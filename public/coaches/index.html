@@ -2,235 +2,1051 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Coach Console</title>
 
-  <link rel="stylesheet" href="/assets/css/site.css">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Sandman Coach System™</title>
+
+  <meta
+    name="description"
+    content="Sandman Coach System tools for building and running practice."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
 
   <style>
-    :root { color-scheme: dark; }
+    :root{
+      color-scheme:dark;
+      --coach-bg:#05070b;
+      --coach-panel:#0b1017;
+      --coach-line:rgba(255,255,255,.14);
+      --coach-gold:#ffd633;
+      --coach-red:#e53935;
+      --coach-text:#f5f5f5;
+      --coach-muted:#a8b0bd;
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      min-height:100%;
+      background:var(--coach-bg);
+    }
 
     body{
-      background:#06080d;
-      color:#f5f5f5;
+      min-height:100vh;
       margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      overflow-x:hidden;
+      background:
+        radial-gradient(
+          circle at 50% 0,
+          rgba(229,57,53,.12),
+          transparent 35rem
+        ),
+        var(--coach-bg);
+      color:var(--coach-text);
+      font-family:
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Arial,
+        sans-serif;
     }
 
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:28px 16px 48px;
+    body.menu-open{
+      overflow:hidden;
     }
 
-    .hero{
-      background:#0f141b;
-      border:1px solid #1d2430;
-      border-radius:18px;
-      padding:20px;
-      box-shadow:0 10px 26px rgba(0,0,0,.35);
-      margin-bottom:18px;
-      text-align:center;
+    button,
+    a{
+      -webkit-tap-highlight-color:transparent;
     }
 
-    .hero h1{
-      margin:0;
-      color:#ffd633;
-      font-size:2rem;
-      text-shadow:0 0 12px rgba(255,214,51,.25);
-      letter-spacing:.02em;
+    /* =====================================================
+       HEADER
+    ====================================================== */
+
+    .coach-header{
+      position:relative;
+      z-index:1000;
+      width:100%;
+      border-bottom:1px solid var(--coach-line);
+      background:rgba(5,7,11,.96);
+      backdrop-filter:blur(14px);
     }
 
-    .hero p{
-      margin:8px 0 0;
-      color:#9ca3af;
-      font-size:.9rem;
-      line-height:1.45;
+    .coach-header__inner{
+      display:grid;
+      grid-template-columns:48px minmax(0,1fr) 48px;
+      align-items:center;
+      gap:1rem;
+      width:min(1200px,calc(100% - 2rem));
+      min-height:76px;
+      margin-inline:auto;
     }
 
-    .fine{
-      color:#94a3b8;
-      font-size:.72rem;
-      margin:.5rem 0 0;
-      line-height:1.35;
-    }
-
-    .section-kicker{
-      font-size:1.05rem;
-      font-weight:900;
-      color:#ffd633;
-      margin:22px 0 12px;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-    }
-
-    .quick-actions{
-      display:flex;
-      gap:.65rem;
-      justify-content:center;
-      flex-wrap:wrap;
-      margin-top:12px;
-    }
-
-    .quick-btn{
+    .coach-home-link{
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      border-radius:999px;
-      padding:.6rem 1.2rem;
-      background:#0b1017;
-      border:1px solid #1d2430;
-      color:#fff;
+      width:44px;
+      height:44px;
+      border:1px solid rgba(255,214,51,.45);
+      border-radius:50%;
+      color:var(--coach-gold);
       text-decoration:none;
-      font-weight:900;
-      font-size:.8rem;
+      font-size:1.15rem;
+      transition:
+        border-color 160ms ease,
+        background 160ms ease;
+    }
+
+    .coach-home-link:hover,
+    .coach-home-link:focus-visible{
+      border-color:var(--coach-gold);
+      background:rgba(255,214,51,.08);
+    }
+
+    .coach-brand{
+      min-width:0;
+      color:inherit;
+      text-align:center;
+      text-decoration:none;
+    }
+
+    .coach-brand__title{
+      display:block;
+      overflow:hidden;
+      color:#fff;
+      font-size:clamp(.85rem,2vw,1.08rem);
+      font-weight:950;
+      line-height:1.15;
+      letter-spacing:.055em;
+      text-overflow:ellipsis;
+      text-transform:uppercase;
+      white-space:nowrap;
+    }
+
+    .coach-brand__sub{
+      display:block;
+      margin-top:.25rem;
+      color:var(--coach-gold);
+      font-size:.68rem;
+      font-weight:850;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .menu-toggle{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      flex-direction:column;
+      justify-self:end;
+      gap:5px;
+      width:44px;
+      height:44px;
+      padding:0;
+      border:1px solid rgba(255,214,51,.45);
+      border-radius:50%;
+      background:transparent;
+      color:var(--coach-gold);
       cursor:pointer;
+      transition:
+        border-color 160ms ease,
+        background 160ms ease;
     }
 
-    .quick-btn.primary{
-      background:#e53935;
-      border-color:#e53935;
-      box-shadow:0 0 10px rgba(229,57,53,.35);
+    .menu-toggle:hover,
+    .menu-toggle:focus-visible{
+      border-color:var(--coach-gold);
+      background:rgba(255,214,51,.08);
     }
 
-    .quick-btn:hover{
-      border-color:#e63946;
-      box-shadow:0 0 10px rgba(230,57,70,.35);
+    .menu-toggle__line{
+      display:block;
+      width:19px;
+      height:2px;
+      border-radius:2px;
+      background:currentColor;
+      transition:
+        transform 180ms ease,
+        opacity 180ms ease;
     }
 
-    .tools-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-      gap:1.1rem;
+    .menu-toggle.is-open .menu-toggle__line:nth-child(1){
+      transform:translateY(7px) rotate(45deg);
     }
 
-    .tool-card{
-      background:#0b1017;
-      border:1px solid #1f2937;
-      border-radius:12px;
-      padding:1rem;
-      box-shadow:0 10px 18px rgba(0,0,0,.22);
+    .menu-toggle.is-open .menu-toggle__line:nth-child(2){
+      opacity:0;
+    }
+
+    .menu-toggle.is-open .menu-toggle__line:nth-child(3){
+      transform:translateY(-7px) rotate(-45deg);
+    }
+
+    /* =====================================================
+       MENU
+    ====================================================== */
+
+    .menu-backdrop{
+      position:fixed;
+      z-index:1090;
+      inset:0;
+      border:0;
+      background:rgba(0,0,0,.68);
+      opacity:0;
+      visibility:hidden;
+      cursor:default;
+      transition:
+        opacity 180ms ease,
+        visibility 180ms ease;
+    }
+
+    .menu-backdrop.is-open{
+      opacity:1;
+      visibility:visible;
+    }
+
+    .coach-menu{
+      position:fixed;
+      z-index:1100;
+      top:0;
+      right:0;
       display:flex;
       flex-direction:column;
-      gap:.6rem;
-      transition:.15s;
-      min-height:160px;
+      width:min(390px,90vw);
+      height:100dvh;
+      border-left:1px solid rgba(255,214,51,.25);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(229,57,53,.09),
+          transparent 12rem
+        ),
+        #080c12;
+      box-shadow:-20px 0 50px rgba(0,0,0,.55);
+      visibility:hidden;
+      transform:translateX(102%);
+      transition:
+        transform 220ms ease,
+        visibility 220ms ease;
     }
 
-    .tool-card:hover{
-      border-color:#e63946;
-      box-shadow:0 0 12px rgba(230,57,70,.4);
-      transform:translateY(-2px);
+    .coach-menu.is-open{
+      visibility:visible;
+      transform:translateX(0);
     }
 
-    .tool-card h3{
+    .coach-menu__head{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      min-height:76px;
+      padding:0 1.25rem;
+      border-bottom:1px solid var(--coach-line);
+    }
+
+    .coach-menu__title{
       margin:0;
-      color:#ffdd48;
-      font-size:1rem;
-    }
-
-    .tool-card p{
+      color:var(--coach-gold);
       font-size:.78rem;
-      color:#9ca3af;
-      line-height:1.45;
-      margin:0;
-      flex:1;
+      font-weight:950;
+      letter-spacing:.16em;
+      text-transform:uppercase;
     }
 
-    .btn{
-      display:inline-block;
-      border:none;
-      border-radius:999px;
-      padding:.45rem 1rem;
-      font-weight:900;
-      text-decoration:none;
-      cursor:pointer;
-      font-size:.75rem;
-      width:max-content;
-    }
-
-    .btn-red{
-      background:#e53935;
+    .menu-close{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:40px;
+      height:40px;
+      border:1px solid rgba(255,255,255,.18);
+      border-radius:50%;
+      background:transparent;
       color:#fff;
-      box-shadow:0 0 10px rgba(229,57,53,.35);
+      font-size:1.3rem;
+      cursor:pointer;
     }
 
-    .btn-red:hover{
+    .coach-menu__links{
+      display:flex;
+      flex:1;
+      flex-direction:column;
+      gap:.35rem;
+      overflow-y:auto;
+      padding:1rem;
+    }
+
+    .coach-menu__links a{
+      display:grid;
+      grid-template-columns:38px minmax(0,1fr);
+      align-items:center;
+      gap:.75rem;
+      min-height:54px;
+      padding:.65rem .8rem;
+      border:1px solid transparent;
+      border-radius:12px;
+      color:#fff;
+      text-decoration:none;
+      transition:
+        border-color 150ms ease,
+        background 150ms ease,
+        color 150ms ease;
+    }
+
+    .coach-menu__links a:hover,
+    .coach-menu__links a:focus-visible{
+      border-color:rgba(255,214,51,.35);
+      background:rgba(255,255,255,.045);
+      color:var(--coach-gold);
+    }
+
+    .menu-icon{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:36px;
+      height:36px;
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:9px;
+      color:var(--coach-gold);
+      font-size:.8rem;
+      font-weight:950;
+      letter-spacing:.02em;
+    }
+
+    .menu-label{
+      display:block;
+      font-size:.83rem;
+      font-weight:900;
+      letter-spacing:.045em;
+      text-transform:uppercase;
+    }
+
+    .menu-description{
+      display:block;
+      margin-top:.2rem;
+      color:var(--coach-muted);
+      font-size:.68rem;
+      font-weight:500;
+      line-height:1.3;
+      letter-spacing:0;
+      text-transform:none;
+    }
+
+    .coach-menu__divider{
+      height:1px;
+      margin:.35rem .6rem;
+      background:var(--coach-line);
+    }
+
+    .coach-menu__links .menu-hub{
+      border-color:rgba(255,214,51,.28);
+    }
+
+    /* =====================================================
+       SPLASH
+    ====================================================== */
+
+    .coach-main{
+      width:min(1400px,100%);
+      margin-inline:auto;
+      padding:clamp(1rem,3vw,2rem);
+    }
+
+    .coach-splash{
+      position:relative;
+      isolation:isolate;
+      min-height:clamp(560px,calc(100vh - 140px),820px);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.15);
+      border-radius:24px;
+      background:#090d13;
+      box-shadow:
+        0 30px 70px rgba(0,0,0,.5),
+        0 0 35px rgba(229,57,53,.08);
+    }
+
+    .coach-splash__image{
+      position:absolute;
+      z-index:-3;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:center;
+    }
+
+    .coach-splash::before{
+      position:absolute;
+      z-index:-2;
+      inset:0;
+      content:"";
+      background:
+        linear-gradient(
+          90deg,
+          rgba(0,0,0,.92) 0%,
+          rgba(0,0,0,.7) 35%,
+          rgba(0,0,0,.2) 67%,
+          rgba(0,0,0,.12) 100%
+        );
+    }
+
+    .coach-splash::after{
+      position:absolute;
+      z-index:-1;
+      inset:0;
+      content:"";
+      background:
+        linear-gradient(
+          0deg,
+          rgba(0,0,0,.78) 0%,
+          transparent 42%
+        );
+    }
+
+    .coach-splash__content{
+      display:flex;
+      align-items:flex-start;
+      justify-content:center;
+      flex-direction:column;
+      width:min(610px,62%);
+      min-height:inherit;
+      padding:clamp(2rem,6vw,5.5rem);
+    }
+
+    .coach-splash__eyebrow{
+      margin:0 0 1rem;
+      color:var(--coach-red);
+      font-size:.76rem;
+      font-weight:950;
+      letter-spacing:.22em;
+      text-transform:uppercase;
+    }
+
+    .coach-splash h1{
+      max-width:10ch;
+      margin:0;
+      color:#fff;
+      font-size:clamp(2.6rem,7vw,6rem);
+      font-weight:950;
+      line-height:.91;
+      letter-spacing:-.045em;
+      text-transform:uppercase;
+      text-wrap:balance;
+    }
+
+    .coach-splash h1 span{
+      display:block;
+      color:var(--coach-gold);
+    }
+
+    .coach-splash__tagline{
+      margin:1.35rem 0 0;
+      color:#fff;
+      font-size:clamp(1rem,2vw,1.35rem);
+      font-weight:750;
+      letter-spacing:.035em;
+    }
+
+    .coach-splash__instruction{
+      max-width:40ch;
+      margin:1rem 0 0;
+      color:#c7ccd4;
+      font-size:.86rem;
+      line-height:1.55;
+    }
+
+    .open-system-menu{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:.65rem;
+      margin-top:1.75rem;
+      min-height:48px;
+      padding:.75rem 1.25rem;
+      border:1px solid var(--coach-red);
+      border-radius:999px;
+      background:var(--coach-red);
+      color:#fff;
+      font:inherit;
+      font-size:.78rem;
+      font-weight:950;
+      letter-spacing:.07em;
+      text-transform:uppercase;
+      cursor:pointer;
+      box-shadow:0 0 22px rgba(229,57,53,.3);
+    }
+
+    .open-system-menu:hover,
+    .open-system-menu:focus-visible{
       background:#ff4758;
+      border-color:#ff4758;
+    }
+
+    .coach-splash__footer{
+      position:absolute;
+      right:1.5rem;
+      bottom:1.25rem;
+      left:1.5rem;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:1rem;
+      color:rgba(255,255,255,.58);
+      font-size:.68rem;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    /* =====================================================
+       RESPONSIVE
+    ====================================================== */
+
+    @media (max-width:760px){
+      .coach-header__inner{
+        grid-template-columns:42px minmax(0,1fr) 42px;
+        gap:.5rem;
+        width:calc(100% - 1rem);
+        min-height:66px;
+      }
+
+      .coach-home-link,
+      .menu-toggle{
+        width:40px;
+        height:40px;
+      }
+
+      .coach-brand__title{
+        font-size:.72rem;
+        white-space:normal;
+      }
+
+      .coach-brand__sub{
+        font-size:.58rem;
+      }
+
+      .coach-main{
+        padding:.75rem;
+      }
+
+      .coach-splash{
+        min-height:calc(100dvh - 90px);
+        border-radius:18px;
+      }
+
+      .coach-splash__image{
+        object-position:63% center;
+      }
+
+      .coach-splash::before{
+        background:
+          linear-gradient(
+            0deg,
+            rgba(0,0,0,.96) 0%,
+            rgba(0,0,0,.83) 48%,
+            rgba(0,0,0,.22) 100%
+          );
+      }
+
+      .coach-splash__content{
+        align-items:center;
+        justify-content:flex-end;
+        width:100%;
+        padding:2rem 1.35rem 6.5rem;
+        text-align:center;
+      }
+
+      .coach-splash h1{
+        max-width:12ch;
+        font-size:clamp(2.4rem,13vw,4.25rem);
+      }
+
+      .coach-splash__instruction{
+        max-width:34ch;
+      }
+
+      .coach-splash__footer{
+        justify-content:center;
+        text-align:center;
+      }
+
+      .coach-splash__footer span:last-child{
+        display:none;
+      }
+    }
+
+    @media (prefers-reduced-motion:reduce){
+      *,
+      *::before,
+      *::after{
+        scroll-behavior:auto !important;
+        transition:none !important;
+      }
     }
   </style>
 </head>
 
 <body>
-<main class="wrap">
 
-  <!-- HEADER -->
-  <header class="hero">
-    <h1>Coach Console</h1>
-    <p>Run the room fast. Use deeper areas only when needed.</p>
+  <header class="coach-header">
+    <div class="coach-header__inner">
 
-    <div class="fine">
-      Quick actions run practice. Areas below go deeper.
+      <a
+        class="coach-home-link"
+        href="/coaches/hub/index.html"
+        aria-label="Return to Coach Hub"
+        title="Coach Hub"
+      >
+        ←
+      </a>
+
+      <a
+        class="coach-brand"
+        href="/coaches/index.html"
+        aria-label="Sandman Coach System home"
+      >
+        <span class="coach-brand__title">
+          Sandman Combat System™
+        </span>
+
+        <span class="coach-brand__sub">
+          Coach System
+        </span>
+      </a>
+
+      <button
+        id="menuToggle"
+        class="menu-toggle"
+        type="button"
+        aria-label="Open Coach System menu"
+        aria-controls="coachMenu"
+        aria-expanded="false"
+      >
+        <span class="menu-toggle__line"></span>
+        <span class="menu-toggle__line"></span>
+        <span class="menu-toggle__line"></span>
+      </button>
+
     </div>
-
-    <!-- QUICK ACTIONS -->
-
-<div class="quick-actions">
-  <a class="quick-btn" href="/coaches/command-center/index.html">Command Center</a>
-    <a class="quick-btn primary" href="/coaches/hub/index.html">Coach Hub</a>
-
-  <a class="quick-btn" href="/communications/coach/broadcast.html">Communications</a>
-</div>
   </header>
 
-  <!-- MAIN AREAS -->
-  <section>
-    <h2 class="section-kicker">Coach Areas</h2>
+  <button
+    id="menuBackdrop"
+    class="menu-backdrop"
+    type="button"
+    aria-label="Close Coach System menu"
+    tabindex="-1"
+  ></button>
 
-    <div class="tools-grid">
+  <aside
+    id="coachMenu"
+    class="coach-menu"
+    aria-label="Coach System navigation"
+    aria-hidden="true"
+  >
+    <div class="coach-menu__head">
+      <h2 class="coach-menu__title">
+        Coach System
+      </h2>
 
-
-      <article class="tool-card">
-  <h3>Practice</h3>
-  <p>Clipboard, timer, cards, curriculum, conditioning, and practice build.</p>
-  <a class="btn btn-red" href="/coaches/practice/index.html">Open</a>
-</article>
-
-      <article class="tool-card">
-        <h3>Live Room</h3>
-        <p>Live tools, arena, and competition flow.</p>
-        <a class="btn btn-red" href="/coaches/live/index.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>XP Engine</h3>
-        <p>Daily XP, arena XP, logs, and tracking.</p>
-        <a class="btn btn-red" href="/coaches/xp/index.html">Open</a>
-      </article>
-
-<article class="tool-card">
-  <h3>Team</h3>
-  <p>Roster, athletes, intake, notes, and team logistics.</p>
-  <a class="btn btn-red" href="/coaches/team/index.html">Open</a>
-</article>
-
-      <article class="tool-card">
-        <h3>System</h3>
-        <p>Testing, command center, and system structure.</p>
-        <a class="btn btn-red" href="/coaches/system/index.html">Open</a>
-      </article>
-
-      <article class="tool-card">
-        <h3>Support</h3>
-        <p>Contact admin, report issues, request help.</p>
-        <a class="btn btn-red" href="/coaches/support/index.html">Open</a>
-      </article>
-
+      <button
+        id="menuClose"
+        class="menu-close"
+        type="button"
+        aria-label="Close Coach System menu"
+      >
+        ×
+      </button>
     </div>
-  </section>
 
-</main>
+    <nav class="coach-menu__links">
 
+      <a href="/coaches/command-center/index.html">
+        <span class="menu-icon">CC</span>
+        <span>
+          <span class="menu-label">Command Center</span>
+          <span class="menu-description">
+            Daily control and coach operations.
+          </span>
+        </span>
+      </a>
+
+      <a href="/coaches/practice/index.html">
+        <span class="menu-icon">P</span>
+        <span>
+          <span class="menu-label">Practice</span>
+          <span class="menu-description">
+            Clipboard, timer, cards, curriculum, and conditioning.
+          </span>
+        </span>
+      </a>
+
+      <a href="/coaches/live/index.html">
+        <span class="menu-icon">L</span>
+        <span>
+          <span class="menu-label">Live Room</span>
+          <span class="menu-description">
+            Live practice, arena, and competition flow.
+          </span>
+        </span>
+      </a>
+
+      <a href="/coaches/xp/index.html">
+        <span class="menu-icon">XP</span>
+        <span>
+          <span class="menu-label">XP Engine</span>
+          <span class="menu-description">
+            Daily XP, Weekend XP, logs, and progression.
+          </span>
+        </span>
+      </a>
+
+      <a href="/coaches/team/index.html">
+        <span class="menu-icon">T</span>
+        <span>
+          <span class="menu-label">Team</span>
+          <span class="menu-description">
+            Roster, athletes, intake, notes, and logistics.
+          </span>
+        </span>
+      </a>
+
+      <a href="/communications/coach/broadcast.html">
+        <span class="menu-icon">C</span>
+        <span>
+          <span class="menu-label">Communications</span>
+          <span class="menu-description">
+            Connect with athletes, families, the team, and Admin.
+          </span>
+        </span>
+      </a>
+
+      <a href="/coaches/system/index.html">
+        <span class="menu-icon">S</span>
+        <span>
+          <span class="menu-label">System</span>
+          <span class="menu-description">
+            Testing, structure, and system tools.
+          </span>
+        </span>
+      </a>
+
+      <a href="/coaches/support/index.html">
+        <span class="menu-icon">?</span>
+        <span>
+          <span class="menu-label">Support</span>
+          <span class="menu-description">
+            Contact Admin, report issues, or request help.
+          </span>
+        </span>
+      </a>
+
+      <div
+        class="coach-menu__divider"
+        aria-hidden="true"
+      ></div>
+
+      <a
+        class="menu-hub"
+        href="/coaches/hub/index.html"
+      >
+        <span class="menu-icon">H</span>
+        <span>
+          <span class="menu-label">Coach Hub</span>
+          <span class="menu-description">
+            Return to culture, expectations, and today’s mission.
+          </span>
+        </span>
+      </a>
+
+    </nav>
+  </aside>
+
+  <main class="coach-main">
+
+    <section
+      class="coach-splash"
+      aria-labelledby="coachSystemTitle"
+    >
+      <img
+        class="coach-splash__image"
+        src="/assets/images/sandman-coach-system-splash.png"
+        alt="Coach using the Sandman Practice Clipboard with the live Big Clock running in the training room"
+        loading="eager"
+      >
+
+      <div class="coach-splash__content">
+
+        <p class="coach-splash__eyebrow">
+          Prepare • Lead • Build
+        </p>
+
+        <h1 id="coachSystemTitle">
+          Sandman
+          <span>Coach System™</span>
+        </h1>
+
+        <p class="coach-splash__tagline">
+          Build the plan. Run the plan.
+        </p>
+
+        <p class="coach-splash__instruction">
+          Open the Coach System menu to access practice,
+          team, XP, live-room, communication, and support tools.
+        </p>
+
+        <button
+          id="openSystemMenu"
+          class="open-system-menu"
+          type="button"
+        >
+          <span aria-hidden="true">☰</span>
+          Open Coach System
+        </button>
+
+      </div>
+
+      <div class="coach-splash__footer">
+        <span>Built in the Shadows</span>
+        <span>Combat • Strength • Honor</span>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const body = document.body;
+      const menu = document.getElementById("coachMenu");
+      const toggle = document.getElementById("menuToggle");
+      const closeButton = document.getElementById("menuClose");
+      const backdrop = document.getElementById("menuBackdrop");
+      const openSystemMenu =
+        document.getElementById("openSystemMenu");
+
+      if (
+        !menu ||
+        !toggle ||
+        !closeButton ||
+        !backdrop ||
+        !openSystemMenu
+      ) {
+        return;
+      }
+
+      const translations = {
+        en: {
+          title: "Sandman Coach System™",
+          description: "Sandman Coach System tools for building and running practice.",
+          back: "Return to Coach Hub",
+          backTitle: "Coach Hub",
+          home: "Sandman Coach System home",
+          system: "Coach System",
+          openMenu: "Open Coach System menu",
+          closeMenu: "Close Coach System menu",
+          navigation: "Coach System navigation",
+          menuLabels: [
+            "Command Center", "Practice", "Live Room", "XP Engine",
+            "Team", "Communications", "System", "Support", "Coach Hub"
+          ],
+          menuDescriptions: [
+            "Daily control and coach operations.",
+            "Clipboard, timer, cards, curriculum, and conditioning.",
+            "Live practice, arena, and competition flow.",
+            "Daily XP, Weekend XP, logs, and progression.",
+            "Roster, athletes, intake, notes, and logistics.",
+            "Connect with athletes, families, the team, and Admin.",
+            "Testing, structure, and system tools.",
+            "Contact Admin, report issues, or request help.",
+            "Return to culture, expectations, and today’s mission."
+          ],
+          imageAlt: "Coach using the Sandman Practice Clipboard with the live Big Clock running in the training room",
+          eyebrow: "Prepare • Lead • Build",
+          coachSystem: "Coach System™",
+          tagline: "Build the plan. Run the plan.",
+          instruction: "Open the Coach System menu to access practice, team, XP, live-room, communication, and support tools.",
+          openButton: "Open Coach System",
+          motto: "Built in the Shadows",
+          doctrine: "Combat • Strength • Honor"
+        },
+        es: {
+          title: "Sistema de Entrenadores Sandman™",
+          description: "Herramientas del Sistema de Entrenadores Sandman para preparar y dirigir la práctica.",
+          back: "Volver al Centro de Entrenadores",
+          backTitle: "Centro de Entrenadores",
+          home: "Inicio del Sistema de Entrenadores Sandman",
+          system: "Sistema de Entrenadores",
+          openMenu: "Abrir el menú del Sistema de Entrenadores",
+          closeMenu: "Cerrar el menú del Sistema de Entrenadores",
+          navigation: "Navegación del Sistema de Entrenadores",
+          menuLabels: [
+            "Centro de Comando", "Práctica", "Sala en Vivo", "Motor de XP",
+            "Equipo", "Comunicaciones", "Sistema", "Soporte", "Centro de Entrenadores"
+          ],
+          menuDescriptions: [
+            "Control diario y operaciones del entrenador.",
+            "Portapapeles, cronómetro, tarjetas, currículo y acondicionamiento.",
+            "Flujo de práctica en vivo, arena y competencia.",
+            "XP diario, XP de fin de semana, registros y progresión.",
+            "Plantel, atletas, admisión, notas y logística.",
+            "Conecta con atletas, familias, el equipo y Administración.",
+            "Pruebas, estructura y herramientas del sistema.",
+            "Contacta a Administración, reporta problemas o solicita ayuda.",
+            "Vuelve a la cultura, las expectativas y la misión de hoy."
+          ],
+          imageAlt: "Entrenador usando el Portapapeles de Práctica Sandman con el Reloj Grande activo en la sala de entrenamiento",
+          eyebrow: "Preparar • Liderar • Construir",
+          coachSystem: "Sistema de Entrenadores™",
+          tagline: "Construye el plan. Ejecuta el plan.",
+          instruction: "Abre el menú del Sistema de Entrenadores para acceder a práctica, equipo, XP, sala en vivo, comunicaciones y soporte.",
+          openButton: "Abrir Sistema de Entrenadores",
+          motto: "Forjado en las Sombras",
+          doctrine: "Combate • Fuerza • Honor"
+        }
+      };
+
+      function setLanguage(language) {
+        const lang = language === "es" ? "es" : "en";
+        const copy = translations[lang];
+        const metaDescription = document.querySelector('meta[name="description"]');
+        const homeLink = document.querySelector(".coach-home-link");
+        const brand = document.querySelector(".coach-brand");
+        const menuTitle = document.querySelector(".coach-menu__title");
+        const labels = document.querySelectorAll(".menu-label");
+        const descriptions = document.querySelectorAll(".menu-description");
+        const splashImage = document.querySelector(".coach-splash__image");
+        const eyebrow = document.querySelector(".coach-splash__eyebrow");
+        const systemName = document.querySelector("#coachSystemTitle span");
+        const tagline = document.querySelector(".coach-splash__tagline");
+        const instruction = document.querySelector(".coach-splash__instruction");
+        const buttonText = openSystemMenu.lastChild;
+        const footerItems = document.querySelectorAll(".coach-splash__footer span");
+
+        root.lang = lang;
+        document.title = copy.title;
+        if (metaDescription) metaDescription.content = copy.description;
+        homeLink.setAttribute("aria-label", copy.back);
+        homeLink.title = copy.backTitle;
+        brand.setAttribute("aria-label", copy.home);
+        document.querySelector(".coach-brand__sub").textContent = copy.system;
+        menuTitle.textContent = copy.system;
+        menu.setAttribute("aria-label", copy.navigation);
+        backdrop.setAttribute("aria-label", copy.closeMenu);
+        closeButton.setAttribute("aria-label", copy.closeMenu);
+        labels.forEach((element, index) => {
+          element.textContent = copy.menuLabels[index];
+        });
+        descriptions.forEach((element, index) => {
+          element.textContent = copy.menuDescriptions[index];
+        });
+        splashImage.alt = copy.imageAlt;
+        eyebrow.textContent = copy.eyebrow;
+        systemName.textContent = copy.coachSystem;
+        tagline.textContent = copy.tagline;
+        instruction.textContent = copy.instruction;
+        if (buttonText) buttonText.textContent = ` ${copy.openButton}`;
+        footerItems[0].textContent = copy.motto;
+        footerItems[1].textContent = copy.doctrine;
+        toggle.setAttribute("aria-label", copy.openMenu);
+      }
+
+      function openMenu() {
+        const copy = translations[root.lang === "es" ? "es" : "en"];
+        body.classList.add("menu-open");
+        menu.classList.add("is-open");
+        backdrop.classList.add("is-open");
+        toggle.classList.add("is-open");
+
+        menu.setAttribute("aria-hidden", "false");
+        toggle.setAttribute("aria-expanded", "true");
+        toggle.setAttribute(
+          "aria-label",
+          copy.closeMenu
+        );
+
+        closeButton.focus();
+      }
+
+      function closeMenu({ returnFocus = true } = {}) {
+        const copy = translations[root.lang === "es" ? "es" : "en"];
+        body.classList.remove("menu-open");
+        menu.classList.remove("is-open");
+        backdrop.classList.remove("is-open");
+        toggle.classList.remove("is-open");
+
+        menu.setAttribute("aria-hidden", "true");
+        toggle.setAttribute("aria-expanded", "false");
+        toggle.setAttribute(
+          "aria-label",
+          copy.openMenu
+        );
+
+        if (returnFocus) {
+          toggle.focus();
+        }
+      }
+
+      toggle.addEventListener("click", () => {
+        const isOpen =
+          toggle.getAttribute("aria-expanded") === "true";
+
+        if (isOpen) {
+          closeMenu();
+        } else {
+          openMenu();
+        }
+      });
+
+      openSystemMenu.addEventListener("click", openMenu);
+
+      closeButton.addEventListener("click", () => {
+        closeMenu();
+      });
+
+      backdrop.addEventListener("click", () => {
+        closeMenu();
+      });
+
+      menu.querySelectorAll("a").forEach((link) => {
+        link.addEventListener("click", () => {
+          closeMenu({ returnFocus:false });
+        });
+      });
+
+      document.addEventListener("keydown", (event) => {
+        if (
+          event.key === "Escape" &&
+          menu.classList.contains("is-open")
+        ) {
+          closeMenu();
+        }
+      });
+
+      setLanguage(
+        localStorage.getItem("coachHubLanguage") === "es"
+          ? "es"
+          : "en"
+      );
+    })();
+  </script>
 
 </body>
 </html>

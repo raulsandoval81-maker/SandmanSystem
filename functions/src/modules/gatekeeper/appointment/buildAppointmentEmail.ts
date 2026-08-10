@@ -109,49 +109,125 @@ export function buildAppointmentEmail(
       appointmentLocation
     );
 
+  /* =========================================================
+     PERSONALIZED VISIT OVERVIEW
+  ========================================================= */
+
+  const visitOverviewMessage =
+    isAdultAthlete
+      ? (
+        admissionsPath === "assessment"
+          ? `Your visit includes a complimentary class and Admissions Appointment.
+
+Because you requested a Placement Assessment, you may train first so the coach can evaluate your current level before the conversation. The coach may also meet with you first when the schedule or circumstances make that more appropriate.
+
+You will have time to discuss your goals, ask questions, and review program and membership options.`
+          : `Your visit includes a complimentary class and Admissions Appointment.
+
+New athletes are often scheduled near the end of practice so there is time to meet with the coach first without interrupting the training session. The coach will guide the order of your visit based on the day's schedule.
+
+You will have time to discuss your goals, ask questions, and review program and membership options.`
+      )
+      : (
+        admissionsPath === "assessment"
+          ? `Your visit includes a complimentary class and Admissions Appointment.
+
+Because your athlete requested a Placement Assessment, they may train first so the coach can evaluate their current level before meeting with your family. The coach may also meet with your family first when the schedule or circumstances make that more appropriate.
+
+You will have time to discuss your athlete's goals, ask questions, and review program and membership options.`
+          : `Your visit includes a complimentary class and Admissions Appointment.
+
+New athletes are often scheduled near the end of practice so there is time for your family to meet with the coach first without interrupting the training session. The coach will guide the order of the visit based on the day's schedule.
+
+You will have time to discuss your athlete's goals, ask questions, and review program and membership options.`
+      );
+
+  const visitOverviewMessageEs =
+    isAdultAthlete
+      ? (
+        admissionsPath === "assessment"
+          ? `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+
+Como solicitaste una Evaluación de Colocación, puedes entrenar primero para que el entrenador evalúe tu nivel actual antes de la conversación. El entrenador también puede reunirse contigo primero cuando el horario o las circunstancias lo hagan más apropiado.
+
+Tendrás tiempo para hablar sobre tus metas, hacer preguntas y revisar opciones de programas y membresías.`
+          : `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+
+Los atletas nuevos suelen programarse cerca del final de la práctica para que haya tiempo de reunirse primero con el entrenador sin interrumpir la sesión de entrenamiento. El entrenador guiará el orden de tu visita según el horario de ese día.
+
+Tendrás tiempo para hablar sobre tus metas, hacer preguntas y revisar opciones de programas y membresías.`
+      )
+      : (
+        admissionsPath === "assessment"
+          ? `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+
+Como tu atleta solicitó una Evaluación de Colocación, puede entrenar primero para que el entrenador evalúe su nivel actual antes de reunirse con tu familia. El entrenador también puede reunirse primero con tu familia cuando el horario o las circunstancias lo hagan más apropiado.
+
+Tendrán tiempo para hablar sobre las metas de tu atleta, hacer preguntas y revisar opciones de programas y membresías.`
+          : `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+
+Los atletas nuevos suelen programarse cerca del final de la práctica para que haya tiempo de que tu familia se reúna primero con el entrenador sin interrumpir la sesión de entrenamiento. El entrenador guiará el orden de la visita según el horario de ese día.
+
+Tendrán tiempo para hablar sobre las metas de tu atleta, hacer preguntas y revisar opciones de programas y membresías.`
+      );
+
+  /* =========================================================
+     STARTING PATH
+  ========================================================= */
 
   const startingPathMessage =
     isAdultAthlete
       ? (
         admissionsPath === "assessment"
-          ? `You are scheduled for a Placement Assessment.
+          ? `You requested a Placement Assessment.
 
-During your visit, the coach will observe your movement and current skill level, discuss your experience, and determine the most appropriate starting point within the Sandman System.`
+During your complimentary class, the coach will evaluate your demonstrated skill, movement, experience, and readiness to help determine the most appropriate starting point within the Sandman System.
+
+Prior training is considered, but placement is based on the coach's evaluation.`
           : `You are beginning as a New Athlete.
 
-During your visit, you will meet the coach, observe or participate as appropriate, and receive an introduction to the academy before beginning your journey.`
+Your coach will use the visit to learn more about you, observe how you move and respond to instruction, and help recommend the appropriate starting program and path forward.`
       )
       : (
         admissionsPath === "assessment"
-          ? `Your athlete is scheduled for a Placement Assessment.
+          ? `Your athlete requested a Placement Assessment.
 
-During your visit, the coach will observe your athlete, evaluate their current experience, and determine the most appropriate starting point within the Sandman System.`
+During the complimentary class, the coach will evaluate your athlete's demonstrated skill, movement, experience, and readiness to help determine the most appropriate starting point within the Sandman System.
+
+Prior training is considered, but placement is based on the coach's evaluation.`
           : `Your athlete is beginning as a New Athlete.
 
-During your visit, your athlete will meet the coach, observe or participate as appropriate, and receive an introduction to the academy before beginning their journey.`
+Your coach will use the visit to learn more about your athlete, observe how they move and respond to instruction, and help recommend the appropriate starting program and path forward.`
       );
 
   const startingPathMessageEs =
     isAdultAthlete
       ? (
         admissionsPath === "assessment"
-          ? `Asistirás a una Evaluación de Colocación.
+          ? `Solicitaste una Evaluación de Colocación.
 
-Durante la visita, el coach observará tu movimiento y nivel actual, hablará contigo sobre tu experiencia y determinará el punto de inicio más apropiado dentro del Sistema Sandman.`
+Durante tu clase de cortesía, el entrenador evaluará tu habilidad demostrada, movimiento, experiencia y preparación para ayudar a determinar el punto de inicio más apropiado dentro del Sistema Sandman.
+
+Se considera la experiencia previa, pero la colocación se basa en la evaluación del entrenador.`
           : `Comenzarás como Atleta Nuevo.
 
-Durante la visita, conocerás al coach, observarás o participarás según corresponda y recibirás una introducción a la academia antes de comenzar tu trayectoria.`
+Tu entrenador utilizará la visita para conocerte mejor, observar cómo te mueves y respondes a la instrucción, y ayudar a recomendar el programa y camino inicial más apropiados.`
       )
       : (
         admissionsPath === "assessment"
-          ? `Tu atleta asistirá a una Evaluación de Colocación.
+          ? `Tu atleta solicitó una Evaluación de Colocación.
 
-Durante la visita, el coach observará a tu atleta, evaluará su experiencia actual y recomendará el punto de inicio más apropiado dentro del Sistema Sandman.`
+Durante la clase de cortesía, el entrenador evaluará la habilidad demostrada, movimiento, experiencia y preparación de tu atleta para ayudar a determinar el punto de inicio más apropiado dentro del Sistema Sandman.
+
+Se considera la experiencia previa, pero la colocación se basa en la evaluación del entrenador.`
           : `Tu atleta comenzará como Atleta Nuevo.
 
-Durante la visita, tu atleta conocerá al coach, observará o participará según corresponda y recibirá una introducción a la academia antes de comenzar su trayectoria.`
+El entrenador utilizará la visita para conocer mejor a tu atleta, observar cómo se mueve y responde a la instrucción, y ayudar a recomendar el programa y camino inicial más apropiados.`
       );
 
+  /* =========================================================
+     HTML HELPERS
+  ========================================================= */
 
   const addressHtml =
     academyAddress
@@ -164,8 +240,11 @@ Durante la visita, tu atleta conocerá al coach, observará o participará segú
       ? `
         <div style="margin-top:24px;padding:18px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;">
           <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8a6500;margin-bottom:8px;">
-            ${lang === "es" ? "Notas del Coach" : "Coach Notes"}
+            ${lang === "es"
+              ? "Notas del Entrenador"
+              : "Coach Notes"}
           </div>
+
           <div style="font-size:15px;line-height:1.65;color:#27272a;white-space:pre-line;">
             ${escapeHtml(appointmentNotes)}
           </div>
@@ -173,183 +252,489 @@ Durante la visita, tu atleta conocerá al coach, observará o participará segú
       `
       : "";
 
+  /* =========================================================
+     HTML EMAIL
+  ========================================================= */
+
   const html =
 `<!doctype html>
 <html lang="${lang}">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${lang === "es"
-    ? "Tu Cita de Admisión Está Programada"
-    : "Your Admissions Appointment Is Scheduled"}</title>
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+  <title>${
+    lang === "es"
+      ? "Tu Cita de Admisión Está Programada"
+      : "Your Admissions Appointment Is Scheduled"
+  }</title>
 </head>
-<body style="margin:0;padding:0;background:#f4f4f5;font-family:Arial,Helvetica,sans-serif;color:#18181b;">
-  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f4f4f5;">
+
+<body
+  style="
+    margin:0;
+    padding:0;
+    background:#f4f4f5;
+    font-family:Arial,Helvetica,sans-serif;
+    color:#18181b;
+  "
+>
+  <table
+    role="presentation"
+    width="100%"
+    cellspacing="0"
+    cellpadding="0"
+    border="0"
+    style="background:#f4f4f5;"
+  >
     <tr>
-      <td align="center" style="padding:24px 12px;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:640px;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.08);">
+      <td
+        align="center"
+        style="padding:24px 12px;"
+      >
+        <table
+          role="presentation"
+          width="100%"
+          cellspacing="0"
+          cellpadding="0"
+          border="0"
+          style="
+            max-width:640px;
+            background:#ffffff;
+            border-radius:18px;
+            overflow:hidden;
+            box-shadow:0 8px 28px rgba(0,0,0,.08);
+          "
+        >
+
           <tr>
-            <td style="padding:28px 30px;background:#09090b;text-align:center;border-bottom:4px solid #d4a900;">
-              <div style="font-size:24px;font-weight:900;letter-spacing:.08em;color:#facc15;">SANDMAN COMBAT</div>
-              <div style="margin-top:7px;font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:#d4d4d8;">Heroes Build Heroes™</div>
-            </td>
-          </tr>
-          <tr>
-            <td style="padding:30px;">
-              <div style="display:inline-block;padding:7px 11px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;">
-                ${lang === "es" ? "Cita Confirmada" : "Appointment Confirmed"}
+            <td
+              style="
+                padding:28px 30px;
+                background:#09090b;
+                text-align:center;
+                border-bottom:4px solid #d4a900;
+              "
+            >
+              <div
+                style="
+                  font-size:22px;
+                  font-weight:900;
+                  letter-spacing:.06em;
+                  color:#facc15;
+                "
+              >
+                SANDMAN ACADEMY OF COMBAT &amp; FITNESS
               </div>
 
-              <h1 style="margin:18px 0 12px;font-size:27px;line-height:1.25;color:#18181b;">
-                ${lang === "es"
-                  ? `Hola ${escapeHtml(greetingName)}`
-                  : `Hello ${escapeHtml(greetingName)}`}
+              <div
+                style="
+                  margin-top:7px;
+                  font-size:13px;
+                  letter-spacing:.14em;
+                  text-transform:uppercase;
+                  color:#d4d4d8;
+                "
+              >
+                Heroes Build Heroes™
+              </div>
+            </td>
+          </tr>
+
+          <tr>
+            <td style="padding:30px;">
+
+              <div
+                style="
+                  display:inline-block;
+                  padding:7px 11px;
+                  border-radius:999px;
+                  background:#ecfdf5;
+                  color:#166534;
+                  font-size:12px;
+                  font-weight:800;
+                  letter-spacing:.06em;
+                  text-transform:uppercase;
+                "
+              >
+                ${
+                  lang === "es"
+                    ? "Cita Confirmada"
+                    : "Appointment Confirmed"
+                }
+              </div>
+
+              <h1
+                style="
+                  margin:18px 0 12px;
+                  font-size:27px;
+                  line-height:1.25;
+                  color:#18181b;
+                "
+              >
+                ${
+                  lang === "es"
+                    ? `Hola ${escapeHtml(greetingName)}`
+                    : `Hello ${escapeHtml(greetingName)}`
+                }
               </h1>
 
-              <p style="margin:0 0 24px;font-size:16px;line-height:1.7;color:#52525b;">
-                ${lang === "es"
-                  ? (
-                    isAdultAthlete
-                      ? "Gracias por programar tu Cita de Admisión con Sandman Combat. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas."
-                      : "Gracias por programar tu Cita de Admisión con Sandman Combat. Esperamos conocer a tu familia, aprender más sobre tu atleta y escuchar cuáles son sus metas."
-                  )
-                  : (
-                    isAdultAthlete
-                      ? "Thank you for scheduling your Sandman Combat Admissions Appointment. We look forward to meeting you, learning more about your experience, and hearing about your goals."
-                      : "Thank you for scheduling your Sandman Combat Admissions Appointment. We look forward to meeting your family, learning more about your athlete, and hearing about your goals."
-                  )}
+              <p
+                style="
+                  margin:0 0 24px;
+                  font-size:16px;
+                  line-height:1.7;
+                  color:#52525b;
+                "
+              >
+                ${
+                  lang === "es"
+                    ? (
+                      isAdultAthlete
+                        ? "Tu visita con Sandman Academy está programada. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas."
+                        : "La visita de tu familia con Sandman Academy está programada. Esperamos conocer a tu atleta, aprender más sobre su experiencia y escuchar cuáles son sus metas."
+                    )
+                    : (
+                      isAdultAthlete
+                        ? "Your visit with Sandman Academy is scheduled. We look forward to meeting you, learning more about your experience, and hearing about your goals."
+                        : "Your family's visit with Sandman Academy is scheduled. We look forward to meeting your athlete, learning more about their experience, and hearing about their goals."
+                    )
+                }
               </p>
 
-              <div style="padding:22px;border-radius:14px;background:#fafafa;border:1px solid #e4e4e7;">
-                <div style="margin-bottom:16px;font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#8a6500;">
-                  ${lang === "es" ? "Tu Cita de Admisión" : "Your Admissions Appointment"}
+              <div
+                style="
+                  padding:22px;
+                  border-radius:14px;
+                  background:#fafafa;
+                  border:1px solid #e4e4e7;
+                "
+              >
+                <div
+                  style="
+                    margin-bottom:16px;
+                    font-size:13px;
+                    font-weight:900;
+                    letter-spacing:.12em;
+                    text-transform:uppercase;
+                    color:#8a6500;
+                  "
+                >
+                  ${
+                    lang === "es"
+                      ? "Tu Visita Programada"
+                      : "Your Scheduled Visit"
+                  }
                 </div>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">
-                  <tr><td style="padding:7px 0;width:34%;font-size:14px;font-weight:700;color:#71717a;">${
-                    isAdultAthlete
-                      ? (
-                        lang === "es"
-                          ? "Participante"
-                          : "Participant"
-                      )
-                      : (
-                        lang === "es"
-                          ? "Atleta"
-                          : "Athlete"
-                      )
-                  }</td><td style="padding:7px 0;font-size:15px;color:#18181b;">${escapeHtml(participantName)}</td></tr>
-                  <tr><td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">${lang === "es" ? "Fecha" : "Date"}</td><td style="padding:7px 0;font-size:15px;color:#18181b;">${escapeHtml(formattedDate)}</td></tr>
-                  <tr><td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">${lang === "es" ? "Hora" : "Time"}</td><td style="padding:7px 0;font-size:15px;color:#18181b;">${escapeHtml(formattedTime)}</td></tr>
-                  <tr><td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">Coach</td><td style="padding:7px 0;font-size:15px;color:#18181b;">${escapeHtml(appointmentCoach)}</td></tr>
-                  <tr><td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">${lang === "es" ? "Academia" : "Academy"}</td><td style="padding:7px 0;font-size:15px;color:#18181b;">${escapeHtml(academyName)}</td></tr>
-                  <tr><td style="padding:7px 0;vertical-align:top;font-size:14px;font-weight:700;color:#71717a;">${lang === "es" ? "Dirección" : "Address"}</td><td style="padding:7px 0;font-size:15px;line-height:1.55;color:#18181b;">${addressHtml}</td></tr>
+                <table
+                  role="presentation"
+                  width="100%"
+                  cellspacing="0"
+                  cellpadding="0"
+                  border="0"
+                >
+                  <tr>
+                    <td style="padding:7px 0;width:34%;font-size:14px;font-weight:700;color:#71717a;">
+                      ${
+                        isAdultAthlete
+                          ? (
+                            lang === "es"
+                              ? "Participante"
+                              : "Participant"
+                          )
+                          : (
+                            lang === "es"
+                              ? "Atleta"
+                              : "Athlete"
+                          )
+                      }
+                    </td>
+
+                    <td style="padding:7px 0;font-size:15px;color:#18181b;">
+                      ${escapeHtml(participantName)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">
+                      ${lang === "es" ? "Fecha" : "Date"}
+                    </td>
+
+                    <td style="padding:7px 0;font-size:15px;color:#18181b;">
+                      ${escapeHtml(formattedDate)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">
+                      ${lang === "es" ? "Hora" : "Time"}
+                    </td>
+
+                    <td style="padding:7px 0;font-size:15px;color:#18181b;">
+                      ${escapeHtml(formattedTime)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">
+                      Coach
+                    </td>
+
+                    <td style="padding:7px 0;font-size:15px;color:#18181b;">
+                      ${escapeHtml(appointmentCoach)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:7px 0;font-size:14px;font-weight:700;color:#71717a;">
+                      ${lang === "es" ? "Academia" : "Academy"}
+                    </td>
+
+                    <td style="padding:7px 0;font-size:15px;color:#18181b;">
+                      ${escapeHtml(academyName)}
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style="padding:7px 0;vertical-align:top;font-size:14px;font-weight:700;color:#71717a;">
+                      ${lang === "es" ? "Dirección" : "Address"}
+                    </td>
+
+                    <td style="padding:7px 0;font-size:15px;line-height:1.55;color:#18181b;">
+                      ${addressHtml}
+                    </td>
+                  </tr>
                 </table>
               </div>
 
-              <h2 style="margin:28px 0 10px;font-size:19px;color:#18181b;">${lang === "es" ? "Qué Puedes Esperar" : "What to Expect"}</h2>
-              <p style="margin:0;font-size:15px;line-height:1.7;color:#52525b;">
-                ${lang === "es"
-                  ? (
-                    isAdultAthlete
-                      ? "Tendrás la oportunidad de conocer al coach, aprender sobre los estándares de la academia, hablar sobre tus metas y hacer preguntas. El coach explicará el próximo paso apropiado según tus metas y experiencia."
-                      : "Tu familia tendrá la oportunidad de conocer al coach, aprender sobre los estándares de la academia, hablar sobre sus metas y hacer preguntas. El coach explicará el próximo paso apropiado según las metas y la experiencia de tu atleta."
-                  )
-                  : (
-                    isAdultAthlete
-                      ? "You will have an opportunity to meet the coach, learn about academy standards, discuss your goals, and ask questions. Your coach will explain the appropriate next step based on your goals and experience."
-                      : "Your family will have an opportunity to meet the coach, learn about academy standards, discuss your goals, and ask questions. Your coach will explain the appropriate next step based on your athlete’s goals and experience."
-                  )}
+              <h2
+                style="
+                  margin:28px 0 10px;
+                  font-size:19px;
+                  color:#18181b;
+                "
+              >
+                ${
+                  lang === "es"
+                    ? "Qué Puedes Esperar"
+                    : "What to Expect"
+                }
+              </h2>
+
+              <p
+                style="
+                  margin:0;
+                  font-size:15px;
+                  line-height:1.7;
+                  color:#52525b;
+                  white-space:pre-line;
+                "
+              >
+                ${escapeHtml(
+                  lang === "es"
+                    ? visitOverviewMessageEs
+                    : visitOverviewMessage
+                )}
               </p>
 
-              <h2 style="margin:28px 0 10px;font-size:19px;color:#18181b;">${lang === "es" ? "Preparando Tu Visita" : "Preparing for Your Visit"}</h2>
-              <ul style="margin:0;padding-left:21px;font-size:15px;line-height:1.75;color:#52525b;">
-                <li>${lang === "es" ? "Llega puntualmente a tu cita programada." : "Please arrive on time for your scheduled appointment."}</li>
-                <li>${
+              <h2
+                style="
+                  margin:28px 0 10px;
+                  font-size:19px;
+                  color:#18181b;
+                "
+              >
+                ${
                   lang === "es"
-                    ? (
-                      isAdultAthlete
-                        ? "Si participarás, usa ropa deportiva cómoda y una camiseta blanca sin logotipos."
-                        : "Si tu atleta participará, debe usar ropa deportiva cómoda y una camiseta blanca sin logotipos."
-                    )
-                    : (
-                      isAdultAthlete
-                        ? "If you will participate, please wear comfortable athletic clothing and a plain white T-shirt."
-                        : "If your athlete will participate, please have them wear comfortable athletic clothing and a plain white T-shirt."
-                    )
-                }</li>
-                <li>${
-                  lang === "es"
-                    ? (
-                      isAdultAthlete
-                        ? "Trae una botella de agua si participarás."
-                        : "Trae una botella de agua si tu atleta participará."
-                    )
-                    : (
-                      isAdultAthlete
-                        ? "Bring a water bottle if you will be participating."
-                        : "Bring a water bottle if your athlete will be participating."
-                    )
-                }</li>
-                <li>${lang === "es" ? "Trae cualquier pregunta que desees conversar con el coach." : "Bring any questions you would like to discuss with the coach."}</li>
+                    ? "Preparando Tu Visita"
+                    : "Preparing for Your Visit"
+                }
+              </h2>
+
+              <ul
+                style="
+                  margin:0;
+                  padding-left:21px;
+                  font-size:15px;
+                  line-height:1.75;
+                  color:#52525b;
+                "
+              >
+                <li>
+                  ${
+                    lang === "es"
+                      ? "Por favor llega de 10 a 15 minutos antes de la hora programada."
+                      : "Please arrive 10–15 minutes before your scheduled time."
+                  }
+                </li>
+
+                <li>
+                  ${
+                    lang === "es"
+                      ? (
+                        isAdultAthlete
+                          ? "Llega preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."
+                          : "Haz que tu atleta llegue preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."
+                      )
+                      : (
+                        isAdultAthlete
+                          ? "Please arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."
+                          : "Please have your athlete arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."
+                      )
+                  }
+                </li>
+
+                <li>
+                  ${
+                    lang === "es"
+                      ? (
+                        isAdultAthlete
+                          ? "Trae una botella de agua."
+                          : "Trae una botella de agua para tu atleta."
+                      )
+                      : (
+                        isAdultAthlete
+                          ? "Bring a water bottle."
+                          : "Bring a water bottle for your athlete."
+                      )
+                  }
+                </li>
+
+                <li>
+                  ${
+                    lang === "es"
+                      ? "Trae cualquier pregunta que quieras conversar con el entrenador."
+                      : "Bring any questions you would like to discuss with the coach."
+                  }
+                </li>
               </ul>
 
               ${notesHtml}
 
-              <div style="margin-top:26px;padding:22px;border-radius:14px;background:#fffbeb;border:1px solid #fde68a;">
-                <div style="font-size:15px;font-weight:900;color:#854d0e;margin-bottom:8px;">
-                  ${lang === "es" ? "Reserva de la Cita de Admisión" : "Admissions Appointment Reservation"}
-                </div>
-                <p style="margin:0 0 10px;font-size:15px;line-height:1.65;color:#713f12;">
-                  ${lang === "es"
-                    ? "Una reserva de $25 para la Cita de Admisión asegura tiempo dedicado con un entrenador de Sandman. No se requiere ningún pago hoy."
-                    : "A $25 Admissions Appointment Reservation secures dedicated time with a Sandman coach. No payment is required today."}
-                </p>
-                <p style="margin:0;font-size:15px;line-height:1.65;color:#713f12;">
-                  ${lang === "es"
-                    ? "La reserva de $25 se cobra al finalizar tu Cita de Admisión. Si te inscribes, los $25 completos se aplican inmediatamente al costo de tu inscripción."
-                    : "The $25 reservation is collected at the conclusion of your Admissions Appointment. If you enroll, the full amount is immediately credited toward your enrollment."}
-                </p>
-              </div>
+              <h2
+                style="
+                  margin:28px 0 10px;
+                  font-size:19px;
+                  color:#18181b;
+                "
+              >
+                ${
+                  lang === "es"
+                    ? "Tu Camino de Inicio"
+                    : "Your Starting Path"
+                }
+              </h2>
 
-              <h2 style="margin:28px 0 10px;font-size:19px;color:#18181b;">${lang === "es" ? "Tu Camino de Inicio" : "Your Starting Path"}</h2>
-              <p style="margin:0;font-size:15px;line-height:1.7;color:#52525b;white-space:pre-line;">${escapeHtml(lang === "es" ? startingPathMessageEs : startingPathMessage)}</p>
-
-              <div style="margin-top:28px;padding-top:22px;border-top:1px solid #e4e4e7;">
-                <div style="font-size:16px;font-weight:800;color:#18181b;">${lang === "es" ? "¿Necesitas reprogramar?" : "Need to reschedule?"}</div>
-                <p style="margin:7px 0 0;font-size:15px;line-height:1.65;color:#52525b;">
-                  ${lang === "es"
-                    ? "Simplemente responde a este correo electrónico y con gusto te ayudaremos a encontrar otro horario."
-                    : "Simply reply to this email and we will be happy to help you find another time."}
-                </p>
-              </div>
-
-              <p style="margin:28px 0 0;font-size:15px;line-height:1.7;color:#52525b;">
-                ${lang === "es"
-                  ? (
-                    isAdultAthlete
-                      ? "Agradecemos la oportunidad de conocerte y aprender más sobre tus metas."
-                      : "Agradecemos la oportunidad de conocer a tu familia. Esperamos conocerte."
-                  )
-                  : (
-                    isAdultAthlete
-                      ? "We appreciate the opportunity to meet you and learn more about your goals."
-                      : "We appreciate the opportunity to meet your family. We look forward to meeting you."
-                  )}
+              <p
+                style="
+                  margin:0;
+                  font-size:15px;
+                  line-height:1.7;
+                  color:#52525b;
+                  white-space:pre-line;
+                "
+              >
+                ${escapeHtml(
+                  lang === "es"
+                    ? startingPathMessageEs
+                    : startingPathMessage
+                )}
               </p>
 
-              <p style="margin:22px 0 0;font-size:15px;line-height:1.65;color:#18181b;">
+              <div
+                style="
+                  margin-top:28px;
+                  padding-top:22px;
+                  border-top:1px solid #e4e4e7;
+                "
+              >
+                <div
+                  style="
+                    font-size:16px;
+                    font-weight:800;
+                    color:#18181b;
+                  "
+                >
+                  ${
+                    lang === "es"
+                      ? "¿Necesitas Reprogramar?"
+                      : "Need to Reschedule?"
+                  }
+                </div>
+
+                <p
+                  style="
+                    margin:7px 0 0;
+                    font-size:15px;
+                    line-height:1.65;
+                    color:#52525b;
+                  "
+                >
+                  ${
+                    lang === "es"
+                      ? "Simplemente responde a este correo electrónico y con gusto te ayudaremos a encontrar otro horario."
+                      : "Simply reply to this email and we will be happy to help you find another time."
+                  }
+                </p>
+              </div>
+
+              <p
+                style="
+                  margin:28px 0 0;
+                  font-size:15px;
+                  line-height:1.7;
+                  color:#52525b;
+                "
+              >
+                ${
+                  lang === "es"
+                    ? (
+                      isAdultAthlete
+                        ? "Agradecemos la oportunidad de conocerte y aprender más sobre tus metas. Esperamos tu visita."
+                        : "Agradecemos la oportunidad de conocer a tu familia y aprender más sobre las metas de tu atleta. Esperamos su visita."
+                    )
+                    : (
+                      isAdultAthlete
+                        ? "We appreciate the opportunity to meet you and learn more about your goals. We look forward to your visit."
+                        : "We appreciate the opportunity to meet your family and learn more about your athlete's goals. We look forward to your visit."
+                    )
+                }
+              </p>
+
+              <p
+                style="
+                  margin:22px 0 0;
+                  font-size:15px;
+                  line-height:1.65;
+                  color:#18181b;
+                "
+              >
                 <strong>Combat = Character</strong><br>
                 — Coach Sandoval<br>
-                Sandman Combat Academy
+                Sandman Academy of Combat &amp; Fitness™
               </p>
+
             </td>
           </tr>
+
           <tr>
-            <td style="padding:18px 30px;background:#18181b;text-align:center;font-size:12px;line-height:1.6;color:#a1a1aa;">
-              Sandman Combat Academy · Heroes Build Heroes™
+            <td
+              style="
+                padding:18px 30px;
+                background:#18181b;
+                text-align:center;
+                font-size:12px;
+                line-height:1.6;
+                color:#a1a1aa;
+              "
+            >
+              Sandman Academy of Combat &amp; Fitness™ · Heroes Build Heroes™
             </td>
           </tr>
+
         </table>
       </td>
     </tr>
@@ -357,27 +742,27 @@ Durante la visita, tu atleta conocerá al coach, observará o participará segú
 </body>
 </html>`;
 
+  /* =========================================================
+     SPANISH PLAIN TEXT
+  ========================================================= */
+
   if (lang === "es") {
     return {
       subject:
-        "Sandman Combat — Tu Cita de Admisión Está Programada",
+        "Sandman Academy — Tu Cita de Admisión Está Programada",
 
       html,
 
       text:
 `Hola ${greetingName}:
 
-Gracias por programar tu Cita de Admisión con Sandman Combat.
-
-Esperamos conocer a tu familia, aprender más sobre tu atleta y escuchar cuáles son sus metas.
-
 ${isAdultAthlete
-  ? "En Sandman Combat creemos que cada atleta merece un comienzo apropiado y una conversación con el coach antes de comenzar."
-  : "En Sandman Combat creemos que cada atleta merece un comienzo apropiado y que cada familia merece una conversación con el coach antes de comenzar."}
+  ? "Tu visita con Sandman Academy está programada. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas."
+  : "La visita de tu familia con Sandman Academy está programada. Esperamos conocer a tu atleta, aprender más sobre su experiencia y escuchar cuáles son sus metas."}
 
 --------------------------------------------------
 
-TU CITA DE ADMISIÓN
+TU VISITA PROGRAMADA
 
 ${isAdultAthlete ? "Participante" : "Atleta"}:
 ${participantName}
@@ -401,51 +786,39 @@ ${academyAddress}
 
 QUÉ PUEDES ESPERAR
 
-${isAdultAthlete
-  ? "Durante la Cita de Admisión, tendrás la oportunidad de conocer al coach, aprender sobre los estándares de la academia, hablar sobre tus metas y hacer preguntas."
-  : "Durante la Cita de Admisión, tu familia tendrá la oportunidad de conocer al coach, aprender sobre los estándares de la academia, hablar sobre sus metas y hacer preguntas."}
+${visitOverviewMessageEs}
 
-Dependiendo de la experiencia del atleta y del propósito de la cita, la visita también puede incluir la observación o participación en una práctica en vivo.
-
-Antes de concluir, habrá tiempo para compartir pensamientos finales, comentarios o preocupaciones y hablar sobre el próximo paso apropiado.
+Si después de la visita decides que deseas continuar, tu entrenador te explicará los próximos pasos apropiados.
 
 --------------------------------------------------
 
-• Por favor llega puntualmente a tu cita programada.
+PREPARANDO TU VISITA
+
+• Por favor llega de 10 a 15 minutos antes de la hora programada.
 
 ${isAdultAthlete
-  ? "• Si participarás en una práctica o evaluación, usa ropa deportiva cómoda."
-  : "• Si tu atleta participará en una práctica o evaluación, debe usar ropa deportiva cómoda."}
+  ? "• Llega preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."
+  : "• Haz que tu atleta llegue preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."}
 
 ${isAdultAthlete
-  ? "• Si participarás en la práctica, usa una camiseta blanca sin logotipos."
-  : "• Si tu atleta participará en la práctica, por favor haz que use una camiseta blanca sin logotipos."}
+  ? "• Trae una botella de agua."
+  : "• Trae una botella de agua para tu atleta."}
 
-${isAdultAthlete
-  ? "• Trae una botella de agua si participarás."
-  : "• Trae una botella de agua si tu atleta participará."}
+• Trae cualquier pregunta que quieras conversar con el entrenador.
 
-• Te invitamos a traer cualquier pregunta que desees conversar con el coach.
+${appointmentNotes
+  ? `--------------------------------------------------
 
-${appointmentNotes ? `--------------------------------------------------
-
-NOTAS DEL COACH
+NOTAS DEL ENTRENADOR
 
 ${appointmentNotes}
 
-` : ""}--------------------------------------------------
+`
+  : ""}--------------------------------------------------
 
 TU CAMINO DE INICIO
 
 ${startingPathMessageEs}
-
---------------------------------------------------
-
-RESERVA DE LA CITA DE ADMISIÓN
-
-Una reserva de $25 para la Cita de Admisión asegura tiempo dedicado con un entrenador de Sandman. No se requiere ningún pago hoy.
-
-La reserva de $25 se cobra al finalizar tu Cita de Admisión. Si te inscribes, los $25 completos se aplican inmediatamente al costo de tu inscripción.
 
 --------------------------------------------------
 
@@ -455,43 +828,40 @@ ${isAdultAthlete
   ? "Si esta cita ya no funciona para ti, simplemente responde a este correo electrónico y con gusto te ayudaremos a encontrar otro horario."
   : "Si esta cita ya no funciona para tu familia, simplemente responde a este correo electrónico y con gusto te ayudaremos a encontrar otro horario."}
 
-Agradecemos la oportunidad de conocer a tu familia.
-
 ${isAdultAthlete
-  ? "Ya sea que estés comenzando por primera vez o llegues con experiencia previa, nuestro objetivo es proporcionar el comienzo correcto y el camino adecuado."
-  : "Ya sea que tu atleta esté comenzando por primera vez o llegue con experiencia previa, nuestro objetivo es proporcionar el comienzo correcto y el camino adecuado."}
+  ? "Agradecemos la oportunidad de conocerte y aprender más sobre tus metas."
+  : "Agradecemos la oportunidad de conocer a tu familia y aprender más sobre las metas de tu atleta."}
 
-Esperamos conocerte.
+Esperamos tu visita.
 
 Combat = Character
 
 — Coach Sandoval
-
 Sandman Academy of Combat & Fitness™
 Los Héroes Forman Héroes™`
     };
   }
 
+  /* =========================================================
+     ENGLISH PLAIN TEXT
+  ========================================================= */
+
   return {
     subject:
-      "Sandman Combat — Your Admissions Appointment Is Scheduled",
+      "Sandman Academy — Your Admissions Appointment Is Scheduled",
 
     html,
 
     text:
 `Hello ${greetingName},
 
-Thank you for scheduling your Sandman Combat Admissions Appointment.
-
-We look forward to meeting your family, learning more about your athlete, and hearing about your goals.
-
 ${isAdultAthlete
-  ? "At Sandman Combat, we believe every athlete deserves a proper beginning and a conversation with the coach before training begins."
-  : "At Sandman Combat, we believe every athlete deserves a proper beginning and every family deserves a conversation with the coach before training begins."}
+  ? "Your visit with Sandman Academy is scheduled. We look forward to meeting you, learning more about your experience, and hearing about your goals."
+  : "Your family's visit with Sandman Academy is scheduled. We look forward to meeting your athlete, learning more about their experience, and hearing about their goals."}
 
 --------------------------------------------------
 
-YOUR ADMISSIONS APPOINTMENT
+YOUR SCHEDULED VISIT
 
 ${isAdultAthlete ? "Participant" : "Athlete"}:
 ${participantName}
@@ -515,55 +885,39 @@ ${academyAddress}
 
 WHAT TO EXPECT
 
-${isAdultAthlete
-  ? "During your Admissions Appointment, you will have an opportunity to meet the coach, learn about academy standards, discuss your goals, and ask questions."
-  : "During your Admissions Appointment, your family will have an opportunity to meet the coach, learn about academy standards, discuss your goals, and ask questions."}
+${visitOverviewMessage}
 
-${isAdultAthlete
-  ? "Your coach will guide you through the Admissions Appointment and explain the appropriate next steps based on your goals and experience."
-  : "Your coach will guide your family through the Admissions Appointment and explain the appropriate next steps based on your athlete's goals and experience."}
-
-Before your appointment concludes, there will be time for final thoughts, remaining questions, and a discussion of the appropriate next steps.
+If you decide you would like to continue after the visit, your coach will explain the appropriate next steps.
 
 --------------------------------------------------
 
 PREPARING FOR YOUR VISIT
 
-• Please arrive on time for your scheduled appointment.
+• Please arrive 10–15 minutes before your scheduled time.
 
 ${isAdultAthlete
-  ? "• If you will participate in a practice or assessment, please wear comfortable athletic clothing."
-  : "• If your athlete will participate in a practice or assessment, please have them wear comfortable athletic clothing."}
+  ? "• Please arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."
+  : "• Please have your athlete arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."}
 
 ${isAdultAthlete
-  ? "• If you will participate in practice, please wear a plain white athletic T-shirt, if available."
-  : "• If your athlete is participating in practice, please have them wear a plain white athletic T-shirt, if available."}
+  ? "• Bring a water bottle."
+  : "• Bring a water bottle for your athlete."}
 
-${isAdultAthlete
-  ? "• Bring a water bottle if you will be participating."
-  : "• Bring a water bottle if your athlete will be participating."}
+• Bring any questions you would like to discuss with the coach.
 
-• We encourage you to bring any questions you would like to discuss with the coach.
-
-${appointmentNotes ? `--------------------------------------------------
+${appointmentNotes
+  ? `--------------------------------------------------
 
 COACH NOTES
 
 ${appointmentNotes}
 
-` : ""}--------------------------------------------------
+`
+  : ""}--------------------------------------------------
 
 YOUR STARTING PATH
 
 ${startingPathMessage}
-
---------------------------------------------------
-
-ADMISSIONS APPOINTMENT RESERVATION
-
-A $25 Admissions Appointment Reservation secures dedicated time with a Sandman coach. No payment is required today.
-
-The $25 reservation is collected at the conclusion of your Admissions Appointment. If you enroll, the full amount is immediately credited toward your enrollment.
 
 --------------------------------------------------
 
@@ -573,13 +927,11 @@ ${isAdultAthlete
   ? "If this appointment no longer works for you, simply reply to this email and we will be happy to help you find another time."
   : "If this appointment no longer works for your family, simply reply to this email and we will be happy to help you find another time."}
 
-We appreciate the opportunity to meet your family.
-
 ${isAdultAthlete
-  ? "Whether you are beginning for the first time or arriving with previous experience, our goal is to provide the right beginning and the right path forward."
-  : "Whether your athlete is beginning for the first time or arriving with previous experience, our goal is to provide the right beginning and the right path forward."}
+  ? "We appreciate the opportunity to meet you and learn more about your goals."
+  : "We appreciate the opportunity to meet your family and learn more about your athlete's goals."}
 
-We look forward to meeting you.
+We look forward to your visit.
 
 Combat = Character
 

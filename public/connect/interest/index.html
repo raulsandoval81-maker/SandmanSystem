@@ -24,259 +24,13 @@
     rel="stylesheet"
     href="./interest.css"
   />
+  </head>
 
-  <style>
-    .language-switcher {
-      display: flex;
-      justify-content: flex-end;
-      gap: 8px;
-      margin-bottom: 18px;
-    }
+<body>
 
-    .language-btn {
-      appearance: none;
-      border: 1px solid rgba(255, 255, 255, 0.22);
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      color: inherit;
-      cursor: pointer;
-      font: inherit;
-      font-size: 0.85rem;
-      font-weight: 700;
-      padding: 8px 14px;
-      transition:
-        background 160ms ease,
-        border-color 160ms ease,
-        transform 160ms ease;
-    }
+  <main class="connect-page">
 
-    .language-btn:hover {
-      transform: translateY(-1px);
-      border-color: rgba(250, 204, 21, 0.55);
-    }
-
-    .language-btn[aria-pressed="true"] {
-      background: #facc15;
-      border-color: #facc15;
-      color: #111;
-    }
-
-    [data-lang] {
-      display: none;
-    }
-
-    html[lang="en"] [data-lang="en"],
-    html[lang="es"] [data-lang="es"] {
-      display: initial;
-    }
-
-    html[lang="en"] option[data-lang="en"],
-    html[lang="es"] option[data-lang="es"] {
-      display: block;
-    }
-
-    html[lang="en"] option[data-lang="es"],
-    html[lang="es"] option[data-lang="en"] {
-      display: none;
-    }
-
-    .intent-notice {
-      display: none;
-      margin-bottom: 24px;
-      border: 1px solid rgba(250, 204, 21, 0.25);
-      border-radius: 14px;
-      background: rgba(250, 204, 21, 0.08);
-      padding: 18px;
-    }
-
-    .intent-notice p {
-      margin: 0.5rem 0 0;
-    }
-
-    .required-note {
-      margin-top: 12px;
-      opacity: 0.72;
-      font-size: 0.85rem;
-      text-align: center;
-    }
-
-    .connect-footer a::before {
-      content: "← ";
-    }
-
-    .interest-type-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 12px;
-    }
-
-    .interest-type-option {
-      position: relative;
-    }
-
-    .interest-type-option input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .interest-type-card {
-      display: flex;
-      min-height: 104px;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.04);
-      cursor: pointer;
-      padding: 18px 14px;
-      text-align: center;
-      transition:
-        border-color 160ms ease,
-        background 160ms ease,
-        transform 160ms ease;
-    }
-
-    .interest-type-card:hover {
-      transform: translateY(-1px);
-      border-color: rgba(250, 204, 21, 0.55);
-    }
-
-.interest-type-option input:checked +
-.interest-type-card{
-    background:#0b0b0b;
-
-    border:2px solid #facc15;
-
-    box-shadow:
-        0 0 0 1px rgba(250,204,21,.22),
-        0 12px 28px rgba(0,0,0,.45);
-}
-
-    .interest-type-title {
-      display: block;
-      font-weight: 800;
-    }
-
-    .interest-type-description {
-      display: block;
-      margin-top: 5px;
-      font-size: 0.82rem;
-      opacity: 0.72;
-    }
-
-    [hidden] {
-      display: none !important;
-    }
-
-    @media (max-width: 680px) {
-      .interest-type-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .interest-type-card {
-        min-height: 86px;
-      }
-    }
-  .registrant-role-options {
-      display: grid;
-      grid-template-columns: repeat(
-        2,
-        minmax(0, 1fr)
-      );
-      gap: 12px;
-    }
-
-    .registrant-role-option {
-      position: relative;
-      display: block;
-      cursor: pointer;
-    }
-
-    .registrant-role-option input {
-      position: absolute;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .registrant-role-option > span {
-      display: block;
-      min-height: 108px;
-      padding: 18px;
-      border: 1px solid
-        rgba(255, 255, 255, 0.18);
-      border-radius: 14px;
-      background:
-        rgba(255, 255, 255, 0.04);
-      text-align: center;
-      transition:
-        border-color 160ms ease,
-        background 160ms ease,
-        transform 160ms ease;
-    }
-
-    .registrant-role-option:hover > span {
-      transform: translateY(-1px);
-      border-color:
-        rgba(250, 204, 21, 0.55);
-    }
-
-    .registrant-role-option input:checked +
-    span {
-      border-color: #facc15;
-      background:
-        rgba(250, 204, 21, 0.12);
-    }
-
-    .registrant-role-option strong,
-    .registrant-role-option small {
-      display: block;
-    }
-
-    .registrant-role-option small {
-      margin-top: 7px;
-      opacity: 0.72;
-      line-height: 1.45;
-    }
-
-    @media (max-width: 680px) {
-      .registrant-role-options {
-        grid-template-columns: 1fr;
-      }
-    }
-    .connect-hero{
-    background:#050505;
-    border-radius:18px;
-    padding:40px 32px;
-    margin-bottom:32px;
-}
-.connect-hero__top{
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    gap:16px;
-    margin-bottom:18px;
-}
-.language-btn{
-    min-width:42px;
-    height:30px;
-    padding:0 12px;
-    border-radius:16px;
-    font-size:.78rem;
-}
-.eyebrow{
-    margin:0;
-    color:#facc15;
-    font-size:.82rem;
-    font-weight:700;
-    letter-spacing:.08em;
-    text-transform:uppercase;
-}
-.connect-hero h1{
-    margin:0 0 14px;
-    line-height:1.1;
-}
-  </style>
+    <section class="connect-shell">
 
 <header class="connect-hero">
 
@@ -326,23 +80,62 @@
 
   </h1>
 
-  <p class="hero-copy">
+<div class="hero-copy">
 
+  <p>
     <span data-lang="en">
-      We'd love to learn more about you and your family.
-      Complete the form below and our admissions team will
-      review your information, answer your questions, and
-      help guide you to the right program.
+      This is the first step in joining Sandman Academy of Combat &amp; Fitness.
+      Complete the form below and our admissions team will review your information
+      and help connect you with the right program and coach.
     </span>
 
     <span data-lang="es">
-      Nos gustaría conocer más sobre ti y tu familia.
-      Completa el formulario y nuestro equipo de admisiones
-      revisará tu información, responderá tus preguntas y
-      te ayudará a encontrar el programa adecuado para ti.
+      Este es el primer paso para unirte a Sandman Academy of Combat &amp; Fitness.
+      Completa el formulario y nuestro equipo de admisiones revisará tu información
+      para ayudarte a conectarte con el programa y entrenador adecuados.
+    </span>
+  </p>
+
+  <ul class="admissions-path-guide">
+    <li>
+      <span data-lang="en">
+        <strong>Combat programs:</strong> Choose Sandman Combat.
+      </span>
+      <span data-lang="es">
+        <strong>Programas de combate:</strong> Elige Sandman Combat.
+      </span>
+    </li>
+
+    <li>
+      <span data-lang="en">
+        <strong>Fitness programs:</strong> Choose Sandman Fitness.
+      </span>
+      <span data-lang="es">
+        <strong>Programas de acondicionamiento físico:</strong> Elige Sandman Fitness.
+      </span>
+    </li>
+
+    <li>
+      <span data-lang="en">
+        <strong>Interested in both:</strong> Choose Sandman Combat &amp; Fitness.
+      </span>
+      <span data-lang="es">
+        <strong>¿Te interesan ambos?</strong> Elige Sandman Combat &amp; Fitness.
+      </span>
+    </li>
+  </ul>
+
+  <p>
+    <span data-lang="en">
+      After submitting your request, check your email for next steps, pricing, and admissions details. Your trial class will be followed by an Admissions Appointment. If you enroll, applicable fees will be credited toward your enrollment costs.
     </span>
 
+    <span data-lang="es">
+      Después de enviar tu solicitud, revisa tu correo electrónico para conocer los próximos pasos, precios y detalles de admisión. Tu clase de prueba será seguida por una Cita de Admisión. Si te inscribes, las cuotas aplicables se acreditarán a tus costos de inscripción.
+    </span>
   </p>
+
+</div>
 
 </header>
 
@@ -402,19 +195,22 @@
     />
 
     <span class="interest-type-card">
-      <span>
-        <span class="interest-type-title">
-          <span data-lang="en">
-            Sandman Combat
-          </span>
 
-          <span data-lang="es">
-            Sandman Combat
-          </span>
+      <span class="interest-type-icon" aria-hidden="true">⚔️</span>
+
+      <span class="interest-type-title">
+        <span data-lang="en">
+          Sandman Combat
+        </span>
+
+        <span data-lang="es">
+          Sandman Combat
         </span>
       </span>
+
     </span>
   </label>
+
 
   <label class="interest-type-option">
     <input
@@ -424,19 +220,22 @@
     />
 
     <span class="interest-type-card">
-      <span>
-        <span class="interest-type-title">
-          <span data-lang="en">
-            Sandman Fitness
-          </span>
 
-          <span data-lang="es">
-            Sandman Fitness
-          </span>
+      <span class="interest-type-icon" aria-hidden="true">🏋️</span>
+
+      <span class="interest-type-title">
+        <span data-lang="en">
+          Sandman Fitness
+        </span>
+
+        <span data-lang="es">
+          Sandman Fitness
         </span>
       </span>
+
     </span>
   </label>
+
 
   <label class="interest-type-option">
     <input
@@ -446,22 +245,25 @@
     />
 
     <span class="interest-type-card">
-      <span>
-        <span class="interest-type-title">
-          <span data-lang="en">
-            Sandman Combat &amp; Fitness
-          </span>
 
-          <span data-lang="es">
-            Sandman Combat &amp; Fitness
-          </span>
+      <span class="interest-type-icon" aria-hidden="true">🏛️</span>
+
+      <span class="interest-type-title">
+        <span data-lang="en">
+          Sandman Combat &amp; Fitness
+        </span>
+
+        <span data-lang="es">
+          Sandman Combat &amp; Fitness
         </span>
       </span>
+
     </span>
   </label>
 
 </div>
 
+        </section>
         <section class="form-section">
           <h2>
             <span data-lang="en">

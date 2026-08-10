@@ -1,4 +1,5 @@
-const PROGRAMS = [
+export const PROGRAMS = [
+  
   {
     value: "zero2hero-wrestling",
     journey: "zero2hero",

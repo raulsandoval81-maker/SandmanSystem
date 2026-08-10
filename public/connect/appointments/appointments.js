@@ -73,21 +73,40 @@ function setStatus(message = "", isError = false) {
 
 function labelForProgram(program = "") {
   const labels = {
-    "zero2hero-wrestling": "Zero2Hero Wrestling",
-    "z2h-wrestling": "Zero2Hero Wrestling",
+    "zero2hero-wrestling":
+      "Zero2Hero Wrestling",
 
-    "zero2hero-kickboxing": "Zero2Hero Kickboxing",
-    "z2h-kickboxing": "Zero2Hero Kickboxing",
+    "zero2hero-boxing":
+      "Zero2Hero Boxing",
 
-    "path2legend-wrestling": "Path2Legend Wrestling",
-    "p2l-wrestling": "Path2Legend Wrestling",
+    "zero2hero-muay-thai":
+      "Zero2Hero Muay Thai",
 
-    "path2legend-boxing": "Path2Legend Boxing",
-    "p2l-boxing": "Path2Legend Boxing",
+    "path2legend-wrestling":
+      "Path2Legend Wrestling",
 
-    fitness: "Everyday Fitness",
-    "learning-more": "Just Learning More"
+    "path2legend-boxing":
+      "Path2Legend Boxing",
+
+    "path2legend-muay-thai":
+      "Path2Legend Muay Thai",
+
+    "quest2mastery-mma":
+      "Quest2Mastery MMA",
+
+    "quest2mastery-sub-grappling":
+      "Quest2Mastery Submission Grappling",
+
+    "quest2mastery-submission-grappling":
+      "Quest2Mastery Submission Grappling",
+
+    fitness:
+      "Everyday Fitness",
+
+    "not-sure":
+      "Not Sure"
   };
+
   return labels[program] || program || "—";
 }
 
@@ -189,16 +208,82 @@ function labelForMeetingWindow(value = "") {
 }
 function labelForPrimaryGoal(value = "") {
   const labels = {
-    fitness: "Fitness",
-    competition: "Competition",
-    confidence: "Confidence",
-    selfdefense: "Self-Defense",
-    "self-defense": "Self-Defense",
-    discipline: "Discipline",
-    fun: "Fun",
-    health: "Health",
-    weightloss: "Weight Loss",
-    "weight-loss": "Weight Loss"
+    confidence:
+      "Build Confidence",
+
+    "self-defense":
+      "Learn Self-Defense",
+
+    selfdefense:
+      "Learn Self-Defense",
+
+    competition:
+      "Competition",
+
+    fitness:
+      "Fitness & Health",
+
+    character:
+      "Character & Discipline",
+
+    exploring:
+      "Just Exploring",
+
+    discipline:
+      "Character & Discipline",
+
+    fun:
+      "Fun",
+
+    health:
+      "Fitness & Health",
+
+    weightloss:
+      "Weight Loss",
+
+    "weight-loss":
+      "Weight Loss"
+  };
+
+  return labels[value] || value || "—";
+}
+function labelForInterestType(value = "") {
+  const labels = {
+    combat:
+      "Sandman Combat",
+
+    fitness:
+      "Sandman Fitness",
+
+    both:
+      "Sandman Combat & Fitness"
+  };
+
+  return labels[value] || value || "—";
+}
+
+function labelForReferralSource(value = "") {
+  const labels = {
+    tournament:
+      "Tournament or Event",
+
+    "friend-family":
+      "Friend or Family",
+
+    school:
+      "School",
+
+    "social-media":
+      "Social Media",
+
+    website:
+      "Website",
+
+    flyer:
+      "Flyer or QR Code",
+
+    other:
+      "Other"
   };
 
   return labels[value] || value || "—";
@@ -259,7 +344,7 @@ selectedLeadSummary.innerHTML = `
   </p>
 
   <p>
-    <strong>Academy Shirt Size:</strong>
+  <strong>Athlete T-Shirt Size:</strong>
     ${esc(selectedLead.shirtSize || "—")}
   </p>
 
@@ -287,10 +372,14 @@ selectedLeadSummary.innerHTML = `
       ${esc(labelForProgram(selectedLead.programInterest))}
     </p>
 
-    <p>
-      <strong>Membership Interest:</strong>
-      ${esc(labelForIntent(selectedLead.intent))}
-    </p>
+<p>
+  <strong>Program Area:</strong>
+  ${esc(
+    labelForInterestType(
+      selectedLead.interestType
+    )
+  )}
+</p>
 
 <p>
   <strong>Primary Goal:</strong>
@@ -316,8 +405,12 @@ ${esc(labelForAdmissionsPath(selectedLead.admissionsPath))}
     </p>
 
     <p>
-      <strong>Referral Source:</strong>
-      ${esc(selectedLead.referralSource || "—")}
+<strong>Referral Source:</strong>
+${esc(
+  labelForReferralSource(
+    selectedLead.referralSource
+  )
+)}
     </p>
 
 
@@ -367,6 +460,20 @@ appointmentCoach.value =
 
 appointmentNotes.value =
   selectedLead.appointmentNotes || "";
+
+if (scheduleBtn) {
+  if (
+    selectedLead.appointmentStatus === "scheduled"
+  ) {
+    scheduleBtn.disabled = true;
+    scheduleBtn.textContent =
+      "✓ Appointment Has Been Scheduled";
+  } else {
+    scheduleBtn.disabled = false;
+    scheduleBtn.textContent =
+      "Schedule Appointment";
+  }
+}
 
   if (schedulePanel) {
     schedulePanel.hidden = false;
@@ -893,8 +1000,9 @@ scheduleForm?.addEventListener(
         status: "scheduled"
       },
 
-      appointmentConfirmationStatus:
-        "pending",
+appointmentConfirmationStatus:
+  selectedLead.appointmentConfirmationStatus ||
+  "pending",
 
       enrollmentStatus:
         selectedLead.enrollmentStatus ||
@@ -950,9 +1058,9 @@ scheduleForm?.addEventListener(
     appointmentScheduledAt: serverTimestamp(),
 
     // Confirmation has been requested but not necessarily sent.
-    appointmentConfirmationStatus: "pending",
-    appointmentConfirmationRequestedAt:
-      serverTimestamp(),
+appointmentConfirmationStatus:
+  selectedLead.appointmentConfirmationStatus ||
+  "pending",
 
     athleteStatus:
       selectedLead.athleteStatus || "none",
@@ -972,7 +1080,7 @@ selectedLead.appointmentCoach = coachValue;
 selectedLead.appointmentNotes = notesValue;
 
 setStatus(
-  "Appointment processed and scheduled. Confirmation is pending."
+  "Appointment has been scheduled. Gatekeeper will send the initial confirmation email."
 );
 
 await loadAppointments();
@@ -990,11 +1098,19 @@ await loadAppointments();
         true
       );
     } finally {
-      scheduleBtn.disabled = false;
-scheduleBtn.textContent =
-  selectedLead.appointmentStatus === "scheduled"
-    ? "Update & Send Confirmation"
-    : "Schedule & Send Confirmation";
+      if (scheduleBtn) {
+        if (
+          selectedLead?.appointmentStatus === "scheduled"
+        ) {
+          scheduleBtn.disabled = true;
+          scheduleBtn.textContent =
+            "✓ Appointment Has Been Scheduled";
+        } else {
+          scheduleBtn.disabled = false;
+          scheduleBtn.textContent =
+            "Schedule Appointment";
+        }
+      }
     }
   }
 );

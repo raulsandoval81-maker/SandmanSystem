@@ -7,6 +7,10 @@ import {
   getDoc
 } from "/assets/js/firebase-init.js";
 
+import {
+  SANDMAN_PRICING_CATALOG
+} from "/assets/js/pricing/sandman-pricing-catalog.js";
+
 console.log("Prospect Builder Firebase ready:", Boolean(db));
 // --------------------------------------------------
 // Admissions Request (Phase 1)
@@ -155,15 +159,144 @@ loadAdmissionsRequest().catch((error) => {
   );
 });
 
+async function loadAdmissionsAppointment() {
+  if (!appointmentId) {
+    return null;
+  }
+
+  const hasStaffSession =
+    await requireStaffSession();
+
+  if (!hasStaffSession) {
+    return null;
+  }
+
+  const snapshot =
+    await getDoc(
+      doc(
+        db,
+        "admissions_appointments",
+        appointmentId
+      )
+    );
+
+  if (!snapshot.exists()) {
+    throw new Error(
+      `Admissions appointment ${appointmentId} was not found.`
+    );
+  }
+
+  const appointment = {
+    id: snapshot.id,
+    ...snapshot.data()
+  };
+
+  console.log(
+    "Admissions appointment loaded:",
+    appointment
+  );
+
+  return appointment;
+}
+
+function recommendationFromProgram(
+  programInterest = ""
+) {
+  const map = {
+    "zero2hero-wrestling": {
+      journey: "zero2hero",
+      discipline: "wrestling"
+    },
+
+    "zero2hero-boxing": {
+      journey: "zero2hero",
+      discipline: "boxing"
+    },
+
+    "zero2hero-muay-thai": {
+      journey: "zero2hero",
+      discipline: "muay-thai"
+    },
+
+    "path2legend-wrestling": {
+      journey: "path2legend",
+      discipline: "wrestling"
+    },
+
+    "path2legend-boxing": {
+      journey: "path2legend",
+      discipline: "boxing"
+    },
+
+    "path2legend-muay-thai": {
+      journey: "path2legend",
+      discipline: "muay-thai"
+    },
+
+    "quest2mastery-mma": {
+      journey: "quest2mastery",
+      discipline: "mma"
+    },
+
+    "quest2mastery-submission-grappling": {
+      journey: "quest2mastery",
+      discipline: "submission-grappling"
+    },
+
+    fitness: {
+      journey: "everyday-fitness",
+      discipline: ""
+    }
+  };
+
+  return map[programInterest] || {
+    journey: "",
+    discipline: ""
+  };
+}
+
 // --------------------------------------------------
 // Calculator
 // --------------------------------------------------
 
+const PRICING =
+  SANDMAN_PRICING_CATALOG;
+
+const FOUNDING_YEAR = {
+  combatMonthly:
+    PRICING.combat.standardFamily.athlete1,
+
+  fitnessMonthly:
+    PRICING.fitness.monthly,
+
+  comboMonthToMonth:
+    PRICING.combo.monthToMonth,
+
+  comboAnnualAutopay:
+    PRICING.combo.annualAutopay,
+
+  athleteOnboarding:
+    PRICING.fees.athleteOnboarding,
+
+  athleteAnnualRenewal:
+    PRICING.fees.athleteAnnualRenewal,
+
+  defaultAdmissionsCredit:
+    PRICING.credits.admissionsDefault
+};
+
 const familyMonthly = {
-  1: 80,
-  2: 120,
-  3: 140,
-  4: 160
+  1:
+    PRICING.combat.standardFamily.athlete1,
+
+  2:
+    PRICING.combat.standardFamily.athlete2Total,
+
+  3:
+    PRICING.combat.standardFamily.athlete3Total,
+
+  4:
+    PRICING.combat.standardFamily.athlete4Total
 };
 
 const extras = {
@@ -194,6 +327,49 @@ const extras = {
       annualTotal:document.getElementById("annualTotal"),
       breakdown:document.getElementById("breakdown"),
       summary:document.getElementById("summary"),
+      familyPrintProposal:
+        document.getElementById("familyPrintProposal"),
+
+      printFamilyName:
+        document.getElementById("printFamilyName"),
+
+      printCoachName:
+        document.getElementById("printCoachName"),
+
+      printAthleteSummary:
+        document.getElementById("printAthleteSummary"),
+
+      printDueNow:
+        document.getElementById("printDueNow"),
+
+      printMonthly:
+        document.getElementById("printMonthly"),
+
+      printSavingsCard:
+        document.getElementById("printSavingsCard"),
+
+      printSavings:
+        document.getElementById("printSavings"),
+
+      printSavingsNote:
+        document.getElementById("printSavingsNote"),
+
+      printAnnualRenewal:
+        document.getElementById("printAnnualRenewal"),
+
+      printMembershipDetailContent:
+        document.getElementById(
+          "printMembershipDetailContent"
+        ),
+
+      printRecommendationSection:
+        document.getElementById(
+          "printRecommendationSection"
+        ),
+
+      printRecommendation:
+        document.getElementById("printRecommendation"),
+
       standardCompare:document.getElementById("standardCompare"),
       unlimitedCompare:document.getElementById("unlimitedCompare"),
       printButton:document.getElementById("printButton"),
@@ -235,7 +411,13 @@ const extras = {
       newCard.querySelector(".journey").value=defaults.journey||"zero2hero";
       newCard.querySelector(".athlete-plan").value=defaults.plan||"standard";
       newCard.querySelector(".billing-term").value=defaults.billingTerm||"month-to-month";
-      newCard.querySelector(".admissions-credit").value=defaults.credit??"25";
+      newCard.querySelector(
+        ".admissions-credit"
+      ).value =
+        defaults.credit ??
+        String(
+          FOUNDING_YEAR.defaultAdmissionsCredit
+        );
       newCard.querySelector(".renewal-behavior").value=defaults.renewalBehavior||"month-to-month";
 
       if(defaults.disciplines){
@@ -294,60 +476,122 @@ const extras = {
       let registrationCount=0;
       let admissionsCredits=0;
       let fitnessCount=0;
-      let unlimitedCount=0;
+      let comboCount=0;
       let standardCount=0;
 
-      athletes.forEach(a=>{
-        if(a.plan==="fitness"){
-          fitnessCount+=1;
-        }else{
-          registrationCount+=a.disciplines.length;
-          admissionsCredits+=a.credit;
-          if(a.plan==="unlimited") unlimitedCount+=1;
-          if(a.plan==="standard") standardCount+=1;
+      athletes.forEach((a) => {
+        if (a.plan === "fitness") {
+          fitnessCount += 1;
+          return;
+        }
+
+        /*
+         * Onboarding and annual renewal are now
+         * per Combat athlete, not per discipline.
+         */
+        registrationCount += 1;
+
+        admissionsCredits += a.credit;
+
+        if (a.plan === "combo") {
+          comboCount += 1;
+        }
+
+        if (a.plan === "standard") {
+          standardCount += 1;
         }
       });
 
-      const enrollmentBase=registrationCount*100;
-      const annualBase=registrationCount*100;
+      const enrollmentBase =
+        registrationCount *
+        FOUNDING_YEAR.athleteOnboarding;
 
-      let monthlyBase=0;
-      let commitmentDiscount=0;
+      const annualBase =
+        registrationCount *
+        FOUNDING_YEAR.athleteAnnualRenewal;
 
-      if(standardCount>0){
-        monthlyBase+=familyMonthly[Math.min(standardCount,4)]||160+(standardCount-4)*20;
+      let monthlyBase = 0;
+
+      if (standardCount > 0) {
+        if (standardCount <= 4) {
+          monthlyBase +=
+            familyMonthly[standardCount];
+        } else {
+          monthlyBase +=
+            familyMonthly[4] +
+            (
+              standardCount - 4
+            ) *
+            PRICING.combat.standardFamily
+              .additionalAthlete;
+        }
       }
 
-      monthlyBase+=unlimitedCount*120;
-      monthlyBase+=fitnessCount*60;
+      monthlyBase +=
+        fitnessCount *
+        FOUNDING_YEAR.fitnessMonthly;
 
-      const annualStandardAthletes=athletes.filter(a =>
-        a.plan==="standard" && a.billingTerm==="annual"
-      ).length;
+      /*
+       * Combat + Fitness is currently priced
+       * per participant.
+       *
+       * Multi-athlete Combo family pricing
+       * has NOT been separately defined yet.
+       */
+      athletes
+        .filter(
+          (athlete) =>
+            athlete.plan === "combo"
+        )
+        .forEach((athlete) => {
+          monthlyBase +=
+            athlete.billingTerm === "annual"
+              ? FOUNDING_YEAR.comboAnnualAutopay
+              : FOUNDING_YEAR.comboMonthToMonth;
+        });
 
-      const annualUnlimitedAthletes=athletes.filter(a =>
-        a.plan==="unlimited" && a.billingTerm==="annual"
-      ).length;
+      /*
+       * Founding Year core memberships are
+       * not discounted simply for signing
+       * an agreement.
+       *
+       * The Combo agreement benefit is
+       * already represented directly in
+       * monthlyBase as $140 -> $120.
+       */
+      let commitmentDiscount = 0;
 
-      const annualFitnessAthletes=athletes.filter(a =>
-        a.plan==="fitness" && a.billingTerm==="annual"
-      ).length;
+      const comboAgreementCount =
+        athletes.filter(
+          (athlete) =>
+            athlete.plan === "combo" &&
+            athlete.billingTerm === "annual"
+        ).length;
 
-      if(annualStandardAthletes>0){
-        commitmentDiscount+=10;
-      }
-
-      commitmentDiscount+=annualUnlimitedAthletes*10;
-      commitmentDiscount+=annualFitnessAthletes*5;
+      const agreementSavingsAnnual =
+        comboAgreementCount *
+        (
+          FOUNDING_YEAR.comboMonthToMonth -
+          FOUNDING_YEAR.comboAnnualAutopay
+        ) *
+        12;
 
       let privatePromo=0;
       if(el.privatePromo.checked&&extra.promoEligible){
         privatePromo=10;
       }
 
-      let fitnessCredit=0;
-      if(el.fitnessCredit.checked&&fitnessCount>0){
-        fitnessCredit=15;
+      let fitnessCredit = 0;
+
+      const hasFitnessMembership =
+        fitnessCount > 0 ||
+        comboCount > 0;
+
+      if (
+        el.fitnessCredit.checked &&
+        hasFitnessMembership
+      ) {
+        fitnessCredit = 15;
       }
 
       const dueNow=Math.max(
@@ -378,26 +622,46 @@ const extras = {
       el.firstYearTotal.textContent=money(firstYear);
       el.annualTotal.textContent=money(annualRenewal);
 
-      el.standardCompare.textContent=
-        `${money(familyMonthly[Math.min(Math.max(athletes.length,1),4)]||160)} / month`;
+      el.standardCompare.textContent =
+        `${money(
+          FOUNDING_YEAR.combatMonthly
+        )} Combat`;
 
-      el.unlimitedCompare.textContent=
-        `${money(athletes.length*120)} / month`;
+      el.unlimitedCompare.textContent =
+        `${money(
+          FOUNDING_YEAR.comboMonthToMonth
+        )} / ${money(
+          FOUNDING_YEAR.comboAnnualAutopay
+        )} Combo`;
 
       el.breakdown.innerHTML="";
 
-      athletes.forEach(a=>{
-        if(a.plan==="fitness"){
-          el.breakdown.append(line(`${a.name} — Fitness monthly`,60));
-        }else{
-          if(a.disciplines.length===0){
-            el.breakdown.append(line(`${a.name} — No discipline selected`,0));
-          }else{
-            el.breakdown.append(line(
-              `${a.name} — ${a.disciplines.length} registration${a.disciplines.length===1?"":"s"}`,
-              a.disciplines.length*100
-            ));
-          }
+      athletes.forEach((a) => {
+        if (a.plan === "fitness") {
+          el.breakdown.append(
+            line(
+              `${a.name} — Everyday Fitness`,
+              FOUNDING_YEAR.fitnessMonthly
+            )
+          );
+
+          return;
+        }
+
+        el.breakdown.append(
+          line(
+            `${a.name} — Athlete onboarding`,
+            FOUNDING_YEAR.athleteOnboarding
+          )
+        );
+
+        if (a.disciplines.length === 0) {
+          el.breakdown.append(
+            line(
+              `${a.name} — No Combat discipline selected`,
+              0
+            )
+          );
         }
       });
 
@@ -449,7 +713,12 @@ const extras = {
       d2.className="divider";
       el.breakdown.append(d2);
 
-      el.breakdown.append(line("Annual registration renewal",annualBase));
+      el.breakdown.append(
+        line(
+          "Annual athlete renewal",
+          annualBase
+        )
+      );
 
       if(annualSponsor>0){
         el.breakdown.append(line("Annual sponsor support",annualSponsor,{credit:true}));
@@ -461,18 +730,29 @@ const extras = {
       const intro=familyName?`<p><strong>${familyName}</strong></p>`:"";
 
       const athleteText=athletes.map(a=>{
-        const planLabel={
-          standard:"Standard",
-          unlimited:"Unlimited",
-          fitness:"Fitness"
+        const planLabel = {
+          standard:
+            "Combat",
+
+          fitness:
+            "Everyday Fitness",
+
+          combo:
+            "Combat + Fitness"
         }[a.plan];
 
-        const disciplineText=
-          a.plan==="fitness"
-            ?"fitness lane"
-            :a.disciplines.length
-              ?a.disciplines.join(", ")
-              :"no discipline selected";
+        const disciplineText =
+          a.plan === "fitness"
+            ? "fitness"
+            : a.plan === "combo"
+              ? (
+                a.disciplines.length
+                  ? `${a.disciplines.join(", ")} + fitness`
+                  : "combat + fitness"
+              )
+              : a.disciplines.length
+                ? a.disciplines.join(", ")
+                : "no discipline selected";
 
         const termLabel =
           a.billingTerm==="annual"
@@ -484,18 +764,41 @@ const extras = {
 
       const recommendation=el.coachRecommendation.value.trim();
 
+      const familySavings =
+        agreementSavingsAnnual > 0
+          ? `
+            <p class="family-savings">
+              <strong>You save:</strong>
+              ${money(
+                agreementSavingsAnnual / 12
+              )} per month /
+              <strong>${money(
+                agreementSavingsAnnual
+              )} over 12 months</strong>.
+            </p>
+          `
+          : "";
+
       el.summary.innerHTML=`
         ${intro}
         <p>${athleteText}</p>
+
         <p>
-          Enrollment balance: <strong>${money(dueNow)}</strong>.
-          Monthly family balance: <strong>${money(monthlyBalance)}</strong>.
-          Projected first-year total: <strong>${money(firstYear)}</strong>.
-          Next annual renewal: <strong>${money(annualRenewal)}</strong>.
-          12-month agreement savings:
-          <strong>${money(commitmentDiscount*12)}</strong> per year.
+          Due at enrollment:
+          <strong>${money(dueNow)}</strong>.
+          Monthly membership:
+          <strong>${money(monthlyBalance)}/month</strong>.
+          Annual athlete renewal:
+          <strong>${money(annualRenewal)}/year</strong>.
         </p>
-        ${recommendation?`<p><strong>Coach recommendation:</strong> ${recommendation}</p>`:""}
+
+        ${familySavings}
+
+        ${
+          recommendation
+            ? `<p><strong>Coach recommendation:</strong> ${recommendation}</p>`
+            : ""
+        }
       `;
 
       return {
@@ -514,12 +817,45 @@ const extras = {
           dueNow,
           monthlyBase,
           commitmentDiscount,
+          agreementSavingsAnnual,
+
           monthlySponsor,
           monthlyBalance,
+
           annualBase,
           annualSponsor,
           annualRenewal,
-          firstYear
+
+          firstYear,
+
+          catalog:
+            PRICING.version,
+
+          catalogEffectiveFrom:
+            PRICING.effectiveFrom,
+
+          combatFamilyLadder: {
+            athlete1: 80,
+            athlete2Total: 120,
+            athlete3Total: 140,
+            athlete4Total: 160,
+            additionalAthlete: 20
+          },
+
+          fitnessMonthly:
+            FOUNDING_YEAR.fitnessMonthly,
+
+          comboMonthToMonth:
+            FOUNDING_YEAR.comboMonthToMonth,
+
+          comboAnnualAutopay:
+            FOUNDING_YEAR.comboAnnualAutopay,
+
+          athleteOnboarding:
+            FOUNDING_YEAR.athleteOnboarding,
+
+          athleteAnnualRenewal:
+            FOUNDING_YEAR.athleteAnnualRenewal
         },
 
         agreement: {
@@ -994,7 +1330,8 @@ async function beginProposalCheckout() {
               "month-to-month",
 
             credit:
-              athlete.credit ?? 25,
+              athlete.credit ??
+              FOUNDING_YEAR.defaultAdmissionsCredit,
 
             disciplines:
               Array.isArray(
@@ -1088,6 +1425,121 @@ async function beginProposalCheckout() {
       return true;
     }
 
+    function prefillFromAppointment(
+      appointment
+    ) {
+      if (!appointment) {
+        return;
+      }
+
+      const incoming =
+        recommendationFromProgram(
+          appointment.programInterest || ""
+        );
+
+      const journey =
+        appointment.recommendedJourney ||
+        incoming.journey ||
+        "zero2hero";
+
+      const discipline =
+        appointment.recommendedDiscipline ||
+        incoming.discipline ||
+        "";
+
+      const athleteName =
+        appointment.participantName ||
+        appointment.athleteName ||
+        "";
+
+      const familyName =
+        appointment.registrantRole ===
+        "adult-athlete"
+          ? (
+            appointment.participantName ||
+            appointment.athleteName ||
+            ""
+          )
+          : (
+            appointment.parentName ||
+            appointment.registrantName ||
+            appointment.contactName ||
+            ""
+          );
+
+      const coachName =
+        appointment.appointmentCoach ||
+        appointment.coachName ||
+        "Coach Sandoval";
+
+      const recommendation =
+        appointment.coachAssessment ||
+        "";
+
+      el.familyName.value =
+        familyName;
+
+      el.coachName.value =
+        coachName;
+
+      el.coachRecommendation.value =
+        recommendation;
+
+      el.athleteList.innerHTML = "";
+
+      addAthlete({
+        name:
+          athleteName,
+
+        journey,
+
+        plan:
+          "standard",
+
+        billingTerm:
+          "month-to-month",
+
+        renewalBehavior:
+          "month-to-month",
+
+        disciplines:
+          discipline
+            ? [discipline]
+            : []
+      });
+
+      calculate();
+
+      console.log(
+        "Prospect Builder prefilled from appointment:",
+        {
+          appointmentId:
+            appointment.id,
+
+          familyName,
+
+          athleteName,
+
+          journey,
+
+          discipline,
+
+          startingPath:
+            appointment.recommendedStartingPath ||
+            appointment.admissionsPath ||
+            "",
+
+          familyDecision:
+            appointment.enrollmentDecision ||
+            "",
+
+          admissionsStatus:
+            appointment.admissionsStatus ||
+            ""
+        }
+      );
+    }
+
     function reset(){
       el.familyName.value="";
       el.coachName.value="Coach Sandoval";
@@ -1102,8 +1554,402 @@ async function beginProposalCheckout() {
       addAthlete({disciplines:["wrestling"]});
     }
 
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function buildFamilyPrintProposal() {
+      const result = calculate();
+
+      if (!result) {
+        return false;
+      }
+
+      const {
+        athletes,
+        pricing
+      } = result;
+
+      const familyName =
+        el.familyName.value.trim() ||
+        "Sandman Family";
+
+      const coachName =
+        el.coachName.value.trim() ||
+        "Coach Sandoval";
+
+      el.printFamilyName.textContent =
+        familyName;
+
+      el.printCoachName.textContent =
+        coachName;
+
+      el.printDueNow.textContent =
+        money(pricing.dueNow);
+
+      el.printMonthly.textContent =
+        `${money(
+          pricing.monthlyBalance
+        )}/month`;
+
+      el.printAnnualRenewal.textContent =
+        `${money(
+          pricing.annualRenewal
+        )}/year`;
+
+      const journeyLabels = {
+        zero2hero: "Zero2Hero",
+        path2legend: "Path2Legend",
+        quest2mastery: "Quest2Mastery",
+        fitness: "Everyday Fitness",
+        "everyday-fitness": "Everyday Fitness"
+      };
+
+      const planLabels = {
+        standard: "Combat",
+        combo: "Combat + Fitness",
+        fitness: "Everyday Fitness"
+      };
+
+      const disciplineLabels = {
+        wrestling: "Wrestling",
+        boxing: "Boxing",
+        "muay-thai": "Muay Thai",
+        mma: "MMA / Submission Grappling"
+      };
+
+      const athleteLines =
+        athletes.map((athlete) => {
+          const journey =
+            journeyLabels[athlete.journey] ||
+            athlete.journey ||
+            "—";
+
+          const plan =
+            planLabels[athlete.plan] ||
+            athlete.plan ||
+            "Membership";
+
+          const disciplines =
+            athlete.plan === "fitness"
+              ? "Fitness"
+              : athlete.disciplines
+                  .map(
+                    (discipline) =>
+                      disciplineLabels[
+                        discipline
+                      ] ||
+                      discipline
+                  )
+                  .join(" + ");
+
+          const commitment =
+            athlete.billingTerm === "annual"
+              ? "12-month agreement + autopay"
+              : "Month-to-month";
+
+          return `
+            <article class="print-athlete">
+              <div>
+                <small>Athlete</small>
+                <strong>
+                  ${escapeHtml(
+                    athlete.name || "Athlete"
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                <small>Journey</small>
+                <span>
+                  ${escapeHtml(journey)}
+                </span>
+              </div>
+
+              <div>
+                <small>Program</small>
+                <span>
+                  ${escapeHtml(
+                    disciplines || plan
+                  )}
+                </span>
+              </div>
+
+              <div>
+                <small>Membership</small>
+                <span>
+                  ${escapeHtml(plan)}
+                </span>
+              </div>
+
+              <div>
+                <small>Agreement</small>
+                <span>
+                  ${escapeHtml(commitment)}
+                </span>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+
+      el.printAthleteSummary.innerHTML =
+        athleteLines;
+
+      /*
+       * Savings card
+       */
+      const annualSavings =
+        Number(
+          pricing.agreementSavingsAnnual || 0
+        );
+
+      const monthlySavings =
+        annualSavings / 12;
+
+      if (annualSavings > 0) {
+        el.printSavings.textContent =
+          money(annualSavings);
+
+        el.printSavingsNote.textContent =
+          `${money(
+            monthlySavings
+          )}/month • over 12 months`;
+
+        el.printSavingsCard.hidden =
+          false;
+      } else {
+        el.printSavingsCard.hidden =
+          true;
+      }
+
+      /*
+       * Rich membership detail.
+       *
+       * This is family-facing explanation,
+       * not Management accounting.
+       */
+      const detailBlocks =
+        athletes.map((athlete) => {
+          const plan =
+            planLabels[athlete.plan] ||
+            "Membership";
+
+          const journey =
+            journeyLabels[athlete.journey] ||
+            athlete.journey ||
+            "—";
+
+          const disciplines =
+            athlete.plan === "fitness"
+              ? "Fitness"
+              : athlete.disciplines
+                  .map(
+                    (discipline) =>
+                      disciplineLabels[
+                        discipline
+                      ] ||
+                      discipline
+                  )
+                  .join(" + ");
+
+          const annualAgreement =
+            athlete.billingTerm === "annual";
+
+          let pricingRows = "";
+
+          if (athlete.plan === "combo") {
+            pricingRows += `
+              <div class="print-detail-row">
+                <span>
+                  Regular month-to-month value
+                </span>
+                <strong>
+                  ${money(
+                    FOUNDING_YEAR
+                      .comboMonthToMonth
+                  )}/month
+                </strong>
+              </div>
+            `;
+
+            if (annualAgreement) {
+              pricingRows += `
+                <div class="print-detail-row">
+                  <span>
+                    Founding Year agreement rate
+                  </span>
+                  <strong>
+                    ${money(
+                      FOUNDING_YEAR
+                        .comboAnnualAutopay
+                    )}/month
+                  </strong>
+                </div>
+
+                <div class="print-detail-row">
+                  <span>Monthly savings</span>
+                  <strong>
+                    ${money(
+                      FOUNDING_YEAR
+                        .comboMonthToMonth -
+                      FOUNDING_YEAR
+                        .comboAnnualAutopay
+                    )}
+                  </strong>
+                </div>
+
+                <div class="print-detail-row">
+                  <span>12-month savings</span>
+                  <strong>
+                    ${money(
+                      (
+                        FOUNDING_YEAR
+                          .comboMonthToMonth -
+                        FOUNDING_YEAR
+                          .comboAnnualAutopay
+                      ) * 12
+                    )}
+                  </strong>
+                </div>
+              `;
+            }
+          } else if (
+            athlete.plan === "standard"
+          ) {
+            pricingRows += `
+              <div class="print-detail-row">
+                <span>
+                  Founding Year Combat membership
+                </span>
+                <strong>
+                  ${money(
+                    FOUNDING_YEAR.combatMonthly
+                  )}/month
+                </strong>
+              </div>
+            `;
+          } else if (
+            athlete.plan === "fitness"
+          ) {
+            pricingRows += `
+              <div class="print-detail-row">
+                <span>
+                  Everyday Fitness membership
+                </span>
+                <strong>
+                  ${money(
+                    FOUNDING_YEAR.fitnessMonthly
+                  )}/month
+                </strong>
+              </div>
+            `;
+          }
+
+          return `
+            <article class="print-detail-card">
+
+              <h3>
+                ${escapeHtml(
+                  athlete.name || "Athlete"
+                )}
+              </h3>
+
+              <div class="print-detail-row">
+                <span>Journey</span>
+                <strong>
+                  ${escapeHtml(journey)}
+                </strong>
+              </div>
+
+              <div class="print-detail-row">
+                <span>Program</span>
+                <strong>
+                  ${escapeHtml(
+                    disciplines || plan
+                  )}
+                </strong>
+              </div>
+
+              <div class="print-detail-row">
+                <span>Membership</span>
+                <strong>
+                  ${escapeHtml(plan)}
+                </strong>
+              </div>
+
+              ${pricingRows}
+
+              <div class="print-detail-row">
+                <span>Athlete onboarding</span>
+                <strong>
+                  ${money(
+                    FOUNDING_YEAR
+                      .athleteOnboarding
+                  )}
+                </strong>
+              </div>
+
+              <div class="print-detail-row">
+                <span>
+                  Annual athlete renewal
+                </span>
+                <strong>
+                  ${money(
+                    FOUNDING_YEAR
+                      .athleteAnnualRenewal
+                  )}/year
+                </strong>
+              </div>
+
+            </article>
+          `;
+        })
+        .join("");
+
+      el.printMembershipDetailContent
+        .innerHTML = detailBlocks;
+
+      /*
+       * Coach recommendation
+       */
+      const recommendation =
+        el.coachRecommendation.value.trim();
+
+      if (recommendation) {
+        el.printRecommendation.textContent =
+          recommendation;
+
+        el.printRecommendationSection.hidden =
+          false;
+      } else {
+        el.printRecommendation.textContent =
+          "";
+
+        el.printRecommendationSection.hidden =
+          true;
+      }
+
+      return true;
+    }
+
     el.addAthlete.addEventListener("click",()=>addAthlete());
-    el.printButton.addEventListener("click",()=>window.print());
+    el.printButton.addEventListener(
+      "click",
+      () => {
+        if (!buildFamilyPrintProposal()) {
+          return;
+        }
+
+        window.print();
+      }
+    );
     el.saveDraftButton.addEventListener("click",saveProposalDraft);
     el.submitReviewButton.addEventListener("click",submitForReview);
     el.approveProposalButton.addEventListener("click",approveCurrentProposal);
@@ -1137,6 +1983,24 @@ async function beginProposalCheckout() {
           "Unable to load the proposal draft."
         );
       });
+    } else if (appointmentId) {
+      loadAdmissionsAppointment()
+        .then((appointment) => {
+          prefillFromAppointment(
+            appointment
+          );
+        })
+        .catch((error) => {
+          console.error(
+            "Unable to load Admissions appointment:",
+            error
+          );
+
+          alert(
+            error?.message ||
+            "Unable to load the Admissions appointment."
+          );
+        });
     } else {
       addAthlete({
         disciplines: ["wrestling"]
