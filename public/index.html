@@ -1,35 +1,180 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8">
 
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
-  />
+  >
 
   <title>Sandman Academy of Combat &amp; Fitness™</title>
 
   <meta
     name="description"
-    content="Combat Is the Classroom. Character Is the Curriculum. Explore wrestling, boxing, Muay Thai, MMA, submission grappling, and fitness at Sandman Academy."
-  />
+    content="Find a Sandman Academy of Combat & Fitness location and explore currently available programs."
+  >
 
   <link
     rel="stylesheet"
     href="/assets/css/site.css"
-  />
+  >
 
-  <link
-    rel="stylesheet"
-    href="/assets/css/home.css"
-  />
-  <link rel="stylesheet" href="/assets/css/home-newsletter.css?v=2">
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+    }
+
+    .location-gateway{
+      width:min(1000px, calc(100% - 32px));
+      margin:0 auto;
+      padding:clamp(3rem, 8vw, 6rem) 0;
+    }
+
+    .location-gateway__heading{
+      max-width:760px;
+      margin:0 auto 2.5rem;
+      text-align:center;
+    }
+
+    .location-gateway__eyebrow{
+      margin:0 0 .75rem;
+      color:var(--heading-accent, #d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .location-gateway h1{
+      margin:0 0 1rem;
+      color:var(--heading, #fff);
+      font-size:clamp(2.4rem, 7vw, 4.6rem);
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+
+    .location-gateway__intro{
+      max-width:650px;
+      margin:0 auto;
+      color:var(--muted, #d0d0d4);
+      font-size:1.05rem;
+      line-height:1.7;
+    }
+
+    .location-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:20px;
+    }
+
+    .location-card{
+      padding:clamp(1.5rem, 4vw, 2.25rem);
+      border:1px solid var(--line, rgba(255,255,255,.12));
+      border-radius:22px;
+      background:var(--panel, #111113);
+      box-shadow:0 16px 34px rgba(0,0,0,.22);
+    }
+
+    .location-card--active{
+      border-color:rgba(212,175,55,.55);
+    }
+
+    .location-card__status{
+      display:inline-block;
+      margin-bottom:1rem;
+      padding:6px 10px;
+      border:1px solid rgba(212,175,55,.45);
+      border-radius:999px;
+      color:var(--heading-accent, #d4af37);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    .location-card--inactive{
+      opacity:.72;
+    }
+
+    .location-card h2{
+      margin:0 0 .55rem;
+      color:var(--heading, #fff);
+      font-size:1.8rem;
+    }
+
+    .location-card p{
+      color:var(--muted, #d0d0d4);
+      line-height:1.65;
+    }
+
+    .location-program{
+      margin-top:1.25rem;
+    }
+
+    .location-program strong{
+      display:block;
+      margin-bottom:.3rem;
+      color:var(--heading, #fff);
+    }
+
+    .location-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      margin-top:1.5rem;
+      padding:12px 22px;
+      border:1px solid #e7c968;
+      border-radius:999px;
+      background:#d4af37;
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    .location-button:hover,
+    .location-button:focus-visible{
+      transform:translateY(-2px);
+    }
+
+    .gateway-note{
+      margin:2rem auto 0;
+      max-width:700px;
+      text-align:center;
+      color:var(--muted, #d0d0d4);
+      font-size:.9rem;
+      line-height:1.6;
+    }
+
+    body.day-mode .location-card{
+      border-color:#d7c7a2;
+      background:#fff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    body.day-mode .location-card--active{
+      border-color:#c9aa61;
+    }
+
+    @media (max-width:720px){
+      .location-grid{
+        grid-template-columns:1fr;
+      }
+
+      .location-gateway{
+        width:min(100% - 24px, 1000px);
+        padding:2.5rem 0 4rem;
+      }
+    }
+  </style>
 </head>
 
 <body>
-
-  <!-- Shared site navigation -->
 
   <div
     id="navigation"
@@ -41,221 +186,135 @@
     aria-hidden="true"
   ></div>
 
-  <main>
+  <main class="location-gateway">
 
-    <!-- =====================================================
-         PRIMARY HERO — ENGLISH
-    ====================================================== -->
+    <section class="location-gateway__heading">
 
-    <section
-      class="hero-panel hero-panel--interactive"
-      data-lang-block="en"
-    >
+      <div data-lang-block="en">
+        <p class="location-gateway__eyebrow">
+          Sandman Academy
+        </p>
 
-      <img
-        src="/assets/img/pages/home/hero-home-env2.png"
-        alt="Sandman Academy athletes training in wrestling"
-        class="home-hero__image"
-        loading="eager"
-      />
+        <h1>Choose Your Location</h1>
 
-      <!-- Start Your Journey -->
+        <p class="location-gateway__intro">
+          Programs are offered by location. Select an academy to
+          explore the journeys and training currently available there.
+        </p>
+      </div>
 
-      <a
-        class="home-hotspot home-hotspot-journeys"
-        href="/journeys.html"
-        aria-label="Start Your Journey"
-      ></a>
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <p class="location-gateway__eyebrow">
+          Academia Sandman
+        </p>
 
-      <!-- Watch Our Story -->
+        <h1>Elige Tu Ubicación</h1>
 
-      <a
-        class="home-hotspot home-hotspot-origins"
-        href="/origins.html"
-        aria-label="Watch Our Story"
-      ></a>
-
-      <!-- Combat Philosophy -->
-
-      <a
-        class="home-hotspot home-hotspot-combat"
-        href="/pillars/combat.html"
-        aria-label="Explore the Combat philosophy"
-      ></a>
-
-      <!-- Strength Philosophy -->
-
-      <a
-        class="home-hotspot home-hotspot-strength"
-        href="/pillars/strength.html"
-        aria-label="Explore the Strength philosophy"
-      ></a>
-
-      <!-- Honor Philosophy -->
-
-      <a
-        class="home-hotspot home-hotspot-honor"
-        href="/pillars/honor.html"
-        aria-label="Explore the Honor philosophy"
-      ></a>
-
-    </section>
-
-
-    <!-- =====================================================
-         PRIMARY HERO — SPANISH
-    ====================================================== -->
-
-    <section
-      class="hero-panel hero-panel--interactive hidden-lang"
-      data-lang-block="es"
-    >
-
-      <img
-        src="/assets/img/pages/home/hero-home-esv2.png"
-        alt="Atletas de Sandman Academy entrenando lucha"
-        class="home-hero__image"
-        loading="eager"
-      />
-
-      <!-- Comienza Tu Camino -->
-
-      <a
-        class="home-hotspot home-hotspot-journeys"
-        href="/journeys.html"
-        aria-label="Comienza Tu Camino"
-      ></a>
-
-      <!-- Conoce Nuestra Historia -->
-
-      <a
-        class="home-hotspot home-hotspot-origins"
-        href="/origins.html"
-        aria-label="Conoce Nuestra Historia"
-      ></a>
-
-      <!-- Filosofía de Combate -->
-
-      <a
-        class="home-hotspot home-hotspot-combat"
-        href="/pillars/combat.html"
-        aria-label="Explora la filosofía de Combate"
-      ></a>
-
-      <!-- Filosofía de Fuerza -->
-
-      <a
-        class="home-hotspot home-hotspot-strength"
-        href="/pillars/strength.html"
-        aria-label="Explora la filosofía de Fuerza"
-      ></a>
-
-      <!-- Filosofía de Honor -->
-
-      <a
-        class="home-hotspot home-hotspot-honor"
-        href="/pillars/honor.html"
-        aria-label="Explora la filosofía de Honor"
-      ></a>
-
-    </section>
-
-
-    <!-- =====================================================
-         MANY PATHS — ENGLISH
-    ====================================================== -->
-
-    <section
-      class="home-many-paths"
-      data-lang-block="en"
-    >
-
-      <div class="home-many-paths__visual">
-
-        <img
-          src="/assets/img/pages/home/home-many-paths-hero-en-v1.png"
-          alt="Boxing, Muay Thai, MMA, submission grappling, and Everyday Fitness at Sandman Academy"
-          class="home-many-paths__image"
-          loading="lazy"
-        />
-
-        <a
-          class="home-many-paths__fitness-hotspot"
-          href="/marketing/fitness/"
-          aria-label="Explore Everyday Fitness"
-        ></a>
-
+        <p class="location-gateway__intro">
+          Los programas se ofrecen según la ubicación. Selecciona una
+          academia para explorar los caminos y entrenamientos disponibles.
+        </p>
       </div>
 
     </section>
 
 
-    <!-- =====================================================
-         MANY PATHS — SPANISH
-    ====================================================== -->
+    <section class="location-grid">
 
-    <section
-      class="home-many-paths hidden-lang"
-      data-lang-block="es"
-    >
+      <!-- SANTA YNEZ VALLEY -->
 
-      <div class="home-many-paths__visual">
+      <article class="location-card location-card--active">
 
-        <img
-          src="/assets/img/pages/home/home-many-paths-hero-es-v1.png"
-          alt="Boxeo, Muay Thai, MMA, grappling de sumisión y Fitness Diario en Sandman Academy"
-          class="home-many-paths__image"
-          loading="lazy"
-        />
-
-        <a
-          class="home-many-paths__fitness-hotspot"
-          href="/marketing/fitness/"
-          aria-label="Explorar Fitness Diario"
-        ></a>
-
-      </div>
-
-    </section>
-
-<!-- =====================================================
-         HOME — STAY CONNECTED
-    ====================================================== -->
-
-    <section
-      class="home-connect"
-      aria-labelledby="home-connect-title"
-    >
-
-      <div class="home-connect__icon" aria-hidden="true">
-        <svg
-          viewBox="0 0 64 64"
-          role="img"
-          aria-hidden="true"
+        <span
+          class="location-card__status"
+          data-lang-block="en"
         >
-          <rect
-            x="8"
-            y="14"
-            width="48"
-            height="36"
-            rx="4"
-          ></rect>
+          Enrollment Open
+        </span>
 
-          <path d="M10 18l22 18 22-18"></path>
-        </svg>
-      </div>
+        <span
+          class="location-card__status hidden-lang"
+          data-lang-block="es"
+        >
+          Inscripciones Abiertas
+        </span>
 
-      <div class="home-connect__content">
+        <h2>Santa Ynez Valley</h2>
 
         <div data-lang-block="en">
-          <p class="home-connect__eyebrow">
-            Stay Connected
-          </p>
 
+          <div class="location-program">
+            <strong>Zero2Hero™ • Ages 7–13</strong>
+            Wrestling • Muay Thai / Kickboxing
+          </div>
+
+          <div class="location-program">
+            <strong>Path2Legend™ • Ages 14+</strong>
+            Wrestling • Boxing
+          </div>
+
+          <a
+            class="location-button"
+            href="/locations/santa-ynez-valley/"
+          >
+            Visit Academy
+          </a>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <div class="location-program">
+            <strong>Zero2Hero™ • Edades 7–13</strong>
+            Lucha • Muay Thai / Kickboxing
+          </div>
+
+          <div class="location-program">
+            <strong>Path2Legend™ • Edades 14+</strong>
+            Lucha • Boxeo
+          </div>
+
+          <a
+            class="location-button"
+            href="/locations/santa-ynez-valley/"
+          >
+            Visitar Academia
+          </a>
+
+        </div>
+
+      </article>
+
+
+      <!-- LOMPOC -->
+
+      <article class="location-card location-card--inactive">
+
+        <span
+          class="location-card__status"
+          data-lang-block="en"
+        >
+          Not Currently Enrolling
+        </span>
+
+        <span
+          class="location-card__status hidden-lang"
+          data-lang-block="es"
+        >
+          Inscripciones No Disponibles
+        </span>
+
+        <h2>Lompoc</h2>
+
+        <div data-lang-block="en">
           <p>
-            Get program announcements, upcoming classes,
-            community events, registration openings, and
-            special promotions from Sandman Academy.
+            This location is not currently accepting enrollment.
           </p>
         </div>
 
@@ -263,129 +322,37 @@
           data-lang-block="es"
           class="hidden-lang"
         >
-          <p class="home-connect__eyebrow">
-            Mantente Conectado
-          </p>
-
           <p>
-            Recibe anuncios de programas, próximas clases,
-            eventos comunitarios, aperturas de inscripción
-            y promociones especiales de Sandman Academy.
+            Esta ubicación no está aceptando inscripciones actualmente.
           </p>
         </div>
 
-      </div>
-
-      <form
-        id="homeNewsletterForm"
-        class="home-connect__form"
-        novalidate
-      >
-
-        <div class="home-connect__field">
-
-          <label
-            class="sr-only"
-            for="homeNewsletterEmail"
-          >
-            Email Address
-          </label>
-
-          <input
-            id="homeNewsletterEmail"
-            name="email"
-            type="email"
-            autocomplete="email"
-            inputmode="email"
-            placeholder="Email Address"
-            required
-          />
-
-          <button
-            id="homeNewsletterSubmit"
-            type="submit"
-          >
-            <span data-lang-block="en">
-              Keep Me Updated
-            </span>
-
-            <span
-              data-lang-block="es"
-              class="hidden-lang"
-            >
-              Manténme Informado
-            </span>
-          </button>
-
-        </div>
-
-        <label class="home-connect__consent">
-
-          <input
-            id="homeNewsletterConsent"
-            name="consent"
-            type="checkbox"
-            required
-          />
-
-          <span data-lang-block="en">
-            I agree to receive occasional Sandman Academy
-            updates and understand that I may unsubscribe
-            at any time.
-          </span>
-
-          <span
-            data-lang-block="es"
-            class="hidden-lang"
-          >
-            Acepto recibir actualizaciones ocasionales de
-            Sandman Academy y entiendo que puedo cancelar
-            mi suscripción en cualquier momento.
-          </span>
-
-        </label>
-
-        <p
-          id="homeNewsletterStatus"
-          class="home-connect__status"
-          role="status"
-          aria-live="polite"
-        ></p>
-
-      </form>
+      </article>
 
     </section>
 
-
-
-
-    <!-- =====================================================
-         AMERICAN FLAG BAND
-    ====================================================== -->
-
-    <section
-      class="home-flag-band"
-      aria-hidden="true"
+    <p
+      class="gateway-note"
+      data-lang-block="en"
     >
-      <img
-        src="/assets/img/pages/home/home-flag-band.png"
-        alt=""
-        loading="lazy"
-      />
-    </section>
+      Additional Sandman Academy locations and programs may be added
+      as they become available.
+    </p>
+
+    <p
+      class="gateway-note hidden-lang"
+      data-lang-block="es"
+    >
+      Se podrán agregar otras ubicaciones y programas de Sandman Academy
+      a medida que estén disponibles.
+    </p>
 
   </main>
-
-
-  <!-- Shared footer -->
 
   <div
     id="footer"
     data-component="/components/footer.html"
   ></div>
-
-
-  <!-- Shared scripts -->
 
   <script
     src="/assets/js/component-loader.js"
@@ -405,13 +372,6 @@
   <script
     src="/assets/js/navigation.js"
     defer
-  ></script>
-
-
-
-  <script
-    type="module"
-    src="/assets/js/home-newsletter.js"
   ></script>
 
 </body>

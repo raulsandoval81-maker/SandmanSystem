@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Sandman Academy of Combat &amp; Fitness™</title>
+
+  <meta
+    name="description"
+    content="Combat Is the Classroom. Character Is the Curriculum. Explore wrestling, boxing, Muay Thai, MMA, submission grappling, and fitness at Sandman Academy."
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/home.css"
+  />
+  <link rel="stylesheet" href="/assets/css/home-newsletter.css?v=2">
+</head>
+
+<body>
+
+  <!-- Shared site navigation -->
+
+  <div
+    id="navigation"
+    data-component="/components/navigation.html"
+  ></div>
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
+  <main>
+
+    <!-- =====================================================
+         PRIMARY HERO — ENGLISH
+    ====================================================== -->
+
+    <section
+      class="hero-panel hero-panel--interactive"
+      data-lang-block="en"
+    >
+
+      <img
+        src="/assets/img/pages/home/hero-home-env2.png"
+        alt="Sandman Academy athletes training in wrestling"
+        class="home-hero__image"
+        loading="eager"
+      />
+
+      <!-- Start Your Journey -->
+
+      <a
+        class="home-hotspot home-hotspot-journeys"
+        href="/locations/santa-ynez-valley/journeys.html"
+        aria-label="Start Your Journey"
+      ></a>
+
+      <!-- Watch Our Story -->
+
+      <a
+        class="home-hotspot home-hotspot-origins"
+         href="/locations/santa-ynez-valley/about.html"
+         aria-label="Our Story"
+      ></a>
+
+    </section>
+
+
+    <!-- =====================================================
+         PRIMARY HERO — SPANISH
+    ====================================================== -->
+
+    <section
+      class="hero-panel hero-panel--interactive hidden-lang"
+      data-lang-block="es"
+    >
+
+      <img
+        src="/assets/img/pages/home/hero-home-esv2.png"
+        alt="Atletas de Sandman Academy entrenando lucha"
+        class="home-hero__image"
+        loading="eager"
+      />
+
+      <!-- Comienza Tu Camino -->
+
+      <a
+        class="home-hotspot home-hotspot-journeys"
+        href="/locations/santa-ynez-valley/journeys.html"
+        aria-label="Comienza Tu Camino"
+      ></a>
+
+      <!-- Conoce Nuestra Historia -->
+
+      <a
+        class="home-hotspot home-hotspot-origins"
+        href="/locations/santa-ynez-valley/about.html"
+        aria-label="Conoce Nuestra Historia"
+      ></a>
+
+    </section>
+
+
+    <!-- =====================================================
+         MANY PATHS — ENGLISH
+    ====================================================== -->
+
+    <section
+      class="home-many-paths"
+      data-lang-block="en"
+    >
+
+      <div class="home-many-paths__visual">
+
+        <img
+          src="/assets/img/pages/home/home-many-paths-hero-en-v1.png"
+          alt="Boxing, Muay Thai, MMA, submission grappling, and Everyday Fitness at Sandman Academy"
+          class="home-many-paths__image"
+          loading="lazy"
+        />
+
+        <a
+          class="home-many-paths__fitness-hotspot"
+          href="/marketing/fitness/"
+          aria-label="Explore Everyday Fitness"
+        ></a>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MANY PATHS — SPANISH
+    ====================================================== -->
+
+    <section
+      class="home-many-paths hidden-lang"
+      data-lang-block="es"
+    >
+
+      <div class="home-many-paths__visual">
+
+        <img
+          src="/assets/img/pages/home/home-many-paths-hero-es-v1.png"
+          alt="Boxeo, Muay Thai, MMA, grappling de sumisión y Fitness Diario en Sandman Academy"
+          class="home-many-paths__image"
+          loading="lazy"
+        />
+
+        <a
+          class="home-many-paths__fitness-hotspot"
+          href="/marketing/fitness/"
+          aria-label="Explorar Fitness Diario"
+        ></a>
+
+      </div>
+
+    </section>
+
+<!-- =====================================================
+         HOME — STAY CONNECTED
+    ====================================================== -->
+
+    <section
+      class="home-connect"
+      aria-labelledby="home-connect-title"
+    >
+
+      <div class="home-connect__icon" aria-hidden="true">
+        <svg
+          viewBox="0 0 64 64"
+          role="img"
+          aria-hidden="true"
+        >
+          <rect
+            x="8"
+            y="14"
+            width="48"
+            height="36"
+            rx="4"
+          ></rect>
+
+          <path d="M10 18l22 18 22-18"></path>
+        </svg>
+      </div>
+
+      <div class="home-connect__content">
+
+        <div data-lang-block="en">
+          <p class="home-connect__eyebrow">
+            Stay Connected
+          </p>
+
+          <p>
+            Get program announcements, upcoming classes,
+            community events, registration openings, and
+            special promotions from Sandman Academy.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="home-connect__eyebrow">
+            Mantente Conectado
+          </p>
+
+          <p>
+            Recibe anuncios de programas, próximas clases,
+            eventos comunitarios, aperturas de inscripción
+            y promociones especiales de Sandman Academy.
+          </p>
+        </div>
+
+      </div>
+
+      <form
+        id="homeNewsletterForm"
+        class="home-connect__form"
+        novalidate
+      >
+
+        <div class="home-connect__field">
+
+          <label
+            class="sr-only"
+            for="homeNewsletterEmail"
+          >
+            Email Address
+          </label>
+
+          <input
+            id="homeNewsletterEmail"
+            name="email"
+            type="email"
+            autocomplete="email"
+            inputmode="email"
+            placeholder="Email Address"
+            required
+          />
+
+          <button
+            id="homeNewsletterSubmit"
+            type="submit"
+          >
+            <span data-lang-block="en">
+              Keep Me Updated
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Manténme Informado
+            </span>
+          </button>
+
+        </div>
+
+        <label class="home-connect__consent">
+
+          <input
+            id="homeNewsletterConsent"
+            name="consent"
+            type="checkbox"
+            required
+          />
+
+          <span data-lang-block="en">
+            I agree to receive occasional Sandman Academy
+            updates and understand that I may unsubscribe
+            at any time.
+          </span>
+
+          <span
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            Acepto recibir actualizaciones ocasionales de
+            Sandman Academy y entiendo que puedo cancelar
+            mi suscripción en cualquier momento.
+          </span>
+
+        </label>
+
+        <p
+          id="homeNewsletterStatus"
+          class="home-connect__status"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+      </form>
+
+    </section>
+
+
+
+
+    <!-- =====================================================
+         AMERICAN FLAG BAND
+    ====================================================== -->
+
+    <section
+      class="home-flag-band"
+      aria-hidden="true"
+    >
+      <img
+        src="/assets/img/pages/home/home-flag-band.png"
+        alt=""
+        loading="lazy"
+      />
+    </section>
+
+  </main>
+
+
+  <!-- Shared footer -->
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <!-- Shared scripts -->
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
+
+
+  <script
+    type="module"
+    src="/assets/js/home-newsletter.js"
+  ></script>
+
+</body>
+</html>

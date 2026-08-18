@@ -1,0 +1,23 @@
+{
+  "locations": [
+    {
+      "id": "santa-ynez-valley",
+      "name": "Santa Ynez Valley",
+      "status": "active",
+      "enrollment": "open",
+      "programs": [
+        "Zero2Hero Wrestling",
+        "Zero2Hero Muay Thai / Kickboxing"
+      ],
+      "url": "/locations/santa-ynez-valley/"
+    },
+    {
+      "id": "lompoc",
+      "name": "Lompoc",
+      "status": "coming-soon",
+      "enrollment": "closed",
+      "programs": [],
+      "url": "/locations/lompoc/"
+    }
+  ]
+}
