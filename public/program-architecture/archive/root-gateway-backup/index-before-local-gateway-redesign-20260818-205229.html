@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Sandman Academy of Combat &amp; Fitness™</title>
+
+  <meta
+    name="description"
+    content="Find a Sandman Academy of Combat & Fitness location and explore currently available programs."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+
+    .gateway-header{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      gap:1rem;
+      min-height:72px;
+      padding:0 1.25rem;
+      border-bottom:1px solid rgba(255,255,255,.10);
+    }
+
+    .gateway-brand{
+      text-align:center;
+      color:var(--heading,#fff);
+      font-weight:900;
+      letter-spacing:.03em;
+    }
+
+    body.day-mode .gateway-header{
+      border-bottom-color:rgba(0,0,0,.12);
+    }
+
+    @media(max-width:600px){
+      .gateway-brand{
+        font-size:.8rem;
+      }
+    }
+
+
+    body{
+      margin:0;
+    }
+
+    .location-gateway{
+      width:min(760px, calc(100% - 32px));
+      margin:0 auto;
+      padding:clamp(3rem, 8vw, 6rem) 0;
+    }
+
+
+    .location-gateway__badge{
+      display:block;
+      width:min(220px, 54vw);
+      height:auto;
+      margin:0 auto 1.35rem;
+      filter:drop-shadow(0 18px 34px rgba(0,0,0,.38));
+    }
+
+    .location-gateway__heading{
+      max-width:760px;
+      margin:0 auto 2.5rem;
+      text-align:center;
+    }
+
+    .location-gateway__eyebrow{
+      margin:0 0 .75rem;
+      color:var(--heading-accent, #d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .location-gateway h1{
+      margin:0 0 1rem;
+      color:var(--heading, #fff);
+      font-size:clamp(2.4rem, 7vw, 4.6rem);
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+
+    .location-gateway__intro{
+      max-width:650px;
+      margin:0 auto;
+      color:var(--muted, #d0d0d4);
+      font-size:1.05rem;
+      line-height:1.7;
+    }
+
+    .location-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:20px;
+    }
+
+    .location-card{
+      padding:clamp(1.5rem, 4vw, 2.25rem);
+      border:1px solid var(--line, rgba(255,255,255,.12));
+      border-radius:22px;
+      background:var(--panel, #111113);
+      box-shadow:0 16px 34px rgba(0,0,0,.22);
+    }
+
+    .location-card--active{
+      border-color:rgba(212,175,55,.55);
+    }
+
+    .location-card__status{
+      display:inline-block;
+      margin-bottom:1rem;
+      padding:6px 10px;
+      border:1px solid rgba(212,175,55,.45);
+      border-radius:999px;
+      color:var(--heading-accent, #d4af37);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    .location-card--inactive{
+      opacity:.72;
+    }
+
+    .location-card h2{
+      margin:0 0 .55rem;
+      color:var(--heading, #fff);
+      font-size:1.8rem;
+    }
+
+    .location-card p{
+      color:var(--muted, #d0d0d4);
+      line-height:1.65;
+    }
+
+    .location-program{
+      margin-top:1.25rem;
+    }
+
+    .location-program strong{
+      display:block;
+      margin-bottom:.3rem;
+      color:var(--heading, #fff);
+    }
+
+    .location-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      margin-top:1.5rem;
+      padding:12px 22px;
+      border:1px solid #e7c968;
+      border-radius:999px;
+      background:#d4af37;
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    .location-button:hover,
+    .location-button:focus-visible{
+      transform:translateY(-2px);
+    }
+
+    .gateway-note{
+      margin:2rem auto 0;
+      max-width:700px;
+      text-align:center;
+      color:var(--muted, #d0d0d4);
+      font-size:.9rem;
+      line-height:1.6;
+    }
+
+    body.day-mode .location-card{
+      border-color:#d7c7a2;
+      background:#fff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    body.day-mode .location-card--active{
+      border-color:#c9aa61;
+    }
+
+    @media (max-width:720px){
+      .location-grid{
+        grid-template-columns:1fr;
+      }
+
+      .location-gateway{
+        width:min(100% - 24px, 1000px);
+        padding:2.5rem 0 4rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="gateway-header">
+    <button
+      class="theme-toggle"
+      type="button"
+      data-theme-toggle
+      aria-label="Switch color theme"
+    >
+      ☀
+    </button>
+
+    <div class="gateway-brand">
+      Sandman Academy of Combat &amp; Fitness
+    </div>
+
+    <button
+      class="language-toggle"
+      type="button"
+      data-language-toggle
+      aria-label="Switch language"
+    >
+      ES
+    </button>
+  </header>
+
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
+  <main class="location-gateway">
+
+    <section class="location-gateway__heading">
+
+      <img
+        class="location-gateway__badge"
+        src="/assets/img/brand/sandman-academy-house-badge.png"
+        alt="Sandman Academy house badge"
+      >
+
+
+      <div data-lang-block="en">
+        <p class="location-gateway__eyebrow">
+          Sandman Academy
+        </p>
+
+        <h1>Santa Ynez Valley</h1>
+
+        <p class="location-gateway__intro">
+          Explore the programs and training currently available
+          at Sandman Academy in the Santa Ynez Valley.
+        </p>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <p class="location-gateway__eyebrow">
+          Academia Sandman
+        </p>
+
+        <h1>Valle de Santa Ynez</h1>
+
+        <p class="location-gateway__intro">
+          Explora los programas y entrenamientos disponibles actualmente
+          en Sandman Academy del Valle de Santa Ynez.
+        </p>
+      </div>
+
+    </section>
+
+
+    <section class="location-grid">
+
+      <!-- SANTA YNEZ VALLEY -->
+
+      <article class="location-card location-card--active">
+
+        <span
+          class="location-card__status"
+          data-lang-block="en"
+        >
+          Enrollment Open
+        </span>
+
+        <span
+          class="location-card__status hidden-lang"
+          data-lang-block="es"
+        >
+          Inscripciones Abiertas
+        </span>
+
+        <h2>Santa Ynez Valley</h2>
+
+        <div data-lang-block="en">
+
+          <div class="location-program">
+            <strong>Zero2Hero™ • Ages 7–13</strong>
+            Wrestling • Muay Thai / Kickboxing
+          </div>
+
+          <div class="location-program">
+            <strong>Path2Legend™ • Ages 14+</strong>
+            Wrestling • Boxing
+          </div>
+
+          <a
+            class="location-button"
+            href="/locations/santa-ynez-valley/"
+          >
+            Visit Academy
+          </a>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <div class="location-program">
+            <strong>Zero2Hero™ • Edades 7–13</strong>
+            Lucha • Muay Thai / Kickboxing
+          </div>
+
+          <div class="location-program">
+            <strong>Path2Legend™ • Edades 14+</strong>
+            Lucha • Boxeo
+          </div>
+
+          <a
+            class="location-button"
+            href="/locations/santa-ynez-valley/"
+          >
+            Visitar Academia
+          </a>
+
+        </div>
+
+      </article>
+
+    </section>
+
+    <p
+      class="gateway-note"
+      data-lang-block="en"
+    >
+      Serving athletes and families throughout the Santa Ynez Valley
+      and surrounding communities, including Lompoc.
+    </p>
+
+    <p
+      class="gateway-note hidden-lang"
+      data-lang-block="es"
+    >
+      Sirviendo a atletas y familias de todo el Valle de Santa Ynez
+      y comunidades cercanas, incluyendo Lompoc.
+    </p>
+
+  </main>
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+</body>
+</html>

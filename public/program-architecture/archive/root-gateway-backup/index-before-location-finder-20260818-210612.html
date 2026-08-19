@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    Sandman Academy of Combat &amp; Fitness™
+  </title>
+
+  <meta
+    name="description"
+    content="Explore programs currently offered at Sandman Academy of Combat & Fitness in the Santa Ynez Valley."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+
+  <style>
+    :root{
+      --gateway-bg:#050505;
+      --gateway-panel:#0d0d0f;
+      --gateway-text:#f4f4f5;
+      --gateway-muted:#c4c4c8;
+      --gateway-gold:#d4af37;
+      --gateway-gold-soft:#e5c865;
+      --gateway-line:rgba(255,255,255,.11);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.10),
+          transparent 32%
+        ),
+        var(--gateway-bg);
+      color:var(--gateway-text);
+    }
+
+    .hidden-lang{
+      display:none!important;
+    }
+
+    /* =========================================
+       TOP CONTROLS
+    ========================================== */
+
+    .gateway-topbar{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      min-height:72px;
+      padding:0 1.2rem;
+      border-bottom:1px solid rgba(255,255,255,.09);
+    }
+
+    .gateway-topbar__spacer{
+      min-width:48px;
+    }
+
+    .gateway-topbar__brand{
+      text-align:center;
+      color:var(--gateway-muted);
+      font-size:.78rem;
+      font-weight:800;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    /* =========================================
+       MAIN GATEWAY
+    ========================================== */
+
+    .gateway{
+      width:min(760px,calc(100% - 28px));
+      margin:0 auto;
+      padding:
+        clamp(2.2rem,6vw,4rem)
+        0
+        clamp(4rem,8vw,6rem);
+    }
+
+    .gateway-branding{
+      text-align:center;
+    }
+
+    .gateway-badge{
+      display:block;
+      width:min(230px,58vw);
+      height:auto;
+      margin:0 auto 1.4rem;
+      filter:
+        drop-shadow(
+          0 20px 38px rgba(0,0,0,.48)
+        );
+    }
+
+    .gateway-title{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2.2rem,7vw,4.5rem);
+      line-height:.95;
+      letter-spacing:-.045em;
+      text-transform:uppercase;
+    }
+
+    .gateway-title__sub{
+      display:block;
+      margin-top:.4rem;
+      color:var(--gateway-gold-soft);
+      font-size:clamp(1rem,3vw,1.75rem);
+      line-height:1.1;
+      letter-spacing:.03em;
+    }
+
+    .gateway-divider{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:.8rem;
+      width:min(360px,75%);
+      margin:1.35rem auto 1.25rem;
+    }
+
+    .gateway-divider::before,
+    .gateway-divider::after{
+      content:"";
+      height:1px;
+      flex:1;
+      background:
+        linear-gradient(
+          90deg,
+          transparent,
+          rgba(212,175,55,.8)
+        );
+    }
+
+    .gateway-divider::after{
+      transform:scaleX(-1);
+    }
+
+    .gateway-divider span{
+      width:8px;
+      height:8px;
+      border:1px solid var(--gateway-gold);
+      transform:rotate(45deg);
+    }
+
+    .gateway-kicker{
+      margin:0;
+      color:#fff;
+      font-size:clamp(1.6rem,5vw,2.7rem);
+      font-weight:900;
+      letter-spacing:-.025em;
+      text-transform:uppercase;
+    }
+
+    .gateway-intro{
+      max-width:650px;
+      margin:1rem auto 0;
+      color:var(--gateway-muted);
+      font-size:clamp(.98rem,2vw,1.08rem);
+      line-height:1.7;
+    }
+
+    /* =========================================
+       LOCATION CARD
+    ========================================== */
+
+    .academy-card{
+      margin-top:2.4rem;
+      padding:
+        clamp(1.5rem,4vw,2.2rem);
+
+      border:1px solid rgba(212,175,55,.65);
+      border-radius:24px;
+
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.035),
+          rgba(255,255,255,.012)
+        );
+
+      box-shadow:
+        0 20px 45px rgba(0,0,0,.32),
+        inset 0 0 0 1px rgba(212,175,55,.06);
+    }
+
+    .academy-status{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      margin-bottom:1.15rem;
+      padding:.48rem .9rem;
+
+      border-radius:999px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #e3be4d,
+          #b98716
+        );
+
+      color:#090909;
+
+      font-size:.72rem;
+      font-weight:900;
+
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+
+    .academy-card__header{
+      text-align:center;
+    }
+
+    .academy-card h2{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2rem,6vw,3.2rem);
+      line-height:1;
+      letter-spacing:-.035em;
+      text-transform:uppercase;
+    }
+
+    .academy-card__line{
+      display:flex;
+      align-items:center;
+      gap:.7rem;
+      margin:1.2rem 0;
+    }
+
+    .academy-card__line::before,
+    .academy-card__line::after{
+      content:"";
+      height:1px;
+      flex:1;
+      background:rgba(212,175,55,.45);
+    }
+
+    .academy-card__line span{
+      width:7px;
+      height:7px;
+      border:1px solid var(--gateway-gold);
+      transform:rotate(45deg);
+    }
+
+    .academy-program{
+      padding:1rem 0;
+    }
+
+    .academy-program + .academy-program{
+      border-top:1px solid var(--gateway-line);
+    }
+
+    .academy-program h3{
+      margin:0;
+      color:var(--gateway-gold-soft);
+      font-size:1.3rem;
+    }
+
+    .academy-program__age{
+      display:block;
+      margin-top:.22rem;
+      color:#fff;
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .academy-program__disciplines{
+      margin:.55rem 0 0;
+      color:var(--gateway-muted);
+      line-height:1.55;
+    }
+
+    .academy-button{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:.65rem;
+
+      width:100%;
+      min-height:54px;
+
+      margin-top:1.25rem;
+      padding:.9rem 1.2rem;
+
+      border:1px solid #e6c55a;
+      border-radius:14px;
+
+      background:
+        linear-gradient(
+          180deg,
+          #e5bf4b,
+          #c69222
+        );
+
+      color:#080808;
+
+      font-size:1rem;
+      font-weight:900;
+
+      letter-spacing:.04em;
+      text-decoration:none;
+      text-transform:uppercase;
+    }
+
+    .academy-button:hover,
+    .academy-button:focus-visible{
+      transform:translateY(-2px);
+    }
+
+    .gateway-local-note{
+      max-width:620px;
+      margin:1.7rem auto 0;
+      color:var(--gateway-muted);
+      font-size:.9rem;
+      line-height:1.65;
+      text-align:center;
+    }
+
+    /* =========================================
+       DAY MODE
+    ========================================== */
+
+    body.day-mode{
+      background:#f4efe4;
+      color:#111;
+    }
+
+    body.day-mode .gateway-topbar{
+      border-bottom-color:rgba(0,0,0,.10);
+    }
+
+    body.day-mode .gateway-topbar__brand,
+    body.day-mode .gateway-intro,
+    body.day-mode .academy-program__disciplines,
+    body.day-mode .gateway-local-note{
+      color:#5d5d61;
+    }
+
+    body.day-mode .gateway-title,
+    body.day-mode .gateway-kicker,
+    body.day-mode .academy-card h2,
+    body.day-mode .academy-program__age{
+      color:#111;
+    }
+
+    body.day-mode .academy-card{
+      background:#fff;
+      box-shadow:0 14px 28px rgba(0,0,0,.09);
+    }
+
+    @media(max-width:640px){
+      .gateway{
+        width:min(100% - 20px,760px);
+      }
+
+      .gateway-topbar__brand{
+        font-size:.68rem;
+      }
+
+      .academy-card{
+        border-radius:20px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- =========================================
+       MINIMAL ROOT HEADER
+  ========================================== -->
+
+  <header class="gateway-topbar">
+
+    <button
+      class="theme-toggle"
+      type="button"
+      data-theme-toggle
+      aria-label="Switch color theme"
+    >
+      ☀
+    </button>
+
+    <div class="gateway-topbar__brand">
+      Sandman System™
+    </div>
+
+    <button
+      class="language-toggle"
+      type="button"
+      data-language-toggle
+      aria-label="Switch language"
+    >
+      ES
+    </button>
+
+  </header>
+
+
+  <main class="gateway">
+
+    <!-- =========================================
+         BRANDING
+    ========================================== -->
+
+    <section class="gateway-branding">
+
+      <img
+        class="gateway-badge"
+        src="/assets/img/brand/sandman-academy-house-badge.png"
+        alt="Sandman Academy badge"
+      >
+
+      <div data-lang-block="en">
+
+        <h1 class="gateway-title">
+          Sandman Academy
+          <span class="gateway-title__sub">
+            of Combat &amp; Fitness™
+          </span>
+        </h1>
+
+        <div
+          class="gateway-divider"
+          aria-hidden="true"
+        >
+          <span></span>
+        </div>
+
+        <p class="gateway-kicker">
+          Programs by Location
+        </p>
+
+        <p class="gateway-intro">
+          Explore the combat and fitness programs currently
+          offered at Sandman Academy in the Santa Ynez Valley.
+        </p>
+
+      </div>
+
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <h1 class="gateway-title">
+          Academia Sandman
+          <span class="gateway-title__sub">
+            de Combate y Fitness™
+          </span>
+        </h1>
+
+        <div
+          class="gateway-divider"
+          aria-hidden="true"
+        >
+          <span></span>
+        </div>
+
+        <p class="gateway-kicker">
+          Programas por Ubicación
+        </p>
+
+        <p class="gateway-intro">
+          Explora los programas de combate y acondicionamiento
+          disponibles actualmente en Sandman Academy del Valle
+          de Santa Ynez.
+        </p>
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================================
+         SANTA YNEZ VALLEY
+    ========================================== -->
+
+    <article class="academy-card">
+
+      <div class="academy-card__header">
+
+        <span
+          class="academy-status"
+          data-lang-block="en"
+        >
+          Enrollment Open
+        </span>
+
+        <span
+          class="academy-status hidden-lang"
+          data-lang-block="es"
+        >
+          Inscripciones Abiertas
+        </span>
+
+        <h2>
+          Santa Ynez Valley
+        </h2>
+
+        <div
+          class="academy-card__line"
+          aria-hidden="true"
+        >
+          <span></span>
+        </div>
+
+      </div>
+
+
+      <div data-lang-block="en">
+
+        <section class="academy-program">
+
+          <h3>
+            Zero2Hero™
+          </h3>
+
+          <span class="academy-program__age">
+            Ages 7–13
+          </span>
+
+          <p class="academy-program__disciplines">
+            Wrestling • Muay Thai / Kickboxing
+          </p>
+
+        </section>
+
+
+        <section class="academy-program">
+
+          <h3>
+            Path2Legend™
+          </h3>
+
+          <span class="academy-program__age">
+            Ages 14+
+          </span>
+
+          <p class="academy-program__disciplines">
+            Wrestling • Boxing
+          </p>
+
+        </section>
+
+
+        <a
+          class="academy-button"
+          href="/locations/santa-ynez-valley/"
+        >
+          Visit Academy →
+        </a>
+
+      </div>
+
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <section class="academy-program">
+
+          <h3>
+            Zero2Hero™
+          </h3>
+
+          <span class="academy-program__age">
+            Edades 7–13
+          </span>
+
+          <p class="academy-program__disciplines">
+            Lucha • Muay Thai / Kickboxing
+          </p>
+
+        </section>
+
+
+        <section class="academy-program">
+
+          <h3>
+            Path2Legend™
+          </h3>
+
+          <span class="academy-program__age">
+            Edades 14+
+          </span>
+
+          <p class="academy-program__disciplines">
+            Lucha • Boxeo
+          </p>
+
+        </section>
+
+
+        <a
+          class="academy-button"
+          href="/locations/santa-ynez-valley/"
+        >
+          Visitar Academia →
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <p
+      class="gateway-local-note"
+      data-lang-block="en"
+    >
+      Serving athletes and families throughout the Santa Ynez Valley
+      and surrounding communities.
+    </p>
+
+    <p
+      class="gateway-local-note hidden-lang"
+      data-lang-block="es"
+    >
+      Sirviendo a atletas y familias del Valle de Santa Ynez
+      y comunidades cercanas.
+    </p>
+
+  </main>
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+</body>
+</html>

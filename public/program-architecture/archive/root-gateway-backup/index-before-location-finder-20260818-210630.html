@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Sandman Academy of Combat &amp; Fitness™</title>
+
+  <meta
+    name="description"
+    content="Find Sandman Academy programs and training currently available in your area."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+
+  <style>
+    :root{
+      --bg:#050505;
+      --panel:#0d0d0f;
+      --text:#f4f4f5;
+      --muted:#bfc0c5;
+      --gold:#d4af37;
+      --gold-light:#e7ca69;
+      --line:rgba(255,255,255,.11);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.10),
+          transparent 30%
+        ),
+        var(--bg);
+      color:var(--text);
+    }
+
+    .hidden-lang{
+      display:none!important;
+    }
+
+    /* -----------------------------------------
+       TOP BAR
+    ------------------------------------------ */
+
+    .gateway-topbar{
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      align-items:center;
+      min-height:68px;
+      padding:0 1.15rem;
+      border-bottom:1px solid rgba(255,255,255,.09);
+    }
+
+    .gateway-topbar__brand{
+      text-align:center;
+      color:var(--muted);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.13em;
+      text-transform:uppercase;
+    }
+
+    /* -----------------------------------------
+       MAIN
+    ------------------------------------------ */
+
+    .gateway{
+      width:min(720px,calc(100% - 24px));
+      margin:0 auto;
+      padding:
+        clamp(2rem,6vw,3.8rem)
+        0
+        clamp(4rem,8vw,6rem);
+    }
+
+    .gateway-brand{
+      text-align:center;
+    }
+
+    .gateway-badge{
+      display:block;
+      width:min(220px,56vw);
+      height:auto;
+      margin:0 auto 1.2rem;
+      filter:drop-shadow(0 20px 36px rgba(0,0,0,.48));
+    }
+
+    .gateway-title{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2rem,6vw,4rem);
+      line-height:.96;
+      letter-spacing:-.04em;
+      text-transform:uppercase;
+    }
+
+    .gateway-title span{
+      display:block;
+      margin-top:.4rem;
+      color:var(--gold-light);
+      font-size:clamp(.95rem,2.7vw,1.55rem);
+      line-height:1.1;
+      letter-spacing:.04em;
+    }
+
+    .gold-divider{
+      display:flex;
+      align-items:center;
+      gap:.75rem;
+      width:min(340px,75%);
+      margin:1.35rem auto;
+    }
+
+    .gold-divider::before,
+    .gold-divider::after{
+      content:"";
+      height:1px;
+      flex:1;
+      background:linear-gradient(
+        90deg,
+        transparent,
+        rgba(212,175,55,.8)
+      );
+    }
+
+    .gold-divider::after{
+      transform:scaleX(-1);
+    }
+
+    .gold-divider span{
+      width:7px;
+      height:7px;
+      border:1px solid var(--gold);
+      transform:rotate(45deg);
+    }
+
+    /* -----------------------------------------
+       FINDER
+    ------------------------------------------ */
+
+    .finder{
+      margin-top:2rem;
+      text-align:center;
+    }
+
+    .finder h2{
+      margin:0;
+      color:#fff;
+      font-size:clamp(1.55rem,4.5vw,2.5rem);
+      text-transform:uppercase;
+    }
+
+    .finder__intro{
+      max-width:570px;
+      margin:.7rem auto 1.3rem;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .finder__form{
+      display:flex;
+      gap:.6rem;
+      width:min(590px,100%);
+      margin:0 auto;
+    }
+
+    .finder__input{
+      flex:1;
+      min-width:0;
+      min-height:50px;
+      padding:0 1rem;
+      border:1px solid rgba(212,175,55,.4);
+      border-radius:12px;
+      outline:none;
+      background:#101012;
+      color:#fff;
+      font:inherit;
+    }
+
+    .finder__input:focus{
+      border-color:var(--gold);
+      box-shadow:0 0 0 3px rgba(212,175,55,.10);
+    }
+
+    .finder__button{
+      min-height:50px;
+      padding:0 1.15rem;
+      border:1px solid var(--gold-light);
+      border-radius:12px;
+      background:var(--gold);
+      color:#080808;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    /* -----------------------------------------
+       ACADEMY CARD
+    ------------------------------------------ */
+
+    .academy-card{
+      margin-top:2rem;
+      padding:clamp(1.4rem,4vw,2rem);
+      border:1px solid rgba(212,175,55,.62);
+      border-radius:22px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.035),
+          rgba(255,255,255,.012)
+        );
+      box-shadow:0 20px 44px rgba(0,0,0,.30);
+    }
+
+    .academy-card__header{
+      text-align:center;
+    }
+
+    .academy-status{
+      display:inline-block;
+      margin-bottom:1rem;
+      padding:.45rem .85rem;
+      border-radius:999px;
+      background:linear-gradient(180deg,#e5c14f,#ba891a);
+      color:#080808;
+      font-size:.7rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+    }
+
+    .academy-card h2{
+      margin:0;
+      color:#fff;
+      font-size:clamp(1.9rem,6vw,3rem);
+      line-height:1;
+      text-transform:uppercase;
+    }
+
+    .academy-program{
+      padding:1rem 0;
+    }
+
+    .academy-program + .academy-program{
+      border-top:1px solid var(--line);
+    }
+
+    .academy-program h3{
+      margin:0 0 .2rem;
+      color:var(--gold-light);
+      font-size:1.25rem;
+    }
+
+    .academy-age{
+      display:block;
+      margin-bottom:.85rem;
+      color:#fff;
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.06em;
+      text-transform:uppercase;
+    }
+
+    .discipline{
+      display:grid;
+      grid-template-columns:minmax(90px,130px) 1fr;
+      gap:.7rem;
+      align-items:baseline;
+      margin:.5rem 0;
+    }
+
+    .discipline strong{
+      color:#fff;
+    }
+
+    .discipline span{
+      color:var(--muted);
+      font-size:.92rem;
+      font-style:italic;
+    }
+
+    .academy-button,
+    .interest-button{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      width:100%;
+      min-height:52px;
+      margin-top:1rem;
+      padding:.85rem 1rem;
+      border:1px solid var(--gold-light);
+      border-radius:12px;
+      background:linear-gradient(180deg,#e5bf4b,#c69222);
+      color:#080808;
+      font-weight:900;
+      letter-spacing:.035em;
+      text-decoration:none;
+      text-transform:uppercase;
+    }
+
+    /* -----------------------------------------
+       NO LOCATION RESULT
+    ------------------------------------------ */
+
+    .finder-result{
+      display:none;
+      margin-top:1.5rem;
+      padding:1.5rem;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.025);
+      text-align:center;
+    }
+
+    .finder-result.is-visible{
+      display:block;
+    }
+
+    .finder-result h3{
+      margin:0;
+      color:#fff;
+      font-size:1.4rem;
+    }
+
+    .finder-result p{
+      max-width:530px;
+      margin:.75rem auto 0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .interest-button{
+      width:auto;
+      max-width:360px;
+      margin:1.2rem auto 0;
+      padding-left:1.4rem;
+      padding-right:1.4rem;
+    }
+
+    .local-note{
+      max-width:580px;
+      margin:1.5rem auto 0;
+      color:var(--muted);
+      font-size:.88rem;
+      line-height:1.6;
+      text-align:center;
+    }
+
+    @media(max-width:600px){
+      .finder__form{
+        flex-direction:column;
+      }
+
+      .finder__button{
+        width:100%;
+      }
+
+      .discipline{
+        grid-template-columns:1fr;
+        gap:.15rem;
+        margin:.75rem 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="gateway-topbar">
+
+    <button
+      class="theme-toggle"
+      type="button"
+      data-theme-toggle
+      aria-label="Switch color theme"
+    >
+      ☀
+    </button>
+
+    <div class="gateway-topbar__brand">
+      Sandman System™
+    </div>
+
+    <button
+      class="language-toggle"
+      type="button"
+      data-language-toggle
+      aria-label="Switch language"
+    >
+      ES
+    </button>
+
+  </header>
+
+
+  <main class="gateway">
+
+    <section class="gateway-brand">
+
+      <img
+        class="gateway-badge"
+        src="/assets/img/brand/sandman-academy-house-badge.png"
+        alt="Sandman Academy badge"
+      >
+
+      <div data-lang-block="en">
+
+        <h1 class="gateway-title">
+          Sandman Academy
+          <span>of Combat &amp; Fitness™</span>
+        </h1>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <h1 class="gateway-title">
+          Academia Sandman
+          <span>de Combate y Fitness™</span>
+        </h1>
+
+      </div>
+
+      <div class="gold-divider" aria-hidden="true">
+        <span></span>
+      </div>
+
+    </section>
+
+
+    <!-- FIND YOUR ACADEMY -->
+
+    <section class="finder">
+
+      <div data-lang-block="en">
+
+        <h2>Find Your Academy</h2>
+
+        <p class="finder__intro">
+          Search by city to find Sandman Academy programs
+          currently available in your area.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <h2>Encuentra Tu Academia</h2>
+
+        <p class="finder__intro">
+          Busca por ciudad para encontrar programas de Sandman
+          Academy disponibles actualmente en tu área.
+        </p>
+
+      </div>
+
+
+      <form
+        id="academyFinder"
+        class="finder__form"
+      >
+
+        <input
+          id="academyCity"
+          class="finder__input"
+          type="text"
+          autocomplete="address-level2"
+          placeholder="Enter city"
+          aria-label="Enter city"
+        >
+
+        <button
+          class="finder__button"
+          type="submit"
+        >
+          Find Academy
+        </button>
+
+      </form>
+
+
+      <!-- ONLY APPEARS WHEN SEARCH DOES NOT MATCH -->
+
+      <div
+        id="academyNoResult"
+        class="finder-result"
+        aria-live="polite"
+      >
+
+        <div data-lang-block="en">
+
+          <h3>
+            No Sandman Academy in your area yet.
+          </h3>
+
+          <p>
+            Interested in bringing Sandman Academy to your community?
+            Connect with us to learn more about bringing the Sandman
+            System to your area.
+          </p>
+
+          <a
+            class="interest-button"
+            href="/connect.html"
+          >
+            Interested in Starting an Academy?
+          </a>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <h3>
+            Aún no hay una Sandman Academy en tu área.
+          </h3>
+
+          <p>
+            ¿Te interesa llevar Sandman Academy a tu comunidad?
+            Conéctate con nosotros para conocer más.
+          </p>
+
+          <a
+            class="interest-button"
+            href="/connect.html"
+          >
+            ¿Interesado en Iniciar una Academia?
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- CURRENT ACTIVE ACADEMY -->
+
+    <article
+      id="santaYnezAcademy"
+      class="academy-card"
+    >
+
+      <div class="academy-card__header">
+
+        <span
+          class="academy-status"
+          data-lang-block="en"
+        >
+          Enrollment Open
+        </span>
+
+        <span
+          class="academy-status hidden-lang"
+          data-lang-block="es"
+        >
+          Inscripciones Abiertas
+        </span>
+
+        <h2>
+          Santa Ynez Valley
+        </h2>
+
+      </div>
+
+
+      <div data-lang-block="en">
+
+        <section class="academy-program">
+
+          <h3>Zero2Hero™</h3>
+
+          <span class="academy-age">
+            Ages 7–13
+          </span>
+
+          <div class="discipline">
+            <strong>Wrestling</strong>
+            <span>Brothers &amp; Sisters for Life</span>
+          </div>
+
+          <div class="discipline">
+            <strong>Muay Thai</strong>
+            <span>The Art of Eight Limbs</span>
+          </div>
+
+        </section>
+
+
+        <section class="academy-program">
+
+          <h3>Path2Legend™</h3>
+
+          <span class="academy-age">
+            Ages 14+
+          </span>
+
+          <div class="discipline">
+            <strong>Wrestling</strong>
+            <span>Brothers &amp; Sisters for Life</span>
+          </div>
+
+          <div class="discipline">
+            <strong>Boxing</strong>
+            <span>The Sweet Science</span>
+          </div>
+
+        </section>
+
+
+        <a
+          class="academy-button"
+          href="/locations/santa-ynez-valley/"
+        >
+          Visit Academy →
+        </a>
+
+      </div>
+
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <section class="academy-program">
+
+          <h3>Zero2Hero™</h3>
+
+          <span class="academy-age">
+            Edades 7–13
+          </span>
+
+          <div class="discipline">
+            <strong>Lucha</strong>
+            <span>Hermanos y Hermanas de por Vida</span>
+          </div>
+
+          <div class="discipline">
+            <strong>Muay Thai</strong>
+            <span>El Arte de las Ocho Extremidades</span>
+          </div>
+
+        </section>
+
+
+        <section class="academy-program">
+
+          <h3>Path2Legend™</h3>
+
+          <span class="academy-age">
+            Edades 14+
+          </span>
+
+          <div class="discipline">
+            <strong>Lucha</strong>
+            <span>Hermanos y Hermanas de por Vida</span>
+          </div>
+
+          <div class="discipline">
+            <strong>Boxeo</strong>
+            <span>La Dulce Ciencia</span>
+          </div>
+
+        </section>
+
+
+        <a
+          class="academy-button"
+          href="/locations/santa-ynez-valley/"
+        >
+          Visitar Academia →
+        </a>
+
+      </div>
+
+    </article>
+
+
+    <p
+      class="local-note"
+      data-lang-block="en"
+    >
+      Serving athletes and families throughout the
+      Santa Ynez Valley and surrounding communities.
+    </p>
+
+    <p
+      class="local-note hidden-lang"
+      data-lang-block="es"
+    >
+      Sirviendo a atletas y familias del Valle de Santa Ynez
+      y comunidades cercanas.
+    </p>
+
+  </main>
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+
+  <script>
+    (() => {
+      const form = document.getElementById("academyFinder");
+      const input = document.getElementById("academyCity");
+      const academy = document.getElementById("santaYnezAcademy");
+      const noResult = document.getElementById("academyNoResult");
+
+      if (!form || !input || !academy || !noResult) return;
+
+      const localCities = [
+        "santa ynez",
+        "santa ynez valley",
+        "solvang",
+        "buellton",
+        "los olivos",
+        "ballard"
+      ];
+
+      const normalize = value =>
+        value
+          .toLowerCase()
+          .trim()
+          .replace(/[.,]/g, "")
+          .replace(/\s+/g, " ");
+
+      form.addEventListener("submit", event => {
+        event.preventDefault();
+
+        const city = normalize(input.value);
+
+        if (!city) {
+          input.focus();
+          return;
+        }
+
+        const localMatch = localCities.some(
+          place =>
+            city === place ||
+            city.includes(place)
+        );
+
+        if (localMatch) {
+          noResult.classList.remove("is-visible");
+          academy.hidden = false;
+
+          academy.scrollIntoView({
+            behavior:"smooth",
+            block:"center"
+          });
+
+          return;
+        }
+
+        academy.hidden = true;
+        noResult.classList.add("is-visible");
+
+        noResult.scrollIntoView({
+          behavior:"smooth",
+          block:"center"
+        });
+      });
+    })();
+  </script>
+
+</body>
+</html>
