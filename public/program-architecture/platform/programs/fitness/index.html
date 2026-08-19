@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sandman Fitness &amp; Performance | Sandman</title>
+<meta content="Explore the Sandman Fitness &amp; Performance remote training product family." name="description"/>
+<link href="/assets/css/site.css" rel="stylesheet"/>
+<link href="/program-architecture/platform/programs/fitness/fitness.css" rel="stylesheet"/>
+<style>
+    .sandman-fitness-page {
+      min-height: 100vh;
+      background: var(--page-bg, #090909);
+      color: var(--text, #f5f5f5);
+    }
+
+    .sandman-fitness-container {
+      width: min(1120px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .sandman-fitness-hero {
+      padding: clamp(72px, 10vw, 120px) 0 64px;
+      text-align: center;
+    }
+
+    .sandman-fitness-eyebrow {
+      margin: 0 0 12px;
+      color: var(--heading-accent, #d4af37);
+      font-size: 0.82rem;
+      font-weight: 900;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    .sandman-fitness-hero h1 {
+      max-width: 880px;
+      margin: 0 auto;
+      color: var(--heading, #ffffff);
+      font-size: clamp(2.5rem, 7vw, 5.6rem);
+      font-weight: 950;
+      letter-spacing: -0.045em;
+      line-height: 0.98;
+      text-transform: uppercase;
+    }
+
+    .sandman-fitness-lead {
+      max-width: 760px;
+      margin: 24px auto 0;
+      color: var(--muted, #b8b8b8);
+      font-size: clamp(1rem, 2vw, 1.15rem);
+      line-height: 1.75;
+    }
+
+    .sandman-fitness-statement {
+      max-width: 760px;
+      margin: 24px auto 0;
+      color: var(--heading-accent, #d4af37);
+      font-weight: 850;
+      letter-spacing: 0.02em;
+    }
+
+    .sandman-fitness-section {
+      padding: 64px 0;
+    }
+
+    .sandman-fitness-section + .sandman-fitness-section {
+      border-top: 1px solid rgba(212, 175, 55, 0.18);
+    }
+
+    .sandman-fitness-heading {
+      max-width: 760px;
+      margin: 0 auto 36px;
+      text-align: center;
+    }
+
+    .sandman-fitness-heading h2 {
+      margin: 0;
+      color: var(--heading, #ffffff);
+      font-size: clamp(2rem, 5vw, 3.4rem);
+      font-weight: 950;
+      letter-spacing: -0.035em;
+      text-transform: uppercase;
+    }
+
+    .sandman-fitness-heading p {
+      margin: 14px auto 0;
+      color: var(--muted, #b8b8b8);
+      line-height: 1.7;
+    }
+
+    .sandman-fitness-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 20px;
+    }
+
+    .sandman-fitness-card {
+      display: flex;
+      min-height: 430px;
+      padding: 28px;
+      flex-direction: column;
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,0.045),
+          rgba(255,255,255,0.015)
+        );
+      box-shadow:
+        0 18px 46px rgba(0,0,0,0.22);
+    }
+
+    .sandman-fitness-card__mode {
+      display: inline-flex;
+      align-self: flex-start;
+      margin-bottom: 22px;
+      padding: 7px 10px;
+      border: 1px solid rgba(212, 175, 55, 0.35);
+      border-radius: 999px;
+      color: var(--heading-accent, #d4af37);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+
+    .sandman-fitness-card h3 {
+      margin: 0;
+      color: var(--heading, #ffffff);
+      font-size: 1.8rem;
+      font-weight: 950;
+      letter-spacing: -0.025em;
+    }
+
+    .sandman-fitness-card p {
+      margin: 14px 0 0;
+      color: var(--muted, #b8b8b8);
+      line-height: 1.7;
+    }
+
+    .sandman-fitness-card ul {
+      margin: 22px 0 0;
+      padding-left: 20px;
+      color: var(--text, #eeeeee);
+      line-height: 1.75;
+    }
+
+    .sandman-fitness-card__spacer {
+      flex: 1;
+    }
+
+    .sandman-fitness-card__note {
+      margin-top: 24px !important;
+      color: var(--heading-accent, #d4af37) !important;
+      font-size: 0.88rem;
+      font-weight: 800;
+    }
+
+    .sandman-fitness-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+      flex-wrap: wrap;
+    }
+
+    .sandman-fitness-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 11px 18px;
+      border: 1px solid var(--heading-accent, #d4af37);
+      border-radius: 999px;
+      background: var(--heading-accent, #d4af37);
+      color: #090909;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .sandman-fitness-button--secondary {
+      background: transparent;
+      color: var(--heading-accent, #d4af37);
+    }
+
+    .sandman-model {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      max-width: 940px;
+      margin: 0 auto;
+    }
+
+    .sandman-model__item {
+      padding: 22px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      text-align: center;
+    }
+
+    .sandman-model__item strong {
+      display: block;
+      color: var(--heading-accent, #d4af37);
+      font-size: 1.05rem;
+      text-transform: uppercase;
+    }
+
+    .sandman-model__item span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted, #b8b8b8);
+      line-height: 1.5;
+    }
+
+    .sandman-fitness-cta {
+      padding: 72px 0 88px;
+      text-align: center;
+    }
+
+    .sandman-fitness-cta__box {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: clamp(30px, 6vw, 54px);
+      border: 1px solid rgba(212, 175, 55, 0.36);
+      border-radius: 22px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(212,175,55,0.08),
+          rgba(255,255,255,0.02)
+        );
+    }
+
+    .sandman-fitness-cta h2 {
+      margin: 0;
+      color: var(--heading, #ffffff);
+      font-size: clamp(2rem, 5vw, 3.3rem);
+      text-transform: uppercase;
+    }
+
+    .sandman-fitness-cta p {
+      max-width: 650px;
+      margin: 16px auto 0;
+      color: var(--muted, #b8b8b8);
+      line-height: 1.7;
+    }
+
+    .sandman-fitness-cta .sandman-fitness-button {
+      margin-top: 26px;
+    }
+
+    .hidden-lang {
+      display: none !important;
+    }
+
+    html[data-theme="light"] .sandman-fitness-page,
+    body.day-mode .sandman-fitness-page {
+      --page-bg: #f7f2e7;
+      --heading: #151515;
+      --text: #242424;
+      --muted: #555555;
+      --heading-accent: #93671d;
+    }
+
+    html[data-theme="light"] .sandman-fitness-card,
+    body.day-mode .sandman-fitness-card {
+      background: rgba(255,255,255,0.75);
+      box-shadow:
+        0 12px 30px rgba(76,52,12,0.08);
+    }
+
+    @media (max-width: 900px) {
+      .sandman-fitness-grid,
+      .sandman-model {
+        grid-template-columns: 1fr;
+      }
+
+      .sandman-fitness-card {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .sandman-fitness-container {
+        width: min(100% - 24px, 1120px);
+      }
+
+      .sandman-fitness-hero {
+        padding-top: 52px;
+      }
+
+      .sandman-fitness-section {
+        padding: 48px 0;
+      }
+
+      .sandman-fitness-card {
+        padding: 22px;
+      }
+
+      .sandman-fitness-actions {
+        flex-direction: column;
+      }
+
+      .sandman-fitness-button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+<!-- Shared Sandman platform navigation -->
+<div data-component="/components/navigation.html" id="navigation"></div>
+<main class="sandman-fitness-page">
+<!-- HERO EN -->
+<section class="sandman-fitness-hero" data-lang-block="en">
+<div class="sandman-fitness-container">
+<p class="sandman-fitness-eyebrow">
+          Sandman Fitness &amp; Performance
+        </p>
+<h1>Train From Anywhere.</h1>
+<p class="sandman-fitness-lead">Remote-first training products for fitness, strength, conditioning, movement, power, and performance.</p>
+<p class="sandman-fitness-statement">One Sandman system. Different paths.</p>
+</div>
+</section>
+<!-- HERO ES -->
+<section class="sandman-fitness-hero hidden-lang" data-lang-block="es">
+<div class="sandman-fitness-container">
+<p class="sandman-fitness-eyebrow">
+          Sandman Fitness &amp; Performance
+        </p>
+<h1>Entrena Desde Cualquier Lugar.</h1>
+<p class="sandman-fitness-lead">Productos de entrenamiento remoto para fitness, fuerza, acondicionamiento, movimiento, potencia y rendimiento.</p>
+<p class="sandman-fitness-statement">Un sistema Sandman. Diferentes caminos.</p>
+</div>
+</section>
+<!-- PROGRAMS -->
+<section class="sandman-fitness-section" id="programs">
+<div class="sandman-fitness-container">
+<div class="sandman-fitness-heading" data-lang-block="en">
+<p class="sandman-fitness-eyebrow">Sandman Fitness &amp; Performance</p>
+<h2>Remote Training Products</h2>
+<p>The Sandman Fitness &amp; Performance product family is being built to travel with you. Each path will focus on a different part of physical development.</p>
+</div>
+<div class="sandman-fitness-heading hidden-lang" data-lang-block="es">
+<p class="sandman-fitness-eyebrow">Sandman Fitness &amp; Performance</p>
+<h2>Productos De Entrenamiento Remoto</h2>
+<p>La familia Sandman Fitness &amp; Performance está siendo desarrollada para entrenar desde cualquier lugar. Cada camino tendrá un enfoque diferente.</p>
+</div>
+<div class="sandman-fitness-grid"><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Fitness</span><h3>Sandman Fitness</h3><p>Remote Training Product</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Program development in progress.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/sandman-fitness.html">Explore</a></div></article><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Strength</span><h3>Sandman Strength</h3><p>Remote Training Product</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Program development in progress.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/sandman-strength.html">Explore</a></div></article><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Conditioning</span><h3>Sandman Conditioning</h3><p>Remote Training Product</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Program development in progress.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/sandman-conditioning.html">Explore</a></div></article><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Movement</span><h3>Sandman Agility</h3><p>Remote Training Product</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Program development in progress.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/sandman-agility.html">Explore</a></div></article><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Power</span><h3>Sandman Power</h3><p>Remote Training Product</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Program development in progress.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/sandman-power.html">Explore</a></div></article><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Strength Sport</span><h3>Sandman Powerlifting</h3><p>Remote Training Product</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Program development in progress.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/sandman-powerlifting.html">Explore</a></div></article><article class="sandman-fitness-card"><span class="sandman-fitness-card__mode">Digital Performance</span><h3>FuelAI</h3><p>Digital Performance Platform</p><div class="sandman-fitness-card__spacer"></div><p class="sandman-fitness-card__note">Fueling. Training. Recovery. Performance.</p><div class="sandman-fitness-actions"><a class="sandman-fitness-button sandman-fitness-button--secondary" href="/program-architecture/platform/programs/fitness/fuelai.html">Explore</a></div></article></div>
+</div>
+</section>
+<!-- DELIVERY MODEL -->
+<!-- SCHEDULE ANCHOR -->
+<!-- CONTACT -->
+
+</main>
+<!-- Shared Sandman Fitness footer -->
+<div data-component="/components/footer.html" id="footer"></div>
+<script defer="" src="/assets/js/component-loader.js"></script>
+<script defer="" src="/assets/js/language.js"></script>
+<script defer="" src="/assets/js/theme.js"></script>
+<script defer="" src="/assets/js/navigation.js"></script>
+</body>
+</html>

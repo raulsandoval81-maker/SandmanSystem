@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    Fitness & Strength | Sandman Academy — Santa Ynez Valley
+  </title>
+
+  <meta
+    name="description"
+    content="Explore HIITFit, powerlifting, and performance support at Sandman Academy in the Santa Ynez Valley."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+
+  <link
+    rel="stylesheet"
+    href="/program-architecture/platform/programs/fitness/fitness.css"
+  >
+
+  <style>
+    .local-fitness{
+      min-height:100vh;
+      background:var(--page-bg,#090909);
+      color:var(--text,#f5f5f5);
+    }
+
+    .local-fitness__container{
+      width:min(1040px,calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    .local-fitness__hero{
+      padding:clamp(64px,9vw,105px) 0 58px;
+      text-align:center;
+    }
+
+    .local-fitness__eyebrow{
+      margin:0 0 12px;
+      color:var(--heading-accent,#d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__hero h1{
+      max-width:800px;
+      margin:0 auto;
+      color:var(--heading,#fff);
+      font-size:clamp(2.6rem,7vw,5rem);
+      font-weight:950;
+      line-height:.98;
+      letter-spacing:-.045em;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__lead{
+      max-width:650px;
+      margin:22px auto 0;
+      color:var(--muted,#b8b8b8);
+      font-size:clamp(1rem,2vw,1.15rem);
+      line-height:1.7;
+    }
+
+    .local-fitness__section{
+      padding:56px 0;
+      border-top:1px solid rgba(212,175,55,.18);
+    }
+
+    .local-fitness__heading{
+      max-width:700px;
+      margin:0 auto 32px;
+      text-align:center;
+    }
+
+    .local-fitness__heading h2{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:clamp(2rem,5vw,3.2rem);
+      line-height:1;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__heading p{
+      max-width:620px;
+      margin:14px auto 0;
+      color:var(--muted,#b8b8b8);
+      line-height:1.7;
+    }
+
+    .local-fitness__grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+    }
+
+    .local-fitness__card{
+      display:flex;
+      flex-direction:column;
+      min-height:390px;
+      padding:28px;
+      border:1px solid rgba(212,175,55,.3);
+      border-radius:20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.045),
+          rgba(255,255,255,.015)
+        );
+      box-shadow:0 18px 42px rgba(0,0,0,.2);
+    }
+
+    .local-fitness__mode{
+      display:inline-flex;
+      align-self:flex-start;
+      margin-bottom:20px;
+      padding:7px 10px;
+      border:1px solid rgba(212,175,55,.35);
+      border-radius:999px;
+      color:var(--heading-accent,#d4af37);
+      font-size:.7rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__card h3{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:1.8rem;
+    }
+
+    .local-fitness__card p{
+      margin:14px 0 0;
+      color:var(--muted,#b8b8b8);
+      line-height:1.65;
+    }
+
+    .local-fitness__card ul{
+      margin:20px 0 0;
+      padding-left:20px;
+      color:var(--text,#eee);
+      line-height:1.75;
+    }
+
+    .local-fitness__spacer{
+      flex:1;
+    }
+
+    .local-fitness__button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      margin-top:24px;
+      padding:12px 20px;
+      border:1px solid var(--heading-accent,#d4af37);
+      border-radius:999px;
+      background:var(--heading-accent,#d4af37);
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    .local-fitness__digital{
+      max-width:760px;
+      margin:0 auto;
+      padding:30px;
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;
+      text-align:center;
+    }
+
+    .local-fitness__digital h3{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:1.8rem;
+    }
+
+    .local-fitness__digital p{
+      max-width:600px;
+      margin:14px auto 0;
+      color:var(--muted,#b8b8b8);
+      line-height:1.7;
+    }
+
+    .local-fitness__cta{
+      padding:64px 0 82px;
+      text-align:center;
+    }
+
+    .local-fitness__cta-box{
+      max-width:800px;
+      margin:0 auto;
+      padding:clamp(30px,6vw,50px);
+      border:1px solid rgba(212,175,55,.36);
+      border-radius:22px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(212,175,55,.08),
+          rgba(255,255,255,.02)
+        );
+    }
+
+    .local-fitness__cta h2{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:clamp(2rem,5vw,3rem);
+      text-transform:uppercase;
+    }
+
+    .local-fitness__cta p{
+      max-width:620px;
+      margin:16px auto 0;
+      color:var(--muted,#b8b8b8);
+      line-height:1.7;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    html[data-theme="light"] .local-fitness,
+    body.day-mode .local-fitness{
+      --page-bg:#f7f2e7;
+      --heading:#151515;
+      --text:#242424;
+      --muted:#555;
+      --heading-accent:#93671d;
+    }
+
+    html[data-theme="light"] .local-fitness__card,
+    body.day-mode .local-fitness__card,
+    html[data-theme="light"] .local-fitness__digital,
+    body.day-mode .local-fitness__digital{
+      background:rgba(255,255,255,.78);
+      border-color:#d7c7a2;
+      box-shadow:0 10px 26px rgba(76,52,12,.08);
+    }
+
+    @media(max-width:760px){
+      .local-fitness__grid{
+        grid-template-columns:1fr;
+      }
+
+      .local-fitness__card{
+        min-height:auto;
+      }
+    }
+
+    @media(max-width:560px){
+      .local-fitness__container{
+        width:min(100% - 24px,1040px);
+      }
+
+      .local-fitness__hero{
+        padding-top:48px;
+      }
+
+      .local-fitness__card{
+        padding:22px;
+      }
+
+      .local-fitness__button{
+        width:100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div
+    id="navigation"
+    data-component="/locations/santa-ynez-valley/components/navigation.html"
+  ></div>
+
+  <main class="local-fitness">
+
+    <!-- HERO -->
+    <section class="local-fitness__hero">
+
+      <div
+        class="local-fitness__container"
+        data-lang-block="en"
+      >
+        <p class="local-fitness__eyebrow">
+          Sandman Academy of Combat &amp; Fitness
+        </p>
+
+        <h1>
+          Fitness &amp; Strength
+        </h1>
+
+        <p class="local-fitness__lead">
+          Coach-led fitness and strength training for everyday people,
+          athletes, and anyone ready to become stronger and better conditioned.
+        </p>
+      </div>
+
+      <div
+        class="local-fitness__container hidden-lang"
+        data-lang-block="es"
+      >
+        <p class="local-fitness__eyebrow">
+          Sandman Academy of Combat &amp; Fitness
+        </p>
+
+        <h1>
+          Fitness y Fuerza
+        </h1>
+
+        <p class="local-fitness__lead">
+          Entrenamiento de fitness y fuerza dirigido por un coach para
+          personas de todos los días, atletas y quienes estén listos
+          para ser más fuertes y mejorar su condición física.
+        </p>
+      </div>
+
+    </section>
+
+
+    <!-- LOCAL PROGRAMS -->
+    <section class="local-fitness__section">
+
+      <div class="local-fitness__container">
+
+        <div
+          class="local-fitness__heading"
+          data-lang-block="en"
+        >
+          <p class="local-fitness__eyebrow">
+            Santa Ynez Valley
+          </p>
+
+          <h2>
+            Ways To Train
+          </h2>
+
+          <p>
+            Choose coach-led group fitness or focused strength training.
+          </p>
+        </div>
+
+        <div
+          class="local-fitness__heading hidden-lang"
+          data-lang-block="es"
+        >
+          <p class="local-fitness__eyebrow">
+            Valle de Santa Ynez
+          </p>
+
+          <h2>
+            Formas De Entrenar
+          </h2>
+
+          <p>
+            Elige fitness grupal dirigido por un coach
+            o entrenamiento enfocado en fuerza.
+          </p>
+        </div>
+
+
+        <div class="local-fitness__grid">
+
+          <!-- HIITFIT -->
+          <article class="local-fitness__card">
+
+            <span class="local-fitness__mode">
+              In Person
+            </span>
+
+            <div data-lang-block="en">
+              <h3>HIITFit</h3>
+
+              <p>
+                Coach-led group fitness built around strength,
+                conditioning, and combat-inspired training.
+              </p>
+
+              <ul>
+                <li>HIITFit Strength &amp; Conditioning</li>
+                <li>HIITFit Kickboxing &amp; Self-Defense</li>
+                <li>HIITFit Boxing &amp; Self-Defense</li>
+              </ul>
+            </div>
+
+            <div
+              class="hidden-lang"
+              data-lang-block="es"
+            >
+              <h3>HIITFit</h3>
+
+              <p>
+                Fitness grupal dirigido por un coach y desarrollado
+                alrededor de fuerza, acondicionamiento y entrenamiento
+                inspirado en deportes de combate.
+              </p>
+
+              <ul>
+                <li>HIITFit Fuerza y Acondicionamiento</li>
+                <li>HIITFit Kickboxing y Defensa Personal</li>
+                <li>HIITFit Boxeo y Defensa Personal</li>
+              </ul>
+            </div>
+
+            <div class="local-fitness__spacer"></div>
+
+            <a
+              class="local-fitness__button"
+              href="/locations/santa-ynez-valley/connect.html"
+              data-lang-block="en"
+            >
+              Ask About HIITFit
+            </a>
+
+            <a
+              class="local-fitness__button hidden-lang"
+              href="/locations/santa-ynez-valley/connect.html?lang=es"
+              data-lang-block="es"
+            >
+              Pregunta Por HIITFit
+            </a>
+
+          </article>
+
+
+          <!-- POWERLIFTING -->
+          <article class="local-fitness__card">
+
+            <span class="local-fitness__mode">
+              Strength Training
+            </span>
+
+            <div data-lang-block="en">
+              <h3>Powerlifting</h3>
+
+              <p>
+                Learn the major lifts and build real strength
+                through progressive coaching.
+              </p>
+
+              <ul>
+                <li>Squat</li>
+                <li>Bench Press</li>
+                <li>Deadlift</li>
+                <li>Progressive strength training</li>
+              </ul>
+            </div>
+
+            <div
+              class="hidden-lang"
+              data-lang-block="es"
+            >
+              <h3>Powerlifting</h3>
+
+              <p>
+                Aprende los levantamientos principales y desarrolla
+                fuerza real mediante entrenamiento progresivo.
+              </p>
+
+              <ul>
+                <li>Sentadilla</li>
+                <li>Press de banca</li>
+                <li>Peso muerto</li>
+                <li>Entrenamiento progresivo de fuerza</li>
+              </ul>
+            </div>
+
+            <div class="local-fitness__spacer"></div>
+
+            <a
+              class="local-fitness__button"
+              href="/locations/santa-ynez-valley/connect.html"
+              data-lang-block="en"
+            >
+              Ask About Powerlifting
+            </a>
+
+            <a
+              class="local-fitness__button hidden-lang"
+              href="/locations/santa-ynez-valley/connect.html?lang=es"
+              data-lang-block="es"
+            >
+              Pregunta Por Powerlifting
+            </a>
+
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- FUELAI -->
+    <section class="local-fitness__section">
+
+      <div class="local-fitness__container">
+
+        <div
+          class="local-fitness__digital"
+          data-lang-block="en"
+        >
+          <p class="local-fitness__eyebrow">
+            Digital Performance Support
+          </p>
+
+          <h3>FuelAI</h3>
+
+          <p>
+            Training and performance support that goes with you.
+            FuelAI helps athletes manage fueling, training,
+            recovery, hydration, and performance wherever they train.
+          </p>
+
+          <a
+            class="local-fitness__button"
+            href="https://fuel-ai-gamma.vercel.app/account/login"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Explore FuelAI
+          </a>
+        </div>
+
+        <div
+          class="local-fitness__digital hidden-lang"
+          data-lang-block="es"
+        >
+          <p class="local-fitness__eyebrow">
+            Apoyo Digital De Rendimiento
+          </p>
+
+          <h3>FuelAI</h3>
+
+          <p>
+            Apoyo de entrenamiento y rendimiento que va contigo.
+            FuelAI ayuda a los atletas con nutrición, entrenamiento,
+            recuperación, hidratación y rendimiento dondequiera que entrenen.
+          </p>
+
+          <a
+            class="local-fitness__button"
+            href="https://fuel-ai-gamma.vercel.app/account/login"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Explorar FuelAI
+          </a>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- LOCAL CTA -->
+    <section class="local-fitness__cta">
+
+      <div class="local-fitness__container">
+
+        <div class="local-fitness__cta-box">
+
+          <div data-lang-block="en">
+            <p class="local-fitness__eyebrow">
+              Santa Ynez Valley
+            </p>
+
+            <h2>
+              Ready To Train?
+            </h2>
+
+            <p>
+              Tell us what you're interested in and we'll help you
+              find the right fitness or strength option.
+            </p>
+
+            <a
+              class="local-fitness__button"
+              href="/locations/santa-ynez-valley/connect.html"
+            >
+              Connect / Join
+            </a>
+          </div>
+
+          <div
+            class="hidden-lang"
+            data-lang-block="es"
+          >
+            <p class="local-fitness__eyebrow">
+              Valle de Santa Ynez
+            </p>
+
+            <h2>
+              ¿Listo Para Entrenar?
+            </h2>
+
+            <p>
+              Cuéntanos qué te interesa y te ayudaremos a encontrar
+              la opción de fitness o fuerza adecuada.
+            </p>
+
+            <a
+              class="local-fitness__button"
+              href="/locations/santa-ynez-valley/connect.html?lang=es"
+            >
+              Conectar / Inscribirse
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
+</body>
+</html>
