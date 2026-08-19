@@ -1,0 +1,11 @@
+{
+  "name": "sandman-functions",
+  "type": "module",
+  "engines": { "node": "18" },
+  "dependencies": {
+    "firebase-admin": "^12.5.0",
+    "firebase-functions": "^6.0.0",
+    "cors": "^2.8.5",
+    "busboy": "^1.6.0"
+  }
+}

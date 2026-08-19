@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Athlete — Weekly Archive | Sandman System™</title>
+
+  <!-- global styles + include loader -->
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <script src="../assets/js/include.js" defer></script>
+
+  <style>
+    :root{
+      --bg:#0a0f15; --panel:#0f141b; --line:#243041; --muted:#9fb3c8;
+      --pill:#ff3333; --pillfg:#ffd633; --pillbr:#ffd633;
+    }
+    body{background:var(--bg);color:#f3f4f6}
+    .wrap{max-width:1100px;margin:0 auto;padding:1.25rem}
+    h1{color:#ffd633;margin:.25rem 0 1rem}
+    .muted{color:var(--muted)}
+    .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;box-shadow:0 0 14px rgba(0,0,0,.25);margin-bottom:1rem}
+    .row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:center}
+    .pill{display:inline-block;padding:.55rem 1rem;border-radius:999px;background:var(--pill);color:var(--pillfg);border:2px solid var(--pillbr);font-weight:900;text-decoration:none;cursor:pointer}
+    .pill.secondary{background:transparent}
+    input,select{
+      padding:.55rem .7rem;border-radius:10px;border:1px solid #394a61;background:#121821;color:#f3f4f6
+    }
+    table{width:100%;border-collapse:collapse;margin-top:.75rem}
+    th,td{padding:.6rem;border-top:1px solid #2c3a4e;vertical-align:top}
+    th{color:#cfe2ff;text-align:left}
+    .tag{border:1px solid #3a4b61;border-radius:6px;padding:.1rem .4rem;margin-right:.25rem}
+    .right{margin-left:auto}
+    .pager{display:flex;gap:.5rem;align-items:center}
+  </style>
+</head>
+<body>
+  <div data-include="../assets/includes/header.html"></div>
+
+  <main class="wrap">
+    <a class="pill secondary" href="athlete-weekly.html">← Back to Weekly</a>
+    <h1>Athlete — Weekly Archive</h1>
+    <p class="muted" style="margin-top:-.5rem">Read-only list of saved weekly entries (local demo). Use filters, export, or wipe local data.</p>
+
+    <!-- FILTERS -->
+    <section class="panel">
+      <div class="row">
+        <input id="qAthlete" placeholder="Athlete (e.g., sandoval)" />
+        <input id="qCoach" placeholder="Coach (e.g., reyes)" />
+        <select id="qProgram">
+          <option value="">Program — any</option>
+          <option value="foundry8">Foundry 8</option>
+          <option value="foundry4">Foundry 4</option>
+          <option value="leadership">Leadership</option>
+        </select>
+        <select id="qDiscipline">
+          <option value="">Discipline — any</option>
+          <option>wrestling</option><option>striking</option><option>kickboxing</option>
+          <option>muay-thai</option><option>submission-grappling</option><option>mma</option>
+        </select>
+        <input id="qWeekFrom" type="week" title="From week" />
+        <input id="qWeekTo" type="week" title="To week" />
+        <button id="apply" class="pill">Apply</button>
+        <button id="clear" class="pill secondary">Clear</button>
+        <span class="right pager">
+          <button id="prev" class="pill secondary">◀</button>
+          <span class="muted" id="pageInfo">Page 1</span>
+          <button id="next" class="pill secondary">▶</button>
+        </span>
+      </div>
+    </section>
+
+    <!-- TABLE -->
+    <section class="panel">
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <h2 style="margin:0">Results</h2>
+        <div class="row">
+          <button id="export" class="pill secondary">Export JSON</button>
+          <button id="purge" class="pill secondary" title="Remove all local weekly data">Wipe Local</button>
+        </div>
+      </div>
+
+      <table aria-live="polite">
+        <thead>
+        <tr>
+          <th style="width:120px">Week</th>
+          <th style="width:140px">Athlete</th>
+          <th style="width:120px">Program</th>
+          <th style="width:140px">Discipline</th>
+          <th style="width:220px">KPI</th>
+          <th>Focus / Notes</th>
+        </tr>
+        </thead>
+        <tbody id="rows"><tr><td colspan="6" class="muted">No entries.</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <div data-include="../assets/includes/footer.html"></div>
+
+  <script>
+    (function(){
+      const KEY="athleteWeekly";
+      const $=s=>document.querySelector(s);
+      const q={
+        athlete: $("#qAthlete"), coach: $("#qCoach"),
+        program: $("#qProgram"), discipline: $("#qDiscipline"),
+        from: $("#qWeekFrom"), to: $("#qWeekTo")
+      };
+      const rows=$("#rows"), pageInfo=$("#pageInfo");
+      const pageSize=20;
+      let page=1, filtered=[];
+
+      $("#apply").addEventListener("click",()=>{ page=1; filter(); render(); });
+      $("#clear").addEventListener("click",()=>{ Object.values(q).forEach(i=>i.value=""); page=1; filter(); render(); });
+      $("#prev").addEventListener("click",()=>{ if(page>1){ page--; render(); }});
+      $("#next").addEventListener("click",()=>{ if(page*pageSize<filtered.length){ page++; render(); }});
+
+      $("#export").addEventListener("click",()=>{
+        const blob=new Blob([JSON.stringify(filtered,null,2)],{type:"application/json"});
+        const url=URL.createObjectURL(blob); const a=document.createElement("a");
+        a.href=url; a.download="athlete-weekly-archive.json"; document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      $("#purge").addEventListener("click",()=>{
+        if(!confirm("Wipe all local Athlete Weekly data?")) return;
+        localStorage.removeItem(KEY); filtered=[]; render();
+      });
+
+      function load(){ return JSON.parse(localStorage.getItem(KEY)||"[]"); }
+      function labelProgram(p){ return p==='foundry8'?'Foundry 8':p==='foundry4'?'Foundry 4':p==='leadership'?'Leadership':p; }
+      function esc(s){ return (s+"").replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
+
+      function filter(){
+        const list=load();
+        const a=(q.athlete.value||"").toLowerCase();
+        const c=(q.coach.value||"").toLowerCase();
+        const p=q.program.value;
+        const d=q.discipline.value;
+        const wFrom=q.from.value; // YYYY-Www
+        const wTo=q.to.value;
+
+        filtered=list.filter(e=>{
+          if(a && !e.athlete?.toLowerCase().includes(a)) return false;
+          if(c && !e.coach?.toLowerCase().includes(c)) return false;
+          if(p && e.program!==p) return false;
+          if(d && e.discipline!==d) return false;
+          if(wFrom && (e.week||"") < wFrom) return false;
+          if(wTo && (e.week||"") > wTo) return false;
+          return true;
+        }).sort((x,y)=> (y.week||"").localeCompare(x.week||"") || (y.ts||0)-(x.ts||0));
+      }
+
+      function render(){
+        if(!filtered.length){ rows.innerHTML=`<tr><td colspan="6" class="muted">No entries.</td></tr>`; pageInfo.textContent="Page 1 of 1"; return; }
+        const start=(page-1)*pageSize, end=Math.min(start+pageSize, filtered.length);
+        const slice=filtered.slice(start,end);
+        rows.innerHTML = slice.map(e=>`
+          <tr>
+            <td>${esc(e.week||"—")}</td>
+            <td>${esc(e.athlete||"—")}${e.coach?`<div class="muted">coach: ${esc(e.coach)}</div>`:""}</td>
+            <td>${esc(labelProgram(e.program||"—"))}</td>
+            <td>${esc(e.discipline||"—")}</td>
+            <td>
+              <span class="tag">Sessions: ${e.sessions||0}</span>
+              <span class="tag">Hours: ${e.hours||0}</span>
+              <span class="tag">Matches: ${e.matches||0}</span>
+              <span class="tag">Wins: ${e.wins||0}</span>
+            </td>
+            <td>${e.focus?`<div><strong>${esc(e.focus)}</strong></div>`:""}${esc(e.notes||"")}</td>
+          </tr>
+        `).join("");
+        const totalPages=Math.max(1, Math.ceil(filtered.length/pageSize));
+        pageInfo.textContent=`Page ${page} of ${totalPages} • ${filtered.length} rows`;
+      }
+
+      // initial load
+      filter(); render();
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coach Cards — Teen</title>
+  <style>
+    :root{
+      color-scheme: dark;
+      --bg:#0b1120;
+      --panel:#121a2b;
+      --line:#27304a;
+      --text:#f5f7fb;
+      --muted:#9aa4b1;
+      --gold:#ffdd48;
+      --red:#e63946;
+      --link:#9ecbff;
+    }
+
+    *{box-sizing:border-box}
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
+
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px 16px 72px;
+    }
+
+    .hero{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:20px;
+      margin-bottom:18px;
+      box-shadow:0 10px 24px rgba(0,0,0,.24);
+    }
+
+    h1{
+      margin:0 0 8px;
+      color:var(--gold);
+      font-size:clamp(28px,4vw,40px);
+    }
+
+    .sub{
+      color:var(--muted);
+      margin:0;
+      line-height:1.5;
+    }
+
+    .toplinks{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin:14px 0 0;
+    }
+
+    .toplinks a{
+      color:var(--link);
+      text-decoration:none;
+      border:1px solid var(--line);
+      background:var(--panel);
+      padding:10px 12px;
+      border-radius:10px;
+      font-weight:700;
+    }
+
+    .toplinks a:hover{
+      border-color:var(--red);
+      box-shadow:0 0 10px rgba(230,57,70,.25);
+    }
+
+    .section-title{
+      margin:26px 0 12px;
+      color:var(--gold);
+      font-size:1rem;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+    }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:18px;
+      box-shadow:0 10px 18px rgba(0,0,0,.2);
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      transition:.15s;
+    }
+
+    .card:hover{
+      border-color:var(--red);
+      box-shadow:0 0 12px rgba(230,57,70,.32);
+      transform:translateY(-2px);
+    }
+
+    .badge{
+      display:inline-block;
+      width:max-content;
+      padding:4px 10px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      color:var(--gold);
+      font-size:12px;
+      font-weight:800;
+      margin-bottom:2px;
+    }
+
+    h2{
+      margin:0 0 6px;
+      font-size:22px;
+    }
+
+    p{
+      margin:0 0 14px;
+      color:var(--muted);
+      line-height:1.45;
+      flex:1;
+    }
+
+    a.btn{
+      display:inline-block;
+      width:max-content;
+      text-decoration:none;
+      color:#0b1120;
+      background:var(--gold);
+      padding:10px 14px;
+      border-radius:10px;
+      font-weight:700;
+    }
+
+    a.btn:hover{
+      filter:brightness(1.04);
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <section class="hero">
+      <h1>Teen Cards</h1>
+      <p class="sub">
+        Coach access for Foundry 4 teen tier hubs. Open any tier to reach its full skill card set.
+      </p>
+
+      <div class="toplinks">
+        <a href="/coaches/index.html">Coach Console</a>
+        <a href="/coaches/cards/master/index.html">Master Card</a>
+      </div>
+    </section>
+
+    <h2 class="section-title">Foundry 4</h2>
+
+    <section class="grid">
+      <article class="card">
+        <span class="badge">T0</span>
+        <h2>Apprentice</h2>
+        <p>Entry layer, stance, motion, level change, first takedown and first defense foundations.</p>
+        <a class="btn" href="/coaches/cards/teen/p2g-wrestling/t0/index.html">Open T0 Hub</a>
+      </article>
+
+      <article class="card">
+        <span class="badge">T1</span>
+        <h2>Warrior</h2>
+        <p>Head position, angle step, motion to attack, setups, arm drag, reshot, front headlock and ride work.</p>
+        <a class="btn" href="/coaches/cards/teen/p2g-wrestling/t1/index.html">Open T1 Hub</a>
+      </article>
+
+      <article class="card">
+        <span class="badge">T2</span>
+        <h2>Champion</h2>
+        <p>Pressure motion, angle control, chain wrestling, underhook series, two-on-one, whizzer defense, leg ride intro.</p>
+        <a class="btn" href="/coaches/cards/teen/p2g-wrestling/t2/index.html">Open T2 Hub</a>
+      </article>
+
+      <article class="card">
+        <span class="badge">T3</span>
+        <h2>Veteran</h2>
+        <p>Angle domination, pressure control, distance trap, tie system scoring, scramble winning, chain turns, bottom flow.</p>
+        <a class="btn" href="/coaches/cards/teen/p2g-wrestling/t3/index.html">Open T3 Hub</a>
+      </article>
+
+      <article class="card">
+        <span class="badge">T4</span>
+        <h2>Legend</h2>
+        <p>Flow motion, tempo control, position awareness, multichain wrestling, upper body systems, ride mastery and recovery flow.</p>
+        <a class="btn" href="/coaches/cards/teen/p2g-wrestling/t4/index.html">Open T4 Hub</a>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

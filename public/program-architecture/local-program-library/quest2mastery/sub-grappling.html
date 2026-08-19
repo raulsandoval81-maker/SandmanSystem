@@ -1,0 +1,1210 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Quest2Mastery Submission Grappling | Sandman Combat™</title>
+
+  <meta
+    name="description"
+    content="Learn about Quest2Mastery Submission Grappling for athletes ages 16 and older, including its history, training focus, earned progression, tactical development, and athlete-development purpose."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/public.css" />
+<style>
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+
+    main{
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .eyebrow{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .progression-top{
+      margin:0 0 28px;
+    }
+
+    .progression-top figure{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .progression-top img{
+      width:100%;
+    }
+
+    .hero{
+      padding:clamp(2rem,5vw,3.5rem);
+      margin-bottom:28px;
+      border:1px solid #263244;
+      border-radius:24px;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(212,175,55,.16),
+          transparent 38%
+        ),
+        linear-gradient(
+          180deg,
+          #1f2937 0%,
+          #111827 100%
+        );
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+
+    body.day-mode .hero{
+      border-color:#d7c7a2;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(173,123,35,.12),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .hero-subtitle{
+      margin:0 0 18px;
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:900;
+    }
+
+    .hero p{
+      max-width:800px;
+      margin:.75rem 0 0;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.75;
+    }
+
+    .availability{
+      display:inline-block;
+      margin-top:18px;
+      padding:7px 12px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      border:1px solid var(--line);
+      border-radius:999px;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }
+
+    body.day-mode .panel{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,4vw,2.5rem);
+      line-height:1.15;
+    }
+
+    .panel p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .panel p:last-child{
+      margin-bottom:0;
+    }
+
+    .visual-section{
+      margin-top:28px;
+    }
+
+    .visual-heading{
+      margin-bottom:14px;
+    }
+
+    .visual-heading h2{
+      margin:0 0 8px;
+      color:var(--heading);
+      font-size:clamp(1.55rem,4vw,2.2rem);
+    }
+
+    .visual-heading p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+    }
+
+    body.day-mode .card{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .card h2,
+    .card h3{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+    }
+
+    body.day-mode .card h2,
+    body.day-mode .card h3{
+      color:var(--heading);
+    }
+
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .card ul{
+      margin:0;
+      padding-left:20px;
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .fact{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+    }
+
+    .fact strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--heading-accent);
+    }
+
+    .fact span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .quote{
+      margin-top:30px;
+      padding:26px;
+      border:1px solid var(--line);
+      border-left:4px solid var(--heading-accent);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      font-size:1.05rem;
+      line-height:1.8;
+    }
+
+    body.day-mode .quote{
+      border-color:#d7c7a2;
+      background:#ffffff;
+    }
+
+    .quote strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--heading);
+      font-size:1.25rem;
+    }
+
+    @media (max-width:780px){
+      .content-grid,
+      .facts{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      main{
+        width:min(100% - 28px,1050px);
+        padding:24px 0 64px;
+      }
+
+      .hero{
+        padding:32px 20px;
+        border-radius:18px;
+      }
+
+      .panel,
+      .progression-top figure{
+        border-radius:16px;
+      }
+
+      .card{
+        padding:18px;
+      }
+    }
+  
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+
+/* =========================================
+       MINIMAL JOURNEY HEADER
+    ========================================= */
+
+    .journey-minimal-header{
+      display:grid;
+      grid-template-columns:52px minmax(0,1fr) 52px;
+      align-items:center;
+      gap:12px;
+
+      width:100%;
+      min-height:82px;
+
+      margin:0;
+      padding:12px 18px;
+
+      background:var(--panel, #111113);
+      border-bottom:1px solid rgba(212,175,55,.45);
+    }
+
+    .journey-header-title{
+      text-align:center;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(.9rem, 2.5vw, 1.15rem);
+      font-weight:900;
+      letter-spacing:.06em;
+      line-height:1.15;
+      text-transform:uppercase;
+    }
+
+    .journey-header-control{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      width:48px;
+      height:48px;
+
+      margin:0;
+      padding:0;
+
+      color:var(--heading-accent, #d4af37);
+      background:transparent;
+
+      border:1px solid rgba(212,175,55,.55);
+      border-radius:50%;
+
+      font:inherit;
+      font-size:.9rem;
+      font-weight:900;
+
+      cursor:pointer;
+    }
+
+    .journey-header-control:hover,
+    .journey-header-control:focus-visible{
+      background:rgba(212,175,55,.08);
+      outline:none;
+    }
+
+    @media (max-width:520px){
+
+      .journey-minimal-header{
+        grid-template-columns:48px minmax(0,1fr) 48px;
+        gap:8px;
+        min-height:76px;
+        padding:10px 12px;
+      }
+
+      .journey-header-control{
+        width:44px;
+        height:44px;
+      }
+
+      .journey-header-title{
+        font-size:.82rem;
+        letter-spacing:.04em;
+      }
+
+    }
+
+  
+
+/* =========================================
+       MINIMAL JOURNEY HEADER
+========================================= */
+
+/* ...existing journey header CSS... */
+
+
+/* Improve Q2M text contrast in day mode */
+body.day-mode .hero p,
+body.day-mode .panel p,
+body.day-mode .visual-heading p,
+body.day-mode .card p,
+body.day-mode .card li,
+body.day-mode .fact span,
+body.day-mode .availability,
+body.day-mode .quote{
+  color:#374151;
+}
+
+body.day-mode .eyebrow,
+body.day-mode .hero-subtitle,
+body.day-mode .card h2,
+body.day-mode .card h3,
+body.day-mode .fact strong{
+  color:#8a6118;
+}
+
+
+/* Hard override: Q2M day-mode readability */
+body.day-mode main p,
+body.day-mode main li,
+body.day-mode main .fact span,
+body.day-mode main .availability,
+body.day-mode main .quote{
+  color:#1f2937 !important;
+  opacity:1 !important;
+}
+
+body.day-mode main .hero p{
+  color:#273244 !important;
+}
+
+body.day-mode main .eyebrow,
+body.day-mode main .hero-subtitle,
+body.day-mode main .card h2,
+body.day-mode main .card h3,
+body.day-mode main .fact strong{
+  color:#7a5412 !important;
+  opacity:1 !important;
+}
+
+</style>
+</head>
+
+<body>
+
+<header class="journey-minimal-header">
+
+  <button
+    class="journey-header-control"
+    type="button"
+    data-theme-toggle
+    aria-label="Toggle theme"
+  >
+    ◐
+  </button>
+
+  <div class="journey-header-title">
+    Sandman Academy of Combat &amp; Fitness
+  </div>
+
+  <button
+    class="journey-header-control"
+    type="button"
+    data-language-toggle
+    aria-label="Toggle language"
+  >
+    ES
+  </button>
+
+</header>
+
+
+  <main>
+
+<section class="progression-top">
+  <figure>
+    <img
+      data-lang-src-en="/assets/img/disciplines/quest2mastery/submission-grapplingv2-en.png"
+      data-lang-src-es="/assets/img/disciplines/quest2mastery/submission-grapplingv2-es.png"
+      src="/assets/img/disciplines/quest2mastery/submission-grapplingv2-en.png"
+      alt="Quest2Mastery Submission Grappling"
+    />
+  </figure>
+</section>
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Quest2Mastery™ • Ages 16+
+        </p>
+
+        <h1>Submission Grappling</h1>
+
+        <p class="hero-subtitle">
+          Position. Pressure. Leverage. Mastery.
+        </p>
+
+        <p>
+          Quest2Mastery Submission Grappling develops complete no-gi grapplers
+          through takedowns, positional control, guard systems, escapes,
+          reversals, submissions, submission defense, transitions, pressure,
+          timing, and tactical decision-making under resistance.
+        </p>
+
+        <span class="availability">
+          Available at selected academies
+        </span>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Quest2Mastery™ • Edades 16+
+        </p>
+
+        <h1>Grappling De Sumisión</h1>
+
+        <p class="hero-subtitle">
+          Posición. Presión. Palanca. Maestría.
+        </p>
+
+        <p>
+          Grappling de Sumisión Quest2Mastery desarrolla grapplers completos
+          sin gi mediante derribos, control posicional, sistemas de guardia,
+          escapes, reversiones, sumisiones, defensa de sumisiones,
+          transiciones, presión, tiempo y toma de decisiones tácticas bajo
+          resistencia.
+        </p>
+
+        <span class="availability">
+          Disponible en academias seleccionadas
+        </span>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Discipline Overview
+        </p>
+
+        <h2 class="section-title">
+          What Is Submission Grappling?
+        </h2>
+
+        <p>
+          Submission grappling is a no-gi combat discipline built around
+          takedowns, control, positional advancement, escapes, reversals,
+          chokes, joint locks, and the ability to transition smoothly between
+          standing and ground exchanges.
+        </p>
+
+        <p>
+          Quest2Mastery draws from wrestling, catch wrestling, Brazilian
+          jiu-jitsu, and other proven grappling traditions. The goal is not to
+          preserve one style. The goal is to develop adaptable grapplers who
+          can control position, solve problems, and apply technique safely
+          under live resistance.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Resumen De La Disciplina
+        </p>
+
+        <h2 class="section-title">
+          ¿Qué Es El Grappling De Sumisión?
+        </h2>
+
+        <p>
+          El grappling de sumisión es una disciplina de combate sin gi basada
+          en derribos, control, avance posicional, escapes, reversiones,
+          estrangulaciones, llaves articulares y la capacidad de conectar con
+          fluidez los intercambios de pie y suelo.
+        </p>
+
+        <p>
+          Quest2Mastery integra lucha, catch wrestling, jiu-jitsu brasileño y
+          otras tradiciones comprobadas de grappling. La meta no es conservar
+          un solo estilo. La meta es desarrollar grapplers adaptables capaces
+          de controlar posiciones, resolver problemas y aplicar técnica con
+          seguridad bajo resistencia en vivo.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          The Sandman Purpose
+        </p>
+
+        <h2 class="section-title">
+          Why We Teach Submission Grappling
+        </h2>
+
+        <p>
+          We teach submission grappling because it rewards patience,
+          awareness, leverage, composure, and disciplined decision-making.
+          Athletes must learn when to advance, when to defend, when to create
+          pressure, and when to release.
+        </p>
+
+        <p>
+          Training also demands trust. Athletes are responsible for protecting
+          partners, respecting every tap, applying submissions with control,
+          accepting correction, and remaining accountable for how they use
+          growing skill. Those expectations support Combat, Strength, and
+          Honor.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          El Propósito Sandman
+        </p>
+
+        <h2 class="section-title">
+          Por Qué Enseñamos Grappling De Sumisión
+        </h2>
+
+        <p>
+          Enseñamos grappling de sumisión porque recompensa paciencia,
+          conciencia, palanca, compostura y toma disciplinada de decisiones.
+          Los atletas deben aprender cuándo avanzar, cuándo defender, cuándo
+          crear presión y cuándo soltar.
+        </p>
+
+        <p>
+          El entrenamiento también exige confianza. Los atletas son
+          responsables de proteger a sus compañeros, respetar cada rendición,
+          aplicar sumisiones con control, aceptar correcciones y rendir cuentas
+          por el uso de sus habilidades. Esas expectativas apoyan Combate,
+          Fuerza y Honor.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <p class="eyebrow">Earned Progression</p>
+          <h2>Quest2Mastery Progression</h2>
+          <p>
+            Athletes advance from Apprentice to Master through consistent
+            training, technical depth, positional awareness, live application,
+            testing, competition experience, leadership, and demonstrated
+            growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">Progreso Ganado</p>
+          <h2>Progresión Quest2Mastery</h2>
+          <p>
+            Los atletas avanzan de Apprentice a Master mediante entrenamiento
+            constante, profundidad técnica, conciencia posicional, aplicación
+            en vivo, pruebas, experiencia competitiva, liderazgo y crecimiento
+            demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+<section class="progression-top">
+  <figure>
+    <img
+      src="/assets/img/f4/f4-shirt-progression-sub-grappling.png"
+      alt="Quest2Mastery Submission Grappling progression from Apprentice to Master"
+    />
+  </figure>
+</section>
+
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Short History
+        </p>
+
+        <h2 class="section-title">
+          The Story of Submission Grappling
+        </h2>
+
+        <p>
+          Submission grappling grew from multiple wrestling and ground-fighting
+          traditions, including catch wrestling, judo, Brazilian jiu-jitsu,
+          sambo, and no-gi competition systems. Each contributed different
+          approaches to control, leverage, positional advancement, and
+          submission.
+        </p>
+
+        <p>
+          Modern submission grappling has become an international competitive
+          discipline with rulesets that reward takedowns, positional control,
+          transitions, and finishes. It also remains one of the strongest
+          foundations for mixed martial arts and lifelong grappling practice.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Historia Breve
+        </p>
+
+        <h2 class="section-title">
+          La Historia Del Grappling De Sumisión
+        </h2>
+
+        <p>
+          El grappling de sumisión creció a partir de múltiples tradiciones de
+          lucha y combate en el suelo, incluyendo catch wrestling, judo,
+          jiu-jitsu brasileño, sambo y sistemas de competencia sin gi. Cada una
+          aportó diferentes enfoques de control, palanca, avance posicional y
+          sumisión.
+        </p>
+
+        <p>
+          El grappling de sumisión moderno se ha convertido en una disciplina
+          competitiva internacional con reglamentos que recompensan derribos,
+          control posicional, transiciones y finalizaciones. También sigue
+          siendo una de las bases más fuertes para MMA y la práctica de
+          grappling a largo plazo.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Interesting Facts
+        </p>
+
+        <h2 class="section-title">
+          Did You Know?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Position Before Submission</strong>
+            <span>
+              Reliable finishes usually come after control, pressure, and
+              positional advantage have already been established.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Many Traditions, One Discipline</strong>
+            <span>
+              Modern no-gi grappling draws useful ideas from wrestling, catch,
+              jiu-jitsu, sambo, and other systems.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Safety Depends on Trust</strong>
+            <span>
+              Every athlete must apply technique with control and respect every
+              tap immediately.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Datos Interesantes
+        </p>
+
+        <h2 class="section-title">
+          ¿Sabías Que?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Posición Antes De La Sumisión</strong>
+            <span>
+              Las finalizaciones confiables normalmente aparecen después de
+              establecer control, presión y ventaja posicional.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Muchas Tradiciones, Una Disciplina</strong>
+            <span>
+              El grappling moderno sin gi integra ideas útiles de lucha, catch,
+              jiu-jitsu, sambo y otros sistemas.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>La Seguridad Depende De La Confianza</strong>
+            <span>
+              Cada atleta debe aplicar técnica con control y respetar
+              inmediatamente cada rendición.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="content-grid">
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Technical Skills</h2>
+          <ul>
+            <li>Wrestling-based takedowns and takedown defense</li>
+            <li>Scrambling and transitional control</li>
+            <li>Guard retention and guard passing</li>
+            <li>Top pressure and positional advancement</li>
+            <li>Escapes, reversals, and defensive recovery</li>
+            <li>Chokes, joint locks, and submission chains</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Habilidades Técnicas</h2>
+          <ul>
+            <li>Derribos basados en lucha y defensa de derribos</li>
+            <li>Scrambles y control durante transiciones</li>
+            <li>Retención y pase de guardia</li>
+            <li>Presión superior y avance posicional</li>
+            <li>Escapes, reversiones y recuperación defensiva</li>
+            <li>Estrangulaciones, llaves articulares y cadenas de sumisión</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Physical Development</h2>
+          <ul>
+            <li>Grip and positional strength</li>
+            <li>Mobility and body control</li>
+            <li>Balance and base</li>
+            <li>Conditioning and work capacity</li>
+            <li>Pressure endurance</li>
+            <li>Durability and recovery habits</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Físico</h2>
+          <ul>
+            <li>Fuerza de agarre y fuerza posicional</li>
+            <li>Movilidad y control corporal</li>
+            <li>Equilibrio y base</li>
+            <li>Acondicionamiento y capacidad de trabajo</li>
+            <li>Resistencia bajo presión</li>
+            <li>Durabilidad y hábitos de recuperación</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Character Development</h2>
+          <ul>
+            <li>Patience</li>
+            <li>Composure</li>
+            <li>Humility</li>
+            <li>Accountability</li>
+            <li>Trust</li>
+            <li>Leadership</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Del Carácter</h2>
+          <ul>
+            <li>Paciencia</li>
+            <li>Compostura</li>
+            <li>Humildad</li>
+            <li>Responsabilidad</li>
+            <li>Confianza</li>
+            <li>Liderazgo</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Training Focus</h2>
+          <ul>
+            <li>Technical drilling and sequence development</li>
+            <li>Position-based live rounds</li>
+            <li>Standing-to-ground transitions</li>
+            <li>Submission offense and defense</li>
+            <li>Situational sparring and problem-solving</li>
+            <li>Competition preparation and tactical review</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Enfoque Del Entrenamiento</h2>
+          <ul>
+            <li>Repetición técnica y desarrollo de secuencias</li>
+            <li>Rounds en vivo basados en posiciones</li>
+            <li>Transiciones de pie al suelo</li>
+            <li>Ofensiva y defensa de sumisiones</li>
+            <li>Sparring situacional y resolución de problemas</li>
+            <li>Preparación competitiva y revisión táctica</li>
+          </ul>
+        </div>
+
+      </article>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Athlete Fit
+        </p>
+
+        <h2 class="section-title">
+          Who Is Submission Grappling For?
+        </h2>
+
+        <p>
+          Quest2Mastery Submission Grappling is designed for athletes ages 16
+          and older who want complete no-gi grappling development, deeper
+          positional understanding, structured competition preparation,
+          stronger tactical awareness, and a long-term path toward mastery.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Perfil Del Atleta
+        </p>
+
+        <h2 class="section-title">
+          ¿Para Quién Es El Grappling De Sumisión?
+        </h2>
+
+        <p>
+          Grappling de Sumisión Quest2Mastery está diseñado para atletas de 16
+          años en adelante que buscan desarrollo completo sin gi, comprensión
+          posicional más profunda, preparación estructurada para competir,
+          mayor conciencia táctica y un camino a largo plazo hacia la maestría.
+        </p>
+
+      </div>
+
+    </section>
+<section class="marketing-connect-cta">
+
+  <div data-lang-block="en">
+    <h2>Ready to Begin Submission Grappling?</h2>
+
+    <p>
+      Build complete no-gi grappling through takedowns, positional control,
+      escapes, transitions, submissions, and disciplined live training.
+    </p>
+
+    <a class="journeys-cta-button" href="/connect/interest/">
+      Connect With Us
+    </a>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <h2>¿Listo para Comenzar Grappling de Sumisión?</h2>
+
+    <p>
+      Desarrolla grappling completo sin gi mediante derribos, control
+      posicional, escapes, transiciones, sumisiones y entrenamiento
+      disciplinado en vivo.
+    </p>
+
+    <a class="journeys-cta-button" href="/connect/interest/">
+      Conéctate con Nosotros
+    </a>
+  </div>
+
+</section>
+    <div class="quote">
+
+      <span data-lang-block="en">
+        <strong>Mastery begins with control.</strong>
+        Secure the position. Respect the tap. Earn every transition.
+      </span>
+
+      <span
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <strong>La maestría comienza con el control.</strong>
+        Asegura la posición. Respeta la rendición. Gana cada transición.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
+</body>
+</html>

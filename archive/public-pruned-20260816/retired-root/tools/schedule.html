@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Schedule | Sandman System™</title>
+  <link rel="stylesheet" href="assets/css/site.css" />
+
+  <style>
+    :root{
+      --bg:#0a0f15;
+      --panel:#0f141b;
+      --panel2:#121821;
+      --line:#243041;
+      --muted:#9fb3c8;
+      --brand:#ffd633;
+      --danger:#ff4d4d;
+    }
+    body{ margin:0; background:var(--bg); color:#e8edf5; font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+
+    /* ---------------- TOP NAV ---------------- */
+    .top-nav{ background:#0f141b; border-bottom:2px solid var(--brand); padding:.45rem 1rem; position:sticky; top:0; z-index:1000; }
+    .nav-inner{ display:flex; align-items:center; justify-content:space-between; max-width:1200px; margin:0 auto; }
+    .nav-logo{ font-size:1rem; font-weight:800; color:var(--brand); text-decoration:none; text-transform:uppercase; letter-spacing:.05em; }
+    .nav-btn{ background:none; border:0; font-size:1.4rem; color:var(--brand); cursor:pointer; }
+
+    /* ---------------- DRAWER ---------------- */
+    .nav-drawer{
+      position:fixed; top:0; right:-260px; width:260px; height:100vh;
+      background:#0b1118; border-left:2px solid var(--brand); padding:1.5rem;
+      transition:.25s; z-index:2000; display:flex; flex-direction:column; gap:.75rem;
+    }
+    .nav-drawer.open{ right:0; }
+    .drawer-links a{ color:#f3f4f6; text-decoration:none; font-size:1rem; padding:.4rem 0; font-weight:500; display:block; }
+    .drawer-links a:hover{ color:var(--danger); }
+
+    .nav-backdrop{
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.25s; z-index:1500;
+    }
+    .nav-backdrop.show{ opacity:1; pointer-events:auto; }
+
+    /* ---------------- LAYOUT ---------------- */
+    .wrap{ max-width:1200px; margin:0 auto; padding:2rem 1.25rem 3rem; }
+    h1{ margin:0 0 .35rem; color:var(--brand); }
+    .lead{ color:var(--muted); margin:0 0 1.2rem; max-width:760px; }
+    .muted-sm{ color:#7e92aa; font-size:.82rem; }
+
+    .bar{
+      display:flex; gap:.6rem; flex-wrap:wrap; align-items:center;
+      background:rgba(255,214,51,.05); border:1px solid rgba(255,214,51,.15);
+      padding:.75rem; border-radius:14px; margin:1rem 0 1.2rem;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:.4rem;
+      padding:.35rem .75rem; border-radius:999px;
+      border:1px solid #34455d; background:#0e141c;
+      font-size:.72rem; text-transform:uppercase; letter-spacing:.05em;
+      color:#d7dbe2;
+    }
+    .pill strong{ color:var(--brand); letter-spacing:.02em; }
+
+    /* ---------------- GRID ---------------- */
+    .grid{
+      display:grid;
+      grid-template-columns:minmax(0,1.2fr) minmax(0,.8fr);
+      gap:1rem;
+      align-items:start;
+    }
+    @media (max-width:1000px){
+      .grid{ grid-template-columns:1fr; }
+    }
+
+    .card{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:1rem;
+      box-shadow:0 0 14px rgba(0,0,0,.25);
+    }
+    .card h2{ margin:0 0 .65rem; color:var(--brand); font-size:1.05rem; }
+
+    /* ---------------- CLASS CARDS ---------------- */
+    .class-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr));
+      gap:1rem;
+      margin-bottom:1rem;
+    }
+    @media (max-width:900px){
+      .class-grid{ grid-template-columns:1fr; }
+    }
+    .class-card{
+      background:var(--panel2);
+      border:1px solid #2f3a4b;
+      border-radius:14px;
+      padding:1rem;
+    }
+    .class-head{
+      display:flex; align-items:flex-start; justify-content:space-between; gap:.75rem;
+      margin-bottom:.6rem;
+    }
+    .class-title{ font-weight:900; letter-spacing:.02em; }
+    .class-sub{ color:#b8c6d8; font-size:.85rem; margin-top:.1rem; }
+    .badge{
+      display:inline-block;
+      padding:.18rem .55rem;
+      border-radius:999px;
+      background:var(--brand);
+      color:#111;
+      font-weight:900;
+      font-size:.65rem;
+      text-transform:uppercase;
+      letter-spacing:.04em;
+      white-space:nowrap;
+    }
+    .class-meta{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:.35rem;
+      color:#d7dbe2;
+      font-size:.85rem;
+    }
+    .class-meta span{ color:#9fb3c8; font-size:.78rem; }
+    .class-notes{
+      margin-top:.65rem;
+      border-top:1px dashed #33445c;
+      padding-top:.65rem;
+      color:#cbd5e1;
+      font-size:.82rem;
+      line-height:1.45;
+    }
+.slot .t{ font-size:.8rem; opacity:.9; }
+.slot .n{ font-size:1rem; }
+
+/* ===== Weekly Rhythm layout upgrade ===== */
+
+/* the week container becomes a real responsive grid */
+.week{
+  display:grid;
+  grid-template-columns: repeat(6, minmax(220px, 1fr)); /* Mon–Sat */
+  gap:14px;
+  align-items:stretch;
+}
+
+/* On smaller screens, auto-fit columns */
+@media (max-width: 1280px){
+  .week{ grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+}
+@media (max-width: 820px){
+  .week{ grid-template-columns: 1fr; }
+}
+
+/* each day column */
+.day{
+  background: rgba(15,20,27,.45);
+  border: 1px solid #243041;
+  border-radius: 16px;
+  padding: 12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-height: 100%;
+}
+
+/* day header stays clean */
+.day h3{
+  margin:0;
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing:.02em;
+  color:#e8edf5;
+  padding: 10px 10px;
+  border: 1px solid #243041;
+  border-radius: 12px;
+  background: #0f141b;
+}
+
+/* slot becomes a real “card” with better spacing */
+.slot{
+  border: 1px solid #2f3a4e;
+  background: #121821;
+  border-radius: 14px;
+  padding: 10px 10px 12px;
+  box-shadow: 0 0 12px rgba(0,0,0,.18);
+}
+
+/* time line: keep it on one line */
+.slot .t{
+  font-size: .85rem;
+  font-weight: 800;
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 6px;
+}
+
+/* title line: allow 2 lines max instead of vertical word stacking */
+.slot .n{
+  font-size: .95rem;
+  font-weight: 900;
+  color: #f3f4f6;
+  line-height: 1.15;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+/* tag: sits nicely under title */
+.slot .tag{
+  display:inline-flex;
+  align-items:center;
+  gap:.35rem;
+  border-radius: 999px;
+  padding: .18rem .6rem;
+  font-size: .68rem;
+  font-weight: 900;
+  letter-spacing:.04em;
+  text-transform: uppercase;
+  border: 1px solid #3a4a60;
+  background: #0f141b;
+  color:#e8edf5;
+}
+
+/* optional: make Saturday a little wider when screen allows */
+@media (min-width: 1400px){
+  .week{ grid-template-columns: repeat(5, minmax(220px, 1fr)) minmax(260px, 1.1fr); }
+}
+    /* ---------------- RIGHT PANEL ---------------- */
+    .list{ margin:.25rem 0 0; padding-left:1.1rem; color:#d7dbe2; line-height:1.55; }
+    .list li{ margin:.35rem 0; }
+    .callout{
+      margin-top:.85rem;
+      background:rgba(255,214,51,.06);
+      border:1px solid rgba(255,214,51,.18);
+      border-radius:12px;
+      padding:.75rem;
+      color:#dbe6f4;
+      font-size:.85rem;
+      line-height:1.45;
+    }
+    .callout strong{ color:var(--brand); }
+
+    /* ---------------- FOOTER ---------------- */
+    .footer{ background:#0f141b; border-top:2px solid var(--brand); padding:1rem; margin-top:2rem; }
+    .footer-container{ max-width:1200px; margin:0 auto; display:flex; justify-content:center; gap:1.5rem; flex-wrap:wrap; align-items:center; }
+    .footer-title{ font-weight:700; color:var(--brand); }
+    .footer-links{ display:flex; gap:1rem; flex-wrap:wrap; }
+    .footer-links a{ color:#f3f4f6; text-decoration:none; }
+    .footer-links a:hover{ color:var(--danger); }
+
+    .drawer-links a[aria-current="page"],
+    .footer-links a[aria-current="page"]{
+      color:var(--brand);
+      font-weight:900;
+    }
+  </style>
+</head>
+
+<body>
+
+<header class="top-nav">
+  <div class="nav-inner">
+    <a href="index.html" class="nav-logo">Sandman System™</a>
+    <button class="nav-btn" id="navBtn" aria-label="Menu">☰</button>
+  </div>
+</header>
+
+
+<aside class="nav-drawer" id="navDrawer" aria-label="Site menu">
+  <nav class="drawer-links">
+    <a href="index.html">Home</a>
+    <a href="overview.html">Overview</a>
+    <a href="programs.html">Programs</a>
+    <a href="schedule.html" aria-current="page">Schedule</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="leaderboards.html">Leaderboards</a>
+    <a href="ceremonies.html">Ceremonies</a>
+  </nav>
+</aside>
+<div class="nav-backdrop" id="navBackdrop"></div>
+
+<main class="wrap">
+  <h1>Schedule</h1>
+  <p class="lead">
+    Public preview of weekly class structure. The live schedule, changes, and announcements
+    will post inside the private dashboard.
+  </p>
+
+  <div class="bar">
+    <span class="pill"><strong>Demo</strong> preview page</span>
+    <span class="pill">Lompoc area</span>
+    <span class="pill">Foundry 8 · Youth</span>
+    <span class="pill">Foundry 4 · Teen</span>
+    <span class="pill">Foundry 4 · Adult</span>
+    <span class="pill">Optional: Strength & Honor</span>
+  </div>
+
+  <div class="grid">
+    <!-- LEFT: MAIN -->
+    <section class="card">
+      <h2>Classes</h2>
+
+      <div class="class-grid">
+        <article class="class-card">
+          <div class="class-head">
+            <div>
+              <div class="class-title">Foundry 8 — Youth Combat</div>
+              <div class="class-sub">Elementary / Junior High · Discipline + fundamentals</div>
+            </div>
+            <span class="badge">Youth</span>
+          </div>
+          <div class="class-meta">
+            <div><span>Typical focus:</span> wrestling fundamentals, stance/motion, basic chains, safe sparring</div>
+            <div><span>What to bring:</span> water, athletic gear, notebook (optional)</div>
+            <div><span>XP:</span> attendance + coach awards (live system is private)</div>
+          </div>
+          <div class="class-notes">
+            Parents: drop-off / pick-up rules will live in the dashboard once enrollment opens.
+          </div>
+        </article>
+
+        <article class="class-card">
+          <div class="class-head">
+            <div>
+              <div class="class-title">Foundry 4 — Teen Combat</div>
+              <div class="class-sub">High School · Path2Legend lane</div>
+            </div>
+            <span class="badge">Teen</span>
+          </div>
+          <div class="class-meta">
+            <div><span>Typical focus:</span> live wrestling, conditioning blocks, match IQ, standards</div>
+            <div><span>What to bring:</span> shoes, headgear (optional), water, tape</div>
+            <div><span>Notes:</span> schedule flexes during season; changes post privately</div>
+          </div>
+          <div class="class-notes">
+            This is a public “shape” preview, not the official season calendar.
+          </div>
+        </article>
+
+        <article class="class-card">
+          <div class="class-head">
+            <div>
+              <div class="class-title">Foundry 4 — Adult Combat</div>
+              <div class="class-sub">Adults · training lane (not open enrollment yet)</div>
+            </div>
+            <span class="badge">Adult</span>
+          </div>
+          <div class="class-meta">
+            <div><span>Typical focus:</span> boxing / kickboxing blocks, strength circuit, controlled sparring</div>
+            <div><span>What to bring:</span> wraps, gloves, mouthguard (if sparring)</div>
+            <div><span>Access:</span> invite / pilot only during early build</div>
+          </div>
+          <div class="class-notes">
+            Adults run Foundry 4 standards too — same XP backbone, different responsibility level.
+          </div>
+        </article>
+
+        <article class="class-card">
+          <div class="class-head">
+            <div>
+              <div class="class-title">Open Mat + Strength & Honor</div>
+              <div class="class-sub">All lanes · optional add-on sessions</div>
+            </div>
+            <span class="badge">Optional</span>
+          </div>
+          <div class="class-meta">
+            <div><span>Typical focus:</span> drill reps, position rounds, strength block, mindset logging</div>
+            <div><span>What to bring:</span> notebook / phone notes (for Honor prompts later)</div>
+            <div><span>Purpose:</span> extra reps + long-arc progress</div>
+          </div>
+          <div class="class-notes">
+            In the live system this becomes “sessions + check-ins” tied to the private dashboard.
+          </div>
+        </article>
+      </div>
+
+      <h2 style="margin-top:.25rem;">Weekly Rhythm (Preview)</h2>
+      <p class="muted-sm" style="margin-top:-.25rem;">
+        This shows a realistic weekly structure for 3–4 class lanes. Times are placeholders until official launch.
+      </p>
+
+<div class="week" style="margin-top:.8rem;">
+  <div class="day">
+    <h3>Mon</h3>
+
+    <div class="slot">
+      <div class="t">4:00–5:00 PM</div>
+      <div class="n">Foundry 8 — Youth Combat</div>
+      <span class="tag">Practice</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">5:00–6:00 PM</div>
+      <div class="n">Foundry 4 — Teen Combat</div>
+      <span class="tag">Live</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">6:00–7:00 PM</div>
+      <div class="n">Foundry 4 — Adult Combat</div>
+      <span class="tag">Boxing</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">7:00–8:00 PM</div>
+      <div class="n">Open Mat (Invite / Optional)</div>
+      <span class="tag">Open</span>
+    </div>
+  </div>
+
+  <div class="day">
+    <h3>Tue</h3>
+
+    <div class="slot">
+      <div class="t">4:00–5:00 PM</div>
+      <div class="n">Foundry 8 — Youth Combat</div>
+      <span class="tag">Practice</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">5:00–6:00 PM</div>
+      <div class="n">Foundry 4 — Teen Combat</div>
+      <span class="tag">Conditioning</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">6:00–7:00 PM</div>
+      <div class="n">Foundry 4 — Adult Combat</div>
+      <span class="tag">Kickboxing</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">7:00–8:00 PM</div>
+      <div class="n">Strength Block (Optional)</div>
+      <span class="tag">Strength</span>
+    </div>
+  </div>
+
+  <div class="day">
+    <h3>Wed</h3>
+
+    <div class="slot">
+      <div class="t">4:00–5:00 PM</div>
+      <div class="n">Foundry 8 — Youth Combat</div>
+      <span class="tag">Practice</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">5:00–6:00 PM</div>
+      <div class="n">Foundry 4 — Teen Combat</div>
+      <span class="tag">Live</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">6:00–7:00 PM</div>
+      <div class="n">Foundry 4 — Adult Combat</div>
+      <span class="tag">Boxing</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">7:00–8:00 PM</div>
+      <div class="n">Honor Check-In (Optional)</div>
+      <span class="tag">Honor</span>
+    </div>
+  </div>
+
+  <div class="day">
+    <h3>Thu</h3>
+
+    <div class="slot">
+      <div class="t">4:00–5:00 PM</div>
+      <div class="n">Foundry 8 — Youth Combat</div>
+      <span class="tag">Practice</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">5:00–6:00 PM</div>
+      <div class="n">Foundry 4 — Teen Combat</div>
+      <span class="tag">Technique</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">6:00–7:00 PM</div>
+      <div class="n">Foundry 4 — Adult Combat</div>
+      <span class="tag">Kickboxing</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">7:00–8:00 PM</div>
+      <div class="n">Open Mat (Invite / Optional)</div>
+      <span class="tag">Open</span>
+    </div>
+  </div>
+
+  <div class="day">
+    <h3>Fri</h3>
+
+    <div class="slot">
+      <div class="t">4:00–5:00 PM</div>
+      <div class="n">Foundry 8 — Youth Combat</div>
+      <span class="tag">Review</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">5:00–6:00 PM</div>
+      <div class="n">Foundry 4 — Teen Combat</div>
+      <span class="tag">Live</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">6:00–7:00 PM</div>
+      <div class="n">Open Mat + Strength & Honor</div>
+      <span class="tag">Open</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">7:00–8:00 PM</div>
+      <div class="n">Coach Testing / Promotions (As needed)</div>
+      <span class="tag">Testing</span>
+    </div>
+  </div>
+
+  <div class="day">
+    <h3>Sat</h3>
+
+    <div class="slot">
+      <div class="t">8:00–9:00 AM (Seasonal)</div>
+      <div class="n">Tournaments / Events</div>
+      <span class="tag">Arena</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">9:00–10:00 AM (Seasonal)</div>
+      <div class="n">Weigh-ins / Check-in / Warm-up</div>
+      <span class="tag">Event</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">10:00–11:00 AM (As scheduled)</div>
+      <div class="n">Ceremonies / Family Session</div>
+      <span class="tag">Ceremony</span>
+    </div>
+
+    <div class="slot">
+      <div class="t">11:00–12:00 PM (Optional)</div>
+      <div class="n">Open Mat / Make-up Work</div>
+      <span class="tag">Open</span>
+    </div>
+  </div>
+</div>
+    </section>
+
+    <!-- RIGHT: DETAILS -->
+    <aside class="card">
+      <h2>How to Read This</h2>
+      <ul class="list">
+        <li><strong>Preview only:</strong> this page is the “public shape” of scheduling.</li>
+        <li><strong>Live changes:</strong> in the real system, updates post inside the private dashboard.</li>
+        <li><strong>Lane structure:</strong> Foundry 8 = youth, Foundry 4 = teens + adults.</li>
+        <li><strong>Open Mat:</strong> extra reps + optional Strength/Honor blocks.</li>
+      </ul>
+
+
+      <h2 style="margin-top:1rem;">What to Bring</h2>
+      <ul class="list">
+        <li>Water + athletic gear</li>
+        <li>Wrestling shoes (if wrestling)</li>
+        <li>Wraps/gloves (if boxing/kickboxing)</li>
+        <li>Notebook optional (Honor prompts later)</li>
+      </ul>
+
+      <h2 style="margin-top:1rem;">Contact</h2>
+      <p class="muted-sm">
+        Questions about placement (youth vs teen vs adult)? Use the Contact page.
+        Intake and waivers are handled privately.
+      </p>
+      <p style="margin-top:.6rem;">
+        <a href="contact.html" style="color:var(--brand); font-weight:900; text-decoration:none;">Go to Contact →</a>
+      </p>
+    </aside>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-container">
+    <span class="footer-title">Sandman System™</span>
+    <nav class="footer-links">
+      <a href="overview.html">Overview</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // Drawer toggle + scroll lock + a11y
+  const navBtn = document.getElementById("navBtn");
+  const drawer = document.getElementById("navDrawer");
+  const backdrop = document.getElementById("navBackdrop");
+
+  let lastFocusEl = null;
+
+  function isOpen(){ return drawer.classList.contains("open"); }
+
+  function openMenu(){
+    lastFocusEl = document.activeElement;
+    drawer.classList.add("open");
+    backdrop.classList.add("show");
+    document.body.style.overflow = "hidden";
+    navBtn.setAttribute("aria-expanded","true");
+    // move focus into drawer (first link)
+    const firstLink = drawer.querySelector("a");
+    if (firstLink) firstLink.focus?.();
+  }
+
+  function closeMenu(){
+    drawer.classList.remove("open");
+    backdrop.classList.remove("show");
+    document.body.style.overflow = "";
+    navBtn.setAttribute("aria-expanded","false");
+    // return focus
+    if (lastFocusEl && lastFocusEl.focus) lastFocusEl.focus();
+  }
+
+  function toggleMenu(){
+    if (isOpen()) closeMenu();
+    else openMenu();
+  }
+
+  // init aria
+  navBtn.setAttribute("aria-controls","navDrawer");
+  navBtn.setAttribute("aria-expanded","false");
+
+  navBtn.addEventListener("click", toggleMenu);
+  backdrop.addEventListener("click", closeMenu);
+  drawer.querySelectorAll("a").forEach(a => a.addEventListener("click", closeMenu));
+
+  // ESC closes
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && isOpen()) closeMenu();
+  });
+
+  // highlight current page (drawer + footer) – robust vs query/hash
+  const here = new URL(window.location.href);
+  const herePath = here.pathname.split("/").pop() || "index.html";
+
+  document.querySelectorAll(".drawer-links a, .footer-links a").forEach(link => {
+    try {
+      const u = new URL(link.getAttribute("href"), window.location.href);
+      const p = u.pathname.split("/").pop() || "index.html";
+      if (p === herePath) link.setAttribute("aria-current","page");
+    } catch {}
+  });
+</script>
+</body>
+</html>

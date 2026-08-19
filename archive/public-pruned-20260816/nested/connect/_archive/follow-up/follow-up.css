@@ -1,0 +1,202 @@
+:root{
+  --bg:#090909;
+  --panel:#131313;
+  --panel2:#1b1b1b;
+
+  --gold:#facc15;
+  --red:#7a1111;
+
+  --border:#2a2a2a;
+
+  --text:#f3f4f6;
+  --muted:#b8bcc4;
+}
+
+*{
+  box-sizing:border-box;
+}
+
+body{
+  margin:0;
+
+  background:
+    radial-gradient(circle at top,#2d2204 0,#090909 40%),
+    #090909;
+
+  color:var(--text);
+
+  font-family:
+    Inter,
+    system-ui,
+    -apple-system,
+    sans-serif;
+}
+
+.follow-page{
+  min-height:100vh;
+  padding:42px 18px;
+}
+
+.follow-shell{
+  width:100%;
+  max-width:760px;
+  margin:auto;
+}
+
+.follow-hero{
+  text-align:center;
+  margin-bottom:34px;
+}
+
+.eyebrow{
+  margin:0 0 12px;
+
+  color:var(--gold);
+
+  font-size:.78rem;
+  font-weight:900;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+
+.follow-hero h1{
+  margin:0 0 14px;
+
+  color:#fff;
+
+  font-size:clamp(2rem,6vw,3.4rem);
+}
+
+.hero-copy{
+  max-width:620px;
+  margin:auto;
+
+  color:var(--muted);
+
+  line-height:1.7;
+  font-size:1.05rem;
+}
+
+.status{
+  min-height:24px;
+
+  margin:24px 0;
+
+  text-align:center;
+
+  font-weight:700;
+}
+
+.status.error{
+  color:#ff7d7d;
+}
+
+.appointment-card{
+  margin-bottom:24px;
+
+  padding:26px;
+
+  background:var(--panel);
+
+  border:1px solid var(--border);
+
+  border-radius:22px;
+
+  box-shadow:
+    0 20px 45px rgba(0,0,0,.45);
+}
+
+.appointment-card h2{
+  margin:0 0 18px;
+
+  color:var(--gold);
+
+  font-size:1.1rem;
+}
+
+.detail-grid{
+  display:grid;
+  gap:18px;
+}
+
+@media (min-width:720px){
+
+  .detail-grid{
+    grid-template-columns:
+      repeat(2,1fr);
+  }
+
+}
+
+.detail{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+
+.label{
+  color:var(--muted);
+
+  font-size:.82rem;
+
+  text-transform:uppercase;
+
+  letter-spacing:.08em;
+}
+
+.detail strong{
+  color:#fff;
+
+  font-size:1.05rem;
+}
+
+#academyAddress,
+#coachNotes{
+  margin:0;
+
+  white-space:pre-line;
+
+  color:#fff;
+
+  line-height:1.7;
+}
+
+.arrival-list{
+  margin:0;
+
+  padding-left:22px;
+
+  color:#fff;
+
+  line-height:1.8;
+}
+
+.arrival-list li+li{
+  margin-top:8px;
+}
+
+.follow-footer{
+  margin:42px 0;
+
+  text-align:center;
+}
+
+.motto{
+  color:var(--gold);
+
+  font-weight:800;
+
+  letter-spacing:.08em;
+}
+
+@media (max-width:640px){
+
+  .follow-page{
+    padding:24px 14px;
+  }
+
+  .appointment-card{
+    padding:22px;
+  }
+
+}

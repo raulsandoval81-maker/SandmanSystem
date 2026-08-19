@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Para-Comms (Blaze)</title>
+
+  <!-- Navy/Gold Para-Comms CSS -->
+  <link rel="stylesheet" href="./comms.blaze.css" />
+
+  <style>
+    /* Minimal header toggle styling (won’t fight your CSS) */
+    .pc-lang-wrap{
+      display:flex;
+      gap:6px;
+      align-items:center;
+    }
+    .pc-lang-btn{
+      border:none;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:.8rem;
+      font-weight:700;
+      cursor:pointer;
+      background:rgba(15,23,42,.9);
+      color:#e5e7eb;
+      line-height:1;
+    }
+    .pc-lang-btn.active{
+      background:#ffdd48;
+      color:#111827;
+    }
+
+    /* If your comms.blaze.css already has .pc-spacer, keep it.
+       If not, this prevents the title from shifting */
+    .pc-spacer{flex:1}
+  </style>
+</head>
+
+<body>
+
+  <!-- 🔹 Page Header (NOW with Language Toggle) -->
+  <header class="pc-header">
+    <button class="pc-back" onclick="history.back()">
+      <span class="en">← Back</span>
+      <span class="es" style="display:none">← Regresar</span>
+    </button>
+
+    <h1>
+      <span class="en">Para-Comms</span>
+      <span class="es" style="display:none">Para-Comms</span>
+    </h1>
+
+    <div class="pc-lang-wrap" aria-label="Language">
+      <button class="pc-lang-btn active" type="button" data-lang="en">EN</button>
+      <button class="pc-lang-btn" type="button" data-lang="es">SP</button>
+    </div>
+  </header>
+
+  <div class="wrap">
+
+    <!-- 🔹 Instructions -->
+    <section class="pc-help panel">
+      <p>
+        <strong class="en">This page is a bilingual message builder.</strong>
+        <strong class="es" style="display:none">Esta página es un generador de mensajes bilingüe.</strong>
+      </p>
+
+      <p class="en">
+        Type in English or Spanish, translate between languages, review your draft, then copy the final message.
+      </p>
+      <p class="es" style="display:none">
+        Escriba en inglés o español, traduzca entre idiomas, revise su borrador y copie el mensaje final.
+      </p>
+
+      <ul class="en">
+        <li><strong>Subject</strong> — Short title of the announcement.</li>
+        <li><strong>Message (EN)</strong> — English version.</li>
+        <li><strong>Message (ES)</strong> — Spanish version.</li>
+        <li><strong>Translate Buttons</strong> — Convert EN ↔ ES (manual review required).</li>
+        <li><strong>Copy Buttons</strong> — Copy EN only, ES only, or both formats.</li>
+      </ul>
+
+      <ul class="es" style="display:none">
+        <li><strong>Asunto</strong> — Título corto del anuncio.</li>
+        <li><strong>Mensaje (EN)</strong> — Versión en inglés.</li>
+        <li><strong>Mensaje (ES)</strong> — Versión en español.</li>
+        <li><strong>Botones de Traducir</strong> — Convertir EN ↔ ES (requiere revisión).</li>
+        <li><strong>Botones de Copiar</strong> — Copiar solo EN, solo ES, o ambos.</li>
+      </ul>
+    </section>
+
+    <!-- 🔹 Form Panel -->
+    <main class="pc-main panel">
+
+      <label>
+        <span class="en">Subject:</span>
+        <span class="es" style="display:none">Asunto:</span>
+      </label>
+      <input id="pc-subject" type="text" placeholder="Practice time change…" />
+
+      <!-- Message boxes stay bilingual (no toggle hiding) -->
+      <label>Message (EN):</label>
+      <textarea id="pc-en" rows="6" placeholder="Type English message…"></textarea>
+      <button id="btn-en-to-es" class="btn btn-dark">Translate EN → ES</button>
+
+      <label>Message (ES):</label>
+      <textarea id="pc-es" rows="6" placeholder="Escriba mensaje en español…"></textarea>
+      <button id="btn-es-to-en" class="btn btn-dark">Translate ES → EN</button>
+
+      <!-- Copy Buttons -->
+      <div class="pc-copy-grid">
+        <button id="btn-copy-en"   class="btn btn-dark small">
+          <span class="en">Copy EN</span>
+          <span class="es" style="display:none">Copiar EN</span>
+        </button>
+
+        <button id="btn-copy-es"   class="btn btn-dark small">
+          <span class="en">Copy ES</span>
+          <span class="es" style="display:none">Copiar ES</span>
+        </button>
+
+        <button id="btn-copy-both" class="btn btn-brand small">
+          <span class="en">Copy Both</span>
+          <span class="es" style="display:none">Copiar Ambos</span>
+        </button>
+      </div>
+
+      <!-- 🔹 Post to Announcements (A → B) -->
+      <button class="btn btn-brand" id="btn-post-bulletin" style="margin-top:12px;">
+        <span class="en">Post to Announcements</span>
+        <span class="es" style="display:none">Publicar en Anuncios</span>
+      </button>
+
+    </main>
+
+  </div>
+
+  <!-- 🔹 Translation Preview Modal -->
+  <div id="preview" class="pc-modal">
+    <div class="pc-modal-box">
+      <h2>
+        <span class="en">Translation Preview</span>
+        <span class="es" style="display:none">Vista Previa de Traducción</span>
+      </h2>
+
+      <pre id="preview-text"></pre>
+      <p id="preview-confidence" class="confidence"></p>
+
+      <div class="pc-modal-actions">
+        <button id="preview-apply" class="btn btn-brand">
+          <span class="en">Apply</span>
+          <span class="es" style="display:none">Aplicar</span>
+        </button>
+
+        <button id="preview-cancel" class="btn btn-dark">
+          <span class="en">Cancel</span>
+          <span class="es" style="display:none">Cancelar</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ✅ Simple EN/SP toggle (UI text only) -->
+  <script>
+    function paintLang(lang){
+      const showEN = (lang === "en");
+      document.querySelectorAll(".en").forEach(el => el.style.display = showEN ? "" : "none");
+      document.querySelectorAll(".es").forEach(el => el.style.display = showEN ? "none" : "");
+
+      document.querySelectorAll(".pc-lang-btn").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.lang === lang);
+      });
+
+      localStorage.setItem("lang", lang);
+    }
+
+    document.addEventListener("DOMContentLoaded", ()=>{
+      const saved = localStorage.getItem("lang") || "en";
+      paintLang(saved);
+
+      document.querySelectorAll(".pc-lang-btn").forEach(btn=>{
+        btn.addEventListener("click", ()=> paintLang(btn.dataset.lang));
+      });
+    });
+  </script>
+
+  <!-- JS (your existing logic) -->
+  <script type="module" src="./comms.blaze.js"></script>
+
+</body>
+</html>

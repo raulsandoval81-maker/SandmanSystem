@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sandman – Parent Intake (EMU)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root { color-scheme: dark; }
+    body { margin:0; padding:24px; background:#0b0b0f; color:#e8e8ef; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    .card{background:#11121a; border:1px solid #242436; border-radius:14px; padding:16px; margin:14px 0;}
+    input,button{background:#0f1020; color:#e8e8ef; border:1px solid #2a2b3f; border-radius:10px; padding:10px 12px; font-size:14px;}
+    button{cursor:pointer}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .muted{color:#9aa0b4}
+    code{background:#0f1020; padding:2px 6px; border-radius:6px}
+  </style>
+</head>
+<body>
+  <h2>Parent Intake (Emulator)</h2>
+  <div class="card">
+    <div class="row"><span class="muted">Token:</span> <code id="token">—</code></div>
+    <div class="muted" id="status">Booting…</div>
+  </div>
+
+  <div class="card">
+    <h3>Waiver</h3>
+    <p class="muted">Testing only. Open & scroll this PDF before submitting.</p>
+    <a id="waiver" href="#" target="_blank">Open Waiver PDF</a>
+  </div>
+
+  <div class="card">
+    <h3>Your Athlete</h3>
+    <div class="row">
+      <input id="athleteName" placeholder="Athlete name (e.g., J. Doe)" />
+      <input id="team" placeholder="Team / Club" />
+      <input id="city" placeholder="City" />
+      <input id="state" placeholder="State" />
+    </div>
+    <div class="row" style="margin-top:10px">
+      <button id="submitBtn">Submit Intake</button>
+      <span id="submitMsg" class="muted"></span>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // 0) Token from URL (?token= or ?invite=)
+    let tokenId =
+      new URLSearchParams(location.search).get("token") ||
+      new URLSearchParams(location.search).get("invite") || "";
+
+    // 1) Firebase (emu)
+    const app = firebase.initializeApp({ apiKey:"fake", authDomain:"localhost", projectId:"demo-sandmandashboard" });
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    auth.useEmulator("http://127.0.0.1:9099/");
+    db.useEmulator("127.0.0.1", 8081);
+
+    // 2) DOM
+    const $token = document.getElementById("token");
+    const $status = document.getElementById("status");
+    const $msg = document.getElementById("submitMsg");
+    document.getElementById("waiver").href = "/tests/sample-waiver.pdf"; // put any PDF in public/tests/
+
+    // 3) Helpers
+    const postJSON = async (url, body) => {
+      const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify(body||{}) });
+      const t = await r.text(); try { return JSON.parse(t); } catch { return { ok:false, error:"non-json", raw:t }; }
+    };
+
+    // 4) Submit handler (calls dev HTTP so rules stay strict)
+    document.getElementById("submitBtn").addEventListener("click", async () => {
+      if (!tokenId) { $msg.textContent = "Missing token"; return; }
+      const athleteName = document.getElementById("athleteName").value.trim();
+      const team = document.getElementById("team").value.trim();
+      const city = document.getElementById("city").value.trim();
+      const state = document.getElementById("state").value.trim();
+
+      $msg.textContent = "Submitting…";
+      const data = await postJSON("http://127.0.0.1:5001/sandmandashboard/us-central1/submitIntakeDev", {
+        intakeId: tokenId,
+        form: { athleteName, team, city, state }
+      });
+      $msg.textContent = data.ok ? "Submitted. You can close this tab." : ("Error: " + (data.error || JSON.stringify(data)));
+    });
+
+    // 5) Boot
+    (async () => {
+      try { await auth.signInAnonymously(); } catch(e) {}
+      $token.textContent = tokenId || "(missing)";
+      if (!tokenId) $status.textContent = "Open this page from the invite link.";
+      else $status.textContent = "Ready to submit.";
+    })();
+  </script>
+</body>
+</html>

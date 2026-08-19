@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>XP Logs Table</title>
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <link rel="icon" href="/favicon.ico">
+
+</head>
+<body>
+  <div class="wrap">
+    <h1>XP Logs Table</h1>
+    <table id="xpTable">
+      <thead>
+        <tr>
+          <th>Athlete</th>
+          <th>Track</th>
+          <th>Amount</th>
+          <th>Type/Badge</th>
+          <th>Timestamp</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script type="module">
+    import { db } from "../assets/js/firebase-init.js";
+    import {
+      connectFirestoreEmulator,
+      collectionGroup,
+      orderBy,
+      limit,
+      query,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    // 🔹 connect db to emulator locally
+    connectFirestoreEmulator(db, "127.0.0.1", 8081);
+
+    function renderXPLogs(snap) {
+      const tbody = document.querySelector("#xpTable tbody");
+      tbody.innerHTML = "";
+
+      snap.forEach((docSnap) => {
+        const d = docSnap.data();
+        const row = `
+          <tr>
+            <td>${d.uid || "(unknown)"}</td>
+            <td>${d.track || "(unknown)"}</td>
+            <td>${d.amount ?? ""}</td>
+            <td>${d.type || ""}${d.badge ? " • " + d.badge : ""}</td>
+            <td>${d.createdAt?.toDate ? d.createdAt.toDate().toLocaleString() : ""}</td>
+          </tr>
+        `;
+        tbody.insertAdjacentHTML("beforeend", row);
+      });
+    }
+
+    // 🔹 live updates with onSnapshot
+    const q = query(
+      collectionGroup(db, "logs"),
+      orderBy("createdAt", "desc"),
+      limit(50)
+    );
+
+    onSnapshot(q, (snap) => {
+      renderXPLogs(snap);
+    });
+  </script>
+</body>
+</html>

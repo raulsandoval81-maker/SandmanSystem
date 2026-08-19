@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sandman | Youth XP</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+  <style>
+    .system-header{background:#0f0f0f;border-bottom:2px solid #FFD700;padding:12px 16px;position:sticky;top:0;z-index:1000}
+    .system-header__brand{display:flex;align-items:center;gap:12px}
+    .system-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .system-nav a{color:#eaeaea;text-decoration:none;font-weight:600;font-size:.95rem;padding:6px 10px;border-radius:10px}
+    .system-nav a:hover{background:#1b1b1b;color:#fff}
+
+    .dash{max-width:1100px;margin:0 auto;padding:18px 20px;display:grid;gap:18px}
+    .card{background:linear-gradient(180deg,#1b1f28,#0f1218);border-radius:16px;padding:16px 18px;box-shadow:0 12px 28px rgba(0,0,0,.35);color:#e9eef7;border:1px solid #242a36}
+    .title{color:#ffd33d;margin:0 0 .6rem;letter-spacing:.4px}
+    .card__title{color:#ffd33d;margin:.1rem 0 .8rem}
+    .muted{color:#a6b0bf}
+    .chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.65rem}
+    .chip{background:#222734;border:1px solid #2f3544;border-radius:999px;padding:.35rem .6rem;display:inline-flex;gap:.45rem;align-items:center}
+    .row{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+    .input{background:#151922;color:#e9eef7;border:1px solid #2a2f3a;border-radius:10px;padding:.55rem .65rem;outline:none}
+    .btn{background:#2a2f3a;color:#fff;border:0;border-radius:10px;padding:.5rem .75rem;cursor:pointer}
+    .btn--ghost{background:#1a1f29;border:1px solid #2a2f3a}
+    .btn:hover{filter:brightness(1.06)}
+
+    .rank-head{display:flex;align-items:center;justify-content:space-between;margin:.25rem 0 .6rem}
+    .rank-row{display:flex;gap:.5rem;align-items:center}
+    .rank-name{font-weight:700;letter-spacing:.3px}
+    .progress-pct{font-variant-numeric:tabular-nums;font-weight:700}
+
+    .progress{--belt-h:18px;position:relative;height:var(--belt-h);border-radius:999px;background:#111a20;border:1px solid #2A2A36;overflow:visible}
+    @media (min-width:720px){ .progress{--belt-h:20px}}
+    .progress-fill{position:absolute;inset:0 auto 0 0;width:0%;border-radius:999px;transition:width .45s ease;box-shadow:inset 0 0 0 1px #2A2A36}
+
+    .stripe-track{position:absolute;inset:0;border-radius:999px;pointer-events:none}
+    .stripe-track::before{content:"";position:absolute;left:8px;right:8px;top:50%;height:2px;transform:translateY(-50%);background:rgba(255,255,255,.08);border-radius:2px}
+    .ticks{position:absolute;inset:0;pointer-events:none}
+    .tick{position:absolute;top:calc(-0.35*var(--belt-h));width:2px;height:calc(var(--belt-h) + 0.7*var(--belt-h));background:rgba(255,255,255,.12);transition:background .2s,box-shadow .2s}
+    .tick.earned{background:rgba(0,0,0,.45);box-shadow:0 0 0 2px rgba(0,0,0,.05)}
+
+    .progress.is-capped{outline:2px dashed #a6b0bf33;outline-offset:2px}
+    .progress.is-ready{outline:2px solid #ffd33d66;outline-offset:2px}
+    .progress.is-final{outline:2px solid #a7f3d066;outline-offset:2px}
+  </style>
+</head>
+<body class="xp-page">
+  <header class="system-header">
+    <div class="system-header__brand">
+      <span class="brand-main" style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat System™</span>
+      <span class="brand-sub" style="color:#bbb;font-weight:600;">Youth XP</span>
+    </div>
+    <nav class="system-nav">
+      <a href="javascript:history.back()">← Back</a>
+      <a href="../athletes/index.html">Athletes Hub</a>
+      <a href="../index.html">Home</a>
+      <a href="../athletes/badge-ladder.html?kind=youth">View Full Ladder</a>
+    </nav>
+  </header>
+
+  <main class="dash">
+    <!-- Rank -->
+    <section class="card" id="rankCard">
+      <h3 class="title">Current Rank</h3>
+      <div class="rank-head">
+        <div class="rank-row">
+          <span id="curTier" class="rank-name">—</span>
+          <span class="muted">→</span>
+          <span id="nextTier" class="rank-name muted">—</span>
+          <span id="atlinBadge" class="muted" style="margin-left:.5rem"></span>
+        </div>
+        <div id="progressPct" class="progress-pct">0%</div>
+      </div>
+
+      <div id="rankBar" class="progress" role="progressbar"
+           aria-label="Rank progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"
+           data-ladder="youth" data-tier-key="" data-thresholds="" data-stripes-earned="0" data-excess-xp="0">
+        <div id="rankFill" class="progress-fill"></div>
+        <div id="stripeTrack" class="stripe-track"></div>
+        <div id="stripeTicks" class="ticks"></div>
+      </div>
+
+      <p id="tierLine" class="muted" style="margin-top:.35rem"></p>
+      <p id="stripeLine" class="muted" style="margin-top:.2rem"></p>
+
+      <div class="chips">
+        <span class="chip">Total: <strong id="totalXp">0</strong></span>
+        <span class="chip" id="status">Ready</span>
+      </div>
+    </section>
+
+    <!-- XP Tools -->
+    <section class="card">
+      <h3 class="card__title">XP Tools</h3>
+
+      <label for="xpType" class="field-label">Type</label>
+      <select id="xpType" class="input">
+        <option value="normal" selected>Normal</option>
+        <option value="character">Character (monthly cap)</option>
+        <option value="tournament_show">Tournament — Show</option>
+        <option value="tournament_win">Tournament — Win (Shark)</option>
+        <option value="recovery">Recovery (injury)</option>
+        <option value="coach_discretion">Coach Discretion</option>
+        <option value="fundraising">Fundraising</option>
+        <option value="digital_full">Digital Assignments (all complete)</option>
+      </select>
+
+      <div class="row" style="gap:12px">
+        <input id="xp" class="input" type="number" min="0" step="5" value="200" />
+        <button id="addXpBtn" class="btn">Add XP</button>
+        <button id="loadTotalBtn" class="btn btn--ghost">Load Total</button>
+
+        <input id="athleteId" class="input" placeholder="Athlete ID (e.g., A000001)" />
+        <input id="skillTag"  class="input" placeholder="tag (e.g., wrestling)" />
+        <input id="notes"     class="input" placeholder="notes (optional)" />
+      </div>
+
+      <!-- Coach-discretion amount -->
+      <div id="coachMeritWrap" style="display:none; margin-top:10px">
+        <label for="coachMeritAmount">Coach Character (0–200)</label>
+        <input id="coachMeritAmount" class="input" type="number" min="0" max="200" step="5" value="0" />
+      </div>
+    </section>
+
+    <!-- Recent XP Adds -->
+    <section class="card">
+      <h3 class="card__title">Recent XP Adds</h3>
+      <div id="recentList" class="recent-list" aria-live="polite"></div>
+      <div class="recent-actions">
+        <button id="recentClear" class="btn btn--ghost">Clear</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Entry scripts (module) -->
+  <script type="module" src="../assets/js/firebase-init.js"></script>
+  <script type="module" src="../assets/js/xp-youth.js"></script>
+
+  <!-- Small helper to show/hide coach character field + quick tester -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const sel  = document.getElementById("xpType");
+      const wrap = document.getElementById("coachMeritWrap");
+      const sync = () => { wrap.style.display = (sel.value === "coach_discretion") ? "block" : "none"; };
+      sel.addEventListener("change", sync); sync();
+    });
+
+    // Console helper: window.testYouthBar(450)
+    window.testYouthBar = (xp) => {
+      import("../assets/js/xp-youth.js").then(m => m.updateYouthBar(xp));
+    };
+  </script>
+</body>
+</html>

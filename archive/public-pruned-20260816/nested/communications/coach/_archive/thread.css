@@ -1,0 +1,206 @@
+/* ============================================================
+   Thread.css — Coach Message Thread Styling (Final)
+   Sandman Night Mode · Clean · Professional
+============================================================ */
+
+/* Root palette */
+:root {
+  --bg: #061325;
+  --panel: #0b1529;
+  --panel2: #0d1a33;
+  --border: #1e2a45;
+  --brand: #ffdd48;
+  --text: #f1f5f9;
+  --muted: #9aa4b1;
+  --coachBubble: #1e3a5f;
+  --parentBubble: #374151;
+}
+
+/* Layout */
+body {
+  background: var(--bg);
+  margin: 0;
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
+}
+
+.wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  color: var(--brand);
+  margin: 10px 0 20px;
+  font-size: 1.4rem;
+  letter-spacing: 0.02em;
+}
+
+/* Back button */
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--panel2);
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: var(--brand);
+  text-decoration: none;
+  font-weight: 600;
+  margin-bottom: 8px;
+  border: 1px solid var(--border);
+}
+
+/* Thread Box */
+#thread-container {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  min-height: 300px;
+}
+
+/* Message Blocks */
+.thread-msg {
+  margin-bottom: 22px;
+}
+
+.thread-msg .from {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--brand);
+  margin-bottom: 2px;
+}
+
+.thread-msg .timestamp {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.thread-msg .body {
+  padding: 10px 14px;
+  border-radius: 12px;
+  max-width: 520px;
+  line-height: 1.35;
+  white-space: pre-wrap;
+  border: 1px solid transparent;
+}
+
+/* COACH bubble (yellow text) */
+.thread-msg.coach .body {
+  background: var(--coachBubble);
+  color: var(--brand);
+  border-color: #2a4a72;
+}
+
+/* PARENT bubble (gray bubble) */
+.thread-msg.parent .body {
+  background: var(--parentBubble);
+  color: var(--text);
+  border-color: #4b5563;
+}
+
+/* Avatar */
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-weight: 800;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: var(--brand);
+}
+
+/* Coach avatar override */
+.avatar.coach {
+  background: var(--coachBubble);
+}
+
+/* Parent avatar override */
+.avatar.parent {
+  background: #4b5563;
+}
+
+/* Date Divider */
+.divider {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 16px 0;
+  opacity: 0.85;
+}
+
+/* Reply Panel */
+.reply-box {
+  margin-top: 24px;
+  padding: 18px;
+  background: var(--panel2);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+/* Textarea */
+.reply-box textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 10px;
+  background: #0b1428;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+/* Action Buttons */
+.actions {
+  margin-top: 12px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid var(--border);
+  font-size: 0.9rem;
+}
+
+.btn-send {
+  background: var(--brand);
+  color: #111;
+  border-color: var(--brand);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+}
+
+.btn-danger {
+  background: #7f1d1d;
+  color: #fff;
+  border-color: #7f1d1d;
+}
+
+/* Mobile */
+@media (max-width: 600px) {
+  #thread-container {
+    padding: 16px;
+  }
+  .reply-box {
+    padding: 14px;
+  }
+  .btn {
+    flex: 1 1 100%;
+    text-align: center;
+  }
+}

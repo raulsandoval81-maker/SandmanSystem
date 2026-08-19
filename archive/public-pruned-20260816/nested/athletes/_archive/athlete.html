@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Sandman | Athletes Corner</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="../assets/css/site.css" />
+
+  <style>
+    /* ===== System header — revert to earlier pill nav ===== */
+    .system-header{background:#0f0f0f;border-bottom:2px solid #FFD700;padding:12px 16px;position:sticky;top:0;z-index:1000}
+    .system-header__brand{display:flex;align-items:center;gap:12px}
+    .system-nav{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+    .system-nav a{
+      color:#eaeaea;background:#1b1f28;border:1px solid #2a2f3a;
+      text-decoration:none;font-weight:600;font-size:.95rem;
+      padding:6px 12px;border-radius:12px;box-shadow:0 4px 10px rgba(0,0,0,.25)
+    }
+    .system-nav a:hover{background:#232937;color:#fff}
+    /* optional subtle yellow hint on active/primary */
+    .system-nav a[data-accent="gold"]{box-shadow:0 0 0 1px #FFD70044}
+
+    /* ===== Page layout ===== */
+    .wrap{max-width:1100px;margin:0 auto;padding:22px 20px;display:grid;gap:22px}
+    .hero{background:linear-gradient(180deg,#1b1f28,#0f1218);border:1px solid #242a36;border-radius:18px;padding:24px 22px;box-shadow:0 12px 28px rgba(0,0,0,.35);color:#e9eef7}
+    .hero h1{margin:0 0 .35rem;color:#FFD700;letter-spacing:.6px}
+    .hero p{margin:.25rem 0 0;color:#a6b0bf;max-width:70ch}
+
+    .pillars{display:grid;grid-template-columns:1fr;gap:16px}
+    @media (min-width:780px){ .pillars{grid-template-columns:repeat(2,1fr)} }
+    .pillar{background:linear-gradient(180deg,#161a22,#0f1218);border:1px solid #242a36;border-radius:16px;padding:18px}
+
+    /* ===== RED bullet headings per your call ===== */
+    .pillar h2{margin:.1rem 0 .35rem;color:#e53935;font-size:1.25rem;letter-spacing:.3px}
+    .pillar p{margin:0;color:#c1ccda;line-height:1.55}
+
+    .callout{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:14px;background:#121825;border:1px dashed #293142;border-radius:16px;padding:16px 18px}
+    .callout p{margin:0;color:#a6b0bf}
+
+    /* RED CTA so it pops */
+    .btn-red{
+      background:#e53935;color:#fff;font-weight:800;letter-spacing:.2px;border:0;border-radius:12px;
+      padding:.65rem 1rem;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;
+      box-shadow:0 6px 16px rgba(0,0,0,.35);transition:background .2s ease-in-out
+    }
+    .btn-red:hover{background:#c62828}
+  </style>
+</head>
+
+<body>
+  <!-- Header / Nav -->
+  <header class="system-header">
+    <div class="system-header__brand">
+      <span class="brand-main" style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat System™</span>
+      <span class="brand-sub" style="color:#bbb;font-weight:600;">Athletes Corner</span>
+    </div>
+    <nav class="system-nav">
+      <a href="javascript:history.back()">← Back</a>
+      <a href="../index.html">Home</a>
+      <a href="./index.html">Enter Athlete Tools</a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <!-- Hero -->
+    <section class="hero">
+      <h1>Athletes Corner</h1>
+      <p>Start here. This is your compass: what we stand for, how we compete, and the bigger game we’re training for.</p>
+    </section>
+
+    <!-- Pillars -->
+    <section class="pillars" aria-label="Core pillars">
+      <article class="pillar">
+        <h2>Creed</h2>
+        <p>Fight hard, fight fair. Honor your sport.</p>
+      </article>
+
+      <article class="pillar">
+        <h2>Code</h2>
+        <p>Win, lose, or draw — carry strength and honor.</p>
+      </article>
+
+      <article class="pillar">
+        <h2>Goal</h2>
+        <p>Be a winner in life, not just in sports. Passion over hype.</p>
+      </article>
+
+      <article class="pillar">
+        <h2>Mission</h2>
+        <p>Take what you learn here and use it to play the bigger game — the game of life.</p>
+      </article>
+    </section>
+
+    <!-- CTA -->
+    <section class="callout">
+      <p>Ready to track your work, stripes, and rank progress?</p>
+      <a class="btn-red" href="./index.html" aria-label="Enter Athlete Tools">Enter Athlete Tools →</a>
+    </section>
+  </main>
+</body>
+<script src="../js/shared/service.js"></script>
+<script src="../js/shared/events-service.js"></script>
+<script src="../js/shared/comms-service.js"></script>
+
+<script src="../js/athlete/athlete-core.js"></script>
+<script src="../js/athlete/athlete-weight.js"></script>
+<script src="../js/athlete/athlete-mindset.js"></script>
+<script src="../js/athlete/athlete-matchday.js"></script>
+<script src="../js/athlete/athlete-strength.js"></script>
+<script src="../js/athlete/athlete-nutrition.js"></script>
+<script src="../js/athlete/athlete-sidekick.js"></script>
+<script>
+  window.SESSION = {
+    role: 'athlete',
+    id:   'demo08A',
+    linkedAthletes: ['demo08A']
+  };
+</script>
+<script>
+  async function loadAthleteThreads() {
+    const me = SESSION.id;
+    const ul = document.getElementById('ath-feed') || (() => {
+      const card = document.createElement('div');
+      card.className='card';
+      card.innerHTML = `<h3>My Threads</h3><ul id="ath-feed" class="feed"></ul>`;
+      document.querySelector('#athlete-acc')?.prepend(card);
+      return document.getElementById('ath-feed');
+    })();
+
+    const threads = await DB.query('messages_threads', t => t.participants?.includes(me));
+    ul.innerHTML = threads
+      .sort((a,b)=>b.lastMessageAt-a.lastMessageAt)
+      .map(t => `<li>
+        <div><strong>${t.topic}</strong> — ${t.status}</div>
+        <div class="small mono">${new Date(t.lastMessageAt).toLocaleString()}</div>
+        <div class="row" style="margin-top:6px">
+          <input placeholder="Reply…" onkeydown="if(event.key==='Enter')athReply('${t.id}', this)">
+          <button class="outline-blue" onclick="athReply('${t.id}', this.previousElementSibling)">Send</button>
+        </div>
+      </li>`).join('') || '<li class="muted">No threads yet.</li>';
+  }
+
+  async function athReply(threadId, el){
+    const text=(el.value||'').trim(); if(!text) return;
+    await postMessage({ threadId, text, by: SESSION.id });
+    el.value=''; loadAthleteThreads();
+  }
+
+  document.addEventListener('DOMContentLoaded', loadAthleteThreads);
+</script>
+
+</html>
