@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Schedule | Sandman Academy — Santa Ynez Valley</title>
+
+  <meta
+    name="description"
+    content="View the current training schedule for Sandman Academy in the Santa Ynez Valley."
+  >
+
+  <link rel="stylesheet" href="/assets/css/site.css">
+
+  <style>
+    .local-page{
+      width:min(1000px,calc(100% - 32px));
+      margin:0 auto;
+      padding:clamp(3rem,8vw,6rem) 0;
+    }
+
+    .local-page__header{
+      max-width:760px;
+      margin:0 auto 2.75rem;
+      text-align:center;
+    }
+
+    .eyebrow{
+      margin:0 0 .75rem;
+      color:var(--heading-accent,#d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .local-page h1{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .intro{
+      max-width:650px;
+      margin:1rem auto 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.7;
+    }
+
+    .schedule-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+    }
+
+    .schedule-card{
+      padding:1.75rem;
+      border:1px solid var(--line,rgba(255,255,255,.12));
+      border-radius:20px;
+      background:var(--panel,#111113);
+    }
+
+    .schedule-card h2{
+      margin:0 0 .5rem;
+      color:var(--heading,#fff);
+    }
+
+    .schedule-card p{
+      margin:.45rem 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.6;
+    }
+
+    .schedule-card strong{
+      color:var(--heading-accent,#d4af37);
+    }
+
+    .schedule-note{
+      max-width:700px;
+      margin:2rem auto 0;
+      text-align:center;
+      color:var(--muted,#d0d0d4);
+      line-height:1.6;
+    }
+
+    .cta{
+      margin-top:2.5rem;
+      text-align:center;
+    }
+
+    .button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      padding:12px 22px;
+      border:1px solid #e7c968;
+      border-radius:999px;
+      background:#d4af37;
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    body.day-mode .schedule-card{
+      background:#fff;
+      border-color:#d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.07);
+    }
+
+    @media(max-width:720px){
+      .schedule-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div
+    id="navigation"
+    data-component="/locations/santa-ynez-valley/components/navigation.html"
+  ></div>
+
+  <main class="local-page">
+
+    <section class="local-page__header">
+      <p class="eyebrow">Santa Ynez Valley</p>
+
+      <h1>Training Schedule</h1>
+
+      <p class="intro">
+        Current training times for Sandman Academy programs
+        in the Santa Ynez Valley.
+      </p>
+    </section>
+
+    <section class="schedule-grid">
+
+      <article class="schedule-card">
+        <h2>Zero2Hero™</h2>
+        <p><strong>Ages 7–13</strong></p>
+        <p>Wrestling</p>
+        <p>Muay Thai</p>
+        <p>Schedule coming soon.</p>
+      </article>
+
+      <article class="schedule-card">
+        <h2>Path2Legend™</h2>
+        <p><strong>Ages 14+</strong></p>
+        <p>Wrestling</p>
+        <p>Boxing</p>
+        <p>Schedule coming soon.</p>
+      </article>
+
+    </section>
+
+    <p class="schedule-note">
+      Training schedules may change by season and program.
+      Admissions are handled by appointment.
+    </p>
+
+    <div class="cta">
+      <a
+        class="button"
+        href="/locations/santa-ynez-valley/connect.html"
+      >
+        Connect / Join
+      </a>
+    </div>
+
+  </main>
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>

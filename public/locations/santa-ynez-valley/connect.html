@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    Connect | Sandman Academy — Santa Ynez Valley
+  </title>
+
+  <meta
+    name="description"
+    content="Begin the coach-guided admissions process at Sandman Academy in the Santa Ynez Valley."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+
+  <style>
+    :root{
+      --bg:#050505;
+      --panel:#111;
+      --text:#f5f5f5;
+      --muted:#c8c8cc;
+      --gold:#d4af37;
+      --line:rgba(255,255,255,.11);
+    }
+
+    *{
+      box-sizing:border-box;
+    }
+
+    body.connect-local{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    .hidden-lang{
+      display:none!important;
+    }
+
+    .connect-main{
+      overflow:hidden;
+    }
+
+    .connect-wrap{
+      width:min(1080px,calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    /* =====================================
+       HERO
+    ====================================== */
+
+    .connect-local-hero{
+      padding:
+        clamp(4rem,9vw,7rem)
+        1.25rem;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.13),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #101010,
+          #050505
+        );
+
+      text-align:center;
+    }
+
+    .connect-local-hero__inner{
+      width:min(850px,100%);
+      margin:0 auto;
+    }
+
+    .connect-eyebrow{
+      margin:0 0 .8rem;
+      color:var(--gold);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .connect-local-hero h1{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2.8rem,8vw,5.8rem);
+      line-height:.94;
+      letter-spacing:-.045em;
+      text-transform:uppercase;
+    }
+
+    .connect-local-hero__lead{
+      max-width:700px;
+      margin:1.25rem auto 0;
+      color:var(--muted);
+      font-size:clamp(1rem,2vw,1.18rem);
+      line-height:1.75;
+    }
+
+    /* =====================================
+       ADMISSIONS FLOW
+    ====================================== */
+
+    .admissions-flow{
+      padding:
+        clamp(4rem,8vw,7rem)
+        1.25rem;
+
+      background:#070707;
+    }
+
+    .flow-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+      margin-top:2.4rem;
+    }
+
+    .flow-card{
+      padding:1.5rem;
+      border:1px solid var(--line);
+      border-radius:20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.045),
+          rgba(255,255,255,.015)
+        );
+    }
+
+    .flow-number{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      width:42px;
+      height:42px;
+
+      margin-bottom:1rem;
+
+      border:1px solid var(--gold);
+      border-radius:50%;
+
+      color:var(--gold);
+      font-weight:900;
+    }
+
+    .flow-card h3{
+      margin:0 0 .6rem;
+      color:#fff;
+      text-transform:uppercase;
+    }
+
+    .flow-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    /* =====================================
+       START CTA
+    ====================================== */
+
+    .start-panel{
+      margin-top:2rem;
+      padding:
+        clamp(1.75rem,4vw,2.7rem);
+
+      border:1px solid rgba(212,175,55,.40);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(212,175,55,.12),
+          transparent 60%
+        ),
+        #0d0d0d;
+
+      text-align:center;
+    }
+
+    .start-panel h2{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2rem,5vw,3.5rem);
+      text-transform:uppercase;
+    }
+
+    .start-panel p{
+      max-width:620px;
+      margin:1rem auto 0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .start-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:54px;
+
+      margin-top:1.5rem;
+      padding:.9rem 1.8rem;
+
+      border:1px solid var(--gold);
+      border-radius:999px;
+
+      background:var(--gold);
+      color:#080808;
+
+      font-weight:900;
+      text-decoration:none;
+      text-transform:uppercase;
+    }
+
+    /* =====================================
+       FAQ
+    ====================================== */
+
+    .faq-section{
+      padding:
+        clamp(4rem,8vw,7rem)
+        1.25rem;
+
+      background:
+        linear-gradient(
+          180deg,
+          #0b0b0b,
+          #050505
+        );
+    }
+
+    .section-heading{
+      max-width:760px;
+      margin:0 auto;
+      text-align:center;
+    }
+
+    .section-heading h2{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2.3rem,6vw,4.4rem);
+      text-transform:uppercase;
+    }
+
+    .section-heading p{
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    .faq-grid{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:1rem;
+      margin-top:2.5rem;
+    }
+
+    .faq-card{
+      padding:1.5rem;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:rgba(255,255,255,.025);
+    }
+
+    .faq-card h3{
+      margin:0 0 .65rem;
+      color:#fff;
+    }
+
+    .faq-card p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.7;
+    }
+
+    /* =====================================
+       FOUNDING ENROLLMENT
+    ====================================== */
+
+    .founding-section{
+      padding:
+        clamp(4rem,8vw,7rem)
+        1.25rem;
+
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(212,175,55,.12),
+          transparent 48%
+        ),
+        #050505;
+
+      text-align:center;
+    }
+
+    .founding-panel{
+      width:min(760px,100%);
+      margin:0 auto;
+    }
+
+    .founding-panel h2{
+      margin:0;
+      color:#fff;
+      font-size:clamp(2.3rem,6vw,4rem);
+      text-transform:uppercase;
+    }
+
+    .founding-panel p{
+      margin:1rem auto 0;
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    /* =====================================
+       MESSAGE
+    ====================================== */
+
+    .message-section{
+      padding:
+        0 1.25rem
+        clamp(5rem,9vw,8rem);
+
+      background:#050505;
+      text-align:center;
+    }
+
+    .message-link{
+      color:var(--gold);
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    /* =====================================
+       DAY MODE
+    ====================================== */
+
+    body.connect-local.day-mode{
+      --bg:#f4efe4;
+      --text:#171717;
+      --muted:#55585f;
+      --line:rgba(0,0,0,.13);
+
+      background:#f4efe4;
+      color:#171717;
+    }
+
+    body.day-mode .connect-local-hero{
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.13),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #fffdf8,
+          #efe7da
+        );
+    }
+
+    body.day-mode .connect-local-hero h1,
+    body.day-mode .flow-card h3,
+    body.day-mode .start-panel h2,
+    body.day-mode .section-heading h2,
+    body.day-mode .faq-card h3,
+    body.day-mode .founding-panel h2{
+      color:#171717;
+    }
+
+    body.day-mode .admissions-flow,
+    body.day-mode .faq-section,
+    body.day-mode .founding-section,
+    body.day-mode .message-section{
+      background:#f4efe4;
+    }
+
+    body.day-mode .flow-card,
+    body.day-mode .faq-card{
+      background:#fff;
+      border-color:rgba(0,0,0,.13);
+      box-shadow:0 10px 24px rgba(0,0,0,.06);
+    }
+
+    body.day-mode .start-panel{
+      background:#fff;
+      border-color:rgba(181,145,48,.40);
+    }
+
+    @media(min-width:760px){
+      .flow-grid{
+        grid-template-columns:repeat(4,minmax(0,1fr));
+      }
+
+      .faq-grid{
+        grid-template-columns:repeat(3,minmax(0,1fr));
+      }
+    }
+  </style>
+</head>
+
+<body class="connect-local">
+
+  <!-- LOCAL NAVIGATION -->
+
+  <div
+    id="navigation"
+    data-component="/locations/santa-ynez-valley/components/navigation.html"
+  ></div>
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
+
+  <main class="connect-main">
+
+    <!-- HERO -->
+
+    <section class="connect-local-hero">
+
+      <div class="connect-local-hero__inner">
+
+        <div data-lang-block="en">
+
+          <p class="connect-eyebrow">
+            Santa Ynez Valley
+          </p>
+
+          <h1>
+            Ready to Begin?
+          </h1>
+
+          <p class="connect-local-hero__lead">
+            Our coach-guided admissions process helps every athlete
+            find the right starting point before enrollment.
+          </p>
+
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
+          <p class="connect-eyebrow">
+            Valle de Santa Ynez
+          </p>
+
+          <h1>
+            ¿Listo Para Comenzar?
+          </h1>
+
+          <p class="connect-local-hero__lead">
+            Nuestro proceso de admisión guiado por entrenadores ayuda
+            a cada atleta a encontrar el punto de partida adecuado.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ADMISSIONS FLOW -->
+
+    <section class="admissions-flow">
+
+      <div class="connect-wrap">
+
+        <div class="section-heading">
+
+          <div data-lang-block="en">
+            <p class="connect-eyebrow">
+              Coach-Guided Enrollment
+            </p>
+
+            <h2>
+              How to Get Started
+            </h2>
+          </div>
+
+          <div
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            <p class="connect-eyebrow">
+              Inscripción Guiada
+            </p>
+
+            <h2>
+              Cómo Comenzar
+            </h2>
+          </div>
+
+        </div>
+
+
+        <div class="flow-grid">
+
+          <article class="flow-card">
+            <div class="flow-number">1</div>
+
+            <div data-lang-block="en">
+              <h3>Interest</h3>
+              <p>Tell us about the athlete and what they are looking for.</p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Interés</h3>
+              <p>Cuéntanos sobre el atleta y lo que está buscando.</p>
+            </div>
+          </article>
+
+
+          <article class="flow-card">
+            <div class="flow-number">2</div>
+
+            <div data-lang-block="en">
+              <h3>Connect</h3>
+              <p>We review the information and reach out to you.</p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Conectar</h3>
+              <p>Revisamos la información y nos comunicamos contigo.</p>
+            </div>
+          </article>
+
+
+          <article class="flow-card">
+            <div class="flow-number">3</div>
+
+            <div data-lang-block="en">
+              <h3>Admissions</h3>
+              <p>Meet with the coach and determine the right starting point.</p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Admisión</h3>
+              <p>Reúnete con el entrenador y encuentra el mejor punto de inicio.</p>
+            </div>
+          </article>
+
+
+          <article class="flow-card">
+            <div class="flow-number">4</div>
+
+            <div data-lang-block="en">
+              <h3>Begin</h3>
+              <p>Enter the appropriate Sandman program and begin training.</p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>Comenzar</h3>
+              <p>Ingresa al programa Sandman apropiado y comienza a entrenar.</p>
+            </div>
+          </article>
+
+        </div>
+
+
+        <div class="start-panel">
+
+          <div data-lang-block="en">
+            <h2>Start My Journey</h2>
+
+            <p>
+              Complete the Interest Form and we'll guide you
+              through the rest.
+            </p>
+
+            <a
+              class="start-button"
+              href="/connect/interest/"
+            >
+              Complete Interest Form
+            </a>
+          </div>
+
+
+          <div data-lang-block="es" class="hidden-lang">
+            <h2>Comienza Tu Trayectoria</h2>
+
+            <p>
+              Completa el Formulario de Interés y te guiaremos
+              durante el resto del proceso.
+            </p>
+
+            <a
+              class="start-button"
+              href="/connect/interest/"
+            >
+              Completar Formulario
+            </a>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- FAQ -->
+
+    <section class="faq-section">
+
+      <div class="connect-wrap">
+
+        <div class="section-heading">
+
+          <div data-lang-block="en">
+            <p class="connect-eyebrow">
+              Before You Begin
+            </p>
+
+            <h2>
+              Common Questions
+            </h2>
+          </div>
+
+          <div
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            <p class="connect-eyebrow">
+              Antes de Comenzar
+            </p>
+
+            <h2>
+              Preguntas Frecuentes
+            </h2>
+          </div>
+
+        </div>
+
+
+        <div class="faq-grid">
+
+          <article class="faq-card">
+
+            <div data-lang-block="en">
+              <h3>Does my athlete need experience?</h3>
+              <p>
+                No. Many athletes begin with little or no combat-sports
+                experience. Placement is based on age, readiness, goals,
+                availability, and the recommended starting point.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>¿Mi atleta necesita experiencia?</h3>
+              <p>
+                No. Muchos atletas comienzan con poca o ninguna experiencia.
+                La colocación depende de edad, preparación, metas y disponibilidad.
+              </p>
+            </div>
+
+          </article>
+
+
+          <article class="faq-card">
+
+            <div data-lang-block="en">
+              <h3>Can parents observe practice?</h3>
+              <p>
+                Practices are closed sessions. Current observation policies
+                are explained during the admissions process.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>¿Pueden los padres observar la práctica?</h3>
+              <p>
+                Las prácticas son sesiones cerradas. Las políticas actuales
+                se explican durante el proceso de admisión.
+              </p>
+            </div>
+
+          </article>
+
+
+          <article class="faq-card">
+
+            <div data-lang-block="en">
+              <h3>What are the membership fees?</h3>
+              <p>
+                Current programs, enrollment costs, and billing options
+                are explained during admissions.
+              </p>
+            </div>
+
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>¿Cuáles son las cuotas?</h3>
+              <p>
+                Los programas actuales, costos de inscripción y opciones
+                de pago se explican durante admisiones.
+              </p>
+            </div>
+
+          </article>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- FOUNDING ENROLLMENT -->
+
+    <section class="founding-section">
+
+      <div class="founding-panel">
+
+        <div data-lang-block="en">
+
+          <p class="connect-eyebrow">
+            Founding Enrollment
+          </p>
+
+          <h2>
+            Be Among the First 100
+          </h2>
+
+          <p>
+            Join the Santa Ynez Valley academy during its founding
+            enrollment period and help build the academy from the beginning.
+          </p>
+
+          <a
+            class="start-button"
+            href="/connect/interest/"
+          >
+            Start Your Journey
+          </a>
+
+        </div>
+
+
+        <div data-lang-block="es" class="hidden-lang">
+
+          <p class="connect-eyebrow">
+            Inscripción Fundadora
+          </p>
+
+          <h2>
+            Sé Uno de los Primeros 100
+          </h2>
+
+          <p>
+            Únete a la academia del Valle de Santa Ynez durante su
+            período inicial de inscripción.
+          </p>
+
+          <a
+            class="start-button"
+            href="/connect/interest/"
+          >
+            Comienza Tu Trayectoria
+          </a>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- MESSAGE -->
+
+    <section class="message-section">
+
+      <div class="connect-wrap">
+
+        <div data-lang-block="en">
+          <p>
+            Have a question before getting started?
+            <a
+              class="message-link"
+              href="/connect/message.html"
+            >
+              Message Us
+            </a>
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p>
+            ¿Tienes una pregunta antes de comenzar?
+            <a
+              class="message-link"
+              href="/connect/message.html"
+            >
+              Envíanos un Mensaje
+            </a>
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
+</body>
+</html>

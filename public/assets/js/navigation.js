@@ -1,9 +1,20 @@
 (() => {
   function initializeNavigation() {
     const navToggle = document.querySelector(".nav-toggle");
-    const siteNav = document.querySelector("#primary-navigation");
 
-    if (!navToggle || !siteNav) {
+    if (!navToggle) {
+      return;
+    }
+
+    const controlledNavId =
+      navToggle.getAttribute("aria-controls");
+
+    const siteNav =
+      controlledNavId
+        ? document.getElementById(controlledNavId)
+        : document.querySelector("#primary-navigation");
+
+    if (!siteNav) {
       return;
     }
 

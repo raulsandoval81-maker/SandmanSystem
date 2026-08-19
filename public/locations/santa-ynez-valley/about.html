@@ -398,6 +398,137 @@
         padding-left: 1rem;
       }
     }
+
+    /* =========================
+       DAY MODE — ABOUT PAGE
+    ========================= */
+
+    body.about-page.day-mode{
+      background:#f4efe4;
+      color:#171717;
+    }
+
+    body.day-mode .about-image-section{
+      background:#f4efe4;
+    }
+
+    body.day-mode .about-content-section{
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.09),
+          transparent 38%
+        ),
+        linear-gradient(
+          180deg,
+          #fbf7ef 0%,
+          #efe6d8 100%
+        );
+    }
+
+    body.day-mode .about-section-heading h2,
+    body.day-mode .character-panel h2,
+    body.day-mode .about-card h3,
+    body.day-mode .coach-wrap h2,
+    body.day-mode .coach-wrap .coach-statement,
+    body.day-mode .about-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .about-section-heading .lead,
+    body.day-mode .character-panel p,
+    body.day-mode .about-card p,
+    body.day-mode .coach-wrap p,
+    body.day-mode .about-cta p{
+      color:#55585f;
+    }
+
+    body.day-mode .character-panel{
+      border-color:rgba(181,145,48,.38);
+
+      background:
+        radial-gradient(
+          circle at top center,
+          rgba(212,175,55,.13),
+          transparent 45%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3ebdf 100%
+        );
+
+      box-shadow:
+        0 18px 40px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .character-panel::before{
+      background:
+        linear-gradient(
+          135deg,
+          transparent 0%,
+          rgba(0,0,0,.025) 45%,
+          transparent 75%
+        );
+    }
+
+    body.day-mode .character-panel .character-closing{
+      color:#171717;
+    }
+
+    body.day-mode .about-card{
+      border-color:rgba(0,0,0,.13);
+
+      background:
+        linear-gradient(
+          180deg,
+          #ffffff,
+          #f7f1e5
+        );
+
+      box-shadow:
+        0 10px 24px rgba(0,0,0,.07);
+    }
+
+    body.day-mode .coach-section{
+      background:
+        linear-gradient(
+          180deg,
+          #efe7da 0%,
+          #faf6ee 50%,
+          #efe7da 100%
+        );
+    }
+
+    body.day-mode .about-cta{
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(212,175,55,.14),
+          transparent 48%
+        ),
+        #f3ecdf;
+    }
+
+    body.day-mode .about-cta-button{
+      border-color:#b99125;
+      background:#d4af37;
+      color:#111;
+    }
+
+    body.day-mode .about-cta-button:hover,
+    body.day-mode .about-cta-button:focus-visible{
+      background:transparent;
+      color:#7c5d10;
+    }
+
+
+    /* DAY MODE — CTA HEADING CONTRAST */
+    body.about-page.day-mode .about-cta .about-cta-inner h2{
+      color:#171717 !important;
+      text-shadow:none !important;
+    }
+
   </style>
 </head>
 
@@ -409,7 +540,7 @@
 
 <div
   id="navigation"
-  data-component="/components/navigation.html"
+  data-component="/locations/santa-ynez-valley/components/navigation.html"
 ></div>
 
 <div class="site-hero-divider" aria-hidden="true"></div>
@@ -566,7 +697,7 @@
       <div class="about-cta-actions">
         <a
           class="about-cta-button"
-          href="/locations/santa-ynez-valley/journeys.html"
+          href="/locations/santa-ynez-valley/programs.html"
         >
           Explore the Journeys
         </a>
@@ -581,7 +712,7 @@
       <div class="about-cta-actions">
         <a
           class="about-cta-button"
-          href="/locations/santa-ynez-valley/journeys.html"
+          href="/locations/santa-ynez-valley/programs.html"
         >
           Explora las Trayectorias
         </a>

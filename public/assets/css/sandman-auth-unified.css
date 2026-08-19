@@ -1,0 +1,435 @@
+/* =========================================================
+   SANDMAN UNIFIED AUTH UI
+   Shared presentation for:
+   Parent • Athlete • Coach • Management
+   ========================================================= */
+
+:root{
+  --auth-bg:#f6f3ea;
+  --auth-card:#fffdf8;
+  --auth-text:#111827;
+  --auth-muted:#5f6672;
+  --auth-gold:#d4af37;
+  --auth-gold-dark:#b38a16;
+  --auth-soft:#f8f2e4;
+  --auth-border:#d8ccb0;
+}
+
+/* PAGE */
+
+body{
+  margin:0 !important;
+  min-height:100vh !important;
+  box-sizing:border-box !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  padding:24px 16px !important;
+
+  background:var(--auth-bg) !important;
+  color:var(--auth-text) !important;
+
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Arial,
+    sans-serif !important;
+}
+
+/* CARD */
+
+main.card,
+.card{
+  width:min(100%,520px) !important;
+  box-sizing:border-box !important;
+
+  margin:0 auto !important;
+  padding:24px 20px 22px !important;
+
+  border:1px solid #e7dcc0 !important;
+  border-radius:24px !important;
+
+  background:var(--auth-card) !important;
+
+  box-shadow:
+    0 18px 44px rgba(0,0,0,.12) !important;
+}
+
+/* TYPOGRAPHY */
+
+.kicker{
+  margin:0 0 10px !important;
+
+  color:var(--auth-gold-dark) !important;
+
+  font-size:.82rem !important;
+  font-weight:900 !important;
+
+  letter-spacing:.14em !important;
+  text-transform:uppercase !important;
+}
+
+.card h1{
+  margin:0 0 10px !important;
+
+  color:var(--auth-text) !important;
+
+  font-size:2rem !important;
+  line-height:1.05 !important;
+}
+
+.sub{
+  margin:0 0 18px !important;
+
+  color:#4b5563 !important;
+
+  line-height:1.55 !important;
+}
+
+/* TABS */
+
+.tabs{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+
+  gap:10px !important;
+
+  margin:0 0 18px !important;
+}
+
+.tab-btn{
+  width:100% !important;
+  min-height:48px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  box-sizing:border-box !important;
+
+  padding:12px 16px !important;
+
+  border:1px solid var(--auth-border) !important;
+  border-radius:14px !important;
+
+  background:var(--auth-soft) !important;
+  color:#3b2f14 !important;
+
+  font-size:.95rem !important;
+  font-weight:900 !important;
+
+  cursor:pointer !important;
+}
+
+.tab-btn.is-active{
+  border-color:#c29a26 !important;
+  background:var(--auth-gold) !important;
+  color:var(--auth-text) !important;
+}
+
+/* FIELDS */
+
+.field{
+  margin:0 0 14px !important;
+}
+
+.card label:not(.remember-row){
+  display:block !important;
+
+  margin:0 0 6px !important;
+
+  color:#374151 !important;
+
+  font-size:.86rem !important;
+  font-weight:800 !important;
+}
+
+.card input:not([type="checkbox"]){
+  width:100% !important;
+  min-height:48px !important;
+
+  box-sizing:border-box !important;
+
+  padding:12px 14px !important;
+
+  border:1px solid var(--auth-border) !important;
+  border-radius:14px !important;
+
+  background:#fff !important;
+  color:var(--auth-text) !important;
+
+  font-size:1rem !important;
+  outline:none !important;
+}
+
+.card input:not([type="checkbox"]):focus{
+  border-color:var(--auth-gold-dark) !important;
+
+  box-shadow:
+    0 0 0 3px rgba(179,138,22,.14) !important;
+}
+
+/* ACTION ROWS */
+
+.actions{
+  display:grid !important;
+  grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+
+  gap:10px !important;
+
+  align-items:stretch !important;
+
+  margin-top:8px !important;
+}
+
+/* ALL AUTH ACTIONS */
+
+.actions button,
+.btn-primary,
+.btn-secondary,
+.button-link,
+.first-time-access__link{
+  width:100% !important;
+  min-width:0 !important;
+  min-height:48px !important;
+
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+
+  box-sizing:border-box !important;
+
+  margin:0 !important;
+  padding:12px 16px !important;
+
+  border-radius:14px !important;
+
+  font-size:.95rem !important;
+  font-weight:900 !important;
+  line-height:1.2 !important;
+
+  text-align:center !important;
+  text-decoration:none !important;
+
+  cursor:pointer !important;
+}
+
+/* PRIMARY */
+
+.btn-primary{
+  border:1px solid #c29a26 !important;
+  background:var(--auth-gold) !important;
+  color:var(--auth-text) !important;
+}
+
+/* SECONDARY */
+
+.btn-secondary,
+.button-link.btn-secondary,
+.first-time-access__link{
+  border:1px solid var(--auth-border) !important;
+  background:var(--auth-soft) !important;
+  color:#3b2f14 !important;
+}
+
+/* FIRST-TIME ACCESS */
+
+.first-time-access{
+  width:100% !important;
+
+  display:flex !important;
+  flex-direction:column !important;
+
+  gap:5px !important;
+
+  margin:0 !important;
+  padding:0 !important;
+}
+
+.first-time-access__label{
+  display:none !important;
+}
+
+/* REMEMBER DEVICE */
+
+.remember-row{
+  display:flex !important;
+  align-items:flex-start !important;
+
+  gap:10px !important;
+
+  margin:4px 0 16px !important;
+
+  color:#374151 !important;
+
+  cursor:pointer !important;
+}
+
+.remember-row input{
+  width:18px !important;
+  height:18px !important;
+  min-height:18px !important;
+
+  flex:0 0 18px !important;
+
+  margin:2px 0 0 !important;
+  padding:0 !important;
+
+  accent-color:var(--auth-gold) !important;
+
+  box-shadow:none !important;
+}
+
+.remember-row strong{
+  display:block !important;
+
+  color:var(--auth-text) !important;
+
+  font-size:.9rem !important;
+  font-weight:900 !important;
+}
+
+.remember-row small{
+  display:block !important;
+
+  margin-top:3px !important;
+
+  color:#6b7280 !important;
+
+  font-size:.78rem !important;
+  font-weight:500 !important;
+
+  line-height:1.4 !important;
+}
+
+/* STATUS / FINE PRINT */
+
+.status{
+  min-height:22px !important;
+
+  margin:14px 0 0 !important;
+
+  font-size:.92rem !important;
+  font-weight:700 !important;
+}
+
+.status.error{
+  color:#b42318 !important;
+}
+
+.status.ok,
+.status.success{
+  color:#067647 !important;
+}
+
+.fine{
+  margin-top:14px !important;
+
+  color:#6b7280 !important;
+
+  font-size:.82rem !important;
+  line-height:1.45 !important;
+}
+
+/* INTERACTION */
+
+.tab-btn:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.button-link:hover,
+.first-time-access__link:hover,
+.tab-btn:focus-visible,
+.btn-primary:focus-visible,
+.btn-secondary:focus-visible,
+.button-link:focus-visible,
+.first-time-access__link:focus-visible{
+  transform:translateY(-1px);
+}
+
+/* MOBILE */
+
+@media(max-width:520px){
+
+  body{
+    padding:16px 12px !important;
+  }
+
+  main.card,
+  .card{
+    padding:22px 16px 20px !important;
+    border-radius:20px !important;
+  }
+
+  .actions{
+    grid-template-columns:1fr !important;
+  }
+}
+
+
+/* =========================================================
+   CANONICAL AUTH FLOW
+   Parent is the reference architecture.
+   ========================================================= */
+
+.auth-quick-actions{
+  margin:0 0 18px !important;
+}
+
+.auth-generated-panel{
+  display:none;
+}
+
+.auth-generated-panel.is-active,
+.auth-activation-panel.is-active{
+  display:block;
+}
+
+.auth-activation-panel{
+  display:none;
+  margin-top:0;
+}
+
+.auth-generated-form{
+  display:block;
+}
+
+.auth-generated-form > label{
+  display:block !important;
+  margin:0 0 6px !important;
+  color:#374151 !important;
+  font-size:.86rem !important;
+  font-weight:800 !important;
+}
+
+.auth-generated-form > input{
+  margin-bottom:14px !important;
+}
+
+.auth-back-link{
+  text-decoration:none !important;
+}
+
+.link-btn{
+  width:100% !important;
+  min-height:48px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  margin:0 !important;
+  padding:12px 16px !important;
+  border:1px solid var(--auth-border) !important;
+  border-radius:14px !important;
+  background:var(--auth-soft) !important;
+  color:#3b2f14 !important;
+  font-size:.95rem !important;
+  font-weight:900 !important;
+}
+
+.auth-activation-shortcut{
+  width:100% !important;
+}

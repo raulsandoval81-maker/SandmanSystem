@@ -406,6 +406,54 @@
         min-height: calc(100vh - 76px);
       }
     }
+
+    /* =====================================
+       ROLE CARD SIZE NORMALIZATION
+       ===================================== */
+
+    .role-grid{
+      align-items:stretch;
+    }
+
+    .role-card{
+      width:100%;
+      min-height:220px;
+
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+
+      padding:1.5rem;
+
+      border-radius:20px;
+    }
+
+    .role-card .role-label{
+      min-height:28px;
+      display:inline-flex;
+      align-items:center;
+    }
+
+    .role-card h2{
+      min-height:2.6rem;
+      display:flex;
+      align-items:center;
+    }
+
+    .role-card p{
+      margin-bottom:0;
+    }
+
+    @media(max-width:720px){
+      .role-card{
+        min-height:0;
+      }
+
+      .role-card h2{
+        min-height:0;
+      }
+    }
+
   </style>
 </head>
 
