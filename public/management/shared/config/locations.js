@@ -1,7 +1,7 @@
 export const MANAGEMENT_LOCATIONS = {
-  solvang: {
-    id: "solvang",
-    name: "Solvang"
+  "santa-ynez-valley": {
+    id: "santa-ynez-valley",
+    name: "Santa Ynez Valley"
   },
 
   lompoc: {

@@ -3,11 +3,18 @@ import {
   auth,
   collection,
   getDocs,
+  query,
+  where,
   doc,
   updateDoc,
   deleteDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+
+import {
+  requireManagement,
+  managementLoginUrl
+} from "/management/shared/guards/management-guard.js";
 
 const leadList = document.getElementById("leadList");
 const pageStatus = document.getElementById("pageStatus");
@@ -23,6 +30,7 @@ const countContacted = document.getElementById("countContacted");
 const countAppointments = document.getElementById("countAppointments");
 
 let leads = [];
+let managementContext = null;
 
 function esc(value = "") {
   return String(value)
@@ -373,31 +381,112 @@ async function waitForAuthState() {
 }
 
 async function requireStaffSession() {
-  setStatus("Checking staff session...");
+  setStatus("Checking management session...");
 
-  const user =
-    await waitForAuthState();
+  try {
+    managementContext =
+      await requireManagement();
 
-  if (!user) {
-    redirectToStaffLogin();
+    return true;
+  } catch (error) {
+    console.error(
+      "[leads] management access failed:",
+      error
+    );
+
+    window.location.replace(
+      managementLoginUrl()
+    );
+
     return false;
   }
-
-  return true;
 }
 
 async function loadLeads() {
   setStatus("Loading leads...");
 
   try {
-    const snapshot =
-      await getDocs(collection(db, "interest_leads"));
+    if (!managementContext) {
+      throw new Error(
+        "Management context is unavailable."
+      );
+    }
 
-    leads = snapshot.docs
-      .map((leadDoc) => ({
-        id: leadDoc.id,
-        ...leadDoc.data()
-      }))
+    let snapshots = [];
+
+    if (managementContext.isSystemAdmin) {
+      snapshots = [
+        await getDocs(
+          collection(db, "interest_leads")
+        )
+      ];
+    } else {
+      const locationIds =
+        managementContext.scope.locationIds;
+
+      if (!locationIds.length) {
+        leads = [];
+        updateCounts();
+        render();
+
+        setStatus(
+          "No locations are assigned to this Management profile."
+        );
+
+        return;
+      }
+
+      /*
+       * Firestore "in" queries are intentionally
+       * chunked so Management scope can grow beyond
+       * a single location without changing this page.
+       */
+      for (
+        let index = 0;
+        index < locationIds.length;
+        index += 10
+      ) {
+        const locationChunk =
+          locationIds.slice(
+            index,
+            index + 10
+          );
+
+        snapshots.push(
+          await getDocs(
+            query(
+              collection(
+                db,
+                "interest_leads"
+              ),
+              where(
+                "locationId",
+                "in",
+                locationChunk
+              )
+            )
+          )
+        );
+      }
+    }
+
+    const leadMap = new Map();
+
+    for (const snapshot of snapshots) {
+      for (const leadDoc of snapshot.docs) {
+        leadMap.set(
+          leadDoc.id,
+          {
+            id: leadDoc.id,
+            ...leadDoc.data()
+          }
+        );
+      }
+    }
+
+    leads = Array.from(
+      leadMap.values()
+    )
       .sort((a, b) => {
         const aDate =
           typeof a.createdAt?.toMillis === "function"

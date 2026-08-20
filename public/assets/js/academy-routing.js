@@ -90,6 +90,8 @@ export const ACADEMY_ROUTES = Object.freeze({
     model: ACADEMY_MODELS.FULL_ACADEMY,
 
     location: {
+      id: "santa-ynez-valley",
+      name: "Santa Ynez Valley",
       city: "Solvang",
       state: "CA"
     },

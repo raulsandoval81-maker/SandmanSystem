@@ -16,8 +16,8 @@ function selectedLocationId() {
   const location =
     String($("locationId")?.value || "").trim().toLowerCase();
 
-  return location === "solvang"
-    ? "solvang"
+  return location === "santa-ynez-valley"
+    ? "santa-ynez-valley"
     : DEFAULT_LOCATION_ID;
 }
 

@@ -503,13 +503,43 @@ match /attendance_sessions/{sessionId} {
 ---------------------------------------*/
 match /interest_leads/{leadId} {
 
-  // Public admissions form may create a lead.
-  allow create: if true;
+  /*
+   * Public admissions may create a lead only for a
+   * recognized location identity.
+   *
+   * Expand this list as public locations launch.
+   */
+  allow create: if
+    request.resource.data.academyId == "sandman"
+    && request.resource.data.locationId is string
+    && request.resource.data.locationId in [
+      "lompoc",
+      "santa-ynez-valley"
+    ];
 
-  // Admissions is an operational staff workflow.
-  allow get, list: if isOperationalStaff();
+  /*
+   * Admin retains network-wide oversight.
+   * Management operates only assigned locations.
+   */
+  allow get, list: if
+    isAdmin()
+    || managementHasLocation(
+      resource.data.locationId
+    );
 
-  allow update: if isOperationalStaff();
+  /*
+   * Management may update only records it owns,
+   * and may not move a lead into another location.
+   */
+  allow update: if
+    isAdmin()
+    || (
+      managementHasLocation(
+        resource.data.locationId
+      )
+      && request.resource.data.locationId
+        == resource.data.locationId
+    );
 
   // Permanent deletion remains Admin-only.
   allow delete: if isAdmin();
@@ -537,11 +567,40 @@ match /admissions_requests/{requestId} {
 ---------------------------------------*/
 match /admissions_appointments/{appointmentId} {
 
-  // Appointments are part of the operational
-  // admissions pipeline.
-  allow get, list: if isOperationalStaff();
+  /*
+   * Admin retains network-wide oversight.
+   * Management sees only appointments belonging
+   * to assigned locations.
+   */
+  allow get, list: if
+    isAdmin()
+    || managementHasLocation(
+      resource.data.locationId
+    );
 
-  allow create, update: if isOperationalStaff();
+  /*
+   * New appointments must belong to a location
+   * assigned to the Management user.
+   */
+  allow create: if
+    isAdmin()
+    || managementHasLocation(
+      request.resource.data.locationId
+    );
+
+  /*
+   * Management may update appointments it owns,
+   * but cannot transfer location ownership.
+   */
+  allow update: if
+    isAdmin()
+    || (
+      managementHasLocation(
+        resource.data.locationId
+      )
+      && request.resource.data.locationId
+        == resource.data.locationId
+    );
 
   // Permanent deletion remains Admin-only.
   allow delete: if isAdmin();
@@ -1274,6 +1333,9 @@ match /academySettings/{academyId} {
 
     function managementHasLocation(locationId) {
       return isManagement()
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active"
         && locationId is string
         && (
           (

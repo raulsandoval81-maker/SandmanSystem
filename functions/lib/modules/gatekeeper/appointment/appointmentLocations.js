@@ -5,12 +5,12 @@ exports.getLocationName = getLocationName;
 exports.getLocationAddress = getLocationAddress;
 function isSupportedLocation(location) {
     return (location === "lompoc" ||
-        location === "solvang");
+        location === "santa-ynez-valley");
 }
 function getLocationName(location) {
     const names = {
         lompoc: "Lompoc",
-        solvang: "Solvang"
+        "santa-ynez-valley": "Santa Ynez Valley"
     };
     return names[location];
 }

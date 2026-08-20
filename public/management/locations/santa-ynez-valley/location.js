@@ -1,5 +1,5 @@
 export const locationConfig = {
-  id: "solvang",
-  name: "Solvang",
+  id: "santa-ynez-valley",
+  name: "Santa Ynez Valley",
   organizationId: "sandman-academy"
 };

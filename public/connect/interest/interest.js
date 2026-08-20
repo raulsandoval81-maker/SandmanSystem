@@ -177,6 +177,65 @@ function readForm() {
       window.location.search
     );
 
+  const requestedLocationId =
+    clean(
+      params.get("location")
+    )
+      .toLowerCase()
+      .replace(/\s+/g, "-");
+
+  /*
+   * Operational location ownership.
+   *
+   * This is intentionally separate from
+   * preferredLocation, which represents the
+   * visitor's preferred physical meeting venue.
+   */
+  const publicLocationIds =
+    new Set([
+      "lompoc",
+      "santa-ynez-valley"
+    ]);
+
+  const selectedMeetingLocation =
+    clean(
+      formData.get("preferredLocation")
+    )
+      .toLowerCase();
+
+  /*
+   * Local pages explicitly establish operational
+   * ownership through ?location=.
+   *
+   * Generic/platform traffic has no location
+   * context, so its meeting preference provides
+   * the initial routing fallback.
+   *
+   * "either" currently routes to the active
+   * Santa Ynez Valley pilot while preserving
+   * preferredLocation = "either" on the lead.
+   */
+  let locationId = "";
+
+  if (
+    publicLocationIds.has(
+      requestedLocationId
+    )
+  ) {
+    locationId =
+      requestedLocationId;
+  } else if (
+    selectedMeetingLocation === "lompoc"
+  ) {
+    locationId = "lompoc";
+  } else if (
+    selectedMeetingLocation === "solvang" ||
+    selectedMeetingLocation === "either"
+  ) {
+    locationId =
+      "santa-ynez-valley";
+  }
+
   const interestType =
     normalizeInterestType(
       clean(formData.get("interestType")) ||
@@ -187,6 +246,7 @@ function readForm() {
 
   return {
     academyId,
+    locationId,
     interestType,
 
     registrantRole,

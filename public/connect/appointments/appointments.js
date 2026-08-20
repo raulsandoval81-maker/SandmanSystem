@@ -5,10 +5,17 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
+  where,
   setDoc,
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+
+import {
+  requireManagement,
+  managementLoginUrl
+} from "/management/shared/guards/management-guard.js";
 
 const appointmentList =
   document.getElementById("appointmentList");
@@ -50,6 +57,7 @@ const params = new URLSearchParams(window.location.search);
 const selectedLeadId = params.get("leadId") || "";
 
 let selectedLead = null;
+let managementContext = null;
 
 function esc(value = "") {
   return String(value)
@@ -126,7 +134,7 @@ function labelForIntent(intent = "") {
 function labelForLocation(location = "") {
   const labels = {
     lompoc: "Lompoc",
-    solvang: "Solvang",
+    "santa-ynez-valley": "Santa Ynez Valley",
     either: "Either Location"
   };
 
@@ -289,20 +297,50 @@ function labelForReferralSource(value = "") {
   return labels[value] || value || "—";
 }
 
-async function requireAdminUser() {
-  if (typeof auth.authStateReady === "function") {
-    await auth.authStateReady();
+async function requireManagementSession() {
+  if (managementContext) {
+    return managementContext;
   }
 
-  const user = auth.currentUser;
+  try {
+    managementContext =
+      await requireManagement();
 
-  if (!user) {
-    throw new Error("Firebase user session required.");
+    return managementContext;
+  } catch (error) {
+    console.error(
+      "[appointments] management access failed:",
+      error
+    );
+
+    window.location.replace(
+      managementLoginUrl()
+    );
+
+    throw error;
+  }
+}
+
+function canAccessLocation(locationId = "") {
+  if (!managementContext) {
+    return false;
   }
 
-  await user.getIdTokenResult(true);
+  if (managementContext.isSystemAdmin) {
+    return true;
+  }
 
-  return user;
+  const normalizedLocationId =
+    String(locationId || "")
+      .trim()
+      .toLowerCase();
+
+  if (!normalizedLocationId) {
+    return false;
+  }
+
+  return managementContext.scope.locationIds
+    .includes(normalizedLocationId);
 }
 
 async function loadSelectedLead() {
@@ -321,6 +359,18 @@ async function loadSelectedLead() {
     id: leadSnapshot.id,
     ...leadSnapshot.data()
   };
+
+  if (
+    !canAccessLocation(
+      selectedLead.locationId
+    )
+  ) {
+    selectedLead = null;
+
+    throw new Error(
+      "This lead is outside your assigned Management location."
+    );
+  }
 
   if (selectedLeadSummary) {
 selectedLeadSummary.innerHTML = `
@@ -481,13 +531,56 @@ if (scheduleBtn) {
 }
 
 async function migrateLegacyAppointments() {
-  const legacySnapshot =
-    await getDocs(
-      collection(db, "interest_leads")
+  await requireManagementSession();
+
+  let legacySnapshots = [];
+
+  if (managementContext.isSystemAdmin) {
+    legacySnapshots = [
+      await getDocs(
+        collection(db, "interest_leads")
+      )
+    ];
+  } else {
+    const locationIds =
+      managementContext.scope.locationIds;
+
+    for (
+      let index = 0;
+      index < locationIds.length;
+      index += 10
+    ) {
+      const locationChunk =
+        locationIds.slice(
+          index,
+          index + 10
+        );
+
+      legacySnapshots.push(
+        await getDocs(
+          query(
+            collection(
+              db,
+              "interest_leads"
+            ),
+            where(
+              "locationId",
+              "in",
+              locationChunk
+            )
+          )
+        )
+      );
+    }
+  }
+
+  const legacyDocs =
+    legacySnapshots.flatMap(
+      (snapshot) => snapshot.docs
     );
 
   const legacyAppointments =
-    legacySnapshot.docs
+    legacyDocs
       .map((leadDoc) => ({
         id: leadDoc.id,
         ...leadDoc.data()
@@ -526,6 +619,15 @@ async function migrateLegacyAppointments() {
       {
         appointmentId: lead.id,
         leadId: lead.id,
+
+        academyId:
+          lead.academyId || "",
+
+        organizationId:
+          lead.organizationId || "",
+
+        locationId:
+          lead.locationId || "",
 
         participantName:
           lead.athleteName || "",
@@ -649,7 +751,7 @@ async function loadAppointments() {
   setStatus("Loading appointments...");
 
   try {
-    await requireAdminUser();
+    await requireManagementSession();
 
     const migratedCount =
       await migrateLegacyAppointments();
@@ -660,12 +762,53 @@ async function loadAppointments() {
       );
     }
 
-    const snapshot =
-      await getDocs(
-        collection(
-          db,
-          "admissions_appointments"
+    let appointmentSnapshots = [];
+
+    if (managementContext.isSystemAdmin) {
+      appointmentSnapshots = [
+        await getDocs(
+          collection(
+            db,
+            "admissions_appointments"
+          )
         )
+      ];
+    } else {
+      const locationIds =
+        managementContext.scope.locationIds;
+
+      for (
+        let index = 0;
+        index < locationIds.length;
+        index += 10
+      ) {
+        const locationChunk =
+          locationIds.slice(
+            index,
+            index + 10
+          );
+
+        appointmentSnapshots.push(
+          await getDocs(
+            query(
+              collection(
+                db,
+                "admissions_appointments"
+              ),
+              where(
+                "locationId",
+                "in",
+                locationChunk
+              )
+            )
+          )
+        );
+      }
+    }
+
+    const appointmentDocs =
+      appointmentSnapshots.flatMap(
+        (snapshot) => snapshot.docs
       );
 
     const today =
@@ -674,7 +817,7 @@ async function loadAppointments() {
     today.setHours(0, 0, 0, 0);
 
     const appointments =
-      snapshot.docs
+      appointmentDocs
         .map((appointmentDoc) => ({
           id: appointmentDoc.id,
           ...appointmentDoc.data()
@@ -915,8 +1058,18 @@ scheduleForm?.addEventListener(
     scheduleBtn.textContent = "Scheduling...";
 
     try {
-      await requireAdminUser();
+      await requireManagementSession();
 
+      if (
+        !selectedLead ||
+        !canAccessLocation(
+          selectedLead.locationId
+        )
+      ) {
+        throw new Error(
+          "This lead is outside your assigned Management location."
+        );
+      }
 
   const appointmentRef =
     doc(
@@ -930,6 +1083,15 @@ scheduleForm?.addEventListener(
     {
       appointmentId: selectedLeadId,
       leadId: selectedLeadId,
+
+      academyId:
+        selectedLead.academyId || "",
+
+      organizationId:
+        selectedLead.organizationId || "",
+
+      locationId:
+        selectedLead.locationId || "",
 
       participantName:
         selectedLead.athleteName || "",
@@ -1123,7 +1285,7 @@ refreshBtn?.addEventListener(
 );
 
 try {
-  await requireAdminUser();
+  await requireManagementSession();
   await loadSelectedLead();
   await loadAppointments();
 } catch (error) {

@@ -7,7 +7,7 @@ export function isSupportedLocation(
 ): location is AppointmentLocation {
   return (
     location === "lompoc" ||
-    location === "solvang"
+    location === "santa-ynez-valley"
   );
 }
 
@@ -19,7 +19,7 @@ export function getLocationName(
     string
   > = {
     lompoc: "Lompoc",
-    solvang: "Solvang"
+    "santa-ynez-valley": "Santa Ynez Valley"
   };
 
   return names[location];
