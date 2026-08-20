@@ -3,27 +3,246 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Sandman Academy Locations</title>
+
+  <title>Locations | Sandman Academy</title>
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+      background:#080808;
+      color:#fff;
+      font-family:Arial,Helvetica,sans-serif;
+    }
+
+    .locations{
+      width:min(1000px,calc(100% - 32px));
+      margin:0 auto;
+      padding:56px 0 72px;
+    }
+
+    .locations__header{
+      margin-bottom:30px;
+      text-align:center;
+    }
+
+    .locations__header h1{
+      margin:0 0 10px;
+      font-size:clamp(2rem,6vw,3.2rem);
+      text-transform:uppercase;
+    }
+
+    .locations__header p{
+      margin:0;
+      color:#bdbdbd;
+    }
+
+    .locations__grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+    }
+
+    .location-card{
+      display:flex;
+      flex-direction:column;
+      min-height:330px;
+      padding:28px;
+
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:22px;
+
+      background:rgba(255,255,255,.035);
+    }
+
+    .location-card__eyebrow{
+      margin:0 0 12px;
+
+      color:#bdbdbd;
+
+      font-size:.76rem;
+      font-weight:800;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .location-card h2{
+      margin:0;
+
+      font-size:clamp(1.7rem,4vw,2.35rem);
+      line-height:1.05;
+      text-transform:uppercase;
+    }
+
+    .location-card__rule{
+      width:52px;
+      height:2px;
+      margin:18px 0 22px;
+
+      background:rgba(255,255,255,.45);
+    }
+
+    .location-card__content{
+      display:grid;
+      gap:18px;
+      margin-bottom:26px;
+    }
+
+    .location-card__content p{
+      margin:0;
+      color:#c8c8c8;
+      line-height:1.55;
+    }
+
+    .program strong{
+      display:block;
+      margin-bottom:4px;
+
+      color:#fff;
+
+      font-size:1rem;
+      text-transform:uppercase;
+    }
+
+    .location-card__cta{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      width:100%;
+      min-height:50px;
+
+      margin-top:auto;
+      padding:14px 18px;
+
+      border:1px solid rgba(255,255,255,.28);
+      border-radius:999px;
+
+      color:#fff;
+
+      font-size:.86rem;
+      font-weight:900;
+      letter-spacing:.08em;
+      text-decoration:none;
+      text-transform:uppercase;
+    }
+
+    .location-card__cta:hover,
+    .location-card__cta:focus-visible{
+      border-color:#fff;
+      background:rgba(255,255,255,.07);
+    }
+
+    @media (max-width:720px){
+      .locations{
+        width:min(100% - 24px,600px);
+        padding:40px 0 56px;
+      }
+
+      .locations__grid{
+        grid-template-columns:1fr;
+      }
+
+      .location-card{
+        min-height:0;
+        padding:24px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <main>
-    <h1>Sandman Academy Locations</h1>
 
-    <p>Select an academy location.</p>
+  <main class="locations">
 
-    <nav>
-      <p>
-        <a href="/locations/santa-ynez-valley/">
+    <header class="locations__header">
+      <h1>Locations</h1>
+      <p>Find your local Sandman Academy.</p>
+    </header>
+
+    <section class="locations__grid">
+
+      <article class="location-card">
+
+        <p class="location-card__eyebrow">
           Santa Ynez Valley
-        </a>
-      </p>
+        </p>
 
-      <p>
-        <a href="/locations/lompoc/">
-          Lompoc
+        <h2>
+          Santa Ynez Valley
+        </h2>
+
+        <div
+          class="location-card__rule"
+          aria-hidden="true"
+        ></div>
+
+        <div class="location-card__content">
+          <p>
+            Explore local programs, journeys,
+            training, and enrollment.
+          </p>
+        </div>
+
+        <a
+          class="location-card__cta"
+          href="/locations/santa-ynez-valley/"
+        >
+          Explore Academy
         </a>
-      </p>
-    </nav>
+
+      </article>
+
+
+      <article class="location-card">
+
+        <p class="location-card__eyebrow">
+          Enrolling Now
+        </p>
+
+        <h2>
+          Lompoc Wrestling
+        </h2>
+
+        <div
+          class="location-card__rule"
+          aria-hidden="true"
+        ></div>
+
+        <div class="location-card__content">
+
+          <p class="program">
+            <strong>
+              Zero2Hero™ · Ages 7–13
+            </strong>
+            Youth Wrestling
+          </p>
+
+          <p class="program">
+            <strong>
+              Path2Legend™ · Ages 14–19
+            </strong>
+            Teen Wrestling
+          </p>
+
+        </div>
+
+        <a
+          class="location-card__cta"
+          href="/connect/interest/?academy=sandman&location=lompoc"
+        >
+          Join the Movement
+        </a>
+
+      </article>
+
+    </section>
+
   </main>
+
 </body>
 </html>
