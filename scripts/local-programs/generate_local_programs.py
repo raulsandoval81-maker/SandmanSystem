@@ -88,6 +88,32 @@ def localize_html(html, academy):
     # polish_local_program_html() moves that identity
     # into the earned-progression section.
 
+
+    # --------------------------------------------------------
+    # Local rally header identity
+    #
+    # Local pages do not repeat "Sandman Academy" in the
+    # header. Community identity leads instead.
+    # --------------------------------------------------------
+
+    rally_en = local_rally_identity(academy, "en")
+    rally_es = local_rally_identity(academy, "es")
+
+    html = re.sub(
+        rf"Sandman Academy\s*•\s*{re.escape(name)}",
+        rally_en,
+        html,
+        flags=re.I,
+    )
+
+    html = re.sub(
+        rf"(?:Academia Sandman|Sandman Academy)\s*•\s*"
+        rf"{re.escape(name_es)}",
+        rally_es,
+        html,
+        flags=re.I,
+    )
+
     return html
 
 
@@ -368,9 +394,111 @@ def polish_local_program_html(
     return html
 
 
+
+# ============================================================
+# SANDMAN_LOCAL_RALLY_IDENTITY
+#
+# Local academy pages lead with community ownership rather
+# than repeating the global Sandman Academy identity.
+#
+# Pattern:
+#   [LOCATION] STRONG
+#   JOIN THE MOVEMENT.
+#
+# This applies ONLY to generated local academy pages.
+# Platform/global Sandman branding remains unchanged.
+# ============================================================
+
+def local_rally_identity(academy, lang="en"):
+    if lang == "es":
+        return academy.get(
+            "rally_name_es",
+            (
+            f'<span class="local-rally">'
+            f'<span class="local-rally__place">{academy["name_es"]} Strong</span>'
+            f'<span class="local-rally__dot" aria-hidden="true"> · </span>'
+            f'<span class="local-rally__call">Únete al Movimiento</span>'
+            f'</span>'
+        ),
+        )
+
+    return academy.get(
+        "rally_name",
+        (
+            f'<span class="local-rally">'
+            f'<span class="local-rally__place">{academy["name"]} Strong</span>'
+            f'<span class="local-rally__dot" aria-hidden="true"> · </span>'
+            f'<span class="local-rally__call">Join the Movement</span>'
+            f'</span>'
+        ),
+    )
+
+
+def local_rally_tagline(lang="en"):
+    if lang == "es":
+        return "Únete al Movimiento."
+
+    return "Join the Movement."
+
+
 # =========================================================
 # GENERATOR
 # =========================================================
+
+
+# SANDMAN_LOCAL_RALLY_RESPONSIVE_ENGINE
+def add_local_rally_responsive_css(html):
+    if "SANDMAN-LOCAL-RALLY-RESPONSIVE" in html:
+        return html
+
+    if 'class="local-rally"' not in html:
+        return html
+
+    css = """
+<style id="SANDMAN-LOCAL-RALLY-RESPONSIVE">
+  .local-rally {
+    display: inline;
+  }
+
+  .local-rally__place,
+  .local-rally__call {
+    display: inline;
+  }
+
+  @media (max-width: 640px) {
+    .local-rally {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.25;
+    }
+
+    .local-rally__place,
+    .local-rally__call {
+      display: block;
+    }
+
+    .local-rally__dot {
+      display: block;
+      width: 70%;
+      height: 1px;
+      margin: .35rem auto;
+      overflow: hidden;
+      font-size: 0;
+      line-height: 0;
+      background: currentColor;
+      opacity: .35;
+    }
+  }
+</style>
+"""
+
+    return html.replace(
+        "</head>",
+        css + "\n</head>",
+        1,
+    )
+
 
 def generate_location(slug, academy):
     location_root = LOCATIONS / slug / "programs"
@@ -410,6 +538,8 @@ def generate_location(slug, academy):
                 html,
                 academy,
             )
+
+            html = add_local_rally_responsive_css(html)
 
             html = polish_local_program_html(
                 html,

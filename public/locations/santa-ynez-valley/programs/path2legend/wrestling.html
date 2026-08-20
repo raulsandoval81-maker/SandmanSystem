@@ -564,6 +564,44 @@
     }
   </style>
 
+
+<style id="SANDMAN-LOCAL-RALLY-RESPONSIVE">
+  .local-rally {
+    display: inline;
+  }
+
+  .local-rally__place,
+  .local-rally__call {
+    display: inline;
+  }
+
+  @media (max-width: 640px) {
+    .local-rally {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.25;
+    }
+
+    .local-rally__place,
+    .local-rally__call {
+      display: block;
+    }
+
+    .local-rally__dot {
+      display: block;
+      width: 70%;
+      height: 1px;
+      margin: .35rem auto;
+      overflow: hidden;
+      font-size: 0;
+      line-height: 0;
+      background: currentColor;
+      opacity: .35;
+    }
+  }
+</style>
+
 </head>
 
 <body>
@@ -580,7 +618,7 @@
   </button>
 
   <div class="journey-header-title">
-    Sandman Academy • Santa Ynez Valley
+    <span class="local-rally"><span class="local-rally__place">Santa Ynez Valley Strong</span><span class="local-rally__dot" aria-hidden="true"> · </span><span class="local-rally__call">Join the Movement</span></span>
   </div>
 
   <button
