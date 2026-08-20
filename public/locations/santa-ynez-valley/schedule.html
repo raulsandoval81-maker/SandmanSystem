@@ -63,26 +63,72 @@
     }
 
     .schedule-card h2{
-      margin:0 0 .5rem;
+      margin:0 0 .4rem;
       color:var(--heading,#fff);
+      font-size:1.55rem;
     }
 
-    .schedule-card p{
-      margin:.45rem 0;
+    .schedule-card__sub{
+      margin:0 0 1.35rem;
       color:var(--muted,#d0d0d4);
-      line-height:1.6;
+      font-size:.95rem;
     }
 
-    .schedule-card strong{
+    .schedule-session{
+      padding:1rem 0;
+      border-top:1px solid var(--line,rgba(255,255,255,.12));
+    }
+
+    .schedule-session:first-of-type{
+      border-top:0;
+      padding-top:0;
+    }
+
+    .schedule-session:last-child{
+      padding-bottom:0;
+    }
+
+    .schedule-session__title{
+      margin:0 0 .25rem;
+      color:var(--heading,#fff);
+      font-size:1.05rem;
+      font-weight:900;
+    }
+
+    .schedule-session p{
+      margin:.2rem 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.55;
+    }
+
+    .schedule-time{
+      color:var(--heading-accent,#d4af37) !important;
+      font-weight:900;
+    }
+
+    .schedule-status{
+      display:inline-block;
+      margin-top:.5rem;
+      padding:.35rem .65rem;
+      border:1px solid rgba(212,175,55,.45);
+      border-radius:999px;
       color:var(--heading-accent,#d4af37);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
     }
 
     .schedule-note{
-      max-width:700px;
+      max-width:760px;
       margin:2rem auto 0;
       text-align:center;
       color:var(--muted,#d0d0d4);
-      line-height:1.6;
+      line-height:1.65;
+    }
+
+    .schedule-note + .schedule-note{
+      margin-top:.75rem;
     }
 
     .cta{
@@ -110,11 +156,27 @@
       box-shadow:0 8px 18px rgba(0,0,0,.07);
     }
 
+    body.day-mode .schedule-session{
+      border-color:#e5d9bd;
+    }
+
     @media(max-width:720px){
       .schedule-grid{
         grid-template-columns:1fr;
       }
     }
+  
+    /* LIGHT MODE — PAGE TITLE CONTRAST */
+    html[data-theme="light"] main h1{
+      color:#111 !important;
+    }
+
+  
+    /* LIGHT MODE — TRAINING TITLE CONTRAST */
+    html[data-theme="light"] .local-page h1{
+      color:#111 !important;
+    }
+
   </style>
 </head>
 
@@ -125,6 +187,11 @@
     data-component="/locations/santa-ynez-valley/components/navigation.html"
   ></div>
 
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
   <main class="local-page">
 
     <section class="local-page__header">
@@ -133,7 +200,7 @@
       <h1>Training Schedule</h1>
 
       <p class="intro">
-        Current training times for Sandman Academy programs
+        Current and upcoming training times for Sandman Academy programs
         in the Santa Ynez Valley.
       </p>
     </section>
@@ -141,26 +208,64 @@
     <section class="schedule-grid">
 
       <article class="schedule-card">
-        <h2>Zero2Hero™</h2>
-        <p><strong>Ages 7–13</strong></p>
-        <p>Wrestling</p>
-        <p>Muay Thai</p>
-        <p>Schedule coming soon.</p>
+        <h2>Monday & Wednesday</h2>
+
+        <p class="schedule-card__sub">
+          Fitness-focused evening classes.
+        </p>
+
+        <div class="schedule-session">
+          <h3 class="schedule-session__title">Strength & Fit</h3>
+          <p class="schedule-time">6:00–6:45 PM</p>
+        </div>
+
+        <div class="schedule-session">
+          <h3 class="schedule-session__title">Kickboxing & Fit</h3>
+          <p class="schedule-time">7:00–7:45 PM</p>
+        </div>
       </article>
 
       <article class="schedule-card">
-        <h2>Path2Legend™</h2>
-        <p><strong>Ages 14+</strong></p>
-        <p>Wrestling</p>
-        <p>Boxing</p>
-        <p>Schedule coming soon.</p>
+        <h2>Tuesday & Thursday</h2>
+
+        <p class="schedule-card__sub">
+          Youth and teen combat development.
+        </p>
+
+        <div class="schedule-session">
+          <h3 class="schedule-session__title">Zero2Hero™ Muay Thai</h3>
+          <p>Ages 7–13</p>
+          <p class="schedule-time">4:00–5:00 PM</p>
+          <span class="schedule-status">Enrollment Open — Starting Soon</span>
+        </div>
+
+        <div class="schedule-session">
+          <h3 class="schedule-session__title">Zero2Hero™ Wrestling</h3>
+          <p>Ages 7–13</p>
+          <p class="schedule-time">5:00–6:00 PM</p>
+        </div>
+
+        <div class="schedule-session">
+          <h3 class="schedule-session__title">Path2Legend™ Wrestling</h3>
+          <p>Ages 14+</p>
+          <p class="schedule-time">5:30–7:00 PM</p>
+        </div>
+
+        <div class="schedule-session">
+          <h3 class="schedule-session__title">Path2Legend™ Boxing</h3>
+          <p>Ages 14+</p>
+          <p class="schedule-time">6:30–8:00 PM</p>
+        </div>
       </article>
 
     </section>
 
     <p class="schedule-note">
-      Training schedules may change by season and program.
-      Admissions are handled by appointment.
+      Please bring running shoes. During overlapping sessions, some groups may begin outdoors before moving into the main training space.
+    </p>
+
+    <p class="schedule-note">
+      Training schedules may change by season, holidays, and competition dates. New athletes begin by appointment.
     </p>
 
     <div class="cta">

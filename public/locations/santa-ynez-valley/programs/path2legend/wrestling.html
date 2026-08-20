@@ -526,6 +526,44 @@
     }
 
   </style>
+
+  <style id="SANDMAN-DISCIPLINE-CENTERED-TITLES">
+    /* Santa Ynez discipline-page standard:
+       all titles centered, body copy unchanged */
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      text-align: center;
+    }
+  </style>
+
+
+  <style id="SANDMAN-DISCIPLINE-LIFE-STYLE">
+    .discipline-life-splash {
+      width: min(100%, 900px);
+      margin: 3rem auto;
+      text-align: center;
+    }
+
+    .discipline-life-splash img {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 0 auto;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 640px) {
+      .discipline-life-splash {
+        width: 100%;
+        margin: 2.25rem auto;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
@@ -559,14 +597,24 @@
 
   <main>
 
+<section
+      class="discipline-life-splash"
+      data-discipline-life="wrestling"
+    >
+      <img
+        src="/assets/img/discipline-life/wrestling-is-life-en.png"
+        data-lang-src-en="/assets/img/discipline-life/wrestling-is-life-en.png"
+        data-lang-src-es="/assets/img/discipline-life/wrestling-is-life-es.png"
+        data-lang-alt-en="Wrestling is life. These are the rules of life: Focus, Effort, Attitude, Respect."
+        data-lang-alt-es="La lucha es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto."
+        alt="Wrestling is life. These are the rules of life: Focus, Effort, Attitude, Respect."
+        loading="lazy"
+      >
+    </section>
 
-    <section class="hero">
+<section class="hero">
 
       <div data-lang-block="en">
-
-        <p class="eyebrow">
-          Santa Ynez Valley • Path2Legend™ • Ages 14+
-        </p>
 
         <h1>Wrestling</h1>
 
@@ -591,10 +639,6 @@
         data-lang-block="es"
         class="hidden-lang"
       >
-
-        <p class="eyebrow">
-          Valle de Santa Ynez • Path2Legend™ • Edades 14+
-        </p>
 
         <h1>Lucha</h1>
 
@@ -734,12 +778,12 @@
 
     </section>
 
-    <section class="visual-section">
+<section class="visual-section">
 
       <div class="visual-heading">
 
         <div data-lang-block="en">
-          <p class="eyebrow">Earned Progression</p>
+          <p class="eyebrow">Earned Progression • Path2Legend™ • Ages 14+ • Santa Ynez Valley</p>
           <h2>Path2Legend Progression</h2>
           <p>
             Athletes advance from Apprentice to Legend through consistent
@@ -752,7 +796,7 @@
           data-lang-block="es"
           class="hidden-lang"
         >
-          <p class="eyebrow">Progreso Ganado</p>
+          <p class="eyebrow">Progreso Ganado • Path2Legend™ • Edades 14+ • Valle de Santa Ynez</p>
           <h2>Progresión Path2Legend</h2>
           <p>
             Los atletas avanzan de Apprentice a Legend mediante entrenamiento

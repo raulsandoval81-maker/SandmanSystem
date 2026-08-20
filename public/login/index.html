@@ -19,13 +19,7 @@
     rel="stylesheet"
     href="/assets/css/site.css"
   />
-
-  <link
-    rel="stylesheet"
-    href="/public.css"
-  />
-
-  <style>
+<style>
     :root {
       color-scheme: dark;
 
@@ -454,38 +448,161 @@
       }
     }
 
+
+    /* =========================================
+       LOCAL PUBLIC LOGIN VISUAL ALIGNMENT
+    ========================================== */
+
+    body{
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.10),
+          transparent 30%
+        ),
+        #050505;
+      color:#f4f4f5;
+    }
+
+    .journey-minimal-header{
+      min-height:72px;
+      padding:10px 16px;
+      background:#0d0d0f;
+      border-bottom:1px solid rgba(212,175,55,.45);
+    }
+
+    .journey-header-title{
+      color:#ffffff;
+      font-size:clamp(.78rem,2vw,1rem);
+      letter-spacing:.02em;
+      text-transform:none;
+    }
+
+    .journey-header-control{
+      width:44px;
+      height:44px;
+      color:#d4af37;
+      border-color:rgba(212,175,55,.55);
+    }
+
+    .login-page-main{
+      min-height:calc(100vh - 72px);
+      padding:clamp(2rem,6vw,4rem) 16px;
+    }
+
+    .login-shell{
+      width:min(900px,100%);
+    }
+
+    .login-header{
+      margin-bottom:2rem;
+    }
+
+    .eyebrow{
+      color:#d4af37;
+      font-size:.8rem;
+      letter-spacing:.16em;
+    }
+
+    h1{
+      color:#ffffff;
+      font-size:clamp(2.3rem,6vw,4rem);
+      letter-spacing:-.035em;
+    }
+
+    .intro{
+      color:#bfc0c5;
+      max-width:620px;
+    }
+
+    .role-grid{
+      gap:18px;
+    }
+
+    .role-card{
+      min-height:180px;
+      padding:24px;
+      border:1px solid rgba(212,175,55,.28);
+      border-radius:20px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.035),
+          rgba(255,255,255,.012)
+        );
+      box-shadow:0 18px 40px rgba(0,0,0,.22);
+    }
+
+    .role-card:hover,
+    .role-card:focus-visible{
+      transform:translateY(-2px);
+      border-color:rgba(212,175,55,.72);
+      box-shadow:0 20px 42px rgba(0,0,0,.3);
+    }
+
+    .role-label{
+      color:#d4af37;
+    }
+
+    .role-card h2{
+      color:#ffffff;
+    }
+
+    .role-card p{
+      color:#bfc0c5;
+    }
+
+    body.day-mode{
+      background:#f7f2e7;
+      color:#242424;
+    }
+
+    body.day-mode .journey-minimal-header{
+      background:#ffffff;
+      border-bottom-color:#c8a74f;
+    }
+
+    body.day-mode .journey-header-title{
+      color:#151515;
+    }
+
+    body.day-mode .role-card{
+      background:#ffffff;
+      border-color:#d7c7a2;
+      box-shadow:0 10px 24px rgba(76,52,12,.08);
+    }
+
+    body.day-mode .role-card h2{
+      color:#151515;
+    }
+
+    body.day-mode .role-card p,
+    body.day-mode .intro{
+      color:#55585f;
+    }
+
+    @media(max-width:700px){
+      .role-grid{
+        grid-template-columns:1fr;
+      }
+    }
+
   </style>
 </head>
 
 <body>
 
-  <header class="journey-minimal-header">
+  <div
+    id="navigation"
+    data-component="/locations/santa-ynez-valley/components/navigation.html"
+  ></div>
 
-    <button
-      class="journey-header-control"
-      type="button"
-      data-theme-toggle
-      aria-label="Toggle theme"
-    >
-      ◐
-    </button>
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
 
-    <div class="journey-header-title">
-      Sandman Academy of Combat &amp; Fitness
-    </div>
-
-    <button
-      class="journey-header-control"
-      type="button"
-      data-language-toggle
-      aria-label="Toggle language"
-    >
-      ES
-    </button>
-
-  </header>
-
-  <main class="login-page-main">
+<main class="login-page-main">
 
     <div class="login-shell">
 
@@ -942,6 +1059,10 @@
       );
     })();
   </script>
+
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
 
 </body>
 </html>
