@@ -614,112 +614,165 @@ html[data-theme="light"] .site-nav a:focus-visible{
 }
 
 .site-footer__brand{
-  display:none;
+  grid-area:brand;
+
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+
+  min-width:0;
+  margin:0;
+  padding:0;
+
+  text-align:center;
 }
 
 .site-footer__inner{
   display:grid;
-  grid-template-columns:minmax(0,1fr) 56px minmax(0,1.35fr);
+
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(220px,.9fr)
+    minmax(0,1fr);
+
   grid-template-areas:
-    "motto logo headquarters"
-    "legal legal legal";
+    ". brand headquarters"
+    ". legal headquarters";
+
   align-items:center;
-  gap:.5rem 1rem;
+  gap:.2rem 1.5rem;
 
   width:min(1180px,100%);
   margin-inline:auto;
 }
 
+
+/* =========================================================
+   CENTER BRAND
+========================================================= */
+
 .site-footer__seal{
-  grid-area:motto;
-  min-width:0;
   margin:0;
   padding:0;
-  text-align:left;
+  text-align:center;
 }
 
 .site-footer__seal p{
-  margin:0;
-  color:rgba(255,255,255,.54);
-  font-size:.72rem;
-  font-weight:700;
-  line-height:1.15;
-  letter-spacing:.08em;
-  text-transform:uppercase;
-}
+  margin:.12rem 0 0;
 
-.site-footer__logo{
-  grid-area:logo;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:72px;
-  height:72px;
-  margin:0 auto;
+  color:#f5f5f5;
+
+  font-size:clamp(.78rem,1.15vw,.94rem);
+  font-weight:900;
+  line-height:1.15;
+
+  letter-spacing:.09em;
+  text-transform:uppercase;
 }
 
 .site-footer__seal-image,
 .sandman-crest{
   display:block;
-  width:68px;
-  height:68px;
-  margin:4px auto 8px;
+
+  width:72px;
+  height:72px;
+
+  margin:0 auto .12rem;
+
   object-fit:contain;
-  filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));
+
+  filter:
+    drop-shadow(0 8px 18px rgba(0,0,0,.45));
 }
+
+
+/* =========================================================
+   HEADQUARTERS
+========================================================= */
 
 .site-footer__headquarters{
   grid-area:headquarters;
+
   min-width:0;
+
   margin:0;
   padding:0;
+
   border:0;
-  text-align:right;
+
+  text-align:center;
   line-height:1.5;
 }
 
 .site-footer__headquarters strong{
   display:block;
-  margin:0 0 .12rem;
+
+  margin:0 0 .2rem;
+
   color:var(--brand-gold);
-  font-size:.66rem;
+
+  font-size:.7rem;
   font-weight:900;
   line-height:1.1;
-  letter-spacing:.08em;
+
+  letter-spacing:.09em;
   text-transform:uppercase;
 }
 
 .site-footer__headquarters p{
   margin:0;
-  font-size:.72rem;
-  line-height:1.2;
+
+  font-size:.74rem;
+  line-height:1.3;
+
+  text-align:center;
 }
 
 .site-footer__headquarters small{
   display:block;
-  margin-top:.12rem;
+
+  margin-top:.18rem;
+
   color:var(--muted);
-  font-size:.62rem;
-  line-height:1.15;
+
+  font-size:.63rem;
+  line-height:1.2;
+
+  text-align:center;
 }
+
+
+/* =========================================================
+   LEGAL
+========================================================= */
 
 .site-footer__legal{
   grid-area:legal;
+
   display:flex;
   justify-content:center;
   align-items:center;
   flex-wrap:wrap;
+
   gap:.15rem .35rem;
 
-  margin:.1rem 0 0;
-  padding:.35rem 0 0;
+  margin:.22rem 0 0;
+  padding:.28rem 0 0;
 
   border-top:1px solid rgba(255,255,255,.08);
-  color:rgba(255,255,255,.42);
-  font-size:.56rem;
+
+  color:rgba(255,255,255,.5);
+
+  font-size:.57rem;
   line-height:1.1;
   text-align:center;
 }
+
+
+/* =========================================================
+   FOOTER LINKS
+========================================================= */
 
 .site-footer__links{
   display:flex;
@@ -730,9 +783,13 @@ html[data-theme="light"] .site-nav a:focus-visible{
 
 .site-footer__links a{
   color:rgba(255,255,255,.8);
+
   font-size:.9rem;
   font-weight:700;
-  transition:color 160ms ease,transform 160ms ease;
+
+  transition:
+    color 160ms ease,
+    transform 160ms ease;
 }
 
 .site-footer__links a:hover{
@@ -740,89 +797,120 @@ html[data-theme="light"] .site-nav a:focus-visible{
   transform:translateY(-1px);
 }
 
-@media (max-width:768px){
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media(max-width:768px){
+
   .site-footer{
-    padding:.65rem .55rem .45rem;
+    padding:.75rem .7rem .55rem;
   }
 
   .site-footer__inner{
-    grid-template-columns:minmax(0,.9fr) 42px minmax(0,1.35fr);
-    gap:.35rem .5rem;
+    grid-template-columns:1fr;
+
+    grid-template-areas:
+      "headquarters"
+      "brand"
+      "legal";
+
+    gap:.65rem;
+
     width:100%;
   }
 
-  .site-footer__seal p{
-    font-size:.58rem;
-    letter-spacing:.05em;
+  .site-footer__headquarters{
+    text-align:center;
   }
 
-  .site-footer__logo{
-    width:42px;
-    height:42px;
+  .site-footer__headquarters strong{
+    font-size:.62rem;
+  }
+
+  .site-footer__headquarters p{
+    font-size:.65rem;
+  }
+
+  .site-footer__headquarters small{
+    font-size:.55rem;
   }
 
   .site-footer__seal-image,
   .sandman-crest{
-    width:42px;
-    height:42px;
-    margin:0 auto;
+    width:54px;
+    height:54px;
   }
 
-  .site-footer__headquarters strong{
-    margin-bottom:.08rem;
-    font-size:.55rem;
+  .site-footer__seal p{
+    font-size:.7rem;
     letter-spacing:.07em;
   }
 
-  .site-footer__headquarters p{
-    font-size:.59rem;
-    line-height:1.18;
-  }
-
-  .site-footer__headquarters small{
-    margin-top:.08rem;
-    font-size:.5rem;
-    line-height:1.1;
-  }
-
   .site-footer__legal{
-    margin:.1rem 0 0;
+    margin:0;
     padding:.28rem 0 0;
-    gap:.1rem .25rem;
-    font-size:.49rem;
+
+    font-size:.51rem;
   }
 }
 
-@media (max-height:600px) and (orientation:landscape){
+
+/* =========================================================
+   SHORT LANDSCAPE
+========================================================= */
+
+@media(max-height:600px) and (orientation:landscape){
+
   .site-footer{
-    padding:.45rem .8rem .35rem;
+    padding:.5rem .8rem .4rem;
   }
 
   .site-footer__inner{
-    grid-template-columns:minmax(0,1fr) 42px minmax(0,1.3fr);
-    gap:.3rem .8rem;
+    grid-template-columns:
+      minmax(0,1fr)
+      minmax(180px,.85fr)
+      minmax(0,1fr);
+
+    grid-template-areas:
+      ". brand headquarters"
+      ". legal headquarters";
+
+    gap:.15rem 1rem;
+
     max-width:1100px;
   }
 
-  .site-footer__seal p,
-  .site-footer__headquarters p{
-    font-size:.55rem;
+  .site-footer__seal-image,
+  .sandman-crest{
+    width:48px;
+    height:48px;
+  }
+
+  .site-footer__seal p{
+    font-size:.63rem;
   }
 
   .site-footer__headquarters strong{
-    font-size:.52rem;
+    font-size:.55rem;
+  }
+
+  .site-footer__headquarters p{
+    font-size:.58rem;
   }
 
   .site-footer__headquarters small{
-    font-size:.47rem;
+    font-size:.49rem;
   }
 
   .site-footer__legal{
     margin:.08rem 0 0;
-    padding:.22rem 0 0;
-    font-size:.46rem;
+    padding:.2rem 0 0;
+    font-size:.47rem;
   }
 }
+
 /* =========================================================
    DARK CTA + CLOSING SECTIONS
    Prevent light-theme text washout above the footer
@@ -984,3 +1072,288 @@ html[data-theme="light"] .local-location-band{
     letter-spacing:.10em;
   }
 }
+
+
+/* =========================================================
+   FINAL SHARED FOOTER LAYOUT
+   Platform + Local
+========================================================= */
+
+.site-footer__inner{
+  grid-template-columns:
+    minmax(0,1fr)
+    minmax(190px,.8fr)
+    minmax(0,1fr);
+
+  grid-template-areas:
+    "headquarters brand connect"
+    "headquarters legal connect";
+
+  align-items:center;
+  column-gap:2rem;
+}
+
+
+/* LEFT — HEADQUARTERS */
+
+.site-footer__headquarters{
+  grid-area:headquarters;
+  justify-self:start;
+
+  width:100%;
+  max-width:280px;
+
+  text-align:center;
+}
+
+.site-footer__headquarters p,
+.site-footer__headquarters small{
+  text-align:center;
+}
+
+
+/* CENTER — BRAND */
+
+.site-footer__brand{
+  grid-area:brand;
+  justify-self:center;
+}
+
+.site-footer__seal-image,
+.sandman-crest{
+  width:58px;
+  height:58px;
+}
+
+.site-footer__seal p{
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.075em;
+}
+
+.site-footer__legal{
+  grid-area:legal;
+
+  justify-self:center;
+
+  border-top:0;
+
+  margin:.08rem 0 0;
+  padding:0;
+
+  font-size:.55rem;
+}
+
+
+/* RIGHT — CONNECT */
+
+.site-footer__connect{
+  grid-area:connect;
+  justify-self:end;
+
+  width:100%;
+  max-width:280px;
+
+  text-align:center;
+}
+
+.site-footer__connect > strong{
+  display:block;
+
+  margin-bottom:.55rem;
+
+  color:var(--brand-gold);
+
+  font-size:.7rem;
+  font-weight:900;
+
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+
+.site-footer__socials{
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+
+  gap:1rem;
+}
+
+.site-footer__social{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+
+  gap:.25rem;
+}
+
+.site-footer__social-icon{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  width:38px;
+  height:38px;
+
+  border:1px solid rgba(255,215,70,.7);
+  border-radius:50%;
+
+  color:#fff;
+
+  font-size:1rem;
+  font-weight:800;
+  line-height:1;
+}
+
+.site-footer__social-label{
+  color:rgba(255,255,255,.72);
+
+  font-size:.52rem;
+  line-height:1;
+}
+
+
+/* =========================================================
+   MOBILE — QUIETER FOOTER
+========================================================= */
+
+@media(max-width:768px){
+
+  .site-footer{
+    padding:.65rem .7rem .5rem;
+  }
+
+  .site-footer__inner{
+    grid-template-columns:1fr;
+
+    grid-template-areas:
+      "headquarters"
+      "brand"
+      "legal"
+      "connect";
+
+    gap:.4rem;
+  }
+
+  .site-footer__headquarters{
+    justify-self:center;
+
+    max-width:none;
+
+    margin-bottom:.15rem;
+  }
+
+  .site-footer__headquarters strong{
+    margin-bottom:.1rem;
+
+    font-size:.56rem;
+  }
+
+  .site-footer__headquarters p{
+    display:inline;
+
+    font-size:.57rem;
+  }
+
+  .site-footer__headquarters p br{
+    display:none;
+  }
+
+  .site-footer__headquarters small{
+    margin-top:.08rem;
+
+    font-size:.49rem;
+  }
+
+
+  /* smaller, quieter center identity */
+
+  .site-footer__seal-image,
+  .sandman-crest{
+    width:38px;
+    height:38px;
+
+    margin-bottom:.05rem;
+  }
+
+  .site-footer__seal p{
+    margin:0;
+
+    font-size:.56rem;
+    letter-spacing:.055em;
+  }
+
+  .site-footer__legal{
+    margin:0;
+    padding:0;
+
+    font-size:.46rem;
+  }
+
+
+  /* subtle social row */
+
+  .site-footer__connect{
+    justify-self:center;
+
+    max-width:none;
+
+    margin-top:.2rem;
+  }
+
+  .site-footer__connect > strong{
+    margin-bottom:.3rem;
+
+    font-size:.52rem;
+  }
+
+  .site-footer__socials{
+    gap:.7rem;
+  }
+
+  .site-footer__social-icon{
+    width:29px;
+    height:29px;
+
+    font-size:.76rem;
+
+    border-color:rgba(255,215,70,.55);
+  }
+
+  /* icons only on mobile */
+
+  .site-footer__social-label{
+    display:none;
+  }
+}
+
+
+/* =========================================================
+   SHORT LANDSCAPE
+========================================================= */
+
+@media(max-height:600px) and (orientation:landscape){
+
+  .site-footer__inner{
+    grid-template-columns:
+      minmax(0,1fr)
+      minmax(160px,.7fr)
+      minmax(0,1fr);
+
+    grid-template-areas:
+      "headquarters brand connect"
+      "headquarters legal connect";
+  }
+
+  .site-footer__seal-image,
+  .sandman-crest{
+    width:40px;
+    height:40px;
+  }
+
+  .site-footer__social-icon{
+    width:30px;
+    height:30px;
+  }
+}
+
