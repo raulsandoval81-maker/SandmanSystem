@@ -3,13 +3,295 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Lompoc | Sandman Academy</title>
+
+  <title>Lompoc Wrestling | Sandman Academy</title>
+
+  <meta
+    name="description"
+    content="Sandman Academy wrestling programs now enrolling in Lompoc."
+  >
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      min-height:100vh;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(255,255,255,.055),
+          transparent 35%
+        ),
+        #080808;
+
+      color:#fff;
+
+      font-family:
+        Arial,
+        Helvetica,
+        sans-serif;
+    }
+
+    .lompoc{
+      width:min(
+        760px,
+        calc(100% - 32px)
+      );
+
+      margin:0 auto;
+      padding:64px 0 80px;
+    }
+
+    .lompoc__hero{
+      text-align:center;
+    }
+
+    .lompoc__eyebrow{
+      margin:0 0 10px;
+
+      color:#aaa;
+
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.18em;
+      text-transform:uppercase;
+    }
+
+    .lompoc__hero h1{
+      margin:0;
+
+      font-size:
+        clamp(
+          2.3rem,
+          8vw,
+          4.4rem
+        );
+
+      line-height:.97;
+      text-transform:uppercase;
+    }
+
+    .lompoc__movement{
+      margin:14px 0 0;
+
+      color:#d1d1d1;
+
+      font-size:
+        clamp(
+          1rem,
+          3.5vw,
+          1.25rem
+        );
+
+      font-weight:800;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .lompoc__panel{
+      margin-top:34px;
+      padding:28px;
+
+      border:
+        1px solid
+        rgba(255,255,255,.16);
+
+      border-radius:24px;
+
+      background:
+        rgba(255,255,255,.04);
+    }
+
+    .lompoc__status{
+      margin:0 0 20px;
+
+      text-align:center;
+
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .lompoc__programs{
+      display:grid;
+      grid-template-columns:
+        repeat(
+          2,
+          minmax(0,1fr)
+        );
+
+      gap:14px;
+    }
+
+    .lompoc__program{
+      padding:22px;
+
+      border:
+        1px solid
+        rgba(255,255,255,.11);
+
+      border-radius:18px;
+
+      background:
+        rgba(255,255,255,.025);
+    }
+
+    .lompoc__program h2{
+      margin:0 0 7px;
+
+      font-size:1.18rem;
+      text-transform:uppercase;
+    }
+
+    .lompoc__program p{
+      margin:0;
+
+      color:#c8c8c8;
+      line-height:1.55;
+    }
+
+    .lompoc__cta{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:52px;
+      width:100%;
+
+      margin-top:24px;
+      padding:14px 20px;
+
+      border-radius:999px;
+
+      background:#fff;
+      color:#080808;
+
+      font-size:.86rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-decoration:none;
+      text-transform:uppercase;
+    }
+
+    .lompoc__back{
+      display:block;
+
+      margin-top:20px;
+
+      color:#aaa;
+
+      font-size:.8rem;
+      text-align:center;
+      text-decoration:none;
+    }
+
+    @media(max-width:620px){
+      .lompoc{
+        width:min(
+          100% - 24px,
+          560px
+        );
+
+        padding:
+          42px 0 56px;
+      }
+
+      .lompoc__programs{
+        grid-template-columns:1fr;
+      }
+
+      .lompoc__panel{
+        padding:22px;
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <main>
-    <h1>Sandman Academy — Lompoc</h1>
-    <p>This location is not currently enrolling.</p>
-    <p><a href="/locations/">View available academies</a></p>
+
+  <main class="lompoc">
+
+    <header class="lompoc__hero">
+
+      <p class="lompoc__eyebrow">
+        Sandman Academy
+      </p>
+
+      <h1>
+        Lompoc Strong
+      </h1>
+
+      <p class="lompoc__movement">
+        Join the Movement
+      </p>
+
+    </header>
+
+
+    <section class="lompoc__panel">
+
+      <p class="lompoc__status">
+        Enrolling Now · Wrestling
+      </p>
+
+
+      <div class="lompoc__programs">
+
+        <article class="lompoc__program">
+
+          <h2>
+            Zero2Hero™
+          </h2>
+
+          <p>
+            Ages 7–13
+            <br>
+            Youth Wrestling
+          </p>
+
+        </article>
+
+
+        <article class="lompoc__program">
+
+          <h2>
+            Path2Legend™
+          </h2>
+
+          <p>
+            Ages 14–19
+            <br>
+            Teen Wrestling
+          </p>
+
+        </article>
+
+      </div>
+
+
+      <a
+        class="lompoc__cta"
+        href="/connect/interest/?academy=sandman&location=lompoc"
+      >
+        Start Your Journey
+      </a>
+
+    </section>
+
+
+    <a
+      class="lompoc__back"
+      href="/locations/"
+    >
+      ← Find another location
+    </a>
+
   </main>
+
 </body>
 </html>

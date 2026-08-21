@@ -686,6 +686,7 @@ html[data-theme="light"] .gateway-title{
     <article
       id="santaYnezAcademy"
       class="academy-card"
+      hidden
     >
 
       <div class="academy-card__header">
@@ -824,20 +825,145 @@ html[data-theme="light"] .gateway-title{
     </article>
 
 
+    <!-- LOMPOC SEARCH RESULT -->
+
+    <article
+      id="lompocAcademy"
+      class="academy-card"
+      hidden
+    >
+
+      <div class="academy-card__header">
+
+        <span
+          class="academy-status"
+          data-lang-block="en"
+        >
+          Enrolling Now
+        </span>
+
+        <span
+          class="academy-status hidden-lang"
+          data-lang-block="es"
+        >
+          Inscripciones Abiertas
+        </span>
+
+        <h2>
+          Lompoc
+        </h2>
+
+      </div>
+
+
+      <div data-lang-block="en">
+
+        <section class="academy-program">
+
+          <h3>Zero2Hero™</h3>
+
+          <span class="academy-age">
+            Ages 7–13
+          </span>
+
+          <div class="discipline">
+            <strong>Wrestling</strong>
+            <span>Brothers &amp; Sisters for Life</span>
+          </div>
+
+        </section>
+
+
+        <section class="academy-program">
+
+          <h3>Path2Legend™</h3>
+
+          <span class="academy-age">
+            Ages 14–19
+          </span>
+
+          <div class="discipline">
+            <strong>Wrestling</strong>
+            <span>Brothers &amp; Sisters for Life</span>
+          </div>
+
+        </section>
+
+
+        <a
+          class="academy-button"
+          href="/locations/lompoc/"
+        >
+          Visit Lompoc →
+        </a>
+
+      </div>
+
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <section class="academy-program">
+
+          <h3>Zero2Hero™</h3>
+
+          <span class="academy-age">
+            Edades 7–13
+          </span>
+
+          <div class="discipline">
+            <strong>Lucha</strong>
+            <span>Por Vida — Hermanos y Hermanas</span>
+          </div>
+
+        </section>
+
+
+        <section class="academy-program">
+
+          <h3>Path2Legend™</h3>
+
+          <span class="academy-age">
+            Edades 14–19
+          </span>
+
+          <div class="discipline">
+            <strong>Lucha</strong>
+            <span>Por Vida — Hermanos y Hermanas</span>
+          </div>
+
+        </section>
+
+
+        <a
+          class="academy-button"
+          href="/locations/lompoc/"
+        >
+          Visitar Lompoc →
+        </a>
+
+      </div>
+
+    </article>
+
+
     <p
+      id="academySearchNote"
       class="local-note"
       data-lang-block="en"
     >
-      Serving athletes and families throughout the
-      Santa Ynez Valley and surrounding communities.
+      Search above to find programs currently available
+      in your community.
     </p>
 
     <p
       class="local-note hidden-lang"
       data-lang-block="es"
     >
-      Sirviendo a atletas y familias del Valle de Santa Ynez
-      y comunidades cercanas.
+      Busca arriba para encontrar programas disponibles
+      actualmente en tu comunidad.
     </p>
 
   </main>
@@ -867,67 +993,171 @@ html[data-theme="light"] .gateway-title{
 
   <script>
     (() => {
-      const form = document.getElementById("academyFinder");
-      const input = document.getElementById("academyCity");
-      const academy = document.getElementById("santaYnezAcademy");
-      const noResult = document.getElementById("academyNoResult");
+      const form =
+        document.getElementById(
+          "academyFinder"
+        );
 
-      if (!form || !input || !academy || !noResult) return;
+      const input =
+        document.getElementById(
+          "academyCity"
+        );
 
-      const localCities = [
-        "santa ynez",
-        "santa ynez valley",
-        "solvang",
-        "buellton",
-        "los olivos",
-        "ballard"
+      const santaYnez =
+        document.getElementById(
+          "santaYnezAcademy"
+        );
+
+      const lompoc =
+        document.getElementById(
+          "lompocAcademy"
+        );
+
+      const noResult =
+        document.getElementById(
+          "academyNoResult"
+        );
+
+      if (
+        !form ||
+        !input ||
+        !santaYnez ||
+        !lompoc ||
+        !noResult
+      ) {
+        return;
+      }
+
+
+      const locations = [
+        {
+          card: santaYnez,
+
+          aliases: [
+            "santa ynez",
+            "santa ynez valley",
+            "solvang",
+            "buellton",
+            "los olivos",
+            "ballard",
+            "93460",
+            "93463",
+            "93427",
+            "93441"
+          ]
+        },
+
+        {
+          card: lompoc,
+
+          aliases: [
+            "lompoc",
+            "93436",
+            "93437"
+          ]
+        }
       ];
 
+
       const normalize = value =>
-        value
+        String(value || "")
           .toLowerCase()
           .trim()
           .replace(/[.,]/g, "")
           .replace(/\s+/g, " ");
 
-      form.addEventListener("submit", event => {
-        event.preventDefault();
 
-        const city = normalize(input.value);
+      function hideResults() {
+        santaYnez.hidden = true;
+        lompoc.hidden = true;
 
-        if (!city) {
-          input.focus();
-          return;
-        }
-
-        const localMatch = localCities.some(
-          place =>
-            city === place ||
-            city.includes(place)
+        noResult.classList.remove(
+          "is-visible"
         );
+      }
 
-        if (localMatch) {
-          noResult.classList.remove("is-visible");
-          academy.hidden = false;
 
-          academy.scrollIntoView({
-            behavior:"smooth",
-            block:"center"
-          });
+      function findLocation(value) {
+        const search =
+          normalize(value);
 
-          return;
+        if (!search) {
+          return null;
         }
 
-        academy.hidden = true;
-        noResult.classList.add("is-visible");
+        return (
+          locations.find(
+            location =>
+              location.aliases.some(
+                alias =>
+                  search === normalize(alias)
+              )
+          )
+          ||
+          locations.find(
+            location =>
+              location.aliases.some(
+                alias =>
+                  search.includes(
+                    normalize(alias)
+                  )
+              )
+          )
+          ||
+          null
+        );
+      }
 
-        noResult.scrollIntoView({
-          behavior:"smooth",
-          block:"center"
-        });
-      });
+
+      form.addEventListener(
+        "submit",
+        event => {
+          event.preventDefault();
+
+          const city =
+            normalize(input.value);
+
+          if (!city) {
+            input.focus();
+            return;
+          }
+
+          hideResults();
+
+          const result =
+            findLocation(city);
+
+          if (result) {
+            result.card.hidden = false;
+
+            result.card.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+
+            return;
+          }
+
+          noResult.classList.add(
+            "is-visible"
+          );
+
+          noResult.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        }
+      );
+
+
+      /*
+       * Gateway starts clean.
+       * No academy card is permanently displayed.
+       */
+      hideResults();
     })();
   </script>
+
 
 </body>
 </html>
