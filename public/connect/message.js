@@ -114,8 +114,14 @@ form?.addEventListener(
         preferredOrganization === "sandman-academy" &&
         preferredLocation === "lompoc";
 
+      const isElkGroveLocal =
+        preferredOrganization === "sandman-academy" &&
+        preferredLocation === "elk-grove";
+
       const isKnownLocal =
-        isSantaYnezLocal || isLompocLocal;
+        isSantaYnezLocal ||
+        isLompocLocal ||
+        isElkGroveLocal;
 
       const payload = {
         organization: "sandman-system",
@@ -218,11 +224,13 @@ form?.addEventListener(
             : null,
 
         locationName:
-          isLompocLocal
-            ? "Lompoc"
-            : isSantaYnezLocal
-              ? "Santa Ynez Valley"
-              : "",
+          isElkGroveLocal
+            ? "Elk Grove, California"
+            : isLompocLocal
+              ? "Lompoc"
+              : isSantaYnezLocal
+                ? "Santa Ynez Valley"
+                : "",
 
         assignedAdminUid: null,
         assignedManagerUid: null,
@@ -264,16 +272,20 @@ form?.addEventListener(
       setStatus(
         currentLanguage() === "es"
           ? (
-              isLompocLocal
-                ? "Mensaje recibido. El equipo de administración de Lompoc lo revisará."
-                : isSantaYnezLocal
+              isElkGroveLocal
+                ? "Mensaje recibido. La gerencia de Elk Grove lo revisará."
+                : isLompocLocal
+                  ? "Mensaje recibido. El equipo de administración de Lompoc lo revisará."
+                  : isSantaYnezLocal
                   ? "Mensaje recibido. El equipo de administración del Valle de Santa Ynez lo revisará."
                   : "Mensaje recibido. Nuestro equipo del sistema lo dirigirá al lugar correspondiente."
             )
           : (
-              isLompocLocal
-                ? "Message received. Lompoc management will review it."
-                : isSantaYnezLocal
+              isElkGroveLocal
+                ? "Message received. Elk Grove Management will review it."
+                : isLompocLocal
+                  ? "Message received. Lompoc management will review it."
+                  : isSantaYnezLocal
                   ? "Message received. Santa Ynez Valley management will review it."
                   : "Message received. Our system team will route it appropriately."
             ),

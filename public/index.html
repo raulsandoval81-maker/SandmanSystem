@@ -949,6 +949,29 @@ html[data-theme="light"] .gateway-title{
     </article>
 
 
+
+
+    <!-- ELK GROVE SEARCH RESULT -->
+
+    <article id="elkGroveAcademy" class="academy-card" hidden>
+      <div class="academy-card__header">
+        <span class="academy-status" data-lang-block="en">Enrollment Open</span>
+        <span class="academy-status hidden-lang" data-lang-block="es">Inscripciones Abiertas</span>
+        <h2>Sandman Academy — Elk Grove, California</h2>
+      </div>
+      <div data-lang-block="en">
+        <section class="academy-program"><h3>Zero2Hero™</h3><span class="academy-age">Ages 7–13</span><div class="discipline"><strong>Boxing</strong><span>Balance · Movement · Defense · Confidence</span></div></section>
+        <section class="academy-program"><h3>Path2Legend™</h3><span class="academy-age">Ages 14+</span><div class="discipline"><strong>Boxing</strong><span>Movement · Timing · Composure · Leadership</span></div></section>
+        <a class="academy-button" href="/locations/elk-grove/">Visit Elk Grove →</a>
+      </div>
+      <div data-lang-block="es" class="hidden-lang">
+        <section class="academy-program"><h3>Zero2Hero™</h3><span class="academy-age">Edades 7–13</span><div class="discipline"><strong>Boxeo</strong><span>Equilibrio · Movimiento · Defensa · Confianza</span></div></section>
+        <section class="academy-program"><h3>Path2Legend™</h3><span class="academy-age">Edades 14+</span><div class="discipline"><strong>Boxeo</strong><span>Movimiento · Tiempo · Compostura · Liderazgo</span></div></section>
+        <a class="academy-button" href="/locations/elk-grove/">Visitar Elk Grove →</a>
+      </div>
+    </article>
+
+
     <p
       id="academySearchNote"
       class="local-note"
@@ -1013,6 +1036,11 @@ html[data-theme="light"] .gateway-title{
           "lompocAcademy"
         );
 
+      const elkGrove =
+        document.getElementById(
+          "elkGroveAcademy"
+        );
+
       const noResult =
         document.getElementById(
           "academyNoResult"
@@ -1023,6 +1051,7 @@ html[data-theme="light"] .gateway-title{
         !input ||
         !santaYnez ||
         !lompoc ||
+        !elkGrove ||
         !noResult
       ) {
         return;
@@ -1055,6 +1084,20 @@ html[data-theme="light"] .gateway-title{
             "93436",
             "93437"
           ]
+        },
+
+        {
+          card: elkGrove,
+          aliases: [
+            "elk grove",
+            "sacramento",
+            "sacramento area",
+            "galt",
+            "lodi",
+            "roseville",
+            "natomas",
+            "rancho cordova"
+          ]
         }
       ];
 
@@ -1070,6 +1113,7 @@ html[data-theme="light"] .gateway-title{
       function hideResults() {
         santaYnez.hidden = true;
         lompoc.hidden = true;
+        elkGrove.hidden = true;
 
         noResult.classList.remove(
           "is-visible"

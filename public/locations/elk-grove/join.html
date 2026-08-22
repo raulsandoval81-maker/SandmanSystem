@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Join | Sandman Combat™</title>
+  <link rel="icon" href="/favicon.svg" />
+
+  <link rel="stylesheet" href="/public.css" />
+  <script src="/assets/js/public-shell.js" defer></script>
+<style>
+  .hero h1{
+    margin-bottom:.5rem;
+  }
+
+  .hero-sub{
+    margin:0;
+  }
+
+  .hero-tag{
+    margin-top:.75rem;
+  }
+
+  .option-card{
+    background:var(--panel-2);
+    border:1px solid var(--line);
+    border-radius:16px;
+    padding:1rem;
+    height:100%;
+    display:flex;
+    flex-direction:column;
+    gap:.75rem;
+    transition:
+      border-color .15s ease,
+      box-shadow .15s ease,
+      transform .15s ease;
+  }
+
+  .option-card:hover{
+    transform:translateY(-1px);
+  }
+
+  .option-card.active{
+    border:2px solid #ffd633;
+    box-shadow:0 0 0 2px rgba(255,214,51,.22);
+  }
+
+  .option-card h3{
+    margin:0;
+    font-size:1.1rem;
+    color:var(--text);
+    font-weight:900;
+  }
+
+  .option-price{
+    font-size:1rem;
+    font-weight:900;
+    color:var(--brand);
+    margin:0;
+  }
+
+  .option-price span{
+    font-size:.82rem;
+    opacity:.8;
+  }
+
+  .option-copy{
+    margin:0;
+    color:var(--muted);
+    line-height:1.55;
+    flex:1;
+  }
+
+  .option-note{
+    margin:0;
+    padding:.8rem .9rem;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:rgba(0,0,0,.14);
+    color:var(--muted);
+    line-height:1.55;
+    font-size:.92rem;
+  }
+
+  body.day-mode .option-note{
+    background:rgba(255,255,255,.65);
+  }
+
+  .option-note strong{
+    color:var(--brand);
+  }
+
+  .selected-path{
+    margin-top:1rem;
+    padding:.9rem 1rem;
+    border-radius:12px;
+    border:1px solid var(--line);
+    background:var(--panel-2);
+    color:var(--muted);
+    line-height:1.55;
+  }
+
+  .selected-path strong{
+    color:var(--brand);
+  }
+
+  #agreeTerms + span{
+    font-weight:700;
+    color:#e5e7eb;
+  }
+
+  body.day-mode #agreeTerms + span{
+    color:#1c2430;
+  }
+#joinForm{
+  margin-top:1rem;
+}
+
+#joinForm label{
+  display:block;
+  margin-bottom:.4rem;
+  color:var(--text);
+  font-weight:900;
+  font-size:.9rem;
+}
+
+#joinForm input,
+#joinForm select,
+#joinForm textarea{
+  width:100%;
+  min-height:46px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:rgba(0,0,0,.22);
+  color:var(--text);
+  padding:.75rem .85rem;
+  font:inherit;
+  outline:none;
+}
+
+#joinForm textarea{
+  min-height:110px;
+  resize:vertical;
+}
+
+#joinForm input:focus,
+#joinForm select:focus,
+#joinForm textarea:focus{
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px rgba(255,214,51,.18);
+}
+
+body.day-mode #joinForm input,
+body.day-mode #joinForm select,
+body.day-mode #joinForm textarea{
+  background:rgba(255,255,255,.78);
+  color:#1c2430;
+}
+
+.terms-check{
+  display:flex !important;
+  align-items:flex-start;
+  gap:.65rem;
+  margin:1rem 0;
+  line-height:1.45;
+}
+
+.terms-check input{
+  width:auto !important;
+  min-height:auto !important;
+  margin-top:.2rem;
+}
+
+.join-actions{
+  margin-top:1rem;
+}
+
+.info-note{
+  margin-top:1.25rem;
+  padding:1rem;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panel-2);
+  color:var(--muted);
+  line-height:1.55;
+  font-size:.92rem;
+}
+
+.info-note strong{
+  display:block;
+  margin-bottom:.5rem;
+  color:var(--brand);
+  font-size:1rem;
+}
+
+.info-note p{
+  margin:.65rem 0 0;
+}
+
+</style>
+
+
+<body class="subpage">
+  <header class="top-nav top-nav-simple">
+    <div class="nav-top nav-top-center">
+      <a href="/locations/elk-grove/" class="nav-logo">Sandman Combat™</a>
+    </div>
+
+    <nav class="site-nav" aria-label="Primary">
+      <a href="/locations/elk-grove/">
+        <span data-lang-block="en">Home</span>
+        <span data-lang-block="es" class="hidden-lang">Inicio</span>
+      </a>
+      <a href="/locations/elk-grove/programs.html">
+        <span data-lang-block="en">Overview</span>
+        <span data-lang-block="es" class="hidden-lang">Resumen</span>
+      </a>
+      <a href="/locations/elk-grove/programs.html">
+        <span data-lang-block="en">Programs</span>
+        <span data-lang-block="es" class="hidden-lang">Programas</span>
+      </a>
+      <a href="/locations/elk-grove/about.html">
+        <span data-lang-block="en">About</span>
+        <span data-lang-block="es" class="hidden-lang">Acerca</span>
+      </a>
+    </nav>
+  </header>
+
+  <main class="wrap">
+
+    <section class="section">
+      <div class="hero">
+        <div data-lang-block="en">
+
+          <h1>Membership &amp; Getting Started</h1>
+
+
+          <p class="hero-tag">
+            Whether you're new to combat sports or already have experience, every family begins with a conversation. We'll learn about your goals, recommend the best starting point, and guide you through enrollment.
+          </p>
+
+          <div class="option-note">
+            <strong>Not sure where to start?</strong><br>
+            Don't worry—we'll help you choose the journey that's the best fit for your athlete and family.
+          </div>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+
+          <h1>Membresías y Primeros Pasos</h1>
+
+          <p class="hero-tag">
+            Ya sea que tu atleta sea nuevo en los deportes de combate o ya tenga experiencia, cada familia comienza con una conversación. Conoceremos sus objetivos, recomendaremos el mejor punto de partida y los guiaremos durante el proceso de inscripción.
+          </p>
+
+          <div class="option-note">
+            <strong>¿No sabes por dónde empezar?</strong><br>
+            No te preocupes—te ayudaremos a elegir el camino que mejor se adapte a tu atleta y a tu familia.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <article class="panel">
+        <span class="pill-tag">
+          <span data-lang-block="en">Getting Started</span>
+          <span data-lang-block="es" class="hidden-lang">Primeros Pasos</span>
+        </span>
+
+        <h2 class="panel-title">
+          <span data-lang-block="en">Choose the option that best fits your family.</span>
+          <span data-lang-block="es" class="hidden-lang">Elige la opción que mejor se adapte a tu familia.</span>
+        </h2>
+
+        <div class="grid">
+
+          <div class="col-6">
+            <div class="option-card active">
+              <h3><span data-lang-block="en">Zero2Hero Boxing</span><span data-lang-block="es" class="hidden-lang">Boxeo Zero2Hero</span></h3>
+              <p class="option-copy"><span data-lang-block="en">Ages 7–13. Share the athlete’s goals and availability with Elk Grove Management.</span><span data-lang-block="es" class="hidden-lang">Edades 7–13. Comparte las metas y la disponibilidad del atleta con la gerencia de Elk Grove.</span></p>
+              <a class="btn btn-primary" href="/connect/interest/?academy=sandman&location=elk-grove"><span data-lang-block="en">Complete Interest Form</span><span data-lang-block="es" class="hidden-lang">Completar Formulario de Interés</span></a>
+            </div>
+          </div>
+
+          <div class="col-6">
+            <div class="option-card">
+              <h3><span data-lang-block="en">Path2Legend Boxing</span><span data-lang-block="es" class="hidden-lang">Boxeo Path2Legend</span></h3>
+              <p class="option-copy"><span data-lang-block="en">Ages 14+. Share the athlete’s goals and availability with Elk Grove Management.</span><span data-lang-block="es" class="hidden-lang">Edades 14+. Comparte las metas y la disponibilidad del atleta con la gerencia de Elk Grove.</span></p>
+              <a class="btn btn-primary" href="/connect/interest/?academy=sandman&location=elk-grove"><span data-lang-block="en">Complete Interest Form</span><span data-lang-block="es" class="hidden-lang">Completar Formulario de Interés</span></a>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="selected-path">
+          <strong data-lang-block="en">Ready to Get Started?</strong><strong data-lang-block="es" class="hidden-lang">¿Listo para comenzar?</strong><br><br>
+          <span data-lang-block="en">Elk Grove Management reviews each request and coordinates the appropriate next step. A coach is involved only when training expertise is needed.</span>
+          <span data-lang-block="es" class="hidden-lang">La gerencia de Elk Grove revisa cada solicitud y coordina el siguiente paso apropiado. Un entrenador participa solo cuando se necesita experiencia de entrenamiento.</span>
+        </div>
+
+      </article>
+    </section>
+  </main>
+
+</body>
+</html>

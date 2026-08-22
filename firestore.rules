@@ -514,6 +514,7 @@ match /interest_leads/{leadId} {
     && request.resource.data.locationId is string
     && request.resource.data.locationId in [
       "lompoc",
+      "elk-grove",
       "santa-ynez-valley"
     ];
 
@@ -1003,6 +1004,7 @@ match /academySettings/{academyId} {
           "santa-ynez-valley",
           "solvang",
           "lompoc",
+          "elk-grove",
           "system-team",
           "not-sure"
         ]
@@ -1012,7 +1014,7 @@ match /academySettings/{academyId} {
 
         /*
          * National entries remain unresolved.
-         * Known Santa Ynez local entries arrive with
+         * Known local academy entries arrive with
          * canonical routing values already attached.
          */
         && (
@@ -1057,6 +1059,35 @@ match /academySettings/{academyId} {
 
             && request.resource.data.locationName ==
               "Santa Ynez Valley"
+          )
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.preferredOrganization ==
+              "sandman-academy"
+
+            && request.resource.data.preferredLocation ==
+              "elk-grove"
+
+            && request.resource.data.organizationId ==
+              "sandman-academy"
+
+            && request.resource.data.organizationName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.academyId ==
+              "sandman-academy"
+
+            && request.resource.data.academyName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.locationId ==
+              "elk-grove"
+
+            && request.resource.data.locationName ==
+              "Elk Grove, California"
           )
         )
 
@@ -1368,6 +1399,87 @@ match /academySettings/{academyId} {
           is timestamp;
 
       /*
+       * Management may request System Admin guidance
+       * while retaining ownership of the response.
+       */
+      allow update: if isManagement()
+
+        && (
+          resource.data.get(
+            "assignedManagerUid",
+            null
+          ) == request.auth.uid
+          ||
+          (
+            resource.data.get(
+              "assignedManagerUid",
+              null
+            ) == null
+
+            && resource.data.get(
+              "assignmentStatus",
+              ""
+            ) == "PENDING_MANAGEMENT"
+
+            && managementHasLocation(
+              resource.data.get(
+                "locationId",
+                ""
+              )
+            )
+          )
+        )
+
+        && request.resource.data
+          .diff(resource.data)
+          .changedKeys()
+          .hasOnly([
+            "assignedManagerUid",
+            "routingStage",
+            "nextRoutingStage",
+            "assignmentStatus",
+            "status",
+            "messageStatus",
+            "escalated",
+            "escalationReason",
+            "updatedAt"
+          ])
+
+        && request.resource.data.assignedManagerUid ==
+          request.auth.uid
+
+        && request.resource.data.get(
+          "assignedCoachUid",
+          null
+        ) == resource.data.get(
+          "assignedCoachUid",
+          null
+        )
+
+        && request.resource.data.routingStage ==
+          "ADMIN_GUIDANCE_REQUESTED"
+
+        && request.resource.data.nextRoutingStage ==
+          "MANAGEMENT_RESPONSE"
+
+        && request.resource.data.assignmentStatus ==
+          "ASSIGNED"
+
+        && request.resource.data.status ==
+          "REVIEWING"
+
+        && request.resource.data.messageStatus ==
+          "REVIEWING"
+
+        && request.resource.data.escalated == true
+
+        && request.resource.data.escalationReason ==
+          "MANAGEMENT_GUIDANCE_REQUEST"
+
+        && request.resource.data.updatedAt
+          is timestamp;
+
+      /*
        * Coach receiver visibility.
        *
        * A coach may see only messages explicitly
@@ -1513,28 +1625,33 @@ match /academySettings/{academyId} {
     }
 
     function managementHasLocation(locationId) {
+      let staff = get(
+        /databases/$(database)/documents/staff/$(request.auth.uid)
+      ).data;
+
+      let locationIds =
+        staff.get("locationIds", null);
+
+      let legacyLocationId =
+        staff.get("locationId", "");
+
       return isManagement()
-        && get(
-          /databases/$(database)/documents/staff/$(request.auth.uid)
-        ).data.status == "active"
+        && staff.get("status", "") == "active"
         && locationId is string
         && (
           (
-            get(
-              /databases/$(database)/documents/staff/$(request.auth.uid)
-            ).data.locationIds is list
-            && locationId in get(
-              /databases/$(database)/documents/staff/$(request.auth.uid)
-            ).data.locationIds
+            locationIds is list
+            && locationId in locationIds
           )
           ||
           (
-            get(
-              /databases/$(database)/documents/staff/$(request.auth.uid)
-            ).data.locationId is string
-            && get(
-              /databases/$(database)/documents/staff/$(request.auth.uid)
-            ).data.locationId == locationId
+            locationIds is string
+            && locationIds == locationId
+          )
+          ||
+          (
+            legacyLocationId is string
+            && legacyLocationId == locationId
           )
         );
     }

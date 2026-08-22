@@ -10,10 +10,15 @@ import {
   getAcademyIdFromUrl,
   getLanguageFromUrl,
   normalizeInterestType,
-  buildLeadRoutingMetadata,
-  buildAcademyDestination
+  buildLeadRoutingMetadata
 } from "/assets/js/academy-routing.js";
 import { PROGRAMS } from "/assets/js/programs.js";
+
+const ELK_GROVE_PROGRAM_IDS =
+  new Set([
+    "zero2hero-boxing",
+    "path2legend-boxing"
+  ]);
 const form =
   document.getElementById("interestForm");
 
@@ -51,6 +56,18 @@ const intentText =
 const athleteAge =
   document.getElementById("athleteAge");
 
+const athleteAgeLabel =
+  document.getElementById("athleteAgeLabel");
+
+const shirtSize =
+  document.getElementById("shirtSize");
+
+const shirtSizeLabel =
+  document.getElementById("shirtSizeLabel");
+
+const personDetailsHeading =
+  document.getElementById("personDetailsHeading");
+
 const preferredDiscipline =
   document.getElementById("preferredDiscipline");
 
@@ -60,12 +77,30 @@ const programInterest =
 const combatProgramSection =
   document.getElementById("combatProgramSection");
 
+const fitnessFocusSection =
+  document.getElementById("fitnessFocusSection");
+
+const fitnessFocus =
+  document.getElementById("fitnessFocus");
+
+const academyTeamInterest =
+  document.getElementById("academyTeamInterest");
+
+const preferredLocation =
+  document.getElementById("preferredLocation");
+
 const interestTypeInputs =
   Array.from(
     document.querySelectorAll(
       'input[name="interestType"]'
     )
   );
+
+const trainingIntent =
+  document.getElementById("trainingIntent");
+
+const trainingIntentNotice =
+  document.getElementById("trainingIntentNotice");
 
 function currentLanguage() {
   return document.documentElement.lang === "es"
@@ -112,11 +147,11 @@ function renderSubmitButton(isSubmitting = false) {
 
   submitBtn.innerHTML = `
     <span data-lang="en">
-      Request an Admissions Appointment
+      Submit Training Request
     </span>
 
     <span data-lang="es">
-      Solicitar una Cita de Admisión
+      Enviar Solicitud de Entrenamiento
     </span>
   `;
 }
@@ -135,6 +170,73 @@ function normalizeEmail(value = "") {
 
 function normalizePhone(value = "") {
   return clean(value);
+}
+
+function getRequestedLocationId() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  return clean(
+    params.get("location")
+  )
+    .toLowerCase()
+    .replace(/\s+/g, "-");
+}
+
+function syncLocalLocationContext() {
+  if (!preferredLocation) {
+    return;
+  }
+
+  const locationId =
+    getRequestedLocationId();
+
+  /*
+   * Local academy pages already establish
+   * the visitor's operational location.
+   *
+   * Do not make them choose it again.
+   */
+  if (locationId === "lompoc") {
+    preferredLocation.value = "lompoc";
+    preferredLocation.required = false;
+    return;
+  }
+
+  if (locationId === "elk-grove") {
+    preferredLocation.value = "elk-grove";
+    preferredLocation.required = false;
+
+    interestTypeInputs.forEach((input) => {
+      const isCombat = input.value === "combat";
+      input.disabled = !isCombat;
+      input.checked = isCombat;
+
+      const option = input.closest(".interest-type-option");
+      if (option) option.hidden = !isCombat;
+    });
+
+    return;
+  }
+
+  if (locationId === "santa-ynez-valley") {
+    /*
+     * The current SYV physical meeting option
+     * is represented by "solvang" in the
+     * existing data model.
+     */
+    preferredLocation.value = "solvang";
+    preferredLocation.required = false;
+    return;
+  }
+
+  /*
+   * Generic/platform traffic still needs
+   * to choose a location.
+   */
+  preferredLocation.required = false;
 }
 
 function readForm() {
@@ -178,11 +280,7 @@ function readForm() {
     );
 
   const requestedLocationId =
-    clean(
-      params.get("location")
-    )
-      .toLowerCase()
-      .replace(/\s+/g, "-");
+    getRequestedLocationId();
 
   /*
    * Operational location ownership.
@@ -194,6 +292,7 @@ function readForm() {
   const publicLocationIds =
     new Set([
       "lompoc",
+      "elk-grove",
       "santa-ynez-valley"
     ]);
 
@@ -249,6 +348,9 @@ function readForm() {
     locationId,
     interestType,
 
+    trainingIntent:
+      clean(formData.get("trainingIntent")),
+
     registrantRole,
 
     registrantName:
@@ -271,6 +373,12 @@ function readForm() {
     programInterest:
       clean(formData.get("programInterest")),
 
+    fitnessFocus:
+      clean(formData.get("fitnessFocus")),
+
+    academyTeamInterest:
+      clean(formData.get("academyTeamInterest")),
+
     journey:
       selectedProgram?.journey || "",
 
@@ -292,6 +400,12 @@ function readForm() {
 
     preferredLocation:
       clean(formData.get("preferredLocation")),
+
+    needsTeamHelp:
+      formData.get("needsTeamHelp") === "yes",
+
+    teamInterest:
+      clean(formData.get("teamInterest")),
 
     preferredMeetingWindow:
       clean(
@@ -344,23 +458,48 @@ function validateLead(lead = {}) {
     lead.interestType === "combat" ||
     lead.interestType === "both";
 
-  const minimumAge =
-    isCombatInterest
-      ? 7
-      : 2;
-
   if (
-    !Number.isFinite(lead.athleteAge) ||
-    lead.athleteAge < minimumAge ||
-    lead.athleteAge > 99
+    !Number.isFinite(lead.athleteAge)
   ) {
     return message(
-      isCombatInterest
-        ? "Enter a valid athlete age (7 or older)."
-        : "Enter a valid participant age.",
-      isCombatInterest
-        ? "Ingresa una edad válida (7 años o más)."
-        : "Ingresa una edad válida para el participante."
+      "Enter a valid age.",
+      "Ingresa una edad válida."
+    );
+  }
+
+  if (
+    lead.registrantRole ===
+      "parent-guardian" &&
+    (
+      lead.athleteAge < 7 ||
+      lead.athleteAge > 19
+    )
+  ) {
+    return message(
+      "Athletes registered by a parent or guardian must be between ages 7 and 19.",
+      "Los atletas registrados por un padre, madre o tutor deben tener entre 7 y 19 años."
+    );
+  }
+
+  if (
+    lead.registrantRole ===
+      "adult-athlete" &&
+    lead.athleteAge < 18
+  ) {
+    return message(
+      "Adult athletes registering themselves must be age 18 or older.",
+      "Los atletas adultos que se registran personalmente deben tener 18 años o más."
+    );
+  }
+
+  if (!lead.shirtSize) {
+    return message(
+      lead.registrantRole === "adult-athlete"
+        ? "Select your T-shirt size."
+        : "Select the athlete's T-shirt size.",
+      lead.registrantRole === "adult-athlete"
+        ? "Selecciona tu talla de camiseta."
+        : "Selecciona la talla de camiseta del atleta."
     );
   }
 
@@ -383,17 +522,50 @@ if (
   );
 }
 
-  if (!lead.preferredLocation) {
-    return message(
-      "Select a preferred academy location.",
-      "Selecciona una ubicación preferida."
-    );
-  }
-
   if (!lead.preferredMeetingWindow) {
     return message(
       "Select your preferred meeting availability.",
       "Selecciona tu horario preferido para reunirte."
+    );
+  }
+
+  if (
+    ![
+      "local-prospect",
+      "visitor",
+      "returning"
+    ].includes(lead.trainingIntent)
+  ) {
+    return message(
+      "Select whether you are local, visiting, or returning.",
+      "Selecciona si eres local, visitante o estás regresando."
+    );
+  }
+
+  const isFitnessInterest =
+    lead.interestType === "fitness" ||
+    lead.interestType === "both";
+
+  if (
+    isFitnessInterest &&
+    !lead.fitnessFocus
+  ) {
+    return message(
+      "Select a fitness focus.",
+      "Selecciona un enfoque de fitness."
+    );
+  }
+
+  if (
+    lead.locationId === "elk-grove" &&
+    (
+      lead.interestType !== "combat" ||
+      !ELK_GROVE_PROGRAM_IDS.has(lead.programInterest)
+    )
+  ) {
+    return message(
+      "Select an available Elk Grove Boxing program.",
+      "Selecciona un programa de Boxeo disponible en Elk Grove."
     );
   }
 
@@ -447,8 +619,8 @@ if (
 
   if (!lead.referralSource) {
     return message(
-      "Tell us how you heard about Sandman Combat.",
-      "Indícanos cómo supiste de Sandman Combat."
+      "Tell us how you heard about Sandman Academy.",
+      "Indícanos cómo supiste de Sandman Academy."
     );
   }
 
@@ -505,8 +677,24 @@ form?.addEventListener(
           appointmentScheduledAt: null,
           enrolledAt: null,
 
-          coachNotes: "",
-          assignedCoachUid: ""
+          /*
+           * Local intake doctrine:
+           *
+           * Every public lead enters Management first.
+           * Interest type classifies the request but
+           * does not bypass Management.
+           */
+          routingStage: "MANAGEMENT_TRIAGE",
+          nextRoutingStage: "COACH_ASSIGNED",
+          routingPolicy: "LOCAL_TO_LOCATION_MANAGER",
+          requiredManagerLevel: "LOCATION_MANAGER",
+          assignmentStatus: "PENDING_MANAGEMENT",
+
+          assignedAdminUid: null,
+          assignedManagerUid: null,
+          assignedCoachUid: null,
+
+          coachNotes: ""
         }
       );
 
@@ -517,30 +705,22 @@ form?.addEventListener(
               window.location.search
             );
 
-      const routesAwayFromSandman =
-        lead.interestType === "fitness" ||
-        lead.interestType === "after-school";
-
-      if (routesAwayFromSandman) {
-        const destination =
-          buildAcademyDestination({
-            academyId: lead.academyId,
-            interestType: lead.interestType,
-            language,
-            additionalParams: {
-              submitted: "1"
-            }
-          });
-
-        window.location.assign(destination);
-        return;
-      }
-
+      /*
+       * Every successful public intake receives
+       * confirmation here. Management handles
+       * downstream operational routing.
+       */
       window.location.assign(
         "/connect/thanks/" +
         `?lang=${encodeURIComponent(language)}` +
         `&registrantRole=${encodeURIComponent(
           lead.registrantRole
+        )}` +
+        `&interest=${encodeURIComponent(
+          lead.interestType
+        )}` +
+        `&trainingIntent=${encodeURIComponent(
+          lead.trainingIntent
         )}`
       );
     } catch (error) {
@@ -677,6 +857,133 @@ function updateRegistrantRoleUI() {
             : "Nombre del Padre, Madre o Tutor";
       });
   }
+
+  /*
+   * Person-details language follows WHO.
+   */
+  if (athleteAgeLabel) {
+    athleteAgeLabel
+      .querySelectorAll('[data-lang="en"]')
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Your Age"
+            : "Athlete Age";
+      });
+
+    athleteAgeLabel
+      .querySelectorAll('[data-lang="es"]')
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Tu Edad"
+            : "Edad del Atleta";
+      });
+  }
+
+  /*
+   * WHO controls the allowed age range.
+   *
+   * Parent / Guardian:
+   *   athlete age 7–19
+   *
+   * Adult Athlete:
+   *   self-registering age 18+
+   */
+  if (athleteAge) {
+    athleteAge.min =
+      isAdultAthlete ? "18" : "7";
+
+    athleteAge.max =
+      isAdultAthlete ? "99" : "19";
+
+    const currentAge =
+      Number(athleteAge.value);
+
+    if (
+      Number.isFinite(currentAge) &&
+      currentAge > 0 &&
+      (
+        currentAge < Number(athleteAge.min) ||
+        currentAge > Number(athleteAge.max)
+      )
+    ) {
+      athleteAge.value = "";
+    }
+  }
+
+  if (shirtSizeLabel) {
+    shirtSizeLabel
+      .querySelectorAll('[data-lang="en"]')
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Your T-Shirt Size"
+            : "Athlete T-Shirt Size";
+      });
+
+    shirtSizeLabel
+      .querySelectorAll('[data-lang="es"]')
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Tu Talla de Camiseta"
+            : "Talla de Camiseta del Atleta";
+      });
+  }
+
+  if (personDetailsHeading) {
+    personDetailsHeading
+      .querySelectorAll('[data-lang="en"]')
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "About You"
+            : "Athlete";
+      });
+
+    personDetailsHeading
+      .querySelectorAll('[data-lang="es"]')
+      .forEach((element) => {
+        element.textContent =
+          isAdultAthlete
+            ? "Sobre Ti"
+            : "Atleta";
+      });
+  }
+
+  /*
+   * Adult registrants should not see
+   * youth shirt sizes.
+   *
+   * Parent/guardian flows keep both youth
+   * and adult sizes because older youth may
+   * wear adult sizing.
+   */
+  if (shirtSize) {
+    Array.from(shirtSize.options)
+      .forEach((option) => {
+        const isYouthSize =
+          option.value.startsWith("Youth ");
+
+        if (!isYouthSize) {
+          return;
+        }
+
+        option.hidden =
+          isAdultAthlete;
+
+        option.disabled =
+          isAdultAthlete;
+      });
+
+    if (
+      isAdultAthlete &&
+      shirtSize.value.startsWith("Youth ")
+    ) {
+      shirtSize.value = "";
+    }
+  }
 }
 
 function getSelectedInterestType() {
@@ -712,12 +1019,109 @@ function syncInterestTypeFromUrl() {
   }
 }
 
+function updateTrainingIntentNotice() {
+  if (
+    !trainingIntent ||
+    !trainingIntentNotice
+  ) {
+    return;
+  }
+
+  const visitType =
+    trainingIntent.value;
+
+  const interestType =
+    getSelectedInterestType();
+
+  if (!visitType) {
+    trainingIntentNotice.hidden = true;
+    trainingIntentNotice.textContent = "";
+    return;
+  }
+
+  let en = "";
+  let es = "";
+
+  if (visitType === "returning") {
+    en =
+      "Returning athletes are not eligible for another free trial. Management will confirm the appropriate paid re-entry option.";
+
+    es =
+      "Los atletas que regresan no son elegibles para otra prueba gratuita. Administración confirmará la opción pagada de regreso apropiada.";
+  }
+
+  if (visitType === "visitor") {
+    if (interestType === "combat") {
+      en =
+        "Visiting Combat: $30 for one training day or $40 for two training days.";
+
+      es =
+        "Combate para visitantes: $30 por un día de entrenamiento o $40 por dos días.";
+    }
+
+    if (interestType === "fitness") {
+      en =
+        "Visiting Fitness: $15 drop-in.";
+
+      es =
+        "Fitness para visitantes: $15 por clase.";
+    }
+
+    if (interestType === "both") {
+      en =
+        "Visiting Combat: $30 for one training day or $40 for two. Visiting Fitness: $15 drop-in.";
+
+      es =
+        "Combate para visitantes: $30 por un día o $40 por dos. Fitness para visitantes: $15 por clase.";
+    }
+  }
+
+  if (visitType === "local-prospect") {
+    if (interestType === "combat") {
+      en =
+        "Local Combat Trial: one complimentary walk-in session for local residents. Proof of residence is required. A brief admissions follow-up takes place after training.";
+
+      es =
+        "Prueba Local de Combate: una sesión de cortesía para residentes locales. Se requiere comprobante de residencia. Se realizará un breve seguimiento de admisiones después del entrenamiento.";
+    }
+
+    if (interestType === "fitness") {
+      en =
+        "Local Fitness: $15 drop-in. If you join, the $15 is applied toward enrollment or membership.";
+
+      es =
+        "Fitness local: $15 por clase. Si te inscribes, los $15 se aplican a la inscripción o membresía.";
+    }
+
+    if (interestType === "both") {
+      en =
+        "Local Combat Trial: one complimentary walk-in session for local residents. Proof of residence is required. A brief admissions follow-up takes place after training. Local Fitness: $15 drop-in, applied toward enrollment or membership if you join.";
+
+      es =
+        "Prueba Local de Combate: una sesión de cortesía para residentes locales. Se requiere comprobante de residencia. Se realizará un breve seguimiento de admisiones después del entrenamiento. Fitness local: $15 por clase, aplicado a la inscripción o membresía si te inscribes.";
+    }
+  }
+
+  trainingIntentNotice.textContent =
+    currentLanguage() === "es"
+      ? es
+      : en;
+
+  trainingIntentNotice.hidden =
+    !trainingIntentNotice.textContent;
+}
+
+
 function updateInterestTypeUI() {
   const interestType =
     getSelectedInterestType();
 
   const needsCombatProgram =
     interestType === "combat" ||
+    interestType === "both";
+
+  const needsFitnessFocus =
+    interestType === "fitness" ||
     interestType === "both";
 
   if (combatProgramSection) {
@@ -743,6 +1147,23 @@ function updateInterestTypeUI() {
 
     if (!needsCombatProgram) {
       preferredDiscipline.value = "";
+    }
+  }
+
+  if (fitnessFocusSection) {
+    fitnessFocusSection.hidden =
+      !needsFitnessFocus;
+  }
+
+  if (fitnessFocus) {
+    fitnessFocus.required =
+      needsFitnessFocus;
+
+    fitnessFocus.disabled =
+      !needsFitnessFocus;
+
+    if (!needsFitnessFocus) {
+      fitnessFocus.value = "";
     }
   }
 
@@ -798,9 +1219,14 @@ function updatePrograms() {
         program.max === null ||
         age <= program.max;
 
+      const availableAtLocation =
+        getRequestedLocationId() !== "elk-grove" ||
+        ELK_GROVE_PROGRAM_IDS.has(program.value);
+
       return (
         meetsMinimum &&
-        meetsMaximum
+        meetsMaximum &&
+        availableAtLocation
       );
     });
 
@@ -857,6 +1283,7 @@ document
           renderIntent();
           updatePrograms();
           syncPreferredDiscipline();
+          updateTrainingIntentNotice();
           setStatus("");
         }, 0);
       }
@@ -876,9 +1303,17 @@ programInterest?.addEventListener(
 interestTypeInputs.forEach((input) => {
   input.addEventListener(
     "change",
-    updateInterestTypeUI
+    () => {
+      updateInterestTypeUI();
+      updateTrainingIntentNotice();
+    }
   );
 });
+
+trainingIntent?.addEventListener(
+  "change",
+  updateTrainingIntentNotice
+);
 
 registrantRoleInputs.forEach((input) => {
   input.addEventListener(
@@ -903,8 +1338,12 @@ parentNameInput?.addEventListener(
 
 updateRegistrantRoleUI();
 
+syncLocalLocationContext();
+
 syncInterestTypeFromUrl();
+syncLocalLocationContext();
 updateInterestTypeUI();
+updateTrainingIntentNotice();
 
 renderIntent();
 
