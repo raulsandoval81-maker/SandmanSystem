@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Management Inbox | Sandman System</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/management/inbox/inbox.css"
+  />
+</head>
+
+<body>
+
+  <header class="inbox-header">
+    <div>
+      <p class="eyebrow">
+        Sandman System
+      </p>
+
+      <h1>
+        Management Inbox
+      </h1>
+
+      <p
+        id="managementIdentity"
+        class="identity"
+      >
+        Verifying Management access...
+      </p>
+    </div>
+
+    <div class="header-actions">
+      <a
+        class="button button-secondary"
+        href="/management/hub/"
+      >
+        Management Home
+      </a>
+
+      <button
+        id="refreshButton"
+        class="button button-secondary"
+        type="button"
+      >
+        Refresh
+      </button>
+
+      <button
+        id="signOutButton"
+        class="button button-secondary"
+        type="button"
+      >
+        Sign Out
+      </button>
+    </div>
+  </header>
+
+
+  <main class="inbox-layout">
+
+    <!-- ==============================
+         MESSAGE QUEUE
+    =============================== -->
+
+    <section class="queue-panel">
+
+      <div class="panel-heading">
+        <div>
+          <p class="section-label">
+            Local Communications
+          </p>
+
+          <h2>
+            Messages
+          </h2>
+
+          <p class="muted">
+            Review messages for your assigned
+            academy locations.
+          </p>
+        </div>
+
+        <span
+          id="messageCount"
+          class="count-badge"
+        >
+          0
+        </span>
+      </div>
+
+
+      <div class="filters">
+
+        <label>
+          Status
+
+          <select id="statusFilter">
+            <option value="ACTIVE">
+              Active
+            </option>
+
+            <option value="PENDING_MANAGEMENT">
+              Pending Management
+            </option>
+
+            <option value="ASSIGNED">
+              Assigned to Coach
+            </option>
+
+            <option value="RESPONDED">
+              Responded
+            </option>
+
+            <option value="CLOSED">
+              Closed
+            </option>
+
+            <option value="ALL">
+              All
+            </option>
+          </select>
+        </label>
+
+
+        <label>
+          Search
+
+          <input
+            id="messageSearch"
+            type="search"
+            placeholder="Name, email, topic..."
+          />
+        </label>
+
+      </div>
+
+
+      <div
+        id="loadingState"
+        class="state-card"
+      >
+        Loading messages...
+      </div>
+
+
+      <div
+        id="errorState"
+        class="state-card state-card--error"
+        hidden
+      >
+        Messages could not be loaded.
+      </div>
+
+
+      <div
+        id="emptyState"
+        class="state-card"
+        hidden
+      >
+        No messages are waiting in this queue.
+      </div>
+
+
+      <div
+        id="messageQueue"
+        class="message-queue"
+        hidden
+      ></div>
+
+    </section>
+
+
+    <!-- ==============================
+         MESSAGE DETAIL
+    =============================== -->
+
+    <section class="detail-panel">
+
+      <div
+        id="detailEmpty"
+        class="detail-empty"
+      >
+        Select a message to review.
+      </div>
+
+
+      <div
+        id="messageDetail"
+        hidden
+      >
+
+        <div class="detail-heading">
+          <div>
+            <p class="section-label">
+              Message Detail
+            </p>
+
+            <h2 id="detailTopic">
+              General Question
+            </h2>
+
+            <p
+              id="detailContactName"
+              class="identity"
+            >
+              Contact
+            </p>
+
+            <p
+              id="detailSubmittedAt"
+              class="muted"
+            >
+              Submitted
+            </p>
+          </div>
+
+          <span
+            id="detailStatus"
+            class="status-badge"
+          >
+            Pending
+          </span>
+        </div>
+
+
+        <dl class="detail-grid">
+
+          <div>
+            <dt>Email</dt>
+
+            <dd>
+              <a id="detailEmail">
+                Not provided
+              </a>
+            </dd>
+          </div>
+
+
+          <div>
+            <dt>Phone</dt>
+
+            <dd>
+              <a id="detailPhone">
+                Not provided
+              </a>
+            </dd>
+          </div>
+
+
+          <div>
+            <dt>Organization</dt>
+
+            <dd id="detailOrganization">
+              Not assigned
+            </dd>
+          </div>
+
+
+          <div>
+            <dt>Location</dt>
+
+            <dd id="detailLocation">
+              Not assigned
+            </dd>
+          </div>
+
+
+          <div>
+            <dt>Routing Stage</dt>
+
+            <dd id="detailRoutingStage">
+              —
+            </dd>
+          </div>
+
+
+          <div>
+            <dt>Assignment</dt>
+
+            <dd id="detailAssignment">
+              —
+            </dd>
+          </div>
+
+        </dl>
+
+
+        <div class="message-card">
+          <p class="section-label">
+            Message
+          </p>
+
+          <p id="detailMessage">
+            No message provided.
+          </p>
+        </div>
+
+
+        <!-- ==============================
+             COACH HANDOFF
+        =============================== -->
+
+        <form id="assignmentForm">
+
+          <input
+            id="selectedMessageId"
+            type="hidden"
+          />
+
+
+          <div>
+            <p class="section-label">
+              Management Action
+            </p>
+
+            <h3>
+              Route to Coach
+            </h3>
+
+            <p class="muted">
+              Assign a coach only when coaching
+              support is needed.
+            </p>
+          </div>
+
+
+          <label>
+            Coach
+
+            <select id="coachSelect">
+              <option value="">
+                Select an active coach
+              </option>
+            </select>
+          </label>
+
+
+          <label>
+            Management Notes
+
+            <textarea
+              id="managementNotes"
+              rows="5"
+              placeholder="Add internal notes for the coach..."
+            ></textarea>
+          </label>
+
+
+          <div class="form-actions">
+
+            <button
+              id="assignCoachButton"
+              class="button button-primary"
+              type="submit"
+            >
+              Assign Coach
+            </button>
+
+          </div>
+
+
+          <p
+            id="formStatus"
+            class="form-status"
+            aria-live="polite"
+          ></p>
+
+        </form>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script
+    type="module"
+    src="/management/inbox/inbox.js"
+  ></script>
+
+</body>
+</html>

@@ -856,20 +856,47 @@ match /academySettings/{academyId} {
         && request.resource.data.status == "NEW"
         && request.resource.data.messageStatus == "NEW"
 
-        && request.resource.data.routingStage ==
-           "ADMIN_REVIEW"
-
-        && request.resource.data.nextRoutingStage ==
-           "MANAGEMENT_TRIAGE"
-
-        && request.resource.data.routingPolicy ==
-           "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER"
-
         && request.resource.data.requiredManagerLevel ==
            "LOCATION_MANAGER"
 
-        && request.resource.data.assignmentStatus ==
-           "UNASSIGNED"
+        /*
+         * Two valid public entrances:
+         *
+         * 1. National / unknown
+         *    -> Admin Review
+         *
+         * 2. Known Santa Ynez local academy
+         *    -> Location Management queue
+         */
+        && (
+          (
+            request.resource.data.routingStage ==
+              "ADMIN_REVIEW"
+
+            && request.resource.data.nextRoutingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.routingPolicy ==
+              "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER"
+
+            && request.resource.data.assignmentStatus ==
+              "UNASSIGNED"
+          )
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.nextRoutingStage ==
+              "COACH_ASSIGNED"
+
+            && request.resource.data.routingPolicy ==
+              "LOCAL_TO_LOCATION_MANAGER"
+
+            && request.resource.data.assignmentStatus ==
+              "PENDING_MANAGEMENT"
+          )
+        )
 
         && request.resource.data.contactName is string
         && request.resource.data.contactName.size() > 0
@@ -905,6 +932,7 @@ match /academySettings/{academyId} {
            is string
 
         && request.resource.data.preferredLocation in [
+          "santa-ynez-valley",
           "solvang",
           "lompoc",
           "system-team",
@@ -914,14 +942,55 @@ match /academySettings/{academyId} {
         && request.resource.data.contactConsent == true
         && request.resource.data.language in ["en", "es"]
 
-        && request.resource.data.organizationId == null
-        && request.resource.data.organizationName == ""
+        /*
+         * National entries remain unresolved.
+         * Known Santa Ynez local entries arrive with
+         * canonical routing values already attached.
+         */
+        && (
+          (
+            request.resource.data.routingStage ==
+              "ADMIN_REVIEW"
 
-        && request.resource.data.academyId == null
-        && request.resource.data.academyName == ""
+            && request.resource.data.organizationId == null
+            && request.resource.data.organizationName == ""
 
-        && request.resource.data.locationId == null
-        && request.resource.data.locationName == ""
+            && request.resource.data.academyId == null
+            && request.resource.data.academyName == ""
+
+            && request.resource.data.locationId == null
+            && request.resource.data.locationName == ""
+          )
+          ||
+          (
+            request.resource.data.routingStage ==
+              "MANAGEMENT_TRIAGE"
+
+            && request.resource.data.preferredOrganization ==
+              "sandman-academy"
+
+            && request.resource.data.preferredLocation ==
+              "santa-ynez-valley"
+
+            && request.resource.data.organizationId ==
+              "sandman-academy"
+
+            && request.resource.data.organizationName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.academyId ==
+              "sandman-academy"
+
+            && request.resource.data.academyName ==
+              "Sandman Academy of Combat & Fitness"
+
+            && request.resource.data.locationId ==
+              "santa-ynez-valley"
+
+            && request.resource.data.locationName ==
+              "Santa Ynez Valley"
+          )
+        )
 
         && request.resource.data.assignedAdminUid == null
         && request.resource.data.assignedManagerUid == null
@@ -1129,15 +1198,27 @@ match /academySettings/{academyId} {
        */
       allow get, list: if isManagement()
         && (
-          resource.data.assignedManagerUid ==
-            request.auth.uid
+          resource.data.get(
+            "assignedManagerUid",
+            null
+          ) == request.auth.uid
           ||
           (
-            resource.data.assignedManagerUid == null
-            && resource.data.assignmentStatus ==
-              "PENDING_MANAGEMENT"
+            resource.data.get(
+              "assignedManagerUid",
+              null
+            ) == null
+
+            && resource.data.get(
+              "assignmentStatus",
+              ""
+            ) == "PENDING_MANAGEMENT"
+
             && managementHasLocation(
-              resource.data.locationId
+              resource.data.get(
+                "locationId",
+                ""
+              )
             )
           )
         );
@@ -1145,15 +1226,27 @@ match /academySettings/{academyId} {
       allow update: if isManagement()
 
         && (
-          resource.data.assignedManagerUid ==
-            request.auth.uid
+          resource.data.get(
+            "assignedManagerUid",
+            null
+          ) == request.auth.uid
           ||
           (
-            resource.data.assignedManagerUid == null
-            && resource.data.assignmentStatus ==
-              "PENDING_MANAGEMENT"
+            resource.data.get(
+              "assignedManagerUid",
+              null
+            ) == null
+
+            && resource.data.get(
+              "assignmentStatus",
+              ""
+            ) == "PENDING_MANAGEMENT"
+
             && managementHasLocation(
-              resource.data.locationId
+              resource.data.get(
+                "locationId",
+                ""
+              )
             )
           )
         )
@@ -1207,12 +1300,32 @@ match /academySettings/{academyId} {
           is timestamp;
 
       /*
+       * Coach receiver visibility.
+       *
+       * A coach may see only messages explicitly
+       * assigned to that coach by Management.
+       */
+      allow get, list: if staffRole() == "coach"
+        && resource.data.assignedCoachUid
+          == request.auth.uid;
+
+      /*
        * Current coach receiver behavior.
        *
        * Coaches cannot assign locations, managers,
        * coaches, or alter the original public message.
        */
       allow update: if staffRole() == "coach"
+
+        && resource.data.get(
+          "assignedCoachUid",
+          null
+        ) == request.auth.uid
+
+        && request.resource.data.get(
+          "assignedCoachUid",
+          null
+        ) == request.auth.uid
 
         && request.resource.data.diff(resource.data)
           .changedKeys()

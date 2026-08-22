@@ -88,6 +88,28 @@ form?.addEventListener(
     try {
       await ensureSignedIn();
 
+      const preferredOrganization = clean(
+        form.preferredOrganization?.value
+      );
+
+      const preferredLocation = clean(
+        form.preferredLocation?.value
+      );
+
+      /*
+       * Known local academy entrances already know
+       * their organization, academy, and location.
+       *
+       * They enter the existing Management queue
+       * directly instead of waiting for Admin routing.
+       *
+       * Unknown / national entrances retain the
+       * original Admin review path.
+       */
+      const isSantaYnezLocal =
+        preferredOrganization === "sandman-academy" &&
+        preferredLocation === "santa-ynez-valley";
+
       const payload = {
         organization: "sandman-system",
         pipeline: "general-messaging",
@@ -123,13 +145,8 @@ form?.addEventListener(
          * organization and location. They do not create
          * the official routing assignment.
          */
-        preferredOrganization: clean(
-          form.preferredOrganization?.value
-        ),
-
-        preferredLocation: clean(
-          form.preferredLocation?.value
-        ),
+        preferredOrganization,
+        preferredLocation,
 
         contactConsent: Boolean(
           form.contactConsent?.checked
@@ -138,29 +155,65 @@ form?.addEventListener(
         language: currentLanguage(),
         pagePath: window.location.pathname,
 
-        routingStage: "ADMIN_REVIEW",
-        nextRoutingStage: "MANAGEMENT_TRIAGE",
+        routingStage:
+          isSantaYnezLocal
+            ? "MANAGEMENT_TRIAGE"
+            : "ADMIN_REVIEW",
+
+        nextRoutingStage:
+          isSantaYnezLocal
+            ? "COACH_ASSIGNED"
+            : "MANAGEMENT_TRIAGE",
 
         routingPolicy:
-          "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
+          isSantaYnezLocal
+            ? "LOCAL_TO_LOCATION_MANAGER"
+            : "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
 
         requiredManagerLevel:
           "LOCATION_MANAGER",
 
-        assignmentStatus: "UNASSIGNED",
+        assignmentStatus:
+          isSantaYnezLocal
+            ? "PENDING_MANAGEMENT"
+            : "UNASSIGNED",
 
         /*
-         * Official routing remains empty until
-         * System Admin reviews the request.
+         * Local academy pages already know their
+         * canonical routing identity.
+         *
+         * National / unknown entries remain empty
+         * until Admin determines where they belong.
          */
-        organizationId: null,
-        organizationName: "",
+        organizationId:
+          isSantaYnezLocal
+            ? "sandman-academy"
+            : null,
 
-        academyId: null,
-        academyName: "",
+        organizationName:
+          isSantaYnezLocal
+            ? "Sandman Academy of Combat & Fitness"
+            : "",
 
-        locationId: null,
-        locationName: "",
+        academyId:
+          isSantaYnezLocal
+            ? "sandman-academy"
+            : null,
+
+        academyName:
+          isSantaYnezLocal
+            ? "Sandman Academy of Combat & Fitness"
+            : "",
+
+        locationId:
+          isSantaYnezLocal
+            ? "santa-ynez-valley"
+            : null,
+
+        locationName:
+          isSantaYnezLocal
+            ? "Santa Ynez Valley"
+            : "",
 
         assignedAdminUid: null,
         assignedManagerUid: null,
@@ -201,8 +254,16 @@ form?.addEventListener(
 
       setStatus(
         currentLanguage() === "es"
-          ? "Mensaje recibido. Nuestro equipo del sistema lo dirigirá a la organización y al gerente local correspondientes."
-          : "Message received. Our system team will route it to the appropriate organization and local manager.",
+          ? (
+              isSantaYnezLocal
+                ? "Mensaje recibido. El equipo de administración del Valle de Santa Ynez lo revisará."
+                : "Mensaje recibido. Nuestro equipo del sistema lo dirigirá al lugar correspondiente."
+            )
+          : (
+              isSantaYnezLocal
+                ? "Message received. Santa Ynez Valley management will review it."
+                : "Message received. Our system team will route it appropriately."
+            ),
         "success"
       );
     } catch (error) {

@@ -892,6 +892,7 @@ function organizationRoutingValues(key) {
 
 function locationRoutingValues(key) {
   const names = {
+    "santa-ynez-valley": "Santa Ynez Valley",
     solvang: "Solvang",
     lompoc: "Lompoc",
     "system-team": "System Team"
