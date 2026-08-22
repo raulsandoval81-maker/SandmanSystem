@@ -110,6 +110,13 @@ form?.addEventListener(
         preferredOrganization === "sandman-academy" &&
         preferredLocation === "santa-ynez-valley";
 
+      const isLompocLocal =
+        preferredOrganization === "sandman-academy" &&
+        preferredLocation === "lompoc";
+
+      const isKnownLocal =
+        isSantaYnezLocal || isLompocLocal;
+
       const payload = {
         organization: "sandman-system",
         pipeline: "general-messaging",
@@ -156,17 +163,17 @@ form?.addEventListener(
         pagePath: window.location.pathname,
 
         routingStage:
-          isSantaYnezLocal
+          isKnownLocal
             ? "MANAGEMENT_TRIAGE"
             : "ADMIN_REVIEW",
 
         nextRoutingStage:
-          isSantaYnezLocal
+          isKnownLocal
             ? "COACH_ASSIGNED"
             : "MANAGEMENT_TRIAGE",
 
         routingPolicy:
-          isSantaYnezLocal
+          isKnownLocal
             ? "LOCAL_TO_LOCATION_MANAGER"
             : "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
 
@@ -174,7 +181,7 @@ form?.addEventListener(
           "LOCATION_MANAGER",
 
         assignmentStatus:
-          isSantaYnezLocal
+          isKnownLocal
             ? "PENDING_MANAGEMENT"
             : "UNASSIGNED",
 
@@ -186,34 +193,36 @@ form?.addEventListener(
          * until Admin determines where they belong.
          */
         organizationId:
-          isSantaYnezLocal
+          isKnownLocal
             ? "sandman-academy"
             : null,
 
         organizationName:
-          isSantaYnezLocal
+          isKnownLocal
             ? "Sandman Academy of Combat & Fitness"
             : "",
 
         academyId:
-          isSantaYnezLocal
+          isKnownLocal
             ? "sandman-academy"
             : null,
 
         academyName:
-          isSantaYnezLocal
+          isKnownLocal
             ? "Sandman Academy of Combat & Fitness"
             : "",
 
         locationId:
-          isSantaYnezLocal
-            ? "santa-ynez-valley"
+          isKnownLocal
+            ? preferredLocation
             : null,
 
         locationName:
-          isSantaYnezLocal
-            ? "Santa Ynez Valley"
-            : "",
+          isLompocLocal
+            ? "Lompoc"
+            : isSantaYnezLocal
+              ? "Santa Ynez Valley"
+              : "",
 
         assignedAdminUid: null,
         assignedManagerUid: null,
@@ -255,14 +264,18 @@ form?.addEventListener(
       setStatus(
         currentLanguage() === "es"
           ? (
-              isSantaYnezLocal
-                ? "Mensaje recibido. El equipo de administración del Valle de Santa Ynez lo revisará."
-                : "Mensaje recibido. Nuestro equipo del sistema lo dirigirá al lugar correspondiente."
+              isLompocLocal
+                ? "Mensaje recibido. El equipo de administración de Lompoc lo revisará."
+                : isSantaYnezLocal
+                  ? "Mensaje recibido. El equipo de administración del Valle de Santa Ynez lo revisará."
+                  : "Mensaje recibido. Nuestro equipo del sistema lo dirigirá al lugar correspondiente."
             )
           : (
-              isSantaYnezLocal
-                ? "Message received. Santa Ynez Valley management will review it."
-                : "Message received. Our system team will route it appropriately."
+              isLompocLocal
+                ? "Message received. Lompoc management will review it."
+                : isSantaYnezLocal
+                  ? "Message received. Santa Ynez Valley management will review it."
+                  : "Message received. Our system team will route it appropriately."
             ),
         "success"
       );

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Schedule | Sandman Academy — Lompoc</title>
+
+  <meta
+    name="description"
+    content="View the current training schedule for Sandman Academy in Lompoc."
+  >
+
+  <link rel="stylesheet" href="/assets/css/site.css">
+
+  <style>
+    .local-page{
+      width:min(1000px,calc(100% - 32px));
+      margin:0 auto;
+      padding:clamp(3rem,8vw,6rem) 0;
+    }
+
+    .local-page__header{
+      max-width:760px;
+      margin:0 auto 2.75rem;
+      text-align:center;
+    }
+
+    .eyebrow{
+      margin:0 0 .75rem;
+      color:var(--heading-accent,#d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .local-page h1{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .intro{
+      max-width:650px;
+      margin:1rem auto 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.7;
+    }
+
+    .schedule-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+    }
+
+    .schedule-card{
+      padding:1.75rem;
+      border:1px solid var(--line,rgba(255,255,255,.12));
+      border-radius:20px;
+      background:var(--panel,#111113);
+    }
+
+    .schedule-card h2{
+      margin:0 0 .4rem;
+      color:var(--heading,#fff);
+      font-size:1.55rem;
+    }
+
+    .schedule-card__sub{
+      margin:0 0 1.35rem;
+      color:var(--muted,#d0d0d4);
+      font-size:.95rem;
+    }
+
+    .schedule-session{
+      padding:1rem 0;
+      border-top:1px solid var(--line,rgba(255,255,255,.12));
+    }
+
+    .schedule-session:first-of-type{
+      border-top:0;
+      padding-top:0;
+    }
+
+    .schedule-session:last-child{
+      padding-bottom:0;
+    }
+
+    .schedule-session__title{
+      margin:0 0 .25rem;
+      color:var(--heading,#fff);
+      font-size:1.05rem;
+      font-weight:900;
+    }
+
+    .schedule-session p{
+      margin:.2rem 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.55;
+    }
+
+    .schedule-time{
+      color:var(--heading-accent,#d4af37) !important;
+      font-weight:900;
+    }
+
+    .schedule-status{
+      display:inline-block;
+      margin-top:.5rem;
+      padding:.35rem .65rem;
+      border:1px solid rgba(212,175,55,.45);
+      border-radius:999px;
+      color:var(--heading-accent,#d4af37);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.04em;
+      text-transform:uppercase;
+    }
+
+    .schedule-note{
+      max-width:760px;
+      margin:2rem auto 0;
+      text-align:center;
+      color:var(--muted,#d0d0d4);
+      line-height:1.65;
+    }
+
+    .schedule-note + .schedule-note{
+      margin-top:.75rem;
+    }
+
+    .cta{
+      margin-top:2.5rem;
+      text-align:center;
+    }
+
+    .button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      padding:12px 22px;
+      border:1px solid #e7c968;
+      border-radius:999px;
+      background:#d4af37;
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    body.day-mode .schedule-card{
+      background:#fff;
+      border-color:#d7c7a2;
+      box-shadow:0 8px 18px rgba(0,0,0,.07);
+    }
+
+    body.day-mode .schedule-session{
+      border-color:#e5d9bd;
+    }
+
+    @media(max-width:720px){
+      .schedule-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  
+    /* LIGHT MODE — PAGE TITLE CONTRAST */
+    html[data-theme="light"] main h1{
+      color:#111 !important;
+    }
+
+  
+    /* LIGHT MODE — TRAINING TITLE CONTRAST */
+    html[data-theme="light"] .local-page h1{
+      color:#111 !important;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div
+    id="navigation"
+    data-component="/locations/lompoc/components/navigation.html"
+  ></div>
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
+  <main class="local-page">
+
+    <section class="local-page__header">
+      <p class="eyebrow">Lompoc</p>
+
+      <h1>Training Schedule</h1>
+
+      <p class="intro">
+        Current and upcoming training times for Sandman Academy programs
+        in Lompoc.
+      </p>
+    </section>
+
+    <section class="schedule-grid">
+
+      <article class="schedule-card">
+        <h2>Zero2Hero™ Wrestling</h2>
+        <p class="schedule-card__sub">Ages 7–13</p>
+        <p>Contact Lompoc Management for the current training schedule and enrollment availability.</p>
+      </article>
+
+      <article class="schedule-card">
+        <h2>Path2Legend™ Wrestling</h2>
+        <p class="schedule-card__sub">Ages 14–19</p>
+        <p>Contact Lompoc Management for the current training schedule and enrollment availability.</p>
+      </article>
+
+    </section>
+
+
+    <p class="schedule-note">
+      Training schedules may change by season, holidays, and competition dates. New athletes begin by appointment.
+    </p>
+
+    <div class="cta">
+      <a
+        class="button"
+        href="/locations/lompoc/connect.html"
+      >
+        Connect / Join
+      </a>
+    </div>
+
+  </main>
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>

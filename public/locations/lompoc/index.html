@@ -1,297 +1,372 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
 
   <title>Lompoc Wrestling | Sandman Academy</title>
 
   <meta
     name="description"
-    content="Sandman Academy wrestling programs now enrolling in Lompoc."
-  >
+    content="Explore Zero2Hero and Path2Legend wrestling at Sandman Academy in Lompoc."
+  />
 
-  <style>
-    *{
-      box-sizing:border-box;
-    }
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
 
-    body{
-      margin:0;
-      min-height:100vh;
-
-      background:
-        radial-gradient(
-          circle at top,
-          rgba(255,255,255,.055),
-          transparent 35%
-        ),
-        #080808;
-
-      color:#fff;
-
-      font-family:
-        Arial,
-        Helvetica,
-        sans-serif;
-    }
-
-    .lompoc{
-      width:min(
-        760px,
-        calc(100% - 32px)
-      );
-
-      margin:0 auto;
-      padding:64px 0 80px;
-    }
-
-    .lompoc__hero{
-      text-align:center;
-    }
-
-    .lompoc__eyebrow{
-      margin:0 0 10px;
-
-      color:#aaa;
-
-      font-size:.76rem;
-      font-weight:900;
-      letter-spacing:.18em;
-      text-transform:uppercase;
-    }
-
-    .lompoc__hero h1{
-      margin:0;
-
-      font-size:
-        clamp(
-          2.3rem,
-          8vw,
-          4.4rem
-        );
-
-      line-height:.97;
-      text-transform:uppercase;
-    }
-
-    .lompoc__movement{
-      margin:14px 0 0;
-
-      color:#d1d1d1;
-
-      font-size:
-        clamp(
-          1rem,
-          3.5vw,
-          1.25rem
-        );
-
-      font-weight:800;
-      letter-spacing:.05em;
-      text-transform:uppercase;
-    }
-
-    .lompoc__panel{
-      margin-top:34px;
-      padding:28px;
-
-      border:
-        1px solid
-        rgba(255,255,255,.16);
-
-      border-radius:24px;
-
-      background:
-        rgba(255,255,255,.04);
-    }
-
-    .lompoc__status{
-      margin:0 0 20px;
-
-      text-align:center;
-
-      font-size:.78rem;
-      font-weight:900;
-      letter-spacing:.16em;
-      text-transform:uppercase;
-    }
-
-    .lompoc__programs{
-      display:grid;
-      grid-template-columns:
-        repeat(
-          2,
-          minmax(0,1fr)
-        );
-
-      gap:14px;
-    }
-
-    .lompoc__program{
-      padding:22px;
-
-      border:
-        1px solid
-        rgba(255,255,255,.11);
-
-      border-radius:18px;
-
-      background:
-        rgba(255,255,255,.025);
-    }
-
-    .lompoc__program h2{
-      margin:0 0 7px;
-
-      font-size:1.18rem;
-      text-transform:uppercase;
-    }
-
-    .lompoc__program p{
-      margin:0;
-
-      color:#c8c8c8;
-      line-height:1.55;
-    }
-
-    .lompoc__cta{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-
-      min-height:52px;
-      width:100%;
-
-      margin-top:24px;
-      padding:14px 20px;
-
-      border-radius:999px;
-
-      background:#fff;
-      color:#080808;
-
-      font-size:.86rem;
-      font-weight:900;
-      letter-spacing:.09em;
-      text-decoration:none;
-      text-transform:uppercase;
-    }
-
-    .lompoc__back{
-      display:block;
-
-      margin-top:20px;
-
-      color:#aaa;
-
-      font-size:.8rem;
-      text-align:center;
-      text-decoration:none;
-    }
-
-    @media(max-width:620px){
-      .lompoc{
-        width:min(
-          100% - 24px,
-          560px
-        );
-
-        padding:
-          42px 0 56px;
-      }
-
-      .lompoc__programs{
-        grid-template-columns:1fr;
-      }
-
-      .lompoc__panel{
-        padding:22px;
-      }
-    }
-  </style>
+  <link
+    rel="stylesheet"
+    href="/assets/css/home.css"
+  />
+  <link rel="stylesheet" href="/assets/css/home-newsletter.css?v=2">
 </head>
 
 <body>
 
-  <main class="lompoc">
+  <!-- Shared site navigation -->
 
-    <header class="lompoc__hero">
+  <div
+    id="navigation"
+    data-component="/locations/lompoc/components/navigation.html"
+  ></div>
 
-      <p class="lompoc__eyebrow">
-        Sandman Academy
-      </p>
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
 
-      <h1>
-        Lompoc Strong
-      </h1>
+  <main>
 
-      <p class="lompoc__movement">
-        Join the Movement
-      </p>
+    <!-- =====================================================
+         PRIMARY HERO — ENGLISH
+    ====================================================== -->
 
-    </header>
+    <section
+      class="hero-panel hero-panel--interactive"
+      data-lang-block="en"
+    >
 
+      <img
+        src="/assets/img/pages/home/hero-home-env2.png"
+        alt="Sandman Academy athletes training in wrestling"
+        class="home-hero__image"
+        loading="eager"
+      />
 
-    <section class="lompoc__panel">
-
-      <p class="lompoc__status">
-        Enrolling Now · Wrestling
-      </p>
-
-
-      <div class="lompoc__programs">
-
-        <article class="lompoc__program">
-
-          <h2>
-            Zero2Hero™
-          </h2>
-
-          <p>
-            Ages 7–13
-            <br>
-            Youth Wrestling
-          </p>
-
-        </article>
-
-
-        <article class="lompoc__program">
-
-          <h2>
-            Path2Legend™
-          </h2>
-
-          <p>
-            Ages 14–19
-            <br>
-            Teen Wrestling
-          </p>
-
-        </article>
-
-      </div>
-
+      <!-- Start Your Journey -->
 
       <a
-        class="lompoc__cta"
-        href="/connect/interest/?academy=sandman&location=lompoc"
-      >
-        Start Your Journey
-      </a>
+        class="home-hotspot home-hotspot-journeys"
+        href="/locations/lompoc/programs.html"
+        aria-label="Start Your Journey"
+      ></a>
+
+      <!-- Watch Our Story -->
+
+      <a
+        class="home-hotspot home-hotspot-origins"
+         href="/locations/lompoc/about.html"
+         aria-label="Our Story"
+      ></a>
 
     </section>
 
 
-    <a
-      class="lompoc__back"
-      href="/locations/"
+    <!-- =====================================================
+         PRIMARY HERO — SPANISH
+    ====================================================== -->
+
+    <section
+      class="hero-panel hero-panel--interactive hidden-lang"
+      data-lang-block="es"
     >
-      ← Find another location
-    </a>
+
+      <img
+        src="/assets/img/pages/home/hero-home-esv2.png"
+        alt="Atletas de Sandman Academy entrenando lucha"
+        class="home-hero__image"
+        loading="eager"
+      />
+
+      <!-- Comienza Tu Camino -->
+
+      <a
+        class="home-hotspot home-hotspot-journeys"
+        href="/locations/lompoc/programs.html"
+        aria-label="Comienza Tu Camino"
+      ></a>
+
+      <!-- Conoce Nuestra Historia -->
+
+      <a
+        class="home-hotspot home-hotspot-origins"
+        href="/locations/lompoc/about.html"
+        aria-label="Conoce Nuestra Historia"
+      ></a>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         MANY PATHS — ENGLISH
+    ====================================================== -->
+
+    <section
+      class="home-many-paths"
+      data-lang-block="en"
+    >
+
+      <div class="home-many-paths__visual">
+
+        <img
+          src="/assets/img/pages/home/home-many-paths-hero-en-v1.png"
+          alt="Explore the broader Sandman training pathways"
+          class="home-many-paths__image"
+          loading="lazy"
+        />
+
+        <a
+          class="home-many-paths__fitness-hotspot"
+          href="/program-architecture/platform/programs/fitness/"
+          aria-label="Explore Everyday Fitness"
+        ></a>
+
+      </div>
+
+    </section>
+
+
+    <!-- =====================================================
+         MANY PATHS — SPANISH
+    ====================================================== -->
+
+    <section
+      class="home-many-paths hidden-lang"
+      data-lang-block="es"
+    >
+
+      <div class="home-many-paths__visual">
+
+        <img
+          src="/assets/img/pages/home/home-many-paths-hero-es-v1.png"
+          alt="Explora las rutas de entrenamiento más amplias de Sandman"
+          class="home-many-paths__image"
+          loading="lazy"
+        />
+
+        <a
+          class="home-many-paths__fitness-hotspot"
+          href="/program-architecture/platform/programs/fitness/"
+          aria-label="Explorar Fitness Diario"
+        ></a>
+
+      </div>
+
+    </section>
+
+
+<!-- =====================================================
+         HOME — STAY CONNECTED
+    ====================================================== -->
+
+    <section
+      class="home-connect"
+      aria-labelledby="home-connect-title"
+    >
+
+      <div class="home-connect__icon" aria-hidden="true">
+        <svg
+          viewBox="0 0 64 64"
+          role="img"
+          aria-hidden="true"
+        >
+          <rect
+            x="8"
+            y="14"
+            width="48"
+            height="36"
+            rx="4"
+          ></rect>
+
+          <path d="M10 18l22 18 22-18"></path>
+        </svg>
+      </div>
+
+      <div class="home-connect__content">
+
+        <div data-lang-block="en">
+          <p class="home-connect__eyebrow">
+            Stay Connected
+          </p>
+
+          <p>
+            Get program announcements, upcoming classes,
+            community events, registration openings, and
+            special promotions from Sandman Academy.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="home-connect__eyebrow">
+            Mantente Conectado
+          </p>
+
+          <p>
+            Recibe anuncios de programas, próximas clases,
+            eventos comunitarios, aperturas de inscripción
+            y promociones especiales de Sandman Academy.
+          </p>
+        </div>
+
+      </div>
+
+      <form
+        id="homeNewsletterForm"
+        class="home-connect__form"
+        novalidate
+      >
+
+        <div class="home-connect__field">
+
+          <label
+            class="sr-only"
+            for="homeNewsletterEmail"
+          >
+            Email Address
+          </label>
+
+          <input
+            id="homeNewsletterEmail"
+            name="email"
+            type="email"
+            autocomplete="email"
+            inputmode="email"
+            placeholder="Email Address"
+            required
+          />
+
+          <button
+            id="homeNewsletterSubmit"
+            type="submit"
+          >
+            <span data-lang-block="en">
+              Keep Me Updated
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Manténme Informado
+            </span>
+          </button>
+
+        </div>
+
+        <label class="home-connect__consent">
+
+          <input
+            id="homeNewsletterConsent"
+            name="consent"
+            type="checkbox"
+            required
+          />
+
+          <span data-lang-block="en">
+            I agree to receive occasional Sandman Academy
+            updates and understand that I may unsubscribe
+            at any time.
+          </span>
+
+          <span
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            Acepto recibir actualizaciones ocasionales de
+            Sandman Academy y entiendo que puedo cancelar
+            mi suscripción en cualquier momento.
+          </span>
+
+        </label>
+
+        <p
+          id="homeNewsletterStatus"
+          class="home-connect__status"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+      </form>
+
+    </section>
+
+
+
+
+    <!-- =====================================================
+         AMERICAN FLAG BAND
+    ====================================================== -->
+
+    <section
+      class="home-flag-band"
+      aria-hidden="true"
+    >
+      <img
+        src="/assets/img/pages/home/home-flag-band.png"
+        alt=""
+        loading="lazy"
+      />
+    </section>
 
   </main>
+
+
+  <!-- Shared footer -->
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <!-- Shared scripts -->
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
+
+
+  <script
+    type="module"
+    src="/assets/js/home-newsletter.js"
+  ></script>
 
 </body>
 </html>

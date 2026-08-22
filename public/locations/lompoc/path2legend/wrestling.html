@@ -1,0 +1,1175 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Path2Legend Wrestling | Lompoc</title>
+
+  <meta
+    name="description"
+    content="Explore Path2Legend Wrestling at Sandman Academy in Lompoc, including training focus, earned progression, competition preparation, and athlete development."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/public.css" />
+<style>
+
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+
+    main{
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .eyebrow{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .progression-top{
+      margin:0 0 28px;
+    }
+
+    .progression-top figure{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .progression-top img{
+      width:100%;
+    }
+
+    .hero{
+      padding:clamp(2rem,5vw,3.5rem);
+      margin-bottom:28px;
+      border:1px solid #263244;
+      border-radius:24px;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(212,175,55,.16),
+          transparent 38%
+        ),
+        linear-gradient(
+          180deg,
+          #1f2937 0%,
+          #111827 100%
+        );
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+
+    body.day-mode .hero{
+      border-color:#d7c7a2;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(173,123,35,.12),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .hero-subtitle{
+      margin:0 0 18px;
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:900;
+    }
+
+    .hero p{
+      max-width:790px;
+      margin:.75rem 0 0;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.75;
+    }
+
+    .availability{
+      display:inline-block;
+      margin-top:18px;
+      padding:7px 12px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      border:1px solid var(--line);
+      border-radius:999px;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }
+
+    body.day-mode .panel{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,4vw,2.5rem);
+      line-height:1.15;
+    }
+
+    .panel p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .panel p:last-child{
+      margin-bottom:0;
+    }
+
+    .visual-section{
+      margin-top:28px;
+    }
+
+    .visual-heading{
+      margin-bottom:14px;
+    }
+
+    .visual-heading h2{
+      margin:0 0 8px;
+      color:var(--heading);
+      font-size:clamp(1.55rem,4vw,2.2rem);
+    }
+
+    .visual-heading p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+    }
+
+    body.day-mode .card{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .card h2,
+    .card h3{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+    }
+
+    body.day-mode .card h2,
+    body.day-mode .card h3{
+      color:var(--heading);
+    }
+
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .card ul{
+      margin:0;
+      padding-left:20px;
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .fact{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+    }
+
+    .fact strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--heading-accent);
+    }
+
+    .fact span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .quote{
+      margin-top:30px;
+      padding:26px;
+      border:1px solid var(--line);
+      border-left:4px solid var(--heading-accent);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      font-size:1.05rem;
+      line-height:1.8;
+    }
+
+    body.day-mode .quote{
+      border-color:#d7c7a2;
+      background:#ffffff;
+    }
+
+    .quote strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--heading);
+      font-size:1.25rem;
+    }
+
+    @media (max-width:780px){
+      .content-grid,
+      .facts{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      main{
+        width:min(100% - 28px,1050px);
+        padding:24px 0 64px;
+      }
+
+      .hero{
+        padding:32px 20px;
+        border-radius:18px;
+      }
+
+      .panel,
+      .progression-top figure{
+        border-radius:16px;
+      }
+
+      .card{
+        padding:18px;
+      }
+    }
+
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+
+/* =========================================
+       MINIMAL JOURNEY HEADER
+    ========================================= */
+
+    .journey-minimal-header{
+      display:grid;
+      grid-template-columns:52px minmax(0,1fr) 52px;
+      align-items:center;
+      gap:12px;
+
+      width:100%;
+      min-height:82px;
+
+      margin:0;
+      padding:12px 18px;
+
+      background:var(--panel, #111113);
+      border-bottom:1px solid rgba(212,175,55,.45);
+    }
+
+    .journey-header-title{
+      text-align:center;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(.9rem, 2.5vw, 1.15rem);
+      font-weight:900;
+      letter-spacing:.06em;
+      line-height:1.15;
+      text-transform:uppercase;
+    }
+
+    .journey-header-control{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      width:48px;
+      height:48px;
+
+      margin:0;
+      padding:0;
+
+      color:var(--heading-accent, #d4af37);
+      background:transparent;
+
+      border:1px solid rgba(212,175,55,.55);
+      border-radius:50%;
+
+      font:inherit;
+      font-size:.9rem;
+      font-weight:900;
+
+      cursor:pointer;
+    }
+
+    .journey-header-control:hover,
+    .journey-header-control:focus-visible{
+      background:rgba(212,175,55,.08);
+      outline:none;
+    }
+
+    @media (max-width:520px){
+
+      .journey-minimal-header{
+        grid-template-columns:48px minmax(0,1fr) 48px;
+        gap:8px;
+        min-height:76px;
+        padding:10px 12px;
+      }
+
+      .journey-header-control{
+        width:44px;
+        height:44px;
+      }
+
+      .journey-header-title{
+        font-size:.82rem;
+        letter-spacing:.04em;
+      }
+
+    }
+
+  </style>
+
+<style id="SANDMAN-LOCAL-RALLY-RESPONSIVE">
+  .local-rally {
+    display: inline;
+  }
+
+  .local-rally__place,
+  .local-rally__call {
+    display: inline;
+  }
+
+  @media (max-width: 640px) {
+    .local-rally {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.25;
+    }
+
+    .local-rally__place,
+    .local-rally__call {
+      display: block;
+    }
+
+    .local-rally__dot {
+      display: block;
+      width: 70%;
+      height: 1px;
+      margin: .35rem auto;
+      overflow: hidden;
+      font-size: 0;
+      line-height: 0;
+      background: currentColor;
+      opacity: .35;
+    }
+  }
+</style>
+
+</head>
+
+<body>
+
+<header class="journey-minimal-header">
+
+  <button
+    class="journey-header-control"
+    type="button"
+    data-theme-toggle
+    aria-label="Toggle theme"
+  >
+    ◐
+  </button>
+
+  <div class="journey-header-title">
+    <span class="local-rally"><span class="local-rally__place">Lompoc Strong</span><span class="local-rally__dot" aria-hidden="true"> · </span><span class="local-rally__call">Join the Movement</span></span>
+  </div>
+
+  <button
+    class="journey-header-control"
+    type="button"
+    data-language-toggle
+    aria-label="Toggle language"
+  >
+    ES
+  </button>
+
+</header>
+
+
+  <main>
+
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Lompoc • Path2Legend™ • Ages 14–19
+        </p>
+
+        <h1>Wrestling</h1>
+
+        <p class="hero-subtitle">
+          Pressure. Position. Strategy. Leadership.
+        </p>
+
+        <p>
+          Path2Legend Wrestling develops teen and adult athletes through
+          advanced movement, hand fighting, takedowns, positional control,
+          escapes, reversals, match intelligence, conditioning, competition
+          preparation, and leadership under pressure.
+        </p>
+
+        <span class="availability">
+          Offered at our Lompoc academy
+        </span>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Lompoc • Path2Legend™ • Edades 14–19
+        </p>
+
+        <h1>Lucha</h1>
+
+        <p class="hero-subtitle">
+          Presión. Posición. Estrategia. Liderazgo.
+        </p>
+
+        <p>
+          Lucha Path2Legend desarrolla atletas adolescentes y adultos mediante
+          movimiento avanzado, lucha de manos, derribos, control posicional,
+          escapes, reversiones, inteligencia competitiva, acondicionamiento,
+          preparación para competir y liderazgo bajo presión.
+        </p>
+
+        <span class="availability">
+          Disponible en nuestra academia de Lompoc
+        </span>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Discipline Overview
+        </p>
+
+        <h2 class="section-title">
+          What Is Wrestling?
+        </h2>
+
+        <p>
+          Wrestling is one of the oldest and most demanding combat sports. It
+          is built around leverage, balance, pressure, takedowns, control,
+          escapes, reversals, and continuous decision-making against active
+          resistance.
+        </p>
+
+        <p>
+          Path2Legend Wrestling includes the technical and tactical development
+          needed for folkstyle, freestyle, and Greco-Roman competition.
+          Athletes learn to connect positions, manage pace, create pressure,
+          control risk, and compete with composure.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Resumen De La Disciplina
+        </p>
+
+        <h2 class="section-title">
+          ¿Qué Es La Lucha?
+        </h2>
+
+        <p>
+          La lucha es uno de los deportes de combate más antiguos y exigentes.
+          Se basa en palanca, equilibrio, presión, derribos, control, escapes,
+          reversiones y toma continua de decisiones contra resistencia activa.
+        </p>
+
+        <p>
+          Lucha Path2Legend incluye el desarrollo técnico y táctico necesario
+          para competir en folkstyle, freestyle y lucha grecorromana. Los
+          atletas aprenden a conectar posiciones, manejar el ritmo, crear
+          presión, controlar el riesgo y competir con compostura.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          The Sandman Purpose
+        </p>
+
+        <h2 class="section-title">
+          Why We Teach Wrestling
+        </h2>
+
+        <p>
+          We teach wrestling because it reveals how an athlete responds when
+          effort alone is not enough. Success requires preparation, patience,
+          adjustment, discipline, and the ability to stay composed when a plan
+          breaks down.
+        </p>
+
+        <p>
+          Older athletes are expected to do more than improve technically.
+          They are expected to become dependable teammates, accountable
+          competitors, and leaders who help raise the standard around them.
+          Wrestling supports the Sandman pillars of Combat, Strength, and Honor.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          El Propósito Sandman
+        </p>
+
+        <h2 class="section-title">
+          Por Qué Enseñamos Lucha
+        </h2>
+
+        <p>
+          Enseñamos lucha porque revela cómo responde un atleta cuando el
+          esfuerzo por sí solo no es suficiente. El éxito requiere preparación,
+          paciencia, adaptación, disciplina y capacidad para mantener la calma
+          cuando un plan deja de funcionar.
+        </p>
+
+        <p>
+          Se espera que los atletas mayores hagan más que mejorar técnicamente.
+          Deben convertirse en compañeros confiables, competidores responsables
+          y líderes que eleven el estándar a su alrededor. La lucha apoya los
+          pilares Sandman de Combate, Fuerza y Honor.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <p class="eyebrow">Earned Progression</p>
+          <h2>Path2Legend Progression</h2>
+          <p>
+            Athletes advance from Apprentice to Legend through consistent
+            training, technical development, testing, competition experience,
+            leadership, and demonstrated growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">Progreso Ganado</p>
+          <h2>Progresión Path2Legend</h2>
+          <p>
+            Los atletas avanzan de Apprentice a Legend mediante entrenamiento
+            constante, desarrollo técnico, pruebas, experiencia competitiva,
+            liderazgo y crecimiento demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+          <section class="progression-top">
+  <figure>
+    <img
+      src="/assets/img/f4/f4-shirt-progression-wrestling.png"
+      alt="Path2Legend Wrestling shirt progression from Apprentice to Legend"
+    />
+  </figure>
+</section>
+
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Short History
+        </p>
+
+        <h2 class="section-title">
+          The Story of Wrestling
+        </h2>
+
+        <p>
+          Wrestling appears in some of the earliest records of organized human
+          competition. Ancient civilizations used grappling for sport,
+          military preparation, physical development, and cultural tradition.
+        </p>
+
+        <p>
+          Modern wrestling developed into recognized international styles.
+          Folkstyle emphasizes control and escapes, freestyle rewards exposure
+          and dynamic scoring, and Greco-Roman focuses on upper-body attacks,
+          throws, and control. Together, they provide a broad and demanding
+          foundation for complete grappling development.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Historia Breve
+        </p>
+
+        <h2 class="section-title">
+          La Historia De La Lucha
+        </h2>
+
+        <p>
+          La lucha aparece en algunos de los registros más antiguos de
+          competencia humana organizada. Las civilizaciones antiguas usaban el
+          grappling para deporte, preparación militar, desarrollo físico y
+          tradición cultural.
+        </p>
+
+        <p>
+          La lucha moderna evolucionó en estilos internacionales reconocidos.
+          Folkstyle enfatiza control y escapes, freestyle recompensa exposición
+          y puntuación dinámica, y la lucha grecorromana se enfoca en ataques,
+          lanzamientos y control del tren superior. Juntas ofrecen una base
+          amplia y exigente para el desarrollo completo del grappling.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Interesting Facts
+        </p>
+
+        <h2 class="section-title">
+          Did You Know?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Three Major Styles</strong>
+            <span>
+              Path2Legend athletes may study folkstyle, freestyle, and
+              Greco-Roman wrestling as connected parts of one grappling base.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Position Drives Strategy</strong>
+            <span>
+              Advanced wrestling is not just about individual moves. It is
+              about linking positions, controlling pace, and forcing reactions.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Leadership Is Part of Progress</strong>
+            <span>
+              Older athletes are expected to model discipline, support younger
+              teammates, and raise the standard of the room.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Datos Interesantes
+        </p>
+
+        <h2 class="section-title">
+          ¿Sabías Que?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Tres Estilos Principales</strong>
+            <span>
+              Los atletas Path2Legend pueden estudiar folkstyle, freestyle y
+              lucha grecorromana como partes conectadas de una sola base.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>La Posición Guía La Estrategia</strong>
+            <span>
+              La lucha avanzada no consiste solamente en movimientos
+              individuales. Se trata de conectar posiciones, controlar el
+              ritmo y provocar reacciones.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>El Liderazgo Es Parte Del Progreso</strong>
+            <span>
+              Se espera que los atletas mayores modelen disciplina, apoyen a
+              compañeros más jóvenes y eleven el estándar del equipo.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="content-grid">
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Technical Skills</h2>
+          <ul>
+            <li>Advanced stance, motion, and hand fighting</li>
+            <li>Single-leg, double-leg, and upper-body attacks</li>
+            <li>Chain wrestling and controlled finishes</li>
+            <li>Top pressure, rides, turns, and exposure</li>
+            <li>Escapes, reversals, and scrambling</li>
+            <li>Folkstyle, freestyle, and Greco-Roman strategy</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Habilidades Técnicas</h2>
+          <ul>
+            <li>Postura, movimiento y lucha de manos avanzados</li>
+            <li>Ataques de una pierna, dos piernas y tren superior</li>
+            <li>Cadenas de lucha y finalizaciones controladas</li>
+            <li>Presión superior, rides, giros y exposición</li>
+            <li>Escapes, reversiones y scrambles</li>
+            <li>Estrategia de folkstyle, freestyle y grecorromana</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Physical Development</h2>
+          <ul>
+            <li>Strength and power</li>
+            <li>Speed and agility</li>
+            <li>Mobility and body control</li>
+            <li>Grip, core, and positional endurance</li>
+            <li>Competition conditioning</li>
+            <li>Durability and recovery habits</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Físico</h2>
+          <ul>
+            <li>Fuerza y potencia</li>
+            <li>Velocidad y agilidad</li>
+            <li>Movilidad y control corporal</li>
+            <li>Agarre, core y resistencia posicional</li>
+            <li>Acondicionamiento competitivo</li>
+            <li>Durabilidad y hábitos de recuperación</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Character Development</h2>
+          <ul>
+            <li>Discipline</li>
+            <li>Accountability</li>
+            <li>Composure</li>
+            <li>Resilience</li>
+            <li>Humility</li>
+            <li>Leadership</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Del Carácter</h2>
+          <ul>
+            <li>Disciplina</li>
+            <li>Responsabilidad</li>
+            <li>Compostura</li>
+            <li>Resiliencia</li>
+            <li>Humildad</li>
+            <li>Liderazgo</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Training Focus</h2>
+          <ul>
+            <li>Technical drilling and chain development</li>
+            <li>Position-based live wrestling</li>
+            <li>Match strategy and situational awareness</li>
+            <li>Competition preparation</li>
+            <li>Video review and tactical adjustment</li>
+            <li>Leadership and responsibility in the room</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Enfoque Del Entrenamiento</h2>
+          <ul>
+            <li>Repetición técnica y desarrollo de cadenas</li>
+            <li>Lucha en vivo basada en posiciones</li>
+            <li>Estrategia de combate y conciencia situacional</li>
+            <li>Preparación para competir</li>
+            <li>Revisión de video y ajuste táctico</li>
+            <li>Liderazgo y responsabilidad en el equipo</li>
+          </ul>
+        </div>
+
+      </article>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Athlete Fit
+        </p>
+
+        <h2 class="section-title">
+          Who Is Wrestling For?
+        </h2>
+
+        <p>
+          Path2Legend Wrestling is designed for teen and adult athletes who
+          want deeper technical development, structured competition
+          preparation, stronger conditioning, greater tactical awareness, and
+          a clear path toward leadership and long-term mastery.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Perfil Del Atleta
+        </p>
+
+        <h2 class="section-title">
+          ¿Para Quién Es La Lucha?
+        </h2>
+
+        <p>
+          Lucha Path2Legend está diseñada para atletas adolescentes y adultos
+          que buscan desarrollo técnico más profundo, preparación estructurada
+          para competir, mejor acondicionamiento, mayor conciencia táctica y un
+          camino claro hacia el liderazgo y la maestría a largo plazo.
+        </p>
+
+      </div>
+<section class="marketing-connect-cta">
+
+  <div data-lang-block="en">
+    <h2>Ready to Take the Next Step in Wrestling?</h2>
+
+    <p>
+      Build deeper technique, stronger conditioning, competition readiness,
+      and leadership through the Path2Legend™ wrestling journey.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/lompoc/connect.html">
+      Connect With Our Academy
+    </a>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <h2>¿Listo para Dar el Siguiente Paso en Lucha?</h2>
+
+    <p>
+      Desarrolla técnica más profunda, mejor acondicionamiento, preparación
+      competitiva y liderazgo mediante el camino Path2Legend™.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/lompoc/connect.html">
+      Conéctate con Nuestra Academia
+    </a>
+  </div>
+
+</section>
+
+    <div class="quote">
+
+      <span data-lang-block="en">
+        <strong>Legends are built through pressure.</strong>
+        Train with discipline. Compete with purpose. Lead by example.
+      </span>
+
+      <span
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <strong>Las leyendas se forman bajo presión.</strong>
+        Entrena con disciplina. Compite con propósito. Lidera con el ejemplo.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
+</body>
+</html>

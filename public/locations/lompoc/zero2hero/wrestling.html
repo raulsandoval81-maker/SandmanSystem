@@ -1,0 +1,1183 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Zero2Hero Wrestling | Lompoc</title>
+
+  <meta
+    name="description"
+    content="Explore Zero2Hero Wrestling at Sandman Academy in Lompoc, including age-appropriate training, earned progression, athletic development, confidence, discipline, and character."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/public.css" />
+<style>
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+
+    main{
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .eyebrow{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .progression-top{
+      margin:0 0 28px;
+    }
+
+    .progression-top figure{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .progression-top img{
+      width:100%;
+    }
+
+    .hero{
+      padding:clamp(2rem,5vw,3.5rem);
+      margin-bottom:28px;
+      border:1px solid #263244;
+      border-radius:24px;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(220,38,38,.16),
+          transparent 38%
+        ),
+        linear-gradient(
+          180deg,
+          #1f2937 0%,
+          #111827 100%
+        );
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+
+    body.day-mode .hero{
+      border-color:#d7c7a2;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(173,123,35,.12),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .hero-subtitle{
+      margin:0 0 18px;
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:900;
+    }
+
+    .hero p{
+      max-width:790px;
+      margin:.75rem 0 0;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.75;
+    }
+
+    .availability{
+      display:inline-block;
+      margin-top:18px;
+      padding:7px 12px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      border:1px solid var(--line);
+      border-radius:999px;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }
+
+    body.day-mode .panel{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,4vw,2.5rem);
+      line-height:1.15;
+    }
+
+    .panel p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .panel p:last-child{
+      margin-bottom:0;
+    }
+
+    .visual-section{
+      margin-top:28px;
+    }
+
+    .visual-heading{
+      margin-bottom:14px;
+    }
+
+    .visual-heading h2{
+      margin:0 0 8px;
+      color:var(--heading);
+      font-size:clamp(1.55rem,4vw,2.2rem);
+    }
+
+    .visual-heading p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+    }
+
+    body.day-mode .card{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .card h2,
+    .card h3{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+    }
+
+    body.day-mode .card h2,
+    body.day-mode .card h3{
+      color:var(--heading);
+    }
+
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .card ul{
+      margin:0;
+      padding-left:20px;
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .fact{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+    }
+
+    .fact strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--heading-accent);
+    }
+
+    .fact span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .quote{
+      margin-top:30px;
+      padding:26px;
+      border:1px solid var(--line);
+      border-left:4px solid var(--heading-accent);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      font-size:1.05rem;
+      line-height:1.8;
+    }
+
+    body.day-mode .quote{
+      border-color:#d7c7a2;
+      background:#ffffff;
+    }
+
+    .quote strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--heading);
+      font-size:1.25rem;
+    }
+
+    @media (max-width:780px){
+      .content-grid,
+      .facts{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      main{
+        width:min(100% - 28px,1050px);
+        padding:24px 0 64px;
+      }
+
+      .hero{
+        padding:32px 20px;
+        border-radius:18px;
+      }
+
+      .panel,
+      .progression-top figure{
+        border-radius:16px;
+      }
+
+      .card{
+        padding:18px;
+      }
+    }
+  
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+
+/* =========================================
+       MINIMAL JOURNEY HEADER
+    ========================================= */
+
+    .journey-minimal-header{
+      display:grid;
+      grid-template-columns:52px minmax(0,1fr) 52px;
+      align-items:center;
+      gap:12px;
+
+      width:100%;
+      min-height:82px;
+
+      margin:0;
+      padding:12px 18px;
+
+      background:var(--panel, #111113);
+      border-bottom:1px solid rgba(212,175,55,.45);
+    }
+
+    .journey-header-title{
+      text-align:center;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(.9rem, 2.5vw, 1.15rem);
+      font-weight:900;
+      letter-spacing:.06em;
+      line-height:1.15;
+      text-transform:uppercase;
+    }
+
+    .journey-header-control{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      width:48px;
+      height:48px;
+
+      margin:0;
+      padding:0;
+
+      color:var(--heading-accent, #d4af37);
+      background:transparent;
+
+      border:1px solid rgba(212,175,55,.55);
+      border-radius:50%;
+
+      font:inherit;
+      font-size:.9rem;
+      font-weight:900;
+
+      cursor:pointer;
+    }
+
+    .journey-header-control:hover,
+    .journey-header-control:focus-visible{
+      background:rgba(212,175,55,.08);
+      outline:none;
+    }
+
+    @media (max-width:520px){
+
+      .journey-minimal-header{
+        grid-template-columns:48px minmax(0,1fr) 48px;
+        gap:8px;
+        min-height:76px;
+        padding:10px 12px;
+      }
+
+      .journey-header-control{
+        width:44px;
+        height:44px;
+      }
+
+      .journey-header-title{
+        font-size:.82rem;
+        letter-spacing:.04em;
+      }
+
+    }
+
+  </style>
+
+<style id="SANDMAN-LOCAL-RALLY-RESPONSIVE">
+  .local-rally {
+    display: inline;
+  }
+
+  .local-rally__place,
+  .local-rally__call {
+    display: inline;
+  }
+
+  @media (max-width: 640px) {
+    .local-rally {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.25;
+    }
+
+    .local-rally__place,
+    .local-rally__call {
+      display: block;
+    }
+
+    .local-rally__dot {
+      display: block;
+      width: 70%;
+      height: 1px;
+      margin: .35rem auto;
+      overflow: hidden;
+      font-size: 0;
+      line-height: 0;
+      background: currentColor;
+      opacity: .35;
+    }
+  }
+</style>
+
+</head>
+
+<body>
+
+<header class="journey-minimal-header">
+
+  <button
+    class="journey-header-control"
+    type="button"
+    data-theme-toggle
+    aria-label="Toggle theme"
+  >
+    ◐
+  </button>
+
+  <div class="journey-header-title">
+    <span class="local-rally"><span class="local-rally__place">Lompoc Strong</span><span class="local-rally__dot" aria-hidden="true"> · </span><span class="local-rally__call">Join the Movement</span></span>
+  </div>
+
+  <button
+    class="journey-header-control"
+    type="button"
+    data-language-toggle
+    aria-label="Toggle language"
+  >
+    ES
+  </button>
+
+</header>
+
+
+<main>
+
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Lompoc • Zero2Hero™ • Ages 7–13
+        </p>
+
+        <h1>Wrestling</h1>
+
+        <p class="hero-subtitle">
+          Movement. Position. Pressure. Confidence.
+        </p>
+
+        <p>
+          Zero2Hero Wrestling introduces young athletes to structured,
+          age-appropriate grappling through stance, movement, takedowns,
+          positional control, escapes, reversals, mat awareness, athletic
+          development, and character-building competition.
+        </p>
+
+        <span class="availability">
+          Offered at our Lompoc academy
+        </span>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Lompoc • Zero2Hero™ • Edades 7–13
+        </p>
+
+        <h1>Lucha</h1>
+
+        <p class="hero-subtitle">
+          Movimiento. Posición. Presión. Confianza.
+        </p>
+
+        <p>
+          Lucha Zero2Hero introduce a los jóvenes atletas al grappling
+          estructurado y apropiado para su edad mediante postura, movimiento,
+          derribos, control posicional, escapes, reversiones, conciencia en el
+          tapiz, desarrollo atlético y competencia que fortalece el carácter.
+        </p>
+
+        <span class="availability">
+          Disponible en nuestra academia de Lompoc
+        </span>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Discipline Overview
+        </p>
+
+        <h2 class="section-title">
+          What Is Wrestling?
+        </h2>
+
+        <p>
+          Wrestling is one of humanity’s oldest organized combat sports. It is
+          built around balance, leverage, movement, takedowns, positional
+          control, escapes, reversals, and the ability to solve physical
+          problems against active resistance.
+        </p>
+
+        <p>
+          Youth wrestling at Sandman Combat™ is taught through structured,
+          age-appropriate instruction. Athletes learn to move safely, control
+          positions, protect their partners, compete with discipline, and
+          develop confidence through earned experience.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Resumen De La Disciplina
+        </p>
+
+        <h2 class="section-title">
+          ¿Qué Es La Lucha?
+        </h2>
+
+        <p>
+          La lucha es uno de los deportes de combate organizados más antiguos
+          de la humanidad. Se basa en equilibrio, palanca, movimiento,
+          derribos, control posicional, escapes, reversiones y la capacidad de
+          resolver problemas físicos contra resistencia activa.
+        </p>
+
+        <p>
+          La lucha juvenil en Sandman Combat™ se enseña mediante instrucción
+          estructurada y apropiada para la edad. Los atletas aprenden a moverse
+          con seguridad, controlar posiciones, proteger a sus compañeros,
+          competir con disciplina y desarrollar confianza mediante experiencia
+          ganada.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          The Sandman Purpose
+        </p>
+
+        <h2 class="section-title">
+          Why We Teach Wrestling
+        </h2>
+
+        <p>
+          We teach wrestling because it places athletes in direct contact with
+          resistance. They must learn to stay composed, adjust when a plan
+          fails, accept responsibility for the result, and continue working
+          when the position becomes difficult.
+        </p>
+
+        <p>
+          Every exchange teaches problem-solving, courage, humility, effort,
+          accountability, and respect. Wrestling gives young athletes a safe,
+          structured place to test themselves and supports the Sandman pillars
+          of Combat, Strength, and Honor.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          El Propósito Sandman
+        </p>
+
+        <h2 class="section-title">
+          Por Qué Enseñamos Lucha
+        </h2>
+
+        <p>
+          Enseñamos lucha porque coloca a los atletas en contacto directo con
+          la resistencia. Deben aprender a mantener la compostura, adaptarse
+          cuando un plan falla, aceptar responsabilidad por el resultado y
+          continuar trabajando cuando la posición se vuelve difícil.
+        </p>
+
+        <p>
+          Cada intercambio enseña resolución de problemas, valor, humildad,
+          esfuerzo, responsabilidad y respeto. La lucha ofrece a los jóvenes
+          atletas un lugar seguro y estructurado para ponerse a prueba y apoya
+          los pilares Sandman de Combate, Fuerza y Honor.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <p class="eyebrow">Earned Progression</p>
+          <h2>Zero2Hero Progression</h2>
+          <p>
+            Athletes advance from Shadow to Hero through consistent training,
+            coach evaluation, testing, technical development, competition
+            experience, and demonstrated growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="eyebrow">Progreso Ganado</p>
+          <h2>Progresión Zero2Hero</h2>
+          <p>
+            Los atletas avanzan de Shadow a Hero mediante entrenamiento
+            constante, evaluación del coach, pruebas, desarrollo técnico,
+            experiencia competitiva y crecimiento demostrado en Combate,
+            Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+        <section class="progression-top">
+      <figure>
+        <img
+          src="/assets/img/f8/f8-shirt-progression-wrestling.png"
+          alt="Zero2Hero Wrestling shirt progression from Shadow to Hero"
+        />
+      </figure>
+    </section>
+
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Short History
+        </p>
+
+        <h2 class="section-title">
+          The Story of Wrestling
+        </h2>
+
+        <p>
+          Wrestling appears in some of the earliest records of organized
+          human competition. Ancient artwork and written traditions from
+          several civilizations show people practicing forms of grappling,
+          control, and takedowns long before modern sport rules existed.
+        </p>
+
+        <p>
+          Today, wrestling is practiced worldwide through styles such as
+          folkstyle, freestyle, and Greco-Roman wrestling. At the youth level,
+          it remains one of the strongest foundations for athletic development,
+          competition, self-confidence, and future participation in other
+          grappling and combat sports.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Historia Breve
+        </p>
+
+        <h2 class="section-title">
+          La Historia De La Lucha
+        </h2>
+
+        <p>
+          La lucha aparece en algunos de los registros más antiguos de
+          competencia humana organizada. Obras de arte y tradiciones escritas
+          de varias civilizaciones muestran formas de grappling, control y
+          derribos mucho antes de que existieran las reglas deportivas
+          modernas.
+        </p>
+
+        <p>
+          Hoy la lucha se practica en todo el mundo mediante estilos como
+          folkstyle, freestyle y lucha grecorromana. A nivel juvenil, sigue
+          siendo una de las bases más fuertes para el desarrollo atlético, la
+          competencia, la confianza y la futura participación en otros
+          deportes de grappling y combate.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Interesting Facts
+        </p>
+
+        <h2 class="section-title">
+          Did You Know?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>One of the Oldest Sports</strong>
+            <span>
+              Wrestling traditions appear across many ancient cultures and
+              predate most modern organized sports.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Leverage Beats Size</strong>
+            <span>
+              Good position, timing, balance, and technique can allow a
+              smaller athlete to control a larger opponent.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>A Foundation for Combat Sports</strong>
+            <span>
+              Wrestling develops skills that transfer directly into
+              other athletic and competitive settings.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Datos Interesantes
+        </p>
+
+        <h2 class="section-title">
+          ¿Sabías Que?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Uno De Los Deportes Más Antiguos</strong>
+            <span>
+              Las tradiciones de lucha aparecen en muchas culturas antiguas y
+              son anteriores a la mayoría de los deportes modernos.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>La Palanca Supera El Tamaño</strong>
+            <span>
+              Buena posición, tiempo, equilibrio y técnica pueden permitir que
+              un atleta más pequeño controle a uno más grande.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Una Base Para Los Deportes De Combate</strong>
+            <span>
+              La lucha desarrolla habilidades que se transfieren directamente
+              a otros entornos atléticos y competitivos.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="content-grid">
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Technical Skills</h2>
+          <ul>
+            <li>Athletic stance and movement</li>
+            <li>Hand fighting and positioning</li>
+            <li>Takedowns and controlled finishes</li>
+            <li>Top control and pressure</li>
+            <li>Escapes and reversals</li>
+            <li>Mat awareness and match strategy</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Habilidades Técnicas</h2>
+          <ul>
+            <li>Postura atlética y movimiento</li>
+            <li>Control de manos y posicionamiento</li>
+            <li>Derribos y finalizaciones controladas</li>
+            <li>Control superior y presión</li>
+            <li>Escapes y reversiones</li>
+            <li>Conciencia en el tapiz y estrategia de combate</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Physical Development</h2>
+          <ul>
+            <li>Coordination</li>
+            <li>Balance</li>
+            <li>Agility</li>
+            <li>Strength and body control</li>
+            <li>Conditioning</li>
+            <li>Durability and movement confidence</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Físico</h2>
+          <ul>
+            <li>Coordinación</li>
+            <li>Equilibrio</li>
+            <li>Agilidad</li>
+            <li>Fuerza y control corporal</li>
+            <li>Acondicionamiento</li>
+            <li>Durabilidad y confianza en el movimiento</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Character Development</h2>
+          <ul>
+            <li>Confidence</li>
+            <li>Discipline</li>
+            <li>Resilience</li>
+            <li>Humility</li>
+            <li>Accountability</li>
+            <li>Respect</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Del Carácter</h2>
+          <ul>
+            <li>Confianza</li>
+            <li>Disciplina</li>
+            <li>Resiliencia</li>
+            <li>Humildad</li>
+            <li>Responsabilidad</li>
+            <li>Respeto</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Training Focus</h2>
+          <ul>
+            <li>Movement and stance drills</li>
+            <li>Position-based instruction</li>
+            <li>Takedown development</li>
+            <li>Top and bottom wrestling</li>
+            <li>Live situational practice</li>
+            <li>Safe, age-appropriate competition</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Enfoque Del Entrenamiento</h2>
+          <ul>
+            <li>Ejercicios de movimiento y postura</li>
+            <li>Enseñanza basada en posiciones</li>
+            <li>Desarrollo de derribos</li>
+            <li>Lucha desde arriba y abajo</li>
+            <li>Práctica situacional en vivo</li>
+            <li>Competencia segura y apropiada para la edad</li>
+          </ul>
+        </div>
+
+      </article>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Athlete Fit
+        </p>
+
+        <h2 class="section-title">
+          Who Is Wrestling For?
+        </h2>
+
+        <p>
+          Zero2Hero Wrestling can serve first-time athletes, energetic
+          children, multi-sport athletes, future competitors, and young people
+          who need a structured way to develop coordination, confidence,
+          resilience, discipline, fitness, and comfort solving problems under
+          pressure.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Perfil Del Atleta
+        </p>
+
+        <h2 class="section-title">
+          ¿Para Quién Es La Lucha?
+        </h2>
+
+        <p>
+          Lucha Zero2Hero puede beneficiar a atletas principiantes, niños con
+          mucha energía, atletas de varios deportes, futuros competidores y
+          jóvenes que necesitan una manera estructurada de desarrollar
+          coordinación, confianza, resiliencia, disciplina, condición física y
+          comodidad al resolver problemas bajo presión.
+        </p>
+
+      </div>
+
+    </section>
+
+
+<section class="marketing-connect-cta">
+
+  <div data-lang-block="en">
+    <h2>Ready to Begin Wrestling?</h2>
+
+    <p>
+      Help your child build confidence, resilience, coordination, and
+      character through structured Zero2Hero™ wrestling.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/lompoc/connect.html">
+      Connect With Our Academy
+    </a>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <h2>¿Listo para Comenzar Lucha?</h2>
+
+    <p>
+      Ayuda a tu hijo a desarrollar confianza, resiliencia, coordinación
+      y carácter mediante la lucha estructurada de Zero2Hero™.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/lompoc/connect.html">
+      Conéctate con Nuestra Academia
+    </a>
+  </div>
+
+</section>
+    <div class="quote">
+
+      <span data-lang-block="en">
+        <strong>Every hero begins in the shadows.</strong>
+        Start at zero. Learn with discipline. Earn every step.
+      </span>
+
+      <span
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <strong>Cada héroe comienza en las sombras.</strong>
+        Comienza desde cero. Aprende con disciplina. Gana cada paso.
+      </span>
+
+    </div>
+
+  </main>
+
+
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
+</body>
+</html>

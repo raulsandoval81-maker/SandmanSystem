@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Gallery | Sandman Academy — Lompoc</title>
+
+  <meta
+    name="description"
+    content="See training and academy life at Sandman Academy in Lompoc."
+  >
+
+  <link rel="stylesheet" href="/assets/css/site.css">
+
+  <style>
+    .gallery-page{
+      width:min(1120px,calc(100% - 32px));
+      margin:0 auto;
+      padding:clamp(3rem,8vw,6rem) 0;
+    }
+
+    .gallery-header{
+      max-width:760px;
+      margin:0 auto 3rem;
+      text-align:center;
+    }
+
+    .eyebrow{
+      margin:0 0 .75rem;
+      color:var(--heading-accent,#d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .gallery-header h1{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:clamp(2.7rem,8vw,5rem);
+      line-height:1;
+      text-transform:uppercase;
+    }
+
+    .gallery-header p:last-child{
+      max-width:620px;
+      margin:1rem auto 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.7;
+    }
+
+    .gallery-grid{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+    }
+
+    .gallery-placeholder{
+      min-height:260px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:1rem;
+      border:1px solid var(--line,rgba(255,255,255,.12));
+      border-radius:18px;
+      background:var(--panel,#111113);
+      color:var(--muted,#d0d0d4);
+      text-align:center;
+      font-weight:800;
+    }
+
+    .gallery-placeholder--wide{
+      grid-column:span 2;
+    }
+
+    .gallery-cta{
+      max-width:760px;
+      margin:3.5rem auto 0;
+      padding:2.5rem;
+      border:1px solid rgba(212,175,55,.35);
+      border-radius:22px;
+      text-align:center;
+    }
+
+    .gallery-cta h2{
+      margin:0;
+      color:var(--heading,#fff);
+      font-size:clamp(1.8rem,5vw,2.8rem);
+      text-transform:uppercase;
+    }
+
+    .gallery-cta p{
+      color:var(--muted,#d0d0d4);
+      line-height:1.6;
+    }
+
+    .button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:48px;
+      margin-top:.75rem;
+      padding:12px 22px;
+      border:1px solid #e7c968;
+      border-radius:999px;
+      background:#d4af37;
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    body.day-mode .gallery-placeholder{
+      background:#fff;
+      border-color:#d7c7a2;
+      color:#555;
+    }
+
+    @media(max-width:760px){
+      .gallery-grid{
+        grid-template-columns:1fr 1fr;
+      }
+
+      .gallery-placeholder--wide{
+        grid-column:span 2;
+      }
+    }
+
+    @media(max-width:520px){
+      .gallery-grid{
+        grid-template-columns:1fr;
+      }
+
+      .gallery-placeholder--wide{
+        grid-column:span 1;
+      }
+    }
+
+    /* LIGHT MODE — PAGE TITLE CONTRAST */
+    html[data-theme="light"] main h1{
+      color:#111 !important;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div
+    id="navigation"
+    data-component="/locations/lompoc/components/navigation.html"
+  ></div>
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
+
+  <main class="gallery-page">
+
+    <section class="gallery-header">
+      <p class="eyebrow">Lompoc</p>
+
+      <h1>In The Room</h1>
+
+      <p>
+        Real training. Real athletes.
+        Built in the Shadows.
+      </p>
+    </section>
+
+    <!--
+      Replace these placeholders with real Sandman-owned
+      Lompoc photos.
+    -->
+    <section class="gallery-grid">
+
+      <div class="gallery-placeholder gallery-placeholder--wide">
+        Zero2Hero Wrestling
+      </div>
+
+      <div class="gallery-placeholder gallery-placeholder--wide">
+        Path2Legend Wrestling
+      </div>
+
+      <div class="gallery-placeholder">
+        Academy Life
+      </div>
+
+      <div class="gallery-placeholder">
+        Competition
+      </div>
+
+    </section>
+
+    <section class="gallery-cta">
+      <h2>See Yourself Here?</h2>
+
+      <p>
+        Take the first step and learn more about training
+        with Sandman Academy.
+      </p>
+
+      <a
+        class="button"
+        href="/locations/lompoc/connect.html"
+      >
+        Connect / Join
+      </a>
+    </section>
+
+  </main>
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>
