@@ -740,6 +740,74 @@ match /follow_up/{token} {
   allow create, update, delete: if false;
 }
 /* --------------------------------------
+   Public Newsletter Subscribers
+---------------------------------------*/
+match /newsletter_subscribers/{subscriberId} {
+
+  /*
+   * Public visitors are anonymously authenticated
+   * before submitting the Stay Connected form.
+   *
+   * They may create a subscription, but may never
+   * read, list, update, or delete subscriber data.
+   */
+  allow create: if request.auth != null
+
+    && request.resource.data.keys().hasOnly([
+      "email",
+      "organization",
+      "source",
+      "status",
+      "interests",
+      "language",
+      "consent",
+      "pagePath",
+      "createdAt",
+      "updatedAt"
+    ])
+
+    && request.resource.data.email is string
+    && request.resource.data.email.size() > 3
+    && request.resource.data.email.size() <= 254
+
+    && request.resource.data.organization ==
+      "sandman-academy"
+
+    && request.resource.data.source ==
+      "public-homepage"
+
+    && request.resource.data.status ==
+      "ACTIVE"
+
+    && request.resource.data.interests is list
+    && request.resource.data.interests.hasOnly([
+      "combat",
+      "fitness",
+      "community-events",
+      "promotions"
+    ])
+
+    && request.resource.data.language in [
+      "en",
+      "es"
+    ]
+
+    && request.resource.data.consent == true
+
+    && request.resource.data.pagePath is string
+    && request.resource.data.pagePath.size() > 0
+    && request.resource.data.pagePath.size() <= 500
+
+    && request.resource.data.createdAt ==
+      request.time
+
+    && request.resource.data.updatedAt ==
+      request.time;
+
+  allow read, update, delete: if false;
+}
+
+/* --------------------------------------
    Academy Communication Settings
 ---------------------------------------*/
 match /academySettings/{academyId} {
