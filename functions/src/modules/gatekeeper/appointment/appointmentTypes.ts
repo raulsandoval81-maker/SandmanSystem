@@ -22,6 +22,8 @@ export type AppointmentLead = {
   academyName?: string;
   locationId?: string;
 
+  interestType?: "combat" | "fitness" | "both";
+
   registrantRole?: RegistrantRole;
   registrantName?: string;
   contactName?: string;

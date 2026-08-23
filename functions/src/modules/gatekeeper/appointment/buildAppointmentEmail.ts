@@ -71,6 +71,16 @@ export function buildAppointmentEmail(
     clean(lead.academyName) ||
     "Academy";
 
+  const interestType =
+    lead.interestType === "fitness"
+      ? "fitness"
+      : lead.interestType === "both"
+        ? "both"
+        : "combat";
+
+  const isFitnessOnly =
+    interestType === "fitness";
+
   if (
     !appointmentDate ||
     !appointmentTime ||
@@ -145,6 +155,40 @@ The academy team will guide the order of your family's visit based on the day's 
 
 You will have time to discuss your athlete's goals, ask questions, and review program and membership options.`
       );
+
+
+
+  const fitnessPreparationMessage =
+    `Come ready to train in comfortable athletic clothing.
+
+Bring a water bottle and any questions you would like to discuss with the academy team.`;
+
+  const fitnessPreparationMessageEs =
+    `Ven preparado para entrenar con ropa deportiva cómoda.
+
+Trae una botella de agua y cualquier pregunta que quieras conversar con el equipo de la academia.`;
+
+  const fitnessVisitOverviewMessage =
+    `Your visit includes a scheduled Fitness drop-in session.
+
+The drop-in fee is $15. If you decide to join, that $15 will be applied toward your enrollment or membership.
+
+Please arrive 10 minutes early to complete any needed paperwork and for a brief meet-and-greet before training.
+
+Your coach has been informed of your visit and will be expecting you.
+
+You will have time to ask questions, learn more about the fitness program, and discuss next steps if you decide you would like to continue.`;
+
+  const fitnessVisitOverviewMessageEs =
+    `Tu visita incluye una sesión programada de Fitness con pase de un día.
+
+La tarifa de la sesión es de $15. Si decides inscribirte, esos $15 se aplicarán a tu inscripción o membresía.
+
+Por favor llega 10 minutos antes para completar cualquier documento necesario y para una breve presentación antes del entrenamiento.
+
+Tu entrenador ha sido informado de tu visita y estará esperándote.
+
+Tendrás tiempo para hacer preguntas, conocer más sobre el programa de Fitness y hablar sobre los próximos pasos si decides continuar.`;
 
   const visitOverviewMessageEs =
     isAdultAthlete
@@ -342,7 +386,6 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                   color:#d4d4d8;
                 "
               >
-                Powered by Sandman System™
               </div>
             </td>
           </tr>
@@ -558,9 +601,20 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                 }
               </h2>
 
+              ${
+                isFitnessOnly
+                  ? `<p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#27272a;white-space:pre-line;">${escapeHtml(
+                      lang === "es"
+                        ? fitnessPreparationMessageEs
+                        : fitnessPreparationMessage
+                    )}</p>`
+                  : ""
+              }
+
               <ul
                 style="
                   margin:0;
+                  ${isFitnessOnly ? "display:none;" : ""}
                   padding-left:21px;
                   font-size:15px;
                   line-height:1.75;
@@ -789,7 +843,7 @@ ${academyAddress}
 
 QUÉ PUEDES ESPERAR
 
-${visitOverviewMessageEs}
+${isFitnessOnly ? fitnessVisitOverviewMessageEs : visitOverviewMessageEs}
 
 Si después de la visita decides que deseas continuar, el equipo de la academia te ayudará con los próximos pasos apropiados.
 
@@ -797,7 +851,9 @@ Si después de la visita decides que deseas continuar, el equipo de la academia 
 
 PREPARANDO TU VISITA
 
-• Por favor llega de 10 a 15 minutos antes de la hora programada.
+${isFitnessOnly
+  ? fitnessPreparationMessageEs
+  : `• Por favor llega de 10 a 15 minutos antes de la hora programada.
 
 ${isAdultAthlete
   ? "• Llega preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."
@@ -807,7 +863,7 @@ ${isAdultAthlete
   ? "• Trae una botella de agua."
   : "• Trae una botella de agua para tu atleta."}
 
-• Trae cualquier pregunta que quieras conversar con el equipo de la academia.
+• Trae cualquier pregunta que quieras conversar con el equipo de la academia.`}
 
 ${appointmentNotes
   ? `--------------------------------------------------
@@ -886,7 +942,7 @@ ${academyAddress}
 
 WHAT TO EXPECT
 
-${visitOverviewMessage}
+${isFitnessOnly ? fitnessVisitOverviewMessage : visitOverviewMessage}
 
 If you decide you would like to continue after the visit, the academy team will help you with the appropriate next steps.
 
@@ -894,7 +950,9 @@ If you decide you would like to continue after the visit, the academy team will 
 
 PREPARING FOR YOUR VISIT
 
-• Please arrive 10–15 minutes before your scheduled time.
+${isFitnessOnly
+  ? fitnessPreparationMessage
+  : `• Please arrive 10–15 minutes before your scheduled time.
 
 ${isAdultAthlete
   ? "• Please arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."
@@ -904,7 +962,7 @@ ${isAdultAthlete
   ? "• Bring a water bottle."
   : "• Bring a water bottle for your athlete."}
 
-• Bring any questions you would like to discuss with the academy team.
+• Bring any questions you would like to discuss with the academy team.`}
 
 ${appointmentNotes
   ? `--------------------------------------------------
