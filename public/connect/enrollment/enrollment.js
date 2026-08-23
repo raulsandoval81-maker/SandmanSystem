@@ -282,7 +282,7 @@
 
     if (status === config.paymentStatuses.PAYMENT_PENDING) {
       elements.paymentMessage.textContent =
-        "Your checkout was created. Payment verification is pending.";
+        "Your secure checkout is open. Payment verification is pending.";
 
       elements.paymentStatus.textContent =
         "Waiting for payment verification";
@@ -295,7 +295,7 @@
 
     if (status === config.paymentStatuses.FAILED) {
       elements.paymentMessage.textContent =
-        "The payment was not completed. You may try again.";
+        "Payment was not completed. You may try again.";
 
       elements.paymentStatus.textContent = "Payment incomplete";
       elements.checkoutButton.textContent =
@@ -305,7 +305,7 @@
     }
 
     elements.paymentMessage.textContent =
-      "Your locked billing summary is ready for payment.";
+      "Your billing summary is ready for secure payment.";
 
     elements.paymentStatus.textContent = "Payment not started";
     elements.checkoutButton.textContent =
@@ -323,7 +323,7 @@
       status === config.statuses.COMPLETE
     ) {
       elements.confirmationMessage.textContent =
-        "Your enrollment has been confirmed and Parent Intake is available.";
+        "Your enrollment is confirmed. Parent Intake is now available.";
 
       elements.confirmationStatus.textContent =
         "Enrollment confirmed";
@@ -333,26 +333,26 @@
 
     if (status === config.statuses.COACH_CONFIRMED) {
       elements.confirmationMessage.textContent =
-        "The coach confirmed this enrollment. Parent Intake is being unlocked.";
+        "Your enrollment has been approved. Parent Intake is being unlocked.";
 
       elements.confirmationStatus.textContent =
-        "Coach confirmed";
+        "Enrollment approved";
 
       return;
     }
 
     if (isPaymentComplete(enrollment)) {
       elements.confirmationMessage.textContent =
-        "Payment requirements are complete. Coach confirmation is required before Parent Intake unlocks.";
+        "Payment requirements are complete. Final enrollment approval is required before Parent Intake unlocks.";
 
       elements.confirmationStatus.textContent =
-        "Awaiting coach confirmation";
+        "Awaiting enrollment approval";
 
       return;
     }
 
     elements.confirmationMessage.textContent =
-      "Coach confirmation becomes available after payment is verified or the enrollment is approved as payment not required.";
+      "Final enrollment approval becomes available after payment is verified or the enrollment is approved as payment not required.";
 
     elements.confirmationStatus.textContent =
       "Payment requirement incomplete";
@@ -519,7 +519,7 @@
       showStep("intake");
     } catch (error) {
       showNotice(
-        "Enrollment was confirmed, but Parent Intake could not be unlocked: " +
+        "Your enrollment was approved, but Parent Intake could not be unlocked: " +
           getErrorMessage(error),
         true
       );
@@ -531,7 +531,7 @@
   function handleOpenParentIntake() {
     if (!state.intakeTokenId) {
       showNotice(
-        "The Parent Intake token is not available yet. Contact your coach if this continues.",
+        "Parent Intake is not available yet. Contact the academy team if this continues.",
         true
       );
 
