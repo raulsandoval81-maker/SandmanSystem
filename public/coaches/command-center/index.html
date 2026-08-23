@@ -399,6 +399,242 @@
       }
       .control-grid{grid-template-columns:1fr}
     }
+
+
+      /* === COMMAND CENTER WORK MODE V1 === */
+
+      main{
+        width:min(1120px,calc(100% - 32px));
+        max-width:none;
+        margin:0 auto;
+        padding:clamp(18px,2.5vw,28px) 0 44px;
+      }
+
+      .coach-header{
+        position:sticky;
+        top:0;
+        border-bottom:0;
+        box-shadow:0 10px 30px rgba(0,0,0,.16);
+      }
+
+      .coach-header::after{
+        display:block;
+        width:100%;
+        height:1px;
+        content:"";
+        background:
+          linear-gradient(
+            90deg,
+            transparent,
+            var(--line) 18%,
+            rgba(255,214,51,.28) 50%,
+            var(--line) 82%,
+            transparent
+          );
+      }
+
+      .hero{
+        padding:clamp(18px,2.8vw,26px) clamp(18px,3vw,28px);
+        border-color:rgba(255,214,51,.16);
+        border-radius:14px;
+        background:
+          linear-gradient(
+            135deg,
+            rgba(255,214,51,.055),
+            transparent 45%
+          ),
+          var(--panel);
+        box-shadow:0 14px 34px rgba(0,0,0,.26);
+      }
+
+      .hero h1{
+        margin-bottom:7px;
+        color:var(--text);
+        font-size:clamp(1.4rem,3vw,2rem);
+        letter-spacing:-.02em;
+      }
+
+      .hero p{
+        max-width:720px;
+        font-size:.9rem;
+        line-height:1.55;
+      }
+
+      .grid{
+        margin-top:14px;
+        gap:12px;
+      }
+
+      .card{
+        min-height:190px;
+        gap:9px;
+        padding:15px;
+        border-radius:14px;
+        box-shadow:0 12px 28px rgba(0,0,0,.22);
+      }
+
+      .card.wide{
+        min-height:auto;
+      }
+
+      .eyebrow{
+        color:rgba(255,214,51,.72);
+        font-size:.7rem;
+        font-weight:900;
+        letter-spacing:.11em;
+      }
+
+      .card-title{
+        font-size:1.02rem;
+        line-height:1.25;
+      }
+
+      .card-copy{
+        font-size:.86rem;
+        line-height:1.45;
+        opacity:.74;
+      }
+
+      .actions{
+        gap:7px;
+      }
+
+      .btn{
+        min-height:40px;
+        padding:0 12px;
+        border-radius:9px;
+        font-size:.78rem;
+      }
+
+      .btn.brand{
+        box-shadow:0 6px 18px rgba(255,214,51,.10);
+      }
+
+      .queue,
+      .status-list{
+        gap:8px;
+      }
+
+      .queue-row,
+      .status-row{
+        padding:9px 10px;
+        border-radius:10px;
+        background:rgba(255,255,255,.022);
+      }
+
+      .queue-label,
+      .status-name{
+        font-size:.84rem;
+      }
+
+      .queue-sub{
+        font-size:.74rem;
+      }
+
+      .queue-count{
+        min-width:34px;
+        height:26px;
+        padding:0 9px;
+        font-size:.76rem;
+      }
+
+      .status-pill{
+        min-width:60px;
+        padding:.2rem .52rem;
+        font-size:.72rem;
+      }
+
+      .mini-note{
+        margin-top:5px;
+        padding:9px 10px;
+        border-radius:10px;
+        background:rgba(255,255,255,.018);
+        font-size:.78rem;
+        line-height:1.4;
+      }
+
+      .control-grid{
+        gap:10px;
+      }
+
+      .field select,
+      .field input{
+        min-height:42px;
+      }
+
+      #assign-status{
+        padding:9px 11px;
+      }
+
+      .grid > .card:nth-child(1),
+      .grid > .card:nth-child(2),
+      .grid > .card:nth-child(3){
+        border-color:rgba(255,214,51,.18);
+      }
+
+      .footer{
+        margin-top:22px;
+        padding-top:16px;
+        color:rgba(255,255,255,.56);
+        opacity:1;
+      }
+
+      @media (max-width:700px){
+
+        main{
+          width:calc(100% - 20px);
+          padding:12px 0 34px;
+        }
+
+        .hero{
+          padding:16px;
+          border-radius:13px;
+        }
+
+        .hero h1{
+          font-size:1.35rem;
+        }
+
+        .hero p{
+          font-size:.84rem;
+        }
+
+        .grid{
+          margin-top:10px;
+          gap:10px;
+        }
+
+        .card,
+        .card.wide,
+        .card.full{
+          grid-column:span 12;
+          min-height:auto;
+          padding:14px;
+          border-radius:13px;
+        }
+
+        .actions{
+          display:grid;
+          grid-template-columns:1fr;
+        }
+
+        .actions .btn{
+          width:100%;
+        }
+
+        .override-actions{
+          display:grid;
+          grid-template-columns:1fr;
+        }
+
+        #assign-status{
+          min-width:0;
+          width:100%;
+        }
+      }
+
+      /* === END COMMAND CENTER WORK MODE V1 === */
+
 </style>
 </head>
 <body>
