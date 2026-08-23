@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parent / Guardian Connection | Management</title>
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/intake-shared/shared.css" />
+<link rel="stylesheet" href="/intake-management/management.intake.css" />
+
+</head>
+
+<body>
+  <main class="page">
+
+    <section class="card">
+      <p class="eyebrow">Management Tools</p>
+      <h1>Parent / Guardian Connection</h1>
+      <p>
+        Connect a parent or guardian to an existing athlete profile when access is added after enrollment or activation.
+      </p>
+
+      <form id="parentLinkForm">
+
+        <label>
+          Athlete UID
+          <input
+            id="athleteUid"
+            placeholder="F4_0001"
+            required
+          />
+        </label>
+
+        <label>
+          Parent / Guardian Email
+          <input
+            id="parentEmail"
+            type="email"
+            placeholder="parent@email.com"
+            required
+          />
+        </label>
+
+        <button
+          id="submitBtn"
+          type="submit"
+        >
+          Link Parent
+        </button>
+
+      </form>
+    </section>
+
+    <section class="card">
+      <p class="eyebrow">Quick Access</p>
+      <h2>Open Athlete</h2>
+
+      <p>
+        Use the athlete UID above to open or copy the athlete access link. This does not change the athlete’s identity, journey, progression, XP, or enrollment status.
+      </p>
+
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <button id="openMyAthleteBtn" type="button">
+          Open Athlete
+        </button>
+
+
+
+        <button id="copyMyAthleteBtn" type="button">
+          Copy Athlete Link
+        </button>
+
+
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Results</h2>
+      <pre id="resultBox"></pre>
+    </section>
+
+  </main>
+
+  <script type="module" src="./parent-link-tool.js"></script>
+</body>
+</html>

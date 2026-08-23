@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Enrollment Review | Sandman Combat</title>
+
+  <link rel="stylesheet" href="/assets/css/site.css"/>
+  <link rel="stylesheet" href="./management.intake.css"/>
+  <link rel="stylesheet" href="/intake-shared/shared.css"/>
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+  <main class="wrap intake-review" role="main">
+
+    <header class="page-head review-hero" id="reviewHero">
+      <div>
+        <p class="eyebrow">Sandman Enrollment</p>
+        <h1 id="reviewPageTitle">Enrollment Review</h1>
+        <p id="reviewPageSubtitle" class="muted small">Review the intake, confirm placement, and activate the athlete.</p>
+      </div>
+    </header>
+
+    <section class="review-grid">
+
+      <!-- LEFT COLUMN -->
+      <div class="review-stack">
+
+        <section class="card" aria-labelledby="submitted-title">
+          <div class="card-head">
+            <h3 id="submitted-title">Athlete Information</h3>
+            <div class="intake-origin">
+              <span class="status-pill">Submitted Intake</span>
+              <div class="small muted">
+                Completed By:
+                <strong id="s-completed-by">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-grid two">
+            <div class="stat">
+              <div class="label">Athlete</div>
+              <div class="value" id="s-firstlast">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">DOB</div>
+              <div class="value" id="s-dob">—</div>
+            </div>
+          </div>
+
+          <div class="info-grid three">
+            <div class="stat">
+              <div class="label">City</div>
+              <div class="value" id="s-city">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">State</div>
+              <div class="value" id="s-state">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Contact Email</div>
+              <div class="value small" id="s-email">—</div>
+            </div>
+          </div>
+
+          <div class="info-grid two">
+            <div class="stat">
+              <div class="label">Contact Phone</div>
+              <div class="value" id="s-phone">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Emergency</div>
+              <div class="value" id="s-emer">—</div>
+            </div>
+          </div>
+
+          <div class="stat">
+            <div class="label">Medical</div>
+            <div class="value small" id="s-med">—</div>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="confirm-title">
+          <div class="card-head">
+            <h3 id="confirm-title">Review &amp; Corrections</h3>
+            <span class="status-pill">Management Editable</span>
+          </div>
+
+          <div class="form-grid two">
+            <div class="field">
+              <label for="c-initial">Public Initial</label>
+              <input
+                id="c-initial"
+                type="text"
+                maxlength="1"
+                autocapitalize="characters"
+                placeholder="J"
+                autocomplete="off"
+              >
+            </div>
+
+            <div class="field">
+              <label for="c-last">Public Last</label>
+              <input id="c-last" placeholder="e.g., Sandoval" autocomplete="off">
+            </div>
+          </div>
+
+          <div class="form-grid three">
+            <div class="field">
+              <label for="c-team">Team</label>
+              <input id="c-team" placeholder="e.g., Trojans" autocomplete="organization">
+            </div>
+
+            <div class="field">
+              <label for="c-city">City</label>
+              <input id="c-city" autocomplete="address-level2">
+            </div>
+
+            <div class="field">
+              <label for="c-state">State</label>
+              <input
+                id="c-state"
+                type="text"
+                maxlength="2"
+                autocapitalize="characters"
+                autocomplete="address-level1"
+                placeholder="CA"
+              >
+            </div>
+          </div>
+        </section>
+
+        <section class="card" id="experienceCard" aria-labelledby="exp-title">
+          <div class="card-head">
+            <h3 id="exp-title">Experience Validation</h3>
+            <span class="status-pill gold">Placement Only</span>
+          </div>
+
+          <p class="muted small">
+            Prior experience may support intake placement. It does not transfer XP between art journeys.
+          </p>
+
+          <div class="form-grid one">
+            <div class="field">
+              <label for="c-exp-years">Prior Experience</label>
+              <select id="c-exp-years">
+                <option value="0">None — New Athlete</option>
+                <option value="1">1 Year</option>
+                <option value="2">2 Years</option>
+                <option value="3">3+ Years</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="info-grid four">
+            <div class="stat">
+              <div class="label">Total Credit</div>
+              <div class="value" id="exp-total">0</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Issued Now</div>
+              <div class="value" id="exp-now">0</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Held</div>
+              <div class="value" id="exp-hold">0</div>
+            </div>
+
+            <div class="stat">
+              <div class="label">Schedule</div>
+              <div class="value small" id="exp-schedule">—</div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- RIGHT COLUMN -->
+      <div class="review-stack">
+
+
+        <!-- MANAGEMENT DECISION FLOW -->
+
+
+
+        <section class="card mint-card" id="journeyPickerCard" aria-labelledby="mint-title">
+          <div class="card-head">
+            <h3 id="mint-title">Select Journey</h3>
+            <span class="status-pill gold">Choose Journey</span>
+          </div>
+
+          <div class="mint-grid">
+
+            <button type="button" class="mint-track-btn" id="btn-mint-z2h">
+              <span class="mint-track-name">Zero2Hero Wrestling</span>
+              <span class="mint-track-meta">Ages 7–13 • Wrestling</span>
+              <span class="mint-track-sub">Foundry 8</span>
+            </button>
+
+            <button type="button" class="mint-track-btn" id="btn-mint-p2l">
+              <span class="mint-track-name">Path2Legend Wrestling</span>
+              <span class="mint-track-meta">Ages 14+ • Wrestling</span>
+              <span class="mint-track-sub">Foundry 4</span>
+            </button>
+
+<button type="button" class="mint-track-btn" id="btn-mint-boxing">
+  <span class="mint-track-name">Path2Legend Boxing</span>
+  <span class="mint-track-meta">Ages 14+ • Boxing</span>
+  <span class="mint-track-sub">Foundry 4</span>
+</button>
+
+<button
+  type="button"
+  class="mint-track-btn"
+  id="btn-mint-z2h-muay-thai"
+  disabled
+  aria-disabled="true"
+  title="Placement option not wired yet"
+>
+  <span class="mint-track-name">Zero2Hero Muay Thai</span>
+  <span class="mint-track-meta">Ages 7–13 • Muay Thai</span>
+  <span class="mint-track-sub">Foundry 8 • Coming Soon</span>
+</button>
+
+<button
+  type="button"
+  class="mint-track-btn"
+  id="btn-mint-p2l-muay-thai"
+  disabled
+  aria-disabled="true"
+  title="Placement option not wired yet"
+>
+  <span class="mint-track-name">Path2Legend Muay Thai</span>
+  <span class="mint-track-meta">Ages 14+ • Muay Thai</span>
+  <span class="mint-track-sub">Foundry 4 • Coming Soon</span>
+</button>
+
+
+          </div>
+
+          <div class="field uid-field">
+            <label for="c-uid">UID</label>
+            <input id="c-uid" class="mono small" placeholder="UID appears…" readonly>
+          </div>
+
+          <input id="c-track" type="hidden">
+          <input id="c-tier" type="hidden">
+          <input id="c-rank" type="hidden">
+          <input id="c-program-track" type="hidden">
+
+          <div class="info-grid three">
+            <div class="stat">
+              <div class="label">Track</div>
+              <div class="value" id="m-track">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Tier_Rank</div>
+              <div class="value" id="m-rank">—</div>
+            </div>
+            <div class="stat">
+              <div class="label">Padlock</div>
+              <div class="value mono" id="m-padlock">—</div>
+            </div>
+          </div>
+        </section>
+
+
+
+        <section class="card" id="mint-box" aria-labelledby="minttag-title">
+          <div class="card-head">
+            <h3 id="minttag-title">Athlete Identity</h3>
+            <span class="status-pill">Identity</span>
+          </div>
+
+          <div class="form-grid one">
+            <div class="field">
+              <label for="mint-virtue">Virtue</label>
+              <select id="mint-virtue"></select>
+            </div>
+
+            <div class="field">
+              <label for="mint-tag-output">Mint Tag</label>
+              <input id="mint-tag-output" readonly />
+            </div>
+          </div>
+        </section>
+
+
+
+
+
+
+
+        <section class="card" id="adjustmentCard" aria-labelledby="adjust-title">
+          <div class="card-head">
+            <h3 id="adjust-title">Management Adjustment</h3>
+            <span class="status-pill danger">Optional</span>
+          </div>
+
+          <p class="muted small">Optional corrections before activation. Leave blank for a standard approval.</p>
+
+          <div class="form-grid two">
+            <div class="field">
+              <label for="c-adjust-xp">XP Adjustment</label>
+              <input id="c-adjust-xp" type="number" min="0" step="1" placeholder="0">
+            </div>
+
+            <div class="field">
+              <label for="c-adjust-note">Reason</label>
+              <input id="c-adjust-note" placeholder="Intake delay, testing backlog">
+            </div>
+          </div>
+        </section>
+
+
+
+        <section class="card" id="parentConnectionCard" hidden aria-labelledby="legacy-title">
+
+  <div class="card-head">
+    <h3 id="legacy-title">Parent / Guardian Connection</h3>
+    <span class="status-pill gold">Optional Access</span>
+  </div>
+
+  <p class="muted small">
+    Use only when parent or guardian access is added after activation. This adds authorized access without changing the athlete profile, journey, progression, XP, or enrollment status.
+  </p>
+
+  <div class="field">
+    <label for="existing-athlete-uid">
+      Existing Athlete UID
+    </label>
+
+    <input
+      id="existing-athlete-uid"
+      placeholder="F4_0004"
+      class="mono"
+    >
+  </div>
+
+  <div style="margin-top:12px;">
+    <button
+      type="button"
+      id="btn-link-existing"
+      class="outline-blue"
+    >
+      Connect Parent
+    </button>
+  </div>
+
+  <span
+    id="link-existing-status"
+    class="small muted"
+  ></span>
+
+</section>
+
+
+
+        <section class="card approve-card" id="approveCard" aria-labelledby="approve-title">
+          <h3 id="approve-title">Approve &amp; Activate</h3>
+
+          <div class="approve-actions">
+            <button type="button" id="btn-approve" class="solid-blue">Approve & Activate</button>
+            <button type="button" class="outline-blue small" id="btn-back">Back to Pending</button>
+          </div>
+
+          <span id="approve-status" class="small muted" role="status" aria-live="polite"></span>
+        </section>
+
+      </div>
+    </section>
+
+    <div id="approval-modal" class="modal hidden" role="dialog" aria-modal="true">
+      <div class="modal-box">
+        <h2>Athlete Approved!</h2>
+        <p class="muted small">Send links below to continue setup.</p>
+
+        <label class="small muted">Athlete UID</label>
+        <div class="modal-row">
+          <input id="approved-athlete-uid" type="text" readonly class="mono small" />
+          <button type="button" class="pill" id="copy-athlete-uid">Copy</button>
+        </div>
+
+        <label class="small muted">Management / Athlete Onboarding</label>
+        <div class="modal-row">
+          <input id="onboarding-link" type="text" readonly />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="pill" id="copy-link">Copy</button>
+          <button type="button" class="pill" id="open-link">Open</button>
+        </div>
+
+        <label class="small muted">Parent My-Athlete Link</label>
+        <div class="modal-row">
+          <input id="parent-my-athlete-link" type="text" readonly />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="pill" id="copy-parent-link">Copy</button>
+          <button type="button" class="pill" id="open-parent-link">Open</button>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer small muted">
+      Sandman System™ — Management Enrollment Review
+    </footer>
+
+  </main>
+
+  <script type="module" src="./review.js"></script>
+</body>
+</html>\n

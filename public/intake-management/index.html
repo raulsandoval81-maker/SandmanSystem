@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Management Enrollment • Sandman Systems™</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/intake-shared/shared.css" />
+<link rel="stylesheet" href="/intake-management/management.intake.css" />
+
+  <link rel="icon" href="data:,">
+</head>
+<body>
+
+  <main class="wrap">
+
+    <h1>Management Enrollment Console</h1>
+    <p class="muted">Invite → Intake → Review → Activate</p>
+<!-- =========================
+     SELECTED CONNECT LEAD
+========================== -->
+<section
+  id="connectLeadCard"
+  class="card"
+  hidden
+>
+  <h3>Selected Family</h3>
+
+  <p class="small muted">
+    Enrollment was opened from Sandman Connect.
+    Confirm the family before generating the parent intake link.
+  </p>
+
+  <div id="connectLeadSummary" class="small">
+    Loading selected family...
+  </div>
+
+  <div
+    id="connectLeadStatus"
+    class="small muted"
+  ></div>
+</section>
+
+    <!-- =========================
+         START INTAKE
+    ========================== -->
+    <section class="card">
+      <div class="card-head">
+        <div>
+          <h3>Start Intake</h3>
+
+          <p class="small muted">
+            Generate a secure 48-hour intake link for the person completing enrollment.
+          </p>
+        </div>
+
+        <span class="status-pill">48 Hours</span>
+      </div>
+
+      <div class="workflow-mode-grid">
+
+        <button
+          id="btn-make-token"
+          class="workflow-mode-btn"
+          type="button"
+        >
+          <span class="workflow-mode-title">
+            Parent / Guardian
+          </span>
+
+          <span class="workflow-mode-copy">
+            Use when a parent or legal guardian is completing intake for an athlete.
+          </span>
+        </button>
+
+        <button
+          id="btn-make-athlete-token"
+          class="workflow-mode-btn"
+          type="button"
+        >
+          <span class="workflow-mode-title">
+            Adult Athlete
+          </span>
+
+          <span class="workflow-mode-copy">
+            Use when an adult athlete is completing and signing their own intake.
+          </span>
+        </button>
+
+      </div>
+
+      <div class="row" style="margin-top:14px;">
+
+        <input
+          id="invite-link"
+          type="text"
+          readonly
+          class="mono small"
+          placeholder="Invite link appears…"
+        >
+
+        <button
+          id="btn-copy-token"
+          class="outline-blue small"
+          type="button"
+        >
+          Copy Link
+        </button>
+
+      </div>
+
+      <div class="row">
+
+        <button
+          id="btn-open-qr"
+          class="outline-blue small"
+          type="button"
+        >
+          Open / QR
+        </button>
+
+        <span
+          id="invite-route-label"
+          class="small muted"
+        >
+          Choose who will complete the intake.
+        </span>
+
+      </div>
+
+      <div
+        id="invite-status"
+        class="small muted"
+        role="status"
+        aria-live="polite"
+      ></div>
+    </section>
+
+    <!-- =========================
+         PENDING INTAKES
+    ========================== -->
+    <section class="card">
+      <h3>Pending Intakes</h3>
+
+      <p class="muted small">
+        Submitted enrollments waiting for management review appear here.
+      </p>
+
+      <div class="row">
+        <button
+          id="btn-find-intakes"
+          class="outline-blue small"
+        >
+          Refresh
+        </button>
+
+        <span
+          id="pending-count"
+          class="small muted"
+        >
+          —
+        </span>
+      </div>
+
+      <div
+        id="pending-list"
+        class="small mono muted"
+      >
+        No pending intakes.
+      </div>
+    </section>
+
+    <!-- =========================
+         RECENT APPROVALS
+    ========================== -->
+    <section class="card">
+      <h3>Recently Activated</h3>
+
+      <p class="small muted">
+        Last 3 athletes activated through intake.
+      </p>
+
+      <div
+        id="approved-list"
+        class="small mono muted"
+      >
+        —
+      </div>
+    </section>
+
+    <footer class="footer small muted">
+      Sandman System™ — Management Enrollment Console
+    </footer>
+
+</main>
+
+  <script
+    type="module"
+    src="/intake-management/management.intake.js"
+  ></script>
+
+</body>
+</html>\n

@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>New Athlete Enrollment | Sandman Enrollment</title>
+  <link rel="icon" href="data:," />
+<link rel="stylesheet" href="/assets/css/site.css" />
+<link rel="stylesheet" href="/intake-shared/shared.css" />
+<link rel="stylesheet" href="/intake-management/management.intake.css" />
+
+  <style>
+    body{
+      background:#0a1833;
+      color:#f0f4f8;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      margin:0;
+    }
+
+    .wrap{
+      max-width:980px;
+      margin:0 auto;
+      padding:28px 16px 50px;
+    }
+
+    .card{
+      background:#111c35;
+      border:1px solid #27304a;
+      border-radius:16px;
+      padding:22px;
+      box-shadow:0 10px 30px rgba(0,0,0,.22);
+    }
+
+    .eyebrow{
+      color:#9aa4b1;
+      text-transform:uppercase;
+      letter-spacing:.08em;
+      font-size:.78rem;
+      font-weight:900;
+    }
+
+    h1{
+      color:#ffdd48;
+      margin:6px 0 8px;
+    }
+
+    .muted{
+      color:#9aa4b1;
+      line-height:1.45;
+    }
+
+    .form-grid{
+      margin-top:20px;
+      display:grid;
+      grid-template-columns:repeat(2,1fr);
+      gap:14px;
+    }
+
+    label{
+      display:grid;
+      gap:6px;
+      font-weight:800;
+    }
+
+    input,select,textarea{
+      width:100%;
+      border:1px solid #27304a;
+      background:#0b1017;
+      color:#f0f4f8;
+      border-radius:10px;
+      padding:12px;
+      font:inherit;
+    }
+
+    .full{
+      grid-column:1 / -1;
+    }
+
+    .mini-panel{
+      border:1px solid #27304a;
+      background:#0b1017;
+      border-radius:14px;
+      padding:14px;
+    }
+
+    .preview-grid{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:10px;
+    }
+
+    .preview-item{
+      border:1px solid #27304a;
+      border-radius:12px;
+      padding:10px;
+      background:#111c35;
+    }
+
+    .preview-label{
+      color:#9aa4b1;
+      font-size:.75rem;
+      text-transform:uppercase;
+      letter-spacing:.06em;
+      font-weight:900;
+    }
+
+    .preview-value{
+      margin-top:4px;
+      font-weight:900;
+      color:#ffdd48;
+    }
+
+    .actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:40px;
+      padding:0 14px;
+      border-radius:10px;
+      border:1px solid #27304a;
+      background:#0b1017;
+      color:#f0f4f8;
+      text-decoration:none;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .btn.brand{
+      background:#ffdd48;
+      border-color:#ffdd48;
+      color:#000;
+    }
+
+    .mini-note{
+      margin-top:16px;
+      border:1px solid #27304a;
+      background:#0b1017;
+      border-radius:14px;
+      padding:14px;
+      line-height:1.5;
+    }
+
+    .workflow-panel{
+      border-color:#3b496d;
+      background:
+        linear-gradient(
+          135deg,
+          rgba(255,221,72,.08),
+          rgba(17,28,53,.95)
+        );
+    }
+
+    .workflow-mode-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin-top:14px;
+    }
+
+    .workflow-mode-btn{
+      min-height:112px;
+      padding:16px;
+      border:1px solid #3b496d;
+      border-radius:14px;
+      background:#0b1017;
+      color:#f0f4f8;
+      text-align:left;
+      cursor:pointer;
+      transition:
+        border-color .16s ease,
+        background .16s ease,
+        transform .16s ease;
+    }
+
+    .workflow-mode-btn:hover{
+      border-color:#ffdd48;
+      transform:translateY(-1px);
+    }
+
+    .workflow-mode-btn.is-active{
+      border-color:#ffdd48;
+      background:rgba(255,221,72,.10);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,221,72,.18);
+    }
+
+    .workflow-mode-title{
+      display:block;
+      color:#ffdd48;
+      font-size:1rem;
+      font-weight:950;
+      margin-bottom:6px;
+    }
+
+    .workflow-mode-copy{
+      display:block;
+      color:#aeb8c7;
+      font-size:.86rem;
+      line-height:1.4;
+      font-weight:650;
+    }
+
+    .mode-heading{
+      margin:4px 0 0;
+      color:#ffdd48;
+      font-size:1.2rem;
+    }
+
+    .add-discipline-notice{
+      border-color:#ffdd48;
+      background:rgba(255,221,72,.07);
+    }
+
+    .mode-required{
+      color:#ffdd48;
+      font-weight:950;
+    }
+
+    [hidden]{
+      display:none !important;
+    }
+
+    @media(max-width:760px){
+      .form-grid,
+      .preview-grid,
+      .workflow-mode-grid{
+        grid-template-columns:1fr;
+      }
+
+      .workflow-mode-btn{
+        min-height:auto;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <section class="card">
+      <div class="eyebrow">Sandman Enrollment</div>
+      <h1>New Athlete Enrollment</h1>
+
+      <p class="muted">
+        Use this page to enter a returned paper intake or manually create an athlete
+        when online intake is unavailable. Use the standard online intake whenever
+        possible.
+      </p>
+
+      <div class="actions">
+        <a class="btn brand" href="/intake-management/">
+          Back to Enrollment
+        </a>
+      </div>
+
+      <form id="newAthleteForm" class="form-grid">
+
+
+        <label>
+          First Name
+          <input id="first" required autocomplete="given-name" />
+        </label>
+
+        <label>
+          Last Name
+          <input id="last" required autocomplete="family-name" />
+        </label>
+
+        <label>
+          <span id="programTrackLabel">Journey and Art</span>
+          <select id="programTrack" required>
+            <option value="path2legend">
+              Path2Legend · Wrestling
+            </option>
+
+            <option value="path2legend-boxing">
+              Path2Legend · Boxing
+            </option>
+
+            <option value="zero2hero">
+              Zero2Hero · Wrestling
+            </option>
+
+            <option value="zero2hero-kickboxing">
+              Zero2Hero · Muay Thai
+            </option>
+
+            <option value="quest2mastery">
+              Quest2Mastery · MMA
+            </option>
+          </select>
+        </label>
+
+        <label>
+          Academy Location
+          <select id="locationId" required>
+            <option value="lompoc">Lompoc</option>
+            <option value="santa-ynez-valley">Santa Ynez Valley</option>
+          </select>
+        </label>
+
+        <input id="track" type="hidden" />
+        <input id="program" type="hidden" />
+
+        <label>
+          Team / School
+          <input
+            id="team"
+            value="LAW"
+            autocomplete="organization"
+          />
+        </label>
+
+        <label>
+          Grade
+          <input
+            id="grade"
+            placeholder="Example: 9"
+            inputmode="numeric"
+          />
+        </label>
+
+        <label>
+          Date of Birth
+          <input
+            id="dob"
+            type="date"
+            required
+          />
+        </label>
+
+        <label>
+          City
+          <input
+            id="city"
+            autocomplete="address-level2"
+            required
+          />
+        </label>
+
+        <label>
+          State
+          <input
+            id="state"
+            maxlength="2"
+            autocomplete="address-level1"
+            autocapitalize="characters"
+            placeholder="CA"
+            required
+          />
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Parent / Guardian Information</div>
+        </div>
+
+        <label>
+          Parent or Guardian Name
+          <input
+            id="parentName"
+            autocomplete="name"
+            required
+          />
+        </label>
+
+        <label>
+          Parent Email
+          <input
+            id="parentEmail"
+            type="email"
+            autocomplete="email"
+            required
+          />
+        </label>
+
+        <label>
+          Parent Phone
+          <input
+            id="parentPhone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            required
+          />
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Safety Information</div>
+        </div>
+
+        <label>
+          Emergency Contact Name
+          <input
+            id="emergencyName"
+            autocomplete="name"
+            required
+          />
+        </label>
+
+        <label>
+          Emergency Contact Phone
+          <input
+            id="emergencyPhone"
+            type="tel"
+            inputmode="tel"
+            autocomplete="tel"
+            required
+          />
+        </label>
+
+        <label class="full">
+          Medical Notes
+          <textarea
+            id="medical"
+            rows="4"
+            placeholder="Allergies, medications, injuries, conditions, or None"
+          ></textarea>
+        </label>
+
+        <div class="full mini-panel">
+          <div class="eyebrow">Paper Waiver Verification</div>
+
+          <p class="muted">
+            Confirm the signer and signature date exactly as shown on the returned
+            Sandman Participation Waiver.
+          </p>
+        </div>
+
+        <label>
+          Waiver Signed By
+          <input
+            id="waiverSignedBy"
+            autocomplete="name"
+            required
+          />
+        </label>
+
+        <label>
+          Waiver Signature Date
+          <input
+            id="waiverSignatureDate"
+            type="date"
+            required
+          />
+        </label>
+
+        <label>
+          Mint Virtue
+          <select id="virtueName"></select>
+        </label>
+
+        <div class="full mini-panel" id="placementPreviewPanel">
+          <div class="eyebrow" id="previewEyebrow">Mint Preview</div>
+
+          <div class="preview-grid">
+            <div class="preview-item">
+              <div class="preview-label">Track</div>
+              <div class="preview-value" id="p-track">—</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Rank</div>
+              <div class="preview-value" id="p-rank">—</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Placement</div>
+              <div class="preview-value" id="p-placement">—</div>
+            </div>
+
+            <div class="preview-item">
+              <div class="preview-label">Mint Tag</div>
+              <div class="preview-value" id="p-mint-tag">—</div>
+            </div>
+          </div>
+        </div>
+
+        <label>
+          Verified Prior Experience Years
+          <input id="experienceYears" type="number" min="0" max="20" value="0" />
+        </label>
+
+        <label>
+          Starting XP Adjustment
+          <input id="startingXp" type="number" min="0" step="5" value="0" />
+        </label>
+
+        <label class="full">
+          XP Note
+          <textarea id="startingXpNote" rows="3" placeholder="Example: Athlete trained on paper for 8 practices before system entry."></textarea>
+        </label>
+
+        <label class="full">
+          Management Notes
+          <textarea id="notes" rows="4" placeholder="Optional management notes"></textarea>
+        </label>
+
+        <div class="actions full">
+          <button id="submitBtn" class="btn brand" type="submit">
+            <span id="submitBtnLabel">
+              Create Athlete
+            </span>
+          </button>
+
+          <a class="btn" href="/intake-management/">
+            Back to Enrollment
+          </a>
+
+          <a class="btn" href="/management/hub/">
+            Management Hub
+          </a>
+        </div>
+      </form>
+
+      <div id="resultBox" class="mini-note" style="display:none;"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/intake-management/new-athlete.js"></script>
+</body>
+</html>
