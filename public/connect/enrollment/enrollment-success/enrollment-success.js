@@ -204,7 +204,7 @@
 
     if (!token) {
       showError(
-        "The secure enrollment token is unavailable. Contact your coach for a new enrollment link."
+        "The secure enrollment token is unavailable. Contact the academy team for a new enrollment link."
       );
       return;
     }
