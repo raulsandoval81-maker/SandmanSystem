@@ -18,6 +18,10 @@ export type RegistrantRole =
 export type AppointmentLead = {
   email?: string;
 
+  academyId?: string;
+  academyName?: string;
+  locationId?: string;
+
   registrantRole?: RegistrantRole;
   registrantName?: string;
   contactName?: string;
