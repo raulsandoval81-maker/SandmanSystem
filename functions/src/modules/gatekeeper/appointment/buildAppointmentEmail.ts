@@ -788,7 +788,7 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                 color:#a1a1aa;
               "
             >
-              ${escapeHtml(respondingAcademyName)} · Powered by Sandman System™
+              Powered by Sandman System™
             </td>
           </tr>
 
