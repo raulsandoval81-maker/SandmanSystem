@@ -880,3 +880,433 @@ button{
 }
 
 /* === REVIEW WORKFLOW LAYOUT END === */
+/* === MANAGEMENT REVIEW POLISH V1 ===
+   Review-page visual hierarchy only.
+   No workflow / Firebase / enrollment behavior.
+================================================== */
+
+body.management-review-page{
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(212,175,55,.08),
+      transparent 34rem
+    ),
+    #070707;
+}
+
+/* -------------------------------------------------
+   Overall breathing room
+-------------------------------------------------- */
+
+.management-review-page main{
+  width:min(1180px, calc(100% - 32px));
+  margin-inline:auto;
+  padding-bottom:72px;
+}
+
+.management-review-page .card{
+  position:relative;
+  overflow:hidden;
+
+  margin-bottom:18px;
+  padding:clamp(18px, 2.4vw, 28px);
+
+  border:1px solid rgba(255,255,255,.10);
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.045),
+      rgba(255,255,255,.018)
+    );
+
+  box-shadow:
+    0 16px 42px rgba(0,0,0,.22);
+}
+
+.management-review-page .card::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212,175,55,.85),
+      rgba(212,175,55,.10)
+    );
+
+  opacity:.58;
+}
+
+/* -------------------------------------------------
+   Page heading
+-------------------------------------------------- */
+
+.management-review-page #reviewPageTitle{
+  margin-bottom:8px;
+
+  font-size:clamp(2rem, 4vw, 3.1rem);
+  line-height:1;
+  letter-spacing:-.035em;
+}
+
+.management-review-page #reviewPageSubtitle{
+  max-width:720px;
+  margin-top:0;
+
+  color:rgba(255,255,255,.64);
+  font-size:1rem;
+  line-height:1.65;
+}
+
+/* -------------------------------------------------
+   Card headers
+-------------------------------------------------- */
+
+.management-review-page .card-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+
+  margin-bottom:20px;
+  padding-bottom:14px;
+
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+
+.management-review-page .card-head h2,
+.management-review-page .card-head h3{
+  margin:0;
+
+  color:#fff;
+  font-size:clamp(1.05rem, 2vw, 1.35rem);
+  line-height:1.2;
+  letter-spacing:-.015em;
+}
+
+.management-review-page .status-pill{
+  flex:0 0 auto;
+
+  padding:6px 10px;
+
+  border:1px solid rgba(212,175,55,.28);
+  border-radius:999px;
+
+  background:rgba(212,175,55,.08);
+  color:#e7cd77;
+
+  font-size:.7rem;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+
+/* -------------------------------------------------
+   Information density
+-------------------------------------------------- */
+
+.management-review-page .info-grid{
+  gap:12px;
+}
+
+.management-review-page .stat{
+  min-width:0;
+
+  padding:14px 15px;
+
+  border:1px solid rgba(255,255,255,.075);
+  border-radius:14px;
+
+  background:rgba(0,0,0,.20);
+}
+
+.management-review-page .stat .label{
+  margin-bottom:6px;
+
+  color:rgba(255,255,255,.46);
+  font-size:.70rem;
+  font-weight:800;
+  letter-spacing:.075em;
+  text-transform:uppercase;
+}
+
+.management-review-page .stat .value{
+  color:#f5f5f5;
+  font-weight:700;
+  line-height:1.35;
+}
+
+/* -------------------------------------------------
+   Fields
+-------------------------------------------------- */
+
+.management-review-page .form-grid{
+  gap:14px;
+}
+
+.management-review-page .field{
+  min-width:0;
+}
+
+.management-review-page .field > label,
+.management-review-page label{
+  color:rgba(255,255,255,.72);
+}
+
+.management-review-page input,
+.management-review-page select,
+.management-review-page textarea{
+  min-height:46px;
+
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+
+  background:#0c0c0c;
+  color:#fff;
+
+  transition:
+    border-color .18s ease,
+    box-shadow .18s ease,
+    background .18s ease;
+}
+
+.management-review-page textarea{
+  min-height:96px;
+}
+
+.management-review-page input:focus,
+.management-review-page select:focus,
+.management-review-page textarea:focus{
+  outline:none;
+
+  border-color:rgba(212,175,55,.70);
+  background:#101010;
+
+  box-shadow:
+    0 0 0 3px rgba(212,175,55,.10);
+}
+
+/* -------------------------------------------------
+   Enrollment decision areas
+-------------------------------------------------- */
+
+.management-review-page #journeyPickerCard{
+  border-color:rgba(212,175,55,.26);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(212,175,55,.075),
+      rgba(255,255,255,.018) 55%
+    );
+}
+
+.management-review-page #journeyPickerCard::before{
+  opacity:1;
+}
+
+.management-review-page #experienceCard,
+.management-review-page #adjustmentCard{
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.035),
+      rgba(0,0,0,.12)
+    );
+}
+
+/* Adjustment = optional secondary decision */
+.management-review-page #adjustmentCard{
+  border-color:rgba(255,255,255,.075);
+}
+
+/* -------------------------------------------------
+   Athlete identity
+-------------------------------------------------- */
+
+.management-review-page #mint-box{
+  border-color:rgba(212,175,55,.34);
+
+  background:
+    radial-gradient(
+      circle at 85% 0%,
+      rgba(212,175,55,.10),
+      transparent 42%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.05),
+      rgba(255,255,255,.018)
+    );
+}
+
+.management-review-page #mint-box::before{
+  width:4px;
+  opacity:1;
+}
+
+.management-review-page #mint-tag-output{
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    Monaco,
+    Consolas,
+    monospace;
+
+  font-weight:800;
+  letter-spacing:.04em;
+}
+
+/* -------------------------------------------------
+   Parent / connection area
+-------------------------------------------------- */
+
+.management-review-page #parentConnectionCard{
+  border-color:rgba(255,255,255,.085);
+}
+
+/* -------------------------------------------------
+   Buttons
+-------------------------------------------------- */
+
+.management-review-page .actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+
+  margin-top:18px;
+}
+
+.management-review-page .btn{
+  min-height:44px;
+  padding:11px 16px;
+
+  border-radius:11px;
+
+  font-weight:800;
+}
+
+.management-review-page .btn.brand{
+  box-shadow:
+    0 8px 22px rgba(212,175,55,.12);
+}
+
+/* -------------------------------------------------
+   FINAL APPROVAL = strongest visual decision
+-------------------------------------------------- */
+
+.management-review-page #approve-title{
+  font-size:clamp(1.25rem, 2.5vw, 1.6rem);
+}
+
+.management-review-page #btn-approve{
+  min-height:52px;
+  min-width:min(100%, 260px);
+  padding:13px 24px;
+
+  border-radius:13px;
+
+  font-size:1rem;
+  font-weight:900;
+  letter-spacing:.015em;
+
+  box-shadow:
+    0 10px 30px rgba(212,175,55,.18);
+}
+
+.management-review-page #btn-approve:disabled{
+  box-shadow:none;
+  opacity:.45;
+}
+
+/* -------------------------------------------------
+   Approval status
+-------------------------------------------------- */
+
+.management-review-page #approve-status{
+  margin-top:12px;
+
+  font-weight:700;
+  line-height:1.5;
+}
+
+/* -------------------------------------------------
+   Modal
+-------------------------------------------------- */
+
+.management-review-page #approval-modal{
+  backdrop-filter:blur(8px);
+}
+
+/* -------------------------------------------------
+   Desktop
+-------------------------------------------------- */
+
+@media (min-width:860px){
+
+  .management-review-page .info-grid.two{
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .management-review-page .form-grid.two{
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .management-review-page #journeyPickerCard,
+  .management-review-page #mint-box{
+    padding:28px 30px;
+  }
+}
+
+/* -------------------------------------------------
+   Mobile
+-------------------------------------------------- */
+
+@media (max-width:700px){
+
+  .management-review-page main{
+    width:min(100% - 20px, 1180px);
+    padding-bottom:50px;
+  }
+
+  .management-review-page .card{
+    margin-bottom:12px;
+    padding:16px;
+
+    border-radius:16px;
+  }
+
+  .management-review-page .card-head{
+    gap:10px;
+    margin-bottom:16px;
+  }
+
+  .management-review-page .info-grid.two,
+  .management-review-page .form-grid.two{
+    grid-template-columns:1fr;
+  }
+
+  .management-review-page .stat{
+    padding:12px 13px;
+  }
+
+  .management-review-page .actions{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+
+  .management-review-page .actions .btn,
+  .management-review-page #btn-approve{
+    width:100%;
+  }
+}
+
+/* === END MANAGEMENT REVIEW POLISH V1 === */
