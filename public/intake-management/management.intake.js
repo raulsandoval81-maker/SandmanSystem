@@ -400,4 +400,4 @@ async function loadApproved() {
 
   loadPendingLive();
   loadApproved();
-})();\n
+})();
