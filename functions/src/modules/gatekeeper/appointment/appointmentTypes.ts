@@ -1,6 +1,7 @@
 export type AppointmentLocation =
   | "lompoc"
-  | "santa-ynez-valley";
+  | "santa-ynez-valley"
+  | "elk-grove";
 
 export type Language =
   | "en"

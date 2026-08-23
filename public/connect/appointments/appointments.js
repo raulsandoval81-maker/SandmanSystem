@@ -135,6 +135,7 @@ function labelForLocation(location = "") {
   const labels = {
     lompoc: "Lompoc",
     "santa-ynez-valley": "Santa Ynez Valley",
+    "elk-grove": "Elk Grove",
     either: "Either Location"
   };
 
@@ -499,9 +500,14 @@ ${esc(
 appointmentTime.value =
   selectedLead.appointmentTime || "";
 
+const preferredAppointmentLocation =
+  selectedLead.preferredLocation === "solvang"
+    ? "santa-ynez-valley"
+    : selectedLead.preferredLocation || "";
+
 appointmentLocation.value =
   selectedLead.appointmentLocation ||
-  selectedLead.preferredLocation ||
+  preferredAppointmentLocation ||
   "";
 
 appointmentCoach.value =
@@ -512,14 +518,14 @@ appointmentNotes.value =
   selectedLead.appointmentNotes || "";
 
 if (scheduleBtn) {
+  scheduleBtn.disabled = false;
+
   if (
     selectedLead.appointmentStatus === "scheduled"
   ) {
-    scheduleBtn.disabled = true;
     scheduleBtn.textContent =
-      "✓ Appointment Has Been Scheduled";
+      "Update Appointment";
   } else {
-    scheduleBtn.disabled = false;
     scheduleBtn.textContent =
       "Schedule Appointment";
   }
@@ -667,6 +673,9 @@ async function migrateLegacyAppointments() {
 
         admissionsPath:
           lead.admissionsPath || "new",
+
+        entryMode:
+          lead.entryMode || "online",
 
         preferredLocation:
           lead.preferredLocation || "",
@@ -1132,6 +1141,9 @@ scheduleForm?.addEventListener(
       admissionsPath:
         selectedLead.admissionsPath || "new",
 
+      entryMode:
+        selectedLead.entryMode || "online",
+
       preferredLocation:
         selectedLead.preferredLocation || "",
 
@@ -1163,7 +1175,6 @@ scheduleForm?.addEventListener(
       },
 
 appointmentConfirmationStatus:
-  selectedLead.appointmentConfirmationStatus ||
   "pending",
 
       enrollmentStatus:
@@ -1221,7 +1232,6 @@ appointmentConfirmationStatus:
 
     // Confirmation has been requested but not necessarily sent.
 appointmentConfirmationStatus:
-  selectedLead.appointmentConfirmationStatus ||
   "pending",
 
     athleteStatus:
@@ -1261,14 +1271,14 @@ await loadAppointments();
       );
     } finally {
       if (scheduleBtn) {
+        scheduleBtn.disabled = false;
+
         if (
           selectedLead?.appointmentStatus === "scheduled"
         ) {
-          scheduleBtn.disabled = true;
           scheduleBtn.textContent =
-            "✓ Appointment Has Been Scheduled";
+            "Update Appointment";
         } else {
-          scheduleBtn.disabled = false;
           scheduleBtn.textContent =
             "Schedule Appointment";
         }

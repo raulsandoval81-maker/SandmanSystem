@@ -185,6 +185,31 @@ function getRequestedLocationId() {
     .replace(/\s+/g, "-");
 }
 
+function getEntryMode() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const requestedEntryMode =
+    clean(
+      params.get("entryMode") ||
+      params.get("entry")
+    )
+      .toLowerCase();
+
+  if (
+    [
+      "walk-in",
+      "staff-assisted"
+    ].includes(requestedEntryMode)
+  ) {
+    return requestedEntryMode;
+  }
+
+  return "online";
+}
+
 function syncLocalLocationContext() {
   if (!preferredLocation) {
     return;
@@ -350,6 +375,9 @@ function readForm() {
 
     trainingIntent:
       clean(formData.get("trainingIntent")),
+
+    entryMode:
+      getEntryMode(),
 
     registrantRole,
 
@@ -522,7 +550,13 @@ if (
   );
 }
 
-  if (!lead.preferredMeetingWindow) {
+  const requiresMeetingAvailability =
+    lead.entryMode === "online";
+
+  if (
+    requiresMeetingAvailability &&
+    !lead.preferredMeetingWindow
+  ) {
     return message(
       "Select your preferred meeting availability.",
       "Selecciona tu horario preferido para reunirte."
@@ -721,6 +755,9 @@ form?.addEventListener(
         )}` +
         `&trainingIntent=${encodeURIComponent(
           lead.trainingIntent
+        )}` +
+        `&entryMode=${encodeURIComponent(
+          lead.entryMode
         )}`
       );
     } catch (error) {

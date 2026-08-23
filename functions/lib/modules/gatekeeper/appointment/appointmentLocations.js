@@ -5,12 +5,14 @@ exports.getLocationName = getLocationName;
 exports.getLocationAddress = getLocationAddress;
 function isSupportedLocation(location) {
     return (location === "lompoc" ||
-        location === "santa-ynez-valley");
+        location === "santa-ynez-valley" ||
+        location === "elk-grove");
 }
 function getLocationName(location) {
     const names = {
         lompoc: "Lompoc",
-        "santa-ynez-valley": "Santa Ynez Valley"
+        "santa-ynez-valley": "Santa Ynez Valley",
+        "elk-grove": "Elk Grove"
     };
     return names[location];
 }
@@ -20,6 +22,12 @@ function getLocationAddress(location) {
             "Lompoc High School Wrestling Room — Room IA-1",
             "515 W College Ave",
             "Lompoc, CA 93436"
+        ].join("\n");
+    }
+    if (location === "elk-grove") {
+        return [
+            "Location details will be confirmed",
+            "by the academy team."
         ].join("\n");
     }
     return [
