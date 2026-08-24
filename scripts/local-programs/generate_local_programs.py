@@ -422,6 +422,77 @@ def generate_location(slug, academy):
             )
 
 
+
+# ============================================================
+# SANDMAN_LOCAL_FRONT_DOOR_CULTURE
+#
+# Local academy front-door doctrine:
+#
+#   ALL local academies lead with:
+#
+#     SANDMAN SYSTEM
+#     COMBAT IS LIFE
+#     THESE ARE THE RULES OF LIFE
+#     FOCUS • EFFORT • ATTITUDE • RESPECT
+#
+# Discipline-specific "___ IS LIFE" artwork belongs deeper
+# in program / athlete / communication contexts.
+#
+# The second home visual communicates the actual disciplines
+# offered by the individual academy.
+# ============================================================
+
+LOCAL_FRONT_DOOR_CULTURE = {
+    "en": "/assets/img/discipline-life/combat-is-life-en.png",
+    "es": "/assets/img/discipline-life/combat-is-life-es.png",
+}
+
+
+def enforce_local_front_door_culture():
+    """Keep every configured local academy on the System-level
+    Combat Is Life front-door visual.
+    """
+
+    for index_path in LOCATIONS.glob("*/index.html"):
+        html = index_path.read_text()
+
+        replacements = {
+            "/assets/img/pages/home/hero-home-env2.png":
+                LOCAL_FRONT_DOOR_CULTURE["en"],
+
+            "/assets/img/pages/home/hero-home-esv2.png":
+                LOCAL_FRONT_DOOR_CULTURE["es"],
+
+            "/assets/img/discipline-life/wrestling-is-life-en.png":
+                LOCAL_FRONT_DOOR_CULTURE["en"],
+
+            "/assets/img/discipline-life/wrestling-is-life-es.png":
+                LOCAL_FRONT_DOOR_CULTURE["es"],
+
+            "/assets/img/discipline-life/boxing-is-life-en.png":
+                LOCAL_FRONT_DOOR_CULTURE["en"],
+
+            "/assets/img/discipline-life/boxing-is-life-es.png":
+                LOCAL_FRONT_DOOR_CULTURE["es"],
+        }
+
+        changed = False
+
+        for old, new in replacements.items():
+            if old in html:
+                html = html.replace(old, new)
+                changed = True
+
+        if changed:
+            index_path.write_text(html)
+            print(
+                f"✓ Front door culture: "
+                f"{index_path.parent.name}"
+            )
+
+
+# END_SANDMAN_LOCAL_FRONT_DOOR_CULTURE
+
 def main():
     if not LIBRARY.exists():
         raise SystemExit(
@@ -434,6 +505,8 @@ def main():
             slug,
             academy,
         )
+
+    enforce_local_front_door_culture()
 
     print("\n✓ Local program generation complete")
 
