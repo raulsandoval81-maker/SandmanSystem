@@ -127,81 +127,6 @@ def localize_html(html, academy):
 # local discipline pages are generated.
 # =========================================================
 
-DISCIPLINE_LIFE_IMAGES = {
-    "wrestling": {
-        "en": "/assets/img/discipline-life/wrestling-is-life-en.png",
-        "es": "/assets/img/discipline-life/wrestling-is-life-es.png",
-        "alt_en": "Wrestling is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "La lucha es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "boxing": {
-        "en": "/assets/img/discipline-life/boxing-is-life-en.png",
-        "es": "/assets/img/discipline-life/boxing-is-life-es.png",
-        "alt_en": "Boxing is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El boxeo es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "muay-thai": {
-        "en": "/assets/img/discipline-life/muaythai-is-life-en.png",
-        "es": "/assets/img/discipline-life/muaythai-is-life-es.png",
-        "alt_en": "Muay Thai is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El Muay Thai es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "mma": {
-        "en": "/assets/img/discipline-life/mma-is-life-en.png",
-        "es": "/assets/img/discipline-life/mma-is-life-es.png",
-        "alt_en": "Mixed Martial Arts is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "Las artes marciales mixtas son vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "submission-grappling": {
-        "en": "/assets/img/discipline-life/submission-grappling-is-life-en.png",
-        "es": "/assets/img/discipline-life/submission-grappling-is-life-es.png",
-        "alt_en": "Submission Grappling is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El grappling de sumisión es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-}
-
-
-JOURNEY_META = {
-    "zero2hero": {
-        "label": "Zero2Hero™",
-        "age_en": "Ages 7–13",
-        "age_es": "Edades 7–13",
-    },
-    "path2legend": {
-        "label": "Path2Legend™",
-        "age_en": "Ages 14+",
-        "age_es": "Edades 14+",
-    },
-    "quest2mastery": {
-        "label": "Quest2Mastery™",
-        "age_en": "Ages 16+",
-        "age_es": "Edades 16+",
-    },
-}
-
-
-def discipline_life_splash(discipline):
-    data = DISCIPLINE_LIFE_IMAGES.get(discipline)
-
-    if not data:
-        return ""
-
-    return f"""
-<section
-  class="discipline-life-splash"
-  data-discipline-life="{discipline}"
->
-  <img
-    src="{data['en']}"
-    data-lang-src-en="{data['en']}"
-    data-lang-src-es="{data['es']}"
-    data-lang-alt-en="{data['alt_en']}"
-    data-lang-alt-es="{data['alt_es']}"
-    alt="{data['alt_en']}"
-    loading="lazy"
-  >
-</section>
-"""
 
 
 def polish_local_program_html(
@@ -213,11 +138,14 @@ def polish_local_program_html(
     """
     Canonical local discipline-page presentation:
 
-    Life PNG
-    -> neutral discipline hero
+    neutral discipline hero
     -> discipline content
     -> earned progression with Journey / Age / Location
     -> shirt/rank progression
+
+    Academy-level cultural imagery such as ___ IS LIFE
+    or COMBAT IS LIFE belongs on the local academy front
+    door, not on local program-detail pages.
     """
 
     meta = JOURNEY_META.get(journey)
@@ -261,29 +189,6 @@ def polish_local_program_html(
             + html[hero_match.end():]
         )
 
-    # ---------------------------------------------
-    # LIFE PNG
-    # Exactly one splash, directly above hero.
-    # ---------------------------------------------
-
-    html = re.sub(
-        r'\s*<section\s+class="discipline-life-splash".*?</section>\s*',
-        "\n\n",
-        html,
-        flags=re.I | re.S,
-    )
-
-    splash = discipline_life_splash(discipline)
-
-    hero_pos = html.find('<section class="hero">')
-
-    if splash and hero_pos != -1:
-        html = (
-            html[:hero_pos]
-            + splash
-            + "\n\n"
-            + html[hero_pos:]
-        )
 
     # ---------------------------------------------
     # PROGRESSION
@@ -352,45 +257,6 @@ def polish_local_program_html(
             1,
         )
 
-    # ---------------------------------------------
-    # LIFE PNG PRESENTATION
-    # ---------------------------------------------
-
-    life_style_marker = "SANDMAN-DISCIPLINE-LIFE-STYLE"
-
-    if (
-        life_style_marker not in html
-        and "</head>" in html
-    ):
-        style = f"""
-  <style id="{life_style_marker}">
-    .discipline-life-splash {{
-      width: min(100%, 900px);
-      margin: 3rem auto;
-      text-align: center;
-    }}
-
-    .discipline-life-splash img {{
-      display: block;
-      width: 100%;
-      height: auto;
-      margin: 0 auto;
-    }}
-
-    @media (max-width: 640px) {{
-      .discipline-life-splash {{
-        width: 100%;
-        margin: 2.25rem auto;
-      }}
-    }}
-  </style>
-"""
-
-        html = html.replace(
-            "</head>",
-            style + "\n</head>",
-            1,
-        )
 
     return html
 
@@ -665,81 +531,33 @@ enforce_santa_ynez_centered_titles()
 # Life PNG and shirt-progression PNG must remain separated.
 # ============================================================
 
-# ============================================================
-# SANDMAN_DISCIPLINE_LIFE_SPLASH
-# Native Sandman bilingual discipline culture image.
-# Uses /assets/js/language.js data-lang-src system so the
-# image stays synchronized with the site's saved EN/ES state.
-# ============================================================
-
-DISCIPLINE_LIFE_IMAGES = {
-    "wrestling": {
-        "en": "/assets/img/discipline-life/wrestling-is-life-en.png",
-        "es": "/assets/img/discipline-life/wrestling-is-life-es.png",
-        "alt_en": "Wrestling is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "La lucha es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "boxing": {
-        "en": "/assets/img/discipline-life/boxing-is-life-en.png",
-        "es": "/assets/img/discipline-life/boxing-is-life-es.png",
-        "alt_en": "Boxing is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El boxeo es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "muay-thai": {
-        "en": "/assets/img/discipline-life/muaythai-is-life-en.png",
-        "es": "/assets/img/discipline-life/muaythai-is-life-es.png",
-        "alt_en": "Muay Thai is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El Muay Thai es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "muaythai": {
-        "en": "/assets/img/discipline-life/muaythai-is-life-en.png",
-        "es": "/assets/img/discipline-life/muaythai-is-life-es.png",
-        "alt_en": "Muay Thai is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El Muay Thai es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "mma": {
-        "en": "/assets/img/discipline-life/mma-is-life-en.png",
-        "es": "/assets/img/discipline-life/mma-is-life-es.png",
-        "alt_en": "Mixed Martial Arts is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "Las artes marciales mixtas son vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-    "submission-grappling": {
-        "en": "/assets/img/discipline-life/submission-grappling-is-life-en.png",
-        "es": "/assets/img/discipline-life/submission-grappling-is-life-es.png",
-        "alt_en": "Submission Grappling is life. These are the rules of life: Focus, Effort, Attitude, Respect.",
-        "alt_es": "El grappling de sumisión es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto.",
-    },
-}
-
-
-def discipline_life_splash(discipline):
-    slug = (
-        str(discipline)
-        .strip()
-        .lower()
-        .replace("_", "-")
-        .replace(" ", "-")
-    )
-
-    d = DISCIPLINE_LIFE_IMAGES.get(slug)
-
-    if not d:
-        return ""
-
-    return f"""
-<section
-  class="discipline-life-splash"
-  data-discipline-life="{slug}"
->
-  <img
-    src="{d['en']}"
-    data-lang-src-en="{d['en']}"
-    data-lang-src-es="{d['es']}"
-    data-lang-alt-en="{d['alt_en']}"
-    data-lang-alt-es="{d['alt_es']}"
-    alt="{d['alt_en']}"
-    loading="lazy"
-  >
-</section>
-"""
-
+# SANDMAN_LOCAL_DISCIPLINE_STRUCTURE
+#
+# Canonical generated local discipline-page flow:
+#
+#   HERO
+#     discipline title
+#     discipline subtitle
+#     discipline introduction
+#     availability copy
+#
+#     Hero stays neutral.
+#     No location / journey / age eyebrow.
+#
+#   DISCIPLINE OVERVIEW
+#
+#   WHY SANDMAN TEACHES THE DISCIPLINE
+#
+#   EARNED PROGRESSION
+#     local context belongs here:
+#
+#     Earned Progression • Journey • Age • Location
+#     Progreso Ganado • Journey • Edad • Ubicación
+#
+#   JOURNEY PROGRESSION
+#   SHIRT / RANK PROGRESSION
+#   REMAINING DISCIPLINE CONTENT
+#
+# Academy-level cultural imagery such as ___ IS LIFE
+# and COMBAT IS LIFE belongs on the local academy front
+# door, not on generated local program-detail pages.
