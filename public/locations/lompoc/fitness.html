@@ -1,0 +1,324 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>
+    Fitness for Everyday Life | Sandman Academy — Lompoc
+  </title>
+
+  <meta
+    name="description"
+    content="Explore local and remote fitness support through Sandman Academy in Lompoc."
+  >
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+
+  <style>
+    .local-fitness {
+      min-height:100vh;
+      background:var(--page-bg,#090909);
+      color:var(--text,#f5f5f5);
+    }
+
+    .local-fitness__container {
+      width:min(920px,calc(100% - 32px));
+      margin:0 auto;
+    }
+
+    .local-fitness__hero {
+      padding:clamp(64px,9vw,100px) 0 54px;
+      text-align:center;
+    }
+
+    .local-fitness__eyebrow {
+      margin:0 0 12px;
+      color:var(--heading-accent,#d4af37);
+      font-size:.8rem;
+      font-weight:900;
+      letter-spacing:.15em;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__hero h1 {
+      max-width:760px;
+      margin:0 auto;
+      color:#fff;
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__lead {
+      max-width:650px;
+      margin:22px auto 0;
+      color:var(--muted,#b8b8b8);
+      font-size:1.05rem;
+      line-height:1.7;
+    }
+
+    .local-fitness__grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:20px;
+      padding:0 0 72px;
+    }
+
+    .local-fitness__card {
+      display:flex;
+      flex-direction:column;
+      padding:30px;
+      border:1px solid rgba(212,175,55,.30);
+      border-radius:20px;
+      background:rgba(255,255,255,.025);
+    }
+
+    .local-fitness__card h2 {
+      margin:0;
+      color:#fff;
+      font-size:1.8rem;
+    }
+
+    .local-fitness__card p {
+      margin:14px 0 0;
+      color:var(--muted,#b8b8b8);
+      line-height:1.7;
+    }
+
+    .local-fitness__status {
+      display:inline-flex;
+      align-self:flex-start;
+      margin-bottom:18px;
+      padding:6px 10px;
+      border:1px solid rgba(212,175,55,.35);
+      border-radius:999px;
+      color:var(--heading-accent,#d4af37);
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:.1em;
+      text-transform:uppercase;
+    }
+
+    .local-fitness__button {
+      display:inline-flex;
+      justify-content:center;
+      align-items:center;
+      min-height:48px;
+      margin-top:24px;
+      padding:12px 20px;
+      border:1px solid var(--heading-accent,#d4af37);
+      border-radius:999px;
+      background:var(--heading-accent,#d4af37);
+      color:#090909;
+      font-weight:900;
+      text-decoration:none;
+    }
+
+    @media (max-width:720px) {
+      .local-fitness__grid {
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div
+    id="navigation"
+    data-component="/locations/lompoc/components/navigation.html"
+  ></div>
+
+  <div
+    class="site-hero-divider"
+    aria-hidden="true"
+  ></div>
+
+  <main class="local-fitness">
+
+    <section class="local-fitness__hero">
+      <div class="local-fitness__container">
+
+        <div data-lang-block="en">
+          <p class="local-fitness__eyebrow">
+            Lompoc · Fitness
+          </p>
+
+          <h1>
+            Fitness for Everyday Life
+          </h1>
+
+          <p class="local-fitness__lead">
+            Build strength, conditioning, confidence, and
+            consistency inside or outside the academy.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <p class="local-fitness__eyebrow">
+            Lompoc · Fitness
+          </p>
+
+          <h1>
+            Fitness para la Vida Diaria
+          </h1>
+
+          <p class="local-fitness__lead">
+            Desarrolla fuerza, condición física, confianza
+            y constancia dentro o fuera de la academia.
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+
+    <section>
+      <div class="local-fitness__container local-fitness__grid">
+
+        <article class="local-fitness__card">
+
+          <div data-lang-block="en">
+            <span class="local-fitness__status">
+              Local
+            </span>
+
+            <h2>
+              Academy Fitness
+            </h2>
+
+            <p>
+              Local fitness classes and additional training
+              options will be added here as they become
+              available.
+            </p>
+
+            <p>
+              <strong>Classes coming soon.</strong>
+            </p>
+          </div>
+
+          <div
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            <span class="local-fitness__status">
+              Local
+            </span>
+
+            <h2>
+              Fitness en la Academia
+            </h2>
+
+            <p>
+              Las clases locales y las opciones adicionales
+              de entrenamiento aparecerán aquí cuando estén
+              disponibles.
+            </p>
+
+            <p>
+              <strong>Clases próximamente.</strong>
+            </p>
+          </div>
+
+        </article>
+
+
+        <article class="local-fitness__card">
+
+          <div data-lang-block="en">
+            <span class="local-fitness__status">
+              Remote
+            </span>
+
+            <h2>
+              Train Beyond the Academy
+            </h2>
+
+            <p>
+              Keep working between practices or when you
+              cannot make it into the academy with FuelAI
+              training and fitness support.
+            </p>
+
+            <a
+              class="local-fitness__button"
+              href="https://fuel-ai-gamma.vercel.app/"
+            >
+              Explore FuelAI
+            </a>
+          </div>
+
+          <div
+            data-lang-block="es"
+            class="hidden-lang"
+          >
+            <span class="local-fitness__status">
+              Remoto
+            </span>
+
+            <h2>
+              Entrena Fuera de la Academia
+            </h2>
+
+            <p>
+              Sigue entrenando entre prácticas o cuando no
+              puedas llegar a la academia con el apoyo de
+              entrenamiento y fitness de FuelAI.
+            </p>
+
+            <a
+              class="local-fitness__button"
+              href="https://fuel-ai-gamma.vercel.app/"
+            >
+              Explora FuelAI
+            </a>
+          </div>
+
+        </article>
+
+      </div>
+    </section>
+
+  </main>
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
+</body>
+</html>
