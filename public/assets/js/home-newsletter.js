@@ -112,14 +112,6 @@ form?.addEventListener("submit", async (event) => {
       {
         email,
         organization: "sandman-academy",
-
-        locationId: location.locationId,
-        locationName: location.locationName,
-
-        queueScope: location.locationId
-          ? "LOCATION_MANAGEMENT"
-          : "CENTRAL_MANAGEMENT",
-
         source: "public-homepage",
         status: "ACTIVE",
         interests: [
@@ -142,35 +134,136 @@ form?.addEventListener("submit", async (event) => {
     );
 
 
+    /*
+     * The current Firestore contract allows direct
+     * Management routing for Santa Ynez Valley and
+     * Elk Grove.
+     *
+     * Root/national and Lompoc currently enter
+     * Admin Review until their direct routing rule
+     * is explicitly activated.
+     */
+    const directManagementLocations = new Set([
+      "santa-ynez-valley",
+      "elk-grove"
+    ]);
+
+    const directToManagement =
+      directManagementLocations.has(
+        location.locationId
+      );
+
+    const preferredLocation =
+      location.locationId || "not-sure";
+
+    const organizationId =
+      directToManagement
+        ? "sandman-academy"
+        : null;
+
+    const organizationName =
+      directToManagement
+        ? "Sandman Academy of Combat & Fitness"
+        : "";
+
+    const academyId =
+      directToManagement
+        ? "sandman-academy"
+        : null;
+
+    const academyName =
+      directToManagement
+        ? "Sandman Academy of Combat & Fitness"
+        : "";
+
+    const locationId =
+      directToManagement
+        ? location.locationId
+        : null;
+
+    const locationName =
+      directToManagement
+        ? (
+            location.locationId === "elk-grove"
+              ? "Elk Grove, California"
+              : "Santa Ynez Valley"
+          )
+        : "";
+
     await addDoc(
       collection(db, "general_messages"),
       {
-        contactName: "",
+        organization: "sandman-system",
+        pipeline: "general-messaging",
+        source: "public-message-page",
+
+        status: "NEW",
+        messageStatus: "NEW",
+
+        routingStage: directToManagement
+          ? "MANAGEMENT_TRIAGE"
+          : "ADMIN_REVIEW",
+
+        nextRoutingStage: directToManagement
+          ? "COACH_ASSIGNED"
+          : "MANAGEMENT_TRIAGE",
+
+        routingPolicy: directToManagement
+          ? "LOCAL_TO_LOCATION_MANAGER"
+          : "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
+
+        requiredManagerLevel:
+          "LOCATION_MANAGER",
+
+        assignmentStatus: directToManagement
+          ? "PENDING_MANAGEMENT"
+          : "UNASSIGNED",
+
+        contactName:
+          "Stay Connected Subscriber",
+
         email,
         phone: "",
 
         topic: "stay-connected",
-        message: "Homepage Stay Connected subscription",
 
-        organizationId: "sandman-academy",
-        organizationName:
-          "Sandman Academy of Combat & Fitness",
+        message:
+          "Homepage Stay Connected subscription",
 
-        locationId: location.locationId,
-        locationName: location.locationName,
+        preferredOrganization:
+          "sandman-academy",
 
-        queueScope: location.locationId
-          ? "LOCATION_MANAGEMENT"
-          : "CENTRAL_MANAGEMENT",
+        preferredLocation,
 
-        source: "public-homepage",
-        subscriberId: result.id,
-
-        routingStage: "MANAGEMENT_TRIAGE",
-        assignmentStatus: "PENDING_MANAGEMENT",
-        messageStatus: "REVIEWING",
-
+        contactConsent: true,
         language: language(),
+        pagePath: window.location.pathname,
+
+        organizationId,
+        organizationName,
+
+        academyId,
+        academyName,
+
+        locationId,
+        locationName,
+
+        assignedAdminUid: null,
+        assignedManagerUid: null,
+        assignedCoachUid: null,
+
+        respondedByUid: null,
+        respondedByRole: null,
+        respondedAt: null,
+
+        closedByUid: null,
+        closedAt: null,
+
+        escalated: false,
+        escalationReason: "",
+
+        coachNotes: "",
+        managementNotes: "",
 
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp()
