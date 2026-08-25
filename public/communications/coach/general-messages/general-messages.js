@@ -1,16 +1,35 @@
 import {
   db,
-  ensureSignedIn,
+  auth,
   collection,
   getDocs,
   query,
+  where,
   orderBy,
   doc,
   updateDoc,
   serverTimestamp
-} from "/assets/js/firebase-init-para.js";
+} from "/assets/js/firebase-init.js";
 
-await ensureSignedIn();
+const currentUser =
+  await new Promise((resolve) => {
+    if (auth.currentUser) {
+      resolve(auth.currentUser);
+      return;
+    }
+
+    const unsubscribe =
+      auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        resolve(user || null);
+      });
+  });
+
+if (!currentUser || currentUser.isAnonymous) {
+  throw new Error(
+    "Coach authentication required."
+  );
+}
 
 const messagesList =
   document.getElementById("messagesList");
@@ -23,7 +42,10 @@ const template =
 
 const refreshButton =
   document.getElementById("refreshMessages");
-  
+
+const filterButtons =
+  document.querySelectorAll("[data-filter]");
+
 const countNew = document.getElementById("countNew");
 const countReviewing = document.getElementById("countReviewing");
 const countResponded = document.getElementById("countResponded");
@@ -45,6 +67,10 @@ function clean(value) {
 
 function normalizeStatus(value) {
   const status = clean(value).toUpperCase();
+
+  if (status === "ASSIGNED") {
+    return "NEW";
+  }
 
   return ALLOWED_STATUSES.has(status)
     ? status
@@ -239,7 +265,21 @@ async function saveMessage(message, card) {
       {
         status: nextStatus,
         messageStatus: nextStatus,
+
+        routingStage:
+          nextStatus === "RESPONDED"
+            ? "RESPONDED"
+            : nextStatus === "CLOSED"
+              ? "CLOSED"
+              : "COACH_REVIEWING",
+
+        assignmentStatus:
+          nextStatus === "CLOSED"
+            ? "COMPLETED"
+            : "ASSIGNED",
+
         coachNotes: nextNotes,
+
         updatedAt: serverTimestamp()
       }
     );
@@ -415,10 +455,23 @@ async function loadMessages() {
   setPageStatus("Loading messages...");
 
   try {
-    await ensureSignedIn();
+    const coachUid =
+      auth.currentUser?.uid ||
+      currentUser?.uid;
+
+    if (!coachUid) {
+      throw new Error(
+        "Coach authentication required."
+      );
+    }
 
     const messagesQuery = query(
       collection(db, "general_messages"),
+      where(
+        "assignedCoachUid",
+        "==",
+        coachUid
+      ),
       orderBy("createdAt", "desc")
     );
 

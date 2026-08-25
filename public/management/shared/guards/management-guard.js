@@ -158,6 +158,9 @@ export async function requireManagement() {
     staff.programId
   );
 
+  const centralManagement =
+    staff.centralManagement === true;
+
   return {
     user,
 
@@ -169,6 +172,7 @@ export async function requireManagement() {
     role,
     isSystemAdmin,
     isManagement,
+    centralManagement,
 
     scope: {
       organizationIds,

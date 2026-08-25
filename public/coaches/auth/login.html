@@ -336,7 +336,7 @@
   browserLocalPersistence,
   browserSessionPersistence,
   setPersistence
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 
 const keepSignedIn =
@@ -424,6 +424,8 @@ async function applyAuthPersistence() {
         token.claims || {};
 
       return (
+        claims.role === "coach" ||
+        claims.role === "admin" ||
         claims.coach === true ||
         claims.admin === true
       );

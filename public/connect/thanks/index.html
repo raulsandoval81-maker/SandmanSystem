@@ -65,7 +65,8 @@
     }
 
     [data-lang],
-    [data-response]{
+    [data-response],
+    span[data-interest]{
       display:none;
     }
 
@@ -82,6 +83,15 @@
       [data-response="es-family"],
     html[lang="es"][data-audience="adult"]
       [data-response="es-adult"]{
+      display:inline;
+    }
+
+    html[data-interest="combat"]
+      [data-interest="combat"],
+    html[data-interest="fitness"]
+      [data-interest="fitness"],
+    html[data-interest="both"]
+      [data-interest="both"]{
       display:inline;
     }
 
@@ -176,6 +186,18 @@
 
     .steps p + p{
       margin-top:16px;
+    }
+
+    .entry-rule{
+      margin:18px 0 0;
+      padding:14px 16px;
+
+      color:#f4f4f5;
+      line-height:1.55;
+
+      background:rgba(250,204,21,.07);
+      border:1px solid rgba(250,204,21,.22);
+      border-radius:14px;
     }
 
     .actions{
@@ -303,6 +325,11 @@
     conocerte.
   </span>
 </p>
+      <p
+        id="entryRule"
+        class="entry-rule"
+      ></p>
+
       <section class="steps">
 
         <h2>
@@ -317,136 +344,108 @@
 
         <p>
           <span data-response="en-family">
-            ✓ A Sandman coach will review your request
-            and preferred days and times, determine the
-            best meeting time for your family and our
-            staff, and contact you to confirm your visit.
-            Watch for your confirmation email with your
-            visit details and next steps.
+            ✓ We received your request and your preferred availability.
+            Our academy team will review the information and coordinate
+            an actual date and time that works for your family and the
+            appropriate staff.
           </span>
 
           <span data-response="en-adult">
-            ✓ A Sandman coach will review your request
-            and preferred days and times, determine the
-            best meeting time for you and our staff,
-            and contact you to confirm your visit.
-            Watch for your confirmation email with your
-            visit details and next steps.
+            ✓ We received your request and your preferred availability.
+            Our academy team will review the information and coordinate
+            an actual date and time that works for you and the
+            appropriate staff.
           </span>
 
           <span data-response="es-family">
-            ✓ Un entrenador de Sandman revisará tu
-            solicitud y tus días y horarios preferidos,
-            determinará el mejor horario para tu familia
-            y nuestro personal, y se comunicará contigo
-            para confirmar tu visita. Revisa tu correo
-            electrónico para recibir la confirmación con
-            los detalles de tu visita y los próximos pasos.
+            ✓ Recibimos tu solicitud y tu disponibilidad preferida.
+            Nuestro equipo de la academia revisará la información y
+            coordinará una fecha y hora que funcione para tu familia
+            y el personal apropiado.
           </span>
 
           <span data-response="es-adult">
-            ✓ Un entrenador de Sandman revisará tu
-            solicitud y tus días y horarios preferidos,
-            determinará el mejor horario para ti y nuestro
-            personal, y se comunicará contigo para
-            confirmar tu visita. Revisa tu correo
-            electrónico para recibir la confirmación con
-            los detalles de tu visita y los próximos pasos.
+            ✓ Recibimos tu solicitud y tu disponibilidad preferida.
+            Nuestro equipo de la academia revisará la información y
+            coordinará una fecha y hora que funcione para ti y el
+            personal apropiado.
+          </span>
+        </p>
+
+        <p>
+          <span data-lang="en">
+
+            <span data-interest="combat">
+              ✓ For combat training, new athletes can move through the
+              standard enrollment path. If you requested a Placement
+              Assessment, the academy team will coordinate a coach
+              evaluation before placement is finalized.
+            </span>
+
+            <span data-interest="fitness">
+              ✓ For fitness training, the academy team will review your
+              goals and training interests and coordinate the appropriate
+              starting point.
+            </span>
+
+            <span data-interest="both">
+              ✓ Because you selected both Combat and Fitness, the academy
+              team will coordinate the appropriate starting point for each.
+              If a combat Placement Assessment is needed, a coach will be
+              involved for that evaluation.
+            </span>
+
+          </span>
+
+          <span data-lang="es">
+
+            <span data-interest="combat">
+              ✓ Para entrenamiento de combate, los atletas nuevos pueden
+              continuar por el proceso normal de inscripción. Si solicitaste
+              una Evaluación de Colocación, el equipo de la academia
+              coordinará una evaluación con un entrenador antes de finalizar
+              la colocación.
+            </span>
+
+            <span data-interest="fitness">
+              ✓ Para entrenamiento de fitness, el equipo de la academia
+              revisará tus metas e intereses de entrenamiento y coordinará
+              el punto de partida apropiado.
+            </span>
+
+            <span data-interest="both">
+              ✓ Debido a que seleccionaste Combate y Fitness, el equipo
+              de la academia coordinará el punto de partida apropiado para
+              cada uno. Si se necesita una Evaluación de Colocación de
+              combate, participará un entrenador para esa evaluación.
+            </span>
+
           </span>
         </p>
 
         <p>
           <span data-response="en-family">
-            ✓ Your visit will include a complimentary
-            class and Admissions Appointment. Your coach
-            will guide the order of the visit based on
-            your athlete's experience and the day's
-            training schedule. New athletes are often
-            scheduled near the end of practice so your
-            family can meet with the coach first.
-            Athletes requesting a Placement Assessment
-            may train first so the coach can evaluate
-            their current level before meeting with
-            your family.
+            ✓ Watch for your confirmation message. It will include the
+            confirmed visit details, required starting gear when applicable,
+            and the next steps for your athlete.
           </span>
 
           <span data-response="en-adult">
-            ✓ Your visit will include a complimentary
-            class and Admissions Appointment. Your coach
-            will guide the order of the visit based on
-            your experience and the day's training
-            schedule. New athletes are often scheduled
-            near the end of practice so you can meet
-            with the coach first. If you requested a
-            Placement Assessment, you may train first
-            so the coach can evaluate your current level
-            before meeting with you.
+            ✓ Watch for your confirmation message. It will include the
+            confirmed visit details, required starting gear when applicable,
+            and your next steps.
           </span>
 
           <span data-response="es-family">
-            ✓ Tu visita incluirá una clase de cortesía
-            y una Cita de Admisión. Tu entrenador guiará
-            el orden de la visita según la experiencia
-            de tu atleta y el horario de entrenamiento
-            de ese día. Los atletas nuevos suelen
-            programarse cerca del final de la práctica
-            para que tu familia pueda reunirse primero
-            con el entrenador. Los atletas que solicitan
-            una Evaluación de Colocación pueden entrenar
-            primero para que el entrenador evalúe su
-            nivel actual antes de reunirse con tu familia.
+            ✓ Revisa tu mensaje de confirmación. Incluirá los detalles
+            confirmados de la visita, el equipo necesario para comenzar
+            cuando corresponda y los próximos pasos para tu atleta.
           </span>
 
           <span data-response="es-adult">
-            ✓ Tu visita incluirá una clase de cortesía
-            y una Cita de Admisión. Tu entrenador guiará
-            el orden de la visita según tu experiencia
-            y el horario de entrenamiento de ese día.
-            Los atletas nuevos suelen programarse cerca
-            del final de la práctica para que puedas
-            reunirte primero con el entrenador. Si
-            solicitaste una Evaluación de Colocación,
-            puedes entrenar primero para que el entrenador
-            evalúe tu nivel actual antes de reunirse contigo.
-          </span>
-        </p>
-
-        <p>
-          <span data-response="en-family">
-            ✓ During your visit, you'll have time to
-            ask questions and discuss your athlete's
-            goals, program options, and membership
-            options with the coach. If you decide to
-            continue after the visit, we'll help your
-            family with the appropriate next steps.
-          </span>
-
-          <span data-response="en-adult">
-            ✓ During your visit, you'll have time to
-            ask questions and discuss your goals,
-            program options, and membership options
-            with the coach. If you decide to continue
-            after the visit, we'll help you with the
-            appropriate next steps.
-          </span>
-
-          <span data-response="es-family">
-            ✓ Durante tu visita, tendrás tiempo para
-            hacer preguntas y conversar con el entrenador
-            sobre las metas de tu atleta, las opciones
-            de programas y las opciones de membresía.
-            Si decides continuar después de la visita,
-            ayudaremos a tu familia con los próximos
-            pasos apropiados.
-          </span>
-
-          <span data-response="es-adult">
-            ✓ Durante tu visita, tendrás tiempo para
-            hacer preguntas y conversar con el entrenador
-            sobre tus metas, las opciones de programas
-            y las opciones de membresía. Si decides
-            continuar después de la visita, te ayudaremos
-            con los próximos pasos apropiados.
+            ✓ Revisa tu mensaje de confirmación. Incluirá los detalles
+            confirmados de la visita, el equipo necesario para comenzar
+            cuando corresponda y tus próximos pasos.
           </span>
         </p>
 
@@ -496,6 +495,107 @@
           : "family";
     }
 
+    function setEntryRule(
+      trainingIntent,
+      interest
+    ) {
+      const el =
+        document.getElementById("entryRule");
+
+      if (!el) return;
+
+      const language =
+        document.documentElement.lang === "es"
+          ? "es"
+          : "en";
+
+      const normalizedInterest =
+        interest === "fitness" ||
+        interest === "both"
+          ? interest
+          : "combat";
+
+      const normalizedIntent =
+        [
+          "local-prospect",
+          "visitor",
+          "returning"
+        ].includes(trainingIntent)
+          ? trainingIntent
+          : "local-prospect";
+
+      const rules = {
+        en: {
+          local: {
+            combat:
+              "Your first Combat trial session is complimentary.",
+            fitness:
+              "Fitness is a $15 drop-in. If you join, the $15 is applied toward enrollment or membership.",
+            both:
+              "Your first Combat trial session is complimentary. Fitness is a $15 drop-in, applied toward enrollment or membership if you join."
+          },
+          visitor: {
+            combat:
+              "Visitor Combat access is $30 for one training day or $40 for two training days.",
+            fitness:
+              "Visitor Fitness access is $15 per drop-in.",
+            both:
+              "Visitor Combat access is $30 for one training day or $40 for two. Visitor Fitness access is $15 per drop-in."
+          },
+          returning:
+            "Returning athletes are not eligible for another free trial. Management will confirm the appropriate paid re-entry option."
+        },
+
+        es: {
+          local: {
+            combat:
+              "Tu primera sesión de prueba de Combate es gratuita.",
+            fitness:
+              "Fitness cuesta $15 por clase. Si te inscribes, los $15 se aplican a la inscripción o membresía.",
+            both:
+              "Tu primera sesión de prueba de Combate es gratuita. Fitness cuesta $15 por clase y se aplica a la inscripción o membresía si te inscribes."
+          },
+          visitor: {
+            combat:
+              "El acceso de Combate para visitantes cuesta $30 por un día de entrenamiento o $40 por dos días.",
+            fitness:
+              "El acceso de Fitness para visitantes cuesta $15 por clase.",
+            both:
+              "Combate para visitantes cuesta $30 por un día o $40 por dos. Fitness para visitantes cuesta $15 por clase."
+          },
+          returning:
+            "Los atletas que regresan no son elegibles para otra prueba gratuita. Administración confirmará la opción pagada de regreso apropiada."
+        }
+      };
+
+      if (normalizedIntent === "returning") {
+        el.textContent =
+          rules[language].returning;
+
+        return;
+      }
+
+      const bucket =
+        normalizedIntent === "visitor"
+          ? rules[language].visitor
+          : rules[language].local;
+
+      el.textContent =
+        bucket[normalizedInterest];
+    }
+
+
+    function setInterest(interest) {
+      const normalized =
+        interest === "fitness" ||
+        interest === "both"
+          ? interest
+          : "combat";
+
+      document.documentElement.dataset.interest =
+        normalized;
+    }
+
     const params =
       new URLSearchParams(
         window.location.search
@@ -508,6 +608,15 @@
     setAudience(
       params.get("registrantRole") ||
       params.get("role")
+    );
+
+    setInterest(
+      params.get("interest")
+    );
+
+    setEntryRule(
+      params.get("trainingIntent"),
+      params.get("interest")
     );
   </script>
 

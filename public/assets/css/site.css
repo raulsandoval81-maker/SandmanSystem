@@ -451,19 +451,16 @@ html[data-theme="light"] .site-nav a:focus-visible{
 .site-hero-divider,
 .hero-header-spacer{
   width:100%;
-  height:20px;
+  height:0;
   background:#000;
-  border-top:1px solid rgba(212,175,55,.35);
-  border-bottom:2px solid rgba(212,175,55,.72);
-  box-shadow:
-    inset 0 10px 16px rgba(0,0,0,.38),
-    inset 0 -10px 16px rgba(0,0,0,.38);
+  border:0;
+  box-shadow:none;
 }
 
 @media (max-width:768px){
   .site-hero-divider,
   .hero-header-spacer{
-    height:42px;
+    height:0;
   }
 }
 
@@ -1548,11 +1545,207 @@ html[data-theme="light"] .local-location-band{
 
 @media (max-width:700px){
   .local-program-orientation{
-    padding:.7rem .75rem;
+    padding:.8rem .6rem;
+    min-height:0;
+  }
+
+  .local-program-orientation > div{
+    margin:0;
+    padding:0;
   }
 
   .local-program-orientation__eyebrow{
-    font-size:.72rem;
-    letter-spacing:.14em;
+    margin:0;
+    font-size:.7rem;
+    line-height:1.1;
+    letter-spacing:.12em;
   }
 }
+
+/* =========================================================
+   LOCAL HOME POSTER — DESKTOP SCALE
+========================================================= */
+
+@media (min-width:901px){
+  body .hero-panel .home-hero__image{
+    width:100%;
+    max-width:1180px;
+    height:auto;
+    object-fit:contain;
+    object-position:center top;
+    margin:0 auto;
+  }
+}
+
+@media (min-width:901px){
+  body .hero-panel .home-hero__image,
+  body .home-many-paths .home-many-paths__image{
+    width:100%;
+    max-width:1180px;
+    height:auto;
+    object-fit:contain;
+    object-position:center top;
+    margin:0 auto;
+  }
+}
+
+
+/* =========================================================
+   LOCAL HOME — COMBAT = CHARACTER
+========================================================= */
+
+.local-combat-character{
+  width:100%;
+  padding:1rem;
+  background:#000;
+  border-top:1px solid var(--brand-gold);
+  border-bottom:1px solid var(--brand-gold);
+  color:#fff;
+  text-align:center;
+  font-size:.88rem;
+  font-weight:800;
+  letter-spacing:.18em;
+  line-height:1.2;
+  text-transform:uppercase;
+}
+
+@media (max-width:700px){
+  .local-combat-character{
+    padding:.9rem .6rem;
+    font-size:.76rem;
+    letter-spacing:.14em;
+  }
+
+  .local-program-orientation{
+    padding:1.05rem .6rem;
+  }
+}
+
+/* =========================================================
+   LOCAL HOME — DISCIPLINE BAND BREATHING ROOM
+========================================================= */
+
+.local-program-orientation{
+  padding:1.5rem 1rem;
+}
+
+@media (max-width:700px){
+  .local-program-orientation{
+    padding:1.25rem .6rem;
+  }
+}
+
+
+/* =========================================================
+   LOCAL HOME — Combat = Character already lives in hero PNG
+========================================================= */
+
+body.local-home .local-combat-character{
+  display:none;
+}
+
+/* =========================================================
+   FOOTER — MOBILE STACK
+========================================================= */
+
+@media (max-width:700px){
+  .site-footer__inner{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "brand"
+      "headquarters"
+      "connect"
+      "legal";
+    gap:.75rem;
+  }
+
+  .site-footer__brand,
+  .site-footer__headquarters,
+  .site-footer__connect,
+  .site-footer__legal{
+    width:100%;
+    justify-self:stretch;
+    text-align:center;
+  }
+
+  .site-footer__headquarters .site-footer__seal{
+    display:block;
+    margin:.35rem 0 .45rem;
+  }
+
+  .site-footer__headquarters > p{
+    display:block;
+    margin:.35rem 0;
+  }
+}
+
+/* =========================================================
+   LOCAL PROGRAMS — DISCIPLINE LINKS
+   Make deeper discipline pages visibly tappable
+========================================================= */
+
+.programs-page .program-discipline-link{
+  position:relative;
+
+  border:1px solid rgba(212,175,55,.55);
+
+  box-shadow:
+    0 5px 14px rgba(0,0,0,.18),
+    inset 0 0 0 1px rgba(255,255,255,.025);
+
+  padding-right:2.6rem;
+
+  cursor:pointer;
+
+  transition:
+    transform .18s ease,
+    border-color .18s ease,
+    background-color .18s ease,
+    box-shadow .18s ease;
+}
+
+/* Permanent visual cue — works without hover */
+.programs-page .program-discipline-link::after{
+  content:"›";
+
+  position:absolute;
+  right:1rem;
+  top:50%;
+  transform:translateY(-50%);
+
+  color:#d4af37;
+
+  font-size:1.55rem;
+  font-weight:800;
+  line-height:1;
+
+  opacity:.95;
+}
+
+/* Desktop enhancement */
+@media (hover:hover){
+  .programs-page .program-discipline-link:hover{
+    transform:translateY(-2px);
+    border-color:#d4af37;
+
+    box-shadow:
+      0 8px 18px rgba(0,0,0,.24),
+      0 0 0 1px rgba(212,175,55,.10);
+  }
+
+  .programs-page .program-discipline-link:hover::after{
+    transform:translate(3px,-50%);
+  }
+}
+
+/* Touch feedback */
+.programs-page .program-discipline-link:active{
+  transform:translateY(1px) scale(.99);
+}
+
+/* Keyboard accessibility */
+.programs-page .program-discipline-link:focus-visible{
+  outline:2px solid #d4af37;
+  outline-offset:3px;
+}
+

@@ -392,17 +392,17 @@ html[data-theme="light"] .home-hero__image{
   position:absolute;
 
   /* Gold “Explore Fitness” button only */
-  left:39%;
-  top:90.2%;
-  width:22%;
-  height:6.2%;
+  left:30%;
+  top:87.8%;
+  width:40%;
+  height:10.5%;
 
   z-index:20;
   display:block;
 
   background:transparent;
   border:0;
-  border-radius:999px;
+  border-radius:10px;
 }
 
 .home-many-paths__fitness-hotspot:hover,

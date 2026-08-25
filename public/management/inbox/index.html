@@ -309,7 +309,106 @@
 
 
         <!-- ==============================
-             COACH HANDOFF
+             MANAGEMENT RESPONSE
+        =============================== -->
+
+        <section class="management-response">
+
+          <p class="section-label">
+            Management Response
+          </p>
+
+          <div class="management-guidance-note">
+            <strong>
+              Management owns this response.
+            </strong>
+
+            <p>
+              Handle the message directly when it falls
+              within local authority. Request System Admin
+              guidance for policy, system access, account
+              support, unusual billing, or matters outside
+              local authority. Use Coach Input only when
+              coaching expertise is needed.
+            </p>
+          </div>
+
+          <div class="management-suggested-response">
+            <div class="management-suggested-response__header">
+              <div>
+                <p class="section-label">
+                  Suggested Response
+                </p>
+
+                <p
+                  id="suggestedResponseLabel"
+                  class="muted"
+                >
+                  Response starter
+                </p>
+              </div>
+            </div>
+
+            <label>
+              Response Type
+
+              <select id="suggestedResponseSelect">
+                <option value="">
+                  Select a response
+                </option>
+              </select>
+            </label>
+
+            <textarea
+              id="suggestedResponseText"
+              rows="8"
+              aria-label="Suggested management response"
+            ></textarea>
+
+            <div class="form-actions">
+              <button
+                id="copySuggestedResponseButton"
+                class="button button-secondary"
+                type="button"
+              >
+                Copy Response
+              </button>
+            </div>
+          </div>
+
+          <div class="form-actions">
+
+            <a
+              id="managementReplyEmail"
+              class="button button-secondary"
+              href="#"
+            >
+              Reply by Email
+            </a>
+
+            <button
+              id="markRespondedButton"
+              class="button button-primary"
+              type="button"
+            >
+              Mark Responded
+            </button>
+
+            <button
+              id="requestAdminGuidanceButton"
+              class="button button-secondary"
+              type="button"
+            >
+              Request System Admin Guidance
+            </button>
+
+          </div>
+
+        </section>
+
+
+        <!-- ==============================
+             COACH INPUT
         =============================== -->
 
         <form id="assignmentForm">
@@ -326,12 +425,12 @@
             </p>
 
             <h3>
-              Route to Coach
+              Coach Input
             </h3>
 
             <p class="muted">
               Assign a coach only when coaching
-              support is needed.
+              expertise is needed for the response.
             </p>
           </div>
 

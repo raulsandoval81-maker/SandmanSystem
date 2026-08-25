@@ -18,6 +18,14 @@ function buildAppointmentEmail(lead) {
     const admissionsPath = lead.admissionsPath === "assessment"
         ? "assessment"
         : "new";
+    const respondingAcademyName = (0, appointmentFormatting_1.clean)(lead.academyName) ||
+        "Academy";
+    const interestType = lead.interestType === "fitness"
+        ? "fitness"
+        : lead.interestType === "both"
+            ? "both"
+            : "combat";
+    const isFitnessOnly = interestType === "fitness";
     if (!appointmentDate ||
         !appointmentTime ||
         !appointmentLocation ||
@@ -36,48 +44,72 @@ function buildAppointmentEmail(lead) {
     ========================================================= */
     const visitOverviewMessage = isAdultAthlete
         ? (admissionsPath === "assessment"
-            ? `Your visit includes a complimentary class and Admissions Appointment.
+            ? `Your visit includes your scheduled Admissions Appointment.
 
-Because you requested a Placement Assessment, you may train first so the coach can evaluate your current level before the conversation. The coach may also meet with you first when the schedule or circumstances make that more appropriate.
+Because you requested a Placement Assessment, the visit may include training so the coach can evaluate your current level. The academy team will guide the order of your visit based on the schedule and circumstances.
 
 You will have time to discuss your goals, ask questions, and review program and membership options.`
-            : `Your visit includes a complimentary class and Admissions Appointment.
+            : `Your visit includes your scheduled Admissions Appointment.
 
-New athletes are often scheduled near the end of practice so there is time to meet with the coach first without interrupting the training session. The coach will guide the order of your visit based on the day's schedule.
+The academy team will guide the order of your visit based on the day's schedule and the purpose of your appointment.
 
 You will have time to discuss your goals, ask questions, and review program and membership options.`)
         : (admissionsPath === "assessment"
-            ? `Your visit includes a complimentary class and Admissions Appointment.
+            ? `Your visit includes your scheduled Admissions Appointment.
 
-Because your athlete requested a Placement Assessment, they may train first so the coach can evaluate their current level before meeting with your family. The coach may also meet with your family first when the schedule or circumstances make that more appropriate.
+Because your athlete requested a Placement Assessment, the visit may include training so the coach can evaluate their current level. The academy team will guide the order of the visit based on the schedule and circumstances.
 
 You will have time to discuss your athlete's goals, ask questions, and review program and membership options.`
-            : `Your visit includes a complimentary class and Admissions Appointment.
+            : `Your visit includes your scheduled Admissions Appointment.
 
-New athletes are often scheduled near the end of practice so there is time for your family to meet with the coach first without interrupting the training session. The coach will guide the order of the visit based on the day's schedule.
+The academy team will guide the order of your family's visit based on the day's schedule and the purpose of the appointment.
 
 You will have time to discuss your athlete's goals, ask questions, and review program and membership options.`);
+    const fitnessPreparationMessage = `Come ready to train in comfortable athletic clothing.
+
+Bring a water bottle and any questions you would like to discuss with the academy team.`;
+    const fitnessPreparationMessageEs = `Ven preparado para entrenar con ropa deportiva cómoda.
+
+Trae una botella de agua y cualquier pregunta que quieras conversar con el equipo de la academia.`;
+    const fitnessVisitOverviewMessage = `Your visit includes a scheduled Fitness drop-in session.
+
+The drop-in fee is $15. If you decide to join, that $15 will be applied toward your enrollment or membership.
+
+Please arrive 10 minutes early to complete any needed paperwork and for a brief meet-and-greet before training.
+
+Your coach has been informed of your visit and will be expecting you.
+
+You will have time to ask questions, learn more about the fitness program, and discuss next steps if you decide you would like to continue.`;
+    const fitnessVisitOverviewMessageEs = `Tu visita incluye una sesión programada de Fitness con pase de un día.
+
+La tarifa de la sesión es de $15. Si decides inscribirte, esos $15 se aplicarán a tu inscripción o membresía.
+
+Por favor llega 10 minutos antes para completar cualquier documento necesario y para una breve presentación antes del entrenamiento.
+
+Tu entrenador ha sido informado de tu visita y estará esperándote.
+
+Tendrás tiempo para hacer preguntas, conocer más sobre el programa de Fitness y hablar sobre los próximos pasos si decides continuar.`;
     const visitOverviewMessageEs = isAdultAthlete
         ? (admissionsPath === "assessment"
-            ? `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+            ? `Tu visita incluye tu Cita de Admisión programada.
 
-Como solicitaste una Evaluación de Colocación, puedes entrenar primero para que el entrenador evalúe tu nivel actual antes de la conversación. El entrenador también puede reunirse contigo primero cuando el horario o las circunstancias lo hagan más apropiado.
+Como solicitaste una Evaluación de Colocación, la visita puede incluir entrenamiento para que el entrenador evalúe tu nivel actual. El equipo de la academia guiará el orden de tu visita según el horario y las circunstancias.
 
 Tendrás tiempo para hablar sobre tus metas, hacer preguntas y revisar opciones de programas y membresías.`
-            : `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+            : `Tu visita incluye tu Cita de Admisión programada.
 
-Los atletas nuevos suelen programarse cerca del final de la práctica para que haya tiempo de reunirse primero con el entrenador sin interrumpir la sesión de entrenamiento. El entrenador guiará el orden de tu visita según el horario de ese día.
+El equipo de la academia guiará el orden de tu visita según el horario del día y el propósito de tu cita.
 
 Tendrás tiempo para hablar sobre tus metas, hacer preguntas y revisar opciones de programas y membresías.`)
         : (admissionsPath === "assessment"
-            ? `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+            ? `Tu visita incluye tu Cita de Admisión programada.
 
-Como tu atleta solicitó una Evaluación de Colocación, puede entrenar primero para que el entrenador evalúe su nivel actual antes de reunirse con tu familia. El entrenador también puede reunirse primero con tu familia cuando el horario o las circunstancias lo hagan más apropiado.
+Como tu atleta solicitó una Evaluación de Colocación, la visita puede incluir entrenamiento para que el entrenador evalúe su nivel actual. El equipo de la academia guiará el orden de la visita según el horario y las circunstancias.
 
 Tendrán tiempo para hablar sobre las metas de tu atleta, hacer preguntas y revisar opciones de programas y membresías.`
-            : `Tu visita incluye una clase de cortesía y una Cita de Admisión.
+            : `Tu visita incluye tu Cita de Admisión programada.
 
-Los atletas nuevos suelen programarse cerca del final de la práctica para que haya tiempo de que tu familia se reúna primero con el entrenador sin interrumpir la sesión de entrenamiento. El entrenador guiará el orden de la visita según el horario de ese día.
+El equipo de la academia guiará el orden de la visita de tu familia según el horario del día y el propósito de la cita.
 
 Tendrán tiempo para hablar sobre las metas de tu atleta, hacer preguntas y revisar opciones de programas y membresías.`);
     /* =========================================================
@@ -133,8 +165,8 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
         <div style="margin-top:24px;padding:18px;border:1px solid #e5e7eb;border-radius:12px;background:#f9fafb;">
           <div style="font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#8a6500;margin-bottom:8px;">
             ${lang === "es"
-            ? "Notas del Entrenador"
-            : "Coach Notes"}
+            ? "Notas de la Cita"
+            : "Appointment Notes"}
           </div>
 
           <div style="font-size:15px;line-height:1.65;color:#27272a;white-space:pre-line;">
@@ -225,7 +257,6 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                   color:#d4d4d8;
                 "
               >
-                Heroes Build Heroes™
               </div>
             </td>
           </tr>
@@ -274,11 +305,11 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
               >
                 ${lang === "es"
         ? (isAdultAthlete
-            ? "Tu visita con Sandman Academy está programada. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas."
-            : "La visita de tu familia con Sandman Academy está programada. Esperamos conocer a tu atleta, aprender más sobre su experiencia y escuchar cuáles son sus metas.")
+            ? `Tu visita con ${respondingAcademyName} está programada. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas.`
+            : `La visita de tu familia con ${respondingAcademyName} está programada. Esperamos conocer a tu atleta, aprender más sobre su experiencia y escuchar cuáles son sus metas.`)
         : (isAdultAthlete
-            ? "Your visit with Sandman Academy is scheduled. We look forward to meeting you, learning more about your experience, and hearing about your goals."
-            : "Your family's visit with Sandman Academy is scheduled. We look forward to meeting your athlete, learning more about their experience, and hearing about their goals.")}
+            ? `Your visit with ${respondingAcademyName} is scheduled. We look forward to meeting you, learning more about your experience, and hearing about your goals.`
+            : `Your family's visit with ${respondingAcademyName} is scheduled. We look forward to meeting your athlete, learning more about their experience, and hearing about their goals.`)}
               </p>
 
               <div
@@ -417,9 +448,16 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
         : "Preparing for Your Visit"}
               </h2>
 
+              ${isFitnessOnly
+        ? `<p style="margin:0 0 16px;font-size:15px;line-height:1.65;color:#27272a;white-space:pre-line;">${(0, appointmentFormatting_1.escapeHtml)(lang === "es"
+            ? fitnessPreparationMessageEs
+            : fitnessPreparationMessage)}</p>`
+        : ""}
+
               <ul
                 style="
                   margin:0;
+                  ${isFitnessOnly ? "display:none;" : ""}
                   padding-left:21px;
                   font-size:15px;
                   line-height:1.75;
@@ -454,8 +492,8 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
 
                 <li>
                   ${lang === "es"
-        ? "Trae cualquier pregunta que quieras conversar con el entrenador."
-        : "Bring any questions you would like to discuss with the coach."}
+        ? "Trae cualquier pregunta que quieras conversar con el equipo de la academia."
+        : "Bring any questions you would like to discuss with the academy team."}
                 </li>
               </ul>
 
@@ -545,9 +583,8 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                   color:#18181b;
                 "
               >
-                <strong>Combat = Character</strong><br>
-                — Coach Sandoval<br>
-                Sandman Academy of Combat &amp; Fitness™
+                — ${(0, appointmentFormatting_1.escapeHtml)(respondingAcademyName)} Team<br>
+                ${(0, appointmentFormatting_1.escapeHtml)(respondingAcademyName)}
               </p>
 
             </td>
@@ -564,7 +601,7 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                 color:#a1a1aa;
               "
             >
-              Sandman Academy of Combat &amp; Fitness™ · Heroes Build Heroes™
+              Powered by Sandman System™
             </td>
           </tr>
 
@@ -579,13 +616,13 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
     ========================================================= */
     if (lang === "es") {
         return {
-            subject: "Sandman Academy — Tu Cita de Admisión Está Programada",
+            subject: "Tu Cita de Admisión Está Programada",
             html,
             text: `Hola ${greetingName}:
 
 ${isAdultAthlete
-                ? "Tu visita con Sandman Academy está programada. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas."
-                : "La visita de tu familia con Sandman Academy está programada. Esperamos conocer a tu atleta, aprender más sobre su experiencia y escuchar cuáles son sus metas."}
+                ? `Tu visita con ${respondingAcademyName} está programada. Esperamos conocerte, aprender más sobre tu experiencia y escuchar cuáles son tus metas.`
+                : `La visita de tu familia con ${respondingAcademyName} está programada. Esperamos conocer a tu atleta, aprender más sobre su experiencia y escuchar cuáles son sus metas.`}
 
 --------------------------------------------------
 
@@ -613,30 +650,32 @@ ${academyAddress}
 
 QUÉ PUEDES ESPERAR
 
-${visitOverviewMessageEs}
+${isFitnessOnly ? fitnessVisitOverviewMessageEs : visitOverviewMessageEs}
 
-Si después de la visita decides que deseas continuar, tu entrenador te explicará los próximos pasos apropiados.
+Si después de la visita decides que deseas continuar, el equipo de la academia te ayudará con los próximos pasos apropiados.
 
 --------------------------------------------------
 
 PREPARANDO TU VISITA
 
-• Por favor llega de 10 a 15 minutos antes de la hora programada.
+${isFitnessOnly
+                ? fitnessPreparationMessageEs
+                : `• Por favor llega de 10 a 15 minutos antes de la hora programada.
 
 ${isAdultAthlete
-                ? "• Llega preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."
-                : "• Haz que tu atleta llegue preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."}
+                    ? "• Llega preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."
+                    : "• Haz que tu atleta llegue preparado para entrenar con ropa deportiva cómoda y, si está disponible, una camiseta deportiva blanca sin logotipos."}
 
 ${isAdultAthlete
-                ? "• Trae una botella de agua."
-                : "• Trae una botella de agua para tu atleta."}
+                    ? "• Trae una botella de agua."
+                    : "• Trae una botella de agua para tu atleta."}
 
-• Trae cualquier pregunta que quieras conversar con el entrenador.
+• Trae cualquier pregunta que quieras conversar con el equipo de la academia.`}
 
 ${appointmentNotes
                 ? `--------------------------------------------------
 
-NOTAS DEL ENTRENADOR
+NOTAS DE LA CITA
 
 ${appointmentNotes}
 
@@ -661,24 +700,22 @@ ${isAdultAthlete
 
 Esperamos tu visita.
 
-Combat = Character
-
-— Coach Sandoval
-Sandman Academy of Combat & Fitness™
-Los Héroes Forman Héroes™`
+— ${respondingAcademyName} Team
+${respondingAcademyName}
+Powered by Sandman System™`
         };
     }
     /* =========================================================
        ENGLISH PLAIN TEXT
     ========================================================= */
     return {
-        subject: "Sandman Academy — Your Admissions Appointment Is Scheduled",
+        subject: "Your Admissions Appointment Is Scheduled",
         html,
         text: `Hello ${greetingName},
 
 ${isAdultAthlete
-            ? "Your visit with Sandman Academy is scheduled. We look forward to meeting you, learning more about your experience, and hearing about your goals."
-            : "Your family's visit with Sandman Academy is scheduled. We look forward to meeting your athlete, learning more about their experience, and hearing about their goals."}
+            ? `Your visit with ${respondingAcademyName} is scheduled. We look forward to meeting you, learning more about your experience, and hearing about your goals.`
+            : `Your family's visit with ${respondingAcademyName} is scheduled. We look forward to meeting your athlete, learning more about their experience, and hearing about their goals.`}
 
 --------------------------------------------------
 
@@ -706,30 +743,32 @@ ${academyAddress}
 
 WHAT TO EXPECT
 
-${visitOverviewMessage}
+${isFitnessOnly ? fitnessVisitOverviewMessage : visitOverviewMessage}
 
-If you decide you would like to continue after the visit, your coach will explain the appropriate next steps.
+If you decide you would like to continue after the visit, the academy team will help you with the appropriate next steps.
 
 --------------------------------------------------
 
 PREPARING FOR YOUR VISIT
 
-• Please arrive 10–15 minutes before your scheduled time.
+${isFitnessOnly
+            ? fitnessPreparationMessage
+            : `• Please arrive 10–15 minutes before your scheduled time.
 
 ${isAdultAthlete
-            ? "• Please arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."
-            : "• Please have your athlete arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."}
+                ? "• Please arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."
+                : "• Please have your athlete arrive ready to train in comfortable athletic clothing and, if available, a plain white athletic T-shirt."}
 
 ${isAdultAthlete
-            ? "• Bring a water bottle."
-            : "• Bring a water bottle for your athlete."}
+                ? "• Bring a water bottle."
+                : "• Bring a water bottle for your athlete."}
 
-• Bring any questions you would like to discuss with the coach.
+• Bring any questions you would like to discuss with the academy team.`}
 
 ${appointmentNotes
             ? `--------------------------------------------------
 
-COACH NOTES
+APPOINTMENT NOTES
 
 ${appointmentNotes}
 
@@ -754,10 +793,8 @@ ${isAdultAthlete
 
 We look forward to your visit.
 
-Combat = Character
-
-— Coach Sandoval
-Sandman Academy of Combat & Fitness™
-Heroes Build Heroes™`
+— ${respondingAcademyName} Team
+${respondingAcademyName}
+Powered by Sandman System™`
     };
 }

@@ -265,11 +265,17 @@ function getSafeReturnUrl() {
       "/connect/admissions/calculator/"
     );
 
+    const isSafeAppointmentsPath =
+  requestedReturnUrl.startsWith(
+    "/connect/appointments/"
+  );
+
   if (
     !requestedReturnUrl.startsWith("//") &&
     (
       isSafeManagementPath ||
-      isSafeProspectBuilderPath
+      isSafeProspectBuilderPath ||
+      isSafeAppointmentsPath
     )
   ) {
     return requestedReturnUrl;

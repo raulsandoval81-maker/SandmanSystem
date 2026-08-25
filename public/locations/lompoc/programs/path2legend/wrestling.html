@@ -77,18 +77,18 @@
     .hero{
       padding:clamp(2rem,5vw,3.5rem);
       margin-bottom:28px;
-      border:1px solid #263244;
+      border:1px solid rgba(212,175,55,.22);
       border-radius:24px;
       background:
         radial-gradient(
-          circle at top right,
-          rgba(212,175,55,.16),
-          transparent 38%
+          circle at center top,
+          rgba(212,175,55,.17),
+          transparent 44%
         ),
         linear-gradient(
           180deg,
-          #1f2937 0%,
-          #111827 100%
+          #101010 0%,
+          #050505 100%
         );
       box-shadow:0 20px 40px rgba(0,0,0,.35);
     }
@@ -778,47 +778,7 @@
 
     </section>
 
-    <section class="visual-section">
-
-      <div class="visual-heading">
-
-        <div data-lang-block="en">
-          <p class="eyebrow">Earned Progression • Path2Legend™ • Ages 14–19 • Lompoc</p>
-          <h2>Path2Legend Progression</h2>
-          <p>
-            Athletes advance from Apprentice to Legend through consistent
-            training, technical development, testing, competition experience,
-            leadership, and demonstrated growth in Combat, Strength, and Honor.
-          </p>
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-          <p class="eyebrow">Progreso Ganado • Path2Legend™ • Edades 14–19 • Lompoc</p>
-          <h2>Progresión Path2Legend</h2>
-          <p>
-            Los atletas avanzan de Apprentice a Legend mediante entrenamiento
-            constante, desarrollo técnico, pruebas, experiencia competitiva,
-            liderazgo y crecimiento demostrado en Combate, Fuerza y Honor.
-          </p>
-        </div>
-
-      </div>
-
-    </section>
-          <section class="progression-top">
-  <figure>
-    <img
-      src="/assets/img/f4/f4-shirt-progression-wrestling.png"
-      alt="Path2Legend Wrestling shirt progression from Apprentice to Legend"
-    />
-  </figure>
-</section>
-
-
-    <section class="section panel">
+<section class="section panel">
 
       <div data-lang-block="en">
 
@@ -1082,7 +1042,45 @@
 
     </section>
 
-    <section class="section panel">
+<section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <h2>Path2Legend Progression</h2>
+          <p>
+            Athletes advance from Apprentice to Legend through consistent
+            training, technical development, testing, competition experience,
+            leadership, and demonstrated growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Progresión Path2Legend</h2>
+          <p>
+            Los atletas avanzan de Apprentice a Legend mediante entrenamiento
+            constante, desarrollo técnico, pruebas, experiencia competitiva,
+            liderazgo y crecimiento demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+<section class="progression-top">
+  <figure>
+    <img
+      src="/assets/img/f4/f4-shirt-progression-wrestling.png"
+      alt="Path2Legend Wrestling shirt progression from Apprentice to Legend"
+    />
+  </figure>
+</section>
+
+<section class="section panel">
 
       <div data-lang-block="en">
 
@@ -1174,8 +1172,31 @@
   </main>
 
 
-  <script src="/assets/js/language.js" defer></script>
-  <script src="/assets/js/theme.js" defer></script>
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/language.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/theme.js"
+    defer
+  ></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
 
 </body>
 </html>

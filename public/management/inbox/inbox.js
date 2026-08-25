@@ -19,6 +19,11 @@ import {
   requireManagement
 } from "/management/shared/guards/management-guard.js";
 
+import {
+  getManagementResponse,
+  getManagementResponseFamily
+} from "/management/shared/responses/management-responses.js";
+
 
 const managementIdentity =
   document.getElementById("managementIdentity");
@@ -107,6 +112,26 @@ const assignCoachButton =
 const formStatus =
   document.getElementById("formStatus");
 
+const suggestedResponseLabel =
+  document.getElementById(
+    "suggestedResponseLabel"
+  );
+
+const suggestedResponseSelect =
+  document.getElementById(
+    "suggestedResponseSelect"
+  );
+
+const suggestedResponseText =
+  document.getElementById(
+    "suggestedResponseText"
+  );
+
+const copySuggestedResponseButton =
+  document.getElementById(
+    "copySuggestedResponseButton"
+  );
+
 
 let managementContext = null;
 let allMessages = [];
@@ -120,8 +145,10 @@ const TOPIC_LABELS = {
   admissions: "Admissions",
   billing: "Billing",
   location: "Location",
-  coaching: "Coaching",
+  pricing: "Pricing / Fees",
+  coaching: "Coaching / Staff Development",
   partnership: "Community / Partnership",
+  "stay-connected": "Stay Connected",
   other: "Other"
 };
 
@@ -492,6 +519,68 @@ function populateCoachSelect(message) {
 }
 
 
+function populateSuggestedResponses(message) {
+  if (!suggestedResponseSelect) {
+    return;
+  }
+
+  const family =
+    getManagementResponseFamily(
+      message?.topic
+    );
+
+  suggestedResponseSelect.innerHTML = "";
+
+  for (const template of family.templates) {
+    const option =
+      document.createElement("option");
+
+    option.value = template.id;
+    option.textContent = template.label;
+
+    suggestedResponseSelect.appendChild(
+      option
+    );
+  }
+
+  const first =
+    family.templates[0];
+
+  if (first) {
+    suggestedResponseSelect.value =
+      first.id;
+  }
+}
+
+
+function renderSuggestedResponse(message) {
+  if (!message) {
+    return;
+  }
+
+  const templateId =
+    clean(
+      suggestedResponseSelect?.value
+    );
+
+  const suggested =
+    getManagementResponse(
+      message.topic,
+      templateId
+    );
+
+  if (suggestedResponseLabel) {
+    suggestedResponseLabel.textContent =
+      `${suggested.familyLabel} — ${suggested.label}`;
+  }
+
+  if (suggestedResponseText) {
+    suggestedResponseText.value =
+      suggested.response || "";
+  }
+}
+
+
 function renderDetail() {
   if (!selectedMessage) {
     detailEmpty.hidden = false;
@@ -531,6 +620,30 @@ function renderDetail() {
     "tel:"
   );
 
+  const managementReplyEmail =
+    document.getElementById(
+      "managementReplyEmail"
+    );
+
+  if (managementReplyEmail) {
+    const email = clean(message.email);
+
+    if (email) {
+      managementReplyEmail.href =
+        `mailto:${email}`;
+
+      managementReplyEmail.removeAttribute(
+        "aria-disabled"
+      );
+    } else {
+      managementReplyEmail.href = "#";
+      managementReplyEmail.setAttribute(
+        "aria-disabled",
+        "true"
+      );
+    }
+  }
+
   detailOrganization.textContent =
     clean(message.organizationName) ||
     clean(message.academyName) ||
@@ -551,6 +664,14 @@ function renderDetail() {
   detailMessage.textContent =
     clean(message.message) ||
     "No message provided.";
+
+  populateSuggestedResponses(
+    message
+  );
+
+  renderSuggestedResponse(
+    message
+  );
 
   managementNotes.value =
     clean(message.managementNotes);
@@ -623,6 +744,21 @@ async function loadMessagesForManager() {
   );
 
   snapshots.push(assignedSnapshot);
+
+  if (managementContext.centralManagement) {
+    const centralSnapshot = await getDocs(
+      query(
+        collection(db, "general_messages"),
+        where(
+          "queueScope",
+          "==",
+          "CENTRAL_MANAGEMENT"
+        )
+      )
+    );
+
+    snapshots.push(centralSnapshot);
+  }
 
   const locationIds =
     managementContext.scope.locationIds;
@@ -733,6 +869,194 @@ async function loadInbox() {
 }
 
 
+async function markManagementResponded() {
+  if (
+    !selectedMessage ||
+    !managementContext
+  ) {
+    setFormStatus(
+      "Select a message first.",
+      "error"
+    );
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      "markRespondedButton"
+    );
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  setFormStatus(
+    "Marking message responded..."
+  );
+
+  try {
+    const updates = {
+      assignedManagerUid:
+        managementContext.user.uid,
+
+      status: "RESPONDED",
+      messageStatus: "RESPONDED",
+
+      respondedByUid:
+        managementContext.user.uid,
+
+      respondedByRole:
+        managementContext.isSystemAdmin
+          ? "SYSTEM_ADMIN"
+          : "MANAGEMENT",
+
+      respondedAt:
+        serverTimestamp(),
+
+      routingStage:
+        "MANAGEMENT_RESPONDED",
+
+      assignmentStatus:
+        "ASSIGNED",
+
+      updatedAt:
+        serverTimestamp()
+    };
+
+    await updateDoc(
+      doc(
+        db,
+        "general_messages",
+        selectedMessage.id
+      ),
+      updates
+    );
+
+    Object.assign(
+      selectedMessage,
+      updates
+    );
+
+    renderQueue();
+    renderDetail();
+
+    setFormStatus(
+      "Message marked responded by Management.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "[management-inbox] responded update failed:",
+      error
+    );
+
+    setFormStatus(
+      "The response status could not be saved.",
+      "error"
+    );
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
+}
+
+
+async function requestAdminGuidance() {
+  if (
+    !selectedMessage ||
+    !managementContext
+  ) {
+    setFormStatus(
+      "Select a message first.",
+      "error"
+    );
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      "requestAdminGuidanceButton"
+    );
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  setFormStatus(
+    "Requesting System Admin guidance..."
+  );
+
+  try {
+    const updates = {
+      assignedManagerUid:
+        managementContext.user.uid,
+
+      escalated: true,
+
+      escalationReason:
+        "MANAGEMENT_GUIDANCE_REQUEST",
+
+      routingStage:
+        "ADMIN_GUIDANCE_REQUESTED",
+
+      nextRoutingStage:
+        "MANAGEMENT_RESPONSE",
+
+      assignmentStatus:
+        "ASSIGNED",
+
+      status:
+        "REVIEWING",
+
+      messageStatus:
+        "REVIEWING",
+
+      updatedAt:
+        serverTimestamp()
+    };
+
+    await updateDoc(
+      doc(
+        db,
+        "general_messages",
+        selectedMessage.id
+      ),
+      updates
+    );
+
+    Object.assign(
+      selectedMessage,
+      updates
+    );
+
+    renderQueue();
+    renderDetail();
+
+    setFormStatus(
+      "System Admin guidance requested. Management still owns the response.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "[management-inbox] admin guidance request failed:",
+      error
+    );
+
+    setFormStatus(
+      "System Admin guidance could not be requested.",
+      "error"
+    );
+  } finally {
+    if (button) {
+      button.disabled = false;
+    }
+  }
+}
+
+
 async function assignCoach(event) {
   event.preventDefault();
 
@@ -827,6 +1151,85 @@ async function assignCoach(event) {
     assignCoachButton.disabled = false;
   }
 }
+
+
+async function copySuggestedResponse() {
+  const text =
+    clean(
+      suggestedResponseText?.value
+    );
+
+  if (!text) {
+    setFormStatus(
+      "No suggested response is available to copy.",
+      "error"
+    );
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(
+      text
+    );
+
+    setFormStatus(
+      "Suggested response copied.",
+      "success"
+    );
+  } catch (error) {
+    console.error(
+      "[management-inbox] copy response failed:",
+      error
+    );
+
+    suggestedResponseText?.focus();
+    suggestedResponseText?.select();
+
+    setFormStatus(
+      "Copy failed. The response has been selected for manual copy.",
+      "error"
+    );
+  }
+}
+
+
+suggestedResponseSelect
+  ?.addEventListener(
+    "change",
+    () => {
+      if (!selectedMessage) {
+        return;
+      }
+
+      renderSuggestedResponse(
+        selectedMessage
+      );
+    }
+  );
+
+
+copySuggestedResponseButton
+  ?.addEventListener(
+    "click",
+    () => {
+      void copySuggestedResponse();
+    }
+  );
+
+
+document
+  .getElementById("markRespondedButton")
+  ?.addEventListener(
+    "click",
+    markManagementResponded
+  );
+
+document
+  .getElementById("requestAdminGuidanceButton")
+  ?.addEventListener(
+    "click",
+    requestAdminGuidance
+  );
 
 
 statusFilter.addEventListener(

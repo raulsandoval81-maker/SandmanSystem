@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <title>Coach Dashboard | Sandman Combat System™</title>
+
+  <meta
+    name="description"
+    content="Sandman Coach Dashboard for athlete development, daily priorities, testing, XP, practice, and team operations."
+  >
+
+  <link rel="stylesheet" href="/coaches/dashboard/dashboard.css">
+  <script src="/coaches/dashboard/dashboard.js" defer></script>
+</head>
+
+<body>
+
+<div class="coach-app">
+
+  <aside class="coach-rail" aria-label="Coach navigation">
+
+    <a class="rail-brand" href="/coaches/hub/index.html">
+      <span class="rail-brand__mark">S</span>
+      <span>
+        <strong>SANDMAN</strong>
+        <small>Combat System™</small>
+      </span>
+    </a>
+
+    <nav class="rail-nav">
+
+      <a class="rail-link active" href="/coaches/dashboard/">
+        <span class="rail-icon">⌂</span>
+        <span>Dashboard</span>
+      </a>
+
+      <a class="rail-link" href="/coaches/athletes/">
+        <span class="rail-icon">A</span>
+        <span>Athletes</span>
+      </a>
+
+      <a class="rail-link" href="/coaches/practice/">
+        <span class="rail-icon">P</span>
+        <span>Practice</span>
+      </a>
+
+      <a class="rail-link" href="/coaches/team/">
+        <span class="rail-icon">T</span>
+        <span>Team</span>
+      </a>
+
+      <a class="rail-link" href="/coaches/xp/">
+        <span class="rail-icon">XP</span>
+        <span>XP &amp; Progression</span>
+      </a>
+
+      <a class="rail-link" href="/coaches/testing/">
+        <span class="rail-icon">✓</span>
+        <span>Testing</span>
+      </a>
+
+      <a class="rail-link" href="/communications/coach/broadcast.html">
+        <span class="rail-icon">C</span>
+        <span>Communications</span>
+      </a>
+
+      <a class="rail-link" href="/coaches/team/culture.html">
+        <span class="rail-icon">◇</span>
+        <span>Culture</span>
+      </a>
+
+    </nav>
+
+    <div class="rail-bottom">
+
+      <button
+        id="toolsToggle"
+        class="tools-toggle"
+        type="button"
+        aria-controls="toolsDrawer"
+        aria-expanded="false"
+      >
+        <span>☰</span>
+        <span>Tools</span>
+        <span>›</span>
+      </button>
+
+      <div class="rail-utilities">
+        <a href="/coaches/support/">? <small>Help</small></a>
+        <a href="/coaches/system/">⚙ <small>System</small></a>
+      </div>
+
+      <div class="rail-standard">
+        Focus • Effort<br>
+        Attitude • Respect
+      </div>
+
+    </div>
+
+  </aside>
+
+
+  <button
+    id="mobileRailToggle"
+    class="mobile-rail-toggle"
+    type="button"
+    aria-label="Open Coach navigation"
+  >
+    ☰
+  </button>
+
+
+  <div
+    id="railBackdrop"
+    class="rail-backdrop"
+  ></div>
+
+
+  <section class="coach-workspace">
+
+    <header class="workspace-header">
+
+      <div>
+        <h1>Coach Dashboard</h1>
+        <p>Daily command overview.</p>
+      </div>
+
+      <div class="workspace-controls">
+
+        <label class="location-control">
+          <span>Room / Team</span>
+          <select>
+            <option>Sandman Combat Academy</option>
+          </select>
+        </label>
+
+        <div class="language-control">
+          <button class="active" type="button">EN</button>
+          <button type="button">ES</button>
+        </div>
+
+        <a
+          class="coach-profile"
+          href="/coaches/profiles/"
+        >
+          <span class="coach-avatar">CS</span>
+          <span>
+            <strong>Coach</strong>
+            <small>Coach Workspace</small>
+          </span>
+        </a>
+
+      </div>
+
+    </header>
+
+
+    <main class="dashboard-main">
+
+      <section class="metric-grid">
+
+        <article class="metric-card">
+          <span class="metric-label">Athletes</span>
+          <strong>—</strong>
+          <a href="/coaches/roster/">View Roster →</a>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">XP Today</span>
+          <strong>—</strong>
+          <a href="/coaches/daily-xp/daily-grind">Award XP →</a>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Pending Reviews</span>
+          <strong>—</strong>
+          <a href="/coaches/command-center/">Review →</a>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Tests Scheduled</span>
+          <strong>—</strong>
+          <a href="/coaches/testing/">Testing →</a>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Ready Athletes</span>
+          <strong>—</strong>
+          <a href="/coaches/testing/coach-athlete-panel.html">Open Panel →</a>
+        </article>
+
+        <article class="metric-card">
+          <span class="metric-label">Attendance</span>
+          <strong>—</strong>
+          <a href="/coaches/attendance/">Attendance →</a>
+        </article>
+
+      </section>
+
+
+      <div class="dashboard-grid">
+
+        <section class="dashboard-panel lane-panel">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">Development</span>
+              <h2>Lane Overview</h2>
+            </div>
+            <a href="/coaches/lanes/">View All →</a>
+          </div>
+
+          <a class="lane-row combat" href="/coaches/daily-xp/daily-grind">
+            <div>
+              <strong>Combat</strong>
+              <span>XP • Competition • Skill</span>
+            </div>
+            <span>Open →</span>
+          </a>
+
+          <a class="lane-row strength" href="/coaches/lanes/strength/">
+            <div>
+              <strong>Strength</strong>
+              <span>Training • Logs • Review</span>
+            </div>
+            <span>Open →</span>
+          </a>
+
+          <a class="lane-row honor" href="/coaches/lanes/honor/">
+            <div>
+              <strong>Honor</strong>
+              <span>Reflection • Standards • Growth</span>
+            </div>
+            <span>Open →</span>
+          </a>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">Today</span>
+              <h2>Daily Priorities</h2>
+            </div>
+          </div>
+
+          <div class="priority-list">
+
+            <a href="/coaches/lanes/strength/">
+              <strong>Review Strength submissions</strong>
+              <span>Iron Room and Strength logs</span>
+              <b>›</b>
+            </a>
+
+            <a href="/coaches/lanes/honor/">
+              <strong>Review Honor reflections</strong>
+              <span>Standards and coach judgment</span>
+              <b>›</b>
+            </a>
+
+            <a href="/coaches/lanes/conditioning/">
+              <strong>Conditioning requests</strong>
+              <span>Assignments and completions</span>
+              <b>›</b>
+            </a>
+
+            <a href="/coaches/testing/testing-command-center.html">
+              <strong>Testing</strong>
+              <span>Ready athletes and advancement</span>
+              <b>›</b>
+            </a>
+
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">Schedule</span>
+              <h2>Today &amp; Upcoming</h2>
+            </div>
+            <a href="/coaches/schedule/calendar.html">Calendar →</a>
+          </div>
+
+          <div class="schedule-empty">
+            <strong>Schedule integration next.</strong>
+            <span>
+              Practice, testing, events, and competition
+              will surface here.
+            </span>
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">Activity</span>
+              <h2>Recent XP</h2>
+            </div>
+            <a href="/coaches/logs/xp-history.html">History →</a>
+          </div>
+
+          <div class="empty-state">
+            Live XP activity will populate here.
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">Testing</span>
+              <h2>Testing Status</h2>
+            </div>
+            <a href="/coaches/testing/">View →</a>
+          </div>
+
+          <div class="empty-state">
+            Scheduled • In Progress • Ready
+          </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">Room</span>
+              <h2>Announcements</h2>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            Coach and team announcements will surface here.
+          </div>
+
+        </section>
+
+      </div>
+
+    </main>
+
+  </section>
+
+
+  <aside class="culture-rail">
+
+    <div class="culture-heading">
+      Room Culture
+    </div>
+
+    <section class="culture-item">
+      <span class="eyebrow">Creed</span>
+      <strong>Who we are.</strong>
+      <a href="/coaches/team/culture.html">View Creed →</a>
+    </section>
+
+    <section class="culture-item">
+      <span class="eyebrow">Code</span>
+      <strong>How we act.</strong>
+      <a href="/coaches/team/culture.html">View Code →</a>
+    </section>
+
+    <section class="culture-item">
+      <span class="eyebrow">Goal</span>
+      <strong>Build athletes who can lead themselves.</strong>
+    </section>
+
+    <section class="culture-item mission">
+      <span class="eyebrow">Today's Mission</span>
+      <strong>Set the standard. Coach the standard.</strong>
+    </section>
+
+    <section class="system-culture">
+      <strong>Combat</strong>
+      <strong>Strength</strong>
+      <strong>Honor</strong>
+
+      <span>
+        Every step is earned.<br>
+        Every action has purpose.
+      </span>
+    </section>
+
+  </aside>
+
+
+  <aside
+    id="toolsDrawer"
+    class="tools-drawer"
+    aria-hidden="true"
+  >
+
+    <div class="tools-drawer__header">
+      <div>
+        <span class="eyebrow">Coach System</span>
+        <h2>Tools</h2>
+      </div>
+
+      <button
+        id="toolsClose"
+        type="button"
+        aria-label="Close tools"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="tool-group">
+      <h3>Daily</h3>
+      <a href="/coaches/daily-xp/daily-grind">Daily XP</a>
+      <a href="/coaches/attendance/">Attendance</a>
+      <a href="/coaches/notes/">Coach Notes</a>
+      <a href="/coaches/live/">Live Room</a>
+    </div>
+
+    <div class="tool-group">
+      <h3>Practice</h3>
+      <a href="/coaches/practice/">Practice Hub</a>
+      <a href="/coaches/execution/session-builder/">Session Builder</a>
+      <a href="/coaches/execution/clipboard-2.0/">Clipboard</a>
+      <a href="/coaches/execution/big-clock-2.0/">Big Clock</a>
+      <a href="/coaches/conditioning/">Conditioning</a>
+      <a href="/coaches/curriculum/">Curriculum</a>
+    </div>
+
+    <div class="tool-group">
+      <h3>Weekly / Planning</h3>
+      <a href="/coaches/tools/coach-weekly.html">Weekly Plan</a>
+      <a href="/coaches/schedule/calendar.html">Schedule</a>
+      <a href="/coaches/tools/tournament.html">Tournament Planning</a>
+      <a href="/coaches/tools/meeting-board.html">Meeting Board</a>
+    </div>
+
+    <div class="tool-group">
+      <h3>Athlete Development</h3>
+      <a href="/coaches/lanes/strength/">Strength</a>
+      <a href="/coaches/lanes/honor/">Honor</a>
+      <a href="/coaches/testing/">Testing</a>
+      <a href="/coaches/progression/">Progression</a>
+      <a href="/coaches/recognition/">Recognition</a>
+    </div>
+
+    <div class="tool-group">
+      <h3>Advanced</h3>
+      <a href="/coaches/arena-xp/">Arena XP</a>
+      <a href="/coaches/tools/">All Tools</a>
+      <a href="/coaches/logs/">Logs</a>
+      <a href="/coaches/system/">System</a>
+    </div>
+
+  </aside>
+
+</div>
+
+</body>
+</html>
