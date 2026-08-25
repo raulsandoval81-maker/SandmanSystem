@@ -27,23 +27,72 @@ function setStatus(message, type = "") {
   }
 }
 
+
+function resolveLocation() {
+  const path = window.location.pathname;
+
+  const locations = {
+    "/locations/santa-ynez-valley/": {
+      locationId: "santa-ynez-valley",
+      locationName: "Santa Ynez Valley"
+    },
+
+    "/locations/lompoc/": {
+      locationId: "lompoc",
+      locationName: "Lompoc"
+    },
+
+    "/locations/elk-grove/": {
+      locationId: "elk-grove",
+      locationName: "Elk Grove"
+    }
+  };
+
+  for (const [prefix, location] of Object.entries(locations)) {
+    if (path.startsWith(prefix)) {
+      return location;
+    }
+  }
+
+  return {
+    locationId: null,
+    locationName: null
+  };
+}
+
+
 form?.addEventListener("submit", async (event) => {
   event.preventDefault();
-
-  if (!form.reportValidity()) {
-    setStatus(
-      language() === "es"
-        ? "Ingresa un correo válido y acepta recibir actualizaciones."
-        : "Enter a valid email and agree to receive updates.",
-      "error"
-    );
-
-    return;
-  }
 
   const email = String(emailInput?.value || "")
     .trim()
     .toLowerCase();
+
+  // Validate email directly instead of relying on the form-level
+  // reportValidity() path. This gives the visitor a precise message.
+  if (!email || !emailInput?.checkValidity()) {
+    setStatus(
+      language() === "es"
+        ? "Ingresa un correo electrónico válido."
+        : "Enter a valid email address.",
+      "error"
+    );
+
+    emailInput?.focus();
+    return;
+  }
+
+  if (!consentInput?.checked) {
+    setStatus(
+      language() === "es"
+        ? "Acepta recibir actualizaciones para continuar."
+        : "Please agree to receive updates to continue.",
+      "error"
+    );
+
+    consentInput?.focus();
+    return;
+  }
 
   submitButton.disabled = true;
 
@@ -56,11 +105,21 @@ form?.addEventListener("submit", async (event) => {
   try {
     await ensureSignedIn();
 
+    const location = resolveLocation();
+
     const result = await addDoc(
       collection(db, "newsletter_subscribers"),
       {
         email,
         organization: "sandman-academy",
+
+        locationId: location.locationId,
+        locationName: location.locationName,
+
+        queueScope: location.locationId
+          ? "LOCATION_MANAGEMENT"
+          : "CENTRAL_MANAGEMENT",
+
         source: "public-homepage",
         status: "ACTIVE",
         interests: [
@@ -81,6 +140,43 @@ form?.addEventListener("submit", async (event) => {
       "sandmanNewsletterSubscriberId",
       result.id
     );
+
+
+    await addDoc(
+      collection(db, "general_messages"),
+      {
+        contactName: "",
+        email,
+        phone: "",
+
+        topic: "stay-connected",
+        message: "Homepage Stay Connected subscription",
+
+        organizationId: "sandman-academy",
+        organizationName:
+          "Sandman Academy of Combat & Fitness",
+
+        locationId: location.locationId,
+        locationName: location.locationName,
+
+        queueScope: location.locationId
+          ? "LOCATION_MANAGEMENT"
+          : "CENTRAL_MANAGEMENT",
+
+        source: "public-homepage",
+        subscriberId: result.id,
+
+        routingStage: "MANAGEMENT_TRIAGE",
+        assignmentStatus: "PENDING_MANAGEMENT",
+        messageStatus: "REVIEWING",
+
+        language: language(),
+
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      }
+    );
+
 
     form.reset();
 
