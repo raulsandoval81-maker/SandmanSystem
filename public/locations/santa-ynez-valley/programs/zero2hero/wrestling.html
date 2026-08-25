@@ -76,18 +76,18 @@
     .hero{
       padding:clamp(2rem,5vw,3.5rem);
       margin-bottom:28px;
-      border:1px solid #263244;
+      border:1px solid rgba(212,175,55,.22);
       border-radius:24px;
       background:
         radial-gradient(
-          circle at top right,
-          rgba(220,38,38,.16),
-          transparent 38%
+          circle at center top,
+          rgba(212,175,55,.17),
+          transparent 44%
         ),
         linear-gradient(
           180deg,
-          #1f2937 0%,
-          #111827 100%
+          #101010 0%,
+          #050505 100%
         );
       box-shadow:0 20px 40px rgba(0,0,0,.35);
     }
@@ -1184,26 +1184,19 @@
   </main>
 
 
+
   <div
     id="footer"
     data-component="/components/footer.html"
   ></div>
-
 
   <script
     src="/assets/js/component-loader.js"
     defer
   ></script>
 
-  <script
-    src="/assets/js/language.js"
-    defer
-  ></script>
-
-  <script
-    src="/assets/js/theme.js"
-    defer
-  ></script>
+<script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
 
   <script
     src="/assets/js/navigation.js"
