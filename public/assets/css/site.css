@@ -390,6 +390,60 @@ html[data-theme="light"] .site-nav a:focus-visible{
   color:#8b6d00;
 }
 
+
+/* =========================================================
+   LOCAL LOCATION IDENTITY
+   Desktop: TEAM • CITY, STATE • SLOGAN
+   Mobile:  TEAM • CITY, STATE
+            SLOGAN
+========================================================= */
+
+.site-brand__text{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+}
+
+.site-brand__local,
+.site-brand__slogan{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:.5rem;
+}
+
+.site-brand__slogan::before{
+  content:"•";
+  color:var(--brand-gold);
+}
+
+.site-brand__separator{
+  color:var(--brand-gold);
+}
+
+@media (max-width:900px){
+  .site-brand__text{
+    flex-direction:column;
+    gap:.12rem;
+  }
+
+  .site-brand__local{
+    display:flex;
+    gap:.35rem;
+  }
+
+  .site-brand__slogan{
+    display:block;
+    font-size:.78em;
+  }
+
+  .site-brand__slogan::before{
+    content:none;
+  }
+}
+
+
 /* =========================================================
    6. HEADER → HERO DIVIDER
 ========================================================= */
