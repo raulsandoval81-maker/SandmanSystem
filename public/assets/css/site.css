@@ -1748,4 +1748,31 @@ body.local-home .local-combat-character{
   outline:2px solid #d4af37;
   outline-offset:3px;
 }
+/* =========================================================
+   FOOTER — FIXED DARK-SURFACE TEXT
+   Footer remains dark in every theme, so its text must not
+   inherit light-theme text variables.
+========================================================= */
 
+.site-footer,
+.site-footer p,
+.site-footer small,
+.site-footer__headquarters,
+.site-footer__headquarters strong,
+.site-footer__headquarters p,
+.site-footer__headquarters small{
+  color:#f5f5f5;
+}
+
+.site-footer__headquarters p{
+  color:rgba(255,255,255,.88);
+}
+
+.site-footer__headquarters small{
+  color:rgba(255,255,255,.70);
+}
+
+.site-footer__seal-image{
+  opacity:1;
+  filter:drop-shadow(0 8px 18px rgba(0,0,0,.45));
+}
