@@ -119,6 +119,25 @@ def localize_html(html, academy):
 
 
 
+JOURNEY_META = {
+    "zero2hero": {
+        "label": "Zero2Hero™",
+        "age_en": "Ages 7–13",
+        "age_es": "Edades 7–13",
+    },
+    "path2legend": {
+        "label": "Path2Legend™",
+        "age_en": "Ages 14+",
+        "age_es": "Edades 14+",
+    },
+    "quest2mastery": {
+        "label": "Quest2Mastery™",
+        "age_en": "Ages 16+",
+        "age_es": "Edades 16+",
+    },
+}
+
+
 # =========================================================
 # SANDMAN_LOCAL_PROGRAM_PRESENTATION_ENGINE
 #
@@ -426,20 +445,30 @@ def generate_location(slug, academy):
 # ============================================================
 # SANDMAN_LOCAL_FRONT_DOOR_CULTURE
 #
-# Local academy front-door doctrine:
+# Canonical local public shell:
 #
-#   ALL local academies lead with:
+# HOME
+#   1. Universal Sandman System culture:
+#        COMBAT IS LIFE
+#        FOCUS • EFFORT • ATTITUDE • RESPECT
 #
-#     SANDMAN SYSTEM
-#     COMBAT IS LIFE
-#     THESE ARE THE RULES OF LIFE
-#     FOCUS • EFFORT • ATTITUDE • RESPECT
+#   2. Academy-specific offering visual:
+#        Santa Ynez → Wrestling + Boxing + Muay Thai
+#        Lompoc     → Wrestling
+#        Elk Grove  → Boxing
 #
-# Discipline-specific "___ IS LIFE" artwork belongs deeper
-# in program / athlete / communication contexts.
+#   3. Explore Fitness hotspot:
+#        → local /fitness.html
 #
-# The second home visual communicates the actual disciplines
-# offered by the individual academy.
+# FITNESS
+#   Local academy remains the front door.
+#   FuelAI is the remote-training option inside fitness.html.
+#
+# ABOUT
+#   System/About hero stays above Combat = Character.
+#
+# Discipline-specific ___ IS LIFE graphics are not generated
+# inside local discipline-detail pages.
 # ============================================================
 
 LOCAL_FRONT_DOOR_CULTURE = {
@@ -448,15 +477,57 @@ LOCAL_FRONT_DOOR_CULTURE = {
 }
 
 
+LOCAL_PUBLIC_CONFIG = {
+    "santa-ynez-valley": {
+        "offering_en":
+            "/assets/img/pages/home/"
+            "home-wrestling-boxing-muay-thai-en.png",
+
+        "offering_es":
+            "/assets/img/pages/home/"
+            "home-wrestling-boxing-muay-thai-es.png",
+    },
+
+    "lompoc": {
+        "offering_en":
+            "/assets/img/pages/home/home-wrestling-en.png",
+
+        "offering_es":
+            "/assets/img/pages/home/home-wrestling-es.png",
+    },
+
+    "elk-grove": {
+        "offering_en":
+            "/assets/img/pages/home/home-boxing-en.png",
+
+        "offering_es":
+            "/assets/img/pages/home/home-boxing-es.png",
+    },
+}
+
+
 def enforce_local_front_door_culture():
-    """Keep every configured local academy on the System-level
-    Combat Is Life front-door visual.
+    """
+    Enforce the canonical local public home shell.
+
+    This intentionally operates only on configured academies.
     """
 
-    for index_path in LOCATIONS.glob("*/index.html"):
+    for slug, config in LOCAL_PUBLIC_CONFIG.items():
+
+        index_path = LOCATIONS / slug / "index.html"
+
+        if not index_path.exists():
+            print(f"SKIP: local home missing: {slug}")
+            continue
+
         html = index_path.read_text()
 
-        replacements = {
+        # ----------------------------------------------------
+        # 1. UNIVERSAL CULTURE HERO
+        # ----------------------------------------------------
+
+        hero_replacements = {
             "/assets/img/pages/home/hero-home-env2.png":
                 LOCAL_FRONT_DOOR_CULTURE["en"],
 
@@ -476,19 +547,80 @@ def enforce_local_front_door_culture():
                 LOCAL_FRONT_DOOR_CULTURE["es"],
         }
 
-        changed = False
+        for old, new in hero_replacements.items():
+            html = html.replace(old, new)
 
-        for old, new in replacements.items():
-            if old in html:
-                html = html.replace(old, new)
-                changed = True
 
-        if changed:
-            index_path.write_text(html)
-            print(
-                f"✓ Front door culture: "
-                f"{index_path.parent.name}"
+        # ----------------------------------------------------
+        # 2. LOCATION-SPECIFIC OFFERING PNG
+        # ----------------------------------------------------
+
+        en_section = re.compile(
+            r'(<section\b[^>]*class="home-many-paths"'
+            r'[^>]*data-lang-block="en"[^>]*>.*?'
+            r'<img\b[^>]*src=")[^"]+(")',
+            re.S,
+        )
+
+        es_section = re.compile(
+            r'(<section\b[^>]*class="home-many-paths'
+            r'[^"]*"[^>]*data-lang-block="es"[^>]*>.*?'
+            r'<img\b[^>]*src=")[^"]+(")',
+            re.S,
+        )
+
+        html, en_count = en_section.subn(
+            rf'\1{config["offering_en"]}\2',
+            html,
+            count=1,
+        )
+
+        html, es_count = es_section.subn(
+            rf'\1{config["offering_es"]}\2',
+            html,
+            count=1,
+        )
+
+        if en_count != 1 or es_count != 1:
+            raise RuntimeError(
+                f"STOP: offering visual not found for {slug}"
             )
+
+
+        # ----------------------------------------------------
+        # 3. FITNESS HOTSPOTS STAY LOCAL
+        # ----------------------------------------------------
+
+        fitness_destination = (
+            f"/locations/{slug}/fitness.html"
+        )
+
+        hotspot = re.compile(
+            r'(<a\b[^>]*'
+            r'class="home-many-paths__fitness-hotspot"'
+            r'[^>]*href=")[^"]+(")',
+            re.S,
+        )
+
+        html, hotspot_count = hotspot.subn(
+            rf'\1{fitness_destination}\2',
+            html,
+        )
+
+        if hotspot_count != 2:
+            raise RuntimeError(
+                f"STOP: expected 2 Fitness hotspots for "
+                f"{slug}; found {hotspot_count}"
+            )
+
+
+        index_path.write_text(html)
+
+        print(
+            f"✓ {slug}: Combat Is Life"
+            f" + local offering"
+            f" + local Fitness"
+        )
 
 
 # END_SANDMAN_LOCAL_FRONT_DOOR_CULTURE
