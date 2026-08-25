@@ -76,18 +76,18 @@
     .hero{
       padding:clamp(2rem,5vw,3.5rem);
       margin-bottom:28px;
-      border:1px solid #263244;
+      border:1px solid rgba(212,175,55,.22);
       border-radius:24px;
       background:
         radial-gradient(
-          circle at top right,
-          rgba(212,175,55,.16),
-          transparent 38%
+          circle at center top,
+          rgba(212,175,55,.17),
+          transparent 44%
         ),
         linear-gradient(
           180deg,
-          #1f2937 0%,
-          #111827 100%
+          #101010 0%,
+          #050505 100%
         );
       box-shadow:0 20px 40px rgba(0,0,0,.35);
     }
@@ -315,7 +315,7 @@
         padding:18px;
       }
     }
-  
+
     /* =====================================================
        MARKETING CONNECT CTA STYLES
     ====================================================== */
@@ -524,7 +524,7 @@
 
     }
 
-  
+
 
 /* =========================================
        MINIMAL JOURNEY HEADER
@@ -795,48 +795,7 @@ body.day-mode main .fact strong{
 
     </section>
 
-    <section class="visual-section">
-
-      <div class="visual-heading">
-
-        <div data-lang-block="en">
-          <p class="eyebrow">Earned Progression</p>
-          <h2>Quest2Mastery Progression</h2>
-          <p>
-            Athletes advance from Apprentice to Master through consistent
-            training, technical depth, disciplined integration, testing, live
-            application, competition experience, leadership, and demonstrated
-            growth in Combat, Strength, and Honor.
-          </p>
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-          <p class="eyebrow">Progreso Ganado</p>
-          <h2>Progresión Quest2Mastery</h2>
-          <p>
-            Los atletas avanzan de Apprentice a Master mediante entrenamiento
-            constante, profundidad técnica, integración disciplinada, pruebas,
-            aplicación en vivo, experiencia competitiva, liderazgo y
-            crecimiento demostrado en Combate, Fuerza y Honor.
-          </p>
-        </div>
-
-      </div>
-
-    </section>
-
-    <section class="progression-top">
-  <figure>
-    <img
-      src="/assets/img/f4/f4-shirt-progression-mma.png"
-      alt="Quest2Mastery MMA progression from Apprentice to Master"
-    />
-  </figure>
-</section>
-    <section class="section panel">
+<section class="section panel">
 
       <div data-lang-block="en">
 
@@ -1098,7 +1057,47 @@ body.day-mode main .fact strong{
 
     </section>
 
-    <section class="section panel">
+<section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <h2>Quest2Mastery Progression</h2>
+          <p>
+            Athletes advance from Apprentice to Master through consistent
+            training, technical depth, disciplined integration, testing, live
+            application, competition experience, leadership, and demonstrated
+            growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Progresión Quest2Mastery</h2>
+          <p>
+            Los atletas avanzan de Apprentice a Master mediante entrenamiento
+            constante, profundidad técnica, integración disciplinada, pruebas,
+            aplicación en vivo, experiencia competitiva, liderazgo y
+            crecimiento demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+<section class="progression-top">
+  <figure>
+    <img
+      src="/assets/img/f4/f4-shirt-progression-mma.png"
+      alt="Quest2Mastery MMA progression from Apprentice to Master"
+    />
+  </figure>
+</section>
+
+<section class="section panel">
 
       <div data-lang-block="en">
 
@@ -1192,8 +1191,24 @@ body.day-mode main .fact strong{
   </main>
 
 
-  <script src="/assets/js/language.js" defer></script>
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+<script src="/assets/js/language.js" defer></script>
   <script src="/assets/js/theme.js" defer></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
 
 </body>
 </html>

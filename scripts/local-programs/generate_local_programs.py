@@ -85,9 +85,8 @@ def localize_html(html, academy):
     )
 
     # Journey / age / location metadata is intentionally
-    # not localized into the hero here.
-    # polish_local_program_html() moves that identity
-    # into the earned-progression section.
+    # not repeated as a visible progression eyebrow.
+    # The discipline page already establishes local context.
 
 
     # --------------------------------------------------------
@@ -159,21 +158,16 @@ def polish_local_program_html(
 
     neutral discipline hero
     -> discipline content
-    -> earned progression with Journey / Age / Location
+    -> training focus
+    -> journey progression
     -> shirt/rank progression
+    -> athlete fit
 
     Academy-level cultural imagery such as ___ IS LIFE
     or COMBAT IS LIFE belongs on the local academy front
     door, not on local program-detail pages.
     """
 
-    meta = JOURNEY_META.get(journey)
-
-    if not meta:
-        return html
-
-    name = academy["name"]
-    name_es = academy["name_es"]
 
     # ---------------------------------------------
     # HERO
@@ -208,47 +202,6 @@ def polish_local_program_html(
             + html[hero_match.end():]
         )
 
-
-    # ---------------------------------------------
-    # PROGRESSION
-    # Local identity belongs here.
-    # ---------------------------------------------
-
-    en_line = (
-        f"Earned Progression • "
-        f"{meta['label']} • "
-        f"{meta['age_en']} • "
-        f"{name}"
-    )
-
-    es_line = (
-        f"Progreso Ganado • "
-        f"{meta['label']} • "
-        f"{meta['age_es']} • "
-        f"{name_es}"
-    )
-
-    html = re.sub(
-        r'<p class="eyebrow">\s*'
-        r'Earned Progression'
-        r'(?:\s*•[^<]*)?'
-        r'\s*</p>',
-        f'<p class="eyebrow">{en_line}</p>',
-        html,
-        count=1,
-        flags=re.I,
-    )
-
-    html = re.sub(
-        r'<p class="eyebrow">\s*'
-        r'Progreso Ganado'
-        r'(?:\s*•[^<]*)?'
-        r'\s*</p>',
-        f'<p class="eyebrow">{es_line}</p>',
-        html,
-        count=1,
-        flags=re.I,
-    )
 
     # ---------------------------------------------
     # CENTER ALL DISCIPLINE-PAGE TITLES
@@ -647,95 +600,6 @@ if __name__ == "__main__":
     main()
 
 # ============================================================
-# SANDMAN_CENTER_DISCIPLINE_TITLES
-# Santa Ynez discipline-page presentation standard.
-# Runs after generation so all existing and future discipline
-# pages receive centered headings automatically.
-# ============================================================
-
-def enforce_santa_ynez_centered_titles():
-    from pathlib import Path
-
-    marker = "SANDMAN-DISCIPLINE-CENTERED-TITLES"
-
-    style = f"""
-  <style id="{marker}">
-    /* Santa Ynez discipline-page standard:
-       all titles centered, body copy unchanged */
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {{
-      text-align: center;
-    }}
-  </style>
-"""
-
-    root = Path(
-        "public/locations/santa-ynez-valley/programs"
-    )
-
-    if not root.exists():
-        return
-
-    for page in root.rglob("*.html"):
-        html = page.read_text()
-
-        if marker in html:
-            continue
-
-        if "</head>" not in html:
-            continue
-
-        html = html.replace(
-            "</head>",
-            style + "\n</head>",
-            1
-        )
-
-        page.write_text(html)
-
-
-enforce_santa_ynez_centered_titles()
-
-
-# ============================================================
-# SANDMAN_LOCAL_DISCIPLINE_STRUCTURE
-#
-# Canonical generated local discipline-page flow:
-#
-#   DISCIPLINE LIFE SPLASH
-#     directly above hero
-#     native EN/ES image synchronization
-#
-#   HERO
-#     discipline title
-#     discipline subtitle
-#     discipline introduction
-#     availability copy
-#
-#     Hero stays neutral.
-#     No location / journey / age eyebrow.
-#
-#   DISCIPLINE OVERVIEW
-#
-#   WHY SANDMAN TEACHES THE DISCIPLINE
-#
-#   EARNED PROGRESSION
-#     local context belongs here:
-#
-#     Earned Progression • Journey • Age • Location
-#     Progreso Ganado • Journey • Edad • Ubicación
-#
-#   JOURNEY PROGRESSION
-#   SHIRT / RANK PROGRESSION
-#   REMAINING DISCIPLINE CONTENT
-#
-# Life PNG and shirt-progression PNG must remain separated.
-# ============================================================
-
 # SANDMAN_LOCAL_DISCIPLINE_STRUCTURE
 #
 # Canonical generated local discipline-page flow:
@@ -746,23 +610,30 @@ enforce_santa_ynez_centered_titles()
 #     discipline introduction
 #     availability copy
 #
-#     Hero stays neutral.
-#     No location / journey / age eyebrow.
-#
 #   DISCIPLINE OVERVIEW
 #
 #   WHY SANDMAN TEACHES THE DISCIPLINE
 #
-#   EARNED PROGRESSION
-#     local context belongs here:
+#   HISTORY / FACTS
 #
-#     Earned Progression • Journey • Age • Location
-#     Progreso Ganado • Journey • Edad • Ubicación
+#   TECHNICAL DEVELOPMENT
+#   PHYSICAL DEVELOPMENT
+#   CHARACTER DEVELOPMENT
+#   TRAINING FOCUS
 #
 #   JOURNEY PROGRESSION
-#   SHIRT / RANK PROGRESSION
-#   REMAINING DISCIPLINE CONTENT
+#     Zero2Hero / Path2Legend / Quest2Mastery
+#     progression explanation
+#     shirt / rank progression PNG
 #
-# Academy-level cultural imagery such as ___ IS LIFE
-# and COMBAT IS LIFE belongs on the local academy front
-# door, not on generated local program-detail pages.
+#     No visible "Earned Progression • Journey • Age • Location"
+#     eyebrow. Local identity is already established by the page.
+#
+#   ATHLETE FIT
+#
+#   LOCAL CONNECTION CTA
+#
+# Academy-level cultural imagery such as COMBAT IS LIFE
+# belongs on the local academy front door, not inside
+# generated discipline-detail pages.
+# ============================================================
