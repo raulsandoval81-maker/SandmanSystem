@@ -1511,3 +1511,48 @@ html[data-theme="light"] .local-location-band{
     font-size:.95rem;
   }
 }
+
+/* =========================================================
+   LOCAL DISCIPLINE DIVIDER BAND — FINAL
+========================================================= */
+
+.local-program-orientation{
+  width:100%;
+  background:#000;
+  border-top:1px solid var(--brand-gold);
+  border-bottom:1px solid var(--brand-gold);
+  padding:.8rem 1rem;
+  text-align:center;
+}
+
+.local-program-orientation > div{
+  width:100%;
+  max-width:none;
+  margin:0;
+}
+
+.local-program-orientation__eyebrow{
+  margin:0;
+  color:var(--brand-gold);
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.18em;
+  line-height:1.2;
+  text-transform:uppercase;
+}
+
+.local-program-orientation h2,
+.local-program-orientation > div > p:not(.local-program-orientation__eyebrow){
+  display:none;
+}
+
+@media (max-width:700px){
+  .local-program-orientation{
+    padding:.7rem .75rem;
+  }
+
+  .local-program-orientation__eyebrow{
+    font-size:.72rem;
+    letter-spacing:.14em;
+  }
+}
