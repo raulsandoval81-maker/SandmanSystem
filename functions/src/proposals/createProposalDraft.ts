@@ -14,6 +14,7 @@ import {
 
 import {
   requireProposalStaffAccess,
+  requireProposalLocationAccess,
 } from "./proposalAccess";
 
 function cleanString(value: unknown): string {
@@ -96,7 +97,7 @@ export const createProposalDraft =
         staffAccess.fullName
       );
 
-    const athletes =
+    const athletes: unknown[] =
       Array.isArray(data.athletes)
         ? data.athletes
         : [];
@@ -121,6 +122,83 @@ export const createProposalDraft =
 
     const db =
       getFirestore();
+
+    // Location ownership and prospect identity/contact are resolved
+    // server-side from the authoritative appointment. Do not trust
+    // browser-supplied values for enrollment ownership data.
+    let locationId: string | null = null;
+
+    let appointmentProspect:
+      Record<string, unknown> = {};
+
+    if (appointmentId) {
+      const appointmentSnap =
+        await db
+          .collection("admissions_appointments")
+          .doc(appointmentId)
+          .get();
+
+      if (!appointmentSnap.exists) {
+        throw new HttpsError(
+          "not-found",
+          "The appointment for this proposal was not found."
+        );
+      }
+
+      appointmentProspect =
+        appointmentSnap.data() || {};
+
+      locationId =
+        nullableString(
+          appointmentSnap.get("locationId")
+        );
+
+      if (!locationId) {
+        throw new HttpsError(
+          "failed-precondition",
+          "The appointment does not have a valid location."
+        );
+      }
+    }
+
+    if (!locationId) {
+      throw new HttpsError(
+        "failed-precondition",
+        "A proposal must be connected to an appointment with a valid location."
+      );
+    }
+
+    requireProposalLocationAccess(
+      staffAccess,
+      locationId
+    );
+
+    // Athlete identity data collected before Admissions should
+    // survive into the Proposal. DOB belongs to the athlete,
+    // not the prospect/contact record.
+    const proposalAthletes =
+      athletes.map((athlete, index) => {
+        if (
+          index !== 0 ||
+          !athlete ||
+          typeof athlete !== "object" ||
+          Array.isArray(athlete)
+        ) {
+          return athlete;
+        }
+
+        return {
+          ...athlete,
+
+          dob:
+            nullableString(
+              (athlete as Record<string, unknown>).dob ||
+              (athlete as Record<string, unknown>).dateOfBirth ||
+              appointmentProspect.dob ||
+              appointmentProspect.dateOfBirth
+            ),
+        };
+      });
 
     const counterRef =
       db
@@ -171,13 +249,48 @@ export const createProposalDraft =
                 proposalId,
                 status: "DRAFT",
 
+                locationId,
+
                 prospect: {
                   appointmentId,
                   admissionsRequestId,
-                  familyName,
-                  primaryContactName,
-                  email,
-                  phone,
+
+                  familyName:
+                    familyName ||
+                    nullableString(
+                      appointmentProspect.athleteName ||
+                      appointmentProspect.participantName
+                    ),
+
+                  primaryContactName:
+                    primaryContactName ||
+                    nullableString(
+                      appointmentProspect.parentName
+                    ),
+
+                  email:
+                    email ||
+                    nullableString(
+                      cleanEmail(
+                        appointmentProspect.email
+                      )
+                    ),
+
+                  phone:
+                    phone ||
+                    nullableString(
+                      appointmentProspect.phone
+                    ),
+
+                  city:
+                    nullableString(
+                      appointmentProspect.city
+                    ),
+
+                  state:
+                    nullableString(
+                      appointmentProspect.state
+                    ),
                 },
 
                 coach: {
@@ -185,7 +298,8 @@ export const createProposalDraft =
                   name: coachName,
                 },
 
-                athletes,
+                athletes:
+                  proposalAthletes,
                 pricing,
                 agreement,
                 internalNotes,

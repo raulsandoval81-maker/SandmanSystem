@@ -289,6 +289,26 @@
               required
             />
           </div>
+
+          <div class="field">
+            <label for="dob">
+              <span data-lang="en">
+                Date of Birth
+              </span>
+
+              <span data-lang="es">
+                Fecha de Nacimiento
+              </span>
+            </label>
+
+            <input
+              id="dob"
+              name="dob"
+              type="date"
+              autocomplete="bday"
+              required
+            />
+          </div>
           <div class="field">
   <label id="shirtSizeLabel" for="shirtSize">
     <span data-lang="en">
@@ -503,6 +523,26 @@
               name="city"
               type="text"
               autocomplete="address-level2"
+            />
+          </div>
+
+          <div class="field">
+            <label for="state">
+              <span data-lang="en">
+                State
+              </span>
+
+              <span data-lang="es">
+                Estado
+              </span>
+            </label>
+
+            <input
+              id="state"
+              name="state"
+              type="text"
+              autocomplete="address-level1"
+              required
             />
           </div>
         </section>
@@ -1059,34 +1099,30 @@
 
   <h2>
     <span data-lang="en">
-      Choose Your Starting Path
+      Previous Training Experience
     </span>
 
-<span data-lang="es">
-  Elige Tu Camino para Comenzar
-</span>
+    <span data-lang="es">
+      Experiencia de Entrenamiento Previa
+    </span>
   </h2>
 
   <div class="field">
-
-    <label for="admissionsPath">
-
+    <label for="claimedPriorExperience">
       <span data-lang="en">
-        Choose how you would like to begin.
+        Has the athlete trained in combat sports before?
       </span>
 
       <span data-lang="es">
-        Elige cómo te gustaría comenzar.
+        ¿El atleta ha entrenado antes en deportes de combate?
       </span>
-
     </label>
 
     <select
-      id="admissionsPath"
-      name="admissionsPath"
+      id="claimedPriorExperience"
+      name="claimedPriorExperience"
       required
     >
-
       <option value="" data-lang="en">
         Select one
       </option>
@@ -1095,37 +1131,120 @@
         Selecciona una opción
       </option>
 
-      <option value="new" data-lang="en">
-        Start as a New Athlete
+      <option value="no" data-lang="en">
+        No previous experience
       </option>
 
-      <option value="new" data-lang="es">
-        Comenzar como Atleta Nuevo
+      <option value="no" data-lang="es">
+        Sin experiencia previa
       </option>
 
-      <option value="assessment" data-lang="en">
-        Request a Placement Assessment
+      <option value="yes" data-lang="en">
+        Yes, previous experience
       </option>
 
-      <option value="assessment" data-lang="es">
-        Solicitar una Evaluación de Ubicación
+      <option value="yes" data-lang="es">
+        Sí, experiencia previa
       </option>
-
     </select>
-
   </div>
 
-  <p class="help-text placement-note">
+  <div
+    id="claimedExperienceDetails"
+    class="field"
+    hidden
+  >
+    <label for="claimedExperienceRange">
+      <span data-lang="en">
+        About how long has the athlete trained?
+      </span>
 
-<span data-lang="en">Placement is based on the coach's evaluation and is never guaranteed.
-  Athletes requesting a Placement Assessment may earn an advanced starting placement based on the coach's evaluation.
-</span>
+      <span data-lang="es">
+        Aproximadamente, ¿cuánto tiempo ha entrenado el atleta?
+      </span>
+    </label>
 
-<span data-lang="es">
-  Los atletas que soliciten una Evaluación de Ubicación podrán obtener una ubicación inicial avanzada según la evaluación del entrenador.
-</span>
+    <select
+      id="claimedExperienceRange"
+      name="claimedExperienceRange"
+    >
+      <option value="" data-lang="en">
+        Select one
+      </option>
 
-  </p>
+      <option value="" data-lang="es">
+        Selecciona una opción
+      </option>
+
+      <option value="under-1" data-lang="en">
+        Less than 1 year
+      </option>
+
+      <option value="under-1" data-lang="es">
+        Menos de 1 año
+      </option>
+
+      <option value="1-2" data-lang="en">
+        1–2 years
+      </option>
+
+      <option value="1-2" data-lang="es">
+        1–2 años
+      </option>
+
+      <option value="2-3" data-lang="en">
+        2–3 years
+      </option>
+
+      <option value="2-3" data-lang="es">
+        2–3 años
+      </option>
+
+      <option value="3-plus" data-lang="en">
+        3+ years
+      </option>
+
+      <option value="3-plus" data-lang="es">
+        3+ años
+      </option>
+    </select>
+
+    <label for="claimedExperienceNotes">
+      <span data-lang="en">
+        Previous sport, academy, competition experience,
+        rank, or anything else you would like us to know
+      </span>
+
+      <span data-lang="es">
+        Deporte anterior, academia, experiencia en competencia,
+        rango o cualquier otra información que quieras compartir
+      </span>
+
+      <span class="optional">
+        <span data-lang="en">Optional</span>
+        <span data-lang="es">Opcional</span>
+      </span>
+    </label>
+
+    <textarea
+      id="claimedExperienceNotes"
+      name="claimedExperienceNotes"
+      rows="4"
+      maxlength="750"
+    ></textarea>
+
+    <p class="help-text placement-note">
+      <span data-lang="en">
+        Previous experience is reviewed by a coach and does
+        not guarantee placement or starting credit.
+      </span>
+
+      <span data-lang="es">
+        La experiencia previa será revisada por un entrenador
+        y no garantiza ubicación ni crédito inicial.
+      </span>
+    </p>
+  </div>
 
 </section>
         <section class="form-section">

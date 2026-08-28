@@ -10,6 +10,7 @@ import {
 
 import {
   requireProposalStaffAccess,
+  requireProposalLocationAccess,
 } from "./proposalAccess";
 
 function cleanString(value: unknown): string {
@@ -53,7 +54,7 @@ export const updateProposalDraft =
       );
     }
 
-    const athletes =
+    const athletes: unknown[] =
       Array.isArray(data.athletes)
         ? data.athletes
         : [];
@@ -104,6 +105,11 @@ export const updateProposalDraft =
             const existing =
               proposalSnap.data() || {};
 
+            requireProposalLocationAccess(
+              staffAccess,
+              existing.locationId
+            );
+
             const currentStatus =
               cleanString(existing.status);
 
@@ -148,11 +154,17 @@ export const updateProposalDraft =
               familyName:
                 nullableString(
                   incomingProspect.familyName
+                ) ??
+                nullableString(
+                  existingProspect.familyName
                 ),
 
               primaryContactName:
                 nullableString(
                   incomingProspect.primaryContactName
+                ) ??
+                nullableString(
+                  existingProspect.primaryContactName
                 ),
 
               email:
@@ -160,13 +172,77 @@ export const updateProposalDraft =
                   cleanEmail(
                     incomingProspect.email
                   )
+                ) ??
+                nullableString(
+                  cleanEmail(
+                    existingProspect.email
+                  )
                 ),
 
               phone:
                 nullableString(
                   incomingProspect.phone
+                ) ??
+                nullableString(
+                  existingProspect.phone
+                ),
+
+              city:
+                nullableString(
+                  incomingProspect.city
+                ) ??
+                nullableString(
+                  existingProspect.city
+                ),
+
+              state:
+                nullableString(
+                  incomingProspect.state
+                ) ??
+                nullableString(
+                  existingProspect.state
                 ),
             };
+
+            const existingAthletes: unknown[] =
+              Array.isArray(existing.athletes)
+                ? existing.athletes
+                : [];
+
+            const proposalAthletes =
+              athletes.map((athlete, index) => {
+                if (
+                  index !== 0 ||
+                  !athlete ||
+                  typeof athlete !== "object" ||
+                  Array.isArray(athlete)
+                ) {
+                  return athlete;
+                }
+
+                const incomingAthlete =
+                  athlete as Record<string, unknown>;
+
+                const existingAthlete =
+                  existingAthletes[0] &&
+                  typeof existingAthletes[0] === "object" &&
+                  !Array.isArray(existingAthletes[0])
+                    ? existingAthletes[0] as
+                        Record<string, unknown>
+                    : {};
+
+                return {
+                  ...incomingAthlete,
+
+                  dob:
+                    nullableString(
+                      incomingAthlete.dob ||
+                      incomingAthlete.dateOfBirth ||
+                      existingAthlete.dob ||
+                      existingAthlete.dateOfBirth
+                    ),
+                };
+              });
 
             const historyRef =
               proposalRef
@@ -186,7 +262,8 @@ export const updateProposalDraft =
                     coachName,
                 },
 
-                athletes,
+                athletes:
+                  proposalAthletes,
                 pricing,
                 agreement,
 

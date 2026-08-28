@@ -55,6 +55,15 @@ export async function verifyToken(input) {
       mode: data.mode ?? "new_athlete",
       intakeAudience: data.intakeAudience ?? "parent_guardian",
       intakeRoute: data.intakeRoute ?? "parent",
+
+      proposalId: data.proposalId ?? null,
+      locationId: data.locationId ?? null,
+
+      prefill:
+        data.prefill &&
+        typeof data.prefill === "object"
+          ? data.prefill
+          : {},
       connectLeadId: data.connectLeadId ?? null,
       existingAthleteUid: data.existingAthleteUid ?? null,
       existingAthleteName: data.existingAthleteName ?? null,

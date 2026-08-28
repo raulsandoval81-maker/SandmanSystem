@@ -83,12 +83,6 @@ const fitnessFocusSection =
 const fitnessFocus =
   document.getElementById("fitnessFocus");
 
-const academyTeamInterest =
-  document.getElementById("academyTeamInterest");
-
-const preferredLocation =
-  document.getElementById("preferredLocation");
-
 const interestTypeInputs =
   Array.from(
     document.querySelectorAll(
@@ -101,6 +95,15 @@ const trainingIntent =
 
 const trainingIntentNotice =
   document.getElementById("trainingIntentNotice");
+
+const claimedPriorExperience =
+  document.getElementById("claimedPriorExperience");
+
+const claimedExperienceDetails =
+  document.getElementById("claimedExperienceDetails");
+
+const claimedExperienceRange =
+  document.getElementById("claimedExperienceRange");
 
 function currentLanguage() {
   return document.documentElement.lang === "es"
@@ -211,57 +214,33 @@ function getEntryMode() {
 }
 
 function syncLocalLocationContext() {
-  if (!preferredLocation) {
-    return;
-  }
-
   const locationId =
     getRequestedLocationId();
 
   /*
-   * Local academy pages already establish
-   * the visitor's operational location.
+   * Location ownership now comes directly from
+   * the local academy URL.
    *
-   * Do not make them choose it again.
+   * Elk Grove currently exposes Combat only.
    */
-  if (locationId === "lompoc") {
-    preferredLocation.value = "lompoc";
-    preferredLocation.required = false;
-    return;
-  }
-
   if (locationId === "elk-grove") {
-    preferredLocation.value = "elk-grove";
-    preferredLocation.required = false;
-
     interestTypeInputs.forEach((input) => {
-      const isCombat = input.value === "combat";
+      const isCombat =
+        input.value === "combat";
+
       input.disabled = !isCombat;
       input.checked = isCombat;
 
-      const option = input.closest(".interest-type-option");
-      if (option) option.hidden = !isCombat;
+      const option =
+        input.closest(
+          ".interest-type-option"
+        );
+
+      if (option) {
+        option.hidden = !isCombat;
+      }
     });
-
-    return;
   }
-
-  if (locationId === "santa-ynez-valley") {
-    /*
-     * The current SYV physical meeting option
-     * is represented by "solvang" in the
-     * existing data model.
-     */
-    preferredLocation.value = "solvang";
-    preferredLocation.required = false;
-    return;
-  }
-
-  /*
-   * Generic/platform traffic still needs
-   * to choose a location.
-   */
-  preferredLocation.required = false;
 }
 
 function readForm() {
@@ -308,11 +287,13 @@ function readForm() {
     getRequestedLocationId();
 
   /*
-   * Operational location ownership.
+   * Operational location ownership comes from
+   * the local academy entry URL.
    *
-   * This is intentionally separate from
-   * preferredLocation, which represents the
-   * visitor's preferred physical meeting venue.
+   * Valid examples:
+   *   ?location=lompoc
+   *   ?location=santa-ynez-valley
+   *   ?location=elk-grove
    */
   const publicLocationIds =
     new Set([
@@ -321,44 +302,12 @@ function readForm() {
       "santa-ynez-valley"
     ]);
 
-  const selectedMeetingLocation =
-    clean(
-      formData.get("preferredLocation")
-    )
-      .toLowerCase();
-
-  /*
-   * Local pages explicitly establish operational
-   * ownership through ?location=.
-   *
-   * Generic/platform traffic has no location
-   * context, so its meeting preference provides
-   * the initial routing fallback.
-   *
-   * "either" currently routes to the active
-   * Santa Ynez Valley pilot while preserving
-   * preferredLocation = "either" on the lead.
-   */
-  let locationId = "";
-
-  if (
+  const locationId =
     publicLocationIds.has(
       requestedLocationId
     )
-  ) {
-    locationId =
-      requestedLocationId;
-  } else if (
-    selectedMeetingLocation === "lompoc"
-  ) {
-    locationId = "lompoc";
-  } else if (
-    selectedMeetingLocation === "solvang" ||
-    selectedMeetingLocation === "either"
-  ) {
-    locationId =
-      "santa-ynez-valley";
-  }
+      ? requestedLocationId
+      : "";
 
   const interestType =
     normalizeInterestType(
@@ -395,6 +344,9 @@ function readForm() {
     athleteAge:
       Number(formData.get("athleteAge") || 0),
 
+    dob:
+      clean(formData.get("dob")),
+
     shirtSize:
       clean(formData.get("shirtSize")),
 
@@ -403,9 +355,6 @@ function readForm() {
 
     fitnessFocus:
       clean(formData.get("fitnessFocus")),
-
-    academyTeamInterest:
-      clean(formData.get("academyTeamInterest")),
 
     journey:
       selectedProgram?.journey || "",
@@ -426,8 +375,8 @@ function readForm() {
     city:
       clean(formData.get("city")),
 
-    preferredLocation:
-      clean(formData.get("preferredLocation")),
+    state:
+      clean(formData.get("state")),
 
     needsTeamHelp:
       formData.get("needsTeamHelp") === "yes",
@@ -440,8 +389,23 @@ function readForm() {
         formData.get("preferredMeetingWindow")
       ),
 
-    admissionsPath:
-      clean(formData.get("admissionsPath")),
+    claimedPriorExperience:
+      clean(formData.get("claimedPriorExperience")),
+
+    claimedExperienceRange:
+      clean(formData.get("claimedExperienceRange")),
+
+    claimedExperienceNotes:
+      clean(formData.get("claimedExperienceNotes")),
+
+    /*
+     * Transitional compatibility only.
+     *
+     * Public applicants no longer choose an admissions path.
+     * Prior experience is captured separately and must be
+     * verified by a Coach before affecting placement/legacy XP.
+     */
+    admissionsPath: "new",
 
     referralSource:
       clean(formData.get("referralSource")),
@@ -576,6 +540,13 @@ if (
     );
   }
 
+  if (!lead.locationId) {
+    return message(
+      "Select your academy location before continuing.",
+      "Selecciona la ubicación de tu academia antes de continuar."
+    );
+  }
+
   const isFitnessInterest =
     lead.interestType === "fitness" ||
     lead.interestType === "both";
@@ -641,13 +612,23 @@ if (
   }
 
   if (
-    !["new", "assessment"].includes(
-      lead.admissionsPath
+    !["no", "yes"].includes(
+      lead.claimedPriorExperience
     )
   ) {
     return message(
-      "Choose how the athlete would like to begin.",
-      "Elige cómo le gustaría comenzar al atleta."
+      "Tell us whether the athlete has previous combat-sport experience.",
+      "Indícanos si el atleta tiene experiencia previa en deportes de combate."
+    );
+  }
+
+  if (
+    lead.claimedPriorExperience === "yes" &&
+    !lead.claimedExperienceRange
+  ) {
+    return message(
+      "Select about how long the athlete has trained.",
+      "Selecciona aproximadamente cuánto tiempo ha entrenado el atleta."
     );
   }
 
@@ -782,6 +763,80 @@ form?.addEventListener(
 console.log(
   "[interest] interest.js loaded"
 );
+
+// -------------------- Local public identity --------------------
+
+function syncLocalInterestIdentity() {
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const locationId =
+    params.get("location");
+
+  const locations = {
+    "santa-ynez-valley": {
+      enPlace: "Santa Ynez Valley Strong",
+      esPlace: "Santa Ynez Valley Strong"
+    },
+
+    "lompoc": {
+      enPlace: "Lompoc Strong",
+      esPlace: "Lompoc Strong"
+    },
+
+    "elk-grove": {
+      enPlace: "Elk Grove Strong",
+      esPlace: "Elk Grove Strong"
+    }
+  };
+
+  const local =
+    locations[locationId];
+
+  if (!local) return;
+
+  const identity =
+    document.getElementById(
+      "localInterestIdentity"
+    );
+
+  if (!identity) return;
+
+  const isSpanish =
+    document.documentElement
+      .getAttribute("lang") === "es";
+
+  identity.innerHTML = `
+    <span class="local-rally">
+      <span class="local-rally__place">
+        ${
+          isSpanish
+            ? local.esPlace
+            : local.enPlace
+        }
+      </span>
+
+      <span
+        class="local-rally__dot"
+        aria-hidden="true"
+      >
+        ·
+      </span>
+
+      <span class="local-rally__call">
+        ${
+          isSpanish
+            ? "Únete al Movimiento"
+            : "Join the Movement"
+        }
+      </span>
+    </span>
+  `;
+}
+
+syncLocalInterestIdentity();
 
 // -------------------- Intent --------------------
 
@@ -1149,6 +1204,47 @@ function updateTrainingIntentNotice() {
 }
 
 
+function updateClaimedExperienceUI() {
+  if (
+    !claimedPriorExperience ||
+    !claimedExperienceDetails
+  ) {
+    return;
+  }
+
+  const hasPreviousExperience =
+    claimedPriorExperience.value === "yes";
+
+  claimedExperienceDetails.hidden =
+    !hasPreviousExperience;
+
+  if (claimedExperienceRange) {
+    claimedExperienceRange.required =
+      hasPreviousExperience;
+
+    claimedExperienceRange.disabled =
+      !hasPreviousExperience;
+
+    if (!hasPreviousExperience) {
+      claimedExperienceRange.value = "";
+    }
+  }
+
+  const notes =
+    document.getElementById(
+      "claimedExperienceNotes"
+    );
+
+  if (notes) {
+    notes.disabled =
+      !hasPreviousExperience;
+
+    if (!hasPreviousExperience) {
+      notes.value = "";
+    }
+  }
+}
+
 function updateInterestTypeUI() {
   const interestType =
     getSelectedInterestType();
@@ -1315,14 +1411,29 @@ document
     button.addEventListener(
       "click",
       () => {
-        window.setTimeout(() => {
-          renderSubmitButton(false);
-          renderIntent();
-          updatePrograms();
-          syncPreferredDiscipline();
-          updateTrainingIntentNotice();
-          setStatus("");
-        }, 0);
+        const language =
+          button.dataset.setLanguage === "es"
+            ? "es"
+            : "en";
+
+        document.documentElement.lang = language;
+
+        const url = new URL(window.location.href);
+        url.searchParams.set("lang", language);
+
+        window.history.replaceState(
+          {},
+          "",
+          url
+        );
+
+        renderSubmitButton(false);
+        renderIntent();
+        updatePrograms();
+        syncPreferredDiscipline();
+        updateTrainingIntentNotice();
+        syncLocalInterestIdentity();
+        setStatus("");
       }
     );
   });
@@ -1350,6 +1461,11 @@ interestTypeInputs.forEach((input) => {
 trainingIntent?.addEventListener(
   "change",
   updateTrainingIntentNotice
+);
+
+claimedPriorExperience?.addEventListener(
+  "change",
+  updateClaimedExperienceUI
 );
 
 registrantRoleInputs.forEach((input) => {
@@ -1381,6 +1497,7 @@ syncInterestTypeFromUrl();
 syncLocalLocationContext();
 updateInterestTypeUI();
 updateTrainingIntentNotice();
+updateClaimedExperienceUI();
 
 renderIntent();
 

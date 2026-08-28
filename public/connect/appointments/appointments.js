@@ -58,6 +58,103 @@ const selectedLeadId = params.get("leadId") || "";
 
 let selectedLead = null;
 let managementContext = null;
+let coachDirectory = [];
+
+function clean(value) {
+  return String(value ?? "").trim();
+}
+
+async function loadCoachDirectory() {
+  const snapshot = await getDocs(
+    collection(db, "staff")
+  );
+
+  coachDirectory = snapshot.docs
+    .map((staffDoc) => ({
+      id: staffDoc.id,
+      ...staffDoc.data()
+    }))
+    .filter((staff) =>
+      clean(staff.role).toLowerCase() === "coach" &&
+      clean(staff.status).toLowerCase() === "active"
+    )
+    .sort((a, b) =>
+      clean(
+        a.fullName ||
+        a.displayName ||
+        a.email ||
+        a.id
+      ).localeCompare(
+        clean(
+          b.fullName ||
+          b.displayName ||
+          b.email ||
+          b.id
+        )
+      )
+    );
+}
+
+function coachDisplayName(coach) {
+  return clean(
+    coach?.fullName ||
+    coach?.displayName ||
+    coach?.email ||
+    coach?.id
+  );
+}
+
+function populateAppointmentCoachSelect(record = null) {
+  if (!appointmentCoach) return;
+
+  appointmentCoach.replaceChildren();
+
+  const placeholder =
+    document.createElement("option");
+
+  placeholder.value = "";
+  placeholder.textContent =
+    "Select an active coach";
+
+  appointmentCoach.appendChild(
+    placeholder
+  );
+
+  for (const coach of coachDirectory) {
+    const option =
+      document.createElement("option");
+
+    option.value = coach.id;
+
+    const name =
+      coachDisplayName(coach);
+
+    const email =
+      clean(coach.email);
+
+    option.textContent =
+      email && email !== name
+        ? `${name} — ${email}`
+        : name;
+
+    appointmentCoach.appendChild(
+      option
+    );
+  }
+
+  const assignedCoachUid =
+    clean(record?.appointmentCoachUid);
+
+  if (
+    assignedCoachUid &&
+    coachDirectory.some(
+      (coach) => coach.id === assignedCoachUid
+    )
+  ) {
+    appointmentCoach.value =
+      assignedCoachUid;
+  }
+}
 
 function esc(value = "") {
   return String(value)
@@ -143,13 +240,61 @@ function labelForLocation(location = "") {
 }
 
 
-function labelForAdmissionsPath(value = "") {
+function labelForClaimedExperienceRange(value = "") {
   const labels = {
-    new: "New Athlete",
-    assessment: "Placement Assessment"
+    "under-1": "Less than 1 year",
+    "1-2": "1–2 years",
+    "2-3": "2–3 years",
+    "3-plus": "3+ years"
   };
 
   return labels[value] || "—";
+}
+
+function renderReportedExperience(record) {
+  const claimed =
+    String(
+      record.claimedPriorExperience || ""
+    ).trim();
+
+  /*
+   * Family-reported information only.
+   * Never infer verification from admissionsPath.
+   */
+  if (!claimed) {
+    return "Not reported";
+  }
+
+  if (claimed === "no") {
+    return "No previous experience reported";
+  }
+
+  if (claimed !== "yes") {
+    return "Not reported";
+  }
+
+  const range =
+    labelForClaimedExperienceRange(
+      record.claimedExperienceRange
+    );
+
+  const notes =
+    String(
+      record.claimedExperienceNotes || ""
+    ).trim();
+
+  return `
+    Family reported previous experience<br>
+    <strong>Reported duration:</strong>
+    ${esc(range)}
+    ${
+      notes
+        ? `<br><strong>Background:</strong> ${esc(notes)}`
+        : ""
+    }
+    <br><strong>Status:</strong>
+    Pending Coach verification
+  `;
 }
 function formatAppointmentDate(dateValue = "") {
   if (!dateValue) return "—";
@@ -438,8 +583,8 @@ selectedLeadSummary.innerHTML = `
 </p>
 
 <p>
-<strong>Starting Path:</strong>
-${esc(labelForAdmissionsPath(selectedLead.admissionsPath))}
+  <strong>Prior Experience:</strong><br>
+  ${renderReportedExperience(selectedLead)}
 </p>
     <hr>
 
@@ -510,9 +655,9 @@ appointmentLocation.value =
   preferredAppointmentLocation ||
   "";
 
-appointmentCoach.value =
-  selectedLead.appointmentCoach ||
-  "Coach Sandoval";
+populateAppointmentCoachSelect(
+  selectedLead
+);
 
 appointmentNotes.value =
   selectedLead.appointmentNotes || "";
@@ -670,6 +815,19 @@ async function migrateLegacyAppointments() {
 
         primaryGoal:
           lead.primaryGoal || "",
+
+        /*
+         * Family-reported experience only.
+         * These fields do not constitute Coach verification.
+         */
+        claimedPriorExperience:
+          lead.claimedPriorExperience || "",
+
+        claimedExperienceRange:
+          lead.claimedExperienceRange || "",
+
+        claimedExperienceNotes:
+          lead.claimedExperienceNotes || "",
 
         admissionsPath:
           lead.admissionsPath || "new",
@@ -961,9 +1119,9 @@ async function loadAppointments() {
       </div>
 
       <div>
-      <span class="field-label">Starting Path</span>
+        <span class="field-label">Prior Experience</span>
         <div class="field-value">
-          ${esc(labelForAdmissionsPath(lead.admissionsPath))}
+          ${renderReportedExperience(lead)}
         </div>
       </div>
 
@@ -1044,8 +1202,16 @@ scheduleForm?.addEventListener(
     const locationValue =
       String(appointmentLocation?.value || "").trim();
 
-    const coachValue =
+    const coachUid =
       String(appointmentCoach?.value || "").trim();
+
+    const selectedCoach =
+      coachDirectory.find(
+        (coach) => coach.id === coachUid
+      ) || null;
+
+    const coachValue =
+      coachDisplayName(selectedCoach);
 
     const notesValue =
       String(appointmentNotes?.value || "").trim();
@@ -1054,6 +1220,8 @@ scheduleForm?.addEventListener(
       !dateValue ||
       !timeValue ||
       !locationValue ||
+      !coachUid ||
+      !selectedCoach ||
       !coachValue
     ) {
       setStatus(
@@ -1117,6 +1285,17 @@ scheduleForm?.addEventListener(
       athleteAge:
         selectedLead.athleteAge || "",
 
+      dob:
+        selectedLead.dob ||
+        selectedLead.dateOfBirth ||
+        "",
+
+      city:
+        selectedLead.city || "",
+
+      state:
+        selectedLead.state || "",
+
       email:
         selectedLead.email || "",
 
@@ -1137,6 +1316,19 @@ scheduleForm?.addEventListener(
 
       primaryGoal:
         selectedLead.primaryGoal || "",
+
+      /*
+       * Family-reported experience only.
+       * Coach verification is a separate downstream action.
+       */
+      claimedPriorExperience:
+        selectedLead.claimedPriorExperience || "",
+
+      claimedExperienceRange:
+        selectedLead.claimedExperienceRange || "",
+
+      claimedExperienceNotes:
+        selectedLead.claimedExperienceNotes || "",
 
       admissionsPath:
         selectedLead.admissionsPath || "new",
@@ -1160,6 +1352,7 @@ scheduleForm?.addEventListener(
       appointmentTime: timeValue,
       appointmentLocation: locationValue,
       appointmentCoach: coachValue,
+      appointmentCoachUid: coachUid,
       appointmentNotes: notesValue,
 
       appointmentStatus: "scheduled",
@@ -1170,6 +1363,7 @@ scheduleForm?.addEventListener(
         time: timeValue,
         location: locationValue,
         coachName: coachValue,
+        coachUid: coachUid,
         notes: notesValue,
         status: "scheduled"
       },
@@ -1217,6 +1411,7 @@ appointmentConfirmationStatus:
     appointmentTime: timeValue,
     appointmentLocation: locationValue,
     appointmentCoach: coachValue,
+    appointmentCoachUid: coachUid,
     appointmentNotes: notesValue,
 
     appointment: {
@@ -1224,6 +1419,7 @@ appointmentConfirmationStatus:
       time: timeValue,
       location: locationValue,
       coachName: coachValue,
+      coachUid: coachUid,
       notes: notesValue,
       status: "scheduled"
     },
@@ -1249,6 +1445,7 @@ selectedLead.appointmentDate = dateValue;
 selectedLead.appointmentTime = timeValue;
 selectedLead.appointmentLocation = locationValue;
 selectedLead.appointmentCoach = coachValue;
+selectedLead.appointmentCoachUid = coachUid;
 selectedLead.appointmentNotes = notesValue;
 
 setStatus(
@@ -1296,6 +1493,7 @@ refreshBtn?.addEventListener(
 
 try {
   await requireManagementSession();
+  await loadCoachDirectory();
   await loadSelectedLead();
   await loadAppointments();
 } catch (error) {
