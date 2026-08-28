@@ -214,27 +214,100 @@ service cloud.firestore {
        Intake
     ---------------------------------------*/
     match /intakeTokens/{id} {
-      allow get: if true;
+      // Family pages authenticate anonymously before resolving
+      // their bearer invite. Management/Admin may also read.
+      allow get: if request.auth != null;
+
       allow list: if false;
-      allow create: if request.auth != null;
 
-      allow update: if request.auth != null
-        && request.auth.uid == resource.data.uid;
+      // New enrollment invitations are Management-owned.
+      // For new-member enrollment, the invite must come from
+      // an authoritative PAID proposal and inherit its location.
+      allow create: if isAdminOrManagement()
+        && request.resource.data.mode == "new_athlete"
+        && request.resource.data.proposalId is string
+        && request.resource.data.proposalId.size() > 0
+        && request.resource.data.locationId is string
+        && request.resource.data.locationId.size() > 0
+        && exists(
+          /databases/$(database)/documents/proposals/$(request.resource.data.proposalId)
+        )
+        && get(
+          /databases/$(database)/documents/proposals/$(request.resource.data.proposalId)
+        ).data.status == "PAID"
+        && get(
+          /databases/$(database)/documents/proposals/$(request.resource.data.proposalId)
+        ).data.locationId == request.resource.data.locationId
+        && (
+          isAdmin()
+          || managementHasLocation(
+            request.resource.data.locationId
+          )
+        );
 
-      allow delete: if false;
+      // Token lifecycle is server-authoritative.
+      allow update, delete: if false;
     }
 
     match /intakePending/{id} {
-      allow create: if true;
-      allow read: if request.auth != null;
+      allow create: if false;
+      allow read: if isAdminOrManagement();
       allow update, delete: if false;
     }
 
     match /intakes/{id} {
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow read: if request.auth != null;
-      allow list: if false;
+      // A family may create only the intake represented by
+      // a real, unused, unexpired invite token.
+      allow create: if request.auth != null
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.tokenId == id
+        && request.resource.data.status == "submitted"
+        && request.resource.data.approvedUid == null
+        && exists(
+          /databases/$(database)/documents/intakeTokens/$(id)
+        )
+        && get(
+          /databases/$(database)/documents/intakeTokens/$(id)
+        ).data.used != true
+        && (
+          !(
+            get(
+              /databases/$(database)/documents/intakeTokens/$(id)
+            ).data.exp is number
+          )
+          ||
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.exp > request.time.toMillis()
+        )
+        && request.resource.data.intakeAudience ==
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.intakeAudience
+        && request.resource.data.proposalId ==
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.proposalId
+        && request.resource.data.locationId ==
+          get(
+            /databases/$(database)/documents/intakeTokens/$(id)
+          ).data.locationId;
+
+      // Family submission is immutable after creation.
+      // Approval/activation occurs through trusted Cloud Functions.
+      allow update: if false;
+
+      // Owner can read only their own submission.
+      // Management/Admin can review all submissions.
+      allow get: if request.auth != null
+        && (
+          resource.data.ownerUid == request.auth.uid
+          || isAdminOrManagement()
+        );
+
+      // Required by Management's pending-intake query.
+      allow list: if isAdminOrManagement();
+
       allow delete: if false;
     }
 
@@ -572,16 +645,24 @@ match /admissions_appointments/{appointmentId} {
    * Admin retains network-wide oversight.
    * Management sees only appointments belonging
    * to assigned locations.
+   *
+   * An active Coach may read only an appointment
+   * explicitly assigned to that Coach's staff UID.
    */
   allow get, list: if
     isAdmin()
     || managementHasLocation(
       resource.data.locationId
+    )
+    || (
+      isActiveCoach()
+      && resource.data.appointmentCoachUid
+        == request.auth.uid
     );
 
   /*
-   * New appointments must belong to a location
-   * assigned to the Management user.
+   * New appointments remain Management/Admin owned.
+   * Coaches cannot create admissions appointments.
    */
   allow create: if
     isAdmin()
@@ -592,6 +673,9 @@ match /admissions_appointments/{appointmentId} {
   /*
    * Management may update appointments it owns,
    * but cannot transfer location ownership.
+   *
+   * An assigned active Coach may update only the
+   * authenticated Coach-assessment result.
    */
   allow update: if
     isAdmin()
@@ -601,6 +685,56 @@ match /admissions_appointments/{appointmentId} {
       )
       && request.resource.data.locationId
         == resource.data.locationId
+    )
+    || (
+      isActiveCoach()
+
+      && resource.data.appointmentCoachUid
+        == request.auth.uid
+
+      && request.resource.data.appointmentCoachUid
+        == resource.data.appointmentCoachUid
+
+      && request.resource.data.diff(resource.data)
+        .changedKeys().hasOnly([
+          "assessmentStatus",
+          "assessedByCoachUid",
+          "assessedByCoachName",
+          "assessedAt",
+          "verifiedExperienceYears",
+          "coachAssessment",
+          "coachRecommendation"
+        ])
+
+      && request.resource.data.assessmentStatus
+        == "completed"
+
+      && request.resource.data.assessedByCoachUid
+        == request.auth.uid
+
+      && request.resource.data.assessedByCoachName
+        is string
+
+      && request.resource.data.assessedByCoachName.size()
+        > 0
+
+      && request.resource.data.assessedByCoachName.size()
+        <= 160
+
+      && request.resource.data.assessedAt
+        is timestamp
+
+      && request.resource.data.verifiedExperienceYears
+        in [0, 1, 2, 3]
+
+      && request.resource.data.coachAssessment
+        is string
+
+      && request.resource.data.coachAssessment.size()
+        <= 3000
+
+      && request.resource.data.coachRecommendation
+        is map
     );
 
   // Permanent deletion remains Admin-only.
@@ -832,14 +966,26 @@ match /academySettings/{academyId} {
        Proposals
     ---------------------------------------*/
     match /proposals/{proposalId} {
-      allow get, list: if isCoachOrAdmin();
+      // Admin has system-wide oversight.
+      // Management may read only proposals assigned
+      // to one of its authorized locations.
+      allow get, list: if isAdmin()
+        || managementHasLocation(
+          resource.data.locationId
+        );
 
       // Proposal mutations are performed through
       // trusted Cloud Functions, not browser clients.
       allow create, update, delete: if false;
 
       match /history/{historyId} {
-        allow get, list: if isCoachOrAdmin();
+        allow get, list: if isAdmin()
+          || managementHasLocation(
+            get(
+              /databases/$(database)/documents/proposals/$(proposalId)
+            ).data.locationId
+          );
+
         allow create, update, delete: if false;
       }
     }
@@ -1607,11 +1753,39 @@ match /academySettings/{academyId} {
     }
 
     function isAdminOrManagement() {
-      return isAdmin() || isManagement();
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active"
+        && (
+          isAdmin()
+          || isManagement()
+        );
     }
 
     function isCoachOrAdmin() {
       return staffRole() in ["admin", "coach"];
+    }
+
+    /*
+     * New admissions-assessment authority uses an explicit
+     * active Coach check rather than the broader legacy
+     * isCoachOrAdmin() helper.
+     */
+    function isActiveCoach() {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.role == "coach"
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active";
     }
 
     function isOperationalStaff() {
