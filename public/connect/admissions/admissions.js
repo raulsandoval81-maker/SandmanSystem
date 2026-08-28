@@ -46,17 +46,36 @@ const recommendedJourney =
 const recommendedDiscipline =
   document.getElementById("recommendedDiscipline");
 
-const recommendedStartingPath =
-  document.getElementById("recommendedStartingPath");
-
 const followUpDate =
   document.getElementById("followUpDate");
 
 const followUpField =
   document.getElementById("followUpField");
 
-const coachAssessment =
-  document.getElementById("coachAssessment");
+const coachVerificationStatus =
+  document.getElementById(
+    "coachVerificationStatus"
+  );
+
+const verifiedExperienceDisplay =
+  document.getElementById(
+    "verifiedExperienceDisplay"
+  );
+
+const assessedByCoachDisplay =
+  document.getElementById(
+    "assessedByCoachDisplay"
+  );
+
+const coachRecommendationDisplay =
+  document.getElementById(
+    "coachRecommendationDisplay"
+  );
+
+const coachAssessmentDisplay =
+  document.getElementById(
+    "coachAssessmentDisplay"
+  );
 
 const privateNotes =
   document.getElementById("privateNotes");
@@ -442,6 +461,110 @@ function updateFollowUpField() {
   }
 }
 
+function labelForVerifiedExperience(
+  years
+) {
+  if (years === 0) {
+    return "No recognized prior experience";
+  }
+
+  if (years === 1) {
+    return "1 year";
+  }
+
+  if (years === 2) {
+    return "2 years";
+  }
+
+  if (years === 3) {
+    return "3+ years";
+  }
+
+  return "Not verified";
+}
+
+function labelForCoachRecommendation(
+  recommendation
+) {
+  if (
+    !recommendation ||
+    typeof recommendation !== "object"
+  ) {
+    return "No recommendation submitted";
+  }
+
+  const journey =
+    String(
+      recommendation.journey || ""
+    ).trim();
+
+  const discipline =
+    String(
+      recommendation.discipline || ""
+    ).trim();
+
+  if (!journey && !discipline) {
+    return "No recommendation submitted";
+  }
+
+  return [
+    journey,
+    discipline
+  ]
+    .filter(Boolean)
+    .join(" • ");
+}
+
+function renderCoachVerification(record) {
+  const completed =
+    record.assessmentStatus === "completed";
+
+  if (coachVerificationStatus) {
+    coachVerificationStatus.textContent =
+      completed
+        ? "Completed Coach assessment"
+        : "No completed Coach assessment.";
+  }
+
+  if (verifiedExperienceDisplay) {
+    verifiedExperienceDisplay.textContent =
+      completed
+        ? labelForVerifiedExperience(
+            record.verifiedExperienceYears
+          )
+        : "Pending Coach verification";
+  }
+
+  if (assessedByCoachDisplay) {
+    assessedByCoachDisplay.textContent =
+      completed
+        ? (
+            record.assessedByCoachName ||
+            "Authenticated Coach"
+          )
+        : "—";
+  }
+
+  if (coachRecommendationDisplay) {
+    coachRecommendationDisplay.textContent =
+      completed
+        ? labelForCoachRecommendation(
+            record.coachRecommendation
+          )
+        : "—";
+  }
+
+  if (coachAssessmentDisplay) {
+    coachAssessmentDisplay.textContent =
+      completed
+        ? (
+            record.coachAssessment ||
+            "No technical notes submitted."
+          )
+        : "No Coach assessment has been submitted.";
+  }
+}
+
 function fillDecisionForm(record) {
   const incoming =
     recommendationFromProgram(
@@ -471,16 +594,10 @@ function fillDecisionForm(record) {
     discipline
   );
 
-  recommendedStartingPath.value =
-    record.recommendedStartingPath ||
-    record.admissionsPath ||
-    "";
+  renderCoachVerification(record);
 
   followUpDate.value =
     record.followUpDate || "";
-
-  coachAssessment.value =
-    record.coachAssessment || "";
 
   privateNotes.value =
     record.privateAdmissionsNotes || "";
@@ -661,14 +778,8 @@ async function saveAdmissionsDecision() {
       recommendedDiscipline:
         recommendedDiscipline.value || "",
 
-      recommendedStartingPath:
-        recommendedStartingPath.value || "",
-
       followUpDate:
         followUpDate.value || "",
-
-      coachAssessment:
-        coachAssessment.value.trim(),
 
       privateAdmissionsNotes:
         privateNotes.value.trim(),
@@ -787,14 +898,6 @@ recommendedJourney?.addEventListener(
 );
 
 recommendedDiscipline?.addEventListener(
-  "change",
-  () => {
-    admissionsDecisionSaved = false;
-    updateActionLinks();
-  }
-);
-
-recommendedStartingPath?.addEventListener(
   "change",
   () => {
     admissionsDecisionSaved = false;

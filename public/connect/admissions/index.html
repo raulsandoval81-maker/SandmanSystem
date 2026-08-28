@@ -189,26 +189,6 @@
           </select>
         </div>
 
-        <div class="form-field">
-          <label for="recommendedStartingPath">
-            Recommended Starting Path
-          </label>
-
-          <select id="recommendedStartingPath">
-            <option value="">
-              No recommendation yet
-            </option>
-
-            <option value="new">
-              New Athlete
-            </option>
-
-            <option value="assessment">
-              Placement Assessment
-            </option>
-          </select>
-        </div>
-
         <div id="followUpField" class="form-field" hidden>
           <label for="followUpDate">
             Follow-Up Date
@@ -221,15 +201,61 @@
         </div>
 
         <div class="form-field form-field-wide">
-          <label for="coachAssessment">
-            Coach Assessment
-          </label>
+          <div class="coach-verification-panel">
+            <div>
+              <strong>
+                Coach Verification
+              </strong>
+            </div>
 
-          <textarea
-            id="coachAssessment"
-            rows="5"
-            placeholder="Readiness, experience, goals, fit, and recommended path."
-          ></textarea>
+            <p id="coachVerificationStatus">
+              No completed Coach assessment.
+            </p>
+
+            <dl>
+              <div>
+                <dt>
+                  Verified Experience
+                </dt>
+                <dd id="verifiedExperienceDisplay">
+                  —
+                </dd>
+              </div>
+
+              <div>
+                <dt>
+                  Verified By
+                </dt>
+                <dd id="assessedByCoachDisplay">
+                  —
+                </dd>
+              </div>
+
+              <div>
+                <dt>
+                  Coach Recommendation
+                </dt>
+                <dd id="coachRecommendationDisplay">
+                  —
+                </dd>
+              </div>
+            </dl>
+
+            <div>
+              <strong>
+                Technical Assessment
+              </strong>
+
+              <p id="coachAssessmentDisplay">
+                No Coach assessment has been submitted.
+              </p>
+            </div>
+
+            <p class="optional">
+              Coach verification is read-only here.
+              Management retains admissions and enrollment authority.
+            </p>
+          </div>
         </div>
 
         <div class="form-field form-field-wide">
