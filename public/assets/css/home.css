@@ -983,3 +983,27 @@ html[data-theme="light"] .home-intro__eyebrow{
   font-weight: 400;
   letter-spacing: .02em;
 }
+
+/* ==========================================================
+   SANDMAN-HOME-HERO-SEPARATOR
+   Quiet structural break between local header/orientation
+   and the Combat Is Life hero.
+========================================================== */
+
+.home-hero-separator{
+  width:100%;
+  height:42px;
+
+  margin:0;
+
+  background:#050505;
+
+  border-top:2px solid #d4af37;
+  border-bottom:2px solid #d4af37;
+}
+
+@media (max-width:720px){
+  .home-hero-separator{
+    height:32px;
+  }
+}

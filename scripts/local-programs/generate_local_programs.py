@@ -477,6 +477,65 @@ def enforce_local_front_door_culture():
         html = index_path.read_text()
 
         # ----------------------------------------------------
+        # 0. HOME HERO SEPARATOR
+        #    Immediately before the first homepage visual.
+        # ----------------------------------------------------
+
+        separator = """
+    <div
+      class="home-hero-separator"
+      aria-hidden="true"
+    ></div>
+"""
+
+        # Remove an existing separator first so generation is
+        # idempotent and can safely correct older placement.
+        html = re.sub(
+            r'\s*<div\s+'
+            r'class="home-hero-separator"\s+'
+            r'aria-hidden="true"\s*'
+            r'></div>\s*',
+            "\n",
+            html,
+            count=1,
+            flags=re.S,
+        )
+
+        main_pos = html.find("<main")
+
+        if main_pos == -1:
+            raise RuntimeError(
+                f"STOP: <main> not found for {slug}"
+            )
+
+        first_img = html.find("<img", main_pos)
+
+        if first_img == -1:
+            raise RuntimeError(
+                f"STOP: first homepage image not found for {slug}"
+            )
+
+        first_section = html.rfind(
+            "<section",
+            main_pos,
+            first_img,
+        )
+
+        if first_section == -1:
+            raise RuntimeError(
+                f"STOP: first visual section not found for {slug}"
+            )
+
+        html = (
+            html[:first_section].rstrip()
+            + "\n\n"
+            + separator
+            + "\n"
+            + html[first_section:].lstrip()
+        )
+
+
+        # ----------------------------------------------------
         # 1. UNIVERSAL CULTURE HERO
         # ----------------------------------------------------
 
