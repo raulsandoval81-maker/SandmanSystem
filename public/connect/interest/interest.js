@@ -636,8 +636,8 @@ if (
     )
   ) {
     return message(
-      "Tell us whether the athlete has previous combat-sport experience.",
-      "Indícanos si el atleta tiene experiencia previa en deportes de combate."
+      "Tell us whether the athlete has previous experience in the combat sport or discipline selected above.",
+      "Indícanos si el atleta tiene experiencia previa en el deporte de combate o disciplina seleccionada arriba."
     );
   }
 
@@ -1928,8 +1928,8 @@ function validateInterestStep(
       )
     ) {
       return message(
-        "Tell us whether the athlete has previous combat-sport experience.",
-        "Indícanos si el atleta tiene experiencia previa en deportes de combate."
+        "Tell us whether the athlete has previous experience in the combat sport or discipline selected above.",
+        "Indícanos si el atleta tiene experiencia previa en el deporte de combate o disciplina seleccionada arriba."
       );
     }
 
