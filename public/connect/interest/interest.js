@@ -356,6 +356,9 @@ function readForm() {
     fitnessFocus:
       clean(formData.get("fitnessFocus")),
 
+    fitnessLevel:
+      clean(formData.get("fitnessLevel")),
+
     journey:
       selectedProgram?.journey || "",
 
@@ -423,7 +426,10 @@ function readForm() {
       ) || "general",
 
     notes:
-      clean(formData.get("notes"))
+      clean(formData.get("notes")),
+
+    marketingOptIn:
+      formData.get("marketingOptIn") === "yes"
   };
 }
 
@@ -562,6 +568,16 @@ if (
   }
 
   if (
+    isFitnessInterest &&
+    !lead.fitnessLevel
+  ) {
+    return message(
+      "Select your current fitness level.",
+      "Selecciona tu nivel actual de fitness."
+    );
+  }
+
+  if (
     lead.locationId === "elk-grove" &&
     (
       lead.interestType !== "combat" ||
@@ -612,6 +628,9 @@ if (
   }
 
   if (
+    document.querySelector(
+      'input[name="interestType"]:checked'
+    )?.value !== "fitness" &&
     !["no", "yes"].includes(
       lead.claimedPriorExperience
     )
@@ -623,6 +642,9 @@ if (
   }
 
   if (
+    document.querySelector(
+      'input[name="interestType"]:checked'
+    )?.value !== "fitness" &&
     lead.claimedPriorExperience === "yes" &&
     !lead.claimedExperienceRange
   ) {
@@ -1179,7 +1201,7 @@ function updateTrainingIntentNotice() {
 
     if (interestType === "fitness") {
       en =
-        "Local Fitness: $15 drop-in. If you join, the $15 is applied toward enrollment or membership.";
+        "Local Fitness: $10 first drop-in. If you enroll, the $10 can be applied toward enrollment.";
 
       es =
         "Fitness local: $15 por clase. Si te inscribes, los $15 se aplican a la inscripción o membresía.";
@@ -1352,9 +1374,33 @@ function updatePrograms() {
         program.max === null ||
         age <= program.max;
 
+      // CONNECT INTEREST — LOCATION PROGRAM FILTER + CLEAR LABELS
+      const locationProgramIds = {
+        "santa-ynez-valley": new Set([
+          "zero2hero-wrestling",
+          "zero2hero-muay-thai",
+          "path2legend-wrestling",
+          "path2legend-boxing"
+        ]),
+        "lompoc": new Set([
+          "zero2hero-wrestling",
+          "path2legend-wrestling"
+        ]),
+        "elk-grove": new Set([
+          "zero2hero-boxing",
+          "path2legend-boxing"
+        ])
+      };
+
+      const requestedLocationId =
+        getRequestedLocationId();
+
+      const allowedPrograms =
+        locationProgramIds[requestedLocationId];
+
       const availableAtLocation =
-        getRequestedLocationId() !== "elk-grove" ||
-        ELK_GROVE_PROGRAM_IDS.has(program.value);
+        !allowedPrograms ||
+        allowedPrograms.has(program.value);
 
       return (
         meetsMinimum &&
@@ -1364,10 +1410,47 @@ function updatePrograms() {
     });
 
   availablePrograms.forEach((program) => {
+    const disciplineLabels = {
+      wrestling: ["Wrestling", "Lucha"],
+      boxing: ["Boxing", "Boxeo"],
+      "muay-thai": ["Muay Thai", "Muay Thai"],
+      mma: ["MMA", "MMA"],
+      "submission-grappling": [
+        "Submission Grappling",
+        "Grappling de Sumisión"
+      ]
+    };
+
+    const journeyLabels = {
+      zero2hero: "Zero2Hero",
+      path2legend: "Path2Legend",
+      quest2mastery: "Quest2Mastery"
+    };
+
+    const discipline =
+      disciplineLabels[program.discipline] || [
+        program.discipline,
+        program.discipline
+      ];
+
+    const journey =
+      journeyLabels[program.journey] ||
+      program.journey;
+
+    const ageEn =
+      program.max === null
+        ? `Ages ${program.min}+`
+        : `Ages ${program.min}–${program.max}`;
+
+    const ageEs =
+      program.max === null
+        ? `Edades ${program.min}+`
+        : `Edades ${program.min}–${program.max}`;
+
     addOption(
       program.value,
-      program.en,
-      program.es
+      `${discipline[0]} — ${ageEn} · ${journey}`,
+      `${discipline[1]} — ${ageEs} · ${journey}`
     );
   });
 
@@ -1503,3 +1586,1102 @@ renderIntent();
 
 updatePrograms();
 syncPreferredDiscipline();
+// -------------------- Five-step public Interest presentation --------------------
+//
+// Presentation layer only.
+// Existing Interest form data, validation, routing, and Firestore
+// submission remain authoritative and unchanged.
+
+const interestSteps =
+  Array.from(
+    document.querySelectorAll(
+      "[data-interest-step]"
+    )
+  );
+
+const interestStepIndicators =
+  Array.from(
+    document.querySelectorAll(
+      "[data-step-indicator]"
+    )
+  );
+
+let currentInterestStep = 1;
+
+function setInterestStep(
+  stepNumber,
+  { scroll = false } = {}
+) {
+  if (!interestSteps.length) {
+    return;
+  }
+
+  const safeStep =
+    Math.min(
+      interestSteps.length,
+      Math.max(
+        1,
+        Number(stepNumber) || 1
+      )
+    );
+
+  currentInterestStep =
+    safeStep;
+
+  interestSteps.forEach((step) => {
+    step.hidden =
+      Number(
+        step.dataset.interestStep
+      ) !== safeStep;
+  });
+
+  interestStepIndicators.forEach(
+    (indicator) => {
+      const number =
+        Number(
+          indicator.dataset.stepIndicator
+        );
+
+      indicator.classList.toggle(
+        "is-active",
+        number === safeStep
+      );
+
+      indicator.classList.toggle(
+        "is-complete",
+        number < safeStep
+      );
+
+      if (number === safeStep) {
+        indicator.setAttribute(
+          "aria-current",
+          "step"
+        );
+      } else {
+        indicator.removeAttribute(
+          "aria-current"
+        );
+      }
+    }
+  );
+
+  const isFinalStep =
+    safeStep ===
+    interestSteps.length;
+
+  if (submitBtn) {
+    submitBtn.hidden =
+      !isFinalStep;
+  }
+
+  const requiredNote =
+    form?.querySelector(
+      ".required-note"
+    );
+
+  if (requiredNote) {
+    requiredNote.hidden =
+      !isFinalStep;
+  }
+
+  if (formStatus) {
+    formStatus.hidden =
+      !isFinalStep;
+  }
+
+  if (scroll) {
+    form?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}
+
+function validateInterestStep(
+  stepNumber
+) {
+  const lead =
+    readForm();
+
+  if (stepNumber === 1) {
+    if (!lead.registrantName) {
+      return message(
+        lead.registrantRole ===
+          "adult-athlete"
+          ? "Enter your name."
+          : "Enter the parent or guardian name.",
+        lead.registrantRole ===
+          "adult-athlete"
+          ? "Ingresa tu nombre."
+          : "Ingresa el nombre del padre, madre o tutor."
+      );
+    }
+
+    if (!lead.athleteName) {
+      return message(
+        "Enter the athlete name.",
+        "Ingresa el nombre del atleta."
+      );
+    }
+
+    if (
+      !Number.isFinite(
+        lead.athleteAge
+      ) ||
+      lead.athleteAge <= 0
+    ) {
+      return message(
+        "Enter a valid age.",
+        "Ingresa una edad válida."
+      );
+    }
+
+    if (
+      lead.registrantRole ===
+        "parent-guardian" &&
+      (
+        lead.athleteAge < 7 ||
+        lead.athleteAge > 19
+      )
+    ) {
+      return message(
+        "Athletes registered by a parent or guardian must be between ages 7 and 19.",
+        "Los atletas registrados por un padre, madre o tutor deben tener entre 7 y 19 años."
+      );
+    }
+
+    if (
+      lead.registrantRole ===
+        "adult-athlete" &&
+      lead.athleteAge < 18
+    ) {
+      return message(
+        "Adult athletes registering themselves must be age 18 or older.",
+        "Los atletas adultos que se registran personalmente deben tener 18 años o más."
+      );
+    }
+
+    if (!lead.dob) {
+      return message(
+        "Enter the date of birth.",
+        "Ingresa la fecha de nacimiento."
+      );
+    }
+
+    if (!lead.shirtSize) {
+      return message(
+        lead.registrantRole ===
+          "adult-athlete"
+          ? "Select your T-shirt size."
+          : "Select the athlete's T-shirt size.",
+        lead.registrantRole ===
+          "adult-athlete"
+          ? "Selecciona tu talla de camiseta."
+          : "Selecciona la talla de camiseta del atleta."
+      );
+    }
+  }
+
+  if (stepNumber === 2) {
+    const isCombatInterest =
+      lead.interestType === "combat" ||
+      lead.interestType === "both";
+
+    const isFitnessInterest =
+      lead.interestType === "fitness" ||
+      lead.interestType === "both";
+
+    if (
+      isFitnessInterest &&
+      !lead.fitnessFocus
+    ) {
+      return message(
+        "Select a fitness focus.",
+        "Selecciona un enfoque de fitness."
+      );
+    }
+
+    if (
+      isFitnessInterest &&
+      !lead.fitnessLevel
+    ) {
+      return message(
+        "Select your current fitness level.",
+        "Selecciona tu nivel actual de fitness."
+      );
+    }
+
+    if (
+      lead.locationId ===
+        "elk-grove" &&
+      (
+        lead.interestType !==
+          "combat" ||
+        !ELK_GROVE_PROGRAM_IDS.has(
+          lead.programInterest
+        )
+      )
+    ) {
+      return message(
+        "Select an available Elk Grove Boxing program.",
+        "Selecciona un programa de Boxeo disponible en Elk Grove."
+      );
+    }
+
+    if (
+      isCombatInterest &&
+      !lead.programInterest
+    ) {
+      return message(
+        "Select a combat program.",
+        "Selecciona un programa de combate."
+      );
+    }
+
+    if (isCombatInterest) {
+      const selectedProgram =
+        PROGRAMS.find(
+          (program) =>
+            program.value ===
+            lead.programInterest
+        );
+
+      if (!selectedProgram) {
+        return message(
+          "Select a valid Sandman program.",
+          "Selecciona un programa Sandman válido."
+        );
+      }
+
+      const validAge =
+        lead.athleteAge >=
+          selectedProgram.min &&
+        (
+          selectedProgram.max === null ||
+          lead.athleteAge <=
+            selectedProgram.max
+        );
+
+      if (!validAge) {
+        return message(
+          "The selected program does not match the athlete's age.",
+          "El programa seleccionado no corresponde con la edad del atleta."
+        );
+      }
+    }
+  }
+
+  if (stepNumber === 3) {
+    if (!lead.phone) {
+      return message(
+        "Enter a phone number.",
+        "Ingresa un número de teléfono."
+      );
+    }
+
+    if (
+      !lead.email ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+        lead.email
+      )
+    ) {
+      return message(
+        "Enter a valid email address.",
+        "Ingresa un correo electrónico válido."
+      );
+    }
+
+    if (
+      lead.entryMode ===
+        "online" &&
+      !lead.preferredMeetingWindow
+    ) {
+      return message(
+        "Select your preferred meeting availability.",
+        "Selecciona tu horario preferido para reunirte."
+      );
+    }
+  }
+
+  if (stepNumber === 4) {
+    if (
+      ![
+        "local-prospect",
+        "visitor",
+        "returning"
+      ].includes(
+        lead.trainingIntent
+      )
+    ) {
+      return message(
+        "Select whether you are local, visiting, or returning.",
+        "Selecciona si eres local, visitante o estás regresando."
+      );
+    }
+
+    if (
+      document.querySelector(
+        'input[name="interestType"]:checked'
+      )?.value !== "fitness" &&
+      !["no", "yes"].includes(
+        lead.claimedPriorExperience
+      )
+    ) {
+      return message(
+        "Tell us whether the athlete has previous combat-sport experience.",
+        "Indícanos si el atleta tiene experiencia previa en deportes de combate."
+      );
+    }
+
+    if (
+      document.querySelector(
+        'input[name="interestType"]:checked'
+      )?.value !== "fitness" &&
+      lead.claimedPriorExperience ===
+        "yes" &&
+      !lead.claimedExperienceRange
+    ) {
+      return message(
+        "Select about how long the athlete has trained.",
+        "Selecciona aproximadamente cuánto tiempo ha entrenado el atleta."
+      );
+    }
+
+    if (!lead.referralSource) {
+      return message(
+        "Tell us how you heard about Sandman Academy.",
+        "Indícanos cómo supiste de Sandman Academy."
+      );
+    }
+  }
+
+  return "";
+}
+
+function continueInterestStep() {
+  const validationError =
+    validateInterestStep(
+      currentInterestStep
+    );
+
+  if (validationError) {
+    setStatus(
+      validationError,
+      "error"
+    );
+
+    if (formStatus) {
+      formStatus.hidden =
+        false;
+    }
+
+    return;
+  }
+
+  setStatus("");
+
+  setInterestStep(
+    currentInterestStep + 1,
+    { scroll: true }
+  );
+}
+
+function backInterestStep() {
+  setStatus("");
+
+  setInterestStep(
+    currentInterestStep - 1,
+    { scroll: true }
+  );
+}
+
+interestSteps.forEach((step) => {
+  const stepNumber =
+    Number(
+      step.dataset.interestStep
+    );
+
+  const navigation =
+    document.createElement(
+      "div"
+    );
+
+  navigation.className =
+    "interest-step-nav";
+
+  if (stepNumber > 1) {
+    const backButton =
+      document.createElement(
+        "button"
+      );
+
+    backButton.type =
+      "button";
+
+    backButton.className =
+      "interest-step-btn interest-step-btn--back";
+
+    backButton.innerHTML = `
+      <span data-lang="en">
+        Back
+      </span>
+      <span data-lang="es">
+        Atrás
+      </span>
+    `;
+
+    backButton.addEventListener(
+      "click",
+      backInterestStep
+    );
+
+    navigation.appendChild(
+      backButton
+    );
+  }
+
+  if (
+    stepNumber <
+    interestSteps.length
+  ) {
+    const continueButton =
+      document.createElement(
+        "button"
+      );
+
+    continueButton.type =
+      "button";
+
+    continueButton.className =
+      "interest-step-btn interest-step-btn--next";
+
+    continueButton.innerHTML = `
+      <span data-lang="en">
+        Continue
+      </span>
+      <span data-lang="es">
+        Continuar
+      </span>
+    `;
+
+    continueButton.addEventListener(
+      "click",
+      continueInterestStep
+    );
+
+    navigation.appendChild(
+      continueButton
+    );
+  }
+
+  step.appendChild(
+    navigation
+  );
+});
+
+setInterestStep(1);
+
+// -------------------- Full-form review toggle --------------------
+
+const finalInterestStep =
+  document.querySelector(
+    '[data-interest-step="5"]'
+  );
+
+const finalStepNav =
+  finalInterestStep?.querySelector(
+    ".interest-step-nav"
+  );
+
+if (finalInterestStep && finalStepNav) {
+  const reviewFullFormBtn =
+    document.createElement("button");
+
+  reviewFullFormBtn.type = "button";
+  reviewFullFormBtn.className =
+    "interest-step-btn interest-step-btn--back interest-review-toggle";
+
+  reviewFullFormBtn.innerHTML = `
+    <span data-lang="en">Review Full Form</span>
+    <span data-lang="es">Revisar formulario completo</span>
+  `;
+
+  const finalSubmitButton =
+    finalStepNav.querySelector(
+      'button[type="submit"], input[type="submit"]'
+    ) ||
+    submitBtn;
+
+  if (
+    finalSubmitButton &&
+    finalSubmitButton.parentElement === finalStepNav
+  ) {
+    finalStepNav.insertBefore(
+      reviewFullFormBtn,
+      finalSubmitButton
+    );
+  } else {
+    finalStepNav.appendChild(
+      reviewFullFormBtn
+    );
+  }
+
+  let fullFormReviewOpen = false;
+
+  function renderFullFormReview() {
+    interestSteps.forEach((step) => {
+      if (fullFormReviewOpen) {
+        step.hidden = false;
+      } else {
+        const stepNumber =
+          Number(step.dataset.interestStep);
+
+        step.hidden =
+          stepNumber !== currentInterestStep;
+      }
+    });
+
+    interestStepIndicators.forEach(
+      (indicator) => {
+        const stepNumber =
+          Number(
+            indicator.dataset.stepIndicator
+          );
+
+        indicator.classList.toggle(
+          "is-active",
+          !fullFormReviewOpen &&
+            stepNumber === currentInterestStep
+        );
+
+        indicator.classList.toggle(
+          "is-complete",
+          fullFormReviewOpen ||
+            stepNumber < currentInterestStep
+        );
+
+        if (
+          !fullFormReviewOpen &&
+          stepNumber === currentInterestStep
+        ) {
+          indicator.setAttribute(
+            "aria-current",
+            "step"
+          );
+        } else {
+          indicator.removeAttribute(
+            "aria-current"
+          );
+        }
+      }
+    );
+
+    reviewFullFormBtn.innerHTML =
+      fullFormReviewOpen
+        ? `
+          <span data-lang="en">Return to Step View</span>
+          <span data-lang="es">Volver a vista por pasos</span>
+        `
+        : `
+          <span data-lang="en">Review Full Form</span>
+          <span data-lang="es">Revisar formulario completo</span>
+        `;
+  }
+
+  reviewFullFormBtn.addEventListener(
+    "click",
+    () => {
+      fullFormReviewOpen =
+        !fullFormReviewOpen;
+
+      renderFullFormReview();
+
+      interestForm?.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    }
+  );
+}
+
+
+// -------------------- Age and DOB guardrails --------------------
+
+const interestDobInput =
+  document.getElementById("dob");
+
+function formatInterestDate(date) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(date.getMonth() + 1)
+      .padStart(2, "0");
+
+  const day =
+    String(date.getDate())
+      .padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function calculateInterestAge(dobValue) {
+  if (!dobValue) {
+    return null;
+  }
+
+  const parts =
+    dobValue.split("-").map(Number);
+
+  if (
+    parts.length !== 3 ||
+    parts.some((part) => !Number.isFinite(part))
+  ) {
+    return null;
+  }
+
+  const [year, month, day] = parts;
+
+  const today = new Date();
+
+  let age =
+    today.getFullYear() - year;
+
+  const birthdayPassed =
+    today.getMonth() + 1 > month ||
+    (
+      today.getMonth() + 1 === month &&
+      today.getDate() >= day
+    );
+
+  if (!birthdayPassed) {
+    age -= 1;
+  }
+
+  return age;
+}
+
+function updateInterestDobRange() {
+  if (
+    !athleteAge ||
+    !interestDobInput
+  ) {
+    return;
+  }
+
+  const age =
+    Number(athleteAge.value);
+
+  interestDobInput.setCustomValidity("");
+
+  if (
+    !Number.isFinite(age) ||
+    age <= 0
+  ) {
+    interestDobInput.removeAttribute("min");
+    interestDobInput.removeAttribute("max");
+    return;
+  }
+
+  const today = new Date();
+
+  const latestDob =
+    new Date(
+      today.getFullYear() - age,
+      today.getMonth(),
+      today.getDate()
+    );
+
+  const earliestBoundary =
+    new Date(
+      today.getFullYear() - age - 1,
+      today.getMonth(),
+      today.getDate()
+    );
+
+  earliestBoundary.setDate(
+    earliestBoundary.getDate() + 1
+  );
+
+  interestDobInput.min =
+    formatInterestDate(earliestBoundary);
+
+  interestDobInput.max =
+    formatInterestDate(latestDob);
+}
+
+function validateInterestAgeAndDob() {
+  if (
+    !athleteAge ||
+    !interestDobInput
+  ) {
+    return true;
+  }
+
+  const enteredAge =
+    Number(athleteAge.value);
+
+  const calculatedAge =
+    calculateInterestAge(
+      interestDobInput.value
+    );
+
+  interestDobInput.setCustomValidity("");
+
+  if (
+    !Number.isFinite(enteredAge) ||
+    !interestDobInput.value ||
+    calculatedAge === null
+  ) {
+    return true;
+  }
+
+  if (calculatedAge !== enteredAge) {
+    const language =
+      document.documentElement.lang === "es"
+        ? "es"
+        : "en";
+
+    interestDobInput.setCustomValidity(
+      language === "es"
+        ? "La fecha de nacimiento debe coincidir con la edad indicada."
+        : "Date of birth must match the age entered."
+    );
+
+    return false;
+  }
+
+  return true;
+}
+
+athleteAge?.addEventListener(
+  "input",
+  () => {
+    updateInterestDobRange();
+    validateInterestAgeAndDob();
+  }
+);
+
+interestDobInput?.addEventListener(
+  "input",
+  () => {
+    validateInterestAgeAndDob();
+  }
+);
+
+/*
+ * Stop Step 1 from advancing if Age and DOB disagree.
+ * Capture phase runs before the existing Continue handler.
+ */
+form?.addEventListener(
+  "click",
+  (event) => {
+    const nextButton =
+      event.target.closest(
+        ".interest-step-btn--next"
+      );
+
+    if (!nextButton) {
+      return;
+    }
+
+    const step =
+      nextButton.closest(
+        '[data-interest-step="1"]'
+      );
+
+    if (!step) {
+      return;
+    }
+
+    updateInterestDobRange();
+
+    if (!validateInterestAgeAndDob()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      interestDobInput?.reportValidity();
+      interestDobInput?.focus();
+    }
+  },
+  true
+);
+
+/*
+ * Final submission guard as a second safety check.
+ */
+form?.addEventListener(
+  "submit",
+  (event) => {
+    updateInterestDobRange();
+
+    if (!validateInterestAgeAndDob()) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+
+      interestDobInput?.reportValidity();
+      interestDobInput?.focus();
+    }
+  },
+  true
+);
+
+updateInterestDobRange();
+
+
+// FITNESS SAFE VISIBILITY BRANCH
+//
+// Visibility only.
+// Five-step structure is untouched.
+
+(() => {
+  const fitnessLevel =
+    document.getElementById("fitnessLevel");
+
+  const needsTeamHelp =
+    document.getElementById("needsTeamHelp");
+
+  const teamInterest =
+    document.getElementById("teamInterest");
+
+  const claimedPriorExperience =
+    document.getElementById(
+      "claimedPriorExperience"
+    );
+
+  const claimedExperienceRange =
+    document.getElementById(
+      "claimedExperienceRange"
+    );
+
+  const claimedExperienceNotes =
+    document.getElementById(
+      "claimedExperienceNotes"
+    );
+
+  const teamHelpField =
+    needsTeamHelp?.closest(".field");
+
+  const teamInterestField =
+    teamInterest?.closest(".field");
+
+  // IMPORTANT:
+  // Hide the complete Combat experience section,
+  // including its heading and helper text.
+  const experienceSection =
+    claimedPriorExperience?.closest(
+      "section.form-section"
+    );
+
+  function selectedInterestType() {
+    return (
+      document.querySelector(
+        'input[name="interestType"]:checked'
+      )?.value || ""
+    );
+  }
+
+  function applyFitnessVisibility() {
+    const isFitness =
+      selectedInterestType() === "fitness";
+
+    // STEP 3 — Team information is Combat-only.
+    if (teamHelpField) {
+      teamHelpField.hidden =
+        isFitness;
+    }
+
+    if (teamInterestField) {
+      teamInterestField.hidden =
+        isFitness;
+    }
+
+    // STEP 4 — Prior discipline experience is Combat-only.
+    if (experienceSection) {
+      experienceSection.hidden =
+        isFitness;
+    }
+
+    if (fitnessLevel) {
+      fitnessLevel.required =
+        isFitness;
+    }
+
+    if (isFitness) {
+      if (needsTeamHelp) {
+        needsTeamHelp.checked = false;
+      }
+
+      if (teamInterest) {
+        teamInterest.value = "";
+      }
+
+      if (claimedPriorExperience) {
+        claimedPriorExperience.value = "";
+      }
+
+      if (claimedExperienceRange) {
+        claimedExperienceRange.value = "";
+      }
+
+      if (claimedExperienceNotes) {
+        claimedExperienceNotes.value = "";
+      }
+    }
+  }
+
+  document
+    .querySelectorAll(
+      'input[name="interestType"]'
+    )
+    .forEach((input) => {
+      input.addEventListener(
+        "change",
+        applyFitnessVisibility
+      );
+    });
+
+  applyFitnessVisibility();
+})();
+
+
+// FITNESS PRIMARY GOAL OPTIONS
+//
+// Same existing primaryGoal field.
+// Only the option list changes.
+// Five-step HTML is untouched.
+
+(() => {
+  const primaryGoal =
+    document.getElementById("primaryGoal");
+
+  if (!primaryGoal) {
+    return;
+  }
+
+  const combatGoalHtml =
+    primaryGoal.innerHTML;
+
+  const fitnessGoals = {
+    en: [
+      ["", "Select one"],
+      ["lean-out", "Lean Out / Lose Weight"],
+      ["gain-muscle", "Gain Muscle / Healthy Weight"],
+      ["maintain", "Maintain Current Fitness"],
+      ["strength", "Improve Strength"],
+      ["conditioning", "Improve Conditioning"],
+      ["mobility", "Move Better / Mobility"],
+      ["general-health", "General Health & Wellness"],
+      ["not-sure", "Not Sure Yet"]
+    ],
+
+    es: [
+      ["", "Selecciona una opción"],
+      ["lean-out", "Reducir Grasa / Bajar de Peso"],
+      ["gain-muscle", "Ganar Músculo / Peso Saludable"],
+      ["maintain", "Mantener Mi Condición Física Actual"],
+      ["strength", "Mejorar Fuerza"],
+      ["conditioning", "Mejorar Acondicionamiento"],
+      ["mobility", "Moverme Mejor / Movilidad"],
+      ["general-health", "Salud y Bienestar General"],
+      ["not-sure", "Aún No Estoy Seguro"]
+    ]
+  };
+
+  let goalMode = "";
+
+  function selectedInterestType() {
+    return (
+      document.querySelector(
+        'input[name="interestType"]:checked'
+      )?.value || ""
+    );
+  }
+
+  function language() {
+    return (
+      document.documentElement.lang === "es"
+        ? "es"
+        : "en"
+    );
+  }
+
+  function fitnessGoalHtml() {
+    return fitnessGoals[language()]
+      .map(
+        ([value, label]) =>
+          `<option value="${value}">${label}</option>`
+      )
+      .join("");
+  }
+
+  function renderPrimaryGoals(force = false) {
+    const nextMode =
+      selectedInterestType() === "fitness"
+        ? "fitness"
+        : "combat";
+
+    if (
+      !force &&
+      nextMode === goalMode
+    ) {
+      return;
+    }
+
+    const oldValue =
+      primaryGoal.value;
+
+    if (nextMode === "fitness") {
+      primaryGoal.innerHTML =
+        fitnessGoalHtml();
+    } else {
+      primaryGoal.innerHTML =
+        combatGoalHtml;
+    }
+
+    // Preserve a valid value when only language changes.
+    const valueStillExists =
+      [...primaryGoal.options]
+        .some(
+          option =>
+            option.value === oldValue
+        );
+
+    primaryGoal.value =
+      valueStillExists
+        ? oldValue
+        : "";
+
+    goalMode =
+      nextMode;
+  }
+
+  document
+    .querySelectorAll(
+      'input[name="interestType"]'
+    )
+    .forEach((input) => {
+      input.addEventListener(
+        "change",
+        () => renderPrimaryGoals(true)
+      );
+    });
+
+  // Existing language system changes <html lang>.
+  // Re-render Fitness options when that happens.
+  new MutationObserver(() => {
+    if (
+      selectedInterestType() === "fitness"
+    ) {
+      renderPrimaryGoals(true);
+    }
+  }).observe(
+    document.documentElement,
+    {
+      attributes: true,
+      attributeFilter: ["lang"]
+    }
+  );
+
+  renderPrimaryGoals(true);
+})();

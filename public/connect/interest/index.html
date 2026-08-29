@@ -34,41 +34,48 @@
 
 <header class="connect-hero">
 
-  <div class="connect-hero__top">
+  <div class="journey-minimal-header interest-local-header">
 
-    <p class="eyebrow">
-      Sandman Academy of Combat &amp; Fitness
-    </p>
+  <button
+    class="journey-header-control"
+    type="button"
+    data-theme-toggle
+    aria-label="Toggle theme"
+  >
+    ◐
+  </button>
 
-    <div
-      class="language-switcher"
-      role="group"
-      aria-label="Language selection"
-    >
-      <button
-        id="languageEnglish"
-        class="language-btn"
-        type="button"
-        data-set-language="en"
-        aria-pressed="true"
+  <div
+    class="journey-header-title"
+    id="localInterestIdentity"
+  >
+    <span class="local-rally">
+
+      <span
+        class="local-rally__dot"
+        aria-hidden="true"
       >
-        EN
-      </button>
 
-      <button
-        id="languageSpanish"
-        class="language-btn"
-        type="button"
-        data-set-language="es"
-        aria-pressed="false"
-      >
-        ES
-      </button>
-    </div>
+      </span>
 
+      <span class="local-rally__call">
+        Join the Movement
+      </span>
+    </span>
   </div>
 
-  <h1>
+  <button
+    id="interestLanguageToggle"
+    class="journey-header-control"
+    type="button"
+    aria-label="Toggle language"
+  >
+    ES
+  </button>
+
+</div>
+
+<h1>
 
     <span data-lang="en">
       Train With Purpose.
@@ -86,12 +93,8 @@
         </p>
 
         <p class="interest-hero__intro">
-          <span data-lang="en">
-            Tell us what you’re interested in and we’ll help guide the next step.
-          </span>
-          <span data-lang="es">
-            Cuéntanos qué te interesa y te ayudaremos a encontrar el siguiente paso.
-          </span>
+          <span data-lang="en">Please complete the form below.</span>
+          <span data-lang="es">Por favor completa el formulario.</span>
         </p>
       </div>
 
@@ -106,6 +109,29 @@
           type="hidden"
           value="en"
         />
+        <nav class="interest-progress" aria-label="Interest form progress">
+          <div class="interest-progress__item is-active" data-step-indicator="1" aria-current="step">
+            <span class="interest-progress__number">1</span>
+            <span data-lang="en">About You</span><span data-lang="es">Sobre Ti</span>
+          </div>
+          <div class="interest-progress__item" data-step-indicator="2">
+            <span class="interest-progress__number">2</span>
+            <span data-lang="en">Training</span><span data-lang="es">Entrenamiento</span>
+          </div>
+          <div class="interest-progress__item" data-step-indicator="3">
+            <span class="interest-progress__number">3</span>
+            <span data-lang="en">Contact</span><span data-lang="es">Contacto</span>
+          </div>
+          <div class="interest-progress__item" data-step-indicator="4">
+            <span class="interest-progress__number">4</span>
+            <span data-lang="en">Goals</span><span data-lang="es">Metas</span>
+          </div>
+          <div class="interest-progress__item" data-step-indicator="5">
+            <span class="interest-progress__number">5</span>
+            <span data-lang="en">Finish</span><span data-lang="es">Finalizar</span>
+          </div>
+        </nav>
+        <div class="interest-step" data-interest-step="1">
         <section class="form-section">
           <h2>
             <span data-lang="en">
@@ -197,19 +223,6 @@
           id="guardianInformationSection"
           class="form-section"
         >
-          <h2>
-            <span
-              id="guardianHeadingEnglish"
-              data-lang="en"
-            >
-              Parent or Guardian
-            </span>
-
-            <span data-lang="es">
-              Padre, Madre o Tutor
-            </span>
-          </h2>
-
           <div class="field">
             <label
               id="parentNameLabel"
@@ -357,6 +370,9 @@
 </div>
         </section>
 
+        </div>
+
+        <div class="interest-step" data-interest-step="2">
         <section class="form-section">
           <h2>
             <span data-lang="en">
@@ -426,309 +442,8 @@
   </label>
 
 
-  <label class="interest-type-option">
-    <input
-      type="radio"
-      name="interestType"
-      value="both"
-    />
-
-    <span class="interest-type-card">
-
-      <span class="interest-type-icon" aria-hidden="true">⚔️  +🏋️ </span>
-
-      <span class="interest-type-title">
-        <span data-lang="en">
-          Sandman Combat &amp; Fitness
-        </span>
-
-        <span data-lang="es">
-          Sandman Combat &amp; Fitness
-        </span>
-      </span>
-
-    </span>
-  </label>
-
 </div>
 
-        </section>
-
-        <section class="form-section">
-          <h2>
-            <span data-lang="en">
-              Contact Details
-            </span>
-
-            <span data-lang="es">
-              Información de Contacto
-            </span>
-          </h2>
-
-          <div class="field">
-            <label for="phone">
-              <span data-lang="en">
-                Phone Number
-              </span>
-
-              <span data-lang="es">
-                Número de Teléfono
-              </span>
-            </label>
-
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              autocomplete="tel"
-              inputmode="tel"
-              required
-            />
-          </div>
-
-          <div class="field">
-            <label for="email">
-              <span data-lang="en">
-                Email Address
-              </span>
-
-              <span data-lang="es">
-                Correo Electrónico
-              </span>
-            </label>
-
-            <input
-              id="email"
-              name="email"
-              type="email"
-              autocomplete="email"
-              inputmode="email"
-              required
-            />
-          </div>
-
-          <div class="field">
-            <label for="city">
-              <span data-lang="en">
-                City
-              </span>
-
-              <span data-lang="es">
-                Ciudad
-              </span>
-            </label>
-
-            <input
-              id="city"
-              name="city"
-              type="text"
-              autocomplete="address-level2"
-            />
-          </div>
-
-          <div class="field">
-            <label for="state">
-              <span data-lang="en">
-                State
-              </span>
-
-              <span data-lang="es">
-                Estado
-              </span>
-            </label>
-
-            <input
-              id="state"
-              name="state"
-              type="text"
-              autocomplete="address-level1"
-              required
-            />
-          </div>
-        </section>
-
-        <section class="form-section">
-
-
-          <input
-            id="preferredLocation"
-            name="preferredLocation"
-            type="hidden"
-            value=""
-          />
-
-          <div class="field">
-            <h2>
-              <span data-lang="en">
-                Academy / Team
-              </span>
-
-              <span data-lang="es">
-                Academia / Equipo
-              </span>
-
-              <span class="optional">
-                <span data-lang="en">Optional</span>
-                <span data-lang="es">Opcional</span>
-              </span>
-            </h2>
-
-            <label class="team-help-card">
-              <span class="team-help-card__text">
-                <span data-lang="en">
-                  I need help finding a team or academy.
-                </span>
-
-                <span data-lang="es">
-                  Necesito ayuda para encontrar un equipo o academia.
-                </span>
-              </span>
-
-              <input
-                id="needsTeamHelp"
-                name="needsTeamHelp"
-                type="checkbox"
-                value="yes"
-              />
-            </label>
-          </div>
-
-          <div class="field">
-            <label for="teamInterest">
-              <span data-lang="en">
-                Academy / Team of Interest
-              </span>
-
-              <span data-lang="es">
-                Academia / Equipo de Interés
-              </span>
-
-              <span class="optional">
-                <span data-lang="en">Optional</span>
-                <span data-lang="es">Opcional</span>
-              </span>
-            </label>
-
-            <input
-              id="teamInterest"
-              name="teamInterest"
-              type="text"
-              maxlength="120"
-              placeholder="Example: Rumble Academy"
-            />
-
-            <p class="help-text placement-note team-interest-note">
-<span data-lang="en">
-                If you already know the academy, club, or team you are interested in, enter it here.
-              </span>
-
-              <span data-lang="es">
-                Si ya sabes qué academia, club o equipo te interesa, ingrésalo aquí.
-              </span>
-</p>
-          </div>
-
-          <div class="field">
-            <label for="preferredMeetingWindow">
-              <span data-lang="en">
-                What is the best time to meet?
-              </span>
-
-              <span data-lang="es">
-                ¿Cuál es el mejor horario para reunirse?
-              </span>
-            </label>
-
-            <select
-              id="preferredMeetingWindow"
-              name="preferredMeetingWindow"
-              required
-            >
-              <option
-                value=""
-                data-lang="en"
-              >
-                Select one
-              </option>
-
-              <option
-                value=""
-                data-lang="es"
-              >
-                Selecciona una opción
-              </option>
-
-              <option
-                value="weekday-afternoon"
-                data-lang="en"
-              >
-                Weekday Afternoon (2:00 PM – 6:00 PM)
-              </option>
-
-              <option
-                value="weekday-afternoon"
-                data-lang="es"
-              >
-                Tarde Entre Semana (2:00 PM – 6:00 PM)
-              </option>
-
-              <option
-                value="weekday-evening"
-                data-lang="en"
-              >
-                Weekday Evening (5:00 PM – 9:00 PM)
-              </option>
-
-              <option
-                value="weekday-evening"
-                data-lang="es"
-              >
-                Noche Entre Semana (5:00 PM – 9:00 PM)
-              </option>
-
-              <option
-                value="saturday-morning"
-                data-lang="en"
-              >
-                Saturday Morning (8:00 AM – 12:00 PM)
-              </option>
-
-              <option
-                value="saturday-morning"
-                data-lang="es"
-              >
-                Sábado por la Mañana (8:00 AM – 12:00 PM)
-              </option>
-
-              <option
-                value="saturday-afternoon"
-                data-lang="en"
-              >
-                Saturday Afternoon (12:00 PM – 4:00 PM)
-              </option>
-
-              <option
-                value="saturday-afternoon"
-                data-lang="es"
-              >
-                Sábado por la Tarde (12:00 PM – 4:00 PM)
-              </option>
-
-              <option
-                value="flexible"
-                data-lang="en"
-              >
-                Flexible
-              </option>
-
-              <option
-                value="flexible"
-                data-lang="es"
-              >
-                Horario Flexible
-              </option>
-            </select>
-          </div>
         </section>
 
         <section
@@ -765,15 +480,6 @@
   </option>
 </select>
 
-            <p class="help-text placement-note program-guide-note">
-              <span data-lang="en">
-                Complete the information above to see guided program suggestions based on age and training interests.
-              </span>
-
-              <span data-lang="es">
-                Completa la información anterior para ver sugerencias de programas según la edad y los intereses de entrenamiento.
-              </span>
-            </p>
           </div>
         </section>
 
@@ -872,8 +578,349 @@
               </option>
             </select>
           </div>
+
+
+          <div class="field">
+            <label for="fitnessLevel">
+              <span data-lang="en">
+                Current Fitness Level
+              </span>
+              <span data-lang="es">
+                Nivel Actual de Fitness
+              </span>
+            </label>
+
+            <select
+              id="fitnessLevel"
+              name="fitnessLevel"
+            >
+              <option value="" data-lang="en">
+                Select one
+              </option>
+              <option value="" data-lang="es">
+                Selecciona una opción
+              </option>
+
+              <option value="beginner" data-lang="en">
+                Beginner
+              </option>
+              <option value="beginner" data-lang="es">
+                Principiante
+              </option>
+
+              <option value="intermediate" data-lang="en">
+                Intermediate
+              </option>
+              <option value="intermediate" data-lang="es">
+                Intermedio
+              </option>
+
+              <option value="advanced" data-lang="en">
+                Advanced
+              </option>
+              <option value="advanced" data-lang="es">
+                Avanzado
+              </option>
+
+              <option value="not-sure" data-lang="en">
+                Not Sure Yet
+              </option>
+              <option value="not-sure" data-lang="es">
+                Aún No Estoy Seguro
+              </option>
+            </select>
+          </div>
+</section>
+
+
+        </div>
+
+        <div class="interest-step" data-interest-step="3">
+        <section class="form-section">
+          <h2>
+            <span data-lang="en">
+              Contact Details
+            </span>
+
+            <span data-lang="es">
+              Información de Contacto
+            </span>
+          </h2>
+
+          <div class="field">
+            <label for="phone">
+              <span data-lang="en">
+                Phone Number
+              </span>
+
+              <span data-lang="es">
+                Número de Teléfono
+              </span>
+            </label>
+
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              autocomplete="tel"
+              inputmode="tel"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="email">
+              <span data-lang="en">
+                Email Address
+              </span>
+
+              <span data-lang="es">
+                Correo Electrónico
+              </span>
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              inputmode="email"
+              required
+            />
+          </div>
+
+          <div class="field">
+            <label for="city">
+              <span data-lang="en">
+                City
+              </span>
+
+              <span data-lang="es">
+                Ciudad
+              </span>
+            </label>
+
+            <input
+              id="city"
+              name="city"
+              type="text"
+              autocomplete="address-level2"
+            />
+          </div>
+
+          <div class="field">
+            <label for="state">
+              <span data-lang="en">
+                State
+              </span>
+
+              <span data-lang="es">
+                Estado
+              </span>
+            </label>
+
+            <input
+              id="state"
+              name="state"
+              type="text"
+              autocomplete="address-level1"
+              required
+            />
+          </div>
         </section>
 
+        <section class="form-section">
+
+
+          <div class="field">
+            <h2>
+              <span data-lang="en">
+                Academy / Team
+              </span>
+
+              <span data-lang="es">
+                Academia / Equipo
+              </span>
+
+              <span class="optional">
+                <span data-lang="en">Optional</span>
+                <span data-lang="es">Opcional</span>
+              </span>
+            </h2>
+
+            <label class="team-help-card">
+              <span class="team-help-card__text">
+                <span data-lang="en">
+                  I need help finding a team or academy.
+                </span>
+
+                <span data-lang="es">
+                  Necesito ayuda para encontrar un equipo o academia.
+                </span>
+              </span>
+
+              <input
+                id="needsTeamHelp"
+                name="needsTeamHelp"
+                type="checkbox"
+                value="yes"
+              />
+            </label>
+          </div>
+
+          <div class="field">
+            <label for="teamInterest">
+              <span data-lang="en">
+                Academy / Team of Interest
+              </span>
+
+              <span data-lang="es">
+                Academia / Equipo de Interés
+              </span>
+
+              <span class="optional">
+                <span data-lang="en">Optional</span>
+                <span data-lang="es">Opcional</span>
+              </span>
+            </label>
+
+            <input
+              id="teamInterest"
+              name="teamInterest"
+              type="text"
+              maxlength="120"
+              placeholder="Example: Rumble Academy"
+            />
+
+            <p class="help-text placement-note team-interest-note">
+<span data-lang="en">
+                If you already know the academy, club, or team you are interested in, enter it here.
+              </span>
+
+              <span data-lang="es">
+                Si ya sabes qué academia, club o equipo te interesa, ingrésalo aquí.
+              </span>
+</p>
+          </div>
+
+          <div class="field">
+            <label for="preferredMeetingWindow">
+              <span data-lang="en">
+                What is the best time for you to meet with us in person?
+              </span>
+
+              <span data-lang="es">
+                ¿Cuál es el mejor horario para reunirse con nosotros en persona?
+              </span>
+            </label>
+
+            <select
+              id="preferredMeetingWindow"
+              name="preferredMeetingWindow"
+              required
+            >
+              <option
+                value=""
+                data-lang="en"
+              >
+                Select one
+              </option>
+
+              <option
+                value=""
+                data-lang="es"
+              >
+                Selecciona una opción
+              </option>
+
+              <option
+                value="weekday-afternoon"
+                data-lang="en"
+              >
+                Weekday Afternoon (2:00 PM – 6:00 PM)
+              </option>
+
+              <option
+                value="weekday-afternoon"
+                data-lang="es"
+              >
+                Tarde Entre Semana (2:00 PM – 6:00 PM)
+              </option>
+
+              <option
+                value="weekday-evening"
+                data-lang="en"
+              >
+                Weekday Evening (5:00 PM – 9:00 PM)
+              </option>
+
+              <option
+                value="weekday-evening"
+                data-lang="es"
+              >
+                Noche Entre Semana (5:00 PM – 9:00 PM)
+              </option>
+
+              <option
+                value="saturday-morning"
+                data-lang="en"
+              >
+                Saturday Morning (8:00 AM – 12:00 PM)
+              </option>
+
+              <option
+                value="saturday-morning"
+                data-lang="es"
+              >
+                Sábado por la Mañana (8:00 AM – 12:00 PM)
+              </option>
+
+              <option
+                value="saturday-afternoon"
+                data-lang="en"
+              >
+                Saturday Afternoon (12:00 PM – 4:00 PM)
+              </option>
+
+              <option
+                value="saturday-afternoon"
+                data-lang="es"
+              >
+                Sábado por la Tarde (12:00 PM – 4:00 PM)
+              </option>
+
+              <option
+                value="flexible"
+                data-lang="en"
+              >
+                Flexible
+              </option>
+
+              <option
+                value="flexible"
+                data-lang="es"
+              >
+                Horario Flexible
+              </option>
+            </select>
+
+            <p class="help-text placement-note">
+              <span data-lang="en">
+                Prefer to speak with us first?
+                <a href="/connect/message.html">Send us a message.</a>
+              </span>
+
+              <span data-lang="es">
+                ¿Prefieres hablar con nosotros primero?
+                <a href="/connect/message.html">Envíanos un mensaje.</a>
+              </span>
+            </p>
+          </div>
+        </section>
+
+        </div>
+
+        <div class="interest-step" data-interest-step="4">
         <section class="form-section">
   <h2>
     <span data-lang="en">
@@ -1073,16 +1120,6 @@
       </option>
 
     </select>
-
-    <p class="help-text placement-note">
-      <span data-lang="en">
-        Trial and visitor rates vary by training type. Your applicable rate will be shown after selection and confirmed with your visit details.
-      </span>
-
-      <span data-lang="es">
-        Las tarifas de prueba y visitante varían según el tipo de entrenamiento. La tarifa correspondiente se mostrará después de tu selección y se confirmará con los detalles de tu visita.
-      </span>
-    </p>
 
     <p
       id="trainingIntentNotice"
@@ -1389,6 +1426,9 @@
           </div>
         </section>
 
+        </div>
+
+        <div class="interest-step" data-interest-step="5">
         <section class="form-section">
           <h2>
             <span data-lang="en">
@@ -1430,7 +1470,33 @@
               maxlength="1000"
             ></textarea>
           </div>
+
+          <div class="field">
+            <label
+              class="marketing-opt-in"
+              for="marketingOptIn"
+            >
+              <span class="marketing-opt-in__text">
+                <span data-lang="en">
+                  I’d like to receive news, updates, and promotions from Sandman.
+                </span>
+
+                <span data-lang="es">
+                  Me gustaría recibir noticias, actualizaciones y promociones de Sandman.
+                </span>
+              </span>
+
+              <input
+                type="checkbox"
+                id="marketingOptIn"
+                name="marketingOptIn"
+                value="yes"
+              >
+            </label>
+          </div>
         </section>
+
+        </div>
 
         <div
           id="formStatus"
@@ -1466,20 +1532,21 @@
         </p>
       </form>
 
-      <footer class="connect-footer">
-<p>
-  <span data-lang="en">
-    Heroes Build Heroes
-  </span>
-
-  <span data-lang="es">
-    Los Héroes Forman Héroes
-  </span>
-</p>
-      </footer>
+      <div
+  id="footer"
+  data-component="/components/footer.html"
+></div>
 
     </section>
   </main>
+
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+  <script src="/assets/js/theme.js"></script>
 
   <script
     type="module"
@@ -1574,12 +1641,15 @@
         }
       }
 
-      languageButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          setLanguage(
-            button.dataset.setLanguage
-          );
-        });
+      document.addEventListener("click", (event) => {
+        const button =
+          event.target.closest("[data-set-language]");
+
+        if (!button) return;
+
+        setLanguage(
+          button.dataset.setLanguage
+        );
       });
 
       let savedLanguage = "en";
@@ -1597,6 +1667,28 @@
       }
 
       setLanguage(savedLanguage);
+
+      const interestLanguageToggle =
+        document.getElementById("interestLanguageToggle");
+
+      if (interestLanguageToggle) {
+        interestLanguageToggle.addEventListener(
+          "click",
+          () => {
+            const nextLanguage =
+              document.documentElement.lang === "es"
+                ? "en"
+                : "es";
+
+            setLanguage(nextLanguage);
+
+            interestLanguageToggle.textContent =
+              nextLanguage === "es"
+                ? "EN"
+                : "ES";
+          }
+        );
+      }
     })();
   </script>
 </body>

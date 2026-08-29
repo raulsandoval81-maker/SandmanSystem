@@ -934,3 +934,671 @@ strong{
 .team-interest-note + .field{
   margin-top:1.25rem;
 }
+
+/* =========================================
+   CONNECT INTEREST — TOP CONTROLS
+========================================= */
+
+.connect-hero__controls{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:.55rem;
+}
+
+.connect-hero__controls .theme-toggle{
+  flex:0 0 auto;
+}
+
+@media (max-width:640px){
+  .connect-hero__controls{
+    gap:.4rem;
+  }
+}
+
+
+/* =========================================
+   CONNECT INTEREST — LOCAL RALLY HEADER
+========================================= */
+
+.journey-minimal-header{
+  display:grid;
+  grid-template-columns:52px minmax(0,1fr) 52px;
+  align-items:center;
+  gap:12px;
+
+  width:100%;
+  min-height:82px;
+
+  margin:0 0 2rem;
+  padding:12px 18px;
+
+  background:var(--panel, #111113);
+  border-bottom:1px solid rgba(212,175,55,.45);
+}
+
+.journey-header-title{
+  min-width:0;
+  text-align:center;
+
+  color:var(--heading, #fff);
+
+  font-size:clamp(.9rem,2.5vw,1.15rem);
+  font-weight:900;
+  letter-spacing:.06em;
+  line-height:1.15;
+  text-transform:uppercase;
+}
+
+.journey-header-control{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+
+  width:48px;
+  height:48px;
+
+  margin:0;
+  padding:0;
+
+  color:var(--heading-accent, #d4af37);
+  background:transparent;
+
+  border:1px solid rgba(212,175,55,.55);
+  border-radius:50%;
+
+  font:inherit;
+  font-size:.9rem;
+  font-weight:900;
+
+  cursor:pointer;
+}
+
+.journey-header-control:hover,
+.journey-header-control:focus-visible{
+  background:rgba(212,175,55,.08);
+  outline:none;
+}
+
+.local-rally{
+  display:inline;
+}
+
+.local-rally__place,
+.local-rally__call{
+  display:inline;
+}
+
+@media(max-width:640px){
+
+  .local-rally{
+    display:inline-flex;
+    flex-direction:column;
+    align-items:center;
+    line-height:1.25;
+  }
+
+  .local-rally__place,
+  .local-rally__call{
+    display:block;
+  }
+
+  .local-rally__dot{
+    display:block;
+    width:70%;
+    height:1px;
+
+    margin:.35rem auto;
+
+    overflow:hidden;
+
+    font-size:0;
+    line-height:0;
+
+    background:currentColor;
+    opacity:.35;
+  }
+
+}
+
+@media(max-width:520px){
+
+  .journey-minimal-header{
+    grid-template-columns:48px minmax(0,1fr) 48px;
+    gap:8px;
+
+    min-height:76px;
+
+    padding:10px 12px;
+  }
+
+  .journey-header-control{
+    width:44px;
+    height:44px;
+  }
+
+  .journey-header-title{
+    font-size:.82rem;
+    letter-spacing:.04em;
+  }
+
+}
+
+/* Connect Interest — quieter shared footer badge */
+#footer .site-footer__seal-image{
+  width:40px;
+  height:40px;
+}
+
+@media (max-width:640px){
+  #footer .site-footer__seal-image{
+    width:34px;
+    height:34px;
+  }
+}
+
+
+/* CONNECT INTEREST — LIGHT THEME FIX */
+
+html[data-theme="light"]{
+  --bg:#f5f2ea;
+  --panel:#ffffff;
+  --panel-soft:#f7f7f5;
+  --panel-raised:#f1f1ee;
+
+  --border:#d3d3cc;
+  --border-soft:rgba(0,0,0,.10);
+
+  --text:#171717;
+  --muted:#5f6368;
+
+  --gold:#9b7610;
+  --gold-soft:rgba(155,118,16,.10);
+  --gold-glow:rgba(155,118,16,.16);
+}
+
+html[data-theme="light"] body{
+  background:
+    radial-gradient(
+      circle at top,
+      #fff8df 0,
+      #f5f2ea 32rem,
+      var(--bg) 55rem
+    );
+
+  color:var(--text);
+}
+
+html[data-theme="light"] .connect-hero h1,
+html[data-theme="light"] label,
+html[data-theme="light"] .admissions-path-guide strong,
+html[data-theme="light"] .interest-type-title,
+html[data-theme="light"] .registrant-role-option strong{
+  color:#171717;
+}
+
+html[data-theme="light"] .hero-copy,
+html[data-theme="light"] .optional,
+html[data-theme="light"] .interest-type-description,
+html[data-theme="light"] .registrant-role-option small{
+  color:var(--muted);
+}
+
+html[data-theme="light"] .admissions-path-guide li{
+  background:rgba(0,0,0,.025);
+  color:#3f4348;
+}
+
+html[data-theme="light"] .interest-form{
+  background:var(--panel);
+  border-color:var(--border);
+  box-shadow:0 20px 45px rgba(0,0,0,.10);
+}
+
+html[data-theme="light"] input,
+html[data-theme="light"] select,
+html[data-theme="light"] textarea{
+  color:#171717;
+  background:var(--panel-soft);
+  border-color:#c9c9c2;
+}
+
+html[data-theme="light"] input:hover,
+html[data-theme="light"] select:hover,
+html[data-theme="light"] textarea:hover{
+  border-color:#a9a9a2;
+}
+
+html[data-theme="light"] input:focus,
+html[data-theme="light"] select:focus,
+html[data-theme="light"] textarea:focus{
+  background:#fff;
+}
+
+html[data-theme="light"] .registrant-role-option > span{
+  background:var(--panel-raised);
+  border-color:var(--border);
+}
+
+html[data-theme="light"] .registrant-role-option:hover > span{
+  background:#e9e9e5;
+  border-color:#a9a9a2;
+}
+
+html[data-theme="light"] .registrant-role-option
+input:checked
++
+span{
+  background:#fffdf5;
+  border-color:var(--gold);
+
+  box-shadow:
+    0 0 0 1px rgba(155,118,16,.15),
+    0 8px 24px rgba(0,0,0,.08),
+    0 0 20px rgba(155,118,16,.06);
+}
+
+html[data-theme="light"] .interest-type-option
+input:checked
++
+.interest-type-card{
+  background:#fffdf5 !important;
+  border-color:var(--gold) !important;
+
+  box-shadow:
+    0 0 0 1px rgba(155,118,16,.15),
+    0 8px 24px rgba(0,0,0,.08),
+    0 0 20px rgba(155,118,16,.06) !important;
+}
+
+html[data-theme="light"] .journey-minimal-header{
+  background:#fff;
+  border-bottom-color:rgba(155,118,16,.40);
+}
+
+html[data-theme="light"] .journey-header-title{
+  color:#171717;
+}
+
+html[data-theme="light"] .journey-header-control{
+  color:var(--gold);
+  border-color:rgba(155,118,16,.45);
+}
+
+html[data-theme="light"] .journey-header-control:hover,
+html[data-theme="light"] .journey-header-control:focus-visible{
+  background:rgba(155,118,16,.07);
+}
+
+
+/* CONNECT INTEREST — HERO LIGHT CONTRAST */
+
+html[data-theme="light"] .connect-hero,
+html[data-theme="light"] .connect-hero h1,
+html[data-theme="light"] .hero-copy,
+html[data-theme="light"] .hero-copy p{
+  color:#171717;
+}
+
+html[data-theme="light"] .eyebrow{
+  color:var(--gold);
+}
+
+
+/* CONNECT INTEREST — LIGHT COMPONENT STATE FIX */
+
+/* Hero must become a true light surface */
+html[data-theme="light"] .connect-hero{
+  background:#ffffff;
+  border:1px solid var(--border);
+  box-shadow:0 16px 36px rgba(0,0,0,.07);
+}
+
+/* Program cards */
+html[data-theme="light"] .interest-type-card{
+  background:var(--panel-raised);
+  border-color:var(--border);
+}
+
+html[data-theme="light"] .interest-type-card:hover{
+  background:#e9e9e5;
+  border-color:#aaa9a1;
+}
+
+html[data-theme="light"] .interest-type-card:hover
+.interest-type-title{
+  color:#171717;
+}
+
+html[data-theme="light"] .interest-type-card:hover
+.interest-type-description{
+  color:#555a60;
+}
+
+html[data-theme="light"] .interest-type-card:hover
+.interest-type-icon{
+  color:inherit;
+}
+
+/* Selected card remains clearly active */
+html[data-theme="light"] .interest-type-option
+input:checked
++
+.interest-type-card{
+  background:#fffdf5 !important;
+  border-color:var(--gold) !important;
+}
+
+html[data-theme="light"] .interest-type-option
+input:checked
++
+.interest-type-card
+.interest-type-title{
+  color:var(--gold);
+}
+
+/* Green placement / instruction note */
+html[data-theme="light"] .placement-note{
+  background:#eef9f0;
+  border-color:#9bc9a4;
+  color:#214b2b;
+}
+
+/* Gold intent notice */
+html[data-theme="light"] .intent-notice{
+  background:#fff9df;
+  border-color:rgba(155,118,16,.32);
+  color:#30270d;
+}
+
+/* Generic helper text */
+html[data-theme="light"] .help-text,
+html[data-theme="light"] .required-note,
+html[data-theme="light"] .privacy-note{
+  color:#5f6368;
+}
+
+/* Team helper card */
+html[data-theme="light"] .team-help-card{
+  background:#f5f5f2;
+  border-color:#d0d0c9;
+  color:#171717;
+}
+
+html[data-theme="light"] .team-help-card:hover{
+  background:#ecece7;
+  border-color:#aaa9a1;
+}
+
+
+/* =========================================
+   CONNECT INTEREST — LANGUAGE VISIBILITY
+========================================= */
+
+html[lang="en"] [data-lang="es"],
+html[lang="es"] [data-lang="en"]{
+  display:none !important;
+}
+
+html[lang="en"] [data-lang="en"],
+html[lang="es"] [data-lang="es"]{
+  display:revert;
+}
+
+/* Select options need explicit handling */
+html[lang="en"] option[data-lang="en"],
+html[lang="es"] option[data-lang="es"]{
+  display:block;
+}
+/* =========================================
+   CONNECT INTEREST — FIVE-STEP PRESENTATION
+========================================= */
+
+.interest-progress{
+  display:grid;
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 4px;
+}
+
+.interest-progress__item{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  gap:6px;
+  min-width:0;
+  padding:8px 4px;
+  color:var(--muted);
+  font-size:.72rem;
+  font-weight:800;
+  line-height:1.15;
+  text-align:center;
+}
+
+.interest-progress__number{
+  display:grid;
+  place-items:center;
+  width:30px;
+  height:30px;
+  border:1px solid var(--border);
+  border-radius:50%;
+  background:var(--panel-soft);
+  color:var(--muted);
+}
+
+.interest-progress__item.is-active{
+  color:var(--gold);
+}
+
+.interest-progress__item.is-active
+.interest-progress__number{
+  border-color:var(--gold);
+  background:var(--gold-soft);
+  color:var(--gold);
+}
+
+.interest-progress__item.is-complete
+.interest-progress__number{
+  border-color:var(--gold);
+  color:var(--gold);
+}
+
+.interest-step{
+  display:flex;
+  flex-direction:column;
+  gap:26px;
+}
+
+.interest-step[hidden]{
+  display:none !important;
+}
+
+.interest-step > .form-section:first-child{
+  padding-top:0;
+  border-top:none;
+}
+
+.interest-step-nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding-top:4px;
+}
+
+.interest-step-btn{
+  min-height:48px;
+  padding:12px 22px;
+  border-radius:999px;
+  font:inherit;
+  font-weight:850;
+  cursor:pointer;
+  transition:
+    transform .16s ease,
+    background .16s ease,
+    border-color .16s ease;
+}
+
+.interest-step-btn--back{
+  color:var(--text);
+  background:transparent;
+  border:1px solid var(--border);
+}
+
+.interest-step-btn--back:hover{
+  transform:translateY(-1px);
+  border-color:var(--gold);
+}
+
+.interest-step-btn--next{
+  margin-left:auto;
+  color:#fff;
+  background:var(--red);
+  border:1px solid var(--red);
+}
+
+.interest-step-btn--next:hover{
+  transform:translateY(-1px);
+  background:var(--red-hover);
+}
+
+html[data-theme="light"]
+.interest-progress__number{
+  background:#f7f7f5;
+}
+
+html[data-theme="light"]
+.interest-step-btn--back{
+  color:#171717;
+  background:#f7f7f5;
+  border-color:#c9c9c2;
+}
+
+@media(max-width:640px){
+  .interest-progress{
+    gap:2px;
+  }
+
+  .interest-progress__item{
+    padding:7px 1px;
+    font-size:.61rem;
+  }
+
+  .interest-progress__number{
+    width:26px;
+    height:26px;
+  }
+
+  .interest-step-nav{
+    flex-direction:column-reverse;
+  }
+
+  .interest-step-btn{
+    width:100%;
+  }
+}
+
+
+/* Step 5 marketing opt-in */
+
+.marketing-opt-in{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+
+  width:100%;
+  padding:1rem 1.1rem;
+
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:14px;
+
+  background:rgba(255,255,255,.035);
+
+  cursor:pointer;
+  transition:
+    border-color .18s ease,
+    background .18s ease;
+}
+
+.marketing-opt-in:hover{
+  border-color:rgba(250,204,21,.45);
+  background:rgba(255,255,255,.055);
+}
+
+.marketing-opt-in__text{
+  flex:1;
+  line-height:1.45;
+}
+
+.marketing-opt-in input[type="checkbox"]{
+  flex:0 0 auto;
+
+  width:20px;
+  height:20px;
+
+  margin:0;
+
+  cursor:pointer;
+  accent-color:var(--gold);
+}
+
+html[data-theme="light"] .marketing-opt-in{
+  border-color:rgba(0,0,0,.14);
+  background:rgba(0,0,0,.025);
+}
+
+html[data-theme="light"] .marketing-opt-in:hover{
+  border-color:rgba(155,118,16,.45);
+  background:rgba(0,0,0,.045);
+}
+
+@media (max-width:640px){
+  .marketing-opt-in{
+    padding:.95rem 1rem;
+  }
+}
+
+
+/* Review Full Form button */
+
+.interest-review-toggle{
+  border:1px solid var(--gold);
+  border-radius:999px;
+
+  background:rgba(250,204,21,.12);
+  color:var(--gold);
+
+  padding:.7rem 1.15rem;
+
+  font-weight:700;
+  cursor:pointer;
+
+  transition:
+    background .18s ease,
+    color .18s ease,
+    border-color .18s ease,
+    transform .18s ease;
+}
+
+.interest-review-toggle:hover{
+  background:var(--gold);
+  color:#111;
+  transform:translateY(-1px);
+}
+
+.interest-review-toggle:focus-visible{
+  outline:2px solid var(--gold);
+  outline-offset:3px;
+}
+
+html[data-theme="light"] .interest-review-toggle{
+  background:rgba(155,118,16,.10);
+  color:var(--gold);
+}
+
+html[data-theme="light"] .interest-review-toggle:hover{
+  background:var(--gold);
+  color:#fff;
+}
