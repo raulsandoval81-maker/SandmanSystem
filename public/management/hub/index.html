@@ -8,7 +8,7 @@
     content="width=device-width,initial-scale=1"
   />
 
-<title>Academy Management | Sandman System</title>
+  <title>Academy Management | Sandman System</title>
 
   <meta
     name="robots"
@@ -22,292 +22,497 @@
 </head>
 
 <body>
-  <header class="management-header">
-    <div>
-      <p class="eyebrow">
-        Sandman System
-      </p>
 
-      <h1>
-        Academy Management
-      </h1>
+  <div class="management-shell">
 
-      <p id="managerIdentity" class="identity">
-        Verifying access...
-      </p>
-    </div>
-
-    <div class="header-actions">
-      <a
-        class="button button-secondary"
-        href="/login/"
-      >
-        Switch Workspace
-      </a>
-
-      <button
-        id="signOutBtn"
-        class="button button-secondary"
-        type="button"
-      >
-        Sign Out
-      </button>
-    </div>
-  </header>
-
-  <main class="management-wrap">
-
-    <section class="scope-card">
-      <div>
-        <p class="section-label">
-          Assigned Scope
+    <aside
+      id="managementSidebar"
+      class="management-sidebar"
+      aria-label="Management navigation"
+    >
+      <div class="sidebar-brand">
+        <p class="eyebrow">
+          Sandman System
         </p>
 
-        <h2>
-          Your Management Area
-        </h2>
+        <strong>
+          Academy Management
+        </strong>
       </div>
 
-      <div class="scope-grid">
-        <div>
-          <span class="scope-title">
-            Locations
-          </span>
+      <nav class="sidebar-nav">
 
-          <p id="locationScope">
-            Loading...
-          </p>
-        </div>
+        <a
+          class="sidebar-link active"
+          href="/management/hub/"
+        >
+          <span>Overview</span>
+        </a>
 
-        <div>
-          <span class="scope-title">
-            Programs
-          </span>
+        <p class="sidebar-section-label">
+          Pipeline
+        </p>
 
-          <p id="programScope">
-            Loading...
-          </p>
-        </div>
+        <a
+          class="sidebar-link"
+          href="/management/inbox/"
+        >
+          <span>Inbox</span>
+        </a>
 
-        <div>
-          <span class="scope-title">
-            Access Level
-          </span>
+        <a
+          class="sidebar-link"
+          href="/connect/leads/"
+        >
+          <span>Leads</span>
+        </a>
 
-          <p id="accessScope">
-            Loading...
-          </p>
-        </div>
-      </div>
-    </section>
+        <a
+          class="sidebar-link"
+          href="/connect/admissions-requests/"
+        >
+          <span>Try a Class</span>
+        </a>
 
-    <section class="management-grid">
+        <a
+          class="sidebar-link"
+          href="/connect/appointments/"
+        >
+          <span>Appointments</span>
+        </a>
 
-<a
-  class="management-card"
-  href="/management/inbox/"
->
-  <span class="card-label">
-    Operations
-  </span>
+        <a
+          class="sidebar-link"
+          href="/connect/proposals/"
+        >
+          <span>Proposals</span>
+        </a>
 
-  <h2>
-    Inbox
-  </h2>
-
-  <p>
-    Review local academy messages and route
-    to the appropriate coach when needed.
-  </p>
-</a>
-
-<a
-  class="management-card"
-  href="/connect/leads/"
->
-  <span class="card-label">
-    Pipeline
-  </span>
-
-  <h2>
-    Leads
-  </h2>
-
-  <p>
-    Review prospective participants entering
-    the main admissions pipeline.
-  </p>
-</a>
-
-<a
-  class="management-card"
-  href="/connect/admissions-requests/"
->
-  <span class="card-label">
-    Admissions
-  </span>
-
-  <h2>
-    Try a Class
-  </h2>
-
-  <p>
-    Review requested intros, promotional visits,
-    and approved Open Practice access.
-  </p>
-</a>
-
-<a
-  class="management-card"
-  href="/connect/appointments/"
->
-  <span class="card-label">
-    Admissions
-  </span>
-
-  <h2>
-    Appointments
-  </h2>
-
-  <p>
-    Schedule and review upcoming admissions
-    appointments within your assigned scope.
-  </p>
-</a>
-<a
-  class="management-card"
-  href="/connect/proposals/"
->
-  <span class="card-label">
-    Admissions
-  </span>
-
-  <h2>
-    Proposals
-  </h2>
-
-  <p>
-    Review family proposals, approvals,
-    and enrollment-ready offers.
-  </p>
-</a>
-
-      <a
+        <a
+          class="sidebar-link"
           href="/intake-management/"
-        class="management-card"
-      >
-        <span class="card-label">
-          Admissions
+        >
+          <span>Enrollment</span>
+        </a>
+
+        <span class="sidebar-link sidebar-link--pending">
+          <span>Members</span>
+          <small>Pending</small>
         </span>
 
-        <h2>
-          Enrollment
-        </h2>
-
-        <p>
-          Review enrollment status, payment readiness,
-          final approval, and Parent Intake handoff.
-        </p>
-
-      </a>
-
-<div
-        class="management-card management-card--pending"
-      >
-        <span class="card-label">
-          Participants
-        </span>
-
-        <h2>
-          Members
-        </h2>
-
-        <p>
-          Manage active fitness participants,
-          athletes, and membership status.
-        </p>
-
-        <span class="coming-soon">
-          Management module pending
-        </span>
-      </div>
-
-      <div
-        class="management-card management-card--pending"
-      >
-        <span class="card-label">
+        <p class="sidebar-section-label">
           Operations
-        </span>
-
-        <h2>
-          Schedule
-        </h2>
-
-        <p>
-          Manage classes, instructors, rooms,
-          and program availability.
         </p>
 
-        <span class="coming-soon">
-          Management module pending
+        <span class="sidebar-link sidebar-link--pending">
+          <span>Schedule</span>
+          <small>Pending</small>
         </span>
+
+        <span class="sidebar-link sidebar-link--pending">
+          <span>Attendance</span>
+          <small>Pending</small>
+        </span>
+
+        <span class="sidebar-link sidebar-link--pending">
+          <span>Reports</span>
+          <small>Pending</small>
+        </span>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <a
+          class="sidebar-link"
+          href="/login/"
+        >
+          <span>Switch Workspace</span>
+        </a>
+
+        <button
+          id="sidebarSignOutBtn"
+          class="sidebar-signout"
+          type="button"
+        >
+          Sign Out
+        </button>
       </div>
+    </aside>
 
-      <div
-        class="management-card management-card--pending"
-      >
-        <span class="card-label">
-          Operations
-        </span>
+    <div
+      id="sidebarBackdrop"
+      class="sidebar-backdrop"
+      hidden
+    ></div>
 
-        <h2>
-          Attendance
-        </h2>
+    <section class="management-main">
 
-        <p>
-          Review participation and attendance
-          for assigned programs.
-        </p>
+      <header class="management-header">
 
-        <span class="coming-soon">
-          Management module pending
-        </span>
-      </div>
+        <button
+          id="menuToggleBtn"
+          class="menu-toggle"
+          type="button"
+          aria-label="Open management navigation"
+          aria-expanded="false"
+          aria-controls="managementSidebar"
+        >
+          ☰
+        </button>
 
-      <div
-        class="management-card management-card--pending"
-      >
-        <span class="card-label">
-          Intelligence
-        </span>
+        <div class="management-header__identity">
+          <p class="eyebrow">
+            Sandman System
+          </p>
 
-        <h2>
-          Reports
-        </h2>
+          <h1>
+            Academy Management
+          </h1>
 
-        <p>
-          View location and program performance
-          without exposing system-wide administration.
-        </p>
+          <p
+            id="managerIdentity"
+            class="identity"
+          >
+            Verifying access...
+          </p>
+        </div>
 
-        <span class="coming-soon">
-          Management module pending
-        </span>
-      </div>
+        <div class="header-actions">
+          <a
+            class="button button-secondary"
+            href="/login/"
+          >
+            Switch Workspace
+          </a>
+
+          <button
+            id="signOutBtn"
+            class="button button-secondary"
+            type="button"
+          >
+            Sign Out
+          </button>
+        </div>
+
+      </header>
+
+      <main class="management-wrap">
+
+        <section class="workspace-heading">
+          <div>
+            <p class="section-label">
+              Overview
+            </p>
+
+            <h2>
+              Your Management Area
+            </h2>
+
+            <p>
+              Admissions, enrollment, and local academy
+              operations within your assigned scope.
+            </p>
+          </div>
+        </section>
+
+        <section class="scope-strip">
+
+          <div class="scope-item">
+            <span class="scope-title">
+              Locations
+            </span>
+
+            <p id="locationScope">
+              Loading...
+            </p>
+          </div>
+
+          <div class="scope-item">
+            <span class="scope-title">
+              Programs
+            </span>
+
+            <p id="programScope">
+              Loading...
+            </p>
+          </div>
+
+          <div class="scope-item">
+            <span class="scope-title">
+              Access
+            </span>
+
+            <p id="accessScope">
+              Loading...
+            </p>
+          </div>
+
+        </section>
+
+        <section class="dashboard-section">
+
+          <div class="section-heading">
+            <div>
+              <p class="section-label">
+                Active Workflow
+              </p>
+
+              <h2>
+                Admissions Pipeline
+              </h2>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+
+            <a
+              class="dashboard-tile"
+              href="/management/inbox/"
+            >
+              <span class="tile-category">
+                Communications
+              </span>
+
+              <h3>
+                Inbox
+              </h3>
+
+              <p>
+                Review local academy messages and route
+                requests to the appropriate person.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+
+            <a
+              class="dashboard-tile"
+              href="/connect/leads/"
+            >
+              <span class="tile-category">
+                Admissions
+              </span>
+
+              <h3>
+                Leads
+              </h3>
+
+              <p>
+                Review prospective participants entering
+                the admissions process.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+
+            <a
+              class="dashboard-tile"
+              href="/connect/admissions-requests/"
+            >
+              <span class="tile-category">
+                Admissions
+              </span>
+
+              <h3>
+                Try a Class
+              </h3>
+
+              <p>
+                Review introduction requests, visits,
+                and approved Open Practice access.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+
+            <a
+              class="dashboard-tile"
+              href="/connect/appointments/"
+            >
+              <span class="tile-category">
+                Admissions
+              </span>
+
+              <h3>
+                Appointments
+              </h3>
+
+              <p>
+                Schedule and review upcoming admissions
+                appointments within your scope.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+
+            <a
+              class="dashboard-tile"
+              href="/connect/proposals/"
+            >
+              <span class="tile-category">
+                Admissions
+              </span>
+
+              <h3>
+                Proposals
+              </h3>
+
+              <p>
+                Review family proposals, approvals,
+                and enrollment-ready offers.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+
+            <a
+              class="dashboard-tile dashboard-tile--primary"
+              href="/intake-management/"
+            >
+              <span class="tile-category">
+                Enrollment
+              </span>
+
+              <h3>
+                Enrollment
+              </h3>
+
+              <p>
+                Review enrollment status, intake,
+                final approval, and activation handoff.
+              </p>
+
+              <span class="tile-action">
+                Open →
+              </span>
+            </a>
+
+          </div>
+
+        </section>
+
+        <section class="dashboard-section">
+
+          <div class="section-heading">
+            <div>
+              <p class="section-label">
+                Operations
+              </p>
+
+              <h2>
+                Coming Next
+              </h2>
+            </div>
+          </div>
+
+          <div class="pending-grid">
+
+            <div class="pending-tile">
+              <span class="tile-category">
+                Participants
+              </span>
+
+              <h3>
+                Members
+              </h3>
+
+              <p>
+                Manage active fitness participants,
+                athletes, and membership status.
+              </p>
+
+              <span class="coming-soon">
+                Module pending
+              </span>
+            </div>
+
+            <div class="pending-tile">
+              <span class="tile-category">
+                Operations
+              </span>
+
+              <h3>
+                Schedule
+              </h3>
+
+              <p>
+                Manage classes, instructors,
+                rooms, and program availability.
+              </p>
+
+              <span class="coming-soon">
+                Module pending
+              </span>
+            </div>
+
+            <div class="pending-tile">
+              <span class="tile-category">
+                Operations
+              </span>
+
+              <h3>
+                Attendance
+              </h3>
+
+              <p>
+                Review participation and attendance
+                for assigned programs.
+              </p>
+
+              <span class="coming-soon">
+                Module pending
+              </span>
+            </div>
+
+            <div class="pending-tile">
+              <span class="tile-category">
+                Intelligence
+              </span>
+
+              <h3>
+                Reports
+              </h3>
+
+              <p>
+                Review location and program performance
+                without system-wide administration.
+              </p>
+
+              <span class="coming-soon">
+                Module pending
+              </span>
+            </div>
+
+          </div>
+
+        </section>
+
+        <p
+          id="status"
+          class="status"
+          aria-live="polite"
+        ></p>
+
+      </main>
 
     </section>
 
-    <p
-      id="status"
-      class="status"
-      aria-live="polite"
-    ></p>
-
-  </main>
+  </div>
 
   <script
     type="module"
     src="/management/hub/management.js"
   ></script>
+
 </body>
 </html>
