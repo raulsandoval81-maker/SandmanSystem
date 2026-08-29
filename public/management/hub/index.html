@@ -19,13 +19,14 @@
     rel="stylesheet"
     href="/management/hub/management.css"
   />
+  <link rel="stylesheet" href="/assets/css/management-ui.css" />
 </head>
 
 <body>
-  <header class="management-header">
+  <header class="management-header management-workspace-header">
     <div>
       <p class="eyebrow">
-        Sandman System
+        Academy Management
       </p>
 
       <h1>
@@ -36,26 +37,55 @@
         Verifying access...
       </p>
     </div>
-
-    <div class="header-actions">
-      <a
-        class="button button-secondary"
-        href="/login/"
-      >
-        Switch Workspace
-      </a>
-
-      <button
-        id="signOutBtn"
-        class="button button-secondary"
-        type="button"
-      >
-        Sign Out
-      </button>
-    </div>
   </header>
 
+  <nav class="management-pipeline-nav" aria-label="Management navigation">
+    <a class="management-pipeline-nav__home" href="/management/hub/" aria-current="page">Management Home</a>
+    <a href="/connect/leads/">Leads</a>
+    <a href="/connect/appointments/">Appointments</a>
+    <a href="/connect/proposals/">Proposals</a>
+    <a href="/intake-management/">Enrollment</a>
+    <a href="/management/inbox/">Inbox</a>
+    <a href="/connect/admissions-requests/">Try a Class</a>
+  </nav>
+
   <main class="management-wrap">
+
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>See your assigned Management scope and enter the correct operating workspace.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>Confirm your Management access and assigned locations, then choose the workspace needed for the current task.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>Work continues inside Leads, Appointments, Proposals, Enrollment, Inbox, or Try a Class.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>Management Home is an overview and navigation workspace. Opening it does not change a family or case lifecycle state.</p>
+        </div>
+      </div>
+    </details>
+
+
 
     <section class="scope-card">
       <div>
@@ -309,5 +339,11 @@
     type="module"
     src="/management/hub/management.js"
   ></script>
+  <script src="/assets/js/management-nav.js"></script>
+
+  <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 </body>
 </html>
