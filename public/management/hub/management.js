@@ -88,6 +88,17 @@ function displayName(context) {
 // Does not alter pipeline state.
 // =========================================================
 
+const dashboardInboxCount =
+  document.getElementById(
+    "dashboardInboxCount"
+  );
+
+const dashboardInboxDetail =
+  document.getElementById(
+    "dashboardInboxDetail"
+  );
+
+
 const dashboardLeadCount =
   document.getElementById(
     "dashboardLeadCount"
@@ -250,15 +261,77 @@ function appointmentDateValue(
 }
 
 
+async function readManagementInbox(
+  context
+) {
+  const locationIds =
+    managementLocationIds(context);
+
+  if (
+    !Array.isArray(locationIds) ||
+    !locationIds.length
+  ) {
+    return [];
+  }
+
+  const locationId =
+    locationIds[0];
+
+  const snapshot =
+    await getDocs(
+      query(
+        collection(
+          db,
+          "general_messages"
+        ),
+        where(
+          "locationId",
+          "==",
+          locationId
+        )
+      )
+    );
+
+  return snapshot.docs.map(
+    (snapshotDoc) => ({
+      id: snapshotDoc.id,
+      ...snapshotDoc.data()
+    })
+  );
+}
+
+
+function inboxStatus(message) {
+  return clean(
+    message.messageStatus ||
+    message.status ||
+    "REVIEWING"
+  ).toUpperCase();
+}
+
+
+function inboxStage(message) {
+  return clean(
+    message.routingStage ||
+    "MANAGEMENT_TRIAGE"
+  ).toUpperCase();
+}
+
+
 async function loadManagementDashboard(
   context
 ) {
   try {
     const [
+      inboxMessages,
       leads,
       appointments,
       proposals
     ] = await Promise.all([
+      readManagementInbox(
+        context
+      ),
+
       readScopedCollection(
         context,
         "interest_leads"
@@ -274,6 +347,42 @@ async function loadManagementDashboard(
         "proposals"
       )
     ]);
+
+    const waitingMessages =
+      inboxMessages.filter(
+        (message) => {
+          const status =
+            inboxStatus(message);
+
+          const stage =
+            inboxStage(message);
+
+          return (
+            status !== "RESPONDED" &&
+            status !== "CLOSED" &&
+            stage !== "RESPONDED" &&
+            stage !== "MANAGEMENT_RESPONDED" &&
+            stage !== "CLOSED"
+          );
+        }
+      );
+
+    if (dashboardInboxCount) {
+      dashboardInboxCount.textContent =
+        String(
+          waitingMessages.length
+        );
+    }
+
+    if (dashboardInboxDetail) {
+      dashboardInboxDetail.textContent =
+        waitingMessages.length === 0
+          ? "Inbox is clear"
+          : waitingMessages.length === 1
+            ? "1 message needs attention"
+            : `${waitingMessages.length} messages need attention`;
+    }
+
 
     const newLeads =
       leads.filter((lead) =>
@@ -471,6 +580,11 @@ async function loadManagementDashboard(
       "[management-hub] dashboard load failed:",
       error
     );
+
+    if (dashboardInboxDetail) {
+      dashboardInboxDetail.textContent =
+        "Activity unavailable";
+    }
 
     if (dashboardLeadDetail) {
       dashboardLeadDetail.textContent =
