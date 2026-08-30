@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
+  <link rel="stylesheet" href="/assets/css/athlete-ui.css" />
+  <script type="module" src="/assets/js/athlete-nav.js"></script>
 
   <style>
     body{
@@ -187,7 +189,7 @@
   </style>
 </head>
 
-<body>
+<body class="athlete-app">
   <header class="system-header">
     <div class="system-header__brand">
       <span style="color:#FFD700;font-weight:800;letter-spacing:1.2px;">Sandman Combat</span>
@@ -236,6 +238,12 @@
       </div>
     </section>
 
+    <section class="athlete-journey-grid" aria-label="Your Athlete journey">
+      <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your progress and earned recognition.</p></a>
+      <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open your Combat, Strength, and Honor work.</p></a>
+      <a class="athlete-journey-card" id="journeyComms" href="/communications/athlete/"><span>From Your Coach</span><strong>Communications</strong><p>Read announcements and check the schedule.</p></a>
+      <a class="athlete-journey-card" id="journeyLeaderboard" href="/athletes/leaderboard/"><span>Measure</span><strong>Leaderboard</strong><p>See how steady work builds progress.</p></a>
+    </section>
     <section class="cta-box">
       <p id="ctaMessage">Small work every day builds something big.</p>
     </section>
@@ -315,6 +323,7 @@ function setLinks(id){
 
   $("profileLink").href = `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`;
   $("arsenalLink").href = `/athletes/arsenal/?id=${encodeURIComponent(id)}`;
+  [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"],["journeyComms","/communications/athlete/"],["journeyLeaderboard","/athletes/leaderboard/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
 }
 
 async function load(){

@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/css/athlete-ui.css" />
+  <script type="module" src="/assets/js/athlete-nav.js"></script>
   <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
 
   <style>
@@ -230,7 +232,7 @@
   </style>
 </head>
 
-<body>
+<body class="athlete-app">
 
   <header class="system-header">
     <div class="system-header__brand">
@@ -300,6 +302,12 @@
 
   </section>
 </div>
+    <section class="athlete-journey-grid" aria-label="Your Athlete journey">
+      <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your rank, progression, and earned recognition.</p></a>
+      <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open Combat, Strength, and Honor training.</p></a>
+      <a class="athlete-journey-card" id="journeyComms" href="/communications/athlete/"><span>From Your Coach</span><strong>Communications</strong><p>Read announcements and check the current schedule.</p></a>
+      <a class="athlete-journey-card" id="journeyLeaderboard" href="/athletes/leaderboard/"><span>Measure</span><strong>Leaderboard</strong><p>See where your consistent work is taking you.</p></a>
+    </section>
           <section class="cta-box">
       <p id="ctaMessage">Progress here is measured in months and years, not days.</p>
     </section>
@@ -487,6 +495,7 @@ function setProfileLink(id, athlete = {}) {
       localStorage.setItem(LAST_UID_KEY, id);
       setArsenalLink(id);
       setLeaderboardLink(id);
+      [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"],["journeyComms","/communications/athlete/"],["journeyLeaderboard","/athletes/leaderboard/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
 
       let snap = null;
       try {
@@ -535,7 +544,7 @@ function setProfileLink(id, athlete = {}) {
     }
 
     $("btnSignIn")?.addEventListener("click", () => {
-      location.href = "/athletes/onboard/";
+      location.href = "/athletes/auth/";
     });
 
     loadAthlete();
