@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="/assets/css/site.css" />
 <link rel="stylesheet" href="/intake-shared/shared.css" />
 <link rel="stylesheet" href="/intake-management/management.intake.css" />
+<link rel="stylesheet" href="/assets/css/management-ui.css" />
 
   <link rel="icon" href="data:,">
 </head>
@@ -16,8 +17,104 @@
 
   <main class="wrap">
 
-    <h1>Management Enrollment Console</h1>
-    <p class="muted">Invite → Intake → Review → Activate</p>
+    <header class="enrollment-workspace-header management-workspace-header">
+
+      <div class="enrollment-workspace-header__top">
+
+        <div>
+          <p class="enrollment-system-label">
+            Academy Management
+          </p>
+
+          <h1>
+            Management Enrollment
+          </h1>
+
+          <p class="muted">
+            Secure intake, review, and athlete activation.
+          </p>
+        </div>
+
+      </div>
+
+
+
+    </header>
+    <nav class="management-pipeline-nav" aria-label="Management navigation">
+      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+      <a href="/connect/leads/">Leads</a>
+      <a href="/connect/appointments/">Appointments</a>
+      <a href="/connect/proposals/">Proposals</a>
+      <a href="/intake-management/" aria-current="page">Enrollment</a>
+      <a href="/management/inbox/">Inbox</a>
+      <a href="/connect/admissions-requests/">Try a Class</a>
+    </nav>
+
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>
+            Move a paid proposal into intake, review,
+            and final athlete activation.
+          </p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>
+            Select the paid family, choose the correct
+            Parent / Guardian or Adult Athlete intake
+            path, send the secure intake handoff, review
+            the submitted intake, and approve activation.
+          </p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>
+            Once the intake is approved and activation
+            succeeds, the athlete enters the active
+            Sandman athlete system.
+          </p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>
+            Enrollment begins after payment. Do not use
+            this page to replace Proposal approval or
+            Checkout. The selected case lifecycle above
+            and below this process remains the source of
+            truth for where the family currently stands.
+          </p>
+        </div>
+      </div>
+    </details>
+
+    <section
+      id="enrollmentCaseOrientation"
+      class="management-lifecycle"
+      aria-label="Selected case lifecycle"
+      hidden
+    ></section>
+
+    <p
+      id="enrollmentCaseStatus"
+      class="page-status"
+      role="status"
+      aria-live="polite"
+    ></p>
 <!-- =========================
      SELECTED CONNECT LEAD
 ========================== -->
@@ -44,51 +141,49 @@
 </section>
 
     <!-- =========================
-         START INTAKE
+         READY FOR INTAKE
     ========================== -->
-    <section class="card">
+    <section class="card enrollment-ready-card">
       <div class="card-head">
         <div>
-          <h3>Start Intake</h3>
+          <h3>Ready for Intake</h3>
 
           <p class="small muted">
-            Generate a secure 48-hour intake link for the person completing enrollment.
+            Paid enrollments waiting for their secure intake handoff.
+          </p>
+        </div>
+
+        <span
+          id="ready-intake-count"
+          class="status-pill"
+        >
+          —
+        </span>
+      </div>
+
+      <div
+        id="ready-intake-list"
+        class="small muted"
+      >
+        Loading paid enrollments…
+      </div>
+    </section>
+
+    <!-- =========================
+         INTAKE HANDOFF
+    ========================== -->
+    <section class="card enrollment-start-card">
+      <div class="card-head">
+        <div>
+          <h3>Intake Handoff</h3>
+
+          <p class="small muted">
+            Select Parent / Guardian or Adult Athlete from a paid enrollment above.
+            The secure 48-hour intake link will appear here.
           </p>
         </div>
 
         <span class="status-pill">48 Hours</span>
-      </div>
-
-      <div class="workflow-mode-grid">
-
-        <button
-          id="btn-make-token"
-          class="workflow-mode-btn"
-          type="button"
-        >
-          <span class="workflow-mode-title">
-            Parent / Guardian
-          </span>
-
-          <span class="workflow-mode-copy">
-            Use when a parent or legal guardian is completing intake for an athlete.
-          </span>
-        </button>
-
-        <button
-          id="btn-make-athlete-token"
-          class="workflow-mode-btn"
-          type="button"
-        >
-          <span class="workflow-mode-title">
-            Adult Athlete
-          </span>
-
-          <span class="workflow-mode-copy">
-            Use when an adult athlete is completing and signing their own intake.
-          </span>
-        </button>
-
       </div>
 
       <div class="row" style="margin-top:14px;">
@@ -141,7 +236,7 @@
     <!-- =========================
          PENDING INTAKES
     ========================== -->
-    <section class="card">
+    <section class="card enrollment-queue-card">
       <h3>Pending Intakes</h3>
 
       <p class="muted small">
@@ -175,7 +270,7 @@
     <!-- =========================
          RECENT APPROVALS
     ========================== -->
-    <section class="card">
+    <section class="card enrollment-recent-card">
       <h3>Recently Activated</h3>
 
       <p class="small muted">
@@ -190,9 +285,10 @@
       </div>
     </section>
 
-    <footer class="footer small muted">
-      Sandman System™ — Management Enrollment Console
-    </footer>
+    <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 
 </main>
 
@@ -201,5 +297,6 @@
     src="/intake-management/management.intake.js"
   ></script>
 
+  <script src="/assets/js/management-nav.js"></script>
 </body>
 </html>\n

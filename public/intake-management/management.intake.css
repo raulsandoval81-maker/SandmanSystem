@@ -1382,3 +1382,413 @@ body.management-review-page{
 }
 
 /* === END MANAGEMENT REVIEW DESKTOP FIX V2 === */
+
+
+/* =========================================================
+   SANDMAN_MANAGEMENT_ENROLLMENT_WORKSPACE
+   Presentation only. Enrollment logic and IDs unchanged.
+========================================================= */
+
+.enrollment-workspace-header{
+  margin-bottom:22px;
+  overflow:hidden;
+
+  border:
+    1px solid rgba(250,204,21,.22);
+
+  border-radius:24px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #0b0f15 0%,
+      #151922 100%
+    );
+
+  box-shadow:
+    0 18px 42px rgba(0,0,0,.28);
+}
+
+.enrollment-workspace-header__top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:24px;
+
+  padding:
+    clamp(22px,4vw,34px);
+}
+
+.enrollment-system-label{
+  margin:0 0 7px;
+
+  color:var(--gold);
+
+  font-size:.72rem;
+  font-weight:950;
+
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+
+.enrollment-workspace-header h1{
+  margin:0 0 8px;
+
+  color:#fff;
+
+  font-size:
+    clamp(1.8rem,4vw,2.8rem);
+
+  line-height:1;
+  letter-spacing:-.035em;
+}
+
+.enrollment-workspace-header
+.muted{
+  margin:0;
+}
+
+.enrollment-back-link{
+  flex:0 0 auto;
+
+  padding:10px 14px;
+
+  border:
+    1px solid rgba(250,204,21,.28);
+
+  border-radius:999px;
+
+  background:
+    rgba(250,204,21,.07);
+
+  color:#ffe27a;
+
+  font-size:.78rem;
+  font-weight:900;
+
+  text-decoration:none;
+}
+
+.enrollment-back-link:hover,
+.enrollment-back-link:focus-visible{
+  border-color:
+    rgba(250,204,21,.58);
+
+  background:
+    rgba(250,204,21,.13);
+
+  outline:none;
+}
+
+.enrollment-workflow{
+  display:grid;
+
+  grid-template-columns:
+    auto auto auto auto auto auto auto;
+
+  align-items:center;
+  justify-content:center;
+
+  gap:10px;
+
+  padding:13px 20px;
+
+  border-top:
+    1px solid rgba(250,204,21,.17);
+
+  background:
+    rgba(0,0,0,.24);
+}
+
+.enrollment-workflow__step{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+
+  color:
+    rgba(255,255,255,.78);
+
+  font-size:.78rem;
+  font-weight:850;
+}
+
+.enrollment-workflow__step strong{
+  display:inline-grid;
+  place-items:center;
+
+  width:24px;
+  height:24px;
+
+  border:
+    1px solid rgba(250,204,21,.35);
+
+  border-radius:50%;
+
+  background:
+    rgba(250,204,21,.09);
+
+  color:var(--gold);
+}
+
+.enrollment-workflow__arrow{
+  color:
+    rgba(250,204,21,.42);
+}
+
+
+/* PRIMARY WORK AREA */
+
+.enrollment-start-card{
+  margin-bottom:18px;
+
+  border-color:
+    rgba(250,204,21,.24);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(250,204,21,.055),
+      rgba(255,255,255,.018)
+    );
+}
+
+.enrollment-start-card
+.workflow-mode-grid{
+  margin-top:6px;
+}
+
+
+/* QUEUE */
+
+.enrollment-queue-card{
+  margin-top:18px;
+
+  border-color:
+    rgba(255,255,255,.11);
+}
+
+.enrollment-queue-card > h3,
+.enrollment-recent-card > h3{
+  margin-bottom:6px;
+
+  font-size:1.12rem;
+}
+
+#pending-list,
+#approved-list{
+  margin-top:14px;
+
+  border-top:
+    1px solid rgba(255,255,255,.07);
+
+  padding-top:10px;
+}
+
+
+/* RECENT HISTORY */
+
+.enrollment-recent-card{
+  margin-top:18px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.025),
+      rgba(255,255,255,.012)
+    );
+}
+
+
+/* FOOTER */
+
+.footer{
+  margin-top:28px;
+
+  padding-top:18px;
+
+  border-top:
+    1px solid rgba(255,255,255,.07);
+
+  text-align:center;
+
+  letter-spacing:.035em;
+}
+
+
+/* MOBILE */
+
+@media (max-width:720px){
+
+  .wrap{
+    padding:
+      14px
+      12px
+      60px;
+  }
+
+  .enrollment-workspace-header{
+    border-radius:18px;
+  }
+
+  .enrollment-workspace-header__top{
+    align-items:flex-start;
+    flex-direction:column;
+
+    gap:16px;
+
+    padding:22px 18px;
+  }
+
+  .enrollment-back-link{
+    width:100%;
+
+    text-align:center;
+  }
+
+  .enrollment-workflow{
+    grid-template-columns:
+      repeat(4,minmax(0,1fr));
+
+    gap:6px;
+
+    padding:12px 8px;
+  }
+
+  .enrollment-workflow__arrow{
+    display:none;
+  }
+
+  .enrollment-workflow__step{
+    justify-content:center;
+
+    gap:4px;
+
+    font-size:.66rem;
+  }
+
+  .enrollment-workflow__step strong{
+    width:21px;
+    height:21px;
+
+    font-size:.66rem;
+  }
+
+}
+
+
+/* =========================================================
+   SANDMAN_ENROLLMENT_DESKTOP_SECTION_COLORS
+   Stronger visual separation for desktop workflow sections.
+========================================================= */
+
+/* START INTAKE — BLUE */
+.enrollment-start-card{
+  border-color:rgba(59,130,246,.40);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(59,130,246,.12),
+      rgba(255,255,255,.018)
+    );
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.26),
+    inset 4px 0 0 rgba(59,130,246,.78);
+}
+
+.enrollment-start-card h3{
+  color:#dbeafe;
+}
+
+.enrollment-start-card .status-pill{
+  border-color:rgba(96,165,250,.40);
+  background:rgba(59,130,246,.13);
+  color:#bfdbfe;
+}
+
+
+/* PENDING INTAKES — RED */
+.enrollment-queue-card{
+  border-color:rgba(239,68,68,.34);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(239,68,68,.09),
+      rgba(255,255,255,.016)
+    );
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.24),
+    inset 4px 0 0 rgba(239,68,68,.72);
+}
+
+.enrollment-queue-card h3{
+  color:#fee2e2;
+}
+
+#pending-count{
+  color:#fca5a5;
+  font-weight:900;
+}
+
+
+/* RECENTLY ACTIVATED — WHITE / NEUTRAL */
+.enrollment-recent-card{
+  border-color:rgba(255,255,255,.18);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.018)
+    );
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.22),
+    inset 4px 0 0 rgba(255,255,255,.62);
+}
+
+.enrollment-recent-card h3{
+  color:#ffffff;
+}
+
+
+/* DESKTOP — MORE BREATHING ROOM */
+@media (min-width:900px){
+
+  .wrap{
+    max-width:1280px;
+    padding-top:34px;
+  }
+
+  .enrollment-start-card,
+  .enrollment-queue-card,
+  .enrollment-recent-card{
+    padding:26px 28px;
+  }
+
+  .enrollment-start-card{
+    margin-top:22px;
+  }
+
+  .enrollment-queue-card,
+  .enrollment-recent-card{
+    margin-top:24px;
+  }
+
+  .workflow-mode-grid{
+    gap:18px;
+  }
+
+  .workflow-mode-btn{
+    min-height:128px;
+  }
+
+  #pending-list,
+  #approved-list{
+    margin-top:18px;
+    padding-top:16px;
+  }
+}

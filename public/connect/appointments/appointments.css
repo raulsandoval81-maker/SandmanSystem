@@ -308,3 +308,110 @@ h1{
     width: 100%;
   }
 }
+/* ======================================
+   Appointment workspace contrast
+====================================== */
+
+#schedulePanel {
+  border: 1px solid #c9c2b3 !important;
+  background: #ffffff !important;
+  box-shadow:
+    0 14px 34px rgba(37, 32, 22, 0.09) !important;
+}
+
+#schedulePanel > h2 {
+  color: #1f1d18 !important;
+}
+
+#selectedLeadSummary .appointment-card {
+  border: 1px solid #d7d0c2 !important;
+  background: #f7f4ed !important;
+}
+
+#selectedLeadSummary .appointment-card h4 {
+  color: #1f1d18 !important;
+}
+
+#selectedLeadSummary .appointment-card p {
+  color: #4e493f !important;
+}
+
+#selectedLeadSummary .appointment-card strong {
+  color: #1f1d18 !important;
+}
+
+#scheduleForm {
+  padding-top: 4px;
+}
+
+#scheduleForm label {
+  color: #38342c !important;
+}
+
+#scheduleForm input,
+#scheduleForm select,
+#scheduleForm textarea {
+  border: 1px solid #aaa293 !important;
+  background: #ffffff !important;
+  color: #1f1d18 !important;
+  box-shadow:
+    inset 0 1px 2px rgba(37, 32, 22, 0.04);
+}
+
+#scheduleForm input:hover,
+#scheduleForm select:hover,
+#scheduleForm textarea:hover {
+  border-color: #827968 !important;
+}
+
+#scheduleForm input:focus,
+#scheduleForm select:focus,
+#scheduleForm textarea:focus {
+  border-color: #b38a16 !important;
+  box-shadow:
+    0 0 0 3px rgba(179, 138, 22, 0.16) !important;
+}
+
+#scheduleForm .optional {
+  color: #716a5e !important;
+}
+
+@media (max-width: 700px) {
+  #schedulePanel {
+    padding: 20px 16px !important;
+  }
+
+  #scheduleForm {
+    gap: 16px;
+  }
+
+  #scheduleForm label {
+    margin-bottom: -7px;
+    font-size: 0.84rem;
+  }
+
+  #scheduleForm input,
+  #scheduleForm select {
+    min-height: 54px;
+  }
+
+  #scheduleForm textarea {
+    min-height: 120px;
+  }
+
+  #scheduleForm #scheduleBtn {
+    min-height: 54px;
+    margin-top: 6px;
+  }
+}
+
+/* Strengthen appointment orientation copy */
+.appointments-page .info-card > p,
+.appointments-page .appointments-intro,
+.appointments-page .muted {
+  color: #4a453d;
+}
+
+#schedulePanel > p {
+  color: #4a453d;
+}

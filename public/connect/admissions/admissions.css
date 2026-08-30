@@ -324,3 +324,234 @@
     width: 100%;
   }
 }
+
+
+/* ======================================
+   Management Admissions soft alignment
+====================================== */
+
+.admissions-page {
+  color: #172033;
+}
+
+.info-card {
+  border-color: #e3dac5;
+  background: #fffdf8;
+  box-shadow: 0 12px 30px rgba(40, 32, 15, 0.07);
+}
+
+.summary-item {
+  border-color: #e3dac5;
+  background: #faf6ec;
+}
+
+.summary-sub,
+.field-label,
+.optional {
+  color: #667085;
+}
+
+.field-value,
+.form-field label {
+  color: #172033;
+}
+
+#admissionsForm input,
+#admissionsForm select,
+#admissionsForm textarea {
+  border-color: #d2c5a8;
+  background: #ffffff;
+  color: #172033;
+}
+
+#admissionsForm input:focus,
+#admissionsForm select:focus,
+#admissionsForm textarea:focus {
+  border-color: #b38a16;
+  box-shadow: 0 0 0 3px rgba(179, 138, 22, 0.14);
+}
+
+/* Secondary buttons stay light */
+
+.form-actions .btn {
+  border-color: #d2c5a8;
+  background: #fffdf8;
+  color: #172033;
+  box-shadow: 0 2px 6px rgba(40, 32, 15, 0.04);
+}
+
+.form-actions .btn:hover,
+.form-actions .btn:focus-visible {
+  border-color: #b38a16;
+  background: #faf6ec;
+  color: #172033;
+}
+
+/* Save remains strong without making the page dark */
+
+.form-actions .btn-primary,
+#saveDecisionBtn {
+  border-color: #172033;
+  background: #172033;
+  color: #ffffff;
+}
+
+.form-actions .btn-primary:hover,
+.form-actions .btn-primary:focus-visible,
+#saveDecisionBtn:hover,
+#saveDecisionBtn:focus-visible {
+  border-color: #2f394d;
+  background: #2f394d;
+  color: #ffffff;
+}
+
+/* Forward pipeline action keeps the gold accent */
+
+#openProposalBtn {
+  border-color: #b38a16;
+  background: #b38a16;
+  color: #111111;
+}
+
+#openProposalBtn:hover,
+#openProposalBtn:focus-visible {
+  border-color: #c99c19;
+  background: #c99c19;
+  color: #111111;
+}
+
+
+/* Admissions header contrast */
+
+.admissions-header h1 {
+  color: #172033;
+  font-weight: 800;
+}
+
+.admissions-header p {
+  color: #4f596b;
+  font-weight: 500;
+}
+
+.header-actions .btn {
+  border-color: #d2c5a8;
+  background: #fffdf8;
+  color: #172033;
+}
+
+.header-actions .btn:hover,
+.header-actions .btn:focus-visible {
+  border-color: #b38a16;
+  background: #faf6ec;
+  color: #172033;
+}
+
+/* Stronger Admissions hero hierarchy */
+
+.admissions-header .eyebrow {
+  color: #8a6810;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.admissions-header h1 {
+  color: #172033;
+  font-weight: 850;
+}
+
+.admissions-header p {
+  color: #3f4858;
+  font-weight: 550;
+  line-height: 1.6;
+}
+
+/* Admissions hero surface */
+
+.admissions-header {
+  padding: 24px 26px;
+  border: 1px solid #e3dac5;
+  border-radius: 18px;
+  background: #fffdf8;
+  box-shadow: 0 10px 26px rgba(40, 32, 15, 0.06);
+}
+
+.admissions-header .eyebrow {
+  margin-top: 0;
+  color: #9a7412 !important;
+}
+
+.admissions-header h1 {
+  color: #172033 !important;
+}
+
+.admissions-header > div:first-child > p:last-child {
+  margin-bottom: 0;
+  color: #4f596b !important;
+}
+
+/* Admissions hero — force crisp readable text */
+
+.admissions-header > div:first-child > .eyebrow {
+  color: #7a5a00 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  font-weight: 900 !important;
+}
+
+.admissions-header > div:first-child > h1 {
+  color: #111827 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  font-weight: 900 !important;
+}
+
+.admissions-header > div:first-child > p:not(.eyebrow) {
+  color: #303846 !important;
+  opacity: 1 !important;
+  filter: none !important;
+  font-weight: 600 !important;
+}
+
+/* Admissions case progression */
+
+.admissions-progress {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 22px;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border: 1px solid #e3dac5;
+  border-radius: 14px;
+  background: #fffdf8;
+  white-space: nowrap;
+}
+
+.progress-step {
+  padding: 6px 9px;
+  border-radius: 9px;
+  color: #667085;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.progress-step--complete {
+  color: #287a4b;
+}
+
+.progress-step--active {
+  background: #f3e8bd;
+  color: #59440b;
+  font-weight: 850;
+}
+
+.progress-arrow {
+  color: #a69d8a;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 640px) {
+  .admissions-progress {
+    padding: 10px 12px;
+  }
+}

@@ -560,3 +560,188 @@ textarea::placeholder{
 
 /* === SANDMAN PARENT INTAKE END === */
 
+
+
+/* ==========================================================
+   SANDMAN_INTAKE_HEADER_POLISH
+========================================================== */
+
+.intake-header--polished{
+  margin-bottom:24px;
+  overflow:hidden;
+
+  border:1px solid rgba(179,138,22,.35);
+  border-radius:22px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #0b0e13 0%,
+      #151922 100%
+    );
+
+  color:#fff;
+
+  box-shadow:
+    0 14px 34px rgba(0,0,0,.12);
+}
+
+.intake-header__top{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+
+  padding:16px 20px;
+
+  border-bottom:
+    1px solid rgba(201,162,39,.35);
+}
+
+.intake-brand{
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.intake-brand__system{
+  color:#fff;
+}
+
+.intake-brand__division{
+  padding-left:10px;
+
+  border-left:
+    1px solid rgba(201,162,39,.55);
+
+  color:#c9a227;
+}
+
+.intake-header--polished .language-switcher{
+  margin:0;
+}
+
+.intake-header--polished .language-btn{
+  border-color:
+    rgba(255,255,255,.18);
+
+  background:
+    rgba(255,255,255,.06);
+
+  color:
+    rgba(255,255,255,.72);
+}
+
+.intake-header--polished .language-btn.active{
+  border-color:#c9a227;
+
+  background:
+    rgba(201,162,39,.15);
+
+  color:#fff;
+}
+
+.intake-header__title{
+  padding:
+    clamp(26px,5vw,46px)
+    20px;
+
+  text-align:center;
+}
+
+.intake-header__title .eyebrow{
+  margin-bottom:8px;
+  color:#c9a227;
+}
+
+.intake-header__title .page-title{
+  margin-bottom:10px;
+
+  color:#fff;
+
+  font-size:
+    clamp(2rem,6vw,3.3rem);
+
+  line-height:1.05;
+}
+
+.intake-header__description{
+  max-width:620px;
+  margin:0 auto;
+
+  color:
+    rgba(255,255,255,.72);
+
+  font-size:.98rem;
+  line-height:1.5;
+}
+
+@media (max-width:620px){
+
+  .intake-header--polished{
+    border-radius:18px;
+  }
+
+  .intake-header__top{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:12px;
+
+    padding:14px 16px;
+  }
+
+  .intake-header--polished
+  .language-switcher{
+    width:100%;
+  }
+
+  .intake-header--polished
+  .language-btn{
+    flex:1;
+  }
+
+  .intake-header__title{
+    padding:30px 16px 34px;
+  }
+}
+
+
+/* ==========================================================
+   SANDMAN_INTAKE_THANKS_POLISH
+========================================================== */
+
+.thanks-brand{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+
+  margin-bottom:20px;
+
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+
+.thanks-brand__system{
+  color:#111827;
+}
+
+.thanks-brand__division{
+  padding-left:10px;
+  border-left:1px solid rgba(179,138,22,.45);
+  color:#b38a16;
+}
+
+@media (max-width:620px){
+  .thanks-brand{
+    flex-wrap:wrap;
+    gap:8px;
+  }
+}

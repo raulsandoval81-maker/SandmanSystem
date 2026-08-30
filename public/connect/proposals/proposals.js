@@ -1,11 +1,16 @@
 import {
-  auth,
   db,
   doc,
   getDoc,
   collection,
-  getDocs
+  getDocs,
+  query,
+  where
 } from "/assets/js/firebase-init.js";
+
+import {
+  requireManagement
+} from "/management/shared/guards/management-guard.js";
 
 /* ==================================================
    Route Context
@@ -335,39 +340,6 @@ function labelForStatus(value = "") {
 }
 
 /* ==================================================
-   Authentication
-   ================================================== */
-
-async function requireStaffUser() {
-  if (
-    typeof auth.authStateReady ===
-    "function"
-  ) {
-    await auth.authStateReady();
-  }
-
-  const user =
-    auth.currentUser;
-
-  if (!user) {
-    const returnUrl =
-      window.location.pathname +
-      window.location.search;
-
-    window.location.replace(
-      "/management/auth/?returnUrl=" +
-      encodeURIComponent(
-        returnUrl
-      )
-    );
-
-    return null;
-  }
-
-  return user;
-}
-
-/* ==================================================
    Proposal Queue DOM
    ================================================== */
 
@@ -437,68 +409,84 @@ function proposalQueueStyles() {
   style.textContent = `
     .proposal-queue{
       display:grid;
-      gap:24px;
+      gap:28px;
       margin-top:24px;
+      color:var(--management-text);
     }
 
     .proposal-queue-header{
       display:flex;
       justify-content:space-between;
-      gap:16px;
+      gap:20px;
       align-items:flex-start;
       flex-wrap:wrap;
     }
 
     .proposal-queue-header h2{
       margin:0;
+      color:var(--management-text);
     }
 
     .proposal-queue-header p{
       margin:6px 0 0;
-      opacity:.75;
+      color:var(--management-muted);
       line-height:1.5;
     }
 
     .proposal-queue-counts{
-      display:flex;
-      flex-wrap:wrap;
+      display:grid;
+      grid-template-columns:
+        repeat(4,minmax(110px,1fr));
       gap:8px;
     }
 
     .proposal-count{
-      display:inline-flex;
+      display:flex;
       align-items:center;
-      gap:6px;
-      min-height:34px;
-      padding:7px 10px;
-      border:1px solid rgba(255,255,255,.16);
-      border-radius:999px;
+      justify-content:center;
+      min-height:44px;
+      padding:9px 12px;
+      border:1px solid var(--management-border);
+      border-radius:11px;
+      background:var(--management-surface);
+      color:var(--management-text);
       font-size:.82rem;
-      font-weight:700;
+      font-weight:800;
+      white-space:nowrap;
     }
 
     .proposal-group{
       display:grid;
-      gap:12px;
+      gap:14px;
     }
 
     .proposal-group-head{
       display:flex;
       justify-content:space-between;
-      gap:12px;
+      gap:16px;
       align-items:end;
-      border-bottom:1px solid rgba(255,255,255,.12);
-      padding-bottom:8px;
+      padding-bottom:10px;
+      border-bottom:
+        1px solid var(--management-border);
     }
 
     .proposal-group-head h3{
       margin:0;
+      color:var(--management-text);
       font-size:1.05rem;
     }
 
     .proposal-group-head span{
-      opacity:.65;
+      display:block;
+      margin-top:4px;
+      color:var(--management-muted);
       font-size:.82rem;
+      line-height:1.4;
+    }
+
+    .proposal-group-head > strong{
+      color:var(--management-text);
+      font-size:1rem;
     }
 
     .proposal-list{
@@ -508,11 +496,15 @@ function proposalQueueStyles() {
 
     .proposal-card{
       display:grid;
-      gap:14px;
+      gap:16px;
       padding:18px;
-      border:1px solid rgba(255,255,255,.15);
+      border:
+        1px solid var(--management-border);
       border-radius:16px;
-      background:rgba(255,255,255,.035);
+      background:var(--management-surface);
+      color:var(--management-text);
+      box-shadow:
+        0 8px 22px rgba(40,32,15,.045);
     }
 
     .proposal-card-top{
@@ -525,16 +517,17 @@ function proposalQueueStyles() {
 
     .proposal-card-id{
       display:block;
-      margin-bottom:4px;
-      opacity:.65;
+      margin-bottom:5px;
+      color:var(--management-muted);
       font-size:.74rem;
-      font-weight:800;
+      font-weight:850;
       letter-spacing:.08em;
       text-transform:uppercase;
     }
 
     .proposal-card h4{
       margin:0;
+      color:var(--management-text);
       font-size:1.15rem;
     }
 
@@ -542,47 +535,93 @@ function proposalQueueStyles() {
       display:inline-flex;
       align-items:center;
       min-height:30px;
-      padding:6px 9px;
-      border:1px solid currentColor;
+      padding:6px 10px;
+      border:1px solid var(--management-border-strong);
       border-radius:999px;
-      font-size:.75rem;
+      background:var(--management-neutral-soft);
+      color:var(--management-neutral);
+      font-size:.72rem;
       font-weight:900;
       letter-spacing:.04em;
       text-transform:uppercase;
+    }
+
+    .proposal-card[data-status="PAID"]
+      .proposal-status{
+      border-color:#a9d0b7;
+      background:var(--management-success-soft);
+      color:var(--management-success);
+    }
+
+    .proposal-card[data-status="APPROVED"]
+      .proposal-status,
+    .proposal-card[data-status="READY_FOR_CHECKOUT"]
+      .proposal-status,
+    .proposal-card[data-status="CHECKOUT_CREATED"]
+      .proposal-status{
+      border-color:#dcc77f;
+      background:var(--management-gold-soft);
+      color:#59440b;
+    }
+
+    .proposal-card[data-status="REVIEW"]
+      .proposal-status{
+      border-color:#dcc77f;
+      background:#fff8df;
+      color:var(--management-warning);
+    }
+
+    .proposal-card[data-status="LOCKED"]
+      .proposal-status,
+    .proposal-card[data-status="VOID"]
+      .proposal-status{
+      border-color:var(--management-border);
+      background:var(--management-neutral-soft);
+      color:var(--management-neutral);
+    }
+
+    .proposal-athletes{
+      display:grid;
+      gap:5px;
+      padding:11px 12px;
+      border-radius:11px;
+      background:var(--management-surface-soft);
+      color:var(--management-text);
+      font-size:.88rem;
+      line-height:1.45;
     }
 
     .proposal-card-grid{
       display:grid;
       grid-template-columns:
         repeat(4,minmax(0,1fr));
-      gap:12px;
+      gap:10px;
     }
 
     .proposal-card-grid div{
       min-width:0;
+      padding:11px 12px;
+      border:
+        1px solid var(--management-border);
+      border-radius:11px;
+      background:var(--management-surface-soft);
     }
 
     .proposal-card-grid small{
       display:block;
-      margin-bottom:3px;
-      opacity:.6;
-      font-size:.7rem;
-      font-weight:800;
+      margin-bottom:5px;
+      color:var(--management-muted);
+      font-size:.68rem;
+      font-weight:850;
       letter-spacing:.05em;
       text-transform:uppercase;
     }
 
     .proposal-card-grid strong{
       display:block;
+      color:var(--management-text);
       line-height:1.35;
       overflow-wrap:anywhere;
-    }
-
-    .proposal-athletes{
-      display:grid;
-      gap:5px;
-      font-size:.88rem;
-      line-height:1.4;
     }
 
     .proposal-card-actions{
@@ -595,29 +634,47 @@ function proposalQueueStyles() {
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      min-height:40px;
-      padding:9px 14px;
-      border-radius:9px;
-      background:#d4ad37;
-      color:#111;
+      min-height:42px;
+      padding:10px 15px;
+      border:1px solid var(--management-gold);
+      border-radius:10px;
+      background:var(--management-gold);
+      color:#fffdf8;
       font-weight:850;
       text-decoration:none;
     }
 
+    .proposal-open-btn:hover,
+    .proposal-open-btn:focus-visible{
+      border-color:#95620a;
+      background:#95620a;
+      color:#fffdf8;
+    }
+
     .proposal-empty{
       padding:16px;
-      border:1px dashed rgba(255,255,255,.16);
+      border:
+        1px dashed var(--management-border-strong);
       border-radius:14px;
-      opacity:.7;
+      background:var(--management-surface-soft);
+      color:var(--management-muted);
     }
 
     .proposal-error{
       padding:16px;
-      border:1px solid rgba(224,143,143,.45);
+      border:1px solid #e2aaa6;
       border-radius:14px;
+      background:var(--management-danger-soft);
+      color:var(--management-danger);
     }
 
-    @media(max-width:800px){
+    @media(max-width:900px){
+      .proposal-queue-counts{
+        width:100%;
+        grid-template-columns:
+          repeat(2,minmax(0,1fr));
+      }
+
       .proposal-card-grid{
         grid-template-columns:
           repeat(2,minmax(0,1fr));
@@ -625,8 +682,31 @@ function proposalQueueStyles() {
     }
 
     @media(max-width:520px){
+      .proposal-queue{
+        gap:24px;
+      }
+
+      .proposal-queue-counts{
+        grid-template-columns:
+          repeat(2,minmax(0,1fr));
+      }
+
+      .proposal-count{
+        min-height:48px;
+        white-space:normal;
+        text-align:center;
+      }
+
+      .proposal-card{
+        padding:15px;
+      }
+
       .proposal-card-grid{
         grid-template-columns:1fr;
+      }
+
+      .proposal-open-btn{
+        width:100%;
       }
     }
   `;
@@ -759,7 +839,7 @@ function actionLabel(
       return "Open Locked Proposal";
 
     case "PAID":
-      return "View Paid Proposal";
+      return "Continue to Enrollment";
 
     default:
       return "Open Proposal";
@@ -802,10 +882,11 @@ function proposalCardHtml(
     proposal.createdAt;
 
   const href =
-    "/connect/admissions/calculator/" +
-    `?proposalId=${encodeURIComponent(
-      id
-    )}`;
+    status === "PAID"
+      ? "/intake-management/" +
+        `?proposalId=${encodeURIComponent(id)}`
+      : "/connect/admissions/calculator/" +
+        `?proposalId=${encodeURIComponent(id)}`;
 
   return `
     <article
@@ -1010,16 +1091,91 @@ async function loadProposalQueue() {
       true;
   }
 
-  const snapshot =
-    await getDocs(
-      collection(
-        db,
-        "proposals"
+  const context =
+    await requireManagement();
+
+  let proposalDocs = [];
+
+  if (context.isSystemAdmin) {
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "proposals"
+        )
+      );
+
+    proposalDocs =
+      snapshot.docs;
+  } else {
+    const locationIds =
+      Array.isArray(
+        context.scope?.locationIds
       )
-    );
+        ? context.scope.locationIds
+            .map((value) =>
+              String(value || "").trim()
+            )
+            .filter(Boolean)
+        : [];
+
+    if (locationIds.length) {
+      const chunks = [];
+
+      for (
+        let index = 0;
+        index < locationIds.length;
+        index += 10
+      ) {
+        chunks.push(
+          locationIds.slice(
+            index,
+            index + 10
+          )
+        );
+      }
+
+      const snapshots =
+        await Promise.all(
+          chunks.map(
+            (locationChunk) =>
+              getDocs(
+                query(
+                  collection(
+                    db,
+                    "proposals"
+                  ),
+                  where(
+                    "locationId",
+                    "in",
+                    locationChunk
+                  )
+                )
+              )
+          )
+        );
+
+      const byId =
+        new Map();
+
+      for (const snapshot of snapshots) {
+        for (const proposalDoc of snapshot.docs) {
+          byId.set(
+            proposalDoc.id,
+            proposalDoc
+          );
+        }
+      }
+
+      proposalDocs =
+        Array.from(
+          byId.values()
+        );
+    }
+  }
 
   const proposals =
-    snapshot.docs
+    proposalDocs
       .map((snapshotDoc) => ({
         id:
           snapshotDoc.id,
@@ -1681,12 +1837,11 @@ function redirectProposalId() {
    ================================================== */
 
 try {
-  const user =
-    await requireStaffUser();
+  // Proposal work belongs to Management.
+  // The shared guard also supplies location scope.
+  await requireManagement();
 
-  if (!user) {
-    // Redirect already handled.
-  } else if (
+  if (
     redirectProposalId()
   ) {
     // Redirecting into Prospect Builder.
@@ -1742,3 +1897,43 @@ try {
     `;
   }
 }
+/* Proposal Queue header alignment */
+document.addEventListener("DOMContentLoaded", () => {
+  const style = document.createElement("style");
+
+  style.textContent = `
+    .proposal-queue-header{
+      display:grid !important;
+      grid-template-columns:1fr !important;
+      gap:16px !important;
+      align-items:start !important;
+    }
+
+    .proposal-queue-counts{
+      width:100% !important;
+      display:grid !important;
+      grid-template-columns:
+        repeat(4,minmax(0,1fr)) !important;
+      gap:10px !important;
+    }
+
+    .proposal-count{
+      min-height:58px !important;
+      display:flex !important;
+      align-items:center !important;
+      justify-content:center !important;
+      text-align:center !important;
+      border-radius:12px !important;
+      background:var(--management-surface-soft) !important;
+    }
+
+    @media(max-width:700px){
+      .proposal-queue-counts{
+        grid-template-columns:
+          repeat(2,minmax(0,1fr)) !important;
+      }
+    }
+  `;
+
+  document.head.appendChild(style);
+});

@@ -24,15 +24,16 @@
     rel="stylesheet"
     href="/connect/leads/leads.css"
   />
+  <link rel="stylesheet" href="/assets/css/management-ui.css" />
 </head>
 
 <body>
   <main class="leads-page">
 
-    <header class="leads-header">
+    <header class="leads-header management-workspace-header">
       <div>
         <p class="eyebrow">
-          Sandman Connect
+          Academy Management
         </p>
 
         <h1>
@@ -43,25 +44,65 @@
   Review new families, confirm their interests, and schedule Admissions Appointments.
 </p>
       </div>
+    </header>
 
-      <div class="header-actions">
+    <nav class="management-pipeline-nav" aria-label="Management navigation">
+      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+      <a href="/connect/leads/" aria-current="page">Leads</a>
+      <a href="/connect/appointments/">Appointments</a>
+      <a href="/connect/proposals/">Proposals</a>
+      <a href="/intake-management/">Enrollment</a>
+      <a href="/management/inbox/">Inbox</a>
+      <a href="/connect/admissions-requests/">Try a Class</a>
+    </nav>
+
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>Review new family interest before it becomes a scheduled Admissions Appointment.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>Review the family, confirm contact and program interest, follow up as needed, and schedule the appropriate Admissions Appointment.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>A scheduled family moves into the Appointments workspace for the next Management step.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>Lead review records family interest. Technical experience verification belongs to the Coach when that verification is actually needed.</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="management-page-actions" aria-label="Page actions">
 <a class="btn" href="/connect/interest/">
   Open Public Form
 </a>
-
-        <a class="btn" href="/connect/appointments/">
-          Appointments
-        </a>
-
-        <button
+<button
           id="refreshBtn"
-          class="btn btn-primary"
+          class="btn"
           type="button"
         >
           Refresh
         </button>
-      </div>
-    </header>
+    </div>
+
 
     <section class="summary-grid">
       <article class="summary-card">
@@ -159,5 +200,11 @@
     type="module"
     src="/connect/leads/leads.js"
   ></script>
+  <script src="/assets/js/management-nav.js"></script>
+
+  <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 </body>
 </html>

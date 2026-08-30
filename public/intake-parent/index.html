@@ -25,74 +25,101 @@
   <main class="wrap">
 
     <!-- ==================================================
-         LANGUAGE
+         INTAKE HEADER
     =================================================== -->
 
-    <div
-      class="language-switcher"
-      role="group"
-      aria-label="Language selection"
-    >
-      <button
-        id="languageEnglish"
-        class="language-btn active"
-        type="button"
-        data-set-language="en"
-        aria-pressed="true"
-      >
-        English
-      </button>
+    <header class="intake-header intake-header--polished">
 
-      <button
-        id="languageSpanish"
-        class="language-btn"
-        type="button"
-        data-set-language="es"
-        aria-pressed="false"
-      >
-        Español
-      </button>
-    </div>
+      <div class="intake-header__top">
 
+        <div class="intake-brand">
+          <span class="intake-brand__system">
+            SANDMAN SYSTEM™
+          </span>
 
-    <!-- ==================================================
-         PAGE HEADER
-    =================================================== -->
+          <span class="intake-brand__division">
+            <span data-lang="en">
+              Enrollment
+            </span>
 
-    <header class="intake-header">
+            <span data-lang="es" hidden>
+              Inscripción
+            </span>
+          </span>
+        </div>
 
-      <p class="eyebrow">
-        <span data-lang="en">
-          Sandman Enrollment
-        </span>
-
-        <span data-lang="es" hidden>
-          Inscripción Sandman
-        </span>
-      </p>
-
-
-      <h1 class="page-title">
-
-        <span
-          id="intakePageTitle"
-          data-lang="en"
+        <div
+          class="language-switcher"
+          role="group"
+          aria-label="Language selection"
         >
-          Athlete Intake
-        </span>
+          <button
+            id="languageEnglish"
+            class="language-btn active"
+            type="button"
+            data-set-language="en"
+            aria-pressed="true"
+          >
+            English
+          </button>
 
-        <span
-          id="intakePageTitleEs"
-          data-lang="es"
-          hidden
-        >
-          Registro del Atleta
-        </span>
+          <button
+            id="languageSpanish"
+            class="language-btn"
+            type="button"
+            data-set-language="es"
+            aria-pressed="false"
+          >
+            Español
+          </button>
+        </div>
 
-      </h1>
+      </div>
 
+      <div class="intake-header__title">
 
-      
+        <p class="eyebrow">
+          <span data-lang="en">
+            Secure Enrollment
+          </span>
+
+          <span data-lang="es" hidden>
+            Inscripción Segura
+          </span>
+        </p>
+
+        <h1 class="page-title">
+
+          <span
+            id="intakePageTitle"
+            data-lang="en"
+          >
+            Athlete Intake
+          </span>
+
+          <span
+            id="intakePageTitleEs"
+            data-lang="es"
+            hidden
+          >
+            Registro del Atleta
+          </span>
+
+        </h1>
+
+        <p class="intake-header__description">
+          <span data-lang="en">
+            Participant information, waiver,
+            and enrollment intake.
+          </span>
+
+          <span data-lang="es" hidden>
+            Información del participante,
+            exención e inscripción.
+          </span>
+        </p>
+
+      </div>
 
     </header>
 
@@ -569,19 +596,17 @@
         <div class="waiver-lang-row">
 
           <button
-            id="openWaiverBtnEn"
+            id="openWaiverBtn"
             class="btn btn-waiver"
             type="button"
           >
-            English Waiver
-          </button>
+            <span data-lang="en">
+              Open Waiver
+            </span>
 
-          <button
-            id="openWaiverBtnEs"
-            class="btn btn-waiver"
-            type="button"
-          >
-            Exención en Español
+            <span data-lang="es" hidden>
+              Abrir Exención
+            </span>
           </button>
 
         </div>
@@ -781,15 +806,15 @@
 
           <span data-lang="en">
             Please review the information above before submitting.
-            Once submitted, your coach will review the intake and
-            complete the next step in your enrollment.
+            Once submitted, Management will review your intake and
+          continue with the next step in your enrollment.
           </span>
 
           <span data-lang="es" hidden>
             Revise la información anterior antes de enviarla.
-            Una vez enviada, su entrenador revisará el registro
-            y completará el siguiente paso de su inscripción.
-          </span>
+            Una vez enviado, la administración revisará su registro y
+          continuará con el siguiente paso de su inscripción.
+        </span>
 
         </p>
 

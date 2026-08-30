@@ -629,38 +629,14 @@ ${esc(
 
   }
 
-  if (appointmentLocation) {
-    const preferred =
-      selectedLead.preferredLocation || "";
-
-    appointmentLocation.value =
-      preferred === "lompoc" || preferred === "solvang"
-        ? preferred
-        : "";
-  }
-
   appointmentDate.value =
-  selectedLead.appointmentDate || "";
+    selectedLead.appointmentDate || "";
 
-appointmentTime.value =
-  selectedLead.appointmentTime || "";
+  appointmentTime.value =
+    selectedLead.appointmentTime || "";
 
-const preferredAppointmentLocation =
-  selectedLead.preferredLocation === "solvang"
-    ? "santa-ynez-valley"
-    : selectedLead.preferredLocation || "";
-
-appointmentLocation.value =
-  selectedLead.appointmentLocation ||
-  preferredAppointmentLocation ||
-  "";
-
-populateAppointmentCoachSelect(
-  selectedLead
-);
-
-appointmentNotes.value =
-  selectedLead.appointmentNotes || "";
+  appointmentNotes.value =
+    selectedLead.appointmentNotes || "";
 
 if (scheduleBtn) {
   scheduleBtn.disabled = false;
@@ -1200,18 +1176,15 @@ scheduleForm?.addEventListener(
       String(appointmentTime?.value || "").trim();
 
     const locationValue =
-      String(appointmentLocation?.value || "").trim();
+      String(selectedLead.locationId || "").trim();
 
-    const coachUid =
-      String(appointmentCoach?.value || "").trim();
-
-    const selectedCoach =
-      coachDirectory.find(
-        (coach) => coach.id === coachUid
-      ) || null;
-
-    const coachValue =
-      coachDisplayName(selectedCoach);
+    /*
+     * Coach assignment is not required to schedule a
+     * Management admissions appointment.
+     * Technical verification is a separate downstream handoff.
+     */
+    const coachUid = "";
+    const coachValue = "";
 
     const notesValue =
       String(appointmentNotes?.value || "").trim();
@@ -1219,13 +1192,10 @@ scheduleForm?.addEventListener(
     if (
       !dateValue ||
       !timeValue ||
-      !locationValue ||
-      !coachUid ||
-      !selectedCoach ||
-      !coachValue
+      !locationValue
     ) {
       setStatus(
-        "Enter the appointment date, time, academy, and coach.",
+        "Enter the appointment date and time.",
         true
       );
       return;

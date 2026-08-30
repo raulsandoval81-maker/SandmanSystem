@@ -6,7 +6,7 @@
 // city, state
 // emergencyName, emergencyPhone
 // medical
-// openWaiverBtnEn, openWaiverBtnEs, waiverStatus, waiverCheck, signatureParent, signatureDate, submitBtn
+// openWaiverBtn, waiverStatus, waiverCheck, signatureParent, signatureDate, submitBtn
 // intakeForm
 
 import {
@@ -47,6 +47,7 @@ const WAIVER_URL_ES =
 let waiverViewed = false;
 
 let leadLanguagePreference = null;
+let intakeOwnerUid = null;
 
 function normalizeLanguagePreference(value = "") {
   const language = String(value || "")
@@ -111,12 +112,17 @@ function openWaiver(url) {
   markWaiverViewed();
 }
 
-$("openWaiverBtnEn")?.addEventListener("click", () => {
-  openWaiver(WAIVER_URL_EN);
-});
+$("openWaiverBtn")?.addEventListener("click", () => {
+  const language =
+    document.documentElement.lang === "es"
+      ? "es"
+      : "en";
 
-$("openWaiverBtnEs")?.addEventListener("click", () => {
-  openWaiver(WAIVER_URL_ES);
+  openWaiver(
+    language === "es"
+      ? WAIVER_URL_ES
+      : WAIVER_URL_EN
+  );
 });
 
 // -------------------- Normalizers --------------------
@@ -193,6 +199,72 @@ function validateFormBasics() {
   };
 }
 
+function setPrefillIfBlank(
+  elementId,
+  value
+) {
+  const element = $(elementId);
+
+  if (
+    !element ||
+    String(element.value || "").trim()
+  ) {
+    return;
+  }
+
+  const nextValue =
+    String(value || "").trim();
+
+  if (nextValue) {
+    element.value = nextValue;
+  }
+}
+
+function prefillFromToken(prefill = {}) {
+  if (
+    !prefill ||
+    typeof prefill !== "object"
+  ) {
+    return;
+  }
+
+  setPrefillIfBlank(
+    "athleteName",
+    prefill.athleteName
+  );
+
+  setPrefillIfBlank(
+    "dob",
+    prefill.dob
+  );
+
+  setPrefillIfBlank(
+    "city",
+    prefill.city
+  );
+
+  setPrefillIfBlank(
+    "state",
+    prefill.state
+  );
+
+  setPrefillIfBlank(
+    "parentEmail",
+    prefill.email
+  );
+
+  setPrefillIfBlank(
+    "parentPhone",
+    prefill.phone
+  );
+
+  leadLanguagePreference =
+    normalizeLanguagePreference(
+      prefill.languagePreference || ""
+    ) ||
+    leadLanguagePreference;
+}
+
 async function prefillFromLead(connectLeadId) {
   if (!connectLeadId) return;
 
@@ -204,20 +276,45 @@ async function prefillFromLead(connectLeadId) {
 
   const lead = snap.data();
 
-  leadLanguagePreference = normalizeLanguagePreference(
-    lead.languagePreference ||
-    lead.preferredLanguage ||
-    lead.language ||
-    ""
+  leadLanguagePreference =
+    leadLanguagePreference ||
+    normalizeLanguagePreference(
+      lead.languagePreference ||
+      lead.preferredLanguage ||
+      lead.language ||
+      ""
+    );
+
+  setPrefillIfBlank(
+    "athleteName",
+    lead.athleteName
   );
 
-  $("athleteName").value = lead.athleteName || "";
-  $("parentEmail").value = lead.email || "";
-  $("parentPhone").value = lead.phone || "";
+  setPrefillIfBlank(
+    "dob",
+    lead.dob ||
+    lead.dateOfBirth
+  );
 
-  // Optional if you collected these:
-  // $("city").value = lead.city || "";
-  // $("state").value = lead.state || "";
+  setPrefillIfBlank(
+    "parentEmail",
+    lead.email
+  );
+
+  setPrefillIfBlank(
+    "parentPhone",
+    lead.phone
+  );
+
+  setPrefillIfBlank(
+    "city",
+    lead.city
+  );
+
+  setPrefillIfBlank(
+    "state",
+    lead.state
+  );
 }
 
 // -------------------- Firestore write --------------------
@@ -295,6 +392,14 @@ async function handleSubmit(e) {
 
       connectLeadId,
 
+      // Enrollment ownership is inherited from the verified
+      // invite token. The family does not choose these values.
+      proposalId:
+        String(token.proposalId || "").trim() || null,
+
+      locationId:
+        String(token.locationId || "").trim() || null,
+
       mode:
         intakeMode === "add_sport"
           ? "add_sport"
@@ -335,6 +440,7 @@ async function handleSubmit(e) {
 
       // ---- token + lifecycle ----
       tokenId,
+      ownerUid: intakeOwnerUid,
       tokenRaw: rawToken,
       exp: exp ?? null,
 
@@ -374,11 +480,15 @@ async function handleSubmit(e) {
       waiver: {
         viewed: true,
         agreed: true,
+
+        signerType: "parent_guardian",
+        signingAuthority: "guardian_for_athlete",
+
         signatureName: sign,
         signatureDate: signDate,
       },
 
-      // ---- coach controlled later ----
+      // ---- management controlled later ----
       status: "submitted", // invited → submitted → approved
       minted: false,
       approvedUid: null,
@@ -403,12 +513,8 @@ async function handleSubmit(e) {
       });
 
     // allow opening waiver still (optional)
-    if ($("openWaiverBtnEn")) {
-      $("openWaiverBtnEn").disabled = false;
-    }
-
-    if ($("openWaiverBtnEs")) {
-      $("openWaiverBtnEs").disabled = false;
+    if ($("openWaiverBtn")) {
+      $("openWaiverBtn").disabled = false;
     }
 
     console.log("[intake-parent] submitted:", tokenId, intake);
@@ -562,7 +668,17 @@ async function applyInviteModeUI(invite) {
 document.addEventListener("DOMContentLoaded", async () => {
   // ✅ AUTH FIRST (phones)
   try {
-    await ensureSignedIn();
+    const signedInUser =
+      await ensureSignedIn();
+
+    intakeOwnerUid =
+      signedInUser?.uid || null;
+
+    if (!intakeOwnerUid) {
+      throw new Error(
+        "Unable to establish secure intake session."
+      );
+    }
   } catch (e) {
     console.error("[intake-parent] ensureSignedIn failed:", e);
     setWaiverStatusStrong("⚠ Auth failed (cannot submit).", "#fbbf24");
@@ -585,6 +701,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       await applyInviteModeUI(invite);
 
+      // New enrollment path: use the safe snapshot carried
+      // by the verified intake token.
+      prefillFromToken(
+        invite.token.prefill || {}
+      );
+
+      // Legacy compatibility for older intake links.
       await prefillFromLead(
         invite.token.connectLeadId || null
       );
