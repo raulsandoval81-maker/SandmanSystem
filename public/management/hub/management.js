@@ -180,3 +180,103 @@ signOutBtn?.addEventListener(
 
 
 void startManagementHub();
+
+// =========================================================
+// MANAGEMENT_DASHBOARD_DRAWER
+// Mobile navigation only. Does not alter auth or pipeline.
+// =========================================================
+
+const managementSidebar =
+  document.getElementById("managementSidebar");
+
+const menuToggleBtn =
+  document.getElementById("menuToggleBtn");
+
+const sidebarBackdrop =
+  document.getElementById("sidebarBackdrop");
+
+const sidebarSignOutBtn =
+  document.getElementById("sidebarSignOutBtn");
+
+
+function setSidebarOpen(open) {
+  if (!managementSidebar) return;
+
+  managementSidebar.classList.toggle(
+    "is-open",
+    open
+  );
+
+  menuToggleBtn?.setAttribute(
+    "aria-expanded",
+    String(open)
+  );
+
+  if (sidebarBackdrop) {
+    sidebarBackdrop.hidden = !open;
+  }
+
+  document.body.style.overflow =
+    open ? "hidden" : "";
+}
+
+
+menuToggleBtn?.addEventListener(
+  "click",
+  () => {
+    const open =
+      !managementSidebar?.classList.contains(
+        "is-open"
+      );
+
+    setSidebarOpen(open);
+  }
+);
+
+
+sidebarBackdrop?.addEventListener(
+  "click",
+  () => {
+    setSidebarOpen(false);
+  }
+);
+
+
+document.addEventListener(
+  "keydown",
+  (event) => {
+    if (event.key === "Escape") {
+      setSidebarOpen(false);
+    }
+  }
+);
+
+
+managementSidebar
+  ?.querySelectorAll("a")
+  .forEach((link) => {
+    link.addEventListener(
+      "click",
+      () => {
+        if (
+          window.matchMedia(
+            "(max-width: 820px)"
+          ).matches
+        ) {
+          setSidebarOpen(false);
+        }
+      }
+    );
+  });
+
+
+sidebarSignOutBtn?.addEventListener(
+  "click",
+  async () => {
+    await signOut(auth);
+
+    window.location.replace(
+      "/login/"
+    );
+  }
+);

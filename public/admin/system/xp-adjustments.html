@@ -243,13 +243,62 @@
         </select>
       </label>
 
-      <label>
-        Notes
-        <textarea
-          id="note"
-          placeholder="Reason for adjustment..."
-        ></textarea>
-      </label>
+<label>
+  Preset Note
+  <select id="presetNote">
+    <option value="">Select a reason...</option>
+
+    <optgroup label="Historical / Paper Recovery">
+      <option value="Pre-entry Sandman training">
+        Pre-entry Sandman training
+      </option>
+
+      <option value="Paper training record recovery">
+        Paper training record recovery
+      </option>
+
+      <option value="Training completed before system entry">
+        Training completed before system entry
+      </option>
+
+      <option value="Training completed while system was unavailable">
+        Training completed while system was unavailable
+      </option>
+
+      <option value="Missing historical training record">
+        Missing historical training record
+      </option>
+    </optgroup>
+
+    <optgroup label="Administrative">
+      <option value="Administrative XP correction">
+        Administrative XP correction
+      </option>
+
+      <option value="Incorrect prior XP entry">
+        Incorrect prior XP entry
+      </option>
+
+      <option value="Duplicate XP correction">
+        Duplicate XP correction
+      </option>
+    </optgroup>
+
+    <optgroup label="Other">
+      <option value="Other verified adjustment">
+        Other verified adjustment
+      </option>
+    </optgroup>
+  </select>
+</label>
+
+<label>
+  Additional Note
+  <textarea
+    id="note"
+    placeholder="Optional details specific to this XP award..."
+  ></textarea>
+</label>
 
     </div>
 

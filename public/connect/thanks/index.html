@@ -376,10 +376,10 @@
           <span data-lang="en">
 
             <span data-interest="combat">
-              ✓ For combat training, new athletes can move through the
-              standard enrollment path. If you requested a Placement
-              Assessment, the academy team will coordinate a coach
-              evaluation before placement is finalized.
+              ✓ For combat training, our academy team will review the
+              athlete's goals and reported experience. When appropriate,
+              a coach may assess previous experience during onboarding
+              before the athlete's starting point is finalized.
             </span>
 
             <span data-interest="fitness">
@@ -389,10 +389,9 @@
             </span>
 
             <span data-interest="both">
-              ✓ Because you selected both Combat and Fitness, the academy
-              team will coordinate the appropriate starting point for each.
-              If a combat Placement Assessment is needed, a coach will be
-              involved for that evaluation.
+              ✓ The academy team will coordinate the appropriate starting
+              point for Combat and Fitness. When appropriate, a coach may
+              assess previous combat experience during onboarding.
             </span>
 
           </span>
@@ -400,11 +399,11 @@
           <span data-lang="es">
 
             <span data-interest="combat">
-              ✓ Para entrenamiento de combate, los atletas nuevos pueden
-              continuar por el proceso normal de inscripción. Si solicitaste
-              una Evaluación de Colocación, el equipo de la academia
-              coordinará una evaluación con un entrenador antes de finalizar
-              la colocación.
+              ✓ Para entrenamiento de combate, nuestro equipo de la
+              academia revisará las metas y la experiencia reportada del
+              atleta. Cuando corresponda, un entrenador puede evaluar la
+              experiencia previa durante el proceso de incorporación antes
+              de finalizar el punto de inicio del atleta.
             </span>
 
             <span data-interest="fitness">
@@ -414,10 +413,10 @@
             </span>
 
             <span data-interest="both">
-              ✓ Debido a que seleccionaste Combate y Fitness, el equipo
-              de la academia coordinará el punto de partida apropiado para
-              cada uno. Si se necesita una Evaluación de Colocación de
-              combate, participará un entrenador para esa evaluación.
+              ✓ El equipo de la academia coordinará el punto de partida
+              apropiado para Combate y Fitness. Cuando corresponda, un
+              entrenador puede evaluar la experiencia previa de combate
+              durante el proceso de incorporación.
             </span>
 
           </span>
@@ -526,62 +525,80 @@
 
       const rules = {
         en: {
-          local: {
+          "local-prospect": {
             combat:
-              "Your first Combat trial session is complimentary.",
+              "Your first local Combat training visit is $0.",
+
             fitness:
-              "Fitness is a $15 drop-in. If you join, the $15 is applied toward enrollment or membership.",
+              "Your first local Fitness drop-in is $10. If you enroll, the $10 can be applied toward enrollment.",
+
             both:
-              "Your first Combat trial session is complimentary. Fitness is a $15 drop-in, applied toward enrollment or membership if you join."
+              "Your first local Combat training visit is $0. Your first local Fitness drop-in is $10 and can be applied toward enrollment if you join."
           },
+
+          returning: {
+            combat:
+              "Returning Combat athletes may train with a $20 day pass.",
+
+            fitness:
+              "Returning Fitness drop-in is $15. If you re-enroll, the $15 can be applied toward enrollment.",
+
+            both:
+              "Returning Combat is a $20 day pass. Returning Fitness is a $15 drop-in and can be applied toward enrollment if you re-enroll."
+          },
+
           visitor: {
             combat:
               "Visitor Combat access is $30 for one training day or $40 for two training days.",
+
             fitness:
               "Visitor Fitness access is $15 per drop-in.",
+
             both:
               "Visitor Combat access is $30 for one training day or $40 for two. Visitor Fitness access is $15 per drop-in."
-          },
-          returning:
-            "Returning athletes are not eligible for another free trial. Management will confirm the appropriate paid re-entry option."
+          }
         },
 
         es: {
-          local: {
+          "local-prospect": {
             combat:
-              "Tu primera sesión de prueba de Combate es gratuita.",
+              "Tu primera visita local de entrenamiento de Combate cuesta $0.",
+
             fitness:
-              "Fitness cuesta $15 por clase. Si te inscribes, los $15 se aplican a la inscripción o membresía.",
+              "Tu primera clase local de Fitness cuesta $10. Si te inscribes, los $10 pueden aplicarse a tu inscripción.",
+
             both:
-              "Tu primera sesión de prueba de Combate es gratuita. Fitness cuesta $15 por clase y se aplica a la inscripción o membresía si te inscribes."
+              "Tu primera visita local de Combate cuesta $0. Tu primera clase local de Fitness cuesta $10 y puede aplicarse a la inscripción si te inscribes."
           },
+
+          returning: {
+            combat:
+              "Los atletas de Combate que regresan pueden entrenar con un pase diario de $20.",
+
+            fitness:
+              "La clase de Fitness para quienes regresan cuesta $15. Si vuelves a inscribirte, los $15 pueden aplicarse a tu inscripción.",
+
+            both:
+              "Combate para quienes regresan cuesta $20 por día. Fitness cuesta $15 por clase y puede aplicarse a la inscripción si vuelves a inscribirte."
+          },
+
           visitor: {
             combat:
               "El acceso de Combate para visitantes cuesta $30 por un día de entrenamiento o $40 por dos días.",
+
             fitness:
               "El acceso de Fitness para visitantes cuesta $15 por clase.",
+
             both:
               "Combate para visitantes cuesta $30 por un día o $40 por dos. Fitness para visitantes cuesta $15 por clase."
-          },
-          returning:
-            "Los atletas que regresan no son elegibles para otra prueba gratuita. Administración confirmará la opción pagada de regreso apropiada."
+          }
         }
       };
 
-      if (normalizedIntent === "returning") {
-        el.textContent =
-          rules[language].returning;
-
-        return;
-      }
-
-      const bucket =
-        normalizedIntent === "visitor"
-          ? rules[language].visitor
-          : rules[language].local;
-
       el.textContent =
-        bucket[normalizedInterest];
+        rules[language]
+          [normalizedIntent]
+          [normalizedInterest];
     }
 
 

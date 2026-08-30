@@ -217,13 +217,85 @@ function statusOptions(selected = "new") {
     })
     .join("");
 }
-function labelForAdmissionsPath(value = "") {
+function labelForClaimedExperienceRange(value = "") {
   const labels = {
-    new: "New Athlete",
-    assessment: "Placement Assessment"
+    "under-1": "Less than 1 year",
+    "1-2": "1–2 years",
+    "2-3": "2–3 years",
+    "3-plus": "3+ years"
   };
 
   return labels[value] || "—";
+}
+
+function renderReportedExperience(lead) {
+  const claimed =
+    String(
+      lead.claimedPriorExperience || ""
+    ).trim();
+
+  /*
+   * Older leads may not have the new claim fields.
+   * Do not infer experience from admissionsPath.
+   */
+  if (!claimed) {
+    return `
+      <div class="field-value">
+        Not reported
+      </div>
+    `;
+  }
+
+  if (claimed === "no") {
+    return `
+      <div class="field-value">
+        No previous experience reported
+      </div>
+    `;
+  }
+
+  if (claimed !== "yes") {
+    return `
+      <div class="field-value">
+        Not reported
+      </div>
+    `;
+  }
+
+  const range =
+    labelForClaimedExperienceRange(
+      lead.claimedExperienceRange
+    );
+
+  const notes =
+    String(
+      lead.claimedExperienceNotes || ""
+    ).trim();
+
+  return `
+    <div class="field-value">
+      Family reported previous experience
+    </div>
+
+    <div class="lead-sub">
+      Reported duration:
+      ${esc(range)}
+    </div>
+
+    ${
+      notes
+        ? `
+          <div class="lead-sub">
+            ${esc(notes)}
+          </div>
+        `
+        : ""
+    }
+
+    <div class="lead-sub">
+      Pending Coach verification
+    </div>
+  `;
 }
 
 function render() {
@@ -285,7 +357,7 @@ function render() {
             <div>
               <span class="field-label">Preferred Academy</span>
               <div class="field-value">
-                ${esc(lead.preferredLocation || "—")}
+                ${esc(lead.locationId || "—")}
               </div>
             </div>
 
@@ -297,10 +369,11 @@ function render() {
             </div>
 
             <div>
-<span class="field-label">Starting Path</span>
-<div class="field-value">
-  ${esc(labelForAdmissionsPath(lead.admissionsPath))}
-</div>
+              <span class="field-label">
+                Prior Experience
+              </span>
+
+              ${renderReportedExperience(lead)}
             </div>
 
             <div>

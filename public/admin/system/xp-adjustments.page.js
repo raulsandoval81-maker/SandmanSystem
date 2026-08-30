@@ -26,6 +26,7 @@ console.log("[xp-adjustments] JS loaded");
 const uidEl = document.getElementById("uid");
 const amountEl = document.getElementById("amount");
 const kindEl = document.getElementById("kind");
+const presetNoteEl = document.getElementById("presetNote");
 const noteEl = document.getElementById("note");
 
 const statusEl = document.getElementById("status");
@@ -144,12 +145,19 @@ btnApply?.addEventListener("click", async () => {
 
     setStatus("Applying adjustment...");
 
-    const result = await applyXpAdjustment({
-      uid: uidEl.value,
-      amount: Number(amountEl.value),
-      kind: kindEl.value,
-      note: noteEl.value
-    });
+ const presetNote = String(presetNoteEl?.value || "").trim();
+ const customNote = String(noteEl?.value || "").trim();
+
+ const combinedNote = [presetNote, customNote]
+  .filter(Boolean)
+  .join(" — ");
+
+ const result = await applyXpAdjustment({
+  uid: uidEl.value,
+  amount: Number(amountEl.value),
+  kind: kindEl.value,
+  note: combinedNote
+});
 
     setStatus(
       `Applied ${result.amount} XP to ${result.uid}.`
@@ -157,6 +165,8 @@ btnApply?.addEventListener("click", async () => {
 
     amountEl.value = "";
     noteEl.value = "";
+
+    if (presetNoteEl) presetNoteEl.value = "";
 
     await previewAthlete(uidEl.value);
 

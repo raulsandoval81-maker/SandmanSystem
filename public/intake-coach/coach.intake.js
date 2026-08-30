@@ -616,4 +616,4 @@ $("btn-start-add-discipline")?.addEventListener("click", () => {
 
   loadPendingLive();
   loadApproved();
-})();\n
+})();

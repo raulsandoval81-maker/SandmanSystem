@@ -40,13 +40,14 @@ function setWaiverStatusStrong(text, color = "") {
 // -------------------- Waiver config --------------------
 
 const WAIVER_URL_EN =
-  "/waiver/sandman-participation-waiver-en.pdf";
+  "/waiver/sandman-adult-participation-waiver-en.pdf";
 
 const WAIVER_URL_ES =
-  "/waiver/sandman-participation-waiver-es.pdf";
+  "/waiver/sandman-adult-participation-waiver-es.pdf";
 let waiverViewed = false;
 
 let leadLanguagePreference = null;
+let intakeOwnerUid = null;
 
 function normalizeLanguagePreference(value = "") {
   const language = String(value || "")
@@ -294,6 +295,14 @@ async function handleSubmit(e) {
 
       connectLeadId,
 
+      // Enrollment ownership is inherited from the verified
+      // invite token. The family does not choose these values.
+      proposalId:
+        String(token.proposalId || "").trim() || null,
+
+      locationId:
+        String(token.locationId || "").trim() || null,
+
       mode:
         intakeMode === "add_sport"
           ? "add_sport"
@@ -334,6 +343,7 @@ async function handleSubmit(e) {
 
       // ---- token + lifecycle ----
       tokenId,
+      ownerUid: intakeOwnerUid,
       tokenRaw: token,
       exp: exp ?? null,
 
@@ -370,11 +380,15 @@ async function handleSubmit(e) {
       waiver: {
         viewed: true,
         agreed: true,
+
+        signerType: "adult_athlete",
+        signingAuthority: "self",
+
         signatureName: sign,
         signatureDate: signDate,
       },
 
-      // ---- coach controlled later ----
+      // ---- management controlled later ----
       status: "submitted", // invited → submitted → approved
       minted: false,
       approvedUid: null,
@@ -558,7 +572,17 @@ async function applyInviteModeUI(invite) {
 document.addEventListener("DOMContentLoaded", async () => {
   // ✅ AUTH FIRST (phones)
   try {
-    await ensureSignedIn();
+    const signedInUser =
+      await ensureSignedIn();
+
+    intakeOwnerUid =
+      signedInUser?.uid || null;
+
+    if (!intakeOwnerUid) {
+      throw new Error(
+        "Unable to establish secure intake session."
+      );
+    }
   } catch (e) {
     console.error("[intake-athlete] ensureSignedIn failed:", e);
     setWaiverStatusStrong("⚠ Auth failed (cannot submit).", "#fbbf24");
