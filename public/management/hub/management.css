@@ -526,3 +526,62 @@ a {
     flex-direction: column;
   }
 }
+
+/* =========================================================
+   MANAGEMENT DASHBOARD PULSE
+   Live operational numbers inside existing workflow cards.
+   ========================================================= */
+
+.tile-pulse {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+
+  margin: 10px 0 6px;
+}
+
+.tile-number {
+  display: inline-block;
+
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  line-height: 1;
+  font-weight: 950;
+  letter-spacing: -.04em;
+
+  color: var(--text);
+}
+
+.tile-metric {
+  color: var(--muted);
+
+  font-size: .78rem;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.dashboard-tile .tile-detail {
+  margin: 0 0 34px;
+
+  color: #4b5563;
+
+  font-size: .84rem;
+  line-height: 1.4;
+}
+
+.dashboard-tile--primary .tile-number {
+  color: #8a6b17;
+}
+
+@media (max-width: 620px) {
+  .tile-pulse {
+    margin-top: 8px;
+  }
+
+  .tile-number {
+    font-size: 2.35rem;
+  }
+
+  .dashboard-tile .tile-detail {
+    margin-bottom: 32px;
+  }
+}
