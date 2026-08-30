@@ -48,7 +48,7 @@ function applyTheme(theme){
   const value=theme==="night"?"night":"day";
   document.documentElement.dataset.athleteTheme=value;
   localStorage.setItem(THEME_KEY,value);
-  const button=document.querySelector("[data-athlete-theme]");
+  const button=document.querySelector("button[data-athlete-theme]");
   if(button){button.textContent=value==="night"?"Day":"Night";button.setAttribute("aria-label",`Switch to ${value==="night"?"Day":"Night"} appearance`)}
 }
 
@@ -56,7 +56,6 @@ let shellInitialized=false;
 function initializeAthleteShell(){
 if(shellInitialized || !document.body) return;
 shellInitialized=true;
-applyTheme(localStorage.getItem(THEME_KEY) || "day");
 document.body.classList.add("athlete-app");
 
 const header=document.createElement("header");
@@ -71,6 +70,7 @@ const backdrop=document.createElement("button");backdrop.type="button";backdrop.
 document.body.prepend(backdrop);document.body.prepend(drawer);document.body.prepend(header);
 
 const footer=document.createElement("footer");footer.className="athlete-shell-footer";footer.textContent="Sandman System · Athlete Experience";document.body.append(footer);
+applyTheme(localStorage.getItem(THEME_KEY) || "day");
 const menu=header.querySelector(".athlete-menu-button");const closeButton=drawer.querySelector(".athlete-drawer-close");let returnFocus=null;
 function openDrawer(){returnFocus=document.activeElement;drawer.classList.add("is-open");backdrop.classList.add("is-open");drawer.setAttribute("aria-hidden","false");menu.setAttribute("aria-expanded","true");document.documentElement.classList.add("athlete-drawer-open");closeButton.focus()}
 function closeDrawer(){drawer.classList.remove("is-open");backdrop.classList.remove("is-open");drawer.setAttribute("aria-hidden","true");menu.setAttribute("aria-expanded","false");document.documentElement.classList.remove("athlete-drawer-open");if(returnFocus instanceof HTMLElement)returnFocus.focus()}
@@ -81,9 +81,12 @@ header.querySelector("[data-athlete-theme]").addEventListener("click",()=>applyT
 drawer.querySelector("[data-athlete-signout]").addEventListener("click",async()=>{try{await signOut(auth)}finally{ID_KEYS.forEach((key)=>localStorage.removeItem(key));sessionStorage.removeItem("currentAthleteId");location.replace("/athletes/auth/")}});
 }
 
-if(!document.body || document.readyState==="loading"){
-  document.addEventListener("DOMContentLoaded",initializeAthleteShell,{once:true});
-  setTimeout(initializeAthleteShell,0);
+if(document.readyState==="loading"){
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializeAthleteShell,
+    { once:true }
+  );
 }else{
   initializeAthleteShell();
 }
