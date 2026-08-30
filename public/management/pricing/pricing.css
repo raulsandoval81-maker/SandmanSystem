@@ -425,3 +425,8 @@ body {
     font-size: 3rem;
   }
 }
+
+/* Respect conditional UI visibility. */
+[hidden] {
+  display: none !important;
+}

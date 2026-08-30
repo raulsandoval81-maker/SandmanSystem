@@ -144,6 +144,106 @@
 
       </dl>
 
+      <div class="pricing-section-heading">
+        <div>
+          <p class="section-label">
+            Enrollment Adjustments
+          </p>
+
+          <h3>
+            First Payment
+          </h3>
+        </div>
+      </div>
+
+      <div class="pricing-field-grid">
+        <div class="pricing-field">
+          <label for="enrollmentStartDate">
+            Start date
+          </label>
+
+          <input
+            id="enrollmentStartDate"
+            type="date"
+          />
+        </div>
+
+        <div class="pricing-field">
+          <label for="promotionCode">
+            Promotion Code
+          </label>
+
+          <div>
+            <input
+              id="promotionCode"
+              type="text"
+              autocomplete="off"
+              placeholder="Enter approved code"
+            />
+
+            <button
+              id="applyPromotionBtn"
+              class="button"
+              type="button"
+            >
+              Apply
+            </button>
+          </div>
+
+          <small id="promotionStatus">
+            No promotion applied.
+          </small>
+        </div>
+      </div>
+
+      <dl class="pricing-summary">
+
+        <div class="pricing-summary-row">
+          <dt id="prorationLabel">
+            First month — 100%
+          </dt>
+
+          <dd id="proratedMembership">
+            $0
+          </dd>
+        </div>
+
+        <div
+          id="promotionDiscountRow"
+          class="pricing-summary-row"
+          hidden
+        >
+          <dt id="promotionDiscountLabel">
+            Promotion
+          </dt>
+
+          <dd id="promotionDiscount">
+            -$0
+          </dd>
+        </div>
+
+        <div class="pricing-summary-row pricing-summary-total">
+          <dt>
+            Due at enrollment
+          </dt>
+
+          <dd id="dueAtEnrollment">
+            $0
+          </dd>
+        </div>
+
+        <div class="pricing-summary-row">
+          <dt>
+            Next monthly payment
+          </dt>
+
+          <dd id="nextMonthlyPayment">
+            $0
+          </dd>
+        </div>
+
+      </dl>
+
       <div class="pricing-savings">
         <p class="section-label">
           Projected Savings
@@ -243,7 +343,7 @@
           />
         </div>
 
-        <div class="pricing-field">
+        <div class="pricing-field journey-field">
           <label>
             Journey
           </label>
@@ -342,7 +442,7 @@
         </div>
       </div>
 
-      <div class="discipline-box">
+      <div class="discipline-box combat-fields">
         <div class="discipline-heading">
           Sports
         </div>

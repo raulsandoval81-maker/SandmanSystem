@@ -54,6 +54,84 @@ const monthlySavings =
 const annualSavings =
   document.getElementById("annualSavings");
 
+const enrollmentStartDate =
+  document.getElementById(
+    "enrollmentStartDate"
+  );
+
+const promotionCode =
+  document.getElementById(
+    "promotionCode"
+  );
+
+const applyPromotionBtn =
+  document.getElementById(
+    "applyPromotionBtn"
+  );
+
+const promotionStatus =
+  document.getElementById(
+    "promotionStatus"
+  );
+
+const prorationLabel =
+  document.getElementById(
+    "prorationLabel"
+  );
+
+const proratedMembership =
+  document.getElementById(
+    "proratedMembership"
+  );
+
+const promotionDiscountRow =
+  document.getElementById(
+    "promotionDiscountRow"
+  );
+
+const promotionDiscountLabel =
+  document.getElementById(
+    "promotionDiscountLabel"
+  );
+
+const promotionDiscount =
+  document.getElementById(
+    "promotionDiscount"
+  );
+
+const dueAtEnrollment =
+  document.getElementById(
+    "dueAtEnrollment"
+  );
+
+const nextMonthlyPayment =
+  document.getElementById(
+    "nextMonthlyPayment"
+  );
+
+/*
+ * Approved one-time promotion codes.
+ *
+ * Add live promotions here only when Management
+ * has intentionally approved them.
+ *
+ * Example:
+ *
+ * WELCOME25: {
+ *   amount: 25,
+ *   label: "Welcome Promotion"
+ * }
+ */
+const PROMOTION_CODES =
+  Object.freeze({
+    TEST25: {
+      amount: 25,
+      label: "Test Promotion"
+    }
+  });
+
+let appliedPromotion = null;
+
 
 function money(value) {
   return new Intl.NumberFormat(
@@ -61,13 +139,102 @@ function money(value) {
     {
       style: "currency",
       currency: "USD",
-      maximumFractionDigits: 0
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
     }
   ).format(
     Math.max(
       0,
       Number(value || 0)
     )
+  );
+}
+
+
+function getProrationRate() {
+  const value =
+    enrollmentStartDate?.value;
+
+  if (!value) {
+    return 1;
+  }
+
+  const [
+    year,
+    month,
+    day
+  ] =
+    value
+      .split("-")
+      .map(Number);
+
+  const startDate =
+    new Date(
+      year,
+      month - 1,
+      day
+    );
+
+  const firstOfMonth =
+    new Date(
+      year,
+      month - 1,
+      1
+    );
+
+  const firstDayOfWeek =
+    firstOfMonth.getDay();
+
+  const daysUntilMonday =
+    (8 - firstDayOfWeek) % 7;
+
+  const firstMonday =
+    new Date(
+      year,
+      month - 1,
+      1 + daysUntilMonday
+    );
+
+  const secondMonday =
+    new Date(firstMonday);
+
+  secondMonday.setDate(
+    firstMonday.getDate() + 7
+  );
+
+  const thirdMonday =
+    new Date(firstMonday);
+
+  thirdMonday.setDate(
+    firstMonday.getDate() + 14
+  );
+
+  const fourthMonday =
+    new Date(firstMonday);
+
+  fourthMonday.setDate(
+    firstMonday.getDate() + 21
+  );
+
+  if (startDate < secondMonday) {
+    return 1;
+  }
+
+  if (startDate < thirdMonday) {
+    return 0.75;
+  }
+
+  if (startDate < fourthMonday) {
+    return 0.5;
+  }
+
+  return 0.25;
+}
+
+
+function getProrationPercent() {
+  return Math.round(
+    getProrationRate() * 100
   );
 }
 
@@ -317,6 +484,78 @@ function renderPricing() {
       annualMembershipAmount
     );
 
+  const recurringMonthly =
+    Number(
+      pricing.monthlyMembership ||
+      0
+    );
+
+  const prorationRate =
+    getProrationRate();
+
+  const proratedMonthly =
+    recurringMonthly *
+    prorationRate;
+
+  const promotionAmount =
+    appliedPromotion
+      ? Number(
+          appliedPromotion.amount ||
+          0
+        )
+      : 0;
+
+  const enrollmentSubtotal =
+    proratedMonthly +
+    annualMembershipAmount;
+
+  const appliedPromotionAmount =
+    Math.min(
+      enrollmentSubtotal,
+      promotionAmount
+    );
+
+  const enrollmentDue =
+    Math.max(
+      0,
+      enrollmentSubtotal -
+        appliedPromotionAmount
+    );
+
+  prorationLabel.textContent =
+    `First month — ${getProrationPercent()}%`;
+
+  proratedMembership.textContent =
+    money(proratedMonthly);
+
+  nextMonthlyPayment.textContent =
+    money(recurringMonthly);
+
+  dueAtEnrollment.textContent =
+    money(enrollmentDue);
+
+  if (
+    appliedPromotion &&
+    appliedPromotionAmount > 0
+  ) {
+    promotionDiscountRow.hidden =
+      false;
+
+    promotionDiscountLabel.textContent =
+      `Promotion: ${appliedPromotion.code}`;
+
+    promotionDiscount.textContent =
+      `-${money(
+        appliedPromotionAmount
+      )}`;
+  } else {
+    promotionDiscountRow.hidden =
+      true;
+
+    promotionDiscount.textContent =
+      "-$0";
+  }
+
   monthlySavings.textContent =
     `${money(
       projectedSavingsMonthly
@@ -436,6 +675,29 @@ function addAthlete(defaults = {}) {
   function syncPlanControls() {
     const currentPlan =
       plan.value;
+
+    const journeyField =
+      newCard.querySelector(
+        ".journey-field"
+      );
+
+    const combatFields =
+      newCard.querySelector(
+        ".combat-fields"
+      );
+
+    const isFitnessOnly =
+      currentPlan === "fitness";
+
+    if (journeyField) {
+      journeyField.hidden =
+        isFitnessOnly;
+    }
+
+    if (combatFields) {
+      combatFields.hidden =
+        isFitnessOnly;
+    }
 
     if (currentPlan === "fitness") {
       trainingAccess.innerHTML = `
@@ -587,9 +849,77 @@ addAthleteBtn?.addEventListener(
   }
 );
 
+enrollmentStartDate?.addEventListener(
+  "change",
+  renderPricing
+);
+
+applyPromotionBtn?.addEventListener(
+  "click",
+  () => {
+    const code =
+      String(
+        promotionCode?.value ||
+        ""
+      )
+        .trim()
+        .toUpperCase();
+
+    if (!code) {
+      appliedPromotion = null;
+
+      promotionStatus.textContent =
+        "No promotion applied.";
+
+      renderPricing();
+      return;
+    }
+
+    const promotion =
+      PROMOTION_CODES[code];
+
+    if (!promotion) {
+      appliedPromotion = null;
+
+      promotionStatus.textContent =
+        "Code not recognized or not active.";
+
+      renderPricing();
+      return;
+    }
+
+    appliedPromotion = {
+      ...promotion,
+      code
+    };
+
+    promotionStatus.textContent =
+      `${code} applied once.`;
+
+    renderPricing();
+  }
+);
+
 resetBtn?.addEventListener(
   "click",
-  resetEstimate
+  () => {
+    appliedPromotion = null;
+
+    if (promotionCode) {
+      promotionCode.value = "";
+    }
+
+    if (promotionStatus) {
+      promotionStatus.textContent =
+        "No promotion applied.";
+    }
+
+    if (enrollmentStartDate) {
+      enrollmentStartDate.value = "";
+    }
+
+    resetEstimate();
+  }
 );
 
 printBtn?.addEventListener(
