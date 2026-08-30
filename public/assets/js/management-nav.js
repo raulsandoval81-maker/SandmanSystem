@@ -58,6 +58,10 @@ document.addEventListener("DOMContentLoaded", () => {
           href: "/management/pricing/"
         },
         {
+          label: "Membership & Competition Tools",
+          href: "/management/membership-tools/"
+        },
+        {
           divider: true
         },
         {
