@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Pricing & Estimates | Sandman Management</title>
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/management-ui.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="./pricing.css"
+  />
+</head>
+
+<body>
+
+  <nav
+    class="management-pipeline-nav"
+    aria-label="Management navigation"
+  >
+    <a
+      class="management-pipeline-nav__home"
+      href="/management/hub/"
+    >
+      Management Home
+    </a>
+
+    <a href="/connect/leads/">
+      Leads
+    </a>
+
+    <a href="/connect/appointments/">
+      Appointments
+    </a>
+
+    <a href="/connect/proposals/">
+      Proposals
+    </a>
+
+    <a href="/intake-management/">
+      Enrollment
+    </a>
+
+    <a href="/management/inbox/">
+      Inbox
+    </a>
+
+    <a href="/connect/admissions-requests/">
+      Try a Class
+    </a>
+  </nav>
+
+  <main class="pricing-wrap">
+
+    <header class="pricing-header">
+      <p class="eyebrow">
+        Management Tool
+      </p>
+
+      <h1>
+        Pricing & Estimates
+      </h1>
+
+      <p class="pricing-intro">
+        Model a family, compare membership choices,
+        and prepare a clear non-binding estimate.
+      </p>
+    </header>
+
+    <section
+      class="pricing-panel pricing-results pricing-calculator-display"
+      aria-labelledby="estimateHeading"
+    >
+      <div class="pricing-section-heading">
+        <div>
+          <p class="section-label">
+            Estimate
+          </p>
+
+          <h2 id="estimateHeading">
+            Family Pricing
+          </h2>
+        </div>
+      </div>
+
+      <dl class="pricing-summary">
+
+        <div
+          id="combatMembershipRow"
+          class="pricing-summary-row"
+        >
+          <dt>
+            Combat Membership
+          </dt>
+
+          <dd id="individualValue">
+            $0
+          </dd>
+        </div>
+
+        <div id="siblingMembershipRows"></div>
+
+        <div
+          id="fitnessMembershipRow"
+          class="pricing-summary-row"
+          hidden
+        >
+          <dt>
+            Fitness Membership
+          </dt>
+
+          <dd id="fitnessMembership">
+            $0
+          </dd>
+        </div>
+
+        <div class="pricing-summary-row pricing-summary-total">
+          <dt>
+            Monthly membership
+          </dt>
+
+          <dd id="monthlyMembership">
+            $0
+          </dd>
+        </div>
+
+        <div class="pricing-summary-row">
+          <dt>
+            Annual membership / insurance
+          </dt>
+
+          <dd id="annualMembershipTotal">
+            $0
+          </dd>
+        </div>
+
+      </dl>
+
+      <div class="pricing-savings">
+        <p class="section-label">
+          Projected Savings
+        </p>
+
+        <strong id="monthlySavings">
+          $0/month
+        </strong>
+
+        <span id="annualSavings">
+          $0/year
+        </span>
+      </div>
+
+      <div class="pricing-actions">
+        <button
+          id="resetBtn"
+          class="button"
+          type="button"
+        >
+          Reset
+        </button>
+
+        <button
+          id="printBtn"
+          class="button button-primary"
+          type="button"
+        >
+          Print / Send Estimate
+        </button>
+      </div>
+
+      <p class="pricing-disclaimer">
+        Estimated pricing — not an enrollment agreement.
+      </p>
+    </section>
+
+<section
+      class="pricing-panel"
+      aria-labelledby="athletesHeading"
+    >
+      <div class="pricing-section-heading">
+        <div>
+          <p class="section-label">
+            Family
+          </p>
+
+          <h2 id="athletesHeading">
+            Athletes & Memberships
+          </h2>
+        </div>
+
+        <button
+          id="addAthleteBtn"
+          class="button"
+          type="button"
+        >
+          + Add Athlete
+        </button>
+      </div>
+
+      <div
+        id="athleteList"
+        class="pricing-athlete-list"
+      ></div>
+    </section>
+
+    
+
+  </main>
+
+  <template id="athleteTemplate">
+    <article class="pricing-athlete">
+      <div class="athlete-head">
+        <div class="athlete-title">
+          Athlete
+        </div>
+
+        <button
+          class="remove-athlete"
+          type="button"
+        >
+          Remove
+        </button>
+      </div>
+
+      <div class="pricing-field-grid">
+        <div class="pricing-field">
+          <label>
+            Athlete name
+          </label>
+
+          <input
+            class="athlete-name"
+            type="text"
+            placeholder="Athlete name"
+          />
+        </div>
+
+        <div class="pricing-field">
+          <label>
+            Journey
+          </label>
+
+          <select class="journey">
+            <option value="zero2hero">
+              Zero2Hero — ages 7–13
+            </option>
+
+            <option value="path2legend">
+              Path2Legend — ages 14+
+            </option>
+
+            <option value="quest2mastery">
+              Quest2Mastery — ages 16+
+            </option>
+
+            <option value="fitness">
+              Fitness
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pricing-field-grid">
+        <div class="pricing-field">
+          <label>
+            Monthly plan
+          </label>
+
+          <select class="athlete-plan">
+            <option value="standard">
+              Combat — Founding Year
+            </option>
+
+            <option value="fitness">
+              Everyday Fitness
+            </option>
+
+            <option value="mma">
+              MMA Access — $140
+            </option>
+
+            <option value="combo">
+              Combat + Fitness
+            </option>
+          </select>
+        </div>
+
+        <div class="pricing-field">
+          <label>
+            Billing commitment
+          </label>
+
+          <select class="billing-term">
+            <option value="month-to-month">
+              Month-to-month
+            </option>
+
+            <option value="annual">
+              12-month agreement + autopay
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pricing-field-grid">
+        <div class="pricing-field">
+          <label>
+            Training access
+          </label>
+
+          <select class="training-access">
+            <option value="2-3">
+              2–3 days/week
+            </option>
+
+            <option value="4-6">
+              4–6 days/week
+            </option>
+          </select>
+        </div>
+
+        <div class="pricing-field">
+          <label>
+            Annual membership / insurance
+          </label>
+
+          <select class="annual-membership">
+            <option value="sandman">
+              Sandman provides AAU — $35/year
+            </option>
+
+            <option value="current-aau">
+              Current AAU already held — $5/year
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pricing-field parent-promo-field">
+        <label>
+          Parent + child promotion
+        </label>
+
+        <select class="parent-child-promo">
+          <option value="no">
+            No promotion
+          </option>
+
+          <option value="yes">
+            Apply parent Fitness promotion — $10/month
+          </option>
+        </select>
+      </div>
+
+      <div class="discipline-box">
+        <div class="discipline-heading">
+          Disciplines
+        </div>
+
+        <p class="discipline-help">
+          Choose up to two disciplines.
+        </p>
+
+        <div class="discipline-select-grid">
+          <div class="pricing-field">
+            <label>
+              Discipline 1
+            </label>
+
+            <select class="discipline-primary">
+              <option value="wrestling">
+                Wrestling
+              </option>
+
+              <option value="boxing">
+                Boxing
+              </option>
+
+              <option value="muay-thai">
+                Muay Thai
+              </option>
+            </select>
+          </div>
+
+          <div class="pricing-field">
+            <label>
+              Discipline 2
+              <span class="optional-label">
+                Optional
+              </span>
+            </label>
+
+            <select class="discipline-secondary">
+              <option value="">
+                None
+              </option>
+
+              <option value="wrestling">
+                Wrestling
+              </option>
+
+              <option value="boxing">
+                Boxing
+              </option>
+
+              <option value="muay-thai">
+                Muay Thai
+              </option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+    </article>
+  </template>
+
+  <script
+    type="module"
+    src="/assets/js/management-nav.js"
+  ></script>
+
+  <script
+    type="module"
+    src="./pricing.js"
+  ></script>
+
+</body>
+</html>

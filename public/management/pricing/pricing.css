@@ -1,0 +1,427 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.pricing-wrap {
+  width: min(920px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 42px 0 72px;
+}
+
+.pricing-header {
+  margin-bottom: 28px;
+}
+
+.pricing-header h1 {
+  margin: 5px 0 10px;
+  font-size: clamp(2rem, 5vw, 3.25rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.pricing-intro {
+  max-width: 650px;
+  margin: 0;
+  color: var(--management-muted);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+.pricing-panel {
+  margin-top: 20px;
+  padding: 24px;
+  border: 1px solid var(--management-border);
+  border-radius: var(--management-radius);
+  background: var(--management-surface);
+  box-shadow: var(--management-shadow);
+}
+
+.pricing-section-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.pricing-section-heading h2 {
+  margin: 4px 0 0;
+  font-size: 1.25rem;
+}
+
+.pricing-athlete-list {
+  display: grid;
+  gap: 16px;
+}
+
+.pricing-athlete {
+  padding: 20px;
+  border: 1px solid var(--management-border);
+  border-radius: 12px;
+  background: var(--management-surface-soft);
+}
+
+.pricing-athlete-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.pricing-athlete-heading h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.remove-athlete {
+  border: 0;
+  background: transparent;
+  color: var(--management-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.remove-athlete:hover,
+.remove-athlete:focus-visible {
+  color: var(--management-danger);
+}
+
+.pricing-fields {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.pricing-fields label {
+  display: grid;
+  gap: 7px;
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.pricing-fields select {
+  width: 100%;
+  min-height: 46px;
+  padding: 10px 12px;
+  font: inherit;
+}
+
+.discipline-fieldset {
+  margin: 18px 0 0;
+  padding: 16px;
+  border: 1px solid var(--management-border);
+  border-radius: 10px;
+}
+
+.discipline-fieldset legend {
+  padding: 0 6px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.discipline-fieldset label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 5px 18px 5px 0;
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.discipline-fieldset input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.pricing-summary {
+  margin: 0;
+}
+
+.pricing-summary-row {
+  padding: 13px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  border-bottom: 1px solid var(--management-border);
+}
+
+.pricing-summary-row dt {
+  color: var(--management-muted);
+  font-weight: 750;
+}
+
+.pricing-summary-row dd {
+  margin: 0;
+  color: var(--management-text);
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.pricing-summary-total {
+  padding: 18px 0;
+}
+
+.pricing-summary-total dt {
+  color: var(--management-text);
+  font-weight: 900;
+}
+
+.pricing-summary-total dd {
+  font-size: 1.55rem;
+}
+
+.pricing-savings {
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px solid #dcc77f;
+  border-radius: 12px;
+  background: var(--management-gold-soft);
+}
+
+.pricing-savings strong {
+  display: block;
+  margin-top: 7px;
+  color: #59440b;
+  font-size: 1.55rem;
+}
+
+.pricing-savings span {
+  display: block;
+  margin-top: 3px;
+  color: #6f5a1b;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.pricing-actions {
+  margin-top: 22px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pricing-disclaimer {
+  margin: 16px 0 0;
+  color: var(--management-muted);
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+@media (max-width: 620px) {
+  .pricing-wrap {
+    width: calc(100% - 26px);
+    padding-top: 28px;
+  }
+
+  .pricing-panel {
+    padding: 18px;
+  }
+
+  .pricing-section-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pricing-section-heading .button {
+    width: 100%;
+  }
+
+  .pricing-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .discipline-fieldset label {
+    width: calc(50% - 12px);
+    margin-right: 8px;
+  }
+
+  .pricing-actions {
+    flex-direction: column;
+  }
+
+  .pricing-actions .button {
+    width: 100%;
+  }
+
+  .pricing-disclaimer {
+    text-align: left;
+  }
+}
+
+@media print {
+  .management-nav-toggle,
+  .management-pipeline-nav,
+  #addAthleteBtn,
+  .remove-athlete,
+  #resetBtn {
+    display: none !important;
+  }
+
+  .pricing-wrap {
+    width: 100%;
+    padding: 0;
+  }
+
+  .pricing-panel {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+}
+
+/* -------------------------------------------------
+   Calculator athlete controls
+------------------------------------------------- */
+
+.pricing-athlete {
+  margin-top: 18px;
+  padding: 22px;
+  border-radius: 16px;
+}
+
+.pricing-athlete + .pricing-athlete {
+  margin-top: 18px;
+}
+
+.athlete-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.athlete-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.pricing-field-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.pricing-field {
+  display: grid;
+  gap: 7px;
+}
+
+.pricing-field label {
+  font-weight: 700;
+}
+
+.pricing-field input,
+.pricing-field select {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border-radius: 10px;
+}
+
+.discipline-box {
+  margin-top: 20px;
+  padding: 18px;
+  border-radius: 14px;
+}
+
+.discipline-heading {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.discipline-help {
+  margin: 0 0 14px;
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.discipline-select-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.optional-label {
+  margin-left: 5px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  opacity: 0.65;
+}
+
+#addAthleteBtn {
+  margin-top: 18px;
+}
+
+@media (max-width: 720px) {
+  .pricing-athlete {
+    padding: 17px;
+  }
+
+  .pricing-field-grid,
+  .discipline-select-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* =========================================================
+   CALCULATOR DISPLAY
+   ========================================================= */
+
+.pricing-calculator-display {
+  margin-bottom: 24px;
+  padding: 22px;
+  border-radius: 18px;
+}
+
+.pricing-calculator-display h2,
+.pricing-calculator-display h3 {
+  margin-top: 0;
+}
+
+.pricing-calculator-display #monthlyMembership {
+  display: block;
+  margin-top: 6px;
+
+  font-size: clamp(2.5rem, 8vw, 4.25rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.pricing-calculator-display #projectedSavings {
+  font-size: 1.35rem;
+  font-weight: 750;
+}
+
+.pricing-calculator-display dl {
+  margin-bottom: 0;
+}
+
+.pricing-athlete-list {
+  margin-top: 0;
+}
+
+@media (max-width: 700px) {
+  .pricing-calculator-display {
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+
+  .pricing-calculator-display #monthlyMembership {
+    font-size: 3rem;
+  }
+}

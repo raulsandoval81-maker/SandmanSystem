@@ -1,15 +1,15 @@
 :root{
-      --bg:#08090c;
-      --panel:#11141a;
-      --panel-2:#171b23;
-      --border:#2b313d;
-      --text:#f3f4f6;
-      --muted:#a8afba;
-      --gold:#d4ad37;
-      --gold-dark:#8b6a00;
-      --cream:#f3ecd8;
-      --green:#8bc59a;
-      --red:#e08f8f;
+      --bg:#f6f3ea;
+      --panel:#fffdf8;
+      --panel-2:#faf6ec;
+      --border:#e3dac5;
+      --text:#172033;
+      --muted:#667085;
+      --gold:#b38a16;
+      --gold-dark:#95620a;
+      --cream:#f3e8bd;
+      --green:#287a4b;
+      --red:#b42318;
     }
 
     *{box-sizing:border-box}
@@ -1034,5 +1034,119 @@
 .actions button[hidden],
 .actions a[hidden] {
   display: none !important;
+}
+
+
+/* ==================================================
+   MANAGEMENT WARM PALETTE ALIGNMENT
+   Screen presentation only
+   ================================================== */
+
+label,
+.label {
+  color: var(--text);
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  border-color: #d2c5a8;
+  background: #ffffff;
+  color: var(--text);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(179,138,22,.14);
+}
+
+.button {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #fffdf8;
+}
+
+.button.secondary {
+  border-color: #d2c5a8;
+  background: var(--panel);
+  color: var(--text);
+}
+
+.button.danger {
+  border-color: #e2aaa6;
+  background: #fcebea;
+  color: var(--red);
+}
+
+.check-row {
+  border-color: var(--border);
+  background: var(--panel);
+  color: var(--text);
+}
+
+.summary-box {
+  border: 1px solid #dcc77f;
+  background: var(--cream);
+  color: var(--text);
+}
+
+.summary-box h2 {
+  color: var(--gold-dark);
+}
+
+.compare-card {
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+.line.credit span:last-child {
+  color: var(--green);
+}
+
+/* Proposal workflow */
+
+.proposal-workflow {
+  border-color: var(--border);
+  background: var(--panel);
+}
+
+.proposal-workflow__eyebrow {
+  color: var(--gold-dark);
+  opacity: 1;
+}
+
+.proposal-workflow__id {
+  color: var(--muted);
+  opacity: 1;
+}
+
+.proposal-workflow__steps span {
+  border-color: var(--border);
+  background: var(--panel-2);
+  color: var(--muted);
+  opacity: 1;
+}
+
+.proposal-workflow__steps span.is-complete {
+  border-color: #a9d0b7;
+  background: #e8f5ec;
+  color: var(--green);
+  opacity: 1;
+}
+
+.proposal-workflow__steps span.is-current {
+  border-color: #dcc77f;
+  background: var(--cream);
+  color: #59440b;
+  opacity: 1;
+}
+
+.proposal-workflow__next {
+  border-left-color: var(--gold);
+  background: var(--panel-2);
+  color: var(--text);
 }
 

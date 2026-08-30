@@ -6,6 +6,7 @@
   <title>Prospect Builder 3.0 | Sandman Combat</title>
 
     <link rel="stylesheet" href="./calculator.css" />
+    <link rel="stylesheet" href="/assets/css/management-ui.css" />
 </head>
 
 <body>
@@ -30,15 +31,39 @@
 </a>
     </header>
 
+    <section
+      id="pricingLabBanner"
+      class="card"
+      hidden
+      style="margin-bottom:16px;"
+    >
+      <div class="eyebrow">
+        Management Tool
+      </div>
+
+      <h2>Pricing Lab</h2>
+
+      <p>
+        Sandbox mode. Change athletes, disciplines,
+        billing terms, and membership combinations
+        without creating or changing a proposal.
+      </p>
+
+      <p class="help">
+        Nothing in Pricing Lab is saved to Admissions,
+        proposals, or Stripe.
+      </p>
+    </section>
+
     <section class="metric-grid">
       <article class="metric">
         <div class="metric-label">Due at enrollment</div>
-        <div id="dueNow" class="metric-value">$75</div>
-        <div class="metric-note">One-time onboarding after approved credits</div>
+        <div id="dueNow" class="metric-value">$0</div>
+        <div class="metric-note">One-time extras or approved adjustments</div>
       </article>
 
       <article class="metric">
-        <div class="metric-label">Monthly family balance</div>
+        <div class="metric-label">Family membership</div>
         <div id="monthlyTotal" class="metric-value">$80</div>
         <div class="metric-note">Recurring training membership</div>
       </article>
@@ -50,9 +75,18 @@
       </article>
 
       <article class="metric">
-        <div class="metric-label">Next annual renewal</div>
+        <div class="metric-label">Projected savings</div>
+        <div id="projectedSavings" class="metric-value">$0</div>
+        <div class="metric-note">
+          Estimated 12-month savings from family pricing
+          and applicable membership terms
+        </div>
+      </article>
+
+      <article class="metric">
+        <div class="metric-label">Annual membership / insurance</div>
         <div id="annualTotal" class="metric-value">$50</div>
-        <div class="metric-note">Annual athlete renewal</div>
+        <div class="metric-note">Annual total for Sandman members</div>
       </article>
     </section>
 
@@ -178,11 +212,23 @@
 
           <div class="compare-grid">
             <div class="compare-card">
-              <strong id="standardCompare">$80 Combat</strong>
+              <strong id="standardCompare">
+                Standard Combat
+              </strong>
               <p>
-                Family ladder:
-                $80 / $120 / $140 / $160,
-                then +$20 per additional athlete.
+                1 discipline: $80 with a 12-month
+                agreement + autopay, or $100
+                month-to-month.
+              </p>
+              <p>
+                2 disciplines: $120 with a 12-month
+                agreement + autopay, or $150
+                month-to-month.
+              </p>
+              <p>
+                Sibling family pricing applies.
+                Standard Combat family membership
+                caps at $200/month.
               </p>
             </div>
 
@@ -200,12 +246,11 @@
           </div>
 
           <p class="help" style="margin-top:12px;">
-            Founding Year Combat and Everyday Fitness
-            keep their standard rates regardless of commitment.
-            The current agreement benefit applies to the
-            Combat + Fitness package:
-            $140 month-to-month or $120 with a
-            12-month agreement + autopay.
+            Standard Combat pricing reflects discipline count,
+            billing term, and sibling family pricing.
+            Everyday Fitness remains separate.
+            Combat + Fitness is $140 month-to-month or $120
+            with a 12-month agreement + autopay.
           </p>
         </article>
 
@@ -369,7 +414,7 @@
       <article>
         <span>Due at Enrollment</span>
         <strong id="printDueNow">$0</strong>
-        <small>One-time onboarding</small>
+        <small>One-time extras or adjustments</small>
       </article>
 
       <article>
@@ -391,7 +436,7 @@
       </article>
 
       <article>
-        <span>Annual Athlete Renewal</span>
+        <span>Annual Membership / Insurance</span>
         <strong id="printAnnualRenewal">$0</strong>
         <small>Annual renewal</small>
       </article>
@@ -490,11 +535,16 @@
         </div>
 
         <div class="field">
-          <label>Auto-renewal</label>
-          <select class="renewal-behavior">
-            <option value="month-to-month">Continue month-to-month</option>
-            <option value="renew-annual">Renew for another 12 months</option>
-            <option value="end">End after agreement</option>
+          <label>Annual membership / insurance</label>
+
+          <select class="annual-membership">
+            <option value="sandman">
+              Sandman provides AAU — $35/year
+            </option>
+
+            <option value="current-aau">
+              Current AAU verified — $5/year
+            </option>
           </select>
         </div>
       </div>
@@ -523,6 +573,6 @@
     </article>
   </template>
 
-    <script type="module" src="./calculator.js"></script>
+    <script type="module" src="./calculator.js?v=20260827-1"></script>
 </body>
 </html>

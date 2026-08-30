@@ -11,6 +11,14 @@ import {
   SANDMAN_PRICING_CATALOG
 } from "/assets/js/pricing/sandman-pricing-catalog.js";
 
+import {
+  calculateSandmanMembershipPricing
+} from "/assets/js/pricing/sandman-pricing-engine.js";
+
+import {
+  renderManagementLifecycle
+} from "/assets/js/management-lifecycle.js";
+
 console.log("Prospect Builder Firebase ready:", Boolean(db));
 // --------------------------------------------------
 // Admissions Request (Phase 1)
@@ -18,6 +26,9 @@ console.log("Prospect Builder Firebase ready:", Boolean(db));
 
 const params =
   new URLSearchParams(window.location.search);
+
+const pricingLabMode =
+  params.get("lab") === "1";
 
 const requestId =
   params.get("requestId") || "";
@@ -275,28 +286,16 @@ const FOUNDING_YEAR = {
   comboAnnualAutopay:
     PRICING.combo.annualAutopay,
 
-  athleteOnboarding:
-    PRICING.fees.athleteOnboarding,
+  athleteAnnualMembership:
+    PRICING.fees.annualMembership
+      .sandmanProvidesAAU,
 
-  athleteAnnualRenewal:
-    PRICING.fees.athleteAnnualRenewal,
+  athleteAnnualMembershipCurrentAAU:
+    PRICING.fees.annualMembership
+      .athleteHasCurrentAAU,
 
   defaultAdmissionsCredit:
     PRICING.credits.admissionsDefault
-};
-
-const familyMonthly = {
-  1:
-    PRICING.combat.standardFamily.athlete1,
-
-  2:
-    PRICING.combat.standardFamily.athlete2Total,
-
-  3:
-    PRICING.combat.standardFamily.athlete3Total,
-
-  4:
-    PRICING.combat.standardFamily.athlete4Total
 };
 
 const extras = {
@@ -324,6 +323,7 @@ const extras = {
       dueNow:document.getElementById("dueNow"),
       monthlyTotal:document.getElementById("monthlyTotal"),
       firstYearTotal:document.getElementById("firstYearTotal"),
+      projectedSavings:document.getElementById("projectedSavings"),
       annualTotal:document.getElementById("annualTotal"),
       breakdown:document.getElementById("breakdown"),
       summary:document.getElementById("summary"),
@@ -401,6 +401,53 @@ const extras = {
         document.getElementById("proposalWorkflowRouteLink")
     };
 
+    if (pricingLabMode) {
+      const banner =
+        document.getElementById(
+          "pricingLabBanner"
+        );
+
+      if (banner) {
+        banner.hidden = false;
+      }
+
+      [
+        el.saveDraftButton,
+        el.submitReviewButton,
+        el.approveProposalButton,
+        el.checkoutProposalButton
+      ].forEach((button) => {
+        if (!button) return;
+
+        button.hidden = true;
+        button.disabled = true;
+      });
+
+      if (el.proposalWorkflowStage) {
+        el.proposalWorkflowStage.textContent =
+          "Pricing Lab";
+      }
+
+      if (el.proposalWorkflowId) {
+        el.proposalWorkflowId.textContent =
+          "Sandbox — no proposal";
+      }
+
+      if (el.proposalWorkflowNext) {
+        el.proposalWorkflowNext.textContent =
+          "Change combinations freely. Nothing is saved.";
+      }
+
+      if (el.proposalWorkflowRoute) {
+        el.proposalWorkflowRoute.hidden = true;
+      }
+
+      /*
+       * Pricing Lab is calculator-only.
+       * Reset and print remain available.
+       */
+    }
+
     function money(value){
       return "$" + Math.max(0,Math.round(Number(value)||0)).toLocaleString();
     }
@@ -439,7 +486,11 @@ const extras = {
         String(
           FOUNDING_YEAR.defaultAdmissionsCredit
         );
-      newCard.querySelector(".renewal-behavior").value=defaults.renewalBehavior||"month-to-month";
+      newCard.querySelector(
+        ".annual-membership"
+      ).value =
+        defaults.annualMembership ||
+        "sandman";
 
       if(defaults.disciplines){
         defaults.disciplines.forEach(value=>{
@@ -480,11 +531,36 @@ const extras = {
           journey:card.querySelector(".journey").value,
           plan:card.querySelector(".athlete-plan").value,
           billingTerm:card.querySelector(".billing-term").value,
-          renewalBehavior:card.querySelector(".renewal-behavior").value,
+
+          annualMembership:
+            card.querySelector(
+              ".annual-membership"
+            )?.value ||
+            "sandman",
+
           credit:Number(card.querySelector(".admissions-credit").value||0),
           disciplines
         };
       });
+    }
+
+    function annualMembershipAmount(
+      athlete
+    ){
+      if (
+        athlete.annualMembership ===
+        "current-aau"
+      ) {
+        return (
+          FOUNDING_YEAR
+            .athleteAnnualMembershipCurrentAAU
+        );
+      }
+
+      return (
+        FOUNDING_YEAR
+          .athleteAnnualMembership
+      );
     }
 
     function calculate(){
@@ -507,7 +583,7 @@ const extras = {
         }
 
         /*
-         * Onboarding and annual renewal are now
+         * Annual athlete membership is charged
          * per Combat athlete, not per discipline.
          */
         registrationCount += 1;
@@ -523,79 +599,54 @@ const extras = {
         }
       });
 
-      const enrollmentBase =
-        registrationCount *
-        FOUNDING_YEAR.athleteOnboarding;
+      const enrollmentBase = 0;
 
       const annualBase =
-        registrationCount *
-        FOUNDING_YEAR.athleteAnnualRenewal;
-
-      let monthlyBase = 0;
-
-      if (standardCount > 0) {
-        if (standardCount <= 4) {
-          monthlyBase +=
-            familyMonthly[standardCount];
-        } else {
-          monthlyBase +=
-            familyMonthly[4] +
-            (
-              standardCount - 4
-            ) *
-            PRICING.combat.standardFamily
-              .additionalAthlete;
-        }
-      }
-
-      monthlyBase +=
-        fitnessCount *
-        FOUNDING_YEAR.fitnessMonthly;
+        athletes.reduce(
+          (total, athlete) =>
+            total +
+            annualMembershipAmount(
+              athlete
+            ),
+          0
+        );
 
       /*
-       * Combat + Fitness is currently priced
-       * per participant.
-       *
-       * Multi-athlete Combo family pricing
-       * has NOT been separately defined yet.
+       * Membership pricing comes from the shared
+       * Sandman pricing engine so Prospect Builder
+       * and Management Pricing & Estimates use the
+       * same rules.
        */
-      athletes
-        .filter(
-          (athlete) =>
-            athlete.plan === "combo"
-        )
-        .forEach((athlete) => {
-          monthlyBase +=
-            athlete.billingTerm === "annual"
-              ? FOUNDING_YEAR.comboAnnualAutopay
-              : FOUNDING_YEAR.comboMonthToMonth;
-        });
+      const membershipPricing =
+        calculateSandmanMembershipPricing(
+          athletes
+        );
 
-      /*
-       * Founding Year core memberships are
-       * not discounted simply for signing
-       * an agreement.
-       *
-       * The Combo agreement benefit is
-       * already represented directly in
-       * monthlyBase as $140 -> $120.
-       */
-      let commitmentDiscount = 0;
+      const monthlyBase =
+        membershipPricing.monthlyMembership;
 
-      const comboAgreementCount =
-        athletes.filter(
-          (athlete) =>
-            athlete.plan === "combo" &&
-            athlete.billingTerm === "annual"
-        ).length;
+      const standardCombatMonthly =
+        membershipPricing.standardCombatMonthly;
+
+      const standardIndividualEquivalentMonthly =
+        membershipPricing
+          .standardIndividualEquivalentMonthly;
+
+      const standardFamilySavingsAnnual =
+        membershipPricing
+          .standardFamilySavingsAnnual;
 
       const agreementSavingsAnnual =
-        comboAgreementCount *
-        (
-          FOUNDING_YEAR.comboMonthToMonth -
-          FOUNDING_YEAR.comboAnnualAutopay
-        ) *
-        12;
+        membershipPricing.agreementSavingsAnnual;
+
+      const projectedSavingsAnnual =
+        membershipPricing.projectedSavingsAnnual;
+
+      /*
+       * Membership term pricing is already reflected
+       * directly in the shared pricing engine.
+       */
+      let commitmentDiscount = 0;
 
       let privatePromo=0;
       if(el.privatePromo.checked&&extra.promoEligible){
@@ -641,12 +692,11 @@ const extras = {
       el.dueNow.textContent=money(dueNow);
       el.monthlyTotal.textContent=money(monthlyBalance);
       el.firstYearTotal.textContent=money(firstYear);
+      el.projectedSavings.textContent=money(projectedSavingsAnnual);
       el.annualTotal.textContent=money(annualRenewal);
 
       el.standardCompare.textContent =
-        `${money(
-          FOUNDING_YEAR.combatMonthly
-        )} Combat`;
+        "Standard Combat";
 
       el.unlimitedCompare.textContent =
         `${money(
@@ -668,13 +718,6 @@ const extras = {
 
           return;
         }
-
-        el.breakdown.append(
-          line(
-            `${a.name} — Athlete onboarding`,
-            FOUNDING_YEAR.athleteOnboarding
-          )
-        );
 
         if (a.disciplines.length === 0) {
           el.breakdown.append(
@@ -736,7 +779,7 @@ const extras = {
 
       el.breakdown.append(
         line(
-          "Annual athlete renewal",
+          "Annual membership / insurance",
           annualBase
         )
       );
@@ -786,15 +829,15 @@ const extras = {
       const recommendation=el.coachRecommendation.value.trim();
 
       const familySavings =
-        agreementSavingsAnnual > 0
+        projectedSavingsAnnual > 0
           ? `
             <p class="family-savings">
               <strong>You save:</strong>
               ${money(
-                agreementSavingsAnnual / 12
+                projectedSavingsAnnual / 12
               )} per month /
               <strong>${money(
-                agreementSavingsAnnual
+                projectedSavingsAnnual
               )} over 12 months</strong>.
             </p>
           `
@@ -809,7 +852,7 @@ const extras = {
           <strong>${money(dueNow)}</strong>.
           Monthly membership:
           <strong>${money(monthlyBalance)}/month</strong>.
-          Annual athlete renewal:
+          Annual athlete membership / insurance:
           <strong>${money(annualRenewal)}/year</strong>.
         </p>
 
@@ -839,6 +882,7 @@ const extras = {
           monthlyBase,
           commitmentDiscount,
           agreementSavingsAnnual,
+          projectedSavingsAnnual,
 
           monthlySponsor,
           monthlyBalance,
@@ -872,19 +916,20 @@ const extras = {
           comboAnnualAutopay:
             FOUNDING_YEAR.comboAnnualAutopay,
 
-          athleteOnboarding:
-            FOUNDING_YEAR.athleteOnboarding,
+          athleteOnboarding: 0,
 
           athleteAnnualRenewal:
-            FOUNDING_YEAR.athleteAnnualRenewal
+            FOUNDING_YEAR.athleteAnnualMembership,
+
+          athleteAnnualMembership:
+            FOUNDING_YEAR.athleteAnnualMembership
         },
 
         agreement: {
           athleteTerms: athletes.map((athlete) => ({
             index: athlete.index,
             name: athlete.name,
-            billingTerm: athlete.billingTerm,
-            renewalBehavior: athlete.renewalBehavior
+            billingTerm: athlete.billingTerm
           }))
         },
 
@@ -894,6 +939,15 @@ const extras = {
     }
 
     async function saveProposalDraft(){
+  if (pricingLabMode) {
+    console.warn(
+      "Pricing Lab blocked proposal write:",
+      "saveProposalDraft"
+    );
+
+    return;
+  }
+
       if (
         !proposalId &&
         !appointmentId &&
@@ -1037,6 +1091,15 @@ alert(
     }
 
     async function submitForReview() {
+  if (pricingLabMode) {
+    console.warn(
+      "Pricing Lab blocked proposal write:",
+      "submitForReview"
+    );
+
+    return;
+  }
+
       if (!proposalId) {
         alert(
           "Save the proposal draft before submitting it for review."
@@ -1125,6 +1188,15 @@ alert(
     }
 
 async function approveCurrentProposal() {
+  if (pricingLabMode) {
+    console.warn(
+      "Pricing Lab blocked proposal write:",
+      "approveCurrentProposal"
+    );
+
+    return;
+  }
+
   if (!proposalId) {
     alert("No proposal ID was supplied.");
     return;
@@ -1219,6 +1291,15 @@ async function approveCurrentProposal() {
 }
 
 async function beginProposalCheckout() {
+  if (pricingLabMode) {
+    console.warn(
+      "Pricing Lab blocked proposal write:",
+      "beginProposalCheckout"
+    );
+
+    return;
+  }
+
   if (!proposalId) {
     alert("No proposal ID was supplied.");
     return;
@@ -1259,6 +1340,16 @@ async function beginProposalCheckout() {
             proposalId
           });
 
+        const responseStatus =
+          String(
+            response.data?.status || ""
+          ).toUpperCase();
+
+        if (responseStatus === "PAID") {
+          window.location.reload();
+          return;
+        }
+
         const checkoutUrl =
           response.data?.checkoutUrl;
 
@@ -1293,26 +1384,6 @@ async function beginProposalCheckout() {
       const normalized =
         String(status || "BUILDING")
           .toUpperCase();
-
-      const steps = [
-        "Admissions Decision",
-        "Proposal Draft",
-        "Review",
-        "Approval",
-        "Checkout",
-        "Enrollment"
-      ];
-
-      const stageIndex = {
-        BUILDING: 1,
-        DRAFT: 1,
-        REVIEW: 2,
-        READY_FOR_CHECKOUT: 4,
-        CHECKOUT_CREATED: 4,
-        PAYMENT_PENDING: 4,
-        PAID: 5,
-        LOCKED: 5
-      }[normalized] ?? 1;
 
       const stageLabels = {
         BUILDING: "Building Proposal",
@@ -1369,39 +1440,58 @@ async function beginProposalCheckout() {
       }
 
       if (el.proposalWorkflowSteps) {
-        el.proposalWorkflowSteps.innerHTML =
-          steps
-            .map((step, index) => {
-              const complete =
-                index < stageIndex;
+        const lifecycleState = {
+          BUILDING: {
+            currentStage: "prospect-builder",
+            completedThrough: "outcome"
+          },
+          DRAFT: {
+            currentStage: "prospect-builder",
+            completedThrough: "outcome"
+          },
+          REVIEW: {
+            currentStage: "review",
+            completedThrough: "prospect-builder"
+          },
+          APPROVED: {
+            currentStage: "approval",
+            completedThrough: "review"
+          },
+          READY_FOR_CHECKOUT: {
+            currentStage: "checkout",
+            completedThrough: "approval"
+          },
+          CHECKOUT_CREATED: {
+            currentStage: "checkout",
+            completedThrough: "approval"
+          },
+          PAYMENT_PENDING: {
+            currentStage: "checkout",
+            completedThrough: "approval"
+          },
+          PAID: {
+            currentStage: "enrollment",
+            completedThrough: "checkout"
+          },
+          LOCKED: {
+            currentStage: "prospect-builder",
+            completedThrough: "outcome"
+          }
+        }[normalized] || {
+          currentStage: "prospect-builder",
+          completedThrough: "outcome"
+        };
 
-              const current =
-                index === stageIndex;
-
-              const symbol =
-                complete
-                  ? "✓"
-                  : current
-                    ? "→"
-                    : "○";
-
-              const className =
-                current
-                  ? "is-current"
-                  : complete
-                    ? "is-complete"
-                    : "";
-
-              return `
-                <span class="${className}">
-                  ${symbol} ${step}
-                </span>
-              `;
-            })
-            .join("");
+        renderManagementLifecycle(
+          el.proposalWorkflowSteps,
+          {
+            ...lifecycleState,
+            listOnly: true
+          }
+        );
       }
 
-      const showQueueRoute =
+      const showWorkflowRoute =
         normalized === "REVIEW" ||
         normalized === "READY_FOR_CHECKOUT" ||
         normalized === "CHECKOUT_CREATED" ||
@@ -1411,12 +1501,34 @@ async function beginProposalCheckout() {
 
       if (el.proposalWorkflowRoute) {
         el.proposalWorkflowRoute.hidden =
-          !showQueueRoute;
+          !showWorkflowRoute;
       }
 
       if (el.proposalWorkflowRouteLink) {
-        el.proposalWorkflowRouteLink.href =
-          "/connect/proposals/";
+        if (normalized === "PAID") {
+          el.proposalWorkflowRouteLink.href =
+            "/intake-management/" +
+            `?proposalId=${encodeURIComponent(
+              proposalId || ""
+            )}`;
+
+          el.proposalWorkflowRouteLink.textContent =
+            "Continue to Enrollment";
+
+          el.proposalWorkflowRouteLink.classList.remove(
+            "secondary"
+          );
+        } else {
+          el.proposalWorkflowRouteLink.href =
+            "/connect/proposals/";
+
+          el.proposalWorkflowRouteLink.textContent =
+            "Go to Proposal Queue";
+
+          el.proposalWorkflowRouteLink.classList.add(
+            "secondary"
+          );
+        }
       }
 
       if (normalized === "BUILDING") {
@@ -1558,9 +1670,9 @@ async function beginProposalCheckout() {
               athlete.billingTerm ||
               "month-to-month",
 
-            renewalBehavior:
-              athlete.renewalBehavior ||
-              "month-to-month",
+            annualMembership:
+              athlete.annualMembership ||
+              "sandman",
 
             credit:
               athlete.credit ??
@@ -1643,11 +1755,12 @@ async function beginProposalCheckout() {
           !checkoutExists;
 
         el.checkoutProposalButton.disabled =
-          !canBeginCheckout;
+          !canBeginCheckout &&
+          !checkoutExists;
 
         el.checkoutProposalButton.textContent =
           checkoutExists
-            ? "Checkout Created"
+            ? "Resume Checkout"
             : "Begin Checkout";
           }
 
@@ -1736,8 +1849,8 @@ async function beginProposalCheckout() {
         billingTerm:
           "month-to-month",
 
-        renewalBehavior:
-          "month-to-month",
+        annualMembership:
+          "sandman",
 
         disciplines:
           discipline
@@ -1948,7 +2061,9 @@ async function beginProposalCheckout() {
        */
       const annualSavings =
         Number(
-          pricing.agreementSavingsAnnual || 0
+          pricing.projectedSavingsAnnual ||
+          pricing.agreementSavingsAnnual ||
+          0
         );
 
       const monthlySavings =
@@ -2064,15 +2179,44 @@ async function beginProposalCheckout() {
           } else if (
             athlete.plan === "standard"
           ) {
+            const disciplineCount =
+              athlete.disciplines.length;
+
+            const individualStandardRate =
+              80 +
+              (
+                athlete.billingTerm !== "annual"
+                  ? 20
+                  : 0
+              ) +
+              (
+                disciplineCount >= 2
+                  ? (
+                      athlete.billingTerm === "annual"
+                        ? 40
+                        : 50
+                    )
+                  : 0
+              );
+
             pricingRows += `
               <div class="print-detail-row">
                 <span>
-                  Founding Year Combat membership
+                  Individual Combat membership value
                 </span>
                 <strong>
                   ${money(
-                    FOUNDING_YEAR.combatMonthly
+                    individualStandardRate
                   )}/month
+                </strong>
+              </div>
+
+              <div class="print-detail-row">
+                <span>
+                  Sibling family pricing
+                </span>
+                <strong>
+                  Reflected in family total
                 </strong>
               </div>
             `;
@@ -2127,27 +2271,25 @@ async function beginProposalCheckout() {
 
               ${pricingRows}
 
-              <div class="print-detail-row">
-                <span>Athlete onboarding</span>
-                <strong>
-                  ${money(
-                    FOUNDING_YEAR
-                      .athleteOnboarding
-                  )}
-                </strong>
-              </div>
+              ${
+                athlete.plan !== "fitness"
+                  ? `
+                    <div class="print-detail-row">
+                      <span>
+                        Annual athlete membership / insurance
+                      </span>
 
-              <div class="print-detail-row">
-                <span>
-                  Annual athlete renewal
-                </span>
-                <strong>
-                  ${money(
-                    FOUNDING_YEAR
-                      .athleteAnnualRenewal
-                  )}/year
-                </strong>
-              </div>
+                      <strong>
+                        ${money(
+                          annualMembershipAmount(
+                            athlete
+                          )
+                        )}/year
+                      </strong>
+                    </div>
+                  `
+                  : ""
+              }
 
             </article>
           `;
