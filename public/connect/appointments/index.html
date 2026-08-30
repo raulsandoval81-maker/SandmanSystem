@@ -24,15 +24,16 @@
     rel="stylesheet"
     href="/connect/appointments/appointments.css"
   />
+  <link rel="stylesheet" href="/assets/css/management-ui.css" />
 </head>
 
 <body>
   <main class="appointments-page">
 
-    <header class="appointments-header">
+    <header class="appointments-header management-workspace-header">
       <div>
         <p class="eyebrow">
-          Sandman Connect
+          Academy Management
         </p>
 
         <h1>
@@ -44,21 +45,62 @@ Review prospective athletes, schedule Admissions Appointments,
 and send confirmed appointment details through Gatekeeper.
 </p>
       </div>
+    </header>
 
-      <div class="header-actions">
-        <a class="btn" href="/connect/leads/">
-          Back to Leads
-        </a>
+    <nav class="management-pipeline-nav" aria-label="Management navigation">
+      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+      <a href="/connect/leads/">Leads</a>
+      <a href="/connect/appointments/" aria-current="page">Appointments</a>
+      <a href="/connect/proposals/">Proposals</a>
+      <a href="/intake-management/">Enrollment</a>
+      <a href="/management/inbox/">Inbox</a>
+      <a href="/connect/admissions-requests/">Try a Class</a>
+    </nav>
 
-        <button
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>Turn an interested family into a confirmed Admissions Appointment.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>Review the selected lead, choose the appointment date and time, confirm the visit, send the confirmation, and coordinate Coach technical verification when appropriate.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>After the appointment, Management records the outcome and moves qualified families toward the Prospect Builder and Proposal process.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>Management owns scheduling and admissions handling. The Coach owns technical verification of claimed experience when requested.</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="management-page-actions" aria-label="Page actions">
+<button
           id="refreshBtn"
-          class="btn btn-primary"
+          class="btn"
           type="button"
         >
           Refresh
         </button>
-      </div>
-    </header>
+    </div>
+
 
     <p
       id="pageStatus"
@@ -67,18 +109,17 @@ and send confirmed appointment details through Gatekeeper.
 
 
     <section class="info-card">
-      <h2>Coach Workflow</h2>
+      <h2>Coach Verification</h2>
 
       <p>
 Review the selected lead, schedule the Admissions Appointment,
-then send the confirmed details through Gatekeeper.
+and coordinate the requested Coach technical verification.
       </p>
 
       <ul>
         <li>Review Lead</li>
         <li>Choose Date &amp; Time</li>
-        <li>Select Academy Location</li>
-        <li>Assign Coach</li>
+        <li>Confirm Appointment</li>
         <li>Send Appointment Confirmation</li>
       </ul>
     </section>
@@ -138,7 +179,7 @@ then send the confirmed details through Gatekeeper.
         </select>
 
         <label for="appointmentNotes">
-          Private Coach Notes
+          Private Management Notes
           <span class="optional">Optional</span>
         </label>
         <textarea
@@ -167,5 +208,11 @@ then send the confirmed details through Gatekeeper.
     type="module"
     src="/connect/appointments/appointments.js"
   ></script>
+  <script src="/assets/js/management-nav.js"></script>
+
+  <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 </body>
 </html>

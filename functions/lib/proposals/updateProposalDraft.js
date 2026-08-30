@@ -49,6 +49,7 @@ exports.updateProposalDraft = (0, https_1.onCall)(async (req) => {
                 throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
             }
             const existing = proposalSnap.data() || {};
+            (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, existing.locationId);
             const currentStatus = cleanString(existing.status);
             if (currentStatus !== "DRAFT") {
                 throw new https_1.HttpsError("failed-precondition", "Only DRAFT proposals may be edited.");
@@ -66,11 +67,43 @@ exports.updateProposalDraft = (0, https_1.onCall)(async (req) => {
                     nullableString(existingProspect.appointmentId),
                 admissionsRequestId: nullableString(incomingProspect.admissionsRequestId) ??
                     nullableString(existingProspect.admissionsRequestId),
-                familyName: nullableString(incomingProspect.familyName),
-                primaryContactName: nullableString(incomingProspect.primaryContactName),
-                email: nullableString(cleanEmail(incomingProspect.email)),
-                phone: nullableString(incomingProspect.phone),
+                familyName: nullableString(incomingProspect.familyName) ??
+                    nullableString(existingProspect.familyName),
+                primaryContactName: nullableString(incomingProspect.primaryContactName) ??
+                    nullableString(existingProspect.primaryContactName),
+                email: nullableString(cleanEmail(incomingProspect.email)) ??
+                    nullableString(cleanEmail(existingProspect.email)),
+                phone: nullableString(incomingProspect.phone) ??
+                    nullableString(existingProspect.phone),
+                city: nullableString(incomingProspect.city) ??
+                    nullableString(existingProspect.city),
+                state: nullableString(incomingProspect.state) ??
+                    nullableString(existingProspect.state),
             };
+            const existingAthletes = Array.isArray(existing.athletes)
+                ? existing.athletes
+                : [];
+            const proposalAthletes = athletes.map((athlete, index) => {
+                if (index !== 0 ||
+                    !athlete ||
+                    typeof athlete !== "object" ||
+                    Array.isArray(athlete)) {
+                    return athlete;
+                }
+                const incomingAthlete = athlete;
+                const existingAthlete = existingAthletes[0] &&
+                    typeof existingAthletes[0] === "object" &&
+                    !Array.isArray(existingAthletes[0])
+                    ? existingAthletes[0]
+                    : {};
+                return {
+                    ...incomingAthlete,
+                    dob: nullableString(incomingAthlete.dob ||
+                        incomingAthlete.dateOfBirth ||
+                        existingAthlete.dob ||
+                        existingAthlete.dateOfBirth),
+                };
+            });
             const historyRef = proposalRef
                 .collection("history")
                 .doc();
@@ -80,7 +113,7 @@ exports.updateProposalDraft = (0, https_1.onCall)(async (req) => {
                     uid: callerUid,
                     name: coachName,
                 },
-                athletes,
+                athletes: proposalAthletes,
                 pricing,
                 agreement,
                 internalNotes: nullableString(data.internalNotes),

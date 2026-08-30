@@ -1,0 +1,383 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>
+    Admissions Assessments | Sandman
+  </title>
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/coaches/admissions/admissions.css"
+  />
+</head>
+
+<body>
+  <main class="wrap admissions-wrap">
+
+    <header class="hero">
+      <p class="eyebrow">
+        Coach Workspace
+      </p>
+
+      <h1>
+        Admissions Assessments
+      </h1>
+
+      <p>
+        Review assigned athletes, verify prior
+        experience, and return your technical
+        recommendation to Management.
+      </p>
+
+      <nav class="topnav">
+        <a
+          class="pill primary"
+          href="/coaches/hub/index.html"
+        >
+          Coach Hub
+        </a>
+
+        <a
+          class="pill"
+          href="/coaches/index.html"
+        >
+          Daily Tools
+        </a>
+      </nav>
+    </header>
+
+    <section class="assessment-notice">
+      <strong>Coach verification only.</strong>
+
+      <span>
+        This workspace does not enroll athletes,
+        award XP, set pricing, or create proposals.
+      </span>
+    </section>
+
+    <section class="assessment-layout">
+
+      <aside class="card panel appointment-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">
+              Assigned to You
+            </p>
+
+            <h2>
+              Appointments
+            </h2>
+          </div>
+
+          <button
+            id="refreshAppointments"
+            type="button"
+            class="secondary-button"
+          >
+            Refresh
+          </button>
+        </div>
+
+        <p
+          id="appointmentStatus"
+          class="muted status"
+        >
+          Loading assigned appointments…
+        </p>
+
+        <div
+          id="appointmentList"
+          class="appointment-list"
+        ></div>
+      </aside>
+
+      <section
+        id="assessmentWorkspace"
+        class="card panel assessment-panel"
+        hidden
+      >
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">
+              Technical Verification
+            </p>
+
+            <h2 id="athleteHeading">
+              Athlete Assessment
+            </h2>
+          </div>
+
+          <span
+            id="assessmentBadge"
+            class="status-badge"
+          >
+            Pending
+          </span>
+        </div>
+
+        <div class="context-grid">
+
+          <article class="context-card">
+            <span class="context-label">
+              Appointment
+            </span>
+
+            <strong id="appointmentWhen">
+              —
+            </strong>
+          </article>
+
+          <article class="context-card">
+            <span class="context-label">
+              Location
+            </span>
+
+            <strong id="appointmentLocation">
+              —
+            </strong>
+          </article>
+
+          <article class="context-card">
+            <span class="context-label">
+              Program Interest
+            </span>
+
+            <strong id="programInterest">
+              —
+            </strong>
+          </article>
+
+          <article class="context-card">
+            <span class="context-label">
+              Appointment Status
+            </span>
+
+            <strong id="appointmentState">
+              —
+            </strong>
+          </article>
+
+        </div>
+
+        <section class="reported-experience">
+          <div class="section-heading compact">
+            <div>
+              <p class="eyebrow">
+                Family Report
+              </p>
+
+              <h3>
+                Previous Training Experience
+              </h3>
+            </div>
+
+            <span class="claim-badge">
+              Unverified
+            </span>
+          </div>
+
+          <p id="reportedExperience">
+            Not reported.
+          </p>
+
+          <p
+            id="reportedExperienceNotes"
+            class="muted"
+          ></p>
+        </section>
+
+        <form id="assessmentForm">
+
+          <fieldset>
+            <legend>
+              Coach Verification
+            </legend>
+
+            <label for="verifiedExperienceYears">
+              Verified prior experience
+            </label>
+
+            <select
+              id="verifiedExperienceYears"
+              required
+            >
+              <option value="">
+                Select verified experience
+              </option>
+
+              <option value="0">
+                No recognized prior experience
+              </option>
+
+              <option value="1">
+                1 year
+              </option>
+
+              <option value="2">
+                2 years
+              </option>
+
+              <option value="3">
+                3+ years
+              </option>
+            </select>
+
+            <p class="field-note">
+              Use observed ability and Coach judgment.
+              The family's report is context only.
+            </p>
+          </fieldset>
+
+          <fieldset>
+            <legend>
+              Technical Assessment
+            </legend>
+
+            <label for="coachAssessment">
+              Coach assessment
+            </label>
+
+            <textarea
+              id="coachAssessment"
+              rows="7"
+              maxlength="3000"
+              required
+              placeholder="Observed readiness, technical experience, training background, and relevant placement context."
+            ></textarea>
+          </fieldset>
+
+          <fieldset>
+            <legend>
+              Recommendation
+            </legend>
+
+            <div class="form-grid">
+
+              <div>
+                <label for="recommendedJourney">
+                  Journey
+                </label>
+
+                <select
+                  id="recommendedJourney"
+                  required
+                >
+                  <option value="">
+                    Select journey
+                  </option>
+
+                  <option value="zero2hero">
+                    Zero2Hero
+                  </option>
+
+                  <option value="path2legend">
+                    Path2Legend
+                  </option>
+
+                  <option value="quest2mastery">
+                    Quest2Mastery
+                  </option>
+                </select>
+              </div>
+
+              <div>
+                <label for="recommendedDiscipline">
+                  Discipline
+                </label>
+
+                <select
+                  id="recommendedDiscipline"
+                  required
+                >
+                  <option value="">
+                    Select discipline
+                  </option>
+
+                  <option value="wrestling">
+                    Wrestling
+                  </option>
+
+                  <option value="boxing">
+                    Boxing
+                  </option>
+
+                  <option value="muay-thai">
+                    Muay Thai
+                  </option>
+
+                  <option value="mma">
+                    MMA
+                  </option>
+
+                  <option value="submission-grappling">
+                    Submission Grappling
+                  </option>
+                </select>
+              </div>
+
+            </div>
+          </fieldset>
+
+          <div class="assessment-actions">
+
+            <p
+              id="saveStatus"
+              class="muted status"
+              aria-live="polite"
+            >
+              No assessment submitted.
+            </p>
+
+            <button
+              id="completeAssessment"
+              type="submit"
+              class="primary-button"
+            >
+              Complete Assessment
+            </button>
+
+          </div>
+
+        </form>
+      </section>
+
+      <section
+        id="emptyWorkspace"
+        class="card panel empty-panel"
+      >
+        <p class="eyebrow">
+          Assessment
+        </p>
+
+        <h2>
+          Select an assigned appointment
+        </h2>
+
+        <p class="muted">
+          Family-reported experience and the Coach
+          verification form will appear here.
+        </p>
+      </section>
+
+    </section>
+
+  </main>
+
+  <script
+    type="module"
+    src="/coaches/admissions/admissions.js"
+  ></script>
+</body>
+</html>

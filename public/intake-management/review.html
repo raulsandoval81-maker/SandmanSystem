@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/assets/css/site.css"/>
   <link rel="stylesheet" href="./management.intake.css"/>
   <link rel="stylesheet" href="/intake-shared/shared.css"/>
+  <link rel="stylesheet" href="/assets/css/management-ui.css"/>
   <link rel="icon" href="data:,">
 </head>
 
@@ -21,6 +22,22 @@
         <p id="reviewPageSubtitle" class="muted small">Review the intake, confirm placement, and activate the athlete.</p>
       </div>
     </header>
+
+    <nav class="management-pipeline-nav" aria-label="Management navigation">
+      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+      <a href="/connect/leads/">Leads</a>
+      <a href="/connect/appointments/">Appointments</a>
+      <a href="/connect/proposals/">Proposals</a>
+      <a href="/intake-management/" aria-current="page">Enrollment</a>
+      <a href="/management/inbox/">Inbox</a>
+      <a href="/connect/admissions-requests/">Try a Class</a>
+    </nav>
+
+    <section
+      id="intakeLifecycle"
+      class="management-lifecycle"
+      aria-label="Intake lifecycle"
+    ></section>
 
     <section class="review-grid">
 
@@ -414,5 +431,6 @@
   </main>
 
   <script type="module" src="./review.js"></script>
+  <script src="/assets/js/management-nav.js"></script>
 </body>
 </html>\n

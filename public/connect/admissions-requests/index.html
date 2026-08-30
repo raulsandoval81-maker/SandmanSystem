@@ -7,19 +7,75 @@
   <meta name="robots" content="noindex,nofollow">
   <link rel="stylesheet" href="/assets/css/site.css">
   <link rel="stylesheet" href="/connect/admissions-requests/admissions-requests.css">
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
   <link rel="icon" href="data:,">
 </head>
 <body>
   <main class="requests-page">
-    <header class="requests-header">
-      <div><p class="eyebrow">Sandman Connect</p><h1>Admissions Requests</h1><p>Review requested intros, promotional visits, and approved Open Practice access.</p></div>
-      <div class="header-actions"><a class="btn" href="/connect/try-a-class/">Open Public Form</a><a class="btn" href="/connect/">Connect Hub</a><button id="refreshBtn" class="btn btn-primary" type="button">Refresh</button></div>
+    <header class="requests-header management-workspace-header">
+      <div><p class="eyebrow">Academy Management</p><h1>Try a Class</h1><p>Review requested intros, promotional visits, and approved Open Practice access.</p></div>
+
     </header>
+    <nav class="management-pipeline-nav" aria-label="Management navigation">
+      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+      <a href="/connect/leads/">Leads</a>
+      <a href="/connect/appointments/">Appointments</a>
+      <a href="/connect/proposals/">Proposals</a>
+      <a href="/intake-management/">Enrollment</a>
+      <a href="/management/inbox/">Inbox</a>
+      <a href="/connect/admissions-requests/" aria-current="page">Try a Class</a>
+    </nav>
+
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>Review requests for introductory visits, promotional visits, and approved Open Practice access.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>Review each request, confirm the request type and status, and handle the appropriate Management response.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>When a request develops into the formal admissions process, continue the family through the appropriate Management admissions workspace.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>Try a Class supports admissions but is not itself a canonical lifecycle stage.</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="management-page-actions" aria-label="Page actions">
+<a class="btn" href="/connect/try-a-class/">Open Public Form</a>
+<button id="refreshBtn" class="btn" type="button">Refresh</button>
+    </div>
+
     <section class="summary-grid"><article class="summary-card"><span>All</span><strong id="countAll">0</strong></article><article class="summary-card"><span>New</span><strong id="countNew">0</strong></article><article class="summary-card"><span>Approved</span><strong id="countApproved">0</strong></article><article class="summary-card"><span>Scheduled</span><strong id="countScheduled">0</strong></article></section>
     <section class="toolbar"><label>Search<input id="searchInput" type="search" placeholder="Search contact, athlete, email, phone, or program..."></label><label>Request Type<select id="typeFilter"><option value="all">All Types</option><option value="REQUESTED_INTRO">Requested Intro</option><option value="PROMOTIONAL_INTRO">Promotional Intro</option><option value="OPEN_PRACTICE">Open Practice</option></select></label><label>Status<select id="statusFilter"><option value="all">All Statuses</option><option value="new">New</option><option value="under_review">Under Review</option><option value="approved">Approved</option><option value="declined">Declined</option><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="proposal_ready">Proposal Ready</option><option value="enrolled">Enrolled</option><option value="closed">Closed</option></select></label></section>
     <p id="pageStatus" class="page-status" role="status" aria-live="polite"></p>
     <section id="requestList" class="request-list"></section>
   </main>
   <script type="module" src="/connect/admissions-requests/admissions-requests.js"></script>
+  <script src="/assets/js/management-nav.js"></script>
+
+  <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 </body>
 </html>

@@ -10,6 +10,7 @@ import {
 
 import {
   requireProposalStaffAccess,
+  requireProposalLocationAccess,
 } from "./proposalAccess";
 
 function cleanString(value: unknown): string {
@@ -80,6 +81,11 @@ export const approveProposal =
 
             const proposal =
               proposalSnap.data() || {};
+
+            requireProposalLocationAccess(
+              staffAccess,
+              proposal.locationId
+            );
 
             const currentStatus =
               cleanString(proposal.status);

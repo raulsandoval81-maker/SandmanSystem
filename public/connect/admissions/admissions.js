@@ -12,6 +12,10 @@ import {
   requireManagement
 } from "/management/shared/guards/management-guard.js";
 
+import {
+  renderManagementLifecycle
+} from "/assets/js/management-lifecycle.js";
+
 const params =
   new URLSearchParams(window.location.search);
 
@@ -31,6 +35,9 @@ const openProposalBtn =
 
 const pageStatus =
   document.getElementById("pageStatus");
+
+const admissionsLifecycle =
+  document.getElementById("admissionsLifecycle");
 
 const refreshBtn =
   document.getElementById("refreshBtn");
@@ -92,6 +99,29 @@ const notEnrollingBtn =
 
 let appointmentRecord = null;
 let admissionsDecisionSaved = false;
+
+function renderAdmissionsLifecycle(record = {}) {
+  const hasLead = Boolean(record.leadId);
+  const hasAppointment = Boolean(record.id);
+
+  renderManagementLifecycle(
+    admissionsLifecycle,
+    {
+      currentStage: "outcome",
+      completedStages: [
+        ...(hasAppointment ? ["appointment"] : []),
+        ...(hasLead ? ["interest", "lead"] : [])
+      ],
+      currentLabel: "Admissions Outcome",
+      caseLabel: record.id || appointmentId,
+      guidance: admissionsDecisionSaved
+        ? "Continue to Prospect Builder when this decision is ready."
+        : "Record and save the appointment outcome."
+    }
+  );
+}
+
+renderAdmissionsLifecycle();
 
 function esc(value = "") {
   return String(value)
@@ -156,10 +186,22 @@ function labelForLocation(value = "") {
   const labels = {
     lompoc: "Lompoc",
     solvang: "Solvang",
+    "santa-ynez-valley": "Santa Ynez Valley",
     either: "Either Location"
   };
 
   return labels[value] || value || "—";
+}
+
+function labelForConfirmationStatus(value = "") {
+  const labels = {
+    pending: "Pending",
+    sent: "Sent",
+    delivered: "Delivered",
+    failed: "Failed"
+  };
+
+  return labels[value] || value || "Pending";
 }
 
 function labelForProgram(value = "") {
@@ -169,6 +211,9 @@ function labelForProgram(value = "") {
 
     "zero2hero-muay-thai":
       "Zero2Hero Muay Thai",
+
+    "zero2hero-boxing":
+      "Zero2Hero Boxing",
 
     "path2legend-wrestling":
       "Path2Legend Wrestling",
@@ -310,8 +355,9 @@ function renderSummary(record) {
 
         <div class="field-value">
           ${esc(
-            record.appointmentConfirmationStatus ||
-            "pending"
+            labelForConfirmationStatus(
+              record.appointmentConfirmationStatus
+            )
           )}
         </div>
       </div>
@@ -596,6 +642,8 @@ function fillDecisionForm(record) {
       record.appointmentOutcome
     );
 
+  renderAdmissionsLifecycle(record);
+
   decisionPanel.hidden = false;
 
   updateFollowUpField();
@@ -809,6 +857,10 @@ async function saveAdmissionsDecision() {
     };
 
     admissionsDecisionSaved = true;
+
+    renderAdmissionsLifecycle(
+      appointmentRecord
+    );
 
     renderSummary(appointmentRecord);
     updateFollowUpField();

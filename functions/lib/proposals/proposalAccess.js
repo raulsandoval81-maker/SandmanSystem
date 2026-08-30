@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.requireProposalStaffAccess = requireProposalStaffAccess;
+exports.requireProposalLocationAccess = requireProposalLocationAccess;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 function cleanString(value) {
@@ -11,12 +12,34 @@ function normalizeRole(value) {
         .toLowerCase()
         .replace(/[\s-]+/g, "_");
 }
+function normalizeLocationIds(staff) {
+    const values = new Set();
+    const rawLocationIds = staff.locationIds;
+    if (Array.isArray(rawLocationIds)) {
+        for (const value of rawLocationIds) {
+            const cleaned = cleanString(value);
+            if (cleaned)
+                values.add(cleaned);
+        }
+    }
+    else {
+        const cleaned = cleanString(rawLocationIds);
+        if (cleaned)
+            values.add(cleaned);
+    }
+    // Legacy single-location staff records remain supported.
+    const legacyLocationId = cleanString(staff.locationId);
+    if (legacyLocationId) {
+        values.add(legacyLocationId);
+    }
+    return [...values];
+}
 const ALLOWED_PROPOSAL_ROLES = new Set([
     "admin",
     "system_admin",
+    "management",
+    "manager",
     "location_manager",
-    "program_manager",
-    "coach",
 ]);
 async function requireProposalStaffAccess(uid) {
     const cleanUid = cleanString(uid);
@@ -47,5 +70,20 @@ async function requireProposalStaffAccess(uid) {
         fullName: cleanString(staff.fullName) || null,
         teamId: cleanString(staff.teamId) || null,
         teamName: cleanString(staff.teamName) || null,
+        locationIds: normalizeLocationIds(staff),
     };
+}
+function requireProposalLocationAccess(staffAccess, locationIdValue) {
+    const locationId = cleanString(locationIdValue);
+    if (!locationId) {
+        throw new https_1.HttpsError("failed-precondition", "This proposal does not have a valid location.");
+    }
+    // Admin roles retain system-wide proposal oversight.
+    if (staffAccess.role === "admin" ||
+        staffAccess.role === "system_admin") {
+        return;
+    }
+    if (!staffAccess.locationIds.includes(locationId)) {
+        throw new https_1.HttpsError("permission-denied", "This proposal is outside your assigned location.");
+    }
 }

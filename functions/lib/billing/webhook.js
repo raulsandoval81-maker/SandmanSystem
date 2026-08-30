@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.stripeBillingWebhook = void 0;
+exports.handleProposalCheckoutCompleted = handleProposalCheckoutCompleted;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const stripeClient_1 = require("./stripeClient");

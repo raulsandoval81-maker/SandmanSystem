@@ -16,7 +16,16 @@ import {
   requireManagement
 } from "/management/shared/guards/management-guard.js";
 
+import {
+  renderManagementLifecycle
+} from "/assets/js/management-lifecycle.js";
+
 const $ = (id) => document.getElementById(id);
+
+const requestedProposalId = String(
+  new URLSearchParams(location.search)
+    .get("proposalId") || ""
+).trim();
 
 // ======================================
 // Configuration
@@ -139,7 +148,10 @@ function renderReadyIntakeCard(proposal) {
     ).trim();
 
   return `
-    <div class="pending-card">
+    <div
+      class="pending-card"
+      data-ready-proposal="${esc(proposalId)}"
+    >
       <div class="pending-card-head">
         <div>
           <div class="pending-card-name">
@@ -181,6 +193,76 @@ function renderReadyIntakeCard(proposal) {
 
 let readyProposalMap =
   new Map();
+
+function orientRequestedProposal() {
+  if (!requestedProposalId) return;
+
+  const orientation =
+    $("enrollmentCaseOrientation");
+
+  const status =
+    $("enrollmentCaseStatus");
+
+  const proposal =
+    readyProposalMap.get(
+      requestedProposalId
+    );
+
+  if (!proposal) {
+    if (orientation) {
+      orientation.hidden = true;
+    }
+
+    if (status) {
+      status.textContent =
+        "The requested proposal is not available as an authorized paid enrollment. Showing the normal Enrollment queue.";
+      status.classList.add("error");
+    }
+
+    return;
+  }
+
+  if (orientation) {
+    orientation.hidden = false;
+
+    renderManagementLifecycle(
+      orientation,
+      {
+        currentStage: "enrollment",
+        completedThrough: "checkout",
+        currentLabel: "Enrollment",
+        caseLabel: requestedProposalId,
+        guidance:
+          "Choose who will complete Intake; opening this case does not create an invite."
+      }
+    );
+  }
+
+  if (status) {
+    status.classList.remove("error");
+    status.textContent =
+      `${paidProposalName(proposal)} selected from paid proposal ${requestedProposalId}.`;
+  }
+
+  const card = document.querySelector(
+    `[data-ready-proposal="${CSS.escape(
+      requestedProposalId
+    )}"]`
+  );
+
+  if (card) {
+    card.classList.add(
+      "is-selected-case"
+    );
+
+    card.setAttribute("tabindex", "-1");
+    card.focus({ preventScroll: true });
+    card.scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+}
 
 function wireReadyIntakeButtons() {
   document
@@ -358,6 +440,7 @@ async function loadReadyForIntake(
       `;
 
   wireReadyIntakeButtons();
+  orientRequestedProposal();
 }
 
 // ------------------------------------------------------
@@ -710,6 +793,17 @@ async function loadApproved() {
       $("ready-intake-list").textContent =
         err?.message ||
         "Unable to load enrollment workspace.";
+    }
+
+    if (
+      requestedProposalId &&
+      $("enrollmentCaseStatus")
+    ) {
+      $("enrollmentCaseStatus").textContent =
+        "The requested enrollment case could not be loaded. The workspace remains unchanged.";
+      $("enrollmentCaseStatus").classList.add(
+        "error"
+      );
     }
   }
 })();

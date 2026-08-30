@@ -13,6 +13,7 @@ export type ProposalStaffAccess = {
   fullName: string | null;
   teamId: string | null;
   teamName: string | null;
+  locationIds: string[];
 };
 
 function cleanString(
@@ -31,13 +32,44 @@ function normalizeRole(
     .replace(/[\s-]+/g, "_");
 }
 
+function normalizeLocationIds(
+  staff: Record<string, unknown>
+): string[] {
+  const values = new Set<string>();
+
+  const rawLocationIds =
+    staff.locationIds;
+
+  if (Array.isArray(rawLocationIds)) {
+    for (const value of rawLocationIds) {
+      const cleaned = cleanString(value);
+      if (cleaned) values.add(cleaned);
+    }
+  } else {
+    const cleaned =
+      cleanString(rawLocationIds);
+
+    if (cleaned) values.add(cleaned);
+  }
+
+  // Legacy single-location staff records remain supported.
+  const legacyLocationId =
+    cleanString(staff.locationId);
+
+  if (legacyLocationId) {
+    values.add(legacyLocationId);
+  }
+
+  return [...values];
+}
+
 const ALLOWED_PROPOSAL_ROLES =
   new Set([
     "admin",
     "system_admin",
+    "management",
+    "manager",
     "location_manager",
-    "program_manager",
-    "coach",
   ]);
 
 export async function requireProposalStaffAccess(
@@ -122,5 +154,42 @@ export async function requireProposalStaffAccess(
       cleanString(
         staff.teamName
       ) || null,
+
+    locationIds:
+      normalizeLocationIds(staff),
   };
+}
+
+export function requireProposalLocationAccess(
+  staffAccess: ProposalStaffAccess,
+  locationIdValue: unknown
+): void {
+  const locationId =
+    cleanString(locationIdValue);
+
+  if (!locationId) {
+    throw new HttpsError(
+      "failed-precondition",
+      "This proposal does not have a valid location."
+    );
+  }
+
+  // Admin roles retain system-wide proposal oversight.
+  if (
+    staffAccess.role === "admin" ||
+    staffAccess.role === "system_admin"
+  ) {
+    return;
+  }
+
+  if (
+    !staffAccess.locationIds.includes(
+      locationId
+    )
+  ) {
+    throw new HttpsError(
+      "permission-denied",
+      "This proposal is outside your assigned location."
+    );
+  }
 }

@@ -13,13 +13,36 @@ if (!firebase_admin_1.default.apps.length) {
 }
 exports.approveIntakeCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth) {
-        throw new Error("unauthenticated");
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required");
+    }
+    const db = (0, firestore_1.getFirestore)();
+    const staffSnap = await db
+        .collection("staff")
+        .doc(req.auth.uid)
+        .get();
+    const staff = staffSnap.exists
+        ? staffSnap.data() || {}
+        : {};
+    const role = String(staff.role || "")
+        .trim()
+        .toLowerCase();
+    const status = String(staff.status || "")
+        .trim()
+        .toLowerCase();
+    const allowedRoles = [
+        "admin",
+        "management",
+        "manager",
+        "location_manager",
+    ];
+    if (status !== "active" ||
+        !allowedRoles.includes(role)) {
+        throw new https_1.HttpsError("permission-denied", "Active Management access required");
     }
     const { intakeId, approvedUid, note } = req.data || {};
     if (!intakeId || !approvedUid) {
         throw new Error("missing fields");
     }
-    const db = (0, firestore_1.getFirestore)();
     const intakeRef = db.collection("intakes").doc(String(intakeId));
     const intakeSnap = await intakeRef.get();
     const intake = intakeSnap.data() || {};

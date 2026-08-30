@@ -24,6 +24,7 @@
     rel="stylesheet"
     href="/connect/connect-hub.css"
   >
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
 
   <link rel="icon" href="data:,">
 </head>
@@ -31,9 +32,9 @@
 <body>
   <main class="hub">
 
-    <header class="hero">
+    <header class="hero management-workspace-header">
       <p class="eyebrow">
-        Sandman Connect
+        Academy Management
       </p>
 
       <h1>
@@ -44,6 +45,51 @@
         Build, review, and finalize family enrollment proposals.
       </p>
     </header>
+
+    <nav class="management-pipeline-nav" aria-label="Management navigation">
+      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+      <a href="/connect/leads/">Leads</a>
+      <a href="/connect/appointments/">Appointments</a>
+      <a href="/connect/proposals/" aria-current="page">Proposals</a>
+      <a href="/intake-management/">Enrollment</a>
+      <a href="/management/inbox/">Inbox</a>
+      <a href="/connect/admissions-requests/">Try a Class</a>
+    </nav>
+
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>Manage family proposals from appointment handoff through approval, checkout, and payment readiness.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>Open the appropriate case, build or review its proposal, complete approval when authorized, and follow the proposal status shown by the system.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>Approved proposals continue to Checkout. Paid proposals continue to Enrollment.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>Proposal state controls the workflow. Do not use navigation to infer or overwrite where the family actually stands.</p>
+        </div>
+      </div>
+    </details>
+
 
     <section class="grid">
 
@@ -82,14 +128,14 @@
 
       <a
         class="card"
-        href="/connect/"
+        href="/management/hub/"
       >
         <strong>
-          Return to Connect
+          Management Home
         </strong>
 
         <p>
-          Go back to the Recruiting Command Center.
+          Return to the Sandman Connect workspace.
         </p>
       </a>
 
@@ -101,5 +147,11 @@
     type="module"
     src="/connect/proposals/proposals.js"
   ></script>
+  <script src="/assets/js/management-nav.js"></script>
+
+  <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 </body>
 </html>

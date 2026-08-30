@@ -685,6 +685,16 @@ match /admissions_appointments/{appointmentId} {
       )
       && request.resource.data.locationId
         == resource.data.locationId
+      && request.resource.data.diff(resource.data)
+        .affectedKeys().hasAny([
+          "assessmentStatus",
+          "assessedByCoachUid",
+          "assessedByCoachName",
+          "assessedAt",
+          "verifiedExperienceYears",
+          "coachAssessment",
+          "coachRecommendation"
+        ]) == false
     )
     || (
       isActiveCoach()
@@ -696,7 +706,7 @@ match /admissions_appointments/{appointmentId} {
         == resource.data.appointmentCoachUid
 
       && request.resource.data.diff(resource.data)
-        .changedKeys().hasOnly([
+        .affectedKeys().hasOnly([
           "assessmentStatus",
           "assessedByCoachUid",
           "assessedByCoachName",

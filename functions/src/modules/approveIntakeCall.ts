@@ -1,4 +1,7 @@
-import { onCall } from "firebase-functions/v2/https";
+import {
+  onCall,
+  HttpsError,
+} from "firebase-functions/v2/https";
 import {
   getFirestore,
   FieldValue,
@@ -13,7 +16,50 @@ if (!admin.apps.length) {
 
 export const approveIntakeCall = onCall(async (req) => {
   if (!req.auth) {
-    throw new Error("unauthenticated");
+    throw new HttpsError(
+      "unauthenticated",
+      "Sign-in required"
+    );
+  }
+
+  const db = getFirestore();
+
+  const staffSnap =
+    await db
+      .collection("staff")
+      .doc(req.auth.uid)
+      .get();
+
+  const staff =
+    staffSnap.exists
+      ? staffSnap.data() || {}
+      : {};
+
+  const role =
+    String(staff.role || "")
+      .trim()
+      .toLowerCase();
+
+  const status =
+    String(staff.status || "")
+      .trim()
+      .toLowerCase();
+
+  const allowedRoles = [
+    "admin",
+    "management",
+    "manager",
+    "location_manager",
+  ];
+
+  if (
+    status !== "active" ||
+    !allowedRoles.includes(role)
+  ) {
+    throw new HttpsError(
+      "permission-denied",
+      "Active Management access required"
+    );
   }
 
   const { intakeId, approvedUid, note } = req.data || {};
@@ -21,8 +67,6 @@ export const approveIntakeCall = onCall(async (req) => {
   if (!intakeId || !approvedUid) {
     throw new Error("missing fields");
   }
-
-  const db = getFirestore();
 
   const intakeRef =
     db.collection("intakes").doc(String(intakeId));

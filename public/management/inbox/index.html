@@ -19,14 +19,15 @@
     rel="stylesheet"
     href="/management/inbox/inbox.css"
   />
+  <link rel="stylesheet" href="/assets/css/management-ui.css" />
 </head>
 
 <body>
 
-  <header class="inbox-header">
+  <header class="inbox-header management-workspace-header">
     <div>
       <p class="eyebrow">
-        Sandman System
+        Academy Management
       </p>
 
       <h1>
@@ -40,24 +41,64 @@
         Verifying Management access...
       </p>
     </div>
+  </header>
 
-    <div class="header-actions">
-      <a
-        class="button button-secondary"
-        href="/management/hub/"
-      >
-        Management Home
-      </a>
+  <nav class="management-pipeline-nav" aria-label="Management navigation">
+    <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
+    <a href="/connect/leads/">Leads</a>
+    <a href="/connect/appointments/">Appointments</a>
+    <a href="/connect/proposals/">Proposals</a>
+    <a href="/intake-management/">Enrollment</a>
+    <a href="/management/inbox/" aria-current="page">Inbox</a>
+    <a href="/connect/admissions-requests/">Try a Class</a>
+  </nav>
 
-      <button
+
+  <main class="inbox-layout">
+
+    <details class="management-page-guide">
+      <summary>
+        <span>How this page works</span>
+        <span
+          class="management-page-guide__hint"
+          aria-hidden="true"
+        >
+          Instructions
+        </span>
+      </summary>
+
+      <div class="management-page-guide__body">
+        <div class="management-page-guide__section">
+          <strong>Purpose</strong>
+          <p>Handle Management communications for the academy locations within your assigned scope.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What you do here</strong>
+          <p>Review incoming messages, open the conversation that needs attention, respond through the appropriate workflow, and refresh when needed.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>What happens next</strong>
+          <p>Communication may support a lead, appointment, proposal, or enrolled family, but the case itself continues in its appropriate workspace.</p>
+        </div>
+
+        <div class="management-page-guide__section">
+          <strong>Important</strong>
+          <p>Inbox is a communication workspace, not a canonical admissions lifecycle stage.</p>
+        </div>
+      </div>
+    </details>
+
+    <div class="management-page-actions" aria-label="Page actions">
+<button
         id="refreshButton"
         class="button button-secondary"
         type="button"
       >
         Refresh
       </button>
-
-      <button
+<button
         id="signOutButton"
         class="button button-secondary"
         type="button"
@@ -65,10 +106,7 @@
         Sign Out
       </button>
     </div>
-  </header>
 
-
-  <main class="inbox-layout">
 
     <!-- ==============================
          MESSAGE QUEUE
@@ -490,5 +528,11 @@
     src="/management/inbox/inbox.js"
   ></script>
 
+  <script src="/assets/js/management-nav.js"></script>
+
+  <footer class="management-workspace-footer">
+    <strong>Sandman System™</strong>
+    <span>Internal Operations</span>
+  </footer>
 </body>
 </html>

@@ -23,6 +23,10 @@ import {
   ensureSignedIn
 } from "../assets/js/firebase-init.js";
 
+import {
+  renderManagementLifecycle
+} from "/assets/js/management-lifecycle.js";
+
 ensureSignedIn().catch(console.error);
 
 const $ = (id) => document.getElementById(id);
@@ -45,6 +49,33 @@ if (!tokenId) {
 const intakeRef = doc(db, "intakes", tokenId);
 
 let INTAKE_CACHE = null;
+
+function renderIntakeLifecycle(intake = {}) {
+  const activated =
+    intake.status === "approved" &&
+    Boolean(intake.approvedUid);
+
+  renderManagementLifecycle(
+    $("intakeLifecycle"),
+    activated
+      ? {
+          currentStage: "activation",
+          completedThrough: "intake",
+          currentLabel: "Activation Complete",
+          caseLabel: intake.approvedUid,
+          guidance:
+            "This intake has an approved athlete UID and requires no further activation action."
+        }
+      : {
+          currentStage: "intake",
+          completedThrough: "enrollment",
+          currentLabel: "Intake Review",
+          caseLabel: tokenId,
+          guidance:
+            "Review the submitted intake, then approve and activate when ready."
+        }
+  );
+}
 
 // ------------------------------------------------------
 // UI helpers
@@ -431,6 +462,7 @@ async function loadSubmission() {
   INTAKE_CACHE = s;
 
   applyReviewModeUI(s);
+  renderIntakeLifecycle(s);
 
   if (s.status === "approved" && s.approvedUid) {
     const uid = s.approvedUid;
@@ -1024,6 +1056,11 @@ if (programTrack === "quest2mastery") {
     }
 
     setApprovedUI(true, uid);
+    renderIntakeLifecycle({
+      ...INTAKE_CACHE,
+      status: "approved",
+      approvedUid: uid
+    });
     openSuccessModal(uid);
 
     window.location.assign(

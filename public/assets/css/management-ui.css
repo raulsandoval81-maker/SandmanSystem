@@ -1,0 +1,1123 @@
+:root {
+  --management-bg: #f6f3ea;
+  --management-surface: #fffdf8;
+  --management-surface-soft: #faf6ec;
+  --management-text: #172033;
+  --management-muted: #667085;
+  --management-border: #e3dac5;
+  --management-border-strong: #d2c5a8;
+  --management-gold: #b38a16;
+  --management-gold-soft: #f3e8bd;
+  --management-success: #287a4b;
+  --management-success-soft: #e8f5ec;
+  --management-warning: #95620a;
+  --management-warning-soft: #fff2cf;
+  --management-danger: #b42318;
+  --management-danger-soft: #fcebea;
+  --management-info: #28618f;
+  --management-info-soft: #eaf2f8;
+  --management-neutral: #596273;
+  --management-neutral-soft: #eef1f4;
+  --management-radius-sm: 11px;
+  --management-radius: 16px;
+  --management-radius-lg: 22px;
+  --management-shadow: 0 12px 30px rgba(40, 32, 15, 0.07);
+  --management-content: 1240px;
+}
+
+body {
+  min-height: 100vh;
+  background: var(--management-bg) !important;
+  color: var(--management-text) !important;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+body a {
+  color: inherit;
+}
+
+.management-pipeline-nav {
+  width: min(var(--management-content), calc(100% - 36px));
+  margin: 18px auto 0;
+  padding: 7px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow-x: auto;
+  border: 1px solid var(--management-border);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: 0 6px 18px rgba(40, 32, 15, 0.04);
+  scrollbar-width: thin;
+}
+
+.management-pipeline-nav a {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 9px 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  color: var(--management-muted);
+  font-size: 0.84rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.management-pipeline-nav a:hover,
+.management-pipeline-nav a:focus-visible {
+  border-color: var(--management-border-strong);
+  background: var(--management-surface-soft);
+  color: var(--management-text);
+  outline: none;
+}
+
+.management-pipeline-nav a[aria-current="page"] {
+  border-color: #dcc77f;
+  background: var(--management-gold-soft);
+  color: #59440b;
+}
+
+.management-pipeline-nav__home {
+  margin-right: 4px;
+  border-right: 1px solid var(--management-border) !important;
+  border-radius: 9px 2px 2px 9px !important;
+}
+
+.eyebrow,
+.section-label,
+.card-label,
+.enrollment-system-label {
+  color: var(--management-gold) !important;
+  font-size: 0.76rem !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase;
+}
+
+.identity,
+.muted,
+.subtitle,
+.page-status,
+.small.muted {
+  color: var(--management-muted) !important;
+}
+
+.button,
+.btn,
+.save-btn,
+.outline-blue,
+.solid-blue,
+.pill,
+.enrollment-back-link {
+  min-height: 42px;
+  padding: 10px 15px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--management-border-strong) !important;
+  border-radius: var(--management-radius-sm) !important;
+  background: var(--management-surface-soft) !important;
+  color: var(--management-text) !important;
+  font: inherit;
+  font-weight: 800;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease,
+    box-shadow 150ms ease, transform 150ms ease;
+}
+
+.button:hover,
+.btn:hover,
+.save-btn:hover,
+.outline-blue:hover,
+.solid-blue:hover,
+.pill:hover,
+.enrollment-back-link:hover,
+.button:focus-visible,
+.btn:focus-visible,
+.save-btn:focus-visible,
+.outline-blue:focus-visible,
+.solid-blue:focus-visible,
+.pill:focus-visible,
+.enrollment-back-link:focus-visible {
+  border-color: var(--management-gold) !important;
+  background: #fffaf0 !important;
+  outline: 3px solid rgba(179, 138, 22, 0.18);
+  outline-offset: 1px;
+}
+
+.button-primary,
+.btn-primary,
+.save-btn--admissions,
+.solid-blue,
+#btn-approve {
+  border-color: var(--management-gold) !important;
+  background: var(--management-gold) !important;
+  color: #fffdf8 !important;
+  box-shadow: none !important;
+}
+
+.button:disabled,
+.btn:disabled,
+.save-btn:disabled,
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  border: 1px solid var(--management-border-strong) !important;
+  border-radius: var(--management-radius-sm) !important;
+  background: #fff !important;
+  color: var(--management-text) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--management-gold) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(179, 138, 22, 0.16) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8b93a1;
+}
+
+label,
+.filters label,
+.toolbar label,
+.field > label {
+  color: var(--management-text) !important;
+}
+
+.status-badge,
+.badge,
+.count-badge,
+.status-pill,
+.proposal-status,
+.proposal-count {
+  min-height: 28px;
+  padding: 5px 10px !important;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--management-border-strong) !important;
+  border-radius: 999px !important;
+  background: var(--management-neutral-soft) !important;
+  color: var(--management-neutral) !important;
+  font-size: 0.75rem !important;
+  font-weight: 850 !important;
+  letter-spacing: 0.03em;
+}
+
+.status-new,
+.status-pending,
+.status-under_review,
+.status-pill.gold {
+  border-color: #e3c973 !important;
+  background: var(--management-warning-soft) !important;
+  color: var(--management-warning) !important;
+}
+
+.status-contacted,
+.status-appointment_scheduled,
+.status-scheduled {
+  border-color: #a8c7dd !important;
+  background: var(--management-info-soft) !important;
+  color: var(--management-info) !important;
+}
+
+.status-ready_for_intake,
+.status-intake_started,
+.status-converted,
+.status-approved,
+.status-completed,
+.status-enrolled {
+  border-color: #a9d0b7 !important;
+  background: var(--management-success-soft) !important;
+  color: var(--management-success) !important;
+}
+
+.status-closed,
+.status-declined,
+.status-pill.danger {
+  border-color: #e2aaa6 !important;
+  background: var(--management-danger-soft) !important;
+  color: var(--management-danger) !important;
+}
+
+.management-header,
+.inbox-header {
+  border-bottom: 1px solid var(--management-border) !important;
+  background: rgba(255, 253, 248, 0.96) !important;
+  color: var(--management-text) !important;
+  box-shadow: none !important;
+}
+
+.management-wrap,
+.inbox-layout,
+.leads-page,
+.requests-page,
+.appointments-page,
+.hub,
+.wrap {
+  width: min(var(--management-content), 100%) !important;
+}
+
+.leads-page,
+.requests-page,
+.appointments-page,
+.hub,
+.wrap {
+  padding-right: 18px !important;
+  padding-left: 18px !important;
+}
+
+.scope-card,
+.management-card,
+.queue-panel,
+.detail-panel,
+.summary-card,
+.toolbar,
+.lead-card,
+.request-card,
+.detail,
+.appointment-card,
+.info-card,
+.hub .card,
+.wrap > .card,
+.proposal-queue,
+.proposal-group,
+.proposal-record,
+.proposal-card,
+.state-card,
+.empty,
+.empty-state,
+.proposal-empty,
+.proposal-error {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface) !important;
+  color: var(--management-text) !important;
+  box-shadow: var(--management-shadow);
+}
+
+.management-card p,
+.lead-sub,
+.request-card__top p,
+.appointment-sub,
+.hub .card p,
+.detail span,
+.field-label,
+.proposal-record p,
+.proposal-queue-header p,
+.proposal-group-head span,
+.proposal-empty,
+.empty,
+.empty-state,
+.state-card {
+  color: var(--management-muted) !important;
+}
+
+.management-card h2,
+.lead-card h2,
+.request-card h2,
+.appointment-card h2,
+.hub .card strong,
+.field-value,
+.detail strong {
+  color: var(--management-text) !important;
+}
+
+.leads-page,
+.requests-page,
+.appointments-page,
+.hub,
+.wrap {
+  padding-top: 28px !important;
+}
+
+.leads-header,
+.requests-header,
+.appointments-header,
+.hub .hero,
+.enrollment-workspace-header {
+  text-align: left !important;
+  margin-bottom: 24px !important;
+}
+
+.management-review-page .review-hero,
+.management-review-page .card {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface) !important;
+  color: var(--management-text) !important;
+  box-shadow: var(--management-shadow) !important;
+}
+
+.management-review-page .review-hero h1,
+.management-review-page .card h2,
+.management-review-page .card h3,
+.management-review-page .stat .value,
+.management-review-page .field > label,
+.management-review-page label {
+  color: var(--management-text) !important;
+}
+
+.management-review-page .stat,
+.management-review-page #journeyPickerCard,
+.management-review-page #adjustmentCard,
+.management-review-page #mint-box,
+.management-review-page #parentConnectionCard {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface-soft) !important;
+}
+
+.management-review-page .stat .label,
+.management-review-page .review-hero p {
+  color: var(--management-muted) !important;
+}
+
+.leads-header h1,
+.requests-header h1,
+.appointments-header h1,
+.hub .hero h1,
+.enrollment-workspace-header h1 {
+  color: var(--management-text) !important;
+  font-size: clamp(2rem, 5vw, 3.15rem) !important;
+  line-height: 1.05;
+}
+
+.leads-header p,
+.requests-header p,
+.appointments-header p,
+.hub .subtitle {
+  color: var(--management-muted) !important;
+}
+
+.summary-card,
+.toolbar,
+.lead-card,
+.appointment-card,
+.info-card,
+.request-card,
+.hub .card,
+.wrap > .card {
+  border-radius: var(--management-radius) !important;
+}
+
+.summary-card strong {
+  color: var(--management-text) !important;
+}
+
+.lead-notes,
+.detail,
+.notes-panel textarea,
+.proposal-record,
+.proposal-group {
+  background: var(--management-surface-soft) !important;
+}
+
+.inbox-layout {
+  padding-top: 18px;
+}
+
+.queue-panel,
+.detail-panel {
+  border-radius: var(--management-radius-lg) !important;
+}
+
+.message-item {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface-soft) !important;
+  color: var(--management-text) !important;
+}
+
+.message-item:hover,
+.message-item.is-selected {
+  border-color: var(--management-gold) !important;
+  background: #fff9e9 !important;
+}
+
+.hub .hero {
+  max-width: 760px;
+  margin-left: 0 !important;
+}
+
+.hub .subtitle {
+  margin-left: 0 !important;
+}
+
+.hub .card:hover {
+  border-color: var(--management-gold) !important;
+}
+
+.proposal-queue,
+.proposal-error {
+  border-radius: var(--management-radius-lg) !important;
+}
+
+.proposal-queue-header,
+.proposal-group-header,
+.proposal-group-head {
+  border-color: var(--management-border) !important;
+}
+
+.proposal-card {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface) !important;
+  color: var(--management-text) !important;
+  box-shadow: var(--management-shadow);
+}
+
+.proposal-open-btn {
+  border: 1px solid var(--management-gold) !important;
+  border-radius: var(--management-radius-sm) !important;
+  background: var(--management-gold) !important;
+  color: #fffdf8 !important;
+}
+
+.enrollment-workspace-header {
+  border: 1px solid var(--management-border);
+  border-radius: var(--management-radius-lg);
+  background: var(--management-surface);
+  box-shadow: var(--management-shadow);
+}
+
+.enrollment-workflow {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface-soft) !important;
+}
+
+.enrollment-workflow__step,
+.enrollment-workflow__arrow {
+  color: var(--management-muted) !important;
+}
+
+.enrollment-workflow__step strong {
+  background: var(--management-gold-soft) !important;
+  color: #59440b !important;
+}
+
+.pending-item,
+.ready-intake-item,
+.approved-item {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface-soft) !important;
+}
+
+.enrollment-start-card h3,
+.enrollment-queue-card h3,
+.enrollment-recent-card h3,
+.wrap .card h3 {
+  color: var(--management-text) !important;
+}
+
+#pending-count {
+  color: var(--management-muted) !important;
+}
+
+.detail-grid > div,
+.message-card,
+.management-suggested-response,
+.management-guidance-note,
+.chip {
+  border-color: var(--management-border) !important;
+  background: var(--management-surface-soft) !important;
+  color: var(--management-text) !important;
+}
+
+.message-item__preview,
+.message-item__time,
+dt {
+  color: var(--management-muted) !important;
+}
+
+.message-item__topic,
+.management-guidance-note strong {
+  color: var(--management-gold) !important;
+}
+
+.page-status.error,
+.state-card--error,
+.form-status.is-error,
+.proposal-error {
+  color: var(--management-danger) !important;
+}
+
+.form-status.is-success {
+  color: var(--management-success) !important;
+}
+
+@media (max-width: 850px) {
+  .management-pipeline-nav {
+    width: calc(100% - 26px);
+    margin-top: 13px;
+  }
+
+  .inbox-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 620px) {
+  .management-pipeline-nav {
+    justify-content: flex-start;
+  }
+
+  .header-actions,
+  .requests-header .header-actions,
+  .leads-header .header-actions,
+  .appointments-header .header-actions {
+    width: 100%;
+  }
+
+  .header-actions .button,
+  .header-actions .btn {
+    flex: 1 1 140px;
+  }
+}
+
+/* Shared case lifecycle orientation */
+.management-lifecycle {
+  margin: 18px 0 24px;
+  padding: 18px;
+  border: 1px solid var(--management-border);
+  border-radius: var(--management-radius);
+  background: var(--management-surface);
+  box-shadow: var(--management-shadow);
+}
+
+.management-lifecycle__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.management-lifecycle__heading strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--management-text);
+  font-size: 1.05rem;
+}
+
+.management-lifecycle__eyebrow {
+  color: var(--management-gold);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.management-lifecycle__case {
+  color: var(--management-muted);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.management-lifecycle__list {
+  display: flex;
+  align-items: stretch;
+  gap: 7px;
+  margin: 0;
+  padding: 0;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: thin;
+}
+
+.management-lifecycle__stage {
+  flex: 1 0 118px;
+  min-height: 54px;
+  padding: 9px 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--management-border);
+  border-radius: 10px;
+  background: var(--management-neutral-soft);
+  color: var(--management-neutral);
+  font-size: 0.76rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.management-lifecycle__stage.is-complete {
+  border-color: #a9d0b7;
+  background: var(--management-success-soft);
+  color: var(--management-success);
+}
+
+.management-lifecycle__stage.is-current {
+  border-color: #d9bd5d;
+  background: var(--management-gold-soft);
+  color: #59440b;
+  box-shadow: inset 0 0 0 1px rgba(179, 138, 22, 0.1);
+}
+
+.management-lifecycle__marker {
+  font-size: 0.9rem;
+  font-weight: 950;
+}
+
+.management-lifecycle__guidance {
+  margin: 14px 0 0;
+  color: var(--management-muted);
+  line-height: 1.5;
+}
+
+.management-lifecycle__guidance strong {
+  color: var(--management-text);
+}
+
+.proposal-workflow__steps > .management-lifecycle__list {
+  grid-column: 1 / -1;
+  width: 100%;
+}
+
+.proposal-workflow__steps
+  .management-lifecycle__stage
+  > span {
+  min-height: 0;
+  padding: 0;
+  display: inline;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  opacity: 1;
+}
+
+.pending-card.is-selected-case {
+  border-color: var(--management-gold) !important;
+  background: #fff9e9 !important;
+  box-shadow: 0 0 0 3px rgba(179, 138, 22, 0.14), var(--management-shadow) !important;
+}
+
+@media (max-width: 620px) {
+  .management-lifecycle {
+    padding: 14px;
+  }
+
+  .management-lifecycle__heading {
+    flex-direction: column;
+  }
+
+  .management-lifecycle__stage {
+    flex-basis: 108px;
+  }
+}
+
+/* =========================
+   MANAGEMENT MOBILE NAV
+========================= */
+
+.management-nav-toggle {
+  display: none;
+}
+
+@media (max-width: 620px) {
+  .management-nav-toggle {
+    width: calc(100% - 26px);
+    margin: 13px auto 0;
+    padding: 12px 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+
+    border: 1px solid var(--management-border);
+    border-radius: var(--management-radius-sm);
+
+    background: var(--management-surface);
+    color: var(--management-text);
+
+    font: inherit;
+    font-weight: 800;
+    text-align: left;
+
+    box-shadow: var(--management-shadow);
+    cursor: pointer;
+  }
+
+  .management-nav-toggle__icon {
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .management-nav-toggle:focus-visible {
+    outline: 3px solid rgba(179, 138, 22, 0.28);
+    outline-offset: 2px;
+  }
+
+  .management-pipeline-nav {
+    width: calc(100% - 26px);
+    margin: 7px auto 0;
+    padding: 7px;
+
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+
+    overflow: visible;
+  }
+
+  .management-pipeline-nav.is-open {
+    display: flex;
+  }
+
+  .management-pipeline-nav a {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+
+    display: flex;
+    align-items: center;
+
+    white-space: normal;
+    border-radius: 9px !important;
+  }
+
+  .management-pipeline-nav__home {
+    margin-right: 0;
+    margin-bottom: 4px;
+
+    border-right: 0 !important;
+    border-bottom: 1px solid var(--management-border) !important;
+
+    border-radius: 9px !important;
+  }
+
+  .management-pipeline-nav a[aria-current="page"] {
+    font-weight: 800;
+  }
+}
+
+@media (max-width: 620px) {
+  /* Admissions begins after Management Home */
+  .management-pipeline-nav a[href="/connect/leads/"] {
+    margin-top: 2px;
+  }
+
+  /* Communications */
+  .management-pipeline-nav a[href="/management/inbox/"] {
+    margin-top: 8px;
+    padding-top: 14px;
+    border-top: 1px solid var(--management-border);
+  }
+
+  /* Promotional tools */
+  .management-pipeline-nav a[href="/connect/admissions-requests/"] {
+    margin-top: 4px;
+    padding-top: 14px;
+    border-top: 1px solid var(--management-border);
+  }
+}
+
+
+/* =========================
+   MANAGEMENT PAGE GUIDE
+========================= */
+
+.management-page-guide {
+  margin: 14px 0 18px;
+
+  border: 1px solid var(--management-border);
+  border-radius: var(--management-radius);
+
+  background: var(--management-surface-soft);
+
+  overflow: hidden;
+}
+
+.management-page-guide summary {
+  min-height: 48px;
+  padding: 12px 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+
+  color: var(--management-text);
+
+  font-weight: 850;
+
+  cursor: pointer;
+  list-style: none;
+}
+
+.management-page-guide summary::-webkit-details-marker {
+  display: none;
+}
+
+.management-page-guide summary::before {
+  content: "＋";
+
+  width: 24px;
+  height: 24px;
+
+  flex: 0 0 24px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid var(--management-border-strong);
+  border-radius: 7px;
+
+  color: var(--management-gold);
+
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.management-page-guide[open] summary::before {
+  content: "−";
+}
+
+.management-page-guide[open] summary {
+  border-bottom: 1px solid var(--management-border);
+}
+
+.management-page-guide__hint {
+  margin-left: auto;
+
+  color: var(--management-muted);
+
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.management-page-guide__body {
+  padding: 16px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.management-page-guide__section {
+  min-width: 0;
+}
+
+.management-page-guide__section strong {
+  display: block;
+  margin-bottom: 4px;
+
+  color: var(--management-text);
+
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.management-page-guide__section p {
+  margin: 0;
+
+  color: var(--management-muted);
+
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+@media (max-width: 620px) {
+
+  .management-page-guide__body {
+    grid-template-columns: 1fr;
+  }
+
+  .management-page-guide__hint {
+    display: none;
+  }
+}
+
+/* =========================
+   MANAGEMENT WORKSPACE SHELL
+========================= */
+
+.management-workspace-header {
+  margin-bottom: 0 !important;
+  padding-bottom: 18px !important;
+  border-bottom: 1px solid var(--management-border) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.management-workspace-header .eyebrow,
+.management-workspace-header .enrollment-system-label {
+  margin-bottom: 7px !important;
+}
+
+.management-workspace-header h1 {
+  margin-top: 0 !important;
+  margin-bottom: 7px !important;
+  color: var(--management-text) !important;
+  line-height: 1.08;
+}
+
+.management-workspace-header h1 + p,
+.management-workspace-header .subtitle {
+  margin-top: 0 !important;
+}
+
+.management-workspace-footer {
+  width: min(var(--management-content), calc(100% - 32px));
+  margin: 42px auto 20px;
+  padding: 18px 4px 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  border-top: 1px solid var(--management-border);
+
+  color: var(--management-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.management-workspace-footer strong {
+  color: var(--management-text);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 620px) {
+  .management-workspace-header {
+    padding-bottom: 14px !important;
+  }
+
+  .management-workspace-footer {
+    margin-top: 32px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}
+
+/* =========================
+   MANAGEMENT PAGE ACTIONS
+========================= */
+
+.management-page-actions {
+  margin: 14px 0 18px;
+
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.management-page-actions .button,
+.management-page-actions .btn {
+  margin: 0 !important;
+}
+
+@media (max-width: 620px) {
+  .management-page-actions {
+    justify-content: flex-start;
+  }
+
+  .management-page-actions .button,
+  .management-page-actions .btn {
+    width: auto !important;
+  }
+}
+
+/* =========================
+   MANAGEMENT NAV GROUPS
+========================= */
+
+.management-nav-divider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 26px;
+  margin: 0 5px;
+  background: var(--management-border);
+}
+
+.management-nav-heading {
+  flex: 0 0 auto;
+  padding: 0 8px;
+  color: var(--management-gold);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.management-nav-signout {
+  flex: 0 0 auto;
+  min-height: 38px;
+  padding: 9px 13px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--management-muted);
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.management-nav-signout:hover,
+.management-nav-signout:focus-visible {
+  border-color: var(--management-border-strong);
+  background: var(--management-surface-soft);
+  color: var(--management-text);
+  outline: none;
+}
+
+@media (max-width: 620px) {
+  .management-nav-divider {
+    width: 100%;
+    height: 1px;
+    margin: 6px 0;
+  }
+
+  .management-nav-heading {
+    width: 100%;
+    padding: 7px 12px 2px;
+  }
+
+  .management-nav-signout {
+    width: 100%;
+    min-height: 44px;
+    padding: 11px 12px;
+    display: flex;
+    align-items: center;
+    text-align: left;
+  }
+
+  /*
+   * Real divider elements now own Management
+   * menu separation. Remove the legacy borders
+   * previously attached directly to these links.
+   */
+  .management-pipeline-nav a[href="/management/inbox/"],
+  .management-pipeline-nav a[href="/connect/admissions-requests/"] {
+    margin-top: 0;
+    padding-top: 11px;
+    border-top: 0;
+  }
+}

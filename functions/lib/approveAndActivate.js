@@ -37,9 +37,48 @@ exports.approveAndActivate = void 0;
 const admin = __importStar(require("firebase-admin"));
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const experienceAuthority_1 = require("./experienceAuthority");
 if (!admin.apps.length)
     admin.initializeApp();
 const db = (0, firestore_1.getFirestore)();
+const MANAGEMENT_ROLES = new Set([
+    "admin",
+    "management",
+    "manager",
+    "location_manager",
+]);
+const COACH_ROLES = new Set([
+    "admin",
+    "coach",
+]);
+async function requireActivationAccess(uid, mode) {
+    const staffSnap = await db.doc(`staff/${uid}`).get();
+    if (!staffSnap.exists) {
+        throw new https_1.HttpsError("permission-denied", "Staff access required");
+    }
+    const staff = staffSnap.data() || {};
+    const role = String(staff.role || "")
+        .trim()
+        .toLowerCase();
+    const status = String(staff.status || "")
+        .trim()
+        .toLowerCase();
+    if (status !== "active") {
+        throw new https_1.HttpsError("permission-denied", "Active staff access required");
+    }
+    const allowed = mode === "add_sport"
+        ? COACH_ROLES.has(role)
+        : MANAGEMENT_ROLES.has(role);
+    if (!allowed) {
+        throw new https_1.HttpsError("permission-denied", mode === "add_sport"
+            ? "Active Coach access required"
+            : "Active Management access required");
+    }
+    return {
+        role,
+        staff,
+    };
+}
 function computeStartingStripeCount(xp, xpCap) {
     const safeXp = Math.max(0, Number(xp || 0));
     const safeCap = Math.max(1, Number(xpCap || 0));
@@ -49,6 +88,94 @@ function computeStartingStripeCount(xp, xpCap) {
 }
 function pad4(n) {
     return String(n).padStart(4, "0");
+}
+function ageFromDob(dobRaw, now = new Date()) {
+    const dobText = String(dobRaw || "").trim();
+    if (!dobText)
+        return null;
+    const parts = dobText.split("-").map(Number);
+    if (parts.length !== 3 ||
+        !parts.every(Number.isFinite)) {
+        return null;
+    }
+    const [year, month, day] = parts;
+    const dob = new Date(Date.UTC(year, month - 1, day));
+    if (Number.isNaN(dob.getTime())) {
+        return null;
+    }
+    let age = now.getUTCFullYear() -
+        dob.getUTCFullYear();
+    const beforeBirthday = now.getUTCMonth() <
+        dob.getUTCMonth() ||
+        (now.getUTCMonth() ===
+            dob.getUTCMonth() &&
+            now.getUTCDate() <
+                dob.getUTCDate());
+    if (beforeBirthday)
+        age -= 1;
+    return age;
+}
+function validateEnrollmentAuthority(intakeData) {
+    const status = String(intakeData.status || "")
+        .trim()
+        .toLowerCase();
+    if (status !== "submitted") {
+        throw new https_1.HttpsError("failed-precondition", `Submission not approvable: ${status || "missing status"}`);
+    }
+    const waiver = intakeData.waiver &&
+        typeof intakeData.waiver === "object"
+        ? intakeData.waiver
+        : {};
+    if (waiver.agreed !== true) {
+        throw new https_1.HttpsError("failed-precondition", "Waiver agreement is required before activation");
+    }
+    const signatureName = String(waiver.signatureName || "").trim();
+    const signatureDate = String(waiver.signatureDate || "").trim();
+    if (!signatureName) {
+        throw new https_1.HttpsError("failed-precondition", "Waiver signature name is missing");
+    }
+    if (!signatureDate) {
+        throw new https_1.HttpsError("failed-precondition", "Waiver signature date is missing");
+    }
+    const audience = String(intakeData.intakeAudience ||
+        (intakeData.source ===
+            "intake-athlete-ui"
+            ? "adult_athlete"
+            : "parent_guardian"))
+        .trim()
+        .toLowerCase();
+    const signerType = String(waiver.signerType || "")
+        .trim()
+        .toLowerCase();
+    const signingAuthority = String(waiver.signingAuthority || "")
+        .trim()
+        .toLowerCase();
+    if (audience === "adult_athlete") {
+        if (signerType !== "adult_athlete" ||
+            signingAuthority !== "self") {
+            throw new https_1.HttpsError("failed-precondition", "Adult athlete signer authority is invalid");
+        }
+        const dob = intakeData.dob ||
+            intakeData.athlete?.dob ||
+            null;
+        const age = ageFromDob(dob);
+        if (age === null) {
+            throw new https_1.HttpsError("failed-precondition", "Adult athlete date of birth is missing or invalid");
+        }
+        if (age < 18) {
+            throw new https_1.HttpsError("failed-precondition", "Adult athlete intake requires participant age 18 or older");
+        }
+        return;
+    }
+    if (audience === "parent_guardian") {
+        if (signerType !== "parent_guardian" ||
+            signingAuthority !==
+                "guardian_for_athlete") {
+            throw new https_1.HttpsError("failed-precondition", "Parent or guardian signer authority is invalid");
+        }
+        return;
+    }
+    throw new https_1.HttpsError("failed-precondition", `Unsupported intake audience: ${audience || "missing"}`);
 }
 function monthKey(date = new Date()) {
     const y = date.getFullYear();
@@ -208,6 +335,9 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
     try {
         const input = req.data;
         const mode = String(input.mode || "new_athlete").trim();
+        // New-member activation is Management-owned.
+        // Existing-athlete discipline changes remain Coach-owned.
+        await requireActivationAccess(coachUid, mode);
         const existingAthleteUid = String(input.existingAthleteUid || "").trim();
         const forTrack = String(input.forTrack || "").trim();
         const forLane = String(input.forLane || "").trim();
@@ -230,7 +360,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             (foundry === "f8" ? "F8" : "F4");
         const safeRosterIds = Array.isArray(rosterIds) ? rosterIds : [];
         const safeCoachIds = Array.isArray(coachIds) ? coachIds : [];
-        const safeLocationId = String(locationId || "").trim() || null;
+        const requestedLocationId = String(locationId || "").trim() || null;
         const safePlacement = placement && typeof placement === "object" ? placement : null;
         const safePriorExperienceValidation = priorExperienceValidation && typeof priorExperienceValidation === "object"
             ? priorExperienceValidation
@@ -239,12 +369,22 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("invalid-argument", `Invalid foundry: ${foundryRaw}`);
         }
         const lane = String(mint?.lane || "CB").trim().toUpperCase() || "CB";
-        const expPlan = buildExperiencePlan(experience?.years);
+        /*
+         * Legacy recognition defaults closed.
+         *
+         * For new-athlete activation, prior-experience years are resolved
+         * later from the authoritative Intake → Proposal → Appointment →
+         * Coach verification chain.
+         *
+         * Browser-supplied experience.years is intentionally NOT trusted
+         * as the source of legacy XP.
+         */
+        let expPlan = buildExperiencePlan(0);
+        let hasLegacy = false;
         const adjustmentAmount = Number(adjustment?.amount || 0);
         const adjustmentNote = adjustmentAmount > 0
             ? String(adjustment?.note || "Coach adjustment")
             : null;
-        const hasLegacy = expPlan.total > 0;
         const hasAdjustment = adjustmentAmount > 0;
         if (mode === "add_sport") {
             if (!existingAthleteUid) {
@@ -346,7 +486,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     ladderKey: safeLadderKey,
                     rosterIds: safeRosterIds,
                     coachIds: safeCoachIds,
-                    locationId: safeLocationId,
+                    locationId: requestedLocationId,
                     placement: safePlacement,
                     tier: starter.tier,
                     rankName: starter.rankName,
@@ -386,7 +526,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     ladderKey: safeLadderKey,
                     rosterIds: safeRosterIds,
                     coachIds: safeCoachIds,
-                    locationId: safeLocationId,
+                    locationId: requestedLocationId,
                     placement: safePlacement,
                     updatedAt: now
                 });
@@ -405,7 +545,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     ladderKey: safeLadderKey,
                     rosterIds: safeRosterIds,
                     coachIds: safeCoachIds,
-                    locationId: safeLocationId,
+                    locationId: requestedLocationId,
                     tier: starter.tier,
                     rankName: starter.rankName,
                     xp: 0,
@@ -439,6 +579,55 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("failed-precondition", `Submission doc missing: ${intakeRef.path}`);
         }
         const intakeDataPre = intakeSnapPre.data() || {};
+        // Server-authoritative enrollment gate.
+        // Browser validation is UX only and cannot be trusted
+        // as the activation security boundary.
+        validateEnrollmentAuthority(intakeDataPre);
+        /*
+         * ------------------------------------------------------
+         * Server-authoritative prior-experience verification
+         * ------------------------------------------------------
+         *
+         * Family claim      → informational only
+         * Coach assessment  → technical authority
+         * System            → calculates existing legacy schedule
+         * Management        → final activation authority
+         *
+         * The Intake inherits proposalId from its verified invite.
+         * The Proposal preserves appointment provenance.
+         * Only the assigned Coach's completed assessment may
+         * produce legacy recognition.
+         *
+         * Missing verification does NOT block normal enrollment.
+         * It simply produces zero legacy XP.
+         */
+        const authoritativeProposalId = String(intakeDataPre.proposalId || "").trim();
+        let authoritativeExperienceYears = 0;
+        if (authoritativeProposalId) {
+            const proposalRef = db.doc(`proposals/${authoritativeProposalId}`);
+            const proposalSnap = await proposalRef.get();
+            if (!proposalSnap.exists) {
+                throw new https_1.HttpsError("failed-precondition", `Authoritative proposal not found: ${authoritativeProposalId}`);
+            }
+            const proposalData = proposalSnap.data() || {};
+            const authoritativeAppointmentId = String(proposalData.prospect?.appointmentId ||
+                proposalData.lockedSnapshot?.prospect?.appointmentId ||
+                "").trim();
+            if (authoritativeAppointmentId) {
+                const appointmentRef = db.doc(`admissions_appointments/${authoritativeAppointmentId}`);
+                const appointmentSnap = await appointmentRef.get();
+                if (!appointmentSnap.exists) {
+                    throw new https_1.HttpsError("failed-precondition", `Admissions appointment not found: ${authoritativeAppointmentId}`);
+                }
+                const appointmentData = appointmentSnap.data() || {};
+                authoritativeExperienceYears =
+                    (0, experienceAuthority_1.resolveVerifiedExperienceYears)(appointmentData);
+            }
+        }
+        expPlan =
+            buildExperiencePlan(authoritativeExperienceYears);
+        hasLegacy =
+            expPlan.total > 0;
         const parentEmailPre = String(parent?.email || intakeDataPre.parent?.email || "")
             .trim()
             .toLowerCase() || null;
@@ -458,6 +647,15 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 throw new https_1.HttpsError("failed-precondition", `Submission doc missing: ${intakeRef.path}`);
             }
             const intakeData = intakeSnap.data() || {};
+            // Revalidate the transaction snapshot so activation
+            // is based on the same authoritative data being committed.
+            validateEnrollmentAuthority(intakeData);
+            // New-member location ownership is server-authoritative.
+            // It was inherited from the verified intake token.
+            const safeLocationId = String(intakeData.locationId || "").trim() || null;
+            if (!safeLocationId) {
+                throw new https_1.HttpsError("failed-precondition", "Enrollment intake is missing its authoritative location.");
+            }
             const loc = (intakeData.location || {});
             const teamName = String(team?.name || "").trim() ||
                 String(loc.team || "").trim() ||
