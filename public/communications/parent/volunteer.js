@@ -109,7 +109,7 @@ const dict = {
       "Submit to Coaches",
 
     btnBack:
-      "Back to Para-Comms",
+      "Back to Parent Communications",
 
     submitting:
       "Submitting...",
@@ -201,7 +201,7 @@ const dict = {
       "Enviar a entrenadores",
 
     btnBack:
-      "Volver a Para-Comms",
+      "Volver a Comunicaciones Para Padres",
 
     submitting:
       "Enviando...",

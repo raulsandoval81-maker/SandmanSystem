@@ -210,3 +210,17 @@ document.addEventListener(
   "DOMContentLoaded",
   initParentShell
 );
+
+async function initMemberExperience() {
+  const preferences = await import("/assets/js/parent-preferences.js");
+  const navigation = await import("/assets/js/parent-nav.js");
+  preferences.setParentLanguage(localStorage.getItem("lang") || "en");
+  preferences.setParentTheme(localStorage.getItem("parent-theme") || localStorage.getItem("theme") || "day");
+  navigation.initParentNavigation();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", () => void initMemberExperience());
+} else {
+  void initMemberExperience();
+}
