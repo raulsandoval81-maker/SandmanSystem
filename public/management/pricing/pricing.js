@@ -105,7 +105,7 @@ function readAthletes() {
           card.querySelector(
             ".athlete-name"
           )?.value.trim() ||
-          `Athlete ${index + 1}`,
+          `Member ${index + 1}`,
 
         journey:
           card.querySelector(
@@ -350,7 +350,7 @@ function refreshAthleteTitles() {
 
       if (title) {
         title.textContent =
-          `Athlete ${index + 1}`;
+          `Member ${index + 1}`;
       }
 
       const removeButton =
