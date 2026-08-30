@@ -9,10 +9,17 @@ import {
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+import { requireAdmin } from "/assets/js/admin-guard.js";
 
 const grid = document.getElementById("requestGrid");
 
-loadRequests();
+startGatekeeper();
+
+async function startGatekeeper() {
+  await requireAdmin();
+  document.getElementById("legacyGatekeeper").hidden = false;
+  await loadRequests();
+}
 
 async function loadRequests() {
   grid.innerHTML = "<div>Loading...</div>";

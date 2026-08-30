@@ -1,30 +1,9 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Docs | Admin</title>
-<link rel="stylesheet" href="/lab/_shared/field.css">
-</head>
-
-<body>
-<main class="wrap">
-  <div class="header">
-    <h1>Admin Docs</h1>
-    <p class="sub">Policies • Templates • Waivers</p>
-  </div>
-
-  <div class="grid">
-    <a class="card" href="/admin/docs/policy-template.html">
-      <h2>Policy Template</h2>
-      <p>Editable admin policy template</p>
-    </a>
-
-    <a class="card" href="/admin/docs/waiver-template.pdf" target="_blank" rel="noopener">
-      <h2>Waiver Template</h2>
-      <p>Open waiver PDF</p>
-    </a>
-  </div>
-</main>
-</body>
-</html>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Admin Documents | Sandman System</title><link rel="stylesheet" href="/assets/css/admin-ui.css"><script src="/assets/js/admin-nav.js" defer></script></head>
+<body class="admin-app"><div id="adminShell" class="admin-shell" hidden>
+<header class="admin-header"><div class="admin-header__inner"><div><p class="admin-eyebrow">Reference</p><h1>Documents</h1><p class="admin-identity">Policies, templates, and waivers</p></div><button class="admin-menu-toggle" type="button" aria-expanded="false" aria-controls="adminSidebar"><span aria-hidden="true">☰</span><span>Menu</span></button></div></header>
+<div class="admin-workspace"><aside id="adminSidebar" class="admin-sidebar"><nav data-admin-nav aria-label="Admin navigation"></nav></aside><button class="admin-sidebar-backdrop" type="button" aria-label="Close Admin navigation" tabindex="-1"></button><main class="admin-wrap">
+<section class="admin-hero"><p class="admin-section-label">Reference</p><h1>Admin Documents</h1><p class="admin-hero__lede">Open established policy and waiver reference files.</p></section>
+<section class="admin-grid"><article class="admin-card"><p class="admin-card__label">Policy</p><h3>Policy Template</h3><p>This existing template is currently empty and retained for review.</p><a class="admin-button" href="/admin/docs/policy-template.html">Open Policy Template</a></article><article class="admin-card"><p class="admin-card__label">Waiver</p><h3>Waiver Template</h3><p>Open the existing waiver PDF in a new tab.</p><a class="admin-button" href="/admin/docs/waiver-template.pdf" target="_blank" rel="noopener">Open Waiver PDF</a></article></section>
+</main></div><footer class="admin-footer">Sandman System Admin · Reference</footer></div>
+<script type="module">import {requireAdmin} from "/assets/js/admin-guard.js";try{await requireAdmin();document.getElementById("adminShell").hidden=false}catch(error){const returnUrl=encodeURIComponent(window.location.pathname);window.location.replace(`/admin/auth/login.html?returnUrl=${returnUrl}`)}</script></body></html>

@@ -1154,6 +1154,7 @@ async function loadMessages() {
 
   try {
     adminUser = await requireAdmin();
+    document.getElementById("adminShell").hidden = false;
 
     await loadManagerDirectory();
 

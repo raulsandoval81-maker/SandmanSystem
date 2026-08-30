@@ -80,6 +80,7 @@ import {
       setRowCount(0);
 
       await requireAdmin();
+      document.getElementById("adminShell").hidden = false;
 
       setStatus("Loading logs...");
 

@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <title>XP Master Log • Admin</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="../assets/css/site.css" />
 
   <style>
     :root { color-scheme: dark; }
@@ -189,9 +188,14 @@
     .arena { background:#7c3aed; color:#fff; } /* purple */
 
   </style>
+  <link rel="stylesheet" href="/assets/css/admin-ui.css"/>
+  <script src="/assets/js/admin-nav.js" defer></script>
 </head>
 
-<body>
+<body class="admin-app">
+<div id="adminShell" class="admin-shell" hidden>
+<header class="admin-header"><div class="admin-header__inner"><div><p class="admin-eyebrow">System Audit</p><h1>XP Master Log</h1><p class="admin-identity">Read-only system ledger</p></div><button class="admin-menu-toggle" type="button" aria-expanded="false" aria-controls="adminSidebar"><span aria-hidden="true">☰</span><span>Menu</span></button></div></header>
+<div class="admin-workspace"><aside id="adminSidebar" class="admin-sidebar"><nav data-admin-nav aria-label="Admin navigation"></nav></aside><button class="admin-sidebar-backdrop" type="button" aria-label="Close Admin navigation" tabindex="-1"></button><div class="admin-wrap">
 <main class="wrap">
 
   <div class="navrow">
@@ -349,17 +353,7 @@
   </section>
 
 </main>
-<!--
-  IMPORTANT:
-  Put the service at one of these (choose ONE and match it):
-    1) /assets/js/xp-master-log.service.js   (recommended)
-    2) ./xp-master-log.service.js           (if it lives beside this html)
-
-  This page is read-only. The service should:
-   - fetch logs (Firestore query or endpoint)
-   - apply filters (q/lane/kind/date range)
-   - render rows into #xpRows and set #rowCount/#status
--->
+</div></div><footer class="admin-footer">Sandman System Admin · Immutable XP audit</footer></div>
 <script type="module" src="./xp-master-log.service.js"></script>
 
 <script>

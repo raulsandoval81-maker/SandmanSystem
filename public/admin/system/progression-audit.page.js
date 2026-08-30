@@ -1,6 +1,7 @@
 import {
   runProgressionAudit
 } from "../services/progression-audit.service.js";
+import { requireAdmin } from "/assets/js/admin-guard.js";
 
 const cooldownCount = document.getElementById("cooldownCount");
 const xpCount = document.getElementById("xpCount");
@@ -16,7 +17,13 @@ const refreshBtn = document.getElementById("refreshBtn");
 
 refreshBtn.addEventListener("click", loadAudit);
 
-loadAudit();
+startAudit();
+
+async function startAudit() {
+  await requireAdmin();
+  document.getElementById("adminShell").hidden = false;
+  await loadAudit();
+}
 
 async function loadAudit() {
 

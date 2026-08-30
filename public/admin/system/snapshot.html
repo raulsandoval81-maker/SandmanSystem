@@ -4,8 +4,6 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Admin — Snapshot | Sandman System</title>
-  <link rel="stylesheet" href="../assets/css/site.css"/>
-  <script src="../assets/js/include.js" defer></script>
   <style>
     .card{background:#12161d; border:1px solid #2a2f3a; border-radius:14px; padding:16px}
     .grid{display:grid; gap:16px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr));}
@@ -17,14 +15,14 @@
   </style>
 </head>
 <body>
-  <div data-include="../assets/includes/header.html"></div>
+  <div id="legacySnapshot" hidden>
 
   <main class="wrap">
-    <p><a class="pill" href="index.html">← Back to Admin</a></p>
+    <p><a class="pill" href="/admin/hub/dashboard.html">← Admin Home</a></p>
     <h1>Program Snapshot</h1>
     <p class="muted">Read-only export. Replace static content with live data later.</p>
 
-    <section class="grid" style="margin-top:1rem">
+    <section class="grid" style="margin-top:1rem" hidden aria-hidden="true">
       <div class="card">
         <h3>Totals</h3>
         <table>
@@ -54,9 +52,16 @@
       </div>
     </section>
 
-    <p style="margin-top:1rem"><a class="pill" href="../index.html">Return Home</a></p>
+    <section class="card" style="margin-top:1rem">
+      <h2>Legacy snapshot isolated</h2>
+      <p class="muted">The prior snapshot contained demonstration values and is not presented as production analytics. Its production role remains under review.</p>
+    </section>
   </main>
-
-  <div data-include="../assets/includes/footer.html"></div>
+  </div>
+  <script type="module">
+    import { requireAdmin } from "/assets/js/admin-guard.js";
+    await requireAdmin();
+    document.getElementById("legacySnapshot").hidden = false;
+  </script>
 </body>
 </html>

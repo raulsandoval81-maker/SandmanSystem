@@ -1,259 +1,86 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Admin — Index | Sandman System</title>
-  <link rel="stylesheet" href="../assets/css/site.css"/>
-  <script src="../assets/js/include.js" defer></script>
-  <style>
-    :root { color-scheme: dark; }
-    body{
-      background:#06080d;
-      color:#f5f5f5;
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:28px 16px 48px;
-    }
-    .hero{
-      background:#0f141b;
-      border:1px solid #1d2430;
-      border-radius:18px;
-      padding:18px 20px 16px;
-      box-shadow:0 10px 26px rgba(0,0,0,.35);
-      margin-bottom:18px;
-      text-align:center;
-    }
-    .hero h1{
-      margin:0;
-      color:#ffd633;
-      font-size:1.85rem;
-      text-shadow:0 0 12px rgba(255,214,51,.25);
-      letter-spacing:.02em;
-    }
-    .hero p{
-      margin:8px 0 0;
-      color:#9ca3af;
-      font-size:.9rem;
-      line-height:1.45;
-    }
-    .navrow{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin:14px 0 0;
-    }
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:.45rem;
-      padding:.45rem .9rem;
-      border-radius:999px;
-      background:#0b1017;
-      border:1px solid #1d2430;
-      color:#eaeaea;
-      text-decoration:none;
-      font-weight:800;
-      font-size:.78rem;
-    }
-    .pill:hover{
-      border-color:#e63946;
-      box-shadow:0 0 10px rgba(230,57,70,.35);
-    }
-    .section-kicker{
-      font-size:1.05rem;
-      font-weight:900;
-      color:#ffd633;
-      margin:2rem 0 1rem;
-      text-transform:uppercase;
-      letter-spacing:.06em;
-    }
-    .tools-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
-      gap:1.1rem;
-    }
-    .tool-card{
-      background:#0b1017;
-      border:1px solid #1f2937;
-      border-radius:12px;
-      padding:1rem .95rem 1.05rem;
-      box-shadow:0 10px 18px rgba(0,0,0,.22);
-      display:flex;
-      flex-direction:column;
-      gap:.6rem;
-      transition:.15s;
-    }
-    .tool-card h3{
-      margin:0;
-      color:#ffdd48;
-      font-size:1rem;
-      letter-spacing:.01em;
-    }
-    .tool-card p{
-      font-size:.78rem;
-      color:#9ca3af;
-      line-height:1.45;
-      margin:0;
-      flex:1;
-    }
-    .tool-card:hover{
-      border-color:#e63946;
-      box-shadow:0 0 12px rgba(230,57,70,.4);
-      transform:translateY(-2px);
-    }
-    .btn{
-      display:inline-block;
-      border:none;
-      border-radius:999px;
-      padding:.45rem 1rem;
-      font-weight:900;
-      text-decoration:none;
-      cursor:pointer;
-      font-size:.75rem;
-      width:max-content;
-    }
-    .btn-red{
-      background:#e53935;
-      color:#fff;
-      box-shadow:0 0 10px rgba(229,57,53,.35);
-    }
-    .btn-red:hover{
-      background:#ff4758;
-    }
-    .tagrow{
-      display:flex;
-      gap:.4rem;
-      flex-wrap:wrap;
-      margin-bottom:.1rem;
-    }
-    .tag{
-      display:inline-flex;
-      align-items:center;
-      gap:.35rem;
-      width:max-content;
-      padding:.22rem .6rem;
-      border-radius:999px;
-      border:1px solid #1d2430;
-      background:#0f141b;
-      color:#cfd7e6;
-      font-size:.66rem;
-      font-weight:900;
-      letter-spacing:.03em;
-      text-transform:uppercase;
-    }
-    .tag.core{ border-color:#f59e0b55; }
-    .tag.ops{ border-color:#60a5fa55; }
-    .fine{
-      color:#94a3b8;
-      font-size:.72rem;
-      margin:.4rem 0 0;
-      text-align:center;
-      line-height:1.35;
-    }
-    .status{
-      margin-top:10px;
-      color:#94a3b8;
-      font-size:.78rem;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Admin Hub | Sandman System</title>
+  <link rel="stylesheet" href="/assets/css/admin-ui.css" />
+  <script src="/assets/js/admin-nav.js" defer></script>
 </head>
-<body>
-  <div data-include="../assets/includes/header.html"></div>
-
-  <main class="wrap">
-    <header class="hero">
-      <h1>Admin Panel</h1>
-      <p>Admin oversight for system health, activity snapshots, and XP audit.</p>
-
-      <div class="navrow">
-        <a class="pill" href="../index.html">Back to Portal</a>
-      </div>
-
-      <div class="status" id="adminStatus">Checking admin access…</div>
-
-      <div class="fine">
-        Admin-only surface. Use this lane for oversight, audit, and access control.
+<body class="admin-app">
+  <div id="adminShell" class="admin-shell" hidden>
+    <header class="admin-header">
+      <div class="admin-header__inner">
+        <div>
+          <p class="admin-eyebrow">Sandman System Administration</p>
+          <h1>Admin Hub</h1>
+          <p id="adminIdentity" class="admin-identity">Verifying access…</p>
+        </div>
+        <button class="admin-menu-toggle" type="button" aria-expanded="false" aria-controls="adminSidebar">
+          <span aria-hidden="true">☰</span><span>Menu</span>
+        </button>
       </div>
     </header>
 
-    <section>
-      <h2 class="section-kicker">Overview</h2>
-      <div class="tools-grid">
-        <div class="tool-card">
-          <div class="tagrow"><span class="tag core">Core</span></div>
-          <h3>Dashboard</h3>
-          <p>At-a-glance KPIs and quick actions.</p>
-          <a class="btn btn-red" href="/admin/dashboard.html">Open Dashboard</a>
-        </div>
+    <div class="admin-workspace">
+      <aside id="adminSidebar" class="admin-sidebar">
+        <nav data-admin-nav aria-label="Admin navigation"></nav>
+      </aside>
+      <button class="admin-sidebar-backdrop" type="button" aria-label="Close Admin navigation" tabindex="-1"></button>
 
-        <div class="tool-card">
-          <div class="tagrow"><span class="tag core">Core</span></div>
-          <h3>Hub</h3>
-          <p>Links to weekly ops, tools, and admin flows.</p>
-          <a class="btn btn-red" href="/admin/hub.html">Open Hub</a>
-        </div>
+      <main class="admin-wrap">
+        <section class="admin-hero">
+          <p class="admin-section-label">Overview</p>
+          <h1>System governance and oversight</h1>
+          <p class="admin-hero__lede">Review access, route system-level work, inspect integrity, and open established Admin tools without changing academy operations.</p>
+          <p class="admin-status is-verified" role="status">Admin access verified.</p>
+        </section>
 
-        <div class="tool-card">
-          <div class="tagrow"><span class="tag ops">Ops</span></div>
-          <h3>Snapshot</h3>
-          <p>Static summary view for meetings and check-ins.</p>
-          <a class="btn btn-red" href="/admin/system/snapshot.html">Open Snapshot</a>
-        </div>
-      </div>
-    </section>
+        <section class="admin-section">
+          <div class="admin-section__heading"><p class="admin-section-label">Governance &amp; Access</p><h2>Protect system access</h2></div>
+          <div class="admin-grid">
+            <article class="admin-card"><p class="admin-card__label">Access Control</p><h3>Staff &amp; Roles</h3><p>Review staff profiles and administer approved staff roles.</p><a class="admin-button" href="/admin/people/staff.html">Open Staff &amp; Roles</a></article>
+          </div>
+        </section>
 
-    <section>
-      <h2 class="section-kicker">Control</h2>
-      <div class="tools-grid">
-        <div class="tool-card">
-          <div class="tagrow"><span class="tag core">Core</span></div>
-          <h3>Staff & Roles</h3>
-          <p>View staff docs and assign coach/admin access.</p>
-          <a class="btn btn-red" href="/admin/people/staff.html">Open Staff</a>
-        </div>
+        <section class="admin-section">
+          <div class="admin-section__heading"><p class="admin-section-label">Operations Oversight</p><h2>Review system-level routing</h2></div>
+          <div class="admin-grid"><article class="admin-card"><p class="admin-card__label">Oversight</p><h3>Reception</h3><p>Review and route unresolved public messages requiring system oversight.</p><a class="admin-button" href="/admin/reception/">Open Reception</a></article></div>
+        </section>
 
-        <div class="tool-card">
-          <div class="tagrow"><span class="tag ops">Ops</span></div>
-          <h3>XP Master Log</h3>
-          <p>Audit lane for XP history and receipts.</p>
-          <a class="btn btn-red" href="/admin/system/xp-master-log.html">Open XP Log</a>
-        </div>
-      </div>
-    </section>
+        <section class="admin-section">
+          <div class="admin-section__heading"><p class="admin-section-label">System</p><h2>Inspect system integrity</h2></div>
+          <div class="admin-grid">
+            <article class="admin-card"><p class="admin-card__label">Integrity</p><h3>Progression Audit</h3><p>Inspect existing cooldown, XP, stripe, and tier integrity checks.</p><a class="admin-button" href="/admin/system/progression-audit.html">Open Progression Audit</a></article>
+            <article class="admin-card"><p class="admin-card__label">Audit</p><h3>XP Master Log</h3><p>Review the established read-only XP ledger and receipts.</p><a class="admin-button" href="/admin/system/xp-master-log.html">Open XP Master Log</a></article>
+            <article class="admin-card"><p class="admin-card__label">Controlled Intervention</p><h3>XP Adjustments</h3><p>Open the existing Admin correction lane for authorized reconciliation.</p><a class="admin-button" href="/admin/system/xp-adjustments.html">Open XP Adjustments</a></article>
+          </div>
+        </section>
 
-    <div class="tool-card">
-  <div class="tagrow">
-    <span class="tag ops">Ops</span>
+        <section class="admin-section">
+          <div class="admin-section__heading"><p class="admin-section-label">Reference</p><h2>Governance guidance</h2></div>
+          <div class="admin-grid">
+            <article class="admin-card"><p class="admin-card__label">Doctrine</p><h3>Creed · Code · Goal · Mission</h3><p>Review the governance principles that define the Admin role.</p><a class="admin-button" href="/admin/hub/">Open Doctrine</a></article>
+            <article class="admin-card"><p class="admin-card__label">Documents</p><h3>Policies &amp; Templates</h3><p>Open the existing Admin policy, waiver, and reference documents.</p><a class="admin-button" href="/admin/docs/">Open Documents</a></article>
+          </div>
+        </section>
+      </main>
+    </div>
+    <footer class="admin-footer">Sandman System Admin · Governance and oversight</footer>
   </div>
-
-  <h3>XP Adjustments</h3>
-
-  <p>
-    Manual reconciliation and admin XP correction lane.
-  </p>
-
-  <a class="btn btn-red" href="/admin/system/xp-adjustments.html">
-    Open Adjustments
-  </a>
-</div>
-  </main>
-
 
   <script type="module">
     import { requireAdmin } from "/assets/js/admin-guard.js";
-    const statusEl = document.getElementById("adminStatus");
+    const shell = document.getElementById("adminShell");
+    const identityEl = document.getElementById("adminIdentity");
     try {
-      const user = await requireAdmin();
-      statusEl.textContent = `Admin verified${user?.email ? " · " + user.email : ""}`;
-    } catch (err) {
-      console.error(err);
-      statusEl.textContent = "Admin access required.";
+      const admin = await requireAdmin();
+      identityEl.textContent = admin?.email ? `Active Admin · ${admin.email}` : "Active Admin";
+      shell.hidden = false;
+    } catch (error) {
+      const returnUrl = encodeURIComponent(window.location.pathname);
+      window.location.replace(`/admin/auth/login.html?returnUrl=${returnUrl}`);
     }
   </script>
 </body>

@@ -1,208 +1,55 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Admin — Creed · Code · Goal · Mission | Sandman System</title>
-
-  <link rel="stylesheet" href="../assets/css/site.css"/>
-  <script src="../assets/js/include.js" defer></script>
-
-  <style>
-    :root { color-scheme: dark; }
-
-    body{
-      background:#06080d;
-      color:#f5f5f5;
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-
-    .wrap{
-      max-width:1200px;
-      margin:0 auto;
-      padding:28px 16px 48px;
-    }
-
-    .hero{
-      background:#0f141b;
-      border:1px solid #1d2430;
-      border-radius:18px;
-      padding:22px 20px 18px;
-      box-shadow:0 10px 26px rgba(0,0,0,.35);
-      margin-bottom:20px;
-      text-align:center;
-    }
-
-    .hero h1{
-      margin:0;
-      color:#ffd633;
-      font-size:1.9rem;
-      text-shadow:0 0 12px rgba(255,214,51,.25);
-      letter-spacing:.02em;
-    }
-
-    .hero p{
-      margin:10px auto 0;
-      color:#9ca3af;
-      font-size:.95rem;
-      line-height:1.5;
-      max-width:780px;
-    }
-
-    .primary-cta{
-      display:inline-block;
-      margin-top:14px;
-      padding:.6rem 1.2rem;
-      border-radius:999px;
-      background:#e53935;
-      color:#fff;
-      font-weight:900;
-      font-size:.85rem;
-      text-decoration:none;
-      box-shadow:0 0 12px rgba(229,57,53,.35);
-      transition:.15s;
-    }
-
-    .primary-cta:hover{
-      background:#ff4758;
-      transform:translateY(-1px);
-    }
-
-    .navrow{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin:16px 0 0;
-    }
-
-    .pill{
-      display:inline-flex;
-      align-items:center;
-      gap:.45rem;
-      padding:.5rem 1rem;
-      border-radius:999px;
-      background:#0b1017;
-      border:1px solid #1d2430;
-      color:#eaeaea;
-      text-decoration:none;
-      font-weight:800;
-      font-size:.8rem;
-    }
-
-    .pill:hover{
-      border-color:#e63946;
-      box-shadow:0 0 10px rgba(230,57,70,.35);
-    }
-
-    .landing-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
-      gap:18px;
-      margin-top:18px;
-    }
-
-    .lane-card{
-      background:#0b1017;
-      border:1px solid #1f2937;
-      border-radius:14px;
-      padding:18px 16px 16px;
-      box-shadow:0 10px 18px rgba(0,0,0,.22);
-      display:flex;
-      flex-direction:column;
-      gap:.8rem;
-      transition:.15s ease;
-    }
-
-    .lane-card:hover{
-      border-color:#e63946;
-      box-shadow:0 0 12px rgba(230,57,70,.4);
-      transform:translateY(-2px);
-    }
-
-    .lane-card h2{
-      margin:0;
-      color:#ffdd48;
-      font-size:1.05rem;
-      letter-spacing:.04em;
-      text-transform:uppercase;
-    }
-
-    .lane-card p{
-      margin:0;
-      color:#9ca3af;
-      font-size:.82rem;
-      line-height:1.45;
-    }
-
-    .fine{
-      color:#94a3b8;
-      font-size:.72rem;
-      margin:1rem 0 0;
-      text-align:center;
-      line-height:1.35;
-    }
-  </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>Admin Doctrine | Sandman System</title>
+  <link rel="stylesheet" href="/assets/css/admin-ui.css" />
+  <script src="/assets/js/admin-nav.js" defer></script>
 </head>
-
-<body>
-  <div data-include="../assets/includes/header.html"></div>
-
-  <main class="wrap">
-    <header class="hero">
-      <h1>Creed · Code · Goal · Mission</h1>
-      <p>
-        Admin runs oversight, alignment, and correction.
-        Coaches operate the system. Admin protects it.
-      </p>
-
-      <a class="primary-cta" href="/admin/hub/dashboard.html">
-        Admin Index
-      </a>
-
-      <div class="navrow">
-        <a class="pill" href="../index.html">Back to Portal</a>
-      </div>
-
-      <div class="fine">
-        Admin is oversight. This page defines direction — not tools.
+<body class="admin-app">
+  <div id="adminShell" class="admin-shell" hidden>
+    <header class="admin-header">
+      <div class="admin-header__inner">
+        <div><p class="admin-eyebrow">Sandman System Administration</p><h1>Governance Doctrine</h1><p id="adminIdentity" class="admin-identity">Verifying access…</p></div>
+        <button class="admin-menu-toggle" type="button" aria-expanded="false" aria-controls="adminSidebar"><span aria-hidden="true">☰</span><span>Menu</span></button>
       </div>
     </header>
 
-    <section class="landing-grid">
+    <div class="admin-workspace">
+      <aside id="adminSidebar" class="admin-sidebar"><nav data-admin-nav aria-label="Admin navigation"></nav></aside>
+      <button class="admin-sidebar-backdrop" type="button" aria-label="Close Admin navigation" tabindex="-1"></button>
+      <main class="admin-wrap">
+        <section class="admin-hero">
+          <p class="admin-section-label">Doctrine</p><h1>Creed · Code · Goal · Mission</h1>
+          <p class="admin-hero__lede">Admin runs oversight, alignment, and correction. Coaches operate the training system. Admin protects its integrity.</p>
+          <div class="admin-actions"><a class="admin-button admin-button--primary" href="/admin/hub/dashboard.html">Return to Admin Hub</a></div>
+        </section>
+        <section class="admin-grid" aria-label="Admin governance principles">
+          <article class="admin-card"><p class="admin-card__label">Creed</p><h3>Protect the standard</h3><p>Never compromise what the system stands for.</p></article>
+          <article class="admin-card"><p class="admin-card__label">Code</p><h3>Maintain trust</h3><p>Enforce the rules and preserve structure and accountability.</p></article>
+          <article class="admin-card"><p class="admin-card__label">Goal</p><h3>Support execution</h3><p>Remove system-level friction while respecting operational ownership.</p></article>
+          <article class="admin-card"><p class="admin-card__label">Mission</p><h3>Protect the future</h3><p>Audit, correct, and strengthen the system over time.</p></article>
+          <article class="admin-card"><p class="admin-card__label">Current Doctrine</p><h3>Apprentice Safeguards</h3><p>Review the current pacing, XP, testing, and promotion safeguards for Apprentice.</p><a class="admin-button" href="/admin/doctrine/apprentice-safeguards.html">Open Safeguards</a></article>
+        </section>
+      </main>
+    </div>
+    <footer class="admin-footer">Admin is oversight. This page defines direction, not tools.</footer>
+  </div>
 
-      <article class="lane-card">
-        <h2>Creed</h2>
-        <p>
-          Protect the standard. Never compromise what the system stands for.
-        </p>
-      </article>
-
-      <article class="lane-card">
-        <h2>Code</h2>
-        <p>
-          Enforce the rules. Maintain structure, accountability, and trust.
-        </p>
-      </article>
-
-      <article class="lane-card">
-        <h2>Goal</h2>
-        <p>
-          Support daily execution. Remove friction and keep the system moving.
-        </p>
-      </article>
-
-      <article class="lane-card">
-        <h2>Mission</h2>
-        <p>
-          Protect the future. Audit, correct, and strengthen the system over time
-        </p>
-      </article>
-
-    </section>
-  </main>
-
-  <div data-include="../assets/includes/footer.html"></div>
+  <script type="module">
+    import { requireAdmin } from "/assets/js/admin-guard.js";
+    const shell = document.getElementById("adminShell");
+    const identityEl = document.getElementById("adminIdentity");
+    try {
+      const admin = await requireAdmin();
+      identityEl.textContent = admin?.email ? `Active Admin · ${admin.email}` : "Active Admin";
+      shell.hidden = false;
+    } catch (error) {
+      const returnUrl = encodeURIComponent(window.location.pathname);
+      window.location.replace(`/admin/auth/login.html?returnUrl=${returnUrl}`);
+    }
+  </script>
 </body>
 </html>

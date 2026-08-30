@@ -189,3 +189,4 @@ btnApply?.addEventListener("click", async () => {
 });
 
 await requireAdmin();
+document.getElementById("adminShell").hidden = false;

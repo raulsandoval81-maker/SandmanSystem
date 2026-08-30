@@ -121,18 +121,19 @@
     href="/assets/css/portal-auth.css"
   />
   <link rel="stylesheet" href="/assets/css/password-toggle.css">
+  <link rel="stylesheet" href="/assets/css/admin-ui.css">
 </head>
-<body>
+<body class="admin-app admin-auth-page">
 
-  <main class="card">
-    <p class="kicker">Administrators' Portal</p>
+  <main class="card admin-auth-card">
+    <p class="kicker admin-eyebrow">Sandman System Administration</p>
     <h1>Admin Access</h1>
 
     <p class="sub">
       Sign in with an approved administrator account.
     </p>
 
-    <input id="email" type="email" placeholder="Email" value="coach@sandmancombat.com" />
+    <input id="email" type="email" placeholder="Admin email" autocomplete="username" />
     <input id="password" type="password" placeholder="Password" />
 
     <label class="remember-row" for="keepSignedIn">
@@ -153,8 +154,8 @@
 
 
 
-    <button id="loginBtn">Sign In</button>
-    <button id="resetBtn" class="link-btn" type="button">Forgot Password?</button>
+    <button id="loginBtn" class="admin-button admin-button--primary">Sign In</button>
+    <button id="resetBtn" class="link-btn admin-button" type="button">Forgot Password?</button>
 
     <div id="status" class="status"></div>
     
@@ -175,6 +176,8 @@
   import {
     auth
   } from "/assets/js/firebase-init.js";
+
+  import { requireAdmin } from "/assets/js/admin-guard.js";
 
   import {
     signInWithEmailAndPassword,
@@ -224,7 +227,7 @@
       return requestedReturnUrl;
     }
 
-    return "/admin/hub/";
+    return "/admin/hub/dashboard.html";
   }
 
 
@@ -313,9 +316,11 @@
         result.user.email
       );
 
-      setStatus(
-        "Success. Redirecting..."
-      );
+      setStatus("Verifying Admin access...");
+
+      await requireAdmin();
+
+      setStatus("Admin access verified. Redirecting...");
 
       window.setTimeout(
         redirectAfterLogin,
@@ -439,13 +444,17 @@
         return;
       }
 
-      console.log(
-        "[admin-login] existing staff session:",
-        user.uid,
-        user.email
-      );
+      console.log("[admin-login] existing staff session:", user.uid, user.email);
 
-      redirectAfterLogin();
+      try {
+        setStatus("Verifying Admin access...");
+        await requireAdmin();
+        setStatus("Admin access verified. Redirecting...");
+        redirectAfterLogin();
+      } catch (error) {
+        console.error("[admin-login] existing session is not Admin:", error);
+        setStatus("This account does not have active Admin access.", true);
+      }
     }
   );
 </script>
