@@ -225,10 +225,31 @@ export function calculateSandmanMembershipPricing(
    * Promotion is deliberately separate from
    * family pricing and household savings.
    */
+  const hasQualifyingCombatMember =
+    athletes.some(
+      (athlete) =>
+        athlete.plan === "standard" ||
+        athlete.plan === "combo" ||
+        athlete.plan === "mma"
+    );
+
   const parentPromotionCount =
     fitnessAthletes.filter(
-      (athlete) =>
-        athlete.parentChildPromo === true
+      (athlete) => {
+        const combatFamilyTwoDayRate =
+          athlete.parentChildPromo === true &&
+          athlete.trainingAccess === "2" &&
+          hasQualifyingCombatMember;
+
+        const annualThreeDayRate =
+          athlete.trainingAccess === "3" &&
+          athlete.billingTerm === "annual";
+
+        return (
+          combatFamilyTwoDayRate ||
+          annualThreeDayRate
+        );
+      }
     ).length;
 
   const promotionMonthly =
