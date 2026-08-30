@@ -276,6 +276,48 @@ export function calculateSandmanMembershipPricing(
     fitnessIndividualEquivalentMonthly +
     comboMonthly;
 
+  /*
+   * PAYMENT OWNERSHIP
+   *
+   * Fitness belongs to Youth Empowered.
+   * Automatic Fitness savings reduce the
+   * Youth Empowered charge first.
+   *
+   * Household-cap savings are absorbed by
+   * Sandman first. If the total bill is ever
+   * lower than the Fitness amount alone,
+   * Fitness is clamped to the actual bill so
+   * ownership can never exceed what is owed.
+   */
+  const youthEmpoweredFitnessMonthly =
+    Math.min(
+      Math.max(
+        0,
+        fitnessMonthly -
+          promotionMonthly
+      ),
+      monthlyMembership
+    );
+
+  const sandmanCombatMonthly =
+    Math.max(
+      0,
+      monthlyMembership -
+        youthEmpoweredFitnessMonthly
+    );
+
+  const paymentOwnership = {
+    sandman: {
+      combatMonthly:
+        sandmanCombatMonthly
+    },
+
+    youthEmpowered: {
+      fitnessMonthly:
+        youthEmpoweredFitnessMonthly
+    }
+  };
+
   return {
     standardCombatMonthly,
     standardIndividualEquivalentMonthly,
@@ -286,6 +328,8 @@ export function calculateSandmanMembershipPricing(
 
     fitnessMonthly,
     fitnessIndividualEquivalentMonthly,
+
+    paymentOwnership,
 
     comboMonthly,
     agreementSavingsAnnual,

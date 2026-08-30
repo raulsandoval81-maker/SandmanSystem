@@ -159,72 +159,20 @@ function getProrationRate() {
     return 1;
   }
 
-  const [
-    year,
-    month,
-    day
-  ] =
-    value
-      .split("-")
-      .map(Number);
-
-  const startDate =
-    new Date(
-      year,
-      month - 1,
-      day
+  const day =
+    Number(
+      value.split("-")[2]
     );
 
-  const firstOfMonth =
-    new Date(
-      year,
-      month - 1,
-      1
-    );
-
-  const firstDayOfWeek =
-    firstOfMonth.getDay();
-
-  const daysUntilMonday =
-    (8 - firstDayOfWeek) % 7;
-
-  const firstMonday =
-    new Date(
-      year,
-      month - 1,
-      1 + daysUntilMonday
-    );
-
-  const secondMonday =
-    new Date(firstMonday);
-
-  secondMonday.setDate(
-    firstMonday.getDate() + 7
-  );
-
-  const thirdMonday =
-    new Date(firstMonday);
-
-  thirdMonday.setDate(
-    firstMonday.getDate() + 14
-  );
-
-  const fourthMonday =
-    new Date(firstMonday);
-
-  fourthMonday.setDate(
-    firstMonday.getDate() + 21
-  );
-
-  if (startDate < secondMonday) {
+  if (day <= 7) {
     return 1;
   }
 
-  if (startDate < thirdMonday) {
+  if (day <= 14) {
     return 0.75;
   }
 
-  if (startDate < fourthMonday) {
+  if (day <= 21) {
     return 0.5;
   }
 
@@ -273,6 +221,12 @@ function readAthletes() {
             ".athlete-name"
           )?.value.trim() ||
           `Member ${index + 1}`,
+
+        memberType:
+          card.querySelector(
+            ".member-type"
+          )?.value ||
+          "youth",
 
         journey:
           card.querySelector(
@@ -439,7 +393,9 @@ function renderPricing() {
     (athlete) => {
       annualMembershipAmount +=
         athlete.annualMembership ===
-        "current-aau"
+          "current-aau" ||
+        athlete.annualMembership ===
+          "onboarding-only"
           ? 5
           : 35;
     }
@@ -638,6 +594,11 @@ function addAthlete(defaults = {}) {
       ".athlete-plan"
     );
 
+  const memberType =
+    newCard.querySelector(
+      ".member-type"
+    );
+
   const billingTerm =
     newCard.querySelector(
       ".billing-term"
@@ -705,7 +666,30 @@ function addAthlete(defaults = {}) {
         <option value="3">3 days/week — $80</option>
       `;
 
-      annualMembership.disabled = true;
+      if (memberType?.value === "adult") {
+        annualMembership.innerHTML = `
+          <option value="onboarding-only">
+            Onboarding only — no AAU — $5/year
+          </option>
+          <option value="sandman">
+            Sandman provides AAU — $35/year
+          </option>
+          <option value="current-aau">
+            Current AAU already held — $5/year
+          </option>
+        `;
+      } else {
+        annualMembership.innerHTML = `
+          <option value="sandman">
+            Sandman provides AAU — $35/year
+          </option>
+          <option value="current-aau">
+            Current AAU already held — $5/year
+          </option>
+        `;
+      }
+
+      annualMembership.disabled = false;
       return;
     }
 
@@ -725,6 +709,14 @@ function addAthlete(defaults = {}) {
 
     annualMembership.disabled = false;
   }
+
+  memberType?.addEventListener(
+    "change",
+    () => {
+      syncPlanControls();
+      renderPricing();
+    }
+  );
 
   syncPlanControls();
 
