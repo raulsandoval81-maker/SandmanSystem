@@ -10,6 +10,8 @@ import {
   serverTimestamp,
   limit,
   onSnapshot,
+  functions,
+  httpsCallable,
 } from "/assets/js/firebase-init.js";
 
 import {
@@ -116,7 +118,7 @@ function renderApprovedCard({ uid, name, city, state, parentEmail }) {
       </div>
 
       <div class="pending-card-actions">
-        <button class="small outline-blue" data-approved-uid="${esc(uid)}">Open Onboarding</button>
+        <button class="small outline-blue" data-approved-uid="${esc(uid)}">Create Athlete Access</button>
         <button class="small outline-blue" data-parent-uid="${esc(uid)}">Parent Link</button>
       </div>
     </div>
@@ -707,12 +709,58 @@ $("btn-find-intakes")?.addEventListener("click", loadPendingLive);
 // ------------------------------------------------------
 function wireApprovedButtons() {
   document.querySelectorAll("[data-approved-uid]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const uid = btn.dataset.approvedUid;
       if (!uid) return;
 
-      const onboardingUrl = `${location.origin}/athlete-onboarding/?id=${encodeURIComponent(uid)}`;
-      window.open(onboardingUrl, "_blank", "noopener");
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Creating Access…";
+
+      try {
+        const createToken = httpsCallable(
+          functions,
+          "createAthleteOnboardingToken"
+        );
+
+        const response = await createToken({
+          athleteUid: uid,
+        });
+
+        const tokenId = String(
+          response?.data?.tokenId || ""
+        ).trim();
+
+        if (!tokenId) {
+          throw new Error(
+            "Athlete access token was not returned."
+          );
+        }
+
+        const onboardingUrl =
+          `${location.origin}/athlete-onboarding/` +
+          `?id=${encodeURIComponent(uid)}` +
+          `&token=${encodeURIComponent(tokenId)}`;
+
+        window.open(
+          onboardingUrl,
+          "_blank",
+          "noopener"
+        );
+      } catch (err) {
+        console.error(
+          "Create Athlete Access failed:",
+          err
+        );
+
+        alert(
+          err?.message ||
+          "Unable to create Athlete Access."
+        );
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
     });
   });
 

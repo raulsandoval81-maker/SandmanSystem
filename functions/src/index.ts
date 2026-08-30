@@ -194,3 +194,5 @@ export {
 export {
   createProposalCheckout,
 } from "./proposals/createProposalCheckout";
+
+export { createAthleteOnboardingToken } from "./modules/createAthleteOnboardingToken";
