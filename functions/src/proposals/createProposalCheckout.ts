@@ -15,7 +15,12 @@ import {
 
 import {
   requireProposalStaffAccess,
+  requireProposalLocationAccess,
 } from "./proposalAccess";
+
+import {
+  handleProposalCheckoutCompleted,
+} from "../billing/webhook";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -50,9 +55,10 @@ export const createProposalCheckout =
       const actorUid =
         req.auth.uid;
 
-      await requireProposalStaffAccess(
-        req.auth.uid
-      );
+      const staffAccess =
+        await requireProposalStaffAccess(
+          req.auth.uid
+        );
 
       const proposalId =
         cleanString(req.data?.proposalId);
@@ -84,15 +90,30 @@ export const createProposalCheckout =
       const proposal =
         proposalSnap.data() || {};
 
-if (
-  cleanString(proposal.status) !==
-  "READY_FOR_CHECKOUT"
-) {
-  throw new HttpsError(
-    "failed-precondition",
-    "Only READY_FOR_CHECKOUT proposals may begin checkout."
-  );
-}
+      requireProposalLocationAccess(
+        staffAccess,
+        proposal.locationId
+      );
+
+      const proposalStatus =
+        cleanString(proposal.status);
+
+      const existingCheckoutSessionId =
+        cleanString(
+          proposal.pendingCheckoutSessionId
+        );
+
+      if (
+        proposalStatus !==
+          "READY_FOR_CHECKOUT" &&
+        proposalStatus !==
+          "CHECKOUT_CREATED"
+      ) {
+        throw new HttpsError(
+          "failed-precondition",
+          "Only checkout-ready or active-checkout proposals may use checkout."
+        );
+      }
 
       const snapshot =
         proposal.lockedSnapshot &&
@@ -183,6 +204,85 @@ if (
       try {
         const stripe = getStripe();
 
+        let replacingExpiredSessionId:
+          string | null = null;
+
+        if (
+          proposalStatus ===
+            "CHECKOUT_CREATED" &&
+          existingCheckoutSessionId
+        ) {
+          const existingSession =
+            await stripe.checkout.sessions.retrieve(
+              existingCheckoutSessionId
+            );
+
+          if (
+            existingSession.status ===
+              "open" &&
+            existingSession.url
+          ) {
+            return {
+              ok: true,
+              proposalId,
+              status:
+                "CHECKOUT_CREATED",
+              checkoutSessionId:
+                existingSession.id,
+              checkoutUrl:
+                existingSession.url,
+              resumed:
+                true,
+            };
+          }
+
+          if (
+            existingSession.payment_status ===
+              "paid"
+          ) {
+            await handleProposalCheckoutCompleted(
+              existingSession
+            );
+
+            return {
+              ok: true,
+              proposalId,
+              status: "PAID",
+              checkoutSessionId:
+                existingSession.id,
+              reconciled: true,
+            };
+          }
+
+          if (
+            existingSession.status ===
+              "complete"
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              "Stripe checkout is complete but payment is not confirmed as paid."
+            );
+          }
+
+          if (
+            existingSession.status ===
+              "expired"
+          ) {
+            replacingExpiredSessionId =
+              existingSession.id;
+          } else {
+            throw new HttpsError(
+              "failed-precondition",
+              `Existing Stripe checkout is ${existingSession.status || "unavailable"}.`
+            );
+          }
+        }
+
+        const checkoutIdempotencyKey =
+          replacingExpiredSessionId
+            ? `proposal-checkout-retry-${proposalId}-${replacingExpiredSessionId}`
+            : `proposal-checkout-${proposalId}`;
+
         const session =
           await stripe.checkout.sessions.create({
             mode: "subscription",
@@ -225,7 +325,7 @@ if (
               false,
           }, {
             idempotencyKey:
-              `proposal-checkout-${proposalId}`,
+              checkoutIdempotencyKey,
           });
 
         if (!session.url) {
@@ -268,13 +368,23 @@ if (
               return;
             }
 
+            const isReplacingExpiredCheckout =
+              currentStatus ===
+                "CHECKOUT_CREATED" &&
+              Boolean(
+                replacingExpiredSessionId
+              ) &&
+              currentSessionId ===
+                replacingExpiredSessionId;
+
             if (
               currentStatus !==
-              "READY_FOR_CHECKOUT"
+                "READY_FOR_CHECKOUT" &&
+              !isReplacingExpiredCheckout
             ) {
               throw new HttpsError(
                 "failed-precondition",
-                `Proposal ${proposalId} is no longer ready for checkout.`
+                `Proposal ${proposalId} is no longer eligible for this checkout session.`
               );
             }
 
@@ -312,13 +422,22 @@ if (
                 proposalId,
 
                 event:
-                  "STATUS_CHANGED",
+                  isReplacingExpiredCheckout
+                    ? "CHECKOUT_RESTARTED"
+                    : "STATUS_CHANGED",
 
                 fromStatus:
-                  "READY_FOR_CHECKOUT",
+                  isReplacingExpiredCheckout
+                    ? "CHECKOUT_CREATED"
+                    : "READY_FOR_CHECKOUT",
 
                 toStatus:
                   "CHECKOUT_CREATED",
+
+                replacedCheckoutSessionId:
+                  isReplacingExpiredCheckout
+                    ? replacingExpiredSessionId
+                    : null,
 
                 createdBy:
                   actorUid,

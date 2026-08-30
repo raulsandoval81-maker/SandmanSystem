@@ -17,6 +17,8 @@ export interface ProposalProspect {
   primaryContactName: string | null;
   email: string | null;
   phone: string | null;
+  city: string | null;
+  state: string | null;
 }
 
 export interface ProposalCoach {
@@ -27,6 +29,8 @@ export interface ProposalCoach {
 export interface ProposalDraft {
   proposalId: string;
   status: ProposalStatus;
+
+  locationId: string;
 
   prospect: ProposalProspect;
   coach: ProposalCoach;

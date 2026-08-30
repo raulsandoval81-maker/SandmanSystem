@@ -34,6 +34,7 @@ exports.approveProposal = (0, https_1.onCall)(async (req) => {
                 throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
             }
             const proposal = proposalSnap.data() || {};
+            (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
             const currentStatus = cleanString(proposal.status);
             if (currentStatus !== "REVIEW") {
                 throw new https_1.HttpsError("failed-precondition", "Only REVIEW proposals may be approved.");

@@ -97,7 +97,7 @@ async function eventAlreadyProcessed(
   );
 }
 
-async function handleProposalCheckoutCompleted(
+export async function handleProposalCheckoutCompleted(
   session: Stripe.Checkout.Session
 ): Promise<string | null> {
   const proposalId =

@@ -259,6 +259,29 @@ test(
 );
 
 test(
+  "Management cannot write Coach verification fields",
+  async () => {
+    const db =
+      env
+        .authenticatedContext(
+          "manager-lompoc"
+        )
+        .firestore();
+
+    await assertFails(
+      updateDoc(
+        doc(
+          db,
+          "admissions_appointments",
+          "assigned-a"
+        ),
+        assessmentPayload()
+      )
+    );
+  }
+);
+
+test(
   "Assigned active Coach can read assigned appointment",
   async () => {
     const db =

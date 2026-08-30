@@ -52,6 +52,49 @@ exports.createProposalDraft = (0, https_1.onCall)(async (req) => {
     const internalNotes = nullableString(data.internalNotes);
     const callerUid = req.auth.uid;
     const db = (0, firestore_1.getFirestore)();
+    // Location ownership and prospect identity/contact are resolved
+    // server-side from the authoritative appointment. Do not trust
+    // browser-supplied values for enrollment ownership data.
+    let locationId = null;
+    let appointmentProspect = {};
+    if (appointmentId) {
+        const appointmentSnap = await db
+            .collection("admissions_appointments")
+            .doc(appointmentId)
+            .get();
+        if (!appointmentSnap.exists) {
+            throw new https_1.HttpsError("not-found", "The appointment for this proposal was not found.");
+        }
+        appointmentProspect =
+            appointmentSnap.data() || {};
+        locationId =
+            nullableString(appointmentSnap.get("locationId"));
+        if (!locationId) {
+            throw new https_1.HttpsError("failed-precondition", "The appointment does not have a valid location.");
+        }
+    }
+    if (!locationId) {
+        throw new https_1.HttpsError("failed-precondition", "A proposal must be connected to an appointment with a valid location.");
+    }
+    (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, locationId);
+    // Athlete identity data collected before Admissions should
+    // survive into the Proposal. DOB belongs to the athlete,
+    // not the prospect/contact record.
+    const proposalAthletes = athletes.map((athlete, index) => {
+        if (index !== 0 ||
+            !athlete ||
+            typeof athlete !== "object" ||
+            Array.isArray(athlete)) {
+            return athlete;
+        }
+        return {
+            ...athlete,
+            dob: nullableString(athlete.dob ||
+                athlete.dateOfBirth ||
+                appointmentProspect.dob ||
+                appointmentProspect.dateOfBirth),
+        };
+    });
     const counterRef = db
         .collection("counters")
         .doc("proposals");
@@ -76,19 +119,27 @@ exports.createProposalDraft = (0, https_1.onCall)(async (req) => {
             const proposalData = {
                 proposalId,
                 status: "DRAFT",
+                locationId,
                 prospect: {
                     appointmentId,
                     admissionsRequestId,
-                    familyName,
-                    primaryContactName,
-                    email,
-                    phone,
+                    familyName: familyName ||
+                        nullableString(appointmentProspect.athleteName ||
+                            appointmentProspect.participantName),
+                    primaryContactName: primaryContactName ||
+                        nullableString(appointmentProspect.parentName),
+                    email: email ||
+                        nullableString(cleanEmail(appointmentProspect.email)),
+                    phone: phone ||
+                        nullableString(appointmentProspect.phone),
+                    city: nullableString(appointmentProspect.city),
+                    state: nullableString(appointmentProspect.state),
                 },
                 coach: {
                     uid: callerUid,
                     name: coachName,
                 },
-                athletes,
+                athletes: proposalAthletes,
                 pricing,
                 agreement,
                 internalNotes,

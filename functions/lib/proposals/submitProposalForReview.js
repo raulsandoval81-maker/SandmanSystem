@@ -34,6 +34,7 @@ exports.submitProposalForReview = (0, https_1.onCall)(async (req) => {
                 throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
             }
             const proposal = proposalSnap.data() || {};
+            (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
             const currentStatus = cleanString(proposal.status);
             if (currentStatus !== "DRAFT") {
                 throw new https_1.HttpsError("failed-precondition", "Only DRAFT proposals may be submitted for review.");

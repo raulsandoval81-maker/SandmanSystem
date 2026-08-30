@@ -5,6 +5,7 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const stripeClient_1 = require("../billing/stripeClient");
 const proposalAccess_1 = require("./proposalAccess");
+const webhook_1 = require("../billing/webhook");
 function cleanString(value) {
     return String(value ?? "").trim();
 }
@@ -23,7 +24,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         throw new https_1.HttpsError("unauthenticated", "You must be signed in to create proposal checkout.");
     }
     const actorUid = req.auth.uid;
-    await (0, proposalAccess_1.requireProposalStaffAccess)(req.auth.uid);
+    const staffAccess = await (0, proposalAccess_1.requireProposalStaffAccess)(req.auth.uid);
     const proposalId = cleanString(req.data?.proposalId);
     if (!proposalId) {
         throw new https_1.HttpsError("invalid-argument", "proposalId is required.");
@@ -37,9 +38,14 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
     }
     const proposal = proposalSnap.data() || {};
-    if (cleanString(proposal.status) !==
-        "READY_FOR_CHECKOUT") {
-        throw new https_1.HttpsError("failed-precondition", "Only READY_FOR_CHECKOUT proposals may begin checkout.");
+    (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
+    const proposalStatus = cleanString(proposal.status);
+    const existingCheckoutSessionId = cleanString(proposal.pendingCheckoutSessionId);
+    if (proposalStatus !==
+        "READY_FOR_CHECKOUT" &&
+        proposalStatus !==
+            "CHECKOUT_CREATED") {
+        throw new https_1.HttpsError("failed-precondition", "Only checkout-ready or active-checkout proposals may use checkout.");
     }
     const snapshot = proposal.lockedSnapshot &&
         typeof proposal.lockedSnapshot === "object"
@@ -91,6 +97,50 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     });
     try {
         const stripe = (0, stripeClient_1.getStripe)();
+        let replacingExpiredSessionId = null;
+        if (proposalStatus ===
+            "CHECKOUT_CREATED" &&
+            existingCheckoutSessionId) {
+            const existingSession = await stripe.checkout.sessions.retrieve(existingCheckoutSessionId);
+            if (existingSession.status ===
+                "open" &&
+                existingSession.url) {
+                return {
+                    ok: true,
+                    proposalId,
+                    status: "CHECKOUT_CREATED",
+                    checkoutSessionId: existingSession.id,
+                    checkoutUrl: existingSession.url,
+                    resumed: true,
+                };
+            }
+            if (existingSession.payment_status ===
+                "paid") {
+                await (0, webhook_1.handleProposalCheckoutCompleted)(existingSession);
+                return {
+                    ok: true,
+                    proposalId,
+                    status: "PAID",
+                    checkoutSessionId: existingSession.id,
+                    reconciled: true,
+                };
+            }
+            if (existingSession.status ===
+                "complete") {
+                throw new https_1.HttpsError("failed-precondition", "Stripe checkout is complete but payment is not confirmed as paid.");
+            }
+            if (existingSession.status ===
+                "expired") {
+                replacingExpiredSessionId =
+                    existingSession.id;
+            }
+            else {
+                throw new https_1.HttpsError("failed-precondition", `Existing Stripe checkout is ${existingSession.status || "unavailable"}.`);
+            }
+        }
+        const checkoutIdempotencyKey = replacingExpiredSessionId
+            ? `proposal-checkout-retry-${proposalId}-${replacingExpiredSessionId}`
+            : `proposal-checkout-${proposalId}`;
         const session = await stripe.checkout.sessions.create({
             mode: "subscription",
             payment_method_types: ["card"],
@@ -113,7 +163,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             },
             allow_promotion_codes: false,
         }, {
-            idempotencyKey: `proposal-checkout-${proposalId}`,
+            idempotencyKey: checkoutIdempotencyKey,
         });
         if (!session.url) {
             throw new Error("Stripe did not return a Checkout Session URL.");
@@ -132,9 +182,15 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 currentSessionId === session.id) {
                 return;
             }
+            const isReplacingExpiredCheckout = currentStatus ===
+                "CHECKOUT_CREATED" &&
+                Boolean(replacingExpiredSessionId) &&
+                currentSessionId ===
+                    replacingExpiredSessionId;
             if (currentStatus !==
-                "READY_FOR_CHECKOUT") {
-                throw new https_1.HttpsError("failed-precondition", `Proposal ${proposalId} is no longer ready for checkout.`);
+                "READY_FOR_CHECKOUT" &&
+                !isReplacingExpiredCheckout) {
+                throw new https_1.HttpsError("failed-precondition", `Proposal ${proposalId} is no longer eligible for this checkout session.`);
             }
             const historyRef = proposalRef
                 .collection("history")
@@ -149,9 +205,16 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             });
             tx.create(historyRef, {
                 proposalId,
-                event: "STATUS_CHANGED",
-                fromStatus: "READY_FOR_CHECKOUT",
+                event: isReplacingExpiredCheckout
+                    ? "CHECKOUT_RESTARTED"
+                    : "STATUS_CHANGED",
+                fromStatus: isReplacingExpiredCheckout
+                    ? "CHECKOUT_CREATED"
+                    : "READY_FOR_CHECKOUT",
                 toStatus: "CHECKOUT_CREATED",
+                replacedCheckoutSessionId: isReplacingExpiredCheckout
+                    ? replacingExpiredSessionId
+                    : null,
                 createdBy: actorUid,
                 createdByName: cleanString(snapshot.coach &&
                     typeof snapshot.coach ===
