@@ -8,6 +8,10 @@ import {
   serverTimestamp
 } from "/assets/js/firebase-init.js";
 
+import {
+  requireManagement
+} from "/management/shared/guards/management-guard.js";
+
 const params =
   new URLSearchParams(window.location.search);
 
@@ -200,23 +204,7 @@ function labelForOutcome(value = "") {
 }
 
 async function requireAdminUser() {
-  if (
-    typeof auth.authStateReady === "function"
-  ) {
-    await auth.authStateReady();
-  }
-
-  const user = auth.currentUser;
-
-  if (!user) {
-    throw new Error(
-      "Firebase staff session required."
-    );
-  }
-
-  await user.getIdTokenResult(true);
-
-  return user;
+  return requireManagement();
 }
 
 function renderSummary(record) {

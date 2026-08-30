@@ -6,9 +6,329 @@
   <title>Prospect Builder 3.0 | Sandman Combat</title>
 
     <link rel="stylesheet" href="./calculator.css" />
+
+  <style>
+    /* Prospect Builder 3.0 alignment pass — layout only */
+    .page {
+      max-width: 1180px;
+      margin: 0 auto;
+      padding: 28px 22px 56px;
+    }
+
+    .topbar {
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 22px;
+    }
+
+    .topbar .lead {
+      max-width: 760px;
+    }
+
+    .metric-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 0;
+      margin-bottom: 28px;
+      overflow: hidden;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+    }
+
+    .metric {
+      min-width: 0;
+      border: 0 !important;
+      border-radius: 0 !important;
+      padding: 18px 20px;
+      box-shadow: none !important;
+    }
+
+    .metric + .metric {
+      border-left: 1px solid rgba(255,255,255,.10) !important;
+    }
+
+    .metric-label {
+      min-height: 2.4em;
+    }
+
+    .metric-note {
+      max-width: 220px;
+    }
+
+    .builder-shell {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 22px;
+    }
+
+    .builder-section,
+    .summary-box,
+    .proposal-action-zone {
+      width: 100%;
+    }
+
+    .builder-section .card-head {
+      margin-bottom: 18px;
+    }
+
+    .builder-section .card-head h2,
+    .summary-box h2 {
+      margin-bottom: 4px;
+    }
+
+    .family-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(220px, .55fr);
+      gap: 14px;
+    }
+
+    .recommendation-field {
+      margin-top: 14px;
+    }
+
+    .athlete-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .athlete-card {
+      padding: 20px;
+    }
+
+    .athlete-head {
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+    }
+
+    .athlete-title {
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+
+    .athlete-card .grid-2 {
+      gap: 14px;
+      margin-top: 14px !important;
+    }
+
+    .athlete-card .grid-2:first-of-type {
+      margin-top: 0 !important;
+    }
+
+    .discipline-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,.08);
+    }
+
+    .discipline-box .check-row {
+      width: auto;
+      min-width: 0;
+      margin: 0;
+      padding: 10px 12px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 999px;
+    }
+
+    .adjustments-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .adjustment-checks {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .adjustment-checks .check-row {
+      height: 100%;
+      margin: 0;
+    }
+
+    .pricing-reference {
+      opacity: .92;
+    }
+
+    .pricing-reference .compare-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .pricing-reference .compare-card:nth-child(1)::before {
+      content: "COMBAT";
+      display: block;
+      margin-bottom: 8px;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      opacity: .7;
+    }
+
+    .pricing-reference .compare-card:nth-child(2)::before {
+      content: "COMBAT + FITNESS";
+      display: block;
+      margin-bottom: 8px;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      opacity: .7;
+    }
+
+    .summary-box {
+      padding: 22px;
+    }
+
+    .summary-box > h2 {
+      margin-bottom: 14px;
+    }
+
+    .proposal-preview-label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: .72rem;
+      font-weight: 800;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .7;
+    }
+
+    .summary-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+
+    .proposal-action-zone {
+      margin-top: 0;
+      padding: 22px;
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 16px;
+    }
+
+    .proposal-workflow {
+      margin: 0 0 18px;
+      padding: 0 0 18px;
+      border: 0;
+      border-bottom: 1px solid rgba(255,255,255,.10);
+      border-radius: 0;
+    }
+
+    .proposal-workflow__steps {
+      margin-top: 14px;
+    }
+
+    .workflow-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+    }
+
+    #submitReviewButton {
+      order: 2;
+    }
+
+    #saveDraftButton {
+      order: 1;
+    }
+
+    #approveProposalButton,
+    #checkoutProposalButton {
+      order: 2;
+    }
+
+    #resetButton {
+      order: 3;
+      margin-left: 8px;
+      opacity: .72;
+    }
+
+    @media (max-width: 900px) {
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metric + .metric {
+        border-left: 0 !important;
+      }
+
+      .metric:nth-child(even) {
+        border-left: 1px solid rgba(255,255,255,.10) !important;
+      }
+
+      .metric:nth-child(n+3) {
+        border-top: 1px solid rgba(255,255,255,.10) !important;
+      }
+
+      .family-grid,
+      .adjustments-grid,
+      .adjustment-checks {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page {
+        padding: 20px 14px 40px;
+      }
+
+      .topbar {
+        display: block;
+      }
+
+      .back-link {
+        display: inline-flex;
+        margin-top: 14px;
+      }
+
+      .metric-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .metric {
+        padding: 15px 14px;
+      }
+
+      .athlete-card .grid-2,
+      .grid-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .discipline-box {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .discipline-box .check-row {
+        border-radius: 12px;
+      }
+
+      .summary-actions,
+      .workflow-actions {
+        justify-content: stretch;
+      }
+
+      .summary-actions .button,
+      .workflow-actions .button {
+        width: 100%;
+      }
+
+      #resetButton {
+        margin-left: 0;
+      }
+    }
+  </style>
+
 </head>
 
 <body>
+  
   <main class="page">
     <header class="topbar">
       <div>
@@ -16,21 +336,20 @@
         <h1>Prospect Builder</h1>
         <p class="lead">
           Build a family athlete by athlete, compare membership paths,
-          apply approved adjustments, and show enrollment, monthly,
-          first-year, and annual totals separately.
+          apply approved adjustments, and prepare the enrollment proposal.
         </p>
       </div>
 
-<a
-  id="backToProposalBtn"
-  class="back-link"
-  href="/connect/admissions/"
->
-  ← Admissions
-</a>
+      <a
+        id="backToProposalBtn"
+        class="back-link"
+        href="/connect/admissions/"
+      >
+        ← Admissions
+      </a>
     </header>
 
-    <section class="metric-grid">
+    <section class="metric-grid" aria-label="Proposal totals">
       <article class="metric">
         <div class="metric-label">Due at enrollment</div>
         <div id="dueNow" class="metric-value">$75</div>
@@ -56,271 +375,261 @@
       </article>
     </section>
 
-    <section class="layout">
-      <div class="stack">
-        <article class="card">
-          <div class="card-head">
-            <div>
-              <h2>Prospect and family</h2>
-              <p>Basic information for the proposal.</p>
-            </div>
-          </div>
-
-          <div class="grid-2">
-            <div class="field">
-              <label for="familyName">Family or prospect name</label>
-              <input id="familyName" type="text" placeholder="Optional" />
-            </div>
-
-            <div class="field">
-              <label for="coachName">Coach</label>
-              <input id="coachName" type="text" value="Coach Sandoval" />
-            </div>
-          </div>
-
-          <div class="field" style="margin-top:13px;">
-            <label for="coachRecommendation">Coach recommendation</label>
-            <textarea id="coachRecommendation" placeholder="Why this option fits the family"></textarea>
-          </div>
-        </article>
-
-        <article class="card">
-          <div class="card-head">
-            <div>
-              <h2>Athletes</h2>
-              <p>Configure each athlete individually.</p>
-            </div>
-
-            <button id="addAthlete" class="button small add-athlete" type="button">
-              + Add athlete
-            </button>
-          </div>
-
-          <div id="athleteList" class="athlete-list"></div>
-        </article>
-
-        <article class="card calculator-controls">
-          <div class="card-head">
-            <div>
-              <h2>Extras and approved adjustments</h2>
-              <p>These remain separate from core membership pricing.</p>
-            </div>
-          </div>
-
-          <div class="grid-2">
-            <div class="field">
-              <label for="extra">Optional service</label>
-              <select id="extra">
-                <option value="none">None</option>
-                <option value="fitness-dropin">Fitness drop-in — $15</option>
-                <option value="private-30">Private lesson — 30 min — $25</option>
-                <option value="private-60">Private lesson — 60 min — $50</option>
-                <option value="private-90">Private lesson — 90 min — $70</option>
-                <option value="semi-private">Semi-private — 90 min — $60 total</option>
-              </select>
-            </div>
-
-            <div class="field">
-              <label for="support">Enrollment support</label>
-              <input id="support" type="number" min="0" step="5" value="0" />
-              <p class="help">Coach-approved scholarship or hardship adjustment.</p>
-            </div>
-          </div>
-
-          <div class="grid-2" style="margin-top:13px;">
-            <label class="check-row">
-              <input id="privatePromo" type="checkbox" />
-              <span>Apply eligible private-session promotion (-$10)</span>
-            </label>
-
-            <label class="check-row">
-              <input id="fitnessCredit" type="checkbox" />
-              <span>Credit $15 fitness drop-in toward first fitness month</span>
-            </label>
-          </div>
-
-          <div class="grid-2" style="margin-top:13px;">
-            <div class="field">
-              <label for="monthlySponsor">Monthly sponsor amount</label>
-              <input id="monthlySponsor" type="number" min="0" step="5" value="0" />
-            </div>
-
-            <div class="field">
-              <label for="annualSponsor">Annual sponsor amount</label>
-              <input id="annualSponsor" type="number" min="0" step="5" value="0" />
-            </div>
-          </div>
-        </article>
-      </div>
-
-      <div class="stack">
-        <article class="card">
-          <div class="card-head">
-            <div>
-              <h2>Price breakdown</h2>
-              <p>Every charge and adjustment remains visible.</p>
-            </div>
-          </div>
-
-          <div id="breakdown" class="breakdown"></div>
-        </article>
-
-        <article class="card">
-          <div class="card-head">
-            <div>
-              <h2>Founding Year Memberships</h2>
-              <p>
-                Current Combat, Fitness, and combined
-                membership pricing.
-              </p>
-            </div>
-          </div>
-
-          <div class="compare-grid">
-            <div class="compare-card">
-              <strong id="standardCompare">$80 Combat</strong>
-              <p>
-                Family ladder:
-                $80 / $120 / $140 / $160,
-                then +$20 per additional athlete.
-              </p>
-            </div>
-
-            <div class="compare-card">
-              <strong id="unlimitedCompare">
-                $140 / $120 Combo
-              </strong>
-
-              <p>
-                Combat + Fitness:
-                $140 month-to-month or $120 with a
-                12-month agreement + autopay.
-              </p>
-            </div>
-          </div>
-
-          <p class="help" style="margin-top:12px;">
-            Founding Year Combat and Everyday Fitness
-            keep their standard rates regardless of commitment.
-            The current agreement benefit applies to the
-            Combat + Fitness package:
-            $140 month-to-month or $120 with a
-            12-month agreement + autopay.
-          </p>
-        </article>
-
-        <article class="summary-box">
-          <h2>Prospect summary</h2>
-          <div id="summary"></div>
-
-
-<div class="actions">
-  <button
-    id="printButton"
-    class="button"
-    type="button"
-  >
-    Print proposal
-  </button>
-
-  
-      <section
-        id="proposalWorkflow"
-        class="proposal-workflow"
-      >
-        <div class="proposal-workflow__top">
+    <section class="builder-shell">
+      <article class="card builder-section">
+        <div class="card-head">
           <div>
+            <h2>Prospect and family</h2>
+            <p>Basic information for this proposal.</p>
+          </div>
+        </div>
+
+        <div class="family-grid">
+          <div class="field">
+            <label for="familyName">Family or prospect name</label>
+            <input id="familyName" type="text" placeholder="Optional" />
+          </div>
+
+          <div class="field">
+            <label for="coachName">Coach</label>
+            <input id="coachName" type="text" value="Coach Sandoval" />
+          </div>
+        </div>
+
+        <div class="field recommendation-field">
+          <label for="coachRecommendation">Coach recommendation</label>
+          <textarea id="coachRecommendation" placeholder="Why this option fits the family"></textarea>
+        </div>
+      </article>
+
+      <article class="card builder-section">
+        <div class="card-head">
+          <div>
+            <h2>Athletes</h2>
+            <p>Configure each athlete individually.</p>
+          </div>
+
+          <button id="addAthlete" class="button small add-athlete" type="button">
+            + Add athlete
+          </button>
+        </div>
+
+        <div id="athleteList" class="athlete-list"></div>
+      </article>
+
+      <article class="card builder-section calculator-controls">
+        <div class="card-head">
+          <div>
+            <h2>Extras and approved adjustments</h2>
+            <p>Keep exceptions separate from core membership pricing.</p>
+          </div>
+        </div>
+
+        <div class="adjustments-grid">
+          <div class="field">
+            <label for="extra">Optional service</label>
+            <select id="extra">
+              <option value="none">None</option>
+              <option value="fitness-dropin">Fitness drop-in — $15</option>
+              <option value="private-30">Private lesson — 30 min — $25</option>
+              <option value="private-60">Private lesson — 60 min — $50</option>
+              <option value="private-90">Private lesson — 90 min — $70</option>
+              <option value="semi-private">Semi-private — 90 min — $60 total</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="support">Enrollment support</label>
+            <input id="support" type="number" min="0" step="5" value="0" />
+            <p class="help">Coach-approved scholarship or hardship adjustment.</p>
+          </div>
+        </div>
+
+        <div class="adjustment-checks">
+          <label class="check-row">
+            <input id="privatePromo" type="checkbox" />
+            <span>Apply eligible private-session promotion (-$10)</span>
+          </label>
+
+          <label class="check-row">
+            <input id="fitnessCredit" type="checkbox" />
+            <span>Credit $15 fitness drop-in toward first fitness month</span>
+          </label>
+        </div>
+
+        <div class="adjustments-grid" style="margin-top:14px;">
+          <div class="field">
+            <label for="monthlySponsor">Monthly sponsor amount</label>
+            <input id="monthlySponsor" type="number" min="0" step="5" value="0" />
+          </div>
+
+          <div class="field">
+            <label for="annualSponsor">Annual sponsor amount</label>
+            <input id="annualSponsor" type="number" min="0" step="5" value="0" />
+          </div>
+        </div>
+      </article>
+
+      <article class="card builder-section">
+        <div class="card-head">
+          <div>
+            <h2>Price breakdown</h2>
+            <p>Every charge and adjustment remains visible.</p>
+          </div>
+        </div>
+
+        <div id="breakdown" class="breakdown"></div>
+      </article>
+
+      <article class="card builder-section pricing-reference">
+        <div class="card-head">
+          <div>
+            <h2>Membership pricing reference</h2>
+            <p>Founding Year Combat, Fitness, and combined membership rates.</p>
+          </div>
+        </div>
+
+        <div class="compare-grid">
+          <div class="compare-card">
+            <strong id="standardCompare">$80 Combat</strong>
+            <p>
+              Family ladder: $80 / $120 / $140 / $160,
+              then +$20 per additional athlete.
+            </p>
+          </div>
+
+          <div class="compare-card">
+            <strong id="unlimitedCompare">$140 / $120 Combo</strong>
+            <p>
+              Combat + Fitness: $140 month-to-month or $120 with a
+              12-month agreement + autopay.
+            </p>
+          </div>
+        </div>
+
+        <p class="help" style="margin-top:12px;">
+          Founding Year Combat and Everyday Fitness keep their standard rates
+          regardless of commitment. The current agreement benefit applies to
+          Combat + Fitness: $140 month-to-month or $120 with a 12-month
+          agreement + autopay.
+        </p>
+      </article>
+
+      <article class="summary-box">
+        <span class="proposal-preview-label">Proposal preview</span>
+        <h2>Prospect summary</h2>
+        <div id="summary"></div>
+
+        <div class="summary-actions">
+          <button
+            id="printButton"
+            class="button secondary"
+            type="button"
+          >
+            Print proposal
+          </button>
+        </div>
+      </article>
+
+      <section class="proposal-action-zone">
+        <section
+          id="proposalWorkflow"
+          class="proposal-workflow"
+        >
+          <div class="proposal-workflow__top">
+            <div>
+              <span class="proposal-workflow__eyebrow">
+                Current Stage
+              </span>
+
+              <h3 id="proposalWorkflowStage">
+                Building Proposal
+              </h3>
+            </div>
+
+            <span
+              id="proposalWorkflowId"
+              class="proposal-workflow__id"
+            ></span>
+          </div>
+
+          <div
+            id="proposalWorkflowSteps"
+            class="proposal-workflow__steps"
+          ></div>
+
+          <div class="proposal-workflow__next">
             <span class="proposal-workflow__eyebrow">
-              Current Stage
+              Next Step
             </span>
 
-            <h3 id="proposalWorkflowStage">
-              Building Proposal
-            </h3>
+            <p id="proposalWorkflowNext">
+              Save the proposal when the family configuration is ready.
+            </p>
           </div>
 
-          <span
-            id="proposalWorkflowId"
-            class="proposal-workflow__id"
-          ></span>
-        </div>
-
-        <div
-          id="proposalWorkflowSteps"
-          class="proposal-workflow__steps"
-        ></div>
-
-        <div class="proposal-workflow__next">
-          <span class="proposal-workflow__eyebrow">
-            Next Step
-          </span>
-
-          <p id="proposalWorkflowNext">
-            Save the proposal when the family configuration is ready.
-          </p>
-        </div>
-
-        <div
-          id="proposalWorkflowRoute"
-          class="proposal-workflow__route"
-          hidden
-        >
-          <a
-            id="proposalWorkflowRouteLink"
-            class="button secondary"
-            href="/connect/proposals/"
+          <div
+            id="proposalWorkflowRoute"
+            class="proposal-workflow__route"
+            hidden
           >
-            Go to Proposal Queue
-          </a>
+            <a
+              id="proposalWorkflowRouteLink"
+              class="button secondary"
+              href="/connect/proposals/"
+            >
+              Go to Proposal Queue
+            </a>
+          </div>
+        </section>
+
+        <div class="workflow-actions">
+          <button
+            id="saveDraftButton"
+            class="button secondary"
+            type="button"
+          >
+            Save Draft
+          </button>
+
+          <button
+            id="submitReviewButton"
+            class="button"
+            type="button"
+          >
+            Submit for Review
+          </button>
+
+          <button
+            id="approveProposalButton"
+            class="button"
+            type="button"
+            hidden
+          >
+            Approve Proposal
+          </button>
+
+          <button
+            id="checkoutProposalButton"
+            class="button"
+            type="button"
+            hidden
+          >
+            Begin Checkout
+          </button>
+
+          <button
+            id="resetButton"
+            class="button secondary"
+            type="button"
+          >
+            Reset
+          </button>
         </div>
       </section>
-
-<button
-    id="saveDraftButton"
-    class="button secondary"
-    type="button"
-  >
-    Save Draft
-  </button>
-
-  <button
-    id="submitReviewButton"
-    class="button"
-    type="button"
-  >
-    Submit for Review
-  </button>
-
-  <button
-    id="approveProposalButton"
-    class="button"
-    type="button"
-    hidden
-  >
-    Approve Proposal
-  </button>
-
-  <button
-    id="checkoutProposalButton"
-    class="button"
-    type="button"
-    hidden
-  >
-    Begin Checkout
-  </button>
-
-  <button
-    id="resetButton"
-    class="button secondary"
-    type="button"
-  >
-    Reset
-  </button>
-</div>
-        </article>
-      </div>
     </section>
   </main>
+
 
   <section
     id="familyPrintProposal"
@@ -420,7 +729,10 @@
   <template id="athleteTemplate">
     <article class="athlete-card">
       <div class="athlete-head">
-        <div class="athlete-title">Athlete</div>
+        <div>
+          <div class="athlete-title">Athlete</div>
+          <div class="help">Membership configuration</div>
+        </div>
         <button class="button danger small remove-athlete" type="button">
           Remove
         </button>
@@ -523,6 +835,6 @@
     </article>
   </template>
 
-    <script type="module" src="./calculator.js"></script>
+    <script type="module" src="./calculator.js?v=20260827-1"></script>
 </body>
 </html>

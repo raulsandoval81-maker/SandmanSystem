@@ -533,20 +533,85 @@ const extras = {
 
       let monthlyBase = 0;
 
-      if (standardCount > 0) {
-        if (standardCount <= 4) {
-          monthlyBase +=
-            familyMonthly[standardCount];
-        } else {
-          monthlyBase +=
-            familyMonthly[4] +
-            (
-              standardCount - 4
-            ) *
-            PRICING.combat.standardFamily
-              .additionalAthlete;
-        }
+/*
+ * Standard Combat family pricing.
+ *
+ * The existing sibling ladder remains the base:
+ * 1 / 2 / 3 / 4 athletes use familyMonthly.
+ *
+ * Membership term and additional disciplines
+ * are then applied per Standard Combat athlete.
+ *
+ * Current rules:
+ * - 1 discipline, annual: $80 reference rate
+ * - 1 discipline, month-to-month: +$20
+ * - 2 disciplines, annual: +$40
+ * - 2 disciplines, month-to-month: +$50
+ * - Standard sibling Combat membership caps at $200/month
+ *
+ * Fitness and Combo pricing are separate and are
+ * NOT included in this Combat family cap.
+ */
+let standardCombatMonthly = 0;
+
+if (standardCount > 0) {
+  if (standardCount <= 4) {
+    standardCombatMonthly =
+      familyMonthly[standardCount];
+  } else {
+    standardCombatMonthly =
+      familyMonthly[4] +
+      (
+        standardCount - 4
+      ) *
+      PRICING.combat.standardFamily
+        .additionalAthlete;
+  }
+
+  athletes
+    .filter(
+      (athlete) =>
+        athlete.plan === "standard"
+    )
+    .forEach((athlete) => {
+      const disciplineCount =
+        athlete.disciplines.length;
+
+      /*
+       * Month-to-month premium.
+       */
+      if (athlete.billingTerm !== "annual") {
+        standardCombatMonthly += 20;
       }
+
+      /*
+       * Second discipline.
+       *
+       * We intentionally price only the second
+       * discipline here. Ordinary 3+ discipline
+       * pricing has not been defined.
+       */
+      if (disciplineCount >= 2) {
+        standardCombatMonthly +=
+          athlete.billingTerm === "annual"
+            ? 40
+            : 50;
+      }
+    });
+
+  /*
+   * Current sibling Combat family ceiling.
+   * Future full-week / unlimited pricing is
+   * intentionally outside this version.
+   */
+  standardCombatMonthly =
+    Math.min(
+      standardCombatMonthly,
+      200
+    );
+
+  monthlyBase += standardCombatMonthly;
+}
 
       monthlyBase +=
         fitnessCount *
@@ -1259,6 +1324,16 @@ async function beginProposalCheckout() {
             proposalId
           });
 
+        const responseStatus =
+          String(
+            response.data?.status || ""
+          ).toUpperCase();
+
+        if (responseStatus === "PAID") {
+          window.location.reload();
+          return;
+        }
+
         const checkoutUrl =
           response.data?.checkoutUrl;
 
@@ -1643,11 +1718,12 @@ async function beginProposalCheckout() {
           !checkoutExists;
 
         el.checkoutProposalButton.disabled =
-          !canBeginCheckout;
+          !canBeginCheckout &&
+          !checkoutExists;
 
         el.checkoutProposalButton.textContent =
           checkoutExists
-            ? "Checkout Created"
+            ? "Resume Checkout"
             : "Begin Checkout";
           }
 

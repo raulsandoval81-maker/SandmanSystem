@@ -1,11 +1,16 @@
 import {
-  auth,
   db,
   doc,
   getDoc,
   collection,
-  getDocs
+  getDocs,
+  query,
+  where
 } from "/assets/js/firebase-init.js";
+
+import {
+  requireManagement
+} from "/management/shared/guards/management-guard.js";
 
 /* ==================================================
    Route Context
@@ -332,39 +337,6 @@ function labelForStatus(value = "") {
     value ||
     "Unknown"
   );
-}
-
-/* ==================================================
-   Authentication
-   ================================================== */
-
-async function requireStaffUser() {
-  if (
-    typeof auth.authStateReady ===
-    "function"
-  ) {
-    await auth.authStateReady();
-  }
-
-  const user =
-    auth.currentUser;
-
-  if (!user) {
-    const returnUrl =
-      window.location.pathname +
-      window.location.search;
-
-    window.location.replace(
-      "/management/auth/?returnUrl=" +
-      encodeURIComponent(
-        returnUrl
-      )
-    );
-
-    return null;
-  }
-
-  return user;
 }
 
 /* ==================================================
@@ -1010,16 +982,91 @@ async function loadProposalQueue() {
       true;
   }
 
-  const snapshot =
-    await getDocs(
-      collection(
-        db,
-        "proposals"
+  const context =
+    await requireManagement();
+
+  let proposalDocs = [];
+
+  if (context.isSystemAdmin) {
+    const snapshot =
+      await getDocs(
+        collection(
+          db,
+          "proposals"
+        )
+      );
+
+    proposalDocs =
+      snapshot.docs;
+  } else {
+    const locationIds =
+      Array.isArray(
+        context.scope?.locationIds
       )
-    );
+        ? context.scope.locationIds
+            .map((value) =>
+              String(value || "").trim()
+            )
+            .filter(Boolean)
+        : [];
+
+    if (locationIds.length) {
+      const chunks = [];
+
+      for (
+        let index = 0;
+        index < locationIds.length;
+        index += 10
+      ) {
+        chunks.push(
+          locationIds.slice(
+            index,
+            index + 10
+          )
+        );
+      }
+
+      const snapshots =
+        await Promise.all(
+          chunks.map(
+            (locationChunk) =>
+              getDocs(
+                query(
+                  collection(
+                    db,
+                    "proposals"
+                  ),
+                  where(
+                    "locationId",
+                    "in",
+                    locationChunk
+                  )
+                )
+              )
+          )
+        );
+
+      const byId =
+        new Map();
+
+      for (const snapshot of snapshots) {
+        for (const proposalDoc of snapshot.docs) {
+          byId.set(
+            proposalDoc.id,
+            proposalDoc
+          );
+        }
+      }
+
+      proposalDocs =
+        Array.from(
+          byId.values()
+        );
+    }
+  }
 
   const proposals =
-    snapshot.docs
+    proposalDocs
       .map((snapshotDoc) => ({
         id:
           snapshotDoc.id,
@@ -1681,12 +1728,11 @@ function redirectProposalId() {
    ================================================== */
 
 try {
-  const user =
-    await requireStaffUser();
+  // Proposal work belongs to Management.
+  // The shared guard also supplies location scope.
+  await requireManagement();
 
-  if (!user) {
-    // Redirect already handled.
-  } else if (
+  if (
     redirectProposalId()
   ) {
     // Redirecting into Prospect Builder.

@@ -16,8 +16,71 @@
 
   <main class="wrap">
 
-    <h1>Management Enrollment Console</h1>
-    <p class="muted">Invite → Intake → Review → Activate</p>
+    <header class="enrollment-workspace-header">
+
+      <div class="enrollment-workspace-header__top">
+
+        <div>
+          <p class="enrollment-system-label">
+            Sandman System™
+          </p>
+
+          <h1>
+            Management Enrollment
+          </h1>
+
+          <p class="muted">
+            Secure intake, review, and athlete activation.
+          </p>
+        </div>
+
+        <a
+          class="enrollment-back-link"
+          href="/management/hub/"
+        >
+          ← Management Dashboard
+        </a>
+
+      </div>
+
+      <div
+        class="enrollment-workflow"
+        aria-label="Enrollment workflow"
+      >
+        <span class="enrollment-workflow__step">
+          <strong>1</strong>
+          Invite
+        </span>
+
+        <span class="enrollment-workflow__arrow">
+          →
+        </span>
+
+        <span class="enrollment-workflow__step">
+          <strong>2</strong>
+          Intake
+        </span>
+
+        <span class="enrollment-workflow__arrow">
+          →
+        </span>
+
+        <span class="enrollment-workflow__step">
+          <strong>3</strong>
+          Review
+        </span>
+
+        <span class="enrollment-workflow__arrow">
+          →
+        </span>
+
+        <span class="enrollment-workflow__step">
+          <strong>4</strong>
+          Activate
+        </span>
+      </div>
+
+    </header>
 <!-- =========================
      SELECTED CONNECT LEAD
 ========================== -->
@@ -44,51 +107,49 @@
 </section>
 
     <!-- =========================
-         START INTAKE
+         READY FOR INTAKE
     ========================== -->
-    <section class="card">
+    <section class="card enrollment-ready-card">
       <div class="card-head">
         <div>
-          <h3>Start Intake</h3>
+          <h3>Ready for Intake</h3>
 
           <p class="small muted">
-            Generate a secure 48-hour intake link for the person completing enrollment.
+            Paid enrollments waiting for their secure intake handoff.
+          </p>
+        </div>
+
+        <span
+          id="ready-intake-count"
+          class="status-pill"
+        >
+          —
+        </span>
+      </div>
+
+      <div
+        id="ready-intake-list"
+        class="small muted"
+      >
+        Loading paid enrollments…
+      </div>
+    </section>
+
+    <!-- =========================
+         INTAKE HANDOFF
+    ========================== -->
+    <section class="card enrollment-start-card">
+      <div class="card-head">
+        <div>
+          <h3>Intake Handoff</h3>
+
+          <p class="small muted">
+            Select Parent / Guardian or Adult Athlete from a paid enrollment above.
+            The secure 48-hour intake link will appear here.
           </p>
         </div>
 
         <span class="status-pill">48 Hours</span>
-      </div>
-
-      <div class="workflow-mode-grid">
-
-        <button
-          id="btn-make-token"
-          class="workflow-mode-btn"
-          type="button"
-        >
-          <span class="workflow-mode-title">
-            Parent / Guardian
-          </span>
-
-          <span class="workflow-mode-copy">
-            Use when a parent or legal guardian is completing intake for an athlete.
-          </span>
-        </button>
-
-        <button
-          id="btn-make-athlete-token"
-          class="workflow-mode-btn"
-          type="button"
-        >
-          <span class="workflow-mode-title">
-            Adult Athlete
-          </span>
-
-          <span class="workflow-mode-copy">
-            Use when an adult athlete is completing and signing their own intake.
-          </span>
-        </button>
-
       </div>
 
       <div class="row" style="margin-top:14px;">
@@ -141,7 +202,7 @@
     <!-- =========================
          PENDING INTAKES
     ========================== -->
-    <section class="card">
+    <section class="card enrollment-queue-card">
       <h3>Pending Intakes</h3>
 
       <p class="muted small">
@@ -175,7 +236,7 @@
     <!-- =========================
          RECENT APPROVALS
     ========================== -->
-    <section class="card">
+    <section class="card enrollment-recent-card">
       <h3>Recently Activated</h3>
 
       <p class="small muted">
@@ -191,7 +252,7 @@
     </section>
 
     <footer class="footer small muted">
-      Sandman System™ — Management Enrollment Console
+      Sandman System™ · Management Enrollment
     </footer>
 
 </main>

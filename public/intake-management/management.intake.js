@@ -1,6 +1,5 @@
 import {
   db,
-  ensureSignedIn,
   collection,
   doc,
   getDocs,
@@ -12,6 +11,10 @@ import {
   limit,
   onSnapshot,
 } from "/assets/js/firebase-init.js";
+
+import {
+  requireManagement
+} from "/management/shared/guards/management-guard.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -112,12 +115,259 @@ function renderApprovedCard({ uid, name, city, state, parentEmail }) {
 }
 
 // ------------------------------------------------------
+// Paid Proposals → Ready for Intake
+// ------------------------------------------------------
+
+function paidProposalName(proposal = {}) {
+  return (
+    proposal.prospect?.familyName ||
+    proposal.prospect?.primaryContactName ||
+    proposal.athletes?.[0]?.name ||
+    proposal.proposalId ||
+    "Paid Enrollment"
+  );
+}
+
+function renderReadyIntakeCard(proposal) {
+  const proposalId =
+    proposal.proposalId ||
+    proposal.id;
+
+  const locationId =
+    String(
+      proposal.locationId || ""
+    ).trim();
+
+  return `
+    <div class="pending-card">
+      <div class="pending-card-head">
+        <div>
+          <div class="pending-card-name">
+            ${esc(
+              paidProposalName(
+                proposal
+              )
+            )}
+          </div>
+
+          <div class="pending-card-meta">
+            Paid · ${esc(locationId)}
+          </div>
+
+          <div class="pending-card-id">
+            ${esc(proposalId)}
+          </div>
+        </div>
+      </div>
+
+      <div class="pending-card-actions">
+        <button
+          class="small solid-blue"
+          data-ready-parent="${esc(proposalId)}"
+        >
+          Parent / Guardian
+        </button>
+
+        <button
+          class="small outline-blue"
+          data-ready-adult="${esc(proposalId)}"
+        >
+          Adult Athlete
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+let readyProposalMap =
+  new Map();
+
+function wireReadyIntakeButtons() {
+  document
+    .querySelectorAll(
+      "[data-ready-parent]"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const proposal =
+            readyProposalMap.get(
+              button.dataset.readyParent
+            );
+
+          if (!proposal) return;
+
+          await generateIntakeInvite(
+            "parent_guardian",
+            proposal
+          );
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      "[data-ready-adult]"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const proposal =
+            readyProposalMap.get(
+              button.dataset.readyAdult
+            );
+
+          if (!proposal) return;
+
+          await generateIntakeInvite(
+            "adult_athlete",
+            proposal
+          );
+        }
+      );
+    });
+}
+
+async function loadReadyForIntake(
+  managementContext
+) {
+  const box =
+    $("ready-intake-list");
+
+  const count =
+    $("ready-intake-count");
+
+  if (!box) return;
+
+  let proposalDocs = [];
+
+  if (
+    managementContext.isSystemAdmin
+  ) {
+    const snapshot =
+      await getDocs(
+        query(
+          collection(
+            db,
+            "proposals"
+          ),
+          where(
+            "status",
+            "==",
+            "PAID"
+          )
+        )
+      );
+
+    proposalDocs =
+      snapshot.docs;
+  } else {
+    const locationIds =
+      Array.isArray(
+        managementContext.scope?.locationIds
+      )
+        ? managementContext.scope.locationIds
+            .map((value) =>
+              String(value || "").trim()
+            )
+            .filter(Boolean)
+        : [];
+
+    for (
+      let index = 0;
+      index < locationIds.length;
+      index += 10
+    ) {
+      const locationChunk =
+        locationIds.slice(
+          index,
+          index + 10
+        );
+
+      const snapshot =
+        await getDocs(
+          query(
+            collection(
+              db,
+              "proposals"
+            ),
+            where(
+              "locationId",
+              "in",
+              locationChunk
+            ),
+            where(
+              "status",
+              "==",
+              "PAID"
+            )
+          )
+        );
+
+      proposalDocs.push(
+        ...snapshot.docs
+      );
+    }
+  }
+
+  readyProposalMap =
+    new Map();
+
+  const proposals =
+    proposalDocs.map(
+      (proposalDoc) => {
+        const proposal = {
+          id: proposalDoc.id,
+          ...proposalDoc.data()
+        };
+
+        readyProposalMap.set(
+          proposal.proposalId ||
+            proposal.id,
+          proposal
+        );
+
+        return proposal;
+      }
+    );
+
+  if (count) {
+    count.textContent =
+      `${proposals.length} Ready`;
+  }
+
+  box.innerHTML =
+    proposals.length
+      ? `
+        <div class="pending-list">
+          ${
+            proposals
+              .map(
+                renderReadyIntakeCard
+              )
+              .join("")
+          }
+        </div>
+      `
+      : `
+        <div class="muted small">
+          No paid enrollments are waiting for intake.
+        </div>
+      `;
+
+  wireReadyIntakeButtons();
+}
+
+// ------------------------------------------------------
 // 1) Generate Intake Token (48 hours)
 //   Parent / Guardian and Adult Athlete share:
 //   token collection → intake collection → management review
 // ------------------------------------------------------
 async function generateIntakeInvite(
-  intakeAudience = "parent_guardian"
+  intakeAudience = "parent_guardian",
+  enrollment = null
 ) {
   try {
     const normalizedAudience =
@@ -133,6 +383,60 @@ async function generateIntakeInvite(
     const exp =
       Date.now() +
       INVITE_HOURS * 60 * 60 * 1000;
+
+    const proposalProspect =
+      enrollment?.lockedSnapshot?.prospect ||
+      enrollment?.prospect ||
+      {};
+
+    const proposalAthlete =
+      enrollment?.lockedSnapshot?.athletes?.[0] ||
+      enrollment?.athletes?.[0] ||
+      {};
+
+    // Convenience-only intake prefill.
+    // Ownership remains proposalId + locationId.
+    const prefill = Object.fromEntries(
+      Object.entries({
+        athleteName:
+          String(
+            proposalAthlete.name || ""
+          ).trim() || null,
+
+        dob:
+          String(
+            proposalAthlete.dob ||
+            proposalAthlete.dateOfBirth ||
+            ""
+          ).trim() || null,
+
+        city:
+          String(
+            proposalProspect.city || ""
+          ).trim() || null,
+
+        state:
+          String(
+            proposalProspect.state || ""
+          ).trim() || null,
+
+        email:
+          String(
+            proposalProspect.email || ""
+          ).trim() || null,
+
+        phone:
+          String(
+            proposalProspect.phone || ""
+          ).trim() || null,
+
+        languagePreference:
+          String(
+            proposalProspect.languagePreference ||
+            ""
+          ).trim() || null,
+      }).filter(([, value]) => value)
+    );
 
     await setDoc(
       doc(db, "intakeTokens", newTokenId),
@@ -160,6 +464,18 @@ async function generateIntakeInvite(
         requestedTrackCode: null,
         requestedDiscipline: null,
         existingAthleteName: null,
+
+        proposalId:
+          String(
+            enrollment?.proposalId || ""
+          ).trim() || null,
+
+        locationId:
+          String(
+            enrollment?.locationId || ""
+          ).trim() || null,
+
+        prefill,
 
         source: "management_enrollment",
         workflowVersion: "intake-v2",
@@ -203,22 +519,6 @@ async function generateIntakeInvite(
     }
   }
 }
-
-$("btn-make-token")
-  ?.addEventListener(
-    "click",
-    () => generateIntakeInvite(
-      "parent_guardian"
-    )
-  );
-
-$("btn-make-athlete-token")
-  ?.addEventListener(
-    "click",
-    () => generateIntakeInvite(
-      "adult_athlete"
-    )
-  );
 
 // ------------------------------------------------------
 // 2) Copy Link
@@ -387,17 +687,29 @@ async function loadApproved() {
 
 
 // ------------------------------------------------------
-// Boot: sign in first, THEN query/list
+// Boot: Management authority first, THEN query/list
 // ------------------------------------------------------
 (async () => {
   try {
-    if (typeof ensureSignedIn === "function") {
-      await ensureSignedIn();
-    }
-  } catch (err) {
-    console.error("ensureSignedIn failed:", err);
-  }
+    const managementContext =
+      await requireManagement();
 
-  loadPendingLive();
-  loadApproved();
+    await loadReadyForIntake(
+      managementContext
+    );
+
+    loadPendingLive();
+    loadApproved();
+  } catch (err) {
+    console.error(
+      "[management-enrollment] boot failed:",
+      err
+    );
+
+    if ($("ready-intake-list")) {
+      $("ready-intake-list").textContent =
+        err?.message ||
+        "Unable to load enrollment workspace.";
+    }
+  }
 })();
