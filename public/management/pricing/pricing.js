@@ -135,11 +135,6 @@ function readAthletes() {
           )?.value ||
           "sandman",
 
-        parentChildPromo:
-          card.querySelector(
-            ".parent-child-promo"
-          )?.value === "yes",
-
         disciplines
       };
     }
@@ -438,11 +433,6 @@ function addAthlete(defaults = {}) {
       ".annual-membership"
     );
 
-  const parentChildPromo =
-    newCard.querySelector(
-      ".parent-child-promo"
-    );
-
   function syncPlanControls() {
     const currentPlan =
       plan.value;
@@ -454,7 +444,6 @@ function addAthlete(defaults = {}) {
       `;
 
       annualMembership.disabled = true;
-      parentChildPromo.disabled = false;
       return;
     }
 
@@ -464,8 +453,6 @@ function addAthlete(defaults = {}) {
       `;
 
       annualMembership.disabled = false;
-      parentChildPromo.value = "no";
-      parentChildPromo.disabled = true;
       return;
     }
 
@@ -475,8 +462,6 @@ function addAthlete(defaults = {}) {
     `;
 
     annualMembership.disabled = false;
-    parentChildPromo.value = "no";
-    parentChildPromo.disabled = true;
   }
 
   syncPlanControls();

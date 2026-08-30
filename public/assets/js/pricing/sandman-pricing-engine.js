@@ -237,7 +237,6 @@ export function calculateSandmanMembershipPricing(
     fitnessAthletes.filter(
       (athlete) => {
         const combatFamilyTwoDayRate =
-          athlete.parentChildPromo === true &&
           athlete.trainingAccess === "2" &&
           hasQualifyingCombatMember;
 
