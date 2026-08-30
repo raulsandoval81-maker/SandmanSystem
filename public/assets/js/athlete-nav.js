@@ -24,7 +24,13 @@ function route(path){
   return `${path}${query ? `?${query}` : ""}`;
 }
 
-const items = [
+const youthItems = [
+  ["Home", "/athletes/hub/"],
+  ["My Progress", "/athletes/profile/"],
+  ["Arsenal", "/athletes/arsenal/"]
+];
+
+const fullItems = [
   ["Home", "/athletes/hub/"],
   ["My Progress", "/athletes/profile/"],
   ["Arsenal", "/athletes/arsenal/"],
@@ -34,6 +40,8 @@ const items = [
   ["Schedule", "/communications/athlete/schedule.html", "child-secondary"],
   ["Leaderboard", "/athletes/leaderboard/"]
 ];
+
+const items = id.startsWith("F8_") ? youthItems : fullItems;
 
 function active(path){
   const here=location.pathname;
