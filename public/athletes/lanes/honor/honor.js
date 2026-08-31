@@ -10,6 +10,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { getActiveVaultSession } from "/vault/vault.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 await ensureSignedIn();
 
@@ -109,28 +110,19 @@ const tierMatch = String(tierRaw).match(/T(\d+)/i);
 const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
 
 
-const honorUnlocked = athlete?.unlocks?.honor === true;
+const honorUnlocked = isFoundry8(athleteId)
+  ? resolveF8RemoteAccess(athlete).honor
+  : athlete?.unlocks?.honor === true;
 
 if (isFoundry8(athleteId)) {
 
   if (!honorUnlocked) {
-    if (tierNum < 3) {
-      container.innerHTML = `
-        <div class="lane-card">
-          Honor unlocks at Contender.
-        </div>
-      `;
-      return;
-    }
-
-    if (stripe < 2) {
-      container.innerHTML = `
-        <div class="lane-card">
-          Honor unlocks at Contender Stripe 2.
-        </div>
-      `;
-      return;
-    }
+    container.innerHTML = `
+      <div class="lane-card">
+        Remote Honor unlocks at Prospect Stripe 1.
+      </div>
+    `;
+    return;
   }
 
 } else {

@@ -3,6 +3,7 @@ import {
   getAthleteProfile,
   isFoundry8Id
 } from "/assets/js/athlete-profile.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 function setLocked(el, locked) {
   if (!el) return;
@@ -46,13 +47,13 @@ function tierNumber(profile = {}) {
   if (linkStrength) linkStrength.style.display = "";
   if (linkHonor) linkHonor.style.display = "";
 
-const strengthOpen =
-  profile?.unlocks?.strength === true ||
-  (isF8 ? tier >= 3 && stripes >= 1 : stripes >= 1);
-
-const honorOpen =
-  profile?.unlocks?.honor === true ||
-  (isF8 ? tier >= 3 && stripes >= 2 : stripes >= 2);
+const f8RemoteAccess = isF8 ? resolveF8RemoteAccess(profile) : null;
+const strengthOpen = isF8
+  ? f8RemoteAccess.strength
+  : profile?.unlocks?.strength === true || stripes >= 1;
+const honorOpen = isF8
+  ? f8RemoteAccess.honor
+  : profile?.unlocks?.honor === true || stripes >= 2;
 
   setLocked(linkStrength, !strengthOpen);
   setLocked(linkHonor, !honorOpen);
@@ -61,11 +62,9 @@ const honorOpen =
   if (status) {
     if (isF8) {
       status.textContent =
-        !strengthOpen
-          ? "Strength unlocks at Contender, Stripe 1."
-          : !honorOpen
-            ? "Strength unlocked. Honor unlocks at Contender, Stripe 2."
-            : "Strength + Honor unlocked.";
+        !strengthOpen || !honorOpen
+          ? "Remote Strength + Honor unlock at Prospect Stripe 1."
+          : "Strength + Honor unlocked.";
     } else {
       status.textContent =
         !strengthOpen

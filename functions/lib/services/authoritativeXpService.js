@@ -25,6 +25,7 @@ const parentSignalTypes_1 = require("../modules/parent/parentSignalTypes");
 const f8ProgressionPolicy_1 = require("../policy/f8ProgressionPolicy");
 const xpDomainPolicy_1 = require("../policy/xpDomainPolicy");
 const f8CurriculumCompatibilityPolicy_1 = require("../policy/f8CurriculumCompatibilityPolicy");
+const f8StrengthHonorAccessPolicy_1 = require("../policy/f8StrengthHonorAccessPolicy");
 exports.CHAMPIONSHIP_TOTALS = Object.freeze({
     COMPETE: 15,
     PLACE: 30,
@@ -509,6 +510,17 @@ async function awardXpAuthoritatively(coachUid, input) {
             trackBase: plan.base,
             updatedAt: now,
         };
+        if (plan.base === "F8") {
+            const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
+                ...athlete,
+                progressionTier: plan.tier,
+                stripeCount: plan.stripeCount,
+            });
+            if (remoteAccess.gatewayReached) {
+                athletePatch["unlocks.strength"] = true;
+                athletePatch["unlocks.honor"] = true;
+            }
+        }
         if (lifetimeXp.delta > 0)
             athletePatch.lifetimeXp = lifetimeXp.after;
         if (plan.monthlyField && plan.monthlyAfter !== null) {

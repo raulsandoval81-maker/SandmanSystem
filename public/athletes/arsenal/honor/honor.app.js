@@ -1,6 +1,7 @@
 console.log("Honor lane loaded");
 
 import { db, doc, getDoc } from "/assets/js/firebase-init-para.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 const params = new URLSearchParams(window.location.search);
 const athleteId = (params.get("id") || "").trim().toUpperCase();
@@ -48,6 +49,13 @@ async function loadHonor() {
     }
 
     const data = snap.data() || {};
+
+    if (isYouth && !resolveF8RemoteAccess(data).honor) {
+      lock(selfBtn);
+      lock(teammatesBtn);
+      lock(teamBtn);
+      return;
+    }
 
     // Youth = one shared XP bar
     // Teens = separate Honor XP bar

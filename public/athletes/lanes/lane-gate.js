@@ -1,6 +1,7 @@
 // public/athletes/lanes/lane-gate.js
 
 import { getAthleteProfile, resolveAthleteId, isFoundry8Id } from "/assets/js/athlete-profile.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 function tierNumber(athlete = {}) {
   const raw = athlete.tier ?? athlete.tierCode ?? athlete.currentTier ?? "T0";
@@ -34,13 +35,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const isF8 = isFoundry8Id(athleteId);
 
-    const strengthOpen =
-  athlete?.unlocks?.strength === true ||
-  (isF8 ? tier >= 3 && stripe >= 1 : stripe >= 1);
-
-    const honorOpen =
-  athlete?.unlocks?.honor === true ||
-  (isF8 ? tier >= 3 && stripe >= 2 : stripe >= 2);
+    const f8RemoteAccess = isF8 ? resolveF8RemoteAccess(athlete) : null;
+    const strengthOpen = isF8
+      ? f8RemoteAccess.strength
+      : athlete?.unlocks?.strength === true || stripe >= 1;
+    const honorOpen = isF8
+      ? f8RemoteAccess.honor
+      : athlete?.unlocks?.honor === true || stripe >= 2;
 
 
     strengthOpen ? unlockLane(strengthLane) : lockLane(strengthLane);

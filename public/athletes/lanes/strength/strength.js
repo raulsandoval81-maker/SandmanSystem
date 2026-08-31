@@ -9,6 +9,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "/assets/js/firebase-init.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 await ensureSignedIn();
 
@@ -470,7 +471,9 @@ async function loadStrengthSession() {
 
 const athlete = athleteSnap.data() || {};
 const stripe = Number(athlete.stripeCount ?? athlete.stripesEarned ?? 0);
-const strengthUnlocked = athlete?.unlocks?.strength === true;
+const strengthUnlocked = isFoundry8(athleteId)
+  ? resolveF8RemoteAccess(athlete).strength
+  : athlete?.unlocks?.strength === true;
 
 const tierRaw =
   athlete.tier ??
@@ -482,19 +485,10 @@ const tierMatch = String(tierRaw).match(/T(\d+)/i);
 const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
 
 if (isFoundry8(athleteId)) {
-  if (!strengthUnlocked && tierNum < 3) {
+  if (!strengthUnlocked) {
     container.innerHTML = `
       <div class="lane-card">
-        Strength unlocks at Contender.
-      </div>
-    `;
-    return;
-  }
-
-  if (!strengthUnlocked && stripe < 1) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Strength unlocks at Contender Stripe 1.
+        Remote Strength unlocks at Prospect Stripe 1.
       </div>
     `;
     return;

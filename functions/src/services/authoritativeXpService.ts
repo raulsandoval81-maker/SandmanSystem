@@ -17,6 +17,7 @@ import {
   resolveLifetimeXpAccumulation,
 } from "../policy/xpDomainPolicy";
 import { resolveF8ProgressionTier } from "../policy/f8CurriculumCompatibilityPolicy";
+import { resolveF8RemoteAccess } from "../policy/f8StrengthHonorAccessPolicy";
 
 export type AthleteBase = "F4" | "F8" | "ADULT";
 export type ChampionshipResult = "COMPETE" | "PLACE" | "CHAMPION";
@@ -566,6 +567,17 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       trackBase: plan.base,
       updatedAt: now,
     };
+    if (plan.base === "F8") {
+      const remoteAccess = resolveF8RemoteAccess({
+        ...athlete,
+        progressionTier: plan.tier,
+        stripeCount: plan.stripeCount,
+      });
+      if (remoteAccess.gatewayReached) {
+        athletePatch["unlocks.strength"] = true;
+        athletePatch["unlocks.honor"] = true;
+      }
+    }
     if (lifetimeXp.delta > 0) athletePatch.lifetimeXp = lifetimeXp.after;
     if (plan.monthlyField && plan.monthlyAfter !== null) {
       athletePatch[`monthly.${mk}.${plan.monthlyField}`] = plan.monthlyAfter;

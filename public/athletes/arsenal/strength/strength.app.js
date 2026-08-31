@@ -1,5 +1,8 @@
 console.log("Strength lane loaded");
 
+import { db, doc, getDoc } from "/assets/js/firebase-init.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
+
 const params = new URLSearchParams(window.location.search);
 const athleteId = (params.get("id") || "").trim().toUpperCase();
 
@@ -51,7 +54,16 @@ async function initStrengthMenu() {
   }
 
   try {
-    const status = await fetchJson("/vault/system-status.json");
+    const [status, athleteSnap] = await Promise.all([
+      fetchJson("/vault/system-status.json"),
+      getDoc(doc(db, "athletes", athleteId)),
+    ]);
+    if (isYouth && (
+      !athleteSnap.exists() ||
+      !resolveF8RemoteAccess(athleteSnap.data() || {}).strength
+    )) {
+      return;
+    }
     const strength = status?.strength || {};
 
     const activePhase = String(
@@ -120,11 +132,13 @@ async function initStrengthMenu() {
   } catch (err) {
     console.error("Strength menu init failed:", err);
 
-    openTile(
-      preseasonBtn,
-      `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`,
-      "Preseason"
-    );
+    if (!isYouth) {
+      openTile(
+        preseasonBtn,
+        `/athletes/arsenal/strength/preseason.html?id=${encodeURIComponent(athleteId)}`,
+        "Preseason"
+      );
+    }
 
     // Still expose Conditioning for F4 even if status.json fails
     if (isTeen) {

@@ -4,6 +4,7 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 function setLocked(card, title, desc) {
   if (!card) return;
@@ -530,12 +531,6 @@ async function loadUnlocks() {
       isLegacyAthlete(athlete);
 
     /*
-      Current unlock doctrine:
-
-      Youth / F8
-      Strength: Stripe 2
-      Honor: Stripe 3
-
       New teen/adult / F4
       Strength: Stripe 1
       Honor: Stripe 2
@@ -546,26 +541,22 @@ async function loadUnlocks() {
     */
 
     const strengthRequired =
-      isF8
-        ? 2
-        : isLegacy
+      isLegacy
           ? 2
           : 1;
 
     const honorRequired =
-      isF8
-        ? 3
-        : isLegacy
+      isLegacy
           ? 3
           : 2;
 
-    const strengthUnlocked =
-      athlete.unlocks?.strength === true ||
-      stripe >= strengthRequired;
-
-    const honorUnlocked =
-      athlete.unlocks?.honor === true ||
-      stripe >= honorRequired;
+    const f8RemoteAccess = isF8 ? resolveF8RemoteAccess(athlete) : null;
+    const strengthUnlocked = isF8
+      ? f8RemoteAccess.strength
+      : athlete.unlocks?.strength === true || stripe >= strengthRequired;
+    const honorUnlocked = isF8
+      ? f8RemoteAccess.honor
+      : athlete.unlocks?.honor === true || stripe >= honorRequired;
 
     const disciplineName =
       disciplineLabel(
@@ -601,7 +592,9 @@ async function loadUnlocks() {
       setLocked(
         strengthCard,
         "Strength 🔒",
-        `Earn Stripe ${strengthRequired} to unlock Strength.`
+        isF8
+          ? "Remote Strength unlocks at Prospect Stripe 1."
+          : `Earn Stripe ${strengthRequired} to unlock Strength.`
       );
     }
 
@@ -617,7 +610,9 @@ async function loadUnlocks() {
       setLocked(
         honorCard,
         "Honor 🔒",
-        `Earn Stripe ${honorRequired} to unlock Honor.`
+        isF8
+          ? "Remote Honor unlocks at Prospect Stripe 1."
+          : `Earn Stripe ${honorRequired} to unlock Honor.`
       );
     }
 
