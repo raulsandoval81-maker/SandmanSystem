@@ -1,11 +1,24 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.retestAthlete = void 0;
+exports.assertFreezePeriodComplete = assertFreezePeriodComplete;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
 const parentSignalTypes_1 = require("./parent/parentSignalTypes");
+function assertFreezePeriodComplete(testing, nowMs = Date.now()) {
+    const freezeUntil = testing?.freezeUntil;
+    const freezeUntilMs = typeof freezeUntil?.toMillis === "function"
+        ? freezeUntil.toMillis()
+        : new Date(freezeUntil ?? "").getTime();
+    if (!Number.isFinite(freezeUntilMs)) {
+        throw new https_1.HttpsError("failed-precondition", "FREEZE_UNTIL_REQUIRED");
+    }
+    if (freezeUntilMs > nowMs) {
+        throw new https_1.HttpsError("failed-precondition", "FREEZE_PERIOD_NOT_COMPLETE");
+    }
+}
 exports.retestAthlete = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
     const uid = String(req.data?.uid || "").trim();
@@ -23,6 +36,7 @@ exports.retestAthlete = (0, https_1.onCall)(async (req) => {
         if (state !== "FREEZE") {
             throw new https_1.HttpsError("failed-precondition", `Athlete must be FREEZE. Current state: ${state}`);
         }
+        assertFreezePeriodComplete(athlete?.testing);
         tx.update(athleteRef, {
             tierStatus: "eligible",
             "testing.state": "ELIGIBLE",

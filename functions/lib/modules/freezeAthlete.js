@@ -1,15 +1,16 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.freezeAthlete = void 0;
+exports.freezeAthleteAuthoritatively = freezeAthleteAuthoritatively;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const node_crypto_1 = require("node:crypto");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
-exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
+async function freezeAthleteAuthoritatively(uidInput, scoreInput, actionIdentity = "") {
     const db = (0, firestore_1.getFirestore)();
-    const payload = req.data || {};
-    const uid = String(payload.uid || "").trim();
-    const score = Number(payload.score || 0);
+    const uid = String(uidInput || "").trim();
+    const score = Number(scoreInput);
     if (!uid) {
         throw new https_1.HttpsError("invalid-argument", "Missing uid");
     }
@@ -30,10 +31,31 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("not-found", `Athlete not found: ${uid}`);
         }
         const athlete = snap.data() || {};
+        const receiptRef = actionIdentity
+            ? db.doc(`athletes/${uid}/testingActionReceipts/${(0, node_crypto_1.createHash)("sha256")
+                .update(`${uid}|FAIL|${actionIdentity}`).digest("hex").slice(0, 32)}`)
+            : null;
+        if (receiptRef) {
+            const receiptSnap = await tx.get(receiptRef);
+            if (receiptSnap.exists) {
+                return { ...(receiptSnap.data()?.result || {}), ok: true, idempotent: true };
+            }
+        }
         const testingState = String(athlete?.testing?.state || "");
         if (testingState !== "TESTING") {
             throw new https_1.HttpsError("failed-precondition", `Athlete must be TESTING before freeze. Current state: ${testingState}`);
         }
+        const freezeResult = {
+            ok: true,
+            idempotent: false,
+            uid,
+            score,
+            state: "FREEZE",
+            freezeUntil: freezeUntil.toISOString(),
+            tier: athlete.tier ?? null,
+            parentUid: athlete.parentUid ?? null,
+            publicName: athlete.publicName ?? athlete.fullName ?? uid,
+        };
         tx.update(athleteRef, {
             tierStatus: "freeze",
             "testing.state": "FREEZE",
@@ -50,20 +72,14 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
             "testing.scheduledBy": null,
             updatedAt: firestore_1.FieldValue.serverTimestamp(),
         });
-        return {
-            ok: true,
-            uid,
-            score,
-            state: "FREEZE",
-            freezeUntil: freezeUntil.toISOString(),
-            tier: athlete.tier ?? null,
-            parentUid: athlete.parentUid ?? null,
-            publicName: athlete.publicName ??
-                athlete.fullName ??
-                uid,
-        };
+        if (receiptRef)
+            tx.create(receiptRef, {
+                uid, actionIdentity, score, result: freezeResult,
+                createdAt: firestore_1.FieldValue.serverTimestamp(),
+            });
+        return freezeResult;
     });
-    if (result.ok) {
+    if (result.ok && !result.idempotent) {
         const eventPayload = {
             uid: result.uid,
             type: "TEST_FAILED",
@@ -89,4 +105,5 @@ exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
         });
     }
     return result;
-});
+}
+exports.freezeAthlete = (0, https_1.onCall)(async (req) => freezeAthleteAuthoritatively(req.data?.uid, req.data?.score));

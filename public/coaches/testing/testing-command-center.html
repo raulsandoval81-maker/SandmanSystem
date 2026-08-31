@@ -14,7 +14,7 @@
   <a class="back" href="/coaches/index.html">← Back to Coach</a>
 
   <h1>Testing Command Center</h1>
-  <p class="sub">Assign athlete, choose test, set 3-coach panel, generate launch links, and open live results.</p>
+  <p class="sub">Assign athlete, choose test, set 2–3 coach panel, generate launch links, and open live results.</p>
 
   <div class="grid">
 
@@ -89,7 +89,7 @@
         </div>
 
         <div>
-          <label for="coachC">Coach C</label>
+          <label for="coachC">Coach C (Optional)</label>
           <input id="coachC" placeholder="coach_c_uid or name" />
         </div>
       </div>
@@ -262,8 +262,7 @@
       els.testType.value.trim() &&
       els.tier.value.trim() &&
       els.coachA.value.trim() &&
-      els.coachB.value.trim() &&
-      els.coachC.value.trim()
+      els.coachB.value.trim()
     );
   }
 
@@ -309,7 +308,7 @@
     updatePanelStatus();
 
     if (!panelReady()) {
-      alert("Missing athlete UID, test, or one of the 3 coach panel fields.");
+      alert("Missing athlete UID, test, or required Coach A / Coach B panel fields.");
       return;
     }
 
@@ -317,18 +316,20 @@
       els.coachA.value.trim(),
       els.coachB.value.trim(),
       els.coachC.value.trim()
-    ];
+    ].filter(Boolean);
 
     const unique = new Set(coaches);
 
-    if (unique.size !== 3) {
+    if (unique.size !== coaches.length) {
       alert("Each panel coach must be unique.");
       return;
     }
 
     const linkA = buildTestLink(els.coachA.value, "A");
     const linkB = buildTestLink(els.coachB.value, "B");
-    const linkC = buildTestLink(els.coachC.value, "C");
+    const linkC = els.coachC.value.trim()
+      ? buildTestLink(els.coachC.value, "C")
+      : "";
     const liveLink = buildLiveLink();
 
     applyLink(els.launchA, els.previewA, linkA);

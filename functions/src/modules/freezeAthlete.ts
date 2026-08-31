@@ -7,6 +7,7 @@ import {
   getFirestore,
   FieldValue
 } from "firebase-admin/firestore";
+import { createHash } from "node:crypto";
 
 import {
   createTestingEvent
@@ -17,17 +18,17 @@ import {
   PARENT_SIGNAL_TYPES
 } from "./parent/createParentSignal";
 
-export const freezeAthlete = onCall(async (req) => {
+export async function freezeAthleteAuthoritatively(
+  uidInput: unknown,
+  scoreInput: unknown,
+  actionIdentity = ""
+) {
   const db = getFirestore();
-
-  const payload =
-    req.data || {};
-
   const uid =
-    String(payload.uid || "").trim();
+    String(uidInput || "").trim();
 
   const score =
-    Number(payload.score || 0);
+    Number(scoreInput);
 
   if (!uid) {
     throw new HttpsError(
@@ -79,6 +80,17 @@ export const freezeAthlete = onCall(async (req) => {
       const athlete =
         snap.data() || {};
 
+      const receiptRef = actionIdentity
+        ? db.doc(`athletes/${uid}/testingActionReceipts/${createHash("sha256")
+            .update(`${uid}|FAIL|${actionIdentity}`).digest("hex").slice(0, 32)}`)
+        : null;
+      if (receiptRef) {
+        const receiptSnap = await tx.get(receiptRef);
+        if (receiptSnap.exists) {
+          return { ...(receiptSnap.data()?.result || {}), ok: true, idempotent: true };
+        }
+      }
+
       const testingState =
         String(athlete?.testing?.state || "");
 
@@ -88,6 +100,18 @@ export const freezeAthlete = onCall(async (req) => {
           `Athlete must be TESTING before freeze. Current state: ${testingState}`
         );
       }
+
+      const freezeResult = {
+        ok: true,
+        idempotent: false,
+        uid,
+        score,
+        state: "FREEZE",
+        freezeUntil: freezeUntil.toISOString(),
+        tier: athlete.tier ?? null,
+        parentUid: athlete.parentUid ?? null,
+        publicName: athlete.publicName ?? athlete.fullName ?? uid,
+      };
 
       tx.update(athleteRef, {
         tierStatus: "freeze",
@@ -109,28 +133,14 @@ export const freezeAthlete = onCall(async (req) => {
           FieldValue.serverTimestamp(),
       });
 
-      return {
-        ok: true,
-        uid,
-        score,
-        state: "FREEZE",
-        freezeUntil:
-          freezeUntil.toISOString(),
-
-        tier:
-          athlete.tier ?? null,
-
-        parentUid:
-          athlete.parentUid ?? null,
-
-        publicName:
-          athlete.publicName ??
-          athlete.fullName ??
-          uid,
-      };
+      if (receiptRef) tx.create(receiptRef, {
+        uid, actionIdentity, score, result: freezeResult,
+        createdAt: FieldValue.serverTimestamp(),
+      });
+      return freezeResult;
     });
 
-  if (result.ok) {
+  if (result.ok && !result.idempotent) {
     const eventPayload = {
       uid: result.uid,
       type: "TEST_FAILED" as const,
@@ -160,4 +170,7 @@ export const freezeAthlete = onCall(async (req) => {
   }
 
   return result;
-});
+}
+
+export const freezeAthlete = onCall(async (req) =>
+  freezeAthleteAuthoritatively(req.data?.uid, req.data?.score));

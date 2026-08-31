@@ -5,12 +5,10 @@ import {
   collection,
   getDocs,
   doc,
-  getDoc,
-  updateDoc,
-  serverTimestamp
+  getDoc
 } from "/assets/js/firebase-init.js";
 
-const passAthleteTestCall = httpsCallable(functions, "passAthleteTest");
+const finalizeTestingSessionCall = httpsCallable(functions, "finalizeTestingSession");
 
 const params = new URLSearchParams(window.location.search);
 const athleteId = params.get("uid") || params.get("athleteId") || "";
@@ -64,7 +62,7 @@ async function load() {
   });
 
   const totals = [];
-  const REQUIRED_PANEL = 3;
+  const REQUIRED_PANEL = 2;
   wrap.innerHTML = "";
 
   rows.forEach((d) => {
@@ -98,21 +96,11 @@ async function load() {
   final.innerHTML = `
     <h2 style="margin-top:0;">FINAL</h2>
     <div>Tests counted: ${totals.length}</div>
-    <div>Average: ${avg.toFixed(1)} / 100</div>
-    <div style="margin-bottom:14px;"><strong>${finalResult}</strong></div>
-
-    <label style="display:block; margin-bottom:8px; font-weight:600;">Decision Note</label>
-    <textarea
-      id="decisionNote"
-      rows="4"
-      style="width:100%; box-sizing:border-box; margin-bottom:14px; padding:10px; border-radius:8px;"
-      placeholder="Optional note for approve / hold / retest"
-    ></textarea>
+    <div>Provisional average: ${avg.toFixed(1)} / 100</div>
+    <div style="margin-bottom:14px;"><strong>Provisional: ${finalResult}</strong></div>
 
     <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px;">
-      <button id="approveBtn" style="padding:10px 14px; border-radius:8px; cursor:pointer;">Approve</button>
-      <button id="holdBtn" style="padding:10px 14px; border-radius:8px; cursor:pointer;">Hold</button>
-      <button id="retestBtn" style="padding:10px 14px; border-radius:8px; cursor:pointer;">Retest</button>
+      <button id="finalizeBtn" style="padding:10px 14px; border-radius:8px; cursor:pointer;">Finalize Result</button>
     </div>
 
     <div id="decisionStatus" style="font-weight:600;"></div>
@@ -142,82 +130,29 @@ async function load() {
     return totals.length >= REQUIRED_PANEL;
   }
 
-  async function saveDecision(decision) {
+  async function finalizeResult() {
     try {
       if (!canDecide()) {
-        alert("Panel incomplete. Need 3 coach submissions.");
+        alert("Panel incomplete. Need at least 2 coach submissions.");
         return;
       }
-
-      const note = document.getElementById("decisionNote").value.trim();
-
-      const nextState =
-        decision === "APPROVE" ? "COOLDOWN" :
-        decision === "HOLD" ? "TEMPLE" :
-        decision === "RETEST" ? "ELIGIBLE" :
-        "TEMPLE";
-
-      const nextTierStatus =
-        decision === "APPROVE" ? "cooldown" :
-        decision === "HOLD" ? "temple" :
-        decision === "RETEST" ? "eligible" :
-        "temple";
-
-      if (decision === "APPROVE") {
-        await passAthleteTestCall({
-          uid: athleteId,
-          score: Number(avg.toFixed(1))
-        });
-      }
-
-      const decisionPatch = {
-        "testing.baseCheckV1.testType": testType || "BASE_CHECK",
-        "testing.baseCheckV1.sessionId": sessionId,
-        "testing.baseCheckV1.decision": decision,
-        "testing.baseCheckV1.finalResult": finalResult,
-        "testing.baseCheckV1.avgScore": Number(avg.toFixed(1)),
-        "testing.baseCheckV1.coachCount": totals.length,
-        "testing.baseCheckV1.note": note,
-        "testing.baseCheckV1.decidedBy": decidedBy,
-        "testing.baseCheckV1.decidedAt": serverTimestamp(),
-        "testing.baseCheckV1.manualPromotionOnly": true,
-
-        "testing.lastDecision": decision,
-        "testing.lastDecisionAt": serverTimestamp(),
-        "testing.coachReady": false,
-        "testing.coachReadyAt": null,
-        "testing.testingStartedAt": null,
-
-        updatedAt: serverTimestamp()
-      };
-
-      if (decision !== "APPROVE") {
-        decisionPatch["testing.state"] = nextState;
-        decisionPatch.tierStatus = nextTierStatus;
-      }
-
-      await updateDoc(athleteRef, decisionPatch);
+      const finalized = await finalizeTestingSessionCall({
+        uid: athleteId,
+        sessionId,
+        testType
+      });
+      const authoritative = finalized.data || {};
 
       document.getElementById("decisionStatus").textContent =
-        `Saved decision: ${decision}`;
-      alert(`Decision saved: ${decision}`);
+        `Authoritative ${authoritative.result}: ${authoritative.average} / 100`;
+      alert(`Result finalized: ${authoritative.result}`);
     } catch (err) {
-      console.error("decision save failed:", err);
-      alert(`Decision save failed: ${err.message || err}`);
+      console.error("finalization failed:", err);
+      alert(`Finalization failed: ${err.message || err}`);
     }
   }
 
-  document.getElementById("approveBtn").addEventListener("click", () => {
-    saveDecision("APPROVE");
-  });
-
-  document.getElementById("holdBtn").addEventListener("click", () => {
-    saveDecision("HOLD");
-  });
-
-  document.getElementById("retestBtn").addEventListener("click", () => {
-    saveDecision("RETEST");
-  });
+  document.getElementById("finalizeBtn").addEventListener("click", finalizeResult);
 }
 
 load().catch((err) => {

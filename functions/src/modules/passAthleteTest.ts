@@ -8,9 +8,9 @@ import { createParentSignal, PARENT_SIGNAL_TYPES } from "./parent/createParentSi
 const PASSING_SCORE = 85;
 const COOLDOWN_DAYS = 5;
 
-export const passAthleteTest = onCall(async (req) => {
-  const uid = String(req.data?.uid ?? "").trim();
-  const score = Number(req.data?.score);
+export async function passAthleteTestAuthoritatively(uidInput: unknown, scoreInput: unknown) {
+  const uid = String(uidInput ?? "").trim();
+  const score = Number(scoreInput);
   if (!uid) throw new HttpsError("invalid-argument", "Missing uid");
   if (!Number.isFinite(score) || score < PASSING_SCORE || score > 100) {
     throw new HttpsError("failed-precondition", "Passing score must be from 85 through 100");
@@ -95,4 +95,7 @@ export const passAthleteTest = onCall(async (req) => {
     });
   }
   return result;
-});
+}
+
+export const passAthleteTest = onCall(async (req) =>
+  passAthleteTestAuthoritatively(req.data?.uid, req.data?.score));

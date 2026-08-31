@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.passAthleteTest = void 0;
+exports.passAthleteTestAuthoritatively = passAthleteTestAuthoritatively;
 const node_crypto_1 = require("node:crypto");
 const firestore_1 = require("firebase-admin/firestore");
 const https_1 = require("firebase-functions/v2/https");
@@ -9,9 +10,9 @@ const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
 const PASSING_SCORE = 85;
 const COOLDOWN_DAYS = 5;
-exports.passAthleteTest = (0, https_1.onCall)(async (req) => {
-    const uid = String(req.data?.uid ?? "").trim();
-    const score = Number(req.data?.score);
+async function passAthleteTestAuthoritatively(uidInput, scoreInput) {
+    const uid = String(uidInput ?? "").trim();
+    const score = Number(scoreInput);
     if (!uid)
         throw new https_1.HttpsError("invalid-argument", "Missing uid");
     if (!Number.isFinite(score) || score < PASSING_SCORE || score > 100) {
@@ -93,4 +94,5 @@ exports.passAthleteTest = (0, https_1.onCall)(async (req) => {
         });
     }
     return result;
-});
+}
+exports.passAthleteTest = (0, https_1.onCall)(async (req) => passAthleteTestAuthoritatively(req.data?.uid, req.data?.score));

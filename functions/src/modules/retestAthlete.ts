@@ -20,6 +20,19 @@ import {
   PARENT_SIGNAL_TYPES
 } from "./parent/parentSignalTypes";
 
+export function assertFreezePeriodComplete(testing: any, nowMs = Date.now()): void {
+  const freezeUntil = testing?.freezeUntil;
+  const freezeUntilMs = typeof freezeUntil?.toMillis === "function"
+    ? freezeUntil.toMillis()
+    : new Date(freezeUntil ?? "").getTime();
+  if (!Number.isFinite(freezeUntilMs)) {
+    throw new HttpsError("failed-precondition", "FREEZE_UNTIL_REQUIRED");
+  }
+  if (freezeUntilMs > nowMs) {
+    throw new HttpsError("failed-precondition", "FREEZE_PERIOD_NOT_COMPLETE");
+  }
+}
+
 export const retestAthlete = onCall(async (req) => {
   const db = getFirestore();
 
@@ -62,6 +75,8 @@ export const retestAthlete = onCall(async (req) => {
           `Athlete must be FREEZE. Current state: ${state}`
         );
       }
+
+      assertFreezePeriodComplete(athlete?.testing);
 
       tx.update(athleteRef, {
         tierStatus: "eligible",

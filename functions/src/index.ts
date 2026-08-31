@@ -20,6 +20,7 @@ export { xpHttp } from "./modules/xpHttp";
 export { promoteTier } from "./modules/promotion/promoteTierAction";
 export { passAthleteTest } from "./modules/passAthleteTest";
 export { freezeAthlete } from "./modules/freezeAthlete";
+export { finalizeTestingSession } from "./modules/finalizeTestingSession";
 
 export { scheduleTesting } from "./modules/scheduleTesting";
 export { startTesting } from "./modules/startTesting";
