@@ -8,6 +8,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "/assets/js/firebase-init.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 await ensureSignedIn();
 
@@ -281,29 +282,11 @@ async function loadStrengthSession() {
     const ironAllowed = age >= 13;
 
 
-const tierRaw =
-  athlete.tier ??
-  athlete.tierCode ??
-  athlete.currentTier ??
-  "T0";
-
-const tierMatch = String(tierRaw).match(/T(\d+)/i);
-const tierNum = tierMatch ? Number(tierMatch[1]) : 0;
-
 if (isFoundry8(athleteId)) {
-  if (tierNum < 3) {
+  if (!resolveF8RemoteAccess(athlete).strength) {
     container.innerHTML = `
       <div class="lane-card">
-        Strength unlocks at Contender.
-      </div>
-    `;
-    return;
-  }
-
-  if (stripe < 1) {
-    container.innerHTML = `
-      <div class="lane-card">
-        Strength unlocks at Contender Stripe 1.
+        Remote Strength unlocks at Prospect Stripe 1.
       </div>
     `;
     return;
