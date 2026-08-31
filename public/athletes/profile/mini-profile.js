@@ -79,14 +79,20 @@ function normalizeDiscipline(value = "") {
 }
 
 function getStoredTierNum(A) {
-  if (typeof A?.tier === "number") return A.tier;
-  if (typeof A?.tier === "string") {
-    const m = String(A.tier).match(/T(\d+)/i);
-    if (m) return Number(m[1]) || 0;
-    const n = Number(String(A.tier).replace(/[^\d]/g, ""));
-    if (!Number.isNaN(n)) return n;
-  }
-  return Number(A?.tierNum ?? A?.rankNum ?? 0) || 0;
+  const source =
+    A?.progressionTier ??
+    A?.tier ??
+    A?.tierNum ??
+    A?.rankNum ??
+    0;
+
+  if (typeof source === "number") return source;
+
+  const m = String(source).match(/T(\d+)/i);
+  if (m) return Number(m[1]) || 0;
+
+  const n = Number(String(source).replace(/[^\d]/g, ""));
+  return Number.isNaN(n) ? 0 : n;
 }
 
 function getStoredStripes(A) {
@@ -331,8 +337,8 @@ async function load() {
   const tierInfo = ladder?.[tierNum] || {};
 
   const rankName =
-    combat.rankName ||
     tierInfo?.name ||
+    combat.rankName ||
     "Shadow";
 
   const rankColor =
@@ -389,12 +395,9 @@ async function load() {
 
     const F8_BONSAI_BADGES = {
       Shadow: "t0-shadow.png",
-      Recruit: "t1-recruit.png",
-      Contender: "t2-contender.png",
+      Prospect: "t1-recruit.png",
       Competitor: "t3-competitor.png",
-      Warrior: "t4-warrior.png",
-      Champion: "t5-champion.png",
-      Commander: "t6-commander.png",
+      Contender: "t2-contender.png",
       Hero: "t7-hero.png"
     };
 
@@ -411,7 +414,7 @@ async function load() {
 
   // ===== XP / STRIPES =====
   const xpNow = Number(combat.xp || 0);
-  const xpCap = getStoredXpCap(combat, ladder, tierNum) || 600;
+  const xpCap = getStoredXpCap(combat, ladder, tierNum) || 800;
   const storedStripes = getStoredStripes(combat);
   const stripeMax = Number(ladder?.[tierNum]?.stripes || 4);
 
@@ -426,12 +429,9 @@ async function load() {
 
   const colorMap = {
   Shadow: "belt-z2h-shadow",
-  Recruit: "belt-z2h-recruit",
-  Contender: "belt-z2h-contender",
+  Prospect: "belt-z2h-recruit",
   Competitor: "belt-z2h-competitor",
-  Warrior: "belt-z2h-warrior",
-  Champion: "belt-z2h-champion",
-  Commander: "belt-z2h-commander",
+  Contender: "belt-z2h-contender",
   Hero: "belt-z2h-hero"
 };
 

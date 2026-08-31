@@ -6,19 +6,15 @@
 // LADDERS
 // ============================
 
-// ---------- Foundry 8 / Youth (R0–R7) ----------
-// Locked caps:
-// Shadow 600, Recruit 800, Contender 1000, Competitor 1200,
-// Warrior 1400, Champion 1600, Commander 1800, Hero 2400.
+// ---------- Foundry 8 / Youth (R0–R4) ----------
+// Five-rank Journey progression.
+// Curriculum remains independently versioned/routed through curriculumTier.
 export const LADDER_YOUTH = [
-  { key:"R0", name:"Shadow",     cap:  600, stripe:200, stripes:3 },
-  { key:"R1", name:"Recruit",    cap:  800, stripe:200, stripes:4 },
-  { key:"R2", name:"Contender",  cap: 1000, stripe:250, stripes:4 },
-  { key:"R3", name:"Competitor", cap: 1200, stripe:300, stripes:4 },
-  { key:"R4", name:"Warrior",    cap: 1400, stripe:350, stripes:4 },
-  { key:"R5", name:"Champion",   cap: 1600, stripe:400, stripes:4 },
-  { key:"R6", name:"Commander",  cap: 1800, stripe:450, stripes:4 },
-  { key:"R7", name:"Hero",       cap: 2400, stripe:600, stripes:4 }
+  { key:"R0", name:"Shadow",     cap:  800, stripes:4, stripeThresholds:[200,400,600,784] },
+  { key:"R1", name:"Prospect",   cap: 1600, stripes:4, stripeThresholds:[400,800,1200,1568] },
+  { key:"R2", name:"Competitor", cap: 2200, stripes:4, stripeThresholds:[550,1100,1650,2156] },
+  { key:"R3", name:"Contender",  cap: 2800, stripes:4, stripeThresholds:[700,1400,2100,2744] },
+  { key:"R4", name:"Hero",       cap: 3400, stripes:4, stripeThresholds:[850,1700,2550,3332] }
 ];
 // Alias so pages can import either name
 export const LADDER_F8 = LADDER_YOUTH;
@@ -130,6 +126,7 @@ export function getAthleteStripeInfo(a = {}) {
   ).trim();
 
   const tierCode = String(
+    a.progressionTier ||
     a.tier ||
     a.tierCode ||
     "T0"
@@ -161,13 +158,22 @@ export function getAthleteStripeInfo(a = {}) {
     Number(currentTier?.stripes || 4)
   );
 
-  const stripeSize = xpCap / stripesTotal;
+  const stripeThresholds =
+    Array.isArray(currentTier?.stripeThresholds) &&
+    currentTier.stripeThresholds.length
+      ? currentTier.stripeThresholds
+      : Array.from(
+          { length: stripesTotal },
+          (_, index) => ((index + 1) * xpCap) / stripesTotal
+        );
 
   const stripesEarned = Math.max(
     0,
     Math.min(
       stripesTotal,
-      Math.floor(xp / stripeSize)
+      stripeThresholds.filter(
+        (threshold) => xp >= Number(threshold)
+      ).length
     )
   );
 
@@ -192,7 +198,7 @@ export function getAthleteStripeInfo(a = {}) {
         ? Math.max(
             0,
             Math.ceil(
-              (stripesEarned + 1) * stripeSize
+              Number(stripeThresholds[stripesEarned])
             ) - xp
           )
         : 0,

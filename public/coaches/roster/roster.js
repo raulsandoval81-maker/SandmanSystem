@@ -33,7 +33,7 @@ function xpCapForAthlete(data = {}, track = "F4") {
     data.xpCap ??
     data.cap ??
     data.tierCap ??
-    (track === "F8" ? 600 : 1000)
+    (track === "F8" ? 800 : 1000)
   );
 }
 
@@ -372,23 +372,22 @@ async function loadRoster() {
         : LADDER_F4;
 
     const tierNum = (() => {
-      if (typeof combat.tier === "number") {
-        return combat.tier;
+      const tierSource =
+        athleteTrack === "F8"
+          ? (combat.progressionTier ?? combat.tier ?? 0)
+          : (combat.tier ?? combat.tierNum ?? combat.rankNum ?? 0);
+
+      if (typeof tierSource === "number") {
+        return tierSource;
       }
 
-      const tierMatch = String(
-        combat.tier || ""
-      ).match(/T(\d+)/i);
+      const tierMatch = String(tierSource).match(/T(\d+)/i);
 
       if (tierMatch) {
         return Number(tierMatch[1]) || 0;
       }
 
-      return Number(
-        combat.tierNum ??
-        combat.rankNum ??
-        0
-      ) || 0;
+      return Number(String(tierSource).replace(/[^\d]/g, "")) || 0;
     })();
 
     const tier =
@@ -400,13 +399,15 @@ async function loadRoster() {
       ladder[0];
 
     const rankName =
-      combat.rankName ||
-      combat.tierName ||
-      tier?.rank ||
-      tier?.name ||
-      (athleteTrack === "F8"
-        ? "Shadow"
-        : "Apprentice");
+      athleteTrack === "F8"
+        ? (tier?.name || combat.rankName || combat.tierName || "Shadow")
+        : (
+            combat.rankName ||
+            combat.tierName ||
+            tier?.rank ||
+            tier?.name ||
+            "Apprentice"
+          );
 
     const xpNow = Number(
       combat.xp ??
@@ -420,7 +421,7 @@ async function loadRoster() {
       combat.cap ??
       combat.tierCap ??
       (athleteTrack === "F8"
-        ? 600
+        ? 800
         : 1000)
     );
 
@@ -436,11 +437,18 @@ async function loadRoster() {
     );
 
     const calculatedStripes =
-      xpNow >= xpCap
-        ? stripeMax
-        : Math.floor(
-            (xpNow / Math.max(1, xpCap)) *
-            stripeMax
+      athleteTrack === "F8" &&
+      Array.isArray(tier?.stripeThresholds)
+        ? tier.stripeThresholds.filter(
+            (threshold) => xpNow >= Number(threshold)
+          ).length
+        : (
+            xpNow >= xpCap
+              ? stripeMax
+              : Math.floor(
+                  (xpNow / Math.max(1, xpCap)) *
+                  stripeMax
+                )
           );
 
     const finalStripes = Math.max(
@@ -457,12 +465,9 @@ async function loadRoster() {
     const colorMaps = {
       z2h: {
         Shadow: "belt-z2h-shadow",
-        Recruit: "belt-z2h-recruit",
-        Contender: "belt-z2h-contender",
+        Prospect: "belt-z2h-recruit",
         Competitor: "belt-z2h-competitor",
-        Warrior: "belt-z2h-warrior",
-        Champion: "belt-z2h-champion",
-        Commander: "belt-z2h-commander",
+        Contender: "belt-z2h-contender",
         Hero: "belt-z2h-hero"
       },
 
