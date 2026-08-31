@@ -15,6 +15,7 @@
     href="/communications/shared/comms.css"
   >
   <link rel="stylesheet" href="/assets/css/athlete-ui.css">
+  <link rel="stylesheet" href="/assets/css/f4-athlete.css">
   <script type="module" src="/assets/js/athlete-nav.js"></script>
 
   <link rel="icon" href="data:,">
@@ -164,10 +165,116 @@
         font-size:1.15rem;
       }
     }
+
+    /* ========================================
+       FOUNDRY 4 — BULLETIN LANDING
+    ======================================== */
+
+    body.f4-athlete{
+      --bg:#101820;
+      --panel:#181818;
+      --line:rgba(212,175,55,.28);
+      --gold:#d4af37;
+      --text:#f7f7f5;
+      --muted:#c9c1b2;
+    }
+
+    body.f4-athlete .athlete-sub-header{
+      background:#080808;
+      border-bottom-color:#d4af37;
+    }
+
+    body.f4-athlete .brand{
+      color:#d4af37;
+    }
+
+    body.f4-athlete .sub-btn{
+      background:#181818;
+      border-color:rgba(212,175,55,.28);
+      color:#f2ead8;
+    }
+
+    body.f4-athlete .sub-btn.home{
+      background:#d4af37;
+      border-color:#d4af37;
+      color:#080808;
+    }
+
+    body.f4-athlete .wrap{
+      padding-top:34px;
+      padding-bottom:54px;
+    }
+
+    body.f4-athlete h1{
+      color:#d4af37;
+      margin-bottom:28px;
+    }
+
+    body.f4-athlete .button-grid{
+      gap:20px;
+      margin-bottom:42px;
+    }
+
+    body.f4-athlete .bulletin-btn{
+      background:#181818;
+      border-color:rgba(212,175,55,.28);
+      color:#f7f7f5;
+      box-shadow:none;
+    }
+
+    body.f4-athlete .bulletin-btn:hover{
+      border-color:#d4af37;
+      color:#f0cf67;
+    }
+
+    body.f4-athlete .quote{
+      border-top-color:rgba(212,175,55,.28);
+      color:#c9c1b2;
+      padding-top:24px;
+    }
+
+    body.f4-athlete .quote span{
+      color:#d4af37;
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete{
+      --bg:#eee8dc;
+      --panel:#fffaf0;
+      --line:rgba(24,24,24,.18);
+      --text:#181818;
+      --muted:#5d5549;
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete .bulletin-btn{
+      background:#fffaf0;
+      border-color:rgba(24,24,24,.16);
+      color:#181818;
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete .quote{
+      border-top-color:rgba(24,24,24,.18);
+      color:#5d5549;
+    }
+
+    @media (max-width:640px){
+      body.f4-athlete .wrap{
+        padding-top:28px;
+        padding-bottom:46px;
+      }
+
+      body.f4-athlete h1{
+        margin-bottom:24px;
+      }
+
+      body.f4-athlete .button-grid{
+        gap:16px;
+        margin-bottom:36px;
+      }
+    }
   </style>
 </head>
 
-<body class="athlete-app">
+<body class="athlete-app f4-athlete">
 
   <header class="athlete-sub-header">
     <div class="sub-header-inner">

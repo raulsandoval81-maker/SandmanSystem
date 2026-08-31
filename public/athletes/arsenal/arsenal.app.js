@@ -14,8 +14,17 @@ function setLocked(card, title, desc) {
 
   const h2 = card.querySelector("h2");
   const p = card.querySelector("p");
+  const discipline =
+    card.querySelector("#combat-discipline");
 
-  if (h2) h2.textContent = title;
+  if (card.id === "combat-card" && discipline) {
+    discipline.textContent =
+      title === "Combat" ? "Combat" : title;
+  } else if (h2) {
+    h2.childNodes[0].textContent =
+      title.replace(" 🔒", "");
+  }
+
   if (p) p.textContent = desc;
 }
 
@@ -28,8 +37,17 @@ function setOpen(card, title, desc, href) {
 
   const h2 = card.querySelector("h2");
   const p = card.querySelector("p");
+  const discipline =
+    card.querySelector("#combat-discipline");
 
-  if (h2) h2.textContent = title;
+  if (card.id === "combat-card" && discipline) {
+    discipline.textContent =
+      title === "Combat" ? "Combat" : title;
+  } else if (h2) {
+    h2.childNodes[0].textContent =
+      title.replace(" 🔒", "");
+  }
+
   if (p) p.textContent = desc;
 }
 

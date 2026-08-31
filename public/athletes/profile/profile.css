@@ -57,6 +57,104 @@
   --powStroke: rgba(255,210,60,1);
 }
 
+
+/* ============================================================
+   FOUNDRY 4 — ATHLETE IDENTITY
+   Matches F4 Home Base without affecting Foundry 8.
+   ============================================================ */
+
+body.f4-athlete{
+  --f4-black:#080808;
+  --f4-charcoal:#181818;
+  --f4-charcoal-2:#232323;
+  --f4-cream:#f2ead8;
+  --f4-white:#f7f7f5;
+  --f4-gold:#d4af37;
+  --f4-gold-bright:#f0cf67;
+  --f4-red:#b52b2f;
+  --f4-teal:#20b8b0;
+
+  /* Existing Profile tokens */
+  --bg:#eee8dc;
+  --panel:#fffaf0;
+  --panel2:#f4ede0;
+  --line:#d1c5b1;
+  --ink:#181818;
+  --muted:#655f55;
+  --gold:#8b6710;
+  --sandman-gold:#8b6710;
+
+  /* Shared Athlete shell tokens */
+  --athlete-bg:#eee8dc;
+  --athlete-panel:#fffaf0;
+  --athlete-ink:#181818;
+  --athlete-muted:#655f55;
+  --athlete-navy:#111111;
+  --athlete-blue:#8b6710;
+  --athlete-gold:#d4af37;
+  --athlete-line:rgba(70,61,45,.18);
+  --athlete-shadow:0 16px 38px rgba(45,38,27,.12);
+
+  background:var(--bg);
+  color:var(--ink);
+}
+
+html[data-athlete-theme="night"] body.f4-athlete{
+  --bg:#101820;
+  --panel:#1a252e;
+  --panel2:#111a21;
+  --line:#33434e;
+  --ink:#f7f7f5;
+  --muted:#bcc5cc;
+  --gold:#f0cf67;
+  --sandman-gold:#f0cf67;
+
+  --athlete-bg:#101820;
+  --athlete-panel:#1a252e;
+  --athlete-ink:#f7f7f5;
+  --athlete-muted:#bcc5cc;
+  --athlete-navy:#080d12;
+  --athlete-blue:#f0cf67;
+  --athlete-gold:#f0cf67;
+  --athlete-line:rgba(212,175,55,.22);
+  --athlete-shadow:0 18px 46px rgba(0,0,0,.34);
+
+  background:var(--bg);
+  color:var(--ink);
+}
+
+/* Remove remaining legacy blue from primary profile surfaces. */
+.f4-athlete .card{
+  background:var(--panel);
+  border-color:var(--line);
+}
+
+.f4-athlete .stat{
+  background:var(--panel2);
+  border-color:var(--line);
+}
+
+.f4-athlete .avatar-box,
+.f4-athlete .tier-badge{
+  background:var(--panel2);
+  border-color:var(--line);
+}
+
+.f4-athlete .label,
+.f4-athlete .muted,
+.f4-athlete .chev{
+  color:var(--muted);
+}
+
+.f4-athlete .value{
+  color:var(--ink);
+}
+
+.f4-athlete #combatArcTitle,
+.f4-athlete .drop-title.gold{
+  color:var(--gold);
+}
+
 /* ------------------------------------------------------------
    2) BASE LAYOUT
    ------------------------------------------------------------ */

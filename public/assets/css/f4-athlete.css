@@ -1,0 +1,304 @@
+/* Foundry 4 visual identity.
+   Every rule is deliberately scoped so Foundry 8 remains unchanged. */
+body.f4-athlete{
+  --f4-black:#080808;
+  --f4-charcoal:#181818;
+  --f4-charcoal-2:#232323;
+  --f4-cream:#f2ead8;
+  --f4-cream-muted:#d8cfbd;
+  --f4-white:#f7f7f5;
+  --f4-gold:#d4af37;
+  --f4-gold-bright:#f0cf67;
+  --f4-red:#b52b2f;
+  --f4-teal:#20b8b0;
+  --f4-line:rgba(212,175,55,.24);
+
+  --athlete-bg:#eee8dc;
+  --athlete-panel:#fffaf0;
+  --athlete-ink:#181818;
+  --athlete-muted:#655f55;
+  --athlete-navy:#111111;
+  --athlete-blue:#8b6710;
+  --athlete-gold:var(--f4-gold);
+  --athlete-line:rgba(70,61,45,.18);
+  --athlete-shadow:0 16px 38px rgba(45,38,27,.12);
+
+  background:var(--athlete-bg);
+  color:var(--athlete-ink);
+}
+
+html[data-athlete-theme="night"] body.f4-athlete{
+  --athlete-bg:#101820;
+  --athlete-panel:#1a252e;
+  --athlete-ink:#f7f7f5;
+  --athlete-muted:#bcc5cc;
+  --athlete-navy:#080d12;
+  --athlete-blue:var(--f4-gold-bright);
+  --athlete-gold:var(--f4-gold-bright);
+  --athlete-line:rgba(212,175,55,.22);
+  --athlete-shadow:0 18px 46px rgba(0,0,0,.34);
+
+  background:var(--athlete-bg);
+  color:var(--athlete-ink);
+}
+
+body.f4-athlete .athlete-shell-header{
+  background:linear-gradient(110deg,#050505,#181818);
+  border-bottom-color:var(--f4-gold);
+}
+
+body.f4-athlete .athlete-shell-brand span,
+body.f4-athlete .athlete-nav__label,
+body.f4-athlete .athlete-drawer__identity span{color:var(--f4-gold-bright)}
+
+body.f4-athlete .athlete-drawer{background:linear-gradient(180deg,#080808,#1c1c1c)}
+body.f4-athlete .athlete-nav a[aria-current="page"]{color:#181818;box-shadow:inset 4px 0 var(--f4-gold)}
+body.f4-athlete .athlete-shell-footer{color:var(--athlete-muted);border-color:var(--athlete-line)}
+
+/* Full Hub reference components */
+body.f4-athlete .hero{
+  background:linear-gradient(145deg,var(--f4-cream) 0%,#e5dbc4 62%,#c7b993 100%);
+  border-color:rgba(212,175,55,.52);
+  color:#171717;
+}
+body.f4-athlete .hero h1,body.f4-athlete #heroTitle{color:#8b6710;opacity:1}
+body.f4-athlete .hero p,body.f4-athlete #heroText{color:#302c25;opacity:1;font-weight:650}
+body.f4-athlete .pillar{background:linear-gradient(180deg,#242424 0%,#181818 100%);border-color:var(--f4-line);color:var(--f4-white)}
+body.f4-athlete .pillar h2{color:var(--f4-gold-bright)}
+body.f4-athlete .pillar p{color:#c8c3b9}
+body.f4-athlete .athlete-journey-card{background:linear-gradient(180deg,var(--f4-charcoal-2),var(--f4-charcoal));border-color:var(--f4-line);color:var(--f4-white)}
+body.f4-athlete .athlete-journey-card span{color:var(--f4-red)}
+body.f4-athlete .athlete-journey-card strong{color:var(--f4-gold-bright)}
+body.f4-athlete .athlete-journey-card p{color:#c8c3b9}
+body.f4-athlete .athlete-journey-card:hover{border-color:var(--f4-gold);background:#292929}
+body.f4-athlete .cta-box{background:#111;border-color:rgba(181,43,47,.62);margin-top:4px;padding:22px 24px}
+body.f4-athlete #ctaMessage{margin:0;color:var(--f4-white);opacity:1;font-weight:700;line-height:1.55}
+body.f4-athlete .hero-values-shell{margin-bottom:32px}
+body.f4-athlete .athlete-journey-grid{margin-top:8px;margin-bottom:28px}
+
+html[data-athlete-theme="night"] body.f4-athlete .hero{background:linear-gradient(145deg,var(--f4-cream) 0%,#e5dbc4 62%,#c7b993 100%);color:#171717}
+html[data-athlete-theme="night"] body.f4-athlete #heroTitle{color:#76570d}
+html[data-athlete-theme="night"] body.f4-athlete #heroText{color:#302c25}
+
+body.f4-athlete .f4-homebase-divider{margin:34px 0 24px;text-align:center}
+body.f4-athlete .f4-homebase-line{width:100%;height:3px;border-radius:999px;background:var(--f4-teal);box-shadow:0 0 12px rgba(32,184,176,.18)}
+body.f4-athlete .f4-homebase-divider h2{margin:14px 0 5px;color:#fffdf7;font-size:1.15rem;font-weight:950;letter-spacing:.12em;opacity:1}
+body.f4-athlete .f4-homebase-divider p{margin:0 0 14px;color:#f0eadf;font-size:.88rem;font-weight:800;letter-spacing:.025em;opacity:1}
+html[data-athlete-theme="day"] body.f4-athlete .f4-homebase-divider h2{color:#171717}
+html[data-athlete-theme="day"] body.f4-athlete .f4-homebase-divider p{color:#514a3f}
+
+/* F4 Profile adapters; layout and progression components remain unchanged. */
+body.f4-athlete .card{background:var(--athlete-panel);border-color:var(--athlete-line);color:var(--athlete-ink)}
+body.f4-athlete .stat,body.f4-athlete .avatar-box,body.f4-athlete .tier-badge{background:color-mix(in srgb,var(--athlete-panel) 86%,var(--f4-charcoal));border-color:var(--athlete-line)}
+body.f4-athlete .label,body.f4-athlete .muted,body.f4-athlete .chev{color:var(--athlete-muted)}
+body.f4-athlete .value{color:var(--athlete-ink)}
+body.f4-athlete #combatArcTitle,body.f4-athlete .drop-title.gold{color:var(--athlete-gold)}
+
+/* F4 Arsenal adapter */
+body.f4-athlete .arsenal-page{color:var(--athlete-ink)}
+body.f4-athlete .header .eyebrow{color:var(--f4-red)}
+body.f4-athlete .header .title{color:var(--athlete-blue)}
+body.f4-athlete .arsenal-card,
+body.f4-athlete .arsenal-panel,
+body.f4-athlete .discipline-card,
+body.f4-athlete .lane-card{background:var(--athlete-panel);border-color:var(--athlete-line);color:var(--athlete-ink)}
+body.f4-athlete .arsenal-card h2,
+body.f4-athlete .arsenal-card h3,
+body.f4-athlete .arsenal-panel h2{color:var(--athlete-blue)}
+
+/* F4 Communications adapters */
+body.f4-athlete .comms-hero{background:linear-gradient(145deg,var(--f4-cream),#e5dbc4 68%,#c7b993);color:#171717;border-color:var(--f4-gold)}
+body.f4-athlete .comms-hero h1{color:#8b6710}
+body.f4-athlete .comms-hero p{color:#37332c}
+body.f4-athlete .comms-hero .eyebrow{color:var(--f4-red)!important}
+body.f4-athlete .comms-card{background:linear-gradient(180deg,var(--f4-charcoal-2),var(--f4-charcoal));border-color:var(--f4-line);color:var(--f4-white)}
+body.f4-athlete .comms-card h2{color:var(--f4-gold-bright)}
+body.f4-athlete .comms-card p{color:#c8c3b9}
+
+/* F4 Athlete notifications and communication feeds. */
+body.f4-athlete .wrap{color:var(--athlete-ink)}
+body.f4-athlete .panel{background:var(--athlete-panel);border-color:var(--athlete-line);color:var(--athlete-ink);box-shadow:var(--athlete-shadow)}
+body.f4-athlete .panel h1,body.f4-athlete .panel h2,body.f4-athlete .item-day,body.f4-athlete .announcement-title{color:var(--athlete-blue)}
+body.f4-athlete .sub,body.f4-athlete .item-sub,body.f4-athlete .announcement-meta,body.f4-athlete .empty,body.f4-athlete .status{color:var(--athlete-muted)}
+body.f4-athlete .item,body.f4-athlete .announcement-card,body.f4-athlete #feed > .card{background:color-mix(in srgb,var(--athlete-panel) 92%,var(--f4-charcoal));border-color:var(--athlete-line);color:var(--athlete-ink);box-shadow:0 8px 22px rgba(45,38,27,.1)}
+html[data-athlete-theme="night"] body.f4-athlete .item,html[data-athlete-theme="night"] body.f4-athlete .announcement-card,html[data-athlete-theme="night"] body.f4-athlete #feed > .card{background:var(--f4-charcoal);border-color:var(--f4-line);color:var(--f4-white)}
+body.f4-athlete .item-time,body.f4-athlete .announcement-header,body.f4-athlete .announcement-category{color:var(--athlete-gold)}
+body.f4-athlete .btn{background:var(--f4-charcoal);border-color:var(--f4-line);color:var(--f4-gold-bright)}
+body.f4-athlete .btn:hover,body.f4-athlete .btn:focus-visible{background:var(--f4-charcoal-2);border-color:var(--f4-gold)}
+body.f4-athlete .live{background:var(--f4-red);color:var(--f4-white)}
+body.f4-athlete .coach-banner{background:var(--f4-cream);border-color:var(--f4-gold);color:#302c25}
+body.f4-athlete .top{border-color:var(--athlete-line)}
+
+/* F4 Leaderboard adapter; competitive density is intentionally preserved. */
+body.f4-athlete .leaderboard-shell,
+body.f4-athlete .leaderboard-card,
+body.f4-athlete .leaderboard-panel,
+body.f4-athlete .rank-row,
+body.f4-athlete li.rank-item{border-color:var(--athlete-line)}
+body.f4-athlete .leaderboard-card,
+body.f4-athlete .leaderboard-panel,
+body.f4-athlete .rank-row,
+body.f4-athlete li.rank-item{background:var(--athlete-panel);color:var(--athlete-ink)}
+body.f4-athlete .rank-name,body.f4-athlete .rank-tier{color:var(--athlete-ink)}
+body.f4-athlete .rank-num,body.f4-athlete .rank-xp{color:var(--athlete-gold)}
+body.f4-athlete .rank-row.you,body.f4-athlete li.rank-item.you{border-color:var(--f4-gold);box-shadow:0 0 0 1px rgba(212,175,55,.18)}
+body.f4-athlete .lb-hero{background:linear-gradient(145deg,var(--f4-cream),#e5dbc4 68%,#c7b993);border-color:rgba(212,175,55,.52);color:#171717}
+body.f4-athlete .lb-kicker{color:var(--f4-red)}
+body.f4-athlete .lb-title{color:#8b6710}
+body.f4-athlete .lb-sub{color:#37332c}
+body.f4-athlete .leaderboard-list,
+body.f4-athlete .controls,
+body.f4-athlete .comp-box,
+body.f4-athlete .comp-item{background:var(--athlete-panel);border-color:var(--athlete-line);color:var(--athlete-ink)}
+body.f4-athlete .comp-title{color:var(--athlete-blue)}
+body.f4-athlete .comp-intro{color:var(--athlete-muted)}
+
+@media (max-width:560px){
+  body.f4-athlete .f4-homebase-divider{margin:30px 0 20px}
+  body.f4-athlete .f4-homebase-divider p{font-size:.8rem;letter-spacing:0}
+}
+
+/* ============================================================
+   F4 ARSENAL — THREE PILLAR HIERARCHY
+   ============================================================ */
+
+body.f4-athlete .doctrine-card{
+  margin-bottom:32px;
+}
+
+body.f4-athlete .grid{
+  gap:24px;
+}
+
+body.f4-athlete #combat-card,
+body.f4-athlete #strength-card,
+body.f4-athlete #honor-card{
+  padding:24px 22px;
+}
+
+body.f4-athlete .lane-heading{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+}
+
+body.f4-athlete .lane-heading h2{
+  margin:0;
+  color:var(--athlete-blue);
+  font-size:1.22rem;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+
+body.f4-athlete .lane-subtitle{
+  color:var(--athlete-muted);
+  font-size:.88rem;
+  font-weight:750;
+  letter-spacing:.025em;
+}
+
+body.f4-athlete .lock-mark{
+  font-size:.82em;
+}
+
+body.f4-athlete #arsenalModePanel{
+  margin-top:28px;
+}
+
+body.f4-athlete .grid + #arsenalModePanel{
+  margin-top:28px;
+}
+
+@media (max-width:560px){
+  body.f4-athlete .doctrine-card{
+    margin-bottom:26px;
+  }
+
+  body.f4-athlete .grid{
+    gap:20px;
+  }
+
+  body.f4-athlete #combat-card,
+  body.f4-athlete #strength-card,
+  body.f4-athlete #honor-card{
+    padding:22px 18px;
+  }
+}
+
+/* F4 drawer — keep active child navigation readable */
+body.f4-athlete .athlete-nav a.athlete-nav__child[aria-current="page"]{
+  color:#181818 !important;
+}
+
+/* ============================================================
+   F4 LEADERBOARD — CONTROL + COMPETITION RHYTHM
+   ============================================================ */
+
+/* Separate Private / Overall / Progression controls. */
+body.f4-athlete .leaderboard-list .controls{
+  display:grid;
+  gap:12px;
+  padding:18px;
+  margin-bottom:24px;
+}
+
+body.f4-athlete .leaderboard-list .controls select{
+  width:100%;
+  min-height:46px;
+  padding:10px 12px;
+}
+
+/* Give the Honor Through Competition lesson room to read. */
+body.f4-athlete .comp-box{
+  margin-top:30px;
+  padding:24px;
+}
+
+body.f4-athlete .comp-title{
+  margin:0 0 10px;
+}
+
+body.f4-athlete .comp-intro{
+  margin:0 0 22px;
+  line-height:1.6;
+}
+
+body.f4-athlete .comp-grid{
+  display:grid;
+  gap:14px;
+}
+
+body.f4-athlete .comp-item{
+  padding:18px 20px;
+}
+
+body.f4-athlete .comp-item strong{
+  display:block;
+  margin-bottom:6px;
+  color:var(--athlete-blue);
+  font-weight:900;
+}
+
+body.f4-athlete .comp-item span{
+  display:block;
+  line-height:1.5;
+  color:var(--athlete-muted);
+}
+
+@media (max-width:560px){
+  body.f4-athlete .leaderboard-list .controls{
+    gap:10px;
+    padding:16px;
+  }
+
+  body.f4-athlete .comp-box{
+    padding:20px 18px;
+  }
+}
+
+/* F4 My Progress — slightly reduce current bonsai rank badge */
+body.f4-athlete .badge-current-big{
+  width:86px;
+  height:86px;
+}

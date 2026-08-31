@@ -186,6 +186,40 @@
       color:#b8c2d0;
       font-size:1rem;
     }
+
+    .hero-inner{
+      grid-template-columns:1fr;
+    }
+
+    .hub-rank-identity{
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:20px;
+      flex-wrap:wrap;
+      margin:22px 0 26px;
+    }
+
+    .hub-house-badge,
+    .hub-current-rank-badge{
+      width:178px;
+      height:178px;
+      object-fit:contain;
+    }
+
+    @media (max-width:720px){
+      .hub-rank-identity{
+        gap:12px;
+        margin:18px 0 24px;
+      }
+
+      .hub-house-badge,
+      .hub-current-rank-badge{
+        width:min(145px, 42vw);
+        height:min(145px, 42vw);
+      }
+    }
+
   </style>
 </head>
 
@@ -196,7 +230,6 @@
     </div>
 
     <div class="athlete-tabs">
-      <a id="profileLink" class="tab" href="#">Profile</a>
       <a id="arsenalLink" class="tab" href="#">Arsenal</a>
     </div>
   </header>
@@ -204,14 +237,23 @@
   <main class="wrap">
     <section class="hero">
       <div class="hero-inner">
-        <img
-          class="sandman-logo"
-          src="/assets/images/logos/Sandman-Combat.png"
-          alt="Sandman Combat Logo"
-        />
-
         <div>
           <h1 id="heroTitle">Home Base</h1>
+
+          <div class="hub-rank-identity" aria-label="House and current rank">
+            <img
+              class="sandman-logo hub-house-badge"
+              src="/assets/img/brand/sandman-academy-house-badge.png"
+              alt="Sandman Academy house badge"
+            />
+            <img
+              id="hubRankBadge"
+              class="hub-current-rank-badge"
+              src=""
+              alt=""
+              hidden
+            />
+          </div>
           <p id="heroText">Keep showing up. Your journey is building.</p>
 
           <div class="comp-box">
@@ -229,8 +271,8 @@
               </div>
 
               <div class="comp-item">
-                <strong>The Moment</strong>
-                <span>Stay strong when it gets hard.</span>
+                <strong>Team</strong>
+                  <span>We compete together.</span>
               </div>
             </div>
           </div>
@@ -241,8 +283,6 @@
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
       <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your progress and earned recognition.</p></a>
       <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open your Combat, Strength, and Honor work.</p></a>
-      <a class="athlete-journey-card" id="journeyComms" href="/communications/athlete/"><span>From Your Coach</span><strong>Communications</strong><p>Read announcements and check the schedule.</p></a>
-      <a class="athlete-journey-card" id="journeyLeaderboard" href="/athletes/leaderboard/"><span>Measure</span><strong>Leaderboard</strong><p>See how steady work builds progress.</p></a>
     </section>
     <section class="cta-box">
       <p id="ctaMessage">Small work every day builds something big.</p>
@@ -262,6 +302,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { LADDER_F8 } from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 const LAST_UID_KEY = "sandman_lastAthleteUid";
@@ -320,10 +361,8 @@ async function resolveAthleteId(){
 
 function setLinks(id){
   if (!id) return;
-
-  $("profileLink").href = `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`;
   $("arsenalLink").href = `/athletes/arsenal/?id=${encodeURIComponent(id)}`;
-  [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"],["journeyComms","/communications/athlete/"],["journeyLeaderboard","/athletes/leaderboard/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
+  [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
 }
 
 async function load(){
@@ -359,6 +398,68 @@ async function load(){
   if (!snap.exists()) return;
 
   const A = snap.data() || {};
+
+  const combat =
+    A.disciplines?.[A.activeDiscipline] ||
+    A.disciplines?.[A.primaryDiscipline] ||
+    A;
+
+  const tierRaw = String(
+    combat.tier ??
+    combat.tierCode ??
+    combat.tierNum ??
+    combat.rankNum ??
+    "T0"
+  );
+
+  const tierNum =
+    Number(tierRaw.replace(/[^0-9]/g, "")) || 0;
+
+  const tierInfo =
+    LADDER_F8[tierNum] ||
+    LADDER_F8[0];
+
+  const rankName =
+    combat.rankName ||
+    combat.tierName ||
+    tierInfo?.name ||
+    "Shadow";
+
+  const rankColor =
+    combat.rankColor ||
+    tierInfo?.color ||
+    "";
+
+  const F8_WARRIOR_BADGES = {
+    Recruit: "badge-recruit-silver.png",
+    Contender: "badge-contender-silver.png",
+    Competitor: "badge-competitor-silver.png",
+    Warrior: "badge-warrior-silver.png",
+    Champion: "badge-champion-silver.png",
+    Commander: "badge-commander-silver.png",
+    Hero: "badge-hero-silver.png"
+  };
+
+  let warriorFile = F8_WARRIOR_BADGES[rankName];
+
+  if (rankName === "Shadow") {
+    const c = String(rankColor).toLowerCase();
+
+    warriorFile =
+      c.includes("fff") || c.includes("white")
+        ? "badge-shadow-white-silver.png"
+        : "badge-shadow-gray-silver.png";
+  }
+
+  const hubRankBadge = $("hubRankBadge");
+
+  if (hubRankBadge && warriorFile) {
+    hubRankBadge.src =
+      `/assets/images/badges/foundry8/${warriorFile}`;
+    hubRankBadge.alt = `${rankName} rank badge`;
+    hubRankBadge.hidden = false;
+  }
+
   const name = A.fullName || A.name || "Athlete";
 
   $("heroTitle").textContent = `${name}'s Home Base`;
@@ -369,3 +470,28 @@ load();
 </script>
 </body>
 </html>
+
+<style>
+/* House leads; current rank supports */
+.hub-house-badge{
+  width:178px;
+  height:178px;
+}
+
+.hub-current-rank-badge{
+  width:120px;
+  height:120px;
+}
+
+@media (max-width:720px){
+  .hub-house-badge{
+    width:min(145px, 42vw);
+    height:min(145px, 42vw);
+  }
+
+  .hub-current-rank-badge{
+    width:min(96px, 29vw);
+    height:min(96px, 29vw);
+  }
+}
+</style>

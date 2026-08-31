@@ -91,3 +91,128 @@
   background:rgba(255,214,51,.08);
   border-color:rgba(255,214,51,.35);
 }
+/* ========================================
+   ATHLETE THEME COMPATIBILITY
+   Mini Profile follows shared Day / Night
+======================================== */
+
+body.athlete-app{
+  background:var(--athlete-bg);
+  color:var(--athlete-ink);
+}
+
+.athlete-app .card,
+.athlete-app .panel,
+.athlete-app .drop{
+  background:var(--athlete-panel);
+  border-color:var(--athlete-line);
+  color:var(--athlete-ink);
+}
+
+.athlete-app .value,
+.athlete-app .drop-head,
+.athlete-app .drop-body{
+  color:var(--athlete-ink);
+}
+
+.athlete-app .muted,
+.athlete-app .chev{
+  color:var(--athlete-muted);
+}
+
+.athlete-app .activity-toggle{
+  background:var(--athlete-panel);
+  border-color:var(--athlete-line);
+  color:var(--athlete-gold);
+}
+
+.athlete-app .activity-toggle:hover{
+  background:var(--athlete-bg);
+  border-color:var(--athlete-gold);
+}
+
+html[data-athlete-theme="night"] .athlete-app .card,
+html[data-athlete-theme="night"] .athlete-app .panel,
+html[data-athlete-theme="night"] .athlete-app .drop{
+  background:var(--athlete-panel);
+}
+
+/* Combat journey title — readable in both themes */
+.athlete-app #combatArcTitle{
+  color:var(--athlete-blue);
+  opacity:1;
+  font-weight:900;
+}
+
+html[data-athlete-theme="night"] .athlete-app #combatArcTitle{
+  color:var(--athlete-gold);
+}
+
+/* ========================================
+   DAY MODE — MINI PROFILE IDENTITY
+   Override legacy dark-profile surfaces
+======================================== */
+
+.athlete-app .stat{
+  background:var(--athlete-panel);
+  border-color:var(--athlete-line);
+  color:var(--athlete-ink);
+}
+
+.athlete-app .label{
+  color:var(--athlete-muted);
+}
+
+.athlete-app .value{
+  color:var(--athlete-ink);
+}
+
+.athlete-app .pill{
+  background:var(--athlete-bg);
+  border-color:var(--athlete-line);
+  color:var(--athlete-blue);
+}
+
+.athlete-app .avatar-box{
+  background:var(--athlete-bg);
+  border-color:var(--athlete-line);
+  color:var(--athlete-ink);
+}
+
+.athlete-app .rank-stats{
+  color:var(--athlete-ink);
+}
+
+/* Progress status — readable in both themes */
+.athlete-app #progressLabel{
+  color:var(--athlete-muted);
+  opacity:1;
+  font-weight:800;
+}
+
+html:not([data-athlete-theme="night"]) .athlete-app #progressLabel{
+  color:var(--athlete-blue);
+}
+
+/* Rank identity bridge */
+.athlete-app .rank-balance-symbol{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:64px;
+  line-height:1;
+  color:var(--athlete-ink);
+  flex:0 0 auto;
+}
+
+
+.athlete-app .rank-equation-symbol{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:22px;
+  font-weight:900;
+  line-height:1;
+  color:var(--athlete-muted);
+  flex:0 0 auto;
+}

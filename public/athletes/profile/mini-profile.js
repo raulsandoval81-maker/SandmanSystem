@@ -1,7 +1,8 @@
 import {
   db,
   doc,
-  getDoc
+  getDoc,
+  ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
@@ -124,6 +125,8 @@ async function load() {
     document.body.innerHTML = "<main class='wrap'><p>Missing athlete ID</p></main>";
     return;
   }
+
+  await ensureSignedIn();
 
   const snap = await getDoc(doc(db, "athletes", id));
   if (!snap.exists()) {
@@ -329,7 +332,7 @@ async function load() {
 
   const rankName =
     combat.rankName ||
-    tierInfo?.rank ||
+    tierInfo?.name ||
     "Shadow";
 
   const rankColor =
@@ -377,6 +380,34 @@ async function load() {
     "out-rank",
     `<span style="width:10px;height:10px;border-radius:50%;background:${rankColor};display:inline-block;margin-right:6px"></span>${rankName}`
   );
+
+  // ===== CURRENT FOUNDRY 8 BONSAI BADGE =====
+  const badgeRow = $("ath-badge-history");
+
+  if (badgeRow) {
+    badgeRow.innerHTML = "";
+
+    const F8_BONSAI_BADGES = {
+      Shadow: "t0-shadow.png",
+      Recruit: "t1-recruit.png",
+      Contender: "t2-contender.png",
+      Competitor: "t3-competitor.png",
+      Warrior: "t4-warrior.png",
+      Champion: "t5-champion.png",
+      Commander: "t6-commander.png",
+      Hero: "t7-hero.png"
+    };
+
+    const bonsaiFile = F8_BONSAI_BADGES[rankName];
+
+    if (bonsaiFile) {
+      const img = document.createElement("img");
+      img.src = `/assets/img/f8/${bonsaiFile}`;
+      img.className = "tier-badge";
+      img.alt = `${rankName} bonsai rank badge`;
+      badgeRow.appendChild(img);
+    }
+  }
 
   // ===== XP / STRIPES =====
   const xpNow = Number(combat.xp || 0);
