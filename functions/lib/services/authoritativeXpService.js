@@ -24,6 +24,7 @@ const sendParentSignalToAthleteParents_1 = require("../modules/parent/sendParent
 const parentSignalTypes_1 = require("../modules/parent/parentSignalTypes");
 const f8ProgressionPolicy_1 = require("../policy/f8ProgressionPolicy");
 const xpDomainPolicy_1 = require("../policy/xpDomainPolicy");
+const f8CurriculumCompatibilityPolicy_1 = require("../policy/f8CurriculumCompatibilityPolicy");
 exports.CHAMPIONSHIP_TOTALS = Object.freeze({
     COMPETE: 15,
     PLACE: 30,
@@ -129,7 +130,9 @@ function requestAwardIdentity(request) {
     }
     throw new https_1.HttpsError("invalid-argument", "STABLE_AWARD_IDENTITY_REQUIRED");
 }
-function athleteTier(athlete) {
+function athleteTier(athlete, base) {
+    if (base === "F8")
+        return (0, f8CurriculumCompatibilityPolicy_1.resolveF8ProgressionTier)(athlete);
     return String(athlete?.tier ?? athlete?.tierCode ?? athlete?.rank ?? "T0").toUpperCase();
 }
 function classifyAthlete(athlete, documentId = "") {
@@ -151,7 +154,7 @@ function classifyAthlete(athlete, documentId = "") {
     return "F4";
 }
 function activeXpCap(athlete, base) {
-    const tier = athleteTier(athlete);
+    const tier = athleteTier(athlete, base);
     if (base === "F8")
         return (0, f8ProgressionPolicy_1.resolveF8RankXpCap)(tier);
     return Number(athlete?.xpCap || F4_CAPS[tier] || 1000);
@@ -248,7 +251,7 @@ function validateAndResolveAmount(base, request) {
 function buildAwardPlan(args) {
     const { athlete, athleteId, request } = args;
     const base = classifyAthlete(athlete, athleteId);
-    const tier = athleteTier(athlete);
+    const tier = athleteTier(athlete, base);
     const xpCap = activeXpCap(athlete, base);
     const beforeXp = (0, xpDomainPolicy_1.resolveAuthoritativeActiveRankXp)(athlete);
     if (!Number.isFinite(beforeXp) || beforeXp < 0) {
@@ -386,7 +389,7 @@ async function awardXpAuthoritatively(coachUid, input) {
         }
         const provisionalBase = classifyAthlete(athlete, request.uid);
         const progressionCycleId = String(athlete?.progressionCycle?.id ?? "").trim()
-            || `legacy:${athleteTier(athlete)}`;
+            || `legacy:${athleteTier(athlete, provisionalBase)}`;
         let trustedDiscipline = "";
         let trustedPracticeDayKey = "";
         if (request.kind === "ATTENDANCE") {
@@ -490,7 +493,7 @@ async function awardXpAuthoritatively(coachUid, input) {
                     earnedStripe: false, becameEligible: false,
                     athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,
                     parentUid: athlete.parentUid || null, base: provisionalBase,
-                    tier: athleteTier(athlete), monthKey: mk,
+                    tier: athleteTier(athlete, provisionalBase), monthKey: mk,
                     logId: championshipLogId,
                 };
             }

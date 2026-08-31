@@ -10,6 +10,11 @@ import { athleteTier, classifyAthlete } from "../../services/authoritativeXpServ
 import { createParentSignal, PARENT_SIGNAL_TYPES } from "../parent/createParentSignal";
 import { RANK_META, type Base, type ProgramKind } from "./rankMeta";
 import { createTestingEvent } from "../testing-events/createTestingEvent";
+import {
+  F8_CURRICULUM_COMPATIBILITY_VERSION,
+  resolveF8CurriculumTier,
+  resolveF8ProgressionTier,
+} from "../../policy/f8CurriculumCompatibilityPolicy";
 
 function normalizeProgramKind(a: any): ProgramKind {
   const raw = String(a?.programKind || a?.trackCode || a?.track || a?.program || "").toLowerCase();
@@ -33,11 +38,12 @@ export const promoteTier = onCall(async (req) => {
     const snap = await tx.get(athleteRef);
     if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${uid}`);
     const athlete = snap.data() || {};
-    const currentCycle = progressionCycleSnapshot(athlete, athleteTier(athlete));
     const classified = classifyAthlete(athlete, uid);
     if (classified === "ADULT") throw new HttpsError("failed-precondition", "Unsupported promotion program");
     const base = classified as Base;
-    const tier = athleteTier(athlete);
+    const tier = base === "F8" ? resolveF8ProgressionTier(athlete) : athleteTier(athlete, base);
+    const curriculumTier = base === "F8" ? resolveF8CurriculumTier(athlete) : null;
+    const currentCycle = progressionCycleSnapshot(athlete, tier);
     const transition = resolvePromotionTransition(base, tier);
     const testing = athlete.testing || {};
     if (String(testing.lastTestResult ?? "").toUpperCase() !== "PASS") {
@@ -71,6 +77,11 @@ export const promoteTier = onCall(async (req) => {
 
     tx.update(athleteRef, {
       tier: transition.next.tier,
+      ...(base === "F8" ? {
+        progressionTier: transition.next.tier,
+        curriculumTier,
+        curriculumVersion: F8_CURRICULUM_COMPATIBILITY_VERSION,
+      } : {}),
       rankName,
       rankColor: rankMeta?.rankColor || "",
       xp: 0,

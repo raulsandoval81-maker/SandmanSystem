@@ -24,7 +24,7 @@ export const passAthleteTest = onCall(async (req) => {
     const athlete = athleteSnap.data() || {};
     const base = classifyAthlete(athlete, uid);
     if (base === "ADULT") throw new HttpsError("failed-precondition", "Unsupported promotion program");
-    const tier = athleteTier(athlete);
+    const tier = athleteTier(athlete, base);
     const cycleId = String(athlete?.progressionCycle?.id ?? "").trim() || `legacy:${tier}`;
     const receiptId = createHash("sha256").update(`${uid}|${cycleId}|PASS`).digest("hex").slice(0, 32);
     const passReceiptRef = db.doc(`athletes/${uid}/testingActionReceipts/${receiptId}`);

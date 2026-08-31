@@ -593,6 +593,12 @@ export const createCoachAthleteCall =
             tier:
               "T0",
 
+            ...(isF8 ? {
+              progressionTier: "T0",
+              curriculumTier: "T0",
+              curriculumVersion: "f8-curriculum-bridge-v1",
+            } : {}),
+
             rank:
               rankName,
 
@@ -612,7 +618,7 @@ export const createCoachAthleteCall =
 
             xpCap:
               isF8
-                ? 600
+                ? 800
                 : 1000,
 
             xpSource:

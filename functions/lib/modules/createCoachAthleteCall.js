@@ -273,6 +273,11 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
             trackCode: cleanTrackCode,
             program: cleanProgram,
             tier: "T0",
+            ...(isF8 ? {
+                progressionTier: "T0",
+                curriculumTier: "T0",
+                curriculumVersion: "f8-curriculum-bridge-v1",
+            } : {}),
             rank: rankName,
             rankName,
             rankColor: resolvedRankColor,
@@ -282,7 +287,7 @@ exports.createCoachAthleteCall = (0, https_1.onCall)(async (req) => {
              */
             xp: totalXp,
             xpCap: isF8
-                ? 600
+                ? 800
                 : 1000,
             xpSource: hasLegacy
                 ? "intake+legacy"

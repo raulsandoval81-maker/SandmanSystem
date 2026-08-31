@@ -8,6 +8,7 @@ const authoritativeXpService_1 = require("../../services/authoritativeXpService"
 const createParentSignal_1 = require("../parent/createParentSignal");
 const rankMeta_1 = require("./rankMeta");
 const createTestingEvent_1 = require("../testing-events/createTestingEvent");
+const f8CurriculumCompatibilityPolicy_1 = require("../../policy/f8CurriculumCompatibilityPolicy");
 function normalizeProgramKind(a) {
     const raw = String(a?.programKind || a?.trackCode || a?.track || a?.program || "").toLowerCase();
     if (/zero|z2h|youth|foundry8/.test(raw))
@@ -35,12 +36,13 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
         if (!snap.exists)
             throw new https_1.HttpsError("not-found", `Athlete not found: ${uid}`);
         const athlete = snap.data() || {};
-        const currentCycle = (0, progressionCyclePolicy_1.progressionCycleSnapshot)(athlete, (0, authoritativeXpService_1.athleteTier)(athlete));
         const classified = (0, authoritativeXpService_1.classifyAthlete)(athlete, uid);
         if (classified === "ADULT")
             throw new https_1.HttpsError("failed-precondition", "Unsupported promotion program");
         const base = classified;
-        const tier = (0, authoritativeXpService_1.athleteTier)(athlete);
+        const tier = base === "F8" ? (0, f8CurriculumCompatibilityPolicy_1.resolveF8ProgressionTier)(athlete) : (0, authoritativeXpService_1.athleteTier)(athlete, base);
+        const curriculumTier = base === "F8" ? (0, f8CurriculumCompatibilityPolicy_1.resolveF8CurriculumTier)(athlete) : null;
+        const currentCycle = (0, progressionCyclePolicy_1.progressionCycleSnapshot)(athlete, tier);
         const transition = (0, progressionCyclePolicy_1.resolvePromotionTransition)(base, tier);
         const testing = athlete.testing || {};
         if (String(testing.lastTestResult ?? "").toUpperCase() !== "PASS") {
@@ -72,6 +74,11 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
         };
         tx.update(athleteRef, {
             tier: transition.next.tier,
+            ...(base === "F8" ? {
+                progressionTier: transition.next.tier,
+                curriculumTier,
+                curriculumVersion: f8CurriculumCompatibilityPolicy_1.F8_CURRICULUM_COMPATIBILITY_VERSION,
+            } : {}),
             rankName,
             rankColor: rankMeta?.rankColor || "",
             xp: 0,

@@ -16,6 +16,7 @@ import {
   resolveAuthoritativeActiveRankXp,
   resolveLifetimeXpAccumulation,
 } from "../policy/xpDomainPolicy";
+import { resolveF8ProgressionTier } from "../policy/f8CurriculumCompatibilityPolicy";
 
 export type AthleteBase = "F4" | "F8" | "ADULT";
 export type ChampionshipResult = "COMPETE" | "PLACE" | "CHAMPION";
@@ -167,7 +168,8 @@ export function requestAwardIdentity(request: NormalizedXpRequest): string {
   throw new HttpsError("invalid-argument", "STABLE_AWARD_IDENTITY_REQUIRED");
 }
 
-export function athleteTier(athlete: any): string {
+export function athleteTier(athlete: any, base?: AthleteBase): string {
+  if (base === "F8") return resolveF8ProgressionTier(athlete);
   return String(athlete?.tier ?? athlete?.tierCode ?? athlete?.rank ?? "T0").toUpperCase();
 }
 
@@ -192,7 +194,7 @@ export function classifyAthlete(athlete: any, documentId = ""): AthleteBase {
 }
 
 export function activeXpCap(athlete: any, base: AthleteBase): number {
-  const tier = athleteTier(athlete);
+  const tier = athleteTier(athlete, base);
   if (base === "F8") return resolveF8RankXpCap(tier as F8RankReference);
   return Number(athlete?.xpCap || F4_CAPS[tier] || 1000);
 }
@@ -292,7 +294,7 @@ export function buildAwardPlan(args: {
 }): AwardPlan {
   const { athlete, athleteId, request } = args;
   const base = classifyAthlete(athlete, athleteId);
-  const tier = athleteTier(athlete);
+  const tier = athleteTier(athlete, base);
   const xpCap = activeXpCap(athlete, base);
   const beforeXp = resolveAuthoritativeActiveRankXp(athlete);
   if (!Number.isFinite(beforeXp) || beforeXp < 0) {
@@ -434,7 +436,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
 
     const provisionalBase = classifyAthlete(athlete, request.uid);
     const progressionCycleId = String(athlete?.progressionCycle?.id ?? "").trim()
-      || `legacy:${athleteTier(athlete)}`;
+      || `legacy:${athleteTier(athlete, provisionalBase)}`;
     let trustedDiscipline = "";
     let trustedPracticeDayKey = "";
     if (request.kind === "ATTENDANCE") {
@@ -547,7 +549,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
           earnedStripe: false, becameEligible: false,
           athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,
           parentUid: athlete.parentUid || null, base: provisionalBase,
-          tier: athleteTier(athlete), monthKey: mk,
+          tier: athleteTier(athlete, provisionalBase), monthKey: mk,
           logId: championshipLogId,
         };
       }
