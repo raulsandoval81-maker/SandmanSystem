@@ -527,7 +527,9 @@ function lifetimeEntries() {
           track
         ),
       tier: normalizeTier(
-        combat.tier,
+        athlete.id.startsWith("F8_")
+          ? (combat.progressionTier ?? athlete.data.progressionTier ?? combat.tier)
+          : combat.tier,
         rank
       ),
       rank,
@@ -939,7 +941,9 @@ async function loadAthletes() {
             track,
             programTrack,
             tier: normalizeTier(
-              combat.tier,
+              athlete.id.startsWith("F8_")
+                ? (combat.progressionTier ?? athlete.data.progressionTier ?? combat.tier)
+                : combat.tier,
               rank
             ),
             rank,
