@@ -554,7 +554,7 @@ async function loadSubmissions() {
           if (act === "xp5" || act === "xp10") {
             const amt = act === "xp10" ? 10 : 5;
 
-            await awardXp({
+            const awardResult = await awardXp({
               athleteId,
               amount: amt,
               note: coachNote || `Strength submission (+${amt})`,
@@ -564,6 +564,9 @@ async function loadSubmissions() {
                 key,
               },
             });
+            const awardedAmount = Number(
+              awardResult.awardedAmount ?? awardResult.amount ?? awardResult.delta ?? 0
+            );
 
             await writeLaneHistory({
               athleteId,
@@ -572,7 +575,7 @@ async function loadSubmissions() {
               entry: {
                 ...currentEntry,
                 coachNote,
-                awardedXp: amt,
+                awardedXp: awardedAmount,
               },
               coachNote,
             });
@@ -583,7 +586,7 @@ async function loadSubmissions() {
               patch: {
                 status: "closed",
                 coachNote,
-                awardedXp: amt,
+                awardedXp: awardedAmount,
                 closedAt: serverTimestamp(),
               },
             });

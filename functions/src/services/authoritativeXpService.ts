@@ -111,6 +111,58 @@ function requiredString(value: unknown, name: string): string {
   return text;
 }
 
+export function deriveTrustedStrengthAmount(entry: any): number {
+  if (!entry || typeof entry !== "object") {
+    throw new HttpsError("failed-precondition", "TRUSTED_STRENGTH_SUBMISSION_REQUIRED");
+  }
+  const lane = String(entry.lane ?? "").trim().toLowerCase();
+  const kind = String(entry.kind ?? "").trim().toLowerCase();
+  if (lane === "conditioning" || kind === "remote_hiit") return 5;
+  if (kind === "iron") return 10;
+  const structuredStrength = lane === "strength" && [
+    entry.main, entry.mainLift, entry.explosive, entry.secondary,
+    entry.assistance, entry.conditioning,
+  ].some((value) => String(value ?? "").trim());
+  if (structuredStrength) return 10;
+  throw new HttpsError("failed-precondition", "UNCLASSIFIED_STRENGTH_SUBMISSION");
+}
+
+export function awardReceiptKey(uid: string, identity: string): string {
+  return stateKey(["xp-award-v1", requiredString(uid, "uid"), requiredString(identity, "identity")]);
+}
+
+export function arenaLayerKey(kind: string): string {
+  return kind === "ARENA/BATTLE" || kind === "ARENA/WEEKEND_BATTLE"
+    ? "PARTICIPATION" : kind;
+}
+
+export function remainingChampionshipDelta(target: number, alreadyAwarded: number): number {
+  return Math.max(0, Number(target) - Math.max(0, Number(alreadyAwarded) || 0));
+}
+
+export function shouldEmitAwardSideEffects(result: { idempotent?: boolean }): boolean {
+  return result.idempotent !== true;
+}
+
+export function requestAwardIdentity(request: NormalizedXpRequest): string {
+  if (request.kind === "ATTENDANCE") {
+    return `attendance:${requiredString(request.meta.attendanceSessionId, "meta.attendanceSessionId")}`;
+  }
+  if (request.kind === "STRENGTH" || request.kind === "HONOR") {
+    return `lane-submission:${request.kind.toLowerCase()}:${requiredString(request.meta.key, "meta.key")}`;
+  }
+  if (request.kind.startsWith("CHAMPIONSHIP/")) {
+    const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
+    const source = requiredString(request.meta.source ?? "championship-arena", "meta.source");
+    return `championship:${source}:${tournamentId}:${request.kind.split("/")[1]}`;
+  }
+  if (request.kind.startsWith("ARENA/")) {
+    const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
+    return `arena:${tournamentId}:${arenaLayerKey(request.kind)}`;
+  }
+  throw new HttpsError("invalid-argument", "STABLE_AWARD_IDENTITY_REQUIRED");
+}
+
 export function athleteTier(athlete: any): string {
   return String(athlete?.tier ?? athlete?.tierCode ?? athlete?.rank ?? "T0").toUpperCase();
 }
@@ -257,7 +309,7 @@ export function buildAwardPlan(args: {
     if ((result === "PLACE" || result === "CHAMPION") && (!Number.isInteger(matchCount) || matchCount < 3)) {
       throw new HttpsError("failed-precondition", "CHAMPIONSHIP_REQUIRES_THREE_MATCHES");
     }
-    requestedDelta = Math.max(0, championshipTarget - Number(args.championshipAwarded ?? 0));
+    requestedDelta = remainingChampionshipDelta(championshipTarget, Number(args.championshipAwarded ?? 0));
     if (requestedDelta === 0) throw new HttpsError("already-exists", "CHAMPIONSHIP_TARGET_ALREADY_AWARDED");
   }
 
@@ -293,8 +345,7 @@ export function buildAwardPlan(args: {
     if (base === "F8") {
       const eventXp = Number(args.arenaEventState?.xp ?? 0);
       const kinds = { ...(args.arenaEventState?.kinds ?? {}) };
-      const layerKey = request.kind === "ARENA/BATTLE" || request.kind === "ARENA/WEEKEND_BATTLE"
-        ? "PARTICIPATION" : request.kind;
+      const layerKey = arenaLayerKey(request.kind);
       if (request.kind !== "ARENA/STYLEIQ" && kinds[layerKey]) {
         throw new HttpsError("already-exists", "F8_TOURNAMENT_LAYER_ALREADY_AWARDED");
       }
@@ -377,9 +428,73 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       throw new HttpsError("failed-precondition", testingState || "FROZEN");
     }
 
+    const provisionalBase = classifyAthlete(athlete, request.uid);
+    let trustedDiscipline = "";
+    let trustedPracticeDayKey = "";
+    if (request.kind === "ATTENDANCE") {
+      const attendanceSessionId = requiredString(
+        request.meta.attendanceSessionId, "meta.attendanceSessionId"
+      );
+      const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${attendanceSessionId}`));
+      if (!attendanceSnap.exists) {
+        throw new HttpsError("failed-precondition", "TRUSTED_ATTENDANCE_SESSION_REQUIRED");
+      }
+      const session = attendanceSnap.data() || {};
+      if (String(session.status ?? "").toLowerCase() !== "finalized" || session.finalized !== true) {
+        throw new HttpsError("failed-precondition", "ATTENDANCE_SESSION_NOT_FINALIZED");
+      }
+      const presentIds = Array.isArray(session.presentIds) ? session.presentIds.map(String) : [];
+      if (!presentIds.includes(request.uid)) {
+        throw new HttpsError("failed-precondition", "ATHLETE_NOT_PRESENT_IN_ATTENDANCE_SESSION");
+      }
+      const trustedSessionId = String(session.sessionId || session.liveSessionId || attendanceSessionId);
+      if (requiredString(request.meta.sessionId, "meta.sessionId") !== trustedSessionId) {
+        throw new HttpsError("failed-precondition", "ATTENDANCE_SESSION_ID_MISMATCH");
+      }
+      trustedDiscipline = requiredString(session.discipline, "attendance discipline").toLowerCase();
+      trustedPracticeDayKey = requiredString(session.sessionDateKey, "attendance sessionDateKey");
+      request.meta.discipline = trustedDiscipline;
+      request.meta.sessionDateKey = trustedPracticeDayKey;
+      request.meta.durationMinutes = Number(session.durationMinutes ?? request.meta.durationMinutes ?? 60);
+    }
+    if (request.kind === "STRENGTH" || request.kind === "HONOR") {
+      const expectedSource = request.kind === "STRENGTH" ? "lane-review" : "honor_lane_review";
+      if (String(request.meta.source ?? "") !== expectedSource) {
+        throw new HttpsError("failed-precondition", `TRUSTED_${request.kind}_SOURCE_REQUIRED`);
+      }
+      const key = requiredString(request.meta.key, "meta.key");
+      const submissionSnap = await tx.get(db.doc(`laneSubmissions/${request.uid}`));
+      const entry = submissionSnap.data()?.[key];
+      if (!entry || typeof entry !== "object") {
+        throw new HttpsError("failed-precondition", "TRUSTED_LANE_SUBMISSION_REQUIRED");
+      }
+      if (request.kind === "STRENGTH") {
+        request.amount = deriveTrustedStrengthAmount(entry);
+        request.meta.authoritativeAmount = request.amount;
+        request.meta.submissionLane = String(entry.lane ?? "");
+      } else if (String(entry.lane ?? "").toLowerCase() !== "honor") {
+        throw new HttpsError("failed-precondition", "TRUSTED_HONOR_SUBMISSION_REQUIRED");
+      }
+    }
+
+    const awardIdentity = requestAwardIdentity(request);
+    const receiptRef = db.collection("xpAwardReceipts").doc(
+      awardReceiptKey(request.uid, awardIdentity)
+    );
+    const receiptSnap = await tx.get(receiptRef);
+    if (receiptSnap.exists) {
+      const prior = receiptSnap.data()?.result || {};
+      return {
+        ...prior, ok: true, idempotent: true, duplicate: true,
+        awardedAmount: Number(prior.awardedAmount ?? prior.amount ?? 0),
+        delta: 0, amount: 0,
+      };
+    }
+
     const monthlyRoot = athlete.monthly && typeof athlete.monthly === "object" ? athlete.monthly : {};
     const monthly = monthlyRoot[mk] && typeof monthlyRoot[mk] === "object" ? monthlyRoot[mk] : {};
     let championshipAwarded = 0;
+    let championshipLogId = "";
     let championshipKey = "";
     let championshipStateRef: FirebaseFirestore.DocumentReference | null = null;
     let practiceStateRef: FirebaseFirestore.DocumentReference | null = null;
@@ -396,13 +511,12 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       championshipStateRef = db.collection("championshipXpState").doc(championshipKey);
       const championshipState = await tx.get(championshipStateRef);
       championshipAwarded = Number(championshipState.data()?.awarded ?? 0);
+      championshipLogId = String(championshipState.data()?.logId ?? "");
     }
 
-    const provisionalBase = classifyAthlete(athlete, request.uid);
     if (request.kind === "ATTENDANCE") {
-      const discipline = requiredString(request.meta.discipline ?? "general", "meta.discipline").toLowerCase();
       practiceStateRef = db.collection("f8PracticeDayState").doc(
-        stateKey([request.uid, pacificDayKey(now), discipline])
+        stateKey([request.uid, trustedPracticeDayKey, trustedDiscipline])
       );
       practiceState = (await tx.get(practiceStateRef)).data() || {};
     }
@@ -410,6 +524,25 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
       arenaEventStateRef = db.collection("f8ArenaEventState").doc(stateKey([request.uid, tournamentId]));
       arenaEventState = (await tx.get(arenaEventStateRef)).data() || {};
+    }
+
+    if (request.kind.startsWith("CHAMPIONSHIP/")) {
+      const target = CHAMPIONSHIP_TOTALS[request.kind.split("/")[1] as ChampionshipResult];
+      if (target <= championshipAwarded) {
+        return {
+          ok: true, blocked: false, idempotent: true, duplicate: true,
+          uid: request.uid, kind: request.kind, delta: 0, amount: 0, awardedAmount: 0,
+          beforeXp: Number(athlete.xp ?? 0), afterXp: Number(athlete.xp ?? 0),
+          xpCap: activeXpCap(athlete, provisionalBase),
+          stripeCount: Number(athlete.stripeCount ?? 0),
+          beforeStripeCount: Number(athlete.stripeCount ?? 0),
+          earnedStripe: false, becameEligible: false,
+          athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,
+          parentUid: athlete.parentUid || null, base: provisionalBase,
+          tier: athleteTier(athlete), monthKey: mk,
+          logId: championshipLogId,
+        };
+      }
     }
 
     const plan = buildAwardPlan({ athlete, athleteId: request.uid, request, monthly,
@@ -448,8 +581,10 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       base: plan.base, tier: plan.tier, note: request.note,
       meta: { ...request.meta, source: plan.source, championshipTarget: plan.championshipTarget },
     };
-    tx.set(canonicalLogRef, log);
-    tx.set(db.collection("xp_logs").doc(canonicalLogRef.id), { ...log, compatibilityMirror: true });
+    tx.set(canonicalLogRef, { ...log, awardIdentity });
+    tx.set(db.collection("xp_logs").doc(canonicalLogRef.id), {
+      ...log, awardIdentity, compatibilityMirror: true,
+    });
     tx.set(db.collection("xp_monthly").doc(`${request.uid}_${mk}`), {
       uid: request.uid, month: mk,
       ...(plan.monthlyField && plan.monthlyAfter !== null ? { [plan.monthlyField]: plan.monthlyAfter } : {}),
@@ -461,12 +596,13 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         tournamentId: request.meta.tournamentId,
         source: plan.source,
         awarded: plan.championshipTarget,
+        logId: canonicalLogRef.id,
         updatedAt: now,
       }, { merge: true });
     }
     if (practiceStateRef && plan.practiceStateAfter) {
-      tx.set(practiceStateRef, { uid: request.uid, dayKey: pacificDayKey(now),
-        discipline: String(request.meta.discipline ?? "general").toLowerCase(),
+      tx.set(practiceStateRef, { uid: request.uid, dayKey: trustedPracticeDayKey,
+        discipline: trustedDiscipline,
         ...plan.practiceStateAfter, updatedAt: now }, { merge: true });
     }
     if (arenaEventStateRef && plan.arenaEventStateAfter) {
@@ -474,16 +610,24 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         ...plan.arenaEventStateAfter, updatedAt: now }, { merge: true });
     }
     const becameEligible = (currentState === "ACTIVE" || currentState === "TEMPLE") && ratio >= 1;
-    return { ok: true, blocked: false, uid: request.uid, kind: plan.kind,
-      delta: plan.delta, amount: plan.delta, beforeXp: plan.beforeXp, afterXp: plan.afterXp,
+    const awardResult = { ok: true, blocked: false, idempotent: false, duplicate: false,
+      uid: request.uid, kind: plan.kind,
+      delta: plan.delta, amount: plan.delta, awardedAmount: plan.delta,
+      beforeXp: plan.beforeXp, afterXp: plan.afterXp,
       xpCap: plan.xpCap, stripeCount: plan.stripeCount, beforeStripeCount,
       earnedStripe: plan.stripeCount > beforeStripeCount, becameEligible,
       athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,
       parentUid: athlete.parentUid || null,
-      base: plan.base, tier: plan.tier, monthKey: mk, logId: canonicalLogRef.id };
+      base: plan.base, tier: plan.tier, monthKey: mk, logId: canonicalLogRef.id,
+      awardIdentity };
+    tx.create(receiptRef, {
+      uid: request.uid, awardIdentity, kind: plan.kind, source: plan.source,
+      createdAt: now, logId: canonicalLogRef.id, result: awardResult,
+    });
+    return awardResult;
   });
 
-  try {
+  if (shouldEmitAwardSideEffects(result)) try {
     const leaderboardTrack = result.base === "F8" ? "foundry8" : "foundry4";
     const entry = { uid: result.uid, xp: result.delta, kind: result.kind,
       base: result.base, tier: result.tier, sourceLogId: result.logId, createdAt: now };
@@ -496,7 +640,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
   } catch (error) {
     console.error("[authoritativeXpService] compatibility leaderboard write failed", error);
   }
-  await emitParentSignalsBestEffort(result);
+  if (shouldEmitAwardSideEffects(result)) await emitParentSignalsBestEffort(result);
   return result;
 }
 
