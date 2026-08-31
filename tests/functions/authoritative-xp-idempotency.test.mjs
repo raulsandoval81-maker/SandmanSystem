@@ -177,7 +177,7 @@ test("transactional receipt and aggregate state are written with athlete.xp as a
   const source = readFileSync("functions/src/services/authoritativeXpService.ts", "utf8");
   assert.match(source, /db\.collection\("xpAwardReceipts"\)/);
   assert.match(source, /tx\.create\(receiptRef/);
-  assert.match(source, /const beforeXp = Number\(athlete\?\.xp \?\? 0\)/);
+  assert.match(source, /const beforeXp = resolveAuthoritativeActiveRankXp\(athlete\)/);
   assert.doesNotMatch(source, /beforeXp\s*=.*xpDaily.*xpArena/);
 });
 

@@ -541,8 +541,7 @@ function lifetimeEntries() {
         athlete.data.lifetimeXp ??
         athlete.data.xpLifetime ??
         athlete.data.totalLifetimeXp ??
-        athlete.data.xp ??
-        combat.xp
+        0
       )
     };
   });
@@ -957,8 +956,7 @@ async function loadAthletes() {
               athlete.data.lifetimeXp ??
               athlete.data.xpLifetime ??
               athlete.data.totalLifetimeXp ??
-              athlete.data.xp ??
-              combat.xp
+              0
             )
           };
         }

@@ -146,7 +146,7 @@ function stripeCountFromXp(xp: number, cap: number) {
   );
 }
 
-export const promoteTier = onCall(async (req) => {
+const retiredLegacyPromoteTier = onCall(async (req) => {
   const db = getFirestore();
 
   const payload = req.data || {};
@@ -413,3 +413,6 @@ export const promoteTier = onCall(async (req) => {
 
   return result;
 });
+
+void retiredLegacyPromoteTier;
+export { promoteTier } from "./promotion/promoteTierAction";

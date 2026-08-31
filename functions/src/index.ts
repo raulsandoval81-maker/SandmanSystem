@@ -17,7 +17,8 @@ export { testAthleteXp } from "./modules/testAthleteXp";
 export { incrementXp } from "./modules/incrementXp";
 export { xpHttp } from "./modules/xpHttp";
 
-export { promoteTier } from "./modules/promoteTier";
+export { promoteTier } from "./modules/promotion/promoteTierAction";
+export { passAthleteTest } from "./modules/passAthleteTest";
 export { freezeAthlete } from "./modules/freezeAthlete";
 
 export { scheduleTesting } from "./modules/scheduleTesting";

@@ -12,6 +12,10 @@ import {
   resolveF8RankXpCap,
   type F8RankReference,
 } from "../policy/f8ProgressionPolicy";
+import {
+  resolveAuthoritativeActiveRankXp,
+  resolveLifetimeXpAccumulation,
+} from "../policy/xpDomainPolicy";
 
 export type AthleteBase = "F4" | "F8" | "ADULT";
 export type ChampionshipResult = "COMPETE" | "PLACE" | "CHAMPION";
@@ -290,7 +294,7 @@ export function buildAwardPlan(args: {
   const base = classifyAthlete(athlete, athleteId);
   const tier = athleteTier(athlete);
   const xpCap = activeXpCap(athlete, base);
-  const beforeXp = Number(athlete?.xp ?? 0);
+  const beforeXp = resolveAuthoritativeActiveRankXp(athlete);
   if (!Number.isFinite(beforeXp) || beforeXp < 0) {
     throw new HttpsError("failed-precondition", "INVALID_ACTIVE_XP");
   }
@@ -429,6 +433,8 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
     }
 
     const provisionalBase = classifyAthlete(athlete, request.uid);
+    const progressionCycleId = String(athlete?.progressionCycle?.id ?? "").trim()
+      || `legacy:${athleteTier(athlete)}`;
     let trustedDiscipline = "";
     let trustedPracticeDayKey = "";
     if (request.kind === "ATTENDANCE") {
@@ -487,7 +493,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       return {
         ...prior, ok: true, idempotent: true, duplicate: true,
         awardedAmount: Number(prior.awardedAmount ?? prior.amount ?? 0),
-        delta: 0, amount: 0,
+        delta: 0, amount: 0, lifetimeXpDelta: 0,
       };
     }
 
@@ -533,6 +539,8 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
           ok: true, blocked: false, idempotent: true, duplicate: true,
           uid: request.uid, kind: request.kind, delta: 0, amount: 0, awardedAmount: 0,
           beforeXp: Number(athlete.xp ?? 0), afterXp: Number(athlete.xp ?? 0),
+          lifetimeXpBefore: Number(athlete.lifetimeXp ?? 0),
+          lifetimeXpAfter: Number(athlete.lifetimeXp ?? 0), lifetimeXpDelta: 0,
           xpCap: activeXpCap(athlete, provisionalBase),
           stripeCount: Number(athlete.stripeCount ?? 0),
           beforeStripeCount: Number(athlete.stripeCount ?? 0),
@@ -547,6 +555,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
 
     const plan = buildAwardPlan({ athlete, athleteId: request.uid, request, monthly,
       championshipAwarded, practiceState, arenaEventState });
+    const lifetimeXp = resolveLifetimeXpAccumulation(athlete, plan.beforeXp, plan.afterXp);
     const beforeStripeCount = persistedStripeCount(plan.base, plan.tier, plan.beforeXp, plan.xpCap);
     const athletePatch: Record<string, any> = {
       xp: plan.afterXp,
@@ -555,6 +564,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       trackBase: plan.base,
       updatedAt: now,
     };
+    if (lifetimeXp.delta > 0) athletePatch.lifetimeXp = lifetimeXp.after;
     if (plan.monthlyField && plan.monthlyAfter !== null) {
       athletePatch[`monthly.${mk}.${plan.monthlyField}`] = plan.monthlyAfter;
     }
@@ -578,12 +588,14 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       createdAt: now, monthKey: mk, uid: request.uid, coachUid,
       kind: plan.kind, lane: plan.lane, amount: plan.delta,
       beforeXp: plan.beforeXp, afterXp: plan.afterXp, xpCap: plan.xpCap,
+      lifetimeXpBefore: lifetimeXp.before, lifetimeXpAfter: lifetimeXp.after,
+      lifetimeXpDelta: lifetimeXp.delta,
       base: plan.base, tier: plan.tier, note: request.note,
       meta: { ...request.meta, source: plan.source, championshipTarget: plan.championshipTarget },
     };
-    tx.set(canonicalLogRef, { ...log, awardIdentity });
+    tx.set(canonicalLogRef, { ...log, awardIdentity, progressionCycleId });
     tx.set(db.collection("xp_logs").doc(canonicalLogRef.id), {
-      ...log, awardIdentity, compatibilityMirror: true,
+      ...log, awardIdentity, progressionCycleId, compatibilityMirror: true,
     });
     tx.set(db.collection("xp_monthly").doc(`${request.uid}_${mk}`), {
       uid: request.uid, month: mk,
@@ -614,14 +626,17 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       uid: request.uid, kind: plan.kind,
       delta: plan.delta, amount: plan.delta, awardedAmount: plan.delta,
       beforeXp: plan.beforeXp, afterXp: plan.afterXp,
+      lifetimeXpBefore: lifetimeXp.before, lifetimeXpAfter: lifetimeXp.after,
+      lifetimeXpDelta: lifetimeXp.delta,
       xpCap: plan.xpCap, stripeCount: plan.stripeCount, beforeStripeCount,
       earnedStripe: plan.stripeCount > beforeStripeCount, becameEligible,
       athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,
       parentUid: athlete.parentUid || null,
       base: plan.base, tier: plan.tier, monthKey: mk, logId: canonicalLogRef.id,
-      awardIdentity };
+      awardIdentity, progressionCycleId };
     tx.create(receiptRef, {
-      uid: request.uid, awardIdentity, kind: plan.kind, source: plan.source,
+      uid: request.uid, awardIdentity, progressionCycleId,
+      kind: plan.kind, source: plan.source,
       createdAt: now, logId: canonicalLogRef.id, result: awardResult,
     });
     return awardResult;

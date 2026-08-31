@@ -98,7 +98,7 @@ function stripeCountFromXp(xp, cap) {
         return 0;
     return Math.max(0, Math.min(4, Math.floor(xp / (cap / 4))));
 }
-exports.promoteTier = (0, https_1.onCall)(async (req) => {
+const retiredLegacyPromoteTier = (0, https_1.onCall)(async (req) => {
     const db = (0, firestore_1.getFirestore)();
     const payload = req.data || {};
     const uid = String(payload.uid || "").trim();
@@ -304,3 +304,6 @@ exports.promoteTier = (0, https_1.onCall)(async (req) => {
     }
     return result;
 });
+void retiredLegacyPromoteTier;
+var promoteTierAction_1 = require("./promotion/promoteTierAction");
+Object.defineProperty(exports, "promoteTier", { enumerable: true, get: function () { return promoteTierAction_1.promoteTier; } });

@@ -1003,6 +1003,7 @@ if (
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
+    a.xp ??
     combat.xp ??
     combat.xpTotal ??
     combat.xpCombat ??

@@ -33,7 +33,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -52,8 +52,10 @@ var incrementXp_1 = require("./modules/incrementXp");
 Object.defineProperty(exports, "incrementXp", { enumerable: true, get: function () { return incrementXp_1.incrementXp; } });
 var xpHttp_1 = require("./modules/xpHttp");
 Object.defineProperty(exports, "xpHttp", { enumerable: true, get: function () { return xpHttp_1.xpHttp; } });
-var promoteTier_1 = require("./modules/promoteTier");
-Object.defineProperty(exports, "promoteTier", { enumerable: true, get: function () { return promoteTier_1.promoteTier; } });
+var promoteTierAction_1 = require("./modules/promotion/promoteTierAction");
+Object.defineProperty(exports, "promoteTier", { enumerable: true, get: function () { return promoteTierAction_1.promoteTier; } });
+var passAthleteTest_1 = require("./modules/passAthleteTest");
+Object.defineProperty(exports, "passAthleteTest", { enumerable: true, get: function () { return passAthleteTest_1.passAthleteTest; } });
 var freezeAthlete_1 = require("./modules/freezeAthlete");
 Object.defineProperty(exports, "freezeAthlete", { enumerable: true, get: function () { return freezeAthlete_1.freezeAthlete; } });
 var scheduleTesting_1 = require("./modules/scheduleTesting");

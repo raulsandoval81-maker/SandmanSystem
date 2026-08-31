@@ -20,6 +20,7 @@ const $ = (id) => document.getElementById(id);
 const params = new URLSearchParams(location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
 const promoteTierCall = httpsCallable(functions, "promoteTier");
+const passAthleteTestCall = httpsCallable(functions, "passAthleteTest");
 const freezeAthleteCall = httpsCallable(functions, "freezeAthlete");
 const scheduleTestingCall = httpsCallable(functions, "scheduleTesting");
 const startTestingCall = httpsCallable(functions, "startTesting");
@@ -200,7 +201,7 @@ function updateButtonVisibility(testing) {
   toggle("btn-pass", false);
   toggle("btn-fail", false);
   toggle("btn-retest", false);
-  toggle("btn-promote", false);
+  toggle("btn-promote", state === "COOLDOWN" && !jail.cooldownActive);
   toggle("btn-active", false);
 
   // 🔒 Hard jail — nothing allowed
@@ -215,7 +216,7 @@ if (jail.jailActive) {
   toggle("btn-pass", state === "TESTING");
   toggle("btn-fail", state === "TESTING");
   toggle("btn-retest", state === "FREEZE");
-  toggle("btn-promote", false);
+  toggle("btn-promote", state === "COOLDOWN" && !jail.cooldownActive);
   toggle("btn-active", state === "FREEZE");
 }
 function renderAthlete(data) {
@@ -341,18 +342,25 @@ async function passTest() {
     throw new Error("Athlete not loaded.");
   }
 
-  const result = await promoteTierCall({
+  const result = await passAthleteTestCall({
     uid,
     score
   });
 
   if (result.data?.blocked) {
-    throw new Error(result.data.reason || "Promotion blocked.");
+    throw new Error(result.data.reason || "Pass blocked.");
   }
 
   setStatus(
-    `Pass recorded. Advanced to ${result.data?.toTier}. Cooldown applied.`
+    `Pass recorded. Tier unchanged. Cooldown ends ${new Date(
+      result.data?.cooldownUntil
+    ).toLocaleDateString()}.`
   );
+}
+
+async function promoteAthlete() {
+  const result = await promoteTierCall({ uid });
+  setStatus(`Promoted one rank to ${result.data?.toTier}. Active XP and stripes reset.`);
 }
 
 async function failTest() {
@@ -449,14 +457,6 @@ async function bind() {
       }
 const data = snap.data() || {};
 
-if (
-  String(data.testing?.state).toUpperCase() === "COOLDOWN" &&
-  toMillis(data.testing?.cooldownUntil) <= Date.now()
-) {
-  await clearExpiredCooldown(data);
-  return;
-}
-
 renderAthlete(data);
     },
     (err) => {
@@ -525,6 +525,15 @@ renderAthlete(data);
     } catch (err) {
       console.error(err);
       setStatus("Retest failed.", true);
+    }
+  });
+
+  $("btn-promote")?.addEventListener("click", async () => {
+    try {
+      await promoteAthlete();
+    } catch (err) {
+      console.error(err);
+      setStatus(err.message || "Promotion failed.", true);
     }
   });
 

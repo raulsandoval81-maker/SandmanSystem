@@ -1,5 +1,7 @@
 import {
   db,
+  functions,
+  httpsCallable,
   collection,
   getDocs,
   doc,
@@ -7,6 +9,8 @@ import {
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+
+const passAthleteTestCall = httpsCallable(functions, "passAthleteTest");
 
 const params = new URLSearchParams(window.location.search);
 const athleteId = params.get("uid") || params.get("athleteId") || "";
@@ -159,7 +163,14 @@ async function load() {
         decision === "RETEST" ? "eligible" :
         "temple";
 
-      await updateDoc(athleteRef, {
+      if (decision === "APPROVE") {
+        await passAthleteTestCall({
+          uid: athleteId,
+          score: Number(avg.toFixed(1))
+        });
+      }
+
+      const decisionPatch = {
         "testing.baseCheckV1.testType": testType || "BASE_CHECK",
         "testing.baseCheckV1.sessionId": sessionId,
         "testing.baseCheckV1.decision": decision,
@@ -171,16 +182,21 @@ async function load() {
         "testing.baseCheckV1.decidedAt": serverTimestamp(),
         "testing.baseCheckV1.manualPromotionOnly": true,
 
-        "testing.state": nextState,
         "testing.lastDecision": decision,
         "testing.lastDecisionAt": serverTimestamp(),
         "testing.coachReady": false,
         "testing.coachReadyAt": null,
         "testing.testingStartedAt": null,
 
-        tierStatus: nextTierStatus,
         updatedAt: serverTimestamp()
-      });
+      };
+
+      if (decision !== "APPROVE") {
+        decisionPatch["testing.state"] = nextState;
+        decisionPatch.tierStatus = nextTierStatus;
+      }
+
+      await updateDoc(athleteRef, decisionPatch);
 
       document.getElementById("decisionStatus").textContent =
         `Saved decision: ${decision}`;
