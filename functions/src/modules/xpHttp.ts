@@ -1,6 +1,6 @@
 import { onRequest } from "firebase-functions/v2/https";
 import cors from "cors";
-import { runIncrementXp } from "../xpEngine";
+import { dispatchAuthoritativeXp } from "../services/authoritativeXpService";
 
 const corsMw = cors({ origin: true });
 
@@ -41,7 +41,7 @@ export const xpHttp = onRequest((req, res) => {
       // ✅ normalize at the choke point (affects all 4 pages)
       payload.kind = normalizeKind(payload.kind);
 
-      const out = await runIncrementXp(coachUid, payload);
+      const out = await dispatchAuthoritativeXp(coachUid, payload);
       return res.status(200).json(out);
     } catch (e: any) {
       const msg = e?.message || "XP failed";

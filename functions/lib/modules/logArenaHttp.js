@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.logArenaHttp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const cors_1 = __importDefault(require("cors"));
-const xpEngine_1 = require("../xpEngine");
+const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const corsMw = (0, cors_1.default)({ origin: true });
 function json(res, code, body) {
     res.status(code).json(body);
@@ -45,7 +45,7 @@ exports.logArenaHttp = (0, https_1.onRequest)(async (req, res) => {
             if (!tournamentId)
                 throw new https_1.HttpsError("invalid-argument", "meta.tournamentId required");
             // ✅ correct signature: (coachUid, payload)
-            const out = await (0, xpEngine_1.runIncrementXp)(V1_COACH_UID, {
+            const out = await (0, authoritativeXpService_1.dispatchAuthoritativeXp)(V1_COACH_UID, {
                 uid,
                 kind,
                 amount,

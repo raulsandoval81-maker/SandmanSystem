@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.incrementXp = void 0;
 // functions/src/incrementXp.ts
 const https_1 = require("firebase-functions/v2/https");
+const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
 const sendParentSignalToAthleteParents_1 = require("./parent/sendParentSignalToAthleteParents");
@@ -249,6 +250,9 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
     const payload = req.data || {};
     const uid = String(payload.uid || "").trim();
     const kind = String(payload.kind || "").trim();
+    if (!kind.startsWith("DEV/")) {
+        return (0, authoritativeXpService_1.dispatchAuthoritativeXp)(coachUid, payload);
+    }
     const amountRaw = payload.amount;
     const amount = typeof amountRaw === "number" && Number.isFinite(amountRaw) ? amountRaw : undefined;
     const note = typeof payload.note === "string" ? payload.note.trim() : "";

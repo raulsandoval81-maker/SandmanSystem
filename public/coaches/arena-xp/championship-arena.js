@@ -45,6 +45,7 @@ const searchEl = document.getElementById("search");
 const tourEl = document.getElementById("tournamentId");
 const evEl = document.getElementById("eventName");
 const levelEl = document.getElementById("eventLevel");
+const matchCountEl = document.getElementById("matchCount");
 const wonEl = document.getElementById("wonEvent");
 const winArmEl = document.getElementById("winArm");
 
@@ -398,7 +399,7 @@ function buildArenaPayload(uid, arenaKind) {
   throw new Error("Unknown arena kind: " + arenaKind);
 }
 
-function buildPrestigePayload(uid, level) {
+function buildPrestigePayload(uid, outcome) {
   if (!currentTournamentId) throw new Error("Tournament ID is required.");
   if (!prestigeArmed()) throw new Error("Prestige requires: Won event + type WIN.");
 
@@ -407,18 +408,27 @@ function buildPrestigePayload(uid, level) {
 
   const eventName = String(evEl?.value || "").trim() || null;
 
-  const amounts = { lion: 25, tiger: 50, bear: 75 };
-  const amount = amounts[level];
-  if (!amount) throw new Error("Unknown prestige level: " + level);
+  const results = {
+    compete: { result: "COMPETE", total: 15 },
+    place: { result: "PLACE", total: 30 },
+    champion: { result: "CHAMPION", total: 50 },
+  };
+  const selected = results[outcome];
+  if (!selected) throw new Error("Unknown championship result: " + outcome);
+  const matchCount = Number(matchCountEl?.value ?? 0);
+  if ((outcome === "place" || outcome === "champion") && (!Number.isInteger(matchCount) || matchCount < 3)) {
+    throw new Error("Place and Champion require at least 3 matches.");
+  }
 
   return {
     uid,
-    kind: "PRESTIGE",
-    amount,
+    kind: `CHAMPIONSHIP/${selected.result}`,
+    amount: selected.total,
     meta: {
       tournamentId: currentTournamentId,
       level: lvl,
-      title: level.toUpperCase(),
+      result: selected.result,
+      matchCount,
       eventName,
       source: "championship-arena",
     },
@@ -436,7 +446,7 @@ async function giveToOne(id, kind) {
   const row = rowsEl?.querySelector?.(`tr[data-id="${id}"]`);
 
   const bodyData =
-    (kind === "lion" || kind === "tiger" || kind === "bear")
+    (kind === "compete" || kind === "place" || kind === "champion")
       ? buildPrestigePayload(uid, kind)
       : buildArenaPayload(uid, kind);
 
@@ -507,9 +517,9 @@ async function bulkGive(kind, label) {
     if (!currentTournamentId) throw new Error("Tournament ID required.");
     if (kind === "style" && !getCurrentStyle()) throw new Error("Pick a Match IQ style first.");
 
-    if (kind === "lion" || kind === "tiger" || kind === "bear") {
-      if (!eventLevel()) throw new Error("Event level is required for prestige.");
-      if (!prestigeArmed()) throw new Error("Prestige requires: Won event + type WIN.");
+    if (kind === "compete" || kind === "place" || kind === "champion") {
+      if (!eventLevel()) throw new Error("Event level is required for championship awards.");
+      if (!prestigeArmed()) throw new Error("Championship requires: Won event + type WIN.");
     }
 
     isSaving = true;
@@ -566,9 +576,9 @@ clearAllEl?.addEventListener("click", () => {
   setStatus("Selection cleared.", true);
 });
 
-bulkLionEl?.addEventListener("click", () => bulkGive("lion", "Lion +25"));
-bulkTigerEl?.addEventListener("click", () => bulkGive("tiger", "Tiger +50"));
-bulkBearEl?.addEventListener("click", () => bulkGive("bear", "Bear +75"));
+bulkLionEl?.addEventListener("click", () => bulkGive("compete", "Championship compete · 15 total"));
+bulkTigerEl?.addEventListener("click", () => bulkGive("place", "Championship place · 30 total"));
+bulkBearEl?.addEventListener("click", () => bulkGive("champion", "Championship champion · 50 total"));
 
 bulkBattleEl?.addEventListener("click", () => bulkGive("battle", "+10 Battle"));
 bulkPodiumEl?.addEventListener("click", () => bulkGive("podium", "+5 Podium"));

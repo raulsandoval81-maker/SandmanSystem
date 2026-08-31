@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.xpHttp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const cors_1 = __importDefault(require("cors"));
-const xpEngine_1 = require("../xpEngine");
+const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const corsMw = (0, cors_1.default)({ origin: true });
 function normalizeKind(kind) {
     const raw = String(kind ?? "").trim();
@@ -44,7 +44,7 @@ exports.xpHttp = (0, https_1.onRequest)((req, res) => {
             const payload = req.body?.data ?? req.body ?? {};
             // ✅ normalize at the choke point (affects all 4 pages)
             payload.kind = normalizeKind(payload.kind);
-            const out = await (0, xpEngine_1.runIncrementXp)(coachUid, payload);
+            const out = await (0, authoritativeXpService_1.dispatchAuthoritativeXp)(coachUid, payload);
             return res.status(200).json(out);
         }
         catch (e) {

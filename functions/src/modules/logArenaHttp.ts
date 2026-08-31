@@ -1,6 +1,6 @@
 import { onRequest, HttpsError } from "firebase-functions/v2/https";
 import cors from "cors";
-import { runIncrementXp } from "../xpEngine";
+import { dispatchAuthoritativeXp } from "../services/authoritativeXpService";
 
 const corsMw = cors({ origin: true });
 
@@ -42,7 +42,7 @@ export const logArenaHttp = onRequest(async (req, res) => {
       if (!tournamentId) throw new HttpsError("invalid-argument", "meta.tournamentId required");
 
       // ✅ correct signature: (coachUid, payload)
-      const out = await runIncrementXp(V1_COACH_UID, {
+      const out = await dispatchAuthoritativeXp(V1_COACH_UID, {
         uid,
         kind,
         amount,

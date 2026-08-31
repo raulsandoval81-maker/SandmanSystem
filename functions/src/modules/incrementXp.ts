@@ -1,5 +1,6 @@
 // functions/src/incrementXp.ts
 import { onCall, HttpsError } from "firebase-functions/v2/https";
+import { dispatchAuthoritativeXp } from "../services/authoritativeXpService";
 import admin from "firebase-admin";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
 
@@ -292,6 +293,11 @@ export const incrementXp = onCall(async (req) => {
   const payload = req.data || {};
   const uid = String(payload.uid || "").trim();
   const kind = String(payload.kind || "").trim();
+
+  if (!kind.startsWith("DEV/")) {
+    return dispatchAuthoritativeXp(coachUid, payload);
+  }
+
 
   const amountRaw = payload.amount;
   const amount =

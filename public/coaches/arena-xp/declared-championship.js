@@ -1,10 +1,10 @@
 // public/arena-xp/declared-championship.js
 // Declared Championship XP — V1 (coach discretion)
 // - Arena: Battle (+10) + Podium (+5) + Style/IQ (+5)
-// - Championship awards: Lion/Tiger/Bear = +25/+50/+75
+// - Championship totals: Compete 15, Place 30, Champion 50
 // - Requires: Won + type WIN to arm
 // - Optional: #eventLevel (state/regional/national). If present, it is REQUIRED and written into meta.level.
-// - Backend kind remains "PRESTIGE" for Lion/Tiger/Bear.
+// - Historical PRESTIGE remains a server compatibility term.
 
 import "/coaches/_ui/dev-boot.js";
 
@@ -50,6 +50,7 @@ const winArmEl = document.getElementById("winArm");
 
 // OPTIONAL on some pages
 const levelEl = document.getElementById("eventLevel");
+const matchCountEl = document.getElementById("matchCount");
 
 const pickAllEl = document.getElementById("pickAll");
 const clearAllEl = document.getElementById("clearAll");
@@ -434,23 +435,28 @@ function buildDeclaredChampionshipPayload(uid, awardKey) {
   const eventName = String(evEl?.value || "").trim() || null;
 
   const map = {
-    lion: { amount: 25, title: "LION" },
-    tiger: { amount: 50, title: "TIGER" },
-    bear: { amount: 75, title: "BEAR" },
+    compete: { total: 15, result: "COMPETE" },
+    place: { total: 30, result: "PLACE" },
+    champion: { total: 50, result: "CHAMPION" },
   };
 
   const cfg = map[awardKey];
-  if (!cfg) throw new Error("Unknown championship award: " + awardKey);
+  if (!cfg) throw new Error("Unknown championship result: " + awardKey);
+  const matchCount = Number(matchCountEl?.value ?? 0);
+  if ((awardKey === "place" || awardKey === "champion") && (!Number.isInteger(matchCount) || matchCount < 3)) {
+    throw new Error("Place and Champion require at least 3 matches.");
+  }
 
   return {
     uid,
-    kind: "PRESTIGE",
-    amount: cfg.amount,
+    kind: `CHAMPIONSHIP/${cfg.result}`,
+    amount: cfg.total,
     meta: {
       tournamentId: currentTournamentId,
       eventName,
       level: lvl,
-      title: cfg.title,
+      result: cfg.result,
+      matchCount,
       track: trackWanted(),
       source: "declared-championship",
     },
@@ -468,7 +474,7 @@ async function giveToOne(id, kind) {
   const row = rowsEl?.querySelector?.(`tr[data-id="${id}"]`);
 
   const bodyData =
-    (kind === "lion" || kind === "tiger" || kind === "bear")
+    (kind === "compete" || kind === "place" || kind === "champion")
       ? buildDeclaredChampionshipPayload(uid, kind)
       : buildArenaPayload(uid, kind);
 
@@ -534,7 +540,7 @@ async function bulkGive(kind, label) {
     if (!currentTournamentId) throw new Error("Tournament ID required.");
     if (kind === "style" && !getCurrentStyle()) throw new Error("Pick a Match IQ style first.");
 
-    if (kind === "lion" || kind === "tiger" || kind === "bear") {
+    if (kind === "compete" || kind === "place" || kind === "champion") {
       if (levelEl && !eventLevelValue()) throw new Error("Event level is required.");
       if (!championshipArmed()) throw new Error("Championship requires: Won event + type WIN.");
     }
@@ -601,9 +607,9 @@ clearAllEl?.addEventListener("click", () => {
   setStatus("Selection cleared.", true);
 });
 
-bulkLionEl?.addEventListener("click", () => bulkGive("lion", "Lion +25"));
-bulkTigerEl?.addEventListener("click", () => bulkGive("tiger", "Tiger +50"));
-bulkBearEl?.addEventListener("click", () => bulkGive("bear", "Bear +75"));
+bulkLionEl?.addEventListener("click", () => bulkGive("compete", "Declared compete · 15 total"));
+bulkTigerEl?.addEventListener("click", () => bulkGive("place", "Declared place · 30 total"));
+bulkBearEl?.addEventListener("click", () => bulkGive("champion", "Declared champion · 50 total"));
 
 bulkBattleEl?.addEventListener("click", () => bulkGive("battle", "+10 Battle"));
 bulkPodiumEl?.addEventListener("click", () => bulkGive("podium", "+5 Podium"));

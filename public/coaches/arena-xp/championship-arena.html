@@ -22,7 +22,7 @@
   </nav>
 
   <h1>XP Championship Event Arena</h1>
-  <div class="creed">Prestige is separate. Arena is still Battle + Podium + Style/IQ. Receipts. No guessing.</div>
+  <div class="creed">Championship results are cumulative. Arena remains Battle + Podium + Style/IQ.</div>
 
   <section class="card">
 
@@ -48,6 +48,7 @@
             <option value="regional">Regional</option>
             <option value="national">National</option>
           </select>
+          <input id="matchCount" class="input" type="number" min="0" step="1" placeholder="Matches completed" />
         </div>
 
         <div class="row" style="margin-top:8px;">
@@ -56,11 +57,11 @@
             <span>Won event</span>
           </label>
 
-          <input id="winArm" class="input input-win" placeholder="Type WIN to arm prestige…" />
+          <input id="winArm" class="input input-win" placeholder="Type WIN to arm championship…" />
         </div>
 
         <div class="hint">
-          Tournament ID unlocks Arena. Prestige requires: Won event + type <b>WIN</b>.
+          Tournament ID unlocks Arena. Championship requires: Won event + type <b>WIN</b>.
         </div>
 
         <div id="stampBar" class="stampbar"></div>
@@ -93,9 +94,9 @@
         </div>
 
         <div class="row">
-          <button id="bulkLion"  class="btn btn-lion"  type="button" disabled>Lion +25</button>
-          <button id="bulkTiger" class="btn btn-tiger" type="button" disabled>Tiger +50</button>
-          <button id="bulkBear"  class="btn btn-bear"  type="button" disabled>Bear +75</button>
+          <button id="bulkLion"  class="btn btn-lion"  type="button" disabled>Compete · 15 total</button>
+          <button id="bulkTiger" class="btn btn-tiger" type="button" disabled>Place · 30 total</button>
+          <button id="bulkBear"  class="btn btn-bear"  type="button" disabled>Champion · 50 total</button>
         </div>
 
         <div class="row" style="margin-top:8px;">
@@ -117,7 +118,7 @@
         </div>
 
         <div class="hint">
-          Battle/Podium need Tournament ID. Style needs Match IQ. Prestige needs Won + WIN.
+          Battle/Podium need Tournament ID. Style needs Match IQ. Championship needs Won + WIN.
         </div>
       </div>
     </div>
