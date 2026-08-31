@@ -1,3 +1,5 @@
+@import url("/coaches/cards/coach-curriculum-shell.css");
+
 :root{
   color-scheme: dark;
   --bg:#0b1120;
@@ -235,4 +237,3 @@ body{
   border-color:var(--gold);
   color:var(--gold);
 }
-
