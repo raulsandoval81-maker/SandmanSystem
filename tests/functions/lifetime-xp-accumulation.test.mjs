@@ -14,7 +14,9 @@ const serviceSource = readFileSync("functions/src/services/authoritativeXpServic
 const promotionSource = readFileSync("functions/src/modules/promotion/promoteTierAction.ts", "utf8");
 
 function f8(overrides = {}) {
-  return { uid: "F8_LIFE", trackBase: "F8", tier: "T0", xp: 100, lifetimeXp: 2400, ...overrides };
+  const tier = overrides.progressionTier ?? overrides.tier ?? "T0";
+  return { uid: "F8_LIFE", trackBase: "F8", tier, progressionTier: tier,
+    xp: 100, lifetimeXp: 2400, ...overrides };
 }
 
 function request(kind, amount, meta = {}) {

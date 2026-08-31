@@ -37,7 +37,7 @@
         }
 
         const athlete = snap.data();
-        const actualTier = athlete.tier;
+        const actualTier = athlete.curriculumTier || athlete.tier;
 
         if (actualTier !== pageTier) {
           window.location.replace(`/athletes/arsenal/combat/z2h/wrestling/index.html?id=${encodeURIComponent(athleteId)}`);

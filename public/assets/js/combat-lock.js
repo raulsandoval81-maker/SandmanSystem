@@ -165,6 +165,7 @@ export async function lockTierView(
       currentTier = explicitDiscipline
         ? "T0"
         : normalizeTier(
+            athlete.curriculumTier ||
             athlete.tier ||
             athlete.currentTier ||
             athlete.rank ||
@@ -306,6 +307,8 @@ console.log(
       discipline,
       currentTier,
       disciplineProgress,
+      curriculumTier: athlete.curriculumTier || null,
+      progressionTier: athlete.progressionTier || null,
       rootTier: athlete.tier || null
     },
     null,

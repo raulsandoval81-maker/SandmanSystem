@@ -12,10 +12,11 @@ import {
   shouldEmitAwardSideEffects,
 } from "../../functions/lib/services/authoritativeXpService.js";
 
-const f8 = (overrides = {}) => ({
-  uid: "F8_2000", trackBase: "F8", tier: "T1", xp: 100, xpCap: 1600,
-  ...overrides,
-});
+const f8 = (overrides = {}) => {
+  const tier = overrides.progressionTier ?? overrides.tier ?? "T1";
+  return { uid: "F8_2000", trackBase: "F8", tier, progressionTier: tier,
+    xp: 100, xpCap: 1600, ...overrides };
+};
 const f4 = (overrides = {}) => ({
   uid: "F4_2000", trackBase: "F4", tier: "T1", xp: 100, xpCap: 1600,
   ...overrides,

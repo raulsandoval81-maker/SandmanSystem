@@ -18,10 +18,11 @@ const f4 = (overrides = {}) => ({
   uid: "F4_1000", trackBase: "F4", tier: "T0", xp: 100, xpCap: 1000,
   xpDaily: 900, xpArena: 500, xpFightIQ: 200, ...overrides,
 });
-const f8 = (overrides = {}) => ({
-  uid: "F8_1000", trackBase: "F8", tier: "T0", xp: 100, xpCap: 600,
-  xpDaily: 900, xpArena: 500, xpFightIQ: 200, ...overrides,
-});
+const f8 = (overrides = {}) => {
+  const tier = overrides.progressionTier ?? overrides.tier ?? "T0";
+  return { uid: "F8_1000", trackBase: "F8", tier, progressionTier: tier,
+    xp: 100, xpCap: 600, xpDaily: 900, xpArena: 500, xpFightIQ: 200, ...overrides };
+};
 const req = (kind, amount, meta = {}) => normalizeXpRequest({
   uid: "athlete", kind, amount, meta,
 });
@@ -80,17 +81,18 @@ test("parent-signal failure is swallowed after a successful XP result", async ()
   assert.equal(attempts, 1);
 });
 
-test("authoritative service contains no migration or curriculum dependency", () => {
+test("authoritative service contains no migration, curriculum routing, or promotion dependency", () => {
   const source = readFileSync("functions/src/services/authoritativeXpService.ts", "utf8");
   assert.doesNotMatch(source, /migrat/i);
-  assert.doesNotMatch(source, /curriculum/i);
+  assert.match(source, /resolveF8ProgressionTier/);
+  assert.doesNotMatch(source, /curriculumTier|skilltree|lesson|cardCompletion/i);
   assert.doesNotMatch(source, /promoteTier|PROMOTE/);
 });
 
 test("F8 caps come only from the Phase 1 five-rank policy", () => {
   assert.equal(activeXpCap(f8({ tier: "T0", xpCap: 600 }), "F8"), 800);
   assert.equal(activeXpCap(f8({ tier: "T4", xpCap: 1400 }), "F8"), 3400);
-  assert.throws(() => activeXpCap(f8({ tier: "T7" }), "F8"), /Unknown Foundry 8 rank/);
+  assert.throws(() => activeXpCap(f8({ tier: "T7" }), "F8"), /INVALID_PROGRESSION_TIER/);
 });
 
 test("active XP begins at athlete.xp and never reconstructs source buckets", () => {

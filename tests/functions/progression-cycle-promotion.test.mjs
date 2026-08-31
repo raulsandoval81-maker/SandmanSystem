@@ -21,7 +21,7 @@ const promoteSource = readFileSync("functions/src/modules/promotion/promoteTierA
 const indexSource = readFileSync("functions/src/index.ts", "utf8");
 
 test("reaching the XP cap does not auto-promote", () => {
-  const athlete = { uid: "F8_1", trackBase: "F8", tier: "T0", xp: 795 };
+  const athlete = { uid: "F8_1", trackBase: "F8", tier: "T0", progressionTier: "T0", xp: 795 };
   const request = normalizeXpRequest({ uid: athlete.uid, kind: "ATTENDANCE", amount: 10 });
   const out = buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly: {} });
   assert.equal(out.tier, "T0");
@@ -111,14 +111,15 @@ test("promotion preserves historical XP and testing audit data", () => {
   assert.match(promoteSource, /createTestingEvent/);
 });
 
-test("promotion does not reset monthly caps, source buckets, or curriculum", () => {
+test("promotion does not reset monthly caps or source buckets and preserves curriculum", () => {
   assert.doesNotMatch(promoteSource, /monthly\.|xpDaily|xpArena|xpStrength|xpHonor/);
-  assert.doesNotMatch(promoteSource, /curriculum/i);
+  assert.match(promoteSource, /curriculumTier,/);
+  assert.doesNotMatch(promoteSource, /curriculumTier: transition\.next\.tier/);
 });
 
 test("next award after promotion starts from zero and ignores old buckets", () => {
   const athlete = {
-    uid: "F8_2", trackBase: "F8", tier: "T1", xp: 0, xpCap: 1600,
+    uid: "F8_2", trackBase: "F8", tier: "T1", progressionTier: "T1", xp: 0, xpCap: 1600,
     xpDaily: 800, xpArena: 250, xpStrength: 100, xpHonor: 100,
   };
   const request = normalizeXpRequest({ uid: athlete.uid, kind: "ATTENDANCE", amount: 10 });

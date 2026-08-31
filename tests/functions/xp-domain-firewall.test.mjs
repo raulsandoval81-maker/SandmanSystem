@@ -48,7 +48,7 @@ test("Challenge XP cannot feed Strength or Honor", () => {
 test("F8 Strength and Honor feed its one Active Rank XP bar", () => {
   assert.equal(awardLaneFeedsActiveRankXp("F8", "STRENGTH"), true);
   assert.equal(awardLaneFeedsActiveRankXp("F8", "HONOR"), true);
-  const athlete = { uid: "F8_9", trackBase: "F8", tier: "T1", xp: 100 };
+  const athlete = { uid: "F8_9", trackBase: "F8", tier: "T1", progressionTier: "T1", xp: 100 };
   const request = normalizeXpRequest({ uid: athlete.uid, kind: "STRENGTH", amount: 10 });
   assert.equal(buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly: {} }).afterXp, 110);
 });
