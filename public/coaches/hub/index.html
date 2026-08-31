@@ -12,7 +12,7 @@
 
   <meta
     name="description"
-    content="Sandman Coaches Hub—mission, standards, and entry into the Coach System."
+    content="Sandman Coaches Hub — culture, daily coaching orientation, and Coach Home Base."
   >
 
   <link rel="stylesheet" href="./hub.css">
@@ -22,92 +22,481 @@
 
 <body>
 
-  <header class="coach-header">
-    <div class="coach-header__inner">
+  <div class="coach-app">
 
-      <div class="coach-header__left">
-        <button
-          id="langEN"
-          class="toggle-pill active"
-          type="button"
-          aria-label="Use English"
-          aria-pressed="true"
-        >
-          EN
-        </button>
+    <aside
+      id="coachDrawer"
+      class="coach-drawer"
+      aria-label="Coach navigation"
+    >
+      <div class="drawer-brand">
+        <span class="drawer-brand__system">
+          Sandman Combat System™
+        </span>
 
-        <button
-          id="langES"
-          class="toggle-pill"
-          type="button"
-          aria-label="Usar español"
-          aria-pressed="false"
+        <span
+          class="drawer-brand__role"
+          data-en="Coach"
+          data-es="Entrenador"
         >
-          ES
-        </button>
+          Coach
+        </span>
       </div>
 
-      <div class="coach-header__center">
+      <nav class="drawer-nav">
+
         <a
-          class="coach-brand"
-          href="/coaches/hub/index.html"
-          aria-label="Sandman Coaches Hub"
+          class="drawer-link active"
+          href="/coaches/hub/"
+          aria-current="page"
+          data-en="Coach Home"
+          data-es="Inicio del Entrenador"
         >
-          <span
-            data-en="Sandman Combat System™"
-            data-es="Sandman Combat System™"
-          >
-            Sandman Combat System™
-          </span>
+          Coach Home
         </a>
 
         <div
-          class="coach-sub"
-          data-en="Coaches Hub"
-          data-es="Centro de Entrenadores"
+          class="drawer-label"
+          data-en="Daily Work"
+          data-es="Trabajo Diario"
         >
-          Coaches Hub
+          Daily Work
         </div>
-      </div>
 
-      <div class="coach-header__right">
-        <button
-          id="themeToggle"
-          class="toggle-pill"
-          type="button"
-          aria-label="Switch to light theme"
-          title="Change theme"
+        <a class="drawer-link" href="/coaches/roster/">
+          Athletes
+        </a>
+
+        <a class="drawer-link" href="/coaches/practice/">
+          Practice
+        </a>
+
+        <a class="drawer-link" href="/coaches/cards/">
+          Curriculum
+        </a>
+
+        <a class="drawer-link" href="/coaches/daily-xp/">
+          XP &amp; Progression
+        </a>
+
+        <a class="drawer-link" href="/coaches/arena-xp/">
+          Competition
+        </a>
+
+        <a
+          class="drawer-link"
+          href="/communications/coach/broadcast.html"
         >
-          ☀️
-        </button>
-      </div>
+          Communications
+        </a>
+
+        <div
+          class="drawer-label"
+          data-en="Team"
+          data-es="Equipo"
+        >
+          Team
+        </div>
+
+        <a class="drawer-link" href="/coaches/team/">
+          Team
+        </a>
+
+        <a class="drawer-link" href="/coaches/safety/">
+          Safety
+        </a>
+
+        <div
+          class="drawer-label"
+          data-en="Workspace"
+          data-es="Espacio de Trabajo"
+        >
+          Workspace
+        </div>
+
+        <a class="drawer-link" href="/coaches/dashboard/">
+          Dashboard
+        </a>
+
+        <a class="drawer-link" href="/coaches/index.html">
+          Coach System
+        </a>
+
+      </nav>
+    </aside>
+
+    <div
+      id="drawerBackdrop"
+      class="drawer-backdrop"
+      hidden
+    ></div>
+
+    <div class="coach-workspace">
+
+      <header class="coach-header">
+        <div class="coach-header__inner">
+
+          <div class="coach-header__left">
+
+            <button
+              id="menuToggle"
+              class="menu-toggle"
+              type="button"
+              aria-label="Open Coach navigation"
+              aria-expanded="false"
+            >
+              ☰
+            </button>
+
+            <button
+              id="langEN"
+              class="toggle-pill active"
+              type="button"
+              aria-label="Use English"
+              aria-pressed="true"
+            >
+              EN
+            </button>
+
+            <button
+              id="langES"
+              class="toggle-pill"
+              type="button"
+              aria-label="Usar español"
+              aria-pressed="false"
+            >
+              ES
+            </button>
+
+          </div>
+
+          <div class="coach-header__center">
+
+            <a
+              class="coach-brand"
+              href="/coaches/hub/"
+            >
+              Sandman Combat System™
+            </a>
+
+            <div
+              class="coach-sub"
+              data-en="Coach Home"
+              data-es="Inicio del Entrenador"
+            >
+              Coach Home
+            </div>
+
+          </div>
+
+          <div class="coach-header__right">
+
+            <button
+              id="themeToggle"
+              class="toggle-pill"
+              type="button"
+              aria-label="Switch to light theme"
+              title="Change theme"
+            >
+              ☀️
+            </button>
+
+          </div>
+
+        </div>
+
+        <div class="coach-header__line"></div>
+      </header>
+
+      <main class="coach-hub-main">
+
+        <section class="coach-welcome">
+
+          <p
+            class="eyebrow"
+            data-en="Sandman Coach"
+            data-es="Entrenador Sandman"
+          >
+            Sandman Coach
+          </p>
+
+          <h1
+            data-en="Welcome to the Coaches Hub"
+            data-es="Bienvenido al Centro de Entrenadores"
+          >
+            Welcome to the Coaches Hub
+          </h1>
+
+          <p
+            class="welcome-copy"
+            data-en="Teach the standard. Protect the culture. Prepare athletes for the moment — and for what comes after it."
+            data-es="Enseña el estándar. Protege la cultura. Prepara a los atletas para el momento y para lo que viene después."
+          >
+            Teach the standard. Protect the culture. Prepare athletes
+            for the moment — and for what comes after it.
+          </p>
+
+        </section>
+
+        <section
+          class="culture-story"
+          aria-label="Sandman Creed Code Goal and Mission"
+        >
+
+          <article class="culture-card culture-card--creed">
+
+            <div class="culture-number">01</div>
+
+            <div>
+              <p
+                class="culture-kicker"
+                data-en="The Promise to Ourselves"
+                data-es="La Promesa a Nosotros Mismos"
+              >
+                The Promise to Ourselves
+              </p>
+
+              <h2>Creed</h2>
+
+              <p
+                data-en="Character before outcome. The standard begins with who we choose to be when no one is watching."
+                data-es="El carácter antes que el resultado. El estándar comienza con quienes elegimos ser cuando nadie está mirando."
+              >
+                Character before outcome. The standard begins with who
+                we choose to be when no one is watching.
+              </p>
+
+              <strong
+                data-en="As a coach: model it."
+                data-es="Como entrenador: sé el ejemplo."
+              >
+                As a coach: model it.
+              </strong>
+            </div>
+
+          </article>
+
+          <article class="culture-card culture-card--code">
+
+            <div class="culture-number">02</div>
+
+            <div>
+              <p
+                class="culture-kicker"
+                data-en="The Promise to the Sport and Each Other"
+                data-es="La Promesa al Deporte y a los Demás"
+              >
+                The Promise to the Sport and Each Other
+              </p>
+
+              <h2>Code</h2>
+
+              <p
+                data-en="Respect the room, the athletes, the families, the opponent, and the craft. What we allow becomes our culture."
+                data-es="Respeta la sala, los atletas, las familias, al oponente y el oficio. Lo que permitimos se convierte en nuestra cultura."
+              >
+                Respect the room, the athletes, the families, the
+                opponent, and the craft. What we allow becomes our
+                culture.
+              </p>
+
+              <strong
+                data-en="As a coach: protect it."
+                data-es="Como entrenador: protégelo."
+              >
+                As a coach: protect it.
+              </strong>
+            </div>
+
+          </article>
+
+          <article class="culture-card culture-card--goal">
+
+            <div class="culture-number">03</div>
+
+            <div>
+              <p
+                class="culture-kicker"
+                data-en="The Moment"
+                data-es="El Momento"
+              >
+                The Moment
+              </p>
+
+              <h2>Goal</h2>
+
+              <p
+                data-en="Train for the moment. Be present when it arrives. Build the preparation and courage to recognize opportunity and capitalize on it."
+                data-es="Entrena para el momento. Estate presente cuando llegue. Desarrolla la preparación y el valor para reconocer la oportunidad y aprovecharla."
+              >
+                Train for the moment. Be present when it arrives.
+                Build the preparation and courage to recognize
+                opportunity and capitalize on it.
+              </p>
+
+              <strong
+                data-en="As a coach: prepare them for it."
+                data-es="Como entrenador: prepáralos para ello."
+              >
+                As a coach: prepare them for it.
+              </strong>
+            </div>
+
+          </article>
+
+          <article class="culture-card culture-card--mission">
+
+            <div class="culture-number">04</div>
+
+            <div>
+              <p
+                class="culture-kicker"
+                data-en="The Future"
+                data-es="El Futuro"
+              >
+                The Future
+              </p>
+
+              <h2>Mission</h2>
+
+              <p
+                data-en="Competition is part of the journey, not the destination. Build people who can stand on their own two feet, pursue success, carry character, and win in life."
+                data-es="La competencia es parte del camino, no el destino. Forma personas capaces de sostenerse por sí mismas, buscar el éxito, llevar carácter y ganar en la vida."
+              >
+                Competition is part of the journey, not the
+                destination. Build people who can stand on their own
+                two feet, pursue success, carry character, and win in
+                life.
+              </p>
+
+              <strong
+                data-en="As a coach: prepare them for the future."
+                data-es="Como entrenador: prepáralos para el futuro."
+              >
+                As a coach: prepare them for the future.
+              </strong>
+            </div>
+
+          </article>
+
+        </section>
+
+        <section class="home-base">
+
+          <div class="home-base__heading">
+
+            <p
+              class="eyebrow"
+              data-en="Daily Coaching"
+              data-es="Entrenamiento Diario"
+            >
+              Daily Coaching
+            </p>
+
+            <h2
+              data-en="Coach Home Base"
+              data-es="Base del Entrenador"
+            >
+              Coach Home Base
+            </h2>
+
+            <p
+              data-en="Check what needs your attention, then move into the deeper Coach tools when the work requires it."
+              data-es="Revisa lo que necesita tu atención y entra a las herramientas del entrenador cuando el trabajo lo requiera."
+            >
+              Check what needs your attention, then move into the
+              deeper Coach tools when the work requires it.
+            </p>
+
+          </div>
+
+          <div class="home-base-grid">
+
+            <a
+              class="home-card home-card--combat"
+              href="/coaches/practice/"
+            >
+              <span class="home-card__label">Today</span>
+              <strong>Practice</strong>
+              <span>Plan and run today's work.</span>
+            </a>
+
+            <a
+              class="home-card home-card--gold"
+              href="/coaches/roster/"
+            >
+              <span class="home-card__label">Team</span>
+              <strong>Athletes</strong>
+              <span>Roster and athlete attention.</span>
+            </a>
+
+            <a
+              class="home-card"
+              href="/communications/coach/broadcast.html"
+            >
+              <span class="home-card__label">Communication</span>
+              <strong>Messages &amp; Bulletin</strong>
+              <span>Team communication and updates.</span>
+            </a>
+
+            <a
+              class="home-card home-card--gold"
+              href="/coaches/daily-xp/"
+            >
+              <span class="home-card__label">Progress</span>
+              <strong>XP &amp; Progression</strong>
+              <span>Track development and next steps.</span>
+            </a>
+
+            <a
+              class="home-card home-card--combat"
+              href="/coaches/arena-xp/"
+            >
+              <span class="home-card__label">Competition</span>
+              <strong>Arena</strong>
+              <span>Competition work and results.</span>
+            </a>
+
+            <a
+              class="home-card home-card--strength"
+              href="/coaches/conditioning/"
+            >
+              <span class="home-card__label">Physical Development</span>
+              <strong>Strength &amp; Conditioning</strong>
+              <span>Training support and conditioning.</span>
+            </a>
+
+          </div>
+
+          <div class="home-base-actions">
+
+            <a
+              class="primary-action"
+              href="/coaches/dashboard/"
+              data-en="Open Coach Dashboard"
+              data-es="Abrir Panel del Entrenador"
+            >
+              Open Coach Dashboard
+            </a>
+
+            <a
+              class="secondary-action"
+              href="/coaches/cards/"
+              data-en="Open Curriculum"
+              data-es="Abrir Currículo"
+            >
+              Open Curriculum
+            </a>
+
+          </div>
+
+        </section>
+
+      </main>
 
     </div>
 
-    <div class="coach-header__line"></div>
-  </header>
-
-  <main class="coach-hub-main">
-
-    <picture class="coach-hub-art">
-      <img
-        id="coachHubImage"
-        src="/assets/images/sandman-coaches-hub-en.png"
-        alt="Sandman Coaches Hub mission, creed, code, goal, and standards"
-        loading="eager"
-      >
-    </picture>
-
-    <a
-      class="enter-coach-system"
-      href="/coaches/index.html"
-      data-en="Enter Coach System"
-      data-es="Entrar al Sistema de Entrenadores"
-    >
-      Enter Coach System
-    </a>
-
-  </main>
+  </div>
 
 </body>
 </html>
