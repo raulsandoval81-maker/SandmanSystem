@@ -22,6 +22,9 @@ function isCurriculumTier(value) {
 function legacyTier(athlete) {
     return normalizedTier(athlete?.tier ?? athlete?.tierCode ?? athlete?.currentTier);
 }
+function isLegacyFiveRankNameCompatible(tier, rankName) {
+    return tier === "T4" && rankName === "hero";
+}
 function inspectF8TierCompatibility(athlete) {
     const progressionTier = normalizedTier(athlete?.progressionTier);
     const curriculumTier = normalizedTier(athlete?.curriculumTier);
@@ -59,7 +62,8 @@ function resolveF8ProgressionTier(athlete) {
     if (legacy && isProgressionTier(legacy)) {
         const rank = (0, f8ProgressionPolicy_1.resolveF8RankMetadata)(legacy);
         const rankName = String(athlete?.rankName ?? athlete?.rank ?? "").trim().toLowerCase();
-        if (rankName === rank.name.toLowerCase())
+        if (rankName === rank.name.toLowerCase() ||
+            isLegacyFiveRankNameCompatible(legacy, rankName))
             return legacy;
     }
     throw new https_1.HttpsError("failed-precondition", "F8_PROGRESSION_TIER_REVIEW_REQUIRED");

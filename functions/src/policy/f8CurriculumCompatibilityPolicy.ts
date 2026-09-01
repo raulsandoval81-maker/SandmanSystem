@@ -25,6 +25,10 @@ function legacyTier(athlete: any): string {
   return normalizedTier(athlete?.tier ?? athlete?.tierCode ?? athlete?.currentTier);
 }
 
+function isLegacyFiveRankNameCompatible(tier: string, rankName: string): boolean {
+  return tier === "T4" && rankName === "hero";
+}
+
 export function inspectF8TierCompatibility(athlete: any) {
   const progressionTier = normalizedTier(athlete?.progressionTier);
   const curriculumTier = normalizedTier(athlete?.curriculumTier);
@@ -62,7 +66,10 @@ export function resolveF8ProgressionTier(athlete: any): F8RankReference {
   if (legacy && isProgressionTier(legacy)) {
     const rank = resolveF8RankMetadata(legacy);
     const rankName = String(athlete?.rankName ?? athlete?.rank ?? "").trim().toLowerCase();
-    if (rankName === rank.name.toLowerCase()) return legacy;
+    if (
+      rankName === rank.name.toLowerCase() ||
+      isLegacyFiveRankNameCompatible(legacy, rankName)
+    ) return legacy;
   }
   throw new HttpsError("failed-precondition", "F8_PROGRESSION_TIER_REVIEW_REQUIRED");
 }

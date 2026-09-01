@@ -35,6 +35,14 @@ test("legacy ladder totals 10,800", () => {
   assert.equal(LEGACY_F8_RANKS.reduce((sum, rank) => sum + rank.xpCap, 0), 10800);
 });
 
+test("new migration target ends at Champion while legacy T7 Hero remains historical input", () => {
+  const result = calculateF8MigrationProposal(inputForCumulative(10800));
+  assert.equal(LEGACY_F8_RANKS.at(-1).name, "Hero");
+  assert.equal(result.proposal.proposedTier, "T4");
+  assert.equal(result.proposal.proposedRank, "Champion");
+  assert.equal(result.proposal.proposedActiveXp, 3400);
+});
+
 for (let index = 0, consumed = 0; index < LEGACY_F8_RANKS.length; index += 1) {
   const rank = LEGACY_F8_RANKS[index];
   const rankStart = consumed;
@@ -98,6 +106,7 @@ test("proposed stripes use Phase 1 25/50/75/98 thresholds", () => {
 test("explicit F8 evidence is accepted", () => {
   const result = classifyF8Candidate("athlete-1", { trackBase: "F8", programTrack: "zero2hero" });
   assert.equal(result.accepted, true);
+  assert.equal(classifyF8Candidate("athlete-2", { trackBase: "F8", programTrack: "z2h" }).accepted, true);
 });
 
 test("F4 fixture is rejected", () => {

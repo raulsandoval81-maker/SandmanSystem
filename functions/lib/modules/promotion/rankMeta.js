@@ -78,42 +78,28 @@ const QUEST2MASTERY = {
     },
 };
 /**
- * Zero2Hero youth doctrine.
- *
- * Shadow → Recruit → Contender → Competitor
- * → Warrior → Champion → Commander → Hero
+ * Road2Champion youth progression metadata.
+ * Curriculum remains independently routed through the legacy T0–T7 tree.
  */
-const ZERO2HERO = {
+const ROAD2CHAMPION = {
     T0: {
         rankName: "Shadow",
         rankColor: "white",
     },
     T1: {
-        rankName: "Recruit",
+        rankName: "Prospect",
         rankColor: "yellow",
     },
     T2: {
-        rankName: "Contender",
+        rankName: "Competitor",
         rankColor: "orange",
     },
     T3: {
-        rankName: "Competitor",
+        rankName: "Contender",
         rankColor: "green",
     },
     T4: {
-        rankName: "Warrior",
-        rankColor: "blue",
-    },
-    T5: {
         rankName: "Champion",
-        rankColor: "purple",
-    },
-    T6: {
-        rankName: "Commander",
-        rankColor: "brown",
-    },
-    T7: {
-        rankName: "Hero",
         rankColor: "black",
     },
 };
@@ -134,6 +120,6 @@ exports.RANK_META = {
         F4: QUEST2MASTERY,
     },
     youth: {
-        F8: ZERO2HERO,
+        F8: ROAD2CHAMPION,
     },
 };

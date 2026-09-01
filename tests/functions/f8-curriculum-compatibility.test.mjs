@@ -40,6 +40,15 @@ test("legacy-only F8 tier is readable without mutation", () => {
   assert.deepEqual(athlete, before);
 });
 
+test("legacy five-rank T4 Hero resolves as Champion-tier compatibility without mutation", () => {
+  const athlete = { tier: "T4", rankName: "Hero", xp: 1234, curriculumTier: "T7" };
+  const before = structuredClone(athlete);
+  assert.equal(resolveF8ProgressionTier(athlete), "T4");
+  assert.equal(resolveF8RankMetadata("T4").name, "Champion");
+  assert.equal(resolveF8CurriculumTier(athlete), "T7");
+  assert.deepEqual(athlete, before);
+});
+
 test("ambiguous legacy progression and conflicting explicit evidence fail closed", () => {
   assert.throws(() => resolveF8ProgressionTier({ tier: "T2", rankName: "Contender" }),
     /F8_PROGRESSION_TIER_REVIEW_REQUIRED/);

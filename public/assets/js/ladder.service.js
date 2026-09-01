@@ -14,7 +14,7 @@ export const LADDER_YOUTH = [
   { key:"R1", name:"Prospect",   cap: 1600, stripes:4, stripeThresholds:[400,800,1200,1568] },
   { key:"R2", name:"Competitor", cap: 2200, stripes:4, stripeThresholds:[550,1100,1650,2156] },
   { key:"R3", name:"Contender",  cap: 2800, stripes:4, stripeThresholds:[700,1400,2100,2744] },
-  { key:"R4", name:"Hero",       cap: 3400, stripes:4, stripeThresholds:[850,1700,2550,3332] }
+  { key:"R4", name:"Champion",   cap: 3400, stripes:4, stripeThresholds:[850,1700,2550,3332] }
 ];
 // Alias so pages can import either name
 export const LADDER_F8 = LADDER_YOUTH;
@@ -106,7 +106,7 @@ export function getLadderForAthlete(a = {}) {
     rank === "combatant" || // legacy compatibility
     rank === "competitor" ||
     rank === "commander" ||
-    rank === "hero"
+    rank === "hero" // legacy stored five-rank T4 compatibility
   ) {
     return LADDER_F8;
   }

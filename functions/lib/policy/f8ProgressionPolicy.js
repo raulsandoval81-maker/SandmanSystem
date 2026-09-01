@@ -8,7 +8,7 @@ exports.calculateF8StripeCount = calculateF8StripeCount;
 exports.hasReachedF8RankXpRequirement = hasReachedF8RankXpRequirement;
 exports.resolveF8CombinedStrengthHonorMonthlyCap = resolveF8CombinedStrengthHonorMonthlyCap;
 exports.resolveF8CompetitionMonthlyCap = resolveF8CompetitionMonthlyCap;
-exports.F8_POLICY_VERSION = "f8-five-rank-v1";
+exports.F8_POLICY_VERSION = "f8-road2champion-v2";
 exports.F8_STRIPE_PERCENTAGES = Object.freeze([
     25,
     50,
@@ -50,9 +50,9 @@ exports.F8_RANKS = Object.freeze([
         competitionMonthlyCap: 80,
     }),
     Object.freeze({
-        id: "hero",
+        id: "champion",
         tier: "T4",
-        name: "Hero",
+        name: "Champion",
         xpCap: 3400,
         combinedStrengthHonorMonthlyCap: 120,
         competitionMonthlyCap: 80,

@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 
 import {
   F8_POLICY_VERSION,
@@ -56,9 +57,9 @@ const expectedRanks = [
     competitionCap: 80,
   },
   {
-    id: "hero",
+    id: "champion",
     tier: "T4",
-    name: "Hero",
+    name: "Champion",
     xpCap: 3400,
     stripes: [850, 1700, 2550, 3332],
     supplementalCap: 120,
@@ -67,7 +68,7 @@ const expectedRanks = [
 ];
 
 test("policy is versioned, immutable, and defines one progression bar", () => {
-  assert.equal(F8_POLICY_VERSION, "f8-five-rank-v1");
+  assert.equal(F8_POLICY_VERSION, "f8-road2champion-v2");
   assert.equal(F8_PROGRESSION_POLICY.version, F8_POLICY_VERSION);
   assert.equal(F8_PROGRESSION_POLICY.progressionBars, 1);
   assert.ok(Object.isFrozen(F8_PROGRESSION_POLICY));
@@ -84,6 +85,16 @@ test("policy defines exactly five ranks in the approved order and caps", () => {
   );
   assert.equal(F8_TOTAL_JOURNEY_XP, 10800);
   assert.equal(F8_PROGRESSION_POLICY.totalJourneyXp, 10800);
+  assert.deepEqual(
+    F8_RANKS.map(({ tier, name }) => `${tier} ${name}`),
+    ["T0 Shadow", "T1 Prospect", "T2 Competitor", "T3 Contender", "T4 Champion"]
+  );
+});
+
+test("shared browser ladder matches the canonical Road2Champion order and boundaries", () => {
+  const browserLadder = readFileSync("public/assets/js/ladder.service.js", "utf8");
+  assert.match(browserLadder, /LADDER_YOUTH = \[[\s\S]*R0[^\n]*Shadow[^\n]*800[\s\S]*R1[^\n]*Prospect[^\n]*1600[\s\S]*R2[^\n]*Competitor[^\n]*2200[\s\S]*R3[^\n]*Contender[^\n]*2800[\s\S]*R4[^\n]*Champion[^\n]*3400/);
+  assert.match(browserLadder, /R4[^\n]*stripeThresholds:\[850,1700,2550,3332\]/);
 });
 
 test("rank metadata and caps resolve by id, tier, or display name", () => {

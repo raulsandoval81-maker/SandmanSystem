@@ -18,6 +18,7 @@ import {
 const serviceSource = readFileSync("functions/src/services/authoritativeXpService.ts", "utf8");
 const passSource = readFileSync("functions/src/modules/passAthleteTest.ts", "utf8");
 const promoteSource = readFileSync("functions/src/modules/promotion/promoteTierAction.ts", "utf8");
+const rankMetaSource = readFileSync("functions/src/modules/promotion/rankMeta.ts", "utf8");
 const indexSource = readFileSync("functions/src/index.ts", "utf8");
 
 test("reaching the XP cap does not auto-promote", () => {
@@ -73,6 +74,7 @@ test("successful F8 promotion advances exactly one approved rank", () => {
     next: { tier: "T1", rankName: "Prospect", xpCap: 1600 },
   });
   assert.equal(resolvePromotionTransition("F8", "T3").next.tier, "T4");
+  assert.equal(resolvePromotionTransition("F8", "T3").next.rankName, "Champion");
 });
 
 test("successful F4 promotion advances exactly one compatible rank", () => {
@@ -80,9 +82,14 @@ test("successful F4 promotion advances exactly one compatible rank", () => {
   assert.equal(resolvePromotionTransition("F4", "T1").next.tier, "T2");
 });
 
-test("final F8 Hero and F4 Legend cannot promote", () => {
+test("final F8 Champion and F4 Legend cannot promote", () => {
   assert.throws(() => resolvePromotionTransition("F8", "T4"), /F8_FINAL_RANK_CANNOT_PROMOTE/);
   assert.throws(() => resolvePromotionTransition("F4", "T4"), /F4_FINAL_RANK_CANNOT_PROMOTE/);
+});
+
+test("active F8 promotion metadata uses Road2Champion colors without changing F4", () => {
+  assert.match(rankMetaSource, /const ROAD2CHAMPION:[\s\S]*T4:\s*\{[\s\S]*rankName: "Champion",[\s\S]*rankColor: "black"/);
+  assert.match(rankMetaSource, /const PATH2LEGEND_GRAPPLING:[\s\S]*T2:\s*\{[\s\S]*rankName: "Champion",[\s\S]*rankColor: "purple"/);
 });
 
 test("legacy athletes get a deterministic non-destructive cycle fallback", () => {

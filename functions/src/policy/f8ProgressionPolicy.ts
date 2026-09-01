@@ -1,4 +1,4 @@
-export const F8_POLICY_VERSION = "f8-five-rank-v1" as const;
+export const F8_POLICY_VERSION = "f8-road2champion-v2" as const;
 
 export const F8_STRIPE_PERCENTAGES = Object.freeze([
   25,
@@ -43,9 +43,9 @@ export const F8_RANKS = Object.freeze([
     competitionMonthlyCap: 80,
   }),
   Object.freeze({
-    id: "hero",
+    id: "champion",
     tier: "T4",
-    name: "Hero",
+    name: "Champion",
     xpCap: 3400,
     combinedStrengthHonorMonthlyCap: 120,
     competitionMonthlyCap: 80,
