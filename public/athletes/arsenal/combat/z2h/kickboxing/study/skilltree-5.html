@@ -1,11 +1,151 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T5</title>
-</head>
-<body>
-<h1>Skill Tree Tier 5</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="5" data-track="youth" data-discipline="kickboxing">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Muay Thai Skill Tree 5</h1>
+    <p class="skilltree-sub">15 skills • Road2Champion Muay Thai curriculum stage T5</p>
+  </header>
+
+  <section class="curriculum-bridge">
+    <h2>Contender Development</h2>
+
+    <article class="tree-block">
+      <h3>Skill 1 — Defensive Layers</h3>
+      <p>A — Blend multiple defensive systems together under pressure</p>
+      <p>B — Use guard, movement, checks, slips, and counters fluidly</p>
+      <p>C — Maintain composure and recovery during live exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 2 — Offensive Layers</h3>
+      <p>A — Build layered offensive systems through setups and reactions</p>
+      <p>B — Blend combinations, counters, pressure, and angles together</p>
+      <p>C — Maintain balance and awareness during aggressive exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 3 — Pace Break</h3>
+      <p>A — Break opponent rhythm through timing and pressure changes</p>
+      <p>B — Blend slow-fast tempo transitions into live exchanges</p>
+      <p>C — Maintain composure while controlling pace</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 4 — Weapon Selection</h3>
+      <p>A — Select the correct offensive tools during live exchanges</p>
+      <p>B — Blend tactical awareness into reactions and setups</p>
+      <p>C — Maintain composure while adapting under pressure</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 5 — Live Rounds</h3>
+      <p>A — Apply full T3 systems during live controlled partner work rounds</p>
+      <p>B — Blend offense, defense, movement, and tactics together</p>
+      <p>C — Maintain composure and discipline under pressure</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 6 — Fatigue Performance</h3>
+      <p>A — Perform technically while exhausted and pressured</p>
+      <p>B — Maintain composure, breathing, and structure under fatigue</p>
+      <p>C — Finish rounds with discipline and awareness intact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 7 — Fight Awareness</h3>
+      <p>A — Maintain awareness of pace, positioning, pressure, and reactions</p>
+      <p>B — Blend tactical thinking into live exchanges naturally</p>
+      <p>C — Stay composed and adaptive under chaos and fatigue</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 8 — Chaos Drills</h3>
+      <p>A — Perform technically during unpredictable pressure situations</p>
+      <p>B — Blend reactions, movement, and composure under chaos</p>
+      <p>C — Maintain structure and decision-making while stressed</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 9 — Second Effort</h3>
+      <p>A — Continue performing after the first effort fails</p>
+      <p>B — Maintain composure, pressure, and tactical awareness while tired</p>
+      <p>C — Recover mentally and physically during hard exchanges</p>
+    </article>
+
+  </section>
+
+  <section class="curriculum-bridge">
+    <h2>Champion Preparation</h2>
+
+    <article class="tree-block">
+      <h3>Skill 10 — Muay Thai IQ</h3>
+      <p>A — Read patterns, reactions, and openings during live exchanges</p>
+      <p>B — Blend tactical thinking into offense, defense, and movement</p>
+      <p>C — Adapt intelligently under pressure and fatigue</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 11 — Adaptation</h3>
+      <p>A — Adjust tactics and reactions during live exchanges</p>
+      <p>B — Blend movement, counters, and pressure into adaptive systems</p>
+      <p>C — Maintain composure while solving problems under pressure</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 12 — Pressure Control</h3>
+      <p>A — Control pressure exchanges without emotional reactions</p>
+      <p>B — Blend pressure, movement, and tactical awareness together</p>
+      <p>C — Maintain composure while dictating pace and positioning</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 13 — Range Dictation</h3>
+      <p>A — Control distance and positioning during live exchanges</p>
+      <p>B — Blend movement, pressure, and timing into range control</p>
+      <p>C — Force opponents into uncomfortable positions and reactions</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 14 — Counter Pressure</h3>
+      <p>A — Counter effectively while under forward pressure</p>
+      <p>B — Blend defense, movement, and reactions into counter systems</p>
+      <p>C — Maintain composure and tactical awareness during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 15 — Inside Dominance</h3>
+      <p>A — Control close-range exchanges with composure and pressure</p>
+      <p>B — Blend offense, defense, posture, and reactions inside the pocket</p>
+      <p>C — Maintain tactical awareness during heavy pressure exchanges</p>
+    </article>
+
+  </section>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = String(params.get("id") || params.get("athleteId") || "").trim().toUpperCase();
+  const pageTier = "T5";
+  const branchHome = "/athletes/arsenal/combat/z2h/kickboxing/index.html";
+  const branchUrl = () => branchHome + "?id=" + encodeURIComponent(athleteId) + "&discipline=kickboxing";
+
+  if (!athleteId) { document.body.innerHTML = "<p>Missing athlete id.</p>"; throw new Error("Missing athlete id"); }
+  if (athleteId.startsWith("F4_")) { window.location.replace("/athletes/arsenal/combat/p2l/kickboxing/index.html?id=" + encodeURIComponent(athleteId)); throw new Error("Wrong branch for F4 athlete"); }
+
+  async function guardSkillTreePage() {
+    try {
+      const snap = await getDoc(doc(db, "athletes", athleteId));
+      if (!snap.exists()) { document.body.innerHTML = "<p>Athlete not found.</p>"; return; }
+      const athlete = snap.data() || {};
+      if (athlete.active === false || athlete.rosterStatus === "suspended") { document.body.innerHTML = "<p>Account suspended. Please contact your coach.</p>"; return; }
+      const actualTier = String(athlete.curriculumTier || athlete.tier || "T0").trim().toUpperCase();
+      if (actualTier !== pageTier) window.location.replace(branchUrl());
+    } catch (err) { console.error("Muay Thai skill tree guard error:", err); document.body.innerHTML = "<p>Unable to verify athlete access.</p>"; }
+  }
+
+  guardSkillTreePage();
+</script>

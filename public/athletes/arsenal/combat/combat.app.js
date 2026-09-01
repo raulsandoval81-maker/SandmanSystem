@@ -27,7 +27,15 @@ function normalizeDiscipline(value = "") {
     .trim()
     .toLowerCase();
 
-  if (raw.includes("kickbox")) return "kickboxing";
+  if (
+    raw.includes("kickbox") ||
+    raw === "muay thai" ||
+    raw === "muay-thai" ||
+    raw === "muaythai"
+  ) {
+    return "kickboxing";
+  }
+
   if (raw.includes("wrest")) return "wrestling";
 
   if (
@@ -63,7 +71,7 @@ const DISCIPLINE_ROUTES = {
 
   kickboxing: {
     youth: "/athletes/arsenal/combat/z2h/kickboxing/index.html",
-    teen: null
+    teen: "/athletes/arsenal/combat/p2l/kickboxing/index.html"
   },
 
   mma: {

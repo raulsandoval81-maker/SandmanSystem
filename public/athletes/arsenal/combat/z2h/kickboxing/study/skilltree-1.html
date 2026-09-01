@@ -1,11 +1,125 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T1</title>
-</head>
-<body>
-<h1>Skill Tree Tier 1</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="1" data-track="youth" data-discipline="kickboxing">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Muay Thai Skill Tree 1 — Prospect</h1>
+    <p class="skilltree-sub">12 skills • Road2Champion Muay Thai curriculum stage T1</p>
+  </header>
+
+  <section class="curriculum-bridge">
+    <h2>Prospect</h2>
+
+    <article class="tree-block">
+      <h3>Skill 1 — One Two</h3>
+      <p>A — Flow jab to cross with balance and rhythm</p>
+      <p>B — Maintain guard and stance during the combination</p>
+      <p>C — Finish the exchange under control and reset</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 2 — Lead Hook</h3>
+      <p>A — Deliver a compact lead hook with balance and rotation</p>
+      <p>B — Maintain defensive structure during the strike</p>
+      <p>C — Recover immediately into stance after contact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 3 — Rear Hook</h3>
+      <p>A — Rotate hips and shoulders to generate rear hook power</p>
+      <p>B — Keep stance and guard disciplined during rotation</p>
+      <p>C — Recover balance immediately after the strike</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 4 — Uppercut</h3>
+      <p>A — Drive the uppercut upward with hips and posture</p>
+      <p>B — Maintain balance and defensive awareness during close exchanges</p>
+      <p>C — Recover quickly into stance after contact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 5 — Body Shot</h3>
+      <p>A — Attack the body with balance and proper level change</p>
+      <p>B — Maintain defensive awareness while entering range</p>
+      <p>C — Recover immediately into stance after striking</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 6 — Lead Kick</h3>
+      <p>A — Deliver a controlled lead kick with speed and balance</p>
+      <p>B — Maintain defensive posture during the strike</p>
+      <p>C — Recover quickly into stance after contact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 7 — Rear Kick</h3>
+      <p>A — Generate controlled power through rear kick rotation</p>
+      <p>B — Maintain posture and balance through the strike</p>
+      <p>C — Recover stance immediately after impact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 8 — Teep</h3>
+      <p>A — Use the teep to manage pressure and distance</p>
+      <p>B — Maintain balance and defensive posture during extension</p>
+      <p>C — Reset immediately after contact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 9 — Check and Return System</h3>
+      <p>A — Read and check the kick with posture</p>
+      <p>B — Replace the checking foot in stance</p>
+      <p>C — Return safely before the opponent resets</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 10 — Block</h3>
+      <p>A — Defend punches and strikes with controlled blocks</p>
+      <p>B — Maintain stance and vision during defensive exchanges</p>
+      <p>C — Recover immediately into movement or counters</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 11 — Angle</h3>
+      <p>A — Create better attacking and defensive positions through angles</p>
+      <p>B — Move off the center line while maintaining stance and balance</p>
+      <p>C — Recover into offense or defense immediately after movement</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 12 — Basic Combo</h3>
+      <p>A — Blend punches, kicks, and movement into controlled combinations</p>
+      <p>B — Maintain stance, guard, and balance during exchanges</p>
+      <p>C — Recover and reset cleanly after combinations</p>
+    </article>
+
+  </section>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = String(params.get("id") || params.get("athleteId") || "").trim().toUpperCase();
+  const pageTier = "T1";
+  const branchHome = "/athletes/arsenal/combat/z2h/kickboxing/index.html";
+  const branchUrl = () => branchHome + "?id=" + encodeURIComponent(athleteId) + "&discipline=kickboxing";
+
+  if (!athleteId) { document.body.innerHTML = "<p>Missing athlete id.</p>"; throw new Error("Missing athlete id"); }
+  if (athleteId.startsWith("F4_")) { window.location.replace("/athletes/arsenal/combat/p2l/kickboxing/index.html?id=" + encodeURIComponent(athleteId)); throw new Error("Wrong branch for F4 athlete"); }
+
+  async function guardSkillTreePage() {
+    try {
+      const snap = await getDoc(doc(db, "athletes", athleteId));
+      if (!snap.exists()) { document.body.innerHTML = "<p>Athlete not found.</p>"; return; }
+      const athlete = snap.data() || {};
+      if (athlete.active === false || athlete.rosterStatus === "suspended") { document.body.innerHTML = "<p>Account suspended. Please contact your coach.</p>"; return; }
+      const actualTier = String(athlete.curriculumTier || athlete.tier || "T0").trim().toUpperCase();
+      if (actualTier !== pageTier) window.location.replace(branchUrl());
+    } catch (err) { console.error("Muay Thai skill tree guard error:", err); document.body.innerHTML = "<p>Unable to verify athlete access.</p>"; }
+  }
+
+  guardSkillTreePage();
+</script>

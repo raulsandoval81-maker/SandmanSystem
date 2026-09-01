@@ -1,11 +1,23 @@
 <!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Train T2</title>
-</head>
-<body>
-<h1>Training Tier 2</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Road2Champion™ Muay Thai Training T2</title><link rel="stylesheet" href="/assets/css/skilltree.css"></head>
+<body><section class="skilltree-page" data-tier="2" data-track="youth" data-discipline="kickboxing"><header class="skilltree-header"><p class="skilltree-kicker">Road2Champion™ • Muay Thai</p><h1>Training Stage T2</h1><p class="skilltree-sub">Coach-directed practice follows the active Muay Thai curriculum card.</p></header><article class="tree-block"><h2>Study This Stage</h2><p>Review the lesson concepts and coaching observations before practice.</p><p><a id="studyLink" href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-2.html">Open Muay Thai Skill Tree T2</a></p></article></section>
+<script type="module">
+import { db } from "/assets/js/firebase-init-para.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+const params=new URLSearchParams(window.location.search);
+const athleteId=String(params.get("id")||params.get("athleteId")||"").trim().toUpperCase();
+const pageTier="T2";
+const branchHome="/athletes/arsenal/combat/z2h/kickboxing/index.html";
+if(!athleteId){document.body.innerHTML="<p>Missing athlete id.</p>";throw new Error("Missing athlete id");}
+document.getElementById("studyLink").href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-2.html?id="+encodeURIComponent(athleteId)+"&discipline=kickboxing";
+if(athleteId.startsWith("F4_")){window.location.replace("/athletes/arsenal/combat/p2l/kickboxing/index.html?id="+encodeURIComponent(athleteId));throw new Error("Wrong program branch");}
+try{
+ const snap=await getDoc(doc(db,"athletes",athleteId));
+ if(!snap.exists()){document.body.innerHTML="<p>Athlete not found.</p>";}
+ else{
+  const athlete=snap.data()||{};
+  const actualTier=String(athlete.curriculumTier||athlete.tier||"T0").trim().toUpperCase();
+  if(actualTier!==pageTier)window.location.replace(branchHome+"?id="+encodeURIComponent(athleteId)+"&discipline=kickboxing");
+ }
+}catch(err){console.error("Muay Thai training guard error:",err);document.body.innerHTML="<p>Unable to verify athlete access.</p>";}
+</script></body></html>

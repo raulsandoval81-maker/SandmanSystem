@@ -1,11 +1,146 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T4</title>
-</head>
-<body>
-<h1>Skill Tree Tier 4</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="4" data-track="youth" data-discipline="kickboxing">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Muay Thai Skill Tree 4 — Contender</h1>
+    <p class="skilltree-sub">15 skills • Road2Champion Muay Thai curriculum stage T4</p>
+  </header>
+
+  <section class="curriculum-bridge">
+    <h2>Contender</h2>
+
+    <article class="tree-block">
+      <h3>Skill 1 — Corner Pressure</h3>
+      <p>A — Apply intelligent pressure near ropes or corners</p>
+      <p>B — Cut exits while maintaining balance and defensive structure</p>
+      <p>C — Control pace and positioning without rushing emotionally</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 2 — Inside Muay Thai</h3>
+      <p>A — Enter close range behind a responsible guard and upright posture</p>
+      <p>B — Establish safe clinch frames before adding controlled knees or short strikes</p>
+      <p>C — Turn, separate, or reset without losing balance</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 3 — Advanced Jab</h3>
+      <p>A — Use the jab to control pace, reactions, and positioning</p>
+      <p>B — Blend feints, movement, and pressure through jab systems</p>
+      <p>C — Maintain balance and defensive structure during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 4 — Advanced Cross</h3>
+      <p>A — Deliver advanced rear-hand offense with timing and setups</p>
+      <p>B — Blend movement, counters, and pressure into cross attacks</p>
+      <p>C — Maintain balance and defensive structure during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 5 — Lead Hook System</h3>
+      <p>A — Build offensive and defensive systems around the lead hook</p>
+      <p>B — Blend hooks into pressure, counters, and angle changes</p>
+      <p>C — Maintain posture and balance through rotational offense</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 6 — Rear Kick System</h3>
+      <p>A — Build setups, counters, and pressure around rear-leg kicking</p>
+      <p>B — Blend kicks naturally into combinations and reactions</p>
+      <p>C — Maintain balance and recovery after impact</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 7 — Body Attack</h3>
+      <p>A — Attack the body strategically through punches and kicks</p>
+      <p>B — Blend level changes into pressure and combinations</p>
+      <p>C — Maintain defensive awareness during offensive exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 8 — Head Movement</h3>
+      <p>A — Move the head safely during live striking exchanges</p>
+      <p>B — Blend slips, rolls, and angles into defensive reactions</p>
+      <p>C — Recover into balanced offensive or defensive position</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 9 — Combination Defense</h3>
+      <p>A — Defend layered combinations under pressure</p>
+      <p>B — Blend movement, guard, checks, and counters together</p>
+      <p>C — Maintain composure and posture during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 10 — Tempo Control</h3>
+      <p>A — Control pace and rhythm during live exchanges</p>
+      <p>B — Blend slow-fast timing changes into pressure and counters</p>
+      <p>C — Maintain composure while dictating fight tempo</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 11 — False Pressure</h3>
+      <p>A — Create reactions using fake pressure and movement</p>
+      <p>B — Blend feints, entries, and exits into tactical setups</p>
+      <p>C — Stay balanced and composed during pressure changes</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 12 — Angle Traps</h3>
+      <p>A — Create offensive openings through angles and positioning</p>
+      <p>B — Blend movement, timing, and pressure into trap systems</p>
+      <p>C — Maintain balance and awareness during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 13 — Rope Escapes</h3>
+      <p>A — Escape pressure safely from ropes or corners</p>
+      <p>B — Blend movement, defense, and angles under pressure</p>
+      <p>C — Recover position and composure after escapes</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 14 — Counter Kicking</h3>
+      <p>A — Counter attacks through kick timing and reactions</p>
+      <p>B — Blend checks, movement, and counter kicks fluidly</p>
+      <p>C — Maintain balance and composure during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 15 — Elbow Fundamentals</h3>
+      <p>A — Build a safe elbow line from balanced posture</p>
+      <p>B — Protect with the opposite hand and use coach-held pads only</p>
+      <p>C — Return to guard without uncontrolled partner contact</p>
+    </article>
+
+  </section>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = String(params.get("id") || params.get("athleteId") || "").trim().toUpperCase();
+  const pageTier = "T4";
+  const branchHome = "/athletes/arsenal/combat/z2h/kickboxing/index.html";
+  const branchUrl = () => branchHome + "?id=" + encodeURIComponent(athleteId) + "&discipline=kickboxing";
+
+  if (!athleteId) { document.body.innerHTML = "<p>Missing athlete id.</p>"; throw new Error("Missing athlete id"); }
+  if (athleteId.startsWith("F4_")) { window.location.replace("/athletes/arsenal/combat/p2l/kickboxing/index.html?id=" + encodeURIComponent(athleteId)); throw new Error("Wrong branch for F4 athlete"); }
+
+  async function guardSkillTreePage() {
+    try {
+      const snap = await getDoc(doc(db, "athletes", athleteId));
+      if (!snap.exists()) { document.body.innerHTML = "<p>Athlete not found.</p>"; return; }
+      const athlete = snap.data() || {};
+      if (athlete.active === false || athlete.rosterStatus === "suspended") { document.body.innerHTML = "<p>Account suspended. Please contact your coach.</p>"; return; }
+      const actualTier = String(athlete.curriculumTier || athlete.tier || "T0").trim().toUpperCase();
+      if (actualTier !== pageTier) window.location.replace(branchUrl());
+    } catch (err) { console.error("Muay Thai skill tree guard error:", err); document.body.innerHTML = "<p>Unable to verify athlete access.</p>"; }
+  }
+
+  guardSkillTreePage();
+</script>

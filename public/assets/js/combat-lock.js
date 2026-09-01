@@ -25,7 +25,10 @@ function normalizeDiscipline(value = "") {
 
   if (
     discipline === "kickbox" ||
-    discipline === "kickboxing"
+    discipline === "kickboxing" ||
+    discipline === "muay thai" ||
+    discipline === "muay-thai" ||
+    discipline === "muaythai"
   ) {
     return "kickboxing";
   }

@@ -1,11 +1,146 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T3</title>
-</head>
-<body>
-<h1>Skill Tree Tier 3</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="3" data-track="youth" data-discipline="kickboxing">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Muay Thai Skill Tree 3 — Competitor</h1>
+    <p class="skilltree-sub">15 skills • Road2Champion Muay Thai curriculum stage T3</p>
+  </header>
+
+  <section class="curriculum-bridge">
+    <h2>Competitor</h2>
+
+    <article class="tree-block">
+      <h3>Skill 1 — Double Jab</h3>
+      <p>A — Use repeated jabs to pressure and create reactions</p>
+      <p>B — Maintain balance and defensive structure while advancing</p>
+      <p>C — Flow into follow-up offense after establishing range</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 2 — Body Head Kick Combo</h3>
+      <p>A — Blend level changes into fluid combination offense</p>
+      <p>B — Maintain stance and posture through transitions</p>
+      <p>C — Recover balance and defense after exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 3 — Pressure Step</h3>
+      <p>A — Step forward with control to apply pressure</p>
+      <p>B — Keep stance, guard, and balance while advancing</p>
+      <p>C — Pressure without rushing, reaching, or losing structure</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 4 — Ring Position</h3>
+      <p>A — Understand center control and ring awareness</p>
+      <p>B — Use movement and pressure to control space</p>
+      <p>C — Avoid getting trapped or cornered during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 5 — Controlled Partner Application</h3>
+      <p>A — Follow the coach-assigned action and contact rule</p>
+      <p>B — Apply one skill while protecting the partner</p>
+      <p>C — Reset calmly after each exchange</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 6 — Kick Catch Reaction</h3>
+      <p>A — React to kicks with controlled catches and balance</p>
+      <p>B — Maintain posture and defensive awareness during reactions</p>
+      <p>C — Flow immediately into resets, counters, or movement</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 7 — Distance Traps</h3>
+      <p>A — Draw reactions through distance and positioning</p>
+      <p>B — Create openings using pressure and timing</p>
+      <p>C — Stay balanced and ready to counter immediately</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 8 — Defensive Reactions</h3>
+      <p>A — Defend naturally under pressure and live exchanges</p>
+      <p>B — Blend movement, guard, checks, and counters together</p>
+      <p>C — Recover immediately into balanced position</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 9 — Ring Awareness</h3>
+      <p>A — Maintain awareness of space, pressure, and positioning</p>
+      <p>B — Adjust movement and tactics based on ring position</p>
+      <p>C — Stay composed and disciplined during live movement</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 10 — Ringcraft</h3>
+      <p>A — Control space, angles, and positioning during live exchanges</p>
+      <p>B — Blend movement, pressure, and awareness together</p>
+      <p>C — Maintain composure and tactical control under pressure</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 11 — Pressure Flow</h3>
+      <p>A — Apply forward pressure without losing structure</p>
+      <p>B — Blend offense, movement, and defensive awareness fluidly</p>
+      <p>C — Maintain balance and composure while advancing</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 12 — Counter Chain</h3>
+      <p>A — Blend multiple counters together under live pressure</p>
+      <p>B — Flow naturally between defense and offense</p>
+      <p>C — Maintain balance and composure during counter exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 13 — Reaction Training</h3>
+      <p>A — Improve reactions under live speed and pressure</p>
+      <p>B — Blend defense, movement, and counters instinctively</p>
+      <p>C — Maintain composure during unpredictable exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 14 — Setup System</h3>
+      <p>A — Build offensive openings through feints, timing, and pressure</p>
+      <p>B — Blend setups naturally into combinations and counters</p>
+      <p>C — Maintain composure and tactical patience during exchanges</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 15 — Clinch Entry</h3>
+      <p>A — Enter clinch positions safely and under control</p>
+      <p>B — Blend strikes, posture, and pressure into entries</p>
+      <p>C — Maintain balance and defensive awareness during transitions</p>
+    </article>
+
+  </section>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = String(params.get("id") || params.get("athleteId") || "").trim().toUpperCase();
+  const pageTier = "T3";
+  const branchHome = "/athletes/arsenal/combat/z2h/kickboxing/index.html";
+  const branchUrl = () => branchHome + "?id=" + encodeURIComponent(athleteId) + "&discipline=kickboxing";
+
+  if (!athleteId) { document.body.innerHTML = "<p>Missing athlete id.</p>"; throw new Error("Missing athlete id"); }
+  if (athleteId.startsWith("F4_")) { window.location.replace("/athletes/arsenal/combat/p2l/kickboxing/index.html?id=" + encodeURIComponent(athleteId)); throw new Error("Wrong branch for F4 athlete"); }
+
+  async function guardSkillTreePage() {
+    try {
+      const snap = await getDoc(doc(db, "athletes", athleteId));
+      if (!snap.exists()) { document.body.innerHTML = "<p>Athlete not found.</p>"; return; }
+      const athlete = snap.data() || {};
+      if (athlete.active === false || athlete.rosterStatus === "suspended") { document.body.innerHTML = "<p>Account suspended. Please contact your coach.</p>"; return; }
+      const actualTier = String(athlete.curriculumTier || athlete.tier || "T0").trim().toUpperCase();
+      if (actualTier !== pageTier) window.location.replace(branchUrl());
+    } catch (err) { console.error("Muay Thai skill tree guard error:", err); document.body.innerHTML = "<p>Unable to verify athlete access.</p>"; }
+  }
+
+  guardSkillTreePage();
+</script>

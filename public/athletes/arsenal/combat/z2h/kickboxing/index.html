@@ -1,11 +1,21 @@
 <!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Combat Arsenal</title>
-</head>
-<body>
-<h1>Combat Arsenal</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Road2Champion™ Muay Thai | Combat Arsenal</title><link rel="stylesheet" href="/athletes/arsenal/combat/combat.css"></head>
+<body><main class="wrap"><header class="hero"><h1>Road2Champion™ Muay Thai</h1><p>Youth Muay Thai curriculum • eight teaching stages</p></header><section class="grid">
+<article class="tier-card" data-tier="T0"><h2>Shadow</h2><p>Legacy curriculum stage T0</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t0.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-0.html">Study</a></p></article>
+<article class="tier-card" data-tier="T1"><h2>Prospect</h2><p>Legacy curriculum stage T1</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t1.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-1.html">Study</a></p></article>
+<article class="tier-card" data-tier="T2"><h2>Road2Champion Bridge</h2><p>Legacy curriculum stage T2</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t2.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-2.html">Study</a></p></article>
+<article class="tier-card" data-tier="T3"><h2>Competitor</h2><p>Legacy curriculum stage T3</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t3.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-3.html">Study</a></p></article>
+<article class="tier-card" data-tier="T4"><h2>Contender</h2><p>Legacy curriculum stage T4</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t4.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-4.html">Study</a></p></article>
+<article class="tier-card" data-tier="T5"><h2>Road2Champion Bridge</h2><p>Legacy curriculum stage T5</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t5.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-5.html">Study</a></p></article>
+<article class="tier-card" data-tier="T6"><h2>Champion</h2><p>Legacy curriculum stage T6</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t6.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-6.html">Study</a></p></article>
+<article class="tier-card" data-tier="T7"><h2>Champion</h2><p>Legacy curriculum stage T7</p><p><a href="/athletes/arsenal/combat/z2h/kickboxing/train/t7.html">Train</a> · <a href="/athletes/arsenal/combat/z2h/kickboxing/study/skilltree-7.html">Study</a></p></article>
+</section></main>
+<script type="module">
+import { lockTierView } from "/assets/js/combat-lock.js";
+const params=new URLSearchParams(window.location.search);
+const athleteId=String(params.get("id")||params.get("athleteId")||localStorage.getItem("currentAthleteId")||"").trim().toUpperCase();
+if(!athleteId)throw new Error("Missing athlete ID");
+if(athleteId.startsWith("F4_")){window.location.replace("/athletes/arsenal/combat/p2l/kickboxing/index.html?id="+encodeURIComponent(athleteId));throw new Error("Wrong program branch");}
+document.querySelectorAll("a[href]").forEach(link=>{const url=new URL(link.href,window.location.origin);url.searchParams.set("id",athleteId);url.searchParams.set("discipline","kickboxing");link.href=url.pathname+url.search;});
+await lockTierView(athleteId,"kickboxing");
+</script></body></html>
