@@ -10,7 +10,10 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "**/*.before-*",
+      "**/*.broken-*",
+      "**/*.long-sheet-broken"
     ],
 "rewrites": [
   { "source": "/xp", "function": "xpHttp", "region": "us-central1" },
