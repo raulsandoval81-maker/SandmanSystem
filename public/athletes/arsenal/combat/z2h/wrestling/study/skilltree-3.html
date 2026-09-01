@@ -2,7 +2,7 @@
 
 <section class="skilltree-page" data-tier="3" data-track="youth">
   <header class="skilltree-header">
-    <p class="skilltree-kicker">Foundry 8 • Youth</p>
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
     <h1>Skill Tree 3 — Competitor</h1>
     <p class="skilltree-sub">15 skills • Applied offense and defensive reactions</p>
   </header>
@@ -31,12 +31,12 @@
   <article class="tree-block">
     <h2>Neutral Offense</h2>
 
-    <h3>Skill 4 — Single Leg (Run the Corner)</h3>
+    <h3>Skill 4 — Single Leg (Finish)</h3>
     <p>A — Secure single</p>
     <p>B — Create angle</p>
     <p>C — Finish behind</p>
 
-    <h3>Skill 5 — Double Leg (Drive Finish)</h3>
+    <h3>Skill 5 — Double Leg (Finish)</h3>
     <p>A — Enter clean</p>
     <p>B — Drive through</p>
     <p>C — Secure score</p>
@@ -91,7 +91,7 @@
   <article class="tree-block">
     <h2>Bottom</h2>
 
-    <h3>Skill 13 — Escape to Neutral</h3>
+    <h3>Skill 13 — Escape</h3>
     <p>A — Clear hands</p>
     <p>B — Stand and separate</p>
     <p>C — Face opponent</p>
@@ -101,7 +101,7 @@
     <p>B — Adjust base</p>
     <p>C — Chain to escape</p>
 
-    <h3>Skill 15 — Switch to Reversal</h3>
+    <h3>Skill 15 — Switch</h3>
     <p>A — Sit out line</p>
     <p>B — Turn hips</p>
     <p>C — Secure reversal</p>
@@ -137,7 +137,7 @@
       }
 
       const athlete = snap.data();
-      const actualTier = athlete.tier;
+      const actualTier = athlete.curriculumTier || athlete.tier;
 
       if (actualTier !== pageTier) {
         window.location.replace(`/athletes/arsenal/combat/z2h/wrestling/index.html?id=${encodeURIComponent(athleteId)}`);

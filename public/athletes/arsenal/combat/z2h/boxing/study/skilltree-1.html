@@ -1,11 +1,141 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T1</title>
-</head>
-<body>
-<h1>Skill Tree Tier 1</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="1" data-track="youth">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Skill Tree 1 — Prospect</h1>
+    <p class="skilltree-sub">12 skills • Youth Boxing curriculum stage T1</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Power Punches</h2>
+
+    <h3>Skill 1 — Hook</h3>
+    <p>A — Elbow Up</p>
+    <p>B — Hip Turns</p>
+    <p>C — Return To Guard</p>
+
+    <h3>Skill 2 — Uppercut</h3>
+    <p>A — Bend Legs</p>
+    <p>B — Drive Up</p>
+    <p>C — Return Home</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Straight Punches</h2>
+
+    <h3>Skill 3 — Double Jab</h3>
+    <p>A — First Jab</p>
+    <p>B — Second Jab</p>
+    <p>C — Stay Balanced</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Body Attack</h2>
+
+    <h3>Skill 4 — Body Shot</h3>
+    <p>A — Change Level</p>
+    <p>B — Rotate</p>
+    <p>C — Exit</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Defense</h2>
+
+    <h3>Skill 5 — Slip</h3>
+    <p>A — Move Head</p>
+    <p>B — Stay Balanced</p>
+    <p>C — Eyes Forward</p>
+
+    <h3>Skill 6 — Parry</h3>
+    <p>A — Small Touch</p>
+    <p>B — Redirect</p>
+    <p>C — Reset</p>
+
+    <h3>Skill 7 — Hook Defense</h3>
+    <p>A — Guard Tight</p>
+    <p>B — Roll Or Block</p>
+    <p>C — Recover</p>
+
+    <h3>Skill 8 — Body Defense</h3>
+    <p>A — Elbows In</p>
+    <p>B — Brace</p>
+    <p>C — Reset</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Ringcraft</h2>
+
+    <h3>Skill 9 — Ring Movement</h3>
+    <p>A — Circle</p>
+    <p>B — Pivot</p>
+    <p>C — Reset</p>
+
+    <h3>Skill 10 — Angle Step</h3>
+    <p>A — Step Off</p>
+    <p>B — Reposition</p>
+    <p>C — Attack</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Combinations</h2>
+
+    <h3>Skill 11 — Combination 2</h3>
+    <p>A — Three Punches</p>
+    <p>B — Stay Balanced</p>
+    <p>C — Exit</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Tier Standard</h2>
+
+    <h3>Skill 12 — Finish Standard</h3>
+    <p>A — Demonstrate</p>
+    <p>B — Stay Sharp</p>
+    <p>C — Finish Strong</p>
+  </article>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T1";
+  const pageTrack = "youth";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+    window.location.replace("/athletes/arsenal/combat/p2l/boxing/index.html?id=" + encodeURIComponent(athleteId));
+    throw new Error("Wrong branch for F4 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.curriculumTier || athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace("/athletes/arsenal/combat/z2h/boxing/index.html?id=" + encodeURIComponent(athleteId));
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>

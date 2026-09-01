@@ -1,11 +1,168 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T5</title>
-</head>
-<body>
-<h1>Skill Tree Tier 5</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="5" data-track="youth">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Skill Tree 5</h1>
+    <p class="skilltree-sub">15 skills • Youth Boxing curriculum stage T5</p>
+  </header>
+
+  <section class="curriculum-bridge">
+    <h2>Contender Development</h2>
+
+    <article class="tree-block">
+      <h3>Skill 1 — Counter Chain</h3>
+      <p>A — Read The Attack</p>
+      <p>B — Counter The Opening</p>
+      <p>C — Continue The Exchange</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 2 — Reaction Training</h3>
+      <p>A — Read</p>
+      <p>B — React</p>
+      <p>C — Recover</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 3 — Lead Hook System</h3>
+      <p>A — Setup</p>
+      <p>B — Hook</p>
+      <p>C — Continue</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 4 — Rear Hook System</h3>
+      <p>A — Rotate</p>
+      <p>B — Drive</p>
+      <p>C — Recover</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 5 — Counter Punching</h3>
+      <p>A — Defend</p>
+      <p>B — Counter</p>
+      <p>C — Exit</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 6 — Defensive Layers</h3>
+      <p>A — Block</p>
+      <p>B — Slip</p>
+      <p>C — Counter</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 7 — Offensive Layers</h3>
+      <p>A — Setup</p>
+      <p>B — Attack</p>
+      <p>C — Follow Up</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 8 — Angle Traps</h3>
+      <p>A — Create Angle</p>
+      <p>B — Hold Position</p>
+      <p>C — Attack</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 9 — Pace Break</h3>
+      <p>A — Establish Pace</p>
+      <p>B — Break Rhythm</p>
+      <p>C — Capitalize</p>
+    </article>
+
+  </section>
+
+  <section class="curriculum-bridge">
+    <h2>Champion Preparation</h2>
+
+    <article class="tree-block">
+      <h3>Skill 10 — Weapon Selection</h3>
+      <p>A — Read</p>
+      <p>B — Choose</p>
+      <p>C — Execute</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 11 — Live Rounds</h3>
+      <p>A — Stay Composed</p>
+      <p>B — Apply Skills</p>
+      <p>C — Learn</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 12 — Fight Awareness</h3>
+      <p>A — Observe</p>
+      <p>B — Adapt</p>
+      <p>C — Control</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 13 — Chaos Drills</h3>
+      <p>A — Stay Calm</p>
+      <p>B — Solve</p>
+      <p>C — Recover</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 14 — Second Effort</h3>
+      <p>A — Recover</p>
+      <p>B — Re-engage</p>
+      <p>C — Finish</p>
+    </article>
+
+    <article class="tree-block">
+      <h3>Skill 15 — Finish Standard</h3>
+      <p>A — Demonstrate</p>
+      <p>B — Apply</p>
+      <p>C — Finish Strong</p>
+    </article>
+
+  </section>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T5";
+  const pageTrack = "youth";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+    window.location.replace("/athletes/arsenal/combat/p2l/boxing/index.html?id=" + encodeURIComponent(athleteId));
+    throw new Error("Wrong branch for F4 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.curriculumTier || athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace("/athletes/arsenal/combat/z2h/boxing/index.html?id=" + encodeURIComponent(athleteId));
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>

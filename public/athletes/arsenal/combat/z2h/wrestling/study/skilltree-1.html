@@ -2,84 +2,89 @@
 
 <section class="skilltree-page" data-tier="1" data-track="youth">
   <header class="skilltree-header">
-    <p class="skilltree-kicker">Foundry 8 • Youth</p>
-    <h1>Skill Tree 1 — Recruit</h1>
-    <p class="skilltree-sub">10 skills • Entry mechanics and early control</p>
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Skill Tree 1 — Prospect</h1>
+    <p class="skilltree-sub">12 skills • Developing attacks, control, and finishes</p>
   </header>
 
-  <!-- STANCE & MOTION -->
   <article class="tree-block">
     <h2>Stance &amp; Motion</h2>
 
-    <h3>Skill 1 — Level Change</h3>
-    <p>A — Drop</p>
-    <p>B — Posture</p>
-    <p>C — Recover</p>
-
-    <h3>Skill 2 — Penetration Step</h3>
-    <p>A — Step</p>
-    <p>B — Knee</p>
-    <p>C — Trail leg</p>
+    <h3>Skill 1 — Stance &amp; Motion</h3>
+    <p>A — Stance (low, balanced, ready)</p>
+    <p>B — Motion (forward/backward, circle)</p>
+    <p>C — Level change (controlled, not dropping)</p>
   </article>
 
-  <!-- NEUTRAL OFFENSE -->
   <article class="tree-block">
     <h2>Neutral Offense</h2>
 
-    <h3>Skill 3 — Wrist Tie</h3>
-    <p>A — Control</p>
-    <p>B — Move</p>
-    <p>C — Attack</p>
+    <h3>Skill 2 — Level Change to Shot</h3>
+    <p>A — Level Change</p>
+    <p>B — Penetrate</p>
+    <p>C — Drive</p>
 
-    <h3>Skill 4 — Snap Down</h3>
-    <p>A — Contact</p>
-    <p>B — Snap</p>
-    <p>C — Spin</p>
+    <h3>Skill 3 — Double Leg Finish</h3>
+    <p>A — Secure Legs</p>
+    <p>B — Drive</p>
+    <p>C — Finish to Mat</p>
+
+    <h3>Skill 4 — Single Leg Finish</h3>
+    <p>A — Secure Leg</p>
+    <p>B — Stand Up</p>
+    <p>C — Finish</p>
+
+    <h3>Skill 5 — Snap Down</h3>
+    <p>A — Control Head</p>
+    <p>B — Snap Down</p>
+    <p>C — Move Behind</p>
+
+    <h3>Skill 6 — Go Behind</h3>
+    <p>A — Move Around</p>
+    <p>B — Control Hips</p>
+    <p>C — Secure Position</p>
   </article>
 
-  <!-- NEUTRAL DEFENSE -->
   <article class="tree-block">
     <h2>Neutral Defense</h2>
 
-    <h3>Skill 5 — Head Position</h3>
-    <p>A — Inside</p>
-    <p>B — Pressure</p>
-    <p>C — Control</p>
+    <h3>Skill 7 — Sprawl &amp; Recover</h3>
+    <p>A — Sprawl</p>
+    <p>B — Push Away</p>
+    <p>C — Recover Position</p>
 
-    <h3>Skill 6 — Circle Defense</h3>
-    <p>A — Move</p>
-    <p>B — Create space</p>
-    <p>C — Reset</p>
+    <h3>Skill 11 — Front Headlock</h3>
+    <p>A — Secure Head Control</p>
+    <p>B — Keep Weight Forward</p>
+    <p>C — Circle to Finish</p>
   </article>
 
-  <!-- TOP -->
   <article class="tree-block">
-    <h2>Top</h2>
+    <h2>Top Control</h2>
 
-    <h3>Skill 7 — Chop</h3>
-    <p>A — Control</p>
-    <p>B — Break</p>
-    <p>C — Flatten</p>
+    <h3>Skill 8 — Breakdown</h3>
+    <p>A — Control Position</p>
+    <p>B — Apply Pressure</p>
+    <p>C — Flatten Opponent</p>
 
-    <h3>Skill 8 — Ankle Ride</h3>
-    <p>A — Catch</p>
-    <p>B — Control</p>
-    <p>C — Break</p>
+    <h3>Skill 9 — Ride</h3>
+    <p>A — Stay Behind</p>
+    <p>B — Apply Pressure</p>
+    <p>C — Maintain Control</p>
+
+    <h3>Skill 12 — Mat Return</h3>
+    <p>A — Secure Control</p>
+    <p>B — Lift with Balance</p>
+    <p>C — Return to Mat Control</p>
   </article>
 
-  <!-- BOTTOM -->
   <article class="tree-block">
     <h2>Bottom</h2>
 
-    <h3>Skill 9 — Hand Control</h3>
-    <p>A — Find</p>
-    <p>B — Peel</p>
-    <p>C — Escape</p>
-
-    <h3>Skill 10 — Sit Out</h3>
-    <p>A — Sit</p>
-    <p>B — Turn</p>
-    <p>C — Recover</p>
+    <h3>Skill 10 — Escape</h3>
+    <p>A — Build Base</p>
+    <p>B — Stand Up</p>
+    <p>C — Clear Away</p>
   </article>
 </section>
 <script type="module">
@@ -120,7 +125,7 @@
       }
 
       const athlete = snap.data();
-      const actualTier = athlete.tier;
+      const actualTier = athlete.curriculumTier || athlete.tier;
 
       // 🔒 WRONG TIER
       if (actualTier !== pageTier) {

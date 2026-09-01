@@ -2,10 +2,12 @@
 
 <section class="skilltree-page" data-tier="5" data-track="youth">
   <header class="skilltree-header">
-    <p class="skilltree-kicker">Foundry 8 • Youth</p>
-    <h1>Skill Tree 5 — Champion</h1>
-    <p class="skilltree-sub">15 skills • Chaining attacks and controlling stronger exchanges</p>
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Skill Tree 5</h1>
+    <p class="skilltree-sub">15 skills • Contender development and Champion preparation</p>
   </header>
+
+  <p class="skilltree-kicker">Contender Development • Skills 1–10</p>
 
   <!-- STANCE & MOTION -->
   <article class="tree-block">
@@ -16,7 +18,7 @@
     <p>B — Cut angle</p>
     <p>C — Stay in attack range</p>
 
-    <h3>Skill 2 — Motion to Re-Attack</h3>
+    <h3>Skill 2 — Motion to Reattack</h3>
     <p>A — Move opponent</p>
     <p>B — Read reaction</p>
     <p>C — Re-attack immediately</p>
@@ -41,7 +43,7 @@
     <p>B — Control upper body</p>
     <p>C — Attack from underhook</p>
 
-    <h3>Skill 6 — Slide By / Go Behind</h3>
+    <h3>Skill 6 — Slide By</h3>
     <p>A — Create pressure</p>
     <p>B — Slide by</p>
     <p>C — Take the back</p>
@@ -76,12 +78,14 @@
     <p>B — Control hips</p>
     <p>C — Break opponent down</p>
 
+    <p class="skilltree-kicker">Champion Preparation • Skills 11–15</p>
+
     <h3>Skill 11 — Crossface Series</h3>
     <p>A — Crossface</p>
     <p>B — Control far side</p>
     <p>C — Turn or reset</p>
 
-    <h3>Skill 12 — Ride to Return to Ride</h3>
+    <h3>Skill 12 — Ride to Return</h3>
     <p>A — Maintain ride</p>
     <p>B — Return opponent to mat</p>
     <p>C — Re-establish control</p>
@@ -137,7 +141,7 @@
       }
 
       const athlete = snap.data();
-      const actualTier = athlete.tier;
+      const actualTier = athlete.curriculumTier || athlete.tier;
 
       if (actualTier !== pageTier) {
         window.location.replace(`/athletes/arsenal/combat/z2h/wrestling/index.html?id=${encodeURIComponent(athleteId)}`);

@@ -2,8 +2,8 @@
 
 <section class="skilltree-page" data-tier="7" data-track="youth">
   <header class="skilltree-header">
-    <p class="skilltree-kicker">Foundry 8 • Youth</p>
-    <h1>Skill Tree 7 — Hero</h1>
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Skill Tree 7 — Champion</h1>
     <p class="skilltree-sub">20 skills • Integration + Control</p>
   </header>
 
@@ -157,7 +157,7 @@
       }
 
       const athlete = snap.data();
-      const actualTier = athlete.tier;
+      const actualTier = athlete.curriculumTier || athlete.tier;
 
       if (actualTier !== pageTier) {
         window.location.replace(`/athletes/arsenal/combat/z2h/wrestling/index.html?id=${encodeURIComponent(athleteId)}`);

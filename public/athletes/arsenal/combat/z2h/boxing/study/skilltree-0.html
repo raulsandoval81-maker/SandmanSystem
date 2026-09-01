@@ -1,11 +1,141 @@
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Skill Tree T0</title>
-</head>
-<body>
-<h1>Skill Tree Tier 0</h1>
-<p>Coming Soon</p>
-</body>
-</html>
+<link rel="stylesheet" href="/assets/css/skilltree.css">
+
+<section class="skilltree-page" data-tier="0" data-track="youth">
+  <header class="skilltree-header">
+    <p class="skilltree-kicker">Road2Champion™ • Youth Journey</p>
+    <h1>Skill Tree 0 — Shadow</h1>
+    <p class="skilltree-sub">12 skills • Youth Boxing curriculum stage T0</p>
+  </header>
+
+  <article class="tree-block">
+    <h2>Stance &amp; Motion</h2>
+
+    <h3>Skill 1 — Stance</h3>
+    <p>A — Feet Set</p>
+    <p>B — Knees Bent</p>
+    <p>C — Hands Ready</p>
+
+    <h3>Skill 2 — Guard</h3>
+    <p>A — Hands High</p>
+    <p>B — Elbows In</p>
+    <p>C — Chin Protected</p>
+
+    <h3>Skill 3 — Footwork</h3>
+    <p>A — Step With Direction</p>
+    <p>B — Rear Foot Follows</p>
+    <p>C — Stance Stays Set</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Straight Punches</h2>
+
+    <h3>Skill 4 — Jab</h3>
+    <p>A — Lead Hand Fires</p>
+    <p>B — Shoulder Protects Chin</p>
+    <p>C — Hand Returns Home</p>
+
+    <h3>Skill 5 — Cross</h3>
+    <p>A — Rear Hand Fires</p>
+    <p>B — Hip And Shoulder Turn</p>
+    <p>C — Rear Hand Returns</p>
+
+    <h3>Skill 6 — One-Two</h3>
+    <p>A — Jab Starts</p>
+    <p>B — Cross Follows</p>
+    <p>C — Guard Resets</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Defense</h2>
+
+    <h3>Skill 7 — Defense Shell</h3>
+    <p>A — Hands Protect Head</p>
+    <p>B — Elbows Protect Body</p>
+    <p>C — Eyes Stay Forward</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Ring Awareness</h2>
+
+    <h3>Skill 8 — Distance</h3>
+    <p>A — See The Range</p>
+    <p>B — Step Into Range</p>
+    <p>C — Exit Safely</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Combinations</h2>
+
+    <h3>Skill 9 — Combination 1</h3>
+    <p>A — Enter With Jab</p>
+    <p>B — Add The Cross</p>
+    <p>C — Exit In Guard</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Applied Boxing</h2>
+
+    <h3>Skill 10 — Heavy Bag</h3>
+    <p>A — Set The Stance</p>
+    <p>B — Strike With Control</p>
+    <p>C — Move After Punching</p>
+
+    <h3>Skill 11 — Partner Drill</h3>
+    <p>A — Partner Gives A Clear Target</p>
+    <p>B — Boxer Strikes With Control</p>
+    <p>C — Both Athletes Reset</p>
+  </article>
+
+  <article class="tree-block">
+    <h2>Tier Standard</h2>
+
+    <h3>Skill 12 — Finish Standard</h3>
+    <p>A — Demonstrate The Skills</p>
+    <p>B — Maintain Control</p>
+    <p>C — Finish With Discipline</p>
+  </article>
+
+</section>
+<script type="module">
+  import { db } from "/assets/js/firebase-init-para.js";
+  import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+  const params = new URLSearchParams(window.location.search);
+  const athleteId = params.get("id") || "";
+  const pageTier = "T0";
+  const pageTrack = "youth";
+
+  if (!athleteId) {
+    document.body.innerHTML = "<p>Missing athlete id.</p>";
+    throw new Error("Missing athlete id");
+  }
+
+  if (pageTrack === "youth" && athleteId.startsWith("F4_")) {
+    window.location.replace("/athletes/arsenal/combat/p2l/boxing/index.html?id=" + encodeURIComponent(athleteId));
+    throw new Error("Wrong branch for F4 athlete");
+  }
+
+  async function guardSkillTreePage() {
+    try {
+      const ref = doc(db, "athletes", athleteId);
+      const snap = await getDoc(ref);
+
+      if (!snap.exists()) {
+        document.body.innerHTML = "<p>Athlete not found.</p>";
+        return;
+      }
+
+      const athlete = snap.data();
+      const actualTier = athlete.curriculumTier || athlete.tier;
+
+      if (actualTier !== pageTier) {
+        window.location.replace("/athletes/arsenal/combat/z2h/boxing/index.html?id=" + encodeURIComponent(athleteId));
+        return;
+      }
+    } catch (err) {
+      console.error("Skill tree guard error:", err);
+    }
+  }
+
+  guardSkillTreePage();
+</script>
