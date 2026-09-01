@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Journeys | Sandman Combat™</title>
-  <meta name="description" content="Explore the Zero2Hero™, Path2Legend™, and Quest2Mastery™ journeys powered by the Sandman System™." />
+  <meta name="description" content="Explore the Road2Champion™, Path2Legend™, and Quest2Mastery™ journeys powered by the Sandman System™." />
 
 <link rel="stylesheet" href="/assets/css/site.css">
 <link rel="stylesheet" href="/assets/css/journeys.css">
@@ -387,6 +387,123 @@
       .standard-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
     }
 
+    @media(min-width:900px){
+      .badge-collection{
+        justify-content:center;
+      }
+    }
+
+    /* =========================================
+       DAY MODE — PLATFORM JOURNEYS
+    ========================================== */
+
+    body.journeys-page.day-mode{
+      --page-bg:#f4efe4;
+      --panel:#ffffff;
+      --text:#171717;
+      --muted:#55585f;
+      --line:rgba(0,0,0,.14);
+
+      background:#f4efe4;
+      color:#171717;
+    }
+
+    body.day-mode .journeys-section,
+    body.day-mode .journeys-section:nth-of-type(even){
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.07),
+          transparent 38%
+        ),
+        linear-gradient(
+          180deg,
+          #f8f3e9 0%,
+          #eee6d7 100%
+        );
+    }
+
+    body.day-mode .journey-heading h2,
+    body.day-mode .standard-wrap h2,
+    body.day-mode .journeys-cta h2,
+    body.day-mode .badge-card h3{
+      color:#171717;
+    }
+
+    body.day-mode .journey-heading p,
+    body.day-mode .journey-note,
+    body.day-mode .journey-program-list,
+    body.day-mode .journey-purpose,
+    body.day-mode .standard-intro,
+    body.day-mode .standard-card p,
+    body.day-mode .journeys-cta p{
+      color:#4f5258;
+    }
+
+    body.day-mode .journey-age{
+      border-color:rgba(0,0,0,.15);
+      background:rgba(255,255,255,.72);
+      color:#171717;
+    }
+
+    body.day-mode .badge-card,
+    body.day-mode .journey-detail-card{
+      border-color:rgba(0,0,0,.14);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.96),
+          rgba(245,239,225,.94)
+        );
+      box-shadow:0 14px 30px rgba(0,0,0,.09);
+    }
+
+    body.day-mode .journey-program-list strong{
+      color:#171717;
+    }
+
+    body.day-mode .badge-card img{
+      filter:drop-shadow(0 10px 16px rgba(0,0,0,.22));
+    }
+
+    body.day-mode .standard-section{
+      background:
+        radial-gradient(
+          circle at center top,
+          rgba(212,175,55,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #f5eedf 0%,
+          #ebe1cf 100%
+        );
+    }
+
+    body.day-mode .standard-card{
+      border-color:rgba(176,139,45,.32);
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.86),
+          rgba(212,175,55,.07)
+        );
+    }
+
+    body.day-mode .journeys-cta{
+      background:
+        radial-gradient(
+          circle at center,
+          rgba(212,175,55,.12),
+          transparent 48%
+        ),
+        #f4efe4;
+    }
+
+    body.day-mode .journeys-cta-button{
+      color:#171717;
+    }
+
     @media(max-width:640px){
       .journeys-section,
       .standard-section,
@@ -448,7 +565,7 @@
 <a
   class="journey-hotspot z2h"
   href="/program-architecture/platform/programs/foundry8-z2h/"
-  aria-label="Explore Zero2Hero"
+  aria-label="Explore Road2Champion"
 ></a>
 
 <!-- Path2Legend -->
@@ -477,7 +594,7 @@
 
     <div data-lang-block="en">
       <p class="journey-eyebrow">
-        The Sandman Journey
+        Sandman Zero2Hero™ Programs
       </p>
 
       <h2>
@@ -492,7 +609,7 @@
 
     <div data-lang-block="es" class="hidden-lang">
       <p class="journey-eyebrow">
-        El Camino Sandman
+        Programas Sandman Zero2Hero™
       </p>
 
       <h2>
@@ -513,7 +630,7 @@
         <header class="journey-heading">
           <div data-lang-block="en">
             <p class="journey-eyebrow">Youth Journey</p>
-            <h2>Zero2Hero™</h2>
+            <h2>Road2Champion™</h2>
             <span class="journey-age">Ages 7–13</span>
             <p>
               Build confidence, discipline, coordination, and strong combat
@@ -523,7 +640,7 @@
 
           <div data-lang-block="es" class="hidden-lang">
             <p class="journey-eyebrow">Camino Juvenil</p>
-            <h2>Zero2Hero™</h2>
+            <h2>Road2Champion™</h2>
             <span class="journey-age">Edades 7–13</span>
             <p>
               Desarrolla confianza, disciplina, coordinación y fundamentos
@@ -533,45 +650,30 @@
           </div>
         </header>
 
-        <div class="badge-collection" role="list" aria-label="Zero2Hero badge progression">
+        <div class="badge-collection" role="list" aria-label="Road2Champion badge progression">
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-shadow-white-silver.png" alt="Shadow badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/shadow-white-v3.png" alt="Shadow badge" loading="lazy" />
             <h3>Shadow</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-recruit-silver.png" alt="Recruit badge" loading="lazy" />
-            <h3>Recruit</h3>
+            <img src="/assets/images/badges/ranks-v2/prospect-yellow-v3.png" alt="Prospect badge" loading="lazy" />
+            <h3>Prospect</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-contender-silver.png" alt="Contender badge" loading="lazy" />
-            <h3>Contender</h3>
-          </article>
-
-          <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-competitor-silver.png" alt="Competitor badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/competitor-orange-v3.png" alt="Competitor badge" loading="lazy" />
             <h3>Competitor</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-warrior-silver.png" alt="Warrior badge" loading="lazy" />
-            <h3>Warrior</h3>
+            <img src="/assets/images/badges/ranks-v2/contender-green-v3.png" alt="Contender badge" loading="lazy" />
+            <h3>Contender</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-champion-silver.png" alt="Champion badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/champion-black-v3.png" alt="Champion badge" loading="lazy" />
             <h3>Champion</h3>
-          </article>
-
-          <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-commander-silver.png" alt="Commander badge" loading="lazy" />
-            <h3>Commander</h3>
-          </article>
-
-          <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry8/badge-hero-silver.png" alt="Hero badge" loading="lazy" />
-            <h3>Hero</h3>
           </article>
         </div>
 
@@ -580,7 +682,7 @@
         <div class="journey-details">
           <article class="journey-detail-card">
             <div data-lang-block="en">
-              <h3>Programs</h3>
+              <h3>Disciplines</h3>
 
               <ul class="journey-program-list">
                 <li>
@@ -593,19 +695,15 @@
                   distance, and controlled striking fundamentals.
                 </li>
 
-                <li class="journey-program-dormant">
+                <li>
                   <strong>Boxing</strong> — footwork, coordination,
                   timing, and controlled boxing fundamentals.
-
-                  <span class="journey-availability">
-                    Available at select academies.
-                  </span>
                 </li>
               </ul>
             </div>
 
             <div data-lang-block="es" class="hidden-lang">
-              <h3>Programas</h3>
+              <h3>Disciplinas</h3>
 
               <ul class="journey-program-list">
                 <li>
@@ -618,13 +716,9 @@
                   distancia y fundamentos de golpeo controlado.
                 </li>
 
-                <li class="journey-program-dormant">
+                <li>
                   <strong>Boxeo</strong> — juego de pies, coordinación,
                   ritmo y fundamentos controlados de boxeo.
-
-                  <span class="journey-availability">
-                    Disponible en academias seleccionadas.
-                  </span>
                 </li>
               </ul>
             </div>
@@ -660,7 +754,7 @@
       <div class="journeys-wrap">
         <header class="journey-heading">
           <div data-lang-block="en">
-            <p class="journey-eyebrow">Teen &amp; Adult Journey</p>
+            <p class="journey-eyebrow">Teen Journey</p>
             <h2>Path2Legend™</h2>
             <span class="journey-age">Ages 14+</span>
             <p>
@@ -670,7 +764,7 @@
           </div>
 
           <div data-lang-block="es" class="hidden-lang">
-            <p class="journey-eyebrow">Camino Adolescente y Adulto</p>
+            <p class="journey-eyebrow">Camino Adolescente</p>
             <h2>Path2Legend™</h2>
             <span class="journey-age">Edades 14+</span>
             <p>
@@ -682,27 +776,27 @@
 
         <div class="badge-collection" role="list" aria-label="Path2Legend badge progression">
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-apprentice-white-gold.png" alt="Apprentice badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/apprentice-white-v3.png" alt="Apprentice badge" loading="lazy" />
             <h3>Apprentice</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-warrior-gold.png" alt="Warrior badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/warrior-blue-v3.png" alt="Warrior badge" loading="lazy" />
             <h3>Warrior</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-champion-gold.png" alt="Champion badge" loading="lazy" />
-            <h3>Champion</h3>
+            <img src="/assets/images/badges/ranks-v2/hero-purple-v3.png" alt="Hero badge" loading="lazy" />
+            <h3>Hero</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-veteran-gold.png" alt="Veteran badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/veteran-brown-v3.png" alt="Veteran badge" loading="lazy" />
             <h3>Veteran</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-legend-gold.png" alt="Legend badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/legend-black-gold-v3.png" alt="Legend badge" loading="lazy" />
             <h3>Legend</h3>
           </article>
         </div>
@@ -724,7 +818,7 @@
         <div class="journey-details">
           <article class="journey-detail-card">
             <div data-lang-block="en">
-              <h3>Programs</h3>
+              <h3>Disciplines</h3>
 
               <ul class="journey-program-list">
                 <li>
@@ -737,19 +831,15 @@
                   pressure, and composure.
                 </li>
 
-                <li class="journey-program-dormant">
+                <li>
                   <strong>Muay Thai</strong> — timing, footwork,
                   conditioning, pressure, and composure.
-
-                  <span class="journey-availability">
-                    Available at select academies.
-                  </span>
                 </li>
               </ul>
             </div>
 
             <div data-lang-block="es" class="hidden-lang">
-              <h3>Programas</h3>
+              <h3>Disciplinas</h3>
 
               <ul class="journey-program-list">
                 <li>
@@ -762,13 +852,9 @@
                   acondicionamiento, presión y compostura.
                 </li>
 
-                <li class="journey-program-dormant">
+                <li>
                   <strong>Muay Thai</strong> — ritmo, juego de pies,
                   acondicionamiento, presión y compostura.
-
-                  <span class="journey-availability">
-                    Disponible en academias seleccionadas.
-                  </span>
                 </li>
               </ul>
             </div>
@@ -804,7 +890,7 @@
       <div class="journeys-wrap">
         <header class="journey-heading">
           <div data-lang-block="en">
-            <p class="journey-eyebrow">Advanced Journey</p>
+            <p class="journey-eyebrow">Adult Journey</p>
             <h2>Quest2Mastery™</h2>
             <span class="journey-age">Ages 16+</span>
             <p>
@@ -814,7 +900,7 @@
           </div>
 
           <div data-lang-block="es" class="hidden-lang">
-            <p class="journey-eyebrow">Camino Avanzado</p>
+            <p class="journey-eyebrow">Camino Adulto</p>
             <h2>Quest2Mastery™</h2>
             <span class="journey-age">Edades 16+</span>
             <p>
@@ -827,28 +913,27 @@
 
         <div class="badge-collection" role="list" aria-label="Quest2Mastery badge progression">
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-apprentice-white-gold.png" alt="Apprentice badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/apprentice-white-v3.png" alt="Apprentice badge" loading="lazy" />
             <h3>Apprentice</h3>
           </article>
 
-                    <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-warrior-gold.png" alt="Warrior badge" loading="lazy" />
+          <article class="badge-card" role="listitem">
+            <img src="/assets/images/badges/ranks-v2/warrior-blue-v3.png" alt="Warrior badge" loading="lazy" />
             <h3>Warrior</h3>
           </article>
 
-
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-champion-gold.png" alt="Champion badge" loading="lazy" />
-            <h3>Champion</h3>
+            <img src="/assets/images/badges/ranks-v2/hero-purple-v3.png" alt="Hero badge" loading="lazy" />
+            <h3>Hero</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-veteran-gold.png" alt="Veteran badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/veteran-brown-v3.png" alt="Veteran badge" loading="lazy" />
             <h3>Veteran</h3>
           </article>
 
           <article class="badge-card" role="listitem">
-            <img src="/assets/images/badges/foundry4/badge-master-gold.png" alt="Master badge" loading="lazy" />
+            <img src="/assets/images/badges/ranks-v2/master-black-gold-v3.png" alt="Master badge" loading="lazy" />
             <h3>Master</h3>
           </article>
         </div>
@@ -857,7 +942,7 @@
         <div class="journey-details">
           <article class="journey-detail-card">
             <div data-lang-block="en">
-              <h3>Programs</h3>
+              <h3>Disciplines</h3>
 
               <ul class="journey-program-list">
                 <li>
@@ -881,7 +966,7 @@
             </div>
 
             <div data-lang-block="es" class="hidden-lang">
-              <h3>Programas</h3>
+              <h3>Disciplinas</h3>
 
               <ul class="journey-program-list">
                 <li>
