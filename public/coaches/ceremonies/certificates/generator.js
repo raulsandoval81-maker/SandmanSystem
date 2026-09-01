@@ -4,10 +4,7 @@ const BELTS_V1 = {
     1: "/assets/img/belts/yellowgraybelt.png",
     2: "/assets/img/belts/orangegraybelt.png",
     3: "/assets/img/belts/greengraybelt.png",
-    4: "/assets/img/belts/bluegraybelt.png",
-    5: "/assets/img/belts/purplegraybelt.png",
-    6: "/assets/img/belts/browngraybelt.png",
-    7: "/assets/img/belts/blackgraybelt.png"
+    4: "/assets/img/belts/blackgraybelt.png"
   },
 
   f4: {
