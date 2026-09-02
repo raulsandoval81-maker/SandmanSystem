@@ -6,10 +6,10 @@ import {
   limit,
   doc,
   updateDoc,
-  serverTimestamp,
-  ensureSignedIn
+  serverTimestamp
 } from "/assets/js/firebase-init.js";
 
+import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
 
@@ -17,16 +17,127 @@ const $ = (id) => document.getElementById(id);
 
 let currentList = [];
 
-function trackBaseOf(id) {
+function trackBaseOf(id = "") {
   if (id.startsWith("F4_")) return "F4";
   if (id.startsWith("F8_")) return "F8";
   return "";
 }
 
+function journeyText(data = {}) {
+  return String(
+    data.journey ||
+    data.program ||
+    data.track ||
+    data.trackCode ||
+    data.ladderKey ||
+    ""
+  ).trim().toLowerCase();
+}
+
+function athleteTrackOf(id = "", data = {}) {
+  const idTrack = trackBaseOf(id);
+  if (idTrack) return idTrack;
+
+  const journey = journeyText(data);
+  if (
+    journey.includes("z2h") ||
+    journey.includes("zero2hero") ||
+    journey.includes("foundry8") ||
+    journey.includes("road2champion") ||
+    journey.includes("road to champion") ||
+    journey.includes("r2c")
+  ) {
+    return "F8";
+  }
+
+  return "F4";
+}
+
+function tierNumber(data = {}, track = "F4") {
+  const source = track === "F8"
+    ? (data.progressionTier ?? data.tier ?? data.tierNum ?? data.rankNum ?? 0)
+    : (data.tier ?? data.tierNum ?? data.rankNum ?? 0);
+
+  if (typeof source === "number") return source;
+  const match = String(source).match(/T(\d+)/i);
+  if (match) return Number(match[1]) || 0;
+  return Number(String(source).replace(/[^\d]/g, "")) || 0;
+}
+
+function canonicalRankName(data = {}, track = "F4") {
+  const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
+  const storedRank = String(data.rankName || data.tierName || "").trim();
+  const tierNum = tierNumber(data, track);
+  const tier = ladder[tierNum];
+
+  if (track === "F8" && (storedRank === "Hero" || tierNum === 4)) {
+    return "Champion";
+  }
+
+  return tier?.name || tier?.rank || storedRank || (track === "F8" ? "Shadow" : "Apprentice");
+}
+
+function journeyKeyOf(id = "", data = {}) {
+  if (athleteTrackOf(id, data) === "F8") return "z2h";
+  const journey = journeyText(data);
+  if (journey.includes("q2m") || journey.includes("quest") || journey.includes("mastery")) {
+    return "q2m";
+  }
+  return "p2l";
+}
+
+function matchesJourneyFilter(filter = "all", id = "", data = {}) {
+  if (filter === "all") return true;
+  const journey = journeyText(data);
+
+  if (filter === "z2h") return athleteTrackOf(id, data) === "F8";
+  if (filter === "p2l") {
+    return journey.includes("p2l") ||
+      journey.includes("path2legend") ||
+      journey.includes("path to legend") ||
+      journey.includes("foundry4") ||
+      id.startsWith("F4_");
+  }
+  if (filter === "q2m") {
+    return journey.includes("q2m") || journey.includes("quest") || journey.includes("mastery");
+  }
+  if (filter === "r2g") return journey.includes("r2g") || journey.includes("road");
+  return true;
+}
+
+function displayRankName(id = "", data = {}) {
+  const journeyKey = journeyKeyOf(id, data);
+  const tierNum = tierNumber(data, journeyKey === "z2h" ? "F8" : "F4");
+  const storedRank = String(data.rankName || data.tierName || "").trim();
+  const hasTierIdentity = data.progressionTier != null ||
+    data.tier != null ||
+    data.tierNum != null ||
+    data.rankNum != null;
+  const displayLadders = {
+    z2h: ["Shadow", "Prospect", "Competitor", "Contender", "Champion"],
+    p2l: ["Apprentice", "Warrior", "Hero", "Veteran", "Legend"],
+    q2m: ["Apprentice", "Warrior", "Hero", "Veteran", "Master"]
+  };
+
+  if (!hasTierIdentity && storedRank) {
+    if (journeyKey === "z2h" && storedRank === "Hero") return "Champion";
+    if (journeyKey !== "z2h" && storedRank === "Champion") return "Hero";
+    if (journeyKey === "q2m" && storedRank === "Mastery") return "Master";
+    return storedRank;
+  }
+
+  return displayLadders[journeyKey]?.[tierNum] || canonicalRankName(
+    data,
+    journeyKey === "z2h" ? "F8" : "F4"
+  );
+}
+
 function xpCapForAthlete(data = {}, track = "F4") {
   const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
-  const rankName = data.rankName || data.tierName;
-  const tier = ladder.find((t) => t.name === rankName) || ladder[0];
+  const rankName = canonicalRankName(data, track);
+  const tier = ladder[tierNumber(data, track)] ||
+    ladder.find((item) => item.name === rankName || item.rank === rankName) ||
+    ladder[0];
 
   return Number(
     tier?.cap ??
@@ -146,8 +257,6 @@ async function restoreAthlete(uid) {
 }
 
 async function loadRoster() {
-  await ensureSignedIn();
-
   const rowsEl = $("rows");
   const countMeta = $("countMeta");
   const archiveBtn = $("toggleArchiveView");
@@ -157,7 +266,6 @@ async function loadRoster() {
 
   if (!rowsEl) return;
 
-  const track = journeyFilter === "z2h" ? "F8" : "F4";
   const wantedStatus = isArchiveView() ? "archived" : "current";
 
   rowsEl.innerHTML = `
@@ -184,33 +292,7 @@ async function loadRoster() {
     }))
     .filter((x) => rosterStatusOf(x.data) === wantedStatus)
 .filter((x) => {
-  if (journeyFilter === "all") return true;
-
-  const journey = String(
-    x.data.journey ||
-    x.data.track ||
-    x.data.trackCode ||
-    x.data.program ||
-    ""
-  ).toLowerCase();
-
-  if (journeyFilter === "z2h") {
-    return journey.includes("z2h") || journey.includes("foundry8") || x.id.startsWith("F8_");
-  }
-
-  if (journeyFilter === "p2l") {
-    return journey.includes("p2l") || journey.includes("foundry4") || x.id.startsWith("F4_");
-  }
-
-  if (journeyFilter === "r2g") {
-    return journey.includes("r2g") || journey.includes("road");
-  }
-
-  if (journeyFilter === "q2m") {
-    return journey.includes("q2m") || journey.includes("quest");
-  }
-
-  return true;
+  return matchesJourneyFilter(journeyFilter, x.id, x.data);
 })
     .filter((x) => {
       if (disciplineFilter === "all") return true;
@@ -250,8 +332,7 @@ async function loadRoster() {
     );
 
   if (countMeta) {
-    countMeta.textContent =
-      `${track} · ${wantedStatus} · ${currentList.length} athletes`;
+    countMeta.textContent = `${wantedStatus} · ${currentList.length} athletes`;
   }
 
   rowsEl.innerHTML = currentList.length
@@ -262,7 +343,7 @@ async function loadRoster() {
             <div>
               <div class="name-line">
                 ${athleteName(data, id)}
-                ${!isArchiveView() ? tempoChipHtml(data, track) : ""}
+                ${!isArchiveView() ? tempoChipHtml(data, athleteTrackOf(id, data)) : ""}
               </div>
 
               <div class="roster-actions" style="margin-top:6px;">
@@ -283,7 +364,7 @@ async function loadRoster() {
         </td>
 
         <td data-label="Tier / Rank">
-          ${data.rankName || "—"}
+          ${displayRankName(id, data)}
         </td>
 
         <td data-label="XP">
@@ -316,7 +397,7 @@ async function loadRoster() {
 
       try {
         await archiveAthlete(uid);
-        await loadRoster();
+        await safeLoadRoster();
       } catch (err) {
         console.error("[roster] archive failed", err);
         alert("Could not archive athlete.");
@@ -334,7 +415,7 @@ async function loadRoster() {
 
       try {
         await restoreAthlete(uid);
-        await loadRoster();
+        await safeLoadRoster();
       } catch (err) {
         console.error("[roster] restore failed", err);
         alert("Could not restore athlete.");
@@ -361,34 +442,14 @@ async function loadRoster() {
       data.disciplines?.[selectedDiscipline] ||
       data;
 
-    const athleteTrack =
-      id.startsWith("F8_")
-        ? "F8"
-        : track;
+    const athleteTrack = athleteTrackOf(id, data);
 
     const ladder =
       athleteTrack === "F8"
         ? LADDER_F8
         : LADDER_F4;
 
-    const tierNum = (() => {
-      const tierSource =
-        athleteTrack === "F8"
-          ? (combat.progressionTier ?? combat.tier ?? 0)
-          : (combat.tier ?? combat.tierNum ?? combat.rankNum ?? 0);
-
-      if (typeof tierSource === "number") {
-        return tierSource;
-      }
-
-      const tierMatch = String(tierSource).match(/T(\d+)/i);
-
-      if (tierMatch) {
-        return Number(tierMatch[1]) || 0;
-      }
-
-      return Number(String(tierSource).replace(/[^\d]/g, "")) || 0;
-    })();
+    const tierNum = tierNumber(combat, athleteTrack);
 
     const tier =
       ladder[tierNum] ||
@@ -398,16 +459,7 @@ async function loadRoster() {
       ) ||
       ladder[0];
 
-    const rankName =
-      athleteTrack === "F8"
-        ? (tier?.name || combat.rankName || combat.tierName || "Shadow")
-        : (
-            combat.rankName ||
-            combat.tierName ||
-            tier?.rank ||
-            tier?.name ||
-            "Apprentice"
-          );
+    const rankName = displayRankName(id, { ...data, ...combat });
 
     const xpNow = Number(
       combat.xp ??
@@ -468,12 +520,14 @@ async function loadRoster() {
         Prospect: "belt-z2h-recruit",
         Competitor: "belt-z2h-competitor",
         Contender: "belt-z2h-contender",
+        Champion: "belt-z2h-hero",
         Hero: "belt-z2h-hero"
       },
 
 p2l: {
   Apprentice: "belt-p2l-apprentice",
   Warrior: "belt-p2l-warrior",
+  Hero: "belt-p2l-champion",
   Champion: "belt-p2l-champion",
   Veteran: "belt-p2l-veteran",
   Legend: "belt-p2l-legend"
@@ -481,9 +535,12 @@ p2l: {
 
       q2m: {
         Apprentice: "belt-q2m-apprentice",
+        Warrior: "belt-q2m-warrior",
+        Hero: "belt-q2m-champion",
         Champion: "belt-q2m-champion",
         Veteran: "belt-q2m-veteran",
-        Master: "belt-q2m-master"
+        Master: "belt-q2m-master",
+        Mastery: "belt-q2m-master"
       }
     };
 
@@ -574,13 +631,60 @@ colorClass =
   }
 }
 
-loadRoster();
+function showLoadFailure(error) {
+  console.error("[roster] load failed", error);
+  const rowsEl = $("rows");
+  const countMeta = $("countMeta");
+  if (countMeta) countMeta.textContent = "Roster unavailable";
+  if (rowsEl) {
+    rowsEl.innerHTML = `
+      <tr>
+        <td colspan="4" class="roster-error">Could not load the roster. Check your connection and try again.</td>
+      </tr>
+    `;
+  }
+}
 
-$("journeyFilter")?.addEventListener("change", loadRoster);
+async function safeLoadRoster() {
+  try {
+    await loadRoster();
+  } catch (error) {
+    showLoadFailure(error);
+  }
+}
+
+async function initializeRoster() {
+  const status = $("rosterStatus");
+  const protectedContent = document.querySelector("[data-roster-protected]");
+
+  try {
+    await requireCoach();
+    if (protectedContent) protectedContent.hidden = false;
+    if (status) status.hidden = true;
+    await safeLoadRoster();
+  } catch (error) {
+    console.error("[roster] Coach access denied", error);
+    if (protectedContent) protectedContent.hidden = true;
+    if (status) {
+      status.classList.add("is-error");
+      status.replaceChildren();
+      const message = document.createElement("span");
+      message.textContent = "Coach access is required to view the roster. ";
+      const link = document.createElement("a");
+      link.href = coachLoginUrl();
+      link.textContent = "Sign in as Coach";
+      status.append(message, link);
+    }
+  }
+}
+
+initializeRoster();
+
+$("journeyFilter")?.addEventListener("change", safeLoadRoster);
 
 $("toggleArchiveView")?.addEventListener("click", () => {
   window.__rosterArchiveView = !window.__rosterArchiveView;
-  loadRoster();
+  safeLoadRoster();
 });
 
-$("disciplineFilter")?.addEventListener("change", loadRoster);
+$("disciplineFilter")?.addEventListener("change", safeLoadRoster);

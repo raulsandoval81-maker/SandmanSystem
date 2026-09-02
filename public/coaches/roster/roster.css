@@ -1,578 +1,174 @@
-:root{
-  color-scheme:dark;
-
-  --bg:#070a0f;
-  --panel:#0f1620;
-  --panel-2:#111b27;
-  --line:#223044;
-  --line-soft:rgba(255,255,255,.08);
-
-  --text:#f5f7fb;
-  --muted:#9fb0c4;
-  --muted-2:#718096;
-
-  --gold:#ffd633;
-  --blue:#dbeafe;
-  --green:#35c759;
-  --yellow:#ffd633;
-  --orange:#ff9f0a;
-  --red:#ff453a;
-  --ice:#5ac8fa;
-  --gray:#8e8e93;
-
-  --radius:16px;
-  --shadow:0 18px 50px rgba(0,0,0,.28);
+.roster-page{
+  --roster-panel:#17222c;
+  --roster-panel-deep:#0d141b;
+  --roster-line:rgba(255,255,255,.11);
+  --roster-text:#f7f7f5;
+  --roster-muted:#aeb7bf;
+  --roster-gold:var(--coach-shell-gold,#d4af37);
+  --roster-shadow:0 18px 45px rgba(0,0,0,.28);
+  color:var(--roster-text);
 }
 
-*{
-  box-sizing:border-box;
+html[data-theme="light"] .roster-page{
+  --roster-panel:#fffaf0;
+  --roster-panel-deep:#f4ede0;
+  --roster-line:rgba(8,8,8,.14);
+  --roster-text:#181818;
+  --roster-muted:#66645e;
+  --roster-shadow:0 14px 35px rgba(0,0,0,.1);
 }
 
-body{
-  margin:0;
-  background:
-    radial-gradient(circle at top, rgba(255,214,51,.08), transparent 34rem),
-    var(--bg);
-  color:var(--text);
-  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+.roster-page h1{margin:0 0 8px;font-size:clamp(2rem,5vw,3.4rem);line-height:1;letter-spacing:-.04em}
+.roster-page .muted{color:var(--roster-muted)}
+.roster-page .roster-header{margin-bottom:18px}
+.roster-page .roster-header p{margin:0}
+
+.roster-page .roster-notice{
+  padding:16px 18px;
+  border:1px solid var(--roster-line);
+  border-radius:14px;
+  background:var(--roster-panel);
+  color:var(--roster-muted);
+  box-shadow:var(--roster-shadow);
 }
 
-.wrap{
-  max-width:1120px;
-  margin:0 auto;
-  padding:28px 20px 56px;
-}
+.roster-page .roster-notice.is-error{border-color:rgba(181,43,47,.45);color:var(--roster-text)}
+.roster-page .roster-notice a{color:var(--roster-gold);font-weight:850}
 
-h1{
-  margin:0 0 8px;
-  font-size:clamp(2rem,5vw,3.4rem);
-  line-height:1;
-  letter-spacing:-.04em;
-}
-
-.muted{
-  color:var(--muted);
-}
-
-.sub{
-  display:block;
-  font-size:.74rem;
-  color:var(--muted-2);
-  margin-top:3px;
-}
-
-/* ===============================
-   NAV / BUTTONS
-================================ */
-
-.top-nav,
-.controls-row{
+.roster-page .controls-row{
   display:flex;
-  align-items:center;
-  gap:10px;
+  align-items:end;
+  gap:12px;
   flex-wrap:wrap;
+  margin:16px 0 20px;
 }
 
-.top-nav{
-  margin-bottom:18px;
+.roster-page .card,
+.roster-page .card-lite{
+  padding:18px;
+  border:1px solid var(--roster-line);
+  border-radius:16px;
+  background:linear-gradient(180deg,var(--roster-panel),var(--roster-panel-deep));
+  box-shadow:var(--roster-shadow);
 }
 
-.controls-row{
-  margin:16px 0;
+.roster-page .controls-row label{
+  display:grid;
+  gap:6px;
+  min-width:190px;
+  color:var(--roster-muted);
+  font-size:.76rem;
+  font-weight:850;
+  letter-spacing:.04em;
 }
 
-.pill{
+.roster-page .controls-row select{
+  min-height:42px;
+  padding:9px 36px 9px 11px;
+  border:1px solid var(--roster-line);
+  border-radius:10px;
+  background:var(--roster-panel-deep);
+  color:var(--roster-text);
+  font:inherit;
+  font-size:.88rem;
+}
+
+.roster-page .count-meta{margin-left:auto;font-size:.8rem}
+
+.roster-page .pill{
   display:inline-flex;
+  min-height:42px;
   align-items:center;
   justify-content:center;
   gap:6px;
-  min-height:32px;
-  background:linear-gradient(180deg,#263244,#1a2433);
-  border:1px solid #3a4a60;
+  padding:.55rem .9rem;
+  border:1px solid var(--roster-line);
   border-radius:999px;
-  padding:.35rem .78rem;
-  color:var(--blue);
+  background:var(--roster-panel-deep);
+  color:var(--roster-text);
+  font:inherit;
+  font-size:.78rem;
+  font-weight:850;
   text-decoration:none;
-  font-size:.76rem;
-  font-weight:800;
   white-space:nowrap;
   cursor:pointer;
 }
 
-button.pill{
-  appearance:none;
-  -webkit-appearance:none;
-  font:inherit;
-}
+.roster-page .pill:hover{border-color:var(--roster-gold);color:var(--roster-gold)}
+.roster-page .roster-card{margin-top:0}
 
-.pill:hover{
-  border-color:rgba(255,214,51,.5);
-  color:#fff7bf;
-}
-
-.status-filter.is-active{
-  background:var(--blue);
-  color:#07111f;
-  border-color:var(--blue);
-}
-
-.canon-toggle{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  cursor:pointer;
-  user-select:none;
-}
-
-.count-meta{
-  font-size:.8rem;
-  color:var(--muted);
-}
-
-/* ===============================
-   CARDS / FORMS
-================================ */
-
-.card,
-.card-lite{
-  background:linear-gradient(180deg,var(--panel),#0b111a);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:18px;
-  margin:16px 0 20px;
-  box-shadow:var(--shadow);
-}
-
-.card label{
+.roster-page .roster-table{
   display:block;
-  margin:0 0 12px;
-  color:#c9d6e5;
-  font-size:.86rem;
-  font-weight:800;
-}
-
-.card input,
-.card select,
-.card textarea{
   width:100%;
-  margin-top:6px;
-  background:#070a0f;
-  color:var(--text);
-  border:1px solid #34455c;
-  border-radius:12px;
-  padding:11px 12px;
-  font:inherit;
-}
-
-.card input:focus,
-.card select:focus,
-.card textarea:focus{
-  outline:2px solid rgba(255,214,51,.7);
-  border-color:var(--gold);
-}
-
-.attendance-check{
-  width:18px;
-  height:18px;
-  cursor:pointer;
-}
-
-/* ===============================
-   ROSTER TABLE
-================================ */
-
-.roster-table{
-  width:100%;
+  margin:0;
+  border:0;
   border-collapse:separate;
   border-spacing:0;
-  margin-top:16px;
-  overflow:hidden;
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  background:rgba(15,22,32,.72);
+  background:transparent;
 }
 
-.roster-table th,
-.roster-table td{
-  padding:12px 10px;
-  border-bottom:1px solid var(--line-soft);
+.roster-page .roster-table thead{display:none}
+.roster-page .roster-table tbody{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:16px}
+
+.roster-page .roster-table tr{
+  display:flex;
+  min-width:0;
+  flex-direction:column;
+  gap:12px;
+  padding:18px;
+  border:1px solid var(--roster-line);
+  border-radius:18px;
+  background:linear-gradient(180deg,var(--roster-panel),var(--roster-panel-deep));
+  box-shadow:var(--roster-shadow);
+  transition:transform 150ms ease,border-color 150ms ease;
+}
+
+.roster-page .roster-table tr:hover{transform:translateY(-2px);border-color:rgba(212,175,55,.38)}
+
+.roster-page .roster-table td{
+  display:block;
+  width:100%;
+  min-width:0;
+  padding:0;
+  border:0;
+  color:var(--roster-text);
   font-size:.9rem;
   vertical-align:top;
 }
 
-.roster-table th{
-  text-align:left;
-  color:#c9d6e5;
-  background:#121b28;
-  font-size:.75rem;
-  text-transform:uppercase;
-  letter-spacing:.08em;
+.roster-page .roster-table td::before{display:block;margin-bottom:5px;color:var(--roster-muted);font-size:.68rem;font-weight:900;letter-spacing:.09em;text-transform:uppercase}
+.roster-page .roster-table td[data-label="Athlete"]::before{content:"Athlete"}
+.roster-page .roster-table td[data-label="Tier / Rank"]::before{content:"Tier / Rank"}
+.roster-page .roster-table td[data-label="XP"]::before{content:"Progress"}
+.roster-page .roster-table td[data-label="Last Seen"]::before{content:"Last Seen"}
+
+.roster-page .name-col{display:flex;align-items:flex-start;gap:10px}
+.roster-page .name-line{color:var(--roster-text);font-size:1.1rem;font-weight:950}
+.roster-page .roster-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+.roster-page .roster-actions .pill{flex:1 1 auto}
+.roster-page .belt-stack{display:flex;width:100%;min-width:0;flex-direction:column;gap:6px}
+.roster-page .mini-belt-slot{max-width:100%;overflow:hidden}
+.roster-page .xp-sub{color:var(--roster-muted);font-size:.76rem;line-height:1.35}
+
+.roster-page .status-chip{display:inline-flex;margin-left:8px;padding:3px 8px;border:1px solid var(--roster-line);border-radius:999px;font-size:.68rem;font-weight:900;line-height:1.2;vertical-align:middle;white-space:nowrap}
+.roster-page .status-chip--promoted,
+.roster-page .status-chip--eligible{border-color:rgba(212,175,55,.45);color:var(--roster-gold)}
+.roster-page .status-chip--cooldown,
+.roster-page .status-chip--watch{border-color:rgba(217,154,43,.5);color:var(--coach-shell-warning,#d99a2b)}
+.roster-page .status-chip--freeze{border-color:rgba(181,43,47,.5);color:#e57373}
+.roster-page .status-chip--tempo{border-color:rgba(111,124,133,.55);color:var(--roster-muted)}
+.roster-page .roster-error{color:#e57373;text-align:center}
+
+@media(max-width:700px){
+  .roster-page h1{font-size:2rem}
+  .roster-page .controls-row{align-items:stretch}
+  .roster-page .controls-row label{width:100%;min-width:0}
+  .roster-page .count-meta{width:100%;margin-left:0}
+  .roster-page #toggleArchiveView{width:100%}
+  .roster-page .card,.roster-page .card-lite{padding:14px}
+  .roster-page .roster-table tbody{grid-template-columns:minmax(0,1fr)}
+  .roster-page .roster-table tr{padding:15px}
+  .roster-page .name-line{display:flex;align-items:center;flex-wrap:wrap;gap:6px}
 }
 
-.roster-table tr:last-child td{
-  border-bottom:none;
-}
-
-.roster-table tbody tr:hover{
-  background:rgba(255,255,255,.035);
-}
-
-.name-col{
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-}
-
-.name-line{
-  font-weight:900;
-  color:#fff;
-}
-
-.bonsai-chip{
-  width:22px;
-  height:22px;
-  border-radius:999px;
-  border:1px solid rgba(255,214,51,.28);
-  background:radial-gradient(circle,#ffd63355 0%,#10151c 76%);
-  flex:0 0 auto;
-  margin-top:2px;
-}
-
-.roster-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-/* ===============================
-   BELT / XP DISPLAY
-================================ */
-
-.belt-stack{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  min-width:220px;
-}
-
-.xp-lite-track{
-  position:relative;
-  width:100%;
-  height:14px;
-  border-radius:999px;
-  overflow:hidden;
-  background:rgba(255,255,255,.14);
-  border:1px solid rgba(255,255,255,.08);
-}
-
-.xp-lite-fill{
-  position:absolute;
-  inset:0 auto 0 0;
-  height:100%;
-  width:0%;
-  z-index:1;
-}
-
-.xp-lite-track .stripe-bars{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:stretch;
-  justify-content:flex-start;
-  width:fit-content;
-  max-width:100%;
-  pointer-events:none;
-  z-index:6;
-}
-
-.xp-lite-track .stripe-bar{
-  height:100%;
-  box-sizing:border-box;
-}
-
-.xp-sub{
-  font-size:12px;
-  color:var(--muted);
-  letter-spacing:.2px;
-  line-height:1.2;
-}
-
-/* ===============================
-   STATUS / ATTENDANCE
-================================ */
-
-.status-chip{
-  display:inline-flex;
-  align-items:center;
-  margin-left:8px;
-  padding:3px 8px;
-  border-radius:999px;
-  font-size:.7rem;
-  font-weight:900;
-  line-height:1.2;
-  vertical-align:middle;
-  white-space:nowrap;
-}
-
-.status-chip--ready{
-  background:rgba(255,214,51,.12);
-  border:1px solid rgba(255,214,51,.38);
-  color:var(--gold);
-}
-
-.status-chip--tempo{
-  background:rgba(53,199,89,.12);
-  border:1px solid rgba(53,199,89,.38);
-  color:var(--green);
-}
-
-.status-dot{
-  width:8px;
-  height:8px;
-  border-radius:50%;
-  display:inline-block;
-  margin-right:6px;
-}
-
-.status-dot--active{ background:var(--green); }
-.status-dot--warning{ background:var(--yellow); }
-.status-dot--risk{ background:var(--orange); }
-.status-dot--edge{ background:var(--red); }
-.status-dot--freeze,
-.status-dot--frozen{ background:var(--ice); }
-.status-dot--unknown{ background:var(--gray); }
-
-/* ===============================
-   TEMPLE WATCH
-================================ */
-
-.temple-watch-row{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  padding:12px 0;
-  border-bottom:1px solid var(--line-soft);
-  flex-wrap:wrap;
-}
-
-.temple-watch-row:last-child{
-  border-bottom:none;
-}
-
-.temple-watch-left{
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-}
-
-.temple-watch-name{
-  font-weight:900;
-}
-
-.temple-watch-meta{
-  font-size:.82rem;
-  color:var(--muted);
-}
-
-.temple-watch-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-/* ===============================
-   MOBILE CARD LAYOUT
-================================ */
-
-@media (max-width:700px){
-  .wrap{
-    padding:18px 14px 44px;
-  }
-
-  .top-nav,
-  .controls-row{
-    align-items:flex-start;
-    gap:8px;
-  }
-
-  .roster-table,
-  .roster-table thead,
-  .roster-table tbody,
-  .roster-table th,
-  .roster-table td,
-  .roster-table tr{
-    display:block;
-    width:100%;
-  }
-
-  .roster-table{
-    border:none;
-    background:transparent;
-  }
-
-  .roster-table thead{
-    display:none;
-  }
-
-  .roster-table tbody{
-    display:flex;
-    flex-direction:column;
-    gap:14px;
-  }
-
-  .roster-table tr{
-    background:linear-gradient(180deg,var(--panel),#0b111a);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    padding:14px;
-    box-shadow:var(--shadow);
-  }
-
-  .roster-table td{
-    border-bottom:none;
-    padding:0;
-    margin:0 0 12px;
-  }
-
-  .roster-table td:last-child{
-    margin-bottom:0;
-  }
-
-  .roster-table td::before{
-    display:block;
-    font-size:.72rem;
-    color:var(--muted);
-    margin-bottom:5px;
-    font-weight:900;
-    text-transform:uppercase;
-    letter-spacing:.08em;
-  }
-
-  .roster-table td[data-label="Present"]::before{ content:"Present"; }
-  .roster-table td[data-label="Athlete"]::before{ content:"Athlete"; }
-  .roster-table td[data-label="Tier / Rank"]::before{ content:"Tier / Rank"; }
-  .roster-table td[data-label="XP"]::before{ content:"XP"; }
-  .roster-table td[data-label="Attendance"]::before{ content:"Attendance"; }
-  .roster-table td[data-label="Actions"]::before{ content:"Actions"; }
-
-  td[data-label="Present"]{
-    text-align:left;
-  }
-
-  .name-line{
-    display:flex;
-    align-items:center;
-    flex-wrap:wrap;
-    gap:6px;
-  }
-
-  .belt-stack{
-    min-width:0;
-    width:100%;
-  }
-
-  .xp-lite-track{
-    width:100%;
-    min-width:0;
-  }
-
-  .xp-sub{
-    margin-top:4px;
-  }
-
-  .roster-actions .pill{
-    flex:1 1 auto;
-    text-align:center;
-  }
-}
-/* ===============================
-   ROSTER COMMAND BOARD LOOK
-================================ */
-
-.roster-table{
-  display:block;
-  border:none;
-  background:transparent;
-  margin-top:22px;
-}
-
-.roster-table thead{
-  display:none;
-}
-
-.roster-table tbody{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:16px;
-}
-
-.roster-table tr{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  background:
-    linear-gradient(180deg,rgba(18,27,40,.96),rgba(8,12,18,.98));
-  border:1px solid rgba(255,255,255,.10);
-  border-radius:22px;
-  padding:18px;
-  box-shadow:0 18px 45px rgba(0,0,0,.32);
-}
-
-.roster-table tr:hover{
-  transform:translateY(-2px);
-  border-color:rgba(255,214,51,.35);
-  background:
-    linear-gradient(180deg,rgba(23,34,50,.98),rgba(10,15,23,.98));
-}
-
-.roster-table td{
-  display:block;
-  width:100%;
-  padding:0;
-  margin:0;
-  border:none;
-}
-
-.roster-table td::before{
-  display:block;
-  font-size:.68rem;
-  color:#7f8ea3;
-  margin-bottom:5px;
-  font-weight:900;
-  text-transform:uppercase;
-  letter-spacing:.09em;
-}
-
-.roster-table td[data-label="Present"]::before{ content:"Present"; }
-.roster-table td[data-label="Athlete"]::before{ content:"Athlete"; }
-.roster-table td[data-label="Tier / Rank"]::before{ content:"Tier / Rank"; }
-.roster-table td[data-label="XP"]::before{ content:"Progress"; }
-.roster-table td[data-label="Attendance"]::before{ content:"Attendance"; }
-.roster-table td[data-label="Actions"]::before{ content:"Actions"; }
-
-.name-line{
-  font-size:1.15rem;
-  font-weight:1000;
-  color:#fff;
-}
-
-.roster-actions{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-}
-
-.roster-actions .pill{
-  flex:1 1 auto;
-}
-
-.belt-stack{
-  width:100%;
-  min-width:0;
-}
-
-.xp-lite-track{
-  height:18px;
-  border-radius:999px;
-}
+@media(prefers-reduced-motion:reduce){.roster-page .roster-table tr{transition:none}}

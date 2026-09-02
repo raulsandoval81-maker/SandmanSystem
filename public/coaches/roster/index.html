@@ -5,14 +5,14 @@
   <title>Coach · Roster</title>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
-  <link rel="stylesheet" href="/assets/css/site.css"/>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1"/>
   <link rel="stylesheet" href="/coaches/roster/roster.css"/>
   <link rel="stylesheet" href="/assets/css/belts.css"/>
   <link rel="icon" href="data:,">
 </head>
 
-<body>
-<main class="wrap">
+<body class="coach-shell-page" data-coach-page="Roster" data-coach-area="athletes">
+<main class="roster-page" data-coach-shell-content>
 
   <!-- PAGE HEADER -->
   <header class="roster-header">
@@ -21,12 +21,13 @@
       <p class="muted">Coach command center · Athletes</p>
     </div>
 
-    <nav class="top-nav">
-      <a class="pill" href="/coaches/attendance/">Attendance</a>
-      <button class="pill" type="button" id="toggleArchiveView">Archived</button>
-      <a class="pill" href="/coaches/index.html">← Coach Index</a>
-    </nav>
   </header>
+
+  <section id="rosterStatus" class="roster-notice" role="status" aria-live="polite">
+    Verifying Coach access…
+  </section>
+
+  <div data-roster-protected hidden>
 
   <!-- FILTERS -->
   <section class="controls-row card-lite">
@@ -35,7 +36,7 @@
     Journey
     <select id="journeyFilter">
       <option value="all">All Journeys</option>
-      <option value="z2h">Z2H · Zero2Hero</option>
+      <option value="z2h">Road2Champion · Youth 7–13</option>
       <option value="p2l">P2L · Path2Legend</option>
       <option value="q2m">Q2M · Quest2Mastery</option>
     </select>
@@ -53,6 +54,8 @@
   </label>
 
   <span id="countMeta" class="muted count-meta"></span>
+
+  <button class="pill" type="button" id="toggleArchiveView">Archived</button>
 
 </section>
 
@@ -82,8 +85,11 @@
 
   </section>
 
+  </div>
+
 </main>
 
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 <script type="module" src="/coaches/roster/roster.js"></script>
 </body>
 </html>
