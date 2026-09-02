@@ -21,6 +21,24 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 }
 
+.coach-shell-page{background:var(--coach-shell-page-bg);color:var(--coach-shell-text)}
+.team-page.wrap{width:100%;max-width:none;margin:0;padding:0}
+.team-page .hero,.team-page .panel,.team-page .card{background:var(--coach-shell-panel);border-color:var(--coach-shell-line)}
+.team-page .hero h1,.team-page .panel h1,.team-page .card h1,.team-page .hero h2,.team-page .panel h2,.team-page .card h2{color:var(--coach-shell-gold)}
+.team-page .reference-list{margin:0;padding-left:1.25rem;line-height:1.8}
+
+html[data-theme="light"] .team-page{--text:#181818;--muted:#66645e;--gold:#8a6b12;--line:rgba(8,8,8,.13);--panel:#fffaf0;--card:#fffaf0;color:#181818}
+html[data-theme="light"] .team-page .hero,
+html[data-theme="light"] .team-page .panel,
+html[data-theme="light"] .team-page .card{box-shadow:0 12px 28px rgba(0,0,0,.08)}
+html[data-theme="light"] .team-page input,
+html[data-theme="light"] .team-page textarea,
+html[data-theme="light"] .team-page select{background:#fffaf0;color:#181818;border-color:rgba(8,8,8,.18)}
+html[data-theme="light"] .team-page button,
+html[data-theme="light"] .team-page .btn{background:#181818;color:#f2ead8}
+
+@media(max-width:620px){.team-page .grid.two{grid-template-columns:1fr}.team-page input,.team-page textarea,.team-page select{min-width:0;max-width:100%}}
+
 .wrap{
   max-width:1100px;
   margin:0 auto;

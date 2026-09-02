@@ -11,13 +11,14 @@
     content="Sandman Coach Dashboard for athlete development, daily priorities, testing, XP, practice, and team operations."
   >
 
-  <link rel="stylesheet" href="/coaches/dashboard/dashboard.css">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
+  <link rel="stylesheet" href="/coaches/dashboard/dashboard.css?v=2">
   <script src="/coaches/dashboard/dashboard.js" defer></script>
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Operations Dashboard" data-coach-area="dashboard">
 
-<div class="coach-app">
+<div class="coach-app dashboard-shell-page" data-coach-shell-content>
 
   <aside class="coach-rail" aria-label="Coach navigation">
 
@@ -466,5 +467,6 @@
 
 </div>
 
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>

@@ -61,6 +61,22 @@ select{
   min-height:100vh;
 }
 
+/* Shared Coach shell owns the building frame; dashboard rooms stay intact. */
+.coach-shell-page{background:var(--coach-shell-page-bg);color:var(--coach-shell-text)}
+.dashboard-shell-page.coach-app{display:block;min-height:0}
+.dashboard-shell-page .coach-rail,
+.dashboard-shell-page .mobile-rail-toggle,
+.dashboard-shell-page .rail-backdrop{display:none!important}
+.dashboard-shell-page .coach-workspace{min-width:0;background:transparent}
+.dashboard-shell-page .dashboard-main{max-width:none}
+html[data-theme="dark"] .dashboard-shell-page{--page:#101820;--surface:#1a252e;--surface-soft:#16212a;--text:#f7f7f5;--muted:#aeb3b7;--line:rgba(255,255,255,.11)}
+html[data-theme="dark"] .dashboard-shell-page .coach-workspace,
+html[data-theme="dark"] .dashboard-shell-page .workspace-header{background:#101820;color:#f7f7f5}
+html[data-theme="dark"] .dashboard-shell-page .metric-card,
+html[data-theme="dark"] .dashboard-shell-page .panel,
+html[data-theme="dark"] .dashboard-shell-page .lane-row{background:#1a252e;border-color:rgba(255,255,255,.11)}
+@media(max-width:620px){.dashboard-shell-page .workspace-header{padding-inline:14px}.dashboard-shell-page .dashboard-main{padding-inline:0}.dashboard-shell-page{max-width:100%;overflow-x:hidden}}
+
 
 /* LEFT RAIL */
 

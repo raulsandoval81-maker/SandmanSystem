@@ -5,17 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Team Progress · Challenges</title>
   <link rel="icon" href="data:,">
-<link rel="stylesheet" href="/coaches/team/team.css">
+<link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
+<link rel="stylesheet" href="/coaches/team/team.css?v=2">
 </head>
 
-<body>
-<main class="wrap">
-
-  <nav class="top-nav">
-    <a class="pill" href="/coaches/hub/index.html">Coach Hub</a>
-    <a class="pill" href="/coaches/team/index.html">Team</a>
-    <a class="pill" href="/coaches/roster/index.html">Roster</a>
-  </nav>
+<body class="coach-shell-page" data-coach-page="Team Progress" data-coach-area="team">
+<main class="wrap team-page" data-coach-shell-content>
 
   <section class="hero">
     <h1>Team Progress</h1>
@@ -108,6 +103,7 @@
 
 </main>
 
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 <script type="module" src="/coaches/team/progress.js"></script>
 </body>
 </html>

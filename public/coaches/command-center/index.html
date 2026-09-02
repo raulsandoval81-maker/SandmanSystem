@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Coach • Command Center</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
 
   <style>
     :root{
@@ -636,8 +637,19 @@
       /* === END COMMAND CENTER WORK MODE V1 === */
 
 </style>
+<style>
+  .command-shell-page{width:100%;max-width:none;margin:0;padding:0}
+  .coach-shell-page>.coach-header,.coach-shell-page>.coach-menu,.coach-shell-page>.menu-backdrop{display:none!important}
+  .command-shell-page>main{max-width:none;margin:0}
+  html[data-theme="light"] .command-shell-page{color:#181818}
+  html[data-theme="light"] .command-shell-page .hero,
+  html[data-theme="light"] .command-shell-page .card{background:#fffaf0;border-color:rgba(8,8,8,.14);box-shadow:0 12px 28px rgba(0,0,0,.08)}
+  html[data-theme="light"] .command-shell-page .card-copy,
+  html[data-theme="light"] .command-shell-page .sub{color:#66645e}
+  @media(max-width:620px){.command-shell-page{max-width:100%;overflow-x:hidden}}
+</style>
 </head>
-<body>
+<body class="coach-shell-page" data-coach-page="Command Center" data-coach-area="command-center">
   <header class="coach-header">
     <div class="coach-header__inner">
       <div class="coach-header__left">
@@ -681,6 +693,7 @@
     </nav>
   </aside>
 
+  <div class="command-shell-page" data-coach-shell-content>
   <main>
     <section class="hero">
       <h1 data-en="Coach master control" data-es="Control maestro del entrenador">Coach master control</h1>
@@ -992,6 +1005,7 @@
       Coach is final authority on training and athlete development • Software assists operations, not judgment
     </div>
   </main>
+  </div>
   <script>
     (() => {
       const root = document.documentElement;
@@ -1084,6 +1098,7 @@
       setTheme(localStorage.getItem("coachHubTheme") === "light" ? "light" : "dark");
     })();
   </script>
+  <script src="/coaches/_ui/coach-shell.js?v=1"></script>
   <script type="module" src="/coaches/command-center/command-center.js"></script>
 </body>
 </html>

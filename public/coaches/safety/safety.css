@@ -19,6 +19,24 @@ body{
   font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
 }
 
+.coach-shell-page{background:var(--coach-shell-page-bg);color:var(--coach-shell-text)}
+.safety-page.wrap{width:100%;max-width:none;margin:0;padding:0}
+.safety-page .hero,.safety-page .card,.safety-page .action-card,.safety-page .panel{background:var(--coach-shell-panel);border-color:var(--coach-shell-line)}
+.safety-page .hero{border-color:var(--coach-shell-warning)}
+.safety-page .kicker{color:var(--coach-shell-warning)}
+.safety-page h1,.safety-page h2,.safety-page h3{color:var(--coach-shell-gold)}
+
+html[data-theme="light"] .safety-page{--text:#181818;--muted:#66645e;--gold:#8a6b12;--line:rgba(8,8,8,.14);color:#181818}
+html[data-theme="light"] .safety-page .hero,
+html[data-theme="light"] .safety-page .card,
+html[data-theme="light"] .safety-page .action-card,
+html[data-theme="light"] .safety-page .panel{background:#fffaf0;box-shadow:0 12px 28px rgba(0,0,0,.08)}
+html[data-theme="light"] .safety-page input{background:#fffaf0;color:#181818;border-color:rgba(8,8,8,.2)}
+html[data-theme="light"] .safety-page .profile{background:#f7f0e3;border-color:rgba(8,8,8,.14)}
+html[data-theme="light"] .safety-page .value{color:#181818}
+
+@media(max-width:620px){.safety-page input{min-width:0;max-width:100%;width:100%}.safety-page button{max-width:100%}}
+
 .wrap{
   max-width:1050px;
   margin:0 auto;

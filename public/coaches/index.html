@@ -19,6 +19,7 @@
     rel="stylesheet"
     href="/assets/css/site.css"
   >
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
 
   <style>
     :root{
@@ -601,9 +602,22 @@
       }
     }
   </style>
+  <style>
+    .coach-shell-page>.coach-header{display:none!important}
+    .more-tools-page{width:100%;max-width:none}
+    .more-tools-page>.menu-backdrop{display:none!important}
+    .more-tools-page .coach-menu{position:static;inset:auto;width:auto;max-width:none;transform:none!important;visibility:visible!important;opacity:1!important;background:#181818;border:1px solid rgba(212,175,55,.24);border-radius:16px;margin:24px 0;padding:18px}
+    .more-tools-page .coach-menu__head{display:none}
+    .more-tools-page .coach-menu__links{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+    .more-tools-page .coach-menu__links a{min-height:74px;border:1px solid rgba(255,255,255,.1);border-radius:12px}
+    .more-tools-page .coach-menu__divider{display:none}
+    .more-tools-page .coach-main{min-height:auto}
+    html[data-theme="light"] .more-tools-page .coach-splash{background:#fffaf0;color:#181818}
+    @media(max-width:620px){.more-tools-page{max-width:100%;overflow-x:hidden}.more-tools-page .coach-menu__links{grid-template-columns:1fr}}
+  </style>
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="More Tools" data-coach-area="tools">
 
   <header class="coach-header">
     <div class="coach-header__inner">
@@ -646,6 +660,8 @@
 
     </div>
   </header>
+
+  <div class="more-tools-page" data-coach-shell-content>
 
   <button
     id="menuBackdrop"
@@ -830,6 +846,7 @@
     </section>
 
   </main>
+  </div>
 
   <script>
     (() => {
@@ -1047,6 +1064,7 @@
       );
     })();
   </script>
+  <script src="/coaches/_ui/coach-shell.js?v=1"></script>
 
 </body>
 </html>
