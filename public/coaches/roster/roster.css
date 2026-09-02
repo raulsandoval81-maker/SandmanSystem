@@ -172,3 +172,22 @@ html[data-theme="light"] .roster-page{
 }
 
 @media(prefers-reduced-motion:reduce){.roster-page .roster-table tr{transition:none}}
+
+/* Roster header contrast */
+.roster-page .roster-header h1{
+  margin:0 0 6px;
+  color:var(--roster-text);
+}
+
+.roster-page .roster-header .muted{
+  color:var(--roster-muted);
+  opacity:1;
+}
+
+html[data-theme="light"] .roster-page .roster-header h1{
+  color:#181818;
+}
+
+html[data-theme="light"] .roster-page .roster-header .muted{
+  color:#595751;
+}
