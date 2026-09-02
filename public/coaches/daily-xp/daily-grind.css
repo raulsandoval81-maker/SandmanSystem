@@ -572,3 +572,206 @@ tbody tr:hover{ background: rgba(255,214,51,.055); }
 .status-toolbar strong{
   font-size:.85rem;
 }
+
+/* Shared Coach shell integration. Keep the Daily XP console dense and intact. */
+.coach-shell-page{
+  background:var(--coach-shell-page-bg);
+  color:var(--coach-shell-text);
+}
+
+.coach-shell-page::before{
+  display:none;
+}
+
+.daily-xp-page{
+  --panel:#1a252e;
+  --line:rgba(255,255,255,.11);
+  --line2:rgba(255,255,255,.06);
+  --text:#f7f7f5;
+  --muted:#aeb3b7;
+  --gold:var(--coach-shell-gold,#d4af37);
+  --gold2:var(--coach-shell-bright-gold,#f0cf67);
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0;
+  color:var(--text);
+}
+
+.daily-xp-page h1{
+  margin-top:0;
+  color:var(--gold);
+  text-shadow:none;
+}
+
+.daily-xp-page .creed,
+.daily-xp-page .card,
+.daily-xp-page .step,
+.daily-xp-page .session-bar,
+.daily-xp-page .table-wrap{
+  border-color:var(--line);
+}
+
+.daily-xp-page .card{
+  background:linear-gradient(180deg,#1a252e,#121b23);
+}
+
+.daily-xp-page .step,
+.daily-xp-page .session-bar{
+  background:#232f38;
+}
+
+.daily-xp-page .step-title,
+.daily-xp-page thead th{
+  color:var(--coach-shell-cream,#f2ead8);
+}
+
+.daily-xp-page .step-num{
+  border-color:rgba(212,175,55,.32);
+  background:#181818;
+  color:var(--gold);
+}
+
+.daily-xp-page .input,
+.daily-xp-page select{
+  border-color:var(--line);
+  background:#101820;
+  color:var(--text);
+}
+
+.daily-xp-page .btn-ghost{
+  border-color:var(--line);
+  background:#181818;
+  color:#f7f7f5;
+}
+
+.daily-xp-page thead th{
+  background:rgba(8,8,8,.96);
+}
+
+html[data-theme="light"] .daily-xp-page{
+  --panel:#fffaf0;
+  --line:rgba(8,8,8,.14);
+  --line2:rgba(8,8,8,.08);
+  --text:#181818;
+  --muted:#66645e;
+}
+
+html[data-theme="light"] .daily-xp-page .creed{
+  background:linear-gradient(90deg,rgba(212,175,55,.18),rgba(255,250,240,.7));
+  box-shadow:none;
+}
+
+html[data-theme="light"] .daily-xp-page .card{
+  background:#fffaf0;
+  box-shadow:0 14px 35px rgba(0,0,0,.1);
+}
+
+html[data-theme="light"] .daily-xp-page .step,
+html[data-theme="light"] .daily-xp-page .session-bar{
+  background:#f4ede0;
+  color:var(--text);
+}
+
+html[data-theme="light"] .daily-xp-page .step-title,
+html[data-theme="light"] .daily-xp-page .hint,
+html[data-theme="light"] .daily-xp-page .session-bar,
+html[data-theme="light"] .daily-xp-page .row-xp-meta{
+  color:var(--muted);
+}
+
+html[data-theme="light"] .daily-xp-page .input,
+html[data-theme="light"] .daily-xp-page select{
+  background:#fffaf0;
+  color:var(--text);
+}
+
+html[data-theme="light"] .daily-xp-page .btn-ghost{
+  background:#181818;
+  color:#f7f7f5;
+}
+
+html[data-theme="light"] .daily-xp-page .table-wrap,
+html[data-theme="light"] .daily-xp-page table{
+  background:#fffaf0;
+}
+
+html[data-theme="light"] .daily-xp-page thead th{
+  background:#181818;
+  color:#f2ead8;
+}
+
+html[data-theme="light"] .daily-xp-page th,
+html[data-theme="light"] .daily-xp-page td{
+  border-bottom-color:rgba(8,8,8,.08);
+}
+
+html[data-theme="light"] .daily-xp-page tbody tr:nth-child(even){
+  background:rgba(8,8,8,.025);
+}
+
+/* The selected lane supplies action meaning; gold remains progression hierarchy. */
+.daily-xp-page[data-xp-lane="combat"] [data-award]{
+  border:1px solid rgba(181,43,47,.72);
+  background:linear-gradient(180deg,#c6383d,#9f2227);
+  color:#fff;
+  box-shadow:0 10px 26px rgba(181,43,47,.18);
+}
+
+.daily-xp-page[data-xp-lane="strength"] [data-award]{
+  border:1px solid rgba(32,184,176,.72);
+  background:linear-gradient(180deg,#25bfb7,#168d88);
+  color:#081414;
+  box-shadow:0 10px 26px rgba(32,184,176,.18);
+}
+
+.daily-xp-page[data-xp-lane="honor"] [data-award]{
+  border:1px solid rgba(212,175,55,.46);
+  background:linear-gradient(180deg,#fffaf0,#e8ddc7);
+  color:#181818;
+  box-shadow:0 10px 26px rgba(70,61,45,.14);
+}
+
+.daily-xp-page #awardHint,
+.daily-xp-page #pageStatus{
+  padding:9px 11px;
+  border-left:3px solid var(--gold);
+  border-radius:8px;
+  background:rgba(8,8,8,.18);
+}
+
+.daily-xp-page[data-xp-lane="combat"] #awardHint,
+.daily-xp-page[data-xp-lane="combat"] #pageStatus{
+  border-left-color:var(--coach-shell-combat,#b52b2f);
+}
+
+.daily-xp-page[data-xp-lane="strength"] #awardHint,
+.daily-xp-page[data-xp-lane="strength"] #pageStatus{
+  border-left-color:var(--coach-shell-strength,#20b8b0);
+}
+
+.daily-xp-page[data-xp-lane="honor"] #awardHint,
+.daily-xp-page[data-xp-lane="honor"] #pageStatus{
+  border-left-color:var(--coach-shell-cream,#f2ead8);
+}
+
+html[data-theme="light"] .daily-xp-page #awardHint,
+html[data-theme="light"] .daily-xp-page #pageStatus{
+  background:rgba(8,8,8,.035);
+}
+
+html[data-theme="light"] .daily-xp-page[data-xp-lane="honor"] #awardHint,
+html[data-theme="light"] .daily-xp-page[data-xp-lane="honor"] #pageStatus{
+  border-left-color:#b89947;
+}
+
+@media(max-width:700px){
+  .daily-xp-page .card{padding:12px 10px}
+  .daily-xp-page .step-head{align-items:stretch;flex-wrap:wrap}
+  .daily-xp-page .step-head>select{width:100%;max-width:none}
+  .daily-xp-page .row{min-width:0}
+  .daily-xp-page .row>.btn{flex:1 1 150px;min-height:44px;white-space:normal}
+  .daily-xp-page #xpLane,
+  .daily-xp-page #xpMode{width:100%;max-width:none!important}
+  .daily-xp-page .table-wrap{max-width:100%;overflow-x:auto}
+}

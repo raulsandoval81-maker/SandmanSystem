@@ -5,21 +5,21 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Coach · XP Daily Grind</title>
 
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+
   <!-- Canon console styles -->
   <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
   <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css" />
   <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
+  <link rel="stylesheet" href="/coaches/daily-xp/daily-grind.css?v=2" />
 
   <!-- Mini belt bar -->
    <link rel="stylesheet" href="/assets/css/belts.css" />
   <link rel="icon" href="data:,">
 </head>
 
-<body>
-<main class="wrap">
-  <nav class="top-nav">
-    <a class="pill" href="/coaches/roster/index.html">Team Roster</a>
-  </nav>
+<body class="coach-shell-page" data-coach-page="XP Daily Grind" data-coach-area="xp">
+<main class="wrap daily-xp-page" data-coach-shell-content>
 
   <h1>XP Daily Grind</h1>
   <div class="creed">Combat · Strength · Honor. One flow. No guessing.</div>
@@ -180,7 +180,8 @@
   </section>
 </main>
 
-<script type="module" src="/coaches/daily-xp/daily-grind.js"></script>
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script type="module" src="/coaches/daily-xp/daily-grind.js?v=2"></script>
 <script type="module" src="/coaches/daily-xp/daily-grind.stamps.js"></script>
 </body>
 </html>

@@ -540,6 +540,11 @@ function setPillVisible(btn, on) {
 
 function syncPillsToLane() {
   const lane = String(laneEl?.value || "combat").toLowerCase();
+  const page = document.querySelector(".daily-xp-page");
+
+  if (page) {
+    page.dataset.xpLane = lane;
+  }
 
   ALL_PILLS.forEach((b) => setPillVisible(b, false));
 
