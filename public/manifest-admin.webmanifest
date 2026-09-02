@@ -1,0 +1,22 @@
+{
+  "id": "/sandman-admin",
+  "name": "Sandman Admin",
+  "short_name": "Admin",
+  "start_url": "/admin/hub/dashboard.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "icons": [
+    {
+      "src": "/assets/icons/sandman-system-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/sandman-system-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
