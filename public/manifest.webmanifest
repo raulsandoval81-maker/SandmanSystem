@@ -1,0 +1,21 @@
+{
+  "name": "Sandman System",
+  "short_name": "Sandman",
+  "start_url": "/coaches/hub/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080808",
+  "theme_color": "#080808",
+  "icons": [
+    {
+      "src": "/assets/icons/sandman-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/icons/sandman-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
