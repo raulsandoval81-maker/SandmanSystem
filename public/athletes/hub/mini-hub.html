@@ -7,6 +7,7 @@
 
   <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
   <link rel="stylesheet" href="/assets/css/athlete-ui.css" />
+  <link rel="stylesheet" href="/assets/css/athlete-dashboard.css" />
   <script type="module" src="/assets/js/athlete-nav.js"></script>
 
   <style>
@@ -293,6 +294,7 @@
       </div>
     </section>
 
+    <section id="athleteStatusGrid" class="athlete-status-grid" aria-label="Current progression status" hidden></section>
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
       <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your progress and earned recognition.</p></a>
       <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open your Combat, Strength, and Honor work.</p></a>
@@ -302,20 +304,12 @@
     </section>
   </main>
 <script type="module">
-import {
-  db,
-  auth,
-  doc,
-  getDoc,
-  collection,
-  query,
-  where,
-  limit,
-  getDocs
-} from "/assets/js/firebase-init.js";
-
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { LADDER_F8 } from "/assets/js/ladder.service.js";
+import {
+  loadAthleteDashboard,
+  renderAthleteDashboard,
+  resolveSignedInAthlete,
+} from "/assets/js/athlete-dashboard-data.js";
 
 const $ = (id) => document.getElementById(id);
 const LAST_UID_KEY = "sandman_lastAthleteUid";
@@ -327,51 +321,6 @@ function getIdFromUrl(){
   return norm(p.get("id") || p.get("uid"));
 }
 
-async function resolveAthleteId(){
-  const urlId = getIdFromUrl();
-
-  // URL wins first
-  if (urlId) {
-    localStorage.setItem(LAST_UID_KEY, urlId);
-    return urlId;
-  }
-
-  // fallback to stored
-  const stored = norm(localStorage.getItem(LAST_UID_KEY));
-  if (stored) return stored;
-
-  // fallback to auth lookup
-  const user = await new Promise((resolve) => {
-    if (auth.currentUser) return resolve(auth.currentUser);
-
-    const unsub = onAuthStateChanged(auth, (u) => {
-      unsub();
-      resolve(u || null);
-    });
-
-    setTimeout(() => resolve(null), 2000);
-  });
-
-  if (!user || !user.uid) return "";
-
-  try {
-    const qy = query(
-      collection(db, "athletes"),
-      where("authUid", "==", user.uid),
-      limit(1)
-    );
-
-    const snaps = await getDocs(qy);
-    if (snaps.empty) return "";
-
-    const foundId = norm(snaps.docs[0].id);
-    localStorage.setItem(LAST_UID_KEY, foundId);
-    return foundId;
-  } catch {
-    return "";
-  }
-}
-
 function setLinks(id){
   if (!id) return;
   $("arsenalLink").href = `/athletes/arsenal/?id=${encodeURIComponent(id)}`;
@@ -379,7 +328,8 @@ function setLinks(id){
 }
 
 async function load(){
-  const id = await resolveAthleteId();
+  const resolved = await resolveSignedInAthlete(getIdFromUrl());
+  const id = resolved.athleteId;
 
   if (!id) {
     console.warn("No athlete ID found");
@@ -387,12 +337,7 @@ async function load(){
   }
 
   // If this page is meant for youth, prefer F8 URL and warn on anything else
-  const urlId = getIdFromUrl();
-  const finalId = urlId || id;
-
-  if (urlId && urlId.startsWith("F8_")) {
-    localStorage.setItem(LAST_UID_KEY, urlId);
-  }
+  const finalId = id;
 
   if (!finalId.startsWith("F8_")) {
   window.location.replace(
@@ -407,10 +352,7 @@ async function load(){
 
   setLinks(finalId);
 
-  const snap = await getDoc(doc(db, "athletes", finalId));
-  if (!snap.exists()) return;
-
-  const A = snap.data() || {};
+  const A = resolved.athlete || {};
 
   const combat =
     A.disciplines?.[A.activeDiscipline] ||
@@ -477,6 +419,13 @@ async function load(){
 
   $("heroTitle").textContent = `${name}'s Home Base`;
   $("heroText").textContent = `Welcome back, ${name}. Keep showing up.`;
+
+  try {
+    const dashboard = await loadAthleteDashboard({ athleteId: finalId, athlete: A });
+    renderAthleteDashboard($("athleteStatusGrid"), dashboard, finalId);
+  } catch (error) {
+    console.error("Athlete dashboard status failed:", error);
+  }
 }
 
 load();

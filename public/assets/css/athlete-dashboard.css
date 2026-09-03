@@ -1,0 +1,7 @@
+.athlete-status-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0}
+.athlete-status-card{display:grid;align-content:start;gap:7px;min-width:0;padding:18px;border:1px solid rgba(212,175,55,.34);border-radius:16px;background:var(--athlete-surface,#fffaf0);color:inherit;text-decoration:none;box-shadow:0 10px 24px rgba(0,0,0,.08)}
+.athlete-status-card>span{text-transform:uppercase;letter-spacing:.13em;font-size:.72rem;font-weight:900;color:#a47f16}
+.athlete-status-card>strong{font-size:1.08rem}.athlete-status-card p{margin:0;line-height:1.35}.athlete-status-card b{margin-top:4px;color:#a47f16}
+.athlete-status-card__state{font-size:.88rem;opacity:.78}.athlete-status-card--combat{border-top:4px solid #b52b2f}.athlete-status-card--strength{border-top:4px solid #20b8b0}.athlete-status-card--honor{border-top:4px solid #d4af37}
+html[data-athlete-theme="night"] .athlete-status-card{background:#1a252e;color:#f7f7f5;border-color:rgba(240,207,103,.3)}
+@media(max-width:760px){.athlete-status-grid{grid-template-columns:1fr}.athlete-status-card{padding:16px}}

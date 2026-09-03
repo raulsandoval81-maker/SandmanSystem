@@ -7,6 +7,7 @@
 
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/assets/css/athlete-ui.css" />
+  <link rel="stylesheet" href="/assets/css/athlete-dashboard.css" />
   <script type="module" src="/assets/js/athlete-nav.js"></script>
   <link rel="icon" href="/assets/images/logos/Sandman-Combat.png" />
 
@@ -653,6 +654,7 @@
       <div class="f4-homebase-line"></div>
     </section>
 
+    <section id="athleteStatusGrid" class="athlete-status-grid" aria-label="Current progression status" hidden></section>
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
       <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your rank, progression, and earned recognition.</p></a>
       <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open Combat, Strength, and Honor training.</p></a>
@@ -666,37 +668,11 @@
   </main>
 
   <script type="module">
-    (function hardenId(){
-      const params = new URLSearchParams(location.search);
-      const urlId = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
-      const storedId = (localStorage.getItem("sandman_lastAthleteUid") || "").trim().toUpperCase();
-
-      if (urlId) {
-        localStorage.setItem("sandman_lastAthleteUid", urlId);
-        return;
-      }
-
-      if (!urlId && storedId) {
-        location.replace("/athletes/hub/?id=" + encodeURIComponent(storedId));
-      }
-    })();
-
     import {
-      db,
-      auth,
-      doc,
-      getDoc,
-      collection,
-      query,
-      where,
-      limit,
-      getDocs
-    } from "/assets/js/firebase-init.js";
-
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-
-    window._auth = auth;
-    window._db = db;
+      loadAthleteDashboard,
+      renderAthleteDashboard,
+      resolveSignedInAthlete,
+    } from "/assets/js/athlete-dashboard-data.js";
 
     const $ = (id) => document.getElementById(id);
     const LAST_UID_KEY = "sandman_lastAthleteUid";
@@ -779,62 +755,10 @@ function setProfileLink(id, athlete = {}) {
       leaderboardLink.removeAttribute("aria-disabled");
     }
 
-    function waitForAuthUser(timeoutMs = 2500){
-      return new Promise((resolve) => {
-        if (auth.currentUser) return resolve(auth.currentUser);
-
-        let done = false;
-        const unsub = onAuthStateChanged(auth, (u) => {
-          if (done) return;
-          done = true;
-          try { unsub(); } catch {}
-          resolve(u || null);
-        });
-
-        setTimeout(() => {
-          if (done) return;
-          done = true;
-          try { unsub(); } catch {}
-          resolve(auth.currentUser || null);
-        }, timeoutMs);
-      });
-    }
-
-    async function resolveAthleteIdFromAuth(){
-      const u = await waitForAuthUser(2500);
-      if (!u || !u.uid) return "";
-
-      const remembered = norm(localStorage.getItem(LAST_UID_KEY));
-      if (remembered) {
-        try {
-          const rs = await getDoc(doc(db, "athletes", remembered));
-          if (rs.exists()) {
-            const A = rs.data() || {};
-            if (A.authUid === u.uid) return remembered;
-          }
-        } catch {}
-      }
-
-      try {
-        const qy = query(
-          collection(db, "athletes"),
-          where("authUid", "==", u.uid),
-          limit(1)
-        );
-
-        const snaps = await getDocs(qy);
-        if (snaps.empty) return "";
-        return norm(snaps.docs[0].id);
-      } catch {
-        return "";
-      }
-    }
-
     async function loadAthlete(){
       const params = new URLSearchParams(location.search);
-      let id = norm(params.get("id") || params.get("uid"));
-
-      if (!id) id = await resolveAthleteIdFromAuth();
+      const resolved = await resolveSignedInAthlete(params.get("id") || params.get("uid"));
+      const id = resolved.athleteId;
 
       if (!id) {
         showSignIn(true);
@@ -848,20 +772,7 @@ function setProfileLink(id, athlete = {}) {
       setLeaderboardLink(id);
       [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"],["journeyComms","/communications/athlete/"],["journeyLeaderboard","/athletes/leaderboard/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
 
-      let snap = null;
-      try {
-        snap = await getDoc(doc(db, "athletes", id));
-      } catch {
-        snap = null;
-      }
-
-      if (!snap || !snap.exists()) {
-        showSignIn(true);
-        setFallbackText();
-        return;
-      }
-
-      const A = snap.data() || {};
+      const A = resolved.athlete || {};
 
       const disciplineIds = [
         ...(Array.isArray(A.disciplineIds) ? A.disciplineIds : []),
@@ -972,6 +883,13 @@ function setProfileLink(id, athlete = {}) {
 
       $("ctaMessage").textContent =
         `${displayName}, your profile is ready. Keep building.`;
+
+      try {
+        const dashboard = await loadAthleteDashboard({ athleteId: id, athlete: A });
+        renderAthleteDashboard($("athleteStatusGrid"), dashboard, id);
+      } catch (error) {
+        console.error("Athlete dashboard status failed:", error);
+      }
     }
 
     $("btnSignIn")?.addEventListener("click", () => {
