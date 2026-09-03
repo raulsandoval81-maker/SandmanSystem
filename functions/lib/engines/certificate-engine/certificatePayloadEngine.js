@@ -109,6 +109,13 @@ function buildCertificatePayload(athlete) {
     const stripeDecision = progression.stripeDecision;
     const currentStripe = Number(athlete.stripe || 0);
     const currentTier = normalizeTierNumber(athlete.tier);
+    if (progression.certificateAction === "STRIPE_CERTIFICATE") {
+        const nextStripe = Number(stripeDecision?.nextStripe || 0);
+        if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
+            return notReady(athlete, "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.", "LEGACY_PLACEMENT");
+        }
+        return stripePayload(athlete, stripeDecision, "STRIPE", `Stripe ${nextStripe}`, stripeDecision?.workingTowardBelt || "Next Belt", nextStripe, stripeDecision?.message || "Stripe certificate ready.");
+    }
     if (currentStripe > 0) {
         if (isLegacyStripeVetoed(athlete, currentTier, currentStripe)) {
             return notReady(athlete, "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.", "LEGACY_PLACEMENT");
@@ -123,13 +130,6 @@ function buildCertificatePayload(athlete) {
         if (!alreadyIssued) {
             return stripePayload(athlete, stripeDecision, "STRIPE", `Stripe ${currentStripe}`, stripeDecision?.workingTowardBelt || "Next Belt", currentStripe, `${athlete.name} has earned Stripe ${currentStripe}.`);
         }
-    }
-    if (progression.certificateAction === "STRIPE_CERTIFICATE") {
-        const nextStripe = Number(stripeDecision?.nextStripe || 0);
-        if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
-            return notReady(athlete, "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.", "LEGACY_PLACEMENT");
-        }
-        return stripePayload(athlete, stripeDecision, "STRIPE", `Stripe ${nextStripe}`, stripeDecision?.workingTowardBelt || "Next Belt", nextStripe, stripeDecision?.message || "Stripe certificate ready.");
     }
     if (progression.certificateAction ===
         "TESTING_ELIGIBLE_STRIPE_CERTIFICATE") {

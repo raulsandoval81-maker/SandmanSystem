@@ -171,6 +171,28 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
   const currentStripe = Number(athlete.stripe || 0);
   const currentTier = normalizeTierNumber(athlete.tier);
 
+  if (progression.certificateAction === "STRIPE_CERTIFICATE") {
+    const nextStripe = Number(stripeDecision?.nextStripe || 0);
+
+    if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
+      return notReady(
+        athlete,
+        "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.",
+        "LEGACY_PLACEMENT"
+      );
+    }
+
+    return stripePayload(
+      athlete,
+      stripeDecision,
+      "STRIPE",
+      `Stripe ${nextStripe}`,
+      stripeDecision?.workingTowardBelt || "Next Belt",
+      nextStripe,
+      stripeDecision?.message || "Stripe certificate ready."
+    );
+  }
+
   if (currentStripe > 0) {
     if (isLegacyStripeVetoed(athlete, currentTier, currentStripe)) {
       return notReady(
@@ -213,28 +235,6 @@ export function buildCertificatePayload(athlete: EngineAthlete) {
         `${athlete.name} has earned Stripe ${currentStripe}.`
       );
     }
-  }
-
-  if (progression.certificateAction === "STRIPE_CERTIFICATE") {
-    const nextStripe = Number(stripeDecision?.nextStripe || 0);
-
-    if (isLegacyStripeVetoed(athlete, currentTier, nextStripe)) {
-      return notReady(
-        athlete,
-        "Legacy placement recognized. Certificates begin with the first stripe earned in Sandman.",
-        "LEGACY_PLACEMENT"
-      );
-    }
-
-    return stripePayload(
-      athlete,
-      stripeDecision,
-      "STRIPE",
-      `Stripe ${nextStripe}`,
-      stripeDecision?.workingTowardBelt || "Next Belt",
-      nextStripe,
-      stripeDecision?.message || "Stripe certificate ready."
-    );
   }
 
   if (
