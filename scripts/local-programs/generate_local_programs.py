@@ -1,4 +1,5 @@
 from pathlib import Path
+import argparse
 import shutil
 
 import re
@@ -12,6 +13,7 @@ LIBRARY = (
 )
 
 LOCATIONS = ROOT / "public" / "locations"
+PUBLIC = ROOT / "public"
 
 
 # =========================================================
@@ -22,20 +24,98 @@ ACADEMIES = {
     "santa-ynez-valley": {
         "name": "Santa Ynez Valley",
         "name_es": "Valle de Santa Ynez",
-        "connect_url": "/locations/santa-ynez-valley/connect.html",
+        "connect_url":
+            "/connect/interest/?academy=sandman&location=santa-ynez-valley",
 
         "programs": {
             "zero2hero": [
                 "wrestling",
                 "muay-thai",
             ],
-
             "path2legend": [
                 "wrestling",
                 "boxing",
             ],
-
             "quest2mastery": [],
+        },
+
+        "fitness": {
+            "enabled": True,
+            "everyday_fitness": True,
+            "classes": [
+                "strength-conditioning",
+                "kickboxing-self-defense",
+                "boxing-self-defense",
+            ],
+            "drop_in": 15,
+            "drop_in_rolls_to_enrollment": True,
+            "remote_training": "fuelai",
+        },
+    },
+
+    "lompoc": {
+        "name": "Lompoc",
+        "name_es": "Lompoc",
+        "connect_url":
+            "/connect/interest/?academy=sandman&location=lompoc",
+
+        "programs": {
+            "zero2hero": [
+                "wrestling",
+            ],
+            "path2legend": [
+                "wrestling",
+            ],
+            "quest2mastery": [],
+        },
+
+        "fitness": {
+            "enabled": True,
+            "everyday_fitness": True,
+            "classes": [
+                "strength-conditioning",
+                "kickboxing-self-defense",
+                "boxing-self-defense",
+            ],
+            "drop_in": 15,
+            "drop_in_rolls_to_enrollment": True,
+            "remote_training": "fuelai",
+        },
+    },
+
+    "elk-grove": {
+        "name": "Elk Grove",
+        "name_es": "Elk Grove",
+        "connect_url":
+            "/connect/interest/?academy=sandman&location=elk-grove",
+
+        "programs": {
+            "zero2hero": [
+                "boxing",
+                "wrestling",
+                "muay-thai",
+            ],
+            "path2legend": [
+                "boxing",
+                "wrestling",
+                "muay-thai",
+            ],
+            "quest2mastery": [
+                "mma",
+                "submission-grappling",
+            ],
+        },
+
+        "fitness": {
+            "enabled": True,
+
+            # Visual support exists, but do not advertise local
+            # Everyday Fitness classes or pricing until enabled.
+            "everyday_fitness": False,
+            "classes": [],
+            "drop_in": None,
+            "drop_in_rolls_to_enrollment": False,
+            "remote_training": "fuelai",
         },
     },
 }
@@ -120,7 +200,8 @@ def localize_html(html, academy):
 
 JOURNEY_META = {
     "zero2hero": {
-        "label": "Zero2Hero™",
+        "label": "Road2Champion™",
+        "family": "Sandman Zero2Hero™ Programs",
         "age_en": "Ages 7–13",
         "age_es": "Edades 7–13",
     },
@@ -135,6 +216,137 @@ JOURNEY_META = {
         "age_es": "Edades 16+",
     },
 }
+
+
+# Public output slugs remain canonical even when a legacy library filename
+# differs. Every mismatch must be declared here so preflight can fail closed
+# on accidental or newly introduced source/config drift.
+SOURCE_FILE_ALIASES = {
+    ("quest2mastery", "submission-grappling"): "sub-grappling",
+}
+
+
+PROGRESSION_ASSETS = {
+    ("zero2hero", "boxing"):
+        "/assets/images/programs/shirt-progression/"
+        "road2champion-boxing-shirt-progression.png",
+    ("zero2hero", "muay-thai"):
+        "/assets/images/programs/shirt-progression/"
+        "road2champion-muay-thai-shirt-progression.png",
+    ("zero2hero", "wrestling"):
+        "/assets/images/programs/shirt-progression/"
+        "road2champion-wrestling-shirt-progression.png",
+    ("path2legend", "boxing"):
+        "/assets/images/programs/shirt-progression/"
+        "path2legend-boxing-shirt-progression.png",
+    ("path2legend", "muay-thai"):
+        "/assets/images/programs/shirt-progression/"
+        "path2legend-muay-thai-shirt-progression.png",
+    ("path2legend", "wrestling"):
+        "/assets/images/programs/shirt-progression/"
+        "path2legend-wrestling-shirt-progression.png",
+    ("quest2mastery", "mma"):
+        "/assets/images/programs/shirt-progression/"
+        "quest2mastery-mma-shirt-progression.png",
+    ("quest2mastery", "submission-grappling"):
+        "/assets/images/programs/shirt-progression/"
+        "quest2mastery-submission-grappling-shirt-progression.png",
+}
+
+
+def source_path_for(journey, discipline):
+    source_slug = SOURCE_FILE_ALIASES.get(
+        (journey, discipline),
+        discipline,
+    )
+    return LIBRARY / journey / f"{source_slug}.html"
+
+
+def validate_generation_sources():
+    """Validate the full configured source inventory before any output."""
+    errors = []
+    configured_pairs = set()
+
+    for location_slug, academy in ACADEMIES.items():
+        programs = academy.get("programs", {})
+
+        for journey, disciplines in programs.items():
+            if journey not in JOURNEY_META:
+                errors.append(
+                    f"{location_slug}: unknown journey key: {journey}"
+                )
+
+            if len(disciplines) != len(set(disciplines)):
+                errors.append(
+                    f"{location_slug}/{journey}: duplicate discipline slug"
+                )
+
+            for discipline in disciplines:
+                if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", discipline):
+                    errors.append(
+                        f"{location_slug}/{journey}: invalid discipline slug: "
+                        f"{discipline}"
+                    )
+                    continue
+
+                configured_pairs.add((journey, discipline))
+                source = source_path_for(journey, discipline)
+
+                if not source.is_file():
+                    errors.append(
+                        f"{location_slug}/{journey}/{discipline}: "
+                        f"missing source: {source}"
+                    )
+                    continue
+
+                expected_asset = PROGRESSION_ASSETS.get(
+                    (journey, discipline)
+                )
+                if not expected_asset:
+                    errors.append(
+                        f"{journey}/{discipline}: missing progression "
+                        "asset mapping"
+                    )
+                    continue
+
+                asset_path = PUBLIC / expected_asset.lstrip("/")
+                if not asset_path.is_file():
+                    errors.append(
+                        f"{journey}/{discipline}: missing progression "
+                        f"asset: {asset_path}"
+                    )
+
+                source_html = source.read_text()
+                if expected_asset not in source_html:
+                    errors.append(
+                        f"{journey}/{discipline}: source does not use "
+                        f"canonical progression asset: {expected_asset}"
+                    )
+
+    unused_aliases = set(SOURCE_FILE_ALIASES) - configured_pairs
+    for journey, discipline in sorted(unused_aliases):
+        errors.append(
+            f"unused source alias: {journey}/{discipline}"
+        )
+
+    alias_targets = {}
+    for output_pair, source_slug in SOURCE_FILE_ALIASES.items():
+        journey, discipline = output_pair
+        source_pair = (journey, source_slug)
+        previous = alias_targets.get(source_pair)
+        if previous and previous != discipline:
+            errors.append(
+                f"duplicate source alias target: {journey}/{source_slug}"
+            )
+        alias_targets[source_pair] = discipline
+
+    if errors:
+        raise RuntimeError(
+            "Local program source preflight failed:\n- "
+            + "\n- ".join(errors)
+        )
+
+    return configured_pairs
 
 
 # =========================================================
@@ -187,7 +399,7 @@ def polish_local_program_html(
         hero = re.sub(
             r'\s*<p class="eyebrow">\s*'
             r'(?:Foundry\s*[48]\s*•\s*)?'
-            r'(?:[^<]*?(?:Zero2Hero|Path2Legend|Quest2Mastery)™'
+            r'(?:[^<]*?(?:Zero2Hero|Road2Champion|Path2Legend|Quest2Mastery)™'
             r'[^<]*?)'
             r'\s*</p>\s*',
             "\n",
@@ -207,18 +419,21 @@ def polish_local_program_html(
     # CENTER ALL DISCIPLINE-PAGE TITLES
     # ---------------------------------------------
 
-    marker = "SANDMAN-DISCIPLINE-CENTERED-TITLES"
+    marker = "SANDMAN-DISCIPLINE-HERO-CENTER"
 
     if marker not in html and "</head>" in html:
         style = f"""
   <style id="{marker}">
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {{
+    .hero,
+    .hero h1,
+    .hero .hero-subtitle,
+    .hero > div > p {{
       text-align: center;
+    }}
+
+    .hero > div {{
+      margin-left: auto;
+      margin-right: auto;
     }}
   </style>
 """
@@ -229,6 +444,44 @@ def polish_local_program_html(
             1,
         )
 
+
+    return html
+
+
+def install_local_interior_shell(html, slug):
+    """Replace the legacy discipline header with the local interior shell."""
+    html, css_count = re.subn(
+        r'\n/\*\s*=+\s*\n\s*MINIMAL JOURNEY HEADER.*?'
+        r'(?=\n\s*</style>)',
+        "",
+        html,
+        count=1,
+        flags=re.I | re.S,
+    )
+
+    navigation = f'''<div
+  id="navigation"
+  data-component="/locations/{slug}/components/navigation.html"
+></div>'''
+
+    html, header_count = re.subn(
+        r'<header class="journey-minimal-header">.*?</header>',
+        navigation,
+        html,
+        count=1,
+        flags=re.I | re.S,
+    )
+
+    if css_count != 1 or header_count != 1:
+        raise RuntimeError(
+            f"STOP: legacy discipline shell mismatch for {slug}; "
+            f"css={css_count}, header={header_count}"
+        )
+
+    if "journey-minimal-header" in html:
+        raise RuntimeError(
+            f"STOP: legacy discipline shell remains for {slug}"
+        )
 
     return html
 
@@ -359,23 +612,21 @@ def generate_location(slug, academy):
         )
 
         for discipline in disciplines:
-            source = source_dir / f"{discipline}.html"
+            source = source_path_for(journey, discipline)
             destination = (
                 destination_dir
                 / f"{discipline}.html"
             )
 
-            if not source.exists():
-                print(
-                    f"WARNING: missing library file: "
-                    f"{source}"
-                )
-                continue
-
             html = source.read_text()
             html = localize_html(
                 html,
                 academy,
+            )
+
+            html = install_local_interior_shell(
+                html,
+                slug,
             )
 
             html = add_local_rally_responsive_css(html)
@@ -638,10 +889,56 @@ def enforce_local_front_door_culture():
 # END_SANDMAN_LOCAL_FRONT_DOOR_CULTURE
 
 def main():
+    global LOCATIONS
+
+    parser = argparse.ArgumentParser(
+        description="Generate Sandman local program pages."
+    )
+
+    parser.add_argument(
+        "--write",
+        action="store_true",
+        help=(
+            "Write generated pages into public/locations. "
+            "Without this flag, generation is preview-only."
+        ),
+    )
+
+    args = parser.parse_args()
+
     if not LIBRARY.exists():
         raise SystemExit(
             f"STOP: local program library missing: "
             f"{LIBRARY}"
+        )
+
+    configured_sources = validate_generation_sources()
+    print(
+        f"\n✓ Source preflight passed: "
+        f"{len(configured_sources)} configured program sources"
+    )
+
+    if args.write:
+        print(
+            "\nWRITE MODE"
+            "\nTarget: public/locations"
+            "\n"
+        )
+    else:
+        preview_root = Path(
+            "/tmp/sandman-local-program-preview"
+        )
+
+        if preview_root.exists():
+            shutil.rmtree(preview_root)
+
+        LOCATIONS = preview_root / "locations"
+
+        print(
+            "\nPREVIEW MODE"
+            "\nNo public files will be changed."
+            f"\nTarget: {LOCATIONS}"
+            "\n"
         )
 
     for slug, academy in ACADEMIES.items():
@@ -650,9 +947,27 @@ def main():
             academy,
         )
 
-    enforce_local_front_door_culture()
+    # IMPORTANT:
+    # The former home-many-paths/front-door generator is retired
+    # from execution. Current local homepages use the approved
+    # Combat / Strength / Honor hero and location discipline cards.
+    #
+    # Do not call enforce_local_front_door_culture() here.
+    #
+    # Future homepage / Programs / Fitness generation will be
+    # rebuilt from ACADEMIES configuration after preview parity
+    # with the approved public pages is established.
 
-    print("\n✓ Local program generation complete")
+    if args.write:
+        print(
+            "\n✓ Local discipline generation complete"
+            "\n✓ Public write mode used"
+        )
+    else:
+        print(
+            "\n✓ Local discipline preview complete"
+            "\n✓ Public files untouched"
+        )
 
 
 if __name__ == "__main__":
