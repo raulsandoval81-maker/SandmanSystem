@@ -5,13 +5,28 @@ function normalizeAthlete(doc) {
     const tierNumber = Number(String(doc.tier || "T0").replace("T", ""));
     let programCode = "UNKNOWN";
     let programName = "Unknown";
-    if (doc.trackCode === "foundry4-combat") {
-        programCode = "F4";
-        programName = "Foundry 4 • Path2Legend";
-    }
-    if (doc.trackCode === "foundry8-combat") {
+    const athleteId = String(doc.uidCode || doc.uid || "").toUpperCase();
+    const programMarkers = [
+        doc.trackBase,
+        doc.track,
+        doc.programTrack,
+        doc.trackCode,
+        doc.journey,
+        doc.program
+    ]
+        .map((value) => String(value ?? "").toUpperCase())
+        .join(" ");
+    const isF8 = athleteId.startsWith("F8_") ||
+        /(^|\\W)F8(\\W|$)|FOUNDRY8|ZERO2HERO|YOUTH/.test(programMarkers);
+    const isF4 = athleteId.startsWith("F4_") ||
+        /(^|\\W)F4(\\W|$)|FOUNDRY4|PATH2LEGEND|TEEN/.test(programMarkers);
+    if (isF8 && !isF4) {
         programCode = "F8";
         programName = "Foundry 8 • Zero2Hero";
+    }
+    if (isF4 && !isF8) {
+        programCode = "F4";
+        programName = "Foundry 4 • Path2Legend";
     }
     const stripeValue = doc.stripeCount ?? doc.stripe ?? 0;
     return {
