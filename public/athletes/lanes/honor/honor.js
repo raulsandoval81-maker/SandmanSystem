@@ -11,6 +11,9 @@ import {
 
 import { getActiveVaultSession } from "/vault/vault.js";
 import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
+import {
+  honorContextTitle,
+} from "/assets/js/athlete-lane-context.js";
 
 await ensureSignedIn();
 
@@ -181,6 +184,11 @@ if (!session) {
 }
     const sessionN = getSessionNumber(session);
     const SESSION_KEY = session.id || `${ACTIVE_LANE}_${segmentId}_session${sessionN}`;
+
+    const contextualTitle = honorContextTitle(meta.category, sessionN);
+    const pageHeading = document.querySelector(".athlete-lane-page .hero h1");
+    if (pageHeading) pageHeading.textContent = contextualTitle;
+    document.title = `${contextualTitle} | Sandman System`;
 
     const existing = submissions?.[SESSION_KEY] || null;
     const existingBody = (existing?.body || "").trim();

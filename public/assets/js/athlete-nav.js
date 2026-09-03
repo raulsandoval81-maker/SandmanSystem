@@ -46,6 +46,7 @@ const items = id.startsWith("F8_") ? youthItems : fullItems;
 function active(path){
   const here=location.pathname;
   if(path==="/athletes/hub/") return here.startsWith("/athletes/hub/");
+  if(path==="/athletes/arsenal/" && here.startsWith("/athletes/lanes/")) return true;
   if(path==="/communications/athlete/") return here==="/communications/athlete/" || here.endsWith("/communications/athlete/index.html");
   if(path.includes("announcements")) return here.includes("announcements");
   if(path.includes("schedule")) return here.includes("schedule");

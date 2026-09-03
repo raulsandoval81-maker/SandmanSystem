@@ -1,0 +1,187 @@
+/* Athlete Strength, Conditioning, and Honor execution rooms. */
+
+body.athlete-lane-page{
+  margin:0;
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+  overflow-x:hidden;
+}
+
+.athlete-lane-page .wrap,
+.athlete-lane-page .athlete-lane-shell{
+  width:min(100%,1120px);
+  max-width:min(1120px,calc(100% - 32px));
+  margin:0 auto;
+  padding:clamp(22px,4vw,44px) 0 64px;
+}
+
+.athlete-lane-page .hero{
+  margin:0 0 18px;
+  padding:clamp(22px,4vw,36px);
+  border:1px solid var(--athlete-line);
+  border-radius:22px;
+  background:linear-gradient(145deg,var(--athlete-panel),#edf3fc);
+  color:var(--athlete-ink);
+  box-shadow:var(--athlete-shadow);
+  text-align:left;
+}
+
+.athlete-lane-page .lane-eyebrow{
+  margin-bottom:8px;
+  color:var(--athlete-gold);
+  font-size:.73rem;
+  font-weight:900;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+
+.athlete-lane-page .hero h1{
+  margin:0;
+  color:var(--athlete-blue);
+  font-size:clamp(1.75rem,4vw,2.55rem);
+  line-height:1.08;
+  letter-spacing:-.025em;
+  text-transform:none;
+}
+
+.athlete-lane-page .hero .sub{
+  margin-top:9px;
+  color:var(--athlete-muted);
+  font-size:clamp(.92rem,2vw,1.02rem);
+  line-height:1.5;
+  opacity:1;
+}
+
+.athlete-lane-page .panel{
+  margin:0 0 16px;
+  padding:clamp(16px,3vw,24px);
+  border:1px solid var(--athlete-line);
+  border-radius:20px;
+  background:var(--athlete-panel);
+  color:var(--athlete-ink);
+  box-shadow:var(--athlete-shadow);
+  overflow-wrap:anywhere;
+}
+
+.athlete-lane-page .lane-card,
+.athlete-lane-page .session-block,
+.athlete-lane-page .section-block{
+  max-width:100%;
+  border-color:var(--athlete-line)!important;
+  background:color-mix(in srgb,var(--athlete-panel) 94%,var(--athlete-blue))!important;
+  color:var(--athlete-ink)!important;
+  box-shadow:none;
+}
+
+.athlete-lane-page .lane-card{
+  padding:clamp(15px,3vw,22px);
+  border:1px solid var(--athlete-line);
+  border-radius:16px;
+}
+
+.athlete-lane-page .session-block{
+  margin-top:14px;
+  padding:14px;
+  border:1px solid var(--athlete-line);
+  border-radius:14px;
+}
+
+.athlete-lane-page .standard-block{
+  border-color:color-mix(in srgb,var(--athlete-gold) 55%,transparent)!important;
+  background:color-mix(in srgb,var(--athlete-panel) 91%,var(--athlete-gold))!important;
+}
+
+.athlete-lane-page[data-athlete-lane="strength"] .hero,
+.athlete-lane-page[data-athlete-lane="conditioning"] .hero{
+  border-top:5px solid var(--athlete-blue);
+}
+
+.athlete-lane-page[data-athlete-lane="conditioning"] .lane-eyebrow{
+  color:#14847f;
+}
+
+.athlete-lane-page[data-athlete-lane="honor"] .hero{
+  border-top:5px solid var(--athlete-gold);
+  background:linear-gradient(145deg,#fffaf0,var(--athlete-panel));
+}
+
+.athlete-lane-page .btn-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+}
+
+.athlete-lane-page .btn,
+.athlete-lane-page .btn-back{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:44px;
+  padding:10px 15px;
+  border:1px solid var(--athlete-line);
+  border-radius:11px;
+  background:var(--athlete-navy);
+  color:#fff;
+  font:inherit;
+  font-size:.92rem;
+  font-weight:850;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.athlete-lane-page .btn:hover,
+.athlete-lane-page .btn-back:hover,
+.athlete-lane-page .btn:focus-visible,
+.athlete-lane-page .btn-back:focus-visible{
+  border-color:var(--athlete-gold);
+}
+
+.athlete-lane-page input,
+.athlete-lane-page textarea,
+.athlete-lane-page select{
+  max-width:100%;
+  border-color:var(--athlete-line)!important;
+  background:var(--athlete-panel)!important;
+  color:var(--athlete-ink)!important;
+}
+
+.athlete-lane-page textarea{width:100%;resize:vertical}
+
+html[data-athlete-theme="night"] .athlete-lane-page .hero{
+  background:linear-gradient(145deg,#102442,#153765);
+}
+
+html[data-athlete-theme="night"] .athlete-lane-page[data-athlete-lane="honor"] .hero{
+  background:linear-gradient(145deg,#252317,#102442);
+}
+
+html[data-athlete-theme="night"] .athlete-lane-page[data-athlete-lane="conditioning"] .lane-eyebrow{
+  color:#50d8d1;
+}
+
+@media (max-width:640px){
+  .athlete-lane-page .wrap,
+  .athlete-lane-page .athlete-lane-shell{
+    max-width:calc(100% - 20px);
+    padding-top:16px;
+  }
+
+  .athlete-lane-page .hero,
+  .athlete-lane-page .panel,
+  .athlete-lane-page .lane-card{
+    border-radius:15px;
+  }
+
+  .athlete-lane-page .btn-row,
+  .athlete-lane-page .btn,
+  .athlete-lane-page .btn-back{
+    width:100%;
+  }
+
+  .athlete-lane-page pre,
+  .athlete-lane-page code,
+  .athlete-lane-page table{
+    max-width:100%;
+    overflow-x:auto;
+  }
+}

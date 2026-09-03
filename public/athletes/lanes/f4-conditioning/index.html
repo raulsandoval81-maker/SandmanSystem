@@ -5,19 +5,29 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>F4 Conditioning | Sandman System</title>
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/css/athlete-ui.css" />
+  <link rel="stylesheet" href="/assets/css/f4-athlete.css" />
+  <link rel="stylesheet" href="/assets/css/athlete-lanes.css" />
   <script src="/assets/js/include.js" defer></script>
+  <script type="module" src="/assets/js/athlete-nav.js"></script>
 </head>
-<body>
-  <main style="max-width:900px;margin:0 auto;padding:16px;">
+<body class="athlete-app athlete-lane-page f4-athlete" data-athlete-lane="conditioning">
+  <main class="athlete-lane-shell">
+    <header class="hero">
+      <div class="lane-eyebrow">Strength Pillar · Conditioning Path</div>
+      <h1>Conditioning</h1>
+      <div class="sub">Home, bodyweight, and limited-equipment Strength work</div>
+    </header>
+
+    <section class="panel">
     <div id="lane-root">
       <div class="lane-card">Loading conditioning session...</div>
     </div>
+    </section>
 
-    <div style="margin-top:14px;">
-
-
+    <div class="btn-row">
+      <a id="backBtn" class="btn btn-back" href="/athletes/hub/">Back to Home Base</a>
     </div>
-    <a id="backBtn" class="btn-back" href="#">Back</a>
   </main>
 
   <script type="module" src="/athletes/lanes/f4-conditioning/f4-conditioning.js"></script>

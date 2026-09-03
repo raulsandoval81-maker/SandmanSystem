@@ -10,6 +10,11 @@ import {
   serverTimestamp,
 } from "/assets/js/firebase-init.js";
 import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
+import {
+  loadStrengthPhaseContext,
+  resolveStrengthSeasonBlock,
+  strengthContextTitle,
+} from "/assets/js/athlete-lane-context.js";
 
 await ensureSignedIn();
 
@@ -100,7 +105,7 @@ function renderExerciseList(items = []) {
   `;
 }
 
-function buildGeneratedStrengthSession(n, explosiveLib, workoutA, workoutB, workoutC) {
+function buildGeneratedStrengthSession(n, explosiveLib, workoutA, workoutB, workoutC, activePhase) {
   const cycle = ["A", "B", "C"];
   const rotation = cycle[(n - 2) % 3];
 
@@ -119,12 +124,11 @@ function buildGeneratedStrengthSession(n, explosiveLib, workoutA, workoutB, work
     ? explosivePool[(n - 2) % explosivePool.length]
     : null;
 
-  const season = "postseason";
-  const seasonBlock =
-    iron?.seasonBlocks?.[season] ||
-    iron?.seasonBlocks?.postseason ||
-    iron ||
-    null;
+  const season = activePhase;
+  const seasonBlock = resolveStrengthSeasonBlock(iron, season);
+  if (iron && !seasonBlock) {
+    throw new Error(`Strength phase content missing: ${season}`);
+  }
 
   return {
     n,
@@ -502,6 +506,13 @@ if (isFoundry8(athleteId)) {
   return;
 }
 
+    const phaseContext = await loadStrengthPhaseContext({
+      operationalPhaseLoader: async () => {
+        const settingSnap = await getDoc(doc(db, "strengthPhaseSettings", "system"));
+        return settingSnap.exists() ? settingSnap.data()?.activePhase : null;
+      },
+    });
+
     const vaultSessions = Array.isArray(sessionData)
       ? sessionData
       : (sessionData.sessions || []);
@@ -516,6 +527,7 @@ if (isFoundry8(athleteId)) {
             workoutA,
             workoutB,
             workoutC,
+            phaseContext.phase,
           )
         : null;
 
@@ -548,6 +560,11 @@ if (isFoundry8(athleteId)) {
       container.innerHTML = `<div style="opacity:.6;">Strength Session ${esc(sessionN)} not found in vault.</div>`;
       return;
     }
+
+    const contextualTitle = strengthContextTitle(phaseContext.phase, sessionN);
+    const pageHeading = document.querySelector(".athlete-lane-page .hero h1");
+    if (pageHeading) pageHeading.textContent = contextualTitle;
+    document.title = `${contextualTitle} | Sandman System`;
 
     let subDoc = {};
     try {

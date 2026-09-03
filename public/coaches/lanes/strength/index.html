@@ -103,7 +103,27 @@
 </div>
     </div>
   </header>
-<main>
+  <main>
+  <section style="margin-bottom:16px;padding:16px;border:1px solid var(--line);border-radius:14px;background:var(--panel);">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+      <div>
+        <h2 style="margin:0 0 6px;">Active Strength Phase</h2>
+        <div id="strengthPhaseSummary" class="sub">Confirming Coach authority…</div>
+      </div>
+      <div style="display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;">
+        <label style="display:grid;gap:5px;font-weight:800;font-size:.82rem;">
+          <span>Phase</span>
+          <select id="strengthPhaseSelect" disabled style="min-height:42px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--bg);color:var(--text);">
+            <option value="preseason">Preseason</option>
+            <option value="inseason">In-Season</option>
+            <option value="postseason">Postseason</option>
+          </select>
+        </label>
+        <button id="strengthPhaseSave" class="btn" type="button" disabled>Save Phase</button>
+      </div>
+    </div>
+    <div id="strengthPhaseStatus" class="sub" role="status" aria-live="polite" style="margin-top:9px;"></div>
+  </section>
   <section style="margin-bottom:16px;">
     <h2 style="margin:0 0 10px;">Remote Work Requests</h2>
     <div id="remote-requests-container">
@@ -133,6 +153,7 @@ toggle?.addEventListener("click", () => {
   localStorage.setItem("cc-theme", isDay ? "day" : "night");
 });
 </script>
+  <script type="module" src="/coaches/lanes/strength/phase-control.js"></script>
   <script type="module" src="/coaches/lanes/strength/review.js"></script>
 </body>
 </html>

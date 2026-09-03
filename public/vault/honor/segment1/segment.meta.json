@@ -1,6 +1,7 @@
 {
   "lane": "honor",
   "segmentId": "segment1",
+  "category": "self",
   "segmentTitle": "I",
   "title": "Foundation",
   "unlockStripe": 3,
