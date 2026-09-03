@@ -277,6 +277,114 @@
       }
     }
   </style>
+
+<style id="SANDMAN-FITNESS-DAY-MODE-FIX">
+  /* =====================================================
+     FITNESS — DAY MODE READABILITY
+  ====================================================== */
+
+  html[data-theme="light"] .local-fitness,
+  body.day-mode .local-fitness,
+  html[data-theme="light"] main,
+  body.day-mode main{
+    color:#171717;
+  }
+
+  html[data-theme="light"] .local-fitness__hero,
+  body.day-mode .local-fitness__hero,
+  html[data-theme="light"] .local-standard,
+  body.day-mode .local-standard{
+    color:#171717;
+  }
+
+  html[data-theme="light"] .local-fitness__hero h1,
+  body.day-mode .local-fitness__hero h1,
+  html[data-theme="light"] .local-fitness__heading h2,
+  body.day-mode .local-fitness__heading h2,
+  html[data-theme="light"] .local-fitness__card h2,
+  body.day-mode .local-fitness__card h2,
+  html[data-theme="light"] .local-fitness__card h3,
+  body.day-mode .local-fitness__card h3,
+  html[data-theme="light"] .local-fitness__digital h3,
+  body.day-mode .local-fitness__digital h3,
+  html[data-theme="light"] .local-standard h1,
+  body.day-mode .local-standard h1,
+  html[data-theme="light"] .local-standard h2,
+  body.day-mode .local-standard h2,
+  html[data-theme="light"] .program-card h3,
+  body.day-mode .program-card h3{
+    color:#151515;
+  }
+
+  html[data-theme="light"] .local-fitness__lead,
+  body.day-mode .local-fitness__lead,
+  html[data-theme="light"] .local-fitness__heading p,
+  body.day-mode .local-fitness__heading p,
+  html[data-theme="light"] .local-fitness__card p,
+  body.day-mode .local-fitness__card p,
+  html[data-theme="light"] .local-fitness__card li,
+  body.day-mode .local-fitness__card li,
+  html[data-theme="light"] .local-fitness__digital p,
+  body.day-mode .local-fitness__digital p,
+  html[data-theme="light"] .local-standard p,
+  body.day-mode .local-standard p,
+  html[data-theme="light"] .program-purpose,
+  body.day-mode .program-purpose{
+    color:#4c463d;
+    opacity:1;
+  }
+
+  html[data-theme="light"] .local-fitness__card,
+  body.day-mode .local-fitness__card,
+  html[data-theme="light"] .local-fitness__digital,
+  body.day-mode .local-fitness__digital,
+  html[data-theme="light"] .program-card,
+  body.day-mode .program-card{
+    background:#f8f3e9;
+    color:#171717;
+    border-color:#b89447;
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  html[data-theme="light"] .local-fitness__eyebrow,
+  body.day-mode .local-fitness__eyebrow,
+  html[data-theme="light"] .local-fitness__mode,
+  body.day-mode .local-fitness__mode,
+  html[data-theme="light"] .local-fitness__status,
+  body.day-mode .local-fitness__status,
+  html[data-theme="light"] .program-eyebrow,
+  body.day-mode .program-eyebrow{
+    color:#8a641d;
+    opacity:1;
+  }
+
+  html[data-theme="light"] .local-fitness__button,
+  body.day-mode .local-fitness__button,
+  html[data-theme="light"] .program-cta__button,
+  body.day-mode .program-cta__button{
+    color:#ffffff;
+    background:#171717;
+    border-color:#171717;
+  }
+
+  html[data-theme="light"] .local-fitness__cta-box,
+  body.day-mode .local-fitness__cta-box{
+    background:#f4ecdc;
+    color:#171717;
+    border-color:#b89447;
+  }
+
+  html[data-theme="light"] .local-fitness__cta-box h2,
+  body.day-mode .local-fitness__cta-box h2{
+    color:#151515;
+  }
+
+  html[data-theme="light"] .local-fitness__cta-box p,
+  body.day-mode .local-fitness__cta-box p{
+    color:#4c463d;
+  }
+</style>
+
 </head>
 
 <body>
@@ -294,62 +402,60 @@
 
   <main class="local-fitness">
 
-    <!-- HERO -->
     <section class="local-fitness__hero">
+      <div class="local-fitness__container">
 
-      <div
-        class="local-fitness__container"
-        data-lang-block="en"
-      >
+        <div data-lang-block="en">
+          <p class="local-fitness__eyebrow">
+            Santa Ynez Valley • Everyday Fitness
+          </p>
 
-        <h1>
-          Fitness &amp; Strength
-        </h1>
+          <h1>
+            Fitness for Everyday Life
+          </h1>
 
-        <p class="local-fitness__lead">
-          Coach-led fitness and strength training for everyday people,
-          athletes, and anyone ready to become stronger and better conditioned.
-        </p>
+          <p class="local-fitness__lead">
+            Coach-led 45-minute HIIT-style training built around
+            strength, conditioning, movement, and combat-inspired fitness.
+            No combat experience required.
+          </p>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <p class="local-fitness__eyebrow">
+            Santa Ynez Valley • Everyday Fitness
+          </p>
+
+          <h1>
+            Fitness para la Vida Diaria
+          </h1>
+
+          <p class="local-fitness__lead">
+            Entrenamiento HIIT de 45 minutos dirigido por un coach,
+            enfocado en fuerza, acondicionamiento, movimiento y
+            fitness inspirado en deportes de combate.
+          </p>
+        </div>
+
       </div>
-
-      <div
-        class="local-fitness__container hidden-lang"
-        data-lang-block="es"
-      >
-
-        <h1>
-          Fitness y Fuerza
-        </h1>
-
-        <p class="local-fitness__lead">
-          Entrenamiento de fitness y fuerza dirigido por un coach para
-          personas de todos los días, atletas y quienes estén listos
-          para ser más fuertes y mejorar su condición física.
-        </p>
-      </div>
-
     </section>
 
 
-    <!-- LOCAL PROGRAMS -->
     <section class="local-fitness__section">
-
       <div class="local-fitness__container">
 
-        <div
-          class="local-fitness__heading"
-          data-lang-block="en"
-        >
+        <div class="local-fitness__heading" data-lang-block="en">
           <p class="local-fitness__eyebrow">
-            Santa Ynez Valley
+            Everyday Fitness
           </p>
 
           <h2>
-            Ways To Train
+            Three ways to train.
           </h2>
 
           <p>
-            Choose coach-led group fitness or focused strength training.
+            Each class follows the same Everyday Fitness standard
+            with a different training emphasis.
           </p>
         </div>
 
@@ -358,215 +464,174 @@
           data-lang-block="es"
         >
           <p class="local-fitness__eyebrow">
-            Valle de Santa Ynez
+            Everyday Fitness
           </p>
 
           <h2>
-            Formas De Entrenar
+            Tres maneras de entrenar.
           </h2>
 
           <p>
-            Elige fitness grupal dirigido por un coach
-            o entrenamiento enfocado en fuerza.
+            Cada clase sigue el mismo estándar Everyday Fitness
+            con un enfoque diferente.
           </p>
         </div>
 
 
         <div class="local-fitness__grid">
 
-          <!-- HIITFIT -->
           <article class="local-fitness__card">
-
             <span class="local-fitness__mode">
-              In Person
+              45 Minute HIIT
             </span>
 
             <div data-lang-block="en">
-              <h3>HIITFit</h3>
+              <h3>HIIT Strength &amp; Conditioning</h3>
 
               <p>
-                Coach-led group fitness built around strength,
-                conditioning, and combat-inspired training.
+                Functional strength, athletic movement,
+                conditioning, and total-body work.
               </p>
-
-              <ul>
-                <li>HIITFit Strength &amp; Conditioning</li>
-                <li>HIITFit Kickboxing &amp; Self-Defense</li>
-                <li>HIITFit Boxing &amp; Self-Defense</li>
-              </ul>
             </div>
 
-            <div
-              class="hidden-lang"
-              data-lang-block="es"
-            >
-              <h3>HIITFit</h3>
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>HIIT Fuerza y Acondicionamiento</h3>
 
               <p>
-                Fitness grupal dirigido por un coach y desarrollado
-                alrededor de fuerza, acondicionamiento y entrenamiento
-                inspirado en deportes de combate.
+                Fuerza funcional, movimiento atlético,
+                acondicionamiento y trabajo de cuerpo completo.
               </p>
-
-              <ul>
-                <li>HIITFit Fuerza y Acondicionamiento</li>
-                <li>HIITFit Kickboxing y Defensa Personal</li>
-                <li>HIITFit Boxeo y Defensa Personal</li>
-              </ul>
             </div>
-
-            <div class="local-fitness__spacer"></div>
-
-            <a
-              class="local-fitness__button"
-              href="/locations/santa-ynez-valley/connect.html"
-              data-lang-block="en"
-            >
-              Ask About HIITFit
-            </a>
-
-            <a
-              class="local-fitness__button hidden-lang"
-              href="/locations/santa-ynez-valley/connect.html?lang=es"
-              data-lang-block="es"
-            >
-              Pregunta Por HIITFit
-            </a>
-
           </article>
 
 
-          <!-- POWERLIFTING -->
           <article class="local-fitness__card">
-
             <span class="local-fitness__mode">
-              Strength Training
+              45 Minute HIIT
             </span>
 
             <div data-lang-block="en">
-              <h3>Powerlifting</h3>
+              <h3>HIIT Kickboxing &amp; Self-Defense</h3>
 
               <p>
-                Learn the major lifts and build real strength
-                through progressive coaching.
+                Striking combinations, movement, defensive skills,
+                and high-energy conditioning without sparring.
               </p>
-
-              <ul>
-                <li>Squat</li>
-                <li>Bench Press</li>
-                <li>Deadlift</li>
-                <li>Progressive strength training</li>
-              </ul>
             </div>
 
-            <div
-              class="hidden-lang"
-              data-lang-block="es"
-            >
-              <h3>Powerlifting</h3>
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>HIIT Kickboxing y Defensa Personal</h3>
 
               <p>
-                Aprende los levantamientos principales y desarrolla
-                fuerza real mediante entrenamiento progresivo.
+                Combinaciones, movimiento, habilidades defensivas
+                y acondicionamiento de alta energía sin sparring.
               </p>
+            </div>
+          </article>
 
-              <ul>
-                <li>Sentadilla</li>
-                <li>Press de banca</li>
-                <li>Peso muerto</li>
-                <li>Entrenamiento progresivo de fuerza</li>
-              </ul>
+
+          <article class="local-fitness__card">
+            <span class="local-fitness__mode">
+              45 Minute HIIT
+            </span>
+
+            <div data-lang-block="en">
+              <h3>HIIT Boxing &amp; Self-Defense</h3>
+
+              <p>
+                Boxing-inspired movement, bag work, footwork,
+                defensive skills, and conditioning in a non-contact format.
+              </p>
             </div>
 
-            <div class="local-fitness__spacer"></div>
+            <div data-lang-block="es" class="hidden-lang">
+              <h3>HIIT Boxeo y Defensa Personal</h3>
 
-            <a
-              class="local-fitness__button"
-              href="/locations/santa-ynez-valley/connect.html"
-              data-lang-block="en"
-            >
-              Ask About Powerlifting
-            </a>
-
-            <a
-              class="local-fitness__button hidden-lang"
-              href="/locations/santa-ynez-valley/connect.html?lang=es"
-              data-lang-block="es"
-            >
-              Pregunta Por Powerlifting
-            </a>
-
+              <p>
+                Movimiento inspirado en boxeo, trabajo de saco,
+                desplazamiento, defensa y acondicionamiento sin contacto.
+              </p>
+            </div>
           </article>
 
         </div>
+
       </div>
     </section>
 
 
-    <!-- FUELAI -->
     <section class="local-fitness__section">
-
       <div class="local-fitness__container">
 
         <div
-          class="local-fitness__digital"
+          class="local-fitness__heading"
           data-lang-block="en"
         >
           <p class="local-fitness__eyebrow">
-            Digital Performance Support
+            Getting Started
           </p>
 
-          <h3>FuelAI</h3>
-
-          <p>
-            Training and performance support that goes with you.
-            FuelAI helps athletes manage fueling, training,
-            recovery, hydration, and performance wherever they train.
-          </p>
-
-          <a
-            class="local-fitness__button"
-            href="https://fuel-ai-gamma.vercel.app/account/login"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Explore FuelAI
-          </a>
+          <h2>
+            Try a class. Find your fit.
+          </h2>
         </div>
 
         <div
-          class="local-fitness__digital hidden-lang"
+          class="local-fitness__heading hidden-lang"
           data-lang-block="es"
         >
           <p class="local-fitness__eyebrow">
-            Apoyo Digital De Rendimiento
+            Cómo Comenzar
           </p>
 
-          <h3>FuelAI</h3>
+          <h2>
+            Prueba una clase. Encuentra tu opción.
+          </h2>
+        </div>
 
-          <p>
-            Apoyo de entrenamiento y rendimiento que va contigo.
-            FuelAI ayuda a los atletas con nutrición, entrenamiento,
-            recuperación, hidratación y rendimiento dondequiera que entrenen.
-          </p>
 
-          <a
-            class="local-fitness__button"
-            href="https://fuel-ai-gamma.vercel.app/account/login"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Explorar FuelAI
-          </a>
+        <div class="local-fitness__grid">
+
+          <article class="local-fitness__card">
+
+            <div data-lang-block="en">
+
+              <h3>
+                $15 Drop-In
+              </h3>
+
+              <p>
+                Try any Everyday Fitness class for $15.
+                If you enroll, the $15 rolls into your enrollment fee.
+              </p>
+
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+
+              <h3>
+                Clase Suelta · $15
+              </h3>
+
+              <p>
+                Prueba cualquier clase Everyday Fitness por $15.
+                Si te inscribes, los $15 se aplican a tu cuota de inscripción.
+              </p>
+
+            </div>
+
+          </article>
+
         </div>
 
       </div>
     </section>
 
 
-    <!-- LOCAL CTA -->
     <section class="local-fitness__cta">
-
       <div class="local-fitness__container">
 
         <div class="local-fitness__cta-box">
@@ -581,22 +646,19 @@
             </h2>
 
             <p>
-              Tell us what you're interested in and we'll help you
-              find the right fitness or strength option.
+              Tell us what you're interested in and we'll help
+              you find the right Everyday Fitness option.
             </p>
 
             <a
               class="local-fitness__button"
-              href="/locations/santa-ynez-valley/connect.html"
+              href="/connect/interest/?academy=sandman&location=santa-ynez-valley"
             >
-              Connect / Join
+              Request Training Info
             </a>
           </div>
 
-          <div
-            class="hidden-lang"
-            data-lang-block="es"
-          >
+          <div data-lang-block="es" class="hidden-lang">
             <p class="local-fitness__eyebrow">
               Valle de Santa Ynez
             </p>
@@ -607,14 +669,14 @@
 
             <p>
               Cuéntanos qué te interesa y te ayudaremos a encontrar
-              la opción de fitness o fuerza adecuada.
+              la opción Everyday Fitness adecuada.
             </p>
 
             <a
               class="local-fitness__button"
-              href="/locations/santa-ynez-valley/connect.html?lang=es"
+              href="/connect/interest/?academy=sandman&location=santa-ynez-valley"
             >
-              Conectar / Inscribirse
+              Solicitar Información
             </a>
           </div>
 

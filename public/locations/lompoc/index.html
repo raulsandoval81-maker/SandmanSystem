@@ -38,73 +38,28 @@
 
   <main>
 
-    <!-- =====================================================
-         MANY PATHS — ENGLISH / SPANISH
-    ====================================================== -->
-
-
-    <div
-      class="home-hero-separator"
-      aria-hidden="true"
-    ></div>
-
-<section
-      class="home-many-paths"
-      data-lang-block="en"
-    >
-
-      <div class="home-many-paths__visual">
-
-        <img
-          src="/assets/img/pages/home/home-wrestling-en.png"
-          alt="Wrestling and Everyday Fitness training pathways"
-          class="home-many-paths__image"
-          loading="lazy"
-        />
-
-        <a
-          class="home-many-paths__fitness-hotspot"
-          href="/locations/lompoc/fitness.html"
-          aria-label="Explore Everyday Fitness"
-        ></a>
-
-      </div>
-
+    <!-- PRIMARY LOCAL HERO — ENGLISH -->
+    <section class="hero-panel" data-lang-block="en">
+      <img
+        src="/assets/img/pages/home/local-hero/sandman-local-hero-combat-strength-honor-en.png"
+        alt="Combat, Strength, and Honor at Sandman Academy."
+        class="home-hero__image"
+        loading="eager"
+      />
     </section>
 
-
-    <!-- =====================================================
-         MANY PATHS — SPANISH
-    ====================================================== -->
-
-    <section
-      class="home-many-paths hidden-lang"
-      data-lang-block="es"
-    >
-
-      <div class="home-many-paths__visual">
-
-        <img
-          src="/assets/img/pages/home/home-wrestling-es.png"
-          alt="Caminos de lucha y fitness para la vida diaria"
-          class="home-many-paths__image"
-          loading="lazy"
-        />
-
-        <a
-          class="home-many-paths__fitness-hotspot"
-          href="/locations/lompoc/fitness.html"
-          aria-label="Explorar Fitness Diario"
-        ></a>
-
-      </div>
-
+    <!-- PRIMARY LOCAL HERO — SPANISH -->
+    <section class="hero-panel hidden-lang" data-lang-block="es">
+      <img
+        src="/assets/img/pages/home/local-hero/sandman-local-hero-combate-fuerza-honor-es.png"
+        alt="Combate, Fuerza y Honor en Sandman Academy."
+        class="home-hero__image"
+        loading="eager"
+      />
     </section>
 
+    <div class="home-hero-separator" aria-hidden="true"></div>
 
-
-
-    <!-- LOCAL PROGRAM ORIENTATION -->
     <section class="local-program-orientation">
       <div data-lang-block="en">
         <p class="local-program-orientation__eyebrow">
@@ -118,80 +73,124 @@
         </p>
       </div>
     </section>
-<!-- =====================================================
-         COMBAT IS LIFE — ENGLISH / SPANISH
-    ====================================================== -->
 
-    <!-- =====================================================
-         PRIMARY HERO — ENGLISH
-    ====================================================== -->
+    <section class="local-program-cards">
 
-    <section
-      class="hero-panel hero-panel--interactive"
-      data-lang-block="en"
-    >
+      <div data-lang-block="en">
+        <div class="local-program-grid">
 
-      <img
-        src="/assets/img/discipline-life/combat-is-life-en.png"
-        alt="Sandman System. Combat is life. These are the rules of life: Focus, Effort, Attitude, Respect."
-        class="home-hero__image"
-        loading="eager"
-      />
+          <article class="local-program-card">
+            <img
+              src="/assets/img/pages/home/program-cards/local-program-wrestling.png"
+              alt="Wrestling training"
+              class="local-program-card__image"
+            />
 
-      <!-- Start Your Journey -->
+            <div class="local-program-card__body">
+              <h2>Wrestling</h2>
 
-      <a
-        class="home-hotspot home-hotspot-journeys"
-        href="/locations/lompoc/programs.html"
-        aria-label="Start Your Journey"
-      ></a>
+              <p>
+                Control position. Win exchanges.
+                Build confidence under pressure.
+              </p>
 
-      <!-- Watch Our Story -->
+              <div class="local-program-card__journeys">
+                <a href="/locations/lompoc/programs.html#zero2hero">
+                  <strong>Road2Champion™</strong>
+                  <span>Youth Wrestling • Ages 7–13</span>
+                </a>
 
-      <a
-        class="home-hotspot home-hotspot-origins"
-         href="/locations/lompoc/about.html"
-         aria-label="Our Story"
-      ></a>
+                <a href="/locations/lompoc/programs.html#path2legend">
+                  <strong>Path2Legend™</strong>
+                  <span>Teen Wrestling • Ages 14+</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <article class="local-program-card">
+            <img
+              src="/assets/img/pages/home/program-cards/local-program-fitness.png"
+              alt="Strength and conditioning training"
+              class="local-program-card__image"
+            />
+
+            <div class="local-program-card__body">
+              <h2>Fitness</h2>
+
+              <p><strong>Strength that travels with you.</strong></p>
+              <p>In-person and remote training available.</p>
+
+              <div class="local-program-card__journeys">
+                <a href="/locations/lompoc/programs.html#fitness">
+                  <strong>Explore Fitness</strong>
+                  <span>Strength • Conditioning • Remote Training</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
+
+      <div data-lang-block="es" class="hidden-lang">
+        <div class="local-program-grid">
+
+          <article class="local-program-card">
+            <img
+              src="/assets/img/pages/home/program-cards/local-program-wrestling.png"
+              alt="Entrenamiento de lucha"
+              class="local-program-card__image"
+            />
+
+            <div class="local-program-card__body">
+              <h2>Lucha</h2>
+
+              <p>
+                Controla la posición. Gana los intercambios.
+                Construye confianza bajo presión.
+              </p>
+
+              <div class="local-program-card__journeys">
+                <a href="/locations/lompoc/programs.html#zero2hero">
+                  <strong>Road2Champion™</strong>
+                  <span>Lucha Juvenil • Edades 7–13</span>
+                </a>
+
+                <a href="/locations/lompoc/programs.html#path2legend">
+                  <strong>Path2Legend™</strong>
+                  <span>Lucha Adolescente • Edades 14+</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <article class="local-program-card">
+            <img
+              src="/assets/img/pages/home/program-cards/local-program-fitness.png"
+              alt="Entrenamiento de fuerza y acondicionamiento"
+              class="local-program-card__image"
+            />
+
+            <div class="local-program-card__body">
+              <h2>Fitness</h2>
+
+              <p><strong>Fuerza que viaja contigo.</strong></p>
+              <p>Entrenamiento presencial y remoto disponible.</p>
+
+              <div class="local-program-card__journeys">
+                <a href="/locations/lompoc/programs.html#fitness">
+                  <strong>Explorar Fitness</strong>
+                  <span>Fuerza • Acondicionamiento • Entrenamiento Remoto</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </div>
 
     </section>
-
-
-    <!-- =====================================================
-         PRIMARY HERO — SPANISH
-    ====================================================== -->
-
-    <section
-      class="hero-panel hero-panel--interactive hidden-lang"
-      data-lang-block="es"
-    >
-
-      <img
-        src="/assets/img/discipline-life/combat-is-life-es.png"
-        alt="Sandman System. El combate es vida. Estas son las reglas de la vida: Enfoque, Esfuerzo, Actitud, Respeto."
-        class="home-hero__image"
-        loading="eager"
-      />
-
-      <!-- Comienza Tu Camino -->
-
-      <a
-        class="home-hotspot home-hotspot-journeys"
-        href="/locations/lompoc/programs.html"
-        aria-label="Comienza Tu Camino"
-      ></a>
-
-      <!-- Conoce Nuestra Historia -->
-
-      <a
-        class="home-hotspot home-hotspot-origins"
-        href="/locations/lompoc/about.html"
-        aria-label="Conoce Nuestra Historia"
-      ></a>
-
-    </section>
-
-
 
 <!-- =====================================================
          HOME — STAY CONNECTED

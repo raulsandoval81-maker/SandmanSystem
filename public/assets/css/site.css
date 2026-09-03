@@ -1783,3 +1783,18 @@ body.local-home .local-combat-character{
 .site-footer__legal a{
   color:rgba(255,255,255,.76);
 }
+
+
+/* =====================================================
+   LOCAL HOME — ENTRY PREFERENCE CONTROLS
+   Language + appearance are visible at the location
+   entry page, then persist across interior pages.
+====================================================== */
+
+.local-home-preference-control{
+  display:none !important;
+}
+
+body.local-home .local-home-preference-control{
+  display:inline-flex !important;
+}

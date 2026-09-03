@@ -1,28 +1,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1"
-  >
-
-  <title>
-    Fitness for Everyday Life | Sandman Academy — Lompoc
-  </title>
+  <title>Fitness | Sandman Academy</title>
 
   <meta
     name="description"
-    content="Explore local and remote fitness support through Sandman Academy in Lompoc."
-  >
+    content="Explore in-person and remote fitness training through Sandman Academy."
+  />
 
-  <link
-    rel="stylesheet"
-    href="/assets/css/site.css"
-  >
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/css/journeys.css" />
 
-  <style>
+
+
+<style>
     .local-fitness {
       min-height:100vh;
       background:var(--page-bg,#090909);
@@ -128,6 +122,141 @@
       }
     }
   </style>
+
+<style id="SANDMAN-FITNESS-DAY-MODE-FIX">
+  /* =====================================================
+     FITNESS — DAY MODE READABILITY
+  ====================================================== */
+
+  html[data-theme="light"] .local-fitness,
+  body.day-mode .local-fitness,
+  html[data-theme="light"] main,
+  body.day-mode main{
+    color:#171717;
+  }
+
+  html[data-theme="light"] .local-fitness__hero,
+  body.day-mode .local-fitness__hero,
+  html[data-theme="light"] .local-standard,
+  body.day-mode .local-standard{
+    color:#171717;
+  }
+
+  html[data-theme="light"] .local-fitness__hero h1,
+  body.day-mode .local-fitness__hero h1,
+  html[data-theme="light"] .local-fitness__heading h2,
+  body.day-mode .local-fitness__heading h2,
+  html[data-theme="light"] .local-fitness__card h2,
+  body.day-mode .local-fitness__card h2,
+  html[data-theme="light"] .local-fitness__card h3,
+  body.day-mode .local-fitness__card h3,
+  html[data-theme="light"] .local-fitness__digital h3,
+  body.day-mode .local-fitness__digital h3,
+  html[data-theme="light"] .local-standard h1,
+  body.day-mode .local-standard h1,
+  html[data-theme="light"] .local-standard h2,
+  body.day-mode .local-standard h2,
+  html[data-theme="light"] .program-card h3,
+  body.day-mode .program-card h3{
+    color:#151515;
+  }
+
+  html[data-theme="light"] .local-fitness__lead,
+  body.day-mode .local-fitness__lead,
+  html[data-theme="light"] .local-fitness__heading p,
+  body.day-mode .local-fitness__heading p,
+  html[data-theme="light"] .local-fitness__card p,
+  body.day-mode .local-fitness__card p,
+  html[data-theme="light"] .local-fitness__card li,
+  body.day-mode .local-fitness__card li,
+  html[data-theme="light"] .local-fitness__digital p,
+  body.day-mode .local-fitness__digital p,
+  html[data-theme="light"] .local-standard p,
+  body.day-mode .local-standard p,
+  html[data-theme="light"] .program-purpose,
+  body.day-mode .program-purpose{
+    color:#4c463d;
+    opacity:1;
+  }
+
+  html[data-theme="light"] .local-fitness__card,
+  body.day-mode .local-fitness__card,
+  html[data-theme="light"] .local-fitness__digital,
+  body.day-mode .local-fitness__digital,
+  html[data-theme="light"] .program-card,
+  body.day-mode .program-card{
+    background:#f8f3e9;
+    color:#171717;
+    border-color:#b89447;
+    box-shadow:0 10px 24px rgba(0,0,0,.10);
+  }
+
+  html[data-theme="light"] .local-fitness__eyebrow,
+  body.day-mode .local-fitness__eyebrow,
+  html[data-theme="light"] .local-fitness__mode,
+  body.day-mode .local-fitness__mode,
+  html[data-theme="light"] .local-fitness__status,
+  body.day-mode .local-fitness__status,
+  html[data-theme="light"] .program-eyebrow,
+  body.day-mode .program-eyebrow{
+    color:#8a641d;
+    opacity:1;
+  }
+
+  html[data-theme="light"] .local-fitness__button,
+  body.day-mode .local-fitness__button,
+  html[data-theme="light"] .program-cta__button,
+  body.day-mode .program-cta__button{
+    color:#ffffff;
+    background:#171717;
+    border-color:#171717;
+  }
+
+  html[data-theme="light"] .local-fitness__cta-box,
+  body.day-mode .local-fitness__cta-box{
+    background:#f4ecdc;
+    color:#171717;
+    border-color:#b89447;
+  }
+
+  html[data-theme="light"] .local-fitness__cta-box h2,
+  body.day-mode .local-fitness__cta-box h2{
+    color:#151515;
+  }
+
+  html[data-theme="light"] .local-fitness__cta-box p,
+  body.day-mode .local-fitness__cta-box p{
+    color:#4c463d;
+  }
+</style>
+
+<style id="LOMPOC-FITNESS-CTA-POLISH">
+  .local-fitness__cta{
+    padding-bottom:48px;
+  }
+
+  .local-fitness__cta-box{
+    padding:
+      clamp(2rem,5vw,3rem)
+      clamp(1.25rem,4vw,2.5rem)
+      clamp(2.5rem,6vw,3.5rem);
+
+    text-align:center;
+  }
+
+  .local-fitness__cta-box .local-fitness__button{
+    display:inline-flex;
+    margin:
+      1.4rem
+      auto
+      0;
+  }
+
+  .local-fitness__cta-box > div{
+    text-align:center;
+  }
+</style>
+
 </head>
 
 <body>
@@ -137,11 +266,6 @@
     data-component="/locations/lompoc/components/navigation.html"
   ></div>
 
-  <div
-    class="site-hero-divider"
-    aria-hidden="true"
-  ></div>
-
   <main class="local-fitness">
 
     <section class="local-fitness__hero">
@@ -149,7 +273,7 @@
 
         <div data-lang-block="en">
           <p class="local-fitness__eyebrow">
-            Lompoc · Fitness
+            Lompoc · Everyday Fitness
           </p>
 
           <h1>
@@ -157,8 +281,8 @@
           </h1>
 
           <p class="local-fitness__lead">
-            Build strength, conditioning, confidence, and
-            consistency inside or outside the academy.
+            Coach-led fitness built around strength,
+            conditioning, movement, and combat-inspired training.
           </p>
         </div>
 
@@ -167,7 +291,7 @@
           class="hidden-lang"
         >
           <p class="local-fitness__eyebrow">
-            Lompoc · Fitness
+            Lompoc · Everyday Fitness
           </p>
 
           <h1>
@@ -175,8 +299,9 @@
           </h1>
 
           <p class="local-fitness__lead">
-            Desarrolla fuerza, condición física, confianza
-            y constancia dentro o fuera de la academia.
+            Fitness dirigido por un coach y desarrollado alrededor
+            de fuerza, acondicionamiento, movimiento y entrenamiento
+            inspirado en deportes de combate.
           </p>
         </div>
 
@@ -184,115 +309,283 @@
     </section>
 
 
-    <section>
-      <div class="local-fitness__container local-fitness__grid">
+    <!-- CLASS DETAILS -->
+    <section class="local-fitness__section">
+      <div class="local-fitness__container">
 
-        <article class="local-fitness__card">
+        <div
+          class="local-fitness__heading"
+          data-lang-block="en"
+        >
+          <p class="local-fitness__eyebrow">
+            In-Person Training
+          </p>
 
-          <div data-lang-block="en">
-            <span class="local-fitness__status">
-              Local
+          <h2>
+            45-minute coach-led HIIT-style classes.
+          </h2>
+
+          <p>
+            Choose the training emphasis that fits you.
+            No combat experience is required.
+          </p>
+        </div>
+
+        <div
+          class="local-fitness__heading hidden-lang"
+          data-lang-block="es"
+        >
+          <p class="local-fitness__eyebrow">
+            Entrenamiento Presencial
+          </p>
+
+          <h2>
+            Clases estilo HIIT de 45 minutos dirigidas por un coach.
+          </h2>
+
+          <p>
+            Elige el enfoque de entrenamiento que mejor se adapte a ti.
+            No se requiere experiencia de combate.
+          </p>
+        </div>
+
+
+        <div class="local-fitness__grid">
+
+          <article class="local-fitness__card">
+            <span class="local-fitness__mode">
+              HIIT
             </span>
 
+            <div data-lang-block="en">
+              <h3>
+                Strength &amp; Conditioning
+              </h3>
+
+              <p>
+                Functional strength, athletic movement,
+                conditioning, and total-body training.
+              </p>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <h3>
+                Fuerza y Acondicionamiento
+              </h3>
+
+              <p>
+                Fuerza funcional, movimiento atlético,
+                acondicionamiento y entrenamiento de cuerpo completo.
+              </p>
+            </div>
+          </article>
+
+
+          <article class="local-fitness__card">
+            <span class="local-fitness__mode">
+              HIIT
+            </span>
+
+            <div data-lang-block="en">
+              <h3>
+                Kickboxing &amp; Self-Defense
+              </h3>
+
+              <p>
+                Combinations, movement, defensive skills,
+                and high-energy conditioning without sparring.
+              </p>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <h3>
+                Kickboxing y Defensa Personal
+              </h3>
+
+              <p>
+                Combinaciones, movimiento, habilidades defensivas
+                y acondicionamiento de alta energía sin sparring.
+              </p>
+            </div>
+          </article>
+
+
+          <article class="local-fitness__card">
+            <span class="local-fitness__mode">
+              HIIT
+            </span>
+
+            <div data-lang-block="en">
+              <h3>
+                Boxing &amp; Self-Defense
+              </h3>
+
+              <p>
+                Boxing-inspired movement, bag work,
+                footwork, defensive skills, and conditioning
+                in a non-contact format.
+              </p>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <h3>
+                Boxeo y Defensa Personal
+              </h3>
+
+              <p>
+                Movimiento inspirado en boxeo, trabajo de saco,
+                desplazamiento, defensa y acondicionamiento
+                en un formato sin contacto.
+              </p>
+            </div>
+          </article>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- GETTING STARTED -->
+    <section class="local-fitness__section">
+      <div class="local-fitness__container">
+
+        <div
+          class="local-fitness__heading"
+          data-lang-block="en"
+        >
+          <p class="local-fitness__eyebrow">
+            Getting Started
+          </p>
+
+          <h2>
+            Try a class. Find your fit.
+          </h2>
+        </div>
+
+        <div
+          class="local-fitness__heading hidden-lang"
+          data-lang-block="es"
+        >
+          <p class="local-fitness__eyebrow">
+            Cómo Comenzar
+          </p>
+
+          <h2>
+            Prueba una clase. Encuentra tu opción.
+          </h2>
+        </div>
+
+
+        <div class="local-fitness__grid">
+
+          <article class="local-fitness__card">
+
+            <div data-lang-block="en">
+              <h3>
+                $15 Drop-In
+              </h3>
+
+              <p>
+                Try any Everyday Fitness class for $15.
+                If you enroll, the $15 rolls into your enrollment fee.
+              </p>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <h3>
+                Clase Suelta · $15
+              </h3>
+
+              <p>
+                Prueba cualquier clase Everyday Fitness por $15.
+                Si te inscribes, los $15 se aplican a tu cuota de inscripción.
+              </p>
+            </div>
+
+          </article>
+
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- LOCAL CTA -->
+    <section class="local-fitness__cta">
+      <div class="local-fitness__container">
+
+        <div class="local-fitness__cta-box">
+
+          <div data-lang-block="en">
+
+            <p class="local-fitness__eyebrow">
+              Lompoc
+            </p>
+
             <h2>
-              Academy Fitness
+              Ready To Train?
             </h2>
 
             <p>
-              Local fitness classes and additional training
-              options will be added here as they become
-              available.
+              Tell us what you're interested in and we'll help
+              you find the right Everyday Fitness option.
             </p>
 
-            <p>
-              <strong>Classes coming soon.</strong>
-            </p>
+            <a
+              class="local-fitness__button"
+              href="/connect/interest/?academy=sandman&location=lompoc"
+            >
+              Request Training Info
+            </a>
+
           </div>
 
           <div
             data-lang-block="es"
             class="hidden-lang"
           >
-            <span class="local-fitness__status">
-              Local
-            </span>
+
+            <p class="local-fitness__eyebrow">
+              Lompoc
+            </p>
 
             <h2>
-              Fitness en la Academia
+              ¿Listo Para Entrenar?
             </h2>
 
             <p>
-              Las clases locales y las opciones adicionales
-              de entrenamiento aparecerán aquí cuando estén
-              disponibles.
-            </p>
-
-            <p>
-              <strong>Clases próximamente.</strong>
-            </p>
-          </div>
-
-        </article>
-
-
-        <article class="local-fitness__card">
-
-          <div data-lang-block="en">
-            <span class="local-fitness__status">
-              Remote
-            </span>
-
-            <h2>
-              Train Beyond the Academy
-            </h2>
-
-            <p>
-              Keep working between practices or when you
-              cannot make it into the academy with FuelAI
-              training and fitness support.
+              Cuéntanos qué te interesa y te ayudaremos
+              a encontrar la opción Everyday Fitness adecuada.
             </p>
 
             <a
               class="local-fitness__button"
-              href="https://fuel-ai-gamma.vercel.app/"
+              href="/connect/interest/?academy=sandman&location=lompoc"
             >
-              Explore FuelAI
+              Solicitar Información
             </a>
+
           </div>
 
-          <div
-            data-lang-block="es"
-            class="hidden-lang"
-          >
-            <span class="local-fitness__status">
-              Remoto
-            </span>
-
-            <h2>
-              Entrena Fuera de la Academia
-            </h2>
-
-            <p>
-              Sigue entrenando entre prácticas o cuando no
-              puedas llegar a la academia con el apoyo de
-              entrenamiento y fitness de FuelAI.
-            </p>
-
-            <a
-              class="local-fitness__button"
-              href="https://fuel-ai-gamma.vercel.app/"
-            >
-              Explora FuelAI
-            </a>
-          </div>
-
-        </article>
+        </div>
 
       </div>
     </section>
 
   </main>
-
 
   <div
     id="footer"
@@ -301,24 +594,24 @@
 
 
   <script
-    src="/assets/js/component-loader.js"
-    defer
-  ></script>
-
+      src="/assets/js/component-loader.js"
+      defer
+    ></script>
+  
   <script
-    src="/assets/js/language.js"
-    defer
-  ></script>
-
+      src="/assets/js/language.js"
+      defer
+    ></script>
+  
   <script
-    src="/assets/js/theme.js"
-    defer
-  ></script>
-
+      src="/assets/js/theme.js"
+      defer
+    ></script>
+  
   <script
-    src="/assets/js/navigation.js"
-    defer
-  ></script>
+      src="/assets/js/navigation.js"
+      defer
+    ></script>
 
 </body>
 </html>

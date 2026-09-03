@@ -1007,3 +1007,128 @@ html[data-theme="light"] .home-intro__eyebrow{
     height:32px;
   }
 }
+
+/* =========================================================
+   LOCAL PROGRAM CARDS
+========================================================= */
+
+.local-program-cards{
+  padding:1.5rem 1rem 2.5rem;
+}
+
+.local-program-grid{
+  width:min(1180px, 100%);
+  margin:0 auto;
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0,1fr));
+  gap:1rem;
+}
+
+.local-program-card{
+  overflow:hidden;
+  border:1px solid rgba(198,153,61,.42);
+  border-radius:18px;
+  background:#101010;
+  box-shadow:0 14px 30px rgba(0,0,0,.22);
+}
+
+.local-program-card__image{
+  display:block;
+  width:100%;
+  aspect-ratio:4 / 3;
+  object-fit:cover;
+}
+
+.local-program-card__body{
+  padding:1rem;
+}
+
+.local-program-card__body h2{
+  margin:0 0 .45rem;
+  font-size:1.2rem;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.local-program-card__body p{
+  margin:.35rem 0;
+  line-height:1.5;
+}
+
+.local-program-card__journeys{
+  display:grid;
+  gap:.55rem;
+  margin-top:1rem;
+}
+
+.local-program-card__journeys a{
+  display:block;
+  padding:.72rem .8rem;
+  border:1px solid rgba(198,153,61,.35);
+  border-radius:12px;
+  text-decoration:none;
+}
+
+.local-program-card__journeys strong,
+.local-program-card__journeys span{
+  display:block;
+}
+
+.local-program-card__journeys span{
+  margin-top:.18rem;
+  font-size:.82rem;
+  opacity:.75;
+}
+
+@media (max-width:900px){
+  .local-program-grid{
+    grid-template-columns:repeat(2, minmax(0,1fr));
+  }
+}
+
+@media (max-width:560px){
+  .local-program-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+/* =========================================================
+   LOCAL PROGRAM CARDS — DAY MODE
+========================================================= */
+
+body.day-mode .local-program-card{
+  background:#f7f2e8;
+  border-color:rgba(136,101,35,.34);
+  box-shadow:0 12px 28px rgba(0,0,0,.10);
+}
+
+body.day-mode .local-program-card__body{
+  color:#1a1a1a;
+}
+
+body.day-mode .local-program-card__body h2{
+  color:#111;
+}
+
+body.day-mode .local-program-card__body p{
+  color:#343434;
+}
+
+body.day-mode .local-program-card__journeys a{
+  background:#fffaf0;
+  border-color:rgba(136,101,35,.34);
+  color:#181818;
+}
+
+body.day-mode .local-program-card__journeys a:hover{
+  background:#f0e5cc;
+}
+
+body.day-mode .local-program-card__journeys strong{
+  color:#171717;
+}
+
+body.day-mode .local-program-card__journeys span{
+  color:#5b5b5b;
+  opacity:1;
+}
