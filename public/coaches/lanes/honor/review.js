@@ -2,7 +2,7 @@
 // Coach Review: Honor submissions (V1.2)
 //
 // - Reads: laneSubmissions/*
-// - Targets: honor_segment1_session{N}
+// - Targets: valid Honor submissions across indexed segments
 // - Actions: Approve / Revision / Award +5 / Award +10
 // - XP award uses XP_URL
 // - Approval writes permanent record into laneHistory
@@ -30,6 +30,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 
 await ensureSignedIn();
 
@@ -209,10 +210,8 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
   const historyId = `${athleteId}__${key}`;
   const historyRef = doc(db, "laneHistory", historyId);
 
-  const sessionN =
-    Number(entry?.sessionN) ||
-    Number(String(key).match(/session(\d+)/i)?.[1] || 0) ||
-    0;
+  const identity = resolveLaneSubmissionIdentity({ lane: "honor", entry, key });
+  const segmentNumber = Number(identity.segmentId?.replace("segment", "")) || 0;
 
   const awardedXp = Number(entry?.awardedXp || 0);
 
@@ -220,10 +219,10 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
     athleteId,
     athleteName: athleteName || "",
     lane: "honor",
-    segmentId: "segment1",
-    segment: 1,
-    sessionN,
-    session: sessionN,
+    segmentId: identity.segmentId,
+    segment: segmentNumber,
+    sessionN: identity.sessionN,
+    session: identity.sessionN,
 
     status: "closed",
 
@@ -260,10 +259,8 @@ function renderCard({ athleteId, athleteName, key, entry }) {
 
   const awardLocked = typeof awardedXp === "number" && awardedXp > 0;
   const safeId = keySafe(`${athleteId}__${key}`);
-  const sessionN =
-    Number(entry?.sessionN) ||
-    Number(String(key).match(/session(\d+)/i)?.[1] || 0) ||
-    0;
+  const identity = resolveLaneSubmissionIdentity({ lane: "honor", entry, key });
+  const segmentNumber = Number(identity.segmentId?.replace("segment", "")) || "?";
 
   const isF8 = isFoundry8Id(athleteId);
 
@@ -282,7 +279,8 @@ function renderCard({ athleteId, athleteName, key, entry }) {
             ${esc(athleteName ? athleteId : "")}
           </div>
           ${badge(status)}
-          <span style="opacity:.75;font-size:.85rem;">S1 · Session ${esc(String(sessionN || "?"))}</span>
+          <span style="opacity:.75;font-size:.85rem;">ACTIVE · completion required before the next release</span>
+          <span style="opacity:.75;font-size:.85rem;">S${esc(String(segmentNumber))} · Session ${esc(String(identity.sessionN || "?"))}</span>
           ${awardLocked ? `<span style="opacity:.75;font-size:.85rem;">XP: +${awardedXp}</span>` : ""}
           ${isF8 ? `<span style="opacity:.75;font-size:.85rem;">F8 → +5 only</span>` : ""}
         </div>
@@ -291,7 +289,7 @@ function renderCard({ athleteId, athleteName, key, entry }) {
 
       <div style="margin-top:10px;display:grid;grid-template-columns:1fr;gap:10px;">
         <div style="padding:10px;border:1px solid #1f2937;border-radius:12px;background:#0b1017;">
-          <div style="font-weight:900;margin-bottom:6px;">Honor • Segment 1 • Session ${esc(String(sessionN || "?"))}</div>
+          <div style="font-weight:900;margin-bottom:6px;">Honor • Segment ${esc(String(segmentNumber))} • Session ${esc(String(identity.sessionN || "?"))}</div>
           <div style="opacity:.72;font-size:.85rem;margin-bottom:8px;">Athlete submission</div>
           <div style="white-space:pre-wrap;line-height:1.45;">${esc(body)}</div>
         </div>
@@ -362,7 +360,8 @@ async function loadSubmissions() {
         const entry = data[k];
         if (!entry || typeof entry !== "object") return;
         if (String(entry.lane || "").toLowerCase() !== "honor") return;
-        if (String(entry.segmentId || "").toLowerCase() !== "segment1") return;
+        const identity = resolveLaneSubmissionIdentity({ lane: "honor", entry, key: k });
+        if (!identity.segmentId || !identity.sessionN) return;
         if (!(entry?.body || "").trim()) return;
         if (entry.status === "closed") return;
 
@@ -370,7 +369,8 @@ async function loadSubmissions() {
           athleteId,
           athleteName: entry?.athleteName || "",
           key: k,
-          entry
+          entry,
+          identity,
         });
       });
     });
@@ -404,8 +404,8 @@ async function loadSubmissions() {
           const currentEntry = currentRow?.entry;
           const currentName = currentRow?.athleteName || currentEntry?.athleteName || "";
 
-          const sessionN =
-            Number(String(key).match(/session(\d+)/i)?.[1] || 0) || null;
+          const identity = currentRow?.identity ||
+            resolveLaneSubmissionIdentity({ lane: "honor", entry: currentEntry, key });
 
           if (act === "approve") {
             await writeLaneHistory({
@@ -433,7 +433,7 @@ async function loadSubmissions() {
               await resetRemoteAssignment(athleteId);
             }
 
-            if (msgEl) msgEl.textContent = "Approved and archived.";
+            if (msgEl) msgEl.textContent = "Approved and archived. Next session waits for its scheduled release.";
           }
 
           if (act === "revision") {
@@ -457,8 +457,8 @@ async function loadSubmissions() {
               amount: amt,
               note: coachNote || `Honor submission (+${amt})`,
               meta: {
-                segmentId: "segment1",
-                sessionN,
+                segmentId: identity.segmentId,
+                sessionN: identity.sessionN,
                 key,
               },
             });
@@ -486,7 +486,7 @@ async function loadSubmissions() {
               },
             });
 
-            if (msgEl) msgEl.textContent = `Awarded +${amt} and closed.`;
+            if (msgEl) msgEl.textContent = `Awarded +${amt} and closed. Next session waits for its scheduled release.`;
           }
 
           await loadSubmissions();

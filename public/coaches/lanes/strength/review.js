@@ -12,6 +12,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
+import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 
 await ensureSignedIn();
 
@@ -164,10 +165,8 @@ async function patchSession({ athleteId, key, patch }) {
 }
 
 async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote = "" }) {
-  const sessionN =
-    Number(entry?.sessionN) ||
-    Number(String(key).match(/(\d+)$/)?.[1] || 0) ||
-    0;
+  const identity = resolveLaneSubmissionIdentity({ lane: "strength", entry, key });
+  const segmentNumber = Number(identity.segmentId?.replace("segment", "")) || 0;
 
   const historyId = `${athleteId}__${key}__${Date.now()}`;
   const historyRef = doc(db, "laneHistory", historyId);
@@ -176,10 +175,10 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
     athleteId,
     athleteName: athleteName || "",
     lane: "strength",
-    segmentId: "segment1",
-    segment: 1,
-    sessionN,
-    session: sessionN,
+    segmentId: identity.segmentId,
+    segment: segmentNumber,
+    sessionN: identity.sessionN,
+    session: identity.sessionN,
 
     status: "closed",
 
@@ -221,10 +220,8 @@ function renderCard({ athleteId, athleteName, key, entry }) {
   const awardLocked = typeof awardedXp === "number" && awardedXp > 0;
   const safeId = keySafe(`${athleteId}__${key}`);
 
-  const sessionN =
-    Number(entry?.sessionN) ||
-    Number(String(key).match(/(\d+)$/)?.[1] || 0) ||
-    0;
+  const identity = resolveLaneSubmissionIdentity({ lane: "strength", entry, key });
+  const segmentNumber = Number(identity.segmentId?.replace("segment", "")) || "?";
 
   return `
     <div
@@ -241,14 +238,15 @@ function renderCard({ athleteId, athleteName, key, entry }) {
             ${esc(athleteName ? athleteId : "")}
           </div>
           ${badge(status)}
-          <span style="opacity:.75;font-size:.85rem;">S1 · Session ${esc(String(sessionN || "?"))}</span>
+          <span style="opacity:.75;font-size:.85rem;">ACTIVE · completion required before the next release</span>
+          <span style="opacity:.75;font-size:.85rem;">S${esc(String(segmentNumber))} · Session ${esc(String(identity.sessionN || "?"))}</span>
           ${awardLocked ? `<span style="opacity:.75;font-size:.85rem;">XP: +${awardedXp}</span>` : ""}
         </div>
         <div style="opacity:.7;font-size:.9rem;">Submitted: ${esc(submittedAt)}</div>
       </div>
 
       <div style="margin-top:10px;padding:10px;border:1px solid #1f2937;border-radius:12px;background:#0b1017;">
-        <div style="font-weight:900;margin-bottom:6px;">Strength • Segment 1 • Session ${esc(String(sessionN || "?"))}</div>
+        <div style="font-weight:900;margin-bottom:6px;">Strength • Segment ${esc(String(segmentNumber))} • Session ${esc(String(identity.sessionN || "?"))}</div>
         <div style="white-space:pre-wrap;line-height:1.45;">${esc(body)}</div>
       </div>
 
@@ -463,7 +461,8 @@ async function loadSubmissions() {
 
         if (!entry || typeof entry !== "object") return;
         if (entry.lane !== "strength") return;
-        if (entry.segmentId !== "segment1") return;
+        const identity = resolveLaneSubmissionIdentity({ lane: "strength", entry, key: k });
+        if (!identity.segmentId || !identity.sessionN) return;
         if (!(entry?.body || "").trim()) return;
         if (entry.status === "closed") return;
 
@@ -472,6 +471,7 @@ async function loadSubmissions() {
           athleteName: entry?.athleteName || "",
           key: k,
           entry,
+          identity,
         });
       });
     });
@@ -504,10 +504,8 @@ async function loadSubmissions() {
           const currentEntry = currentRow?.entry;
           const currentName = currentRow?.athleteName || currentEntry?.athleteName || "";
 
-          const sessionN =
-            Number(currentEntry?.sessionN) ||
-            Number(String(key).match(/(\d+)$/)?.[1] || 0) ||
-            null;
+          const identity = currentRow?.identity ||
+            resolveLaneSubmissionIdentity({ lane: "strength", entry: currentEntry, key });
 
           if (act === "approve") {
             await writeLaneHistory({
@@ -535,7 +533,7 @@ async function loadSubmissions() {
               await resetRemoteAssignment(athleteId);
             }
 
-            if (msgEl) msgEl.textContent = "Approved and closed.";
+            if (msgEl) msgEl.textContent = "Approved and closed. Next session waits for its scheduled release.";
           }
 
           if (act === "revision") {
@@ -559,8 +557,8 @@ async function loadSubmissions() {
               amount: amt,
               note: coachNote || `Strength submission (+${amt})`,
               meta: {
-                segmentId: "segment1",
-                sessionN,
+                segmentId: identity.segmentId,
+                sessionN: identity.sessionN,
                 key,
               },
             });
@@ -595,7 +593,7 @@ async function loadSubmissions() {
               await resetRemoteAssignment(athleteId);
             }
 
-            if (msgEl) msgEl.textContent = `Awarded +${amt} and closed.`;
+            if (msgEl) msgEl.textContent = `Awarded +${amt} and closed. Next session waits for its scheduled release.`;
           }
 
           await loadRemoteRequests();

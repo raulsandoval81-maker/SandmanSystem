@@ -15,6 +15,10 @@ import {
   resolveStrengthSeasonBlock,
   strengthContextTitle,
 } from "/assets/js/athlete-lane-context.js";
+import {
+  formatLaneReleaseAt,
+  resolveLaneRelease,
+} from "/assets/js/lane-release-schedule.js";
 
 await ensureSignedIn();
 
@@ -422,23 +426,6 @@ async function loadStrengthSession() {
   const subSnap = await getDoc(doc(db, "laneSubmissions", athleteId));
   const submissions = subSnap.exists() ? subSnap.data() : {};
 
-  const approved = Object.values(submissions)
-    .filter((s) => {
-      const lane = String(s?.lane || "").toLowerCase();
-      const status = String(s?.status || "").toLowerCase();
-      return lane === ACTIVE_LANE && (status === "approved" || status === "closed");
-    })
-    .sort((a, b) => Number(b?.sessionN || 0) - Number(a?.sessionN || 0));
-
-  const debugSession = Number(params.get("n") || 0);
-
-  sessionN = debugSession > 0
-    ? debugSession
-    : approved.length
-      ? Number(approved[0].sessionN || 0) + 1
-      : 1;
-
-
   const backLink = document.querySelector("a.btn-back");
   if (backLink) {
     backLink.href = `/athletes/hub/index.html?id=${encodeURIComponent(athleteId)}`;
@@ -517,7 +504,41 @@ if (isFoundry8(athleteId)) {
       ? sessionData
       : (sessionData.sessions || []);
 
-    let session = vaultSessions.find((s) => Number(s?.n) === Number(sessionN)) || null;
+    const release = resolveLaneRelease({
+      lane: ACTIVE_LANE,
+      segmentId: ACTIVE_SEGMENT_ID,
+      sessions: vaultSessions,
+      submissions,
+    });
+
+    if (release.state === "waiting") {
+      container.innerHTML = `
+        <div class="lane-card">
+          <strong>Next Strength session is scheduled.</strong>
+          <div style="margin-top:.45rem;opacity:.8;">
+            Session ${esc(release.expectedSessionN)} releases ${esc(formatLaneReleaseAt(release.nextReleaseAt))}.
+          </div>
+        </div>
+      `;
+      return;
+    }
+
+    if (release.state === "completion-time-missing") {
+      container.innerHTML = `
+        <div class="lane-card">
+          Strength Session ${esc(release.expectedSessionN)} is waiting because the previous completion has no authoritative review timestamp.
+        </div>
+      `;
+      return;
+    }
+
+    if (release.state === "content-missing") {
+      container.innerHTML = `<div class="lane-card">Strength Session ${esc(release.expectedSessionN)} is not available in the Vault.</div>`;
+      return;
+    }
+
+    sessionN = release.activeSessionN;
+    let session = release.activeSession;
 
     const generated =
       sessionN >= 2 && sessionN <= 39

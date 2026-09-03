@@ -14,6 +14,10 @@ import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 import {
   honorContextTitle,
 } from "/assets/js/athlete-lane-context.js";
+import {
+  formatLaneReleaseAt,
+  resolveLaneRelease,
+} from "/assets/js/lane-release-schedule.js";
 
 await ensureSignedIn();
 
@@ -70,16 +74,6 @@ function parseScripture(s) {
 
 function getSessionNumber(session) {
   return Number(session?.sessionN ?? session?.n ?? 1);
-}
-
-function getCompletedHonorSubmissions(submissionsObj = {}) {
-  return Object.values(submissionsObj)
-    .filter((row) => {
-      const lane = String(row?.lane || "").toLowerCase();
-      const status = String(row?.status || "").toLowerCase();
-      return lane === ACTIVE_LANE && (status === "closed" || status === "approved");
-    })
-    .sort((a, b) => Number(b.sessionN || 0) - Number(a.sessionN || 0));
 }
 
 function getSessionList(active) {
@@ -170,19 +164,41 @@ if (!allSessions.length) {
 const subSnap = await getDoc(doc(db, "laneSubmissions", athleteId));
 const submissions = subSnap.exists() ? subSnap.data() || {} : {};
 
-const completed = getCompletedHonorSubmissions(submissions);
-const nextSessionN = completed.length ? Number(completed[0].sessionN) + 1 : 1;
+const release = resolveLaneRelease({
+  lane: ACTIVE_LANE,
+  segmentId,
+  sessions: allSessions,
+  submissions,
+});
 
-let session =
-  allSessions.find((s) => getSessionNumber(s) === nextSessionN) ||
-  allSessions.find((s) => getSessionNumber(s) === 1) ||
-  null;
-
-if (!session) {
-  container.innerHTML = `No session found.`;
+if (release.state === "waiting") {
+  container.innerHTML = `
+    <div class="lane-card">
+      <strong>Next Honor session is scheduled.</strong>
+      <div style="margin-top:.45rem;opacity:.8;">
+        Session ${esc(release.expectedSessionN)} releases ${esc(formatLaneReleaseAt(release.nextReleaseAt))}.
+      </div>
+    </div>
+  `;
   return;
 }
-    const sessionN = getSessionNumber(session);
+
+if (release.state === "completion-time-missing") {
+  container.innerHTML = `
+    <div class="lane-card">
+      Honor Session ${esc(release.expectedSessionN)} is waiting because the previous completion has no authoritative review timestamp.
+    </div>
+  `;
+  return;
+}
+
+if (release.state === "content-missing") {
+  container.innerHTML = `Honor ${esc(segmentId)} session ${esc(release.expectedSessionN)} is not available in the Vault. This segment is not complete.`;
+  return;
+}
+
+    const session = release.activeSession;
+    const sessionN = release.activeSessionN;
     const SESSION_KEY = session.id || `${ACTIVE_LANE}_${segmentId}_session${sessionN}`;
 
     const contextualTitle = honorContextTitle(meta.category, sessionN);

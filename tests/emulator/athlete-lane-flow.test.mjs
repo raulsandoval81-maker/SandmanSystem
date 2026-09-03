@@ -27,6 +27,10 @@ import {
 import {
   awardXpAuthoritatively,
 } from "../../functions/lib/services/authoritativeXpService.js";
+import {
+  getCompletedLaneSubmissionIdentities,
+  resolveLaneSubmissionIdentity,
+} from "../../public/assets/js/athlete-lane-context.js";
 
 const require = createRequire(import.meta.url);
 const { initializeApp, deleteApp } = require(
@@ -64,8 +68,17 @@ const vault = {
   strength: JSON.parse(
     fs.readFileSync("public/vault/strength/segment1/sessions.json", "utf8")
   ).sessions,
+  strengthSegment2: JSON.parse(
+    fs.readFileSync("public/vault/strength/segment2/sessions.json", "utf8")
+  ).sessions,
   honor: JSON.parse(
     fs.readFileSync("public/vault/honor/segment1/sessions.json", "utf8")
+  ).sessions,
+  honorSegment2: JSON.parse(
+    fs.readFileSync("public/vault/honor/segment2/sessions.json", "utf8")
+  ).sessions,
+  honorSegment6: JSON.parse(
+    fs.readFileSync("public/vault/honor/segment6/sessions.json", "utf8")
   ).sessions,
   f4Conditioning: JSON.parse(
     fs.readFileSync("public/vault/conditioning/f4/segment1/sessions.json", "utf8")
@@ -191,7 +204,15 @@ function completedEntries(data, lane, track = "") {
 }
 
 function nextSession(data, lane, sessions, track = "") {
-  const complete = completedEntries(data, lane, track);
+  const segmentId = sessions?.[0]?.id?.startsWith("HON2-") || sessions?.[0]?.id?.startsWith("STR-CAP-")
+    ? "segment2"
+    : sessions?.[0]?.id?.startsWith("HON6-")
+      ? "segment6"
+      : "segment1";
+  const complete = lane === "strength" || lane === "honor"
+    ? getCompletedLaneSubmissionIdentities({ submissions: data, lane, segmentId })
+        .map(({ identity }) => ({ sessionN: identity.sessionN }))
+    : completedEntries(data, lane, track);
   const highest = complete.length
     ? Math.max(...complete.map((entry) => Number(entry.sessionN || 0)))
     : 0;
@@ -210,6 +231,7 @@ async function exerciseLane({
   source,
   expectedAward,
   assignment = null,
+  segmentId = "segment1",
 }) {
   await seedAthlete(fixture);
   const athleteDb = authenticatedDb(`ATHLETE_${fixture.id}`);
@@ -225,7 +247,7 @@ async function exerciseLane({
     status: "pending",
     lane,
     ...(track ? { track } : {}),
-    segmentId: "segment1",
+    segmentId,
     sessionN: 1,
     athleteUid: fixture.id,
     athleteName: `Synthetic ${fixture.id}`,
@@ -258,6 +280,8 @@ async function exerciseLane({
   });
   snap = await getDoc(submissionRef);
   assert.equal(snap.data()[key].body, "Synthetic revised athlete response");
+  assert.equal(snap.data()[key].segmentId, segmentId);
+  assert.equal(snap.data()[key].sessionN, 1);
 
   const beforeAthlete = (await adminDb.doc(`athletes/${fixture.id}`).get()).data();
   const awardInput = {
@@ -265,7 +289,7 @@ async function exerciseLane({
     kind,
     amount: requestedAmount,
     note: "Synthetic emulator lane approval",
-    meta: { key, source, segmentId: "segment1", sessionN: 1, ...(track ? { track } : {}) },
+    meta: { key, source, segmentId, sessionN: 1, ...(track ? { track } : {}) },
   };
   const award = await awardXpAuthoritatively(COACH_UID, awardInput);
   assert.equal(award.awardedAmount, expectedAward);
@@ -279,7 +303,7 @@ async function exerciseLane({
     athleteName: `Synthetic ${fixture.id}`,
     lane,
     ...(track ? { track } : {}),
-    segmentId: "segment1",
+    segmentId,
     sessionN: 1,
     status: "closed",
     body: "Synthetic revised athlete response",
@@ -299,6 +323,13 @@ async function exerciseLane({
   const closed = (await adminDb.doc(`laneSubmissions/${fixture.id}`).get()).data();
   assert.equal(closed[key].status, "closed");
   assert.equal((await adminDb.doc(`laneHistory/${fixture.id}__${key}`).get()).exists, true);
+  const history = (await adminDb.doc(`laneHistory/${fixture.id}__${key}`).get()).data();
+  assert.equal(history.segmentId, segmentId);
+  assert.equal(history.sessionN, 1);
+  assert.deepEqual(resolveLaneSubmissionIdentity({ lane, entry: closed[key], key }), {
+    segmentId,
+    sessionN: 1,
+  });
   assert.equal(nextSession(closed, lane, sessions, track)?.n, 2);
 
   const afterAthlete = (await adminDb.doc(`athletes/${fixture.id}`).get()).data();
@@ -354,6 +385,45 @@ test("F4 and F8 Honor complete revision, authoritative XP, history, and advancem
     requestedAmount: 5,
     source: "honor_lane_review",
     expectedAward: 5,
+  });
+});
+
+test("non-segment1 Strength preserves review, XP, history, and advancement identity", async () => {
+  await exerciseLane({
+    fixture: { ...fixtures.f4Strength, id: "F4_SLICE4A_STRENGTH_SEG2" },
+    lane: "strength",
+    segmentId: "segment2",
+    sessions: vault.strengthSegment2,
+    key: "STR-CAP-001",
+    kind: "STRENGTH",
+    requestedAmount: 10,
+    source: "lane-review",
+    expectedAward: 10,
+  });
+});
+
+test("Honor segment2 and segment6 preserve canonical review identity", async () => {
+  await exerciseLane({
+    fixture: { ...fixtures.f4Honor, id: "F4_SLICE4A_HONOR_SEG2" },
+    lane: "honor",
+    segmentId: "segment2",
+    sessions: vault.honorSegment2,
+    key: "HON2-001",
+    kind: "HONOR",
+    requestedAmount: 10,
+    source: "honor_lane_review",
+    expectedAward: 10,
+  });
+  await exerciseLane({
+    fixture: { ...fixtures.f4Honor, id: "F4_SLICE4A_HONOR_SEG6" },
+    lane: "honor",
+    segmentId: "segment6",
+    sessions: vault.honorSegment6,
+    key: "HON6-001",
+    kind: "HONOR",
+    requestedAmount: 10,
+    source: "honor_lane_review",
+    expectedAward: 10,
   });
 });
 

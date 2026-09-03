@@ -2,7 +2,7 @@
 // Coach Dashboard (read-only): Strength submissions (V1 updated)
 //
 // Shows:
-// - Strength Segment 1: latest submitted session (current STR-### or legacy key)
+// - Latest valid Strength session across current canonical and legacy keys
 // - Remote HIIT (legacy support if present)
 // - Iron (legacy support if present)
 //
@@ -18,6 +18,7 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init.js";
+import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 
 await ensureSignedIn();
 
@@ -58,27 +59,8 @@ function sortLogMapNewestFirst(logMap) {
   return entries;
 }
 
-function isCurrentStrengthSessionKey(key) {
-  return /^STR-\d+$/i.test(String(key || ""));
-}
-
-function isLegacyStrengthSessionKey(key) {
-  return /^strength_segment1_session\d+$/i.test(String(key || ""));
-}
-
 function getSessionNumberFromKey(key, entry) {
-  const direct = Number(entry?.sessionN || 0);
-  if (direct > 0) return direct;
-
-  const raw = String(key || "");
-
-  let m = raw.match(/^STR-(\d+)$/i);
-  if (m) return Number(m[1]) || 0;
-
-  m = raw.match(/session(\d+)$/i);
-  if (m) return Number(m[1]) || 0;
-
-  return 0;
+  return resolveLaneSubmissionIdentity({ lane: "strength", entry, key }).sessionN || 0;
 }
 
 function latestStrengthSession(data) {
@@ -86,8 +68,8 @@ function latestStrengthSession(data) {
     const entry = data[k];
     if (!entry || typeof entry !== "object") return false;
 
-    const isSessionKey = isCurrentStrengthSessionKey(k) || isLegacyStrengthSessionKey(k);
-    if (!isSessionKey) return false;
+    const identity = resolveLaneSubmissionIdentity({ lane: "strength", entry, key: k });
+    if (!identity.segmentId || !identity.sessionN) return false;
 
     if (entry.lane && String(entry.lane).toLowerCase() !== "strength") return false;
 
@@ -101,6 +83,7 @@ function latestStrengthSession(data) {
     return {
       key: k,
       n: getSessionNumberFromKey(k, entry),
+      segmentId: resolveLaneSubmissionIdentity({ lane: "strength", entry, key: k }).segmentId,
       entry,
     };
   });
@@ -172,6 +155,7 @@ async function getAthleteName(athleteId) {
 
 function renderAthleteCard({ athleteId, athleteName, data }) {
   const latest = latestStrengthSession(data);
+  const latestSegment = Number(latest?.segmentId?.replace("segment", "")) || "?";
   const hiit = data?.strength_remote_hiit || null;
   const ironLatest = data?.strength_iron_latest || null;
   const ironLogs = data?.strength_iron_logs || {};
@@ -199,7 +183,7 @@ function renderAthleteCard({ athleteId, athleteName, data }) {
 
       <div style="margin-top:10px;padding:10px;border:1px solid #1f2937;border-radius:12px;background:#0b1017;">
         <div style="font-weight:900;margin-bottom:6px;">
-          Strength • Segment 1 • ${latest ? `Session ${latest.n}` : "No Session"}
+          Strength • Segment ${esc(String(latestSegment))} • ${latest ? `Session ${latest.n}` : "No Session"}
         </div>
 
         ${

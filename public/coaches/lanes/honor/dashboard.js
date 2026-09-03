@@ -3,7 +3,7 @@
 //
 // Mirrors Strength dashboard styling/layout.
 // Shows:
-// - Honor Segment 1: latest submitted session (current HON-### or legacy key)
+// - Latest valid Honor session across current canonical and legacy keys
 //
 // VIEW ONLY. No XP award, no status changes.
 
@@ -15,6 +15,7 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init.js";
+import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
 
 await ensureSignedIn();
 
@@ -45,27 +46,8 @@ function toMillis(ts) {
   }
 }
 
-function isCurrentHonorSessionKey(key) {
-  return /^HON-\d+$/i.test(String(key || ""));
-}
-
-function isLegacyHonorSessionKey(key) {
-  return /^honor_segment1_session\d+$/i.test(String(key || ""));
-}
-
 function getSessionNumberFromKey(key, entry) {
-  const direct = Number(entry?.sessionN || 0);
-  if (direct > 0) return direct;
-
-  const raw = String(key || "");
-
-  let m = raw.match(/^HON-(\d+)$/i);
-  if (m) return Number(m[1]) || 0;
-
-  m = raw.match(/session(\d+)$/i);
-  if (m) return Number(m[1]) || 0;
-
-  return 0;
+  return resolveLaneSubmissionIdentity({ lane: "honor", entry, key }).sessionN || 0;
 }
 
 function latestHonorSession(data) {
@@ -73,8 +55,8 @@ function latestHonorSession(data) {
     const entry = data[k];
     if (!entry || typeof entry !== "object") return false;
 
-    const isSessionKey = isCurrentHonorSessionKey(k) || isLegacyHonorSessionKey(k);
-    if (!isSessionKey) return false;
+    const identity = resolveLaneSubmissionIdentity({ lane: "honor", entry, key: k });
+    if (!identity.segmentId || !identity.sessionN) return false;
 
     if (entry.lane && String(entry.lane).toLowerCase() !== "honor") return false;
 
@@ -88,6 +70,7 @@ function latestHonorSession(data) {
     return {
       key: k,
       n: getSessionNumberFromKey(k, entry),
+      segmentId: resolveLaneSubmissionIdentity({ lane: "honor", entry, key: k }).segmentId,
       entry,
     };
   });
@@ -119,6 +102,7 @@ async function getAthleteName(athleteId) {
 
 function renderAthleteCard({ athleteId, athleteName, data }) {
   const latest = latestHonorSession(data);
+  const latestSegment = Number(latest?.segmentId?.replace("segment", "")) || "?";
 
   return `
     <div class="submission-card" style="padding:12px;border:1px solid #27304a;border-radius:14px;background:#111c35;margin-bottom:12px;">
@@ -137,7 +121,7 @@ function renderAthleteCard({ athleteId, athleteName, data }) {
 
       <div style="margin-top:10px;padding:10px;border:1px solid #1f2937;border-radius:12px;background:#0b1017;">
         <div style="font-weight:900;margin-bottom:6px;">
-          Honor • Segment 1 • ${latest ? `Session ${latest.n}` : "No Session"}
+          Honor • Segment ${esc(String(latestSegment))} • ${latest ? `Session ${latest.n}` : "No Session"}
         </div>
 
         ${
