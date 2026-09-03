@@ -97,7 +97,11 @@ export function getStripeStatus(athlete: Athlete): StripeStatus {
     };
   }
 
-  if (athlete.xp < tier.xp) {
+  const threshold = Math.ceil(
+    (tier.xp * nextStripe) / stripesRequired
+  );
+
+  if (athlete.xp < threshold) {
     return {
       status: "NOT_READY",
       athleteId: athlete.id,
@@ -111,11 +115,11 @@ export function getStripeStatus(athlete: Athlete): StripeStatus {
       workingTowardBelt: tier.workingTowardBelt,
       earnedBeltAfterPass: tier.earnedBeltAfterPass,
       xp: athlete.xp,
-      threshold: tier.xp,
-      remaining: tier.xp - athlete.xp,
+      threshold,
+      remaining: threshold - athlete.xp,
       certificateReady: false,
       testingEligible: false,
-      message: `${athlete.name} needs ${tier.xp - athlete.xp} more XP before the next stripe.`
+      message: `${athlete.name} needs ${threshold - athlete.xp} more XP before Stripe ${nextStripe}.`
     };
   }
 
@@ -133,7 +137,7 @@ export function getStripeStatus(athlete: Athlete): StripeStatus {
       workingTowardBelt: tier.workingTowardBelt,
       earnedBeltAfterPass: tier.earnedBeltAfterPass,
       xp: athlete.xp,
-      threshold: tier.xp,
+      threshold,
       remaining: 0,
       certificateReady: true,
       testingEligible: true,
@@ -154,7 +158,7 @@ export function getStripeStatus(athlete: Athlete): StripeStatus {
     workingTowardBelt: tier.workingTowardBelt,
     earnedBeltAfterPass: tier.earnedBeltAfterPass,
     xp: athlete.xp,
-    threshold: tier.xp,
+    threshold,
     remaining: 0,
     certificateReady: true,
     testingEligible: false,
