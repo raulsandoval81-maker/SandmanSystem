@@ -123,9 +123,20 @@ ACADEMIES = {
             ],
         },
         "activated_programs": {
-            "road2champion": ["boxing"],
-            "path2legend": ["boxing"],
-            "quest2mastery": [],
+            "road2champion": [
+                "boxing",
+                "wrestling",
+                "muay-thai",
+            ],
+            "path2legend": [
+                "boxing",
+                "wrestling",
+                "muay-thai",
+            ],
+            "quest2mastery": [
+                "mma",
+                "submission-grappling",
+            ],
         },
 
         "fitness": {
@@ -517,6 +528,233 @@ def polish_local_program_html(
     return html
 
 
+
+def install_canonical_discipline_url(
+    html,
+    slug,
+    journey,
+    discipline,
+):
+    """Install the canonical local discipline URL."""
+    canonical = (
+        f"/locations/{slug}/programs/zero2hero/"
+        f"{journey}/{discipline}.html"
+    )
+
+    import re
+
+    existing = re.search(
+        r'<link\s+rel="canonical"\s+href="[^"]+"\s*/?>',
+        html,
+        flags=re.I,
+    )
+
+    tag = f'<link rel="canonical" href="{canonical}">'
+
+    if existing:
+        html = (
+            html[:existing.start()]
+            + tag
+            + html[existing.end():]
+        )
+        return html
+
+    if "</head>" not in html:
+        raise RuntimeError(
+            f"STOP: </head> missing while installing canonical: "
+            f"{slug}/{journey}/{discipline}"
+        )
+
+    return html.replace(
+        "</head>",
+        f"  {tag}\n</head>",
+        1,
+    )
+
+
+def install_elk_grove_contrast(html, academy):
+    """
+    Install the approved Elk Grove local discipline
+    day/night presentation tokens.
+    """
+    if academy.get("name") != "Elk Grove":
+        return html
+
+    day_marker = "SANDMAN-ELK-GROVE-DAY-CONTRAST"
+    night_marker = "SANDMAN-ELK-GROVE-NIGHT-TOKENS"
+
+    day_style = """
+<style id="SANDMAN-ELK-GROVE-DAY-CONTRAST">
+  body.day-mode{
+    background:#e9dfcf;
+    color:#171717;
+  }
+
+  body.day-mode .hero{
+    border-color:#b89447;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(173,123,35,.16),
+        transparent 42%
+      ),
+      linear-gradient(
+        180deg,
+        #f7f1e5 0%,
+        #e8dcc3 100%
+      );
+    box-shadow:0 12px 28px rgba(0,0,0,.12);
+  }
+
+  body.day-mode .panel,
+  body.day-mode .card,
+  body.day-mode .quote{
+    border-color:#c6ad77;
+    background:
+      linear-gradient(
+        180deg,
+        #f8f2e7 0%,
+        #eee3d1 100%
+      );
+    box-shadow:0 8px 20px rgba(0,0,0,.10);
+  }
+
+  body.day-mode .fact{
+    border-color:#c6ad77;
+    background:#e8dcc8;
+  }
+
+  body.day-mode .section-title,
+  body.day-mode .card h2,
+  body.day-mode .card h3,
+  body.day-mode .quote strong{
+    color:#171717;
+  }
+
+  body.day-mode .panel p,
+  body.day-mode .card p,
+  body.day-mode .card li,
+  body.day-mode .fact span,
+  body.day-mode .visual-heading p,
+  body.day-mode .hero p,
+  body.day-mode .availability{
+    color:#4a4741;
+  }
+
+  body.day-mode .eyebrow,
+  body.day-mode .hero-subtitle,
+  body.day-mode .fact strong{
+    color:#8a6718;
+  }
+
+  body.day-mode .marketing-connect-cta{
+    border-color:#b89447;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(173,123,35,.16),
+        transparent 42%
+      ),
+      linear-gradient(
+        180deg,
+        #f4ead9 0%,
+        #dfcfb4 100%
+      );
+    box-shadow:0 10px 26px rgba(0,0,0,.12);
+  }
+
+  body.day-mode .marketing-connect-cta h2{
+    color:#171717;
+  }
+
+  body.day-mode .marketing-connect-cta p{
+    color:#494640;
+  }
+</style>
+"""
+
+    night_style = """
+<style id="SANDMAN-ELK-GROVE-NIGHT-TOKENS">
+  body:not(.day-mode){
+    --bg:#080808;
+    --panel:#111113;
+    --panel-2:#18181b;
+    --heading:#f5f5f5;
+    --heading-accent:#d4af37;
+    --hero-muted:#d0d0d4;
+    --muted:rgba(255,255,255,.68);
+    --line:rgba(255,255,255,.14);
+    --text:#f5f5f5;
+
+    background:#080808;
+    color:#f5f5f5;
+  }
+
+  body:not(.day-mode) .panel,
+  body:not(.day-mode) .card,
+  body:not(.day-mode) .quote{
+    background:#111113;
+    border-color:rgba(255,255,255,.14);
+  }
+
+  body:not(.day-mode) .fact{
+    background:#18181b;
+    border-color:rgba(255,255,255,.12);
+  }
+
+  body:not(.day-mode) .panel p,
+  body:not(.day-mode) .card p,
+  body:not(.day-mode) .card li,
+  body:not(.day-mode) .fact span,
+  body:not(.day-mode) .hero p,
+  body:not(.day-mode) .availability{
+    color:#d0d0d4;
+  }
+
+  body:not(.day-mode) .section-title,
+  body:not(.day-mode) .card h2,
+  body:not(.day-mode) .card h3,
+  body:not(.day-mode) .quote strong{
+    color:#f5f5f5;
+  }
+
+  body:not(.day-mode) .eyebrow,
+  body:not(.day-mode) .hero-subtitle,
+  body:not(.day-mode) .fact strong{
+    color:#d4af37;
+  }
+</style>
+"""
+
+    # Remove stale location-specific copies first.
+    import re
+
+    html = re.sub(
+        r'\s*<style id="SANDMAN-(?:ELK-GROVE|SYV)-DAY-CONTRAST">.*?</style>\s*',
+        "\n",
+        html,
+        flags=re.I | re.S,
+    )
+
+    html = re.sub(
+        r'\s*<style id="SANDMAN-(?:ELK-GROVE|SYV)-NIGHT-TOKENS">.*?</style>\s*',
+        "\n",
+        html,
+        flags=re.I | re.S,
+    )
+
+    if "</head>" not in html:
+        raise RuntimeError(
+            "STOP: </head> missing while installing Elk Grove contrast"
+        )
+
+    return html.replace(
+        "</head>",
+        day_style + "\n" + night_style + "\n</head>",
+        1,
+    )
+
+
 def preserve_approved_live_palette(html, academy, journey):
     """Apply the approved location discipline palette without redesigning it."""
     if academy.get("discipline_palette") != "navy-ivory":
@@ -749,6 +987,18 @@ def generate_location(slug, academy):
                 html,
                 academy,
                 journey,
+            )
+
+            html = install_elk_grove_contrast(
+                html,
+                academy,
+            )
+
+            html = install_canonical_discipline_url(
+                html,
+                slug,
+                journey,
+                discipline,
             )
 
             html = install_local_interior_shell(

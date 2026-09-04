@@ -15,6 +15,7 @@
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/public.css" />
 <style>
 
     *{
@@ -38,16 +39,9 @@
     }
 
     main{
-      width:100%;
-      margin:0;
-      padding:40px 20px 80px;
-      overflow:hidden;
-    }
-
-    main > *{
-      width:min(1050px,100%);
-      margin-left:auto;
-      margin-right:auto;
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
     }
 
     .hidden-lang{
@@ -100,7 +94,7 @@
     }
 
     body.day-mode .hero{
-      border-color:#b89447;
+      border-color:#d7c7a2;
       background:
         radial-gradient(
           circle at top right,
@@ -109,8 +103,8 @@
         ),
         linear-gradient(
           180deg,
-          #f7f1e5 0%,
-          #e8dcc3 100%
+          #ffffff 0%,
+          #f3e7cf 100%
         );
       box-shadow:0 10px 24px rgba(0,0,0,.10);
     }
@@ -163,9 +157,9 @@
     }
 
     body.day-mode .panel{
-      border-color:#b89447;
-      background:#f8f3e9;
-      box-shadow:0 10px 24px rgba(0,0,0,.12);
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
     }
 
     .section-title{
@@ -219,9 +213,9 @@
     }
 
     body.day-mode .card{
-      border-color:#b89447;
-      background:#f8f3e9;
-      box-shadow:0 10px 24px rgba(0,0,0,.12);
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
     }
 
     .card h2,
@@ -284,8 +278,8 @@
     }
 
     body.day-mode .quote{
-      border-color:#b89447;
-      background:#f4ecdc;
+      border-color:#d7c7a2;
+      background:#ffffff;
     }
 
     .quote strong{
@@ -419,8 +413,8 @@
         ),
         linear-gradient(
           180deg,
-          #f7f1e5 0%,
-          #e8dcc3 100%
+          #ffffff 0%,
+          #f3e7cf 100%
         );
 
       box-shadow:0 10px 24px rgba(0,0,0,.10);
@@ -468,9 +462,97 @@
   }
 </style>
 
-  <link rel="canonical" href="/locations/elk-grove/programs/zero2hero/path2legend/wrestling.html">
 
-<style id="SANDMAN-SYV-NIGHT-TOKENS">
+<style id="SANDMAN-ELK-GROVE-DAY-CONTRAST">
+  body.day-mode{
+    background:#e9dfcf;
+    color:#171717;
+  }
+
+  body.day-mode .hero{
+    border-color:#b89447;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(173,123,35,.16),
+        transparent 42%
+      ),
+      linear-gradient(
+        180deg,
+        #f7f1e5 0%,
+        #e8dcc3 100%
+      );
+    box-shadow:0 12px 28px rgba(0,0,0,.12);
+  }
+
+  body.day-mode .panel,
+  body.day-mode .card,
+  body.day-mode .quote{
+    border-color:#c6ad77;
+    background:
+      linear-gradient(
+        180deg,
+        #f8f2e7 0%,
+        #eee3d1 100%
+      );
+    box-shadow:0 8px 20px rgba(0,0,0,.10);
+  }
+
+  body.day-mode .fact{
+    border-color:#c6ad77;
+    background:#e8dcc8;
+  }
+
+  body.day-mode .section-title,
+  body.day-mode .card h2,
+  body.day-mode .card h3,
+  body.day-mode .quote strong{
+    color:#171717;
+  }
+
+  body.day-mode .panel p,
+  body.day-mode .card p,
+  body.day-mode .card li,
+  body.day-mode .fact span,
+  body.day-mode .visual-heading p,
+  body.day-mode .hero p,
+  body.day-mode .availability{
+    color:#4a4741;
+  }
+
+  body.day-mode .eyebrow,
+  body.day-mode .hero-subtitle,
+  body.day-mode .fact strong{
+    color:#8a6718;
+  }
+
+  body.day-mode .marketing-connect-cta{
+    border-color:#b89447;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(173,123,35,.16),
+        transparent 42%
+      ),
+      linear-gradient(
+        180deg,
+        #f4ead9 0%,
+        #dfcfb4 100%
+      );
+    box-shadow:0 10px 26px rgba(0,0,0,.12);
+  }
+
+  body.day-mode .marketing-connect-cta h2{
+    color:#171717;
+  }
+
+  body.day-mode .marketing-connect-cta p{
+    color:#494640;
+  }
+</style>
+
+
+<style id="SANDMAN-ELK-GROVE-NIGHT-TOKENS">
   body:not(.day-mode){
     --bg:#080808;
     --panel:#111113;
@@ -521,6 +603,7 @@
   }
 </style>
 
+  <link rel="canonical" href="/locations/elk-grove/programs/zero2hero/path2legend/wrestling.html">
 </head>
 
 <body>
@@ -564,7 +647,7 @@
         <p>Desarrollo técnico y táctico para atletas adolescentes y adultos.</p>
 
         <span class="availability">
-          Disponible en nuestra academia de Valle de Elk Grove
+          Disponible en nuestra academia de Elk Grove
         </span>
 
       </div>

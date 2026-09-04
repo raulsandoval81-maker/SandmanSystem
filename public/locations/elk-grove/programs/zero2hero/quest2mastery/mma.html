@@ -2,91 +2,1189 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Quest2Mastery MMA | Sandman Academy — Elk Grove</title>
-  <meta name="description" content="Quest2Mastery MMA technical and tactical development for adult athletes at Sandman Academy in Elk Grove." />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Quest2Mastery MMA | Sandman Combat™</title>
+
+  <meta
+    name="description"
+    content="Learn about Quest2Mastery MMA for athletes ages 16 and older, including its history, training focus, earned progression, tactical development, and athlete-development purpose."
+  />
+
   <link rel="stylesheet" href="/assets/css/site.css" />
-  <style>
-    body{margin:0;background:var(--page-bg,#080808);color:var(--text,#f5f5f5)}
-    main{width:100%;margin:0;padding:40px 20px 80px;overflow:hidden} main>*{width:min(1050px,100%);margin-left:auto;margin-right:auto}
-    .hero{padding:44px 28px;border:1px solid rgba(212,175,55,.34);border-radius:22px;text-align:center;background:radial-gradient(circle at top,rgba(212,175,55,.13),transparent 42%),linear-gradient(180deg,#171717 0%,#090909 100%);box-shadow:0 18px 38px rgba(0,0,0,.28)}
-    .hero h1{margin:0;color:#fff;font-size:clamp(2.8rem,7vw,5rem);line-height:.96;letter-spacing:-.045em;text-transform:uppercase}.hero-subtitle{margin:16px auto 0;color:#d4af37;font-weight:900;letter-spacing:.06em;text-transform:uppercase}.hero p,.availability,.panel p,.card p,.card li,.fact span{color:#d0d0d4;line-height:1.7}.availability{display:inline-flex;margin-top:14px;font-weight:800}
-    .section{margin-top:28px}.panel,.card,.quote{border:1px solid rgba(255,255,255,.14);background:#111113}.panel{padding:clamp(1.5rem,4vw,2.3rem);border-radius:22px;box-shadow:0 14px 34px rgba(0,0,0,.22)}
-    .eyebrow{margin:0 0 10px;color:#d4af37;font-size:.78rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.section-title{margin:0 0 12px;color:#f5f5f5;font-size:clamp(1.7rem,4vw,2.5rem);line-height:1.15}
-    .content-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:28px}.card{padding:22px;border-radius:18px}.card h2,.card h3{margin:0 0 10px;color:#d4af37}.card ul{margin:0;padding-left:20px}
-    .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}.fact{padding:18px;border:1px solid rgba(255,255,255,.12);border-radius:16px;background:#18181b}.fact strong{display:block;margin-bottom:7px;color:#d4af37}
-    .quote{margin-top:30px;padding:26px;border-left:4px solid #d4af37;border-radius:18px;color:#f5f5f5;font-size:1.05rem;line-height:1.8}.quote strong{display:block;margin-bottom:4px;color:#f5f5f5;font-size:1.25rem}
-    .marketing-connect-cta{width:100%;margin-top:34px;padding:clamp(2rem,5vw,3.4rem) clamp(1.25rem,4vw,2.5rem);text-align:center;border:1px solid rgba(212,175,55,.38);border-radius:22px;background:radial-gradient(circle at top,rgba(212,175,55,.14),transparent 42%),linear-gradient(180deg,#171717 0%,#090909 100%);box-shadow:0 18px 38px rgba(0,0,0,.30)}
-    .marketing-connect-cta h2{margin:0 0 .8rem;color:#fff;font-size:clamp(1.85rem,4vw,2.8rem)}.marketing-connect-cta p{max-width:700px;margin:0 auto 1.45rem;color:#d4d4d8;line-height:1.7}.journeys-cta-button{display:inline-flex;align-items:center;justify-content:center;min-height:50px;padding:13px 24px;color:#090909;background:#d4af37;border:1px solid #e7c968;border-radius:999px;font-weight:900;text-decoration:none}
-    body.day-mode{background:#e9dfcf;color:#171717} body.day-mode .hero{border-color:#b89447;background:radial-gradient(circle at top,rgba(173,123,35,.12),transparent 42%),linear-gradient(180deg,#f7f1e5 0%,#e8dcc3 100%);box-shadow:0 10px 24px rgba(0,0,0,.10)}
-    body.day-mode .hero h1,body.day-mode .section-title,body.day-mode .card h2,body.day-mode .card h3,body.day-mode .quote strong,body.day-mode .marketing-connect-cta h2{color:#171717} body.day-mode .hero p,body.day-mode .availability,body.day-mode .panel p,body.day-mode .card p,body.day-mode .card li,body.day-mode .fact span,body.day-mode .marketing-connect-cta p{color:#4f5258}
-    body.day-mode .panel,body.day-mode .card,body.day-mode .quote{border-color:#c6ad77;background:linear-gradient(180deg,#f8f2e7 0%,#eee3d1 100%);box-shadow:0 8px 18px rgba(0,0,0,.08)} body.day-mode .fact{border-color:#c6ad77;background:#e8dcc8} body.day-mode .eyebrow,body.day-mode .hero-subtitle,body.day-mode .fact strong{color:#8a641d}
-    body.day-mode .marketing-connect-cta{border-color:#c9aa61;background:radial-gradient(circle at top,rgba(173,123,35,.12),transparent 42%),linear-gradient(180deg,#f4ead9 0%,#dfcfb4 100%);box-shadow:0 10px 24px rgba(0,0,0,.10)}
-    @media(max-width:780px){.content-grid,.facts{grid-template-columns:1fr}}
-  </style>
-  <link rel="canonical" href="/locations/elk-grove/programs/zero2hero/quest2mastery/mma.html" />
+  <link rel="stylesheet" href="/public.css" />
+<style>
+    *{
+      box-sizing:border-box;
+    }
+
+    html{
+      scroll-behavior:smooth;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    img{
+      display:block;
+      max-width:100%;
+      height:auto;
+    }
+
+    main{
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .eyebrow{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .progression-top{
+      margin:0 0 28px;
+    }
+
+    .progression-top figure{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .progression-top img{
+      width:100%;
+    }
+
+    .hero{
+      padding:clamp(2rem,5vw,3.5rem);
+      margin-bottom:28px;
+      border:1px solid rgba(212,175,55,.22);
+      border-radius:24px;
+      background:
+        radial-gradient(
+          circle at center top,
+          rgba(212,175,55,.17),
+          transparent 44%
+        ),
+        linear-gradient(
+          180deg,
+          #101010 0%,
+          #050505 100%
+        );
+      box-shadow:0 20px 40px rgba(0,0,0,.35);
+    }
+
+    body.day-mode .hero{
+      border-color:#d7c7a2;
+      background:
+        radial-gradient(
+          circle at top right,
+          rgba(173,123,35,.12),
+          transparent 40%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    .hero h1{
+      margin:0 0 10px;
+      color:var(--heading);
+      font-size:clamp(2.5rem,7vw,4.8rem);
+      line-height:1;
+    }
+
+    .hero-subtitle{
+      margin:0 0 18px;
+      color:var(--heading-accent);
+      font-size:1.1rem;
+      font-weight:900;
+    }
+
+    .hero p{
+      max-width:800px;
+      margin:.75rem 0 0;
+      color:var(--hero-muted);
+      font-size:1.05rem;
+      line-height:1.75;
+    }
+
+    .availability{
+      display:inline-block;
+      margin-top:18px;
+      padding:7px 12px;
+      color:var(--muted);
+      font-size:.76rem;
+      font-weight:900;
+      letter-spacing:.09em;
+      text-transform:uppercase;
+      border:1px solid var(--line);
+      border-radius:999px;
+    }
+
+    .section{
+      margin-top:28px;
+    }
+
+    .panel{
+      padding:clamp(1.5rem,4vw,2.3rem);
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:0 14px 34px rgba(0,0,0,.22);
+    }
+
+    body.day-mode .panel{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .section-title{
+      margin:0 0 12px;
+      color:var(--heading);
+      font-size:clamp(1.7rem,4vw,2.5rem);
+      line-height:1.15;
+    }
+
+    .panel p{
+      color:var(--muted);
+      line-height:1.75;
+    }
+
+    .panel p:last-child{
+      margin-bottom:0;
+    }
+
+    .visual-section{
+      margin-top:28px;
+    }
+
+    .visual-heading{
+      margin-bottom:14px;
+    }
+
+    .visual-heading h2{
+      margin:0 0 8px;
+      color:var(--heading);
+      font-size:clamp(1.55rem,4vw,2.2rem);
+    }
+
+    .visual-heading p{
+      margin:0;
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .content-grid{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:18px;
+      margin-top:28px;
+    }
+
+    .card{
+      padding:22px;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:var(--panel);
+    }
+
+    body.day-mode .card{
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
+    }
+
+    .card h2,
+    .card h3{
+      margin:0 0 10px;
+      color:var(--heading-accent);
+    }
+
+    body.day-mode .card h2,
+    body.day-mode .card h3{
+      color:var(--heading);
+    }
+
+    .card p,
+    .card li{
+      color:var(--muted);
+      line-height:1.65;
+    }
+
+    .card ul{
+      margin:0;
+      padding-left:20px;
+    }
+
+    .facts{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:14px;
+      margin-top:18px;
+    }
+
+    .fact{
+      padding:18px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:var(--panel-2);
+    }
+
+    .fact strong{
+      display:block;
+      margin-bottom:7px;
+      color:var(--heading-accent);
+    }
+
+    .fact span{
+      color:var(--muted);
+      line-height:1.55;
+    }
+
+    .quote{
+      margin-top:30px;
+      padding:26px;
+      border:1px solid var(--line);
+      border-left:4px solid var(--heading-accent);
+      border-radius:18px;
+      background:var(--panel);
+      color:var(--text);
+      font-size:1.05rem;
+      line-height:1.8;
+    }
+
+    body.day-mode .quote{
+      border-color:#d7c7a2;
+      background:#ffffff;
+    }
+
+    .quote strong{
+      display:block;
+      margin-bottom:4px;
+      color:var(--heading);
+      font-size:1.25rem;
+    }
+
+    @media (max-width:780px){
+      .content-grid,
+      .facts{
+        grid-template-columns:1fr;
+      }
+    }
+
+    @media (max-width:640px){
+      main{
+        width:min(100% - 28px,1050px);
+        padding:24px 0 64px;
+      }
+
+      .hero{
+        padding:32px 20px;
+        border-radius:18px;
+      }
+
+      .panel,
+      .progression-top figure{
+        border-radius:16px;
+      }
+
+      .card{
+        padding:18px;
+      }
+    }
+
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+
+
+</style>
+
+<style id="SANDMAN-DISCIPLINE-HERO-CENTER">
+  .hero {
+    text-align: center;
+  }
+
+  .hero h1,
+  .hero .hero-subtitle,
+  .hero > div > p {
+    text-align: center;
+  }
+
+  .hero > div {
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+
+
+<style id="SANDMAN-ELK-GROVE-DAY-CONTRAST">
+  body.day-mode{
+    background:#e9dfcf;
+    color:#171717;
+  }
+
+  body.day-mode .hero{
+    border-color:#b89447;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(173,123,35,.16),
+        transparent 42%
+      ),
+      linear-gradient(
+        180deg,
+        #f7f1e5 0%,
+        #e8dcc3 100%
+      );
+    box-shadow:0 12px 28px rgba(0,0,0,.12);
+  }
+
+  body.day-mode .panel,
+  body.day-mode .card,
+  body.day-mode .quote{
+    border-color:#c6ad77;
+    background:
+      linear-gradient(
+        180deg,
+        #f8f2e7 0%,
+        #eee3d1 100%
+      );
+    box-shadow:0 8px 20px rgba(0,0,0,.10);
+  }
+
+  body.day-mode .fact{
+    border-color:#c6ad77;
+    background:#e8dcc8;
+  }
+
+  body.day-mode .section-title,
+  body.day-mode .card h2,
+  body.day-mode .card h3,
+  body.day-mode .quote strong{
+    color:#171717;
+  }
+
+  body.day-mode .panel p,
+  body.day-mode .card p,
+  body.day-mode .card li,
+  body.day-mode .fact span,
+  body.day-mode .visual-heading p,
+  body.day-mode .hero p,
+  body.day-mode .availability{
+    color:#4a4741;
+  }
+
+  body.day-mode .eyebrow,
+  body.day-mode .hero-subtitle,
+  body.day-mode .fact strong{
+    color:#8a6718;
+  }
+
+  body.day-mode .marketing-connect-cta{
+    border-color:#b89447;
+    background:
+      radial-gradient(
+        circle at top,
+        rgba(173,123,35,.16),
+        transparent 42%
+      ),
+      linear-gradient(
+        180deg,
+        #f4ead9 0%,
+        #dfcfb4 100%
+      );
+    box-shadow:0 10px 26px rgba(0,0,0,.12);
+  }
+
+  body.day-mode .marketing-connect-cta h2{
+    color:#171717;
+  }
+
+  body.day-mode .marketing-connect-cta p{
+    color:#494640;
+  }
+</style>
+
+
+<style id="SANDMAN-ELK-GROVE-NIGHT-TOKENS">
+  body:not(.day-mode){
+    --bg:#080808;
+    --panel:#111113;
+    --panel-2:#18181b;
+    --heading:#f5f5f5;
+    --heading-accent:#d4af37;
+    --hero-muted:#d0d0d4;
+    --muted:rgba(255,255,255,.68);
+    --line:rgba(255,255,255,.14);
+    --text:#f5f5f5;
+
+    background:#080808;
+    color:#f5f5f5;
+  }
+
+  body:not(.day-mode) .panel,
+  body:not(.day-mode) .card,
+  body:not(.day-mode) .quote{
+    background:#111113;
+    border-color:rgba(255,255,255,.14);
+  }
+
+  body:not(.day-mode) .fact{
+    background:#18181b;
+    border-color:rgba(255,255,255,.12);
+  }
+
+  body:not(.day-mode) .panel p,
+  body:not(.day-mode) .card p,
+  body:not(.day-mode) .card li,
+  body:not(.day-mode) .fact span,
+  body:not(.day-mode) .hero p,
+  body:not(.day-mode) .availability{
+    color:#d0d0d4;
+  }
+
+  body:not(.day-mode) .section-title,
+  body:not(.day-mode) .card h2,
+  body:not(.day-mode) .card h3,
+  body:not(.day-mode) .quote strong{
+    color:#f5f5f5;
+  }
+
+  body:not(.day-mode) .eyebrow,
+  body:not(.day-mode) .hero-subtitle,
+  body:not(.day-mode) .fact strong{
+    color:#d4af37;
+  }
+</style>
+
+  <link rel="canonical" href="/locations/elk-grove/programs/zero2hero/quest2mastery/mma.html">
 </head>
+
 <body>
-<div id="navigation" data-component="/locations/elk-grove/components/navigation.html"></div>
-<main>
-<section class="hero"><div data-lang-block="en"><h1>MMA</h1><p class="hero-subtitle">Integration. Adaptation. Composure. Mastery.</p><p>Integrated combat development for adult athletes.</p><span class="availability">Offered at our Elk Grove academy</span></div><div data-lang-block="es" class="hidden-lang"><h1>MMA</h1><p class="hero-subtitle">Integración. Adaptación. Compostura. Maestría.</p><p>Desarrollo integral de combate para atletas adultos.</p><span class="availability">Disponible en nuestra academia de Elk Grove</span></div></section>
-<section class="section panel"><div data-lang-block="en"><p class="eyebrow">Discipline Overview</p><h2 class="section-title">What Is MMA?</h2><p>Muay Thai is a striking art from Thailand built around punches, kicks, knees, elbows, movement, defense, and clinch control. Often called the art of eight limbs, it develops athletes who can manage distance, maintain balance, create openings, defend responsibly, and remain composed while using multiple striking tools.</p><p>Path2Legend™ Muay Thai moves beyond basic technique into connected striking, defensive reactions, tactical movement, controlled pressure, conditioning, and decision-making. Athletes learn to combine offense and defense while maintaining discipline, awareness, and responsibility toward training partners.</p></div><div data-lang-block="es" class="hidden-lang"><p class="eyebrow">Descripción de la Disciplina</p><h2 class="section-title">¿Qué Es MMA?</h2><p>Muay Thai es un arte de golpeo de Tailandia basado en puños, patadas, rodillas, codos, movimiento, defensa y control en clinch. Conocido como el arte de las ocho extremidades, desarrolla atletas capaces de manejar la distancia, mantener el equilibrio, crear oportunidades, defenderse con responsabilidad y conservar la compostura.</p><p>Path2Legend™ Muay Thai lleva al atleta más allá de la técnica básica hacia combinaciones conectadas, reacciones defensivas, movimiento táctico, presión controlada, acondicionamiento y toma de decisiones.</p></div></section>
-<section class="section panel"><div data-lang-block="en"><p class="eyebrow">The Sandman Purpose</p><h2 class="section-title">Why We Teach MMA</h2><p>We teach Muay Thai because it requires athletes to coordinate physical skill with judgment. Timing, balance, positioning, conditioning, and emotional control all matter when pressure increases.</p><p>As athletes become more capable, responsibility becomes more important. Path2Legend™ training teaches athletes to control intensity, protect training partners, accept coaching, make tactical adjustments, stay composed through difficult rounds, and use skill with discipline.</p><p>Those lessons reinforce the Sandman pillars of Combat, Strength, and Honor.</p></div><div data-lang-block="es" class="hidden-lang"><p class="eyebrow">El Propósito Sandman</p><h2 class="section-title">Por Qué Enseñamos MMA</h2><p>Enseñamos Muay Thai porque exige combinar habilidad física con buen juicio. El tiempo, el equilibrio, la posición, el acondicionamiento y el control emocional importan cuando aumenta la presión.</p><p>A medida que crece la capacidad del atleta, también crece su responsabilidad. Path2Legend™ enseña a controlar la intensidad, proteger a los compañeros, aceptar correcciones, hacer ajustes tácticos y mantener la compostura.</p></div></section>
-<section class="section panel"><div data-lang-block="en"><p class="eyebrow">Short History</p><h2 class="section-title">The Story of MMA</h2><p>Muay Thai developed in Thailand from older battlefield and hand-to-hand traditions. Over time, it evolved into a regulated national sport with formal training camps, stadium competition, timed rounds, gloves, referees, and established rules.</p><p>Modern Muay Thai is practiced around the world for competition, fitness, self-development, and mixed martial arts preparation. Its combination of striking, balance, rhythm, defense, conditioning, and close-range control has made it one of the most respected striking systems in combat sports.</p></div><div data-lang-block="es" class="hidden-lang"><p class="eyebrow">Historia Breve</p><h2 class="section-title">La Historia de MMA</h2><p>Muay Thai se desarrolló en Tailandia a partir de antiguas tradiciones de combate. Con el tiempo evolucionó hasta convertirse en un deporte nacional regulado con campamentos formales, combates en estadios, rounds, guantes, árbitros y reglas establecidas.</p><p>Hoy se practica en todo el mundo para competencia, condición física, desarrollo personal y preparación para artes marciales mixtas.</p></div></section>
-<section class="section"><div class="facts"><div class="fact">
-        <strong>One Connected System</strong>
-        <span>MMA links striking, wrestling, clinch work, control, and submissions into one continuous decision-making system.</span>
-      </div><div class="fact">
-        <strong>Transitions Decide Position</strong>
-        <span>Athletes must recognize when to strike, wrestle, control, disengage, or change ranges.</span>
-      </div><div class="fact">
-        <strong>Composure Creates Options</strong>
-        <span>Clear decisions under pressure allow skill from multiple disciplines to work together.</span>
-      </div></div></section>
-<section class="content-grid"><article class="card"><h2>Technical Skills</h2><ul>
-        <li>Striking-to-wrestling transitions</li>
-        <li>Takedowns and takedown defense</li>
-        <li>Clinch positioning and control</li>
-        <li>Ground control and positional escapes</li>
-        <li>Submission attacks and defense</li>
-        <li>Wall and boundary awareness</li>
-        <li>Range management</li>
-        <li>Integrated offense and defense</li>
-      </ul></article><article class="card"><h2>Physical Development</h2><ul>
-        <li>Coordination</li>
-        <li>Balance</li>
-        <li>Agility</li>
-        <li>Mobility</li>
-        <li>Conditioning</li>
-        <li>Strength endurance</li>
-        <li>Reaction speed</li>
-        <li>Full-body awareness</li>
-      </ul></article><article class="card"><h2>Character Development</h2><ul>
-        <li>Confidence</li>
-        <li>Discipline</li>
-        <li>Respect</li>
-        <li>Composure</li>
-        <li>Accountability</li>
-        <li>Adaptability</li>
-        <li>Leadership</li>
-        <li>Responsibility</li>
-      </ul></article><article class="card"><h2>Training Focus</h2><ul>
-        <li>Integrated movement drills</li>
-        <li>Striking and defensive work</li>
-        <li>Wrestling entries and takedowns</li>
-        <li>Clinch and wall situations</li>
-        <li>Ground-control drills</li>
-        <li>Submission grappling</li>
-        <li>Situational rounds</li>
-        <li>Controlled live training</li>
-        <li>Competition preparation when appropriate</li>
-      </ul></article></section>
-<section class="section panel"><div data-lang-block="en"><p class="eyebrow">Quest2Mastery™ Progression</p><h2 class="section-title">Earn the Next Level</h2><p>Athletes advance from Apprentice to Legend through consistent training, coach evaluation, testing, technical and tactical development, and demonstrated growth in Combat, Strength, and Honor.</p></div><div data-lang-block="es" class="hidden-lang"><p class="eyebrow">Progresión Path2Legend™</p><h2 class="section-title">Gana el Siguiente Nivel</h2><p>Los atletas avanzan de Apprentice a Legend mediante entrenamiento constante, evaluación del coach, pruebas, desarrollo técnico y táctico, y crecimiento demostrado en Combat, Strength y Honor.</p></div></section>
-<section class="section panel"><div data-lang-block="en"><p class="eyebrow">Athlete Fit</p><h2 class="section-title">Who Is MMA For?</h2><p>Quest2Mastery™ MMA is designed for adult athletes who want to develop a complete combat skill set, experienced martial artists expanding across disciplines, competitors preparing for mixed martial arts, and disciplined athletes seeking integrated technical and tactical development.</p></div><div data-lang-block="es" class="hidden-lang"><p class="eyebrow">Perfil del Atleta</p><h2 class="section-title">¿Para Quién Es MMA?</h2><p>Quest2Mastery™ MMA está diseñado para atletas adultos que desean desarrollar un sistema completo de combate, practicantes con experiencia que quieren integrar varias disciplinas y competidores que se preparan para MMA.</p></div></section>
-<section class="marketing-connect-cta"><div data-lang-block="en"><h2>Ready to Begin MMA?</h2><p>Develop integrated striking, wrestling, grappling, conditioning, composure, and tactical decision-making through structured Quest2Mastery™ MMA training.</p><a class="journeys-cta-button" href="/locations/elk-grove/connect.html">Connect With Our Academy</a></div><div data-lang-block="es" class="hidden-lang"><h2>¿Listo Para Comenzar MMA?</h2><p>Desarrolla golpeo, lucha, grappling, condición física, compostura y toma de decisiones tácticas mediante entrenamiento estructurado Quest2Mastery™.</p><a class="journeys-cta-button" href="/locations/elk-grove/connect.html">Conéctate Con Nuestra Academia</a></div></section>
-<div class="quote"><strong>Every master begins as an apprentice.</strong>Start at zero. Train with purpose. Earn every step.</div>
-</main>
-<div id="footer" data-component="/components/footer.html"></div>
-<script src="/assets/js/component-loader.js" defer></script><script src="/assets/js/language.js" defer></script><script src="/assets/js/theme.js" defer></script><script src="/assets/js/navigation.js" defer></script>
+
+<div
+  id="navigation"
+  data-component="/locations/elk-grove/components/navigation.html"
+></div>
+
+
+  <main>
+
+
+
+    <section class="hero">
+
+      <div data-lang-block="en">
+<h1>Mixed Martial Arts</h1>
+
+        <p class="hero-subtitle">
+          Integration. Adaptation. Control. Mastery.
+        </p>
+
+        <p>Integrated technical and tactical development for advanced combat athletes.</p>
+
+        <span class="availability">
+          Offered at our Elk Grove academy
+        </span>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+<h1>Artes Marciales Mixtas</h1>
+
+        <p class="hero-subtitle">
+          Integración. Adaptación. Control. Maestría.
+        </p>
+
+        <p>Desarrollo técnico y táctico integrado para atletas de combate avanzados.</p>
+
+        <span class="availability">
+          Disponible en nuestra academia de Elk Grove
+        </span>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Discipline Overview
+        </p>
+
+        <h2 class="section-title">
+          What Is MMA?
+        </h2>
+
+        <p>
+          Mixed martial arts is a combat sport that combines striking,
+          wrestling, clinch fighting, takedowns, positional grappling,
+          submissions, and ground striking. Athletes must understand not only
+          each phase, but also how to move safely and effectively between them.
+        </p>
+
+        <p>
+          Quest2Mastery MMA is built around integration. Athletes learn when to
+          strike, when to wrestle, when to control the clinch, when to pursue a
+          submission, and when to disengage, reset, or change strategy.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Resumen De La Disciplina
+        </p>
+
+        <h2 class="section-title">
+          ¿Qué Es MMA?
+        </h2>
+
+        <p>
+          Las artes marciales mixtas son un deporte de combate que combina
+          golpeo, lucha, clinch, derribos, grappling posicional, sumisiones y
+          golpeo en el suelo. Los atletas deben comprender no solamente cada
+          fase, sino también cómo moverse con seguridad y eficacia entre ellas.
+        </p>
+
+        <p>
+          MMA Quest2Mastery se basa en la integración. Los atletas aprenden
+          cuándo golpear, cuándo luchar, cuándo controlar el clinch, cuándo
+          buscar una sumisión y cuándo separarse, reiniciar o cambiar de
+          estrategia.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          The Sandman Purpose
+        </p>
+
+        <h2 class="section-title">
+          Why We Teach MMA
+        </h2>
+
+        <p>
+          We teach MMA because it demands complete awareness. Athletes must
+          read distance, recognize transitions, protect themselves, manage
+          energy, solve problems, and make disciplined decisions while the
+          situation changes around them.
+        </p>
+
+        <p>
+          Growing capability carries greater responsibility. Athletes must
+          apply technique with control, protect partners, accept correction,
+          remain accountable, respect the rules, and demonstrate leadership.
+          Those expectations support Combat, Strength, and Honor.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          El Propósito Sandman
+        </p>
+
+        <h2 class="section-title">
+          Por Qué Enseñamos MMA
+        </h2>
+
+        <p>
+          Enseñamos MMA porque exige conciencia completa. Los atletas deben
+          leer la distancia, reconocer transiciones, protegerse, manejar la
+          energía, resolver problemas y tomar decisiones disciplinadas mientras
+          la situación cambia a su alrededor.
+        </p>
+
+        <p>
+          Una mayor capacidad trae mayor responsabilidad. Los atletas deben
+          aplicar técnica con control, proteger a sus compañeros, aceptar
+          correcciones, rendir cuentas, respetar las reglas y demostrar
+          liderazgo. Esas expectativas apoyan Combate, Fuerza y Honor.
+        </p>
+
+      </div>
+
+    </section>
+
+<section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Short History
+        </p>
+
+        <h2 class="section-title">
+          The Story of MMA
+        </h2>
+
+        <p>
+          Mixed-style combat has existed in different forms for centuries, but
+          modern MMA developed as athletes from boxing, wrestling, kickboxing,
+          Muay Thai, judo, Brazilian jiu-jitsu, and other systems tested how
+          their skills worked across multiple ranges.
+        </p>
+
+        <p>
+          Over time, the sport adopted weight classes, timed rounds, medical
+          oversight, referees, judging criteria, and unified rules. Modern MMA
+          now rewards athletes who can strike, wrestle, grapple, defend, and
+          transition intelligently between phases.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Historia Breve
+        </p>
+
+        <h2 class="section-title">
+          La Historia De MMA
+        </h2>
+
+        <p>
+          El combate entre estilos ha existido de diferentes formas durante
+          siglos, pero el MMA moderno se desarrolló cuando atletas de boxeo,
+          lucha, kickboxing, Muay Thai, judo, jiu-jitsu brasileño y otros
+          sistemas pusieron a prueba sus habilidades en múltiples distancias.
+        </p>
+
+        <p>
+          Con el tiempo, el deporte adoptó divisiones de peso, asaltos,
+          supervisión médica, árbitros, criterios de puntuación y reglas
+          unificadas. El MMA moderno recompensa a atletas capaces de golpear,
+          luchar, hacer grappling, defender y transicionar con inteligencia.
+        </p>
+
+      </div>
+
+    </section>
+
+    <section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Interesting Facts
+        </p>
+
+        <h2 class="section-title">
+          Did You Know?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Transitions Decide Exchanges</strong>
+            <span>
+              Many decisive moments happen while athletes move between
+              striking, clinch, takedown, and ground positions.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Range Changes Everything</strong>
+            <span>
+              Long range, boxing range, clinch range, and ground positions each
+              require different tools and decisions.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>Mastery Requires Responsibility</strong>
+            <span>
+              Complete skill means little without control, discipline, partner
+              safety, and respect for the rules.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Datos Interesantes
+        </p>
+
+        <h2 class="section-title">
+          ¿Sabías Que?
+        </h2>
+
+        <div class="facts">
+
+          <div class="fact">
+            <strong>Las Transiciones Deciden Intercambios</strong>
+            <span>
+              Muchos momentos decisivos ocurren mientras los atletas pasan del
+              golpeo al clinch, derribo o suelo.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>La Distancia Lo Cambia Todo</strong>
+            <span>
+              La larga distancia, el rango de boxeo, el clinch y el suelo
+              requieren herramientas y decisiones diferentes.
+            </span>
+          </div>
+
+          <div class="fact">
+            <strong>La Maestría Exige Responsabilidad</strong>
+            <span>
+              La habilidad completa significa poco sin control, disciplina,
+              seguridad de los compañeros y respeto por las reglas.
+            </span>
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="content-grid">
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Technical Skills</h2>
+          <ul>
+            <li>Boxing and Muay Thai integration</li>
+            <li>Wrestling adapted for MMA</li>
+            <li>Takedowns, takedown defense, and scrambling</li>
+            <li>Clinch control and cage positioning</li>
+            <li>Submission grappling and defensive recovery</li>
+            <li>Ground control and controlled ground striking</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Habilidades Técnicas</h2>
+          <ul>
+            <li>Integración de boxeo y Muay Thai</li>
+            <li>Lucha adaptada para MMA</li>
+            <li>Derribos, defensa de derribos y scrambles</li>
+            <li>Control del clinch y posición en la jaula</li>
+            <li>Grappling de sumisión y recuperación defensiva</li>
+            <li>Control y golpeo controlado en el suelo</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Physical Development</h2>
+          <ul>
+            <li>Strength, speed, and power</li>
+            <li>Coordination across multiple ranges</li>
+            <li>Mobility and body control</li>
+            <li>Conditioning and work capacity</li>
+            <li>Durability and recovery habits</li>
+            <li>Composure under fatigue</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Físico</h2>
+          <ul>
+            <li>Fuerza, velocidad y potencia</li>
+            <li>Coordinación en múltiples distancias</li>
+            <li>Movilidad y control corporal</li>
+            <li>Acondicionamiento y capacidad de trabajo</li>
+            <li>Durabilidad y hábitos de recuperación</li>
+            <li>Compostura bajo fatiga</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Character Development</h2>
+          <ul>
+            <li>Discipline</li>
+            <li>Composure</li>
+            <li>Accountability</li>
+            <li>Adaptability</li>
+            <li>Humility</li>
+            <li>Leadership</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Desarrollo Del Carácter</h2>
+          <ul>
+            <li>Disciplina</li>
+            <li>Compostura</li>
+            <li>Responsabilidad</li>
+            <li>Adaptabilidad</li>
+            <li>Humildad</li>
+            <li>Liderazgo</li>
+          </ul>
+        </div>
+
+      </article>
+
+      <article class="card">
+
+        <div data-lang-block="en">
+          <h2>Training Focus</h2>
+          <ul>
+            <li>Technical integration across disciplines</li>
+            <li>Range and transition drills</li>
+            <li>Clinch and cage-position work</li>
+            <li>Situational sparring</li>
+            <li>Controlled live application</li>
+            <li>Competition preparation and tactical review</li>
+          </ul>
+        </div>
+
+        <div data-lang-block="es" class="hidden-lang">
+          <h2>Enfoque Del Entrenamiento</h2>
+          <ul>
+            <li>Integración técnica entre disciplinas</li>
+            <li>Ejercicios de distancia y transición</li>
+            <li>Trabajo de clinch y posición en la jaula</li>
+            <li>Sparring situacional</li>
+            <li>Aplicación controlada en vivo</li>
+            <li>Preparación competitiva y revisión táctica</li>
+          </ul>
+        </div>
+
+      </article>
+
+    </section>
+
+<section class="visual-section">
+
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <h2>Quest2Mastery Progression</h2>
+          <p>
+            Athletes advance from Apprentice to Master through consistent
+            training, technical depth, disciplined integration, testing, live
+            application, competition experience, leadership, and demonstrated
+            growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Progresión Quest2Mastery</h2>
+          <p>
+            Los atletas avanzan de Apprentice a Master mediante entrenamiento
+            constante, profundidad técnica, integración disciplinada, pruebas,
+            aplicación en vivo, experiencia competitiva, liderazgo y
+            crecimiento demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+<section class="progression-top">
+  <figure>
+    <img
+      src="/assets/images/programs/shirt-progression/quest2mastery-mma-shirt-progression.png"
+      alt="Quest2Mastery MMA progression from Apprentice to Master"
+    />
+  </figure>
+</section>
+
+<section class="section panel">
+
+      <div data-lang-block="en">
+
+        <p class="eyebrow">
+          Athlete Fit
+        </p>
+
+        <h2 class="section-title">
+          Who Is MMA For?
+        </h2>
+
+        <p>
+          Quest2Mastery MMA is designed for athletes ages 16 and older who want
+          complete combat development, deeper tactical understanding,
+          structured competition preparation, stronger conditioning, and a
+          long-term path toward responsible mastery.
+        </p>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+
+        <p class="eyebrow">
+          Perfil Del Atleta
+        </p>
+
+        <h2 class="section-title">
+          ¿Para Quién Es MMA?
+        </h2>
+
+        <p>
+          MMA Quest2Mastery está diseñado para atletas de 16 años en adelante
+          que buscan desarrollo completo de combate, comprensión táctica más
+          profunda, preparación estructurada para competir, mejor
+          acondicionamiento y un camino a largo plazo hacia la maestría
+          responsable.
+        </p>
+
+      </div>
+
+<section class="marketing-connect-cta">
+
+  <div data-lang-block="en">
+    <h2>Ready to Begin Your MMA Journey?</h2>
+
+    <p>
+      Develop a complete combat skill set through disciplined training in
+      striking, wrestling, grappling, transitions, and tactical decision-making.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/elk-grove/connect.html">
+      Connect With Our Academy
+    </a>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <h2>¿Listo para Comenzar tu Camino en MMA?</h2>
+
+    <p>
+      Desarrolla un sistema completo de combate mediante entrenamiento
+      disciplinado en golpeo, lucha, grappling, transiciones y toma de
+      decisiones tácticas.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/elk-grove/connect.html">
+      Conéctate con Nuestra Academia
+    </a>
+  </div>
+
+</section>
+    <div class="quote">
+
+      <span data-lang-block="en">
+        <strong>Mastery is the ability to adapt.</strong>
+        Read the range. Control the transition. Earn every phase.
+      </span>
+
+      <span
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <strong>La maestría es la capacidad de adaptarse.</strong>
+        Lee la distancia. Controla la transición. Gana cada fase.
+      </span>
+
+    </div>
+
+  </main>
+
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
+<script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
 </body>
 </html>
