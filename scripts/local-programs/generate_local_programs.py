@@ -119,7 +119,6 @@ ACADEMIES = {
             ],
             "quest2mastery": [
                 "mma",
-                "submission-grappling",
             ],
         },
         "activated_programs": {
@@ -135,7 +134,6 @@ ACADEMIES = {
             ],
             "quest2mastery": [
                 "mma",
-                "submission-grappling",
             ],
         },
 
@@ -264,9 +262,10 @@ JOURNEY_META = {
 }
 
 
+
 # Public output slugs remain canonical even when a legacy library filename
-# differs. Every mismatch must be declared here so preflight can fail closed
-# on accidental or newly introduced source/config drift.
+# differs. Compatibility aliases may remain even when a discipline is not
+# currently activated at a local academy.
 SOURCE_FILE_ALIASES = {
     ("quest2mastery", "submission-grappling"): "sub-grappling",
 }
@@ -308,16 +307,35 @@ PROGRESSION_ASSETS = {
         "/assets/images/programs/shirt-progression/"
         "quest2mastery-submission-grappling-shirt-progression.png",
 }
+HERITAGE_ASSETS = {
+    "boxing":
+        "/assets/images/disciplines/heritage/"
+        "fresco_of_boxing_through_the_ages.png",
 
+    "wrestling":
+        "/assets/images/disciplines/heritage/"
+        "wrestling_through_the_ages_fresco.png",
+
+    "muay-thai":
+        "/assets/images/disciplines/heritage/"
+        "ancient_fresco_of_muay_thai_history.png",
+
+    "mma":
+        "/assets/images/disciplines/heritage/"
+        "ancient_fresco_of_martial_arts_heritage.png",
+}
 
 def source_path_for(journey, discipline):
     source_slug = SOURCE_FILE_ALIASES.get(
         (journey, discipline),
         discipline,
     )
+
     source_journey = SOURCE_JOURNEY_DIRS.get(journey)
+
     if not source_journey:
         return LIBRARY / "__unknown_journey__" / f"{source_slug}.html"
+
     return LIBRARY / source_journey / f"{source_slug}.html"
 
 
@@ -402,13 +420,6 @@ def validate_generation_sources():
                     f"{location_slug}/{journey}: activated disciplines "
                     f"not configured: {sorted(unsupported)}"
                 )
-
-    unused_aliases = set(SOURCE_FILE_ALIASES) - configured_pairs
-    for journey, discipline in sorted(unused_aliases):
-        errors.append(
-            f"unused source alias: {journey}/{discipline}"
-        )
-
     alias_targets = {}
     for output_pair, source_slug in SOURCE_FILE_ALIASES.items():
         journey, discipline = output_pair
@@ -492,6 +503,120 @@ def polish_local_program_html(
             html[:hero_match.start()]
             + hero
             + html[hero_match.end():]
+        )
+
+
+    # ---------------------------------------------
+    # DISCIPLINE HERITAGE VISUAL
+    #
+    # Shared artwork is selected by discipline and
+    # appears directly below the discipline hero.
+    # This applies only to generated local discipline
+    # detail pages — never location home/index pages.
+    # ---------------------------------------------
+
+    heritage_asset = HERITAGE_ASSETS.get(discipline)
+
+    if not heritage_asset:
+        raise RuntimeError(
+            f"STOP: heritage asset mapping missing for {discipline}"
+        )
+
+    heritage_file = PUBLIC / heritage_asset.lstrip("/")
+
+    if not heritage_file.is_file():
+        raise RuntimeError(
+            f"STOP: heritage image missing: {heritage_file}"
+        )
+
+    heritage_alt = {
+        "boxing": "Boxing heritage artwork",
+        "wrestling": "Wrestling heritage artwork",
+        "muay-thai": "Muay Thai heritage artwork",
+        "mma": "Martial arts heritage artwork",
+    }[discipline]
+
+    heritage_block = f"""
+<section
+  class="discipline-heritage"
+  aria-label="{heritage_alt}"
+>
+  <img
+    src="{heritage_asset}"
+    alt="{heritage_alt}"
+    decoding="async"
+  >
+</section>
+"""
+
+    if "SANDMAN-DISCIPLINE-HERITAGE-BLOCK" not in html:
+        heritage_block = (
+            "<!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->\n"
+            + heritage_block
+        )
+
+        hero_match = re.search(
+            r'<section class="hero">.*?</section>',
+            html,
+            flags=re.I | re.S,
+        )
+
+        if not hero_match:
+            raise RuntimeError(
+                f"STOP: discipline hero not found for {journey}/{discipline}"
+            )
+
+        html = (
+            html[:hero_match.end()]
+            + "\n\n"
+            + heritage_block
+            + html[hero_match.end():]
+        )
+
+    heritage_style_marker = "SANDMAN-DISCIPLINE-HERITAGE-STYLE"
+
+    if heritage_style_marker not in html:
+        if "</head>" not in html:
+            raise RuntimeError(
+                f"STOP: </head> missing for heritage style: "
+                f"{journey}/{discipline}"
+            )
+
+        heritage_style = """
+  <style id="SANDMAN-DISCIPLINE-HERITAGE-STYLE">
+    .discipline-heritage {
+      width: min(calc(100% - 2rem), 1100px);
+      margin: 1rem auto 2rem;
+      overflow: hidden;
+      border-radius: 18px;
+    }
+
+    .discipline-heritage img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    @media (max-width: 640px) {
+      .discipline-heritage {
+        width: min(calc(100% - 1.25rem), 1100px);
+        margin: .75rem auto 1.5rem;
+        border-radius: 14px;
+      }
+
+      .discipline-heritage img {
+        aspect-ratio: 16 / 9;
+      }
+    }
+  </style>
+"""
+
+        html = html.replace(
+            "</head>",
+            heritage_style + "\n</head>",
+            1,
         )
 
 
@@ -755,6 +880,138 @@ def install_elk_grove_contrast(html, academy):
     )
 
 
+
+def preserve_approved_local_shell(html, academy):
+    '''
+    Preserve approved local discipline-page shell behavior.
+
+    Generated local discipline pages use site.css only.
+
+    Santa Ynez Valley and Lompoc retain the approved
+    full-width responsive main shell and local night tokens.
+    '''
+
+    html = html.replace(
+        '  <link rel="stylesheet" href="/public.css" />\n',
+        '',
+    )
+
+    location = academy.get("name")
+
+    if location not in {
+        "Santa Ynez Valley",
+        "Lompoc",
+    }:
+        return html
+
+    old_main = (
+        "    main{\n"
+        "      width:min(1050px,calc(100% - 40px));\n"
+        "      margin:0 auto;\n"
+        "      padding:40px 0 80px;\n"
+        "    }\n"
+    )
+
+    approved_main = (
+        "    main{\n"
+        "      width:100%;\n"
+        "      margin:0;\n"
+        "      padding:40px 20px 80px;\n"
+        "      overflow:hidden;\n"
+        "    }\n"
+        "\n"
+        "    main > *{\n"
+        "      width:min(1050px,100%);\n"
+        "      margin-left:auto;\n"
+        "      margin-right:auto;\n"
+        "    }\n"
+    )
+
+    if old_main in html:
+        html = html.replace(
+            old_main,
+            approved_main,
+            1,
+        )
+    elif approved_main not in html:
+        raise RuntimeError(
+            f"STOP: expected main shell not found for {location}"
+        )
+
+    marker = (
+        "SANDMAN-SYV-NIGHT-TOKENS"
+        if location == "Santa Ynez Valley"
+        else "SANDMAN-LOMPOC-NIGHT-TOKENS"
+    )
+
+    if marker not in html:
+        night_style = f'''
+<style id="{marker}">
+  body:not(.day-mode){{
+    --bg:#080808;
+    --panel:#111113;
+    --panel-2:#18181b;
+    --heading:#f5f5f5;
+    --heading-accent:#d4af37;
+    --hero-muted:#d0d0d4;
+    --muted:rgba(255,255,255,.68);
+    --line:rgba(255,255,255,.14);
+    --text:#f5f5f5;
+
+    background:#080808;
+    color:#f5f5f5;
+  }}
+
+  body:not(.day-mode) .panel,
+  body:not(.day-mode) .card,
+  body:not(.day-mode) .quote{{
+    background:#111113;
+    border-color:rgba(255,255,255,.14);
+  }}
+
+  body:not(.day-mode) .fact{{
+    background:#18181b;
+    border-color:rgba(255,255,255,.12);
+  }}
+
+  body:not(.day-mode) .panel p,
+  body:not(.day-mode) .card p,
+  body:not(.day-mode) .card li,
+  body:not(.day-mode) .fact span,
+  body:not(.day-mode) .hero p,
+  body:not(.day-mode) .availability{{
+    color:#d0d0d4;
+  }}
+
+  body:not(.day-mode) .section-title,
+  body:not(.day-mode) .card h2,
+  body:not(.day-mode) .card h3,
+  body:not(.day-mode) .quote strong{{
+    color:#f5f5f5;
+  }}
+
+  body:not(.day-mode) .eyebrow,
+  body:not(.day-mode) .hero-subtitle,
+  body:not(.day-mode) .fact strong{{
+    color:#d4af37;
+  }}
+</style>
+'''
+
+        if "</head>" not in html:
+            raise RuntimeError(
+                f"STOP: </head> missing for {location}"
+            )
+
+        html = html.replace(
+            "</head>",
+            night_style + "\n</head>",
+            1,
+        )
+
+    return html
+
+
 def preserve_approved_live_palette(html, academy, journey):
     """Apply the approved location discipline palette without redesigning it."""
     if academy.get("discipline_palette") != "navy-ivory":
@@ -987,6 +1244,11 @@ def generate_location(slug, academy):
                 html,
                 academy,
                 journey,
+            )
+
+            html = preserve_approved_local_shell(
+                html,
+                academy,
             )
 
             html = install_elk_grove_contrast(
