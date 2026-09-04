@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.addDisciplineToAthlete = addDisciplineToAthlete;
 const firestore_1 = require("firebase-admin/firestore");
 const https_1 = require("firebase-functions/v2/https");
+const f8ProgressionPolicy_1 = require("../policy/f8ProgressionPolicy");
 function clean(value) {
     return String(value || "")
         .trim()
@@ -140,7 +141,7 @@ async function addDisciplineToAthlete(db, coachUid, input) {
             ? {
                 tier: "T0",
                 rankName: "Shadow",
-                xpCap: 600,
+                xpCap: (0, f8ProgressionPolicy_1.resolveF8RankXpCap)("T0"),
             }
             : {
                 tier: "T0",

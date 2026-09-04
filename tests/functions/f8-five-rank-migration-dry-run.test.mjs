@@ -13,11 +13,11 @@ const newBoundaries = [
   [800, "T1", 0],
   [2399, "T1", 1599],
   [2400, "T2", 0],
-  [4599, "T2", 2199],
-  [4600, "T3", 0],
-  [7399, "T3", 2799],
-  [7400, "T4", 0],
-  [10800, "T4", 3400],
+  [4799, "T2", 2399],
+  [4800, "T3", 0],
+  [7599, "T3", 2799],
+  [7600, "T4", 0],
+  [10800, "T4", 3200],
 ];
 
 function inputForCumulative(target) {
@@ -40,7 +40,7 @@ test("new migration target ends at Champion while legacy T7 Hero remains histori
   assert.equal(LEGACY_F8_RANKS.at(-1).name, "Hero");
   assert.equal(result.proposal.proposedTier, "T4");
   assert.equal(result.proposal.proposedRank, "Champion");
-  assert.equal(result.proposal.proposedActiveXp, 3400);
+  assert.equal(result.proposal.proposedActiveXp, 3200);
 });
 
 for (let index = 0, consumed = 0; index < LEGACY_F8_RANKS.length; index += 1) {
@@ -95,11 +95,11 @@ test("rank and tier mismatch is detected", () => {
   assert.ok(result.warnings.some(({ code }) => code === "RANK_TIER_MISMATCH"));
 });
 
-test("proposed stripes use Phase 1 25/50/75/98 thresholds", () => {
-  const atStripeFour = calculateF8MigrationProposal(inputForCumulative(800 + 1568));
-  assert.deepEqual(atStripeFour.proposal.proposedStripeThresholds, [400, 800, 1200, 1568]);
+test("proposed stripes use 25/50/75/100 thresholds", () => {
+  const atStripeFour = calculateF8MigrationProposal(inputForCumulative(10800));
+  assert.deepEqual(atStripeFour.proposal.proposedStripeThresholds, [800, 1600, 2400, 3200]);
   assert.equal(atStripeFour.proposal.proposedStripeCount, 4);
-  const below = calculateF8MigrationProposal(inputForCumulative(800 + 1567));
+  const below = calculateF8MigrationProposal(inputForCumulative(10799));
   assert.equal(below.proposal.proposedStripeCount, 3);
 });
 

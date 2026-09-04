@@ -9,7 +9,9 @@ import {
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import {
   LADDER_F4,
-  LADDER_F8
+  LADDER_F8,
+  canonicalF8RankName,
+  canonicalF8XpCap
 } from "/assets/js/ladder.service.js";
 
 /* =========================================================
@@ -451,18 +453,7 @@ function resolveRank(a = {}) {
   ).toUpperCase();
 
   if (base === "F8") {
-    const map = {
-      T0: "Shadow",
-      T1: "Recruit",
-      T2: "Contender",
-      T3: "Competitor",
-      T4: "Warrior",
-      T5: "Champion",
-      T6: "Commander",
-      T7: "Hero"
-    };
-
-    return map[tier] || "Shadow";
+    return canonicalF8RankName(a);
   }
 
   if (base === "ADULT") {
@@ -490,6 +481,7 @@ function resolveRank(a = {}) {
 
 function xpCapForAthlete(a = {}) {
   const base = trackBaseOf(a.id, a);
+  if (base === "F8") return canonicalF8XpCap(a);
   const rankName = resolveRank(a);
 
   const ladder =
@@ -506,7 +498,7 @@ function xpCapForAthlete(a = {}) {
     a.xpCap ??
     a.cap ??
     a.tierCap ??
-    (base === "F8" ? 600 : 1000)
+    (base === "F8" ? 800 : 1000)
   );
 }
 

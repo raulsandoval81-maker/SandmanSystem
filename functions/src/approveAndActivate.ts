@@ -2,6 +2,7 @@ import * as admin from "firebase-admin";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { resolveVerifiedExperienceYears } from "./experienceAuthority";
+import { resolveF8RankXpCap } from "./policy/f8ProgressionPolicy";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = getFirestore();
@@ -844,7 +845,7 @@ const safePriorExperienceValidation =
                       safeProgramTrack,
                       requestedDiscipline
                     ),
-                  xpCap: 600
+                  xpCap: resolveF8RankXpCap("T0")
                 }
               : {
                   tier: "T0",
@@ -1303,7 +1304,7 @@ const starter =
         tier: "T0",
         rankName: "Shadow",
         rankColor: "white",
-        xpCap: 600
+        xpCap: resolveF8RankXpCap("T0")
       };
       const startingXp = expPlan.issuedNow + adjustmentAmount;
       const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);

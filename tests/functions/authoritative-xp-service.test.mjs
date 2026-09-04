@@ -91,7 +91,7 @@ test("authoritative service contains no migration, curriculum routing, or promot
 
 test("F8 caps come only from the Phase 1 five-rank policy", () => {
   assert.equal(activeXpCap(f8({ tier: "T0", xpCap: 600 }), "F8"), 800);
-  assert.equal(activeXpCap(f8({ tier: "T4", xpCap: 1400 }), "F8"), 3400);
+  assert.equal(activeXpCap(f8({ tier: "T4", xpCap: 1400 }), "F8"), 3200);
   assert.throws(() => activeXpCap(f8({ tier: "T7" }), "F8"), /INVALID_PROGRESSION_TIER/);
 });
 
@@ -138,9 +138,9 @@ test("F4 stripes persist at the existing 25/50/75/100 boundaries", () => {
   assert.equal(plan(f4({ xp: 740 }), req("ATTENDANCE", 10)).stripeCount, 3);
 });
 
-test("F8 stripes use Phase 1 25/50/75/98 boundaries", () => {
-  assert.deepEqual([199, 200, 400, 600, 783, 784, 800].map((xp) =>
-    persistedStripeCount("F8", "T0", xp, 800)), [0, 1, 2, 3, 3, 4, 4]);
+test("F8 stripes use 25/50/75/100 boundaries", () => {
+  assert.deepEqual([199, 200, 400, 600, 799, 800].map((xp) =>
+    persistedStripeCount("F8", "T0", xp, 800)), [0, 1, 2, 3, 3, 4]);
 });
 
 test("F8 practice is +5/+10 only and uses active XP", () => {

@@ -13,7 +13,7 @@ import {
 import { coachLoginUrl } from "/assets/js/coach-guard.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
-import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
+import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -173,6 +173,7 @@ function displayRankName(id = "", data = {}) {
 }
 
 function xpCapForAthlete(data = {}, track = "F4") {
+  if (track === "F8") return canonicalF8XpCap(data);
   const ladder = track === "F8" ? LADDER_F8 : LADDER_F4;
   const rankName = canonicalRankName(data, track);
   const tier = ladder[tierNumber(data, track)] ||

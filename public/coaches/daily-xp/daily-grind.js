@@ -15,7 +15,7 @@ import {
 } from "/assets/js/firebase-init.js";
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
-import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
+import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 
 console.log("XP_URL =", XP_URL);
 
@@ -193,6 +193,7 @@ function baseFromAthlete(a) {
 
 function xpCapForAthlete(a = {}) {
   const base = baseFromAthlete(a);
+  if (base === "F8") return canonicalF8XpCap(a);
   const rankName = a.rankName || a.tierName;
   const ladder = base === "F8" ? LADDER_F8 : LADDER_F4;
   const tier = ladder.find((t) => t.name === rankName);
@@ -202,7 +203,7 @@ function xpCapForAthlete(a = {}) {
     a.xpCap ??
     a.cap ??
     a.tierCap ??
-    (base === "F8" ? 600 : 1000)
+    (base === "F8" ? 800 : 1000)
   );
 }
 

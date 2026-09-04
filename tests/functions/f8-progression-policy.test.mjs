@@ -1,7 +1,5 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-
 import {
   F8_POLICY_VERSION,
   F8_PROGRESSION_POLICY,
@@ -25,7 +23,7 @@ const expectedRanks = [
     tier: "T0",
     name: "Shadow",
     xpCap: 800,
-    stripes: [200, 400, 600, 784],
+    stripes: [200, 400, 600, 800],
     supplementalCap: 40,
     competitionCap: 0,
   },
@@ -34,7 +32,7 @@ const expectedRanks = [
     tier: "T1",
     name: "Prospect",
     xpCap: 1600,
-    stripes: [400, 800, 1200, 1568],
+    stripes: [400, 800, 1200, 1600],
     supplementalCap: 40,
     competitionCap: 50,
   },
@@ -42,8 +40,8 @@ const expectedRanks = [
     id: "competitor",
     tier: "T2",
     name: "Competitor",
-    xpCap: 2200,
-    stripes: [550, 1100, 1650, 2156],
+    xpCap: 2400,
+    stripes: [600, 1200, 1800, 2400],
     supplementalCap: 60,
     competitionCap: 80,
   },
@@ -52,7 +50,7 @@ const expectedRanks = [
     tier: "T3",
     name: "Contender",
     xpCap: 2800,
-    stripes: [700, 1400, 2100, 2744],
+    stripes: [700, 1400, 2100, 2800],
     supplementalCap: 90,
     competitionCap: 80,
   },
@@ -60,8 +58,8 @@ const expectedRanks = [
     id: "champion",
     tier: "T4",
     name: "Champion",
-    xpCap: 3400,
-    stripes: [850, 1700, 2550, 3332],
+    xpCap: 3200,
+    stripes: [800, 1600, 2400, 3200],
     supplementalCap: 120,
     competitionCap: 80,
   },
@@ -91,12 +89,6 @@ test("policy defines exactly five ranks in the approved order and caps", () => {
   );
 });
 
-test("shared browser ladder matches the canonical Road2Champion order and boundaries", () => {
-  const browserLadder = readFileSync("public/assets/js/ladder.service.js", "utf8");
-  assert.match(browserLadder, /LADDER_YOUTH = \[[\s\S]*R0[^\n]*Shadow[^\n]*800[\s\S]*R1[^\n]*Prospect[^\n]*1600[\s\S]*R2[^\n]*Competitor[^\n]*2200[\s\S]*R3[^\n]*Contender[^\n]*2800[\s\S]*R4[^\n]*Champion[^\n]*3400/);
-  assert.match(browserLadder, /R4[^\n]*stripeThresholds:\[850,1700,2550,3332\]/);
-});
-
 test("rank metadata and caps resolve by id, tier, or display name", () => {
   for (const expected of expectedRanks) {
     assert.equal(resolveF8RankMetadata(expected.id).name, expected.name);
@@ -108,9 +100,9 @@ test("rank metadata and caps resolve by id, tier, or display name", () => {
   assert.throws(() => resolveF8RankMetadata("T7"), /Unknown Foundry 8 rank/);
 });
 
-test("every rank has four stripes at 25, 50, 75, and 98 percent", () => {
+test("every rank has four stripes at 25, 50, 75, and 100 percent", () => {
   assert.equal(F8_STRIPES_PER_RANK, 4);
-  assert.deepEqual([...F8_STRIPE_PERCENTAGES], [25, 50, 75, 98]);
+  assert.deepEqual([...F8_STRIPE_PERCENTAGES], [25, 50, 75, 100]);
 
   for (const expected of expectedRanks) {
     assert.deepEqual(
@@ -134,14 +126,13 @@ for (const expected of expectedRanks) {
     });
   });
 
-  test(`${expected.name} Stripe IV is distinct from XP eligibility`, () => {
-    const stripeFourXp = expected.stripes[3];
-
-    assert.equal(calculateF8StripeCount(expected.id, stripeFourXp), 4);
+  test(`${expected.name} Stripe IV coincides with XP eligibility`, () => {
+    assert.equal(calculateF8StripeCount(expected.id, expected.xpCap - 1), 3);
     assert.equal(
-      hasReachedF8RankXpRequirement(expected.id, stripeFourXp),
+      hasReachedF8RankXpRequirement(expected.id, expected.xpCap - 1),
       false
     );
+    assert.equal(calculateF8StripeCount(expected.id, expected.xpCap), 4);
     assert.equal(
       hasReachedF8RankXpRequirement(expected.id, expected.xpCap),
       true

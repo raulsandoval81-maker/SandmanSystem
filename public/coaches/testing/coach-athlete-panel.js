@@ -225,24 +225,8 @@ function renderAthlete(data) {
   $("athlete-name").textContent = data.publicName || data.fullName || uid;
   $("athlete-tier").textContent = data.tier || "—";
   $("athlete-xp").textContent = `${data.xp ?? 0}`;
-const tierName = data.rankName || data.tierName || data.tier;
-
-const stripesTotal = (tierName === "Shadow") ? 3 : 4;
-const safeCap = Math.max(1, Number(data.xpCap) || 1);
-const safeXp = Math.max(0, Number(data.xp) || 0);
-
-const xpPercent =
-  Math.min(100, Math.floor((safeXp / safeCap) * 100));
-
-let stripesEarned = 0;
-
-if (xpPercent >= 25) stripesEarned = 1;
-if (xpPercent >= 50) stripesEarned = 2;
-if (xpPercent >= 75) stripesEarned = 3;
-if (xpPercent >= 100) stripesEarned = 4;
-
-stripesEarned =
-  Math.max(0, Math.min(stripesTotal, stripesEarned));
+const stripeInfo = getAthleteStripeInfo(data);
+const stripesEarned = stripeInfo.stripesEarned;
 
 $("athlete-stripes").textContent = `${stripesEarned}`;
   $("promotion-locked").textContent = formatBool(data.promotionLocked === true);

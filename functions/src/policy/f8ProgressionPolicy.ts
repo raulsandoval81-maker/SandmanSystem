@@ -4,7 +4,7 @@ export const F8_STRIPE_PERCENTAGES = Object.freeze([
   25,
   50,
   75,
-  98,
+  100,
 ] as const);
 
 export const F8_STRIPES_PER_RANK = 4 as const;
@@ -30,7 +30,7 @@ export const F8_RANKS = Object.freeze([
     id: "competitor",
     tier: "T2",
     name: "Competitor",
-    xpCap: 2200,
+    xpCap: 2400,
     combinedStrengthHonorMonthlyCap: 60,
     competitionMonthlyCap: 80,
   }),
@@ -46,7 +46,7 @@ export const F8_RANKS = Object.freeze([
     id: "champion",
     tier: "T4",
     name: "Champion",
-    xpCap: 3400,
+    xpCap: 3200,
     combinedStrengthHonorMonthlyCap: 120,
     competitionMonthlyCap: 80,
   }),

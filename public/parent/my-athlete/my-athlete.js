@@ -549,10 +549,10 @@ function renderAthlete(a = {}) {
 const xpCap = Math.max(
   1,
   Number(
+    tier?.cap ??
     combat.xpCap ??
     combat.cap ??
     combat.tierCap ??
-    tier?.cap ??
     1
   )
 );

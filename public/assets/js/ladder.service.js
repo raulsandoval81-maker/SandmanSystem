@@ -2,6 +2,11 @@
 // Shared ladder metadata, stripe progress, and color mapping.
 // RESET-BASED system: athlete XP is current-tier XP and resets after promotion.
 
+import {
+  ROAD2CHAMPION_RANKS,
+  resolveRoad2ChampionAthleteRank,
+} from "./road2champion-progression.js";
+
 // ============================
 // LADDERS
 // ============================
@@ -9,15 +14,24 @@
 // ---------- Foundry 8 / Youth (R0–R4) ----------
 // Five-rank Journey progression.
 // Curriculum remains independently versioned/routed through curriculumTier.
-export const LADDER_YOUTH = [
-  { key:"R0", name:"Shadow",     cap:  800, stripes:4, stripeThresholds:[200,400,600,784] },
-  { key:"R1", name:"Prospect",   cap: 1600, stripes:4, stripeThresholds:[400,800,1200,1568] },
-  { key:"R2", name:"Competitor", cap: 2200, stripes:4, stripeThresholds:[550,1100,1650,2156] },
-  { key:"R3", name:"Contender",  cap: 2800, stripes:4, stripeThresholds:[700,1400,2100,2744] },
-  { key:"R4", name:"Champion",   cap: 3400, stripes:4, stripeThresholds:[850,1700,2550,3332] }
-];
+export const LADDER_YOUTH = ROAD2CHAMPION_RANKS.map((rank) => Object.freeze({
+  key: rank.key,
+  name: rank.name,
+  cap: rank.xpCap,
+  stripes: rank.stripes,
+  stripeThresholds: rank.stripeThresholds,
+  color: rank.color,
+}));
 // Alias so pages can import either name
 export const LADDER_F8 = LADDER_YOUTH;
+
+export function canonicalF8XpCap(athlete = {}) {
+  return resolveRoad2ChampionAthleteRank(athlete).xpCap;
+}
+
+export function canonicalF8RankName(athlete = {}) {
+  return resolveRoad2ChampionAthleteRank(athlete).name;
+}
 
 // ---------- Foundry 4 / Teen (R0–R4) ----------
 export const LADDER_F4 = [
@@ -148,10 +162,9 @@ export function getAthleteStripeInfo(a = {}) {
 
   const fallbackCap = Number(currentTier?.cap || 1000);
 
-  const xpCap = Math.max(
-    1,
-    Number(a.xpCap || fallbackCap)
-  );
+  const xpCap = Math.max(1, Number(
+    ladder === LADDER_F8 ? currentTier?.cap : (a.xpCap || fallbackCap)
+  ));
 
   const stripesTotal = Math.max(
     1,

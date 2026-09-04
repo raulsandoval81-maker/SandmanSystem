@@ -2,10 +2,21 @@
 // Single Source of Truth — V1
 // RESET-BASED system: xp is current-tier XP, not lifetime cumulative XP.
 
+import {
+  ROAD2CHAMPION_RANKS,
+  ROAD2CHAMPION_STRIPES_PER_RANK,
+} from "./road2champion-progression.js";
+
+const ROAD2CHAMPION_TIER_CAPS = Object.freeze(Object.fromEntries(
+  ROAD2CHAMPION_RANKS.map((rank) => [rank.tier, rank.xpCap])
+));
+const ROAD2CHAMPION_RANK_NAMES = Object.freeze(Object.fromEntries(
+  ROAD2CHAMPION_RANKS.map((rank) => [rank.tier, rank.name])
+));
+
 export const STRIPES_PER_TIER = {
 F8: {
-T0: 3, // Shadow
-default: 4
+default: ROAD2CHAMPION_STRIPES_PER_RANK
 },
 F4: {
 default: 4
@@ -76,20 +87,10 @@ ranks: {
 },
 
 // =========================
-// Foundry 8 (Youth) — Hero Ladder
-// Updated after real-room testing.
+// Foundry 8 (Youth) — Road2Champion progression mirror.
 // =========================
 foundry8: {
-tierCaps: {
-T0: 600,
-T1: 800,
-T2: 1000,
-T3: 1200,
-T4: 1400,
-T5: 1600,
-T6: 1800,
-T7: 2400
-},
+tierCaps: ROAD2CHAMPION_TIER_CAPS,
 
 
 monthly: {
@@ -101,10 +102,7 @@ monthly: {
     T1: 40,
     T2: 40,
     T3: 60,
-    T4: 60,
-    T5: 60,
-    T6: 60,
-    T7: 80
+    T4: 60
   }
 },
 
@@ -127,16 +125,7 @@ unlockGates: {
 arena: { battle: 10, podium: 5, styleIQ: 5, styleIQMaxPerEvent: 1 },
 prestigeYearly: { state: 3, regional: 1, national: 1 },
 
-ranks: {
-  T0: "Shadow",
-  T1: "Recruit",
-  T2: "Contender",
-  T3: "Competitor",
-  T4: "Warrior",
-  T5: "Champion",
-  T6: "Commander",
-  T7: "Hero"
-}
+ranks: ROAD2CHAMPION_RANK_NAMES
 
 
 },

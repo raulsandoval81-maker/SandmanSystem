@@ -6,6 +6,7 @@ import {
 import {
   HttpsError,
 } from "firebase-functions/v2/https";
+import { resolveF8RankXpCap } from "../policy/f8ProgressionPolicy";
 
 export type AddDisciplineInput = {
   existingAthleteUid: string;
@@ -304,7 +305,7 @@ export async function addDisciplineToAthlete(
           ? {
               tier: "T0",
               rankName: "Shadow",
-              xpCap: 600,
+              xpCap: resolveF8RankXpCap("T0"),
             }
           : {
               tier: "T0",

@@ -14,11 +14,11 @@ import {
   buildAwardPlan,
   normalizeXpRequest,
 } from "../../functions/lib/services/authoritativeXpService.js";
+import { RANK_META } from "../../functions/lib/modules/promotion/rankMeta.js";
 
 const serviceSource = readFileSync("functions/src/services/authoritativeXpService.ts", "utf8");
 const passSource = readFileSync("functions/src/modules/passAthleteTest.ts", "utf8");
 const promoteSource = readFileSync("functions/src/modules/promotion/promoteTierAction.ts", "utf8");
-const rankMetaSource = readFileSync("functions/src/modules/promotion/rankMeta.ts", "utf8");
 const indexSource = readFileSync("functions/src/index.ts", "utf8");
 
 test("reaching the XP cap does not auto-promote", () => {
@@ -88,8 +88,8 @@ test("final F8 Champion and F4 Legend cannot promote", () => {
 });
 
 test("active F8 promotion metadata uses Road2Champion colors without changing F4", () => {
-  assert.match(rankMetaSource, /const ROAD2CHAMPION:[\s\S]*T4:\s*\{[\s\S]*rankName: "Champion",[\s\S]*rankColor: "black"/);
-  assert.match(rankMetaSource, /const PATH2LEGEND_GRAPPLING:[\s\S]*T2:\s*\{[\s\S]*rankName: "Champion",[\s\S]*rankColor: "purple"/);
+  assert.deepEqual(RANK_META.youth.F8.T4, { rankName: "Champion", rankColor: "black" });
+  assert.deepEqual(RANK_META.wrestling.F4.T2, { rankName: "Champion", rankColor: "purple" });
 });
 
 test("legacy athletes get a deterministic non-destructive cycle fallback", () => {

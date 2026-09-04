@@ -374,11 +374,7 @@ async function load(){
     LADDER_F8[tierNum] ||
     LADDER_F8[0];
 
-  const rankName =
-    combat.rankName ||
-    combat.tierName ||
-    tierInfo?.name ||
-    "Shadow";
+  const rankName = tierInfo?.name || "Shadow";
 
   const rankColor =
     combat.rankColor ||
@@ -386,13 +382,10 @@ async function load(){
     "";
 
   const F8_WARRIOR_BADGES = {
-    Recruit: "badge-recruit-silver.png",
-    Contender: "badge-contender-silver.png",
+    Prospect: "badge-recruit-silver.png",
     Competitor: "badge-competitor-silver.png",
-    Warrior: "badge-warrior-silver.png",
-    Champion: "badge-champion-silver.png",
-    Commander: "badge-commander-silver.png",
-    Hero: "badge-hero-silver.png"
+    Contender: "badge-contender-silver.png",
+    Champion: "badge-champion-silver.png"
   };
 
   let warriorFile = F8_WARRIOR_BADGES[rankName];

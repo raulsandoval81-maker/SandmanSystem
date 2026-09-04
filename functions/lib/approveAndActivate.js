@@ -38,6 +38,7 @@ const admin = __importStar(require("firebase-admin"));
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const experienceAuthority_1 = require("./experienceAuthority");
+const f8ProgressionPolicy_1 = require("./policy/f8ProgressionPolicy");
 if (!admin.apps.length)
     admin.initializeApp();
 const db = (0, firestore_1.getFirestore)();
@@ -469,7 +470,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                         tier: "T0",
                         rankName: "Shadow",
                         rankColor: getStartingRankColor(safeFramework, safeProgramTrack, requestedDiscipline),
-                        xpCap: 600
+                        xpCap: (0, f8ProgressionPolicy_1.resolveF8RankXpCap)("T0")
                     }
                     : {
                         tier: "T0",
@@ -727,7 +728,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     tier: "T0",
                     rankName: "Shadow",
                     rankColor: "white",
-                    xpCap: 600
+                    xpCap: (0, f8ProgressionPolicy_1.resolveF8RankXpCap)("T0")
                 };
             const startingXp = expPlan.issuedNow + adjustmentAmount;
             const stripeCount = computeStartingStripeCount(startingXp, starter.xpCap);

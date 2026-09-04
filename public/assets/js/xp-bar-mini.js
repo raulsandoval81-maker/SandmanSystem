@@ -1,16 +1,13 @@
 // /assets/js/xp-bar-mini.js
 // tiny row-style belt/xp bar for roster/clipboard tables
 
+import { ROAD2CHAMPION_RANKS } from "./road2champion-progression.js";
+
 // optional: map tier/rank names → colors
 const MINI_TIER_COLORS = {
+  ...Object.fromEntries(ROAD2CHAMPION_RANKS.map((rank) => [rank.id, rank.color])),
   shadow:     "#ffffff",
-  recruit:    "#facc15",
-  contender:  "#fb923c",
-  competitor: "#22c55e",
   warrior:    "#3b82f6",
-  champion:   "#a855f7",
-  commander:  "#92400e",
-  hero:       "#000000",
   apprentice: "#ffffff",
   veteran:    "#92400e",
   legend:     "#000000"

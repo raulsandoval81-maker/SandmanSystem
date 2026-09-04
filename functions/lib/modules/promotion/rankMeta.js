@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.RANK_META = void 0;
+const f8ProgressionPolicy_1 = require("../../policy/f8ProgressionPolicy");
 /**
  * Path2Legend uses one rank doctrine across all disciplines.
  *
@@ -81,28 +82,20 @@ const QUEST2MASTERY = {
  * Road2Champion youth progression metadata.
  * Curriculum remains independently routed through the legacy T0–T7 tree.
  */
-const ROAD2CHAMPION = {
-    T0: {
-        rankName: "Shadow",
-        rankColor: "white",
+const ROAD2CHAMPION_COLORS = Object.freeze({
+    T0: "white",
+    T1: "yellow",
+    T2: "orange",
+    T3: "green",
+    T4: "black",
+});
+const ROAD2CHAMPION = Object.fromEntries(f8ProgressionPolicy_1.F8_RANKS.map((rank) => [
+    rank.tier,
+    {
+        rankName: rank.name,
+        rankColor: ROAD2CHAMPION_COLORS[rank.tier],
     },
-    T1: {
-        rankName: "Prospect",
-        rankColor: "yellow",
-    },
-    T2: {
-        rankName: "Competitor",
-        rankColor: "orange",
-    },
-    T3: {
-        rankName: "Contender",
-        rankColor: "green",
-    },
-    T4: {
-        rankName: "Champion",
-        rankColor: "black",
-    },
-};
+]));
 exports.RANK_META = {
     wrestling: {
         F4: PATH2LEGEND_GRAPPLING,

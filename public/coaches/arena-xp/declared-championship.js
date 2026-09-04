@@ -10,7 +10,7 @@ import "/coaches/_ui/dev-boot.js";
 
 import { db, collection, getDocs } from "/assets/js/firebase-init.js";
 import { XP_URL } from "/assets/js/coach-endpoints.js";
-import { LADDER_F4, LADDER_F8 } from "/assets/js/ladder.service.js";
+import { LADDER_F4, LADDER_F8, canonicalF8RankName, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 import {
   isDevMode,
   patchDevLinks,
@@ -86,6 +86,7 @@ let isSaving = false;
 ----------------------------- */
 function xpCapForAthlete(a = {}) {
   const base = trackBaseOf(a.id, a);
+  if (base === "F8") return canonicalF8XpCap(a);
   const rankName = resolveRank(a);
 
   const ladder = base === "F8" ? LADDER_F8 : LADDER_F4;
@@ -96,7 +97,7 @@ function xpCapForAthlete(a = {}) {
     a.xpCap ??
     a.cap ??
     a.tierCap ??
-    (baseFromAthlete(a) === "F8" ? 600 : 1000)
+    (baseFromAthlete(a) === "F8" ? 800 : 1000)
   );
 }
 
@@ -166,17 +167,7 @@ function resolveRank(a = {}) {
   const t = String(a.tier || "").toUpperCase();
 
   if (base === "F8") {
-    const map = {
-      T0: "Shadow",
-      T1: "Recruit",
-      T2: "Contender",
-      T3: "Competitor",
-      T4: "Warrior",
-      T5: "Champion",
-      T6: "Commander",
-      T7: "Hero"
-    };
-    return map[t] || "Shadow";
+    return canonicalF8RankName(a);
   }
 
   if (base === "F4") {
