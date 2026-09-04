@@ -22,13 +22,15 @@ export function resolveF8RemoteAccess(athlete: any): {
   honor: boolean;
   gatewayReached: boolean;
 } {
+  const tier = tierIndex(athlete?.progressionTier ?? athlete?.tier);
   const gatewayReached = hasReachedF8RemoteAccessGateway(
     athlete?.progressionTier ?? athlete?.tier,
     athlete?.stripeCount ?? athlete?.stripesEarned
   );
+  const athleteAssignmentsAllowed = tier !== null && tier > 0;
   return Object.freeze({
-    strength: athlete?.unlocks?.strength === true || gatewayReached,
-    honor: athlete?.unlocks?.honor === true || gatewayReached,
+    strength: athleteAssignmentsAllowed && (athlete?.unlocks?.strength === true || gatewayReached),
+    honor: athleteAssignmentsAllowed && (athlete?.unlocks?.honor === true || gatewayReached),
     gatewayReached,
   });
 }

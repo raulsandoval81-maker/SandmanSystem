@@ -5,12 +5,28 @@ import { readFileSync } from "node:fs";
 import {
   awardReceiptKey,
   buildAwardPlan,
+  conflictingArenaBonusKind,
   deriveTrustedStrengthAmount,
+  deriveYouthAssignmentAward,
+  isPracticeDayAllowed,
   normalizeXpRequest,
   remainingChampionshipDelta,
   requestAwardIdentity,
   shouldEmitAwardSideEffects,
 } from "../../functions/lib/services/authoritativeXpService.js";
+
+const youthAssignment = (overrides = {}) => ({
+  assignmentId: "youth-assignment-1",
+  status: "completed",
+  lane: "conditioning",
+  track: "f8",
+  primaryLane: "strength",
+  strengthMinutes: 18,
+  honorMinutes: 12,
+  totalMinutes: 30,
+  rewardXp: 5,
+  ...overrides,
+});
 
 const f8 = (overrides = {}) => {
   const tier = overrides.progressionTier ?? overrides.tier ?? "T1";
@@ -43,6 +59,14 @@ test("exact duplicate practice requests resolve to the same stable receipt", () 
 test("practice without its required attendance identity fails clearly", () => {
   assert.throws(() => requestAwardIdentity(request("ATTENDANCE", 10)),
     /meta\.attendanceSessionId required/);
+});
+
+test("practice permits Monday through Saturday and excludes Sunday", () => {
+  for (const dayKey of [
+    "2026-08-31", "2026-09-01", "2026-09-02",
+    "2026-09-03", "2026-09-04", "2026-09-05",
+  ]) assert.equal(isPracticeDayAllowed(dayKey), true);
+  assert.equal(isPracticeDayAllowed("2026-09-06"), false);
 });
 
 test("two separately identified F8 practices in one discipline/day can reach 20", () => {
@@ -89,13 +113,74 @@ test("same-day Combat and Strength use independent policy lanes", () => {
   assert.equal(strength.afterXp, 110);
 });
 
+test("youth mixed and single-pillar assignments award exactly +5 to the declared primary lane", () => {
+  for (const entry of [
+    youthAssignment({ strengthMinutes: 18, honorMinutes: 12 }),
+    youthAssignment({ strengthMinutes: 20, honorMinutes: 10 }),
+    youthAssignment({ strengthMinutes: 30, honorMinutes: 0 }),
+  ]) {
+    assert.equal(deriveYouthAssignmentAward(entry, "STRENGTH"), 5);
+    assert.throws(() => deriveYouthAssignmentAward(entry, "HONOR"), /PRIMARY_LANE_MISMATCH/);
+  }
+
+  const honorPrimary = youthAssignment({
+    primaryLane: "honor", strengthMinutes: 12, honorMinutes: 18,
+  });
+  assert.equal(deriveYouthAssignmentAward(honorPrimary, "HONOR"), 5);
+  assert.throws(() => deriveYouthAssignmentAward(honorPrimary, "STRENGTH"), /PRIMARY_LANE_MISMATCH/);
+});
+
+test("youth assignment validation enforces a 30-minute combined maximum", () => {
+  assert.throws(() => deriveYouthAssignmentAward(youthAssignment({
+    strengthMinutes: 20, honorMinutes: 11, totalMinutes: 31,
+  }), "STRENGTH"), /DURATION_INVALID/);
+  assert.throws(() => deriveYouthAssignmentAward(youthAssignment({
+    primaryLane: "honor", strengthMinutes: 30, honorMinutes: 0,
+  }), "HONOR"), /DURATION_INVALID/);
+  assert.throws(() => deriveYouthAssignmentAward(
+    youthAssignment({ primaryLane: "honor" }),
+    "STRENGTH",
+    youthAssignment()
+  ), /COMPLETION_MISMATCH/);
+});
+
+test("one youth assignment has one receipt identity regardless of requested lane", () => {
+  const strength = request("STRENGTH", 5, { key: "conditioning-1", assignmentId: "assignment-1" });
+  const honor = request("HONOR", 5, { key: "conditioning-1", assignmentId: "assignment-1" });
+  assert.equal(requestAwardIdentity(strength), "youth-assignment:assignment-1");
+  assert.equal(requestAwardIdentity(strength), requestAwardIdentity(honor));
+});
+
 test("F8 tournament participation aliases share one receipt identity", () => {
   const battle = request("ARENA/BATTLE", 10, { tournamentId: "event-1" });
   const weekend = request("ARENA/WEEKEND_BATTLE", 15, { tournamentId: "event-1" });
   assert.equal(requestAwardIdentity(battle), requestAwardIdentity(weekend));
 });
 
-test("F8 tournament layers award once and total 20 even out of order", () => {
+test("F8 Weekend Battle remains 15 and reaches 20 with either exclusive bonus", () => {
+  const athlete = f8();
+  for (const bonusKind of ["ARENA/PODIUM", "ARENA/SECOND_DIVISION"]) {
+    const participation = plan(athlete,
+      request("ARENA/WEEKEND_BATTLE", 15, { tournamentId: `event-${bonusKind}` }), {
+        arenaEventState: { xp: 0, kinds: {} },
+      });
+    const bonus = plan(athlete,
+      request(bonusKind, 5, { tournamentId: `event-${bonusKind}` }), {
+        arenaEventState: participation.arenaEventStateAfter,
+      });
+    assert.equal(participation.delta, 15);
+    assert.equal(bonus.arenaEventStateAfter.xp, 20);
+  }
+});
+
+test("Sunday Arena competition remains accepted", () => {
+  const sunday = plan(f8(), request("ARENA/WEEKEND_BATTLE", 15, {
+    tournamentId: "event-sunday",
+  }), { arenaEventState: { xp: 0, kinds: {} } });
+  assert.equal(sunday.delta, 15);
+});
+
+test("F8 tournament layers award once and podium excludes second division", () => {
   const athlete = f8();
   const podium = plan(athlete, request("ARENA/PODIUM", 5, { tournamentId: "event-2" }), {
     arenaEventState: { xp: 0, kinds: {} },
@@ -103,11 +188,29 @@ test("F8 tournament layers award once and total 20 even out of order", () => {
   const participation = plan(athlete, request("ARENA/BATTLE", 10, { tournamentId: "event-2" }), {
     arenaEventState: podium.arenaEventStateAfter,
   });
-  const second = plan(athlete, request("ARENA/SECOND_DIVISION", 5, { tournamentId: "event-2" }), {
-    arenaEventState: participation.arenaEventStateAfter,
+  assert.deepEqual([podium.delta, participation.delta], [5, 10]);
+  assert.throws(() => plan(athlete,
+    request("ARENA/SECOND_DIVISION", 5, { tournamentId: "event-2" }), {
+      arenaEventState: participation.arenaEventStateAfter,
+    }), /PODIUM_SECOND_DIVISION_MUTUALLY_EXCLUSIVE/);
+});
+
+test("podium and second division remain available on separate event-day IDs", () => {
+  const athlete = f8();
+  const podiumDay = plan(athlete, request("ARENA/PODIUM", 5, { tournamentId: "event-friday" }), {
+    arenaEventState: { xp: 0, kinds: {} },
   });
-  assert.deepEqual([podium.delta, participation.delta, second.delta], [5, 10, 5]);
-  assert.equal(second.arenaEventStateAfter.xp, 20);
+  const secondDay = plan(athlete, request("ARENA/SECOND_DIVISION", 5, {
+    tournamentId: "event-saturday",
+  }), { arenaEventState: { xp: 0, kinds: {} } });
+  assert.equal(podiumDay.delta, 5);
+  assert.equal(secondDay.delta, 5);
+});
+
+test("podium and second division identify each other as the exclusive bonus", () => {
+  assert.equal(conflictingArenaBonusKind("ARENA/PODIUM"), "ARENA/SECOND_DIVISION");
+  assert.equal(conflictingArenaBonusKind("ARENA/SECOND_DIVISION"), "ARENA/PODIUM");
+  assert.equal(conflictingArenaBonusKind("ARENA/WEEKEND_BATTLE"), null);
 });
 
 test("repeated podium and second-division layers are rejected by aggregate policy", () => {

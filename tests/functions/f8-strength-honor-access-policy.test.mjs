@@ -28,6 +28,14 @@ test("persistent unlock state keeps both remote lanes open", () => {
   }), { strength: true, honor: true, gatewayReached: false });
 });
 
+test("Shadow cannot use athlete assignments even when stale unlock flags exist", () => {
+  assert.deepEqual(resolveF8RemoteAccess({
+    progressionTier: "T0",
+    stripeCount: 4,
+    unlocks: { strength: true, honor: true },
+  }), { strength: false, honor: false, gatewayReached: false });
+});
+
 test("progressionTier takes precedence over a legacy tier field", () => {
   assert.equal(resolveF8RemoteAccess({
     progressionTier: "T0",

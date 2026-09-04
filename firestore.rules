@@ -364,13 +364,29 @@ service cloud.firestore {
        Lane Submissions
     ---------------------------------------*/
     match /laneSubmissions/{athleteId} {
-      allow read: if request.auth != null;
+      allow get: if isLaneSubmissionOwner(athleteId)
+        || isActiveCoachOrAdmin();
 
-      allow create: if request.auth != null
-        && exists(/databases/$(database)/documents/athletes/$(athleteId));
+      allow list: if isActiveCoachOrAdmin();
 
-      allow update: if request.auth != null
-        && exists(/databases/$(database)/documents/athletes/$(athleteId));
+      allow create: if exists(
+          /databases/$(database)/documents/athletes/$(athleteId)
+        )
+        && (
+          isLaneSubmissionOwner(athleteId)
+          || isActiveCoachOrAdmin()
+        );
+
+      allow update: if exists(
+          /databases/$(database)/documents/athletes/$(athleteId)
+        )
+        && (
+          (
+            isLaneSubmissionOwner(athleteId)
+            && preservesCoachOwnedConditioningAssignment()
+          )
+          || isActiveCoachOrAdmin()
+        );
 
       allow delete: if false;
     }
@@ -1832,6 +1848,58 @@ match /academySettings/{academyId} {
         && get(
           /databases/$(database)/documents/staff/$(request.auth.uid)
         ).data.status == "active";
+    }
+
+    function isActiveCoachOrAdmin() {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.role in ["coach", "admin"]
+        && get(
+          /databases/$(database)/documents/staff/$(request.auth.uid)
+        ).data.status == "active";
+    }
+
+    function isLaneSubmissionOwner(athleteId) {
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/athletes/$(athleteId)
+        )
+        && (
+          request.auth.uid == athleteId
+          || get(
+            /databases/$(database)/documents/athletes/$(athleteId)
+          ).data.authUid == request.auth.uid
+        );
+    }
+
+    function preservesCoachOwnedConditioningAssignment() {
+      return (
+          !("conditioning_assignment" in resource.data)
+          && !("conditioning_assignment" in request.resource.data)
+        )
+        || (
+          "conditioning_assignment" in resource.data
+          && "conditioning_assignment" in request.resource.data
+          && (
+            request.resource.data.conditioning_assignment
+              .diff(resource.data.conditioning_assignment)
+              .changedKeys()
+              .hasOnly([])
+            || (
+              request.resource.data.conditioning_assignment
+                .diff(resource.data.conditioning_assignment)
+                .changedKeys()
+                .hasOnly(["status", "completedAt"])
+              && resource.data.conditioning_assignment.status == "assigned"
+              && request.resource.data.conditioning_assignment.status == "completed"
+              && request.resource.data.conditioning_assignment.completedAt == request.time
+            )
+          )
+        );
     }
 
     function isOperationalStaff() {

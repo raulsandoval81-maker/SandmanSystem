@@ -9,9 +9,11 @@ export function hasReachedF8RemoteAccessGateway(athlete = {}) {
 
 export function resolveF8RemoteAccess(athlete = {}) {
   const gatewayReached = hasReachedF8RemoteAccessGateway(athlete);
+  const match = String(athlete.progressionTier ?? athlete.tier ?? "").trim().toUpperCase().match(/^T([0-4])$/);
+  const athleteAssignmentsAllowed = !!match && Number(match[1]) > 0;
   return {
-    strength: athlete?.unlocks?.strength === true || gatewayReached,
-    honor: athlete?.unlocks?.honor === true || gatewayReached,
+    strength: athleteAssignmentsAllowed && (athlete?.unlocks?.strength === true || gatewayReached),
+    honor: athleteAssignmentsAllowed && (athlete?.unlocks?.honor === true || gatewayReached),
     gatewayReached,
   };
 }
