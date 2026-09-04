@@ -6,9 +6,14 @@ import {
 import { resolveLaneRelease } from "./lane-release-schedule.js";
 
 function matchingEntry(submissions, lane, segmentId, sessionN) {
+  const normalizedLane = String(lane || "").trim().toLowerCase();
   return Object.entries(submissions || {})
     .map(([key, entry]) => ({ key, entry, identity: resolveLaneSubmissionIdentity({ lane, entry, key }) }))
-    .find(({ identity }) => identity.segmentId === segmentId && identity.sessionN === sessionN) || null;
+    .find(({ entry, identity }) =>
+      String(entry?.lane || "").trim().toLowerCase() === normalizedLane &&
+      identity.segmentId === segmentId &&
+      identity.sessionN === sessionN
+    ) || null;
 }
 
 export function combatDashboardModel(athlete = {}) {
@@ -38,8 +43,10 @@ export function laneDashboardModel({
   const current = matchingEntry(submissions, lane, segmentId, sessionN);
   const completedNumbers = Object.entries(submissions || {}).map(([key, entry]) => {
     const identity = resolveLaneSubmissionIdentity({ lane, entry, key });
+    const entryLane = String(entry?.lane || "").trim().toLowerCase();
+    const normalizedLane = String(lane || "").trim().toLowerCase();
     const status = String(entry?.status || "").trim().toLowerCase();
-    return identity.segmentId === segmentId && ["approved", "closed"].includes(status)
+    return entryLane === normalizedLane && identity.segmentId === segmentId && ["approved", "closed"].includes(status)
       ? identity.sessionN : null;
   }).filter(Number.isInteger);
   const rawStatus = String(current?.entry?.status || "").trim().toLowerCase();

@@ -6,6 +6,7 @@ import {
   setDoc,
   serverTimestamp,
 } from "/assets/js/firebase-init.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 await ensureSignedIn();
 
@@ -205,6 +206,15 @@ async function loadConditioningSession() {
     }
 
     const athlete = athleteSnap.data() || {};
+    const remoteAccess = resolveF8RemoteAccess(athlete);
+    if (!remoteAccess.strength || !remoteAccess.honor) {
+      container.innerHTML = `
+        <div class="lane-card">
+          Strength and Honor assignments unlock together at Prospect Stripe 1.
+        </div>
+      `;
+      return;
+    }
     const tier = normalizeTierValue(athlete);
     const remoteLimit = getRemoteLimitByTier(tier);
 
@@ -393,7 +403,8 @@ ${esc(coachBody)}
               <div style="margin-top:.6rem;padding:.7rem .85rem;border:1px solid #27304a;border-radius:10px;background:#0b1017;">
                 <div style="font-weight:900;color:#ffd633;">Remote Workout Assigned</div>
                 <div style="margin-top:.25rem;opacity:.82;font-size:.92rem;">
-                  Coach-assigned support workout.
+                  Coach-assigned support workout. Primary XP lane: ${esc(String(assignment?.primaryLane || "strength"))}.
+                  ${esc(String(assignment?.strengthMinutes || 0))} minutes Strength · ${esc(String(assignment?.honorMinutes || 0))} minutes Honor · +5 total.
                 </div>
               </div>
             `
@@ -664,6 +675,14 @@ isApproved && (closingTitle || closingBody)
               rounds: Number(session.rounds || 0),
               movesPerCycle: Number(session.movesPerCycle || sequence.length || 0),
               sequence,
+              ...(session?.assigned ? {
+                assignmentId: String(assignment?.assignmentId || sessionKey),
+                primaryLane: String(assignment?.primaryLane || ""),
+                strengthMinutes: Number(assignment?.strengthMinutes),
+                honorMinutes: Number(assignment?.honorMinutes),
+                totalMinutes: Number(assignment?.totalMinutes),
+                rewardXp: Number(assignment?.rewardXp),
+              } : {}),
             },
             ...(session?.assigned
               ? {

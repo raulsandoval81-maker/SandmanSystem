@@ -211,9 +211,12 @@ test("missing Honor segment1 session 40 does not wrap to session 1", () => {
   assert.equal(result.activeSession, null);
 });
 
-test("Coach review modules preserve resolved identity in history and XP metadata", () => {
+test("Coach review modules require Coach authorization and preserve resolved identity", () => {
   for (const lane of ["strength", "honor"]) {
     const source = fs.readFileSync(`public/coaches/lanes/${lane}/review.js`, "utf8");
+    assert.match(source, /requireCoach/);
+    assert.match(source, /coachLoginUrl/);
+    assert.doesNotMatch(source, /ensureSignedIn/);
     assert.match(source, /resolveLaneSubmissionIdentity/);
     assert.match(source, /segmentId: identity\.segmentId/);
     assert.match(source, /sessionN: identity\.sessionN/);

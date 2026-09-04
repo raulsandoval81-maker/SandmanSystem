@@ -4,6 +4,8 @@ import { createRequire } from "node:module";
 import test, { after, before, beforeEach } from "node:test";
 
 import {
+  assertFails,
+  assertSucceeds,
   initializeTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import {
@@ -11,6 +13,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  serverTimestamp,
   setDoc,
   updateDoc,
 } from "firebase/firestore";
@@ -165,6 +168,12 @@ before(async () => {
 
 beforeEach(async () => {
   await testEnv.clearFirestore();
+  await testEnv.withSecurityRulesDisabled(async (context) => {
+    await setDoc(doc(context.firestore(), "staff", COACH_UID), {
+      role: "coach",
+      status: "active",
+    });
+  });
 });
 
 after(async () => {
@@ -181,6 +190,7 @@ async function seedAthlete(fixture) {
   await testEnv.withSecurityRulesDisabled(async (context) => {
     await setDoc(doc(context.firestore(), "athletes", fixture.id), {
       uid: fixture.id,
+      authUid: `ATHLETE_${fixture.id}`,
       fullName: `Synthetic ${fixture.id}`,
       trackBase: fixture.trackBase,
       tier: fixture.tier,
@@ -193,6 +203,60 @@ async function seedAthlete(fixture) {
     });
   });
 }
+
+test("lane submission authorization separates athlete ownership from Coach review access", async () => {
+  const fixture = fixtures.f4Strength;
+  await seedAthlete(fixture);
+
+  const ownerDb = authenticatedDb(`ATHLETE_${fixture.id}`);
+  const otherAthleteDb = authenticatedDb("UNRELATED_ATHLETE");
+  const staleCoachDb = authenticatedDb("STALE_COACH");
+  const coachDb = authenticatedDb(COACH_UID);
+  const submissionRef = doc(ownerDb, "laneSubmissions", fixture.id);
+
+  await assertSucceeds(setDoc(submissionRef, {
+    "STR-001": {
+      lane: "strength",
+      segmentId: "segment1",
+      sessionN: 1,
+      status: "pending",
+      body: "Owner submission",
+    },
+  }));
+
+  await assertSucceeds(getDoc(submissionRef));
+  await assertFails(getDocs(collection(ownerDb, "laneSubmissions")));
+  await assertFails(getDoc(doc(otherAthleteDb, "laneSubmissions", fixture.id)));
+  await assertFails(updateDoc(doc(otherAthleteDb, "laneSubmissions", fixture.id), {
+    "STR-001.status": "closed",
+  }));
+
+  await assertSucceeds(getDocs(collection(coachDb, "laneSubmissions")));
+  await assertSucceeds(updateDoc(doc(coachDb, "laneSubmissions", fixture.id), {
+    conditioning_assignment: {
+      assignmentId: "locked-assignment",
+      status: "assigned",
+      primaryLane: "strength",
+      strengthMinutes: 18,
+      honorMinutes: 12,
+      totalMinutes: 30,
+      rewardXp: 5,
+    },
+  }));
+  await assertFails(updateDoc(submissionRef, {
+    "conditioning_assignment.primaryLane": "honor",
+  }));
+  await assertSucceeds(updateDoc(submissionRef, {
+    "conditioning_assignment.status": "completed",
+    "conditioning_assignment.completedAt": serverTimestamp(),
+  }));
+  await assertSucceeds(updateDoc(doc(coachDb, "laneSubmissions", fixture.id), {
+    "STR-001.status": "needs_revision",
+  }));
+
+  await assertFails(getDocs(collection(staleCoachDb, "laneSubmissions")));
+  await assertFails(getDoc(doc(staleCoachDb, "laneSubmissions", fixture.id)));
+});
 
 function completedEntries(data, lane, track = "") {
   return Object.values(data || {}).filter((entry) => {
@@ -253,10 +317,18 @@ async function exerciseLane({
     athleteName: `Synthetic ${fixture.id}`,
     title: firstSession.title || firstSession.lesson || "",
     ...(lane === "strength" ? { main: "Synthetic main lift" } : {}),
+    ...(assignment?.primaryLane ? {
+      assignmentId: assignment.assignmentId,
+      primaryLane: assignment.primaryLane,
+      strengthMinutes: assignment.strengthMinutes,
+      honorMinutes: assignment.honorMinutes,
+      totalMinutes: assignment.totalMinutes,
+      rewardXp: assignment.rewardXp,
+    } : {}),
   };
 
   await setDoc(submissionRef, {
-    ...(assignment ? { conditioning_assignment: assignment } : {}),
+    ...(assignment ? { conditioning_assignment: { ...assignment, status: "completed" } } : {}),
     [key]: initialEntry,
   }, { merge: true });
 
@@ -454,10 +526,16 @@ test("F8 Conditioning preserves tier availability and completes the shared Stren
   const remoteLimit = tier <= 2 ? 0 : tier <= 4 ? 1 : 2;
   assert.equal(remoteLimit, 1);
   const assignment = {
+    assignmentId: "f8-strength-primary-assignment",
     status: "assigned",
     presetId: "F8_FOUNDATION",
     sourceSessionN: 1,
     note: "Synthetic F8 assignment",
+    primaryLane: "strength",
+    strengthMinutes: 20,
+    honorMinutes: 10,
+    totalMinutes: 30,
+    rewardXp: 5,
   };
   await exerciseLane({
     fixture: fixtures.f8Conditioning,
@@ -468,6 +546,33 @@ test("F8 Conditioning preserves tier availability and completes the shared Stren
     kind: "STRENGTH",
     requestedAmount: 5,
     source: "lane-review",
+    expectedAward: 5,
+    assignment,
+  });
+});
+
+test("F8 mixed assignment awards only its declared Honor primary lane", async () => {
+  const assignment = {
+    assignmentId: "f8-honor-primary-assignment",
+    status: "assigned",
+    presetId: "F8_FOUNDATION",
+    sourceSessionN: 1,
+    note: "Synthetic mixed assignment",
+    primaryLane: "honor",
+    strengthMinutes: 12,
+    honorMinutes: 18,
+    totalMinutes: 30,
+    rewardXp: 5,
+  };
+  await exerciseLane({
+    fixture: { ...fixtures.f8Conditioning, id: "F8_SLICE_ASSIGNMENT_HONOR" },
+    lane: "conditioning",
+    track: "f8",
+    sessions: vault.f8Conditioning,
+    key: "conditioning_f8_segment1_session1",
+    kind: "HONOR",
+    requestedAmount: 5,
+    source: "honor_lane_review",
     expectedAward: 5,
     assignment,
   });
