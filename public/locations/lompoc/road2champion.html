@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Road2Champion | Sandman Combat™</title>
+
+  <meta
+    name="description"
+    content="Explore Road2Champion Wrestling for athletes ages 7 through 13 at Sandman Academy in Lompoc."
+  />
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/public.css" />
+
+  <style>
+    *{
+      box-sizing:border-box;
+    }
+
+    body{
+      margin:0;
+      background:var(--bg, #050505);
+      color:var(--text, #f5f5f5);
+    }
+
+    .hidden-lang{
+      display:none !important;
+    }
+
+    .journey-index-main{
+      width:min(1080px, calc(100% - 32px));
+      margin:0 auto;
+      padding:36px 0 80px;
+    }
+
+    /* =========================================
+       JOURNEY POSTER
+    ========================================= */
+
+    .journey-poster{
+      margin:0;
+      overflow:hidden;
+      border:1px solid var(--line, rgba(255,255,255,.12));
+      border-radius:22px;
+      background:#000;
+      box-shadow:0 18px 40px rgba(0,0,0,.28);
+    }
+
+    .journey-poster img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+
+    /* =========================================
+       INTRO
+    ========================================= */
+
+    .journey-index-intro{
+      margin-top:26px;
+      padding:clamp(1.45rem, 4vw, 2.3rem);
+      text-align:center;
+      border:1px solid var(--line, rgba(255,255,255,.12));
+      border-radius:20px;
+      background:var(--panel, #111113);
+    }
+
+    .eyebrow{
+      margin:0 0 .65rem;
+      color:var(--heading-accent, #d4af37);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.16em;
+      text-transform:uppercase;
+    }
+
+    .journey-index-intro h1{
+      margin:0 0 .75rem;
+      color:var(--heading, #fff);
+      font-size:clamp(2.5rem, 7vw, 4.8rem);
+      line-height:1;
+      letter-spacing:-.04em;
+    }
+
+    .journey-index-intro p:last-child{
+      max-width:650px;
+      margin:0 auto;
+      color:var(--muted, #d0d0d4);
+      font-size:1.05rem;
+      line-height:1.65;
+    }
+
+    /* =========================================
+       DISCIPLINE CARDS
+    ========================================= */
+
+    .discipline-section{
+      margin-top:28px;
+    }
+
+    .discipline-heading{
+      margin:0 0 18px;
+      text-align:center;
+      color:var(--heading, #fff);
+      font-size:clamp(1.7rem, 4vw, 2.45rem);
+    }
+
+    .discipline-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:18px;
+    }
+
+    .discipline-card{
+      display:flex;
+      min-height:190px;
+      padding:1.45rem;
+      color:inherit;
+      text-decoration:none;
+      border:1px solid var(--line, rgba(255,255,255,.12));
+      border-radius:18px;
+      background:
+        linear-gradient(
+          180deg,
+          rgba(255,255,255,.025),
+          transparent
+        ),
+        var(--panel, #111113);
+      transition:
+        transform .2s ease,
+        border-color .2s ease,
+        box-shadow .2s ease;
+    }
+
+    .discipline-card:hover,
+    .discipline-card:focus-visible{
+      transform:translateY(-3px);
+      border-color:rgba(212,175,55,.55);
+      box-shadow:0 14px 28px rgba(0,0,0,.22);
+    }
+
+    .discipline-card__inner{
+      display:flex;
+      flex-direction:column;
+      width:100%;
+    }
+
+    .discipline-card h2{
+      margin:0 0 .65rem;
+      color:var(--heading-accent, #d4af37);
+      font-size:1.65rem;
+    }
+
+    .discipline-card p{
+      margin:0;
+      color:var(--muted, #d0d0d4);
+      line-height:1.6;
+    }
+
+    .discipline-card__action{
+      margin-top:auto;
+      padding-top:1.2rem;
+      color:var(--heading, #fff);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    /* =========================================
+       BACK LINK
+    ========================================= */
+
+    .journey-back{
+      display:flex;
+      justify-content:center;
+      margin-top:28px;
+    }
+
+    .journey-back a{
+      color:var(--muted, #d0d0d4);
+      font-size:.88rem;
+      font-weight:800;
+      letter-spacing:.08em;
+      text-decoration:none;
+      text-transform:uppercase;
+    }
+
+    .journey-back a:hover{
+      color:var(--heading-accent, #d4af37);
+    }
+
+    /* =========================================
+       RESPONSIVE
+    ========================================= */
+
+    @media (max-width:780px){
+
+      .journey-index-main{
+        width:min(100% - 24px, 1080px);
+        padding:24px 0 64px;
+      }
+
+      .discipline-grid{
+        grid-template-columns:1fr;
+      }
+
+      .discipline-card{
+        min-height:170px;
+      }
+
+      .journey-poster,
+      .journey-index-intro,
+      .discipline-card{
+        border-radius:16px;
+      }
+    }
+
+
+
+    /* =====================================================
+       MARKETING CONNECT CTA STYLES
+    ====================================================== */
+
+    .marketing-connect-cta{
+      width:100%;
+      margin-top:34px;
+      padding:clamp(2rem, 5vw, 3.4rem) clamp(1.25rem, 4vw, 2.5rem);
+
+      text-align:center;
+
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:22px;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(212,175,55,.14),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #171717 0%,
+          #090909 100%
+        );
+
+      box-shadow:0 18px 38px rgba(0,0,0,.30);
+    }
+
+    .marketing-connect-cta h2{
+      margin:0 0 .8rem;
+
+      color:#ffffff;
+
+      font-size:clamp(1.85rem, 4vw, 2.8rem);
+      line-height:1.1;
+    }
+
+    .marketing-connect-cta p{
+      max-width:700px;
+
+      margin:0 auto 1.45rem;
+
+      color:#d4d4d8;
+
+      font-size:1rem;
+      line-height:1.7;
+    }
+
+    .marketing-connect-cta .journeys-cta-button{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      min-height:50px;
+
+      padding:13px 24px;
+
+      color:#090909;
+      background:#d4af37;
+
+      border:1px solid #e7c968;
+      border-radius:999px;
+
+      font-weight:900;
+      line-height:1.2;
+      text-align:center;
+      text-decoration:none;
+
+      transition:
+        transform .18s ease,
+        background-color .18s ease,
+        box-shadow .18s ease;
+    }
+
+    .marketing-connect-cta .journeys-cta-button:hover,
+    .marketing-connect-cta .journeys-cta-button:focus-visible{
+      background:#e2c25a;
+
+      box-shadow:0 10px 28px rgba(212,175,55,.24);
+
+      transform:translateY(-2px);
+      outline:none;
+    }
+
+    body.day-mode .marketing-connect-cta{
+      border-color:#c9aa61;
+
+      background:
+        radial-gradient(
+          circle at top,
+          rgba(173,123,35,.12),
+          transparent 42%
+        ),
+        linear-gradient(
+          180deg,
+          #ffffff 0%,
+          #f3e7cf 100%
+        );
+
+      box-shadow:0 10px 24px rgba(0,0,0,.10);
+    }
+
+    body.day-mode .marketing-connect-cta h2{
+      color:#171717;
+    }
+
+    body.day-mode .marketing-connect-cta p{
+      color:#4b5563;
+    }
+
+    @media (max-width:640px){
+      .marketing-connect-cta{
+        margin-top:28px;
+        padding:2rem 1rem;
+        border-radius:17px;
+      }
+
+      .marketing-connect-cta .journeys-cta-button{
+        width:100%;
+        max-width:340px;
+      }
+    }
+
+  </style>
+  <link rel="canonical" href="/locations/lompoc/road2champion.html">
+</head>
+
+<body>
+
+  <!-- Shared navigation -->
+
+
+
+<div id="navigation" data-component="/locations/lompoc/components/navigation.html"></div>
+
+
+
+  
+
+  <main class="journey-index-main">
+
+    <!-- Combined Road2Champion discipline poster -->
+
+    <figure class="journey-poster">
+<img
+  src="/assets/images/journeys/badge-poster-zero2hero-v1.png"
+  alt="Road2Champion rank badges"
+/>
+    </figure>
+
+    <!-- Journey selector introduction -->
+
+    <section class="journey-index-intro">
+
+      <div data-lang-block="en">
+        <p class="eyebrow">
+          Foundry 8 • Ages 7–13
+        </p>
+
+        <h1>Road2Champion™</h1>
+
+        <p>
+          Choose a discipline currently offered at our Lompoc academy.
+        </p>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <p class="eyebrow">
+          Foundry 8 • Edades 7–13
+        </p>
+
+        <h1>Road2Champion™</h1>
+
+        <p>
+          Elige una disciplina disponible actualmente en nuestra academia de Lompoc.
+        </p>
+      </div>
+
+    </section>
+
+    <!-- Discipline selection -->
+
+    <section class="discipline-section">
+
+      <div data-lang-block="en">
+        <h2 class="discipline-heading">
+          Choose a Discipline
+        </h2>
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <h2 class="discipline-heading">
+          Elige Una Disciplina
+        </h2>
+      </div>
+
+      <div class="discipline-grid">
+
+        <!-- Wrestling -->
+
+        <a
+          class="discipline-card"
+          href="/locations/lompoc/programs/zero2hero/road2champion/wrestling.html"
+        >
+          <div class="discipline-card__inner">
+
+            <div data-lang-block="en">
+              <h2>Wrestling</h2>
+
+              <p>
+                Explore the Road2Champion wrestling discipline.
+              </p>
+            </div>
+
+            <div
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              <h2>Lucha</h2>
+
+              <p>
+                Explora la disciplina de lucha Road2Champion.
+              </p>
+            </div>
+
+            <span
+              class="discipline-card__action"
+              data-lang-block="en"
+            >
+              Explore Wrestling →
+            </span>
+
+            <span
+              class="discipline-card__action hidden-lang"
+              data-lang-block="es"
+            >
+              Explorar Lucha →
+            </span>
+
+          </div>
+        </a>
+
+      </div>
+
+    </section>
+
+    <!-- Return to Journeys -->
+
+    <section class="marketing-connect-cta">
+
+  <div data-lang-block="en">
+
+    <h2>Ready to Begin?</h2>
+
+    <p>
+      Every hero starts somewhere. Give your child the opportunity to build
+      confidence, discipline, and character through the Road2Champion™ journey.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/lompoc/connect.html">
+      Connect With Us
+    </a>
+
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+
+    <h2>¿Listo para Comenzar?</h2>
+
+    <p>
+      Todo héroe comienza en algún lugar. Bríndale a tu hijo la oportunidad
+      de desarrollar confianza, disciplina y carácter a través del camino
+      Road2Champion™.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/lompoc/connect.html">
+      Conéctate con Nosotros
+    </a>
+
+  </div>
+
+</section>
+
+  </main>
+
+  <!-- Shared footer -->
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script src="/assets/js/component-loader.js" defer></script>
+  <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+  <script src="/assets/js/navigation.js" defer></script>
+
+</body>
+</html>

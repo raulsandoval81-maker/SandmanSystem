@@ -17,6 +17,103 @@
       "REPO/seed-all.js",
       "scripts/mirror-firestore-emulator-to-prod.mjs"
     ],
+    "redirects": [
+      {
+        "source": "/locations/santa-ynez-valley/programs/zero2hero/wrestling.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/zero2hero/wrestling.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/programs/zero2hero/muay-thai.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/zero2hero/muay-thai.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/programs/path2legend/wrestling.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/path2legend/wrestling.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/programs/path2legend/boxing.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/path2legend/boxing.html",
+        "destination": "/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/santa-ynez-valley/zero2hero.html",
+        "destination": "/locations/santa-ynez-valley/road2champion.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/lompoc/programs/zero2hero/wrestling.html",
+        "destination": "/locations/lompoc/programs/zero2hero/road2champion/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/lompoc/zero2hero/wrestling.html",
+        "destination": "/locations/lompoc/programs/zero2hero/road2champion/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/lompoc/programs/path2legend/wrestling.html",
+        "destination": "/locations/lompoc/programs/zero2hero/path2legend/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/lompoc/path2legend/wrestling.html",
+        "destination": "/locations/lompoc/programs/zero2hero/path2legend/wrestling.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/lompoc/zero2hero.html",
+        "destination": "/locations/lompoc/road2champion.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/elk-grove/programs/zero2hero/boxing.html",
+        "destination": "/locations/elk-grove/programs/zero2hero/road2champion/boxing.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/elk-grove/zero2hero/boxing.html",
+        "destination": "/locations/elk-grove/programs/zero2hero/road2champion/boxing.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/elk-grove/programs/path2legend/boxing.html",
+        "destination": "/locations/elk-grove/programs/zero2hero/path2legend/boxing.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/elk-grove/path2legend/boxing.html",
+        "destination": "/locations/elk-grove/programs/zero2hero/path2legend/boxing.html",
+        "type": 301
+      },
+      {
+        "source": "/locations/elk-grove/zero2hero.html",
+        "destination": "/locations/elk-grove/road2champion.html",
+        "type": 301
+      }
+    ],
     "rewrites": [
       {
         "source": "/xp",

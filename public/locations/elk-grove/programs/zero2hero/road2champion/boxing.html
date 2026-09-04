@@ -7,11 +7,11 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Quest2Mastery Submission Grappling | Sandman Combat™</title>
+  <title>Road2Champion™ Boxing | Sandman Combat™</title>
 
   <meta
     name="description"
-    content="Learn about Quest2Mastery Submission Grappling for athletes ages 16 and older, including its history, training focus, earned progression, tactical development, and athlete-development purpose."
+    content="Learn about Road2Champion™ Boxing for athletes ages 7–13, including its history, training focus, badge progression, shirt progression, and athlete-development purpose."
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
@@ -56,44 +56,27 @@
       text-transform:uppercase;
     }
 
-    .progression-top{
-      margin:0 0 28px;
-    }
-
-    .progression-top figure{
-      margin:0;
-      overflow:hidden;
-      border:1px solid var(--line);
-      border-radius:22px;
-      background:#050505;
-      box-shadow:0 20px 42px rgba(0,0,0,.34);
-    }
-
-    .progression-top img{
-      width:100%;
-    }
-
     .hero{
       padding:clamp(2rem,5vw,3.5rem);
       margin-bottom:28px;
-      border:1px solid rgba(212,175,55,.22);
+      border:1px solid #263244;
       border-radius:24px;
       background:
         radial-gradient(
-          circle at center top,
-          rgba(212,175,55,.17),
-          transparent 44%
+          circle at top right,
+          rgba(220,38,38,.16),
+          transparent 38%
         ),
         linear-gradient(
           180deg,
-          #101010 0%,
-          #050505 100%
+          #1f2937 0%,
+          #111827 100%
         );
       box-shadow:0 20px 40px rgba(0,0,0,.35);
     }
 
     body.day-mode .hero{
-      border-color:#b89447;
+      border-color:#d7c7a2;
       background:
         radial-gradient(
           circle at top right,
@@ -102,8 +85,8 @@
         ),
         linear-gradient(
           180deg,
-          #f7f1e5 0%,
-          #e8dcc3 100%
+          #ffffff 0%,
+          #f3e7cf 100%
         );
       box-shadow:0 10px 24px rgba(0,0,0,.10);
     }
@@ -123,7 +106,7 @@
     }
 
     .hero p{
-      max-width:800px;
+      max-width:790px;
       margin:.75rem 0 0;
       color:var(--hero-muted);
       font-size:1.05rem;
@@ -156,9 +139,9 @@
     }
 
     body.day-mode .panel{
-      border-color:#b89447;
-      background:#f8f3e9;
-      box-shadow:0 10px 24px rgba(0,0,0,.12);
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
     }
 
     .section-title{
@@ -197,6 +180,23 @@
       line-height:1.65;
     }
 
+    .visual-card{
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:#050505;
+      box-shadow:0 20px 42px rgba(0,0,0,.34);
+    }
+
+    .visual-card img{
+      width:100%;
+    }
+
+    .shirt-visual{
+      width:min(760px,100%);
+      margin-inline:auto;
+    }
+
     .content-grid{
       display:grid;
       grid-template-columns:repeat(2,minmax(0,1fr));
@@ -212,9 +212,9 @@
     }
 
     body.day-mode .card{
-      border-color:#b89447;
-      background:#f8f3e9;
-      box-shadow:0 10px 24px rgba(0,0,0,.12);
+      border-color:#d7c7a2;
+      background:#ffffff;
+      box-shadow:0 8px 18px rgba(0,0,0,.08);
     }
 
     .card h2,
@@ -277,8 +277,8 @@
     }
 
     body.day-mode .quote{
-      border-color:#b89447;
-      background:#f4ecdc;
+      border-color:#d7c7a2;
+      background:#ffffff;
     }
 
     .quote strong{
@@ -286,6 +286,33 @@
       margin-bottom:4px;
       color:var(--heading);
       font-size:1.25rem;
+    }
+
+    .page-nav{
+      display:flex;
+      flex-wrap:wrap;
+      justify-content:center;
+      gap:10px;
+      margin-top:28px;
+    }
+
+    .page-nav a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:44px;
+      padding:10px 16px;
+      color:var(--heading);
+      font-weight:900;
+      text-decoration:none;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--panel);
+    }
+
+    .page-nav a:hover,
+    .page-nav a:focus-visible{
+      border-color:var(--heading-accent);
     }
 
     @media (max-width:780px){
@@ -306,10 +333,11 @@
         border-radius:18px;
       }
 
-      .panel,
-      .progression-top figure{
-        border-radius:16px;
-      }
+.panel,
+.visual-card,
+.progression-top figure{
+  border-radius:16px;
+}
 
       .card{
         padding:18px;
@@ -412,8 +440,8 @@
         ),
         linear-gradient(
           180deg,
-          #f7f1e5 0%,
-          #e8dcc3 100%
+          #ffffff 0%,
+          #f3e7cf 100%
         );
 
       box-shadow:0 10px 24px rgba(0,0,0,.10);
@@ -439,10 +467,25 @@
         max-width:340px;
       }
     }
+    .progression-top{
+  margin:0 0 28px;
+}
+
+.progression-top figure{
+  margin:0;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:#050505;
+  box-shadow:0 20px 42px rgba(0,0,0,.34);
+}
+
+.progression-top img{
+  width:100%;
+}
 
 
-
-</style>
+  </style>
 
 <style id="SANDMAN-DISCIPLINE-HERO-CENTER">
   .hero {
@@ -461,10 +504,15 @@
   }
 </style>
 
+  <link rel="canonical" href="/locations/elk-grove/programs/zero2hero/road2champion/boxing.html">
 </head>
 
 <body>
 
+<div
+  id="navigation"
+  data-component="/locations/elk-grove/components/navigation.html"
+></div>
 
   <main>
 
@@ -473,21 +521,16 @@
     <section class="hero">
 
       <div data-lang-block="en">
-
-        <p class="eyebrow">
-          Quest2Mastery™ • Ages 16+
-        </p>
-
-        <h1>Submission Grappling</h1>
+<h1>Boxing</h1>
 
         <p class="hero-subtitle">
-          Position. Pressure. Leverage. Mastery.
+          Balance. Movement. Defense. Confidence.
         </p>
 
-        <p>Integrated technical and tactical development for advanced combat athletes.</p>
+        <p>Technical and tactical development for youth athletes.</p>
 
         <span class="availability">
-          Available at selected academies
+          Offered at our Elk Grove academy
         </span>
 
       </div>
@@ -496,21 +539,16 @@
         data-lang-block="es"
         class="hidden-lang"
       >
-
-        <p class="eyebrow">
-          Quest2Mastery™ • Edades 16+
-        </p>
-
-        <h1>Grappling De Sumisión</h1>
+<h1>Boxeo</h1>
 
         <p class="hero-subtitle">
-          Posición. Presión. Palanca. Maestría.
+          Equilibrio. Movimiento. Defensa. Confianza.
         </p>
 
-        <p>Desarrollo técnico y táctico integrado para atletas de combate avanzados.</p>
+        <p>Desarrollo técnico y táctico para atletas jóvenes.</p>
 
         <span class="availability">
-          Disponible en academias seleccionadas
+          Disponible en nuestra academia de Elk Grove
         </span>
 
       </div>
@@ -526,22 +564,21 @@
         </p>
 
         <h2 class="section-title">
-          What Is Submission Grappling?
+          What Is Boxing?
         </h2>
 
         <p>
-          Submission grappling is a no-gi combat discipline built around
-          takedowns, control, positional advancement, escapes, reversals,
-          chokes, joint locks, and the ability to transition smoothly between
-          standing and ground exchanges.
+          Boxing is a combat sport built around movement, distance,
+          timing, defense, and controlled punching technique. Athletes
+          learn how to maintain balance, move efficiently, protect
+          themselves, recognize openings, and respond with discipline.
         </p>
 
         <p>
-          Quest2Mastery draws from wrestling, catch wrestling, Brazilian
-          jiu-jitsu, and other proven grappling traditions. The goal is not to
-          preserve one style. The goal is to develop adaptable grapplers who
-          can control position, solve problems, and apply technique safely
-          under live resistance.
+          Youth boxing at Sandman Combat™ is taught through structured,
+          age-appropriate instruction. The goal is not uncontrolled
+          fighting. The goal is to develop technically sound, confident,
+          respectful, and composed young athletes.
         </p>
 
       </div>
@@ -556,22 +593,22 @@
         </p>
 
         <h2 class="section-title">
-          ¿Qué Es El Grappling De Sumisión?
+          ¿Qué Es El Boxeo?
         </h2>
 
         <p>
-          El grappling de sumisión es una disciplina de combate sin gi basada
-          en derribos, control, avance posicional, escapes, reversiones,
-          estrangulaciones, llaves articulares y la capacidad de conectar con
-          fluidez los intercambios de pie y suelo.
+          El boxeo es un deporte de combate basado en movimiento,
+          distancia, ritmo, defensa y técnica controlada de golpeo.
+          Los atletas aprenden a mantener el equilibrio, moverse con
+          eficiencia, protegerse, reconocer oportunidades y responder
+          con disciplina.
         </p>
 
         <p>
-          Quest2Mastery integra lucha, catch wrestling, jiu-jitsu brasileño y
-          otras tradiciones comprobadas de grappling. La meta no es conservar
-          un solo estilo. La meta es desarrollar grapplers adaptables capaces
-          de controlar posiciones, resolver problemas y aplicar técnica con
-          seguridad bajo resistencia en vivo.
+          El boxeo juvenil en Sandman Combat™ se enseña mediante
+          instrucción estructurada y apropiada para la edad. La meta
+          no es pelear sin control. La meta es desarrollar jóvenes
+          atletas técnicos, seguros, respetuosos y serenos.
         </p>
 
       </div>
@@ -587,22 +624,20 @@
         </p>
 
         <h2 class="section-title">
-          Why We Teach Submission Grappling
+          Why We Teach Boxing
         </h2>
 
         <p>
-          We teach submission grappling because it rewards patience,
-          awareness, leverage, composure, and disciplined decision-making.
-          Athletes must learn when to advance, when to defend, when to create
-          pressure, and when to release.
+          We do not teach boxing only to create better fighters. We teach
+          boxing because it demands focus, patience, courage, self-control,
+          resilience, accountability, and respect.
         </p>
 
         <p>
-          Training also demands trust. Athletes are responsible for protecting
-          partners, respecting every tap, applying submissions with control,
-          accepting correction, and remaining accountable for how they use
-          growing skill. Those expectations support Combat, Strength, and
-          Honor.
+          Every drill gives the athlete a problem to solve. Every round
+          challenges their ability to remain calm, listen, adjust, and
+          continue working. Those lessons carry beyond training and support
+          the Sandman pillars of Combat, Strength, and Honor.
         </p>
 
       </div>
@@ -617,22 +652,20 @@
         </p>
 
         <h2 class="section-title">
-          Por Qué Enseñamos Grappling De Sumisión
+          Por Qué Enseñamos Boxeo
         </h2>
 
         <p>
-          Enseñamos grappling de sumisión porque recompensa paciencia,
-          conciencia, palanca, compostura y toma disciplinada de decisiones.
-          Los atletas deben aprender cuándo avanzar, cuándo defender, cuándo
-          crear presión y cuándo soltar.
+          No enseñamos boxeo solamente para crear mejores peleadores.
+          Lo enseñamos porque exige concentración, paciencia, valor,
+          autocontrol, resiliencia, responsabilidad y respeto.
         </p>
 
         <p>
-          El entrenamiento también exige confianza. Los atletas son
-          responsables de proteger a sus compañeros, respetar cada rendición,
-          aplicar sumisiones con control, aceptar correcciones y rendir cuentas
-          por el uso de sus habilidades. Esas expectativas apoyan Combate,
-          Fuerza y Honor.
+          Cada ejercicio presenta un problema que el atleta debe resolver.
+          Cada ronda desafía su capacidad para mantener la calma, escuchar,
+          adaptarse y continuar trabajando. Esas lecciones van más allá del
+          entrenamiento y apoyan los pilares Sandman de Combate, Fuerza y Honor.
         </p>
 
       </div>
@@ -648,22 +681,23 @@
         </p>
 
         <h2 class="section-title">
-          The Story of Submission Grappling
+          The Story of Boxing
         </h2>
 
         <p>
-          Submission grappling grew from multiple wrestling and ground-fighting
-          traditions, including catch wrestling, judo, Brazilian jiu-jitsu,
-          sambo, and no-gi competition systems. Each contributed different
-          approaches to control, leverage, positional advancement, and
-          submission.
+          Boxing is one of humanity's oldest organized combat sports.
+          Forms of fist fighting appeared in ancient civilizations,
+          including Egypt and Greece. Boxing was included in the ancient
+          Olympic Games and later developed into a regulated modern sport
+          with timed rounds, weight divisions, gloves, referees, and
+          established safety rules.
         </p>
 
         <p>
-          Modern submission grappling has become an international competitive
-          discipline with rulesets that reward takedowns, positional control,
-          transitions, and finishes. It also remains one of the strongest
-          foundations for mixed martial arts and lifelong grappling practice.
+          Modern amateur boxing emphasizes technique, defense, clean scoring,
+          conditioning, and controlled competition. Its emphasis on balance,
+          movement, timing, and composure has also made boxing training useful
+          for athletes from many other sports.
         </p>
 
       </div>
@@ -678,23 +712,23 @@
         </p>
 
         <h2 class="section-title">
-          La Historia Del Grappling De Sumisión
+          La Historia Del Boxeo
         </h2>
 
         <p>
-          El grappling de sumisión creció a partir de múltiples tradiciones de
-          lucha y combate en el suelo, incluyendo catch wrestling, judo,
-          jiu-jitsu brasileño, sambo y sistemas de competencia sin gi. Cada una
-          aportó diferentes enfoques de control, palanca, avance posicional y
-          sumisión.
+          El boxeo es uno de los deportes de combate organizados más antiguos
+          de la humanidad. Formas de combate con los puños aparecieron en
+          civilizaciones antiguas, incluyendo Egipto y Grecia. El boxeo formó
+          parte de los Juegos Olímpicos antiguos y después se desarrolló como
+          un deporte moderno regulado con asaltos, divisiones de peso, guantes,
+          árbitros y reglas de seguridad.
         </p>
 
         <p>
-          El grappling de sumisión moderno se ha convertido en una disciplina
-          competitiva internacional con reglamentos que recompensan derribos,
-          control posicional, transiciones y finalizaciones. También sigue
-          siendo una de las bases más fuertes para MMA y la práctica de
-          grappling a largo plazo.
+          El boxeo amateur moderno enfatiza técnica, defensa, puntuación
+          limpia, acondicionamiento y competencia controlada. Su enfoque en
+          equilibrio, movimiento, ritmo y compostura también beneficia a
+          atletas de muchos otros deportes.
         </p>
 
       </div>
@@ -716,26 +750,26 @@
         <div class="facts">
 
           <div class="fact">
-            <strong>Position Before Submission</strong>
+            <strong>Footwork Comes First</strong>
             <span>
-              Reliable finishes usually come after control, pressure, and
-              positional advantage have already been established.
+              Effective boxing begins with balance and movement, not simply
+              punching power.
             </span>
           </div>
 
           <div class="fact">
-            <strong>Many Traditions, One Discipline</strong>
+            <strong>It Is an Olympic Sport</strong>
             <span>
-              Modern no-gi grappling draws useful ideas from wrestling, catch,
-              jiu-jitsu, sambo, and other systems.
+              Boxing has been part of the modern Olympic program for more
+              than a century.
             </span>
           </div>
 
           <div class="fact">
-            <strong>Safety Depends on Trust</strong>
+            <strong>It Helps Other Athletes</strong>
             <span>
-              Every athlete must apply technique with control and respect every
-              tap immediately.
+              Athletes use boxing training to improve coordination, reaction
+              speed, conditioning, and confidence.
             </span>
           </div>
 
@@ -759,26 +793,26 @@
         <div class="facts">
 
           <div class="fact">
-            <strong>Posición Antes De La Sumisión</strong>
+            <strong>El Juego De Pies Es Primero</strong>
             <span>
-              Las finalizaciones confiables normalmente aparecen después de
-              establecer control, presión y ventaja posicional.
+              El boxeo eficaz comienza con equilibrio y movimiento, no
+              solamente con poder de golpeo.
             </span>
           </div>
 
           <div class="fact">
-            <strong>Muchas Tradiciones, Una Disciplina</strong>
+            <strong>Es Un Deporte Olímpico</strong>
             <span>
-              El grappling moderno sin gi integra ideas útiles de lucha, catch,
-              jiu-jitsu, sambo y otros sistemas.
+              El boxeo ha formado parte del programa olímpico moderno durante
+              más de un siglo.
             </span>
           </div>
 
           <div class="fact">
-            <strong>La Seguridad Depende De La Confianza</strong>
+            <strong>Ayuda A Otros Atletas</strong>
             <span>
-              Cada atleta debe aplicar técnica con control y respetar
-              inmediatamente cada rendición.
+              Los atletas utilizan el boxeo para mejorar coordinación,
+              reacción, acondicionamiento y confianza.
             </span>
           </div>
 
@@ -793,27 +827,36 @@
       <article class="card">
 
         <div data-lang-block="en">
+
           <h2>Technical Skills</h2>
+
           <ul>
-            <li>Wrestling-based takedowns and takedown defense</li>
-            <li>Scrambling and transitional control</li>
-            <li>Guard retention and guard passing</li>
-            <li>Top pressure and positional advancement</li>
-            <li>Escapes, reversals, and defensive recovery</li>
-            <li>Chokes, joint locks, and submission chains</li>
+            <li>Stance and balance</li>
+            <li>Footwork and movement</li>
+            <li>Guard and defensive position</li>
+            <li>Distance management</li>
+            <li>Controlled punching fundamentals</li>
+            <li>Combinations and timing</li>
           </ul>
+
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
           <h2>Habilidades Técnicas</h2>
+
           <ul>
-            <li>Derribos basados en lucha y defensa de derribos</li>
-            <li>Scrambles y control durante transiciones</li>
-            <li>Retención y pase de guardia</li>
-            <li>Presión superior y avance posicional</li>
-            <li>Escapes, reversiones y recuperación defensiva</li>
-            <li>Estrangulaciones, llaves articulares y cadenas de sumisión</li>
+            <li>Postura y equilibrio</li>
+            <li>Juego de pies y movimiento</li>
+            <li>Guardia y posición defensiva</li>
+            <li>Manejo de distancia</li>
+            <li>Fundamentos controlados de golpeo</li>
+            <li>Combinaciones y ritmo</li>
           </ul>
+
         </div>
 
       </article>
@@ -821,27 +864,36 @@
       <article class="card">
 
         <div data-lang-block="en">
+
           <h2>Physical Development</h2>
+
           <ul>
-            <li>Grip and positional strength</li>
-            <li>Mobility and body control</li>
-            <li>Balance and base</li>
-            <li>Conditioning and work capacity</li>
-            <li>Pressure endurance</li>
-            <li>Durability and recovery habits</li>
+            <li>Coordination</li>
+            <li>Agility</li>
+            <li>Balance</li>
+            <li>Reaction speed</li>
+            <li>Conditioning</li>
+            <li>Body awareness</li>
           </ul>
+
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
           <h2>Desarrollo Físico</h2>
+
           <ul>
-            <li>Fuerza de agarre y fuerza posicional</li>
-            <li>Movilidad y control corporal</li>
-            <li>Equilibrio y base</li>
-            <li>Acondicionamiento y capacidad de trabajo</li>
-            <li>Resistencia bajo presión</li>
-            <li>Durabilidad y hábitos de recuperación</li>
+            <li>Coordinación</li>
+            <li>Agilidad</li>
+            <li>Equilibrio</li>
+            <li>Velocidad de reacción</li>
+            <li>Acondicionamiento</li>
+            <li>Conciencia corporal</li>
           </ul>
+
         </div>
 
       </article>
@@ -849,27 +901,36 @@
       <article class="card">
 
         <div data-lang-block="en">
+
           <h2>Character Development</h2>
+
           <ul>
-            <li>Patience</li>
-            <li>Composure</li>
-            <li>Humility</li>
+            <li>Confidence</li>
+            <li>Discipline</li>
+            <li>Respect</li>
+            <li>Self-control</li>
+            <li>Resilience</li>
             <li>Accountability</li>
-            <li>Trust</li>
-            <li>Leadership</li>
           </ul>
+
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
           <h2>Desarrollo Del Carácter</h2>
+
           <ul>
-            <li>Paciencia</li>
-            <li>Compostura</li>
-            <li>Humildad</li>
-            <li>Responsabilidad</li>
             <li>Confianza</li>
-            <li>Liderazgo</li>
+            <li>Disciplina</li>
+            <li>Respeto</li>
+            <li>Autocontrol</li>
+            <li>Resiliencia</li>
+            <li>Responsabilidad</li>
           </ul>
+
         </div>
 
       </article>
@@ -877,27 +938,36 @@
       <article class="card">
 
         <div data-lang-block="en">
+
           <h2>Training Focus</h2>
+
           <ul>
-            <li>Technical drilling and sequence development</li>
-            <li>Position-based live rounds</li>
-            <li>Standing-to-ground transitions</li>
-            <li>Submission offense and defense</li>
-            <li>Situational sparring and problem-solving</li>
-            <li>Competition preparation and tactical review</li>
+            <li>Movement games</li>
+            <li>Shadowboxing</li>
+            <li>Bag work</li>
+            <li>Mitt work</li>
+            <li>Defensive drills</li>
+            <li>Controlled partner exercises</li>
           </ul>
+
         </div>
 
-        <div data-lang-block="es" class="hidden-lang">
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+
           <h2>Enfoque Del Entrenamiento</h2>
+
           <ul>
-            <li>Repetición técnica y desarrollo de secuencias</li>
-            <li>Rounds en vivo basados en posiciones</li>
-            <li>Transiciones de pie al suelo</li>
-            <li>Ofensiva y defensa de sumisiones</li>
-            <li>Sparring situacional y resolución de problemas</li>
-            <li>Preparación competitiva y revisión táctica</li>
+            <li>Juegos de movimiento</li>
+            <li>Boxeo de sombra</li>
+            <li>Trabajo de saco</li>
+            <li>Trabajo de manoplas</li>
+            <li>Ejercicios defensivos</li>
+            <li>Ejercicios controlados con compañeros</li>
           </ul>
+
         </div>
 
       </article>
@@ -909,12 +979,10 @@
       <div class="visual-heading">
 
         <div data-lang-block="en">
-          <h2>Quest2Mastery Progression</h2>
+          <h2>Road2Champion™ Badge Path</h2>
           <p>
-            Athletes advance from Apprentice to Master through consistent
-            training, technical depth, positional awareness, live application,
-            testing, competition experience, leadership, and demonstrated
-            growth in Combat, Strength, and Honor.
+            Athletes advance from Shadow to Champion through earned experience,
+            testing, consistency, and demonstrated growth.
           </p>
         </div>
 
@@ -922,12 +990,10 @@
           data-lang-block="es"
           class="hidden-lang"
         >
-          <h2>Progresión Quest2Mastery</h2>
+          <h2>Camino De Insignias Road2Champion™</h2>
           <p>
-            Los atletas avanzan de Apprentice a Master mediante entrenamiento
-            constante, profundidad técnica, conciencia posicional, aplicación
-            en vivo, pruebas, experiencia competitiva, liderazgo y crecimiento
-            demostrado en Combate, Fuerza y Honor.
+            Los atletas avanzan de Shadow a Champion mediante experiencia,
+            evaluación, constancia y crecimiento demostrado.
           </p>
         </div>
 
@@ -938,8 +1004,8 @@
 <section class="progression-top">
   <figure>
     <img
-      src="/assets/images/programs/shirt-progression/quest2mastery-submission-grappling-shirt-progression.png"
-      alt="Quest2Mastery Submission Grappling progression from Apprentice to Master"
+      src="/assets/images/programs/shirt-progression/road2champion-boxing-shirt-progression.png"
+      alt="Road2Champion™ Boxing shirt progression from Shadow to Champion"
     />
   </figure>
 </section>
@@ -953,14 +1019,14 @@
         </p>
 
         <h2 class="section-title">
-          Who Is Submission Grappling For?
+          Who Is Boxing For?
         </h2>
 
         <p>
-          Quest2Mastery Submission Grappling is designed for athletes ages 16
-          and older who want complete no-gi grappling development, deeper
-          positional understanding, structured competition preparation,
-          stronger tactical awareness, and a long-term path toward mastery.
+          Road2Champion™ Boxing can serve first-time athletes, energetic young
+          people, multi-sport athletes, future competitors, and children who
+          need a structured way to build confidence, coordination, focus,
+          physical fitness, and self-control.
         </p>
 
       </div>
@@ -975,44 +1041,45 @@
         </p>
 
         <h2 class="section-title">
-          ¿Para Quién Es El Grappling De Sumisión?
+          ¿Para Quién Es El Boxeo?
         </h2>
 
         <p>
-          Grappling de Sumisión Quest2Mastery está diseñado para atletas de 16
-          años en adelante que buscan desarrollo completo sin gi, comprensión
-          posicional más profunda, preparación estructurada para competir,
-          mayor conciencia táctica y un camino a largo plazo hacia la maestría.
+          Boxeo Road2Champion™ puede beneficiar a atletas principiantes, jóvenes
+          con mucha energía, atletas de varios deportes, futuros competidores
+          y niños que necesitan una manera estructurada de desarrollar
+          confianza, coordinación, concentración, condición física y autocontrol.
         </p>
 
       </div>
 
     </section>
+
+
 <section class="marketing-connect-cta">
 
   <div data-lang-block="en">
-    <h2>Ready to Begin Submission Grappling?</h2>
+    <h2>Ready to Begin Boxing?</h2>
 
     <p>
-      Build complete no-gi grappling through takedowns, positional control,
-      escapes, transitions, submissions, and disciplined live training.
+      Give your child a safe, structured place to develop movement,
+      confidence, discipline, defensive awareness, and self-control.
     </p>
 
-    <a class="journeys-cta-button" href="/connect/interest/">
+    <a class="journeys-cta-button" href="/locations/elk-grove/connect.html">
       Connect With Us
     </a>
   </div>
 
   <div data-lang-block="es" class="hidden-lang">
-    <h2>¿Listo para Comenzar Grappling de Sumisión?</h2>
+    <h2>¿Listo para Comenzar Boxeo?</h2>
 
     <p>
-      Desarrolla grappling completo sin gi mediante derribos, control
-      posicional, escapes, transiciones, sumisiones y entrenamiento
-      disciplinado en vivo.
+      Bríndale a tu hijo un lugar seguro y estructurado para desarrollar
+      movimiento, confianza, disciplina, conciencia defensiva y autocontrol.
     </p>
 
-    <a class="journeys-cta-button" href="/connect/interest/">
+    <a class="journeys-cta-button" href="/locations/elk-grove/connect.html">
       Conéctate con Nosotros
     </a>
   </div>
@@ -1021,19 +1088,20 @@
     <div class="quote">
 
       <span data-lang-block="en">
-        <strong>Mastery begins with control.</strong>
-        Secure the position. Respect the tap. Earn every transition.
+        <strong>Every hero begins in the shadows.</strong>
+        Start at zero. Learn with discipline. Earn every step.
       </span>
 
       <span
         data-lang-block="es"
         class="hidden-lang"
       >
-        <strong>La maestría comienza con el control.</strong>
-        Asegura la posición. Respeta la rendición. Gana cada transición.
+        <strong>Cada héroe comienza en las sombras.</strong>
+        Comienza desde cero. Aprende con disciplina. Gana cada paso.
       </span>
 
     </div>
+
 
   </main>
 

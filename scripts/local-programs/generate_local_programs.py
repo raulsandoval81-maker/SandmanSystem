@@ -14,6 +14,7 @@ LIBRARY = (
 
 LOCATIONS = ROOT / "public" / "locations"
 PUBLIC = ROOT / "public"
+PROGRAM_FAMILY = "zero2hero"
 
 
 # =========================================================
@@ -24,11 +25,11 @@ ACADEMIES = {
     "santa-ynez-valley": {
         "name": "Santa Ynez Valley",
         "name_es": "Valle de Santa Ynez",
-        "connect_url":
-            "/connect/interest/?academy=sandman&location=santa-ynez-valley",
+        "connect_url": "/locations/santa-ynez-valley/connect.html",
+        "discipline_palette": "gold-cream",
 
         "programs": {
-            "zero2hero": [
+            "road2champion": [
                 "wrestling",
                 "muay-thai",
             ],
@@ -36,6 +37,11 @@ ACADEMIES = {
                 "wrestling",
                 "boxing",
             ],
+            "quest2mastery": [],
+        },
+        "activated_programs": {
+            "road2champion": ["wrestling", "muay-thai"],
+            "path2legend": ["wrestling", "boxing"],
             "quest2mastery": [],
         },
 
@@ -56,16 +62,21 @@ ACADEMIES = {
     "lompoc": {
         "name": "Lompoc",
         "name_es": "Lompoc",
-        "connect_url":
-            "/connect/interest/?academy=sandman&location=lompoc",
+        "connect_url": "/locations/lompoc/connect.html",
+        "discipline_palette": "navy-ivory",
 
         "programs": {
-            "zero2hero": [
+            "road2champion": [
                 "wrestling",
             ],
             "path2legend": [
                 "wrestling",
             ],
+            "quest2mastery": [],
+        },
+        "activated_programs": {
+            "road2champion": ["wrestling"],
+            "path2legend": ["wrestling"],
             "quest2mastery": [],
         },
 
@@ -86,11 +97,17 @@ ACADEMIES = {
     "elk-grove": {
         "name": "Elk Grove",
         "name_es": "Elk Grove",
-        "connect_url":
-            "/connect/interest/?academy=sandman&location=elk-grove",
+        "connect_url": "/locations/elk-grove/connect.html",
+        "discipline_palette": "navy-ivory",
+        "cta_label_overrides": {
+            ("road2champion", "boxing"): {
+                "en": "Connect With Us",
+                "es": "Conéctate con Nosotros",
+            },
+        },
 
         "programs": {
-            "zero2hero": [
+            "road2champion": [
                 "boxing",
                 "wrestling",
                 "muay-thai",
@@ -104,6 +121,11 @@ ACADEMIES = {
                 "mma",
                 "submission-grappling",
             ],
+        },
+        "activated_programs": {
+            "road2champion": ["boxing"],
+            "path2legend": ["boxing"],
+            "quest2mastery": [],
         },
 
         "fitness": {
@@ -125,7 +147,7 @@ ACADEMIES = {
 # LOCALIZATION
 # =========================================================
 
-def localize_html(html, academy):
+def localize_html(html, academy, journey, discipline):
     name = academy["name"]
     name_es = academy["name_es"]
     connect_url = academy["connect_url"]
@@ -164,6 +186,19 @@ def localize_html(html, academy):
         "Conéctate con Nuestra Academia",
     )
 
+    cta_override = academy.get("cta_label_overrides", {}).get(
+        (journey, discipline)
+    )
+    if cta_override:
+        html = html.replace(
+            "Connect With Our Academy",
+            cta_override["en"],
+        )
+        html = html.replace(
+            "Conéctate con Nuestra Academia",
+            cta_override["es"],
+        )
+
     # Journey / age / location metadata is intentionally
     # not repeated as a visible progression eyebrow.
     # The discipline page already establishes local context.
@@ -199,7 +234,7 @@ def localize_html(html, academy):
 
 
 JOURNEY_META = {
-    "zero2hero": {
+    "road2champion": {
         "label": "Road2Champion™",
         "family": "Sandman Zero2Hero™ Programs",
         "age_en": "Ages 7–13",
@@ -226,14 +261,24 @@ SOURCE_FILE_ALIASES = {
 }
 
 
+# Canonical journey keys are independent of legacy library directory names.
+# Road2Champion continues to read the established zero2hero source directory
+# until a separate source-tree migration is approved.
+SOURCE_JOURNEY_DIRS = {
+    "road2champion": "zero2hero",
+    "path2legend": "path2legend",
+    "quest2mastery": "quest2mastery",
+}
+
+
 PROGRESSION_ASSETS = {
-    ("zero2hero", "boxing"):
+    ("road2champion", "boxing"):
         "/assets/images/programs/shirt-progression/"
         "road2champion-boxing-shirt-progression.png",
-    ("zero2hero", "muay-thai"):
+    ("road2champion", "muay-thai"):
         "/assets/images/programs/shirt-progression/"
         "road2champion-muay-thai-shirt-progression.png",
-    ("zero2hero", "wrestling"):
+    ("road2champion", "wrestling"):
         "/assets/images/programs/shirt-progression/"
         "road2champion-wrestling-shirt-progression.png",
     ("path2legend", "boxing"):
@@ -259,7 +304,10 @@ def source_path_for(journey, discipline):
         (journey, discipline),
         discipline,
     )
-    return LIBRARY / journey / f"{source_slug}.html"
+    source_journey = SOURCE_JOURNEY_DIRS.get(journey)
+    if not source_journey:
+        return LIBRARY / "__unknown_journey__" / f"{source_slug}.html"
+    return LIBRARY / source_journey / f"{source_slug}.html"
 
 
 def validate_generation_sources():
@@ -269,6 +317,13 @@ def validate_generation_sources():
 
     for location_slug, academy in ACADEMIES.items():
         programs = academy.get("programs", {})
+        activated_programs = academy.get("activated_programs", {})
+
+        if set(activated_programs) != set(programs):
+            errors.append(
+                f"{location_slug}: activated journey keys must match "
+                "configured journey keys"
+            )
 
         for journey, disciplines in programs.items():
             if journey not in JOURNEY_META:
@@ -322,6 +377,20 @@ def validate_generation_sources():
                         f"{journey}/{discipline}: source does not use "
                         f"canonical progression asset: {expected_asset}"
                     )
+
+            activated_disciplines = activated_programs.get(journey, [])
+            if len(activated_disciplines) != len(set(activated_disciplines)):
+                errors.append(
+                    f"{location_slug}/{journey}: duplicate activated "
+                    "discipline slug"
+                )
+
+            unsupported = set(activated_disciplines) - set(disciplines)
+            if unsupported:
+                errors.append(
+                    f"{location_slug}/{journey}: activated disciplines "
+                    f"not configured: {sorted(unsupported)}"
+                )
 
     unused_aliases = set(SOURCE_FILE_ALIASES) - configured_pairs
     for journey, discipline in sorted(unused_aliases):
@@ -448,8 +517,43 @@ def polish_local_program_html(
     return html
 
 
+def preserve_approved_live_palette(html, academy, journey):
+    """Apply the approved location discipline palette without redesigning it."""
+    if academy.get("discipline_palette") != "navy-ivory":
+        return html
+
+    replacements = {
+        "border-color:#b89447;": "border-color:#d7c7a2;",
+        "#f7f1e5 0%,\n          #e8dcc3 100%":
+            "#ffffff 0%,\n          #f3e7cf 100%",
+        "background:#f8f3e9;": "background:#ffffff;",
+        "box-shadow:0 10px 24px rgba(0,0,0,.12);":
+            "box-shadow:0 8px 18px rgba(0,0,0,.08);",
+        "background:#f4ecdc;": "background:#ffffff;",
+    }
+
+    if journey == "road2champion":
+        replacements.update({
+            "border:1px solid rgba(212,175,55,.22);":
+                "border:1px solid #263244;",
+            "circle at center top,\n          rgba(212,175,55,.17),\n"
+            "          transparent 44%":
+                "circle at top right,\n          rgba(220,38,38,.16),\n"
+                "          transparent 38%",
+            "#101010 0%,\n          #050505 100%":
+                "#1f2937 0%,\n          #111827 100%",
+        })
+
+    for current, approved in replacements.items():
+        html = html.replace(current, approved)
+
+    return html
+
+
 def install_local_interior_shell(html, slug):
-    """Replace the legacy discipline header with the local interior shell."""
+    """Install the local interior shell from canonical or legacy sources."""
+    had_legacy_shell = "journey-minimal-header" in html
+
     html, css_count = re.subn(
         r'\n/\*\s*=+\s*\n\s*MINIMAL JOURNEY HEADER.*?'
         r'(?=\n\s*</style>)',
@@ -464,19 +568,34 @@ def install_local_interior_shell(html, slug):
   data-component="/locations/{slug}/components/navigation.html"
 ></div>'''
 
-    html, header_count = re.subn(
-        r'<header class="journey-minimal-header">.*?</header>',
-        navigation,
-        html,
-        count=1,
-        flags=re.I | re.S,
-    )
-
-    if css_count != 1 or header_count != 1:
-        raise RuntimeError(
-            f"STOP: legacy discipline shell mismatch for {slug}; "
-            f"css={css_count}, header={header_count}"
+    if had_legacy_shell:
+        html, header_count = re.subn(
+            r'<header class="journey-minimal-header">.*?</header>',
+            navigation,
+            html,
+            count=1,
+            flags=re.I | re.S,
         )
+
+        if css_count != 1 or header_count != 1:
+            raise RuntimeError(
+                f"STOP: legacy discipline shell mismatch for {slug}; "
+                f"css={css_count}, header={header_count}"
+            )
+    else:
+        html, body_count = re.subn(
+            r'(<body(?:\s[^>]*)?>)',
+            rf'\1\n\n{navigation}',
+            html,
+            count=1,
+            flags=re.I,
+        )
+
+        if css_count != 0 or body_count != 1:
+            raise RuntimeError(
+                f"STOP: canonical discipline shell mismatch for {slug}; "
+                f"css={css_count}, body={body_count}"
+            )
 
     if "journey-minimal-header" in html:
         raise RuntimeError(
@@ -593,11 +712,11 @@ def add_local_rally_responsive_css(html):
 
 
 def generate_location(slug, academy):
-    location_root = LOCATIONS / slug / "programs"
+    location_root = LOCATIONS / slug / "programs" / PROGRAM_FAMILY
 
     print(f"\n===== {academy['name']} =====")
 
-    for journey, disciplines in academy["programs"].items():
+    for journey, disciplines in academy["activated_programs"].items():
 
         if not disciplines:
             print(f"— {journey}: none")
@@ -622,6 +741,14 @@ def generate_location(slug, academy):
             html = localize_html(
                 html,
                 academy,
+                journey,
+                discipline,
+            )
+
+            html = preserve_approved_live_palette(
+                html,
+                academy,
+                journey,
             )
 
             html = install_local_interior_shell(
@@ -996,7 +1123,11 @@ if __name__ == "__main__":
 #   TRAINING FOCUS
 #
 #   JOURNEY PROGRESSION
-#     Zero2Hero / Path2Legend / Quest2Mastery
+#     Road2Champion / Path2Legend / Quest2Mastery
+#
+#     Road2Champion is the explicit youth journey key. ``zero2hero`` is the
+#     program-family key and established compatibility route segment. Sandman
+#     Zero2Hero Programs is the academy-wide program family.
 #     progression explanation
 #     shirt / rank progression PNG
 #
