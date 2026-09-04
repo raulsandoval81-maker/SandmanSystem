@@ -315,3 +315,99 @@ tbody tr:hover{ background: rgba(255,214,51,.055); }
   th:nth-child(3), td:nth-child(3){ display:none; }
   .session-bar{ flex-direction:column; }
 }
+
+/* Shared Coach shell integration. Competition internals remain intentionally dense. */
+.coach-shell-page{
+  background:var(--coach-shell-page-bg);
+  color:var(--coach-shell-text);
+}
+
+.arena-xp-page.wrap{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0;
+}
+
+.arena-xp-page h1{color:var(--coach-shell-gold)}
+.arena-xp-page .creed{
+  border-color:rgba(181,43,47,.28);
+  background:linear-gradient(90deg,rgba(181,43,47,.15),transparent);
+}
+.arena-xp-page .card{
+  background:var(--coach-shell-panel);
+  border-color:var(--coach-shell-line);
+}
+.arena-xp-page .step{
+  border-color:var(--coach-shell-line);
+  background:rgba(255,255,255,.025);
+}
+.arena-xp-page .step-num{color:var(--coach-shell-bright-gold)}
+
+html[data-theme="light"] .arena-xp-page{
+  --text:#181818;
+  --muted:#66645e;
+  --gold:#8a6b12;
+  --gold2:#8a6b12;
+  color:#181818;
+}
+html[data-theme="light"] .arena-xp-page h1{text-shadow:none}
+html[data-theme="light"] .arena-xp-page .creed{
+  color:#3c302d;
+  box-shadow:none;
+}
+html[data-theme="light"] .arena-xp-page .card{
+  box-shadow:0 14px 32px rgba(0,0,0,.09);
+}
+html[data-theme="light"] .arena-xp-page .step{background:#f8f2e7}
+html[data-theme="light"] .arena-xp-page .step-title,
+html[data-theme="light"] .arena-xp-page th{color:#3d3b36}
+html[data-theme="light"] .arena-xp-page .step-num{
+  border-color:rgba(181,43,47,.25);
+  background:#181818;
+}
+html[data-theme="light"] .arena-xp-page .input,
+html[data-theme="light"] .arena-xp-page .select{
+  border-color:rgba(8,8,8,.18);
+  background:#fffaf0;
+  color:#181818;
+  box-shadow:none;
+}
+html[data-theme="light"] .arena-xp-page .btn-ghost{
+  border-color:rgba(8,8,8,.18);
+  background:#fffaf0;
+  color:#181818;
+  box-shadow:none;
+}
+html[data-theme="light"] .arena-xp-page .btn-style{background:#232323}
+html[data-theme="light"] .arena-xp-page .session-bar{
+  border-color:rgba(8,8,8,.14);
+  background:#eee8dc;
+  color:#181818;
+}
+html[data-theme="light"] .arena-xp-page .session-pill{
+  border-color:rgba(8,8,8,.14);
+  background:#fffaf0;
+}
+html[data-theme="light"] .arena-xp-page .table-wrap{
+  border-color:rgba(8,8,8,.14);
+  box-shadow:0 12px 28px rgba(0,0,0,.08);
+}
+html[data-theme="light"] .arena-xp-page table{background:#fffaf0}
+html[data-theme="light"] .arena-xp-page thead th{
+  border-color:rgba(8,8,8,.12);
+  background:#181818;
+  color:#f2ead8;
+}
+html[data-theme="light"] .arena-xp-page th,
+html[data-theme="light"] .arena-xp-page td{border-color:rgba(8,8,8,.08)}
+html[data-theme="light"] .arena-xp-page tbody tr:nth-child(even){background:rgba(8,8,8,.025)}
+html[data-theme="light"] .arena-xp-page tbody tr:hover{background:rgba(212,175,55,.1)}
+
+@media (max-width:700px){
+  .arena-xp-page .input,
+  .arena-xp-page .select{min-width:0;max-width:100%;width:100%}
+  .arena-xp-page .row{min-width:0}
+  .arena-xp-page .btn{max-width:100%}
+  .arena-xp-page .table-wrap{max-width:100%}
+}

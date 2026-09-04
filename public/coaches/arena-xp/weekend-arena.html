@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Coach · XP Weekend Arena</title>
 
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+
   <!-- Canon console styles -->
   <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
-  <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css" />
+  <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css?v=2" />
   <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
 
   <!-- Shared mini belt bar -->
@@ -15,12 +17,8 @@
   <link rel="icon" href="data:,">
 </head>
 
-<body>
-<main class="wrap">
-  <nav class="top-nav">
-    <a class="pill" href="/coaches/roster/index.html">Team Roster</a>
-    <a class="pill" href="/coaches/coach-notes.html">Coach Notes</a>
-  </nav>
+<body class="coach-shell-page" data-coach-page="Weekend Arena" data-coach-area="competition">
+<main class="wrap arena-xp-page" data-coach-shell-content>
 
   <h1>XP Weekend Event Arena</h1>
 <div class="creed">Arena = Battle + Podium + Match IQ + Sportsmanship. Clean receipts. No guessing.</div>
@@ -154,6 +152,7 @@
   </section>
 </main>
 
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 <script type="module" src="/coaches/arena-xp/weekend-arena.js"></script>
 </body>
 </html>

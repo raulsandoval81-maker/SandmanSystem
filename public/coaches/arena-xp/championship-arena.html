@@ -5,21 +5,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Coach · XP Championship Event Arena</title>
 
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+
   <!-- Canon console styles -->
   <link rel="stylesheet" href="/coaches/_ui/steps-shell.css" />
-  <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css" />
+  <link rel="stylesheet" href="/coaches/arena-xp/weekend-arena.css?v=2" />
   <link rel="stylesheet" href="/coaches/_ui/console-ui.css" />
 <link rel="icon" href="data:,">
   <!-- Mini belt bar -->
    <link rel="stylesheet" href="/assets/css/belts.css" />
 </head>
 
-<body>
-<main class="wrap">
-  <nav class="top-nav">
-    <a class="pill" href="/coaches/index.html">Coach Index</a>
-    <a class="pill" href="/coaches/roster.html">Team Roster</a>
-  </nav>
+<body class="coach-shell-page" data-coach-page="Championship Arena" data-coach-area="competition">
+<main class="wrap arena-xp-page" data-coach-shell-content>
 
   <h1>XP Championship Event Arena</h1>
   <div class="creed">Championship results are cumulative. Arena remains Battle + Podium + Style/IQ.</div>
@@ -149,6 +147,7 @@
   </section>
 </main>
 
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 <script type="module" src="/coaches/arena-xp/championship-arena.js"></script>
 </body>
 </html>

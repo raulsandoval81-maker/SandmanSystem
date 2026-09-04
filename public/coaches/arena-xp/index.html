@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Arena XP | Sandman</title>
 
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+
   <style>
     :root{
-      color-scheme:dark;
       --bg:#06080d;
       --panel:#0f141b;
       --card:#0b1017;
@@ -20,18 +21,7 @@
 
     *{box-sizing:border-box}
 
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-
-    .wrap{
-      max-width:1100px;
-      margin:0 auto;
-      padding:28px 16px 64px;
-    }
+    .arena-xp-launcher.wrap{max-width:none;margin:0;padding:0}
 
     .hero{
       background:var(--panel);
@@ -52,30 +42,6 @@
       margin:8px 0 0;
       color:var(--muted);
       font-size:.9rem;
-    }
-
-    .topnav{
-      display:flex;
-      justify-content:center;
-      gap:10px;
-      flex-wrap:wrap;
-      margin-top:16px;
-    }
-
-    .pill{
-      border:1px solid var(--line);
-      border-radius:999px;
-      padding:.55rem 1rem;
-      font-weight:900;
-      font-size:.8rem;
-      text-decoration:none;
-      color:var(--text);
-      background:var(--card);
-    }
-
-    .pill.primary{
-      background:var(--red);
-      border-color:var(--red);
     }
 
     .grid{
@@ -114,20 +80,29 @@
       font-size:.86rem;
       line-height:1.45;
     }
+
+    html[data-theme="light"] .arena-xp-launcher{
+      --panel:#fffaf0;
+      --card:#fffaf0;
+      --line:rgba(8,8,8,.14);
+      --text:#181818;
+      --muted:#66645e;
+      --gold:#8a6b12;
+      --red:#b52b2f;
+    }
+
+    html[data-theme="light"] .arena-xp-launcher .hero,
+    html[data-theme="light"] .arena-xp-launcher .card{box-shadow:0 14px 30px rgba(0,0,0,.08)}
   </style>
 </head>
 
-<body>
-<main class="wrap">
+<body class="coach-shell-page" data-coach-page="Arena XP" data-coach-area="competition">
+<main class="wrap arena-xp-launcher" data-coach-shell-content>
 
   <header class="hero">
     <h1>Arena XP</h1>
     <p>Competition formats, scoring systems, and arena-based XP tools.</p>
 
-    <nav class="topnav">
-      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
-      <a class="pill" href="/coaches/index.html">Daily Tools</a>
-    </nav>
   </header>
 
   <section class="grid">
@@ -155,5 +130,6 @@
   </section>
 
 </main>
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>
