@@ -2,7 +2,6 @@
 
 import {
   db,
-  ensureSignedIn,
   collection,
   getDocs,
   doc,
@@ -13,8 +12,14 @@ import {
 
 import { XP_URL } from "/assets/js/coach-endpoints.js";
 import { resolveLaneSubmissionIdentity } from "/assets/js/athlete-lane-context.js";
+import { coachLoginUrl, requireCoach } from "/assets/js/coach-guard.js";
 
-await ensureSignedIn();
+try {
+  await requireCoach();
+} catch (error) {
+  window.location.replace(coachLoginUrl());
+  throw error;
+}
 
 const container = document.getElementById("submissions-container");
 const requestContainer = document.getElementById("remote-requests-container");

@@ -5,6 +5,7 @@
   <title>Coaches › Coach Notes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="../../assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
   <style>
     .wrap { max-width:1100px; margin:0 auto; padding:18px; display:grid; grid-template-columns:260px 1fr; gap:16px; }
     @media(max-width:900px){ .wrap{ grid-template-columns:1fr; } }
@@ -24,15 +25,8 @@
     .crumbs{ color:#9fb0c8; font-size:.9rem; margin-bottom:.5rem; }
   </style>
 </head>
-<body>
-  <header class="system-header" style="background:#0f0f0f;border-bottom:2px solid #FFD700;padding:16px 20px;">
-    <div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;">
-      <span style="color:#FFD700;font-weight:800;letter-spacing:1.2px;font-size:1.2rem;text-transform:uppercase;">Sandman Combat System™</span>
-      <span style="color:#bbb;font-weight:600;">Coaches</span>
-    </div>
-  </header>
-
-  <main class="wrap">
+<body class="coach-shell-page" data-coach-page="Coach Notes" data-coach-area="tools">
+  <main class="wrap" data-coach-shell-content>
     <aside class="rail">
       <h3>Coach Notes</h3>
       <a class="active" href="/coaches/notes/index.html">Composer</a>
@@ -62,5 +56,6 @@
   </main>
 
   <script src="../../assets/js/coach-notes.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>

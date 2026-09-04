@@ -98,15 +98,16 @@ function setCardBusy(safeId, busy = true, message = "Working…") {
   if (msgEl) msgEl.textContent = busy ? message : "";
 }
 
-async function awardXp({ athleteId, amount, note = "", meta = {} }) {
+async function awardXp({ athleteId, primaryLane = "strength", amount, note = "", meta = {} }) {
+  const awardLane = String(primaryLane).toLowerCase() === "honor" ? "honor" : "strength";
   const payload = {
     uid: athleteId,
-    kind: "STRENGTH",
+    kind: awardLane.toUpperCase(),
     amount: Number(amount) || 0,
     lane: "conditioning",
     meta: {
       lane: "conditioning",
-      source: "lane-review",
+      source: awardLane === "honor" ? "honor_lane_review" : "lane-review",
       note: note || "",
       ...meta,
     },
@@ -166,7 +167,8 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
   await setDoc(historyRef, {
     athleteId,
     athleteName: athleteName || "",
-    lane: "conditioning",
+    lane: entry?.primaryLane || "conditioning",
+    assignmentLane: "conditioning",
     track: entry?.track || "",
     segmentId: entry?.segmentId || "segment1",
     segment: 1,
@@ -203,6 +205,12 @@ async function writeLaneHistory({ athleteId, athleteName, key, entry, coachNote 
 function renderRequestCard({ athleteId, athleteName, req, assignment }) {
   const safeId = keySafe(`${athleteId}__conditioning_request`);
   const currentPreset = String(assignment?.presetId || "").trim();
+  const youthAssignment = /^F8[_-]/i.test(athleteId);
+  const primaryLane = String(assignment?.primaryLane || "strength").toLowerCase();
+  const strengthMinutes = Number.isInteger(Number(assignment?.strengthMinutes))
+    ? Number(assignment.strengthMinutes) : 18;
+  const honorMinutes = Number.isInteger(Number(assignment?.honorMinutes))
+    ? Number(assignment.honorMinutes) : 12;
 
   return `
     <div
@@ -246,6 +254,27 @@ function renderRequestCard({ athleteId, athleteName, req, assignment }) {
           </select>
         </label>
 
+        ${youthAssignment ? `
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;">
+            <label style="display:grid;gap:4px;">
+              <span style="opacity:.75;font-size:.9rem;">Primary XP lane</span>
+              <select id="primary_${safeId}" style="padding:.65rem;border-radius:10px;border:1px solid #27304a;background:#0b1017;color:#e8eef7;">
+                <option value="strength" ${primaryLane === "strength" ? "selected" : ""}>Strength (+5)</option>
+                <option value="honor" ${primaryLane === "honor" ? "selected" : ""}>Honor (+5)</option>
+              </select>
+            </label>
+            <label style="display:grid;gap:4px;">
+              <span style="opacity:.75;font-size:.9rem;">Strength minutes</span>
+              <input id="strength_minutes_${safeId}" type="number" min="0" max="30" step="1" value="${esc(String(strengthMinutes))}" style="padding:.65rem;border-radius:10px;border:1px solid #27304a;background:#0b1017;color:#e8eef7;">
+            </label>
+            <label style="display:grid;gap:4px;">
+              <span style="opacity:.75;font-size:.9rem;">Honor minutes</span>
+              <input id="honor_minutes_${safeId}" type="number" min="0" max="30" step="1" value="${esc(String(honorMinutes))}" style="padding:.65rem;border-radius:10px;border:1px solid #27304a;background:#0b1017;color:#e8eef7;">
+            </label>
+          </div>
+          <div style="opacity:.72;font-size:.85rem;">Combined maximum: 30 minutes. Only the declared primary lane receives +5 XP.</div>
+        ` : ""}
+
         <label style="display:grid;gap:4px;">
           <span style="opacity:.75;font-size:.9rem;">Coach note</span>
           <textarea
@@ -286,6 +315,7 @@ function renderCard({ athleteId, athleteName, key, entry }) {
   const safeId = keySafe(`${athleteId}__${key}`);
   const sessionN = Number(entry?.sessionN || 0);
   const track = String(entry?.track || "").toUpperCase();
+  const primaryLane = String(entry?.primaryLane || "strength").toLowerCase();
 
   return `
     <div
@@ -304,6 +334,7 @@ function renderCard({ athleteId, athleteName, key, entry }) {
           ${badge(status)}
           <span style="opacity:.75;font-size:.85rem;">${esc(track)} · Session ${esc(String(sessionN || "?"))}</span>
           <span style="opacity:.75;font-size:.85rem;">${esc(entry?.level || "")}</span>
+          ${track === "F8" && entry?.assignmentId ? `<span style="opacity:.75;font-size:.85rem;">Primary: ${esc(primaryLane)} · ${esc(String(entry?.strengthMinutes || 0))}/${esc(String(entry?.honorMinutes || 0))} min · +5 only</span>` : ""}
           ${awardLocked ? `<span style="opacity:.75;font-size:.85rem;">XP: +${awardedXp}</span>` : ""}
         </div>
         <div style="opacity:.7;font-size:.9rem;">Submitted: ${esc(submittedAt)}</div>
@@ -431,6 +462,32 @@ function wireRequestButtons() {
             return;
           }
 
+          const youthAssignment = /^F8[_-]/i.test(athleteId);
+          const primaryLane = youthAssignment
+            ? String(document.getElementById(`primary_${safeId}`)?.value || "").toLowerCase()
+            : "strength";
+          const strengthMinutes = youthAssignment
+            ? Number(document.getElementById(`strength_minutes_${safeId}`)?.value)
+            : null;
+          const honorMinutes = youthAssignment
+            ? Number(document.getElementById(`honor_minutes_${safeId}`)?.value)
+            : null;
+          const totalMinutes = youthAssignment ? strengthMinutes + honorMinutes : null;
+
+          if (youthAssignment && (
+            !["strength", "honor"].includes(primaryLane)
+            || !Number.isInteger(strengthMinutes)
+            || !Number.isInteger(honorMinutes)
+            || strengthMinutes < 0
+            || honorMinutes < 0
+            || totalMinutes < 1
+            || totalMinutes > 30
+            || (primaryLane === "strength" ? strengthMinutes : honorMinutes) < 1
+          )) {
+            if (msgEl) msgEl.textContent = "Choose a primary lane with time assigned and keep the combined assignment at 30 minutes or less.";
+            return;
+          }
+
           await updateDoc(ref, {
             conditioning_assignment: {
               status: "assigned",
@@ -441,6 +498,14 @@ function wireRequestButtons() {
               sourceSessionN: Number(req?.sourceSessionN || 0),
               presetId,
               note: coachNote || "Optional support only. Iron day must still be made up.",
+              ...(youthAssignment ? {
+                assignmentId: `youth-strength-honor:${athleteId}:${Date.now()}`,
+                primaryLane,
+                strengthMinutes,
+                honorMinutes,
+                totalMinutes,
+                rewardXp: 5,
+              } : {}),
             },
             "conditioning_request.status": "assigned",
             "conditioning_request.assignedAt": serverTimestamp(),
@@ -529,8 +594,9 @@ async function loadSubmissions() {
 
             await awardXp({
               athleteId,
+              primaryLane: String(currentEntry?.primaryLane || "strength"),
               amount: amt,
-              note: coachNote || "Conditioning (+5)",
+              note: coachNote || `${String(currentEntry?.primaryLane || "strength").toLowerCase() === "honor" ? "Honor" : "Strength"} assignment (+5)`,
               meta: {
                 lane: "conditioning",
                 track: currentEntry?.track || "",

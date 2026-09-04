@@ -61,6 +61,39 @@ test("Strength and Honor card context and XP stay lane-specific", () => {
   assert.equal(coachLaneRowModel({ athleteId: "A", athlete: { fullName: "Jordan" }, strength, honor }).action, "none");
 });
 
+test("identical segment/session identities remain isolated by lane", () => {
+  const old = "2026-01-01T18:00:00Z";
+  const honorOnly = Object.fromEntries(Array.from({ length: 39 }, (_, index) => {
+    const sessionN = index + 1;
+    return [`HON-${String(sessionN).padStart(3, "0")}`, {
+      lane: "honor", segmentId: "segment1", sessionN, status: "closed", closedAt: old,
+    }];
+  }));
+  const strengthFromHonor = laneDashboardModel({
+    lane: "strength", segmentId: "segment1", sessions, submissions: honorOnly,
+    now: "2026-02-01T18:00:00Z",
+  });
+  assert.equal(strengthFromHonor.missionN, 1);
+  assert.equal(strengthFromHonor.status, "active");
+
+  const strengthOnly = {
+    "STR-001": { lane: "strength", segmentId: "segment1", sessionN: 1, status: "closed", closedAt: old },
+  };
+  const honorFromStrength = laneDashboardModel({
+    lane: "honor", segmentId: "segment1", sessions, submissions: strengthOnly,
+    now: "2026-02-01T18:00:00Z",
+  });
+  assert.equal(honorFromStrength.missionN, 1);
+  assert.equal(honorFromStrength.status, "active");
+
+  const sameSession = {
+    "STR-001": { lane: "strength", segmentId: "segment1", sessionN: 1, status: "pending" },
+    "HON-001": { lane: "honor", segmentId: "segment1", sessionN: 1, status: "needs_revision" },
+  };
+  assert.equal(laneDashboardModel({ lane: "strength", segmentId: "segment1", sessions, submissions: sameSession }).status, "pending");
+  assert.equal(laneDashboardModel({ lane: "honor", segmentId: "segment1", sessions, submissions: sameSession }).status, "revision");
+});
+
 test("Coach scope supports location, multiple locations, assignment, Admin, and explicit legacy output", () => {
   const coach = { uid: "coach-1", scope: { locationIds: ["lompoc", "elk-grove"] } };
   assert.equal(classifyCoachAthleteScope(coach, { locationId: "elk-grove" }).included, true);
