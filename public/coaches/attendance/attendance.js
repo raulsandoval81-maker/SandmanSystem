@@ -4,11 +4,13 @@ import {
   getDocs,
   getDoc,
   doc,
+  query,
+  where,
   updateDoc,
   serverTimestamp,
-  arrayUnion,
-  ensureSignedIn
+  arrayUnion
 } from "/assets/js/firebase-init.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
@@ -21,6 +23,13 @@ let selectedIds = new Set();
 let pendingSessionRef = null;
 let pendingSessionId = null;
 let pendingSession = null;
+
+function setReviewControlsEnabled(enabled) {
+  ["selectAll", "clearAll", "saveAttendance"].forEach((id) => {
+    const control = $(id);
+    if (control) control.disabled = !enabled;
+  });
+}
 
 function athleteName(a = {}) {
   return a.name || a.publicName || a.fullName || a.uid || a.id || "Unknown athlete";
@@ -52,6 +61,78 @@ function updatePresentCount() {
 
 function selectedProgram() {
   return String($("practiceType")?.value || "").toLowerCase();
+}
+
+function timestampMillis(raw) {
+  if (!raw) return 0;
+  if (typeof raw.toMillis === "function") return raw.toMillis();
+  if (typeof raw.toDate === "function") return raw.toDate().getTime();
+  if (Number.isFinite(raw.seconds)) return raw.seconds * 1000;
+  const parsed = new Date(raw).getTime();
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function pendingSortValue(docSnap) {
+  const data = docSnap.data() || {};
+  return timestampMillis(data.submittedAt) || timestampMillis(data.updatedAt) || timestampMillis(data.createdAt);
+}
+
+function clearPendingSession() {
+  pendingSessionRef = null;
+  pendingSessionId = null;
+  pendingSession = null;
+  reviewAthletes = [];
+  selectedIds.clear();
+  if ($("practiceType")) $("practiceType").value = "—";
+  setReviewControlsEnabled(false);
+}
+
+function renderPendingChoices(pendingDocs) {
+  const list = $("athleteList");
+  const meta = $("countMeta");
+  if (meta) meta.textContent = `${pendingDocs.length} sessions awaiting review`;
+  if (!list) return;
+
+  list.replaceChildren();
+  const message = document.createElement("p");
+  message.className = "muted";
+  message.textContent = "Choose the attendance session you intend to finalize:";
+  list.append(message);
+
+  const choices = document.createElement("div");
+  choices.className = "pending-session-list";
+  pendingDocs.forEach((docSnap) => {
+    const data = docSnap.data() || {};
+    const link = document.createElement("a");
+    link.className = "pending-session-link";
+    link.href = `?session=${encodeURIComponent(docSnap.id)}`;
+    const date = data.sessionDateLabel || data.sessionDateKey || "Undated session";
+    const type = data.type || data.journey || "practice";
+    const count = Number(data.checkedInCount || data.checkedIn?.length || 0);
+    link.textContent = `${date} · ${type} · ${count} checked in`;
+    choices.append(link);
+  });
+  list.append(choices);
+}
+
+function loadSessionDocument(pickedDoc) {
+  pendingSessionRef = pickedDoc.ref;
+  pendingSessionId = pickedDoc.id;
+  pendingSession = pickedDoc.data() || {};
+
+  reviewAthletes = Array.isArray(pendingSession.checkedIn) ? pendingSession.checkedIn : [];
+  selectedIds = new Set(reviewAthletes.map((a) => a.id || a.uid).filter(Boolean));
+
+  const journey = String(pendingSession.journey || pendingSession.type || "")
+    .split("-")[0]
+    .toLowerCase();
+  if ($("practiceType")) $("practiceType").value = journey || "—";
+
+  renderAthletes();
+  setReviewControlsEnabled(true);
+
+  const dateLabel = pendingSession.sessionDateLabel || pendingSession.sessionDateKey || todayLabel();
+  setStatus(`Review loaded: ${dateLabel} · ${selectedIds.size} checked-in athlete(s). Uncheck anyone who was not present.`);
 }
 
 function renderAthletes() {
@@ -109,81 +190,57 @@ function renderAthletes() {
 
 
 async function loadPendingSession() {
-  await ensureSignedIn();
+  setReviewControlsEnabled(false);
+  await requireCoach();
 
   setStatus("Loading pending attendance…");
 
-  const snap = await getDocs(collection(db, "attendance_sessions"));
+  const requestedSessionId = new URLSearchParams(window.location.search).get("session")?.trim() || "";
+  if (requestedSessionId) {
+    if (requestedSessionId.includes("/")) {
+      clearPendingSession();
+      renderAthletes();
+      setStatus("The requested attendance session ID is invalid.", true);
+      return;
+    }
 
-  console.log("[attendance] ALL sessions found:", snap.size);
+    const requestedSnap = await getDoc(doc(db, "attendance_sessions", requestedSessionId));
+    if (!requestedSnap.exists()) {
+      clearPendingSession();
+      renderAthletes();
+      setStatus("The requested attendance session was not found.", true);
+      return;
+    }
+    if (requestedSnap.data()?.status !== "pending_review") {
+      clearPendingSession();
+      renderAthletes();
+      setStatus("The requested attendance session is not awaiting Coach review.", true);
+      return;
+    }
 
-  const pendingDocs = snap.docs.filter((d) => {
-    const data = d.data() || {};
-    return data.status === "pending_review";
-  });
+    loadSessionDocument(requestedSnap);
+    return;
+  }
 
-  console.log(
-    "[attendance] pending docs:",
-    pendingDocs.map((d) => ({
-      id: d.id,
-      ...d.data()
-    }))
-  );
+  const snap = await getDocs(query(collection(db, "attendance_sessions"), where("status", "==", "pending_review")));
+  const pendingDocs = [...snap.docs].sort((a, b) => pendingSortValue(b) - pendingSortValue(a) || a.id.localeCompare(b.id));
 
   if (!pendingDocs.length) {
-    pendingSessionRef = null;
-    pendingSessionId = null;
-    pendingSession = null;
-    reviewAthletes = [];
-    selectedIds.clear();
-
+    clearPendingSession();
     renderAthletes();
     setStatus("No pending session ready to finalize.");
     return;
   }
 
-  const pickedDoc = pendingDocs[0];
-
-  pendingSessionRef = pickedDoc.ref;
-  pendingSessionId = pickedDoc.id;
-  pendingSession = pickedDoc.data() || {};
-
-  reviewAthletes = Array.isArray(pendingSession.checkedIn)
-    ? pendingSession.checkedIn
-    : [];
-
-  selectedIds = new Set(
-    reviewAthletes
-      .map((a) => a.id || a.uid)
-      .filter(Boolean)
-  );
-
-  const journey = String(pendingSession.journey || pendingSession.type || "")
-    .split("-")[0]
-    .toLowerCase();
-
-  if (journey && $("practiceType")) {
-    $("practiceType").value = journey;
+  if (pendingDocs.length > 1) {
+    clearPendingSession();
+    renderPendingChoices(pendingDocs);
+    updatePresentCount();
+    setStatus("Multiple attendance sessions are awaiting review. Choose the exact session before finalizing.", true);
+    return;
   }
 
-  if ($("coachName") && pendingSession.coach) {
-    $("coachName").value = pendingSession.coach;
-  }
-
-  if ($("practiceNotes") && pendingSession.notes) {
-    $("practiceNotes").value = pendingSession.notes;
-  }
-
-  renderAthletes();
-
-  const dateLabel =
-    pendingSession.sessionDateLabel ||
-    pendingSession.sessionDateKey ||
-    todayLabel();
-
-  setStatus(
-    `Review loaded: ${dateLabel} · ${selectedIds.size} checked-in athlete(s). Uncheck anyone who was not present.`
-  );
+  loadSessionDocument(pendingDocs[0]);
 }
 
 function selectedAthletesPayload() {
@@ -338,18 +395,14 @@ async function saveAttendance() {
 
     setStatus(`Attendance finalized for ${present.length} athlete(s). Ready for Daily Grind.`);
 
-    pendingSessionRef = null;
-    pendingSessionId = null;
-    pendingSession = null;
-    reviewAthletes = [];
-    selectedIds.clear();
+    clearPendingSession();
 
     renderAthletes();
   } catch (error) {
     console.error("[attendance] finalize failed", error);
     setStatus("Attendance finalize failed. Check console.", true);
   } finally {
-    if (saveBtn) saveBtn.disabled = false;
+    if (saveBtn) saveBtn.disabled = !pendingSessionRef;
   }
 }
 
@@ -373,6 +426,14 @@ function bindEvents() {
 bindEvents();
 
 loadPendingSession().catch((err) => {
-  console.error("[attendance] init failed", err);
-  setStatus("Attendance failed to load. Check console.", true);
+  clearPendingSession();
+  renderAthletes();
+  const authFailure = /authentication|required|staff|coach access|profile is not active/i.test(String(err?.message || ""));
+  if (!authFailure) console.error("[attendance] init failed", err);
+  setStatus(
+    authFailure
+      ? "Coach authentication is required to review or finalize attendance. Sign in through Coach access and try again."
+      : "Attendance failed to load. No attendance changes were made.",
+    true
+  );
 });

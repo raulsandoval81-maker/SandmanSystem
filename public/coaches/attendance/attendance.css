@@ -1,281 +1,125 @@
-.wrap{
-  max-width:1100px;
+:root{
+  --attendance-bg:#0b1120;
+  --attendance-panel:#0f172a;
+  --attendance-surface:rgba(255,255,255,.045);
+  --attendance-line:rgba(255,255,255,.12);
+  --attendance-text:#f7f7f5;
+  --attendance-muted:#9ca3af;
+  --attendance-gold:#d4af37;
+  --attendance-danger:#ff8a8a;
+}
+
+html[data-theme="light"]{
+  --attendance-bg:var(--coach-shell-page-bg,#eee8dc);
+  --attendance-panel:var(--coach-shell-panel,#fffaf0);
+  --attendance-surface:rgba(8,8,8,.035);
+  --attendance-line:rgba(8,8,8,.13);
+  --attendance-text:#181818;
+  --attendance-muted:#66645e;
+  --attendance-danger:#a52228;
+}
+
+.attendance-checkin{min-height:100vh;margin:0;background:var(--attendance-bg)}
+.attendance-page{
+  width:min(920px,calc(100% - 36px));
+  min-height:100vh;
   margin:0 auto;
-  padding:32px 18px 80px;
+  padding:24px 0 72px;
+  color:var(--attendance-text);
+  font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
 }
 
-.attendance-header{
-  display:flex;
-  justify-content:space-between;
-  gap:20px;
-  align-items:flex-start;
-  margin-bottom:24px;
-}
+.coach-shell__main > .attendance-page{width:100%;min-height:0;padding:0}
+.attendance-page *{box-sizing:border-box}
+.attendance-page .attendance-header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:20px}
+.attendance-page .attendance-header h1{margin:0 0 6px;color:var(--attendance-gold);font-size:clamp(1.6rem,3vw,2.1rem)}
+.attendance-page .attendance-header p{margin:0}
+.attendance-page .top-nav{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
 
-.attendance-header h1{
-  margin:0 0 6px;
-}
-
-.top-nav{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  justify-content:flex-end;
-}
-
-.card,
-.setup-card,
-.toolbar-card,
-.roster-card{
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.045);
+.attendance-page .card,
+.attendance-page .setup-card,
+.attendance-page .toolbar-card,
+.attendance-page .roster-card,
+.attendance-page .attendance-card{
+  margin:0 0 16px;
+  padding:16px;
+  border:1px solid var(--attendance-line);
   border-radius:18px;
-  padding:18px;
-  margin-bottom:16px;
+  background:var(--attendance-panel);
 }
 
-.field-grid{
-  display:grid;
-  grid-template-columns:repeat(3,minmax(0,1fr));
-  gap:14px;
-}
-
-label{
-  display:grid;
-  gap:7px;
-  font-weight:700;
-}
-
-select,
-input,
-textarea{
+.attendance-page .attendance-card h2{margin-top:0}
+.attendance-page .session-date{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--attendance-line)}
+.attendance-page .session-date .label{color:var(--attendance-muted);font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.07em}
+.attendance-page .session-date .value{font-weight:900}
+.attendance-page label{display:grid;gap:6px;margin-bottom:14px;font-weight:700}
+.attendance-page select,
+.attendance-page input,
+.attendance-page textarea{
   width:100%;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.14);
-  background:#0b0f18;
-  color:#fff;
+  min-height:44px;
   padding:11px 12px;
+  border:1px solid var(--attendance-line);
+  border-radius:12px;
+  background:var(--attendance-bg);
+  color:var(--attendance-text);
   font:inherit;
 }
-
-textarea{
-  resize:vertical;
-}
-
-.notes-label{
-  margin-top:14px;
-}
-
-.toolbar-card{
-  display:flex;
-  justify-content:space-between;
-  gap:16px;
+.attendance-page textarea{min-height:92px;resize:vertical}
+.attendance-page input[readonly]{background:var(--attendance-surface);color:var(--attendance-muted);cursor:default}
+.attendance-page button,
+.attendance-page .pill,
+.attendance-page .pending-session-link{
+  display:inline-flex;
+  min-height:42px;
   align-items:center;
-}
-
-.action-row{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-}
-
-.pill.primary{
-  background:#fff;
-  color:#050505;
-  border-color:#fff;
-}
-
-.pill:disabled{
-  opacity:.55;
-  cursor:not-allowed;
-}
-
-.section-head{
-  display:flex;
-  justify-content:space-between;
-  gap:12px;
-  align-items:center;
-  margin-bottom:14px;
-}
-
-.section-head h2{
-  margin:0;
-}
-
-.athlete-list{
-  display:grid;
-  gap:10px;
-}
-
-.athlete-row{
-  display:flex;
-  grid-template-columns:auto 1fr;
-  align-items:center;
-  gap:12px;
-  padding:13px 14px;
-  border:1px solid rgba(255,255,255,.1);
-  border-radius:14px;
-  background:rgba(0,0,0,.18);
+  justify-content:center;
+  padding:9px 14px;
+  border:1px solid var(--attendance-line);
+  border-radius:999px;
+  background:var(--attendance-surface);
+  color:var(--attendance-text);
+  font:inherit;
+  font-weight:800;
+  text-decoration:none;
   cursor:pointer;
 }
+.attendance-page button:hover,
+.attendance-page .pill:hover,
+.attendance-page .pending-session-link:hover{border-color:var(--attendance-gold)}
+.attendance-page .pill.primary,
+.attendance-page .primary{border-color:var(--attendance-gold);background:var(--attendance-gold);color:#080808}
+.attendance-page button:disabled,
+.attendance-page .pill:disabled{opacity:.5;cursor:not-allowed}
+.attendance-page .toolbar-card{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.attendance-page .action-row{display:flex;flex-wrap:wrap;gap:10px}
+.attendance-page .save-meta{text-align:right}
+.attendance-page .save-meta p{margin:4px 0 0}
+.attendance-page .section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.attendance-page .section-head h2{margin:0}
+.attendance-page .athlete-list,
+.attendance-page #athleteList,
+.attendance-page #checkedList,
+.attendance-page .pending-session-list{display:grid;gap:10px}
+.attendance-page .athlete-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--attendance-line);border-radius:14px;background:var(--attendance-surface)}
+.attendance-page label.athlete-row{grid-template-columns:auto 1fr;justify-content:initial;margin:0;cursor:pointer}
+.attendance-page .athlete-row:hover{border-color:rgba(212,175,55,.35)}
+.attendance-page .athlete-row input{width:20px;min-height:20px;height:20px;margin:0;accent-color:var(--attendance-gold)}
+.attendance-page .athlete-main{display:grid;min-width:0;flex:1;gap:3px}
+.attendance-page .checkin-btn,
+.attendance-page .remove-checkin-btn{flex:0 0 auto;white-space:nowrap}
+.attendance-page .muted{color:var(--attendance-muted);font-size:.9rem}
+.attendance-page .pending-session-link{justify-content:flex-start;border-radius:12px;text-align:left}
 
-.athlete-row:hover{
-  background:rgba(255,255,255,.07);
-}
-
-.athlete-row input{
-  width:20px;
-  height:20px;
-  accent-color:#fff;
-}
-
-.athlete-main{
-  display:grid;
-  gap:3px;
-}
-
-.muted{
-  opacity:.72;
-}
-
-@media (max-width:760px){
-  .attendance-header{
-    display:block;
-  }
-
-  .top-nav{
-    justify-content:flex-start;
-    margin-top:14px;
-  }
-
-  .field-grid{
-    grid-template-columns:1fr;
-  }
-
-  .toolbar-card{
-    display:block;
-  }
-
-  .action-row{
-    margin-bottom:12px;
-  }
-}
-.athlete-row{
-  display:flex;
-  align-items:center;
-  gap:12px;
-}
-
-.athlete-main{
-  flex:1;
-}
-
-.athlete-status{
-  margin-left:auto;
-}
-/* Session Check-In cleanup */
-
-.wrap {
-  max-width: 920px;
-  margin: 0 auto;
-  padding: 20px;
-}
-
-.card,
-.toolbar-card,
-.setup-card {
-  background: rgba(15, 23, 42, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-  padding: 16px;
-  margin: 14px 0;
-}
-
-.field-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-
-label {
-  display: grid;
-  gap: 6px;
-  font-weight: 700;
-}
-
-select,
-input,
-textarea {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(2, 6, 23, 0.8);
-  color: #fff;
-  padding: 12px;
-}
-
-.action-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.pill,
-button {
-  border: 0;
-  border-radius: 999px;
-  padding: 10px 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
-.primary {
-  background: #facc15;
-  color: #111827;
-}
-
-.athlete-list {
-  display: grid;
-  gap: 10px;
-}
-
-.athlete-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.055);
-}
-
-.athlete-main {
-  display: grid;
-  gap: 3px;
-}
-
-.checkin-btn,
-.remove-checkin-btn {
-  white-space: nowrap;
-}
-
-.muted {
-  color: #9ca3af;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 720px) {
-  .field-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .athlete-row {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .checkin-btn,
-  .remove-checkin-btn {
-    width: 100%;
-  }
+@media(max-width:720px){
+  .attendance-page{width:calc(100% - 20px);padding:14px 0 48px}
+  .coach-shell__main > .attendance-page{width:100%;padding:0}
+  .attendance-page .attendance-header{display:block}
+  .attendance-page .top-nav{justify-content:flex-start;margin-top:14px}
+  .attendance-page .toolbar-card{display:block}
+  .attendance-page .action-row{margin-bottom:12px}
+  .attendance-page .save-meta{text-align:left}
+  .attendance-page .athlete-row:not(label){align-items:stretch;flex-direction:column}
+  .attendance-page .checkin-btn,
+  .attendance-page .remove-checkin-btn{width:100%}
 }
