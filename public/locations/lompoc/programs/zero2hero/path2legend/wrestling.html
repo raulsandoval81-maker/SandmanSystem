@@ -15,7 +15,6 @@
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/public.css" />
 <style>
 
     *{
@@ -39,9 +38,16 @@
     }
 
     main{
-      width:min(1050px,calc(100% - 40px));
-      margin:0 auto;
-      padding:40px 0 80px;
+      width:100%;
+      margin:0;
+      padding:40px 20px 80px;
+      overflow:hidden;
+    }
+
+    main > *{
+      width:min(1050px,100%);
+      margin-left:auto;
+      margin-right:auto;
     }
 
     .hidden-lang{
