@@ -852,109 +852,6 @@ body.clock-mode .clock-toggle{
   padding: 8px 14px;
   font-weight: 800;
   min-width: 150px;
-}.clipboard-topbar {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  gap: 16px;
-
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
-}.topbar-left {
-  display: flex;
-  align-items: center;
-}
-
-.topbar-center {
-  text-align: center;
-}
-
-.topbar-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}.topbar-left {
-  display: flex;
-  align-items: center;
-}
-
-.topbar-center {
-  text-align: center;
-}
-
-.topbar-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}.runbar-main {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}.clipboard-topbar {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  align-items: center;
-  padding: 0 16px;
-}.topbar-center {
-  text-align: center;
-}.topbar-right {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 8px;
-}.topbar-right {
-  justify-content: flex-start;
-}/* =========================
-   HEADER / TOPBAR (FIXED)
-========================= */
-
-.page-header{
-  position:relative;
-}
-
-/* 3-zone layout: left / center / right */
-.clipboard-topbar{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  align-items:center;
-  gap:16px;
-
-  padding:10px 16px;
-  border-bottom:1px solid var(--line);
-}
-
-/* LEFT: runbar anchor */
-.topbar-left{
-  display:flex;
-  align-items:center;
-}
-
-/* CENTER: title */
-.topbar-center{
-  text-align:center;
-}
-
-/* RIGHT: utility (icon stays in, not edge-floating) */
-.topbar-right{
-  display:flex;
-  align-items:center;
-  justify-content:flex-start; /* pulls it inward */
-  gap:8px;
-}
-
-/* kill absolute positioning completely */
-.theme-icon-btn{
-  position:relative; /* <-- this fixes your issue */
-  width:38px;
-  height:38px;
-  border-radius:999px;
-  border:1px solid var(--line);
-  background:var(--panel);
-  color:var(--text);
-  display:grid;
-  place-items:center;
-  font-size:16px;
-  cursor:pointer;
 }
 
 /* =========================
@@ -1075,6 +972,7 @@ body.clock-mode .clock-toggle{
   padding:0 10px;
 
   font-size:.82rem;
+}
 /* =========================
    LIVE SESSION ACTIONS
 ========================= */
@@ -1171,7 +1069,6 @@ body.clock-mode .clock-toggle{
 .hidden{
   display:none !important;
 }
-}
 .footer-actions{
   display:flex;
   flex-wrap:wrap;
@@ -1220,31 +1117,6 @@ body.clock-mode .clock-toggle{
 
 .footer-actions button:last-child:hover{
   background:#dc2626;
-}.live-links{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:18px;
-}
-
-.live-link-btn{
-  min-height:38px;
-  padding:.55rem .95rem;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.12);
-  background:rgba(255,255,255,.05);
-  color:#fff;
-  font-size:.78rem;
-  font-weight:900;
-  letter-spacing:.04em;
-  text-transform:uppercase;
-  cursor:pointer;
-}
-
-.live-link-btn.primary{
-  background:var(--gold);
-  color:#080b14;
-  border-color:var(--gold);
 }
 .page-header{
   text-align:center;
@@ -1331,4 +1203,85 @@ body.clock-mode .clock-toggle{
 /* TOGGLE */
 .theme-icon-btn{
   position:relative;
+}
+
+/* Clipboard status restored for the active editor surface. */
+.clipboard-status-bar{
+  display:grid;
+  grid-template-columns:auto 1fr auto;
+  align-items:center;
+  gap:12px;
+  margin:10px 0;
+  padding:9px 12px;
+  border:1px solid var(--line);
+  border-radius:11px;
+  background:var(--panel);
+}
+
+.back-builder-link{
+  color:var(--text);
+  font-size:.78rem;
+  font-weight:800;
+  text-decoration:none;
+}
+
+.duration-status{
+  justify-self:center;
+  font-size:.82rem;
+  font-weight:900;
+}
+
+.duration-status.exact{color:#22c55e}
+.duration-status.under{color:var(--gold)}
+.duration-status.over{color:var(--red)}
+
+@media (max-width:720px){
+  .clipboard-topbar{
+    min-height:54px;
+    padding-left:52px;
+    padding-right:52px;
+  }
+
+  .clipboard-status-bar{
+    grid-template-columns:1fr auto;
+  }
+
+  .duration-status{
+    justify-self:end;
+    text-align:right;
+  }
+
+  #saveStatus{
+    grid-column:1 / -1;
+  }
+
+  .block-head-row{
+    flex-wrap:wrap;
+    align-items:flex-start;
+  }
+
+  .sw-head{
+    flex:1 1 100%;
+    max-width:none;
+  }
+
+  .block-tools{
+    width:100%;
+    flex-wrap:wrap;
+    justify-content:flex-end;
+  }
+
+  .move-btn{
+    width:40px;
+    min-width:40px;
+    min-height:40px;
+    padding:0;
+  }
+
+  .plan-block,
+  .slot,
+  .slot-cards{
+    min-width:0;
+    max-width:100%;
+  }
 }

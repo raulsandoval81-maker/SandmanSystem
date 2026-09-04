@@ -3,268 +3,89 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <title>Session Builder</title>
-
-  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
+  <link rel="stylesheet" href="/coaches/execution/session-builder/session-builder.css?v=3">
   <link rel="icon" href="data:,">
 </head>
-
-<body>
-
-<main class="wrap">
-
-  <section class="hero">
-
-    <h1>Session Builder</h1>
-
-    <p class="sub">
-      Build the session shell, choose the room, then send it into Clipboard 2.0.
-    </p>
-
-    <div class="hero-session-types">
-
-      <button class="session-card" data-schema="quick-45">
-        <span class="title">Quick · 45 min · Combat Session</span>
-        <span class="desc">Single-focus fast session.</span>
-      </button>
-
-      <button class="session-card active" data-schema="standard-60">
-        <span class="title"> Standard · 60 min · Combat Class </span>
-        <span class="desc">Balanced room structure.</span>
-      </button>
-
-
-      <button class="session-card" data-schema="elite-90">
-        <span class="title">Advanced · 90 min · Combat Class</span>
-        <span class="desc">Advanced live training.</span>
-      </button>
-
-      <button class="session-card" data-schema="extended-120">
-        <span class="title">Extended · 120 min · Combat Class</span>
-        <span class="desc">Full competition room.</span>
-      </button>
-
-            <button class="session-card" data-schema="fitness-striking-60">
-        <span class="title">Standard · 60 min · Striking Fitness</span>
-        <span class="desc">Fitness &amp; Self-Defense.</span>
-      </button>
-
-
+<body class="coach-shell-page" data-coach-page="Session Builder" data-coach-area="practice">
+<main class="dashboard-wrap" data-coach-shell-content>
+  <header class="dashboard-header">
+    <div>
+      <h1>Session Builder</h1>
+      <p>Plan the shell. Build the practice in Clipboard.</p>
     </div>
+    <div class="room-context" aria-live="polite"><span>Current room</span><strong id="currentRoomLabel">Lompoc Mat 1</strong></div>
+  </header>
 
+  <div id="dashboardNotice" class="dashboard-notice" hidden></div>
+
+  <section class="dashboard-section current-session-section">
+    <div class="section-heading compact-heading"><div><span class="eyebrow">Current session</span><h2>Unfinished work</h2></div></div>
+    <div id="draftEmpty" class="empty-state">No unfinished session found. Start a new session below.</div>
+    <article id="draftCard" class="draft-card" hidden>
+      <div class="draft-card-main">
+        <div class="draft-title-row">
+          <div><span id="draftLifecycle" class="status-pill">Editing</span><h3 id="draftTitle">—</h3></div>
+          <span id="draftUpdated" class="draft-updated">—</span>
+        </div>
+        <p id="draftIdentity" class="draft-identity">—</p>
+        <div id="draftMetrics" class="draft-metrics">—</div>
+      </div>
+      <div class="draft-actions">
+        <a id="continueDraftBtn" class="primary-action" href="/coaches/execution/clipboard-2.0/">Continue in Practice Clipboard</a>
+        <button id="discardDraftBtn" class="secondary-button danger" type="button">Discard Draft</button>
+      </div>
+    </article>
   </section>
 
-  <section class="panel">
-
-    <h2>Execution Mode</h2>
-
-    <div class="mode-row">
-
-      <button class="mode-btn" data-mode="manual">
-        Manual
-      </button>
-
-      <button class="mode-btn active" data-mode="hybrid">
-        Hybrid
-      </button>
-
-      <button class="mode-btn" data-mode="auto">
-        Auto Later
-      </button>
-
+  <section class="dashboard-section new-session-section">
+    <div class="section-heading"><div><span class="eyebrow">Start new</span><h2>Choose a session shell</h2></div></div>
+    <div class="session-shells" aria-label="Session shell">
+      <button class="session-card" type="button" data-schema="quick-45" aria-pressed="false"><span class="shell-name">Quick</span><strong>45 min</strong><span>Single focus</span></button>
+      <button class="session-card active" type="button" data-schema="standard-60" aria-pressed="true"><span class="shell-name">Standard</span><strong>60 min</strong><span>Balanced combat</span></button>
+      <button class="session-card" type="button" data-schema="elite-90" aria-pressed="false"><span class="shell-name">Advanced</span><strong>90 min</strong><span>Advanced live work</span></button>
+      <button class="session-card" type="button" data-schema="extended-120" aria-pressed="false"><span class="shell-name">Extended</span><strong>120 min</strong><span>Competition room</span></button>
+      <button class="session-card" type="button" data-schema="fitness-striking-60" aria-pressed="false"><span class="shell-name">Fitness</span><strong>60 min</strong><span>Striking fitness</span></button>
     </div>
 
-    <h2>Live Room</h2>
-
-    <div class="mode-row">
-
-      <button class="mode-btn active" data-session-id="lompoc-mat-1">
-        Lompoc Mat 1
-      </button>
-
-      <button class="mode-btn" data-session-id="solvang-mat-1">
-        Solvang Mat 1
-      </button>
-
-    </div>
-
-    <h2>Program Identity</h2>
-
-    <div class="program-wrap">
-
-      <div class="program-label">
-        Active Program
+    <div class="configuration-layout">
+      <div class="details-panel">
+        <div class="field"><label for="roomSelect">Room</label><select id="roomSelect" class="dashboard-select"><option value="lompoc-mat-1">Lompoc Mat 1</option><option value="solvang-mat-1">Solvang Mat 1</option></select></div>
+        <div class="field"><label for="disciplineSelect">Program</label>
+          <select id="disciplineSelect" class="dashboard-select">
+            <option value="">Select Program</option>
+            <optgroup label="MANUAL BUILD"><option value="manual-build" data-foundry="Manual" data-track="Manual Build" data-journey="MANUAL" data-discipline="Coach Built" data-tier="">Manual Coach Build</option></optgroup>
+            <optgroup label="Youth · Road2Champion · Ages 7–13"><option value="youth-z2h-wrestling" data-foundry="Foundry 8" data-track="Foundry 8" data-journey="Z2H" data-discipline="Wrestling" data-tier="T0">Road2Champion Wrestling</option></optgroup>
+            <optgroup label="Teen · Path2Legend · Ages 14+"><option value="teen-p2l-wrestling" data-foundry="Foundry 4" data-track="Foundry 4" data-journey="P2L" data-discipline="Wrestling" data-tier="T0">Path2Legend Wrestling</option><option value="teen-p2l-boxing" data-foundry="Foundry 4" data-track="Foundry 4" data-journey="P2L" data-discipline="Boxing" data-tier="T0">Path2Legend Boxing</option></optgroup>
+            <optgroup label="Adult · Quest2Mastery · Ages 16+"><option value="adult-q2m-mma" data-foundry="Foundry 4" data-track="Foundry 4" data-journey="Q2M" data-discipline="MMA" data-tier="T0">Quest2Mastery MMA</option></optgroup>
+            <optgroup label="Teen/Adult Fitness · Ages 12+"><option value="fitness-striking" data-foundry="Fitness" data-track="Fitness" data-journey="" data-discipline="Striking" data-tier="">Striking Fitness · Self-Defense</option></optgroup>
+          </select>
+        </div>
+        <div class="field" id="rankField"><label for="rankSelect">Rank / Tier</label><select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select></div>
+        <div class="field" id="weekField"><label for="weekSelect">Training Week</label><select id="weekSelect" class="dashboard-select"><option value="">Select Week</option></select></div>
+        <fieldset class="field mode-field" id="modeField"><legend>Planning Mode</legend><div class="mode-row"><button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true">Hybrid</button><button class="mode-btn" type="button" data-mode="manual" aria-pressed="false">Manual</button></div></fieldset>
+        <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
       </div>
 
-      <select id="disciplineSelect" class="mode-select">
-
-        <option value="">
-          Select Program
-        </option>
-
-        optgroup label="MANUAL BUILD">
-    <option
-      value="manual-build"
-      data-foundry="Manual"
-      data-track="Manual Build"
-      data-journey="MANUAL"
-      data-discipline="Coach Built"
-      data-tier="MANUAL">
-      Manual Coach Build
-    </option>
-  </optgroup>
-
-
-
-        <optgroup label="Youth · Combat 6+">
-
-          <option
-            value="youth-z2h-wrestling"
-            data-foundry="Foundry 8"
-            data-track="Foundry 8"
-            data-journey="Z2H"
-            data-discipline="Wrestling"
-            data-tier="T0">
-            Z2H Wrestling
-          </option>
-
-        </optgroup>
-
-        <optgroup label="Teen · Combat  14+">
-
-          <option
-            value="teen-p2l-wrestling"
-            data-foundry="Foundry 4"
-            data-track="Foundry 4"
-            data-journey="P2L"
-            data-discipline="Wrestling"
-            data-tier="T0">
-            P2L Wrestling
-          </option>
-
-        </optgroup>
-
-        <optgroup label="Teen/Adult · Combat 14+">
-
-          <option
-            value="teen-p2l-boxing"
-            data-foundry="Foundry 4"
-            data-track="Foundry 4"
-            data-journey="P2L"
-            data-discipline="Boxing"
-            data-tier="T0">
-            P2L Boxing
-          </option>
-
-        </optgroup>
-
-        <optgroup label="Adult · Combat 16+">
-
-          <option
-            value="adult-q2m-mma"
-            data-foundry="Foundry 4"
-            data-track="Foundry 4"
-            data-journey="Q2M"
-            data-discipline="MMA"
-            data-tier="T1">
-            Q2M MMA
-          </option>
-
-        </optgroup>
-
-        <optgroup label="Teen/Adult Fitness 12+">
-
-  <option
-    value="fitness-striking"
-    data-foundry="Fitness"
-    data-track="Fitness"
-    data-journey=""
-    data-discipline="Striking"
-    data-tier="">
-     Striking Fitness  Self-defense
-  </option>
-
-</optgroup>
-
-      </select>
-
-      <div class="program-label">
-        Tier / Rank
-      </div>
-
-      <select id="rankSelect" class="mode-select">
-        <option value="">Select Program First</option>
-      </select>
-
+      <aside class="selection-summary" aria-live="polite">
+        <span class="eyebrow">Current selection</span><h3 id="summaryShell">Standard Combat · 60 min</h3>
+        <dl>
+          <div><dt>Room</dt><dd id="summaryRoom">Lompoc Mat 1</dd></div>
+          <div><dt>Program</dt><dd id="summaryProgram">Select a program</dd></div>
+          <div id="summaryRankRow"><dt>Rank</dt><dd id="summaryRank">—</dd></div>
+          <div id="summaryWeekRow"><dt>Week</dt><dd id="summaryWeek">—</dd></div>
+          <div><dt>Mode</dt><dd id="summaryMode">Hybrid</dd></div>
+        </dl>
+        <p id="summaryAvailability" class="summary-availability">Choose a program to check Hybrid availability.</p>
+        <button id="buildBtn" class="primary-action build-action" type="button">Build in Practice Clipboard</button>
+      </aside>
     </div>
-
-    <h2>Training Cycle</h2>
-
-    <div class="program-wrap">
-
-      <div class="program-label">
-        Training Week
-      </div>
-
-      <select id="weekSelect" class="mode-select">
-        <option value="">Manual Build</option>
-        <option value="1">Week 1</option>
-        <option value="2">Week 2</option>
-        <option value="3">Week 3</option>
-        <option value="4">Week 4</option>
-        <option value="5">Week 5</option>
-        <option value="6">Week 6</option>
-        <option value="7">Week 7</option>
-        <option value="8">Week 8</option>
-        <option value="9">Week 9</option>
-        <option value="10">Week 10</option>
-        <option value="11">Week 11</option>
-        <option value="12">Week 12</option>
-        <option value="13">Week 13</option>
-        <option value="14">Week 14</option>
-        <option value="15">Week 15</option>
-        <option value="16">Week 16</option>
-        <option value="17">Week 17</option>
-        <option value="18">Week 18</option>
-        <option value="19">Week 19</option>
-        <option value="20">Week 20</option>
-        <option value="21">Week 21</option>
-        <option value="22">Week 22</option>
-        <option value="23">Week 23</option>
-        <option value="24">Week 24</option>
-        <option value="25">Week 25</option>
-        <option value="26">Week 26</option>
-        <option value="27">Week 27</option>
-        <option value="28">Week 28</option>
-        <option value="29">Week 29</option>
-        <option value="30">Week 30</option>
-        <option value="31">Week 31</option>
-        <option value="32">Week 32</option>
-        <option value="33">Week 33</option>
-        <option value="34">Week 34</option>
-        <option value="35">Week 35</option>
-        <option value="36">Week 36</option>
-      </select>
-
-    </div>
-
-    <div class="footer">
-
-      <button id="buildBtn" class="build-btn">
-        Build Session
-      </button>
-
-    </div>
-
   </section>
 
+  <nav class="execution-tools" aria-label="Execution tools"><span>Execution tools</span><a href="/coaches/execution/clipboard-2.0/">Practice Clipboard</a><a href="/coaches/execution/big-clock-2.0/">Big Clock</a><a href="/coaches/execution/coach-companion/">Coach Companion</a><a href="/coaches/logs/practice-log.html">Practice Log</a></nav>
 </main>
-
-<script
-  type="module"
-  src="/coaches/execution/session-builder/session-builder.js">
-</script>
-
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script type="module" src="/coaches/execution/session-builder/session-builder.js?v=2"></script>
 </body>
 </html>

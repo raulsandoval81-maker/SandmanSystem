@@ -66,8 +66,10 @@ export function appendCardToSlot(slot, card) {
     slot.querySelectorAll(".clip-card");
 
   if (currentCards.length >= limit) {
-    console.warn(`🚫 Slot limit reached (${limit}) for`, card);
-    return;
+    // New additions are constrained by the card action path. Keep rendering
+    // older stored drafts that already exceed today's limit so no card is
+    // silently hidden or removed during recovery.
+    slot.dataset.legacyOverflow = "true";
   }
 
   slot.appendChild(

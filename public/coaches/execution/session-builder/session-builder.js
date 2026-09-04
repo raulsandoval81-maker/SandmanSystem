@@ -1,544 +1,431 @@
-const DEFAULT_COMBAT_MODEL = {
-  FOUNDATIONS: [],
-  SKILL_WAVES: {},
-  WAVE_CARDS: {},
-
-  WEEK_STRUCTURE: [
-    "teach",
-    "drill",
-    "live"
-  ],
-
-  HYBRID_RULES: {
-    revisitWindow: 5,
-    majorReturnWeeks: 6,
-    maxTravelingWaves: 2
-  }
-};
-
-const COMBAT_MODEL_PATHS = {
-  "youth-z2h-wrestling-t0":
-    "/assets/js/hybrid/youth/youth-zero-to-hero-wrestling-t0-waves.js",
-
-  "teen-p2l-wrestling-t0":
-    "/assets/js/hybrid/teen/teen-path-to-legend-wrestling-t0-waves.js",
-
-  "adult-q2m-mma-t0":
-    "/assets/js/hybrid/adult/adult-quest-to-mastery-mma-t0-waves.js",
-
-  "teen-p2l-boxing-t0":
-    "/assets/js/hybrid/teen/teen-path-to-legend-boxing-t0-waves.js"
-};
+import {
+  LADDER_YOUTH,
+  LADDER_F4,
+  LADDER_Q2M
+} from "/assets/js/ladder.service.js";
 
 const SESSION_KEY = "sandman_session_builder_v1";
+const CLIPBOARD_KEY = "sandman_clipboard_v1";
+const DRAFT_KEY = "sandman_clipboard_draft_v1";
 
-const cards = [...document.querySelectorAll(".session-card")];
-const modeBtns = [...document.querySelectorAll("[data-mode]")];
-const sessionBtns = [...document.querySelectorAll("[data-session-id]")];
-
-const disciplineSelect =
-  document.getElementById("disciplineSelect");
-
-const rankSelect =
-  document.getElementById("rankSelect");
-
-const weekSelect =
-  document.getElementById("weekSelect");
-
-const buildBtn =
-  document.getElementById("buildBtn");
-
-const SCHEMA_ONLY_CLASSES = [
-  "kickboxing-60"
-];
-
-// Session Builder owns the planned session duration.
-// Attendance preserves it; Daily Grind uses it to select
-// the appropriate coach-award range.
-const SESSION_DURATION_MINUTES = Object.freeze({
-  "quick-45": 45,
-  "standard-60": 60,
-  "kickboxing-60": 60,
-  "extended-90": 90,
-  "full-90": 90,
-  "standard-90": 90,
-  "extended-120": 120,
-  "full-120": 120,
-  "standard-120": 120
+const SHELLS = Object.freeze({
+  "quick-45": { label: "Quick Combat", minutes: 45 },
+  "standard-60": { label: "Standard Combat", minutes: 60 },
+  "elite-90": { label: "Advanced Combat", minutes: 90 },
+  "extended-120": { label: "Extended Combat", minutes: 120 },
+  "fitness-striking-60": { label: "Striking Fitness", minutes: 60 }
 });
 
-function durationMinutesForSchema(schema = "") {
-  const key = String(schema || "")
-    .trim()
-    .toLowerCase();
+const HYBRID_MODEL_PREFIXES = Object.freeze({
+  "youth-z2h-wrestling": "/assets/js/hybrid/youth/youth-zero-to-hero-wrestling",
+  "teen-p2l-wrestling": "/assets/js/hybrid/teen/teen-path-to-legend-wrestling",
+  "teen-p2l-boxing": "/assets/js/hybrid/teen/teen-path-to-legend-boxing",
+  "adult-q2m-mma": "/assets/js/hybrid/adult/adult-quest-to-mastery-mma"
+});
 
-  if (SESSION_DURATION_MINUTES[key]) {
-    return SESSION_DURATION_MINUTES[key];
+const RANK_LADDERS = Object.freeze({
+  Z2H: LADDER_YOUTH,
+  P2L: LADDER_F4,
+  Q2M: LADDER_Q2M
+});
+
+const shellCards = [...document.querySelectorAll(".session-card")];
+const modeButtons = [...document.querySelectorAll("[data-mode]")];
+const roomSelect = document.getElementById("roomSelect");
+const disciplineSelect = document.getElementById("disciplineSelect");
+const rankSelect = document.getElementById("rankSelect");
+const weekSelect = document.getElementById("weekSelect");
+const rankField = document.getElementById("rankField");
+const weekField = document.getElementById("weekField");
+const modeField = document.getElementById("modeField");
+const buildBtn = document.getElementById("buildBtn");
+const modeAvailability = document.getElementById("modeAvailability");
+const summaryAvailability = document.getElementById("summaryAvailability");
+
+let selectedSchema = "standard-60";
+let selectedMode = "hybrid";
+let hybridModel = null;
+let hybridUsable = false;
+let availabilityRequest = 0;
+let modeWasForced = false;
+
+function readJson(key, fallback = null) {
+  try {
+    const value = JSON.parse(localStorage.getItem(key) || "null");
+    return value ?? fallback;
+  } catch {
+    return fallback;
   }
-
-  // Compatibility fallback:
-  // accepts schema values such as custom-45, practice-90, etc.
-  const match = key.match(/(?:^|[-_])(45|60|90|120)(?:$|[-_])/);
-
-  if (match) {
-    return Number(match[1]);
-  }
-
-  return 60;
 }
 
-const RANK_LABELS = {
-  Z2H: {
-    T0: "Shadow",
-    T1: "Recruit",
-    T2: "Contender",
-    T3: "Competitor",
-    T4: "Warrior",
-    T5: "Champion",
-    T6: "Commander",
-    T7: "Hero"
-  },
+function getRecoverableDraft() {
+  const draft = readJson(DRAFT_KEY, null);
+  if (!draft || draft.version !== 1) return null;
+  return ["editing", "launched"].includes(draft.lifecycle) ? draft : null;
+}
 
-  P2L: {
-    T0: "Apprentice",
-    T1: "Warrior",
-    T2: "Champion",
-    T3: "Veteran",
-    T4: "Legend"
-  },
+function optionText(select) {
+  return select?.selectedOptions?.[0]?.textContent?.trim() || "";
+}
 
-  Q2M: {
-    T0: "Apprentice",
-    T1: "Warrior",
-    T2: "Champion",
-    T3: "Veteran",
-    T4: "Mastery"
-  },
+function selectedProgramOption() {
+  return disciplineSelect?.selectedOptions?.[0] || null;
+}
 
-};
+function programUsesRank() {
+  return Boolean(selectedProgramOption()?.dataset.journey && RANK_LADDERS[selectedProgramOption().dataset.journey]);
+}
 
-function populateRanks() {
-  const option =
-    disciplineSelect?.selectedOptions?.[0];
+function programUsesWeek() {
+  return programUsesRank() && selectedMode === "hybrid" && hybridUsable;
+}
 
-  const journey =
-    option?.dataset.journey || "";
+function isManualOnlyProgram() {
+  return ["manual-build", "fitness-striking"].includes(disciplineSelect?.value || "") || selectedSchema === "fitness-striking-60";
+}
 
-  const ranks =
-    RANK_LABELS[journey] || {};
+function tierFromLadderKey(key = "") {
+  return String(key).replace(/^R/i, "T");
+}
 
+function populateRanks(preferredTier = "") {
+  const journey = selectedProgramOption()?.dataset.journey || "";
+  const ladder = RANK_LADDERS[journey] || [];
   rankSelect.innerHTML = "";
 
-  if (!Object.keys(ranks).length) {
-    const opt =
-      document.createElement("option");
-
-    opt.value = "";
-    opt.textContent = "Select Program First";
-
-    rankSelect.appendChild(opt);
+  if (!ladder.length) {
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = "Not needed";
+    rankSelect.appendChild(option);
     return;
   }
 
-  Object.entries(ranks).forEach(([tier, label]) => {
-    const opt =
-      document.createElement("option");
-
-    opt.value = tier;
-    opt.textContent = `${tier} — ${label}`;
-
-    rankSelect.appendChild(opt);
+  ladder.forEach(rank => {
+    const option = document.createElement("option");
+    option.value = tierFromLadderKey(rank.key);
+    option.textContent = `${option.value} — ${rank.name}`;
+    rankSelect.appendChild(option);
   });
+
+  if (preferredTier && [...rankSelect.options].some(option => option.value === preferredTier)) {
+    rankSelect.value = preferredTier;
+  }
 }
 
-let selectedSchema =
-  document.querySelector(".session-card.active")
-    ?.dataset.schema || "standard-60";
-
-let selectedMode =
-  document.querySelector("[data-mode].active")
-    ?.dataset.mode || "hybrid";
-
-let selectedSessionId =
-  document.querySelector("[data-session-id].active")
-    ?.dataset.sessionId || "lompoc-mat-1";
-
-function setActive(list, activeEl) {
-  list.forEach(el =>
-    el.classList.remove("active")
-  );
-
-  activeEl.classList.add("active");
+function populateWeeks() {
+  weekSelect.innerHTML = '<option value="">Select Week</option>';
+  for (let week = 1; week <= 36; week += 1) {
+    const option = document.createElement("option");
+    option.value = String(week);
+    option.textContent = `Week ${week}`;
+    weekSelect.appendChild(option);
+  }
 }
 
-cards.forEach(card => {
-  card.addEventListener("click", () => {
-    setActive(cards, card);
-
-    selectedSchema =
-      card.dataset.schema || "quick-45";
-  });
-});
-
-modeBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    setActive(modeBtns, btn);
-
-    selectedMode =
-      btn.dataset.mode || "hybrid";
-
-    if (selectedMode === "manual") {
-      disciplineSelect.value = "manual-build";
-
-      if (weekSelect) {
-        weekSelect.value = "manual";
-      }
-
-      populateRanks();
-    }
-  });
-});
-
-sessionBtns.forEach(btn => {
-  btn.addEventListener("click", () => {
-    setActive(sessionBtns, btn);
-
-    selectedSessionId =
-      btn.dataset.sessionId || "lompoc-mat-1";
-  });
-});
-
-disciplineSelect?.addEventListener(
-  "change",
-  populateRanks
-);
-
-populateRanks();
-
-function getProgramData() {
-  const option =
-    disciplineSelect?.selectedOptions?.[0];
-
-  const selectedTier =
-    rankSelect?.value ||
-    option?.dataset.tier ||
-    "";
-
-  const journey =
-    option?.dataset.journey || "";
-
-  const rankLabel =
-    RANK_LABELS[journey]?.[selectedTier] || "";
-
-  return {
-    program:
-      disciplineSelect?.value || "",
-
-    foundry:
-      option?.dataset.foundry || "",
-
-    track:
-      option?.dataset.track || "",
-
-    journey:
-      journey,
-
-    discipline:
-      option?.dataset.discipline || "",
-
-    tier:
-      selectedTier,
-
-    rankLabel:
-      rankLabel
-  };
-}
-function getManualProgramData() {
-  return {
-    program: "manual-build",
-    foundry: "Manual",
-    track: "Manual Build",
-    journey: "Manual",
-    discipline: "Coach Built",
-    tier: "",
-    rankLabel: "Manual Build"
-  };
+function getModelPath() {
+  const prefix = HYBRID_MODEL_PREFIXES[disciplineSelect?.value || ""];
+  const tier = String(rankSelect?.value || "").toLowerCase();
+  return prefix && tier ? `${prefix}-${tier}-waves.js` : "";
 }
 
-function getCycleData() {
-  return {
-    rank:
-      rankSelect?.value || "",
-
-    week:
-      weekSelect?.value || ""
-  };
+function modelHasConsumableCards(model) {
+  return Object.values(model?.WAVE_CARDS || {}).some(cards => Array.isArray(cards) && cards.length > 0);
 }
 
-async function getHybridData(programData, cycleData) {
-  const weekNumber =
-    Math.max(1, Number(cycleData.week || 1));
+async function refreshHybridAvailability() {
+  const requestId = ++availabilityRequest;
+  hybridModel = null;
+  hybridUsable = false;
 
-  const modelKey =
-    `${programData.program}-${String(programData.tier || "").toLowerCase()}`;
+  if (!programUsesRank() || isManualOnlyProgram()) {
+    selectedMode = "manual";
+    modeWasForced = true;
+    updateModeButtons();
+    updateConditionalControls();
+    updateSummary();
+    return;
+  }
 
-  let model =
-    DEFAULT_COMBAT_MODEL;
-
-  if (COMBAT_MODEL_PATHS[modelKey]) {
+  const path = getModelPath();
+  if (path) {
     try {
-      model = await import(COMBAT_MODEL_PATHS[modelKey]);
-    } catch (err) {
-      console.warn(
-        "Combat hybrid model missing, using default:",
-        modelKey,
-        err
-      );
+      const model = await import(path);
+      if (requestId !== availabilityRequest) return;
+      hybridModel = model;
+      hybridUsable = modelHasConsumableCards(model);
+    } catch (error) {
+      if (requestId !== availabilityRequest) return;
+      console.warn("Hybrid model unavailable:", path, error);
     }
   }
 
-  const weekStructure =
-    model.WEEK_STRUCTURE || ["teach", "drill", "live"];
+  if (!hybridUsable) {
+    selectedMode = "manual";
+    modeWasForced = true;
+  } else if (modeWasForced) {
+    selectedMode = "hybrid";
+    modeWasForced = false;
+  }
+  updateModeButtons();
+  updateConditionalControls();
+  updateSummary();
+}
 
-  const phase =
-    weekStructure[(weekNumber - 1) % weekStructure.length] ||
-    "teach";
+function updateModeButtons() {
+  modeButtons.forEach(button => {
+    const isHybrid = button.dataset.mode === "hybrid";
+    button.disabled = isHybrid && !hybridUsable;
+    const active = button.dataset.mode === selectedMode;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+}
 
-  const cycleNumber =
-    Math.ceil(weekNumber / 6);
+function updateConditionalControls() {
+  const usesRank = programUsesRank();
+  const manualOnly = isManualOnlyProgram();
+  rankField.hidden = !usesRank;
+  weekField.hidden = !programUsesWeek();
+  modeField.hidden = manualOnly;
+  modeAvailability.hidden = manualOnly;
 
-  const weekInCycle =
-    ((weekNumber - 1) % 6) + 1;
+  if (manualOnly) {
+    modeAvailability.textContent = "";
+    modeAvailability.classList.remove("unavailable");
+  } else if (hybridUsable) {
+    modeAvailability.textContent = "Hybrid suggestions are available for this program and rank.";
+    modeAvailability.classList.remove("unavailable");
+  } else {
+    modeAvailability.textContent = "Hybrid suggestions are not available for this program and rank.";
+    modeAvailability.classList.add("unavailable");
+  }
+}
 
-  const waveKeys =
-    Object.keys(model.SKILL_WAVES || {});
+function shellData() {
+  return SHELLS[selectedSchema] || SHELLS["standard-60"];
+}
 
-  const waveKey =
-    waveKeys[(cycleNumber - 1) % waveKeys.length] ||
-    "neutral_offense";
+function getProgramData() {
+  const option = selectedProgramOption();
+  const tier = programUsesRank() ? rankSelect.value : "";
+  const journey = option?.dataset.journey || "";
+  const ladder = RANK_LADDERS[journey] || [];
+  const rankName = ladder.find(rank => tierFromLadderKey(rank.key) === tier)?.name || "";
 
+  return {
+    program: disciplineSelect?.value || "",
+    foundry: option?.dataset.foundry || "",
+    track: option?.dataset.track || "",
+    journey,
+    discipline: option?.dataset.discipline || "",
+    tier,
+    rankLabel: rankName
+  };
+}
+
+function updateSummary() {
+  const shell = shellData();
+  const program = getProgramData();
+  const room = optionText(roomSelect) || "Choose a room";
+  const usesRank = programUsesRank();
+  const usesWeek = programUsesWeek();
+
+  document.getElementById("currentRoomLabel").textContent = room;
+  document.getElementById("summaryShell").textContent = `${shell.label} · ${shell.minutes} min`;
+  document.getElementById("summaryRoom").textContent = room;
+  document.getElementById("summaryProgram").textContent = optionText(disciplineSelect) || "Select a program";
+  document.getElementById("summaryRankRow").hidden = !usesRank;
+  document.getElementById("summaryRank").textContent = usesRank ? (optionText(rankSelect) || "Select a rank") : "—";
+  document.getElementById("summaryWeekRow").hidden = !usesWeek;
+  document.getElementById("summaryWeek").textContent = usesWeek ? (optionText(weekSelect) || "Select a week") : "—";
+  document.getElementById("summaryMode").textContent = selectedMode === "hybrid" ? "Hybrid" : "Manual";
+
+  if (isManualOnlyProgram()) {
+    summaryAvailability.textContent = "Manual session shell.";
+  } else if (hybridUsable) {
+    summaryAvailability.textContent = selectedMode === "hybrid" ? "Hybrid suggestions will be added in Clipboard." : "Manual planning selected; no Hybrid suggestions will be added.";
+  } else if (disciplineSelect?.value) {
+    summaryAvailability.textContent = "Hybrid suggestions are not available for this program and rank. Manual planning will be used.";
+  } else {
+    summaryAvailability.textContent = "Choose a program to check Hybrid availability.";
+  }
+
+  buildBtn.disabled = !program.program;
+}
+
+function formatUpdated(value) {
+  const timestamp = Date.parse(value || "");
+  if (!Number.isFinite(timestamp)) return "Update time unavailable";
+  const minutes = Math.max(0, Math.round((Date.now() - timestamp) / 60000));
+  if (minutes < 1) return "Updated just now";
+  if (minutes < 60) return `Updated ${minutes} min ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `Updated ${hours} hr ago`;
+  return `Updated ${new Date(timestamp).toLocaleDateString()}`;
+}
+
+function renderDraft() {
+  const draft = getRecoverableDraft();
+  const card = document.getElementById("draftCard");
+  const empty = document.getElementById("draftEmpty");
+  card.hidden = !draft;
+  empty.hidden = Boolean(draft);
+  if (!draft) return;
+
+  const session = draft.session || {};
+  const shell = SHELLS[draft.schema || session.schema] || { label: "Practice", minutes: draft.durationMinutes || 0 };
+  const blocks = Array.isArray(draft.blocks) ? draft.blocks : [];
+  const cards = Array.isArray(draft.cards) ? draft.cards : [];
+  const noteCount = blocks.filter(block => String(block.notes || "").trim()).length + (String(draft.focus || "").trim() ? 1 : 0);
+  const allocated = blocks.filter(block => block.visible !== false).reduce((sum, block) => sum + Number(block.minutes || 0), 0);
+  const identity = [session.discipline, session.tier && session.rankLabel ? `${session.tier} ${session.rankLabel}` : session.tier, session.week ? `Week ${session.week}` : "", session.executionMode === "hybrid" ? "Hybrid" : "Manual"].filter(Boolean).join(" · ");
+
+  document.getElementById("draftLifecycle").textContent = draft.lifecycle === "launched" ? "Sent to Clock" : "Editing";
+  document.getElementById("draftTitle").textContent = `${shell.label} · ${shell.minutes || session.durationMinutes || 0} min · ${session.sessionId || "Room"}`;
+  document.getElementById("draftUpdated").textContent = formatUpdated(draft.updatedAt);
+  document.getElementById("draftIdentity").textContent = identity || "Manual coach-built session";
+  document.getElementById("draftMetrics").textContent = `${cards.length} cards · ${noteCount} notes · ${allocated}/${shell.minutes || session.durationMinutes || allocated} min allocated`;
+  document.getElementById("continueDraftBtn").href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(session.sessionId || "lompoc-mat-1")}`;
+}
+
+function getHybridData(weekValue) {
+  if (selectedMode !== "hybrid" || !hybridUsable || !hybridModel) {
+    return { hybridPhase: "", hybridCycle: "", hybridWeekInCycle: "", hybridWaveKey: "", hybridWave: [], hybridCards: [], hybridRules: {} };
+  }
+
+  const weekNumber = Math.max(1, Number(weekValue || 1));
+  const structure = hybridModel.WEEK_STRUCTURE || ["teach", "drill", "live"];
+  const phase = structure[(weekNumber - 1) % structure.length] || "teach";
+  const cycle = Math.ceil(weekNumber / 6);
+  const waveKeys = Object.keys(hybridModel.SKILL_WAVES || {});
+  const waveKey = waveKeys[(cycle - 1) % waveKeys.length] || "";
   return {
     hybridPhase: phase,
-    hybridCycle: cycleNumber,
-    hybridWeekInCycle: weekInCycle,
+    hybridCycle: cycle,
+    hybridWeekInCycle: ((weekNumber - 1) % 6) + 1,
     hybridWaveKey: waveKey,
-    hybridWave: model.SKILL_WAVES?.[waveKey] || [],
-    hybridCards: model.WAVE_CARDS?.[waveKey] || [],
-    hybridRules: model.HYBRID_RULES || {}
+    hybridWave: hybridModel.SKILL_WAVES?.[waveKey] || [],
+    hybridCards: hybridModel.WAVE_CARDS?.[waveKey] || [],
+    hybridRules: hybridModel.HYBRID_RULES || {}
   };
 }
 
-function getEmptyHybridData() {
-  return {
-    hybridPhase: "",
-    hybridCycle: "",
-    hybridWeekInCycle: "",
-    hybridWaveKey: "",
-    hybridWave: [],
-    hybridCards: [],
-    hybridRules: {}
+function writeCompatibilityKeys(payload) {
+  const entries = {
+    sandman_clipboard_schema: payload.schema,
+    sandman_session_duration_minutes: payload.durationMinutes,
+    sandman_xp_time_scale: payload.xpTimeScale,
+    sandman_execution_mode: payload.executionMode,
+    sandman_live_session_id: payload.sessionId,
+    sandman_program: payload.program,
+    sandman_foundry: payload.foundry,
+    sandman_track: payload.track,
+    sandman_journey: payload.journey,
+    sandman_discipline: payload.discipline,
+    sandman_tier: payload.tier,
+    sandman_rank: payload.rank,
+    sandman_rank_label: payload.rankLabel,
+    sandman_week: payload.week,
+    sandman_hybrid_phase: payload.hybridPhase,
+    sandman_hybrid_cycle: payload.hybridCycle,
+    sandman_hybrid_week_in_cycle: payload.hybridWeekInCycle,
+    sandman_hybrid_wave_key: payload.hybridWaveKey,
+    sandman_hybrid_wave: JSON.stringify(payload.hybridWave || []),
+    sandman_hybrid_cards: JSON.stringify(payload.hybridCards || [])
   };
+  Object.entries(entries).forEach(([key, value]) => localStorage.setItem(key, String(value ?? "")));
 }
 
-function getRoomData(sessionId) {
-  const parts =
-    String(sessionId || "lompoc-mat-1")
-      .split("-");
+shellCards.forEach(card => card.addEventListener("click", () => {
+  shellCards.forEach(item => {
+    const active = item === card;
+    item.classList.toggle("active", active);
+    item.setAttribute("aria-pressed", String(active));
+  });
+  selectedSchema = card.dataset.schema || "standard-60";
+  if (selectedSchema === "fitness-striking-60") {
+    disciplineSelect.value = "fitness-striking";
+    populateRanks();
+  }
+  refreshHybridAvailability();
+}));
 
-  const academyId =
-    parts[0] || "lompoc";
+modeButtons.forEach(button => button.addEventListener("click", () => {
+  if (button.disabled) return;
+  selectedMode = button.dataset.mode || "manual";
+  modeWasForced = false;
+  updateModeButtons();
+  updateConditionalControls();
+  updateSummary();
+}));
 
-  const roomId =
-    parts.slice(1).join("-") || "mat-1";
-
-  return {
-    academyId,
-    roomId
-  };
-}
-
-buildBtn?.addEventListener("click", async () => {
-const programData =
-  selectedMode === "manual"
-    ? getManualProgramData()
-    : getProgramData();
-
-  const cycleData =
-    getCycleData();
-
-  const isSchemaOnly =
-    SCHEMA_ONLY_CLASSES.includes(selectedSchema);
-
-const requiresProgram =
-  selectedMode !== "manual" &&
-  !isSchemaOnly;
-
-if (requiresProgram && !programData.program) {
-  alert("Select a program first.");
-  return;
-}
-
-const shouldLoadHybrid =
-  selectedMode === "hybrid" &&
-  !isSchemaOnly;
-
-const hybridData =
-  shouldLoadHybrid
-    ? await getHybridData(programData, cycleData)
-    : getEmptyHybridData();
-
-  const roomData =
-    getRoomData(selectedSessionId);
-
-  const durationMinutes =
-    durationMinutesForSchema(selectedSchema);
-
-  const payload = {
-    schema:
-      selectedSchema,
-
-    durationMinutes:
-      durationMinutes,
-
-    xpTimeScale:
-      durationMinutes >= 120
-        ? "two-hour"
-        : durationMinutes >= 90
-          ? "ninety-minute"
-          : "standard",
-
-    executionMode:
-      selectedMode,
-
-    sessionId:
-      selectedSessionId,
-
-    academyId:
-      roomData.academyId,
-
-    roomId:
-      roomData.roomId,
-
-    ...programData,
-    ...cycleData,
-    ...hybridData,
-
-    source:
-      "session-builder",
-
-    createdAt:
-      new Date().toISOString()
-  };
-
-  localStorage.setItem(
-    SESSION_KEY,
-    JSON.stringify(payload)
-  );
-
-  localStorage.setItem(
-    "sandman_clipboard_schema",
-    selectedSchema
-  );
-
-  localStorage.setItem(
-    "sandman_session_duration_minutes",
-    String(durationMinutes)
-  );
-
-  localStorage.setItem(
-    "sandman_xp_time_scale",
-    durationMinutes >= 120
-      ? "two-hour"
-      : durationMinutes >= 90
-        ? "ninety-minute"
-        : "standard"
-  );
-
-  localStorage.setItem(
-    "sandman_execution_mode",
-    selectedMode
-  );
-
-  localStorage.setItem(
-    "sandman_live_session_id",
-    selectedSessionId
-  );
-
-  localStorage.setItem(
-    "sandman_program",
-    programData.program
-  );
-
-  localStorage.setItem(
-    "sandman_foundry",
-    programData.foundry
-  );
-
-  localStorage.setItem(
-    "sandman_track",
-    programData.track
-  );
-
-  localStorage.setItem(
-    "sandman_journey",
-    programData.journey
-  );
-
-  localStorage.setItem(
-    "sandman_discipline",
-    programData.discipline
-  );
-
-  localStorage.setItem(
-    "sandman_tier",
-    programData.tier
-  );
-
-  localStorage.setItem(
-    "sandman_rank",
-    cycleData.rank
-  );
-
-  localStorage.setItem(
-    "sandman_rank_label",
-    programData.rankLabel
-  );
-
-  localStorage.setItem(
-    "sandman_week",
-    cycleData.week
-  );
-
-  localStorage.setItem(
-    "sandman_hybrid_phase",
-    hybridData.hybridPhase
-  );
-
-  localStorage.setItem(
-    "sandman_hybrid_cycle",
-    hybridData.hybridCycle
-  );
-
-  localStorage.setItem(
-    "sandman_hybrid_week_in_cycle",
-    hybridData.hybridWeekInCycle
-  );
-
-  localStorage.setItem(
-    "sandman_hybrid_wave_key",
-    hybridData.hybridWaveKey
-  );
-
-  localStorage.setItem(
-    "sandman_hybrid_wave",
-    JSON.stringify(hybridData.hybridWave)
-  );
-
-  localStorage.setItem(
-    "sandman_hybrid_cards",
-    JSON.stringify(hybridData.hybridCards)
-  );
-
-  window.location.href =
-    `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(selectedSessionId)}`;
+roomSelect.addEventListener("change", updateSummary);
+disciplineSelect.addEventListener("change", () => {
+  if (disciplineSelect.value === "fitness-striking") {
+    selectedSchema = "fitness-striking-60";
+    shellCards.forEach(card => {
+      const active = card.dataset.schema === selectedSchema;
+      card.classList.toggle("active", active);
+      card.setAttribute("aria-pressed", String(active));
+    });
+  }
+  populateRanks();
+  refreshHybridAvailability();
 });
+rankSelect.addEventListener("change", refreshHybridAvailability);
+weekSelect.addEventListener("change", updateSummary);
+
+document.getElementById("discardDraftBtn").addEventListener("click", () => {
+  if (!window.confirm("Discard this unfinished session?")) return;
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem(CLIPBOARD_KEY);
+  renderDraft();
+});
+
+buildBtn.addEventListener("click", () => {
+  const existingDraft = getRecoverableDraft();
+  if (existingDraft && !window.confirm("Starting a new session will replace the unfinished Clipboard draft. Continue?")) return;
+
+  const program = getProgramData();
+  if (!program.program) return;
+  const shell = shellData();
+  const sessionId = roomSelect.value || "lompoc-mat-1";
+  const parts = sessionId.split("-");
+  const week = programUsesWeek() ? weekSelect.value : "";
+  const hybrid = getHybridData(week);
+  const payload = {
+    schema: selectedSchema,
+    durationMinutes: shell.minutes,
+    xpTimeScale: shell.minutes >= 120 ? "two-hour" : shell.minutes >= 90 ? "ninety-minute" : "standard",
+    executionMode: selectedMode,
+    sessionId,
+    academyId: parts[0] || "lompoc",
+    roomId: parts.slice(1).join("-") || "mat-1",
+    ...program,
+    rank: program.tier,
+    week,
+    ...hybrid,
+    source: "session-builder",
+    createdAt: new Date().toISOString()
+  };
+
+  localStorage.removeItem(DRAFT_KEY);
+  localStorage.removeItem(CLIPBOARD_KEY);
+  localStorage.setItem(SESSION_KEY, JSON.stringify(payload));
+  writeCompatibilityKeys(payload);
+  window.location.href = `/coaches/execution/clipboard-2.0/?session=${encodeURIComponent(sessionId)}`;
+});
+
+populateWeeks();
+populateRanks();
+renderDraft();
+
+const notice = new URLSearchParams(window.location.search).get("notice");
+if (notice === "choose-session") {
+  const noticeEl = document.getElementById("dashboardNotice");
+  noticeEl.textContent = "Choose a session shell first.";
+  noticeEl.hidden = false;
+}
+
+refreshHybridAvailability();

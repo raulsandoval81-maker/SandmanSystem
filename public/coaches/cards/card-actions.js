@@ -110,7 +110,7 @@ function cardAllowedForSession(card) {
 
     if (lane === "onmat" || lane === "offmat") return 1;
 
-    return 4;
+    return 3;
   }
 
   function getJourney(btn) {

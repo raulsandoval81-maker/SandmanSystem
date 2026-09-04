@@ -72,6 +72,7 @@ ensureSignedIn()
 
 const SESSION_KEY = "sandman_session_builder_v1";
 const CLIPBOARD_KEY = "sandman_clipboard_v1";
+const DRAFT_KEY = "sandman_clipboard_draft_v1";
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const BIG_CLOCK_KEY = "sandman_big_clock_payload_v2";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
@@ -84,6 +85,19 @@ function getSessionPayload() {
   } catch {
     return {};
   }
+}
+
+function getDraftPayload() {
+  try {
+    const draft = JSON.parse(localStorage.getItem(DRAFT_KEY) || "null");
+    return draft && draft.version === 1 ? draft : null;
+  } catch {
+    return null;
+  }
+}
+
+function isRecoverableDraft(draft) {
+  return Boolean(draft && ["editing", "launched"].includes(draft.lifecycle));
 }
 
 /* =========================
@@ -317,7 +331,19 @@ const blockEls = {
    STATE
 ========================= */
 
+const storedDraft = getDraftPayload();
 let builderSession = getSessionPayload();
+let shouldRedirectToBuilder = false;
+
+if (!SCHEMAS[builderSession.schema] && isRecoverableDraft(storedDraft) && storedDraft.session) {
+  builderSession = storedDraft.session;
+  localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+}
+
+if (!SCHEMAS[builderSession.schema] && !isRecoverableDraft(storedDraft)) {
+  shouldRedirectToBuilder = true;
+  window.location.replace("/coaches/execution/session-builder/?notice=choose-session");
+}
 
 const week =
   localStorage.getItem("sandman_week");
@@ -386,6 +412,95 @@ function getActiveSession() {
     discipline: String(builderSession.discipline || "").toLowerCase(),
     tier: String(builderSession.tier || "").toLowerCase()
   };
+}
+
+let draftSaveTimer = null;
+
+function captureDraftBlocks() {
+  return [...document.querySelectorAll("#planBlocks .plan-block")].map(block => ({
+    slot: block.dataset.slot || "",
+    minutes: Number(block.dataset.minutes || 0),
+    visible: !block.classList.contains("hidden"),
+    notes: document.getElementById(`notes-${block.dataset.slot}`)?.value || "",
+    timer: {
+      pack: block.dataset.timerPack || "",
+      preset: block.dataset.timerPreset || "",
+      label: block.dataset.timerLabel || ""
+    }
+  }));
+}
+
+function persistDraft(lifecycle = "editing") {
+  const previous = getDraftPayload() || {};
+  const session = {
+    ...getActiveSession(),
+    ...builderSession,
+    schema: currentSchema
+  };
+
+  const draft = {
+    version: 1,
+    lifecycle,
+    schema: currentSchema,
+    durationMinutes: Number(builderSession.durationMinutes || getSchemaMaxMinutes(currentSchema) || 0),
+    session,
+    focus: document.getElementById("slot-note")?.value || "",
+    blocks: captureDraftBlocks(),
+    flexibleOrder: [...document.querySelectorAll("#swappable > .plan-block")].map(block => block.dataset.slot || ""),
+    cards: getStoredClipboardCards(CLIPBOARD_KEY),
+    updatedAt: new Date().toISOString(),
+    launchedAt: lifecycle === "launched" ? new Date().toISOString() : previous.launchedAt || null,
+    completedAt: lifecycle === "completed" ? new Date().toISOString() : null
+  };
+
+  localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  return draft;
+}
+
+function queueDraftSave() {
+  window.clearTimeout(draftSaveTimer);
+  draftSaveTimer = window.setTimeout(() => persistDraft("editing"), 120);
+}
+
+function restoreDraft(draft) {
+  if (!isRecoverableDraft(draft)) return false;
+
+  if (localStorage.getItem(CLIPBOARD_KEY) === null && Array.isArray(draft.cards)) {
+    localStorage.setItem(CLIPBOARD_KEY, JSON.stringify(draft.cards));
+  }
+
+  const focus = document.getElementById("slot-note");
+  if (focus) focus.value = draft.focus || "";
+
+  const swappable = document.getElementById("swappable");
+  if (swappable && Array.isArray(draft.flexibleOrder)) {
+    draft.flexibleOrder.forEach(slot => {
+      const block = swappable.querySelector(`.plan-block[data-slot="${slot}"]`);
+      if (block) swappable.appendChild(block);
+    });
+  }
+
+  (Array.isArray(draft.blocks) ? draft.blocks : []).forEach(saved => {
+    const block = blockEls[saved.slot];
+    if (!block) return;
+    showBlock(saved.slot, saved.visible !== false);
+    setMinutes(saved.slot, Number(saved.minutes || 0), ["drills", "technique", "live", "cond"].includes(saved.slot));
+
+    const notes = document.getElementById(`notes-${saved.slot}`);
+    if (notes) notes.value = saved.notes || "";
+
+    const timer = saved.timer || {};
+    block.dataset.timerPack = timer.pack || "";
+    block.dataset.timerPreset = timer.preset || "";
+    block.dataset.timerLabel = timer.label || "";
+    const select = block.querySelector(".block-timer-select");
+    if (select && timer.pack) {
+      select.value = `${timer.pack}|||${timer.preset || ""}|||${timer.label || ""}`;
+    }
+  });
+
+  recalcTotal();
+  return true;
 }
 
 function setTitle(key, label) {
@@ -459,6 +574,8 @@ block.dataset.timerPack = pack || "";
 block.dataset.timerPreset = preset || "";
 block.dataset.timerLabel = label || "";
 
+queueDraftSave();
+
       });
     });
 }
@@ -479,13 +596,17 @@ function recalcTotal() {
     .filter(el => el && !el.classList.contains("hidden"))
     .reduce((sum, b) => sum + Number(b.dataset.minutes || 0), 0);
 
-  totalTimeEl.textContent =
-    `Total: ${String(Math.floor(mins)).padStart(2, "0")}:00`;
-
   const max = getSchemaMaxMinutes(currentSchema);
   const over = max > 0 && mins > max;
+  const exact = max > 0 && mins === max;
+  const state = over ? "Over" : exact ? "Exact" : "Under";
+
+  totalTimeEl.textContent =
+    `Allocated: ${Math.floor(mins)} / ${max || "—"} min · ${state}`;
 
   totalTimeEl.classList.toggle("over", over);
+  totalTimeEl.classList.toggle("exact", exact);
+  totalTimeEl.classList.toggle("under", !over && !exact);
 }
 
 function updateClipboardBankVisibility() {
@@ -929,6 +1050,7 @@ try {
   );
 
   console.log("✅ live session synced");
+  persistDraft("launched");
 
 } catch (err) {
 
@@ -971,6 +1093,7 @@ singleFocusEl?.addEventListener("change", () => {
   if (currentSchema === "quick-45") {
     applySingleTemplate();
     renderClipboardList();
+    queueDraftSave();
   }
 });
 
@@ -995,6 +1118,7 @@ document.addEventListener("input", e => {
   }
 
   recalcTotal();
+  queueDraftSave();
 });
 
 document.addEventListener("click", e => {
@@ -1022,6 +1146,8 @@ document.addEventListener("click", e => {
   if (dir === "down" && idx < visibleSwBlocks.length - 1) {
     parent.insertBefore(visibleSwBlocks[idx + 1], block);
   }
+
+  queueDraftSave();
 });
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-add-slot]");
@@ -1035,12 +1161,25 @@ document.addEventListener("click", (e) => {
     "sandman_pending_add_lane",
     slotKey
   );
+persistDraft("editing");
 localStorage.setItem(
   RETURN_TO_KEY,
   ALL_IN_ONE_RETURN
 );
 
 openDisciplineCards();
+});
+
+document.addEventListener("click", (e) => {
+  const link = e.target.closest("a.library-btn, a.clip-title-link");
+  if (!link || !link.href) return;
+  persistDraft("editing");
+});
+
+document.addEventListener("input", (e) => {
+  if (e.target.matches("#slot-note, .slot-notes-input")) {
+    queueDraftSave();
+  }
 });
 /* =========================
    SAVE PLAN
@@ -1138,6 +1277,7 @@ window.clearSession = function () {
   if (!ok) return;
 
   localStorage.removeItem(CLIPBOARD_KEY);
+  localStorage.removeItem(DRAFT_KEY);
 
   [
     "notes-onmat",
@@ -1235,6 +1375,8 @@ window.endPractice = function endPractice() {
       LAST_PRACTICE_KEY,
       JSON.stringify(payload)
     );
+
+    persistDraft("completed");
 
     window.location.href = "/coaches/logs/practice-log.html";
 
@@ -1531,6 +1673,8 @@ function updateSupportLinks() {
 
 (function init() {
 
+  if (shouldRedirectToBuilder) return;
+
   const session = getActiveSession();
 
   if (SCHEMAS[session.schema]) {
@@ -1545,6 +1689,7 @@ function updateSupportLinks() {
   loadCurrentSchema();
   attachTimerSelectors();
   updateSupportLinks();
+  restoreDraft(storedDraft);
 
   if (Array.isArray(hybridCards) && hybridCards.length) {
 
@@ -1608,6 +1753,7 @@ function updateSupportLinks() {
   }
 
   renderClipboardList();
+  persistDraft("editing");
 
   const hybridIdentityEl =
     document.getElementById("hybridIdentity");
@@ -1615,7 +1761,7 @@ function updateSupportLinks() {
   const hybridCycleEl =
     document.getElementById("hybridCycle");
 
-if (session.executionMode === "manual") {
+if (session.executionMode === "manual" && session.program === "manual-build") {
 
   if (hybridIdentityEl) {
     hybridIdentityEl.textContent =
@@ -1630,13 +1776,17 @@ if (session.executionMode === "manual") {
 } else {
 
   if (hybridIdentityEl) {
+    const journeyDisplay = session.program === "youth-z2h-wrestling"
+      ? "Road2Champion"
+      : journeyLabel;
     hybridIdentityEl.textContent =
-      `${journeyLabel} ${disciplineLabel} · ${tierLabel} ${rankLabel}`;
+      `${journeyDisplay} ${disciplineLabel} · ${tierLabel} ${rankLabel}`;
   }
 
   if (hybridCycleEl) {
-    hybridCycleEl.textContent =
-      `Week ${week} · ${phase} · ${(waveKey || "").replaceAll("_", " ")}`;
+    hybridCycleEl.textContent = session.executionMode === "manual"
+      ? "Manual planning"
+      : `Week ${week} · ${phase} · ${(waveKey || "").replaceAll("_", " ")}`;
   }
 
 }

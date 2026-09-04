@@ -9,6 +9,7 @@ import {
 
 const COACH_SESSION_KEY = "sandman_coach_session_v1";
 const LAST_PRACTICE_KEY = "sandman_last_practice_payload";
+const CLIPBOARD_DRAFT_KEY = "sandman_clipboard_draft_v1";
 
 const BLOCK_KEYS = [
   "onmat",
@@ -559,6 +560,20 @@ window.endPractice = function () {
     blocks: getCompanionBlocks(),
     savedAt: new Date().toISOString()
   }));
+
+  try {
+    const draft = JSON.parse(localStorage.getItem(CLIPBOARD_DRAFT_KEY) || "null");
+    if (draft?.version === 1) {
+      localStorage.setItem(CLIPBOARD_DRAFT_KEY, JSON.stringify({
+        ...draft,
+        lifecycle: "completed",
+        updatedAt: new Date().toISOString(),
+        completedAt: new Date().toISOString()
+      }));
+    }
+  } catch (err) {
+    console.warn("Clipboard draft completion marker failed:", err);
+  }
 
   window.location.href = "/coaches/logs/practice-log.html";
 };
