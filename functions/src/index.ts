@@ -198,3 +198,4 @@ export {
 } from "./proposals/createProposalCheckout";
 
 export { createAthleteOnboardingToken } from "./modules/createAthleteOnboardingToken";
+export { cornermanRoster } from "./modules/cornermanRoster";
