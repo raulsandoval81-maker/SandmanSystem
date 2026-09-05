@@ -1,23 +1,19 @@
 :root{
   --bg:#000000;
   --panel:#0b0b0b;
-  --panel-2:#111111;
   --line:#2a2a2a;
   --text:#f5f5f5;
   --muted:#9a9a9a;
   --gold:#d7b26d;
   --gold-2:#8b6a2f;
-  --danger:#b22222;
-  --danger-2:#611616;
   --shadow:0 14px 40px rgba(0,0,0,.45);
-
-  --go-box:#008f11;      /* classic green */
-  --short-box:#d4aa00;   /* classic yellow */
-  --stop-box:#cc0000;    /* classic red */
-
-  --go-line:#3cff57;
-  --short-line:#ffe15a;
-  --stop-line:#ff4d4d;
+  --rim-neutral:#41464d;
+  --rim-prepare:#d4af37;
+  --rim-work:#3f9b63;
+  --rim-short:#b52b2f;
+  --rim-rest:#20a6a2;
+  --rim-paused:#718096;
+  --rim-complete:#e6d7ad;
 }
 
 *{
@@ -41,60 +37,6 @@ body{
   color:var(--text);
 }
 
-/* Optional day mode */
-body.theme-day{
-  --panel:#ffffff;
-  --panel-2:#f5f5f5;
-  --line:#d0d0d0;
-  --text:#111111;
-  --muted:#666666;
-  --shadow:0 12px 30px rgba(0,0,0,.14);
-  background:#f2f2f2 !important;
-}
-
-/* ========================================
-   STATE RULE — PAGE STAYS BLACK
-======================================== */
-
-body.go,
-body.short,
-body.stop{
-  background:#000 !important;
-}
-
-/* ========================================
-   APP SHELL
-======================================== */
-
-.app{
-  width:min(100%,720px);
-  margin:0 auto;
-  padding:14px 14px 24px;
-  background:transparent;
-}
-
-.topbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:12px;
-}
-
-.brand-kicker{
-  font-size:12px;
-  text-transform:uppercase;
-  letter-spacing:.12em;
-  color:var(--muted);
-}
-
-.brand-title{
-  font-size:22px;
-  font-weight:800;
-  letter-spacing:.02em;
-  color:var(--text);
-}
-
 .icon-btn{
   border:1px solid var(--line);
   background:var(--panel);
@@ -104,36 +46,6 @@ body.stop{
   min-height:44px;
   cursor:pointer;
   box-shadow:var(--shadow);
-}
-
-/* ========================================
-   TRAINER STRIP
-======================================== */
-
-.trainer-strip{
-  display:grid;
-  grid-template-columns:repeat(2,minmax(0,1fr));
-  gap:10px;
-  margin-bottom:14px;
-}
-
-.trainer-card{
-  background:#0a0a0a;
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:10px 12px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
-  min-height:66px;
-  box-shadow:var(--shadow);
-}
-
-.trainer-card .label{
-  font-size:11px;
-  color:var(--muted);
-  text-transform:uppercase;
-  letter-spacing:.08em;
 }
 
 /* ========================================
@@ -189,113 +101,6 @@ body.stop{
   text-shadow:0 2px 8px rgba(0,0,0,.35);
 }
 
-.interval-pill{
-  position:relative;
-  z-index:3;
-  display:inline-flex;
-  margin-top:14px;
-  padding:8px 14px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.18);
-  background:rgba(0,0,0,.22);
-  font-weight:700;
-  font-variant-numeric:tabular-nums;
-  color:#fff;
-}
-
-/* ========================================
-   ROUND FLASH
-======================================== */
-
-.round-flash{
-  position:absolute;
-  inset:0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  padding:18px;
-  text-align:center;
-  font-weight:900;
-  text-transform:uppercase;
-  letter-spacing:.06em;
-  font-size:clamp(26px,6vw,54px);
-  line-height:1.05;
-  color:#fff;
-  opacity:0;
-  pointer-events:none;
-  z-index:2;
-  text-shadow:0 2px 10px rgba(0,0,0,.45);
-}
-
-.round-flash.show{
-  animation:roundFlashTwice 1.6s ease-in-out forwards;
-}
-
-@keyframes roundFlashTwice{
-  0%   { opacity:0; transform:scale(.96); }
-  10%  { opacity:1; transform:scale(1); }
-  28%  { opacity:0; transform:scale(1.02); }
-  40%  { opacity:0; transform:scale(.98); }
-  52%  { opacity:1; transform:scale(1); }
-  72%  { opacity:0; transform:scale(1.02); }
-  100% { opacity:0; transform:scale(1); }
-}
-
-/* ========================================
-   STATE BOX COLORS
-======================================== */
-
-/* STOP / REST / COUNTDOWN = RED BOX */
-body.stop .clock-shell{
-  background:var(--stop-box) !important;
-  border-color:var(--stop-line) !important;
-  box-shadow:
-    0 0 0 2px rgba(255,255,255,.06),
-    0 0 24px rgba(204,0,0,.45);
-}
-
-body.stop .status,
-body.stop .round-label,
-body.stop .clock,
-body.stop .round-flash,
-body.stop .interval-pill{
-  color:#fff !important;
-}
-
-/* GO = GREEN BOX */
-body.go .clock-shell{
-  background:var(--go-box) !important;
-  border-color:var(--go-line) !important;
-  box-shadow:
-    0 0 0 2px rgba(255,255,255,.06),
-    0 0 24px rgba(0,143,17,.45);
-}
-
-body.go .status,
-body.go .round-label,
-body.go .clock,
-body.go .round-flash,
-body.go .interval-pill{
-  color:#fff !important;
-}
-
-/* SHORT TIME = YELLOW BOX */
-body.short .clock-shell{
-  background:var(--short-box) !important;
-  border-color:var(--short-line) !important;
-  box-shadow:
-    0 0 0 2px rgba(255,255,255,.06),
-    0 0 24px rgba(212,170,0,.45);
-}
-
-body.short .status,
-body.short .round-label,
-body.short .clock,
-body.short .round-flash,
-body.short .interval-pill{
-  color:#fff !important;
-}
-
 /* ========================================
    CONTROLS
 ======================================== */
@@ -305,40 +110,6 @@ body.short .interval-pill{
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:10px;
   margin-top:14px;
-}
-
-.audio-strip{
-  margin-top:12px;
-}
-
-.mode-wrap{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
-  background:#0a0a0a;
-  border:1px solid var(--line);
-  border-radius:14px;
-  padding:12px;
-  box-shadow:var(--shadow);
-}
-
-.mode-label{
-  font-size:12px;
-  text-transform:uppercase;
-  color:var(--muted);
-  letter-spacing:.08em;
-}
-
-.select,
-.field input[type="text"],
-.field select{
-  width:100%;
-  border:1px solid var(--line);
-  background:#0d0d0d;
-  color:var(--text);
-  border-radius:12px;
-  padding:12px 14px;
-  font-size:16px;
 }
 
 .btn{
@@ -447,93 +218,220 @@ body.short .interval-pill{
   width:100%;
 }
 
-/* ========================================
-   LOG
-======================================== */
+/* Shared Shadow Training Engine presentation */
+.training-app{width:min(100%,760px);min-height:100vh;margin:0 auto;padding:18px 18px 28px}
+.training-header,.stage-topline,.settings-head{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.training-header{margin-bottom:18px}.training-header h1{margin:0;font-size:clamp(1.4rem,5vw,2rem)}
+.eyebrow,.round-purpose{margin:0 0 6px;color:var(--gold);font-size:.75rem;font-weight:900;letter-spacing:.15em;text-transform:uppercase}
+.training-stage{padding:clamp(24px,6vw,46px);text-align:center}.stage-topline{margin-bottom:32px}
+.state-badge{padding:7px 12px;border-radius:999px;background:var(--text);color:#080808!important;font-size:.75rem;font-weight:900;letter-spacing:.1em}
+.round-label{min-height:0;margin:0;color:var(--muted);font-size:1rem}.round-purpose{margin-top:0}
+.current-action{min-height:1.2em;margin:10px 0;color:#fff;font-size:clamp(2.2rem,10vw,5rem);line-height:1;letter-spacing:-.035em}
+.training-stage .clock{margin:22px 0;font-size:clamp(4.6rem,22vw,9rem)}
+.coaching-cue{min-height:2.8em;max-width:34rem;margin:18px auto;color:#f2ead8;font-size:clamp(1rem,4vw,1.25rem);line-height:1.4}
+.next-action{display:grid;gap:4px;max-width:28rem;margin:24px auto 0;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04)}
+.next-action span{color:var(--muted);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}.next-action strong{color:#fff}
+.round-progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:28px}.round-dot{height:5px;border-radius:99px;background:#444}.round-dot.is-complete{background:var(--gold)}.round-dot.is-current{background:#fff}
+.training-app>.controls{grid-template-columns:1.4fr 1fr 1fr}.completion-message{text-align:center;color:#f2ead8}
+.btn:disabled{cursor:not-allowed;opacity:.42}.settings[hidden],.completion-message[hidden]{display:none}
+button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+@media(max-width:430px){.training-app{padding:12px}.training-header{align-items:flex-start}.training-stage{padding:20px 14px 24px}.training-app>.controls{grid-template-columns:1fr 1fr}.training-app>.controls .btn-primary{grid-column:1/-1}.current-action{font-size:clamp(2rem,12vw,3.2rem)}}
 
-.log{
-  margin-top:14px;
-  min-height:92px;
-  max-height:180px;
-  overflow:auto;
-  padding:12px;
-  border-radius:14px;
-  border:1px solid var(--line);
-  background:#050505;
-  color:#d0d0d0;
-  font-size:12px;
-  line-height:1.45;
-  white-space:pre-wrap;
+/* Restrained semantic state rim. */
+.training-stage{
+  --state-rim:var(--rim-neutral);
+  position:relative;
+  border:4px solid var(--state-rim);
+  box-shadow:0 24px 70px rgba(0,0,0,.42),0 0 0 1px color-mix(in srgb,var(--state-rim) 30%,transparent),inset 0 0 28px color-mix(in srgb,var(--state-rim) 7%,transparent);
+  transition:border-color .18s ease,box-shadow .18s ease;
 }
 
-/* ========================================
-   BIG CLOCK / STAGE MODE
-======================================== */
+body[data-training-state="preparing"] .training-stage{--state-rim:var(--rim-prepare)}
+body[data-training-state="working"] .training-stage,
+body[data-training-state="transitioning"] .training-stage{--state-rim:var(--rim-work)}
+body[data-short-time="true"] .training-stage{--state-rim:var(--rim-short)}
+body[data-training-state="resting"] .training-stage{--state-rim:var(--rim-rest)}
+body[data-training-state="paused"] .training-stage{--state-rim:var(--rim-paused)}
+body[data-training-state="completed"] .training-stage{--state-rim:var(--rim-complete)}
+body[data-training-state="stopped"] .training-stage{--state-rim:var(--rim-neutral)}
 
-body.stage .trainer-strip,
-body.stage .audio-strip,
-body.stage .log{
-  display:none;
+body[data-short-time="true"] .state-badge{background:var(--rim-short)}
+body[data-training-state="preparing"] .state-badge{background:var(--rim-prepare);color:#080808!important}
+body[data-training-state="resting"] .state-badge{background:var(--rim-rest);color:#061616!important}
+body[data-training-state="paused"] .state-badge{background:var(--rim-paused);color:#fff!important}
+body[data-training-state="completed"] .state-badge{background:var(--rim-complete);color:#080808!important}
+
+.round-purpose{margin-bottom:12px}.current-action{margin-block:0 16px}
+.training-stage .clock{margin-block:18px 20px;line-height:.86}
+.coaching-cue{margin-block:22px 20px}.next-action{margin-top:26px;padding-block:15px}
+.training-app>.controls{align-items:stretch}.training-app>.controls .btn{min-height:52px}
+.training-app>.controls .btn-primary{box-shadow:0 8px 24px rgba(212,175,55,.13)}
+.training-app>.controls .btn-danger{background:transparent;border-color:#555;color:#d8d8d4;box-shadow:none}
+.training-app>.controls .btn-danger:not(:disabled):hover{border-color:#8a8f95;background:#1f2225}
+.completion-message{max-width:34rem;margin:18px auto 0;padding:14px 18px;border:1px solid rgba(230,215,173,.28);border-radius:14px;background:rgba(230,215,173,.06)}
+
+@media(min-width:900px){
+  .training-app{width:min(92vw,980px)}
+  .training-stage{padding-inline:clamp(48px,8vw,92px)}
+  .next-action{max-width:32rem}
 }
 
-body.stage .app{
-  width:100%;
-  max-width:none;
-  min-height:100vh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
+@media(max-width:360px){
+  .training-app{padding-inline:8px}
+  .training-header{gap:8px}.training-header h1{font-size:1.25rem}.eyebrow{font-size:.65rem}
+  .training-header .icon-btn{min-width:0;padding-inline:10px}
+  .training-stage{padding:18px 10px 22px}.stage-topline{gap:8px;margin-bottom:24px}
+  .round-label{font-size:.88rem}.current-action{font-size:clamp(1.85rem,11vw,2.65rem)}
+  .training-stage .clock{font-size:clamp(4rem,24vw,5.4rem)}
+  .coaching-cue{font-size:.96rem}.next-action{margin-top:20px}
 }
 
-body.stage .clock-shell{
-  padding:22px 18px 26px;
+@media(prefers-reduced-motion:reduce){.training-stage{transition:none}}
+
+/* Canonical room-readable state surfaces. */
+
+.training-stage{
+  --state-surface:#050505;
+  --state-text:#ffffff;
+  --state-muted:#a7a7a7;
+  --state-cue:#f2ead8;
+  --state-panel:rgba(255,255,255,.05);
+
+  background:var(--state-surface);
+  color:var(--state-text);
+
+  transition:
+    background .16s ease,
+    color .16s ease,
+    border-color .18s ease,
+    box-shadow .18s ease;
 }
 
-body.stage .round-label{
-  font-size:32px !important;
-  font-weight:800;
-  min-height:40px;
-  margin-bottom:16px;
+.training-stage .current-action,
+.training-stage .clock,
+.training-stage .next-action strong{
+  color:var(--state-text);
 }
 
-body.stage .status{
-  font-size:18px !important;
-  letter-spacing:.14em;
+.training-stage .round-label,
+.training-stage .next-action span{
+  color:var(--state-muted);
 }
 
-body.stage .clock{
-  font-size:clamp(180px,34vw,380px) !important;
-  line-height:.9;
+.training-stage .coaching-cue{
+  color:var(--state-cue);
 }
 
-body.stage .round-flash{
-  font-size:clamp(42px,8vw,84px);
+.training-stage .next-action{
+  background:var(--state-panel);
 }
 
-body.stage .controls{
-  grid-template-columns:repeat(4,minmax(0,1fr));
+/* PREP — dark board / gold signal */
+body[data-training-state="preparing"] .training-stage{
+  --state-surface:#050505;
+  --state-text:#ffffff;
+  --state-muted:#bcbcbc;
+  --state-cue:#f2ead8;
 }
-.coach-feed {
-  margin-top: 12px;
-  padding: 12px;
-  border-radius: 12px;
-  background: #0f141a;
-  border: 1px solid #2a2f3a;
-  text-align: center;
-  font-weight: 700;
-  letter-spacing: 1px;
-  opacity: 0.9;
+
+/* WORK — bright board / green signal */
+body[data-training-state="working"] .training-stage{
+  --state-surface:#f5f5f2;
+  --state-text:#080808;
+  --state-muted:#4b4b4b;
+  --state-cue:#202020;
+  --state-panel:rgba(0,0,0,.055);
 }
-/* ========================================
-   RESPONSIVE
-======================================== */
 
-@media (min-width:700px){
-  .trainer-strip{
-    grid-template-columns:repeat(4,minmax(0,1fr));
-  }
+body[data-training-state="working"] .state-badge{
+  background:var(--rim-work);
+  color:#06130b!important;
+}
 
-  .controls{
-    grid-template-columns:repeat(4,minmax(0,1fr));
+/* HAND FIGHT — light board / gold signal */
+body[data-training-state="transitioning"] .training-stage{
+  --state-surface:#f5f5f2;
+  --state-text:#a87900;
+  --state-muted:#6f5700;
+  --state-cue:#8a6900;
+  --state-panel:rgba(212,175,55,.09);
+  --state-rim:var(--rim-prepare);
+}
+
+body[data-training-state="transitioning"] .state-badge{
+  background:var(--rim-prepare);
+  color:#080808!important;
+}
+
+/* SHORT TIME — light board / red signal */
+body[data-short-time="true"] .training-stage{
+  --state-surface:#f5f5f2;
+  --state-text:#b22222;
+  --state-muted:#8f2020;
+  --state-cue:#b22222;
+  --state-panel:rgba(178,34,34,.06);
+  --state-rim:var(--rim-short);
+}
+
+body[data-short-time="true"] .state-badge{
+  background:var(--rim-short);
+  color:#ffffff!important;
+}
+
+/* RECOVERY — dark board / teal signal */
+body[data-training-state="resting"] .training-stage{
+  --state-surface:#050505;
+  --state-text:#ffffff;
+  --state-muted:#b7b7b7;
+  --state-cue:#f1f1ed;
+  --state-panel:rgba(255,255,255,.05);
+}
+
+/* PAUSED — dark board / slate signal */
+body[data-training-state="paused"] .training-stage{
+  --state-surface:#090a0b;
+  --state-text:#ffffff;
+  --state-muted:#b2b6bb;
+  --state-cue:#e4e6e8;
+}
+
+/* COMPLETE — dark board / cream signal */
+body[data-training-state="completed"] .training-stage{
+  --state-surface:#050505;
+  --state-text:#f7f0dc;
+  --state-muted:#c9bea1;
+  --state-cue:#f2ead8;
+}
+
+/* STOPPED / READY — return to neutral dark board */
+body[data-training-state="stopped"] .training-stage,
+body[data-training-state="idle"] .training-stage{
+  --state-surface:#050505;
+  --state-text:#ffffff;
+  --state-muted:#9a9a9a;
+  --state-cue:#e5e5e5;
+}
+
+/* Progress marks must remain visible on both light and dark surfaces */
+body[data-training-state="working"] .round-dot,
+body[data-training-state="transitioning"] .round-dot,
+body[data-short-time="true"] .round-dot{
+  background:#b7b7b3;
+}
+
+body[data-training-state="working"] .round-dot.is-current{
+  background:#080808;
+}
+
+body[data-training-state="transitioning"] .round-dot.is-current{background:var(--rim-prepare)}
+body[data-short-time="true"] .round-dot.is-current{background:var(--rim-short)}
+
+body[data-training-state="working"] .round-dot.is-complete{
+  background:var(--gold-2);
+}
+
+@media(prefers-reduced-motion:reduce){
+  .training-stage{
+    transition:none;
   }
 }
