@@ -3,6 +3,10 @@ import * as admin from "firebase-admin";
 import { onRequest } from "firebase-functions/v2/https";
 
 export const testAthleteXp = onRequest(async (req, res) => {
+  if (!process.env.FIRESTORE_EMULATOR_HOST) {
+    res.status(404).json({ ok: false, error: "Not available in production." });
+    return;
+  }
   const db = admin.firestore();
 
   const athleteId = "F4-TEST-0001";

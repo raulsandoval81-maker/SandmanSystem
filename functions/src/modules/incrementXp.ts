@@ -3,6 +3,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { dispatchAuthoritativeXp } from "../services/authoritativeXpService";
 import admin from "firebase-admin";
 import { getFirestore, FieldValue, Timestamp } from "firebase-admin/firestore";
+import { OPERATIONAL_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
 
 import {
   sendParentSignalToAthleteParents
@@ -293,6 +294,11 @@ export const incrementXp = onCall(async (req) => {
   const payload = req.data || {};
   const uid = String(payload.uid || "").trim();
   const kind = String(payload.kind || "").trim();
+
+  // Emulator-only DEV awards retain their existing test harness behavior.
+  if (!(isDevKind(kind) && isEmulator())) {
+    await requireActiveStaff(coachUid, OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
+  }
 
   if (!kind.startsWith("DEV/")) {
     return dispatchAuthoritativeXp(coachUid, payload);

@@ -15,6 +15,7 @@ import {
   resolveF8CurriculumTier,
   resolveF8ProgressionTier,
 } from "../../policy/f8CurriculumCompatibilityPolicy";
+import { OPERATIONAL_STAFF_ROLES, requireActiveStaff } from "../../services/staffAuthorization";
 
 function normalizeProgramKind(a: any): ProgramKind {
   const raw = String(a?.programKind || a?.trackCode || a?.track || a?.program || "").toLowerCase();
@@ -27,6 +28,8 @@ function normalizeProgramKind(a: any): ProgramKind {
 }
 
 export const promoteTier = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
+  await requireActiveStaff(req.auth.uid, OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
   const uid = String(req.data?.uid ?? "").trim();
   const note = String(req.data?.note ?? "").trim();
   if (!uid) throw new HttpsError("invalid-argument", "Missing uid");

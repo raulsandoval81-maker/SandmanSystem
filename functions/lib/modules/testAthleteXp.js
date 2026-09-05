@@ -38,6 +38,10 @@ const firestore_1 = require("firebase-admin/firestore");
 const admin = __importStar(require("firebase-admin"));
 const https_1 = require("firebase-functions/v2/https");
 exports.testAthleteXp = (0, https_1.onRequest)(async (req, res) => {
+    if (!process.env.FIRESTORE_EMULATOR_HOST) {
+        res.status(404).json({ ok: false, error: "Not available in production." });
+        return;
+    }
     const db = admin.firestore();
     const athleteId = "F4-TEST-0001";
     const ref = db.doc(`athletes/${athleteId}`);

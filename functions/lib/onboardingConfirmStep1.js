@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.onboardingConfirmStep1 = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
+const onboardingBindingPolicy_1 = require("./services/onboardingBindingPolicy");
 if (!admin.apps.length)
     admin.initializeApp();
 const db = admin.firestore();
@@ -44,50 +45,67 @@ exports.onboardingConfirmStep1 = functions.https.onCall(async (data, context) =>
         throw new functions.https.HttpsError("unauthenticated", "Sign in required.");
     }
     const athleteId = String(data?.athleteId || "").trim().toUpperCase();
+    const tokenId = String(data?.tokenId || "").trim();
     if (!athleteId) {
         throw new functions.https.HttpsError("invalid-argument", "Missing athleteId.");
     }
     const userUid = context.auth.uid;
-    const ref = db.collection("athletes").doc(athleteId);
-    const snap = await ref.get();
-    if (!snap.exists) {
-        throw new functions.https.HttpsError("not-found", "Athlete not found.");
-    }
-    const a = snap.data() || {};
-    const serverAuthUid = typeof a.authUid === "string" ? a.authUid : null;
-    if (serverAuthUid && serverAuthUid !== userUid) {
-        throw new functions.https.HttpsError("permission-denied", "Profile bound to another account.");
-    }
-    const onboarding = a.onboarding && typeof a.onboarding === "object" ? a.onboarding : {};
-    const locks = onboarding.locks && typeof onboarding.locks === "object" ? onboarding.locks : {};
-    // If already confirmed, no-op
-    if (locks.step1 === true) {
-        return { ok: true, already: true };
-    }
-    const patch = {
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        onboarding: {
-            ...onboarding,
-            step: 2,
-            locks: {
-                step1: true,
-                step2: false,
-                step3: false,
-                step4: false,
-                step5: false,
-                step6: false,
-                step7: false,
-                step8: false,
-                step9: false,
+    const athleteRef = db.collection("athletes").doc(athleteId);
+    return db.runTransaction(async (tx) => {
+        const athleteSnap = await tx.get(athleteRef);
+        if (!athleteSnap.exists)
+            throw new functions.https.HttpsError("not-found", "Athlete not found.");
+        const athlete = athleteSnap.data() || {};
+        const serverAuthUid = typeof athlete.authUid === "string" && athlete.authUid.trim()
+            ? athlete.authUid.trim() : null;
+        const onboarding = athlete.onboarding && typeof athlete.onboarding === "object" ? athlete.onboarding : {};
+        const locks = onboarding.locks && typeof onboarding.locks === "object" ? onboarding.locks : {};
+        if (serverAuthUid && serverAuthUid !== userUid) {
+            throw new functions.https.HttpsError("permission-denied", "Profile bound to another account.");
+        }
+        if (locks.step1 === true && serverAuthUid === userUid)
+            return { ok: true, already: true };
+        if (!tokenId)
+            throw new functions.https.HttpsError("invalid-argument", "Missing onboarding token.");
+        const tokenRef = db.collection("onboardingTokens").doc(tokenId);
+        const tokenSnap = await tx.get(tokenRef);
+        const token = tokenSnap.data() || {};
+        let decision;
+        try {
+            decision = (0, onboardingBindingPolicy_1.decideOnboardingBinding)({
+                athleteId, callerUid: userUid, existingAuthUid: serverAuthUid,
+                step1Locked: locks.step1 === true, tokenId, tokenExists: tokenSnap.exists,
+                tokenAthleteUid: String(token.athleteUid || ""), tokenUsed: Boolean(token.usedAt),
+                tokenExpiresAt: Number(token.exp || 0), now: Date.now(),
+            });
+        }
+        catch (error) {
+            const reason = String(error?.message || "");
+            if (reason === "TOKEN_NOT_FOUND")
+                throw new functions.https.HttpsError("not-found", "Token not found.");
+            if (reason === "TOKEN_ATHLETE_MISMATCH")
+                throw new functions.https.HttpsError("permission-denied", "Token does not match athlete.");
+            if (reason === "TOKEN_USED")
+                throw new functions.https.HttpsError("failed-precondition", "Token already used.");
+            if (reason === "TOKEN_EXPIRED")
+                throw new functions.https.HttpsError("failed-precondition", "Token expired.");
+            throw error;
+        }
+        const stamp = admin.firestore.FieldValue.serverTimestamp();
+        tx.update(athleteRef, {
+            authUid: userUid,
+            updatedAt: stamp,
+            onboarding: {
+                ...onboarding,
+                step: Math.max(2, Number(onboarding.step) || 0),
+                locks: { ...locks, step1: true },
+                status: onboarding.status || "started",
+                version: onboarding.version || "v1",
+                startedAt: onboarding.startedAt || stamp,
+                step1At: onboarding.step1At || stamp,
             },
-            status: "started",
-            version: "v1",
-            startedAt: onboarding.startedAt || admin.firestore.FieldValue.serverTimestamp(),
-            step1At: admin.firestore.FieldValue.serverTimestamp(),
-        },
-    };
-    if (!serverAuthUid)
-        patch.authUid = userUid;
-    await ref.update(patch);
-    return { ok: true };
+        });
+        tx.update(tokenRef, { usedAt: stamp, usedByUid: userUid });
+        return { ok: true, repaired: decision.repaired };
+    });
 });

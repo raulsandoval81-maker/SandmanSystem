@@ -9,6 +9,7 @@ const createParentSignal_1 = require("../parent/createParentSignal");
 const rankMeta_1 = require("./rankMeta");
 const createTestingEvent_1 = require("../testing-events/createTestingEvent");
 const f8CurriculumCompatibilityPolicy_1 = require("../../policy/f8CurriculumCompatibilityPolicy");
+const staffAuthorization_1 = require("../../services/staffAuthorization");
 function normalizeProgramKind(a) {
     const raw = String(a?.programKind || a?.trackCode || a?.track || a?.program || "").toLowerCase();
     if (/zero|z2h|youth|foundry8/.test(raw))
@@ -24,6 +25,9 @@ function normalizeProgramKind(a) {
     return "wrestling";
 }
 exports.promoteTier = (0, https_1.onCall)(async (req) => {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
     const uid = String(req.data?.uid ?? "").trim();
     const note = String(req.data?.note ?? "").trim();
     if (!uid)

@@ -299,7 +299,10 @@ async function confirmIdentity() {
   }
 
   // If already confirmed (UI copy), just continue
-  if (athlete?.onboarding?.locks?.step1 === true) {
+  if (
+    athlete?.onboarding?.locks?.step1 === true &&
+    athlete?.authUid === user.uid
+  ) {
     window.location.href = `/athlete-onboarding/step-2.html?id=${encodeURIComponent(uid)}`;
     return;
   }

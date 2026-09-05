@@ -1,6 +1,8 @@
 import { onRequest } from "firebase-functions/v2/https";
 import cors from "cors";
 import { dispatchAuthoritativeXp } from "../services/authoritativeXpService";
+import admin from "firebase-admin";
+import { OPERATIONAL_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
 
 const corsMw = cors({ origin: true });
 
@@ -32,10 +34,12 @@ export const xpHttp = onRequest((req, res) => {
     if (req.method === "OPTIONS") return res.status(204).send("");
     if (req.method !== "POST") return res.status(405).send("POST only");
 
-    const coachUid = String(req.headers["x-coach-uid"] || "").trim();
-    if (!coachUid) return res.status(401).json({ ok: false, error: "Missing x-coach-uid" });
-
     try {
+      const bearer = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+      if (!bearer) return res.status(401).json({ ok: false, error: "Authentication required" });
+      const decoded = await admin.auth().verifyIdToken(bearer);
+      const coachUid = decoded.uid;
+      await requireActiveStaff(coachUid, OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
       const payload = req.body?.data ?? req.body ?? {};
 
       // ✅ normalize at the choke point (affects all 4 pages)
@@ -45,7 +49,9 @@ export const xpHttp = onRequest((req, res) => {
       return res.status(200).json(out);
     } catch (e: any) {
       const msg = e?.message || "XP failed";
-      return res.status(400).json({ ok: false, error: msg });
+      const status = e?.code === "auth/argument-error" || e?.code === "unauthenticated" ? 401
+        : e?.code === "permission-denied" ? 403 : 400;
+      return res.status(status).json({ ok: false, error: msg });
     }
   });
 });

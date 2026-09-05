@@ -8,6 +8,7 @@ const https_1 = require("firebase-functions/v2/https");
 const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 const PASSING_SCORE = 85;
 const COOLDOWN_DAYS = 5;
 async function passAthleteTestAuthoritatively(uidInput, scoreInput) {
@@ -95,4 +96,9 @@ async function passAthleteTestAuthoritatively(uidInput, scoreInput) {
     }
     return result;
 }
-exports.passAthleteTest = (0, https_1.onCall)(async (req) => passAthleteTestAuthoritatively(req.data?.uid, req.data?.score));
+exports.passAthleteTest = (0, https_1.onCall)(async (req) => {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
+    return passAthleteTestAuthoritatively(req.data?.uid, req.data?.score);
+});

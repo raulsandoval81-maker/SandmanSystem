@@ -7,6 +7,8 @@ exports.xpHttp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const cors_1 = __importDefault(require("cors"));
 const authoritativeXpService_1 = require("../services/authoritativeXpService");
+const firebase_admin_1 = __importDefault(require("firebase-admin"));
+const staffAuthorization_1 = require("../services/staffAuthorization");
 const corsMw = (0, cors_1.default)({ origin: true });
 function normalizeKind(kind) {
     const raw = String(kind ?? "").trim();
@@ -37,10 +39,13 @@ exports.xpHttp = (0, https_1.onRequest)((req, res) => {
             return res.status(204).send("");
         if (req.method !== "POST")
             return res.status(405).send("POST only");
-        const coachUid = String(req.headers["x-coach-uid"] || "").trim();
-        if (!coachUid)
-            return res.status(401).json({ ok: false, error: "Missing x-coach-uid" });
         try {
+            const bearer = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+            if (!bearer)
+                return res.status(401).json({ ok: false, error: "Authentication required" });
+            const decoded = await firebase_admin_1.default.auth().verifyIdToken(bearer);
+            const coachUid = decoded.uid;
+            await (0, staffAuthorization_1.requireActiveStaff)(coachUid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
             const payload = req.body?.data ?? req.body ?? {};
             // ✅ normalize at the choke point (affects all 4 pages)
             payload.kind = normalizeKind(payload.kind);
@@ -49,7 +54,9 @@ exports.xpHttp = (0, https_1.onRequest)((req, res) => {
         }
         catch (e) {
             const msg = e?.message || "XP failed";
-            return res.status(400).json({ ok: false, error: msg });
+            const status = e?.code === "auth/argument-error" || e?.code === "unauthenticated" ? 401
+                : e?.code === "permission-denied" ? 403 : 400;
+            return res.status(status).json({ ok: false, error: msg });
         }
     });
 });

@@ -9,6 +9,7 @@ const https_1 = require("firebase-functions/v2/https");
 const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const firestore_1 = require("firebase-admin/firestore");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 const sendParentSignalToAthleteParents_1 = require("./parent/sendParentSignalToAthleteParents");
 const parentSignalTypes_1 = require("./parent/parentSignalTypes");
 if (!firebase_admin_1.default.apps.length) {
@@ -250,6 +251,10 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
     const payload = req.data || {};
     const uid = String(payload.uid || "").trim();
     const kind = String(payload.kind || "").trim();
+    // Emulator-only DEV awards retain their existing test harness behavior.
+    if (!(isDevKind(kind) && isEmulator())) {
+        await (0, staffAuthorization_1.requireActiveStaff)(coachUid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
+    }
     if (!kind.startsWith("DEV/")) {
         return (0, authoritativeXpService_1.dispatchAuthoritativeXp)(coachUid, payload);
     }

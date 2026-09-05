@@ -3,9 +3,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAthleteFromIntakeCall = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 exports.createAthleteFromIntakeCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
-        throw new Error("unauthenticated");
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required.");
     const { intakeId, mint, publicName, team, virtue } = req.data;
     if (!intakeId || !mint?.uid)
         throw new Error("missing mint data");
@@ -35,6 +37,13 @@ exports.createAthleteFromIntakeCall = (0, https_1.onCall)(async (req) => {
         virtue,
         createdAt: firestore_1.FieldValue.serverTimestamp(),
     };
-    await db.collection("athletes").doc(mint.uid).set(athleteData, { merge: true });
+    const athleteRef = db.collection("athletes").doc(mint.uid);
+    await db.runTransaction(async (tx) => {
+        const existing = await tx.get(athleteRef);
+        if (existing.exists) {
+            throw new https_1.HttpsError("already-exists", "Athlete record already exists.");
+        }
+        tx.create(athleteRef, athleteData);
+    });
     return { athlete: athleteData };
 });
