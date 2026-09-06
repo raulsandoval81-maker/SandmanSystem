@@ -54,7 +54,21 @@ const scheduleBtn =
   document.getElementById("scheduleBtn");
 
 const params = new URLSearchParams(window.location.search);
-const selectedLeadId = params.get("leadId") || "";
+
+const selectedLeadId =
+  params.get("leadId") || "";
+
+const selectedRequestId =
+  params.get("requestId") || "";
+
+const selectedSourceId =
+  selectedLeadId ||
+  selectedRequestId;
+
+const selectedSourceCollection =
+  selectedRequestId
+    ? "admissions_requests"
+    : "interest_leads";
 
 let selectedLead = null;
 let managementContext = null;
@@ -490,20 +504,92 @@ function canAccessLocation(locationId = "") {
 }
 
 async function loadSelectedLead() {
-  if (!selectedLeadId) return;
+  if (!selectedSourceId) return;
 
-  const leadSnapshot =
+  const sourceSnapshot =
     await getDoc(
-      doc(db, "interest_leads", selectedLeadId)
+      doc(
+        db,
+        selectedSourceCollection,
+        selectedSourceId
+      )
     );
 
-  if (!leadSnapshot.exists()) {
-    throw new Error("Selected lead was not found.");
+  if (!sourceSnapshot.exists()) {
+    throw new Error(
+      selectedRequestId
+        ? "Selected admissions request was not found."
+        : "Selected lead was not found."
+    );
   }
 
+  const sourceData =
+    sourceSnapshot.data() || {};
+
   selectedLead = {
-    id: leadSnapshot.id,
-    ...leadSnapshot.data()
+    id: sourceSnapshot.id,
+    ...sourceData,
+
+    // Canonical identity/contact normalization.
+    athleteName:
+      sourceData.athleteName ||
+      sourceData.participantName ||
+      "",
+
+    parentName:
+      sourceData.parentName ||
+      sourceData.guardianName ||
+      sourceData.contactName ||
+      "",
+
+    dob:
+      sourceData.dob ||
+      sourceData.dateOfBirth ||
+      "",
+
+    dateOfBirth:
+      sourceData.dateOfBirth ||
+      sourceData.dob ||
+      "",
+
+    email:
+      sourceData.email ||
+      sourceData.parentEmail ||
+      "",
+
+    phone:
+      sourceData.phone ||
+      sourceData.parentPhone ||
+      "",
+
+    city:
+      sourceData.city || "",
+
+    state:
+      sourceData.state || "",
+
+    locationId:
+      sourceData.locationId ||
+      sourceData.location ||
+      sourceData.preferredLocation ||
+      "",
+
+    programInterest:
+      sourceData.programInterest ||
+      sourceData.journey ||
+      sourceData.journeyId ||
+      "",
+
+    admissionsRequestId:
+      selectedRequestId || null,
+
+    leadId:
+      selectedLeadId || null,
+
+    sourceType:
+      selectedRequestId
+        ? "admissions_request"
+        : "interest_lead"
   };
 
   if (
@@ -1312,14 +1398,24 @@ scheduleForm?.addEventListener(
     doc(
       db,
       "admissions_appointments",
-      selectedLeadId
+      selectedSourceId
     );
 
   await setDoc(
     appointmentRef,
     {
-      appointmentId: selectedLeadId,
-      leadId: selectedLeadId,
+      appointmentId: selectedSourceId,
+
+      leadId:
+        selectedLeadId || null,
+
+      admissionsRequestId:
+        selectedRequestId || null,
+
+      sourceType:
+        selectedRequestId
+          ? "admissions_request"
+          : "interest_lead",
 
       academyId:
         selectedLead.academyId || "",
@@ -1337,7 +1433,10 @@ scheduleForm?.addEventListener(
         selectedLead.athleteName || "",
 
       parentName:
-        selectedLead.parentName || "",
+        selectedLead.parentName ||
+        selectedLead.guardianName ||
+        selectedLead.contactName ||
+        "",
 
       registrantRole:
         selectedLead.registrantRole || "",
@@ -1369,7 +1468,10 @@ scheduleForm?.addEventListener(
         selectedLead.shirtSize || "",
 
       programInterest:
-        selectedLead.programInterest || "",
+        selectedLead.programInterest ||
+        selectedLead.journey ||
+        selectedLead.journeyId ||
+        "",
 
       intent:
         selectedLead.intent || "",
