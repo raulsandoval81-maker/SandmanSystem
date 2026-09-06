@@ -58,7 +58,7 @@ function announce(view) {
   lastAnnouncement = key;
   const generation = cueGeneration;
   if (["work-started", "round-started", "action-started"].includes(view.reason)) {
-    signal(generation); speak(view.action.label, generation);
+    signal(generation); view.spokenCommands.forEach(command => speak(command, generation));
   } else if (["bottom-cue-started", "bottom-countdown"].includes(view.reason)) {
     view.spokenCommands.forEach(command => speak(command, generation));
   } else if (view.reason === "bottom-action-started") {

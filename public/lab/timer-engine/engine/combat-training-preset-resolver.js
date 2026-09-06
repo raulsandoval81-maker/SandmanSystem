@@ -51,7 +51,9 @@ function resolveRound(round, targetDuration, transitionDuration) {
   const roundDuration = Math.max(targetDuration, round.minimumRoundDuration || 0);
   const overhead = mode === "bottom"
     ? actionCount * round.commandPattern.leadInDuration
-    : (actionCount - (round.trailingTransition === false ? 1 : 0)) * transitionDuration;
+    : mode === "footwork"
+      ? 0
+      : (actionCount - (round.trailingTransition === false ? 1 : 0)) * transitionDuration;
   const actionDuration = (roundDuration - overhead) / actionCount;
   if (!Number.isFinite(actionDuration) || actionDuration <= 0) {
     throw new RangeError(`Cannot resolve action timing for ${round.id}`);

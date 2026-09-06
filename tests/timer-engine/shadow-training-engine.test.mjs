@@ -12,6 +12,7 @@ const policySource = readFileSync("public/lab/timer-engine/data/combat-training-
 const policyUrl = `data:text/javascript;base64,${Buffer.from(policySource).toString("base64")}`;
 const librarySource = readFileSync("public/lab/timer-engine/data/combat-discipline-library.js", "utf8");
 const libraryUrl = `data:text/javascript;base64,${Buffer.from(librarySource).toString("base64")}`;
+const { FOUNDATIONAL_FOOTWORK, FOUNDATIONAL_FOOTWORK_ROUND } = await import(libraryUrl);
 const resolverSource = readFileSync(
   "public/lab/timer-engine/engine/combat-training-preset-resolver.js",
   "utf8"
@@ -72,7 +73,7 @@ test("Shadow preset resolves exact mode-aware round durations", () => {
 test("Short Time truth survives pause/resume without a duplicate threshold event", () => {
   const harness = createEngine();
   const { engine, events } = harness;
-  engine.roundIndex = 0;
+  engine.roundIndex = 1;
   engine.actionIndex = 2;
   engine.state = "working";
   engine.remaining = 7;
@@ -97,7 +98,7 @@ test("Short Time truth survives pause/resume without a duplicate threshold event
 
 test("Short Time clears outside live work and for a new round", () => {
   const { engine, events } = createEngine();
-  engine.roundIndex = 0;
+  engine.roundIndex = 1;
   engine.actionIndex = 2;
   engine.state = "transitioning";
   engine.remaining = 3;
@@ -126,8 +127,8 @@ test("Short Time clears outside live work and for a new round", () => {
   assert.equal(events.at(-1).isShortTime, false);
 });
 
-test("Rounds 1-4 retain final Hand Fight transitions before Recovery", () => {
-  for (let roundIndex = 0; roundIndex < 4; roundIndex += 1) {
+test("Wrestling discipline rounds 2-4 retain final Hand Fight transitions before Recovery", () => {
+  for (let roundIndex = 1; roundIndex < 4; roundIndex += 1) {
     const harness = createEngine();
     const { engine, events } = harness;
     engine.roundIndex = roundIndex;
@@ -283,20 +284,85 @@ test("Road2Champion and Path2Legend resolve the locked T0-T4 timing doctrine", (
   }
 });
 
-test("discipline libraries resolve their own foundational cues", () => {
+test("discipline libraries retain their own Round 2-5 cues", () => {
   const firstLabels = Object.fromEntries(
     ["wrestling", "boxing", "muay-thai", "mma", "submission-grappling"].map(discipline => {
       const resolved = buildShadowTrainingPlan(resolveCombatTrainingPreset({ discipline }));
       return [discipline, resolved.rounds.flatMap(round => round.actions.map(action => action.label))];
     })
   );
-  assert.equal(firstLabels.wrestling[0], "Move Your Feet");
   assert(firstLabels.boxing.includes("Double Jab"));
   assert(!firstLabels.boxing.includes("Penetration Step"));
   assert(firstLabels["muay-thai"].includes("Teep"));
   assert(firstLabels.mma.includes("Pummel"));
   assert(firstLabels["submission-grappling"].includes("Hip Escape"));
   assert(!firstLabels.wrestling.includes("Hip Escape"));
+});
+
+test("every discipline shares one offense-free Round 1 footwork foundation", () => {
+  const disciplines = ["wrestling", "boxing", "muay-thai", "mma", "submission-grappling"];
+  const roundOnes = disciplines.map(discipline =>
+    resolveCombatTrainingPreset({ discipline }).rounds[0]
+  );
+  for (const roundOne of roundOnes) {
+    assert.deepEqual(roundOne.actions, FOUNDATIONAL_FOOTWORK_ROUND.actions);
+    assert.equal(roundOne.mode, "footwork");
+    assert.equal(roundOne.actions.every(action => action[2] === "footwork"), true);
+    assert.doesNotMatch(
+      roundOne.actions.flatMap(action => action[4].spokenCommands).join(" "),
+      /jab|cross|punch|kick|teep|knee|shot|shoot|attack|sprawl|pummel/i
+    );
+  }
+});
+
+test("foundational stance matrices are exact and Pivot means one quarter pivot", () => {
+  assert.deepEqual(FOUNDATIONAL_FOOTWORK.stances.square,
+    ["Left", "Right", "Circle Left", "Circle Right", "Quick Feet"]);
+  assert.deepEqual(FOUNDATIONAL_FOOTWORK.stances.staggered,
+    ["Forward", "Back", "Pivot", "Quick Feet"]);
+  assert.deepEqual(FOUNDATIONAL_FOOTWORK.pivot, { label: "Pivot", turn: "quarter" });
+});
+
+test("Round 1 establishes stance and supports authored 1-, 2-, and 3-step cues", () => {
+  const resolved = buildShadowTrainingPlan(resolveCombatTrainingPreset({ discipline: "mma" }));
+  const roundOne = resolved.rounds[0];
+  assert.deepEqual(roundOne.actions[0].spokenCommands, ["Square stance", "Left"]);
+  assert.equal(roundOne.actions[0].command.activeStance, "square");
+  assert.equal(roundOne.actions[1].command.activeStance, "square");
+  assert.deepEqual(roundOne.actions[2].spokenCommands,
+    ["Staggered stance", "Forward", "Back", "Pivot"]);
+  assert.equal(roundOne.actions[2].command.activeStance, "staggered");
+  assert.deepEqual(
+    roundOne.actions.filter(action => !action.command.selfDirected)
+      .map(action => action.command.movements.length),
+    [1, 2, 3, 1]
+  );
+  assert.equal(roundOne.actions.at(-1).label, "Move Your Feet");
+});
+
+test("Round 1 exact duration holds for every journey and tier", () => {
+  for (const journey of ["road2champion", "path2legend"]) {
+    for (let tier = 0; tier <= 4; tier += 1) {
+      const preset = resolveCombatTrainingPreset({ discipline: "boxing", journey, tier });
+      const roundOne = buildShadowTrainingPlan(preset).rounds[0];
+      assert.equal(roundOne.roundDuration, preset.roundDuration);
+      assert.equal(roundOne.actions.reduce((sum, action) => sum + action.duration, 0), preset.roundDuration);
+      assert.equal(roundOne.actions.every(action => action.transitionDuration === 0), true);
+    }
+  }
+});
+
+test("Rounds 2-5 remain authored by discipline", () => {
+  const expected = {
+    wrestling: ["level", "attack", "defense", "recovery"],
+    boxing: ["straight-shots", "defense", "combine", "control"],
+    "muay-thai": ["defense", "striking", "close-range", "control"],
+    mma: ["entry", "defense", "connection", "control"],
+    "submission-grappling": ["level", "attack", "defense", "grappling-recovery"]
+  };
+  for (const [discipline, ids] of Object.entries(expected)) {
+    assert.deepEqual(resolveCombatTrainingPreset({ discipline }).rounds.slice(1).map(round => round.id), ids);
+  }
 });
 
 test("Submission Grappling composes Wrestling structure but authors its own Round 5", () => {

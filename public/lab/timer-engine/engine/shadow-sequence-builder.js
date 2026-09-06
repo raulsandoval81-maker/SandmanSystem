@@ -31,7 +31,7 @@ export function buildShadowTrainingPlan(preset) {
   const rounds = sessionRounds.map(({ round, cycleIndex, sourceRoundIndex }, roundIndex) => {
     if (!round.actions?.length) throw new TypeError(`Round ${roundIndex + 1} has no actions`);
     const mode = round.mode || "neutral";
-    if (!["neutral", "bottom"].includes(mode)) {
+    if (!["neutral", "bottom", "footwork"].includes(mode)) {
       throw new TypeError(`Round ${roundIndex + 1} has an unsupported mode`);
     }
     const commandPattern = mode === "bottom" ? round.commandPattern : null;
@@ -42,13 +42,32 @@ export function buildShadowTrainingPlan(preset) {
     }
     const actionDuration = round.actionDuration || preset.actionDuration;
     const expectedDuration = round.roundDuration || preset.roundDuration;
+    let activeStance = null;
     const actions = round.actions.map((raw, actionIndex) => {
-      const [actionId, label, category, coachingCue] = raw;
+      const [actionId, label, category, coachingCue, command] = raw;
       if (![actionId, label, category, coachingCue].every(Boolean)) {
         throw new TypeError(`Round ${roundIndex + 1}, action ${actionIndex + 1} is incomplete`);
       }
+      if (mode === "footwork") {
+        if (!command?.movements?.length || !command.spokenCommands?.length) {
+          throw new TypeError(`Round ${roundIndex + 1}, action ${actionIndex + 1} needs footwork commands`);
+        }
+        if (command.stanceChange) activeStance = command.stanceChange;
+        if (!activeStance) {
+          throw new TypeError(`Round ${roundIndex + 1} must establish stance before movement`);
+        }
+        if (!command.selfDirected && (command.movements.length < 1 || command.movements.length > 3)) {
+          throw new RangeError(`Round ${roundIndex + 1} footwork cues must contain 1 to 3 steps`);
+        }
+        const allowed = round.movementMatrix?.stances?.[activeStance] || [];
+        if (!command.selfDirected && command.movements.some(movement => !allowed.includes(movement))) {
+          throw new RangeError(`Round ${roundIndex + 1} contains movement outside ${activeStance} stance`);
+        }
+      }
       return Object.freeze({
         actionId, label, category, coachingCue,
+        command: command ? Object.freeze({ ...command, activeStance }) : null,
+        spokenCommands: Object.freeze(command?.spokenCommands || [label]),
         duration: actionDuration,
         leadInDuration: commandPattern?.leadInDuration || 0,
         transitionDuration: mode === "neutral" &&

@@ -131,6 +131,9 @@ export class ShadowTrainingEngine {
     return countdown[index];
   }
   spokenCommands(reason) {
+    if (["work-started", "round-started", "action-started"].includes(reason)) {
+      return this.currentAction.spokenCommands || [this.currentAction.label];
+    }
     if (["bottom-cue-started", "bottom-countdown"].includes(reason)) {
       return [String(this.currentBottomCountdown)];
     }

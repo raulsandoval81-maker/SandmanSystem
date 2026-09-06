@@ -1,5 +1,5 @@
-const action = (actionId, label, category, coachingCue) =>
-  Object.freeze([actionId, label, category, coachingCue]);
+const action = (actionId, label, category, coachingCue, command = null) =>
+  Object.freeze([actionId, label, category, coachingCue, command && Object.freeze(command)]);
 
 const round = (id, purpose, actions) => Object.freeze({
   id,
@@ -7,12 +7,53 @@ const round = (id, purpose, actions) => Object.freeze({
   actions: Object.freeze(actions)
 });
 
-const WRESTLING_ROUNDS = Object.freeze([
-  round("foundation", "Foundation", [
-    action("stance-motion", "Move Your Feet", "foundation", "Stay balanced, stay in stance, and keep your feet moving."),
-    action("circle-left", "Circle Left", "movement", "Stay low and keep your stance while circling."),
-    action("circle-right", "Circle Right", "movement", "Change direction without crossing your feet.")
+export const FOUNDATIONAL_FOOTWORK = Object.freeze({
+  stances: Object.freeze({
+    square: Object.freeze(["Left", "Right", "Circle Left", "Circle Right", "Quick Feet"]),
+    staggered: Object.freeze(["Forward", "Back", "Pivot", "Quick Feet"])
+  }),
+  pivot: Object.freeze({ label: "Pivot", turn: "quarter" }),
+  selfDirectedCommand: "Move Your Feet"
+});
+
+const footworkAction = (actionId, label, coachingCue, {
+  stanceChange = null,
+  movements,
+  selfDirected = false
+}) => action(actionId, label, "footwork", coachingCue, {
+  stanceChange,
+  movements: Object.freeze(movements),
+  selfDirected,
+  spokenCommands: Object.freeze([
+    ...(stanceChange ? [`${stanceChange === "square" ? "Square" : "Staggered"} stance`] : []),
+    ...movements
+  ])
+});
+
+export const FOUNDATIONAL_FOOTWORK_ROUND = Object.freeze({
+  ...round("footwork-foundation", "Discipline + Footwork", [
+    footworkAction("square-left", "Left", "Establish square stance, then move one clean step left.", {
+      stanceChange: "square", movements: ["Left"]
+    }),
+    footworkAction("square-right-circle", "Right → Circle Left", "Stay square and connect two controlled directions.", {
+      movements: ["Right", "Circle Left"]
+    }),
+    footworkAction("staggered-forward-back-pivot", "Forward → Back → Pivot", "Establish staggered stance and finish with one quarter pivot.", {
+      stanceChange: "staggered", movements: ["Forward", "Back", "Pivot"]
+    }),
+    footworkAction("staggered-quick-feet", "Quick Feet", "Keep the staggered stance and make the feet quick without crossing.", {
+      movements: ["Quick Feet"]
+    }),
+    footworkAction("move-your-feet", "Move Your Feet", "Use the available space and keep disciplined movement.", {
+      movements: ["Move Your Feet"], selfDirected: true
+    })
   ]),
+  mode: "footwork",
+  movementMatrix: FOUNDATIONAL_FOOTWORK
+});
+
+const WRESTLING_ROUNDS = Object.freeze([
+  FOUNDATIONAL_FOOTWORK_ROUND,
   round("level", "Level", [
     action("level-change", "Level Change", "position", "Lower your level with posture and balance."),
     action("recover-stance", "Recover Stance", "recovery", "Return to a strong stance under control."),
@@ -51,11 +92,7 @@ const SUBMISSION_GRAPPLING_ROUNDS = Object.freeze([
 ]);
 
 const BOXING_ROUNDS = Object.freeze([
-  round("foundation", "Foundation", [
-    action("stance-motion", "Move Your Feet", "foundation", "Stay balanced and move from your stance."),
-    action("jab", "Jab", "attack", "Return the hand to guard after every jab."),
-    action("double-jab", "Double Jab", "attack", "Step with two controlled jabs and recover your guard.")
-  ]),
+  FOUNDATIONAL_FOOTWORK_ROUND,
   round("straight-shots", "Straight Shots", [
     action("jab", "Jab", "attack", "Use the lead hand without reaching."),
     action("one-two", "1-2", "attack", "Turn the cross and return to stance."),
@@ -79,11 +116,7 @@ const BOXING_ROUNDS = Object.freeze([
 ]);
 
 const MUAY_THAI_ROUNDS = Object.freeze([
-  round("foundation", "Foundation", [
-    action("stance-motion", "Move Your Feet", "foundation", "Stay tall, balanced, and ready to check."),
-    action("jab", "Jab", "attack", "Touch the target and return to guard."),
-    action("teep", "Teep", "attack", "Lift, extend, and return to stance under control.")
-  ]),
+  FOUNDATIONAL_FOOTWORK_ROUND,
   round("defense", "Defense", [
     action("check", "Check", "defense", "Lift the leg without losing posture."),
     action("move", "Move Your Feet", "movement", "Reset your base after the check."),
@@ -107,11 +140,7 @@ const MUAY_THAI_ROUNDS = Object.freeze([
 ]);
 
 const MMA_ROUNDS = Object.freeze([
-  round("foundation", "Foundation", [
-    action("stance-motion", "Move Your Feet", "foundation", "Stay ready to strike or change levels."),
-    action("jab", "Jab", "attack", "Use the jab without giving up your stance."),
-    action("level-change", "Level Change", "position", "Lower your level with balance.")
-  ]),
+  FOUNDATIONAL_FOOTWORK_ROUND,
   round("entry", "Entry", [
     action("jab", "Jab", "attack", "Establish range before changing levels."),
     action("shoot", "Shoot", "attack", "Enter with posture and control."),
