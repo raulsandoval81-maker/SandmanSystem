@@ -2,6 +2,7 @@ import {
   db,
   collection,
   doc,
+  getDoc,
   getDocs,
   setDoc,
   query,
