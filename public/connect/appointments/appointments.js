@@ -738,6 +738,84 @@ async function migrateLegacyAppointments() {
       await getDoc(appointmentRef);
 
     if (existingAppointment.exists()) {
+      const current =
+        existingAppointment.data() || {};
+
+      const backfill = {};
+
+      const fillIfMissing = (
+        field,
+        value
+      ) => {
+        if (
+          !String(current[field] || "").trim() &&
+          String(value || "").trim()
+        ) {
+          backfill[field] = value;
+        }
+      };
+
+      fillIfMissing(
+        "athleteName",
+        lead.athleteName
+      );
+
+      fillIfMissing(
+        "participantName",
+        lead.athleteName
+      );
+
+      fillIfMissing(
+        "parentName",
+        lead.parentName ||
+        lead.guardianName
+      );
+
+      fillIfMissing(
+        "dob",
+        lead.dob ||
+        lead.dateOfBirth
+      );
+
+      fillIfMissing(
+        "city",
+        lead.city
+      );
+
+      fillIfMissing(
+        "state",
+        lead.state
+      );
+
+      fillIfMissing(
+        "email",
+        lead.email ||
+        lead.parentEmail
+      );
+
+      fillIfMissing(
+        "phone",
+        lead.phone ||
+        lead.parentPhone
+      );
+
+      fillIfMissing(
+        "leadId",
+        lead.id
+      );
+
+      if (
+        Object.keys(backfill).length
+      ) {
+        await setDoc(
+          appointmentRef,
+          backfill,
+          { merge: true }
+        );
+
+        migratedCount += 1;
+      }
+
       continue;
     }
 
@@ -771,14 +849,26 @@ async function migrateLegacyAppointments() {
         athleteAge:
           lead.athleteAge || "",
 
-        email:
-          lead.email || "",
-
-        phone:
-          lead.phone || "",
+        dob:
+          lead.dob ||
+          lead.dateOfBirth ||
+          "",
 
         city:
           lead.city || "",
+
+        state:
+          lead.state || "",
+
+        email:
+          lead.email ||
+          lead.parentEmail ||
+          "",
+
+        phone:
+          lead.phone ||
+          lead.parentPhone ||
+          "",
 
         shirtSize:
           lead.shirtSize || "",

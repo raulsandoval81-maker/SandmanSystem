@@ -1,7 +1,7 @@
 // /intake-parent/parent.intake.js
 // Parent Intake (Split v2) — token-gated submit + waiver unlock
 // Required HTML IDs:
-// parentEmail, parentPhone
+// parentName, parentEmail, parentPhone
 // athleteName, dob
 // city, state
 // emergencyName, emergencyPhone
@@ -143,6 +143,7 @@ function fail(msg, focusId) {
 
 function validateFormBasics() {
   // parent
+  const parentName = val("parentName");
   const email = val("parentEmail");
   const phoneDigits = normalizePhoneDigits10(val("parentPhone"));
 
@@ -160,6 +161,9 @@ function validateFormBasics() {
 
   // medical
   const medical = val("medical");
+
+  if (!parentName)
+    fail("Enter parent or guardian name.", "parentName");
 
   if (!validateEmail(email)) fail("Enter a valid parent email.", "parentEmail");
   if (!validateUSPhone10(phoneDigits))
@@ -182,6 +186,7 @@ function validateFormBasics() {
     fail("Enter a valid 10-digit emergency phone.", "emergencyPhone");
 
   return {
+    parentName: titleCase(parentName),
     email: email.toLowerCase(),
     phoneDigits,
 
@@ -249,6 +254,11 @@ function prefillFromToken(prefill = {}) {
   );
 
   setPrefillIfBlank(
+    "parentName",
+    prefill.parentName
+  );
+
+  setPrefillIfBlank(
     "parentEmail",
     prefill.email
   );
@@ -297,8 +307,15 @@ async function prefillFromLead(connectLeadId) {
   );
 
   setPrefillIfBlank(
+    "parentName",
+    lead.parentName ||
+    lead.guardianName
+  );
+
+  setPrefillIfBlank(
     "parentEmail",
-    lead.email
+    lead.email ||
+    lead.parentEmail
   );
 
   setPrefillIfBlank(
@@ -456,7 +473,11 @@ async function handleSubmit(e) {
         dob: v.dob,
       },
 
+      parentName:
+        v.parentName,
+
       parent: {
+        name: v.parentName,
         email: v.email,
         phoneDigits: v.phoneDigits,
         languagePreference:

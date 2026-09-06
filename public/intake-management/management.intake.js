@@ -571,6 +571,15 @@ async function generateIntakeInvite(
       Object.entries({
         athleteName,
 
+        parentName:
+          firstValue(
+            proposalProspect.primaryContactName,
+            proposalProspect.parentName,
+            proposalContact.name,
+            proposalContact.parentName,
+            enrollment?.parentName
+          ),
+
         dob:
           firstValue(
             proposalAthlete.dob,
