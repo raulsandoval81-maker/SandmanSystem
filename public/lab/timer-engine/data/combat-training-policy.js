@@ -20,9 +20,9 @@ export const COMBAT_TRAINING_DEFAULTS = Object.freeze({
   shortTimeAt: 10,
   sessionCycles: 2,
   recovery: Object.freeze({
-    label: "Shadow Rope",
-    spokenCommand: "Shadow rope",
-    coachingCue: "Stay moving, breathe, and prepare for the next round."
+    label: "Jump Rope",
+    spokenCommand: "Jump rope",
+    coachingCue: "Shadow rope. Stay moving, breathe, and prepare for the next round."
   })
 });
 
