@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
+import { resolveOnboardingTemplate } from "./onboarding-templates.js";
 
 const params = new URLSearchParams(window.location.search);
 const uid = (params.get("id") || params.get("uid") || "").trim().toUpperCase();
@@ -58,6 +59,17 @@ async function boot() {
 
     const snap = await getDoc(doc(db, "athletes", uid));
     athlete = snap.exists() ? (snap.data() || {}) : null;
+
+    const resolved = resolveOnboardingTemplate(athlete || {});
+    const copy = resolved.template.finisher;
+    document.body.dataset.onboardingTemplate = resolved.templateKey;
+    const heading = document.querySelector("h1");
+    const question = document.querySelector(".card h2");
+    const helper = document.querySelector(".card .muted.small");
+    if (heading) heading.textContent = copy.heading;
+    if (question) question.textContent = copy.question;
+    if (helper) helper.textContent = copy.helper;
+    if (btnNo) btnNo.textContent = copy.noLabel;
 
     // If Step 7 already locked, forward immediately
     if (athlete?.onboarding?.locks?.step7 === true) {

@@ -199,6 +199,15 @@ h1{
   width:auto;
 }
 
+.onboarding-choice-row{
+  margin-top:0;
+}
+
+.onboarding-choice-row .btn[aria-pressed="true"]{
+  outline:3px solid rgba(250,204,21,.35);
+  outline-offset:3px;
+}
+
 .progress{
   margin-top:14px;
   text-align:center;

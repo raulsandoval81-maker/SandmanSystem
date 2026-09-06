@@ -3,6 +3,7 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { resolveVerifiedExperienceYears } from "./experienceAuthority";
 import { resolveF8RankXpCap } from "./policy/f8ProgressionPolicy";
+import { onboardingRelationshipFields } from "./onboardingRelationship";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = getFirestore();
@@ -1174,6 +1175,11 @@ const safePriorExperienceValidation =
 
       const intakeData = intakeSnap.data() || {};
 
+      const onboardingRelationship =
+        onboardingRelationshipFields(
+          intakeData.intakeAudience
+        );
+
       // Revalidate the transaction snapshot so activation
       // is based on the same authoritative data being committed.
       validateEnrollmentAuthority(
@@ -1332,6 +1338,7 @@ coachIds: safeCoachIds,
 locationId: safeLocationId,
 placement: safePlacement,
 priorExperienceValidation: safePriorExperienceValidation,
+...onboardingRelationship,
 
         tier: starter.tier,
         rankName: starter.rankName,

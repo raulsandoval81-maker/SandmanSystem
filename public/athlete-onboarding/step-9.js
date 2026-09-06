@@ -12,6 +12,7 @@ import {
   serverTimestamp,
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
+import { day1SnapshotView, resolveOnboardingTemplate } from "./onboarding-templates.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -66,6 +67,9 @@ async function loadSnapshot() {
   }
 
   athlete = snap.data() || {};
+  const resolved = resolveOnboardingTemplate(athlete);
+  const day1 = day1SnapshotView(athlete);
+  document.body.dataset.onboardingTemplate = resolved.templateKey;
 
   // If already completed/locked, skip snapshot page and go hub
   if (athlete?.onboarding?.locks?.step9 === true || athlete?.onboarding?.completedAt) {
@@ -107,27 +111,38 @@ async function loadSnapshot() {
   setText("sum-teamloc", `${team} / ${safeJoin(city, state)}`);
 
   // Scores (onboarding.selfAssess)
-  const sa = athlete.onboarding?.selfAssess || {};
+  const sa = day1.selfAssess || {};
 
   const parts = [];
-  if (Number.isFinite(Number(sa.honor)))   parts.push(`Honor ${sa.honor}/10`);
-  if (Number.isFinite(Number(sa.strong)))  parts.push(`Strong ${sa.strong}/10`);
-  if (Number.isFinite(Number(sa.fast)))    parts.push(`Fast ${sa.fast}/10`);
-  if (Number.isFinite(Number(sa.smart)))   parts.push(`Smart ${sa.smart}/10`);
-  if (Number.isFinite(Number(sa.courage))) parts.push(`Courage ${sa.courage}/10`);
+  const labels = { honor: "Honor", strong: "Strong", fast: "Fast", smart: resolved.journey === "road2champion" ? "Good Choices" : "Smart", courage: "Courage" };
+  for (const [field, label] of Object.entries(labels)) {
+    const value = sa[field];
+    if (typeof value === "boolean") parts.push(`${label} ${value ? "Yes" : "Not yet"}`);
+    else if (Number.isFinite(Number(value))) parts.push(`${label} ${value}/10`);
+  }
   setText("sum-scores", parts.length ? parts.join(" · ") : "—");
 
   // Finisher (boolean)
   if (typeof sa.finisher === "boolean") {
-    setText("sum-finisher", sa.finisher ? "Yes" : "No");
+    const finisherNoLabel =
+      resolved.journey === "road2champion" ? "Not yet" : "No";
+
+    setText("sum-finisher", sa.finisher ? "Yes" : finisherNoLabel);
   } else {
     setText("sum-finisher", "—");
   }
 
   // Hero + Legend (Step 8)
-  const hero = athlete.onboarding?.identity?.childhoodHero;
-  const legend = athlete.onboarding?.identity?.futureLegend;
-  setText("sum-hero", [hero, legend].filter(Boolean).join(" · ") || "—");
+  const identity = day1.identity || {};
+  const identityKind = resolved.template.identity.kind;
+  const identityLabel = $("sum-identity-label");
+  const identityValue = identityKind === "mastery"
+    ? identity.masteryFocus
+    : identityKind === "legend"
+      ? identity.futureLegend
+      : identity.childhoodHero || identity.futureLegend || identity.masteryFocus;
+  if (identityLabel) identityLabel.textContent = resolved.template.identity.heading;
+  setText("sum-hero", identityValue || "—");
 
   // Doctrine: no back. Disable back button.
   if (btnBack) btnBack.disabled = true;
@@ -173,6 +188,16 @@ btnComplete?.addEventListener("click", async () => {
 
       // Step 9 completed → next state is 10 (done)
       "onboarding.step": 10,
+
+      "onboarding.day1Snapshot": {
+        version: "v1",
+        templateKey: resolveOnboardingTemplate(athlete || {}).templateKey,
+        relationshipMode: resolveOnboardingTemplate(athlete || {}).relationshipMode,
+        journey: resolveOnboardingTemplate(athlete || {}).journey,
+        selfAssess: { ...(athlete?.onboarding?.selfAssess || {}) },
+        identity: { ...(athlete?.onboarding?.identity || {}) },
+        sealedAt: serverTimestamp(),
+      },
 
       "onboarding.completedAt": serverTimestamp(),
       updatedAt: serverTimestamp(),

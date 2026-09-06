@@ -16,6 +16,7 @@ import {
   isSignInWithEmailLink,
   signInWithEmailLink
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { resolveOnboardingTemplate } from "./onboarding-templates.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -145,7 +146,7 @@ function prettyJourneyName(programTrack = "", art = "", placement = {}) {
     ""
   ).toLowerCase();
 
-  if (pt === "zero2hero") return "Zero2Hero";
+  if (pt === "zero2hero" || pt === "road2champion") return "Road2Champion";
   if (pt === "path2legend") return "Path2Legend";
   if (pt === "quest2mastery") return "Quest2Mastery";
   if (pt === "road2grestness" || pt === "adultboxing") return "Road2Glory";
@@ -206,6 +207,9 @@ async function loadAthlete() {
   }
 
   athlete = snap.data() || {};
+
+  const onboardingTemplate = resolveOnboardingTemplate(athlete);
+  document.body.dataset.onboardingTemplate = onboardingTemplate.templateKey;
 
   console.log("[loadAthlete] full athlete:", athlete);
 console.log("[loadAthlete] programTrack:", athlete.programTrack);

@@ -39,6 +39,7 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const experienceAuthority_1 = require("./experienceAuthority");
 const f8ProgressionPolicy_1 = require("./policy/f8ProgressionPolicy");
+const onboardingRelationship_1 = require("./onboardingRelationship");
 if (!admin.apps.length)
     admin.initializeApp();
 const db = (0, firestore_1.getFirestore)();
@@ -648,6 +649,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 throw new https_1.HttpsError("failed-precondition", `Submission doc missing: ${intakeRef.path}`);
             }
             const intakeData = intakeSnap.data() || {};
+            const onboardingRelationship = (0, onboardingRelationship_1.onboardingRelationshipFields)(intakeData.intakeAudience);
             // Revalidate the transaction snapshot so activation
             // is based on the same authoritative data being committed.
             validateEnrollmentAuthority(intakeData);
@@ -749,6 +751,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 locationId: safeLocationId,
                 placement: safePlacement,
                 priorExperienceValidation: safePriorExperienceValidation,
+                ...onboardingRelationship,
                 tier: starter.tier,
                 rankName: starter.rankName,
                 rankColor: starter.rankColor,
