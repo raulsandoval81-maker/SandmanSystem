@@ -123,6 +123,25 @@
           </span>
         </div>
 
+        <div class="athlete-activation-fields" id="athleteActivationFields" hidden>
+          <label>
+            Athlete ID
+            <input id="athleteId" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false">
+          </label>
+
+          <label>
+            Invitation token
+            <input id="athleteToken" type="text" autocomplete="off" spellcheck="false">
+          </label>
+
+          <label>
+            Athlete login email
+            <input id="athleteEmail" type="email" autocomplete="email">
+          </label>
+
+          <p class="field-error" id="athleteActivationError" role="alert"></p>
+        </div>
+
         <a
           class="primary-action"
           id="continueLink"

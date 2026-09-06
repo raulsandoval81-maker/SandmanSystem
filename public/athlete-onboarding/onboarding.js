@@ -14,7 +14,8 @@ import { httpsCallable } from "https://www.gstatic.com/firebasejs/10.13.1/fireba
 import {
   sendSignInLinkToEmail,
   isSignInWithEmailLink,
-  signInWithEmailLink
+  signInWithEmailLink,
+  updatePassword
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { resolveOnboardingTemplate } from "./onboarding-templates.js";
 
@@ -111,7 +112,15 @@ async function finishMagicLinkIfPresent() {
   const email = saved || window.prompt("Confirm your email to finish sign-in:");
   if (!email) throw new Error("Email required to finish sign-in.");
 
+  const password = window.prompt(
+    "Create your athlete account password (at least 6 characters):"
+  );
+  if (!password || password.length < 6) {
+    throw new Error("A password of at least 6 characters is required.");
+  }
+
   await signInWithEmailLink(auth, email, window.location.href);
+  await updatePassword(auth.currentUser, password);
 
   // Force refresh token (helps some mobile cases)
   try { await auth.currentUser?.getIdToken?.(true); } catch {}
@@ -278,7 +287,13 @@ async function confirmIdentity() {
   if (needsRealLogin()) {
     try {
       setStatus("Enter email to continue…");
-      const email = window.prompt("Enter your email to continue onboarding:");
+      const savedEmail =
+        localStorage.getItem("sandman_magic_email") || "";
+
+      const email = window.prompt(
+        "Confirm the athlete login email:",
+        savedEmail
+      );
       if (!email) {
         unlockUI("Login cancelled.");
         return;

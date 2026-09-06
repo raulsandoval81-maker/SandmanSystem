@@ -20,6 +20,21 @@ const notice =
 const continueLink =
   document.getElementById("continueLink");
 
+const athleteFields =
+  document.getElementById("athleteActivationFields");
+
+const athleteId =
+  document.getElementById("athleteId");
+
+const athleteToken =
+  document.getElementById("athleteToken");
+
+const athleteEmail =
+  document.getElementById("athleteEmail");
+
+const athleteError =
+  document.getElementById("athleteActivationError");
+
 const roleConfig = {
   parent: {
     title: "Activate Parent Access",
@@ -83,10 +98,42 @@ function selectRole(role) {
   continueLink.href =
     config.href;
 
+  athleteFields.hidden =
+    role !== "athlete";
+
   continueLink.textContent =
     config.title;
 
   panel.hidden = false;
+}
+
+function athleteOnboardingUrl() {
+  const id = String(athleteId.value || "")
+    .trim()
+    .toUpperCase();
+
+  const token = String(athleteToken.value || "")
+    .trim();
+
+  const email = String(athleteEmail.value || "")
+    .trim()
+    .toLowerCase();
+
+  if (!id || !token || !email || !athleteEmail.validity.valid) {
+    throw new Error(
+      "Enter the athlete ID, invitation token, and a valid athlete login email."
+    );
+  }
+
+  localStorage.setItem(
+    "sandman_magic_email",
+    email
+  );
+
+  return (
+    `/athlete-onboarding/?id=${encodeURIComponent(id)}` +
+    `&token=${encodeURIComponent(token)}`
+  );
 }
 
 
@@ -107,6 +154,31 @@ const params =
 
 const requestedRole =
   params.get("role");
+
+athleteId.value =
+  params.get("id") || params.get("uid") || "";
+
+athleteToken.value =
+  params.get("token") || params.get("invite") || "";
+
+athleteEmail.value =
+  params.get("email") || "";
+
+continueLink.addEventListener("click", (event) => {
+  if (athleteFields.hidden) return;
+
+  event.preventDefault();
+  athleteError.textContent = "";
+
+  try {
+    window.location.assign(
+      athleteOnboardingUrl()
+    );
+  } catch (error) {
+    athleteError.textContent =
+      error.message;
+  }
+});
 
 if (roleConfig[requestedRole]) {
   selectRole(requestedRole);

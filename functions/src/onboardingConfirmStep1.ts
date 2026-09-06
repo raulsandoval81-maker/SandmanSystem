@@ -10,6 +10,18 @@ export const onboardingConfirmStep1 = functions.https.onCall(async (data, contex
     throw new functions.https.HttpsError("unauthenticated", "Sign in required.");
   }
 
+  const signInProvider = String(
+    context.auth.token.firebase?.sign_in_provider || ""
+  );
+  const authEmail = String(context.auth.token.email || "").trim();
+
+  if (signInProvider === "anonymous" || !authEmail) {
+    throw new functions.https.HttpsError(
+      "permission-denied",
+      "An email-backed athlete login is required."
+    );
+  }
+
   const athleteId = String(data?.athleteId || "").trim().toUpperCase();
   const tokenId = String(data?.tokenId || "").trim();
   if (!athleteId) {
