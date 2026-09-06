@@ -4,8 +4,10 @@ import test from "node:test";
 
 import {
   F8_REMOTE_ACCESS_GATEWAY,
+  F8_SHADOW_ACTS_GATEWAY,
   hasReachedF8RemoteAccessGateway,
   resolveF8RemoteAccess,
+  resolveF8ShadowActs,
 } from "../../functions/lib/policy/f8StrengthHonorAccessPolicy.js";
 
 const browserPolicySource = readFileSync(
@@ -15,6 +17,44 @@ const browserPolicySource = readFileSync(
 const browserPolicy = await import(
   `data:text/javascript;base64,${Buffer.from(browserPolicySource).toString("base64")}`
 );
+
+test("Shadow Acts unlock progressively inside T0 only", () => {
+  assert.deepEqual(F8_SHADOW_ACTS_GATEWAY, {
+    combat: 1,
+    strength: 2,
+    honor: 3,
+  });
+
+  const cases = [
+    [{ progressionTier: "T0", stripeCount: 0 }, { combat: false, strength: false, honor: false }],
+    [{ progressionTier: "T0", stripeCount: 1 }, { combat: true, strength: false, honor: false }],
+    [{ progressionTier: "T0", stripeCount: 2 }, { combat: true, strength: true, honor: false }],
+    [{ progressionTier: "T0", stripeCount: 3 }, { combat: true, strength: true, honor: true }],
+    [{ progressionTier: "T0", stripeCount: 4 }, { combat: true, strength: true, honor: true }],
+  ];
+
+  for (const [athlete, expected] of cases) {
+    assert.deepEqual(resolveF8ShadowActs(athlete), expected);
+    assert.deepEqual(browserPolicy.resolveF8ShadowActs(athlete), expected);
+  }
+});
+
+test("Shadow Acts do not become remote access and stop applying at Prospect", () => {
+  assert.deepEqual(
+    resolveF8ShadowActs({ progressionTier: "T1", stripeCount: 1 }),
+    { combat: false, strength: false, honor: false }
+  );
+
+  assert.deepEqual(
+    resolveF8RemoteAccess({ progressionTier: "T0", stripeCount: 3 }),
+    { combat: false, strength: false, honor: false, gatewayReached: false }
+  );
+
+  assert.deepEqual(
+    resolveF8RemoteAccess({ progressionTier: "T1", stripeCount: 1 }),
+    { combat: true, strength: true, honor: true, gatewayReached: true }
+  );
+});
 
 test("F8 remote Strength and Honor share the Prospect Stripe 1 gateway", () => {
   assert.deepEqual(F8_REMOTE_ACCESS_GATEWAY, { progressionTier: "T1", stripeCount: 1 });

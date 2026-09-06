@@ -3,6 +3,12 @@ export const F8_REMOTE_ACCESS_GATEWAY = Object.freeze({
   stripeCount: 1,
 } as const);
 
+export const F8_SHADOW_ACTS_GATEWAY = Object.freeze({
+  combat: 1,
+  strength: 2,
+  honor: 3,
+} as const);
+
 function tierIndex(value: unknown): number | null {
   const match = String(value ?? "").trim().toUpperCase().match(/^T([0-4])$/);
   return match ? Number(match[1]) : null;
@@ -15,6 +21,29 @@ export function hasReachedF8RemoteAccessGateway(
   const tier = tierIndex(progressionTier);
   if (tier === null) return false;
   return tier > 1 || (tier === 1 && Number(stripeCount ?? 0) >= 1);
+}
+
+export function resolveF8ShadowActs(athlete: any): {
+  combat: boolean;
+  strength: boolean;
+  honor: boolean;
+} {
+  const tier = tierIndex(athlete?.progressionTier ?? athlete?.tier);
+  const stripes = Number(athlete?.stripeCount ?? athlete?.stripesEarned ?? 0);
+
+  if (tier !== 0) {
+    return Object.freeze({
+      combat: false,
+      strength: false,
+      honor: false,
+    });
+  }
+
+  return Object.freeze({
+    combat: stripes >= F8_SHADOW_ACTS_GATEWAY.combat,
+    strength: stripes >= F8_SHADOW_ACTS_GATEWAY.strength,
+    honor: stripes >= F8_SHADOW_ACTS_GATEWAY.honor,
+  });
 }
 
 export function resolveF8RemoteAccess(athlete: any): {
