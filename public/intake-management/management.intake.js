@@ -479,47 +479,151 @@ async function generateIntakeInvite(
       enrollment?.athletes?.[0] ||
       {};
 
+    const proposalContact =
+      enrollment?.lockedSnapshot?.contact ||
+      enrollment?.contact ||
+      enrollment?.lockedSnapshot?.parent ||
+      enrollment?.parent ||
+      {};
+
+    function firstValue(...values) {
+      for (const value of values) {
+        const normalized =
+          String(value ?? "").trim();
+
+        if (normalized) {
+          return normalized;
+        }
+      }
+
+      return null;
+    }
+
+    const appointmentId =
+      firstValue(
+        proposalProspect.appointmentId,
+        enrollment?.lockedSnapshot?.prospect?.appointmentId,
+        enrollment?.appointmentId
+      );
+
+    let connectLeadId =
+      firstValue(
+        proposalProspect.leadId,
+        enrollment?.lockedSnapshot?.prospect?.leadId,
+        enrollment?.leadId,
+        enrollment?.connectLeadId
+      );
+
+    // Older or partial proposals may not carry the original
+    // lead directly. Recover it through the authoritative
+    // admissions appointment so Intake can reuse information
+    // Sandman already collected.
+    if (!connectLeadId && appointmentId) {
+      try {
+        const appointmentSnap =
+          await getDoc(
+            doc(
+              db,
+              "admissions_appointments",
+              appointmentId
+            )
+          );
+
+        if (appointmentSnap.exists()) {
+          const appointment =
+            appointmentSnap.data();
+
+          connectLeadId =
+            firstValue(
+              appointment.leadId,
+              appointment.appointmentId,
+              appointmentId
+            );
+        }
+      } catch (err) {
+        console.warn(
+          "[management-enrollment] unable to recover lead for intake prefill:",
+          err
+        );
+      }
+    }
+
+    const athleteName =
+      firstValue(
+        proposalAthlete.name,
+        proposalAthlete.fullName,
+        proposalAthlete.athleteName,
+        [
+          proposalAthlete.first,
+          proposalAthlete.last
+        ]
+          .filter(Boolean)
+          .join(" "),
+        proposalProspect.athleteName,
+        enrollment?.athleteName
+      );
+
     // Convenience-only intake prefill.
     // Ownership remains proposalId + locationId.
+    // Known enrollment information should carry forward
+    // so the family confirms data instead of re-entering it.
     const prefill = Object.fromEntries(
       Object.entries({
-        athleteName:
-          String(
-            proposalAthlete.name || ""
-          ).trim() || null,
+        athleteName,
 
         dob:
-          String(
-            proposalAthlete.dob ||
-            proposalAthlete.dateOfBirth ||
-            ""
-          ).trim() || null,
+          firstValue(
+            proposalAthlete.dob,
+            proposalAthlete.dateOfBirth,
+            proposalProspect.dob,
+            proposalProspect.dateOfBirth,
+            enrollment?.dob,
+            enrollment?.dateOfBirth
+          ),
 
         city:
-          String(
-            proposalProspect.city || ""
-          ).trim() || null,
+          firstValue(
+            proposalProspect.city,
+            proposalContact.city,
+            enrollment?.city
+          ),
 
         state:
-          String(
-            proposalProspect.state || ""
-          ).trim() || null,
+          firstValue(
+            proposalProspect.state,
+            proposalContact.state,
+            enrollment?.state
+          ),
 
         email:
-          String(
-            proposalProspect.email || ""
-          ).trim() || null,
+          firstValue(
+            proposalProspect.email,
+            proposalProspect.parentEmail,
+            proposalProspect.primaryContactEmail,
+            proposalContact.email,
+            proposalContact.parentEmail,
+            enrollment?.email,
+            enrollment?.parentEmail
+          ),
 
         phone:
-          String(
-            proposalProspect.phone || ""
-          ).trim() || null,
+          firstValue(
+            proposalProspect.phone,
+            proposalProspect.parentPhone,
+            proposalProspect.primaryContactPhone,
+            proposalContact.phone,
+            proposalContact.parentPhone,
+            enrollment?.phone,
+            enrollment?.parentPhone
+          ),
 
         languagePreference:
-          String(
-            proposalProspect.languagePreference ||
-            ""
-          ).trim() || null,
+          firstValue(
+            proposalProspect.languagePreference,
+            proposalProspect.preferredLanguage,
+            proposalContact.languagePreference,
+            enrollment?.languagePreference
+          ),
       }).filter(([, value]) => value)
     );
 
@@ -554,6 +658,9 @@ async function generateIntakeInvite(
           String(
             enrollment?.proposalId || ""
           ).trim() || null,
+
+        connectLeadId:
+          connectLeadId || null,
 
         locationId:
           String(
