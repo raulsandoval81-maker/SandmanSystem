@@ -1,5 +1,6 @@
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
+import { FieldValue } from "firebase-admin/firestore";
 import { decideOnboardingBinding } from "./services/onboardingBindingPolicy";
 
 if (!admin.apps.length) admin.initializeApp();
@@ -64,7 +65,7 @@ export const onboardingConfirmStep1 = functions.https.onCall(async (data, contex
       throw error;
     }
 
-    const stamp = admin.firestore.FieldValue.serverTimestamp();
+    const stamp = FieldValue.serverTimestamp();
     tx.update(athleteRef, {
       authUid: userUid,
       updatedAt: stamp,

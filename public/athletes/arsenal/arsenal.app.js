@@ -4,7 +4,10 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init.js";
-import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
+import {
+  resolveF8RemoteAccess,
+  resolveF8ShadowActs
+} from "/assets/js/f8-strength-honor-access.js";
 
 function setLocked(card, title, desc) {
   if (!card) return;
@@ -226,6 +229,28 @@ function getTrackCode(
   }
 
   return "";
+}
+
+function isRoad2Champion(
+  athlete = {},
+  combat = {}
+) {
+  const raw = String(
+    combat.programTrack ??
+    combat.journey ??
+    combat.track ??
+    athlete.programTrack ??
+    athlete.journey ??
+    athlete.track ??
+    ""
+  )
+    .trim()
+    .toUpperCase();
+
+  return (
+    raw.includes("ROAD2CHAMPION") ||
+    raw === "R2C"
+  );
 }
 
 function isF8Athlete(
@@ -520,6 +545,12 @@ async function loadUnlocks() {
     const stripe =
       getStripeCount(combat);
 
+    const isR2C =
+      isRoad2Champion(
+        athlete,
+        combat
+      );
+
     const isF8 =
       isF8Athlete(
         athleteId,
@@ -550,13 +581,35 @@ async function loadUnlocks() {
           ? 3
           : 2;
 
-    const f8RemoteAccess = isF8 ? resolveF8RemoteAccess(athlete) : null;
-    const strengthUnlocked = isF8
-      ? f8RemoteAccess.strength
-      : athlete.unlocks?.strength === true || stripe >= strengthRequired;
-    const honorUnlocked = isF8
-      ? f8RemoteAccess.honor
-      : athlete.unlocks?.honor === true || stripe >= honorRequired;
+    const r2cShadowAccess =
+      isR2C
+        ? resolveF8ShadowActs(athlete)
+        : null;
+
+    const f8RemoteAccess =
+      isF8
+        ? resolveF8RemoteAccess(athlete)
+        : null;
+
+    const strengthUnlocked = isR2C
+      ? (
+          athlete.unlocks?.strength === true ||
+          r2cShadowAccess.strength
+        )
+      : isF8
+        ? f8RemoteAccess.strength
+        : athlete.unlocks?.strength === true ||
+          stripe >= strengthRequired;
+
+    const honorUnlocked = isR2C
+      ? (
+          athlete.unlocks?.honor === true ||
+          r2cShadowAccess.honor
+        )
+      : isF8
+        ? f8RemoteAccess.honor
+        : athlete.unlocks?.honor === true ||
+          stripe >= honorRequired;
 
     const disciplineName =
       disciplineLabel(
@@ -574,7 +627,7 @@ async function loadUnlocks() {
     setOpen(
       combatCard,
       disciplineName,
-      `${disciplineName} Combat Arsenal`,
+      `Current lane · Stripe ${Math.max(1, stripe + 1)}`,
       `/athletes/arsenal/combat/` +
       `?id=${encodedId}` +
       `&discipline=${encodedDiscipline}`
@@ -592,9 +645,11 @@ async function loadUnlocks() {
       setLocked(
         strengthCard,
         "Strength 🔒",
-        isF8
-          ? "Remote Strength unlocks at Prospect Stripe 1."
-          : `Earn Stripe ${strengthRequired} to unlock Strength.`
+        isR2C
+          ? "Earn Stripe 2 to unlock Strength."
+          : isF8
+            ? "Remote Strength unlocks at Prospect Stripe 1."
+            : `Earn Stripe ${strengthRequired} to unlock Strength.`
       );
     }
 
@@ -610,9 +665,11 @@ async function loadUnlocks() {
       setLocked(
         honorCard,
         "Honor 🔒",
-        isF8
-          ? "Remote Honor unlocks at Prospect Stripe 1."
-          : `Earn Stripe ${honorRequired} to unlock Honor.`
+        isR2C
+          ? "Earn Stripe 3 to unlock Honor."
+          : isF8
+            ? "Remote Honor unlocks at Prospect Stripe 1."
+            : `Earn Stripe ${honorRequired} to unlock Honor.`
       );
     }
 

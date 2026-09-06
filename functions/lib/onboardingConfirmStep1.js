@@ -36,6 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.onboardingConfirmStep1 = void 0;
 const functions = __importStar(require("firebase-functions"));
 const admin = __importStar(require("firebase-admin"));
+const firestore_1 = require("firebase-admin/firestore");
 const onboardingBindingPolicy_1 = require("./services/onboardingBindingPolicy");
 if (!admin.apps.length)
     admin.initializeApp();
@@ -96,7 +97,7 @@ exports.onboardingConfirmStep1 = functions.https.onCall(async (data, context) =>
                 throw new functions.https.HttpsError("failed-precondition", "Token expired.");
             throw error;
         }
-        const stamp = admin.firestore.FieldValue.serverTimestamp();
+        const stamp = firestore_1.FieldValue.serverTimestamp();
         tx.update(athleteRef, {
             authUid: userUid,
             updatedAt: stamp,

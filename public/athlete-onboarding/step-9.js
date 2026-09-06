@@ -84,9 +84,16 @@ async function loadSnapshot() {
   // UID
   setText("sum-uid", athlete.uid || uid);
 
-  // Track / Tier
-  const track = athlete.trackCode || athlete.track || "—";
-  const tier  = athlete.tier || "—";
+  // Journey / Tier
+  const track =
+    athlete.programTrack ||
+    athlete.journey ||
+    athlete.track ||
+    athlete.trackCode ||
+    "—";
+
+  const tier = athlete.tier || "—";
+
   setText("sum-tracktier", `${track} / ${tier}`);
 
   // Team / City, State
