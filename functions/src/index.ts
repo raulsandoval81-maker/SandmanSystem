@@ -198,4 +198,6 @@ export {
 } from "./proposals/createProposalCheckout";
 
 export { createAthleteOnboardingToken } from "./modules/createAthleteOnboardingToken";
+export { issueAccessInvitation } from "./access/issueAccessInvitation";
+export { consumeAccessInvitation } from "./access/consumeAccessInvitation";
 export { cornermanRoster } from "./modules/cornermanRoster";

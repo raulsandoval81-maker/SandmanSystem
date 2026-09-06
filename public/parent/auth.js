@@ -1,13 +1,7 @@
 import {
   auth,
-  db,
-  collection,
-  query,
-  where,
-  getDocs,
-  doc,
-  updateDoc,
-  serverTimestamp,
+  functions,
+  httpsCallable,
 } from "/assets/js/firebase-init-para.js";
 
 import {
@@ -63,6 +57,31 @@ const goHomeBtn2 = $("goHomeBtn2");
 let authResolved = false;
 let redirecting = false;
 
+const activationParams = new URLSearchParams(window.location.search);
+const activationToken = String(activationParams.get("token") || "").trim();
+const activationEmail = String(activationParams.get("email") || "").trim().toLowerCase();
+
+async function consumeParentInvitation(user) {
+  if (!activationToken) return false;
+  const consume = httpsCallable(functions, "consumeAccessInvitation");
+  await consume({ tokenId: activationToken });
+  return true;
+}
+
+function invitationErrorMessage(error) {
+  const message = String(error?.message || "").toLowerCase();
+  if (message.includes("not found") || message.includes("token required")) {
+    return "A valid private invitation is required.";
+  }
+  if (message.includes("expired")) return "This invitation has expired. Ask Sandman Management for a new one.";
+  if (message.includes("used")) return "This invitation has already been used.";
+  if (message.includes("email")) return "This invitation belongs to a different Parent email.";
+  if (message.includes("another parent") || message.includes("conflict")) {
+    return "This athlete relationship is already connected to another Parent account.";
+  }
+  return "Unable to activate Parent access with this invitation.";
+}
+
 function setStatus(el, message = "", kind = "") {
   if (!el) return;
   el.textContent = message;
@@ -109,84 +128,6 @@ function goToNext() {
   window.location.href = getNextUrl();
 }
 
-async function mirrorParentUidToAthlete(athleteUid, parentUid) {
-  const cleanAthleteUid =
-    String(athleteUid || "").trim();
-
-  const cleanParentUid =
-    String(parentUid || "").trim();
-
-  if (!cleanAthleteUid || !cleanParentUid) return false;
-
-  await updateDoc(doc(db, "athletes", cleanAthleteUid), {
-    parentUid: cleanParentUid,
-    updatedAt: serverTimestamp(),
-  });
-
-  return true;
-}
-
-async function activatePendingLinksForEmail(email, parentUid) {
-  const normalizedEmail =
-    String(email || "").trim().toLowerCase();
-
-  const cleanParentUid =
-    String(parentUid || "").trim();
-
-  if (!normalizedEmail || !cleanParentUid) return 0;
-
-  const linksQuery = query(
-    collection(db, "parentAthleteLinks"),
-    where("parentEmail", "==", normalizedEmail)
-  );
-
-  const snap = await getDocs(linksQuery);
-  if (snap.empty) return 0;
-
-  let activatedCount = 0;
-
-  for (const linkDoc of snap.docs) {
-    const data = linkDoc.data() || {};
-
-    const status =
-      String(data.status || "").trim().toLowerCase();
-
-    const existingParentUid =
-      String(data.parentUid || "").trim();
-
-    const athleteUid =
-      String(
-        data.athleteUid ||
-        data.athleteId ||
-        data.uid ||
-        ""
-      ).trim();
-
-    const alreadyActive =
-      status === "active" &&
-      existingParentUid === cleanParentUid;
-
-    if (!alreadyActive) {
-      await updateDoc(doc(db, "parentAthleteLinks", linkDoc.id), {
-        parentUid: cleanParentUid,
-        status: "active",
-        activatedAt: serverTimestamp(),
-      });
-
-      activatedCount += 1;
-    }
-
-    if (athleteUid) {
-      await mirrorParentUidToAthlete(
-        athleteUid,
-        cleanParentUid
-      );
-    }
-  }
-
-  return activatedCount;
-}
-
 document.addEventListener("DOMContentLoaded", () => {
   if (tabLogin) tabLogin.addEventListener("click", showLoginTab);
   if (tabCreate) tabCreate.addEventListener("click", showCreateTab);
@@ -203,12 +144,27 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  onAuthStateChanged(auth, (user) => {
+  if (activationToken) {
+    showCreateTab();
+    if (createEmail) createEmail.value = activationEmail;
+    if (loginEmail) loginEmail.value = activationEmail;
+  }
+
+  onAuthStateChanged(auth, async (user) => {
     if (authResolved) return;
     authResolved = true;
 
     if (user && user.uid) {
-      goToNext();
+      try {
+        if (activationToken) {
+          await consumeParentInvitation(user);
+        }
+        goToNext();
+      } catch (error) {
+        console.error("[parent-auth activation] failed:", error);
+        setStatus(createStatus, invitationErrorMessage(error), "error");
+        revealAuthPage();
+      }
       return;
     }
 
@@ -239,10 +195,9 @@ document.addEventListener("DOMContentLoaded", () => {
         const cred =
           await signInWithEmailAndPassword(auth, email, password);
 
-        await activatePendingLinksForEmail(
-          email,
-          cred.user.uid
-        );
+        if (activationToken) {
+          await consumeParentInvitation(cred.user);
+        }
 
         setStatus(loginStatus, "Signed in.", "ok");
         goToNext();
@@ -342,8 +297,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
         const user = cred.user;
 
-        const activated =
-          await activatePendingLinksForEmail(email, user.uid);
+        const activated = activationToken
+          ? Number(await consumeParentInvitation(user))
+          : 0;
 
         if (activated > 0) {
           setStatus(
@@ -354,7 +310,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } else {
           setStatus(
             createStatus,
-            "Account created. Athlete access is not linked yet. Contact coach.",
+            "Account created, but no athlete access was linked. Ask Sandman Management for a private invitation.",
             "ok"
           );
         }

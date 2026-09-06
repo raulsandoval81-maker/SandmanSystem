@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
-exports.cornermanRoster = void 0;
+exports.cornermanRoster = exports.consumeAccessInvitation = exports.issueAccessInvitation = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -176,5 +176,9 @@ var createProposalCheckout_1 = require("./proposals/createProposalCheckout");
 Object.defineProperty(exports, "createProposalCheckout", { enumerable: true, get: function () { return createProposalCheckout_1.createProposalCheckout; } });
 var createAthleteOnboardingToken_1 = require("./modules/createAthleteOnboardingToken");
 Object.defineProperty(exports, "createAthleteOnboardingToken", { enumerable: true, get: function () { return createAthleteOnboardingToken_1.createAthleteOnboardingToken; } });
+var issueAccessInvitation_1 = require("./access/issueAccessInvitation");
+Object.defineProperty(exports, "issueAccessInvitation", { enumerable: true, get: function () { return issueAccessInvitation_1.issueAccessInvitation; } });
+var consumeAccessInvitation_1 = require("./access/consumeAccessInvitation");
+Object.defineProperty(exports, "consumeAccessInvitation", { enumerable: true, get: function () { return consumeAccessInvitation_1.consumeAccessInvitation; } });
 var cornermanRoster_1 = require("./modules/cornermanRoster");
 Object.defineProperty(exports, "cornermanRoster", { enumerable: true, get: function () { return cornermanRoster_1.cornermanRoster; } });

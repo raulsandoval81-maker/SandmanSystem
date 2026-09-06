@@ -119,7 +119,7 @@ function renderApprovedCard({ uid, name, city, state, parentEmail }) {
 
       <div class="pending-card-actions">
         <button class="small outline-blue" data-approved-uid="${esc(uid)}">Create Athlete Access</button>
-        <button class="small outline-blue" data-parent-uid="${esc(uid)}">Parent Link</button>
+        <button class="small outline-blue" data-parent-uid="${esc(uid)}" data-parent-email="${esc(parentEmail || "")}">Create Parent Access</button>
       </div>
     </div>
   `;
@@ -765,12 +765,30 @@ function wireApprovedButtons() {
   });
 
   document.querySelectorAll("[data-parent-uid]").forEach((btn) => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       const uid = btn.dataset.parentUid;
-      if (!uid) return;
-
-      const parentUrl = `${location.origin}/parent/index.html?uid=${encodeURIComponent(uid)}`;
-      window.open(parentUrl, "_blank", "noopener");
+      const email = String(btn.dataset.parentEmail || "").trim().toLowerCase();
+      if (!uid || !email) {
+        alert("This athlete does not have an approved Parent email.");
+        return;
+      }
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Creating Access…";
+      try {
+        const issue = httpsCallable(functions, "issueAccessInvitation");
+        const response = await issue({ role: "parent", athleteUid: uid, email });
+        const tokenId = String(response?.data?.tokenId || "").trim();
+        if (!tokenId) throw new Error("Parent invitation token was not returned.");
+        const url = `${location.origin}/access/first-time/?role=parent&token=${encodeURIComponent(tokenId)}&email=${encodeURIComponent(email)}`;
+        window.open(url, "_blank", "noopener");
+      } catch (error) {
+        console.error("Create Parent Access failed:", error);
+        alert(error?.message || "Unable to create Parent Access.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
     });
   });
 }

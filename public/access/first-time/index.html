@@ -142,6 +142,20 @@
           <p class="field-error" id="athleteActivationError" role="alert"></p>
         </div>
 
+        <div class="athlete-activation-fields" id="parentActivationFields" hidden>
+          <label>
+            Invitation token
+            <input id="parentToken" type="text" autocomplete="off" spellcheck="false">
+          </label>
+
+          <label>
+            Parent email
+            <input id="parentEmail" type="email" autocomplete="email">
+          </label>
+
+          <p class="field-error" id="parentActivationError" role="alert"></p>
+        </div>
+
         <a
           class="primary-action"
           id="continueLink"
