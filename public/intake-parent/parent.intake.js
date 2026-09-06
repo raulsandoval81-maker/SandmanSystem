@@ -728,10 +728,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         invite.token.prefill || {}
       );
 
-      // Legacy compatibility for older intake links.
-      await prefillFromLead(
-        invite.token.connectLeadId || null
-      );
+      // New enrollment tokens contain their safe prefill snapshot.
+      // Do not expose Admissions/interest_leads to family clients.
+      if (
+        String(invite.token.workflowVersion || "") !== "intake-v2"
+      ) {
+        await prefillFromLead(
+          invite.token.connectLeadId || null
+        );
+      }
     } catch (err) {
       console.error(
         "[intake-parent] invite mode UI failed:",

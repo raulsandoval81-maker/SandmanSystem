@@ -515,6 +515,8 @@ async function generateIntakeInvite(
         enrollment?.connectLeadId
       );
 
+    let intakeLead = {};
+
     // Older or partial proposals may not carry the original
     // lead directly. Recover it through the authoritative
     // admissions appointment so Intake can reuse information
@@ -540,10 +542,43 @@ async function generateIntakeInvite(
               appointment.appointmentId,
               appointmentId
             );
+
+          // Appointment itself may already contain the
+          // family identity/contact fields.
+          intakeLead = appointment;
         }
       } catch (err) {
         console.warn(
           "[management-enrollment] unable to recover lead for intake prefill:",
+          err
+        );
+      }
+    }
+
+    // Management is authorized to read Admissions data.
+    // Resolve the original lead here and place only the safe
+    // enrollment fields into the intake token. Family clients
+    // should never need direct access to interest_leads.
+    if (connectLeadId) {
+      try {
+        const leadSnap =
+          await getDoc(
+            doc(
+              db,
+              "interest_leads",
+              connectLeadId
+            )
+          );
+
+        if (leadSnap.exists()) {
+          intakeLead = {
+            ...intakeLead,
+            ...leadSnap.data()
+          };
+        }
+      } catch (err) {
+        console.warn(
+          "[management-enrollment] unable to load lead for safe intake prefill:",
           err
         );
       }
@@ -561,7 +596,9 @@ async function generateIntakeInvite(
           .filter(Boolean)
           .join(" "),
         proposalProspect.athleteName,
-        enrollment?.athleteName
+        enrollment?.athleteName,
+        intakeLead.athleteName,
+        intakeLead.participantName
       );
 
     // Convenience-only intake prefill.
@@ -578,7 +615,9 @@ async function generateIntakeInvite(
             proposalProspect.parentName,
             proposalContact.name,
             proposalContact.parentName,
-            enrollment?.parentName
+            enrollment?.parentName,
+            intakeLead.parentName,
+            intakeLead.guardianName
           ),
 
         dob:
@@ -588,21 +627,25 @@ async function generateIntakeInvite(
             proposalProspect.dob,
             proposalProspect.dateOfBirth,
             enrollment?.dob,
-            enrollment?.dateOfBirth
+            enrollment?.dateOfBirth,
+            intakeLead.dob,
+            intakeLead.dateOfBirth
           ),
 
         city:
           firstValue(
             proposalProspect.city,
             proposalContact.city,
-            enrollment?.city
+            enrollment?.city,
+            intakeLead.city
           ),
 
         state:
           firstValue(
             proposalProspect.state,
             proposalContact.state,
-            enrollment?.state
+            enrollment?.state,
+            intakeLead.state
           ),
 
         email:
@@ -613,7 +656,9 @@ async function generateIntakeInvite(
             proposalContact.email,
             proposalContact.parentEmail,
             enrollment?.email,
-            enrollment?.parentEmail
+            enrollment?.parentEmail,
+            intakeLead.email,
+            intakeLead.parentEmail
           ),
 
         phone:
@@ -624,7 +669,9 @@ async function generateIntakeInvite(
             proposalContact.phone,
             proposalContact.parentPhone,
             enrollment?.phone,
-            enrollment?.parentPhone
+            enrollment?.parentPhone,
+            intakeLead.phone,
+            intakeLead.parentPhone
           ),
 
         languagePreference:
