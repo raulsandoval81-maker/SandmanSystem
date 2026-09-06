@@ -29,10 +29,10 @@ const { ShadowTrainingEngine } = await importBrowserModule(
 const SHADOW_WRESTLING_PRESET = resolveCombatTrainingPreset();
 const plan = buildShadowTrainingPlan(SHADOW_WRESTLING_PRESET);
 
-function createEngine() {
+function createEngine(enginePlan = plan) {
   let now = 0;
   const events = [];
-  const engine = new ShadowTrainingEngine(plan, {
+  const engine = new ShadowTrainingEngine(enginePlan, {
     now: () => now,
     onChange: view => events.push(view)
   });
@@ -50,8 +50,8 @@ function createEngine() {
 
 test("Shadow preset resolves exact mode-aware round durations", () => {
   assert.equal(plan.roundDuration, 45);
-  assert.equal(plan.rounds.length, 5);
-  assert.deepEqual(plan.rounds.map(round => round.roundDuration), [45, 45, 45, 45, 45]);
+  assert.equal(plan.rounds.length, 10);
+  assert.deepEqual(plan.rounds.map(round => round.roundDuration), Array(10).fill(45));
   for (const round of plan.rounds) {
     const duration = round.actions.reduce(
       (total, action) => total + action.duration + action.leadInDuration + action.transitionDuration,
@@ -149,32 +149,44 @@ test("Rounds 1-4 retain final Hand Fight transitions before Recovery", () => {
   }
 });
 
-test("Round 5 Bottom motion has no Hand Fight and completes after final work", () => {
-  const harness = createEngine();
-  const { engine, events } = harness;
-  engine.roundIndex = 4;
-  engine.actionIndex = 0;
-  engine.shortTimeCalled = false;
-  engine.beginCurrentAction("round-started");
-  engine.clear();
+test("Round 5 and Round 10 enter recovery after identical Bottom motion", () => {
+  for (const roundIndex of [4, 9]) {
+    const harness = createEngine();
+    const { engine, events } = harness;
+    engine.roundIndex = roundIndex;
+    engine.actionIndex = 0;
+    engine.shortTimeCalled = false;
+    engine.beginCurrentAction("round-started");
+    engine.clear();
 
-  for (let actionIndex = 0; actionIndex < 4; actionIndex += 1) {
-    assert.equal(engine.state, "transitioning");
-    assert.equal(engine.transitionKind, "bottom-lead-in");
+    for (let actionIndex = 0; actionIndex < 4; actionIndex += 1) {
+      assert.equal(engine.state, "transitioning");
+      assert.equal(engine.transitionKind, "bottom-lead-in");
+      harness.finishPhase();
+      assert.equal(engine.state, "working");
+      assert.equal(events.at(-1).reason, "bottom-action-started");
+      harness.finishPhase();
+    }
+
+    assert.equal(engine.state, "resting");
+    assert.equal(events.filter(event => event.reason === "transition-started").length, 0);
     harness.finishPhase();
-    assert.equal(engine.state, "working");
-    assert.equal(events.at(-1).reason, "bottom-action-started");
-    harness.finishPhase();
+    if (roundIndex === 4) {
+      assert.equal(engine.roundIndex, 5);
+      assert.equal(engine.state, "working");
+    } else {
+      assert.equal(engine.state, "completed");
+    }
   }
-
-  assert.equal(engine.state, "completed");
-  assert.equal(events.filter(event => event.reason === "transition-started").length, 0);
   assert.deepEqual(
-    plan.rounds[4].actions.map(action => action.label),
-    ["Stand Up", "Switch", "Granby", "Stand Up"]
+    plan.rounds[4].actions.map(({ actionId, label, duration, leadInDuration }) =>
+      ({ actionId, label, duration, leadInDuration })),
+    plan.rounds[9].actions.map(({ actionId, label, duration, leadInDuration }) =>
+      ({ actionId, label, duration, leadInDuration }))
   );
-  assert.equal(plan.rounds[4].commandPattern.executionCommand, "Hit it");
-  assert.doesNotMatch(JSON.stringify(plan.rounds[4]), /Oklahoma/i);
+  assert.deepEqual(plan.rounds[9].actions.map(action => action.label), ["Stand Up", "Switch", "Granby", "Stand Up"]);
+  assert.equal(plan.rounds[9].commandPattern.executionCommand, "Hit it");
+  assert.doesNotMatch(JSON.stringify(plan.rounds[9]), /Oklahoma/i);
 });
 
 test("Bottom cue rhythm emits 3-2-1 before technique and Hit It", () => {
@@ -265,7 +277,7 @@ test("Road2Champion and Path2Legend resolve the locked T0-T4 timing doctrine", (
       const preset = resolveCombatTrainingPreset({ journey, tier: `t${tier}`, discipline: "boxing" });
       const resolved = buildShadowTrainingPlan(preset);
       assert.equal(resolved.roundDuration, roundDuration);
-      assert.deepEqual(resolved.rounds.map(round => round.roundDuration), Array(5).fill(roundDuration));
+      assert.deepEqual(resolved.rounds.map(round => round.roundDuration), Array(10).fill(roundDuration));
       assert.equal(resolved.shortTimeAt, 10);
     });
   }
@@ -337,7 +349,7 @@ test("every Road2Champion T0 discipline resolves all five rounds to 45 seconds",
       journey: "road2champion",
       tier: "t0"
     }));
-    assert.deepEqual(resolved.rounds.map(round => round.roundDuration), [45, 45, 45, 45, 45]);
+    assert.deepEqual(resolved.rounds.map(round => round.roundDuration), Array(10).fill(45));
   }
   assert.equal(plan.rounds[4].actions[0].duration, 8.25);
 });
@@ -368,5 +380,77 @@ test("Short Time remains the final ten seconds for every rank duration", () => {
       assert.equal(events.at(-1).reason, "short-time");
       assert.equal(events.at(-1).remaining, 10);
     }
+  }
+});
+
+test("Rounds 6-10 repeat authored Rounds 1-5 in order", () => {
+  assert.equal(plan.authoredRoundCount, 5);
+  assert.equal(plan.sessionCycles, 2);
+  assert.deepEqual(plan.rounds.map(round => round.sourceRoundNumber), [1, 2, 3, 4, 5, 1, 2, 3, 4, 5]);
+  assert.deepEqual(plan.rounds.map(round => round.cycleNumber), [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]);
+  for (let index = 0; index < 5; index += 1) {
+    assert.equal(plan.rounds[index].id, plan.rounds[index + 5].id);
+    assert.equal(plan.rounds[index].purpose, plan.rounds[index + 5].purpose);
+  }
+});
+
+test("each discipline repeats its own special Round 5 at Round 10", () => {
+  const expected = {
+    wrestling: ["Stand Up", "Switch", "Granby", "Stand Up"],
+    boxing: ["Move Your Feet", "Double Jab", "Slip"],
+    "muay-thai": ["Move Your Feet", "Jab", "Exit"],
+    mma: ["Move Your Feet", "Pummel", "Exit"],
+    "submission-grappling": ["Hip Escape", "Bridge", "Technical Stand Up", "Hip Escape"]
+  };
+  for (const [discipline, labels] of Object.entries(expected)) {
+    const resolved = buildShadowTrainingPlan(resolveCombatTrainingPreset({ discipline }));
+    assert.deepEqual(resolved.rounds[4].actions.map(action => action.label), labels);
+    assert.deepEqual(resolved.rounds[9].actions.map(action => action.label), labels);
+  }
+});
+
+test("recovery duration resolves by journey and tier", () => {
+  const road = [45, 45, 45, 45, 60];
+  const path = [60, 60, 60, 60, 60];
+  road.forEach((restDuration, tier) => {
+    assert.equal(resolveCombatTrainingPreset({ journey: "road2champion", tier }).restDuration, restDuration);
+  });
+  path.forEach((restDuration, tier) => {
+    assert.equal(resolveCombatTrainingPreset({ journey: "path2legend", tier }).restDuration, restDuration);
+  });
+});
+
+test("ten-round session duration contains ten recovery intervals plus one preroll", () => {
+  const cases = [
+    ["road2champion", [900, 1050, 1200, 1350, 1800]],
+    ["path2legend", [1200, 1500, 1800, 1800, 2400]]
+  ];
+  for (const [journey, expectedWithoutPreroll] of cases) {
+    expectedWithoutPreroll.forEach((expected, tier) => {
+      const resolved = buildShadowTrainingPlan(resolveCombatTrainingPreset({
+        discipline: "boxing", journey, tier
+      }));
+      const work = resolved.rounds.reduce((sum, round) => sum + round.roundDuration, 0);
+      assert.equal(work + 10 * resolved.restDuration, expected);
+      assert.equal(work + 10 * resolved.restDuration + resolved.prerollDuration, expected + 5);
+    });
+  }
+});
+
+test("one Start runs continuously through Round 10 and completes after ten recoveries", () => {
+  for (const discipline of ["wrestling", "boxing", "muay-thai", "mma", "submission-grappling"]) {
+    const disciplinePlan = buildShadowTrainingPlan(resolveCombatTrainingPreset({ discipline }));
+    const harness = createEngine(disciplinePlan);
+    harness.engine.start();
+    harness.engine.clear();
+    let phaseCount = 0;
+    while (harness.engine.state !== "completed" && phaseCount < 200) {
+      harness.finishPhase();
+      phaseCount += 1;
+    }
+    assert.equal(harness.engine.state, "completed");
+    assert.equal(harness.engine.roundIndex, 9);
+    assert.equal(harness.events.filter(event => event.reason === "rest-started").length, 10);
+    assert.equal(harness.events.filter(event => event.reason === "session-start").length, 1);
   }
 });

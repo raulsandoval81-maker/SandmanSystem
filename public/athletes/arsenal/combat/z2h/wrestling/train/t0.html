@@ -10,6 +10,7 @@
 
   <script type="module">
     import { db, doc, getDoc } from "/assets/js/firebase-init-para.js";
+    import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
     const search = new URLSearchParams(window.location.search);
     const athleteId = search.get("id") || "";
@@ -37,6 +38,10 @@
         }
 
         const athlete = snap.data();
+        if (!resolveF8RemoteAccess(athlete).combat) {
+          document.body.innerHTML = "<p>Remote Combat unlocks at Prospect Stripe 1.</p>";
+          return;
+        }
         const actualTier = athlete.curriculumTier || athlete.tier;
 
         if (actualTier !== pageTier) {

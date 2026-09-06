@@ -67,7 +67,7 @@ function announce(view) {
   } else if (view.reason === "transition-started") {
     view.spokenCommands.forEach(command => speak(command, generation));
   } else if (view.reason === "rest-started") {
-    signal(generation); speak("Recover", generation);
+    signal(generation); speak(view.recovery.spokenCommand, generation);
   } else if (view.reason === "short-time") {
     speak("Short time", generation);
   } else if (view.reason === "completed") {
@@ -102,10 +102,10 @@ function render(view) {
     }
   }
   if (view.state === "resting") {
-    action = "Recover"; cue = "Breathe, reset your stance, and prepare for the next round.";
+    action = view.recovery.label; cue = view.recovery.coachingCue;
     next = plan.rounds[view.roundIndex + 1]?.actions[0]?.label || "Complete";
   }
-  if (view.state === "completed") { action = "Training Complete"; cue = "Five controlled rounds complete."; next = "Recover"; }
+  if (view.state === "completed") { action = "Training Complete"; cue = "Ten controlled rounds complete."; next = "Recover"; }
   if (view.state === "stopped") { action = "Session Stopped"; cue = "Start again when you are ready."; next = plan.rounds[0].actions[0].label; }
   ui.action.textContent = action; ui.cue.textContent = cue; ui.next.textContent = next;
   ui.clock.textContent = formatTime(view.remaining);

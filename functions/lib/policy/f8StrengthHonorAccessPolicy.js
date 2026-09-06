@@ -22,6 +22,7 @@ function resolveF8RemoteAccess(athlete) {
     const gatewayReached = hasReachedF8RemoteAccessGateway(athlete?.progressionTier ?? athlete?.tier, athlete?.stripeCount ?? athlete?.stripesEarned);
     const athleteAssignmentsAllowed = tier !== null && tier > 0;
     return Object.freeze({
+        combat: athleteAssignmentsAllowed && gatewayReached,
         strength: athleteAssignmentsAllowed && (athlete?.unlocks?.strength === true || gatewayReached),
         honor: athleteAssignmentsAllowed && (athlete?.unlocks?.honor === true || gatewayReached),
         gatewayReached,

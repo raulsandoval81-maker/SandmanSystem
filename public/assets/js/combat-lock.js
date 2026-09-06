@@ -3,6 +3,7 @@ import {
   doc,
   getDoc
 } from "/assets/js/firebase-init-para.js";
+import { resolveF8RemoteAccess } from "/assets/js/f8-strength-honor-access.js";
 
 function normalizeDiscipline(value = "") {
   const discipline = String(value)
@@ -182,6 +183,7 @@ export async function lockTierView(
 
     const isYouth =
       athleteId.startsWith("F8_");
+    const remoteCombatAllowed = !isYouth || resolveF8RemoteAccess(athlete).combat;
 
     const tierOrder = isYouth
       ? [
@@ -260,6 +262,15 @@ export async function lockTierView(
         );
 
         links.forEach((link) => {
+          const isRemoteCombatLink = link.getAttribute("href")?.includes("/train/");
+          if (isRemoteCombatLink && !remoteCombatAllowed) {
+            link.removeAttribute("href");
+            link.setAttribute("aria-disabled", "true");
+            link.classList.add("locked");
+            link.textContent = "Train 🔒";
+            link.title = "Remote Combat unlocks at Prospect Stripe 1.";
+            return;
+          }
           const href =
             link.getAttribute("href");
 

@@ -231,7 +231,7 @@ body{
 .coaching-cue{min-height:2.8em;max-width:34rem;margin:18px auto;color:#f2ead8;font-size:clamp(1rem,4vw,1.25rem);line-height:1.4}
 .next-action{display:grid;gap:4px;max-width:28rem;margin:24px auto 0;padding:13px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.04)}
 .next-action span{color:var(--muted);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase}.next-action strong{color:#fff}
-.round-progress{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:28px}.round-dot{height:5px;border-radius:99px;background:#444}.round-dot.is-complete{background:var(--gold)}.round-dot.is-current{background:#fff}
+.round-progress{display:grid;grid-template-columns:repeat(10,1fr);gap:7px;margin-top:28px}.round-dot{height:5px;border-radius:99px;background:#444}.round-dot.is-complete{background:var(--gold)}.round-dot.is-current{background:#fff}
 .training-app>.controls{grid-template-columns:1.4fr 1fr 1fr}.completion-message{text-align:center;color:#f2ead8}
 .btn:disabled{cursor:not-allowed;opacity:.42}.settings[hidden],.completion-message[hidden]{display:none}
 button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:3px}

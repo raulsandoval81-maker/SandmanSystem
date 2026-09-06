@@ -60,8 +60,7 @@ export class ShadowTrainingEngine {
     if (this.state === "preparing") return this.beginCurrentAction("work-started");
     if (this.state === "working") {
       if (this.currentRound.mode === "bottom") return this.afterBottomWork();
-      if (this.roundIndex === this.plan.rounds.length - 1 &&
-          this.actionIndex === this.currentRound.actions.length - 1) return this.complete();
+      if (this.currentAction.transitionDuration <= 0) return this.afterTransition();
       this.transitionKind = "neutral";
       return this.enter("transitioning", this.currentAction.transitionDuration, "transition-started");
     }
@@ -73,6 +72,7 @@ export class ShadowTrainingEngine {
       return this.afterTransition();
     }
     if (this.state === "resting") {
+      if (this.roundIndex === this.plan.rounds.length - 1) return this.complete();
       this.roundIndex += 1; this.actionIndex = 0; this.shortTimeCalled = false;
       return this.beginCurrentAction("round-started");
     }
@@ -88,7 +88,6 @@ export class ShadowTrainingEngine {
   }
   afterBottomWork() {
     if (this.actionIndex === this.currentRound.actions.length - 1) {
-      if (this.roundIndex === this.plan.rounds.length - 1) return this.complete();
       this.actionIndex = 0;
       return this.enter("resting", this.plan.restDuration, "rest-started");
     }
@@ -100,7 +99,6 @@ export class ShadowTrainingEngine {
       this.actionIndex += 1;
       return this.enter("working", this.currentAction.duration, "action-started");
     }
-    if (this.roundIndex === this.plan.rounds.length - 1) return this.complete();
     this.actionIndex = 0; this.enter("resting", this.plan.restDuration, "rest-started");
   }
   complete() { this.clear(); this.state = "completed"; this.remaining = 0; this.emit("completed"); }
@@ -153,7 +151,7 @@ export class ShadowTrainingEngine {
       isShortTime: this.isShortTime, transition: this.plan.transition,
       transitionCommand: this.plan.transitionCommand, transitionKind: this.transitionKind,
       bottomCountdown: this.currentBottomCountdown,
-      spokenCommands: Object.freeze(this.spokenCommands(reason)) });
+      spokenCommands: Object.freeze(this.spokenCommands(reason)), recovery: this.plan.recovery });
   }
   emit(reason) { this.onChange(this.snapshot(reason)); }
 }

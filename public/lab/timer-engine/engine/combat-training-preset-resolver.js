@@ -81,8 +81,10 @@ export function resolveCombatTrainingPreset({ discipline, journey, track, tier }
     roundDuration: timing.roundDuration,
     actionDuration: rounds[0].actionDuration,
     prerollDuration: COMBAT_TRAINING_DEFAULTS.prerollDuration,
-    restDuration: COMBAT_TRAINING_DEFAULTS.restDuration,
+    restDuration: timing.restDuration,
     shortTimeAt: COMBAT_TRAINING_DEFAULTS.shortTimeAt,
+    sessionCycles: COMBAT_TRAINING_DEFAULTS.sessionCycles,
+    recovery: COMBAT_TRAINING_DEFAULTS.recovery,
     transition: disciplineDefinition.transition,
     derivedFrom: disciplineDefinition.derivedFrom || null,
     rounds

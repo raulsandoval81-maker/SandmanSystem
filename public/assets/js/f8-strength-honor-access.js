@@ -12,6 +12,7 @@ export function resolveF8RemoteAccess(athlete = {}) {
   const match = String(athlete.progressionTier ?? athlete.tier ?? "").trim().toUpperCase().match(/^T([0-4])$/);
   const athleteAssignmentsAllowed = !!match && Number(match[1]) > 0;
   return {
+    combat: athleteAssignmentsAllowed && gatewayReached,
     strength: athleteAssignmentsAllowed && (athlete?.unlocks?.strength === true || gatewayReached),
     honor: athleteAssignmentsAllowed && (athlete?.unlocks?.honor === true || gatewayReached),
     gatewayReached,

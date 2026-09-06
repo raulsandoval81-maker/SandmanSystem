@@ -12,11 +12,23 @@ export function buildShadowTrainingPlan(preset) {
   if (!Number.isFinite(preset.actionDuration) || preset.actionDuration <= 0) {
     throw new TypeError("A positive resolved actionDuration is required");
   }
+  if (!Number.isFinite(preset.restDuration) || preset.restDuration <= 0 ||
+      !preset.recovery?.label || !preset.recovery.spokenCommand || !preset.recovery.coachingCue) {
+    throw new TypeError("A complete active-recovery configuration is required");
+  }
   if (!Number.isFinite(transition?.duration) || transition.duration <= 0 ||
       !transition.label || !transition.spokenCommand || !transition.coachingCue) {
     throw new TypeError("An authored transition command is required");
   }
-  const rounds = preset.rounds.map((round, roundIndex) => {
+  const sessionCycles = Number(preset.sessionCycles || 1);
+  if (!Number.isInteger(sessionCycles) || sessionCycles <= 0) {
+    throw new TypeError("A positive whole-number sessionCycles value is required");
+  }
+  const authoredRoundCount = preset.rounds.length;
+  const sessionRounds = Array.from({ length: sessionCycles }, (_, cycleIndex) =>
+    preset.rounds.map((round, sourceRoundIndex) => ({ round, cycleIndex, sourceRoundIndex }))
+  ).flat();
+  const rounds = sessionRounds.map(({ round, cycleIndex, sourceRoundIndex }, roundIndex) => {
     if (!round.actions?.length) throw new TypeError(`Round ${roundIndex + 1} has no actions`);
     const mode = round.mode || "neutral";
     if (!["neutral", "bottom"].includes(mode)) {
@@ -42,8 +54,7 @@ export function buildShadowTrainingPlan(preset) {
         transitionDuration: mode === "neutral" &&
           (actionIndex < round.actions.length - 1 || round.trailingTransition !== false)
           ? transition.duration : 0,
-        nextAction: round.actions[actionIndex + 1]?.[1] ||
-          (roundIndex < preset.rounds.length - 1 ? "Recovery" : "Complete")
+        nextAction: round.actions[actionIndex + 1]?.[1] || preset.recovery.label
       });
     });
     const resolvedDuration = actions.reduce(
@@ -58,6 +69,9 @@ export function buildShadowTrainingPlan(preset) {
     return Object.freeze({
       ...round,
       number: roundIndex + 1,
+      sessionRoundNumber: roundIndex + 1,
+      sourceRoundNumber: sourceRoundIndex + 1,
+      cycleNumber: cycleIndex + 1,
       mode,
       roundDuration: expectedDuration,
       commandPattern: commandPattern ? Object.freeze({ ...commandPattern }) : null,
@@ -73,6 +87,9 @@ export function buildShadowTrainingPlan(preset) {
     prerollDuration: preset.prerollDuration,
     restDuration: preset.restDuration,
     shortTimeAt: preset.shortTimeAt,
+    sessionCycles,
+    authoredRoundCount,
+    recovery: Object.freeze({ ...preset.recovery }),
     roundDuration: preset.roundDuration,
     transition: Object.freeze({ ...transition }),
     transitionCommand: Object.freeze({
