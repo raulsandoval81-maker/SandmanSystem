@@ -24,14 +24,30 @@
 <body>
   <div class="msg">Routing athlete...</div>
 
-  <script>
-    function norm(x) {
-      return (x || "").toString().trim().toUpperCase();
-    }
+  <script type="module">
+    import {
+      db,
+      doc,
+      getDoc
+    } from "/assets/js/firebase-init.js";
 
     function getIdFromUrl() {
       const p = new URLSearchParams(window.location.search);
-      return norm(p.get("id") || p.get("uid") || p.get("athleteId"));
+
+      return (
+        p.get("id") ||
+        p.get("uid") ||
+        p.get("athleteId") ||
+        ""
+      ).toString().trim();
+    }
+
+    function normalizeJourney(value) {
+      return (value || "")
+        .toString()
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "");
     }
 
     function go(url) {
@@ -43,7 +59,7 @@
       throw new Error(msg);
     }
 
-    (function route() {
+    async function route() {
       const id = getIdFromUrl();
 
       if (!id) {
@@ -51,18 +67,54 @@
         return;
       }
 
-      if (id.startsWith("F8_")) {
+      try {
+        const snap = await getDoc(doc(db, "athletes", id));
+
+        if (snap.exists()) {
+          const athlete = snap.data() || {};
+
+          const journey = normalizeJourney(
+            athlete.programTrack ||
+            athlete.journey ||
+            athlete.track ||
+            athlete.trackCode
+          );
+
+          if (journey === "road2champion" || journey === "r2c") {
+            go(`/athletes/hub/mini-hub.html?id=${encodeURIComponent(id)}`);
+            return;
+          }
+
+          if (
+            journey === "path2legend" ||
+            journey === "p2l" ||
+            journey === "quest2mastery" ||
+            journey === "q2m"
+          ) {
+            go(`/athletes/hub/full-hub.html?id=${encodeURIComponent(id)}`);
+            return;
+          }
+        }
+      } catch (err) {
+        console.warn("[Athlete Hub Router] athlete lookup failed:", err);
+      }
+
+      const legacyId = id.toUpperCase();
+
+      if (legacyId.startsWith("F8_")) {
         go(`/athletes/hub/mini-hub.html?id=${encodeURIComponent(id)}`);
         return;
       }
 
-      if (id.startsWith("F4_")) {
+      if (legacyId.startsWith("F4_")) {
         go(`/athletes/hub/full-hub.html?id=${encodeURIComponent(id)}`);
         return;
       }
 
-      fail("Unknown athlete ID format");
-    })();
+      fail("Unable to determine athlete journey");
+    }
+
+    route();
   </script>
 </body>
 </html>
