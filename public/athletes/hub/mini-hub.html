@@ -170,6 +170,20 @@
       font-size:.98rem;
     }
 
+    .athlete-status-card{
+      cursor:default;
+      user-select:none;
+      min-height:118px;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+    }
+
+    .athlete-status-card:hover{
+      transform:none;
+      border-color:var(--athlete-line);
+    }
+
     .cta-box{
       background:linear-gradient(180deg,#141820,#0c0e13);
       border:1px dashed #293142;
@@ -254,18 +268,11 @@
         <div>
           <h1 id="heroTitle">Home Base</h1>
 
-          <div class="hub-rank-identity" aria-label="House and current rank">
+          <div class="hub-rank-identity" aria-label="Athlete identity and current rank">
             <img
               class="sandman-logo hub-house-badge"
-              src="/assets/img/brand/sandman-academy-house-badge.png"
-              alt="Sandman Academy house badge"
-            />
-            <img
-              id="hubRankBadge"
-              class="hub-current-rank-badge"
-              src=""
-              alt=""
-              hidden
+              src="/assets/img/brand/sandman-combat-shield-transparent.png"
+              alt="Sandman Combat athlete badge"
             />
           </div>
           <p id="heroText">Keep showing up. Your journey is building.</p>
@@ -294,10 +301,19 @@
       </div>
     </section>
 
-    <section id="athleteStatusGrid" class="athlete-status-grid" aria-label="Current progression status" hidden></section>
+    </section>
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
-      <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your progress and earned recognition.</p></a>
-      <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open your Combat, Strength, and Honor work.</p></a>
+      <div class="athlete-journey-card athlete-status-card" id="journeyProgress">
+        <span>Your Journey</span>
+        <strong>My Progress</strong>
+        <p id="progressStatus">No new updates</p>
+      </div>
+
+      <div class="athlete-journey-card athlete-status-card" id="journeyArsenal">
+        <span>Train</span>
+        <strong>Arsenal</strong>
+        <p id="arsenalStatus">Nothing waiting</p>
+      </div>
     </section>
     <section class="cta-box">
       <p id="ctaMessage">Small work every day builds something big.</p>
@@ -306,8 +322,6 @@
 <script type="module">
 import { LADDER_F8 } from "/assets/js/ladder.service.js";
 import {
-  loadAthleteDashboard,
-  renderAthleteDashboard,
   resolveSignedInAthlete,
 } from "/assets/js/athlete-dashboard-data.js";
 
@@ -324,7 +338,7 @@ function getIdFromUrl(){
 function setLinks(id){
   if (!id) return;
   $("arsenalLink").href = `/athletes/arsenal/?id=${encodeURIComponent(id)}`;
-  [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
+
 }
 
 async function load(){
@@ -336,23 +350,33 @@ async function load(){
     return;
   }
 
-  // If this page is meant for youth, prefer F8 URL and warn on anything else
   const finalId = id;
+  const A = resolved.athlete || {};
 
-  if (!finalId.startsWith("F8_")) {
-  window.location.replace(
-    `/athletes/hub/full-hub.html?id=${encodeURIComponent(finalId)}`
-  );
+  const journey = String(
+    A.programTrack ||
+    A.journey ||
+    A.track ||
+    A.trackCode ||
+    ""
+  )
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+  const isRoad2Champion =
+    journey === "road2champion" ||
+    journey === "r2c" ||
+    finalId.toUpperCase().startsWith("F8_");
+
+  if (!isRoad2Champion) {
+    window.location.replace(
+      `/athletes/hub/full-hub.html?id=${encodeURIComponent(finalId)}`
+    );
     return;
-}
-
-  if (!finalId.startsWith("F8_")) {
-    console.warn("mini-hub using non-F8 athlete:", finalId);
   }
 
   setLinks(finalId);
-
-  const A = resolved.athlete || {};
 
   const combat =
     A.disciplines?.[A.activeDiscipline] ||
@@ -413,12 +437,6 @@ async function load(){
   $("heroTitle").textContent = `${name}'s Home Base`;
   $("heroText").textContent = `Welcome back, ${name}. Keep showing up.`;
 
-  try {
-    const dashboard = await loadAthleteDashboard({ athleteId: finalId, athlete: A });
-    renderAthleteDashboard($("athleteStatusGrid"), dashboard, finalId);
-  } catch (error) {
-    console.error("Athlete dashboard status failed:", error);
-  }
 }
 
 load();
@@ -427,10 +445,23 @@ load();
 </html>
 
 <style>
-/* House leads; current rank supports */
+  margin:10px 0 0;
+  opacity:.72;
+  font-size:.92rem;
+}
+
+/* Athlete identity leads; current rank supports */
+.hub-rank-identity{
+  margin:-18px 0 -16px;
+  padding:0;
+}
+
 .hub-house-badge{
-  width:178px;
-  height:178px;
+  display:block;
+  width:min(420px, 82%);
+  height:auto;
+  margin:0 auto;
+  object-fit:contain;
 }
 
 .hub-current-rank-badge{
@@ -439,9 +470,16 @@ load();
 }
 
 @media (max-width:720px){
+  .hub-rank-identity{
+    margin:-16px 0 -14px;
+    padding:0;
+  }
+
   .hub-house-badge{
-    width:min(145px, 42vw);
-    height:min(145px, 42vw);
+    width:min(320px, 82vw);
+    height:auto;
+    margin:0 auto;
+    object-fit:contain;
   }
 
   .hub-current-rank-badge{

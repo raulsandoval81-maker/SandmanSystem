@@ -960,7 +960,11 @@ const journeyLabel =
 const combatArcLabel =
   `${activeDiscipline === "mma" ? "🥋" :
      activeDiscipline === "wrestling" ? "🤼" : "🥊"} ` +
-  `Combat-${disciplineLabel(activeDiscipline)} · ${journeyLabel}`;
+  `${disciplineLabel(activeDiscipline)} · ${
+    journeyLabel === "Quest 2 Mastery"
+      ? "Quest2Mastery"
+      : journeyLabel
+  }`;
 
 safeText(
   "combatArcTitle",
@@ -1066,11 +1070,11 @@ if (badgeRow) {
   badgeRow.innerHTML = "";
 
 const BADGES = {
-  t0: "f4-adult-gray-apprentice.png",
-  t1: "f4-adult-warrior.png",
-  t2: "f4-adult-champion.png",
-  t3: "f4-adult-veteran.png",
-  t4: "f4-adult-master.png"
+  t0: "apprentice-gray-v3.png",
+  t1: "warrior-blue-v3.png",
+  t2: "champion-black-v3.png",
+  t3: "veteran-brown-v3.png",
+  t4: "master-black-gold-v3.png"
 };
 
 const currentTier =
@@ -1102,7 +1106,7 @@ const currentTier =
     if (!file) return;
 
     const img = document.createElement("img");
-    img.src = `/assets/img/f4/${file}`;
+    img.src = `/assets/images/badges/ranks-v2/${file}`;
     img.className = "badge-history-small";
     img.alt = `${b.rankName || "Badge"} badge`;
 
@@ -1119,7 +1123,7 @@ const currentTier =
     ) || 0;
   const currentFile = BADGES[`t${currentTierNum}`] || BADGES.t0;
   const currentImg = document.createElement("img");
-  currentImg.src = `/assets/img/f4/${currentFile}`;
+  currentImg.src = `/assets/images/badges/ranks-v2/${currentFile}`;
   currentImg.className = "badge-current-big";
   currentImg.alt = `${rankName} current badge`;
 
@@ -1245,53 +1249,36 @@ applyLaneLocks({
 
   const strengthBlocked = !!strengthSpec?.blocked;
   const honorBlocked = !!honorSpec?.blocked;
-const strengthUnlocked =
-  a.unlocks?.strength === true ||
-  displayStripes >= (req.strength ?? 999);
+// Strength and Honor remain visible as development pillars.
+// applyLaneLocks() still controls whether their work can be opened.
 
-const honorUnlocked =
-  a.unlocks?.honor === true ||
-  displayStripes >= (req.honor ?? 999);
-const canSeeStrength =
-  !strengthBlocked &&
-  ((viewMode === "coach" || viewMode === "full" || reviewMode) || strengthUnlocked);
+if (!strengthBlocked) {
+  paintLane({
+    kind: "strength",
+    athleteId,
+    xp: strengthXP,
+    rowEl: $("strengthRings"),
+    unitsLeftEl: $("strengthUnitsLeft"),
+    metaRightEl: $("strengthMetaRight"),
+    decalEl: $("strengthDecal"),
+    total: strengthSpec.total,
+    slots: strengthSpec.slots,
+  });
+}
 
-const canSeeHonor =
-  !honorBlocked &&
-  ((viewMode === "coach" || viewMode === "full" || reviewMode) || honorUnlocked);
-  if (canSeeStrength) {
-    paintLane({
-      kind: "strength",
-      athleteId,
-      xp: strengthXP,
-      rowEl: $("strengthRings"),
-      unitsLeftEl: $("strengthUnitsLeft"),
-      metaRightEl: $("strengthMetaRight"),
-      decalEl: $("strengthDecal"),
-      total: strengthSpec.total,
-      slots: strengthSpec.slots,
-    });
-  } else {
-    const s = $("strengthLane");
-    if (s) s.style.display = "none";
-  }
-
-  if (canSeeHonor) {
-    paintLane({
-      kind: "honor",
-      athleteId,
-      xp: honorXP,
-      rowEl: $("honorRings"),
-      unitsLeftEl: $("honorUnitsLeft"),
-      metaRightEl: $("honorMetaRight"),
-      decalEl: $("honorDecal"),
-      total: honorSpec.total,
-      slots: honorSpec.slots,
-    });
-  } else {
-    const h = $("honorLane");
-    if (h) h.style.display = "none";
-  }
+if (!honorBlocked) {
+  paintLane({
+    kind: "honor",
+    athleteId,
+    xp: honorXP,
+    rowEl: $("honorRings"),
+    unitsLeftEl: $("honorUnitsLeft"),
+    metaRightEl: $("honorMetaRight"),
+    decalEl: $("honorDecal"),
+    total: honorSpec.total,
+    slots: honorSpec.slots,
+  });
+}
 
   // -----------------------------
   // Skills

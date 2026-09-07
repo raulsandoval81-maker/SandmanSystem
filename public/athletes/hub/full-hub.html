@@ -542,7 +542,87 @@
       }
     }
 
-  </style>
+
+    .athlete-status-card{
+      cursor:default;
+      user-select:none;
+    }
+
+    .athlete-status-card:hover{
+      transform:none;
+    }
+
+    .hub-status{
+      margin-top:12px;
+      padding-top:10px;
+      border-top:1px solid rgba(255,255,255,.10);
+      font-size:.82rem;
+      font-weight:800;
+      letter-spacing:.15px;
+      color:#d7bd72;
+    }
+
+
+    .athlete-home-welcome{
+      max-width:760px;
+      margin:26px auto 30px;
+      padding:22px 24px;
+      text-align:center;
+    }
+
+    .athlete-home-welcome__eyebrow{
+      margin:0 0 7px;
+      font-size:.72rem;
+      font-weight:900;
+      letter-spacing:1.7px;
+      opacity:.62;
+    }
+
+    .athlete-home-welcome h2{
+      margin:0 0 8px;
+      font-size:clamp(1.35rem, 3vw, 1.8rem);
+    }
+
+    .athlete-home-welcome p{
+      margin:0;
+      line-height:1.55;
+      opacity:.76;
+    }
+
+    .athlete-journey-grid{
+      gap:18px;
+      margin-top:20px;
+    }
+
+    .athlete-status-card{
+      min-height:185px;
+      padding:22px;
+      display:flex;
+      flex-direction:column;
+    }
+
+    .athlete-status-card .hub-status{
+      margin-top:auto;
+      padding-top:14px;
+    }
+
+    @media (max-width:720px){
+      .athlete-home-welcome{
+        margin:20px auto 24px;
+        padding:18px 16px;
+      }
+
+      .athlete-journey-grid{
+        gap:14px;
+      }
+
+      .athlete-status-card{
+        min-height:165px;
+        padding:18px;
+      }
+    }
+
+</style>
   <link rel="stylesheet" href="/assets/css/f4-athlete.css" />
 
   <!-- Sandman Home Screen / PWA — managed -->
@@ -588,13 +668,12 @@
         <div>
           <h1 id="heroTitle">Athlete Home Base</h1>
 
-          <div class="hub-rank-identity" aria-label="House and current rank">
+          <div class="hub-rank-identity" aria-label="Sandman Combat identity">
             <img
-              id="hubRankBadge"
-              class="hub-current-rank-badge"
-              src=""
-              alt=""
-              hidden
+              class="hub-house-badge"
+              src="/assets/img/brand/sandman-combat-shield-transparent.png"
+              alt="Sandman Combat"
+              style="width:min(360px, 78vw); height:auto;"
             >
           </div>
           <p id="heroText">Welcome back. Stay disciplined — your journey continues.</p>
@@ -611,6 +690,15 @@
       </div>
     </section>
 
+    <section class="athlete-home-welcome" aria-label="Welcome to your Home Base">
+      <p class="athlete-home-welcome__eyebrow">YOUR HOME BASE</p>
+      <h2 id="homeWelcomeTitle">Welcome back.</h2>
+      <p>
+        Check here for new progress, training, messages,
+        and movement in your journey.
+      </p>
+    </section>
+
     <section class="f4-homebase-divider" aria-label="My Home Base">
       <div class="f4-homebase-line"></div>
       <h2>MY HOME BASE</h2>
@@ -620,10 +708,30 @@
 
     <section id="athleteStatusGrid" class="athlete-status-grid" aria-label="Current progression status" hidden></section>
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
-      <a class="athlete-journey-card" id="journeyProgress" href="/athletes/profile/"><span>Your Journey</span><strong>My Progress</strong><p>See your rank, progression, and earned recognition.</p></a>
-      <a class="athlete-journey-card" id="journeyArsenal" href="/athletes/arsenal/"><span>Train</span><strong>Arsenal</strong><p>Open Combat, Strength, and Honor training.</p></a>
-      <a class="athlete-journey-card" id="journeyComms" href="/communications/athlete/"><span>From Your Coach</span><strong>Communications</strong><p>Read announcements and check the current schedule.</p></a>
-      <a class="athlete-journey-card" id="journeyLeaderboard" href="/athletes/leaderboard/"><span>Measure</span><strong>Leaderboard</strong><p>See where your consistent work is taking you.</p></a>
+      <div class="athlete-journey-card athlete-status-card" id="journeyProgress">
+        <span>Your Journey</span>
+        <strong>My Progress</strong>
+        <p>See what has changed in your progression.</p>
+        <div class="hub-status" id="progressStatus" aria-live="polite">No new updates</div>
+      </div>
+      <div class="athlete-journey-card athlete-status-card" id="journeyArsenal">
+        <span>Train</span>
+        <strong>Arsenal</strong>
+        <p>Training items waiting for your attention.</p>
+        <div class="hub-status" id="arsenalStatus" aria-live="polite">Nothing waiting</div>
+      </div>
+      <div class="athlete-journey-card athlete-status-card" id="journeyComms">
+        <span>From Your Coach</span>
+        <strong>Communications</strong>
+        <p>Messages and announcements waiting for you.</p>
+        <div class="hub-status" id="communicationsStatus" aria-live="polite">No unread messages</div>
+      </div>
+      <div class="athlete-journey-card athlete-status-card" id="journeyLeaderboard">
+        <span>Measure</span>
+        <strong>Leaderboard</strong>
+        <p>Watch for movement in your standing.</p>
+        <div class="hub-status" id="leaderboardStatus" aria-live="polite">No new movement</div>
+      </div>
     </section>
           <section class="cta-box">
       <p id="ctaMessage">Progress here is measured in months and years, not days.</p>
@@ -734,7 +842,7 @@ function setProfileLink(id, athlete = {}) {
       localStorage.setItem(LAST_UID_KEY, id);
       setArsenalLink(id);
       setLeaderboardLink(id);
-      [["journeyProgress","/athletes/profile/"],["journeyArsenal","/athletes/arsenal/"],["journeyComms","/communications/athlete/"],["journeyLeaderboard","/athletes/leaderboard/"]].forEach(([key,path])=>{const link=$(key);if(link)link.href=`${path}?id=${encodeURIComponent(id)}`;});
+
 
       const A = resolved.athlete || {};
 
@@ -787,37 +895,6 @@ function setProfileLink(id, athlete = {}) {
         F4_RANKS[tierNum] ||
         "Apprentice";
 
-      const isGrapplingDiscipline =
-        activeDiscipline.includes("wrest") ||
-        activeDiscipline.includes("submission") ||
-        activeDiscipline.includes("grappling");
-
-      const F4_WARRIOR_BADGES = {
-        Apprentice: isGrapplingDiscipline
-          ? "badge-apprentice-white-gold.png"
-          : "badge-apprentice-gray-gold.png",
-        Warrior: "badge-warrior-gold.png",
-        Champion: "badge-champion-gold.png",
-        Veteran: "badge-veteran-gold.png",
-        Legend: "badge-legend-gold.png"
-      };
-
-      const warriorFile =
-        F4_WARRIOR_BADGES[rankName];
-
-      const hubRankBadge =
-        $("hubRankBadge");
-
-      if (hubRankBadge && warriorFile) {
-        hubRankBadge.src =
-          `/assets/images/badges/foundry4/${warriorFile}`;
-
-        hubRankBadge.alt =
-          `${rankName} rank badge`;
-
-        hubRankBadge.hidden = false;
-      }
-
       setProfileLink(id, A);
 
       if (A.active === false || A.rosterStatus === "suspended" || A?.discipline?.state === "suspended") {
@@ -839,11 +916,21 @@ function setProfileLink(id, athlete = {}) {
 
       $("heroTitle").textContent = `${displayName}'s Home Base`;
 
-      const tierText  = A.tier ? `Tier ${A.tier}` : "Tier —";
-      const trackText = A.trackCode || A.track || "Combat";
+      const homeWelcomeTitle = $("homeWelcomeTitle");
+      if (homeWelcomeTitle) {
+        homeWelcomeTitle.textContent = `Welcome back, ${displayName}.`;
+      }
+
+      const tierText =
+        combat.rankName ||
+        combat.tierName ||
+        F4_RANKS[tierNum] ||
+        "Apprentice";
+
+      const journeyText = "Path2Legend";
 
       $("heroText").textContent =
-        `Welcome back, ${displayName}. ${tierText} · ${trackText}. Stay disciplined — your journey continues.`;
+        `Welcome back, ${displayName}. ${tierText} · ${journeyText}. Your journey continues.`;
 
       $("ctaMessage").textContent =
         `${displayName}, your profile is ready. Keep building.`;

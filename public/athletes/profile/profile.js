@@ -920,6 +920,23 @@ if (
     a.publicName ||
     athleteId;
 
+  let path2LegendTitle = "🤼 Wrestling · Path2Legend";
+
+  if (art === "boxing") {
+    path2LegendTitle = "🥊 Boxing · Path2Legend";
+  } else if (art === "kickboxing") {
+    path2LegendTitle = "🥊 Kickboxing · Path2Legend";
+  } else if (
+    art === "submission-grappling" ||
+    art === "submission grappling"
+  ) {
+    path2LegendTitle = "🤼 Submission Grappling · Path2Legend";
+  } else if (art === "mma") {
+    path2LegendTitle = "🥋 MMA · Path2Legend";
+  }
+
+  safeText("combatArcTitle", path2LegendTitle);
+
   safeText("out-name", fullName);
   safeText("out-public", a.publicName || fullName);
 
@@ -1067,12 +1084,14 @@ const badgeRow = $("ath-badge-history");
 if (badgeRow) {
   badgeRow.innerHTML = "";
 
-  const F4_BADGES = {
-    t0: "t0-apprentice.png",
-    t1: "t1-warrior.png",
-    t2: "t2-champion.png",
-    t3: "t3-veteran.png",
-    t4: "t4-legend.png",
+  const P2L_V3_BADGES = {
+    t0: art === "boxing" || art === "kickboxing"
+      ? "apprentice-gray-v3.png"
+      : "apprentice-white-v3.png",
+    t1: "warrior-blue-v3.png",
+    t2: "champion-black-v3.png",
+    t3: "veteran-brown-v3.png",
+    t4: "legend-black-gold-v3.png"
   };
 
   const currentTier = String(combat.tier || "T0").toUpperCase();
@@ -1090,11 +1109,11 @@ if (badgeRow) {
   // Render past badges small
   pastBadges.forEach((b) => {
     const histTierNum = Number(String(b.tier || "T0").replace("T", "")) || 0;
-    const file = F4_BADGES[`t${histTierNum}`];
+    const file = P2L_V3_BADGES[`t${histTierNum}`];
     if (!file) return;
 
     const img = document.createElement("img");
-    img.src = `/assets/img/f4/${file}`;
+    img.src = `/assets/images/badges/ranks-v2/${file}`;
     img.className = "badge-history-small";
     img.alt = `${b.rankName || "Badge"} badge`;
 
@@ -1103,10 +1122,10 @@ if (badgeRow) {
 
   // Render current badge big
   const currentTierNum = Number(String(combat.tier || "T0").replace("T", "")) || 0;
-  const currentFile = F4_BADGES[`t${currentTierNum}`] || F4_BADGES.t0;
+  const currentFile = P2L_V3_BADGES[`t${currentTierNum}`] || P2L_V3_BADGES.t0;
 
   const currentImg = document.createElement("img");
-  currentImg.src = `/assets/img/f4/${currentFile}`;
+  currentImg.src = `/assets/images/badges/ranks-v2/${currentFile}`;
   currentImg.className = "badge-current-big";
   currentImg.alt = `${rankName} current badge`;
 
@@ -1200,7 +1219,12 @@ const canSeeStrength =
 const canSeeHonor =
   !honorBlocked &&
   ((viewMode === "coach" || viewMode === "full" || reviewMode) || honorUnlocked);
-  if (canSeeStrength) {
+  // Keep Path2Legend development trackers visible even while locked.
+  // applyLaneLocks() owns whether the athlete can open them.
+  // The visual itself should remain present so the athlete can see
+  // the Strength / Honor progression waiting ahead.
+
+  if (!strengthBlocked) {
     paintLane({
       kind: "strength",
       athleteId,
@@ -1212,12 +1236,9 @@ const canSeeHonor =
       total: strengthSpec.total,
       slots: strengthSpec.slots,
     });
-  } else {
-    const s = $("strengthLane");
-    if (s) s.style.display = "none";
   }
 
-  if (canSeeHonor) {
+  if (!honorBlocked) {
     paintLane({
       kind: "honor",
       athleteId,
@@ -1229,9 +1250,6 @@ const canSeeHonor =
       total: honorSpec.total,
       slots: honorSpec.slots,
     });
-  } else {
-    const h = $("honorLane");
-    if (h) h.style.display = "none";
   }
 
   // -----------------------------

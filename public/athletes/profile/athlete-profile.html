@@ -10,6 +10,263 @@
   <link rel="stylesheet" href="/assets/css/f4-athlete.css"/>
   <script type="module" src="/assets/js/athlete-nav.js"></script>
   <link rel="icon" href="data:,">
+
+<style>
+  .profile-accordion{
+    width:100%;
+  }
+
+  .profile-accordion summary{
+    cursor:pointer;
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:4px 0;
+  }
+
+  .profile-accordion summary::-webkit-details-marker{
+    display:none;
+  }
+
+  .profile-accordion summary::after{
+    content:"＋";
+    font-weight:900;
+    font-size:1.1rem;
+  }
+
+  .profile-accordion[open] summary::after{
+    content:"−";
+  }
+
+  .profile-accordion-body{
+    margin-top:14px;
+    padding-top:14px;
+    border-top:1px solid rgba(255,255,255,.10);
+  }
+
+  .skills-preview-list{
+    display:grid;
+    gap:10px;
+  }
+
+  .skill-key{
+    display:flex;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-bottom:12px;
+    font-size:.74rem;
+    font-weight:800;
+    opacity:.72;
+  }
+
+  .skills-preview-row{
+    justify-content:flex-start;
+  }
+
+  .skill-status{
+    width:24px;
+    flex:0 0 24px;
+    text-align:center;
+    font-size:1rem;
+    font-weight:900;
+  }
+
+  .skill-status--learn{
+    color:#f2f2f2;
+  }
+
+  .skill-status--practice{
+    color:#e3be42;
+  }
+
+  .skill-status--show{
+    color:#73b77e;
+  }
+
+
+  .skills-preview-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:13px 14px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;
+    background:rgba(255,255,255,.035);
+  }
+
+  .skills-preview-row strong{
+    display:block;
+    margin-bottom:4px;
+  }
+
+  .skills-preview-row .muted{
+    display:block;
+    font-size:.76rem;
+  }
+
+  .skill-flag{
+    flex:0 0 auto;
+    padding:6px 9px;
+    border-radius:999px;
+    font-size:.72rem;
+    font-weight:900;
+    border:1px solid rgba(255,255,255,.18);
+  }
+
+  .skill-flag--white{
+    background:#f2f2f2;
+    color:#111;
+  }
+
+  .skill-flag--yellow{
+    background:#e3be42;
+    color:#111;
+  }
+
+  .skill-flag--green{
+    background:#4b9b5a;
+    color:#fff;
+  }
+
+  .skills-preview-note{
+    margin:12px 0 0;
+    font-size:.72rem;
+  }
+
+
+  .competition-stats-grid{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:10px;
+  }
+
+  .competition-stat{
+    padding:14px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;
+    background:rgba(255,255,255,.035);
+  }
+
+  .competition-stat span{
+    display:block;
+    margin-bottom:5px;
+    font-size:.76rem;
+    opacity:.65;
+  }
+
+  .competition-stat strong{
+    display:block;
+    font-size:1.35rem;
+  }
+
+  .competition-recent{
+    display:flex;
+    justify-content:space-between;
+    gap:14px;
+    margin-top:14px;
+    padding:14px;
+    border-top:1px solid rgba(255,255,255,.10);
+  }
+
+  .competition-note{
+    margin:12px 0 0;
+    font-size:.72rem;
+  }
+
+  @media (max-width:520px){
+    .competition-stats-grid{
+      grid-template-columns:1fr 1fr;
+    }
+  }
+
+
+  .skill-key{
+    display:flex;
+    justify-content:flex-end;
+    flex-wrap:wrap;
+    gap:16px;
+    margin-bottom:12px;
+    font-size:.74rem;
+    font-weight:800;
+    opacity:.75;
+  }
+
+  .skill-progress-list{
+    display:grid;
+    gap:9px;
+  }
+
+  .skill-progress-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+    padding:13px 14px;
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:12px;
+    background:rgba(255,255,255,.035);
+  }
+
+  .skill-progress-name{
+    min-width:0;
+  }
+
+  .skill-progress-markers{
+    flex:0 0 auto;
+    display:grid;
+    grid-template-columns:repeat(3, 24px);
+    gap:9px;
+    align-items:center;
+    justify-content:end;
+  }
+
+  .skill-marker{
+    display:block;
+    width:24px;
+    text-align:center;
+    font-size:1.05rem;
+    font-weight:900;
+  }
+
+  .skill-marker--learn{
+    color:#f2f2f2;
+  }
+
+  .skill-marker--practice{
+    color:#e3be42;
+  }
+
+  .skill-marker--show{
+    color:#73b77e;
+  }
+
+  .skill-marker--inactive{
+    color:rgba(255,255,255,.18);
+  }
+
+</style>
+
+
+<style>
+.development-pillar-art{
+  display:flex;
+  justify-content:center;
+  margin:8px auto 16px;
+  padding:0 10px;
+}
+
+.development-pillar-art img{
+  display:block;
+  width:min(92%, 360px);
+  height:auto;
+  object-fit:contain;
+  border-radius:14px;
+}
+</style>
+
 </head>
 
 
@@ -36,7 +293,7 @@
     <div class="row" style="margin-bottom:8px">
       <div class="stat" style="flex:1 1 100%">
         <div class="combat-header">
-          <span id="combatArcTitle" class="title">⚔️ Combat · Path 2 Legend</span>
+          <span id="combatArcTitle" class="title">Wrestling · Path2Legend</span>
         </div>
       </div>
     </div>
@@ -118,6 +375,13 @@
 <span class="chev" aria-hidden="true">▾</span>
 </button>
 
+    <div class="development-pillar-art">
+      <img
+        src="/assets/img/pillars/strength-hero-en-v1.png"
+        alt="Strength"
+      >
+    </div>
+
     <div id="strengthBody" class="drop-body collapsed">
       <div class="lane-row">
         <div class="lane-left">
@@ -146,6 +410,13 @@
 <span class="chev" aria-hidden="true">▾</span>
 </button>
 
+    <div class="development-pillar-art">
+      <img
+        src="/assets/img/pillars/honor-hero-en-v1.png"
+        alt="Honor"
+      >
+    </div>
+
     <div id="honorBody" class="drop-body collapsed">
       <div class="lane-row">
         <div class="lane-left">
@@ -166,6 +437,158 @@
 
 
   </section>
+  <!-- ===================== SKILLS TRACKER ===================== -->
+
+
+  <!-- ===================== COMPETITION / STATS ===================== -->
+
+
+  <!-- ===================== RECENT ACHIEVEMENTS ===================== -->
+
+
+
+
+
+
+
+
+
+  <!-- ===================== RECENT ACHIEVEMENTS ===================== -->
+
+
+  <!-- ===================== RECENT ACTIVITY ===================== -->
+
+
+  <!-- ===================== SKILLS TRACKER ===================== -->
+
+
+  <!-- ===================== COMPETITION / STATS ===================== -->
+
+
+
+
+  <!-- ===================== SKILLS TRACKER ===================== -->
+  <section id="skillsLane" class="card">
+    <details class="profile-accordion">
+      <summary>
+        <strong>Skills Tracker</strong>
+        <span class="muted">Technical development</span>
+      </summary>
+
+      <div class="profile-accordion-body">
+
+        <div class="skill-key" aria-label="Skill status key">
+          <span>□ Learn</span>
+          <span>▧ Practice</span>
+          <span>☒ Show</span>
+        </div>
+
+        <div class="skill-progress-list">
+          <div class="skill-progress-row">
+            <strong class="skill-progress-name">Double Leg</strong>
+
+            <div class="skill-progress-markers" aria-label="learn">
+              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
+<span class="skill-marker skill-marker--practice skill-marker--inactive" aria-hidden="true">▧</span>
+<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
+            </div>
+          </div>
+          <div class="skill-progress-row">
+            <strong class="skill-progress-name">Single Leg</strong>
+
+            <div class="skill-progress-markers" aria-label="practice">
+              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
+<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
+<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
+            </div>
+          </div>
+          <div class="skill-progress-row">
+            <strong class="skill-progress-name">Stand-Up</strong>
+
+            <div class="skill-progress-markers" aria-label="learn">
+              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
+<span class="skill-marker skill-marker--practice skill-marker--inactive" aria-hidden="true">▧</span>
+<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
+            </div>
+          </div>
+          <div class="skill-progress-row">
+            <strong class="skill-progress-name">Sprawl</strong>
+
+            <div class="skill-progress-markers" aria-label="show">
+              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
+<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
+<span class="skill-marker skill-marker--show" aria-hidden="true">☒</span>
+            </div>
+          </div>
+          <div class="skill-progress-row">
+            <strong class="skill-progress-name">Half Nelson</strong>
+
+            <div class="skill-progress-markers" aria-label="practice">
+              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
+<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
+<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="muted skills-preview-note">
+          Preview only — skill status will later be updated by coaches from the shared Skills Library.
+        </p>
+
+      </div>
+    </details>
+  </section>
+
+  <!-- ===================== COMPETITION / STATS ===================== -->
+  <section id="statsLane" class="card">
+    <details class="profile-accordion">
+      <summary>
+        <strong>Competition / Stats</strong>
+        <span class="muted">Performance record</span>
+      </summary>
+
+      <div class="profile-accordion-body">
+
+        <div class="competition-stats-grid">
+          <div class="competition-stat">
+            <span>Season Record</span>
+            <strong>8–3</strong>
+          </div>
+
+          <div class="competition-stat">
+            <span>Matches</span>
+            <strong>11</strong>
+          </div>
+
+          <div class="competition-stat">
+            <span>Wins by Fall</span>
+            <strong>4</strong>
+          </div>
+
+          <div class="competition-stat">
+            <span>Tournaments</span>
+            <strong>3</strong>
+          </div>
+
+          <div class="competition-stat">
+            <span>Podiums</span>
+            <strong>2</strong>
+          </div>
+        </div>
+
+        <div class="competition-recent">
+          <span class="muted">Recent Matches</span>
+          <strong>W · W · L · W · W</strong>
+        </div>
+
+        <p class="muted competition-note">
+          Preview data — competition records will later come from the athlete's actual results.
+        </p>
+
+      </div>
+    </details>
+  </section>
+
   <!-- ===================== RECENT ACHIEVEMENTS ===================== -->
   <section id="achievementLane" class="card">
     <div class="label">Recent Achievements</div>
@@ -174,8 +597,7 @@
     </div>
   </section>
 
-
-
+  <!-- ===================== RECENT ACTIVITY ===================== -->
   <section id="activityLane" class="card">
     <div class="label">Recent Activity</div>
     <div id="activityFeed" class="activity-feed">
@@ -183,9 +605,39 @@
     </div>
   </section>
 
-
 </main>
 
 <script type="module" src="/athletes/profile/profile.js"></script>
 </body>
 </html>
+
+<style>
+/* Profile visual hierarchy:
+   Strength / Honor lead.
+   Skills / Competition support. */
+
+#strengthLane .drop-title,
+#honorLane .drop-title{
+  font-size:1.18rem;
+  font-weight:900;
+  letter-spacing:.02em;
+}
+
+#strengthLane .drop-head,
+#honorLane .drop-head{
+  padding-top:16px;
+  padding-bottom:16px;
+}
+
+#skillsLane .profile-accordion summary,
+#statsLane .profile-accordion summary{
+  font-size:.94rem;
+  font-weight:750;
+  letter-spacing:.01em;
+}
+
+#skillsLane,
+#statsLane{
+  font-size:.96rem;
+}
+</style>

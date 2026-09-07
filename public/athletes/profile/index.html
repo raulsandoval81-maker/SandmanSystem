@@ -43,18 +43,6 @@
       return;
     }
 
-    if (id.startsWith("F8_")) {
-      window.location.replace(
-        `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`
-      );
-      return;
-    }
-
-    if (!id.startsWith("F4_")) {
-      fail("Unknown athlete ID format");
-      return;
-    }
-
     const snap = await getDoc(doc(db, "athletes", id));
 
     if (!snap.exists()) {
@@ -70,6 +58,17 @@
       athlete.program ||
       athlete.track
     );
+
+    if (
+      journey === "road2champion" ||
+      journey === "r2c" ||
+      id.startsWith("F8_")
+    ) {
+      window.location.replace(
+        `/athletes/profile/mini-profile.html?id=${encodeURIComponent(id)}`
+      );
+      return;
+    }
 
     const art = normalizeField(
       athlete.art ||

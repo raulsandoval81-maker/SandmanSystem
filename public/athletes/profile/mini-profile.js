@@ -316,18 +316,36 @@ async function load() {
 
   renderDisciplineSelector();
 
-  // youth only
-  if (!id.startsWith("F8_")) {
-    window.location.replace(`/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`);
+  // Road2Champion youth only
+  const journey = String(
+    A.journey ||
+    A.programTrack ||
+    A.program ||
+    A.track ||
+    ""
+  )
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+  const isRoad2Champion =
+    journey === "road2champion" ||
+    journey === "r2c" ||
+    id.startsWith("F8_");
+
+  if (!isRoad2Champion) {
+    window.location.replace(
+      `/athletes/profile/athlete-profile.html?id=${encodeURIComponent(id)}`
+    );
     return;
   }
 
-  let combatArcLabel = "🤼 Combat-Wrestling · Zero 2 Hero";
+  let combatArcLabel = "🤼 Wrestling · Road2Champion";
 
   if (art === "kickboxing") {
-    combatArcLabel = "🥊 Combat-Kickboxing · Zero 2 Hero";
+    combatArcLabel = "🥊 Kickboxing · Road2Champion";
   } else if (art === "boxing") {
-    combatArcLabel = "🥊 Combat-Boxing · Zero 2 Hero";
+    combatArcLabel = "🥊 Boxing · Road2Champion";
   }
 
   safeText("combatArcTitle", combatArcLabel);
@@ -378,7 +396,7 @@ async function load() {
     city && state ? `${city}, ${state}` :
     city || state || "—";
 
-  safeText("out-team", team || "—");
+  safeText("out-team", team || "Unassigned");
   safeText("out-citystate", cityState);
 
   // ===== Rank =====
@@ -393,19 +411,19 @@ async function load() {
   if (badgeRow) {
     badgeRow.innerHTML = "";
 
-    const F8_BONSAI_BADGES = {
-      Shadow: "t0-shadow.png",
-      Prospect: "t1-recruit.png",
-      Competitor: "t3-competitor.png",
-      Contender: "t2-contender.png",
-      Hero: "t7-hero.png"
+    const ROAD2CHAMPION_V3_BADGES = {
+      Shadow: "shadow-white-v3.png",
+      Prospect: "prospect-yellow-v3.png",
+      Competitor: "competitor-orange-v3.png",
+      Contender: "contender-green-v3.png",
+      Champion: "champion-black-v3.png"
     };
 
-    const bonsaiFile = F8_BONSAI_BADGES[rankName];
+    const bonsaiFile = ROAD2CHAMPION_V3_BADGES[rankName];
 
     if (bonsaiFile) {
       const img = document.createElement("img");
-      img.src = `/assets/img/f8/${bonsaiFile}`;
+      img.src = `/assets/images/badges/ranks-v2/${bonsaiFile}`;
       img.className = "tier-badge";
       img.alt = `${rankName} bonsai rank badge`;
       badgeRow.appendChild(img);
