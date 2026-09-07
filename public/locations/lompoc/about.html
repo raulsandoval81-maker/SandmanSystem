@@ -356,6 +356,53 @@
       color: #d4af37;
     }
 
+
+    /* =========================
+       SANDMAN METHOD HOTSPOTS
+    ========================= */
+
+    .about-method-section .system-hotspot-wrap {
+      position: relative;
+      width: 100%;
+    }
+
+    .about-method-section .system-hotspot-wrap > img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .about-method-section .pillar-hotspot {
+      position: absolute;
+      display: block;
+      z-index: 30;
+      background: transparent;
+      border: 0;
+      overflow: hidden;
+      text-indent: -9999px;
+    }
+
+    .about-method-section .pillar-hotspot.combat {
+      left: 9%;
+      top: 34%;
+      width: 22%;
+      height: 52%;
+    }
+
+    .about-method-section .pillar-hotspot.strength {
+      left: 39%;
+      top: 34%;
+      width: 22%;
+      height: 52%;
+    }
+
+    .about-method-section .pillar-hotspot.honor {
+      left: 69%;
+      top: 34%;
+      width: 22%;
+      height: 52%;
+    }
+
     /* =========================
        LANGUAGE VISIBILITY
     ========================= */
@@ -589,6 +636,11 @@
     </section>
 
 
+
+    <!-- THE SANDMAN METHOD -->
+
+
+
     <!-- STRUCTURED PROGRESSION NOTE -->
 
     <section class="about-content-section">
@@ -621,6 +673,46 @@
 
 
     <!-- CTA -->
+
+<section
+      class="about-image-section about-method-section"
+      aria-label="The Sandman Method"
+    >
+      <div class="system-hotspot-wrap">
+
+        <img
+          src="/assets/img/pages/system/hero-system-en.png"
+          alt="The Sandman Method: Combat, Strength, and Honor"
+          data-lang-block="en"
+        />
+
+        <img
+          src="/assets/img/pages/system/hero-system-es.png"
+          alt="El Método Sandman: Combate, Fuerza y Honor"
+          data-lang-block="es"
+          class="hidden-lang"
+        />
+
+        <a
+          class="pillar-hotspot combat"
+          href="/pillars/combat.html?from=%2Flocations%2Flompoc%2Fabout.html"
+          aria-label="Learn about Combat">
+        </a>
+
+        <a
+          class="pillar-hotspot strength"
+          href="/pillars/strength.html?from=%2Flocations%2Flompoc%2Fabout.html"
+          aria-label="Learn about Strength">
+        </a>
+
+        <a
+          class="pillar-hotspot honor"
+          href="/pillars/honor.html?from=%2Flocations%2Flompoc%2Fabout.html"
+          aria-label="Learn about Honor">
+        </a>
+
+      </div>
+    </section>
 
 <section class="about-cta">
 

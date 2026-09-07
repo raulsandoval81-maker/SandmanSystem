@@ -149,3 +149,238 @@ body.day-mode .journey-header-control{
   }
 
 }
+
+
+/* SANDMAN PILLAR EDITORIAL POLISH */
+
+/* ---------------------------------
+   Shared reading rhythm
+---------------------------------- */
+
+.pillar-page{
+  width:100%;
+}
+
+.pillar-intro,
+.pillar-section,
+.pillar-quote{
+  width:min(100%, 980px);
+  margin-inline:auto;
+  padding-inline:clamp(1.1rem, 4vw, 2rem);
+}
+
+.pillar-intro{
+  padding-top:clamp(3rem, 7vw, 5.5rem);
+  padding-bottom:clamp(3.5rem, 8vw, 6rem);
+  text-align:center;
+}
+
+.pillar-section{
+  position:relative;
+  padding-top:clamp(3.75rem, 8vw, 6.5rem);
+  padding-bottom:clamp(3.75rem, 8vw, 6.5rem);
+}
+
+.pillar-section + .pillar-section{
+  border-top:1px solid rgba(255,255,255,.10);
+}
+
+.pillar-section::before{
+  content:"";
+  display:block;
+  width:72px;
+  height:2px;
+  margin:0 auto 1.5rem;
+  background:currentColor;
+  opacity:.28;
+}
+
+/* ---------------------------------
+   Eyebrows + headings
+---------------------------------- */
+
+.pillar-intro .eyebrow,
+.pillar-section .eyebrow{
+  margin:0 0 .8rem;
+  text-align:center;
+  font-size:.74rem;
+  font-weight:800;
+  letter-spacing:.20em;
+  text-transform:uppercase;
+  opacity:.82;
+}
+
+.pillar-intro h1{
+  margin:0 0 1.8rem;
+  text-align:center;
+  font-size:clamp(3.1rem, 9vw, 6.8rem);
+  line-height:.92;
+  letter-spacing:-.045em;
+  text-transform:uppercase;
+}
+
+.pillar-section h2{
+  max-width:850px;
+  margin:0 auto 2.25rem;
+  text-align:center;
+  font-size:clamp(2rem, 5.5vw, 3.8rem);
+  line-height:1;
+  letter-spacing:-.03em;
+  text-wrap:balance;
+}
+
+.pillar-section h3{
+  max-width:760px;
+  margin:2.75rem auto .9rem;
+  padding-top:.25rem;
+  font-size:clamp(1.3rem, 3vw, 1.8rem);
+  line-height:1.15;
+  letter-spacing:.01em;
+  text-transform:uppercase;
+}
+
+/* ---------------------------------
+   Body copy
+---------------------------------- */
+
+.pillar-intro .hero-text{
+  max-width:780px;
+  margin:.9rem auto;
+  font-size:clamp(1.06rem, 2.3vw, 1.3rem);
+  line-height:1.72;
+}
+
+.pillar-intro .hero-text:first-of-type,
+.pillar-intro .hero-text:nth-of-type(2){
+  max-width:680px;
+  font-weight:700;
+}
+
+.pillar-section p{
+  max-width:760px;
+  margin:0 auto 1.2rem;
+  font-size:clamp(1rem, 1.8vw, 1.11rem);
+  line-height:1.78;
+}
+
+.pillar-section p:last-child{
+  margin-bottom:0;
+}
+
+/* ---------------------------------
+   Principle / doctrine lists
+---------------------------------- */
+
+.pillar-section ul{
+  max-width:760px;
+  margin:2rem auto 2.25rem;
+  padding:0;
+  list-style:none;
+  display:grid;
+  gap:.7rem;
+}
+
+.pillar-section li{
+  position:relative;
+  padding:.9rem 1rem .9rem 1.25rem;
+  border-left:3px solid currentColor;
+  background:rgba(255,255,255,.035);
+  line-height:1.5;
+}
+
+.pillar-section li strong{
+  display:block;
+}
+
+/* ---------------------------------
+   Closing doctrine
+---------------------------------- */
+
+.pillar-quote{
+  padding-top:clamp(4rem, 8vw, 7rem);
+  padding-bottom:clamp(4.5rem, 9vw, 8rem);
+  text-align:center;
+}
+
+.pillar-quote p{
+  max-width:800px;
+  margin:0 auto;
+  font-size:clamp(1.65rem, 4.5vw, 3rem);
+  line-height:1.18;
+  letter-spacing:-.025em;
+  text-wrap:balance;
+}
+
+/* ---------------------------------
+   Hero presentation
+---------------------------------- */
+
+.pillar-hero{
+  width:100%;
+  overflow:hidden;
+}
+
+.pillar-hero-image{
+  display:block;
+  width:100%;
+  height:auto;
+  margin:0;
+}
+
+/* ---------------------------------
+   Day mode
+---------------------------------- */
+
+body.day-mode .pillar-section + .pillar-section{
+  border-top-color:rgba(0,0,0,.12);
+}
+
+body.day-mode .pillar-section li{
+  background:rgba(0,0,0,.035);
+}
+
+/* ---------------------------------
+   Mobile
+---------------------------------- */
+
+@media (max-width:640px){
+
+  .pillar-intro,
+  .pillar-section,
+  .pillar-quote{
+    padding-right:1rem;
+    padding-left:1rem;
+  }
+
+  .pillar-intro{
+    padding-top:2.75rem;
+    padding-bottom:3.75rem;
+  }
+
+  .pillar-section{
+    padding-top:3.4rem;
+    padding-bottom:3.4rem;
+  }
+
+  .pillar-section::before{
+    width:54px;
+    margin-bottom:1.2rem;
+  }
+
+  .pillar-section h2{
+    margin-bottom:1.8rem;
+  }
+
+  .pillar-section h3{
+    margin-top:2.25rem;
+  }
+
+  .pillar-section ul{
+    margin-top:1.6rem;
+    margin-bottom:2rem;
+  }
+
+  .pillar-section li{
+    padding:.8rem .85rem .8rem 1rem;
+  }
+}
