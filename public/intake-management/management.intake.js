@@ -102,7 +102,13 @@ function renderPendingCard({ intakeId, name, city, state }) {
   `;
 }
 
-function renderApprovedCard({ uid, name, city, state, parentEmail }) {
+function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail, registrantRole, accessMode, authUid }) {
+  const normalizedMode = String(accessMode || (authUid ? "" : "parent_managed")).trim().toLowerCase();
+  const athleteAccessAction = authUid
+    ? normalizedMode === "hybrid"
+      ? `<button class="small outline-blue" data-self-managed-uid="${esc(uid)}">Transition to Self-Managed</button>`
+      : `<span class="pending-card-meta small">Direct Athlete access active${normalizedMode ? ` · ${esc(normalizedMode)}` : ""}</span>`
+    : `<button class="small outline-blue" data-athlete-access-uid="${esc(uid)}" data-athlete-email="${esc(athleteEmail || "")}" data-registrant-role="${esc(registrantRole || "")}">Approve Direct Athlete Access</button>`;
   return `
     <div class="pending-card">
       <div class="pending-card-head">
@@ -119,7 +125,7 @@ function renderApprovedCard({ uid, name, city, state, parentEmail }) {
       </div>
 
       <div class="pending-card-actions">
-        <button class="small outline-blue" data-approved-uid="${esc(uid)}">Create Athlete Access</button>
+        ${athleteAccessAction}
         <button class="small outline-blue" data-parent-uid="${esc(uid)}" data-parent-email="${esc(parentEmail || "")}">Create Parent Access</button>
       </div>
     </div>
@@ -872,9 +878,9 @@ $("btn-find-intakes")?.addEventListener("click", loadPendingLive);
 // 5) Load Recently Approved Athletes
 // ------------------------------------------------------
 function wireApprovedButtons() {
-  document.querySelectorAll("[data-approved-uid]").forEach((btn) => {
+  document.querySelectorAll("[data-athlete-access-uid]").forEach((btn) => {
     btn.addEventListener("click", async () => {
-      const uid = btn.dataset.approvedUid;
+      const uid = btn.dataset.athleteAccessUid;
       if (!uid) return;
 
       const originalLabel = btn.textContent;
@@ -882,13 +888,26 @@ function wireApprovedButtons() {
       btn.textContent = "Creating Access…";
 
       try {
-        const createToken = httpsCallable(
-          functions,
-          "createAthleteOnboardingToken"
+        const approvedEmail = window.prompt(
+          "Confirm the approved Athlete login email:",
+          String(btn.dataset.athleteEmail || "").trim().toLowerCase()
         );
-
-        const response = await createToken({
-          athleteUid: uid,
+        if (!approvedEmail) throw new Error("Athlete login email is required.");
+        const defaultMode = btn.dataset.registrantRole === "adult_athlete" ? "self_managed" : "hybrid";
+        const accessMode = String(window.prompt(
+          "Direct access mode: hybrid or self_managed",
+          defaultMode
+        ) || "").trim().toLowerCase();
+        const parentApproved = accessMode === "hybrid"
+          ? window.confirm("Confirm that Parent approval for hybrid Athlete access is recorded.")
+          : false;
+        if (accessMode === "hybrid" && !parentApproved) {
+          throw new Error("Hybrid Athlete access requires recorded Parent approval.");
+        }
+        const issue = httpsCallable(functions, "issueAccessInvitation");
+        const response = await issue({
+          role: "athlete", athleteUid: uid, email: approvedEmail,
+          accessMode, parentApproved,
         });
 
         const tokenId = String(
@@ -902,9 +921,10 @@ function wireApprovedButtons() {
         }
 
         const onboardingUrl =
-          `${location.origin}/athlete-onboarding/` +
-          `?id=${encodeURIComponent(uid)}` +
-          `&token=${encodeURIComponent(tokenId)}`;
+          `${location.origin}/access/first-time/?role=athlete` +
+          `&id=${encodeURIComponent(uid)}` +
+          `&token=${encodeURIComponent(tokenId)}` +
+          `&email=${encodeURIComponent(approvedEmail.trim().toLowerCase())}`;
 
         window.open(
           onboardingUrl,
@@ -922,6 +942,29 @@ function wireApprovedButtons() {
           "Unable to create Athlete Access."
         );
       } finally {
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-self-managed-uid]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const uid = btn.dataset.selfManagedUid;
+      if (!uid || !window.confirm("Transition this Athlete from hybrid to self-managed access? Parent relationships will remain unchanged.")) return;
+      const originalLabel = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Updating Access…";
+      try {
+        const transition = httpsCallable(functions, "transitionAthleteAccessMode");
+        await transition({ athleteUid: uid, targetMode: "self_managed" });
+        btn.replaceWith(Object.assign(document.createElement("span"), {
+          className: "pending-card-meta small",
+          textContent: "Direct Athlete access active · self_managed",
+        }));
+      } catch (error) {
+        console.error("Athlete access transition failed:", error);
+        alert(error?.message || "Unable to transition Athlete access.");
         btn.disabled = false;
         btn.textContent = originalLabel;
       }
@@ -983,6 +1026,10 @@ async function loadApproved() {
         city: a.city || "",
         state: a.state || "",
         parentEmail: a.parentEmail || "",
+        athleteEmail: a.athleteEmail || a.email || "",
+        registrantRole: a.registrantRole || a.intakeAudience || "",
+        accessMode: a.access?.mode || "",
+        authUid: a.authUid || "",
       });
     });
 

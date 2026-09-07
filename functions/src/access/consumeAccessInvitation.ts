@@ -1,6 +1,6 @@
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { assertConsumableParentInvitation } from "./accessInvitationPolicy";
+import { assertConsumableAthleteInvitation, assertConsumableParentInvitation } from "./accessInvitationPolicy";
 
 const db = getFirestore();
 
@@ -10,6 +10,9 @@ function invitationError(error: unknown): never {
   if (reason === "INVITATION_USED") throw new HttpsError("failed-precondition", "Invitation already used.");
   if (reason === "INVITATION_EXPIRED") throw new HttpsError("failed-precondition", "Invitation expired.");
   if (reason === "EMAIL_MISMATCH") throw new HttpsError("permission-denied", "Invitation email does not match this Parent account.");
+  if (reason === "DIFFERENT_ATHLETE_UID" || reason === "CALLER_ALREADY_BOUND") {
+    throw new HttpsError("failed-precondition", "This Athlete access conflicts with an existing account binding.");
+  }
   if (reason === "DIFFERENT_PARENT_UID") {
     throw new HttpsError("failed-precondition", "This athlete relationship is already connected to another Parent account.");
   }
@@ -21,7 +24,7 @@ export const consumeAccessInvitation = onCall(async (req) => {
   const callerUid = req.auth.uid;
   const authEmail = String(req.auth.token.email || "").trim().toLowerCase();
   if (!authEmail || req.auth.token.firebase?.sign_in_provider === "anonymous") {
-    throw new HttpsError("permission-denied", "An email-backed Parent account is required.");
+    throw new HttpsError("permission-denied", "An email-backed account is required.");
   }
   const tokenId = String(req.data?.tokenId || "").trim();
   if (!tokenId) throw new HttpsError("invalid-argument", "Invitation token required.");
@@ -31,6 +34,53 @@ export const consumeAccessInvitation = onCall(async (req) => {
     const invitationSnap = await tx.get(invitationRef);
     if (!invitationSnap.exists) invitationError(new Error("INVITATION_NOT_FOUND"));
     const invitation = invitationSnap.data() || {};
+    if (String(invitation.role || "") === "athlete") {
+      const athleteUid = String(invitation.athleteUid || invitation.subjectId || "").trim().toUpperCase();
+      const athleteRef = db.doc(`athletes/${athleteUid}`);
+      const athleteSnap = await tx.get(athleteRef);
+      if (!athleteSnap.exists) throw new HttpsError("failed-precondition", "Athlete record is unavailable.");
+      const athlete = athleteSnap.data() || {};
+      const existingBindings = await tx.get(
+        db.collection("athletes").where("authUid", "==", callerUid).limit(2)
+      );
+      let decision;
+      try {
+        decision = assertConsumableAthleteInvitation({
+          exists: true,
+          role: invitation.role,
+          used: invitation.used === true || Boolean(invitation.usedAt),
+          exp: Number(invitation.exp || 0),
+          now: Date.now(),
+          invitationEmail: invitation.email,
+          authEmail,
+          invitationAthleteUid: athleteUid,
+          actualAthleteUid: athleteSnap.id,
+          accessMode: invitation.accessMode,
+          parentApproved: invitation.parentApproved,
+          existingAthleteAuthUid: athlete.authUid,
+          callerUid,
+          callerAthleteIds: existingBindings.docs.map((doc) => doc.id),
+        });
+      } catch (error) {
+        invitationError(error);
+      }
+
+      const stamp = FieldValue.serverTimestamp();
+      tx.update(athleteRef, {
+        authUid: callerUid,
+        access: {
+          ...(athlete.access && typeof athlete.access === "object" ? athlete.access : {}),
+          mode: decision.accessMode,
+          parentApproved: decision.parentApproved,
+          activatedAt: stamp,
+          invitationId: tokenId,
+        },
+        updatedAt: stamp,
+      });
+      tx.update(invitationRef, { used: true, usedAt: stamp, usedBy: callerUid });
+      return { ok: true, role: "athlete", athleteUid: decision.athleteUid, accessMode: decision.accessMode };
+    }
+
     const relationshipId = String(invitation.relationshipId || invitation.subjectId || "").trim();
     const athleteUid = String(invitation.athleteUid || "").trim().toUpperCase();
     const relationshipRef = db.doc(`parentAthleteLinks/${relationshipId}`);

@@ -200,4 +200,5 @@ export {
 export { createAthleteOnboardingToken } from "./modules/createAthleteOnboardingToken";
 export { issueAccessInvitation } from "./access/issueAccessInvitation";
 export { consumeAccessInvitation } from "./access/consumeAccessInvitation";
+export { transitionAthleteAccessMode } from "./access/transitionAthleteAccessMode";
 export { cornermanRoster } from "./modules/cornermanRoster";

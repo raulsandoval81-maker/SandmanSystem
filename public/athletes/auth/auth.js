@@ -374,7 +374,7 @@ forgotPasswordBtn.addEventListener(
       );
 
       setStatus(
-        "Recovery email sent. Check your inbox and spam folder.",
+        "If an activated athlete account exists for that email, a recovery message will arrive. If access has never been activated, use the invitation issued by Sandman Management.",
         "ok"
       );
     } catch (error) {
@@ -384,8 +384,8 @@ forgotPasswordBtn.addEventListener(
       );
 
       setStatus(
-        "Unable to send recovery email.",
-        "error"
+        "If an activated athlete account exists for that email, a recovery message will arrive. If access has never been activated, use the invitation issued by Sandman Management.",
+        "ok"
       );
     }
   }

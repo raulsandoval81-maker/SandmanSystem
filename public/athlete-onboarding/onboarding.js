@@ -329,12 +329,10 @@ async function confirmIdentity() {
   try {
     setStatus("Saving…");
 
-    // ✅ Cloud Function does:
-    // - bind authUid if missing
-    // - enforce "already bound" protection
-    // - set onboarding step/locks/timestamps
-    const fn = httpsCallable(functions, "onboardingConfirmStep1");
-    const res = await fn({ athleteId: uid, tokenId: tokenId || null });
+    // Shared access invitation consumption binds this Auth user to the
+    // existing athlete record without changing onboarding or progression.
+    const fn = httpsCallable(functions, "consumeAccessInvitation");
+    const res = await fn({ tokenId: tokenId || null });
 
     console.log("[confirmIdentity] function result:", res?.data || res);
 

@@ -86,10 +86,11 @@ test("existing correctly bound Parent account remains valid", () => {
 
 test("consumption binds server-side without creating an Athlete Auth account", () => {
   const source = readFileSync("functions/src/access/consumeAccessInvitation.ts", "utf8");
+  const parentBranch = source.slice(source.indexOf("const relationshipId"));
   assert.match(source, /tx\.update\(relationshipRef/);
   assert.match(source, /tx\.update\(athleteRef, \{ parentUid: callerUid, updatedAt: stamp \}\)/);
   assert.doesNotMatch(source, /admin\.auth\(\)\.createUser/);
-  assert.doesNotMatch(source, /authUid/);
+  assert.doesNotMatch(parentBranch, /authUid/);
 });
 
 test("Parent activation cannot alter athlete XP, rank, or progression", () => {
