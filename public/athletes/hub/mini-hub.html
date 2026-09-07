@@ -235,6 +235,59 @@
       }
     }
 
+  
+    .athlete-room-standard{
+      margin:18px auto 0;
+      text-align:center;
+    }
+
+    .athlete-room-standard__image{
+      display:block;
+      width:min(720px,100%);
+      height:auto;
+      margin:0 auto;
+      border-radius:14px;
+    }
+
+  
+
+/* Athlete identity leads; current rank supports */
+.hub-rank-identity{
+  margin:-18px 0 -16px;
+  padding:0;
+}
+
+.hub-house-badge{
+  display:block;
+  width:min(420px, 82%);
+  height:auto;
+  margin:0 auto;
+  object-fit:contain;
+}
+
+.hub-current-rank-badge{
+  width:120px;
+  height:120px;
+}
+
+@media (max-width:720px){
+  .hub-rank-identity{
+    margin:-16px 0 -14px;
+    padding:0;
+  }
+
+  .hub-house-badge{
+    width:min(320px, 82vw);
+    height:auto;
+    margin:0 auto;
+    object-fit:contain;
+  }
+
+  .hub-current-rank-badge{
+    width:min(96px, 29vw);
+    height:min(96px, 29vw);
+  }
+}
   </style>
 
   <!-- Sandman Home Screen / PWA — managed -->
@@ -277,6 +330,15 @@
           </div>
           <p id="heroText">Keep showing up. Your journey is building.</p>
 
+          <section class="athlete-room-standard"
+                   aria-label="Sandman Combat daily standard">
+            <img
+              src="/assets/images/brand/combat-is-life-mini.png"
+              alt="Sandman Combat Is Life — Focus, Effort, Attitude, Respect"
+              class="athlete-room-standard__image"
+            />
+          </section>
+
           <div class="comp-box">
             <div class="comp-title">Three Types of Competition</div>
 
@@ -301,7 +363,6 @@
       </div>
     </section>
 
-    </section>
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
       <div class="athlete-journey-card athlete-status-card" id="journeyProgress">
         <span>Your Journey</span>
@@ -443,48 +504,3 @@ load();
 </script>
 </body>
 </html>
-
-<style>
-  margin:10px 0 0;
-  opacity:.72;
-  font-size:.92rem;
-}
-
-/* Athlete identity leads; current rank supports */
-.hub-rank-identity{
-  margin:-18px 0 -16px;
-  padding:0;
-}
-
-.hub-house-badge{
-  display:block;
-  width:min(420px, 82%);
-  height:auto;
-  margin:0 auto;
-  object-fit:contain;
-}
-
-.hub-current-rank-badge{
-  width:120px;
-  height:120px;
-}
-
-@media (max-width:720px){
-  .hub-rank-identity{
-    margin:-16px 0 -14px;
-    padding:0;
-  }
-
-  .hub-house-badge{
-    width:min(320px, 82vw);
-    height:auto;
-    margin:0 auto;
-    object-fit:contain;
-  }
-
-  .hub-current-rank-badge{
-    width:min(96px, 29vw);
-    height:min(96px, 29vw);
-  }
-}
-</style>
