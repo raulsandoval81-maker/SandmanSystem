@@ -1798,3 +1798,29 @@ body.local-home .local-combat-character{
 body.local-home .local-home-preference-control{
   display:inline-flex !important;
 }
+
+
+/* FOOTER BRAND LINE */
+
+.footer-brand-line{
+  margin:1.35rem 0 .65rem;
+  color:#d4af37;
+  font-size:.82rem;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  line-height:1.4;
+}
+
+body.day-mode .footer-brand-line{
+  color:#8b6a12;
+}
+
+@media (max-width:640px){
+  .footer-brand-line{
+    margin-top:1.1rem;
+    margin-bottom:.55rem;
+    font-size:.76rem;
+    letter-spacing:.10em;
+  }
+}
