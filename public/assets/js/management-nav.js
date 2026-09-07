@@ -34,6 +34,10 @@ document.addEventListener("DOMContentLoaded", () => {
           href: "/intake-management/"
         },
         {
+          label: "Members",
+          href: "/management/members/"
+        },
+        {
           divider: true
         },
         {

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Members | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="./members.css">
+</head>
+<body>
+  <nav class="management-pipeline-nav" aria-label="Management navigation"></nav>
+  <main class="members-wrap">
+    <header class="members-header">
+      <p class="eyebrow">Management · Members</p>
+      <h1>Find an Existing Athlete</h1>
+      <p>Manage direct Athlete access without recreating enrollment or changing the athlete record.</p>
+      <p id="managerIdentity" class="identity">Verifying Management access…</p>
+    </header>
+
+    <form id="memberSearchForm" class="search-panel" role="search">
+      <label for="memberSearch">Athlete ID or name</label>
+      <div class="search-row">
+        <input id="memberSearch" type="search" minlength="2" maxlength="100" autocomplete="off" placeholder="F4_0001 or athlete name" required>
+        <button id="searchButton" class="button button-primary" type="submit">Search Members</button>
+      </div>
+      <p id="searchStatus" class="status-line" role="status" aria-live="polite"></p>
+    </form>
+
+    <section id="searchResults" class="results" aria-label="Member search results"></section>
+    <section id="memberDetail" class="member-card" hidden aria-live="polite"></section>
+  </main>
+  <script src="/assets/js/management-nav.js"></script>
+  <script type="module" src="./members.js"></script>
+</body>
+</html>
