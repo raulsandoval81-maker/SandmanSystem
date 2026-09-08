@@ -115,11 +115,92 @@ export async function loadPublishedLocationSchedule(db, locationId) {
   return schedule.status === "published" ? schedule : normalizeSchedule({}, id);
 }
 
+const SCHEDULE_DISCIPLINE_ALIASES = Object.freeze({
+  bjj: "submission-grappling",
+  grappling: "submission-grappling",
+  submission: "submission-grappling",
+  submissiongrappling: "submission-grappling",
+  muaythai: "muay-thai",
+});
+
+export function normalizeScheduleDiscipline(value = "") {
+  const key = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("_", "-")
+    .replaceAll(" ", "-");
+
+  return SCHEDULE_DISCIPLINE_ALIASES[key] || key;
+}
+
+export function getAthleteScheduleDisciplineIds(athlete = {}) {
+  const disciplineMap =
+    athlete.disciplines &&
+    typeof athlete.disciplines === "object" &&
+    !Array.isArray(athlete.disciplines)
+      ? Object.keys(athlete.disciplines)
+      : [];
+
+  const legacyDisciplineArray =
+    Array.isArray(athlete.disciplines)
+      ? athlete.disciplines
+      : [];
+
+  const raw = [
+    ...(Array.isArray(athlete.disciplineIds) ? athlete.disciplineIds : []),
+    ...disciplineMap,
+    ...legacyDisciplineArray,
+    athlete.activeDiscipline,
+    athlete.primaryDiscipline,
+    athlete.discipline,
+    athlete.art,
+    athlete.sport,
+    athlete.trackDiscipline,
+  ];
+
+  const normalized = new Set(
+    raw.map(normalizeScheduleDiscipline).filter(Boolean)
+  );
+
+  if (
+    normalized.has("muay-thai") ||
+    normalized.has("kickboxing")
+  ) {
+    normalized.add("muay-thai");
+    normalized.add("kickboxing");
+  }
+
+  return normalized;
+}
+
 export function filterScheduleForAthlete(schedule, athlete = null) {
   if (!athlete) return schedule;
-  const raw = [athlete.primaryDiscipline, athlete.discipline, ...(Array.isArray(athlete.disciplines) ? athlete.disciplines : [])]
-    .map((value) => String(value || "").trim().toLowerCase());
-  const aliases = new Set(raw.flatMap((value) => value.includes("muay") || value.includes("kickbox") ? [value, "muay-thai", "kickboxing"] : [value]));
-  const visible = (item) => item?.audience !== "discipline" || !item?.discipline || aliases.has(String(item.discipline).toLowerCase());
-  return { ...schedule, weekly: schedule.weekly.filter(visible), events: schedule.events.filter(visible) };
+
+  const disciplineIds = getAthleteScheduleDisciplineIds(athlete);
+
+  const visible = (item) => {
+    if (item?.audience !== "discipline" || !item?.discipline) {
+      return true;
+    }
+
+    const discipline = normalizeScheduleDiscipline(item.discipline);
+
+    if (
+      discipline === "muay-thai" ||
+      discipline === "kickboxing"
+    ) {
+      return (
+        disciplineIds.has("muay-thai") ||
+        disciplineIds.has("kickboxing")
+      );
+    }
+
+    return disciplineIds.has(discipline);
+  };
+
+  return {
+    ...schedule,
+    weekly: schedule.weekly.filter(visible),
+    events: schedule.events.filter(visible),
+  };
 }

@@ -56,3 +56,30 @@ test("public schedule keeps admissions appointment and local Connect without pri
     assert.doesNotMatch(source, /\$80|starting at .*month/i);
   }
 });
+
+test("schedule discipline reader supports canonical and legacy athlete shapes", () => {
+  assert.match(scheduleSource, /disciplineIds/);
+  assert.match(scheduleSource, /Object\.keys\(athlete\.disciplines\)/);
+  assert.match(scheduleSource, /activeDiscipline/);
+  assert.match(scheduleSource, /primaryDiscipline/);
+  assert.match(scheduleSource, /athlete\.discipline/);
+  assert.match(scheduleSource, /athlete\.art/);
+  assert.match(scheduleSource, /athlete\.sport/);
+  assert.match(scheduleSource, /trackDiscipline/);
+});
+
+test("schedule discipline normalization covers current aliases", () => {
+  assert.match(scheduleSource, /bjj: "submission-grappling"/);
+  assert.match(scheduleSource, /grappling: "submission-grappling"/);
+  assert.match(scheduleSource, /submission: "submission-grappling"/);
+  assert.match(scheduleSource, /submissiongrappling: "submission-grappling"/);
+  assert.match(scheduleSource, /muaythai: "muay-thai"/);
+  assert.match(scheduleSource, /replaceAll\("_", "-"\)/);
+});
+
+test("schedule filter preserves multi-discipline athlete support", () => {
+  assert.match(scheduleSource, /getAthleteScheduleDisciplineIds/);
+  assert.match(scheduleSource, /normalized\.add\("muay-thai"\)/);
+  assert.match(scheduleSource, /normalized\.add\("kickboxing"\)/);
+  assert.match(scheduleSource, /disciplineIds\.has\(discipline\)/);
+});
