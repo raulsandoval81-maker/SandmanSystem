@@ -384,11 +384,8 @@
 
     <div id="strengthBody" class="drop-body collapsed">
       <div class="lane-row">
-        <div class="lane-left">
+        <div class="lane-left completed-unit-history" hidden>
           <div id="strengthRings" class="rings-row"></div>
-          <div class="muted lane-sub">
-            Units: <span id="strengthUnitsLeft">0/6</span>
-          </div>
         </div>
 
         <div class="active-slot lane-right">
@@ -419,11 +416,8 @@
 
     <div id="honorBody" class="drop-body collapsed">
       <div class="lane-row">
-        <div class="lane-left">
+        <div class="lane-left completed-unit-history" hidden>
           <div id="honorRings" class="wisdom-row"></div>
-          <div class="muted lane-sub">
-            Units: <span id="honorUnitsLeft">0/6</span>
-          </div>
         </div>
 
         <div class="active-slot lane-right">
@@ -591,18 +585,30 @@
 
   <!-- ===================== RECENT ACHIEVEMENTS ===================== -->
   <section id="achievementLane" class="card">
-    <div class="label">Recent Achievements</div>
-    <div id="achievementFeed" class="achievement-feed">
-      <p class="muted">Loading achievements...</p>
-    </div>
+    <details class="profile-accordion recent-feed-accordion">
+      <summary>
+        <strong>Recent Achievements</strong>
+        <span class="muted">Latest</span>
+      </summary>
+
+      <div id="achievementFeed" class="achievement-feed">
+        <p class="muted">Loading achievements...</p>
+      </div>
+    </details>
   </section>
 
   <!-- ===================== RECENT ACTIVITY ===================== -->
   <section id="activityLane" class="card">
-    <div class="label">Recent Activity</div>
-    <div id="activityFeed" class="activity-feed">
-      <p class="muted">Loading activity...</p>
-    </div>
+    <details class="profile-accordion recent-feed-accordion">
+      <summary>
+        <strong>Recent Activity</strong>
+        <span class="muted">Latest</span>
+      </summary>
+
+      <div id="activityFeed" class="activity-feed">
+        <p class="muted">Loading activity...</p>
+      </div>
+    </details>
   </section>
 
 </main>

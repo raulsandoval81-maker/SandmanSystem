@@ -899,3 +899,42 @@ body{
   background:rgba(255,214,51,.08);
   border-color:rgba(255,214,51,.35);
 }
+
+/* PROFILE DECLUTTER — ONE UNIT AT A TIME */
+
+.completed-unit-history[hidden]{
+  display:none !important;
+}
+
+.lane-row:has(.completed-unit-history[hidden]){
+  justify-content:center;
+}
+
+.lane-row:has(.completed-unit-history[hidden]) .lane-right{
+  border-left:0;
+  padding-left:0;
+}
+
+.completed-unit-history .lane-slot{
+  opacity:1;
+}
+
+/* Recent feeds behave like compact profile accordions. */
+.recent-feed-accordion > summary{
+  margin-bottom:0;
+}
+
+.recent-feed-accordion > .achievement-feed,
+.recent-feed-accordion > .activity-feed{
+  margin-top:14px;
+  padding-top:14px;
+  border-top:1px solid rgba(255,255,255,.10);
+}
+
+.recent-feed-accordion:not([open])
+  .achievement-feed-item:not(:first-child),
+.recent-feed-accordion:not([open])
+  .activity-feed-item:not(:first-child){
+  display:none !important;
+}
+

@@ -543,17 +543,19 @@ function paintLane({
 
   if (rowEl) {
     rowEl.innerHTML = "";
-    for (let i = 0; i < slots; i++) {
+
+    for (let i = 0; i < earned; i++) {
       const slot = document.createElement("span");
-      slot.className = `lane-slot ${kind === "strength" ? "ring" : "feather"}`;
-      if (i < earned) slot.classList.add("earned");
-      if (i === earned && earned < slots) slot.classList.add("active");
+      slot.className = `lane-slot ${kind === "strength" ? "ring" : "feather"} earned`;
       slot.innerHTML = smallSvgFor(kind, `${athleteKey}-s${i}`);
       rowEl.appendChild(slot);
     }
+
+    const history = rowEl.closest(".completed-unit-history");
+    if (history) history.hidden = earned === 0;
   }
 
-  if (unitsLeftEl) unitsLeftEl.textContent = `${earned}/${slots}`;
+  if (unitsLeftEl) unitsLeftEl.textContent = "";
 
   if (decalEl) {
     decalEl.classList.add("lane-decal");

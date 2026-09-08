@@ -165,11 +165,7 @@ export async function renderAthleteAchievements({
       return;
     }
 
-    const collapsedCount =
-      Math.min(2, items.length);
-
-    const hasMore =
-      items.length > collapsedCount;
+    const collapsedCount = 1;
 
     target.innerHTML = `
       <div class="achievement-list">
@@ -184,56 +180,22 @@ export async function renderAthleteAchievements({
         `).join("")}
       </div>
 
-      ${
-        hasMore
-          ? `
-            <button
-              type="button"
-              class="activity-toggle"
-              data-achievement-toggle
-              aria-expanded="false"
-            >
-              Show last ${items.length}
-            </button>
-          `
-          : ""
-      }
     `;
 
-    const toggle =
-      target.querySelector(
-        "[data-achievement-toggle]"
-      );
+    const details = target.closest("details");
 
-    if (!toggle) return;
-
-    toggle.addEventListener("click", () => {
-      const expanded =
-        toggle.getAttribute(
-          "aria-expanded"
-        ) === "true";
+    const sync = () => {
+      const expanded = !!details?.open;
 
       target
-        .querySelectorAll(
-          "[data-achievement-item]"
-        )
+        .querySelectorAll("[data-achievement-item]")
         .forEach((item, index) => {
-          item.hidden =
-            expanded
-              ? index >= collapsedCount
-              : false;
+          item.hidden = !expanded && index >= collapsedCount;
         });
+    };
 
-      toggle.setAttribute(
-        "aria-expanded",
-        String(!expanded)
-      );
-
-      toggle.textContent =
-        expanded
-          ? `Show last ${items.length}`
-          : "Show less";
-    });
+    details?.addEventListener("toggle", sync);
+    sync();
   } catch (err) {
     console.error(
       "[athlete-achievements] failed:",
@@ -272,11 +234,7 @@ export async function renderAthleteActivity({
       return;
     }
 
-    const collapsedCount =
-      Math.min(2, items.length);
-
-    const hasMore =
-      items.length > collapsedCount;
+    const collapsedCount = 1;
 
     target.innerHTML = `
       <div class="activity-list">
@@ -291,56 +249,22 @@ export async function renderAthleteActivity({
         `).join("")}
       </div>
 
-      ${
-        hasMore
-          ? `
-            <button
-              type="button"
-              class="activity-toggle"
-              data-activity-toggle
-              aria-expanded="false"
-            >
-              Show last ${items.length}
-            </button>
-          `
-          : ""
-      }
     `;
 
-    const toggle =
-      target.querySelector(
-        "[data-activity-toggle]"
-      );
+    const details = target.closest("details");
 
-    if (!toggle) return;
-
-    toggle.addEventListener("click", () => {
-      const expanded =
-        toggle.getAttribute(
-          "aria-expanded"
-        ) === "true";
+    const sync = () => {
+      const expanded = !!details?.open;
 
       target
-        .querySelectorAll(
-          "[data-activity-item]"
-        )
+        .querySelectorAll("[data-activity-item]")
         .forEach((item, index) => {
-          item.hidden =
-            expanded
-              ? index >= collapsedCount
-              : false;
+          item.hidden = !expanded && index >= collapsedCount;
         });
+    };
 
-      toggle.setAttribute(
-        "aria-expanded",
-        String(!expanded)
-      );
-
-      toggle.textContent =
-        expanded
-          ? `Show last ${items.length}`
-          : "Show less";
-    });
+    details?.addEventListener("toggle", sync);
+    sync();
   } catch (err) {
     console.error(
       "[athlete-activity] failed:",
