@@ -401,18 +401,19 @@
       role="tabpanel"
       aria-labelledby="tabActivate"
     >
-      <p class="sub">
-        Athlete activation begins from the private onboarding
-        link issued by your coach.
+      <p id="activationSummary" class="sub">
+        Athlete activation begins from the private invitation issued by Sandman Management.
       </p>
 
+      <div id="activationPasswordField" class="field" hidden>
+        <label for="activationPassword">Create Password</label>
+        <input id="activationPassword" type="password" autocomplete="new-password" minlength="8" />
+      </div>
+
       <div class="actions">
-        <a
-          class="button-link btn-primary"
-          href="/access/first-time/?role=athlete"
-        >
-          Activate Athlete Access
-        </a>
+        <button id="activateAccessBtn" class="btn-primary" type="button">
+          Send Secure Sign-In Email
+        </button>
 
         <a
           class="button-link btn-secondary"
@@ -421,6 +422,8 @@
           Back
         </a>
       </div>
+
+      <div id="activationStatus" class="status" aria-live="polite"></div>
 
       <p class="fine">
         Your invitation contains your athlete ID and onboarding token.

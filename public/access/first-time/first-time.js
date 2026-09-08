@@ -122,7 +122,7 @@ function selectRole(role) {
   panel.hidden = false;
 }
 
-function athleteOnboardingUrl() {
+function athleteActivationUrl() {
   const id = String(athleteId.value || "")
     .trim()
     .toUpperCase();
@@ -140,14 +140,10 @@ function athleteOnboardingUrl() {
     );
   }
 
-  localStorage.setItem(
-    "sandman_magic_email",
-    email
-  );
-
   return (
-    `/athlete-onboarding/?id=${encodeURIComponent(id)}` +
-    `&token=${encodeURIComponent(token)}`
+    `/athletes/auth/?mode=activate&id=${encodeURIComponent(id)}` +
+    `&token=${encodeURIComponent(token)}` +
+    `&email=${encodeURIComponent(email)}`
   );
 }
 
@@ -203,7 +199,7 @@ continueLink.addEventListener("click", (event) => {
   try {
     window.location.assign(
       parentFields.hidden
-        ? athleteOnboardingUrl()
+        ? athleteActivationUrl()
         : parentActivationUrl()
     );
   } catch (error) {
