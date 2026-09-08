@@ -15,6 +15,7 @@ const disciplineField = $("systemDisciplineField");
 const disciplineSelect = $("systemDisciplineSelect");
 const disciplineNotice = $("systemDisciplineNotice");
 const getMyAthlete = httpsCallable(functions, "getMyAthlete");
+const ACTIVE_PARENT_SYSTEM_DISCIPLINES = Object.freeze(["wrestling", "boxing", "muay-thai"]);
 
 let authorizedAthletes = [];
 let selectedAthlete = null;
@@ -64,11 +65,18 @@ function paintDisciplineVisibility() {
 
 function resolveSelectedDiscipline(athlete, preferUrl = true) {
   const id = athleteId(athlete);
-  return resolveParentAthleteContext(athlete, {
+  const context = resolveParentAthleteContext(athlete, {
     athleteUid: id,
     requestedDiscipline: preferUrl ? params.get("discipline") : "",
     rememberedDiscipline: localStorage.getItem(`parent_active_discipline_${id}`)
   });
+  const disciplineIds = context.disciplineIds.filter((discipline) =>
+    ACTIVE_PARENT_SYSTEM_DISCIPLINES.includes(discipline)
+  );
+  const activeDiscipline = disciplineIds.includes(context.activeDiscipline)
+    ? context.activeDiscipline
+    : (disciplineIds[0] || "");
+  return { ...context, disciplineIds, activeDiscipline };
 }
 
 function renderDisciplineSelector() {

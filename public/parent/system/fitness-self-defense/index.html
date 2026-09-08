@@ -6,25 +6,21 @@
 
   <title>Sandman Fitness & Self-Defense™ | Sandman System™</title>
 
-  <link rel="stylesheet" href="../system.css" />
-  <script src="../system.js" defer></script>
+  <link rel="stylesheet" href="/parent/parent.css" />
+  <link rel="stylesheet" href="/parent/system/system.css" />
+  <script src="/assets/js/parent-shell.js" defer></script>
+  <script type="module" src="/parent/system/system-page.js"></script>
 </head>
 
-<body>
+<body class="parent-system-page">
 
-<header class="topbar">
-  <a class="back" href="../index.html">
-    ←
-    <span data-lang-block="en">System Guide</span>
-    <span data-lang-block="es" class="hidden-lang">Guía del Sistema</span>
-  </a>
-</header>
+<header class="topbar"><div class="topbar-left"><a class="back-btn" data-parent-system-back href="/parent/system/"><span class="en">← Parent System</span><span class="es">← Sistema para Padres</span></a></div><div class="topbar-center"><a class="hub-mark" data-parent-system-back href="/parent/system/">Sandman System™</a></div><div class="topbar-right system-page-controls"><button class="lang-btn active" data-lang="en" type="button">EN</button><button class="lang-btn" data-lang="es" type="button">ES</button><button class="theme-toggle" id="themeToggle" type="button" aria-label="Change appearance">☀️</button></div></header>
 
-<main class="wrap">
+<main class="system-page-wrap">
 
-  <section class="hero">
+  <section class="system-page-hero">
 
-    <div data-lang-block="en">
+    <div class="en">
 
       <div class="eyebrow">
         Sandman Fitness &amp; Self-Defense™
@@ -44,7 +40,7 @@
 
     </div>
 
-    <div data-lang-block="es" class="hidden-lang">
+    <div class="es">
 
       <div class="eyebrow">
         Sandman Fitness y Defensa Personal™
@@ -66,11 +62,11 @@
 
   </section>
 
-  <section class="grid">
+  <section class="system-page-grid">
 
-    <article class="card">
+    <article class="system-page-panel">
 
-      <div data-lang-block="en">
+      <div class="en">
 
         <h2>Fitness Kickboxing</h2>
 
@@ -82,7 +78,7 @@
 
       </div>
 
-      <div data-lang-block="es" class="hidden-lang">
+      <div class="es">
 
         <h2>Fitness Kickboxing</h2>
 
@@ -96,9 +92,9 @@
 
     </article>
 
-    <article class="card">
+    <article class="system-page-panel">
 
-      <div data-lang-block="en">
+      <div class="en">
 
         <h2>Practical Self-Defense</h2>
 
@@ -110,7 +106,7 @@
 
       </div>
 
-      <div data-lang-block="es" class="hidden-lang">
+      <div class="es">
 
         <h2>Defensa Personal Práctica</h2>
 
@@ -126,9 +122,9 @@
 
   </section>
 
-  <section class="panel">
+  <section class="system-page-panel system-page-panel--wide">
 
-    <div data-lang-block="en">
+    <div class="en">
 
       <h2>Program Purpose</h2>
 
@@ -144,7 +140,7 @@
 
     </div>
 
-    <div data-lang-block="es" class="hidden-lang">
+    <div class="es">
 
       <h2>Propósito Del Programa</h2>
 
@@ -163,18 +159,6 @@
   </section>
 
 </main>
-
-<footer>
-
-  <span data-lang-block="en">
-    Sandman System™ • Parent Guide
-  </span>
-
-  <span data-lang-block="es" class="hidden-lang">
-    Sandman System™ • Guía para Padres
-  </span>
-
-</footer>
 
 </body>
 </html>

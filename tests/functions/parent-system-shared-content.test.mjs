@@ -9,6 +9,7 @@ const sharedPages = [
   "public/parent/system/progression.html",
   "public/parent/system/xp.html",
   "public/parent/system/ceremonies.html",
+  "public/parent/system/fitness-self-defense/index.html",
   "public/parent/system/handouts/how-the-system-works.html",
   "public/parent/system/handouts/policy.html",
 ];
@@ -27,6 +28,8 @@ test("shared pages use the Parent shell and stable context-aware return link", (
     const html = read(relativePath);
     assert.match(html, /\/parent\/parent\.css/, relativePath);
     assert.match(html, /\/assets\/js\/parent-shell\.js/, relativePath);
+    assert.match(html, /\/parent\/system\/system\.css/, relativePath);
+    assert.match(html, /\/parent\/system\/system-page\.js/, relativePath);
     assert.match(html, /data-parent-system-back[^>]+href="\/parent\/system\/"/, relativePath);
     assert.doesNotMatch(html, /history\.back\s*\(/, relativePath);
   }
