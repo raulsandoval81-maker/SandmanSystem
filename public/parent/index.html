@@ -26,6 +26,73 @@
   line-height:1;
 }
 
+.parent-dashboard-status{
+  display:flex;
+  align-items:flex-start;
+  gap:9px;
+  margin-top:12px;
+  color:var(--muted);
+  font-size:.86rem;
+  font-weight:750;
+  line-height:1.4;
+}
+
+.parent-dashboard-dot{
+  width:8px;
+  height:8px;
+  flex:0 0 8px;
+  margin-top:5px;
+  border-radius:999px;
+  background:var(--gold);
+  box-shadow:0 0 0 4px rgba(244,212,77,.10);
+}
+
+.parent-dashboard-pill{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  margin-top:11px;
+  padding:5px 9px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel-soft);
+  color:var(--muted);
+  font-size:.7rem;
+  font-weight:900;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.parent-dashboard-pill.is-new{
+  border-color:var(--gold);
+  background:var(--gold);
+  color:#111;
+}
+
+.parent-dashboard-pill.is-live{
+  border-color:var(--gold);
+  color:var(--gold);
+}
+
+.parent-dashboard-pill.is-clear{
+  opacity:.9;
+}
+
+.parent-dashboard-latest{
+  display:block;
+  margin-top:5px;
+  color:var(--text);
+  font-weight:800;
+}
+
+.family-priority-card{
+  position:relative;
+}
+
+.family-priority-card:hover .parent-dashboard-dot{
+  box-shadow:0 0 0 6px rgba(244,212,77,.14);
+}
+
 .parent-tab:hover{
       border-color:var(--gold);
       transform:translateY(-1px);
@@ -218,14 +285,82 @@
     </section>
 
     <section class="card family-snapshot" aria-labelledby="familySnapshotTitle">
-      <div class="section-head"><div><p class="section-kicker"><span class="en">My Athletes</span><span class="es">Mis Atletas</span></p><h2 id="familySnapshotTitle" class="section-title"><span class="en">Your linked athletes</span><span class="es">Sus atletas vinculados</span></h2></div><a class="back-btn" href="/parent/my-athlete/"><span class="en">View progress</span><span class="es">Ver progreso</span></a></div>
+      <div class="section-head"><div><p class="section-kicker"><span class="en">My Athletes</span><span class="es">Mis Atletas</span></p><h2 id="familySnapshotTitle" class="section-title"><span class="en">Your linked athletes</span><span class="es">Sus atletas vinculados</span></h2><span id="familyCountStatus" class="parent-dashboard-pill">Checking family</span></div><a class="back-btn" href="/parent/my-athlete/"><span class="en">View progress</span><span class="es">Ver progreso</span></a></div>
       <div id="familyAthleteSnapshot" class="family-athlete-list"><p class="muted-empty"><span class="en">Loading your family…</span><span class="es">Cargando su familia…</span></p></div>
     </section>
 
     <section class="family-priority-grid" aria-label="Family highlights">
-      <a class="card family-priority-card" href="/parent/schedule/"><p class="section-kicker"><span class="en">Coming Up</span><span class="es">Próximamente</span></p><h2><span class="en">Schedule</span><span class="es">Horario</span></h2><p class="small"><span class="en">See practices, events, and important dates.</span><span class="es">Vea prácticas, eventos y fechas importantes.</span></p></a>
-      <a class="card family-priority-card" href="/parent/messages/"><p class="section-kicker"><span class="en">From Your Coach</span><span class="es">De Su Entrenador</span></p><h2><span class="en">Communications</span><span class="es">Comunicaciones</span></h2><span id="parentUnreadBadge" class="parent-unread-badge" aria-live="polite"></span></a>
-      <a class="card family-priority-card" href="/parent/updates/"><p class="section-kicker"><span class="en">Recent Update</span><span class="es">Actualización Reciente</span></p><h2><span class="en">Athlete Updates</span><span class="es">Actualizaciones del Atleta</span></h2><p class="small"><span class="en">Review athlete and family-specific updates.</span><span class="es">Revise actualizaciones específicas del atleta y la familia.</span></p></a>
+      <a class="card family-priority-card" href="/parent/schedule/">
+        <p class="section-kicker">
+          <span class="en">Coming Up</span>
+          <span class="es">Próximamente</span>
+        </p>
+
+        <h2>
+          <span class="en">Schedule</span>
+          <span class="es">Horario</span>
+        </h2>
+
+        <div class="parent-dashboard-status">
+          <span class="parent-dashboard-dot"></span>
+          <span id="parentScheduleStatus">
+            <span class="en">Checking today's schedule…</span>
+            <span class="es">Revisando el horario de hoy…</span>
+          </span>
+        </div>
+
+        <span id="parentScheduleBadge" class="parent-dashboard-pill">
+          Checking
+        </span>
+      </a>
+
+      <a class="card family-priority-card" href="/parent/messages/">
+        <p class="section-kicker">
+          <span class="en">From Your Coach</span>
+          <span class="es">De Su Entrenador</span>
+        </p>
+
+        <h2>
+          <span class="en">Communications</span>
+          <span class="es">Comunicaciones</span>
+        </h2>
+
+        <div class="parent-dashboard-status">
+          <span class="parent-dashboard-dot"></span>
+          <span id="parentCommunicationStatus">
+            <span class="en">Checking communications…</span>
+            <span class="es">Revisando comunicaciones…</span>
+          </span>
+        </div>
+
+        <span id="parentUnreadBadge" class="parent-dashboard-pill">
+          Checking
+        </span>
+      </a>
+
+      <a class="card family-priority-card" href="/parent/updates/">
+        <p class="section-kicker">
+          <span class="en">Recent Update</span>
+          <span class="es">Actualización Reciente</span>
+        </p>
+
+        <h2>
+          <span class="en">Athlete Updates</span>
+          <span class="es">Actualizaciones del Atleta</span>
+        </h2>
+
+        <div class="parent-dashboard-status">
+          <span class="parent-dashboard-dot"></span>
+          <span id="parentAthleteUpdateStatus">
+            <span class="en">Checking athlete activity…</span>
+            <span class="es">Revisando actividad del atleta…</span>
+          </span>
+        </div>
+
+        <span id="parentAthleteUpdateBadge" class="parent-dashboard-pill">
+          Checking
+        </span>
+      </a>
     </section>
 
 
@@ -234,7 +369,10 @@
 <script type="module">
 import {
   functions,
-  httpsCallable
+  httpsCallable,
+  db,
+  doc,
+  getDoc
 } from "/assets/js/firebase-init.js";
 
 const getParentInboxCall =
@@ -254,6 +392,14 @@ async function loadFamilySnapshot() {
       empty.className = "muted-empty";
       empty.textContent = "No linked athletes are available yet.";
       host.append(empty);
+
+      const familyStatus =
+        document.getElementById("familyCountStatus");
+
+      if (familyStatus) {
+        familyStatus.textContent = "No Athletes Linked";
+      }
+
       return;
     }
     athletes.forEach((athlete) => {
@@ -264,6 +410,18 @@ async function loadFamilySnapshot() {
       link.textContent = athlete.fullName || athlete.name || athlete.athleteName || "Athlete";
       host.append(link);
     });
+
+    const familyStatus =
+      document.getElementById("familyCountStatus");
+
+    if (familyStatus) {
+      familyStatus.textContent =
+        athletes.length === 1
+          ? "1 Athlete Linked"
+          : `${athletes.length} Athletes Linked`;
+
+      familyStatus.classList.add("is-live");
+    }
   } catch (error) {
     const empty = document.createElement("p");
     empty.className = "muted-empty";
@@ -272,35 +430,439 @@ async function loadFamilySnapshot() {
   }
 }
 
-async function loadUnreadBadge() {
-  const badge =
+const updateLabels = {
+  COACH_NOTE: "Coach Note",
+  ATTENDANCE_LOGGED: "Attendance Recorded",
+  DAILY_GRIND_LOGGED: "Daily Grind Logged",
+  XP_MILESTONE: "XP Milestone",
+  TEMPLE_ENTERED: "Temple Watch",
+  TESTING_ELIGIBLE: "Testing Eligible",
+  TEST_SCHEDULED: "Testing Scheduled",
+  TEST_DAY: "Test Day",
+  TEST_STARTED: "Testing Started",
+  TEST_PASSED: "Testing Passed",
+  COOLDOWN_STARTED: "Cooldown Started",
+  PROMOTED: "Promotion Earned",
+  TEST_FAILED: "Additional Preparation Required",
+  TEST_FREEZE: "Progress Freeze",
+  PREPARATION_WINDOW: "Preparation Window",
+  RETEST_READY: "Retest Ready",
+  DECAY_WARNING: "Decay Warning",
+  DECAY_POINTS: "Decay Points",
+  PROGRAM_FROZEN: "Program Frozen",
+  MINOR_INFRACTION: "Minor Infraction",
+  SEMI_MAJOR_INFRACTION: "Semi-Major Infraction",
+  MAJOR_INFRACTION: "Major Infraction"
+};
+
+async function loadInboxDashboard() {
+  const communicationBadge =
     document.getElementById("parentUnreadBadge");
 
-  if (!badge) return;
+  const communicationStatus =
+    document.getElementById("parentCommunicationStatus");
 
-  badge.style.display = "none";
-  badge.textContent = "";
+  const athleteBadge =
+    document.getElementById("parentAthleteUpdateBadge");
+
+  const athleteStatus =
+    document.getElementById("parentAthleteUpdateStatus");
 
   try {
     const result =
-    await getParentInboxCall({});
+      await getParentInboxCall({});
+
+    const items =
+      Array.isArray(result.data?.items)
+        ? result.data.items
+        : [];
 
     const unread =
       Number(result.data?.unreadCount || 0);
 
-    if (unread > 0) {
-      badge.style.display = "inline-block";
-      badge.textContent =
-  unread === 1
-    ? "1 New Item"
-    : `${unread} New Items`;
+    if (communicationBadge) {
+      communicationBadge.textContent =
+        unread > 0
+          ? (
+              unread === 1
+                ? "1 New Item"
+                : `${unread} New Items`
+            )
+          : "All Caught Up";
+
+      communicationBadge.classList.toggle(
+        "is-new",
+        unread > 0
+      );
+
+      communicationBadge.classList.toggle(
+        "is-clear",
+        unread === 0
+      );
+    }
+
+    if (communicationStatus) {
+      communicationStatus.textContent =
+        unread > 0
+          ? (
+              unread === 1
+                ? "You have 1 new communication."
+                : `You have ${unread} new communications.`
+            )
+          : "No new communications. You're all caught up.";
+    }
+
+    const latest =
+      items.length ? items[0] : null;
+
+    if (athleteBadge) {
+      athleteBadge.textContent =
+        unread > 0
+          ? (
+              unread === 1
+                ? "1 Unread"
+                : `${unread} Unread`
+            )
+          : "Up To Date";
+
+      athleteBadge.classList.toggle(
+        "is-new",
+        unread > 0
+      );
+
+      athleteBadge.classList.toggle(
+        "is-clear",
+        unread === 0
+      );
+    }
+
+    if (athleteStatus) {
+      if (!latest) {
+        athleteStatus.textContent =
+          "No athlete updates posted yet.";
+      } else {
+        const athleteName =
+          latest.athleteName ||
+          latest.publicName ||
+          latest.athleteId ||
+          latest.athleteUid ||
+          "Athlete";
+
+        const type =
+          updateLabels[latest.type] ||
+          latest.title ||
+          "Parent Update";
+
+        athleteStatus.innerHTML =
+          `${athleteName}<span class="parent-dashboard-latest">${type}</span>`;
+      }
     }
   } catch (err) {
     console.error(err);
+
+    if (communicationBadge) {
+      communicationBadge.textContent = "Check Back";
+    }
+
+    if (communicationStatus) {
+      communicationStatus.textContent =
+        "Unable to load communications right now.";
+    }
+
+    if (athleteBadge) {
+      athleteBadge.textContent = "Check Back";
+    }
+
+    if (athleteStatus) {
+      athleteStatus.textContent =
+        "Unable to load athlete updates right now.";
+    }
   }
 }
 
-loadUnreadBadge();
+loadInboxDashboard();
+function toMinutes(value = "") {
+  const [h, m] =
+    String(value)
+      .split(":")
+      .map(Number);
+
+  if (
+    Number.isNaN(h) ||
+    Number.isNaN(m)
+  ) {
+    return null;
+  }
+
+  return h * 60 + m;
+}
+
+function getScheduleDisplayTime(item = {}) {
+  const label =
+    String(item.label || "").trim();
+
+  const time =
+    String(item.time || "").trim();
+
+  const start =
+    String(item.start || "").trim();
+
+  const end =
+    String(item.end || "").trim();
+
+  if (label) return label;
+  if (time) return time;
+  if (start && end) return `${start} - ${end}`;
+
+  return "";
+}
+
+async function loadScheduleDashboard() {
+  const status =
+    document.getElementById("parentScheduleStatus");
+
+  const badge =
+    document.getElementById("parentScheduleBadge");
+
+  try {
+    const ref =
+      doc(db, "system", "schedule");
+
+    const snap =
+      await getDoc(ref);
+
+    if (!snap.exists()) {
+      if (status) {
+        status.textContent =
+          "No schedule has been posted yet.";
+      }
+
+      if (badge) {
+        badge.textContent = "No Schedule";
+      }
+
+      return;
+    }
+
+    const data =
+      snap.data() || {};
+
+    const daily =
+      Array.isArray(data.daily)
+        ? data.daily
+        : [];
+
+    const banner =
+      data.banner || {};
+
+    if (
+      banner.active === true &&
+      String(banner.text || "").trim()
+    ) {
+      if (status) {
+        status.innerHTML =
+          `<span class="parent-dashboard-latest">${String(
+            banner.text
+          )}</span>`;
+      }
+
+      if (badge) {
+        badge.textContent = "Important Update";
+        badge.classList.add("is-new");
+      }
+
+      return;
+    }
+
+    const DAYS = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday"
+    ];
+
+    const now =
+      new Date();
+
+    const todayName =
+      DAYS[now.getDay()];
+
+    const todayRow =
+      daily.find((item) =>
+        String(item?.day || "")
+          .toLowerCase()
+          .includes(todayName.toLowerCase())
+      );
+
+    if (todayRow) {
+      const displayTime =
+        getScheduleDisplayTime(todayRow);
+
+      const title =
+        String(todayRow.title || "").trim();
+
+      const details =
+        String(todayRow.details || "").trim();
+
+      const start =
+        toMinutes(todayRow.start);
+
+      const end =
+        toMinutes(todayRow.end);
+
+      const nowMinutes =
+        now.getHours() * 60 +
+        now.getMinutes();
+
+      const live =
+        start != null &&
+        end != null &&
+        nowMinutes >= start &&
+        nowMinutes <= end;
+
+      if (status) {
+        const primary =
+          title ||
+          details ||
+          "Practice today";
+
+        status.innerHTML =
+          `${primary}${
+            displayTime
+              ? `<span class="parent-dashboard-latest">${displayTime}</span>`
+              : ""
+          }`;
+      }
+
+      if (badge) {
+        badge.textContent =
+          live
+            ? "Live Now"
+            : "Practice Today";
+
+        badge.classList.add("is-live");
+      }
+
+      return;
+    }
+
+    const dayOrder = {
+      Sunday: 0,
+      Monday: 1,
+      Tuesday: 2,
+      Wednesday: 3,
+      Thursday: 4,
+      Friday: 5,
+      Saturday: 6
+    };
+
+    const currentDay =
+      now.getDay();
+
+    const futureRows =
+      daily
+        .map((item) => {
+          const rowDay =
+            Object.keys(dayOrder)
+              .find((day) =>
+                String(item?.day || "")
+                  .toLowerCase()
+                  .includes(day.toLowerCase())
+              );
+
+          if (!rowDay) return null;
+
+          let distance =
+            dayOrder[rowDay] -
+            currentDay;
+
+          if (distance <= 0) {
+            distance += 7;
+          }
+
+          return {
+            item,
+            rowDay,
+            distance
+          };
+        })
+        .filter(Boolean)
+        .sort(
+          (a, b) =>
+            a.distance - b.distance
+        );
+
+    const next =
+      futureRows[0];
+
+    if (next) {
+      const displayTime =
+        getScheduleDisplayTime(
+          next.item
+        );
+
+      const title =
+        String(
+          next.item.title || ""
+        ).trim();
+
+      if (status) {
+        status.innerHTML =
+          `Next: ${next.rowDay}${
+            title
+              ? ` · ${title}`
+              : ""
+          }${
+            displayTime
+              ? `<span class="parent-dashboard-latest">${displayTime}</span>`
+              : ""
+          }`;
+      }
+
+      if (badge) {
+        badge.textContent = "Up Next";
+        badge.classList.add("is-live");
+      }
+
+      return;
+    }
+
+    if (status) {
+      status.textContent =
+        "No practice is scheduled today.";
+    }
+
+    if (badge) {
+      badge.textContent =
+        "No Practice Today";
+
+      badge.classList.add(
+        "is-clear"
+      );
+    }
+  } catch (err) {
+    console.error(
+      "[parent-hub] schedule load failed:",
+      err
+    );
+
+    if (status) {
+      status.textContent =
+        "Unable to load the schedule right now.";
+    }
+
+    if (badge) {
+      badge.textContent =
+        "Check Back";
+    }
+  }
+}
+
+loadScheduleDashboard();
+
 loadFamilySnapshot();
 </script>
   <script src="/assets/js/parent-shell.js"></script>
