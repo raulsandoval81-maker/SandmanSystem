@@ -1,6 +1,6 @@
 import { db } from "/assets/js/firebase-init.js";
 import { requireCoach, coachLoginUrl } from "/assets/js/coach-guard.js";
-import { loadPublishedLocationSchedule, normalizeLocationId } from "/assets/js/location-schedule.js";
+import { loadPublishedLocationSchedule, normalizeLocationId, scheduleCategoryLabel, scheduleProviderLabel } from "/assets/js/location-schedule.js";
 
 const calendar = document.getElementById("calendar");
 const status = document.getElementById("status");
@@ -11,7 +11,7 @@ const esc = (value = "") => String(value).replace(/[&<>"']/g, (char) => ({ "&": 
 function render(schedule) {
   calendar.innerHTML = days.map((day) => {
     const rows = schedule.weekly.filter((row) => String(row.day || "").toLowerCase().includes(day.toLowerCase()));
-    return `<div class="day"><strong>${esc(day.slice(0, 3))}</strong>${rows.map((row) => `<div class="event">${esc(row.title || "Session")}<br>${esc(row.label || row.time || "")}</div>`).join("")}</div>`;
+    return `<div class="day"><strong>${esc(day.slice(0, 3))}</strong>${rows.map((row) => `<div class="event">${esc(row.title || "Session")}<br>${esc(row.label || row.time || "")}<br>${esc(scheduleCategoryLabel(row))} • ${esc(scheduleProviderLabel(row))}<br>${esc(row.instructor || "Instructor TBA")}</div>`).join("")}</div>`;
   }).join("");
   status.textContent = schedule.status === "published" ? `Published schedule — ${schedule.locationName}` : `No published schedule — ${schedule.locationName}`;
   if (addEventBtn) addEventBtn.hidden = true;

@@ -69,6 +69,14 @@
   margin-bottom:1rem;
 }
 
+.schedule-view-summary{
+  align-self:center;
+  margin-left:auto;
+  color:#bdbdbd;
+  font-size:.86rem;
+  font-weight:750;
+}
+
 .schedule-filter{
   min-height:38px;
   padding:.55rem .9rem;

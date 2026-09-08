@@ -20,12 +20,16 @@ export const SANTA_YNEZ_VALLEY_SCHEDULE_SEED = Object.freeze({
   timezone: "America/Los_Angeles",
   status: "draft",
   weekly: [
-    { day: "Monday, Wednesday", title: "Strength & Fit", type: "fitness", provider: "yesc", label: "6:00–6:45 PM", start: "18:00", end: "18:45", instructor: "TBD", audience: "all", discipline: "", details: "Fitness-focused evening class." },
-    { day: "Monday, Wednesday", title: "Kickboxing & Fit", type: "fitness", provider: "yesc", label: "7:00–7:45 PM", start: "19:00", end: "19:45", instructor: "TBD", audience: "all", discipline: "", details: "Fitness-focused evening class." },
-    { day: "Tuesday, Thursday", title: "Road2Champion™ Muay Thai", type: "combat", provider: "sandman", label: "4:00–5:00 PM", start: "16:00", end: "17:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "muay-thai", details: "Ages 7–13. Enrollment open — starting soon." },
-    { day: "Tuesday, Thursday", title: "Road2Champion™ Wrestling", type: "combat", provider: "sandman", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 7–13." },
-    { day: "Tuesday, Thursday", title: "Path2Legend™ Wrestling", type: "combat", provider: "sandman", label: "5:30–7:00 PM", start: "17:30", end: "19:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 14+." },
-    { day: "Tuesday, Thursday", title: "Path2Legend™ Boxing", type: "combat", provider: "sandman", label: "6:30–8:00 PM", start: "18:30", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", details: "Ages 14+." },
+    { day: "Monday, Wednesday", title: "Kid Fit", category: "fitness", provider: "yesc", label: "4:00–5:00 PM", start: "16:00", end: "17:00", instructor: "Coach Sandoval", audience: "all", discipline: "", details: "Ages 7+." },
+    { day: "Monday, Wednesday", title: "Teen Fit", category: "fitness", provider: "yesc", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "all", discipline: "", details: "Ages 13+." },
+    { day: "Monday, Wednesday", title: "Combat Youth Wrestling", category: "combat", provider: "sandman", label: "6:00–7:00 PM", start: "18:00", end: "19:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 7+." },
+    { day: "Monday, Wednesday", title: "Combat Teen Wrestling", category: "combat", provider: "sandman", label: "7:00–8:00 PM", start: "19:00", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 14+." },
+    { day: "Monday, Wednesday", title: "Combat Teen Boxing", category: "combat", provider: "sandman", label: "8:00–9:00 PM", start: "20:00", end: "21:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", details: "Ages 14+." },
+    { day: "Tuesday, Thursday", title: "Combat Youth Muay Thai / Striking", category: "combat", provider: "sandman", label: "4:00–5:00 PM", start: "16:00", end: "17:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "muay-thai", details: "Ages 7+." },
+    { day: "Tuesday, Thursday", title: "Combat Youth Wrestling", category: "combat", provider: "sandman", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 7+." },
+    { day: "Tuesday, Thursday", title: "HIIT Fit", category: "fitness", provider: "yesc", label: "6:05–6:50 PM", start: "18:05", end: "18:50", instructor: "Coach Sandoval", audience: "all", discipline: "", details: "Ages 14+. Ages 12–13 allowed only with a participating parent in the class." },
+    { day: "Tuesday, Thursday", title: "Combat Teen Boxing", category: "combat", provider: "sandman", label: "7:00–8:00 PM", start: "19:00", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", details: "Ages 14+." },
+    { day: "Tuesday, Thursday", title: "Combat Teen Wrestling", category: "combat", provider: "sandman", label: "8:00–9:00 PM", start: "20:00", end: "21:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 14+." },
   ],
   events: [],
   banner: { active: false, text: "" },
@@ -44,16 +48,28 @@ export function resolveScheduleLocation(record = {}, fallback = "") {
 
 export function normalizeSchedule(data = {}, locationId = "") {
   const id = normalizeLocationId(data.locationId || locationId);
+  const weeklySource = Array.isArray(data.weekly) ? data.weekly : Array.isArray(data.daily) ? data.daily : [];
   return {
     locationId: id,
     locationName: String(data.locationName || LOCATION_NAMES[id] || "Location"),
     timezone: String(data.timezone || "America/Los_Angeles"),
     status: data.status === "published" ? "published" : "unpublished",
-    weekly: Array.isArray(data.weekly) ? data.weekly : Array.isArray(data.daily) ? data.daily : [],
+    weekly: weeklySource.map((row) => ({
+      ...row,
+      category: String(row.category || row.type || "").trim().toLowerCase(),
+    })),
     events: Array.isArray(data.events) ? data.events : Array.isArray(data.tournaments) ? data.tournaments : [],
     banner: data.banner && typeof data.banner === "object" ? data.banner : { active: false, text: "" },
     publishedAt: data.publishedAt || null,
   };
+}
+
+export function scheduleCategoryLabel(row = {}) {
+  return String(row.category || row.type || "").toLowerCase() === "fitness" ? "Fitness" : "Combat";
+}
+
+export function scheduleProviderLabel(row = {}) {
+  return String(row.provider || "").toLowerCase() === "yesc" ? "YESC" : "Sandman";
 }
 
 export async function loadPublishedLocationSchedule(db, locationId) {

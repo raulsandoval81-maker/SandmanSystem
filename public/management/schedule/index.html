@@ -273,6 +273,12 @@
 
         </section>
 
+        <section class="schedule-filter-row" aria-label="Schedule view">
+          <button class="schedule-filter" type="button" data-view="daily">Daily</button>
+          <button class="schedule-filter is-active" type="button" data-view="weekly">Weekly</button>
+          <span id="scheduleViewSummary" class="schedule-view-summary"></span>
+        </section>
+
         <section class="schedule-filter-row" aria-label="Schedule filters">
           <button
             class="schedule-filter is-active"
@@ -303,7 +309,7 @@
 
           <div class="schedule-panel-heading">
             <div>
-              <p class="section-label">
+              <p id="scheduleViewLabel" class="section-label">
                 Weekly Schedule
               </p>
 
@@ -344,7 +350,7 @@
                 <tr>
                   <th>Day</th>
                   <th>Class</th>
-                  <th>Type</th>
+                  <th>Category</th>
                   <th>Provider</th>
                   <th>Time</th>
                   <th>Instructor</th>

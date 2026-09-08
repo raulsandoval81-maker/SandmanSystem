@@ -1,7 +1,8 @@
 import { auth, db, doc, getDoc, serverTimestamp, setDoc } from "/assets/js/firebase-init.js";
 import { signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { managementLoginUrl, requireManagement } from "/management/shared/guards/management-guard.js";
-import { LOCATION_NAMES, LOCATION_SCHEDULE_DRAFTS, LOCATION_SCHEDULES, SANTA_YNEZ_VALLEY_SCHEDULE_SEED, normalizeLocationId, normalizeSchedule } from "/assets/js/location-schedule.js";
+import { LOCATION_NAMES, LOCATION_SCHEDULE_DRAFTS, LOCATION_SCHEDULES, SANTA_YNEZ_VALLEY_SCHEDULE_SEED, normalizeLocationId, normalizeSchedule, scheduleCategoryLabel, scheduleProviderLabel } from "/assets/js/location-schedule.js";
+import { resolveLocationScheduleLiveState } from "/assets/js/location-schedule-live-state.js";
 
 const managerIdentity = document.getElementById("managerIdentity");
 const signOutBtn = document.getElementById("signOutBtn");
@@ -16,16 +17,18 @@ const rowsEl = document.getElementById("scheduleRows");
 const tableWrap = document.getElementById("scheduleTableWrap");
 const emptyState = document.getElementById("scheduleEmptyState");
 const message = document.getElementById("scheduleMessage");
-const filterButtons = [...document.querySelectorAll(".schedule-filter")];
+const filterButtons = [...document.querySelectorAll("[data-filter]")];
+const viewButtons = [...document.querySelectorAll("[data-view]")];
+const viewLabel = document.getElementById("scheduleViewLabel");
+const viewSummary = document.getElementById("scheduleViewSummary");
 
 let context = null;
 let activeFilter = "all";
+let activeView = "weekly";
 let current = normalizeSchedule({}, "santa-ynez-valley");
 
 const clean = (value) => String(value ?? "").trim();
 const esc = (value) => clean(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
-const typeLabel = (type) => type === "fitness" ? "Fitness" : "Combat";
-const providerLabel = (provider) => provider === "yesc" ? "YESC" : "Sandman";
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
 function setSidebarOpen(open) {
@@ -47,11 +50,17 @@ function permittedLocations(access) {
 function render() {
   locationName.textContent = current.locationName;
   locationStatus.textContent = current.status === "published" ? "Published copy loaded" : current.weekly.length ? "Draft" : "Unpublished";
-  const rows = current.weekly.map((row, index) => ({ row, index })).filter(({ row }) => activeFilter === "all" || row.type === activeFilter);
+  const liveState = resolveLocationScheduleLiveState(current.weekly, new Date(), current.timezone);
+  const sourceRows = activeView === "daily"
+    ? current.weekly.filter((row) => String(row.day || "").toLowerCase().includes(liveState.day.toLowerCase())).sort((a, b) => String(a.start || "").localeCompare(String(b.start || "")))
+    : current.weekly;
+  const rows = sourceRows.map((row) => ({ row, index: current.weekly.indexOf(row) })).filter(({ row }) => activeFilter === "all" || (row.category || row.type) === activeFilter);
+  viewLabel.textContent = activeView === "daily" ? "Daily Schedule" : "Weekly Schedule";
+  viewSummary.textContent = activeView === "daily" ? (liveState.state === "active" ? `Active now: ${liveState.row.title}` : liveState.state === "next" ? `Next: ${liveState.row.title} in ${liveState.minutesUntil} min` : liveState.state === "complete" ? "Today complete" : "No sessions today") : "Recurring Monday–Sunday view";
   emptyState.hidden = current.weekly.length > 0;
   tableWrap.hidden = current.weekly.length === 0;
-  rowsEl.innerHTML = rows.map(({ row, index }) => `<tr><td>${esc(row.day)}</td><td><span class="schedule-class-name">${esc(row.title || row.name)}</span></td><td><span class="schedule-type schedule-type--${esc(row.type)}">${esc(typeLabel(row.type))}</span></td><td><span class="schedule-provider schedule-provider--${esc(row.provider)}">${esc(providerLabel(row.provider))}</span></td><td>${esc(row.label || row.time)}</td><td>${esc(row.instructor)}</td><td><div class="schedule-actions"><button class="schedule-action-btn" type="button" data-edit="${index}">Edit</button><button class="schedule-action-btn" type="button" data-remove="${index}">Remove</button></div></td></tr>`).join("");
-  if (current.weekly.length && !rows.length) rowsEl.innerHTML = `<tr><td colspan="7">No ${esc(typeLabel(activeFilter))} classes in this draft.</td></tr>`;
+  rowsEl.innerHTML = rows.map(({ row, index }) => `<tr><td>${esc(row.day)}</td><td><span class="schedule-class-name">${esc(row.title || row.name)}</span><br><small>${esc(row.details || "")}</small></td><td><span class="schedule-type schedule-type--${esc(row.category || row.type)}">${esc(scheduleCategoryLabel(row))}</span></td><td><span class="schedule-provider schedule-provider--${esc(row.provider)}">${esc(scheduleProviderLabel(row))}</span></td><td>${esc(row.label || row.time)}</td><td>${esc(row.instructor)}</td><td><div class="schedule-actions"><button class="schedule-action-btn" type="button" data-edit="${index}">Edit</button><button class="schedule-action-btn" type="button" data-remove="${index}">Remove</button></div></td></tr>`).join("");
+  if (current.weekly.length && !rows.length) rowsEl.innerHTML = `<tr><td colspan="7">No ${activeFilter === "all" ? "scheduled" : esc(activeFilter)} classes in this view.</td></tr>`;
 }
 
 function promptRow(existing = {}) {
@@ -61,9 +70,16 @@ function promptRow(existing = {}) {
   if (day === null) return null;
   const label = prompt("Display time", existing.label || existing.time || "");
   if (label === null) return null;
-  const type = clean(prompt("Type: combat or fitness", existing.type || "combat")).toLowerCase();
-  if (!["combat", "fitness"].includes(type)) throw new Error("Type must be combat or fitness.");
-  return { ...existing, title: clean(title), day: clean(day), label: clean(label), type, provider: clean(prompt("Provider: sandman or yesc", existing.provider || "sandman")).toLowerCase() || "sandman", instructor: clean(prompt("Instructor", existing.instructor || "")), details: clean(prompt("Details", existing.details || "")), audience: existing.audience || "all", discipline: existing.discipline || "" };
+  const startTime = clean(prompt("Start time (24-hour HH:MM)", existing.start || ""));
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(startTime)) throw new Error("Start time must use 24-hour HH:MM format.");
+  const endTime = clean(prompt("End time (24-hour HH:MM)", existing.end || ""));
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(endTime)) throw new Error("End time must use 24-hour HH:MM format.");
+  if (endTime <= startTime) throw new Error("End time must be later than start time.");
+  const category = clean(prompt("Category: combat or fitness", existing.category || existing.type || "combat")).toLowerCase();
+  if (!["combat", "fitness"].includes(category)) throw new Error("Category must be combat or fitness.");
+  const provider = clean(prompt("Provider: sandman or yesc", existing.provider || "sandman")).toLowerCase();
+  if (!["sandman", "yesc"].includes(provider)) throw new Error("Provider must be sandman or yesc.");
+  return { ...existing, title: clean(title), day: clean(day), label: clean(label), start: startTime, end: endTime, category, provider, instructor: clean(prompt("Instructor", existing.instructor || "")), details: clean(prompt("Ages / details", existing.details || "")), audience: existing.audience || "all", discipline: existing.discipline || "" };
 }
 
 rowsEl?.addEventListener("click", (event) => {
@@ -149,6 +165,7 @@ async function publish() {
 
 locationSelect?.addEventListener("change", () => loadLocation(locationSelect.value).catch((error) => { message.textContent = error.message; }));
 filterButtons.forEach((button) => button.addEventListener("click", () => { activeFilter = button.dataset.filter || "all"; filterButtons.forEach((item) => item.classList.toggle("is-active", item === button)); render(); }));
+viewButtons.forEach((button) => button.addEventListener("click", () => { activeView = button.dataset.view || "weekly"; viewButtons.forEach((item) => item.classList.toggle("is-active", item === button)); render(); }));
 document.getElementById("addClassBtn")?.addEventListener("click", () => { try { const row = promptRow(); if (row) current.weekly.push(row); render(); } catch (error) { message.textContent = error.message; } });
 document.getElementById("saveDraftBtn")?.addEventListener("click", () => saveDraft().catch((error) => { message.textContent = error.message; }));
 document.getElementById("publishScheduleBtn")?.addEventListener("click", () => publish().catch((error) => { message.textContent = error.message; }));

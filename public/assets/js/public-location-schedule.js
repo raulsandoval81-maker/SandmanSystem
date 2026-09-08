@@ -1,5 +1,6 @@
 import { db } from "/assets/js/firebase-init.js";
-import { loadPublishedLocationSchedule, normalizeLocationId } from "/assets/js/location-schedule.js";
+import { loadPublishedLocationSchedule, normalizeLocationId, scheduleCategoryLabel, scheduleProviderLabel } from "/assets/js/location-schedule.js";
+import { nextScheduledSession, resolveLocationScheduleLiveState } from "/assets/js/location-schedule-live-state.js";
 
 const esc = (value = "") => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 
@@ -41,9 +42,14 @@ async function start() {
     return;
   }
 
+  const live = resolveLocationScheduleLiveState(schedule.weekly, new Date(), schedule.timezone);
+  const later = live.state === "complete" ? nextScheduledSession(schedule.weekly, new Date(), schedule.timezone) : null;
+
   targets.forEach((target) => {
     const spanish = Boolean(target.closest('[data-lang-block="es"]'));
-    target.innerHTML = [...groupByDay(schedule.weekly)].map(([day, rows]) => `<article class="schedule-card"><h2>${esc(spanish ? (rows[0]?.dayEs || day) : day)}</h2>${rows.map((row) => `<div class="schedule-session"><h3 class="schedule-session__title">${esc(spanish ? (row.titleEs || row.title) : row.title)}</h3>${row.details ? `<p>${esc(spanish ? (row.detailsEs || row.details) : row.details)}</p>` : ""}<p class="schedule-time">${esc(row.label || row.time || `${row.start || ""}–${row.end || ""}`)}</p></div>`).join("")}</article>`).join("");
+    const stateTitle = live.state === "active" ? (spanish ? "ACTIVO AHORA" : "ACTIVE NOW") : live.state === "next" ? (spanish ? "PRÓXIMA CLASE" : "NEXT CLASS") : live.state === "complete" ? (spanish ? "HORARIO DE HOY COMPLETO" : "TODAY COMPLETE") : (spanish ? "NO HAY CLASE HOY" : "NO CLASS TODAY");
+    const stateDetail = live.row ? `${esc(spanish ? (live.row.titleEs || live.row.title) : live.row.title)} • ${esc(live.row.label || live.row.time || "")}${live.state === "next" ? ` • ${spanish ? "Comienza en" : "Starts in"} ${live.minutesUntil} min` : ""}` : later ? `${spanish ? "Próxima" : "Next"}: ${esc(spanish ? (later.row.titleEs || later.row.title) : later.row.title)} • ${esc(later.day)} ${esc(later.row.label || later.row.time || "")}` : (spanish ? "No hay una clase programada hoy." : "No class is scheduled today.");
+    target.innerHTML = `<article class="schedule-card"><h2>${stateTitle}</h2><p>${stateDetail}</p></article>${[...groupByDay(schedule.weekly)].map(([day, rows]) => `<article class="schedule-card"><h2>${esc(spanish ? (rows[0]?.dayEs || day) : day)}</h2>${rows.map((row) => `<div class="schedule-session"><h3 class="schedule-session__title">${esc(spanish ? (row.titleEs || row.title) : row.title)}</h3>${row.details ? `<p>${esc(spanish ? (row.detailsEs || row.details) : row.details)}</p>` : ""}<p class="schedule-time">${esc(row.label || row.time || `${row.start || ""}–${row.end || ""}`)}</p><p>${esc(scheduleCategoryLabel(row))} • ${esc(scheduleProviderLabel(row))} • ${esc(row.instructor || "Instructor TBA")}</p></div>`).join("")}</article>`).join("")}`;
   });
   states.forEach((state) => { state.textContent = state.closest('[data-lang-block="es"]') ? "Horario publicado por la gerencia de la academia." : "Published by Academy Management."; });
 }

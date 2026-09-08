@@ -1,6 +1,6 @@
 import { db } from "/assets/js/firebase-init.js";
 import { requireCoach, coachLoginUrl } from "/assets/js/coach-guard.js";
-import { filterScheduleForAthlete, loadPublishedLocationSchedule, normalizeLocationId } from "/assets/js/location-schedule.js";
+import { filterScheduleForAthlete, loadPublishedLocationSchedule, normalizeLocationId, scheduleCategoryLabel, scheduleProviderLabel } from "/assets/js/location-schedule.js";
 
 const dailyList = document.getElementById("daily-list");
 const monthlyList = document.getElementById("monthly-list");
@@ -10,7 +10,7 @@ const esc = (value = "") => String(value).replace(/[&<>"']/g, (char) => ({ "&": 
 
 function render(schedule) {
   const visible = filterScheduleForAthlete(schedule);
-  dailyList.innerHTML = visible.weekly.length ? visible.weekly.map((row) => `<div class="row-card"><div class="row-grid"><div class="field"><span class="label">Day</span><strong>${esc(row.day || "—")}</strong></div><div class="field"><span class="label">Class</span><strong>${esc(row.title || "—")}</strong></div><div class="field"><span class="label">Time</span><strong>${esc(row.label || row.time || "—")}</strong></div><div class="field"><span class="label">Instructor</span><strong>${esc(row.instructor || "—")}</strong></div><div class="field"><span class="label">Details</span><span>${esc(row.details || "—")}</span></div></div></div>`).join("") : `<div class="row-card">No schedule has been published for this location.</div>`;
+  dailyList.innerHTML = visible.weekly.length ? visible.weekly.map((row) => `<div class="row-card"><div class="row-grid"><div class="field"><span class="label">Day</span><strong>${esc(row.day || "—")}</strong></div><div class="field"><span class="label">Class</span><strong>${esc(row.title || "—")}</strong></div><div class="field"><span class="label">Time</span><strong>${esc(row.label || row.time || "—")}</strong></div><div class="field"><span class="label">Category</span><strong>${esc(scheduleCategoryLabel(row))}</strong></div><div class="field"><span class="label">Provider</span><strong>${esc(scheduleProviderLabel(row))}</strong></div><div class="field"><span class="label">Instructor</span><strong>${esc(row.instructor || "—")}</strong></div><div class="field"><span class="label">Details</span><span>${esc(row.details || "—")}</span></div></div></div>`).join("") : `<div class="row-card">No schedule has been published for this location.</div>`;
   monthlyList.innerHTML = visible.events.length ? visible.events.map((event) => `<div class="row-card"><strong>${esc(event.title || "—")}</strong><p>${esc(event.date || "")} ${esc(event.location || "")}</p><p>${esc(event.details || "")}</p></div>`).join("") : `<div class="row-card">No upcoming events have been published.</div>`;
   statusEl.textContent = schedule.status === "published" ? `Published schedule — ${schedule.locationName}` : `No published schedule — ${schedule.locationName}`;
 }
