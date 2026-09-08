@@ -622,7 +622,79 @@
       }
     }
 
-</style>
+
+    /* F4 DAY MODE CONTRAST FIX — 2026-09-08 */
+    html[data-athlete-theme="day"] body.f4-athlete{
+      --athlete-bg:#eee8dc;
+      --athlete-panel:#fffaf0;
+      --athlete-ink:#181818;
+      --athlete-muted:#514a3f;
+      --athlete-line:rgba(62,53,39,.25);
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete .athlete-journey-card,
+    html[data-athlete-theme="day"] body.f4-athlete .pillar{
+      background:#fffaf0;
+      color:#181818;
+      border-color:rgba(70,61,45,.24);
+      box-shadow:0 10px 24px rgba(45,38,27,.10);
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete .athlete-journey-card strong,
+    html[data-athlete-theme="day"] body.f4-athlete .athlete-journey-card h2,
+    html[data-athlete-theme="day"] body.f4-athlete .athlete-journey-card h3,
+    html[data-athlete-theme="day"] body.f4-athlete .pillar h2,
+    html[data-athlete-theme="day"] body.f4-athlete .pillar h3{
+      color:#6f520b;
+      opacity:1;
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete .athlete-journey-card p,
+    html[data-athlete-theme="day"] body.f4-athlete .athlete-journey-card span,
+    html[data-athlete-theme="day"] body.f4-athlete .pillar p,
+    html[data-athlete-theme="day"] body.f4-athlete .pillar span{
+      color:#3f392f;
+      opacity:1;
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete .cta-box{
+      background:#fffaf0;
+      color:#181818;
+      border-color:rgba(181,43,47,.38);
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete #ctaMessage,
+    html[data-athlete-theme="day"] body.f4-athlete .cta-box p,
+    html[data-athlete-theme="day"] body.f4-athlete .cta-box span,
+    html[data-athlete-theme="day"] body.f4-athlete .cta-box strong{
+      color:#2f2a23;
+      opacity:1;
+    }
+
+    html[data-athlete-theme="day"] body.f4-athlete [class*="note"],
+    html[data-athlete-theme="day"] body.f4-athlete [class*="status"],
+    html[data-athlete-theme="day"] body.f4-athlete [class*="release"],
+    html[data-athlete-theme="day"] body.f4-athlete [class*="season"]{
+      color:#3a342c;
+      opacity:1;
+    }
+
+    .f4-athlete .athlete-room-standard{
+      margin-top:28px;
+    }
+
+    .f4-athlete .athlete-room-standard__image{
+      display:block;
+      margin-top:8px;
+    }
+
+    @media (max-width:560px){
+      .f4-athlete .athlete-room-standard{
+        margin-top:24px;
+      }
+    }
+
+  </style>
   <link rel="stylesheet" href="/assets/css/f4-athlete.css" />
 
   <!-- Sandman Home Screen / PWA — managed -->
@@ -929,8 +1001,11 @@ function setProfileLink(id, athlete = {}) {
 
       const journeyText = "Path2Legend";
 
+      const lastName =
+        displayName.trim().split(/\s+/).filter(Boolean).pop() || displayName;
+
       $("heroText").textContent =
-        `Welcome back, ${displayName}. ${tierText} · ${journeyText}. Your journey continues.`;
+        `Welcome back, ${lastName}. ${journeyText} · ${tierText}. Your journey continues.`;
 
       $("ctaMessage").textContent =
         `${displayName}, your profile is ready. Keep building.`;
