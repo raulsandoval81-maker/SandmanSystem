@@ -162,6 +162,21 @@ function wireParentTabsGlobal() {
     });
 }
 
+
+function ensureParentFooter() {
+  if (document.querySelector(".parent-system-footer")) return;
+
+  const footer = document.createElement("footer");
+  footer.className = "parent-system-footer";
+  footer.innerHTML = `
+    <div class="parent-system-footer__inner">
+      <span>Sandman System™ • Parent Communications</span>
+    </div>
+  `;
+
+  document.body.appendChild(footer);
+}
+
 function initParentShell() {
   langBtns.forEach((btn) => {
     btn.addEventListener(
@@ -204,6 +219,7 @@ function initParentShell() {
   );
 
   wireParentTabsGlobal();
+  ensureParentFooter();
 }
 
 document.addEventListener(
