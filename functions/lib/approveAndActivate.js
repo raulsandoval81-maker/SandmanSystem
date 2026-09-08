@@ -737,6 +737,30 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             const emergencyName = String(intakeData.emergency?.name || "").trim() || null;
             const emergencyPhoneDigits = String(intakeData.emergency?.phoneDigits || "").trim() || null;
             const medical = String(intakeData.medical || "").trim() || "None";
+            const initialDiscipline = resolveRequestedDiscipline(safeArt, "");
+            if (!initialDiscipline) {
+                throw new https_1.HttpsError("failed-precondition", "Unable to determine the athlete's initial discipline.");
+            }
+            const initialDisciplineRecord = {
+                ...buildDisciplineRecord({
+                    discipline: initialDiscipline,
+                    framework: safeFramework,
+                    programTrack: safeProgramTrack,
+                    trackCode,
+                    ladderKey: safeLadderKey,
+                    rosterIds: safeRosterIds,
+                    coachIds: safeCoachIds,
+                    locationId: safeLocationId,
+                    placement: safePlacement,
+                    tier: starter.tier,
+                    rankName: starter.rankName,
+                    rankColor: starter.rankColor,
+                    xpCap: starter.xpCap,
+                    now
+                }),
+                xp: startingXp,
+                stripeCount
+            };
             tx.create(athleteRef, {
                 uid,
                 uidCode: uid,
@@ -745,6 +769,13 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 framework: safeFramework,
                 programTrack: safeProgramTrack,
                 art: safeArt,
+                primaryDiscipline: initialDiscipline,
+                discipline: initialDiscipline,
+                disciplineIds: [initialDiscipline],
+                activeDiscipline: initialDiscipline,
+                disciplines: {
+                    [initialDiscipline]: initialDisciplineRecord
+                },
                 ladderKey: safeLadderKey,
                 rosterIds: safeRosterIds,
                 coachIds: safeCoachIds,
