@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  />
+
+  <title>Schedule | Academy Management | Sandman System</title>
+
+  <meta
+    name="robots"
+    content="noindex,nofollow"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/management/hub/management.css"
+  />
+
+  <link
+    rel="stylesheet"
+    href="/management/schedule/schedule.css"
+  />
+
+  <!-- Sandman Home Screen / PWA — managed -->
+  <link rel="manifest" href="/manifest-management.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180"
+        href="/assets/icons/sandman-system-180-v2.png">
+  <meta name="theme-color" content="#080808">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style"
+        content="black-translucent">
+  <meta name="apple-mobile-web-app-title"
+        content="Management">
+  <!-- /Sandman Home Screen / PWA -->
+
+</head>
+
+<body>
+
+  <div class="management-shell">
+
+    <aside
+      id="managementSidebar"
+      class="management-sidebar"
+      aria-label="Management navigation"
+    >
+      <div class="sidebar-brand">
+        <p class="eyebrow">
+          Sandman System
+        </p>
+
+        <strong>
+          Academy Management
+        </strong>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <a
+          class="sidebar-link"
+          href="/management/hub/"
+        >
+          <span>Overview</span>
+        </a>
+
+        <p class="sidebar-section-label">
+          Pipeline
+        </p>
+
+        <a
+          class="sidebar-link"
+          href="/management/inbox/"
+        >
+          <span>Inbox</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/leads/"
+        >
+          <span>Leads</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/admissions-requests/"
+        >
+          <span>Try a Class</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/appointments/"
+        >
+          <span>Appointments</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/proposals/"
+        >
+          <span>Proposals</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/intake-management/"
+        >
+          <span>Enrollment</span>
+        </a>
+
+        <a class="sidebar-link" href="/management/members/">
+          <span>Members</span>
+        </a>
+
+        <p class="sidebar-section-label">
+          Operations
+        </p>
+
+        <a
+          class="sidebar-link active"
+          href="/management/schedule/"
+        >
+          <span>Schedule</span>
+        </a>
+
+        <span class="sidebar-link sidebar-link--pending">
+          <span>Attendance</span>
+          <small>Pending</small>
+        </span>
+
+        <span class="sidebar-link sidebar-link--pending">
+          <span>Reports</span>
+          <small>Pending</small>
+        </span>
+
+        <p class="sidebar-section-label">
+          Tools
+        </p>
+
+        <a
+          class="sidebar-link"
+          href="/management/pricing/"
+        >
+          <span>Pricing &amp; Estimates</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/management/membership-tools/"
+        >
+          <span>Membership &amp; Competition Tools</span>
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <button
+          id="sidebarSignOutBtn"
+          class="sidebar-signout"
+          type="button"
+        >
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <div
+      id="sidebarBackdrop"
+      class="sidebar-backdrop"
+      hidden
+    ></div>
+
+    <section class="management-main">
+
+      <header class="management-header">
+
+        <button
+          id="menuToggleBtn"
+          class="menu-toggle"
+          type="button"
+          aria-label="Open management navigation"
+          aria-expanded="false"
+          aria-controls="managementSidebar"
+        >
+          ☰
+        </button>
+
+        <div class="management-header__identity">
+          <p class="eyebrow">
+            Sandman System
+          </p>
+
+          <h1>
+            Academy Management
+          </h1>
+
+          <p
+            id="managerIdentity"
+            class="identity"
+          >
+            Verifying access...
+          </p>
+        </div>
+
+        <div class="header-actions">
+          <button
+            id="signOutBtn"
+            class="button button-secondary"
+            type="button"
+          >
+            Sign Out
+          </button>
+        </div>
+
+      </header>
+
+      <main class="management-wrap">
+
+        <section class="workspace-heading schedule-workspace-heading">
+          <div>
+            <p class="section-label">
+              Operations
+            </p>
+
+            <h2>
+              Schedule
+            </h2>
+
+            <p class="workspace-copy">
+              Manage the weekly academy schedule by location.
+              Combat and Fitness remain clearly identified,
+              including the provider responsible for each class.
+            </p>
+          </div>
+        </section>
+
+        <section class="schedule-toolbar" aria-label="Schedule controls">
+
+          <div class="schedule-field">
+            <label for="scheduleLocation">
+              Location
+            </label>
+
+            <select id="scheduleLocation">
+              <option value="santa-ynez-valley">
+                Santa Ynez Valley
+              </option>
+
+              <option value="lompoc">
+                Lompoc
+              </option>
+
+              <option value="elk-grove">
+                Elk Grove
+              </option>
+            </select>
+          </div>
+
+          <div class="schedule-status-block">
+            <span class="schedule-status-label">
+              Status
+            </span>
+
+            <strong id="scheduleLocationStatus">
+              Draft seed
+            </strong>
+          </div>
+
+        </section>
+
+        <section class="schedule-filter-row" aria-label="Schedule filters">
+          <button
+            class="schedule-filter is-active"
+            type="button"
+            data-filter="all"
+          >
+            All
+          </button>
+
+          <button
+            class="schedule-filter"
+            type="button"
+            data-filter="combat"
+          >
+            Combat
+          </button>
+
+          <button
+            class="schedule-filter"
+            type="button"
+            data-filter="fitness"
+          >
+            Fitness
+          </button>
+        </section>
+
+        <section class="schedule-panel">
+
+          <div class="schedule-panel-heading">
+            <div>
+              <p class="section-label">
+                Weekly Schedule
+              </p>
+
+              <h3 id="scheduleLocationName">
+                Santa Ynez Valley
+              </h3>
+            </div>
+
+            <button
+              id="addClassBtn"
+              class="button"
+              type="button"
+            >
+              + Add Class
+            </button>
+          </div>
+
+          <div
+            id="scheduleEmptyState"
+            class="schedule-empty"
+            hidden
+          >
+            <h3>
+              No schedule yet
+            </h3>
+
+            <p>
+              No schedule has been created for this location.
+            </p>
+          </div>
+
+          <div
+            id="scheduleTableWrap"
+            class="schedule-table-wrap"
+          >
+            <table class="schedule-table">
+              <thead>
+                <tr>
+                  <th>Day</th>
+                  <th>Class</th>
+                  <th>Type</th>
+                  <th>Provider</th>
+                  <th>Time</th>
+                  <th>Instructor</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="scheduleRows"></tbody>
+            </table>
+          </div>
+
+        </section>
+
+        <section class="schedule-publish-bar">
+
+          <div>
+            <strong>
+              Management publishing
+            </strong>
+
+            <p id="scheduleMessage">
+              This first build is the editor shell only.
+              Nothing here changes the public website yet.
+            </p>
+          </div>
+
+          <div class="schedule-publish-actions">
+            <button
+              id="saveDraftBtn"
+              class="button button-secondary"
+              type="button"
+            >
+              Save Draft
+            </button>
+
+            <button
+              id="previewScheduleBtn"
+              class="button button-secondary"
+              type="button"
+            >
+              Preview
+            </button>
+
+            <button
+              id="publishScheduleBtn"
+              class="button"
+              type="button"
+            >
+              Publish
+            </button>
+          </div>
+
+        </section>
+
+      </main>
+
+    </section>
+
+  </div>
+
+  <script
+    type="module"
+    src="/management/hub/management.js"
+  ></script>
+
+  <script src="/management/schedule/schedule.js"></script>
+</body>
+</html>
