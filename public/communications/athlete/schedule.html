@@ -98,6 +98,95 @@
       font-weight:900;
       margin-top:4px;
     }
+
+    /* Schedule semantic polish */
+    .today-box{
+      position:relative;
+      overflow:hidden;
+    }
+
+    .today-box::before{
+      content:"";
+      position:absolute;
+      left:0;
+      top:0;
+      bottom:0;
+      width:5px;
+      background:var(--gold);
+    }
+
+    .today-box.schedule-state--complete::before,
+    .today-box.schedule-state--empty::before{
+      background:#64748b;
+    }
+
+    .item{
+      position:relative;
+    }
+
+    .schedule-category--combat{
+      border-left:4px solid #9aa4b1;
+    }
+
+    .schedule-category--fitness{
+      border-left:4px solid #2ea69a;
+    }
+
+    .schedule-provider--sandman{
+      box-shadow:inset 0 0 0 1px rgba(255,221,72,.08);
+    }
+
+    .schedule-provider--yesc{
+      box-shadow:inset 0 0 0 1px rgba(46,166,154,.09);
+    }
+
+    .schedule-state--active{
+      border-color:rgba(255,221,72,.45);
+    }
+
+    .schedule-state--next{
+      border-color:rgba(255,221,72,.28);
+    }
+
+    @media(min-width:900px){
+      #daily-schedule{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+
+    /* Athlete schedule — day mode contrast */
+    body.day-mode .panel,
+    body.day-mode .item,
+    body.day .panel,
+    body.day .item{
+      background:#f7f8fa;
+      border-color:#c7ccd3;
+      color:#172033;
+      box-shadow:0 6px 16px rgba(0,0,0,.06);
+    }
+
+    body.day-mode h1,
+    body.day-mode h2,
+    body.day h1,
+    body.day h2{
+      color:#6f5915;
+    }
+
+    body.day-mode .item-day,
+    body.day-mode .item-title,
+    body.day .item-day,
+    body.day .item-title{
+      color:#172033;
+    }
+
+    body.day-mode .item-time,
+    body.day-mode .item-sub,
+    body.day-mode .sub,
+    body.day .item-time,
+    body.day .item-sub,
+    body.day .sub{
+      color:#4b5565;
+    }
   </style>
   <link rel="stylesheet" href="/assets/css/f4-athlete.css">
 </head>

@@ -64,6 +64,40 @@ export function normalizeSchedule(data = {}, locationId = "") {
   };
 }
 
+export function expandScheduleRowsByDay(rows = []) {
+  const dayOrder = [
+    "Sunday",
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+  ];
+
+  return (Array.isArray(rows) ? rows : [])
+    .flatMap((row) => {
+      const days = String(row?.day || "")
+        .split(/,|\s+&\s+/)
+        .map((day) => day.trim())
+        .filter(Boolean);
+
+      return days.length
+        ? days.map((day) => ({ ...row, day }))
+        : [{ ...row }];
+    })
+    .sort((a, b) => {
+      const dayDiff =
+        dayOrder.indexOf(a.day) -
+        dayOrder.indexOf(b.day);
+
+      if (dayDiff) return dayDiff;
+
+      return String(a.start || "")
+        .localeCompare(String(b.start || ""));
+    });
+}
+
 export function scheduleCategoryLabel(row = {}) {
   return String(row.category || row.type || "").toLowerCase() === "fitness" ? "Fitness" : "Combat";
 }

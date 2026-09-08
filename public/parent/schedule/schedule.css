@@ -243,3 +243,110 @@
   width:6px;
   background:var(--gold);
 }
+/* Schedule semantic polish */
+
+.today-box{
+  position:relative;
+  overflow:hidden;
+}
+
+.today-box::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:5px;
+  background:#d4af37;
+}
+
+.today-box.schedule-state--complete::before,
+.today-box.schedule-state--empty::before{
+  background:#64748b;
+}
+
+.weekly-list .item{
+  position:relative;
+  overflow:hidden;
+  padding-left:22px;
+}
+
+.weekly-list .item::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:4px;
+  background:#64748b;
+}
+
+.weekly-list .schedule-category--combat::before{
+  background:linear-gradient(180deg,#d8dde5,#7d8794);
+}
+
+.weekly-list .schedule-category--fitness::before{
+  background:#2ea69a;
+}
+
+.weekly-list .schedule-provider--sandman{
+  box-shadow:
+    inset 0 0 0 1px rgba(212,175,55,.12),
+    inset 0 0 0 1px rgba(255,255,255,.03);
+}
+
+.weekly-list .schedule-provider--yesc{
+  box-shadow:
+    inset 0 0 0 1px rgba(46,166,154,.12),
+    inset 0 0 0 1px rgba(255,255,255,.03);
+}
+
+@media(min-width:900px){
+  .weekly-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .events-list{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+
+
+/* Parent schedule — day mode contrast */
+body.theme-day .today-box,
+body.theme-day .weekly-list .item,
+body.theme-day .events-list .item,
+body.day .today-box,
+body.day .weekly-list .item,
+body.day .events-list .item{
+  background:#f7f8fa;
+  border-color:#c7ccd3;
+  color:#172033;
+  box-shadow:0 6px 16px rgba(0,0,0,.06);
+}
+
+body.theme-day .today-box .k,
+body.theme-day .today-box .v,
+body.theme-day .weekly-list .item-title,
+body.theme-day .events-list .item-title,
+body.day .today-box .k,
+body.day .today-box .v,
+body.day .weekly-list .item-title,
+body.day .events-list .item-title{
+  color:#172033;
+}
+
+body.theme-day .weekly-list .item-day,
+body.theme-day .events-list .item-date,
+body.day .weekly-list .item-day,
+body.day .events-list .item-date{
+  color:#6f5915;
+}
+
+body.theme-day .weekly-list .item-sub,
+body.theme-day .events-list .item-sub,
+body.day .weekly-list .item-sub,
+body.day .events-list .item-sub{
+  color:#4b5565;
+  opacity:1;
+}
