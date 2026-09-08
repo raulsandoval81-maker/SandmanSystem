@@ -18,6 +18,10 @@ import {
 } from "/assets/js/ladder.service.js";
 
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
+import {
+  formatCombatDisciplineLabel,
+  resolveParentAthleteContext
+} from "/assets/js/parent-athlete-context.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -261,27 +265,6 @@ const colorMaps = {
   return colorMaps[key]?.[tierName] || "belt-p2l-apprentice";
 }
 
-function formatCombatDisciplineLabel(value = "") {
-  const key = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  const labels = {
-    wrestling: "Wrestling",
-    boxing: "Boxing",
-    kickboxing: "Kickboxing",
-    mma: "MMA",
-    "submission-grappling": "Submission Grappling",
-  };
-
-  return labels[key] ||
-    key
-      .split("-")
-      .filter(Boolean)
-      .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-      .join(" ");
-}
-
 function getParentCombatContext(a = {}) {
   const athleteUid =
     String(
@@ -294,62 +277,17 @@ function getParentCombatContext(a = {}) {
       .trim()
       .toUpperCase();
 
-  // Include nested discipline records and legacy root fields.
-  // This matters for athletes whose original discipline still lives at root.
-  const disciplineIds = Array.from(
-    new Set([
-      ...(Array.isArray(a.disciplineIds)
-        ? a.disciplineIds
-        : []),
-      ...Object.keys(a.disciplines || {}),
-      a.activeDiscipline,
-      a.primaryDiscipline,
-      a.discipline,
-      a.art,
-    ]
-      .map((value) =>
-        String(value || "")
-          .trim()
-          .toLowerCase()
-      )
-      .filter(Boolean))
-  );
-
   const requestedDiscipline =
     params.get("discipline") ||
     localStorage.getItem(
       `parent_active_discipline_${athleteUid}`
     );
 
-  const normalizedRequested =
-    String(requestedDiscipline || "")
-      .trim()
-      .toLowerCase();
-
-  const activeDiscipline =
-    normalizedRequested &&
-    disciplineIds.includes(normalizedRequested)
-      ? normalizedRequested
-      : String(
-          a.activeDiscipline ||
-          disciplineIds[0] ||
-          a.primaryDiscipline ||
-          a.discipline ||
-          a.art ||
-          "wrestling"
-        )
-          .trim()
-          .toLowerCase();
-
-  const combat =
-    a.disciplines?.[activeDiscipline] || a;
-
-  return {
+  return resolveParentAthleteContext(a, {
     athleteUid,
-    disciplineIds,
-    activeDiscipline,
-    combat,
-  };
+    requestedDiscipline,
+    fallbackDiscipline: "wrestling"
+  });
 }
 
 function ensureParentDisciplineSelectorStyles() {
