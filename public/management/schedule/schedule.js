@@ -165,7 +165,24 @@ async function start() {
 }
 
 start().catch((error) => {
-  console.error("[management-schedule] access denied", error);
-  managerIdentity.textContent = error.message;
-  setTimeout(() => window.location.replace(!auth.currentUser || auth.currentUser.isAnonymous ? managementLoginUrl() : "/login/"), 1200);
+  console.error("[management-schedule] startup failed", error);
+
+  const errorMessage =
+    error?.message ||
+    "Management Schedule could not load.";
+
+  managerIdentity.textContent = errorMessage;
+  message.textContent = errorMessage;
+
+  const requiresAuthentication =
+    !auth.currentUser ||
+    auth.currentUser.isAnonymous ||
+    /authentication required/i.test(errorMessage);
+
+  if (requiresAuthentication) {
+    setTimeout(
+      () => window.location.replace(managementLoginUrl()),
+      1200
+    );
+  }
 });

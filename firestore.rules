@@ -1970,6 +1970,9 @@ match /academySettings/{academyId} {
       let locationIds =
         staff.get("locationIds", null);
 
+      let locations =
+        staff.get("locations", null);
+
       let legacyLocationId =
         staff.get("locationId", "");
 
@@ -1985,6 +1988,16 @@ match /academySettings/{academyId} {
           (
             locationIds is string
             && locationIds == locationId
+          )
+          ||
+          (
+            locations is list
+            && locationId in locations
+          )
+          ||
+          (
+            locations is string
+            && locations == locationId
           )
           ||
           (

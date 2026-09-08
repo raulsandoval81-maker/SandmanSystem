@@ -44,6 +44,7 @@ beforeEach(async () => {
   await env.withSecurityRulesDisabled(async (context) => {
     const db = context.firestore();
     await setDoc(doc(db, "staff", "management-syv"), { role: "management", status: "active", locationIds: ["santa-ynez-valley"] });
+    await setDoc(doc(db, "staff", "management-locations"), { role: "management", status: "active", locations: ["santa-ynez-valley"] });
     await setDoc(doc(db, "staff", "coach-syv"), { role: "coach", status: "active", locationIds: ["santa-ynez-valley"] });
     await setDoc(doc(db, "staff", "admin"), { role: "admin", status: "active" });
     await setDoc(doc(db, "paraSchedule", "santa-ynez-valley"), publishedSchedule("santa-ynez-valley"));
@@ -63,6 +64,16 @@ test("assigned Management can save a draft and publish its location", async () =
   const db = env.authenticatedContext("management-syv").firestore();
   await assertSucceeds(setDoc(doc(db, "paraScheduleDrafts", "santa-ynez-valley"), draftSchedule("santa-ynez-valley", "management-syv")));
   await assertSucceeds(setDoc(doc(db, "paraSchedule", "santa-ynez-valley"), publishedSchedule("santa-ynez-valley")));
+});
+
+test("Management location scope also accepts the legacy locations field", async () => {
+  const db = env.authenticatedContext("management-locations").firestore();
+  await assertSucceeds(
+    setDoc(
+      doc(db, "paraScheduleDrafts", "santa-ynez-valley"),
+      draftSchedule("santa-ynez-valley", "management-locations")
+    )
+  );
 });
 
 test("Management cannot publish another location and Coach cannot write schedules", async () => {
