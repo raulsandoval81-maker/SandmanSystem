@@ -15,6 +15,32 @@
   />
 
   <style>
+    .parent-return-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:42px;
+      padding:0 16px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--panel-soft);
+      color:var(--text);
+      text-decoration:none;
+      font-weight:900;
+      transition:
+        border-color .15s ease,
+        color .15s ease,
+        background .15s ease,
+        transform .15s ease;
+    }
+
+    .parent-return-btn:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+      background:rgba(244,212,77,.06);
+      transform:translateY(-1px);
+    }
+
     .updates-stack{
       display:grid;
       gap:10px;
@@ -218,7 +244,7 @@
 
     <section class="card">
       <a
-        class="btn"
+        class="parent-return-btn"
         href="/parent/"
       >
         Return to Parent Center

@@ -85,6 +85,42 @@
   background:#111827;
 }
 
+/* Parent system action buttons */
+
+.handout-link,
+.system-cta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:max-content;
+  min-height:40px;
+  padding:0 14px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel-soft);
+  color:var(--text);
+  text-decoration:none;
+  font-weight:900;
+  line-height:1;
+  transition:
+    border-color .15s ease,
+    color .15s ease,
+    background .15s ease,
+    transform .15s ease;
+}
+
+.handout-card:hover .handout-link,
+.system-cta:hover{
+  border-color:var(--gold);
+  color:var(--gold);
+  background:rgba(244,212,77,.06);
+  transform:translateY(-1px);
+}
+
+.system-cta{
+  margin-top:12px;
+}
+
 /* Handouts grid */
 
 .handout-grid{
