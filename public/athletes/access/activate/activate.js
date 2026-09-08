@@ -45,6 +45,11 @@ function showCollision() {
   );
 }
 
+function syncActivationButton() {
+  if (!isSignInWithEmailLink(auth, window.location.href)) return;
+  activateButton.disabled = passwordInput.value.length < 8;
+}
+
 async function sendActivationEmail() {
   assertCompleteAthleteActivationContext(context);
   if (hasSignedInCollision(signedInUser)) return showCollision();
@@ -99,7 +104,7 @@ async function completeActivation() {
   }
 }
 
-activateButton.addEventListener("click", async () => {
+passwordInput.addEventListener("input", syncActivationButton);\n\nactivateButton.addEventListener("click", async () => {
   if (!authReady) return;
   if (isSignInWithEmailLink(auth, window.location.href)) {
     await completeActivation();
@@ -119,7 +124,8 @@ onAuthStateChanged(auth, (user) => {
     if (isSignInWithEmailLink(auth, window.location.href)) {
       passwordField.hidden = false;
       activateButton.textContent = "Finish Athlete Activation";
-      setStatus("Create your password, then finish activation.");
+      syncActivationButton();
+      setStatus("Create a password with at least 8 characters, then finish activation.");
     } else {
       activateButton.disabled = false;
       setStatus("Ready to send your secure Athlete sign-in email.");

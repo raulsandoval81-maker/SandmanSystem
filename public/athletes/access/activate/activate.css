@@ -30,8 +30,19 @@ h1 { margin: 0 0 10px; font-size: clamp(1.8rem, 7vw, 2.35rem); line-height: 1.05
 .field input { width: 100%; min-height: 48px; padding: 12px 14px; border: 1px solid #cfc3aa; border-radius: 13px; background: white; color: #181818; font: inherit; }
 .field input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid rgba(212, 175, 55, .42); outline-offset: 2px; }
 button { width: 100%; min-height: 48px; border: 0; border-radius: 999px; background: #d4af37; color: #111; font: inherit; font-weight: 900; cursor: pointer; }
-button:disabled { cursor: not-allowed; opacity: .55; }
+button:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+  filter: grayscale(.35);
+}
 .activation-status { min-height: 24px; margin: 16px 0 0; font-size: .92rem; font-weight: 750; line-height: 1.45; }
 .activation-status.is-ok { color: #087443; }
 .activation-status.is-error { color: #b42318; }
 .return-link { display: inline-block; margin-top: 18px; color: #5f4a13; font-weight: 800; }
+
+.field-help {
+  margin: -2px 0 8px;
+  color: #6b6251;
+  font-size: .82rem;
+  font-weight: 700;
+}
