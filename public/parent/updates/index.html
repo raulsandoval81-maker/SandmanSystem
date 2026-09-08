@@ -13,6 +13,152 @@
     rel="stylesheet"
     href="/parent/parent.css"
   />
+
+  <style>
+    .updates-stack{
+      display:grid;
+      gap:10px;
+      margin-top:14px;
+    }
+
+    .parent-update-row{
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:var(--panel-soft);
+      overflow:hidden;
+    }
+
+    .parent-update-row[open]{
+      border-color:rgba(244,212,77,.55);
+    }
+
+    .parent-update-summary{
+      list-style:none;
+      display:grid;
+      grid-template-columns:1fr auto;
+      gap:12px;
+      align-items:center;
+      padding:14px 16px;
+      cursor:pointer;
+    }
+
+    .parent-update-summary::-webkit-details-marker{
+      display:none;
+    }
+
+    .update-summary-main{
+      min-width:0;
+    }
+
+    .update-summary-athlete{
+      display:block;
+      margin-bottom:3px;
+      color:var(--gold);
+      font-size:.74rem;
+      font-weight:900;
+      letter-spacing:.05em;
+      text-transform:uppercase;
+    }
+
+    .update-summary-title{
+      display:block;
+      color:var(--text);
+      font-size:.96rem;
+      font-weight:900;
+      line-height:1.3;
+    }
+
+    .update-summary-date{
+      display:block;
+      margin-top:4px;
+      color:var(--muted);
+      font-size:.78rem;
+      font-weight:700;
+    }
+
+    .update-summary-side{
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .update-new-pill{
+      display:inline-flex;
+      padding:4px 8px;
+      border-radius:999px;
+      background:var(--gold);
+      color:#111;
+      font-size:.66rem;
+      font-weight:950;
+      letter-spacing:.06em;
+    }
+
+    .update-chevron{
+      color:var(--muted);
+      font-size:.9rem;
+      transition:transform .15s ease;
+    }
+
+    .parent-update-row[open] .update-chevron{
+      transform:rotate(90deg);
+    }
+
+    .update-detail{
+      padding:0 16px 16px;
+      border-top:1px solid var(--line);
+    }
+
+    .update-detail h3{
+      margin:14px 0 8px;
+      font-size:1rem;
+    }
+
+    .update-detail p{
+      margin:0;
+      line-height:1.55;
+      color:var(--text);
+    }
+
+    .update-note{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius:10px;
+      background:rgba(244,212,77,.07);
+      line-height:1.45;
+    }
+
+    .updates-more-wrap{
+      display:flex;
+      justify-content:center;
+      margin-top:16px;
+    }
+
+    .updates-more-btn{
+      min-height:42px;
+      padding:0 18px;
+      border:1px solid var(--line);
+      border-radius:999px;
+      background:var(--panel-soft);
+      color:var(--text);
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .updates-more-btn:hover{
+      border-color:var(--gold);
+      color:var(--gold);
+    }
+
+    @media(max-width:640px){
+      .parent-update-summary{
+        padding:13px 14px;
+      }
+
+      .update-detail{
+        padding:0 14px 14px;
+      }
+    }
+  </style>
 </head>
 <body>
 <header class="topbar inner-topbar">
@@ -48,8 +194,25 @@
 ></span>
       </div>
 
-      <div id="updates-list">
+      <div
+        id="updates-list"
+        class="updates-stack"
+      >
         Loading...
+      </div>
+
+      <div
+        id="updates-more-wrap"
+        class="updates-more-wrap"
+        hidden
+      >
+        <button
+          id="updates-more-btn"
+          class="updates-more-btn"
+          type="button"
+        >
+          Show More
+        </button>
       </div>
     </section>
 

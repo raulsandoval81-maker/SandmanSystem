@@ -9,11 +9,23 @@ const updatesList =
 const unreadCountEl =
   document.getElementById("unread-count");
 
+const moreWrap =
+  document.getElementById("updates-more-wrap");
+
+const moreBtn =
+  document.getElementById("updates-more-btn");
+
 const getParentInboxCall =
   httpsCallable(functions, "getParentInbox");
 
 const markParentInboxReadCall =
   httpsCallable(functions, "markParentInboxRead");
+
+const INITIAL_VISIBLE = 3;
+const MAX_VISIBLE = 8;
+
+let currentItems = [];
+let showAll = false;
 
 function esc(value = "") {
   return String(value)
@@ -51,7 +63,7 @@ const labels = {
 
   MINOR_INFRACTION: "⚠️ Minor Infraction",
   SEMI_MAJOR_INFRACTION: "🚨 Semi-Major Infraction",
-  MAJOR_INFRACTION: "🛑 Major Infraction",
+  MAJOR_INFRACTION: "🛑 Major Infraction"
 };
 
 function getAthleteLabel(item = {}) {
@@ -64,87 +76,216 @@ function getAthleteLabel(item = {}) {
   );
 }
 
-function renderMessage(item) {
-  const created =
-    item.createdAt
-      ? new Date(item.createdAt).toLocaleString()
-      : "—";
+function formatDate(value) {
+  if (!value) return "";
 
+  try {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return "";
+    }
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }
+    );
+  } catch {
+    return "";
+  }
+}
+
+function renderMessage(
+  item,
+  index
+) {
   const isUnread =
     item.read !== true;
 
   const displayType =
-    labels[item.type] || "📣 Parent Update";
+    labels[item.type] ||
+    "📣 Parent Update";
 
   const athleteLabel =
     getAthleteLabel(item);
 
+  const created =
+    formatDate(item.createdAt);
+
+  const openByDefault =
+    index === 0 &&
+    isUnread;
+
   return `
-    <article
-      class="card parent-update-card ${isUnread ? "unread" : ""}"
-      style="margin-top:12px;"
+    <details
+      class="parent-update-row"
       data-message-id="${esc(item.id)}"
+      ${openByDefault ? "open" : ""}
     >
-      <div class="update-athlete">
-        ${esc(athleteLabel)}
+      <summary class="parent-update-summary">
+        <span class="update-summary-main">
+          <span class="update-summary-athlete">
+            ${esc(athleteLabel)}
+          </span>
+
+          <span class="update-summary-title">
+            ${esc(displayType)}
+          </span>
+
+          <span class="update-summary-date">
+            ${esc(created)}
+          </span>
+        </span>
+
+        <span class="update-summary-side">
+          ${
+            isUnread
+              ? `<span class="update-new-pill">NEW</span>`
+              : ""
+          }
+
+          <span
+            class="update-chevron"
+            aria-hidden="true"
+          >
+            ›
+          </span>
+        </span>
+      </summary>
+
+      <div class="update-detail">
+        <h3>
+          ${esc(item.title || "Update")}
+        </h3>
+
+        <p>
+          ${esc(item.message || "")}
+        </p>
+
+        ${
+          item.note
+            ? `
+              <div class="update-note">
+                <strong>Coach Note:</strong><br>
+                ${esc(item.note)}
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          isUnread
+            ? `
+              <button
+                class="btn mark-read-btn"
+                type="button"
+                data-message-id="${esc(item.id)}"
+                style="margin-top:14px;"
+              >
+                Mark Read
+              </button>
+            `
+            : ""
+        }
       </div>
-
-      <div class="eyebrow">
-        ${esc(displayType)}
-        ${isUnread ? `<span class="unread-pill">NEW</span>` : ""}
-      </div>
-
-      <h3>
-        ${esc(item.title || "Update")}
-      </h3>
-
-      <p>
-        ${esc(item.message || "")}
-      </p>
-
-      ${
-        item.note
-          ? `
-            <div class="update-note">
-              <strong>Coach Note:</strong><br />
-              ${esc(item.note)}
-            </div>
-          `
-          : ""
-      }
-
-      <small>
-        ${esc(created)}
-      </small>
-
-      ${
-        isUnread
-          ? `
-            <button
-              class="btn mark-read-btn"
-              type="button"
-              data-message-id="${esc(item.id)}"
-              style="margin-top:12px;"
-            >
-              Mark Read
-            </button>
-          `
-          : ""
-      }
-    </article>
+    </details>
   `;
 }
 
-function renderUnreadCount(count) {
+function renderUnreadCount(items = []) {
   if (!unreadCountEl) return;
 
+  const count =
+    items.filter(
+      (item) => item.read !== true
+    ).length;
+
   if (count > 0) {
-    unreadCountEl.style.display = "inline-block";
+    unreadCountEl.style.display =
+      "inline-block";
+
     unreadCountEl.textContent =
-      `${count} unread`;
+      count === 1
+        ? "1 unread"
+        : `${count} unread`;
   } else {
-    unreadCountEl.style.display = "none";
+    unreadCountEl.style.display =
+      "none";
+
     unreadCountEl.textContent = "";
+  }
+}
+
+function renderFeed() {
+  if (!updatesList) return;
+
+  const visible =
+    showAll
+      ? currentItems
+      : currentItems.slice(
+          0,
+          INITIAL_VISIBLE
+        );
+
+  if (!visible.length) {
+    updatesList.innerHTML =
+      "<p>No updates available.</p>";
+
+    if (moreWrap) {
+      moreWrap.hidden = true;
+    }
+
+    return;
+  }
+
+  updatesList.innerHTML =
+    visible
+      .map(renderMessage)
+      .join("");
+
+  document
+    .querySelectorAll(
+      ".mark-read-btn"
+    )
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+
+          await markRead(
+            button.dataset.messageId
+          );
+        }
+      );
+    });
+
+  if (moreWrap && moreBtn) {
+    const hasMore =
+      currentItems.length >
+      INITIAL_VISIBLE;
+
+    moreWrap.hidden =
+      !hasMore;
+
+    if (hasMore) {
+      const remaining =
+        Math.max(
+          0,
+          currentItems.length -
+          INITIAL_VISIBLE
+        );
+
+      moreBtn.textContent =
+        showAll
+          ? "Show Less"
+          : `Show ${remaining} More`;
+    }
   }
 }
 
@@ -159,7 +300,9 @@ async function markRead(messageId) {
     await init();
   } catch (err) {
     console.error(err);
-    alert("Unable to mark update as read.");
+    alert(
+      "Unable to mark update as read."
+    );
   }
 }
 
@@ -168,37 +311,39 @@ async function init() {
     const result =
       await getParentInboxCall({});
 
-    const items =
-      (result.data?.items || [])
-        .slice(0, 8);
+    currentItems =
+      Array.isArray(result.data?.items)
+        ? result.data.items.slice(
+            0,
+            MAX_VISIBLE
+          )
+        : [];
 
-    const unreadCount =
-      result.data?.unreadCount || 0;
+    renderUnreadCount(
+      currentItems
+    );
 
-    renderUnreadCount(unreadCount);
-
-    if (!items.length) {
-      updatesList.innerHTML =
-        "<p>No updates available.</p>";
-      return;
-    }
-
-    updatesList.innerHTML =
-      items.map(renderMessage).join("");
-
-    document
-      .querySelectorAll(".mark-read-btn")
-      .forEach((button) => {
-        button.addEventListener("click", () => {
-          markRead(button.dataset.messageId);
-        });
-      });
+    renderFeed();
   } catch (err) {
     console.error(err);
 
+    currentItems = [];
+
     updatesList.innerHTML =
       "<p>Unable to load updates.</p>";
+
+    if (moreWrap) {
+      moreWrap.hidden = true;
+    }
   }
 }
+
+moreBtn?.addEventListener(
+  "click",
+  () => {
+    showAll = !showAll;
+    renderFeed();
+  }
+);
 
 init();

@@ -29,7 +29,10 @@ import {
 } from "/assets/js/firebase-init-para.js";
 
 import {
-  renderAnnouncementCard,
+  esc,
+  safeDate,
+  getAnnIcon,
+  scopeLabel,
   sortPinnedThenNewest
 } from "/communications/shared/announcements-ui.js";
 
@@ -52,6 +55,16 @@ const feedEl =
 const emptyEl =
   document.getElementById("empty");
 
+const bulletinMoreWrap =
+  document.getElementById(
+    "bulletin-more-wrap"
+  );
+
+const bulletinMoreBtn =
+  document.getElementById(
+    "bulletin-more-btn"
+  );
+
 const scopeLabelEl =
   document.getElementById(
     "announcement-scope"
@@ -64,6 +77,11 @@ const getMyAthleteCall =
 
 let currentAthleteUid = "";
 let currentDiscipline = "";
+
+let currentAnnouncements = [];
+let showAllAnnouncements = false;
+
+const INITIAL_VISIBLE = 3;
 
 /* =========================
    HELPERS
@@ -338,6 +356,190 @@ function isVisibleAnnouncement(
   return true;
 }
 
+
+function compactDate(timestamp) {
+  const raw = safeDate(timestamp);
+  if (!raw) return "";
+
+  try {
+    const date =
+      typeof timestamp?.toDate === "function"
+        ? timestamp.toDate()
+        : new Date(timestamp);
+
+    if (
+      !(date instanceof Date) ||
+      Number.isNaN(date.getTime())
+    ) {
+      return raw;
+    }
+
+    return date.toLocaleDateString(
+      undefined,
+      {
+        month: "short",
+        day: "numeric",
+        year: "numeric"
+      }
+    );
+  } catch {
+    return raw;
+  }
+}
+
+function renderBulletinItem(
+  item = {},
+  index = 0
+) {
+  const pinned =
+    item.pinned === true;
+
+  const icon =
+    getAnnIcon(item);
+
+  const scope =
+    scopeLabel(item);
+
+  const category =
+    String(
+      item.category || ""
+    ).trim();
+
+  const date =
+    compactDate(
+      item.createdAt
+    );
+
+  const open =
+    index === 0 &&
+    pinned;
+
+  return `
+    <details
+      class="bulletin-row ${pinned ? "pinned" : ""}"
+      ${open ? "open" : ""}
+    >
+      <summary class="bulletin-summary">
+        <span class="bulletin-summary-main">
+          <span class="bulletin-title">
+            <span>${esc(icon)}</span>
+            <span>
+              ${esc(
+                item.title ||
+                "Announcement"
+              )}
+            </span>
+          </span>
+
+          <span class="bulletin-meta">
+            ${
+              category
+                ? `<span>${esc(category)}</span>`
+                : ""
+            }
+
+            <span>
+              ${esc(scope)}
+            </span>
+
+            ${
+              date
+                ? `<span>${esc(date)}</span>`
+                : ""
+            }
+          </span>
+        </span>
+
+        <span
+          style="
+            display:flex;
+            align-items:center;
+            gap:8px;
+          "
+        >
+          ${
+            pinned
+              ? `
+                <span class="bulletin-pin">
+                  Important
+                </span>
+              `
+              : ""
+          }
+
+          <span
+            class="bulletin-chevron"
+            aria-hidden="true"
+          >
+            ›
+          </span>
+        </span>
+      </summary>
+
+      <div class="bulletin-detail">
+        <p class="bulletin-message">
+          ${esc(
+            item.message || ""
+          )}
+        </p>
+      </div>
+    </details>
+  `;
+}
+
+function renderBulletinFeed() {
+  if (!feedEl) return;
+
+  const visible =
+    showAllAnnouncements
+      ? currentAnnouncements
+      : currentAnnouncements.slice(
+          0,
+          INITIAL_VISIBLE
+        );
+
+  feedEl.innerHTML =
+    visible
+      .map(renderBulletinItem)
+      .join("");
+
+  if (
+    bulletinMoreWrap &&
+    bulletinMoreBtn
+  ) {
+    const hasMore =
+      currentAnnouncements.length >
+      INITIAL_VISIBLE;
+
+    bulletinMoreWrap.hidden =
+      !hasMore;
+
+    if (hasMore) {
+      const remaining =
+        Math.max(
+          0,
+          currentAnnouncements.length -
+          INITIAL_VISIBLE
+        );
+
+      bulletinMoreBtn.textContent =
+        showAllAnnouncements
+          ? "Show Less"
+          : `Show ${remaining} More`;
+    }
+  }
+}
+
+bulletinMoreBtn?.addEventListener(
+  "click",
+  () => {
+    showAllAnnouncements =
+      !showAllAnnouncements;
+
+    renderBulletinFeed();
+  }
+);
+
 /* =========================
    FEED
 ========================= */
@@ -382,11 +584,17 @@ function startFeed() {
         );
 
       if (!sorted.length) {
+        currentAnnouncements = [];
         feedEl.innerHTML = "";
 
         if (emptyEl) {
           emptyEl.style.display =
             "block";
+        }
+
+        if (bulletinMoreWrap) {
+          bulletinMoreWrap.hidden =
+            true;
         }
 
         return;
@@ -397,18 +605,13 @@ function startFeed() {
           "none";
       }
 
-      feedEl.innerHTML =
-        sorted
-          .map((item) =>
-            renderAnnouncementCard(
-              item,
-              {
-                showCategory: true,
-                showPinned: true
-              }
-            )
-          )
-          .join("");
+      currentAnnouncements =
+        sorted;
+
+      showAllAnnouncements =
+        false;
+
+      renderBulletinFeed();
     },
     (error) => {
       console.error(
@@ -460,8 +663,8 @@ async function boot() {
     if (scopeLabelEl) {
       scopeLabelEl.textContent =
         currentDiscipline
-          ? `${disciplineLabel(currentDiscipline)} announcements`
-          : "Team announcements";
+          ? `For ${disciplineLabel(currentDiscipline)}`
+          : "For your family";
     }
 
     startFeed();
