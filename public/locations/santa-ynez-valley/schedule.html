@@ -55,6 +55,41 @@
       gap:20px;
     }
 
+    .schedule-admissions{
+      max-width:760px;
+      margin:0 auto 2rem;
+      padding:1rem 1.15rem;
+      border:1px solid rgba(212,175,55,.38);
+      border-radius:16px;
+      background:rgba(212,175,55,.07);
+      text-align:center;
+    }
+
+    .schedule-admissions strong{
+      display:block;
+      margin-bottom:.3rem;
+      color:var(--heading-accent,#d4af37);
+      font-size:.9rem;
+      font-weight:900;
+      letter-spacing:.045em;
+      text-transform:uppercase;
+    }
+
+    .schedule-admissions p{
+      margin:.2rem 0;
+      color:var(--muted,#d0d0d4);
+      line-height:1.55;
+    }
+
+    .schedule-admissions a{
+      display:inline-block;
+      margin-top:.45rem;
+      color:var(--heading-accent,#d4af37);
+      font-weight:900;
+      text-decoration:underline;
+      text-underline-offset:3px;
+    }
+
     .schedule-card{
       padding:1.75rem;
       border:1px solid var(--line,rgba(255,255,255,.12));
@@ -106,6 +141,16 @@
       font-weight:900;
     }
 
+    .schedule-details:empty{
+      display:none;
+    }
+
+    @media(min-width:900px){
+      .schedule-details:empty{
+        display:block;
+      }
+    }
+
     .schedule-status{
       display:inline-block;
       margin-top:.5rem;
@@ -150,10 +195,30 @@
       }
 
       .schedule-card--day .schedule-session{
-        display:flex;
-        flex-direction:column;
-        justify-content:flex-start;
-        min-height:8.6rem;
+        display:grid;
+        grid-template-rows:
+          minmax(3.35rem,auto)
+          minmax(3.2rem,auto)
+          auto
+          minmax(2.8rem,auto);
+        align-content:start;
+        min-height:10.2rem;
+      }
+
+      .schedule-card--day .schedule-session__title{
+        align-self:start;
+      }
+
+      .schedule-card--day .schedule-details{
+        align-self:start;
+      }
+
+      .schedule-card--day .schedule-time{
+        align-self:start;
+      }
+
+      .schedule-card--day .schedule-meta{
+        align-self:start;
       }
     }
 
@@ -327,6 +392,14 @@
         in the Santa Ynez Valley.
       </p>
     </section>
+
+    <aside class="schedule-admissions" aria-label="Admissions notice">
+      <strong>Admissions by Appointment Only</strong>
+      <p>Classes are closed training sessions. No drop-ins or spectators.</p>
+      <a href="/connect/interest/?academy=sandman&amp;location=santa-ynez-valley">
+        Complete the Interest Form
+      </a>
+    </aside>
 
     <section class="schedule-grid" data-schedule-grid>
       <article class="schedule-card">
