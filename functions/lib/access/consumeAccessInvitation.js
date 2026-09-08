@@ -23,6 +23,24 @@ function invitationError(error) {
     }
     throw new https_1.HttpsError("permission-denied", "Invitation does not match an approved Parent relationship.");
 }
+function athleteInvitationError(error) {
+    const reason = String(error?.message || "");
+    if (reason === "INVITATION_NOT_FOUND")
+        throw new https_1.HttpsError("not-found", "Athlete invitation not found.");
+    if (reason === "INVITATION_USED")
+        throw new https_1.HttpsError("failed-precondition", "Athlete invitation already used.");
+    if (reason === "INVITATION_EXPIRED")
+        throw new https_1.HttpsError("failed-precondition", "Athlete invitation expired.");
+    if (reason === "EMAIL_MISMATCH")
+        throw new https_1.HttpsError("permission-denied", "Authenticated email does not match the Athlete invitation.");
+    if (reason === "DIFFERENT_ATHLETE_UID" || reason === "CALLER_ALREADY_BOUND") {
+        throw new https_1.HttpsError("failed-precondition", "Athlete access conflicts with an existing Auth binding.");
+    }
+    if (reason === "PARENT_APPROVAL_REQUIRED") {
+        throw new https_1.HttpsError("failed-precondition", "Hybrid Athlete access is missing recorded Parent approval.");
+    }
+    throw new https_1.HttpsError("permission-denied", `Athlete invitation validation failed: ${reason || "UNKNOWN"}.`);
+}
 exports.consumeAccessInvitation = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
@@ -68,7 +86,7 @@ exports.consumeAccessInvitation = (0, https_1.onCall)(async (req) => {
                 });
             }
             catch (error) {
-                invitationError(error);
+                athleteInvitationError(error);
             }
             const stamp = firestore_1.FieldValue.serverTimestamp();
             tx.update(athleteRef, {

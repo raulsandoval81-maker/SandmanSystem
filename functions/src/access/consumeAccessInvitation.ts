@@ -19,6 +19,21 @@ function invitationError(error: unknown): never {
   throw new HttpsError("permission-denied", "Invitation does not match an approved Parent relationship.");
 }
 
+function athleteInvitationError(error: unknown): never {
+  const reason = String((error as Error)?.message || "");
+  if (reason === "INVITATION_NOT_FOUND") throw new HttpsError("not-found", "Athlete invitation not found.");
+  if (reason === "INVITATION_USED") throw new HttpsError("failed-precondition", "Athlete invitation already used.");
+  if (reason === "INVITATION_EXPIRED") throw new HttpsError("failed-precondition", "Athlete invitation expired.");
+  if (reason === "EMAIL_MISMATCH") throw new HttpsError("permission-denied", "Authenticated email does not match the Athlete invitation.");
+  if (reason === "DIFFERENT_ATHLETE_UID" || reason === "CALLER_ALREADY_BOUND") {
+    throw new HttpsError("failed-precondition", "Athlete access conflicts with an existing Auth binding.");
+  }
+  if (reason === "PARENT_APPROVAL_REQUIRED") {
+    throw new HttpsError("failed-precondition", "Hybrid Athlete access is missing recorded Parent approval.");
+  }
+  throw new HttpsError("permission-denied", `Athlete invitation validation failed: ${reason || "UNKNOWN"}.`);
+}
+
 export const consumeAccessInvitation = onCall(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
   const callerUid = req.auth.uid;
@@ -62,7 +77,7 @@ export const consumeAccessInvitation = onCall(async (req) => {
           callerAthleteIds: existingBindings.docs.map((doc) => doc.id),
         });
       } catch (error) {
-        invitationError(error);
+        athleteInvitationError(error);
       }
 
       const stamp = FieldValue.serverTimestamp();

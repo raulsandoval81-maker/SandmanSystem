@@ -108,6 +108,43 @@ test("normal sign-in retains password-only recovery", () => {
   assert.match(source, /If an activated athlete account exists/);
 });
 
+test("magic-link return consumes access without relying on same-tab session storage", () => {
+  const source = readFileSync("public/athlete-onboarding/onboarding.js", "utf8");
+  assert.match(source, /const completedMagicLink = await finishMagicLinkIfPresent\(\)/);
+  assert.match(source, /if \(completedMagicLink && !needsRealLogin\(\)\)/);
+  assert.match(source, /await consumeAthleteAccess\(\)/);
+  assert.match(source, /isSignInWithEmailLink\(auth, window\.location\.href\).*bootVerify\(\)/s);
+});
+
+test("completed legacy onboarding routes to Athlete Home and is not restarted", () => {
+  const source = readFileSync("public/athlete-onboarding/onboarding.js", "utf8");
+  assert.match(source, /function onboardingIsComplete/);
+  assert.match(source, /onboarding\?\.status === "complete"/);
+  assert.match(source, /onboarding\?\.completedAt/);
+  assert.match(source, /`\/athletes\/hub\/\?id=/);
+});
+
+test("activation failures expose the failing stage instead of generic profile loading", () => {
+  const source = readFileSync("public/athlete-onboarding/onboarding.js", "utf8");
+  assert.match(source, /Activation stopped while \$\{activationStage\}/);
+  assert.doesNotMatch(source, /setStatus\("Error loading profile\."\)/);
+  for (const stage of ["verifying the emailed sign-in link", "creating the Athlete password", "binding direct access to the existing Athlete"]) {
+    assert.match(source, new RegExp(stage));
+  }
+});
+
+test("successful legacy activation preserves onboarding and consumes once", () => {
+  const source = readFileSync("functions/src/access/consumeAccessInvitation.ts", "utf8");
+  const athleteBranch = source.slice(source.indexOf('if (String(invitation.role || "") === "athlete")'), source.indexOf("const relationshipId"));
+  assert.match(athleteBranch, /authUid: callerUid/);
+  assert.match(athleteBranch, /mode: decision\.accessMode/);
+  assert.match(athleteBranch, /parentApproved: decision\.parentApproved/);
+  assert.match(athleteBranch, /activatedAt: stamp/);
+  assert.match(athleteBranch, /invitationId: tokenId/);
+  assert.match(athleteBranch, /used: true, usedAt: stamp, usedBy: callerUid/);
+  assert.doesNotMatch(athleteBranch, /onboarding|parentUid|parentAthleteLinks|\bxp\b|\brank\b|\btier\b|stripe|history/);
+});
+
 test("Management issues Athlete access through the shared invitation service", () => {
   const source = readFileSync("public/intake-management/management.intake.js", "utf8");
   assert.match(source, /role: "athlete"/);

@@ -46,9 +46,37 @@ const btnNo    = $("btn-not-me");
 
 let athlete = null;
 let uiLocked = false;
+let activationStage = "opening the activation link";
 
 /* -------------------------------- HELPERS -------------------------------- */
 const setStatus = (t) => { if (statusEl) statusEl.textContent = t || ""; };
+
+function setActivationStage(stage, message) {
+  activationStage = stage;
+  if (message) setStatus(message);
+}
+
+function activationErrorMessage(error) {
+  const code = String(error?.code || "");
+  const message = String(error?.message || error || "Unknown activation error.");
+  if (code.includes("permission-denied")) return `Activation stopped while ${activationStage}: ${message}`;
+  if (code.includes("failed-precondition") || code.includes("not-found") || code.includes("invalid-argument")) {
+    return `Activation stopped while ${activationStage}: ${message}`;
+  }
+  return `Activation stopped while ${activationStage}: ${message}`;
+}
+
+function onboardingIsComplete(a = {}) {
+  return a?.onboarding?.status === "complete"
+    || Boolean(a?.onboarding?.completedAt)
+    || a?.onboarding?.locks?.step9 === true;
+}
+
+function athleteDestination() {
+  return onboardingIsComplete(athlete)
+    ? `/athletes/hub/?id=${encodeURIComponent(uid)}`
+    : `/athlete-onboarding/step-2.html?id=${encodeURIComponent(uid)}`;
+}
 
 const disableButtons = (d) => {
   if (btnYes) btnYes.disabled = d;
@@ -100,6 +128,7 @@ async function startMagicLink(email) {
 
   console.log("[magiclink] SENDING", { cleaned, actionCodeSettings });
 
+  setActivationStage("sending the secure sign-in email", "Sending secure sign-in email…");
   await sendSignInLinkToEmail(auth, cleaned, actionCodeSettings);
   console.log("[magiclink] SENT OK");
   setStatus("Check your email to continue.");
@@ -119,7 +148,9 @@ async function finishMagicLinkIfPresent() {
     throw new Error("A password of at least 6 characters is required.");
   }
 
+  setActivationStage("verifying the emailed sign-in link", "Verifying secure sign-in link…");
   await signInWithEmailLink(auth, email, window.location.href);
+  setActivationStage("creating the Athlete password", "Creating Athlete password…");
   await updatePassword(auth.currentUser, password);
 
   // Force refresh token (helps some mobile cases)
@@ -203,7 +234,7 @@ function prettyTierRank(a = {}) {
 }
 
 async function loadAthlete() {
-  setStatus("Loading…");
+  setActivationStage("loading the existing Athlete record", "Loading existing Athlete…");
   disableButtons(true);
 
   await ensureSignedIn();
@@ -274,6 +305,22 @@ const journeyName = prettyJourneyName(
   console.log("[loadAthlete] journey/art:", journeyName, artName);
   console.log("[loadAthlete] team/city/state:", team, city, state);
 }
+
+async function consumeAthleteAccess() {
+  const user = auth.currentUser;
+  if (!user || user.isAnonymous) throw new Error("An email-backed Athlete account is required.");
+  if (!tokenId) throw new Error("The Management-issued invitation token is missing.");
+  setActivationStage("binding direct access to the existing Athlete", "Activating direct Athlete access…");
+  const fn = httpsCallable(functions, "consumeAccessInvitation");
+  const res = await fn({ tokenId });
+  const result = res?.data || {};
+  if (result.role !== "athlete" || String(result.athleteUid || "").toUpperCase() !== uid) {
+    throw new Error("The activation response did not match this Athlete.");
+  }
+  sessionStorage.removeItem("sandman_pending_yes_uid");
+  setActivationStage("finishing activation", "Athlete access activated. Opening Athlete Home…");
+  window.location.href = athleteDestination();
+}
 /* -------------------------------- CONFIRM IDENTITY (STEP 1) --------------------------------
    Pivot: NO Firestore write here.
    After magic login, call Cloud Function to do the write with Admin privileges.
@@ -282,6 +329,13 @@ async function confirmIdentity() {
   if (!athlete || uiLocked) return;
 
   hardLockUI("Working…");
+
+  const invitedEmail = String(localStorage.getItem("sandman_magic_email") || "").trim().toLowerCase();
+  const currentEmail = String(auth.currentUser?.email || "").trim().toLowerCase();
+  if (!needsRealLogin() && invitedEmail && currentEmail !== invitedEmail) {
+    unlockUI("A different account is signed in here. Open the Athlete invitation in a private window or the Athlete's browser.");
+    return;
+  }
 
   // If not signed in with a real account yet → start magic link
   if (needsRealLogin()) {
@@ -322,34 +376,15 @@ async function confirmIdentity() {
     athlete?.onboarding?.locks?.step1 === true &&
     athlete?.authUid === user.uid
   ) {
-    window.location.href = `/athlete-onboarding/step-2.html?id=${encodeURIComponent(uid)}`;
+    window.location.href = athleteDestination();
     return;
   }
 
   try {
-    setStatus("Saving…");
-
-    // Shared access invitation consumption binds this Auth user to the
-    // existing athlete record without changing onboarding or progression.
-    const fn = httpsCallable(functions, "consumeAccessInvitation");
-    const res = await fn({ tokenId: tokenId || null });
-
-    console.log("[confirmIdentity] function result:", res?.data || res);
-
-    window.location.href = `/athlete-onboarding/step-2.html?id=${encodeURIComponent(uid)}`;
+    await consumeAthleteAccess();
   } catch (e) {
     console.error("[confirmIdentity] failed:", e);
-    const code = e?.code || "";
-    const msg  = e?.message || String(e);
-
-    // show something useful
-    if (String(code).includes("permission-denied")) {
-      unlockUI("Blocked: profile is already bound to a different account.");
-    } else if (String(code).includes("unauthenticated")) {
-      unlockUI("Not signed in. Try again.");
-    } else {
-      unlockUI(`Save failed: ${msg}`);
-    }
+    unlockUI(activationErrorMessage(e));
   }
 }
 
@@ -365,8 +400,14 @@ function notMe() {
 /* -------------------------------- BOOT -------------------------------- */
 async function bootVerify() {
   try {
-    await finishMagicLinkIfPresent();
+    const completedMagicLink = await finishMagicLinkIfPresent();
     await loadAthlete();
+
+    if (completedMagicLink && !needsRealLogin()) {
+      hardLockUI("Activating direct Athlete access…");
+      await consumeAthleteAccess();
+      return;
+    }
 
     // Auto-resume YES if they were in the middle of confirmation
     const pendingUid = sessionStorage.getItem("sandman_pending_yes_uid");
@@ -376,13 +417,17 @@ async function bootVerify() {
     }
   } catch (e) {
     console.error(e);
-    setStatus("Error loading profile.");
+    setStatus(activationErrorMessage(e));
     disableButtons(true);
   }
 }
 
 // Splash support
-if (startBtn && splashPanel && verifyPanel) {
+if (isSignInWithEmailLink(auth, window.location.href) && splashPanel && verifyPanel) {
+  splashPanel.classList.add("hidden");
+  verifyPanel.classList.remove("hidden");
+  bootVerify();
+} else if (startBtn && splashPanel && verifyPanel) {
   startBtn.addEventListener("click", () => {
     splashPanel.classList.add("hidden");
     verifyPanel.classList.remove("hidden");
