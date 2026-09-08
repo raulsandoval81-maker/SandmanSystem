@@ -54,6 +54,18 @@ beforeEach(async () => {
 
 after(async () => env?.cleanup());
 
+test("missing published schedule returns a normal nonexistent snapshot", async () => {
+  const db = env.unauthenticatedContext().firestore();
+
+  const snap = await assertSucceeds(
+    getDoc(doc(db, "paraSchedule", "elk-grove"))
+  );
+
+  if (snap.exists()) {
+    throw new Error("Expected missing schedule document.");
+  }
+});
+
 test("published location schedule is publicly readable but unpublished schedule is not", async () => {
   const db = env.unauthenticatedContext().firestore();
   await assertSucceeds(getDoc(doc(db, "paraSchedule", "santa-ynez-valley")));

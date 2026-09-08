@@ -50,7 +50,17 @@ service cloud.firestore {
     ---------------------------------------*/
     match /paraSchedule/{locationId} {
       // Published location schedules are the single audience-facing source.
-      allow get, list: if resource.data.status == "published"
+      allow get: if
+        !exists(
+          /databases/$(database)/documents/paraSchedule/$(locationId)
+        )
+        ||
+        (
+          resource.data.status == "published"
+          && resource.data.locationId == locationId
+        );
+
+      allow list: if resource.data.status == "published"
         && resource.data.locationId == locationId;
 
       // Only active Admin/Management may publish, and Management remains
