@@ -63,6 +63,82 @@
   .system-context{align-items:stretch}
   .system-context__heading,.system-context__field{width:100%}
 }
+
+/* Shared Parent System child-page shell. */
+.parent-system-page .topbar{
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+
+.system-page-wrap{
+  width:min(100% - 28px, 920px);
+  margin:0 auto;
+  padding:24px 0 52px;
+}
+
+.system-page-hero{
+  margin-bottom:18px;
+  padding:clamp(22px, 5vw, 38px);
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:var(--panel);
+  box-shadow:var(--shadow);
+}
+
+.system-page-hero h1{
+  margin:6px 0 10px;
+  color:var(--text);
+  font-size:clamp(1.8rem, 5vw, 2.7rem);
+  line-height:1.08;
+}
+
+.system-page-hero p:last-child{margin-bottom:0}
+
+.system-page-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:16px;
+}
+
+.system-page-panel{
+  min-width:0;
+  padding:clamp(18px, 3vw, 24px);
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  box-shadow:var(--shadow);
+}
+
+.system-page-panel--wide{grid-column:1 / -1}
+.system-page-panel h2{margin:0 0 10px;color:var(--gold);font-size:1.15rem}
+.system-page-panel p,.system-page-panel li{line-height:1.62}
+.system-page-panel p:last-child,.system-page-panel ul:last-child{margin-bottom:0}
+.system-page-panel ul{padding-left:1.25rem}
+.system-page-panel li + li{margin-top:7px}
+
+.system-page-note{
+  margin-top:14px;
+  padding:12px 14px;
+  border-left:4px solid var(--gold);
+  border-radius:10px;
+  background:var(--panel-soft);
+  color:var(--text);
+  font-weight:750;
+  line-height:1.5;
+}
+
+.system-page-controls{display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.system-page-controls .theme-toggle{flex:0 0 auto}
+
+@media (max-width:680px){
+  .system-page-grid{grid-template-columns:1fr}
+  .system-page-panel--wide{grid-column:auto}
+  .system-page-wrap{width:min(100% - 22px, 920px);padding-top:16px}
+  .parent-system-page .topbar{grid-template-columns:minmax(0, 1fr) auto}
+  .parent-system-page .topbar-center{display:none}
+  .parent-system-page .back-btn{padding-inline:12px}
+}
 body{
   background:
     radial-gradient(
@@ -231,4 +307,9 @@ footer{
 
   -webkit-backdrop-filter:
     blur(12px);
+}
+
+body.parent-system-page{
+  background:var(--bg);
+  color:var(--text);
 }
