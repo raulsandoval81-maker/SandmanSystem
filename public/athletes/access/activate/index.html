@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Existing Athlete Access | Sandman Combat™</title>
+  <link rel="stylesheet" href="/athletes/access/activate/activate.css">
+</head>
+<body>
+  <main class="activation-card">
+    <p class="eyebrow">Existing Athlete Access</p>
+    <h1>Activate Athlete Access</h1>
+    <p class="intro">Connect your Sandman login to your existing athlete profile.</p>
+
+    <div class="identity" aria-label="Invitation identity">
+      <div><span>Athlete ID</span><strong id="athleteId">Loading…</strong></div>
+      <div><span>Invited email</span><strong id="invitedEmail">Loading…</strong></div>
+    </div>
+
+    <div id="passwordField" class="field" hidden>
+      <label for="activationPassword">Create your Athlete password</label>
+      <input id="activationPassword" type="password" minlength="8" autocomplete="new-password">
+    </div>
+
+    <button id="activateButton" type="button" disabled>Send Secure Sign-In Email</button>
+    <div id="activationStatus" class="activation-status" aria-live="polite">Checking invitation…</div>
+    <a class="return-link" href="/athletes/auth/">Return to Athlete Sign In</a>
+  </main>
+  <script type="module" src="/athletes/access/activate/activate.js"></script>
+</body>
+</html>

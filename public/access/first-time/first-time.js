@@ -20,21 +20,6 @@ const notice =
 const continueLink =
   document.getElementById("continueLink");
 
-const athleteFields =
-  document.getElementById("athleteActivationFields");
-
-const athleteId =
-  document.getElementById("athleteId");
-
-const athleteToken =
-  document.getElementById("athleteToken");
-
-const athleteEmail =
-  document.getElementById("athleteEmail");
-
-const athleteError =
-  document.getElementById("athleteActivationError");
-
 const parentFields =
   document.getElementById("parentActivationFields");
 
@@ -63,7 +48,7 @@ const roleConfig = {
       "Athlete access must connect to an athlete already created by Sandman staff.",
     notice:
       "You will need the athlete identifier or activation information provided by your coach.",
-    href: "/athletes/auth/?mode=activate"
+    href: "/athletes/access/activate/"
   },
 
   coach: {
@@ -110,9 +95,6 @@ function selectRole(role) {
   continueLink.href =
     config.href;
 
-  athleteFields.hidden =
-    role !== "athlete";
-
   parentFields.hidden =
     role !== "parent";
 
@@ -120,31 +102,6 @@ function selectRole(role) {
     config.title;
 
   panel.hidden = false;
-}
-
-function athleteActivationUrl() {
-  const id = String(athleteId.value || "")
-    .trim()
-    .toUpperCase();
-
-  const token = String(athleteToken.value || "")
-    .trim();
-
-  const email = String(athleteEmail.value || "")
-    .trim()
-    .toLowerCase();
-
-  if (!id || !token || !email || !athleteEmail.validity.valid) {
-    throw new Error(
-      "Enter the athlete ID, invitation token, and a valid athlete login email."
-    );
-  }
-
-  return (
-    `/athletes/auth/?mode=activate&id=${encodeURIComponent(id)}` +
-    `&token=${encodeURIComponent(token)}` +
-    `&email=${encodeURIComponent(email)}`
-  );
 }
 
 function parentActivationUrl() {
@@ -175,15 +132,6 @@ const params =
 const requestedRole =
   params.get("role");
 
-athleteId.value =
-  params.get("id") || params.get("uid") || "";
-
-athleteToken.value =
-  params.get("token") || params.get("invite") || "";
-
-athleteEmail.value =
-  params.get("email") || "";
-
 parentToken.value =
   params.get("token") || params.get("invite") || "";
 
@@ -191,19 +139,13 @@ parentEmail.value =
   params.get("email") || "";
 
 continueLink.addEventListener("click", (event) => {
-  if (athleteFields.hidden && parentFields.hidden) return;
+  if (parentFields.hidden) return;
 
   event.preventDefault();
-  athleteError.textContent = "";
-
   try {
-    window.location.assign(
-      parentFields.hidden
-        ? athleteActivationUrl()
-        : parentActivationUrl()
-    );
+    window.location.assign(parentActivationUrl());
   } catch (error) {
-    (parentFields.hidden ? athleteError : parentError).textContent = error.message;
+    parentError.textContent = error.message;
   }
 });
 

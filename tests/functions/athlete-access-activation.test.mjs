@@ -5,6 +5,11 @@ import {
   assertAthleteInvitationContext,
   assertConsumableAthleteInvitation,
 } from "../../functions/lib/access/accessInvitationPolicy.js";
+import {
+  readAthleteActivationContext,
+  athleteActivationReturnUrl,
+  athleteHomeUrl,
+} from "../../public/athletes/access/activate/activation-context.js";
 
 const consumable = (overrides = {}) => ({
   exists: true,
@@ -24,21 +29,20 @@ const consumable = (overrides = {}) => ({
   ...overrides,
 });
 
-test("first-time Athlete access preserves the coach-issued invitation gate", () => {
+test("first-time access remains a role chooser and sends Athlete access to the dedicated route", () => {
   const source = readFileSync("public/access/first-time/first-time.js", "utf8");
-  assert.match(source, /params\.get\("id"\)/);
-  assert.match(source, /params\.get\("token"\)/);
-  assert.match(source, /\/athletes\/auth\/\?mode=activate&id=/);
-  assert.match(source, /&token=/);
-  assert.match(source, /&email=/);
-  assert.doesNotMatch(source, /\/athlete-onboarding\/\?id=/);
+  const html = readFileSync("public/access/first-time/index.html", "utf8");
+  assert.match(source, /href: "\/athletes\/access\/activate\/"/);
+  assert.doesNotMatch(source, /athleteOnboardingUrl|athleteActivationUrl|\/athlete-onboarding/);
+  assert.doesNotMatch(html, /id="athleteActivationFields"|id="athleteToken"/);
 });
 
-test("Athlete auth activation is handled in Athlete Auth rather than onboarding", () => {
+test("normal Athlete Auth contains sign-in and recovery but no activation engine", () => {
   const html = readFileSync("public/athletes/auth/index.html", "utf8");
-  const activationPanel = html.slice(html.indexOf('id="panelActivate"'));
-  assert.match(activationPanel, /id="activateAccessBtn"/);
-  assert.doesNotMatch(activationPanel, /href="\/athlete-onboarding\/"/);
+  const source = readFileSync("public/athletes/auth/auth.js", "utf8");
+  assert.match(html, /id="loginForm"/);
+  assert.doesNotMatch(html, /id="panelActivate"|id="activateAccessBtn"/);
+  assert.doesNotMatch(source, /consumeAccessInvitation|sendSignInLinkToEmail|athlete-onboarding/);
 });
 
 test("shared Athlete activation requires email-backed Auth and updates the existing athlete", () => {
@@ -98,7 +102,7 @@ test("binding remains narrow and cannot overwrite athlete progression or relatio
   }
 });
 
-test("normal sign-in retains password-only recovery", () => {
+test("normal sign-in retains password-only recovery and onboarding remains separately available", () => {
   const source = readFileSync("public/athletes/auth/auth.js", "utf8");
   const onboarding = readFileSync("public/athlete-onboarding/onboarding.js", "utf8");
   assert.match(source, /sendPasswordResetEmail/);
@@ -109,31 +113,48 @@ test("normal sign-in retains password-only recovery", () => {
   assert.match(source, /If an activated athlete account exists/);
 });
 
-test("Athlete Auth owns magic-link activation and preserves invitation context in the URL", () => {
-  const source = readFileSync("public/athletes/auth/auth.js", "utf8");
+test("dedicated existing-Athlete access owns magic-link activation and preserves URL context", () => {
+  const source = readFileSync("public/athletes/access/activate/activate.js", "utf8");
   assert.match(source, /sendSignInLinkToEmail/);
   assert.match(source, /signInWithEmailLink/);
-  assert.match(source, /url\.searchParams\.set\("id", activationAthleteId\)/);
-  assert.match(source, /url\.searchParams\.set\("token", activationToken\)/);
-  assert.match(source, /url\.searchParams\.set\("email", activationEmail\)/);
-  assert.match(source, /consume\(\{ tokenId: activationToken \}\)/);
+  assert.match(source, /consume\(\{ tokenId: context\.tokenId \}\)/);
   assert.doesNotMatch(source, /sessionStorage/);
+  const context = readAthleteActivationContext("?id=f4_0001&token=private-token&email=ATHLETE%40example.com");
+  assert.deepEqual(context, { athleteId: "F4_0001", tokenId: "private-token", email: "athlete@example.com" });
+  assert.equal(
+    athleteActivationReturnUrl(context, "https://sandman.example"),
+    "https://sandman.example/athletes/access/activate/?id=F4_0001&token=private-token&email=athlete%40example.com"
+  );
 });
 
-test("completed legacy onboarding routes to Athlete Home and is not restarted", () => {
-  const source = readFileSync("public/athletes/auth/auth.js", "utf8");
-  assert.match(source, /function onboardingIsComplete/);
-  assert.match(source, /onboarding\.status === "complete"/);
-  assert.match(source, /onboarding\.completedAt/);
-  assert.match(source, /`\/athletes\/hub\/\?id=/);
+test("completed F4 and F8 legacy access always routes to Athlete Home without onboarding", () => {
+  const source = readFileSync("public/athletes/access/activate/activate.js", "utf8");
+  assert.equal(athleteHomeUrl("F4_0001"), "/athletes/hub/?id=F4_0001");
+  assert.equal(athleteHomeUrl("F8_0001"), "/athletes/hub/?id=F8_0001");
+  assert.match(source, /window\.location\.replace\(athleteHomeUrl\(context\.athleteId\)\)/);
+  assert.doesNotMatch(source, /athlete-onboarding|onboardingIsComplete|completedAt|locks/);
 });
 
 test("activation failures expose the failing stage instead of generic profile loading", () => {
-  const source = readFileSync("public/athletes/auth/auth.js", "utf8");
+  const source = readFileSync("public/athletes/access/activate/activate.js", "utf8");
   assert.doesNotMatch(source, /Error loading profile/);
-  for (const stage of ["verifying the emailed sign-in link", "creating the Athlete password", "binding direct access to the existing Athlete"]) {
+  for (const stage of ["verifying the secure Athlete sign-in", "creating the Athlete password", "connecting the login to the existing Athlete profile"]) {
     assert.match(source, new RegExp(stage, "i"));
   }
+});
+
+test("Management Members links existing Athletes directly to the dedicated activation route", () => {
+  const source = readFileSync("public/management/members/members.js", "utf8");
+  assert.match(source, /\/athletes\/access\/activate\/\?id=/);
+  assert.doesNotMatch(source, /\/access\/first-time\/\?role=athlete/);
+});
+
+test("dedicated activation rejects an unrelated signed-in Auth identity before binding", () => {
+  const source = readFileSync("public/athletes/access/activate/activate.js", "utf8");
+  assert.match(source, /hasSignedInCollision/);
+  assert.match(source, /!invitedEmailMatches\(user\)/);
+  assert.match(source, /different account is signed in/i);
+  assert.match(source, /private window/i);
 });
 
 test("successful legacy activation preserves onboarding and consumes once", () => {

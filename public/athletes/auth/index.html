@@ -267,43 +267,12 @@
     </h1>
 
     <p class="sub">
-      Sign in if your athlete account is already active,
-      or use your coach-issued invitation to begin onboarding.
+      Sign in to an activated Athlete account.
     </p>
-
-    <div
-      class="tabs"
-      role="tablist"
-      aria-label="Athlete access options"
-    >
-      <button
-        id="tabLogin"
-        class="tab-btn is-active"
-        type="button"
-        role="tab"
-        aria-selected="true"
-        aria-controls="panelLogin"
-      >
-        Login
-      </button>
-
-      <button
-        id="tabActivate"
-        class="tab-btn"
-        type="button"
-        role="tab"
-        aria-selected="false"
-        aria-controls="panelActivate"
-      >
-        Activate
-      </button>
-    </div>
 
     <section
       id="panelLogin"
       class="panel is-active"
-      role="tabpanel"
-      aria-labelledby="tabLogin"
     >
       <form id="loginForm" novalidate>
 
@@ -393,42 +362,6 @@
           aria-live="polite"
         ></div>
       </form>
-    </section>
-
-    <section
-      id="panelActivate"
-      class="panel"
-      role="tabpanel"
-      aria-labelledby="tabActivate"
-    >
-      <p id="activationSummary" class="sub">
-        Athlete activation begins from the private invitation issued by Sandman Management.
-      </p>
-
-      <div id="activationPasswordField" class="field" hidden>
-        <label for="activationPassword">Create Password</label>
-        <input id="activationPassword" type="password" autocomplete="new-password" minlength="8" />
-      </div>
-
-      <div class="actions">
-        <button id="activateAccessBtn" class="btn-primary" type="button">
-          Send Secure Sign-In Email
-        </button>
-
-        <a
-          class="button-link btn-secondary"
-          href="/login/"
-        >
-          Back
-        </a>
-      </div>
-
-      <div id="activationStatus" class="status" aria-live="polite"></div>
-
-      <p class="fine">
-        Your invitation contains your athlete ID and onboarding token.
-        Use the complete link provided by your coach.
-      </p>
     </section>
 
     <p class="fine">

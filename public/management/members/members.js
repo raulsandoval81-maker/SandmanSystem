@@ -75,7 +75,7 @@ function wireMemberActions(member) {
     try {
       const response = await httpsCallable(functions, "issueAccessInvitation")({ role:"athlete", athleteUid:member.athleteId, email, accessMode, parentApproved });
       const tokenId = String(response.data?.tokenId || "");
-      const url = `${location.origin}/access/first-time/?role=athlete&id=${encodeURIComponent(member.athleteId)}&token=${encodeURIComponent(tokenId)}&email=${encodeURIComponent(email)}`;
+      const url = `${location.origin}/athletes/access/activate/?id=${encodeURIComponent(member.athleteId)}&token=${encodeURIComponent(tokenId)}&email=${encodeURIComponent(email)}`;
       const output = $("accessResult"); output.hidden = false; output.innerHTML = `Invitation ready: <a href="${esc(url)}" target="_blank" rel="noopener">Open Athlete activation</a>`;
       setStatus("Athlete access invitation issued.");
     } catch (error) { setStatus(error?.message || "Unable to issue Athlete access.", true); button.disabled = false; }
