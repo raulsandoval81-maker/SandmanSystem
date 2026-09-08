@@ -546,8 +546,21 @@ body.lang-es .es{ display:inline!important; }
     margin-top:10px;
   }
 
+  .parent-hero{
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+
   .hero-logo{
-    display:none;
+    display:flex;
+    justify-content:center;
+    margin-top:2px;
+  }
+
+  .hero-logo img{
+    height:235px;
+    max-width:280px;
+    width:auto;
   }
 }
 
