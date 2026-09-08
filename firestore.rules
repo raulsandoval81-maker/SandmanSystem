@@ -48,9 +48,59 @@ service cloud.firestore {
     /* --------------------------------------
        Schedule
     ---------------------------------------*/
-    match /paraSchedule/{teamId} {
-      allow read: if true;
-      allow write: if request.auth != null;
+    match /paraSchedule/{locationId} {
+      // Published location schedules are the single audience-facing source.
+      allow get, list: if resource.data.status == "published"
+        && resource.data.locationId == locationId;
+
+      // Only active Admin/Management may publish, and Management remains
+      // restricted to an assigned location.
+      allow create, update: if isAdminOrManagement()
+        && (
+          isAdmin()
+          || managementHasLocation(locationId)
+        )
+        && request.resource.data.keys().hasOnly([
+          "locationId",
+          "locationName",
+          "timezone",
+          "status",
+          "weekly",
+          "events",
+          "banner",
+          "publishedAt"
+        ])
+        && request.resource.data.locationId == locationId
+        && request.resource.data.locationName is string
+        && request.resource.data.timezone is string
+        && request.resource.data.status == "published"
+        && request.resource.data.weekly is list
+        && request.resource.data.events is list
+        && request.resource.data.banner is map
+        && request.resource.data.publishedAt is timestamp;
+
+      allow delete: if false;
+    }
+
+    match /paraScheduleDrafts/{locationId} {
+      allow get, list: if isAdminOrManagement()
+        && (
+          isAdmin()
+          || managementHasLocation(locationId)
+        );
+
+      allow create, update: if isAdminOrManagement()
+        && (
+          isAdmin()
+          || managementHasLocation(locationId)
+        )
+        && request.resource.data.locationId == locationId
+        && request.resource.data.status == "draft"
+        && request.resource.data.weekly is list
+        && request.resource.data.events is list
+        && request.resource.data.banner is map
+        && request.resource.data.updatedBy == request.auth.uid;
+
       allow delete: if false;
     }
 

@@ -22,6 +22,11 @@ import {
   formatCombatDisciplineLabel,
   resolveParentAthleteContext
 } from "/assets/js/parent-athlete-context.js";
+import {
+  filterScheduleForAthlete,
+  loadPublishedLocationSchedule,
+  resolveScheduleLocation,
+} from "/assets/js/location-schedule.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -983,28 +988,26 @@ console.log(
       );
     }
 
-    const scheduleRef =
-      doc(db, "system", "schedule");
-
-    const scheduleSnap =
-      await getDoc(scheduleRef);
-
     try {
-      if (scheduleSnap.exists()) {
+      const locationId =
+        resolveScheduleLocation(athlete);
+
+      if (locationId) {
         const schedule =
-          scheduleSnap.data() || {};
+          filterScheduleForAthlete(
+            await loadPublishedLocationSchedule(
+              db,
+              locationId
+            ),
+            athlete
+          );
 
-        const daily =
-          Array.isArray(schedule.daily)
-            ? schedule.daily
-            : [];
-
-        renderToday(daily);
+        renderToday(schedule.weekly);
       } else {
         setHTML("today-box", `
           <p class="muted-empty">
-            <span class="en">No schedule posted yet.</span>
-            <span class="es">Todavía no hay horario publicado.</span>
+            <span class="en">No location schedule is assigned yet.</span>
+            <span class="es">Todavía no hay un horario de ubicación asignado.</span>
           </p>
         `);
       }

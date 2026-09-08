@@ -1,0 +1,75 @@
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+
+export const LOCATION_SCHEDULES = "paraSchedule";
+export const LOCATION_SCHEDULE_DRAFTS = "paraScheduleDrafts";
+export const LOCATION_IDS = Object.freeze([
+  "santa-ynez-valley",
+  "lompoc",
+  "elk-grove",
+]);
+
+export const LOCATION_NAMES = Object.freeze({
+  "santa-ynez-valley": "Santa Ynez Valley",
+  lompoc: "Lompoc",
+  "elk-grove": "Elk Grove",
+});
+
+export const SANTA_YNEZ_VALLEY_SCHEDULE_SEED = Object.freeze({
+  locationId: "santa-ynez-valley",
+  locationName: "Santa Ynez Valley",
+  timezone: "America/Los_Angeles",
+  status: "draft",
+  weekly: [
+    { day: "Monday, Wednesday", title: "Strength & Fit", type: "fitness", provider: "yesc", label: "6:00–6:45 PM", start: "18:00", end: "18:45", instructor: "TBD", audience: "all", discipline: "", details: "Fitness-focused evening class." },
+    { day: "Monday, Wednesday", title: "Kickboxing & Fit", type: "fitness", provider: "yesc", label: "7:00–7:45 PM", start: "19:00", end: "19:45", instructor: "TBD", audience: "all", discipline: "", details: "Fitness-focused evening class." },
+    { day: "Tuesday, Thursday", title: "Road2Champion™ Muay Thai", type: "combat", provider: "sandman", label: "4:00–5:00 PM", start: "16:00", end: "17:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "muay-thai", details: "Ages 7–13. Enrollment open — starting soon." },
+    { day: "Tuesday, Thursday", title: "Road2Champion™ Wrestling", type: "combat", provider: "sandman", label: "5:00–6:00 PM", start: "17:00", end: "18:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 7–13." },
+    { day: "Tuesday, Thursday", title: "Path2Legend™ Wrestling", type: "combat", provider: "sandman", label: "5:30–7:00 PM", start: "17:30", end: "19:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "wrestling", details: "Ages 14+." },
+    { day: "Tuesday, Thursday", title: "Path2Legend™ Boxing", type: "combat", provider: "sandman", label: "6:30–8:00 PM", start: "18:30", end: "20:00", instructor: "Coach Sandoval", audience: "discipline", discipline: "boxing", details: "Ages 14+." },
+  ],
+  events: [],
+  banner: { active: false, text: "" },
+});
+
+export function normalizeLocationId(value = "") {
+  const normalized = String(value || "").trim().toLowerCase();
+  return LOCATION_IDS.includes(normalized) ? normalized : "";
+}
+
+export function resolveScheduleLocation(record = {}, fallback = "") {
+  return normalizeLocationId(
+    record.locationId || record.location?.id || record.academyLocationId || fallback
+  );
+}
+
+export function normalizeSchedule(data = {}, locationId = "") {
+  const id = normalizeLocationId(data.locationId || locationId);
+  return {
+    locationId: id,
+    locationName: String(data.locationName || LOCATION_NAMES[id] || "Location"),
+    timezone: String(data.timezone || "America/Los_Angeles"),
+    status: data.status === "published" ? "published" : "unpublished",
+    weekly: Array.isArray(data.weekly) ? data.weekly : Array.isArray(data.daily) ? data.daily : [],
+    events: Array.isArray(data.events) ? data.events : Array.isArray(data.tournaments) ? data.tournaments : [],
+    banner: data.banner && typeof data.banner === "object" ? data.banner : { active: false, text: "" },
+    publishedAt: data.publishedAt || null,
+  };
+}
+
+export async function loadPublishedLocationSchedule(db, locationId) {
+  const id = normalizeLocationId(locationId);
+  if (!id) throw new Error("A valid schedule location is required.");
+  const snapshot = await getDoc(doc(db, LOCATION_SCHEDULES, id));
+  if (!snapshot.exists()) return normalizeSchedule({}, id);
+  const schedule = normalizeSchedule(snapshot.data() || {}, id);
+  return schedule.status === "published" ? schedule : normalizeSchedule({}, id);
+}
+
+export function filterScheduleForAthlete(schedule, athlete = null) {
+  if (!athlete) return schedule;
+  const raw = [athlete.primaryDiscipline, athlete.discipline, ...(Array.isArray(athlete.disciplines) ? athlete.disciplines : [])]
+    .map((value) => String(value || "").trim().toLowerCase());
+  const aliases = new Set(raw.flatMap((value) => value.includes("muay") || value.includes("kickbox") ? [value, "muay-thai", "kickboxing"] : [value]));
+  const visible = (item) => item?.audience !== "discipline" || !item?.discipline || aliases.has(String(item.discipline).toLowerCase());
+  return { ...schedule, weekly: schedule.weekly.filter(visible), events: schedule.events.filter(visible) };
+}

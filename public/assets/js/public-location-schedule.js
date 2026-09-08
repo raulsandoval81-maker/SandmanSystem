@@ -1,0 +1,54 @@
+import { db } from "/assets/js/firebase-init.js";
+import { loadPublishedLocationSchedule, normalizeLocationId } from "/assets/js/location-schedule.js";
+
+const esc = (value = "") => String(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+
+function groupByDay(rows) {
+  const groups = new Map();
+  rows.forEach((row) => {
+    const day = String(row.day || "Schedule");
+    if (!groups.has(day)) groups.set(day, []);
+    groups.get(day).push(row);
+  });
+  return groups;
+}
+
+async function start() {
+  const root = document.querySelector("[data-location-schedule]");
+  if (!root) return;
+  const locationId = normalizeLocationId(root.dataset.locationSchedule);
+  const targets = [...root.querySelectorAll("[data-schedule-grid]")];
+  const states = [...root.querySelectorAll("[data-schedule-state]")];
+  if (!targets.length) return;
+
+  targets.forEach((target) => {
+    const spanish = Boolean(target.closest('[data-lang-block="es"]'));
+    target.innerHTML = spanish
+      ? `<article class="schedule-card"><h2>Cargando horario…</h2></article>`
+      : `<article class="schedule-card"><h2>Loading schedule…</h2></article>`;
+  });
+
+  const schedule = await loadPublishedLocationSchedule(db, locationId);
+
+  if (schedule.status !== "published" || !schedule.weekly.length) {
+    targets.forEach((target) => {
+      const spanish = Boolean(target.closest('[data-lang-block="es"]'));
+      target.innerHTML = spanish
+        ? `<article class="schedule-card"><h2>Horario no publicado</h2><p>La gerencia aún no ha publicado un horario de entrenamiento para esta ubicación.</p></article>`
+        : `<article class="schedule-card"><h2>Schedule not published</h2><p>Management has not published a training schedule for this location yet.</p></article>`;
+    });
+    states.forEach((state) => { state.textContent = state.closest('[data-lang-block="es"]') ? "Comuníquese con la gerencia para conocer la disponibilidad actual." : "Contact Management for current availability."; });
+    return;
+  }
+
+  targets.forEach((target) => {
+    const spanish = Boolean(target.closest('[data-lang-block="es"]'));
+    target.innerHTML = [...groupByDay(schedule.weekly)].map(([day, rows]) => `<article class="schedule-card"><h2>${esc(spanish ? (rows[0]?.dayEs || day) : day)}</h2>${rows.map((row) => `<div class="schedule-session"><h3 class="schedule-session__title">${esc(spanish ? (row.titleEs || row.title) : row.title)}</h3>${row.details ? `<p>${esc(spanish ? (row.detailsEs || row.details) : row.details)}</p>` : ""}<p class="schedule-time">${esc(row.label || row.time || `${row.start || ""}–${row.end || ""}`)}</p></div>`).join("")}</article>`).join("");
+  });
+  states.forEach((state) => { state.textContent = state.closest('[data-lang-block="es"]') ? "Horario publicado por la gerencia de la academia." : "Published by Academy Management."; });
+}
+
+start().catch((error) => {
+  console.error("[public-location-schedule] load failed", error);
+  document.querySelectorAll("[data-schedule-state]").forEach((state) => { state.textContent = "Schedule unavailable. Contact Management for current availability."; });
+});

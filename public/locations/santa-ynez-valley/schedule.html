@@ -192,7 +192,7 @@
     aria-hidden="true"
   ></div>
 
-  <main class="local-page">
+  <main class="local-page" data-location-schedule="santa-ynez-valley">
 
     <section class="local-page__header">
 
@@ -205,63 +205,17 @@
       </p>
     </section>
 
-    <section class="schedule-grid">
-
+    <section class="schedule-grid" data-schedule-grid>
       <article class="schedule-card">
-        <h2>Monday & Wednesday</h2>
-
-        <p class="schedule-card__sub">
-          Fitness-focused evening classes.
+        <h2>Loading schedule…</h2>
+        <p>
+          Current training times are published by Academy Management.
         </p>
-
-        <div class="schedule-session">
-          <h3 class="schedule-session__title">Strength & Fit</h3>
-          <p class="schedule-time">6:00–6:45 PM</p>
-        </div>
-
-        <div class="schedule-session">
-          <h3 class="schedule-session__title">Kickboxing & Fit</h3>
-          <p class="schedule-time">7:00–7:45 PM</p>
-        </div>
       </article>
-
-      <article class="schedule-card">
-        <h2>Tuesday & Thursday</h2>
-
-        <p class="schedule-card__sub">
-          Youth and teen combat development.
-        </p>
-
-        <div class="schedule-session">
-          <h3 class="schedule-session__title">Zero2Hero™ Muay Thai</h3>
-          <p>Ages 7–13</p>
-          <p class="schedule-time">4:00–5:00 PM</p>
-          <span class="schedule-status">Enrollment Open — Starting Soon</span>
-        </div>
-
-        <div class="schedule-session">
-          <h3 class="schedule-session__title">Zero2Hero™ Wrestling</h3>
-          <p>Ages 7–13</p>
-          <p class="schedule-time">5:00–6:00 PM</p>
-        </div>
-
-        <div class="schedule-session">
-          <h3 class="schedule-session__title">Path2Legend™ Wrestling</h3>
-          <p>Ages 14+</p>
-          <p class="schedule-time">5:30–7:00 PM</p>
-        </div>
-
-        <div class="schedule-session">
-          <h3 class="schedule-session__title">Path2Legend™ Boxing</h3>
-          <p>Ages 14+</p>
-          <p class="schedule-time">6:30–8:00 PM</p>
-        </div>
-      </article>
-
     </section>
 
-    <p class="schedule-note">
-      Please bring running shoes. During overlapping sessions, some groups may begin outdoors before moving into the main training space.
+    <p class="schedule-note" data-schedule-state>
+      Loading current schedule…
     </p>
 
     <p class="schedule-note">
@@ -288,6 +242,7 @@
   <script src="/assets/js/language.js" defer></script>
   <script src="/assets/js/theme.js" defer></script>
   <script src="/assets/js/navigation.js" defer></script>
+  <script type="module" src="/assets/js/public-location-schedule.js"></script>
 
 </body>
 </html>
