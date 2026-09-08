@@ -177,6 +177,46 @@
       color:var(--heading-accent,#d4af37);
     }
 
+    .schedule-live__detail{
+      display:flex;
+      flex-direction:column;
+      gap:.28rem;
+      line-height:1.4;
+    }
+
+    .schedule-live__class{
+      color:var(--heading,#fff);
+      font-size:1.05rem;
+      font-weight:900;
+    }
+
+    .schedule-live__time{
+      color:var(--heading-accent,#d4af37);
+      font-weight:900;
+    }
+
+    .schedule-live__countdown,
+    .schedule-live__empty{
+      color:var(--muted,#d0d0d4);
+    }
+
+    html[data-theme="light"] .schedule-live__class,
+    body.day-mode .schedule-live__class{
+      color:#17191c;
+    }
+
+    html[data-theme="light"] .schedule-live__time,
+    body.day-mode .schedule-live__time{
+      color:#7b651c;
+    }
+
+    html[data-theme="light"] .schedule-live__countdown,
+    html[data-theme="light"] .schedule-live__empty,
+    body.day-mode .schedule-live__countdown,
+    body.day-mode .schedule-live__empty{
+      color:#4b5565;
+    }
+
     .schedule-card--day{
       min-height:100%;
     }
@@ -395,7 +435,7 @@
 
     <aside class="schedule-admissions" aria-label="Admissions notice">
       <strong>Admissions by Appointment Only</strong>
-      <p>Classes are closed training sessions. No drop-ins or spectators.</p>
+      <p>Classes are closed training sessions. No drop-ins or spectators without prior approval.</p>
       <a href="/connect/interest/?academy=sandman&amp;location=santa-ynez-valley">
         Complete the Interest Form
       </a>
