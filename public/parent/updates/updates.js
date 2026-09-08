@@ -170,7 +170,7 @@ async function init() {
 
     const items =
       (result.data?.items || [])
-        .slice(0, 12);
+        .slice(0, 8);
 
     const unreadCount =
       result.data?.unreadCount || 0;
