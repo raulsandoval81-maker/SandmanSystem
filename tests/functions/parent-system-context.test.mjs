@@ -66,9 +66,10 @@ test("selectors are conditional and navigation preserves authorized context", ()
 
 test("Wrestling-only hub resources are fail-closed until Wrestling is authorized", () => {
   const html = readFileSync("public/parent/system/index.html", "utf8");
-  for (const path of ["faq.html", "tournament-guide.html", "weight-hydration.html", "wrestling-101.html", "gear-hygiene.html", "volunteer.html"]) {
+  for (const path of ["faq.html", "tournament-guide.html", "weight-hydration.html", "wrestling-101.html", "gear-hygiene.html"]) {
     assert.match(html, new RegExp(`data-parent-discipline="wrestling"[^>]+${path.replace(".", "\\.")}[^>]+hidden`));
   }
+  assert.doesNotMatch(html, /handouts\/volunteer\.html/);
   const source = readFileSync("public/parent/system/system-context.js", "utf8");
   assert.match(source, /item\.hidden = item\.dataset\.parentDiscipline !== selectedContext\.activeDiscipline/);
 });
