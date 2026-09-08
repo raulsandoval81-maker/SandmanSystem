@@ -13,9 +13,21 @@ exports.getParentInbox = (0, https_1.onCall)(async (req) => {
         .collection("parentInbox")
         .where("parentUid", "==", parentUid)
         .orderBy("createdAt", "desc")
-        .limit(50)
         .get();
-    const items = snap.docs.map((doc) => {
+    const keepDocs = snap.docs.slice(0, 8);
+    const staleDocs = snap.docs.slice(8);
+    if (staleDocs.length) {
+        for (let i = 0; i < staleDocs.length; i += 400) {
+            const batch = db.batch();
+            staleDocs
+                .slice(i, i + 400)
+                .forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+        }
+    }
+    const items = keepDocs.map((doc) => {
         const data = doc.data();
         return {
             id: doc.id,
