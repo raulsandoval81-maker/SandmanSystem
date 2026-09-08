@@ -938,3 +938,54 @@ body{
   display:none !important;
 }
 
+
+/* F4 PROFILE DAY-MODE CONTRAST FIX — 2026-09-08 */
+html[data-athlete-theme="day"] body.f4-athlete .rank-stats{
+  color:#3f392f;
+  opacity:1;
+  font-weight:650;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .lane-meta{
+  color:#342f28;
+  opacity:1;
+  font-weight:700;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .lane-sub{
+  color:#4a443b;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .unlock-hint{
+  color:#5b5142;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .muted{
+  color:#514a3f;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .label{
+  color:#5a5247;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .achievement-row small,
+html[data-athlete-theme="day"] body.f4-athlete .activity-row small{
+  color:#5a5247;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .achievement-row p,
+html[data-athlete-theme="day"] body.f4-athlete .activity-row p{
+  color:#3f392f;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .achievement-row strong,
+html[data-athlete-theme="day"] body.f4-athlete .activity-row strong{
+  color:#1d1d1d;
+  opacity:1;
+}
