@@ -132,6 +132,8 @@
 .handout-card{
   display:block;
   background:var(--panel);
+  color:inherit;
+  text-decoration:none;
   border:1px solid var(--line);
   border-radius:18px;
   padding:18px;
@@ -178,8 +180,30 @@
 }
 
 .handout-link{
-  color:var(--gold-deep);
-  font-weight:800;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:max-content;
+  min-height:38px;
+  margin-top:4px;
+  padding:0 13px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel-soft);
+  color:var(--gold);
+  text-decoration:none;
+  font-weight:900;
+  line-height:1;
+  transition:
+    border-color .15s ease,
+    background .15s ease,
+    transform .15s ease;
+}
+
+.handout-card:hover .handout-link{
+  border-color:var(--gold);
+  background:rgba(244,212,77,.08);
+  transform:translateY(-1px);
 }
 
 /* Mobile */
@@ -278,6 +302,27 @@
     </section>
 
     <!-- Sandman System -->
+
+    <section id="parentSystemContext" class="system-context" aria-labelledby="systemContextTitle" hidden>
+      <div class="system-context__heading">
+        <p class="handout-type" id="systemContextTitle">
+          <span class="en">Viewing</span><span class="es">Viendo</span>
+        </p>
+        <strong id="systemContextSummary">Loading family context…</strong>
+      </div>
+      <div id="systemAthleteField" class="system-context__field" hidden>
+        <label for="systemAthleteSelect"><span class="en">Athlete</span><span class="es">Atleta</span></label>
+        <select id="systemAthleteSelect"></select>
+      </div>
+      <div id="systemDisciplineField" class="system-context__field" hidden>
+        <label for="systemDisciplineSelect"><span class="en">Discipline</span><span class="es">Disciplina</span></label>
+        <select id="systemDisciplineSelect"></select>
+      </div>
+      <p id="systemDisciplineNotice" class="system-context__notice" hidden>
+        <span class="en">Discipline guide not available. Shared family resources remain available.</span>
+        <span class="es">La guía de disciplina no está disponible. Los recursos familiares compartidos siguen disponibles.</span>
+      </p>
+    </section>
 
     <section class="system-guide-grid">
 
@@ -464,7 +509,7 @@
     <section id="tab-handouts" class="tab-panel">
       <div class="handout-grid">
 
-        <a class="handout-card" href="/parent/system/handouts/faq.html">
+        <a class="handout-card" data-parent-discipline="wrestling" href="/parent/system/handouts/faq.html" hidden>
           <div class="handout-top">
             <div class="handout-icon">📄</div>
             <div class="handout-meta">
@@ -485,7 +530,7 @@
           </span>
         </a>
 
-        <a class="handout-card" href="/parent/system/handouts/tournament-guide.html">
+        <a class="handout-card" data-parent-discipline="wrestling" href="/parent/system/handouts/tournament-guide.html" hidden>
           <div class="handout-top">
             <div class="handout-icon">📄</div>
             <div class="handout-meta">
@@ -510,7 +555,7 @@
         </a>
 
 
-        <a class="handout-card" href="/parent/system/handouts/weight-hydration.html">
+        <a class="handout-card" data-parent-discipline="wrestling" href="/parent/system/handouts/weight-hydration.html" hidden>
           <div class="handout-top">
             <div class="handout-icon">📄</div>
             <div class="handout-meta">
@@ -534,7 +579,7 @@
           </span>
         </a>
 
-        <a class="handout-card" href="/parent/system/handouts/wrestling-101.html">
+        <a class="handout-card" data-parent-discipline="wrestling" href="/parent/system/handouts/wrestling-101.html" hidden>
           <div class="handout-top">
             <div class="handout-icon">📄</div>
             <div class="handout-meta">
@@ -555,7 +600,7 @@
           </span>
         </a>
 
-        <a class="handout-card" href="/parent/system/handouts/gear-hygiene.html">
+        <a class="handout-card" data-parent-discipline="wrestling" href="/parent/system/handouts/gear-hygiene.html" hidden>
           <div class="handout-top">
             <div class="handout-icon">🧼</div>
             <div class="handout-meta">
@@ -578,7 +623,7 @@
             <span class="es">Abrir Guía →</span>
           </span>
         </a>
-                <a class="handout-card" href="/parent/system/handouts/volunteer.html">
+                <a class="handout-card" data-parent-discipline="wrestling" href="/parent/system/handouts/volunteer.html" hidden>
           <div class="handout-top">
             <div class="handout-icon">📄</div>
             <div class="handout-meta">
@@ -653,6 +698,7 @@
   setTab("overview");
 </script>
 <script src="/assets/js/parent-shell.js"></script>
+<script type="module" src="/parent/system/system-context.js"></script>
 
 </body>
 </html>
