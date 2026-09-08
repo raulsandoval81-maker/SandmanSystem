@@ -989,3 +989,62 @@ html[data-athlete-theme="day"] body.f4-athlete .activity-row strong{
   color:#1d1d1d;
   opacity:1;
 }
+
+/* F4 PROFILE DAY SURFACE CONTRAST — 2026-09-08 */
+html[data-athlete-theme="day"] body.f4-athlete{
+  --bg:#e7dfd1;
+  --panel:#fffdf7;
+  --panel2:#e9e1d3;
+  --line:#aa9d87;
+  --ink:#171717;
+  --muted:#514a3f;
+  --gold:#6f520b;
+  --sandman-gold:#6f520b;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .card{
+  background:#fffdf7;
+  border-color:#b3a791;
+  box-shadow:0 8px 20px rgba(45,38,27,.09);
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .stat{
+  background:#e9e1d3;
+  border-color:#a99d89;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete #combatArcTitle,
+html[data-athlete-theme="day"] body.f4-athlete .drop-title.gold{
+  color:#6f520b;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .label{
+  color:#494239;
+  font-weight:800;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .value{
+  color:#171717;
+  opacity:1;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .discipline-selector{
+  color:#171717;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .discipline-btn{
+  border-color:#8f8574;
+  color:#29251f;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .discipline-btn.active{
+  color:#171717;
+}
+
+html[data-athlete-theme="day"] body.f4-athlete .identity-box,
+html[data-athlete-theme="day"] body.f4-athlete .rank-box{
+  background:#e9e1d3;
+  border-color:#a99d89;
+}
