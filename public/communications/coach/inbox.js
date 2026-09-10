@@ -27,6 +27,9 @@ import {
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init-para.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
+
+await requireCoach();
 
 const listEl =
   document.getElementById("inbox-list");

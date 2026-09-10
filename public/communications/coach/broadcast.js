@@ -34,13 +34,14 @@ import {
   doc,
   updateDoc
 } from "/assets/js/firebase-init-para.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
 import {
   renderAnnouncementCard,
   sortPinnedThenNewest
 } from "/communications/shared/announcements-ui.js";
 
-await ensureSignedIn();
+await requireCoach();
 
 /* =========================
    CONFIG

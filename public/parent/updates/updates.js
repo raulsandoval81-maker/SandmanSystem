@@ -103,8 +103,6 @@ function renderMessage(
   item,
   index
 ) {
-  const isUnread =
-    item.read !== true;
 
   const displayType =
     labels[item.type] ||
@@ -116,9 +114,7 @@ function renderMessage(
   const created =
     formatDate(item.createdAt);
 
-  const openByDefault =
-    index === 0 &&
-    isUnread;
+  const openByDefault = index === 0;
 
   return `
     <details
@@ -142,11 +138,6 @@ function renderMessage(
         </span>
 
         <span class="update-summary-side">
-          ${
-            isUnread
-              ? `<span class="update-new-pill">NEW</span>`
-              : ""
-          }
 
           <span
             class="update-chevron"
@@ -176,48 +167,15 @@ function renderMessage(
             `
             : ""
         }
-
-        ${
-          isUnread
-            ? `
-              <button
-                class="btn mark-read-btn"
-                type="button"
-                data-message-id="${esc(item.id)}"
-                style="margin-top:14px;"
-              >
-                Mark Read
-              </button>
-            `
-            : ""
-        }
       </div>
     </details>
   `;
 }
 
-function renderUnreadCount(items = []) {
+function renderUnreadCount() {
   if (!unreadCountEl) return;
-
-  const count =
-    items.filter(
-      (item) => item.read !== true
-    ).length;
-
-  if (count > 0) {
-    unreadCountEl.style.display =
-      "inline-block";
-
-    unreadCountEl.textContent =
-      count === 1
-        ? "1 unread"
-        : `${count} unread`;
-  } else {
-    unreadCountEl.style.display =
-      "none";
-
-    unreadCountEl.textContent = "";
-  }
+  unreadCountEl.style.display = "none";
+  unreadCountEl.textContent = "";
 }
 
 function renderFeed() {

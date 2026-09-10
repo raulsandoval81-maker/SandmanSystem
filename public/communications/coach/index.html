@@ -9,6 +9,8 @@
   />
 
   <title>Coach Communications Console</title>
+  <meta http-equiv="refresh" content="0;url=/communications/coach/hub.html" />
+  <link rel="canonical" href="/communications/coach/hub.html" />
 
   <link
     rel="stylesheet"
@@ -224,7 +226,7 @@
 
   <a
     class="pc-home"
-    href="/coach/index.html"
+    href="/coaches/hub/"
     aria-label="Coach Home"
   >
     🏠
@@ -269,7 +271,7 @@
 
     <a
       class="card"
-      href="/communications/coach/announcements.html"
+      href="/communications/coach/announcements-feed.html"
     >
       <h2>Announcements Feed</h2>
 
@@ -365,7 +367,7 @@
 
     <a
       class="card"
-      href="/communications/coach/comms.html"
+      href="/communications/coach/bilingual-comms.html"
     >
       <h2>Bilingual Message Builder</h2>
 
@@ -381,7 +383,7 @@
 
     <a
       class="card"
-      href="/communications/coach/volunteer-admin.html"
+      href="/communications/coach/inbox.html"
     >
       <h2>Volunteer Admin</h2>
 
@@ -397,7 +399,7 @@
 
     <a
       class="card"
-      href="/communications/coach/tools.html"
+      href="/coaches/index.html"
     >
       <h2>Tools & Debug</h2>
 
@@ -416,5 +418,11 @@
 
 </main>
 
+<script>
+  const target = new URL("/communications/coach/hub.html", window.location.origin);
+  target.search = window.location.search;
+  target.hash = window.location.hash;
+  window.location.replace(target.href);
+</script>
 </body>
 </html>

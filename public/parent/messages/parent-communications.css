@@ -1,0 +1,320 @@
+.parent-communications{
+  --communications-accent:var(--gold);
+}
+
+.parent-member-app .parent-communications.wrap{
+  width:min(100%,1180px);
+  max-width:1180px;
+}
+
+.parent-communications .page-head,
+.parent-communications .hero{
+  margin:0 0 18px;
+  padding:clamp(22px,4vw,34px);
+  border:1px solid var(--line);
+  border-radius:22px;
+  background:var(--panel);
+  box-shadow:var(--shadow);
+}
+
+.parent-communications .page-head{
+  border-top:4px solid var(--communications-accent);
+}
+
+.parent-communications .hero{
+  background:var(--panel);
+}
+
+.parent-communications .eyebrow{
+  margin:0 0 7px;
+  color:var(--gold);
+  font-size:.75rem;
+  font-weight:900;
+  letter-spacing:.11em;
+  text-transform:uppercase;
+}
+
+.parent-communications .page-title,
+.parent-communications .hero h1{
+  margin:0;
+  color:var(--text);
+  font-size:clamp(1.75rem,4vw,2.5rem);
+  line-height:1.1;
+  letter-spacing:-.03em;
+}
+
+.parent-communications .page-sub,
+.parent-communications .hero-sub,
+.parent-communications .hero > p:not(.eyebrow):not(.hero-scope){
+  max-width:760px;
+  margin:11px 0 0;
+  color:var(--muted);
+  line-height:1.55;
+}
+
+.parent-communications .main{
+  display:grid;
+  gap:18px;
+}
+
+.parent-communications .card,
+.parent-communications .panel{
+  margin:0;
+  padding:clamp(18px,3vw,26px);
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:var(--panel);
+  color:var(--text);
+  box-shadow:var(--shadow);
+}
+
+.parent-communications .section-head,
+.parent-communications .section-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin:0 0 14px;
+}
+
+.parent-communications .section-title,
+.parent-communications .card__title,
+.parent-communications .section-header h2{
+  margin:0;
+  color:var(--text);
+  font-size:1.1rem;
+  line-height:1.25;
+}
+
+.parent-communications .section-note{
+  color:var(--muted);
+  font-size:.8rem;
+  font-weight:750;
+}
+
+.parent-communications .communication-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:14px;
+}
+
+.parent-communications .communication-tile{
+  min-width:0;
+  min-height:190px;
+  padding:18px;
+  border:1px solid var(--line);
+  border-radius:15px;
+  background:var(--panel-soft);
+  color:var(--text);
+  text-decoration:none;
+  box-shadow:none;
+}
+
+.parent-communications .communication-tile:hover,
+.parent-communications .communication-tile:focus-visible{
+  border-color:var(--gold);
+  color:var(--text);
+  outline:3px solid rgba(209,174,63,.14);
+  outline-offset:1px;
+  transform:translateY(-1px);
+}
+
+.parent-communications .communication-tile .cat{
+  color:var(--gold);
+  font-size:.7rem;
+  font-weight:900;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+}
+
+.parent-communications .communication-tile .title{
+  margin:8px 0 6px;
+  font-size:1.03rem;
+  font-weight:900;
+  line-height:1.25;
+}
+
+.parent-communications .communication-tile .sub,
+.parent-communications .list{
+  color:var(--muted);
+  line-height:1.5;
+}
+
+.parent-communications .list{
+  margin:0;
+  padding-left:20px;
+}
+
+.parent-communications .list li + li{
+  margin-top:9px;
+}
+
+.parent-communications .footer-note{
+  margin:4px 0 0;
+  color:var(--muted);
+  font-size:.8rem;
+  text-align:center;
+}
+
+.parent-communications .hero-scope,
+.parent-communications .badge{
+  display:inline-flex;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  border:1px solid rgba(209,174,63,.35);
+  border-radius:999px;
+  background:rgba(209,174,63,.08);
+  color:var(--gold);
+  font-size:.75rem;
+  font-weight:850;
+}
+
+.parent-communications .hero-scope{
+  margin:13px 0 0;
+  padding:6px 10px;
+}
+
+.parent-communications .pin-shell{
+  margin:0 0 14px;
+  padding:12px 14px;
+  border-color:rgba(209,174,63,.4);
+  background:rgba(209,174,63,.06);
+}
+
+.parent-communications .empty,
+.parent-communications .updates-stack > p{
+  margin:0;
+  padding:18px;
+  border:1px dashed var(--line);
+  border-radius:13px;
+  background:var(--panel-soft);
+  color:var(--muted);
+  text-align:center;
+}
+
+.parent-communications .bulletin-stack,
+.parent-communications .updates-stack{
+  display:grid;
+  gap:10px;
+  margin:0;
+}
+
+.parent-communications .bulletin-row,
+.parent-communications .parent-update-row{
+  margin:0;
+  overflow:hidden;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:var(--panel-soft);
+  color:var(--text);
+}
+
+.parent-communications .bulletin-row[open],
+.parent-communications .bulletin-row.pinned,
+.parent-communications .parent-update-row[open]{
+  border-color:rgba(209,174,63,.55);
+}
+
+.parent-communications .bulletin-summary,
+.parent-communications .parent-update-summary{
+  min-height:64px;
+  padding:14px 16px;
+}
+
+.parent-communications .bulletin-title,
+.parent-communications .update-summary-title,
+.parent-communications .bulletin-message,
+.parent-communications .update-detail p{
+  color:var(--text);
+}
+
+.parent-communications .bulletin-meta,
+.parent-communications .update-summary-date,
+.parent-communications .bulletin-chevron,
+.parent-communications .update-chevron{
+  color:var(--muted);
+}
+
+.parent-communications .bulletin-pin,
+.parent-communications .update-new-pill{
+  background:var(--gold);
+  color:#111;
+}
+
+.parent-communications .bulletin-detail,
+.parent-communications .update-detail{
+  border-color:var(--line);
+}
+
+.parent-communications .bulletin-more-wrap,
+.parent-communications .updates-more-wrap{
+  margin-top:16px;
+}
+
+.parent-communications .bulletin-more-btn,
+.parent-communications .updates-more-btn,
+.parent-communications .btn{
+  min-height:44px;
+  padding:9px 17px;
+  border:1px solid var(--line);
+  border-radius:999px;
+  background:var(--panel-soft);
+  color:var(--text);
+  font:inherit;
+  font-weight:850;
+  cursor:pointer;
+}
+
+.parent-communications .bulletin-more-btn:hover,
+.parent-communications .updates-more-btn:hover,
+.parent-communications .btn:hover,
+.parent-communications .bulletin-more-btn:focus-visible,
+.parent-communications .updates-more-btn:focus-visible,
+.parent-communications .btn:focus-visible{
+  border-color:var(--gold);
+  color:var(--gold);
+  outline:3px solid rgba(209,174,63,.15);
+  outline-offset:1px;
+}
+
+.parent-communications .update-note{
+  border:1px solid rgba(209,174,63,.28);
+  background:rgba(209,174,63,.08);
+}
+
+@media(max-width:760px){
+  .parent-communications .communication-grid{
+    grid-template-columns:minmax(0,1fr);
+  }
+
+  .parent-communications .communication-tile{
+    min-height:auto;
+  }
+}
+
+@media(max-width:560px){
+  .parent-communications .section-head,
+  .parent-communications .section-header,
+  .parent-communications .feed-head,
+  .parent-communications .feed-foot{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+
+  .parent-communications .bulletin-summary,
+  .parent-communications .parent-update-summary{
+    padding:13px 14px;
+  }
+
+  .parent-communications .bulletin-detail,
+  .parent-communications .update-detail{
+    padding:0 14px 14px;
+  }
+
+  .parent-communications .bulletin-more-btn,
+  .parent-communications .updates-more-btn,
+  .parent-communications .btn{
+    width:100%;
+  }
+}

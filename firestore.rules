@@ -7,15 +7,13 @@ service cloud.firestore {
        Para-Comms V1
     ---------------------------------------*/
     match /paraParentInbox/{threadId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if true;
+      allow read, create, update: if isActiveCoachOrAdmin();
       allow delete: if false;
 
       match /thread/{messageId} {
-        allow read: if true;
+        allow read: if isActiveCoachOrAdmin();
 
-        allow create: if true
+        allow create: if isActiveCoachOrAdmin()
           && request.resource.data.keys().hasOnly([
             "from",
             "fromName",
@@ -120,7 +118,7 @@ service cloud.firestore {
     match /paraAnnouncements/{id} {
       allow read: if request.auth != null;
 
-      allow create: if request.auth != null
+      allow create: if isActiveCoachOrAdmin()
         && request.resource.data.teamId is string
         && request.resource.data.category is string
         && request.resource.data.title is string
@@ -132,7 +130,7 @@ service cloud.firestore {
         && request.resource.data.message.size() > 0
         && request.resource.data.message.size() <= 3000;
 
-      allow update: if request.auth != null
+      allow update: if isActiveCoachOrAdmin()
         && request.resource.data.diff(resource.data).changedKeys().hasOnly([
           "pinned",
           "pinnedAt",
@@ -499,29 +497,41 @@ service cloud.firestore {
        Volunteer Inbox Threads
     ---------------------------------------*/
     match /paraVolunteerInbox/{threadId} {
-      allow read: if request.auth != null;
+      allow read: if isVolunteerParticipant(threadId) || isActiveCoachOrAdmin();
 
-      allow create: if request.auth != null
-        && request.resource.data.parentEmail is string
-        && request.resource.data.parentName is string
+      allow create: if (isActiveCoachOrAdmin()
+          || (request.auth != null && request.resource.data.parentUid == request.auth.uid))
         && request.resource.data.athlete is string
-        && request.resource.data.subject is string
         && request.resource.data.status is string
         && request.resource.data.source is string
-        && request.resource.data.linkedVolunteerId is string
         && request.resource.data.createdAt is timestamp
-        && request.resource.data.updatedAt is timestamp
-        && request.resource.data.coachHasUnread is bool
-        && request.resource.data.parentHasUnread is bool
-        && request.resource.data.seenByCoach is bool
-        && request.resource.data.seenByParent is bool
+        && (
+          (
+            request.resource.data.parentEmail is string
+            && request.resource.data.parentName is string
+            && request.resource.data.subject is string
+            && request.resource.data.linkedVolunteerId is string
+            && request.resource.data.updatedAt is timestamp
+            && request.resource.data.coachHasUnread is bool
+            && request.resource.data.parentHasUnread is bool
+            && request.resource.data.seenByCoach is bool
+            && request.resource.data.seenByParent is bool
+          )
+          || (
+            request.resource.data.name is string
+            && request.resource.data.email is string
+            && request.resource.data.type is string
+            && request.resource.data.helpAreas is list
+          )
+        )
         && (
           !("parentUid" in request.resource.data)
           || request.resource.data.parentUid == null
           || request.resource.data.parentUid is string
         );
 
-      allow update: if request.auth != null
+      allow update: if (isVolunteerParticipant(threadId) || isActiveCoachOrAdmin())
+        && request.resource.data.parentUid == resource.data.parentUid
         && request.resource.data.diff(resource.data).changedKeys().hasOnly([
           "status",
           "coachHasUnread",
@@ -534,13 +544,19 @@ service cloud.firestore {
       allow delete: if false;
 
       match /thread/{messageId} {
-        allow read: if request.auth != null;
+        allow read: if isVolunteerParticipant(threadId) || isActiveCoachOrAdmin();
 
-        allow create: if request.auth != null
+        allow create: if (isVolunteerParticipant(threadId) || isActiveCoachOrAdmin())
           && request.resource.data.keys().hasOnly([
             "from",
+            "fromUid",
             "fromName",
+            "subject",
             "body",
+            "athleteId",
+            "athleteUid",
+            "athleteName",
+            "discipline",
             "createdAt",
             "seenByCoach",
             "seenByParent"
@@ -552,7 +568,13 @@ service cloud.firestore {
           && request.resource.data.body.size() <= 2000
           && request.resource.data.createdAt is timestamp
           && request.resource.data.seenByCoach is bool
-          && request.resource.data.seenByParent is bool;
+          && request.resource.data.seenByParent is bool
+          && (
+            (isVolunteerParticipant(threadId)
+              && request.resource.data.from in ["parent", "Parent"])
+            || (isActiveCoachOrAdmin()
+              && request.resource.data.from in ["coach", "Coach"])
+          );
 
         allow update, delete: if false;
       }
@@ -562,14 +584,41 @@ service cloud.firestore {
    Para Threads
 ---------------------------------------*/
 match /paraThreads/{athleteUid} {
-  allow read, write: if request.auth != null;
+  allow read: if isLinkedParent(athleteUid) || isCoachAssignedToAthlete(athleteUid);
+
+  allow create: if isLinkedParent(athleteUid)
+    && request.resource.data.athleteUid == athleteUid
+    && request.resource.data.parentUid == request.auth.uid;
+
+  allow update: if (
+      isLinkedParent(athleteUid)
+      && request.resource.data.athleteUid == resource.data.athleteUid
+      && request.resource.data.parentUid == resource.data.parentUid
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        "athleteName", "discipline", "academyId", "subject", "status",
+        "deleted", "messageCount", "lastBody", "lastSenderRole",
+        "lastSender", "lastReplyFrom", "lastReplyAt", "updatedAt",
+        "parentHasUnread", "coachHasUnread", "seenByCoach", "seenByParent",
+        "parentOpenedAt", "closedAt"
+      ])
+    ) || (
+      isCoachAssignedToAthlete(athleteUid)
+      && request.resource.data.athleteUid == resource.data.athleteUid
+      && request.resource.data.parentUid == resource.data.parentUid
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly([
+        "lastBody", "lastReplyAt", "updatedAt", "parentHasUnread",
+        "coachHasUnread", "seenByCoach", "seenByParent", "coachOpenedAt",
+        "archived", "archivedAt", "deleted", "deletedAt"
+      ])
+    );
 
 match /messages/{messageId} {
-  allow read: if request.auth != null;
+  allow read: if isLinkedParent(athleteUid) || isCoachAssignedToAthlete(athleteUid);
 
-  allow create: if request.auth != null
+  allow create: if (isLinkedParent(athleteUid) || isCoachAssignedToAthlete(athleteUid))
     && request.resource.data.keys().hasOnly([
       "athleteUid",
+      "conversationId",
       "subject",
       "discipline",
       "body",
@@ -584,7 +633,7 @@ match /messages/{messageId} {
     && request.resource.data.athleteUid is string
     && request.resource.data.athleteUid == athleteUid
     && request.resource.data.from in ["parent", "coach"]
-    && request.resource.data.fromUid is string
+    && request.resource.data.fromUid == request.auth.uid
     && request.resource.data.fromName is string
     && request.resource.data.body is string
     && request.resource.data.body.size() > 0
@@ -606,16 +655,25 @@ match /messages/{messageId} {
       !("parentEmail" in request.resource.data)
       || request.resource.data.parentEmail == null
       || request.resource.data.parentEmail is string
+    )
+    && (
+      (request.resource.data.from == "parent" && isLinkedParent(athleteUid))
+      || (request.resource.data.from == "coach" && isCoachAssignedToAthlete(athleteUid))
     );
 
-  allow update: if request.auth != null
-    && resource.data.from == "coach"
-    && request.resource.data.diff(resource.data).changedKeys().hasOnly([
-      "seenByParent",
-      "parentSeenAt"
-    ])
-    && request.resource.data.seenByParent == true
-    && request.resource.data.parentSeenAt is timestamp;
+  allow update: if (
+      isLinkedParent(athleteUid)
+      && resource.data.from == "coach"
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly(["seenByParent", "parentSeenAt"])
+      && request.resource.data.seenByParent == true
+      && request.resource.data.parentSeenAt is timestamp
+    ) || (
+      isCoachAssignedToAthlete(athleteUid)
+      && resource.data.from == "parent"
+      && request.resource.data.diff(resource.data).changedKeys().hasOnly(["seenByCoach", "seenByCoachAt"])
+      && request.resource.data.seenByCoach == true
+      && request.resource.data.seenByCoachAt is timestamp
+    );
 
   allow delete: if false;
  }
@@ -1921,6 +1979,44 @@ match /academySettings/{academyId} {
         && get(
           /databases/$(database)/documents/staff/$(request.auth.uid)
         ).data.status == "active";
+    }
+
+    function isLinkedParent(athleteUid) {
+      let linkPath = /databases/$(database)/documents/parentAthleteLinks/$(request.auth.uid + "_" + athleteUid);
+      return isSignedIn()
+        && exists(linkPath)
+        && get(linkPath).data.parentUid == request.auth.uid
+        && get(linkPath).data.athleteUid == athleteUid
+        && get(linkPath).data.status == "active";
+    }
+
+    function staffHasLocation(locationId) {
+      let staff = get(/databases/$(database)/documents/staff/$(request.auth.uid)).data;
+      return locationId is string
+        && (
+          (staff.get("locationIds", []) is list && locationId in staff.get("locationIds", []))
+          || (staff.get("locations", []) is list && locationId in staff.get("locations", []))
+          || staff.get("locationId", "") == locationId
+        );
+    }
+
+    function isCoachAssignedToAthlete(athleteUid) {
+      let athletePath = /databases/$(database)/documents/athletes/$(athleteUid);
+      let athlete = get(athletePath).data;
+      return isActiveCoachOrAdmin()
+        && exists(athletePath)
+        && (
+          isAdmin()
+          || athlete.get("coachUid", "") == request.auth.uid
+          || (athlete.get("coachIds", []) is list && request.auth.uid in athlete.get("coachIds", []))
+          || staffHasLocation(athlete.get("locationId", ""))
+        );
+    }
+
+    function isVolunteerParticipant(threadId) {
+      let threadPath = /databases/$(database)/documents/paraVolunteerInbox/$(threadId);
+      return isSignedIn() && exists(threadPath)
+        && get(threadPath).data.parentUid == request.auth.uid;
     }
 
     function isLaneSubmissionOwner(athleteId) {

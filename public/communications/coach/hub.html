@@ -10,18 +10,12 @@
 
   <title>Coach Communication Hub</title>
 
-  <link
-    rel="stylesheet"
-    href="/communications/shared/comms.css"
-  />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
 
   <link rel="icon" href="data:," />
 
   <style>
     :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --deep:#0b1120;
       --line:#27304a;
       --gold:#ffdd48;
       --text:#f0f4f8;
@@ -34,7 +28,7 @@
 
     body{
       margin:0;
-      background:var(--bg);
+      background:transparent;
       color:var(--text);
       font-family:
         system-ui,
@@ -64,7 +58,7 @@
       padding:14px;
       border:1px solid var(--line);
       border-radius:14px;
-      background:var(--panel);
+      background:rgba(255,255,255,.035);
       box-shadow:0 4px 14px rgba(0,0,0,.25);
     }
 
@@ -93,7 +87,7 @@
       border:1px solid var(--line);
       border-radius:10px;
       outline:none;
-      background:var(--deep);
+      background:rgba(255,255,255,.025);
       color:var(--text);
       font:inherit;
     }
@@ -119,7 +113,7 @@
 
     .btn-dark{
       border:1px solid var(--line);
-      background:#1d2a4a;
+      background:rgba(255,255,255,.05);
       color:var(--text);
     }
 
@@ -137,7 +131,7 @@
       padding:12px;
       border:1px solid var(--line);
       border-radius:12px;
-      background:var(--deep);
+      background:rgba(255,255,255,.025);
       color:inherit;
       text-decoration:none;
       transition:
@@ -149,7 +143,7 @@
     a.card:hover{
       transform:translateY(-1px);
       border-color:var(--gold);
-      background:#111a31;
+      background:rgba(255,255,255,.04);
     }
 
     .title{
@@ -210,21 +204,29 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/communications/coach/coach-comms-shell.css?v=2" />
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Communications Hub" data-coach-area="communications">
 
-<main class="wrap">
+<main class="wrap coach-comms" data-coach-shell-content>
 
-  <h1>Coach Communication Hub</h1>
+  <section class="panel page-intro">
+    <div class="headline">Coach Communications</div>
+    <h1>Communications Hub</h1>
+    <p class="sub">Handle private family conversations, send team notices, and review Management’s published schedule from one Coach workspace.</p>
+  </section>
 
   <section class="panel">
 
     <div class="headline">
-      Open Athlete Thread
+      Direct Conversations
     </div>
 
-    <div class="row">
+    <h2>Parent ↔ Coach Messages</h2>
+    <p class="sub">Private, athlete-specific conversations with linked families.</p>
+
+    <div class="row open-thread-row">
 
       <input
         id="open-id"
@@ -241,14 +243,6 @@
         Open
       </button>
 
-      <button
-        class="btn btn-dark"
-        type="button"
-        onclick="history.back()"
-      >
-        Back
-      </button>
-
     </div>
 
     <div class="scope-note">
@@ -258,13 +252,7 @@
       Join Inbox.
     </div>
 
-  </section>
-
-  <section class="panel">
-
-    <div class="headline">
-      Unread Threads
-    </div>
+    <h2>Unread Conversations</h2>
 
     <div
       id="status"
@@ -274,19 +262,9 @@
       Loading…
     </div>
 
-    <div
-      id="list"
-      class="list"
-      style="margin-top:10px;"
-    ></div>
+    <div id="list" class="list"></div>
 
-  </section>
-
-  <section class="panel">
-
-    <div class="headline">
-      Recent Active Threads
-    </div>
+    <h2 class="conversation-heading">Recent Conversations</h2>
 
     <div
       id="status2"
@@ -296,15 +274,39 @@
       Loading…
     </div>
 
-    <div
-      id="list2"
-      class="list"
-      style="margin-top:10px;"
-    ></div>
+    <div id="list2" class="list"></div>
 
   </section>
 
+  <section class="panel">
+    <div class="headline">Broadcast &amp; Bulletin</div>
+    <h2>One-to-Many Team Communication</h2>
+    <p class="sub">Send announcements to athletes, parents, or both. Use discipline targeting for tournament reminders, schedule changes, gear reminders, and team notices.</p>
+    <div class="list action-list">
+      <a class="card" href="/communications/coach/broadcast.html">
+        <span class="title">Open Broadcast Console</span>
+        <span class="sub">Create a team-wide or discipline-specific announcement.</span>
+      </a>
+      <a class="card" href="/communications/coach/announcements-feed.html">
+        <span class="title">Review Bulletin</span>
+        <span class="sub">Review active and archived Coach announcements.</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="headline">Published Schedule</div>
+    <h2>Official Academy Calendar</h2>
+    <p class="sub">Read the official location schedule and event logistics published by Management. Communicate around schedule changes through Broadcast; do not treat a message as the official calendar.</p>
+    <a class="card action-card" href="/communications/coach/schedule.html">
+      <span class="title">View Published Schedule</span>
+      <span class="pill">Read only</span>
+    </a>
+  </section>
+
 </main>
+
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 
 <script
   type="module"

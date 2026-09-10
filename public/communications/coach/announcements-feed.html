@@ -10,18 +10,12 @@
 
   <title>Announcements Feed · Coach</title>
 
-  <link
-    rel="stylesheet"
-    href="/communications/shared/comms.css"
-  />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
 
   <link rel="icon" href="data:," />
 
   <style>
     :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --deep:#0b1120;
       --line:#27304a;
       --gold:#ffdd48;
       --text:#f0f4f8;
@@ -35,7 +29,7 @@
 
     body{
       margin:0;
-      background:var(--bg);
+      background:transparent;
       color:var(--text);
       font-family:
         system-ui,
@@ -57,7 +51,7 @@
       padding:16px 18px;
       border:1px solid var(--line);
       border-radius:14px;
-      background:var(--panel);
+      background:rgba(255,255,255,.035);
       box-shadow:0 4px 14px rgba(0,0,0,.35);
     }
 
@@ -87,7 +81,7 @@
       padding:10px 14px;
       border:1px solid var(--line);
       border-radius:10px;
-      background:var(--deep);
+      background:rgba(255,255,255,.025);
       color:var(--text);
       font:inherit;
       font-weight:700;
@@ -105,7 +99,7 @@
       padding:20px 22px;
       border:1px solid #334155;
       border-radius:18px;
-      background:#0f172a;
+      background:rgba(255,255,255,.025);
       box-shadow:0 6px 20px rgba(0,0,0,.35);
       transition:
         transform .15s ease,
@@ -214,13 +208,14 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/communications/coach/coach-comms-shell.css?v=2" />
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Announcements Feed" data-coach-area="communications">
 
-<main class="wrap">
+<main class="wrap coach-comms" data-coach-shell-content>
 
-  <section class="panel">
+  <section class="panel page-intro">
 
     <h1>
       Announcements Feed
@@ -239,22 +234,15 @@
     <div class="top">
 
       <a
-        class="btn"
+        class="btn btn-gold"
         href="/communications/coach/broadcast.html"
       >
         + Post Announcement
       </a>
 
-      <a
-        class="btn"
-        href="/communications/coach/hub.html"
-      >
-        Coach Home
-      </a>
-
       <button
         id="toggle-archived"
-        class="btn"
+        class="btn btn-utility"
         type="button"
       >
         Show Archived
@@ -281,6 +269,8 @@
   </section>
 
 </main>
+
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 
 <script
   type="module"

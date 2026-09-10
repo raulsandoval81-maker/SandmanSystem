@@ -13,8 +13,9 @@ import {
   orderBy,
   limit
 } from "/assets/js/firebase-init-para.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
-await ensureSignedIn();
+const coachAccess = await requireCoach();
 
 const ROOT_COLLECTION = "paraThreads";
 const THREAD_LIMIT = 12;
@@ -341,7 +342,9 @@ if (btnSendReply && replyBox) {
 
     try {
       await addDoc(threadCol, {
+        athleteUid,
         from: "coach",
+        fromUid: coachAccess.uid,
         fromName: "Coach",
         body: text,
         createdAt: serverTimestamp(),

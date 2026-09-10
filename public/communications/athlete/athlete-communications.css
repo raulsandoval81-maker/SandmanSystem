@@ -1,0 +1,155 @@
+.athlete-comms-page{
+  --comms-surface:var(--athlete-panel);
+  --comms-inset:#f3f6fb;
+  --comms-border:var(--athlete-line);
+  --comms-title:var(--athlete-blue);
+  --comms-muted:var(--athlete-muted);
+  background:var(--athlete-bg);
+  color:var(--athlete-ink);
+}
+
+.athlete-comms{
+  width:min(1180px,calc(100% - 32px));
+  margin:0 auto;
+  padding:clamp(24px,4vw,52px) 0 56px;
+}
+
+.athlete-comms__hero,
+.athlete-comms-page .panel{
+  margin:0 0 18px;
+  padding:clamp(20px,3vw,30px);
+  border:1px solid var(--comms-border);
+  border-radius:20px;
+  background:var(--comms-surface);
+  color:var(--athlete-ink);
+  box-shadow:var(--athlete-shadow);
+}
+
+.athlete-comms__hero{
+  border-bottom:4px solid var(--athlete-gold);
+}
+
+.athlete-comms__eyebrow{
+  margin:0 0 7px;
+  color:var(--athlete-gold);
+  font-size:.74rem;
+  font-weight:900;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+}
+
+.athlete-comms-page h1{
+  margin:0;
+  color:var(--comms-title);
+  font-size:clamp(1.8rem,4vw,2.75rem);
+  line-height:1.08;
+}
+
+.athlete-comms-page h2{color:var(--comms-title)}
+.athlete-comms__hero p:not(.athlete-comms__eyebrow),
+.athlete-comms-page .sub,
+.athlete-comms-page .muted{
+  margin:9px 0 0;
+  max-width:68ch;
+  color:var(--comms-muted);
+  line-height:1.55;
+}
+
+.athlete-comms-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:18px;
+  margin-top:20px;
+}
+
+.athlete-comms-card{
+  display:block;
+  min-width:0;
+  padding:24px;
+  border:1px solid var(--comms-border);
+  border-radius:18px;
+  background:var(--comms-surface);
+  color:var(--athlete-ink);
+  box-shadow:var(--athlete-shadow);
+  text-decoration:none;
+}
+
+.athlete-comms-card:hover{border-color:var(--athlete-gold);transform:translateY(-1px)}
+.athlete-comms-card__icon{display:block;font-size:1.35rem}
+.athlete-comms-card h2{margin:.45rem 0 .35rem}
+.athlete-comms-card p{margin:0;color:var(--comms-muted);line-height:1.5}
+
+.athlete-comms-page .empty{
+  padding:28px 16px;
+  color:var(--comms-muted);
+  text-align:center;
+}
+
+.athlete-comms-page #feed{display:grid;gap:14px}
+.athlete-comms-page #feed:empty{display:none}
+.athlete-comms-page .feed-card,
+.athlete-comms-page #feed>.card,
+.athlete-comms-page #feed>.announcement-card,
+.athlete-comms-page #feed>article{
+  margin:0;
+  padding:18px;
+  border:1px solid var(--comms-border)!important;
+  border-radius:15px;
+  background:var(--comms-inset)!important;
+  color:var(--athlete-ink);
+  box-shadow:none;
+}
+
+.athlete-comms-page .feed-title,
+.athlete-comms-page .feed-title strong,
+.athlete-comms-page .announcement-title{color:var(--comms-title)}
+.athlete-comms-page .feed-body,
+.athlete-comms-page .announcement-body{color:var(--athlete-ink);line-height:1.55}
+.athlete-comms-page .feed-foot,
+.athlete-comms-page .announcement-meta{color:var(--comms-muted);opacity:1}
+.athlete-comms-page .feed-tag{
+  border-color:var(--comms-border);
+  background:var(--comms-surface);
+  color:var(--comms-muted);
+  opacity:1;
+}
+
+.athlete-comms-page .list{display:grid;gap:12px}
+.athlete-comms-page .item{
+  min-width:0;
+  background:var(--comms-inset);
+  border-color:var(--comms-border);
+  color:var(--athlete-ink);
+  box-shadow:none;
+}
+.athlete-comms-page .item-day,.athlete-comms-page .item-title{color:var(--athlete-ink)}
+.athlete-comms-page .item-time,.athlete-comms-page .item-sub{color:var(--comms-muted)}
+
+.athlete-comms-page .btn{
+  display:inline-flex;
+  min-height:44px;
+  align-items:center;
+  justify-content:center;
+  padding:10px 14px;
+  border:1px solid var(--comms-border);
+  border-radius:11px;
+  background:var(--comms-surface);
+  color:var(--athlete-ink);
+  font:inherit;
+  font-weight:800;
+  text-decoration:none;
+}
+.athlete-comms-page .btn:hover{border-color:var(--athlete-gold);color:var(--comms-title)}
+
+html[data-athlete-theme="night"] .athlete-comms-page{
+  --comms-inset:#0b1c35;
+  --comms-title:#f0cf67;
+}
+
+@media(max-width:680px){
+  .athlete-comms{width:calc(100% - 20px);padding-top:18px}
+  .athlete-comms-grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  .athlete-comms__hero,.athlete-comms-page .panel{padding:18px;border-radius:16px}
+  .athlete-comms-card{padding:19px;border-radius:15px}
+  .athlete-comms-page .feed-head,.athlete-comms-page .item-top{align-items:flex-start}
+}

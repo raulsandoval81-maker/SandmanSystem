@@ -5,44 +5,26 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Coach Thread • Para-Comms</title>
 
-  <link rel="stylesheet" href="/communications/shared/comms.css" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
   <link rel="icon" href="data:," />
 
   <style>
-    :root{
-      --bg:#0a1833;
-      --panel:#111c35;
-      --deep:#0b1120;
-      --line:#27304a;
-      --gold:#ffdd48;
-      --text:#f0f4f8;
-      --muted:#9aa4b1;
-      --danger:#ef4444;
-      --hover:#1d2a4a;
+    *{
+      box-sizing:border-box;
     }
 
-    *{ box-sizing:border-box; }
-
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--text);
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-    }
-
-    .wrap{
+    .coach-thread-page{
       max-width:980px;
       margin:0 auto;
-      padding:20px 14px 40px;
+      padding:24px 16px 64px;
     }
 
-    .panel{
-      background:var(--panel);
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:16px 18px;
-      box-shadow:0 4px 14px rgba(0,0,0,.35);
+    .coach-thread-panel{
       margin-bottom:16px;
+      padding:18px;
+      border:1px solid rgba(128,128,128,.22);
+      border-radius:16px;
+      background:rgba(255,255,255,.035);
     }
 
     .pc-header{
@@ -54,68 +36,54 @@
     }
 
     .pc-title{
-      font-size:1.25rem;
-      font-weight:900;
-      color:var(--gold);
-      letter-spacing:.02em;
       margin:0 0 4px;
+      color:var(--coach-gold, #c8a84e);
+      font-size:1.35rem;
+      font-weight:900;
     }
 
-    .pc-subtitle{
-      color:var(--muted);
-      font-size:.94rem;
+    .pc-subtitle,
+    .pc-muted,
+    .reply-note{
+      opacity:.72;
     }
 
-    .pc-actions{
+    .pc-actions,
+    .btn-row{
       display:flex;
       gap:10px;
       flex-wrap:wrap;
     }
 
     .btn{
-      padding:10px 14px;
-      border-radius:10px;
-      border:1px solid var(--line);
-      background:var(--deep);
-      color:var(--text);
-      text-decoration:none;
       display:inline-flex;
       align-items:center;
       justify-content:center;
+      min-height:42px;
+      padding:10px 14px;
+      border:1px solid rgba(128,128,128,.3);
+      border-radius:10px;
+      background:transparent;
+      color:inherit;
+      text-decoration:none;
+      font:inherit;
       font-weight:800;
       cursor:pointer;
-      min-height:42px;
     }
 
     .btn:hover{
-      border-color:var(--gold);
-      color:var(--gold);
-      background:var(--hover);
+      border-color:var(--coach-gold, #c8a84e);
     }
 
     .btn-primary{
-      background:#13213f;
-    }
-
-    .btn-secondary{
-      background:var(--deep);
+      border-color:var(--coach-gold, #c8a84e);
+      background:var(--coach-gold, #c8a84e);
+      color:#111;
     }
 
     .btn-danger{
-      border-color:#5b1f1f;
-      color:#fecaca;
-    }
-
-    .btn-danger:hover{
-      border-color:var(--danger);
-      color:#fff;
-    }
-
-    .pc-muted{
-      color:var(--muted);
-      font-size:.9rem;
-      font-weight:700;
-      margin-bottom:10px;
+      border-color:rgba(180,55,55,.55);
+      color:#b83f3f;
     }
 
     .thread-shell{
@@ -127,10 +95,10 @@
       min-height:320px;
       max-height:62vh;
       overflow:auto;
-      padding:10px;
-      border:1px solid var(--line);
+      padding:12px;
+      border:1px solid rgba(128,128,128,.22);
       border-radius:12px;
-      background:var(--deep);
+      background:rgba(0,0,0,.035);
     }
 
     .thread-bubbles{
@@ -140,22 +108,20 @@
 
     .msg{
       max-width:86%;
-      border:1px solid var(--line);
-      border-radius:14px;
       padding:12px 14px;
-      background:#0f172a;
-      box-shadow:0 3px 10px rgba(0,0,0,.18);
+      border:1px solid rgba(128,128,128,.22);
+      border-radius:14px;
+      background:rgba(255,255,255,.04);
     }
 
     .msg.parent{
       justify-self:start;
-      background:#10192d;
     }
 
     .msg.coach{
       justify-self:end;
-      background:#16233d;
-      border-color:#3b4d73;
+      border-color:rgba(200,168,78,.28);
+      background:rgba(200,168,78,.07);
     }
 
     .msg-head{
@@ -168,27 +134,26 @@
     }
 
     .msg-from{
-      font-weight:900;
-      color:var(--gold);
+      color:var(--coach-gold, #c8a84e);
       font-size:.92rem;
+      font-weight:900;
     }
 
     .msg-time{
-      color:var(--muted);
       font-size:.8rem;
       font-weight:700;
+      opacity:.65;
     }
 
     .msg-body{
       white-space:pre-wrap;
       line-height:1.45;
-      color:var(--text);
     }
 
     .thread-empty{
-      color:var(--muted);
-      font-style:italic;
       padding:8px 2px;
+      font-style:italic;
+      opacity:.7;
     }
 
     .qr-row{
@@ -201,28 +166,27 @@
     .qr-select,
     textarea{
       width:100%;
-      border-radius:10px;
-      border:1px solid var(--line);
-      background:#0f172a;
-      color:var(--text);
       padding:10px 12px;
+      border:1px solid rgba(128,128,128,.3);
+      border-radius:10px;
+      background:transparent;
+      color:inherit;
       font:inherit;
-      outline:none;
     }
 
     .qr-select:focus,
     textarea:focus{
-      border-color:var(--gold);
-      box-shadow:0 0 0 3px rgba(255,221,72,.16);
+      outline:none;
+      border-color:var(--coach-gold, #c8a84e);
+      box-shadow:0 0 0 3px rgba(200,168,78,.14);
     }
 
     .pc-label{
       display:block;
       margin-bottom:8px;
-      color:var(--muted);
       font-size:.88rem;
       font-weight:800;
-      letter-spacing:.02em;
+      opacity:.75;
     }
 
     textarea{
@@ -231,19 +195,19 @@
     }
 
     .btn-row{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
       margin-top:12px;
     }
 
     .reply-note{
       margin-top:10px;
-      color:var(--muted);
       font-size:.88rem;
     }
 
     @media (max-width:700px){
+      .coach-thread-page{
+        padding:18px 12px 48px;
+      }
+
       .qr-row{
         grid-template-columns:1fr;
       }
@@ -251,14 +215,23 @@
       .msg{
         max-width:100%;
       }
+
+      .pc-actions{
+        width:100%;
+      }
+
+      .pc-actions .btn{
+        flex:1 1 140px;
+      }
     }
   </style>
+  <link rel="stylesheet" href="/communications/coach/coach-comms-shell.css?v=2" />
 </head>
 
-<body>
-  <div class="wrap">
+<body class="coach-shell-page" data-coach-page="Coach Thread" data-coach-area="communications">
+  <main class="wrap coach-comms" data-coach-shell-content>
 
-    <header class="panel pc-header">
+    <header class="coach-thread-panel pc-header">
       <div>
         <div class="pc-title">Coach Thread</div>
         <div class="pc-subtitle">Unified parent communication thread</div>
@@ -267,11 +240,10 @@
       <div class="pc-actions">
         <button id="btn-archive" class="btn btn-secondary" type="button">Archive</button>
         <button id="btn-delete" class="btn btn-danger" type="button">Delete</button>
-        <a class="btn btn-secondary" href="/communications/coach/hub.html">Back</a>
       </div>
     </header>
 
-    <section class="panel">
+    <section class="coach-thread-panel">
       <div class="pc-muted">Conversation</div>
 
       <div class="thread-shell">
@@ -281,7 +253,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="coach-thread-panel">
       <div class="pc-muted">Quick Reply (optional)</div>
 
       <div class="qr-row">
@@ -309,11 +281,11 @@
           </option>
         </select>
 
-        <button id="qr-insert" class="btn btn-primary" type="button">Insert</button>
+        <button id="qr-insert" class="btn btn-secondary" type="button">Insert</button>
       </div>
     </section>
 
-<section id="reply-panel" class="panel">
+<section id="reply-panel" class="coach-thread-panel">
 
   <label class="pc-label" for="reply-body">
     Reply
@@ -330,7 +302,6 @@
       id="btn-send-reply"
       class="btn btn-primary"
       type="button"
-      style="flex:1;"
     >
       Send Reply
     </button>
@@ -341,6 +312,8 @@
   </div>
 
 </section>
+  </main>
+  <script src="/coaches/_ui/coach-shell.js?v=2"></script>
   <script type="module" src="/communications/coach/coach-thread.js"></script>
 </body>
 </html>

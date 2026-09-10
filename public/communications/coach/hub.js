@@ -20,12 +20,14 @@
 
 import {
   db,
-  ensureSignedIn,
   collection,
-  getDocs
+  getDocs,
+  doc,
+  getDoc
 } from "/assets/js/firebase-init-para.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
-await ensureSignedIn();
+const coachAccess = await requireCoach();
 
 /* =========================
    CONFIG
@@ -327,13 +329,26 @@ function makeCard(
 ========================= */
 
 async function loadThreads() {
-  const snapshot =
-    await getDocs(
-      collection(db, ROOT)
-    );
+  const athleteSnapshot = await getDocs(collection(db, "athletes"));
+  const assignedLocations = coachAccess.scope?.locationIds || [];
+  const eligibleAthleteIds = athleteSnapshot.docs
+    .filter((athleteDoc) => {
+      if (coachAccess.isSystemAdmin) return true;
+      const athlete = athleteDoc.data() || {};
+      const coachIds = Array.isArray(athlete.coachIds) ? athlete.coachIds : [];
+      return athlete.coachUid === coachAccess.uid
+        || coachIds.includes(coachAccess.uid)
+        || assignedLocations.includes(String(athlete.locationId || "").trim());
+    })
+    .map((athleteDoc) => athleteDoc.id);
+
+  const snapshots = await Promise.all(
+    eligibleAthleteIds.map((athleteUid) => getDoc(doc(db, ROOT, athleteUid)))
+  );
 
   threadRows =
-    snapshot.docs
+    snapshots
+      .filter((document) => document.exists())
       .map((document) => ({
         id: document.id,
         data: document.data() || {}

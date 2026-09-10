@@ -89,6 +89,13 @@ function setTheme(theme) {
     isDay
   );
 
+  // Compatibility for older rich discipline pages.
+  // Parent preference remains authoritative.
+  document.body.classList.toggle(
+    "day-mode",
+    isDay
+  );
+
   document.body.classList.toggle(
     "theme-day",
     isDay
@@ -215,7 +222,7 @@ function initParentShell() {
     localStorage.getItem(
       "parent-theme"
     ) ||
-    "night"
+    "day"
   );
 
   wireParentTabsGlobal();

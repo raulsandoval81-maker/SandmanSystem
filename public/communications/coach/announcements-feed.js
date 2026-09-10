@@ -24,6 +24,7 @@ import {
   updateDoc,
   serverTimestamp
 } from "/assets/js/firebase-init-para.js";
+import { requireCoach } from "/assets/js/coach-guard.js";
 
 import {
   renderAnnouncementCard,
@@ -31,6 +32,8 @@ import {
 } from "/communications/shared/announcements-ui.js";
 
 const TEAM_ID = "law";
+
+await requireCoach();
 
 const feedEl =
   document.getElementById("bc-feed") ||

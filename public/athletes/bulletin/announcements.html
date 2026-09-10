@@ -159,23 +159,21 @@
     }
   </style>
   <link rel="stylesheet" href="/assets/css/f4-athlete.css">
+  <link rel="stylesheet" href="/communications/athlete/athlete-communications.css">
 </head>
-<body class="athlete-app">
-  <div class="wrap">
-    <div class="panel">
-      <div class="top">
-        <a class="btn" href="/athletes/bulletin/index.html">← Bulletin</a>
-      </div>
-
+<body class="athlete-app athlete-comms-page">
+  <main class="wrap athlete-comms">
+    <section class="athlete-comms__hero">
+      <p class="athlete-comms__eyebrow">Team updates</p>
       <h1>Announcements</h1>
-      <p class="sub">Coach updates and team notices.</p>
-    </div>
+      <p>Coach updates and team notices.</p>
+    </section>
 
     <div class="panel">
       <div id="feed"></div>
       <div id="empty" class="empty" style="display:none;">No announcements yet.</div>
     </div>
-  </div>
+  </main>
 
   <script type="module" src="/communications/athlete/announcements-feed.js"></script>
   <script src="/communications/athlete/f4-communications.js"></script>
