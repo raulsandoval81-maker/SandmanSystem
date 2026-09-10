@@ -1,0 +1,79 @@
+.testing-workflow{
+  --bg:var(--coach-shell-page-bg);
+  --panel:var(--coach-shell-panel);
+  --card:var(--coach-shell-panel);
+  --line:var(--coach-shell-line);
+  --text:var(--coach-shell-text);
+  --muted:var(--coach-shell-muted);
+  --gold:var(--coach-shell-gold);
+  width:min(1120px,100%);
+  margin:0 auto;
+  padding:clamp(20px,4vw,44px) clamp(14px,3vw,28px) 64px;
+  color:var(--text,#181818);
+}
+.coach-shell-page{padding:0!important}
+.coach-shell-page .coach-shell__main>.testing-workflow{max-width:1120px;padding-top:0}
+.testing-workflow *{box-sizing:border-box}
+.testing-workflow .workflow-hero{
+  margin-bottom:24px;
+  padding:clamp(20px,4vw,34px);
+  border:1px solid var(--line,#d8cfbd);
+  border-radius:20px;
+  background:var(--panel,#fffaf0);
+  box-shadow:0 12px 30px rgba(8,8,8,.08);
+}
+.testing-workflow .workflow-eyebrow{
+  margin:0 0 8px;
+  color:#8a6919;
+  font-size:.75rem;
+  font-weight:900;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.testing-workflow .workflow-hero h1{margin:0;color:var(--text,#181818);font-size:clamp(1.8rem,4vw,2.6rem)}
+.testing-workflow .workflow-hero p,.testing-workflow .sub,.testing-workflow .muted{color:var(--muted,#667085)}
+.testing-workflow .workflow-hero p{max-width:760px;margin:10px 0 0;line-height:1.55}
+.testing-workflow .workflow-back{display:inline-flex;margin-bottom:14px;color:#8a6919;font-weight:800;text-decoration:none}
+.testing-workflow .workflow-section{margin-top:28px}
+.testing-workflow .workflow-section>h2{margin:0 0 5px;font-size:1.2rem}
+.testing-workflow .workflow-section>.section-note{margin:0 0 14px;color:var(--muted,#667085)}
+.testing-workflow .workflow-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:16px}
+.testing-workflow .workflow-card,
+.testing-workflow .card,
+.testing-workflow .board,
+.testing-workflow .scan-card,
+.testing-workflow .output-card{
+  border:1px solid var(--line,#d8cfbd);
+  border-radius:16px;
+  background:var(--card,var(--panel,#fffaf0));
+  color:var(--text,#181818);
+  box-shadow:0 8px 22px rgba(8,8,8,.06);
+}
+.testing-workflow .workflow-card{display:block;padding:18px;text-decoration:none;min-height:132px}
+.testing-workflow .workflow-card:hover{border-color:#d4af37;transform:translateY(-1px)}
+.testing-workflow .workflow-card h3{margin:0 0 7px;color:var(--text,#181818)}
+.testing-workflow .workflow-card p{margin:0;color:var(--muted,#667085);line-height:1.45}
+.testing-workflow .workflow-tag{display:inline-flex;margin-bottom:12px;padding:5px 9px;border-radius:999px;background:rgba(212,175,55,.15);color:#7b5d12;font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.06em}
+.testing-workflow .topbar{align-items:flex-start}
+.testing-workflow .uidbox{color:#8a6919}
+.testing-workflow .controls label{display:grid;gap:7px;font-weight:800}
+.testing-workflow input,.testing-workflow select,.testing-workflow textarea{
+  width:100%;min-height:44px;border:1px solid var(--line,#b9ad98);border-radius:10px;
+  background:var(--panel,#fffaf0);color:var(--text,#181818);padding:10px 12px;
+}
+.testing-workflow .btn{min-height:44px;border-radius:10px;font-weight:850}
+.testing-workflow .ready,.testing-workflow .promote,.testing-workflow .btn.primary{background:#d4af37!important;border-color:#d4af37!important;color:#080808!important}
+.testing-workflow .start{background:#334155}.testing-workflow .pass{background:#237a50}.testing-workflow .fail{background:#a92d32}
+.testing-workflow .status{border-radius:10px}
+.testing-workflow .testing-diagnostic{padding:14px 16px;border:1px dashed var(--line,#b9ad98);border-radius:12px;color:var(--muted,#667085)}
+.testing-workflow .testing-diagnostic summary{cursor:pointer;font-weight:850;color:var(--text,#181818)}
+.testing-workflow .testing-diagnostic pre{margin-top:12px}
+.testing-workflow code{overflow-wrap:anywhere}
+html[data-coach-theme="night"] .testing-workflow .workflow-tag,
+body[data-theme="night"] .testing-workflow .workflow-tag{color:#f0cf67;background:rgba(212,175,55,.12)}
+@media(max-width:720px){
+  .testing-workflow{padding-inline:12px}
+  .testing-workflow .workflow-hero{border-radius:16px}
+  .testing-workflow .row,.testing-workflow .row-3,.testing-workflow .controls,.testing-workflow .launch-grid{grid-template-columns:minmax(0,1fr)}
+  .testing-workflow .actions{align-items:stretch}.testing-workflow .actions .btn{width:100%}
+}

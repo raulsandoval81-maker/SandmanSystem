@@ -7,9 +7,10 @@
 
   const pageName = body.dataset.coachPage || document.title || "Coach";
   const activeArea = body.dataset.coachArea || "";
+  const bilingual = body.hasAttribute("data-coach-bilingual");
   const navGroups = [
     { links: [["Coach Home", "/coaches/hub/", "home"]] },
-    { label: "Daily Work", links: [["Athletes", "/coaches/roster/", "athletes"], ["Practice", "/coaches/execution/session-builder/", "practice"], ["Curriculum", "/coaches/cards/", "curriculum"], ["XP & Progression", "/coaches/daily-xp/", "xp"], ["Competition", "/coaches/arena-xp/", "competition"], ["Communications", "/communications/coach/broadcast.html", "communications"]] },
+    { label: "Daily Work", links: [["Athletes", "/coaches/roster/", "athletes"], ["Practice", "/coaches/execution/session-builder/", "practice"], ["Curriculum", "/coaches/cards/", "curriculum"], ["XP & Progression", "/coaches/daily-xp/", "xp"], ["Competition", "/coaches/competition-schedule/", "competition"], ["Communications", "/communications/coach/hub.html", "communications"]] },
     { label: "Team", links: [["Team", "/coaches/team/", "team"], ["Safety", "/coaches/safety/", "safety"]] },
     { label: "Workspace", links: [["Operations Dashboard", "/coaches/dashboard/", "dashboard"], ["Command Center", "/coaches/command-center/", "command-center"], ["More Tools", "/coaches/index.html", "tools"]] }
   ];
@@ -27,7 +28,7 @@
     </aside>
     <div id="coachShellBackdrop" class="coach-shell__backdrop" hidden></div>
     <div class="coach-shell__workspace">
-      <header class="coach-shell__header"><div class="coach-shell__header-inner"><div class="coach-shell__header-left"><button id="coachShellMenuToggle" class="coach-shell__menu-toggle" type="button" aria-label="Open Coach navigation" aria-expanded="false" aria-controls="coachShellDrawer">☰</button></div><div class="coach-shell__header-center"><a class="coach-shell__brand" href="/coaches/hub/">Sandman Combat System™</a><div class="coach-shell__page-name">${pageName}</div></div><div class="coach-shell__header-right"><button id="coachShellThemeToggle" class="coach-shell__theme-toggle" type="button" aria-label="Switch to light theme" title="Change theme">☀️</button></div></div><div class="coach-shell__header-line"></div></header>
+      <header class="coach-shell__header"><div class="coach-shell__header-inner"><div class="coach-shell__header-left"><button id="coachShellMenuToggle" class="coach-shell__menu-toggle" type="button" aria-label="Open Coach navigation" aria-expanded="false" aria-controls="coachShellDrawer">☰</button>${bilingual ? '<button class="coach-shell__language-toggle is-active" type="button" data-coach-language="en" aria-pressed="true">EN</button><button class="coach-shell__language-toggle" type="button" data-coach-language="es" aria-pressed="false">ES</button>' : ""}</div><div class="coach-shell__header-center"><a class="coach-shell__brand" href="/coaches/hub/">Sandman Combat System™</a><div class="coach-shell__page-name">${pageName}</div></div><div class="coach-shell__header-right"><button id="coachShellThemeToggle" class="coach-shell__theme-toggle" type="button" aria-label="Switch to light theme" title="Change theme">☀️</button></div></div><div class="coach-shell__header-line"></div></header>
       ${activeArea === "practice" ? `<div class="coach-shell__context-nav-wrap"><nav class="coach-shell__context-nav" aria-label="Practice tools">${practiceLinks.map(([label, href, context]) => { const active = context === activePracticeContext; return `<a class="coach-shell__context-link${active ? " is-active" : ""}" href="${href}"${active ? ' aria-current="page"' : ""}>${label}</a>`; }).join("")}</nav></div>` : ""}
       <div class="coach-shell__main"></div>
     </div>`;
@@ -38,6 +39,20 @@
   const drawer = shell.querySelector("#coachShellDrawer");
   const backdrop = shell.querySelector("#coachShellBackdrop");
   const themeToggle = shell.querySelector("#coachShellThemeToggle");
+  const languageToggles = [...shell.querySelectorAll("[data-coach-language]")];
+  function setLanguage(language) {
+    const selected = language === "es" ? "es" : "en";
+    root.lang = selected;
+    document.querySelectorAll("[data-en][data-es]").forEach((element) => {
+      element.textContent = selected === "es" ? element.dataset.es : element.dataset.en;
+    });
+    languageToggles.forEach((button) => {
+      const active = button.dataset.coachLanguage === selected;
+      button.classList.toggle("is-active", active);
+      button.setAttribute("aria-pressed", String(active));
+    });
+    localStorage.setItem("coachHubLanguage", selected);
+  }
   function setTheme(theme) {
     const light = theme === "light";
     root.dataset.theme = light ? "light" : "dark";
@@ -66,6 +81,8 @@
   document.addEventListener("keydown", (event) => { if (event.key === "Escape" && body.classList.contains("coach-shell-nav-open")) closeDrawer({ restoreFocus: true }); });
   window.addEventListener("resize", () => { if (window.innerWidth > 900) closeDrawer(); });
   themeToggle.addEventListener("click", () => setTheme(root.dataset.theme === "light" ? "dark" : "light"));
+  languageToggles.forEach((button) => button.addEventListener("click", () => setLanguage(button.dataset.coachLanguage)));
+  if (bilingual) setLanguage(localStorage.getItem("coachHubLanguage") === "es" ? "es" : "en");
   setTheme(localStorage.getItem("coachHubTheme") === "light" ? "light" : "dark");
   closeDrawer();
 })();

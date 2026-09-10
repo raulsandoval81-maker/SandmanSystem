@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Testing Results Live</title>
+<title>Testing Results Live</title>
 <link rel="stylesheet" href="/coaches/testing/testing.css" />
+<link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+<link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
   <style>
     :root{
       --bg:#0b1220;
@@ -58,15 +60,16 @@
     }
   </style>
 </head>
-<body>
-  <div class="wrap">
-    <a class="back" href="/coaches/testing/testing-command-center.html">← Back to Testing</a>
-    <h1>Testing Results Live</h1>
+<body class="coach-shell-page" data-coach-page="Live Test Results" data-coach-area="xp">
+  <main class="wrap testing-workflow" data-coach-shell-content>
+    <a class="workflow-back" href="/coaches/testing/testing-command-center.html">← Test Session</a>
+    <h1>Live Test Results</h1>
     <p class="sub">Live panel submissions and final result status.</p>
 
     <div id="results" class="board"></div>
-  </div>
+  </main>
 
   <script type="module" src="/coaches/testing/results-live.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>

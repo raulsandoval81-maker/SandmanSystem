@@ -7,11 +7,13 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/coaches/testing/testing.css" />
   <link rel="stylesheet" href="/coaches/testing/testing-command-center.css" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
 </head>
-<body>
+<body class="coach-shell-page" data-coach-page="Test Session" data-coach-area="xp">
 
-<div class="wrap">
-  <a class="back" href="/coaches/index.html">← Back to Coach</a>
+<main class="wrap testing-workflow" data-coach-shell-content>
+  <a class="workflow-back" href="/coaches/testing/">← Testing overview</a>
 
   <h1>Testing Command Center</h1>
   <p class="sub">Assign athlete, choose test, set 2–3 coach panel, generate launch links, and open live results.</p>
@@ -58,7 +60,7 @@
         <div>
           <label for="testType">Test</label>
           <select id="testType">
-            <option value="BASE_CHECK_V1">Base Check</option>
+            <option value="BASE_CHECK_V1">Base Test</option>
           </select>
         </div>
 
@@ -143,7 +145,7 @@
       <h2>5. Follow Through</h2>
 
       <div class="actions">
-        <a class="btn" href="/coaches/testing/results.html">Open Test History</a>
+        <a class="btn" href="/coaches/testing/results-history.html">Open Test Sessions</a>
         <a class="btn" href="/coaches/ceremonies/index.html">Open Ceremonies Queue</a>
       </div>
 
@@ -153,7 +155,7 @@
     </section>
 
   </div>
-</div>
+</main>
 
 <script>
   const els = {
@@ -365,6 +367,8 @@
   applyIncomingParams();
   updatePanelStatus();
 </script>
+
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 
 </body>
 </html>

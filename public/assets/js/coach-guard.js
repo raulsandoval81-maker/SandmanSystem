@@ -9,6 +9,19 @@ import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 
+export class CoachAccessError extends Error {
+  constructor(code, message, diagnostic = {}) {
+    super(message);
+    this.name = "CoachAccessError";
+    this.code = code;
+    this.diagnostic = diagnostic;
+  }
+}
+
+export function isCoachAuthenticationError(error) {
+  return error?.code === "coach/authentication-required";
+}
+
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -83,10 +96,29 @@ export async function requireCoach() {
     await waitForAuthUser();
 
   if (!user || user.isAnonymous) {
-    throw new Error(
-      "Coach authentication required."
+    throw new CoachAccessError(
+      "coach/authentication-required",
+      "Coach authentication required.",
+      { authenticated: false }
     );
   }
+
+  const tokenResult = await user.getIdTokenResult();
+  const claims = tokenResult.claims || {};
+  const diagnostic = {
+    authenticated: true,
+    uid: user.uid,
+    email: user.email || "",
+    claims: {
+      role: clean(claims.role).toLowerCase(),
+      coach: claims.coach === true,
+      admin: claims.admin === true
+    },
+    staffExists: false,
+    staffRole: "",
+    staffStatus: "",
+    locationIds: []
+  };
 
   const staffRef = doc(
     db,
@@ -98,8 +130,10 @@ export async function requireCoach() {
     await getDoc(staffRef);
 
   if (!staffSnapshot.exists()) {
-    throw new Error(
-      "No staff profile found."
+    throw new CoachAccessError(
+      "coach/staff-profile-missing",
+      "No active Coach staff profile was found for this account.",
+      diagnostic
     );
   }
 
@@ -112,6 +146,10 @@ export async function requireCoach() {
   const status =
     clean(staff.status).toLowerCase();
 
+  diagnostic.staffExists = true;
+  diagnostic.staffRole = role;
+  diagnostic.staffStatus = status;
+
   const isSystemAdmin =
     role === "admin";
 
@@ -119,14 +157,18 @@ export async function requireCoach() {
     role === "coach";
 
   if (!isSystemAdmin && !isCoach) {
-    throw new Error(
-      "Coach access required."
+    throw new CoachAccessError(
+      "coach/staff-role-denied",
+      "This signed-in account does not have Coach access.",
+      diagnostic
     );
   }
 
   if (status !== "active") {
-    throw new Error(
-      "Coach profile is not active."
+    throw new CoachAccessError(
+      "coach/staff-inactive",
+      "This Coach staff profile is not active.",
+      diagnostic
     );
   }
 
@@ -145,6 +187,8 @@ export async function requireCoach() {
     staff.locations,
     staff.locationId
   );
+
+  diagnostic.locationIds = locationIds;
 
   const programIds = normalizeList(
     staff.programIds,
@@ -173,6 +217,7 @@ export async function requireCoach() {
       academyIds,
       locationIds,
       programIds
-    }
+    },
+    diagnostic
   };
 }

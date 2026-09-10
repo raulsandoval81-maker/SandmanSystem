@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Coach Athlete Panel</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
   <style>
     :root{
       --bg:#0b1220;
@@ -127,11 +129,12 @@
     }
   </style>
 </head>
-<body>
-  <div class="wrap">
+<body class="coach-shell-page" data-coach-page="Athlete Test" data-coach-area="xp">
+  <main class="wrap testing-workflow" data-coach-shell-content>
+    <a class="workflow-back" href="/coaches/testing/">← Testing overview</a>
     <div class="topbar">
       <h1>Coach Athlete Panel</h1>
-      <div class="uidbox">UID: <span id="athlete-uid">—</span></div>
+      <div class="uidbox">Athlete ID: <span id="athlete-uid">—</span></div>
     </div>
 
     <div class="card">
@@ -173,7 +176,7 @@
   <input id="test-date" type="date" />
 </label>
 
-      <button id="btn-ready" class="btn ready">Mark Ready</button>
+      <button id="btn-ready" class="btn ready">Schedule Test</button>
       <button id="btn-start" class="btn start">Start Test</button>
 
       <button id="btn-pass" class="btn pass">Pass Test</button>
@@ -189,11 +192,11 @@
 
       <button id="btn-active" class="btn active">Return Active</button>
     </div>
-Temple = 90% automatic preparation state.<br>
-Eligible = 100% automatic testing eligibility.<br>
-Ready = test date scheduled within 5 days.<br>
+Readiness Building = preparation before testing eligibility.<br>
+Eligible to Test = the athlete has reached testing eligibility.<br>
+Test Scheduled = a test date has been selected.<br>
 Pass → Cooldown (5 days default).<br>
-Fail → Freeze (minimum 5 days).
+Fail → More Preparation Needed (minimum 5 days).
 
   </div>
 </div>
@@ -202,12 +205,13 @@ Fail → Freeze (minimum 5 days).
       <div id="status" class="status"></div>
     </div>
 
-    <div class="card">
-      <h2>Testing Debug</h2>
+    <details class="testing-diagnostic">
+      <summary>Developer diagnostics</summary>
       <pre id="testing-debug">Loading...</pre>
-    </div>
-  </div>
+    </details>
+  </main>
 
   <script type="module" src="./coach-athlete-panel.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>

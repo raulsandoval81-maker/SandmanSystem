@@ -17,8 +17,6 @@
 
   <link rel="stylesheet" href="./hub.css">
 
-  <script src="./hub.js" defer></script>
-
   <!-- Sandman Home Screen / PWA -->
 <meta name="theme-color" content="#080808">
 
@@ -34,197 +32,13 @@
         content="Coach">
   <!-- /Sandman Home Screen / PWA -->
 
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2">
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Coach Home" data-coach-area="home" data-coach-bilingual>
 
-  <div class="coach-app">
-
-    <aside
-      id="coachDrawer"
-      class="coach-drawer"
-      aria-label="Coach navigation"
-    >
-      <div class="drawer-brand">
-        <span class="drawer-brand__system">
-          Sandman Combat System™
-        </span>
-
-        <span
-          class="drawer-brand__role"
-          data-en="Coach"
-          data-es="Entrenador"
-        >
-          Coach
-        </span>
-      </div>
-
-      <nav class="drawer-nav">
-
-        <a
-          class="drawer-link active"
-          href="/coaches/hub/"
-          aria-current="page"
-          data-en="Coach Home"
-          data-es="Inicio del Entrenador"
-        >
-          Coach Home
-        </a>
-
-        <div
-          class="drawer-label"
-          data-en="Daily Work"
-          data-es="Trabajo Diario"
-        >
-          Daily Work
-        </div>
-
-        <a class="drawer-link" href="/coaches/roster/">
-          Athletes
-        </a>
-
-        <a class="drawer-link" href="/coaches/practice/">
-          Practice
-        </a>
-
-        <a class="drawer-link" href="/coaches/cards/">
-          Curriculum
-        </a>
-
-        <a class="drawer-link" href="/coaches/daily-xp/">
-          XP &amp; Progression
-        </a>
-
-        <a class="drawer-link" href="/coaches/arena-xp/">
-          Competition
-        </a>
-
-        <a
-          class="drawer-link"
-          href="/communications/coach/broadcast.html"
-        >
-          Communications
-        </a>
-
-        <div
-          class="drawer-label"
-          data-en="Team"
-          data-es="Equipo"
-        >
-          Team
-        </div>
-
-        <a class="drawer-link" href="/coaches/team/">
-          Team
-        </a>
-
-        <a class="drawer-link" href="/coaches/safety/">
-          Safety
-        </a>
-
-        <div
-          class="drawer-label"
-          data-en="Workspace"
-          data-es="Espacio de Trabajo"
-        >
-          Workspace
-        </div>
-
-        <a class="drawer-link" href="/coaches/dashboard/">
-          Dashboard
-        </a>
-
-        <a class="drawer-link" href="/coaches/index.html">
-          Coach System
-        </a>
-
-      </nav>
-    </aside>
-
-    <div
-      id="drawerBackdrop"
-      class="drawer-backdrop"
-      hidden
-    ></div>
-
-    <div class="coach-workspace">
-
-      <header class="coach-header">
-        <div class="coach-header__inner">
-
-          <div class="coach-header__left">
-
-            <button
-              id="menuToggle"
-              class="menu-toggle"
-              type="button"
-              aria-label="Open Coach navigation"
-              aria-expanded="false"
-            >
-              ☰
-            </button>
-
-            <button
-              id="langEN"
-              class="toggle-pill active"
-              type="button"
-              aria-label="Use English"
-              aria-pressed="true"
-            >
-              EN
-            </button>
-
-            <button
-              id="langES"
-              class="toggle-pill"
-              type="button"
-              aria-label="Usar español"
-              aria-pressed="false"
-            >
-              ES
-            </button>
-
-          </div>
-
-          <div class="coach-header__center">
-
-            <a
-              class="coach-brand"
-              href="/coaches/hub/"
-            >
-              Sandman Combat System™
-            </a>
-
-            <div
-              class="coach-sub"
-              data-en="Coach Home"
-              data-es="Inicio del Entrenador"
-            >
-              Coach Home
-            </div>
-
-          </div>
-
-          <div class="coach-header__right">
-
-            <button
-              id="themeToggle"
-              class="toggle-pill"
-              type="button"
-              aria-label="Switch to light theme"
-              title="Change theme"
-            >
-              ☀️
-            </button>
-
-          </div>
-
-        </div>
-
-        <div class="coach-header__line"></div>
-      </header>
-
-      <main class="coach-hub-main">
+<main class="coach-hub-main" data-coach-shell-content>
 
         <section class="coach-welcome">
 
@@ -305,7 +119,7 @@
 
             <a
               class="home-card"
-              href="/communications/coach/broadcast.html"
+              href="/communications/coach/hub.html"
             >
               <span class="home-card__label">Communication</span>
               <strong>Messages &amp; Bulletin</strong>
@@ -367,9 +181,6 @@
 
       </main>
 
-    </div>
-
-  </div>
-
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>

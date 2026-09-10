@@ -7,22 +7,21 @@
   <title>Testing History | Sandman System</title>
 
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
 </head>
 
-<body data-theme="night">
-  <main class="scan-wrap">
+<body class="coach-shell-page" data-coach-page="Testing Activity History" data-coach-area="xp">
+  <main class="scan-wrap testing-workflow" data-coach-shell-content>
     <section class="scan-card">
-      <p class="range-label">Coach Tools</p>
+      <a class="workflow-back" href="/coaches/testing/">← Testing overview</a>
+      <p class="range-label">Lifecycle History</p>
 
-      <h1>Testing History</h1>
+      <h1>Testing Activity History</h1>
 
       <p class="sub">
         Review testing lifecycle events: scheduled, started, passed, promoted, and failed.
       </p>
-
-      <div class="actions">
-        <a class="btn" href="/coaches/command-center/">Back to Command Center</a>
-      </div>
 
       <section class="output-card">
         <h2>Recent Testing Events</h2>
@@ -32,5 +31,6 @@
   </main>
 
   <script type="module" src="./testing-history.js"></script>
+  <script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>

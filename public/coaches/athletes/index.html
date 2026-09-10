@@ -24,19 +24,15 @@
     .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
     .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
   </style>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
 </head>
 
-<body>
-<main class="wrap">
+<body class="coach-shell-page" data-coach-page="Athlete Tools" data-coach-area="athletes" data-coach-shell-hub>
+<main class="wrap" data-coach-shell-content>
   <header class="hero">
     <h1>Athletes</h1>
     <p>Athlete tracker, logs, details, and history.</p>
 
-    <nav class="topnav">
-      <a class="pill primary" href="/coaches/hub/index.html">Coach Hub</a>
-      <a class="pill" href="/coaches/index.html">Daily Tools</a>
-      <a class="pill" href="/coaches/team/index.html">Team Logistics</a>
-    </nav>
   </header>
 
   <section class="grid">
@@ -62,5 +58,6 @@
   </section>
 </main>
 
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>

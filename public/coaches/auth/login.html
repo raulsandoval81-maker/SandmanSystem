@@ -329,10 +329,13 @@
     } from "/assets/js/firebase-init.js";
 
     import {
+      requireCoach
+    } from "/assets/js/coach-guard.js";
+
+    import {
       signInWithEmailAndPassword,
       sendPasswordResetEmail,
       onAuthStateChanged,
-      signOut,
   browserLocalPersistence,
   browserSessionPersistence,
   setPersistence
@@ -416,21 +419,6 @@ async function applyAuthPersistence() {
       passwordEl.disabled = isBusy;
     }
 
-    async function hasCoachAccess(user) {
-      const token =
-        await user.getIdTokenResult(true);
-
-      const claims =
-        token.claims || {};
-
-      return (
-        claims.role === "coach" ||
-        claims.role === "admin" ||
-        claims.coach === true ||
-        claims.admin === true
-      );
-    }
-
     async function finishCoachLogin(user) {
       if (!user || authCheckRunning) {
         return;
@@ -444,19 +432,7 @@ async function applyAuthPersistence() {
           "Checking Coach access..."
         );
 
-        const authorized =
-          await hasCoachAccess(user);
-
-        if (!authorized) {
-          await signOut(auth);
-
-          setStatus(
-            "This account does not have Coach access.",
-            true
-          );
-
-          return;
-        }
+        await requireCoach();
 
         setStatus(
           "Access approved. Opening Coach Hub..."
@@ -471,8 +447,13 @@ async function applyAuthPersistence() {
           error
         );
 
+        console.info(
+          "[coach-login] safe access diagnostic:",
+          error?.diagnostic || { authenticated: Boolean(user) }
+        );
+
         setStatus(
-          "Unable to verify Coach access.",
+          error?.message || "Unable to verify Coach access.",
           true
         );
       } finally {

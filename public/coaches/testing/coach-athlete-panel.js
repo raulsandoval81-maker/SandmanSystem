@@ -64,6 +64,18 @@ function formatBool(v) {
   return v ? "YES" : "NO";
 }
 
+function testingStateLabel(value) {
+  const state = String(value || "ACTIVE").toUpperCase();
+  return ({
+    TEMPLE: "Readiness Building",
+    ELIGIBLE: "Eligible to Test",
+    READY: "Test Scheduled",
+    TESTING: "Test in Progress",
+    FREEZE: "More Preparation Needed",
+    COOLDOWN: "Cooldown",
+  })[state] || state.replaceAll("_", " ");
+}
+
 function setStatus(msg, isError = false) {
   const el = $("status");
   el.textContent = msg;
@@ -232,7 +244,7 @@ $("athlete-stripes").textContent = `${stripesEarned}`;
   $("promotion-locked").textContent = formatBool(data.promotionLocked === true);
 
   const testing = data.testing || {};
-  $("testing-state").textContent = testing.state || "ACTIVE";
+  $("testing-state").textContent = testingStateLabel(testing.state);
   $("testing-debug").textContent = JSON.stringify(
     {
       state: testing.state ?? null,
@@ -261,7 +273,7 @@ async function markReady() {
   });
 
   setStatus(
-    `Test scheduled for ${scheduledDate}. Athlete marked READY.`
+    `Test scheduled for ${scheduledDate}.`
   );
 }
 

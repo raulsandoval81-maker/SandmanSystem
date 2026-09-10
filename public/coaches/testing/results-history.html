@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/coaches/testing/testing.css" />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
   <style>
     body{background:#070b12;color:#f5f7fb;font-family:system-ui,Arial,sans-serif;margin:0;padding:20px}
     .wrap{max-width:1000px;margin:0 auto}
@@ -17,21 +19,21 @@
     input{padding:10px;border-radius:10px;border:1px solid #334155;background:#0b1017;color:#fff}
   </style>
 </head>
-<body>
-<div class="wrap">
-  <p><a class="btn" href="/coaches/testing/index.html">← Back to Testing</a></p>
+<body class="coach-shell-page" data-coach-page="Test Sessions" data-coach-area="xp">
+<main class="wrap testing-workflow" data-coach-shell-content>
+  <a class="workflow-back" href="/coaches/testing/">← Testing overview</a>
 
-  <h1>Test History</h1>
-  <p class="muted">Enter an athlete UID or open this page with <code>?uid=F4_0009</code>.</p>
+  <h1>Test Sessions</h1>
+  <p class="muted">Enter an Athlete ID or open this page with <code>?uid=F4_0009</code>.</p>
 
   <div class="card">
-    <input id="uidInput" placeholder="F4_0009" />
+    <input id="uidInput" aria-label="Athlete ID" placeholder="F4_0009" />
     <button id="loadBtn" class="btn primary" type="button">Load History</button>
     <div id="status" class="muted" style="margin-top:10px;"></div>
   </div>
 
   <div id="history"></div>
-</div>
+</main>
 
 <script type="module">
   import {
@@ -132,7 +134,7 @@
         const panelText = [...s.panels].sort().join(", ") || "—";
 
         const resultHref =
-          `/coaches/testing/results.html?uid=${enc(uid)}&sessionId=${enc(s.sessionId)}&testType=${enc(s.testType)}`;
+          `/coaches/testing/results-live.html?uid=${enc(uid)}&sessionId=${enc(s.sessionId)}&testType=${enc(s.testType)}`;
 
         return `
           <section class="card">
@@ -171,5 +173,6 @@
     loadHistory();
   }
 </script>
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 </body>
 </html>

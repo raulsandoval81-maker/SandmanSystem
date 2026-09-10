@@ -6,74 +6,37 @@
   <title>Testing | Sandman</title>
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
-
-  <style>
-    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
-    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
-    h1{margin:0;color:var(--gold);font-size:2rem}
-    .hero p{margin:8px 0 0;color:var(--muted)}
-    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
-    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
-    .pill.primary{background:var(--red);border-color:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
-    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
-    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
-  </style>
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css" />
 </head>
 
 <body class="coach-shell-page" data-coach-page="Testing" data-coach-area="xp" data-coach-shell-hub>
-<main class="wrap" data-coach-shell-content>
-  <header class="hero">
+<main class="testing-workflow" data-coach-shell-content>
+  <header class="workflow-hero">
+    <p class="workflow-eyebrow">XP &amp; Progression</p>
     <h1>Testing</h1>
-    <p>Build panels, collect coach scores, review results, and finalize athlete testing.</p>
-
+    <p>Move athletes from readiness through testing, cooldown, and formal promotion without collapsing those stages.</p>
   </header>
-
-
-
-  <section class="grid">
-
-    <a class="card" href="/coaches/testing/coach-athlete-panel.html">
-  <h2>Coach Athlete Panel</h2>
-  <p>Review athlete testing state, manage eligibility, cooldowns, locks, and manual promotion controls.</p>
-</a>
-
-
-    <a class="card" href="/coaches/testing/testing-command-center.html">
-      <h2>Testing Command Center</h2>
-      <p>Assign athlete, build the 3-coach panel, generate links, and launch test pages.</p>
-    </a>
-
-    <a class="card" href="/coaches/testing/results-live.html">
-      <h2>Panel Results</h2>
-      <p>Review submitted coach scores, check panel completion, average results, and finalize decision.</p>
-    </a>
-
-    <a class="card" href="/coaches/testing/results-history.html">
-      <h2>Test History</h2>
-      <p>Review completed test sessions by athlete UID and open full result breakdowns.</p>
-    </a>
-
-    <a class="card" href="/coaches/testing/login.html">
-      <h2>Coach Testing Login</h2>
-      <p>Limited coach login for submitting test scores only. No promotion or admin access.</p>
-    </a>
-
-    <a class="card" href="/coaches/testing/test1.html">
-      <h2>Base Test Page</h2>
-      <p>Primary scoring page. Use generated panel links instead of opening this manually.</p>
-    </a>
-
-    <a class="card" href="/coaches/testing/coach-sheet.html">
-      <h2>Coach Sheet</h2>
-      <p>Coach reference and scoring language for the base test.</p>
-    </a>
+  <section class="workflow-section">
+    <h2>Workflow &amp; Queue</h2>
+    <p class="section-note">Start with the operational queue, then open an athlete or build a scheduled test session.</p>
+    <div class="workflow-grid">
+      <a class="workflow-card" href="/coaches/progression/queue.html"><span class="workflow-tag">Queue</span><h3>Promotion Queue</h3><p>See athletes in cooldown, needing more preparation, or ready for formal promotion.</p></a>
+      <a class="workflow-card" href="/coaches/testing/testing-command-center.html"><span class="workflow-tag">Test Session</span><h3>Testing Command Center</h3><p>Assign the athlete and panel, then generate the contextual scoring and live-result links.</p></a>
+    </div>
+  </section>
+  <section class="workflow-section">
+    <h2>History</h2>
+    <p class="section-note">Scoring sessions and lifecycle activity are separate records.</p>
+    <div class="workflow-grid">
+      <a class="workflow-card" href="/coaches/testing/results-history.html"><span class="workflow-tag">Scoring</span><h3>Test Sessions</h3><p>Review detailed panel sessions and open their submitted scores.</p></a>
+      <a class="workflow-card" href="/coaches/testing-history/"><span class="workflow-tag">Lifecycle</span><h3>Testing Activity History</h3><p>Review scheduled, started, passed, failed, cooldown, and promotion events.</p></a>
+    </div>
+  </section>
+  <section class="workflow-section">
+    <h2>Reference</h2>
+    <div class="workflow-grid">
+      <a class="workflow-card" href="/coaches/testing/coach-sheet.html"><span class="workflow-tag">Base Test</span><h3>Coach Sheet</h3><p>Reference the established evaluation and scoring language.</p></a>
+    </div>
   </section>
 </main>
 

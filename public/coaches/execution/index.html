@@ -127,11 +127,12 @@
       color:var(--green);
     }
   </style>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Execution Tools" data-coach-area="practice" data-coach-context="execution-tools" data-coach-shell-hub>
 
-<main class="wrap">
+<main class="wrap" data-coach-shell-content>
 
   <header class="hero">
 
@@ -140,20 +141,6 @@
     <p>
       Live coach execution tools for running practice.
     </p>
-
-    <nav class="topnav">
-      <a class="pill primary" href="/coaches/execution/clipboard-2.0/">
-        Clipboard
-      </a>
-
-      <a class="pill" href="/coaches/index.html">
-        Coach Hub
-      </a>
-
-      <a class="pill" href="/coaches/practice/index.html">
-        Practice Support
-      </a>
-    </nav>
 
   </header>
 
@@ -214,5 +201,6 @@
 
 </main>
 
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>
