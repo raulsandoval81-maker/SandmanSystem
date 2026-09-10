@@ -8,6 +8,8 @@
 
   <link rel="stylesheet" href="/coaches/_ui/console-ui.css">
   <link rel="stylesheet" href="/coaches/_ui/steps-shell.css">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
+  <link rel="stylesheet" href="/coaches/testing/testing-workflow.css">
 
   <style>
     .section{
@@ -42,9 +44,11 @@
   </style>
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Promotion Queue" data-coach-area="xp">
 
-<main class="wrap">
+<main class="wrap testing-workflow" data-coach-shell-content>
+
+<a class="workflow-back" href="/coaches/testing/">← Testing overview</a>
 
 <h1>Promotion Queue</h1>
 
@@ -74,7 +78,7 @@ Testing complete. Monitor cooldowns, approve promotions, and prepare athletes fo
 
 <section class="section">
 
-<h2>❄ Frozen / Makeup Testing</h2>
+<h2>More Preparation Needed</h2>
 
 <div id="freezeList" class="cards">
 <div class="empty">Loading...</div>
@@ -95,6 +99,7 @@ Testing complete. Monitor cooldowns, approve promotions, and prepare athletes fo
 </main>
 
 <script type="module" src="./queue.js"></script>
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 
 </body>
 </html>

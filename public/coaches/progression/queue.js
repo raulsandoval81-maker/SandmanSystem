@@ -44,6 +44,18 @@ function isDevOrTestAthlete(a) {
   );
 }
 
+function testingStateLabel(value) {
+  const state = String(value || "").toUpperCase();
+  return ({
+    TEMPLE: "Readiness Building",
+    ELIGIBLE: "Eligible to Test",
+    READY: "Test Scheduled",
+    TESTING: "Test in Progress",
+    FREEZE: "More Preparation Needed",
+    COOLDOWN: "Cooldown",
+  })[state] || state.replaceAll("_", " ") || "—";
+}
+
 function card(a) {
   const uid = a._uid || a.uid || a.uidCode || "UNKNOWN";
 
@@ -52,11 +64,11 @@ function card(a) {
       <h3>${a.publicName || a.fullName || uid}</h3>
 
       <p>
-        <strong>UID:</strong> ${uid}<br>
+        <strong>Athlete ID:</strong> ${uid}<br>
         <strong>Rank:</strong> ${a.rankName || a.tierName || a.tier || "—"}<br>
-        <strong>State:</strong> ${a.testing?.state || "—"}<br>
+        <strong>State:</strong> ${testingStateLabel(a.testing?.state)}<br>
         <strong>Cooldown:</strong> ${fmtDate(a.testing?.cooldownUntil)}<br>
-        <strong>Freeze:</strong> ${fmtDate(a.testing?.freezeUntil)}
+        <strong>Preparation through:</strong> ${fmtDate(a.testing?.freezeUntil)}
       </p>
 
       <a class="btn" href="/coaches/testing/coach-athlete-panel.html?id=${encodeURIComponent(uid)}">
@@ -122,7 +134,7 @@ async function load() {
 
   render(cooldownList, cooldown, "None in cooldown");
   render(promotionList, promote, "None ready to promote");
-  render(freezeList, freeze, "None frozen");
+  render(freezeList, freeze, "No athletes need additional preparation");
 
   recentList.innerHTML = '<div class="empty">Coming Soon</div>';
 }
