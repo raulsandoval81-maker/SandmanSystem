@@ -15,6 +15,8 @@
     href="/communications/shared/comms.css"
   />
 
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+
   <link rel="icon" href="data:," />
 
   <style>
@@ -302,11 +304,19 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/communications/coach/coach-comms-shell.css?v=1" />
 </head>
 
-<body>
+<body class="coach-shell-page" data-coach-page="Published Schedule" data-coach-area="communications">
 
-<main class="wrap">
+<div id="coach-schedule-access" class="wrap coach-comms" role="status" aria-live="polite">
+  <section class="panel">
+    <h1>Team Calendar</h1>
+    <p id="coach-schedule-access-message" class="sub">Checking Coach access…</p>
+  </section>
+</div>
+
+<main id="coach-schedule-content" class="wrap coach-comms" data-coach-shell-content hidden>
 
   <section class="panel">
 
@@ -321,99 +331,12 @@
         </p>
       </div>
 
-      <div class="btn-row">
-
-        <a
-          class="btn"
-          href="/communications/coach/hub.html"
-        >
-          ← Coach Home
-        </a>
-
-        <label
-          class="check-row"
-          style="margin:0;"
-        >
-          <input
-            id="send-tournament-ping"
-            type="checkbox"
-          >
-
-          <span>
-            Send parent ping after save
-          </span>
-        </label>
-
-        <button
-          id="btn-save-all"
-          class="btn btn-primary"
-          type="button"
-        >
-          Management Publishes
-        </button>
-
-      </div>
-
     </div>
 
     <div class="scope-note">
-      <strong>Audience rules:</strong>
-      choose <strong>All Athletes</strong> for a shared item,
-      or choose <strong>Discipline</strong> and assign Wrestling,
-      Boxing, Kickboxing, MMA, or Submission Grappling.
-    </div>
-
-    <div class="banner-admin">
-
-      <h2>Published Banner</h2>
-
-      <p class="sub">
-        Use this for urgent schedule overrides
-        or important organization-wide notices.
-      </p>
-
-      <div class="banner-grid">
-
-        <div class="field">
-
-          <label class="label">
-            Banner Active
-          </label>
-
-          <div class="check-row">
-
-            <input
-              id="banner-active"
-              type="checkbox"
-            >
-
-            <span>
-              Show coach update banner
-            </span>
-
-          </div>
-
-        </div>
-
-        <div class="field">
-
-          <label
-            class="label"
-            for="banner-text"
-          >
-            Banner Text
-          </label>
-
-          <input
-            id="banner-text"
-            type="text"
-            placeholder="Practice cancelled today"
-          >
-
-        </div>
-
-      </div>
-
+      <strong>Read only.</strong>
+      Academy Management maintains and publishes the official structured schedule.
+      Coaches communicate reminders and changes through Broadcast.
     </div>
 
     <div
@@ -435,19 +358,10 @@
         </h2>
 
         <p class="sub">
-          Create recurring practices and assign each row
-          to all athletes or a specific discipline.
+          Review recurring practices published for your assigned location.
         </p>
 
       </div>
-
-      <button
-        id="btn-add-daily"
-        class="btn"
-        type="button"
-      >
-        Management Owned
-      </button>
 
     </div>
 
@@ -457,9 +371,7 @@
     ></div>
 
     <div class="note">
-      Daily rows include Audience, Discipline, Day,
-      Start, End, Display Label, Title, and Details.
-      Multiple days can be selected in one row.
+      Schedule changes become official when Academy Management publishes them.
     </div>
 
   </section>
@@ -481,14 +393,6 @@
 
       </div>
 
-      <button
-        id="btn-add-monthly"
-        class="btn"
-        type="button"
-      >
-        Management Owned
-      </button>
-
     </div>
 
     <div
@@ -497,10 +401,8 @@
     ></div>
 
     <div class="note">
-      Assign each event to all athletes or one discipline.
-      Keep only real events or intentional
-      “No Tournament Scheduled” notices.
-      Do not leave blank placeholders.
+      Use Broadcast for tournament reminders, gear notes, and schedule-change notices.
+      The published event record remains the official source for dates and logistics.
     </div>
 
   </section>
@@ -511,6 +413,8 @@
   type="module"
   src="/communications/coach/schedule.js"
 ></script>
+
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
 
 </body>
 </html>

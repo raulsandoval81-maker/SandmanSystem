@@ -66,6 +66,10 @@ document.addEventListener("DOMContentLoaded", () => {
           href: "/management/membership-tools/"
         },
         {
+          label: "Competition Schedule",
+          href: "/management/competition/"
+        },
+        {
           divider: true
         },
         {

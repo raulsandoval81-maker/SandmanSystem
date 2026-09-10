@@ -1,4 +1,5 @@
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { mergeAthleteSchedules, normalizeCrossTrainingAssignment, scheduleScopesForAthlete } from "/assets/js/athlete-schedule-scope.js";
 
 export const LOCATION_SCHEDULES = "paraSchedule";
 export const LOCATION_SCHEDULE_DRAFTS = "paraScheduleDrafts";
@@ -41,9 +42,56 @@ export function normalizeLocationId(value = "") {
 }
 
 export function resolveScheduleLocation(record = {}, fallback = "") {
-  return normalizeLocationId(
-    record.locationId || record.location?.id || record.academyLocationId || fallback
+  const direct = normalizeLocationId(
+    record.locationId ||
+    record.location?.id ||
+    record.academyLocationId ||
+    fallback
   );
+
+  if (direct) return direct;
+
+  const disciplines =
+    record.disciplines &&
+    typeof record.disciplines === "object" &&
+    !Array.isArray(record.disciplines)
+      ? record.disciplines
+      : {};
+
+  const activeDiscipline =
+    normalizeScheduleDiscipline(
+      record.activeDiscipline || ""
+    );
+
+  const primaryDiscipline =
+    normalizeScheduleDiscipline(
+      record.primaryDiscipline || ""
+    );
+
+  const activeLocation =
+    normalizeLocationId(
+      disciplines[activeDiscipline]?.locationId || ""
+    );
+
+  if (activeLocation) return activeLocation;
+
+  const primaryLocation =
+    normalizeLocationId(
+      disciplines[primaryDiscipline]?.locationId || ""
+    );
+
+  if (primaryLocation) return primaryLocation;
+
+  for (const discipline of Object.values(disciplines)) {
+    const locationId =
+      normalizeLocationId(
+        discipline?.locationId || ""
+      );
+
+    if (locationId) return locationId;
+  }
+
+  return "";
 }
 
 export function normalizeSchedule(data = {}, locationId = "") {
@@ -115,6 +163,24 @@ export async function loadPublishedLocationSchedule(db, locationId) {
   return schedule.status === "published" ? schedule : normalizeSchedule({}, id);
 }
 
+export async function loadPublishedAthleteSchedule(db, athlete = {}, assignments = [], now = new Date()) {
+  const athleteId = String(athlete.id || athlete.athleteId || athlete.uid || "").trim();
+  const homeLocationId = resolveScheduleLocation(athlete);
+  if (!athleteId) throw new Error("A valid athlete is required for schedule access.");
+  if (!homeLocationId) throw new Error("The athlete does not have an assigned location.");
+  const normalized = assignments.map((item) =>
+    normalizeCrossTrainingAssignment(item.id || item.assignmentId, item)
+  );
+  const scopes = scheduleScopesForAthlete({ athleteId, homeLocationId, assignments: normalized, now });
+  const scopedSchedules = await Promise.all(scopes.map(async (scope) => {
+    const schedule = await loadPublishedLocationSchedule(db, scope.locationId);
+    const filterAthlete = scope.kind === "host" && scope.disciplineIds.length
+      ? { disciplineIds: scope.disciplineIds }
+      : athlete;
+    return { scope, schedule: filterScheduleForAthlete(schedule, filterAthlete) };
+  }));
+  return mergeAthleteSchedules(scopedSchedules);
+}
 const SCHEDULE_DISCIPLINE_ALIASES = Object.freeze({
   bjj: "submission-grappling",
   grappling: "submission-grappling",
@@ -173,12 +239,138 @@ export function getAthleteScheduleDisciplineIds(athlete = {}) {
   return normalized;
 }
 
+function athleteScheduleAge(athlete = {}) {
+  const direct = Number(
+    athlete.age ??
+    athlete.athleteAge ??
+    athlete.currentAge
+  );
+
+  if (Number.isFinite(direct) && direct >= 0) {
+    return direct;
+  }
+
+  const rawDob =
+    athlete.dateOfBirth ||
+    athlete.dob ||
+    athlete.birthDate ||
+    "";
+
+  if (!rawDob) return null;
+
+  const dob = new Date(rawDob);
+
+  if (Number.isNaN(dob.getTime())) {
+    return null;
+  }
+
+  const now = new Date();
+
+  let age =
+    now.getFullYear() -
+    dob.getFullYear();
+
+  const beforeBirthday =
+    now.getMonth() < dob.getMonth() ||
+    (
+      now.getMonth() === dob.getMonth() &&
+      now.getDate() < dob.getDate()
+    );
+
+  if (beforeBirthday) age -= 1;
+
+  return age >= 0 ? age : null;
+}
+
+function scheduleAgeRange(item = {}) {
+  let min = Number(
+    item.minAge ??
+    item.ageMin
+  );
+
+  let max = Number(
+    item.maxAge ??
+    item.ageMax
+  );
+
+  if (!Number.isFinite(min)) min = null;
+  if (!Number.isFinite(max)) max = null;
+
+  const title =
+    String(item.title || "")
+      .trim()
+      .toLowerCase();
+
+  const details =
+    String(item.details || "");
+
+  // Current Sandman schedule convention:
+  // Youth = 7–13
+  // Teen = 14+
+  if (title.includes("youth")) {
+    if (min === null) min = 7;
+    if (max === null) max = 13;
+  }
+
+  if (title.includes("teen")) {
+    if (min === null) min = 14;
+  }
+
+  if (min === null) {
+    const plus =
+      details.match(/ages?\s+(\d+)\s*\+/i);
+
+    if (plus) {
+      min = Number(plus[1]);
+    }
+  }
+
+  return { min, max };
+}
+
+function scheduleMatchesAthleteAge(item = {}, athlete = {}) {
+  const age = athleteScheduleAge(athlete);
+
+  // Do not hide a class merely because an older
+  // athlete record is missing age data.
+  if (age === null) return true;
+
+  const { min, max } =
+    scheduleAgeRange(item);
+
+  if (min !== null && age < min) {
+    return false;
+  }
+
+  if (max !== null && age > max) {
+    return false;
+  }
+
+  return true;
+}
+
 export function filterScheduleForAthlete(schedule, athlete = null) {
   if (!athlete) return schedule;
 
   const disciplineIds = getAthleteScheduleDisciplineIds(athlete);
 
   const visible = (item) => {
+    const category =
+      String(item?.category || item?.type || "")
+        .trim()
+        .toLowerCase();
+
+    // Athlete schedule views are combat-specific.
+    // Fitness remains available elsewhere, but is not shown
+    // inside a selected athlete's schedule.
+    if (category === "fitness") {
+      return false;
+    }
+
+    if (!scheduleMatchesAthleteAge(item, athlete)) {
+      return false;
+    }
+
     if (item?.audience !== "discipline" || !item?.discipline) {
       return true;
     }

@@ -49,6 +49,10 @@ beforeEach(async () => {
     await setDoc(doc(db, "staff", "admin"), { role: "admin", status: "active" });
     await setDoc(doc(db, "paraSchedule", "santa-ynez-valley"), publishedSchedule("santa-ynez-valley"));
     await setDoc(doc(db, "paraSchedule", "lompoc"), unpublishedSchedule("lompoc"));
+    await setDoc(doc(db, "athleteCrossTrainingAssignments", "F4_0001_santa-ynez-valley_general"), {
+      athleteId: "F4_0001", homeLocationId: "lompoc", hostLocationId: "santa-ynez-valley",
+      disciplineIds: ["wrestling"], status: "active", approvedBy: "management-syv",
+    });
   });
 });
 
@@ -100,4 +104,20 @@ test("active Admin retains system-wide schedule oversight", async () => {
   const db = env.authenticatedContext("admin").firestore();
   await assertSucceeds(setDoc(doc(db, "paraScheduleDrafts", "elk-grove"), draftSchedule("elk-grove", "admin")));
   await assertSucceeds(setDoc(doc(db, "paraSchedule", "elk-grove"), publishedSchedule("elk-grove")));
+});
+
+test("cross-training assignments remain closed to direct browser reads and writes", async () => {
+  const path = "athleteCrossTrainingAssignments/F4_0001_santa-ynez-valley_general";
+  for (const context of [
+    env.unauthenticatedContext(),
+    env.authenticatedContext("parent-one"),
+    env.authenticatedContext("athlete-one"),
+    env.authenticatedContext("coach-syv"),
+    env.authenticatedContext("management-syv"),
+    env.authenticatedContext("admin"),
+  ]) {
+    const db = context.firestore();
+    await assertFails(getDoc(doc(db, path)));
+    await assertFails(setDoc(doc(db, path), { status: "inactive" }, { merge: true }));
+  }
 });
