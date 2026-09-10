@@ -46,6 +46,14 @@ function staffBucket(record) {
   return daysPast <= 90 ? "history" : "hidden";
 }
 function safe(value) { return String(value ?? "").replace(/[&<>'"]/g, (char) => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", "'":"&#39;", '"':"&quot;" }[char])); }
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return url.protocol === "http:" || url.protocol === "https:" ? url.href : "";
+  } catch {
+    return "";
+  }
+}
 
 function render() {
   const discipline = el("disciplineFilter").value;
@@ -61,21 +69,24 @@ function render() {
   el("eventCount").textContent = `${shown.length} event${shown.length === 1 ? "" : "s"}`;
   el("eventList").innerHTML = shown.length ? shown.map((record) => {
     const published = record.publicationStatus === "published";
-    return `<article class="event-card ${record.disciplineId === "strength-honor" ? "strength-honor" : ""}"><div><div class="actions" style="justify-content:flex-start;margin-bottom:8px"><span class="pill ${published ? "published" : "draft"}">${published ? "PUBLISHED" : "DRAFT"}</span><span class="pill">${record.disciplineId === "strength-honor" ? "Strength & Honor" : "Wrestling"}</span></div><h3>${safe(record.name)}</h3><p><span class="countdown">${safe(countdown(record))}</span> · ${safe(record.startDate)}${record.endDate ? `–${safe(record.endDate)}` : ""} · ${safe(record.locationName || "Location pending")}</p>${record.sanctionCard || record.sanctionNote ? `<p>Sanction: ${safe(record.sanctionCard || record.sanctionNote)}</p>` : ""}</div><div class="actions"><button class="button secondary" data-edit="${safe(record.eventId)}">Edit</button></div></article>`;
+    const registrationUrl = safeHttpUrl(record.registrationUrl);
+    return `<article class="event-card ${record.disciplineId === "strength-honor" ? "strength-honor" : ""}"><div><div class="actions" style="justify-content:flex-start;margin-bottom:8px"><span class="pill ${published ? "published" : "draft"}">${published ? "PUBLISHED" : "DRAFT"}</span><span class="pill">${record.disciplineId === "strength-honor" ? "Strength & Honor" : "Wrestling"}</span>${record.sanctionCard ? `<span class="pill">${safe(record.sanctionCard)}</span>` : ""}</div><h3>${safe(record.name)}</h3><p><span class="countdown">${safe(countdown(record))}</span> · ${safe(record.startDate)}${record.endDate ? `–${safe(record.endDate)}` : ""} · ${safe(record.locationName || "Location pending")}</p>${record.sanctionNote ? `<p>Sanction note: ${safe(record.sanctionNote)}</p>` : ""}${record.registrationDeadline ? `<p>Registration deadline: ${safe(record.registrationDeadline)}</p>` : ""}${registrationUrl ? `<p><a class="button secondary" href="${safe(registrationUrl)}" target="_blank" rel="noopener noreferrer">Registration</a></p>` : ""}</div><div class="actions"><button class="button secondary" data-edit="${safe(record.eventId)}">Edit</button></div></article>`;
   }).join("") : `<p class="empty">No ${listMode} competition events in this program.</p>`;
 }
 function toggleTime() { const known = el("timePrecision").value === "datetime"; el("startAtField").hidden = !known; el("startAt").required = known; }
 function openEditor(record = {}) {
   el("eventEditor").hidden = false; el("editorTitle").textContent = record.eventId ? "Edit Competition" : "New Competition";
-  const values = { eventId:"", eventName:"", eventDiscipline:"wrestling", seasonYear:2026, startDate:"", endDate:"", timePrecision:"date", weighInAnchorTime:"", eventTimeZone:"America/Los_Angeles", locationName:"", sanctionCard:"", sanctionNote:"", coachNotes:"", eventStatus:"active" };
-  const source = { eventId:record.eventId, eventName:record.name, eventDiscipline:record.disciplineId, seasonYear:record.seasonYear, startDate:record.startDate, endDate:record.endDate, timePrecision:record.timePrecision, weighInAnchorTime:record.weighInAnchorTime, eventTimeZone:record.timeZone, locationName:record.locationName, sanctionCard:record.sanctionCard, sanctionNote:record.sanctionNote, coachNotes:record.coachNotes, eventStatus:record.status };
+  const values = { eventId:"", eventName:"", eventDiscipline:"wrestling", seasonYear:2026, startDate:"", endDate:"", timePrecision:"date", weighInAnchorTime:"", eventTimeZone:"America/Los_Angeles", locationName:"", sanctionCard:"", sanctionNote:"", registrationUrl:"", registrationDeadline:"", coachNotes:"", eventStatus:"active" };
+  const supportedSanctions = new Set(["USAW", "SCWAY", "AAU", "RMN", "UNKNOWN"]);
+  const sanctionCard = supportedSanctions.has(String(record.sanctionCard || "").toUpperCase()) ? String(record.sanctionCard).toUpperCase() : "";
+  const source = { eventId:record.eventId, eventName:record.name, eventDiscipline:record.disciplineId, seasonYear:record.seasonYear, startDate:record.startDate, endDate:record.endDate, timePrecision:record.timePrecision, weighInAnchorTime:record.weighInAnchorTime, eventTimeZone:record.timeZone, locationName:record.locationName, sanctionCard, sanctionNote:record.sanctionNote, registrationUrl:record.registrationUrl, registrationDeadline:record.registrationDeadline, coachNotes:record.coachNotes, eventStatus:record.status };
   Object.entries(values).forEach(([id, fallback]) => { el(id).value = source[id] ?? fallback; }); toggleTime();
 }
 async function load() { records = (await callList({ disciplineId:"wrestling" })).data?.events || []; render(); }
 
 el("competitionForm").addEventListener("submit", async (event) => {
   event.preventDefault(); const precision = el("timePrecision").value; el("competitionStatus").textContent = "Saving…";
-  try { await callSave({ eventId:el("eventId").value || undefined, name:el("eventName").value, disciplineId:el("eventDiscipline").value, programScopes:["wrestling"], seasonYear:Number(el("seasonYear").value), startDate:el("startDate").value, endDate:el("endDate").value || null, startAt:precision === "datetime" ? new Date(el("startAt").value).toISOString() : null, endAt:null, timePrecision:precision, timeZone:el("eventTimeZone").value, weighInAnchorTime:el("weighInAnchorTime").value || null, locationName:el("locationName").value, sanctionCard:el("sanctionCard").value || null, sanctionNote:el("sanctionNote").value || null, status:el("eventStatus").value, coachNotes:el("coachNotes").value }); el("competitionStatus").textContent = "Saved. Publication state was not changed."; el("eventEditor").hidden = true; await load(); }
+  try { await callSave({ eventId:el("eventId").value || undefined, name:el("eventName").value, disciplineId:el("eventDiscipline").value, programScopes:["wrestling"], seasonYear:Number(el("seasonYear").value), startDate:el("startDate").value, endDate:el("endDate").value || null, startAt:precision === "datetime" ? new Date(el("startAt").value).toISOString() : null, endAt:null, timePrecision:precision, timeZone:el("eventTimeZone").value, weighInAnchorTime:el("weighInAnchorTime").value || null, locationName:el("locationName").value, sanctionCard:el("sanctionCard").value || null, sanctionNote:el("sanctionNote").value || null, registrationUrl:el("registrationUrl").value || null, registrationDeadline:el("registrationDeadline").value || null, status:el("eventStatus").value, coachNotes:el("coachNotes").value }); el("competitionStatus").textContent = "Saved. Publication state was not changed."; el("eventEditor").hidden = true; await load(); }
   catch (error) { el("competitionStatus").textContent = `Save failed: ${error.message}`; el("competitionStatus").classList.add("error"); }
 });
 el("eventList").addEventListener("click", async (event) => {
