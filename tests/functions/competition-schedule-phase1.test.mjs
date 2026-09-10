@@ -5,10 +5,52 @@ import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
 const policy = require("../../functions/lib/competitions/competitionPolicy.js");
-const seed = require("../../functions/lib/competitions/wrestlingPreseason2026.js");
 
-test("2026 preseason manifest has nine stable draft events", () => {
-  const events = seed.wrestlingPreseason2026Manifest();
+const PRESEASON_2026 = [
+  { name: "Remember the Fallen", startDate: "2026-09-13", locationName: "Bakersfield, CA", sanctionCard: "USAW", sanctionNote: null, disciplineId: "wrestling" },
+  { name: "TCWA – Camarillo", startDate: "2026-09-26", locationName: "Camarillo, CA", sanctionCard: "USAW", sanctionNote: null, disciplineId: "wrestling" },
+  { name: "Powerlifting – Cold Iron", startDate: "2026-09-27", locationName: "Solvang, CA", sanctionCard: "AAU", sanctionNote: null, disciplineId: "strength-honor" },
+  { name: "Wild West", startDate: "2026-10-04", locationName: "Rocklin, CA", sanctionCard: "USAW", sanctionNote: null, disciplineId: "wrestling" },
+  { name: "California World Challenge", startDate: "2026-10-10", endDate: "2026-10-11", locationName: "Fresno, CA – Clovis West HS", sanctionCard: null, sanctionNote: "Check SCWAY", disciplineId: "wrestling" },
+  { name: "TCWA – Pioneer Valley", startDate: "2026-10-17", locationName: "Santa Maria, CA", sanctionCard: "USAW", sanctionNote: null, disciplineId: "wrestling" },
+  { name: "TCWA – Oxnard", startDate: "2026-10-24", locationName: "Oxnard, CA", sanctionCard: "USAW", sanctionNote: null, disciplineId: "wrestling" },
+  { name: "RMN FreakShow", startDate: "2026-10-24", endDate: "2026-10-25", locationName: "Las Vegas, NV", sanctionCard: null, sanctionNote: null, disciplineId: "wrestling" },
+  { name: "Bill Musick Jr. Invite / TOC Qualifier", startDate: "2026-11-08", locationName: "Fresno, CA", sanctionCard: null, sanctionNote: null, disciplineId: "wrestling" },
+];
+
+function preseasonEvents() {
+  const defaults = {
+    seasonYear: 2026,
+    startAt: null,
+    endAt: null,
+    timePrecision: "date",
+    timeZone: "America/Los_Angeles",
+    programScopes: ["wrestling"],
+    address: "",
+    registrationUrl: null,
+    registrationDeadline: null,
+    ageGroups: [],
+    weightGroups: [],
+    locationIds: [],
+    teamIds: [],
+    status: "active",
+    publicationStatus: "draft",
+    visibility: "internal",
+    coachNotes: "",
+    parentNotes: "",
+    athleteNotes: "",
+  };
+
+  return PRESEASON_2026.map((event) => ({
+    ...policy.normalizeCompetitionEvent({ ...defaults, ...event }),
+    publishedAt: null,
+    publishedBy: null,
+    publishedByRole: null,
+  }));
+}
+
+test("2026 preseason fixture has nine stable draft events", () => {
+  const events = preseasonEvents();
   assert.equal(events.length, 9);
   assert.equal(new Set(events.map((event) => event.eventId)).size, 9);
   for (const event of events) {
@@ -27,7 +69,7 @@ test("2026 preseason manifest has nine stable draft events", () => {
 });
 
 test("Cold Iron and World Challenge preserve owner classifications", () => {
-  const events = seed.wrestlingPreseason2026Manifest();
+  const events = preseasonEvents();
   const coldIron = events.find((event) => event.name.includes("Cold Iron"));
   const worldChallenge = events.find((event) => event.name.includes("World Challenge"));
   assert.equal(coldIron.disciplineId, "strength-honor");
