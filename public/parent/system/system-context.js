@@ -15,7 +15,13 @@ const disciplineField = $("systemDisciplineField");
 const disciplineSelect = $("systemDisciplineSelect");
 const disciplineNotice = $("systemDisciplineNotice");
 const getMyAthlete = httpsCallable(functions, "getMyAthlete");
-const ACTIVE_PARENT_SYSTEM_DISCIPLINES = Object.freeze(["wrestling", "boxing", "muay-thai"]);
+const ACTIVE_PARENT_SYSTEM_DISCIPLINES = Object.freeze([
+  "wrestling",
+  "boxing",
+  "muay-thai",
+  "submission-grappling",
+  "mma"
+]);
 
 let authorizedAthletes = [];
 let selectedAthlete = null;
@@ -47,7 +53,7 @@ function setUrlContext(id, discipline) {
 }
 
 function preserveContextOnLinks() {
-  document.querySelectorAll('a[href^="/parent/system/"]').forEach((link) => {
+  document.querySelectorAll('a[href^="/parent/system/"], a[data-parent-resource-link]').forEach((link) => {
     const url = new URL(link.getAttribute("href"), window.location.origin);
     url.searchParams.set("athlete", selectedContext.athleteUid);
     if (selectedContext.activeDiscipline) url.searchParams.set("discipline", selectedContext.activeDiscipline);
