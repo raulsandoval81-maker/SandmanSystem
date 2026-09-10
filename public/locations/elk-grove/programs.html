@@ -972,28 +972,25 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/road2champion/boxing.html">
+                  <div class="program-discipline-link">
                     <strong>Boxing</strong> —
                     fundamentals, mechanics, balance,
                     movement, and body control.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/road2champion/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Wrestling</strong> —
                     position, balance, control, pressure, and body awareness.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/road2champion/muay-thai.html">
+                  <div class="program-discipline-link">
                     <strong>Muay Thai</strong> —
                     timing, balance, striking fundamentals, movement, and composure.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1010,30 +1007,27 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/road2champion/boxing.html">
+                  <div class="program-discipline-link">
                     <strong>Boxeo</strong> —
                     fundamentos, mecánica, equilibrio,
                     movimiento y control corporal.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/road2champion/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Lucha</strong> —
                     posición, equilibrio, control, presión
                     y conciencia corporal.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/road2champion/muay-thai.html">
+                  <div class="program-discipline-link">
                     <strong>Muay Thai</strong> —
                     tiempo, equilibrio, fundamentos de golpeo,
                     movimiento y compostura.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1218,30 +1212,27 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/path2legend/boxing.html">
+                  <div class="program-discipline-link">
                     <strong>Boxing</strong> —
                     advanced skills, pressure, leadership,
                     and competition readiness.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/path2legend/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Wrestling</strong> —
                     advanced positioning, pressure, tactical control,
                     competition readiness, and leadership.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/path2legend/muay-thai.html">
+                  <div class="program-discipline-link">
                     <strong>Muay Thai</strong> —
                     advanced striking, defense, timing, pressure,
                     composure, and responsible competition development.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1258,30 +1249,27 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/path2legend/boxing.html">
+                  <div class="program-discipline-link">
                     <strong>Boxeo</strong> —
                     habilidades avanzadas, presión,
                     liderazgo y preparación competitiva.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/path2legend/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Lucha</strong> —
                     posicionamiento avanzado, presión, control táctico,
                     preparación competitiva y liderazgo.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/path2legend/muay-thai.html">
+                  <div class="program-discipline-link">
                     <strong>Muay Thai</strong> —
                     golpeo avanzado, defensa, tiempo, presión,
                     compostura y desarrollo competitivo responsable.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1459,7 +1447,7 @@
               <ul class="program-list">
                 <li>
                   <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/quest2mastery/mma.html">
+                     aria-disabled="true">
                     <strong>MMA</strong> —
                     integrated striking, wrestling, grappling,
                     transitions, tactics, and complete combat development.
@@ -1481,7 +1469,7 @@
               <ul class="program-list">
                 <li>
                   <a class="program-discipline-link"
-                     href="/locations/elk-grove/programs/zero2hero/quest2mastery/mma.html">
+                     aria-disabled="true">
                     <strong>MMA</strong> —
                     golpeo integrado, lucha, grappling,
                     transiciones, táctica y desarrollo completo de combate.
@@ -1811,6 +1799,34 @@
     src="/assets/js/navigation.js"
     defer
   ></script>
+
+
+<!-- SANDMAN-PUBLIC-DISCIPLINE-STATIC-GUARD -->
+<script>
+document.addEventListener("click", function (event) {
+  const item = event.target.closest(".program-discipline-link");
+  if (!item) return;
+
+  const text = (item.textContent || "")
+    .trim()
+    .toLowerCase();
+
+  const combatDiscipline =
+    text.includes("wrestling") ||
+    text.includes("lucha") ||
+    text.includes("boxing") ||
+    text.includes("boxeo") ||
+    text.includes("muay thai") ||
+    text.includes("submission grappling") ||
+    text.includes("grappling de sumisión") ||
+    text.includes("mma");
+
+  if (!combatDiscipline) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+}, true);
+</script>
 
 </body>
 </html>

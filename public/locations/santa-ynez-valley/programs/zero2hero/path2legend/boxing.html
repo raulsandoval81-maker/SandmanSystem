@@ -15,6 +15,8 @@
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/parent/parent.css" />
+  <link rel="stylesheet" href="/parent/system/system.css" />
 <style>
     *{
       box-sizing:border-box;
@@ -550,57 +552,37 @@
     }
   </style>
 
+  <script src="/assets/js/parent-shell.js" defer></script>
 </head>
 
 <body>
+<header class="topbar parent-discipline-topbar">
+  <div class="topbar-left">
+    <a class="back-btn" href="/parent/system/">
+      <span class="en">← Parent Resources</span>
+      <span class="es">← Recursos Para Padres</span>
+    </a>
+  </div>
 
-<div
-  id="navigation"
-  data-component="/locations/santa-ynez-valley/components/navigation.html"
-></div>
+  <div class="topbar-center">
+    <a class="hub-mark" href="/parent/system/">
+      Sandman System™
+    </a>
+  </div>
 
+  <div class="topbar-right system-page-controls">
+    <button class="lang-btn active" data-lang="en" type="button">EN</button>
+    <button class="lang-btn" data-lang="es" type="button">ES</button>
+    <button
+      class="theme-toggle"
+      id="themeToggle"
+      type="button"
+      aria-label="Change appearance"
+    >☀️</button>
+  </div>
+</header>
 
-  <main>
-
-
-    <section class="hero">
-
-      <div data-lang-block="en">
-<h1>Boxing</h1>
-
-        <p class="hero-subtitle">
-          Movement. Timing. Composure. Leadership.
-        </p>
-
-        <p>Technical and tactical development for teen and adult athletes.</p>
-
-        <span class="availability">
-          Offered at our Santa Ynez Valley academy
-        </span>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-<h1>Boxeo</h1>
-
-        <p class="hero-subtitle">
-          Movimiento. Tiempo. Compostura. Liderazgo.
-        </p>
-
-        <p>Desarrollo técnico y táctico para atletas adolescentes y adultos.</p>
-
-        <span class="availability">
-          Disponible en nuestra academia de Valle de Santa Ynez
-        </span>
-
-      </div>
-
-    </section>
-
-<!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->
+<main><!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->
 
 <section
   class="discipline-heritage"
@@ -1055,38 +1037,7 @@
 
       </div>
 
-    </section>
-<section class="marketing-connect-cta">
-
-  <div data-lang-block="en">
-    <h2>Ready to Take the Next Step in Boxing?</h2>
-
-    <p>
-      Develop sharper technique, stronger conditioning, greater ring
-      intelligence, and disciplined composure through Path2Legend™ boxing.
-    </p>
-
-    <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
-      Connect With Our Academy
-    </a>
-  </div>
-
-  <div data-lang-block="es" class="hidden-lang">
-    <h2>¿Listo para Dar el Siguiente Paso en Boxeo?</h2>
-
-    <p>
-      Desarrolla técnica más precisa, mejor acondicionamiento, mayor
-      inteligencia en el ring y compostura disciplinada mediante
-      Path2Legend™.
-    </p>
-
-    <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
-      Conéctate con Nuestra Academia
-    </a>
-  </div>
-
-</section>
-    <div class="quote">
+    </section><div class="quote">
 
       <span data-lang-block="en">
         <strong>Legends are built one round at a time.</strong>
@@ -1104,26 +1055,6 @@
     </div>
 
   </main>
-
-
-
-  <div
-    id="footer"
-    data-component="/components/footer.html"
-  ></div>
-
-  <script
-    src="/assets/js/component-loader.js"
-    defer
-  ></script>
-
 <script src="/assets/js/language.js" defer></script>
-  <script src="/assets/js/theme.js" defer></script>
-
-  <script
-    src="/assets/js/navigation.js"
-    defer
-  ></script>
-
 </body>
 </html>

@@ -15,6 +15,8 @@
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/parent/parent.css" />
+  <link rel="stylesheet" href="/parent/system/system.css" />
 <style>
     *{
       box-sizing:border-box;
@@ -549,61 +551,42 @@
     }
   </style>
 
+  <script src="/assets/js/parent-shell.js" defer></script>
 </head>
 
-<body>
-
-<div
-  id="navigation"
-  data-component="/locations/santa-ynez-valley/components/navigation.html"
-></div>
-
-  <!-- Shared navigation -->
+<body><!-- Shared navigation -->
 
 
 
 
-<main>
 
+<header class="topbar parent-discipline-topbar">
+  <div class="topbar-left">
+    <a class="back-btn" href="/parent/system/">
+      <span class="en">← Parent Resources</span>
+      <span class="es">← Recursos Para Padres</span>
+    </a>
+  </div>
 
-    <section class="hero">
+  <div class="topbar-center">
+    <a class="hub-mark" href="/parent/system/">
+      Sandman System™
+    </a>
+  </div>
 
-      <div data-lang-block="en">
-<h1>Muay Thai</h1>
+  <div class="topbar-right system-page-controls">
+    <button class="lang-btn active" data-lang="en" type="button">EN</button>
+    <button class="lang-btn" data-lang="es" type="button">ES</button>
+    <button
+      class="theme-toggle"
+      id="themeToggle"
+      type="button"
+      aria-label="Change appearance"
+    >☀️</button>
+  </div>
+</header>
 
-        <p class="hero-subtitle">
-          Balance. Timing. Control. Courage.
-        </p>
-
-        <p>Technical and tactical development for youth athletes.</p>
-
-        <span class="availability">
-          Offered at our Santa Ynez Valley academy
-        </span>
-
-      </div>
-
-      <div
-        data-lang-block="es"
-        class="hidden-lang"
-      >
-<h1>Muay Thai</h1>
-
-        <p class="hero-subtitle">
-          Equilibrio. Tiempo. Control. Valor.
-        </p>
-
-        <p>Desarrollo técnico y táctico para atletas jóvenes.</p>
-
-        <span class="availability">
-          Disponible en nuestra academia de Valle de Santa Ynez
-        </span>
-
-      </div>
-
-    </section>
-
-<!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->
+<main><!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->
 
 <section
   class="discipline-heritage"
@@ -1064,40 +1047,7 @@
 
       </div>
 
-    </section>
-
-<section class="marketing-connect-cta">
-
-  <div data-lang-block="en">
-    <h2>Ready to Begin Muay Thai?</h2>
-
-    <p>
-      Help your child develop balance, coordination, confidence, discipline,
-      and responsible striking through age-appropriate Muay Thai training.
-    </p>
-
-    <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
-      Connect With Our Academy
-    </a>
-  </div>
-
-  <div data-lang-block="es" class="hidden-lang">
-    <h2>¿Listo para Comenzar Muay Thai?</h2>
-
-    <p>
-      Ayuda a tu hijo a desarrollar equilibrio, coordinación, confianza,
-      disciplina y golpeo responsable mediante entrenamiento apropiado
-      para su edad.
-    </p>
-
-    <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
-      Conéctate con Nuestra Academia
-    </a>
-  </div>
-
-</section>
-
-    <div class="quote">
+    </section><div class="quote">
 
       <span data-lang-block="en">
         <strong>Every hero begins in the shadows.</strong>
@@ -1115,26 +1065,6 @@
     </div>
 
   </main>
-
-
-
-  <div
-    id="footer"
-    data-component="/components/footer.html"
-  ></div>
-
-  <script
-    src="/assets/js/component-loader.js"
-    defer
-  ></script>
-
 <script src="/assets/js/language.js" defer></script>
-  <script src="/assets/js/theme.js" defer></script>
-
-  <script
-    src="/assets/js/navigation.js"
-    defer
-  ></script>
-
 </body>
 </html>

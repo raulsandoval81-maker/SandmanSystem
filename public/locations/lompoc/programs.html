@@ -973,12 +973,11 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/lompoc/programs/zero2hero/road2champion/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Wrestling</strong> —
                     fundamentals, mechanics, balance,
                     movement, and body control.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -995,12 +994,11 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/lompoc/programs/zero2hero/road2champion/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Lucha</strong> —
                     fundamentos, mecánica, equilibrio,
                     movimiento y control corporal.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1185,12 +1183,11 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/lompoc/programs/zero2hero/path2legend/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Wrestling</strong> —
                     advanced skills, pressure, leadership,
                     and competition readiness.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1540,6 +1537,34 @@
     src="/assets/js/navigation.js"
     defer
   ></script>
+
+
+<!-- SANDMAN-PUBLIC-DISCIPLINE-STATIC-GUARD -->
+<script>
+document.addEventListener("click", function (event) {
+  const item = event.target.closest(".program-discipline-link");
+  if (!item) return;
+
+  const text = (item.textContent || "")
+    .trim()
+    .toLowerCase();
+
+  const combatDiscipline =
+    text.includes("wrestling") ||
+    text.includes("lucha") ||
+    text.includes("boxing") ||
+    text.includes("boxeo") ||
+    text.includes("muay thai") ||
+    text.includes("submission grappling") ||
+    text.includes("grappling de sumisión") ||
+    text.includes("mma");
+
+  if (!combatDiscipline) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+}, true);
+</script>
 
 </body>
 </html>

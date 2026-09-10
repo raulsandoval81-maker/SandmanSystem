@@ -1167,21 +1167,19 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Wrestling</strong> —
                     fundamentals, mechanics, balance,
                     movement, and body control.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
+                  <div class="program-discipline-link">
                     <strong>Muay Thai</strong> —
                     movement, coordination, distance,
                     and controlled striking fundamentals.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1198,21 +1196,19 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Lucha</strong> —
                     fundamentos, mecánica, equilibrio,
                     movimiento y control corporal.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
+                  <div class="program-discipline-link">
                     <strong>Muay Thai</strong> —
                     movimiento, coordinación, distancia
                     y fundamentos de golpeo controlado.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1397,21 +1393,19 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Wrestling</strong> —
                     advanced skills, pressure, leadership,
                     and competition readiness.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html">
+                  <div class="program-discipline-link">
                     <strong>Boxing</strong> —
                     timing, footwork, conditioning,
                     pressure, and composure.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1428,21 +1422,19 @@
 
               <ul class="program-list">
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html">
+                  <div class="program-discipline-link">
                     <strong>Lucha</strong> —
                     habilidades avanzadas, presión,
                     liderazgo y preparación competitiva.
-                  </a>
+                  </div>
                 </li>
 
                 <li>
-                  <a class="program-discipline-link"
-                     href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html">
+                  <div class="program-discipline-link">
                     <strong>Boxeo</strong> —
                     ritmo, desplazamiento, acondicionamiento,
                     presión y compostura.
-                  </a>
+                  </div>
                 </li>
               </ul>
 
@@ -1770,6 +1762,34 @@
     src="/assets/js/navigation.js"
     defer
   ></script>
+
+
+<!-- SANDMAN-PUBLIC-DISCIPLINE-STATIC-GUARD -->
+<script>
+document.addEventListener("click", function (event) {
+  const item = event.target.closest(".program-discipline-link");
+  if (!item) return;
+
+  const text = (item.textContent || "")
+    .trim()
+    .toLowerCase();
+
+  const combatDiscipline =
+    text.includes("wrestling") ||
+    text.includes("lucha") ||
+    text.includes("boxing") ||
+    text.includes("boxeo") ||
+    text.includes("muay thai") ||
+    text.includes("submission grappling") ||
+    text.includes("grappling de sumisión") ||
+    text.includes("mma");
+
+  if (!combatDiscipline) return;
+
+  event.preventDefault();
+  event.stopPropagation();
+}, true);
+</script>
 
 </body>
 </html>
