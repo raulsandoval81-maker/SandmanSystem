@@ -37,7 +37,6 @@ const fullItems = [
   ["Schedule", "/communications/athlete/schedule.html"],
   ["Communications", "/communications/athlete/"],
   ["Announcements", "/athletes/bulletin/announcements.html", "child"],
-  ["Schedule", "/communications/athlete/schedule.html", "child-secondary"],
   ["Leaderboard", "/athletes/leaderboard/"]
 ];
 

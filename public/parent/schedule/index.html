@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/parent/parent.css"/>
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/parent/schedule/schedule.css"/>
+  <link rel="stylesheet" href="/assets/css/competition-events.css"/>
 </head>
 
 <body>
@@ -94,6 +95,11 @@
         </span>
       </div>
 
+      <div
+        id="competition-upcoming-list"
+        class="member-competition-list member-competition-list--promoted"
+        hidden
+      ></div>
       <div class="events-list" id="events-list">
         <p class="muted-empty">
           <span class="en">Loading events...</span>
@@ -101,6 +107,8 @@
         </p>
       </div>
     </section>
+
+    <section class="card"><div class="section-head"><h2 class="card__title"><span class="en">Competition Schedule</span><span class="es">Calendario de Competencias</span></h2><span class="section-note"><span class="en">Published events for this athlete</span><span class="es">Eventos publicados para este atleta</span></span></div><div id="competition-events-list" class="member-competition-list"><p class="muted-empty">Loading competitions…</p></div></section>
 
   </div>
 

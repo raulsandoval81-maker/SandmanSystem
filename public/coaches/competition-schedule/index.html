@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Competition Schedule | Sandman Coach</title>
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1">
+  <link rel="stylesheet" href="/coaches/competition-schedule/competition-schedule.css?v=1">
+</head>
+<body class="coach-shell-page" data-coach-page="Competition Schedule" data-coach-area="competition">
+<main class="competition-page" data-coach-shell-content>
+  <header class="competition-hero"><div><p class="eyebrow">Coach-owned planning</p><h1>Competition Schedule</h1><p>Coach owns the competitive plan. Save drafts first, then publish deliberately for members.</p></div><a class="button secondary" href="/coaches/arena-xp/">Arena XP</a></header>
+  <div id="competitionStatus" class="notice" role="status" aria-live="polite">Verifying Coach access…</div>
+  <div id="competitionProtected" hidden>
+    <section class="toolbar"><label>Program<select id="disciplineFilter"><option value="wrestling">Wrestling</option><option value="strength-honor">Strength &amp; Honor</option></select></label><div class="segmented"><button id="upcomingFilter" class="active" type="button">Upcoming</button><button id="historyFilter" type="button">History</button></div><span id="schedulePublicationStatus" class="pill draft">DRAFT</span><button id="schedulePublicationButton" class="button secondary" type="button">Publish Schedule</button><button id="newEventButton" class="button" type="button">New Event</button></section>
+    <section id="eventEditor" class="panel" hidden>
+      <div class="heading"><div><p class="eyebrow">Event details</p><h2 id="editorTitle">New Competition</h2></div><button id="cancelEditButton" class="button secondary" type="button">Cancel</button></div>
+      <form id="competitionForm" class="event-form">
+        <input id="eventId" type="hidden">
+        <label class="wide">Event name<input id="eventName" required maxlength="160"></label>
+        <label>Classification<select id="eventDiscipline"><option value="wrestling">Wrestling</option><option value="strength-honor">Strength &amp; Honor</option></select></label>
+        <label>Season year<input id="seasonYear" type="number" value="2026" min="2000" max="2200" required></label>
+        <label>Start date<input id="startDate" type="date" required></label><label>End date<input id="endDate" type="date"></label>
+        <label>Time precision<select id="timePrecision"><option value="date">Date only</option><option value="datetime">Known time</option></select></label>
+        <label id="startAtField" hidden>Start date &amp; time<input id="startAt" type="datetime-local"></label>
+        <label>Weigh-In / Event Anchor Time<input id="weighInAnchorTime" type="time"><small class="muted">Defaults to 6:00 AM for member countdowns.</small></label>
+        <label>Event timezone<input id="eventTimeZone" value="America/Los_Angeles" required></label>
+        <label>Location<input id="locationName" maxlength="180"></label><label>Sanction card<input id="sanctionCard" maxlength="80" placeholder="USAW, AAU, or blank"></label>
+        <label class="wide">Sanction note<input id="sanctionNote" maxlength="180" placeholder="Example: Check SCWAY"></label>
+        <label class="wide">Coach notes<textarea id="coachNotes" rows="3"></textarea></label>
+        <label>Status<select id="eventStatus"><option value="active">Active</option><option value="cancelled">Cancelled</option><option value="completed">Completed</option><option value="archived">Archived</option></select></label>
+        <div class="form-actions wide"><button class="button" type="submit">Save Event</button><span class="muted">New events are drafts. Saving never changes publication status.</span></div>
+      </form>
+    </section>
+    <section class="panel"><div class="heading"><div><p class="eyebrow">Internal competition plan</p><h2 id="listTitle">Upcoming</h2></div><span id="eventCount" class="pill">0 events</span></div><div id="eventList" class="event-list"><p class="empty">Loading…</p></div></section>
+  </div>
+</main>
+<script src="/coaches/_ui/coach-shell.js?v=1"></script><script type="module" src="/coaches/competition-schedule/competition-schedule.js?v=1"></script>
+</body></html>

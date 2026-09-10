@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
-exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = void 0;
+exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -186,3 +186,15 @@ var searchManagementMembers_1 = require("./access/searchManagementMembers");
 Object.defineProperty(exports, "searchManagementMembers", { enumerable: true, get: function () { return searchManagementMembers_1.searchManagementMembers; } });
 var cornermanRoster_1 = require("./modules/cornermanRoster");
 Object.defineProperty(exports, "cornermanRoster", { enumerable: true, get: function () { return cornermanRoster_1.cornermanRoster; } });
+var getAthleteScheduleScope_1 = require("./schedules/getAthleteScheduleScope");
+Object.defineProperty(exports, "getAthleteScheduleScope", { enumerable: true, get: function () { return getAthleteScheduleScope_1.getAthleteScheduleScope; } });
+var upsertAthleteCrossTrainingAssignment_1 = require("./schedules/upsertAthleteCrossTrainingAssignment");
+Object.defineProperty(exports, "upsertAthleteCrossTrainingAssignment", { enumerable: true, get: function () { return upsertAthleteCrossTrainingAssignment_1.upsertAthleteCrossTrainingAssignment; } });
+var listCompetitionEvents_1 = require("./competitions/listCompetitionEvents");
+Object.defineProperty(exports, "listCompetitionEvents", { enumerable: true, get: function () { return listCompetitionEvents_1.listCompetitionEvents; } });
+var upsertCompetitionEvent_1 = require("./competitions/upsertCompetitionEvent");
+Object.defineProperty(exports, "upsertCompetitionEvent", { enumerable: true, get: function () { return upsertCompetitionEvent_1.upsertCompetitionEvent; } });
+var setCompetitionPublication_1 = require("./competitions/setCompetitionPublication");
+Object.defineProperty(exports, "setCompetitionPublication", { enumerable: true, get: function () { return setCompetitionPublication_1.setCompetitionPublication; } });
+var listMyCompetitionEvents_1 = require("./competitions/listMyCompetitionEvents");
+Object.defineProperty(exports, "listMyCompetitionEvents", { enumerable: true, get: function () { return listMyCompetitionEvents_1.listMyCompetitionEvents; } });

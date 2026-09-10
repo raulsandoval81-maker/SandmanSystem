@@ -105,21 +105,6 @@
       overflow:hidden;
     }
 
-    .today-box::before{
-      content:"";
-      position:absolute;
-      left:0;
-      top:0;
-      bottom:0;
-      width:5px;
-      background:var(--gold);
-    }
-
-    .today-box.schedule-state--complete::before,
-    .today-box.schedule-state--empty::before{
-      background:#64748b;
-    }
-
     .item{
       position:relative;
     }
@@ -187,23 +172,91 @@
     body.day .sub{
       color:#4b5565;
     }
-  </style>
+
+    /* Combat family rim accents */
+
+    .schedule-family--grappling{
+      border-left:4px solid #60a5fa;
+    }
+
+    .schedule-family--striking{
+      border-left:4px solid #d97706;
+    }
+
+
+    /* Final discipline rim enforcement */
+
+    #today-box .item.schedule-family--grappling,
+    #daily-schedule .item.schedule-family--grappling{
+      border-left:4px solid #60a5fa !important;
+    }
+
+    #today-box .item.schedule-family--striking,
+    #daily-schedule .item.schedule-family--striking{
+      border-left:4px solid #d97706 !important;
+    }
+
+
+    /* Next-session summary only */
+
+    #today-box > .item:first-child{
+      border:2px solid #48bb78 !important;
+      border-radius:12px;
+    }
+
+
+    /* Next-session breathing room */
+
+    #today-box > .item:first-child{
+      padding:16px 14px !important;
+      margin-bottom:12px;
+    }
+
+    #today-box > .item:first-child .item-title{
+      margin-top:6px;
+    }
+
+    #today-box > .item:first-child .item-time{
+      margin-top:4px;
+    }
+
+    #today-box > .item:first-child .item-sub{
+      margin-top:6px;
+    }
+
+
+    /* Next-session countdown emphasis */
+
+    #today-box > .item:first-child .item-sub{
+      font-weight:800;
+    }
+
+
+
+    /* SANDMAN-ATHLETE-WEEKLY-ACCORDION-BRIDGE */
+    .sandman-weekly-accordion{
+      width:100%;
+    }
+
+    .sandman-weekly-accordion > .list{
+      margin-top:14px;
+    }
+
+</style>
   <link rel="stylesheet" href="/assets/css/f4-athlete.css">
+  <link rel="stylesheet" href="/communications/athlete/athlete-communications.css">
+  <link rel="stylesheet" href="/assets/css/competition-events.css">
 </head>
 
-<body class="athlete-app">
-<div class="wrap">
+<body class="athlete-app athlete-comms-page">
+<main class="wrap athlete-comms">
 
   <!-- HEADER -->
-  <div class="panel">
-          <div class="top">
-        <a class="btn" href="/athletes/bulletin/index.html">← Bulletin</a>
-      </div>
-
+  <section class="athlete-comms__hero">
+    <p class="athlete-comms__eyebrow">Training calendar</p>
     <h1>Schedule</h1>
-    <p class="sub">Know what’s on deck.</p>
-
-  </div>
+    <p>Know what’s on deck.</p>
+  </section>
 
   <!-- TODAY -->
   <div class="panel">
@@ -222,10 +275,16 @@
   <!-- EVENTS -->
   <div class="panel">
     <h2>Upcoming Events</h2>
+    <div
+      id="competition-upcoming-list"
+      class="member-competition-list member-competition-list--promoted"
+      hidden
+    ></div>
     <div id="tournament-schedule" class="list"></div>
   </div>
+  <div class="panel"><h2>Competition Schedule</h2><p class="sub">Published events for your program.</p><div id="competition-events-list" class="member-competition-list"><p class="sub">Loading competitions…</p></div></div>
 
-</div>
+</main>
 
 <script type="module" src="/communications/athlete/schedule-feed.js"></script>
 <script src="/communications/athlete/f4-communications.js"></script>

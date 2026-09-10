@@ -37,14 +37,30 @@ export const getMyAthlete = onCall(async (req) => {
     };
   }
 
+  const linkedAthleteUids = linkSnap.docs
+    .map((doc) =>
+      String(doc.data()?.athleteUid || "").trim()
+    )
+    .filter(Boolean);
+
+  // Legacy compatibility:
+  // Older activated athlete records may carry the authoritative
+  // parent relationship directly on athlete.parentUid without a
+  // corresponding active parentAthleteLinks document.
+  const legacySnap = await db
+    .collection("athletes")
+    .where("parentUid", "==", parentUid)
+    .get();
+
+  const legacyAthleteUids = legacySnap.docs
+    .map((doc) => String(doc.id || "").trim())
+    .filter(Boolean);
+
   const athleteUids = [
-    ...new Set(
-      linkSnap.docs
-        .map((doc) =>
-          String(doc.data()?.athleteUid || "").trim()
-        )
-        .filter(Boolean)
-    ),
+    ...new Set([
+      ...linkedAthleteUids,
+      ...legacyAthleteUids,
+    ]),
   ];
 
   if (!athleteUids.length) {
