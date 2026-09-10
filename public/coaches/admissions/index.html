@@ -20,10 +20,11 @@
     rel="stylesheet"
     href="/coaches/admissions/admissions.css"
   />
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
 </head>
 
-<body>
-  <main class="wrap admissions-wrap">
+<body class="coach-shell-page" data-coach-page="Admissions Assessments" data-coach-area="athletes" data-coach-shell-hub>
+  <main class="wrap admissions-wrap" data-coach-shell-content>
 
     <header class="hero">
       <p class="eyebrow">
@@ -40,21 +41,6 @@
         recommendation to Management.
       </p>
 
-      <nav class="topnav">
-        <a
-          class="pill primary"
-          href="/coaches/hub/index.html"
-        >
-          Coach Hub
-        </a>
-
-        <a
-          class="pill"
-          href="/coaches/index.html"
-        >
-          Daily Tools
-        </a>
-      </nav>
     </header>
 
     <section class="assessment-notice">
@@ -379,5 +365,6 @@
     type="module"
     src="/coaches/admissions/admissions.js"
   ></script>
+  <script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>

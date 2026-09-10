@@ -354,6 +354,30 @@ function labelForConfirmationStatus(value = "") {
   return labels[value] || "Confirmation Pending";
 }
 
+function labelForPreferredPlan(value = "") {
+  const labels = {
+    "standard-2-3":
+      "Standard Plan — 2–3 days/week"
+  };
+
+  return labels[value] || value || "—";
+}
+
+function labelForTrainingPattern(value = "") {
+  const labels = {
+    "monday-wednesday":
+      "Monday + Wednesday",
+
+    "tuesday-thursday":
+      "Tuesday + Thursday",
+
+    "not-sure":
+      "Not sure — needs guidance"
+  };
+
+  return labels[value] || value || "—";
+}
+
 function labelForMeetingWindow(value = "") {
   const labels = {
     "weekday-afternoon":
@@ -677,13 +701,44 @@ selectedLeadSummary.innerHTML = `
     <h4>Family Preferences</h4>
 
     <p>
-      <strong>Preferred Academy:</strong>
-      ${esc(labelForLocation(selectedLead.preferredLocation))}
+      <strong>Academy:</strong>
+      ${esc(
+        labelForLocation(
+          selectedLead.locationId
+        )
+      )}
     </p>
 
     <p>
       <strong>Preferred Meeting Window:</strong>
       ${esc(labelForMeetingWindow(selectedLead.preferredMeetingWindow))}
+    </p>
+
+    <p>
+      <strong>Starting Plan:</strong>
+      ${esc(
+        labelForPreferredPlan(
+          selectedLead.preferredPlan
+        )
+      )}
+    </p>
+
+    <p>
+      <strong>Regular Training Schedule:</strong>
+      ${esc(
+        labelForTrainingPattern(
+          selectedLead.preferredTrainingPattern
+        )
+      )}
+    </p>
+
+    <p>
+      <strong>Preferred Class Time:</strong>
+      ${esc(
+        formatAppointmentTime(
+          selectedLead.preferredClassTime
+        )
+      )}
     </p>
 
     <p>
@@ -890,6 +945,36 @@ async function migrateLegacyAppointments() {
         lead.id
       );
 
+      fillIfMissing(
+        "interestType",
+        lead.interestType
+      );
+
+      fillIfMissing(
+        "journey",
+        lead.journey
+      );
+
+      fillIfMissing(
+        "preferredDiscipline",
+        lead.preferredDiscipline
+      );
+
+      fillIfMissing(
+        "preferredPlan",
+        lead.preferredPlan
+      );
+
+      fillIfMissing(
+        "preferredTrainingPattern",
+        lead.preferredTrainingPattern
+      );
+
+      fillIfMissing(
+        "preferredClassTime",
+        lead.preferredClassTime
+      );
+
       if (
         Object.keys(backfill).length
       ) {
@@ -961,6 +1046,33 @@ async function migrateLegacyAppointments() {
 
         programInterest:
           lead.programInterest || "",
+
+        interestType:
+          lead.interestType || "",
+
+        journey:
+          lead.journey || "",
+
+        preferredDiscipline:
+          lead.preferredDiscipline || "",
+
+        preferredPlan:
+          lead.preferredPlan || "",
+
+        preferredTrainingPattern:
+          lead.preferredTrainingPattern || "",
+
+        preferredClassTime:
+          lead.preferredClassTime || "",
+
+        fitnessFocus:
+          lead.fitnessFocus || "",
+
+        fitnessLevel:
+          lead.fitnessLevel || "",
+
+        trainingIntent:
+          lead.trainingIntent || "",
 
         intent:
           lead.intent || "",
@@ -1271,6 +1383,39 @@ async function loadAppointments() {
       </div>
 
       <div>
+        <span class="field-label">Starting Plan</span>
+        <div class="field-value">
+          ${esc(
+            labelForPreferredPlan(
+              lead.preferredPlan
+            )
+          )}
+        </div>
+      </div>
+
+      <div>
+        <span class="field-label">Regular Training Schedule</span>
+        <div class="field-value">
+          ${esc(
+            labelForTrainingPattern(
+              lead.preferredTrainingPattern
+            )
+          )}
+        </div>
+      </div>
+
+      <div>
+        <span class="field-label">Preferred Class Time</span>
+        <div class="field-value">
+          ${esc(
+            formatAppointmentTime(
+              lead.preferredClassTime
+            )
+          )}
+        </div>
+      </div>
+
+      <div>
         <span class="field-label">Prior Experience</span>
         <div class="field-value">
           ${renderReportedExperience(lead)}
@@ -1472,6 +1617,44 @@ scheduleForm?.addEventListener(
         selectedLead.journey ||
         selectedLead.journeyId ||
         "",
+
+      /*
+       * Snapshot the family's training preferences from
+       * the Interest Lead into the Appointment record.
+       *
+       * Management may later confirm the athlete's actual
+       * recurring schedule, but the original preference
+       * remains attached to the admissions appointment.
+       */
+      interestType:
+        selectedLead.interestType || "",
+
+      journey:
+        selectedLead.journey || "",
+
+      preferredDiscipline:
+        selectedLead.preferredDiscipline || "",
+
+      preferredPlan:
+        selectedLead.preferredPlan || "",
+
+      preferredTrainingPattern:
+        selectedLead.preferredTrainingPattern || "",
+
+      preferredClassTime:
+        selectedLead.preferredClassTime || "",
+
+      fitnessFocus:
+        selectedLead.fitnessFocus || "",
+
+      fitnessLevel:
+        selectedLead.fitnessLevel || "",
+
+      trainingIntent:
+        selectedLead.trainingIntent || "",
+
+      preferredLanguage:
+        selectedLead.preferredLanguage || "",
 
       intent:
         selectedLead.intent || "",

@@ -2,6 +2,38 @@
   padding-bottom:4rem;
 }
 
+.coach-shell-page .admissions-wrap{
+  width:100%;
+  max-width:none;
+  margin:0;
+  padding:0 0 4rem;
+}
+
+.coach-shell-page .assessment-notice,
+.coach-shell-page .card.panel,
+.coach-shell-page fieldset,
+.coach-shell-page .reported-experience,
+.coach-shell-page .context-card,
+.coach-shell-page .appointment-item{
+  border-color:var(--coach-shell-line);
+  background:var(--coach-shell-panel);
+  color:var(--coach-shell-text);
+}
+
+.coach-shell-page fieldset select,
+.coach-shell-page fieldset textarea{
+  border:1px solid var(--coach-shell-line);
+  background:var(--coach-shell-page-bg);
+  color:var(--coach-shell-text);
+}
+
+.coach-shell-page .muted,
+.coach-shell-page .field-note,
+.coach-shell-page .context-label,
+.coach-shell-page .appointment-meta{
+  color:var(--coach-shell-muted);
+}
+
 .assessment-notice{
   display:flex;
   flex-wrap:wrap;

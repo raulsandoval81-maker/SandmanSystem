@@ -632,6 +632,137 @@
           </div>
 </section>
 
+        <section
+          id="trainingSchedulePreferenceSection"
+          class="form-section"
+        >
+          <h2>
+            <span data-lang="en">
+              Preferred Training Schedule
+            </span>
+
+            <span data-lang="es">
+              Horario de Entrenamiento Preferido
+            </span>
+          </h2>
+
+          <div class="field">
+            <label for="preferredPlan">
+              <span data-lang="en">
+                Starting Plan
+              </span>
+
+              <span data-lang="es">
+                Plan Inicial
+              </span>
+            </label>
+
+            <select
+              id="preferredPlan"
+              name="preferredPlan"
+              required
+            >
+              <option
+                value="standard-2-3"
+                selected
+              >
+                Standard Plan — 2–3 days/week
+              </option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="preferredTrainingPattern">
+              <span data-lang="en">
+                Which regular training schedule works best?
+              </span>
+
+              <span data-lang="es">
+                ¿Qué horario regular de entrenamiento funciona mejor?
+              </span>
+            </label>
+
+            <select
+              id="preferredTrainingPattern"
+              name="preferredTrainingPattern"
+              required
+            >
+              <option value="">
+                Select one
+              </option>
+
+              <option value="monday-wednesday">
+                Monday + Wednesday
+              </option>
+
+              <option value="tuesday-thursday">
+                Tuesday + Thursday
+              </option>
+
+              <option value="not-sure">
+                Not sure — help me choose
+              </option>
+            </select>
+
+            <small>
+              <span data-lang="en">
+                Choose the two regular training days that best fit your
+                schedule. Management will confirm the final schedule.
+              </span>
+
+              <span data-lang="es">
+                Elige los dos días regulares de entrenamiento que mejor
+                funcionen para tu horario. Administración confirmará el
+                horario final.
+              </span>
+            </small>
+          </div>
+
+          <div class="field">
+            <label for="preferredClassTime">
+              <span data-lang="en">
+                Discipline Class Time
+              </span>
+
+              <span data-lang="es">
+                Horario de Clase de la Disciplina
+              </span>
+            </label>
+
+            <input
+              id="preferredClassTime"
+              name="preferredClassTime"
+              type="text"
+              inputmode="text"
+              autocomplete="off"
+              placeholder="Example: 6:00 PM"
+            />
+            <p class="field-help discipline-class-time-help">
+              <span data-lang="en">
+                Optional. Available class times depend on the selected discipline,
+                training days, age group, and academy schedule.
+              </span>
+              <span data-lang="es">
+                Opcional. Los horarios disponibles dependen de la disciplina,
+                los días de entrenamiento, la edad y el horario de la academia.
+              </span>
+            </p>
+
+
+            <small>
+              <span data-lang="en">
+                Choose the class time that works best for you.
+                Management will confirm availability.
+              </span>
+
+              <span data-lang="es">
+                Elige la hora de clase que mejor funcione para ti.
+                Administración confirmará la disponibilidad.
+              </span>
+            </small>
+          </div>
+        </section>
+
 
         </div>
 
@@ -732,41 +863,7 @@
         <section class="form-section">
 
 
-          <div class="field">
-            <h2>
-              <span data-lang="en">
-                Academy / Team
-              </span>
 
-              <span data-lang="es">
-                Academia / Equipo
-              </span>
-
-              <span class="optional">
-                <span data-lang="en">Optional</span>
-                <span data-lang="es">Opcional</span>
-              </span>
-            </h2>
-
-            <label class="team-help-card">
-              <span class="team-help-card__text">
-                <span data-lang="en">
-                  I need help finding a team or academy.
-                </span>
-
-                <span data-lang="es">
-                  Necesito ayuda para encontrar un equipo o academia.
-                </span>
-              </span>
-
-              <input
-                id="needsTeamHelp"
-                name="needsTeamHelp"
-                type="checkbox"
-                value="yes"
-              />
-            </label>
-          </div>
 
           <div class="field">
             <label for="teamInterest">
@@ -792,15 +889,7 @@
               placeholder="Example: Rumble Academy"
             />
 
-            <p class="help-text placement-note team-interest-note">
-<span data-lang="en">
-                If you already know the academy, club, or team you are interested in, enter it here.
-              </span>
 
-              <span data-lang="es">
-                Si ya sabes qué academia, club o equipo te interesa, ingrésalo aquí.
-              </span>
-</p>
           </div>
 
           <div class="field">
@@ -818,101 +907,17 @@
               id="preferredMeetingWindow"
               name="preferredMeetingWindow"
               required
-            >
-              <option
-                value=""
-                data-lang="en"
-              >
-                Select one
-              </option>
-
-              <option
-                value=""
-                data-lang="es"
-              >
-                Selecciona una opción
-              </option>
-
-              <option
-                value="weekday-afternoon"
-                data-lang="en"
-              >
-                Weekday Afternoon (2:00 PM – 6:00 PM)
-              </option>
-
-              <option
-                value="weekday-afternoon"
-                data-lang="es"
-              >
-                Tarde Entre Semana (2:00 PM – 6:00 PM)
-              </option>
-
-              <option
-                value="weekday-evening"
-                data-lang="en"
-              >
-                Weekday Evening (5:00 PM – 9:00 PM)
-              </option>
-
-              <option
-                value="weekday-evening"
-                data-lang="es"
-              >
-                Noche Entre Semana (5:00 PM – 9:00 PM)
-              </option>
-
-              <option
-                value="saturday-morning"
-                data-lang="en"
-              >
-                Saturday Morning (8:00 AM – 12:00 PM)
-              </option>
-
-              <option
-                value="saturday-morning"
-                data-lang="es"
-              >
-                Sábado por la Mañana (8:00 AM – 12:00 PM)
-              </option>
-
-              <option
-                value="saturday-afternoon"
-                data-lang="en"
-              >
-                Saturday Afternoon (12:00 PM – 4:00 PM)
-              </option>
-
-              <option
-                value="saturday-afternoon"
-                data-lang="es"
-              >
-                Sábado por la Tarde (12:00 PM – 4:00 PM)
-              </option>
-
-              <option
-                value="flexible"
-                data-lang="en"
-              >
-                Flexible
-              </option>
-
-              <option
-                value="flexible"
-                data-lang="es"
-              >
-                Horario Flexible
-              </option>
-            </select>
+            ></select>
 
             <p class="help-text placement-note">
               <span data-lang="en">
                 Prefer to speak with us first?
-                <a href="/connect/message.html">Send us a message.</a>
+                <a href="/connect/message.html">Tap here to send us a message.</a>
               </span>
 
               <span data-lang="es">
                 ¿Prefieres hablar con nosotros primero?
-                <a href="/connect/message.html">Envíanos un mensaje.</a>
+                <a href="/connect/message.html">Toca aquí para enviarnos un mensaje.</a>
               </span>
             </p>
           </div>

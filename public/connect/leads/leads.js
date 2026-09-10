@@ -118,6 +118,61 @@ function labelForMeetingWindow(value = "") {
   return labels[value] || value || "—";
 }
 
+function labelForPreferredPlan(value = "") {
+  const labels = {
+    "standard-2-3":
+      "Standard Plan — 2–3 days/week"
+  };
+
+  return labels[value] || value || "—";
+}
+
+function labelForTrainingPattern(value = "") {
+  const labels = {
+    "monday-wednesday":
+      "Monday + Wednesday",
+
+    "tuesday-thursday":
+      "Tuesday + Thursday",
+
+    "not-sure":
+      "Not sure — needs guidance"
+  };
+
+  return labels[value] || value || "—";
+}
+
+function labelForClassTime(value = "") {
+  if (!value) {
+    return "—";
+  }
+
+  const [hoursRaw, minutesRaw] =
+    String(value).split(":");
+
+  const hours = Number(hoursRaw);
+  const minutes = Number(minutesRaw);
+
+  if (
+    !Number.isFinite(hours) ||
+    !Number.isFinite(minutes)
+  ) {
+    return value;
+  }
+
+  const suffix =
+    hours >= 12 ? "PM" : "AM";
+
+  const displayHours =
+    hours % 12 || 12;
+
+  return (
+    `${displayHours}:` +
+    `${String(minutes).padStart(2, "0")} ` +
+    suffix
+  );
+}
+
 function updateCounts() {
   if (countAll) countAll.textContent = leads.length;
 
@@ -365,6 +420,39 @@ function render() {
               <span class="field-label">Meeting Window</span>
               <div class="field-value">
               ${esc(labelForMeetingWindow(lead.preferredMeetingWindow))}
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Starting Plan</span>
+              <div class="field-value">
+                ${esc(
+                  labelForPreferredPlan(
+                    lead.preferredPlan
+                  )
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Regular Training Schedule</span>
+              <div class="field-value">
+                ${esc(
+                  labelForTrainingPattern(
+                    lead.preferredTrainingPattern
+                  )
+                )}
+              </div>
+            </div>
+
+            <div>
+              <span class="field-label">Preferred Class Time</span>
+              <div class="field-value">
+                ${esc(
+                  labelForClassTime(
+                    lead.preferredClassTime
+                  )
+                )}
               </div>
             </div>
 

@@ -392,6 +392,32 @@ function readForm() {
         formData.get("preferredMeetingWindow")
       ),
 
+    /*
+     * Training schedule preference is separate from
+     * Admissions / meeting availability.
+     *
+     * Standard public starting plan:
+     *   2 regular training days
+     *   with a possible earned third day later through
+     *   approved sparring, Strength, Honor, or other sessions.
+     *
+     * The public Interest form does not assign that third day.
+     */
+    preferredPlan:
+      clean(
+        formData.get("preferredPlan")
+      ) || "standard-2-3",
+
+    preferredTrainingPattern:
+      clean(
+        formData.get("preferredTrainingPattern")
+      ),
+
+    preferredClassTime:
+      clean(
+        formData.get("preferredClassTime")
+      ),
+
     claimedPriorExperience:
       clean(formData.get("claimedPriorExperience")),
 
@@ -553,6 +579,23 @@ if (
     );
   }
 
+  if (
+    lead.preferredPlan !== "standard-2-3"
+  ) {
+    return message(
+      "Select the Standard Plan before continuing.",
+      "Selecciona el Plan Estándar antes de continuar."
+    );
+  }
+
+  if (!lead.preferredTrainingPattern) {
+    return message(
+      "Select your preferred regular training schedule.",
+      "Selecciona tu horario regular de entrenamiento preferido."
+    );
+  }
+
+
   const isFitnessInterest =
     lead.interestType === "fitness" ||
     lead.interestType === "both";
@@ -672,6 +715,7 @@ form?.addEventListener(
     setStatus("");
 
     const lead = readForm();
+  applyQrLocationToLead(lead);
     const validationError =
       validateLead(lead);
 
@@ -761,6 +805,9 @@ form?.addEventListener(
         )}` +
         `&entryMode=${encodeURIComponent(
           lead.entryMode
+        )}` +
+        `&location=${encodeURIComponent(
+          lead.locationId || lead.location || ""
         )}`
       );
     } catch (error) {
@@ -1421,21 +1468,11 @@ function updatePrograms() {
       ]
     };
 
-    const journeyLabels = {
-      zero2hero: "Zero2Hero",
-      path2legend: "Path2Legend",
-      quest2mastery: "Quest2Mastery"
-    };
-
     const discipline =
       disciplineLabels[program.discipline] || [
         program.discipline,
         program.discipline
       ];
-
-    const journey =
-      journeyLabels[program.journey] ||
-      program.journey;
 
     const ageEn =
       program.max === null
@@ -1449,8 +1486,8 @@ function updatePrograms() {
 
     addOption(
       program.value,
-      `${discipline[0]} — ${ageEn} · ${journey}`,
-      `${discipline[1]} — ${ageEs} · ${journey}`
+      `${discipline[0]} — ${ageEn}`,
+      `${discipline[1]} — ${ageEs}`
     );
   });
 
@@ -1702,6 +1739,7 @@ function validateInterestStep(
 ) {
   const lead =
     readForm();
+  applyQrLocationToLead(lead);
 
   if (stepNumber === 1) {
     if (!lead.registrantName) {
@@ -1786,6 +1824,29 @@ function validateInterestStep(
     const isCombatInterest =
       lead.interestType === "combat" ||
       lead.interestType === "both";
+
+    if (
+      lead.preferredPlan !== "standard-2-3"
+    ) {
+      return message(
+        "Select the Standard Plan before continuing.",
+        "Selecciona el Plan Estándar antes de continuar."
+      );
+    }
+
+    if (!lead.preferredTrainingPattern) {
+      return message(
+        "Select your preferred regular training schedule.",
+        "Selecciona tu horario regular de entrenamiento preferido."
+      );
+    }
+
+    if (!lead.preferredClassTime) {
+      return message(
+        "Select your preferred class time.",
+        "Selecciona tu hora de clase preferida."
+      );
+    }
 
     const isFitnessInterest =
       lead.interestType === "fitness" ||
@@ -2685,3 +2746,306 @@ updateInterestDobRange();
 
   renderPrimaryGoals(true);
 })();
+
+/* SANDMAN-INTEREST-AGE-DOB-POSITIONING */
+
+/*
+ * Native mobile date pickers do not expose a way to scroll
+ * to a year without assigning a value.
+ *
+ * When Age is entered and DOB is still empty, set a temporary
+ * age-derived date so iOS/Android opens near the correct year.
+ *
+ * The user must still confirm/correct the actual birth date.
+ * DOB remains authoritative once the user edits it.
+ */
+let sandmanDobWasUserEdited = false;
+let sandmanDobWasAgeSeeded = false;
+
+function seedDobFromAthleteAge() {
+  if (
+    !athleteAge ||
+    !interestDobInput ||
+    sandmanDobWasUserEdited
+  ) {
+    return;
+  }
+
+  const age = Number(athleteAge.value);
+
+  if (
+    !Number.isFinite(age) ||
+    age < 1 ||
+    age > 99
+  ) {
+    return;
+  }
+
+  /*
+   * Use today's month/day in the likely birth year.
+   * This reliably positions the native picker close to the
+   * correct year without changing the age relationship.
+   */
+  const today = new Date();
+  const birthYear =
+    today.getFullYear() - age;
+
+  const month =
+    String(today.getMonth() + 1)
+      .padStart(2, "0");
+
+  const day =
+    String(today.getDate())
+      .padStart(2, "0");
+
+  interestDobInput.value =
+    `${birthYear}-${month}-${day}`;
+
+  sandmanDobWasAgeSeeded = true;
+
+  updateInterestDobRange();
+}
+
+athleteAge?.addEventListener(
+  "change",
+  seedDobFromAthleteAge
+);
+
+athleteAge?.addEventListener(
+  "blur",
+  seedDobFromAthleteAge
+);
+
+interestDobInput?.addEventListener(
+  "input",
+  () => {
+    if (sandmanDobWasAgeSeeded) {
+      sandmanDobWasUserEdited = true;
+      sandmanDobWasAgeSeeded = false;
+    }
+  }
+);
+
+
+
+/* SANDMAN-INTEREST-MEETING-WINDOW-LANGUAGE */
+
+const MEETING_WINDOW_OPTIONS = {
+  en: [
+    ["", "Select one"],
+    ["weekday-afternoon", "Weekday Afternoon (2:00 PM – 6:00 PM)"],
+    ["weekday-evening", "Weekday Evening (5:00 PM – 9:00 PM)"],
+    ["saturday-morning", "Saturday Morning (8:00 AM – 12:00 PM)"],
+    ["saturday-afternoon", "Saturday Afternoon (12:00 PM – 4:00 PM)"],
+    ["flexible", "Flexible"]
+  ],
+  es: [
+    ["", "Selecciona una opción"],
+    ["weekday-afternoon", "Tarde Entre Semana (2:00 PM – 6:00 PM)"],
+    ["weekday-evening", "Noche Entre Semana (5:00 PM – 9:00 PM)"],
+    ["saturday-morning", "Sábado por la Mañana (8:00 AM – 12:00 PM)"],
+    ["saturday-afternoon", "Sábado por la Tarde (12:00 PM – 4:00 PM)"],
+    ["flexible", "Horario Flexible"]
+  ]
+};
+
+function renderMeetingWindowOptions() {
+  const select = document.getElementById("preferredMeetingWindow");
+  if (!select) return;
+
+  const previous = select.value;
+  const lang = document.documentElement.lang === "es" ? "es" : "en";
+
+  select.innerHTML = "";
+
+  for (const [value, label] of MEETING_WINDOW_OPTIONS[lang]) {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = label;
+    select.appendChild(option);
+  }
+
+  if (
+    previous &&
+    MEETING_WINDOW_OPTIONS[lang].some(([value]) => value === previous)
+  ) {
+    select.value = previous;
+  }
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    renderMeetingWindowOptions,
+    { once: true }
+  );
+} else {
+  renderMeetingWindowOptions();
+}
+
+new MutationObserver(renderMeetingWindowOptions).observe(
+  document.documentElement,
+  {
+    attributes: true,
+    attributeFilter: ["lang"]
+  }
+);
+
+/* SANDMAN-INTEREST-STEP4-LANGUAGE-SAFE-SELECTS */
+
+/*
+ * iOS native <select> menus can expose <option> elements that CSS hides.
+ * Step 4 stores both English and Spanish options in HTML, so keep a
+ * canonical snapshot and rebuild each select using only the active language.
+ */
+
+const step4SelectTemplates = new Map();
+
+function captureStep4SelectTemplates() {
+  const step4 = document.querySelector('[data-interest-step="4"]');
+  if (!step4) return;
+
+  step4.querySelectorAll("select").forEach((select) => {
+    if (step4SelectTemplates.has(select.id)) return;
+
+    const options = Array.from(select.options).map((option) => ({
+      value: option.value,
+      text: option.textContent.trim(),
+      lang: option.dataset.lang || "",
+      disabled: option.disabled
+    }));
+
+    step4SelectTemplates.set(select.id, options);
+  });
+}
+
+function renderStep4LanguageSafeSelects() {
+  const step4 = document.querySelector('[data-interest-step="4"]');
+  if (!step4) return;
+
+  captureStep4SelectTemplates();
+
+  const lang =
+    document.documentElement.lang === "es"
+      ? "es"
+      : "en";
+
+  step4.querySelectorAll("select").forEach((select) => {
+    const template = step4SelectTemplates.get(select.id);
+    if (!template) return;
+
+    const previousValue = select.value;
+
+    select.innerHTML = "";
+
+    template
+      .filter((item) => !item.lang || item.lang === lang)
+      .forEach((item) => {
+        const option = document.createElement("option");
+        option.value = item.value;
+        option.textContent = item.text;
+        option.disabled = item.disabled;
+        select.appendChild(option);
+      });
+
+    const previousStillExists =
+      Array.from(select.options).some(
+        (option) => option.value === previousValue
+      );
+
+    if (previousStillExists) {
+      select.value = previousValue;
+    }
+  });
+}
+
+function initializeStep4LanguageSafeSelects() {
+  captureStep4SelectTemplates();
+  renderStep4LanguageSafeSelects();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    initializeStep4LanguageSafeSelects,
+    { once: true }
+  );
+} else {
+  initializeStep4LanguageSafeSelects();
+}
+
+new MutationObserver(() => {
+  renderStep4LanguageSafeSelects();
+}).observe(
+  document.documentElement,
+  {
+    attributes: true,
+    attributeFilter: ["lang"]
+  }
+);
+
+/* SANDMAN-INTEREST-QR-LOCATION-LOCK */
+
+const SANDMAN_VALID_LOCATIONS = new Set([
+  "lompoc",
+  "santa-ynez-valley",
+  "elk-grove"
+]);
+
+function getSandmanQrLocation() {
+  const params = new URLSearchParams(window.location.search);
+  const location = (params.get("location") || "").trim().toLowerCase();
+
+  return SANDMAN_VALID_LOCATIONS.has(location)
+    ? location
+    : "";
+}
+
+function lockSandmanQrLocation() {
+  const qrLocation = getSandmanQrLocation();
+  if (!qrLocation) return;
+
+  const locationControl =
+    document.getElementById("location") ||
+    document.querySelector('[name="location"]') ||
+    document.getElementById("locationId") ||
+    document.querySelector('[name="locationId"]');
+
+  if (locationControl) {
+    locationControl.value = qrLocation;
+
+    if (locationControl.tagName === "SELECT") {
+      locationControl.dataset.qrLocked = "true";
+    }
+  }
+
+  document.documentElement.dataset.sandmanQrLocation = qrLocation;
+}
+
+function applyQrLocationToLead(lead) {
+  const qrLocation = getSandmanQrLocation();
+
+  if (!qrLocation || !lead) {
+    return lead;
+  }
+
+  if ("location" in lead) {
+    lead.location = qrLocation;
+  }
+
+  if ("locationId" in lead) {
+    lead.locationId = qrLocation;
+  }
+
+  return lead;
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    lockSandmanQrLocation,
+    { once: true }
+  );
+} else {
+  lockSandmanQrLocation();
+}
