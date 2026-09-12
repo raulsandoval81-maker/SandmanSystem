@@ -430,6 +430,69 @@
     }
   }
 
+
+  .builder-reference-accordion {
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .builder-reference-accordion > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    font-weight: 700;
+  }
+
+  .builder-reference-accordion > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .builder-reference-accordion > summary span:first-child {
+    display: grid;
+    gap: 3px;
+  }
+
+  .builder-reference-accordion > summary small {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.68;
+  }
+
+  .builder-reference-accordion__hint {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.7;
+  }
+
+  .builder-reference-accordion[open]
+    .builder-reference-accordion__hint::after {
+    content: "Close";
+  }
+
+  .builder-reference-accordion[open]
+    .builder-reference-accordion__hint {
+    font-size: 0;
+  }
+
+  .builder-reference-accordion[open]
+    .builder-reference-accordion__hint::after {
+    font-size: 12px;
+  }
+
+  .builder-reference-accordion > .card {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
 </style>
 
 </head>
@@ -458,13 +521,13 @@
 
     <section class="metric-grid" aria-label="Proposal totals">
       <article class="metric">
-        <div class="metric-label">Due at enrollment</div>
+        <div class="metric-label">Due now</div>
         <div id="dueNow" class="metric-value">$75</div>
-        <div class="metric-note">One-time onboarding after approved credits</div>
+        <div class="metric-note">Enrollment package + first-month membership</div>
       </article>
 
       <article class="metric">
-        <div class="metric-label">Monthly family balance</div>
+        <div class="metric-label">Monthly membership</div>
         <div id="monthlyTotal" class="metric-value">$80</div>
         <div class="metric-note">Recurring training membership</div>
       </article>
@@ -489,6 +552,39 @@
     </section>
 
     <section class="builder-shell">
+
+<article class="card builder-section pricing-reference">
+        <div class="card-head">
+          <div>
+            <h2>Membership pricing reference</h2>
+            <p>Current Sandman Academy Combat and Fitness membership rates.</p>
+          </div>
+        </div>
+
+        <div class="compare-grid">
+          <div class="compare-card">
+            <strong id="standardCompare">Combat Memberships</strong>
+            <p>
+              1 or 2 disciplines • 2–3 or 4–6 days/week •
+              month-to-month or 12-month agreement.
+            </p>
+          </div>
+
+          <div class="compare-card">
+            <strong id="unlimitedCompare">Family Combat</strong>
+            <p>
+              12-month family caps: $160 / $200 / $200 / $260,
+              based on disciplines and training access.
+            </p>
+          </div>
+        </div>
+
+        <p class="help" style="margin-top:12px;">
+          Fitness is $60 for 2 days/week or $80 for 3 days/week.
+          Annual enrollment packages are $50 / $65 / $75.
+        </p>
+      </article>
+
       <article class="card builder-section">
         <div class="card-head">
           <div>
@@ -530,58 +626,7 @@
         <div id="athleteList" class="athlete-list"></div>
       </article>
 
-      <article class="card builder-section calculator-controls">
-        <div class="card-head">
-          <div>
-            <h2>Extras and approved adjustments</h2>
-            <p>Keep exceptions separate from core membership pricing.</p>
-          </div>
-        </div>
 
-        <div class="adjustments-grid">
-          <div class="field">
-            <label for="extra">Optional service</label>
-            <select id="extra">
-              <option value="none">None</option>
-              <option value="fitness-dropin">Fitness drop-in — $15</option>
-              <option value="private-30">Private lesson — 30 min — $25</option>
-              <option value="private-60">Private lesson — 60 min — $50</option>
-              <option value="private-90">Private lesson — 90 min — $70</option>
-              <option value="semi-private">Semi-private — 90 min — $60 total</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="support">Enrollment support</label>
-            <input id="support" type="number" min="0" step="5" value="0" />
-            <p class="help">Management-approved scholarship or hardship adjustment.</p>
-          </div>
-        </div>
-
-        <div class="adjustment-checks">
-          <label class="check-row">
-            <input id="privatePromo" type="checkbox" />
-            <span>Apply eligible private-session promotion (-$10)</span>
-          </label>
-
-          <label class="check-row">
-            <input id="fitnessCredit" type="checkbox" />
-            <span>Credit $15 fitness drop-in toward first fitness month</span>
-          </label>
-        </div>
-
-        <div class="adjustments-grid" style="margin-top:14px;">
-          <div class="field">
-            <label for="monthlySponsor">Monthly sponsor amount</label>
-            <input id="monthlySponsor" type="number" min="0" step="5" value="0" />
-          </div>
-
-          <div class="field">
-            <label for="annualSponsor">Annual sponsor amount</label>
-            <input id="annualSponsor" type="number" min="0" step="5" value="0" />
-          </div>
-        </div>
-      </article>
 
       <article class="card builder-section payment-start-section">
         <div class="card-head">
@@ -639,37 +684,7 @@
         <div id="breakdown" class="breakdown"></div>
       </article>
 
-      <article class="card builder-section pricing-reference">
-        <div class="card-head">
-          <div>
-            <h2>Membership pricing reference</h2>
-            <p>Current Sandman Academy Combat and Fitness membership rates.</p>
-          </div>
-        </div>
 
-        <div class="compare-grid">
-          <div class="compare-card">
-            <strong id="standardCompare">Combat Memberships</strong>
-            <p>
-              1 or 2 disciplines • 2–3 or 4–6 days/week •
-              month-to-month or 12-month agreement.
-            </p>
-          </div>
-
-          <div class="compare-card">
-            <strong id="unlimitedCompare">Family Combat</strong>
-            <p>
-              12-month family caps: $160 / $200 / $200 / $260,
-              based on disciplines and training access.
-            </p>
-          </div>
-        </div>
-
-        <p class="help" style="margin-top:12px;">
-          Fitness is $60 for 2 days/week or $80 for 3 days/week.
-          Annual enrollment packages are $50 / $65 / $75.
-        </p>
-      </article>
 
       <article class="summary-box">
         <span class="proposal-preview-label">Proposal preview</span>
@@ -686,6 +701,79 @@
           </button>
         </div>
       </article>
+
+
+      <details class="builder-reference-accordion">
+        <summary>
+          <span>
+            <strong>Extras & Approved Adjustments</strong>
+            <small>
+              Management reference and exceptions
+            </small>
+          </span>
+
+          <span
+            class="builder-reference-accordion__hint"
+            aria-hidden="true"
+          >
+            Open
+          </span>
+        </summary>
+
+<article class="card builder-section calculator-controls">
+        <div class="card-head">
+          <div>
+            <h2>Extras and approved adjustments</h2>
+            <p>Keep exceptions separate from core membership pricing.</p>
+          </div>
+        </div>
+
+        <div class="adjustments-grid">
+          <div class="field">
+            <label for="extra">Optional service</label>
+            <select id="extra">
+              <option value="none">None</option>
+              <option value="fitness-dropin">Fitness drop-in — $15</option>
+              <option value="private-30">Private lesson — 30 min — $25</option>
+              <option value="private-60">Private lesson — 60 min — $50</option>
+              <option value="private-90">Private lesson — 90 min — $70</option>
+              <option value="semi-private">Semi-private — 90 min — $60 total</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="support">Enrollment support</label>
+            <input id="support" type="number" min="0" step="5" value="0" />
+            <p class="help">Management-approved scholarship or hardship adjustment.</p>
+          </div>
+        </div>
+
+        <div class="adjustment-checks">
+          <label class="check-row">
+            <input id="privatePromo" type="checkbox" />
+            <span>Apply eligible private-session promotion (-$10)</span>
+          </label>
+
+          <label class="check-row">
+            <input id="fitnessCredit" type="checkbox" />
+            <span>Credit $15 fitness drop-in toward first fitness month</span>
+          </label>
+        </div>
+
+        <div class="adjustments-grid" style="margin-top:14px;">
+          <div class="field">
+            <label for="monthlySponsor">Monthly sponsor amount</label>
+            <input id="monthlySponsor" type="number" min="0" step="5" value="0" />
+          </div>
+
+          <div class="field">
+            <label for="annualSponsor">Annual sponsor amount</label>
+            <input id="annualSponsor" type="number" min="0" step="5" value="0" />
+          </div>
+        </div>
+      </article>
+      </details>
+
 
       <section class="proposal-action-zone">
         <section
@@ -1017,14 +1105,7 @@
           </select>
         </div>
 
-        <div class="field">
-          <label>Auto-renewal</label>
-          <select class="renewal-behavior">
-            <option value="month-to-month">Continue month-to-month</option>
-            <option value="renew-annual">Renew for another 12 months</option>
-            <option value="end">End after agreement</option>
-          </select>
-        </div>
+
       </div>
 
       <div class="discipline-box">

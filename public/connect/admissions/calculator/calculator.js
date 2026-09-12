@@ -792,6 +792,34 @@ const extras = {
       );
     }
 
+    function enrollmentPackageLabel(
+      registrationCount
+    ) {
+      if (registrationCount >= 3) {
+        return "3-Shirt Enrollment Package";
+      }
+
+      if (registrationCount === 2) {
+        return "2-Shirt Enrollment Package";
+      }
+
+      return "1-Shirt Enrollment Package";
+    }
+
+    function renewalPackageLabel(
+      registrationCount
+    ) {
+      if (registrationCount >= 3) {
+        return "3-Shirt Renewal Package";
+      }
+
+      if (registrationCount === 2) {
+        return "2-Shirt Renewal Package";
+      }
+
+      return "1-Shirt Renewal Package";
+    }
+
     function calculate(){
       const athletes=readAthletes();
       const extra=extras[el.extra.value];
@@ -1023,6 +1051,16 @@ const extras = {
               );
       }
 
+      const enrollmentPackageName =
+        enrollmentPackageLabel(
+          registrationCount
+        );
+
+      const renewalPackageName =
+        renewalPackageLabel(
+          registrationCount
+        );
+
       const annualRenewal=Math.max(0,annualBase-annualSponsor);
       const firstYear=Math.max(
         0,
@@ -1088,7 +1126,7 @@ const extras = {
 
       el.breakdown.append(
         line(
-          "Enrollment / onboarding",
+          enrollmentPackageName,
           enrollmentDueNow
         )
       );
@@ -1148,7 +1186,7 @@ const extras = {
 
       el.breakdown.append(
         line(
-          "Annual Enrollment Package",
+          renewalPackageName,
           annualBase
         )
       );
@@ -1157,7 +1195,7 @@ const extras = {
         el.breakdown.append(line("Annual sponsor support",annualSponsor,{credit:true}));
       }
 
-      el.breakdown.append(line("Next Annual Enrollment Package",annualRenewal,{total:true}));
+      el.breakdown.append(line(renewalPackageName,annualRenewal,{total:true}));
 
       const familyName=el.familyName.value.trim();
       const intro=familyName?`<p><strong>${familyName}</strong></p>`:"";
@@ -1211,7 +1249,7 @@ const extras = {
           <strong>Total due now:</strong>
           ${money(dueNow)}.<br>
 
-          Enrollment / onboarding:
+          ${enrollmentPackageName}:
           <strong>${money(enrollmentDueNow)}</strong>.<br>
 
           ${
@@ -1242,7 +1280,7 @@ const extras = {
           Recurring billing:
           <strong>5th of each month</strong>.<br>
 
-          Next Annual Enrollment Package:
+          ${renewalPackageName}:
           <strong>${money(annualRenewal)}/year</strong>.
         </p>
 
@@ -1260,6 +1298,8 @@ const extras = {
 
         pricing: {
           registrationCount,
+          enrollmentPackageName,
+          renewalPackageName,
           enrollmentBase,
           extraCode: el.extra.value,
           extraLabel: extra.label,
@@ -2657,7 +2697,10 @@ async function beginProposalCheckout() {
                   ? `
                     <div class="print-detail-row">
                       <span>
-                        Annual enrollment package
+                        ${escapeHtml(
+                          pricing.renewalPackageName ||
+                          "Renewal Package"
+                        )}
                       </span>
 
                       <strong>
@@ -2683,7 +2726,10 @@ async function beginProposalCheckout() {
           <h3>Payment Schedule</h3>
 
           <div class="print-detail-row">
-            <span>Enrollment / onboarding</span>
+            <span>${escapeHtml(
+              pricing.enrollmentPackageName ||
+              "Enrollment Package"
+            )}</span>
             <strong>
               ${money(
                 pricing.enrollmentDueNow
