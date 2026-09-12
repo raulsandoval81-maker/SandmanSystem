@@ -67,6 +67,35 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     if (monthlyBalance < 50) {
         throw new https_1.HttpsError("failed-precondition", "The locked monthly balance is invalid.");
     }
+    const firstRecurringChargeDate = cleanString(pricing.firstRecurringChargeDate);
+    const recurringBillingDay = Number(pricing.recurringBillingDay);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(firstRecurringChargeDate)) {
+        throw new https_1.HttpsError("failed-precondition", "The locked first recurring charge date is invalid.");
+    }
+    const [recurringYear, recurringMonth, recurringDay,] = firstRecurringChargeDate
+        .split("-")
+        .map(Number);
+    const firstRecurringChargeMs = Date.UTC(recurringYear, recurringMonth - 1, recurringDay, 12, 0, 0);
+    const validatedRecurringDate = new Date(firstRecurringChargeMs);
+    if (validatedRecurringDate.getUTCFullYear() !==
+        recurringYear ||
+        validatedRecurringDate.getUTCMonth() !==
+            recurringMonth - 1 ||
+        validatedRecurringDate.getUTCDate() !==
+            recurringDay ||
+        recurringBillingDay !== 5 ||
+        recurringDay !== 5) {
+        throw new https_1.HttpsError("failed-precondition", "The locked recurring billing schedule is invalid.");
+    }
+    const firstRecurringChargeUnix = Math.floor(firstRecurringChargeMs / 1000);
+    const minimumTrialEndUnix = Math.floor(Date.now() / 1000) +
+        (48 *
+            60 *
+            60);
+    if (firstRecurringChargeUnix <
+        minimumTrialEndUnix) {
+        throw new https_1.HttpsError("failed-precondition", "The first recurring charge must be at least 48 hours in the future. Rebuild the proposal payment schedule before checkout.");
+    }
     const email = cleanString(prospect.email).toLowerCase();
     const publicBaseUrl = cleanString(process.env.SANDMAN_PUBLIC_BASE_URL) || "https://www.sandmancombat.com";
     const rawCatalogItems = Array.isArray(pricing.stripeCatalogItems)
@@ -216,9 +245,12 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 source: "admissions_proposal",
             },
             subscription_data: {
+                trial_end: firstRecurringChargeUnix,
                 metadata: {
                     proposalId,
                     source: "admissions_proposal",
+                    firstRecurringChargeDate,
+                    recurringBillingDay: String(recurringBillingDay),
                 },
             },
             allow_promotion_codes: false,
