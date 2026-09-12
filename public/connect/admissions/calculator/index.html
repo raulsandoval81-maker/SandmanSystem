@@ -765,9 +765,9 @@
       <details class="builder-reference-accordion">
         <summary>
           <span>
-            <strong>Extras & Approved Adjustments</strong>
+            <strong>Adjustments & Support</strong>
             <small>
-              Management reference and exceptions
+              Private training, approved support, and sponsorship
             </small>
           </span>
 
@@ -779,49 +779,46 @@
           </span>
         </summary>
 
-
-      <details class="builder-stage-accordion">
-        <summary>
-          <span>
-            <strong>Current Stage</strong>
-            <small>
-              Building Proposal • Step 5 of 11
-            </small>
-          </span>
-
-          <span
-            class="builder-stage-accordion__hint"
-            aria-hidden="true"
-          >
-            Open
-          </span>
-        </summary>
-
 <article class="card builder-section calculator-controls">
         <div class="card-head">
           <div>
-            <h2>Extras and approved adjustments</h2>
-            <p>Keep exceptions separate from core membership pricing.</p>
+            <h2>Adjustments & Support</h2>
+            <p>Optional support remains separate from core membership pricing.</p>
           </div>
         </div>
 
         <div class="adjustments-grid">
           <div class="field">
-            <label for="extra">Optional service</label>
+            <label for="extra">Private training</label>
             <select id="extra">
               <option value="none">None</option>
-              <option value="fitness-dropin">Fitness drop-in — $15</option>
-              <option value="private-30">Private lesson — 30 min — $25</option>
-              <option value="private-60">Private lesson — 60 min — $50</option>
-              <option value="private-90">Private lesson — 90 min — $70</option>
-              <option value="semi-private">Semi-private — 90 min — $60 total</option>
+
+              <option value="private-30">
+              Private lesson — 30 min — $30
+            </option>
+              <option value="private-60">
+              Private lesson — 60 min — $50
+            </option>
+
+              <option value="semi-private">
+              Semi-private — 90 min — $70 total
+            </option>
             </select>
           </div>
 
+
           <div class="field">
-            <label for="support">Enrollment support</label>
-            <input id="support" type="number" min="0" step="5" value="0" />
-            <p class="help">Management-approved scholarship or hardship adjustment.</p>
+            <label for="support">
+              Approved enrollment support
+            </label>
+
+            <select id="support">
+              <option value="0">None</option>
+              <option value="25">25%</option>
+              <option value="50">50%</option>
+              <option value="75">75%</option>
+              <option value="100">100% — waived</option>
+            </select>
           </div>
         </div>
 
@@ -831,21 +828,38 @@
             <span>Apply eligible private-session promotion (-$10)</span>
           </label>
 
-          <label class="check-row">
-            <input id="fitnessCredit" type="checkbox" />
-            <span>Credit $15 fitness drop-in toward first fitness month</span>
-          </label>
+
         </div>
 
         <div class="adjustments-grid" style="margin-top:14px;">
-          <div class="field">
-            <label for="monthlySponsor">Monthly sponsor amount</label>
-            <input id="monthlySponsor" type="number" min="0" step="5" value="0" />
-          </div>
 
           <div class="field">
-            <label for="annualSponsor">Annual sponsor amount</label>
-            <input id="annualSponsor" type="number" min="0" step="5" value="0" />
+            <label for="monthlySponsor">
+              Monthly membership sponsor support
+            </label>
+
+            <select id="monthlySponsor">
+              <option value="0">None</option>
+              <option value="25">25%</option>
+              <option value="50">50%</option>
+              <option value="75">75%</option>
+              <option value="100">100% — waived</option>
+            </select>
+          </div>
+
+
+          <div class="field">
+            <label for="annualSponsor">
+              Renewal package sponsor support
+            </label>
+
+            <select id="annualSponsor">
+              <option value="0">None</option>
+              <option value="25">25%</option>
+              <option value="50">50%</option>
+              <option value="75">75%</option>
+              <option value="100">100% — waived</option>
+            </select>
           </div>
         </div>
       </article>
@@ -853,7 +867,25 @@
 
 
       <section class="proposal-action-zone">
-        <section
+
+        <details class="builder-stage-accordion">
+          <summary>
+            <span>
+              <strong>Current Stage</strong>
+              <small>
+                Proposal workflow and next step
+              </small>
+            </span>
+
+            <span
+              class="builder-stage-accordion__hint"
+              aria-hidden="true"
+            >
+              Open
+            </span>
+          </summary>
+
+<section
           id="proposalWorkflow"
           class="proposal-workflow"
         >
@@ -903,6 +935,8 @@
             </a>
           </div>
         </section>
+        </details>
+
 
         <div class="workflow-actions">
           <button

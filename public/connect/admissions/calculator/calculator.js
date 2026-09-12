@@ -275,12 +275,29 @@ const FOUNDING_YEAR = {
 };
 
 const extras = {
-  "none": { label:"No optional service", amount:0, promoEligible:false },
-  "fitness-dropin": { label:"Fitness drop-in", amount:15, promoEligible:false },
-  "private-30": { label:"Private lesson — 30 minutes", amount:25, promoEligible:false },
-  "private-60": { label:"Private lesson — 60 minutes", amount:50, promoEligible:true },
-  "private-90": { label:"Private lesson — 90 minutes", amount:70, promoEligible:true },
-  "semi-private": { label:"Semi-private lesson — 90 minutes", amount:60, promoEligible:false }
+  "none": {
+    label:"No private training",
+    amount:0,
+    promoEligible:false
+  },
+
+  "private-30": {
+    label:"Private lesson — 30 minutes",
+    amount:30,
+    promoEligible:false
+  },
+
+  "private-60": {
+    label:"Private lesson — 60 minutes",
+    amount:50,
+    promoEligible:true
+  },
+
+  "semi-private": {
+    label:"Semi-private lesson — 90 minutes",
+    amount:70,
+    promoEligible:false
+  }
 };
 
     const el = {
@@ -293,7 +310,7 @@ const extras = {
       extra:document.getElementById("extra"),
       support:document.getElementById("support"),
       privatePromo:document.getElementById("privatePromo"),
-      fitnessCredit:document.getElementById("fitnessCredit"),
+
       monthlySponsor:document.getElementById("monthlySponsor"),
       annualSponsor:document.getElementById("annualSponsor"),
 
@@ -820,12 +837,45 @@ const extras = {
       return "1-Shirt Renewal Package";
     }
 
+    function percentageAmount(
+      base,
+      percent
+    ) {
+      return Math.round(
+        Math.max(0, Number(base) || 0) *
+        Math.max(0, Number(percent) || 0)
+      ) / 100;
+    }
+
+    function supportedPercent(value) {
+      const number =
+        Math.max(
+          0,
+          Number(value) || 0
+        );
+
+      return [0, 25, 50, 75, 100].includes(number)
+        ? number
+        : 0;
+    }
+
     function calculate(){
       const athletes=readAthletes();
       const extra=extras[el.extra.value];
-      const support=Math.max(0,Number(el.support.value)||0);
-      const monthlySponsor=Math.max(0,Number(el.monthlySponsor.value)||0);
-      const annualSponsor=Math.max(0,Number(el.annualSponsor.value)||0);
+      const supportPercent =
+        supportedPercent(
+          el.support.value
+        );
+
+      const monthlySponsorPercent =
+        supportedPercent(
+          el.monthlySponsor.value
+        );
+
+      const annualSponsorPercent =
+        supportedPercent(
+          el.annualSponsor.value
+        );
 
       let registrationCount=0;
       let admissionsCredits=0;
@@ -868,6 +918,18 @@ const extras = {
       const annualBase =
         enrollmentBase;
 
+      const support =
+        percentageAmount(
+          enrollmentBase,
+          supportPercent
+        );
+
+      const annualSponsor =
+        percentageAmount(
+          annualBase,
+          annualSponsorPercent
+        );
+
       /*
        * Membership pricing comes from the shared
        * Sandman pricing engine so Prospect Builder
@@ -881,6 +943,12 @@ const extras = {
 
       const monthlyBase =
         membershipPricing.monthlyMembership;
+
+      const monthlySponsor =
+        percentageAmount(
+          monthlyBase,
+          monthlySponsorPercent
+        );
 
       const standardCombatMonthly =
         membershipPricing.standardCombatMonthly;
@@ -910,17 +978,6 @@ const extras = {
         privatePromo=10;
       }
 
-      let fitnessCredit = 0;
-
-      const hasFitnessMembership =
-        fitnessCount > 0;
-
-      if (
-        el.fitnessCredit.checked &&
-        hasFitnessMembership
-      ) {
-        fitnessCredit = 15;
-      }
 
       const enrollmentDueNow=Math.max(
         0,
@@ -928,7 +985,6 @@ const extras = {
         extra.amount-
         admissionsCredits-
         privatePromo-
-        fitnessCredit-
         support
       );
 
@@ -1116,12 +1172,13 @@ const extras = {
         el.breakdown.append(line("Private-session promotion",privatePromo,{credit:true}));
       }
 
-      if(fitnessCredit>0){
-        el.breakdown.append(line("Fitness drop-in credit",fitnessCredit,{credit:true}));
-      }
 
       if(support>0){
-        el.breakdown.append(line("Approved enrollment support",support,{credit:true}));
+        el.breakdown.append(line(
+          `Approved enrollment support (${supportPercent}%)`,
+          support,
+          {credit:true}
+        ));
       }
 
       el.breakdown.append(
@@ -1175,10 +1232,14 @@ const extras = {
       }
 
       if(monthlySponsor>0){
-        el.breakdown.append(line("Monthly sponsor support",monthlySponsor,{credit:true}));
+        el.breakdown.append(line(
+          `Monthly sponsor support (${monthlySponsorPercent}%)`,
+          monthlySponsor,
+          {credit:true}
+        ));
       }
 
-      el.breakdown.append(line("Monthly family balance",monthlyBalance,{total:true}));
+      el.breakdown.append(line("Monthly membership",monthlyBalance,{total:true}));
 
       const d2=document.createElement("div");
       d2.className="divider";
@@ -1192,7 +1253,11 @@ const extras = {
       );
 
       if(annualSponsor>0){
-        el.breakdown.append(line("Annual sponsor support",annualSponsor,{credit:true}));
+        el.breakdown.append(line(
+          `Renewal sponsor support (${annualSponsorPercent}%)`,
+          annualSponsor,
+          {credit:true}
+        ));
       }
 
       el.breakdown.append(line(renewalPackageName,annualRenewal,{total:true}));
@@ -1306,8 +1371,8 @@ const extras = {
           extraAmount: extra.amount,
           admissionsCredits,
           privatePromo,
-          fitnessCredit,
           support,
+          supportPercent,
 
           membershipStartDate,
           prorationPercent,
@@ -1329,10 +1394,12 @@ const extras = {
           projectedSavingsAnnual,
 
           monthlySponsor,
+          monthlySponsorPercent,
           monthlyBalance,
 
           annualBase,
           annualSponsor,
+          annualSponsorPercent,
           annualRenewal,
 
           firstYear,
@@ -2078,20 +2145,33 @@ async function beginProposalCheckout() {
           ? pricing.extraCode
           : "none";
 
-      el.support.value =
-        String(pricing.support || 0);
+            el.support.value =
+        String(
+          supportedPercent(
+            pricing.supportPercent
+          )
+        );
+
 
       el.privatePromo.checked =
         Number(pricing.privatePromo || 0) > 0;
 
-      el.fitnessCredit.checked =
-        Number(pricing.fitnessCredit || 0) > 0;
 
-      el.monthlySponsor.value =
-        String(pricing.monthlySponsor || 0);
+            el.monthlySponsor.value =
+        String(
+          supportedPercent(
+            pricing.monthlySponsorPercent
+          )
+        );
 
-      el.annualSponsor.value =
-        String(pricing.annualSponsor || 0);
+
+            el.annualSponsor.value =
+        String(
+          supportedPercent(
+            pricing.annualSponsorPercent
+          )
+        );
+
 
       el.athleteList.innerHTML = "";
 
@@ -2356,7 +2436,6 @@ async function beginProposalCheckout() {
       el.extra.value="none";
       el.support.value="0";
       el.privatePromo.checked=false;
-      el.fitnessCredit.checked=false;
       el.monthlySponsor.value="0";
       el.annualSponsor.value="0";
 
@@ -2861,7 +2940,6 @@ async function beginProposalCheckout() {
       el.extra,
       el.support,
       el.privatePromo,
-      el.fitnessCredit,
       el.monthlySponsor,
       el.annualSponsor
     ].forEach(control=>{
