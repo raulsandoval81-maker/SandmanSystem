@@ -372,6 +372,37 @@
     }
   }
 
+
+  .print-signatures {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid #d4d4d8;
+  }
+
+  .print-signatures h2 {
+    margin: 0 0 18px;
+  }
+
+  .print-signature-block {
+    margin-top: 20px;
+  }
+
+  .print-signature-block h3 {
+    margin: 0 0 14px;
+  }
+
+  .print-signature-block p {
+    margin: 14px 0;
+    line-height: 1.8;
+  }
+
+  @media print {
+    .print-signatures {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+  }
+
 </style>
 
 </head>
@@ -811,6 +842,46 @@
     >
       <h2>Management Recommendation</h2>
       <p id="printRecommendation"></p>
+    </section>
+
+    <section class="print-signatures">
+      <h2>Proposal Acceptance</h2>
+
+      <div class="print-signature-block">
+        <p>
+          Parent / Guardian / Member Name:
+          ______________________________________________
+        </p>
+
+        <p>
+          Signature:
+          ______________________________________________________
+        </p>
+
+        <p>
+          Date:
+          __________________
+        </p>
+      </div>
+
+      <div class="print-signature-block">
+        <h3>Management Approval</h3>
+
+        <p>
+          Name:
+          __________________________________________________________
+        </p>
+
+        <p>
+          Signature:
+          ______________________________________________________
+        </p>
+
+        <p>
+          Date:
+          __________________
+        </p>
+      </div>
     </section>
 
     <footer class="print-proposal-footer">
