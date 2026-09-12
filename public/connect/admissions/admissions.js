@@ -101,22 +101,76 @@ let appointmentRecord = null;
 let admissionsDecisionSaved = false;
 
 function renderAdmissionsLifecycle(record = {}) {
-  const hasLead = Boolean(record.leadId);
-  const hasAppointment = Boolean(record.id);
+  const hasLead =
+    Boolean(record.leadId);
+
+  const hasAppointment =
+    Boolean(record.id);
+
+  const outcome =
+    String(
+      record.appointmentOutcome || ""
+    ).trim();
+
+  const decision =
+    String(
+      record.enrollmentDecision || ""
+    ).trim();
+
+  const outcomeSaved =
+    admissionsDecisionSaved &&
+    Boolean(outcome) &&
+    Boolean(decision);
+
+  const builderReady =
+    outcomeSaved &&
+    outcome === "completed" &&
+    (
+      decision === "ready-to-enroll" ||
+      decision === "follow-up" ||
+      decision === "undecided"
+    );
 
   renderManagementLifecycle(
     admissionsLifecycle,
     {
-      currentStage: "outcome",
+      currentStage:
+        !outcomeSaved
+          ? "outcome"
+          : builderReady
+            ? "prospect-builder"
+            : "",
+
       completedStages: [
-        ...(hasAppointment ? ["appointment"] : []),
-        ...(hasLead ? ["interest", "lead"] : [])
+        ...(hasAppointment
+          ? ["appointment"]
+          : []),
+
+        ...(hasLead
+          ? ["interest", "lead"]
+          : []),
+
+        ...(outcomeSaved
+          ? ["outcome"]
+          : [])
       ],
-      currentLabel: "Admissions Outcome",
-      caseLabel: record.id || appointmentId,
-      guidance: admissionsDecisionSaved
-        ? "Continue to Prospect Builder when this decision is ready."
-        : "Record and save the appointment outcome."
+
+      currentLabel:
+        !outcomeSaved
+          ? "Admissions Outcome"
+          : builderReady
+            ? "Prospect Builder"
+            : "Admissions Outcome Complete",
+
+      caseLabel:
+        record.id || appointmentId,
+
+      guidance:
+        !outcomeSaved
+          ? "Record and save the appointment outcome."
+          : builderReady
+            ? "Continue to Prospect Builder."
+            : "Admissions outcome saved. This case is not advancing to Prospect Builder."
     }
   );
 }
@@ -638,8 +692,9 @@ function fillDecisionForm(record) {
 
   admissionsDecisionSaved =
     Boolean(
-      record.admissionsDecisionAt ||
-      record.appointmentOutcome
+      record.admissionsDecisionAt &&
+      record.appointmentOutcome &&
+      record.enrollmentDecision
     );
 
   renderAdmissionsLifecycle(record);
