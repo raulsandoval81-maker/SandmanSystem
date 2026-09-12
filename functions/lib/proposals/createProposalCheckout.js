@@ -88,13 +88,12 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         throw new https_1.HttpsError("failed-precondition", "The locked recurring billing schedule is invalid.");
     }
     const firstRecurringChargeUnix = Math.floor(firstRecurringChargeMs / 1000);
-    const minimumTrialEndUnix = Math.floor(Date.now() / 1000) +
-        (48 *
-            60 *
-            60);
-    if (firstRecurringChargeUnix <
-        minimumTrialEndUnix) {
-        throw new https_1.HttpsError("failed-precondition", "The first recurring charge must be at least 48 hours in the future. Rebuild the proposal payment schedule before checkout.");
+    if (firstRecurringChargeUnix <=
+        Math.floor(Date.now() / 1000)) {
+        throw new https_1.HttpsError("failed-precondition", "The first recurring charge date must be in the future.");
+    }
+    if (dueNow < 50) {
+        throw new https_1.HttpsError("failed-precondition", "This proposal has no payable amount due now. A no-charge enrollment requires a separate Management billing path.");
     }
     const email = cleanString(prospect.email).toLowerCase();
     const publicBaseUrl = cleanString(process.env.SANDMAN_PUBLIC_BASE_URL) || "https://www.sandmancombat.com";
@@ -147,7 +146,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 price_data: {
                     currency: "usd",
                     product_data: {
-                        name: `Sandman enrollment — ${proposalId}`,
+                        name: `Sandman enrollment payment — ${proposalId}`,
                     },
                     unit_amount: dueNow,
                 },
@@ -181,19 +180,28 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 item.expectedAmount) {
                 throw new https_1.HttpsError("failed-precondition", `Stripe Price ${item.lookupKey} does not match the locked proposal amount.`);
             }
-            lineItems.push({
-                price: price.id,
-                quantity: item.quantity,
-            });
+            /*
+             * Recurring membership is intentionally not
+             * added to today's Checkout Session.
+             *
+             * The Stripe webhook creates the subscription
+             * after the enrollment payment succeeds.
+             */
         }
         let replacingExpiredSessionId = null;
         if (proposalStatus ===
             "CHECKOUT_CREATED" &&
             existingCheckoutSessionId) {
             const existingSession = await stripe.checkout.sessions.retrieve(existingCheckoutSessionId);
+            const currentBillingFlow = cleanString(existingSession.metadata
+                ?.billingFlowVersion) ===
+                "payment_then_subscription_v1" &&
+                existingSession.mode ===
+                    "payment";
             if (existingSession.status ===
                 "open" &&
-                existingSession.url) {
+                existingSession.url &&
+                currentBillingFlow) {
                 return {
                     ok: true,
                     proposalId,
@@ -202,6 +210,13 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                     checkoutUrl: existingSession.url,
                     resumed: true,
                 };
+            }
+            if (existingSession.status ===
+                "open" &&
+                !currentBillingFlow) {
+                await stripe.checkout.sessions.expire(existingSession.id);
+                replacingExpiredSessionId =
+                    existingSession.id;
             }
             if (existingSession.payment_status ===
                 "paid") {
@@ -223,7 +238,7 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 replacingExpiredSessionId =
                     existingSession.id;
             }
-            else {
+            else if (!replacingExpiredSessionId) {
                 throw new https_1.HttpsError("failed-precondition", `Existing Stripe checkout is ${existingSession.status || "unavailable"}.`);
             }
         }
@@ -231,7 +246,8 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             ? `proposal-checkout-retry-${proposalId}-${replacingExpiredSessionId}`
             : `proposal-checkout-${proposalId}`;
         const session = await stripe.checkout.sessions.create({
-            mode: "subscription",
+            mode: "payment",
+            customer_creation: "always",
             payment_method_types: ["card"],
             line_items: lineItems,
             customer_email: email && email.includes("@")
@@ -243,14 +259,21 @@ exports.createProposalCheckout = (0, https_1.onCall)({
             metadata: {
                 proposalId,
                 source: "admissions_proposal",
+                billingFlowVersion: "payment_then_subscription_v1",
+                firstRecurringChargeDate,
+                recurringBillingDay: String(recurringBillingDay),
             },
-            subscription_data: {
-                trial_end: firstRecurringChargeUnix,
+            payment_intent_data: {
+                setup_future_usage: "off_session",
                 metadata: {
                     proposalId,
                     source: "admissions_proposal",
-                    firstRecurringChargeDate,
-                    recurringBillingDay: String(recurringBillingDay),
+                    billingFlowVersion: "payment_then_subscription_v1",
+                },
+            },
+            custom_text: {
+                submit: {
+                    message: `Today's payment covers the approved enrollment payment. Your recurring membership of $${(monthlyBalance / 100).toFixed(2)}/month begins ${firstRecurringChargeDate} and bills on the 5th of each month.`,
                 },
             },
             allow_promotion_codes: false,

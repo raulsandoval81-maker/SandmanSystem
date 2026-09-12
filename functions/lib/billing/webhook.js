@@ -69,30 +69,177 @@ async function handleProposalCheckoutCompleted(session) {
     const stripeCustomerId = typeof session.customer === "string"
         ? session.customer
         : session.customer?.id || null;
-    const stripeSubscriptionId = typeof session.subscription === "string"
-        ? session.subscription
-        : session.subscription?.id || null;
+    if (!stripeCustomerId) {
+        throw new Error(`Proposal ${proposalId} Checkout is missing a Stripe Customer.`);
+    }
+    const paymentIntentId = typeof session.payment_intent === "string"
+        ? session.payment_intent
+        : session.payment_intent?.id || null;
+    if (!paymentIntentId) {
+        throw new Error(`Proposal ${proposalId} Checkout is missing a PaymentIntent.`);
+    }
     const db = (0, firestore_1.getFirestore)();
     const proposalRef = db
         .collection("proposals")
         .doc(proposalId);
+    const proposalSnap = await proposalRef.get();
+    if (!proposalSnap.exists) {
+        throw new Error(`Proposal ${proposalId} was not found.`);
+    }
+    const proposal = proposalSnap.data() || {};
+    const currentStatus = cleanString(proposal.status);
+    if (currentStatus === "PAID" &&
+        cleanString(proposal.stripeSubscriptionId)) {
+        return proposalId;
+    }
+    if (currentStatus !==
+        "CHECKOUT_CREATED") {
+        throw new Error(`Proposal ${proposalId} must be CHECKOUT_CREATED before payment.`);
+    }
+    const pendingCheckoutSessionId = cleanString(proposal.pendingCheckoutSessionId);
+    if (!pendingCheckoutSessionId ||
+        pendingCheckoutSessionId !== session.id) {
+        throw new Error(`Stripe Checkout Session ${session.id} does not match proposal ${proposalId}.`);
+    }
+    const snapshot = proposal.lockedSnapshot &&
+        typeof proposal.lockedSnapshot ===
+            "object"
+        ? proposal.lockedSnapshot
+        : null;
+    if (!snapshot) {
+        throw new Error(`Proposal ${proposalId} is missing its locked snapshot.`);
+    }
+    const pricing = snapshot.pricing &&
+        typeof snapshot.pricing === "object"
+        ? snapshot.pricing
+        : {};
+    const firstRecurringChargeDate = cleanString(pricing.firstRecurringChargeDate);
+    const recurringBillingDay = Number(pricing.recurringBillingDay);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(firstRecurringChargeDate)) {
+        throw new Error(`Proposal ${proposalId} has an invalid first recurring charge date.`);
+    }
+    const [recurringYear, recurringMonth, recurringDay,] = firstRecurringChargeDate
+        .split("-")
+        .map(Number);
+    const firstRecurringChargeMs = Date.UTC(recurringYear, recurringMonth - 1, recurringDay, 12, 0, 0);
+    const validatedRecurringDate = new Date(firstRecurringChargeMs);
+    if (validatedRecurringDate
+        .getUTCFullYear() !==
+        recurringYear ||
+        validatedRecurringDate
+            .getUTCMonth() !==
+            recurringMonth - 1 ||
+        validatedRecurringDate
+            .getUTCDate() !==
+            recurringDay ||
+        recurringBillingDay !== 5 ||
+        recurringDay !== 5) {
+        throw new Error(`Proposal ${proposalId} has an invalid recurring billing schedule.`);
+    }
+    const firstRecurringChargeUnix = Math.floor(firstRecurringChargeMs / 1000);
+    if (firstRecurringChargeUnix <=
+        Math.floor(Date.now() / 1000)) {
+        throw new Error(`Proposal ${proposalId} recurring billing date is no longer in the future.`);
+    }
+    const rawCatalogItems = Array.isArray(pricing.stripeCatalogItems)
+        ? pricing.stripeCatalogItems
+        : [];
+    if (rawCatalogItems.length === 0) {
+        throw new Error(`Proposal ${proposalId} has no recurring Stripe catalog items.`);
+    }
+    const stripe = (0, stripeClient_1.getStripe)();
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    const paymentMethodId = typeof paymentIntent.payment_method ===
+        "string"
+        ? paymentIntent.payment_method
+        : paymentIntent.payment_method?.id ||
+            null;
+    if (!paymentMethodId) {
+        throw new Error(`Proposal ${proposalId} payment did not return a reusable payment method.`);
+    }
+    const subscriptionItems = [];
+    for (let index = 0; index < rawCatalogItems.length; index += 1) {
+        const rawItem = rawCatalogItems[index];
+        if (!rawItem ||
+            typeof rawItem !== "object") {
+            throw new Error(`Proposal ${proposalId} Stripe catalog item ${index + 1} is invalid.`);
+        }
+        const item = rawItem;
+        const lookupKey = cleanString(item.lookupKey);
+        if (!lookupKey.startsWith("sandman_academy-2026-v3_")) {
+            throw new Error(`Proposal ${proposalId} contains an invalid Stripe lookup key.`);
+        }
+        const expectedAmount = Math.round(Number(item.amount) * 100);
+        const rawQuantity = Number(item.quantity ?? 1);
+        const quantity = Number.isInteger(rawQuantity) &&
+            rawQuantity > 0
+            ? rawQuantity
+            : 1;
+        const prices = await stripe.prices.list({
+            lookup_keys: [
+                lookupKey,
+            ],
+            active: true,
+            limit: 10,
+        });
+        if (prices.data.length !== 1) {
+            throw new Error(`Unable to resolve exactly one active Stripe Price for ${lookupKey}.`);
+        }
+        const price = prices.data[0];
+        if (price.type !== "recurring" ||
+            !price.recurring ||
+            price.recurring.interval !==
+                "month" ||
+            price.recurring.interval_count !==
+                1 ||
+            price.unit_amount === null ||
+            price.unit_amount !==
+                expectedAmount) {
+            throw new Error(`Stripe Price ${lookupKey} no longer matches proposal ${proposalId}.`);
+        }
+        subscriptionItems.push({
+            price: price.id,
+            quantity,
+        });
+    }
+    const subscription = await stripe.subscriptions.create({
+        customer: stripeCustomerId,
+        items: subscriptionItems,
+        collection_method: "charge_automatically",
+        default_payment_method: paymentMethodId,
+        billing_cycle_anchor: firstRecurringChargeUnix,
+        proration_behavior: "none",
+        metadata: {
+            proposalId,
+            source: "admissions_proposal",
+            billingFlowVersion: "payment_then_subscription_v1",
+            firstRecurringChargeDate,
+            recurringBillingDay: String(recurringBillingDay),
+        },
+    }, {
+        idempotencyKey: `proposal-subscription-${proposalId}-${session.id}`,
+    });
     await db.runTransaction(async (tx) => {
-        const proposalSnap = await tx.get(proposalRef);
-        if (!proposalSnap.exists) {
+        const currentSnap = await tx.get(proposalRef);
+        if (!currentSnap.exists) {
             throw new Error(`Proposal ${proposalId} was not found.`);
         }
-        const proposal = proposalSnap.data() || {};
-        const currentStatus = cleanString(proposal.status);
-        if (currentStatus === "PAID") {
+        const currentProposal = currentSnap.data() || {};
+        const transactionStatus = cleanString(currentProposal.status);
+        if (transactionStatus === "PAID" &&
+            cleanString(currentProposal
+                .stripeSubscriptionId) === subscription.id) {
             return;
         }
-        if (currentStatus !== "CHECKOUT_CREATED") {
-            throw new Error(`Proposal ${proposalId} must be CHECKOUT_CREATED before payment.`);
+        if (transactionStatus !==
+            "CHECKOUT_CREATED") {
+            throw new Error(`Proposal ${proposalId} is no longer eligible for payment completion.`);
         }
-        const pendingCheckoutSessionId = cleanString(proposal.pendingCheckoutSessionId);
-        if (!pendingCheckoutSessionId ||
-            pendingCheckoutSessionId !== session.id) {
-            throw new Error(`Stripe Checkout Session ${session.id} does not match proposal ${proposalId}.`);
+        const transactionSessionId = cleanString(currentProposal
+            .pendingCheckoutSessionId);
+        if (transactionSessionId !==
+            session.id) {
+            throw new Error(`Proposal ${proposalId} Checkout Session changed before payment completion.`);
         }
         const historyRef = proposalRef
             .collection("history")
@@ -101,7 +248,11 @@ async function handleProposalCheckoutCompleted(session) {
             status: "PAID",
             stripeCheckoutSessionId: session.id,
             stripeCustomerId,
-            stripeSubscriptionId,
+            stripePaymentIntentId: paymentIntentId,
+            stripePaymentMethodId: paymentMethodId,
+            stripeSubscriptionId: subscription.id,
+            firstRecurringChargeDate,
+            recurringBillingDay,
             paymentStatus: session.payment_status,
             paidAt: firestore_1.FieldValue.serverTimestamp(),
             pendingCheckoutSessionId: firestore_1.FieldValue.delete(),
@@ -115,6 +266,9 @@ async function handleProposalCheckoutCompleted(session) {
             createdBy: "stripe",
             createdByName: "Stripe Webhook",
             stripeCheckoutSessionId: session.id,
+            stripePaymentIntentId: paymentIntentId,
+            stripeSubscriptionId: subscription.id,
+            firstRecurringChargeDate,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
         });
     });
