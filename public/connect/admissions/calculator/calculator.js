@@ -959,7 +959,7 @@ const extras = {
 
         ${
           recommendation
-            ? `<p><strong>Coach recommendation:</strong> ${recommendation}</p>`
+            ? `<p><strong>Management recommendation:</strong> ${recommendation}</p>`
             : ""
         }
       `;
@@ -2068,7 +2068,7 @@ async function beginProposalCheckout() {
         )}/year`;
 
       const journeyLabels = {
-        zero2hero: "Zero2Hero",
+        zero2hero: "Road2Champion",
         path2legend: "Path2Legend",
         quest2mastery: "Quest2Mastery",
         fitness: "Everyday Fitness",
@@ -2365,7 +2365,7 @@ async function beginProposalCheckout() {
         .innerHTML = detailBlocks;
 
       /*
-       * Coach recommendation
+       * Management recommendation
        */
       const recommendation =
         el.coachRecommendation.value.trim();
