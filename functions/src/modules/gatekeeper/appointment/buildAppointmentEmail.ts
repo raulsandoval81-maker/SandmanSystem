@@ -770,8 +770,11 @@ El entrenador utilizará la visita para conocer mejor a tu atleta, observar cóm
                   color:#18181b;
                 "
               >
-                — ${escapeHtml(respondingAcademyName)} Team<br>
-                ${escapeHtml(respondingAcademyName)}
+                ${
+                  lang === "es"
+                    ? `El Equipo de ${escapeHtml(respondingAcademyName)}`
+                    : `The Team at ${escapeHtml(respondingAcademyName)}`
+                }
               </p>
 
             </td>
@@ -893,8 +896,7 @@ ${isAdultAthlete
 
 Esperamos tu visita.
 
-— ${respondingAcademyName} Team
-${respondingAcademyName}
+El Equipo de ${respondingAcademyName}
 Powered by Sandman System™`
     };
   }
@@ -992,8 +994,7 @@ ${isAdultAthlete
 
 We look forward to your visit.
 
-— ${respondingAcademyName} Team
-${respondingAcademyName}
+The Team at ${respondingAcademyName}
 Powered by Sandman System™`
   };
 }
