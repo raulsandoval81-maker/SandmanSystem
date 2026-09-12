@@ -44,6 +44,9 @@ const appointmentTime =
 const appointmentLocation =
   document.getElementById("appointmentLocation");
 
+const appointmentLocationNote =
+  document.getElementById("appointmentLocationNote");
+
 const appointmentCoach =
   document.getElementById("appointmentCoach");
 
@@ -527,6 +530,33 @@ function canAccessLocation(locationId = "") {
     .includes(normalizedLocationId);
 }
 
+function configureAppointmentLocation(locationId = "") {
+  if (!appointmentLocation || !managementContext) {
+    return;
+  }
+
+  const normalizedLocationId =
+    clean(locationId).toLowerCase();
+
+  appointmentLocation.value = normalizedLocationId;
+
+  const adminCanReassign =
+    managementContext.isSystemAdmin === true;
+
+  appointmentLocation.disabled = !adminCanReassign;
+  appointmentLocation.setAttribute(
+    "aria-disabled",
+    String(!adminCanReassign)
+  );
+
+  if (appointmentLocationNote) {
+    appointmentLocationNote.textContent =
+      adminCanReassign
+        ? "Admin support may reassign this appointment to another academy."
+        : "This appointment uses the lead's assigned Management location.";
+  }
+}
+
 async function loadSelectedLead() {
   if (!selectedSourceId) return;
 
@@ -627,6 +657,10 @@ async function loadSelectedLead() {
       "This lead is outside your assigned Management location."
     );
   }
+
+  configureAppointmentLocation(
+    selectedLead.locationId
+  );
 
   if (selectedLeadSummary) {
 selectedLeadSummary.innerHTML = `
@@ -1497,7 +1531,9 @@ scheduleForm?.addEventListener(
       String(appointmentTime?.value || "").trim();
 
     const locationValue =
-      String(selectedLead.locationId || "").trim();
+      managementContext?.isSystemAdmin
+        ? clean(appointmentLocation?.value)
+        : clean(selectedLead.locationId);
 
     /*
      * Coach assignment is not required to schedule a
@@ -1739,6 +1775,8 @@ appointmentConfirmationStatus:
   await updateDoc(
   doc(db, "interest_leads", selectedLeadId),
   {
+    locationId: locationValue,
+
     appointmentId: selectedLeadId,
 
     processedToAppointment: true,
@@ -1785,6 +1823,7 @@ appointmentConfirmationStatus:
 selectedLead.leadStatus = "appointment_scheduled";
 selectedLead.status = "appointment_scheduled";
 selectedLead.appointmentStatus = "scheduled";
+selectedLead.locationId = locationValue;
 
 selectedLead.appointmentDate = dateValue;
 selectedLead.appointmentTime = timeValue;
