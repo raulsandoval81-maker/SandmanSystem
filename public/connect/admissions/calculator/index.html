@@ -493,6 +493,65 @@
     box-shadow: none;
   }
 
+
+  .builder-stage-accordion {
+    border: 1px solid rgba(0, 0, 0, 0.10);
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .builder-stage-accordion > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    font-weight: 700;
+  }
+
+  .builder-stage-accordion > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .builder-stage-accordion > summary span:first-child {
+    display: grid;
+    gap: 3px;
+  }
+
+  .builder-stage-accordion > summary small {
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.68;
+  }
+
+  .builder-stage-accordion__hint {
+    font-size: 12px;
+    font-weight: 700;
+    opacity: 0.7;
+  }
+
+  .builder-stage-accordion[open]
+    .builder-stage-accordion__hint {
+    font-size: 0;
+  }
+
+  .builder-stage-accordion[open]
+    .builder-stage-accordion__hint::after {
+    content: "Close";
+    font-size: 12px;
+  }
+
+  .builder-stage-accordion > article {
+    margin: 0;
+    border: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 0;
+    box-shadow: none;
+  }
+
 </style>
 
 </head>
@@ -720,6 +779,24 @@
           </span>
         </summary>
 
+
+      <details class="builder-stage-accordion">
+        <summary>
+          <span>
+            <strong>Current Stage</strong>
+            <small>
+              Building Proposal • Step 5 of 11
+            </small>
+          </span>
+
+          <span
+            class="builder-stage-accordion__hint"
+            aria-hidden="true"
+          >
+            Open
+          </span>
+        </summary>
+
 <article class="card builder-section calculator-controls">
         <div class="card-head">
           <div>
@@ -924,6 +1001,8 @@
         <strong id="printDueNow">$0</strong>
         <small>One-time onboarding</small>
       </article>
+      </details>
+
 
       <article>
         <span>Monthly Membership</span>
