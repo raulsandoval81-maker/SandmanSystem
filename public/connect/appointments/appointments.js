@@ -44,6 +44,9 @@ const appointmentTime =
 const appointmentLocation =
   document.getElementById("appointmentLocation");
 
+const appointmentLocationDisplay =
+  document.getElementById("appointmentLocationDisplay");
+
 const appointmentLocationNote =
   document.getElementById("appointmentLocationNote");
 
@@ -75,102 +78,20 @@ const selectedSourceCollection =
 
 let selectedLead = null;
 let managementContext = null;
-let coachDirectory = [];
 
 function clean(value) {
   return String(value ?? "").trim();
 }
 
-async function loadCoachDirectory() {
-  const snapshot = await getDocs(
-    collection(db, "staff")
-  );
-
-  coachDirectory = snapshot.docs
-    .map((staffDoc) => ({
-      id: staffDoc.id,
-      ...staffDoc.data()
-    }))
-    .filter((staff) =>
-      clean(staff.role).toLowerCase() === "coach" &&
-      clean(staff.status).toLowerCase() === "active"
-    )
-    .sort((a, b) =>
-      clean(
-        a.fullName ||
-        a.displayName ||
-        a.email ||
-        a.id
-      ).localeCompare(
-        clean(
-          b.fullName ||
-          b.displayName ||
-          b.email ||
-          b.id
-        )
-      )
-    );
-}
-
-function coachDisplayName(coach) {
-  return clean(
-    coach?.fullName ||
-    coach?.displayName ||
-    coach?.email ||
-    coach?.id
-  );
-}
-
 function populateAppointmentCoachSelect(record = null) {
   if (!appointmentCoach) return;
 
-  appointmentCoach.replaceChildren();
-
-  const placeholder =
-    document.createElement("option");
-
-  placeholder.value = "";
-  placeholder.textContent =
-    "Select an active coach";
-
-  appointmentCoach.appendChild(
-    placeholder
-  );
-
-  for (const coach of coachDirectory) {
-    const option =
-      document.createElement("option");
-
-    option.value = coach.id;
-
-    const name =
-      coachDisplayName(coach);
-
-    const email =
-      clean(coach.email);
-
-    option.textContent =
-      email && email !== name
-        ? `${name} — ${email}`
-        : name;
-
-    appointmentCoach.appendChild(
-      option
+  appointmentCoach.value =
+    clean(
+      record?.appointmentCoach ||
+      record?.appointment?.coachName ||
+      ""
     );
-  }
-
-  const assignedCoachUid =
-    clean(record?.appointmentCoachUid);
-
-  if (
-    assignedCoachUid &&
-    coachDirectory.some(
-      (coach) => coach.id === assignedCoachUid
-    )
-  ) {
-    appointmentCoach.value =
-      assignedCoachUid;
-  }
 }
 
 function esc(value = "") {
@@ -531,29 +452,22 @@ function canAccessLocation(locationId = "") {
 }
 
 function configureAppointmentLocation(locationId = "") {
-  if (!appointmentLocation || !managementContext) {
-    return;
-  }
+  if (!appointmentLocation) return;
 
-  const normalizedLocationId =
+  const normalizedLocation =
     clean(locationId).toLowerCase();
 
-  appointmentLocation.value = normalizedLocationId;
+  appointmentLocation.value =
+    normalizedLocation;
 
-  const adminCanReassign =
-    managementContext.isSystemAdmin === true;
-
-  appointmentLocation.disabled = !adminCanReassign;
-  appointmentLocation.setAttribute(
-    "aria-disabled",
-    String(!adminCanReassign)
-  );
+  if (appointmentLocationDisplay) {
+    appointmentLocationDisplay.textContent =
+      labelForLocation(normalizedLocation);
+  }
 
   if (appointmentLocationNote) {
     appointmentLocationNote.textContent =
-      adminCanReassign
-        ? "Admin support may reassign this appointment to another academy."
-        : "This appointment uses the lead's assigned Management location.";
+      "Assigned from lead.";
   }
 }
 
@@ -1403,7 +1317,7 @@ async function loadAppointments() {
       </div>
 
       <div>
-        <span class="field-label">Coach</span>
+        <span class="field-label">Appointment Host</span>
         <div class="field-value">
           ${esc(lead.appointmentCoach || "—")}
         </div>
@@ -1541,7 +1455,8 @@ scheduleForm?.addEventListener(
      * Technical verification is a separate downstream handoff.
      */
     const coachUid = "";
-    const coachValue = "";
+    const coachValue =
+      clean(appointmentCoach?.value);
 
     const notesValue =
       String(appointmentNotes?.value || "").trim();
@@ -1877,7 +1792,7 @@ refreshBtn?.addEventListener(
 
 try {
   await requireManagementSession();
-  await loadCoachDirectory();
+  // Appointment Host is entered manually.
   await loadSelectedLead();
   await loadAppointments();
 } catch (error) {

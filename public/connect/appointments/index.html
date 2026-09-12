@@ -109,11 +109,10 @@ and send confirmed appointment details through Gatekeeper.
 
 
     <section class="info-card">
-      <h2>Coach Verification</h2>
+      <h2>Admissions Appointment</h2>
 
       <p>
-Review the selected lead, schedule the Admissions Appointment,
-and coordinate the requested Coach technical verification.
+Review the selected lead, schedule the Admissions Appointment, and coordinate Coach technical verification only when needed.
       </p>
 
       <ul>
@@ -153,34 +152,42 @@ and coordinate the requested Coach technical verification.
           required
         />
 
-        <label for="appointmentLocation">
+        <label>
           Academy Location
         </label>
-        <select
-          id="appointmentLocation"
-          required
+
+        <div
+          id="appointmentLocationDisplay"
+          class="management-field-display"
         >
-          <option value="">Select location</option>
-          <option value="lompoc">Lompoc</option>
-          <option value="santa-ynez-valley">Santa Ynez Valley — Solvang</option>
-          <option value="elk-grove">Elk Grove</option>
-        </select>
+          —
+        </div>
+
+        <input
+          id="appointmentLocation"
+          type="hidden"
+          value=""
+        />
+
         <p
           id="appointmentLocationNote"
           class="optional"
-        ></p>
+        >
+          Assigned from lead.
+        </p>
 
         <label for="appointmentCoach">
-          Coach
+          Appointment Host
         </label>
-        <select
+        <input
           id="appointmentCoach"
-          required
-        >
-          <option value="">
-            Select an active coach
-          </option>
-        </select>
+          type="text"
+          autocomplete="name"
+          placeholder="Name of staff member meeting with family"
+        />
+        <p class="optional">
+          Management, coach, or other authorized staff member.
+        </p>
 
         <label for="appointmentNotes">
           Private Management Notes
