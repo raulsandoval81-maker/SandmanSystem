@@ -170,7 +170,7 @@
     }
 
     .pricing-reference .compare-card:nth-child(2)::before {
-      content: "COMBAT + FITNESS";
+      content: "COMBAT • FITNESS";
       display: block;
       margin-bottom: 8px;
       font-size: .72rem;
@@ -485,33 +485,31 @@
         <div class="card-head">
           <div>
             <h2>Membership pricing reference</h2>
-            <p>Founding Year Combat, Fitness, and combined membership rates.</p>
+            <p>Current Sandman Academy Combat and Fitness membership rates.</p>
           </div>
         </div>
 
         <div class="compare-grid">
           <div class="compare-card">
-            <strong id="standardCompare">$80 Combat</strong>
+            <strong id="standardCompare">Combat Memberships</strong>
             <p>
-              Family ladder: $80 / $120 / $140 / $160,
-              then +$20 per additional athlete.
+              1 or 2 disciplines • 2–3 or 4–6 days/week •
+              month-to-month or 12-month agreement.
             </p>
           </div>
 
           <div class="compare-card">
-            <strong id="unlimitedCompare">$140 / $120 Combo</strong>
+            <strong id="unlimitedCompare">Family Combat</strong>
             <p>
-              Combat + Fitness: $140 month-to-month or $120 with a
-              12-month agreement + autopay.
+              12-month family caps: $160 / $200 / $200 / $260,
+              based on disciplines and training access.
             </p>
           </div>
         </div>
 
         <p class="help" style="margin-top:12px;">
-          Founding Year Combat and Everyday Fitness keep their standard rates
-          regardless of commitment. The current agreement benefit applies to
-          Combat + Fitness: $140 month-to-month or $120 with a 12-month
-          agreement + autopay.
+          Fitness is $60 for 2 days/week or $80 for 3 days/week.
+          Annual enrollment packages are $50 / $65 / $75.
         </p>
       </article>
 
@@ -757,22 +755,25 @@
 
       <div class="grid-2" style="margin-top:13px;">
         <div class="field">
-          <label>Monthly plan</label>
+          <label>Membership</label>
           <select class="athlete-plan">
             <option value="standard">
-              Combat — Founding Year
+              Combat
             </option>
 
             <option value="fitness">
-              Everyday Fitness — $60
-            </option>
-
-            <option value="combo">
-              Combat + Fitness
+              Fitness
             </option>
           </select>
         </div>
 
+        <div class="field">
+          <label>Training access</label>
+          <select class="training-access"></select>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-top:13px;">
         <div class="field">
           <label>Billing commitment</label>
           <select class="billing-term">
@@ -782,6 +783,23 @@
 
             <option value="annual">
               12-month agreement + autopay
+            </option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>Annual enrollment package</label>
+          <select class="annual-membership">
+            <option value="1">
+              1 Training Shirt Package — $50
+            </option>
+
+            <option value="2">
+              2 Training Shirt Package — $65
+            </option>
+
+            <option value="3">
+              3 Training Shirt Package — $75
             </option>
           </select>
         </div>
@@ -827,14 +845,10 @@
           <span>Muay Thai</span>
         </label>
 
-        <label class="check-row">
-          <input class="discipline" type="checkbox" value="mma" />
-          <span>MMA / Submission Grappling</span>
-        </label>
       </div>
     </article>
   </template>
 
-    <script type="module" src="./calculator.js?v=20260827-1"></script>
+    <script type="module" src="./calculator.js?v=20260911-1"></script>
 </body>
 </html>

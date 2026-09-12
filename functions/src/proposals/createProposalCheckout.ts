@@ -1,3 +1,5 @@
+import type Stripe from "stripe";
+
 import {
   HttpsError,
   onCall,
@@ -161,48 +163,202 @@ export const createProposalCheckout =
           process.env.SANDMAN_PUBLIC_BASE_URL
         ) || "https://www.sandmancombat.com";
 
-      const lineItems = [];
+      const rawCatalogItems =
+        Array.isArray(
+          pricing.stripeCatalogItems
+        )
+          ? pricing.stripeCatalogItems
+          : [];
 
-      if (dueNow > 0) {
-        lineItems.push({
-          price_data: {
-            currency: "usd",
-
-            product_data: {
-              name:
-                `Sandman enrollment — ${proposalId}`,
-            },
-
-            unit_amount:
-              dueNow,
-          },
-
-          quantity: 1,
-        });
+      if (rawCatalogItems.length === 0) {
+        throw new HttpsError(
+          "failed-precondition",
+          "The locked proposal does not contain Stripe catalog membership items. Rebuild and approve the proposal before checkout."
+        );
       }
 
-      lineItems.push({
-        price_data: {
-          currency: "usd",
+      const catalogItems =
+        rawCatalogItems.map(
+          (rawItem, index) => {
+            if (
+              !rawItem ||
+              typeof rawItem !== "object"
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                `Stripe catalog item ${index + 1} is invalid.`
+              );
+            }
 
-          product_data: {
-            name:
-              `Sandman monthly membership — ${proposalId}`,
-          },
+            const item =
+              rawItem as Record<
+                string,
+                unknown
+              >;
 
-          recurring: {
-            interval: "month" as const,
-          },
+            const lookupKey =
+              cleanString(
+                item.lookupKey
+              );
 
-          unit_amount:
-            monthlyBalance,
-        },
+            if (
+              !lookupKey.startsWith(
+                "sandman_academy-2026-v3_"
+              )
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                `Stripe catalog item ${index + 1} has an invalid lookup key.`
+              );
+            }
 
-        quantity: 1,
-      });
+            if (
+              item.recurring !== true
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                `Stripe catalog item ${lookupKey} is not marked recurring.`
+              );
+            }
+
+            const expectedAmount =
+              toCents(item.amount);
+
+            if (expectedAmount < 50) {
+              throw new HttpsError(
+                "failed-precondition",
+                `Stripe catalog item ${lookupKey} has an invalid amount.`
+              );
+            }
+
+            const rawQuantity =
+              Number(
+                item.quantity ?? 1
+              );
+
+            const quantity =
+              Number.isInteger(
+                rawQuantity
+              ) &&
+              rawQuantity > 0
+                ? rawQuantity
+                : 1;
+
+            return {
+              lookupKey,
+              expectedAmount,
+              quantity,
+            };
+          }
+        );
+
+      const lockedCatalogMonthlyTotal =
+        catalogItems.reduce(
+          (total, item) =>
+            total +
+            (
+              item.expectedAmount *
+              item.quantity
+            ),
+          0
+        );
+
+      if (
+        lockedCatalogMonthlyTotal !==
+        monthlyBalance
+      ) {
+        throw new HttpsError(
+          "failed-precondition",
+          `The locked monthly balance does not match the approved Stripe catalog total. Expected ${lockedCatalogMonthlyTotal} cents but found ${monthlyBalance} cents.`
+        );
+      }
 
       try {
         const stripe = getStripe();
+
+        const lineItems:
+          Stripe.Checkout.SessionCreateParams.LineItem[] =
+          [];
+
+        if (dueNow > 0) {
+          lineItems.push({
+            price_data: {
+              currency: "usd",
+
+              product_data: {
+                name:
+                  `Sandman enrollment — ${proposalId}`,
+              },
+
+              unit_amount:
+                dueNow,
+            },
+
+            quantity: 1,
+          });
+        }
+
+        for (
+          const item of catalogItems
+        ) {
+          const prices =
+            await stripe.prices.list({
+              lookup_keys: [
+                item.lookupKey,
+              ],
+
+              active: true,
+
+              limit: 10,
+            });
+
+          if (
+            prices.data.length !== 1
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              `Unable to resolve exactly one active Stripe Price for ${item.lookupKey}.`
+            );
+          }
+
+          const price =
+            prices.data[0];
+
+          if (
+            !price.active ||
+            price.currency !== "usd" ||
+            price.type !== "recurring" ||
+            !price.recurring ||
+            price.recurring.interval !==
+              "month" ||
+            price.recurring.interval_count !==
+              1 ||
+            price.unit_amount === null
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              `Stripe Price ${item.lookupKey} is not an active monthly USD recurring price.`
+            );
+          }
+
+          if (
+            price.unit_amount !==
+            item.expectedAmount
+          ) {
+            throw new HttpsError(
+              "failed-precondition",
+              `Stripe Price ${item.lookupKey} does not match the locked proposal amount.`
+            );
+          }
+
+          lineItems.push({
+            price: price.id,
+            quantity:
+              item.quantity,
+          });
+        }
+
+
 
         let replacingExpiredSessionId:
           string | null = null;
@@ -475,6 +631,10 @@ export const createProposalCheckout =
           "[createProposalCheckout] Failed:",
           error
         );
+
+        if (error instanceof HttpsError) {
+          throw error;
+        }
 
         throw new HttpsError(
           "internal",

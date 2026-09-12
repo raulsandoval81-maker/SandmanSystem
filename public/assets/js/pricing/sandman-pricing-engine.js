@@ -4,55 +4,90 @@ import {
 
 const PRICING = SANDMAN_PRICING_CATALOG;
 
-const FAMILY_MONTHLY = {
-  1: PRICING.combat.standardFamily.athlete1,
-  2: PRICING.combat.standardFamily.athlete2Total,
-  3: PRICING.combat.standardFamily.athlete3Total,
-  4: PRICING.combat.standardFamily.athlete4Total
-};
+function disciplineCount(athlete) {
+  const count =
+    Array.isArray(athlete.disciplines)
+      ? athlete.disciplines.length
+      : 0;
 
-function getDisciplineCount(athlete) {
-  return Array.isArray(athlete.disciplines)
-    ? athlete.disciplines.length
-    : 0;
+  return count >= 2 ? 2 : 1;
 }
 
-function isHighCombatAccess(athlete) {
-  return athlete.trainingAccess === "4-6";
+function combatAccess(athlete) {
+  return athlete.trainingAccess === "4-6"
+    ? "4-6"
+    : "2-3";
 }
 
-function getStandardCombatRate(athlete) {
-  const disciplineCount =
-    getDisciplineCount(athlete);
+function isAnnual(athlete) {
+  return athlete.billingTerm === "annual";
+}
 
-  const highAccess =
-    isHighCombatAccess(athlete);
+function combatRateRecord(athlete) {
+  const group =
+    disciplineCount(athlete) >= 2
+      ? PRICING.combat.individual
+          .twoDisciplines
+      : PRICING.combat.individual
+          .oneDiscipline;
 
-  if (disciplineCount >= 2) {
-    return highAccess
-      ? PRICING.combat.standard
-          .twoDisciplineHighAccess
-      : PRICING.combat.standard
-          .twoDisciplineLowAccess;
+  return group[combatAccess(athlete)];
+}
+
+function individualCombatRate(athlete) {
+  const record =
+    combatRateRecord(athlete);
+
+  return isAnnual(athlete)
+    ? record.annual
+    : record.monthToMonth;
+}
+
+function individualCombatLookup(athlete) {
+  const record =
+    combatRateRecord(athlete);
+
+  return isAnnual(athlete)
+    ? record.annualLookup
+    : record.monthToMonthLookup;
+}
+
+function familyCombatRecord(athletes) {
+  const hasTwoDisciplines =
+    athletes.some(
+      (athlete) =>
+        disciplineCount(athlete) >= 2
+    );
+
+  const hasHighAccess =
+    athletes.some(
+      (athlete) =>
+        combatAccess(athlete) === "4-6"
+    );
+
+  if (
+    hasTwoDisciplines &&
+    hasHighAccess
+  ) {
+    return PRICING.combat.family12Month
+      .twoDisciplines46;
   }
 
-  return highAccess
-    ? PRICING.combat.standard
-        .oneDisciplineHighAccess
-    : PRICING.combat.standard
-        .oneDisciplineLowAccess;
+  if (hasTwoDisciplines) {
+    return PRICING.combat.family12Month
+      .twoDisciplines23;
+  }
+
+  if (hasHighAccess) {
+    return PRICING.combat.family12Month
+      .oneDiscipline46;
+  }
+
+  return PRICING.combat.family12Month
+    .oneDiscipline23;
 }
 
-function getStandardUpgrade(athlete) {
-  return Math.max(
-    0,
-    getStandardCombatRate(athlete) -
-      PRICING.combat.standard
-        .oneDisciplineLowAccess
-  );
-}
-
-function getFitnessRate(athlete) {
+function fitnessRecord(athlete) {
   return athlete.trainingAccess === "3"
     ? PRICING.fitness.threeDays
     : PRICING.fitness.twoDays;
@@ -61,16 +96,10 @@ function getFitnessRate(athlete) {
 export function calculateSandmanMembershipPricing(
   athletes = []
 ) {
-  const standardAthletes =
+  const combatAthletes =
     athletes.filter(
       (athlete) =>
         athlete.plan === "standard"
-    );
-
-  const mmaAthletes =
-    athletes.filter(
-      (athlete) =>
-        athlete.plan === "mma"
     );
 
   const fitnessAthletes =
@@ -79,273 +108,181 @@ export function calculateSandmanMembershipPricing(
         athlete.plan === "fitness"
     );
 
-  const comboAthletes =
-    athletes.filter(
-      (athlete) =>
-        athlete.plan === "combo"
+  const catalogItems = [];
+
+  const individualCombatEquivalent =
+    combatAthletes.reduce(
+      (total, athlete) =>
+        total +
+        individualCombatRate(athlete),
+      0
     );
 
-  /*
-   * STANDARD COMBAT
-   *
-   * Base family ladder remains intact.
-   * Higher access is layered on top.
-   *
-   * Important:
-   * 2 disciplines + 4-6 days = $120,
-   * NOT $140.
-   */
+  const allCombatAnnual =
+    combatAthletes.length > 0 &&
+    combatAthletes.every(isAnnual);
+
   let standardCombatMonthly = 0;
 
-  let standardIndividualEquivalentMonthly = 0;
+  if (
+    combatAthletes.length >= 2 &&
+    allCombatAnnual
+  ) {
+    const family =
+      familyCombatRecord(
+        combatAthletes
+      );
 
-  if (standardAthletes.length > 0) {
-    const count =
-      standardAthletes.length;
+    standardCombatMonthly =
+      family.monthly;
 
-    if (count <= 4) {
-      standardCombatMonthly =
-        FAMILY_MONTHLY[count];
-    } else {
-      standardCombatMonthly =
-        FAMILY_MONTHLY[4] +
-        (
-          count - 4
-        ) *
-        PRICING.combat.standardFamily
-          .additionalAthlete;
-    }
-
-    standardAthletes.forEach(
+    catalogItems.push({
+      kind: "combat-family",
+      recurring: true,
+      lookupKey: family.lookup,
+      amount: family.monthly,
+      quantity: 1
+    });
+  } else {
+    combatAthletes.forEach(
       (athlete) => {
-        standardIndividualEquivalentMonthly +=
-          getStandardCombatRate(athlete);
+        const amount =
+          individualCombatRate(
+            athlete
+          );
 
         standardCombatMonthly +=
-          getStandardUpgrade(athlete);
+          amount;
+
+        catalogItems.push({
+          kind: "combat-individual",
+          recurring: true,
+          athleteIndex:
+            athlete.index ?? null,
+          lookupKey:
+            individualCombatLookup(
+              athlete
+            ),
+          amount,
+          quantity: 1
+        });
       }
     );
   }
 
-  /*
-   * MMA
-   *
-   * This is an intentional membership path.
-   * It is NOT inferred from discipline count.
-   */
-  const mmaMonthly =
-    mmaAthletes.length *
-    PRICING.combat.mma.monthly;
-
-  const mmaIndividualEquivalentMonthly =
-    mmaMonthly;
-
-  /*
-   * FITNESS
-   */
   let fitnessMonthly = 0;
 
   fitnessAthletes.forEach(
     (athlete) => {
+      const record =
+        fitnessRecord(athlete);
+
       fitnessMonthly +=
-        getFitnessRate(athlete);
+        record.monthly;
+
+      catalogItems.push({
+        kind: "fitness",
+        recurring: true,
+        athleteIndex:
+          athlete.index ?? null,
+        lookupKey:
+          record.lookup,
+        amount:
+          record.monthly,
+        quantity: 1
+      });
     }
   );
 
-  const fitnessIndividualEquivalentMonthly =
+  const monthlyMembership =
+    standardCombatMonthly +
     fitnessMonthly;
 
-  /*
-   * Existing Combo pricing stays untouched
-   * until Combo is intentionally redesigned.
-   */
-  let comboMonthly = 0;
-
-  comboAthletes.forEach(
-    (athlete) => {
-      comboMonthly +=
-        athlete.billingTerm === "annual"
-          ? PRICING.combo.annualAutopay
-          : PRICING.combo.monthToMonth;
-    }
-  );
-
-  const comboAgreementCount =
-    comboAthletes.filter(
-      (athlete) =>
-        athlete.billingTerm === "annual"
-    ).length;
-
-  const agreementSavingsAnnual =
-    comboAgreementCount *
-    (
-      PRICING.combo.monthToMonth -
-      PRICING.combo.annualAutopay
-    ) *
-    12;
-
-  /*
-   * Family savings before household cap.
-   */
   const standardFamilySavingsAnnual =
     Math.max(
       0,
-      standardIndividualEquivalentMonthly -
+      individualCombatEquivalent -
         standardCombatMonthly
     ) * 12;
 
-  const membershipBeforeCap =
-    standardCombatMonthly +
-    mmaMonthly +
-    fitnessMonthly +
-    comboMonthly;
+  const agreementSavingsAnnual =
+    combatAthletes.reduce(
+      (total, athlete) => {
+        if (!isAnnual(athlete)) {
+          return total;
+        }
 
-  /*
-   * $250 HOUSEHOLD CAP
-   */
-  const householdCap =
-    PRICING.household.monthlyCap;
-
-  const householdCapSavingsMonthly =
-    Math.max(
-      0,
-      membershipBeforeCap -
-        householdCap
-    );
-
-  const membershipAfterCap =
-    Math.min(
-      membershipBeforeCap,
-      householdCap
-    );
-
-  /*
-   * OPTIONAL PARENT + CHILD PROMOTION
-   *
-   * Promotion is deliberately separate from
-   * family pricing and household savings.
-   */
-  const hasQualifyingCombatMember =
-    athletes.some(
-      (athlete) =>
-        athlete.plan === "standard" ||
-        athlete.plan === "combo" ||
-        athlete.plan === "mma"
-    );
-
-  const parentPromotionCount =
-    fitnessAthletes.filter(
-      (athlete) => {
-        const combatFamilyTwoDayRate =
-          athlete.trainingAccess === "2" &&
-          hasQualifyingCombatMember;
-
-        const annualThreeDayRate =
-          athlete.trainingAccess === "3" &&
-          athlete.billingTerm === "annual";
+        const record =
+          combatRateRecord(athlete);
 
         return (
-          combatFamilyTwoDayRate ||
-          annualThreeDayRate
+          total +
+          (
+            record.monthToMonth -
+            record.annual
+          ) * 12
         );
-      }
-    ).length;
-
-  const promotionMonthly =
-    parentPromotionCount *
-    PRICING.promotions.parentChildMonthly;
-
-  const monthlyMembership =
-    Math.max(
-      0,
-      membershipAfterCap -
-        promotionMonthly
+      },
+      0
     );
-
-  const promotionalSavingsAnnual =
-    promotionMonthly * 12;
 
   const projectedSavingsAnnual =
     standardFamilySavingsAnnual +
-    householdCapSavingsMonthly * 12 +
     agreementSavingsAnnual;
 
-  const individualEquivalentMonthly =
-    standardIndividualEquivalentMonthly +
-    mmaIndividualEquivalentMonthly +
-    fitnessIndividualEquivalentMonthly +
-    comboMonthly;
-
-  /*
-   * PAYMENT OWNERSHIP
-   *
-   * Fitness belongs to Youth Empowered.
-   * Automatic Fitness savings reduce the
-   * Youth Empowered charge first.
-   *
-   * Household-cap savings are absorbed by
-   * Sandman first. If the total bill is ever
-   * lower than the Fitness amount alone,
-   * Fitness is clamped to the actual bill so
-   * ownership can never exceed what is owed.
-   */
-  const youthEmpoweredFitnessMonthly =
-    Math.min(
-      Math.max(
-        0,
-        fitnessMonthly -
-          promotionMonthly
-      ),
-      monthlyMembership
-    );
-
-  const sandmanCombatMonthly =
-    Math.max(
-      0,
-      monthlyMembership -
-        youthEmpoweredFitnessMonthly
-    );
-
-  const paymentOwnership = {
-    sandman: {
-      combatMonthly:
-        sandmanCombatMonthly
-    },
-
-    youthEmpowered: {
-      fitnessMonthly:
-        youthEmpoweredFitnessMonthly
-    }
-  };
-
   return {
+    pricingModel:
+      PRICING.version,
+
+    catalogItems,
+
     standardCombatMonthly,
-    standardIndividualEquivalentMonthly,
+
+    standardIndividualEquivalentMonthly:
+      individualCombatEquivalent,
+
     standardFamilySavingsAnnual,
 
-    mmaMonthly,
-    mmaIndividualEquivalentMonthly,
-
     fitnessMonthly,
-    fitnessIndividualEquivalentMonthly,
 
-    paymentOwnership,
+    fitnessIndividualEquivalentMonthly:
+      fitnessMonthly,
 
-    comboMonthly,
     agreementSavingsAnnual,
-
-    individualEquivalentMonthly,
-
-    membershipBeforeCap,
-
-    householdCap,
-    householdCapSavingsMonthly,
-
-    promotionMonthly,
-    promotionalSavingsAnnual,
 
     projectedSavingsAnnual,
 
-    monthlyMembership
+    individualEquivalentMonthly:
+      individualCombatEquivalent +
+      fitnessMonthly,
+
+    membershipBeforeCap:
+      monthlyMembership,
+
+    monthlyMembership,
+
+    /*
+     * Legacy compatibility fields.
+     * These intentionally remain zero while
+     * old rendering code is removed.
+     */
+    mmaMonthly: 0,
+    mmaIndividualEquivalentMonthly: 0,
+    comboMonthly: 0,
+    householdCap: null,
+    householdCapSavingsMonthly: 0,
+    promotionMonthly: 0,
+    promotionalSavingsAnnual: 0,
+
+    paymentOwnership: {
+      sandman: {
+        combatMonthly:
+          standardCombatMonthly
+      },
+
+      youthEmpowered: {
+        fitnessMonthly
+      }
+    }
   };
 }

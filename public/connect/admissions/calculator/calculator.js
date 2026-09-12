@@ -244,16 +244,6 @@ function recommendationFromProgram(
       discipline: "muay-thai"
     },
 
-    "quest2mastery-mma": {
-      journey: "quest2mastery",
-      discipline: "mma"
-    },
-
-    "quest2mastery-submission-grappling": {
-      journey: "quest2mastery",
-      discipline: "submission-grappling"
-    },
-
     fitness: {
       journey: "everyday-fitness",
       discipline: ""
@@ -274,25 +264,11 @@ const PRICING =
   SANDMAN_PRICING_CATALOG;
 
 const FOUNDING_YEAR = {
-  combatMonthly:
-    PRICING.combat.standardFamily.athlete1,
-
   fitnessMonthly:
-    PRICING.fitness.monthly,
-
-  comboMonthToMonth:
-    PRICING.combo.monthToMonth,
-
-  comboAnnualAutopay:
-    PRICING.combo.annualAutopay,
+    PRICING.fitness.twoDays.monthly,
 
   athleteAnnualMembership:
-    PRICING.fees.annualMembership
-      .sandmanProvidesAAU,
-
-  athleteAnnualMembershipCurrentAAU:
-    PRICING.fees.annualMembership
-      .athleteHasCurrentAAU,
+    PRICING.enrollment.oneShirt.amount,
 
   defaultAdmissionsCredit:
     PRICING.credits.admissionsDefault
@@ -466,6 +442,80 @@ const extras = {
       return row;
     }
 
+    function syncTrainingAccessOptions(
+      card,
+      preferredValue = ""
+    ) {
+      const plan =
+        card.querySelector(
+          ".athlete-plan"
+        ).value;
+
+      const select =
+        card.querySelector(
+          ".training-access"
+        );
+
+      const options =
+        plan === "fitness"
+          ? [
+              {
+                value: "2",
+                label: "Fitness — 2 days/week"
+              },
+              {
+                value: "3",
+                label: "Fitness — 3 days/week"
+              }
+            ]
+          : [
+              {
+                value: "2-3",
+                label: "Combat — 2–3 days/week"
+              },
+              {
+                value: "4-6",
+                label: "Combat — 4–6 days/week"
+              }
+            ];
+
+      const validValues =
+        options.map(
+          (option) => option.value
+        );
+
+      const nextValue =
+        validValues.includes(
+          preferredValue
+        )
+          ? preferredValue
+          : options[0].value;
+
+      select.innerHTML = "";
+
+      options.forEach(
+        (option) => {
+          const node =
+            document.createElement(
+              "option"
+            );
+
+          node.value =
+            option.value;
+
+          node.textContent =
+            option.label;
+
+          select.appendChild(
+            node
+          );
+        }
+      );
+
+      select.value =
+        nextValue;
+    }
+
     function addAthlete(defaults={}){
       const fragment=el.athleteTemplate.content.cloneNode(true);
       const card=fragment.querySelector(".athlete-card");
@@ -477,8 +527,24 @@ const extras = {
 
       newCard.querySelector(".athlete-name").value=defaults.name||"";
       newCard.querySelector(".journey").value=defaults.journey||"zero2hero";
-      newCard.querySelector(".athlete-plan").value=defaults.plan||"standard";
-      newCard.querySelector(".billing-term").value=defaults.billingTerm||"month-to-month";
+      newCard.querySelector(".athlete-plan").value =
+        defaults.plan === "fitness"
+          ? "fitness"
+          : "standard";
+
+      syncTrainingAccessOptions(
+        newCard,
+        defaults.trainingAccess ||
+        (
+          defaults.plan === "fitness"
+            ? "2"
+            : "2-3"
+        )
+      );
+
+      newCard.querySelector(".billing-term").value =
+        defaults.billingTerm ||
+        "month-to-month";
       newCard.querySelector(
         ".admissions-credit"
       ).value =
@@ -489,8 +555,19 @@ const extras = {
       newCard.querySelector(
         ".annual-membership"
       ).value =
-        defaults.annualMembership ||
-        "sandman";
+        ["1", "2", "3"].includes(
+          String(
+            defaults.annualMembership ||
+            defaults.enrollmentPackage ||
+            "1"
+          )
+        )
+          ? String(
+              defaults.annualMembership ||
+              defaults.enrollmentPackage ||
+              "1"
+            )
+          : "1";
 
       if(defaults.disciplines){
         defaults.disciplines.forEach(value=>{
@@ -511,6 +588,21 @@ const extras = {
         control.addEventListener("change",calculate);
       });
 
+      newCard
+        .querySelector(
+          ".athlete-plan"
+        )
+        .addEventListener(
+          "change",
+          () => {
+            syncTrainingAccessOptions(
+              newCard
+            );
+
+            calculate();
+          }
+        );
+
       refreshAthleteTitles();
       calculate();
     }
@@ -529,14 +621,26 @@ const extras = {
           index:index+1,
           name:card.querySelector(".athlete-name").value.trim()||`Athlete ${index+1}`,
           journey:card.querySelector(".journey").value,
-          plan:card.querySelector(".athlete-plan").value,
-          billingTerm:card.querySelector(".billing-term").value,
+          plan:
+            card.querySelector(
+              ".athlete-plan"
+            ).value,
+
+          trainingAccess:
+            card.querySelector(
+              ".training-access"
+            ).value,
+
+          billingTerm:
+            card.querySelector(
+              ".billing-term"
+            ).value,
 
           annualMembership:
             card.querySelector(
               ".annual-membership"
             )?.value ||
-            "sandman",
+            "1",
 
           credit:Number(card.querySelector(".admissions-credit").value||0),
           disciplines
@@ -547,19 +651,29 @@ const extras = {
     function annualMembershipAmount(
       athlete
     ){
-      if (
-        athlete.annualMembership ===
-        "current-aau"
-      ) {
+      const packageCode =
+        String(
+          athlete.annualMembership ||
+          "1"
+        );
+
+      if (packageCode === "3") {
         return (
-          FOUNDING_YEAR
-            .athleteAnnualMembershipCurrentAAU
+          PRICING.enrollment
+            .threeShirts.amount
+        );
+      }
+
+      if (packageCode === "2") {
+        return (
+          PRICING.enrollment
+            .twoShirts.amount
         );
       }
 
       return (
-        FOUNDING_YEAR
-          .athleteAnnualMembership
+        PRICING.enrollment
+          .oneShirt.amount
       );
     }
 
@@ -573,7 +687,6 @@ const extras = {
       let registrationCount=0;
       let admissionsCredits=0;
       let fitnessCount=0;
-      let comboCount=0;
       let standardCount=0;
 
       athletes.forEach((a) => {
@@ -590,18 +703,12 @@ const extras = {
 
         admissionsCredits += a.credit;
 
-        if (a.plan === "combo") {
-          comboCount += 1;
-        }
-
         if (a.plan === "standard") {
           standardCount += 1;
         }
       });
 
-      const enrollmentBase = 0;
-
-      const annualBase =
+      const enrollmentBase =
         athletes.reduce(
           (total, athlete) =>
             total +
@@ -610,6 +717,13 @@ const extras = {
             ),
           0
         );
+
+      /*
+       * Next annual renewal mirrors the
+       * selected annual enrollment packages.
+       */
+      const annualBase =
+        enrollmentBase;
 
       /*
        * Membership pricing comes from the shared
@@ -656,8 +770,7 @@ const extras = {
       let fitnessCredit = 0;
 
       const hasFitnessMembership =
-        fitnessCount > 0 ||
-        comboCount > 0;
+        fitnessCount > 0;
 
       if (
         el.fitnessCredit.checked &&
@@ -685,8 +798,7 @@ const extras = {
       const firstYear=Math.max(
         0,
         dueNow+
-        monthlyBalance*12+
-        annualRenewal
+        monthlyBalance*12
       );
 
       el.dueNow.textContent=money(dueNow);
@@ -696,14 +808,10 @@ const extras = {
       el.annualTotal.textContent=money(annualRenewal);
 
       el.standardCompare.textContent =
-        "Standard Combat";
+        "Combat Memberships";
 
       el.unlimitedCompare.textContent =
-        `${money(
-          FOUNDING_YEAR.comboMonthToMonth
-        )} / ${money(
-          FOUNDING_YEAR.comboAnnualAutopay
-        )} Combo`;
+        "Family Combat — 12-Month Caps";
 
       el.breakdown.innerHTML="";
 
@@ -799,24 +907,15 @@ const extras = {
             "Combat",
 
           fitness:
-            "Everyday Fitness",
-
-          combo:
-            "Combat + Fitness"
-        }[a.plan];
+            "Fitness"
+        }[a.plan] || "Membership";
 
         const disciplineText =
           a.plan === "fitness"
             ? "fitness"
-            : a.plan === "combo"
-              ? (
-                a.disciplines.length
-                  ? `${a.disciplines.join(", ")} + fitness`
-                  : "combat + fitness"
-              )
-              : a.disciplines.length
-                ? a.disciplines.join(", ")
-                : "no discipline selected";
+            : a.disciplines.length
+              ? a.disciplines.join(", ")
+              : "no discipline selected";
 
         const termLabel =
           a.billingTerm==="annual"
@@ -852,7 +951,7 @@ const extras = {
           <strong>${money(dueNow)}</strong>.
           Monthly membership:
           <strong>${money(monthlyBalance)}/month</strong>.
-          Annual athlete membership / insurance:
+          Next annual enrollment:
           <strong>${money(annualRenewal)}/year</strong>.
         </p>
 
@@ -899,30 +998,29 @@ const extras = {
           catalogEffectiveFrom:
             PRICING.effectiveFrom,
 
-          combatFamilyLadder: {
-            athlete1: 80,
-            athlete2Total: 120,
-            athlete3Total: 140,
-            athlete4Total: 160,
-            additionalAthlete: 20
+          pricingModel:
+            membershipPricing.pricingModel,
+
+          stripeCatalogItems:
+            membershipPricing.catalogItems,
+
+          familyCombatCaps: {
+            oneDiscipline23: 160,
+            oneDiscipline46: 200,
+            twoDisciplines23: 200,
+            twoDisciplines46: 260
           },
 
-          fitnessMonthly:
-            FOUNDING_YEAR.fitnessMonthly,
+          fitnessRates: {
+            twoDays: 60,
+            threeDays: 80
+          },
 
-          comboMonthToMonth:
-            FOUNDING_YEAR.comboMonthToMonth,
-
-          comboAnnualAutopay:
-            FOUNDING_YEAR.comboAnnualAutopay,
-
-          athleteOnboarding: 0,
-
-          athleteAnnualRenewal:
-            FOUNDING_YEAR.athleteAnnualMembership,
-
-          athleteAnnualMembership:
-            FOUNDING_YEAR.athleteAnnualMembership
+          enrollmentPackages: {
+            oneShirt: 50,
+            twoShirts: 65,
+            threeShirts: 75
+          }
         },
 
         agreement: {
@@ -1666,13 +1764,22 @@ async function beginProposalCheckout() {
               athlete.plan ||
               "standard",
 
+            trainingAccess:
+              athlete.trainingAccess ||
+              (
+                athlete.plan === "fitness"
+                  ? "2"
+                  : "2-3"
+              ),
+
             billingTerm:
               athlete.billingTerm ||
               "month-to-month",
 
             annualMembership:
               athlete.annualMembership ||
-              "sandman",
+              athlete.enrollmentPackage ||
+              "1",
 
             credit:
               athlete.credit ??
@@ -1846,11 +1953,14 @@ async function beginProposalCheckout() {
         plan:
           "standard",
 
+        trainingAccess:
+          "2-3",
+
         billingTerm:
           "month-to-month",
 
         annualMembership:
-          "sandman",
+          "1",
 
         disciplines:
           discipline
@@ -1967,15 +2077,13 @@ async function beginProposalCheckout() {
 
       const planLabels = {
         standard: "Combat",
-        combo: "Combat + Fitness",
-        fitness: "Everyday Fitness"
+        fitness: "Fitness"
       };
 
       const disciplineLabels = {
         wrestling: "Wrestling",
         boxing: "Boxing",
-        "muay-thai": "Muay Thai",
-        mma: "MMA / Submission Grappling"
+        "muay-thai": "Muay Thai"
       };
 
       const athleteLines =
@@ -2120,89 +2228,39 @@ async function beginProposalCheckout() {
 
           let pricingRows = "";
 
-          if (athlete.plan === "combo") {
-            pricingRows += `
-              <div class="print-detail-row">
-                <span>
-                  Regular month-to-month value
-                </span>
-                <strong>
-                  ${money(
-                    FOUNDING_YEAR
-                      .comboMonthToMonth
-                  )}/month
-                </strong>
-              </div>
-            `;
-
-            if (annualAgreement) {
-              pricingRows += `
-                <div class="print-detail-row">
-                  <span>
-                    Founding Year agreement rate
-                  </span>
-                  <strong>
-                    ${money(
-                      FOUNDING_YEAR
-                        .comboAnnualAutopay
-                    )}/month
-                  </strong>
-                </div>
-
-                <div class="print-detail-row">
-                  <span>Monthly savings</span>
-                  <strong>
-                    ${money(
-                      FOUNDING_YEAR
-                        .comboMonthToMonth -
-                      FOUNDING_YEAR
-                        .comboAnnualAutopay
-                    )}
-                  </strong>
-                </div>
-
-                <div class="print-detail-row">
-                  <span>12-month savings</span>
-                  <strong>
-                    ${money(
-                      (
-                        FOUNDING_YEAR
-                          .comboMonthToMonth -
-                        FOUNDING_YEAR
-                          .comboAnnualAutopay
-                      ) * 12
-                    )}
-                  </strong>
-                </div>
-              `;
-            }
-          } else if (
+          if (
             athlete.plan === "standard"
           ) {
             const disciplineCount =
-              athlete.disciplines.length;
+              Math.min(
+                2,
+                Math.max(
+                  1,
+                  athlete.disciplines.length
+                )
+              );
+
+            const access =
+              athlete.trainingAccess === "4-6"
+                ? "4-6"
+                : "2-3";
+
+            const record =
+              disciplineCount >= 2
+                ? PRICING.combat.individual
+                    .twoDisciplines[access]
+                : PRICING.combat.individual
+                    .oneDiscipline[access];
 
             const individualStandardRate =
-              80 +
-              (
-                athlete.billingTerm !== "annual"
-                  ? 20
-                  : 0
-              ) +
-              (
-                disciplineCount >= 2
-                  ? (
-                      athlete.billingTerm === "annual"
-                        ? 40
-                        : 50
-                    )
-                  : 0
-              );
+              athlete.billingTerm === "annual"
+                ? record.annual
+                : record.monthToMonth;
 
             pricingRows += `
               <div class="print-detail-row">
                 <span>
-                  Individual Combat membership value
+                  Combat membership
                 </span>
                 <strong>
                   ${money(
@@ -2213,24 +2271,31 @@ async function beginProposalCheckout() {
 
               <div class="print-detail-row">
                 <span>
-                  Sibling family pricing
+                  Training access
                 </span>
                 <strong>
-                  Reflected in family total
+                  ${escapeHtml(access)} days/week
                 </strong>
               </div>
             `;
           } else if (
             athlete.plan === "fitness"
           ) {
+            const fitnessRate =
+              athlete.trainingAccess === "3"
+                ? PRICING.fitness
+                    .threeDays.monthly
+                : PRICING.fitness
+                    .twoDays.monthly;
+
             pricingRows += `
               <div class="print-detail-row">
                 <span>
-                  Everyday Fitness membership
+                  Fitness membership
                 </span>
                 <strong>
                   ${money(
-                    FOUNDING_YEAR.fitnessMonthly
+                    fitnessRate
                   )}/month
                 </strong>
               </div>
@@ -2276,7 +2341,7 @@ async function beginProposalCheckout() {
                   ? `
                     <div class="print-detail-row">
                       <span>
-                        Annual athlete membership / insurance
+                        Annual enrollment package
                       </span>
 
                       <strong>

@@ -1,62 +1,129 @@
 export const SANDMAN_PRICING_CATALOG = {
-  version: "FOUNDING_YEAR_2026",
+  version: "ACADEMY_2026_V3",
   effectiveFrom: "2026-08-29",
+  stripeLookupPrefix: "sandman_academy-2026-v3_",
 
   combat: {
-    standard: {
-      oneDisciplineLowAccess: 80,
-      oneDisciplineHighAccess: 120,
-      twoDisciplineLowAccess: 120,
-      twoDisciplineHighAccess: 120
+    individual: {
+      oneDiscipline: {
+        "2-3": {
+          monthToMonth: 90,
+          annual: 80,
+          monthToMonthLookup:
+            "sandman_academy-2026-v3_combat_1disc_23_mtm",
+          annualLookup:
+            "sandman_academy-2026-v3_combat_1disc_23_12mo"
+        },
+
+        "4-6": {
+          monthToMonth: 140,
+          annual: 120,
+          monthToMonthLookup:
+            "sandman_academy-2026-v3_combat_1disc_46_mtm",
+          annualLookup:
+            "sandman_academy-2026-v3_combat_1disc_46_12mo"
+        }
+      },
+
+      twoDisciplines: {
+        "2-3": {
+          monthToMonth: 140,
+          annual: 120,
+          monthToMonthLookup:
+            "sandman_academy-2026-v3_combat_2disc_23_mtm",
+          annualLookup:
+            "sandman_academy-2026-v3_combat_2disc_23_12mo"
+        },
+
+        "4-6": {
+          monthToMonth: 160,
+          annual: 140,
+          monthToMonthLookup:
+            "sandman_academy-2026-v3_combat_2disc_46_mtm",
+          annualLookup:
+            "sandman_academy-2026-v3_combat_2disc_46_12mo"
+        }
+      }
     },
 
-    mma: {
-      monthly: 140
+    family12Month: {
+      oneDiscipline23: {
+        monthly: 160,
+        lookup:
+          "sandman_academy-2026-v3_family_1disc_23_12mo"
+      },
+
+      oneDiscipline46: {
+        monthly: 200,
+        lookup:
+          "sandman_academy-2026-v3_family_1disc_46_12mo"
+      },
+
+      twoDisciplines23: {
+        monthly: 200,
+        lookup:
+          "sandman_academy-2026-v3_family_2disc_23_12mo"
+      },
+
+      twoDisciplines46: {
+        monthly: 260,
+        lookup:
+          "sandman_academy-2026-v3_family_2disc_46_12mo"
+      }
     },
 
-    standardFamily: {
-      athlete1: 80,
-      athlete2Total: 120,
-      athlete3Total: 140,
-      athlete4Total: 160,
-      additionalAthlete: 20
+    passes: {
+      oneDay: {
+        amount: 25,
+        lookup:
+          "sandman_academy-2026-v3_combat_dropin_1day"
+      },
+
+      twoDay: {
+        amount: 40,
+        lookup:
+          "sandman_academy-2026-v3_combat_dropin_2day"
+      }
     }
   },
 
   fitness: {
-    twoDays: 60,
-    threeDays: 80,
+    twoDays: {
+      monthly: 60,
+      lookup:
+        "sandman_academy-2026-v3_fitness_2day"
+    },
 
-    /*
-     * Temporary compatibility for screens that
-     * still read fitness.monthly.
-     */
-    monthly: 60,
+    threeDays: {
+      monthly: 80,
+      lookup:
+        "sandman_academy-2026-v3_fitness_3day"
+    },
 
-    dropIn: 15
+    dropIn: {
+      amount: 15,
+      lookup:
+        "sandman_academy-2026-v3_fitness_dropin"
+    }
   },
 
-  household: {
-    monthlyCap: 250
-  },
+  enrollment: {
+    oneShirt: {
+      amount: 50,
+      lookup:
+        "sandman_academy-2026-v3_enrollment_1"
+    },
 
-  promotions: {
-    parentChildMonthly: 10
-  },
+    twoShirts: {
+      amount: 65,
+      lookup:
+        "sandman_academy-2026-v3_enrollment_2"
+    },
 
-  combo: {
-    /*
-     * Existing Combo pricing is retained until
-     * the Combat + Fitness model is redesigned.
-     */
-    monthToMonth: 140,
-    annualAutopay: 120
-  },
-
-  fees: {
-    annualMembership: {
-      sandmanProvidesAAU: 35,
-      athleteHasCurrentAAU: 5
+    threeShirts: {
+      amount: 75,
+      lookup:
+        "sandman_academy-2026-v3_enrollment_3"
     }
   },
 
