@@ -296,6 +296,16 @@ const extras = {
       fitnessCredit:document.getElementById("fitnessCredit"),
       monthlySponsor:document.getElementById("monthlySponsor"),
       annualSponsor:document.getElementById("annualSponsor"),
+
+      membershipStartDate:
+        document.getElementById("membershipStartDate"),
+
+      paymentStartMode:
+        document.getElementById("paymentStartMode"),
+
+      deferredEligibility:
+        document.getElementById("deferredEligibility"),
+
       dueNow:document.getElementById("dueNow"),
       monthlyTotal:document.getElementById("monthlyTotal"),
       firstYearTotal:document.getElementById("firstYearTotal"),
@@ -677,6 +687,111 @@ const extras = {
       );
     }
 
+    function localIsoDate(date = new Date()) {
+      const year = date.getFullYear();
+      const month = String(
+        date.getMonth() + 1
+      ).padStart(2, "0");
+      const day = String(
+        date.getDate()
+      ).padStart(2, "0");
+
+      return `${year}-${month}-${day}`;
+    }
+
+    function parseLocalDate(value) {
+      const match = String(
+        value || ""
+      ).match(
+        /^(\d{4})-(\d{2})-(\d{2})$/
+      );
+
+      if (!match) {
+        return null;
+      }
+
+      return new Date(
+        Number(match[1]),
+        Number(match[2]) - 1,
+        Number(match[3]),
+        12,
+        0,
+        0,
+        0
+      );
+    }
+
+    function prorationRateForStartDate(
+      dateValue
+    ) {
+      const date =
+        parseLocalDate(dateValue);
+
+      if (!date) {
+        return 1;
+      }
+
+      const day =
+        date.getDate();
+
+      if (day <= 7) {
+        return 1;
+      }
+
+      if (day <= 14) {
+        return 0.75;
+      }
+
+      if (day <= 21) {
+        return 0.50;
+      }
+
+      return 0.25;
+    }
+
+    function nextMonthlyBillingDate(
+      dateValue
+    ) {
+      const start =
+        parseLocalDate(dateValue) ||
+        new Date();
+
+      const billingDate =
+        new Date(
+          start.getFullYear(),
+          start.getMonth() + 1,
+          5,
+          12,
+          0,
+          0,
+          0
+        );
+
+      return localIsoDate(
+        billingDate
+      );
+    }
+
+    function formatProposalDate(
+      value
+    ) {
+      const date =
+        parseLocalDate(value);
+
+      if (!date) {
+        return "—";
+      }
+
+      return date.toLocaleDateString(
+        undefined,
+        {
+          year: "numeric",
+          month: "long",
+          day: "numeric"
+        }
+      );
+    }
+
     function calculate(){
       const athletes=readAthletes();
       const extra=extras[el.extra.value];
@@ -779,7 +894,7 @@ const extras = {
         fitnessCredit = 15;
       }
 
-      const dueNow=Math.max(
+      const enrollmentDueNow=Math.max(
         0,
         enrollmentBase+
         extra.amount-
@@ -793,6 +908,120 @@ const extras = {
         0,
         monthlyBase-commitmentDiscount-monthlySponsor
       );
+
+      if (
+        el.membershipStartDate &&
+        !el.membershipStartDate.value
+      ) {
+        el.membershipStartDate.value =
+          localIsoDate();
+      }
+
+      const membershipStartDate =
+        el.membershipStartDate?.value ||
+        localIsoDate();
+
+      const prorationRate =
+        prorationRateForStartDate(
+          membershipStartDate
+        );
+
+      const prorationPercent =
+        Math.round(
+          prorationRate * 100
+        );
+
+      const proratedFirstMonth =
+        Math.round(
+          monthlyBalance *
+          prorationRate *
+          100
+        ) / 100;
+
+      const normalDueNow =
+        Math.max(
+          0,
+          enrollmentDueNow +
+          proratedFirstMonth
+        );
+
+      const combatAthletes =
+        athletes.filter(
+          (athlete) =>
+            athlete.plan === "standard"
+        );
+
+      const allCombatAnnual =
+        combatAthletes.length >= 2 &&
+        combatAthletes.every(
+          (athlete) =>
+            athlete.billingTerm ===
+            "annual"
+        );
+
+      const deferredFamilyEligible =
+        allCombatAnnual &&
+        normalDueNow >= 200;
+
+      const deferredOption =
+        el.paymentStartMode
+          ?.querySelector(
+            'option[value="deferred_family"]'
+          );
+
+      if (deferredOption) {
+        deferredOption.disabled =
+          !deferredFamilyEligible;
+      }
+
+      if (
+        el.paymentStartMode &&
+        el.paymentStartMode.value ===
+          "deferred_family" &&
+        !deferredFamilyEligible
+      ) {
+        el.paymentStartMode.value =
+          "start_now";
+      }
+
+      const paymentStartMode =
+        el.paymentStartMode?.value ===
+          "deferred_family" &&
+        deferredFamilyEligible
+          ? "deferred_family"
+          : "start_now";
+
+      const firstMonthDueNow =
+        paymentStartMode ===
+          "deferred_family"
+          ? 0
+          : proratedFirstMonth;
+
+      const dueNow =
+        Math.max(
+          0,
+          enrollmentDueNow +
+          firstMonthDueNow
+        );
+
+      const firstRecurringChargeDate =
+        nextMonthlyBillingDate(
+          membershipStartDate
+        );
+
+      if (el.deferredEligibility) {
+        el.deferredEligibility.textContent =
+          deferredFamilyEligible
+            ? (
+                "Eligible: this 12-month family Combat proposal " +
+                "may pay enrollment now and begin monthly billing " +
+                "on the next 5th."
+              )
+            : (
+                "Available when 2 or more Combat athletes are on " +
+                "12-month agreements and normal due-now reaches $200."
+              );
+      }
 
       const annualRenewal=Math.max(0,annualBase-annualSponsor);
       const firstYear=Math.max(
@@ -857,7 +1086,39 @@ const extras = {
         el.breakdown.append(line("Approved enrollment support",support,{credit:true}));
       }
 
-      el.breakdown.append(line("Due at enrollment",dueNow,{total:true}));
+      el.breakdown.append(
+        line(
+          "Enrollment / onboarding",
+          enrollmentDueNow
+        )
+      );
+
+      if (
+        paymentStartMode ===
+        "start_now"
+      ) {
+        el.breakdown.append(
+          line(
+            `First-month membership (${prorationPercent}%)`,
+            proratedFirstMonth
+          )
+        );
+      } else {
+        el.breakdown.append(
+          line(
+            "First-month membership deferred",
+            0
+          )
+        );
+      }
+
+      el.breakdown.append(
+        line(
+          "TOTAL DUE NOW",
+          dueNow,
+          {total:true}
+        )
+      );
 
       const d1=document.createElement("div");
       d1.className="divider";
@@ -947,10 +1208,40 @@ const extras = {
         <p>${athleteText}</p>
 
         <p>
-          Due at enrollment:
-          <strong>${money(dueNow)}</strong>.
-          Monthly membership:
-          <strong>${money(monthlyBalance)}/month</strong>.
+          <strong>Total due now:</strong>
+          ${money(dueNow)}.<br>
+
+          Enrollment / onboarding:
+          <strong>${money(enrollmentDueNow)}</strong>.<br>
+
+          ${
+            paymentStartMode === "start_now"
+              ? `
+                First-month membership:
+                <strong>
+                  ${money(proratedFirstMonth)}
+                  (${prorationPercent}%)
+                </strong>.<br>
+              `
+              : `
+                First-month membership:
+                <strong>Deferred</strong>.<br>
+              `
+          }
+
+          Regular monthly membership:
+          <strong>${money(monthlyBalance)}/month</strong>.<br>
+
+          First recurring charge:
+          <strong>
+            ${formatProposalDate(
+              firstRecurringChargeDate
+            )}
+          </strong>.<br>
+
+          Recurring billing:
+          <strong>5th of each month</strong>.<br>
+
           Next annual enrollment:
           <strong>${money(annualRenewal)}/year</strong>.
         </p>
@@ -977,7 +1268,21 @@ const extras = {
           privatePromo,
           fitnessCredit,
           support,
+
+          membershipStartDate,
+          prorationPercent,
+          proratedFirstMonth,
+          enrollmentDueNow,
+          firstMonthDueNow,
+          normalDueNow,
           dueNow,
+
+          paymentStartMode,
+          deferredFamilyEligible,
+
+          recurringBillingDay: 5,
+          firstRecurringChargeDate,
+
           monthlyBase,
           commitmentDiscount,
           agreementSavingsAnnual,
@@ -2014,6 +2319,17 @@ async function beginProposalCheckout() {
       el.fitnessCredit.checked=false;
       el.monthlySponsor.value="0";
       el.annualSponsor.value="0";
+
+      if (el.membershipStartDate) {
+        el.membershipStartDate.value =
+          localIsoDate();
+      }
+
+      if (el.paymentStartMode) {
+        el.paymentStartMode.value =
+          "start_now";
+      }
+
       el.athleteList.innerHTML="";
       addAthlete({disciplines:["wrestling"]});
     }
@@ -2361,8 +2677,82 @@ async function beginProposalCheckout() {
         })
         .join("");
 
+      const paymentScheduleBlock = `
+        <article class="print-detail-card">
+
+          <h3>Payment Schedule</h3>
+
+          <div class="print-detail-row">
+            <span>Enrollment / onboarding</span>
+            <strong>
+              ${money(
+                pricing.enrollmentDueNow
+              )}
+            </strong>
+          </div>
+
+          <div class="print-detail-row">
+            <span>First-month membership</span>
+            <strong>
+              ${
+                pricing.paymentStartMode ===
+                "deferred_family"
+                  ? "Deferred"
+                  : (
+                      money(
+                        pricing.proratedFirstMonth
+                      ) +
+                      " (" +
+                      pricing.prorationPercent +
+                      "%)"
+                    )
+              }
+            </strong>
+          </div>
+
+          <div class="print-detail-row">
+            <span>TOTAL DUE NOW</span>
+            <strong>
+              ${money(
+                pricing.dueNow
+              )}
+            </strong>
+          </div>
+
+          <div class="print-detail-row">
+            <span>Regular monthly membership</span>
+            <strong>
+              ${money(
+                pricing.monthlyBalance
+              )}/month
+            </strong>
+          </div>
+
+          <div class="print-detail-row">
+            <span>First recurring charge</span>
+            <strong>
+              ${escapeHtml(
+                formatProposalDate(
+                  pricing.firstRecurringChargeDate
+                )
+              )}
+            </strong>
+          </div>
+
+          <div class="print-detail-row">
+            <span>Recurring billing date</span>
+            <strong>
+              5th of each month
+            </strong>
+          </div>
+
+        </article>
+      `;
+
       el.printMembershipDetailContent
-        .innerHTML = detailBlocks;
+        .innerHTML =
+          detailBlocks +
+          paymentScheduleBlock;
 
       /*
        * Management recommendation
@@ -2403,6 +2793,20 @@ async function beginProposalCheckout() {
     el.approveProposalButton.addEventListener("click",approveCurrentProposal);
     el.checkoutProposalButton.addEventListener("click",beginProposalCheckout);
     el.resetButton.addEventListener("click",reset);
+
+    if (el.membershipStartDate) {
+      el.membershipStartDate.addEventListener(
+        "change",
+        calculate
+      );
+    }
+
+    if (el.paymentStartMode) {
+      el.paymentStartMode.addEventListener(
+        "change",
+        calculate
+      );
+    }
 
     [
       el.familyName,

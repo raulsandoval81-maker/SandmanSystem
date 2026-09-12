@@ -525,6 +525,51 @@
         </div>
       </article>
 
+      <article class="card builder-section payment-start-section">
+        <div class="card-head">
+          <div>
+            <h2>Payment start</h2>
+            <p>
+              Set the athlete start date and first-month payment arrangement.
+            </p>
+          </div>
+        </div>
+
+        <div class="family-grid">
+          <div class="field">
+            <label for="membershipStartDate">Membership start date</label>
+            <input
+              id="membershipStartDate"
+              type="date"
+            />
+            <p class="help">
+              First-month membership is prorated automatically based on the start date.
+            </p>
+          </div>
+
+          <div class="field">
+            <label for="paymentStartMode">Payment option</label>
+            <select id="paymentStartMode">
+              <option value="start_now">
+                Start now — enrollment + prorated first month
+              </option>
+
+              <option value="deferred_family" disabled>
+                Enrollment now — monthly membership begins next billing cycle
+              </option>
+            </select>
+
+            <p
+              id="deferredEligibility"
+              class="help"
+            >
+              Deferred membership start becomes available for qualifying
+              12-month family Combat agreements.
+            </p>
+          </div>
+        </div>
+      </article>
+
       <article class="card builder-section">
         <div class="card-head">
           <div>
