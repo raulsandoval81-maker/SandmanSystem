@@ -69,34 +69,94 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     }
     const email = cleanString(prospect.email).toLowerCase();
     const publicBaseUrl = cleanString(process.env.SANDMAN_PUBLIC_BASE_URL) || "https://www.sandmancombat.com";
-    const lineItems = [];
-    if (dueNow > 0) {
-        lineItems.push({
-            price_data: {
-                currency: "usd",
-                product_data: {
-                    name: `Sandman enrollment — ${proposalId}`,
-                },
-                unit_amount: dueNow,
-            },
-            quantity: 1,
-        });
+    const rawCatalogItems = Array.isArray(pricing.stripeCatalogItems)
+        ? pricing.stripeCatalogItems
+        : [];
+    if (rawCatalogItems.length === 0) {
+        throw new https_1.HttpsError("failed-precondition", "The locked proposal does not contain Stripe catalog membership items. Rebuild and approve the proposal before checkout.");
     }
-    lineItems.push({
-        price_data: {
-            currency: "usd",
-            product_data: {
-                name: `Sandman monthly membership — ${proposalId}`,
-            },
-            recurring: {
-                interval: "month",
-            },
-            unit_amount: monthlyBalance,
-        },
-        quantity: 1,
+    const catalogItems = rawCatalogItems.map((rawItem, index) => {
+        if (!rawItem ||
+            typeof rawItem !== "object") {
+            throw new https_1.HttpsError("failed-precondition", `Stripe catalog item ${index + 1} is invalid.`);
+        }
+        const item = rawItem;
+        const lookupKey = cleanString(item.lookupKey);
+        if (!lookupKey.startsWith("sandman_academy-2026-v3_")) {
+            throw new https_1.HttpsError("failed-precondition", `Stripe catalog item ${index + 1} has an invalid lookup key.`);
+        }
+        if (item.recurring !== true) {
+            throw new https_1.HttpsError("failed-precondition", `Stripe catalog item ${lookupKey} is not marked recurring.`);
+        }
+        const expectedAmount = toCents(item.amount);
+        if (expectedAmount < 50) {
+            throw new https_1.HttpsError("failed-precondition", `Stripe catalog item ${lookupKey} has an invalid amount.`);
+        }
+        const rawQuantity = Number(item.quantity ?? 1);
+        const quantity = Number.isInteger(rawQuantity) &&
+            rawQuantity > 0
+            ? rawQuantity
+            : 1;
+        return {
+            lookupKey,
+            expectedAmount,
+            quantity,
+        };
     });
+    const lockedCatalogMonthlyTotal = catalogItems.reduce((total, item) => total +
+        (item.expectedAmount *
+            item.quantity), 0);
+    if (lockedCatalogMonthlyTotal !==
+        monthlyBalance) {
+        throw new https_1.HttpsError("failed-precondition", `The locked monthly balance does not match the approved Stripe catalog total. Expected ${lockedCatalogMonthlyTotal} cents but found ${monthlyBalance} cents.`);
+    }
     try {
         const stripe = (0, stripeClient_1.getStripe)();
+        const lineItems = [];
+        if (dueNow > 0) {
+            lineItems.push({
+                price_data: {
+                    currency: "usd",
+                    product_data: {
+                        name: `Sandman enrollment — ${proposalId}`,
+                    },
+                    unit_amount: dueNow,
+                },
+                quantity: 1,
+            });
+        }
+        for (const item of catalogItems) {
+            const prices = await stripe.prices.list({
+                lookup_keys: [
+                    item.lookupKey,
+                ],
+                active: true,
+                limit: 10,
+            });
+            if (prices.data.length !== 1) {
+                throw new https_1.HttpsError("failed-precondition", `Unable to resolve exactly one active Stripe Price for ${item.lookupKey}.`);
+            }
+            const price = prices.data[0];
+            if (!price.active ||
+                price.currency !== "usd" ||
+                price.type !== "recurring" ||
+                !price.recurring ||
+                price.recurring.interval !==
+                    "month" ||
+                price.recurring.interval_count !==
+                    1 ||
+                price.unit_amount === null) {
+                throw new https_1.HttpsError("failed-precondition", `Stripe Price ${item.lookupKey} is not an active monthly USD recurring price.`);
+            }
+            if (price.unit_amount !==
+                item.expectedAmount) {
+                throw new https_1.HttpsError("failed-precondition", `Stripe Price ${item.lookupKey} does not match the locked proposal amount.`);
+            }
+            lineItems.push({
+                price: price.id,
+                quantity: item.quantity,
+            });
+        }
         let replacingExpiredSessionId = null;
         if (proposalStatus ===
             "CHECKOUT_CREATED" &&
@@ -234,6 +294,9 @@ exports.createProposalCheckout = (0, https_1.onCall)({
     }
     catch (error) {
         console.error("[createProposalCheckout] Failed:", error);
+        if (error instanceof https_1.HttpsError) {
+            throw error;
+        }
         throw new https_1.HttpsError("internal", error instanceof Error
             ? error.message
             : "Unable to create proposal checkout.");
