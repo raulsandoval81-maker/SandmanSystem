@@ -834,7 +834,7 @@ const extras = {
         );
 
       /*
-       * Next annual renewal mirrors the
+       * Next Annual Enrollment Package mirrors the
        * selected annual enrollment packages.
        */
       const annualBase =
@@ -1148,7 +1148,7 @@ const extras = {
 
       el.breakdown.append(
         line(
-          "Annual membership / insurance",
+          "Annual Enrollment Package",
           annualBase
         )
       );
@@ -1157,7 +1157,7 @@ const extras = {
         el.breakdown.append(line("Annual sponsor support",annualSponsor,{credit:true}));
       }
 
-      el.breakdown.append(line("Annual renewal estimate",annualRenewal,{total:true}));
+      el.breakdown.append(line("Next Annual Enrollment Package",annualRenewal,{total:true}));
 
       const familyName=el.familyName.value.trim();
       const intro=familyName?`<p><strong>${familyName}</strong></p>`:"";
@@ -1242,7 +1242,7 @@ const extras = {
           Recurring billing:
           <strong>5th of each month</strong>.<br>
 
-          Next annual enrollment:
+          Next Annual Enrollment Package:
           <strong>${money(annualRenewal)}/year</strong>.
         </p>
 
