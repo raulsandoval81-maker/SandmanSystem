@@ -240,3 +240,8 @@ export {
   returnAthleteAssessmentPin,
   recordAthleteAssessmentPlacement,
 } from "./assessments/athleteAssessmentPins";
+
+export {
+  finalizeExperienceValidation,
+  createManagementXpAdjustment,
+} from "./management/managementXpTools";

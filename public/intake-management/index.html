@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
 
+<link rel="stylesheet" href="/management/hub/management.css" />
 <link rel="stylesheet" href="/assets/css/site.css" />
 <link rel="stylesheet" href="/intake-shared/shared.css" />
 <link rel="stylesheet" href="/intake-management/management.intake.css" />
@@ -14,34 +15,226 @@
 </head>
 <body>
 
-  <main class="wrap">
+  <div class="management-shell">
 
-    <header class="enrollment-workspace-header">
+    <aside
+      id="managementSidebar"
+      class="management-sidebar"
+      aria-label="Management navigation"
+    >
+      <div class="sidebar-brand">
+        <p class="eyebrow">
+          Sandman System
+        </p>
 
-      <div class="enrollment-workspace-header__top">
+        <strong>
+          Academy Management
+        </strong>
+      </div>
 
-        <div>
-          <p class="enrollment-system-label">
-            Sandman System™
+      <nav class="sidebar-nav">
+
+        <a
+          class="sidebar-link"
+          href="/management/hub/"
+        >
+          <span>Overview</span>
+        </a>
+
+        <p class="sidebar-section-label">
+          Pipeline
+        </p>
+
+        <a
+          class="sidebar-link"
+          href="/connect/leads/"
+        >
+          <span>Leads</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/appointments/"
+        >
+          <span>Appointments</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/proposals/"
+        >
+          <span>Proposals</span>
+        </a>
+
+        <a
+          class="sidebar-link active"
+          href="/intake-management/"
+          aria-current="page"
+        >
+          <span>Enrollment</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/management/members/"
+        >
+          <span>Members</span>
+        </a>
+
+        <p class="sidebar-section-label">
+          Communication
+        </p>
+
+        <a
+          class="sidebar-link"
+          href="/management/inbox/"
+        >
+          <span>Inbox</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/connect/admissions-requests/"
+        >
+          <span>Promotions</span>
+        </a>
+
+        <p class="sidebar-section-label">
+          Operations
+        </p>
+
+        <a
+          class="sidebar-link"
+          href="/management/schedule/"
+        >
+          <span>Schedule</span>
+        </a>
+
+        <span
+          class="sidebar-link sidebar-link--pending"
+        >
+          <span>Attendance</span>
+          <small>Pending</small>
+        </span>
+
+        <span
+          class="sidebar-link sidebar-link--pending"
+        >
+          <span>Reports</span>
+          <small>Pending</small>
+        </span>
+
+        <p class="sidebar-section-label">
+          Tools
+        </p>
+
+        <a
+          class="sidebar-link"
+          href="/management/experience-validation/"
+        >
+          <span>Experience Validation</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/management/pricing/"
+        >
+          <span>Pricing &amp; Estimates</span>
+        </a>
+
+        <a
+          class="sidebar-link"
+          href="/management/membership-tools/"
+        >
+          <span>
+            Membership &amp; Competition Tools
+          </span>
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        <button
+          id="sidebarSignOutBtn"
+          class="sidebar-signout"
+          type="button"
+        >
+          Sign Out
+        </button>
+      </div>
+    </aside>
+
+    <div
+      id="sidebarBackdrop"
+      class="sidebar-backdrop"
+      hidden
+    ></div>
+
+    <section class="management-main">
+
+      <header class="management-header">
+
+        <button
+          id="menuToggleBtn"
+          class="menu-toggle"
+          type="button"
+          aria-label="Open management navigation"
+          aria-expanded="false"
+          aria-controls="managementSidebar"
+        >
+          ☰
+        </button>
+
+        <div class="management-header__identity">
+          <p class="eyebrow">
+            Sandman System
           </p>
 
           <h1>
-            Management Enrollment
+            Academy Management
           </h1>
 
-          <p class="muted">
-            Secure intake, review, and athlete activation.
+          <p
+            id="managerIdentity"
+            class="identity"
+          >
+            Verifying access...
           </p>
         </div>
 
-        <a
-          class="enrollment-back-link"
-          href="/management/hub/"
-        >
-          ← Management Dashboard
-        </a>
+        <div class="header-actions">
+          <button
+            id="signOutBtn"
+            class="button button-secondary"
+            type="button"
+          >
+            Sign Out
+          </button>
+        </div>
 
-      </div>
+      </header>
+
+      <main class="management-wrap">
+
+        <section class="workspace-heading">
+          <div>
+            <p class="section-label">
+              Pipeline
+            </p>
+
+            <h2>
+              Management Enrollment
+            </h2>
+
+            <p>
+              Secure intake, review, and athlete activation.
+            </p>
+          </div>
+        </section>
+
+        <div class="enrollment-inner">
+
+    <header class="enrollment-workspace-header">
 
       <div
         class="enrollment-workflow"
@@ -269,7 +462,18 @@
       Sandman System™ · Management Enrollment
     </footer>
 
-</main>
+        </div>
+
+      </main>
+
+    </section>
+
+  </div>
+
+  <script
+    type="module"
+    src="/management/shared/management-shell.js"
+  ></script>
 
   <script
     type="module"
