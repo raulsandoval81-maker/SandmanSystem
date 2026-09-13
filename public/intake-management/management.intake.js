@@ -127,6 +127,7 @@ function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail,
       <div class="pending-card-actions">
         ${athleteAccessAction}
         <button class="small outline-blue" data-parent-uid="${esc(uid)}" data-parent-email="${esc(parentEmail || "")}">Create Parent Access</button>
+        <button class="small solid-blue" data-assessment-uid="${esc(uid)}">Send Coach Assessment</button>
       </div>
     </div>
   `;
@@ -878,6 +879,59 @@ $("btn-find-intakes")?.addEventListener("click", loadPendingLive);
 // 5) Load Recently Approved Athletes
 // ------------------------------------------------------
 function wireApprovedButtons() {
+  document.querySelectorAll("[data-assessment-uid]").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const athleteUid = String(
+        btn.dataset.assessmentUid || ""
+      ).trim();
+
+      if (!athleteUid) return;
+
+      const originalLabel = btn.textContent;
+
+      btn.disabled = true;
+      btn.textContent = "Sending…";
+
+      try {
+        const createPin = httpsCallable(
+          functions,
+          "createAthleteAssessmentPin"
+        );
+
+        const response = await createPin({
+          athleteUid
+        });
+
+        const status = String(
+          response?.data?.status || ""
+        ).trim();
+
+        if (response?.data?.duplicate) {
+          btn.textContent = "Assessment Already Sent";
+        } else if (status === "ASSESSMENT_NEEDED") {
+          btn.textContent = "Assessment Sent";
+        } else {
+          btn.textContent = "Assessment Sent";
+        }
+
+        btn.disabled = true;
+      } catch (error) {
+        console.error(
+          "Coach assessment handoff failed:",
+          error
+        );
+
+        alert(
+          error?.message ||
+          "Unable to send Coach Assessment."
+        );
+
+        btn.disabled = false;
+        btn.textContent = originalLabel;
+      }
+    });
+  });
+
   document.querySelectorAll("[data-athlete-access-uid]").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const uid = btn.dataset.athleteAccessUid;

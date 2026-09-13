@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Athlete Assessment • Sandman Combat System™</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+
+  <link rel="stylesheet" href="/assets/css/site.css">
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css">
+  <link rel="stylesheet" href="/coaches/assessments/assessments.css">
+</head>
+
+<body
+  class="coach-shell-page"
+  data-coach-page="Athlete Assessment"
+  data-coach-area="assessments"
+>
+  <main data-coach-shell-content>
+
+    <section class="assessment-hero">
+      <p class="assessment-eyebrow">
+        Coach Onboarding
+      </p>
+
+      <h1>Athlete Assessment</h1>
+
+      <p>
+        Review newly activated athletes, verify FEAR,
+        confirm prior experience, recommend placement,
+        and return findings to Management.
+      </p>
+    </section>
+
+    <section class="assessment-policy">
+      <div>
+        <strong>Practice 1</strong>
+        <span>Half attendance credit</span>
+      </div>
+
+      <div>
+        <strong>Practice 2</strong>
+        <span>Half attendance credit</span>
+      </div>
+
+      <div>
+        <strong>Practice 3+</strong>
+        <span>Full attendance credit</span>
+      </div>
+
+      <div>
+        <strong>Assessment Timing</strong>
+        <span>
+          Athlete keeps earning normal XP while assessment remains open.
+        </span>
+      </div>
+    </section>
+
+    <section class="assessment-section">
+      <div class="assessment-section-head">
+        <div>
+          <p class="assessment-eyebrow">
+            Open Work
+          </p>
+
+          <h2>Assessment Queue</h2>
+        </div>
+
+        <button
+          id="refreshAssessments"
+          class="assessment-button assessment-button--outline"
+          type="button"
+        >
+          Refresh
+        </button>
+      </div>
+
+      <div
+        id="assessmentStatus"
+        class="assessment-status"
+        role="status"
+        aria-live="polite"
+      >
+        Loading assessments…
+      </div>
+
+      <div
+        id="assessmentList"
+        class="assessment-list"
+      ></div>
+    </section>
+
+  </main>
+
+  <script
+    type="module"
+    src="/coaches/assessments/assessments.js"
+  ></script>
+
+  <script
+    src="/coaches/_ui/coach-shell.js?v=2"
+  ></script>
+</body>
+</html>
