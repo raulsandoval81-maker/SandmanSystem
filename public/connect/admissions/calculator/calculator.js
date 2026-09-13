@@ -378,7 +378,6 @@ const extras = {
       printButton:document.getElementById("printButton"),
       saveDraftButton:document.getElementById("saveDraftButton"),
       submitReviewButton:document.getElementById("submitReviewButton"),
-      resetButton:document.getElementById("resetButton"),
 
       proposalWorkflow:
         document.getElementById("proposalWorkflow"),
@@ -439,10 +438,6 @@ const extras = {
 
       if (el.proposalWorkflowRoute) {
         el.proposalWorkflowRoute.hidden = true;
-      }
-
-      if (el.resetButton) {
-        el.resetButton.hidden = false;
       }
 
       /*
@@ -1933,10 +1928,6 @@ alert(
       }
 
       if (!pricingLabMode) {
-        if (el.resetButton) {
-          el.resetButton.hidden = true;
-        }
-
         if (
           normalized === "BUILDING" ||
           normalized === "DRAFT"
@@ -2749,10 +2740,6 @@ alert(
     );
     el.saveDraftButton.addEventListener("click",saveProposalDraft);
     el.submitReviewButton.addEventListener("click",submitForReview);
-    el.resetButton?.addEventListener(
-      "click",
-      reset
-    );
 
     if (el.membershipStartDate) {
       el.membershipStartDate.addEventListener(
