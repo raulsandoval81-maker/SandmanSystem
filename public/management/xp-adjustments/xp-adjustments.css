@@ -294,3 +294,26 @@
   border: 2px solid #c4c9d0;
   background: #ffffff;
 }
+
+/* Controlled Management Tool callout */
+
+.adjustment-policy {
+  border: 2px solid #b9972f;
+  background: #fff3cf;
+}
+
+.adjustment-policy .adjustment-eyebrow,
+.adjustment-policy .section-label {
+  color: #5b4710;
+}
+
+.adjustment-policy h2,
+.adjustment-policy h3,
+.adjustment-policy strong {
+  color: #17130a;
+}
+
+.adjustment-policy p {
+  color: #2f2a1d;
+  font-weight: 650;
+}
