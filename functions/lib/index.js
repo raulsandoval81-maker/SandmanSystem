@@ -34,7 +34,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
-exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = void 0;
+exports.requestProposalClientChanges = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -198,3 +198,11 @@ var setCompetitionPublication_1 = require("./competitions/setCompetitionPublicat
 Object.defineProperty(exports, "setCompetitionPublication", { enumerable: true, get: function () { return setCompetitionPublication_1.setCompetitionPublication; } });
 var listMyCompetitionEvents_1 = require("./competitions/listMyCompetitionEvents");
 Object.defineProperty(exports, "listMyCompetitionEvents", { enumerable: true, get: function () { return listMyCompetitionEvents_1.listMyCompetitionEvents; } });
+var issueProposalClientReview_1 = require("./proposals/issueProposalClientReview");
+Object.defineProperty(exports, "issueProposalClientReview", { enumerable: true, get: function () { return issueProposalClientReview_1.issueProposalClientReview; } });
+var getProposalClientReview_1 = require("./proposals/getProposalClientReview");
+Object.defineProperty(exports, "getProposalClientReview", { enumerable: true, get: function () { return getProposalClientReview_1.getProposalClientReview; } });
+var acceptProposalClientReview_1 = require("./proposals/acceptProposalClientReview");
+Object.defineProperty(exports, "acceptProposalClientReview", { enumerable: true, get: function () { return acceptProposalClientReview_1.acceptProposalClientReview; } });
+var requestProposalClientChanges_1 = require("./proposals/requestProposalClientChanges");
+Object.defineProperty(exports, "requestProposalClientChanges", { enumerable: true, get: function () { return requestProposalClientChanges_1.requestProposalClientChanges; } });

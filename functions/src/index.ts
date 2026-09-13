@@ -209,3 +209,19 @@ export { listCompetitionEvents } from "./competitions/listCompetitionEvents";
 export { upsertCompetitionEvent } from "./competitions/upsertCompetitionEvent";
 export { setCompetitionPublication } from "./competitions/setCompetitionPublication";
 export { listMyCompetitionEvents } from "./competitions/listMyCompetitionEvents";
+
+export {
+  issueProposalClientReview,
+} from "./proposals/issueProposalClientReview";
+
+export {
+  getProposalClientReview,
+} from "./proposals/getProposalClientReview";
+
+export {
+  acceptProposalClientReview,
+} from "./proposals/acceptProposalClientReview";
+
+export {
+  requestProposalClientChanges,
+} from "./proposals/requestProposalClientChanges";

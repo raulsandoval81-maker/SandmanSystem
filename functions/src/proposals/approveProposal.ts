@@ -90,36 +90,28 @@ export const approveProposal =
             const currentStatus =
               cleanString(proposal.status);
 
-            if (currentStatus !== "REVIEW") {
+            if (currentStatus !== "CLIENT_SIGNED") {
               throw new HttpsError(
                 "failed-precondition",
-                "Only REVIEW proposals may be approved."
+                "Only client-signed proposals may be approved."
               );
             }
 
-            const lockedSnapshot = {
-              proposalId,
+            const signedSnapshot =
+              proposal.clientAcceptance?.signedSnapshot;
 
-              prospect:
-                proposal.prospect || {},
+            if (
+              !signedSnapshot ||
+              typeof signedSnapshot !== "object"
+            ) {
+              throw new HttpsError(
+                "failed-precondition",
+                "The signed proposal snapshot is missing."
+              );
+            }
 
-              coach:
-                proposal.coach || {},
-
-              athletes:
-                Array.isArray(proposal.athletes)
-                  ? proposal.athletes
-                  : [],
-
-              pricing:
-                proposal.pricing || {},
-
-              agreement:
-                proposal.agreement || {},
-
-              internalNotes:
-                proposal.internalNotes || null,
-            };
+            const lockedSnapshot =
+              signedSnapshot;
 
             const historyRef =
               proposalRef
@@ -163,7 +155,7 @@ export const approveProposal =
                   "STATUS_CHANGED",
 
                 fromStatus:
-                  "REVIEW",
+                  "CLIENT_SIGNED",
 
                 toStatus:
                   "READY_FOR_CHECKOUT",

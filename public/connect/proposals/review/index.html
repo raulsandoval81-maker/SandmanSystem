@@ -2,231 +2,748 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Proposal Review | Sandman Admissions</title>
+  <title>
+    Review & Accept Your Proposal | Sandman Academy
+  </title>
 
   <link
     rel="stylesheet"
     href="/assets/css/site.css"
   />
-  <link
-    rel="stylesheet"
-    href="/assets/css/management-ui.css"
-  />
 
   <style>
-    .review-page {
-      width: min(1180px, calc(100% - 32px));
+    :root {
+      color-scheme: light;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(
+          180deg,
+          #161616 0,
+          #24211c 270px,
+          #eee9df 270px,
+          #f6f3ed 100%
+        );
+      color: #171717;
+      font-family:
+        Inter,
+        system-ui,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+    }
+
+    .client-proposal {
+      width:
+        min(940px, calc(100% - 28px));
       margin: 0 auto;
-      padding: 28px 0 56px;
+      padding: 34px 0 70px;
     }
 
-    .review-header,
-    .review-card {
-      background: #fff;
-      border: 1px solid rgba(0,0,0,.10);
-      border-radius: 18px;
-      padding: 22px;
-      margin-bottom: 18px;
+    .proposal-brand {
+      color: #f4efe4;
+      text-align: center;
+      padding: 12px 18px 30px;
     }
 
-    .review-header {
+    .proposal-brand__eyebrow {
+      margin: 0 0 8px;
+      text-transform: uppercase;
+      letter-spacing: .13em;
+      font-size: 12px;
+      font-weight: 800;
+      color: #d3b469;
+    }
+
+    .proposal-brand h1 {
+      margin: 0;
+      font-size:
+        clamp(28px, 5vw, 45px);
+      line-height: 1.05;
+    }
+
+    .proposal-brand p {
+      max-width: 680px;
+      margin: 13px auto 0;
+      color: #ddd5c5;
+      line-height: 1.55;
+    }
+
+    .proposal-document {
+      background: #fffdf8;
+      border: 1px solid #d8d0c1;
+      border-radius: 24px;
+      box-shadow:
+        0 20px 55px rgba(0,0,0,.18);
+      overflow: hidden;
+    }
+
+    .proposal-document__header {
+      padding: 28px 30px;
+      border-bottom: 1px solid #ded6c8;
+      background: #faf6ed;
       display: flex;
+      align-items: flex-start;
       justify-content: space-between;
       gap: 24px;
-      align-items: flex-start;
     }
 
-    .review-header h1 {
-      margin: 4px 0 8px;
+    .proposal-number {
+      margin: 0 0 5px;
+      color: #77684d;
+      text-transform: uppercase;
+      letter-spacing: .10em;
+      font-size: 12px;
+      font-weight: 800;
     }
 
-    .review-actions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
+    .proposal-document__header h2 {
+      margin: 0;
+      font-size: 27px;
+      color: #171717;
     }
 
-    .review-summary {
+    .proposal-status {
+      display: inline-flex;
+      align-items: center;
+      border: 1px solid #b99c56;
+      background: #f4ead0;
+      color: #5e491a;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .proposal-status.error {
+      border-color: #b77373;
+      background: #f6dddd;
+      color: #742525;
+    }
+
+    .proposal-section {
+      padding: 28px 30px;
+      border-bottom: 1px solid #e3dccf;
+    }
+
+    .proposal-section:last-child {
+      border-bottom: 0;
+    }
+
+    .section-label {
+      margin: 0 0 16px;
+      color: #7d6940;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .family-name {
+      margin: 0 0 5px;
+      font-size: 25px;
+    }
+
+    .family-note {
+      margin: 0;
+      color: #686158;
+    }
+
+    .summary-grid {
       display: grid;
       grid-template-columns:
-        repeat(auto-fit, minmax(180px, 1fr));
+        repeat(3, minmax(0, 1fr));
       gap: 12px;
-      margin-top: 18px;
+      margin-top: 22px;
     }
 
-    .review-metric {
-      border: 1px solid rgba(0,0,0,.09);
-      border-radius: 14px;
-      padding: 14px;
+    .summary-box {
+      border: 1px solid #ded5c4;
+      background: #faf6ed;
+      border-radius: 15px;
+      padding: 17px;
     }
 
-    .review-metric small {
+    .summary-box small {
       display: block;
-      opacity: .7;
+      color: #6c655d;
+      margin-bottom: 5px;
+      font-weight: 650;
+    }
+
+    .summary-box strong {
+      font-size: 22px;
+      color: #161616;
+    }
+
+    .athlete-card {
+      border: 1px solid #ddd4c4;
+      border-radius: 16px;
+      background: #fff;
+      padding: 18px;
+      margin-top: 12px;
+    }
+
+    .athlete-card:first-of-type {
+      margin-top: 0;
+    }
+
+    .athlete-card h3 {
+      margin: 0 0 9px;
+      font-size: 20px;
+    }
+
+    .athlete-line {
+      margin: 5px 0;
+      color: #49443e;
+      line-height: 1.45;
+    }
+
+    .schedule-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      border: 1px solid #ddd4c4;
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .schedule-item {
+      padding: 17px 18px;
+      border-bottom: 1px solid #e3dccf;
+    }
+
+    .schedule-item:nth-child(odd) {
+      border-right: 1px solid #e3dccf;
+    }
+
+    .schedule-item:nth-last-child(-n+2) {
+      border-bottom: 0;
+    }
+
+    .schedule-item small {
+      display: block;
+      color: #70685d;
       margin-bottom: 5px;
     }
 
-    .review-metric strong {
-      font-size: 1.2rem;
+    .schedule-item strong {
+      display: block;
+      font-size: 17px;
     }
 
-    .review-athlete {
-      border-top: 1px solid rgba(0,0,0,.08);
-      padding: 14px 0;
+    .terms-copy {
+      color: #49443e;
+      line-height: 1.6;
+      margin: 0;
     }
 
-    .review-athlete:first-child {
-      border-top: 0;
+    .signature-shell {
+      background: #faf6ed;
     }
 
-    .status-line {
-      margin: 12px 0;
-      font-weight: 700;
+    .signature-intro {
+      margin: 0 0 20px;
+      line-height: 1.55;
+      color: #514b43;
     }
 
-    .status-error {
-      color: #8b1e1e;
+    .field {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 16px;
+    }
+
+    .field label {
+      font-weight: 750;
+      color: #282522;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border: 1px solid #bfb4a2;
+      border-radius: 11px;
+      background: #fff;
+      color: #171717;
+      padding: 12px 13px;
+      font: inherit;
+    }
+
+    .field textarea {
+      min-height: 105px;
+      resize: vertical;
+    }
+
+    .signature-grid {
+      display: grid;
+      grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .consent-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      border: 1px solid #d4c7ad;
+      background: #fffaf0;
+      border-radius: 13px;
+      padding: 14px;
+      margin: 4px 0 19px;
+      line-height: 1.45;
+    }
+
+    .consent-row input {
+      margin-top: 3px;
+      flex: 0 0 auto;
+    }
+
+    .client-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 11px;
+      flex-wrap: wrap;
+    }
+
+    .client-button {
+      appearance: none;
+      border: 1px solid #9d8b68;
+      background: #fff;
+      color: #25211b;
+      border-radius: 11px;
+      padding: 12px 18px;
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .client-button.primary {
+      background: #171717;
+      color: #fff8e8;
+      border-color: #171717;
+    }
+
+    .client-button:disabled {
+      opacity: .55;
+      cursor: wait;
+    }
+
+    .change-request {
+      margin-top: 20px;
+      border-top: 1px solid #ddd4c4;
+      padding-top: 20px;
+    }
+
+    .message {
+      margin: 0 0 16px;
+      border-radius: 12px;
+      padding: 12px 14px;
+      background: #ece6da;
+      color: #433d34;
+      font-weight: 650;
+    }
+
+    .message.error {
+      background: #f7dddd;
+      color: #752525;
+    }
+
+    .confirmation {
+      text-align: center;
+      padding: 34px 24px;
+    }
+
+    .confirmation h2 {
+      margin: 0 0 10px;
+      font-size: 29px;
+    }
+
+    .confirmation p {
+      color: #5e584e;
+      line-height: 1.55;
+      max-width: 590px;
+      margin: 0 auto;
+    }
+
+    .print-action {
+      text-align: center;
+      margin-top: 18px;
+    }
+
+    .print-action button {
+      background: transparent;
+      border: 0;
+      color: #5f5137;
+      text-decoration: underline;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 720px) {
+      .client-proposal {
+        width: min(100% - 18px, 940px);
+        padding-top: 18px;
+      }
+
+      .proposal-document__header {
+        display: block;
+      }
+
+      .proposal-status {
+        margin-top: 14px;
+      }
+
+      .summary-grid,
+      .signature-grid,
+      .schedule-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .schedule-item,
+      .schedule-item:nth-child(odd) {
+        border-right: 0;
+        border-bottom: 1px solid #e3dccf;
+      }
+
+      .schedule-item:last-child {
+        border-bottom: 0;
+      }
+
+      .proposal-section,
+      .proposal-document__header {
+        padding-left: 20px;
+        padding-right: 20px;
+      }
+
+      .client-actions {
+        display: grid;
+      }
+
+      .client-button {
+        width: 100%;
+      }
     }
 
     @media print {
-      .no-print {
-        display: none !important;
+      body {
+        background: #fff;
       }
 
-      .review-page {
+      .client-proposal {
         width: 100%;
         padding: 0;
       }
 
-      .review-header,
-      .review-card {
+      .proposal-brand {
+        color: #111;
+      }
+
+      .proposal-brand p {
+        color: #333;
+      }
+
+      .proposal-document {
         box-shadow: none;
         border: 0;
+      }
+
+      .signature-shell,
+      .print-action,
+      .no-print {
+        display: none !important;
       }
     }
   </style>
 </head>
 
 <body>
-  <main class="review-page">
+  <main class="client-proposal">
 
-    <header class="review-header">
-      <div>
-        <p class="eyebrow">
-          Sandman Admissions 3.0
-        </p>
+    <header class="proposal-brand">
+      <p class="proposal-brand__eyebrow">
+        Sandman Academy of Combat & Fitness™
+      </p>
 
-        <h1>
-          Proposal Review
-        </h1>
+      <h1>
+        Review & Accept Your Proposal
+      </h1>
 
-        <p>
-          Review the locked proposal before approval
-          and checkout.
-        </p>
-      </div>
-
-      <div class="review-actions no-print">
-        <a
-          id="backToBuilder"
-          class="button secondary"
-          href="/connect/proposals/"
-        >
-          ← Back to Proposals
-        </a>
-
-        <button
-          id="printProposalButton"
-          class="button secondary"
-          type="button"
-        >
-          Print Proposal
-        </button>
-
-        <button
-          id="approveProposalButton"
-          class="button"
-          type="button"
-        >
-          Approve Proposal
-        </button>
-      </div>
+      <p>
+        Please review your membership,
+        payment schedule, and start details
+        before signing.
+      </p>
     </header>
 
-    <p
-      id="reviewStatus"
-      class="status-line"
-      aria-live="polite"
-    >
-      Loading proposal…
-    </p>
+    <article class="proposal-document">
 
-    <section class="review-card">
-      <p class="eyebrow">
-        Proposal
-      </p>
+      <header class="proposal-document__header">
+        <div>
+          <p
+            id="proposalNumber"
+            class="proposal-number"
+          >
+            Membership Proposal
+          </p>
 
-      <h2 id="proposalIdLabel">
-        —
-      </h2>
-
-      <div class="review-summary">
-        <div class="review-metric">
-          <small>Family / Prospect</small>
-          <strong id="familyName">—</strong>
+          <h2 id="familyName">
+            Loading proposal…
+          </h2>
         </div>
 
-        <div class="review-metric">
-          <small>Due now</small>
-          <strong id="dueNow">—</strong>
-        </div>
+        <span
+          id="proposalStatus"
+          class="proposal-status"
+        >
+          Secure Review
+        </span>
+      </header>
 
-        <div class="review-metric">
-          <small>Monthly membership</small>
-          <strong id="monthlyMembership">—</strong>
-        </div>
+      <div
+        id="pageMessage"
+        class="message"
+        hidden
+      ></div>
 
-        <div class="review-metric">
-          <small>Annual renewal</small>
-          <strong id="annualRenewal">—</strong>
-        </div>
+      <div id="proposalContent">
+
+        <section class="proposal-section">
+          <p class="section-label">
+            Your Proposal
+          </p>
+
+          <h3
+            id="proposalFamilyName"
+            class="family-name"
+          >
+            —
+          </h3>
+
+          <p class="family-note">
+            Sandman Academy membership proposal
+          </p>
+
+          <div class="summary-grid">
+            <div class="summary-box">
+              <small>Due now</small>
+              <strong id="dueNow">—</strong>
+            </div>
+
+            <div class="summary-box">
+              <small>Monthly membership</small>
+              <strong id="monthlyMembership">—</strong>
+            </div>
+
+            <div class="summary-box">
+              <small>Next annual package</small>
+              <strong id="annualRenewal">—</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="proposal-section">
+          <p class="section-label">
+            Athlete Membership
+          </p>
+
+          <div id="athletes"></div>
+        </section>
+
+        <section class="proposal-section">
+          <p class="section-label">
+            Payment & Membership Schedule
+          </p>
+
+          <div
+            id="paymentSchedule"
+            class="schedule-grid"
+          ></div>
+        </section>
+
+        <section class="proposal-section">
+          <p class="section-label">
+            Proposal Terms
+          </p>
+
+          <p class="terms-copy">
+            By accepting this proposal, you confirm
+            that the membership selection, pricing,
+            payment schedule, start date, and recurring
+            billing information shown above are correct.
+            Payment authorization is completed separately
+            during checkout after Academy approval.
+          </p>
+        </section>
+
+        <section
+          id="signatureSection"
+          class="proposal-section signature-shell"
+        >
+          <p class="section-label">
+            Electronic Acceptance
+          </p>
+
+          <p class="signature-intro">
+            Type your full legal name below.
+            Your typed signature will serve as your
+            electronic acceptance of this proposal.
+          </p>
+
+          <div class="field">
+            <label for="signerRole">
+              I am signing as
+            </label>
+
+            <select id="signerRole">
+              <option value="">
+                Select relationship
+              </option>
+              <option value="parent_guardian">
+                Parent / Guardian
+              </option>
+              <option value="adult_athlete">
+                Adult Athlete
+              </option>
+            </select>
+          </div>
+
+          <div class="signature-grid">
+            <div class="field">
+              <label for="signerName">
+                Full legal name
+              </label>
+
+              <input
+                id="signerName"
+                autocomplete="name"
+              />
+            </div>
+
+            <div class="field">
+              <label for="signature">
+                Electronic signature
+              </label>
+
+              <input
+                id="signature"
+                autocomplete="off"
+                placeholder="Type your full legal name again"
+              />
+            </div>
+          </div>
+
+          <label class="consent-row">
+            <input
+              id="consentAccepted"
+              type="checkbox"
+            />
+
+            <span>
+              I have reviewed this proposal and
+              accept the membership, pricing,
+              payment schedule, and terms shown above.
+            </span>
+          </label>
+
+          <div class="client-actions">
+            <button
+              id="requestChangesButton"
+              class="client-button"
+              type="button"
+            >
+              Request Changes
+            </button>
+
+            <button
+              id="acceptProposalButton"
+              class="client-button primary"
+              type="button"
+            >
+              Sign & Accept Proposal
+            </button>
+          </div>
+
+          <div
+            id="changeRequestPanel"
+            class="change-request"
+            hidden
+          >
+            <div class="field">
+              <label for="changeRequestMessage">
+                What would you like changed?
+              </label>
+
+              <textarea
+                id="changeRequestMessage"
+                placeholder="Tell us what you would like us to review."
+              ></textarea>
+            </div>
+
+            <div class="client-actions">
+              <button
+                id="cancelChangeRequestButton"
+                class="client-button"
+                type="button"
+              >
+                Cancel
+              </button>
+
+              <button
+                id="sendChangeRequestButton"
+                class="client-button primary"
+                type="button"
+              >
+                Send Change Request
+              </button>
+            </div>
+          </div>
+        </section>
       </div>
-    </section>
 
-    <section class="review-card">
-      <p class="eyebrow">
-        Athletes
-      </p>
+      <section
+        id="confirmation"
+        class="confirmation"
+        hidden
+      >
+        <h2 id="confirmationTitle">
+          Proposal Accepted
+        </h2>
 
-      <div id="athletes">
-        —
-      </div>
-    </section>
+        <p id="confirmationText">
+          Thank you. Your signed proposal has been
+          returned to Sandman Academy for final review.
+          You will continue to checkout after Academy
+          approval.
+        </p>
+      </section>
 
-    <section class="review-card">
-      <p class="eyebrow">
-        Agreement
-      </p>
+    </article>
 
-      <div id="agreement">
-        —
-      </div>
-    </section>
-
-    <section class="review-card">
-      <p class="eyebrow">
-        Management Recommendation
-      </p>
-
-      <div id="recommendation">
-        —
-      </div>
-    </section>
+    <div class="print-action no-print">
+      <button
+        id="printProposalButton"
+        type="button"
+      >
+        Print this proposal
+      </button>
+    </div>
 
   </main>
 

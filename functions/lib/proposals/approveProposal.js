@@ -36,20 +36,15 @@ exports.approveProposal = (0, https_1.onCall)(async (req) => {
             const proposal = proposalSnap.data() || {};
             (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
             const currentStatus = cleanString(proposal.status);
-            if (currentStatus !== "REVIEW") {
-                throw new https_1.HttpsError("failed-precondition", "Only REVIEW proposals may be approved.");
+            if (currentStatus !== "CLIENT_SIGNED") {
+                throw new https_1.HttpsError("failed-precondition", "Only client-signed proposals may be approved.");
             }
-            const lockedSnapshot = {
-                proposalId,
-                prospect: proposal.prospect || {},
-                coach: proposal.coach || {},
-                athletes: Array.isArray(proposal.athletes)
-                    ? proposal.athletes
-                    : [],
-                pricing: proposal.pricing || {},
-                agreement: proposal.agreement || {},
-                internalNotes: proposal.internalNotes || null,
-            };
+            const signedSnapshot = proposal.clientAcceptance?.signedSnapshot;
+            if (!signedSnapshot ||
+                typeof signedSnapshot !== "object") {
+                throw new https_1.HttpsError("failed-precondition", "The signed proposal snapshot is missing.");
+            }
+            const lockedSnapshot = signedSnapshot;
             const historyRef = proposalRef
                 .collection("history")
                 .doc();
@@ -66,7 +61,7 @@ exports.approveProposal = (0, https_1.onCall)(async (req) => {
             tx.create(historyRef, {
                 proposalId,
                 event: "STATUS_CHANGED",
-                fromStatus: "REVIEW",
+                fromStatus: "CLIENT_SIGNED",
                 toStatus: "READY_FOR_CHECKOUT",
                 createdBy: callerUid,
                 createdByName: coachName,

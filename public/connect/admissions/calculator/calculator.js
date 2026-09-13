@@ -1610,11 +1610,28 @@ alert(
           "review-handoff" &&
         proposalId
       ) {
-        window.location.assign(
-          "/connect/proposals/review/" +
-          `?proposalId=${encodeURIComponent(
+        const issueClientReview =
+          httpsCallable(
+            functions,
+            "issueProposalClientReview"
+          );
+
+        const response =
+          await issueClientReview({
             proposalId
-          )}`
+          });
+
+        const reviewPath =
+          response.data?.reviewPath;
+
+        if (!reviewPath) {
+          throw new Error(
+            "Client review link was not returned."
+          );
+        }
+
+        window.location.assign(
+          reviewPath
         );
 
         return;
@@ -1696,11 +1713,30 @@ alert(
           "REVIEW"
         );
 
-        window.location.assign(
-          "/connect/proposals/review/" +
-          `?proposalId=${encodeURIComponent(
+        const issueClientReview =
+          httpsCallable(
+            functions,
+            "issueProposalClientReview"
+          );
+
+        const clientReviewResponse =
+          await issueClientReview({
             proposalId
-          )}`
+          });
+
+        const reviewPath =
+          clientReviewResponse
+            .data
+            ?.reviewPath;
+
+        if (!reviewPath) {
+          throw new Error(
+            "Client review link was not returned."
+          );
+        }
+
+        window.location.assign(
+          reviewPath
         );
       } catch (error) {
         console.error(
