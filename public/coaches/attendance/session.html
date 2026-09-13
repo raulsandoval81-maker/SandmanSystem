@@ -13,7 +13,7 @@
   <main class="attendance-page">
     <header class="attendance-header">
       <h1>Session Check-In</h1>
-      <p>Kids check in here. Coach finalizes attendance later.</p>
+      <p>Load the active Session Builder practice, check athletes in, and submit it for Coach review.</p>
     </header>
 
     <section class="attendance-card">
@@ -23,13 +23,8 @@
      </div>
 
    <label>
-     Journey
-     <select id="journey">
-       <option value="p2l">Path to Legend</option>
-    <option value="z2h">Zero to Hero</option>
-    <option value="r2g">Road to Greatness</option>
-    <option value="q2m">Quest for Mastery</option>
-  </select>
+     Active Practice
+     <input id="practiceIdentity" value="No active practice loaded" readonly aria-readonly="true" />
 </label>
 
 
@@ -44,7 +39,7 @@
       </label>
 
       <button id="startSession" type="button">
-        Start Session Check-In
+        Load Active Practice
       </button>
 
       <p id="sessionStatus" class="muted">Ready.</p>

@@ -209,6 +209,11 @@ export { listCompetitionEvents } from "./competitions/listCompetitionEvents";
 export { upsertCompetitionEvent } from "./competitions/upsertCompetitionEvent";
 export { setCompetitionPublication } from "./competitions/setCompetitionPublication";
 export { listMyCompetitionEvents } from "./competitions/listMyCompetitionEvents";
+export {
+  openPracticeSession,
+  getPracticeSession,
+  closePracticeSession,
+} from "./practice/practiceSessions";
 
 export {
   issueProposalClientReview,

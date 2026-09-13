@@ -8,7 +8,9 @@ import {
   where,
   updateDoc,
   serverTimestamp,
-  arrayUnion
+  arrayUnion,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
 
@@ -392,6 +394,12 @@ async function saveAttendance() {
         updateAthleteAttendance(athlete, finalType, coach)
       )
     );
+
+    const practiceId = String(pendingSession.practiceId || "").trim();
+    if (practiceId) {
+      const closePractice = httpsCallable(functions, "closePracticeSession");
+      await closePractice({ practiceId, attendanceSessionId: pendingSessionId });
+    }
 
     setStatus(`Attendance finalized for ${present.length} athlete(s). Ready for Daily Grind.`);
 

@@ -2,13 +2,14 @@ import {
   db,
   collection,
   getDocs,
-  addDoc,
+  doc,
+  getDoc,
+  setDoc,
   updateDoc,
   serverTimestamp,
   ensureSignedIn,
-  query,
-  where,
-  limit
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 const $ = (id) => document.getElementById(id);
@@ -19,6 +20,7 @@ let checkedIn = new Map();
 let sessionRef = null;
 let sessionId = null;
 let sessionLocked = false;
+let activePractice = null;
 
 function todayKey() {
   return new Date().toISOString().slice(0, 10);
@@ -48,20 +50,12 @@ function athleteProgram(a = {}) {
   ).toLowerCase();
 }
 
-function getJourney() {
-  return String($("journey")?.value || "p2l").toLowerCase();
-}
-
-function getDiscipline() {
-  return disciplineForJourney(getJourney());
-}
-
 function getPracticeType() {
-  return `${getJourney()}-${getDiscipline()}`;
+  return `${activePractice?.journey || "session"}-${activePractice?.discipline || "practice"}`;
 }
 
 function programMatchesAthlete(athlete = {}) {
-  const journey = getJourney();
+  const journey = String(activePractice?.journey || "").toLowerCase();
   const program = athleteProgram(athlete);
 
   if (journey === "z2h" || journey === "zero2hero") {
@@ -83,31 +77,50 @@ function programMatchesAthlete(athlete = {}) {
   return true;
 }
 
-function disciplineForJourney(journey) {
-  if (journey === "r2g") return "boxing";
-  if (journey === "q2m") return "mma";
-  return "wrestling";
+function requestedPracticeId() {
+  const params = new URLSearchParams(window.location.search);
+  return String(params.get("practice") || params.get("practiceId") || "").trim();
+}
+
+function rememberedPracticeId() {
+  try {
+    return String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.practiceId || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+async function loadCanonicalPractice() {
+  const practiceId = requestedPracticeId() || rememberedPracticeId();
+  if (!practiceId || practiceId.includes("/")) {
+    throw new Error("Open this page from a launched Session Builder practice.");
+  }
+  const getPractice = httpsCallable(functions, "getPracticeSession");
+  const response = await getPractice({ practiceId });
+  const practice = { practiceId, ...(response.data?.practice || {}) };
+  if (String(practice.status || "").toLowerCase() !== "active") {
+    throw new Error("This practice is no longer active.");
+  }
+  if (!String(practice.discipline || "").trim()) {
+    throw new Error("The active practice has no explicit discipline.");
+  }
+  activePractice = practice;
+  sessionId = practiceId;
+  sessionRef = doc(db, "attendance_sessions", practiceId);
+  if ($("practiceIdentity")) {
+    $("practiceIdentity").value = [practice.discipline, practice.journey, practice.roomId]
+      .filter(Boolean).join(" · ");
+  }
 }
 
 async function checkTodaySessionLock() {
   sessionLocked = false;
 
   try {
-    const snap = await getDocs(
-      query(
-        collection(db, "attendance_sessions"),
-        where("sessionDateKey", "==", todayKey()),
-        where("type", "==", getPracticeType()),
-        limit(5)
-      )
-    );
-
-    if (snap.empty) return;
-
-    const locked = snap.docs.some((docSnap) => {
-      const data = docSnap.data() || {};
-      return data.status === "pending_review" || data.status === "finalized";
-    });
+    const snap = await getDoc(doc(db, "attendance_sessions", activePractice.practiceId));
+    if (!snap.exists()) return;
+    const data = snap.data() || {};
+    const locked = data.status === "pending_review" || data.status === "finalized";
 
     if (locked) {
       sessionLocked = true;
@@ -124,6 +137,7 @@ async function loadAthletes() {
 
   try {
     await ensureSignedIn();
+    await loadCanonicalPractice();
     await checkTodaySessionLock();
 
     const snap = await getDocs(collection(db, "athletes"));
@@ -230,20 +244,39 @@ async function startSession() {
     return;
   }
 
-  const journey = getJourney();
-  const discipline = getDiscipline();
+  const journey = String(activePractice?.journey || "").toLowerCase();
+  const discipline = String(activePractice?.discipline || "").toLowerCase();
   const practiceType = getPracticeType();
   const coach = $("coachName")?.value?.trim() || "Coach";
   const notes = $("practiceNotes")?.value?.trim() || "";
 
 
-  sessionRef = await addDoc(collection(db, "attendance_sessions"), {
+  sessionRef = doc(db, "attendance_sessions", activePractice.practiceId);
+  const existing = await getDoc(sessionRef);
+  if (existing.exists()) {
+    const data = existing.data() || {};
+    checkedIn = new Map((Array.isArray(data.checkedIn) ? data.checkedIn : [])
+      .map((athlete) => [athlete.id || athlete.uid, athlete]));
+    setStatus(`Existing check-in loaded for ${todayLabel()}.`);
+    renderAthletes();
+    renderCheckedIn();
+    return;
+  }
+
+  await setDoc(sessionRef, {
+    practiceId: activePractice.practiceId,
+    sessionId: activePractice.practiceId,
+    liveSessionId: activePractice.liveSessionId || "",
+    locationId: activePractice.locationId || activePractice.academyId || "",
+    academyId: activePractice.academyId || activePractice.locationId || "",
+    roomId: activePractice.roomId || "",
     sessionDateKey: todayKey(),
     sessionDateLabel: todayLabel(),
     journey,
     discipline,
     type: practiceType,
     coach,
+    coachUid: activePractice.coachUid || "",
     notes,
     status: "draft",
     readyForDailyGrind: false,
@@ -256,7 +289,7 @@ async function startSession() {
     source: "athlete-check-in"
   });
 
-  sessionId = sessionRef.id;
+  sessionId = activePractice.practiceId;
   checkedIn = new Map();
 
   setStatus(`Session started for ${todayLabel()}.`);
@@ -376,8 +409,8 @@ async function submitForReview() {
     return;
   }
 
-  const journey = getJourney();
-  const discipline = getDiscipline();
+  const journey = String(activePractice?.journey || "").toLowerCase();
+  const discipline = String(activePractice?.discipline || "").toLowerCase();
   const practiceType = getPracticeType();
   const coach = $("coachName")?.value?.trim() || "Coach";
 
@@ -412,14 +445,6 @@ async function submitForReview() {
 function bindEvents() {
   $("startSession")?.addEventListener("click", startSession);
   $("finalizeSession")?.addEventListener("click", submitForReview);
-
-  $("journey")?.addEventListener("change", async () => {
-    checkedIn.clear();
-    sessionRef = null;
-    sessionId = null;
-    await loadAthletes();
-  });
-
 
   $("searchAthlete")?.addEventListener("input", applyFilters);
 }

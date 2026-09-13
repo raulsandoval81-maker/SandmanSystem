@@ -5,7 +5,9 @@ import {
   getDoc,
   setDoc,
   onSnapshot,
-  serverTimestamp
+  serverTimestamp,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 import { CULTURE_LESSONS } from "/coaches/culture/culture-lessons.js";
 
@@ -403,6 +405,7 @@ function getActiveSession() {
   return {
     schema: currentSchema,
     executionMode: builderSession.executionMode || "",
+    practiceId: builderSession.practiceId || "",
     sessionId: builderSession.sessionId || "lompoc-mat-1",
     academyId: builderSession.academyId || "lompoc",
     roomId: builderSession.roomId || "mat-1",
@@ -940,6 +943,11 @@ if (
 window.runPractice = async function () {
   const session = getActiveSession();
 
+  if (!session.discipline) {
+    setStatus("Choose an explicit discipline before launching this practice.");
+    return;
+  }
+
   const blocks = [
     ...document.querySelectorAll("#planBlocks .plan-block:not(.hidden)")
   ]
@@ -974,11 +982,40 @@ window.runPractice = async function () {
 }))
 .filter(b => b.minutes > 0);
 
+  let practiceId = String(session.practiceId || "").trim();
+  if (!practiceId) {
+    try {
+      const openPractice = httpsCallable(functions, "openPracticeSession");
+      const opened = await openPractice({
+        liveSessionId: session.sessionId,
+        locationId: session.academyId,
+        academyId: session.academyId,
+        roomId: session.roomId,
+        discipline: session.discipline,
+        journey: session.journey,
+        program: session.program,
+        track: session.track,
+        tier: session.tier,
+        schema: currentSchema,
+        durationMinutes: Number(builderSession.durationMinutes || getSchemaMaxMinutes(currentSchema) || 0)
+      });
+      practiceId = String(opened.data?.practiceId || "").trim();
+      if (!practiceId) throw new Error("Practice identity was not returned.");
+      builderSession = { ...builderSession, practiceId };
+      localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+    } catch (error) {
+      console.error("Practice open failed", error);
+      setStatus(error?.message || "Could not open the canonical practice.");
+      return;
+    }
+  }
+
   const clockPayload = {
     source: "clipboard",
     schema: currentSchema,
 
     executionMode: session.executionMode,
+    practiceId,
     sessionId: session.sessionId,
     academyId: session.academyId,
     roomId: session.roomId,
@@ -999,6 +1036,7 @@ window.runPractice = async function () {
     schema: currentSchema,
 
     executionMode: session.executionMode,
+    practiceId,
     sessionId: session.sessionId,
     academyId: session.academyId,
     roomId: session.roomId,
@@ -1028,6 +1066,8 @@ window.runPractice = async function () {
   );
 
   const liveSessionPayload = {
+    practiceId,
+    liveSessionId: session.sessionId,
     academyId: session.academyId,
     roomId: session.roomId,
 

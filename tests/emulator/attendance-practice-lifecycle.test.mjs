@@ -1,0 +1,207 @@
+import assert from "node:assert/strict";
+import test, { after, before } from "node:test";
+import { createRequire } from "node:module";
+import { initializeApp as initializeClientApp, deleteApp as deleteClientApp } from "firebase/app";
+import { connectAuthEmulator, getAuth, signInWithCustomToken } from "firebase/auth";
+import { connectFunctionsEmulator, getFunctions, httpsCallable } from "firebase/functions";
+
+const require = createRequire(import.meta.url);
+const { initializeApp, deleteApp, getApps } = require("../../functions/node_modules/firebase-admin/lib/app/index.js");
+const { getAuth: getAdminAuth } = require("../../functions/node_modules/firebase-admin/lib/auth/index.js");
+const { getFirestore } = require("../../functions/node_modules/firebase-admin/lib/firestore/index.js");
+
+const PROJECT_ID = process.env.GCLOUD_PROJECT || "sandmandashboard-attendance-v1";
+const FIRESTORE_HOST = process.env.FIRESTORE_EMULATOR_HOST;
+const AUTH_HOST = process.env.FIREBASE_AUTH_EMULATOR_HOST;
+const FUNCTIONS_HOST = process.env.FUNCTIONS_EMULATOR_HOST || "127.0.0.1:5001";
+
+if (!FIRESTORE_HOST || !AUTH_HOST) {
+  throw new Error("Attendance lifecycle tests require Firestore and Auth emulators.");
+}
+
+const adminApp = getApps().find((app) => app.name === "attendance-v1-admin")
+  || initializeApp({ projectId: PROJECT_ID }, "attendance-v1-admin");
+const adminDb = getFirestore(adminApp);
+const clients = [];
+
+async function callableClient(uid, staff = null) {
+  if (staff) await adminDb.doc(`staff/${uid}`).set(staff);
+  const app = initializeClientApp({ apiKey: "emulator-key", projectId: PROJECT_ID }, `attendance-${uid}-${clients.length}`);
+  clients.push(app);
+  const auth = getAuth(app);
+  connectAuthEmulator(auth, `http://${AUTH_HOST}`, { disableWarnings: true });
+  const token = await getAdminAuth(adminApp).createCustomToken(uid);
+  await signInWithCustomToken(auth, token);
+  const functions = getFunctions(app, "us-central1");
+  const [host, port] = FUNCTIONS_HOST.split(":");
+  connectFunctionsEmulator(functions, host, Number(port));
+  return {
+    open: httpsCallable(functions, "openPracticeSession"),
+    get: httpsCallable(functions, "getPracticeSession"),
+    close: httpsCallable(functions, "closePracticeSession"),
+  };
+}
+
+function practiceInput(overrides = {}) {
+  return {
+    liveSessionId: "lompoc-mat-1",
+    locationId: "lompoc",
+    academyId: "lompoc",
+    roomId: "mat-1",
+    discipline: "wrestling",
+    journey: "P2L",
+    program: "teen-p2l-wrestling",
+    track: "Foundry 4",
+    tier: "T0",
+    schema: "standard-60",
+    durationMinutes: 60,
+    ...overrides,
+  };
+}
+
+before(async () => {
+  const collections = await adminDb.listCollections();
+  await Promise.all(collections.map(async (collection) => {
+    const docs = await collection.listDocuments();
+    await Promise.all(docs.map((ref) => ref.delete()));
+  }));
+});
+
+after(async () => {
+  await Promise.all(clients.map(deleteClientApp));
+  await deleteApp(adminApp);
+});
+
+test("authenticated canonical practice lifecycle and Attendance identity", async (t) => {
+  const coach = await callableClient("COACH_ATTENDANCE_V1", { role: "coach", status: "active", locationId: "lompoc" });
+  const otherCoach = await callableClient("COACH_OTHER_LOCATION", { role: "coach", status: "active", locationId: "elk-grove" });
+  const nonStaff = await callableClient("ATHLETE_NOT_STAFF");
+
+  await t.test("non-staff and invalid requests fail closed", async () => {
+    await assert.rejects(() => nonStaff.open(practiceInput()), /permission-denied|Active Coach or staff access required/i);
+    await assert.rejects(() => coach.open(practiceInput({ discipline: "" })), /discipline is required/i);
+    await assert.rejects(() => otherCoach.open(practiceInput()), /outside the staff member's authorized scope/i);
+    await assert.rejects(() => coach.get({ practiceId: "missing-practice" }), /not-found|Practice not found/i);
+    await assert.rejects(() => nonStaff.close({ practiceId: "missing-practice", attendanceSessionId: "missing" }), /permission-denied|Active Coach or staff access required/i);
+  });
+
+  const openedA = (await coach.open(practiceInput())).data;
+  const practiceAId = openedA.practiceId;
+
+  await t.test("open creates a unique canonical practice and room pointer", async () => {
+    assert.ok(practiceAId);
+    assert.notEqual(practiceAId, "lompoc-mat-1");
+    const practice = (await adminDb.doc(`practiceSessions/${practiceAId}`).get()).data();
+    assert.equal(practice.practiceId, practiceAId);
+    assert.equal(practice.liveSessionId, "lompoc-mat-1");
+    assert.equal(practice.roomId, "mat-1");
+    assert.equal(practice.locationId, "lompoc");
+    assert.equal(practice.discipline, "wrestling");
+    assert.equal(practice.coachUid, "COACH_ATTENDANCE_V1");
+    assert.equal(practice.coachRole, "coach");
+    assert.equal(practice.status, "active");
+    assert.ok(practice.openedAt);
+    const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
+    assert.equal(live.practiceId, practiceAId);
+    assert.equal(live.roomId, "mat-1");
+  });
+
+  await t.test("authorized get resolves active practice", async () => {
+    const resolved = (await coach.get({ practiceId: practiceAId })).data;
+    assert.equal(resolved.practiceId, practiceAId);
+    assert.equal(resolved.practice.status, "active");
+    assert.equal(resolved.practice.discipline, "wrestling");
+    await assert.rejects(() => nonStaff.get({ practiceId: practiceAId }), /permission-denied|Active Coach or staff access required/i);
+    await assert.rejects(
+      () => nonStaff.close({ practiceId: practiceAId, attendanceSessionId: practiceAId }),
+      /permission-denied|Active Coach or staff access required/i
+    );
+    await assert.rejects(() => otherCoach.get({ practiceId: practiceAId }), /outside the staff member's authorized scope/i);
+    await assert.rejects(
+      () => otherCoach.close({ practiceId: practiceAId, attendanceSessionId: practiceAId }),
+      /outside the staff member's authorized scope/i
+    );
+  });
+
+  await t.test("Attendance uses the canonical identity through review and correction", async () => {
+    const attendanceRef = adminDb.doc(`attendance_sessions/${practiceAId}`);
+    await attendanceRef.set({
+      practiceId: practiceAId,
+      sessionId: practiceAId,
+      liveSessionId: "lompoc-mat-1",
+      discipline: "wrestling",
+      status: "draft",
+      checkedInIds: ["F4_TEST_1", "F4_TEST_2"],
+      checkedIn: [{ id: "F4_TEST_1" }, { id: "F4_TEST_2" }],
+      finalized: false,
+    });
+    await attendanceRef.update({ status: "pending_review" });
+    await attendanceRef.update({
+      status: "finalized",
+      finalized: true,
+      presentIds: ["F4_TEST_1"],
+      present: [{ id: "F4_TEST_1" }],
+      removedFromReviewIds: ["F4_TEST_2"],
+    });
+    const attendance = (await attendanceRef.get()).data();
+    assert.equal(attendance.practiceId, practiceAId);
+    assert.equal(attendance.sessionId, practiceAId);
+    assert.equal(attendance.discipline, "wrestling");
+    assert.deepEqual(attendance.presentIds, ["F4_TEST_1"]);
+    assert.deepEqual(attendance.removedFromReviewIds, ["F4_TEST_2"]);
+  });
+
+  const openedB = (await coach.open(practiceInput())).data;
+  const practiceBId = openedB.practiceId;
+
+  await t.test("new practice replaces only the room pointer and preserves history", async () => {
+    assert.notEqual(practiceBId, practiceAId);
+    assert.equal((await adminDb.doc(`practiceSessions/${practiceAId}`).get()).exists, true);
+    assert.equal((await adminDb.doc(`practiceSessions/${practiceBId}`).get()).exists, true);
+    const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
+    assert.equal(live.practiceId, practiceBId);
+    assert.equal(live.status, "ready");
+  });
+
+  await t.test("stale close closes A but cannot close B's room pointer", async () => {
+    const closedA = (await coach.close({ practiceId: practiceAId, attendanceSessionId: practiceAId })).data;
+    assert.equal(closedA.status, "closed");
+    assert.equal(closedA.idempotent, false);
+    const practiceA = (await adminDb.doc(`practiceSessions/${practiceAId}`).get()).data();
+    assert.equal(practiceA.status, "closed");
+    assert.equal(practiceA.closedBy, "COACH_ATTENDANCE_V1");
+    assert.equal(practiceA.closedByRole, "coach");
+    assert.ok(practiceA.closedAt);
+    const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
+    assert.equal(live.practiceId, practiceBId);
+    assert.equal(live.status, "ready");
+  });
+
+  await t.test("repeated close is idempotent and get returns closed state", async () => {
+    const repeated = (await coach.close({ practiceId: practiceAId, attendanceSessionId: practiceAId })).data;
+    assert.equal(repeated.idempotent, true);
+    const resolved = (await coach.get({ practiceId: practiceAId })).data;
+    assert.equal(resolved.practice.status, "closed");
+  });
+
+  await t.test("closing current practice closes the matching room channel", async () => {
+    const closedB = (await coach.close({ practiceId: practiceBId, attendanceSessionId: practiceBId })).data;
+    assert.equal(closedB.idempotent, false);
+    const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
+    assert.equal(live.practiceId, practiceBId);
+    assert.equal(live.status, "closed");
+  });
+
+  await t.test("legacy Attendance record remains independent of canonical close", async () => {
+    await adminDb.doc("attendance_sessions/legacy-attendance").set({
+      sessionId: "legacy-attendance",
+      discipline: "wrestling",
+      status: "pending_review",
+      finalized: false,
+    });
+    await adminDb.doc("attendance_sessions/legacy-attendance").update({ status: "finalized", finalized: true });
+    const legacy = (await adminDb.doc("attendance_sessions/legacy-attendance").get()).data();
+    assert.equal(legacy.status, "finalized");
+    assert.equal(legacy.practiceId, undefined);
+  });
+});
