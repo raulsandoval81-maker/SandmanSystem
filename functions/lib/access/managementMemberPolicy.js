@@ -44,7 +44,9 @@ function mapManagementMember(athleteId, athlete, parentLinks = []) {
         const record = disciplineRecords[discipline] &&
             typeof disciplineRecords[discipline] === "object"
             ? disciplineRecords[discipline]
-            : {};
+            : discipline === legacyDiscipline
+                ? athlete
+                : {};
         return {
             discipline,
             trackBase: cleanMemberValue(record.trackBase ||

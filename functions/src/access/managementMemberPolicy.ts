@@ -52,7 +52,9 @@ export function mapManagementMember(
         disciplineRecords[discipline] &&
         typeof disciplineRecords[discipline] === "object"
           ? disciplineRecords[discipline]
-          : {};
+          : discipline === legacyDiscipline
+            ? athlete
+            : {};
 
       return {
         discipline,
