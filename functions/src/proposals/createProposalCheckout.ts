@@ -7,6 +7,7 @@ import {
 
 import {
   FieldValue,
+  Timestamp,
   getFirestore,
 } from "firebase-admin/firestore";
 
@@ -19,6 +20,10 @@ import {
   requireProposalStaffAccess,
   requireProposalLocationAccess,
 } from "./proposalAccess";
+
+import {
+  hashProposalReviewToken,
+} from "./proposalClientReview";
 
 import {
   handleProposalCheckoutCompleted,
@@ -47,23 +52,37 @@ export const createProposalCheckout =
       secrets: [STRIPE_SECRET_KEY],
     },
     async (req) => {
-      if (!req.auth) {
+      const proposalId =
+        cleanString(req.data?.proposalId);
+
+      const clientToken =
+        cleanString(req.data?.token);
+
+      const isClientCheckout =
+        Boolean(clientToken);
+
+      if (
+        !isClientCheckout &&
+        !req.auth
+      ) {
         throw new HttpsError(
           "unauthenticated",
-          "You must be signed in to create proposal checkout."
+          "A valid checkout link or staff sign-in is required."
         );
       }
 
       const actorUid =
-        req.auth.uid;
+        isClientCheckout
+          ? "client"
+          : req.auth!.uid;
 
       const staffAccess =
-        await requireProposalStaffAccess(
-          req.auth.uid
-        );
-
-      const proposalId =
-        cleanString(req.data?.proposalId);
+        !isClientCheckout &&
+        req.auth
+          ? await requireProposalStaffAccess(
+              req.auth.uid
+            )
+          : null;
 
       if (!proposalId) {
         throw new HttpsError(
@@ -92,10 +111,45 @@ export const createProposalCheckout =
       const proposal =
         proposalSnap.data() || {};
 
-      requireProposalLocationAccess(
-        staffAccess,
-        proposal.locationId
-      );
+      if (staffAccess) {
+        requireProposalLocationAccess(
+          staffAccess,
+          proposal.locationId
+        );
+      } else {
+        const review =
+          proposal.clientReview || {};
+
+        const tokenMatches =
+          clientToken &&
+          hashProposalReviewToken(
+            clientToken
+          ) ===
+            cleanString(
+              review.tokenHash
+            );
+
+        if (!tokenMatches) {
+          throw new HttpsError(
+            "permission-denied",
+            "This checkout link is invalid."
+          );
+        }
+
+        const expiresAt =
+          review.expiresAt;
+
+        if (
+          !(expiresAt instanceof Timestamp) ||
+          expiresAt.toMillis() <
+            Date.now()
+        ) {
+          throw new HttpsError(
+            "failed-precondition",
+            "This checkout link has expired."
+          );
+        }
+      }
 
       const proposalStatus =
         cleanString(proposal.status);
@@ -704,6 +758,11 @@ export const createProposalCheckout =
 
                 checkoutStartedBy:
                   actorUid,
+
+                checkoutStartedByType:
+                  isClientCheckout
+                    ? "client"
+                    : "staff",
 
                 updatedAt:
                   FieldValue.serverTimestamp(),

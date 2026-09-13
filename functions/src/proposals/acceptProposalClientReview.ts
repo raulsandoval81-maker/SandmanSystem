@@ -176,7 +176,10 @@ export const acceptProposalClientReview =
             proposalRef,
             {
               status:
-                "CLIENT_SIGNED",
+                "READY_FOR_CHECKOUT",
+
+              lockedSnapshot:
+                review.snapshot,
 
               clientAcceptance: {
                 signerName,
@@ -214,7 +217,7 @@ export const acceptProposalClientReview =
                 "AWAITING_CLIENT_SIGNATURE",
 
               toStatus:
-                "CLIENT_SIGNED",
+                "READY_FOR_CHECKOUT",
 
               signerName,
 
@@ -227,7 +230,7 @@ export const acceptProposalClientReview =
 
           return {
             status:
-              "CLIENT_SIGNED",
+              "READY_FOR_CHECKOUT",
           };
         }
       );

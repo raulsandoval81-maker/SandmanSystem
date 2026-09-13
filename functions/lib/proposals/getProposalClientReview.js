@@ -33,6 +33,8 @@ exports.getProposalClientReview = (0, https_1.onCall)(async (req) => {
         "AWAITING_CLIENT_SIGNATURE",
         "CLIENT_SIGNED",
         "CLIENT_CHANGES_REQUESTED",
+        "READY_FOR_CHECKOUT",
+        "CHECKOUT_CREATED",
     ]);
     if (!allowedStatuses.has((0, proposalClientReview_1.cleanReviewString)(proposal.status))) {
         throw new https_1.HttpsError("failed-precondition", "This proposal is no longer available for client review.");
@@ -43,7 +45,11 @@ exports.getProposalClientReview = (0, https_1.onCall)(async (req) => {
         status: proposal.status,
         proposal: review.snapshot || null,
         signed: proposal.status ===
-            "CLIENT_SIGNED",
+            "CLIENT_SIGNED" ||
+            proposal.status ===
+                "READY_FOR_CHECKOUT" ||
+            proposal.status ===
+                "CHECKOUT_CREATED",
         changesRequested: proposal.status ===
             "CLIENT_CHANGES_REQUESTED",
     };

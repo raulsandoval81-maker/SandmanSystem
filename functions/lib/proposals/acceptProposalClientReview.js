@@ -67,7 +67,8 @@ exports.acceptProposalClientReview = (0, https_1.onCall)(async (req) => {
             .collection("history")
             .doc();
         tx.update(proposalRef, {
-            status: "CLIENT_SIGNED",
+            status: "READY_FOR_CHECKOUT",
+            lockedSnapshot: review.snapshot,
             clientAcceptance: {
                 signerName,
                 signature,
@@ -84,13 +85,13 @@ exports.acceptProposalClientReview = (0, https_1.onCall)(async (req) => {
             proposalId,
             event: "CLIENT_SIGNED",
             fromStatus: "AWAITING_CLIENT_SIGNATURE",
-            toStatus: "CLIENT_SIGNED",
+            toStatus: "READY_FOR_CHECKOUT",
             signerName,
             signerRole,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
         });
         return {
-            status: "CLIENT_SIGNED",
+            status: "READY_FOR_CHECKOUT",
         };
     });
     return {

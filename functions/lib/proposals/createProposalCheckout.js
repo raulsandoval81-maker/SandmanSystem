@@ -5,6 +5,7 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const stripeClient_1 = require("../billing/stripeClient");
 const proposalAccess_1 = require("./proposalAccess");
+const proposalClientReview_1 = require("./proposalClientReview");
 const webhook_1 = require("../billing/webhook");
 function cleanString(value) {
     return String(value ?? "").trim();
@@ -20,12 +21,20 @@ function toCents(value) {
 exports.createProposalCheckout = (0, https_1.onCall)({
     secrets: [stripeClient_1.STRIPE_SECRET_KEY],
 }, async (req) => {
-    if (!req.auth) {
-        throw new https_1.HttpsError("unauthenticated", "You must be signed in to create proposal checkout.");
-    }
-    const actorUid = req.auth.uid;
-    const staffAccess = await (0, proposalAccess_1.requireProposalStaffAccess)(req.auth.uid);
     const proposalId = cleanString(req.data?.proposalId);
+    const clientToken = cleanString(req.data?.token);
+    const isClientCheckout = Boolean(clientToken);
+    if (!isClientCheckout &&
+        !req.auth) {
+        throw new https_1.HttpsError("unauthenticated", "A valid checkout link or staff sign-in is required.");
+    }
+    const actorUid = isClientCheckout
+        ? "client"
+        : req.auth.uid;
+    const staffAccess = !isClientCheckout &&
+        req.auth
+        ? await (0, proposalAccess_1.requireProposalStaffAccess)(req.auth.uid)
+        : null;
     if (!proposalId) {
         throw new https_1.HttpsError("invalid-argument", "proposalId is required.");
     }
@@ -38,7 +47,24 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         throw new https_1.HttpsError("not-found", `Proposal ${proposalId} was not found.`);
     }
     const proposal = proposalSnap.data() || {};
-    (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
+    if (staffAccess) {
+        (0, proposalAccess_1.requireProposalLocationAccess)(staffAccess, proposal.locationId);
+    }
+    else {
+        const review = proposal.clientReview || {};
+        const tokenMatches = clientToken &&
+            (0, proposalClientReview_1.hashProposalReviewToken)(clientToken) ===
+                cleanString(review.tokenHash);
+        if (!tokenMatches) {
+            throw new https_1.HttpsError("permission-denied", "This checkout link is invalid.");
+        }
+        const expiresAt = review.expiresAt;
+        if (!(expiresAt instanceof firestore_1.Timestamp) ||
+            expiresAt.toMillis() <
+                Date.now()) {
+            throw new https_1.HttpsError("failed-precondition", "This checkout link has expired.");
+        }
+    }
     const proposalStatus = cleanString(proposal.status);
     const existingCheckoutSessionId = cleanString(proposal.pendingCheckoutSessionId);
     if (proposalStatus !==
@@ -315,6 +341,9 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                 pendingCheckoutSessionId: session.id,
                 checkoutStartedAt: firestore_1.FieldValue.serverTimestamp(),
                 checkoutStartedBy: actorUid,
+                checkoutStartedByType: isClientCheckout
+                    ? "client"
+                    : "staff",
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
                 updatedBy: actorUid,
             });

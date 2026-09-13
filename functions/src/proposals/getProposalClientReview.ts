@@ -82,6 +82,8 @@ export const getProposalClientReview =
         "AWAITING_CLIENT_SIGNATURE",
         "CLIENT_SIGNED",
         "CLIENT_CHANGES_REQUESTED",
+        "READY_FOR_CHECKOUT",
+        "CHECKOUT_CREATED",
       ]);
 
     if (
@@ -110,7 +112,11 @@ export const getProposalClientReview =
 
       signed:
         proposal.status ===
-        "CLIENT_SIGNED",
+          "CLIENT_SIGNED" ||
+        proposal.status ===
+          "READY_FOR_CHECKOUT" ||
+        proposal.status ===
+          "CHECKOUT_CREATED",
 
       changesRequested:
         proposal.status ===
