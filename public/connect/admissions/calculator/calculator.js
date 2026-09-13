@@ -445,6 +445,10 @@ const extras = {
         el.proposalWorkflowRoute.hidden = true;
       }
 
+      if (el.resetButton) {
+        el.resetButton.hidden = false;
+      }
+
       /*
        * Pricing Lab is calculator-only.
        * Reset and print remain available.
@@ -1601,6 +1605,21 @@ alert(
     }
 
     async function submitForReview() {
+      if (
+        el.submitReviewButton?.dataset.action ===
+          "review-handoff" &&
+        proposalId
+      ) {
+        window.location.assign(
+          "/connect/proposals/review/" +
+          `?proposalId=${encodeURIComponent(
+            proposalId
+          )}`
+        );
+
+        return;
+      }
+
   if (pricingLabMode) {
     console.warn(
       "Pricing Lab blocked proposal write:",
@@ -2015,6 +2034,34 @@ async function beginProposalCheckout() {
       if (el.proposalWorkflowRoute) {
         el.proposalWorkflowRoute.hidden =
           !showWorkflowRoute;
+      }
+
+      if (
+        normalized === "REVIEW" &&
+        proposalId
+      ) {
+        if (el.saveDraftButton) {
+          el.saveDraftButton.hidden = true;
+        }
+
+        if (el.submitReviewButton) {
+          el.submitReviewButton.hidden = false;
+          el.submitReviewButton.disabled = false;
+          el.submitReviewButton.textContent =
+            "Go to Proposal Review";
+
+          el.submitReviewButton.dataset.action =
+            "review-handoff";
+        }
+      } else {
+        if (el.saveDraftButton) {
+          el.saveDraftButton.hidden = false;
+        }
+
+        if (el.submitReviewButton) {
+          el.submitReviewButton.hidden = false;
+          delete el.submitReviewButton.dataset.action;
+        }
       }
 
       if (el.proposalWorkflowRouteLink) {
@@ -2918,9 +2965,10 @@ async function beginProposalCheckout() {
     );
     el.saveDraftButton.addEventListener("click",saveProposalDraft);
     el.submitReviewButton.addEventListener("click",submitForReview);
-    el.approveProposalButton.addEventListener("click",approveCurrentProposal);
-    el.checkoutProposalButton.addEventListener("click",beginProposalCheckout);
-    el.resetButton.addEventListener("click",reset);
+    el.resetButton?.addEventListener(
+      "click",
+      reset
+    );
 
     if (el.membershipStartDate) {
       el.membershipStartDate.addEventListener(
