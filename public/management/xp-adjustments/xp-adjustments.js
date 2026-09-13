@@ -61,6 +61,7 @@ const clearButton =
   $("clearAdjustmentButton");
 
 let athlete = null;
+let selectedDiscipline = "";
 
 function clean(value) {
   return String(value ?? "").trim();
@@ -118,11 +119,162 @@ function summaryItem(
   `;
 }
 
+function disciplineLabel(value) {
+  return ({
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    "muay-thai": "Muay Thai",
+    kickboxing: "Kickboxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  })[value] ||
+    clean(value)
+      .split("-")
+      .map(
+        (part) =>
+          part.charAt(0).toUpperCase() +
+          part.slice(1)
+      )
+      .join(" ");
+}
+
+function disciplineProgressions(member) {
+  const rows =
+    Array.isArray(
+      member.disciplineProgress
+    )
+      ? member.disciplineProgress
+      : [];
+
+  if (rows.length) {
+    return rows;
+  }
+
+  const fallback =
+    clean(
+      member.primaryDiscipline
+    ).toLowerCase();
+
+  if (!fallback) {
+    return [];
+  }
+
+  return [{
+    discipline:
+      fallback,
+
+    trackBase:
+      member.trackBase ||
+      member.pathway ||
+      "",
+
+    tier:
+      member.tier ||
+      "",
+
+    rankName:
+      member.rankName ||
+      "",
+
+    xp:
+      Number(
+        member.xp || 0
+      ),
+
+    xpCap:
+      Number(
+        member.xpCap || 0
+      )
+  }];
+}
+
+function progressionFor(
+  member,
+  discipline
+) {
+  return disciplineProgressions(
+    member
+  ).find(
+    (row) =>
+      clean(
+        row.discipline
+      ).toLowerCase() ===
+      clean(
+        discipline
+      ).toLowerCase()
+  ) || null;
+}
+
+function renderProgressionSummary() {
+  const summary =
+    $("disciplineProgressSummary");
+
+  if (!summary) {
+    return;
+  }
+
+  const progression =
+    progressionFor(
+      athlete,
+      selectedDiscipline
+    );
+
+  if (!progression) {
+    summary.innerHTML = "";
+    return;
+  }
+
+  summary.innerHTML = `
+    ${summaryItem(
+      "Discipline",
+      disciplineLabel(
+        selectedDiscipline
+      )
+    )}
+
+    ${summaryItem(
+      "Track",
+      progression.trackBase ||
+      athlete?.pathway
+    )}
+
+    ${summaryItem(
+      "Rank",
+      [
+        progression.tier,
+        progression.rankName
+      ].filter(Boolean).join(" ")
+    )}
+
+    ${summaryItem(
+      "Current XP",
+      `${Number(
+        progression.xp || 0
+      )} XP`
+    )}
+  `;
+}
+
 function renderAthlete(member) {
   athlete = member;
+  selectedDiscipline = "";
+
+  const progressions =
+    disciplineProgressions(
+      member
+    );
+
+  if (progressions.length === 1) {
+    selectedDiscipline =
+      clean(
+        progressions[0]
+          .discipline
+      ).toLowerCase();
+  }
 
   selectedAthlete.hidden = false;
-  adjustmentPanel.hidden = false;
+  adjustmentPanel.hidden =
+    !selectedDiscipline;
 
   selectedAthlete.innerHTML = `
     <p class="adjustment-eyebrow">
@@ -154,25 +306,51 @@ function renderAthlete(member) {
         "Athlete ID / UID",
         member.athleteId
       )}
-
-      ${summaryItem(
-        "Track",
-        member.trackBase || member.pathway
-      )}
-
-      ${summaryItem(
-        "Rank",
-        [
-          member.tier,
-          member.rankName
-        ].filter(Boolean).join(" ")
-      )}
-
-      ${summaryItem(
-        "Current XP",
-        `${Number(member.xp || 0)} XP`
-      )}
     </div>
+
+    ${
+      progressions.length > 1
+        ? `
+          <label class="field discipline-field">
+            <span>
+              Discipline
+            </span>
+
+            <select
+              id="disciplineSelect"
+              required
+            >
+              <option value="">
+                Select discipline…
+              </option>
+
+              ${progressions.map(
+                (row) => `
+                  <option
+                    value="${esc(
+                      clean(
+                        row.discipline
+                      ).toLowerCase()
+                    )}"
+                  >
+                    ${esc(
+                      disciplineLabel(
+                        row.discipline
+                      )
+                    )}
+                  </option>
+                `
+              ).join("")}
+            </select>
+          </label>
+        `
+        : ""
+    }
+
+    <div
+      id="disciplineProgressSummary"
+      class="summary-grid"
+    ></div>
   `;
 
   $("changeAthleteButton")
@@ -181,13 +359,59 @@ function renderAthlete(member) {
       clearAll
     );
 
-  setSearchStatus(
-    "Existing athlete selected."
-  );
+  const disciplineSelect =
+    $("disciplineSelect");
+
+  disciplineSelect
+    ?.addEventListener(
+      "change",
+      () => {
+        selectedDiscipline =
+          clean(
+            disciplineSelect.value
+          ).toLowerCase();
+
+        adjustmentPanel.hidden =
+          !selectedDiscipline;
+
+        renderProgressionSummary();
+
+        if (selectedDiscipline) {
+          setSearchStatus(
+            `${disciplineLabel(
+              selectedDiscipline
+            )} progression selected.`
+          );
+
+          categoryInput.focus();
+        }
+      }
+    );
+
+  renderProgressionSummary();
+
+  if (!progressions.length) {
+    setSearchStatus(
+      "No verified discipline progression was found for this athlete.",
+      true
+    );
+  } else if (
+    progressions.length > 1
+  ) {
+    setSearchStatus(
+      "Existing athlete selected. Choose the discipline to adjust."
+    );
+  } else {
+    setSearchStatus(
+      `${disciplineLabel(
+        selectedDiscipline
+      )} progression selected.`
+    );
+
+    categoryInput.focus();
+  }
 
   searchResults.innerHTML = "";
-
-  categoryInput.focus();
 }
 
 function clearAdjustmentFields() {
@@ -200,6 +424,7 @@ function clearAdjustmentFields() {
 
 function clearAll() {
   athlete = null;
+  selectedDiscipline = "";
 
   selectedAthlete.hidden = true;
   adjustmentPanel.hidden = true;
@@ -386,6 +611,15 @@ adjustmentForm.addEventListener(
       return;
     }
 
+    if (!selectedDiscipline) {
+      setAdjustmentStatus(
+        "Select the discipline to adjust.",
+        true
+      );
+
+      return;
+    }
+
     const category =
       clean(
         categoryInput.value
@@ -435,6 +669,7 @@ adjustmentForm.addEventListener(
       "Apply this Management XP adjustment?",
       "",
       `${athlete.name} (${athlete.athleteId})`,
+      `${disciplineLabel(selectedDiscipline)}`,
       `${categoryLabel(category)}`,
       `+${amount} XP`,
       "",
@@ -464,6 +699,9 @@ adjustmentForm.addEventListener(
         await createAdjustment({
           athleteUid:
             athlete.athleteId,
+
+          discipline:
+            selectedDiscipline,
 
           amount,
 
@@ -506,6 +744,12 @@ adjustmentForm.addEventListener(
               ${esc(athlete.name)}
               ·
               ${esc(athlete.athleteId)}
+              ·
+              ${esc(
+                disciplineLabel(
+                  selectedDiscipline
+                )
+              )}
               ·
               ${esc(categoryLabel(category))}
               ·
