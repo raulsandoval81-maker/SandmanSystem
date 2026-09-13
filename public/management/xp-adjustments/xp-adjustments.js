@@ -151,23 +151,26 @@ function renderAthlete(member) {
 
     <div class="summary-grid">
       ${summaryItem(
-        "Member Status",
-        member.memberStatus
+        "Athlete ID / UID",
+        member.athleteId
       )}
 
       ${summaryItem(
-        "Pathway",
-        member.pathway
+        "Track",
+        member.trackBase || member.pathway
       )}
 
       ${summaryItem(
-        "Primary Discipline",
-        member.primaryDiscipline
+        "Rank",
+        [
+          member.tier,
+          member.rankName
+        ].filter(Boolean).join(" ")
       )}
 
       ${summaryItem(
-        "Location",
-        member.locationId
+        "Current XP",
+        `${Number(member.xp || 0)} XP`
       )}
     </div>
   `;
