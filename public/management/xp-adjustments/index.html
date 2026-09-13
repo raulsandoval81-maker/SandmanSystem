@@ -1,0 +1,467 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>XP Adjustments • Sandman Management</title>
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1"
+  >
+
+  <link
+    rel="stylesheet"
+    href="/management/hub/management.css"
+  >
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  >
+  <link
+    rel="stylesheet"
+    href="./xp-adjustments.css"
+  >
+
+  <link rel="icon" href="data:,">
+</head>
+
+<body>
+
+<div class="management-shell">
+
+  <aside
+    id="managementSidebar"
+    class="management-sidebar"
+    aria-label="Management navigation"
+  >
+    <div class="sidebar-brand">
+      <p class="eyebrow">
+        Sandman System
+      </p>
+
+      <strong>
+        Academy Management
+      </strong>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <a
+        class="sidebar-link"
+        href="/management/hub/"
+      >
+        <span>Overview</span>
+      </a>
+
+      <p class="sidebar-section-label">
+        Pipeline
+      </p>
+
+      <a
+        class="sidebar-link"
+        href="/connect/leads/"
+      >
+        <span>Leads</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/connect/appointments/"
+      >
+        <span>Appointments</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/connect/proposals/"
+      >
+        <span>Proposals</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/intake-management/"
+      >
+        <span>Enrollment</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/management/members/"
+      >
+        <span>Members</span>
+      </a>
+
+      <p class="sidebar-section-label">
+        Communication
+      </p>
+
+      <a
+        class="sidebar-link"
+        href="/management/inbox/"
+      >
+        <span>Inbox</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/connect/admissions-requests/"
+      >
+        <span>Promotions</span>
+      </a>
+
+      <p class="sidebar-section-label">
+        Operations
+      </p>
+
+      <a
+        class="sidebar-link"
+        href="/management/schedule/"
+      >
+        <span>Schedule</span>
+      </a>
+
+      <span
+        class="sidebar-link sidebar-link--pending"
+      >
+        <span>Attendance</span>
+        <small>Pending</small>
+      </span>
+
+      <span
+        class="sidebar-link sidebar-link--pending"
+      >
+        <span>Reports</span>
+        <small>Pending</small>
+      </span>
+
+      <p class="sidebar-section-label">
+        Tools
+      </p>
+
+      <a
+        class="sidebar-link"
+        href="/management/experience-validation/"
+      >
+        <span>Experience Validation</span>
+      </a>
+
+      <a
+        class="sidebar-link active"
+        href="/management/xp-adjustments/"
+        aria-current="page"
+      >
+        <span>XP Adjustments</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/management/pricing/"
+      >
+        <span>Pricing &amp; Estimates</span>
+      </a>
+
+      <a
+        class="sidebar-link"
+        href="/management/membership-tools/"
+      >
+        <span>
+          Membership &amp; Competition Tools
+        </span>
+      </a>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <button
+        id="sidebarSignOutBtn"
+        class="sidebar-signout"
+        type="button"
+      >
+        Sign Out
+      </button>
+    </div>
+  </aside>
+
+  <div
+    id="sidebarBackdrop"
+    class="sidebar-backdrop"
+    hidden
+  ></div>
+
+  <section class="management-main">
+
+    <header class="management-header">
+
+      <button
+        id="menuToggleBtn"
+        class="menu-toggle"
+        type="button"
+        aria-label="Open management navigation"
+        aria-expanded="false"
+        aria-controls="managementSidebar"
+      >
+        ☰
+      </button>
+
+      <div class="management-header__identity">
+        <p class="eyebrow">
+          Sandman System
+        </p>
+
+        <h1>
+          Academy Management
+        </h1>
+
+        <p
+          id="managerIdentity"
+          class="identity"
+        >
+          Verifying access...
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button
+          id="signOutBtn"
+          class="button button-secondary"
+          type="button"
+        >
+          Sign Out
+        </button>
+      </div>
+
+    </header>
+
+    <main class="management-wrap xp-adjustments-wrap">
+
+      <section class="workspace-heading">
+        <div>
+          <p class="section-label">
+            Tools
+          </p>
+
+          <h2>
+            XP Adjustments
+          </h2>
+
+          <p>
+            Correct existing athlete XP when Management
+            has verified a legitimate administrative need.
+          </p>
+        </div>
+      </section>
+
+      <section class="adjustment-policy">
+        <strong>
+          Controlled Management Tool
+        </strong>
+
+        <p>
+          XP Adjustments are separate from normal practice,
+          competition, Strength, Honor, and prior-experience awards.
+          Every adjustment requires an athlete, category, amount,
+          reason, and Management confirmation.
+        </p>
+      </section>
+
+      <section class="adjustment-card">
+
+        <p class="adjustment-eyebrow">
+          Step 1
+        </p>
+
+        <h3>
+          Find Existing Athlete
+        </h3>
+
+        <form
+          id="athleteSearchForm"
+          class="athlete-search"
+          role="search"
+        >
+          <label for="athleteSearch">
+            Athlete ID or Name
+          </label>
+
+          <div class="search-row">
+            <input
+              id="athleteSearch"
+              type="search"
+              minlength="2"
+              maxlength="100"
+              autocomplete="off"
+              placeholder="F4_0001 or athlete name"
+              required
+            >
+
+            <button
+              id="searchButton"
+              class="button button-primary"
+              type="submit"
+            >
+              Search Athletes
+            </button>
+          </div>
+        </form>
+
+        <p
+          id="searchStatus"
+          class="status-line"
+          role="status"
+          aria-live="polite"
+        ></p>
+
+        <div
+          id="searchResults"
+          class="search-results"
+        ></div>
+
+      </section>
+
+      <section
+        id="selectedAthlete"
+        class="adjustment-card"
+        hidden
+      ></section>
+
+      <section
+        id="adjustmentPanel"
+        class="adjustment-card"
+        hidden
+      >
+
+        <p class="adjustment-eyebrow">
+          Step 3
+        </p>
+
+        <h3>
+          Create Adjustment
+        </h3>
+
+        <form id="adjustmentForm">
+
+          <div class="adjustment-grid">
+
+            <label class="field">
+              <span>
+                Adjustment Category
+              </span>
+
+              <select
+                id="adjustmentCategory"
+                required
+              >
+                <option value="">
+                  Select category…
+                </option>
+
+                <option value="delayed_onboarding">
+                  Delayed Onboarding
+                </option>
+
+                <option value="downtime_recovery">
+                  Downtime Recovery
+                </option>
+
+                <option value="paper_reconciliation">
+                  Paper Reconciliation
+                </option>
+
+                <option value="correction">
+                  Correction
+                </option>
+              </select>
+            </label>
+
+            <label class="field">
+              <span>
+                XP Amount
+              </span>
+
+              <input
+                id="adjustmentAmount"
+                type="number"
+                min="1"
+                step="1"
+                inputmode="numeric"
+                placeholder="Enter whole XP"
+                required
+              >
+            </label>
+
+          </div>
+
+          <label class="field">
+            <span>
+              Required Reason
+            </span>
+
+            <textarea
+              id="adjustmentReason"
+              rows="5"
+              maxlength="1000"
+              placeholder="Document why this XP correction is necessary."
+              required
+            ></textarea>
+          </label>
+
+          <div class="adjustment-warning">
+            <strong>
+              Review before applying.
+            </strong>
+
+            <p>
+              This adds XP to the athlete's authoritative active-rank
+              XP record. The backend enforces Management access,
+              athlete location scope, active-rank cap, audit logging,
+              and duplicate protection.
+            </p>
+          </div>
+
+          <p
+            id="adjustmentStatus"
+            class="status-line"
+            role="status"
+            aria-live="polite"
+          ></p>
+
+          <div class="action-row">
+            <button
+              id="applyAdjustmentButton"
+              class="button button-primary"
+              type="submit"
+            >
+              Review &amp; Apply XP
+            </button>
+
+            <button
+              id="clearAdjustmentButton"
+              class="button button-secondary"
+              type="button"
+            >
+              Clear
+            </button>
+          </div>
+
+        </form>
+
+      </section>
+
+    </main>
+
+  </section>
+
+</div>
+
+<script
+  type="module"
+  src="/management/shared/management-shell.js"
+></script>
+
+<script
+  type="module"
+  src="./xp-adjustments.js"
+></script>
+
+</body>
+</html>
