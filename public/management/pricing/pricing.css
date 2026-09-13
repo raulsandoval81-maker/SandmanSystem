@@ -259,8 +259,8 @@ body {
 }
 
 @media print {
-  .management-nav-toggle,
-  .management-pipeline-nav,
+  .management-sidebar,
+  .management-header,
   #addAthleteBtn,
   .remove-athlete,
   #resetBtn {

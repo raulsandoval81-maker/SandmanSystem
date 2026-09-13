@@ -11,8 +11,15 @@ import {
   requireManagement
 } from "/management/shared/guards/management-guard.js";
 
+import {
+  ensureManagementShellFrame
+} from "/management/shared/management-shell-frame.js";
+
+ensureManagementShellFrame();
+
 
 const managerIdentity =
+  document.getElementById("managementShellIdentity") ||
   document.getElementById("managerIdentity");
 
 const signOutBtn =

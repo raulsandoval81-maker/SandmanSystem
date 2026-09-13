@@ -7,9 +7,9 @@
   <title>Members | Sandman Management</title>
   <link rel="stylesheet" href="/assets/css/management-ui.css">
   <link rel="stylesheet" href="./members.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
 </head>
 <body>
-  <nav class="management-pipeline-nav" aria-label="Management navigation"></nav>
   <main class="members-wrap">
     <header class="members-header">
       <p class="eyebrow">Management · Members</p>
@@ -30,7 +30,7 @@
     <section id="searchResults" class="results" aria-label="Member search results"></section>
     <section id="memberDetail" class="member-card" hidden aria-live="polite"></section>
   </main>
-  <script src="/assets/js/management-nav.js"></script>
+  <script type="module" src="/management/shared/management-shell.js"></script>
   <script type="module" src="./members.js"></script>
 </body>
 </html>

@@ -1,15 +1,9 @@
 import { auth, db, doc, getDoc, serverTimestamp, setDoc } from "/assets/js/firebase-init.js";
-import { signOut } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { managementLoginUrl, requireManagement } from "/management/shared/guards/management-guard.js";
 import { LOCATION_NAMES, LOCATION_SCHEDULE_DRAFTS, LOCATION_SCHEDULES, SANTA_YNEZ_VALLEY_SCHEDULE_SEED, normalizeLocationId, normalizeSchedule, scheduleCategoryLabel, scheduleProviderLabel } from "/assets/js/location-schedule.js";
 import { resolveLocationScheduleLiveState } from "/assets/js/location-schedule-live-state.js";
 
 const managerIdentity = document.getElementById("managerIdentity");
-const signOutBtn = document.getElementById("signOutBtn");
-const sidebarSignOutBtn = document.getElementById("sidebarSignOutBtn");
-const managementSidebar = document.getElementById("managementSidebar");
-const menuToggleBtn = document.getElementById("menuToggleBtn");
-const sidebarBackdrop = document.getElementById("sidebarBackdrop");
 const locationSelect = document.getElementById("scheduleLocation");
 const locationName = document.getElementById("scheduleLocationName");
 const locationStatus = document.getElementById("scheduleLocationStatus");
@@ -30,17 +24,6 @@ let current = normalizeSchedule({}, "santa-ynez-valley");
 const clean = (value) => String(value ?? "").trim();
 const esc = (value) => clean(value).replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 const clone = (value) => JSON.parse(JSON.stringify(value));
-
-function setSidebarOpen(open) {
-  managementSidebar?.classList.toggle("is-open", open);
-  menuToggleBtn?.setAttribute("aria-expanded", open ? "true" : "false");
-  if (sidebarBackdrop) sidebarBackdrop.hidden = !open;
-}
-menuToggleBtn?.addEventListener("click", () => setSidebarOpen(!managementSidebar?.classList.contains("is-open")));
-sidebarBackdrop?.addEventListener("click", () => setSidebarOpen(false));
-async function handleSignOut() { await signOut(auth); window.location.replace("/login/"); }
-signOutBtn?.addEventListener("click", handleSignOut);
-sidebarSignOutBtn?.addEventListener("click", handleSignOut);
 
 function permittedLocations(access) {
   if (access.isSystemAdmin) return Object.keys(LOCATION_NAMES);

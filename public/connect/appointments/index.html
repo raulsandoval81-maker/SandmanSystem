@@ -25,6 +25,7 @@
     href="/connect/appointments/appointments.css"
   />
   <link rel="stylesheet" href="/assets/css/management-ui.css" />
+  <link rel="stylesheet" href="/management/hub/management.css" />
 </head>
 
 <body>
@@ -46,16 +47,6 @@ and send confirmed appointment details through Gatekeeper.
 </p>
       </div>
     </header>
-
-    <nav class="management-pipeline-nav" aria-label="Management navigation">
-      <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
-      <a href="/connect/leads/">Leads</a>
-      <a href="/connect/appointments/" aria-current="page">Appointments</a>
-      <a href="/connect/proposals/">Proposals</a>
-      <a href="/intake-management/">Enrollment</a>
-      <a href="/management/inbox/">Inbox</a>
-      <a href="/connect/admissions-requests/">Promotions</a>
-    </nav>
 
     <details class="management-page-guide">
       <summary>
@@ -215,11 +206,12 @@ Review the selected lead, schedule the Admissions Appointment, and coordinate Co
 
   </main>
 
+  <script type="module" src="/management/shared/management-shell.js"></script>
+
   <script
     type="module"
     src="/connect/appointments/appointments.js"
   ></script>
-  <script src="/assets/js/management-nav.js"></script>
 
   <footer class="management-workspace-footer">
     <strong>Sandman System™</strong>

@@ -20,6 +20,7 @@
     href="/management/inbox/inbox.css"
   />
   <link rel="stylesheet" href="/assets/css/management-ui.css" />
+  <link rel="stylesheet" href="/management/hub/management.css" />
 </head>
 
 <body>
@@ -42,17 +43,6 @@
       </p>
     </div>
   </header>
-
-  <nav class="management-pipeline-nav" aria-label="Management navigation">
-    <a class="management-pipeline-nav__home" href="/management/hub/">Management Home</a>
-    <a href="/connect/leads/">Leads</a>
-    <a href="/connect/appointments/">Appointments</a>
-    <a href="/connect/proposals/">Proposals</a>
-    <a href="/intake-management/">Enrollment</a>
-    <a href="/management/inbox/" aria-current="page">Inbox</a>
-    <a href="/connect/admissions-requests/">Promotions</a>
-  </nav>
-
 
   <main class="inbox-layout">
 
@@ -523,12 +513,13 @@
   </main>
 
 
+  <script type="module" src="/management/shared/management-shell.js"></script>
+
   <script
     type="module"
     src="/management/inbox/inbox.js"
   ></script>
 
-  <script src="/assets/js/management-nav.js"></script>
 
   <footer class="management-workspace-footer">
     <strong>Sandman System™</strong>

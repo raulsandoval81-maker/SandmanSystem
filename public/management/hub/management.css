@@ -47,6 +47,19 @@ a {
   min-height: 100vh;
 }
 
+.management-page-content {
+  min-width: 0;
+  padding: 28px 24px 48px;
+}
+
+.management-page-content > main,
+.management-page-content > header,
+.management-page-content > footer {
+  max-width: 1220px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .management-sidebar {
   position: fixed;
   inset: 0 auto 0 0;
@@ -96,7 +109,10 @@ a {
 .sidebar-nav {
   display: grid;
   gap: 4px;
+  min-height: 0;
   margin-top: 18px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
 .sidebar-section-label {
@@ -508,6 +524,10 @@ a {
   }
 
   .management-wrap {
+    padding: 20px 14px 38px;
+  }
+
+  .management-page-content {
     padding: 20px 14px 38px;
   }
 
