@@ -58,6 +58,14 @@ document.addEventListener("DOMContentLoaded", () => {
           heading: "Tools"
         },
         {
+          label: "Experience Validation",
+          href: "/management/experience-validation/"
+        },
+        {
+          label: "XP Adjustments",
+          href: "/management/xp-adjustments/"
+        },
+        {
           label: "Pricing & Estimates",
           href: "/management/pricing/"
         },
