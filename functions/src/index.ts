@@ -229,3 +229,14 @@ export {
 export {
   returnProposalToDraft,
 } from "./proposals/returnProposalToDraft";
+
+/* =========================
+   ATHLETE ASSESSMENTS
+========================= */
+
+export {
+  createAthleteAssessmentPin,
+  listAthleteAssessmentPins,
+  returnAthleteAssessmentPin,
+  recordAthleteAssessmentPlacement,
+} from "./assessments/athleteAssessmentPins";
