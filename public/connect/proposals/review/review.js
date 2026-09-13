@@ -546,10 +546,10 @@ async function acceptProposal() {
       );
     }
 
-    showConfirmation(
-      "Proposal Accepted",
-      "Thank you. Your signed proposal has been returned to Sandman Academy for final approval. Checkout will follow after Academy approval."
-    );
+  showConfirmation(
+    "Proposal Accepted",
+    "Thank you. Your proposal has been accepted."
+   );
   } catch (error) {
     console.error(
       "Proposal acceptance failed:",
