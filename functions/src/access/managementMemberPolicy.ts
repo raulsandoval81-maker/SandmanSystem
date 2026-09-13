@@ -25,8 +25,53 @@ export function mapManagementMember(
   const accessMode = ["parent_managed", "hybrid", "self_managed"].includes(explicitMode)
     ? explicitMode
     : authUid ? "unclassified" : "parent_managed";
-  const disciplines = athlete.disciplines && typeof athlete.disciplines === "object"
-    ? Object.keys(athlete.disciplines) : [];
+  const disciplineRecords =
+    athlete.disciplines &&
+    typeof athlete.disciplines === "object"
+      ? athlete.disciplines
+      : {};
+
+  const legacyDiscipline =
+    cleanMemberValue(
+      athlete.primaryDiscipline ||
+      athlete.activeDiscipline ||
+      athlete.discipline ||
+      athlete.art ||
+      athlete.sport
+    );
+
+  const disciplines =
+    [...new Set([
+      ...Object.keys(disciplineRecords),
+      ...(legacyDiscipline ? [legacyDiscipline] : [])
+    ])];
+
+  const disciplineProgress =
+    disciplines.map((discipline) => {
+      const record =
+        disciplineRecords[discipline] &&
+        typeof disciplineRecords[discipline] === "object"
+          ? disciplineRecords[discipline]
+          : {};
+
+      return {
+        discipline,
+        trackBase: cleanMemberValue(
+          record.trackBase ||
+          record.programTrack ||
+          record.track
+        ),
+        tier: cleanMemberValue(record.tier),
+        rankName: cleanMemberValue(record.rankName),
+        xp: Number.isFinite(Number(record.xp))
+          ? Number(record.xp)
+          : 0,
+        xpCap: Number.isFinite(Number(record.xpCap))
+          ? Number(record.xpCap)
+          : 0,
+      };
+    });
+
   return {
     athleteId,
     name: cleanMemberValue(athlete.fullName || athlete.publicName || athlete.name || athleteId),
@@ -39,6 +84,8 @@ export function mapManagementMember(
     tier: cleanMemberValue(athlete.tier),
     xp: Number.isFinite(Number(athlete.xp)) ? Number(athlete.xp) : 0,
     primaryDiscipline: cleanMemberValue(athlete.primaryDiscipline || athlete.activeDiscipline || athlete.discipline || disciplines[0]),
+    disciplineIds: disciplines,
+    disciplineProgress,
     locationId: cleanMemberValue(athlete.locationId || athlete.team?.locationId),
     accessMode,
     directAccessActive: Boolean(authUid),
