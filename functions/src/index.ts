@@ -225,3 +225,7 @@ export {
 export {
   requestProposalClientChanges,
 } from "./proposals/requestProposalClientChanges";
+
+export {
+  returnProposalToDraft,
+} from "./proposals/returnProposalToDraft";

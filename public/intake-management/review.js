@@ -59,16 +59,16 @@ function renderIntakeLifecycle(intake = {}) {
     $("intakeLifecycle"),
     activated
       ? {
-          currentStage: "activation",
-          completedThrough: "intake",
+          currentStage: "intake-activation",
+          completedThrough: "checkout-enrollment",
           currentLabel: "Activation Complete",
           caseLabel: intake.approvedUid,
           guidance:
             "This intake has an approved athlete UID and requires no further activation action."
         }
       : {
-          currentStage: "intake",
-          completedThrough: "enrollment",
+          currentStage: "intake-activation",
+          completedThrough: "checkout-enrollment",
           currentLabel: "Intake Review",
           caseLabel: tokenId,
           guidance:

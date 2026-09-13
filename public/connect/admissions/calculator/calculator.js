@@ -440,10 +440,7 @@ const extras = {
         el.proposalWorkflowRoute.hidden = true;
       }
 
-      /*
-       * Pricing Lab is calculator-only.
-       * Reset and print remain available.
-       */
+      // Pricing Lab is calculator-only; print remains available.
     }
 
     function money(value){
@@ -1596,38 +1593,6 @@ alert(
     }
 
     async function submitForReview() {
-      if (
-        el.submitReviewButton?.dataset.action ===
-          "review-handoff" &&
-        proposalId
-      ) {
-        const issueClientReview =
-          httpsCallable(
-            functions,
-            "issueProposalClientReview"
-          );
-
-        const response =
-          await issueClientReview({
-            proposalId
-          });
-
-        const reviewPath =
-          response.data?.reviewPath;
-
-        if (!reviewPath) {
-          throw new Error(
-            "Client review link was not returned."
-          );
-        }
-
-        window.location.assign(
-          reviewPath
-        );
-
-        return;
-      }
-
   if (pricingLabMode) {
     console.warn(
       "Pricing Lab blocked proposal write:",
@@ -1704,30 +1669,8 @@ alert(
           "REVIEW"
         );
 
-        const issueClientReview =
-          httpsCallable(
-            functions,
-            "issueProposalClientReview"
-          );
-
-        const clientReviewResponse =
-          await issueClientReview({
-            proposalId
-          });
-
-        const reviewPath =
-          clientReviewResponse
-            .data
-            ?.reviewPath;
-
-        if (!reviewPath) {
-          throw new Error(
-            "Client review link was not returned."
-          );
-        }
-
         window.location.assign(
-          reviewPath
+          "/connect/proposals/"
         );
       } catch (error) {
         console.error(
@@ -1757,6 +1700,9 @@ alert(
         BUILDING: "Building Proposal",
         DRAFT: "Proposal Draft",
         REVIEW: "Needs Review",
+        AWAITING_CLIENT_SIGNATURE: "Awaiting Client Signature",
+        CLIENT_CHANGES_REQUESTED: "Client Changes Requested",
+        CLIENT_SIGNED: "Client Signed",
         READY_FOR_CHECKOUT: "Checkout Ready",
         CHECKOUT_CREATED: "Checkout Created",
         PAYMENT_PENDING: "Payment Pending",
@@ -1772,7 +1718,16 @@ alert(
           "Review the family configuration, then submit this proposal for review.",
 
         REVIEW:
-          "Review the proposal and approve it when the family offer is ready.",
+          "Continue in Review & Approve to issue the client review.",
+
+        AWAITING_CLIENT_SIGNATURE:
+          "The family review is active. Continue in Review & Approve.",
+
+        CLIENT_CHANGES_REQUESTED:
+          "Return this proposal to Draft from Review & Approve before editing.",
+
+        CLIENT_SIGNED:
+          "Management approval is ready in Review & Approve.",
 
         READY_FOR_CHECKOUT:
           "Begin checkout for this approved proposal.",
@@ -1818,28 +1773,40 @@ alert(
             completedThrough: "outcome"
           },
           REVIEW: {
-            currentStage: "review",
+            currentStage: "review-approve",
+            completedThrough: "prospect-builder"
+          },
+          AWAITING_CLIENT_SIGNATURE: {
+            currentStage: "review-approve",
+            completedThrough: "prospect-builder"
+          },
+          CLIENT_CHANGES_REQUESTED: {
+            currentStage: "review-approve",
+            completedThrough: "prospect-builder"
+          },
+          CLIENT_SIGNED: {
+            currentStage: "review-approve",
             completedThrough: "prospect-builder"
           },
           APPROVED: {
-            currentStage: "approval",
-            completedThrough: "review"
+            currentStage: "review-approve",
+            completedThrough: "prospect-builder"
           },
           READY_FOR_CHECKOUT: {
-            currentStage: "checkout",
-            completedThrough: "approval"
+            currentStage: "checkout-enrollment",
+            completedThrough: "review-approve"
           },
           CHECKOUT_CREATED: {
-            currentStage: "checkout",
-            completedThrough: "approval"
+            currentStage: "checkout-enrollment",
+            completedThrough: "review-approve"
           },
           PAYMENT_PENDING: {
-            currentStage: "checkout",
-            completedThrough: "approval"
+            currentStage: "checkout-enrollment",
+            completedThrough: "review-approve"
           },
           PAID: {
-            currentStage: "enrollment",
-            completedThrough: "checkout"
+            currentStage: "checkout-enrollment",
+            completedThrough: "review-approve"
           },
           LOCKED: {
             currentStage: "prospect-builder",
@@ -1861,6 +1828,9 @@ alert(
 
       const showWorkflowRoute =
         normalized === "REVIEW" ||
+        normalized === "AWAITING_CLIENT_SIGNATURE" ||
+        normalized === "CLIENT_CHANGES_REQUESTED" ||
+        normalized === "CLIENT_SIGNED" ||
         normalized === "READY_FOR_CHECKOUT" ||
         normalized === "CHECKOUT_CREATED" ||
         normalized === "PAYMENT_PENDING" ||
@@ -1870,34 +1840,6 @@ alert(
       if (el.proposalWorkflowRoute) {
         el.proposalWorkflowRoute.hidden =
           !showWorkflowRoute;
-      }
-
-      if (
-        normalized === "REVIEW" &&
-        proposalId
-      ) {
-        if (el.saveDraftButton) {
-          el.saveDraftButton.hidden = true;
-        }
-
-        if (el.submitReviewButton) {
-          el.submitReviewButton.hidden = false;
-          el.submitReviewButton.disabled = false;
-          el.submitReviewButton.textContent =
-            "Go to Proposal Review";
-
-          el.submitReviewButton.dataset.action =
-            "review-handoff";
-        }
-      } else {
-        if (el.saveDraftButton) {
-          el.saveDraftButton.hidden = false;
-        }
-
-        if (el.submitReviewButton) {
-          el.submitReviewButton.hidden = false;
-          delete el.submitReviewButton.dataset.action;
-        }
       }
 
       if (el.proposalWorkflowRouteLink) {
@@ -1919,7 +1861,7 @@ alert(
             "/connect/proposals/";
 
           el.proposalWorkflowRouteLink.textContent =
-            "Go to Proposal Queue";
+            "Go to Review & Approve";
 
           el.proposalWorkflowRouteLink.classList.add(
             "secondary"
@@ -1933,9 +1875,6 @@ alert(
           normalized === "DRAFT"
         ) {
           el.saveDraftButton.hidden = false;
-          el.submitReviewButton.hidden = false;
-        } else if (normalized === "REVIEW") {
-          el.saveDraftButton.hidden = true;
           el.submitReviewButton.hidden = false;
         } else {
           el.saveDraftButton.hidden = true;
@@ -2253,31 +2192,6 @@ alert(
         }
       );
     }
-
-    function reset(){
-      el.familyName.value="";
-      el.coachName.value="Coach Sandoval";
-      el.coachRecommendation.value="";
-      el.extra.value="none";
-      el.support.value="0";
-      el.privatePromo.checked=false;
-      el.monthlySponsor.value="0";
-      el.annualSponsor.value="0";
-
-      if (el.membershipStartDate) {
-        el.membershipStartDate.value =
-          localIsoDate();
-      }
-
-      if (el.paymentStartMode) {
-        el.paymentStartMode.value =
-          "start_now";
-      }
-
-      el.athleteList.innerHTML="";
-      addAthlete({disciplines:["wrestling"]});
-    }
-
 
     function escapeHtml(value) {
       return String(value ?? "")

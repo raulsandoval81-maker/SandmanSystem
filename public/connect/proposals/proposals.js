@@ -5,7 +5,9 @@ import {
   collection,
   getDocs,
   query,
-  where
+  where,
+  functions,
+  httpsCallable
 } from "/assets/js/firebase-init.js";
 
 import {
@@ -304,11 +306,23 @@ function labelForStartingPath(value = "") {
 
 function labelForStatus(value = "") {
   const labels = {
+    BUILDING:
+      "Building",
+
     DRAFT:
       "Draft",
 
     REVIEW:
       "Needs Review",
+
+    AWAITING_CLIENT_SIGNATURE:
+      "Awaiting Client Signature",
+
+    CLIENT_CHANGES_REQUESTED:
+      "Client Changes Requested",
+
+    CLIENT_SIGNED:
+      "Client Signed",
 
     APPROVED:
       "Approved",
@@ -340,7 +354,7 @@ function labelForStatus(value = "") {
 }
 
 /* ==================================================
-   Proposal Queue DOM
+   Review & Approve DOM
    ================================================== */
 
 function ensureProposalQueue() {
@@ -641,6 +655,8 @@ function proposalQueueStyles() {
       background:var(--management-gold);
       color:#fffdf8;
       font-weight:850;
+      font:inherit;
+      cursor:pointer;
       text-decoration:none;
     }
 
@@ -824,13 +840,26 @@ function actionLabel(
 ) {
   switch (status) {
     case "REVIEW":
-      return "Review Proposal";
+      return "Issue Client Review";
 
+    case "AWAITING_CLIENT_SIGNATURE":
+      return "Reissue Client Review";
+
+    case "CLIENT_CHANGES_REQUESTED":
+      return "Return to Builder";
+
+    case "CLIENT_SIGNED":
+      return "Approve & Begin Checkout";
+
+    case "BUILDING":
     case "DRAFT":
       return "Continue Draft";
 
     case "READY_FOR_CHECKOUT":
-      return "Open Checkout-Ready Proposal";
+      return "Begin Checkout";
+
+    case "CHECKOUT_CREATED":
+      return "Resume Checkout";
 
     case "APPROVED":
       return "Open Approved Proposal";
@@ -843,6 +872,128 @@ function actionLabel(
 
     default:
       return "Open Proposal";
+  }
+}
+
+function proposalAction(status = "") {
+  return ({
+    REVIEW: "issue-client-review",
+    AWAITING_CLIENT_SIGNATURE: "issue-client-review",
+    CLIENT_CHANGES_REQUESTED: "return-to-draft",
+    CLIENT_SIGNED: "approve-and-checkout",
+    READY_FOR_CHECKOUT: "begin-checkout",
+    CHECKOUT_CREATED: "begin-checkout"
+  })[status] || "";
+}
+
+function proposalActionHtml(status, id) {
+  if (status === "BUILDING" || status === "DRAFT") {
+    return `<a class="proposal-open-btn" href="/connect/admissions/calculator/?proposalId=${encodeURIComponent(id)}">Continue Draft</a>`;
+  }
+
+  if (status === "PAID") {
+    return `<a class="proposal-open-btn" href="/intake-management/?proposalId=${encodeURIComponent(id)}">Continue to Enrollment</a>`;
+  }
+
+  const action = proposalAction(status);
+
+  if (!action) {
+    return `<span class="proposal-action-note">No action available for this status.</span>`;
+  }
+
+  return `<button class="proposal-open-btn" type="button" data-proposal-action="${esc(action)}" data-proposal-id="${esc(id)}">${esc(actionLabel(status))}</button>`;
+}
+
+async function runProposalAction(button) {
+  const proposalId = String(button?.dataset.proposalId || "").trim();
+  const action = String(button?.dataset.proposalAction || "").trim();
+
+  if (!proposalId || !action) return;
+
+  button.disabled = true;
+  const originalText = button.textContent;
+  button.textContent = "Working…";
+
+  try {
+    if (action === "issue-client-review") {
+      const response = await httpsCallable(
+        functions,
+        "issueProposalClientReview"
+      )({ proposalId });
+
+      const reviewPath = response.data?.reviewPath;
+
+      if (!reviewPath) {
+        throw new Error("Client review link was not returned.");
+      }
+
+      const reviewUrl = new URL(reviewPath, window.location.origin).href;
+
+      try {
+        await navigator.clipboard.writeText(reviewUrl);
+      } catch {
+        // The prompt below remains the reliable handoff when clipboard access is unavailable.
+      }
+
+      window.prompt(
+        "Client review link (copied when browser permission allows):",
+        reviewUrl
+      );
+
+      await loadProposalQueue();
+      return;
+    }
+
+    if (action === "return-to-draft") {
+      await httpsCallable(
+        functions,
+        "returnProposalToDraft"
+      )({ proposalId });
+
+      window.location.assign(
+        `/connect/admissions/calculator/?proposalId=${encodeURIComponent(proposalId)}`
+      );
+      return;
+    }
+
+    if (action === "approve-and-checkout") {
+      const approval = await httpsCallable(
+        functions,
+        "approveProposal"
+      )({ proposalId });
+
+      if (approval.data?.status !== "READY_FOR_CHECKOUT") {
+        throw new Error("Checkout-ready status was not returned.");
+      }
+    }
+
+    if (
+      action === "approve-and-checkout" ||
+      action === "begin-checkout"
+    ) {
+      const checkout = await httpsCallable(
+        functions,
+        "createProposalCheckout"
+      )({ proposalId });
+
+      if (checkout.data?.status === "PAID") {
+        window.location.assign(
+          `/intake-management/?proposalId=${encodeURIComponent(proposalId)}`
+        );
+        return;
+      }
+
+      if (!checkout.data?.checkoutUrl) {
+        throw new Error("Stripe checkout URL was not returned.");
+      }
+
+      window.location.assign(checkout.data.checkoutUrl);
+    }
+  } catch (error) {
+    console.error("[proposals] action failed:", error);
+    window.alert(error?.message || "Unable to complete the proposal action.");
+    button.disabled = false;
+    button.textContent = originalText;
   }
 }
 
@@ -880,16 +1031,6 @@ function proposalCardHtml(
   const updated =
     proposal.updatedAt ||
     proposal.createdAt;
-
-  const href =
-    status === "PAID"
-      ? "/intake-management/" +
-        `?proposalId=${encodeURIComponent(id)}`
-      : status === "REVIEW"
-        ? "/connect/proposals/review/" +
-          `?proposalId=${encodeURIComponent(id)}`
-        : "/connect/admissions/calculator/" +
-          `?proposalId=${encodeURIComponent(id)}`;
 
   return `
     <article
@@ -970,35 +1111,26 @@ function proposalCardHtml(
       </div>
 
       <div class="proposal-card-actions">
-        <a
-          class="proposal-open-btn"
-          href="${href}"
-        >
-          ${esc(
-            actionLabel(
-              status
-            )
-          )}
-        </a>
+        ${proposalActionHtml(status, id)}
       </div>
     </article>
   `;
 }
 
 /* ==================================================
-   Proposal Queue Grouping
+   Review & Approve Grouping
    ================================================== */
 
 const proposalGroups = [
   {
     key:
-      "REVIEW",
+      "REVIEW_APPROVE",
 
     title:
-      "Needs Review",
+      "Review & Approve",
 
     description:
-      "Submitted proposals awaiting review and approval."
+      "Issue family review, manage requested changes, and approve signed proposals."
   },
 
   {
@@ -1014,24 +1146,24 @@ const proposalGroups = [
 
   {
     key:
-      "READY_FOR_CHECKOUT",
+      "CHECKOUT_ENROLLMENT",
 
     title:
-      "Checkout Ready",
+      "Checkout & Enrollment",
 
     description:
-      "Approved proposals ready for the payment and enrollment handoff."
+      "Approved checkout, payment, and paid-family enrollment handoff."
   },
 
   {
     key:
-      "OTHER",
+      "CLOSED",
 
     title:
-      "Other / Completed",
+      "Closed",
 
     description:
-      "Approved, paid, locked, void, or other proposal states."
+      "Void or retired proposal records retained for audit."
   }
 ];
 
@@ -1041,20 +1173,26 @@ function proposalGroupKey(
   const status =
     proposal.status || "";
 
-  if (
-    status === "REVIEW" ||
-    status === "DRAFT" ||
-    status ===
-      "READY_FOR_CHECKOUT"
-  ) {
-    return status;
-  }
+  if (["BUILDING", "DRAFT"].includes(status)) return "DRAFT";
 
-  return "OTHER";
+  if ([
+    "REVIEW",
+    "AWAITING_CLIENT_SIGNATURE",
+    "CLIENT_CHANGES_REQUESTED",
+    "CLIENT_SIGNED"
+  ].includes(status)) return "REVIEW_APPROVE";
+
+  if ([
+    "READY_FOR_CHECKOUT",
+    "CHECKOUT_CREATED",
+    "PAID"
+  ].includes(status)) return "CHECKOUT_ENROLLMENT";
+
+  return "CLOSED";
 }
 
 /* ==================================================
-   Load Proposal Queue
+   Load Review & Approve
    ================================================== */
 
 async function loadProposalQueue() {
@@ -1067,12 +1205,12 @@ async function loadProposalQueue() {
     <div class="proposal-queue-header">
       <div>
         <h2>
-          Proposal Queue
+          Review &amp; Approve
         </h2>
 
         <p>
-          Review drafts, submitted proposals,
-          approvals, and checkout-ready offers.
+          Issue family reviews, manage requested changes,
+          approve signed proposals, and continue checkout.
         </p>
       </div>
 
@@ -1199,10 +1337,10 @@ async function loadProposalQueue() {
 
   const counts =
     {
-      REVIEW: 0,
+      REVIEW_APPROVE: 0,
       DRAFT: 0,
-      READY_FOR_CHECKOUT: 0,
-      OTHER: 0
+      CHECKOUT_ENROLLMENT: 0,
+      CLOSED: 0
     };
 
   proposals.forEach(
@@ -1228,8 +1366,8 @@ async function loadProposalQueue() {
       </span>
 
       <span class="proposal-count">
-        ${counts.REVIEW}
-        Review
+        ${counts.REVIEW_APPROVE}
+        Review & Approve
       </span>
 
       <span class="proposal-count">
@@ -1238,8 +1376,8 @@ async function loadProposalQueue() {
       </span>
 
       <span class="proposal-count">
-        ${counts.READY_FOR_CHECKOUT}
-        Checkout Ready
+        ${counts.CHECKOUT_ENROLLMENT}
+        Checkout & Enrollment
       </span>
     `;
   }
@@ -1313,6 +1451,11 @@ async function loadProposalQueue() {
         `;
       })
       .join("");
+
+  body.querySelectorAll("[data-proposal-action]")
+    .forEach((button) => {
+      button.addEventListener("click", () => runProposalAction(button));
+    });
 }
 
 /* ==================================================
@@ -1818,23 +1961,6 @@ async function loadAppointmentContext() {
    Optional proposalId redirect
    ================================================== */
 
-function redirectProposalId() {
-  if (
-    !proposalId
-  ) {
-    return false;
-  }
-
-  window.location.replace(
-    "/connect/admissions/calculator/" +
-    `?proposalId=${encodeURIComponent(
-      proposalId
-    )}`
-  );
-
-  return true;
-}
-
 /* ==================================================
    Start
    ================================================== */
@@ -1844,13 +1970,7 @@ try {
   // The shared guard also supplies location scope.
   await requireManagement();
 
-  if (
-    redirectProposalId()
-  ) {
-    // Redirecting into Prospect Builder.
-  } else if (
-    appointmentId
-  ) {
+  if (appointmentId) {
     await loadAppointmentContext();
   } else {
     await loadProposalQueue();
@@ -1893,14 +2013,14 @@ try {
         <p>
           ${esc(
             error?.message ||
-            "Proposal queue could not be loaded."
+            "Review & Approve could not be loaded."
           )}
         </p>
       </div>
     `;
   }
 }
-/* Proposal Queue header alignment */
+/* Review & Approve header alignment */
 document.addEventListener("DOMContentLoaded", () => {
   const style = document.createElement("style");
 

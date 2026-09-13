@@ -237,9 +237,9 @@ function orientRequestedProposal() {
     renderManagementLifecycle(
       orientation,
       {
-        currentStage: "enrollment",
-        completedThrough: "checkout",
-        currentLabel: "Enrollment",
+        currentStage: "checkout-enrollment",
+        completedThrough: "review-approve",
+        currentLabel: "Checkout & Enrollment",
         caseLabel: requestedProposalId,
         guidance:
           "Choose who will complete Intake; opening this case does not create an invite."

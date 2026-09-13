@@ -331,10 +331,10 @@ exports.createProposalCheckout = (0, https_1.onCall)({
                     ? replacingExpiredSessionId
                     : null,
                 createdBy: actorUid,
-                createdByName: cleanString(snapshot.coach &&
-                    typeof snapshot.coach ===
+                createdByName: cleanString(snapshot.preparedBy &&
+                    typeof snapshot.preparedBy ===
                         "object"
-                    ? snapshot.coach.name
+                    ? snapshot.preparedBy.name
                     : "") || null,
                 createdAt: firestore_1.FieldValue.serverTimestamp(),
             });

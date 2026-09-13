@@ -741,11 +741,11 @@ export const createProposalCheckout =
 
                 createdByName:
                   cleanString(
-                    snapshot.coach &&
-                    typeof snapshot.coach ===
+                    snapshot.preparedBy &&
+                    typeof snapshot.preparedBy ===
                       "object"
                       ? (
-                          snapshot.coach as
+                          snapshot.preparedBy as
                             Record<string, unknown>
                         ).name
                       : ""

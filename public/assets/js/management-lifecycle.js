@@ -4,13 +4,37 @@ export const MANAGEMENT_LIFECYCLE_STAGES = Object.freeze([
   { id: "appointment", label: "Appointment" },
   { id: "outcome", label: "Outcome" },
   { id: "prospect-builder", label: "Prospect Builder" },
-  { id: "review", label: "Review" },
-  { id: "approval", label: "Approval" },
-  { id: "checkout", label: "Checkout" },
-  { id: "enrollment", label: "Enrollment" },
-  { id: "intake", label: "Intake" },
-  { id: "activation", label: "Activation" }
+  { id: "review-approve", label: "Review & Approve" },
+  { id: "checkout-enrollment", label: "Checkout & Enrollment" },
+  { id: "intake-activation", label: "Intake & Activation" }
 ]);
+
+export function visibleStageForProposalStatus(status = "") {
+  const normalized = String(status || "").trim().toUpperCase();
+
+  if (["BUILDING", "DRAFT"].includes(normalized)) {
+    return "prospect-builder";
+  }
+
+  if ([
+    "REVIEW",
+    "AWAITING_CLIENT_SIGNATURE",
+    "CLIENT_CHANGES_REQUESTED",
+    "CLIENT_SIGNED"
+  ].includes(normalized)) {
+    return "review-approve";
+  }
+
+  if ([
+    "READY_FOR_CHECKOUT",
+    "CHECKOUT_CREATED",
+    "PAID"
+  ].includes(normalized)) {
+    return "checkout-enrollment";
+  }
+
+  return "";
+}
 
 function esc(value = "") {
   return String(value)
