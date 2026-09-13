@@ -378,8 +378,6 @@ const extras = {
       printButton:document.getElementById("printButton"),
       saveDraftButton:document.getElementById("saveDraftButton"),
       submitReviewButton:document.getElementById("submitReviewButton"),
-      approveProposalButton:document.getElementById("approveProposalButton"),
-      checkoutProposalButton:document.getElementById("checkoutProposalButton"),
       resetButton:document.getElementById("resetButton"),
 
       proposalWorkflow:
@@ -416,9 +414,7 @@ const extras = {
 
       [
         el.saveDraftButton,
-        el.submitReviewButton,
-        el.approveProposalButton,
-        el.checkoutProposalButton
+        el.submitReviewButton
       ].forEach((button) => {
         if (!button) return;
 
@@ -1755,197 +1751,6 @@ alert(
       }
     }
 
-async function approveCurrentProposal() {
-  if (pricingLabMode) {
-    console.warn(
-      "Pricing Lab blocked proposal write:",
-      "approveCurrentProposal"
-    );
-
-    return;
-  }
-
-  if (!proposalId) {
-    alert("No proposal ID was supplied.");
-    return;
-  }
-
-  const confirmed =
-    window.confirm(
-      `Approve ${proposalId} and prepare it for checkout?`
-    );
-
-  if (!confirmed) {
-    return;
-  }
-
-  const user =
-    await requireStaffSession();
-
-  if (!user) {
-    return;
-  }
-
-  const originalText =
-    el.approveProposalButton.textContent;
-
-  el.approveProposalButton.disabled = true;
-  el.approveProposalButton.textContent =
-    "Approving…";
-
-  try {
-    const approve =
-      httpsCallable(
-        functions,
-        "approveProposal"
-      );
-
-    const response =
-      await approve({
-        proposalId,
-
-        coachName:
-          el.coachName.value.trim() ||
-          null
-      });
-
-    if (
-      response.data?.status !==
-      "READY_FOR_CHECKOUT"
-    ) {
-      throw new Error(
-        "READY_FOR_CHECKOUT status was not returned."
-      );
-    }
-
-    el.saveDraftButton.textContent =
-      `${proposalId} — READY_FOR_CHECKOUT`;
-
-    el.submitReviewButton.textContent =
-      "Submitted for Review";
-
-    el.approveProposalButton.hidden = true;
-    el.approveProposalButton.disabled = true;
-    el.approveProposalButton.textContent =
-      "Proposal Approved";
-
-    el.checkoutProposalButton.hidden = false;
-    el.checkoutProposalButton.disabled = false;
-    el.checkoutProposalButton.textContent =
-      "Begin Checkout";
-
-    renderProposalWorkflow(
-      "READY_FOR_CHECKOUT"
-    );
-
-    alert(
-      `Proposal ${proposalId} approved and ready for checkout.`
-    );
-  } catch (error) {
-    console.error(
-      "Approve proposal failed:",
-      error
-    );
-
-    el.approveProposalButton.disabled = false;
-    el.approveProposalButton.textContent =
-      originalText;
-
-    alert(
-      error?.message ||
-      "Unable to approve the proposal."
-    );
-  }
-}
-
-async function beginProposalCheckout() {
-  if (pricingLabMode) {
-    console.warn(
-      "Pricing Lab blocked proposal write:",
-      "beginProposalCheckout"
-    );
-
-    return;
-  }
-
-  if (!proposalId) {
-    alert("No proposal ID was supplied.");
-    return;
-  }
-
-      const confirmed =
-        window.confirm(
-          `Begin Stripe checkout for ${proposalId}?`
-        );
-
-      if (!confirmed) {
-        return;
-      }
-
-      const user =
-        await requireStaffSession();
-
-      if (!user) {
-        return;
-      }
-
-      const originalText =
-        el.checkoutProposalButton.textContent;
-
-      el.checkoutProposalButton.disabled = true;
-      el.checkoutProposalButton.textContent =
-        "Opening Checkout…";
-
-      try {
-        const createCheckout =
-          httpsCallable(
-            functions,
-            "createProposalCheckout"
-          );
-
-        const response =
-          await createCheckout({
-            proposalId
-          });
-
-        const responseStatus =
-          String(
-            response.data?.status || ""
-          ).toUpperCase();
-
-        if (responseStatus === "PAID") {
-          window.location.reload();
-          return;
-        }
-
-        const checkoutUrl =
-          response.data?.checkoutUrl;
-
-        if (!checkoutUrl) {
-          throw new Error(
-            "Stripe checkout URL was not returned."
-          );
-        }
-
-        window.location.assign(checkoutUrl);
-      } catch (error) {
-        console.error(
-          "Proposal checkout failed:",
-          error
-        );
-
-        el.checkoutProposalButton.disabled = false;
-        el.checkoutProposalButton.textContent =
-          originalText;
-
-        alert(
-          error?.message ||
-          "Unable to begin Stripe checkout."
-        );
-      }
-    }
-
-
     function renderProposalWorkflow(
       status = "BUILDING"
     ) {
@@ -2127,49 +1932,24 @@ async function beginProposalCheckout() {
         }
       }
 
-      if (normalized === "BUILDING") {
-        el.saveDraftButton.hidden = false;
-        el.submitReviewButton.hidden = false;
-        el.approveProposalButton.hidden = true;
-        el.checkoutProposalButton.hidden = true;
-        el.resetButton.hidden = false;
-      }
+      if (!pricingLabMode) {
+        if (el.resetButton) {
+          el.resetButton.hidden = true;
+        }
 
-      if (normalized === "DRAFT") {
-        el.saveDraftButton.hidden = false;
-        el.submitReviewButton.hidden = false;
-        el.approveProposalButton.hidden = true;
-        el.checkoutProposalButton.hidden = true;
-        el.resetButton.hidden = false;
-      }
-
-      if (normalized === "REVIEW") {
-        el.saveDraftButton.hidden = true;
-        el.submitReviewButton.hidden = true;
-        el.approveProposalButton.hidden = false;
-        el.checkoutProposalButton.hidden = true;
-        el.resetButton.hidden = true;
-      }
-
-      if (normalized === "READY_FOR_CHECKOUT") {
-        el.saveDraftButton.hidden = true;
-        el.submitReviewButton.hidden = true;
-        el.approveProposalButton.hidden = true;
-        el.checkoutProposalButton.hidden = false;
-        el.resetButton.hidden = true;
-      }
-
-      if (
-        normalized === "CHECKOUT_CREATED" ||
-        normalized === "PAYMENT_PENDING" ||
-        normalized === "PAID" ||
-        normalized === "LOCKED"
-      ) {
-        el.saveDraftButton.hidden = true;
-        el.submitReviewButton.hidden = true;
-        el.approveProposalButton.hidden = true;
-        el.checkoutProposalButton.hidden = true;
-        el.resetButton.hidden = true;
+        if (
+          normalized === "BUILDING" ||
+          normalized === "DRAFT"
+        ) {
+          el.saveDraftButton.hidden = false;
+          el.submitReviewButton.hidden = false;
+        } else if (normalized === "REVIEW") {
+          el.saveDraftButton.hidden = true;
+          el.submitReviewButton.hidden = false;
+        } else {
+          el.saveDraftButton.hidden = true;
+          el.submitReviewButton.hidden = true;
+        }
       }
     }
 
@@ -2348,38 +2128,6 @@ async function beginProposalCheckout() {
             ? "Submitted for Review"
             : proposalStatus;
 
-        const canApprove =
-          proposalStatus === "REVIEW";
-
-        const canBeginCheckout =
-          proposalStatus ===
-          "READY_FOR_CHECKOUT";
-
-        const checkoutExists =
-          proposalStatus ===
-          "CHECKOUT_CREATED";
-
-        el.approveProposalButton.hidden =
-          !canApprove;
-
-        el.approveProposalButton.disabled =
-          !canApprove;
-
-        el.approveProposalButton.textContent =
-          "Approve Proposal";
-
-        el.checkoutProposalButton.hidden =
-          !canBeginCheckout &&
-          !checkoutExists;
-
-        el.checkoutProposalButton.disabled =
-          !canBeginCheckout &&
-          !checkoutExists;
-
-        el.checkoutProposalButton.textContent =
-          checkoutExists
-            ? "Resume Checkout"
-            : "Begin Checkout";
           }
 
       console.log(
