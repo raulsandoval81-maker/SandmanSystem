@@ -602,13 +602,14 @@ export const returnAthleteAssessmentPin =
           requestedManualXp
         ) ||
         requestedManualXp < 0 ||
+        requestedManualXp >= 200 ||
         !Number.isInteger(
           requestedManualXp
         )
       ) {
         throw new HttpsError(
           "invalid-argument",
-          "Manual prior-experience XP must be a whole number."
+          "Less-than-1-year recognition must be a whole number from 0 to 199 XP."
         );
       }
 

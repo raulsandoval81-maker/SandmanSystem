@@ -54,7 +54,7 @@ function experiencePlan(
       );
 
     return {
-      label: "Manual Coach Recommendation",
+      label: "Less than 1 Year",
       total,
       now: total,
       held: 0,
@@ -258,87 +258,22 @@ function renderPin(pin) {
 
           <div class="experience-box">
             <span>
-              Coach Verification
+              Coach Validation
             </span>
 
             <strong>
               ${esc(plan.label)}
             </strong>
 
-            ${
-              experienceNote
-                ? `
-                  <small>
-                    ${esc(experienceNote)}
-                  </small>
-                `
-                : ""
-            }
-          </div>
-
-          <div class="experience-box">
-            <span>
-              Recognition Total
-            </span>
-
-            <strong>
-              ${esc(plan.total)} XP
-            </strong>
-
             <small>
-              Total prior-experience recognition.
-            </small>
-          </div>
-
-          <div class="experience-box">
-            <span>
-              Issue Now
-            </span>
-
-            <strong>
-              ${esc(plan.now)} XP
-            </strong>
-
-            <small>
-              Added to active-rank XP now.
-            </small>
-          </div>
-
-          <div class="experience-box">
-            <span>
-              Held Credit
-            </span>
-
-            <strong>
-              ${esc(plan.held)} XP
-            </strong>
-
-            <small>
+              ${esc(plan.total)} XP total
+              ·
+              ${esc(plan.now)} XP now
               ${
                 plan.held > 0
-                  ? `Released at ${esc(
-                      plan.schedule
-                    )}.`
-                  : "No deferred credit."
+                  ? ` · ${esc(plan.held)} XP held until ${esc(plan.schedule)}`
+                  : ""
               }
-            </small>
-          </div>
-
-          <div class="experience-box">
-            <span>
-              FEAR
-            </span>
-
-            <strong>
-              Coach Review
-            </strong>
-
-            <small>
-              ${esc(
-                fearSummary(
-                  pin.fear || {}
-                )
-              )}
             </small>
           </div>
 
@@ -352,11 +287,46 @@ function renderPin(pin) {
             </strong>
 
             <small>
-              ${esc(coachNotes)}
+              Coach placement recommendation.
             </small>
           </div>
 
         </div>
+
+        <details class="experience-assessment-details">
+          <summary>
+            View Coach Assessment
+          </summary>
+
+          <div class="experience-assessment-details__body">
+
+            <p>
+              <strong>FEAR:</strong>
+              ${esc(
+                fearSummary(
+                  pin.fear || {}
+                )
+              )}
+            </p>
+
+            <p>
+              <strong>Coach Notes:</strong>
+              ${esc(coachNotes)}
+            </p>
+
+            ${
+              experienceNote
+                ? `
+                  <p>
+                    <strong>Experience Note:</strong>
+                    ${esc(experienceNote)}
+                  </p>
+                `
+                : ""
+            }
+
+          </div>
+        </details>
 
         <div class="experience-review">
 

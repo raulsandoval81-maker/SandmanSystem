@@ -291,8 +291,9 @@ exports.returnAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         const requestedManualXp = Number(req.data?.manualExperienceXp);
         if (!Number.isFinite(requestedManualXp) ||
             requestedManualXp < 0 ||
+            requestedManualXp >= 200 ||
             !Number.isInteger(requestedManualXp)) {
-            throw new https_1.HttpsError("invalid-argument", "Manual prior-experience XP must be a whole number.");
+            throw new https_1.HttpsError("invalid-argument", "Less-than-1-year recognition must be a whole number from 0 to 199 XP.");
         }
         if (!experienceNote) {
             throw new https_1.HttpsError("invalid-argument", "Manual prior-experience XP requires a Coach note.");

@@ -235,8 +235,8 @@ function renderPin(pin) {
               data-experience-mode
               data-pin="${esc(pinId)}"
             >
-              <option value="0">
-                None — 0 XP
+              <option value="lt1">
+                Less than 1 Year
               </option>
 
               <option value="1">
@@ -249,10 +249,6 @@ function renderPin(pin) {
 
               <option value="3">
                 3+ Years — 600 XP
-              </option>
-
-              <option value="manual">
-                Manual Edge Case
               </option>
             </select>
           </label>
@@ -278,36 +274,64 @@ function renderPin(pin) {
         <div
           class="assessment-manual"
           data-manual-area="${esc(pinId)}"
-          hidden
         >
           <label class="assessment-field">
             <span>
-              Manual Recognition XP
+              Less Than 1 Year Recognition
             </span>
 
-            <input
-              data-manual-xp
+            <select
+              data-less-than-one-xp
               data-pin="${esc(pinId)}"
-              type="number"
-              min="0"
-              step="1"
-              inputmode="numeric"
-              placeholder="Enter XP"
             >
+              <option value="50">
+                50 XP
+              </option>
+
+              <option value="100">
+                100 XP
+              </option>
+
+              <option value="manual">
+                Manual
+              </option>
+            </select>
           </label>
 
-          <label class="assessment-field">
-            <span>
-              Required Edge-Case Note
-            </span>
+          <div
+            data-custom-xp-area="${esc(pinId)}"
+            hidden
+          >
+            <label class="assessment-field">
+              <span>
+                Manual Recognition XP
+              </span>
 
-            <textarea
-              data-experience-note
-              data-pin="${esc(pinId)}"
-              rows="3"
-              placeholder="Explain why the normal 200 / 400 / 600 rule does not fit."
-            ></textarea>
-          </label>
+              <input
+                data-manual-xp
+                data-pin="${esc(pinId)}"
+                type="number"
+                min="0"
+                max="199"
+                step="1"
+                inputmode="numeric"
+                placeholder="0–199 XP"
+              >
+            </label>
+
+            <label class="assessment-field">
+              <span>
+                Required Coach Note
+              </span>
+
+              <textarea
+                data-experience-note
+                data-pin="${esc(pinId)}"
+                rows="3"
+                placeholder="Explain the custom recognition recommendation."
+              ></textarea>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -371,6 +395,72 @@ function renderPin(pin) {
 }
 
 function wireExperienceControls() {
+  function syncLessThanOne(pinId) {
+    const selector =
+      document.querySelector(
+        `[data-less-than-one-xp][data-pin="${CSS.escape(
+          pinId
+        )}"]`
+      );
+
+    const customArea =
+      document.querySelector(
+        `[data-custom-xp-area="${CSS.escape(
+          pinId
+        )}"]`
+      );
+
+    const manualInput =
+      document.querySelector(
+        `[data-manual-xp][data-pin="${CSS.escape(
+          pinId
+        )}"]`
+      );
+
+    const recognition =
+      document.querySelector(
+        `[data-recognition-xp="${CSS.escape(
+          pinId
+        )}"]`
+      );
+
+    const selection =
+      clean(selector?.value || "50");
+
+    const isManual =
+      selection === "manual";
+
+    if (customArea) {
+      customArea.hidden =
+        !isManual;
+    }
+
+    if (!recognition) return;
+
+    if (isManual) {
+      const amount =
+        Math.max(
+          0,
+          Math.min(
+            199,
+            Math.floor(
+              Number(
+                manualInput?.value || 0
+              )
+            )
+          )
+        );
+
+      recognition.textContent =
+        manualInput?.value
+          ? `${amount} XP`
+          : "Manual";
+    } else {
+      recognition.textContent =
+        `${Number(selection)} XP`;
+    }
+  }
+
   document
     .querySelectorAll(
       "[data-experience-mode]"
@@ -385,7 +475,7 @@ function wireExperienceControls() {
           const value =
             clean(select.value);
 
-          const manualArea =
+          const lessThanOneArea =
             document.querySelector(
               `[data-manual-area="${CSS.escape(
                 pinId
@@ -399,24 +489,42 @@ function wireExperienceControls() {
               )}"]`
             );
 
-          const isManual =
-            value === "manual";
+          const isLessThanOne =
+            value === "lt1";
 
-          if (manualArea) {
-            manualArea.hidden =
-              !isManual;
+          if (lessThanOneArea) {
+            lessThanOneArea.hidden =
+              !isLessThanOne;
           }
 
-          if (recognition) {
+          if (isLessThanOne) {
+            syncLessThanOne(pinId);
+          } else if (recognition) {
             recognition.textContent =
-              isManual
-                ? "Manual"
-                : `${xpForExperience(
-                    value
-                  )} XP`;
+              `${xpForExperience(
+                value
+              )} XP`;
           }
         }
       );
+    });
+
+  document
+    .querySelectorAll(
+      "[data-less-than-one-xp]"
+    )
+    .forEach((select) => {
+      const pinId =
+        clean(select.dataset.pin);
+
+      select.addEventListener(
+        "change",
+        () => {
+          syncLessThanOne(pinId);
+        }
+      );
+
+      syncLessThanOne(pinId);
     });
 
   document
@@ -430,25 +538,7 @@ function wireExperienceControls() {
           const pinId =
             clean(input.dataset.pin);
 
-          const recognition =
-            document.querySelector(
-              `[data-recognition-xp="${CSS.escape(
-                pinId
-              )}"]`
-            );
-
-          if (!recognition) return;
-
-          const amount =
-            Math.max(
-              0,
-              Number(
-                input.value || 0
-              )
-            );
-
-          recognition.textContent =
-            `${Math.floor(amount)} XP`;
+          syncLessThanOne(pinId);
         }
       );
     });
@@ -566,63 +656,92 @@ async function submitAssessment(
 
     if (
       experienceSelection ===
-      "manual"
+      "lt1"
     ) {
-      const manualXpRaw =
+      const lessThanOneSelection =
         valueFor(
-          "[data-manual-xp]",
+          "[data-less-than-one-xp]",
           pinId
-        );
+        ) || "50";
 
-      const experienceNote =
-        valueFor(
-          "[data-experience-note]",
-          pinId
-        );
+      let recognitionXp = 0;
+      let experienceNote = "";
 
       if (
-        manualXpRaw === ""
+        lessThanOneSelection ===
+        "manual"
       ) {
-        throw new Error(
-          "Enter the manual prior-experience XP amount."
-        );
-      }
+        const manualXpRaw =
+          valueFor(
+            "[data-manual-xp]",
+            pinId
+          );
 
-      const manualXp =
-        Number(manualXpRaw);
+        experienceNote =
+          valueFor(
+            "[data-experience-note]",
+            pinId
+          );
 
-      if (
-        !Number.isInteger(
-          manualXp
-        ) ||
-        manualXp < 0
-      ) {
-        throw new Error(
-          "Manual XP must be a whole number of 0 or more."
-        );
-      }
+        if (manualXpRaw === "") {
+          throw new Error(
+            "Enter the manual prior-experience XP amount."
+          );
+        }
 
-      if (!experienceNote) {
-        throw new Error(
-          "Manual prior-experience XP requires an edge-case note."
-        );
+        recognitionXp =
+          Number(manualXpRaw);
+
+        if (
+          !Number.isInteger(
+            recognitionXp
+          ) ||
+          recognitionXp < 0 ||
+          recognitionXp >= 200
+        ) {
+          throw new Error(
+            "Manual XP must be a whole number from 0 to 199."
+          );
+        }
+
+        if (!experienceNote) {
+          throw new Error(
+            "Manual recognition requires a Coach note."
+          );
+        }
+      } else {
+        recognitionXp =
+          Number(
+            lessThanOneSelection
+          );
+
+        if (
+          ![50, 100].includes(
+            recognitionXp
+          )
+        ) {
+          throw new Error(
+            "Choose 50 XP, 100 XP, or Manual."
+          );
+        }
       }
 
       payload.experienceMode =
         "manual";
 
       payload.manualExperienceXp =
-        manualXp;
+        recognitionXp;
 
       payload.experienceNote =
-        experienceNote;
+        experienceNote ||
+        "Coach verified less than 1 year of prior experience.";
     } else {
       payload.experienceMode =
         "standard";
 
       payload.verifiedExperienceYears =
         Number(
-          experienceSelection || 0
+          experienceSelection
         );
     }
 
