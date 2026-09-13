@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  />
+
+  <title>Proposal Review | Sandman Admissions</title>
+
+  <link
+    rel="stylesheet"
+    href="/assets/css/site.css"
+  />
+  <link
+    rel="stylesheet"
+    href="/assets/css/management-ui.css"
+  />
+
+  <style>
+    .review-page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 56px;
+    }
+
+    .review-header,
+    .review-card {
+      background: #fff;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 18px;
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    .review-header h1 {
+      margin: 4px 0 8px;
+    }
+
+    .review-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .review-summary {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .review-metric {
+      border: 1px solid rgba(0,0,0,.09);
+      border-radius: 14px;
+      padding: 14px;
+    }
+
+    .review-metric small {
+      display: block;
+      opacity: .7;
+      margin-bottom: 5px;
+    }
+
+    .review-metric strong {
+      font-size: 1.2rem;
+    }
+
+    .review-athlete {
+      border-top: 1px solid rgba(0,0,0,.08);
+      padding: 14px 0;
+    }
+
+    .review-athlete:first-child {
+      border-top: 0;
+    }
+
+    .status-line {
+      margin: 12px 0;
+      font-weight: 700;
+    }
+
+    .status-error {
+      color: #8b1e1e;
+    }
+
+    @media print {
+      .no-print {
+        display: none !important;
+      }
+
+      .review-page {
+        width: 100%;
+        padding: 0;
+      }
+
+      .review-header,
+      .review-card {
+        box-shadow: none;
+        border: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="review-page">
+
+    <header class="review-header">
+      <div>
+        <p class="eyebrow">
+          Sandman Admissions 3.0
+        </p>
+
+        <h1>
+          Proposal Review
+        </h1>
+
+        <p>
+          Review the locked proposal before approval
+          and checkout.
+        </p>
+      </div>
+
+      <div class="review-actions no-print">
+        <a
+          id="backToBuilder"
+          class="button secondary"
+          href="/connect/proposals/"
+        >
+          ← Back to Proposals
+        </a>
+
+        <button
+          id="printProposalButton"
+          class="button secondary"
+          type="button"
+        >
+          Print Proposal
+        </button>
+
+        <button
+          id="approveProposalButton"
+          class="button"
+          type="button"
+        >
+          Approve Proposal
+        </button>
+      </div>
+    </header>
+
+    <p
+      id="reviewStatus"
+      class="status-line"
+      aria-live="polite"
+    >
+      Loading proposal…
+    </p>
+
+    <section class="review-card">
+      <p class="eyebrow">
+        Proposal
+      </p>
+
+      <h2 id="proposalIdLabel">
+        —
+      </h2>
+
+      <div class="review-summary">
+        <div class="review-metric">
+          <small>Family / Prospect</small>
+          <strong id="familyName">—</strong>
+        </div>
+
+        <div class="review-metric">
+          <small>Due now</small>
+          <strong id="dueNow">—</strong>
+        </div>
+
+        <div class="review-metric">
+          <small>Monthly membership</small>
+          <strong id="monthlyMembership">—</strong>
+        </div>
+
+        <div class="review-metric">
+          <small>Annual renewal</small>
+          <strong id="annualRenewal">—</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="review-card">
+      <p class="eyebrow">
+        Athletes
+      </p>
+
+      <div id="athletes">
+        —
+      </div>
+    </section>
+
+    <section class="review-card">
+      <p class="eyebrow">
+        Agreement
+      </p>
+
+      <div id="agreement">
+        —
+      </div>
+    </section>
+
+    <section class="review-card">
+      <p class="eyebrow">
+        Management Recommendation
+      </p>
+
+      <div id="recommendation">
+        —
+      </div>
+    </section>
+
+  </main>
+
+  <script
+    type="module"
+    src="/connect/proposals/review/review.js"
+  ></script>
+</body>
+</html>

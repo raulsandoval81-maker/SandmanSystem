@@ -1677,8 +1677,11 @@ alert(
           "REVIEW"
         );
 
-        alert(
-          `Proposal ${proposalId} submitted for review successfully.`
+        window.location.assign(
+          "/connect/proposals/review/" +
+          `?proposalId=${encodeURIComponent(
+            proposalId
+          )}`
         );
       } catch (error) {
         console.error(

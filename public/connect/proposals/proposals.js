@@ -885,8 +885,11 @@ function proposalCardHtml(
     status === "PAID"
       ? "/intake-management/" +
         `?proposalId=${encodeURIComponent(id)}`
-      : "/connect/admissions/calculator/" +
-        `?proposalId=${encodeURIComponent(id)}`;
+      : status === "REVIEW"
+        ? "/connect/proposals/review/" +
+          `?proposalId=${encodeURIComponent(id)}`
+        : "/connect/admissions/calculator/" +
+          `?proposalId=${encodeURIComponent(id)}`;
 
   return `
     <article
@@ -933,7 +936,7 @@ function proposalCardHtml(
 
         <div>
           <small>
-            Due at Enrollment
+            Due Now
           </small>
 
           <strong>
