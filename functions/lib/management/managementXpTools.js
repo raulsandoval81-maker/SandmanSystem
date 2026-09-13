@@ -432,6 +432,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     const reason = clean(req.data?.reason);
     const category = clean(req.data?.category).toLowerCase();
     const adjustmentId = clean(req.data?.adjustmentId);
+    const discipline = clean(req.data?.discipline).toLowerCase();
     const allowedCategories = new Set([
         "delayed_onboarding",
         "downtime_recovery",
@@ -455,6 +456,9 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     if (!adjustmentId) {
         throw new https_1.HttpsError("invalid-argument", "adjustmentId is required.");
     }
+    if (!discipline) {
+        throw new https_1.HttpsError("invalid-argument", "discipline is required.");
+    }
     const athleteRef = db.doc(`athletes/${athleteUid}`);
     const now = firestore_1.Timestamp.now();
     return db.runTransaction(async (tx) => {
@@ -476,10 +480,35 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
                 duplicate: true
             };
         }
-        const base = (0, authoritativeXpService_1.classifyAthlete)(athlete, athleteUid);
-        const tier = (0, authoritativeXpService_1.athleteTier)(athlete, base);
-        const xpCap = (0, authoritativeXpService_1.activeXpCap)(athlete, base);
-        const beforeXp = (0, xpDomainPolicy_1.resolveAuthoritativeActiveRankXp)(athlete);
+        const disciplineRecords = athlete.disciplines &&
+            typeof athlete.disciplines ===
+                "object"
+            ? athlete.disciplines
+            : {};
+        const legacyDiscipline = clean(athlete.primaryDiscipline ||
+            athlete.activeDiscipline ||
+            athlete.discipline ||
+            athlete.art ||
+            athlete.sport).toLowerCase();
+        const nestedProgression = disciplineRecords[discipline] &&
+            typeof disciplineRecords[discipline] === "object"
+            ? disciplineRecords[discipline]
+            : null;
+        const usesLegacyProgression = !nestedProgression &&
+            legacyDiscipline ===
+                discipline;
+        if (!nestedProgression &&
+            !usesLegacyProgression) {
+            throw new https_1.HttpsError("failed-precondition", "ATHLETE_DISCIPLINE_NOT_FOUND");
+        }
+        const progression = nestedProgression ||
+            athlete;
+        const base = nestedProgression
+            ? (0, authoritativeXpService_1.classifyAthlete)(progression)
+            : (0, authoritativeXpService_1.classifyAthlete)(athlete, athleteUid);
+        const tier = (0, authoritativeXpService_1.athleteTier)(progression, base);
+        const xpCap = (0, authoritativeXpService_1.activeXpCap)(progression, base);
+        const beforeXp = (0, xpDomainPolicy_1.resolveAuthoritativeActiveRankXp)(progression);
         const afterXp = Math.max(0, Math.min(xpCap, beforeXp + amount));
         const delta = afterXp - beforeXp;
         if (delta <= 0) {
@@ -489,47 +518,49 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         const beforeStripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, beforeXp, xpCap);
         const stripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, afterXp, xpCap);
         const athletePatch = {
-            xp: afterXp,
-            xpCap,
-            stripeCount,
-            trackBase: base,
             updatedAt: now
         };
+        const progressionPrefix = nestedProgression
+            ? `disciplines.${discipline}.`
+            : "";
+        athletePatch[`${progressionPrefix}xp`] = afterXp;
+        athletePatch[`${progressionPrefix}xpCap`] = xpCap;
+        athletePatch[`${progressionPrefix}stripeCount`] = stripeCount;
+        athletePatch[`${progressionPrefix}trackBase`] = base;
+        athletePatch[`${progressionPrefix}updatedAt`] = now;
         if (lifetime.delta > 0) {
             athletePatch.lifetimeXp =
                 lifetime.after;
         }
         if (base === "F8") {
             const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
-                ...athlete,
+                ...progression,
                 progressionTier: tier,
                 stripeCount
             });
             if (remoteAccess.gatewayReached) {
-                athletePatch["unlocks.strength"] = true;
-                athletePatch["unlocks.honor"] = true;
+                athletePatch[`${progressionPrefix}unlocks.strength`] = true;
+                athletePatch[`${progressionPrefix}unlocks.honor`] = true;
             }
         }
         const ratio = xpCap > 0
             ? afterXp / xpCap
             : 0;
-        const testingState = clean(athlete?.testing
+        const testingState = clean(progression?.testing
             ?.state ||
             "ACTIVE").toUpperCase();
         if ((testingState === "ACTIVE" ||
             testingState === "TEMPLE") &&
             ratio >= 1) {
-            athletePatch["testing.state"] = "ELIGIBLE";
-            athletePatch.tierStatus =
-                "eligible";
-            athletePatch["testing.testEligibleAt"] = now;
+            athletePatch[`${progressionPrefix}testing.state`] = "ELIGIBLE";
+            athletePatch[`${progressionPrefix}tierStatus`] = "eligible";
+            athletePatch[`${progressionPrefix}testing.testEligibleAt`] = now;
         }
         else if (testingState === "ACTIVE" &&
             ratio >= 0.9) {
-            athletePatch["testing.state"] = "TEMPLE";
-            athletePatch.tierStatus =
-                "temple";
-            athletePatch["testing.templeEnteredAt"] = now;
+            athletePatch[`${progressionPrefix}testing.state`] = "TEMPLE";
+            athletePatch[`${progressionPrefix}tierStatus`] = "temple";
+            athletePatch[`${progressionPrefix}testing.templeEnteredAt`] = now;
         }
         tx.set(athleteRef, athletePatch, {
             merge: true
@@ -553,11 +584,13 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             lifetimeXpDelta: lifetime.delta,
             base,
             tier,
+            discipline,
             note: reason,
             awardIdentity,
             meta: {
                 source: "management_adjustment",
                 category,
+                discipline,
                 adjustmentId
             }
         };
@@ -592,6 +625,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
                 athleteUid,
             base,
             tier,
+            discipline,
             monthKey: mk,
             logId: logRef.id,
             awardIdentity
@@ -601,6 +635,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             awardIdentity,
             kind: "MANAGEMENT_ADJUSTMENT",
             source: "management_adjustment",
+            discipline,
             createdAt: now,
             logId: logRef.id,
             result

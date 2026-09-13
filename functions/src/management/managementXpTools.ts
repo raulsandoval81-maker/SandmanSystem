@@ -1050,6 +1050,11 @@ export const createManagementXpAdjustment =
         req.data?.adjustmentId
       );
 
+    const discipline =
+      clean(
+        req.data?.discipline
+      ).toLowerCase();
+
     const allowedCategories =
       new Set([
         "delayed_onboarding",
@@ -1098,6 +1103,13 @@ export const createManagementXpAdjustment =
       throw new HttpsError(
         "invalid-argument",
         "adjustmentId is required."
+      );
+    }
+
+    if (!discipline) {
+      throw new HttpsError(
+        "invalid-argument",
+        "discipline is required."
       );
     }
 
@@ -1162,27 +1174,78 @@ export const createManagementXpAdjustment =
           };
         }
 
-        const base =
-          classifyAthlete(
-            athlete,
-            athleteUid
+        const disciplineRecords =
+          athlete.disciplines &&
+          typeof athlete.disciplines ===
+            "object"
+            ? athlete.disciplines
+            : {};
+
+        const legacyDiscipline =
+          clean(
+            athlete.primaryDiscipline ||
+            athlete.activeDiscipline ||
+            athlete.discipline ||
+            athlete.art ||
+            athlete.sport
+          ).toLowerCase();
+
+        const nestedProgression =
+          disciplineRecords[
+            discipline
+          ] &&
+          typeof disciplineRecords[
+            discipline
+          ] === "object"
+            ? disciplineRecords[
+                discipline
+              ]
+            : null;
+
+        const usesLegacyProgression =
+          !nestedProgression &&
+          legacyDiscipline ===
+            discipline;
+
+        if (
+          !nestedProgression &&
+          !usesLegacyProgression
+        ) {
+          throw new HttpsError(
+            "failed-precondition",
+            "ATHLETE_DISCIPLINE_NOT_FOUND"
           );
+        }
+
+        const progression =
+          nestedProgression ||
+          athlete;
+
+        const base =
+          nestedProgression
+            ? classifyAthlete(
+                progression
+              )
+            : classifyAthlete(
+                athlete,
+                athleteUid
+              );
 
         const tier =
           athleteTier(
-            athlete,
+            progression,
             base
           );
 
         const xpCap =
           activeXpCap(
-            athlete,
+            progression,
             base
           );
 
         const beforeXp =
           resolveAuthoritativeActiveRankXp(
-            athlete
+            progression
           );
 
         const afterXp =
@@ -1229,19 +1292,34 @@ export const createManagementXpAdjustment =
 
         const athletePatch:
           Record<string, any> = {
-            xp:
-              afterXp,
-
-            xpCap,
-
-            stripeCount,
-
-            trackBase:
-              base,
-
             updatedAt:
               now
           };
+
+        const progressionPrefix =
+          nestedProgression
+            ? `disciplines.${discipline}.`
+            : "";
+
+        athletePatch[
+          `${progressionPrefix}xp`
+        ] = afterXp;
+
+        athletePatch[
+          `${progressionPrefix}xpCap`
+        ] = xpCap;
+
+        athletePatch[
+          `${progressionPrefix}stripeCount`
+        ] = stripeCount;
+
+        athletePatch[
+          `${progressionPrefix}trackBase`
+        ] = base;
+
+        athletePatch[
+          `${progressionPrefix}updatedAt`
+        ] = now;
 
         if (lifetime.delta > 0) {
           athletePatch.lifetimeXp =
@@ -1251,7 +1329,7 @@ export const createManagementXpAdjustment =
         if (base === "F8") {
           const remoteAccess =
             resolveF8RemoteAccess({
-              ...athlete,
+              ...progression,
               progressionTier:
                 tier,
               stripeCount
@@ -1261,11 +1339,11 @@ export const createManagementXpAdjustment =
             remoteAccess.gatewayReached
           ) {
             athletePatch[
-              "unlocks.strength"
+              `${progressionPrefix}unlocks.strength`
             ] = true;
 
             athletePatch[
-              "unlocks.honor"
+              `${progressionPrefix}unlocks.honor`
             ] = true;
           }
         }
@@ -1277,7 +1355,7 @@ export const createManagementXpAdjustment =
 
         const testingState =
           clean(
-            athlete?.testing
+            progression?.testing
               ?.state ||
             "ACTIVE"
           ).toUpperCase();
@@ -1290,28 +1368,30 @@ export const createManagementXpAdjustment =
           ratio >= 1
         ) {
           athletePatch[
-            "testing.state"
+            `${progressionPrefix}testing.state`
           ] = "ELIGIBLE";
 
-          athletePatch.tierStatus =
-            "eligible";
+          athletePatch[
+            `${progressionPrefix}tierStatus`
+          ] = "eligible";
 
           athletePatch[
-            "testing.testEligibleAt"
+            `${progressionPrefix}testing.testEligibleAt`
           ] = now;
         } else if (
           testingState === "ACTIVE" &&
           ratio >= 0.9
         ) {
           athletePatch[
-            "testing.state"
+            `${progressionPrefix}testing.state`
           ] = "TEMPLE";
 
-          athletePatch.tierStatus =
-            "temple";
+          athletePatch[
+            `${progressionPrefix}tierStatus`
+          ] = "temple";
 
           athletePatch[
-            "testing.templeEnteredAt"
+            `${progressionPrefix}testing.templeEnteredAt`
           ] = now;
         }
 
@@ -1371,6 +1451,7 @@ export const createManagementXpAdjustment =
 
           base,
           tier,
+          discipline,
 
           note:
             reason,
@@ -1382,6 +1463,8 @@ export const createManagementXpAdjustment =
               "management_adjustment",
 
             category,
+
+            discipline,
 
             adjustmentId
           }
@@ -1457,6 +1540,7 @@ export const createManagementXpAdjustment =
 
           base,
           tier,
+          discipline,
           monthKey:
             mk,
 
@@ -1479,6 +1563,8 @@ export const createManagementXpAdjustment =
 
             source:
               "management_adjustment",
+
+            discipline,
 
             createdAt:
               now,
