@@ -216,3 +216,81 @@
     width: 100%;
   }
 }
+
+/* XP Adjustments — stronger day-mode contrast */
+
+.adjustment-card {
+  border: 2px solid #c9cdd3;
+  background: #ffffff;
+}
+
+.adjustment-policy,
+.adjustment-warning {
+  border: 2px solid #d2b45f;
+  background: #fff8e8;
+}
+
+.adjustment-eyebrow {
+  color: #4a4f57;
+  font-size: .78rem;
+}
+
+.athlete-search label,
+.field > span {
+  color: #24272c;
+  font-weight: 900;
+}
+
+.search-row input,
+.field input,
+.field select,
+.field textarea {
+  border: 2px solid #aeb4bc;
+  background: #ffffff;
+  color: #17191d;
+}
+
+.search-row input:focus,
+.field input:focus,
+.field select:focus,
+.field textarea:focus {
+  border-color: var(--management-gold);
+  outline: 3px solid rgba(179,138,22,.18);
+  outline-offset: 1px;
+}
+
+.status-line {
+  color: #50555d;
+  font-weight: 650;
+}
+
+.athlete-id {
+  color: #34383e;
+  font-weight: 900;
+}
+
+.summary-item {
+  border: 2px solid #c4c9d0;
+  background: #f5f6f8;
+}
+
+.summary-item span {
+  color: #4a4f57;
+  font-weight: 900;
+}
+
+.summary-item strong {
+  color: #15171a;
+  font-size: 1rem;
+  font-weight: 900;
+}
+
+.selected-athlete-head h3,
+.adjustment-card h3 {
+  color: #15171a;
+}
+
+.result-button {
+  border: 2px solid #c4c9d0;
+  background: #ffffff;
+}
