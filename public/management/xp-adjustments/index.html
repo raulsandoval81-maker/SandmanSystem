@@ -8,10 +8,7 @@
     content="width=device-width,initial-scale=1"
   >
 
-  <link
-    rel="stylesheet"
-    href="/management/hub/management.css"
-  >
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
   <link
     rel="stylesheet"
     href="/assets/css/site.css"
@@ -26,213 +23,13 @@
 
 <body>
 
-<div class="management-shell">
-
-  <aside
-    id="managementSidebar"
-    class="management-sidebar"
+  <nav
+    class="management-pipeline-nav"
     aria-label="Management navigation"
-  >
-    <div class="sidebar-brand">
-      <p class="eyebrow">
-        Sandman System
-      </p>
+  ></nav>
 
-      <strong>
-        Academy Management
-      </strong>
-    </div>
+  <main class="management-wrap xp-adjustments-wrap">
 
-    <nav class="sidebar-nav">
-
-      <a
-        class="sidebar-link"
-        href="/management/hub/"
-      >
-        <span>Overview</span>
-      </a>
-
-      <p class="sidebar-section-label">
-        Pipeline
-      </p>
-
-      <a
-        class="sidebar-link"
-        href="/connect/leads/"
-      >
-        <span>Leads</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/connect/appointments/"
-      >
-        <span>Appointments</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/connect/proposals/"
-      >
-        <span>Proposals</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/intake-management/"
-      >
-        <span>Enrollment</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/management/members/"
-      >
-        <span>Members</span>
-      </a>
-
-      <p class="sidebar-section-label">
-        Communication
-      </p>
-
-      <a
-        class="sidebar-link"
-        href="/management/inbox/"
-      >
-        <span>Inbox</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/connect/admissions-requests/"
-      >
-        <span>Promotions</span>
-      </a>
-
-      <p class="sidebar-section-label">
-        Operations
-      </p>
-
-      <a
-        class="sidebar-link"
-        href="/management/schedule/"
-      >
-        <span>Schedule</span>
-      </a>
-
-      <span
-        class="sidebar-link sidebar-link--pending"
-      >
-        <span>Attendance</span>
-        <small>Pending</small>
-      </span>
-
-      <span
-        class="sidebar-link sidebar-link--pending"
-      >
-        <span>Reports</span>
-        <small>Pending</small>
-      </span>
-
-      <p class="sidebar-section-label">
-        Tools
-      </p>
-
-      <a
-        class="sidebar-link"
-        href="/management/experience-validation/"
-      >
-        <span>Experience Validation</span>
-      </a>
-
-      <a
-        class="sidebar-link active"
-        href="/management/xp-adjustments/"
-        aria-current="page"
-      >
-        <span>XP Adjustments</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/management/pricing/"
-      >
-        <span>Pricing &amp; Estimates</span>
-      </a>
-
-      <a
-        class="sidebar-link"
-        href="/management/membership-tools/"
-      >
-        <span>
-          Membership &amp; Competition Tools
-        </span>
-      </a>
-
-    </nav>
-
-    <div class="sidebar-footer">
-      <button
-        id="sidebarSignOutBtn"
-        class="sidebar-signout"
-        type="button"
-      >
-        Sign Out
-      </button>
-    </div>
-  </aside>
-
-  <div
-    id="sidebarBackdrop"
-    class="sidebar-backdrop"
-    hidden
-  ></div>
-
-  <section class="management-main">
-
-    <header class="management-header">
-
-      <button
-        id="menuToggleBtn"
-        class="menu-toggle"
-        type="button"
-        aria-label="Open management navigation"
-        aria-expanded="false"
-        aria-controls="managementSidebar"
-      >
-        ☰
-      </button>
-
-      <div class="management-header__identity">
-        <p class="eyebrow">
-          Sandman System
-        </p>
-
-        <h1>
-          Academy Management
-        </h1>
-
-        <p
-          id="managerIdentity"
-          class="identity"
-        >
-          Verifying access...
-        </p>
-      </div>
-
-      <div class="header-actions">
-        <button
-          id="signOutBtn"
-          class="button button-secondary"
-          type="button"
-        >
-          Sign Out
-        </button>
-      </div>
-
-    </header>
-
-    <main class="management-wrap xp-adjustments-wrap">
 
       <section class="workspace-heading">
         <div>
@@ -447,21 +244,15 @@
 
       </section>
 
-    </main>
 
-  </section>
+  </main>
 
-</div>
+  <script src="/assets/js/management-nav.js"></script>
 
-<script
-  type="module"
-  src="/management/shared/management-shell.js"
-></script>
-
-<script
-  type="module"
-  src="./xp-adjustments.js"
-></script>
+  <script
+    type="module"
+    src="./xp-adjustments.js"
+  ></script>
 
 </body>
 </html>

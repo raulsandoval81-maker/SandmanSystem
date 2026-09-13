@@ -1,10 +1,35 @@
 import {
+  managementLoginUrl,
+  requireManagement
+} from "/management/shared/guards/management-guard.js";
+
+import {
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
 
 const $ = (id) =>
   document.getElementById(id);
+
+async function requirePageAccess() {
+  try {
+    await requireManagement();
+  } catch (error) {
+    console.error(
+      "[xp-adjustments] Management access denied:",
+      error
+    );
+
+    window.location.replace(
+      managementLoginUrl()
+    );
+
+    throw error;
+  }
+}
+
+await requirePageAccess();
+
 
 const searchMembers =
   httpsCallable(
