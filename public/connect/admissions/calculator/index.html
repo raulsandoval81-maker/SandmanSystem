@@ -578,6 +578,58 @@
       </a>
     </header>
 
+    <section
+      id="proposalWorkflow"
+      class="proposal-workflow"
+      aria-label="Case lifecycle"
+    >
+      <div class="proposal-workflow__top">
+        <div>
+          <span class="proposal-workflow__eyebrow">
+            Current Stage
+          </span>
+
+          <h3 id="proposalWorkflowStage">
+            Building Proposal
+          </h3>
+        </div>
+
+        <span
+          id="proposalWorkflowId"
+          class="proposal-workflow__id"
+        ></span>
+      </div>
+
+      <div
+        id="proposalWorkflowSteps"
+        class="proposal-workflow__steps"
+      ></div>
+
+      <div class="proposal-workflow__next">
+        <span class="proposal-workflow__eyebrow">
+          Next Step
+        </span>
+
+        <p id="proposalWorkflowNext">
+          Save the proposal when the family configuration is ready.
+        </p>
+      </div>
+
+      <div
+        id="proposalWorkflowRoute"
+        class="proposal-workflow__route"
+        hidden
+      >
+        <a
+          id="proposalWorkflowRouteLink"
+          class="button secondary"
+          href="/connect/proposals/"
+        >
+          Go to Proposal Queue
+        </a>
+      </div>
+    </section>
+
     <section class="metric-grid" aria-label="Proposal totals">
       <article class="metric">
         <div class="metric-label">Due now</div>
@@ -868,74 +920,7 @@
 
       <section class="proposal-action-zone">
 
-        <details class="builder-stage-accordion">
-          <summary>
-            <span>
-              <strong>Current Stage</strong>
-              <small>
-                Proposal workflow and next step
-              </small>
-            </span>
 
-            <span
-              class="builder-stage-accordion__hint"
-              aria-hidden="true"
-            >
-              Open
-            </span>
-          </summary>
-
-<section
-          id="proposalWorkflow"
-          class="proposal-workflow"
-        >
-          <div class="proposal-workflow__top">
-            <div>
-              <span class="proposal-workflow__eyebrow">
-                Current Stage
-              </span>
-
-              <h3 id="proposalWorkflowStage">
-                Building Proposal
-              </h3>
-            </div>
-
-            <span
-              id="proposalWorkflowId"
-              class="proposal-workflow__id"
-            ></span>
-          </div>
-
-          <div
-            id="proposalWorkflowSteps"
-            class="proposal-workflow__steps"
-          ></div>
-
-          <div class="proposal-workflow__next">
-            <span class="proposal-workflow__eyebrow">
-              Next Step
-            </span>
-
-            <p id="proposalWorkflowNext">
-              Save the proposal when the family configuration is ready.
-            </p>
-          </div>
-
-          <div
-            id="proposalWorkflowRoute"
-            class="proposal-workflow__route"
-            hidden
-          >
-            <a
-              id="proposalWorkflowRouteLink"
-              class="button secondary"
-              href="/connect/proposals/"
-            >
-              Go to Proposal Queue
-            </a>
-          </div>
-        </section>
-        </details>
 
 
         <div class="workflow-actions">
