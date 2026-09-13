@@ -31,13 +31,25 @@ function esc(value = "") {
 }
 
 function money(value) {
-  return "$" +
+  const amount =
     Math.max(
       0,
-      Math.round(
-        Number(value) || 0
-      )
-    ).toLocaleString();
+      Number(value) || 0
+    );
+
+  const hasCents =
+    Math.round(amount * 100) % 100 !== 0;
+
+  return amount.toLocaleString(
+    "en-US",
+    {
+      style: "currency",
+      currency: "USD",
+      minimumFractionDigits:
+        hasCents ? 2 : 0,
+      maximumFractionDigits: 2
+    }
+  );
 }
 
 function formatDate(value = "") {
@@ -444,7 +456,7 @@ async function loadProposal() {
   if (data.signed) {
     showConfirmation(
       "Proposal Accepted",
-      "Thank you. Your signed proposal has been returned to Sandman Academy for final approval. Checkout will follow after Academy approval."
+      "Thank you. Your proposal has been accepted."
     );
 
     return;
@@ -527,10 +539,10 @@ async function acceptProposal() {
 
     if (
       response.data?.status !==
-      "CLIENT_SIGNED"
+      "READY_FOR_CHECKOUT"
     ) {
       throw new Error(
-        "The signed status was not returned."
+        "The checkout-ready status was not returned."
       );
     }
 
@@ -558,10 +570,70 @@ async function acceptProposal() {
   }
 }
 
+async function continueToCheckout() {
+  hideMessage();
+
+  const button =
+    $("continueCheckoutButton");
+
+  button.disabled = true;
+  button.textContent = "Opening Checkout…";
+
+  try {
+    const checkout =
+      httpsCallable(
+        functions,
+        "createProposalCheckout"
+      );
+
+    const response =
+      await checkout({
+        proposalId,
+        token
+      });
+
+    const checkoutUrl =
+      String(
+        response.data?.checkoutUrl || ""
+      ).trim();
+
+    if (!checkoutUrl) {
+      throw new Error(
+        "Checkout is not available."
+      );
+    }
+
+    window.location.assign(
+      checkoutUrl
+    );
+  } catch (error) {
+    console.error(
+      "Client checkout failed:",
+      error
+    );
+
+    button.disabled = false;
+    button.textContent =
+      "Continue to Checkout";
+
+    showMessage(
+      error?.message ||
+      "Unable to continue to checkout.",
+      true
+    );
+  }
+}
+
 $("acceptProposalButton")
   .addEventListener(
     "click",
     acceptProposal
+  );
+
+$("continueCheckoutButton")
+  .addEventListener(
+    "click",
+    continueToCheckout
   );
 
 loadProposal().catch(
