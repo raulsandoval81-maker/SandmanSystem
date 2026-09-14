@@ -251,6 +251,7 @@ async function handleProposalCheckoutCompleted(session) {
             stripePaymentIntentId: paymentIntentId,
             stripePaymentMethodId: paymentMethodId,
             stripeSubscriptionId: subscription.id,
+            stripeLivemode: session.livemode,
             firstRecurringChargeDate,
             recurringBillingDay,
             paymentStatus: session.payment_status,
@@ -268,6 +269,7 @@ async function handleProposalCheckoutCompleted(session) {
             stripeCheckoutSessionId: session.id,
             stripePaymentIntentId: paymentIntentId,
             stripeSubscriptionId: subscription.id,
+            stripeLivemode: session.livemode,
             firstRecurringChargeDate,
             createdAt: firestore_1.FieldValue.serverTimestamp(),
         });

@@ -532,10 +532,7 @@ async function loadManagementDashboard(
 
     const paidProposals =
       proposals.filter(
-        (proposal) =>
-          clean(
-            proposal.status
-          ).toUpperCase() === "PAID"
+        isOperationalPaidProposal
       );
 
     if (dashboardEnrollmentCount) {
@@ -697,3 +694,51 @@ async function startManagementHub() {
 
 
 void startManagementHub();
+
+
+function isOperationalPaidProposal(proposal = {}) {
+  const status =
+    clean(proposal.status).toUpperCase();
+
+  const paymentStatus =
+    clean(
+      proposal.paymentStatus
+    ).toLowerCase();
+
+  const checkoutSessionId =
+    clean(
+      proposal.stripeCheckoutSessionId
+    );
+
+  const explicitLivemode =
+    typeof proposal.stripeLivemode ===
+    "boolean"
+      ? proposal.stripeLivemode
+      : null;
+
+  const legacyTestSession =
+    checkoutSessionId.startsWith(
+      "cs_test_"
+    );
+
+  const legacyLiveSession =
+    checkoutSessionId.startsWith(
+      "cs_live_"
+    );
+
+  const isLiveStripePayment =
+    explicitLivemode === true ||
+    (
+      explicitLivemode === null &&
+      legacyLiveSession
+    );
+
+  return (
+    status === "PAID" &&
+    paymentStatus === "paid" &&
+    Boolean(proposal.paidAt) &&
+    Boolean(checkoutSessionId) &&
+    !legacyTestSession &&
+    isLiveStripePayment
+  );
+}

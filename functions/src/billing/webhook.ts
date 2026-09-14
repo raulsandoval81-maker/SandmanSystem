@@ -571,6 +571,9 @@ export async function handleProposalCheckoutCompleted(
           stripeSubscriptionId:
             subscription.id,
 
+          stripeLivemode:
+            session.livemode,
+
           firstRecurringChargeDate,
 
           recurringBillingDay,
@@ -617,6 +620,9 @@ export async function handleProposalCheckoutCompleted(
 
           stripeSubscriptionId:
             subscription.id,
+
+          stripeLivemode:
+            session.livemode,
 
           firstRecurringChargeDate,
 

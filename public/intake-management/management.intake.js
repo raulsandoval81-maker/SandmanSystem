@@ -408,7 +408,8 @@ async function loadReadyForIntake(
     new Map();
 
   const proposals =
-    proposalDocs.map(
+    proposalDocs
+      .map(
       (proposalDoc) => {
         const proposal = {
           id: proposalDoc.id,
@@ -423,6 +424,9 @@ async function loadReadyForIntake(
 
         return proposal;
       }
+    )
+    .filter(
+      isOperationalPaidProposal
     );
 
   if (count) {
@@ -1138,3 +1142,58 @@ async function loadApproved() {
     }
   }
 })();
+
+
+function isOperationalPaidProposal(proposal = {}) {
+  const status =
+    String(
+      proposal.status || ""
+    )
+      .trim()
+      .toUpperCase();
+
+  const paymentStatus =
+    String(
+      proposal.paymentStatus || ""
+    )
+      .trim()
+      .toLowerCase();
+
+  const checkoutSessionId =
+    String(
+      proposal.stripeCheckoutSessionId ||
+      ""
+    ).trim();
+
+  const explicitLivemode =
+    typeof proposal.stripeLivemode ===
+    "boolean"
+      ? proposal.stripeLivemode
+      : null;
+
+  const legacyTestSession =
+    checkoutSessionId.startsWith(
+      "cs_test_"
+    );
+
+  const legacyLiveSession =
+    checkoutSessionId.startsWith(
+      "cs_live_"
+    );
+
+  const isLiveStripePayment =
+    explicitLivemode === true ||
+    (
+      explicitLivemode === null &&
+      legacyLiveSession
+    );
+
+  return (
+    status === "PAID" &&
+    paymentStatus === "paid" &&
+    Boolean(proposal.paidAt) &&
+    Boolean(checkoutSessionId) &&
+    !legacyTestSession &&
+    isLiveStripePayment
+  );
+}
