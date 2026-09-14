@@ -87,17 +87,56 @@ function addOption(
   select.appendChild(option);
 }
 
-function rowPattern(row = {}) {
+const TRAINING_PATTERN_DAYS =
+  Object.freeze({
+    "monday-wednesday":
+      new Set(["monday", "wednesday"]),
+
+    "tuesday-thursday":
+      new Set(["tuesday", "thursday"])
+  });
+
+function rowDays(row = {}) {
   return clean(row.day)
     .split(/,|\s+&\s+/)
     .map((day) =>
-      clean(day)
-        .toLowerCase()
-        .replace(/[^a-z]+/g, "-")
-        .replace(/^-|-$/g, "")
+      clean(day).toLowerCase()
     )
-    .filter(Boolean)
-    .join("-");
+    .filter(Boolean);
+}
+
+function rowPattern(row = {}) {
+  return rowDays(row).join("-");
+}
+
+function rowMatchesPattern(
+  row = {},
+  pattern = ""
+) {
+  const selectedDays =
+    TRAINING_PATTERN_DAYS[pattern];
+
+  if (!selectedDays) {
+    return false;
+  }
+
+  return rowDays(row).some(
+    (day) => selectedDays.has(day)
+  );
+}
+
+function trainingPatternLabel(
+  pattern = ""
+) {
+  if (pattern === "monday-wednesday") {
+    return "Monday + Wednesday";
+  }
+
+  if (pattern === "tuesday-thursday") {
+    return "Tuesday + Thursday";
+  }
+
+  return "";
 }
 
 function rowMatchesAge(
@@ -249,7 +288,10 @@ function matchingClassRows() {
     if (
       pattern &&
       pattern !== "not-sure" &&
-      rowPattern(row) !== pattern
+      !rowMatchesPattern(
+        row,
+        pattern
+      )
     ) {
       return false;
     }
@@ -349,11 +391,13 @@ function updateClassTime() {
   if (!rows.length) {
     addOption(
       preferredClassTime,
-      "management-confirmation",
+      scheduleLoaded
+        ? ""
+        : "management-confirmation",
       scheduleLoaded
         ? translated(
-            "No matching class — Management will help",
-            "No hay clase compatible — Administración ayudará"
+            "Not available for the selected days",
+            "No disponible para los días seleccionados"
           )
         : translated(
             "Management will confirm the class time",
@@ -379,8 +423,11 @@ function updateClassTime() {
             row.time ||
             `${row.start || ""}–${row.end || ""}`;
 
+          const days =
+            trainingPatternLabel(pattern);
+
           const value =
-            `${row.title} — ${row.day} — ${time}`;
+            `${row.title} — ${days} — ${time}`;
 
           return [
             value,
