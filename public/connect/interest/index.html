@@ -665,8 +665,18 @@
               <option
                 value="standard-2-3"
                 selected
+                data-plan-label-en="Standard Plan — 2–3 days/week"
+                data-plan-label-es="Plan Estándar — 2–3 días/semana"
               >
                 Standard Plan — 2–3 days/week
+              </option>
+
+              <option
+                value="plus-4-6"
+                data-plan-label-en="Plus Plan — 4–6 days/week"
+                data-plan-label-es="Plan Plus — 4–6 días/semana"
+              >
+                Plus Plan — 4–6 days/week
               </option>
             </select>
           </div>
@@ -674,13 +684,39 @@
           <div class="field">
             <label for="preferredTrainingPattern">
               <span data-lang="en">
-                Which regular training schedule works best?
+                Preferred Training Days
               </span>
 
               <span data-lang="es">
-                ¿Qué horario regular de entrenamiento funciona mejor?
+                Días de Entrenamiento Preferidos
               </span>
             </label>
+
+            <p class="field-help">
+              <span data-lang="en">
+                Please review the
+                <a
+                  id="interestScheduleLink"
+                  href="/locations/santa-ynez-valley/schedule.html"
+                  target="_blank"
+                  rel="noopener"
+                >Santa Ynez Valley class schedule</a>
+                for reference, then choose the available training days
+                that work best for your family.
+              </span>
+
+              <span data-lang="es">
+                Consulta el
+                <a
+                  id="interestScheduleLinkEs"
+                  href="/locations/santa-ynez-valley/schedule.html"
+                  target="_blank"
+                  rel="noopener"
+                >horario de clases de Santa Ynez Valley</a>
+                y después elige los días disponibles que funcionen
+                mejor para tu familia.
+              </span>
+            </p>
 
             <select
               id="preferredTrainingPattern"
@@ -688,76 +724,61 @@
               required
             >
               <option value="">
-                Select one
-              </option>
-
-              <option value="monday-wednesday">
-                Monday + Wednesday
-              </option>
-
-              <option value="tuesday-thursday">
-                Tuesday + Thursday
-              </option>
-
-              <option value="not-sure">
-                Not sure — help me choose
+                Loading available training days…
               </option>
             </select>
 
-            <small>
-              <span data-lang="en">
-                Choose the two regular training days that best fit your
-                schedule. Management will confirm the final schedule.
-              </span>
-
-              <span data-lang="es">
-                Elige los dos días regulares de entrenamiento que mejor
-                funcionen para tu horario. Administración confirmará el
-                horario final.
-              </span>
+            <small
+              id="trainingScheduleGuidance"
+              aria-live="polite"
+            >
+              Available days will appear after the athlete’s age and
+              program are selected.
             </small>
           </div>
 
           <div class="field">
             <label for="preferredClassTime">
               <span data-lang="en">
-                Discipline Class Time
+                Recommended Class Time
               </span>
 
               <span data-lang="es">
-                Horario de Clase de la Disciplina
+                Horario de Clase Recomendado
               </span>
             </label>
 
-            <input
+            <select
               id="preferredClassTime"
               name="preferredClassTime"
-              type="text"
-              inputmode="text"
-              autocomplete="off"
-              placeholder="Example: 6:00 PM"
-            />
+              required
+            >
+              <option value="">
+                Select training days first
+              </option>
+            </select>
+
             <p class="field-help discipline-class-time-help">
               <span data-lang="en">
-                Optional. Available class times depend on the selected discipline,
-                training days, age group, and academy schedule.
+                Based on the athlete’s age, selected discipline,
+                preferred training days, and the current published
+                academy schedule.
               </span>
+
               <span data-lang="es">
-                Opcional. Los horarios disponibles dependen de la disciplina,
-                los días de entrenamiento, la edad y el horario de la academia.
+                Basado en la edad del atleta, la disciplina seleccionada,
+                los días preferidos y el horario actual publicado por
+                la academia.
               </span>
             </p>
 
-
             <small>
               <span data-lang="en">
-                Choose the class time that works best for you.
-                Management will confirm availability.
+                Management will confirm final class placement.
               </span>
 
               <span data-lang="es">
-                Elige la hora de clase que mejor funcione para ti.
-                Administración confirmará la disponibilidad.
+                Administración confirmará la asignación final de clase.
               </span>
             </small>
           </div>
@@ -1696,5 +1717,9 @@
       }
     })();
   </script>
+  <script
+    type="module"
+    src="/connect/interest/interest-schedule.js"
+  ></script>
 </body>
 </html>

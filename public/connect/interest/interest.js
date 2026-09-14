@@ -580,11 +580,14 @@ if (
   }
 
   if (
-    lead.preferredPlan !== "standard-2-3"
+    ![
+      "standard-2-3",
+      "plus-4-6"
+    ].includes(lead.preferredPlan)
   ) {
     return message(
-      "Select the Standard Plan before continuing.",
-      "Selecciona el Plan Estándar antes de continuar."
+      "Select a starting plan before continuing.",
+      "Selecciona un plan inicial antes de continuar."
     );
   }
 
@@ -1826,11 +1829,14 @@ function validateInterestStep(
       lead.interestType === "both";
 
     if (
-      lead.preferredPlan !== "standard-2-3"
+      ![
+        "standard-2-3",
+        "plus-4-6"
+      ].includes(lead.preferredPlan)
     ) {
       return message(
-        "Select the Standard Plan before continuing.",
-        "Selecciona el Plan Estándar antes de continuar."
+        "Select a starting plan before continuing.",
+        "Selecciona un plan inicial antes de continuar."
       );
     }
 
