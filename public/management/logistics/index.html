@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Logistics | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="./logistics.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
+</head>
+<body data-management-area="logistics">
+  <main class="logistics-wrap">
+    <header class="logistics-header">
+      <p class="eyebrow">Operations · Logistics</p>
+      <h1>Daily Operations</h1>
+      <p>Location-scoped visibility for today’s practice activity and operational follow-up.</p>
+      <p id="logisticsScope" class="identity">Verifying Management access…</p>
+    </header>
+    <p id="logisticsStatus" class="status-line" role="status" aria-live="polite">Loading operations…</p>
+    <section class="operations-grid" aria-label="Current operational status">
+      <article class="operation-card"><p class="eyebrow">Practices</p><strong id="activePracticeCount">0</strong><h2>Active Sessions</h2><p>Practices currently open at your authorized location.</p><a class="button button-secondary" href="/management/attendance/">Open Attendance</a></article>
+      <article class="operation-card"><p class="eyebrow">Exceptions</p><strong id="pendingReviewCount">0</strong><h2>Pending Review</h2><p>Sessions waiting for Coach attendance verification.</p><a class="button button-secondary" href="/management/attendance/">Review Status</a></article>
+      <article class="operation-card"><p class="eyebrow">Schedule</p><strong>Today</strong><h2>Location Schedule</h2><p>Use the official schedule workspace for classes, rooms, and published times.</p><a class="button button-secondary" href="/management/schedule/">Open Schedule</a></article>
+    </section>
+    <section class="notice-panel"><p class="eyebrow">Operational Notes</p><h2>Coordination Workspace</h2><p>Additional room readiness, staffing, equipment, and facility notices can be added here in a later operational phase. This V1 does not duplicate Schedule, Attendance, or Reports controls.</p></section>
+  </main>
+  <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="./logistics.js"></script>
+</body>
+</html>

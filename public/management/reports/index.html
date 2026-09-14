@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Reports | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="./reports.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
+</head>
+<body data-management-area="reports">
+  <main class="reports-wrap">
+    <header class="reports-header">
+      <p class="eyebrow">Operations · Reports</p>
+      <h1>Attendance Reports</h1>
+      <p>Location-scoped attendance and participation history from finalized practice records.</p>
+      <p id="reportsScope" class="identity">Verifying Management access…</p>
+    </header>
+    <p id="reportsStatus" class="status-line" role="status" aria-live="polite">Loading reports…</p>
+    <section class="metric-grid" aria-label="Attendance report totals">
+      <article class="metric-card"><span>Finalized Sessions</span><strong id="finalizedTotal">0</strong></article>
+      <article class="metric-card"><span>Participation</span><strong id="participationTotal">0</strong></article>
+      <article class="metric-card"><span>Pending Review</span><strong id="pendingTotal">0</strong></article>
+    </section>
+    <div class="report-grid">
+      <section class="report-panel"><p class="eyebrow">By Day</p><h2>Attendance Totals</h2><div id="dailyBreakdown" class="breakdown-list"></div></section>
+      <section class="report-panel"><p class="eyebrow">By Discipline</p><h2>Participation Breakdown</h2><div id="disciplineBreakdown" class="breakdown-list"></div></section>
+    </div>
+    <section class="report-panel recent-panel"><p class="eyebrow">History</p><h2>Recent Finalized Sessions</h2><div id="recentFinalized" class="breakdown-list"></div></section>
+  </main>
+  <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="./reports.js"></script>
+</body>
+</html>

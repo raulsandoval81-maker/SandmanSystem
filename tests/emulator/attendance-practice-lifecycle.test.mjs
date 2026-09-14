@@ -39,6 +39,7 @@ async function callableClient(uid, staff = null) {
     open: httpsCallable(functions, "openPracticeSession"),
     get: httpsCallable(functions, "getPracticeSession"),
     close: httpsCallable(functions, "closePracticeSession"),
+    listManagement: httpsCallable(functions, "listManagementAttendance"),
   };
 }
 
@@ -75,6 +76,8 @@ after(async () => {
 test("authenticated canonical practice lifecycle and Attendance identity", async (t) => {
   const coach = await callableClient("COACH_ATTENDANCE_V1", { role: "coach", status: "active", locationId: "lompoc" });
   const otherCoach = await callableClient("COACH_OTHER_LOCATION", { role: "coach", status: "active", locationId: "elk-grove" });
+  const management = await callableClient("MANAGEMENT_ATTENDANCE_V1", { role: "management", status: "active", locationId: "lompoc" });
+  const otherManagement = await callableClient("MANAGEMENT_OTHER_LOCATION", { role: "management", status: "active", locationId: "elk-grove" });
   const nonStaff = await callableClient("ATHLETE_NOT_STAFF");
 
   await t.test("non-staff and invalid requests fail closed", async () => {
@@ -203,5 +206,42 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     const legacy = (await adminDb.doc("attendance_sessions/legacy-attendance").get()).data();
     assert.equal(legacy.status, "finalized");
     assert.equal(legacy.practiceId, undefined);
+  });
+
+  await t.test("Management attendance read is authorized and location scoped", async () => {
+    await adminDb.doc("practiceSessions/elk-private-practice").set({
+      practiceId: "elk-private-practice",
+      locationId: "elk-grove",
+      roomId: "elk-mat",
+      discipline: "boxing",
+      coachUid: "COACH_OTHER_LOCATION",
+      status: "active",
+      openedAt: new Date(),
+    });
+    await adminDb.doc("attendance_sessions/elk-private-practice").set({
+      practiceId: "elk-private-practice",
+      locationId: "elk-grove",
+      discipline: "boxing",
+      status: "pending_review",
+      checkedInCount: 1,
+      checkedIn: [{ id: "ELK_PRIVATE_1", name: "Private Athlete" }],
+    });
+
+    const lompoc = (await management.listManagement({})).data;
+    assert.equal(lompoc.ok, true);
+    assert.deepEqual(lompoc.locationIds, ["lompoc"]);
+    assert.ok(lompoc.sessions.some((session) => session.practiceId === practiceAId));
+    assert.equal(lompoc.sessions.some((session) => session.locationId === "elk-grove"), false);
+    assert.equal(lompoc.sessions.some((session) => session.practiceId === "elk-private-practice"), false);
+
+    const elk = (await otherManagement.listManagement({})).data;
+    assert.deepEqual(elk.locationIds, ["elk-grove"]);
+    assert.equal(elk.sessions.length, 1);
+    assert.equal(elk.sessions[0].practiceId, "elk-private-practice");
+    assert.equal(elk.sessions[0].discipline, "boxing");
+    assert.equal(elk.sessions[0].checkedInCount, 1);
+
+    await assert.rejects(() => coach.listManagement({}), /permission-denied|Active Management access required/i);
+    await assert.rejects(() => nonStaff.listManagement({}), /permission-denied|Active Management access required/i);
   });
 });

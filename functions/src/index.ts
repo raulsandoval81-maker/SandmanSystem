@@ -214,6 +214,7 @@ export {
   getPracticeSession,
   closePracticeSession,
 } from "./practice/practiceSessions";
+export { listManagementAttendance } from "./practice/listManagementAttendance";
 
 export {
   issueProposalClientReview,

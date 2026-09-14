@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>Attendance | Sandman Management</title>
+  <link rel="stylesheet" href="/assets/css/management-ui.css">
+  <link rel="stylesheet" href="./attendance.css">
+  <link rel="stylesheet" href="/management/hub/management.css">
+</head>
+<body data-management-area="attendance">
+  <main class="attendance-wrap">
+    <header class="attendance-header">
+      <p class="eyebrow">Operations · Attendance</p>
+      <h1>Attendance Visibility</h1>
+      <p>Review location-scoped practice activity. Coaches remain responsible for attendance correction and finalization.</p>
+      <p id="attendanceScope" class="identity">Verifying Management access…</p>
+    </header>
+
+    <p id="attendanceStatus" class="status-line" role="status" aria-live="polite">Loading attendance…</p>
+
+    <section class="attendance-section" aria-labelledby="openHeading">
+      <div class="section-heading"><div><p class="eyebrow">Live Operations</p><h2 id="openHeading">Open Practices</h2></div><span id="openCount" class="count-pill">0</span></div>
+      <div id="openSessions" class="session-list"></div>
+    </section>
+
+    <section class="attendance-section" aria-labelledby="pendingHeading">
+      <div class="section-heading"><div><p class="eyebrow">Coach Queue</p><h2 id="pendingHeading">Pending Review</h2></div><span id="pendingCount" class="count-pill">0</span></div>
+      <div id="pendingSessions" class="session-list"></div>
+    </section>
+
+    <section class="attendance-section" aria-labelledby="historyHeading">
+      <div class="section-heading"><div><p class="eyebrow">Recent History</p><h2 id="historyHeading">Finalized Sessions</h2></div><span id="finalizedCount" class="count-pill">0</span></div>
+      <div id="finalizedSessions" class="session-list"></div>
+    </section>
+  </main>
+  <script type="module" src="/management/shared/management-shell.js"></script>
+  <script type="module" src="./attendance.js"></script>
+</body>
+</html>

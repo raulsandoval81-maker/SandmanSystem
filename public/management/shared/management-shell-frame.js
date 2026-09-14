@@ -6,8 +6,9 @@ const NAV_GROUPS = Object.freeze([
   ["Operations", [
     ["schedule", "Schedule", "/management/schedule/"],
     ["competition", "Competition Schedule", "/management/competition/"],
-    ["attendance", "Attendance", "", "Pending"],
-    ["reports", "Reports", "", "Pending"],
+    ["attendance", "Attendance", "/management/attendance/"],
+    ["logistics", "Logistics", "/management/logistics/"],
+    ["reports", "Reports", "/management/reports/"],
   ]],
   ["Tools", [
     ["experience-validation", "Experience Validation", "/management/experience-validation/"],
@@ -36,6 +37,9 @@ function areaForPath(pathname = window.location.pathname) {
     ["/connect/admissions-requests/", "promotions"],
     ["/management/schedule/", "schedule"],
     ["/management/competition/", "competition"],
+    ["/management/attendance/", "attendance"],
+    ["/management/logistics/", "logistics"],
+    ["/management/reports/", "reports"],
     ["/management/experience-validation/", "experience-validation"],
     ["/management/xp-adjustments/", "xp-adjustments"],
     ["/management/pricing/", "pricing"],
