@@ -300,8 +300,10 @@ function matchingClassRows() {
       return category === "fitness";
     }
 
+    // Match the public schedule's own rule:
+    // Fitness is explicit; every other training row is Combat.
     return (
-      category === "combat" &&
+      category !== "fitness" &&
       discipline &&
       rowMatchesDiscipline(
         row,
