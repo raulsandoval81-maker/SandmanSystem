@@ -204,6 +204,67 @@
       margin-top:40px;
     }
 
+    /* ================================
+       Sandman Method — Parent Hub
+    ================================ */
+
+    .parent-method{
+      margin:0 0 24px;
+    }
+
+    .parent-method-wrap{
+      position:relative;
+      width:100%;
+      overflow:hidden;
+      border:1px solid var(--line);
+      border-radius:22px;
+      background:var(--panel);
+      box-shadow:var(--shadow);
+    }
+
+    .parent-method-wrap > img{
+      display:block;
+      width:100%;
+      height:auto;
+    }
+
+    .parent-method-hotspot{
+      position:absolute;
+      display:block;
+      z-index:5;
+      background:transparent;
+      border:0;
+      overflow:hidden;
+      text-indent:-9999px;
+    }
+
+    .parent-method-hotspot.combat{
+      left:9%;
+      top:34%;
+      width:22%;
+      height:52%;
+    }
+
+    .parent-method-hotspot.strength{
+      left:39%;
+      top:34%;
+      width:22%;
+      height:52%;
+    }
+
+    .parent-method-hotspot.honor{
+      left:69%;
+      top:34%;
+      width:22%;
+      height:52%;
+    }
+
+    .parent-method-hotspot:focus-visible{
+      outline:3px solid var(--gold);
+      outline-offset:-3px;
+      border-radius:12px;
+    }
+
     @media (max-width:760px){
       .parent-tabs{
         grid-template-columns:1fr 1fr;
@@ -281,6 +342,44 @@
           alt="Sandman Combat"
           loading="lazy"
         >
+      </div>
+    </section>
+
+    <section class="parent-method" aria-label="The Sandman Method">
+      <div class="parent-method-wrap">
+
+        <img
+          src="/assets/img/pages/system/hero-system-en.png"
+          alt="The Sandman Method: Combat, Strength, and Honor"
+          class="en"
+          loading="lazy"
+        >
+
+        <img
+          src="/assets/img/pages/system/hero-system-es.png"
+          alt="El Método Sandman: Combate, Fuerza y Honor"
+          class="es"
+          loading="lazy"
+        >
+
+        <a
+          class="parent-method-hotspot combat"
+          href="/pillars/combat.html?from=%2Fparent%2F"
+          aria-label="Learn about Combat"
+        >Combat</a>
+
+        <a
+          class="parent-method-hotspot strength"
+          href="/pillars/strength.html?from=%2Fparent%2F"
+          aria-label="Learn about Strength"
+        >Strength</a>
+
+        <a
+          class="parent-method-hotspot honor"
+          href="/pillars/honor.html?from=%2Fparent%2F"
+          aria-label="Learn about Honor"
+        >Honor</a>
+
       </div>
     </section>
 
