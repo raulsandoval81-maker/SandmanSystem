@@ -192,3 +192,54 @@
     width: 100%;
   }
 }
+
+/* =========================================================
+   MANAGEMENT LIGHT-SHELL READABILITY
+   Experience Validation now lives inside the canonical
+   Management light workspace.
+   ========================================================= */
+
+.experience-policy > div,
+.experience-card {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.experience-policy span,
+.experience-status,
+.experience-meta,
+.experience-note,
+.experience-xp small,
+.experience-box span,
+.experience-box small,
+.experience-empty {
+  opacity: 1;
+  color: var(--muted);
+}
+
+.experience-card__head {
+  border-bottom-color: var(--line);
+}
+
+.experience-pill {
+  background: var(--surface-soft);
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.experience-box {
+  background: var(--surface-soft);
+  border: 1px solid var(--line);
+}
+
+.experience-review textarea {
+  border-color: #d7c9aa;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.experience-empty {
+  border-color: #cbbd9e;
+  background: var(--surface-soft);
+}

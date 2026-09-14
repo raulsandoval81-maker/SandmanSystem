@@ -8,7 +8,6 @@
 // - Adult F4 + age 18+ routes to Quest2Mastery / MMA
 // - Youth F8 routes to Zero2Hero / Wrestling
 // - Teen F4 routes to Path2Legend / Wrestling default
-// - Experience remains intake validation only
 // - Does NOT rewrite XP engine
 // ======================================================
 
@@ -278,61 +277,6 @@ function buildPlacementFromTrack(track, s = {}) {
   };
 }
 // ------------------------------------------------------
-// Experience Credit preview
-// ------------------------------------------------------
-function getExperiencePlan(years) {
-  const y = Number(years || 0);
-
-  if (y === 1) {
-    return {
-      yearsVerified: 1,
-      total: 200,
-      issuedNow: 200,
-      held: 0,
-      schedule: "full_t0"
-    };
-  }
-
-  if (y === 2) {
-    return {
-      yearsVerified: 2,
-      total: 400,
-      issuedNow: 200,
-      held: 200,
-      schedule: "deferred_t1_entry"
-    };
-  }
-
-  if (y >= 3) {
-    return {
-      yearsVerified: 3,
-      total: 600,
-      issuedNow: 300,
-      held: 300,
-      schedule: "deferred_t1_entry"
-    };
-  }
-
-  return {
-    yearsVerified: 0,
-    total: 0,
-    issuedNow: 0,
-    held: 0,
-    schedule: "—"
-  };
-}
-
-function updateExperiencePreview() {
-  const years = Number($("c-exp-years")?.value || 0);
-  const plan = getExperiencePlan(years);
-
-  if ($("exp-total")) $("exp-total").textContent = String(plan.total);
-  if ($("exp-now")) $("exp-now").textContent = String(plan.issuedNow);
-  if ($("exp-hold")) $("exp-hold").textContent = String(plan.held);
-  if ($("exp-schedule")) $("exp-schedule").textContent = plan.schedule;
-}
-
-// ------------------------------------------------------
 // Virtues by track
 // ------------------------------------------------------
 const F8_VIRTUES = ["FOCUS","EFFORT","ATTITUDE","RESPECT","SPEED","POWER","AGILITY","COMBAT"];
@@ -591,7 +535,6 @@ paintMintUI({
   if ($("copy-link")) $("copy-link").disabled = true;
   if ($("open-link")) $("open-link").disabled = true;
 
-  updateExperiencePreview();
   applyAgeGuardrails();
   console.log("[management-review] loaded intake", { tokenId, status: s.status });
 }
@@ -788,10 +731,7 @@ async function approveAthlete() {
   const team = ($("c-team")?.value || "").trim();
   const city = ($("c-city")?.value || "").trim();
   const state = ($("c-state")?.value || "").trim();
-  const years = Number($("c-exp-years")?.value || 0);
 
-  const adjustXp = Number($("c-adjust-xp")?.value || 0);
-  const adjustNote = ($("c-adjust-note")?.value || "").trim();
 
   if (!initial || !last) {
     return alert("Public Initial + Public Last required.");
@@ -963,33 +903,9 @@ async function approveAthlete() {
         lane: "CB"
       },
 
-      // Verified prior work may earn starting credit inside Tier 0.
-      // XP from another combat journey never transfers.
-      experience: {
-        years,
-        grantsStartingCredit: years > 0,
-        transferXP: false,
-        source: "management_verified_experience"
-      },
-
-      priorExperienceValidation: {
-        allowed: true,
-        years,
-        grantsStartingCredit: years > 0,
-        transferXP: false,
-        note:
-          "Verified prior experience may earn starting credit within Tier 0. XP from another combat journey does not transfer."
-      }
     };
 
-    if (adjustXp > 0) {
-      payload.adjustment = {
-        amount: adjustXp,
-        note: adjustNote || "Management adjustment",
-        kind: "DAILY_GRIND",
-        source: "management_adjustment"
-      };
-    }
+
 
     const res = await approveAndActivate(payload);
 
@@ -1206,6 +1122,4 @@ $("btn-back")?.addEventListener("click", () => {
 // ------------------------------------------------------
 // Init
 // ------------------------------------------------------
-$("c-exp-years")?.addEventListener("change", updateExperiencePreview);
-updateExperiencePreview();
 updateMintTagPreview();

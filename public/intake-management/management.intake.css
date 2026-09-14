@@ -754,13 +754,7 @@ button{
   grid-column:2;
 }
 
-/* 5. Experience */
-.intake-review section[aria-labelledby="exp-title"]{
-  order:5;
-  grid-column:1 / -1;
-}
-
-/* 6. Approval — final decisive action */
+/* 5. Approval — final decisive action */
 .intake-review section[aria-labelledby="approve-title"]{
   order:6;
   grid-column:1 / -1;
@@ -858,9 +852,7 @@ button{
   .intake-review section[aria-labelledby="mint-title"],
   .intake-review section[aria-labelledby="confirm-title"],
   .intake-review section[aria-labelledby="minttag-title"],
-  .intake-review section[aria-labelledby="exp-title"],
   .intake-review section[aria-labelledby="approve-title"],
-  .intake-review section[aria-labelledby="adjust-title"],
   .intake-review section[aria-labelledby="legacy-title"]{
     grid-column:1;
   }
@@ -1110,21 +1102,6 @@ body.management-review-page{
   opacity:1;
 }
 
-.management-review-page #experienceCard,
-.management-review-page #adjustmentCard{
-  background:
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.035),
-      rgba(0,0,0,.12)
-    );
-}
-
-/* Adjustment = optional secondary decision */
-.management-review-page #adjustmentCard{
-  border-color:rgba(255,255,255,.075);
-}
-
 /* -------------------------------------------------
    Athlete identity
 -------------------------------------------------- */
@@ -1343,16 +1320,12 @@ body.management-review-page{
   }
 
   .management-review-page #journeyPickerCard,
-  .management-review-page #experienceCard,
-  .management-review-page #adjustmentCard,
   .management-review-page #mint-box,
   .management-review-page #parentConnectionCard{
     max-width:100%;
   }
 
-  .management-review-page #journeyPickerCard .form-grid,
-  .management-review-page #experienceCard .form-grid,
-  .management-review-page #adjustmentCard .form-grid{
+  .management-review-page #journeyPickerCard .form-grid{
     grid-template-columns:repeat(2, minmax(0,1fr));
   }
 
@@ -1791,4 +1764,13 @@ body.management-review-page{
     margin-top:18px;
     padding-top:16px;
   }
+}
+
+/* =========================================================
+   MANAGEMENT LIGHT-SHELL READABILITY
+   Keep muted copy readable inside the dark Enrollment hero.
+   ========================================================= */
+
+.enrollment-workspace-header .muted {
+  color: #d1d5db;
 }
