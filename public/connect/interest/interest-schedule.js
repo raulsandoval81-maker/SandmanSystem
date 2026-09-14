@@ -211,52 +211,48 @@ function rowMatchesAge(
 
 function rowMatchesDiscipline(
   row = {},
-  discipline
+  discipline = ""
 ) {
-  const normalized =
+  const requested =
+    normalizeScheduleDiscipline(
+      discipline
+    );
+
+  const stored =
     normalizeScheduleDiscipline(
       row.discipline || ""
     );
 
-  if (normalized) {
-    if (
-      ["muay-thai", "kickboxing"].includes(
-        discipline
-      )
-    ) {
-      return [
-        "muay-thai",
-        "kickboxing"
-      ].includes(normalized);
-    }
-
-    return normalized === discipline;
-  }
-
-  // Supports older published rows whose discipline
-  // exists in the title but not in a separate field.
   const title =
     clean(row.title).toLowerCase();
 
-  if (discipline === "wrestling") {
-    return title.includes("wrestling");
-  }
+  const searchable =
+    `${stored} ${title}`;
 
-  if (discipline === "boxing") {
-    return title.includes("boxing");
-  }
-
-  if (
-    discipline === "muay-thai" ||
-    discipline === "kickboxing"
-  ) {
-    return (
-      title.includes("muay thai") ||
-      title.includes("kickboxing")
+  if (requested === "wrestling") {
+    return searchable.includes(
+      "wrestling"
     );
   }
 
-  return false;
+  if (requested === "boxing") {
+    return searchable.includes(
+      "boxing"
+    );
+  }
+
+  if (
+    requested === "muay-thai" ||
+    requested === "kickboxing"
+  ) {
+    return (
+      searchable.includes("muay-thai") ||
+      searchable.includes("muay thai") ||
+      searchable.includes("kickboxing")
+    );
+  }
+
+  return stored === requested;
 }
 
 function matchingClassRows() {
