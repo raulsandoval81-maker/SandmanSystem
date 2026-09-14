@@ -33,8 +33,8 @@ const interestTypeInputs =
     )
   );
 
-let publishedSchedule = null;
-let scheduleState = "loading";
+let publishedRows = [];
+let scheduleLoaded = false;
 
 function language() {
   return document.documentElement.lang === "es"
@@ -50,11 +50,16 @@ function clean(value = "") {
   return String(value || "").trim();
 }
 
-function locationId() {
-  return clean(
+function getLocationId() {
+  const params =
     new URLSearchParams(
       window.location.search
-    ).get("location")
+    );
+
+  return clean(
+    params.get("location") ||
+    document.getElementById("locationId")?.value ||
+    ""
   )
     .toLowerCase()
     .replace(/\s+/g, "-");
@@ -70,7 +75,7 @@ function addOption(
   select,
   value,
   label,
-  { selected = false } = {}
+  selected = false
 ) {
   const option =
     document.createElement("option");
@@ -80,51 +85,49 @@ function addOption(
   option.selected = selected;
 
   select.appendChild(option);
-
-  return option;
 }
 
-function rowDays(row = {}) {
+function rowPattern(row = {}) {
   return clean(row.day)
     .split(/,|\s+&\s+/)
-    .map((day) => clean(day))
-    .filter(Boolean);
-}
-
-function patternValue(row = {}) {
-  return rowDays(row)
     .map((day) =>
-      day
+      clean(day)
         .toLowerCase()
         .replace(/[^a-z]+/g, "-")
         .replace(/^-|-$/g, "")
     )
+    .filter(Boolean)
     .join("-");
 }
 
-function patternLabel(row = {}) {
-  return rowDays(row).join(" + ");
-}
-
-function rowAgeRange(row = {}) {
-  let min = Number(
-    row.minAge ??
-    row.ageMin
-  );
-
-  let max = Number(
-    row.maxAge ??
-    row.ageMax
-  );
-
-  if (!Number.isFinite(min)) min = null;
-  if (!Number.isFinite(max)) max = null;
+function rowMatchesAge(
+  row = {},
+  age
+) {
+  if (!Number.isFinite(age)) {
+    return false;
+  }
 
   const title =
     clean(row.title).toLowerCase();
 
   const details =
     clean(row.details);
+
+  let min =
+    Number(
+      row.minAge ??
+      row.ageMin
+    );
+
+  let max =
+    Number(
+      row.maxAge ??
+      row.ageMax
+    );
+
+  if (!Number.isFinite(min)) min = null;
+  if (!Number.isFinite(max)) max = null;
 
   const range =
     details.match(
@@ -145,40 +148,16 @@ function rowAgeRange(row = {}) {
     min = Number(plus[1]);
   }
 
+  // Canonical Combat age groups remain unchanged:
+  // Youth 7–13 and Teen 14+.
   if (title.includes("youth")) {
-    if (min === null) min = 7;
-    if (max === null) max = 13;
+    min = min ?? 7;
+    max = max ?? 13;
   }
 
   if (title.includes("teen")) {
-    if (min === null) {
-      min = String(row.category).toLowerCase() ===
-        "fitness"
-        ? 13
-        : 14;
-    }
+    min = min ?? 14;
   }
-
-  if (
-    title.includes("kid fit") &&
-    max === null
-  ) {
-    max = 12;
-  }
-
-  return { min, max };
-}
-
-function rowMatchesAge(
-  row,
-  age
-) {
-  if (!Number.isFinite(age)) {
-    return false;
-  }
-
-  const { min, max } =
-    rowAgeRange(row);
 
   if (min !== null && age < min) {
     return false;
@@ -191,76 +170,106 @@ function rowMatchesAge(
   return true;
 }
 
-function matchingRows() {
-  if (
-    !publishedSchedule ||
-    publishedSchedule.status !== "published"
-  ) {
-    return [];
+function rowMatchesDiscipline(
+  row = {},
+  discipline
+) {
+  const normalized =
+    normalizeScheduleDiscipline(
+      row.discipline || ""
+    );
+
+  if (normalized) {
+    if (
+      ["muay-thai", "kickboxing"].includes(
+        discipline
+      )
+    ) {
+      return [
+        "muay-thai",
+        "kickboxing"
+      ].includes(normalized);
+    }
+
+    return normalized === discipline;
   }
 
+  // Supports older published rows whose discipline
+  // exists in the title but not in a separate field.
+  const title =
+    clean(row.title).toLowerCase();
+
+  if (discipline === "wrestling") {
+    return title.includes("wrestling");
+  }
+
+  if (discipline === "boxing") {
+    return title.includes("boxing");
+  }
+
+  if (
+    discipline === "muay-thai" ||
+    discipline === "kickboxing"
+  ) {
+    return (
+      title.includes("muay thai") ||
+      title.includes("kickboxing")
+    );
+  }
+
+  return false;
+}
+
+function matchingClassRows() {
   const age =
     Number(athleteAge?.value);
-
-  if (!Number.isFinite(age)) {
-    return [];
-  }
 
   const interestType =
     selectedInterestType();
 
-  const selectedDiscipline =
+  const discipline =
     normalizeScheduleDiscipline(
       preferredDiscipline?.value || ""
     );
 
-  return publishedSchedule.weekly.filter(
-    (row) => {
-      const category =
-        clean(
-          row.category ||
-          row.type
-        ).toLowerCase();
+  const pattern =
+    preferredTrainingPattern?.value || "";
 
-      if (!rowMatchesAge(row, age)) {
-        return false;
-      }
+  return publishedRows.filter((row) => {
+    const category =
+      clean(
+        row.category ||
+        row.type
+      ).toLowerCase();
 
-      if (interestType === "fitness") {
-        return category === "fitness";
-      }
-
-      if (category !== "combat") {
-        return false;
-      }
-
-      const rowDiscipline =
-        normalizeScheduleDiscipline(
-          row.discipline || ""
-        );
-
-      if (!selectedDiscipline) {
-        return false;
-      }
-
-      if (
-        ["muay-thai", "kickboxing"].includes(
-          selectedDiscipline
-        )
-      ) {
-        return [
-          "muay-thai",
-          "kickboxing"
-        ].includes(rowDiscipline);
-      }
-
-      return rowDiscipline ===
-        selectedDiscipline;
+    if (!rowMatchesAge(row, age)) {
+      return false;
     }
-  );
+
+    if (
+      pattern &&
+      pattern !== "not-sure" &&
+      rowPattern(row) !== pattern
+    ) {
+      return false;
+    }
+
+    if (interestType === "fitness") {
+      return category === "fitness";
+    }
+
+    return (
+      category === "combat" &&
+      discipline &&
+      rowMatchesDiscipline(
+        row,
+        discipline
+      )
+    );
+  });
 }
 
-function localizePlanOptions() {
+function localizeStaticOptions() {
   preferredPlan
     ?.querySelectorAll(
       "[data-plan-label-en]"
@@ -271,18 +280,41 @@ function localizePlanOptions() {
           ? option.dataset.planLabelEs
           : option.dataset.planLabelEn;
     });
+
+  preferredTrainingPattern
+    ?.querySelectorAll(
+      "[data-day-label-en]"
+    )
+    .forEach((option) => {
+      option.textContent =
+        language() === "es"
+          ? option.dataset.dayLabelEs
+          : option.dataset.dayLabelEn;
+    });
+
+  const firstDayOption =
+    preferredTrainingPattern
+      ?.querySelector('option[value=""]');
+
+  if (firstDayOption) {
+    firstDayOption.textContent =
+      translated(
+        "Select one",
+        "Selecciona una opción"
+      );
+  }
 }
 
-function updateClassTimes() {
+function updateClassTime() {
   if (!preferredClassTime) return;
 
   const previous =
     preferredClassTime.value;
 
-  preferredClassTime.innerHTML = "";
-
   const pattern =
     preferredTrainingPattern?.value || "";
+
+  preferredClassTime.innerHTML = "";
 
   if (!pattern) {
     addOption(
@@ -305,65 +337,63 @@ function updateClassTimes() {
         "Management will help choose",
         "Administración ayudará a elegir"
       ),
-      { selected: true }
+      true
     );
 
     return;
   }
 
   const rows =
-    matchingRows().filter(
-      (row) =>
-        patternValue(row) === pattern
-    );
+    matchingClassRows();
 
   if (!rows.length) {
     addOption(
       preferredClassTime,
       "management-confirmation",
-      translated(
-        "Management will confirm availability",
-        "Administración confirmará disponibilidad"
-      ),
-      { selected: true }
+      scheduleLoaded
+        ? translated(
+            "No matching class — Management will help",
+            "No hay clase compatible — Administración ayudará"
+          )
+        : translated(
+            "Management will confirm the class time",
+            "Administración confirmará el horario"
+          ),
+      true
     );
 
     return;
   }
 
   const choices =
-    rows.map((row) => {
-      const title =
-        language() === "es"
-          ? row.titleEs || row.title
-          : row.title;
-
-      const time =
-        row.label ||
-        row.time ||
-        `${row.start || ""}–${row.end || ""}`;
-
-      return {
-        value:
-          `${row.title} — ${row.day} — ${time}`,
-        label:
-          `${title} · ${time}`
-      };
-    });
-
-  const unique =
     Array.from(
       new Map(
-        choices.map(
-          (choice) => [
-            choice.value,
-            choice
-          ]
-        )
+        rows.map((row) => {
+          const title =
+            language() === "es"
+              ? row.titleEs || row.title
+              : row.title;
+
+          const time =
+            row.label ||
+            row.time ||
+            `${row.start || ""}–${row.end || ""}`;
+
+          const value =
+            `${row.title} — ${row.day} — ${time}`;
+
+          return [
+            value,
+            {
+              value,
+              label: `${title} · ${time}`
+            }
+          ];
+        })
       ).values()
     );
 
-  if (unique.length > 1) {
+  if (choices.length > 1) {
     addOption(
       preferredClassTime,
       "",
@@ -374,156 +404,67 @@ function updateClassTimes() {
     );
   }
 
-  unique.forEach((choice) => {
+  choices.forEach((choice) => {
     addOption(
       preferredClassTime,
       choice.value,
       choice.label,
-      {
-        selected:
-          unique.length === 1 ||
-          choice.value === previous
-      }
+      choices.length === 1 ||
+      choice.value === previous
     );
   });
 }
 
-function setGuidance(rows) {
+function updateGuidance() {
   if (!trainingScheduleGuidance) return;
 
-  if (scheduleState === "loading") {
+  const interestType =
+    selectedInterestType();
+
+  if (
+    !athleteAge?.value ||
+    (
+      interestType !== "fitness" &&
+      !programInterest?.value
+    )
+  ) {
     trainingScheduleGuidance.textContent =
       translated(
-        "Loading the current published schedule…",
-        "Cargando el horario publicado actual…"
-      );
-
-    return;
-  }
-
-  if (scheduleState === "unavailable") {
-    trainingScheduleGuidance.textContent =
-      translated(
-        "The current schedule could not be loaded. Management will help confirm availability.",
-        "No se pudo cargar el horario actual. Administración ayudará a confirmar la disponibilidad."
+        "Select the athlete’s age and program, then choose the preferred training days.",
+        "Selecciona la edad y el programa, y después elige los días preferidos."
       );
 
     return;
   }
 
   if (
-    !athleteAge?.value ||
-    (
-      selectedInterestType() !== "fitness" &&
-      !programInterest?.value
-    )
+    preferredPlan?.value === "plus-4-6"
   ) {
     trainingScheduleGuidance.textContent =
       translated(
-        "Available days will appear after the athlete’s age and program are selected.",
-        "Los días disponibles aparecerán después de seleccionar la edad y el programa."
-      );
-
-    return;
-  }
-
-  if (!rows.length) {
-    trainingScheduleGuidance.textContent =
-      translated(
-        "No published class currently matches these selections. Choose “Help me choose” and Management will review the request.",
-        "Ninguna clase publicada coincide actualmente. Elige “Ayúdame a elegir” y Administración revisará la solicitud."
+        "Choose the regular schedule that works best as the starting point. Management will confirm the additional Plus Plan days.",
+        "Elige el horario regular que funcione mejor como punto de partida. Administración confirmará los días adicionales del Plan Plus."
       );
 
     return;
   }
 
   trainingScheduleGuidance.textContent =
-    preferredPlan?.value === "plus-4-6"
-      ? translated(
-          "Choose the published class schedule that will anchor the Plus Plan. Management will confirm the additional training days.",
-          "Elige el horario publicado que servirá como base del Plan Plus. Administración confirmará los días adicionales."
-        )
-      : translated(
-          "Choose the published training days that work best. The matching class time will appear below.",
-          "Elige los días publicados que funcionen mejor. El horario correspondiente aparecerá abajo."
-        );
+    translated(
+      "Choose the regular training days that work best. The matching class time will appear below.",
+      "Elige los días regulares que funcionen mejor. El horario correspondiente aparecerá abajo."
+    );
 }
 
-function updateScheduleChoices() {
-  localizePlanOptions();
-
-  if (
-    !preferredTrainingPattern
-  ) {
-    return;
-  }
-
-  const previous =
-    preferredTrainingPattern.value;
-
-  const rows =
-    matchingRows();
-
-  preferredTrainingPattern.innerHTML = "";
-
-  addOption(
-    preferredTrainingPattern,
-    "",
-    translated(
-      "Select available training days",
-      "Selecciona días disponibles"
-    )
-  );
-
-  const patterns =
-    Array.from(
-      new Map(
-        rows
-          .filter((row) =>
-            patternValue(row)
-          )
-          .map((row) => [
-            patternValue(row),
-            patternLabel(row)
-          ])
-      ).entries()
-    );
-
-  patterns.forEach(
-    ([value, label]) => {
-      addOption(
-        preferredTrainingPattern,
-        value,
-        label,
-        { selected: value === previous }
-      );
-    }
-  );
-
-  addOption(
-    preferredTrainingPattern,
-    "not-sure",
-    translated(
-      "Not sure — help me choose",
-      "No estoy seguro — ayúdame a elegir"
-    ),
-    {
-      selected:
-        previous === "not-sure" ||
-        (
-          !patterns.length &&
-          scheduleState !== "loading"
-        )
-    }
-  );
-
-  setGuidance(rows);
-  updateClassTimes();
+function refresh() {
+  localizeStaticOptions();
+  updateGuidance();
+  updateClassTime();
 }
 
 function updateScheduleLinks() {
   const id =
-    locationId();
+    getLocationId();
 
   const href =
     id
@@ -531,54 +472,53 @@ function updateScheduleLinks() {
       : "/schedule/";
 
   [
-    document.getElementById(
-      "interestScheduleLink"
-    ),
-    document.getElementById(
-      "interestScheduleLinkEs"
-    )
-  ].forEach((link) => {
+    "interestScheduleLink",
+    "interestScheduleLinkEs"
+  ].forEach((id) => {
+    const link =
+      document.getElementById(id);
+
     if (link) link.href = href;
   });
 }
 
 async function loadSchedule() {
   updateScheduleLinks();
+  refresh();
 
   const id =
-    locationId();
+    getLocationId();
 
   if (!id) {
-    scheduleState = "unavailable";
-    updateScheduleChoices();
+    scheduleLoaded = false;
     return;
   }
 
-  scheduleState = "loading";
-  updateScheduleChoices();
-
   try {
-    publishedSchedule =
+    const schedule =
       await loadPublishedLocationSchedule(
         db,
         id
       );
 
-    scheduleState =
-      publishedSchedule.status === "published"
-        ? "ready"
-        : "unavailable";
+    publishedRows =
+      schedule.status === "published"
+        ? schedule.weekly
+        : [];
+
+    scheduleLoaded =
+      schedule.status === "published";
   } catch (error) {
     console.error(
       "[interest-schedule] load failed",
       error
     );
 
-    publishedSchedule = null;
-    scheduleState = "unavailable";
+    publishedRows = [];
+    scheduleLoaded = false;
   }
 
-  updateScheduleChoices();
+  refresh();
 }
 
 [
@@ -589,34 +529,27 @@ async function loadSchedule() {
 ]
   .filter(Boolean)
   .forEach((field) => {
-    field.addEventListener(
-      "change",
-      () => queueMicrotask(
-        updateScheduleChoices
-      )
-    );
-
-    field.addEventListener(
-      "input",
-      () => queueMicrotask(
-        updateScheduleChoices
-      )
+    ["input", "change"].forEach(
+      (eventName) => {
+        field.addEventListener(
+          eventName,
+          () => queueMicrotask(refresh)
+        );
+      }
     );
   });
 
 interestTypeInputs.forEach((input) => {
   input.addEventListener(
     "change",
-    () => queueMicrotask(
-      updateScheduleChoices
-    )
+    () => queueMicrotask(refresh)
   );
 });
 
 preferredTrainingPattern
   ?.addEventListener(
     "change",
-    updateClassTimes
+    refresh
   );
 
 document
@@ -626,9 +559,7 @@ document
   .forEach((button) => {
     button.addEventListener(
       "click",
-      () => queueMicrotask(
-        updateScheduleChoices
-      )
+      () => queueMicrotask(refresh)
     );
   });
 
