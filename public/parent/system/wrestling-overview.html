@@ -7,16 +7,18 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Road2Champion Wrestling | Sandman Academy of Combat &amp; Fitness™</title>
+  <title>Wrestling Overview | Sandman Family</title>
 
   <meta
     name="description"
-    content="Learn about Road2Champion Wrestling for athletes ages 7–13, including its history, training focus, earned progression, and athlete-development purpose."
+    content="Learn about Path2Legend Wrestling for athletes ages 14 and older, including its history, training focus, earned progression, competition preparation, and athlete-development purpose."
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/public.css" />
+  <link rel="stylesheet" href="/parent/parent.css" />
+  <link rel="stylesheet" href="/parent/system/system.css" />
 <style>
+
     *{
       box-sizing:border-box;
     }
@@ -38,9 +40,16 @@
     }
 
     main{
-      width:min(1050px,calc(100% - 40px));
-      margin:0 auto;
-      padding:40px 0 80px;
+      width:100%;
+      margin:0;
+      padding:40px 20px 80px;
+      overflow:hidden;
+    }
+
+    main > *{
+      width:min(1050px,100%);
+      margin-left:auto;
+      margin-right:auto;
     }
 
     .hidden-lang{
@@ -57,11 +66,13 @@
     }
 
     .progression-top{
-      margin:0 0 28px;
+      width:min(920px,100%);
+      margin:0 auto 28px;
     }
 
     .progression-top figure{
-      margin:0;
+      width:100%;
+      margin:0 auto;
       overflow:hidden;
       border:1px solid var(--line);
       border-radius:22px;
@@ -70,7 +81,13 @@
     }
 
     .progression-top img{
-      width:100%;
+      display:block;
+      width:min(100%, 920px);
+      height:auto;
+      margin-left:auto;
+      margin-right:auto;
+      object-fit:contain;
+      object-position:center;
     }
 
     .hero{
@@ -441,88 +458,6 @@
     }
 
 
-/* =========================================
-       MINIMAL JOURNEY HEADER
-    ========================================= */
-
-    .journey-minimal-header{
-      display:grid;
-      grid-template-columns:52px minmax(0,1fr) 52px;
-      align-items:center;
-      gap:12px;
-
-      width:100%;
-      min-height:82px;
-
-      margin:0;
-      padding:12px 18px;
-
-      background:var(--panel, #111113);
-      border-bottom:1px solid rgba(212,175,55,.45);
-    }
-
-    .journey-header-title{
-      text-align:center;
-
-      color:var(--heading, #fff);
-
-      font-size:clamp(.9rem, 2.5vw, 1.15rem);
-      font-weight:900;
-      letter-spacing:.06em;
-      line-height:1.15;
-      text-transform:uppercase;
-    }
-
-    .journey-header-control{
-      display:inline-flex;
-      align-items:center;
-      justify-content:center;
-
-      width:48px;
-      height:48px;
-
-      margin:0;
-      padding:0;
-
-      color:var(--heading-accent, #d4af37);
-      background:transparent;
-
-      border:1px solid rgba(212,175,55,.55);
-      border-radius:50%;
-
-      font:inherit;
-      font-size:.9rem;
-      font-weight:900;
-
-      cursor:pointer;
-    }
-
-    .journey-header-control:hover,
-    .journey-header-control:focus-visible{
-      background:rgba(212,175,55,.08);
-      outline:none;
-    }
-
-    @media (max-width:520px){
-
-      .journey-minimal-header{
-        grid-template-columns:48px minmax(0,1fr) 48px;
-        gap:8px;
-        min-height:76px;
-        padding:10px 12px;
-      }
-
-      .journey-header-control{
-        width:44px;
-        height:44px;
-      }
-
-      .journey-header-title{
-        font-size:.82rem;
-        letter-spacing:.04em;
-      }
-
-    }
 
   </style>
 
@@ -544,83 +479,146 @@
 </style>
 
 
-<style id="SANDMAN-LOCAL-RALLY-RESPONSIVE">
-  .local-rally {
-    display: inline;
+<style id="SANDMAN-SYV-NIGHT-TOKENS">
+  body:not(.day-mode){
+    --bg:#080808;
+    --panel:#111113;
+    --panel-2:#18181b;
+    --heading:#f5f5f5;
+    --heading-accent:#d4af37;
+    --hero-muted:#d0d0d4;
+    --muted:rgba(255,255,255,.68);
+    --line:rgba(255,255,255,.14);
+    --text:#f5f5f5;
+
+    background:#080808;
+    color:#f5f5f5;
   }
 
-  .local-rally__place,
-  .local-rally__call {
-    display: inline;
+  body:not(.day-mode) .panel,
+  body:not(.day-mode) .card,
+  body:not(.day-mode) .quote{
+    background:#111113;
+    border-color:rgba(255,255,255,.14);
   }
 
-  @media (max-width: 640px) {
-    .local-rally {
-      display: inline-flex;
-      flex-direction: column;
-      align-items: center;
-      line-height: 1.25;
-    }
+  body:not(.day-mode) .fact{
+    background:#18181b;
+    border-color:rgba(255,255,255,.12);
+  }
 
-    .local-rally__place,
-    .local-rally__call {
-      display: block;
-    }
+  body:not(.day-mode) .panel p,
+  body:not(.day-mode) .card p,
+  body:not(.day-mode) .card li,
+  body:not(.day-mode) .fact span,
+  body:not(.day-mode) .hero p,
+  body:not(.day-mode) .availability{
+    color:#d0d0d4;
+  }
 
-    .local-rally__dot {
-      display: block;
-      width: 70%;
-      height: 1px;
-      margin: .35rem auto;
-      overflow: hidden;
-      font-size: 0;
-      line-height: 0;
-      background: currentColor;
-      opacity: .35;
-    }
+  body:not(.day-mode) .section-title,
+  body:not(.day-mode) .card h2,
+  body:not(.day-mode) .card h3,
+  body:not(.day-mode) .quote strong{
+    color:#f5f5f5;
+  }
+
+  body:not(.day-mode) .eyebrow,
+  body:not(.day-mode) .hero-subtitle,
+  body:not(.day-mode) .fact strong{
+    color:#d4af37;
   }
 </style>
 
 
-  <style id="SANDMAN-DISCIPLINE-CENTERED-TITLES">
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      text-align: center;
+  <style id="SANDMAN-DISCIPLINE-HERITAGE-STYLE">
+    .discipline-heritage {
+      width: min(calc(100% - 2rem), 1100px);
+      margin: 1rem auto 2rem;
+      overflow: hidden;
+      border-radius: 18px;
+    }
+
+    .discipline-heritage img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 16 / 7;
+      object-fit: cover;
+      object-position: center;
+    }
+
+    @media (max-width: 640px) {
+      .discipline-heritage {
+        width: min(calc(100% - 1.25rem), 1100px);
+        margin: .75rem auto 1.5rem;
+        border-radius: 14px;
+      }
+
+      .discipline-heritage img {
+        aspect-ratio: 16 / 9;
+      }
     }
   </style>
 
+  <script src="/assets/js/parent-shell.js" defer></script>
 </head>
 
 <body>
 
+<header class="topbar parent-discipline-topbar">
 
-<div
-  id="navigation"
-  data-component="/locations/santa-ynez-valley/components/navigation.html"
-></div>
+  <div class="topbar-left">
+    <a class="back-btn" href="/parent/system/">
+      <span class="en">← Parent Resources</span>
+      <span class="es">← Recursos Para Padres</span>
+    </a>
+  </div>
 
-<div class="site-hero-divider" aria-hidden="true"></div>
+  <div class="topbar-center">
+    <a class="hub-mark" href="/parent/system/">
+      Sandman System™
+    </a>
+  </div>
+
+  <div class="topbar-right system-page-controls">
+
+    <button
+      class="lang-btn active"
+      data-lang="en"
+      type="button"
+    >EN</button>
+
+    <button
+      class="lang-btn"
+      data-lang="es"
+      type="button"
+    >ES</button>
+
+    <button
+      class="theme-toggle"
+      id="themeToggle"
+      type="button"
+      aria-label="Change appearance"
+    >☀️</button>
+
+  </div>
+
+</header>
 
 
-
-<main>
+  <main>
 
 
     <section class="hero">
 
       <div data-lang-block="en">
-        <p class="eyebrow">Road2Champion™ • Ages 7–13</p>
 <h1>Wrestling</h1>
 
         <p class="hero-subtitle">
-          Movement. Position. Pressure. Confidence.
+          Pressure. Position. Strategy. Leadership.
         </p>
 
-        <p>Technical and tactical development for youth athletes.</p>
+        <p>Technical and tactical development for teen and adult athletes.</p>
 
         <span class="availability">
           Offered at our Santa Ynez Valley academy
@@ -632,14 +630,13 @@
         data-lang-block="es"
         class="hidden-lang"
       >
-        <p class="eyebrow">Road2Champion™ • Edades 7–13</p>
 <h1>Lucha</h1>
 
         <p class="hero-subtitle">
-          Movimiento. Posición. Presión. Confianza.
+          Presión. Posición. Estrategia. Liderazgo.
         </p>
 
-        <p>Desarrollo técnico y táctico para atletas jóvenes.</p>
+        <p>Desarrollo técnico y táctico para atletas adolescentes y adultos.</p>
 
         <span class="availability">
           Disponible en nuestra academia de Valle de Santa Ynez
@@ -648,7 +645,6 @@
       </div>
 
     </section>
-
 
 <!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->
 
@@ -669,25 +665,25 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          Discipline
+          Parent Overview
         </p>
 
         <h2 class="section-title">
-          Wrestling
+          Understanding Wrestling
         </h2>
 
         <p>
-          Wrestling is one of humanity’s oldest organized combat sports. It is
-          built around balance, leverage, movement, takedowns, positional
-          control, escapes, reversals, and the ability to solve physical
-          problems against active resistance.
+          Wrestling is one of the oldest and most demanding combat sports. It
+          is built around leverage, balance, pressure, takedowns, control,
+          escapes, reversals, and continuous decision-making against active
+          resistance.
         </p>
 
         <p>
-          Youth wrestling at Sandman Combat™ is taught through structured,
-          age-appropriate instruction. Athletes build to move safely, control
-          positions, protect their partners, compete with discipline, and
-          develop confidence through earned experience.
+          Path2Legend Wrestling includes the technical and tactical development
+          needed for folkstyle, freestyle, and Greco-Roman competition.
+          Athletes learn to connect positions, manage pace, create pressure,
+          control risk, and compete with composure.
         </p>
 
       </div>
@@ -706,18 +702,16 @@
         </h2>
 
         <p>
-          La lucha es uno de los deportes de combate organizados más antiguos
-          de la humanidad. Se basa en equilibrio, palanca, movimiento,
-          derribos, control posicional, escapes, reversiones y la capacidad de
-          resolver problemas físicos contra resistencia activa.
+          La lucha es uno de los deportes de combate más antiguos y exigentes.
+          Se basa en palanca, equilibrio, presión, derribos, control, escapes,
+          reversiones y toma continua de decisiones contra resistencia activa.
         </p>
 
         <p>
-          La lucha juvenil en Sandman Combat™ se enseña mediante instrucción
-          estructurada y apropiada para la edad. Los atletas aprenden a moverse
-          con seguridad, controlar posiciones, proteger a sus compañeros,
-          competir con disciplina y desarrollar confianza mediante experiencia
-          ganada.
+          Lucha Path2Legend incluye el desarrollo técnico y táctico necesario
+          para competir en folkstyle, freestyle y lucha grecorromana. Los
+          atletas aprenden a conectar posiciones, manejar el ritmo, crear
+          presión, controlar el riesgo y competir con compostura.
         </p>
 
       </div>
@@ -729,25 +723,25 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          The Sandman Purpose
+          Why Wrestling Matters
         </p>
 
         <h2 class="section-title">
-          Why Wrestling
+          Why We Teach Wrestling at Sandman
         </h2>
 
         <p>
-          We teach wrestling because it places athletes in direct contact with
-          resistance. They must learn to stay composed, adjust when a plan
-          fails, accept responsibility for the result, and continue working
-          when the position becomes difficult.
+          We teach wrestling because it reveals how an athlete responds when
+          effort alone is not enough. Success requires preparation, patience,
+          adjustment, discipline, and the ability to stay composed when a plan
+          breaks down.
         </p>
 
         <p>
-          Every exchange teaches problem-solving, courage, humility, effort,
-          accountability, and respect. Wrestling gives young athletes a safe,
-          structured place to test themselves and supports the Sandman pillars
-          of Combat, Strength, and Honor.
+          Older athletes are expected to do more than improve technically.
+          They are expected to become dependable teammates, accountable
+          competitors, and leaders who help raise the standard around them.
+          Wrestling supports the Sandman pillars of Combat, Strength, and Honor.
         </p>
 
       </div>
@@ -766,17 +760,17 @@
         </h2>
 
         <p>
-          Enseñamos lucha porque coloca a los atletas en contacto directo con
-          la resistencia. Deben aprender a mantener la compostura, adaptarse
-          cuando un plan falla, aceptar responsabilidad por el resultado y
-          continuar trabajando cuando la posición se vuelve difícil.
+          Enseñamos lucha porque revela cómo responde un atleta cuando el
+          esfuerzo por sí solo no es suficiente. El éxito requiere preparación,
+          paciencia, adaptación, disciplina y capacidad para mantener la calma
+          cuando un plan deja de funcionar.
         </p>
 
         <p>
-          Cada intercambio enseña resolución de problemas, valor, humildad,
-          esfuerzo, responsabilidad y respeto. La lucha ofrece a los jóvenes
-          atletas un lugar seguro y estructurado para ponerse a prueba y apoya
-          los pilares Sandman de Combate, Fuerza y Honor.
+          Se espera que los atletas mayores hagan más que mejorar técnicamente.
+          Deben convertirse en compañeros confiables, competidores responsables
+          y líderes que eleven el estándar a su alrededor. La lucha apoya los
+          pilares Sandman de Combate, Fuerza y Honor.
         </p>
 
       </div>
@@ -796,18 +790,17 @@
         </h2>
 
         <p>
-          Wrestling appears in some of the earliest records of organized
-          human competition. Ancient artwork and written traditions from
-          several civilizations show people practicing forms of grappling,
-          control, and takedowns long before modern sport rules existed.
+          Wrestling appears in some of the earliest records of organized human
+          competition. Ancient civilizations used grappling for sport,
+          military preparation, physical development, and cultural tradition.
         </p>
 
         <p>
-          Today, wrestling is practiced worldwide through styles such as
-          folkstyle, freestyle, and Greco-Roman wrestling. At the youth level,
-          it remains one of the strongest foundations for athletic development,
-          competition, self-confidence, and future participation in other
-          grappling and combat sports.
+          Modern wrestling developed into recognized international styles.
+          Folkstyle emphasizes control and escapes, freestyle rewards exposure
+          and dynamic scoring, and Greco-Roman focuses on upper-body attacks,
+          throws, and control. Together, they provide a broad and demanding
+          foundation for complete grappling development.
         </p>
 
       </div>
@@ -827,18 +820,17 @@
 
         <p>
           La lucha aparece en algunos de los registros más antiguos de
-          competencia humana organizada. Obras de arte y tradiciones escritas
-          de varias civilizaciones muestran formas de grappling, control y
-          derribos mucho antes de que existieran las reglas deportivas
-          modernas.
+          competencia humana organizada. Las civilizaciones antiguas usaban el
+          grappling para deporte, preparación militar, desarrollo físico y
+          tradición cultural.
         </p>
 
         <p>
-          Hoy la lucha se practica en todo el mundo mediante estilos como
-          folkstyle, freestyle y lucha grecorromana. A nivel juvenil, sigue
-          siendo una de las bases más fuertes para el desarrollo atlético, la
-          competencia, la confianza y la futura participación en otros
-          deportes de grappling y combate.
+          La lucha moderna evolucionó en estilos internacionales reconocidos.
+          Folkstyle enfatiza control y escapes, freestyle recompensa exposición
+          y puntuación dinámica, y la lucha grecorromana se enfoca en ataques,
+          lanzamientos y control del tren superior. Juntas ofrecen una base
+          amplia y exigente para el desarrollo completo del grappling.
         </p>
 
       </div>
@@ -850,36 +842,36 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          What Makes Wrestling Different
+          What Parents Should Know
         </p>
 
         <h2 class="section-title">
-          Built Through Pressure
+          Key Things to Understand
         </h2>
 
         <div class="facts">
 
           <div class="fact">
-            <strong>One of the Oldest Sports</strong>
+            <strong>Three Major Styles</strong>
             <span>
-              Wrestling traditions appear across many ancient cultures and
-              predate most modern organized sports.
+              Path2Legend athletes may study folkstyle, freestyle, and
+              Greco-Roman wrestling as connected parts of one grappling base.
             </span>
           </div>
 
           <div class="fact">
-            <strong>Leverage Beats Size</strong>
+            <strong>Position Drives Strategy</strong>
             <span>
-              Good position, timing, balance, and technique can allow a
-              smaller athlete to control a larger opponent.
+              Advanced wrestling is not just about individual moves. It is
+              about linking positions, controlling pace, and forcing reactions.
             </span>
           </div>
 
           <div class="fact">
-            <strong>A Foundation for Combat Sports</strong>
+            <strong>Leadership Is Part of Progress</strong>
             <span>
-              Wrestling develops skills that transfer directly into
-              submission grappling, mixed martial arts, and other sports.
+              Older athletes are expected to model discipline, support younger
+              teammates, and raise the standard of the room.
             </span>
           </div>
 
@@ -903,26 +895,27 @@
         <div class="facts">
 
           <div class="fact">
-            <strong>Uno De Los Deportes Más Antiguos</strong>
+            <strong>Tres Estilos Principales</strong>
             <span>
-              Las tradiciones de lucha aparecen en muchas culturas antiguas y
-              son anteriores a la mayoría de los deportes modernos.
+              Los atletas Path2Legend pueden estudiar folkstyle, freestyle y
+              lucha grecorromana como partes conectadas de una sola base.
             </span>
           </div>
 
           <div class="fact">
-            <strong>La Palanca Supera El Tamaño</strong>
+            <strong>La Posición Guía La Estrategia</strong>
             <span>
-              Buena posición, tiempo, equilibrio y técnica pueden permitir que
-              un atleta más pequeño controle a uno más grande.
+              La lucha avanzada no consiste solamente en movimientos
+              individuales. Se trata de conectar posiciones, controlar el
+              ritmo y provocar reacciones.
             </span>
           </div>
 
           <div class="fact">
-            <strong>Una Base Para Los Deportes De Combate</strong>
+            <strong>El Liderazgo Es Parte Del Progreso</strong>
             <span>
-              La lucha desarrolla habilidades que se transfieren directamente
-              al grappling de sumisión, MMA y otros deportes.
+              Se espera que los atletas mayores modelen disciplina, apoyen a
+              compañeros más jóvenes y eleven el estándar del equipo.
             </span>
           </div>
 
@@ -937,26 +930,26 @@
       <article class="card">
 
         <div data-lang-block="en">
-          <h2>Skills You Build</h2>
+          <h2>What Your Athlete Is Learning</h2>
           <ul>
-            <li>Athletic stance and movement</li>
-            <li>Hand fighting and positioning</li>
-            <li>Takedowns and controlled finishes</li>
-            <li>Top control and pressure</li>
-            <li>Escapes and reversals</li>
-            <li>Mat awareness and match strategy</li>
+            <li>Advanced stance, motion, and hand fighting</li>
+            <li>Single-leg, double-leg, and upper-body attacks</li>
+            <li>Chain wrestling and controlled finishes</li>
+            <li>Top pressure, rides, turns, and exposure</li>
+            <li>Escapes, reversals, and scrambling</li>
+            <li>Folkstyle, freestyle, and Greco-Roman strategy</li>
           </ul>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <h2>Habilidades Técnicas</h2>
           <ul>
-            <li>Postura atlética y movimiento</li>
-            <li>Control de manos y posicionamiento</li>
-            <li>Derribos y finalizaciones controladas</li>
-            <li>Control superior y presión</li>
-            <li>Escapes y reversiones</li>
-            <li>Conciencia en el tapiz y estrategia de combate</li>
+            <li>Postura, movimiento y lucha de manos avanzados</li>
+            <li>Ataques de una pierna, dos piernas y tren superior</li>
+            <li>Cadenas de lucha y finalizaciones controladas</li>
+            <li>Presión superior, rides, giros y exposición</li>
+            <li>Escapes, reversiones y scrambles</li>
+            <li>Estrategia de folkstyle, freestyle y grecorromana</li>
           </ul>
         </div>
 
@@ -967,24 +960,24 @@
         <div data-lang-block="en">
           <h2>Physical Development</h2>
           <ul>
-            <li>Coordination</li>
-            <li>Balance</li>
-            <li>Agility</li>
-            <li>Strength and body control</li>
-            <li>Conditioning</li>
-            <li>Durability and movement confidence</li>
+            <li>Strength and power</li>
+            <li>Speed and agility</li>
+            <li>Mobility and body control</li>
+            <li>Grip, core, and positional endurance</li>
+            <li>Competition conditioning</li>
+            <li>Durability and recovery habits</li>
           </ul>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <h2>Desarrollo Físico</h2>
           <ul>
-            <li>Coordinación</li>
-            <li>Equilibrio</li>
-            <li>Agilidad</li>
-            <li>Fuerza y control corporal</li>
-            <li>Acondicionamiento</li>
-            <li>Durabilidad y confianza en el movimiento</li>
+            <li>Fuerza y potencia</li>
+            <li>Velocidad y agilidad</li>
+            <li>Movilidad y control corporal</li>
+            <li>Agarre, core y resistencia posicional</li>
+            <li>Acondicionamiento competitivo</li>
+            <li>Durabilidad y hábitos de recuperación</li>
           </ul>
         </div>
 
@@ -995,24 +988,24 @@
         <div data-lang-block="en">
           <h2>Character Development</h2>
           <ul>
-            <li>Confidence</li>
             <li>Discipline</li>
+            <li>Accountability</li>
+            <li>Composure</li>
             <li>Resilience</li>
             <li>Humility</li>
-            <li>Accountability</li>
-            <li>Respect</li>
+            <li>Leadership</li>
           </ul>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <h2>Desarrollo Del Carácter</h2>
           <ul>
-            <li>Confianza</li>
             <li>Disciplina</li>
+            <li>Responsabilidad</li>
+            <li>Compostura</li>
             <li>Resiliencia</li>
             <li>Humildad</li>
-            <li>Responsabilidad</li>
-            <li>Respeto</li>
+            <li>Liderazgo</li>
           </ul>
         </div>
 
@@ -1021,26 +1014,26 @@
       <article class="card">
 
         <div data-lang-block="en">
-          <h2>How We Train</h2>
+          <h2>What Training Looks Like</h2>
           <ul>
-            <li>Movement and stance drills</li>
-            <li>Position-based instruction</li>
-            <li>Takedown development</li>
-            <li>Top and bottom wrestling</li>
-            <li>Live situational practice</li>
-            <li>Safe, age-appropriate competition</li>
+            <li>Technical drilling and chain development</li>
+            <li>Position-based live wrestling</li>
+            <li>Match strategy and situational awareness</li>
+            <li>Competition preparation</li>
+            <li>Video review and tactical adjustment</li>
+            <li>Leadership and responsibility in the room</li>
           </ul>
         </div>
 
         <div data-lang-block="es" class="hidden-lang">
           <h2>Enfoque Del Entrenamiento</h2>
           <ul>
-            <li>Ejercicios de movimiento y postura</li>
-            <li>Enseñanza basada en posiciones</li>
-            <li>Desarrollo de derribos</li>
-            <li>Lucha desde arriba y abajo</li>
-            <li>Práctica situacional en vivo</li>
-            <li>Competencia segura y apropiada para la edad</li>
+            <li>Repetición técnica y desarrollo de cadenas</li>
+            <li>Lucha en vivo basada en posiciones</li>
+            <li>Estrategia de combate y conciencia situacional</li>
+            <li>Preparación para competir</li>
+            <li>Revisión de video y ajuste táctico</li>
+            <li>Liderazgo y responsabilidad en el equipo</li>
           </ul>
         </div>
 
@@ -1050,41 +1043,15 @@
 
 <section class="visual-section">
 
-      <div class="visual-heading">
-
-        <div data-lang-block="en">
-          <h2>Road2Champion™ Progression</h2>
-          <p>
-            Athletes advance from Shadow to Champion through consistent training,
-            coach evaluation, testing, technical development, competition
-            experience, and demonstrated growth in Combat, Strength, and Honor.
-          </p>
-        </div>
-
-        <div
-          data-lang-block="es"
-          class="hidden-lang"
-        >
-          <h2>Progresión Road2Champion™</h2>
-          <p>
-            Los atletas avanzan de Shadow a Champion mediante entrenamiento
-            constante, evaluación del coach, pruebas, desarrollo técnico,
-            experiencia competitiva y crecimiento demostrado en Combate,
-            Fuerza y Honor.
-          </p>
-        </div>
-
+      <div class="progression-top">
+        <figure>
+          <img
+            src="/assets/images/programs/shirt-progression/path2legend-wrestling-shirt-progression.png"
+            alt="Path2Legend Wrestling shirt progression from Apprentice to Legend"
+          />
+        </figure>
       </div>
 
-    </section>
-
-<section class="progression-top">
-      <figure>
-        <img
-          src="/assets/images/programs/shirt-progression/road2champion-wrestling-shirt-progression.png"
-          alt="Road2Champion Wrestling shirt progression from Shadow to Champion"
-        />
-      </figure>
     </section>
 
 <section class="section panel">
@@ -1092,15 +1059,18 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          Who It’s For
+          Athlete Development
         </p>
 
         <h2 class="section-title">
-          Built for Developing Athletes
+          How Wrestling Supports Your Athlete
         </h2>
 
         <p>
-          Road2Champion™ Wrestling is built for first-time athletes, energetic young athletes, multi-sport athletes, future competitors, and youth who benefit from a structured way to develop coordination, confidence, resilience, discipline, fitness, and problem-solving under pressure.
+          Path2Legend Wrestling is designed for teen and adult athletes who
+          want deeper technical development, structured competition
+          preparation, stronger conditioning, greater tactical awareness, and
+          a clear path toward leadership and long-term mastery.
         </p>
 
       </div>
@@ -1119,22 +1089,21 @@
         </h2>
 
         <p>
-          Lucha Road2Champion™ está diseñada para atletas principiantes, jóvenes con mucha energía, atletas de varios deportes, futuros competidores y jóvenes que se benefician de una manera estructurada de desarrollar coordinación, confianza, resiliencia, disciplina, condición física y resolución de problemas bajo presión.
+          Lucha Path2Legend está diseñada para atletas adolescentes y adultos
+          que buscan desarrollo técnico más profundo, preparación estructurada
+          para competir, mejor acondicionamiento, mayor conciencia táctica y un
+          camino claro hacia el liderazgo y la maestría a largo plazo.
         </p>
 
       </div>
-
-    </section>
-
-
 <section class="marketing-connect-cta">
 
   <div data-lang-block="en">
-    <h2>Ready to Begin Wrestling?</h2>
+    <h2>Ready to Take the Next Step in Wrestling?</h2>
 
     <p>
-      Help your child build confidence, resilience, coordination, and
-      character through structured, age-appropriate Road2Champion™ wrestling.
+      Build deeper technique, stronger conditioning, competition readiness,
+      and leadership through the Path2Legend™ wrestling journey.
     </p>
 
     <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
@@ -1143,11 +1112,11 @@
   </div>
 
   <div data-lang-block="es" class="hidden-lang">
-    <h2>¿Listo para Comenzar Lucha?</h2>
+    <h2>¿Listo para Dar el Siguiente Paso en Lucha?</h2>
 
     <p>
-      Ayuda a tu hijo a desarrollar confianza, resiliencia, coordinación
-      y carácter mediante lucha Road2Champion™ estructurada y apropiada para la edad.
+      Desarrolla técnica más profunda, mejor acondicionamiento, preparación
+      competitiva y liderazgo mediante el camino Path2Legend™.
     </p>
 
     <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
@@ -1156,19 +1125,20 @@
   </div>
 
 </section>
+
     <div class="quote">
 
       <span data-lang-block="en">
-        <strong>Every hero begins in the shadows.</strong>
-        Start at zero. Learn with discipline. Earn every step.
+        <strong>Legends are built through pressure.</strong>
+        Train with discipline. Compete with purpose. Lead by example.
       </span>
 
       <span
         data-lang-block="es"
         class="hidden-lang"
       >
-        <strong>Cada héroe comienza en las sombras.</strong>
-        Comienza desde cero. Aprende con disciplina. Gana cada paso.
+        <strong>Las leyendas se forman bajo presión.</strong>
+        Entrena con disciplina. Compite con propósito. Lidera con el ejemplo.
       </span>
 
     </div>
@@ -1177,23 +1147,14 @@
 
 
 
-  <div
-    id="footer"
-    data-component="/components/footer.html"
-  ></div>
+  
 
-  <script
-    src="/assets/js/component-loader.js"
-    defer
-  ></script>
+  
 
 <script src="/assets/js/language.js" defer></script>
   <script src="/assets/js/theme.js" defer></script>
 
-  <script
-    src="/assets/js/navigation.js"
-    defer
-  ></script>
+  
 
 </body>
 </html>

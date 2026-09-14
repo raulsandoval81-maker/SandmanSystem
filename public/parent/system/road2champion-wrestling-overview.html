@@ -7,7 +7,7 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Road2Champion Wrestling | Sandman Academy of Combat &amp; Fitness™</title>
+  <title>Road2Champion Wrestling Overview | Sandman Family</title>
 
   <meta
     name="description"
@@ -15,6 +15,8 @@
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/parent/parent.css" />
+  <link rel="stylesheet" href="/parent/system/system.css" />
   <link rel="stylesheet" href="/public.css" />
 <style>
     *{
@@ -593,15 +595,51 @@
     }
   </style>
 
+  <script src="/assets/js/parent-shell.js" defer></script>
 </head>
 
 <body>
 
 
-<div
-  id="navigation"
-  data-component="/locations/santa-ynez-valley/components/navigation.html"
-></div>
+<header class="topbar parent-discipline-topbar">
+
+  <div class="topbar-left">
+    <a class="back-btn" href="/parent/system/">
+      <span class="en">← Parent Resources</span>
+      <span class="es">← Recursos Para Padres</span>
+    </a>
+  </div>
+
+  <div class="topbar-center">
+    <a class="hub-mark" href="/parent/system/">
+      Sandman System™
+    </a>
+  </div>
+
+  <div class="topbar-right system-page-controls">
+
+    <button
+      class="lang-btn active"
+      data-lang="en"
+      type="button"
+    >EN</button>
+
+    <button
+      class="lang-btn"
+      data-lang="es"
+      type="button"
+    >ES</button>
+
+    <button
+      class="theme-toggle"
+      id="themeToggle"
+      type="button"
+      aria-label="Change appearance"
+    >☀️</button>
+
+  </div>
+
+</header>
 
 <div class="site-hero-divider" aria-hidden="true"></div>
 
@@ -669,11 +707,11 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          Discipline
+          Parent Overview
         </p>
 
         <h2 class="section-title">
-          Wrestling
+          Understanding Youth Wrestling
         </h2>
 
         <p>
@@ -685,7 +723,7 @@
 
         <p>
           Youth wrestling at Sandman Combat™ is taught through structured,
-          age-appropriate instruction. Athletes build to move safely, control
+          age-appropriate instruction. Your athlete learns to move safely, control
           positions, protect their partners, compete with discipline, and
           develop confidence through earned experience.
         </p>
@@ -729,11 +767,11 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          The Sandman Purpose
+          Why Wrestling Matters
         </p>
 
         <h2 class="section-title">
-          Why Wrestling
+          Why We Teach Wrestling at Sandman
         </h2>
 
         <p>
@@ -850,11 +888,11 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          What Makes Wrestling Different
+          What Parents Should Know
         </p>
 
         <h2 class="section-title">
-          Built Through Pressure
+          Key Things to Understand
         </h2>
 
         <div class="facts">
@@ -937,7 +975,7 @@
       <article class="card">
 
         <div data-lang-block="en">
-          <h2>Skills You Build</h2>
+          <h2>What Your Athlete Is Learning</h2>
           <ul>
             <li>Athletic stance and movement</li>
             <li>Hand fighting and positioning</li>
@@ -1021,7 +1059,7 @@
       <article class="card">
 
         <div data-lang-block="en">
-          <h2>How We Train</h2>
+          <h2>What Training Looks Like</h2>
           <ul>
             <li>Movement and stance drills</li>
             <li>Position-based instruction</li>
@@ -1092,15 +1130,15 @@
       <div data-lang-block="en">
 
         <p class="eyebrow">
-          Who It’s For
+          Athlete Development
         </p>
 
         <h2 class="section-title">
-          Built for Developing Athletes
+          How Wrestling Supports Your Athlete
         </h2>
 
         <p>
-          Road2Champion™ Wrestling is built for first-time athletes, energetic young athletes, multi-sport athletes, future competitors, and youth who benefit from a structured way to develop coordination, confidence, resilience, discipline, fitness, and problem-solving under pressure.
+          Road2Champion™ Wrestling supports first-time athletes, energetic young athletes, multi-sport athletes, future competitors, and youth who benefit from a structured way to develop coordination, confidence, resilience, discipline, fitness, and problem-solving under pressure.
         </p>
 
       </div>
@@ -1177,23 +1215,14 @@
 
 
 
-  <div
-    id="footer"
-    data-component="/components/footer.html"
-  ></div>
+  
 
-  <script
-    src="/assets/js/component-loader.js"
-    defer
-  ></script>
+  
 
 <script src="/assets/js/language.js" defer></script>
   <script src="/assets/js/theme.js" defer></script>
 
-  <script
-    src="/assets/js/navigation.js"
-    defer
-  ></script>
+  
 
 </body>
 </html>
