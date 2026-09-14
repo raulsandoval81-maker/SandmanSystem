@@ -13,6 +13,38 @@
 
   <link rel="stylesheet" href="/assets/css/site.css" />
   <link rel="stylesheet" href="/assets/css/pillars.css" />
+
+  <script>
+    (() => {
+      const from = new URLSearchParams(window.location.search).get("from") || "";
+      if (from === "/parent/" || from === "/parent/index.html") {
+        document.documentElement.classList.add("parent-pillar-context");
+
+        const parentCss = document.createElement("link");
+        parentCss.rel = "stylesheet";
+        parentCss.href = "/parent/parent.css";
+        document.head.appendChild(parentCss);
+      }
+    })();
+  </script>
+
+  <style>
+    /* Parent-context treatment for shared Sandman Pillar pages */
+    html.parent-pillar-context #navigation,
+    html.parent-pillar-context #footer,
+    html.parent-pillar-context .site-hero-divider {
+      display:none !important;
+    }
+
+    html.parent-pillar-context body {
+      background:var(--bg);
+      color:var(--text);
+    }
+
+    html.parent-pillar-context .pillar-page {
+      padding-top:24px;
+    }
+  </style>
 </head>
 
 <body>
@@ -871,6 +903,17 @@
   <script src="/assets/js/language.js" defer></script>
   <script src="/assets/js/theme.js" defer></script>
   <script src="/assets/js/navigation.js" defer></script>
+
+  <script>
+    (() => {
+      const from = new URLSearchParams(window.location.search).get("from") || "";
+      if (from !== "/parent/" && from !== "/parent/index.html") return;
+
+      const script = document.createElement("script");
+      script.src = "/assets/js/parent-shell.js";
+      document.body.appendChild(script);
+    })();
+  </script>
 
 </body>
 </html>
