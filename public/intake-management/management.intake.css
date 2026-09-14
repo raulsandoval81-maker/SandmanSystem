@@ -1774,3 +1774,90 @@ body.management-review-page{
 .enrollment-workspace-header .muted {
   color: #d1d5db;
 }
+
+/* === ENROLLMENT LANDING CONTRAST FIX ===
+   Scoped to /intake-management/ only.
+   Keeps the shared Management header/sidebar intact.
+===================================================== */
+
+body.management-enrollment-page .management-main{
+  background:
+    radial-gradient(
+      circle at 55% -8%,
+      rgba(250,204,21,.09),
+      transparent 34rem
+    ),
+    linear-gradient(
+      180deg,
+      #11151c 0%,
+      #07090d 46%,
+      #050608 100%
+    );
+}
+
+body.management-enrollment-page .workspace-heading{
+  color:#f8fafc;
+}
+
+body.management-enrollment-page .workspace-heading .section-label{
+  color:#facc15;
+}
+
+body.management-enrollment-page .workspace-heading h2{
+  color:#ffffff;
+}
+
+body.management-enrollment-page .workspace-heading p:last-child{
+  color:#cbd5e1;
+}
+
+body.management-enrollment-page .enrollment-inner{
+  --gold:#facc15;
+  --gold-2:#fde047;
+  --muted:#b7bec8;
+  --line:rgba(255,255,255,.11);
+
+  color:#f5f5f5;
+}
+
+body.management-enrollment-page .enrollment-inner .card{
+  border-color:rgba(255,255,255,.11);
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.055),
+      rgba(255,255,255,.022)
+    );
+
+  color:#f5f5f5;
+
+  box-shadow:
+    0 16px 38px rgba(0,0,0,.30),
+    inset 0 0 0 1px rgba(255,255,255,.018);
+}
+
+body.management-enrollment-page .enrollment-inner .card h2,
+body.management-enrollment-page .enrollment-inner .card h3{
+  color:#ffffff;
+}
+
+body.management-enrollment-page .enrollment-inner .card p,
+body.management-enrollment-page .enrollment-inner .muted{
+  color:#cbd5e1;
+}
+
+body.management-enrollment-page .enrollment-inner input,
+body.management-enrollment-page .enrollment-inner select,
+body.management-enrollment-page .enrollment-inner textarea{
+  border-color:rgba(255,255,255,.15);
+  background:#0b0d11;
+  color:#ffffff;
+}
+
+body.management-enrollment-page .enrollment-inner input::placeholder,
+body.management-enrollment-page .enrollment-inner textarea::placeholder{
+  color:rgba(255,255,255,.46);
+}
+
+/* === END ENROLLMENT LANDING CONTRAST FIX === */
