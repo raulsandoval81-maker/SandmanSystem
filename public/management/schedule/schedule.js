@@ -149,6 +149,10 @@ async function publish() {
 locationSelect?.addEventListener("change", () => loadLocation(locationSelect.value).catch((error) => { message.textContent = error.message; }));
 filterButtons.forEach((button) => button.addEventListener("click", () => { activeFilter = button.dataset.filter || "all"; filterButtons.forEach((item) => item.classList.toggle("is-active", item === button)); render(); }));
 viewButtons.forEach((button) => button.addEventListener("click", () => { activeView = button.dataset.view || "weekly"; viewButtons.forEach((item) => item.classList.toggle("is-active", item === button)); render(); }));
+document.getElementById("printScheduleBtn")?.addEventListener("click", () => {
+  window.print();
+});
+
 document.getElementById("addClassBtn")?.addEventListener("click", () => { try { const row = promptRow(); if (row) current.weekly.push(row); render(); } catch (error) { message.textContent = error.message; } });
 document.getElementById("saveDraftBtn")?.addEventListener("click", () => saveDraft().catch((error) => { message.textContent = error.message; }));
 document.getElementById("publishScheduleBtn")?.addEventListener("click", () => publish().catch((error) => { message.textContent = error.message; }));
