@@ -7,16 +7,15 @@
     content="width=device-width, initial-scale=1"
   />
 
-  <title>Road2Champion™ Muay Thai | Sandman Combat™</title>
+  <title>Road2Champion Muay Thai | Sandman Academy of Combat &amp; Fitness™</title>
 
   <meta
     name="description"
-    content="Learn about Road2Champion™ Muay Thai for athletes ages 7–13, including its history, training focus, earned progression, and athlete-development purpose."
+    content="Learn about Road2Champion Muay Thai for athletes ages 7–13, including its history, training focus, earned progression, and athlete-development purpose."
   />
 
   <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/parent/parent.css" />
-  <link rel="stylesheet" href="/parent/system/system.css" />
+  <link rel="stylesheet" href="/public.css" />
 <style>
     *{
       box-sizing:border-box;
@@ -39,16 +38,9 @@
     }
 
     main{
-      width:100%;
-      margin:0;
-      padding:40px 20px 80px;
-      overflow:hidden;
-    }
-
-    main > *{
-      width:min(1050px,100%);
-      margin-left:auto;
-      margin-right:auto;
+      width:min(1050px,calc(100% - 40px));
+      margin:0 auto;
+      padding:40px 0 80px;
     }
 
     .hidden-lang{
@@ -449,6 +441,89 @@
     }
 
 
+/* =========================================
+       MINIMAL JOURNEY HEADER
+    ========================================= */
+
+    .journey-minimal-header{
+      display:grid;
+      grid-template-columns:52px minmax(0,1fr) 52px;
+      align-items:center;
+      gap:12px;
+
+      width:100%;
+      min-height:82px;
+
+      margin:0;
+      padding:12px 18px;
+
+      background:var(--panel, #111113);
+      border-bottom:1px solid rgba(212,175,55,.45);
+    }
+
+    .journey-header-title{
+      text-align:center;
+
+      color:var(--heading, #fff);
+
+      font-size:clamp(.9rem, 2.5vw, 1.15rem);
+      font-weight:900;
+      letter-spacing:.06em;
+      line-height:1.15;
+      text-transform:uppercase;
+    }
+
+    .journey-header-control{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+
+      width:48px;
+      height:48px;
+
+      margin:0;
+      padding:0;
+
+      color:var(--heading-accent, #d4af37);
+      background:transparent;
+
+      border:1px solid rgba(212,175,55,.55);
+      border-radius:50%;
+
+      font:inherit;
+      font-size:.9rem;
+      font-weight:900;
+
+      cursor:pointer;
+    }
+
+    .journey-header-control:hover,
+    .journey-header-control:focus-visible{
+      background:rgba(212,175,55,.08);
+      outline:none;
+    }
+
+    @media (max-width:520px){
+
+      .journey-minimal-header{
+        grid-template-columns:48px minmax(0,1fr) 48px;
+        gap:8px;
+        min-height:76px;
+        padding:10px 12px;
+      }
+
+      .journey-header-control{
+        width:44px;
+        height:44px;
+      }
+
+      .journey-header-title{
+        font-size:.82rem;
+        letter-spacing:.04em;
+      }
+
+    }
+
   </style>
 
 <style id="SANDMAN-DISCIPLINE-HERO-CENTER">
@@ -469,136 +544,115 @@
 </style>
 
 
-<style id="SANDMAN-SYV-NIGHT-TOKENS">
-  body:not(.day-mode){
-    --bg:#080808;
-    --panel:#111113;
-    --panel-2:#18181b;
-    --heading:#f5f5f5;
-    --heading-accent:#d4af37;
-    --hero-muted:#d0d0d4;
-    --muted:rgba(255,255,255,.68);
-    --line:rgba(255,255,255,.14);
-    --text:#f5f5f5;
-
-    background:#080808;
-    color:#f5f5f5;
+<style id="SANDMAN-LOCAL-RALLY-RESPONSIVE">
+  .local-rally {
+    display: inline;
   }
 
-  body:not(.day-mode) .panel,
-  body:not(.day-mode) .card,
-  body:not(.day-mode) .quote{
-    background:#111113;
-    border-color:rgba(255,255,255,.14);
+  .local-rally__place,
+  .local-rally__call {
+    display: inline;
   }
 
-  body:not(.day-mode) .fact{
-    background:#18181b;
-    border-color:rgba(255,255,255,.12);
-  }
+  @media (max-width: 640px) {
+    .local-rally {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      line-height: 1.25;
+    }
 
-  body:not(.day-mode) .panel p,
-  body:not(.day-mode) .card p,
-  body:not(.day-mode) .card li,
-  body:not(.day-mode) .fact span,
-  body:not(.day-mode) .hero p,
-  body:not(.day-mode) .availability{
-    color:#d0d0d4;
-  }
+    .local-rally__place,
+    .local-rally__call {
+      display: block;
+    }
 
-  body:not(.day-mode) .section-title,
-  body:not(.day-mode) .card h2,
-  body:not(.day-mode) .card h3,
-  body:not(.day-mode) .quote strong{
-    color:#f5f5f5;
-  }
-
-  body:not(.day-mode) .eyebrow,
-  body:not(.day-mode) .hero-subtitle,
-  body:not(.day-mode) .fact strong{
-    color:#d4af37;
+    .local-rally__dot {
+      display: block;
+      width: 70%;
+      height: 1px;
+      margin: .35rem auto;
+      overflow: hidden;
+      font-size: 0;
+      line-height: 0;
+      background: currentColor;
+      opacity: .35;
+    }
   }
 </style>
 
-  <link rel="canonical" href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
 
-  <style id="SANDMAN-DISCIPLINE-HERITAGE-STYLE">
-    .discipline-heritage {
-      width: min(calc(100% - 2rem), 1100px);
-      margin: 1rem auto 2rem;
-      overflow: hidden;
-      border-radius: 18px;
-    }
-
-    .discipline-heritage img {
-      display: block;
-      width: 100%;
-      aspect-ratio: 16 / 7;
-      object-fit: cover;
-      object-position: center;
-    }
-
-    @media (max-width: 640px) {
-      .discipline-heritage {
-        width: min(calc(100% - 1.25rem), 1100px);
-        margin: .75rem auto 1.5rem;
-        border-radius: 14px;
-      }
-
-      .discipline-heritage img {
-        aspect-ratio: 16 / 9;
-      }
+  <style id="SANDMAN-DISCIPLINE-CENTERED-TITLES">
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      text-align: center;
     }
   </style>
 
-  <script src="/assets/js/parent-shell.js" defer></script>
 </head>
 
-<body><!-- Shared navigation -->
+<body>
+
+
+<div
+  id="navigation"
+  data-component="/locations/santa-ynez-valley/components/navigation.html"
+></div>
+
+<div class="site-hero-divider" aria-hidden="true"></div>
+
+
+
+  <!-- Shared navigation -->
 
 
 
 
+<main>
 
-<header class="topbar parent-discipline-topbar">
-  <div class="topbar-left">
-    <a class="back-btn" href="/parent/system/">
-      <span class="en">← Parent Resources</span>
-      <span class="es">← Recursos Para Padres</span>
-    </a>
-  </div>
 
-  <div class="topbar-center">
-    <a class="hub-mark" href="/parent/system/">
-      Sandman System™
-    </a>
-  </div>
+    <section class="hero">
 
-  <div class="topbar-right system-page-controls">
-    <button class="lang-btn active" data-lang="en" type="button">EN</button>
-    <button class="lang-btn" data-lang="es" type="button">ES</button>
-    <button
-      class="theme-toggle"
-      id="themeToggle"
-      type="button"
-      aria-label="Change appearance"
-    >☀️</button>
-  </div>
-</header>
+      <div data-lang-block="en">
+        <p class="eyebrow">Road2Champion™ • Ages 7–13</p>
+<h1>Muay Thai</h1>
 
-<main><!-- SANDMAN-DISCIPLINE-HERITAGE-BLOCK -->
+        <p class="hero-subtitle">
+          Balance. Timing. Control. Courage.
+        </p>
 
-<section
-  class="discipline-heritage"
-  aria-label="Muay Thai heritage artwork"
->
-  <img
-    src="/assets/images/disciplines/heritage/ancient_fresco_of_muay_thai_history.png"
-    alt="Muay Thai heritage artwork"
-    decoding="async"
-  >
-</section>
+        <p>Technical and tactical development for youth athletes.</p>
 
+        <span class="availability">
+          Offered at our Santa Ynez Valley academy
+        </span>
+
+      </div>
+
+      <div
+        data-lang-block="es"
+        class="hidden-lang"
+      >
+        <p class="eyebrow">Road2Champion™ • Edades 7–13</p>
+<h1>Muay Thai</h1>
+
+        <p class="hero-subtitle">
+          Equilibrio. Tiempo. Control. Valor.
+        </p>
+
+        <p>Desarrollo técnico y táctico para atletas jóvenes.</p>
+
+        <span class="availability">
+          Disponible en nuestra academia de Valle de Santa Ynez
+        </span>
+
+      </div>
+
+    </section>
 
     <section class="section panel">
 
@@ -992,15 +1046,40 @@
 
 <section class="visual-section">
 
-      <div class="progression-top">
+      <div class="visual-heading">
+
+        <div data-lang-block="en">
+          <h2>Road2Champion™ Progression</h2>
+          <p>
+            Athletes advance from Shadow to Champion through consistent training,
+            coach evaluation, testing, technical development, and demonstrated
+            growth in Combat, Strength, and Honor.
+          </p>
+        </div>
+
+        <div
+          data-lang-block="es"
+          class="hidden-lang"
+        >
+          <h2>Progresión Road2Champion™</h2>
+          <p>
+            Los atletas avanzan de Shadow a Champion mediante entrenamiento
+            constante, evaluación del coach, pruebas, desarrollo técnico y
+            crecimiento demostrado en Combate, Fuerza y Honor.
+          </p>
+        </div>
+
+      </div>
+
+    </section>
+
+<section class="progression-top">
       <figure>
         <img
           src="/assets/images/programs/shirt-progression/road2champion-muay-thai-shirt-progression.png"
-          alt="Road2Champion™ Muay Thai shirt progression from Shadow to Champion"
+          alt="Road2Champion Muay Thai shirt progression from Shadow to Champion"
         />
       </figure>
-    </div>
-
     </section>
 
 <section class="section panel">
@@ -1016,10 +1095,7 @@
         </h2>
 
         <p>
-          Road2Champion™ Muay Thai can serve first-time athletes, energetic
-          children, multi-sport athletes, future competitors, and young people
-          who need a structured way to develop coordination, confidence,
-          discipline, physical fitness, awareness, and self-control.
+          Road2Champion™ Muay Thai is designed for first-time athletes, energetic young athletes, multi-sport athletes, future competitors, and youth who benefit from a structured way to develop coordination, confidence, discipline, physical fitness, awareness, and self-control.
         </p>
 
       </div>
@@ -1038,16 +1114,45 @@
         </h2>
 
         <p>
-          Muay Thai Road2Champion™ puede beneficiar a atletas principiantes, niños
-          con mucha energía, atletas de varios deportes, futuros competidores
-          y jóvenes que necesitan una manera estructurada de desarrollar
-          coordinación, confianza, disciplina, condición física, conciencia y
-          autocontrol.
+          Muay Thai Road2Champion™ está diseñado para atletas principiantes, jóvenes con mucha energía, atletas de varios deportes, futuros competidores y jóvenes que se benefician de una manera estructurada de desarrollar coordinación, confianza, disciplina, condición física, conciencia y autocontrol.
         </p>
 
       </div>
 
-    </section><div class="quote">
+    </section>
+
+<section class="marketing-connect-cta">
+
+  <div data-lang-block="en">
+    <h2>Ready to Begin Muay Thai?</h2>
+
+    <p>
+      Help your child develop balance, coordination, confidence, discipline,
+      and responsible striking through age-appropriate Muay Thai training.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
+      Connect With Our Academy
+    </a>
+  </div>
+
+  <div data-lang-block="es" class="hidden-lang">
+    <h2>¿Listo para Comenzar Muay Thai?</h2>
+
+    <p>
+      Ayuda a tu hijo a desarrollar equilibrio, coordinación, confianza,
+      disciplina y golpeo responsable mediante entrenamiento apropiado
+      para su edad.
+    </p>
+
+    <a class="journeys-cta-button" href="/locations/santa-ynez-valley/connect.html">
+      Conéctate con Nuestra Academia
+    </a>
+  </div>
+
+</section>
+
+    <div class="quote">
 
       <span data-lang-block="en">
         <strong>Every hero begins in the shadows.</strong>
@@ -1065,6 +1170,26 @@
     </div>
 
   </main>
+
+
+
+  <div
+    id="footer"
+    data-component="/components/footer.html"
+  ></div>
+
+  <script
+    src="/assets/js/component-loader.js"
+    defer
+  ></script>
+
 <script src="/assets/js/language.js" defer></script>
+  <script src="/assets/js/theme.js" defer></script>
+
+  <script
+    src="/assets/js/navigation.js"
+    defer
+  ></script>
+
 </body>
 </html>
