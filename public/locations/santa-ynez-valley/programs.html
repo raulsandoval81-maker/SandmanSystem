@@ -1167,23 +1167,19 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html">
-                      <strong>Wrestling</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html">
+                    <strong>Wrestling</strong> —
                     fundamentals, mechanics, balance,
                     movement, and body control.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
-                      <strong>Muay Thai</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
+                    <strong>Muay Thai</strong> —
                     movement, coordination, distance,
                     and controlled striking fundamentals.
-                  </div>
+                  </a>
                 </li>
               </ul>
 
@@ -1200,23 +1196,19 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html">
-                      <strong>Lucha</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/wrestling.html">
+                    <strong>Lucha</strong> —
                     fundamentos, mecánica, equilibrio,
                     movimiento y control corporal.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
-                      <strong>Muay Thai</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/road2champion/muay-thai.html">
+                    <strong>Muay Thai</strong> —
                     movimiento, coordinación, distancia
                     y fundamentos de golpeo controlado.
-                  </div>
+                  </a>
                 </li>
               </ul>
 
@@ -1401,23 +1393,19 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html">
-                      <strong>Wrestling</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html">
+                    <strong>Wrestling</strong> —
                     advanced skills, pressure, leadership,
                     and competition readiness.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html">
-                      <strong>Boxing</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html">
+                    <strong>Boxing</strong> —
                     timing, footwork, conditioning,
                     pressure, and composure.
-                  </div>
+                  </a>
                 </li>
               </ul>
 
@@ -1434,23 +1422,19 @@
 
               <ul class="program-list">
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html">
-                      <strong>Lucha</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/wrestling.html">
+                    <strong>Lucha</strong> —
                     habilidades avanzadas, presión,
                     liderazgo y preparación competitiva.
-                  </div>
+                  </a>
                 </li>
 
                 <li>
-                  <div class="program-discipline-link">
-                    <a href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html">
-                      <strong>Boxeo</strong>
-                    </a> —
+                  <a class="program-discipline-link" href="/locations/santa-ynez-valley/programs/zero2hero/path2legend/boxing.html">
+                    <strong>Boxeo</strong> —
                     ritmo, desplazamiento, acondicionamiento,
                     presión y compostura.
-                  </div>
+                  </a>
                 </li>
               </ul>
 
@@ -1778,34 +1762,5 @@
     src="/assets/js/navigation.js"
     defer
   ></script>
-
-
-<!-- SANDMAN-PUBLIC-DISCIPLINE-STATIC-GUARD -->
-<script>
-document.addEventListener("click", function (event) {
-  const item = event.target.closest(".program-discipline-link");
-  if (!item) return;
-
-  const text = (item.textContent || "")
-    .trim()
-    .toLowerCase();
-
-  const combatDiscipline =
-    text.includes("wrestling") ||
-    text.includes("lucha") ||
-    text.includes("boxing") ||
-    text.includes("boxeo") ||
-    text.includes("muay thai") ||
-    text.includes("submission grappling") ||
-    text.includes("grappling de sumisión") ||
-    text.includes("mma");
-
-  if (!combatDiscipline) return;
-
-  event.preventDefault();
-  event.stopPropagation();
-}, true);
-</script>
-
 </body>
 </html>
