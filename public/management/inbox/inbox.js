@@ -1,6 +1,8 @@
 import {
   auth,
   db,
+  functions,
+  httpsCallable,
   collection,
   doc,
   getDocs,
@@ -643,20 +645,13 @@ function renderDetail() {
   if (managementReplyEmail) {
     const email = clean(message.email);
 
-    if (email) {
-      managementReplyEmail.href =
-        `mailto:${email}`;
+    managementReplyEmail.disabled =
+      !email;
 
-      managementReplyEmail.removeAttribute(
-        "aria-disabled"
-      );
-    } else {
-      managementReplyEmail.href = "#";
-      managementReplyEmail.setAttribute(
-        "aria-disabled",
-        "true"
-      );
-    }
+    managementReplyEmail.title =
+      email
+        ? `Send response to ${email}`
+        : "No email address provided";
   }
 
   detailOrganization.textContent =
@@ -888,6 +883,113 @@ async function loadInbox() {
     errorState.hidden = false;
   } finally {
     refreshButton.disabled = false;
+  }
+}
+
+
+async function sendManagementEmail() {
+  if (
+    !selectedMessage ||
+    !managementContext
+  ) {
+    setFormStatus(
+      "Select a message first.",
+      "error"
+    );
+    return;
+  }
+
+  const recipient =
+    clean(selectedMessage.email);
+
+  const responseText =
+    clean(
+      suggestedResponseText?.value
+    );
+
+  if (!recipient) {
+    setFormStatus(
+      "This message does not have an email address.",
+      "error"
+    );
+    return;
+  }
+
+  if (!responseText) {
+    setFormStatus(
+      "Write a response before sending.",
+      "error"
+    );
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      `Send this response to ${recipient}?`
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      "managementReplyEmail"
+    );
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  setFormStatus(
+    `Sending email to ${recipient}...`
+  );
+
+  try {
+    const sendEmail =
+      httpsCallable(
+        functions,
+        "sendManagementMessageEmail"
+      );
+
+    await sendEmail({
+      messageId:
+        selectedMessage.id,
+
+      responseText,
+    });
+
+    await loadInbox();
+
+    setFormStatus(
+      `Email sent to ${recipient}. Message marked responded.`,
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "[management-inbox] email send failed:",
+      error
+    );
+
+    setFormStatus(
+      error?.message ||
+      "The email could not be sent.",
+      "error"
+    );
+
+  } finally {
+    const currentButton =
+      document.getElementById(
+        "managementReplyEmail"
+      );
+
+    if (currentButton) {
+      currentButton.disabled =
+        !clean(
+          selectedMessage?.email
+        );
+    }
   }
 }
 
@@ -1236,6 +1338,16 @@ copySuggestedResponseButton
     "click",
     () => {
       void copySuggestedResponse();
+    }
+  );
+
+
+document
+  .getElementById("managementReplyEmail")
+  ?.addEventListener(
+    "click",
+    () => {
+      void sendManagementEmail();
     }
   );
 

@@ -251,3 +251,8 @@ export {
   finalizeExperienceValidation,
   createManagementXpAdjustment,
 } from "./management/managementXpTools";
+
+
+export {
+  sendManagementMessageEmail,
+} from "./modules/management/sendManagementMessageEmail";
