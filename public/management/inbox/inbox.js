@@ -1088,6 +1088,85 @@ async function markManagementResponded() {
 }
 
 
+async function closeManagementMessage() {
+  if (
+    !selectedMessage ||
+    !managementContext
+  ) {
+    setFormStatus(
+      "Select a message first.",
+      "error"
+    );
+    return;
+  }
+
+  const confirmed =
+    window.confirm(
+      "Close this message and send it to Management Intelligence?"
+    );
+
+  if (!confirmed) {
+    return;
+  }
+
+  const button =
+    document.getElementById(
+      "closeMessageButton"
+    );
+
+  if (button) {
+    button.disabled = true;
+  }
+
+  setFormStatus(
+    "Closing message..."
+  );
+
+  try {
+    const storeIntelligence =
+      httpsCallable(
+        functions,
+        "storeClosedMessageIntelligence"
+      );
+
+    await storeIntelligence({
+      messageId: selectedMessage.id
+    });
+
+    selectedMessage = null;
+
+    await loadInbox();
+
+    setFormStatus(
+      "Message closed and stored in Management Intelligence.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "[management-inbox] close failed:",
+      error
+    );
+
+    setFormStatus(
+      error?.message ||
+      "The message could not be closed.",
+      "error"
+    );
+
+  } finally {
+    const currentButton =
+      document.getElementById(
+        "closeMessageButton"
+      );
+
+    if (currentButton) {
+      currentButton.disabled = false;
+    }
+  }
+}
+
+
 async function requestAdminGuidance() {
   if (
     !selectedMessage ||
@@ -1357,6 +1436,15 @@ document
   ?.addEventListener(
     "click",
     markManagementResponded
+  );
+
+document
+  .getElementById("closeMessageButton")
+  ?.addEventListener(
+    "click",
+    () => {
+      void closeManagementMessage();
+    }
   );
 
 document
