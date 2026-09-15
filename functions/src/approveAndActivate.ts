@@ -427,7 +427,7 @@ function programLabel(programTrack: string, art: string) {
 
   if (programTrack === "zero2hero") {
     return art === "kickboxing"
-      ? "Zero2Hero Muay Thai"
+      ? "Road2Champion Muay Thai"
       : "Zero2Hero Wrestling";
   }
 
