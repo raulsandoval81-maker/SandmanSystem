@@ -272,8 +272,8 @@ function buildDisciplineRecord({ discipline, framework, programTrack, trackCode,
 function programLabel(programTrack, art) {
     if (programTrack === "zero2hero") {
         return art === "kickboxing"
-            ? "Zero2Hero Muay Thai"
-            : "Zero2Hero Wrestling";
+            ? "Road2Champion Muay Thai"
+            : "Road2Champion Wrestling";
     }
     if (programTrack === "path2legend") {
         return art === "boxing"
