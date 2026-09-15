@@ -256,3 +256,7 @@ export {
 export {
   sendManagementMessageEmail,
 } from "./modules/management/sendManagementMessageEmail";
+
+export {
+  storeClosedMessageIntelligence,
+} from "./modules/management/storeClosedMessageIntelligence";
