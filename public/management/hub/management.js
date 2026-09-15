@@ -256,6 +256,22 @@ function appointmentDateValue(
 async function readManagementInbox(
   context
 ) {
+  if (context.isSystemAdmin) {
+    const snapshot = await getDocs(
+      query(
+        collection(db, "general_messages"),
+        orderBy("createdAt", "desc")
+      )
+    );
+
+    return snapshot.docs.map(
+      (messageDoc) => ({
+        id: messageDoc.id,
+        ...messageDoc.data()
+      })
+    );
+  }
+
   const locationIds =
     managementLocationIds(context);
 
