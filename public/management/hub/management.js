@@ -3,6 +3,7 @@ import {
   db,
   collection,
   getDocs,
+  orderBy,
   query,
   where
 } from "/assets/js/firebase-init.js";
