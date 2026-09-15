@@ -411,8 +411,8 @@ render(filtered);
 
 const journeyLabels = {
   all: "Select Program",
-  "z2h-wrestling": "Zero2Hero · Wrestling",
-  "z2h-kickboxing": "Zero2Hero · Kickboxing",
+  "z2h-wrestling": "Road2Champion · Wrestling",
+  "z2h-kickboxing": "Road2Champion · Muay Thai",
   "p2l-wrestling": "Path2Legend · Wrestling",
   "p2l-boxing": "Path2Legend · Boxing",
   "q2m-mma": "Quest2Mastery · MMA"

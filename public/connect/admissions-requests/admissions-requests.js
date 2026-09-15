@@ -103,10 +103,10 @@ function typeLabel(type = "") {
 function programLabel(program = "") {
   const labels = {
     "zero2hero-wrestling":
-      "Zero2Hero Wrestling",
+      "Road2Champion Wrestling",
 
     "zero2hero-boxing":
-      "Zero2Hero Boxing",
+      "Road2Champion Boxing",
 
     "zero2hero-muay-thai":
       "Road2Champion Muay Thai",

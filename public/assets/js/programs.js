@@ -6,7 +6,7 @@ export const PROGRAMS = [
     discipline: "wrestling",
     min: 7,
     max: 13,
-    en: "Zero2Hero Wrestling · Ages 7–13",
+    en: "Road2Champion Wrestling · Ages 7–13",
     es: "Zero2Hero Lucha · Edades 7–13"
   },
   {
@@ -15,7 +15,7 @@ export const PROGRAMS = [
     discipline: "boxing",
     min: 7,
     max: 13,
-    en: "Zero2Hero Boxing · Ages 7–13",
+    en: "Road2Champion Boxing · Ages 7–13",
     es: "Zero2Hero Boxeo · Edades 7–13"
   },
   {
@@ -24,8 +24,8 @@ export const PROGRAMS = [
     discipline: "muay-thai",
     min: 7,
     max: 13,
-    en: "Zero2Hero Muay Thai · Ages 7–13",
-    es: "Zero2Hero Muay Thai · Edades 7–13"
+    en: "Road2Champion Muay Thai · Ages 7–13",
+    es: "Road2Champion Muay Thai · Edades 7–13"
   },
   {
     value: "path2legend-wrestling",

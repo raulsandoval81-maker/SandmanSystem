@@ -81,8 +81,8 @@ function labelForStatus(status = "new") {
 
 function labelForProgram(program = "") {
   const labels = {
-    "zero2hero-wrestling": "Zero2Hero Wrestling",
-    "z2h-wrestling": "Zero2Hero Wrestling",
+    "zero2hero-wrestling": "Road2Champion Wrestling",
+    "z2h-wrestling": "Road2Champion Wrestling",
 
     "zero2hero-kickboxing": "Road2Champion Muay Thai",
     "z2h-kickboxing": "Road2Champion Muay Thai",

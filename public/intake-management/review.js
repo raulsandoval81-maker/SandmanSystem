@@ -212,7 +212,7 @@ function buildPlacementFromTrack(track, s = {}) {
   }
 
   // --------------------------------------------------
-  // F8 → Youth Zero2Hero Wrestling
+  // F8 → Youth Road2Champion Wrestling
   // --------------------------------------------------
   if (t === "F8") {
     return {

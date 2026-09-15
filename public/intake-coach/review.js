@@ -165,7 +165,7 @@ function buildPlacementFromTrack(track, s = {}) {
     $("c-program-track")?.value || "";
 
   // --------------------------------------------------
-  // Zero2Hero Muay Thai
+  // Road2Champion Muay Thai
   // --------------------------------------------------
   if (selectedProgramTrack === "zero2hero-kickboxing") {
     return {
@@ -182,7 +182,7 @@ function buildPlacementFromTrack(track, s = {}) {
   }
 
   // --------------------------------------------------
-  // F8 → Youth Zero2Hero Wrestling
+  // F8 → Youth Road2Champion Wrestling
   // --------------------------------------------------
   if (t === "F8") {
     return {
