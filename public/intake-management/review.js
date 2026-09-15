@@ -195,7 +195,7 @@ function buildPlacementFromTrack(track, s = {}) {
     $("c-program-track")?.value || "";
 
   // --------------------------------------------------
-  // Zero2Hero Muay Thai
+  // Road2Champion Muay Thai
   // --------------------------------------------------
   if (selectedProgramTrack === "zero2hero-kickboxing") {
     return {

@@ -84,8 +84,8 @@ function labelForProgram(program = "") {
     "zero2hero-wrestling": "Zero2Hero Wrestling",
     "z2h-wrestling": "Zero2Hero Wrestling",
 
-    "zero2hero-kickboxing": "Zero2Hero Muay Thai",
-    "z2h-kickboxing": "Zero2Hero Muay Thai",
+    "zero2hero-kickboxing": "Road2Champion Muay Thai",
+    "z2h-kickboxing": "Road2Champion Muay Thai",
 
     "path2legend-wrestling": "Path2Legend Wrestling",
     "p2l-wrestling": "Path2Legend Wrestling",
