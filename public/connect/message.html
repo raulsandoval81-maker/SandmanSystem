@@ -872,6 +872,10 @@
                   Admissions
                 </option>
 
+                <option value="request-pass">
+                  Request a Pass
+                </option>
+
                 <option value="billing">
                   Billing
                 </option>
@@ -890,6 +894,46 @@
 
                 <option value="other">
                   Other
+                </option>
+              </select>
+            </div>
+
+            <div
+              id="passTypeField"
+              class="message-field message-field--full"
+              hidden
+            >
+              <label for="passType">
+                <span data-lang-block="en">
+                  Choose a Pass
+                </span>
+
+                <span
+                  data-lang-block="es"
+                  class="hidden-lang"
+                >
+                  Elige un Pase
+                </span>
+              </label>
+
+              <select
+                id="passType"
+                name="passType"
+              >
+                <option value="">
+                  Choose one
+                </option>
+
+                <option value="combat-dropin-1day">
+                  Combat — 1 Day Pass — $25
+                </option>
+
+                <option value="combat-dropin-2day">
+                  Combat — 2 Day Pass — $40
+                </option>
+
+                <option value="fitness-dropin">
+                  Fitness — 1 Day Drop-In — $15
                 </option>
               </select>
             </div>
@@ -1029,7 +1073,32 @@
 
 
 
-<script
+<script>
+    const messageTopic = document.getElementById("messageTopic");
+    const passTypeField = document.getElementById("passTypeField");
+    const passType = document.getElementById("passType");
+
+    function syncPassField() {
+      const requestingPass = messageTopic?.value === "request-pass";
+
+      if (passTypeField) {
+        passTypeField.hidden = !requestingPass;
+      }
+
+      if (passType) {
+        passType.required = requestingPass;
+
+        if (!requestingPass) {
+          passType.value = "";
+        }
+      }
+    }
+
+    messageTopic?.addEventListener("change", syncPassField);
+    syncPassField();
+  </script>
+
+  <script
     type="module"
     src="/connect/message.js"
   ></script>

@@ -147,6 +147,10 @@ form?.addEventListener(
           form.messageTopic?.value
         ),
 
+        passType: clean(
+          form.passType?.value
+        ),
+
         message: clean(
           form.message?.value
         ),

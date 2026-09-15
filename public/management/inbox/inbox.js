@@ -143,6 +143,7 @@ const TOPIC_LABELS = {
   programs: "Programs",
   schedule: "Schedule",
   admissions: "Admissions",
+  "request-pass": "Request a Pass",
   billing: "Billing",
   location: "Location",
   pricing: "Pricing / Fees",
@@ -188,6 +189,19 @@ function topicLabel(value) {
   return TOPIC_LABELS[key] ||
     key ||
     "General Question";
+}
+
+const PASS_LABELS = {
+  "combat-dropin-1day": "Combat — 1 Day Pass — $25",
+  "combat-dropin-2day": "Combat — 2 Day Pass — $40",
+  "fitness-dropin": "Fitness — 1 Day Drop-In — $15"
+};
+
+function passLabel(value) {
+  const key = clean(value);
+
+  return PASS_LABELS[key] ||
+    key;
 }
 
 
@@ -312,6 +326,7 @@ function matchesFilters(message) {
     message.email,
     message.phone,
     message.topic,
+    message.passType,
     message.message,
     message.organizationName,
     message.academyName,
@@ -661,9 +676,17 @@ function renderDetail() {
   detailAssignment.textContent =
     assignmentValue(message);
 
-  detailMessage.textContent =
+  const selectedPass =
+    passLabel(message.passType);
+
+  const messageText =
     clean(message.message) ||
     "No message provided.";
+
+  detailMessage.textContent =
+    selectedPass
+      ? `Pass: ${selectedPass}\n\n${messageText}`
+      : messageText;
 
   populateSuggestedResponses(
     message
