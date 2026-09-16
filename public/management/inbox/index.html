@@ -335,6 +335,20 @@
           </p>
         </div>
 
+        <section id="passPaymentPanel" class="message-card" hidden aria-label="Pass payment">
+          <p class="section-label">Pass Payment</p>
+          <p id="passAttendanceStatus" role="status">Attendance not confirmed</p>
+          <p id="passPaymentStatus" role="status">No payment started</p>
+          <div id="passPaymentLinkPanel" hidden>
+            <label for="passPaymentUrl">Hosted Stripe checkout link</label>
+            <input id="passPaymentUrl" type="url" readonly style="width:100%" />
+            <div class="form-actions">
+              <a id="openPassPaymentLink" class="button button-secondary" target="_blank" rel="noopener noreferrer">Open Payment Link</a>
+              <button id="copyPassPaymentLink" class="button button-secondary" type="button">Copy Link</button>
+            </div>
+          </div>
+        </section>
+
 
         <!-- ==============================
              MANAGEMENT RESPONSE
@@ -405,6 +419,24 @@
           </div>
 
           <div class="form-actions">
+
+            <button
+              id="confirmPassAttendanceButton"
+              class="button button-secondary"
+              type="button"
+              hidden
+            >
+              Confirm Attendance
+            </button>
+
+            <button
+              id="collectPassPaymentButton"
+              class="button button-primary"
+              type="button"
+              hidden
+            >
+              Collect Payment
+            </button>
 
             <button
               id="managementReplyEmail"

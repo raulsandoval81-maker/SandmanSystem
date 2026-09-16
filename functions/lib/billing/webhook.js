@@ -7,6 +7,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const stripeClient_1 = require("./stripeClient");
 const billingCollections_1 = require("./billingCollections");
 const subscriptions_1 = require("./subscriptions");
+const managementPassWebhook_1 = require("./managementPassWebhook");
 function cleanString(value) {
     return String(value ?? "").trim();
 }
@@ -401,6 +402,11 @@ exports.stripeBillingWebhook = (0, https_1.onRequest)({
         switch (event.type) {
             case "checkout.session.completed": {
                 const session = event.data.object;
+                if (cleanString(session.metadata?.paymentFlow) === "management_pass") {
+                    await (0, managementPassWebhook_1.handleManagementPassCheckoutCompleted)(session);
+                    familyId = null;
+                    break;
+                }
                 const proposalId = cleanString(session.metadata?.proposalId);
                 if (proposalId) {
                     await handleProposalCheckoutCompleted(session);

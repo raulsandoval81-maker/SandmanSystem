@@ -18,6 +18,7 @@ import { BILLING_COLLECTIONS } from "./billingCollections";
 import {
   syncStripeSubscription,
 } from "./subscriptions";
+import { handleManagementPassCheckoutCompleted } from "./managementPassWebhook";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -879,6 +880,12 @@ const webhookSecret =
         case "checkout.session.completed": {
           const session =
             event.data.object as Stripe.Checkout.Session;
+
+          if (cleanString(session.metadata?.paymentFlow) === "management_pass") {
+            await handleManagementPassCheckoutCompleted(session);
+            familyId = null;
+            break;
+          }
 
           const proposalId =
             cleanString(

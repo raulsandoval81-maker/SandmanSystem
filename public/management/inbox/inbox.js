@@ -96,6 +96,16 @@ const detailAssignment =
 const detailMessage =
   document.getElementById("detailMessage");
 
+const passPaymentPanel = document.getElementById("passPaymentPanel");
+const passAttendanceStatus = document.getElementById("passAttendanceStatus");
+const passPaymentStatus = document.getElementById("passPaymentStatus");
+const passPaymentLinkPanel = document.getElementById("passPaymentLinkPanel");
+const passPaymentUrl = document.getElementById("passPaymentUrl");
+const openPassPaymentLink = document.getElementById("openPassPaymentLink");
+const copyPassPaymentLink = document.getElementById("copyPassPaymentLink");
+const collectPassPaymentButton = document.getElementById("collectPassPaymentButton");
+const confirmPassAttendanceButton = document.getElementById("confirmPassAttendanceButton");
+
 const assignmentForm =
   document.getElementById("assignmentForm");
 
@@ -204,6 +214,45 @@ function passLabel(value) {
 
   return PASS_LABELS[key] ||
     key;
+}
+
+function renderPassPayment(message) {
+  const isPass = clean(message.topic) === "request-pass";
+  const supported = Object.hasOwn(PASS_LABELS, clean(message.passType));
+  const paymentState = clean(message.passPaymentStatus).toLowerCase();
+  const attendanceConfirmed = Boolean(message.passAttendanceConfirmedAt);
+  const closed = [message.status, message.messageStatus, message.routingStage]
+    .some((value) => clean(value).toUpperCase() === "CLOSED");
+
+  passPaymentPanel.hidden = !isPass;
+  passPaymentLinkPanel.hidden = true;
+  passPaymentUrl.value = "";
+  openPassPaymentLink.removeAttribute("href");
+  if (!isPass) {
+    confirmPassAttendanceButton.hidden = true;
+    collectPassPaymentButton.hidden = true;
+    return;
+  }
+
+  passAttendanceStatus.textContent = attendanceConfirmed
+    ? `Attendance confirmed ${formatDate(message.passAttendanceConfirmedAt)}`
+    : "Attendance not confirmed";
+  confirmPassAttendanceButton.hidden = !supported || attendanceConfirmed || closed;
+  passPaymentStatus.textContent = paymentState === "paid"
+    ? "Paid"
+    : paymentState === "pending"
+      ? "Payment pending"
+      : "No payment started";
+  collectPassPaymentButton.hidden = !supported || !attendanceConfirmed || paymentState === "paid" || closed;
+  collectPassPaymentButton.textContent = paymentState === "pending"
+    ? "Get Payment Link"
+    : "Collect Payment";
+}
+
+function showPassPaymentLink(url) {
+  passPaymentUrl.value = url;
+  openPassPaymentLink.href = url;
+  passPaymentLinkPanel.hidden = false;
 }
 
 
@@ -683,6 +732,8 @@ function renderDetail() {
       ? `Pass: ${selectedPass}\n\n${messageText}`
       : messageText;
 
+  renderPassPayment(message);
+
   populateSuggestedResponses(
     message
   );
@@ -1136,6 +1187,84 @@ async function closeManagementMessage() {
     selectedMessage = null;
 
     await loadInbox();
+async function collectPassPayment() {
+  if (!selectedMessage) {
+    setFormStatus("Select a pass request first.", "error");
+    return;
+  }
+  const messageId = selectedMessage.id;
+  const payerEmail = clean(selectedMessage.email);
+  const confirmed = window.confirm(
+    `Create or retrieve a secure payment link for ${passLabel(selectedMessage.passType)}?\n\nPayer email: ${payerEmail || "missing"}\n\nAttendance must already be confirmed. Verify the payer email before continuing.`
+  );
+  if (!confirmed) return;
+
+  collectPassPaymentButton.disabled = true;
+  setFormStatus("Preparing the secure payment link...");
+  try {
+    const result = await httpsCallable(functions, "createManagementPassCheckout")({ messageId });
+    const data = result.data || {};
+    const checkoutUrl = clean(data.checkoutUrl);
+    const checkoutSessionId = clean(data.checkoutSessionId);
+    const parsedUrl = new URL(checkoutUrl);
+    if (parsedUrl.protocol !== "https:" || !checkoutSessionId
+        || data.paymentStatus !== "pending"
+        || !Number.isInteger(data.amountCents)
+        || data.currency !== "usd") {
+      throw new Error("The payment service returned an incomplete checkout link.");
+    }
+
+    await loadInbox();
+    if (selectedMessage?.id === messageId) {
+      showPassPaymentLink(checkoutUrl);
+      setFormStatus("Payment link ready. The pass remains pending until Stripe confirms payment.", "success");
+    }
+  } catch (error) {
+    console.error("[management-inbox] pass checkout failed:", error);
+    setFormStatus(error?.message || "The payment link could not be prepared.", "error");
+  } finally {
+    collectPassPaymentButton.disabled = false;
+  }
+}
+
+
+async function confirmPassAttendance() {
+  if (!selectedMessage) {
+    setFormStatus("Select a pass request first.", "error");
+    return;
+  }
+  const messageId = selectedMessage.id;
+  if (!window.confirm("Confirm that the athlete actually attended before collecting payment?")) return;
+
+  confirmPassAttendanceButton.disabled = true;
+  setFormStatus("Confirming attendance...");
+  try {
+    await httpsCallable(functions, "confirmManagementPassAttendance")({ messageId });
+    await loadInbox();
+    setFormStatus("Attendance confirmed. Payment collection is now available.", "success");
+  } catch (error) {
+    console.error("[management-inbox] pass attendance confirmation failed:", error);
+    setFormStatus(error?.message || "Attendance could not be confirmed.", "error");
+  } finally {
+    confirmPassAttendanceButton.disabled = false;
+  }
+}
+
+
+async function copyPassPaymentUrl() {
+  const url = clean(passPaymentUrl.value);
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    setFormStatus("Payment link copied.", "success");
+  } catch (error) {
+    passPaymentUrl.focus();
+    passPaymentUrl.select();
+    setFormStatus("Copy was unavailable. The payment link is selected for manual copy.", "error");
+  }
+}
+
+
 
     setFormStatus(
       "Message closed and stored in Management Intelligence.",
@@ -1416,6 +1545,18 @@ copySuggestedResponseButton
   ?.addEventListener(
     "click",
     () => {
+collectPassPaymentButton?.addEventListener("click", () => {
+  void collectPassPayment();
+});
+
+confirmPassAttendanceButton?.addEventListener("click", () => {
+  void confirmPassAttendance();
+});
+
+copyPassPaymentLink?.addEventListener("click", () => {
+  void copyPassPaymentUrl();
+});
+
       void copySuggestedResponse();
     }
   );

@@ -1183,6 +1183,17 @@ match /academySettings/{academyId} {
     ---------------------------------------*/
     match /general_messages/{messageId} {
 
+      // Pass closure is owned by storeClosedMessageIntelligence, which verifies
+      // attendance and webhook-confirmed payment before closing atomically.
+      function passClosureIsServerOnly() {
+        return resource.data.get("topic", "") != "request-pass"
+          || (
+            request.resource.data.get("status", "") != "CLOSED"
+            && request.resource.data.get("messageStatus", "") != "CLOSED"
+            && request.resource.data.get("routingStage", "") != "CLOSED"
+          );
+      }
+
       /*
        * Every public message enters at the organization
        * level for Admin review. It is not initially owned
@@ -1207,6 +1218,7 @@ match /academySettings/{academyId} {
           "email",
           "phone",
           "topic",
+          "passType",
           "message",
           "preferredOrganization",
           "preferredLocation",
@@ -1450,9 +1462,10 @@ match /academySettings/{academyId} {
        * escalation, response metadata, and closure.
        */
       allow update: if isAdmin()
+        && passClosureIsServerOnly()
 
         && request.resource.data.diff(resource.data)
-          .changedKeys()
+          .affectedKeys()
           .hasOnly([
             "status",
             "messageStatus",
@@ -1649,6 +1662,7 @@ match /academySettings/{academyId} {
         );
 
       allow update: if isManagement()
+        && passClosureIsServerOnly()
 
         && (
           resource.data.get(
@@ -1678,7 +1692,7 @@ match /academySettings/{academyId} {
 
         && request.resource.data
           .diff(resource.data)
-          .changedKeys()
+          .affectedKeys()
           .hasOnly([
             "assignedManagerUid",
             "assignedCoachUid",
@@ -1729,6 +1743,7 @@ match /academySettings/{academyId} {
        * while retaining ownership of the response.
        */
       allow update: if isManagement()
+        && passClosureIsServerOnly()
 
         && (
           resource.data.get(
@@ -1758,7 +1773,7 @@ match /academySettings/{academyId} {
 
         && request.resource.data
           .diff(resource.data)
-          .changedKeys()
+          .affectedKeys()
           .hasOnly([
             "assignedManagerUid",
             "routingStage",
@@ -1822,6 +1837,7 @@ match /academySettings/{academyId} {
        * coaches, or alter the original public message.
        */
       allow update: if staffRole() == "coach"
+        && passClosureIsServerOnly()
 
         && resource.data.get(
           "assignedCoachUid",
@@ -1834,7 +1850,7 @@ match /academySettings/{academyId} {
         ) == request.auth.uid
 
         && request.resource.data.diff(resource.data)
-          .changedKeys()
+          .affectedKeys()
           .hasOnly([
             "status",
             "messageStatus",

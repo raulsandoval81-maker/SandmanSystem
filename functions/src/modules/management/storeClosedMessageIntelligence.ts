@@ -3,6 +3,9 @@ import {
   FieldValue,
   getFirestore,
 } from "firebase-admin/firestore";
+import { assertPassReadyToClose, passIntelligenceSummary } from "./managementPassClosePolicy";
+import { assertManagementPassMessage } from "./managementPassCheckoutPolicy";
+import { MANAGEMENT_STAFF_ROLES, requireActiveStaff } from "../../services/staffAuthorization";
 
 const db = getFirestore();
 
@@ -28,7 +31,10 @@ export const storeClosedMessageIntelligence =
       );
     }
 
-    const uid = context.auth.uid;
+    return closeManagementMessageById(messageId, context.auth.uid);
+  });
+
+export async function closeManagementMessageById(messageId: string, uid: string) {
 
     const staffSnap =
       await db.collection("staff").doc(uid).get();
@@ -70,11 +76,14 @@ export const storeClosedMessageIntelligence =
     }
 
     const message = messageSnap.data() || {};
+    const passActor = clean(message.topic) === "request-pass"
+      ? await requireActiveStaff(uid, MANAGEMENT_STAFF_ROLES, "Active Management or Admin access required.")
+      : null;
 
     const locationId =
       clean(message.locationId);
 
-    if (isManagement && !isAdmin) {
+    if (isManagement && !isAdmin && !passActor) {
       const locationIds =
         Array.isArray(staff.locationIds)
           ? staff.locationIds.map(clean)
@@ -97,6 +106,17 @@ export const storeClosedMessageIntelligence =
         .doc(messageId);
 
     await db.runTransaction(async (tx) => {
+      const currentSnap = await tx.get(messageRef);
+      if (!currentSnap.exists) {
+        throw new functions.https.HttpsError("not-found", "Message not found.");
+      }
+      const current = currentSnap.data() || {};
+      if (clean(current.topic) === "request-pass") {
+        if (!passActor) throw new functions.https.HttpsError("failed-precondition", "Pass request changed during closure.");
+        assertManagementPassMessage(current, passActor);
+        assertPassReadyToClose(current);
+      }
+      const snapshotMessage = clean(current.topic) === "request-pass" ? current : message;
       tx.set(
         intelligenceRef,
         {
@@ -105,52 +125,54 @@ export const storeClosedMessageIntelligence =
           sourceMessageId: messageId,
 
           locationId:
-            clean(message.locationId) || null,
+            clean(snapshotMessage.locationId) || null,
 
           preferredOrganization:
-            clean(message.preferredOrganization) || null,
+            clean(snapshotMessage.preferredOrganization) || null,
 
           topic:
-            clean(message.topic) || null,
+            clean(snapshotMessage.topic) || null,
 
           passType:
-            clean(message.passType) || null,
+            clean(snapshotMessage.passType) || null,
+
+          ...passIntelligenceSummary(snapshotMessage),
 
           fullName:
-            clean(message.fullName) || null,
+            clean(snapshotMessage.fullName) || null,
 
           email:
-            clean(message.email) || null,
+            clean(snapshotMessage.email) || null,
 
           phone:
-            clean(message.phone) || null,
+            clean(snapshotMessage.phone) || null,
 
           message:
-            clean(message.message) || null,
+            clean(snapshotMessage.message) || null,
 
           responseEmail:
-            clean(message.responseEmail) || null,
+            clean(snapshotMessage.responseEmail) || null,
 
           responseSubject:
-            clean(message.responseSubject) || null,
+            clean(snapshotMessage.responseSubject) || null,
 
           responseBody:
-            clean(message.responseBody) || null,
+            clean(snapshotMessage.responseBody) || null,
 
           assignedManagerUid:
-            clean(message.assignedManagerUid) || null,
+            clean(snapshotMessage.assignedManagerUid) || null,
 
           respondedByUid:
-            clean(message.respondedByUid) || null,
+            clean(snapshotMessage.respondedByUid) || null,
 
           respondedByRole:
-            clean(message.respondedByRole) || null,
+            clean(snapshotMessage.respondedByRole) || null,
 
           originalCreatedAt:
-            message.createdAt || null,
+            snapshotMessage.createdAt || null,
 
           respondedAt:
-            message.respondedAt || null,
+            snapshotMessage.respondedAt || null,
 
           status: "CLOSED",
 
@@ -181,4 +203,4 @@ export const storeClosedMessageIntelligence =
       ok: true,
       intelligenceRecordId: messageId,
     };
-  });
+}

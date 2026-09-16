@@ -260,3 +260,6 @@ export {
 export {
   storeClosedMessageIntelligence,
 } from "./modules/management/storeClosedMessageIntelligence";
+
+export { createManagementPassCheckout } from "./modules/management/createManagementPassCheckout";
+export { confirmManagementPassAttendance } from "./modules/management/confirmManagementPassAttendance";
