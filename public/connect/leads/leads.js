@@ -7,6 +7,7 @@ import {
   where,
   doc,
   updateDoc,
+  setDoc,
   deleteDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
@@ -494,6 +495,14 @@ function render() {
   </a>
 
   <button
+    class="save-btn"
+    type="button"
+    data-walk-in-enrollment="${esc(lead.id)}"
+  >
+    Walk-In Enrollment
+  </button>
+
+  <button
     class="save-btn delete-btn"
     type="button"
     data-delete-lead="${esc(lead.id)}"
@@ -825,6 +834,205 @@ async function saveStatus(leadId) {
     );
   }
 }
+
+async function walkInEnrollment(leadId) {
+  const lead =
+    leads.find((item) => item.id === leadId);
+
+  if (!lead) {
+    setStatus("Lead could not be found.", true);
+    return;
+  }
+
+  const athleteName =
+    lead.athleteName ||
+    lead.participantName ||
+    "This athlete";
+
+  const confirmed =
+    window.confirm(
+      [
+        "Start Walk-In Enrollment?",
+        "",
+        `${athleteName} is already in the room.`,
+        "",
+        "This will mark the in-person assessment as completed,",
+        "bypass appointment scheduling, and move the athlete",
+        "into the admissions/enrollment flow.",
+        "",
+        "Continue?"
+      ].join("\n")
+    );
+
+  if (!confirmed) return;
+
+  try {
+    setStatus("Preparing walk-in enrollment...");
+
+    await setDoc(
+      doc(
+        db,
+        "admissions_appointments",
+        leadId
+      ),
+      {
+        appointmentId: leadId,
+        leadId,
+
+        participantName:
+          lead.athleteName ||
+          lead.participantName ||
+          "",
+
+        athleteName:
+          lead.athleteName || "",
+
+        parentName:
+          lead.parentName || "",
+
+        registrantRole:
+          lead.registrantRole || "",
+
+        athleteAge:
+          lead.athleteAge || "",
+
+        email:
+          lead.email || "",
+
+        phone:
+          lead.phone || "",
+
+        programInterest:
+          lead.programInterest || "",
+
+        intent:
+          lead.intent || "",
+
+        primaryGoal:
+          lead.primaryGoal || "",
+
+        admissionsPath:
+          lead.admissionsPath || "new",
+
+        entryMode:
+          "walk_in",
+
+        preferredLocation:
+          lead.preferredLocation || "",
+
+        locationId:
+          lead.locationId || null,
+
+        referralSource:
+          lead.referralSource || "",
+
+        leadNotes:
+          lead.notes || "",
+
+        status:
+          "completed",
+
+        appointmentStatus:
+          "completed",
+
+        assessmentStatus:
+          "completed",
+
+        appointmentOutcome:
+          "completed",
+
+        appointmentBypassed:
+          true,
+
+        bypassReason:
+          "walk_in_assessment_completed",
+
+        walkInEnrollment:
+          true,
+
+        walkInApprovedAt:
+          serverTimestamp(),
+
+        enrollmentDecision:
+          "ready-to-enroll",
+
+        admissionsStatus:
+          "ready-to-enroll",
+
+        updatedAt:
+          serverTimestamp()
+      },
+      {
+        merge: true
+      }
+    );
+
+    await updateDoc(
+      doc(
+        db,
+        "interest_leads",
+        leadId
+      ),
+      {
+        leadStatus:
+          "ready_for_intake",
+
+        status:
+          "ready_for_intake",
+
+        appointmentId:
+          leadId,
+
+        processedToAppointment:
+          true,
+
+        processedAt:
+          serverTimestamp(),
+
+        appointmentStatus:
+          "completed",
+
+        assessmentStatus:
+          "completed",
+
+        appointmentOutcome:
+          "completed",
+
+        appointmentBypassed:
+          true,
+
+        bypassReason:
+          "walk_in_assessment_completed",
+
+        walkInEnrollment:
+          true,
+
+        walkInApprovedAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
+      }
+    );
+
+    window.location.href =
+      `/connect/admissions/?appointmentId=${encodeURIComponent(
+        leadId
+      )}`;
+
+  } catch (error) {
+    console.error(
+      "[leads] walk-in enrollment failed:",
+      error
+    );
+
+    setStatus(
+      "Unable to start Walk-In Enrollment.",
+      true
+    );
+  }
+}
+
 searchInput?.addEventListener("input", render);
 statusFilter?.addEventListener("change", render);
 programFilter?.addEventListener("change", render);
@@ -837,6 +1045,18 @@ leadList?.addEventListener("click", (event) => {
 
   if (saveButton) {
     saveStatus(saveButton.dataset.saveStatus);
+    return;
+  }
+
+  const walkInButton =
+    event.target.closest(
+      "[data-walk-in-enrollment]"
+    );
+
+  if (walkInButton) {
+    walkInEnrollment(
+      walkInButton.dataset.walkInEnrollment
+    );
     return;
   }
 
