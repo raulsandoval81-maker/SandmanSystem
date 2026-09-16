@@ -51,13 +51,20 @@ function pct(xp = 0, cap = 1) {
   if (!safeCap) return 0;
   return Math.max(0, Math.min(100, Math.round((safeXp / safeCap) * 100)));
 }
-
 function normalizeDiscipline(value = "") {
   const raw = String(value || "")
     .trim()
     .toLowerCase();
 
-  if (raw.includes("kickbox")) return "kickboxing";
+  if (
+    raw.includes("muay thai") ||
+    raw.includes("muay-thai") ||
+    raw.includes("muaythai") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
+  }
+
   if (raw.includes("wrest")) return "wrestling";
   if (raw.includes("box")) return "boxing";
 
@@ -77,7 +84,6 @@ function normalizeDiscipline(value = "") {
 
   return raw;
 }
-
 function getStoredTierNum(A) {
   const source =
     A?.progressionTier ??
@@ -254,25 +260,32 @@ async function load() {
     .trim()
     .toLowerCase();
 
-  function formatDisciplineLabel(value) {
-    const labels = {
-      wrestling: "Wrestling",
-      kickboxing: "Kickboxing",
-      boxing: "Boxing",
-      mma: "MMA",
-      "submission-grappling": "Submission Grappling"
-    };
+function formatDisciplineLabel(value) {
+  const labels = {
+    wrestling: "Wrestling",
+    "muay-thai": "Muay Thai",
+    boxing: "Boxing",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  };
 
-    return labels[value] ||
-      String(value || "")
-        .split("-")
-        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-        .join(" ");
-  }
+  return (
+    labels[value] ||
+    String(value || "")
+      .split("-")
+      .filter(Boolean)
+      .map(
+        (part) =>
+          part.charAt(0).toUpperCase() +
+          part.slice(1)
+      )
+      .join(" ")
+  );
+}
 
-  function renderDisciplineSelector() {
-    const wrap = $("disciplineSelectorWrap");
-    const selector = $("disciplineSelector");
+function renderDisciplineSelector() {
+  const wrap = $("disciplineSelectorWrap");
+  const selector = $("disciplineSelector");
 
     if (!wrap || !selector) return;
 
