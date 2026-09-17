@@ -408,7 +408,8 @@ function getCompanionBlocks() {
                 skill: cardEl.dataset.skill || "",
                 tier: cardEl.dataset.tier || "",
                 discipline: cardEl.dataset.discipline || "",
-                journey: cardEl.dataset.journey || ""
+                journey: cardEl.dataset.journey || "",
+                family: cardEl.dataset.family || ""
               };
             })
             .filter(card => card.title)
