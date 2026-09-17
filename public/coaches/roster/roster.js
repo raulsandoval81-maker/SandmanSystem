@@ -1,5 +1,4 @@
 import {
-  auth,
   db,
   collection,
   getDocs,
@@ -10,52 +9,16 @@ import {
   serverTimestamp
 } from "/assets/js/firebase-init.js";
 
-import { coachLoginUrl } from "/assets/js/coach-guard.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import {
+  coachLoginUrl,
+  requireCoach
+} from "/assets/js/coach-guard.js";
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 
 const $ = (id) => document.getElementById(id);
 
 let currentList = [];
-
-function waitForAuthUser() {
-  return new Promise((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        unsubscribe();
-        resolve(user);
-      },
-      (error) => {
-        unsubscribe();
-        reject(error);
-      }
-    );
-  });
-}
-
-async function requireRosterCoach() {
-  const user = auth.currentUser || await waitForAuthUser();
-
-  if (!user || user.isAnonymous) {
-    throw new Error("Coach authentication required.");
-  }
-
-  const token = await user.getIdTokenResult(true);
-  const claims = token.claims || {};
-  const role = String(claims.role || "").trim().toLowerCase();
-  const authorized = role === "coach" ||
-    role === "admin" ||
-    claims.coach === true ||
-    claims.admin === true;
-
-  if (!authorized) {
-    throw new Error("Coach access required.");
-  }
-
-  return user;
-}
 
 function trackBaseOf(id = "") {
   if (id.startsWith("F4_")) return "F4";
@@ -704,7 +667,7 @@ async function initializeRoster() {
   const protectedContent = document.querySelector("[data-roster-protected]");
 
   try {
-    await requireRosterCoach();
+    await requireCoach();
     if (protectedContent) protectedContent.hidden = false;
     if (status) status.hidden = true;
     await safeLoadRoster();
