@@ -430,3 +430,65 @@ body {
 [hidden] {
   display: none !important;
 }
+
+
+/* =========================================================
+   MANAGEMENT PRICING — DESKTOP WORKSPACE
+   ========================================================= */
+
+@media (min-width: 1051px) {
+  .pricing-wrap {
+    width: min(1380px, calc(100% - 48px));
+    display: grid;
+    grid-template-columns:
+      minmax(0, 1.55fr)
+      minmax(360px, 0.85fr);
+    gap: 24px;
+    align-items: start;
+  }
+
+  .pricing-header {
+    grid-column: 1 / -1;
+    margin-bottom: 4px;
+  }
+
+  .pricing-wrap > section[aria-labelledby="athletesHeading"] {
+    grid-column: 1;
+    grid-row: 2;
+    margin-top: 0;
+  }
+
+  .pricing-results {
+    grid-column: 2;
+    grid-row: 2;
+    margin-top: 0;
+    position: sticky;
+    top: 24px;
+  }
+
+  .pricing-athlete > .pricing-field-grid:first-of-type {
+    grid-template-columns:
+      minmax(220px, 1.35fr)
+      minmax(150px, 0.75fr)
+      minmax(210px, 1fr);
+  }
+
+  .discipline-select-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .pricing-calculator-display #monthlyMembership {
+    font-size: clamp(2.35rem, 4vw, 3.4rem);
+  }
+}
+
+@media (max-width: 1050px) {
+  .pricing-wrap {
+    width: min(920px, calc(100% - 32px));
+  }
+
+  .pricing-results {
+    position: static;
+  }
+}

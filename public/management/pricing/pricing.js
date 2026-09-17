@@ -2,6 +2,10 @@ import {
   calculateSandmanMembershipPricing
 } from "/assets/js/pricing/sandman-pricing-engine.js";
 
+import {
+  SANDMAN_PRICING_CATALOG
+} from "/assets/js/pricing/sandman-pricing-catalog.js";
+
 const athleteList =
   document.getElementById("athleteList");
 
@@ -250,12 +254,6 @@ function readAthletes() {
           )?.value ||
           "2-3",
 
-        annualMembership:
-          card.querySelector(
-            ".annual-membership"
-          )?.value ||
-          "sandman",
-
         disciplines
       };
     }
@@ -276,7 +274,6 @@ function renderPricing() {
     athletes.filter(
       (athlete) =>
         athlete.plan === "standard" ||
-        athlete.plan === "mma" ||
         athlete.plan === "combo"
     );
 
@@ -387,19 +384,22 @@ function renderPricing() {
       ) - combatHouseholdTotal
     );
 
-  let annualMembershipAmount = 0;
+  const registrationCount =
+    athletes.filter(
+      (athlete) =>
+        athlete.plan !== "fitness"
+    ).length;
 
-  athletes.forEach(
-    (athlete) => {
-      annualMembershipAmount +=
-        athlete.annualMembership ===
-          "current-aau" ||
-        athlete.annualMembership ===
-          "onboarding-only"
-          ? 5
-          : 35;
-    }
-  );
+  const annualEnrollmentAmount =
+    registrationCount >= 1 &&
+    registrationCount <= 4
+      ? (
+          SANDMAN_PRICING_CATALOG
+            .enrollment[
+              `family${registrationCount}`
+            ]?.amount || 0
+        )
+      : 0;
 
   const projectedSavingsMonthly =
     projectedSavingsAnnual / 12;
@@ -437,7 +437,7 @@ function renderPricing() {
 
   annualMembershipTotal.textContent =
     money(
-      annualMembershipAmount
+      annualEnrollmentAmount
     );
 
   const recurringMonthly =
@@ -463,7 +463,7 @@ function renderPricing() {
 
   const enrollmentSubtotal =
     proratedMonthly +
-    annualMembershipAmount;
+    annualEnrollmentAmount;
 
   const appliedPromotionAmount =
     Math.min(
@@ -628,11 +628,6 @@ function addAthlete(defaults = {}) {
       ".training-access"
     );
 
-  const annualMembership =
-    newCard.querySelector(
-      ".annual-membership"
-    );
-
   function syncPlanControls() {
     const currentPlan =
       plan.value;
@@ -660,45 +655,12 @@ function addAthlete(defaults = {}) {
         isFitnessOnly;
     }
 
-    if (currentPlan === "fitness") {
+    if (isFitnessOnly) {
       trainingAccess.innerHTML = `
         <option value="2">2 days/week — $60</option>
         <option value="3">3 days/week — $80</option>
       `;
 
-      if (memberType?.value === "adult") {
-        annualMembership.innerHTML = `
-          <option value="onboarding-only">
-            Onboarding only — no AAU — $5/year
-          </option>
-          <option value="sandman">
-            Sandman provides AAU — $35/year
-          </option>
-          <option value="current-aau">
-            Current AAU already held — $5/year
-          </option>
-        `;
-      } else {
-        annualMembership.innerHTML = `
-          <option value="sandman">
-            Sandman provides AAU — $35/year
-          </option>
-          <option value="current-aau">
-            Current AAU already held — $5/year
-          </option>
-        `;
-      }
-
-      annualMembership.disabled = false;
-      return;
-    }
-
-    if (currentPlan === "mma") {
-      trainingAccess.innerHTML = `
-        <option value="mma">MMA access — $140</option>
-      `;
-
-      annualMembership.disabled = false;
       return;
     }
 
@@ -706,8 +668,6 @@ function addAthlete(defaults = {}) {
       <option value="2-3">2–3 days/week</option>
       <option value="4-6">4–6 days/week</option>
     `;
-
-    annualMembership.disabled = false;
   }
 
   memberType?.addEventListener(
