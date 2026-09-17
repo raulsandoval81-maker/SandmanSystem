@@ -3,72 +3,307 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Team Logistics | Sandman</title>
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1" />
+
+  <title>Practice | Sandman Coach</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=2" />
+  <link rel="icon" href="data:," />
 
   <style>
-    :root{color-scheme:dark;--bg:#06080d;--panel:#0f141b;--card:#0b1017;--line:#27304a;--text:#f5f7fb;--muted:#9aa4b1;--gold:#ffdd48;--red:#e53935}
+    :root{
+      color-scheme:dark;
+      --practice-bg:#06080d;
+      --practice-panel:#0f141b;
+      --practice-card:#0b1017;
+      --practice-line:#27304a;
+      --practice-text:#f5f7fb;
+      --practice-muted:#9aa4b1;
+      --practice-gold:#ffdd48;
+      --practice-red:#e53935;
+      --practice-teal:#33b7a2;
+    }
+
     *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1100px;margin:0 auto;padding:28px 16px 64px}
-    .hero{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;text-align:center;margin-bottom:20px}
-    h1{margin:0;color:var(--gold);font-size:2rem}
-    .hero p{margin:8px 0 0;color:var(--muted)}
-    .topnav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-    .pill,.card{border:1px solid var(--line);background:var(--card);color:var(--text);text-decoration:none}
-    .pill{border-radius:999px;padding:.55rem 1rem;font-weight:900;font-size:.8rem}
-    .pill.primary{background:var(--red);border-color:var(--red)}
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .card{display:block;border-radius:14px;padding:18px;min-height:140px;transition:.15s}
-    .card:hover{border-color:var(--red);box-shadow:0 0 12px rgba(229,57,53,.35);transform:translateY(-2px)}
-    .card h2{margin:0 0 8px;color:var(--gold);font-size:1.1rem}
-    .card p{margin:0;color:var(--muted);font-size:.86rem;line-height:1.45}
+
+    .practice-page{
+      width:min(100% - 32px,1120px);
+      margin:0 auto;
+      padding:28px 0 64px;
+      color:var(--practice-text);
+    }
+
+    .practice-hero{
+      padding:24px;
+      margin-bottom:22px;
+      border:1px solid var(--practice-line);
+      border-radius:18px;
+      background:var(--practice-panel);
+    }
+
+    .practice-eyebrow{
+      margin:0 0 6px;
+      color:var(--practice-red);
+      font-size:.78rem;
+      font-weight:900;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+    }
+
+    .practice-hero h1{
+      margin:0;
+      color:var(--practice-gold);
+      font-size:clamp(1.8rem,4vw,2.6rem);
+    }
+
+    .practice-hero p{
+      max-width:720px;
+      margin:10px 0 0;
+      color:var(--practice-muted);
+      line-height:1.55;
+    }
+
+    .workflow{
+      display:grid;
+      grid-template-columns:repeat(5,minmax(0,1fr));
+      gap:12px;
+      margin-bottom:26px;
+    }
+
+    .step{
+      display:flex;
+      flex-direction:column;
+      min-height:170px;
+      padding:17px;
+      border:1px solid var(--practice-line);
+      border-radius:16px;
+      background:var(--practice-card);
+      color:var(--practice-text);
+      text-decoration:none;
+      transition:.15s ease;
+    }
+
+    .step:hover{
+      transform:translateY(-2px);
+      border-color:var(--practice-red);
+      box-shadow:0 10px 28px rgba(0,0,0,.3);
+    }
+
+    .step-number{
+      display:inline-flex;
+      width:32px;
+      height:32px;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:16px;
+      border-radius:999px;
+      background:var(--practice-red);
+      color:#fff;
+      font-weight:900;
+    }
+
+    .step h2{
+      margin:0 0 8px;
+      color:var(--practice-gold);
+      font-size:1.05rem;
+    }
+
+    .step p{
+      margin:0;
+      color:var(--practice-muted);
+      font-size:.86rem;
+      line-height:1.45;
+    }
+
+    .step--xp{
+      border-color:rgba(255,221,72,.42);
+    }
+
+    .step--xp .step-number{
+      background:var(--practice-gold);
+      color:#111;
+    }
+
+    .section-heading{
+      margin:28px 0 12px;
+    }
+
+    .section-heading h2{
+      margin:0;
+      font-size:1.25rem;
+    }
+
+    .section-heading p{
+      margin:5px 0 0;
+      color:var(--practice-muted);
+      font-size:.9rem;
+    }
+
+    .support-grid{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:12px;
+    }
+
+    .support-card{
+      display:block;
+      padding:17px;
+      border:1px solid var(--practice-line);
+      border-radius:14px;
+      background:var(--practice-card);
+      color:var(--practice-text);
+      text-decoration:none;
+    }
+
+    .support-card:hover{
+      border-color:var(--practice-teal);
+    }
+
+    .support-card strong{
+      display:block;
+      margin-bottom:6px;
+    }
+
+    .support-card span{
+      color:var(--practice-muted);
+      font-size:.84rem;
+      line-height:1.4;
+    }
+
+    .practice-note{
+      margin-top:24px;
+      padding:15px 17px;
+      border:1px solid var(--practice-line);
+      border-radius:14px;
+      color:var(--practice-muted);
+      font-size:.87rem;
+      line-height:1.5;
+    }
+
+    @media(max-width:900px){
+      .workflow{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+
+      .support-grid{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+      }
+    }
+
+    @media(max-width:560px){
+      .practice-page{
+        width:min(100% - 22px,1120px);
+      }
+
+      .workflow,
+      .support-grid{
+        grid-template-columns:1fr;
+      }
+
+      .step{
+        min-height:0;
+      }
+    }
   </style>
 </head>
 
-<body class="coach-shell-page" data-coach-page="Practice Tools" data-coach-area="practice" data-coach-shell-hub>
-<main class="wrap" data-coach-shell-content>
-  <header class="hero">
-    <h1>Team Logistics</h1>
-    <p>Athletes, roster, profiles, notes, schedule, and team operating tools.</p>
+<body
+  class="coach-shell-page"
+  data-coach-page="Practice"
+  data-coach-area="practice"
+  data-coach-shell-hub
+>
 
+<main class="practice-page" data-coach-shell-content>
+
+  <header class="practice-hero">
+    <p class="practice-eyebrow">Today</p>
+    <h1>Practice</h1>
+    <p>
+      Move through the coaching day in order. Build the session, run the room,
+      check athletes in for attendance, review and finalize attendance, then complete the day’s XP work.
+    </p>
   </header>
 
-  <section class="grid">
-    <a class="card" href="/coaches/athletes/">
-      <h2>Athletes</h2>
-      <p>Athlete tracker, live log, log details, and athlete history.</p>
+  <section class="workflow" aria-label="Daily practice workflow">
+
+    <a class="step" href="/coaches/execution/session-builder/">
+      <span class="step-number">1</span>
+      <h2>Build Session</h2>
+      <p>
+        Choose the room, discipline, rank, week, and session shell.
+      </p>
     </a>
 
-    <a class="card" href="/coaches/roster/">
-      <h2>Roster</h2>
-      <p>Active team list and athlete access.</p>
+    <a class="step" href="/coaches/execution/clipboard-2.0/">
+      <span class="step-number">2</span>
+      <h2>Run Practice</h2>
+      <p>
+        Build the practice in Clipboard and launch the active practice.
+      </p>
     </a>
 
-    <a class="card" href="/coaches/profiles/">
-      <h2>Profiles</h2>
-      <p>Coach-facing athlete profile tools.</p>
+    <a class="step" href="/coaches/attendance/session.html">
+      <span class="step-number">3</span>
+      <h2>Check In / Attendance</h2>
+      <p>
+        Load the active practice and record attendance as athletes check in.
+      </p>
     </a>
 
-    <a class="card" href="/coaches/notes/">
-      <h2>Notes</h2>
-      <p>Coach notes, observations, and follow-up records.</p>
+    <a class="step" href="/coaches/attendance/">
+      <span class="step-number">4</span>
+      <h2>Review &amp; Finalize Attendance</h2>
+      <p>
+        Verify check-ins, correct attendance if needed, then lock and close the practice.
+      </p>
     </a>
 
-    <a class="card" href="/communications/coach/schedule.html">
-      <h2>Schedule</h2>
-      <p>Practice, event, and team schedule access.</p>
+    <a class="step step--xp" href="/coaches/daily-xp/daily-grind">
+      <span class="step-number">5</span>
+      <h2>Daily XP</h2>
+      <p>
+        Complete the verified coach-side XP work after attendance is final.
+      </p>
     </a>
 
-    <a class="card" href="/coaches/forms/">
-      <h2>Team Forms</h2>
-      <p>Sign-in, meeting summaries, and team operation forms.</p>
-    </a>
   </section>
+
+  <div class="section-heading">
+    <h2>Practice Support</h2>
+    <p>Open these when the room needs more than the normal daily flow.</p>
+  </div>
+
+  <section class="support-grid">
+
+    <a class="support-card" href="/coaches/logs/practice-log.html">
+      <strong>Practice Log</strong>
+      <span>Review recorded practice history.</span>
+    </a>
+
+    <a class="support-card" href="/coaches/execution/big-clock-2.0/">
+      <strong>Big Clock</strong>
+      <span>Run visible practice timing.</span>
+    </a>
+
+    <a class="support-card" href="/coaches/execution/coach-companion/">
+      <strong>Coach Companion</strong>
+      <span>Use supporting practice controls and guidance.</span>
+    </a>
+
+    <a class="support-card" href="/coaches/cards/">
+      <strong>Curriculum</strong>
+      <span>Open skills, cards, and teaching material.</span>
+    </a>
+
+  </section>
+
+  <div class="practice-note">
+    The daily workflow is the primary path. Execution tools remain available
+    without becoming separate operating systems.
+  </div>
+
 </main>
 
-<script src="/coaches/_ui/coach-shell.js?v=1"></script>
-
+<script src="/coaches/_ui/coach-shell.js?v=2"></script>
 </body>
 </html>
