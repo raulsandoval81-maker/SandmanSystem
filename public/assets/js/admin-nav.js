@@ -5,6 +5,7 @@ const sections = [
     { label: "Staff & Roles", href: "/admin/people/staff.html" }
   ] },
   { label: "Operations Oversight", links: [
+    { label: "Oversight", href: "/admin/oversight/" },
     { label: "Reception", href: "/admin/reception/" }
   ] },
   { label: "System", links: [

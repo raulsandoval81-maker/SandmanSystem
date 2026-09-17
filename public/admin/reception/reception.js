@@ -129,11 +129,7 @@ const managementNotes =
 const routeMessageButton =
   document.getElementById("routeMessageButton");
 
-const markRespondedButton =
-  document.getElementById("markRespondedButton");
 
-const closeMessageButton =
-  document.getElementById("closeMessageButton");
 
 const routingFormStatus =
   document.getElementById("routingFormStatus");
@@ -293,8 +289,6 @@ function setFormStatus(message, type = "") {
 
 function setActionButtonsDisabled(disabled) {
   routeMessageButton.disabled = disabled;
-  markRespondedButton.disabled = disabled;
-  closeMessageButton.disabled = disabled;
 }
 
 function escapeText(value) {
@@ -1026,120 +1020,6 @@ assignmentStatus: managerUid
   }
 }
 
-async function markSelectedResponded() {
-  if (!selectedMessage || !adminUser) return;
-
-  setActionButtonsDisabled(true);
-  setFormStatus("Marking message responded…");
-
-  try {
-    const updates = {
-      status: "RESPONDED",
-      messageStatus: "RESPONDED",
-      respondedByUid: adminUser.uid,
-      respondedByRole: "SYSTEM_ADMIN",
-      respondedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    await updateDoc(
-      doc(
-        db,
-        "general_messages",
-        selectedMessage.id
-      ),
-      updates
-    );
-
-    Object.assign(
-      selectedMessage,
-      updates
-    );
-
-    updateSummary();
-    renderQueue();
-    renderDetail();
-
-    setFormStatus(
-      "Message marked responded.",
-      "success"
-    );
-  } catch (error) {
-    console.error(
-      "[reception] responded update failed:",
-      error
-    );
-
-    setFormStatus(
-      "The message could not be marked responded.",
-      "error"
-    );
-  } finally {
-    setActionButtonsDisabled(false);
-  }
-}
-
-async function closeSelectedMessage() {
-  if (!selectedMessage || !adminUser) return;
-
-  const confirmed = window.confirm(
-    "Close this message?"
-  );
-
-  if (!confirmed) return;
-
-  setActionButtonsDisabled(true);
-  setFormStatus("Closing message…");
-
-  try {
-    const updates = {
-      status: "CLOSED",
-      messageStatus: "CLOSED",
-      routingStage: "CLOSED",
-      assignmentStatus: "CLOSED",
-      closedByUid: adminUser.uid,
-      closedAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    };
-
-    await updateDoc(
-      doc(
-        db,
-        "general_messages",
-        selectedMessage.id
-      ),
-      updates
-    );
-
-    Object.assign(
-      selectedMessage,
-      updates
-    );
-
-    updateSummary();
-    renderQueue();
-    renderDetail();
-
-    setFormStatus(
-      "Message closed.",
-      "success"
-    );
-  } catch (error) {
-    console.error(
-      "[reception] close failed:",
-      error
-    );
-
-    setFormStatus(
-      "The message could not be closed.",
-      "error"
-    );
-  } finally {
-    setActionButtonsDisabled(false);
-  }
-}
-
-
 /* =========================================================
    LOAD
 ========================================================= */
@@ -1240,19 +1120,7 @@ routingForm.addEventListener(
   }
 );
 
-markRespondedButton.addEventListener(
-  "click",
-  () => {
-    void markSelectedResponded();
-  }
-);
 
-closeMessageButton.addEventListener(
-  "click",
-  () => {
-    void closeSelectedMessage();
-  }
-);
 
 
 /* =========================================================
