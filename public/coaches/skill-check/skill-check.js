@@ -191,7 +191,7 @@ async function saveFamily(button) {
 
 async function initialize() {
   if (!athleteId) {
-    status("Missing athlete ID.", true);
+    window.location.replace("/coaches/roster/");
     return;
   }
 
