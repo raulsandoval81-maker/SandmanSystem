@@ -1,27 +1,56 @@
-import { db } from "/assets/js/firebase-init.js";
+import { db, functions, httpsCallable } from "/assets/js/firebase-init.js";
 import {
   collection,
-  getDocs,
-  doc,
-  setDoc
+  getDocs
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { normalizeStaffContext } from "/assets/js/staff-context.js";
+
+const ALLOWED_ROLES = new Set([
+  "coach",
+  "admin",
+  "management"
+]);
+
+const ALLOWED_STATUSES = new Set([
+  "active",
+  "inactive"
+]);
 
 export async function loadStaffRows() {
   const snap = await getDocs(collection(db, "staff"));
-  return snap.docs.map(d => ({
-    uid: d.id,
-    ...d.data()
-  }));
+
+  return snap.docs.map(d => {
+    const normalized = normalizeStaffContext(d.data() || {});
+    return {
+      uid: d.id,
+      ...normalized,
+      locationIds: normalized.scope.locationIds
+    };
+  });
 }
 
-export async function saveStaffRole(uid, role) {
-  if (!uid) throw new Error("Missing UID");
-  if (!["coach", "admin"].includes(role)) {
+export async function saveStaffAccess(
+  uid,
+  {
+    role,
+    status,
+    locationIds = []
+  }
+) {
+  if (!uid) {
+    throw new Error("Missing UID");
+  }
+
+  if (!ALLOWED_ROLES.has(role)) {
     throw new Error("Invalid role");
   }
 
-  await setDoc(doc(db, "staff", uid), {
-    role,
-    updatedAt: new Date()
-  }, { merge: true });
+  if (!ALLOWED_STATUSES.has(status)) {
+    throw new Error("Invalid status");
+  }
+
+  if (!Array.isArray(locationIds)) throw new Error("Invalid location scope");
+  const call = httpsCallable(functions, "updateStaffGovernance");
+  const result = await call({ staffUid: uid, role, status, locationIds });
+  return result.data;
 }

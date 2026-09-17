@@ -703,7 +703,9 @@ match /messages/{messageId} {
         && request.auth.uid == userId;
 
       allow list: if isAdminOrManagement();
-      allow create, update, delete: if isAdmin();
+      // Staff authority is mutated only through the transactional
+      // Admin governance callable (Admin SDK), including last-Admin safety.
+      allow create, update, delete: if false;
     }
 
     /* --------------------------------------
@@ -1937,7 +1939,10 @@ match /academySettings/{academyId} {
     }
 
     function isAdmin() {
-      return staffRole() == "admin";
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["admin", "system_admin"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
     }
 
     function isManagement() {

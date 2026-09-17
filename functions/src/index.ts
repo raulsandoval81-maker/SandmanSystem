@@ -215,6 +215,8 @@ export {
   closePracticeSession,
 } from "./practice/practiceSessions";
 export { listManagementAttendance } from "./practice/listManagementAttendance";
+export { getAdminOversightSummary } from "./admin/getAdminOversightSummary";
+export { updateStaffGovernance } from "./admin/updateStaffGovernance";
 
 export {
   issueProposalClientReview,

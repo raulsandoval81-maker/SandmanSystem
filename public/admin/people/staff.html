@@ -148,11 +148,13 @@
               <th>Email</th>
               <th>Name</th>
               <th>Role</th>
+              <th>Status</th>
+              <th>Location</th>
               <th>Save</th>
             </tr>
           </thead>
           <tbody id="staffBody">
-            <tr><td colspan="5" class="muted">Loading staff…</td></tr>
+            <tr><td colspan="7" class="muted">Loading staff…</td></tr>
           </tbody>
         </table>
       </div>
@@ -163,7 +165,7 @@
 
   <script type="module">
     import { requireAdmin } from "/assets/js/admin-guard.js";
-    import { loadStaffRows, saveStaffRole } from "./staff.service.js";
+    import { loadStaffRows, saveStaffAccess } from "/admin/services/staff.service.js";
 
     const statusEl = document.getElementById("adminStatus");
     const bodyEl = document.getElementById("staffBody");
@@ -175,7 +177,7 @@
     async function render() {
       const rows = await loadStaffRows();
       if (!rows.length) {
-        bodyEl.innerHTML = `<tr><td colspan="5" class="muted">No staff docs found.</td></tr>`;
+        bodyEl.innerHTML = `<tr><td colspan="7" class="muted">No staff docs found.</td></tr>`;
         return;
       }
 
@@ -186,10 +188,27 @@
           <td>${row.fullName || ""}</td>
           <td>
             <select class="role-select">
-              <option value="coach" ${row.role === "coach" ? "selected" : ""}>coach</option>
-              <option value="admin" ${row.role === "admin" ? "selected" : ""}>admin</option>
+              <option value="admin" ${["admin", "system_admin"].includes(row.role) ? "selected" : ""}>Admin</option>
+              <option value="management" ${["management", "manager", "location_manager"].includes(row.role) ? "selected" : ""}>Management</option>
+              <option value="coach" ${row.role === "coach" ? "selected" : ""}>Coach</option>
             </select>
           </td>
+
+          <td>
+            <select class="status-select role-select">
+              <option value="active" ${row.status === "active" ? "selected" : ""}>active</option>
+              <option value="inactive" ${row.status === "inactive" ? "selected" : ""}>inactive</option>
+            </select>
+          </td>
+
+          <td>
+            <select class="location-select role-select" multiple size="4">
+              <option value="santa-ynez-valley" ${(row.locationIds || []).includes("santa-ynez-valley") || row.locationId === "santa-ynez-valley" ? "selected" : ""}>Santa Ynez Valley</option>
+              <option value="lompoc" ${(row.locationIds || []).includes("lompoc") || row.locationId === "lompoc" ? "selected" : ""}>Lompoc</option>
+              <option value="elk-grove" ${(row.locationIds || []).includes("elk-grove") || row.locationId === "elk-grove" ? "selected" : ""}>Elk Grove</option>
+            </select>
+          </td>
+
           <td><button class="btn btn-red save-role">Save</button></td>
         </tr>
       `).join("");
@@ -202,11 +221,19 @@
       const tr = btn.closest("tr");
       const uid = tr.dataset.uid;
       const role = tr.querySelector(".role-select").value;
+      const status = tr.querySelector(".status-select").value;
+      const locationIds = [
+        ...tr.querySelector(".location-select").selectedOptions
+      ].map(option => option.value);
 
       btn.disabled = true;
       btn.textContent = "Saving...";
       try {
-        await saveStaffRole(uid, role);
+        await saveStaffAccess(uid, {
+          role,
+          status,
+          locationIds
+        });
         btn.textContent = "Saved";
         setTimeout(() => btn.textContent = "Save", 900);
       } catch (err) {
