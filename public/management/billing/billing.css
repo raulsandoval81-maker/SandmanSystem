@@ -1,0 +1,75 @@
+.billing-wrap {
+  width: min(100% - 32px, 1120px);
+  margin: 30px auto 64px;
+}
+
+.billing-grid {
+  margin-top: 24px;
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.billing-card {
+  min-width: 0;
+  padding: 22px;
+
+  border:
+    1px solid var(--management-border);
+  border-radius:
+    var(--management-radius-lg);
+
+  background:
+    var(--management-surface);
+
+  color:
+    var(--management-text);
+
+  text-decoration: none;
+
+  box-shadow:
+    var(--management-shadow);
+}
+
+.billing-card:hover {
+  border-color:
+    var(--management-border-strong);
+}
+
+.billing-label {
+  display: block;
+  margin-bottom: 7px;
+
+  color:
+    var(--management-gold);
+
+  font-size: .7rem;
+  font-weight: 900;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.billing-card h2 {
+  margin: 0 0 8px;
+  font-size: 1.2rem;
+}
+
+.billing-card p {
+  margin: 0 0 18px;
+
+  color:
+    var(--management-muted);
+
+  line-height: 1.55;
+}
+
+.billing-card strong {
+  font-size: .86rem;
+}
+
+@media (max-width: 720px) {
+  .billing-grid {
+    grid-template-columns: 1fr;
+  }
+}
