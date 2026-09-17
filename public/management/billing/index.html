@@ -13,9 +13,7 @@
     content="noindex,nofollow"
   >
 
-  <title>
-    Billing | Sandman Management
-  </title>
+  <title>Billing | Sandman Management</title>
 
   <link
     rel="stylesheet"
@@ -37,120 +35,113 @@
 
   <main class="billing-wrap">
 
-    <header
-      class="management-workspace-header"
-    >
-      <p class="eyebrow">
-        Management · Finance
-      </p>
+    <header class="billing-header">
+      <div>
+        <p class="eyebrow">
+          Management · Finance
+        </p>
 
-      <h1>
-        Billing
-      </h1>
+        <h1>Billing</h1>
 
-      <p>
-        Payment and membership billing
-        follow-through for the academy.
-      </p>
+        <p>
+          Review checkout, payment, pass,
+          and enrollment follow-through.
+        </p>
+      </div>
+
+      <button
+        id="refreshBilling"
+        class="button button-secondary"
+        type="button"
+      >
+        Refresh
+      </button>
     </header>
 
-    <section class="billing-grid">
+    <p
+      id="billingStatus"
+      class="billing-status"
+      aria-live="polite"
+    >
+      Loading billing activity…
+    </p>
 
-      <a
-        class="billing-card"
-        href="/connect/proposals/"
+    <section
+      class="billing-summary"
+      aria-label="Billing summary"
+    >
+      <button
+        class="billing-summary-card is-active"
+        type="button"
+        data-view="NEEDS_ACTION"
       >
-        <span class="billing-label">
-          Checkout
-        </span>
+        <span>Needs Action</span>
+        <strong id="countNeedsAction">0</strong>
+      </button>
 
-        <h2>
-          Proposals & Payment
-        </h2>
-
-        <p>
-          Review approved proposals and
-          continue families into checkout.
-        </p>
-
-        <strong>
-          Open Proposals →
-        </strong>
-      </a>
-
-      <a
-        class="billing-card"
-        href="/management/pricing/"
+      <button
+        class="billing-summary-card"
+        type="button"
+        data-view="WAITING"
       >
-        <span class="billing-label">
-          Estimates
-        </span>
+        <span>Waiting</span>
+        <strong id="countWaiting">0</strong>
+      </button>
 
-        <h2>
-          Pricing
-        </h2>
-
-        <p>
-          Calculate membership pricing,
-          family totals, and enrollment costs.
-        </p>
-
-        <strong>
-          Open Pricing →
-        </strong>
-      </a>
-
-      <a
-        class="billing-card"
-        href="/management/inbox/"
+      <button
+        class="billing-summary-card"
+        type="button"
+        data-view="PAID_READY"
       >
-        <span class="billing-label">
-          Follow-Through
-        </span>
+        <span>Paid / Ready</span>
+        <strong id="countPaidReady">0</strong>
+      </button>
 
-        <h2>
-          Payment Messages
-        </h2>
-
-        <p>
-          Review conversations and payment
-          issues requiring Management action.
-        </p>
-
-        <strong>
-          Open Inbox →
-        </strong>
-      </a>
-
-      <a
-        class="billing-card"
-        href="/intake-management/"
+      <button
+        class="billing-summary-card"
+        type="button"
+        data-view="CLOSED"
       >
-        <span class="billing-label">
-          Enrollment
-        </span>
-
-        <h2>
-          Paid Enrollment
-        </h2>
-
-        <p>
-          Continue completed payment
-          handoffs into member onboarding.
-        </p>
-
-        <strong>
-          Open Enrollment →
-        </strong>
-      </a>
-
+        <span>Closed</span>
+        <strong id="countClosed">0</strong>
+      </button>
     </section>
+
+    <section class="billing-toolbar">
+      <label>
+        <span class="sr-only">
+          Search billing
+        </span>
+
+        <input
+          id="billingSearch"
+          type="search"
+          placeholder="Search athlete, family, location, or payment…"
+          autocomplete="off"
+        >
+      </label>
+
+      <span id="billingVisibleCount">
+        0 records
+      </span>
+    </section>
+
+    <section
+      id="billingQueue"
+      class="billing-queue"
+      aria-live="polite"
+    ></section>
 
   </main>
 
   <script
     type="module"
     src="/management/shared/management-shell.js"
+  ></script>
+
+  <script
+    type="module"
+    src="/management/billing/billing.js"
   ></script>
 
 </body>
