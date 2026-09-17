@@ -100,6 +100,10 @@ export {
   getAthleteProfileFeed,
 } from "./modules/athlete/getAthleteProfileFeed";
 
+export {
+  getAthleteSkillsSummary,
+} from "./modules/athlete/getAthleteSkillsSummary";
+
 /* =========================
    ARENA
 ========================= */

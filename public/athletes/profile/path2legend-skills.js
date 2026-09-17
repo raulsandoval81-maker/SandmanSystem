@@ -1,12 +1,17 @@
 import {
-  db,
-  ensureSignedIn,
-  collection,
-  getDocs
+  functions,
+  httpsCallable,
+  ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
 const container =
   document.getElementById("canonicalSkills");
+
+const getAthleteSkillsSummaryCall =
+  httpsCallable(
+    functions,
+    "getAthleteSkillsSummary"
+  );
 
 if (container) {
   const params =
@@ -42,45 +47,15 @@ if (container) {
     try {
       await ensureSignedIn();
 
-      const snapshot = await getDocs(
-        collection(
-          db,
-          "athletes",
-          athleteId,
-          "skills"
-        )
-      );
-
-      const skills = [];
-
-      snapshot.forEach((skillDoc) => {
-        const record = skillDoc.data() || {};
-
-        const state =
-          String(
-            record.state ||
-            record.status ||
-            "NOT_INTRODUCED"
-          )
-            .trim()
-            .toUpperCase();
-
-        if (!STATE_LABELS[state]) return;
-
-        skills.push({
-          name:
-            String(
-              record.name ||
-              record.familyId ||
-              skillDoc.id
-            ).trim(),
-          state,
+      const result =
+        await getAthleteSkillsSummaryCall({
+          athleteId
         });
-      });
 
-      skills.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      );
+      const skills =
+        Array.isArray(result.data?.skills)
+          ? result.data.skills
+          : [];
 
       if (!skills.length) {
         container.innerHTML =
@@ -89,18 +64,31 @@ if (container) {
       }
 
       container.innerHTML = skills
-        .map(
-          ({ name, state }) => `
+        .map((skill) => {
+          const state =
+            String(skill.state || "")
+              .trim()
+              .toUpperCase();
+
+          if (!STATE_LABELS[state]) {
+            return "";
+          }
+
+          return `
             <div class="athlete-skill-row">
               <span class="athlete-skill-name">
-                ${esc(name)}
+                ${esc(
+                  skill.name ||
+                  skill.familyId ||
+                  ""
+                )}
               </span>
               <span class="athlete-skill-state">
                 ${STATE_LABELS[state]}
               </span>
             </div>
-          `
-        )
+          `;
+        })
         .join("");
     } catch (error) {
       console.error(
