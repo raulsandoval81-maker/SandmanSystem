@@ -5,6 +5,7 @@ import {
   collection,
   onSnapshot,
   getDocs,
+  getDoc,
   query,
   where,
   orderBy,
@@ -422,22 +423,55 @@ setStatus(`Ready · ${journeyLabels[wantedJourney] || wantedJourney}`);
 
 }
 
-async function loadApprovedAttendance() {
-  const snap = await getDocs(
-    query(
-      collection(db, "attendance_sessions"),
-      where("status", "==", "finalized"),
-      where("readyForDailyGrind", "==", true),
-      orderBy("finalizedAt", "desc"),
-      limit(1)
-    )
-  );
+function requestedAttendanceSessionId() {
+  const id = new URLSearchParams(window.location.search)
+    .get("session")
+    ?.trim() || "";
 
-  if (snap.empty) {
-    return false;
+  return id && !id.includes("/") ? id : "";
+}
+
+async function loadApprovedAttendance() {
+  const requestedSessionId = requestedAttendanceSessionId();
+
+  let sessionDoc = null;
+
+  if (requestedSessionId) {
+    const requestedSnap = await getDoc(
+      doc(db, "attendance_sessions", requestedSessionId)
+    );
+
+    if (!requestedSnap.exists()) {
+      setStatus("Requested attendance session was not found.");
+      return true;
+    }
+
+    const requestedSession = requestedSnap.data() || {};
+
+    if (requestedSession.status !== "finalized") {
+      setStatus("Requested attendance session is not finalized.");
+      return true;
+    }
+
+    sessionDoc = requestedSnap;
+  } else {
+    const snap = await getDocs(
+      query(
+        collection(db, "attendance_sessions"),
+        where("status", "==", "finalized"),
+        where("readyForDailyGrind", "==", true),
+        orderBy("finalizedAt", "desc"),
+        limit(1)
+      )
+    );
+
+    if (snap.empty) {
+      return false;
+    }
+
+    sessionDoc = snap.docs[0];
   }
 
-  const sessionDoc = snap.docs[0];
   const session = sessionDoc.data() || {};
 
   const durationMinutes = normalizeDurationMinutes(

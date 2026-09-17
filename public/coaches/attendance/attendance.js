@@ -56,6 +56,25 @@ function setStatus(msg, isError = false) {
   el.style.color = isError ? "#ff8a8a" : "#9ca3af";
 }
 
+function showDailyGrindHandoff(sessionId) {
+  const status = $("saveStatus");
+  const id = String(sessionId || "").trim();
+
+  if (!status || !id) return;
+
+  let link = document.getElementById("continueDailyGrind");
+
+  if (!link) {
+    link = document.createElement("a");
+    link.id = "continueDailyGrind";
+    link.className = "pill";
+    link.textContent = "Continue to Daily XP";
+    status.insertAdjacentElement("afterend", link);
+  }
+
+  link.href = `/coaches/daily-xp/?session=${encodeURIComponent(id)}`;
+}
+
 function updatePresentCount() {
   const el = $("presentCount");
   if (el) el.textContent = `${selectedIds.size} selected`;
@@ -401,7 +420,10 @@ async function saveAttendance() {
       await closePractice({ practiceId, attendanceSessionId: pendingSessionId });
     }
 
+    const finalizedSessionId = pendingSessionId;
+
     setStatus(`Attendance finalized for ${present.length} athlete(s). Ready for Daily Grind.`);
+    showDailyGrindHandoff(finalizedSessionId);
 
     clearPendingSession();
 
