@@ -4,6 +4,10 @@ import {
 } from "firebase-functions/v2/https";
 
 import {
+  logger,
+} from "firebase-functions";
+
+import {
   getFirestore,
 } from "firebase-admin/firestore";
 
@@ -96,6 +100,16 @@ export const getAthleteSkillsSummary =
           SKILL_PROFILE_STAFF_ROLES,
           "Athlete skills access denied."
         );
+
+      logger.info("getAthleteSkillsSummary authorization", {
+        callerUid,
+        athleteId,
+        actorRole: actor.role,
+        actorStatus: actor.status,
+        athleteCoachUid: clean(athlete.coachUid),
+        athleteCoachIds: normalizeStaffList(athlete.coachIds),
+        athleteLocationId: clean(athlete.locationId),
+      });
 
       if (actor.role !== "admin") {
         const assignedCoachIds =
