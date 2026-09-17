@@ -15,6 +15,7 @@ export function getBlockCards(blockEl) {
         tier: cardEl?.dataset.tier || "",
         discipline: cardEl?.dataset.discipline || "",
         journey: cardEl?.dataset.journey || "",
+        family: cardEl?.dataset.family || "",
         category: cardEl?.dataset.category || "",
         lane: cardEl?.dataset.lane || ""
       };

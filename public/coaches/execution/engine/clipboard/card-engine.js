@@ -1,5 +1,7 @@
 // public/coaches/execution/engine/clipboard/card-engine.js
 
+import { getWrestlingFamily } from "../../../cards/wrestling/family-map.js";
+
 export function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -86,10 +88,44 @@ export function makeClipCard(card) {
   const skillMatch = href.match(/skill-(\d+)/i);
   const parsedSkill = skillMatch ? skillMatch[1] : "";
 
+  const resolvedDiscipline =
+    String(card.discipline || parsedDiscipline || "").toLowerCase();
+
+  const rawJourney =
+    String(card.journey || parsedJourney || "").toLowerCase();
+
+  const resolvedJourney =
+    rawJourney === "z2h" || rawJourney === "r2c"
+      ? "r2c"
+      : rawJourney;
+
+  const resolvedTier =
+    String(card.tier || parsedTier || "").toLowerCase();
+
+  const slugMatch =
+    href.match(/\/skill-\d+-(.+)\.html(?:[?#].*)?$/i);
+
+  const resolvedFamily =
+    card.family ||
+    (
+      resolvedDiscipline === "wrestling" &&
+      (resolvedJourney === "r2c" || resolvedJourney === "p2l") &&
+      resolvedTier &&
+      slugMatch
+        ? getWrestlingFamily(
+            resolvedJourney,
+            resolvedTier,
+            slugMatch[1]
+          )
+        : ""
+    ) ||
+    "";
+
   el.dataset.skill = card.skill || parsedSkill || "";
   el.dataset.tier = card.tier || parsedTier || "";
   el.dataset.discipline = card.discipline || parsedDiscipline || "";
   el.dataset.journey = card.journey || parsedJourney || "";
+  el.dataset.family = resolvedFamily;
   el.dataset.category = card.category || "";
   el.dataset.lane = card.lane || "";
 
