@@ -2,7 +2,8 @@
   import {
     db,
     doc,
-    getDoc
+    getDoc,
+    ensureSignedIn
   } from "/assets/js/firebase-init.js";
 
   function norm(value) {
@@ -36,6 +37,8 @@
   }
 
   async function route() {
+    await ensureSignedIn();
+
     const id = getIdFromUrl();
 
     if (!id) {
