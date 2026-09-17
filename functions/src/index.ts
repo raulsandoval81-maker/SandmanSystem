@@ -91,6 +91,7 @@ export { testProgressionEngine }
 
 
 export { coachAction } from "./modules/coachAction";
+export { skillCheckCoachCall } from "./modules/skillCheckCoachCall";
   /* =========================
    ATHLETE
 ========================= */
@@ -265,3 +266,4 @@ export {
 
 export { createManagementPassCheckout } from "./modules/management/createManagementPassCheckout";
 export { confirmManagementPassAttendance } from "./modules/management/confirmManagementPassAttendance";
+export { markManagementMessageResponded } from "./modules/management/markManagementMessageResponded";

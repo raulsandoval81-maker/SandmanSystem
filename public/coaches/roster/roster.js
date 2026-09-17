@@ -395,6 +395,11 @@ async function loadRoster() {
   Profile
 </a>
                 ${
+                  !isArchiveView()
+                    ? `<a class="pill" href="/coaches/skill-check/?id=${encodeURIComponent(id)}">Skill Check</a>`
+                    : ""
+                }
+                ${
                   isArchiveView()
                     ? `<button class="pill" type="button" data-restore="${id}">Restore</button>`
                     : `<button class="pill" type="button" data-archive="${id}">Archive</button>`

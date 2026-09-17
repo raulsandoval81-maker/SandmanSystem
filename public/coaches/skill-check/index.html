@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Coach · Skill Check</title>
+
+  <link rel="stylesheet" href="/coaches/_ui/coach-shell.css?v=1"/>
+  <link rel="stylesheet" href="/coaches/skill-check/skill-check.css"/>
+  <link rel="icon" href="data:,">
+</head>
+
+<body
+  class="coach-shell-page"
+  data-coach-page="Skill Check"
+  data-coach-area="skill-check"
+>
+<main class="skill-check-page" data-coach-shell-content>
+
+  <header class="skill-check-header">
+    <div>
+      <p class="eyebrow">ATHLETE DEVELOPMENT</p>
+      <h1>Skill Check</h1>
+      <p class="muted">
+        Track demonstrated technical development by canonical skill family.
+      </p>
+    </div>
+
+    <a class="pill" href="/coaches/roster/">← Roster</a>
+  </header>
+
+  <section
+    id="skillCheckStatus"
+    class="skill-status"
+    role="status"
+    aria-live="polite"
+  >
+    Loading athlete…
+  </section>
+
+  <section id="skillCheckWorkspace" hidden>
+    <div class="athlete-card">
+      <div>
+        <div id="athleteName" class="athlete-name">—</div>
+        <div id="athleteMeta" class="muted">—</div>
+      </div>
+    </div>
+
+    <section class="skill-panel">
+      <div class="skill-panel-head">
+        <div>
+          <p class="eyebrow">WRESTLING</p>
+          <h2>Canonical Skill Families</h2>
+        </div>
+
+        <label class="review-filter">
+          <input id="reviewOnly" type="checkbox"/>
+          Needs Review only
+        </label>
+      </div>
+
+      <div id="skillFamilies" class="skill-grid"></div>
+    </section>
+  </section>
+
+</main>
+
+<script src="/coaches/_ui/coach-shell.js?v=1"></script>
+<script type="module" src="/coaches/skill-check/skill-check.js"></script>
+</body>
+</html>

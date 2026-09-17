@@ -32,11 +32,28 @@ if (snap.empty) {
   const html = [];
   snap.forEach(doc => {
     const s = doc.data();
+
+    const state =
+      String(s.state || s.status || "NOT_INTRODUCED")
+        .trim()
+        .replaceAll("_", " ");
+
+    const readiness =
+      Number.isFinite(Number(s.readiness))
+        ? `<div>Readiness: ${Number(s.readiness)}%</div>`
+        : "";
+
+    const review =
+      s.needsReview === true
+        ? `<div><strong>Needs Review</strong></div>`
+        : "";
+
     html.push(`
       <div class="card">
-        <strong>${s.name}</strong>
-        <div>Status: ${s.status}</div>
-        <div>Readiness: ${s.readiness}%</div>
+        <strong>${s.name || s.familyId || doc.id}</strong>
+        <div>Status: ${state}</div>
+        ${review}
+        ${readiness}
         <div>${s.coachNotes || ""}</div>
       </div>
     `);
