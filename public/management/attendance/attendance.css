@@ -1,1 +1,41 @@
 .attendance-wrap{width:min(100% - 32px,1100px);margin:30px auto 64px}.attendance-header{margin-bottom:22px}.attendance-header h1{margin:5px 0 8px;font-size:clamp(1.9rem,4vw,2.7rem)}.attendance-header>p:not(.eyebrow):not(.identity){max-width:760px;color:var(--management-muted);line-height:1.55}.status-line{min-height:1.4em;color:var(--management-muted)}.status-line.is-error{color:var(--management-danger)}.attendance-section{margin-top:20px;padding:20px;border:1px solid var(--management-border);border-radius:var(--management-radius-lg);background:var(--management-surface);box-shadow:var(--management-shadow)}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}.section-heading h2{margin:3px 0 0;font-size:1.25rem}.count-pill,.status-pill{display:inline-flex;align-items:center;justify-content:center;border-radius:999px;font-size:.76rem;font-weight:850;text-transform:uppercase;letter-spacing:.05em}.count-pill{min-width:34px;padding:7px 10px;background:var(--management-surface-soft);color:var(--management-muted)}.session-list{display:grid;gap:10px}.empty-state{margin:0;padding:16px;border:1px dashed var(--management-border);border-radius:12px;color:var(--management-muted)}.session-card{border:1px solid var(--management-border);border-radius:14px;background:var(--management-surface-soft);overflow:hidden}.session-card summary{display:grid;grid-template-columns:minmax(180px,1.4fr) repeat(4,minmax(90px,1fr));align-items:center;gap:12px;padding:15px;cursor:pointer;list-style:none}.session-card summary::-webkit-details-marker{display:none}.session-card summary::after{content:"+";grid-column:6;font-size:1.25rem;font-weight:900;color:var(--management-muted)}.session-card[open] summary::after{content:"−"}.session-title strong,.session-title span{display:block}.session-title span,.session-fact span{margin-top:3px;color:var(--management-muted);font-size:.82rem}.session-fact strong,.session-fact span{display:block;overflow-wrap:anywhere}.status-pill{width:max-content;padding:6px 9px;background:#e8edf1;color:#34424f}.status-pill.is-open{background:#e7f6ee;color:#17663b}.status-pill.is-pending_review{background:#fff2cf;color:#7b5700}.status-pill.is-finalized{background:#e8edf1;color:#34424f}.session-detail{padding:0 15px 15px;border-top:1px solid var(--management-border)}.detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:14px}.detail-panel{padding:13px;border-radius:12px;background:var(--management-surface)}.detail-panel h3{margin:0 0 9px;font-size:.92rem}.athlete-list{margin:0;padding-left:18px;color:var(--management-text)}.athlete-list li+li{margin-top:7px}.athlete-list small{display:block;color:var(--management-muted)}@media(max-width:760px){.session-card summary{grid-template-columns:1fr 1fr}.session-card summary::after{grid-column:2;grid-row:1;justify-self:end}.detail-grid{grid-template-columns:1fr}}@media(max-width:390px){.attendance-wrap{width:min(100% - 20px,1100px);margin-top:18px}.attendance-section{padding:14px}.session-card summary{grid-template-columns:minmax(0,1fr);padding:13px}.session-card summary::after{grid-column:1;grid-row:1;justify-self:end}.session-fact{padding-top:8px;border-top:1px solid var(--management-border)}}
+
+@media (min-width: 1100px) {
+  .management-page-content > .attendance-wrap {
+    width: min(100% - 32px, 1380px);
+    max-width: 1380px;
+  }
+}
+
+@media (min-width: 561px) and (max-width: 1020px) {
+  .session-card summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .session-card summary::after {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .session-title {
+    padding-right: 2rem;
+  }
+
+  .session-card summary,
+  .detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .session-card summary::after {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+  }
+}
