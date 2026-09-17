@@ -1015,11 +1015,10 @@ async function walkInEnrollment(leadId) {
       }
     );
 
-    window.location.href =
-      `/connect/admissions/?appointmentId=${encodeURIComponent(
-        leadId
-      )}`;
-
+window.location.href =
+  `/connect/proposals/?appointmentId=${encodeURIComponent(
+    leadId
+  )}`;
   } catch (error) {
     console.error(
       "[leads] walk-in enrollment failed:",
