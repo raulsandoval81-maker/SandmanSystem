@@ -228,6 +228,7 @@ function renderCardTitle(container, card) {
     el.dataset.tier = card.tier || "";
     el.dataset.discipline = card.discipline || "";
     el.dataset.journey = card.journey || "";
+    el.dataset.family = card.family || "";
   }
 
   el.innerHTML = `
