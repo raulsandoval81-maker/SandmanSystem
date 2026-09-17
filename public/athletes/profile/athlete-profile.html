@@ -85,6 +85,37 @@
     color:#73b77e;
   }
 
+  .athlete-skill-list{
+    display:grid;
+    gap:8px;
+  }
+
+  .athlete-skill-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:16px;
+    padding:9px 0;
+    border-bottom:1px solid rgba(255,255,255,.08);
+  }
+
+  .athlete-skill-row:last-child{
+    border-bottom:0;
+  }
+
+  .athlete-skill-name{
+    font-weight:800;
+  }
+
+  .athlete-skill-state{
+    flex:0 0 auto;
+    font-size:.76rem;
+    font-weight:900;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    opacity:.82;
+  }
+
 
   .skills-preview-row{
     display:flex;
@@ -461,74 +492,18 @@
 
 
 
-  <!-- ===================== SKILLS TRACKER ===================== -->
+  <!-- ===================== SKILLS DEVELOPMENT ===================== -->
   <section id="skillsLane" class="card">
     <details class="profile-accordion">
       <summary>
-        <strong>Skills Tracker</strong>
-        <span class="muted">Technical development</span>
+        <strong>Skills Development</strong>
+        <span class="muted">Technical progress</span>
       </summary>
 
       <div class="profile-accordion-body">
-
-        <div class="skill-key" aria-label="Skill status key">
-          <span>□ Learn</span>
-          <span>▧ Practice</span>
-          <span>☒ Show</span>
+        <div id="canonicalSkills" class="athlete-skill-list">
+          <p class="muted">Loading skills...</p>
         </div>
-
-        <div class="skill-progress-list">
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Double Leg</strong>
-
-            <div class="skill-progress-markers" aria-label="learn">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice skill-marker--inactive" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Single Leg</strong>
-
-            <div class="skill-progress-markers" aria-label="practice">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Stand-Up</strong>
-
-            <div class="skill-progress-markers" aria-label="learn">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice skill-marker--inactive" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Sprawl</strong>
-
-            <div class="skill-progress-markers" aria-label="show">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Half Nelson</strong>
-
-            <div class="skill-progress-markers" aria-label="practice">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-        </div>
-
-        <p class="muted skills-preview-note">
-          Preview only — skill status will later be updated by coaches from the shared Skills Library.
-        </p>
-
       </div>
     </details>
   </section>
@@ -614,6 +589,7 @@
 </main>
 
 <script type="module" src="/athletes/profile/profile.js"></script>
+<script type="module" src="/athletes/profile/path2legend-skills.js"></script>
 </body>
 </html>
 
