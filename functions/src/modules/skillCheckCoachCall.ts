@@ -9,10 +9,55 @@ import {
 } from "firebase-admin/firestore";
 
 import {
-  COACH_STAFF_ROLES,
+  normalizeStaffList,
+  normalizeStaffRole,
   requireActiveStaff,
-  requireCoachAthleteAccessById,
+  staffHasLocation,
 } from "../services/staffAuthorization";
+
+const SKILL_CHECK_STAFF_ROLES = Object.freeze([
+  "admin",
+  "coach",
+]);
+
+function requireSkillCheckAthleteAccess(
+  actor: {
+    uid: string;
+    role: string;
+    staff: Record<string, unknown>;
+  },
+  athlete: Record<string, unknown>
+): void {
+  if (normalizeStaffRole(actor.role) === "admin") return;
+
+  if (normalizeStaffRole(actor.role) !== "coach") {
+    throw new HttpsError(
+      "permission-denied",
+      "This athlete is outside the Coach's authorized training scope."
+    );
+  }
+
+  const assignedCoachIds = normalizeStaffList(
+    athlete.coachUid,
+    athlete.coachIds
+  );
+
+  const directlyAssigned =
+    assignedCoachIds.includes(actor.uid);
+
+  const locationId =
+    String(athlete.locationId ?? "").trim();
+
+  if (
+    !directlyAssigned &&
+    !staffHasLocation(actor.staff, locationId)
+  ) {
+    throw new HttpsError(
+      "permission-denied",
+      "This athlete is outside the Coach's authorized training scope."
+    );
+  }
+}
 
 const ALLOWED_STATES = Object.freeze([
   "NOT_INTRODUCED",
@@ -84,7 +129,7 @@ export const skillCheckCoachCall =
 
     const actor = await requireActiveStaff(
       req.auth.uid,
-      COACH_STAFF_ROLES,
+      SKILL_CHECK_STAFF_ROLES,
       "Active Coach access required."
     );
 
@@ -101,13 +146,26 @@ export const skillCheckCoachCall =
       );
     }
 
-    const athlete =
-      await requireCoachAthleteAccessById(
-        actor,
-        athleteId
-      );
-
     const db = getFirestore();
+
+    const athleteSnap = await db
+      .doc(`athletes/${athleteId}`)
+      .get();
+
+    if (!athleteSnap.exists) {
+      throw new HttpsError(
+        "not-found",
+        `Athlete not found: ${athleteId}`
+      );
+    }
+
+    const athlete =
+      athleteSnap.data() || {};
+
+    requireSkillCheckAthleteAccess(
+      actor,
+      athlete
+    );
 
     if (action === "load") {
       const snap = await db

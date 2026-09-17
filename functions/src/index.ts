@@ -266,4 +266,3 @@ export {
 
 export { createManagementPassCheckout } from "./modules/management/createManagementPassCheckout";
 export { confirmManagementPassAttendance } from "./modules/management/confirmManagementPassAttendance";
-export { markManagementMessageResponded } from "./modules/management/markManagementMessageResponded";
