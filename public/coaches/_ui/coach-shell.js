@@ -10,7 +10,7 @@
   const bilingual = body.hasAttribute("data-coach-bilingual");
   const navGroups = [
     { links: [["Coach Home", "/coaches/hub/", "home"]] },
-    { label: "Daily Work", links: [["Athletes", "/coaches/roster/", "athletes"], ["Athlete Assessment", "/coaches/assessments/", "assessments"], ["Practice", "/coaches/execution/session-builder/", "practice"], ["Curriculum", "/coaches/cards/", "curriculum"], ["XP & Progression", "/coaches/daily-xp/", "xp"], ["Competition", "/coaches/competition-schedule/", "competition"], ["Communications", "/communications/coach/hub.html", "communications"]] },
+    { label: "Daily Work", links: [["Athletes", "/coaches/roster/", "athletes"], ["Athlete Assessment", "/coaches/assessments/", "assessments"], ["Practice", "/coaches/practice/", "practice"], ["Curriculum", "/coaches/cards/", "curriculum"], ["XP & Progression", "/coaches/daily-xp/", "xp"], ["Competition", "/coaches/competition-schedule/", "competition"], ["Communications", "/communications/coach/hub.html", "communications"]] },
     { label: "Team", links: [["Team", "/coaches/team/", "team"], ["Safety", "/coaches/safety/", "safety"]] },
     { label: "Workspace", links: [["Operations Dashboard", "/coaches/dashboard/", "dashboard"], ["Command Center", "/coaches/command-center/", "command-center"], ["More Tools", "/coaches/index.html", "tools"]] }
   ];
