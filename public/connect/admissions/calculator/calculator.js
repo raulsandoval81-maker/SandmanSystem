@@ -267,9 +267,6 @@ const FOUNDING_YEAR = {
   fitnessMonthly:
     PRICING.fitness.twoDays.monthly,
 
-  athleteAnnualMembership:
-    PRICING.enrollment.oneShirt.amount,
-
   defaultAdmissionsCredit:
     PRICING.credits.admissionsDefault
 };
@@ -571,23 +568,6 @@ const extras = {
         String(
           FOUNDING_YEAR.defaultAdmissionsCredit
         );
-      newCard.querySelector(
-        ".annual-membership"
-      ).value =
-        ["1", "2", "3"].includes(
-          String(
-            defaults.annualMembership ||
-            defaults.enrollmentPackage ||
-            "1"
-          )
-        )
-          ? String(
-              defaults.annualMembership ||
-              defaults.enrollmentPackage ||
-              "1"
-            )
-          : "1";
-
       if(defaults.disciplines){
         defaults.disciplines.forEach(value=>{
           const box=newCard.querySelector(`.discipline[value="${value}"]`);
@@ -655,45 +635,32 @@ const extras = {
               ".billing-term"
             ).value,
 
-          annualMembership:
-            card.querySelector(
-              ".annual-membership"
-            )?.value ||
-            "1",
-
           credit:Number(card.querySelector(".admissions-credit").value||0),
           disciplines
         };
       });
     }
 
-    function annualMembershipAmount(
-      athlete
-    ){
-      const packageCode =
-        String(
-          athlete.annualMembership ||
-          "1"
-        );
-
-      if (packageCode === "3") {
-        return (
-          PRICING.enrollment
-            .threeShirts.amount
-        );
+    function annualEnrollmentPackageAmount(
+      registrationCount
+    ) {
+      if (registrationCount === 4) {
+        return PRICING.enrollment.family4.amount;
       }
 
-      if (packageCode === "2") {
-        return (
-          PRICING.enrollment
-            .twoShirts.amount
-        );
+      if (registrationCount === 3) {
+        return PRICING.enrollment.family3.amount;
       }
 
-      return (
-        PRICING.enrollment
-          .oneShirt.amount
-      );
+      if (registrationCount === 2) {
+        return PRICING.enrollment.family2.amount;
+      }
+
+      if (registrationCount === 1) {
+        return PRICING.enrollment.family1.amount;
+      }
+
+      return 0;
     }
 
     function localIsoDate(date = new Date()) {
@@ -804,29 +771,21 @@ const extras = {
     function enrollmentPackageLabel(
       registrationCount
     ) {
-      if (registrationCount >= 3) {
-        return "3-Shirt Enrollment Package";
+      if (registrationCount < 1 || registrationCount > 4) {
+        return "Annual Enrollment Package";
       }
 
-      if (registrationCount === 2) {
-        return "2-Shirt Enrollment Package";
-      }
-
-      return "1-Shirt Enrollment Package";
+      return `Family of ${registrationCount} Annual Enrollment Package`;
     }
 
     function renewalPackageLabel(
       registrationCount
     ) {
-      if (registrationCount >= 3) {
-        return "3-Shirt Renewal Package";
+      if (registrationCount < 1 || registrationCount > 4) {
+        return "Next Annual Enrollment Package";
       }
 
-      if (registrationCount === 2) {
-        return "2-Shirt Renewal Package";
-      }
-
-      return "1-Shirt Renewal Package";
+      return `Family of ${registrationCount} Annual Enrollment Package`;
     }
 
     function percentageAmount(
@@ -894,13 +853,8 @@ const extras = {
       });
 
       const enrollmentBase =
-        athletes.reduce(
-          (total, athlete) =>
-            total +
-            annualMembershipAmount(
-              athlete
-            ),
-          0
+        annualEnrollmentPackageAmount(
+          registrationCount
         );
 
       /*
@@ -1421,9 +1375,10 @@ const extras = {
           },
 
           enrollmentPackages: {
-            oneShirt: 50,
-            twoShirts: 65,
-            threeShirts: 75
+            family1: 50,
+            family2: 100,
+            family3: 150,
+            family4: 200
           }
         },
 
@@ -1997,11 +1952,6 @@ alert(
               athlete.billingTerm ||
               "month-to-month",
 
-            annualMembership:
-              athlete.annualMembership ||
-              athlete.enrollmentPackage ||
-              "1",
-
             credit:
               athlete.credit ??
               FOUNDING_YEAR.defaultAdmissionsCredit,
@@ -2147,9 +2097,6 @@ alert(
 
         billingTerm:
           "month-to-month",
-
-        annualMembership:
-          "1",
 
         disciplines:
           discipline
@@ -2509,29 +2456,6 @@ alert(
               </div>
 
               ${pricingRows}
-
-              ${
-                athlete.plan !== "fitness"
-                  ? `
-                    <div class="print-detail-row">
-                      <span>
-                        ${escapeHtml(
-                          pricing.renewalPackageName ||
-                          "Renewal Package"
-                        )}
-                      </span>
-
-                      <strong>
-                        ${money(
-                          annualMembershipAmount(
-                            athlete
-                          )
-                        )}/year
-                      </strong>
-                    </div>
-                  `
-                  : ""
-              }
 
             </article>
           `;

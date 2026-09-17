@@ -7,10 +7,10 @@ export const SANDMAN_PRICING_CATALOG = {
     individual: {
       oneDiscipline: {
         "2-3": {
-          monthToMonth: 90,
+          monthToMonth: 85,
           annual: 80,
           monthToMonthLookup:
-            "sandman_academy-2026-v3_combat_1disc_23_mtm",
+            "sandman_academy-2026-v3_combat_1disc_23_mtm_85",
           annualLookup:
             "sandman_academy-2026-v3_combat_1disc_23_12mo"
         },
@@ -108,22 +108,28 @@ export const SANDMAN_PRICING_CATALOG = {
   },
 
   enrollment: {
-    oneShirt: {
+    family1: {
       amount: 50,
       lookup:
-        "sandman_academy-2026-v3_enrollment_1"
+        "sandman_academy-2026-v3_enrollment_family_1"
     },
 
-    twoShirts: {
-      amount: 65,
+    family2: {
+      amount: 100,
       lookup:
-        "sandman_academy-2026-v3_enrollment_2"
+        "sandman_academy-2026-v3_enrollment_family_2"
     },
 
-    threeShirts: {
-      amount: 75,
+    family3: {
+      amount: 150,
       lookup:
-        "sandman_academy-2026-v3_enrollment_3"
+        "sandman_academy-2026-v3_enrollment_family_3"
+    },
+
+    family4: {
+      amount: 200,
+      lookup:
+        "sandman_academy-2026-v3_enrollment_family_4"
     }
   },
 

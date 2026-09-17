@@ -1187,6 +1187,37 @@ async function closeManagementMessage() {
     selectedMessage = null;
 
     await loadInbox();
+
+    setFormStatus(
+      "Message closed and stored in Management Intelligence.",
+      "success"
+    );
+
+  } catch (error) {
+    console.error(
+      "[management-inbox] close failed:",
+      error
+    );
+
+    setFormStatus(
+      error?.message ||
+      "The message could not be closed.",
+      "error"
+    );
+
+  } finally {
+    const currentButton =
+      document.getElementById(
+        "closeMessageButton"
+      );
+
+    if (currentButton) {
+      currentButton.disabled = false;
+    }
+  }
+}
+
+
 async function collectPassPayment() {
   if (!selectedMessage) {
     setFormStatus("Select a pass request first.", "error");
@@ -1261,37 +1292,6 @@ async function copyPassPaymentUrl() {
     passPaymentUrl.focus();
     passPaymentUrl.select();
     setFormStatus("Copy was unavailable. The payment link is selected for manual copy.", "error");
-  }
-}
-
-
-
-    setFormStatus(
-      "Message closed and stored in Management Intelligence.",
-      "success"
-    );
-
-  } catch (error) {
-    console.error(
-      "[management-inbox] close failed:",
-      error
-    );
-
-    setFormStatus(
-      error?.message ||
-      "The message could not be closed.",
-      "error"
-    );
-
-  } finally {
-    const currentButton =
-      document.getElementById(
-        "closeMessageButton"
-      );
-
-    if (currentButton) {
-      currentButton.disabled = false;
-    }
   }
 }
 
@@ -1545,18 +1545,6 @@ copySuggestedResponseButton
   ?.addEventListener(
     "click",
     () => {
-collectPassPaymentButton?.addEventListener("click", () => {
-  void collectPassPayment();
-});
-
-confirmPassAttendanceButton?.addEventListener("click", () => {
-  void confirmPassAttendance();
-});
-
-copyPassPaymentLink?.addEventListener("click", () => {
-  void copyPassPaymentUrl();
-});
-
       void copySuggestedResponse();
     }
   );
@@ -1587,6 +1575,18 @@ document
       void closeManagementMessage();
     }
   );
+
+collectPassPaymentButton?.addEventListener("click", () => {
+  void collectPassPayment();
+});
+
+confirmPassAttendanceButton?.addEventListener("click", () => {
+  void confirmPassAttendance();
+});
+
+copyPassPaymentLink?.addEventListener("click", () => {
+  void copyPassPaymentUrl();
+});
 
 document
   .getElementById("requestAdminGuidanceButton")
