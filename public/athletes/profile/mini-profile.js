@@ -490,6 +490,7 @@ if (art === "muay-thai") {
   Prospect: "belt-z2h-recruit",
   Competitor: "belt-z2h-competitor",
   Contender: "belt-z2h-contender",
+  Champion: "belt-z2h-hero",
   Hero: "belt-z2h-hero"
 };
 

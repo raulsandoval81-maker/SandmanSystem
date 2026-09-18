@@ -207,11 +207,14 @@ function getColorClass(a = {}, tierName = "") {
 const colorMaps = {
     z2h: {
       Shadow: "belt-z2h-shadow",
-      Recruit: "belt-z2h-recruit",
+      Prospect: "belt-z2h-recruit",
       Competitor: "belt-z2h-competitor",
       Contender: "belt-z2h-contender",
+      Champion: "belt-z2h-hero",
+
+      // Legacy aliases retained for older athlete records.
+      Recruit: "belt-z2h-recruit",
       Warrior: "belt-z2h-warrior",
-      Champion: "belt-z2h-champion",
       Commander: "belt-z2h-commander",
       Hero: "belt-z2h-hero"
     },

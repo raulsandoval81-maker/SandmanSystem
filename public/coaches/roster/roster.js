@@ -250,7 +250,7 @@ function displayRankName(id = "", data = {}) {
     data.rankNum != null;
   const displayLadders = {
     z2h: ["Shadow", "Prospect", "Competitor", "Contender", "Champion"],
-    p2l: ["Apprentice", "Warrior", "Hero", "Veteran", "Legend"],
+    p2l: ["Apprentice", "Warrior", "Champion", "Veteran", "Legend"],
     q2m: ["Apprentice", "Warrior", "Hero", "Veteran", "Master"]
   };
 
