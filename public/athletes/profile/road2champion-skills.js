@@ -186,6 +186,28 @@ if (container && lane) {
         return;
       }
 
+      const canonicalDiscipline =
+        activeDiscipline === "kickboxing"
+          ? "muay-thai"
+          : activeDiscipline;
+
+      const disciplineTitles = {
+        wrestling: "🤼 Wrestling · Technical progress",
+        boxing: "🥊 Boxing · Technical progress",
+        "muay-thai": "🥊 Muay Thai · Technical progress"
+      };
+
+      const title =
+        document.getElementById(
+          "skillsDisciplineTitle"
+        );
+
+      if (title) {
+        title.textContent =
+          disciplineTitles[canonicalDiscipline] ||
+          "Technical progress";
+      }
+
       lane.hidden = false;
 
       const result =
