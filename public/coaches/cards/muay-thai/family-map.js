@@ -289,7 +289,7 @@ export const MUAY_THAI_CARD_FAMILIES = Object.freeze({
       "jab-system": "jab_system",
       "cross-system": "cross_system",
       "hook-system": "hook_system",
-      "kick-system": "kick_system",
+      "kick-system": "weapon_integration",
       "defense-to-offense": "defense_to_offense",
       "fatigue-weaponization": "conditioning_composure",
       "mental-pressure": "conditioning_composure",
