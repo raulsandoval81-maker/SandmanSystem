@@ -6,7 +6,7 @@ function buildRenderableCertificate(payload) {
         return payload;
     return {
         ...payload,
-        academyName: payload.academyName || "Lompoc Academy of Wrestling",
+        academyName: payload.academyName || "Sandman Combat",
         coach: payload.coach || "Coach Sandoval",
         certificateVersion: "v1",
         renderedAt: new Date().toISOString()

@@ -34,7 +34,7 @@ export const SAMPLE_ATHLETES: Athlete[] = [
 
     programName: "Foundry 8 • Zero2Hero",
 
-    team: "LAW",
+    team: "Sandman Combat",
 
     xp: 650,
 
@@ -58,7 +58,7 @@ export const SAMPLE_ATHLETES: Athlete[] = [
 
     programName: "Foundry 4 • Path2Legend",
 
-    team: "LAW",
+    team: "Sandman Combat",
 
     xp: 735,
 

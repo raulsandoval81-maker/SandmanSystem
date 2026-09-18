@@ -16,7 +16,7 @@ export const testAthleteNormalizer = onRequest((req, res) => {
 
     fullName: "R. Maximus Sandoval",
 
-    team: "Lompoc Academy of Wrestling",
+    team: "Sandman Combat",
 
     trackCode: "foundry4-combat",
 

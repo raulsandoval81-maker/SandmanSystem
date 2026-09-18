@@ -9,7 +9,7 @@ exports.testAthleteNormalizer = (0, https_1.onRequest)((req, res) => {
         uidCode: "F4_0001",
         publicName: "M. Sandoval",
         fullName: "R. Maximus Sandoval",
-        team: "Lompoc Academy of Wrestling",
+        team: "Sandman Combat",
         trackCode: "foundry4-combat",
         tier: "T1",
         stripeCount: 0,
