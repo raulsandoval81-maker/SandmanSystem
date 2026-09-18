@@ -347,66 +347,16 @@
       </div>
     </section>
     <!-- ===================== ROAD2CHAMPION SKILLS ===================== -->
-    <section id="skillsLane" class="card skills-tracker">
-      <div class="skills-tracker__title">Skills Tracker</div>
+    <section id="skillsLane" class="card skills-tracker" hidden>
+      <div class="skills-tracker__title">Skills Development</div>
 
       <details class="skill-accordion">
         <summary>
-          <span>🤼 Wrestling Skill Set</span>
+          <span>🤼 Wrestling · Technical progress</span>
         </summary>
 
-        <div class="skill-key" aria-label="Skill status key">
-          <span>□ Learn</span>
-          <span>▧ Practice</span>
-          <span>☒ Show</span>
-        </div>
-
-        <div class="skill-progress-list">
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Double Leg</strong>
-
-            <div class="skill-progress-markers" aria-label="learn">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice skill-marker--inactive" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Single Leg</strong>
-
-            <div class="skill-progress-markers" aria-label="practice">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Stand-Up</strong>
-
-            <div class="skill-progress-markers" aria-label="learn">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice skill-marker--inactive" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Sprawl</strong>
-
-            <div class="skill-progress-markers" aria-label="show">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show" aria-hidden="true">☒</span>
-            </div>
-          </div>
-          <div class="skill-progress-row">
-            <strong class="skill-progress-name">Half Nelson</strong>
-
-            <div class="skill-progress-markers" aria-label="practice">
-              <span class="skill-marker skill-marker--learn" aria-hidden="true">□</span>
-<span class="skill-marker skill-marker--practice" aria-hidden="true">▧</span>
-<span class="skill-marker skill-marker--show skill-marker--inactive" aria-hidden="true">☒</span>
-            </div>
-          </div>
+        <div id="canonicalSkills" class="skill-progress-list">
+          <p class="muted">Loading skills...</p>
         </div>
       </details>
     </section>
@@ -430,5 +380,6 @@
   </main>
 
 <script type="module" src="/athletes/profile/mini-profile.js"></script>
+<script type="module" src="/athletes/profile/road2champion-skills.js"></script>
 </body>
 </html>
