@@ -250,15 +250,14 @@ async function load() {
   const combat =
     A.disciplines?.[activeDiscipline] || A;
 
-  const art = String(
-    combat.art ||
-    combat.primaryDiscipline ||
-    combat.discipline ||
+  const art =
     activeDiscipline ||
-    "wrestling"
-  )
-    .trim()
-    .toLowerCase();
+    normalizeDiscipline(
+      combat.art ||
+      combat.primaryDiscipline ||
+      combat.discipline ||
+      "wrestling"
+    );
 
 function formatDisciplineLabel(value) {
   const labels = {
@@ -355,12 +354,11 @@ function renderDisciplineSelector() {
 
   let combatArcLabel = "🤼 Wrestling · Road2Champion";
 
-  if (art === "kickboxing") {
-    combatArcLabel = "🥊 Kickboxing · Road2Champion";
-  } else if (art === "boxing") {
-    combatArcLabel = "🥊 Boxing · Road2Champion";
-  }
-
+if (art === "muay-thai") {
+  combatArcLabel = "🥊 Muay Thai · Road2Champion";
+} else if (art === "boxing") {
+  combatArcLabel = "🥊 Boxing · Road2Champion";
+}
   safeText("combatArcTitle", combatArcLabel);
 
   const ladder = LADDER_F8;

@@ -40,11 +40,38 @@ if (container && lane) {
     REFINED: "Refined"
   });
 
-  function normalizeDiscipline(value) {
-    return String(value || "")
+  function normalizeDiscipline(value = "") {
+    const raw = String(value || "")
       .trim()
-      .toLowerCase()
-      .replace(/[\s_]+/g, "-");
+      .toLowerCase();
+
+    if (
+      raw.includes("muay thai") ||
+      raw.includes("muay-thai") ||
+      raw.includes("muaythai") ||
+      raw.includes("kickbox")
+    ) {
+      return "muay-thai";
+    }
+
+    if (raw.includes("wrest")) return "wrestling";
+    if (raw.includes("box")) return "boxing";
+
+    if (
+      raw === "mma" ||
+      raw.includes("mixed martial")
+    ) {
+      return "mma";
+    }
+
+    if (
+      raw.includes("submission") ||
+      raw.includes("grappling")
+    ) {
+      return "submission-grappling";
+    }
+
+    return raw.replace(/[\s_]+/g, "-");
   }
 
   function esc(value) {
@@ -76,13 +103,16 @@ if (container && lane) {
       )
     );
 
-    const requestedDiscipline =
+    const urlDiscipline =
       normalizeDiscipline(
-        params.get("discipline") ||
+        params.get("discipline") || ""
+      );
+
+    const storedDiscipline =
+      normalizeDiscipline(
         localStorage.getItem(
           `sandman_active_discipline_${athleteId}`
-        ) ||
-        ""
+        ) || ""
       );
 
     const preferredDiscipline =
@@ -100,10 +130,10 @@ if (container && lane) {
     }
 
     if (
-      requestedDiscipline &&
-      disciplineIds.includes(requestedDiscipline)
+      urlDiscipline &&
+      disciplineIds.includes(urlDiscipline)
     ) {
-      return requestedDiscipline;
+      return urlDiscipline;
     }
 
     if (
@@ -111,6 +141,13 @@ if (container && lane) {
       disciplineIds.includes(preferredDiscipline)
     ) {
       return preferredDiscipline;
+    }
+
+    if (
+      storedDiscipline &&
+      disciplineIds.includes(storedDiscipline)
+    ) {
+      return storedDiscipline;
     }
 
     return disciplineIds[0] || "wrestling";
