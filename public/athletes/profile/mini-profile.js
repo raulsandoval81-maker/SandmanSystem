@@ -427,8 +427,7 @@ if (art === "muay-thai") {
   const teamName =
     rawTeam || "Sandman Combat";
 
-  const team =
-    `${teamName} · ${formatDisciplineLabel(activeDiscipline)}`;
+  const team = teamName;
 
   const city = A.city || "";
   const state = A.state || "";

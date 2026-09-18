@@ -471,17 +471,7 @@ function renderAthlete(a = {}) {
   const teamName =
     rawTeam || "Sandman Combat";
 
-  const disciplineName = ({
-    wrestling: "Wrestling",
-    boxing: "Boxing",
-    kickboxing: "Muay Thai",
-    "muay-thai": "Muay Thai",
-    mma: "MMA",
-    "submission-grappling": "Submission Grappling"
-  })[activeDiscipline] || "Combat";
-
-  const summaryThird =
-    `${teamName} · ${disciplineName}`;
+  const summaryThird = teamName;
 
   const ladder = resolveLadder(combat);
 

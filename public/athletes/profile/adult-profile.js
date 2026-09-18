@@ -880,17 +880,7 @@ if (reviewMode) setAllDrops(true);
   const teamName =
     rawTeam || "Sandman Combat";
 
-  const disciplineName = ({
-    wrestling: "Wrestling",
-    boxing: "Boxing",
-    kickboxing: "Muay Thai",
-    "muay-thai": "Muay Thai",
-    mma: "MMA",
-    "submission-grappling": "Submission Grappling"
-  })[activeDiscipline] || "Combat";
-
-  const teamDisplay =
-    `${teamName} · ${disciplineName}`;
+  const teamDisplay = teamName;
 
   safeText("out-team", teamDisplay);
 

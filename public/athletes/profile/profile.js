@@ -969,17 +969,7 @@ if (
   const teamName =
     rawTeam || "Sandman Combat";
 
-  const disciplineName = ({
-    wrestling: "Wrestling",
-    boxing: "Boxing",
-    kickboxing: "Muay Thai",
-    "muay-thai": "Muay Thai",
-    "submission-grappling": "Submission Grappling",
-    mma: "MMA"
-  })[art] || "Combat";
-
-  const teamDisplay =
-    `${teamName} · ${disciplineName}`;
+  const teamDisplay = teamName;
 
   safeText("out-team", teamDisplay);
 
