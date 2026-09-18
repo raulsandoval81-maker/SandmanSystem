@@ -867,40 +867,45 @@ if (reviewMode) setAllDrops(true);
   // -----------------------------
   // Team / location
   // -----------------------------
-  const rawTeam = (a.team || "").trim();
+  const rawTeam =
+    String(
+      a.team ||
+      a.academy ||
+      "Sandman Combat"
+    ).trim();
+
   const cityTxt = (a.city || "").trim();
   const stateTxt = (a.state || "").trim();
 
-  const defaultAcademy =
-    activeDiscipline === "boxing"
-      ? "Academy of Boxing"
-      : activeDiscipline === "kickboxing"
-        ? "Academy of Kickboxing"
-        : activeDiscipline === "mma"
-          ? "Academy of MMA"
-          : activeDiscipline === "submission-grappling"
-            ? "Academy of Submission Grappling"
-            : "Academy of Wrestling";
+  const legacySandmanTeams = new Set([
+    "Lompoc Academy of Wrestling",
+    "Solvang Academy"
+  ]);
 
-  const academy =
-    (a.academy || "").trim() ||
-    (
-      rawTeam &&
-      !rawTeam
-        .toLowerCase()
-        .startsWith("sandman")
-        ? rawTeam
-        : ""
-    ) ||
-    defaultAcademy;
+  const teamName =
+    legacySandmanTeams.has(rawTeam)
+      ? "Sandman Combat"
+      : rawTeam || "Sandman Combat";
 
-  safeText("out-team", academy);
+  const disciplineName = ({
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Muay Thai",
+    "muay-thai": "Muay Thai",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  })[activeDiscipline] || "Combat";
+
+  const teamDisplay =
+    `${teamName} · ${disciplineName}`;
+
+  safeText("out-team", teamDisplay);
 
   let cityState = "";
   if (cityTxt && stateTxt) cityState = `${cityTxt}, ${stateTxt}`;
   else if (cityTxt || stateTxt) cityState = cityTxt || stateTxt;
   else {
-    const hint = `${academy} ${rawTeam}`.toLowerCase();
+    const hint = `${teamName} ${rawTeam}`.toLowerCase();
     if (hint.includes("lompoc")) cityState = "Lompoc, CA";
   }
   safeText("out-citystate", cityState);

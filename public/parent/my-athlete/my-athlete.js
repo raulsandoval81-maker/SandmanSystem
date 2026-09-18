@@ -459,7 +459,36 @@ function renderAthlete(a = {}) {
 
   const name = getAthleteName(a);
   const virtueTag = getVirtueTag(a);
-  const summaryThird = a.team || a.teamName || "—";
+
+  const rawTeam =
+    String(
+      a.team ||
+      a.teamName ||
+      a.academy ||
+      "Sandman Combat"
+    ).trim();
+
+  const legacySandmanTeams = new Set([
+    "Lompoc Academy of Wrestling",
+    "Solvang Academy"
+  ]);
+
+  const teamName =
+    legacySandmanTeams.has(rawTeam)
+      ? "Sandman Combat"
+      : rawTeam || "Sandman Combat";
+
+  const disciplineName = ({
+    wrestling: "Wrestling",
+    boxing: "Boxing",
+    kickboxing: "Muay Thai",
+    "muay-thai": "Muay Thai",
+    mma: "MMA",
+    "submission-grappling": "Submission Grappling"
+  })[activeDiscipline] || "Combat";
+
+  const summaryThird =
+    `${teamName} · ${disciplineName}`;
 
   const ladder = resolveLadder(combat);
 
