@@ -16,34 +16,14 @@ import {
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.service.js";
 
+import {
+  DISCIPLINE_LABELS,
+  normalizeDisciplineId,
+  disciplinesForJourney,
+  disciplinesForLocationJourney
+} from "/assets/js/discipline-policy.js";
+
 const $ = (id) => document.getElementById(id);
-
-const DISCIPLINE_LABELS = Object.freeze({
-  wrestling: "Wrestling",
-  boxing: "Boxing",
-  "muay-thai": "Muay Thai",
-  mma: "MMA",
-  "submission-grappling": "Submission Grappling"
-});
-
-function normalizeRosterDiscipline(value = "") {
-  const raw = String(value || "")
-    .trim()
-    .toLowerCase()
-    .replaceAll("_", "-")
-    .replaceAll(" ", "-");
-
-  if (
-    raw === "kickbox" ||
-    raw === "kickboxing" ||
-    raw === "muaythai" ||
-    raw === "muay-thai"
-  ) {
-    return "muay-thai";
-  }
-
-  return raw;
-}
 
 function athleteDisciplineIds(data = {}) {
   const raw = [
@@ -64,27 +44,85 @@ function athleteDisciplineIds(data = {}) {
   return Array.from(
     new Set(
       raw
-        .map(normalizeRosterDiscipline)
+        .map(normalizeDisciplineId)
         .filter(Boolean)
     )
   );
 }
 
-function populateDisciplineFilter(athletes = []) {
+function journeyPolicyId(filter = "all") {
+  return {
+    z2h: "road2champion",
+    r2c: "road2champion",
+    p2l: "path2legend",
+    q2m: "quest2mastery"
+  }[filter] || "";
+}
+
+function athleteAllowsDiscipline(
+  data = {},
+  journeyFilter = "all",
+  disciplineId = ""
+) {
+  const canonicalJourney =
+    journeyPolicyId(journeyFilter);
+
+  if (!canonicalJourney) return true;
+
+  const locationId =
+    data.locationId ||
+    data.location?.locationId ||
+    data.location?.id ||
+    "";
+
+  return disciplinesForLocationJourney(
+    locationId,
+    canonicalJourney
+  ).includes(
+    normalizeDisciplineId(disciplineId)
+  );
+}
+
+function populateDisciplineFilter(
+  athletes = [],
+  journey = "all"
+) {
   const select = $("disciplineFilter");
   if (!select) return "all";
 
   const previous =
-    normalizeRosterDiscipline(select.value) || "all";
+    normalizeDisciplineId(select.value) || "all";
+
+  const canonicalJourney =
+    journeyPolicyId(journey);
+
+  const allowed =
+    canonicalJourney
+      ? new Set(
+          disciplinesForJourney(canonicalJourney)
+        )
+      : null;
 
   const ids = Array.from(
     new Set(
-      athletes.flatMap(({ data }) =>
-        athleteDisciplineIds(data)
-      )
+      athletes.flatMap(({ data }) => {
+        const athleteIds =
+          athleteDisciplineIds(data);
+
+        return athleteIds.filter((id) =>
+          athleteAllowsDiscipline(
+            data,
+            journey,
+            id
+          )
+        );
+      })
     )
   )
     .filter((id) => DISCIPLINE_LABELS[id])
+    .filter((id) =>
+      !allowed || allowed.has(id)
+    )
     .sort((a, b) =>
       DISCIPLINE_LABELS[a]
         .localeCompare(DISCIPLINE_LABELS[b])
@@ -396,14 +434,24 @@ async function loadRoster() {
     );
 
   const disciplineFilter =
-    populateDisciplineFilter(journeyList);
+    populateDisciplineFilter(
+      journeyList,
+      journeyFilter
+    );
 
   currentList = journeyList
     .filter((x) => {
       if (disciplineFilter === "all") return true;
 
-      return athleteDisciplineIds(x.data)
-        .includes(disciplineFilter);
+      return (
+        athleteDisciplineIds(x.data)
+          .includes(disciplineFilter) &&
+        athleteAllowsDiscipline(
+          x.data,
+          journeyFilter,
+          disciplineFilter
+        )
+      );
     })
     .sort((a, b) =>
       athleteName(a.data, a.id)
@@ -548,6 +596,11 @@ async function loadRoster() {
 
     const combat =
       data.disciplines?.[selectedDiscipline] ||
+      (
+        selectedDiscipline === "muay-thai"
+          ? data.disciplines?.kickboxing
+          : null
+      ) ||
       data;
 
     const athleteTrack = athleteTrackOf(id, data);

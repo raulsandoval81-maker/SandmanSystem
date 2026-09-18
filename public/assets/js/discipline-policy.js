@@ -117,6 +117,47 @@ export function disciplinesForJourney(journey = "") {
   );
 }
 
+export const LOCATION_JOURNEY_DISCIPLINES = Object.freeze({
+  "santa-ynez-valley": Object.freeze({
+    road2champion: Object.freeze([
+      "wrestling",
+      "muay-thai"
+    ]),
+
+    path2legend: Object.freeze([
+      "wrestling",
+      "boxing"
+    ])
+  })
+});
+
+export function disciplinesForLocationJourney(
+  locationId = "",
+  journey = ""
+) {
+  const journeyId = normalizeJourneyId(journey);
+  const eligible = disciplinesForJourney(journeyId);
+
+  const locationKey = String(locationId || "")
+    .trim()
+    .toLowerCase();
+
+  const offered =
+    LOCATION_JOURNEY_DISCIPLINES[
+      locationKey
+    ]?.[journeyId];
+
+  if (!offered) {
+    return eligible;
+  }
+
+  const offeredSet = new Set(offered);
+
+  return eligible.filter((id) =>
+    offeredSet.has(id)
+  );
+}
+
 export function disciplineLabel(value = "") {
   const id = normalizeDisciplineId(value);
   return DISCIPLINE_LABELS[id] || id;
