@@ -40,7 +40,7 @@ const dict = {
   en: {
     heroTitle: "Volunteer Interest Form",
     heroSub:
-      "Help support Lompoc Academy of Wrestling • Ayude a apoyar a Lompoc Academia de Lucha",
+      "Help support Sandman Combat • Ayude a apoyar a Sandman Combat",
 
     infoHead:
       "Basic Information / Información básica",
