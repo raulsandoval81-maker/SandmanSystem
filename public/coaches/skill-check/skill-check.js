@@ -11,16 +11,26 @@ import {
   BOXING_FAMILIES
 } from "/coaches/cards/boxing/family-map.js";
 
+import {
+  MUAY_THAI_FAMILIES
+} from "/coaches/cards/muay-thai/family-map.js";
+
 const $ = (id) => document.getElementById(id);
 
 const params = new URLSearchParams(location.search);
 const athleteId = String(params.get("id") || "").trim().toUpperCase();
 
-const requestedDiscipline = String(
+const requestedDisciplineRaw = String(
   params.get("discipline") || "wrestling"
 )
   .trim()
   .toLowerCase();
+
+const requestedDiscipline =
+  requestedDisciplineRaw.includes("muay") ||
+  requestedDisciplineRaw.includes("kickbox")
+    ? "muay-thai"
+    : requestedDisciplineRaw;
 
 let activeDiscipline = requestedDiscipline;
 let activeFamilies = WRESTLING_FAMILIES;
@@ -28,6 +38,10 @@ let activeFamilies = WRESTLING_FAMILIES;
 function familiesForDiscipline(discipline) {
   if (discipline === "boxing") {
     return BOXING_FAMILIES;
+  }
+
+  if (discipline === "muay-thai") {
+    return MUAY_THAI_FAMILIES;
   }
 
   return WRESTLING_FAMILIES;

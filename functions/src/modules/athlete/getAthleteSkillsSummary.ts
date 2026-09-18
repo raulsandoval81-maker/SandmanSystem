@@ -33,6 +33,14 @@ function normalizeDiscipline(value: unknown): string {
   const raw = clean(value).toLowerCase();
 
   if (raw.includes("wrest")) return "wrestling";
+
+  if (
+    raw.includes("muay") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
+  }
+
   if (raw.includes("box")) return "boxing";
 
   return raw.replace(/[\s_]+/g, "-");
@@ -97,7 +105,7 @@ export const getAthleteSkillsSummary =
         req.data?.discipline || "wrestling"
       );
 
-    if (!["wrestling", "boxing"].includes(
+    if (!["wrestling", "boxing", "muay-thai"].includes(
       discipline
     )) {
       throw new HttpsError(

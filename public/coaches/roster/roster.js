@@ -372,8 +372,16 @@ async function loadRoster() {
                           .trim()
                           .toLowerCase();
 
-                        return ["wrestling", "boxing"].includes(skillDiscipline)
-                          ? `<a class="pill" href="/coaches/skill-check/?id=${encodeURIComponent(id)}&discipline=${encodeURIComponent(skillDiscipline)}">Skill Check</a>`
+                        const canonicalSkillDiscipline =
+                          skillDiscipline.includes("muay") ||
+                          skillDiscipline.includes("kickbox")
+                            ? "muay-thai"
+                            : skillDiscipline;
+
+                        return ["wrestling", "boxing", "muay-thai"].includes(
+                          canonicalSkillDiscipline
+                        )
+                          ? `<a class="pill" href="/coaches/skill-check/?id=${encodeURIComponent(id)}&discipline=${encodeURIComponent(canonicalSkillDiscipline)}">Skill Check</a>`
                           : "";
                       })()
                     : ""

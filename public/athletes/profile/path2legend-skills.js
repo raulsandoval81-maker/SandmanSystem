@@ -137,7 +137,7 @@ if (container && lane) {
         resolveActiveDiscipline(athlete);
 
       if (
-        !["wrestling", "boxing"].includes(
+        !["wrestling", "boxing", "muay-thai", "kickboxing"].includes(
           activeDiscipline
         )
       ) {

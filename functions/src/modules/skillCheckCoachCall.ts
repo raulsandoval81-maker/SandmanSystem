@@ -136,6 +136,41 @@ const BOXING_FAMILIES = Object.freeze([
   "leadership_mastery",
 ]);
 
+const MUAY_THAI_FAMILIES = Object.freeze([
+  "stance_motion",
+  "guard_defense",
+  "head_movement",
+  "distance_range",
+  "angles_pivots",
+  "jab_system",
+  "cross_system",
+  "hook_system",
+  "uppercut",
+  "body_attack",
+  "teep_system",
+  "kick_system",
+  "knee_system",
+  "elbow_system",
+  "clinch_system",
+  "check_kick_defense",
+  "combination_flow",
+  "timing_rhythm",
+  "feints_setups",
+  "counter_striking",
+  "defense_reset",
+  "defense_to_offense",
+  "pressure",
+  "inside_fighting",
+  "ringcraft",
+  "tempo_pace",
+  "fight_iq",
+  "weapon_integration",
+  "live_application",
+  "conditioning_composure",
+  "finishing",
+  "leadership_mastery",
+]);
+
 function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -148,6 +183,14 @@ function normalizeDiscipline(value: unknown): string {
   const raw = clean(value).toLowerCase();
 
   if (raw.includes("wrest")) return "wrestling";
+
+  if (
+    raw.includes("muay") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
+  }
+
   if (raw.includes("box")) return "boxing";
 
   return raw.replace(/[\s_]+/g, "-");
@@ -158,6 +201,10 @@ function familiesForDiscipline(
 ): readonly string[] {
   if (discipline === "boxing") {
     return BOXING_FAMILIES;
+  }
+
+  if (discipline === "muay-thai") {
+    return MUAY_THAI_FAMILIES;
   }
 
   if (discipline === "wrestling") {
@@ -238,7 +285,7 @@ export const skillCheckCoachCall =
         data.discipline || "wrestling"
       );
 
-    if (!["wrestling", "boxing"].includes(
+    if (!["wrestling", "boxing", "muay-thai"].includes(
       discipline
     )) {
       throw new HttpsError(
