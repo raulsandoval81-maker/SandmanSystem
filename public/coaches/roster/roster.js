@@ -359,7 +359,23 @@ async function loadRoster() {
 </a>
                 ${
                   !isArchiveView()
-                    ? `<a class="pill" href="/coaches/skill-check/?id=${encodeURIComponent(id)}">Skill Check</a>`
+                    ? (() => {
+                        const skillDiscipline = String(
+                          disciplineFilter !== "all"
+                            ? disciplineFilter
+                            : data.activeDiscipline ||
+                              data.primaryDiscipline ||
+                              data.discipline ||
+                              data.art ||
+                              "wrestling"
+                        )
+                          .trim()
+                          .toLowerCase();
+
+                        return ["wrestling", "boxing"].includes(skillDiscipline)
+                          ? `<a class="pill" href="/coaches/skill-check/?id=${encodeURIComponent(id)}&discipline=${encodeURIComponent(skillDiscipline)}">Skill Check</a>`
+                          : "";
+                      })()
                     : ""
                 }
                 ${

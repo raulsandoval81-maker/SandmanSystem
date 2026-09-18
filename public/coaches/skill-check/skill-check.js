@@ -7,10 +7,31 @@ import {
   WRESTLING_FAMILIES
 } from "/coaches/cards/wrestling/family-map.js";
 
+import {
+  BOXING_FAMILIES
+} from "/coaches/cards/boxing/family-map.js";
+
 const $ = (id) => document.getElementById(id);
 
 const params = new URLSearchParams(location.search);
 const athleteId = String(params.get("id") || "").trim().toUpperCase();
+
+const requestedDiscipline = String(
+  params.get("discipline") || "wrestling"
+)
+  .trim()
+  .toLowerCase();
+
+let activeDiscipline = requestedDiscipline;
+let activeFamilies = WRESTLING_FAMILIES;
+
+function familiesForDiscipline(discipline) {
+  if (discipline === "boxing") {
+    return BOXING_FAMILIES;
+  }
+
+  return WRESTLING_FAMILIES;
+}
 
 const skillCheckCall =
   httpsCallable(functions, "skillCheckCoachCall");
@@ -59,7 +80,7 @@ function renderSkills() {
   const reviewOnly =
     $("reviewOnly")?.checked === true;
 
-  const rows = Object.entries(WRESTLING_FAMILIES)
+  const rows = Object.entries(activeFamilies)
     .filter(([familyId]) => {
       if (!reviewOnly) return true;
       return loadedSkills.get(familyId)?.needsReview === true;
@@ -142,7 +163,8 @@ async function saveFamily(button) {
       action: "save",
       athleteId,
       familyId,
-      name: WRESTLING_FAMILIES[familyId] || familyId,
+      discipline: activeDiscipline,
+      name: activeFamilies[familyId] || familyId,
       state,
       needsReview,
       coachNotes,
@@ -160,8 +182,8 @@ async function saveFamily(button) {
     loadedSkills.set(familyId, {
       ...(loadedSkills.get(familyId) || {}),
       familyId,
-      name: WRESTLING_FAMILIES[familyId] || familyId,
-      discipline: "wrestling",
+      name: activeFamilies[familyId] || familyId,
+      discipline: activeDiscipline,
       state,
       needsReview,
       coachNotes,
@@ -199,10 +221,22 @@ async function initialize() {
     const result = await skillCheckCall({
       action: "load",
       athleteId,
+      discipline: requestedDiscipline,
     });
 
     const data = result.data || {};
     const athlete = data.athlete || {};
+
+    activeDiscipline = String(
+      data.discipline ||
+      requestedDiscipline ||
+      "wrestling"
+    )
+      .trim()
+      .toLowerCase();
+
+    activeFamilies =
+      familiesForDiscipline(activeDiscipline);
 
     loadedSkills = new Map(
       (Array.isArray(data.skills) ? data.skills : [])
@@ -222,7 +256,15 @@ async function initialize() {
       "No rank";
 
     $("athleteMeta").textContent =
-      `${athleteId} · ${rank}`;
+      `${athleteId} · ${rank} · ${activeDiscipline}`;
+
+    const disciplineLabel =
+      $("skillDisciplineLabel");
+
+    if (disciplineLabel) {
+      disciplineLabel.textContent =
+        activeDiscipline.toUpperCase();
+    }
 
     $("skillCheckWorkspace").hidden = false;
     status("Skill Check ready.");

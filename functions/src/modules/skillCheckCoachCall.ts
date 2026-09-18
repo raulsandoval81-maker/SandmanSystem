@@ -106,12 +106,106 @@ const WRESTLING_FAMILIES = Object.freeze([
   "bottom_integration",
 ]);
 
+const BOXING_FAMILIES = Object.freeze([
+  "stance_motion",
+  "distance_range",
+  "angles_pivots",
+  "jab_system",
+  "cross_system",
+  "hook_system",
+  "uppercut",
+  "body_attack",
+  "combination_flow",
+  "slip_head_movement",
+  "roll",
+  "parry",
+  "block_shell",
+  "defense_reset",
+  "defense_to_offense",
+  "counter_punching",
+  "timing_rhythm",
+  "feints_setups",
+  "pressure_boxing",
+  "inside_boxing",
+  "ringcraft",
+  "tempo_pace",
+  "fight_iq",
+  "live_application",
+  "conditioning_composure",
+  "finishing",
+  "leadership_mastery",
+]);
+
 function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
 
 function normalizeFamily(value: unknown): string {
   return clean(value).toLowerCase();
+}
+
+function normalizeDiscipline(value: unknown): string {
+  const raw = clean(value).toLowerCase();
+
+  if (raw.includes("wrest")) return "wrestling";
+  if (raw.includes("box")) return "boxing";
+
+  return raw.replace(/[\s_]+/g, "-");
+}
+
+function familiesForDiscipline(
+  discipline: string
+): readonly string[] {
+  if (discipline === "boxing") {
+    return BOXING_FAMILIES;
+  }
+
+  if (discipline === "wrestling") {
+    return WRESTLING_FAMILIES;
+  }
+
+  return [];
+}
+
+function skillDocDiscipline(
+  docId: string,
+  data: Record<string, unknown>
+): string {
+  const explicit =
+    normalizeDiscipline(data.discipline);
+
+  if (explicit) return explicit;
+
+  const separator = docId.indexOf("__");
+
+  if (separator > 0) {
+    return normalizeDiscipline(
+      docId.slice(0, separator)
+    );
+  }
+
+  // Legacy raw family documents were Wrestling-only.
+  return "wrestling";
+}
+
+function skillDocFamilyId(
+  docId: string,
+  data: Record<string, unknown>
+): string {
+  const explicit =
+    normalizeFamily(data.familyId);
+
+  if (explicit) return explicit;
+
+  const separator = docId.indexOf("__");
+
+  if (separator > 0) {
+    return normalizeFamily(
+      docId.slice(separator + 2)
+    );
+  }
+
+  return normalizeFamily(docId);
 }
 
 function normalizeState(value: unknown): string {
@@ -138,6 +232,20 @@ export const skillCheckCoachCall =
     const athleteId = clean(
       data.athleteId || data.uid
     ).toUpperCase();
+
+    const discipline =
+      normalizeDiscipline(
+        data.discipline || "wrestling"
+      );
+
+    if (!["wrestling", "boxing"].includes(
+      discipline
+    )) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Unsupported Skill Check discipline."
+      );
+    }
 
     if (!athleteId) {
       throw new HttpsError(
@@ -194,10 +302,48 @@ export const skillCheckCoachCall =
             clean(athlete.program) ||
             clean(athlete.track),
         },
-        skills: snap.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        })),
+        discipline,
+        skills: Array.from(
+          snap.docs.reduce((map, docSnap) => {
+            const skillData =
+              docSnap.data() || {};
+
+            const docDiscipline =
+              skillDocDiscipline(
+                docSnap.id,
+                skillData
+              );
+
+            if (docDiscipline !== discipline) {
+              return map;
+            }
+
+            const familyId =
+              skillDocFamilyId(
+                docSnap.id,
+                skillData
+              );
+
+            const isCanonical =
+              docSnap.id ===
+              `${discipline}__${familyId}`;
+
+            const existing =
+              map.get(familyId);
+
+            if (!existing || isCanonical) {
+              map.set(familyId, {
+                id: docSnap.id,
+                ...skillData,
+                familyId,
+                discipline: docDiscipline,
+              });
+            }
+
+            return map;
+          }, new Map<string, Record<string, unknown>>())
+          .values()
+        ),
       };
     }
 
@@ -211,12 +357,13 @@ export const skillCheckCoachCall =
     const familyId =
       normalizeFamily(data.familyId);
 
-    if (!WRESTLING_FAMILIES.includes(
-      familyId as typeof WRESTLING_FAMILIES[number]
-    )) {
+    const allowedFamilies =
+      familiesForDiscipline(discipline);
+
+    if (!allowedFamilies.includes(familyId)) {
       throw new HttpsError(
         "invalid-argument",
-        "Unknown wrestling skill family."
+        `Unknown ${discipline} skill family.`
       );
     }
 
@@ -233,12 +380,12 @@ export const skillCheckCoachCall =
     }
 
     const ref = db.doc(
-      `athletes/${athleteId}/skills/${familyId}`
+      `athletes/${athleteId}/skills/${discipline}__${familyId}`
     );
 
     const record = {
       familyId,
-      discipline: "wrestling",
+      discipline,
       state,
       needsReview: data.needsReview === true,
 
@@ -260,6 +407,7 @@ export const skillCheckCoachCall =
     return {
       ok: true,
       athleteId,
+      discipline,
       familyId,
       state,
       needsReview: record.needsReview,

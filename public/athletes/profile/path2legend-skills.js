@@ -136,7 +136,11 @@ if (container && lane) {
       const activeDiscipline =
         resolveActiveDiscipline(athlete);
 
-      if (activeDiscipline !== "wrestling") {
+      if (
+        !["wrestling", "boxing"].includes(
+          activeDiscipline
+        )
+      ) {
         return;
       }
 
@@ -144,7 +148,8 @@ if (container && lane) {
 
       const result =
         await getAthleteSkillsSummaryCall({
-          athleteId
+          athleteId,
+          discipline: activeDiscipline
         });
 
       const skills =
