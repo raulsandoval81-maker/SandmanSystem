@@ -546,7 +546,7 @@ const storedStripes = Number(
   setText("athlete-tier", tierName);
   setText("athlete-tag", virtueTag);
 
-  setText("summary-xp", `${xpPercent}%`);
+  setText("summary-xp", `${xpNow} / ${xpCap} XP`);
   setText("summary-stripe", `${stripeCount}/${stripeMax}`);
   setText("summary-grind", summaryThird);
 
@@ -570,7 +570,7 @@ const storedStripes = Number(
 
 setText(
   "xpText",
-  `XP · ${xpPercent}%`
+  `${xpNow} / ${xpCap} XP`
 );
 
   setHTML(

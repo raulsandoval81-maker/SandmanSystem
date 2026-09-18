@@ -1225,11 +1225,7 @@ safeHTML(
 );
   const xpEl = document.getElementById("xpText");
 if (xpEl) {
-  const xpPercent = xpCap
-    ? Math.min(100, Math.round((xpNow / xpCap) * 100))
-    : 0;
-
-  xpEl.textContent = `XP · ${xpPercent}%`;
+  xpEl.textContent = `${xpNow} / ${xpCap} XP`;
 }
 
   // LANE LOCKS

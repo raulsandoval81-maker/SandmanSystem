@@ -499,7 +499,7 @@ if (art === "muay-thai") {
 
   const percent = pct(xpNow, xpCap);
 
-  if ($("percentText")) $("percentText").textContent = `XP · ${percent}%`;
+  if ($("percentText")) $("percentText").textContent = `${xpNow} / ${xpCap} XP`;
   if ($("progressLabel")) $("progressLabel").textContent = progressLabel(percent);
 
   const stripeEl = $("stripeText");
