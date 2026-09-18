@@ -92,13 +92,13 @@ function getPlacement(programTrack) {
   if (pt === "zero2hero-kickboxing") {
     return {
       track: "F8",
-      program: "kickboxing",
+      program: "muay-thai",
       framework: "foundry8",
       journey: "zero2hero",
       programTrack: "zero2hero",
-      art: "kickboxing",
-      discipline: "kickboxing",
-      primaryDiscipline: "kickboxing",
+      art: "muay-thai",
+      discipline: "muay-thai",
+      primaryDiscipline: "muay-thai",
       ladderKey: "F8",
       rosterIds: ["youth-kickboxing"],
       locationId: selectedLocationId(),

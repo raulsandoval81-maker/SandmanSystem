@@ -201,7 +201,7 @@ function buildPlacementFromTrack(track, s = {}) {
     return {
       framework: "foundry8",
       programTrack: "zero2hero",
-      art: "kickboxing",
+      art: "muay-thai",
       ladderKey: "F8",
       rosterIds: ["youth-kickboxing"],
       locationId: DEFAULT_LOCATION_ID,
