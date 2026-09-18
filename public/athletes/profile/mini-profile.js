@@ -417,10 +417,25 @@ if (art === "muay-thai") {
   safeText("out-name", fullName);
 
   // ===== Team / Location =====
+  const rawTeam =
+    String(
+      A.team ||
+      A.academy ||
+      "Sandman Combat"
+    ).trim();
+
+  const legacySandmanTeams = new Set([
+    "Lompoc Academy of Wrestling",
+    "Solvang Academy"
+  ]);
+
+  const teamName =
+    legacySandmanTeams.has(rawTeam)
+      ? "Sandman Combat"
+      : rawTeam || "Sandman Combat";
+
   const team =
-    A.team ||
-    A.academy ||
-    "";
+    `${teamName} · ${formatDisciplineLabel(activeDiscipline)}`;
 
   const city = A.city || "";
   const state = A.state || "";
