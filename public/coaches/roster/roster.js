@@ -18,6 +18,100 @@ import { LADDER_F4, LADDER_F8, canonicalF8XpCap } from "/assets/js/ladder.servic
 
 const $ = (id) => document.getElementById(id);
 
+const DISCIPLINE_LABELS = Object.freeze({
+  wrestling: "Wrestling",
+  boxing: "Boxing",
+  "muay-thai": "Muay Thai",
+  mma: "MMA",
+  "submission-grappling": "Submission Grappling"
+});
+
+function normalizeRosterDiscipline(value = "") {
+  const raw = String(value || "")
+    .trim()
+    .toLowerCase()
+    .replaceAll("_", "-")
+    .replaceAll(" ", "-");
+
+  if (
+    raw === "kickbox" ||
+    raw === "kickboxing" ||
+    raw === "muaythai" ||
+    raw === "muay-thai"
+  ) {
+    return "muay-thai";
+  }
+
+  return raw;
+}
+
+function athleteDisciplineIds(data = {}) {
+  const raw = [
+    ...(Array.isArray(data.disciplineIds)
+      ? data.disciplineIds
+      : []),
+
+    ...Object.keys(data.disciplines || {}),
+
+    data.activeDiscipline,
+    data.primaryDiscipline,
+    data.discipline,
+    data.art,
+    data.sport,
+    data.trackDiscipline
+  ];
+
+  return Array.from(
+    new Set(
+      raw
+        .map(normalizeRosterDiscipline)
+        .filter(Boolean)
+    )
+  );
+}
+
+function populateDisciplineFilter(athletes = []) {
+  const select = $("disciplineFilter");
+  if (!select) return "all";
+
+  const previous =
+    normalizeRosterDiscipline(select.value) || "all";
+
+  const ids = Array.from(
+    new Set(
+      athletes.flatMap(({ data }) =>
+        athleteDisciplineIds(data)
+      )
+    )
+  )
+    .filter((id) => DISCIPLINE_LABELS[id])
+    .sort((a, b) =>
+      DISCIPLINE_LABELS[a]
+        .localeCompare(DISCIPLINE_LABELS[b])
+    );
+
+  select.replaceChildren();
+
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "All Disciplines";
+  select.appendChild(allOption);
+
+  for (const id of ids) {
+    const option = document.createElement("option");
+    option.value = id;
+    option.textContent = DISCIPLINE_LABELS[id];
+    select.appendChild(option);
+  }
+
+  select.value =
+    previous === "all" || ids.includes(previous)
+      ? previous
+      : "all";
+
+  return select.value;
+}
+
 let currentList = [];
 
 function trackBaseOf(id = "") {
@@ -265,8 +359,6 @@ async function loadRoster() {
   const countMeta = $("countMeta");
   const archiveBtn = $("toggleArchiveView");
   const journeyFilter = $("journeyFilter")?.value || "all";
-  const disciplineFilter = $("disciplineFilter")?.value || "all";
-
 
   if (!rowsEl) return;
 
@@ -289,46 +381,29 @@ async function loadRoster() {
     )
   );
 
-  currentList = snap.docs
+  const journeyList = snap.docs
     .map((d) => ({
       id: d.id,
       data: d.data() || {}
     }))
     .filter((x) => rosterStatusOf(x.data) === wantedStatus)
-.filter((x) => {
-  return matchesJourneyFilter(journeyFilter, x.id, x.data);
-})
+    .filter((x) =>
+      matchesJourneyFilter(
+        journeyFilter,
+        x.id,
+        x.data
+      )
+    );
+
+  const disciplineFilter =
+    populateDisciplineFilter(journeyList);
+
+  currentList = journeyList
     .filter((x) => {
       if (disciplineFilter === "all") return true;
 
-      const disciplines = new Set(
-        [
-          ...(Array.isArray(x.data.disciplineIds)
-            ? x.data.disciplineIds
-            : []),
-
-          ...Object.keys(x.data.disciplines || {}),
-
-          x.data.activeDiscipline,
-          x.data.primaryDiscipline,
-          x.data.discipline,
-          x.data.art,
-          x.data.sport,
-          x.data.trackDiscipline
-        ]
-          .map((value) =>
-            String(value || "")
-              .trim()
-              .toLowerCase()
-          )
-          .filter(Boolean)
-      );
-
-      return disciplines.has(
-        String(disciplineFilter)
-          .trim()
-          .toLowerCase()
-      );
+      return athleteDisciplineIds(x.data)
+        .includes(disciplineFilter);
     })
     .sort((a, b) =>
       athleteName(a.data, a.id)
