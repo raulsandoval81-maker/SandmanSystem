@@ -1,7 +1,7 @@
 // assets/js/belt.palette.js
 // ------------------------------------------------------------
 // Belt Palette (canonical)
-// - Youth (Foundry8): Shadow → Hero
+// - Youth (Road2Champion): Shadow → Champion
 // - Teen (Foundry4 Combat): Apprentice → Legend
 // - Adult (Foundry4): Foundation → Mastery   (same colors as Teen)
 // Colors: WHITE / BLUE / PURPLE / BROWN / BLACK
@@ -16,14 +16,18 @@ const BLACK  = { text:"#FFFFFF", bandStart:"#000000", bandEnd:"#000000", outline
 
 // ---------- Youth (Foundry8) ----------
 export const BELT_YOUTH = {
+  // Current Road2Champion progression
   Shadow:     WHITE,
-  Recruit:    { text:"#000000", bandStart:"#FFD54F", bandEnd:"#FFA000", outline:"#000000" }, // yellow
-  Contender:  { text:"#FFFFFF", bandStart:"#FF7043", bandEnd:"#D84315", outline:"#000000" }, // orange
-  Contender: { text:"#FFFFFF", bandStart:"#4CAF50", bandEnd:"#1B5E20", outline:"#000000" }, // green
+  Prospect:   { text:"#000000", bandStart:"#FFD54F", bandEnd:"#FFA000", outline:"#000000" }, // yellow
+  Competitor: { text:"#FFFFFF", bandStart:"#FF7043", bandEnd:"#D84315", outline:"#000000" }, // orange
+  Contender:  { text:"#FFFFFF", bandStart:"#4CAF50", bandEnd:"#1B5E20", outline:"#000000" }, // green
+  Champion:   BLACK,
+
+  // Legacy display aliases retained for older stored records.
+  Recruit:    { text:"#000000", bandStart:"#FFD54F", bandEnd:"#FFA000", outline:"#000000" },
   Warrior:    BLUE,
-  Champion:   PURPLE,
   Commander:  BROWN,
-  Hero:       BLACK, // youth cap
+  Hero:       BLACK,
 };
 
 // ---------- Teen (Foundry4 Combat) ----------

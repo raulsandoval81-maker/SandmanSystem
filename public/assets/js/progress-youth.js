@@ -1,7 +1,7 @@
 /* ---------------------------------------------------------------------------
   Sandman Combat System™ — Youth
   STATUS: CURRENT IN-USE SCRIPT
-  Shadow = 3 stripes (33/66/100); others = 4 (25/50/75/100)
+  Road2Champion stripe policy comes from the canonical ladder service.
 --------------------------------------------------------------------------- */
 
 console.log("[youth] xp-youth.js loaded");
@@ -31,8 +31,6 @@ function darken(hex, amt = 15) {
   return `#${[R,G,B].map(v=>v.toString(16).padStart(2,"0")).join("")}`;
 }
 
-const thresholdsFor = (tierKey) =>
-  (tierKey === "shadow") ? [33,66,100] : [25,50,75,100];
 
 /* Painter */
 export function updateYouthBar(totalXP = 0) {
@@ -70,10 +68,35 @@ export function updateYouthBar(totalXP = 0) {
   if (lineEl) lineEl.textContent = formatTierLine(LADDER_YOUTH, totalXP);
   if (totalEl) totalEl.textContent = String(totalXP);
 
-  // stripes (final tier → none)
-  const thresholds   = (nextName === "(max)") ? [] : thresholdsFor(tierKey);
-  const stripesTotal = thresholds.length;
-  const stripesEarned = thresholds.reduce((n, t) => n + (pct >= t ? 1 : 0), 0);
+  // Canonical Road2Champion stripe policy.
+  const stripeThresholds = Array.isArray(info?.tier?.stripeThresholds)
+    ? info.tier.stripeThresholds
+    : [];
+
+  const tierCap = Math.max(
+    1,
+    Number(info?.tier?.cap || info?.capXP || 1)
+  );
+
+  const thresholds = stripeThresholds.map((threshold) =>
+    Math.round((Number(threshold) / tierCap) * 100)
+  );
+
+  const stripesTotal = Math.max(
+    1,
+    Number(info?.stripesTotal || info?.tier?.stripes || thresholds.length || 4)
+  );
+
+  const stripesEarned = Math.max(
+    0,
+    Math.min(
+      stripesTotal,
+      Number(info?.stripesEarned ?? thresholds.reduce(
+        (n, t) => n + (pct >= t ? 1 : 0),
+        0
+      ))
+    )
+  );
 
   // aria + dataset
   rankBar.setAttribute("aria-valuenow", String(Math.round(pct)));
@@ -117,7 +140,7 @@ export function updateYouthBar(totalXP = 0) {
 
   // status line
   if (sLineEl) {
-    if (isFinal) sLineEl.textContent = "MAXED — Junior Legend";
+    if (isFinal) sLineEl.textContent = "CHAMPION — MAXED";
     else if (isReady) sLineEl.textContent = "PROMOTION READY";
     else if (isCapped) sLineEl.textContent = "Max XP — stripes remaining";
     else sLineEl.textContent = `Stripes ${stripesEarned}/${stripesTotal}`;
