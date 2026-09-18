@@ -99,6 +99,7 @@ async function passAthleteTestAuthoritatively(uidInput, scoreInput) {
 exports.passAthleteTest = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
-    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+    await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, req.data?.uid);
     return passAthleteTestAuthoritatively(req.data?.uid, req.data?.score);
 });

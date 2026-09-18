@@ -8,6 +8,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const passAthleteTest_1 = require("./passAthleteTest");
 const freezeAthlete_1 = require("./freezeAthlete");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 exports.TESTING_PASSING_SCORE = 85;
 exports.ALLOWED_PANEL_SLOTS = Object.freeze(["A", "B", "C"]);
 exports.MIN_PANEL_SUBMISSIONS = 2;
@@ -130,4 +131,10 @@ async function finalizeTestingSessionAuthoritatively(input) {
         return result;
     });
 }
-exports.finalizeTestingSession = (0, https_1.onCall)(async (req) => finalizeTestingSessionAuthoritatively(req.data));
+exports.finalizeTestingSession = (0, https_1.onCall)(async (req) => {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+    await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, req.data?.uid);
+    return finalizeTestingSessionAuthoritatively(req.data);
+});

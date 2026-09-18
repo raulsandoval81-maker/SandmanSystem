@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MANAGEMENT_STAFF_ROLES = exports.OPERATIONAL_STAFF_ROLES = void 0;
+exports.COACH_STAFF_ROLES = exports.MANAGEMENT_STAFF_ROLES = exports.OPERATIONAL_STAFF_ROLES = void 0;
 exports.normalizeStaffRole = normalizeStaffRole;
 exports.normalizeStaffStatus = normalizeStaffStatus;
 exports.normalizeStaffList = normalizeStaffList;
@@ -9,6 +9,8 @@ exports.normalizeStaffRecord = normalizeStaffRecord;
 exports.staffLocationIds = staffLocationIds;
 exports.staffHasLocation = staffHasLocation;
 exports.requireStaffLocation = requireStaffLocation;
+exports.requireCoachAthleteAccess = requireCoachAthleteAccess;
+exports.requireCoachAthleteAccessById = requireCoachAthleteAccessById;
 exports.isAuthorizedStaffRecord = isAuthorizedStaffRecord;
 exports.requireActiveStaff = requireActiveStaff;
 const firestore_1 = require("firebase-admin/firestore");
@@ -18,6 +20,9 @@ exports.OPERATIONAL_STAFF_ROLES = Object.freeze([
 ]);
 exports.MANAGEMENT_STAFF_ROLES = Object.freeze([
     "admin", "management",
+]);
+exports.COACH_STAFF_ROLES = Object.freeze([
+    "admin", "coach",
 ]);
 function normalizeStaffRole(value) {
     const role = String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
@@ -43,12 +48,16 @@ function normalizeStaffList(...values) {
 }
 function normalizeStaffScope(staff) {
     return {
+        organizationIds: normalizeStaffList(staff.organizationIds, staff.organizationId),
+        academyIds: normalizeStaffList(staff.academyIds, staff.academyId),
         locationIds: normalizeStaffList(staff.locationIds, staff.locations, staff.locationId),
+        programIds: normalizeStaffList(staff.programIds, staff.programs, staff.programId),
     };
 }
 function normalizeStaffRecord(staff) {
     return {
         ...staff,
+        rawRole: String(staff.role ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_"),
         role: normalizeStaffRole(staff.role),
         status: normalizeStaffStatus(staff.status),
         scope: normalizeStaffScope(staff),
@@ -70,6 +79,30 @@ function requireStaffLocation(actor, locationId, message = "This location is out
     }
     return location;
 }
+function requireCoachAthleteAccess(actor, athlete, message = "This athlete is outside the Coach's authorized training scope.") {
+    if (normalizeStaffRole(actor.role) === "admin")
+        return;
+    if (normalizeStaffRole(actor.role) !== "coach") {
+        throw new https_1.HttpsError("permission-denied", message);
+    }
+    const assignedCoachIds = normalizeStaffList(athlete.coachUid, athlete.coachIds);
+    const directlyAssigned = assignedCoachIds.includes(actor.uid);
+    const locationId = String(athlete.locationId ?? "").trim();
+    if (!directlyAssigned && !staffHasLocation(actor.staff, locationId)) {
+        throw new https_1.HttpsError("permission-denied", message);
+    }
+}
+async function requireCoachAthleteAccessById(actor, athleteId, message) {
+    const id = String(athleteId ?? "").trim();
+    if (!id)
+        throw new https_1.HttpsError("invalid-argument", "A valid athlete ID is required.");
+    const snap = await (0, firestore_1.getFirestore)().doc(`athletes/${id}`).get();
+    if (!snap.exists)
+        throw new https_1.HttpsError("not-found", `Athlete not found: ${id}`);
+    const athlete = snap.data() || {};
+    requireCoachAthleteAccess(actor, athlete, message);
+    return athlete;
+}
 function isAuthorizedStaffRecord(staff, allowedRoles) {
     const normalizedAllowedRoles = allowedRoles.map(normalizeStaffRole);
     return normalizeStaffStatus(staff.status) === "active"
@@ -84,7 +117,7 @@ async function requireActiveStaff(uid, allowedRoles, message = "Active staff acc
         throw new https_1.HttpsError("permission-denied", message);
     const source = snap.data() || {};
     const staff = normalizeStaffRecord(source);
-    const role = normalizeStaffRole(staff.role);
+    const role = staff.role;
     const status = staff.status;
     if (!isAuthorizedStaffRecord(source, allowedRoles)) {
         throw new https_1.HttpsError("permission-denied", message);

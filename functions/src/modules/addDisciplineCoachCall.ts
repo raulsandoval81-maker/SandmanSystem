@@ -10,6 +10,11 @@ import {
 import {
   addDisciplineToAthlete,
 } from "../services/addDisciplineToAthlete";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccessById,
+} from "../services/staffAuthorization";
 
 export const addDisciplineCoachCall =
   onCall(async (req) => {
@@ -35,6 +40,13 @@ export const addDisciplineCoachCall =
         "Missing existingAthleteUid."
       );
     }
+
+    const actor = await requireActiveStaff(
+      req.auth.uid,
+      COACH_STAFF_ROLES,
+      "Active Coach access required."
+    );
+    await requireCoachAthleteAccessById(actor, existingAthleteUid);
 
     const result =
       await addDisciplineToAthlete(

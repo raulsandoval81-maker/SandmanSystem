@@ -3,6 +3,11 @@ import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { passAthleteTestAuthoritatively } from "./passAthleteTest";
 import { freezeAthleteAuthoritatively } from "./freezeAthlete";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccessById,
+} from "../services/staffAuthorization";
 
 export const TESTING_PASSING_SCORE = 85;
 export const ALLOWED_PANEL_SLOTS = Object.freeze(["A", "B", "C"] as const);
@@ -147,5 +152,9 @@ export async function finalizeTestingSessionAuthoritatively(input: any) {
   });
 }
 
-export const finalizeTestingSession = onCall(async (req) =>
-  finalizeTestingSessionAuthoritatively(req.data));
+export const finalizeTestingSession = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
+  const actor = await requireActiveStaff(req.auth.uid, COACH_STAFF_ROLES, "Active Coach access required.");
+  await requireCoachAthleteAccessById(actor, req.data?.uid);
+  return finalizeTestingSessionAuthoritatively(req.data);
+});

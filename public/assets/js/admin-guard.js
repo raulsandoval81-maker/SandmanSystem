@@ -1,6 +1,7 @@
 import { auth, db } from "/assets/js/firebase-init.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+import { normalizeStaffContext } from "/assets/js/staff-context.js";
 
 function waitForUser() {
   return new Promise((resolve) => {
@@ -32,9 +33,8 @@ export async function requireAdmin() {
       throw new Error("No staff profile found.");
     }
 
-    const staff = snap.data() || {};
-    const role = String(staff.role || "").trim().toLowerCase();
-    const status = String(staff.status || "").trim().toLowerCase();
+    const staff = normalizeStaffContext(snap.data() || {});
+    const { role, status } = staff;
 
     console.log("[admin-guard] staff data:", { role, status, staff });
 
@@ -52,7 +52,9 @@ export async function requireAdmin() {
       uid: user.uid,
       email: user.email || "",
       role,
-      status
+      status,
+      staff,
+      scope: staff.scope
     };
 
     window.__adminUser = adminUser;

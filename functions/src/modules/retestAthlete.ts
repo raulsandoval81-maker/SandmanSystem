@@ -19,6 +19,11 @@ import {
 import {
   PARENT_SIGNAL_TYPES
 } from "./parent/parentSignalTypes";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccess,
+} from "../services/staffAuthorization";
 
 export function assertFreezePeriodComplete(testing: any, nowMs = Date.now()): void {
   const freezeUntil = testing?.freezeUntil;
@@ -34,6 +39,8 @@ export function assertFreezePeriodComplete(testing: any, nowMs = Date.now()): vo
 }
 
 export const retestAthlete = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
+  const actor = await requireActiveStaff(req.auth.uid, COACH_STAFF_ROLES, "Active Coach access required.");
   const db = getFirestore();
 
   const uid =
@@ -63,6 +70,7 @@ export const retestAthlete = onCall(async (req) => {
 
       const athlete =
         snap.data() || {};
+      requireCoachAthleteAccess(actor, athlete);
 
       const state =
         String(

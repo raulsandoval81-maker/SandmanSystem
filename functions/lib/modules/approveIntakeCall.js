@@ -8,6 +8,7 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const firebase_admin_1 = __importDefault(require("firebase-admin"));
 const sendParentWelcomeEmail_1 = require("./sendParentWelcomeEmail");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 if (!firebase_admin_1.default.apps.length) {
     firebase_admin_1.default.initializeApp();
 }
@@ -16,36 +17,18 @@ exports.approveIntakeCall = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("unauthenticated", "Sign-in required");
     }
     const db = (0, firestore_1.getFirestore)();
-    const staffSnap = await db
-        .collection("staff")
-        .doc(req.auth.uid)
-        .get();
-    const staff = staffSnap.exists
-        ? staffSnap.data() || {}
-        : {};
-    const role = String(staff.role || "")
-        .trim()
-        .toLowerCase();
-    const status = String(staff.status || "")
-        .trim()
-        .toLowerCase();
-    const allowedRoles = [
-        "admin",
-        "management",
-        "manager",
-        "location_manager",
-    ];
-    if (status !== "active" ||
-        !allowedRoles.includes(role)) {
-        throw new https_1.HttpsError("permission-denied", "Active Management access required");
-    }
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required");
     const { intakeId, approvedUid, note } = req.data || {};
     if (!intakeId || !approvedUid) {
         throw new Error("missing fields");
     }
     const intakeRef = db.collection("intakes").doc(String(intakeId));
     const intakeSnap = await intakeRef.get();
+    if (!intakeSnap.exists) {
+        throw new https_1.HttpsError("not-found", "Intake not found.");
+    }
     const intake = intakeSnap.data() || {};
+    (0, staffAuthorization_1.requireStaffLocation)(actor, intake.locationId, "This intake is outside your authorized location scope.");
     const parentEmail = String(intake.parent?.email || "")
         .trim()
         .toLowerCase();

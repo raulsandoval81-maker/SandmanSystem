@@ -1,7 +1,7 @@
 import * as crypto from "crypto";
 import { FieldValue, getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { MANAGEMENT_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
+import { MANAGEMENT_STAFF_ROLES, requireActiveStaff, requireStaffLocation } from "../services/staffAuthorization";
 import {
   ACCESS_INVITATION_TTL_MS,
   assertAthleteInvitationContext,
@@ -21,6 +21,7 @@ export const issueAccessInvitation = onCall(async (req) => {
   if (role === "athlete") {
     const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
     if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
+    requireStaffLocation(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
     if (String(athleteSnap.data()?.authUid || "").trim()) {
       throw new HttpsError("failed-precondition", "Athlete access is already activated.");
     }
@@ -64,6 +65,9 @@ export const issueAccessInvitation = onCall(async (req) => {
   }
 
   const links = await db.collection("parentAthleteLinks").where("athleteUid", "==", athleteUid).get();
+  const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
+  if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
+  requireStaffLocation(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
   const relationship = links.docs.find((candidate) => {
     const data = candidate.data() || {};
     return normalizeAccessEmail(data.parentEmail) === email

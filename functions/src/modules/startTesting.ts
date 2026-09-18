@@ -16,8 +16,15 @@ import {
   createParentSignal,
   PARENT_SIGNAL_TYPES
 } from "./parent/createParentSignal";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccess,
+} from "../services/staffAuthorization";
 
 export const startTesting = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
+  const actor = await requireActiveStaff(req.auth.uid, COACH_STAFF_ROLES, "Active Coach access required.");
   const db = getFirestore();
 
   const uid =
@@ -45,6 +52,7 @@ export const startTesting = onCall(async (req) => {
 
   const athlete =
     snap.data() || {};
+  requireCoachAthleteAccess(actor, athlete);
 
   await athleteRef.update({
     "testing.state": "TESTING",

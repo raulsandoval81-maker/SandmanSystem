@@ -4,73 +4,26 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { resolveVerifiedExperienceYears } from "./experienceAuthority";
 import { resolveF8RankXpCap } from "./policy/f8ProgressionPolicy";
 import { onboardingRelationshipFields } from "./onboardingRelationship";
+import {
+  MANAGEMENT_STAFF_ROLES,
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccess,
+  requireStaffLocation,
+} from "./services/staffAuthorization";
 
 if (!admin.apps.length) admin.initializeApp();
 const db = getFirestore();
-
-const MANAGEMENT_ROLES = new Set([
-  "admin",
-  "management",
-  "manager",
-  "location_manager",
-]);
-
-const COACH_ROLES = new Set([
-  "admin",
-  "coach",
-]);
 
 async function requireActivationAccess(
   uid: string,
   mode: string
 ) {
-  const staffSnap =
-    await db.doc(`staff/${uid}`).get();
-
-  if (!staffSnap.exists) {
-    throw new HttpsError(
-      "permission-denied",
-      "Staff access required"
-    );
-  }
-
-  const staff = staffSnap.data() || {};
-
-  const role =
-    String(staff.role || "")
-      .trim()
-      .toLowerCase();
-
-  const status =
-    String(staff.status || "")
-      .trim()
-      .toLowerCase();
-
-  if (status !== "active") {
-    throw new HttpsError(
-      "permission-denied",
-      "Active staff access required"
-    );
-  }
-
-  const allowed =
-    mode === "add_sport"
-      ? COACH_ROLES.has(role)
-      : MANAGEMENT_ROLES.has(role);
-
-  if (!allowed) {
-    throw new HttpsError(
-      "permission-denied",
-      mode === "add_sport"
-        ? "Active Coach access required"
-        : "Active Management access required"
-    );
-  }
-
-  return {
-    role,
-    staff,
-  };
+  return requireActiveStaff(
+    uid,
+    mode === "add_sport" ? COACH_STAFF_ROLES : MANAGEMENT_STAFF_ROLES,
+    mode === "add_sport" ? "Active Coach access required" : "Active Management access required"
+  );
 }
 
 function computeStartingStripeCount(xp: number, xpCap: number): number {
@@ -320,7 +273,7 @@ function getStartingRankColor(
       return "white";
     }
 
-    if (art === "boxing" || art === "kickboxing") {
+    if (art === "boxing" || art === "muay-thai") {
       return "gray";
     }
   }
@@ -332,18 +285,44 @@ function resolveRequestedDiscipline(
   art: unknown,
   lane: unknown
 ): string {
-  const fromArt =
-    String(art || "")
+  const normalize = (value: unknown) => {
+    const raw = String(value || "")
       .trim()
       .toLowerCase();
 
+    if (
+      raw.includes("muay thai") ||
+      raw.includes("muay-thai") ||
+      raw.includes("muaythai") ||
+      raw.includes("kickbox")
+    ) {
+      return "muay-thai";
+    }
+
+    if (raw.includes("wrest")) return "wrestling";
+    if (raw.includes("box")) return "boxing";
+
+    if (
+      raw.includes("submission") ||
+      raw.includes("grappling")
+    ) {
+      return "submission-grappling";
+    }
+
+    if (
+      raw === "mma" ||
+      raw.includes("mixed martial")
+    ) {
+      return "mma";
+    }
+
+    return raw;
+  };
+
+  const fromArt = normalize(art);
   if (fromArt) return fromArt;
 
-  const fromLane =
-    String(lane || "")
-      .trim()
-      .toLowerCase();
-
+  const fromLane = normalize(lane);
   if (fromLane) return fromLane;
 
   return "";
@@ -426,7 +405,7 @@ function buildDisciplineRecord({
 function programLabel(programTrack: string, art: string) {
 
   if (programTrack === "zero2hero") {
-    return art === "kickboxing"
+    return art === "muay-thai"
       ? "Road2Champion Muay Thai"
       : "Road2Champion Wrestling";
   }
@@ -551,7 +530,7 @@ export const approveAndActivate = onCall(async (req) => {
 
     // New-member activation is Management-owned.
     // Existing-athlete discipline changes remain Coach-owned.
-    await requireActivationAccess(
+    const activationActor = await requireActivationAccess(
       coachUid,
       mode
     );
@@ -692,6 +671,8 @@ const safePriorExperienceValidation =
       const existingAthlete =
         existingSnap.data() || {};
 
+      requireCoachAthleteAccess(activationActor, existingAthlete);
+
       const requestedDiscipline =
         resolveRequestedDiscipline(
           safeArt,
@@ -774,6 +755,8 @@ const safePriorExperienceValidation =
 
           const athleteData =
             athleteSnap.data() || {};
+
+          requireCoachAthleteAccess(activationActor, athleteData);
 
           const intakeData =
             intakeSnap.data() || {};
@@ -1056,6 +1039,13 @@ const safePriorExperienceValidation =
     }
 
     const intakeDataPre = intakeSnapPre.data() || {};
+    if (mode !== "add_sport") {
+      requireStaffLocation(
+        activationActor,
+        intakeDataPre.locationId,
+        "This intake is outside your authorized location scope."
+      );
+    }
 
     // Server-authoritative enrollment gate.
     // Browser validation is UX only and cannot be trusted

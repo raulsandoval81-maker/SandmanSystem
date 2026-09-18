@@ -4,6 +4,7 @@ exports.addDisciplineCoachCall = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const addDisciplineToAthlete_1 = require("../services/addDisciplineToAthlete");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 exports.addDisciplineCoachCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth) {
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
@@ -15,6 +16,8 @@ exports.addDisciplineCoachCall = (0, https_1.onCall)(async (req) => {
     if (!existingAthleteUid) {
         throw new https_1.HttpsError("invalid-argument", "Missing existingAthleteUid.");
     }
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+    await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, existingAthleteUid);
     const result = await (0, addDisciplineToAthlete_1.addDisciplineToAthlete)((0, firestore_1.getFirestore)(), req.auth.uid, {
         existingAthleteUid,
         intakeId: null,

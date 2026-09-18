@@ -7,6 +7,9 @@ export const OPERATIONAL_STAFF_ROLES = Object.freeze([
 export const MANAGEMENT_STAFF_ROLES = Object.freeze([
   "admin", "management",
 ]);
+export const COACH_STAFF_ROLES = Object.freeze([
+  "admin", "coach",
+]);
 
 export function normalizeStaffRole(value: unknown): string {
   const role = String(value ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_");
@@ -32,13 +35,17 @@ export function normalizeStaffList(...values: unknown[]): string[] {
 
 export function normalizeStaffScope(staff: Record<string, unknown>) {
   return {
+    organizationIds: normalizeStaffList(staff.organizationIds, staff.organizationId),
+    academyIds: normalizeStaffList(staff.academyIds, staff.academyId),
     locationIds: normalizeStaffList(staff.locationIds, staff.locations, staff.locationId),
+    programIds: normalizeStaffList(staff.programIds, staff.programs, staff.programId),
   };
 }
 
 export function normalizeStaffRecord(staff: Record<string, unknown>) {
   return {
     ...staff,
+    rawRole: String(staff.role ?? "").trim().toLowerCase().replace(/[\s-]+/g, "_"),
     role: normalizeStaffRole(staff.role),
     status: normalizeStaffStatus(staff.status),
     scope: normalizeStaffScope(staff),
@@ -67,6 +74,41 @@ export function requireStaffLocation(
   return location;
 }
 
+export function requireCoachAthleteAccess(
+  actor: { uid: string; role: string; staff: Record<string, unknown> },
+  athlete: Record<string, unknown>,
+  message = "This athlete is outside the Coach's authorized training scope."
+): void {
+  if (normalizeStaffRole(actor.role) === "admin") return;
+  if (normalizeStaffRole(actor.role) !== "coach") {
+    throw new HttpsError("permission-denied", message);
+  }
+
+  const assignedCoachIds = normalizeStaffList(
+    athlete.coachUid,
+    athlete.coachIds
+  );
+  const directlyAssigned = assignedCoachIds.includes(actor.uid);
+  const locationId = String(athlete.locationId ?? "").trim();
+  if (!directlyAssigned && !staffHasLocation(actor.staff, locationId)) {
+    throw new HttpsError("permission-denied", message);
+  }
+}
+
+export async function requireCoachAthleteAccessById(
+  actor: { uid: string; role: string; staff: Record<string, unknown> },
+  athleteId: unknown,
+  message?: string
+) {
+  const id = String(athleteId ?? "").trim();
+  if (!id) throw new HttpsError("invalid-argument", "A valid athlete ID is required.");
+  const snap = await getFirestore().doc(`athletes/${id}`).get();
+  if (!snap.exists) throw new HttpsError("not-found", `Athlete not found: ${id}`);
+  const athlete = snap.data() || {};
+  requireCoachAthleteAccess(actor, athlete, message);
+  return athlete;
+}
+
 export function isAuthorizedStaffRecord(
   staff: Record<string, unknown>,
   allowedRoles: readonly string[]
@@ -87,7 +129,7 @@ export async function requireActiveStaff(
   if (!snap.exists) throw new HttpsError("permission-denied", message);
   const source = snap.data() || {};
   const staff = normalizeStaffRecord(source);
-  const role = normalizeStaffRole(staff.role);
+  const role = staff.role;
   const status = staff.status;
   if (!isAuthorizedStaffRecord(source, allowedRoles)) {
     throw new HttpsError("permission-denied", message);

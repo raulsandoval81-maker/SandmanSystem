@@ -8,51 +8,7 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
-
-
-const MANAGEMENT_ROLES = new Set([
-  "management",
-  "manager",
-  "location_manager"
-]);
-
-
-function clean(value) {
-  return String(value ?? "").trim();
-}
-
-
-function normalizeList(...values) {
-  const result = [];
-
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        const cleaned = clean(item);
-
-        if (
-          cleaned &&
-          !result.includes(cleaned)
-        ) {
-          result.push(cleaned);
-        }
-      }
-
-      continue;
-    }
-
-    const cleaned = clean(value);
-
-    if (
-      cleaned &&
-      !result.includes(cleaned)
-    ) {
-      result.push(cleaned);
-    }
-  }
-
-  return result;
-}
+import { normalizeStaffContext } from "/assets/js/staff-context.js";
 
 
 function waitForAuthUser() {
@@ -110,19 +66,10 @@ export async function requireManagement() {
     );
   }
 
-  const staff = staffSnapshot.data();
-
-  const role =
-    clean(staff.role).toLowerCase();
-
-  const status =
-    clean(staff.status).toLowerCase();
-
-  const isSystemAdmin =
-    role === "admin";
-
-  const isManagement =
-    MANAGEMENT_ROLES.has(role);
+  const staff = normalizeStaffContext(staffSnapshot.data() || {});
+  const { role, status, scope } = staff;
+  const isSystemAdmin = role === "admin";
+  const isManagement = role === "management";
 
   if (!isSystemAdmin && !isManagement) {
     throw new Error(
@@ -135,28 +82,6 @@ export async function requireManagement() {
       "Management profile is not active."
     );
   }
-
-  const organizationIds = normalizeList(
-    staff.organizationIds,
-    staff.organizationId
-  );
-
-  const academyIds = normalizeList(
-    staff.academyIds,
-    staff.academyId
-  );
-
-  const locationIds = normalizeList(
-    staff.locationIds,
-    staff.locations,
-    staff.locationId
-  );
-
-  const programIds = normalizeList(
-    staff.programIds,
-    staff.programs,
-    staff.programId
-  );
 
   const centralManagement =
     staff.centralManagement === true;
@@ -174,11 +99,6 @@ export async function requireManagement() {
     isManagement,
     centralManagement,
 
-    scope: {
-      organizationIds,
-      academyIds,
-      locationIds,
-      programIds
-    }
+    scope
   };
 }

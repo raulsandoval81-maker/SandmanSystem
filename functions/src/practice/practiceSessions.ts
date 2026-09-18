@@ -1,11 +1,9 @@
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { requireActiveStaff } from "../services/staffAuthorization";
+import { COACH_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
 import { staffLocationIds } from "../schedules/crossTrainingPolicy";
 
-const PRACTICE_STAFF_ROLES = Object.freeze([
-  "admin", "system_admin", "management", "manager", "location_manager", "coach",
-]);
+const PRACTICE_STAFF_ROLES = COACH_STAFF_ROLES;
 
 function requiredString(value: unknown, field: string): string {
   const normalized = String(value ?? "").trim();

@@ -8,6 +8,7 @@ import {
 import {
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
+import { normalizeStaffContext } from "/assets/js/staff-context.js";
 
 export class CoachAccessError extends Error {
   constructor(code, message, diagnostic = {}) {
@@ -25,39 +26,6 @@ export function isCoachAuthenticationError(error) {
 
 function clean(value) {
   return String(value ?? "").trim();
-}
-
-
-function normalizeList(...values) {
-  const result = [];
-
-  for (const value of values) {
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        const cleaned = clean(item);
-
-        if (
-          cleaned &&
-          !result.includes(cleaned)
-        ) {
-          result.push(cleaned);
-        }
-      }
-
-      continue;
-    }
-
-    const cleaned = clean(value);
-
-    if (
-      cleaned &&
-      !result.includes(cleaned)
-    ) {
-      result.push(cleaned);
-    }
-  }
-
-  return result;
 }
 
 
@@ -137,24 +105,15 @@ export async function requireCoach() {
     );
   }
 
-  const staff =
-    staffSnapshot.data() || {};
-
-  const role =
-    clean(staff.role).toLowerCase();
-
-  const status =
-    clean(staff.status).toLowerCase();
+  const staff = normalizeStaffContext(staffSnapshot.data() || {});
+  const { role, status, scope } = staff;
 
   diagnostic.staffExists = true;
   diagnostic.staffRole = role;
   diagnostic.staffStatus = status;
 
-  const isSystemAdmin =
-    role === "admin";
-
-  const isCoach =
-    role === "coach";
+  const isSystemAdmin = role === "admin";
+  const isCoach = role === "coach";
 
   if (!isSystemAdmin && !isCoach) {
     throw new CoachAccessError(
@@ -172,29 +131,7 @@ export async function requireCoach() {
     );
   }
 
-  const organizationIds = normalizeList(
-    staff.organizationIds,
-    staff.organizationId
-  );
-
-  const academyIds = normalizeList(
-    staff.academyIds,
-    staff.academyId
-  );
-
-  const locationIds = normalizeList(
-    staff.locationIds,
-    staff.locations,
-    staff.locationId
-  );
-
-  diagnostic.locationIds = locationIds;
-
-  const programIds = normalizeList(
-    staff.programIds,
-    staff.programs,
-    staff.programId
-  );
+  diagnostic.locationIds = scope.locationIds;
 
   return {
     user,
@@ -212,12 +149,7 @@ export async function requireCoach() {
     isSystemAdmin,
     isCoach,
 
-    scope: {
-      organizationIds,
-      academyIds,
-      locationIds,
-      programIds
-    },
+    scope,
     diagnostic
   };
 }

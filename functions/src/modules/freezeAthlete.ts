@@ -17,6 +17,11 @@ import {
   createParentSignal,
   PARENT_SIGNAL_TYPES
 } from "./parent/createParentSignal";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccessById,
+} from "../services/staffAuthorization";
 
 export async function freezeAthleteAuthoritatively(
   uidInput: unknown,
@@ -172,5 +177,9 @@ export async function freezeAthleteAuthoritatively(
   return result;
 }
 
-export const freezeAthlete = onCall(async (req) =>
-  freezeAthleteAuthoritatively(req.data?.uid, req.data?.score));
+export const freezeAthlete = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
+  const actor = await requireActiveStaff(req.auth.uid, COACH_STAFF_ROLES, "Active Coach access required.");
+  await requireCoachAthleteAccessById(actor, req.data?.uid);
+  return freezeAthleteAuthoritatively(req.data?.uid, req.data?.score, req.auth.uid);
+});

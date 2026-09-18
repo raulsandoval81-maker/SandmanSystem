@@ -10,7 +10,6 @@ import {
   orderBy,
   serverTimestamp,
   limit,
-  onSnapshot,
   functions,
   httpsCallable,
 } from "/assets/js/firebase-init.js";
@@ -815,8 +814,6 @@ $("btn-open-qr")?.addEventListener("click", () => {
 //   Reads from: intakes (submitted)
 //   Pending = approvedUid is null (not minted yet)
 // ------------------------------------------------------
-let unsubPending = null;
-
 function wirePendingButtons() {
   document.querySelectorAll("[data-intake]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -827,26 +824,37 @@ function wirePendingButtons() {
   });
 }
 
-function loadPendingLive() {
+function scopeLocationChunks(managementContext) {
+  const ids = Array.isArray(managementContext?.scope?.locationIds)
+    ? [...new Set(managementContext.scope.locationIds.map((value) => String(value || "").trim()).filter(Boolean))]
+    : [];
+  const chunks = [];
+  for (let index = 0; index < ids.length; index += 10) chunks.push(ids.slice(index, index + 10));
+  return chunks;
+}
+
+async function loadPendingLive(managementContext) {
   const box = $("pending-list");
   if (!box) return;
 
-  if (typeof unsubPending === "function") unsubPending();
-
-  const qy = query(
-    collection(db, "intakes"),
-    where("approvedUid", "==", null),
-    orderBy("createdAt", "desc"),
-    limit(PENDING_LIMIT)
-  );
-
-  unsubPending = onSnapshot(
-    qy,
-    (snaps) => {
+  try {
+    const snapshots = managementContext.isSystemAdmin
+      ? [await getDocs(query(
+          collection(db, "intakes"),
+          where("approvedUid", "==", null)
+        ))]
+      : await Promise.all(scopeLocationChunks(managementContext).map((locations) => getDocs(query(
+          collection(db, "intakes"),
+          where("locationId", "in", locations),
+          where("approvedUid", "==", null)
+        ))));
+    const docs = snapshots.flatMap((snapshot) => snapshot.docs)
+      .sort((a, b) => (b.data()?.createdAt?.toMillis?.() || 0) - (a.data()?.createdAt?.toMillis?.() || 0))
+      .slice(0, PENDING_LIMIT);
       let html = "";
       let count = 0;
 
-      snaps.forEach((snap) => {
+      docs.forEach((snap) => {
         const d = snap.data() || {};
         const intakeId = snap.id;
 
@@ -869,15 +877,16 @@ function loadPendingLive() {
         : "<div class='muted small'>No pending intakes.</div>";
 
       wirePendingButtons();
-    },
-    (err) => {
-      console.error(err);
-      box.innerHTML = "<div class='muted small'>Error loading pending intakes.</div>";
-    }
-  );
+  } catch (err) {
+    console.error(err);
+    box.innerHTML = "<div class='muted small'>Error loading pending intakes.</div>";
+  }
 }
 
-$("btn-find-intakes")?.addEventListener("click", loadPendingLive);
+$("btn-find-intakes")?.addEventListener("click", async () => {
+  const managementContext = await requireManagement();
+  await loadPendingLive(managementContext);
+});
 
 // ------------------------------------------------------
 // 5) Load Recently Approved Athletes
@@ -1058,22 +1067,24 @@ function wireApprovedButtons() {
   });
 }
 
-async function loadApproved() {
+async function loadApproved(managementContext) {
   const box = $("approved-list");
   if (!box) return;
 
   try {
-    const qy = query(
-      collection(db, "athletes"),
-      orderBy("createdAt", "desc"),
-      limit(RECENT_APPROVED_LIMIT)
-    );
-
-    const snaps = await getDocs(qy);
+    const snapshots = managementContext.isSystemAdmin
+      ? [await getDocs(query(collection(db, "athletes"), orderBy("createdAt", "desc"), limit(RECENT_APPROVED_LIMIT)))]
+      : await Promise.all(scopeLocationChunks(managementContext).map((locations) => getDocs(query(
+          collection(db, "athletes"),
+          where("locationId", "in", locations)
+        ))));
+    const docs = snapshots.flatMap((snapshot) => snapshot.docs)
+      .sort((a, b) => (b.data()?.createdAt?.toMillis?.() || 0) - (a.data()?.createdAt?.toMillis?.() || 0))
+      .slice(0, RECENT_APPROVED_LIMIT);
 
     let html = "";
 
-    snaps.forEach((snap) => {
+    docs.forEach((snap) => {
       const a = snap.data() || {};
       const uid = a.uid || snap.id;
       const name = a.publicName || a.fullName || uid;
@@ -1116,8 +1127,8 @@ async function loadApproved() {
       managementContext
     );
 
-    loadPendingLive();
-    loadApproved();
+    await loadPendingLive(managementContext);
+    await loadApproved(managementContext);
   } catch (err) {
     console.error(
       "[management-enrollment] boot failed:",

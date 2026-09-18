@@ -3,36 +3,48 @@ import test from "node:test";
 import { createRequire } from "node:module";
 
 const require = createRequire(import.meta.url);
-const staff = require("../../functions/lib/services/staffAuthorization.js");
+const policy = require("../../functions/lib/services/staffAuthorization.js");
 
-test("canonical roles preserve temporary read-compatible aliases", () => {
-  assert.equal(staff.normalizeStaffRole("system-admin"), "admin");
-  assert.equal(staff.normalizeStaffRole("manager"), "management");
-  assert.equal(staff.normalizeStaffRole("location_manager"), "management");
-  assert.equal(staff.normalizeStaffRole("coach"), "coach");
-  for (const role of ["admin", "system_admin", "management", "manager", "location_manager"]) {
-    assert.equal(staff.isAuthorizedStaffRecord({ role, status: " ACTIVE " }, staff.MANAGEMENT_STAFF_ROLES), true);
-  }
-  assert.equal(staff.isAuthorizedStaffRecord({ role: "coach", status: "active" }, staff.MANAGEMENT_STAFF_ROLES), false);
-  assert.equal(staff.isAuthorizedStaffRecord({ role: "management", status: "inactive" }, staff.MANAGEMENT_STAFF_ROLES), false);
-});
+test("canonical staff role and scope normalization", () => {
+  assert.equal(policy.normalizeStaffRole("admin"), "admin");
+  assert.equal(policy.normalizeStaffRole("system-admin"), "admin");
+  assert.equal(policy.normalizeStaffRole("manager"), "management");
+  assert.equal(policy.normalizeStaffRole("location_manager"), "management");
+  assert.equal(policy.normalizeStaffRole("coach"), "coach");
 
-test("canonical and singular legacy locations normalize without duplicates", () => {
-  const record = staff.normalizeStaffRecord({
-    role: "location_manager", status: " ACTIVE ",
-    locationIds: ["santa-ynez-valley", "lompoc"], locations: ["elk-grove"], locationId: "lompoc",
+  const normalized = policy.normalizeStaffRecord({
+    role: "location_manager",
+    status: " ACTIVE ",
+    organizationId: "sandman",
+    organizationIds: ["sandman", "yesc"],
+    academyId: "academy-1",
+    locationId: "lompoc",
+    locationIds: ["santa-ynez-valley", "lompoc"],
+    locations: ["elk-grove"],
+    programId: "combat",
   });
-  assert.equal(record.role, "management");
-  assert.equal(record.status, "active");
-  assert.deepEqual(record.scope.locationIds, ["santa-ynez-valley", "lompoc", "elk-grove"]);
-  assert.deepEqual(staff.staffLocationIds({ locationId: "lompoc" }), ["lompoc"]);
+  assert.equal(normalized.role, "management");
+  assert.equal(normalized.rawRole, "location_manager");
+  assert.equal(normalized.status, "active");
+  assert.deepEqual(normalized.scope.organizationIds, ["sandman", "yesc"]);
+  assert.deepEqual(normalized.scope.academyIds, ["academy-1"]);
+  assert.deepEqual(normalized.scope.locationIds, ["santa-ynez-valley", "lompoc", "elk-grove"]);
+  assert.deepEqual(normalized.scope.programIds, ["combat"]);
 });
 
-test("location authorization allows Admin and assigned Management only", () => {
-  const manager = { role: "manager", staff: { locationId: "lompoc" } };
-  assert.equal(staff.requireStaffLocation(manager, "lompoc"), "lompoc");
-  assert.throws(() => staff.requireStaffLocation(manager, "elk-grove"), /authorized scope/i);
-  assert.throws(() => staff.requireStaffLocation(manager, ""), /valid location/i);
-  assert.equal(staff.requireStaffLocation({ role: "system_admin", staff: {} }, "elk-grove"), "elk-grove");
-  assert.throws(() => staff.requireStaffLocation({ role: "coach", staff: {} }, "lompoc"), /authorized scope/i);
+test("authorization remains active-status and role restricted", () => {
+  assert.equal(policy.isAuthorizedStaffRecord({ role: "system_admin", status: "active" }, ["admin"]), true);
+  assert.equal(policy.isAuthorizedStaffRecord({ role: "manager", status: "active" }, ["admin"]), false);
+  assert.equal(policy.isAuthorizedStaffRecord({ role: "coach", status: "active" }, ["admin"]), false);
+  assert.equal(policy.isAuthorizedStaffRecord({ role: "manager", status: "active" }, ["management"]), true);
+  assert.equal(policy.isAuthorizedStaffRecord({ role: "coach", status: "active" }, ["management"]), false);
+  assert.equal(policy.isAuthorizedStaffRecord({ role: "admin", status: "inactive" }, ["admin"]), false);
+});
+
+test("location authorization is canonical and fail closed", () => {
+  const manager = { role: "management", staff: { locationId: "lompoc" } };
+  assert.equal(policy.requireStaffLocation(manager, "lompoc"), "lompoc");
+  assert.throws(() => policy.requireStaffLocation(manager, "elk-grove"), /authorized scope/i);
+  assert.equal(policy.requireStaffLocation({ role: "admin", staff: {} }, "elk-grove"), "elk-grove");
+  assert.throws(() => policy.requireStaffLocation(manager, ""), /valid location/i);
 });

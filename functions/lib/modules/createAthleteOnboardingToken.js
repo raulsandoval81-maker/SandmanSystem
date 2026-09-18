@@ -38,36 +38,17 @@ const crypto = __importStar(require("crypto"));
 const admin = __importStar(require("firebase-admin"));
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 if (!admin.apps.length)
     admin.initializeApp();
 const db = (0, firestore_1.getFirestore)();
-const MANAGEMENT_ROLES = new Set([
-    "admin",
-    "management",
-    "manager",
-    "location_manager",
-]);
 const TOKEN_HOURS = 48;
 exports.createAthleteOnboardingToken = (0, https_1.onCall)(async (req) => {
     const staffUid = req.auth?.uid;
     if (!staffUid) {
         throw new https_1.HttpsError("unauthenticated", "Must be signed in.");
     }
-    const staffSnap = await db.doc(`staff/${staffUid}`).get();
-    if (!staffSnap.exists) {
-        throw new https_1.HttpsError("permission-denied", "Staff access required");
-    }
-    const staff = staffSnap.data() || {};
-    const role = String(staff.role || "")
-        .trim()
-        .toLowerCase();
-    const status = String(staff.status || "")
-        .trim()
-        .toLowerCase();
-    if (status !== "active" ||
-        !MANAGEMENT_ROLES.has(role)) {
-        throw new https_1.HttpsError("permission-denied", "Active Management access required");
-    }
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(staffUid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required");
     const athleteUid = String(req.data?.athleteUid || "").trim().toUpperCase();
     if (!athleteUid) {
         throw new https_1.HttpsError("invalid-argument", "Missing athleteUid.");
@@ -77,6 +58,7 @@ exports.createAthleteOnboardingToken = (0, https_1.onCall)(async (req) => {
     if (!athleteSnap.exists) {
         throw new https_1.HttpsError("not-found", `Athlete not found: ${athleteUid}`);
     }
+    (0, staffAuthorization_1.requireStaffLocation)(actor, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
     const tokenId = crypto.randomBytes(32).toString("hex");
     const exp = Date.now() + TOKEN_HOURS * 60 * 60 * 1000;
     await db.collection("onboardingTokens").doc(tokenId).set({
@@ -84,7 +66,7 @@ exports.createAthleteOnboardingToken = (0, https_1.onCall)(async (req) => {
         exp,
         createdAt: firestore_1.FieldValue.serverTimestamp(),
         createdBy: staffUid,
-        createdByRole: role,
+        createdByRole: actor.role,
         source: "management_athlete_access",
     });
     return {

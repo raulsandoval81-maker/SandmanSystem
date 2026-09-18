@@ -7,6 +7,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const node_crypto_1 = require("node:crypto");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 async function freezeAthleteAuthoritatively(uidInput, scoreInput, actionIdentity = "") {
     const db = (0, firestore_1.getFirestore)();
     const uid = String(uidInput || "").trim();
@@ -106,4 +107,10 @@ async function freezeAthleteAuthoritatively(uidInput, scoreInput, actionIdentity
     }
     return result;
 }
-exports.freezeAthlete = (0, https_1.onCall)(async (req) => freezeAthleteAuthoritatively(req.data?.uid, req.data?.score));
+exports.freezeAthlete = (0, https_1.onCall)(async (req) => {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+    await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, req.data?.uid);
+    return freezeAthleteAuthoritatively(req.data?.uid, req.data?.score, req.auth.uid);
+});

@@ -4,7 +4,7 @@ import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { activeXpCap, athleteTier, classifyAthlete } from "../services/authoritativeXpService";
 import { createTestingEvent } from "./testing-events/createTestingEvent";
 import { createParentSignal, PARENT_SIGNAL_TYPES } from "./parent/createParentSignal";
-import { OPERATIONAL_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
+import { COACH_STAFF_ROLES, requireActiveStaff, requireCoachAthleteAccessById } from "../services/staffAuthorization";
 
 const PASSING_SCORE = 85;
 const COOLDOWN_DAYS = 5;
@@ -100,6 +100,7 @@ export async function passAthleteTestAuthoritatively(uidInput: unknown, scoreInp
 
 export const passAthleteTest = onCall(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
-  await requireActiveStaff(req.auth.uid, OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
+  const actor = await requireActiveStaff(req.auth.uid, COACH_STAFF_ROLES, "Active Coach access required.");
+  await requireCoachAthleteAccessById(actor, req.data?.uid);
   return passAthleteTestAuthoritatively(req.data?.uid, req.data?.score);
 });

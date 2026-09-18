@@ -253,7 +253,8 @@ exports.incrementXp = (0, https_1.onCall)(async (req) => {
     const kind = String(payload.kind || "").trim();
     // Emulator-only DEV awards retain their existing test harness behavior.
     if (!(isDevKind(kind) && isEmulator())) {
-        await (0, staffAuthorization_1.requireActiveStaff)(coachUid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
+        const actor = await (0, staffAuthorization_1.requireActiveStaff)(coachUid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+        await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, uid);
     }
     if (!kind.startsWith("DEV/")) {
         return (0, authoritativeXpService_1.dispatchAuthoritativeXp)(coachUid, payload);

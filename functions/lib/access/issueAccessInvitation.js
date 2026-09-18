@@ -51,6 +51,7 @@ exports.issueAccessInvitation = (0, https_1.onCall)(async (req) => {
         const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
         if (!athleteSnap.exists)
             throw new https_1.HttpsError("not-found", "Athlete not found.");
+        (0, staffAuthorization_1.requireStaffLocation)(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
         if (String(athleteSnap.data()?.authUid || "").trim()) {
             throw new https_1.HttpsError("failed-precondition", "Athlete access is already activated.");
         }
@@ -93,6 +94,10 @@ exports.issueAccessInvitation = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("invalid-argument", "Only Parent and Athlete invitations are enabled.");
     }
     const links = await db.collection("parentAthleteLinks").where("athleteUid", "==", athleteUid).get();
+    const athleteSnap = await db.doc(`athletes/${athleteUid}`).get();
+    if (!athleteSnap.exists)
+        throw new https_1.HttpsError("not-found", "Athlete not found.");
+    (0, staffAuthorization_1.requireStaffLocation)(issuer, athleteSnap.data()?.locationId, "This athlete is outside your authorized location scope.");
     const relationship = links.docs.find((candidate) => {
         const data = candidate.data() || {};
         return (0, accessInvitationPolicy_1.normalizeAccessEmail)(data.parentEmail) === email

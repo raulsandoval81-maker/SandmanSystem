@@ -1,13 +1,13 @@
 import { getFirestore } from "firebase-admin/firestore";
 import { HttpsError, onCall } from "firebase-functions/v2/https";
-import { MANAGEMENT_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
+import { MANAGEMENT_STAFF_ROLES, requireActiveStaff, requireStaffLocation } from "../services/staffAuthorization";
 import { assertAthleteAccessTransition } from "./accessInvitationPolicy";
 
 const db = getFirestore();
 
 export const transitionAthleteAccessMode = onCall(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
-  await requireActiveStaff(req.auth.uid, MANAGEMENT_STAFF_ROLES, "Active Management access required.");
+  const actor = await requireActiveStaff(req.auth.uid, MANAGEMENT_STAFF_ROLES, "Active Management access required.");
 
   const athleteUid = String(req.data?.athleteUid || "").trim().toUpperCase();
   const targetMode = String(req.data?.targetMode || "").trim().toLowerCase();
@@ -18,6 +18,7 @@ export const transitionAthleteAccessMode = onCall(async (req) => {
     const athleteSnap = await tx.get(athleteRef);
     if (!athleteSnap.exists) throw new HttpsError("not-found", "Athlete not found.");
     const athlete = athleteSnap.data() || {};
+    requireStaffLocation(actor, athlete.locationId, "This athlete is outside your authorized location scope.");
     let decision;
     try {
       decision = assertAthleteAccessTransition({

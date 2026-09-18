@@ -5,9 +5,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const https_1 = require("firebase-functions/v2/https");
 const staffAuthorization_1 = require("../services/staffAuthorization");
 const crossTrainingPolicy_1 = require("../schedules/crossTrainingPolicy");
-const PRACTICE_STAFF_ROLES = Object.freeze([
-    "admin", "system_admin", "management", "manager", "location_manager", "coach",
-]);
+const PRACTICE_STAFF_ROLES = staffAuthorization_1.COACH_STAFF_ROLES;
 function requiredString(value, field) {
     const normalized = String(value ?? "").trim();
     if (!normalized)

@@ -27,11 +27,12 @@ function normalizeProgramKind(a) {
 exports.promoteTier = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
-    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
     const uid = String(req.data?.uid ?? "").trim();
     const note = String(req.data?.note ?? "").trim();
     if (!uid)
         throw new https_1.HttpsError("invalid-argument", "Missing uid");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+    await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, uid);
     const db = (0, firestore_1.getFirestore)();
     const athleteRef = db.doc(`athletes/${uid}`);
     const logRef = db.collection("xp_logs").doc();

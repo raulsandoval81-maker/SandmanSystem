@@ -15,8 +15,15 @@ import {
 import {
   PARENT_SIGNAL_TYPES
 } from "./parentSignalTypes";
+import {
+  COACH_STAFF_ROLES,
+  requireActiveStaff,
+  requireCoachAthleteAccess,
+} from "../../services/staffAuthorization";
 
 export const saveCoachNote = onCall(async (req) => {
+  if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
+  const actor = await requireActiveStaff(req.auth.uid, COACH_STAFF_ROLES, "Active Coach access required.");
   const db = getFirestore();
 
   const uid =
@@ -64,6 +71,7 @@ export const saveCoachNote = onCall(async (req) => {
 
   const athlete =
     snap.data() || {};
+  requireCoachAthleteAccess(actor, athlete);
 
   const athleteName =
     athlete.publicName ||

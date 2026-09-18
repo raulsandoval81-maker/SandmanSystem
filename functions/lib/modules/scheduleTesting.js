@@ -5,7 +5,11 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createTestingEvent_1 = require("./testing-events/createTestingEvent");
 const createParentSignal_1 = require("./parent/createParentSignal");
+const staffAuthorization_1 = require("../services/staffAuthorization");
 exports.scheduleTesting = (0, https_1.onCall)(async (req) => {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
     const db = (0, firestore_1.getFirestore)();
     const uid = String(req.data?.uid || "").trim();
     const scheduledDate = String(req.data?.scheduledDate || "").trim();
@@ -21,6 +25,7 @@ exports.scheduleTesting = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("not-found", "Athlete not found");
     }
     const athlete = snap.data() || {};
+    (0, staffAuthorization_1.requireCoachAthleteAccess)(actor, athlete);
     await athleteRef.update({
         "testing.state": "READY",
         "testing.preReadyState": athlete?.testing?.state || null,

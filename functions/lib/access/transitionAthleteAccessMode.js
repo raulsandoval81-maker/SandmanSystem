@@ -9,7 +9,7 @@ const db = (0, firestore_1.getFirestore)();
 exports.transitionAthleteAccessMode = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
-    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required.");
     const athleteUid = String(req.data?.athleteUid || "").trim().toUpperCase();
     const targetMode = String(req.data?.targetMode || "").trim().toLowerCase();
     if (!athleteUid)
@@ -20,6 +20,7 @@ exports.transitionAthleteAccessMode = (0, https_1.onCall)(async (req) => {
         if (!athleteSnap.exists)
             throw new https_1.HttpsError("not-found", "Athlete not found.");
         const athlete = athleteSnap.data() || {};
+        (0, staffAuthorization_1.requireStaffLocation)(actor, athlete.locationId, "This athlete is outside your authorized location scope.");
         let decision;
         try {
             decision = (0, accessInvitationPolicy_1.assertAthleteAccessTransition)({

@@ -9,6 +9,11 @@ import {
 import admin from "firebase-admin";
 
 import { sendParentWelcomeEmail } from "./sendParentWelcomeEmail";
+import {
+  MANAGEMENT_STAFF_ROLES,
+  requireActiveStaff,
+  requireStaffLocation,
+} from "../services/staffAuthorization";
 
 if (!admin.apps.length) {
   admin.initializeApp();
@@ -24,43 +29,11 @@ export const approveIntakeCall = onCall(async (req) => {
 
   const db = getFirestore();
 
-  const staffSnap =
-    await db
-      .collection("staff")
-      .doc(req.auth.uid)
-      .get();
-
-  const staff =
-    staffSnap.exists
-      ? staffSnap.data() || {}
-      : {};
-
-  const role =
-    String(staff.role || "")
-      .trim()
-      .toLowerCase();
-
-  const status =
-    String(staff.status || "")
-      .trim()
-      .toLowerCase();
-
-  const allowedRoles = [
-    "admin",
-    "management",
-    "manager",
-    "location_manager",
-  ];
-
-  if (
-    status !== "active" ||
-    !allowedRoles.includes(role)
-  ) {
-    throw new HttpsError(
-      "permission-denied",
-      "Active Management access required"
-    );
-  }
+  const actor = await requireActiveStaff(
+    req.auth.uid,
+    MANAGEMENT_STAFF_ROLES,
+    "Active Management access required"
+  );
 
   const { intakeId, approvedUid, note } = req.data || {};
 
@@ -74,8 +47,12 @@ export const approveIntakeCall = onCall(async (req) => {
   const intakeSnap =
     await intakeRef.get();
 
-  const intake =
-    intakeSnap.data() || {};
+  if (!intakeSnap.exists) {
+    throw new HttpsError("not-found", "Intake not found.");
+  }
+
+  const intake = intakeSnap.data() || {};
+  requireStaffLocation(actor, intake.locationId, "This intake is outside your authorized location scope.");
 
   const parentEmail =
     String(intake.parent?.email || "")

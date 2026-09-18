@@ -5,7 +5,11 @@ const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
 const createParentSignal_1 = require("./createParentSignal");
 const parentSignalTypes_1 = require("./parentSignalTypes");
+const staffAuthorization_1 = require("../../services/staffAuthorization");
 exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
+    if (!req.auth)
+        throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
     const db = (0, firestore_1.getFirestore)();
     const uid = String(req.data?.uid || "").trim();
     const note = String(req.data?.note || "").trim();
@@ -25,6 +29,7 @@ exports.saveCoachNote = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("not-found", "Athlete not found");
     }
     const athlete = snap.data() || {};
+    (0, staffAuthorization_1.requireCoachAthleteAccess)(actor, athlete);
     const athleteName = athlete.publicName ||
         athlete.fullName ||
         null;

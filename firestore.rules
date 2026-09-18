@@ -355,16 +355,18 @@ service cloud.firestore {
       // Approval/activation occurs through trusted Cloud Functions.
       allow update: if false;
 
-      // Owner can read only their own submission.
-      // Management/Admin can review all submissions.
+      // Owner can read their submission. Admin sees the network;
+      // Management is restricted by canonical intake locationId.
       allow get: if request.auth != null
         && (
           resource.data.ownerUid == request.auth.uid
-          || isAdminOrManagement()
+          || isAdmin()
+          || managementHasLocation(resource.data.locationId)
         );
 
       // Required by Management's pending-intake query.
-      allow list: if isAdminOrManagement();
+      allow list: if isAdmin()
+        || managementHasLocation(resource.data.locationId);
 
       allow delete: if false;
     }
@@ -799,10 +801,15 @@ match /admissions_requests/{requestId} {
   // Public promotional / intro forms may create requests.
   allow create: if true;
 
-  // Management and coaches operate this queue.
-  allow get, list: if isOperationalStaff();
+  // Admin sees the network; active Management is location-scoped.
+  allow get, list: if isAdmin()
+    || managementHasLocation(resource.data.locationId);
 
-  allow update: if isOperationalStaff();
+  allow update: if isAdmin()
+    || (
+      managementHasLocation(resource.data.locationId)
+      && request.resource.data.locationId == resource.data.locationId
+    );
 
   // Permanent deletion remains Admin-only.
   allow delete: if isAdmin();
@@ -1201,9 +1208,7 @@ match /academySettings/{academyId} {
        * level for Admin review. It is not initially owned
        * by a coach or location.
        */
-      allow create: if request.auth != null
-
-        && request.resource.data.keys().hasOnly([
+      allow create: if request.resource.data.keys().hasOnly([
           "organization",
           "pipeline",
           "source",
@@ -1637,6 +1642,9 @@ match /academySettings/{academyId} {
        * to them or pending within their location scope.
        */
       allow get, list: if isManagement()
+        && managementHasLocation(
+          resource.data.get("locationId", "")
+        )
         && (
           resource.data.get(
             "assignedManagerUid",
@@ -1665,6 +1673,10 @@ match /academySettings/{academyId} {
 
       allow update: if isManagement()
         && passClosureIsServerOnly()
+
+        && managementHasLocation(
+          resource.data.get("locationId", "")
+        )
 
         && (
           resource.data.get(
@@ -1746,6 +1758,10 @@ match /academySettings/{academyId} {
        */
       allow update: if isManagement()
         && passClosureIsServerOnly()
+
+        && managementHasLocation(
+          resource.data.get("locationId", "")
+        )
 
         && (
           resource.data.get(
@@ -1946,11 +1962,10 @@ match /academySettings/{academyId} {
     }
 
     function isManagement() {
-      return staffRole() in [
-        "management",
-        "manager",
-        "location_manager"
-      ];
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["management", "manager", "location_manager"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
     }
 
     function isAdminOrManagement() {
@@ -1968,7 +1983,10 @@ match /academySettings/{academyId} {
     }
 
     function isCoachOrAdmin() {
-      return staffRole() in ["admin", "coach"];
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["admin", "coach"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
     }
 
     /*
@@ -2080,13 +2098,10 @@ match /academySettings/{academyId} {
     }
 
     function isOperationalStaff() {
-      return staffRole() in [
-        "admin",
-        "management",
-        "manager",
-        "location_manager",
-        "coach"
-      ];
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/staff/$(request.auth.uid))
+        && staffRole() in ["admin", "management", "manager", "location_manager", "coach"]
+        && get(/databases/$(database)/documents/staff/$(request.auth.uid)).data.status == "active";
     }
 
     function managementHasLocation(locationId) {

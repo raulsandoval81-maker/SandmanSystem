@@ -40,46 +40,12 @@ const firestore_1 = require("firebase-admin/firestore");
 const experienceAuthority_1 = require("./experienceAuthority");
 const f8ProgressionPolicy_1 = require("./policy/f8ProgressionPolicy");
 const onboardingRelationship_1 = require("./onboardingRelationship");
+const staffAuthorization_1 = require("./services/staffAuthorization");
 if (!admin.apps.length)
     admin.initializeApp();
 const db = (0, firestore_1.getFirestore)();
-const MANAGEMENT_ROLES = new Set([
-    "admin",
-    "management",
-    "manager",
-    "location_manager",
-]);
-const COACH_ROLES = new Set([
-    "admin",
-    "coach",
-]);
 async function requireActivationAccess(uid, mode) {
-    const staffSnap = await db.doc(`staff/${uid}`).get();
-    if (!staffSnap.exists) {
-        throw new https_1.HttpsError("permission-denied", "Staff access required");
-    }
-    const staff = staffSnap.data() || {};
-    const role = String(staff.role || "")
-        .trim()
-        .toLowerCase();
-    const status = String(staff.status || "")
-        .trim()
-        .toLowerCase();
-    if (status !== "active") {
-        throw new https_1.HttpsError("permission-denied", "Active staff access required");
-    }
-    const allowed = mode === "add_sport"
-        ? COACH_ROLES.has(role)
-        : MANAGEMENT_ROLES.has(role);
-    if (!allowed) {
-        throw new https_1.HttpsError("permission-denied", mode === "add_sport"
-            ? "Active Coach access required"
-            : "Active Management access required");
-    }
-    return {
-        role,
-        staff,
-    };
+    return (0, staffAuthorization_1.requireActiveStaff)(uid, mode === "add_sport" ? staffAuthorization_1.COACH_STAFF_ROLES : staffAuthorization_1.MANAGEMENT_STAFF_ROLES, mode === "add_sport" ? "Active Coach access required" : "Active Management access required");
 }
 function computeStartingStripeCount(xp, xpCap) {
     const safeXp = Math.max(0, Number(xp || 0));
@@ -212,21 +178,41 @@ function getStartingRankColor(framework, programTrack, discipline) {
         if (art === "wrestling" || art === "submission-grappling") {
             return "white";
         }
-        if (art === "boxing" || art === "kickboxing") {
+        if (art === "boxing" || art === "muay-thai") {
             return "gray";
         }
     }
     return "gray";
 }
 function resolveRequestedDiscipline(art, lane) {
-    const fromArt = String(art || "")
-        .trim()
-        .toLowerCase();
+    const normalize = (value) => {
+        const raw = String(value || "")
+            .trim()
+            .toLowerCase();
+        if (raw.includes("muay thai") ||
+            raw.includes("muay-thai") ||
+            raw.includes("muaythai") ||
+            raw.includes("kickbox")) {
+            return "muay-thai";
+        }
+        if (raw.includes("wrest"))
+            return "wrestling";
+        if (raw.includes("box"))
+            return "boxing";
+        if (raw.includes("submission") ||
+            raw.includes("grappling")) {
+            return "submission-grappling";
+        }
+        if (raw === "mma" ||
+            raw.includes("mixed martial")) {
+            return "mma";
+        }
+        return raw;
+    };
+    const fromArt = normalize(art);
     if (fromArt)
         return fromArt;
-    const fromLane = String(lane || "")
-        .trim()
-        .toLowerCase();
+    const fromLane = normalize(lane);
     if (fromLane)
         return fromLane;
     return "";
@@ -271,7 +257,7 @@ function buildDisciplineRecord({ discipline, framework, programTrack, trackCode,
 }
 function programLabel(programTrack, art) {
     if (programTrack === "zero2hero") {
-        return art === "kickboxing"
+        return art === "muay-thai"
             ? "Road2Champion Muay Thai"
             : "Road2Champion Wrestling";
     }
@@ -339,7 +325,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
         const mode = String(input.mode || "new_athlete").trim();
         // New-member activation is Management-owned.
         // Existing-athlete discipline changes remain Coach-owned.
-        await requireActivationAccess(coachUid, mode);
+        const activationActor = await requireActivationAccess(coachUid, mode);
         const existingAthleteUid = String(input.existingAthleteUid || "").trim();
         const forTrack = String(input.forTrack || "").trim();
         const forLane = String(input.forLane || "").trim();
@@ -401,6 +387,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 throw new https_1.HttpsError("not-found", `Athlete not found: ${existingAthleteUid}`);
             }
             const existingAthlete = existingSnap.data() || {};
+            (0, staffAuthorization_1.requireCoachAthleteAccess)(activationActor, existingAthlete);
             const requestedDiscipline = resolveRequestedDiscipline(safeArt, forLane);
             if (!requestedDiscipline) {
                 throw new https_1.HttpsError("invalid-argument", "Unable to determine requested discipline.");
@@ -437,6 +424,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     throw new https_1.HttpsError("failed-precondition", `Submission doc missing: ${addSportIntakeRef.path}`);
                 }
                 const athleteData = athleteSnap.data() || {};
+                (0, staffAuthorization_1.requireCoachAthleteAccess)(activationActor, athleteData);
                 const intakeData = intakeSnap.data() || {};
                 const existingStatus = String(intakeData.status || "")
                     .trim()
@@ -581,6 +569,9 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("failed-precondition", `Submission doc missing: ${intakeRef.path}`);
         }
         const intakeDataPre = intakeSnapPre.data() || {};
+        if (mode !== "add_sport") {
+            (0, staffAuthorization_1.requireStaffLocation)(activationActor, intakeDataPre.locationId, "This intake is outside your authorized location scope.");
+        }
         // Server-authoritative enrollment gate.
         // Browser validation is UX only and cannot be trusted
         // as the activation security boundary.

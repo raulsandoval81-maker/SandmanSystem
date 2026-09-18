@@ -3,11 +3,14 @@ import {
   auth,
   collection,
   getDocs,
+  query,
+  where,
   doc,
   updateDoc,
   deleteDoc,
   serverTimestamp
 } from "/assets/js/firebase-init.js";
+import { requireManagement } from "/management/shared/guards/management-guard.js";
 
 /* =====================================================
    ELEMENTS
@@ -635,22 +638,30 @@ function render() {
    FIRESTORE
 ===================================================== */
 
-async function loadRequests() {
+function locationChunks(context) {
+  const ids = Array.isArray(context?.scope?.locationIds)
+    ? [...new Set(context.scope.locationIds.map((value) => String(value || "").trim()).filter(Boolean))]
+    : [];
+  const chunks = [];
+  for (let index = 0; index < ids.length; index += 10) chunks.push(ids.slice(index, index + 10));
+  return chunks;
+}
+
+async function loadRequests(context) {
   setStatus(
     "Loading admissions requests..."
   );
 
   try {
-    const snapshot =
-      await getDocs(
-        collection(
-          db,
-          "admissions_requests"
-        )
-      );
+    const snapshots = context.isSystemAdmin
+      ? [await getDocs(collection(db, "admissions_requests"))]
+      : await Promise.all(locationChunks(context).map((locations) => getDocs(query(
+          collection(db, "admissions_requests"),
+          where("locationId", "in", locations)
+        ))));
 
     requests =
-      snapshot.docs
+      snapshots.flatMap((snapshot) => snapshot.docs)
         .map((requestDoc) => ({
           id: requestDoc.id,
           ...requestDoc.data()
@@ -895,7 +906,10 @@ statusFilter?.addEventListener(
 
 refreshBtn?.addEventListener(
   "click",
-  loadRequests
+  async () => {
+    const context = await requireManagement();
+    await loadRequests(context);
+  }
 );
 
 requestList?.addEventListener(
@@ -931,8 +945,12 @@ requestList?.addEventListener(
    START
 ===================================================== */
 
-if (
-  await requireStaffSession()
-) {
-  await loadRequests();
+if (await requireStaffSession()) {
+  try {
+    const context = await requireManagement();
+    await loadRequests(context);
+  } catch (error) {
+    console.error("[admissions-requests] authorization failed:", error);
+    setStatus(error?.message || "Management access required.", true);
+  }
 }

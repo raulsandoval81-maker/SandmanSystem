@@ -7,7 +7,7 @@ const staffAuthorization_1 = require("../services/staffAuthorization");
 exports.createAthleteFromIntakeCall = (0, https_1.onCall)(async (req) => {
     if (!req.auth)
         throw new https_1.HttpsError("unauthenticated", "Sign-in required.");
-    await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required.");
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(req.auth.uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Active Management access required.");
     const { intakeId, mint, publicName, team, virtue } = req.data;
     if (!intakeId || !mint?.uid)
         throw new Error("missing mint data");
@@ -16,6 +16,7 @@ exports.createAthleteFromIntakeCall = (0, https_1.onCall)(async (req) => {
     if (!intakeSnap.exists)
         throw new Error("intake not found");
     const intake = intakeSnap.data() || {};
+    const locationId = (0, staffAuthorization_1.requireStaffLocation)(actor, intake.locationId, "This intake is outside your authorized location scope.");
     const loc = intake.location || {};
     // Detect Foundry 8 reliably (supports multiple field styles)
     const isF8 = (intake.track || "").includes("foundry8") ||
@@ -29,6 +30,7 @@ exports.createAthleteFromIntakeCall = (0, https_1.onCall)(async (req) => {
         stripeCount: 0,
         xp: 0,
         publicName: `${publicName.initial}. ${publicName.last}`,
+        locationId,
         // ✅ intake v2 stores nested location.{team,city,state}
         // keep fallbacks for any legacy intakes
         team: loc.team || intake.teamSchool || intake.team || team?.name || "",

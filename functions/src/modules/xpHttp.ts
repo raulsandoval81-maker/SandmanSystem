@@ -2,7 +2,7 @@ import { onRequest } from "firebase-functions/v2/https";
 import cors from "cors";
 import { dispatchAuthoritativeXp } from "../services/authoritativeXpService";
 import admin from "firebase-admin";
-import { OPERATIONAL_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
+import { COACH_STAFF_ROLES, requireActiveStaff, requireCoachAthleteAccessById } from "../services/staffAuthorization";
 
 const corsMw = cors({ origin: true });
 
@@ -39,8 +39,9 @@ export const xpHttp = onRequest((req, res) => {
       if (!bearer) return res.status(401).json({ ok: false, error: "Authentication required" });
       const decoded = await admin.auth().verifyIdToken(bearer);
       const coachUid = decoded.uid;
-      await requireActiveStaff(coachUid, OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
       const payload = req.body?.data ?? req.body ?? {};
+      const actor = await requireActiveStaff(coachUid, COACH_STAFF_ROLES, "Active Coach access required.");
+      await requireCoachAthleteAccessById(actor, payload.uid);
 
       // ✅ normalize at the choke point (affects all 4 pages)
       payload.kind = normalizeKind(payload.kind);

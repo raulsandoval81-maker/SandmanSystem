@@ -7,13 +7,12 @@ exports.logArenaHttp = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const cors_1 = __importDefault(require("cors"));
 const authoritativeXpService_1 = require("../services/authoritativeXpService");
+const firebase_admin_1 = __importDefault(require("firebase-admin"));
+const staffAuthorization_1 = require("../services/staffAuthorization");
 const corsMw = (0, cors_1.default)({ origin: true });
 function json(res, code, body) {
     res.status(code).json(body);
 }
-// V1: coach-only endpoint without auth yet.
-// Replace later with real auth (verify ID token + coachUid).
-const V1_COACH_UID = "COACH_V1";
 exports.logArenaHttp = (0, https_1.onRequest)(async (req, res) => {
     return corsMw(req, res, async () => {
         try {
@@ -25,6 +24,11 @@ exports.logArenaHttp = (0, https_1.onRequest)(async (req, res) => {
             // 1) { data: { uid, kind, amount, meta } } (callable-ish)
             // 2) { uid, kind, amount, meta }          (plain)
             const payload = (req.body?.data ?? req.body) || {};
+            const bearer = String(req.headers.authorization || "").replace(/^Bearer\s+/i, "").trim();
+            if (!bearer)
+                throw new https_1.HttpsError("unauthenticated", "Coach authentication required");
+            const decoded = await firebase_admin_1.default.auth().verifyIdToken(bearer);
+            const actor = await (0, staffAuthorization_1.requireActiveStaff)(decoded.uid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
             // IMPORTANT: uid MUST be athlete DOC ID (athletes/{uid})
             const uid = String(payload.uid || "").trim();
             const kind = String(payload.kind || "").trim();
@@ -32,6 +36,7 @@ exports.logArenaHttp = (0, https_1.onRequest)(async (req, res) => {
             const meta = payload.meta ?? {};
             if (!uid)
                 throw new https_1.HttpsError("invalid-argument", "uid required (athlete doc id)");
+            await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, uid);
             if (!kind.startsWith("ARENA/"))
                 throw new https_1.HttpsError("invalid-argument", "kind must start with ARENA/");
             if (!Number.isFinite(amount) || amount <= 0)
@@ -45,7 +50,7 @@ exports.logArenaHttp = (0, https_1.onRequest)(async (req, res) => {
             if (!tournamentId)
                 throw new https_1.HttpsError("invalid-argument", "meta.tournamentId required");
             // ✅ correct signature: (coachUid, payload)
-            const out = await (0, authoritativeXpService_1.dispatchAuthoritativeXp)(V1_COACH_UID, {
+            const out = await (0, authoritativeXpService_1.dispatchAuthoritativeXp)(actor.uid, {
                 uid,
                 kind,
                 amount,

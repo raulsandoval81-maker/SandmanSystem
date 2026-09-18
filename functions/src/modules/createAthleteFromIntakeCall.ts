@@ -1,10 +1,10 @@
 import { HttpsError, onCall } from "firebase-functions/v2/https";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
-import { MANAGEMENT_STAFF_ROLES, requireActiveStaff } from "../services/staffAuthorization";
+import { MANAGEMENT_STAFF_ROLES, requireActiveStaff, requireStaffLocation } from "../services/staffAuthorization";
 
 export const createAthleteFromIntakeCall = onCall(async (req) => {
   if (!req.auth) throw new HttpsError("unauthenticated", "Sign-in required.");
-  await requireActiveStaff(req.auth.uid, MANAGEMENT_STAFF_ROLES, "Active Management access required.");
+  const actor = await requireActiveStaff(req.auth.uid, MANAGEMENT_STAFF_ROLES, "Active Management access required.");
 
   const { intakeId, mint, publicName, team, virtue } = req.data;
   if (!intakeId || !mint?.uid) throw new Error("missing mint data");
@@ -15,6 +15,7 @@ export const createAthleteFromIntakeCall = onCall(async (req) => {
   if (!intakeSnap.exists) throw new Error("intake not found");
 
   const intake = intakeSnap.data() || {};
+  const locationId = requireStaffLocation(actor, intake.locationId, "This intake is outside your authorized location scope.");
   const loc = intake.location || {};
 
   // Detect Foundry 8 reliably (supports multiple field styles)
@@ -33,6 +34,7 @@ export const createAthleteFromIntakeCall = onCall(async (req) => {
     xp: 0,
 
     publicName: `${publicName.initial}. ${publicName.last}`,
+    locationId,
 
     // ✅ intake v2 stores nested location.{team,city,state}
     // keep fallbacks for any legacy intakes

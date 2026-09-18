@@ -45,8 +45,9 @@ exports.xpHttp = (0, https_1.onRequest)((req, res) => {
                 return res.status(401).json({ ok: false, error: "Authentication required" });
             const decoded = await firebase_admin_1.default.auth().verifyIdToken(bearer);
             const coachUid = decoded.uid;
-            await (0, staffAuthorization_1.requireActiveStaff)(coachUid, staffAuthorization_1.OPERATIONAL_STAFF_ROLES, "Active Coach or staff access required.");
             const payload = req.body?.data ?? req.body ?? {};
+            const actor = await (0, staffAuthorization_1.requireActiveStaff)(coachUid, staffAuthorization_1.COACH_STAFF_ROLES, "Active Coach access required.");
+            await (0, staffAuthorization_1.requireCoachAthleteAccessById)(actor, payload.uid);
             // ✅ normalize at the choke point (affects all 4 pages)
             payload.kind = normalizeKind(payload.kind);
             const out = await (0, authoritativeXpService_1.dispatchAuthoritativeXp)(coachUid, payload);
