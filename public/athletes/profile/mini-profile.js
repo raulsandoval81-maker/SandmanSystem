@@ -247,8 +247,30 @@ async function load() {
     }
   );
 
+  const disciplineEntries =
+    Object.entries(A.disciplines || {});
+
+  const matchedDisciplineEntry =
+    disciplineEntries.find(
+      ([key]) =>
+        normalizeDiscipline(key) === activeDiscipline
+    );
+
   const combat =
-    A.disciplines?.[activeDiscipline] || A;
+    matchedDisciplineEntry?.[1] ||
+    (
+      activeDiscipline ===
+      normalizeDiscipline(
+        A.activeDiscipline ||
+        A.primaryDiscipline ||
+        A.discipline ||
+        A.art ||
+        A.sport ||
+        ""
+      )
+        ? A
+        : {}
+    );
 
   const art =
     activeDiscipline ||
