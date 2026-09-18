@@ -752,8 +752,19 @@ const activeDiscipline =
                 "wrestling"
               );
 
+const rootDiscipline =
+  normalizeDiscipline(
+    a.discipline ||
+    a.primaryDiscipline ||
+    a.art ||
+    a.sport ||
+    ""
+  );
+
 const combat =
-  a.disciplines?.[activeDiscipline] || a;
+  activeDiscipline === rootDiscipline
+    ? a
+    : (a.disciplines?.[activeDiscipline] || {});
 
 function formatDisciplineLabel(value) {
   const labels = {
@@ -1019,12 +1030,14 @@ if (
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
-    a.xp ??
     combat.xp ??
     combat.xpTotal ??
     combat.xpCombat ??
-    (xpDaily + xpArena + xpFightIQ) ??
-    0
+    (
+      activeDiscipline === rootDiscipline
+        ? xpDaily + xpArena + xpFightIQ
+        : 0
+    )
   );
 
   if (viewMode === "coach" || viewMode === "full") {
