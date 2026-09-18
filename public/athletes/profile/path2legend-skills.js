@@ -1,4 +1,7 @@
 import {
+  db,
+  doc,
+  getDoc,
   functions,
   httpsCallable,
   ensureSignedIn
@@ -7,13 +10,16 @@ import {
 const container =
   document.getElementById("canonicalSkills");
 
+const lane =
+  document.getElementById("skillsLane");
+
 const getAthleteSkillsSummaryCall =
   httpsCallable(
     functions,
     "getAthleteSkillsSummary"
   );
 
-if (container) {
+if (container && lane) {
   const params =
     new URLSearchParams(window.location.search);
 
@@ -29,6 +35,13 @@ if (container) {
     REFINED: "Refined",
   });
 
+  function normalizeDiscipline(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .replace(/[\s_]+/g, "-");
+  }
+
   function esc(value) {
     return String(value ?? "")
       .replaceAll("&", "&amp;")
@@ -37,15 +50,97 @@ if (container) {
       .replaceAll('"', "&quot;");
   }
 
+  function resolveActiveDiscipline(athlete) {
+    const disciplineIds = Array.from(
+      new Set(
+        [
+          ...(Array.isArray(athlete.disciplineIds)
+            ? athlete.disciplineIds
+            : []),
+
+          ...Object.keys(athlete.disciplines || {}),
+
+          athlete.activeDiscipline,
+          athlete.primaryDiscipline,
+          athlete.discipline,
+          athlete.art,
+          athlete.sport
+        ]
+          .map(normalizeDiscipline)
+          .filter(Boolean)
+      )
+    );
+
+    const requestedDiscipline =
+      normalizeDiscipline(
+        params.get("discipline") ||
+        localStorage.getItem(
+          `sandman_active_discipline_${athleteId}`
+        ) ||
+        ""
+      );
+
+    const preferredDiscipline =
+      normalizeDiscipline(
+        athlete.activeDiscipline ||
+        athlete.primaryDiscipline ||
+        athlete.discipline ||
+        athlete.art ||
+        athlete.sport ||
+        ""
+      );
+
+    if (disciplineIds.length === 1) {
+      return disciplineIds[0];
+    }
+
+    if (
+      requestedDiscipline &&
+      disciplineIds.includes(requestedDiscipline)
+    ) {
+      return requestedDiscipline;
+    }
+
+    if (
+      preferredDiscipline &&
+      disciplineIds.includes(preferredDiscipline)
+    ) {
+      return preferredDiscipline;
+    }
+
+    return disciplineIds[0] || "wrestling";
+  }
+
   async function renderSkills() {
+    lane.hidden = true;
+
     if (!athleteId) {
-      container.innerHTML =
-        '<p class="muted">No athlete selected.</p>';
       return;
     }
 
     try {
       await ensureSignedIn();
+
+      const athleteSnap =
+        await getDoc(
+          doc(db, "athletes", athleteId)
+        );
+
+      if (!athleteSnap.exists()) {
+        return;
+      }
+
+      const athlete =
+        athleteSnap.data() || {};
+
+      const activeDiscipline =
+        resolveActiveDiscipline(athlete);
+
+      if (activeDiscipline !== "wrestling") {
+        return;
+      }
+
+      lane.hidden = false;
 
       const result =
         await getAthleteSkillsSummaryCall({
@@ -95,6 +190,8 @@ if (container) {
         "[path2legend-skills] load failed",
         error
       );
+
+      lane.hidden = false;
 
       container.innerHTML =
         '<p class="muted">Skills are unavailable right now.</p>';
