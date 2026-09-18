@@ -877,15 +877,8 @@ if (reviewMode) setAllDrops(true);
   const cityTxt = (a.city || "").trim();
   const stateTxt = (a.state || "").trim();
 
-  const legacySandmanTeams = new Set([
-    "Lompoc Academy of Wrestling",
-    "Solvang Academy"
-  ]);
-
   const teamName =
-    legacySandmanTeams.has(rawTeam)
-      ? "Sandman Combat"
-      : rawTeam || "Sandman Combat";
+    rawTeam || "Sandman Combat";
 
   const disciplineName = ({
     wrestling: "Wrestling",

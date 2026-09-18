@@ -424,15 +424,8 @@ if (art === "muay-thai") {
       "Sandman Combat"
     ).trim();
 
-  const legacySandmanTeams = new Set([
-    "Lompoc Academy of Wrestling",
-    "Solvang Academy"
-  ]);
-
   const teamName =
-    legacySandmanTeams.has(rawTeam)
-      ? "Sandman Combat"
-      : rawTeam || "Sandman Combat";
+    rawTeam || "Sandman Combat";
 
   const team =
     `${teamName} · ${formatDisciplineLabel(activeDiscipline)}`;
