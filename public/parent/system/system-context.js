@@ -15,13 +15,7 @@ const disciplineField = $("systemDisciplineField");
 const disciplineSelect = $("systemDisciplineSelect");
 const disciplineNotice = $("systemDisciplineNotice");
 const getMyAthlete = httpsCallable(functions, "getMyAthlete");
-const ACTIVE_PARENT_SYSTEM_DISCIPLINES = Object.freeze([
-  "wrestling",
-  "boxing",
-  "muay-thai",
-  "submission-grappling",
-  "mma"
-]);
+const ACTIVE_PARENT_SYSTEM_DISCIPLINES = Object.freeze(["wrestling", "boxing", "muay-thai"]);
 
 let authorizedAthletes = [];
 let selectedAthlete = null;

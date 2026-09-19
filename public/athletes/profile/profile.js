@@ -1038,15 +1038,18 @@ if (
   const xpFightIQ = Number(a.xpFightIQ ?? 0);
 
   const combatXp = Number(
-    combat.xp ??
-    combat.xpTotal ??
-    combat.xpCombat ??
-    (
-      activeDiscipline === rootDiscipline
-        ? xpDaily + xpArena + xpFightIQ
-        : 0
-    )
+    activeDiscipline === rootDiscipline
+      ? (a.xp ?? 0)
+      : (
+          combat.xp ??
+          combat.xpTotal ??
+          combat.xpCombat ??
+          0
+        )
   );
+
+  const historicalCombatXp =
+    xpDaily + xpArena + xpFightIQ;
 
   if (viewMode === "coach" || viewMode === "full") {
     safeText("xp-daily", xpDaily, "0");
