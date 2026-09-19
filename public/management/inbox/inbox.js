@@ -4,6 +4,7 @@ import {
   functions,
   httpsCallable,
   collection,
+  deleteDoc,
   doc,
   getDocs,
   orderBy,
@@ -1116,6 +1117,68 @@ async function closeManagementMessage() {
 }
 
 
+async function deleteManagementMessage() {
+  if (!selectedMessage || !managementContext) {
+    setFormStatus("Select a message first.", "error");
+    return;
+  }
+
+  const messageId = selectedMessage.id;
+  const contactName = clean(selectedMessage.contactName) || "this contact";
+  const topic = clean(selectedMessage.topic) || "this message";
+
+  const confirmed = window.confirm(
+    `Permanently delete this message?\n\n${contactName}\n${topic}\n\nThis cannot be undone.`
+  );
+
+  if (!confirmed) return;
+
+  const button =
+    document.getElementById("deleteMessageButton");
+
+  if (button) button.disabled = true;
+
+  setFormStatus("Deleting message...");
+
+  try {
+    await deleteDoc(
+      doc(
+        db,
+        "general_messages",
+        messageId
+      )
+    );
+
+    selectedMessage = null;
+
+    await loadInbox();
+
+    setFormStatus(
+      "Message permanently deleted.",
+      "success"
+    );
+  } catch (error) {
+    console.error(
+      "[management-inbox] delete failed:",
+      error
+    );
+
+    setFormStatus(
+      error?.message ||
+      "The message could not be deleted.",
+      "error"
+    );
+  } finally {
+    const currentButton =
+      document.getElementById("deleteMessageButton");
+
+    if (currentButton) {
+      currentButton.disabled = false;
+    }
+  }
+}
+
+
 async function collectPassPayment() {
   if (!selectedMessage) {
     setFormStatus("Select a pass request first.", "error");
@@ -1473,6 +1536,15 @@ document
     "click",
     () => {
       void closeManagementMessage();
+    }
+  );
+
+document
+  .getElementById("deleteMessageButton")
+  ?.addEventListener(
+    "click",
+    () => {
+      void deleteManagementMessage();
     }
   );
 
