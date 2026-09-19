@@ -24,7 +24,21 @@
     rel="stylesheet"
     href="./interest.css"
   />
-  </head>
+    <!-- ELK GROVE PAUSED -->
+  <script>
+    (() => {
+      const requestedLocation =
+        new URLSearchParams(window.location.search)
+          .get("location")
+          ?.trim()
+          .toLowerCase();
+
+      if (requestedLocation === "elk-grove") {
+        window.location.replace("/locations/");
+      }
+    })();
+  </script>
+</head>
 
 <body>
 
