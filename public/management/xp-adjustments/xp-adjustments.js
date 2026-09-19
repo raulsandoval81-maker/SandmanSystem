@@ -124,7 +124,6 @@ function disciplineLabel(value) {
     wrestling: "Wrestling",
     boxing: "Boxing",
     "muay-thai": "Muay Thai",
-    kickboxing: "Kickboxing",
     mma: "MMA",
     "submission-grappling": "Submission Grappling"
   })[value] ||

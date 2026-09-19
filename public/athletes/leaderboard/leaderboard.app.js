@@ -69,8 +69,13 @@ function normalizeDiscipline(value = "") {
       .trim()
       .toLowerCase();
 
-  if (raw.includes("kickbox")) {
-    return "kickboxing";
+  if (
+    raw.includes("muay thai") ||
+    raw.includes("muay-thai") ||
+    raw.includes("muaythai") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
   }
 
   if (
@@ -102,7 +107,7 @@ function disciplineLabel(value = "") {
   const labels = {
     wrestling: "Wrestling",
     boxing: "Boxing",
-    kickboxing: "Kickboxing",
+    "muay-thai": "Muay Thai",
     mma: "MMA",
     "submission-grappling":
       "Submission Grappling"

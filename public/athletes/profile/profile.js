@@ -42,7 +42,15 @@ function normalizeDiscipline(value = "") {
     .trim()
     .toLowerCase();
 
-  if (raw.includes("kickbox")) return "kickboxing";
+  if (
+    raw.includes("muay thai") ||
+    raw.includes("muay-thai") ||
+    raw.includes("muaythai") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
+  }
+
   if (raw.includes("wrest")) return "wrestling";
   if (raw.includes("box")) return "boxing";
 
@@ -770,7 +778,7 @@ function formatDisciplineLabel(value) {
   const labels = {
     wrestling: "Wrestling",
     boxing: "Boxing",
-    kickboxing: "Kickboxing",
+    "muay-thai": "Muay Thai",
     mma: "MMA",
     "submission-grappling": "Submission Grappling"
   };
@@ -886,10 +894,10 @@ switch (art) {
       `🥊 Combat-Boxing · ${journeyLabel}`;
     break;
 
-  case "kickboxing":
-    combatArcLabel =
-      `🥊 Combat-Kickboxing · ${journeyLabel}`;
-    break;
+case "muay-thai":
+  combatArcLabel =
+    `🥊 Combat-Muay Thai · ${journeyLabel}`;
+  break;
 
   case "mma":
     combatArcLabel =
@@ -937,13 +945,13 @@ if (
 
   if (art === "boxing") {
     path2LegendTitle = "🥊 Boxing · Path2Legend";
-  } else if (art === "kickboxing") {
-    path2LegendTitle = "🥊 Kickboxing · Path2Legend";
-  } else if (
-    art === "submission-grappling" ||
-    art === "submission grappling"
-  ) {
-    path2LegendTitle = "🤼 Submission Grappling · Path2Legend";
+} else if (art === "muay-thai") {
+  path2LegendTitle = "🥊 Muay Thai · Path2Legend";
+} else if (
+  art === "submission-grappling" ||
+  art === "submission grappling"
+) {
+  path2LegendTitle = "🤼 Submission Grappling · Path2Legend";
   } else if (art === "mma") {
     path2LegendTitle = "🥋 MMA · Path2Legend";
   }
@@ -1097,7 +1105,7 @@ if (badgeRow) {
   badgeRow.innerHTML = "";
 
   const P2L_V3_BADGES = {
-    t0: art === "boxing" || art === "kickboxing"
+    t0: art === "boxing" || art === "muay-thai"
       ? "apprentice-gray-v3.png"
       : "apprentice-white-v3.png",
     t1: "warrior-blue-v3.png",
@@ -1163,7 +1171,7 @@ if (badgeRow) {
 
 const isStriking =
   art === "boxing" ||
-  art === "kickboxing";
+ art === "muay-thai";
 
 const currentTier =
   String(combat.tier || "T0").toUpperCase();

@@ -208,10 +208,12 @@ function prettyArtName(art = "") {
     case "wrestling":
       return "Wrestling";
 
+    case "muay-thai":
     case "kickboxing":
-      return "Kickboxing";
+      return "Muay Thai";
 
     case "grappling":
+    case "submission-grappling":
       return "Submission Grappling";
 
     default:

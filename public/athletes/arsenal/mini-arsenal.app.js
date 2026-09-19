@@ -48,8 +48,13 @@ function normalizeDiscipline(value = "") {
     .trim()
     .toLowerCase();
 
-  if (raw.includes("kickbox")) {
-    return "kickboxing";
+  if (
+    raw.includes("muay thai") ||
+    raw.includes("muay-thai") ||
+    raw.includes("muaythai") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
   }
 
   if (raw.includes("wrest")) {
@@ -80,7 +85,7 @@ function normalizeDiscipline(value = "") {
 function disciplineLabel(value = "") {
   const labels = {
     wrestling: "Wrestling",
-    kickboxing: "Kickboxing",
+    "muay-thai": "Muay Thai",
     boxing: "Boxing",
     mma: "MMA",
     "submission-grappling":
@@ -246,7 +251,7 @@ function getYouthCombatRoute(
     wrestling:
       "/athletes/arsenal/combat/z2h/wrestling/index.html",
 
-    kickboxing:
+    "muay-thai":
       "/athletes/arsenal/combat/z2h/kickboxing/index.html",
 
     /*

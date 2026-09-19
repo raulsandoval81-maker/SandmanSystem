@@ -47,7 +47,15 @@ function normalizeDiscipline(value = "") {
     .trim()
     .toLowerCase();
 
-  if (raw.includes("kickbox")) return "kickboxing";
+  if (
+    raw.includes("muay thai") ||
+    raw.includes("muay-thai") ||
+    raw.includes("muaythai") ||
+    raw.includes("kickbox")
+  ) {
+    return "muay-thai";
+  }
+
   if (raw.includes("wrest")) return "wrestling";
   if (raw.includes("box")) return "boxing";
 
@@ -72,23 +80,22 @@ function disciplineLabel(value = "") {
   const labels = {
     wrestling: "Wrestling",
     boxing: "Boxing",
-    kickboxing: "Kickboxing",
+    "muay-thai": "Muay Thai",
     mma: "MMA",
-    "submission-grappling":
-      "Submission Grappling"
+    "submission-grappling": "Submission Grappling"
   };
 
-  const normalized =
-    normalizeDiscipline(value);
+  const normalized = normalizeDiscipline(value);
 
   return (
     labels[normalized] ||
     normalized
       .split("-")
       .filter(Boolean)
-      .map((part) =>
-        part.charAt(0).toUpperCase() +
-        part.slice(1)
+      .map(
+        (part) =>
+          part.charAt(0).toUpperCase() +
+          part.slice(1)
       )
       .join(" ") ||
     "Combat"
@@ -1170,7 +1177,7 @@ function beltColorForAthlete(
 
   const isStriking =
     normalized === "boxing" ||
-    normalized === "kickboxing";
+    normalized === "muay-thai";
 
   const p2lBelts = {
     apprentice:
