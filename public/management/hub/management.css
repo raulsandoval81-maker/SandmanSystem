@@ -605,3 +605,65 @@ a {
     margin-bottom: 32px;
   }
 }
+
+/* =========================================================
+   MANAGEMENT MOBILE HARDENING
+   Keep Management workspace containers inside the phone viewport
+   without overriding intentionally scrollable tables.
+========================================================= */
+
+@media (max-width: 820px) {
+
+  html,
+  body,
+  .management-shell,
+  .management-main,
+  .management-page-content,
+  .management-wrap {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .management-main,
+  .management-page-content,
+  .management-page-content > main,
+  .management-page-content > header,
+  .management-page-content > footer,
+  .management-wrap {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .management-page-content {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .management-card,
+  .scope-card,
+  .queue-panel,
+  .detail-panel,
+  .summary-card,
+  .toolbar,
+  .lead-card,
+  .request-card,
+  .appointment-card,
+  .info-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  img,
+  svg,
+  canvas,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  input,
+  select,
+  textarea {
+    max-width: 100%;
+  }
+}
