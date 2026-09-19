@@ -108,6 +108,18 @@ export const SANDMAN_PRICING_CATALOG = {
   },
 
   enrollment: {
+    youth: {
+      amount: 50,
+      lookup:
+        "sandman_academy-2026-v3_enrollment_youth_annual"
+    },
+
+    adult: {
+      amount: 25,
+      lookup:
+        "sandman_academy-2026-v3_enrollment_adult_annual"
+    },
+
     family1: {
       amount: 50,
       lookup:

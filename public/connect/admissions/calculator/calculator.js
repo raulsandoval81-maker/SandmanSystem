@@ -543,6 +543,10 @@ const extras = {
 
       newCard.querySelector(".athlete-name").value=defaults.name||"";
       newCard.querySelector(".journey").value=defaults.journey||"zero2hero";
+      newCard.querySelector(".enrollment-type").value =
+        defaults.enrollmentType === "adult"
+          ? "adult"
+          : "youth";
       newCard.querySelector(".athlete-plan").value =
         defaults.plan === "fitness"
           ? "fitness"
@@ -620,6 +624,10 @@ const extras = {
           index:index+1,
           name:card.querySelector(".athlete-name").value.trim()||`Athlete ${index+1}`,
           journey:card.querySelector(".journey").value,
+          enrollmentType:
+            card.querySelector(
+              ".enrollment-type"
+            ).value,
           plan:
             card.querySelector(
               ".athlete-plan"
@@ -642,25 +650,23 @@ const extras = {
     }
 
     function annualEnrollmentPackageAmount(
-      registrationCount
+      athletes
     ) {
-      if (registrationCount === 4) {
-        return PRICING.enrollment.family4.amount;
-      }
+      return athletes.reduce(
+        (total, athlete) => {
+          if (athlete.plan === "fitness") {
+            return total;
+          }
 
-      if (registrationCount === 3) {
-        return PRICING.enrollment.family3.amount;
-      }
+          const amount =
+            athlete.enrollmentType === "adult"
+              ? PRICING.enrollment.adult.amount
+              : PRICING.enrollment.youth.amount;
 
-      if (registrationCount === 2) {
-        return PRICING.enrollment.family2.amount;
-      }
-
-      if (registrationCount === 1) {
-        return PRICING.enrollment.family1.amount;
-      }
-
-      return 0;
+          return total + amount;
+        },
+        0
+      );
     }
 
     function localIsoDate(date = new Date()) {
@@ -771,8 +777,12 @@ const extras = {
     function enrollmentPackageLabel(
       registrationCount
     ) {
-      if (registrationCount < 1 || registrationCount > 4) {
+      if (registrationCount < 1) {
         return "Annual Enrollment Package";
+      }
+
+      if (registrationCount >= 4) {
+        return "Family of 4+ Annual Enrollment Package";
       }
 
       return `Family of ${registrationCount} Annual Enrollment Package`;
@@ -781,8 +791,12 @@ const extras = {
     function renewalPackageLabel(
       registrationCount
     ) {
-      if (registrationCount < 1 || registrationCount > 4) {
+      if (registrationCount < 1) {
         return "Next Annual Enrollment Package";
+      }
+
+      if (registrationCount >= 4) {
+        return "Family of 4+ Annual Enrollment Package";
       }
 
       return `Family of ${registrationCount} Annual Enrollment Package`;
@@ -854,7 +868,7 @@ const extras = {
 
       const enrollmentBase =
         annualEnrollmentPackageAmount(
-          registrationCount
+          athletes
         );
 
       /*
@@ -1375,6 +1389,8 @@ const extras = {
           },
 
           enrollmentPackages: {
+            youth: 50,
+            adult: 25,
             family1: 50,
             family2: 100,
             family3: 150,
@@ -1386,6 +1402,7 @@ const extras = {
           athleteTerms: athletes.map((athlete) => ({
             index: athlete.index,
             name: athlete.name,
+            enrollmentType: athlete.enrollmentType,
             billingTerm: athlete.billingTerm
           }))
         },
