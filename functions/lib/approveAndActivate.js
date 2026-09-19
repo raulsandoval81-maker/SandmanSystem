@@ -136,9 +136,15 @@ function validateEnrollmentAuthority(intakeData) {
         return;
     }
     if (audience === "parent_guardian") {
-        if (signerType !== "parent_guardian" ||
-            signingAuthority !==
-                "guardian_for_athlete") {
+        const hasSignerType = Boolean(signerType);
+        const hasSigningAuthority = Boolean(signingAuthority);
+        const isLegacySignedParentIntake = !hasSignerType &&
+            !hasSigningAuthority;
+        const isCurrentValidParentIntake = signerType === "parent_guardian" &&
+            signingAuthority ===
+                "guardian_for_athlete";
+        if (!isLegacySignedParentIntake &&
+            !isCurrentValidParentIntake) {
             throw new https_1.HttpsError("failed-precondition", "Parent or guardian signer authority is invalid");
         }
         return;

@@ -208,10 +208,24 @@ function validateEnrollmentAuthority(
   }
 
   if (audience === "parent_guardian") {
+    const hasSignerType =
+      Boolean(signerType);
+
+    const hasSigningAuthority =
+      Boolean(signingAuthority);
+
+    const isLegacySignedParentIntake =
+      !hasSignerType &&
+      !hasSigningAuthority;
+
+    const isCurrentValidParentIntake =
+      signerType === "parent_guardian" &&
+      signingAuthority ===
+        "guardian_for_athlete";
+
     if (
-      signerType !== "parent_guardian" ||
-      signingAuthority !==
-        "guardian_for_athlete"
+      !isLegacySignedParentIntake &&
+      !isCurrentValidParentIntake
     ) {
       throw new HttpsError(
         "failed-precondition",
