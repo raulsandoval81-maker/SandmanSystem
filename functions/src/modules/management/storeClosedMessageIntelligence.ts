@@ -5,7 +5,12 @@ import {
 } from "firebase-admin/firestore";
 import { assertPassReadyToClose, passIntelligenceSummary } from "./managementPassClosePolicy";
 import { assertManagementPassMessage } from "./managementPassCheckoutPolicy";
-import { MANAGEMENT_STAFF_ROLES, requireActiveStaff } from "../../services/staffAuthorization";
+import {
+  MANAGEMENT_STAFF_ROLES,
+  normalizeStaffRole,
+  requireActiveStaff,
+  requireStaffLocation,
+} from "../../services/staffAuthorization";
 
 const db = getFirestore();
 
@@ -36,31 +41,21 @@ export const storeClosedMessageIntelligence =
 
 export async function closeManagementMessageById(messageId: string, uid: string) {
 
-    const staffSnap =
-      await db.collection("staff").doc(uid).get();
-
-    const staff = staffSnap.data() || {};
-    const role = clean(staff.role).toLowerCase();
-    const status = clean(staff.status).toLowerCase();
-
-    const isAdmin =
-      role === "admin" ||
-      role === "system_admin";
-
-    const isManagement =
-      role === "management" ||
-      role === "manager" ||
-      role === "location_manager";
-
-    if (
-      status !== "active" ||
-      (!isAdmin && !isManagement)
-    ) {
-      throw new functions.https.HttpsError(
-        "permission-denied",
+    const actor =
+      await requireActiveStaff(
+        uid,
+        MANAGEMENT_STAFF_ROLES,
         "Management access required."
       );
-    }
+
+    const staff = actor.staff;
+    const role = normalizeStaffRole(actor.role);
+
+    const isAdmin =
+      role === "admin";
+
+    const isManagement =
+      role === "management";
 
     const messageRef =
       db.collection("general_messages").doc(messageId);
@@ -84,20 +79,11 @@ export async function closeManagementMessageById(messageId: string, uid: string)
       clean(message.locationId);
 
     if (isManagement && !isAdmin && !passActor) {
-      const locationIds =
-        Array.isArray(staff.locationIds)
-          ? staff.locationIds.map(clean)
-          : [];
-
-      if (
-        !locationId ||
-        !locationIds.includes(locationId)
-      ) {
-        throw new functions.https.HttpsError(
-          "permission-denied",
-          "Message is outside Management scope."
-        );
-      }
+      requireStaffLocation(
+        actor,
+        locationId,
+        "Message is outside Management scope."
+      );
     }
 
     const intelligenceRef =

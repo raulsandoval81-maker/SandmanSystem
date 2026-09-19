@@ -55,19 +55,11 @@ exports.storeClosedMessageIntelligence = functions.https.onCall(async (data, con
     return closeManagementMessageById(messageId, context.auth.uid);
 });
 async function closeManagementMessageById(messageId, uid) {
-    const staffSnap = await db.collection("staff").doc(uid).get();
-    const staff = staffSnap.data() || {};
-    const role = clean(staff.role).toLowerCase();
-    const status = clean(staff.status).toLowerCase();
-    const isAdmin = role === "admin" ||
-        role === "system_admin";
-    const isManagement = role === "management" ||
-        role === "manager" ||
-        role === "location_manager";
-    if (status !== "active" ||
-        (!isAdmin && !isManagement)) {
-        throw new functions.https.HttpsError("permission-denied", "Management access required.");
-    }
+    const actor = await (0, staffAuthorization_1.requireActiveStaff)(uid, staffAuthorization_1.MANAGEMENT_STAFF_ROLES, "Management access required.");
+    const staff = actor.staff;
+    const role = (0, staffAuthorization_1.normalizeStaffRole)(actor.role);
+    const isAdmin = role === "admin";
+    const isManagement = role === "management";
     const messageRef = db.collection("general_messages").doc(messageId);
     const messageSnap = await messageRef.get();
     if (!messageSnap.exists) {
@@ -79,13 +71,7 @@ async function closeManagementMessageById(messageId, uid) {
         : null;
     const locationId = clean(message.locationId);
     if (isManagement && !isAdmin && !passActor) {
-        const locationIds = Array.isArray(staff.locationIds)
-            ? staff.locationIds.map(clean)
-            : [];
-        if (!locationId ||
-            !locationIds.includes(locationId)) {
-            throw new functions.https.HttpsError("permission-denied", "Message is outside Management scope.");
-        }
+        (0, staffAuthorization_1.requireStaffLocation)(actor, locationId, "Message is outside Management scope.");
     }
     const intelligenceRef = db
         .collection("management_intelligence")

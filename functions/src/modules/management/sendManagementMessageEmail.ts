@@ -8,6 +8,13 @@ import {
   getResendClient,
 } from "../email/resend";
 
+import {
+  MANAGEMENT_STAFF_ROLES,
+  normalizeStaffRole,
+  requireActiveStaff,
+  requireStaffLocation,
+} from "../../services/staffAuthorization";
+
 function clean(value: unknown): string {
   return String(value ?? "").trim();
 }
@@ -43,13 +50,22 @@ function displayTopic(value: unknown): string {
 function displayPass(value: unknown): string {
   const passType = clean(value);
 
-  const labels: Record<string, string> = {
-    combat_dropin_1day: "Combat — 1 Day Pass — $25",
-    combat_dropin_2day: "Combat — 2 Day Pass — $40",
-    fitness_dropin: "Fitness — 1 Day Drop-In — $15",
+  const aliases: Record<string, string> = {
+    combat_dropin_1day: "combat-dropin-1day",
+    combat_dropin_2day: "combat-dropin-2day",
+    fitness_dropin: "fitness-dropin",
   };
 
-  return labels[passType] || "";
+  const normalized =
+    aliases[passType] || passType;
+
+  const labels: Record<string, string> = {
+    "combat-dropin-1day": "Combat — 1 Day Pass — $25",
+    "combat-dropin-2day": "Combat — 2 Day Pass — $40",
+    "fitness-dropin": "Fitness — 1 Day Drop-In — $15",
+  };
+
+  return labels[normalized] || "";
 }
 
 function buildEmail(input: {
@@ -212,43 +228,21 @@ export const sendManagementMessageEmail =
       const uid =
         context.auth.uid;
 
-      const staffSnapshot =
-        await db.collection("staff").doc(uid).get();
-
-      if (!staffSnapshot.exists) {
-        throw new functions.https.HttpsError(
-          "permission-denied",
+      const actor =
+        await requireActiveStaff(
+          uid,
+          MANAGEMENT_STAFF_ROLES,
           "Active Management access is required."
         );
-      }
 
-      const staff =
-        staffSnapshot.data() || {};
+      const staff: Record<string, unknown> =
+        actor.staff;
 
       const role =
-        clean(staff.role).toLowerCase();
-
-      const status =
-        clean(staff.status).toLowerCase();
+        normalizeStaffRole(actor.role);
 
       const adminRoles =
-        ["admin", "system_admin"];
-
-      const managementRoles =
-        ["management", "manager", "location_manager"];
-
-      if (
-        status != "active" ||
-        (
-          !adminRoles.includes(role) &&
-          !managementRoles.includes(role)
-        )
-      ) {
-        throw new functions.https.HttpsError(
-          "permission-denied",
-          "Active Management access is required."
-        );
-      }
+        ["admin"];
 
       const messageRef =
         db.collection("general_messages").doc(messageId);
@@ -267,24 +261,11 @@ export const sendManagementMessageEmail =
         messageSnapshot.data() || {};
 
       const locationId =
-        clean(message.locationId);
-
-      if (!adminRoles.includes(role)) {
-        const locationIds =
-          Array.isArray(staff.locationIds)
-            ? staff.locationIds.map(clean)
-            : [];
-
-        if (
-          !locationId ||
-          !locationIds.includes(locationId)
-        ) {
-          throw new functions.https.HttpsError(
-            "permission-denied",
-            "This message is outside your Management location scope."
-          );
-        }
-      }
+        requireStaffLocation(
+          actor,
+          message.locationId,
+          "This message is outside your Management location scope."
+        );
 
       const recipient =
         clean(message.email).toLowerCase();
@@ -298,8 +279,8 @@ export const sendManagementMessageEmail =
 
       const senderName =
         clean(
-          staff.fullName ||
-          staff.displayName ||
+          staff["fullName"] ||
+          staff["displayName"] ||
           context.auth.token.name ||
           "Sandman Management"
         );
