@@ -363,6 +363,8 @@
       </div>
     </section>
 
+    <section id="athleteStatusGrid" class="athlete-status-grid" aria-label="Current progression status" hidden></section>
+
     <section class="athlete-journey-grid" aria-label="Your Athlete journey">
       <div class="athlete-journey-card athlete-status-card" id="journeyProgress">
         <span>Your Journey</span>
@@ -383,6 +385,8 @@
 <script type="module">
 import { LADDER_F8 } from "/assets/js/ladder.service.js";
 import {
+  loadAthleteDashboard,
+  renderAthleteDashboard,
   resolveSignedInAthlete,
 } from "/assets/js/athlete-dashboard-data.js";
 
@@ -438,6 +442,21 @@ async function load(){
   }
 
   setLinks(finalId);
+
+  try {
+    const dashboard = await loadAthleteDashboard({
+      athleteId: finalId,
+      athlete: A
+    });
+
+    renderAthleteDashboard(
+      $("athleteStatusGrid"),
+      dashboard,
+      finalId
+    );
+  } catch (error) {
+    console.error("Athlete dashboard status failed:", error);
+  }
 
   const combat =
     A.disciplines?.[A.activeDiscipline] ||
