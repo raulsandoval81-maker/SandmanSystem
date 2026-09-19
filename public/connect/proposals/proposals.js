@@ -223,7 +223,7 @@ function labelForProgram(value = "") {
 function labelForJourney(value = "") {
   const labels = {
     zero2hero:
-      "Zero2Hero",
+      "Road2Champion",
 
     path2legend:
       "Path2Legend",
@@ -450,28 +450,77 @@ function proposalQueueStyles() {
     .proposal-queue-counts{
       display:grid;
       grid-template-columns:
-        repeat(4,minmax(110px,1fr));
-      gap:8px;
+        repeat(4,minmax(118px,1fr));
+      gap:10px;
+      width:min(100%,620px);
     }
 
     .proposal-count{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      min-height:44px;
-      padding:9px 12px;
+      display:grid;
+      gap:3px;
+      min-height:66px;
+      padding:11px 13px;
       border:1px solid var(--management-border);
-      border-radius:11px;
+      border-radius:12px;
       background:var(--management-surface);
       color:var(--management-text);
-      font-size:.82rem;
-      font-weight:800;
-      white-space:nowrap;
+    }
+
+    .proposal-count strong{
+      font-size:1.22rem;
+      line-height:1;
+    }
+
+    .proposal-count small{
+      color:var(--management-muted);
+      font-size:.68rem;
+      font-weight:850;
+      letter-spacing:.045em;
+      line-height:1.25;
+      text-transform:uppercase;
+    }
+
+    .proposal-count--attention{
+      border-color:#dcc77f;
+      background:var(--management-gold-soft);
+    }
+
+    .proposal-count--ready{
+      border-color:#a9d0b7;
+      background:var(--management-success-soft);
     }
 
     .proposal-group{
       display:grid;
       gap:14px;
+      padding-top:4px;
+    }
+
+    .proposal-group.is-empty{
+      gap:9px;
+      opacity:.82;
+    }
+
+    .proposal-group.is-empty .proposal-empty{
+      padding:10px 12px;
+      border-style:solid;
+      border-color:var(--management-border);
+      background:transparent;
+      font-size:.82rem;
+    }
+
+    .proposal-group[data-group="REVIEW_APPROVE"]:not(.is-empty){
+      padding:16px;
+      border:1px solid #dcc77f;
+      border-radius:16px;
+      background:var(--management-gold-soft);
+    }
+
+    .proposal-group[data-group="CHECKOUT_ENROLLMENT"]:not(.is-empty){
+      padding:16px;
+      border:1px solid var(--management-border);
+      border-radius:16px;
+      background:var(--management-surface-soft);
     }
 
     .proposal-group-head{
@@ -560,11 +609,23 @@ function proposalQueueStyles() {
       text-transform:uppercase;
     }
 
+    .proposal-card[data-status="PAID"]{
+      border-color:#a9d0b7;
+      box-shadow:
+        0 10px 26px rgba(40,32,15,.07);
+    }
+
     .proposal-card[data-status="PAID"]
       .proposal-status{
       border-color:#a9d0b7;
       background:var(--management-success-soft);
       color:var(--management-success);
+    }
+
+    .proposal-card[data-status="PAID"]
+      .proposal-open-btn{
+      min-height:46px;
+      padding-inline:20px;
     }
 
     .proposal-card[data-status="APPROVED"]
@@ -641,7 +702,22 @@ function proposalQueueStyles() {
     .proposal-card-actions{
       display:flex;
       gap:10px;
+      align-items:center;
       flex-wrap:wrap;
+    }
+
+    .proposal-delete-test-btn{
+      margin-left:auto;
+      border-color:var(--management-border-strong);
+      background:transparent;
+      color:var(--management-muted);
+    }
+
+    .proposal-delete-test-btn:hover,
+    .proposal-delete-test-btn:focus-visible{
+      border-color:var(--management-danger);
+      background:var(--management-danger-soft);
+      color:var(--management-danger);
     }
 
     .proposal-open-btn{
@@ -1147,21 +1223,10 @@ const proposalGroups = [
       "REVIEW_APPROVE",
 
     title:
-      "Review & Approve",
+      "Needs Action",
 
     description:
-      "Issue family review, manage requested changes, and approve signed proposals."
-  },
-
-  {
-    key:
-      "DRAFT",
-
-    title:
-      "Drafts",
-
-    description:
-      "Working proposals that have not yet been submitted."
+      "Family proposals waiting for review, changes, signature, or approval."
   },
 
   {
@@ -1173,6 +1238,17 @@ const proposalGroups = [
 
     description:
       "Approved checkout, payment, and paid-family enrollment handoff."
+  },
+
+  {
+    key:
+      "DRAFT",
+
+    title:
+      "Drafts",
+
+    description:
+      "Working proposals that have not yet been submitted."
   },
 
   {
@@ -1225,12 +1301,12 @@ async function loadProposalQueue() {
     <div class="proposal-queue-header">
       <div>
         <h2>
-          Review &amp; Approve
+          Proposal Workflow
         </h2>
 
         <p>
-          Issue family reviews, manage requested changes,
-          approve signed proposals, and continue checkout.
+          See what needs attention now and move each family
+          to its next approved step.
         </p>
       </div>
 
@@ -1381,23 +1457,23 @@ async function loadProposalQueue() {
   if (countsEl) {
     countsEl.innerHTML = `
       <span class="proposal-count">
-        ${proposals.length}
-        Total
+        <strong>${proposals.length}</strong>
+        <small>Active Records</small>
+      </span>
+
+      <span class="proposal-count proposal-count--attention">
+        <strong>${counts.REVIEW_APPROVE}</strong>
+        <small>Needs Review</small>
       </span>
 
       <span class="proposal-count">
-        ${counts.REVIEW_APPROVE}
-        Review & Approve
+        <strong>${counts.DRAFT}</strong>
+        <small>Drafts</small>
       </span>
 
-      <span class="proposal-count">
-        ${counts.DRAFT}
-        Draft
-      </span>
-
-      <span class="proposal-count">
-        ${counts.CHECKOUT_ENROLLMENT}
-        Checkout & Enrollment
+      <span class="proposal-count proposal-count--ready">
+        <strong>${counts.CHECKOUT_ENROLLMENT}</strong>
+        <small>Checkout / Paid</small>
       </span>
     `;
   }
@@ -1433,7 +1509,10 @@ async function loadProposalQueue() {
           );
 
         return `
-          <section class="proposal-group">
+          <section
+            class="proposal-group${records.length ? "" : " is-empty"}"
+            data-group="${esc(group.key)}"
+          >
             <div class="proposal-group-head">
               <div>
                 <h3>
