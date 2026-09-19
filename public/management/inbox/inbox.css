@@ -125,11 +125,9 @@ h1 {
 
 .inbox-layout {
   display: grid;
-  grid-template-columns:
-    minmax(20rem, .85fr)
-    minmax(24rem, 1.15fr);
+  grid-template-columns: 1fr;
   gap: 1.25rem;
-  width: min(92rem, 100%);
+  width: min(72rem, 100%);
   margin: 0 auto;
   padding: 1.25rem;
 }
@@ -282,6 +280,18 @@ textarea {
 .message-item__chevron:hover,
 .message-item__chevron:focus-visible {
   border-color: rgba(209,170,85,.75);
+}
+
+.message-item-wrap > .detail-panel {
+  width: auto;
+  margin: .25rem 1rem 1rem;
+  border-radius: .8rem;
+  border-color: rgba(209,170,85,.38);
+  background: var(--panel);
+}
+
+.message-item-wrap > .detail-panel[hidden] {
+  display: none;
 }
 
 .message-item__quick {

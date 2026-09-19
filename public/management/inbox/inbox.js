@@ -62,6 +62,9 @@ const messageQueue =
 const detailEmpty =
   document.getElementById("detailEmpty");
 
+const detailPanel =
+  document.querySelector(".detail-panel");
+
 const messageDetail =
   document.getElementById("messageDetail");
 
@@ -377,6 +380,9 @@ function createMessageItem(message) {
   wrapper.className =
     "message-item-wrap";
 
+  wrapper.dataset.messageId =
+    message.id;
+
   const button =
     document.createElement("button");
 
@@ -660,6 +666,28 @@ function renderQueue() {
   }
 
   messageQueue.appendChild(fragment);
+
+  if (
+    selectedMessage &&
+    detailPanel
+  ) {
+    const selectedWrapper =
+      Array.from(
+        messageQueue.querySelectorAll(
+          ".message-item-wrap"
+        )
+      ).find(
+        (item) =>
+          item.dataset.messageId ===
+          selectedMessage.id
+      );
+
+    if (selectedWrapper) {
+      selectedWrapper.appendChild(
+        detailPanel
+      );
+    }
+  }
 }
 
 
@@ -787,9 +815,17 @@ function renderSuggestedResponse(message) {
 
 function renderDetail() {
   if (!selectedMessage) {
-    detailEmpty.hidden = false;
+    if (detailPanel) {
+      detailPanel.hidden = true;
+    }
+
+    detailEmpty.hidden = true;
     messageDetail.hidden = true;
     return;
+  }
+
+  if (detailPanel) {
+    detailPanel.hidden = false;
   }
 
   detailEmpty.hidden = true;
