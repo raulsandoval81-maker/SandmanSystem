@@ -33,8 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createAthleteOnboardingToken = exports.createProposalCheckout = exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteProfileFeed = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
-exports.confirmManagementPassAttendance = exports.createManagementPassCheckout = exports.storeClosedMessageIntelligence = exports.createManagementXpAdjustment = exports.finalizeExperienceValidation = exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = exports.returnProposalToDraft = exports.requestProposalClientChanges = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.listManagementAttendance = exports.closePracticeSession = exports.getPracticeSession = exports.openPracticeSession = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = void 0;
+exports.approveProposal = exports.submitProposalForReview = exports.updateProposalDraft = exports.createProposalDraft = exports.stripeBillingWebhook = exports.createBillingCheckoutCall = exports.retestAthlete = exports.sendGatekeeperEmail = exports.submitVolunteer = exports.submitContact = exports.onboardingConfirmStep1 = exports.consumeOnboardingToken = exports.addDisciplineCoachCall = exports.createCoachAthleteCall = exports.approveAndActivate = exports.createAthleteFromIntakeCall = exports.approveIntakeCall = exports.logArenaHttp = exports.getAthleteSkillsSummary = exports.getAthleteProfileFeed = exports.skillCheckCoachCall = exports.coachAction = exports.testProgressionEngine = exports.testCertificatePayloadEngine = exports.testPromotionEngine = exports.testTestingEngine = exports.testStripeEngine = exports.testAthleteNormalizer = exports.testAthleteLoader = exports.linkParentToAthlete = exports.sendTestDayPings = exports.saveCoachNote = exports.markParentInboxRead = exports.getParentInbox = exports.getMyAthlete = exports.sendTournamentPing = exports.scheduledDecaySweep = exports.testRecognitionQueue = exports.getTestingHistory = exports.startTesting = exports.scheduleTesting = exports.finalizeTestingSession = exports.freezeAthlete = exports.passAthleteTest = exports.promoteTier = exports.xpHttp = exports.incrementXp = exports.testAthleteXp = exports.testXpWrite = exports.ping = void 0;
+exports.confirmManagementPassAttendance = exports.createManagementPassCheckout = exports.storeClosedMessageIntelligence = exports.markManagementMessageResponded = exports.sendManagementMessageEmail = exports.createManagementXpAdjustment = exports.finalizeExperienceValidation = exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = exports.returnProposalToDraft = exports.requestProposalClientChanges = exports.acceptProposalClientReview = exports.getProposalClientReview = exports.issueProposalClientReview = exports.updateStaffGovernance = exports.getAdminOversightSummary = exports.listManagementAttendance = exports.closePracticeSession = exports.getPracticeSession = exports.openPracticeSession = exports.listMyCompetitionEvents = exports.setCompetitionPublication = exports.upsertCompetitionEvent = exports.listCompetitionEvents = exports.upsertAthleteCrossTrainingAssignment = exports.getAthleteScheduleScope = exports.cornermanRoster = exports.searchManagementMembers = exports.transitionAthleteAccessMode = exports.consumeAccessInvitation = exports.issueAccessInvitation = exports.createAthleteOnboardingToken = exports.createProposalCheckout = void 0;
 const admin = __importStar(require("firebase-admin"));
 admin.initializeApp();
 /* =========================
@@ -114,11 +114,15 @@ var testProgressionEngine_1 = require("./modules/testProgressionEngine");
 Object.defineProperty(exports, "testProgressionEngine", { enumerable: true, get: function () { return testProgressionEngine_1.testProgressionEngine; } });
 var coachAction_1 = require("./modules/coachAction");
 Object.defineProperty(exports, "coachAction", { enumerable: true, get: function () { return coachAction_1.coachAction; } });
+var skillCheckCoachCall_1 = require("./modules/skillCheckCoachCall");
+Object.defineProperty(exports, "skillCheckCoachCall", { enumerable: true, get: function () { return skillCheckCoachCall_1.skillCheckCoachCall; } });
 /* =========================
  ATHLETE
 ========================= */
 var getAthleteProfileFeed_1 = require("./modules/athlete/getAthleteProfileFeed");
 Object.defineProperty(exports, "getAthleteProfileFeed", { enumerable: true, get: function () { return getAthleteProfileFeed_1.getAthleteProfileFeed; } });
+var getAthleteSkillsSummary_1 = require("./modules/athlete/getAthleteSkillsSummary");
+Object.defineProperty(exports, "getAthleteSkillsSummary", { enumerable: true, get: function () { return getAthleteSkillsSummary_1.getAthleteSkillsSummary; } });
 /* =========================
    ARENA
 ========================= */
@@ -204,6 +208,10 @@ Object.defineProperty(exports, "getPracticeSession", { enumerable: true, get: fu
 Object.defineProperty(exports, "closePracticeSession", { enumerable: true, get: function () { return practiceSessions_1.closePracticeSession; } });
 var listManagementAttendance_1 = require("./practice/listManagementAttendance");
 Object.defineProperty(exports, "listManagementAttendance", { enumerable: true, get: function () { return listManagementAttendance_1.listManagementAttendance; } });
+var getAdminOversightSummary_1 = require("./admin/getAdminOversightSummary");
+Object.defineProperty(exports, "getAdminOversightSummary", { enumerable: true, get: function () { return getAdminOversightSummary_1.getAdminOversightSummary; } });
+var updateStaffGovernance_1 = require("./admin/updateStaffGovernance");
+Object.defineProperty(exports, "updateStaffGovernance", { enumerable: true, get: function () { return updateStaffGovernance_1.updateStaffGovernance; } });
 var issueProposalClientReview_1 = require("./proposals/issueProposalClientReview");
 Object.defineProperty(exports, "issueProposalClientReview", { enumerable: true, get: function () { return issueProposalClientReview_1.issueProposalClientReview; } });
 var getProposalClientReview_1 = require("./proposals/getProposalClientReview");
@@ -225,6 +233,10 @@ Object.defineProperty(exports, "recordAthleteAssessmentPlacement", { enumerable:
 var managementXpTools_1 = require("./management/managementXpTools");
 Object.defineProperty(exports, "finalizeExperienceValidation", { enumerable: true, get: function () { return managementXpTools_1.finalizeExperienceValidation; } });
 Object.defineProperty(exports, "createManagementXpAdjustment", { enumerable: true, get: function () { return managementXpTools_1.createManagementXpAdjustment; } });
+var sendManagementMessageEmail_1 = require("./modules/management/sendManagementMessageEmail");
+Object.defineProperty(exports, "sendManagementMessageEmail", { enumerable: true, get: function () { return sendManagementMessageEmail_1.sendManagementMessageEmail; } });
+var markManagementMessageResponded_1 = require("./modules/management/markManagementMessageResponded");
+Object.defineProperty(exports, "markManagementMessageResponded", { enumerable: true, get: function () { return markManagementMessageResponded_1.markManagementMessageResponded; } });
 var storeClosedMessageIntelligence_1 = require("./modules/management/storeClosedMessageIntelligence");
 Object.defineProperty(exports, "storeClosedMessageIntelligence", { enumerable: true, get: function () { return storeClosedMessageIntelligence_1.storeClosedMessageIntelligence; } });
 var createManagementPassCheckout_1 = require("./modules/management/createManagementPassCheckout");

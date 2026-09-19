@@ -265,6 +265,10 @@ export {
 } from "./modules/management/sendManagementMessageEmail";
 
 export {
+  markManagementMessageResponded,
+} from "./modules/management/markManagementMessageResponded";
+
+export {
   storeClosedMessageIntelligence,
 } from "./modules/management/storeClosedMessageIntelligence";
 

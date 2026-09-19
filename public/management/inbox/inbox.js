@@ -26,6 +26,8 @@ import {
   getManagementResponseFamily
 } from "/management/shared/responses/management-responses.js";
 
+import { inboxView, passActionState } from "/management/inbox/inbox-state.js";
+
 
 const managementIdentity =
   document.getElementById("managementIdentity");
@@ -36,8 +38,7 @@ const refreshButton =
 const signOutButton =
   document.getElementById("signOutButton");
 
-const statusFilter =
-  document.getElementById("statusFilter");
+const viewButtons = document.querySelectorAll("[data-inbox-view]");
 
 const messageSearch =
   document.getElementById("messageSearch");
@@ -149,6 +150,7 @@ let managementContext = null;
 let allMessages = [];
 let selectedMessage = null;
 let coachDirectory = [];
+let currentView = "ACTIVE";
 
 
 const TOPIC_LABELS = {
@@ -218,11 +220,9 @@ function passLabel(value) {
 
 function renderPassPayment(message) {
   const isPass = clean(message.topic) === "request-pass";
-  const supported = Object.hasOwn(PASS_LABELS, clean(message.passType));
+  const actions = passActionState(message);
   const paymentState = clean(message.passPaymentStatus).toLowerCase();
   const attendanceConfirmed = Boolean(message.passAttendanceConfirmedAt);
-  const closed = [message.status, message.messageStatus, message.routingStage]
-    .some((value) => clean(value).toUpperCase() === "CLOSED");
 
   passPaymentPanel.hidden = !isPass;
   passPaymentLinkPanel.hidden = true;
@@ -237,13 +237,13 @@ function renderPassPayment(message) {
   passAttendanceStatus.textContent = attendanceConfirmed
     ? `Attendance confirmed ${formatDate(message.passAttendanceConfirmedAt)}`
     : "Attendance not confirmed";
-  confirmPassAttendanceButton.hidden = !supported || attendanceConfirmed || closed;
+  confirmPassAttendanceButton.hidden = !actions.confirmAttendance;
   passPaymentStatus.textContent = paymentState === "paid"
     ? "Paid"
     : paymentState === "pending"
       ? "Payment pending"
       : "No payment started";
-  collectPassPaymentButton.hidden = !supported || !attendanceConfirmed || paymentState === "paid" || closed;
+  collectPassPaymentButton.hidden = !actions.collectPayment;
   collectPassPaymentButton.textContent = paymentState === "pending"
     ? "Get Payment Link"
     : "Collect Payment";
@@ -253,15 +253,6 @@ function showPassPaymentLink(url) {
   passPaymentUrl.value = url;
   openPassPaymentLink.href = url;
   passPaymentLinkPanel.hidden = false;
-}
-
-
-function statusValue(message) {
-  return clean(
-    message.messageStatus ||
-    message.status ||
-    "REVIEWING"
-  ).toUpperCase();
 }
 
 
@@ -313,54 +304,8 @@ function setFormStatus(message = "", type = "") {
 }
 
 
-function activeManagementMessage(message) {
-  return [
-    "MANAGEMENT_TRIAGE",
-    "COACH_ASSIGNED",
-    "COACH_REVIEWING",
-    "RESPONDED",
-    "CLOSED"
-  ].includes(stageValue(message));
-}
-
-
 function matchesFilters(message) {
-  const selectedStatus =
-    statusFilter.value;
-
-  const status =
-    statusValue(message);
-
-  const assignment =
-    assignmentValue(message);
-
-  if (selectedStatus === "ACTIVE") {
-    if (
-      status === "CLOSED" ||
-      stageValue(message) === "CLOSED"
-    ) {
-      return false;
-    }
-  } else if (
-    selectedStatus === "PENDING_MANAGEMENT"
-  ) {
-    if (
-      assignment !== "PENDING_MANAGEMENT"
-    ) {
-      return false;
-    }
-  } else if (
-    selectedStatus === "ASSIGNED"
-  ) {
-    if (
-      !clean(message.assignedCoachUid)
-    ) {
-      return false;
-    }
-  } else if (
-    selectedStatus !== "ALL" &&
-    status !== selectedStatus
-  ) {
+  if (inboxView(message) !== currentView) {
     return false;
   }
 
@@ -394,8 +339,21 @@ function matchesFilters(message) {
 
 function visibleMessages() {
   return allMessages
-    .filter(activeManagementMessage)
     .filter(matchesFilters);
+}
+
+function showView(view) {
+  currentView = view;
+  if (selectedMessage && inboxView(selectedMessage) !== view) {
+    selectedMessage = null;
+    renderDetail();
+  }
+  for (const button of viewButtons) {
+    const active = button.dataset.inboxView === view;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-selected", String(active));
+  }
+  renderQueue();
 }
 
 
@@ -658,6 +616,7 @@ function renderDetail() {
   messageDetail.hidden = false;
 
   const message = selectedMessage;
+  const actions = passActionState(message);
 
   selectedMessageId.value = message.id;
 
@@ -671,8 +630,7 @@ function renderDetail() {
   detailSubmittedAt.textContent =
     `Submitted ${formatDate(message.createdAt)}`;
 
-  detailStatus.textContent =
-    assignmentValue(message);
+  detailStatus.textContent = inboxView(message);
 
   setLink(
     detailEmail,
@@ -733,6 +691,12 @@ function renderDetail() {
       : messageText;
 
   renderPassPayment(message);
+
+  document.getElementById("closeMessageButton").hidden = !actions.close;
+  document.getElementById("markRespondedButton").hidden =
+    inboxView(message) === "RESPONDED" || inboxView(message) === "CLOSED";
+  document.getElementById("requestAdminGuidanceButton").hidden =
+    inboxView(message) === "CLOSED" || stageValue(message) === "ADMIN_GUIDANCE_REQUESTED";
 
   populateSuggestedResponses(
     message
@@ -801,55 +765,24 @@ async function loadMessagesForAdmin() {
 async function loadMessagesForManager() {
   const snapshots = [];
 
-  const assignedSnapshot = await getDocs(
-    query(
-      collection(db, "general_messages"),
-      where(
-        "assignedManagerUid",
-        "==",
-        managementContext.user.uid
-      )
-    )
-  );
-
-  snapshots.push(assignedSnapshot);
-
-  if (managementContext.centralManagement) {
-    const centralSnapshot = await getDocs(
-      query(
-        collection(db, "general_messages"),
-        where(
-          "queueScope",
-          "==",
-          "CENTRAL_MANAGEMENT"
-        )
-      )
-    );
-
-    snapshots.push(centralSnapshot);
-  }
-
   const locationIds =
     managementContext.scope.locationIds;
 
-  if (locationIds.length) {
-    const queueSnapshot = await getDocs(
-      query(
+  for (let index = 0; index < locationIds.length; index += 10) {
+    const chunk = locationIds.slice(index, index + 10);
+    snapshots.push(
+      await getDocs(query(
         collection(db, "general_messages"),
-        where(
-          "locationId",
-          "in",
-          locationIds.slice(0, 10)
-        ),
-        where(
-          "assignmentStatus",
-          "==",
-          "PENDING_MANAGEMENT"
-        )
-      )
+        where("locationId", "in", chunk),
+        where("assignedManagerUid", "==", managementContext.user.uid)
+      )),
+      await getDocs(query(
+        collection(db, "general_messages"),
+        where("locationId", "in", chunk),
+        where("assignedManagerUid", "==", null),
+        where("assignmentStatus", "==", "PENDING_MANAGEMENT")
+      ))
     );
-
-    snapshots.push(queueSnapshot);
   }
 
   const messages = new Map();
@@ -917,6 +850,9 @@ async function loadInbox() {
           (message) =>
             message.id === selectedMessage.id
         ) || null;
+      if (selectedMessage && inboxView(selectedMessage) === "CLOSED") {
+        selectedMessage = null;
+      }
     }
 
     renderQueue();
@@ -1011,6 +947,7 @@ async function sendManagementEmail() {
     });
 
     await loadInbox();
+    if (selectedMessage) showView(inboxView(selectedMessage));
 
     setFormStatus(
       `Email sent to ${recipient}. Message marked responded.`,
@@ -1071,50 +1008,11 @@ async function markManagementResponded() {
   );
 
   try {
-    const updates = {
-      assignedManagerUid:
-        managementContext.user.uid,
-
-      status: "RESPONDED",
-      messageStatus: "RESPONDED",
-
-      respondedByUid:
-        managementContext.user.uid,
-
-      respondedByRole:
-        managementContext.isSystemAdmin
-          ? "SYSTEM_ADMIN"
-          : "MANAGEMENT",
-
-      respondedAt:
-        serverTimestamp(),
-
-      routingStage:
-        "MANAGEMENT_RESPONDED",
-
-      assignmentStatus:
-        "ASSIGNED",
-
-      updatedAt:
-        serverTimestamp()
-    };
-
-    await updateDoc(
-      doc(
-        db,
-        "general_messages",
-        selectedMessage.id
-      ),
-      updates
-    );
-
-    Object.assign(
-      selectedMessage,
-      updates
-    );
-
-    renderQueue();
-    renderDetail();
+    await httpsCallable(functions, "markManagementMessageResponded")({
+      messageId: selectedMessage.id
+    });
+    await loadInbox();
+    if (selectedMessage) showView(inboxView(selectedMessage));
 
     setFormStatus(
       "Message marked responded by Management.",
@@ -1247,6 +1145,7 @@ async function collectPassPayment() {
 
     await loadInbox();
     if (selectedMessage?.id === messageId) {
+      showView(inboxView(selectedMessage));
       showPassPaymentLink(checkoutUrl);
       setFormStatus("Payment link ready. The pass remains pending until Stripe confirms payment.", "success");
     }
@@ -1272,6 +1171,7 @@ async function confirmPassAttendance() {
   try {
     await httpsCallable(functions, "confirmManagementPassAttendance")({ messageId });
     await loadInbox();
+    if (selectedMessage) showView(inboxView(selectedMessage));
     setFormStatus("Attendance confirmed. Payment collection is now available.", "success");
   } catch (error) {
     console.error("[management-inbox] pass attendance confirmation failed:", error);
@@ -1364,7 +1264,7 @@ async function requestAdminGuidance() {
       updates
     );
 
-    renderQueue();
+    showView(inboxView(selectedMessage));
     renderDetail();
 
     setFormStatus(
@@ -1462,7 +1362,7 @@ async function assignCoach(event) {
       updates
     );
 
-    renderQueue();
+    showView(inboxView(selectedMessage));
     renderDetail();
 
     setFormStatus(
@@ -1596,10 +1496,9 @@ document
   );
 
 
-statusFilter.addEventListener(
-  "change",
-  renderQueue
-);
+for (const button of viewButtons) {
+  button.addEventListener("click", () => showView(button.dataset.inboxView));
+}
 
 messageSearch.addEventListener(
   "input",

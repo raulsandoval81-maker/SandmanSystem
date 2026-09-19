@@ -129,39 +129,13 @@
       </div>
 
 
+      <div class="inbox-views" role="tablist" aria-label="Inbox view">
+        <button type="button" role="tab" class="inbox-view is-active" data-inbox-view="ACTIVE" aria-selected="true">Active</button>
+        <button type="button" role="tab" class="inbox-view" data-inbox-view="WAITING" aria-selected="false">Waiting</button>
+        <button type="button" role="tab" class="inbox-view" data-inbox-view="RESPONDED" aria-selected="false">Responded</button>
+      </div>
+
       <div class="filters">
-
-        <label>
-          Status
-
-          <select id="statusFilter">
-            <option value="ACTIVE">
-              Active
-            </option>
-
-            <option value="PENDING_MANAGEMENT">
-              Pending Management
-            </option>
-
-            <option value="ASSIGNED">
-              Assigned to Coach
-            </option>
-
-            <option value="RESPONDED">
-              Responded
-            </option>
-
-            <option value="CLOSED">
-              Closed
-            </option>
-
-            <option value="ALL">
-              All
-            </option>
-          </select>
-        </label>
-
-
         <label>
           Search
 
@@ -197,7 +171,7 @@
         class="state-card"
         hidden
       >
-        No messages are waiting in this queue.
+        No messages in this view.
       </div>
 
 
@@ -455,19 +429,19 @@
             </button>
 
             <button
-              id="closeMessageButton"
-              class="button button-secondary"
-              type="button"
-            >
-              Close Message
-            </button>
-
-            <button
               id="requestAdminGuidanceButton"
               class="button button-secondary"
               type="button"
             >
               Request System Admin Guidance
+            </button>
+
+            <button
+              id="closeMessageButton"
+              class="button button-secondary"
+              type="button"
+            >
+              Close Message
             </button>
 
           </div>

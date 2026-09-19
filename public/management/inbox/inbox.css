@@ -177,9 +177,34 @@ h1 {
 
 .filters {
   display: grid;
-  grid-template-columns: 1fr 1.25fr;
+  grid-template-columns: 1fr;
   gap: .75rem;
   margin: 1rem 0;
+}
+
+.inbox-views {
+  display: flex;
+  gap: .4rem;
+  margin-top: 1rem;
+  overflow-x: auto;
+}
+
+.inbox-view {
+  flex: 1 0 auto;
+  min-height: 2.75rem;
+  padding: .6rem .8rem;
+  border: 1px solid var(--line);
+  border-radius: .65rem;
+  background: var(--panel-soft);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.inbox-view.is-active {
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 800;
 }
 
 label {

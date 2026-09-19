@@ -13,6 +13,8 @@ import {
   requireManagement
 } from "/management/shared/guards/management-guard.js";
 
+import { inboxView } from "/management/inbox/inbox-state.js";
+
 
 const managerIdentity =
   document.getElementById("managerIdentity");
@@ -283,47 +285,31 @@ async function readManagementInbox(
     return [];
   }
 
-  const locationId =
-    locationIds[0];
-
-  const snapshot =
-    await getDocs(
-      query(
-        collection(
-          db,
-          "general_messages"
-        ),
-        where(
-          "locationId",
-          "==",
-          locationId
-        )
-      )
+  const snapshots = [];
+  for (let index = 0; index < locationIds.length; index += 10) {
+    const chunk = locationIds.slice(index, index + 10);
+    snapshots.push(
+      await getDocs(query(
+        collection(db, "general_messages"),
+        where("locationId", "in", chunk),
+        where("assignedManagerUid", "==", context.user.uid)
+      )),
+      await getDocs(query(
+        collection(db, "general_messages"),
+        where("locationId", "in", chunk),
+        where("assignedManagerUid", "==", null),
+        where("assignmentStatus", "==", "PENDING_MANAGEMENT")
+      ))
     );
+  }
 
-  return snapshot.docs.map(
+  const messages = new Map(snapshots.flatMap((snapshot) => snapshot.docs).map(
     (snapshotDoc) => ({
       id: snapshotDoc.id,
       ...snapshotDoc.data()
     })
-  );
-}
-
-
-function inboxStatus(message) {
-  return clean(
-    message.messageStatus ||
-    message.status ||
-    "REVIEWING"
-  ).toUpperCase();
-}
-
-
-function inboxStage(message) {
-  return clean(
-    message.routingStage ||
-    "MANAGEMENT_TRIAGE"
-  ).toUpperCase();
+  ).map((message) => [message.id, message]));
+  return [...messages.values()];
 }
 
 
@@ -357,39 +343,24 @@ async function loadManagementDashboard(
       )
     ]);
 
-    const waitingMessages =
-      inboxMessages.filter(
-        (message) => {
-          const status =
-            inboxStatus(message);
-
-          const stage =
-            inboxStage(message);
-
-          return (
-            status !== "RESPONDED" &&
-            status !== "CLOSED" &&
-            stage !== "RESPONDED" &&
-            stage !== "MANAGEMENT_RESPONDED" &&
-            stage !== "CLOSED"
-          );
-        }
-      );
+    const actionableMessages = inboxMessages.filter(
+      (message) => inboxView(message) === "ACTIVE"
+    );
 
     if (dashboardInboxCount) {
       dashboardInboxCount.textContent =
         String(
-          waitingMessages.length
+          actionableMessages.length
         );
     }
 
     if (dashboardInboxDetail) {
       dashboardInboxDetail.textContent =
-        waitingMessages.length === 0
+        actionableMessages.length === 0
           ? "Inbox is clear"
-          : waitingMessages.length === 1
+          : actionableMessages.length === 1
             ? "1 message needs attention"
-            : `${waitingMessages.length} messages need attention`;
+            : `${actionableMessages.length} messages need attention`;
     }
 
 
