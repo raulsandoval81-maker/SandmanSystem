@@ -150,6 +150,7 @@ const copySuggestedResponseButton =
 let managementContext = null;
 let allMessages = [];
 let selectedMessage = null;
+let expandedMessageId = null;
 let coachDirectory = [];
 let currentView = "ACTIVE";
 
@@ -370,6 +371,12 @@ function createChip(text) {
 
 
 function createMessageItem(message) {
+  const wrapper =
+    document.createElement("article");
+
+  wrapper.className =
+    "message-item-wrap";
+
   const button =
     document.createElement("button");
 
@@ -377,8 +384,7 @@ function createMessageItem(message) {
   button.className = "message-item";
 
   if (
-    selectedMessage &&
-    selectedMessage.id === message.id
+    selectedMessage?.id === message.id
   ) {
     button.classList.add("is-selected");
   }
@@ -388,31 +394,72 @@ function createMessageItem(message) {
 
   top.className = "message-item__top";
 
+  const identity =
+    document.createElement("div");
+
+  identity.className =
+    "message-item__identity";
+
   const name =
     document.createElement("span");
 
-  name.className = "message-item__name";
+  name.className =
+    "message-item__name";
 
   name.textContent =
     clean(message.contactName) ||
-    "Unknown Contact";
+    "Unknown contact";
 
   const time =
     document.createElement("span");
 
-  time.className = "message-item__time";
-  time.textContent = formatDate(message.createdAt);
+  time.className =
+    "message-item__time";
+
+  time.textContent =
+    formatDate(message.createdAt);
+
+  const chevron =
+    document.createElement("button");
+
+  chevron.type = "button";
+  chevron.className =
+    "message-item__chevron";
+
+  const isExpanded =
+    expandedMessageId === message.id;
+
+  chevron.textContent =
+    isExpanded ? "⌃" : "⌄";
+
+  chevron.setAttribute(
+    "aria-expanded",
+    String(isExpanded)
+  );
+
+  chevron.setAttribute(
+    "aria-label",
+    isExpanded
+      ? "Collapse message preview"
+      : "Expand message preview"
+  );
 
   const topic =
-    document.createElement("p");
+    document.createElement("div");
 
-  topic.className = "message-item__topic";
-  topic.textContent = topicLabel(message.topic);
+  topic.className =
+    "message-item__topic";
+
+  topic.textContent =
+    TOPIC_LABELS[clean(message.topic)] ||
+    clean(message.topic) ||
+    "General Question";
 
   const preview =
-    document.createElement("p");
+    document.createElement("div");
 
-  preview.className = "message-item__preview";
+  preview.className =
+    "message-item__preview";
 
   preview.textContent =
     clean(message.message) ||
@@ -421,7 +468,8 @@ function createMessageItem(message) {
   const meta =
     document.createElement("div");
 
-  meta.className = "message-item__meta";
+  meta.className =
+    "message-item__meta";
 
   meta.append(
     createChip(stageValue(message)),
@@ -433,7 +481,8 @@ function createMessageItem(message) {
     createChip(assignmentValue(message))
   );
 
-  top.append(name, time);
+  identity.append(name, time);
+  top.append(identity);
 
   button.append(
     top,
@@ -447,9 +496,110 @@ function createMessageItem(message) {
     () => selectMessage(message.id)
   );
 
-  return button;
-}
+  chevron.addEventListener(
+    "click",
+    (event) => {
+      event.stopPropagation();
 
+      expandedMessageId =
+        expandedMessageId === message.id
+          ? null
+          : message.id;
+
+      renderQueue();
+    }
+  );
+
+  wrapper.append(
+    button,
+    chevron
+  );
+
+  if (isExpanded) {
+    const quick =
+      document.createElement("div");
+
+    quick.className =
+      "message-item__quick";
+
+    const messageText =
+      document.createElement("p");
+
+    messageText.className =
+      "message-item__quick-message";
+
+    messageText.textContent =
+      clean(message.message) ||
+      "No message provided.";
+
+    const details =
+      document.createElement("dl");
+
+    details.className =
+      "message-item__quick-details";
+
+    const quickValues = [
+      [
+        "Email",
+        clean(message.email) ||
+          "Not provided"
+      ],
+      [
+        "Phone",
+        clean(message.phone) ||
+          "Not provided"
+      ],
+      [
+        "Location",
+        clean(message.locationName) ||
+          clean(message.locationId) ||
+          "Not assigned"
+      ]
+    ];
+
+    for (const [label, value] of quickValues) {
+      const row =
+        document.createElement("div");
+
+      const dt =
+        document.createElement("dt");
+
+      const dd =
+        document.createElement("dd");
+
+      dt.textContent = label;
+      dd.textContent = value;
+
+      row.append(dt, dd);
+      details.appendChild(row);
+    }
+
+    const open =
+      document.createElement("button");
+
+    open.type = "button";
+    open.className =
+      "button button-secondary message-item__open";
+
+    open.textContent =
+      "Open Full Message";
+
+    open.addEventListener(
+      "click",
+      () => selectMessage(message.id)
+    );
+
+    quick.append(
+      messageText,
+      details,
+      open
+    );
+
+    wrapper.appendChild(quick);
+  }
+
+  return wrapper;
+}
 
 function renderQueue() {
   const messages = visibleMessages();
