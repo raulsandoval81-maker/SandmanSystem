@@ -806,6 +806,19 @@ function preventDoubleTap(btn, fn) {
 
 const authReady = ensureSignedIn().catch(console.error);
 
+function stopApproval(message) {
+  setApproveEnabled(true);
+
+  const btn = $("btn-approve");
+  if (btn) {
+    btn.removeAttribute("aria-busy");
+    btn.classList.remove("is-busy");
+  }
+
+  alert(message);
+  return false;
+}
+
 async function approveAthlete() {
   await authReady;
 
@@ -828,20 +841,28 @@ async function approveAthlete() {
   const state = ($("c-state")?.value || "").trim();
 
   if (!dob || getAgeFromDob(dob) === null) {
-    return alert("A valid Date of Birth is required.");
+    return stopApproval(
+      "A valid Date of Birth is required."
+    );
   }
 
   if (!team) {
-    return alert("Select a Team / Affiliation.");
+    return stopApproval(
+      "Select a Team / Affiliation."
+    );
   }
 
   if (!initial || !last) {
-    return alert("Public Initial + Public Last required.");
+    return stopApproval(
+      "Public Initial + Public Last required."
+    );
   }
 
   const track = ($("c-track")?.value || "").trim().toUpperCase();
   if (!track) {
-    return alert("Mint first (track missing).");
+    return stopApproval(
+      "Select a journey before approving."
+    );
   }
 
   const virtue =
@@ -851,7 +872,9 @@ async function approveAthlete() {
       .toUpperCase();
 
   if (!virtue) {
-    return alert("Pick a Mint Virtue.");
+    return stopApproval(
+      "Pick a Mint Virtue."
+    );
   }
 
   setApproveEnabled(false);
