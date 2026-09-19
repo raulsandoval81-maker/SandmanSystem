@@ -294,30 +294,7 @@ textarea {
   display: none;
 }
 
-.message-item__quick {
-  display: flex;
-  flex-wrap: wrap;
-  gap: .55rem;
-  padding: .85rem 1rem 1rem;
-  border-top: 1px solid var(--line);
-  background: var(--panel-soft);
-}
 
-.message-item__action {
-  min-height: 2.35rem;
-  padding: .55rem .75rem;
-  font-size: .78rem;
-}
-
-.message-item__action--danger {
-  border-color: rgba(240,154,154,.5);
-  color: var(--danger);
-}
-
-.message-item__action--danger:hover,
-.message-item__action--danger:focus-visible {
-  border-color: var(--danger);
-}
 .message-item {
   width: 100%;
   text-align: left;

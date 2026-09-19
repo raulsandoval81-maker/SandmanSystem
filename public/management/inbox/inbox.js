@@ -499,7 +499,10 @@ function createMessageItem(message) {
 
   button.addEventListener(
     "click",
-    () => selectMessage(message.id)
+    () => {
+      expandedMessageId = message.id;
+      selectMessage(message.id);
+    }
   );
 
   chevron.addEventListener(
@@ -507,12 +510,20 @@ function createMessageItem(message) {
     (event) => {
       event.stopPropagation();
 
-      expandedMessageId =
-        expandedMessageId === message.id
-          ? null
-          : message.id;
+      const isClosing =
+        selectedMessage?.id === message.id;
 
-      renderQueue();
+      if (isClosing) {
+        selectedMessage = null;
+        expandedMessageId = null;
+
+        renderQueue();
+        renderDetail();
+        return;
+      }
+
+      expandedMessageId = message.id;
+      selectMessage(message.id);
     }
   );
 
@@ -521,117 +532,7 @@ function createMessageItem(message) {
     chevron
   );
 
-  if (isExpanded) {
-    const actions =
-      document.createElement("div");
 
-    actions.className =
-      "message-item__quick";
-
-    const openButton =
-      document.createElement("button");
-
-    openButton.type = "button";
-    openButton.className =
-      "button button-primary message-item__action";
-
-    openButton.textContent =
-      "Open Message";
-
-    openButton.addEventListener(
-      "click",
-      () => selectMessage(message.id)
-    );
-
-    const replyButton =
-      document.createElement("button");
-
-    replyButton.type = "button";
-    replyButton.className =
-      "button button-secondary message-item__action";
-
-    replyButton.textContent =
-      "Reply";
-
-    replyButton.addEventListener(
-      "click",
-      () => {
-        selectMessage(message.id);
-
-        const response =
-          document.getElementById(
-            "suggestedResponseText"
-          );
-
-        response?.scrollIntoView({
-          behavior: "smooth",
-          block: "center"
-        });
-
-        response?.focus();
-      }
-    );
-
-    const actionDefinitions = [
-      [
-        "Mark Responded",
-        "markRespondedButton",
-        "button-secondary"
-      ],
-      [
-        "Admin Guidance",
-        "requestAdminGuidanceButton",
-        "button-secondary"
-      ],
-      [
-        "Close",
-        "closeMessageButton",
-        "button-secondary"
-      ],
-      [
-        "Delete",
-        "deleteMessageButton",
-        "button-secondary message-item__action--danger"
-      ]
-    ];
-
-    actions.append(
-      openButton,
-      replyButton
-    );
-
-    for (
-      const [
-        label,
-        targetId,
-        className
-      ] of actionDefinitions
-    ) {
-      const action =
-        document.createElement("button");
-
-      action.type = "button";
-      action.className =
-        `button ${className} message-item__action`;
-
-      action.textContent = label;
-
-      action.addEventListener(
-        "click",
-        () => {
-          selectMessage(message.id);
-
-          document
-            .getElementById(targetId)
-            ?.click();
-        }
-      );
-
-      actions.appendChild(action);
-    }
-
-    wrapper.appendChild(actions);
-  }
 
   return wrapper;
 }
