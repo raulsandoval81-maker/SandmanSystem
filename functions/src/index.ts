@@ -243,6 +243,10 @@ export {
   returnProposalToDraft,
 } from "./proposals/returnProposalToDraft";
 
+export {
+  deleteTestProposal,
+} from "./proposals/deleteTestProposal";
+
 /* =========================
    ATHLETE ASSESSMENTS
 ========================= */

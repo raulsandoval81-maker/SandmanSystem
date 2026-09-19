@@ -998,7 +998,10 @@ async function runProposalAction(button) {
 }
 
 function proposalCardHtml(
-  proposal
+  proposal,
+  {
+    canDeleteTestProposal = false
+  } = {}
 ) {
   const id =
     proposal.proposalId ||
@@ -1112,6 +1115,23 @@ function proposalCardHtml(
 
       <div class="proposal-card-actions">
         ${proposalActionHtml(status, id)}
+
+        ${
+          canDeleteTestProposal &&
+          String(status || "").toUpperCase() !== "PAID"
+            ? `
+              <button
+                class="proposal-open-btn proposal-delete-test-btn"
+                type="button"
+                data-delete-test-proposal
+                data-proposal-id="${esc(id)}"
+                data-family-name="${esc(familyName)}"
+              >
+                Delete Test Proposal
+              </button>
+            `
+            : ""
+        }
       </div>
     </article>
   `;
@@ -1437,7 +1457,14 @@ async function loadProposalQueue() {
                 records.length
                   ? records
                       .map(
-                        proposalCardHtml
+                        (proposal) =>
+                          proposalCardHtml(
+                            proposal,
+                            {
+                              canDeleteTestProposal:
+                                context.isSystemAdmin
+                            }
+                          )
                       )
                       .join("")
                   : `
@@ -1455,6 +1482,71 @@ async function loadProposalQueue() {
   body.querySelectorAll("[data-proposal-action]")
     .forEach((button) => {
       button.addEventListener("click", () => runProposalAction(button));
+    });
+
+  body.querySelectorAll("[data-delete-test-proposal]")
+    .forEach((button) => {
+      button.addEventListener(
+        "click",
+        async () => {
+          const proposalId =
+            String(
+              button.dataset.proposalId || ""
+            ).trim();
+
+          const familyName =
+            String(
+              button.dataset.familyName ||
+              "Unnamed Family"
+            ).trim();
+
+          if (!proposalId) {
+            return;
+          }
+
+          const confirmed =
+            window.confirm(
+              `Permanently delete this test proposal?\n\n${proposalId}\n${familyName}\n\nThis cannot be undone.`
+            );
+
+          if (!confirmed) {
+            return;
+          }
+
+          button.disabled = true;
+
+          const originalText =
+            button.textContent;
+
+          button.textContent =
+            "Deleting…";
+
+          try {
+            await httpsCallable(
+              functions,
+              "deleteTestProposal"
+            )({
+              proposalId
+            });
+
+            await loadProposalQueue();
+          } catch (error) {
+            console.error(
+              "[proposals] delete test proposal failed:",
+              error
+            );
+
+            window.alert(
+              error?.message ||
+              "Unable to delete the proposal."
+            );
+
+            button.disabled = false;
+            button.textContent =
+              originalText;
+          }
+        }
+      );
     });
 }
 
