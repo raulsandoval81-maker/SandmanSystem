@@ -47,6 +47,7 @@ beforeEach(async () => {
     await setDoc(doc(db, "staff", "management-locations"), { role: "management", status: "active", locations: ["santa-ynez-valley"] });
     await setDoc(doc(db, "staff", "coach-syv"), { role: "coach", status: "active", locationIds: ["santa-ynez-valley"] });
     await setDoc(doc(db, "staff", "admin"), { role: "admin", status: "active" });
+    await setDoc(doc(db, "staff", "legacy-system-admin"), { role: "system_admin", status: "active" });
     await setDoc(doc(db, "paraSchedule", "santa-ynez-valley"), publishedSchedule("santa-ynez-valley"));
     await setDoc(doc(db, "paraSchedule", "lompoc"), unpublishedSchedule("lompoc"));
     await setDoc(doc(db, "athleteCrossTrainingAssignments", "F4_0001_santa-ynez-valley_general"), {
@@ -104,6 +105,11 @@ test("active Admin retains system-wide schedule oversight", async () => {
   const db = env.authenticatedContext("admin").firestore();
   await assertSucceeds(setDoc(doc(db, "paraScheduleDrafts", "elk-grove"), draftSchedule("elk-grove", "admin")));
   await assertSucceeds(setDoc(doc(db, "paraSchedule", "elk-grove"), publishedSchedule("elk-grove")));
+});
+
+test("active legacy system_admin retains temporary Admin compatibility", async () => {
+  const db = env.authenticatedContext("legacy-system-admin").firestore();
+  await assertSucceeds(setDoc(doc(db, "paraScheduleDrafts", "lompoc"), draftSchedule("lompoc", "legacy-system-admin")));
 });
 
 test("cross-training assignments remain closed to direct browser reads and writes", async () => {

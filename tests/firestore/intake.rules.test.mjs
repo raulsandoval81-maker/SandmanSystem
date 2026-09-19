@@ -16,7 +16,9 @@ import {
   doc,
   getDoc,
   getDocs,
+  query,
   setDoc,
+  where,
 } from "firebase/firestore";
 
 const PROJECT_ID = "sandmandashboard";
@@ -103,8 +105,15 @@ beforeEach(async () => {
         {
           role: "management",
           status: "active",
+          locationIds: ["santa-ynez-valley"],
         }
       );
+      await setDoc(doc(db, "staff", "manager-lompoc"), {
+        role: "management", status: "active", locationIds: ["lompoc"],
+      });
+      await setDoc(doc(db, "staff", "admin"), {
+        role: "admin", status: "active",
+      });
     }
   );
 });
@@ -281,7 +290,7 @@ test(
 );
 
 test(
-  "Management can read and list submitted intakes",
+  "Management can read and list only submitted intakes in authorized locations",
   async () => {
     await env.withSecurityRulesDisabled(
       async (context) => {
@@ -324,12 +333,17 @@ test(
 
     await assertSucceeds(
       getDocs(
-        collection(
-          management,
-          "intakes"
-        )
+        query(collection(management, "intakes"), where("locationId", "==", "santa-ynez-valley"))
       )
     );
+
+    const lompoc = env.authenticatedContext("manager-lompoc").firestore();
+    await assertFails(getDoc(doc(lompoc, "intakes", "tokenaaaa")));
+    await assertFails(getDocs(collection(management, "intakes")));
+
+    const admin = env.authenticatedContext("admin").firestore();
+    await assertSucceeds(getDoc(doc(admin, "intakes", "tokenaaaa")));
+    await assertSucceeds(getDocs(collection(admin, "intakes")));
   }
 );
 
