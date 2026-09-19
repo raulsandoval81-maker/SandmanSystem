@@ -392,66 +392,104 @@
             </div>
           </div>
 
-          <div class="form-actions">
+          <div class="management-action-group management-action-group--primary">
+            <p class="management-action-label">
+              Primary Actions
+            </p>
 
-            <button
-              id="confirmPassAttendanceButton"
-              class="button button-secondary"
-              type="button"
-              hidden
-            >
-              Confirm Attendance
-            </button>
+            <div class="form-actions">
+              <button
+                id="managementReplyEmail"
+                class="button button-primary"
+                type="button"
+              >
+                Send Email
+              </button>
 
-            <button
-              id="collectPassPaymentButton"
-              class="button button-primary"
-              type="button"
-              hidden
-            >
-              Collect Payment
-            </button>
+              <button
+                id="markRespondedButton"
+                class="button button-primary"
+                type="button"
+              >
+                Mark Responded
+              </button>
 
-            <button
-              id="managementReplyEmail"
-              class="button button-primary"
-              type="button"
-            >
-              Send Email
-            </button>
+              <button
+                id="closeMessageButton"
+                class="button button-secondary"
+                type="button"
+              >
+                Close Message
+              </button>
+            </div>
+          </div>
 
-            <button
-              id="markRespondedButton"
-              class="button button-primary"
-              type="button"
-            >
-              Mark Responded
-            </button>
+          <div class="management-action-group management-action-group--pass">
+            <p class="management-action-label">
+              Pass Actions
+            </p>
 
-            <button
-              id="requestAdminGuidanceButton"
-              class="button button-secondary"
-              type="button"
-            >
-              Request System Admin Guidance
-            </button>
+            <div class="form-actions">
+              <button
+                id="confirmPassAttendanceButton"
+                class="button button-secondary"
+                type="button"
+                hidden
+              >
+                Confirm Attendance
+              </button>
 
-            <button
-              id="closeMessageButton"
-              class="button button-secondary"
-              type="button"
-            >
-              Close Message
-            </button>
+              <button
+                id="collectPassPaymentButton"
+                class="button button-primary"
+                type="button"
+                hidden
+              >
+                Collect Payment
+              </button>
+            </div>
+          </div>
 
-            <button
-              id="deleteMessageButton"
-              class="button button-secondary"
-              type="button"
-            >
-              Delete Message
-            </button>
+          <div class="management-action-group management-action-group--support">
+            <p class="management-action-label">
+              Need Help?
+            </p>
 
+            <p class="management-action-help">
+              Use this when policy, system access, unusual billing,
+              or another issue is outside local Management authority.
+            </p>
+
+            <div class="form-actions">
+              <button
+                id="requestAdminGuidanceButton"
+                class="button button-secondary"
+                type="button"
+              >
+                Request System Admin Guidance
+              </button>
+            </div>
+          </div>
+
+          <div class="management-action-group management-action-group--danger">
+            <p class="management-action-label">
+              Danger Zone
+            </p>
+
+            <p class="management-action-help">
+              Permanently remove test messages, duplicates, or junk only.
+              Normal conversations should be closed instead.
+            </p>
+
+            <div class="form-actions">
+              <button
+                id="deleteMessageButton"
+                class="button button-secondary management-delete-button"
+                type="button"
+              >
+                Delete Message
+              </button>
+            </div>
           </div>
 
         </section>

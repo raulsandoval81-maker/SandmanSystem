@@ -467,6 +467,72 @@ dd {
 
 
 /* ==============================
+   MANAGEMENT ACTION HIERARCHY
+============================== */
+
+.management-action-group {
+  display: grid;
+  gap: .65rem;
+  padding: .9rem 0;
+}
+
+.management-action-group + .management-action-group {
+  border-top: 1px solid var(--line);
+}
+
+.management-action-label {
+  margin: 0;
+  color: var(--text);
+  font-size: .78rem;
+  font-weight: 900;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.management-action-help {
+  max-width: 48rem;
+  margin: 0;
+  color: var(--muted);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+.management-action-group--primary {
+  padding-top: .25rem;
+}
+
+.management-action-group--support {
+  margin-top: .15rem;
+}
+
+.management-action-group--danger {
+  margin-top: .35rem;
+  padding: 1rem;
+  border: 1px solid rgba(240,154,154,.28);
+  border-radius: .8rem;
+  background: rgba(240,154,154,.05);
+}
+
+.management-action-group--danger .management-action-label {
+  color: var(--danger);
+}
+
+.management-delete-button {
+  border-color: rgba(240,154,154,.45);
+  color: var(--danger);
+}
+
+.management-delete-button:hover,
+.management-delete-button:focus-visible {
+  border-color: var(--danger);
+}
+
+.management-action-group--pass:not(:has(button:not([hidden]))) {
+  display: none;
+}
+
+
+/* ==============================
    MANAGEMENT RESPONSE
 ============================== */
 
