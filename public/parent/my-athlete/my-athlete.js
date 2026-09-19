@@ -20,6 +20,7 @@ import {
 import { renderDigitalBelt } from "/assets/js/digital-belt.js";
 import {
   formatCombatDisciplineLabel,
+  normalizeParentDiscipline,
   resolveParentAthleteContext
 } from "/assets/js/parent-athlete-context.js";
 import {
@@ -497,14 +498,35 @@ function renderAthlete(a = {}) {
     combat
   );
 
-  // Current tier XP. Your system resets this on promotion.
+  const storedActiveDiscipline =
+    normalizeParentDiscipline(
+      a.activeDiscipline ||
+      a.primaryDiscipline ||
+      a.discipline ||
+      a.art ||
+      ""
+    );
+
+  const isAuthoritativeDiscipline =
+    activeDiscipline === storedActiveDiscipline;
+
   const xpNow = Math.max(
     0,
     Number(
-      combat.xp ??
-      combat.currentTierXP ??
-      combat.xpCombat ??
-      0
+      isAuthoritativeDiscipline
+        ? (
+            a.xp ??
+            combat.xp ??
+            combat.currentTierXP ??
+            combat.xpCombat ??
+            0
+          )
+        : (
+            combat.xp ??
+            combat.currentTierXP ??
+            combat.xpCombat ??
+            0
+          )
     )
   );
 

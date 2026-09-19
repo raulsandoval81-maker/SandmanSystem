@@ -19,7 +19,7 @@ function matchingEntry(submissions, lane, segmentId, sessionN) {
 export function combatDashboardModel(athlete = {}) {
   const discipline = String(athlete.activeDiscipline || athlete.primaryDiscipline || "").trim().toLowerCase();
   const combat = athlete.disciplines?.[discipline] || athlete;
-  const xp = Number(combat.xpCombat ?? combat.xp ?? athlete.xpCombat ?? athlete.xp ?? 0);
+  const xp = Number(athlete.xp ?? combat.xp ?? combat.xpCombat ?? athlete.xpCombat ?? 0);
   const cap = Number(combat.xpCap ?? combat.cap ?? athlete.xpCap ?? 0);
   return {
     rank: String(combat.rankName || combat.tierName || athlete.rankName || "Current rank"),
