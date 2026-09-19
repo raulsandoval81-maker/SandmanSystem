@@ -108,7 +108,7 @@ function disciplineLabel(value = "") {
   const labels = {
     wrestling: "Wrestling",
     boxing: "Boxing",
-    kickboxing: "Kickboxing",
+    "muay-thai": "Muay Thai",
     mma: "MMA",
     "submission-grappling":
       "Submission Grappling"
