@@ -174,6 +174,17 @@ function getAgeFromDob(dob) {
 }
 
 function getAgeFromIntake(s = {}) {
+  const reviewDob =
+    String(
+      $("c-dob")?.value ||
+      s.managementCorrections?.dob?.corrected ||
+      ""
+    ).trim();
+
+  if (reviewDob) {
+    return getAgeFromDob(reviewDob);
+  }
+
   const directAge =
     s.age ??
     s.athlete?.age ??
@@ -523,7 +534,43 @@ paintMintUI({
 
   if ($("c-city")) $("c-city").value = s.location?.city ?? "";
   if ($("c-state")) $("c-state").value = s.location?.state ?? "";
-  if ($("c-team")) $("c-team").value = s.location?.team ?? "";
+
+  const reviewDob =
+    s.managementCorrections?.dob?.corrected ||
+    getDobFromIntake(s) ||
+    "";
+
+  if ($("c-dob")) {
+    $("c-dob").value = reviewDob;
+  }
+
+  const submittedTeam =
+    String(s.location?.team || "").trim();
+
+  if ($("c-team")) {
+    const knownTeams = [
+      "Sandman Academy of Combat & Fitness",
+      "Independent"
+    ];
+
+    if (!submittedTeam) {
+      $("c-team").value = "";
+    } else if (knownTeams.includes(submittedTeam)) {
+      $("c-team").value = submittedTeam;
+    } else {
+      $("c-team").value = "other";
+
+      if ($("c-team-other")) {
+        $("c-team-other").value =
+          submittedTeam;
+      }
+
+      if ($("c-team-other-wrap")) {
+        $("c-team-other-wrap").hidden =
+          false;
+      }
+    }
+  }
 
   if ($("c-last") && !$("c-last").value) {
     $("c-last").value = athleteLast || "";
@@ -540,6 +587,44 @@ paintMintUI({
 }
 
 loadSubmission().catch(console.error);
+
+$("c-dob")?.addEventListener(
+  "change",
+  () => {
+    if ($("c-track")) $("c-track").value = "";
+    if ($("c-tier")) $("c-tier").value = "";
+    if ($("c-rank")) $("c-rank").value = "";
+    if ($("c-program-track")) $("c-program-track").value = "";
+
+    paintMintUI({
+      track: "",
+      tier: "",
+      rank: "",
+      uid: "",
+      padlock: "—"
+    });
+
+    setApproveEnabled(false);
+    applyAgeGuardrails();
+  }
+);
+
+$("c-team")?.addEventListener(
+  "change",
+  () => {
+    const isOther =
+      $("c-team")?.value === "other";
+
+    if ($("c-team-other-wrap")) {
+      $("c-team-other-wrap").hidden =
+        !isOther;
+    }
+
+    if (!isOther && $("c-team-other")) {
+      $("c-team-other").value = "";
+    }
+  }
+);
 
 function applyAgeGuardrails() {
   const s = INTAKE_CACHE || {};
@@ -728,10 +813,27 @@ async function approveAthlete() {
 
   const initial = ($("c-initial")?.value || "").trim();
   const last = ($("c-last")?.value || "").trim();
-  const team = ($("c-team")?.value || "").trim();
+  const selectedTeam =
+    ($("c-team")?.value || "").trim();
+
+  const team =
+    selectedTeam === "other"
+      ? ($("c-team-other")?.value || "").trim()
+      : selectedTeam;
+
+  const dob =
+    ($("c-dob")?.value || "").trim();
+
   const city = ($("c-city")?.value || "").trim();
   const state = ($("c-state")?.value || "").trim();
 
+  if (!dob || getAgeFromDob(dob) === null) {
+    return alert("A valid Date of Birth is required.");
+  }
+
+  if (!team) {
+    return alert("Select a Team / Affiliation.");
+  }
 
   if (!initial || !last) {
     return alert("Public Initial + Public Last required.");
@@ -852,6 +954,7 @@ async function approveAthlete() {
 
       fullName: ($("s-firstlast")?.textContent || "").trim(),
       publicName,
+      dob,
 
       intakeAudience,
 

@@ -435,6 +435,7 @@ type ApproveActivateInput = {
   trackCode: string;
   fullName?: string;
   publicName?: string;
+  dob?: string;
   parent?: {
     email?: string | null;
     phoneDigits?: string | null;
@@ -562,6 +563,7 @@ const {
   trackCode,
   fullName,
   publicName,
+  dob,
   parent,
   team,
   mint,
@@ -1039,6 +1041,27 @@ const safePriorExperienceValidation =
     }
 
     const intakeDataPre = intakeSnapPre.data() || {};
+
+    const submittedDob =
+      String(
+        intakeDataPre.dob ||
+        intakeDataPre.athlete?.dob ||
+        ""
+      ).trim();
+
+    const correctedDob =
+      String(dob || submittedDob).trim();
+
+    if (
+      mode !== "add_sport" &&
+      ageFromDob(correctedDob) === null
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "A valid date of birth is required before activation."
+      );
+    }
+
     if (mode !== "add_sport") {
       requireStaffLocation(
         activationActor,
@@ -1050,9 +1073,14 @@ const safePriorExperienceValidation =
     // Server-authoritative enrollment gate.
     // Browser validation is UX only and cannot be trusted
     // as the activation security boundary.
-    validateEnrollmentAuthority(
-      intakeDataPre
-    );
+    validateEnrollmentAuthority({
+      ...intakeDataPre,
+      dob: correctedDob,
+      athlete: {
+        ...(intakeDataPre.athlete || {}),
+        dob: correctedDob
+      }
+    });
 
     /*
      * ------------------------------------------------------
@@ -1172,9 +1200,14 @@ const safePriorExperienceValidation =
 
       // Revalidate the transaction snapshot so activation
       // is based on the same authoritative data being committed.
-      validateEnrollmentAuthority(
-        intakeData
-      );
+      validateEnrollmentAuthority({
+        ...intakeData,
+        dob: correctedDob,
+        athlete: {
+          ...(intakeData.athlete || {}),
+          dob: correctedDob
+        }
+      });
 
       // New-member location ownership is server-authoritative.
       // It was inherited from the verified intake token.
@@ -1388,6 +1421,8 @@ priorExperienceValidation: safePriorExperienceValidation,
           locks: {}
         },
 
+        dob: correctedDob || null,
+
         team: teamName,
         teamId,
         city: cityName,
@@ -1495,6 +1530,26 @@ priorExperienceValidation: safePriorExperienceValidation,
 
         minted: true,
 
+        dob: correctedDob || null,
+
+        "managementCorrections.dob.original":
+          submittedDob || null,
+
+        "managementCorrections.dob.corrected":
+          correctedDob || null,
+
+        "managementCorrections.dob.changed":
+          Boolean(
+            submittedDob &&
+            correctedDob &&
+            submittedDob !== correctedDob
+          ),
+
+        "managementCorrections.dob.correctedBy":
+          coachUid,
+
+        "managementCorrections.dob.correctedAt":
+          now,
 
         forTrack: prefix,
         forLane: lane,

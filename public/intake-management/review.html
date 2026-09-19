@@ -115,12 +115,41 @@
             </div>
           </div>
 
-          <div class="form-grid three">
+          <div class="form-grid two">
             <div class="field">
-              <label for="c-team">Team / Affiliation</label>
-              <input id="c-team" placeholder="e.g., Sandman Academy, Santa Ynez Wrestling, Independent" autocomplete="organization">
+              <label for="c-dob">Corrected DOB</label>
+              <input
+                id="c-dob"
+                type="date"
+                autocomplete="bday"
+              >
             </div>
 
+            <div class="field">
+              <label for="c-team">Team / Affiliation</label>
+              <select id="c-team">
+                <option value="">Select team</option>
+                <option value="Sandman Academy of Combat & Fitness">Sandman Academy of Combat & Fitness</option>
+                <option value="Independent">Independent</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div
+            class="field"
+            id="c-team-other-wrap"
+            hidden
+          >
+            <label for="c-team-other">Other Team / Affiliation</label>
+            <input
+              id="c-team-other"
+              autocomplete="organization"
+              placeholder="Enter team or affiliation"
+            >
+          </div>
+
+          <div class="form-grid two">
             <div class="field">
               <label for="c-city">City</label>
               <input id="c-city" autocomplete="address-level2">

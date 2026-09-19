@@ -336,7 +336,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             !input?.trackCode) {
             throw new https_1.HttpsError("invalid-argument", "Missing required fields");
         }
-        const { intakeId, foundry: foundryRaw, virtueName, virtueCode, trackCode, fullName, publicName, parent, team, mint, experience, adjustment, framework, programTrack, art, ladderKey, rosterIds, coachIds, locationId, placement, priorExperienceValidation, } = input;
+        const { intakeId, foundry: foundryRaw, virtueName, virtueCode, trackCode, fullName, publicName, dob, parent, team, mint, experience, adjustment, framework, programTrack, art, ladderKey, rosterIds, coachIds, locationId, placement, priorExperienceValidation, } = input;
         const foundry = String(foundryRaw || "").trim().toLowerCase();
         const safeFramework = String(framework || "").trim() ||
             (foundry === "f4" ? "foundry4" : "foundry8");
@@ -569,13 +569,28 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             throw new https_1.HttpsError("failed-precondition", `Submission doc missing: ${intakeRef.path}`);
         }
         const intakeDataPre = intakeSnapPre.data() || {};
+        const submittedDob = String(intakeDataPre.dob ||
+            intakeDataPre.athlete?.dob ||
+            "").trim();
+        const correctedDob = String(dob || submittedDob).trim();
+        if (mode !== "add_sport" &&
+            ageFromDob(correctedDob) === null) {
+            throw new https_1.HttpsError("invalid-argument", "A valid date of birth is required before activation.");
+        }
         if (mode !== "add_sport") {
             (0, staffAuthorization_1.requireStaffLocation)(activationActor, intakeDataPre.locationId, "This intake is outside your authorized location scope.");
         }
         // Server-authoritative enrollment gate.
         // Browser validation is UX only and cannot be trusted
         // as the activation security boundary.
-        validateEnrollmentAuthority(intakeDataPre);
+        validateEnrollmentAuthority({
+            ...intakeDataPre,
+            dob: correctedDob,
+            athlete: {
+                ...(intakeDataPre.athlete || {}),
+                dob: correctedDob
+            }
+        });
         /*
          * ------------------------------------------------------
          * Server-authoritative prior-experience verification
@@ -643,7 +658,14 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
             const onboardingRelationship = (0, onboardingRelationship_1.onboardingRelationshipFields)(intakeData.intakeAudience);
             // Revalidate the transaction snapshot so activation
             // is based on the same authoritative data being committed.
-            validateEnrollmentAuthority(intakeData);
+            validateEnrollmentAuthority({
+                ...intakeData,
+                dob: correctedDob,
+                athlete: {
+                    ...(intakeData.athlete || {}),
+                    dob: correctedDob
+                }
+            });
             // New-member location ownership is server-authoritative.
             // It was inherited from the verified intake token.
             const safeLocationId = String(intakeData.locationId || "").trim() || null;
@@ -786,6 +808,7 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                     step: 1,
                     locks: {}
                 },
+                dob: correctedDob || null,
                 team: teamName,
                 teamId,
                 city: cityName,
@@ -869,6 +892,14 @@ exports.approveAndActivate = (0, https_1.onCall)(async (req) => {
                 approvedUid: uid,
                 approvedAt: now,
                 minted: true,
+                dob: correctedDob || null,
+                "managementCorrections.dob.original": submittedDob || null,
+                "managementCorrections.dob.corrected": correctedDob || null,
+                "managementCorrections.dob.changed": Boolean(submittedDob &&
+                    correctedDob &&
+                    submittedDob !== correctedDob),
+                "managementCorrections.dob.correctedBy": coachUid,
+                "managementCorrections.dob.correctedAt": now,
                 forTrack: prefix,
                 forLane: lane,
                 framework: safeFramework,
