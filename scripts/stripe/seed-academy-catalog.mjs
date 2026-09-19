@@ -33,7 +33,7 @@ const catalog = [
     productName: "Combat — 1 Discipline · 2–3 Days/Week",
     description:
       "One combat discipline with 2–3 days per week access. Month-to-month.",
-    amount: 9000,
+    amount: 8500,
     recurring: true,
     metadata: {
       category: "combat",
@@ -201,56 +201,37 @@ const catalog = [
   },
 
   // =========================================================
-  // ANNUAL ATHLETE ENROLLMENT
+  // ANNUAL ENROLLMENT
   // =========================================================
 
   {
-    key: "enrollment_1",
-    productName: "Annual Athlete Enrollment — 1 Training Shirt Package",
+    key: "enrollment_youth_annual",
+    productName: "Annual Enrollment — Youth",
     description:
-      "Annual athlete enrollment package: AAU membership, 1 athlete shirt, and annual digital/admin support.",
+      "Annual youth enrollment. Sandman Academy handles the youth AAU membership component.",
     amount: 5000,
     recurring: false,
     metadata: {
       category: "annual_enrollment",
-      package: "1",
-      shirts: "1",
-      includes_aau: "true",
-      standard_minimum: "true",
-    },
-  },
-
-  {
-    key: "enrollment_2",
-    productName: "Annual Athlete Enrollment — 2 Training Shirt Package",
-    description:
-      "Annual athlete enrollment package: AAU membership, 2 athlete shirts, and annual digital/admin support.",
-    amount: 6500,
-    recurring: false,
-    metadata: {
-      category: "annual_enrollment",
-      package: "2",
-      shirts: "2",
+      participant_type: "youth",
       includes_aau: "true",
     },
   },
 
   {
-    key: "enrollment_3",
-    productName: "Annual Athlete Enrollment — 3 Training Shirt Package",
+    key: "enrollment_adult_annual",
+    productName: "Annual Enrollment — Adult",
     description:
-      "Annual athlete enrollment package: AAU membership, 3 athlete shirts, and annual digital/admin support.",
-    amount: 7500,
+      "Annual adult enrollment. Adult athletes purchase their own AAU membership and complete applicable background-check and education requirements.",
+    amount: 2500,
     recurring: false,
     metadata: {
       category: "annual_enrollment",
-      package: "3",
-      shirts: "3",
-      includes_aau: "true",
+      participant_type: "adult",
+      includes_aau: "false",
     },
   },
 
-  // =========================================================
   // COMBAT — SHORT-TERM PASSES
   // =========================================================
 
@@ -403,7 +384,9 @@ async function ensureCatalogItem(item) {
     console.log(`• Updated product: ${product.name}`);
   }
 
-  const lookupKey = `sandman_${CATALOG_VERSION}_${item.key}`;
+  const lookupKey =
+    item.lookupKey ||
+    `sandman_${CATALOG_VERSION}_${item.key}`;
 
   let price = await findPriceByLookupKey(lookupKey);
 
