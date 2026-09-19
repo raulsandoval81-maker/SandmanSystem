@@ -440,8 +440,8 @@ function createMessageItem(message) {
   chevron.setAttribute(
     "aria-label",
     isExpanded
-      ? "Collapse message preview"
-      : "Expand message preview"
+      ? "Hide message actions"
+      : "Show message actions"
   );
 
   const topic =
@@ -516,86 +516,115 @@ function createMessageItem(message) {
   );
 
   if (isExpanded) {
-    const quick =
+    const actions =
       document.createElement("div");
 
-    quick.className =
+    actions.className =
       "message-item__quick";
 
-    const messageText =
-      document.createElement("p");
-
-    messageText.className =
-      "message-item__quick-message";
-
-    messageText.textContent =
-      clean(message.message) ||
-      "No message provided.";
-
-    const details =
-      document.createElement("dl");
-
-    details.className =
-      "message-item__quick-details";
-
-    const quickValues = [
-      [
-        "Email",
-        clean(message.email) ||
-          "Not provided"
-      ],
-      [
-        "Phone",
-        clean(message.phone) ||
-          "Not provided"
-      ],
-      [
-        "Location",
-        clean(message.locationName) ||
-          clean(message.locationId) ||
-          "Not assigned"
-      ]
-    ];
-
-    for (const [label, value] of quickValues) {
-      const row =
-        document.createElement("div");
-
-      const dt =
-        document.createElement("dt");
-
-      const dd =
-        document.createElement("dd");
-
-      dt.textContent = label;
-      dd.textContent = value;
-
-      row.append(dt, dd);
-      details.appendChild(row);
-    }
-
-    const open =
+    const openButton =
       document.createElement("button");
 
-    open.type = "button";
-    open.className =
-      "button button-secondary message-item__open";
+    openButton.type = "button";
+    openButton.className =
+      "button button-primary message-item__action";
 
-    open.textContent =
-      "Open Full Message";
+    openButton.textContent =
+      "Open Message";
 
-    open.addEventListener(
+    openButton.addEventListener(
       "click",
       () => selectMessage(message.id)
     );
 
-    quick.append(
-      messageText,
-      details,
-      open
+    const replyButton =
+      document.createElement("button");
+
+    replyButton.type = "button";
+    replyButton.className =
+      "button button-secondary message-item__action";
+
+    replyButton.textContent =
+      "Reply";
+
+    replyButton.addEventListener(
+      "click",
+      () => {
+        selectMessage(message.id);
+
+        const response =
+          document.getElementById(
+            "suggestedResponseText"
+          );
+
+        response?.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
+
+        response?.focus();
+      }
     );
 
-    wrapper.appendChild(quick);
+    const actionDefinitions = [
+      [
+        "Mark Responded",
+        "markRespondedButton",
+        "button-secondary"
+      ],
+      [
+        "Admin Guidance",
+        "requestAdminGuidanceButton",
+        "button-secondary"
+      ],
+      [
+        "Close",
+        "closeMessageButton",
+        "button-secondary"
+      ],
+      [
+        "Delete",
+        "deleteMessageButton",
+        "button-secondary message-item__action--danger"
+      ]
+    ];
+
+    actions.append(
+      openButton,
+      replyButton
+    );
+
+    for (
+      const [
+        label,
+        targetId,
+        className
+      ] of actionDefinitions
+    ) {
+      const action =
+        document.createElement("button");
+
+      action.type = "button";
+      action.className =
+        `button ${className} message-item__action`;
+
+      action.textContent = label;
+
+      action.addEventListener(
+        "click",
+        () => {
+          selectMessage(message.id);
+
+          document
+            .getElementById(targetId)
+            ?.click();
+        }
+      );
+
+      actions.appendChild(action);
+    }
+
+    wrapper.appendChild(actions);
   }
 
   return wrapper;
