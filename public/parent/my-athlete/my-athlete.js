@@ -191,10 +191,10 @@ function findCurrentTier(ladder, tierName, a = {}) {
   const tierNum = getTierNum(a);
   return ladder[tierNum] || ladder[0];
 }
-function getColorClass(a = {}, tierName = "") {
+function getColorClass(a = {}, tierName = "", discipline = "") {
 
-  // renderAthlete() already passes the selected combat record.
-  // No need to resolve activeDiscipline again.
+  const normalizedDiscipline = String(discipline || "").trim().toLowerCase();
+
   const journey = String(
     a.journey ||
     a.programTrack ||
@@ -268,6 +268,14 @@ const colorMaps = {
     key = "q2m";
   } else if (!key) {
     key = resolveLadder(a) === LADDER_F8 ? "z2h" : "p2l";
+  }
+
+  if (
+    key === "p2l" &&
+    tierName === "Apprentice" &&
+    ["boxing", "muay-thai", "muay thai", "kickboxing"].includes(normalizedDiscipline)
+  ) {
+    return "belt-p2l-apprentice-gray";
   }
 
   return colorMaps[key]?.[tierName] || "belt-p2l-apprentice";
@@ -569,7 +577,8 @@ const storedStripes = Number(
 
   const mappedColor = getColorClass(
     combat,
-    tierName
+    tierName,
+    activeDiscipline
   );
 
   setHTML(
