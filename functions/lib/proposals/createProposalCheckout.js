@@ -136,7 +136,10 @@ exports.createProposalCheckout = (0, https_1.onCall)({
         }
         const item = rawItem;
         const lookupKey = cleanString(item.lookupKey);
-        if (!lookupKey.startsWith("sandman_academy-2026-v3_")) {
+        if (![
+            "sandman_academy-2026-v3_",
+            "sandman_academy-2026-v4_",
+        ].some((prefix) => lookupKey.startsWith(prefix))) {
             throw new https_1.HttpsError("failed-precondition", `Stripe catalog item ${index + 1} has an invalid lookup key.`);
         }
         if (item.recurring !== true) {

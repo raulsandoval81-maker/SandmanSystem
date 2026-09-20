@@ -167,7 +167,10 @@ async function handleProposalCheckoutCompleted(session) {
         }
         const item = rawItem;
         const lookupKey = cleanString(item.lookupKey);
-        if (!lookupKey.startsWith("sandman_academy-2026-v3_")) {
+        if (![
+            "sandman_academy-2026-v3_",
+            "sandman_academy-2026-v4_",
+        ].some((prefix) => lookupKey.startsWith(prefix))) {
             throw new Error(`Proposal ${proposalId} contains an invalid Stripe lookup key.`);
         }
         const expectedAmount = Math.round(Number(item.amount) * 100);
