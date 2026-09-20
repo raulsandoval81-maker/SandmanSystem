@@ -1202,19 +1202,19 @@ function updateTrainingIntentNotice() {
 
   if (visitType === "returning") {
     en =
-      "Returning athletes are not eligible for another free trial. Management will confirm the appropriate paid re-entry option.";
+      "Returning athlete: $25 one-day training pass.";
 
     es =
-      "Los atletas que regresan no son elegibles para otra prueba gratuita. Administración confirmará la opción pagada de regreso apropiada.";
+      "Atleta que regresa: pase de entrenamiento de un día por $25.";
   }
 
   if (visitType === "visitor") {
     if (interestType === "combat") {
       en =
-        "Visiting Combat: $30 for one training day or $40 for two training days.";
+        "Visiting Combat: $25 for one training day or $40 for two training days.";
 
       es =
-        "Combate para visitantes: $30 por un día de entrenamiento o $40 por dos días.";
+        "Combate para visitantes: $25 por un día de entrenamiento o $40 por dos días.";
     }
 
     if (interestType === "fitness") {
@@ -1227,10 +1227,10 @@ function updateTrainingIntentNotice() {
 
     if (interestType === "both") {
       en =
-        "Visiting Combat: $30 for one training day or $40 for two. Visiting Fitness: $15 drop-in.";
+        "Visiting Combat: $25 for one training day or $40 for two. Visiting Fitness: $15 drop-in.";
 
       es =
-        "Combate para visitantes: $30 por un día o $40 por dos. Fitness para visitantes: $15 por clase.";
+        "Combate para visitantes: $25 por un día o $40 por dos. Fitness para visitantes: $15 por clase.";
     }
   }
 
