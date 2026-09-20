@@ -418,6 +418,11 @@ function readForm() {
         formData.get("preferredClassTime")
       ),
 
+    competitionTrackInterest:
+      clean(
+        formData.get("competitionTrackInterest")
+      ) || "regular",
+
     claimedPriorExperience:
       clean(formData.get("claimedPriorExperience")),
 
@@ -850,7 +855,7 @@ function syncLocalInterestIdentity() {
   const locations = {
     "santa-ynez-valley": {
       enPlace: "Santa Ynez Valley Strong",
-      esPlace: "Santa Ynez Valley Fuerte"
+      esPlace: "Fuerza del Valle de Santa Ynez"
     },
 
     "lompoc": {
@@ -1453,10 +1458,19 @@ function updatePrograms() {
         !allowedPrograms ||
         allowedPrograms.has(program.value);
 
+      const availableOnPublishedSchedule =
+        typeof window.sandmanInterestScheduleOffersProgram === "function"
+          ? window.sandmanInterestScheduleOffersProgram(
+              program.discipline,
+              age
+            )
+          : true;
+
       return (
         meetsMinimum &&
         meetsMaximum &&
-        availableAtLocation
+        availableAtLocation &&
+        availableOnPublishedSchedule
       );
     });
 
@@ -1508,6 +1522,13 @@ function updatePrograms() {
 
   syncPreferredDiscipline();
 }
+
+document.addEventListener(
+  "sandman:scheduleloaded",
+  () => {
+    updatePrograms();
+  }
+);
 
 function syncPreferredDiscipline() {
   if (!programInterest) return;
