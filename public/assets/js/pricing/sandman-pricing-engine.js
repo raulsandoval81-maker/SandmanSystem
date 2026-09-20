@@ -2,95 +2,190 @@ import {
   SANDMAN_PRICING_CATALOG
 } from "./sandman-pricing-catalog.js";
 
-const PRICING = SANDMAN_PRICING_CATALOG;
+const PRICING =
+  SANDMAN_PRICING_CATALOG;
 
-function disciplineCount(athlete) {
-  const count =
-    Array.isArray(athlete.disciplines)
-      ? athlete.disciplines.length
-      : 0;
+const ACCESS_ORDER =
+  PRICING.combat.accessOrder;
 
-  return count >= 2 ? 2 : 1;
+function normalizeCombatAccess(
+  value
+) {
+  if (
+    ACCESS_ORDER.includes(value)
+  ) {
+    return value;
+  }
+
+  if (value === "4-6") {
+    return "classes-4";
+  }
+
+  return "core-2";
 }
 
-function combatAccess(athlete) {
-  return athlete.trainingAccess === "4-6"
-    ? "4-6"
-    : "2-3";
-}
-
-function isAnnual(athlete) {
-  return athlete.billingTerm === "annual";
-}
-
-function combatRateRecord(athlete) {
-  const group =
-    disciplineCount(athlete) >= 2
-      ? PRICING.combat.individual
-          .twoDisciplines
-      : PRICING.combat.individual
-          .oneDiscipline;
-
-  return group[combatAccess(athlete)];
-}
-
-function individualCombatRate(athlete) {
-  const record =
-    combatRateRecord(athlete);
-
-  return isAnnual(athlete)
-    ? record.annual
-    : record.monthToMonth;
-}
-
-function individualCombatLookup(athlete) {
-  const record =
-    combatRateRecord(athlete);
-
-  return isAnnual(athlete)
-    ? record.annualLookup
-    : record.monthToMonthLookup;
-}
-
-function familyCombatRecord(athletes) {
-  const hasTwoDisciplines =
-    athletes.some(
-      (athlete) =>
-        disciplineCount(athlete) >= 2
-    );
-
-  const hasHighAccess =
-    athletes.some(
-      (athlete) =>
-        combatAccess(athlete) === "4-6"
-    );
+function normalizeBillingTerm(
+  value
+) {
+  if (value === "annual") {
+    return "annual";
+  }
 
   if (
-    hasTwoDisciplines &&
-    hasHighAccess
+    value === "six-month" ||
+    value === "sixMonth"
   ) {
-    return PRICING.combat.family12Month
-      .twoDisciplines46;
+    return "sixMonth";
   }
 
-  if (hasTwoDisciplines) {
-    return PRICING.combat.family12Month
-      .twoDisciplines23;
-  }
-
-  if (hasHighAccess) {
-    return PRICING.combat.family12Month
-      .oneDiscipline46;
-  }
-
-  return PRICING.combat.family12Month
-    .oneDiscipline23;
+  return "monthToMonth";
 }
 
-function fitnessRecord(athlete) {
-  return athlete.trainingAccess === "3"
-    ? PRICING.fitness.threeDays
-    : PRICING.fitness.twoDays;
+function termCommitmentRank(
+  term
+) {
+  if (term === "annual") {
+    return 1;
+  }
+
+  if (term === "sixMonth") {
+    return 2;
+  }
+
+  return 3;
+}
+
+function householdSize(
+  count
+) {
+  return String(
+    Math.min(
+      4,
+      Math.max(1, count)
+    )
+  );
+}
+
+function singleCombatRecord(
+  athlete
+) {
+  const access =
+    normalizeCombatAccess(
+      athlete.trainingAccess
+    );
+
+  return PRICING.combat
+    .householdPricing["1"][access];
+}
+
+function singleCombatRate(
+  athlete
+) {
+  const record =
+    singleCombatRecord(athlete);
+
+  const term =
+    normalizeBillingTerm(
+      athlete.billingTerm
+    );
+
+  return record[term].amount;
+}
+
+function highestFamilyAccess(
+  athletes
+) {
+  let highestIndex = 0;
+
+  athletes.forEach(
+    (athlete) => {
+      const access =
+        normalizeCombatAccess(
+          athlete.trainingAccess
+        );
+
+      const index =
+        ACCESS_ORDER.indexOf(
+          access
+        );
+
+      if (index > highestIndex) {
+        highestIndex = index;
+      }
+    }
+  );
+
+  return ACCESS_ORDER[
+    highestIndex
+  ];
+}
+
+function familyBillingTerm(
+  athletes
+) {
+  let selected =
+    "annual";
+
+  athletes.forEach(
+    (athlete) => {
+      const term =
+        normalizeBillingTerm(
+          athlete.billingTerm
+        );
+
+      if (
+        termCommitmentRank(term) >
+        termCommitmentRank(selected)
+      ) {
+        selected = term;
+      }
+    }
+  );
+
+  return selected;
+}
+
+function familyCombatRecord(
+  athletes
+) {
+  const size =
+    householdSize(
+      athletes.length
+    );
+
+  const access =
+    highestFamilyAccess(
+      athletes
+    );
+
+  const term =
+    familyBillingTerm(
+      athletes
+    );
+
+  const record =
+    PRICING.combat
+      .householdPricing[size][
+        access
+      ][term];
+
+  return {
+    size,
+    access,
+    term,
+    amount: record.amount,
+    lookup: record.lookup
+  };
+}
+
+function fitnessRecord(
+  athlete
+) {
+  return (
+    athlete.trainingAccess === "3"
+      ? PRICING.fitness.threeDays
+      : PRICING.fitness.twoDays
+  );
 }
 
 export function calculateSandmanMembershipPricing(
@@ -114,19 +209,16 @@ export function calculateSandmanMembershipPricing(
     combatAthletes.reduce(
       (total, athlete) =>
         total +
-        individualCombatRate(athlete),
+        singleCombatRate(
+          athlete
+        ),
       0
     );
-
-  const allCombatAnnual =
-    combatAthletes.length > 0 &&
-    combatAthletes.every(isAnnual);
 
   let standardCombatMonthly = 0;
 
   if (
-    combatAthletes.length >= 2 &&
-    allCombatAnnual
+    combatAthletes.length >= 2
   ) {
     const family =
       familyCombatRecord(
@@ -134,40 +226,63 @@ export function calculateSandmanMembershipPricing(
       );
 
     standardCombatMonthly =
-      family.monthly;
+      family.amount;
 
     catalogItems.push({
       kind: "combat-family",
       recurring: true,
-      lookupKey: family.lookup,
-      amount: family.monthly,
+      householdSize:
+        family.size,
+      trainingAccess:
+        family.access,
+      billingTerm:
+        family.term,
+      lookupKey:
+        family.lookup,
+      amount:
+        family.amount,
       quantity: 1
     });
-  } else {
-    combatAthletes.forEach(
-      (athlete) => {
-        const amount =
-          individualCombatRate(
-            athlete
-          );
+  } else if (
+    combatAthletes.length === 1
+  ) {
+    const athlete =
+      combatAthletes[0];
 
-        standardCombatMonthly +=
-          amount;
+    const access =
+      normalizeCombatAccess(
+        athlete.trainingAccess
+      );
 
-        catalogItems.push({
-          kind: "combat-individual",
-          recurring: true,
-          athleteIndex:
-            athlete.index ?? null,
-          lookupKey:
-            individualCombatLookup(
-              athlete
-            ),
-          amount,
-          quantity: 1
-        });
-      }
-    );
+    const term =
+      normalizeBillingTerm(
+        athlete.billingTerm
+      );
+
+    const record =
+      PRICING.combat
+        .householdPricing["1"][
+          access
+        ][term];
+
+    standardCombatMonthly =
+      record.amount;
+
+    catalogItems.push({
+      kind: "combat-individual",
+      recurring: true,
+      athleteIndex:
+        athlete.index ?? null,
+      trainingAccess:
+        access,
+      billingTerm:
+        term,
+      lookupKey:
+        record.lookup,
+      amount:
+        record.amount,
+      quantity: 1
+    });
   }
 
   let fitnessMonthly = 0;
@@ -175,7 +290,9 @@ export function calculateSandmanMembershipPricing(
   fitnessAthletes.forEach(
     (athlete) => {
       const record =
-        fitnessRecord(athlete);
+        fitnessRecord(
+          athlete
+        );
 
       fitnessMonthly +=
         record.monthly;
@@ -208,27 +325,32 @@ export function calculateSandmanMembershipPricing(
   const agreementSavingsAnnual =
     combatAthletes.reduce(
       (total, athlete) => {
-        if (!isAnnual(athlete)) {
-          return total;
-        }
+        const access =
+          normalizeCombatAccess(
+            athlete.trainingAccess
+          );
+
+        const selectedTerm =
+          normalizeBillingTerm(
+            athlete.billingTerm
+          );
 
         const record =
-          combatRateRecord(athlete);
+          PRICING.combat
+            .householdPricing["1"][
+              access
+            ];
 
         return (
           total +
           (
-            record.monthToMonth -
-            record.annual
+            record.monthToMonth.amount -
+            record[selectedTerm].amount
           ) * 12
         );
       },
       0
     );
-
-  const projectedSavingsAnnual =
-    standardFamilySavingsAnnual +
-    agreementSavingsAnnual;
 
   return {
     pricingModel:
@@ -250,7 +372,9 @@ export function calculateSandmanMembershipPricing(
 
     agreementSavingsAnnual,
 
-    projectedSavingsAnnual,
+    projectedSavingsAnnual:
+      standardFamilySavingsAnnual +
+      agreementSavingsAnnual,
 
     individualEquivalentMonthly:
       individualCombatEquivalent +
@@ -261,11 +385,6 @@ export function calculateSandmanMembershipPricing(
 
     monthlyMembership,
 
-    /*
-     * Legacy compatibility fields.
-     * These intentionally remain zero while
-     * old rendering code is removed.
-     */
     mmaMonthly: 0,
     mmaIndividualEquivalentMonthly: 0,
     comboMonthly: 0,

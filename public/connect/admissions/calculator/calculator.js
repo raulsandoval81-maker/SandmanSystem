@@ -486,12 +486,24 @@ const extras = {
             ]
           : [
               {
-                value: "2-3",
-                label: "Combat — 2–3 days/week"
+                value: "core-2",
+                label: "Combat — 2-Day Core"
               },
               {
-                value: "4-6",
-                label: "Combat — 4–6 days/week"
+                value: "competition-3",
+                label: "Combat — 3-Day Competition Track"
+              },
+              {
+                value: "classes-4",
+                label: "Combat — 4-Day Classes"
+              },
+              {
+                value: "discipline-5",
+                label: "Combat — 5-Day"
+              },
+              {
+                value: "dual-full",
+                label: "Combat — Dual-Discipline Full Access"
               }
             ];
 
@@ -500,11 +512,20 @@ const extras = {
           (option) => option.value
         );
 
+      const legacyMappedValue =
+        preferredValue === "4-6"
+          ? "classes-4"
+          : (
+              preferredValue === "2-3"
+                ? "core-2"
+                : preferredValue
+            );
+
       const nextValue =
         validValues.includes(
-          preferredValue
+          legacyMappedValue
         )
-          ? preferredValue
+          ? legacyMappedValue
           : options[0].value;
 
       select.innerHTML = "";
@@ -558,7 +579,7 @@ const extras = {
         (
           defaults.plan === "fitness"
             ? "2"
-            : "2-3"
+            : "core-2"
         )
       );
 
@@ -659,9 +680,8 @@ const extras = {
           }
 
           const amount =
-            athlete.enrollmentType === "adult"
-              ? PRICING.enrollment.adult.amount
-              : PRICING.enrollment.youth.amount;
+            PRICING.enrollment
+              .perAthlete.amount;
 
           return total + amount;
         },
@@ -1242,9 +1262,13 @@ const extras = {
               : "no discipline selected";
 
         const termLabel =
-          a.billingTerm==="annual"
+          a.billingTerm === "annual"
             ? "12-month agreement"
-            : "month-to-month";
+            : (
+                a.billingTerm === "six-month"
+                  ? "6-month agreement"
+                  : "month-to-month"
+              );
 
         return `${a.name}: ${planLabel} — ${disciplineText} — ${termLabel}`;
       }).join("<br>");
@@ -1962,7 +1986,7 @@ alert(
               (
                 athlete.plan === "fitness"
                   ? "2"
-                  : "2-3"
+                  : "core-2"
               ),
 
             billingTerm:
@@ -2110,7 +2134,7 @@ alert(
           "standard",
 
         trainingAccess:
-          "2-3",
+          "core-2",
 
         billingTerm:
           "month-to-month",
@@ -2252,7 +2276,11 @@ alert(
           const commitment =
             athlete.billingTerm === "annual"
               ? "12-month agreement + autopay"
-              : "Month-to-month";
+              : (
+                  athlete.billingTerm === "six-month"
+                    ? "6-month agreement + autopay"
+                    : "Month-to-month"
+                );
 
           return `
             <article class="print-athlete">
@@ -2361,39 +2389,56 @@ alert(
                   )
                   .join(" + ");
 
-          const annualAgreement =
-            athlete.billingTerm === "annual";
+          const agreementLabel =
+            athlete.billingTerm === "annual"
+              ? "12-month agreement"
+              : (
+                  athlete.billingTerm === "six-month"
+                    ? "6-month agreement"
+                    : "Month-to-month"
+                );
 
           let pricingRows = "";
 
           if (
             athlete.plan === "standard"
           ) {
-            const disciplineCount =
-              Math.min(
-                2,
-                Math.max(
-                  1,
-                  athlete.disciplines.length
-                )
-              );
+            const validAccess = [
+              "core-2",
+              "competition-3",
+              "classes-4",
+              "discipline-5",
+              "dual-full"
+            ];
 
             const access =
-              athlete.trainingAccess === "4-6"
-                ? "4-6"
-                : "2-3";
+              validAccess.includes(
+                athlete.trainingAccess
+              )
+                ? athlete.trainingAccess
+                : (
+                    athlete.trainingAccess === "4-6"
+                      ? "classes-4"
+                      : "core-2"
+                  );
+
+            const term =
+              athlete.billingTerm === "annual"
+                ? "annual"
+                : (
+                    athlete.billingTerm === "six-month"
+                      ? "sixMonth"
+                      : "monthToMonth"
+                  );
 
             const record =
-              disciplineCount >= 2
-                ? PRICING.combat.individual
-                    .twoDisciplines[access]
-                : PRICING.combat.individual
-                    .oneDiscipline[access];
+              PRICING.combat
+                .householdPricing["1"][
+                  access
+                ][term];
 
             const individualStandardRate =
-              athlete.billingTerm === "annual"
-                ? record.annual
-                : record.monthToMonth;
+              record.amount;
 
             pricingRows += `
               <div class="print-detail-row">
