@@ -180,9 +180,30 @@
 
     .message-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
+      grid-template-columns: minmax(0, 1fr);
       gap: 22px;
       align-items: start;
+    }
+
+    .message-sidebar {
+      width: 100%;
+    }
+
+    .message-side-card {
+      max-width: 760px;
+      margin-inline: auto;
+      padding: 1.6rem 1.8rem;
+      text-align: center;
+    }
+
+    .message-side-card p {
+      max-width: 640px;
+      margin-inline: auto;
+    }
+
+    .message-side-card a {
+      display: inline-flex;
+      margin-top: 0.45rem;
     }
 
     .message-panel {
