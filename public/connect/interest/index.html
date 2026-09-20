@@ -1676,6 +1676,10 @@
 
         root.lang = safeLanguage;
 
+        if (typeof window.syncLocalInterestIdentity === "function") {
+          window.syncLocalInterestIdentity();
+        }
+
         if (languageInput) {
           languageInput.value = safeLanguage;
         }

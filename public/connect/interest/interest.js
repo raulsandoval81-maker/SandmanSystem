@@ -909,6 +909,7 @@ function syncLocalInterestIdentity() {
 }
 
 syncLocalInterestIdentity();
+window.syncLocalInterestIdentity = syncLocalInterestIdentity;
 
 // -------------------- Intent --------------------
 
