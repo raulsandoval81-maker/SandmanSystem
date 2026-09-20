@@ -1859,24 +1859,3 @@ button {
   font-weight:850;
   letter-spacing:.015em;
 }
-
-/* Secondary contact action */
-.placement-note{
-  margin-top:14px;
-  padding:14px 16px;
-
-  border:1px solid rgba(34,197,94,.55);
-  border-radius:12px;
-
-  background:rgba(34,197,94,.07);
-}
-
-.placement-note a{
-  color:#86efac;
-  font-weight:800;
-  text-decoration:none;
-}
-
-.placement-note a:hover{
-  text-decoration:underline;
-}

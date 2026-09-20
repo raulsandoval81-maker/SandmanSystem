@@ -551,18 +551,6 @@ if (
   );
 }
 
-  const requiresMeetingAvailability =
-    lead.entryMode === "online";
-
-  if (
-    requiresMeetingAvailability &&
-    !lead.preferredMeetingWindow
-  ) {
-    return message(
-      "Select your preferred meeting availability.",
-      "Selecciona tu horario preferido para reunirte."
-    );
-  }
 
   if (
     ![
@@ -1980,16 +1968,6 @@ function validateInterestStep(
       );
     }
 
-    if (
-      lead.entryMode ===
-        "online" &&
-      !lead.preferredMeetingWindow
-    ) {
-      return message(
-        "Select your preferred meeting availability.",
-        "Selecciona tu horario preferido para reunirte."
-      );
-    }
   }
 
   if (stepNumber === 4) {
