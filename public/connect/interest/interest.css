@@ -1852,3 +1852,10 @@ button {
 #trainingSchedulePreferenceSection .field + .field{
   margin-top:12px;
 }
+
+#trainingSchedulePreferenceSection .training-question-heading{
+  color:var(--gold);
+  font-size:1rem;
+  font-weight:850;
+  letter-spacing:.015em;
+}
