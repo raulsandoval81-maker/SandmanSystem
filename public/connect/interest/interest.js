@@ -850,7 +850,7 @@ function syncLocalInterestIdentity() {
   const locations = {
     "santa-ynez-valley": {
       enPlace: "Santa Ynez Valley Strong",
-      esPlace: "Santa Ynez Valley Strong"
+      esPlace: "Santa Ynez Valley Fuerte"
     },
 
     "lompoc": {
