@@ -1839,3 +1839,16 @@ button {
     margin-left:auto;
   }
 }
+
+/* Interest form question spacing */
+#trainingSchedulePreferenceSection{
+  gap:22px;
+}
+
+#trainingSchedulePreferenceSection .field{
+  gap:10px;
+}
+
+#trainingSchedulePreferenceSection .field + .field{
+  margin-top:12px;
+}
