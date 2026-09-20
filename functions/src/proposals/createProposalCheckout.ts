@@ -339,8 +339,11 @@ export const createProposalCheckout =
               );
 
             if (
-              !lookupKey.startsWith(
-                "sandman_academy-2026-v3_"
+              ![
+                "sandman_academy-2026-v3_",
+                "sandman_academy-2026-v4_",
+              ].some((prefix) =>
+                lookupKey.startsWith(prefix)
               )
             ) {
               throw new HttpsError(
