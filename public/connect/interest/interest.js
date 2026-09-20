@@ -1219,10 +1219,10 @@ function updateTrainingIntentNotice() {
 
     if (interestType === "fitness") {
       en =
-        "Visiting Fitness: $15 drop-in.";
+        "Fitness Drop-In: $15.";
 
       es =
-        "Fitness para visitantes: $15 por clase.";
+        "Clase de Fitness: $15.";
     }
 
     if (interestType === "both") {
@@ -1245,10 +1245,10 @@ function updateTrainingIntentNotice() {
 
     if (interestType === "fitness") {
       en =
-        "Local Fitness: $10 first drop-in. If you enroll, the $10 can be applied toward enrollment.";
+        "Interested in becoming a Fitness member: we'll help you choose the right training option and next step.";
 
       es =
-        "Fitness local: $15 por clase. Si te inscribes, los $15 se aplican a la inscripción o membresía.";
+        "Interesado en hacerte miembro de Fitness: te ayudaremos a elegir la opción de entrenamiento y el próximo paso.";
     }
 
     if (interestType === "both") {
@@ -2944,15 +2944,49 @@ function renderStep4LanguageSafeSelects() {
 
     select.innerHTML = "";
 
-    template
-      .filter((item) => !item.lang || item.lang === lang)
-      .forEach((item) => {
+    /*
+     * Fitness has a simpler visit decision than Combat.
+     *
+     * Keep the canonical stored values so existing
+     * Management routing and validation remain compatible:
+     *
+     * visitor        = Fitness Drop-In
+     * local-prospect = Membership Interest
+     */
+    if (
+      select.id === "trainingIntent" &&
+      getSelectedInterestType() === "fitness"
+    ) {
+      const fitnessOptions =
+        lang === "es"
+          ? [
+              ["", "Selecciona una opción"],
+              ["visitor", "Clase de Fitness — $15"],
+              ["local-prospect", "Interesado en Hacerme Miembro"]
+            ]
+          : [
+              ["", "Select one"],
+              ["visitor", "Fitness Drop-In — $15"],
+              ["local-prospect", "Interested in Becoming a Member"]
+            ];
+
+      fitnessOptions.forEach(([value, text]) => {
         const option = document.createElement("option");
-        option.value = item.value;
-        option.textContent = item.text;
-        option.disabled = item.disabled;
+        option.value = value;
+        option.textContent = text;
         select.appendChild(option);
       });
+    } else {
+      template
+        .filter((item) => !item.lang || item.lang === lang)
+        .forEach((item) => {
+          const option = document.createElement("option");
+          option.value = item.value;
+          option.textContent = item.text;
+          option.disabled = item.disabled;
+          select.appendChild(option);
+        });
+    }
 
     const previousStillExists =
       Array.from(select.options).some(
