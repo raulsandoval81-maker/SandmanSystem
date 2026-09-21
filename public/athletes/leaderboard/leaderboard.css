@@ -441,3 +441,23 @@ hr{
   color:var(--text);
   opacity:1;
 }
+
+@media (prefers-color-scheme: light) {
+  .rank-row.you,
+  .rank-row.you .rank-name,
+  .rank-row.you .rank-sub,
+  .rank-row.you .rank-xp,
+  .rank-row.you .lifetime-breakdown,
+  .rank-row.you .lifetime-breakdown-row,
+  .rank-row.you .lifetime-breakdown-row strong {
+    color:#111;
+  }
+
+  .rank-row.you .lifetime-breakdown {
+    border-top-color:rgba(0,0,0,.12);
+  }
+
+  .rank-row.you .lifetime-breakdown-discipline {
+    color:#333;
+  }
+}
