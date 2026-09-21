@@ -8,6 +8,12 @@ export const LIFETIME_COMPONENT_MODES = Object.freeze([
   "honor",
 ]);
 
+export const PUBLIC_LIFETIME_COMBAT_DISCIPLINES = Object.freeze([
+  "wrestling",
+  "boxing",
+  "muay-thai",
+]);
+
 export const RANK_MODE_LABELS = Object.freeze({
   progression: "Combat Progression",
   lifetime: "Sandman Lifetime XP",
@@ -23,6 +29,45 @@ export const RANK_MODE_LABELS = Object.freeze({
 function xp(value) {
   const number = Number(value ?? 0);
   return Number.isFinite(number) && number > 0 ? number : 0;
+}
+
+function canonicalAssignedDiscipline(value = "") {
+  const raw = String(value || "").trim().toLowerCase();
+  if (["muay thai", "muaythai", "muay-thai", "kickboxing"].includes(raw)) {
+    return "muay-thai";
+  }
+  return raw;
+}
+
+export function assignedLifetimeCombatDisciplines(athlete = {}) {
+  const assigned = [
+    ...(Array.isArray(athlete.disciplineIds) ? athlete.disciplineIds : []),
+    ...Object.keys(
+      athlete.disciplines &&
+      typeof athlete.disciplines === "object" &&
+      !Array.isArray(athlete.disciplines)
+        ? athlete.disciplines
+        : {}
+    ),
+  ].map(canonicalAssignedDiscipline);
+
+  return PUBLIC_LIFETIME_COMBAT_DISCIPLINES.filter((discipline) =>
+    assigned.includes(discipline)
+  );
+}
+
+export function lifetimeBreakdownFor(athlete = {}) {
+  const assignedDisciplines = assignedLifetimeCombatDisciplines(athlete);
+  return {
+    lifetimeXp: xp(athlete.lifetimeXp),
+    combatXp: xp(athlete.lifetimeCombatXp),
+    disciplines: assignedDisciplines.map((discipline) => ({
+      discipline,
+      xp: xp(athlete.lifetimeCombatByDiscipline?.[discipline]),
+    })),
+    strengthXp: xp(athlete.lifetimeStrengthXp),
+    honorXp: xp(athlete.lifetimeHonorXp),
+  };
 }
 
 export function isLifetimeRankMode(mode) {

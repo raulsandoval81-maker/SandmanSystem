@@ -10,7 +10,9 @@ import {
 } from "../../functions/lib/policy/lifetimeCombatDisciplinePolicy.js";
 import { resolveLifetimeXpEffects } from "../../functions/lib/policy/xpDomainPolicy.js";
 import {
+  assignedLifetimeCombatDisciplines,
   isLifetimeComponentMode,
+  lifetimeBreakdownFor,
   leaderboardScore,
 } from "../../public/athletes/leaderboard/leaderboard-scoring.js";
 
@@ -166,4 +168,42 @@ test("discipline leaderboard never infers missing ownership", () => {
 
 test("progression scoring remains active XP only", () => {
   assert.equal(leaderboardScore({ xp: 415, lifetimeXp: 9000 }, "progression"), 415);
+});
+
+test("Lifetime breakdown visibility follows assignments while scores follow the map", () => {
+  const maximus = {
+    disciplineIds: ["wrestling", "boxing"],
+    primaryDiscipline: "muay-thai",
+    lifetimeXp: 2615,
+    lifetimeCombatXp: 2525,
+    lifetimeCombatByDiscipline: { wrestling: 2185, boxing: 340, "muay-thai": 99 },
+    lifetimeStrengthXp: 60,
+    lifetimeHonorXp: 30,
+  };
+  assert.deepEqual(assignedLifetimeCombatDisciplines(maximus), ["wrestling", "boxing"]);
+  assert.equal(leaderboardScore(maximus, "wrestling"), 2185);
+  assert.equal(leaderboardScore(maximus, "boxing"), 340);
+  assert.deepEqual(lifetimeBreakdownFor(maximus), {
+    lifetimeXp: 2615,
+    combatXp: 2525,
+    disciplines: [
+      { discipline: "wrestling", xp: 2185 },
+      { discipline: "boxing", xp: 340 },
+    ],
+    strengthXp: 60,
+    honorXp: 30,
+  });
+
+  const sampson = {
+    disciplines: { wrestling: {}, kickboxing: {} },
+    discipline: "boxing",
+    lifetimeCombatByDiscipline: { wrestling: 235, "muay-thai": 0 },
+  };
+  assert.deepEqual(assignedLifetimeCombatDisciplines(sampson), ["wrestling", "muay-thai"]);
+  assert.equal(leaderboardScore(sampson, "muay-thai"), 0);
+  assert.deepEqual(lifetimeBreakdownFor(sampson).disciplines, [
+    { discipline: "wrestling", xp: 235 },
+    { discipline: "muay-thai", xp: 0 },
+  ]);
+  assert.equal(assignedLifetimeCombatDisciplines({ primaryDiscipline: "boxing" }).length, 0);
 });

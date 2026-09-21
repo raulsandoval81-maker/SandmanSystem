@@ -5,8 +5,10 @@ import {
 } from "/assets/js/firebase-init.js";
 import {
   RANK_MODE_LABELS,
+  assignedLifetimeCombatDisciplines,
   isLifetimeComponentMode,
   isLifetimeRankMode,
+  lifetimeBreakdownFor,
   leaderboardScore,
 } from "/athletes/leaderboard/leaderboard-scoring.js";
 
@@ -557,8 +559,11 @@ function lifetimeEntries() {
         !Array.isArray(athlete.data.lifetimeCombatByDiscipline)
           ? { ...athlete.data.lifetimeCombatByDiscipline }
           : {},
+      lifetimeCombatXp: normalizeXp(athlete.data.lifetimeCombatXp),
       lifetimeStrengthXp: normalizeXp(athlete.data.lifetimeStrengthXp),
-      lifetimeHonorXp: normalizeXp(athlete.data.lifetimeHonorXp)
+      lifetimeHonorXp: normalizeXp(athlete.data.lifetimeHonorXp),
+      assignedCombatDisciplines:
+        assignedLifetimeCombatDisciplines(athlete.data)
     };
   });
 }
@@ -617,7 +622,8 @@ function getScopedAthletes() {
 
 function rowHtml(
   athlete,
-  isYou = false
+  isYou = false,
+  showLifetimeBreakdown = false
 ) {
   const rankMode =
     rankModeEl?.value ||
@@ -638,6 +644,11 @@ function rowHtml(
       athlete,
       rankMode
     );
+
+  const breakdown =
+    showLifetimeBreakdown && rankMode === "lifetime"
+      ? lifetimeBreakdownHtml(athlete)
+      : "";
 
   return `
     <div class="rank-row ${isYou ? "you" : ""}">
@@ -665,6 +676,53 @@ function rowHtml(
       <div class="rank-xp">
         ${xp} XP
       </div>
+      ${breakdown}
+    </div>
+  `;
+}
+
+function lifetimeBreakdownHtml(athlete) {
+  const breakdown = lifetimeBreakdownFor({
+    ...athlete,
+    disciplineIds: athlete.assignedCombatDisciplines,
+    disciplines: {},
+  });
+  const disciplineRows = breakdown.disciplines
+    .map(({ discipline, xp }) => `
+      <div class="lifetime-breakdown-row lifetime-breakdown-discipline">
+        <span>${esc(disciplineLabel(discipline))}</span>
+        <strong>${xp} XP</strong>
+      </div>
+    `)
+    .join("");
+
+  const showCombat = breakdown.combatXp > 0 || disciplineRows.length > 0;
+
+  return `
+    <div class="lifetime-breakdown" aria-label="Lifetime XP breakdown">
+      <div class="lifetime-breakdown-row lifetime-breakdown-total">
+        <span>Lifetime XP</span>
+        <strong>${breakdown.lifetimeXp} XP</strong>
+      </div>
+      ${showCombat ? `
+        <div class="lifetime-breakdown-row lifetime-breakdown-combat">
+          <span>Combat</span>
+          <strong>${breakdown.combatXp} XP</strong>
+        </div>
+        ${disciplineRows}
+      ` : ""}
+      ${breakdown.strengthXp > 0 ? `
+        <div class="lifetime-breakdown-row">
+          <span>Strength</span>
+          <strong>${breakdown.strengthXp} XP</strong>
+        </div>
+      ` : ""}
+      ${breakdown.honorXp > 0 ? `
+        <div class="lifetime-breakdown-row">
+          <span>Honor</span>
+          <strong>${breakdown.honorXp} XP</strong>
+        </div>
+      ` : ""}
     </div>
   `;
 }
@@ -758,6 +816,7 @@ function renderYourZone() {
       .map((athlete) =>
         rowHtml(
           athlete,
+          athlete.id === athleteId,
           athlete.id === athleteId
         )
       )
@@ -780,7 +839,10 @@ function renderNextTarget() {
         athlete.id === athleteId
     );
 
-  if (!me) {
+  if (
+    !me ||
+    (isLifetimeRankMode(rankMode) && scoreFor(me, rankMode) <= 0)
+  ) {
     nextTargetEl.innerHTML =
       `<div class="empty">No target yet.</div>`;
 

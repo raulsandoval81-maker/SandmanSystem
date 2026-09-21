@@ -119,7 +119,14 @@ test("Lifetime leaderboard never falls back to active-rank XP", () => {
     assert.match(block, /totalLifetimeXp \?\?\s*0/);
   }
   assert.match(scoring, /lifetimeCombatByDiscipline\?\.\[mode\]/);
-  assert.doesNotMatch(scoring, /primaryDiscipline|activeDiscipline|athlete\.discipline|lifetimeCombatXp/);
+  const scoreFunction = scoring.match(
+    /export function leaderboardScore[\s\S]*?\n}/
+  )?.[0] || "";
+  assert.match(scoreFunction, /lifetimeCombatByDiscipline\?\.\[mode\]/);
+  assert.doesNotMatch(
+    scoreFunction,
+    /primaryDiscipline|activeDiscipline|athlete\.discipline|disciplineIds|lifetimeCombatXp/
+  );
 });
 
 test("architecture note locks naming collisions and forbidden paths", () => {

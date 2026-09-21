@@ -288,6 +288,38 @@ li.rank-item.you{
   text-align:right;
 }
 
+.lifetime-breakdown{
+  grid-column:1 / -1;
+  margin-top:4px;
+  padding-top:12px;
+  border-top:1px solid rgba(255,255,255,.08);
+  display:grid;
+  gap:7px;
+}
+
+.lifetime-breakdown-row{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  color:var(--muted);
+  font-size:.9rem;
+}
+
+.lifetime-breakdown-row strong{
+  color:var(--text);
+  white-space:nowrap;
+}
+
+.lifetime-breakdown-total,
+.lifetime-breakdown-combat{
+  color:var(--text);
+  font-weight:800;
+}
+
+.lifetime-breakdown-discipline{
+  padding-left:14px;
+}
+
 /* flat text fallback if rows aren't carded yet */
 .leaderboard-list p,
 .lb-shell p,
