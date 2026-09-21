@@ -600,8 +600,8 @@
 </p>
 
 <p class="message-hero__note">
-  Choose what you need help with, and your message will be
-  routed to the appropriate Sandman contact.
+  Choose whether your message should go to location management
+  or Sandman System administration.
 </p>
       </div>
 
@@ -625,8 +625,8 @@
 </p>
 
 <p class="message-hero__note">
-  Elige con qué necesitas ayuda y tu mensaje será dirigido
-  al contacto apropiado de Sandman.
+  Elige si tu mensaje debe enviarse a la administración local
+  o a la administración del Sistema Sandman.
 </p>
 </header>
 
@@ -649,7 +649,7 @@
 
 <p class="message-panel__intro">
   Share enough information for us to understand your request
-  and route it to the appropriate Sandman contact.
+  and respond appropriately.
 </p>
         </div>
 
@@ -667,7 +667,7 @@
 
 <p class="message-panel__intro">
   Comparte suficiente información para que podamos comprender
-  tu solicitud y dirigirla al contacto apropiado de Sandman.
+  tu solicitud y responder adecuadamente.
 </p>
         </div>
 
@@ -685,53 +685,51 @@
           />
 
           <div class="message-form__grid">
-
-            <input
-              id="preferredOrganization"
-              name="preferredOrganization"
-              type="hidden"
-              value="sandman-academy"
-            />
-
-            <div
-              id="preferredLocationField"
-              class="message-field"
-            >
-              <label for="preferredLocation">
+            <div class="message-field message-field--full">
+              <label for="messageRecipient">
                 <span data-lang-block="en">
-                  Area or Location
+                  Who Should Receive This Message?
                 </span>
 
                 <span
                   data-lang-block="es"
                   class="hidden-lang"
                 >
-                  Área o Ubicación
+                  ¿Quién Debe Recibir Este Mensaje?
                 </span>
               </label>
 
               <select
-                id="preferredLocation"
-                name="preferredLocation"
+                id="messageRecipient"
+                name="messageRecipient"
                 required
               >
-                <option value="">
-                  Choose one / Elige una opción
+                <option
+                  value=""
+                  data-en="Choose one"
+                  data-es="Elige una opción"
+                >
+                  Choose one
                 </option>
 
-                <option value="santa-ynez-valley">
-                  Santa Ynez Valley
+                <option
+                  value="location-management"
+                  data-en="Location Management"
+                  data-es="Administración Local"
+                >
+                  Location Management
                 </option>
 
-                <option value="lompoc">
-                  Lompoc
-                </option>
-
-                <option value="not-sure">
-                  Not Sure / No Estoy Seguro
+                <option
+                  value="system-admin"
+                  data-en="Sandman System / Administration"
+                  data-es="Sistema Sandman / Administración"
+                >
+                  Sandman System / Administration
                 </option>
               </select>
             </div>
+
 
 <div class="message-field">
               <label for="contactName">
@@ -1167,7 +1165,7 @@
 
       document
         .querySelectorAll(
-          "#messageTopic option[data-en], #passType option[data-en]"
+          "#messageRecipient option[data-en], #messageTopic option[data-en], #passType option[data-en]"
         )
         .forEach((option) => {
           option.textContent =
