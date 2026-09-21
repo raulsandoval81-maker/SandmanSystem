@@ -11,6 +11,7 @@ import {
 import { resolveLifetimeXpEffects } from "../../functions/lib/policy/xpDomainPolicy.js";
 import {
   assignedLifetimeCombatDisciplines,
+  isLifetimeCombatDisciplineMode,
   isLifetimeComponentMode,
   lifetimeBreakdownFor,
   leaderboardScore,
@@ -168,6 +169,14 @@ test("discipline leaderboard never infers missing ownership", () => {
 
 test("progression scoring remains active XP only", () => {
   assert.equal(leaderboardScore({ xp: 415, lifetimeXp: 9000 }, "progression"), 415);
+});
+
+test("public combat discipline modes are assignment-scoped, not positive-score scoped", () => {
+  assert.equal(isLifetimeCombatDisciplineMode("wrestling"), true);
+  assert.equal(isLifetimeCombatDisciplineMode("boxing"), true);
+  assert.equal(isLifetimeCombatDisciplineMode("muay-thai"), true);
+  assert.equal(isLifetimeCombatDisciplineMode("strength"), false);
+  assert.equal(isLifetimeCombatDisciplineMode("honor"), false);
 });
 
 test("Lifetime breakdown visibility follows assignments while scores follow the map", () => {

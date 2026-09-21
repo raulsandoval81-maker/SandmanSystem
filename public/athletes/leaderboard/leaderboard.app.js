@@ -6,6 +6,7 @@ import {
 import {
   RANK_MODE_LABELS,
   assignedLifetimeCombatDisciplines,
+  isLifetimeCombatDisciplineMode,
   isLifetimeComponentMode,
   isLifetimeRankMode,
   lifetimeBreakdownFor,
@@ -581,7 +582,12 @@ function getScopedAthletes() {
 
   if (isLifetimeRankMode(rankMode)) {
     list = lifetimeEntries();
-    if (isLifetimeComponentMode(rankMode)) {
+
+    if (isLifetimeCombatDisciplineMode(rankMode)) {
+      list = list.filter((athlete) =>
+        athlete.assignedCombatDisciplines.includes(rankMode)
+      );
+    } else if (isLifetimeComponentMode(rankMode)) {
       list = list.filter((athlete) => scoreFor(athlete, rankMode) > 0);
     }
   } else {

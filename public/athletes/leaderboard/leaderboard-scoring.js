@@ -78,6 +78,10 @@ export function isLifetimeComponentMode(mode) {
   return LIFETIME_COMPONENT_MODES.includes(mode);
 }
 
+export function isLifetimeCombatDisciplineMode(mode) {
+  return PUBLIC_LIFETIME_COMBAT_DISCIPLINES.includes(mode);
+}
+
 export function leaderboardScore(athlete = {}, mode = "progression") {
   if (mode === "progression") return xp(athlete.xp);
   if (mode === "lifetime") return xp(athlete.lifetimeXp);
