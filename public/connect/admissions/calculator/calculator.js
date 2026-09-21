@@ -798,28 +798,20 @@ const extras = {
       registrationCount
     ) {
       if (registrationCount < 1) {
-        return "Annual Enrollment Package";
+        return "Annual Enrollment";
       }
 
-      if (registrationCount >= 4) {
-        return "Family of 4+ Annual Enrollment Package";
-      }
-
-      return `Family of ${registrationCount} Annual Enrollment Package`;
+      return `Annual Enrollment — ${registrationCount} eligible athlete${registrationCount === 1 ? "" : "s"}`;
     }
 
     function renewalPackageLabel(
       registrationCount
     ) {
       if (registrationCount < 1) {
-        return "Next Annual Enrollment Package";
+        return "Next Annual Enrollment";
       }
 
-      if (registrationCount >= 4) {
-        return "Family of 4+ Annual Enrollment Package";
-      }
-
-      return `Family of ${registrationCount} Annual Enrollment Package`;
+      return `Next Annual Enrollment — ${registrationCount} eligible athlete${registrationCount === 1 ? "" : "s"}`;
     }
 
     function percentageAmount(
@@ -892,8 +884,8 @@ const extras = {
         );
 
       /*
-       * Next Annual Enrollment Package mirrors the
-       * selected annual enrollment packages.
+       * Next annual enrollment mirrors the current
+       * per-eligible-athlete enrollment base.
        */
       const annualBase =
         enrollmentBase;
@@ -1412,14 +1404,10 @@ const extras = {
             threeDays: 80
           },
 
-          enrollmentPackages: {
-            youth: 50,
-            adult: 25,
-            family1: 50,
-            family2: 100,
-            family3: 150,
-            family4: 200
-          }
+          enrollmentModel: "per_eligible_athlete",
+          enrollmentPerAthlete:
+            PRICING.enrollment.perAthlete.amount,
+          enrollmentIncludesAAU: false
         },
 
         agreement: {

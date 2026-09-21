@@ -324,7 +324,7 @@ function renderProposal(
 
   const firstMonth =
     pricing.paymentStartMode ===
-    "deferred"
+    "deferred_family"
       ? "Deferred to next billing cycle"
       : `${money(
           pricing.proratedFirstMonth

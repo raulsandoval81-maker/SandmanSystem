@@ -391,15 +391,9 @@ function renderPricing() {
     ).length;
 
   const annualEnrollmentAmount =
-    registrationCount >= 1 &&
-    registrationCount <= 4
-      ? (
-          SANDMAN_PRICING_CATALOG
-            .enrollment[
-              `family${registrationCount}`
-            ]?.amount || 0
-        )
-      : 0;
+    registrationCount *
+    (SANDMAN_PRICING_CATALOG
+      .enrollment.perAthlete.amount || 0);
 
   const projectedSavingsMonthly =
     projectedSavingsAnnual / 12;

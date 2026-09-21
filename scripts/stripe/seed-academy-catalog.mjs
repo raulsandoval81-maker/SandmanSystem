@@ -1,4 +1,6 @@
 import Stripe from "stripe";
+import { currentV4RecurringCatalog } from "./academy-v4-recurring-catalog.mjs";
+import { validateExistingCatalogPrice } from "./academy-catalog-price-policy.mjs";
 
 if (!process.env.STRIPE_SECRET_KEY) {
   throw new Error(
@@ -205,29 +207,15 @@ const catalog = [
   // =========================================================
 
   {
-    key: "enrollment_youth_annual",
-    productName: "Annual Enrollment — Youth",
+    key: "enrollment_per_athlete_annual",
+    productName: "Annual Enrollment — Per Athlete",
     description:
-      "Annual youth enrollment. Sandman Academy handles the youth AAU membership component.",
-    amount: 5000,
+      "Annual Sandman enrollment per eligible athlete. Families purchase required AAU or other governing-body membership separately.",
+    amount: 3000,
     recurring: false,
     metadata: {
       category: "annual_enrollment",
-      participant_type: "youth",
-      includes_aau: "true",
-    },
-  },
-
-  {
-    key: "enrollment_adult_annual",
-    productName: "Annual Enrollment — Adult",
-    description:
-      "Annual adult enrollment. Adult athletes purchase their own AAU membership and complete applicable background-check and education requirements.",
-    amount: 2500,
-    recurring: false,
-    metadata: {
-      category: "annual_enrollment",
-      participant_type: "adult",
+      pricing_model: "per_eligible_athlete",
       includes_aau: "false",
     },
   },
@@ -346,15 +334,28 @@ async function findProductByKey(key) {
 async function findPriceByLookupKey(lookupKey) {
   const result = await stripe.prices.list({
     lookup_keys: [lookupKey],
-    active: true,
-    limit: 1,
+    limit: 10,
   });
 
+  if (result.data.length > 1) {
+    throw new Error(`Stripe lookup key ${lookupKey} resolves to multiple Prices.`);
+  }
   return result.data[0] || null;
 }
 
 async function ensureCatalogItem(item) {
+  const catalogVersion = item.catalogVersion || CATALOG_VERSION;
   let product = await findProductByKey(item.key);
+  const lookupKey = item.lookupKey || `sandman_${CATALOG_VERSION}_${item.key}`;
+  let price = await findPriceByLookupKey(lookupKey);
+
+  // Fail before changing the product when a historical lookup key is incompatible.
+  if (price && !product) {
+    throw new Error(`Stripe Price ${lookupKey} exists without the expected catalog product ${item.key}.`);
+  }
+  if (price) {
+    validateExistingCatalogPrice(item, product, price, lookupKey);
+  }
 
   if (!product) {
     product = await stripe.products.create({
@@ -362,7 +363,7 @@ async function ensureCatalogItem(item) {
       description: item.description,
       metadata: {
         sandman_catalog_key: item.key,
-        catalog_version: CATALOG_VERSION,
+        catalog_version: catalogVersion,
         brand: "sandman_academy",
         ...item.metadata,
       },
@@ -375,7 +376,7 @@ async function ensureCatalogItem(item) {
       description: item.description,
       metadata: {
         sandman_catalog_key: item.key,
-        catalog_version: CATALOG_VERSION,
+        catalog_version: catalogVersion,
         brand: "sandman_academy",
         ...item.metadata,
       },
@@ -383,12 +384,6 @@ async function ensureCatalogItem(item) {
 
     console.log(`• Updated product: ${product.name}`);
   }
-
-  const lookupKey =
-    item.lookupKey ||
-    `sandman_${CATALOG_VERSION}_${item.key}`;
-
-  let price = await findPriceByLookupKey(lookupKey);
 
   if (!price) {
     const priceData = {
@@ -398,7 +393,7 @@ async function ensureCatalogItem(item) {
       lookup_key: lookupKey,
       metadata: {
         sandman_catalog_key: item.key,
-        catalog_version: CATALOG_VERSION,
+        catalog_version: catalogVersion,
         ...item.metadata,
       },
     };
@@ -446,7 +441,7 @@ async function main() {
 
   const output = {};
 
-  for (const item of catalog) {
+  for (const item of [...catalog, ...await currentV4RecurringCatalog()]) {
     output[item.key] = await ensureCatalogItem(item);
   }
 

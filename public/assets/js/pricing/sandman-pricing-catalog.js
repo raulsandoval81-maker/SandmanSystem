@@ -188,7 +188,8 @@ export const SANDMAN_PRICING_CATALOG = {
 
   enrollment: {
     perAthlete: {
-      amount: 30
+      amount: 30,
+      includesAau: false
     }
   },
 

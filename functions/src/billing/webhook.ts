@@ -19,6 +19,8 @@ import {
   syncStripeSubscription,
 } from "./subscriptions";
 import { handleManagementPassCheckoutCompleted } from "./managementPassWebhook";
+import { resolveLockedRecurringPricing } from "../proposals/lockedRecurringPricing";
+import { ensureProposalMonthlySponsorCoupon, recoverOrCreateProposalSubscription } from "./proposalMonthlySponsor";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -181,21 +183,11 @@ export async function handleProposalCheckoutCompleted(
   const currentStatus =
     cleanString(proposal.status);
 
-  if (
-    currentStatus === "PAID" &&
-    cleanString(
-      proposal.stripeSubscriptionId
-    )
-  ) {
-    return proposalId;
-  }
-
-  if (
-    currentStatus !==
-    "CHECKOUT_CREATED"
-  ) {
+  const savedSubscriptionId = cleanString(proposal.stripeSubscriptionId);
+  if (currentStatus !== "CHECKOUT_CREATED" &&
+      !(currentStatus === "PAID" && savedSubscriptionId)) {
     throw new Error(
-      `Proposal ${proposalId} must be CHECKOUT_CREATED before payment.`
+      `Proposal ${proposalId} must be CHECKOUT_CREATED or already PAID with a subscription.`
     );
   }
 
@@ -204,10 +196,8 @@ export async function handleProposalCheckoutCompleted(
       proposal.pendingCheckoutSessionId
     );
 
-  if (
-    !pendingCheckoutSessionId ||
-    pendingCheckoutSessionId !== session.id
-  ) {
+  if (currentStatus === "CHECKOUT_CREATED" &&
+      (!pendingCheckoutSessionId || pendingCheckoutSessionId !== session.id)) {
     throw new Error(
       `Stripe Checkout Session ${session.id} does not match proposal ${proposalId}.`
     );
@@ -301,15 +291,6 @@ export async function handleProposalCheckoutCompleted(
       firstRecurringChargeMs / 1000
     );
 
-  if (
-    firstRecurringChargeUnix <=
-    Math.floor(Date.now() / 1000)
-  ) {
-    throw new Error(
-      `Proposal ${proposalId} recurring billing date is no longer in the future.`
-    );
-  }
-
   const rawCatalogItems =
     Array.isArray(
       pricing.stripeCatalogItems
@@ -347,6 +328,7 @@ export async function handleProposalCheckoutCompleted(
   const subscriptionItems:
     Stripe.SubscriptionCreateParams.Item[] =
     [];
+  let catalogMonthlyTotal = 0;
 
   for (
     let index = 0;
@@ -394,6 +376,10 @@ export async function handleProposalCheckoutCompleted(
         Number(item.amount) * 100
       );
 
+    if (!Number.isSafeInteger(expectedAmount) || expectedAmount < 50) {
+      throw new Error(`Proposal ${proposalId} has an invalid recurring catalog amount.`);
+    }
+
     const rawQuantity =
       Number(
         item.quantity ?? 1
@@ -406,6 +392,8 @@ export async function handleProposalCheckoutCompleted(
       rawQuantity > 0
         ? rawQuantity
         : 1;
+
+    catalogMonthlyTotal += expectedAmount * quantity;
 
     const prices =
       await stripe.prices.list({
@@ -453,14 +441,40 @@ export async function handleProposalCheckoutCompleted(
     });
   }
 
-  const subscription =
-    await stripe.subscriptions.create(
+  const recurringAmounts = resolveLockedRecurringPricing(pricing, catalogMonthlyTotal);
+  const sponsorCoupon = await ensureProposalMonthlySponsorCoupon(
+    stripe,
+    proposalId,
+    cleanString(pricing.catalog || pricing.pricingModel),
+    recurringAmounts
+  );
+
+  const { subscription, discountId: sponsorDiscountId } =
+    await recoverOrCreateProposalSubscription(stripe, {
+      proposalId,
+      checkoutSessionId: session.id,
+      customerId: stripeCustomerId,
+      firstRecurringChargeUnix,
+      items: subscriptionItems.map((item) => ({
+        price: String(item.price), quantity: Number(item.quantity),
+      })),
+      amounts: recurringAmounts,
+      coupon: sponsorCoupon,
+    }, savedSubscriptionId || null, () => {
+      if (firstRecurringChargeUnix <= Math.floor(Date.now() / 1000)) {
+        throw new Error(`Proposal ${proposalId} recurring billing date is no longer in the future; no subscription was found to recover.`);
+      }
+      return stripe.subscriptions.create(
       {
         customer:
           stripeCustomerId,
 
         items:
           subscriptionItems,
+
+        ...(sponsorCoupon ? { discounts: [{ coupon: sponsorCoupon.id }] } : {}),
+
+        expand: ["discounts"],
 
         collection_method:
           "charge_automatically",
@@ -476,6 +490,7 @@ export async function handleProposalCheckoutCompleted(
 
         metadata: {
           proposalId,
+          checkoutSessionId: session.id,
 
           source:
             "admissions_proposal",
@@ -489,6 +504,10 @@ export async function handleProposalCheckoutCompleted(
             String(
               recurringBillingDay
             ),
+
+          monthlyBaseCents: String(recurringAmounts.monthlyBaseCents),
+          monthlySponsorCents: String(recurringAmounts.monthlySponsorCents),
+          monthlyBalanceCents: String(recurringAmounts.monthlyBalanceCents),
         },
       },
       {
@@ -496,6 +515,7 @@ export async function handleProposalCheckoutCompleted(
           `proposal-subscription-${proposalId}-${session.id}`,
       }
     );
+    });
 
   await db.runTransaction(
     async (tx) => {
@@ -574,6 +594,12 @@ export async function handleProposalCheckoutCompleted(
 
           stripeSubscriptionId:
             subscription.id,
+
+          stripeMonthlySponsorCouponId:
+            sponsorCoupon?.id || null,
+
+          stripeMonthlySponsorDiscountId:
+            sponsorDiscountId,
 
           stripeLivemode:
             session.livemode,

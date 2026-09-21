@@ -28,6 +28,7 @@ import {
 import {
   handleProposalCheckoutCompleted,
 } from "../billing/webhook";
+import { resolveLockedRecurringPricing } from "./lockedRecurringPricing";
 
 function cleanString(value: unknown): string {
   return String(value ?? "").trim();
@@ -403,13 +404,12 @@ export const createProposalCheckout =
           0
         );
 
-      if (
-        lockedCatalogMonthlyTotal !==
-        monthlyBalance
-      ) {
+      try {
+        resolveLockedRecurringPricing(pricing, lockedCatalogMonthlyTotal);
+      } catch (error) {
         throw new HttpsError(
           "failed-precondition",
-          `The locked monthly balance does not match the approved Stripe catalog total. Expected ${lockedCatalogMonthlyTotal} cents but found ${monthlyBalance} cents.`
+          error instanceof Error ? error.message : "Locked monthly pricing is invalid."
         );
       }
 
