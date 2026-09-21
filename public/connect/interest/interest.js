@@ -2897,6 +2897,128 @@ new MutationObserver(renderMeetingWindowOptions).observe(
   }
 );
 
+
+/* SANDMAN-INTEREST-FITNESS-POWERLIFTING-TEAM */
+
+function updateCompetitionTrackForInterest() {
+  const field =
+    document.getElementById("competitionTrackInterest");
+
+  if (!field) return;
+
+  const wrapper =
+    field.closest(".field");
+
+  if (!wrapper) return;
+
+  const headingEn =
+    wrapper.querySelector(
+      '.training-question-heading [data-lang="en"]'
+    );
+
+  const headingEs =
+    wrapper.querySelector(
+      '.training-question-heading [data-lang="es"]'
+    );
+
+  const helpEn =
+    wrapper.querySelector(
+      '.field-help [data-lang="en"]'
+    );
+
+  const helpEs =
+    wrapper.querySelector(
+      '.field-help [data-lang="es"]'
+    );
+
+  const isFitness =
+    getSelectedInterestType() === "fitness";
+
+  if (headingEn) {
+    headingEn.textContent =
+      isFitness
+        ? "Powerlifting Team"
+        : "Competition Track";
+  }
+
+  if (headingEs) {
+    headingEs.textContent =
+      isFitness
+        ? "Equipo de Powerlifting"
+        : "Ruta de Competencia";
+  }
+
+  if (helpEn) {
+    helpEn.textContent =
+      isFitness
+        ? "Are you interested in additional powerlifting and strength development training?"
+        : "Are you interested in additional competition and development training?";
+  }
+
+  if (helpEs) {
+    helpEs.textContent =
+      isFitness
+        ? "¿Te interesa entrenamiento adicional de powerlifting y desarrollo de fuerza?"
+        : "¿Te interesa entrenamiento adicional de competencia y desarrollo?";
+  }
+
+  Array.from(field.options).forEach((option) => {
+    const lang =
+      option.dataset.lang || "en";
+
+    if (option.value === "regular") {
+      option.textContent =
+        isFitness
+          ? (
+              lang === "es"
+                ? "Solo clases regulares de fitness"
+                : "Regular fitness classes only"
+            )
+          : (
+              lang === "es"
+                ? "Solo clases regulares"
+                : "Regular classes only"
+            );
+    }
+
+    if (option.value === "interested") {
+      option.textContent =
+        isFitness
+          ? (
+              lang === "es"
+                ? "Sí — interesado en el Equipo de Powerlifting"
+                : "Yes — interested in the Powerlifting Team"
+            )
+          : (
+              lang === "es"
+                ? "Sí — interesado en la Ruta de Competencia"
+                : "Yes — interested in Competition Track"
+            );
+    }
+  });
+}
+
+document
+  .querySelectorAll(
+    'input[name="interestType"]'
+  )
+  .forEach((input) => {
+    input.addEventListener(
+      "change",
+      updateCompetitionTrackForInterest
+    );
+  });
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    updateCompetitionTrackForInterest,
+    { once: true }
+  );
+} else {
+  updateCompetitionTrackForInterest();
+}
+
 /* SANDMAN-INTEREST-STEP4-LANGUAGE-SAFE-SELECTS */
 
 /*
