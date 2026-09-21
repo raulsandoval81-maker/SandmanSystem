@@ -645,8 +645,8 @@
           </h2>
 
 <p class="message-panel__intro">
-  Share enough information for our system team to understand
-  your request and route it to the appropriate local manager.
+  Share enough information for Sandman System Administration
+  to understand your request and respond or route it appropriately.
 </p>
         </div>
 
@@ -663,11 +663,31 @@
           </h2>
 
 <p class="message-panel__intro">
-  Comparte suficiente información para que nuestro equipo
-  del sistema comprenda tu solicitud y la dirija al gerente
-  local correspondiente.
+  Comparte suficiente información para que la Administración
+  del Sistema Sandman comprenda tu solicitud y responda o la
+  dirija apropiadamente.
 </p>
         </div>
+
+
+          <p
+            class="message-status"
+            style="margin-top:-0.5rem; margin-bottom:0.25rem;"
+          >
+            <span data-lang-block="en">
+              Messages submitted here are reviewed by Sandman System Administration
+              and routed to the appropriate location or team when needed.
+            </span>
+
+            <span
+              data-lang-block="es"
+              class="hidden-lang"
+            >
+              Los mensajes enviados aquí son revisados por la Administración
+              del Sistema Sandman y dirigidos a la ubicación o equipo correspondiente
+              cuando sea necesario.
+            </span>
+          </p>
 
         <form
           id="messageForm"
@@ -685,87 +705,6 @@
           <div class="message-form__grid">
 
             <div class="message-field">
-              <label for="preferredOrganization">
-                <span data-lang-block="en">
-                  Organization You Are Trying to Reach
-                </span>
-
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Organización con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
-                id="preferredOrganization"
-                name="preferredOrganization"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
-
-                <option value="sandman-academy">
-                  Sandman Academy of Combat &amp; Fitness
-                </option>
-
-                <option value="yesc">
-                  Youth Empowered Sports Club
-                </option>
-
-                <option value="other-organization">
-                  Another Organization
-                </option>
-
-                <option value="not-sure">
-                  Not Sure
-                </option>
-              </select>
-            </div>
-
-            <div class="message-field">
-              <label for="preferredLocation">
-                <span data-lang-block="en">
-                  Location You Are Trying to Reach
-                </span>
-
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Ubicación con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
-                id="preferredLocation"
-                name="preferredLocation"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
-
-                <option value="solvang">
-                  Solvang Location
-                </option>
-
-                <option value="lompoc">
-                  Lompoc Location
-                </option>
-
-                <option value="system-team">
-                  System Team
-                </option>
-
-                <option value="not-sure">
-                  Not Sure
-                </option>
-              </select>
-            </div>
-<div class="message-field">
               <label for="contactName">
                 <span data-lang-block="en">
                   Your Name
@@ -1044,11 +983,6 @@
     defer
   ></script>
 
-  <!--
-    IMPORTANT:
-    Reconnect the existing message submission handler here.
-    Do not point this form to /connect/try-a-class/.
-  -->
 
 
 
@@ -1056,6 +990,40 @@
     const messageTopic = document.getElementById("messageTopic");
     const passTypeField = document.getElementById("passTypeField");
     const passType = document.getElementById("passType");
+
+    function syncLocalizedSelectOptions() {
+      const language =
+        document.documentElement.lang === "es"
+          ? "es"
+          : "en";
+
+      document
+        .querySelectorAll(
+          "#messageTopic option[data-en], #passType option[data-en]"
+        )
+        .forEach((option) => {
+          option.textContent =
+            option.dataset[language] ||
+            option.dataset.en ||
+            option.textContent;
+        });
+    }
+
+    syncLocalizedSelectOptions();
+
+    const languageObserver =
+      new MutationObserver(() => {
+        syncLocalizedSelectOptions();
+      });
+
+    languageObserver.observe(
+      document.documentElement,
+      {
+        attributes: true,
+        attributeFilter: ["lang"]
+      }
+    );
+
 
     function syncPassField() {
       const requestingPass = messageTopic?.value === "request-pass";

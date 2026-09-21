@@ -6,10 +6,17 @@ import {
   ensureSignedIn
 } from "/assets/js/firebase-init.js";
 
-const form = document.getElementById("messageForm");
-const submitBtn = document.getElementById("submitBtn");
-const statusEl = document.getElementById("formStatus");
-const languageInput = document.getElementById("preferredLanguage");
+const form =
+  document.getElementById("messageForm");
+
+const submitBtn =
+  document.getElementById("submitBtn");
+
+const statusEl =
+  document.getElementById("formStatus");
+
+const languageInput =
+  document.getElementById("preferredLanguage");
 
 function clean(value) {
   return String(value || "").trim();
@@ -25,6 +32,7 @@ function setStatus(message, type = "") {
   if (!statusEl) return;
 
   statusEl.textContent = message;
+
   statusEl.classList.remove(
     "is-error",
     "is-success"
@@ -41,15 +49,17 @@ function setStatus(message, type = "") {
 
 function syncLanguage() {
   if (languageInput) {
-    languageInput.value = currentLanguage();
+    languageInput.value =
+      currentLanguage();
   }
 }
 
 syncLanguage();
 
-const languageObserver = new MutationObserver(
-  syncLanguage
-);
+const languageObserver =
+  new MutationObserver(
+    syncLanguage
+  );
 
 languageObserver.observe(
   document.documentElement,
@@ -88,41 +98,6 @@ form?.addEventListener(
     try {
       await ensureSignedIn();
 
-      const preferredOrganization = clean(
-        form.preferredOrganization?.value
-      );
-
-      const preferredLocation = clean(
-        form.preferredLocation?.value
-      );
-
-      /*
-       * Known local academy entrances already know
-       * their organization, academy, and location.
-       *
-       * They enter the existing Management queue
-       * directly instead of waiting for Admin routing.
-       *
-       * Unknown / national entrances retain the
-       * original Admin review path.
-       */
-      const isSantaYnezLocal =
-        preferredOrganization === "sandman-academy" &&
-        preferredLocation === "santa-ynez-valley";
-
-      const isLompocLocal =
-        preferredOrganization === "sandman-academy" &&
-        preferredLocation === "lompoc";
-
-      const isElkGroveLocal =
-        preferredOrganization === "sandman-academy" &&
-        preferredLocation === "elk-grove";
-
-      const isKnownLocal =
-        isSantaYnezLocal ||
-        isLompocLocal ||
-        isElkGroveLocal;
-
       const payload = {
         organization: "sandman-system",
         pipeline: "general-messaging",
@@ -155,106 +130,104 @@ form?.addEventListener(
           form.message?.value
         ),
 
-        /*
-         * Public routing preferences.
-         *
-         * These help System Admin identify the intended
-         * organization and location. They do not create
-         * the official routing assignment.
-         */
-        preferredOrganization,
-        preferredLocation,
-
         contactConsent: Boolean(
           form.contactConsent?.checked
         ),
 
-        language: currentLanguage(),
-        pagePath: window.location.pathname,
+        language:
+          currentLanguage(),
 
-        routingStage:
-          isKnownLocal
-            ? "MANAGEMENT_TRIAGE"
-            : "ADMIN_REVIEW",
-
-        nextRoutingStage:
-          isKnownLocal
-            ? "COACH_ASSIGNED"
-            : "MANAGEMENT_TRIAGE",
-
-        routingPolicy:
-          isKnownLocal
-            ? "LOCAL_TO_LOCATION_MANAGER"
-            : "ADMIN_TO_ORGANIZATION_LOCATION_MANAGER",
-
-        requiredManagerLevel:
-          "LOCATION_MANAGER",
-
-        assignmentStatus:
-          isKnownLocal
-            ? "PENDING_MANAGEMENT"
-            : "UNASSIGNED",
+        pagePath:
+          window.location.pathname,
 
         /*
-         * Local academy pages already know their
-         * canonical routing identity.
-         *
-         * National / unknown entries remain empty
-         * until Admin determines where they belong.
+         * Public Message Us has no location context.
+         * Every public message enters Admin Review.
          */
+        routingStage:
+          "ADMIN_REVIEW",
+
+        nextRoutingStage:
+          "MANAGEMENT_TRIAGE",
+
+        routingPolicy:
+          "PUBLIC_TO_SYSTEM_ADMIN",
+
+        requiredManagerLevel:
+          "SYSTEM_ADMIN",
+
+        assignmentStatus:
+          "UNASSIGNED",
+
+        /*
+         * Admin determines the final academy/location
+         * only when routing is actually needed.
+         */
+        preferredOrganization:
+          "sandman-system",
+
+        preferredLocation:
+          "",
+
         organizationId:
-          isKnownLocal
-            ? "sandman-academy"
-            : null,
+          null,
 
         organizationName:
-          isKnownLocal
-            ? "Sandman Academy of Combat & Fitness"
-            : "",
+          "",
 
         academyId:
-          isKnownLocal
-            ? "sandman-academy"
-            : null,
+          null,
 
         academyName:
-          isKnownLocal
-            ? "Sandman Academy of Combat & Fitness"
-            : "",
+          "",
 
         locationId:
-          isKnownLocal
-            ? preferredLocation
-            : null,
+          null,
 
         locationName:
-          isElkGroveLocal
-            ? "Elk Grove, California"
-            : isLompocLocal
-              ? "Lompoc"
-              : isSantaYnezLocal
-                ? "Santa Ynez Valley"
-                : "",
+          "",
 
-        assignedAdminUid: null,
-        assignedManagerUid: null,
-        assignedCoachUid: null,
+        assignedAdminUid:
+          null,
 
-        respondedByUid: null,
-        respondedByRole: null,
-        respondedAt: null,
+        assignedManagerUid:
+          null,
 
-        closedByUid: null,
-        closedAt: null,
+        assignedCoachUid:
+          null,
 
-        escalated: false,
-        escalationReason: "",
+        respondedByUid:
+          null,
 
-        coachNotes: "",
-        managementNotes: "",
+        respondedByRole:
+          null,
 
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        respondedAt:
+          null,
+
+        closedByUid:
+          null,
+
+        closedAt:
+          null,
+
+        escalated:
+          false,
+
+        escalationReason:
+          "",
+
+        coachNotes:
+          "",
+
+        managementNotes:
+          "",
+
+        createdAt:
+          serverTimestamp(),
+
+        updatedAt:
+          serverTimestamp()
       };
 
       const result = await addDoc(
@@ -275,24 +248,8 @@ form?.addEventListener(
 
       setStatus(
         currentLanguage() === "es"
-          ? (
-              isElkGroveLocal
-                ? "Mensaje recibido. La gerencia de Elk Grove lo revisará."
-                : isLompocLocal
-                  ? "Mensaje recibido. El equipo de administración de Lompoc lo revisará."
-                  : isSantaYnezLocal
-                  ? "Mensaje recibido. El equipo de administración del Valle de Santa Ynez lo revisará."
-                  : "Mensaje recibido. Nuestro equipo del sistema lo dirigirá al lugar correspondiente."
-            )
-          : (
-              isElkGroveLocal
-                ? "Message received. Elk Grove Management will review it."
-                : isLompocLocal
-                  ? "Message received. Lompoc management will review it."
-                  : isSantaYnezLocal
-                  ? "Message received. Santa Ynez Valley management will review it."
-                  : "Message received. Our system team will route it appropriately."
-            ),
+          ? "Mensaje recibido. La Administración del Sistema Sandman lo revisará y lo dirigirá si es necesario."
+          : "Message received. Sandman System Administration will review it and route it if needed.",
         "success"
       );
     } catch (error) {
