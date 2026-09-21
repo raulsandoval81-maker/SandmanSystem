@@ -366,20 +366,6 @@
       transform: none;
     }
 
-    .message-back {
-      color: var(--message-gold);
-
-      font-weight: 850;
-      text-decoration: none;
-    }
-
-    .message-back:hover,
-    .message-back:focus-visible {
-      color: var(--message-gold-light);
-      text-decoration: underline;
-      outline: none;
-    }
-
     .message-status {
       min-height: 1.5em;
       margin: 0;
@@ -397,55 +383,6 @@
       color: var(--message-gold-light);
     }
 
-    /* =====================================================
-       SIDEBAR
-    ====================================================== */
-
-    .message-sidebar {
-      display: grid;
-      gap: 16px;
-    }
-
-    .message-side-card {
-      padding: 1.3rem;
-
-      border: 1px solid var(--message-line);
-      border-radius: 18px;
-
-      background: var(--message-panel);
-    }
-
-    .message-side-card h2 {
-      margin: 0 0 0.65rem;
-
-      color: var(--message-text);
-
-      font-size: 1.1rem;
-    }
-
-    .message-side-card p {
-      margin: 0;
-
-      color: var(--message-muted);
-      line-height: 1.65;
-    }
-
-    .message-side-card a {
-      display: inline-block;
-      margin-top: 0.9rem;
-
-      color: var(--message-gold);
-
-      font-weight: 850;
-      text-decoration: none;
-    }
-
-    .message-side-card a:hover,
-    .message-side-card a:focus-visible {
-      color: var(--message-gold-light);
-      text-decoration: underline;
-      outline: none;
-    }
 
     /* =====================================================
        RESPONSIVE
@@ -454,10 +391,6 @@
     @media (max-width: 820px) {
       .message-layout {
         grid-template-columns: 1fr;
-      }
-
-      .message-sidebar {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -473,9 +406,6 @@
       }
 
       .message-form__grid,
-      .message-sidebar {
-        grid-template-columns: 1fr;
-      }
 
       .message-field--full {
         grid-column: auto;
@@ -486,83 +416,12 @@
         flex-direction: column;
       }
 
-      .message-submit,
-      .message-back {
+      .message-submit {
         width: 100%;
         text-align: center;
       }
     }
-    /* ======================================================
-   MESSAGE PAGE — LAPTOP / DESKTOP WIDTH REPAIR
-====================================================== */
 
-.message-page {
-  width: 100%;
-}
-
-.message-container {
-  width: min(calc(100% - 48px), 1180px);
-  margin-inline: auto;
-}
-
-.message-intro,
-.message-form-section {
-  width: 100%;
-  max-width: none;
-}
-
-.message-intro {
-  padding: clamp(32px, 5vw, 64px);
-}
-
-.message-form-card {
-  width: 100%;
-  max-width: 900px;
-  margin-inline: auto;
-  padding: clamp(28px, 4vw, 52px);
-}
-
-/* Two-column form on laptops and larger screens */
-@media (min-width: 850px) {
-  .message-form-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px 24px;
-  }
-
-  .message-form-field--full,
-  .message-form-actions {
-    grid-column: 1 / -1;
-  }
-}
-
-/* Wider presentation on normal laptops */
-@media (min-width: 1100px) {
-  .message-container {
-    width: min(calc(100% - 72px), 1280px);
-  }
-
-  .message-form-card {
-    max-width: 980px;
-  }
-}
-
-/* Keep phone layout stacked */
-@media (max-width: 849px) {
-  .message-container {
-    width: min(calc(100% - 28px), 720px);
-  }
-
-  .message-form-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-
-  .message-form-card {
-    padding: 24px;
-  }
-}
   </style>
 </head>
 
@@ -716,7 +575,8 @@
                   value="location-management"
                   data-en="Location Management"
                   data-es="Administración Local"
-                >
+                
+                  selected>
                   Location Management
                 </option>
 
@@ -1066,11 +926,6 @@
     defer
   ></script>
 
-  <!--
-    IMPORTANT:
-    Reconnect the existing message submission handler here.
-    Do not point this form to /connect/try-a-class/.
-  -->
 
 
 
@@ -1079,83 +934,6 @@
     const passTypeField = document.getElementById("passTypeField");
     const passType = document.getElementById("passType");
 
-    const preferredLocation =
-      document.getElementById("preferredLocation");
-
-    const preferredLocationField =
-      document.getElementById("preferredLocationField");
-
-    function resolveLocationContext() {
-      if (!preferredLocation || !preferredLocationField) {
-        return;
-      }
-
-      const params =
-        new URLSearchParams(window.location.search);
-
-      const requestedLocation =
-        (params.get("location") || "")
-          .trim()
-          .toLowerCase();
-
-      let resolvedLocation = "";
-
-      if (
-        requestedLocation === "santa-ynez-valley" ||
-        requestedLocation === "santa-ynez" ||
-        requestedLocation === "solvang"
-      ) {
-        resolvedLocation = "santa-ynez-valley";
-      }
-
-      if (requestedLocation === "lompoc") {
-        resolvedLocation = "lompoc";
-      }
-
-      if (!resolvedLocation && document.referrer) {
-        try {
-          const referrer =
-            new URL(document.referrer);
-
-          if (referrer.origin === window.location.origin) {
-            const referrerPath =
-              referrer.pathname.toLowerCase();
-
-            if (
-              referrerPath.includes(
-                "/locations/santa-ynez-valley/"
-              )
-            ) {
-              resolvedLocation =
-                "santa-ynez-valley";
-            }
-
-            if (
-              referrerPath.includes(
-                "/locations/lompoc/"
-              )
-            ) {
-              resolvedLocation =
-                "lompoc";
-            }
-          }
-        } catch (_) {
-        }
-      }
-
-      if (resolvedLocation) {
-        preferredLocation.value =
-          resolvedLocation;
-
-        preferredLocation.required =
-          false;
-
-        preferredLocationField.hidden =
-          true;
-      }
-    }
-
-    resolveLocationContext();
 
     function syncLocalizedSelectOptions() {
       const language =
