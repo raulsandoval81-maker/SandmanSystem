@@ -2496,6 +2496,183 @@ form?.addEventListener(
 updateInterestDobRange();
 
 
+
+/* SANDMAN-INTEREST-ADULT-FITNESS-SCHEDULE */
+
+const adultFitnessDaySelect =
+  document.getElementById(
+    "preferredTrainingPattern"
+  );
+
+const adultFitnessClassSelect =
+  document.getElementById(
+    "preferredClassTime"
+  );
+
+const adultFitnessGuidance =
+  document.getElementById(
+    "trainingScheduleGuidance"
+  );
+
+const adultFitnessOriginalDays =
+  adultFitnessDaySelect?.innerHTML || "";
+
+const adultFitnessOriginalClasses =
+  adultFitnessClassSelect?.innerHTML || "";
+
+const adultFitnessOriginalGuidance =
+  adultFitnessGuidance?.textContent || "";
+
+let adultFitnessScheduleLocked = false;
+
+function restoreStandardTrainingSchedule() {
+  if (!adultFitnessScheduleLocked) {
+    return;
+  }
+
+  if (adultFitnessDaySelect) {
+    adultFitnessDaySelect.innerHTML =
+      adultFitnessOriginalDays;
+
+    adultFitnessDaySelect.value = "";
+  }
+
+  if (adultFitnessClassSelect) {
+    adultFitnessClassSelect.innerHTML =
+      adultFitnessOriginalClasses;
+
+    adultFitnessClassSelect.value = "";
+  }
+
+  if (adultFitnessGuidance) {
+    adultFitnessGuidance.textContent =
+      adultFitnessOriginalGuidance;
+  }
+
+  adultFitnessScheduleLocked = false;
+}
+
+function applyAdultFitnessScheduleLock() {
+  if (
+    !adultFitnessDaySelect ||
+    !adultFitnessClassSelect
+  ) {
+    return;
+  }
+
+  const interestType =
+    getSelectedInterestType();
+
+  const registrantRole =
+    getRegistrantRole();
+
+  const age =
+    Number(athleteAge?.value || 0);
+
+  const isAdultFitness =
+    interestType === "fitness" &&
+    registrantRole === "adult-athlete" &&
+    age >= 18;
+
+  if (!isAdultFitness) {
+    restoreStandardTrainingSchedule();
+    return;
+  }
+
+  adultFitnessDaySelect.innerHTML = "";
+
+  const dayOption =
+    document.createElement("option");
+
+  dayOption.value =
+    "tuesday-thursday";
+
+  dayOption.textContent =
+    currentLanguage() === "es"
+      ? "Martes + Jueves"
+      : "Tuesday + Thursday";
+
+  adultFitnessDaySelect.appendChild(
+    dayOption
+  );
+
+  adultFitnessDaySelect.value =
+    "tuesday-thursday";
+
+  adultFitnessClassSelect.innerHTML = "";
+
+  const classOption =
+    document.createElement("option");
+
+  classOption.value =
+    "hiit-fit-tue-thu-605";
+
+  classOption.textContent =
+    currentLanguage() === "es"
+      ? "HIIT Fit · Martes + Jueves · 6:05–6:50 PM"
+      : "HIIT Fit · Tuesday + Thursday · 6:05–6:50 PM";
+
+  adultFitnessClassSelect.appendChild(
+    classOption
+  );
+
+  adultFitnessClassSelect.value =
+    "hiit-fit-tue-thu-605";
+
+  if (adultFitnessGuidance) {
+    adultFitnessGuidance.textContent =
+      currentLanguage() === "es"
+        ? "Este es el horario de Fitness disponible actualmente para atletas adultos."
+        : "This is the currently available Fitness schedule for adult athletes.";
+  }
+
+  adultFitnessScheduleLocked = true;
+}
+
+document
+  .querySelectorAll(
+    'input[name="interestType"], input[name="registrantRole"]'
+  )
+  .forEach((input) => {
+    input.addEventListener(
+      "change",
+      applyAdultFitnessScheduleLock
+    );
+  });
+
+athleteAge?.addEventListener(
+  "input",
+  applyAdultFitnessScheduleLock
+);
+
+athleteAge?.addEventListener(
+  "change",
+  applyAdultFitnessScheduleLock
+);
+
+if (document.readyState === "loading") {
+  document.addEventListener(
+    "DOMContentLoaded",
+    applyAdultFitnessScheduleLock,
+    { once: true }
+  );
+} else {
+  applyAdultFitnessScheduleLock();
+}
+
+new MutationObserver(() => {
+  if (adultFitnessScheduleLocked) {
+    applyAdultFitnessScheduleLock();
+  }
+}).observe(
+  document.documentElement,
+  {
+    attributes: true,
+    attributeFilter: ["lang"]
+  }
+);
+
+
 // FITNESS SAFE VISIBILITY BRANCH
 //
 // Visibility only.
