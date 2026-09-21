@@ -432,3 +432,12 @@ hr{
   border-color:#ffdd48;
   font-weight:700;
 }
+
+.lifetime-breakdown-row:not(.lifetime-breakdown-discipline){
+  color:var(--text);
+}
+
+.lifetime-breakdown-row:not(.lifetime-breakdown-discipline) strong{
+  color:var(--text);
+  opacity:1;
+}
