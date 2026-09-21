@@ -101,7 +101,7 @@ function renderPendingCard({ intakeId, name, city, state }) {
   `;
 }
 
-function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail, registrantRole, accessMode, authUid }) {
+function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail, registrantRole, accessMode, authUid, disciplines }) {
   const normalizedMode = String(accessMode || (authUid ? "" : "parent_managed")).trim().toLowerCase();
   const athleteAccessAction = authUid
     ? normalizedMode === "hybrid"
@@ -126,7 +126,7 @@ function renderApprovedCard({ uid, name, city, state, parentEmail, athleteEmail,
       <div class="pending-card-actions">
         ${athleteAccessAction}
         <button class="small outline-blue" data-parent-uid="${esc(uid)}" data-parent-email="${esc(parentEmail || "")}">Create Parent Access</button>
-        <button class="small solid-blue" data-assessment-uid="${esc(uid)}">Send Coach Assessment</button>
+        <button class="small solid-blue" data-assessment-uid="${esc(uid)}" data-assessment-disciplines="${esc(JSON.stringify(disciplines || []))}">Send Coach Assessment</button>
       </div>
     </div>
   `;
@@ -902,6 +902,23 @@ function wireApprovedButtons() {
 
       const originalLabel = btn.textContent;
 
+      let disciplines = [];
+      try {
+        disciplines = JSON.parse(btn.dataset.assessmentDisciplines || "[]");
+      } catch {
+        disciplines = [];
+      }
+      const uniqueDisciplines = [...new Set(disciplines.map((value) =>
+        String(value || "").trim().toLowerCase()).filter(Boolean))];
+      let discipline = uniqueDisciplines[0] || "";
+      if (uniqueDisciplines.length > 1) {
+        discipline = String(window.prompt(
+          `Assessment discipline (${uniqueDisciplines.join(", ")}):`,
+          uniqueDisciplines[0]
+        ) || "").trim().toLowerCase();
+        if (!discipline) return;
+      }
+
       btn.disabled = true;
       btn.textContent = "Sending…";
 
@@ -912,7 +929,8 @@ function wireApprovedButtons() {
         );
 
         const response = await createPin({
-          athleteUid
+          athleteUid,
+          ...(discipline ? { discipline } : {})
         });
 
         const status = String(
@@ -1088,6 +1106,14 @@ async function loadApproved(managementContext) {
       const a = snap.data() || {};
       const uid = a.uid || snap.id;
       const name = a.publicName || a.fullName || uid;
+      const disciplines = [...new Set([
+        ...(Array.isArray(a.disciplineIds) ? a.disciplineIds : []),
+        ...(a.disciplines && typeof a.disciplines === "object" && !Array.isArray(a.disciplines)
+          ? Object.keys(a.disciplines) : []),
+        a.primaryDiscipline,
+        a.activeDiscipline,
+        a.discipline,
+      ].map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))];
 
       html += renderApprovedCard({
         uid,
@@ -1099,6 +1125,7 @@ async function loadApproved(managementContext) {
         registrantRole: a.registrantRole || a.intakeAudience || "",
         accessMode: a.access?.mode || "",
         authUid: a.authUid || "",
+        disciplines,
       });
     });
 

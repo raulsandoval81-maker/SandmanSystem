@@ -4,6 +4,7 @@ exports.CHAMPIONSHIP_TOTALS = void 0;
 exports.buildLifetimeAwardUpdate = buildLifetimeAwardUpdate;
 exports.buildParentSignalInputs = buildParentSignalInputs;
 exports.emitParentSignalsBestEffort = emitParentSignalsBestEffort;
+exports.competitionEventCombatDiscipline = competitionEventCombatDiscipline;
 exports.deriveTrustedStrengthAmount = deriveTrustedStrengthAmount;
 exports.deriveYouthAssignmentAward = deriveYouthAssignmentAward;
 exports.awardReceiptKey = awardReceiptKey;
@@ -28,6 +29,7 @@ const sendParentSignalToAthleteParents_1 = require("../modules/parent/sendParent
 const parentSignalTypes_1 = require("../modules/parent/parentSignalTypes");
 const f8ProgressionPolicy_1 = require("../policy/f8ProgressionPolicy");
 const xpDomainPolicy_1 = require("../policy/xpDomainPolicy");
+const lifetimeCombatDisciplinePolicy_1 = require("../policy/lifetimeCombatDisciplinePolicy");
 const decayRecoveryPolicy_1 = require("../modules/decay/decayRecoveryPolicy");
 const f8CurriculumCompatibilityPolicy_1 = require("../policy/f8CurriculumCompatibilityPolicy");
 const f8StrengthHonorAccessPolicy_1 = require("../policy/f8StrengthHonorAccessPolicy");
@@ -50,16 +52,21 @@ const ARENA_AMOUNTS = Object.freeze({
     "ARENA/NO_OPP_DAY": 5,
     "ARENA/SPORTSMANSHIP": -5,
 });
-function buildLifetimeAwardUpdate(athlete, plan) {
+function buildLifetimeAwardUpdate(athlete, plan, combatDiscipline) {
+    const domain = (0, xpDomainPolicy_1.resolveLifetimeDomain)(plan.kind);
     const effects = (0, xpDomainPolicy_1.resolveLifetimeXpEffects)({
         athlete,
-        domain: (0, xpDomainPolicy_1.resolveLifetimeDomain)(plan.kind),
+        domain,
         operationalDelta: plan.delta,
         semantic: plan.kind === "ARENA/SPORTSMANSHIP"
             ? "OPERATIONAL_DEDUCTION"
             : "NEW_EARNED_XP",
     });
-    return Object.freeze({ effects, patch: (0, xpDomainPolicy_1.lifetimeXpPatch)(effects) });
+    const disciplineUpdate = domain === "COMBAT"
+        ? (0, lifetimeCombatDisciplinePolicy_1.buildLifetimeCombatDisciplineUpdate)({ athlete, discipline: combatDiscipline, effects })
+        : null;
+    return Object.freeze({ effects, combatDiscipline: disciplineUpdate,
+        patch: { ...(0, xpDomainPolicy_1.lifetimeXpPatch)(effects), ...(disciplineUpdate?.patch || {}) } });
 }
 function buildParentSignalInputs(result) {
     const common = {
@@ -97,6 +104,27 @@ function requiredString(value, name) {
     if (!text)
         throw new https_1.HttpsError("invalid-argument", `${name} required`);
     return text;
+}
+function competitionEventCombatDiscipline(event) {
+    if (!event || String(event.eventType ?? "").toLowerCase() !== "competition")
+        return null;
+    const direct = String(event.disciplineId || event.discipline || "").trim();
+    if (direct)
+        return (0, lifetimeCombatDisciplinePolicy_1.normalizeLifetimeCombatDiscipline)(direct);
+    const scopes = Array.isArray(event.programScopes) ? event.programScopes : [];
+    const canonicalScopes = [...new Set(scopes.flatMap((scope) => {
+            try {
+                return [(0, lifetimeCombatDisciplinePolicy_1.normalizeLifetimeCombatDiscipline)(scope)];
+            }
+            catch {
+                return [];
+            }
+        }))];
+    if (canonicalScopes.length === 1)
+        return canonicalScopes[0];
+    if (canonicalScopes.length > 1)
+        throw new Error("AMBIGUOUS_COMPETITION_EVENT_DISCIPLINE");
+    return null;
 }
 function deriveTrustedStrengthAmount(entry) {
     if (!entry || typeof entry !== "object") {
@@ -562,6 +590,36 @@ async function awardXpAuthoritatively(coachUid, input) {
         })) {
             throw new https_1.HttpsError("failed-precondition", "DECAY_RECOVERY_PRACTICE_NO_XP");
         }
+        let canonicalCombatDiscipline = null;
+        if ((0, xpDomainPolicy_1.resolveLifetimeDomain)(request.kind) === "COMBAT") {
+            let storedEventDiscipline = null;
+            if (request.kind.startsWith("ARENA/") || request.kind.startsWith("CHAMPIONSHIP/")) {
+                const eventId = String(request.meta.eventId || request.meta.tournamentId || "").trim();
+                if (eventId) {
+                    const eventSnap = await tx.get(db.doc(`events/${eventId}`));
+                    if (eventSnap.exists) {
+                        const event = eventSnap.data() || {};
+                        try {
+                            storedEventDiscipline = competitionEventCombatDiscipline(event);
+                        }
+                        catch (error) {
+                            throw new https_1.HttpsError("failed-precondition", String(error?.message));
+                        }
+                    }
+                }
+            }
+            try {
+                canonicalCombatDiscipline = (0, lifetimeCombatDisciplinePolicy_1.resolveAuthoritativeLifetimeCombatDiscipline)({
+                    athlete,
+                    requestedDiscipline: request.meta.discipline,
+                    storedEventDiscipline,
+                });
+            }
+            catch (error) {
+                throw new https_1.HttpsError("failed-precondition", String(error?.message || "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE"));
+            }
+            request.meta.discipline = canonicalCombatDiscipline;
+        }
         const conflictingBonusKind = conflictingArenaBonusKind(request.kind);
         if (conflictingBonusKind) {
             const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
@@ -624,7 +682,7 @@ async function awardXpAuthoritatively(coachUid, input) {
         }
         const plan = buildAwardPlan({ athlete, athleteId: request.uid, request, monthly,
             championshipAwarded, practiceState, arenaEventState });
-        const lifetimeAward = buildLifetimeAwardUpdate(athlete, plan);
+        const lifetimeAward = buildLifetimeAwardUpdate(athlete, plan, canonicalCombatDiscipline);
         const lifetimeXp = lifetimeAward.effects;
         const beforeStripeCount = persistedStripeCount(plan.base, plan.tier, plan.beforeXp, plan.xpCap);
         const athletePatch = {
@@ -672,9 +730,14 @@ async function awardXpAuthoritatively(coachUid, input) {
             lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
             lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
             lifetimeXpDomain: lifetimeXp.domain,
+            lifetimeXpSemantic: lifetimeXp.semantic,
             lifetimeXpComponentField: lifetimeXp.componentField,
             lifetimeXpComponentBefore: lifetimeXp.componentBefore,
             lifetimeXpComponentAfter: lifetimeXp.componentAfter,
+            canonicalLifetimeCombatDiscipline: lifetimeAward.combatDiscipline?.canonicalDiscipline ?? null,
+            disciplineMapApplied: lifetimeAward.combatDiscipline?.disciplineMapApplied ?? false,
+            disciplineLifetimeBefore: lifetimeAward.combatDiscipline?.disciplineLifetimeBefore ?? null,
+            disciplineLifetimeAfter: lifetimeAward.combatDiscipline?.disciplineLifetimeAfter ?? null,
             base: plan.base, tier: plan.tier, note: request.note,
             meta: { ...request.meta, source: plan.source, championshipTarget: plan.championshipTarget },
         };
@@ -714,9 +777,14 @@ async function awardXpAuthoritatively(coachUid, input) {
             lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
             lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
             lifetimeXpDomain: lifetimeXp.domain,
+            lifetimeXpSemantic: lifetimeXp.semantic,
             lifetimeXpComponentField: lifetimeXp.componentField,
             lifetimeXpComponentBefore: lifetimeXp.componentBefore,
             lifetimeXpComponentAfter: lifetimeXp.componentAfter,
+            canonicalLifetimeCombatDiscipline: lifetimeAward.combatDiscipline?.canonicalDiscipline ?? null,
+            disciplineMapApplied: lifetimeAward.combatDiscipline?.disciplineMapApplied ?? false,
+            disciplineLifetimeBefore: lifetimeAward.combatDiscipline?.disciplineLifetimeBefore ?? null,
+            disciplineLifetimeAfter: lifetimeAward.combatDiscipline?.disciplineLifetimeAfter ?? null,
             xpCap: plan.xpCap, stripeCount: plan.stripeCount, beforeStripeCount,
             earnedStripe: plan.stripeCount > beforeStripeCount, becameEligible,
             athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,

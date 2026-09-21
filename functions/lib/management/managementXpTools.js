@@ -6,6 +6,7 @@ const firestore_1 = require("firebase-admin/firestore");
 const staffAuthorization_1 = require("../services/staffAuthorization");
 const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const xpDomainPolicy_1 = require("../policy/xpDomainPolicy");
+const lifetimeCombatDisciplinePolicy_1 = require("../policy/lifetimeCombatDisciplinePolicy");
 const f8StrengthHonorAccessPolicy_1 = require("../policy/f8StrengthHonorAccessPolicy");
 const disciplineXpAuthority_1 = require("./disciplineXpAuthority");
 const db = (0, firestore_1.getFirestore)();
@@ -239,7 +240,29 @@ exports.finalizeExperienceValidation = (0, https_1.onCall)(async (req) => {
         const unclamped = beforeXp + issuedNowXp;
         const afterXp = Math.max(0, Math.min(xpCap, unclamped));
         const delta = afterXp - beforeXp;
-        const lifetime = (0, xpDomainPolicy_1.resolveLifetimeXpAccumulation)(athlete, beforeXp, afterXp);
+        let canonicalDiscipline;
+        try {
+            canonicalDiscipline =
+                (0, lifetimeCombatDisciplinePolicy_1.resolveAuthoritativeLifetimeCombatDiscipline)({
+                    athlete,
+                    requestedDiscipline: pin.disciplineId || pin.discipline
+                });
+        }
+        catch (error) {
+            throw new https_1.HttpsError("failed-precondition", clean(error?.message) ||
+                "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE");
+        }
+        const lifetime = (0, xpDomainPolicy_1.resolveLifetimeXpEffects)({
+            athlete,
+            domain: "COMBAT",
+            operationalDelta: delta,
+            semantic: "RECOGNIZED_PRIOR_EXPERIENCE"
+        });
+        const disciplineLifetime = (0, lifetimeCombatDisciplinePolicy_1.buildLifetimeCombatDisciplineUpdate)({
+            athlete,
+            discipline: canonicalDiscipline,
+            effects: lifetime
+        });
         const beforeStripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, beforeXp, xpCap);
         const stripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, afterXp, xpCap);
         const athletePatch = {
@@ -263,10 +286,7 @@ exports.finalizeExperienceValidation = (0, https_1.onCall)(async (req) => {
             legacyNote: experienceRecognitionNote(priorExperience),
             updatedAt: now
         };
-        if (lifetime.delta > 0) {
-            athletePatch.lifetimeXp =
-                lifetime.after;
-        }
+        Object.assign(athletePatch, (0, xpDomainPolicy_1.lifetimeXpPatch)(lifetime), disciplineLifetime.patch);
         if (base === "F8") {
             const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
                 ...athlete,
@@ -321,9 +341,15 @@ exports.finalizeExperienceValidation = (0, https_1.onCall)(async (req) => {
             beforeXp,
             afterXp,
             xpCap,
-            lifetimeXpBefore: lifetime.before,
-            lifetimeXpAfter: lifetime.after,
-            lifetimeXpDelta: lifetime.delta,
+            lifetimeXpBefore: lifetime.combinedBefore,
+            lifetimeXpAfter: lifetime.combinedAfter,
+            lifetimeXpDelta: lifetime.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetime.domain,
+            lifetimeXpSemantic: lifetime.semantic,
+            canonicalLifetimeCombatDiscipline: canonicalDiscipline,
+            disciplineMapApplied: disciplineLifetime.disciplineMapApplied,
+            disciplineLifetimeBefore: disciplineLifetime.disciplineLifetimeBefore,
+            disciplineLifetimeAfter: disciplineLifetime.disciplineLifetimeAfter,
             base,
             tier,
             note,
@@ -376,9 +402,15 @@ exports.finalizeExperienceValidation = (0, https_1.onCall)(async (req) => {
             beforeXp,
             afterXp,
             xpCap,
-            lifetimeXpBefore: lifetime.before,
-            lifetimeXpAfter: lifetime.after,
-            lifetimeXpDelta: lifetime.delta,
+            lifetimeXpBefore: lifetime.combinedBefore,
+            lifetimeXpAfter: lifetime.combinedAfter,
+            lifetimeXpDelta: lifetime.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetime.domain,
+            lifetimeXpSemantic: lifetime.semantic,
+            canonicalLifetimeCombatDiscipline: canonicalDiscipline,
+            disciplineMapApplied: disciplineLifetime.disciplineMapApplied,
+            disciplineLifetimeBefore: disciplineLifetime.disciplineLifetimeBefore,
+            disciplineLifetimeAfter: disciplineLifetime.disciplineLifetimeAfter,
             beforeStripeCount,
             stripeCount,
             earnedStripe: stripeCount >
@@ -509,6 +541,19 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             operationalDelta: delta,
             semantic
         });
+        let disciplineLifetime;
+        try {
+            disciplineLifetime =
+                (0, lifetimeCombatDisciplinePolicy_1.buildLifetimeCombatDisciplineUpdate)({
+                    athlete,
+                    discipline: xpAuthority.discipline,
+                    effects: lifetime
+                });
+        }
+        catch (error) {
+            throw new https_1.HttpsError("failed-precondition", clean(error?.message) ||
+                "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE");
+        }
         const beforeStripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, beforeXp, xpCap);
         const stripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, afterXp, xpCap);
         const athletePatch = {
@@ -523,7 +568,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
         athletePatch[`${progressionPrefix}stripeCount`] = stripeCount;
         athletePatch[`${progressionPrefix}trackBase`] = base;
         athletePatch[`${progressionPrefix}updatedAt`] = now;
-        Object.assign(athletePatch, (0, xpDomainPolicy_1.lifetimeXpPatch)(lifetime));
+        Object.assign(athletePatch, (0, xpDomainPolicy_1.lifetimeXpPatch)(lifetime), disciplineLifetime.patch);
         if (base === "F8") {
             const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
                 ...progression,
@@ -573,8 +618,13 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             lifetimeXpAfter: lifetime.combinedAfter,
             lifetimeXpDelta: lifetime.combinedLifetimeDelta,
             lifetimeXpDomain: lifetime.domain,
+            lifetimeXpSemantic: lifetime.semantic,
             lifetimeXpComponentBefore: lifetime.componentBefore,
             lifetimeXpComponentAfter: lifetime.componentAfter,
+            canonicalLifetimeCombatDiscipline: disciplineLifetime.canonicalDiscipline,
+            disciplineMapApplied: disciplineLifetime.disciplineMapApplied,
+            disciplineLifetimeBefore: disciplineLifetime.disciplineLifetimeBefore,
+            disciplineLifetimeAfter: disciplineLifetime.disciplineLifetimeAfter,
             base,
             tier,
             discipline,
@@ -612,8 +662,13 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             lifetimeXpAfter: lifetime.combinedAfter,
             lifetimeXpDelta: lifetime.combinedLifetimeDelta,
             lifetimeXpDomain: lifetime.domain,
+            lifetimeXpSemantic: lifetime.semantic,
             lifetimeXpComponentBefore: lifetime.componentBefore,
             lifetimeXpComponentAfter: lifetime.componentAfter,
+            canonicalLifetimeCombatDiscipline: disciplineLifetime.canonicalDiscipline,
+            disciplineMapApplied: disciplineLifetime.disciplineMapApplied,
+            disciplineLifetimeBefore: disciplineLifetime.disciplineLifetimeBefore,
+            disciplineLifetimeAfter: disciplineLifetime.disciplineLifetimeAfter,
             beforeStripeCount,
             stripeCount,
             earnedStripe: stripeCount >

@@ -36,7 +36,7 @@ function lifetimeUpdate(base, kind, amount, overrides = {}) {
     request: request(record.uid, kind, amount),
     monthly: {},
   });
-  return { record, plan, ...buildLifetimeAwardUpdate(record, plan) };
+  return { record, plan, ...buildLifetimeAwardUpdate(record, plan, "wrestling") };
 }
 
 for (const base of ["F4", "F8"]) {

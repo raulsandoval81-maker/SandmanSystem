@@ -95,13 +95,13 @@ test("authoritative XP uses accepted delta for one componentized Lifetime mutati
     meta: { attendanceSessionId: "session-1", sessionId: "practice-1" },
   });
   const plan = buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly: {} });
-  const lifetime = buildLifetimeAwardUpdate(athlete, plan);
+  const lifetime = buildLifetimeAwardUpdate(athlete, plan, "wrestling");
   assert.equal(plan.delta, 10);
   assert.equal(lifetime.effects.lifetimeComponentDelta, 10);
   assert.equal(lifetime.patch.lifetimeCombatXp, 10);
   assert.equal(lifetime.patch.lifetimeLegacyXp, 500);
   assert.equal(lifetime.patch.lifetimeXp, 510);
-  assert.match(source, /const lifetimeAward = buildLifetimeAwardUpdate\(athlete, plan\)/);
+  assert.match(source, /const lifetimeAward = buildLifetimeAwardUpdate\([\s\S]{0,100}?athlete,[\s\S]{0,100}?plan,[\s\S]{0,100}?canonicalCombatDiscipline/);
   assert.doesNotMatch(source, /resolveLifetimeXpAccumulation\(athlete, plan\.beforeXp, plan\.afterXp\)/);
   assert.ok(source.indexOf("if (receiptSnap.exists)")
     < source.indexOf("const lifetimeAward = buildLifetimeAwardUpdate"));

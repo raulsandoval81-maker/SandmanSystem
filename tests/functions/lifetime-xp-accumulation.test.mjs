@@ -94,7 +94,7 @@ test("Arena and Championship awards accumulate when Active Rank XP increases", (
 });
 
 test("authoritative write, logs, and receipt use one transactional Lifetime delta", () => {
-  assert.match(serviceSource, /const lifetimeAward = buildLifetimeAwardUpdate\(athlete, plan\)/);
+  assert.match(serviceSource, /const lifetimeAward = buildLifetimeAwardUpdate\([\s\S]{0,100}?athlete,[\s\S]{0,100}?plan,[\s\S]{0,100}?canonicalCombatDiscipline/);
   assert.match(serviceSource, /Object\.assign\(athletePatch, lifetimeAward\.patch\)/);
   assert.match(serviceSource, /lifetimeXpBefore: lifetimeXp\.combinedBefore/);
   assert.match(serviceSource, /lifetimeXpAfter: lifetimeXp\.combinedAfter/);

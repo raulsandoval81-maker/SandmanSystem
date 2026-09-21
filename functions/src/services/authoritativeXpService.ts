@@ -19,6 +19,12 @@ import {
   resolveLifetimeXpEffects,
   type LifetimeXpEffects,
 } from "../policy/xpDomainPolicy";
+import {
+  buildLifetimeCombatDisciplineUpdate,
+  normalizeLifetimeCombatDiscipline,
+  resolveAuthoritativeLifetimeCombatDiscipline,
+  type LifetimeCombatDisciplineUpdate,
+} from "../policy/lifetimeCombatDisciplinePolicy";
 import { shouldSuppressCombatAwardForRecovery } from "../modules/decay/decayRecoveryPolicy";
 import { resolveF8ProgressionTier } from "../policy/f8CurriculumCompatibilityPolicy";
 import { resolveF8RemoteAccess } from "../policy/f8StrengthHonorAccessPolicy";
@@ -77,19 +83,29 @@ export type AwardPlan = {
   arenaEventStateAfter: { xp: number; kinds: Record<string, boolean> } | null;
 };
 
-export function buildLifetimeAwardUpdate(athlete: any, plan: AwardPlan): {
+export function buildLifetimeAwardUpdate(
+  athlete: any,
+  plan: AwardPlan,
+  combatDiscipline?: unknown
+): {
   effects: LifetimeXpEffects;
   patch: Record<string, unknown>;
+  combatDiscipline: LifetimeCombatDisciplineUpdate | null;
 } {
+  const domain = resolveLifetimeDomain(plan.kind);
   const effects = resolveLifetimeXpEffects({
     athlete,
-    domain: resolveLifetimeDomain(plan.kind),
+    domain,
     operationalDelta: plan.delta,
     semantic: plan.kind === "ARENA/SPORTSMANSHIP"
       ? "OPERATIONAL_DEDUCTION"
       : "NEW_EARNED_XP",
   });
-  return Object.freeze({ effects, patch: lifetimeXpPatch(effects) });
+  const disciplineUpdate = domain === "COMBAT"
+    ? buildLifetimeCombatDisciplineUpdate({ athlete, discipline: combatDiscipline, effects })
+    : null;
+  return Object.freeze({ effects, combatDiscipline: disciplineUpdate,
+    patch: { ...lifetimeXpPatch(effects), ...(disciplineUpdate?.patch || {}) } });
 }
 
 export type ParentSignalInput = Parameters<typeof sendParentSignalToAthleteParents>[0];
@@ -134,6 +150,20 @@ function requiredString(value: unknown, name: string): string {
   const text = String(value ?? "").trim();
   if (!text) throw new HttpsError("invalid-argument", `${name} required`);
   return text;
+}
+
+export function competitionEventCombatDiscipline(event: any): string | null {
+  if (!event || String(event.eventType ?? "").toLowerCase() !== "competition") return null;
+  const direct = String(event.disciplineId || event.discipline || "").trim();
+  if (direct) return normalizeLifetimeCombatDiscipline(direct);
+  const scopes = Array.isArray(event.programScopes) ? event.programScopes : [];
+  const canonicalScopes: string[] = [...new Set<string>(scopes.flatMap((scope: unknown) => {
+    try { return [normalizeLifetimeCombatDiscipline(scope)]; }
+    catch { return []; }
+  }))];
+  if (canonicalScopes.length === 1) return canonicalScopes[0];
+  if (canonicalScopes.length > 1) throw new Error("AMBIGUOUS_COMPETITION_EVENT_DISCIPLINE");
+  return null;
 }
 
 export function deriveTrustedStrengthAmount(entry: any): number {
@@ -623,6 +653,35 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       );
     }
 
+    let canonicalCombatDiscipline: string | null = null;
+    if (resolveLifetimeDomain(request.kind) === "COMBAT") {
+      let storedEventDiscipline: string | null = null;
+      if (request.kind.startsWith("ARENA/") || request.kind.startsWith("CHAMPIONSHIP/")) {
+        const eventId = String(request.meta.eventId || request.meta.tournamentId || "").trim();
+        if (eventId) {
+          const eventSnap = await tx.get(db.doc(`events/${eventId}`));
+          if (eventSnap.exists) {
+            const event = eventSnap.data() || {};
+            try { storedEventDiscipline = competitionEventCombatDiscipline(event); }
+            catch (error: any) {
+              throw new HttpsError("failed-precondition", String(error?.message));
+            }
+          }
+        }
+      }
+      try {
+        canonicalCombatDiscipline = resolveAuthoritativeLifetimeCombatDiscipline({
+          athlete,
+          requestedDiscipline: request.meta.discipline,
+          storedEventDiscipline,
+        });
+      } catch (error: any) {
+        throw new HttpsError("failed-precondition",
+          String(error?.message || "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE"));
+      }
+      request.meta.discipline = canonicalCombatDiscipline;
+    }
+
     const conflictingBonusKind = conflictingArenaBonusKind(request.kind);
     if (conflictingBonusKind) {
       const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
@@ -696,7 +755,11 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
 
     const plan = buildAwardPlan({ athlete, athleteId: request.uid, request, monthly,
       championshipAwarded, practiceState, arenaEventState });
-    const lifetimeAward = buildLifetimeAwardUpdate(athlete, plan);
+    const lifetimeAward = buildLifetimeAwardUpdate(
+      athlete,
+      plan,
+      canonicalCombatDiscipline
+    );
     const lifetimeXp = lifetimeAward.effects;
     const beforeStripeCount = persistedStripeCount(plan.base, plan.tier, plan.beforeXp, plan.xpCap);
     const athletePatch: Record<string, any> = {
@@ -744,9 +807,18 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
       lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
       lifetimeXpDomain: lifetimeXp.domain,
+      lifetimeXpSemantic: lifetimeXp.semantic,
       lifetimeXpComponentField: lifetimeXp.componentField,
       lifetimeXpComponentBefore: lifetimeXp.componentBefore,
       lifetimeXpComponentAfter: lifetimeXp.componentAfter,
+      canonicalLifetimeCombatDiscipline:
+        lifetimeAward.combatDiscipline?.canonicalDiscipline ?? null,
+      disciplineMapApplied:
+        lifetimeAward.combatDiscipline?.disciplineMapApplied ?? false,
+      disciplineLifetimeBefore:
+        lifetimeAward.combatDiscipline?.disciplineLifetimeBefore ?? null,
+      disciplineLifetimeAfter:
+        lifetimeAward.combatDiscipline?.disciplineLifetimeAfter ?? null,
       base: plan.base, tier: plan.tier, note: request.note,
       meta: { ...request.meta, source: plan.source, championshipTarget: plan.championshipTarget },
     };
@@ -786,9 +858,18 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
       lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
       lifetimeXpDomain: lifetimeXp.domain,
+      lifetimeXpSemantic: lifetimeXp.semantic,
       lifetimeXpComponentField: lifetimeXp.componentField,
       lifetimeXpComponentBefore: lifetimeXp.componentBefore,
       lifetimeXpComponentAfter: lifetimeXp.componentAfter,
+      canonicalLifetimeCombatDiscipline:
+        lifetimeAward.combatDiscipline?.canonicalDiscipline ?? null,
+      disciplineMapApplied:
+        lifetimeAward.combatDiscipline?.disciplineMapApplied ?? false,
+      disciplineLifetimeBefore:
+        lifetimeAward.combatDiscipline?.disciplineLifetimeBefore ?? null,
+      disciplineLifetimeAfter:
+        lifetimeAward.combatDiscipline?.disciplineLifetimeAfter ?? null,
       xpCap: plan.xpCap, stripeCount: plan.stripeCount, beforeStripeCount,
       earnedStripe: plan.stripeCount > beforeStripeCount, becameEligible,
       athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,

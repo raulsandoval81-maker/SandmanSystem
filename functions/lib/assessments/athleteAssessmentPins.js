@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.recordAthleteAssessmentPlacement = exports.returnAthleteAssessmentPin = exports.listAthleteAssessmentPins = exports.createAthleteAssessmentPin = void 0;
 const https_1 = require("firebase-functions/v2/https");
 const firestore_1 = require("firebase-admin/firestore");
+const lifetimeCombatDisciplinePolicy_1 = require("../policy/lifetimeCombatDisciplinePolicy");
 const db = (0, firestore_1.getFirestore)();
 const MANAGEMENT_ROLES = new Set([
     "management",
@@ -123,6 +124,16 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         throw new https_1.HttpsError("not-found", "Athlete not found.");
     }
     const athlete = athleteSnap.data() || {};
+    let canonicalDiscipline;
+    try {
+        canonicalDiscipline = (0, lifetimeCombatDisciplinePolicy_1.resolveAuthoritativeLifetimeCombatDiscipline)({
+            athlete,
+            requestedDiscipline: req.data?.discipline,
+        });
+    }
+    catch (error) {
+        throw new https_1.HttpsError("failed-precondition", String(error?.message || "UNKNOWN_ASSESSMENT_DISCIPLINE"));
+    }
     const locationId = clean(athlete.locationId);
     requireLocationAccess(staff, locationId);
     const existingSnap = await db
@@ -138,6 +149,10 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         ].includes(status);
     });
     if (active) {
+        const activeDiscipline = clean(active.data().disciplineId || active.data().discipline);
+        if (activeDiscipline !== canonicalDiscipline) {
+            throw new https_1.HttpsError("failed-precondition", "ACTIVE_ASSESSMENT_DISCIPLINE_MISMATCH");
+        }
         return {
             ok: true,
             duplicate: true,
@@ -153,10 +168,8 @@ exports.createAthleteAssessmentPin = (0, https_1.onCall)(async (req) => {
         athleteUid,
         athleteName: athleteName(athlete, athleteUid),
         locationId,
-        discipline: clean(athlete.primaryDiscipline ||
-            athlete.discipline ||
-            athlete.art ||
-            athlete.sport),
+        disciplineId: canonicalDiscipline,
+        discipline: canonicalDiscipline,
         program: clean(athlete.programTrack ||
             athlete.journey ||
             athlete.program ||

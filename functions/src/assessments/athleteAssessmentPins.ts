@@ -8,6 +8,7 @@ import {
   FieldValue,
   Timestamp
 } from "firebase-admin/firestore";
+import { resolveAuthoritativeLifetimeCombatDiscipline } from "../policy/lifetimeCombatDisciplinePolicy";
 
 const db = getFirestore();
 
@@ -255,6 +256,19 @@ export const createAthleteAssessmentPin =
     const athlete =
       athleteSnap.data() || {};
 
+    let canonicalDiscipline: string;
+    try {
+      canonicalDiscipline = resolveAuthoritativeLifetimeCombatDiscipline({
+        athlete,
+        requestedDiscipline: req.data?.discipline,
+      });
+    } catch (error: any) {
+      throw new HttpsError(
+        "failed-precondition",
+        String(error?.message || "UNKNOWN_ASSESSMENT_DISCIPLINE")
+      );
+    }
+
     const locationId =
       clean(athlete.locationId);
 
@@ -288,6 +302,13 @@ export const createAthleteAssessmentPin =
       });
 
     if (active) {
+      const activeDiscipline = clean(active.data().disciplineId || active.data().discipline);
+      if (activeDiscipline !== canonicalDiscipline) {
+        throw new HttpsError(
+          "failed-precondition",
+          "ACTIVE_ASSESSMENT_DISCIPLINE_MISMATCH"
+        );
+      }
       return {
         ok: true,
         duplicate: true,
@@ -318,13 +339,8 @@ export const createAthleteAssessmentPin =
 
       locationId,
 
-      discipline:
-        clean(
-          athlete.primaryDiscipline ||
-          athlete.discipline ||
-          athlete.art ||
-          athlete.sport
-        ),
+      disciplineId: canonicalDiscipline,
+      discipline: canonicalDiscipline,
 
       program:
         clean(

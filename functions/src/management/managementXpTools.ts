@@ -26,10 +26,14 @@ import {
 import {
   lifetimeXpPatch,
   resolveAuthoritativeActiveRankXp,
-  resolveLifetimeXpAccumulation,
   resolveLifetimeXpEffects,
   resolveManagementAdjustmentSemantic
 } from "../policy/xpDomainPolicy";
+
+import {
+  buildLifetimeCombatDisciplineUpdate,
+  resolveAuthoritativeLifetimeCombatDiscipline
+} from "../policy/lifetimeCombatDisciplinePolicy";
 
 import {
   resolveF8RemoteAccess
@@ -565,12 +569,37 @@ export const finalizeExperienceValidation =
           const delta =
             afterXp - beforeXp;
 
-          const lifetime =
-            resolveLifetimeXpAccumulation(
-              athlete,
-              beforeXp,
-              afterXp
+          let canonicalDiscipline: string;
+
+          try {
+            canonicalDiscipline =
+              resolveAuthoritativeLifetimeCombatDiscipline({
+                athlete,
+                requestedDiscipline:
+                  pin.disciplineId || pin.discipline
+              });
+          } catch (error: any) {
+            throw new HttpsError(
+              "failed-precondition",
+              clean(error?.message) ||
+                "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE"
             );
+          }
+
+          const lifetime =
+            resolveLifetimeXpEffects({
+              athlete,
+              domain: "COMBAT",
+              operationalDelta: delta,
+              semantic: "RECOGNIZED_PRIOR_EXPERIENCE"
+            });
+
+          const disciplineLifetime =
+            buildLifetimeCombatDisciplineUpdate({
+              athlete,
+              discipline: canonicalDiscipline,
+              effects: lifetime
+            });
 
           const beforeStripeCount =
             persistedStripeCount(
@@ -632,10 +661,11 @@ export const finalizeExperienceValidation =
                 now
             };
 
-          if (lifetime.delta > 0) {
-            athletePatch.lifetimeXp =
-              lifetime.after;
-          }
+          Object.assign(
+            athletePatch,
+            lifetimeXpPatch(lifetime),
+            disciplineLifetime.patch
+          );
 
           if (base === "F8") {
             const remoteAccess =
@@ -769,14 +799,15 @@ export const finalizeExperienceValidation =
             afterXp,
             xpCap,
 
-            lifetimeXpBefore:
-              lifetime.before,
-
-            lifetimeXpAfter:
-              lifetime.after,
-
-            lifetimeXpDelta:
-              lifetime.delta,
+            lifetimeXpBefore: lifetime.combinedBefore,
+            lifetimeXpAfter: lifetime.combinedAfter,
+            lifetimeXpDelta: lifetime.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetime.domain,
+            lifetimeXpSemantic: lifetime.semantic,
+            canonicalLifetimeCombatDiscipline: canonicalDiscipline,
+            disciplineMapApplied: disciplineLifetime.disciplineMapApplied,
+            disciplineLifetimeBefore: disciplineLifetime.disciplineLifetimeBefore,
+            disciplineLifetimeAfter: disciplineLifetime.disciplineLifetimeAfter,
 
             base,
             tier,
@@ -899,14 +930,15 @@ export const finalizeExperienceValidation =
             afterXp,
             xpCap,
 
-            lifetimeXpBefore:
-              lifetime.before,
-
-            lifetimeXpAfter:
-              lifetime.after,
-
-            lifetimeXpDelta:
-              lifetime.delta,
+            lifetimeXpBefore: lifetime.combinedBefore,
+            lifetimeXpAfter: lifetime.combinedAfter,
+            lifetimeXpDelta: lifetime.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetime.domain,
+            lifetimeXpSemantic: lifetime.semantic,
+            canonicalLifetimeCombatDiscipline: canonicalDiscipline,
+            disciplineMapApplied: disciplineLifetime.disciplineMapApplied,
+            disciplineLifetimeBefore: disciplineLifetime.disciplineLifetimeBefore,
+            disciplineLifetimeAfter: disciplineLifetime.disciplineLifetimeAfter,
 
             beforeStripeCount,
             stripeCount,
@@ -1258,6 +1290,24 @@ export const createManagementXpAdjustment =
             semantic
           });
 
+        let disciplineLifetime;
+
+        try {
+          disciplineLifetime =
+            buildLifetimeCombatDisciplineUpdate({
+              athlete,
+              discipline:
+                xpAuthority.discipline,
+              effects: lifetime
+            });
+        } catch (error: any) {
+          throw new HttpsError(
+            "failed-precondition",
+            clean(error?.message) ||
+              "UNKNOWN_LIFETIME_COMBAT_DISCIPLINE"
+          );
+        }
+
         const beforeStripeCount =
           persistedStripeCount(
             base,
@@ -1309,7 +1359,8 @@ export const createManagementXpAdjustment =
 
         Object.assign(
           athletePatch,
-          lifetimeXpPatch(lifetime)
+          lifetimeXpPatch(lifetime),
+          disciplineLifetime.patch
         );
 
         if (base === "F8") {
@@ -1435,11 +1486,26 @@ export const createManagementXpAdjustment =
           lifetimeXpDomain:
             lifetime.domain,
 
+          lifetimeXpSemantic:
+            lifetime.semantic,
+
           lifetimeXpComponentBefore:
             lifetime.componentBefore,
 
           lifetimeXpComponentAfter:
             lifetime.componentAfter,
+
+          canonicalLifetimeCombatDiscipline:
+            disciplineLifetime.canonicalDiscipline,
+
+          disciplineMapApplied:
+            disciplineLifetime.disciplineMapApplied,
+
+          disciplineLifetimeBefore:
+            disciplineLifetime.disciplineLifetimeBefore,
+
+          disciplineLifetimeAfter:
+            disciplineLifetime.disciplineLifetimeAfter,
 
           base,
           tier,
@@ -1526,11 +1592,26 @@ export const createManagementXpAdjustment =
           lifetimeXpDomain:
             lifetime.domain,
 
+          lifetimeXpSemantic:
+            lifetime.semantic,
+
           lifetimeXpComponentBefore:
             lifetime.componentBefore,
 
           lifetimeXpComponentAfter:
             lifetime.componentAfter,
+
+          canonicalLifetimeCombatDiscipline:
+            disciplineLifetime.canonicalDiscipline,
+
+          disciplineMapApplied:
+            disciplineLifetime.disciplineMapApplied,
+
+          disciplineLifetimeBefore:
+            disciplineLifetime.disciplineLifetimeBefore,
+
+          disciplineLifetimeAfter:
+            disciplineLifetime.disciplineLifetimeAfter,
 
           beforeStripeCount,
           stripeCount,
