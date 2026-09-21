@@ -2497,65 +2497,114 @@ updateInterestDobRange();
 
 
 
-/* SANDMAN-INTEREST-ADULT-FITNESS-SCHEDULE */
+/* SANDMAN-INTEREST-FITNESS-AGE-SCHEDULE */
 
-const adultFitnessDaySelect =
+const fitnessScheduleDaySelect =
   document.getElementById(
     "preferredTrainingPattern"
   );
 
-const adultFitnessClassSelect =
+const fitnessScheduleClassSelect =
   document.getElementById(
     "preferredClassTime"
   );
 
-const adultFitnessGuidance =
+const fitnessScheduleGuidance =
   document.getElementById(
     "trainingScheduleGuidance"
   );
 
-const adultFitnessOriginalDays =
-  adultFitnessDaySelect?.innerHTML || "";
+const fitnessScheduleOriginalDays =
+  fitnessScheduleDaySelect?.innerHTML || "";
 
-const adultFitnessOriginalClasses =
-  adultFitnessClassSelect?.innerHTML || "";
+const fitnessScheduleOriginalClasses =
+  fitnessScheduleClassSelect?.innerHTML || "";
 
-const adultFitnessOriginalGuidance =
-  adultFitnessGuidance?.textContent || "";
+const fitnessScheduleOriginalGuidance =
+  fitnessScheduleGuidance?.textContent || "";
 
-let adultFitnessScheduleLocked = false;
+let fitnessScheduleLocked = false;
 
 function restoreStandardTrainingSchedule() {
-  if (!adultFitnessScheduleLocked) {
+  if (!fitnessScheduleLocked) {
     return;
   }
 
-  if (adultFitnessDaySelect) {
-    adultFitnessDaySelect.innerHTML =
-      adultFitnessOriginalDays;
+  if (fitnessScheduleDaySelect) {
+    fitnessScheduleDaySelect.innerHTML =
+      fitnessScheduleOriginalDays;
 
-    adultFitnessDaySelect.value = "";
+    fitnessScheduleDaySelect.value = "";
   }
 
-  if (adultFitnessClassSelect) {
-    adultFitnessClassSelect.innerHTML =
-      adultFitnessOriginalClasses;
+  if (fitnessScheduleClassSelect) {
+    fitnessScheduleClassSelect.innerHTML =
+      fitnessScheduleOriginalClasses;
 
-    adultFitnessClassSelect.value = "";
+    fitnessScheduleClassSelect.value = "";
   }
 
-  if (adultFitnessGuidance) {
-    adultFitnessGuidance.textContent =
-      adultFitnessOriginalGuidance;
+  if (fitnessScheduleGuidance) {
+    fitnessScheduleGuidance.textContent =
+      fitnessScheduleOriginalGuidance;
   }
 
-  adultFitnessScheduleLocked = false;
+  fitnessScheduleLocked = false;
 }
 
-function applyAdultFitnessScheduleLock() {
+function resolveFitnessClassForAge(age) {
+  if (age >= 7 && age <= 12) {
+    return {
+      dayValue: "monday-wednesday",
+      dayEn: "Monday + Wednesday",
+      dayEs: "Lunes + Miércoles",
+      classValue: "kid-fit-mon-wed-400",
+      classEn: "Kid Fit · Monday + Wednesday · 4:00–5:00 PM",
+      classEs: "Kid Fit · Lunes + Miércoles · 4:00–5:00 PM",
+      guidanceEn:
+        "Kid Fit is the available Fitness class for ages 7–12.",
+      guidanceEs:
+        "Kid Fit es la clase de Fitness disponible para edades de 7 a 12 años."
+    };
+  }
+
+  if (age >= 13 && age <= 17) {
+    return {
+      dayValue: "monday-wednesday",
+      dayEn: "Monday + Wednesday",
+      dayEs: "Lunes + Miércoles",
+      classValue: "teen-fit-mon-wed-500",
+      classEn: "Teen Fit · Monday + Wednesday · 5:00–6:00 PM",
+      classEs: "Teen Fit · Lunes + Miércoles · 5:00–6:00 PM",
+      guidanceEn:
+        "Teen Fit is the available Fitness class for ages 13–17.",
+      guidanceEs:
+        "Teen Fit es la clase de Fitness disponible para edades de 13 a 17 años."
+    };
+  }
+
+  if (age >= 18) {
+    return {
+      dayValue: "tuesday-thursday",
+      dayEn: "Tuesday + Thursday",
+      dayEs: "Martes + Jueves",
+      classValue: "hiit-fit-tue-thu-605",
+      classEn: "HIIT Fit · Tuesday + Thursday · 6:05–6:50 PM",
+      classEs: "HIIT Fit · Martes + Jueves · 6:05–6:50 PM",
+      guidanceEn:
+        "HIIT Fit is the available Fitness class for adults ages 18+.",
+      guidanceEs:
+        "HIIT Fit es la clase de Fitness disponible para adultos de 18 años o más."
+    };
+  }
+
+  return null;
+}
+
+function applyFitnessAgeSchedule() {
   if (
-    !adultFitnessDaySelect ||
-    !adultFitnessClassSelect
+    !fitnessScheduleDaySelect ||
+    !fitnessScheduleClassSelect
   ) {
     return;
   }
@@ -2563,70 +2612,70 @@ function applyAdultFitnessScheduleLock() {
   const interestType =
     getSelectedInterestType();
 
-  const registrantRole =
-    getRegistrantRole();
-
   const age =
     Number(athleteAge?.value || 0);
 
-  const isAdultFitness =
-    interestType === "fitness" &&
-    registrantRole === "adult-athlete" &&
-    age >= 18;
-
-  if (!isAdultFitness) {
+  if (interestType !== "fitness") {
     restoreStandardTrainingSchedule();
     return;
   }
 
-  adultFitnessDaySelect.innerHTML = "";
+  const route =
+    resolveFitnessClassForAge(age);
+
+  if (!route) {
+    restoreStandardTrainingSchedule();
+    return;
+  }
+
+  fitnessScheduleDaySelect.innerHTML = "";
 
   const dayOption =
     document.createElement("option");
 
   dayOption.value =
-    "tuesday-thursday";
+    route.dayValue;
 
   dayOption.textContent =
     currentLanguage() === "es"
-      ? "Martes + Jueves"
-      : "Tuesday + Thursday";
+      ? route.dayEs
+      : route.dayEn;
 
-  adultFitnessDaySelect.appendChild(
+  fitnessScheduleDaySelect.appendChild(
     dayOption
   );
 
-  adultFitnessDaySelect.value =
-    "tuesday-thursday";
+  fitnessScheduleDaySelect.value =
+    route.dayValue;
 
-  adultFitnessClassSelect.innerHTML = "";
+  fitnessScheduleClassSelect.innerHTML = "";
 
   const classOption =
     document.createElement("option");
 
   classOption.value =
-    "hiit-fit-tue-thu-605";
+    route.classValue;
 
   classOption.textContent =
     currentLanguage() === "es"
-      ? "HIIT Fit · Martes + Jueves · 6:05–6:50 PM"
-      : "HIIT Fit · Tuesday + Thursday · 6:05–6:50 PM";
+      ? route.classEs
+      : route.classEn;
 
-  adultFitnessClassSelect.appendChild(
+  fitnessScheduleClassSelect.appendChild(
     classOption
   );
 
-  adultFitnessClassSelect.value =
-    "hiit-fit-tue-thu-605";
+  fitnessScheduleClassSelect.value =
+    route.classValue;
 
-  if (adultFitnessGuidance) {
-    adultFitnessGuidance.textContent =
+  if (fitnessScheduleGuidance) {
+    fitnessScheduleGuidance.textContent =
       currentLanguage() === "es"
-        ? "Este es el horario de Fitness disponible actualmente para atletas adultos."
-        : "This is the currently available Fitness schedule for adult athletes.";
+        ? route.guidanceEs
+        : route.guidanceEn;
   }
 
-  adultFitnessScheduleLocked = true;
+  fitnessScheduleLocked = true;
 }
 
 document
@@ -2636,33 +2685,33 @@ document
   .forEach((input) => {
     input.addEventListener(
       "change",
-      applyAdultFitnessScheduleLock
+      applyFitnessAgeSchedule
     );
   });
 
 athleteAge?.addEventListener(
   "input",
-  applyAdultFitnessScheduleLock
+  applyFitnessAgeSchedule
 );
 
 athleteAge?.addEventListener(
   "change",
-  applyAdultFitnessScheduleLock
+  applyFitnessAgeSchedule
 );
 
 if (document.readyState === "loading") {
   document.addEventListener(
     "DOMContentLoaded",
-    applyAdultFitnessScheduleLock,
+    applyFitnessAgeSchedule,
     { once: true }
   );
 } else {
-  applyAdultFitnessScheduleLock();
+  applyFitnessAgeSchedule();
 }
 
 new MutationObserver(() => {
-  if (adultFitnessScheduleLocked) {
-    applyAdultFitnessScheduleLock();
+  if (fitnessScheduleLocked) {
+    applyFitnessAgeSchedule();
   }
 }).observe(
   document.documentElement,
