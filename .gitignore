@@ -99,3 +99,6 @@ move-boxing-poster.py
 split-prospect-builder.py
 
 repo-backups/
+
+# Local Firebase/Stripe emulator secrets
+functions/.secret.local
