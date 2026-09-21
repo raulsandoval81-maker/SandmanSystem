@@ -583,6 +583,87 @@
   .message-form-card {
     padding: 24px;
   }
+}/* =====================================================
+   MESSAGE FORM — DESKTOP FIELD VISIBILITY FIX
+===================================================== */
+
+.message-field input,
+.message-field select,
+.message-field textarea {
+  display: block;
+  width: 100%;
+  min-height: 48px;
+
+  border: 1px solid var(--message-line);
+  border-radius: 13px;
+
+  background: var(--message-panel-soft);
+  color: var(--message-text);
+
+  opacity: 1;
+  visibility: visible;
+}
+
+.message-field textarea {
+  min-height: 180px;
+}
+
+@media (min-width: 850px) {
+  .message-form__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 20px;
+  }
+
+  .message-field {
+    min-width: 0;
+  }
+
+  .message-field--full {
+    grid-column: 1 / -1;
+  }
+}/* Desktop form field structure repair */
+
+.message-form__grid {
+  align-items: start;
+}
+
+.message-field {
+  min-width: 0;
+  width: 100%;
+  align-self: start;
+}
+
+.message-field input,
+.message-field select,
+.message-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.message-field input,
+.message-field select {
+  min-height: 48px;
+  height: 48px;
+}
+
+.message-field textarea {
+  min-height: 180px;
+}
+
+@media (min-width: 850px) {
+  .message-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .message-field {
+    min-height: 0;
+  }
+
+  .message-field--full {
+    grid-column: 1 / -1;
+  }
 }
   </style>
 </head>
