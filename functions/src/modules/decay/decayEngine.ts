@@ -25,7 +25,8 @@ const DECAY_INTERVAL_AFTER_SECOND = 14;
 const DECAY_POINTS_PER_HIT = 25;
 const FREEZE_DECAY_TOTAL = 150;
 
-export const RECOVERY_DAYS_REQUIRED = 3;
+export { RECOVERY_DAYS_REQUIRED } from "./decayRecoveryPolicy";
+import { RECOVERY_DAYS_REQUIRED } from "./decayRecoveryPolicy";
 
 function getDecayHits(daysInactive: number): number {
   if (daysInactive < FIRST_DECAY_DAYS) return 0;

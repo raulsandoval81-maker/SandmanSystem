@@ -13,9 +13,13 @@ import {
   type F8RankReference,
 } from "../policy/f8ProgressionPolicy";
 import {
+  lifetimeXpPatch,
   resolveAuthoritativeActiveRankXp,
-  resolveLifetimeXpAccumulation,
+  resolveLifetimeDomain,
+  resolveLifetimeXpEffects,
+  type LifetimeXpEffects,
 } from "../policy/xpDomainPolicy";
+import { shouldSuppressCombatAwardForRecovery } from "../modules/decay/decayRecoveryPolicy";
 import { resolveF8ProgressionTier } from "../policy/f8CurriculumCompatibilityPolicy";
 import { resolveF8RemoteAccess } from "../policy/f8StrengthHonorAccessPolicy";
 
@@ -72,6 +76,21 @@ export type AwardPlan = {
   practiceStateAfter: { count: number; xp: number } | null;
   arenaEventStateAfter: { xp: number; kinds: Record<string, boolean> } | null;
 };
+
+export function buildLifetimeAwardUpdate(athlete: any, plan: AwardPlan): {
+  effects: LifetimeXpEffects;
+  patch: Record<string, unknown>;
+} {
+  const effects = resolveLifetimeXpEffects({
+    athlete,
+    domain: resolveLifetimeDomain(plan.kind),
+    operationalDelta: plan.delta,
+    semantic: plan.kind === "ARENA/SPORTSMANSHIP"
+      ? "OPERATIONAL_DEDUCTION"
+      : "NEW_EARNED_XP",
+  });
+  return Object.freeze({ effects, patch: lifetimeXpPatch(effects) });
+}
 
 export type ParentSignalInput = Parameters<typeof sendParentSignalToAthleteParents>[0];
 export type ParentSignalSender = (input: ParentSignalInput) => Promise<unknown>;
@@ -593,6 +612,17 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       };
     }
 
+    if (shouldSuppressCombatAwardForRecovery({
+      decay: athlete?.decay,
+      awardKind: request.kind,
+      attendanceSessionId: request.meta.attendanceSessionId,
+    })) {
+      throw new HttpsError(
+        "failed-precondition",
+        "DECAY_RECOVERY_PRACTICE_NO_XP"
+      );
+    }
+
     const conflictingBonusKind = conflictingArenaBonusKind(request.kind);
     if (conflictingBonusKind) {
       const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
@@ -666,7 +696,8 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
 
     const plan = buildAwardPlan({ athlete, athleteId: request.uid, request, monthly,
       championshipAwarded, practiceState, arenaEventState });
-    const lifetimeXp = resolveLifetimeXpAccumulation(athlete, plan.beforeXp, plan.afterXp);
+    const lifetimeAward = buildLifetimeAwardUpdate(athlete, plan);
+    const lifetimeXp = lifetimeAward.effects;
     const beforeStripeCount = persistedStripeCount(plan.base, plan.tier, plan.beforeXp, plan.xpCap);
     const athletePatch: Record<string, any> = {
       xp: plan.afterXp,
@@ -686,7 +717,7 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
         athletePatch["unlocks.honor"] = true;
       }
     }
-    if (lifetimeXp.delta > 0) athletePatch.lifetimeXp = lifetimeXp.after;
+    Object.assign(athletePatch, lifetimeAward.patch);
     if (plan.monthlyField && plan.monthlyAfter !== null) {
       athletePatch[`monthly.${mk}.${plan.monthlyField}`] = plan.monthlyAfter;
     }
@@ -710,8 +741,12 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       createdAt: now, monthKey: mk, uid: request.uid, coachUid,
       kind: plan.kind, lane: plan.lane, amount: plan.delta,
       beforeXp: plan.beforeXp, afterXp: plan.afterXp, xpCap: plan.xpCap,
-      lifetimeXpBefore: lifetimeXp.before, lifetimeXpAfter: lifetimeXp.after,
-      lifetimeXpDelta: lifetimeXp.delta,
+      lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
+      lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
+      lifetimeXpDomain: lifetimeXp.domain,
+      lifetimeXpComponentField: lifetimeXp.componentField,
+      lifetimeXpComponentBefore: lifetimeXp.componentBefore,
+      lifetimeXpComponentAfter: lifetimeXp.componentAfter,
       base: plan.base, tier: plan.tier, note: request.note,
       meta: { ...request.meta, source: plan.source, championshipTarget: plan.championshipTarget },
     };
@@ -748,8 +783,12 @@ export async function awardXpAuthoritatively(coachUid: string, input: any) {
       uid: request.uid, kind: plan.kind,
       delta: plan.delta, amount: plan.delta, awardedAmount: plan.delta,
       beforeXp: plan.beforeXp, afterXp: plan.afterXp,
-      lifetimeXpBefore: lifetimeXp.before, lifetimeXpAfter: lifetimeXp.after,
-      lifetimeXpDelta: lifetimeXp.delta,
+      lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
+      lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
+      lifetimeXpDomain: lifetimeXp.domain,
+      lifetimeXpComponentField: lifetimeXp.componentField,
+      lifetimeXpComponentBefore: lifetimeXp.componentBefore,
+      lifetimeXpComponentAfter: lifetimeXp.componentAfter,
       xpCap: plan.xpCap, stripeCount: plan.stripeCount, beforeStripeCount,
       earnedStripe: plan.stripeCount > beforeStripeCount, becameEligible,
       athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,

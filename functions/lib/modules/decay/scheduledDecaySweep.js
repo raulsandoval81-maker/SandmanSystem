@@ -16,7 +16,7 @@
  *
  * Recovery
  * --------
- * Three separate verified combat attendance days
+ * Two separate verified combat attendance days
  * stop decay and reset inactivity.
  *
  * Decay never demotes earned tiers.
@@ -26,9 +26,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.scheduledDecaySweep = void 0;
 const scheduler_1 = require("firebase-functions/v2/scheduler");
 const firestore_1 = require("firebase-admin/firestore");
+const decayRecoveryPolicy_1 = require("./decayRecoveryPolicy");
 const DK_HIT = 25;
 const DK_MAX = 150;
-const RECOVERY_DAYS_REQUIRED = 3;
 function addDays(date, days) {
     const d = new Date(date);
     d.setDate(d.getDate() + days);
@@ -61,15 +61,15 @@ exports.scheduledDecaySweep = (0, scheduler_1.onSchedule)({
         const currentPoints = Number(athlete?.decay?.points || 0);
         const currentHits = Number(athlete?.decay?.hits || 0);
         const recoveryDaysCompleted = Number(athlete?.decay?.recoveryDaysCompleted || 0);
-        if (recoveryDaysCompleted >= RECOVERY_DAYS_REQUIRED) {
+        if (recoveryDaysCompleted >= decayRecoveryPolicy_1.RECOVERY_DAYS_REQUIRED &&
+            (0, decayRecoveryPolicy_1.hasCanonicalRecoveryEvidence)(athlete?.decay)) {
             await ref.update({
                 "decay.state": "CLEAR",
                 "decay.clearedAt": firestore_1.FieldValue.serverTimestamp(),
-                "decay.points": 0,
-                "decay.hits": 0,
                 "decay.nextHitAt": null,
-                "decay.recoveryDaysCompleted": 0,
-                "decay.reason": "Recovered after 3 verified combat days",
+                "decay.recoveryDaysCompleted": decayRecoveryPolicy_1.RECOVERY_DAYS_REQUIRED,
+                "decay.resolutionStatus": "RECOVERY_REQUIREMENT_COMPLETED",
+                "decay.resolutionReason": "Recovered after 2 verified combat practices; historical decay retained.",
                 "decay.lastUpdatedAt": firestore_1.FieldValue.serverTimestamp(),
                 updatedAt: firestore_1.FieldValue.serverTimestamp(),
             });

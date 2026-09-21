@@ -15,7 +15,7 @@
  *
  * Recovery
  * --------
- * Three separate verified combat attendance days
+ * Two separate verified combat attendance days
  * stop decay and reset inactivity.
  *
  * Decay never demotes earned tiers.
@@ -24,10 +24,13 @@
 
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { getFirestore,FieldValue,Timestamp} from "firebase-admin/firestore";
+import {
+  hasCanonicalRecoveryEvidence,
+  RECOVERY_DAYS_REQUIRED,
+} from "./decayRecoveryPolicy";
 
 const DK_HIT = 25;
 const DK_MAX = 150;
-const RECOVERY_DAYS_REQUIRED = 3;
 
 function addDays(date: Date, days: number) {
   const d = new Date(date);
@@ -70,15 +73,17 @@ export const scheduledDecaySweep = onSchedule(
         athlete?.decay?.recoveryDaysCompleted || 0
       );
 
-      if (recoveryDaysCompleted >= RECOVERY_DAYS_REQUIRED) {
+      if (
+        recoveryDaysCompleted >= RECOVERY_DAYS_REQUIRED &&
+        hasCanonicalRecoveryEvidence(athlete?.decay)
+      ) {
         await ref.update({
           "decay.state": "CLEAR",
           "decay.clearedAt": FieldValue.serverTimestamp(),
-          "decay.points": 0,
-          "decay.hits": 0,
           "decay.nextHitAt": null,
-          "decay.recoveryDaysCompleted": 0,
-          "decay.reason": "Recovered after 3 verified combat days",
+          "decay.recoveryDaysCompleted": RECOVERY_DAYS_REQUIRED,
+          "decay.resolutionStatus": "RECOVERY_REQUIREMENT_COMPLETED",
+          "decay.resolutionReason": "Recovered after 2 verified combat practices; historical decay retained.",
           "decay.lastUpdatedAt": FieldValue.serverTimestamp(),
           updatedAt: FieldValue.serverTimestamp(),
         });

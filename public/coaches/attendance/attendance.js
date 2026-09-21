@@ -8,11 +8,13 @@ import {
   where,
   updateDoc,
   serverTimestamp,
-  arrayUnion,
   functions,
   httpsCallable
 } from "/assets/js/firebase-init.js";
 import { requireCoach } from "/assets/js/coach-guard.js";
+import {
+  resolveQualifyingRecoveryPractice
+} from "/coaches/attendance/decay-recovery-policy.js";
 
 console.log("NEW ATTENDANCE JS ACTIVE");
 window.__attendance_loaded = true;
@@ -311,12 +313,13 @@ async function updateAthleteAttendance(athlete, finalType, coach) {
   const current = snap.exists() ? snap.data() || {} : {};
 
   const decay = current.decay || {};
-  const recoveryLog = Array.isArray(decay.recoveryLog)
-    ? decay.recoveryLog
-    : [];
-
   const recoveryDateKey = todayKey();
-  const alreadyCountedToday = recoveryLog.includes(recoveryDateKey);
+  const recoveryPracticeKey = pendingSessionId || recoveryDateKey;
+  const recovery = resolveQualifyingRecoveryPractice({
+    decay,
+    practiceKey: recoveryPracticeKey,
+    qualifies: countsAsDecayRecoveryDay(finalType)
+  });
 
   const updatePayload = {
     lastAttendanceAt: serverTimestamp(),
@@ -326,27 +329,22 @@ async function updateAthleteAttendance(athlete, finalType, coach) {
     updatedAt: serverTimestamp()
   };
 
-  if (
-    countsAsDecayRecoveryDay(finalType) &&
-    decay.state === "DECAY_ACTIVE" &&
-    !alreadyCountedToday
-  ) {
-    const completed = Number(decay.recoveryDaysCompleted || 0) + 1;
-
-    updatePayload["decay.recoveryDaysCompleted"] = completed;
-    updatePayload["decay.recoveryLog"] = arrayUnion(recoveryDateKey);
+  if (recovery.counts) {
+    updatePayload["decay.recoveryDaysRequired"] = recovery.recoveryDaysRequired;
+    updatePayload["decay.recoveryDaysCompleted"] = recovery.completedAfter;
+    updatePayload["decay.recoveryLog"] = recovery.recoveryLogAfter;
     updatePayload["decay.lastRecoveryAt"] = serverTimestamp();
+    updatePayload["decay.lastUpdatedAt"] = serverTimestamp();
 
-    if (completed >= 3) {
+    if (recovery.clearsRecoveryLock) {
       updatePayload["decay.state"] = "CLEAR";
-      updatePayload["decay.points"] = 0;
-      updatePayload["decay.hits"] = 0;
       updatePayload["decay.nextHitAt"] = null;
-      updatePayload["decay.recoveryLog"] = [];
-      updatePayload["decay.recoveryDaysCompleted"] = 0;
       updatePayload["decay.clearedAt"] = serverTimestamp();
-      updatePayload["decay.reason"] =
-        "Recovered after 3 separate verified combat attendance days";
+      updatePayload["decay.resolutionStatus"] = "RECOVERY_REQUIREMENT_COMPLETED";
+      updatePayload["decay.resolutionReason"] =
+        "Recovered after 2 verified combat practices; historical decay retained.";
+      updatePayload["decay.recoveryCompletedAttendanceSessionId"] = pendingSessionId;
+      updatePayload["decay.recoveryCompletedDateKey"] = recoveryDateKey;
     }
   }
 

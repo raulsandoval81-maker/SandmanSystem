@@ -7,6 +7,7 @@ const staffAuthorization_1 = require("../services/staffAuthorization");
 const authoritativeXpService_1 = require("../services/authoritativeXpService");
 const xpDomainPolicy_1 = require("../policy/xpDomainPolicy");
 const f8StrengthHonorAccessPolicy_1 = require("../policy/f8StrengthHonorAccessPolicy");
+const disciplineXpAuthority_1 = require("./disciplineXpAuthority");
 const db = (0, firestore_1.getFirestore)();
 function clean(value) {
     return String(value ?? "").trim();
@@ -431,6 +432,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
     const amount = Number(req.data?.amount);
     const reason = clean(req.data?.reason);
     const category = clean(req.data?.category).toLowerCase();
+    const semantic = (0, xpDomainPolicy_1.resolveManagementAdjustmentSemantic)(category, clean(req.data?.semantic) || undefined);
     const adjustmentId = clean(req.data?.adjustmentId);
     const discipline = clean(req.data?.discipline).toLowerCase();
     const allowedCategories = new Set([
@@ -480,58 +482,48 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
                 duplicate: true
             };
         }
-        const disciplineRecords = athlete.disciplines &&
-            typeof athlete.disciplines ===
-                "object"
-            ? athlete.disciplines
-            : {};
-        const legacyDiscipline = clean(athlete.primaryDiscipline ||
-            athlete.activeDiscipline ||
-            athlete.discipline ||
-            athlete.art ||
-            athlete.sport).toLowerCase();
-        const nestedProgression = disciplineRecords[discipline] &&
-            typeof disciplineRecords[discipline] === "object"
-            ? disciplineRecords[discipline]
-            : null;
-        const usesLegacyProgression = !nestedProgression &&
-            legacyDiscipline ===
-                discipline;
-        if (!nestedProgression &&
-            !usesLegacyProgression) {
-            throw new https_1.HttpsError("failed-precondition", "ATHLETE_DISCIPLINE_NOT_FOUND");
+        let xpAuthority;
+        try {
+            xpAuthority =
+                (0, disciplineXpAuthority_1.resolveDisciplineXpAuthority)(athlete, discipline);
         }
-        const progression = nestedProgression ||
-            athlete;
-        const base = nestedProgression
+        catch (error) {
+            throw new https_1.HttpsError("failed-precondition", clean(error?.message) ||
+                "ATHLETE_DISCIPLINE_NOT_FOUND");
+        }
+        const progression = xpAuthority.progression;
+        const base = xpAuthority.progressionPrefix
             ? (0, authoritativeXpService_1.classifyAthlete)(progression)
             : (0, authoritativeXpService_1.classifyAthlete)(athlete, athleteUid);
         const tier = (0, authoritativeXpService_1.athleteTier)(progression, base);
         const xpCap = (0, authoritativeXpService_1.activeXpCap)(progression, base);
-        const beforeXp = (0, xpDomainPolicy_1.resolveAuthoritativeActiveRankXp)(progression);
+        const beforeXp = xpAuthority.authoritativeBeforeXp;
         const afterXp = Math.max(0, Math.min(xpCap, beforeXp + amount));
         const delta = afterXp - beforeXp;
         if (delta <= 0) {
             throw new https_1.HttpsError("failed-precondition", "XP_CAP_REACHED");
         }
-        const lifetime = (0, xpDomainPolicy_1.resolveLifetimeXpAccumulation)(athlete, beforeXp, afterXp);
+        const lifetime = (0, xpDomainPolicy_1.resolveLifetimeXpEffects)({
+            athlete,
+            domain: "COMBAT",
+            operationalDelta: delta,
+            semantic
+        });
         const beforeStripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, beforeXp, xpCap);
         const stripeCount = (0, authoritativeXpService_1.persistedStripeCount)(base, tier, afterXp, xpCap);
         const athletePatch = {
             updatedAt: now
         };
-        const progressionPrefix = nestedProgression
-            ? `disciplines.${discipline}.`
-            : "";
-        athletePatch[`${progressionPrefix}xp`] = afterXp;
+        const progressionPrefix = xpAuthority.progressionPrefix;
+        for (const target of xpAuthority.xpWriteTargets) {
+            athletePatch[target] =
+                afterXp;
+        }
         athletePatch[`${progressionPrefix}xpCap`] = xpCap;
         athletePatch[`${progressionPrefix}stripeCount`] = stripeCount;
         athletePatch[`${progressionPrefix}trackBase`] = base;
         athletePatch[`${progressionPrefix}updatedAt`] = now;
-        if (lifetime.delta > 0) {
-            athletePatch.lifetimeXp =
-                lifetime.after;
-        }
+        Object.assign(athletePatch, (0, xpDomainPolicy_1.lifetimeXpPatch)(lifetime));
         if (base === "F8") {
             const remoteAccess = (0, f8StrengthHonorAccessPolicy_1.resolveF8RemoteAccess)({
                 ...progression,
@@ -562,9 +554,7 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             athletePatch[`${progressionPrefix}tierStatus`] = "temple";
             athletePatch[`${progressionPrefix}testing.templeEnteredAt`] = now;
         }
-        tx.set(athleteRef, athletePatch, {
-            merge: true
-        });
+        tx.update(athleteRef, athletePatch);
         const logRef = db.collection("xpLogs").doc();
         const mk = monthKey(now);
         const log = {
@@ -579,17 +569,23 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             beforeXp,
             afterXp,
             xpCap,
-            lifetimeXpBefore: lifetime.before,
-            lifetimeXpAfter: lifetime.after,
-            lifetimeXpDelta: lifetime.delta,
+            lifetimeXpBefore: lifetime.combinedBefore,
+            lifetimeXpAfter: lifetime.combinedAfter,
+            lifetimeXpDelta: lifetime.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetime.domain,
+            lifetimeXpComponentBefore: lifetime.componentBefore,
+            lifetimeXpComponentAfter: lifetime.componentAfter,
             base,
             tier,
             discipline,
+            xpAuthoritySource: xpAuthority.sourceField,
+            primaryXpMirrored: xpAuthority.mirrorsTopLevel,
             note: reason,
             awardIdentity,
             meta: {
                 source: "management_adjustment",
                 category,
+                semantic,
                 discipline,
                 adjustmentId
             }
@@ -612,9 +608,12 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             beforeXp,
             afterXp,
             xpCap,
-            lifetimeXpBefore: lifetime.before,
-            lifetimeXpAfter: lifetime.after,
-            lifetimeXpDelta: lifetime.delta,
+            lifetimeXpBefore: lifetime.combinedBefore,
+            lifetimeXpAfter: lifetime.combinedAfter,
+            lifetimeXpDelta: lifetime.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetime.domain,
+            lifetimeXpComponentBefore: lifetime.componentBefore,
+            lifetimeXpComponentAfter: lifetime.componentAfter,
             beforeStripeCount,
             stripeCount,
             earnedStripe: stripeCount >
@@ -626,6 +625,8 @@ exports.createManagementXpAdjustment = (0, https_1.onCall)(async (req) => {
             base,
             tier,
             discipline,
+            xpAuthoritySource: xpAuthority.sourceField,
+            primaryXpMirrored: xpAuthority.mirrorsTopLevel,
             monthKey: mk,
             logId: logRef.id,
             awardIdentity

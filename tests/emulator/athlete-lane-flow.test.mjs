@@ -412,6 +412,14 @@ async function exerciseLane({
   }
   const bucket = kind === "HONOR" ? "xpHonor" : "xpStrength";
   assert.equal(afterAthlete[bucket], Number(beforeAthlete[bucket] || 0) + expectedAward);
+  const lifetimeBucket = kind === "HONOR" ? "lifetimeHonorXp" : "lifetimeStrengthXp";
+  assert.equal(afterAthlete[lifetimeBucket], Number(beforeAthlete[lifetimeBucket] || 0) + expectedAward);
+  assert.equal(afterAthlete.lifetimeLegacyXp, Number(beforeAthlete.lifetimeXp || 0));
+  assert.equal(afterAthlete.lifetimeXp,
+    Number(afterAthlete.lifetimeLegacyXp || 0)
+      + Number(afterAthlete.lifetimeCombatXp || 0)
+      + Number(afterAthlete.lifetimeStrengthXp || 0)
+      + Number(afterAthlete.lifetimeHonorXp || 0));
 }
 
 test("F4 and F8 Strength complete revision, authoritative XP, history, and advancement", async () => {

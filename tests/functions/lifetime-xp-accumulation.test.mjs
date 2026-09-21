@@ -7,6 +7,7 @@ import {
 } from "../../functions/lib/policy/xpDomainPolicy.js";
 import {
   buildAwardPlan,
+  buildLifetimeAwardUpdate,
   normalizeXpRequest,
 } from "../../functions/lib/services/authoritativeXpService.js";
 
@@ -70,13 +71,16 @@ test("F8 Strength and Honor accumulate from their actual Active Rank delta", () 
   }
 });
 
-test("F4 separate Strength and Honor buckets do not add Lifetime XP", () => {
+test("F4 Strength keeps Active Rank XP unchanged while adding Strength lifetime XP", () => {
   const athlete = { uid: "F4_LIFE", trackBase: "F4", tier: "T1", xp: 100,
     xpCap: 1600, lifetimeXp: 900 };
   const plan = buildAwardPlan({ athlete, athleteId: athlete.uid,
     request: normalizeXpRequest({ uid: athlete.uid, kind: "STRENGTH", amount: 10 }), monthly: {} });
   assert.equal(plan.afterXp, plan.beforeXp);
-  assert.equal(resolveLifetimeXpAccumulation(athlete, plan.beforeXp, plan.afterXp).delta, 0);
+  const lifetime = buildLifetimeAwardUpdate(athlete, plan);
+  assert.equal(lifetime.effects.lifetimeComponentDelta, 10);
+  assert.equal(lifetime.patch.lifetimeStrengthXp, 10);
+  assert.equal(lifetime.patch.lifetimeXp, 910);
 });
 
 test("Arena and Championship awards accumulate when Active Rank XP increases", () => {
@@ -90,17 +94,17 @@ test("Arena and Championship awards accumulate when Active Rank XP increases", (
 });
 
 test("authoritative write, logs, and receipt use one transactional Lifetime delta", () => {
-  assert.match(serviceSource, /resolveLifetimeXpAccumulation\(athlete, plan\.beforeXp, plan\.afterXp\)/);
-  assert.match(serviceSource, /if \(lifetimeXp\.delta > 0\) athletePatch\.lifetimeXp = lifetimeXp\.after/);
-  assert.match(serviceSource, /lifetimeXpBefore: lifetimeXp\.before/);
-  assert.match(serviceSource, /lifetimeXpAfter: lifetimeXp\.after/);
-  assert.match(serviceSource, /lifetimeXpDelta: lifetimeXp\.delta/);
+  assert.match(serviceSource, /const lifetimeAward = buildLifetimeAwardUpdate\(athlete, plan\)/);
+  assert.match(serviceSource, /Object\.assign\(athletePatch, lifetimeAward\.patch\)/);
+  assert.match(serviceSource, /lifetimeXpBefore: lifetimeXp\.combinedBefore/);
+  assert.match(serviceSource, /lifetimeXpAfter: lifetimeXp\.combinedAfter/);
+  assert.match(serviceSource, /lifetimeXpDelta: lifetimeXp\.combinedLifetimeDelta/);
   assert.doesNotMatch(serviceSource, /xpLifetime\s*:|totalLifetimeXp\s*:|xpTotal\s*:|totalXP\s*:/);
 });
 
 test("duplicate receipt return occurs before Lifetime XP calculation and writes", () => {
   assert.ok(serviceSource.indexOf("if (receiptSnap.exists)")
-    < serviceSource.indexOf("const lifetimeXp = resolveLifetimeXpAccumulation"));
+    < serviceSource.indexOf("const lifetimeAward = buildLifetimeAwardUpdate"));
   assert.match(serviceSource, /duplicate: true,[\s\S]{0,180}lifetimeXpDelta: 0/);
 });
 

@@ -10,6 +10,7 @@ import {
   resolveAuthoritativeActiveRankXp,
 } from "../../functions/lib/policy/xpDomainPolicy.js";
 import {
+  buildLifetimeAwardUpdate,
   buildAwardPlan,
   normalizeXpRequest,
 } from "../../functions/lib/services/authoritativeXpService.js";
@@ -76,10 +77,34 @@ test("active-rank resolver reads athlete.xp and ignores every other XP domain", 
   }), 0);
 });
 
-test("authoritative XP service has no Challenge or legacy Lifetime input path", () => {
+test("authoritative XP uses accepted delta for one componentized Lifetime mutation", () => {
   const source = readFileSync("functions/src/services/authoritativeXpService.ts", "utf8");
   assert.match(source, /resolveAuthoritativeActiveRankXp\(athlete\)/);
-  assert.match(source, /resolveLifetimeXpAccumulation\(athlete, plan\.beforeXp, plan\.afterXp\)/);
+  const athlete = {
+    uid: "F4_COMPONENT_FIREWALL",
+    trackBase: "F4",
+    tier: "T1",
+    xp: 100,
+    xpCap: 1600,
+    lifetimeXp: 500,
+  };
+  const request = normalizeXpRequest({
+    uid: athlete.uid,
+    kind: "ATTENDANCE",
+    amount: 10,
+    meta: { attendanceSessionId: "session-1", sessionId: "practice-1" },
+  });
+  const plan = buildAwardPlan({ athlete, athleteId: athlete.uid, request, monthly: {} });
+  const lifetime = buildLifetimeAwardUpdate(athlete, plan);
+  assert.equal(plan.delta, 10);
+  assert.equal(lifetime.effects.lifetimeComponentDelta, 10);
+  assert.equal(lifetime.patch.lifetimeCombatXp, 10);
+  assert.equal(lifetime.patch.lifetimeLegacyXp, 500);
+  assert.equal(lifetime.patch.lifetimeXp, 510);
+  assert.match(source, /const lifetimeAward = buildLifetimeAwardUpdate\(athlete, plan\)/);
+  assert.doesNotMatch(source, /resolveLifetimeXpAccumulation\(athlete, plan\.beforeXp, plan\.afterXp\)/);
+  assert.ok(source.indexOf("if (receiptSnap.exists)")
+    < source.indexOf("const lifetimeAward = buildLifetimeAwardUpdate"));
   assert.doesNotMatch(source, /xpLifetime|totalLifetimeXp|challengeXp|lifeXp/i);
 });
 

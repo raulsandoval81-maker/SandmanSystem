@@ -10,7 +10,9 @@ const SECOND_DECAY_DAYS = 35;
 const DECAY_INTERVAL_AFTER_SECOND = 14;
 const DECAY_POINTS_PER_HIT = 25;
 const FREEZE_DECAY_TOTAL = 150;
-exports.RECOVERY_DAYS_REQUIRED = 3;
+var decayRecoveryPolicy_1 = require("./decayRecoveryPolicy");
+Object.defineProperty(exports, "RECOVERY_DAYS_REQUIRED", { enumerable: true, get: function () { return decayRecoveryPolicy_1.RECOVERY_DAYS_REQUIRED; } });
+const decayRecoveryPolicy_2 = require("./decayRecoveryPolicy");
 function getDecayHits(daysInactive) {
     if (daysInactive < FIRST_DECAY_DAYS)
         return 0;
@@ -46,7 +48,7 @@ function calculateDecay(lastCombatActivityAt, now = new Date()) {
             decayHits: 0,
             decayPoints: 0,
             nextDecayAtDays: FIRST_DECAY_DAYS,
-            recoveryDaysRequired: exports.RECOVERY_DAYS_REQUIRED,
+            recoveryDaysRequired: decayRecoveryPolicy_2.RECOVERY_DAYS_REQUIRED,
             frozen: false,
             message: "No verified combat activity found. Athlete needs review.",
         };
@@ -61,7 +63,7 @@ function calculateDecay(lastCombatActivityAt, now = new Date()) {
             decayHits,
             decayPoints,
             nextDecayAtDays: null,
-            recoveryDaysRequired: exports.RECOVERY_DAYS_REQUIRED,
+            recoveryDaysRequired: decayRecoveryPolicy_2.RECOVERY_DAYS_REQUIRED,
             frozen: true,
             message: "Athlete frozen after reaching 150 decay points.",
         };
@@ -73,7 +75,7 @@ function calculateDecay(lastCombatActivityAt, now = new Date()) {
             decayHits,
             decayPoints,
             nextDecayAtDays: getNextDecayAtDays(daysInactive),
-            recoveryDaysRequired: exports.RECOVERY_DAYS_REQUIRED,
+            recoveryDaysRequired: decayRecoveryPolicy_2.RECOVERY_DAYS_REQUIRED,
             frozen: false,
             message: `Athlete has ${decayPoints} decay points from inactivity.`,
         };
@@ -85,7 +87,7 @@ function calculateDecay(lastCombatActivityAt, now = new Date()) {
             decayHits: 0,
             decayPoints: 0,
             nextDecayAtDays: FIRST_DECAY_DAYS,
-            recoveryDaysRequired: exports.RECOVERY_DAYS_REQUIRED,
+            recoveryDaysRequired: decayRecoveryPolicy_2.RECOVERY_DAYS_REQUIRED,
             frozen: false,
             message: "Athlete inactivity warning.",
         };
@@ -96,7 +98,7 @@ function calculateDecay(lastCombatActivityAt, now = new Date()) {
         decayHits: 0,
         decayPoints: 0,
         nextDecayAtDays: FIRST_DECAY_DAYS,
-        recoveryDaysRequired: exports.RECOVERY_DAYS_REQUIRED,
+        recoveryDaysRequired: decayRecoveryPolicy_2.RECOVERY_DAYS_REQUIRED,
         frozen: false,
         message: "Athlete is active.",
     };

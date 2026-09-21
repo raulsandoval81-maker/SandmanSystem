@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.CHAMPIONSHIP_TOTALS = void 0;
+exports.buildLifetimeAwardUpdate = buildLifetimeAwardUpdate;
 exports.buildParentSignalInputs = buildParentSignalInputs;
 exports.emitParentSignalsBestEffort = emitParentSignalsBestEffort;
 exports.deriveTrustedStrengthAmount = deriveTrustedStrengthAmount;
@@ -27,6 +28,7 @@ const sendParentSignalToAthleteParents_1 = require("../modules/parent/sendParent
 const parentSignalTypes_1 = require("../modules/parent/parentSignalTypes");
 const f8ProgressionPolicy_1 = require("../policy/f8ProgressionPolicy");
 const xpDomainPolicy_1 = require("../policy/xpDomainPolicy");
+const decayRecoveryPolicy_1 = require("../modules/decay/decayRecoveryPolicy");
 const f8CurriculumCompatibilityPolicy_1 = require("../policy/f8CurriculumCompatibilityPolicy");
 const f8StrengthHonorAccessPolicy_1 = require("../policy/f8StrengthHonorAccessPolicy");
 exports.CHAMPIONSHIP_TOTALS = Object.freeze({
@@ -48,6 +50,17 @@ const ARENA_AMOUNTS = Object.freeze({
     "ARENA/NO_OPP_DAY": 5,
     "ARENA/SPORTSMANSHIP": -5,
 });
+function buildLifetimeAwardUpdate(athlete, plan) {
+    const effects = (0, xpDomainPolicy_1.resolveLifetimeXpEffects)({
+        athlete,
+        domain: (0, xpDomainPolicy_1.resolveLifetimeDomain)(plan.kind),
+        operationalDelta: plan.delta,
+        semantic: plan.kind === "ARENA/SPORTSMANSHIP"
+            ? "OPERATIONAL_DEDUCTION"
+            : "NEW_EARNED_XP",
+    });
+    return Object.freeze({ effects, patch: (0, xpDomainPolicy_1.lifetimeXpPatch)(effects) });
+}
 function buildParentSignalInputs(result) {
     const common = {
         athleteId: String(result.uid),
@@ -542,6 +555,13 @@ async function awardXpAuthoritatively(coachUid, input) {
                 delta: 0, amount: 0, lifetimeXpDelta: 0,
             };
         }
+        if ((0, decayRecoveryPolicy_1.shouldSuppressCombatAwardForRecovery)({
+            decay: athlete?.decay,
+            awardKind: request.kind,
+            attendanceSessionId: request.meta.attendanceSessionId,
+        })) {
+            throw new https_1.HttpsError("failed-precondition", "DECAY_RECOVERY_PRACTICE_NO_XP");
+        }
         const conflictingBonusKind = conflictingArenaBonusKind(request.kind);
         if (conflictingBonusKind) {
             const tournamentId = requiredString(request.meta.tournamentId, "meta.tournamentId");
@@ -604,7 +624,8 @@ async function awardXpAuthoritatively(coachUid, input) {
         }
         const plan = buildAwardPlan({ athlete, athleteId: request.uid, request, monthly,
             championshipAwarded, practiceState, arenaEventState });
-        const lifetimeXp = (0, xpDomainPolicy_1.resolveLifetimeXpAccumulation)(athlete, plan.beforeXp, plan.afterXp);
+        const lifetimeAward = buildLifetimeAwardUpdate(athlete, plan);
+        const lifetimeXp = lifetimeAward.effects;
         const beforeStripeCount = persistedStripeCount(plan.base, plan.tier, plan.beforeXp, plan.xpCap);
         const athletePatch = {
             xp: plan.afterXp,
@@ -624,8 +645,7 @@ async function awardXpAuthoritatively(coachUid, input) {
                 athletePatch["unlocks.honor"] = true;
             }
         }
-        if (lifetimeXp.delta > 0)
-            athletePatch.lifetimeXp = lifetimeXp.after;
+        Object.assign(athletePatch, lifetimeAward.patch);
         if (plan.monthlyField && plan.monthlyAfter !== null) {
             athletePatch[`monthly.${mk}.${plan.monthlyField}`] = plan.monthlyAfter;
         }
@@ -649,8 +669,12 @@ async function awardXpAuthoritatively(coachUid, input) {
             createdAt: now, monthKey: mk, uid: request.uid, coachUid,
             kind: plan.kind, lane: plan.lane, amount: plan.delta,
             beforeXp: plan.beforeXp, afterXp: plan.afterXp, xpCap: plan.xpCap,
-            lifetimeXpBefore: lifetimeXp.before, lifetimeXpAfter: lifetimeXp.after,
-            lifetimeXpDelta: lifetimeXp.delta,
+            lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
+            lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetimeXp.domain,
+            lifetimeXpComponentField: lifetimeXp.componentField,
+            lifetimeXpComponentBefore: lifetimeXp.componentBefore,
+            lifetimeXpComponentAfter: lifetimeXp.componentAfter,
             base: plan.base, tier: plan.tier, note: request.note,
             meta: { ...request.meta, source: plan.source, championshipTarget: plan.championshipTarget },
         };
@@ -687,8 +711,12 @@ async function awardXpAuthoritatively(coachUid, input) {
             uid: request.uid, kind: plan.kind,
             delta: plan.delta, amount: plan.delta, awardedAmount: plan.delta,
             beforeXp: plan.beforeXp, afterXp: plan.afterXp,
-            lifetimeXpBefore: lifetimeXp.before, lifetimeXpAfter: lifetimeXp.after,
-            lifetimeXpDelta: lifetimeXp.delta,
+            lifetimeXpBefore: lifetimeXp.combinedBefore, lifetimeXpAfter: lifetimeXp.combinedAfter,
+            lifetimeXpDelta: lifetimeXp.combinedLifetimeDelta,
+            lifetimeXpDomain: lifetimeXp.domain,
+            lifetimeXpComponentField: lifetimeXp.componentField,
+            lifetimeXpComponentBefore: lifetimeXp.componentBefore,
+            lifetimeXpComponentAfter: lifetimeXp.componentAfter,
             xpCap: plan.xpCap, stripeCount: plan.stripeCount, beforeStripeCount,
             earnedStripe: plan.stripeCount > beforeStripeCount, becameEligible,
             athleteName: athlete.publicName || athlete.fullName || athlete.name || request.uid,

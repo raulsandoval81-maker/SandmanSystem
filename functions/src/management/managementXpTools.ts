@@ -24,13 +24,20 @@ import {
 } from "../services/authoritativeXpService";
 
 import {
+  lifetimeXpPatch,
   resolveAuthoritativeActiveRankXp,
-  resolveLifetimeXpAccumulation
+  resolveLifetimeXpAccumulation,
+  resolveLifetimeXpEffects,
+  resolveManagementAdjustmentSemantic
 } from "../policy/xpDomainPolicy";
 
 import {
   resolveF8RemoteAccess
 } from "../policy/f8StrengthHonorAccessPolicy";
+
+import {
+  resolveDisciplineXpAuthority
+} from "./disciplineXpAuthority";
 
 const db = getFirestore();
 
@@ -1045,6 +1052,12 @@ export const createManagementXpAdjustment =
         req.data?.category
       ).toLowerCase();
 
+    const semantic =
+      resolveManagementAdjustmentSemantic(
+        category,
+        clean(req.data?.semantic) as any || undefined
+      );
+
     const adjustmentId =
       clean(
         req.data?.adjustmentId
@@ -1174,55 +1187,27 @@ export const createManagementXpAdjustment =
           };
         }
 
-        const disciplineRecords =
-          athlete.disciplines &&
-          typeof athlete.disciplines ===
-            "object"
-            ? athlete.disciplines
-            : {};
+        let xpAuthority;
 
-        const legacyDiscipline =
-          clean(
-            athlete.primaryDiscipline ||
-            athlete.activeDiscipline ||
-            athlete.discipline ||
-            athlete.art ||
-            athlete.sport
-          ).toLowerCase();
-
-        const nestedProgression =
-          disciplineRecords[
-            discipline
-          ] &&
-          typeof disciplineRecords[
-            discipline
-          ] === "object"
-            ? disciplineRecords[
-                discipline
-              ]
-            : null;
-
-        const usesLegacyProgression =
-          !nestedProgression &&
-          legacyDiscipline ===
-            discipline;
-
-        if (
-          !nestedProgression &&
-          !usesLegacyProgression
-        ) {
+        try {
+          xpAuthority =
+            resolveDisciplineXpAuthority(
+              athlete,
+              discipline
+            );
+        } catch (error: any) {
           throw new HttpsError(
             "failed-precondition",
-            "ATHLETE_DISCIPLINE_NOT_FOUND"
+            clean(error?.message) ||
+              "ATHLETE_DISCIPLINE_NOT_FOUND"
           );
         }
 
         const progression =
-          nestedProgression ||
-          athlete;
+          xpAuthority.progression;
 
         const base =
-          nestedProgression
+          xpAuthority.progressionPrefix
             ? classifyAthlete(
                 progression
               )
@@ -1244,9 +1229,7 @@ export const createManagementXpAdjustment =
           );
 
         const beforeXp =
-          resolveAuthoritativeActiveRankXp(
-            progression
-          );
+          xpAuthority.authoritativeBeforeXp;
 
         const afterXp =
           Math.max(
@@ -1268,11 +1251,12 @@ export const createManagementXpAdjustment =
         }
 
         const lifetime =
-          resolveLifetimeXpAccumulation(
+          resolveLifetimeXpEffects({
             athlete,
-            beforeXp,
-            afterXp
-          );
+            domain: "COMBAT",
+            operationalDelta: delta,
+            semantic
+          });
 
         const beforeStripeCount =
           persistedStripeCount(
@@ -1297,13 +1281,15 @@ export const createManagementXpAdjustment =
           };
 
         const progressionPrefix =
-          nestedProgression
-            ? `disciplines.${discipline}.`
-            : "";
+          xpAuthority.progressionPrefix;
 
-        athletePatch[
-          `${progressionPrefix}xp`
-        ] = afterXp;
+        for (
+          const target of
+          xpAuthority.xpWriteTargets
+        ) {
+          athletePatch[target] =
+            afterXp;
+        }
 
         athletePatch[
           `${progressionPrefix}xpCap`
@@ -1321,10 +1307,10 @@ export const createManagementXpAdjustment =
           `${progressionPrefix}updatedAt`
         ] = now;
 
-        if (lifetime.delta > 0) {
-          athletePatch.lifetimeXp =
-            lifetime.after;
-        }
+        Object.assign(
+          athletePatch,
+          lifetimeXpPatch(lifetime)
+        );
 
         if (base === "F8") {
           const remoteAccess =
@@ -1395,12 +1381,9 @@ export const createManagementXpAdjustment =
           ] = now;
         }
 
-        tx.set(
+        tx.update(
           athleteRef,
-          athletePatch,
-          {
-            merge: true
-          }
+          athletePatch
         );
 
         const logRef =
@@ -1441,17 +1424,32 @@ export const createManagementXpAdjustment =
           xpCap,
 
           lifetimeXpBefore:
-            lifetime.before,
+            lifetime.combinedBefore,
 
           lifetimeXpAfter:
-            lifetime.after,
+            lifetime.combinedAfter,
 
           lifetimeXpDelta:
-            lifetime.delta,
+            lifetime.combinedLifetimeDelta,
+
+          lifetimeXpDomain:
+            lifetime.domain,
+
+          lifetimeXpComponentBefore:
+            lifetime.componentBefore,
+
+          lifetimeXpComponentAfter:
+            lifetime.componentAfter,
 
           base,
           tier,
           discipline,
+
+          xpAuthoritySource:
+            xpAuthority.sourceField,
+
+          primaryXpMirrored:
+            xpAuthority.mirrorsTopLevel,
 
           note:
             reason,
@@ -1463,6 +1461,8 @@ export const createManagementXpAdjustment =
               "management_adjustment",
 
             category,
+
+            semantic,
 
             discipline,
 
@@ -1515,13 +1515,22 @@ export const createManagementXpAdjustment =
           xpCap,
 
           lifetimeXpBefore:
-            lifetime.before,
+            lifetime.combinedBefore,
 
           lifetimeXpAfter:
-            lifetime.after,
+            lifetime.combinedAfter,
 
           lifetimeXpDelta:
-            lifetime.delta,
+            lifetime.combinedLifetimeDelta,
+
+          lifetimeXpDomain:
+            lifetime.domain,
+
+          lifetimeXpComponentBefore:
+            lifetime.componentBefore,
+
+          lifetimeXpComponentAfter:
+            lifetime.componentAfter,
 
           beforeStripeCount,
           stripeCount,
@@ -1541,6 +1550,12 @@ export const createManagementXpAdjustment =
           base,
           tier,
           discipline,
+
+          xpAuthoritySource:
+            xpAuthority.sourceField,
+
+          primaryXpMirrored:
+            xpAuthority.mirrorsTopLevel,
           monthKey:
             mk,
 
