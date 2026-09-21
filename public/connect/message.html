@@ -820,44 +820,84 @@
   name="messageTopic"
   required
 >
-  <option value="">
-    Choose one / Elige una opción
+  <option
+    value=""
+    data-en="Choose one"
+    data-es="Elige una opción"
+  >
+    Choose one
   </option>
 
-  <option value="admissions">
-    Admissions / Getting Started — Admisiones / Cómo Empezar
+  <option
+    value="admissions"
+    data-en="Admissions / Getting Started"
+    data-es="Admisiones / Cómo Empezar"
+  >
+    Admissions / Getting Started
   </option>
 
-  <option value="request-pass">
-    Drop-In / Visitor Pass — Pase de Visita
+  <option
+    value="request-pass"
+    data-en="Drop-In / Visitor Pass"
+    data-es="Pase de Visita"
+  >
+    Drop-In / Visitor Pass
   </option>
 
-  <option value="billing">
-    Current Member Billing — Facturación de Miembros
+  <option
+    value="billing"
+    data-en="Current Member Billing"
+    data-es="Facturación de Miembros"
+  >
+    Current Member Billing
   </option>
 
-  <option value="coaching">
-    Interested in Coaching — Interesado en Entrenar como Coach
+  <option
+    value="coaching"
+    data-en="Interested in Coaching"
+    data-es="Interesado en Coaching"
+  >
+    Interested in Coaching
   </option>
 
-  <option value="volunteer-coach">
-    Volunteer Coach — Coach Voluntario
+  <option
+    value="volunteer-coach"
+    data-en="Volunteer Coach"
+    data-es="Coach Voluntario"
+  >
+    Volunteer Coach
   </option>
 
-  <option value="parent-volunteer">
-    Parent / Family Volunteer — Padre o Familiar Voluntario
+  <option
+    value="parent-volunteer"
+    data-en="Parent / Family Volunteer"
+    data-es="Padre o Familiar Voluntario"
+  >
+    Parent / Family Volunteer
   </option>
 
-  <option value="partnership">
-    Community Partnership — Colaboración Comunitaria
+  <option
+    value="partnership"
+    data-en="Community Partnership"
+    data-es="Colaboración Comunitaria"
+  >
+    Community Partnership
   </option>
 
-  <option value="facility-space">
-    Facility / Space Opportunity — Oportunidad de Instalación / Espacio
+  <option
+    value="facility-space"
+    data-en="Facility / Space Opportunity"
+    data-es="Oportunidad de Instalación / Espacio"
+  >
+    Facility / Space Opportunity
   </option>
 
-  <option value="other">
-    Other — Otro
+  <option
+    value="other"
+    data-en="Other"
+    data-es="Otro"
+  >
+    Other
   </option>
 </select>
             </div>
@@ -884,20 +924,36 @@
   id="passType"
   name="passType"
 >
-  <option value="">
-    Choose one / Elige una opción
+  <option
+    value=""
+    data-en="Choose one"
+    data-es="Elige una opción"
+  >
+    Choose one
   </option>
 
-  <option value="combat-dropin-1day">
-    Combat — 1 Day Pass — $25 / Combate — Pase de 1 Día — $25
+  <option
+    value="combat-dropin-1day"
+    data-en="Combat — 1 Day Pass — $25"
+    data-es="Combate — Pase de 1 Día — $25"
+  >
+    Combat — 1 Day Pass — $25
   </option>
 
-  <option value="combat-dropin-2day">
-    Combat — 2 Day Pass — $40 / Combate — Pase de 2 Días — $40
+  <option
+    value="combat-dropin-2day"
+    data-en="Combat — 2 Day Pass — $40"
+    data-es="Combate — Pase de 2 Días — $40"
+  >
+    Combat — 2 Day Pass — $40
   </option>
 
-  <option value="fitness-dropin">
-    Fitness — 1 Day Drop-In — $15 / Fitness — Pase de 1 Día — $15
+  <option
+    value="fitness-dropin"
+    data-en="Fitness — 1 Day Drop-In — $15"
+    data-es="Fitness — Pase de 1 Día — $15"
+  >
+    Fitness — 1 Day Drop-In — $15
   </option>
 </select>
             </div>
@@ -1102,6 +1158,39 @@
     }
 
     resolveLocationContext();
+
+    function syncLocalizedSelectOptions() {
+      const language =
+        document.documentElement.lang === "es"
+          ? "es"
+          : "en";
+
+      document
+        .querySelectorAll(
+          "#messageTopic option[data-en], #passType option[data-en]"
+        )
+        .forEach((option) => {
+          option.textContent =
+            option.dataset[language] ||
+            option.dataset.en ||
+            option.textContent;
+        });
+    }
+
+    syncLocalizedSelectOptions();
+
+    const languageObserver =
+      new MutationObserver(() => {
+        syncLocalizedSelectOptions();
+      });
+
+    languageObserver.observe(
+      document.documentElement,
+      {
+        attributes: true,
+        attributeFilter: ["lang"]
+      }
+    );
 
     function syncPassField() {
       const requestingPass = messageTopic?.value === "request-pass";
