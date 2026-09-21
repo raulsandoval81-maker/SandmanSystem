@@ -366,6 +366,20 @@
       transform: none;
     }
 
+    .message-back {
+      color: var(--message-gold);
+
+      font-weight: 850;
+      text-decoration: none;
+    }
+
+    .message-back:hover,
+    .message-back:focus-visible {
+      color: var(--message-gold-light);
+      text-decoration: underline;
+      outline: none;
+    }
+
     .message-status {
       min-height: 1.5em;
       margin: 0;
@@ -383,6 +397,55 @@
       color: var(--message-gold-light);
     }
 
+    /* =====================================================
+       SIDEBAR
+    ====================================================== */
+
+    .message-sidebar {
+      display: grid;
+      gap: 16px;
+    }
+
+    .message-side-card {
+      padding: 1.3rem;
+
+      border: 1px solid var(--message-line);
+      border-radius: 18px;
+
+      background: var(--message-panel);
+    }
+
+    .message-side-card h2 {
+      margin: 0 0 0.65rem;
+
+      color: var(--message-text);
+
+      font-size: 1.1rem;
+    }
+
+    .message-side-card p {
+      margin: 0;
+
+      color: var(--message-muted);
+      line-height: 1.65;
+    }
+
+    .message-side-card a {
+      display: inline-block;
+      margin-top: 0.9rem;
+
+      color: var(--message-gold);
+
+      font-weight: 850;
+      text-decoration: none;
+    }
+
+    .message-side-card a:hover,
+    .message-side-card a:focus-visible {
+      color: var(--message-gold-light);
+      text-decoration: underline;
+      outline: none;
+    }
 
     /* =====================================================
        RESPONSIVE
@@ -391,6 +454,10 @@
     @media (max-width: 820px) {
       .message-layout {
         grid-template-columns: 1fr;
+      }
+
+      .message-sidebar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
 
@@ -406,6 +473,9 @@
       }
 
       .message-form__grid,
+      .message-sidebar {
+        grid-template-columns: 1fr;
+      }
 
       .message-field--full {
         grid-column: auto;
@@ -416,12 +486,83 @@
         flex-direction: column;
       }
 
-      .message-submit {
+      .message-submit,
+      .message-back {
         width: 100%;
         text-align: center;
       }
     }
+    /* ======================================================
+   MESSAGE PAGE — LAPTOP / DESKTOP WIDTH REPAIR
+====================================================== */
 
+.message-page {
+  width: 100%;
+}
+
+.message-container {
+  width: min(calc(100% - 48px), 1180px);
+  margin-inline: auto;
+}
+
+.message-intro,
+.message-form-section {
+  width: 100%;
+  max-width: none;
+}
+
+.message-intro {
+  padding: clamp(32px, 5vw, 64px);
+}
+
+.message-form-card {
+  width: 100%;
+  max-width: 900px;
+  margin-inline: auto;
+  padding: clamp(28px, 4vw, 52px);
+}
+
+/* Two-column form on laptops and larger screens */
+@media (min-width: 850px) {
+  .message-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px 24px;
+  }
+
+  .message-form-field--full,
+  .message-form-actions {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Wider presentation on normal laptops */
+@media (min-width: 1100px) {
+  .message-container {
+    width: min(calc(100% - 72px), 1280px);
+  }
+
+  .message-form-card {
+    max-width: 980px;
+  }
+}
+
+/* Keep phone layout stacked */
+@media (max-width: 849px) {
+  .message-container {
+    width: min(calc(100% - 28px), 720px);
+  }
+
+  .message-form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .message-form-card {
+    padding: 24px;
+  }
+}
   </style>
 </head>
 
@@ -452,17 +593,15 @@
         </h1>
 
 <p class="message-hero__copy">
-  Ask about admissions, visitor passes, member billing,
-  coaching, volunteering, community partnerships,
-  facility opportunities, or another question that needs
-  a Sandman staff member.
+  Ask about programs, schedules, admissions, locations,
+  partnerships, or anything else you would like our team
+  to review.
 </p>
 
 <p class="message-hero__note">
-  Choose whether your message should go to location management
-  or Sandman System administration.
+  Send us a message. Choose what you need help with, and a Sandman staff member will follow up.
 </p>
-      </div>
+</div>
 
       <div
         data-lang-block="es"
@@ -477,16 +616,15 @@
         </h1>
 
 <p class="message-hero__copy">
-  Pregunta sobre admisiones, pases de visita, facturación
-  de miembros, coaching, voluntariado, colaboraciones
-  comunitarias, oportunidades de espacio o cualquier otra
-  pregunta que necesite la atención del personal de Sandman.
+  Pregunta sobre programas, horarios, admisiones,
+  ubicaciones, colaboraciones o cualquier otro tema que
+  quieras que revise nuestro equipo.
 </p>
 
 <p class="message-hero__note">
-  Elige si tu mensaje debe enviarse a la administración local
-  o a la administración del Sistema Sandman.
+  Envíanos un mensaje. Elige con qué necesitas ayuda y un miembro del personal de Sandman se pondrá en contacto contigo.
 </p>
+
 </header>
 
     <div class="message-layout">
@@ -507,8 +645,8 @@
           </h2>
 
 <p class="message-panel__intro">
-  Share enough information for us to understand your request
-  and respond appropriately.
+  Share enough information for our system team to understand
+  your request and route it to the appropriate local manager.
 </p>
         </div>
 
@@ -525,8 +663,9 @@
           </h2>
 
 <p class="message-panel__intro">
-  Comparte suficiente información para que podamos comprender
-  tu solicitud y responder adecuadamente.
+  Comparte suficiente información para que nuestro equipo
+  del sistema comprenda tu solicitud y la dirija al gerente
+  local correspondiente.
 </p>
         </div>
 
@@ -544,53 +683,88 @@
           />
 
           <div class="message-form__grid">
-            <div class="message-field message-field--full">
-              <label for="messageRecipient">
+
+            <div class="message-field">
+              <label for="preferredOrganization">
                 <span data-lang-block="en">
-                  Who Should Receive This Message?
+                  Organization You Are Trying to Reach
                 </span>
 
                 <span
                   data-lang-block="es"
                   class="hidden-lang"
                 >
-                  ¿Quién Debe Recibir Este Mensaje?
+                  Organización con la que Deseas Comunicarte
                 </span>
               </label>
 
               <select
-                id="messageRecipient"
-                name="messageRecipient"
+                id="preferredOrganization"
+                name="preferredOrganization"
                 required
               >
-                <option
-                  value=""
-                  data-en="Choose one"
-                  data-es="Elige una opción"
-                >
+                <option value="">
                   Choose one
                 </option>
 
-                <option
-                  value="location-management"
-                  data-en="Location Management"
-                  data-es="Administración Local"
-                
-                  selected>
-                  Location Management
+                <option value="sandman-academy">
+                  Sandman Academy of Combat &amp; Fitness
                 </option>
 
-                <option
-                  value="system-admin"
-                  data-en="Sandman System / Administration"
-                  data-es="Sistema Sandman / Administración"
-                >
-                  Sandman System / Administration
+                <option value="yesc">
+                  Youth Empowered Sports Club
+                </option>
+
+                <option value="other-organization">
+                  Another Organization
+                </option>
+
+                <option value="not-sure">
+                  Not Sure
                 </option>
               </select>
             </div>
 
+            <div class="message-field">
+              <label for="preferredLocation">
+                <span data-lang-block="en">
+                  Location You Are Trying to Reach
+                </span>
 
+                <span
+                  data-lang-block="es"
+                  class="hidden-lang"
+                >
+                  Ubicación con la que Deseas Comunicarte
+                </span>
+              </label>
+
+              <select
+                id="preferredLocation"
+                name="preferredLocation"
+                required
+              >
+                <option value="">
+                  Choose one
+                </option>
+
+                <option value="solvang">
+                  Solvang Location
+                </option>
+
+                <option value="lompoc">
+                  Lompoc Location
+                </option>
+
+                <option value="system-team">
+                  System Team
+                </option>
+
+                <option value="not-sure">
+                  Not Sure
+                </option>
+              </select>
+            </div>
 <div class="message-field">
               <label for="contactName">
                 <span data-lang-block="en">
@@ -673,91 +847,51 @@
                 </span>
               </label>
 
-<select
-  id="messageTopic"
-  name="messageTopic"
-  required
->
-  <option
-    value=""
-    data-en="Choose one"
-    data-es="Elige una opción"
-  >
-    Choose one
-  </option>
+              <select
+                id="messageTopic"
+                name="messageTopic"
+                required
+              >
+                <option value="">
+                  Choose one
+                </option>
 
-  <option
-    value="admissions"
-    data-en="Admissions / Getting Started"
-    data-es="Admisiones / Cómo Empezar"
-  >
-    Admissions / Getting Started
-  </option>
+                <option value="programs">
+                  Programs
+                </option>
 
-  <option
-    value="request-pass"
-    data-en="Drop-In / Visitor Pass"
-    data-es="Pase de Visita"
-  >
-    Drop-In / Visitor Pass
-  </option>
+                <option value="schedule">
+                  Schedule
+                </option>
 
-  <option
-    value="billing"
-    data-en="Current Member Billing"
-    data-es="Facturación de Miembros"
-  >
-    Current Member Billing
-  </option>
+                <option value="admissions">
+                  Admissions
+                </option>
 
-  <option
-    value="coaching"
-    data-en="Interested in Coaching"
-    data-es="Interesado en Coaching"
-  >
-    Interested in Coaching
-  </option>
+                <option value="request-pass">
+                  Request a Pass
+                </option>
 
-  <option
-    value="volunteer-coach"
-    data-en="Volunteer Coach"
-    data-es="Coach Voluntario"
-  >
-    Volunteer Coach
-  </option>
+                <option value="billing">
+                  Billing
+                </option>
 
-  <option
-    value="parent-volunteer"
-    data-en="Parent / Family Volunteer"
-    data-es="Padre o Familiar Voluntario"
-  >
-    Parent / Family Volunteer
-  </option>
+               <option value="coaching">
+                Coaching / Professional Development
+               </option>
 
-  <option
-    value="partnership"
-    data-en="Community Partnership"
-    data-es="Colaboración Comunitaria"
-  >
-    Community Partnership
-  </option>
+               <option value="partnership">
+                 Community / Partnership
+                </option>
 
-  <option
-    value="facility-space"
-    data-en="Facility / Space Opportunity"
-    data-es="Oportunidad de Instalación / Espacio"
-  >
-    Facility / Space Opportunity
-  </option>
+                <option value="location">
+                  Location
+                </option>
 
-  <option
-    value="other"
-    data-en="Other"
-    data-es="Otro"
-  >
-    Other
-  </option>
-</select>
+                <option value="other">
+                  Other
+                </option>
+              </select>
             </div>
 
             <div
@@ -778,42 +912,26 @@
                 </span>
               </label>
 
-<select
-  id="passType"
-  name="passType"
->
-  <option
-    value=""
-    data-en="Choose one"
-    data-es="Elige una opción"
-  >
-    Choose one
-  </option>
+              <select
+                id="passType"
+                name="passType"
+              >
+                <option value="">
+                  Choose one
+                </option>
 
-  <option
-    value="combat-dropin-1day"
-    data-en="Combat — 1 Day Pass — $25"
-    data-es="Combate — Pase de 1 Día — $25"
-  >
-    Combat — 1 Day Pass — $25
-  </option>
+                <option value="combat-dropin-1day">
+                  Combat — 1 Day Pass — $25
+                </option>
 
-  <option
-    value="combat-dropin-2day"
-    data-en="Combat — 2 Day Pass — $40"
-    data-es="Combate — Pase de 2 Días — $40"
-  >
-    Combat — 2 Day Pass — $40
-  </option>
+                <option value="combat-dropin-2day">
+                  Combat — 2 Day Pass — $40
+                </option>
 
-  <option
-    value="fitness-dropin"
-    data-en="Fitness — 1 Day Drop-In — $15"
-    data-es="Fitness — Pase de 1 Día — $15"
-  >
-    Fitness — 1 Day Drop-In — $15
-  </option>
-</select>
+                <option value="fitness-dropin">
+                  Fitness — 1 Day Drop-In — $15
+                </option>
+              </select>
             </div>
 
             <div class="message-field message-field--full">
@@ -926,6 +1044,11 @@
     defer
   ></script>
 
+  <!--
+    IMPORTANT:
+    Reconnect the existing message submission handler here.
+    Do not point this form to /connect/try-a-class/.
+  -->
 
 
 
@@ -933,40 +1056,6 @@
     const messageTopic = document.getElementById("messageTopic");
     const passTypeField = document.getElementById("passTypeField");
     const passType = document.getElementById("passType");
-
-
-    function syncLocalizedSelectOptions() {
-      const language =
-        document.documentElement.lang === "es"
-          ? "es"
-          : "en";
-
-      document
-        .querySelectorAll(
-          "#messageRecipient option[data-en], #messageTopic option[data-en], #passType option[data-en]"
-        )
-        .forEach((option) => {
-          option.textContent =
-            option.dataset[language] ||
-            option.dataset.en ||
-            option.textContent;
-        });
-    }
-
-    syncLocalizedSelectOptions();
-
-    const languageObserver =
-      new MutationObserver(() => {
-        syncLocalizedSelectOptions();
-      });
-
-    languageObserver.observe(
-      document.documentElement,
-      {
-        attributes: true,
-        attributeFilter: ["lang"]
-      }
-    );
 
     function syncPassField() {
       const requestingPass = messageTopic?.value === "request-pass";
