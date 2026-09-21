@@ -9,6 +9,10 @@ import {
   resolveLifetimeCombatDisciplineState,
 } from "../../functions/lib/policy/lifetimeCombatDisciplinePolicy.js";
 import { resolveLifetimeXpEffects } from "../../functions/lib/policy/xpDomainPolicy.js";
+import {
+  isLifetimeComponentMode,
+  leaderboardScore,
+} from "../../public/athletes/leaderboard/leaderboard-scoring.js";
 
 function effects(athlete, delta = 10, semantic = "NEW_EARNED_XP") {
   return resolveLifetimeXpEffects({ athlete, domain: "COMBAT",
@@ -128,8 +132,38 @@ test("recognized prior experience uses componentized Combat semantics", () => {
   assert.doesNotMatch(source, /resolveLifetimeXpAccumulation/);
 });
 
-test("aggregate leaderboard compatibility remains unchanged", () => {
+test("leaderboard reads overall and component Lifetime authority without active-XP fallback", () => {
   const source = readFileSync("public/athletes/leaderboard/leaderboard.app.js", "utf8");
   assert.match(source, /lifetimeXp/);
-  assert.doesNotMatch(source, /lifetimeCombatByDiscipline/);
+  assert.match(source, /lifetimeCombatByDiscipline/);
+  const athlete = {
+    xp: 9999,
+    primaryDiscipline: "wrestling",
+    lifetimeXp: 2615,
+    lifetimeCombatXp: 2525,
+    lifetimeCombatByDiscipline: { wrestling: 2185, boxing: 340 },
+    lifetimeStrengthXp: 60,
+    lifetimeHonorXp: 30,
+  };
+  assert.equal(leaderboardScore(athlete, "lifetime"), 2615);
+  assert.equal(leaderboardScore(athlete, "wrestling"), 2185);
+  assert.equal(leaderboardScore(athlete, "boxing"), 340);
+  assert.equal(leaderboardScore(athlete, "strength"), 60);
+  assert.equal(leaderboardScore(athlete, "honor"), 30);
+  assert.equal(leaderboardScore(athlete, "muay-thai"), 0);
+});
+
+test("discipline leaderboard never infers missing ownership", () => {
+  const activeOnly = { xp: 700, primaryDiscipline: "wrestling",
+    activeDiscipline: "wrestling", discipline: "wrestling", lifetimeCombatXp: 700 };
+  assert.equal(leaderboardScore(activeOnly, "wrestling"), 0);
+  assert.equal(leaderboardScore({ lifetimeCombatByDiscipline: { boxing: 25 } }, "wrestling"), 0);
+  assert.equal(leaderboardScore(activeOnly, "strength"), 0);
+  assert.equal(leaderboardScore(activeOnly, "honor"), 0);
+  for (const mode of ["wrestling", "boxing", "muay-thai", "submission-grappling",
+    "mma", "strength", "honor"]) assert.equal(isLifetimeComponentMode(mode), true);
+});
+
+test("progression scoring remains active XP only", () => {
+  assert.equal(leaderboardScore({ xp: 415, lifetimeXp: 9000 }, "progression"), 415);
 });

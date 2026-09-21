@@ -110,6 +110,7 @@ test("authoritative XP uses accepted delta for one componentized Lifetime mutati
 
 test("Lifetime leaderboard never falls back to active-rank XP", () => {
   const source = readFileSync("public/athletes/leaderboard/leaderboard.app.js", "utf8");
+  const scoring = readFileSync("public/athletes/leaderboard/leaderboard-scoring.js", "utf8");
   const lifetimeBlocks = [...source.matchAll(/athlete\.data\.lifetimeXp \?\?[\s\S]{0,180}?\)/g)]
     .map((match) => match[0]);
   assert.equal(lifetimeBlocks.length, 2);
@@ -117,6 +118,8 @@ test("Lifetime leaderboard never falls back to active-rank XP", () => {
     assert.doesNotMatch(block, /athlete\.data\.xp\s*\?\?|combat\.xp\s*\?\?/);
     assert.match(block, /totalLifetimeXp \?\?\s*0/);
   }
+  assert.match(scoring, /lifetimeCombatByDiscipline\?\.\[mode\]/);
+  assert.doesNotMatch(scoring, /primaryDiscipline|activeDiscipline|athlete\.discipline|lifetimeCombatXp/);
 });
 
 test("architecture note locks naming collisions and forbidden paths", () => {

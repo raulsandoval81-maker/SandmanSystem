@@ -3,6 +3,12 @@ import {
   collection,
   getDocs
 } from "/assets/js/firebase-init.js";
+import {
+  RANK_MODE_LABELS,
+  isLifetimeComponentMode,
+  isLifetimeRankMode,
+  leaderboardScore,
+} from "/athletes/leaderboard/leaderboard-scoring.js";
 
 const top8ListEl = document.getElementById("top8-list");
 const yourZoneEl = document.getElementById("your-zone");
@@ -441,9 +447,7 @@ function scoreFor(
   athlete,
   rankMode
 ) {
-  return rankMode === "lifetime"
-    ? athlete.lifetimeXp
-    : athlete.xp;
+  return leaderboardScore(athlete, rankMode);
 }
 
 function sortAthletes(
@@ -451,11 +455,8 @@ function sortAthletes(
   rankMode
 ) {
   return [...list].sort((a, b) => {
-    if (rankMode === "lifetime") {
-      return (
-        b.lifetimeXp -
-        a.lifetimeXp
-      );
+    if (isLifetimeRankMode(rankMode)) {
+      return scoreFor(b, rankMode) - scoreFor(a, rankMode);
     }
 
     const tierDifference =
@@ -549,7 +550,15 @@ function lifetimeEntries() {
         athlete.data.xpLifetime ??
         athlete.data.totalLifetimeXp ??
         0
-      )
+      ),
+      lifetimeCombatByDiscipline:
+        athlete.data.lifetimeCombatByDiscipline &&
+        typeof athlete.data.lifetimeCombatByDiscipline === "object" &&
+        !Array.isArray(athlete.data.lifetimeCombatByDiscipline)
+          ? { ...athlete.data.lifetimeCombatByDiscipline }
+          : {},
+      lifetimeStrengthXp: normalizeXp(athlete.data.lifetimeStrengthXp),
+      lifetimeHonorXp: normalizeXp(athlete.data.lifetimeHonorXp)
     };
   });
 }
@@ -565,8 +574,11 @@ function getScopedAthletes() {
 
   let list;
 
-  if (rankMode === "lifetime") {
+  if (isLifetimeRankMode(rankMode)) {
     list = lifetimeEntries();
+    if (isLifetimeComponentMode(rankMode)) {
+      list = list.filter((athlete) => scoreFor(athlete, rankMode) > 0);
+    }
   } else {
     list = combatEntries.filter(
       (athlete) =>
@@ -612,12 +624,12 @@ function rowHtml(
     "progression";
 
   const tierLabel =
-    rankMode === "lifetime"
-      ? "Lifetime"
+    isLifetimeRankMode(rankMode)
+      ? (RANK_MODE_LABELS[rankMode] || "Lifetime")
       : `${athlete.tier.toUpperCase()} ${titleCase(athlete.rank)}`;
 
   const stripeLabel =
-    rankMode === "lifetime"
+    isLifetimeRankMode(rankMode)
       ? "—"
       : athlete.stripe;
 
@@ -674,9 +686,8 @@ function updateBoardTitle() {
     viewModeEl?.value ||
     "overall";
 
-  if (rankMode === "lifetime") {
-    boardTitleEl.textContent =
-      "Sandman Lifetime XP · Top 8";
+  if (isLifetimeRankMode(rankMode)) {
+    boardTitleEl.textContent = `${RANK_MODE_LABELS[rankMode] || "Lifetime XP"} · Top 8`;
 
     return;
   }
