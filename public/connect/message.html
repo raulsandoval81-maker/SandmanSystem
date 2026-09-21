@@ -593,15 +593,17 @@
         </h1>
 
 <p class="message-hero__copy">
-  Ask about programs, schedules, admissions, locations,
-  partnerships, or anything else you would like our team
-  to review.
+  Ask about admissions, visitor passes, member billing,
+  coaching, volunteering, community partnerships,
+  facility opportunities, or another question that needs
+  a Sandman staff member.
 </p>
 
 <p class="message-hero__note">
-  Send us a message. Choose what you need help with, and a Sandman staff member will follow up.
+  Choose what you need help with, and your message will be
+  routed to the appropriate Sandman contact.
 </p>
-</div>
+      </div>
 
       <div
         data-lang-block="es"
@@ -616,15 +618,16 @@
         </h1>
 
 <p class="message-hero__copy">
-  Pregunta sobre programas, horarios, admisiones,
-  ubicaciones, colaboraciones o cualquier otro tema que
-  quieras que revise nuestro equipo.
+  Pregunta sobre admisiones, pases de visita, facturación
+  de miembros, coaching, voluntariado, colaboraciones
+  comunitarias, oportunidades de espacio o cualquier otra
+  pregunta que necesite la atención del personal de Sandman.
 </p>
 
 <p class="message-hero__note">
-  Envíanos un mensaje. Elige con qué necesitas ayuda y un miembro del personal de Sandman se pondrá en contacto contigo.
+  Elige con qué necesitas ayuda y tu mensaje será dirigido
+  al contacto apropiado de Sandman.
 </p>
-
 </header>
 
     <div class="message-layout">
@@ -645,8 +648,8 @@
           </h2>
 
 <p class="message-panel__intro">
-  Share enough information for our system team to understand
-  your request and route it to the appropriate local manager.
+  Share enough information for us to understand your request
+  and route it to the appropriate Sandman contact.
 </p>
         </div>
 
@@ -663,9 +666,8 @@
           </h2>
 
 <p class="message-panel__intro">
-  Comparte suficiente información para que nuestro equipo
-  del sistema comprenda tu solicitud y la dirija al gerente
-  local correspondiente.
+  Comparte suficiente información para que podamos comprender
+  tu solicitud y dirigirla al contacto apropiado de Sandman.
 </p>
         </div>
 
@@ -684,58 +686,27 @@
 
           <div class="message-form__grid">
 
-            <div class="message-field">
-              <label for="preferredOrganization">
-                <span data-lang-block="en">
-                  Organization You Are Trying to Reach
-                </span>
+            <input
+              id="preferredOrganization"
+              name="preferredOrganization"
+              type="hidden"
+              value="sandman-academy"
+            />
 
-                <span
-                  data-lang-block="es"
-                  class="hidden-lang"
-                >
-                  Organización con la que Deseas Comunicarte
-                </span>
-              </label>
-
-              <select
-                id="preferredOrganization"
-                name="preferredOrganization"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
-
-                <option value="sandman-academy">
-                  Sandman Academy of Combat &amp; Fitness
-                </option>
-
-                <option value="yesc">
-                  Youth Empowered Sports Club
-                </option>
-
-                <option value="other-organization">
-                  Another Organization
-                </option>
-
-                <option value="not-sure">
-                  Not Sure
-                </option>
-              </select>
-            </div>
-
-            <div class="message-field">
+            <div
+              id="preferredLocationField"
+              class="message-field"
+            >
               <label for="preferredLocation">
                 <span data-lang-block="en">
-                  Location You Are Trying to Reach
+                  Area or Location
                 </span>
 
                 <span
                   data-lang-block="es"
                   class="hidden-lang"
                 >
-                  Ubicación con la que Deseas Comunicarte
+                  Área o Ubicación
                 </span>
               </label>
 
@@ -745,26 +716,23 @@
                 required
               >
                 <option value="">
-                  Choose one
+                  Choose one / Elige una opción
                 </option>
 
-                <option value="solvang">
-                  Solvang Location
+                <option value="santa-ynez-valley">
+                  Santa Ynez Valley
                 </option>
 
                 <option value="lompoc">
-                  Lompoc Location
-                </option>
-
-                <option value="system-team">
-                  System Team
+                  Lompoc
                 </option>
 
                 <option value="not-sure">
-                  Not Sure
+                  Not Sure / No Estoy Seguro
                 </option>
               </select>
             </div>
+
 <div class="message-field">
               <label for="contactName">
                 <span data-lang-block="en">
@@ -847,51 +815,51 @@
                 </span>
               </label>
 
-              <select
-                id="messageTopic"
-                name="messageTopic"
-                required
-              >
-                <option value="">
-                  Choose one
-                </option>
+<select
+  id="messageTopic"
+  name="messageTopic"
+  required
+>
+  <option value="">
+    Choose one / Elige una opción
+  </option>
 
-                <option value="programs">
-                  Programs
-                </option>
+  <option value="admissions">
+    Admissions / Getting Started — Admisiones / Cómo Empezar
+  </option>
 
-                <option value="schedule">
-                  Schedule
-                </option>
+  <option value="request-pass">
+    Drop-In / Visitor Pass — Pase de Visita
+  </option>
 
-                <option value="admissions">
-                  Admissions
-                </option>
+  <option value="billing">
+    Current Member Billing — Facturación de Miembros
+  </option>
 
-                <option value="request-pass">
-                  Request a Pass
-                </option>
+  <option value="coaching">
+    Interested in Coaching — Interesado en Entrenar como Coach
+  </option>
 
-                <option value="billing">
-                  Billing
-                </option>
+  <option value="volunteer-coach">
+    Volunteer Coach — Coach Voluntario
+  </option>
 
-               <option value="coaching">
-                Coaching / Professional Development
-               </option>
+  <option value="parent-volunteer">
+    Parent / Family Volunteer — Padre o Familiar Voluntario
+  </option>
 
-               <option value="partnership">
-                 Community / Partnership
-                </option>
+  <option value="partnership">
+    Community Partnership — Colaboración Comunitaria
+  </option>
 
-                <option value="location">
-                  Location
-                </option>
+  <option value="facility-space">
+    Facility / Space Opportunity — Oportunidad de Instalación / Espacio
+  </option>
 
-                <option value="other">
-                  Other
-                </option>
-              </select>
+  <option value="other">
+    Other — Otro
+  </option>
+</select>
             </div>
 
             <div
@@ -912,26 +880,26 @@
                 </span>
               </label>
 
-              <select
-                id="passType"
-                name="passType"
-              >
-                <option value="">
-                  Choose one
-                </option>
+<select
+  id="passType"
+  name="passType"
+>
+  <option value="">
+    Choose one / Elige una opción
+  </option>
 
-                <option value="combat-dropin-1day">
-                  Combat — 1 Day Pass — $25
-                </option>
+  <option value="combat-dropin-1day">
+    Combat — 1 Day Pass — $25 / Combate — Pase de 1 Día — $25
+  </option>
 
-                <option value="combat-dropin-2day">
-                  Combat — 2 Day Pass — $40
-                </option>
+  <option value="combat-dropin-2day">
+    Combat — 2 Day Pass — $40 / Combate — Pase de 2 Días — $40
+  </option>
 
-                <option value="fitness-dropin">
-                  Fitness — 1 Day Drop-In — $15
-                </option>
-              </select>
+  <option value="fitness-dropin">
+    Fitness — 1 Day Drop-In — $15 / Fitness — Pase de 1 Día — $15
+  </option>
+</select>
             </div>
 
             <div class="message-field message-field--full">
@@ -1056,6 +1024,84 @@
     const messageTopic = document.getElementById("messageTopic");
     const passTypeField = document.getElementById("passTypeField");
     const passType = document.getElementById("passType");
+
+    const preferredLocation =
+      document.getElementById("preferredLocation");
+
+    const preferredLocationField =
+      document.getElementById("preferredLocationField");
+
+    function resolveLocationContext() {
+      if (!preferredLocation || !preferredLocationField) {
+        return;
+      }
+
+      const params =
+        new URLSearchParams(window.location.search);
+
+      const requestedLocation =
+        (params.get("location") || "")
+          .trim()
+          .toLowerCase();
+
+      let resolvedLocation = "";
+
+      if (
+        requestedLocation === "santa-ynez-valley" ||
+        requestedLocation === "santa-ynez" ||
+        requestedLocation === "solvang"
+      ) {
+        resolvedLocation = "santa-ynez-valley";
+      }
+
+      if (requestedLocation === "lompoc") {
+        resolvedLocation = "lompoc";
+      }
+
+      if (!resolvedLocation && document.referrer) {
+        try {
+          const referrer =
+            new URL(document.referrer);
+
+          if (referrer.origin === window.location.origin) {
+            const referrerPath =
+              referrer.pathname.toLowerCase();
+
+            if (
+              referrerPath.includes(
+                "/locations/santa-ynez-valley/"
+              )
+            ) {
+              resolvedLocation =
+                "santa-ynez-valley";
+            }
+
+            if (
+              referrerPath.includes(
+                "/locations/lompoc/"
+              )
+            ) {
+              resolvedLocation =
+                "lompoc";
+            }
+          }
+        } catch (_) {
+        }
+      }
+
+      if (resolvedLocation) {
+        preferredLocation.value =
+          resolvedLocation;
+
+        preferredLocation.required =
+          false;
+
+        preferredLocationField.hidden =
+          true;
+      }
+    }
+
+    resolveLocationContext();
 
     function syncPassField() {
       const requestingPass = messageTopic?.value === "request-pass";
