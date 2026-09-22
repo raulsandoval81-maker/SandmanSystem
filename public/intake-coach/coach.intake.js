@@ -13,6 +13,9 @@ import {
   limit,
   onSnapshot,
 } from "/assets/js/firebase-init.js";
+import {
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -63,6 +66,9 @@ const requestedLane =
   )
     .trim()
     .toLowerCase();
+
+const requestedDiscipline =
+  normalizeDisciplineId(requestedLane);
 
 function esc(value = "") {
   return String(value)
@@ -259,7 +265,7 @@ async function generateIntakeInvite(
 
         requestedDiscipline:
           intakeMode === "add_sport"
-            ? requestedLane
+            ? requestedDiscipline
             : null,
 
         existingAthleteName:

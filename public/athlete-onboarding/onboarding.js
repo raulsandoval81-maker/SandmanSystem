@@ -18,6 +18,10 @@ import {
   updatePassword
 } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-auth.js";
 import { resolveOnboardingTemplate } from "./onboarding-templates.js";
+import {
+  disciplineLabel,
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -198,7 +202,9 @@ function prettyJourneyName(programTrack = "", art = "", placement = {}) {
   return "—";
 }
 function prettyArtName(art = "") {
-  switch (String(art || "").toLowerCase()) {
+  const canonical = normalizeDisciplineId(art);
+
+  switch (canonical) {
     case "mma":
       return "MMA";
 
@@ -209,8 +215,7 @@ function prettyArtName(art = "") {
       return "Wrestling";
 
     case "muay-thai":
-    case "kickboxing":
-      return "Muay Thai";
+      return disciplineLabel(canonical);
 
     case "grappling":
     case "submission-grappling":

@@ -6,6 +6,11 @@ import {
   httpsCallable,
   ensureSignedIn,
 } from "/assets/js/firebase-init.js";
+import {
+  disciplineLabel,
+  findCanonicalDisciplineRecord,
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -575,17 +580,10 @@ function syncProgramTrackOptionsForAthlete(uid, athlete = {}) {
 }
 
 function formatDisciplineLabel(value = "") {
-  const labels = {
-    wrestling: "Wrestling",
-    boxing: "Boxing",
-    "muay-thai": "Muay Thai",
-    mma: "MMA",
-    "submission-grappling": "Submission Grappling",
-  };
+  const key = normalizeDisciplineId(value);
+  const label = disciplineLabel(key);
 
-  const key = String(value || "").trim().toLowerCase();
-
-  return labels[key] ||
+  return label ||
     key
       .split("-")
       .filter(Boolean)
@@ -622,9 +620,7 @@ function getExistingDisciplines(athlete = {}) {
       athlete.primaryDiscipline,
       athlete.art,
     ]
-      .map((value) =>
-        String(value || "").trim().toLowerCase()
-      )
+      .map(normalizeDisciplineId)
       .filter(Boolean))
   );
 }
@@ -664,16 +660,19 @@ function renderExistingAthleteVerification(
   const disciplines = getExistingDisciplines(athlete);
 
   const activeDiscipline =
-    String(
+    normalizeDisciplineId(
       athlete.activeDiscipline ||
       disciplines[0] ||
       athlete.discipline ||
       athlete.art ||
       ""
-    ).trim().toLowerCase();
+    );
 
   const activeCombat =
-    athlete.disciplines?.[activeDiscipline] ||
+    findCanonicalDisciplineRecord(
+      athlete,
+      activeDiscipline
+    )?.record ||
     athlete;
 
   const fullName =
@@ -798,9 +797,9 @@ async function lookupExistingAthlete() {
 
   const placement = getPlacement(val("programTrack"));
   const disciplineToAdd =
-    String(placement.discipline || placement.art || "")
-      .trim()
-      .toLowerCase();
+    normalizeDisciplineId(
+      placement.discipline || placement.art || ""
+    );
 
   clearExistingAthleteVerification();
 

@@ -22,6 +22,10 @@ import {
   httpsCallable,
   ensureSignedIn
 } from "../assets/js/firebase-init.js";
+import {
+  disciplineLabel,
+  normalizeDisciplineId
+} from "/assets/js/discipline-policy.js";
 
 ensureSignedIn().catch(console.error);
 
@@ -413,19 +417,8 @@ function paintMintUI({
 // Review workflow mode
 // ------------------------------------------------------
 function formatDisciplineLabel(value = "") {
-  const key = String(value || "")
-    .trim()
-    .toLowerCase();
-
-  const labels = {
-    wrestling: "Wrestling",
-    boxing: "Boxing",
-    "muay-thai": "Muay Thai",
-    mma: "MMA",
-    "submission-grappling": "Submission Grappling"
-  };
-
-  return labels[key] || key || "—";
+  const key = normalizeDisciplineId(value);
+  return disciplineLabel(key) || key || "—";
 }
 
 function formatJourneyLabel(value = "") {
@@ -445,13 +438,11 @@ function formatJourneyLabel(value = "") {
 
 function getAddDisciplineStarter(s = {}) {
   const discipline =
-    String(
+    normalizeDisciplineId(
       s.requestedDiscipline ||
       s.forLane ||
       ""
-    )
-      .trim()
-      .toLowerCase();
+    );
 
   const trackCode =
     String(
