@@ -82,6 +82,17 @@ function requestedPracticeId() {
   return String(params.get("practice") || params.get("practiceId") || "").trim();
 }
 
+function configureBuilderReturn() {
+  const link = $("returnToBuilder");
+  if (!link) return;
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("return") !== "builder") return;
+  const practiceId = requestedPracticeId();
+  if (!practiceId) return;
+  link.href = `/coaches/execution/session-builder/?practiceId=${encodeURIComponent(practiceId)}`;
+  link.hidden = false;
+}
+
 function rememberedPracticeId() {
   try {
     return String(JSON.parse(localStorage.getItem("sandman_session_builder_v1") || "{}")?.practiceId || "").trim();
@@ -450,4 +461,5 @@ function bindEvents() {
 }
 
 bindEvents();
+configureBuilderReturn();
 loadAthletes();

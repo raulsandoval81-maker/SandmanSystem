@@ -983,13 +983,13 @@ window.runPractice = async function () {
 .filter(b => b.minutes > 0);
 
   let practiceId = String(session.practiceId || "").trim();
-  if (!practiceId) {
-    try {
-      const openPractice = httpsCallable(functions, "openPracticeSession");
-      const opened = await openPractice({
+  try {
+    const openPractice = httpsCallable(functions, "openPracticeSession");
+    const opened = await openPractice({
+        practiceId,
         liveSessionId: session.sessionId,
-        locationId: session.academyId,
-        academyId: session.academyId,
+        locationId: session.locationId || session.academyId,
+        academyId: session.locationId || session.academyId,
         roomId: session.roomId,
         discipline: session.discipline,
         journey: session.journey,
@@ -997,17 +997,17 @@ window.runPractice = async function () {
         track: session.track,
         tier: session.tier,
         schema: currentSchema,
+        executionMode: session.executionMode,
         durationMinutes: Number(builderSession.durationMinutes || getSchemaMaxMinutes(currentSchema) || 0)
-      });
-      practiceId = String(opened.data?.practiceId || "").trim();
-      if (!practiceId) throw new Error("Practice identity was not returned.");
-      builderSession = { ...builderSession, practiceId };
-      localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
-    } catch (error) {
-      console.error("Practice open failed", error);
-      setStatus(error?.message || "Could not open the canonical practice.");
-      return;
-    }
+    });
+    practiceId = String(opened.data?.practiceId || "").trim();
+    if (!practiceId) throw new Error("Practice identity was not returned.");
+    builderSession = { ...builderSession, practiceId };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(builderSession));
+  } catch (error) {
+    console.error("Practice open failed", error);
+    setStatus(error?.message || "Could not open the canonical practice.");
+    return;
   }
 
   const clockPayload = {

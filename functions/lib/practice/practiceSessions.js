@@ -6,6 +6,7 @@ const https_1 = require("firebase-functions/v2/https");
 const staffAuthorization_1 = require("../services/staffAuthorization");
 const crossTrainingPolicy_1 = require("../schedules/crossTrainingPolicy");
 const PRACTICE_STAFF_ROLES = staffAuthorization_1.COACH_STAFF_ROLES;
+const EXECUTION_MODES = new Set(["manual", "hybrid", "quick", "checked-in"]);
 function requiredString(value, field) {
     const normalized = String(value ?? "").trim();
     if (!normalized)
@@ -29,45 +30,105 @@ exports.openPracticeSession = (0, https_1.onCall)(async (request) => {
     const locationId = requiredString(input.locationId || input.academyId, "locationId");
     requirePracticeLocation(actor, locationId);
     const discipline = requiredString(input.discipline, "discipline").toLowerCase();
+    const requestedPracticeId = String(input.practiceId || "").trim();
+    if (requestedPracticeId.includes("/"))
+        throw new https_1.HttpsError("invalid-argument", "practiceId is invalid.");
+    const executionModeInput = String(input.executionMode || "").trim().toLowerCase();
+    if (executionModeInput && !EXECUTION_MODES.has(executionModeInput)) {
+        throw new https_1.HttpsError("invalid-argument", "executionMode is invalid.");
+    }
     const db = (0, firestore_1.getFirestore)();
-    const practiceRef = db.collection("practiceSessions").doc();
+    const practiceRef = requestedPracticeId
+        ? db.doc(`practiceSessions/${requestedPracticeId}`)
+        : db.collection("practiceSessions").doc();
     const now = firestore_1.FieldValue.serverTimestamp();
-    const practice = {
-        practiceId: practiceRef.id,
-        liveSessionId,
-        locationId,
-        academyId: locationId,
-        roomId,
-        coachUid: actor.uid,
-        coachRole: actor.role,
-        status: "active",
-        discipline,
-        journey: String(input.journey || "").trim(),
-        program: String(input.program || "").trim(),
-        track: String(input.track || "").trim(),
-        tier: String(input.tier || "").trim(),
-        schema: String(input.schema || "").trim(),
-        durationMinutes: Math.max(0, Number(input.durationMinutes || 0)),
-        openedAt: now,
-        updatedAt: now,
-        source: "session-builder",
-    };
-    const batch = db.batch();
-    batch.create(practiceRef, practice);
-    batch.set(db.doc(`liveSessions/${liveSessionId}`), {
-        practiceId: practiceRef.id,
-        liveSessionId,
-        locationId,
-        academyId: locationId,
-        roomId,
-        coachUid: actor.uid,
-        status: "ready",
-        discipline,
-        journey: practice.journey,
-        updatedAt: now,
-    }, { merge: true });
-    await batch.commit();
-    return { ok: true, practiceId: practiceRef.id, liveSessionId, status: "active" };
+    let idempotent = false;
+    await db.runTransaction(async (tx) => {
+        const existing = await tx.get(practiceRef);
+        const current = existing.data() || {};
+        if (requestedPracticeId && !existing.exists) {
+            throw new https_1.HttpsError("not-found", "The supplied practiceId does not exist.");
+        }
+        if (existing.exists) {
+            idempotent = true;
+            requirePracticeLocation(actor, requiredString(current.locationId || current.academyId, "practice locationId"));
+            if ((0, staffAuthorization_1.normalizeStaffRole)(actor.role) !== "admin" && String(current.coachUid || "") !== actor.uid) {
+                throw new https_1.HttpsError("permission-denied", "Only the Coach who opened this practice may resume it.");
+            }
+            if (String(current.status || "").toLowerCase() !== "active") {
+                throw new https_1.HttpsError("failed-precondition", "This practice is no longer active.");
+            }
+            if (String(current.locationId || current.academyId || "") !== locationId) {
+                throw new https_1.HttpsError("failed-precondition", "Practice location cannot change while resuming.");
+            }
+            if (String(current.roomId || "") !== roomId) {
+                throw new https_1.HttpsError("failed-precondition", "Practice room cannot change while resuming.");
+            }
+            if (String(current.liveSessionId || "") !== liveSessionId) {
+                throw new https_1.HttpsError("failed-precondition", "Practice live-session identity cannot change while resuming.");
+            }
+            // Once athletes are checked in, the participation record owns the session
+            // context. A resume may refresh planning details, but must not silently move
+            // those athletes to a different discipline, journey, program, or focus tier.
+            const attendanceSnap = await tx.get(db.doc(`attendance_sessions/${practiceRef.id}`));
+            const attendance = attendanceSnap.data() || {};
+            const hasParticipants = Number(attendance.checkedInCount || 0) > 0
+                || (Array.isArray(attendance.checkedInIds) && attendance.checkedInIds.length > 0)
+                || (Array.isArray(attendance.checkedIn) && attendance.checkedIn.length > 0);
+            if (hasParticipants) {
+                const stableContext = [
+                    ["discipline", String(current.discipline || "").toLowerCase(), discipline],
+                    ["journey", String(current.journey || ""), String(input.journey || "").trim()],
+                    ["program", String(current.program || ""), String(input.program || "").trim()],
+                    ["tier", String(current.tier || ""), String(input.tier || "").trim()],
+                ];
+                const changed = stableContext.find(([, before, after]) => before !== after);
+                if (changed) {
+                    throw new https_1.HttpsError("failed-precondition", `Practice ${changed[0]} cannot change after check-in begins.`);
+                }
+            }
+        }
+        const executionMode = executionModeInput || String(current.executionMode || "").trim().toLowerCase();
+        const practice = {
+            practiceId: practiceRef.id,
+            liveSessionId,
+            locationId,
+            academyId: locationId,
+            roomId,
+            coachUid: existing.exists ? String(current.coachUid || actor.uid) : actor.uid,
+            coachRole: existing.exists ? String(current.coachRole || actor.role) : actor.role,
+            status: "active",
+            discipline,
+            journey: String(input.journey || "").trim(),
+            program: String(input.program || "").trim(),
+            track: String(input.track || "").trim(),
+            tier: String(input.tier || "").trim(),
+            schema: String(input.schema || "").trim(),
+            durationMinutes: Math.max(0, Number(input.durationMinutes || 0)),
+            ...(executionMode ? { executionMode } : {}),
+            ...(existing.exists ? {} : { openedAt: now }),
+            updatedAt: now,
+            source: "session-builder",
+        };
+        if (existing.exists)
+            tx.set(practiceRef, practice, { merge: true });
+        else
+            tx.create(practiceRef, practice);
+        tx.set(db.doc(`liveSessions/${liveSessionId}`), {
+            practiceId: practiceRef.id,
+            liveSessionId,
+            locationId,
+            academyId: locationId,
+            roomId,
+            coachUid: practice.coachUid,
+            status: "ready",
+            discipline,
+            journey: practice.journey,
+            ...(executionMode ? { executionMode } : {}),
+            updatedAt: now,
+        }, { merge: true });
+    });
+    return { ok: true, practiceId: practiceRef.id, liveSessionId, status: "active", idempotent };
 });
 exports.getPracticeSession = (0, https_1.onCall)(async (request) => {
     if (!request.auth)

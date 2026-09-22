@@ -55,6 +55,7 @@ function practiceInput(overrides = {}) {
     track: "Foundry 4",
     tier: "T0",
     schema: "standard-60",
+    executionMode: "manual",
     durationMinutes: 60,
     ...overrides,
   };
@@ -84,6 +85,11 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     await assert.rejects(() => nonStaff.open(practiceInput()), /permission-denied|Active Coach or staff access required/i);
     await assert.rejects(() => coach.open(practiceInput({ discipline: "" })), /discipline is required/i);
     await assert.rejects(() => otherCoach.open(practiceInput()), /outside the staff member's authorized scope/i);
+    await assert.rejects(
+      () => coach.open(practiceInput({ practiceId: "client-selected-missing" })),
+      /not-found|supplied practiceId does not exist/i
+    );
+    assert.equal((await adminDb.doc("practiceSessions/client-selected-missing").get()).exists, false);
     await assert.rejects(() => coach.get({ practiceId: "missing-practice" }), /not-found|Practice not found/i);
     await assert.rejects(() => nonStaff.close({ practiceId: "missing-practice", attendanceSessionId: "missing" }), /permission-denied|Active Coach or staff access required/i);
   });
@@ -103,10 +109,20 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     assert.equal(practice.coachUid, "COACH_ATTENDANCE_V1");
     assert.equal(practice.coachRole, "coach");
     assert.equal(practice.status, "active");
+    assert.equal(practice.executionMode, "manual");
     assert.ok(practice.openedAt);
     const live = (await adminDb.doc("liveSessions/lompoc-mat-1").get()).data();
     assert.equal(live.practiceId, practiceAId);
     assert.equal(live.roomId, "mat-1");
+  });
+
+  await t.test("supplied canonical practice is reused without duplication", async () => {
+    const before = await adminDb.collection("practiceSessions").get();
+    const resumed = (await coach.open(practiceInput({ practiceId: practiceAId }))).data;
+    const after = await adminDb.collection("practiceSessions").get();
+    assert.equal(resumed.practiceId, practiceAId);
+    assert.equal(resumed.idempotent, true);
+    assert.equal(after.size, before.size);
   });
 
   await t.test("authorized get resolves active practice", async () => {
@@ -138,6 +154,12 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
       checkedIn: [{ id: "F4_TEST_1" }, { id: "F4_TEST_2" }],
       finalized: false,
     });
+    const resumed = (await coach.open(practiceInput({ practiceId: practiceAId }))).data;
+    assert.equal(resumed.practiceId, practiceAId);
+    await assert.rejects(
+      () => coach.open(practiceInput({ practiceId: practiceAId, discipline: "boxing" })),
+      /discipline cannot change after check-in begins/i
+    );
     await attendanceRef.update({ status: "pending_review" });
     await attendanceRef.update({
       status: "finalized",
@@ -206,6 +228,20 @@ test("authenticated canonical practice lifecycle and Attendance identity", async
     const legacy = (await adminDb.doc("attendance_sessions/legacy-attendance").get()).data();
     assert.equal(legacy.status, "finalized");
     assert.equal(legacy.practiceId, undefined);
+  });
+
+  await t.test("legacy practice without executionMode remains readable", async () => {
+    await adminDb.doc("practiceSessions/legacy-practice-no-mode").set({
+      practiceId: "legacy-practice-no-mode",
+      liveSessionId: "legacy-room",
+      locationId: "lompoc",
+      roomId: "legacy-room",
+      discipline: "wrestling",
+      coachUid: "COACH_ATTENDANCE_V1",
+      status: "active",
+    });
+    const legacy = (await coach.get({ practiceId: "legacy-practice-no-mode" })).data.practice;
+    assert.equal(legacy.executionMode, undefined);
   });
 
   await t.test("Management attendance read is authorized and location scoped", async () => {

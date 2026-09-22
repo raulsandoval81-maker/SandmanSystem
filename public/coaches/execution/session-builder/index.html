@@ -51,20 +51,21 @@
 
     <div class="configuration-layout">
       <div class="details-panel">
-        <div class="field"><label for="roomSelect">Room</label><select id="roomSelect" class="dashboard-select"><option value="lompoc-mat-1">Lompoc Mat 1</option><option value="solvang-mat-1">Solvang Mat 1</option></select></div>
+        <div class="field"><label for="roomSelect">Room</label><select id="roomSelect" class="dashboard-select"></select></div>
         <div class="field"><label for="disciplineSelect">Program</label>
           <select id="disciplineSelect" class="dashboard-select">
             <option value="">Select Program</option>
-            <optgroup label="MANUAL BUILD"><option value="manual-build" data-foundry="Manual" data-track="Manual Build" data-journey="MANUAL" data-discipline="Coach Built" data-tier="">Manual Coach Build</option></optgroup>
-            <optgroup label="Youth · Road2Champion · Ages 7–13"><option value="youth-z2h-wrestling" data-foundry="Foundry 8" data-track="Foundry 8" data-journey="Z2H" data-discipline="Wrestling" data-tier="T0">Road2Champion Wrestling</option></optgroup>
-            <optgroup label="Teen · Path2Legend · Ages 14+"><option value="teen-p2l-wrestling" data-foundry="Foundry 4" data-track="Foundry 4" data-journey="P2L" data-discipline="Wrestling" data-tier="T0">Path2Legend Wrestling</option><option value="teen-p2l-boxing" data-foundry="Foundry 4" data-track="Foundry 4" data-journey="P2L" data-discipline="Boxing" data-tier="T0">Path2Legend Boxing</option></optgroup>
-            <optgroup label="Adult · Quest2Mastery · Ages 16+"><option value="adult-q2m-mma" data-foundry="Foundry 4" data-track="Foundry 4" data-journey="Q2M" data-discipline="MMA" data-tier="T0">Quest2Mastery MMA</option></optgroup>
-            <optgroup label="Teen/Adult Fitness · Ages 12+"><option value="fitness-striking" data-foundry="Fitness" data-track="Fitness" data-journey="" data-discipline="Striking" data-tier="">Striking Fitness · Self-Defense</option></optgroup>
           </select>
         </div>
-        <div class="field" id="rankField"><label for="rankSelect">Rank / Tier</label><select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select></div>
+        <div class="field" id="rankField"><label for="rankSelect">Session Focus Tier</label><select id="rankSelect" class="dashboard-select"><option value="">Select Program First</option></select></div>
         <div class="field" id="weekField"><label for="weekSelect">Training Week</label><select id="weekSelect" class="dashboard-select"><option value="">Select Week</option></select></div>
-        <fieldset class="field mode-field" id="modeField"><legend>Planning Mode</legend><div class="mode-row"><button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true">Hybrid</button><button class="mode-btn" type="button" data-mode="manual" aria-pressed="false">Manual</button></div></fieldset>
+        <fieldset class="field mode-field" id="modeField"><legend>Start path</legend><div class="mode-row entry-mode-row">
+          <button class="mode-btn" type="button" data-mode="checked-in" aria-pressed="false"><strong>Checked-In</strong><span>Attendance first</span></button>
+          <button class="mode-btn active" type="button" data-mode="hybrid" aria-pressed="true"><strong>Hybrid</strong><span>Suggested cards</span></button>
+          <button class="mode-btn" type="button" data-mode="manual" aria-pressed="false"><strong>Manual</strong><span>Coach built</span></button>
+          <button class="mode-btn" type="button" data-mode="quick" aria-pressed="false"><strong>Quick Start</strong><span>Quick 45</span></button>
+          <button class="mode-btn" type="button" aria-pressed="false" disabled><strong>Auto</strong><span>Coming later</span></button>
+        </div></fieldset>
         <p id="modeAvailability" class="availability-note" aria-live="polite"></p>
       </div>
 
@@ -81,6 +82,16 @@
         <button id="buildBtn" class="primary-action build-action" type="button">Build in Practice Clipboard</button>
       </aside>
     </div>
+
+    <section id="attendanceContext" class="attendance-context" hidden aria-live="polite">
+      <div class="attendance-context-heading">
+        <div><span class="eyebrow">Athlete ranks present</span><h3 id="attendanceCount">0 checked in</h3></div>
+        <a id="attendanceLink" class="secondary-link" href="/coaches/attendance/session.html">Manage check-in</a>
+      </div>
+      <p class="attendance-note"><strong>Session Focus Tier</strong> is the curriculum focus selected above. These are the actual athlete ranks present.</p>
+      <div id="attendanceRanks" class="rank-summary"></div>
+      <div id="attendanceAthletes" class="checked-athletes"></div>
+    </section>
   </section>
 
   <nav class="execution-tools" aria-label="Execution tools"><span>Execution tools</span><a href="/coaches/execution/clipboard-2.0/">Practice Clipboard</a><a href="/coaches/execution/big-clock-2.0/">Big Clock</a><a href="/coaches/execution/coach-companion/">Coach Companion</a><a href="/coaches/logs/practice-log.html">Practice Log</a></nav>
