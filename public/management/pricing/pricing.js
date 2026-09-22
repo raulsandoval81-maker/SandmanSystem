@@ -6,6 +6,10 @@ import {
   SANDMAN_PRICING_CATALOG
 } from "/assets/js/pricing/sandman-pricing-catalog.js";
 
+import {
+  calculateManagementEstimate
+} from "./pricing-estimate-model.js";
+
 const athleteList =
   document.getElementById("athleteList");
 
@@ -47,6 +51,12 @@ const fitnessMembership =
 const monthlyMembership =
   document.getElementById("monthlyMembership");
 
+const monthlySponsorRow =
+  document.getElementById("monthlySponsorRow");
+
+const monthlySponsorAmount =
+  document.getElementById("monthlySponsorAmount");
+
 const annualMembershipTotal =
   document.getElementById(
     "annualMembershipTotal"
@@ -62,6 +72,24 @@ const enrollmentStartDate =
   document.getElementById(
     "enrollmentStartDate"
   );
+
+const enrollmentSupport =
+  document.getElementById("enrollmentSupport");
+
+const monthlySponsor =
+  document.getElementById("monthlySponsor");
+
+const admissionsCreditsRow =
+  document.getElementById("admissionsCreditsRow");
+
+const admissionsCreditsAmount =
+  document.getElementById("admissionsCreditsAmount");
+
+const enrollmentSupportRow =
+  document.getElementById("enrollmentSupportRow");
+
+const enrollmentSupportAmount =
+  document.getElementById("enrollmentSupportAmount");
 
 const promotionCode =
   document.getElementById(
@@ -155,42 +183,6 @@ function money(value) {
 }
 
 
-function getProrationRate() {
-  const value =
-    enrollmentStartDate?.value;
-
-  if (!value) {
-    return 1;
-  }
-
-  const day =
-    Number(
-      value.split("-")[2]
-    );
-
-  if (day <= 7) {
-    return 1;
-  }
-
-  if (day <= 14) {
-    return 0.75;
-  }
-
-  if (day <= 21) {
-    return 0.5;
-  }
-
-  return 0.25;
-}
-
-
-function getProrationPercent() {
-  return Math.round(
-    getProrationRate() * 100
-  );
-}
-
-
 function readAthletes() {
   return [
     ...athleteList.querySelectorAll(
@@ -217,6 +209,8 @@ function readAthletes() {
           values.indexOf(value) === index
       );
 
+      const plan = card.querySelector(".athlete-plan").value;
+
       return {
         index: index + 1,
 
@@ -238,10 +232,7 @@ function readAthletes() {
           )?.value ||
           "zero2hero",
 
-        plan:
-          card.querySelector(
-            ".athlete-plan"
-          ).value,
+        plan,
 
         billingTerm:
           card.querySelector(
@@ -252,9 +243,13 @@ function readAthletes() {
           card.querySelector(
             ".training-access"
           )?.value ||
-          "2-3",
+          "core-2",
 
-        disciplines
+        credit: Number(
+          card.querySelector(".admissions-credit")?.value || 0
+        ),
+
+        disciplines: plan === "fitness" ? [] : disciplines
       };
     }
   );
@@ -265,16 +260,18 @@ function renderPricing() {
   const athletes =
     readAthletes();
 
-  const pricing =
-    calculateSandmanMembershipPricing(
-      athletes
-    );
+  const estimate = calculateManagementEstimate(athletes, {
+    startDate: enrollmentStartDate?.value,
+    enrollmentSupportPercent: enrollmentSupport?.value,
+    monthlySponsorPercent: monthlySponsor?.value,
+    promotionAmount: appliedPromotion?.amount || 0,
+  });
+  const pricing = estimate.pricing;
 
   const combatAthletes =
     athletes.filter(
       (athlete) =>
-        athlete.plan === "standard" ||
-        athlete.plan === "combo"
+        athlete.plan === "standard"
     );
 
   const projectedSavingsAnnual =
@@ -384,17 +381,6 @@ function renderPricing() {
       ) - combatHouseholdTotal
     );
 
-  const registrationCount =
-    athletes.filter(
-      (athlete) =>
-        athlete.plan !== "fitness"
-    ).length;
-
-  const annualEnrollmentAmount =
-    registrationCount *
-    (SANDMAN_PRICING_CATALOG
-      .enrollment.perAthlete.amount || 0);
-
   const projectedSavingsMonthly =
     projectedSavingsAnnual / 12;
 
@@ -425,68 +411,34 @@ function renderPricing() {
   }
 
   monthlyMembership.textContent =
-    money(
-      pricing.monthlyMembership
-    );
+    money(estimate.monthlyMembership);
+
+  monthlySponsorRow.hidden = estimate.monthlySponsor === 0;
+  monthlySponsorAmount.textContent = `-${money(estimate.monthlySponsor)}`;
 
   annualMembershipTotal.textContent =
-    money(
-      annualEnrollmentAmount
-    );
+    money(estimate.annualEnrollment);
 
-  const recurringMonthly =
-    Number(
-      pricing.monthlyMembership ||
-      0
-    );
-
-  const prorationRate =
-    getProrationRate();
-
-  const proratedMonthly =
-    recurringMonthly *
-    prorationRate;
-
-  const promotionAmount =
-    appliedPromotion
-      ? Number(
-          appliedPromotion.amount ||
-          0
-        )
-      : 0;
-
-  const enrollmentSubtotal =
-    proratedMonthly +
-    annualEnrollmentAmount;
-
-  const appliedPromotionAmount =
-    Math.min(
-      enrollmentSubtotal,
-      promotionAmount
-    );
-
-  const enrollmentDue =
-    Math.max(
-      0,
-      enrollmentSubtotal -
-        appliedPromotionAmount
-    );
+  admissionsCreditsRow.hidden = estimate.admissionsCredits === 0;
+  admissionsCreditsAmount.textContent = `-${money(estimate.admissionsCredits)}`;
+  enrollmentSupportRow.hidden = estimate.enrollmentSupport === 0;
+  enrollmentSupportAmount.textContent = `-${money(estimate.enrollmentSupport)}`;
 
   prorationLabel.textContent =
-    `First month — ${getProrationPercent()}%`;
+    `First month — ${Math.round(estimate.prorationRate * 100)}%`;
 
   proratedMembership.textContent =
-    money(proratedMonthly);
+    money(estimate.proratedFirstMonth);
 
   nextMonthlyPayment.textContent =
-    money(recurringMonthly);
+    money(estimate.nextMonthlyPayment);
 
   dueAtEnrollment.textContent =
-    money(enrollmentDue);
+    money(estimate.dueAtEnrollment);
 
   if (
     appliedPromotion &&
-    appliedPromotionAmount > 0
+    estimate.promotion > 0
   ) {
     promotionDiscountRow.hidden =
       false;
@@ -495,9 +447,7 @@ function renderPricing() {
       `Promotion: ${appliedPromotion.code}`;
 
     promotionDiscount.textContent =
-      `-${money(
-        appliedPromotionAmount
-      )}`;
+      `-${money(estimate.promotion)}`;
   } else {
     promotionDiscountRow.hidden =
       true;
@@ -622,6 +572,17 @@ function addAthlete(defaults = {}) {
       ".training-access"
     );
 
+  const creditField =
+    newCard.querySelector(".admissions-credit");
+
+  function syncDisciplineControls() {
+    const secondary = newCard.querySelector(".discipline-secondary");
+    const secondField = secondary?.closest(".pricing-field");
+    const supportsTwo = ["classes-4", "dual-full"].includes(trainingAccess.value);
+    if (secondField) secondField.hidden = plan.value === "fitness" || !supportsTwo;
+    if (!supportsTwo && secondary) secondary.value = "";
+  }
+
   function syncPlanControls() {
     const currentPlan =
       plan.value;
@@ -649,19 +610,27 @@ function addAthlete(defaults = {}) {
         isFitnessOnly;
     }
 
+    billingTerm.closest(".pricing-field").hidden = isFitnessOnly;
+    if (isFitnessOnly) billingTerm.value = "month-to-month";
+    creditField.closest(".pricing-field-grid").hidden = isFitnessOnly;
+    if (isFitnessOnly) creditField.value = "0";
+
     if (isFitnessOnly) {
       trainingAccess.innerHTML = `
-        <option value="2">2 days/week — $60</option>
-        <option value="3">3 days/week — $80</option>
+        <option value="2">2 days/week — ${money(SANDMAN_PRICING_CATALOG.fitness.twoDays.monthly)}</option>
+        <option value="3">3 days/week — ${money(SANDMAN_PRICING_CATALOG.fitness.threeDays.monthly)}</option>
       `;
-
+      trainingAccess.value = defaults.trainingAccess === "3" ? "3" : "2";
+      syncDisciplineControls();
       return;
     }
 
-    trainingAccess.innerHTML = `
-      <option value="2-3">2–3 days/week</option>
-      <option value="4-6">4–6 days/week</option>
-    `;
+    trainingAccess.innerHTML = SANDMAN_PRICING_CATALOG.combat.accessOrder
+      .map((key) => `<option value="${key}">${SANDMAN_PRICING_CATALOG.combat.accessLevels[key].label}</option>`)
+      .join("");
+    trainingAccess.value = SANDMAN_PRICING_CATALOG.combat.accessOrder.includes(defaults.trainingAccess)
+      ? defaults.trainingAccess : "core-2";
+    syncDisciplineControls();
   }
 
   memberType?.addEventListener(
@@ -701,6 +670,9 @@ function addAthlete(defaults = {}) {
   secondaryDiscipline.value =
     disciplines[1] ||
     "";
+  syncDisciplineControls();
+
+  if (creditField) creditField.value = Number(defaults.credit) === 25 ? "25" : "0";
 
   newCard.querySelector(
     ".remove-athlete"
@@ -762,6 +734,10 @@ function addAthlete(defaults = {}) {
             syncPlanControls();
           }
 
+          if (control.classList.contains("training-access")) {
+            syncDisciplineControls();
+          }
+
           renderPricing();
         }
       );
@@ -777,6 +753,9 @@ function resetEstimate() {
   athleteList.innerHTML = "";
 
   addAthlete({
+    plan: "standard",
+    trainingAccess: "core-2",
+    billingTerm: "month-to-month",
     disciplines: [
       "wrestling"
     ]
@@ -799,6 +778,9 @@ enrollmentStartDate?.addEventListener(
   "change",
   renderPricing
 );
+
+enrollmentSupport?.addEventListener("change", renderPricing);
+monthlySponsor?.addEventListener("change", renderPricing);
 
 applyPromotionBtn?.addEventListener(
   "click",
@@ -863,6 +845,8 @@ resetBtn?.addEventListener(
     if (enrollmentStartDate) {
       enrollmentStartDate.value = "";
     }
+    if (enrollmentSupport) enrollmentSupport.value = "0";
+    if (monthlySponsor) monthlySponsor.value = "0";
 
     resetEstimate();
   }

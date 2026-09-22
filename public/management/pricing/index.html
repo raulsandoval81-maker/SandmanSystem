@@ -87,6 +87,11 @@
           </dd>
         </div>
 
+        <div id="monthlySponsorRow" class="pricing-summary-row" hidden>
+          <dt>Approved monthly sponsor support</dt>
+          <dd id="monthlySponsorAmount">-$0</dd>
+        </div>
+
         <div class="pricing-summary-row pricing-summary-total">
           <dt>
             Monthly membership
@@ -134,6 +139,28 @@
         </div>
 
         <div class="pricing-field">
+          <label for="enrollmentSupport">Approved enrollment support</label>
+          <select id="enrollmentSupport">
+            <option value="0">None</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="75">75%</option>
+            <option value="100">100% — waived</option>
+          </select>
+        </div>
+
+        <div class="pricing-field">
+          <label for="monthlySponsor">Approved monthly sponsor support</label>
+          <select id="monthlySponsor">
+            <option value="0">None</option>
+            <option value="25">25%</option>
+            <option value="50">50%</option>
+            <option value="75">75%</option>
+            <option value="100">100% — separate billing review required</option>
+          </select>
+        </div>
+
+        <div class="pricing-field">
           <label for="promotionCode">
             Promotion Code
           </label>
@@ -162,6 +189,16 @@
       </div>
 
       <dl class="pricing-summary">
+
+        <div id="admissionsCreditsRow" class="pricing-summary-row" hidden>
+          <dt>Approved admissions credits</dt>
+          <dd id="admissionsCreditsAmount">-$0</dd>
+        </div>
+
+        <div id="enrollmentSupportRow" class="pricing-summary-row" hidden>
+          <dt>Approved enrollment support</dt>
+          <dd id="enrollmentSupportAmount">-$0</dd>
+        </div>
 
         <div class="pricing-summary-row">
           <dt id="prorationLabel">
@@ -243,6 +280,7 @@
 
       <p class="pricing-disclaimer">
         Estimated pricing — not an enrollment agreement.
+        AAU or other governing-body membership is purchased separately by the family.
       </p>
     </section>
 
@@ -362,9 +400,6 @@
         Fitness Only
       </option>
 
-      <option value="combo">
-        Combat + Fitness
-      </option>
     </select>
   </div>
 
@@ -376,6 +411,10 @@
     <select class="billing-term">
       <option value="month-to-month">
         Month-to-month
+      </option>
+
+      <option value="six-month">
+        6-month agreement + autopay
       </option>
 
       <option value="annual">
@@ -392,13 +431,7 @@
           </label>
 
           <select class="training-access">
-            <option value="2-3">
-              2–3 days/week
-            </option>
-
-            <option value="4-6">
-              4–6 days/week
-            </option>
+            <option value="core-2">2-Day Core</option>
           </select>
         </div>
 
@@ -407,17 +440,17 @@
 
       <div class="discipline-box combat-fields">
         <div class="discipline-heading">
-          Sports
+          Disciplines
         </div>
 
         <p class="discipline-help">
-          Choose up to two sports.
+          Choose up to two approved disciplines where the access level permits.
         </p>
 
         <div class="discipline-select-grid">
           <div class="pricing-field">
             <label>
-              Primary Sport
+              Primary Discipline
             </label>
 
             <select class="discipline-primary">
@@ -437,7 +470,7 @@
 
           <div class="pricing-field">
             <label>
-              Second Sport
+              Second Discipline
               <span class="optional-label">
                 Optional
               </span>
@@ -461,6 +494,16 @@
               </option>
             </select>
           </div>
+        </div>
+      </div>
+
+      <div class="pricing-field-grid">
+        <div class="pricing-field">
+          <label>Approved admissions credit</label>
+          <select class="admissions-credit">
+            <option value="0">None</option>
+            <option value="25">$25</option>
+          </select>
         </div>
       </div>
 
