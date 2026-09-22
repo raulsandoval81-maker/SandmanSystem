@@ -775,6 +775,11 @@ addAthleteBtn?.addEventListener(
 );
 
 enrollmentStartDate?.addEventListener(
+  "input",
+  renderPricing
+);
+
+enrollmentStartDate?.addEventListener(
   "change",
   renderPricing
 );

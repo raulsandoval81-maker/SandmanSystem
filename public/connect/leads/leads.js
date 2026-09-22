@@ -71,7 +71,7 @@ function labelForStatus(status = "new") {
     new: "New",
     contacted: "Contacted",
     appointment_scheduled: "Appointment Scheduled",
-    ready_for_intake: "Ready for Intake",
+    ready_for_proposal: "Ready for Proposal",
     intake_started: "Intake Started",
     converted: "Converted",
     closed: "Closed"
@@ -252,7 +252,7 @@ function statusOptions(selected = "new") {
     "new",
     "contacted",
     "appointment_scheduled",
-    "ready_for_intake",
+    "ready_for_proposal",
     "intake_started",
     "converted",
     "closed"
@@ -858,7 +858,7 @@ async function walkInEnrollment(leadId) {
         "",
         "This will mark the in-person assessment as completed,",
         "bypass appointment scheduling, and move the athlete",
-        "into the admissions/enrollment flow.",
+        "into the proposal/enrollment flow.",
         "",
         "Continue?"
       ].join("\n")
@@ -957,7 +957,7 @@ async function walkInEnrollment(leadId) {
           "ready-to-enroll",
 
         admissionsStatus:
-          "ready-to-enroll",
+          "ready_to_enroll",
 
         updatedAt:
           serverTimestamp()
@@ -975,10 +975,10 @@ async function walkInEnrollment(leadId) {
       ),
       {
         leadStatus:
-          "ready_for_intake",
+          "ready_for_proposal",
 
         status:
-          "ready_for_intake",
+          "ready_for_proposal",
 
         appointmentId:
           leadId,
@@ -1016,7 +1016,7 @@ async function walkInEnrollment(leadId) {
     );
 
 window.location.href =
-  `/connect/proposals/?appointmentId=${encodeURIComponent(
+  `/connect/admissions/calculator/?appointmentId=${encodeURIComponent(
     leadId
   )}`;
   } catch (error) {
